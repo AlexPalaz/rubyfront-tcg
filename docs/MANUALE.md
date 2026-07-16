@@ -458,6 +458,14 @@ Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfro
 
 *Esempio: gioco un'Entità con effetto d'ingresso "scarta una carta" mentre ho in campo due permanenti — la più vecchia dice "quando giochi un'Entità, pesca una carta", la più recente "quando giochi un'Entità, infliggi 1 danno al Rubyfront avversario". Ordine: prima l'Entità entrata (scarto), poi la permanente più giovane (danno), infine la più vecchia (pesco).*
 
+#### Eventi generati durante la risoluzione
+
+La risoluzione di un effetto può generare **nuovi eventi** (una morte, un ingresso in campo...) mentre altri effetti innescati dall'evento precedente sono ancora in attesa. In quel caso **si accodano** (FIFO): prima si esaurisce **tutto il gruppo di effetti dell'evento corrente**, nell'ordine stabilito sopra; poi si risolve il nuovo evento, con il proprio gruppo di effetti innescati ordinato allo stesso modo — e così via, evento dopo evento, finché la coda non è vuota. Un nuovo evento **non interrompe mai** il gruppo in corso di risoluzione.
+
+**Un effetto innescato si risolve comunque:** una volta innescato, l'effetto è "in volo" — si risolve anche se la sua fonte (l'Entità o la permanente che lo ha generato) **lascia il campo prima del suo turno di risoluzione**. Questa regola vale per gli effetti innescati; le Materie Reattive in catena seguono invece la propria regola e **svaniscono** se l'abilitazione manca alla risoluzione (§7.2).
+
+*Esempio: gioco l'Entità E ("Distruggi un'Entità avversaria") con in campo P2, la permanente più giovane ("quando giochi un'Entità, il Rubyfront avversario perde 1 PV") e P1, la più vecchia ("quando giochi un'Entità, pesca una carta"). L'avversario controlla Y ("quando Y muore, distruggi la Materia permanente avversaria più giovane"). Ordine: E risolve e distrugge Y — la morte di Y è un nuovo evento e il suo effetto si accoda; P2 risolve (l'avversario perde 1 PV); P1 risolve (pesco); infine risolve l'effetto di Y, che distrugge P2. Se l'effetto di Y fosse invece riuscito a distruggere P2 prima del suo turno di risoluzione, l'effetto già innescato di P2 si sarebbe risolto comunque.*
+
 ## 9. Regole speciali e casi limite
 
 ### 9.1 Esaurimento del mazzo
