@@ -127,7 +127,7 @@ La carta del Rubyfront ha **due facce**: una è il **Rubyfront**, l'altra è la 
 - **Come si gioca:** si **flippa** la carta del Rubyfront sull'altra faccia. Requisiti e condizioni:
   - i **requisiti** per il flip sono scritti sulla carta stessa;
   - il **Rubyfront dev'essere in campo** (non si flippa dalla Zona di Comando);
-  - soddisfatti i requisiti, il flip si può fare **in qualsiasi momento del proprio turno** (come il movimento del Rubyfront) e non ha altri costi.
+  - soddisfatti i requisiti, il flip si può fare in qualsiasi momento del proprio turno, **dalla Fase di Preparazione fino alla fine del turno** (stessa finestra del movimento del Rubyfront, §3.1), e non ha altri costi.
 - **PV recuperati:** la faccia dell'Unione indica un **recupero di PV** (es. `+5`): l'Unione parte con i **PV rimasti al Rubyfront più il recupero indicato**.
 - **Permanenza:** l'Unione **sostituisce il Rubyfront** e **rimane in campo per tutta la durata della partita**, salvo diverse indicazioni sulle carte. **Non torna mai in Zona di Comando**: quando un attacco le passa, subisce il danno e resta in campo.
 - **Com'è fatta:** ha la stessa struttura del Rubyfront — PV, **Materie disponibili proprie** (stampate sulla sua faccia) e **abilità speciali**, chiaramente **più potenti**. Come il Rubyfront, **non attacca e non blocca** (salvo diversa indicazione sulla carta).
@@ -190,7 +190,7 @@ Dichiarata dal giocatore al termine della Canalizzazione. In questa fase si iniz
 
 Sul Fronte si possono avere **al massimo 5 carte contemporaneamente** tra **Entità e Materie permanenti** (che contano entrambe nel limite), **Rubyfront escluso** dal conteggio.
 
-**Attesa di evocazione:** un'Entità appena entrata in campo **non può attaccare nel turno in cui entra**; deve aspettare il turno successivo. Può però **difendere** se attaccata nel turno avversario.
+**Attesa di evocazione:** un'Entità appena entrata in campo **non può attaccare nel turno in cui entra**; deve aspettare il turno successivo. Può però già **bloccare** nel turno avversario che segue.
 
 ### 6.3 Fase di Fronte (combattimento)
 
@@ -348,15 +348,25 @@ L'**abilità principale** del Rubyfront funziona allo stesso modo: è una parola
 
 ##### Furia
 
-Un'Entità con **Furia** non può essere **controllata direttamente** dal suo proprietario. Il giocatore può metterla in gioco, dichiararle un attacco o usare una Materia in suo appoggio, ma l'esito non è garantito:
+Una carta con **Furia** non può essere **controllata direttamente** dal suo proprietario. Furia compare **principalmente sul Rubyfront** (come abilità principale), ma può averla anche un'Entità. Il principio è unico:
 
-- quando attacca (o riceve una Materia in appoggio), il proprietario **lancia un d20**;
-- con **12 o più**, l'attacco/Materia **va a buon fine**;
-- con **11 o meno**, l'azione **fallisce**: il **Rubyfront del proprietario perde PV pari alla Potenza** dell'Entità con Furia. L'attacco fallito è annullato e conta comunque come l'attacco del turno dell'Entità; la Materia fallita va nella **pila degli scarti** e il Flusso resta speso (si paga prima di giocarla).
+**Prima di qualsiasi azione** che coinvolga la carta con Furia, il proprietario **lancia un d20**. Vale per *ogni* azione, nessuna esclusa: attaccare, bloccare, contrattaccare, usare una Materia annessa alla carta, e — nel caso del Rubyfront — anche schierarsi, tornare in Zona di Comando o usare un'abilità speciale.
 
-**Tempistica del tiro in attacco:** l'Entità con Furia si dichiara nell'ondata normalmente (§6.3), ma il suo blocco **non** si assegna con gli altri: il **d20 si tira quando arriva il momento di risolvere il suo attacco**, e solo **se il tiro passa** il difensore dichiara il blocco per quell'attacco (con un'Entità ancora libera o una Reattiva-blocco). Se fallisce, non c'è battaglia: nessun bloccante viene impegnato.
+Esito del tiro:
 
-Inoltre, un'Entità con Furia **non può bloccare né contrattaccare**.
+- con **12 o più**, l'azione **va a buon fine**;
+- con **11 o meno**, l'azione **fallisce** e si perdono PV: per un'**Entità**, il Rubyfront del proprietario perde PV **pari alla Potenza** dell'Entità; per il **Rubyfront/Unione**, si perde il **valore X indicato sulla carta** accanto a Furia.
+
+Dettagli sul fallimento (l'azione salta, i costi già pagati restano pagati):
+
+- **attacco fallito:** annullato; conta comunque come l'attacco del turno dell'Entità;
+- **blocco/contrattacco fallito:** la difesa non avviene e **l'attacco passa** (l'Entità non viene tappata né coperta);
+- **Materia fallita:** va nella **pila degli scarti** e il Flusso resta speso;
+- **movimento/abilità del Rubyfront falliti:** il Rubyfront resta dov'è / l'abilità non si risolve.
+
+**Tempistica del tiro in attacco:** l'Entità con Furia si dichiara nell'ondata normalmente (§6.3), ma il suo blocco **non** si assegna con gli altri: il **d20 si tira quando arriva il momento di risolvere il suo attacco**, e solo **se il tiro passa** il difensore dichiara il blocco per quell'attacco. Se fallisce, non c'è battaglia: nessun bloccante viene impegnato.
+
+Le Materie **avversarie** che bersagliano una carta con Furia funzionano normalmente, senza tiro: il d20 riguarda solo le azioni del proprietario.
 
 ##### Slancio
 
@@ -365,6 +375,8 @@ Un'Entità con **Slancio** può **attaccare già nel turno in cui entra in campo
 ##### Stasi
 
 Quando un'Entità con **Stasi** blocca e **dovrebbe morire** (Potenza inferiore all'attaccante), invece di morire **rimane sul campo, permanentemente tappata**: non si stapperà mai più e non potrà più né attaccare né bloccare. Continua a occupare uno slot del Fronte, ma essendo ancora in campo **continua ad abilitare le sue Materie**.
+
+Stasi salva anche dal **contrattacco fallito**: se l'Entità contrattacca e il suo totale resta inferiore alla Potenza dell'attaccante, invece di morire finisce anch'essa **permanentemente tappata** (lo stato di stasi sostituisce la copertura).
 
 Un'Entità in stasi è a tutti gli effetti *tappata* (non coperta): può quindi essere **sostituita da un'Evoluzione** (§3.1), che entra fresca — è il modo per "riscattare" un'Entità pietrificata.
 
@@ -403,7 +415,7 @@ Il pareggio esiste, ma **solo di comune accordo**: dev'essere **dichiarato da en
 
 ### 9.3 Riepilogo dei limiti
 
-- Massimo **7 carte in mano** (l'eccesso si scarta a fine turno, §6.3).
+- Massimo **7 carte in mano** (l'eccesso si scarta a fine turno, §6.4).
 - Massimo **5 carte sul Fronte** tra Entità e Materie permanenti, Rubyfront escluso (§6.2).
 - Massimo **3 copie** della stessa carta nel mazzo (§3.1).
 - Massimo **20 Flussi** (§3.2).
@@ -423,7 +435,7 @@ Il pareggio esiste, ma **solo di comune accordo**: dev'essere **dichiarato da en
 - **Pre-Fronte** — finestra a inizio Fase di Fronte in cui l'avversario può giocare Materie Reattive prima della dichiarazione d'attacco.
 - **Oggetto** — carta senza costo di Flusso che si assegna a un'Entità (max 1 per Entità).
 - **Abilità** — parola chiave con regole predefinite da questo manuale (vedi §8.1).
-- **Furia** — abilità: l'Entità agisce solo superando un tiro di d20 (≥12); al fallimento il proprio Rubyfront perde PV pari alla sua Potenza. Non blocca e non contrattacca.
+- **Furia** — abilità (tipica del Rubyfront): prima di *qualsiasi* azione della carta serve un d20 ≥12; al fallimento l'azione salta e si perdono PV (Potenza dell'Entità, o il valore X sulla carta per il Rubyfront).
 - **Slancio** — abilità: l'Entità può attaccare già nel turno in cui entra in campo (ignora l'attesa di evocazione).
 - **Stasi** — abilità: se bloccando dovrebbe morire, resta invece sul campo permanentemente tappata.
 - **Vendetta** — abilità: se blocca con Potenza superiore all'attaccante, l'attaccante muore anche senza contrattacco.
