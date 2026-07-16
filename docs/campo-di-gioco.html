@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rubyfront — Il campo di gioco</title>
+<style>
+  :root {
+    --bg: #edeae4;
+    --surface: #f7f5f1;
+    --panel: #f2efe9;
+    --ink: #241d1f;
+    --muted: #6e6367;
+    --line: #cfc7c0;
+    --ruby: #a62640;
+    --ruby-soft: rgba(166, 38, 64, .07);
+    --foe: #46647a;
+    --foe-soft: rgba(70, 100, 122, .07);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131013;
+      --surface: #1c171a;
+      --panel: #181316;
+      --ink: #ede6e0;
+      --muted: #998d90;
+      --line: #3b3136;
+      --ruby: #d24a64;
+      --ruby-soft: rgba(210, 74, 100, .10);
+      --foe: #7fa3bc;
+      --foe-soft: rgba(127, 163, 188, .10);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #edeae4; --surface: #f7f5f1; --panel: #f2efe9;
+    --ink: #241d1f; --muted: #6e6367; --line: #cfc7c0;
+    --ruby: #a62640; --ruby-soft: rgba(166, 38, 64, .07);
+    --foe: #46647a; --foe-soft: rgba(70, 100, 122, .07);
+  }
+  :root[data-theme="dark"] {
+    --bg: #131013; --surface: #1c171a; --panel: #181316;
+    --ink: #ede6e0; --muted: #998d90; --line: #3b3136;
+    --ruby: #d24a64; --ruby-soft: rgba(210, 74, 100, .10);
+    --foe: #7fa3bc; --foe-soft: rgba(127, 163, 188, .10);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    line-height: 1.5;
+    padding: 40px 20px 64px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header { margin-bottom: 28px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ruby);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-size: clamp(26px, 4.5vw, 38px);
+    font-weight: 600;
+    letter-spacing: -.01em;
+    text-wrap: balance;
+    margin-bottom: 8px;
+  }
+  .lede { color: var(--muted); max-width: 62ch; font-size: 15px; }
+
+  .board {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel);
+    padding: clamp(14px, 3vw, 30px);
+  }
+
+  .half { --tint: var(--ruby); --tint-soft: var(--ruby-soft); }
+  .half.foe { --tint: var(--foe); --tint-soft: var(--foe-soft); }
+
+  .side-name {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: .16em; text-transform: uppercase;
+    color: var(--tint);
+    margin: 4px 0 14px;
+  }
+  .side-name::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .half.you .side-name { margin-top: 18px; }
+
+  .rows { display: flex; flex-direction: column; gap: 18px; }
+
+  .zone-tag {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+    white-space: nowrap;
+  }
+  .zone-tag .ref { color: var(--tint); }
+
+  /* ---------- primitive: slot e dorsi carta ---------- */
+  .slot {
+    aspect-ratio: 5 / 7;
+    border: 1.5px dashed color-mix(in srgb, var(--tint) 45%, var(--line));
+    border-radius: 8px;
+    background: var(--tint-soft);
+    display: flex; align-items: center; justify-content: center;
+    color: color-mix(in srgb, var(--tint) 60%, var(--muted));
+    font-family: var(--mono); font-size: 12px;
+  }
+  .card-back {
+    aspect-ratio: 5 / 7;
+    border: 1px solid color-mix(in srgb, var(--tint) 40%, var(--line));
+    border-radius: 7px;
+    background:
+      repeating-linear-gradient(45deg, var(--tint-soft) 0 4px, transparent 4px 9px),
+      var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--tint); font-size: 14px;
+  }
+
+  /* ---------- Fronte: 5 slot ---------- */
+  .front-slots {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .row-front { text-align: center; }
+  .row-front .zone-tag { text-align: center; }
+
+  /* ---------- Rubyfront ---------- */
+  .row-ruby { display: flex; flex-direction: column; align-items: center; }
+  .ruby-slot {
+    width: 128px;
+    aspect-ratio: 7 / 5;
+    border: 1.5px solid color-mix(in srgb, var(--tint) 70%, var(--line));
+    border-radius: 8px;
+    background: var(--tint-soft);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px;
+    color: var(--tint);
+  }
+  .ruby-slot .gem { font-size: 18px; line-height: 1; }
+  .ruby-slot small { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+  /* ---------- Materie permanenti ---------- */
+  .perm-row { display: flex; align-items: center; gap: 14px; }
+  .perm-stack { display: flex; }
+  .perm-stack .card-back { width: 44px; }
+  .perm-stack .card-back + .card-back { margin-left: -26px; }
+  .perm-stack .card-back:nth-child(2) { transform: translateY(4px); }
+  .perm-stack .card-back:nth-child(3) { transform: translateY(8px); }
+  .perm-note { font-size: 12.5px; color: var(--muted); font-style: italic; max-width: 34ch; }
+  .half.foe .perm-row { flex-direction: row-reverse; text-align: right; }
+
+  /* ---------- fila di supporto: comando / mazzo / scarti / mano ---------- */
+  .support {
+    display: flex; align-items: flex-end; gap: clamp(14px, 3.5vw, 34px);
+    flex-wrap: wrap;
+  }
+  .half.foe .support { flex-direction: row-reverse; }
+  .support .zone { display: flex; flex-direction: column; }
+  .support .slot, .support .card-back { width: 54px; }
+  .deck {
+    box-shadow: 2px 2px 0 var(--panel), 3px 3px 0 color-mix(in srgb, var(--tint) 40%, var(--line));
+  }
+
+  .fan { display: flex; padding-top: 6px; }
+  .fan .card-back { width: 42px; }
+  .fan .card-back + .card-back { margin-left: -20px; }
+  .fan .card-back:nth-child(1) { transform: rotate(-8deg) translateY(3px); }
+  .fan .card-back:nth-child(2) { transform: rotate(-4deg) translateY(1px); }
+  .fan .card-back:nth-child(4) { transform: rotate(4deg) translateY(1px); }
+  .fan .card-back:nth-child(5) { transform: rotate(8deg) translateY(3px); }
+
+  /* ---------- Flusso ---------- */
+  .flux { flex: 1; min-width: 200px; }
+  .flux-bar { display: flex; gap: 3px; align-items: center; }
+  .flux-bar i {
+    flex: 1; height: 12px; max-width: 14px;
+    border: 1px solid color-mix(in srgb, var(--tint) 45%, var(--line));
+    border-radius: 3px;
+    background: var(--tint-soft);
+  }
+  .token {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1.5px solid var(--tint);
+    background: var(--tint-soft);
+    color: var(--tint);
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-left: 8px; flex: none;
+  }
+  .flux-note { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 6px; }
+
+  /* ---------- linea centrale ---------- */
+  .clash { margin: 26px 0; text-align: center; }
+  .clash-line { display: flex; align-items: center; gap: 12px; color: var(--ruby); }
+  .clash-line::before, .clash-line::after {
+    content: ""; flex: 1; height: 1px;
+    background: linear-gradient(to right, transparent, color-mix(in srgb, var(--ruby) 55%, var(--line)));
+  }
+  .clash-line::after { background: linear-gradient(to left, transparent, color-mix(in srgb, var(--ruby) 55%, var(--line))); }
+  .clash-caption { font-size: 12.5px; color: var(--muted); font-style: italic; margin-top: 8px; }
+
+  footer {
+    margin-top: 22px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); letter-spacing: .04em;
+  }
+
+  @media (max-width: 560px) {
+    .support { gap: 12px; }
+    .perm-note { max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Rubyfront · Manuale §5 — Zone di gioco</p>
+    <h1>Il campo di gioco</h1>
+    <p class="lede">Due metà speculari. Ogni giocatore ha il proprio Fronte da 5 slot: il Rubyfront schierato sta <em>davanti</em> agli slot, le Materie permanenti <em>dietro</em>, in fila per età. Mazzo e mano sono nascosti; la pila degli scarti è pubblica.</p>
+  </header>
+
+  <div class="board">
+
+    <!-- ===================== AVVERSARIO ===================== -->
+    <section class="half foe">
+      <div class="side-name">Avversario</div>
+      <div class="rows">
+
+        <div class="support">
+          <div class="zone">
+            <div class="zone-tag">Mano · nascosta, max 7 <span class="ref">§6.4</span></div>
+            <div class="fan">
+              <div class="card-back"></div><div class="card-back"></div><div class="card-back"></div><div class="card-back"></div><div class="card-back"></div>
+            </div>
+          </div>
+          <div class="zone">
+            <div class="zone-tag">Mazzo · 40 <span class="ref">§3.1</span></div>
+            <div class="card-back deck"></div>
+          </div>
+          <div class="zone">
+            <div class="zone-tag">Scarti · pubblica <span class="ref">§5</span></div>
+            <div class="slot">↷</div>
+          </div>
+          <div class="zone">
+            <div class="zone-tag">Zona di Richiamo <span class="ref">§5</span></div>
+            <div class="card-back" style="width:54px">◆</div>
+          </div>
+          <div class="zone flux">
+            <div class="zone-tag">Flusso · max 20 <span class="ref">§3.2</span></div>
+            <div class="flux-bar">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="zone">
+          <div class="zone-tag">Materie permanenti · dietro gli slot, senza limite <span class="ref">§7.2</span></div>
+          <div class="perm-row">
+            <div class="perm-stack">
+              <div class="card-back"></div><div class="card-back"></div><div class="card-back"></div>
+            </div>
+            <p class="perm-note">una dietro l'altra, nell'ordine in cui sono scese: la fila tiene traccia dell'età (§8.2)</p>
+          </div>
+        </div>
+
+        <div class="row-front">
+          <div class="zone-tag">Fronte · 5 slot, solo Entità <span class="ref">§5</span></div>
+          <div class="front-slots">
+            <div class="slot">1</div><div class="slot">2</div><div class="slot">3</div><div class="slot">4</div><div class="slot">5</div>
+          </div>
+        </div>
+
+        <div class="row-ruby">
+          <div class="zone-tag">Rubyfront schierato · davanti agli slot <span class="ref">§5</span></div>
+          <div class="ruby-slot"><span class="gem">◆</span><small>non occupa slot</small></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================== LINEA DI SCONTRO ===================== -->
+    <div class="clash">
+      <div class="clash-line">◆</div>
+      <p class="clash-caption">Gli attacchi puntano sempre il Rubyfront avversario, mai le Entità (§6.3) — anche quando è in Zona di Richiamo (§3.1).</p>
+    </div>
+
+    <!-- ===================== TU ===================== -->
+    <section class="half you">
+      <div class="rows">
+
+        <div class="row-ruby">
+          <div class="ruby-slot"><span class="gem">◆</span><small>non occupa slot</small></div>
+          <div class="zone-tag" style="margin:6px 0 0">Rubyfront schierato · davanti agli slot <span class="ref">§5</span></div>
+        </div>
+
+        <div class="row-front">
+          <div class="front-slots">
+            <div class="slot">1</div><div class="slot">2</div><div class="slot">3</div><div class="slot">4</div><div class="slot">5</div>
+          </div>
+          <div class="zone-tag" style="margin:6px 0 0">Fronte · 5 slot, solo Entità <span class="ref">§5</span></div>
+        </div>
+
+        <div class="zone">
+          <div class="perm-row">
+            <div class="perm-stack">
+              <div class="card-back"></div><div class="card-back"></div><div class="card-back"></div>
+            </div>
+            <p class="perm-note">una dietro l'altra, nell'ordine in cui sono scese: la fila tiene traccia dell'età (§8.2)</p>
+          </div>
+          <div class="zone-tag" style="margin:6px 0 0">Materie permanenti · dietro gli slot, senza limite <span class="ref">§7.2</span></div>
+        </div>
+
+        <div class="support">
+          <div class="zone">
+            <div class="zone-tag">Mano · nascosta, max 7 <span class="ref">§6.4</span></div>
+            <div class="fan">
+              <div class="card-back"></div><div class="card-back"></div><div class="card-back"></div><div class="card-back"></div><div class="card-back"></div>
+            </div>
+          </div>
+          <div class="zone">
+            <div class="zone-tag">Mazzo · 40 <span class="ref">§3.1</span></div>
+            <div class="card-back deck"></div>
+          </div>
+          <div class="zone">
+            <div class="zone-tag">Scarti · pubblica <span class="ref">§5</span></div>
+            <div class="slot">↷</div>
+          </div>
+          <div class="zone">
+            <div class="zone-tag">Zona di Richiamo <span class="ref">§5</span></div>
+            <div class="card-back" style="width:54px">◆</div>
+          </div>
+          <div class="zone flux">
+            <div class="zone-tag">Flusso · max 20 <span class="ref">§3.2</span></div>
+            <div class="flux-bar">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <span class="token">+1</span>
+            </div>
+            <p class="flux-note">il Gettone Flusso (+1, monouso) va a chi non inizia — vive fuori dal limite dei 20 (§3.2)</p>
+          </div>
+        </div>
+
+        <div class="side-name">Tu</div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>Diagramma conforme a docs/MANUALE.md · il Rubyfront parte in Zona di Richiamo (◆) e si schiera davanti al Fronte</footer>
+</div>
+
+</body>
+</html>

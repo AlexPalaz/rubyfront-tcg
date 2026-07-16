@@ -25,7 +25,7 @@
 
 ## 2. Obiettivo del gioco
 
-Ogni giocatore ha il **proprio Rubyfront** nel mazzo (vedi §3.1), che inizia la partita nella Zona di Comando.
+Ogni giocatore ha il **proprio Rubyfront** nel mazzo (vedi §3.1), che inizia la partita nella Zona di Richiamo.
 
 Si vince in uno di questi due modi:
 
@@ -37,7 +37,7 @@ Si vince in uno di questi due modi:
 ### 3.1 Il mazzo
 
 - Ogni giocatore ha un **mazzo personale di 40 carte, Rubyfront incluso** (esattamente **un** Rubyfront per mazzo). Il mazzo contiene tutte le carte del giocatore: Entità, Materie e Oggetti (non esistono riserve separate).
-- Il **Rubyfront non si pesca mai**: all'inizio della partita viene messo direttamente nella **Zona di Comando** (vedi §5).
+- Il **Rubyfront non si pesca mai**: all'inizio della partita viene messo direttamente nella **Zona di Richiamo** (vedi §5).
 
 Le carte con una razza si chiamano **Entità** (non "creature"). Ogni Entità appartiene a una **razza**: **Umani** o **Auros** (il Rubyfront è a sé). Per giocare Entità e Materie bisogna **spendere Flusso** pari al loro costo (gli Oggetti sono gratuiti, vedi sotto).
 
@@ -98,10 +98,10 @@ La carta del Rubyfront riporta:
 - **Costo di Flusso crescente** nel formato `base+incremento` (es. `2+1`) — il costo per schierarlo in campo (vedi sotto).
 - **Materie disponibili** — i tipi di Materia che il Rubyfront può usare, **con il grado massimo** per i tipi che hanno gradi (come le Entità, §7.1).
 - **Abilità principale** — nasce quando il Rubyfront entra in campo e da quel momento è **sempre attiva**.
-- **Descrizione** con l'**effetto che si risolve quando entra in campo** dalla Zona di Comando — **a ogni schieramento**, non solo il primo.
+- **Descrizione** con l'**effetto che si risolve quando entra in campo** dalla Zona di Richiamo — **a ogni schieramento**, non solo il primo.
 - **Abilità speciali** — per essere usate **costano PV**.
 
-Il Rubyfront è **attaccabile anche mentre si trova in Zona di Comando**: i suoi PV sono un bersaglio valido dall'inizio alla fine della partita. Abilità (principale e speciali) e Materie, però, sono **utilizzabili solo quando è in campo**: schierarlo serve a sbloccarle.
+Il Rubyfront è **attaccabile anche mentre si trova in Zona di Richiamo**: i suoi PV sono un bersaglio valido dall'inizio alla fine della partita. Abilità (principale e speciali) e Materie, però, sono **utilizzabili solo quando è in campo**: schierarlo serve a sbloccarle.
 
 #### Costo di schieramento crescente
 
@@ -111,14 +111,14 @@ Il costo di Flusso del Rubyfront è indicato nel formato **`base+incremento`** (
 
 Il costo di schieramento cresce **fino a un massimo di 20** e non può mai superarlo: raggiunto il tetto, ogni rischieramento successivo costa 20. Il Rubyfront resta quindi sempre schierabile (a 20 Flussi pieni).
 
-#### Ritorno in Zona di Comando
+#### Ritorno in Zona di Richiamo
 
-Il Rubyfront schierato **torna in Zona di Comando** nei seguenti casi:
+Il Rubyfront schierato **torna in Zona di Richiamo** nei seguenti casi:
 
-- **automaticamente, appena perde PV mentre è in campo**, per qualsiasi causa: attacchi che passano, effetti e Materie avversarie, o il fallimento della propria Furia (§8.1 — il Rubyfront "si colpisce da solo" e torna comunque in Zona di Comando). Il Rubyfront **subisce la perdita di PV** e **torna immediatamente in Zona di Comando**: da quell'istante smette di abilitare le sue Materie (le permanenti dei tipi che solo lui abilitava vanno negli scarti, §7.2). Se il proprietario lo rischiera nello stesso turno (pagando il costo aumentato) e il Rubyfront subisce un'altra perdita, torna di nuovo in Zona di Comando: **ogni perdita di PV subita in campo è un ritorno** (e quindi un aumento del costo di rischieramento). I **PV spesi come costo** delle abilità speciali sono un pagamento, non una perdita subita: **non fanno scattare il ritorno**;
+- **automaticamente, appena perde PV mentre è in campo**, per qualsiasi causa: attacchi che passano, effetti e Materie avversarie, o il fallimento della propria Furia (§8.1 — il Rubyfront "si colpisce da solo" e torna comunque in Zona di Richiamo). Il Rubyfront **subisce la perdita di PV** e **torna immediatamente in Zona di Richiamo**: da quell'istante smette di abilitare le sue Materie (le permanenti dei tipi che solo lui abilitava vanno negli scarti, §7.2). Se il proprietario lo rischiera nello stesso turno (pagando il costo aumentato) e il Rubyfront subisce un'altra perdita, torna di nuovo in Zona di Richiamo: **ogni perdita di PV subita in campo è un ritorno** (e quindi un aumento del costo di rischieramento). I **PV spesi come costo** delle abilità speciali sono un pagamento, non una perdita subita: **non fanno scattare il ritorno**;
 - **volontariamente**, per scelta del proprietario.
 
-Ogni ritorno in Zona di Comando fa scattare l'aumento del costo di rischieramento (vedi sopra).
+Ogni ritorno in Zona di Richiamo fa scattare l'aumento del costo di rischieramento (vedi sopra).
 
 **Finestra di movimento:** il proprietario può muovere il Rubyfront (schierarlo o richiamarlo, anche **più volte nello stesso turno**) durante tutto il proprio turno, dalla **Fase di Preparazione** fino alla **fine del turno** — anche dopo aver finito di attaccare (il Rubyfront non attacca: la sua funzione è usare abilità a costo PV e Materie, quindi muoverlo a fine turno è legittimo). Ogni rischieramento paga comunque il costo crescente. **Mai nel mezzo di una catena di risposta** (§7.2): la catena è atomica.
 
@@ -138,10 +138,10 @@ La carta del Rubyfront ha **due facce**: una è il **Rubyfront**, l'altra è la 
 
 - **Come si gioca:** si **flippa** la carta del Rubyfront sull'altra faccia. Requisiti e condizioni:
   - i **requisiti** per il flip sono scritti sulla carta stessa e vanno soddisfatti **al momento del flip**: una volta giocata, l'Unione resta in campo anche se i requisiti smettono in seguito di essere veri;
-  - il **Rubyfront dev'essere in campo** (non si flippa dalla Zona di Comando);
+  - il **Rubyfront dev'essere in campo** (non si flippa dalla Zona di Richiamo);
   - soddisfatti i requisiti, il flip si può fare in qualsiasi momento del proprio turno, **dalla Fase di Preparazione fino alla fine del turno** (stessa finestra del movimento del Rubyfront, §3.1), e non ha altri costi.
 - **PV recuperati:** la faccia dell'Unione indica un **recupero di PV** (es. `+5`): l'Unione parte con i **PV rimasti al Rubyfront più il recupero indicato**.
-- **Permanenza:** l'Unione **sostituisce il Rubyfront** e **rimane in campo per tutta la durata della partita**, salvo diverse indicazioni sulle carte. **Non torna mai in Zona di Comando**: quando un attacco le passa, subisce il danno e resta in campo.
+- **Permanenza:** l'Unione **sostituisce il Rubyfront** e **rimane in campo per tutta la durata della partita**, salvo diverse indicazioni sulle carte. **Non torna mai in Zona di Richiamo**: quando un attacco le passa, subisce il danno e resta in campo.
 - **Flip, effetti e Materie:** il flip **non è una nuova entrata in campo**: non innesca gli effetti "quando giochi una carta/Entità" e, ai fini dell'ordine di risoluzione (§8.2), la carta conserva l'età dello schieramento del Rubyfront. Dal momento del flip **si attiva l'effetto indicato sulla faccia dell'Unione**. Le Materie abilitate sono **quelle stampate sulla faccia dell'Unione** (nessuna eredità dal Rubyfront): le Materie permanenti dei tipi che l'Unione continua ad abilitare **sopravvivono al flip senza interruzione**; quelle dei tipi non più abilitati vanno nella **pila degli scarti**.
 - **Com'è fatta:** ha la stessa struttura del Rubyfront — PV, **Materie disponibili proprie** (stampate sulla sua faccia) e **abilità speciali**, chiaramente **più potenti**. Come il Rubyfront, **non attacca e non blocca** (salvo diversa indicazione sulla carta).
 - **Distruzione = sconfitta:** portare a **0 i PV dell'Unione** significa distruggerla — è la condizione di vittoria n. 2 (§2).
@@ -168,7 +168,7 @@ Il Gettone è **fuori dal limite dei 20 Flussi**: non fa parte della barra del F
 
 1. **Chi inizia:** se entrambi i giocatori sono d'accordo, possono **scegliere liberamente** chi inizia. Altrimenti entrambi tirano un **d20**: chi ottiene il numero più alto inizia la partita; in caso di **pareggio si ritira**.
 2. **Gettone Flusso:** il giocatore che non inizia riceve il Gettone Flusso (vedi §3.2).
-3. **Rubyfront:** ogni giocatore mette il proprio Rubyfront nella **Zona di Comando** (vedi §5).
+3. **Rubyfront:** ogni giocatore mette il proprio Rubyfront nella **Zona di Richiamo** (vedi §5).
 4. **Mano iniziale:** prima che inizi il primo turno, entrambi i giocatori **pescano 6 carte**.
 5. **Mulligan:** ciascun giocatore può fare mulligan **fino a 3 volte**: rimescola **tutta la mano** nel mazzo e pesca **6 nuove carte**, senza penalità. Dopo il terzo mulligan è **costretto ad accettare la mano**. I mulligan sono **simultanei**: ognuno gestisce i propri senza aspettare l'altro. Quando un giocatore è soddisfatto della mano, **dichiara di essere pronto**; quando entrambi hanno dichiarato, la partita comincia.
 6. Entrambi i giocatori partono con **1 di Flusso**.
@@ -180,7 +180,7 @@ Il campo di ogni giocatore è formato da:
 - **Fronte** — il campo di battaglia: **5 slot** in cui stanno le Entità. Il Rubyfront, quando è schierato, si posiziona **davanti** ai 5 slot (non occupa uno slot); le Materie in gioco (permanenti o in risoluzione) stanno **dietro** i 5 slot. Le permanenti si dispongono **una dietro l'altra (o una sotto l'altra), nell'ordine in cui sono scese in campo**: la fila tiene traccia dell'età di ciascuna, che serve per l'ordine di risoluzione degli effetti (§8.2).
 - **Mazzo** — le carte da pescare.
 - **Pila degli scarti** — le carte scartate/distrutte. È **pubblica**: consultabile da entrambi i giocatori in qualsiasi momento.
-- **Zona di Comando** — il Rubyfront si posiziona e **parte sempre qui**, salvo diverse indicazioni sulla carta.
+- **Zona di Richiamo** — il Rubyfront si posiziona e **parte sempre qui**, salvo diverse indicazioni sulla carta.
 
 Il **mazzo** e la **mano** sono **nascosti** all'avversario.
 
@@ -297,7 +297,7 @@ Le **Materie** sono le carte magia/evento del gioco. Non si possono giocare libe
 
 - Le Materie **hanno un costo di Flusso**, come le Entità.
 - Ogni Entità riporta i **tipi di Materia che abilita** (§3.1). Dal momento in cui l'Entità entra in campo, il suo proprietario può giocare le carte Materia dei tipi abilitati.
-- Anche il **Rubyfront** ha le sue Materie abilitanti, ma valgono **solo quando è schierato in campo**: finché resta in Zona di Comando non abilita nulla (§3.1).
+- Anche il **Rubyfront** ha le sue Materie abilitanti, ma valgono **solo quando è schierato in campo**: finché resta in Zona di Richiamo non abilita nulla (§3.1).
 - L'abilitazione va **mantenuta**: se l'ultima carta in campo che abilitava un tipo di Materia lascia il campo **o viene coperta** (§6.3 — l'Entità coperta non abilita), il giocatore **perde immediatamente l'accesso** a quel tipo. L'abilitazione si valuta sempre **al grado richiesto** (§7.1): per le carte di secondo grado serve un abilitatore fino al secondo grado, sia per giocarle che per mantenerle.
 - **Attribuzione:** se **più carte in campo** abilitano lo stesso tipo di Materia (al grado richiesto), il giocatore **sceglie a quale carta abilitante attribuire** la Materia che gioca. La scelta è rilevante ad esempio per Furia (§8.1): attribuendo la Materia a un abilitatore senza Furia, il tiro non serve.
 
@@ -350,12 +350,12 @@ Ogni carta Materia ha una **descrizione con un effetto**. In base alla dicitura 
 - Identica alla normale: si gioca in **Fase di Preparazione**.
 - L'effetto è **permanente**: la carta **resta in gioco** e non va nella pila degli scarti.
 - **Non occupa uno slot del Fronte:** sta **dietro** i 5 slot delle Entità (§5) e non conta nel limite; non c'è un limite al numero di permanenti in gioco.
-- **Decade insieme all'abilitazione:** se il giocatore perde l'accesso al tipo di Materia **al grado della permanente** (l'ultima carta che abilita quel tipo al grado richiesto lascia il campo), la permanente va nella **pila degli scarti**. Un abilitatore di grado inferiore **non basta**: una permanente di secondo grado decade se in campo resta solo un abilitatore di primo grado — coerente con la catena di risposta, dove l'abilitazione si ricontrolla sempre "al grado richiesto". **Eccezione — copertura:** se l'accesso si perde solo perché l'ultima carta abilitante è stata **coperta** (§6.3), la permanente non va negli scarti: **si copre anche lei** — resta sul campo con l'effetto sospeso, come se non fosse in campo — e si **riattiva** quando l'abilitatore si scopre. Se l'abilitatore lascia il campo mentre è coperto, la permanente coperta va negli scarti. **Attenzione:** vale anche per il Rubyfront — quando torna in Zona di Comando (immediatamente se perde PV, §3.1, o per scelta del proprietario) smette di abilitare le sue Materie: le permanenti dei tipi che **solo lui** abilitava (tipicamente la Distruttiva) vanno negli scarti. È un rischio da mettere in conto quando lo si schiera.
+- **Decade insieme all'abilitazione:** se il giocatore perde l'accesso al tipo di Materia **al grado della permanente** (l'ultima carta che abilita quel tipo al grado richiesto lascia il campo), la permanente va nella **pila degli scarti**. Un abilitatore di grado inferiore **non basta**: una permanente di secondo grado decade se in campo resta solo un abilitatore di primo grado — coerente con la catena di risposta, dove l'abilitazione si ricontrolla sempre "al grado richiesto". **Eccezione — copertura:** se l'accesso si perde solo perché l'ultima carta abilitante è stata **coperta** (§6.3), la permanente non va negli scarti: **si copre anche lei** — resta sul campo con l'effetto sospeso, come se non fosse in campo — e si **riattiva** quando l'abilitatore si scopre. Se l'abilitatore lascia il campo mentre è coperto, la permanente coperta va negli scarti. **Attenzione:** vale anche per il Rubyfront — quando torna in Zona di Richiamo (immediatamente se perde PV, §3.1, o per scelta del proprietario) smette di abilitare le sue Materie: le permanenti dei tipi che **solo lui** abilitava (tipicamente la Distruttiva) vanno negli scarti. È un rischio da mettere in conto quando lo si schiera.
 - Se possa essere distrutta o rimossa da effetti **dipende dalle carte**.
 
 #### Materia Reattiva
 
-- Si gioca **solo in Fase di Fronte**. Possono essere potenziamenti ad attacchi e difese, ma anche **effetti particolari di qualsiasi natura**. Una Reattiva **non è mai un "attacco"** nel senso delle regole di combattimento (§6.3): l'eventuale danno che infligge è danno da effetto (che per il Rubyfront in campo conta comunque come perdita di PV, con ritorno immediato in Zona di Comando, §3.1).
+- Si gioca **solo in Fase di Fronte**. Possono essere potenziamenti ad attacchi e difese, ma anche **effetti particolari di qualsiasi natura**. Una Reattiva **non è mai un "attacco"** nel senso delle regole di combattimento (§6.3): l'eventuale danno che infligge è danno da effetto (che per il Rubyfront in campo conta comunque come perdita di PV, con ritorno immediato in Zona di Richiamo, §3.1).
 - **Nessuno può intervenire in qualsiasi momento a piacere:** le Reattive si giocano solo nelle finestre previste.
 - **Finestra dell'avversario (Pre-Fronte):** all'apertura della Fase di Fronte, prima della dichiarazione d'attacco, l'avversario può giocare Reattive (§6.3).
 - **Finestra del giocatore di turno:** dopo la Pre-Fronte e prima di dichiarare Fronte pronto, il giocatore di turno può giocare Reattive.
@@ -388,7 +388,7 @@ Una carta con **Furia** non può essere **controllata direttamente** dal suo pro
 
 **Prima di qualsiasi azione** che coinvolga la carta con Furia, il proprietario **lancia un d20**. Le azioni soggette al tiro sono: attaccare, bloccare, contrattaccare, usare una Materia **attribuita** alla carta con Furia (§7: se un'altra carta senza Furia abilita lo stesso tipo al grado richiesto, il giocatore può attribuire la Materia a quella ed evitare il tiro), e — nel caso del Rubyfront — usare un'**abilità speciale**.
 
-**Il movimento del Rubyfront non è mai soggetto al tiro:** schierarsi e tornare in Zona di Comando (volontariamente o automaticamente dopo un colpo subìto) avvengono sempre senza d20. **Nemmeno il flip verso l'Unione richiede il tiro** (§3.1): girare la carta non è un'azione soggetta a Furia.
+**Il movimento del Rubyfront non è mai soggetto al tiro:** schierarsi e tornare in Zona di Richiamo (volontariamente o automaticamente dopo un colpo subìto) avvengono sempre senza d20. **Nemmeno il flip verso l'Unione richiede il tiro** (§3.1): girare la carta non è un'azione soggetta a Furia.
 
 Esito del tiro:
 
@@ -403,7 +403,7 @@ Esito del tiro:
 - **Materia fallita:** va nella **pila degli scarti**, il Flusso resta speso e la carta con Furia a cui era attribuita **si tappa** (vale in ogni fase, anche in Preparazione; un'Entità tappata continua comunque ad abilitare le sue Materie);
 - **abilità speciale del Rubyfront fallita:** non si risolve; il costo in PV resta pagato, oltre alla perdita di X PV per il fallimento.
 
-**Nota per il Rubyfront/Unione:** non avendo stati di tap, al fallimento perde solo gli X PV. La perdita di PV da fallimento è a tutti gli effetti una perdita subita: per il Rubyfront in campo fa scattare il **ritorno immediato in Zona di Comando** (§3.1).
+**Nota per il Rubyfront/Unione:** non avendo stati di tap, al fallimento perde solo gli X PV. La perdita di PV da fallimento è a tutti gli effetti una perdita subita: per il Rubyfront in campo fa scattare il **ritorno immediato in Zona di Richiamo** (§3.1).
 
 **Tempistica del tiro in attacco:** l'Entità con Furia si dichiara nell'ondata normalmente (§6.3), ma il suo blocco **non** si assegna con gli altri: il **d20 si tira quando arriva il momento di risolvere il suo attacco**, e solo **se il tiro passa** il difensore dichiara il blocco per quell'attacco. Superato il tiro, l'attacco è **un attacco come tutti gli altri**: il difensore può bloccarlo con una propria Entità **o con una Reattiva-blocco** (§6.3, punto 4). Se il tiro fallisce, non c'è battaglia: nessun bloccante viene impegnato.
 
@@ -437,7 +437,7 @@ Gli **effetti** sono il testo nella descrizione della carta (es. l'effetto che s
 
 #### Danno ed Entità
 
-**Il danno esiste solo per Rubyfront e Unione:** sono le uniche carte con PV, e subire danno significa perdere PV (con ritorno immediato in Zona di Comando se il Rubyfront è in campo, §3.1). **Le Entità non subiscono mai danno:** un effetto che "infligge N danni" non può bersagliarle — i suoi bersagli possibili sono solo Rubyfront e Unione (propri o avversari, per estensione massima §1.2). Le carte che agiscono sulle Entità usano diciture esplicite: "distruggi...", riduzioni di Potenza, ecc.
+**Il danno esiste solo per Rubyfront e Unione:** sono le uniche carte con PV, e subire danno significa perdere PV (con ritorno immediato in Zona di Richiamo se il Rubyfront è in campo, §3.1). **Le Entità non subiscono mai danno:** un effetto che "infligge N danni" non può bersagliarle — i suoi bersagli possibili sono solo Rubyfront e Unione (propri o avversari, per estensione massima §1.2). Le carte che agiscono sulle Entità usano diciture esplicite: "distruggi...", riduzioni di Potenza, ecc.
 
 #### Modifiche alla Potenza
 
@@ -452,7 +452,7 @@ Quando un evento innesca **più effetti nello stesso momento**, si risolvono in 
 
 L'ordine vale anche tra carte di giocatori diversi: fa fede il momento di discesa in campo, che è unico e condiviso. Nessun giocatore sceglie mai l'ordine: è sempre determinato dallo stato del campo.
 
-Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfront rischierato dopo un ritorno in Zona di Comando conta come una carta **appena arrivata** (la più giovane), non mantiene l'età del primo schieramento. Lo stesso vale per un'Evoluzione, che entra con età nuova (§3.1).
+Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfront rischierato dopo un ritorno in Zona di Richiamo conta come una carta **appena arrivata** (la più giovane), non mantiene l'età del primo schieramento. Lo stesso vale per un'Evoluzione, che entra con età nuova (§3.1).
 
 **Entrate simultanee** (caso raro): se un unico effetto mette in campo più carte contemporaneamente, entrano nello stesso momento ma **il giocatore che controlla l'effetto decide quale entra "prima"** — anche per le eventuali carte avversarie — e quell'ordine ne fissa l'età ai fini di questa regola.
 
@@ -495,12 +495,12 @@ Il pareggio esiste in due soli casi:
 ## 10. Glossario
 
 - **Entità** — carta con una razza (Umani o Auros). È il termine ufficiale: non si usa "creatura".
-- **Rubyfront** — la bestia di ogni giocatore; parte nella Zona di Comando. Portare a zero i suoi PV (o distruggerne l'Unione) fa perdere il suo proprietario.
+- **Rubyfront** — la bestia di ogni giocatore; parte nella Zona di Richiamo. Portare a zero i suoi PV (o distruggerne l'Unione) fa perdere il suo proprietario.
 - **Flusso** — la risorsa per giocare le carte. Cresce +1 a turno, si ricarica a inizio turno, massimo 20.
 - **Gettone Flusso** — gettone monouso da +1 Flusso dato a chi non inizia la partita, utilizzabile in qualsiasi momento; è fuori dal limite dei 20 Flussi.
 - **Canalizzazione** — scartare una carta dalla mano per ottenere +1 Flusso per il turno in corso (max 1 a turno).
 - **Fronte** — il campo di battaglia: 5 slot per le Entità; il Rubyfront schierato sta davanti agli slot, le Materie in gioco dietro.
-- **Zona di Comando** — zona in cui parte il Rubyfront.
+- **Zona di Richiamo** — zona in cui parte il Rubyfront.
 - **Potenza** — statistica unica di un'Entità. Modificabile da effetti, non scende mai sotto 0; a Potenza 0 l'Entità resta in campo.
 - **Danno** — perdita di PV: possono subirlo solo Rubyfront e Unione. Le Entità non subiscono mai danno (le carte che le colpiscono usano diciture esplicite come "distruggi").
 - **Materia** — carta magia/evento, giocabile solo se un tipo corrispondente è abilitato da una carta in campo. Tre comportamenti: normale, permanente, Reattiva.
