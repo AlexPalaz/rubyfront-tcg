@@ -1,0 +1,1621 @@
+<title>Rubyfront &#8212; Card Themes</title>
+<style>
+  :root { --page-bg: #eceae5; --page-ink: #262022; --page-muted: #6f6468; }
+  @media (prefers-color-scheme: dark) {
+    :root { --page-bg: #141114; --page-ink: #ebe4de; --page-muted: #9a8e91; }
+  }
+  :root[data-theme="light"] { --page-bg: #eceae5; --page-ink: #262022; --page-muted: #6f6468; }
+  :root[data-theme="dark"]  { --page-bg: #141114; --page-ink: #ebe4de; --page-muted: #9a8e91; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--page-bg); color: var(--page-ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    padding: 40px 20px 64px; }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+  header { margin-bottom: 30px; }
+  .eyebrow { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px;
+    letter-spacing: .14em; text-transform: uppercase; color: #b23a54; margin-bottom: 8px; }
+  h1 { font-size: clamp(24px, 4vw, 32px); font-weight: 600; }
+  .lede { color: var(--page-muted); font-size: 14px; margin-top: 6px; max-width: 72ch; }
+  .table { display: flex; gap: 34px 26px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+  .face { display: flex; flex-direction: column; gap: 9px; align-items: center; width: 350px; max-width: 92vw; }
+  .face-label { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--page-ink); }
+  .opt-note { font-size: 13px; color: var(--page-muted); text-align: center; line-height: 1.45; }
+
+  /* ====== base layout (identical for every theme) ====== */
+  .card {
+    width: min(350px, 92vw);
+    font-size: min(11.7px, 3.05vw);
+    aspect-ratio: 5 / 7;
+    display: flex; flex-direction: column; gap: .7em;
+    background: var(--bg); color: var(--ink);
+    border: 1px solid var(--frame);
+    outline: 1px solid var(--frame-dim); outline-offset: 4px;
+    border-radius: 4px; padding: 1.3em 1.1em .9em;
+    clip-path: polygon(1.2em 0, calc(100% - 1.2em) 0, 100% 1.2em, 100% calc(100% - 1.2em), calc(100% - 1.2em) 100%, 1.2em 100%, 0 calc(100% - 1.2em), 0 1.2em);
+    line-height: 1.48;
+  }
+  .titlebar { display: flex; align-items: center; gap: .65em; }
+  .name { flex: 1; text-align: center; font-size: 1.25em; font-weight: 600;
+    letter-spacing: .06em; font-variant: small-caps; line-height: 1.2;
+    border-top: 1px solid var(--frame); border-bottom: 1px solid var(--frame); padding: .22em 0; }
+  .cost { flex: none; width: 2.6em; height: 2.6em; background: var(--ruby);
+    border: 1px solid var(--ruby-light); transform: rotate(45deg);
+    display: flex; align-items: center; justify-content: center; }
+  .cost i { transform: rotate(-45deg); font-style: normal;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 1em; font-weight: 700; color: var(--cost-ink, #fdeef1); }
+  .union-mark { flex: none; width: 3.1em; height: 2.2em; }
+  .union-mark svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .art { height: 27%; border: 1px solid var(--frame); background: var(--well);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1em; letter-spacing: .4em; text-transform: uppercase;
+    color: color-mix(in srgb, var(--muted) 45%, transparent); }
+  .keyword { text-align: center; font-size: 1em; color: var(--ruby-light);
+    letter-spacing: .08em; font-variant: small-caps;
+    display: flex; align-items: center; gap: .6em; justify-content: center; }
+  .keyword::before, .keyword::after { content: "\25C6"; font-size: .55em; color: var(--ornament); }
+  .keyword span { color: var(--muted); font-size: 1em; font-variant: normal; letter-spacing: 0; }
+  .divider { display: flex; align-items: center; justify-content: center; gap: .7em;
+    font-size: 1em; line-height: 1.48; color: var(--ornament); }
+  .divider i { font-style: normal; font-size: .55em; }
+  .divider::before, .divider::after { content: ""; width: 3.5em; height: 1px; background: var(--frame-dim); }
+  .requirement { position: relative; border: 1px dashed var(--frame);
+    margin-top: .55em; padding: .6em .5em .4em; text-align: center; }
+  .requirement b { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%);
+    background: var(--panel); padding: 0 .6em;
+    font-size: 1em; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; line-height: 1.15; white-space: nowrap; }
+  .requirement span { font-size: 1em; color: var(--ink); }
+  .textbox { flex: 1; border: 1px solid var(--frame-dim); background: var(--panel);
+    padding: .8em .85em; display: flex; flex-direction: column; gap: .6em;
+    font-size: 1em; overflow: hidden; }
+  .fx, .ability { display: grid; grid-template-columns: 4.4em 1fr;
+    column-gap: .6em; align-items: baseline; }
+  .fx .tag { grid-column: 1 / -1; display: flex; align-items: center; gap: .8em;
+    font-size: 1em; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ruby-light); margin-bottom: .55em; }
+  .fx .tag::after { content: ""; flex: 1; height: 1px; background: var(--frame-dim); }
+  .fx .body { grid-column: 2; }
+  .fx b, .ability b { color: var(--accent); font-weight: 600; }
+  .hp-cost { font-size: 1em; white-space: nowrap; color: var(--ruby-light);
+    background: var(--well); border: 1px solid var(--frame-dim);
+    text-align: center; padding: .06em .3em; }
+  .flavor { margin-top: auto; text-align: center; font-style: italic; font-size: 1em; color: var(--muted); }
+  .flavor::before { content: "\25C6"; color: var(--ornament); font-size: .6em; font-style: normal; margin-right: .9em; vertical-align: .2em; }
+  .flavor::after { content: "\25C6"; color: var(--ornament); font-size: .6em; font-style: normal; margin-left: .9em; vertical-align: .2em; }
+  .bottombar { display: flex; justify-content: space-between; align-items: center; padding-top: .15em; }
+  .matters { display: flex; gap: .5em; }
+  .matter { display: flex; align-items: center; gap: .45em; border: 1px solid var(--frame);
+    background: var(--panel); padding: .18em .5em; font-size: 1em; color: var(--ink); }
+  .matter svg { width: 1.4em; height: 1.4em; display: block; }
+  .matter b { color: #f3efe6; font-weight: 700; }
+  .card.light-theme .matter b { color: #3a3430; }
+  .hp { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 1em; font-weight: 700; color: var(--hp-green); }
+  .hp small { color: var(--muted); font-weight: 400; font-size: 1em; }
+
+  /* ====== palettes ====== */
+  .card.t01 {
+    --bg: #2a0d17; --panel: #45182b; --well: #14050b;
+    --frame: #8f3950; --frame-dim: #4d1b2b;
+    --ink: #f1dfe4; --muted: #bb8e9a;
+    --accent: #dfc07c; --ornament: #a5566b;
+    --ruby: #9e0f34; --ruby-light: #e56a86;
+    --hp-green: #7fe0ae; --cost-ink: #fdeef1;
+  }
+  .card.t02 {
+    --bg: #0c1b28; --panel: #12293c; --well: #050d15;
+    --frame: #3b6b7f; --frame-dim: #1d3a49;
+    --ink: #d9e6ee; --muted: #7fa0b2;
+    --accent: #5ec8e2; --ornament: #4e8ba1;
+    --ruby: #9e0f34; --ruby-light: #e56a86;
+    --hp-green: #7fe0ae; --cost-ink: #ffd9e1;
+  }
+  .card.t03 {
+    --bg: #0b0713; --panel: #160e24; --well: #04020a;
+    --frame: #ff2ea6; --frame-dim: #5c1140;
+    --ink: #eae6ff; --muted: #8f86b8;
+    --accent: #00e5ff; --ornament: #7a2bd6;
+    --ruby: #ff2ea6; --ruby-light: #ff7ac8;
+    --hp-green: #39ffb4; --cost-ink: #14041f;
+  }
+  .card.t04 {
+    --bg: #17141a; --panel: #242028; --well: #0b090d;
+    --frame: #6f6355; --frame-dim: #3a332c;
+    --ink: #e9e2d4; --muted: #9a917f;
+    --accent: #ffb547; --ornament: #8a6a3a;
+    --ruby: #b3123f; --ruby-light: #f0a848;
+    --hp-green: #9fe87f; --cost-ink: #fdeef1;
+  }
+  .card.t05 {
+    --bg: #030903; --panel: #0a140a; --well: #010401;
+    --frame: #1f4d1f; --frame-dim: #123010;
+    --ink: #b7ffb7; --muted: #5fa65f;
+    --accent: #eaffea; --ornament: #3f8f3f;
+    --ruby: #145214; --ruby-light: #7dff7d;
+    --hp-green: #b7ffb7; --cost-ink: #dfffdf;
+  }
+  .card.t06 {
+    --bg: #1c1033; --panel: #2a1a4a; --well: #0d0620;
+    --frame: #ff71ce; --frame-dim: #6a2f77;
+    --ink: #f3e9ff; --muted: #b49ed6;
+    --accent: #01cdfe; --ornament: #b967ff;
+    --ruby: #ff71ce; --ruby-light: #ffa9e2;
+    --hp-green: #05ffa1; --cost-ink: #29104a;
+  }
+  .card.t07 {
+    --bg: #f2f0ec; --panel: #ffffff; --well: #d9d5cd;
+    --frame: #17151a; --frame-dim: #9c98a0;
+    --ink: #17151a; --muted: #6d6a72;
+    --accent: #d62828; --ornament: #17151a;
+    --ruby: #d62828; --ruby-light: #a01212;
+    --hp-green: #0a7a4a; --cost-ink: #ffffff;
+  }
+  .card.t08 {
+    --bg: #e8dcc3; --panel: #f4ecd9; --well: #cdbc98;
+    --frame: #8a6a3a; --frame-dim: #bfa87c;
+    --ink: #3c2f1d; --muted: #7c6a4c;
+    --accent: #8f1d22; --ornament: #8a6a3a;
+    --ruby: #8f1d22; --ruby-light: #7c1418;
+    --hp-green: #3f6f3a; --cost-ink: #f4ecd9;
+  }
+  .card.t09 {
+    --bg: #101114; --panel: #1a1c21; --well: #060709;
+    --frame: #8e97a3; --frame-dim: #3c424b;
+    --ink: #eceff3; --muted: #969ca6;
+    --accent: #c9d3de; --ornament: #6f7885;
+    --ruby: #454b54; --ruby-light: #aeb8c4;
+    --hp-green: #8fd8b0; --cost-ink: #eff2f6;
+  }
+  .card.t10 {
+    --bg: #191416; --panel: #241d20; --well: #0b0809;
+    --frame: #7d2a2a; --frame-dim: #40191c;
+    --ink: #e8dede; --muted: #a08c8c;
+    --accent: #ce4242; --ornament: #7d2a2a;
+    --ruby: #7f1220; --ruby-light: #d96a6a;
+    --hp-green: #9cc59a; --cost-ink: #f5e8e8;
+  }
+  .card.t11 {
+    --bg: #0d211a; --panel: #143126; --well: #05100b;
+    --frame: #3e7a5d; --frame-dim: #1e4634;
+    --ink: #e4f0e6; --muted: #90b3a0;
+    --accent: #e3c66f; --ornament: #4f8f6d;
+    --ruby: #0f6e46; --ruby-light: #7fd8ab;
+    --hp-green: #8fe0b4; --cost-ink: #eafaef;
+  }
+  .card.t12 {
+    --bg: #e8f0f6; --panel: #f7fafd; --well: #c6d5e2;
+    --frame: #7d9bb5; --frame-dim: #b4c8d9;
+    --ink: #1d2b38; --muted: #5c7386;
+    --accent: #0f5e93; --ornament: #7d9bb5;
+    --ruby: #0f5e93; --ruby-light: #114f78;
+    --hp-green: #0c6b4e; --cost-ink: #f2f8fd;
+  }
+  .card.t13 {
+    --bg: #171528; --panel: #232040; --well: #0a0916;
+    --frame: #6c5a9e; --frame-dim: #37305c;
+    --ink: #efe6f2; --muted: #a396c0;
+    --accent: #ffb3cf; --ornament: #8a6aae;
+    --ruby: #c2427a; --ruby-light: #f085ae;
+    --hp-green: #9fe6c8; --cost-ink: #fdeef4;
+  }
+  .card.t14 {
+    --bg: #101408; --panel: #1a2210; --well: #070903;
+    --frame: #b98f2e; --frame-dim: #5c4a18;
+    --ink: #f0ecd8; --muted: #a3a17c;
+    --accent: #cfff5e; --ornament: #b98f2e;
+    --ruby: #8a6a24; --ruby-light: #ecd28e;
+    --hp-green: #a8e86a; --cost-ink: #fdf6de;
+  }
+  .card.t15 {
+    --bg: #1d1226; --panel: #2c1c3a; --well: #0d0714;
+    --frame: #7e4fa8; --frame-dim: #46295e;
+    --ink: #efe4f7; --muted: #ab93c2;
+    --accent: #d9b8ff; --ornament: #8f62b5;
+    --ruby: #6a1fa8; --ruby-light: #c894f0;
+    --hp-green: #93e0b8; --cost-ink: #f6ecfd;
+  }
+  .card.t16 {
+    --bg: #e6d3ac; --panel: #f5ebd3; --well: #c4ad7f;
+    --frame: #4b3f6e; --frame-dim: #a08d5f;
+    --ink: #3a3050; --muted: #7d6f52;
+    --accent: #4b3f6e; --ornament: #8a774b;
+    --ruby: #4b3f6e; --ruby-light: #3d3260;
+    --hp-green: #2e6e4e; --cost-ink: #f2ead6;
+  }
+  .card.t17 {
+    --bg: #10131f; --panel: #181d31; --well: #060812;
+    --frame: #7fd4d4; --frame-dim: #2c4457;
+    --ink: #eef3fb; --muted: #93a3bd;
+    --accent: #c8a8ff; --ornament: #6bd3c3;
+    --ruby: #4a58c9; --ruby-light: #9fb5ff;
+    --hp-green: #7fe6cf; --cost-ink: #f0f4ff;
+  }
+  .card.t18 {
+    --bg: #16181b; --panel: #212529; --well: #0a0b0d;
+    --frame: #5b636b; --frame-dim: #33383d;
+    --ink: #e9ecef; --muted: #9aa2ab;
+    --accent: #ff7a1a; --ornament: #6f7880;
+    --ruby: #c2540a; --ruby-light: #ff9e54;
+    --hp-green: #7fd8a8; --cost-ink: #fff3e8;
+  }
+  .card.t19 {
+    --bg: #0d1207; --panel: #16200c; --well: #050703;
+    --frame: #5c7a1e; --frame-dim: #2e3d10;
+    --ink: #e8f2d8; --muted: #98ad7a;
+    --accent: #b6ff2e; --ornament: #6f8f2a;
+    --ruby: #4f1a7a; --ruby-light: #c37ef0;
+    --hp-green: #b6ff2e; --cost-ink: #f3e8ff;
+  }
+  .card.t20 {
+    --bg: #fafafa; --panel: #ffffff; --well: #e3e3e0;
+    --frame: #c9c9c4; --frame-dim: #e0e0dc;
+    --ink: #1a1a1c; --muted: #77777c;
+    --accent: #1747d1; --ornament: #a3a39e;
+    --ruby: #1747d1; --ruby-light: #12339c;
+    --hp-green: #0d7a52; --cost-ink: #1747d1;
+  }
+  .card.t21 {
+    --bg: #1b1d1f; --panel: #26292c; --well: #0e0f10;
+    --frame: #55595e; --frame-dim: #303336;
+    --ink: #e6e9ea; --muted: #979da1;
+    --accent: #6fc4ff; --ornament: #7c848a;
+    --ruby: #3a668a; --ruby-light: #8fd0ff;
+    --hp-green: #93d9b2; --cost-ink: #eaf6ff;
+  }
+  .card.t22 {
+    --bg: #f3f1ec; --panel: #ffffff; --well: #e2ded6;
+    --frame: #d8d3c9; --frame-dim: #e8e4dc;
+    --ink: #2b2925; --muted: #8a857b;
+    --accent: #d4552e; --ornament: #b5afa3;
+    --ruby: #d4552e; --ruby-light: #a83c1c;
+    --hp-green: #2e7d5b; --cost-ink: #ffffff;
+  }
+  .card.t23 {
+    --bg: #0e2f55; --panel: #123a68; --well: #081d36;
+    --frame: #7fb2e5; --frame-dim: #2c5788;
+    --ink: #dcebfb; --muted: #8fb3d8;
+    --accent: #ffffff; --ornament: #7fb2e5;
+    --ruby: #0e2f55; --ruby-light: #bcd9f5;
+    --hp-green: #9fe0c8; --cost-ink: #dcebfb;
+  }
+  .card.t24 {
+    --bg: #ffd937; --panel: #fffef4; --well: #2b2620;
+    --frame: #221d1a; --frame-dim: #221d1a;
+    --ink: #221d1a; --muted: #6b625a;
+    --accent: #e0331f; --ornament: #221d1a;
+    --ruby: #e0331f; --ruby-light: #a01e10;
+    --hp-green: #0c7a4e; --cost-ink: #ffffff;
+  }
+  .card.t25 {
+    --bg: #1a1310; --panel: #241a14; --well: #0b0705;
+    --frame: #6b4632; --frame-dim: #3a2820;
+    --ink: #efe2d4; --muted: #a89283;
+    --accent: #ff9e3d; --ornament: #8a5a3a;
+    --ruby: #b34718; --ruby-light: #ff9e3d;
+    --hp-green: #d9c27f; --cost-ink: #fff3e0;
+  }
+  .card.t26 {
+    --bg: #0a0c10; --panel: #12151c; --well: #050608;
+    --frame: #3ef2e0; --frame-dim: #1d3f44;
+    --ink: #eef2f5; --muted: #8a97a5;
+    --accent: #ff3b6b; --ornament: #3ef2e0;
+    --ruby: #ff3b6b; --ruby-light: #ff7d9c;
+    --hp-green: #3ef2e0; --cost-ink: #0a0c10;
+  }
+  .card.t27 {
+    --bg: #101012; --panel: #17171a; --well: #08080a;
+    --frame: #cfa84a; --frame-dim: #6e5a28;
+    --ink: #efe9dc; --muted: #9d968a;
+    --accent: #cfa84a; --ornament: #cfa84a;
+    --ruby: #1f6e63; --ruby-light: #7fd4c4;
+    --hp-green: #8fd8c8; --cost-ink: #f3ecdc;
+  }
+  .card.t28 {
+    --bg: #0b0e1d; --panel: #131735; --well: #05060f;
+    --frame: #5560a8; --frame-dim: #2a2f55;
+    --ink: #e9ecfb; --muted: #9aa2cc;
+    --accent: #ffd77a; --ornament: #7a83c4;
+    --ruby: #4a3f9e; --ruby-light: #a8b0ff;
+    --hp-green: #8fe0d0; --cost-ink: #f3f4ff;
+  }
+
+  /* ====== full restyles ====== */
+  .card.t02 { clip-path: none; border-radius: 18px;
+    background: radial-gradient(120% 90% at 50% -10%, #1d3346 0%, #0c1723 52%, #070d15 100%);
+    box-shadow: 0 12px 40px rgba(0,0,0,.5), 0 0 30px rgba(94,200,226,.14); }
+  .t02 .name { border: none; text-shadow: 0 0 16px rgba(94,200,226,.55); }
+  .t02 .cost { transform: none; width: auto; height: auto; padding: .28em .85em; border-radius: 999px;
+    background: rgba(212,64,94,.28); border-color: #d4405e; box-shadow: 0 0 14px rgba(212,64,94,.55); }
+  .t02 .cost i { transform: none; }
+  .t02 .art { border-radius: 12px; border-color: rgba(94,200,226,.25);
+    background: radial-gradient(70% 80% at 50% 60%, rgba(94,200,226,.16), rgba(9,18,28,.6) 75%); }
+  .t02 .textbox { border-radius: 12px; border-color: rgba(94,200,226,.16); background: rgba(6,12,20,.6); }
+  .t02 .hp-cost, .t02 .matter { border-radius: 999px; }
+  .t02 .hp { text-shadow: 0 0 14px rgba(127,224,174,.8); }
+  .t02 .fx b, .t02 .ability b { text-shadow: 0 0 10px rgba(94,200,226,.5); }
+  .card.t03 { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; border-radius: 0;
+    clip-path: polygon(0 0, calc(100% - 2.4em) 0, 100% 2.4em, 100% 100%, 2.4em 100%, 0 calc(100% - 2.4em));
+    border: 1px solid #ff2ea6; outline: none;
+    box-shadow: 0 0 20px rgba(255,46,166,.4), inset 0 0 28px rgba(122,43,214,.18); }
+  .t03 .name { font-variant: normal; text-transform: uppercase; letter-spacing: .16em; font-size: 1.02em;
+    border-color: #ff2ea6; text-shadow: 0 0 10px rgba(0,229,255,.8); }
+  .t03 .cost { transform: none; width: 3.1em; height: 2.7em; border: none;
+    clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+    box-shadow: 0 0 14px rgba(255,46,166,.8); }
+  .t03 .cost i { transform: none; }
+  .t03 .art { border-color: rgba(0,229,255,.3);
+    background: repeating-linear-gradient(0deg, rgba(0,229,255,.07) 0 2px, transparent 2px 4px), var(--well); }
+  .t03 .keyword { font-variant: normal; text-transform: uppercase; letter-spacing: .2em; }
+  .t03 .keyword::before, .t03 .keyword::after { content: "//"; font-size: .85em; }
+  .t03 .textbox { border: 1px solid #7a2bd6; background: linear-gradient(180deg, #160e24, #0c0716); }
+  .t03 .fx b, .t03 .ability b { text-shadow: 0 0 9px rgba(0,229,255,.75); }
+  .t03 .flavor::before, .t03 .flavor::after { content: "_"; font-size: 1em; vertical-align: 0; }
+  .t03 .hp { text-shadow: 0 0 12px rgba(57,255,180,.85); }
+  .card.t04 { clip-path: none; border-radius: 2px; border: 3px double #6f6355; outline: 1px solid #3a332c;
+    background: linear-gradient(180deg, #1a171d, #141117 60%, #100d12); }
+  .t04 .name { font-weight: 700; letter-spacing: .1em;
+    border-top: 3px double var(--frame); border-bottom: 3px double var(--frame); }
+  .t04 .art { border: none; height: 29%;
+    clip-path: polygon(0 100%, 0 34%, 50% 0, 100% 34%, 100% 100%);
+    background: linear-gradient(180deg, #060409, #17121b); }
+  .t04 .keyword { text-shadow: 0 0 12px rgba(255,181,71,.6); }
+  .t04 .keyword::before, .t04 .keyword::after { content: "\2720"; font-size: .8em; }
+  .t04 .cost { border-width: 2px; box-shadow: 0 0 16px rgba(255,181,71,.35); }
+  .t04 .textbox { box-shadow: inset 0 0 20px rgba(0,0,0,.55); }
+  .t04 .fx b, .t04 .ability b { text-shadow: 0 0 10px rgba(255,181,71,.5); }
+  .t04 .fx .tag::after { height: 2px; background: linear-gradient(to right, #8a6a3a, transparent); }
+  .card.t05 { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; clip-path: none; border-radius: 10px; border: 2px solid #1f4d1f;
+    text-shadow: 0 0 7px rgba(183,255,183,.5);
+    box-shadow: inset 0 0 46px rgba(31,77,31,.35), 0 0 24px rgba(59,255,59,.12);
+    background: repeating-linear-gradient(0deg, rgba(183,255,183,.05) 0 1px, transparent 1px 3px), #030903; }
+  .t05 .name { font-variant: normal; text-transform: uppercase; letter-spacing: .1em; border-style: dashed; }
+  .t05 .name::before { content: "> "; }
+  .t05 .cost { transform: none; border-radius: 2px; background: transparent; border: 1px solid #7dff7d; }
+  .t05 .cost i { transform: none; color: #b7ffb7; }
+  .t05 .art, .t05 .matter, .t05 .hp-cost { border-style: dashed; }
+  .t05 .keyword { font-variant: normal; text-transform: uppercase; }
+  .t05 .keyword::before, .t05 .keyword::after { content: "::"; font-size: .85em; }
+  .t05 .flavor::before { content: "/* "; font-size: 1em; vertical-align: 0; margin-right: 0; }
+  .t05 .flavor::after { content: " */"; font-size: 1em; vertical-align: 0; margin-left: 0; }
+  .card.t06 { clip-path: none; border-radius: 16px; border: 2px solid #ff71ce;
+    outline: 2px solid #01cdfe; outline-offset: 5px;
+    background: linear-gradient(165deg, #1c1033 0%, #2a1a4a 45%, #3a1758 100%); }
+  .t06 .name { border: none; font-style: italic;
+    background: linear-gradient(90deg, #01cdfe, #ff71ce, #b967ff);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .t06 .cost { transform: none; border-radius: 50%; }
+  .t06 .cost i { transform: none; }
+  .t06 .art { border-color: #b967ff;
+    background: linear-gradient(rgba(13,6,32,.92) 30%, rgba(13,6,32,.35)),
+      repeating-linear-gradient(90deg, rgba(1,205,254,.3) 0 1px, transparent 1px 2.2em),
+      repeating-linear-gradient(0deg, rgba(255,113,206,.3) 0 1px, transparent 1px 1.5em), #0d0620; }
+  .t06 .keyword::before, .t06 .keyword::after { content: "\25B2"; font-size: .6em; }
+  .t06 .textbox { border-radius: 10px; }
+  .t06 .hp { text-shadow: 0 0 12px rgba(5,255,161,.7); }
+  .card.t07 { font-family: system-ui, "Helvetica Neue", Arial, sans-serif; clip-path: none; border-radius: 0; border: 3px solid #17151a;
+    outline: none; box-shadow: 10px 10px 0 #17151a; }
+  .t07 .name { background: #17151a; color: #f2f0ec; border: none;
+    font-variant: normal; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; }
+  .t07 .cost { transform: none; border-radius: 0; border: 3px solid #17151a; }
+  .t07 .cost i { transform: none; font-weight: 800; }
+  .t07 .art { border: 3px solid #17151a; }
+  .t07 .keyword { font-variant: normal; text-transform: uppercase; font-weight: 800; letter-spacing: .12em; }
+  .t07 .keyword::before, .t07 .keyword::after { content: "\25A0"; font-size: .6em; }
+  .t07 .textbox { border: 3px solid #17151a; }
+  .t07 .hp-cost { border: 2px solid #17151a; background: #ffffff; font-weight: 700; }
+  .t07 .matter { border: 2px solid #17151a; }
+  .t07 .fx .tag { font-weight: 800; }
+  .t07 .fx .tag::after { height: 3px; background: #17151a; }
+  .t07 .flavor::before, .t07 .flavor::after { content: ""; margin: 0; }
+  .card.t08 { clip-path: none; border-radius: 8px; border: 3px double #8a6a3a; outline: 1px solid #bfa87c;
+    box-shadow: inset 0 0 34px rgba(138,106,58,.2);
+    background: radial-gradient(120% 100% at 50% 0%, #efe5cb 0%, #e8dcc3 55%, #dcc9a4 100%); }
+  .t08 .name { border-top: 1px solid #8a6a3a; border-bottom: 3px double #8a6a3a; }
+  .t08 .cost { transform: none; border-radius: 50%; border: none;
+    background: radial-gradient(circle at 35% 30%, #b03038, #8f1d22 60%, #6e1216);
+    box-shadow: 0 2px 7px rgba(60,47,29,.45), inset 0 1px 2px rgba(255,255,255,.25); }
+  .t08 .cost i { transform: none; }
+  .t08 .art { outline: 3px double #bfa87c; outline-offset: -7px; }
+  .t08 .textbox { box-shadow: inset 0 0 16px rgba(138,106,58,.16); }
+  .t08 .fx .tag::after { background: #bfa87c; }
+  .card.t09 { border: 1px solid #8e97a3; outline: none;
+    clip-path: polygon(.8em 0, calc(100% - .8em) 0, 100% .8em, 100% calc(100% - .8em), calc(100% - .8em) 100%, .8em 100%, 0 calc(100% - .8em), 0 .8em);
+    background: linear-gradient(135deg, #16171b 0%, #0e0f12 40%, #15161a 60%, #0b0c0f 100%); }
+  .t09 .name { border-color: #3c424b;
+    background: linear-gradient(180deg, #f5f7fa, #aeb8c4 55%, #e5eaef);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .t09 .cost { background: linear-gradient(160deg, #565e68, #2b3036); }
+  .t09 .textbox { background: rgba(26,28,33,.85); }
+  .t09 .fx .tag::after { background: linear-gradient(to right, #8e97a3, transparent); }
+  .t09 .hp-cost { border-color: #3c424b; }
+  .card.t10 { border: 2px solid #7d2a2a; outline: none; border-radius: 0;
+    clip-path: polygon(0 2.5%, 3% 0, 55% 1%, 97% 0, 100% 3.5%, 99% 55%, 100% 96%, 96% 100%, 45% 99%, 4% 100%, 0 96.5%, 1% 45%);
+    box-shadow: inset 0 0 44px rgba(0,0,0,.75);
+    background: radial-gradient(100% 80% at 50% 10%, #1e181a, #120e10 70%); }
+  .t10 .name { font-variant: normal; text-transform: uppercase; letter-spacing: .16em; font-weight: 700;
+    color: #d96a6a; border-color: #40191c; }
+  .t10 .cost { border-radius: 0 50% 50% 50%; }
+  .t10 .keyword::before, .t10 .keyword::after { content: "\2020"; font-size: .85em; }
+  .t10 .fx .tag::after { background: linear-gradient(to right, #7d2a2a, transparent); }
+  .t10 .textbox { border-color: #40191c; box-shadow: inset 0 0 18px rgba(0,0,0,.6); }
+  .card.t11 { clip-path: none; border-radius: 6px; border: 2px solid #3e7a5d;
+    outline: 3px double #e3c66f; outline-offset: 5px;
+    background: radial-gradient(120% 90% at 50% 0%, #12291f, #0d211a 60%, #081712); }
+  .t11 .name { color: #e3c66f; border-top: 2px solid #e3c66f; border-bottom: 2px solid #e3c66f; }
+  .t11 .cost { transform: none; width: 2.9em; height: 3em; border: none;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    background: linear-gradient(160deg, #12885a, #0a5434); }
+  .t11 .cost i { transform: none; }
+  .t11 .keyword::before, .t11 .keyword::after { content: "\2726"; font-size: .7em; color: #e3c66f; }
+  .t11 .fx .tag::after { background: linear-gradient(to right, rgba(227,198,111,.6), transparent); }
+  .t11 .art { border-color: rgba(227,198,111,.4); }
+  .card.t12 { border: 1px solid #7d9bb5; outline: none;
+    clip-path: polygon(1.8em 0, calc(100% - .6em) 0, 100% 1.5em, 100% calc(100% - 2.2em), calc(100% - 1.3em) 100%, .7em 100%, 0 calc(100% - 1.1em), 0 1em);
+    box-shadow: inset 0 0 26px rgba(125,155,181,.28);
+    background: linear-gradient(150deg, #f4f9fc 0%, #e8f0f6 45%, #d5e4ef 100%); }
+  .t12 .name { color: #0f5e93; }
+  .t12 .textbox { background: rgba(255,255,255,.72); }
+  .t12 .art { background: linear-gradient(180deg, #cfdde9, #b7cbdb); }
+  .t12 .cost { background: linear-gradient(160deg, #2b7db4, #0f5e93); }
+  .t12 .keyword::before, .t12 .keyword::after { content: "\2744"; font-size: .8em; }
+  .t12 .hp-cost { background: #dbe7f0; }
+  .card.t13 { clip-path: none; border-radius: 22px; border: 1px solid #6c5a9e; outline: none;
+    background: linear-gradient(180deg, #1b1930, #171528 60%, #131020); }
+  .t13 .name { border: none; color: #ffb3cf; font-weight: 500; }
+  .t13 .cost { border-radius: 50% 0 50% 50%; }
+  .t13 .art { border-radius: 14px; }
+  .t13 .textbox { border-radius: 14px; background: rgba(35,32,64,.82); }
+  .t13 .keyword::before, .t13 .keyword::after { content: "\273F"; font-size: .8em; color: #ffb3cf; }
+  .t13 .matter, .t13 .hp-cost { border-radius: 999px; }
+  .t13 .fx .tag::after { background: linear-gradient(to right, #6c5a9e, transparent); }
+  .card.t14 { border: 2px solid #b98f2e; outline: none;
+    background:
+      repeating-linear-gradient(90deg, rgba(185,143,46,.08) 0 1px, transparent 1px 2.4em),
+      repeating-linear-gradient(0deg, rgba(185,143,46,.08) 0 1px, transparent 1px 2.4em), #101408; }
+  .t14 .name { font-variant: normal; text-transform: uppercase; letter-spacing: .16em; font-size: 1.02em;
+    color: #ecd28e; border-color: #b98f2e; }
+  .t14 .cost { transform: none; border-radius: 3px; border: 1px solid #ecd28e;
+    box-shadow: inset 0 0 0 3px #101408, inset 0 0 0 4px #5c4a18; }
+  .t14 .cost i { transform: none; }
+  .t14 .fx .tag::after { background: repeating-linear-gradient(90deg, #b98f2e 0 .6em, transparent .6em 1em); }
+  .t14 .keyword::before, .t14 .keyword::after { content: "\25A3"; font-size: .7em; }
+  .t14 .hp { text-shadow: 0 0 9px rgba(207,255,94,.5); }
+  .t14 .textbox { border-color: #5c4a18; background: rgba(26,34,16,.9); }
+  .card.t15 { border: 1px solid #7e4fa8; outline: none;
+    clip-path: polygon(2em 0, calc(100% - 2em) 0, 100% 2em, 100% calc(100% - 2em), calc(100% - 2em) 100%, 2em 100%, 0 calc(100% - 2em), 0 2em);
+    box-shadow: 0 0 28px rgba(126,79,168,.3);
+    background: linear-gradient(160deg, #241531 0%, #1d1226 45%, #150c1e 100%); }
+  .t15 .name { border-color: #46295e;
+    background: linear-gradient(90deg, #d9b8ff, #f2e4ff, #c894f0);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .t15 .cost { transform: none; width: 2.9em; height: 2.8em; border: none;
+    clip-path: polygon(50% 0, 100% 38%, 82% 100%, 18% 100%, 0 38%);
+    background: linear-gradient(170deg, #9747e0, #6a1fa8); }
+  .t15 .cost i { transform: none; }
+  .t15 .keyword::before, .t15 .keyword::after { content: "\2726"; font-size: .7em; }
+  .t15 .fx b, .t15 .ability b { text-shadow: 0 0 10px rgba(217,184,255,.4); }
+  .card.t16 { clip-path: none; border-radius: 6px; border: 2px solid #4b3f6e;
+    outline: 1px dashed #8a774b; outline-offset: 5px;
+    background: linear-gradient(180deg, #ecdcb8, #e6d3ac 55%, #d9c193); }
+  .t16 .name { color: #4b3f6e; border-top: 2px solid #4b3f6e; border-bottom: 2px solid #4b3f6e; }
+  .t16 .cost { transform: none; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #6a5b96, #4b3f6e); border-color: #8a774b; }
+  .t16 .cost i { transform: none; }
+  .t16 .keyword::before, .t16 .keyword::after { content: "\263E"; font-size: .85em; }
+  .t16 .fx .tag::after { background: repeating-linear-gradient(90deg, #8a774b 0 4px, transparent 4px 8px); }
+  .t16 .art { background: linear-gradient(180deg, #cdb488, #bfa26e); }
+  .card.t17 { clip-path: none; border-radius: 14px; border: 2px solid transparent; outline: none;
+    background:
+      linear-gradient(115deg, rgba(0,0,0,0) 42%, rgba(200,168,255,.09) 50%, rgba(0,0,0,0) 58%) padding-box,
+      linear-gradient(#10131f, #10131f) padding-box,
+      linear-gradient(120deg, #7fd4d4, #c8a8ff, #6bd3c3, #9fb5ff) border-box;
+    box-shadow: 0 10px 36px rgba(0,0,0,.5); }
+  .t17 .name { border: none;
+    background: linear-gradient(90deg, #7fd4d4, #c8a8ff, #9fb5ff);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .t17 .cost { transform: none; width: auto; height: auto; padding: .28em .85em; border-radius: 999px;
+    border: none; background: linear-gradient(120deg, #4a58c9, #7846c9); }
+  .t17 .cost i { transform: none; }
+  .t17 .textbox { border-radius: 10px; background: rgba(24,29,49,.82); }
+  .t17 .art { border-radius: 10px; border-color: #2c4457;
+    background: linear-gradient(120deg, #060812 40%, #101a2e 50%, #060812 60%); }
+  .t17 .keyword::before, .t17 .keyword::after { content: "\25CA"; font-size: .8em; }
+  .card.t18 { font-family: system-ui, "Helvetica Neue", Arial, sans-serif; clip-path: none; border-radius: 3px; border: 2px solid #5b636b; outline: none;
+    background:
+      radial-gradient(5px 5px at 14px 14px, #7c858e 40%, transparent 46%),
+      radial-gradient(5px 5px at calc(100% - 14px) 14px, #7c858e 40%, transparent 46%),
+      radial-gradient(5px 5px at 14px calc(100% - 14px), #7c858e 40%, transparent 46%),
+      radial-gradient(5px 5px at calc(100% - 14px) calc(100% - 14px), #7c858e 40%, transparent 46%),
+      linear-gradient(180deg, #1a1d20, #141619); }
+  .t18 .name { font-variant: normal; text-transform: uppercase; letter-spacing: .16em; font-weight: 700;
+    border: none; background: #212529; box-shadow: inset 0 0 0 1px #33383d; }
+  .t18 .cost { transform: none; width: 3em; height: 2.7em; border: none;
+    clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%); }
+  .t18 .cost i { transform: none; }
+  .t18 .keyword { font-variant: normal; text-transform: uppercase; letter-spacing: .14em; }
+  .t18 .keyword::before, .t18 .keyword::after { content: "\25AA"; font-size: .7em; }
+  .t18 .fx .tag::after { height: .5em;
+    background: repeating-linear-gradient(135deg, #ff7a1a 0 .6em, #16181b .6em 1.2em); }
+  .t18 .flavor::before, .t18 .flavor::after { content: ""; margin: 0; }
+  .card.t19 { clip-path: none; border-radius: 4px 26px 4px 26px; border: 2px solid #5c7a1e; outline: none;
+    box-shadow: 0 0 26px rgba(182,255,46,.16), inset 0 0 34px rgba(0,0,0,.6);
+    background: radial-gradient(110% 80% at 50% 110%, #1c2a0e, #0d1207 60%); }
+  .t19 .name { color: #b6ff2e; text-shadow: 0 0 12px rgba(182,255,46,.55); border-color: #2e3d10; }
+  .t19 .cost { transform: none; border-radius: 60% 40% 55% 45% / 50% 60% 40% 55%; border-color: #c37ef0;
+    background: radial-gradient(circle at 35% 30%, #7a35b5, #4f1a7a); }
+  .t19 .cost i { transform: none; }
+  .t19 .keyword::before, .t19 .keyword::after { content: "\2623"; font-size: .85em; }
+  .t19 .textbox { border-radius: 4px 18px 4px 18px; }
+  .t19 .hp { text-shadow: 0 0 12px rgba(182,255,46,.7); }
+  .card.t20 { font-family: system-ui, "Helvetica Neue", Arial, sans-serif; clip-path: none; border-radius: 0; border: 1px solid #c9c9c4; outline: none; }
+  .t20 .name { border: none; font-variant: normal; text-transform: uppercase;
+    letter-spacing: .3em; font-size: .95em; font-weight: 300; }
+  .t20 .cost { transform: none; border-radius: 50%; background: #ffffff; border: 1px solid #1747d1; }
+  .t20 .cost i { transform: none; font-weight: 500; }
+  .t20 .art { border: none; }
+  .t20 .keyword { font-variant: normal; text-transform: uppercase; letter-spacing: .2em; }
+  .t20 .keyword::before, .t20 .keyword::after { content: ""; }
+  .t20 .textbox { border: none; border-top: 1px solid #e0e0dc; border-bottom: 1px solid #e0e0dc; }
+  .t20 .fx .tag::after { height: 2px; background: #1747d1; }
+  .t20 .hp-cost { border: none; background: #f0f0ee; }
+  .t20 .matter { border: none; background: #f0f0ee; }
+  .t20 .flavor::before, .t20 .flavor::after { content: ""; margin: 0; }
+  .card.t21 { clip-path: none; border-radius: 4px; border: 3px solid #55595e; outline: none;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.06), inset 0 -3px 8px rgba(0,0,0,.5), 0 6px 18px rgba(0,0,0,.4);
+    background: linear-gradient(160deg, #202325 0%, #1b1d1f 45%, #17191b 100%); }
+  .t21 .name { letter-spacing: .12em;
+    text-shadow: 0 1px 0 rgba(0,0,0,.7), 0 -1px 0 rgba(255,255,255,.08); }
+  .t21 .cost { border-radius: 3px; border: none;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.15), inset 0 -3px 6px rgba(0,0,0,.5), 0 0 14px rgba(111,196,255,.3); }
+  .t21 .art { box-shadow: inset 0 3px 8px rgba(0,0,0,.7); }
+  .t21 .keyword { text-shadow: 0 0 12px rgba(111,196,255,.6); }
+  .t21 .keyword::before, .t21 .keyword::after { content: "\25C8"; font-size: .7em; }
+  .t21 .fx b, .t21 .ability b { text-shadow: 0 0 10px rgba(111,196,255,.55); }
+  .t21 .textbox { box-shadow: inset 0 2px 8px rgba(0,0,0,.5); }
+  .card.t22 { font-family: system-ui, "Helvetica Neue", Arial, sans-serif; border-radius: 2px; border: 1px solid #d8d3c9; outline: none;
+    clip-path: polygon(0 0, calc(100% - 2.4em) 0, 100% 2.4em, 100% 100%, 0 100%);
+    box-shadow: 0 8px 22px rgba(43,41,37,.12);
+    background:
+      linear-gradient(120deg, rgba(43,41,37,.045) 0 38%, transparent 38.5%),
+      linear-gradient(240deg, rgba(43,41,37,.06) 0 20%, transparent 20.5%),
+      #f3f1ec; }
+  .t22 .name { border-color: #d8d3c9; font-variant: normal; letter-spacing: .1em; font-weight: 600; }
+  .t22 .cost { border: none; box-shadow: 2px 2px 0 rgba(43,41,37,.18); }
+  .t22 .art { border: 1px solid #d8d3c9;
+    background: linear-gradient(135deg, #e6e2da 0 50%, #dcd7cd 50% 100%); }
+  .t22 .keyword::before, .t22 .keyword::after { content: "\25B3"; font-size: .7em; }
+  .t22 .textbox { border: 1px solid #e8e4dc; box-shadow: 0 2px 8px rgba(43,41,37,.06); }
+  .t22 .flavor::before, .t22 .flavor::after { content: ""; margin: 0; }
+  .card.t23 { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; clip-path: none; border-radius: 0;
+    border: 1px dashed #7fb2e5; outline: 1px solid #2c5788; outline-offset: 5px;
+    background:
+      repeating-linear-gradient(90deg, rgba(127,178,229,.09) 0 1px, transparent 1px 1.6em),
+      repeating-linear-gradient(0deg, rgba(127,178,229,.09) 0 1px, transparent 1px 1.6em), #0e2f55; }
+  .t23 .name { font-variant: normal; text-transform: uppercase; letter-spacing: .14em; font-size: 1em;
+    border-style: dashed; color: #ffffff; }
+  .t23 .cost { transform: none; border-radius: 0; background: transparent; border: 1px dashed #bcd9f5; }
+  .t23 .cost i { transform: none; color: #ffffff; }
+  .t23 .art, .t23 .textbox, .t23 .matter, .t23 .hp-cost { border-style: dashed; }
+  .t23 .keyword { font-variant: normal; text-transform: uppercase; }
+  .t23 .keyword::before, .t23 .keyword::after { content: "+"; font-size: .9em; }
+  .t23 .fx .tag::after { background: repeating-linear-gradient(90deg, #7fb2e5 0 6px, transparent 6px 11px); }
+  .t23 .flavor::before, .t23 .flavor::after { content: ""; margin: 0; }
+  .card.t24 { font-family: system-ui, "Helvetica Neue", Arial, sans-serif; clip-path: none; border-radius: 8px; border: 3px solid #221d1a; outline: none;
+    box-shadow: 6px 6px 0 #221d1a;
+    background: radial-gradient(rgba(34,29,26,.13) 15%, transparent 16%) 0 0 / 9px 9px, #ffd937; }
+  .t24 .name { border: 3px solid #221d1a; background: #fffef4;
+    font-variant: normal; text-transform: uppercase; letter-spacing: .06em; font-weight: 800;
+    text-shadow: 2px 2px 0 rgba(224,51,31,.35); }
+  .t24 .cost { transform: none; width: 3.2em; height: 3.2em; border: none;
+    clip-path: polygon(50% 0, 61% 20%, 82% 9%, 78% 32%, 100% 35%, 84% 50%, 100% 65%, 78% 68%, 82% 91%, 61% 80%, 50% 100%, 39% 80%, 18% 91%, 22% 68%, 0 65%, 16% 50%, 0 35%, 22% 32%, 18% 9%, 39% 20%); }
+  .t24 .cost i { transform: none; font-weight: 800; }
+  .t24 .art { border: 3px solid #221d1a; }
+  .t24 .keyword { font-variant: normal; text-transform: uppercase; font-weight: 800; }
+  .t24 .keyword::before, .t24 .keyword::after { content: "\2605"; font-size: .8em; color: #e0331f; }
+  .t24 .textbox { border: 3px solid #221d1a; background: #fffef4; }
+  .t24 .hp-cost { border: 2px solid #221d1a; background: #fffef4; font-weight: 800; }
+  .t24 .matter { border: 2px solid #221d1a; background: #fffef4; }
+  .t24 .fx .tag::after { height: 3px; background: #221d1a; }
+  .card.t25 { clip-path: none; border-radius: 5px; border: 1px solid #6b4632;
+    outline: 1px solid #3a2820; outline-offset: 4px;
+    box-shadow: inset 0 -40px 60px rgba(179,71,24,.16), 0 8px 26px rgba(0,0,0,.5);
+    background: radial-gradient(120% 60% at 50% 115%, #3a1c0c 0%, #241511 45%, #1a1310 100%); }
+  .t25 .name { border-color: #6b4632; text-shadow: 0 0 14px rgba(255,158,61,.3); }
+  .t25 .cost { border: none; border-radius: 45% 55% 50% 50% / 55% 45% 55% 45%;
+    background: radial-gradient(circle at 40% 35%, #ff7a2e, #b34718 55%, #6e2a0e);
+    box-shadow: 0 0 18px rgba(255,122,46,.55); }
+  .t25 .art { border-color: #6b4632;
+    background: radial-gradient(100% 90% at 50% 110%, rgba(255,122,46,.18), rgba(11,7,5,.9) 60%); }
+  .t25 .keyword { text-shadow: 0 0 12px rgba(255,158,61,.55); }
+  .t25 .keyword::before, .t25 .keyword::after { content: "\2666"; font-size: .7em; color: #ff9e3d; }
+  .t25 .fx b, .t25 .ability b { text-shadow: 0 0 10px rgba(255,158,61,.45); }
+  .t25 .fx .tag::after { background: linear-gradient(to right, #b34718, transparent); }
+  .card.t26 { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; clip-path: none; border-radius: 0;
+    border: 1px solid #3ef2e0; outline: 1px solid #ff3b6b; outline-offset: 6px;
+    box-shadow: -5px 0 0 -1px rgba(255,59,107,.35), 5px 0 0 -1px rgba(62,242,224,.35);
+    background: repeating-linear-gradient(0deg, transparent 0 9px, rgba(62,242,224,.04) 9px 10px), #0a0c10; }
+  .t26 .name { font-variant: normal; text-transform: uppercase; letter-spacing: .14em; font-size: 1em;
+    border-color: #1d3f44; text-shadow: 2px 0 0 rgba(255,59,107,.75), -2px 0 0 rgba(62,242,224,.75); }
+  .t26 .cost { transform: none; border-radius: 0; border: none;
+    box-shadow: 3px 3px 0 rgba(62,242,224,.5), -3px -3px 0 rgba(255,59,107,.4); }
+  .t26 .cost i { transform: none; }
+  .t26 .keyword { font-variant: normal; text-transform: uppercase; }
+  .t26 .keyword::before, .t26 .keyword::after { content: "\2593"; font-size: .7em; }
+  .t26 .art { background: repeating-linear-gradient(0deg, rgba(255,59,107,.06) 0 3px, transparent 3px 7px), var(--well); }
+  .t26 .fx b, .t26 .ability b { text-shadow: 1px 0 0 rgba(255,59,107,.6), -1px 0 0 rgba(62,242,224,.6); }
+  .t26 .flavor::before, .t26 .flavor::after { content: "\258C"; font-size: .8em; vertical-align: 0; }
+  .card.t27 { border: 3px double #cfa84a; outline: 1px solid #6e5a28; outline-offset: 5px;
+    clip-path: polygon(1.6em 0, calc(100% - 1.6em) 0, calc(100% - .8em) .8em, 100% 1.6em, 100% calc(100% - 1.6em), calc(100% - .8em) calc(100% - .8em), calc(100% - 1.6em) 100%, 1.6em 100%, .8em calc(100% - .8em), 0 calc(100% - 1.6em), 0 1.6em, .8em .8em);
+    background: linear-gradient(180deg, #131315, #101012 55%, #0c0c0e); }
+  .t27 .name { font-variant: normal; text-transform: uppercase; letter-spacing: .28em;
+    font-size: .95em; font-weight: 400; color: #cfa84a;
+    border-top: 1px solid #cfa84a; border-bottom: 1px solid #cfa84a; }
+  .t27 .cost { transform: none; width: 2.9em; height: 2.9em; border: 1px solid #cfa84a;
+    clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+    background: linear-gradient(170deg, #2a8a7c, #1f6e63); }
+  .t27 .cost i { transform: none; }
+  .t27 .keyword { letter-spacing: .2em; }
+  .t27 .keyword::before, .t27 .keyword::after { content: "\25BD"; font-size: .55em; }
+  .t27 .fx .tag::after { height: 1px;
+    background: repeating-linear-gradient(90deg, #cfa84a 0 1.2em, transparent 1.2em 1.5em); }
+  .t27 .art { border-color: #6e5a28; }
+  .card.t28 { clip-path: none; border-radius: 12px; border: 1px solid #5560a8; outline: none;
+    box-shadow: 0 10px 34px rgba(0,0,0,.55);
+    background:
+      radial-gradient(1px 1px at 12% 18%, #ffffff 50%, transparent 51%),
+      radial-gradient(1px 1px at 78% 8%, #ffffff 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 55% 28%, #ffd77a 50%, transparent 51%),
+      radial-gradient(1px 1px at 30% 55%, #ffffff 50%, transparent 51%),
+      radial-gradient(1px 1px at 88% 62%, #a8b0ff 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 18% 85%, #ffffff 50%, transparent 51%),
+      radial-gradient(1px 1px at 65% 90%, #ffd77a 50%, transparent 51%),
+      radial-gradient(90% 55% at 80% 15%, rgba(122,64,180,.22), transparent 60%),
+      radial-gradient(80% 50% at 15% 80%, rgba(64,140,180,.18), transparent 60%),
+      #0b0e1d; }
+  .t28 .name { border-color: #2a2f55;
+    background: linear-gradient(90deg, #ffd77a, #fff3d0, #a8b0ff);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .t28 .cost { transform: none; border-radius: 50%; border: 1px solid #a8b0ff;
+    background: radial-gradient(circle at 35% 30%, #7a6fd4, #4a3f9e 65%, #2e2766);
+    box-shadow: 0 0 16px rgba(168,176,255,.4); }
+  .t28 .cost i { transform: none; }
+  .t28 .keyword::before, .t28 .keyword::after { content: "\2726"; font-size: .7em; color: #ffd77a; }
+  .t28 .textbox { border-radius: 9px; background: rgba(19,23,53,.82); }
+  .t28 .art { border-radius: 9px; }
+  .t28 .fx .tag::after { background: linear-gradient(to right, #5560a8, transparent); }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Rubyfront &#183; Card Themes &#183; pagina di riferimento</p>
+    <h1>Card Themes &#8212; 28 stili, un solo layout</h1>
+    <p class="lede">Catalogo permanente degli stili per le carte di Rubyfront. Struttura, contenuti e gerarchia identici; ogni tema ridisegna sagoma, cornici, texture, ornamenti e carattere. I medaglioni delle Materie restano fissi ovunque. Per provare uno stile sulla carta completa (entrambe le facce): <code>card-themed.html?theme=tNN</code>.</p>
+  </header>
+  <div class="table">
+    <div class="face">
+      <div class="face-label">01 &#183; Rubino & Oro</div>
+      <div class="card t01">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Il tema attuale: reliquia incisa, angoli a taglio di gemma, rombo-rubino.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">02 &#183; Abisso Vivo</div>
+      <div class="card t02">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Tutto tondo e luminescente: glow ciano, pannelli traslucidi, costo a pillola.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">03 &#183; Neon Notturno</div>
+      <div class="card t03">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Cyberpunk: taglio asimmetrico, esagono neon, scanline, glow magenta/ciano, monospace.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">04 &#183; Gotico Neon</div>
+      <div class="card t04">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Cyberpunk medievale: cornici di ferro doppie, finestra ad arco acuto, luce ambra elettrica.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">05 &#183; Terminale CRT</div>
+      <div class="card t05">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Schermo a fosfori: scanline ovunque, glow verde, prompt "&gt;" nel nome, flavor tra /* */.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">06 &#183; Vaporwave</div>
+      <div class="card t06">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Nome in gradiente cromato, griglia prospettica nella finestra, doppio contorno rosa/ciano.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">07 &#183; Brutalista</div>
+      <div class="card t07 light-theme">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Bordi neri 3px, ombra piena sfalsata, barra-titolo negativa, quadrato al posto del rombo. Sans.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">08 &#183; Pergamena</div>
+      <div class="card t08 light-theme">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Doppia cornice seppia, vignettatura, costo a sigillo di ceralacca in rilievo.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">09 &#183; Obsidiana & Argento</div>
+      <div class="card t09">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Vetro vulcanico: riflessi diagonali, nome in argento specchiato, filetti sottilissimi.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">10 &#183; Sangue & Cenere</div>
+      <div class="card t10">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Bordo strappato, titolo a stampatello, costo a goccia di sangue, croci funebri.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">11 &#183; Smeraldo Regale</div>
+      <div class="card t11">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Araldico: doppia cornice d'oro, costo a scudo esagonale smeraldo, titolo dorato.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">12 &#183; Ghiaccio</div>
+      <div class="card t12 light-theme">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Cristallo chiaro: sagoma sfaccettata irregolare, pannelli gelo, fiocchi come fregi.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">13 &#183; Sakura Notturna</div>
+      <div class="card t13">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Morbido: angoli molto arrotondati, costo a petalo, fiori di ciliegio come ornamenti.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">14 &#183; Circuito Dorato</div>
+      <div class="card t14">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Cyberpunk medievale: griglia PCB dorata, costo a chip, filetti tratteggiati come piste.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">15 &#183; Ametista</div>
+      <div class="card t15">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Cristallo arcano: costo a gemma sfaccettata, nome in gradiente lilla, alone viola.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">16 &#183; Duna & Indaco</div>
+      <div class="card t16 light-theme">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Sabbia e notte: cornice indaco con tratteggio esterno, costo a luna, fregi a mezzaluna.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">17 &#183; Olografica</div>
+      <div class="card t17">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Bordo iridescente, riflesso diagonale, nome olografico, costo a capsula.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">18 &#183; Acciaio & Arancio</div>
+      <div class="card t18">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Industriale: piastra rivettata, righe a strisce di pericolo, costo a dado esagonale. Sans.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">19 &#183; Tossico</div>
+      <div class="card t19">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Biohazard: sagoma sghemba corrosa, glow acido, costo a blob radioattivo, simboli ☣.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">20 &#183; Museo</div>
+      <div class="card t20 light-theme">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Minimalismo assoluto: solo filetti, titolo leggerissimo spaziato, cerchio blu a contorno. Sans.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">21 &#183; Runa Incisa</div>
+      <div class="card t21">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Pietra scolpita: rilievo a sbalzo, costo a tessera runica, glifi che brillano di blu.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">22 &#183; Origami</div>
+      <div class="card t22 light-theme">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Carta piegata: pieghe diagonali in luce, angolo ripiegato, vermiglio unico. Sans.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">23 &#183; Blueprint</div>
+      <div class="card t23">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Cianotipo tecnico: griglia millimetrata, tutto tratteggiato, annotazioni bianche, monospace.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">24 &#183; Pop Fumetto</div>
+      <div class="card t24 light-theme">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Giallo comics, retino a puntini, contorni neri spessi, costo a esplosione stellata. Sans.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">25 &#183; Brace</div>
+      <div class="card t25">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Carbone e tizzoni: bagliore arancio che sale dal fondo, costo a brace viva.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">26 &#183; Glitch</div>
+      <div class="card t26">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Segnale corrotto: doppia sagoma sfalsata ciano/rosso, nome con RGB split, bande di disturbo.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">27 &#183; Art D&#233;co</div>
+      <div class="card t27">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Nero e oro geometrico: angoli a gradoni, titolo sottile spaziatissimo, costo a ottagono teal.</p>
+    </div>
+    <div class="face">
+      <div class="face-label">28 &#183; Cosmo</div>
+      <div class="card t28">
+        <div class="titlebar">
+          <div class="cost"><i>2+1</i></div>
+          <div class="name">Rubyfront of the Abyss</div>
+        </div>
+        <div class="art">Illustration</div>
+        <div class="keyword">Fury <span>d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
+        <div class="textbox">
+          <div class="fx">
+            <span class="tag">On deployment</span>
+            <div class="body"><b>Undertow</b>: Choose an Entity: its owner puts it at the bottom of their deck.</div>
+          </div>
+          <div class="ability"><span class="hp-cost">&#8722;2 HP</span><div><b>Abyssal Pressure</b>: an Entity gets &#8722;2 Power until the start of your next turn.</div></div>
+          <div class="ability"><span class="hp-cost">&#8722;5 HP</span><div><b>Devour</b>: destroy an Entity with Power 3 or less.</div></div>
+          <p class="flavor">It did not rise from the abyss. The abyss, one day, opened its eyes.</p>
+        </div>
+        <div class="bottombar">
+          <div class="matters">
+            <span class="matter" title="Destructive Matter &#183; up to 2nd grade">
+              <svg viewBox="0 0 20 20" aria-label="Destructive">
+                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
+                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
+                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
+              </svg><b>II</b>
+            </span>
+          </div>
+          <div class="hp">18 <small>HP</small></div>
+        </div>
+      </div>
+      <p class="opt-note">Campo stellare e nebulose: puntini di stelle sul fondo, costo a pianeta, fregi a stella.</p>
+    </div>
+  </div>
+</div>
