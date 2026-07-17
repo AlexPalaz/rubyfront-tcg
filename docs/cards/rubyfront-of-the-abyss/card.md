@@ -12,19 +12,20 @@
 
 | Field | Value |
 |---|---|
-| **Deployment cost** | `2+1` (first deployment 2 Flow, then 3, 4… capped at 20) |
+| **Deployment cost** | `3+1` (first deployment 3 Flow, then 4, 5… capped at 20) |
 | **HP** | 18 |
 | **Main ability** | **Fury** — d20 ≥ 12 before every action; **on failure it loses 3 HP** (the loss value is printed beside the keyword) |
 | **Matters** | Destructive **up to 2nd grade** |
+| **Union requirement printed on this face** | reveal the bottom card of your deck: it must be a **Human** that enables **Zero** Matter, and you must have **no cards in hand**; the revealed card remains in the deck |
 
 **Deployment effect** *(resolves on every entrance from the Recall Zone)*:
 
-> **Undertow** — Choose an Entity: its owner puts it **at the bottom of their deck**.
+> **Undertow** — Look at your top card. You may put it on the bottom.
 
 **Special abilities** *(cost HP, own turn only, usable multiple times per turn while HP covers the cost — §3.1; every use requires the Fury roll)*:
 
-- **Abyssal Pressure — 2 HP:** an Entity gets **−2 Power** until the start of your next turn *(Power never drops below 0, §8.2)*.
-- **Devour — 5 HP:** **destroy** an Entity with Power 3 or less.
+- **Abyssal Pressure — 2 HP:** an opposing Entity gets **−2 Power** until your next turn *(Power never drops below 0, §8.2)*.
+- **Devour — 5 HP:** put an opposing Entity with Power ≤ 3 **on the bottom of its owner's deck**.
 
 **Flavor:** *It did not rise. The abyss opened its eyes.*
 
@@ -34,19 +35,18 @@
 
 | Field | Value |
 |---|---|
-| **Flip requirement** | you control an Entity that enables **Dominant** Matter, **or** a **Human** Entity that enables **Zero** Matter *(checked at the moment of the flip, §3.1)* |
 | **HP recovery** | **+6** (starts with the Rubyfront's remaining HP plus 6) |
 | **Main ability** | — none. Abilities are never inherited through the flip (§3.1): the Union face only has what it prints, and this one prints no main ability — the beast, united, is finally tame |
 | **Matters** | Destructive **up to 2nd grade**, **Zero** |
 
 **Flip effect:**
 
-> **The Great Tide** — Tap every opposing Entity.
+> **The First Wave** — Tap an opposing Entity.
 
 **Special abilities:**
 
-- **Rising Tide — 3 HP:** up to **two** Entities get **−2 Power** until the start of your next turn.
-- **Bottomless Abyss — 7 HP:** **destroy** an Entity.
+- **Rising Tide — 3 HP:** up to **two opposing Entities** get **−2 Power** until your next turn.
+- **The Great Tide — 7 HP:** tap every opposing Entity.
 
 **Flavor:** *The abyss no longer waits below. It walks.*
 
@@ -87,13 +87,14 @@
 
 ## Note di design (IT)
 
-- **Identità:** controllo per logoramento. Il Rubyfront **inghiotte** una singola Entità
-  rimandandola in fondo al mazzo (niente trigger di morte); l'Unione cambia funzione e
-  usa la Grande Marea per tappare l'intero Fronte avversario, aprendo un turno offensivo.
-- **Requisito dell'Unione:** serve in campo un'Entità che abiliti la **Dominante**, oppure
-  un **Umano** che abiliti la **Zero** — le due Materie rarissime (§7.1). Il flip non è
-  questione di tempo ma di **deck-building**: la Voragine si sblocca costruendo il mazzo
-  attorno a poche carte chiave, e l'avversario può ritardarla eliminando gli abilitatori.
+- **Identità:** controllo per logoramento con una curva rischio/potenza leggibile. Lo
+  schieramento filtra appena la pescata; spendere PV sblocca prima il debuff e poi la
+  rimozione abissale. L'Unione passa dal tap singolo gratuito alla Grande Marea da 7 PV,
+  capace di aprire un turno offensivo contro l'intero Fronte avversario.
+- **Sigillo del vuoto:** la carta in fondo al mazzo deve essere un **Umano che abiliti la
+  Zero** e viene rivelata per verificare il requisito, senza lasciare il mazzo. Inoltre il
+  giocatore deve avere la **mano vuota**. Risacca permette di preparare il sigillo, mentre
+  svuotare la mano espone il giocatore e rende il flip una scelta strategica riconoscibile.
 - **Fury (−3 HP) su 18 PV:** ogni azione riesce con 12+ sul d20 (**45%**) e ogni fallimento
   costa 3 PV (~17% dei PV di partenza) più il ritorno in Zona di Richiamo — il Rubifronte
   è potente ma davvero indomabile. L'Unione invece **non ha Furia**: domare la bestia è

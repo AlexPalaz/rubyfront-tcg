@@ -5,7 +5,11 @@
   },
   "card": {
     "illustration": "Illustrazione",
-    "hp": "PV"
+    "hp": "PV",
+    "unionRequirement": {
+      "label": "Requisito Unione",
+      "text": "Rivela un Umano con Zero in fondo avendo la mano vuota"
+    }
   },
   "matters": {
     "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
@@ -22,18 +26,18 @@
     "trigger": "Allo schieramento",
     "effect": {
       "name": "Risacca",
-      "text": "Scegli un’Entità: il suo proprietario la mette in fondo al proprio mazzo."
+      "text": "Guarda la prima carta del mazzo. Puoi metterla in fondo."
     },
     "abilities": {
       "pressure": {
         "cost": "−2 PV",
         "name": "Pressione Abissale",
-        "text": "un’Entità prende −2 Potenza fino all’inizio del tuo prossimo turno."
+        "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
       },
       "devour": {
         "cost": "−5 PV",
         "name": "Divorare",
-        "text": "distruggi un’Entità con Potenza 3 o inferiore."
+        "text": "metti in fondo al mazzo un’Entità avversaria con Potenza ≤ 3."
       }
     },
     "flavor": "Non emerse. Gli abissi aprirono gli occhi."
@@ -41,25 +45,21 @@
   "faceB": {
     "name": "Incarnazione dell’Abisso",
     "unionAria": "Unione",
-    "requirement": {
-      "label": "Richiede",
-      "text": "un’Entità con Dominante, oppure un Umano con Zero"
-    },
     "trigger": "Al flip",
     "effect": {
-      "name": "La Grande Marea",
-      "text": "Tappa ogni Entità avversaria."
+      "name": "La Prima Ondata",
+      "text": "Tappa un’Entità avversaria."
     },
     "abilities": {
       "tide": {
         "cost": "−3 PV",
         "name": "Marea Crescente",
-        "text": "fino a due Entità prendono −2 Potenza fino all’inizio del tuo prossimo turno."
+        "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
       },
       "abyss": {
         "cost": "−7 PV",
-        "name": "Abisso Senza Fondo",
-        "text": "distruggi un’Entità."
+        "name": "La Grande Marea",
+        "text": "tappa ogni Entità avversaria."
       }
     },
     "flavor": "L’abisso prese forma. Il mondo arretrò."

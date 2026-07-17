@@ -5,7 +5,11 @@
   },
   "card": {
     "illustration": "Illustration",
-    "hp": "HP"
+    "hp": "HP",
+    "unionRequirement": {
+      "label": "Union requirement",
+      "text": "Empty-handed, reveal a Human with Zero at the bottom"
+    }
   },
   "matters": {
     "destructiveTitle": "Destructive Matter · up to 2nd grade",
@@ -22,18 +26,18 @@
     "trigger": "On deployment",
     "effect": {
       "name": "Undertow",
-      "text": "Choose an Entity: its owner puts it at the bottom of their deck."
+      "text": "Look at your top card. You may put it on the bottom."
     },
     "abilities": {
       "pressure": {
         "cost": "−2 HP",
         "name": "Abyssal Pressure",
-        "text": "an Entity gets −2 Power until the start of your next turn."
+        "text": "an opposing Entity gets −2 Power until your next turn."
       },
       "devour": {
         "cost": "−5 HP",
         "name": "Devour",
-        "text": "destroy an Entity with Power 3 or less."
+        "text": "put an opposing Entity with Power ≤ 3 on the bottom of its owner’s deck."
       }
     },
     "flavor": "It did not rise. The abyss opened its eyes."
@@ -41,25 +45,21 @@
   "faceB": {
     "name": "The Abyss Incarnate",
     "unionAria": "Union",
-    "requirement": {
-      "label": "Requires",
-      "text": "an Entity with Dominant, or a Human with Zero"
-    },
     "trigger": "On flip",
     "effect": {
-      "name": "The Great Tide",
-      "text": "Tap every opposing Entity."
+      "name": "The First Wave",
+      "text": "Tap an opposing Entity."
     },
     "abilities": {
       "tide": {
         "cost": "−3 HP",
         "name": "Rising Tide",
-        "text": "up to two Entities get −2 Power until the start of your next turn."
+        "text": "up to two opposing Entities get −2 Power until your next turn."
       },
       "abyss": {
         "cost": "−7 HP",
-        "name": "Bottomless Abyss",
-        "text": "destroy an Entity."
+        "name": "The Great Tide",
+        "text": "tap every opposing Entity."
       }
     },
     "flavor": "The abyss no longer waits below. It walks."

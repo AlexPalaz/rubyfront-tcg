@@ -46,7 +46,7 @@
     flex: none;
     font-size: min(16px, 2.9vw);
     aspect-ratio: 5 / 7;
-    display: flex; flex-direction: column; gap: .7em;
+    display: flex; flex-direction: column; gap: .55em;
     background: var(--bg); color: var(--ink);
     border: 1px solid var(--frame);
     outline: 1px solid var(--frame-dim); outline-offset: 4px;
@@ -87,13 +87,14 @@
     border-top: 1px solid var(--frame); border-bottom: 1px solid var(--frame); padding: .22em 0; }
   .cost { flex: none; width: 2.6em; height: 2.6em; background: var(--ruby);
     border: 1px solid var(--ruby-light); transform: rotate(45deg);
-    display: flex; align-items: center; justify-content: center; }
+    display: flex; align-items: center; justify-content: center;
+    position: relative; top: -.34em; }
   .cost i { transform: rotate(-45deg); font-style: normal;
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 1em; font-weight: 700; color: var(--cost-ink, #fdeef1); }
+    font-family: inherit;
+    font-size: 1em; font-weight: 400; color: var(--cost-ink, #fdeef1); }
   .union-mark { flex: none; width: 3.1em; height: 2.2em; }
   .union-mark svg { display: block; width: 100%; height: 100%; overflow: visible; }
-  .art { height: 27%; min-height: 0; flex: 0 0 27%; border: 1px solid var(--frame); background: var(--well);
+  .art { height: 35%; min-height: 0; flex: 0 0 35%; border: 1px solid var(--frame); background: var(--well);
     display: flex; align-items: center; justify-content: center;
     font-size: 1em; letter-spacing: .4em; text-transform: uppercase;
     color: color-mix(in srgb, var(--muted) 45%, transparent); }
@@ -107,15 +108,16 @@
   .divider i { font-style: normal; font-size: .55em; }
   .divider::before, .divider::after { content: ""; width: 3.5em; height: 1px; background: var(--frame-dim); }
   .requirement { position: relative; border: 1px dashed var(--frame);
-    margin-top: .55em; padding: .6em .5em .4em; text-align: center; }
+    margin-top: .4em; padding: .48em .5em .3em; text-align: center; }
   .requirement b { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%);
     background: var(--panel); padding: 0 .6em;
     font-size: 1em; letter-spacing: .12em; text-transform: uppercase;
     color: var(--accent); font-weight: 600; line-height: 1.15; white-space: nowrap; }
   .requirement span { font-size: 1em; color: var(--ink); }
   .textbox { flex: 1; border: 1px solid var(--frame-dim); background: var(--panel);
-    padding: .8em .85em; display: flex; flex-direction: column; gap: .6em;
+    padding: .8em .85em; display: flex; flex-direction: column; gap: .45em;
     font-size: 1em; overflow: hidden; }
+  .card:not(.union) .textbox { padding-bottom: 1em; }
   .fx, .ability { display: grid; grid-template-columns: 4.4em 1fr;
     column-gap: .6em; align-items: baseline; }
   .fx .tag { grid-column: 1 / -1; display: flex; align-items: center; gap: .8em;
@@ -568,8 +570,6 @@
     background: linear-gradient(90deg, #7fd4d4, #c8a8ff, #9fb5ff);
     -webkit-background-clip: text; background-clip: text; color: transparent; }
   .t17 .cost {
-    position: relative;
-    top: -.16em;
     border-color: #9fb5ff;
     background: linear-gradient(120deg, #4a58c9, #7846c9);
   }
@@ -786,19 +786,20 @@
       <div class="face-label" data-i18n="ui.faceA">Face A &#8212; Rubyfront</div>
       <div class="card t01" id="cardA">
         <div class="titlebar">
-          <div class="cost"><i>2+1</i></div>
+          <div class="cost"><i>3+1</i></div>
           <div class="name" data-i18n="faceA.name">Rubyfront of the Abyss</div>
           <div class="hp">18 <small data-i18n="card.hp">HP</small></div>
         </div>
         <div class="art" data-i18n="card.illustration">Illustration</div>
         <div class="keyword"><span data-i18n="faceA.keyword.name">Fury</span> <span data-i18n="faceA.keyword.rules">d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
         <div class="textbox">
+          <p class="requirement"><b data-i18n="card.unionRequirement.label">Union requirement</b><span data-i18n="card.unionRequirement.text">Empty-handed, reveal a Human with Zero at the bottom</span></p>
           <div class="fx">
             <span class="tag" data-i18n="faceA.trigger">On deployment</span>
-            <div class="body"><b data-i18n="faceA.effect.name">Undertow</b>: <span data-i18n="faceA.effect.text">Choose an Entity: its owner puts it at the bottom of their deck.</span></div>
+            <div class="body"><b data-i18n="faceA.effect.name">Undertow</b>: <span data-i18n="faceA.effect.text">Look at your top card. You may put it on the bottom.</span></div>
           </div>
-          <div class="ability"><span class="hp-cost" data-i18n="faceA.abilities.pressure.cost">&#8722;2 HP</span><div><b data-i18n="faceA.abilities.pressure.name">Abyssal Pressure</b>: <span data-i18n="faceA.abilities.pressure.text">an Entity gets &#8722;2 Power until the start of your next turn.</span></div></div>
-          <div class="ability"><span class="hp-cost" data-i18n="faceA.abilities.devour.cost">&#8722;5 HP</span><div><b data-i18n="faceA.abilities.devour.name">Devour</b>: <span data-i18n="faceA.abilities.devour.text">destroy an Entity with Power 3 or less.</span></div></div>
+          <div class="ability"><span class="hp-cost" data-i18n="faceA.abilities.pressure.cost">&#8722;2 HP</span><div><b data-i18n="faceA.abilities.pressure.name">Abyssal Pressure</b>: <span data-i18n="faceA.abilities.pressure.text">an opposing Entity gets &#8722;2 Power until your next turn.</span></div></div>
+          <div class="ability"><span class="hp-cost" data-i18n="faceA.abilities.devour.cost">&#8722;5 HP</span><div><b data-i18n="faceA.abilities.devour.name">Devour</b>: <span data-i18n="faceA.abilities.devour.text">put an opposing Entity with Power &#8804; 3 on the bottom of its owner’s deck.</span></div></div>
           <p class="flavor" data-i18n="faceA.flavor">It did not rise. The abyss opened its eyes.</p>
         </div>
         <div class="bottombar">
@@ -840,13 +841,12 @@
         <div class="art" data-i18n="card.illustration">Illustration</div>
         <div class="divider" aria-hidden="true"><i>&#9670;</i></div>
         <div class="textbox">
-          <p class="requirement"><b data-i18n="faceB.requirement.label">Requires</b><span data-i18n="faceB.requirement.text">an Entity with Dominant, or a Human with Zero</span></p>
           <div class="fx">
             <span class="tag" data-i18n="faceB.trigger">On flip</span>
-            <div class="body"><b data-i18n="faceB.effect.name">The Great Tide</b>: <span data-i18n="faceB.effect.text">Tap every opposing Entity.</span></div>
+            <div class="body"><b data-i18n="faceB.effect.name">The First Wave</b>: <span data-i18n="faceB.effect.text">Tap an opposing Entity.</span></div>
           </div>
-          <div class="ability"><span class="hp-cost" data-i18n="faceB.abilities.tide.cost">&#8722;3 HP</span><div><b data-i18n="faceB.abilities.tide.name">Rising Tide</b>: <span data-i18n="faceB.abilities.tide.text">up to two Entities get &#8722;2 Power until the start of your next turn.</span></div></div>
-          <div class="ability"><span class="hp-cost" data-i18n="faceB.abilities.abyss.cost">&#8722;7 HP</span><div><b data-i18n="faceB.abilities.abyss.name">Bottomless Abyss</b>: <span data-i18n="faceB.abilities.abyss.text">destroy an Entity.</span></div></div>
+          <div class="ability"><span class="hp-cost" data-i18n="faceB.abilities.tide.cost">&#8722;3 HP</span><div><b data-i18n="faceB.abilities.tide.name">Rising Tide</b>: <span data-i18n="faceB.abilities.tide.text">up to two opposing Entities get &#8722;2 Power until your next turn.</span></div></div>
+          <div class="ability"><span class="hp-cost" data-i18n="faceB.abilities.abyss.cost">&#8722;7 HP</span><div><b data-i18n="faceB.abilities.abyss.name">The Great Tide</b>: <span data-i18n="faceB.abilities.abyss.text">tap every opposing Entity.</span></div></div>
           <p class="flavor" data-i18n="faceB.flavor">The abyss no longer waits below. It walks.</p>
         </div>
         <div class="bottombar">
