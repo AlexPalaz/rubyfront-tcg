@@ -26,11 +26,11 @@
 - **Abyssal Pressure — 2 HP:** an Entity gets **−2 Power** until the start of your next turn *(Power never drops below 0, §8.2)*.
 - **Devour — 5 HP:** **destroy** an Entity with Power 3 or less.
 
-**Flavor:** *It did not rise from the abyss. The abyss, one day, opened its eyes.*
+**Flavor:** *It did not rise. The abyss opened its eyes.*
 
 ---
 
-## Face B — Union: The Maw of the Abyss
+## Face B — Union: The Abyss Incarnate
 
 | Field | Value |
 |---|---|
@@ -41,15 +41,14 @@
 
 **Flip effect:**
 
-> **The Great Tide** — Every Entity with Power 2 or less is dragged into the abyss:
-> its owner puts it **at the bottom of their deck**.
+> **The Great Tide** — Tap every opposing Entity.
 
 **Special abilities:**
 
 - **Rising Tide — 3 HP:** up to **two** Entities get **−2 Power** until the start of your next turn.
 - **Bottomless Abyss — 7 HP:** **destroy** an Entity.
 
-**Flavor:** *No more recalls: the abyss itself comes forward.*
+**Flavor:** *The abyss no longer waits below. It walks.*
 
 ---
 
@@ -88,9 +87,9 @@
 
 ## Note di design (IT)
 
-- **Identità:** controllo per logoramento. L'abisso non uccide: **inghiotte** — la firma
-  della carta è mandare le Entità *in fondo al mazzo* (niente trigger di morte, la carta
-  non è persa per sempre ma torna irraggiungibile per molti turni).
+- **Identità:** controllo per logoramento. Il Rubyfront **inghiotte** una singola Entità
+  rimandandola in fondo al mazzo (niente trigger di morte); l'Unione cambia funzione e
+  usa la Grande Marea per tappare l'intero Fronte avversario, aprendo un turno offensivo.
 - **Requisito dell'Unione:** serve in campo un'Entità che abiliti la **Dominante**, oppure
   un **Umano** che abiliti la **Zero** — le due Materie rarissime (§7.1). Il flip non è
   questione di tempo ma di **deck-building**: la Voragine si sblocca costruendo il mazzo

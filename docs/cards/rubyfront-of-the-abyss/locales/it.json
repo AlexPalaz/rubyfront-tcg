@@ -1,0 +1,67 @@
+{
+  "ui": {
+    "faceA": "Faccia A — Rubyfront",
+    "faceB": "Faccia B — Unione"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV"
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
+    "destructiveAria": "Distruttiva",
+    "zeroTitle": "Materia Zero",
+    "zeroAria": "Zero"
+  },
+  "faceA": {
+    "name": "Rubifronte degli Abissi",
+    "keyword": {
+      "name": "Furia",
+      "rules": "d20 ≥ 12 prima di ogni azione · fallimento −3 PV"
+    },
+    "trigger": "Allo schieramento",
+    "effect": {
+      "name": "Risacca",
+      "text": "Scegli un’Entità: il suo proprietario la mette in fondo al proprio mazzo."
+    },
+    "abilities": {
+      "pressure": {
+        "cost": "−2 PV",
+        "name": "Pressione Abissale",
+        "text": "un’Entità prende −2 Potenza fino all’inizio del tuo prossimo turno."
+      },
+      "devour": {
+        "cost": "−5 PV",
+        "name": "Divorare",
+        "text": "distruggi un’Entità con Potenza 3 o inferiore."
+      }
+    },
+    "flavor": "Non emerse. Gli abissi aprirono gli occhi."
+  },
+  "faceB": {
+    "name": "Incarnazione dell’Abisso",
+    "unionAria": "Unione",
+    "requirement": {
+      "label": "Richiede",
+      "text": "un’Entità con Dominante, oppure un Umano con Zero"
+    },
+    "trigger": "Al flip",
+    "effect": {
+      "name": "La Grande Marea",
+      "text": "Tappa ogni Entità avversaria."
+    },
+    "abilities": {
+      "tide": {
+        "cost": "−3 PV",
+        "name": "Marea Crescente",
+        "text": "fino a due Entità prendono −2 Potenza fino all’inizio del tuo prossimo turno."
+      },
+      "abyss": {
+        "cost": "−7 PV",
+        "name": "Abisso Senza Fondo",
+        "text": "distruggi un’Entità."
+      }
+    },
+    "flavor": "L’abisso prese forma. Il mondo arretrò."
+  }
+}

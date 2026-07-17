@@ -1,0 +1,67 @@
+{
+  "ui": {
+    "faceA": "Face A — Rubyfront",
+    "faceB": "Face B — Union"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP"
+  },
+  "matters": {
+    "destructiveTitle": "Destructive Matter · up to 2nd grade",
+    "destructiveAria": "Destructive",
+    "zeroTitle": "Zero Matter",
+    "zeroAria": "Zero"
+  },
+  "faceA": {
+    "name": "Rubyfront of the Abyss",
+    "keyword": {
+      "name": "Fury",
+      "rules": "d20 ≥ 12 before every action · on failure −3 HP"
+    },
+    "trigger": "On deployment",
+    "effect": {
+      "name": "Undertow",
+      "text": "Choose an Entity: its owner puts it at the bottom of their deck."
+    },
+    "abilities": {
+      "pressure": {
+        "cost": "−2 HP",
+        "name": "Abyssal Pressure",
+        "text": "an Entity gets −2 Power until the start of your next turn."
+      },
+      "devour": {
+        "cost": "−5 HP",
+        "name": "Devour",
+        "text": "destroy an Entity with Power 3 or less."
+      }
+    },
+    "flavor": "It did not rise. The abyss opened its eyes."
+  },
+  "faceB": {
+    "name": "The Abyss Incarnate",
+    "unionAria": "Union",
+    "requirement": {
+      "label": "Requires",
+      "text": "an Entity with Dominant, or a Human with Zero"
+    },
+    "trigger": "On flip",
+    "effect": {
+      "name": "The Great Tide",
+      "text": "Tap every opposing Entity."
+    },
+    "abilities": {
+      "tide": {
+        "cost": "−3 HP",
+        "name": "Rising Tide",
+        "text": "up to two Entities get −2 Power until the start of your next turn."
+      },
+      "abyss": {
+        "cost": "−7 HP",
+        "name": "Bottomless Abyss",
+        "text": "destroy an Entity."
+      }
+    },
+    "flavor": "The abyss no longer waits below. It walks."
+  }
+}
