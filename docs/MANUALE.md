@@ -198,6 +198,7 @@ Il giocatore può **ritirare** le proprie Entità dal Fronte: l'Entità ritirata
 
 - **Quando:** solo in **Fase di Preparazione**, e solo sulle **proprie** Entità. Il ritiro è un'azione di preparazione del Fronte: non si ritira in Fase di Fronte, né nel turno avversario, né nel mezzo di una catena di risposta (§7.2).
 - **Costo:** nessuno. Non c'è **limite** al numero di Entità ritirabili in un turno: si può anche svuotare l'intero Fronte.
+- **Non nel turno d'ingresso:** un'Entità **entrata in campo in questo turno non può essere ritirata**; va aspettato il turno successivo, come per l'attesa di evocazione. Senza questo vincolo, a Fronte pieno si potrebbe giocare un'Entità solo per il suo effetto d'ingresso e ritirarla subito per liberare lo slot, trasformando il Ritiro in un motore di effetti. Lo **Slancio** (§8.1) **non** aggira questo divieto: permette di attaccare subito, non di essere ritirata subito.
 - **Non è obbligatorio giocare qualcosa al suo posto:** si può ritirare solo per liberare slot, o senza alcuna intenzione di far scendere altre carte.
 - **Non è una morte:** il ritiro manda l'Entità negli scarti ma **non conta come morte o distruzione** — gli effetti "quando un'Entità muore / viene distrutta" **non si innescano**. Conta invece come **lasciare il campo** per gli effetti che usano quella dicitura (§1.2).
 - **Oggetto assegnato:** segue la regola generale (§3.1) — va anch'esso nella **pila degli scarti**.
@@ -413,6 +414,8 @@ Le Materie **avversarie** che bersagliano una carta con Furia funzionano normalm
 
 Un'Entità con **Slancio** può **attaccare già nel turno in cui entra in campo**, ignorando l'attesa di evocazione (§6.2).
 
+Lo Slancio riguarda **solo l'attacco**: non esenta l'Entità dalle altre regole legate al turno d'ingresso. In particolare, un'Entità con Slancio **non può essere ritirata nel turno in cui entra** (§6.2), come qualsiasi altra.
+
 ##### Stasi
 
 Quando un'Entità con **Stasi** blocca e **dovrebbe morire** (Potenza inferiore all'attaccante), invece di morire **rimane sul campo, permanentemente tappata**: non si stapperà mai più e non potrà più né attaccare né bloccare. Continua a occupare uno slot del Fronte, ma essendo ancora in campo **continua ad abilitare le sue Materie**.
@@ -507,11 +510,11 @@ Il pareggio esiste in due soli casi:
 - **Oggetto** — carta senza costo di Flusso che si assegna a un'Entità (max 1 per Entità).
 - **Abilità** — parola chiave con regole predefinite da questo manuale (vedi §8.1).
 - **Furia** — abilità (tipica del Rubyfront): prima di ogni azione della carta (attacco, blocco, contrattacco, Materie attribuite, abilità speciali — il movimento del Rubyfront e il flip verso l'Unione sono esclusi) serve un d20 ≥12; al fallimento l'azione salta, l'Entità si tappa e si perdono PV (Potenza dell'Entità, o il valore X sulla carta per il Rubyfront).
-- **Slancio** — abilità: l'Entità può attaccare già nel turno in cui entra in campo (ignora l'attesa di evocazione).
+- **Slancio** — abilità: l'Entità può attaccare già nel turno in cui entra in campo (ignora l'attesa di evocazione). Riguarda solo l'attacco: non permette di essere ritirata nel turno d'ingresso.
 - **Stasi** — abilità: se bloccando dovrebbe morire, resta invece sul campo permanentemente tappata.
 - **Vendetta** — abilità: se blocca con Potenza superiore all'attaccante, l'attaccante muore anche senza contrattacco.
 - **Attesa di evocazione** — un'Entità non può attaccare nel turno in cui entra in campo.
-- **Ritiro** — mandare volontariamente una propria Entità dal Fronte alla pila degli scarti, in Fase di Preparazione, gratis e senza limite di numero, per liberare slot o solo per toglierla di mezzo. **Non è una morte** (§6.2).
+- **Ritiro** — mandare volontariamente una propria Entità dal Fronte alla pila degli scarti, in Fase di Preparazione, gratis e senza limite di numero, per liberare slot o solo per toglierla di mezzo. Non si ritira un'Entità entrata in campo nello stesso turno. **Non è una morte** (§6.2).
 - **Morire / essere distrutta** — andare nella pila degli scarti dal campo, per una battaglia persa o per un effetto di distruzione. L'Entità **ritirata** (§6.2) **non muore**: lascia il campo e va negli scarti senza innescare effetti di morte.
 - **Contrattacco +N** — statistica di alcune Entità: quando bloccano possono sommare +N alla Potenza; se così superano l'attaccante, questo muore. Chi contrattacca viene coperto.
 - **Tappata** — stato di un'Entità che ha attaccato o bloccato: non può né attaccare né bloccare; si stappa a inizio del turno successivo del proprietario.
