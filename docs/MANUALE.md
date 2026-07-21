@@ -57,23 +57,6 @@ Ogni carta riporta:
 
 Le **Materie** sono le carte magia/evento del gioco (vedi §7).
 
-#### Carte Evoluzione
-
-Le **Evoluzioni** sono a tutti gli effetti **carte Entità** (con razza, Potenza, Materie abilitate, eventuale abilità) legate a un'Entità di base, indicata nella loro descrizione con una dicitura del tipo: *"Se hai X, il costo per giocare questa carta è ridotto di N"*.
-
-- **Con l'Entità di base in campo:** l'Evoluzione si gioca **a costo ridotto** (come indicato dalla dicitura) e **sostituisce** l'Entità di base, che va nella **pila degli scarti**.
-- **Senza l'Entità di base:** l'Evoluzione è comunque giocabile **normalmente**, pagando il costo pieno indicato al solito posto sulla carta.
-- L'eventuale **Oggetto** assegnato all'Entità di base **si conserva**: passa all'Evoluzione.
-- La sostituzione è **un unico scambio senza interruzione**: non esiste un istante in cui la base è uscita e l'Evoluzione non è ancora entrata. Ai fini dell'abilitazione delle Materie (§7), se la base era l'unica carta ad abilitare un tipo e l'Evoluzione abilita lo stesso tipo (al grado richiesto), l'accesso **non si perde mai** e le Materie permanenti di quel tipo **sopravvivono** alla sostituzione. Se invece l'Evoluzione non riabilita il tipo al grado richiesto, l'accesso si perde normalmente (§7.2).
-- **La base non muore:** la sostituzione la manda nella pila degli scarti, ma **non conta come morte o distruzione** — gli effetti "quando un'Entità muore / viene distrutta" **non si innescano**. Conta invece come **lasciare il campo** per gli effetti che usano quella dicitura (regola dell'estensione massima, §1.2), fatte salve le eccezioni già previste: l'Oggetto passa all'Evoluzione e l'abilitazione non si interrompe.
-- Le Evoluzioni possono **incatenarsi**: un'Evoluzione può essere a sua volta l'Entità di base di un'altra Evoluzione.
-
-**Stato all'ingresso:**
-
-- Se giocata **come evoluzione** (sostituendo la base in campo): entra a tutti gli effetti come una **nuova Entità che entra in campo** — il suo **effetto d'ingresso si risolve normalmente**, innesca gli eventuali effetti "quando giochi un'Entità" delle altre carte, e ai fini dell'ordine di risoluzione (§8.2) la sua "età" è quella del momento in cui entra (non quella della base). Non eredita il tap della base. **Unica differenza** rispetto a un'evocazione normale: **può attaccare subito**, senza attesa di evocazione.
-- Se giocata **normalmente** (a costo pieno, senza base in campo): è un'Entità appena evocata a tutti gli effetti — **attesa di evocazione normale**.
-- **Un'Entità coperta non può essere sostituita da un'Evoluzione**: la copertura vieta ogni azione, compreso l'essere evoluta (coerente con §6.3, "l'Entità coperta non può fare nulla"). Un'Entità semplicemente tappata, invece, può essere evoluta.
-
 #### Carte Oggetto
 
 Gli **Oggetti** sono carte che si **assegnano a un'Entità**:
@@ -207,7 +190,7 @@ Dichiarata dal giocatore al termine della Canalizzazione. In questa fase si iniz
 
 Sul Fronte si possono avere **al massimo 5 Entità contemporaneamente** — i **5 slot** del Fronte (§5). Nel limite contano **solo le Entità**: il **Rubyfront** non occupa slot (schierato, sta davanti agli slot), le **Materie permanenti** stanno dietro gli slot e **non hanno limite di numero** (il solo vincolo è l'abilitazione, §7), gli **Oggetti** sono assegnati alle Entità e non occupano slot.
 
-**A Fronte pieno** (5 slot occupati) non si possono giocare altre Entità. Se un **effetto** metterebbe in campo una carta a Fronte pieno, quella parte dell'effetto **non si applica** (la carta non entra) e il resto dell'effetto si risolve normalmente. **Eccezione:** un'Evoluzione giocata **come sostituzione** della sua base in campo (§3.1) è sempre legale anche a Fronte pieno — la base esce e l'Evoluzione entra al suo posto, il saldo sul Fronte è zero. Giocata invece a costo pieno (senza base), l'Evoluzione richiede uno slot libero come ogni Entità.
+**A Fronte pieno** (5 slot occupati) non si possono giocare altre Entità. Se un **effetto** metterebbe in campo una carta a Fronte pieno, quella parte dell'effetto **non si applica** (la carta non entra) e il resto dell'effetto si risolve normalmente.
 
 #### Ritiro
 
@@ -216,7 +199,7 @@ Il giocatore può **ritirare** le proprie Entità dal Fronte: l'Entità ritirata
 - **Quando:** solo in **Fase di Preparazione**, e solo sulle **proprie** Entità. Il ritiro è un'azione di preparazione del Fronte: non si ritira in Fase di Fronte, né nel turno avversario, né nel mezzo di una catena di risposta (§7.2).
 - **Costo:** nessuno. Non c'è **limite** al numero di Entità ritirabili in un turno: si può anche svuotare l'intero Fronte.
 - **Non è obbligatorio giocare qualcosa al suo posto:** si può ritirare solo per liberare slot, o senza alcuna intenzione di far scendere altre carte.
-- **Non è una morte:** come per la base sostituita da un'Evoluzione (§3.1), il ritiro manda l'Entità negli scarti ma **non conta come morte o distruzione** — gli effetti "quando un'Entità muore / viene distrutta" **non si innescano**. Conta invece come **lasciare il campo** per gli effetti che usano quella dicitura (§1.2).
+- **Non è una morte:** il ritiro manda l'Entità negli scarti ma **non conta come morte o distruzione** — gli effetti "quando un'Entità muore / viene distrutta" **non si innescano**. Conta invece come **lasciare il campo** per gli effetti che usano quella dicitura (§1.2).
 - **Oggetto assegnato:** segue la regola generale (§3.1) — va anch'esso nella **pila degli scarti**.
 - **Abilitazione delle Materie:** l'Entità ritirata smette di abilitare i suoi tipi di Materia. Se era l'ultima ad abilitare un tipo, l'accesso si perde e le Materie permanenti di quel tipo vanno negli scarti (§7.2). Ritirare senza controllare cosa si sta abilitando è un errore costoso.
 - **Un'Entità coperta non può essere ritirata** (§6.3): la copertura la rende intoccabile anche per il proprietario. Un'Entità **tappata** o **in stasi** (§8.1), invece, si ritira normalmente.
@@ -292,7 +275,7 @@ Risoluzione del contrattacco (totale = Potenza + N contro Potenza dell'attaccant
 - **Tappata** (per aver **attaccato o bloccato**): un'Entità tappata **non può né attaccare né bloccare**. Si **stappa all'inizio del turno successivo del proprietario**. La differenza pratica sta nel momento in cui scatta il tap:
   - **tap in difesa** (per aver bloccato, nel turno avversario): il turno del proprietario arriva subito dopo, quindi l'Entità si stappa immediatamente e non perde nulla — il tap segna solo che ha già bloccato in quel turno di difesa;
   - **tap in attacco** (per aver attaccato, nel proprio turno): l'Entità resta tappata per **tutto il turno avversario che segue** e quindi **non può bloccare** — in sostanza, attaccare costa la difesa.
-- **Coperta** (per aver contrattaccato): l'Entità coperta **non può fare nulla** finché è coperta, ed è **intoccabile in senso totale**, da entrambi i giocatori. Per il proprietario: non può essere evoluta (§3.1), né ricevere Oggetti (quello già assegnato le rimane), né essere **ritirata** (§6.2). Per chiunque: **non può essere bersagliata né subire effetti o Materie di alcun tipo, nemmeno avversari** — finché è coperta è come se non fosse in campo (continua però a occupare il suo slot del Fronte), salvo diversa indicazione sulle carte (§1.1). A differenza della tappata (§8.1), **non abilita le sue Materie**: l'abilitazione è sospesa per tutta la copertura. Se era l'unica carta ad abilitare un tipo, l'accesso a quel tipo si perde, ma le Materie permanenti di quel tipo **non decadono**: si **coprono anche loro** — restano sul campo sospese, con l'effetto spento, come se non fossero in campo — e si **riattivano automaticamente quando l'Entità si scopre**. Se però l'Entità coperta lascia il campo prima di scoprirsi, l'abilitazione è persa per davvero e le permanenti coperte vanno negli scarti (§7.2). La copertura dura **un giro completo**:
+- **Coperta** (per aver contrattaccato): l'Entità coperta **non può fare nulla** finché è coperta, ed è **intoccabile in senso totale**, da entrambi i giocatori. Per il proprietario: non può ricevere Oggetti (quello già assegnato le rimane) né essere **ritirata** (§6.2). Per chiunque: **non può essere bersagliata né subire effetti o Materie di alcun tipo, nemmeno avversari** — finché è coperta è come se non fosse in campo (continua però a occupare il suo slot del Fronte), salvo diversa indicazione sulle carte (§1.1). A differenza della tappata (§8.1), **non abilita le sue Materie**: l'abilitazione è sospesa per tutta la copertura. Se era l'unica carta ad abilitare un tipo, l'accesso a quel tipo si perde, ma le Materie permanenti di quel tipo **non decadono**: si **coprono anche loro** — restano sul campo sospese, con l'effetto spento, come se non fossero in campo — e si **riattivano automaticamente quando l'Entità si scopre**. Se però l'Entità coperta lascia il campo prima di scoprirsi, l'abilitazione è persa per davvero e le permanenti coperte vanno negli scarti (§7.2). La copertura dura **un giro completo**:
 
   1. *Turno avversario (T):* l'Entità contrattacca e viene **coperta**.
   2. *Turno del proprietario (T+1):* non può attaccare.
@@ -436,7 +419,7 @@ Quando un'Entità con **Stasi** blocca e **dovrebbe morire** (Potenza inferiore 
 
 Stasi salva anche dal **contrattacco fallito**: se l'Entità contrattacca e il suo totale resta inferiore alla Potenza dell'attaccante, invece di morire finisce anch'essa **permanentemente tappata** (lo stato di stasi sostituisce la copertura).
 
-Un'Entità in stasi è a tutti gli effetti *tappata* (non coperta): può quindi essere **sostituita da un'Evoluzione** (§3.1), che entra fresca — è il modo per "riscattare" un'Entità pietrificata.
+Un'Entità in stasi è a tutti gli effetti *tappata* (non coperta): può quindi essere **ritirata** (§6.2) come qualsiasi altra Entità, senza costi né condizioni aggiuntive. È il modo per liberare lo slot che altrimenti resterebbe occupato per il resto della partita.
 
 Stasi protegge **solo in difesa** (blocco o contrattacco): un'Entità con Stasi che muore **attaccando** (es. contro un bloccante con Vendetta) muore normalmente.
 
@@ -467,7 +450,7 @@ Quando un evento innesca **più effetti nello stesso momento**, si risolvono in 
 
 L'ordine vale anche tra carte di giocatori diversi: fa fede il momento di discesa in campo, che è unico e condiviso. Nessun giocatore sceglie mai l'ordine: è sempre determinato dallo stato del campo.
 
-Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfront rischierato dopo un ritorno in Zona di Richiamo conta come una carta **appena arrivata** (la più giovane), non mantiene l'età del primo schieramento. Lo stesso vale per un'Evoluzione, che entra con età nuova (§3.1).
+Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfront rischierato dopo un ritorno in Zona di Richiamo conta come una carta **appena arrivata** (la più giovane), non mantiene l'età del primo schieramento.
 
 **Entrate simultanee** (caso raro): se un unico effetto mette in campo più carte contemporaneamente, entrano nello stesso momento ma **il giocatore che controlla l'effetto decide quale entra "prima"** — anche per le eventuali carte avversarie — e quell'ordine ne fissa l'età ai fini di questa regola.
 
@@ -528,11 +511,10 @@ Il pareggio esiste in due soli casi:
 - **Stasi** — abilità: se bloccando dovrebbe morire, resta invece sul campo permanentemente tappata.
 - **Vendetta** — abilità: se blocca con Potenza superiore all'attaccante, l'attaccante muore anche senza contrattacco.
 - **Attesa di evocazione** — un'Entità non può attaccare nel turno in cui entra in campo.
-- **Evoluzione** — carta giocabile a costo ridotto se la sua Entità di base è in campo (la sostituisce; la base va negli scarti, l'Oggetto passa all'Evoluzione), o a costo pieno altrimenti.
 - **Ritiro** — mandare volontariamente una propria Entità dal Fronte alla pila degli scarti, in Fase di Preparazione, gratis e senza limite di numero, per liberare slot o solo per toglierla di mezzo. **Non è una morte** (§6.2).
-- **Morire / essere distrutta** — andare nella pila degli scarti dal campo, per una battaglia persa o per un effetto di distruzione. La base sostituita da un'Evoluzione e l'Entità **ritirata** (§6.2) **non muoiono**: lasciano il campo e vanno negli scarti senza innescare effetti di morte.
+- **Morire / essere distrutta** — andare nella pila degli scarti dal campo, per una battaglia persa o per un effetto di distruzione. L'Entità **ritirata** (§6.2) **non muore**: lascia il campo e va negli scarti senza innescare effetti di morte.
 - **Contrattacco +N** — statistica di alcune Entità: quando bloccano possono sommare +N alla Potenza; se così superano l'attaccante, questo muore. Chi contrattacca viene coperto.
 - **Tappata** — stato di un'Entità che ha attaccato o bloccato: non può né attaccare né bloccare; si stappa a inizio del turno successivo del proprietario.
-- **Coperta** — stato di un'Entità che ha contrattaccato: non può fare nulla, è intoccabile da qualsiasi effetto o Materia, anche avversari (niente Oggetti né Evoluzioni; l'Oggetto già assegnato le rimane) e non abilita le sue Materie, per un giro completo; poi si scopre.
+- **Coperta** — stato di un'Entità che ha contrattaccato: non può fare nulla, è intoccabile da qualsiasi effetto o Materia, anche avversari (niente Oggetti né Ritiro; l'Oggetto già assegnato le rimane) e non abilita le sue Materie, per un giro completo; poi si scopre.
 - **Fronte pronto** — dichiarazione con cui il giocatore di turno annuncia che attacca o passa.
 - **Unione** — la seconda faccia della carta Rubyfront, sua evoluzione: si gioca flippando il Rubyfront in campo (requisiti sulla carta), recupera PV, resta in campo per sempre. Distruggerla (PV a 0) fa perdere il proprietario.
