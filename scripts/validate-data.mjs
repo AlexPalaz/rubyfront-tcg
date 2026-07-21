@@ -70,10 +70,17 @@ function checkEffectTree(node, where) {
   if (Array.isArray(node)) return node.forEach((item, i) => checkEffectTree(item, `${where}[${i}]`));
   if (!isRecord(node)) return;
 
+  // Ogni riferimento a una zona deve dire di chi è quella zona: il
+  // proprietario non si esprime più nel nome della zona (niente owner_deck).
+  if (typeof node.zone === "string" && node.owner === undefined) {
+    fail(where, `zone "${node.zone}" senza owner: indicare di chi è la zona (${[...(allowed.zoneOwner ?? [])].join(", ")})`);
+  }
+
   for (const [key, value] of Object.entries(node)) {
     const at = `${where}.${key}`;
     if (typeof value === "string") {
       if (key === "zone") checkTerm("zone", value, at);
+      else if (key === "owner") checkTerm("zoneOwner", value, at);
       else if (key === "position") checkTerm("position", value, at);
       else if (key === "state") checkTerm("state", value, at);
       else if (key === "duration") checkTerm("duration", value, at);

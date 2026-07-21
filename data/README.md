@@ -65,18 +65,34 @@ dimenticanza.
 
 Non serve toccare alcun HTML o JavaScript: le viste leggono il registro.
 
-## Nota — due incoerenze da sciogliere
+## Proprietario delle zone
 
-Emerse scrivendo il registro, lasciate volutamente **invariate** per non
-cambiare la semantica dei dati di nascosto:
+Una zona non porta mai il proprietario nel nome. Si scrive sempre così:
 
-- **`zone: "owner_deck"` contro `zone: "deck"`.** La stessa carta usa entrambi:
-  `deck` quando guarda il proprio mazzo, `owner_deck` come destinazione. Sono lo
-  stesso concetto con il proprietario espresso in due modi diversi. Andrebbero
-  normalizzati in `zone: "deck"` più un campo `owner`.
-- **`operator` copre due concetti.** In `requirements.union` è un combinatore
-  logico (`all`), dentro `conditions[]` è un confronto (`lte`). Il registro li
-  distingue già (`logicalOperator` / `comparisonOperator`) e il validatore
-  sceglie in base al contesto, ma il nome del campo resta ambiguo.
+```json
+{ "zone": "deck", "owner": "card_owner", "position": "bottom" }
+```
 
-Entrambe costano poco adesso e molto quando le carte saranno cinquanta.
+`owner` è obbligatorio ovunque compaia `zone`, e il validatore lo pretende. I
+valori sono in `zoneOwner`:
+
+- `controller` — chi sta giocando l'effetto;
+- `opponent` — il suo avversario;
+- `card_owner` — **il proprietario della carta coinvolta**, che non coincide con
+  chi gioca l'effetto. È il caso di *Divorare*: l'Entità avversaria finisce in
+  fondo al mazzo **del suo proprietario** (MANUALE.md §3.1).
+
+Questa distinzione nasce da un'ambiguità reale: prima esisteva un solo token
+`owner_deck` usato in due punti con **due significati diversi** — il mazzo del
+controllore nel requisito Unione, quello dell'avversario in *Divorare*. Un
+engine non avrebbe potuto distinguerli.
+
+## Nota — un'incoerenza ancora da sciogliere
+
+**`operator` copre due concetti.** In `requirements.union` è un combinatore
+logico (`all`), dentro `conditions[]` è un confronto (`lte`). Il registro li
+distingue già (`logicalOperator` / `comparisonOperator`) e il validatore sceglie
+in base al contesto, ma il nome del campo resta ambiguo: due chiavi distinte
+renderebbero i dati leggibili senza conoscere il contesto.
+
+Costa poco adesso e molto quando le carte saranno cinquanta.

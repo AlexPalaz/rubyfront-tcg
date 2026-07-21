@@ -62,14 +62,21 @@
     ]
   },
   "zone": {
-    "_note": "Zone di gioco, MANUALE.md §5. Vedi nota su owner_deck in data/README.md",
+    "_note": "Zone di gioco, MANUALE.md §5. Il proprietario si esprime con owner, mai nel nome della zona",
     "values": [
       "deck",
       "hand",
       "front",
       "discard",
-      "recall",
-      "owner_deck"
+      "recall"
+    ]
+  },
+  "zoneOwner": {
+    "_note": "Di chi è la zona indicata. card_owner = il proprietario della carta coinvolta, non chi gioca l'effetto",
+    "values": [
+      "controller",
+      "opponent",
+      "card_owner"
     ]
   },
   "position": {

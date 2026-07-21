@@ -62,7 +62,7 @@
             },
             {
               "type": "reveal_card",
-              "zone": "owner_deck",
+              "zone": "deck",
               "position": "bottom",
               "keepInZone": true,
               "filter": {
@@ -71,7 +71,8 @@
                 "enablesMatter": {
                   "type": "zero"
                 }
-              }
+              },
+              "owner": "controller"
             }
           ]
         }
@@ -83,14 +84,15 @@
           "event": "on_deploy_from_recall",
           "effect": {
             "type": "look_and_optionally_move",
-            "owner": "controller",
             "from": {
               "zone": "deck",
+              "owner": "controller",
               "position": "top",
               "count": 1
             },
             "to": {
               "zone": "deck",
+              "owner": "controller",
               "position": "bottom"
             },
             "optional": true
@@ -154,7 +156,8 @@
               "max": 1
             },
             "destination": {
-              "zone": "owner_deck",
+              "zone": "deck",
+              "owner": "card_owner",
               "position": "bottom"
             }
           }
