@@ -70,10 +70,18 @@
 
 ## Regole del template (IT)
 
-- **Font size unica:** a larghezza piena (520px) **ogni testo della carta è 16px** —
-  etichette, costi, Materie, flavor compresi. Unica eccezione il nome (20px). La gerarchia
-  si fa con colore, maiuscoletto e spaziatura, mai rimpicciolendo il carattere; tutto
-  scala solo con la carta intera.
+- **L'illustrazione comanda:** la finestra dell'immagine occupa **~40% dell'altezza della
+  carta**, la proporzione del frame M15 di Magic (`--art-height: 41.6%`, percentuale del
+  box interno al netto del padding). È il vincolo fisso: il testo si adatta allo spazio
+  che resta, mai il contrario.
+- **Font size unica:** a larghezza piena (520px) **ogni testo della carta è 13px** —
+  etichette, costi, Materie, flavor compresi. Unica eccezione il nome (1.25em ≈ 16px). La
+  gerarchia si fa con colore, maiuscoletto e spaziatura, mai rimpicciolendo il carattere;
+  tutto scala solo con la carta intera.
+  I 13px non sono un'estetica ma una misura verificata: è la dimensione con cui il testo
+  di questa carta entra nella textbox in **tutti e 28 i temi**, inclusi quelli a carattere
+  monospazio (Terminale CRT, Blueprint, Glitch, Neon Notturno) che a 16px lo tagliavano.
+  Alzandola, quei temi tornano a sfondare.
 - **Niente a capo nelle strisce a etichetta** (Requires, ecc.): il testo va scritto in
   modo da stare su una riga. Se non entra, si accorcia il testo, non il carattere.
   L'a-capo con rientro sotto il testo esiste solo come rete di sicurezza.

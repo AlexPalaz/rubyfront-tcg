@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Catalogo modulare dei set e delle carte di Rubyfront">
+  <title>Catalogo carte Rubyfront</title>
+  <link rel="stylesheet" href="./shell.css">
+</head>
+<body>
+  <div id="app"></div>
+  <noscript>Il catalogo richiede JavaScript perché legge direttamente i moduli dati delle carte.</noscript>
+  <script type="module">
+    import catalog from "../catalog.js";
+    import { renderCatalogPage } from "./pages.js";
+    renderCatalogPage(catalog, document.querySelector("#app"));
+  </script>
+</body>
+</html>

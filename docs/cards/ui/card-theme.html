@@ -1,50 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="it">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rubyfront of the Abyss &#8212; Themed Card</title>
+<title>Carta visuale · Rubyfront</title>
+<link rel="stylesheet" href="./shell.css">
 <style>
-  :root { --page-bg: #eceae5; --page-ink: #262022; --page-muted: #6f6468; }
-  @media (prefers-color-scheme: dark) {
-    :root { --page-bg: #141114; --page-ink: #ebe4de; --page-muted: #9a8e91; }
-  }
-  :root[data-theme="light"] { --page-bg: #eceae5; --page-ink: #262022; --page-muted: #6f6468; }
-  :root[data-theme="dark"]  { --page-bg: #141114; --page-ink: #ebe4de; --page-muted: #9a8e91; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--page-bg); color: var(--page-ink);
-    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-    padding: 40px 20px 64px; }
-  .wrap { max-width: 1240px; margin: 0 auto; }
-  header { margin-bottom: 30px; }
-  .eyebrow { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px;
-    letter-spacing: .14em; text-transform: uppercase; color: #b23a54; margin-bottom: 8px; }
-  h1 { font-size: clamp(24px, 4vw, 32px); font-weight: 600; }
-  .lede { color: var(--page-muted); font-size: 14px; margin-top: 6px; max-width: 72ch; }
-  .table { display: flex; gap: 34px 26px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
-  .face { display: flex; flex-direction: column; gap: 9px; align-items: center; width: 350px; max-width: 92vw; }
-  .face-label { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px;
-    letter-spacing: .12em; text-transform: uppercase; color: var(--page-ink); }
-  .opt-note { font-size: 13px; color: var(--page-muted); text-align: center; line-height: 1.45; }
-
-  .controls { display: flex; align-items: center; gap: 12px; margin: 4px 0 26px; flex-wrap: wrap; }
-  .controls label { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px;
-    letter-spacing: .12em; text-transform: uppercase; color: var(--page-muted); }
-  .controls select { font: 14px/1.4 inherit; padding: 6px 10px; border-radius: 6px;
-    border: 1px solid var(--page-muted); background: var(--page-bg); color: var(--page-ink); }
-  .controls code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; color: var(--page-muted); }
-  .table { max-width: 1120px; margin: 0 auto; }
-  .face {
+  /* Chrome, tipografia e colori della pagina arrivano da shell.css.
+     Qui restano solo il banco delle facce e la grafica della carta, che ha
+     una sua identità visiva e non deve uniformarsi alla navigazione. */
+  .table { display: flex; flex-wrap: wrap; justify-content: center; gap: 34px 26px; margin-top: 28px; }
+  .face { display: flex; flex-direction: column; align-items: center; gap: 9px;
     width: min(520px, calc(100vw - 40px));
-    max-width: none;
-    flex: 0 0 min(520px, calc(100vw - 40px));
-  }
+    flex: 0 0 min(520px, calc(100vw - 40px)); }
+  .face-label { color: var(--ui-muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; }
+
   /* ====== base layout ====== */
+  /* Reset locale: prima arrivava dal reset globale della pagina, che ora
+     appartiene alla shell e non deve azzerare i margini della navigazione. */
+  .card * { margin: 0; padding: 0; }
   .card {
+    /* Il serif era ereditato dal body del renderer: ora la carta se lo porta
+       da sé, così la shell resta sans e i temi possono comunque sovrascriverlo. */
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    /* Finestra dell'illustrazione: la proporzione del frame M15 di Magic, ~40%
+       dell'altezza della carta. Il valore è in percentuale del box interno, al
+       netto del padding, quindi 41.6% qui vale 40% di carta piena.
+       È il parametro che comanda: il testo si adatta a ciò che resta. */
+    --art-height: 41.6%;
     width: 100%;
     height: min(728px, calc(140vw - 56px));
     flex: none;
-    font-size: min(16px, 2.9vw);
+    /* Unica dimensione di tutti i testi della carta. Scesa da 16px a 13px:
+       serve a liberare l'altezza dell'illustrazione, ma soprattutto è la
+       misura con cui il testo entra in TUTTI i 28 temi — quelli a carattere
+       monospazio (t03, t05, t23, t26) sfondavano la textbox già a 16px.
+       Il nome resta l'unica eccezione (1.25em). */
+    font-size: min(13px, 2.36vw);
     aspect-ratio: 5 / 7;
     display: flex; flex-direction: column; gap: .55em;
     background: var(--bg); color: var(--ink);
@@ -94,7 +87,7 @@
     font-size: 1em; font-weight: 400; color: var(--cost-ink, #fdeef1); }
   .union-mark { flex: none; width: 3.1em; height: 2.2em; }
   .union-mark svg { display: block; width: 100%; height: 100%; overflow: visible; }
-  .art { height: 35%; min-height: 0; flex: 0 0 35%; border: 1px solid var(--frame); background: var(--well);
+  .art { height: var(--art-height); min-height: 0; flex: 0 0 var(--art-height); border: 1px solid var(--frame); background: var(--well);
     display: flex; align-items: center; justify-content: center;
     font-size: 1em; letter-spacing: .4em; text-transform: uppercase;
     color: color-mix(in srgb, var(--muted) 45%, transparent); }
@@ -411,7 +404,9 @@
     background: linear-gradient(180deg, #1a171d, #141117 60%, #100d12); }
   .t04 .name { font-weight: 700; letter-spacing: .1em;
     border-top: 3px double var(--frame); border-bottom: 3px double var(--frame); }
-  .t04 .art { border: none; height: 29%;
+  /* Art più bassa della norma: la variabile agisce su altezza e flex-basis
+     insieme, l'altezza da sola non bastava (in colonna vince il flex-basis). */
+  .t04 .art { border: none; --art-height: 33%;
     clip-path: polygon(0 100%, 0 34%, 50% 0, 100% 34%, 100% 100%);
     background: linear-gradient(180deg, #060409, #17121b); }
   .t04 .keyword { text-shadow: 0 0 12px rgba(255,181,71,.6); }
@@ -765,216 +760,8 @@
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <p class="eyebrow">Rubyfront &#183; Card 001 &#183; Themed</p>
-    <h1>Rubyfront of the Abyss</h1>
-    <p class="lede">La carta completa, con lo stile selezionabile: cambia il tema dal menu, oppure apri la pagina con <code>?theme=tNN</code> (una sola variabile). Il catalogo completo degli stili &#232; in <code>docs/cards/card-themes.html</code>.</p>
-  </header>
-  <div class="controls">
-    <label for="sel">Tema</label>
-    <select id="sel"></select>
-    <code id="hint"></code>
-    <label for="lang">Lingua</label>
-    <select id="lang">
-      <option value="en">English</option>
-      <option value="it">ITA</option>
-    </select>
-  </div>
-  <div class="table">
-    <div class="face" style="display:flex;flex-direction:column;gap:12px;align-items:center;">
-      <div class="face-label" data-i18n="ui.faceA">Face A &#8212; Rubyfront</div>
-      <div class="card t01" id="cardA">
-        <div class="titlebar">
-          <div class="cost"><i>3+1</i></div>
-          <div class="name" data-i18n="faceA.name">Rubyfront of the Abyss</div>
-          <div class="hp">18 <small data-i18n="card.hp">HP</small></div>
-        </div>
-        <div class="art" data-i18n="card.illustration">Illustration</div>
-        <div class="keyword"><span data-i18n="faceA.keyword.name">Fury</span> <span data-i18n="faceA.keyword.rules">d20 &#8805; 12 before every action &#183; on failure &#8722;3 HP</span></div>
-        <div class="textbox">
-          <p class="requirement"><b data-i18n="card.unionRequirement.label">Union requirement</b><span data-i18n="card.unionRequirement.text">Empty-handed, reveal a Human with Zero at the bottom</span></p>
-          <div class="fx">
-            <span class="tag" data-i18n="faceA.trigger">On deployment</span>
-            <div class="body"><b data-i18n="faceA.effect.name">Undertow</b>: <span data-i18n="faceA.effect.text">Look at your top card. You may put it on the bottom.</span></div>
-          </div>
-          <div class="ability"><span class="hp-cost" data-i18n="faceA.abilities.pressure.cost">&#8722;2 HP</span><div><b data-i18n="faceA.abilities.pressure.name">Abyssal Pressure</b>: <span data-i18n="faceA.abilities.pressure.text">an opposing Entity gets &#8722;2 Power until your next turn.</span></div></div>
-          <div class="ability"><span class="hp-cost" data-i18n="faceA.abilities.devour.cost">&#8722;5 HP</span><div><b data-i18n="faceA.abilities.devour.name">Devour</b>: <span data-i18n="faceA.abilities.devour.text">put an opposing Entity with Power &#8804; 3 on the bottom of its owner’s deck.</span></div></div>
-          <p class="flavor" data-i18n="faceA.flavor">It did not rise. The abyss opened its eyes.</p>
-        </div>
-        <div class="bottombar">
-          <div class="matters">
-            <span class="matter" title="Destructive Matter &#183; up to 2nd grade" data-i18n-title="matters.destructiveTitle">
-              <svg viewBox="0 0 20 20" aria-label="Destructive" data-i18n-aria-label="matters.destructiveAria">
-                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
-                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
-                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
-              </svg><b>II</b>
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div style="height:26px"></div>
-    <div class="face" style="display:flex;flex-direction:column;gap:12px;align-items:center;">
-      <div class="face-label" data-i18n="ui.faceB">Face B &#8212; Union</div>
-      <div class="card union t01" id="cardB">
-        <div class="titlebar">
-          <div class="union-mark">
-            <svg viewBox="0 0 40 28" aria-label="Union" data-i18n-aria-label="faceB.unionAria">
-              <circle cx="14" cy="15" r="8" fill="none" style="stroke: var(--ring, var(--ruby-light))" stroke-width="3.2"/>
-              <circle cx="14" cy="15" r="8" fill="none" style="stroke: var(--bg)" stroke-width=".9" opacity=".9"/>
-              <circle cx="26" cy="15" r="8" fill="none" style="stroke: var(--ring, var(--ruby-light))" stroke-width="3.2"/>
-              <circle cx="26" cy="15" r="8" fill="none" style="stroke: var(--bg)" stroke-width=".9" opacity=".9"/>
-              <path d="M 17.25 7.69 A 8 8 0 0 1 21.61 12.53" fill="none" style="stroke: var(--bg)" stroke-width="5.6"/>
-              <path d="M 17.25 7.69 A 8 8 0 0 1 21.61 12.53" fill="none" style="stroke: var(--ring, var(--ruby-light))" stroke-width="3.2"/>
-              <path d="M 17.25 7.69 A 8 8 0 0 1 21.61 12.53" fill="none" style="stroke: var(--bg)" stroke-width=".9" opacity=".9"/>
-              <rect x="11.2" y="4.2" width="5.6" height="5.6" transform="rotate(45 14 7)" style="fill: #9e0f34; stroke: #e56a86" stroke-width="1"/>
-              <rect x="23.2" y="4.2" width="5.6" height="5.6" transform="rotate(45 26 7)" style="fill: #9e0f34; stroke: #e56a86" stroke-width="1"/>
-              <path d="M 14 4.9 L 14 9.1 M 11.9 7 L 16.1 7" transform="rotate(45 14 7)" stroke="#e56a86" stroke-width=".5" opacity=".65"/>
-              <path d="M 26 4.9 L 26 9.1 M 23.9 7 L 28.1 7" transform="rotate(45 26 7)" stroke="#e56a86" stroke-width=".5" opacity=".65"/>
-            </svg>
-          </div>
-          <div class="name" data-i18n="faceB.name">The Abyss Incarnate</div>
-          <div class="hp">+6 <small data-i18n="card.hp">HP</small></div>
-        </div>
-        <div class="art" data-i18n="card.illustration">Illustration</div>
-        <div class="divider" aria-hidden="true"><i>&#9670;</i></div>
-        <div class="textbox">
-          <div class="fx">
-            <span class="tag" data-i18n="faceB.trigger">On flip</span>
-            <div class="body"><b data-i18n="faceB.effect.name">The First Wave</b>: <span data-i18n="faceB.effect.text">Tap an opposing Entity.</span></div>
-          </div>
-          <div class="ability"><span class="hp-cost" data-i18n="faceB.abilities.tide.cost">&#8722;3 HP</span><div><b data-i18n="faceB.abilities.tide.name">Rising Tide</b>: <span data-i18n="faceB.abilities.tide.text">up to two opposing Entities get &#8722;2 Power until your next turn.</span></div></div>
-          <div class="ability"><span class="hp-cost" data-i18n="faceB.abilities.abyss.cost">&#8722;7 HP</span><div><b data-i18n="faceB.abilities.abyss.name">The Great Tide</b>: <span data-i18n="faceB.abilities.abyss.text">tap every opposing Entity.</span></div></div>
-          <p class="flavor" data-i18n="faceB.flavor">The abyss no longer waits below. It walks.</p>
-        </div>
-        <div class="bottombar">
-          <div class="matters">
-            <span class="matter" title="Destructive Matter &#183; up to 2nd grade" data-i18n-title="matters.destructiveTitle">
-              <svg viewBox="0 0 20 20" aria-label="Destructive" data-i18n-aria-label="matters.destructiveAria">
-                <circle cx="10" cy="10" r="9" fill="#9e0f34" stroke="#e56a86" stroke-width=".8"/>
-                <path d="M10 3.8 L16.2 10 L10 16.2 L3.8 10 Z" fill="none" stroke="#ffd9e1" stroke-width="1.3"/>
-                <path d="M10 3.8 L8.9 8.4 L11.1 11.4 L10 16.2" fill="none" stroke="#ffd9e1" stroke-width="1"/>
-              </svg><b>II</b>
-            </span>
-            <span class="matter" title="Zero Matter" data-i18n-title="matters.zeroTitle">
-              <svg viewBox="0 0 20 20" aria-label="Zero" data-i18n-aria-label="matters.zeroAria">
-                <circle cx="10" cy="10" r="9" fill="#23232b" stroke="#8f93a3" stroke-width=".8"/>
-                <circle cx="10" cy="10" r="4.6" fill="none" stroke="#d6d9e4" stroke-width="1.5"/>
-              </svg>
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-<script>
-// ======= LA VARIABILE: cambia qui lo stile di default, o usa ?theme=tNN =======
-const DEFAULT_THEME = "t17";
-
-const THEMES = [
-  ["t01","Rubino & Oro"],
-  ["t02","Abisso Vivo"],
-  ["t03","Neon Notturno"],
-  ["t04","Gotico Neon"],
-  ["t05","Terminale CRT"],
-  ["t06","Vaporwave"],
-  ["t07","Brutalista"],
-  ["t08","Pergamena"],
-  ["t09","Obsidiana & Argento"],
-  ["t10","Sangue & Cenere"],
-  ["t11","Smeraldo Regale"],
-  ["t12","Ghiaccio"],
-  ["t13","Sakura Notturna"],
-  ["t14","Circuito Dorato"],
-  ["t15","Ametista"],
-  ["t16","Duna & Indaco"],
-  ["t17","Olografica"],
-  ["t18","Acciaio & Arancio"],
-  ["t19","Tossico"],
-  ["t20","Museo"],
-  ["t21","Runa Incisa"],
-  ["t22","Origami"],
-  ["t23","Blueprint"],
-  ["t24","Pop Fumetto"],
-  ["t25","Brace"],
-  ["t26","Glitch"],
-  ["t27","Art D&#233;co"],
-  ["t28","Cosmo"]
-];
-const LIGHT = new Set(["t07","t08","t12","t16","t20","t22","t24"]);
-const DEFAULT_LOCALE = "en";
-const LOCALE_FILES = {
-  en: new URL("./locales/en.json", location.href),
-  it: new URL("./locales/it.json", location.href)
-};
-const localeCache = new Map();
-let localeRequest = 0;
-
-const sel = document.getElementById("sel");
-const langSel = document.getElementById("lang");
-THEMES.forEach(([id, name]) => {
-  const o = document.createElement("option");
-  o.value = id; o.textContent = id + " \u00b7 " + name.replace(/&#233;/g, "\u00e9");
-  sel.appendChild(o);
-});
-
-function applyTheme(t) {
-  for (const card of document.querySelectorAll(".card")) {
-    const isUnion = card.classList.contains("union");
-    card.className = "card" + (isUnion ? " union " : " ") + t + (LIGHT.has(t) ? " light-theme" : "");
-  }
-  sel.value = t;
-  document.getElementById("hint").textContent = "?theme=" + t;
-  const u = new URL(location); u.searchParams.set("theme", t); history.replaceState(null, "", u);
-}
-
-function translationAt(locale, path) {
-  return path.split(".").reduce((value, key) => value?.[key], locale);
-}
-
-async function loadLocale(id) {
-  if (!localeCache.has(id)) {
-    const response = await fetch(LOCALE_FILES[id]);
-    if (!response.ok) throw new Error(`Unable to load locale: ${id}`);
-    localeCache.set(id, await response.json());
-  }
-  return localeCache.get(id);
-}
-
-async function applyLocale(id) {
-  const request = ++localeRequest;
-  const locale = await loadLocale(id);
-  if (request !== localeRequest) return;
-  for (const element of document.querySelectorAll("[data-i18n]")) {
-    const value = translationAt(locale, element.dataset.i18n);
-    if (typeof value === "string") element.textContent = value;
-  }
-  for (const element of document.querySelectorAll("[data-i18n-title]")) {
-    const value = translationAt(locale, element.dataset.i18nTitle);
-    if (typeof value === "string") element.title = value;
-  }
-  for (const element of document.querySelectorAll("[data-i18n-aria-label]")) {
-    const value = translationAt(locale, element.dataset.i18nAriaLabel);
-    if (typeof value === "string") element.setAttribute("aria-label", value);
-  }
-  document.documentElement.lang = id;
-  langSel.value = id;
-  const url = new URL(location);
-  url.searchParams.set("lang", id);
-  history.replaceState(null, "", url);
-}
-
-sel.addEventListener("change", e => applyTheme(e.target.value));
-langSel.addEventListener("change", e => {
-  applyLocale(e.target.value).catch(error => console.error(error));
-});
-applyTheme(new URLSearchParams(location.search).get("theme") || DEFAULT_THEME);
-const requestedLocale = new URLSearchParams(location.search).get("lang");
-applyLocale(LOCALE_FILES[requestedLocale] ? requestedLocale : DEFAULT_LOCALE)
-  .catch(error => console.error(error));
-</script>
+  <div id="app"></div>
+  <script type="module" src="./card-theme-page.js"></script>
 </body>
 </html>
+

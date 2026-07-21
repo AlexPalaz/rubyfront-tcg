@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Dettaglio di un set Rubyfront">
+  <title>Set · Rubyfront</title>
+  <link rel="stylesheet" href="./shell.css">
+</head>
+<body>
+  <div id="app"></div>
+  <noscript>La lista del set richiede JavaScript perché legge direttamente il manifesto del set.</noscript>
+  <script type="module">
+    import { getSetById } from "../catalog.js";
+    import { renderRegistryError, renderSetPage } from "./pages.js";
+
+    const setId = new URLSearchParams(location.search).get("set");
+    const set = getSetById(setId);
+    const root = document.querySelector("#app");
+    if (set) renderSetPage(set, root);
+    else renderRegistryError(root, `Set non trovato: ${setId ?? "ID mancante"}`);
+  </script>
+</body>
+</html>
