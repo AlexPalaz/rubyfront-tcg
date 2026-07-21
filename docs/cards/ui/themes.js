@@ -28,10 +28,23 @@ export const THEMES = Object.freeze([
   ["t25", "Brace"],
   ["t26", "Glitch"],
   ["t27", "Art Déco"],
-  ["t28", "Cosmo"]
+  ["t28", "Cosmo"],
+  ["t29", "Bronzo & Verderame"],
+  ["t30", "Vetrata"],
+  ["t31", "Carta Nautica"],
+  ["t32", "Marmo & Oro"],
+  ["t33", "Aurora Boreale"],
+  ["t34", "Lacca Rossa"],
+  ["t35", "Sumi-e"],
+  ["t36", "Tempesta"],
+  ["t37", "Ossario"],
+  ["t38", "Miraggio"]
 ]);
 
-export const LIGHT_THEMES = new Set(["t07", "t08", "t12", "t16", "t20", "t22", "t24"]);
+export const LIGHT_THEMES = new Set([
+  "t07", "t08", "t12", "t16", "t20", "t22", "t24",
+  "t31", "t32", "t35", "t38"
+]);
 
 export function isThemeId(value) {
   return THEMES.some(([id]) => id === value);
