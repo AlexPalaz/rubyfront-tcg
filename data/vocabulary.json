@@ -1,15 +1,16 @@
 {
   "schemaVersion": 1,
   "_readme": [
-    "Registro degli identificatori che l'engine sa interpretare.",
-    "È il contratto condiviso: engine (Ruby), viste (JS) e validatore leggono QUESTO file.",
-    "Una carta che usa un valore non elencato qui viene rifiutata in fase di validazione,",
-    "non a runtime. Aggiungere un valore qui è una decisione di design: significa che",
-    "l'engine dovrà saperlo risolvere.",
-    "Fonte delle regole: docs/MANUALE.md"
+    "Registry of the identifiers the engine knows how to resolve.",
+    "This is the shared contract: the engine (Ruby), the views (JS) and the validator all read THIS file.",
+    "A card using a value not listed here is rejected at validation time, not at runtime.",
+    "Adding a value here is a design decision: it commits the engine to resolving it.",
+    "Rules source: docs/MANUALE.md (Italian). Card terms map as:",
+    "Flow=Flusso, HP=PV, Fury=Furia, Entity=Entita, Power=Potenza, Matter=Materia,",
+    "Union=Unione, Recall Zone=Zona di Richiamo, Front=Fronte, Discard pile=Pila degli scarti."
   ],
   "keyword": {
-    "_note": "Abilità parola chiave, MANUALE.md §8.1",
+    "_note": "Keyword abilities with rules predefined by the manual (MANUALE.md §8.1)",
     "values": [
       "fury",
       "surge",
@@ -18,7 +19,7 @@
     ]
   },
   "event": {
-    "_note": "Momenti che innescano un trigger",
+    "_note": "Moments that fire a trigger",
     "values": [
       "on_deploy_from_recall",
       "on_flip",
@@ -30,7 +31,7 @@
     ]
   },
   "effect": {
-    "_note": "Tipi di effetto risolvibili dall'engine",
+    "_note": "Effect types the engine must be able to resolve",
     "values": [
       "look_and_optionally_move",
       "modify_power",
@@ -44,7 +45,7 @@
     ]
   },
   "timing": {
-    "_note": "Finestre in cui un'azione è attivabile, MANUALE.md §6",
+    "_note": "Windows in which an action may be activated (MANUALE.md §6)",
     "values": [
       "own_preparation",
       "own_front",
@@ -54,7 +55,7 @@
     ]
   },
   "state": {
-    "_note": "Stati di un'Entità, MANUALE.md §6.3",
+    "_note": "States an Entity can be in (MANUALE.md §6.3). 'covered' blocks every action and suspends its Matters",
     "values": [
       "tapped",
       "covered",
@@ -62,7 +63,7 @@
     ]
   },
   "zone": {
-    "_note": "Zone di gioco, MANUALE.md §5. Il proprietario si esprime con owner, mai nel nome della zona",
+    "_note": "Game zones (MANUALE.md §5). Ownership is expressed with 'owner', never baked into the zone name",
     "values": [
       "deck",
       "hand",
@@ -72,7 +73,7 @@
     ]
   },
   "zoneOwner": {
-    "_note": "Di chi è la zona indicata. card_owner = il proprietario della carta coinvolta, non chi gioca l'effetto",
+    "_note": "Who the referenced zone belongs to. 'card_owner' is the owner of the card involved, which is not necessarily the player resolving the effect",
     "values": [
       "controller",
       "opponent",
@@ -80,14 +81,14 @@
     ]
   },
   "position": {
-    "_note": "Posizione all'interno di una zona ordinata",
+    "_note": "Position within an ordered zone",
     "values": [
       "top",
       "bottom"
     ]
   },
   "duration": {
-    "_note": "Durata di un effetto continuo",
+    "_note": "How long a continuous effect lasts",
     "values": [
       "until_controller_next_turn",
       "until_end_of_turn",
@@ -95,7 +96,7 @@
     ]
   },
   "matter": {
-    "_note": "Tipi di Materia, MANUALE.md §7.1",
+    "_note": "Matter types (MANUALE.md §7.1). Dynamic, dimensional and destructive have grades 1-2; zero and dominant have none",
     "values": [
       "dynamic",
       "dimensional",
@@ -105,14 +106,14 @@
     ]
   },
   "race": {
-    "_note": "Razze delle Entità, MANUALE.md §1",
+    "_note": "Entity races (MANUALE.md §1)",
     "values": [
       "human",
       "auros"
     ]
   },
   "cardType": {
-    "_note": "Tipi di carta",
+    "_note": "Card types. The Rubyfront is its own type: it is not an Entity",
     "values": [
       "entity",
       "matter",
@@ -121,7 +122,7 @@
     ]
   },
   "controller": {
-    "_note": "A chi appartiene il bersaglio",
+    "_note": "Who the target belongs to",
     "values": [
       "controller",
       "opponent",
@@ -129,7 +130,7 @@
     ]
   },
   "condition": {
-    "_note": "Condizioni verificabili (requisiti Unione, filtri)",
+    "_note": "Checkable conditions (Union requirements, target filters)",
     "values": [
       "hand_size",
       "reveal_card",
@@ -139,7 +140,7 @@
     ]
   },
   "stat": {
-    "_note": "Statistiche confrontabili",
+    "_note": "Comparable statistics",
     "values": [
       "power",
       "health",
@@ -147,7 +148,7 @@
     ]
   },
   "match": {
-    "_note": "Combinatore di più condizioni: campo match, accanto a conditions",
+    "_note": "How multiple conditions combine: field 'match', alongside 'conditions'",
     "values": [
       "all",
       "any",
@@ -155,7 +156,7 @@
     ]
   },
   "operator": {
-    "_note": "Confronto fra una statistica e un valore: campo operator, accanto a stat e value",
+    "_note": "How a value is compared: field 'operator', alongside 'stat' and 'value'",
     "values": [
       "lt",
       "lte",
