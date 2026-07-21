@@ -1,0 +1,806 @@
+{
+  "schemaVersion": 1,
+  "id": "rubyfront-card-catalog",
+  "defaultLocale": "it",
+  "locales": {
+    "it": {
+      "name": "Catalogo carte Rubyfront",
+      "description": "Un unico indice per tutte le carte di tutti i set."
+    },
+    "en": {
+      "name": "Rubyfront card catalog",
+      "description": "One index for every card across every set."
+    }
+  },
+  "sets": [
+    {
+      "schemaVersion": 1,
+      "id": "rubyfront-core",
+      "code": "SRBF-001",
+      "cardIdPrefix": "RBF",
+      "status": "draft",
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Rubyfront — Set Base",
+          "description": "Set tecnico iniziale che raccoglie le carte fondanti di Rubyfront e stabilisce il formato dati usato dal futuro engine."
+        },
+        "en": {
+          "name": "Rubyfront Core Set",
+          "description": "Initial technical set containing Rubyfront's foundational cards and defining the data format used by the future engine."
+        }
+      },
+      "cards": [
+        {
+          "schemaVersion": 1,
+          "id": "RBF-001",
+          "setId": "rubyfront-core",
+          "collectorNumber": "001",
+          "slug": "rubyfront-of-the-abyss",
+          "type": "rubyfront",
+          "layout": "double-faced",
+          "status": "draft",
+          "deckLimit": 1,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Rubifronte degli Abissi",
+              "typeLabel": "Rubyfront bifronte",
+              "summary": "Controllo per logoramento: filtra il mazzo, indebolisce il Fronte avversario e divora le Entità più deboli.",
+              "ui": {
+                "faceA": "Faccia A — Rubyfront",
+                "faceB": "Faccia B — Unione"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "unionRequirement": {
+                  "label": "Requisito Unione",
+                  "text": "Rivela un Umano con Zero in fondo avendo la mano vuota"
+                }
+              },
+              "matters": {
+                "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
+                "destructiveAria": "Distruttiva",
+                "zeroTitle": "Materia Zero",
+                "zeroAria": "Zero"
+              },
+              "faceA": {
+                "name": "Rubifronte degli Abissi",
+                "keyword": {
+                  "name": "Furia",
+                  "rules": "d20 ≥ 12 prima di ogni azione · fallimento −3 PV"
+                },
+                "trigger": "Allo schieramento",
+                "effect": {
+                  "name": "Risacca",
+                  "text": "Guarda la prima carta del mazzo. Puoi metterla in fondo."
+                },
+                "abilities": {
+                  "pressure": {
+                    "name": "Pressione Abissale",
+                    "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
+                  },
+                  "devour": {
+                    "name": "Divorare",
+                    "text": "metti un’Entità avversaria con Potenza ≤ 3 in fondo al mazzo del suo proprietario."
+                  }
+                },
+                "flavor": "Non emerse. Gli abissi aprirono gli occhi."
+              },
+              "faceB": {
+                "name": "Incarnazione dell’Abisso",
+                "unionAria": "Unione",
+                "trigger": "Al flip",
+                "effect": {
+                  "name": "La Prima Ondata",
+                  "text": "Tappa un’Entità avversaria."
+                },
+                "abilities": {
+                  "tide": {
+                    "name": "Marea Crescente",
+                    "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
+                  },
+                  "abyss": {
+                    "name": "La Grande Marea",
+                    "text": "tappa ogni Entità avversaria."
+                  }
+                },
+                "flavor": "L’abisso prese forma. Il mondo arretrò."
+              }
+            },
+            "en": {
+              "name": "Rubyfront of the Abyss",
+              "typeLabel": "Double-faced Rubyfront",
+              "summary": "Attrition control: filter the deck, weaken the opposing Front and devour its smaller Entities.",
+              "ui": {
+                "faceA": "Face A — Rubyfront",
+                "faceB": "Face B — Union"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "unionRequirement": {
+                  "label": "Union requirement",
+                  "text": "Empty-handed, reveal a Human with Zero at the bottom"
+                }
+              },
+              "matters": {
+                "destructiveTitle": "Destructive Matter · up to 2nd grade",
+                "destructiveAria": "Destructive",
+                "zeroTitle": "Zero Matter",
+                "zeroAria": "Zero"
+              },
+              "faceA": {
+                "name": "Rubyfront of the Abyss",
+                "keyword": {
+                  "name": "Fury",
+                  "rules": "d20 ≥ 12 before every action · on failure −3 HP"
+                },
+                "trigger": "On deployment",
+                "effect": {
+                  "name": "Undertow",
+                  "text": "Look at your top card. You may put it on the bottom."
+                },
+                "abilities": {
+                  "pressure": {
+                    "name": "Abyssal Pressure",
+                    "text": "an opposing Entity gets −2 Power until your next turn."
+                  },
+                  "devour": {
+                    "name": "Devour",
+                    "text": "put an opposing Entity with Power ≤ 3 on the bottom of its owner’s deck."
+                  }
+                },
+                "flavor": "It did not rise. The abyss opened its eyes."
+              },
+              "faceB": {
+                "name": "The Abyss Incarnate",
+                "unionAria": "Union",
+                "trigger": "On flip",
+                "effect": {
+                  "name": "The First Wave",
+                  "text": "Tap an opposing Entity."
+                },
+                "abilities": {
+                  "tide": {
+                    "name": "Rising Tide",
+                    "text": "up to two opposing Entities get −2 Power until your next turn."
+                  },
+                  "abyss": {
+                    "name": "The Great Tide",
+                    "text": "tap every opposing Entity."
+                  }
+                },
+                "flavor": "The abyss no longer waits below. It walks."
+              }
+            }
+          },
+          "tags": [
+            "rubyfront",
+            "union",
+            "control",
+            "destructive",
+            "zero"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §7, §8.1",
+          "faces": [
+            {
+              "id": "rubyfront",
+              "kind": "rubyfront",
+              "displayKey": "faceA",
+              "stats": {
+                "health": 18,
+                "deploymentCost": {
+                  "base": 3,
+                  "increment": 1,
+                  "cap": 20
+                }
+              },
+              "enablesMatters": [
+                {
+                  "type": "destructive",
+                  "maxGrade": 2
+                }
+              ],
+              "keywords": [
+                {
+                  "id": "fury",
+                  "check": {
+                    "die": "d20",
+                    "successAtLeast": 12
+                  },
+                  "failure": {
+                    "loseHealth": 3
+                  }
+                }
+              ],
+              "requirements": {
+                "union": {
+                  "operator": "all",
+                  "conditions": [
+                    {
+                      "type": "hand_size",
+                      "equals": 0
+                    },
+                    {
+                      "type": "reveal_card",
+                      "zone": "owner_deck",
+                      "position": "bottom",
+                      "keepInZone": true,
+                      "filter": {
+                        "cardType": "entity",
+                        "race": "human",
+                        "enablesMatter": {
+                          "type": "zero"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "triggers": [
+                {
+                  "id": "undertow",
+                  "displayKey": "effect",
+                  "event": "on_deploy_from_recall",
+                  "effect": {
+                    "type": "look_and_optionally_move",
+                    "owner": "controller",
+                    "from": {
+                      "zone": "deck",
+                      "position": "top",
+                      "count": 1
+                    },
+                    "to": {
+                      "zone": "deck",
+                      "position": "bottom"
+                    },
+                    "optional": true
+                  }
+                }
+              ],
+              "actions": [
+                {
+                  "id": "abyssal-pressure",
+                  "displayKey": "pressure",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [
+                    "fury"
+                  ],
+                  "cost": {
+                    "health": 2
+                  },
+                  "effect": {
+                    "type": "modify_power",
+                    "target": {
+                      "controller": "opponent",
+                      "cardType": "entity",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "amount": -2,
+                    "duration": "until_controller_next_turn"
+                  }
+                },
+                {
+                  "id": "devour",
+                  "displayKey": "devour",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [
+                    "fury"
+                  ],
+                  "cost": {
+                    "health": 5
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "controller": "opponent",
+                      "cardType": "entity",
+                      "conditions": [
+                        {
+                          "stat": "power",
+                          "operator": "lte",
+                          "value": 3
+                        }
+                      ],
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "owner_deck",
+                      "position": "bottom"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "union",
+              "kind": "union",
+              "displayKey": "faceB",
+              "stats": {
+                "healthRecovery": 6
+              },
+              "enablesMatters": [
+                {
+                  "type": "destructive",
+                  "maxGrade": 2
+                },
+                {
+                  "type": "zero"
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "the-first-wave",
+                  "displayKey": "effect",
+                  "event": "on_flip",
+                  "effect": {
+                    "type": "set_state",
+                    "target": {
+                      "controller": "opponent",
+                      "cardType": "entity",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "state": "tapped"
+                  }
+                }
+              ],
+              "actions": [
+                {
+                  "id": "rising-tide",
+                  "displayKey": "tide",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [],
+                  "cost": {
+                    "health": 3
+                  },
+                  "effect": {
+                    "type": "modify_power",
+                    "target": {
+                      "controller": "opponent",
+                      "cardType": "entity",
+                      "min": 0,
+                      "max": 2
+                    },
+                    "amount": -2,
+                    "duration": "until_controller_next_turn"
+                  }
+                },
+                {
+                  "id": "the-great-tide",
+                  "displayKey": "abyss",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [],
+                  "cost": {
+                    "health": 7
+                  },
+                  "effect": {
+                    "type": "set_state",
+                    "target": {
+                      "controller": "opponent",
+                      "cardType": "entity",
+                      "quantity": "all"
+                    },
+                    "state": "tapped"
+                  }
+                }
+              ]
+            }
+          ],
+          "designNotes": "rbf-001.md",
+          "source": {
+            "designNotes": "notes/rbf-001.md"
+          }
+        }
+      ]
+    }
+  ],
+  "_generated": "Generato da scripts/build-catalog.mjs — non modificare a mano. Fonte: data/",
+  "cards": [
+    {
+      "schemaVersion": 1,
+      "id": "RBF-001",
+      "setId": "rubyfront-core",
+      "collectorNumber": "001",
+      "slug": "rubyfront-of-the-abyss",
+      "type": "rubyfront",
+      "layout": "double-faced",
+      "status": "draft",
+      "deckLimit": 1,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Rubifronte degli Abissi",
+          "typeLabel": "Rubyfront bifronte",
+          "summary": "Controllo per logoramento: filtra il mazzo, indebolisce il Fronte avversario e divora le Entità più deboli.",
+          "ui": {
+            "faceA": "Faccia A — Rubyfront",
+            "faceB": "Faccia B — Unione"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "unionRequirement": {
+              "label": "Requisito Unione",
+              "text": "Rivela un Umano con Zero in fondo avendo la mano vuota"
+            }
+          },
+          "matters": {
+            "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
+            "destructiveAria": "Distruttiva",
+            "zeroTitle": "Materia Zero",
+            "zeroAria": "Zero"
+          },
+          "faceA": {
+            "name": "Rubifronte degli Abissi",
+            "keyword": {
+              "name": "Furia",
+              "rules": "d20 ≥ 12 prima di ogni azione · fallimento −3 PV"
+            },
+            "trigger": "Allo schieramento",
+            "effect": {
+              "name": "Risacca",
+              "text": "Guarda la prima carta del mazzo. Puoi metterla in fondo."
+            },
+            "abilities": {
+              "pressure": {
+                "name": "Pressione Abissale",
+                "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
+              },
+              "devour": {
+                "name": "Divorare",
+                "text": "metti un’Entità avversaria con Potenza ≤ 3 in fondo al mazzo del suo proprietario."
+              }
+            },
+            "flavor": "Non emerse. Gli abissi aprirono gli occhi."
+          },
+          "faceB": {
+            "name": "Incarnazione dell’Abisso",
+            "unionAria": "Unione",
+            "trigger": "Al flip",
+            "effect": {
+              "name": "La Prima Ondata",
+              "text": "Tappa un’Entità avversaria."
+            },
+            "abilities": {
+              "tide": {
+                "name": "Marea Crescente",
+                "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
+              },
+              "abyss": {
+                "name": "La Grande Marea",
+                "text": "tappa ogni Entità avversaria."
+              }
+            },
+            "flavor": "L’abisso prese forma. Il mondo arretrò."
+          }
+        },
+        "en": {
+          "name": "Rubyfront of the Abyss",
+          "typeLabel": "Double-faced Rubyfront",
+          "summary": "Attrition control: filter the deck, weaken the opposing Front and devour its smaller Entities.",
+          "ui": {
+            "faceA": "Face A — Rubyfront",
+            "faceB": "Face B — Union"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "unionRequirement": {
+              "label": "Union requirement",
+              "text": "Empty-handed, reveal a Human with Zero at the bottom"
+            }
+          },
+          "matters": {
+            "destructiveTitle": "Destructive Matter · up to 2nd grade",
+            "destructiveAria": "Destructive",
+            "zeroTitle": "Zero Matter",
+            "zeroAria": "Zero"
+          },
+          "faceA": {
+            "name": "Rubyfront of the Abyss",
+            "keyword": {
+              "name": "Fury",
+              "rules": "d20 ≥ 12 before every action · on failure −3 HP"
+            },
+            "trigger": "On deployment",
+            "effect": {
+              "name": "Undertow",
+              "text": "Look at your top card. You may put it on the bottom."
+            },
+            "abilities": {
+              "pressure": {
+                "name": "Abyssal Pressure",
+                "text": "an opposing Entity gets −2 Power until your next turn."
+              },
+              "devour": {
+                "name": "Devour",
+                "text": "put an opposing Entity with Power ≤ 3 on the bottom of its owner’s deck."
+              }
+            },
+            "flavor": "It did not rise. The abyss opened its eyes."
+          },
+          "faceB": {
+            "name": "The Abyss Incarnate",
+            "unionAria": "Union",
+            "trigger": "On flip",
+            "effect": {
+              "name": "The First Wave",
+              "text": "Tap an opposing Entity."
+            },
+            "abilities": {
+              "tide": {
+                "name": "Rising Tide",
+                "text": "up to two opposing Entities get −2 Power until your next turn."
+              },
+              "abyss": {
+                "name": "The Great Tide",
+                "text": "tap every opposing Entity."
+              }
+            },
+            "flavor": "The abyss no longer waits below. It walks."
+          }
+        }
+      },
+      "tags": [
+        "rubyfront",
+        "union",
+        "control",
+        "destructive",
+        "zero"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §7, §8.1",
+      "faces": [
+        {
+          "id": "rubyfront",
+          "kind": "rubyfront",
+          "displayKey": "faceA",
+          "stats": {
+            "health": 18,
+            "deploymentCost": {
+              "base": 3,
+              "increment": 1,
+              "cap": 20
+            }
+          },
+          "enablesMatters": [
+            {
+              "type": "destructive",
+              "maxGrade": 2
+            }
+          ],
+          "keywords": [
+            {
+              "id": "fury",
+              "check": {
+                "die": "d20",
+                "successAtLeast": 12
+              },
+              "failure": {
+                "loseHealth": 3
+              }
+            }
+          ],
+          "requirements": {
+            "union": {
+              "operator": "all",
+              "conditions": [
+                {
+                  "type": "hand_size",
+                  "equals": 0
+                },
+                {
+                  "type": "reveal_card",
+                  "zone": "owner_deck",
+                  "position": "bottom",
+                  "keepInZone": true,
+                  "filter": {
+                    "cardType": "entity",
+                    "race": "human",
+                    "enablesMatter": {
+                      "type": "zero"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "triggers": [
+            {
+              "id": "undertow",
+              "displayKey": "effect",
+              "event": "on_deploy_from_recall",
+              "effect": {
+                "type": "look_and_optionally_move",
+                "owner": "controller",
+                "from": {
+                  "zone": "deck",
+                  "position": "top",
+                  "count": 1
+                },
+                "to": {
+                  "zone": "deck",
+                  "position": "bottom"
+                },
+                "optional": true
+              }
+            }
+          ],
+          "actions": [
+            {
+              "id": "abyssal-pressure",
+              "displayKey": "pressure",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [
+                "fury"
+              ],
+              "cost": {
+                "health": 2
+              },
+              "effect": {
+                "type": "modify_power",
+                "target": {
+                  "controller": "opponent",
+                  "cardType": "entity",
+                  "min": 1,
+                  "max": 1
+                },
+                "amount": -2,
+                "duration": "until_controller_next_turn"
+              }
+            },
+            {
+              "id": "devour",
+              "displayKey": "devour",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [
+                "fury"
+              ],
+              "cost": {
+                "health": 5
+              },
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "controller": "opponent",
+                  "cardType": "entity",
+                  "conditions": [
+                    {
+                      "stat": "power",
+                      "operator": "lte",
+                      "value": 3
+                    }
+                  ],
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "owner_deck",
+                  "position": "bottom"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "union",
+          "kind": "union",
+          "displayKey": "faceB",
+          "stats": {
+            "healthRecovery": 6
+          },
+          "enablesMatters": [
+            {
+              "type": "destructive",
+              "maxGrade": 2
+            },
+            {
+              "type": "zero"
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "the-first-wave",
+              "displayKey": "effect",
+              "event": "on_flip",
+              "effect": {
+                "type": "set_state",
+                "target": {
+                  "controller": "opponent",
+                  "cardType": "entity",
+                  "min": 1,
+                  "max": 1
+                },
+                "state": "tapped"
+              }
+            }
+          ],
+          "actions": [
+            {
+              "id": "rising-tide",
+              "displayKey": "tide",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [],
+              "cost": {
+                "health": 3
+              },
+              "effect": {
+                "type": "modify_power",
+                "target": {
+                  "controller": "opponent",
+                  "cardType": "entity",
+                  "min": 0,
+                  "max": 2
+                },
+                "amount": -2,
+                "duration": "until_controller_next_turn"
+              }
+            },
+            {
+              "id": "the-great-tide",
+              "displayKey": "abyss",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [],
+              "cost": {
+                "health": 7
+              },
+              "effect": {
+                "type": "set_state",
+                "target": {
+                  "controller": "opponent",
+                  "cardType": "entity",
+                  "quantity": "all"
+                },
+                "state": "tapped"
+              }
+            }
+          ]
+        }
+      ],
+      "designNotes": "rbf-001.md",
+      "source": {
+        "designNotes": "notes/rbf-001.md"
+      }
+    }
+  ]
+}

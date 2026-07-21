@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "_readme": [
+    "Registro degli identificatori che l'engine sa interpretare.",
+    "È il contratto condiviso: engine (Ruby), viste (JS) e validatore leggono QUESTO file.",
+    "Una carta che usa un valore non elencato qui viene rifiutata in fase di validazione,",
+    "non a runtime. Aggiungere un valore qui è una decisione di design: significa che",
+    "l'engine dovrà saperlo risolvere.",
+    "Fonte delle regole: docs/MANUALE.md"
+  ],
+  "keyword": {
+    "_note": "Abilità parola chiave, MANUALE.md §8.1",
+    "values": [
+      "fury",
+      "surge",
+      "stasis",
+      "vengeance"
+    ]
+  },
+  "event": {
+    "_note": "Momenti che innescano un trigger",
+    "values": [
+      "on_deploy_from_recall",
+      "on_flip",
+      "on_enter_field",
+      "on_leave_field",
+      "on_death",
+      "on_turn_start",
+      "on_turn_end"
+    ]
+  },
+  "effect": {
+    "_note": "Tipi di effetto risolvibili dall'engine",
+    "values": [
+      "look_and_optionally_move",
+      "modify_power",
+      "move_card",
+      "set_state",
+      "draw_card",
+      "discard_card",
+      "destroy",
+      "lose_health",
+      "gain_health"
+    ]
+  },
+  "timing": {
+    "_note": "Finestre in cui un'azione è attivabile, MANUALE.md §6",
+    "values": [
+      "own_preparation",
+      "own_front",
+      "own_turn",
+      "opponent_pre_front",
+      "response_chain"
+    ]
+  },
+  "state": {
+    "_note": "Stati di un'Entità, MANUALE.md §6.3",
+    "values": [
+      "tapped",
+      "covered",
+      "stasis"
+    ]
+  },
+  "zone": {
+    "_note": "Zone di gioco, MANUALE.md §5. Vedi nota su owner_deck in data/README.md",
+    "values": [
+      "deck",
+      "hand",
+      "front",
+      "discard",
+      "recall",
+      "owner_deck"
+    ]
+  },
+  "position": {
+    "_note": "Posizione all'interno di una zona ordinata",
+    "values": [
+      "top",
+      "bottom"
+    ]
+  },
+  "duration": {
+    "_note": "Durata di un effetto continuo",
+    "values": [
+      "until_controller_next_turn",
+      "until_end_of_turn",
+      "permanent"
+    ]
+  },
+  "matter": {
+    "_note": "Tipi di Materia, MANUALE.md §7.1",
+    "values": [
+      "dynamic",
+      "dimensional",
+      "destructive",
+      "zero",
+      "dominant"
+    ]
+  },
+  "race": {
+    "_note": "Razze delle Entità, MANUALE.md §1",
+    "values": [
+      "human",
+      "auros"
+    ]
+  },
+  "cardType": {
+    "_note": "Tipi di carta",
+    "values": [
+      "entity",
+      "matter",
+      "object",
+      "rubyfront"
+    ]
+  },
+  "controller": {
+    "_note": "A chi appartiene il bersaglio",
+    "values": [
+      "controller",
+      "opponent",
+      "any"
+    ]
+  },
+  "condition": {
+    "_note": "Condizioni verificabili (requisiti Unione, filtri)",
+    "values": [
+      "hand_size",
+      "reveal_card",
+      "controls_card",
+      "health_at_most",
+      "health_at_least"
+    ]
+  },
+  "stat": {
+    "_note": "Statistiche confrontabili",
+    "values": [
+      "power",
+      "health",
+      "flow_cost"
+    ]
+  },
+  "logicalOperator": {
+    "_note": "Combinatore di più condizioni",
+    "values": [
+      "all",
+      "any",
+      "none"
+    ]
+  },
+  "comparisonOperator": {
+    "_note": "Confronto fra una statistica e un valore",
+    "values": [
+      "lt",
+      "lte",
+      "eq",
+      "gte",
+      "gt"
+    ]
+  }
+}

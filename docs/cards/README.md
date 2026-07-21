@@ -1,44 +1,43 @@
 # Architettura modulare delle carte
 
-Il catalogo è **data-first**: catalogo, viste HTML e futuro engine importano gli stessi
-moduli JavaScript. L’HTML è solo una rappresentazione dei dati e non contiene regole o
-contenuti appartenenti a una carta specifica.
+Il catalogo è **data-first**: viste web ed engine leggono gli stessi dati JSON,
+che vivono in `/data` e non dipendono da alcun linguaggio. L’HTML è solo una
+rappresentazione dei dati e non contiene regole né contenuti di una carta.
 
 ## Struttura
 
+I **dati delle carte non vivono qui**: la fonte di verità è `/data` (JSON puro,
+letto anche dall'engine Ruby — vedi `data/README.md`). Questa cartella contiene
+solo la presentazione.
+
 ```text
 cards/
-├── catalog.js                         # registro globale di set e carte
-├── core/
-│   └── domain.js                      # schema v1, invarianti e helper condivisi
-├── ui/                                # tutta e sola la UI HTML centralizzata
-│   ├── shell.js                       # testi, rotte e costruttori della navigazione
-│   ├── shell.css                      # unico stile della shell (con dark mode)
-│   ├── index.html                     # catalogo globale con ricerca
-│   ├── set.html                       # vista generica: ?set=<set-id>
-│   ├── card.html                      # vista dati: ?card=<card-id>
-│   ├── card-theme.html                # renderer visuale condiviso
-│   ├── card-themes.html               # indice dei temi condivisi
-│   └── *.js                           # renderer specifici delle singole viste
-└── sets/
-    └── srbf-001/                      # codice set: Season Rubyfront 001
-        ├── set.js                     # manifesto; registra le carte del set
-        └── rbf-001/                    # solo <card-id>
-            ├── card.js                 # identità e regole machine-readable
-            ├── locales/                # testi umani separati per lingua
-            └── card.md                 # note specifiche della carta
+├── catalog.json                       # GENERATO da data/ — non modificare
+├── catalog.js                         # carica il bundle ed espone gli indici
+├── notes/                             # GENERATO: note di design copiate da data/
+└── ui/                                # tutta e sola la UI HTML centralizzata
+    ├── shell.js                       # testi, rotte e costruttori della navigazione
+    ├── shell.css                      # unico stile della shell (con dark mode)
+    ├── index.html                     # catalogo globale con ricerca
+    ├── set.html                       # vista generica: ?set=<set-id>
+    ├── card.html                      # vista dati: ?card=<card-id>
+    ├── card-theme.html                # renderer visuale condiviso
+    ├── card-themes.html               # indice dei temi condivisi
+    └── *.js                           # renderer specifici delle singole viste
 ```
 
-Le cartelle di dominio non contengono HTML. Tutte le carte aprono le stesse pagine in
-`ui/`, selezionando il contenuto tramite ID:
+Dopo ogni modifica ai dati serve `node scripts/build-catalog.mjs`, altrimenti il
+sito continua a mostrare la versione precedente del catalogo.
+
+Le carte si aprono selezionando il contenuto tramite ID:
 
 - `ui/set.html?set=rubyfront-core`
 - `ui/card.html?card=RBF-001`
 - `ui/card-theme.html?card=RBF-001&theme=t17&lang=it`
 
-Il renderer `card-theme.html` costruisce le facce usando `card.faces` e le localizzazioni.
-Lo stesso file può quindi visualizzare qualsiasi carta registrata, senza duplicare il
-template nella cartella della carta.
+Il renderer `card-theme.html` costruisce le facce usando `card.faces` e le
+localizzazioni, quindi può visualizzare qualsiasi carta registrata senza
+duplicare il template.
 
 ## La shell di navigazione
 
@@ -76,62 +75,40 @@ script di validazione controlla che nomi, ID e codici coincidano.
 
 ## Relazioni fra catalogo, set e carte
 
-La relazione è esplicita in entrambe le direzioni:
+La relazione è esplicita in entrambe le direzioni, per id:
 
-- `card.js` dichiara `setId`;
-- `set.js` importa la carta e la inserisce nel proprio array `cards`;
-- `catalog.js` importa il set e genera l’indice piatto globale `catalog.cards`.
+- `<id>.json` dichiara `setId`;
+- `set.json` elenca gli id delle proprie carte in `cards`;
+- `catalog.json` elenca i set, e il build genera l’indice piatto `cards`.
 
-`defineSet()` interrompe il caricamento se una carta dichiara un altro set o non usa il
-prefisso carta previsto. `defineCatalog()` impedisce ID duplicati. Il catalogo globale usa
-`catalog.cards`, quindi ricerca e navigazione comprendono automaticamente tutti i set
-registrati.
+`validate-data.mjs` rifiuta una carta che dichiari un set diverso da quello che la
+registra, che non usi il prefisso previsto, o che duplichi id e numero di
+collezione.
 
-## Contratto per il futuro engine
+## Contratto per l'engine
 
-Ogni carta espone dati immutabili e privi di logica UI:
+Le carte espongono dati immutabili e privi di logica UI: identità stabile,
+vincoli di costruzione, facce e statistiche, Materie e parole chiave, trigger e
+costi strutturati, testi localizzati separati dalla semantica eseguibile.
 
-- identità stabile (`id`, `setId`, `collectorNumber`, `slug`);
-- vincoli di costruzione (`deckLimit`, `type`, `status`);
-- layout, facce e statistiche;
-- Materie abilitate e parole chiave;
-- trigger, costi, finestre, bersagli ed effetti strutturati;
-- testi localizzati, separati dalla semantica eseguibile.
-
-L’engine può importare l’intero catalogo:
-
-```js
-import catalog, { getCardById } from "./docs/cards/catalog.js";
-
-const abyss = getCardById("RBF-001");
-```
-
-oppure una singola carta per test isolati:
-
-```js
-import abyss from "./docs/cards/sets/srbf-001/rbf-001/card.js";
-```
-
-I valori di `effect.type`, `event`, `timing`, `state`, `zone` e `duration` sono
-identificatori destinati ai resolver dell’engine. I testi localizzati servono alla
-presentazione e non devono essere interpretati per eseguire una regola.
+L'engine legge direttamente `/data` — non passa da JavaScript. I valori di
+`effect.type`, `event`, `timing`, `state`, `zone` e `duration` sono dichiarati
+in `data/vocabulary.json`, che è il contratto condiviso fra engine e viste.
 
 ## Aggiungere una carta
 
-1. Scegliere l’ID, per esempio `RBF-002`, e creare
-   `sets/srbf-001/rbf-002/`.
-2. Aggiungere `card.js`, `locales/it.js` e le altre localizzazioni necessarie.
-3. Importare il modulo in `sets/srbf-001/set.js` e aggiungerlo a `cards`.
-4. Eseguire `node scripts/validate-card-catalog.mjs` dalla radice del repository.
+Si lavora in `/data`, mai qui: vedi `data/README.md`. In sintesi —
 
-Non occorre creare o copiare alcun HTML. La nuova carta compare nel catalogo globale,
-nella pagina del set, nel dettaglio e nel renderer tematico perché tutte le viste leggono
-il registro.
+1. Creare `data/sets/<set>/cards/<id>.json` più un file per lingua.
+2. Aggiungere l’id all’array `cards` di `set.json`.
+3. `node scripts/validate-data.mjs`
+4. `node scripts/build-catalog.mjs`
 
-Per aggiungere un set, creare il manifesto sotto una cartella che rispetti la convenzione
-e importarlo in `catalog.js`.
+Non occorre creare o copiare alcun HTML: la nuova carta compare nel catalogo, nella
+pagina del set, nel dettaglio e nel renderer tematico, perché tutte le viste leggono
+il bundle.
 
-Le pagine usano moduli ES e richiedono un server statico. Dalla radice:
+Le pagine usano moduli ES e `fetch`, quindi richiedono un server statico. Dalla radice:
 
 ```sh
 python3 -m http.server 8000

@@ -1,4 +1,4 @@
-import { localize, resolveSource } from "../core/domain.js";
+import { localize, resolveSource } from "../catalog.js";
 import {
   breadcrumb,
   cardRoute,

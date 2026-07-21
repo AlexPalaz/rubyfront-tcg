@@ -1,0 +1,66 @@
+{
+  "name": "Rubyfront of the Abyss",
+  "typeLabel": "Double-faced Rubyfront",
+  "summary": "Attrition control: filter the deck, weaken the opposing Front and devour its smaller Entities.",
+  "ui": {
+    "faceA": "Face A — Rubyfront",
+    "faceB": "Face B — Union"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "unionRequirement": {
+      "label": "Union requirement",
+      "text": "Empty-handed, reveal a Human with Zero at the bottom"
+    }
+  },
+  "matters": {
+    "destructiveTitle": "Destructive Matter · up to 2nd grade",
+    "destructiveAria": "Destructive",
+    "zeroTitle": "Zero Matter",
+    "zeroAria": "Zero"
+  },
+  "faceA": {
+    "name": "Rubyfront of the Abyss",
+    "keyword": {
+      "name": "Fury",
+      "rules": "d20 ≥ 12 before every action · on failure −3 HP"
+    },
+    "trigger": "On deployment",
+    "effect": {
+      "name": "Undertow",
+      "text": "Look at your top card. You may put it on the bottom."
+    },
+    "abilities": {
+      "pressure": {
+        "name": "Abyssal Pressure",
+        "text": "an opposing Entity gets −2 Power until your next turn."
+      },
+      "devour": {
+        "name": "Devour",
+        "text": "put an opposing Entity with Power ≤ 3 on the bottom of its owner’s deck."
+      }
+    },
+    "flavor": "It did not rise. The abyss opened its eyes."
+  },
+  "faceB": {
+    "name": "The Abyss Incarnate",
+    "unionAria": "Union",
+    "trigger": "On flip",
+    "effect": {
+      "name": "The First Wave",
+      "text": "Tap an opposing Entity."
+    },
+    "abilities": {
+      "tide": {
+        "name": "Rising Tide",
+        "text": "up to two opposing Entities get −2 Power until your next turn."
+      },
+      "abyss": {
+        "name": "The Great Tide",
+        "text": "tap every opposing Entity."
+      }
+    },
+    "flavor": "The abyss no longer waits below. It walks."
+  }
+}

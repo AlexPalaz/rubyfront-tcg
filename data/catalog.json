@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "rubyfront-card-catalog",
+  "defaultLocale": "it",
+  "locales": {
+    "it": {
+      "name": "Catalogo carte Rubyfront",
+      "description": "Un unico indice per tutte le carte di tutti i set."
+    },
+    "en": {
+      "name": "Rubyfront card catalog",
+      "description": "One index for every card across every set."
+    }
+  },
+  "sets": [
+    "srbf-001"
+  ]
+}
