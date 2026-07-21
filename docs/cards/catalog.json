@@ -217,7 +217,7 @@
               ],
               "requirements": {
                 "union": {
-                  "operator": "all",
+                  "match": "all",
                   "conditions": [
                     {
                       "type": "hand_size",
@@ -608,7 +608,7 @@
           ],
           "requirements": {
             "union": {
-              "operator": "all",
+              "match": "all",
               "conditions": [
                 {
                   "type": "hand_size",

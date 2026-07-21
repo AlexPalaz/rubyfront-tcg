@@ -146,16 +146,16 @@
       "flow_cost"
     ]
   },
-  "logicalOperator": {
-    "_note": "Combinatore di più condizioni",
+  "match": {
+    "_note": "Combinatore di più condizioni: campo match, accanto a conditions",
     "values": [
       "all",
       "any",
       "none"
     ]
   },
-  "comparisonOperator": {
-    "_note": "Confronto fra una statistica e un valore",
+  "operator": {
+    "_note": "Confronto fra una statistica e un valore: campo operator, accanto a stat e value",
     "values": [
       "lt",
       "lte",

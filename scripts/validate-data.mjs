@@ -88,11 +88,10 @@ function checkEffectTree(node, where) {
       else if (key === "cardType") checkTerm("cardType", value, at);
       else if (key === "race") checkTerm("race", value, at);
       else if (key === "stat") checkTerm("stat", value, at);
-      else if (key === "operator") {
-        // "operator" copre due concetti diversi: combinatore logico e confronto.
-        const isComparison = node.stat !== undefined || node.value !== undefined;
-        checkTerm(isComparison ? "comparisonOperator" : "logicalOperator", value, at);
-      }
+      // Ogni campo ha un solo vocabolario: "match" combina condizioni,
+      // "operator" confronta valori. Nessuna deduzione dal contesto.
+      else if (key === "match") checkTerm("match", value, at);
+      else if (key === "operator") checkTerm("operator", value, at);
     }
     checkEffectTree(value, at);
   }

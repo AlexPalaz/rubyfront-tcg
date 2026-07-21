@@ -87,12 +87,38 @@ Questa distinzione nasce da un'ambiguità reale: prima esisteva un solo token
 controllore nel requisito Unione, quello dell'avversario in *Divorare*. Un
 engine non avrebbe potuto distinguerli.
 
-## Nota — un'incoerenza ancora da sciogliere
+## Combinare condizioni e confrontare valori
 
-**`operator` copre due concetti.** In `requirements.union` è un combinatore
-logico (`all`), dentro `conditions[]` è un confronto (`lte`). Il registro li
-distingue già (`logicalOperator` / `comparisonOperator`) e il validatore sceglie
-in base al contesto, ma il nome del campo resta ambiguo: due chiavi distinte
-renderebbero i dati leggibili senza conoscere il contesto.
+Sono due cose diverse e portano due nomi diversi. `match` dice **come si
+combinano** più condizioni, `operator` dice **come si confronta** un valore:
 
-Costa poco adesso e molto quando le carte saranno cinquanta.
+```json
+"union": {
+  "match": "all",
+  "conditions": [
+    { "type": "hand_size", "equals": 0 },
+    { "type": "reveal_card", "zone": "deck", "owner": "controller" }
+  ]
+}
+```
+
+```json
+{ "stat": "power", "operator": "lte", "value": 3 }
+```
+
+`match` accetta `all | any | none`, `operator` accetta `lt | lte | eq | gte |
+gt`. Nel registro le due categorie si chiamano come i campi che governano, così
+il vocabolario giusto si deduce dal nome e non dalla posizione nell'albero.
+
+Prima entrambi si chiamavano `operator`: leggendo `"operator": "all"` non si
+poteva sapere quale dei due fosse senza guardare dove stava, e il validatore lo
+indovinava con un'euristica sui campi vicini. Un engine avrebbe dovuto fare la
+stessa scommessa, senza garanzia di farla allo stesso modo.
+
+## Regola generale
+
+Le tre convenzioni qui sopra hanno la stessa radice: **un nome, un significato**.
+Se un campo vuol dire due cose a seconda di dove si trova, o se un valore
+nasconde un'informazione nel proprio nome, l'engine deve dedurre — e dedurre in
+silenzio è il modo in cui i dati e il codice divergono senza che nessuno se ne
+accorga.
