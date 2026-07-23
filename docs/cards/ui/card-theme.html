@@ -32,12 +32,13 @@
     width: 100%;
     height: min(728px, calc(140vw - 56px));
     flex: none;
-    /* Unica dimensione di tutti i testi della carta. Scesa da 16px a 13px:
-       serve a liberare l'altezza dell'illustrazione, ma soprattutto è la
-       misura con cui il testo entra in TUTTI i 28 temi — quelli a carattere
-       monospazio (t03, t05, t23, t26) sfondavano la textbox già a 16px.
-       Il nome resta l'unica eccezione (1.25em). */
-    font-size: min(13px, 2.36vw);
+    /* Unica dimensione di tutti i testi della carta. Il riferimento è la
+       scala di una vera carta Magic portata a 520px di larghezza (~20px il
+       testo regole): 14px è il massimo con cui la faccia più densa (RBF-001
+       faccia A) tiene i suoi testi in stile Magic dentro la textbox. I temi
+       a carattere monospazio (t03, t05, t23, t26) hanno un override a 12px
+       più sotto. Il nome resta l'unica eccezione (1.25em). */
+    font-size: min(14px, 2.54vw);
     aspect-ratio: 5 / 7;
     display: flex; flex-direction: column; gap: .55em;
     background: var(--bg); color: var(--ink);
@@ -91,6 +92,9 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 1em; letter-spacing: .4em; text-transform: uppercase;
     color: color-mix(in srgb, var(--muted) 45%, transparent); }
+  .typeline { display: flex; align-items: center; justify-content: center; gap: .7em;
+    font-size: 1em; font-variant: small-caps; letter-spacing: .12em; color: var(--muted); }
+  .typeline::before, .typeline::after { content: ""; flex: 1; height: 1px; background: var(--frame-dim); }
   .keyword { text-align: center; font-size: 1em; color: var(--ruby-light);
     letter-spacing: .08em; font-variant: small-caps;
     display: flex; align-items: center; gap: .6em; justify-content: center; }
@@ -108,7 +112,7 @@
     color: var(--accent); font-weight: 600; line-height: 1.15; white-space: nowrap; }
   .requirement span { font-size: 1em; color: var(--ink); }
   .textbox { flex: 1; border: 1px solid var(--frame-dim); background: var(--panel);
-    padding: .8em .85em; display: flex; flex-direction: column; gap: .45em;
+    padding: .6em .8em; display: flex; flex-direction: column; gap: .4em;
     font-size: 1em; overflow: hidden; }
   .card:not(.union) .textbox { padding-bottom: 1em; }
   .fx, .ability { display: grid; grid-template-columns: 4.4em 1fr;
@@ -122,7 +126,9 @@
   .hp-cost { font-size: 1em; white-space: nowrap; color: var(--ruby-light);
     background: var(--well); border: 1px solid var(--frame-dim);
     text-align: center; padding: .06em .3em; }
-  .flavor { margin-top: auto; text-align: center; font-style: italic; font-size: 1em; color: var(--muted); }
+  .hp-cost .flux-icon { width: 1.15em; height: 1.15em; display: inline-block;
+    vertical-align: -.2em; margin-left: .22em; }
+  .flavor { margin-top: auto; text-align: left; font-style: italic; font-size: 1em; color: var(--muted); }
   .flavor::before { content: "\25C6"; color: var(--ornament); font-size: .6em; font-style: normal; margin-right: .9em; vertical-align: .2em; }
   .flavor::after { content: "\25C6"; color: var(--ornament); font-size: .6em; font-style: normal; margin-left: .9em; vertical-align: .2em; }
   .bottombar { display: flex; justify-content: space-between; align-items: center; padding-top: .15em; }
@@ -132,8 +138,20 @@
   .matter svg { width: 1.4em; height: 1.4em; display: block; }
   .matter b { color: #f3efe6; font-weight: 700; }
   .card.light-theme .matter b { color: #3a3430; }
+  .power-badge { justify-self: end; position: relative; width: 2.6em; height: 2.6em;
+    display: flex; align-items: center; justify-content: center; }
+  .power-badge svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .power-badge b { position: relative; font-weight: 600; color: var(--ruby-light); }
+  .counter-badge { display: flex; align-items: center; gap: .45em; border: 1px solid var(--frame);
+    background: var(--panel); padding: .18em .5em; font-size: 1em; }
+  .counter-badge svg { width: 1.4em; height: 1.4em; display: block; }
+  .counter-badge b { color: var(--ruby-light); font-weight: 700; }
   .hp { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 1em; font-weight: 700; color: var(--hp-green); }
   .hp small { color: var(--muted); font-weight: 400; font-size: 1em; }
+
+  /* I temi monospazio occupano più larghezza per carattere: alla dimensione
+     base sfondano la textbox, quindi tornano alla vecchia misura ridotta. */
+  .card.t03, .card.t05, .card.t23, .card.t26 { font-size: min(12px, 2.18vw); }
 
   /* ====== palettes ====== */
   .card.t01 {

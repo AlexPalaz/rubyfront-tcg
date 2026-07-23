@@ -209,6 +209,9 @@ function statGrid(face, copy) {
     const cost = face.stats.deploymentCost;
     items.push([copy.deployment, `${cost.base}+${cost.increment} · max ${cost.cap}`]);
   }
+  if (face.stats.fluxCost !== undefined) items.push([copy.fluxCost, face.stats.fluxCost]);
+  if (face.stats.power !== undefined) items.push([copy.power, face.stats.power]);
+  if (face.stats.counterattack !== undefined) items.push([copy.counterattack, `+${face.stats.counterattack}`]);
   if (face.stats.health !== undefined) items.push([copy.health, face.stats.health]);
   if (face.stats.healthRecovery !== undefined) items.push([copy.healthRecovery, `+${face.stats.healthRecovery}`]);
   if (face.enablesMatters.length) items.push([copy.matters, face.enablesMatters.map(matter => matterLabel(matter, copy)).join(", ")]);
@@ -221,7 +224,7 @@ function facePanel(card, face, localeId, copy) {
   const panel = element("section", "face-panel");
   const heading = element("div", "face-heading");
   heading.append(
-    element("span", "face-side", face.id === "rubyfront" ? copy.front : copy.back),
+    element("span", "face-side", card.faces.length > 1 ? (face.id === "rubyfront" ? copy.front : copy.back) : locale.typeLabel),
     element("h2", "", display.name)
   );
   panel.append(heading, statGrid(face, copy));
@@ -261,8 +264,13 @@ function facePanel(card, face, localeId, copy) {
     for (const action of face.actions) {
       const text = display.abilities[action.displayKey];
       const item = element("div", "rule-item action-item");
+      const costLabel = action.cost?.health !== undefined
+        ? `−${action.cost.health} ${locale.card.hp}`
+        : action.cost?.flux !== undefined
+          ? `${action.cost.flux} ${locale.card.flux ?? "Flux"}`
+          : "—";
       item.append(
-        element("span", "health-cost", `−${action.cost.health} ${locale.card.hp}`),
+        element("span", "health-cost", costLabel),
         element("strong", "", text.name),
         element("p", "", text.text)
       );

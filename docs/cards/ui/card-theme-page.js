@@ -15,6 +15,9 @@ import {
 } from "./shell.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
+// Trigger che descrivono l'uscita di scena della carta: vanno letti in fondo
+// alla textbox, dopo le abilità attivate, mai sopra di esse.
+const TRAILING_EVENTS = new Set(["on_leave_field", "on_death"]);
 const params = new URLSearchParams(location.search);
 const requestedCardId = params.get("card");
 const card = requestedCardId ? getCardById(requestedCardId) : catalog.cards[0];
@@ -133,6 +136,10 @@ function createFace(card, face, cardCopy, themeId) {
     element("div", "art", cardCopy.card?.illustration ?? "Illustration")
   );
 
+  if (face.kind === "entity" && cardCopy.typeLabel) {
+    visual.append(element("div", "typeline", cardCopy.typeLabel));
+  }
+
   for (const keyword of face.keywords) {
     visual.append(createKeyword(face, keyword, faceCopy));
   }
@@ -150,6 +157,9 @@ function createFace(card, face, cardCopy, themeId) {
   const matters = element("div", "matters");
   matters.append(...face.enablesMatters.map(matter => createMatter(matter, cardCopy)));
   bottomBar.append(matters);
+  if (face.stats.counterattack !== undefined) {
+    bottomBar.append(createCounterattackBadge(face.stats.counterattack, cardCopy.card?.counterattack ?? "Counterattack"));
+  }
   visual.append(bottomBar);
   wrapper.append(label, visual);
   return wrapper;
@@ -165,6 +175,10 @@ function createTitleBar(face, faceCopy, cardCopy) {
       : String(deployment.base);
     cost.append(element("i", "", value));
     bar.append(cost);
+  } else if (face.stats.fluxCost !== undefined) {
+    const cost = element("div", "cost");
+    cost.append(element("i", "", String(face.stats.fluxCost)));
+    bar.append(cost);
   } else if (face.kind === "union") {
     bar.append(createUnionMark(faceCopy.unionAria ?? "Union"));
   } else {
@@ -172,11 +186,55 @@ function createTitleBar(face, faceCopy, cardCopy) {
   }
 
   bar.append(element("div", "name", faceCopy.name ?? face.id));
-  const health = element("div", "hp");
-  const value = face.stats.health ?? (face.stats.healthRecovery !== undefined ? `+${face.stats.healthRecovery}` : "—");
-  health.append(String(value), " ", element("small", "", cardCopy.card?.hp ?? "HP"));
-  bar.append(health);
+  const value = face.stats.health ?? (face.stats.healthRecovery !== undefined ? `+${face.stats.healthRecovery}` : undefined);
+  if (value !== undefined) {
+    const health = element("div", "hp");
+    health.append(String(value), " ", element("small", "", cardCopy.card?.hp ?? "HP"));
+    bar.append(health);
+  } else if (face.stats.power !== undefined) {
+    bar.append(createPowerBadge(face.stats.power, cardCopy.card?.power ?? "Power"));
+  } else {
+    bar.append(element("div", "hp", "—"));
+  }
   return bar;
+}
+
+function createFluxIcon(label) {
+  const svg = svgElement("svg", { viewBox: "0 0 20 20", "aria-label": label, class: "flux-icon" });
+  svg.append(
+    svgElement("rect", {
+      x: "4.6", y: "4.6", width: "10.8", height: "10.8", rx: "1",
+      transform: "rotate(45 10 10)",
+      fill: "var(--ruby)", stroke: "var(--ruby-light)", "stroke-width": "1.4"
+    }),
+    svgElement("path", { d: "M 10 5.8 L 13.2 10 L 10 14.2", fill: "none", stroke: "var(--ruby-light)", "stroke-width": "1", opacity: ".65" })
+  );
+  return svg;
+}
+
+function createPowerBadge(power, label) {
+  const badge = element("div", "power-badge");
+  badge.title = label;
+  const svg = svgElement("svg", { viewBox: "0 0 24 24", "aria-label": label });
+  svg.append(svgElement("rect", {
+    x: "5", y: "5", width: "14", height: "14", rx: "1.5",
+    transform: "rotate(45 12 12)",
+    fill: "none", stroke: "var(--ruby-light)", "stroke-width": "1.6"
+  }));
+  badge.append(svg, element("b", "", String(power)));
+  return badge;
+}
+
+function createCounterattackBadge(counterattack, label) {
+  const badge = element("span", "counter-badge");
+  badge.title = label;
+  const svg = svgElement("svg", { viewBox: "0 0 20 20", "aria-label": label });
+  svg.append(
+    svgElement("path", { d: "M 4.5 12.5 A 6 6 0 1 1 10 16.5", fill: "none", stroke: "var(--ruby-light)", "stroke-width": "1.8" }),
+    svgElement("path", { d: "M 4.5 12.5 L 2 9.8 M 4.5 12.5 L 8 11.2", fill: "none", stroke: "var(--ruby-light)", "stroke-width": "1.8", "stroke-linecap": "round" })
+  );
+  badge.append(svg, element("b", "", `+${counterattack}`));
+  return badge;
 }
 
 function createUnionMark(label) {
@@ -204,6 +262,39 @@ function createKeyword(face, keyword, faceCopy) {
   return row;
 }
 
+function createTriggerBlock(face, trigger, faceCopy) {
+  const triggerCopy = faceCopy.triggers?.[trigger.displayKey ?? trigger.id]
+    ?? faceCopy[trigger.displayKey]
+    ?? {};
+  const block = element("div", "fx");
+  block.append(element("span", "tag", triggerCopy.trigger ?? faceCopy.trigger ?? trigger.event));
+  const body = element("div", "body");
+  body.append(element("b", "", triggerCopy.name ?? trigger.id), ": ", triggerCopy.text ?? "");
+  block.append(body);
+  return block;
+}
+
+function createActionBlock(action, faceCopy, cardCopy) {
+  const actionCopy = faceCopy.abilities?.[action.displayKey] ?? {};
+  const block = element("div", "ability");
+  const healthCost = action.cost?.health;
+  const fluxCost = action.cost?.flux;
+  const cost = element("span", "hp-cost");
+  if (healthCost !== undefined) {
+    cost.append(`−${healthCost} ${cardCopy.card?.hp ?? "HP"}`);
+  } else if (fluxCost !== undefined) {
+    const label = cardCopy.card?.flux ?? "Flux";
+    cost.title = label;
+    cost.append(String(fluxCost), createFluxIcon(label));
+  } else {
+    cost.append("—");
+  }
+  const body = element("div");
+  body.append(element("b", "", actionCopy.name ?? action.id), ": ", actionCopy.text ?? "");
+  block.append(cost, body);
+  return block;
+}
+
 function createTextBox(face, faceCopy, cardCopy) {
   const box = element("div", "textbox");
   const unionRequirement = face.requirements?.union;
@@ -217,30 +308,15 @@ function createTextBox(face, faceCopy, cardCopy) {
     box.append(requirement);
   }
 
-  for (const trigger of face.triggers) {
-    const triggerCopy = faceCopy.triggers?.[trigger.displayKey ?? trigger.id]
-      ?? faceCopy[trigger.displayKey]
-      ?? {};
-    const block = element("div", "fx");
-    block.append(element("span", "tag", triggerCopy.trigger ?? faceCopy.trigger ?? trigger.event));
-    const body = element("div", "body");
-    body.append(element("b", "", triggerCopy.name ?? trigger.id), ": ", triggerCopy.text ?? "");
-    block.append(body);
-    box.append(block);
-  }
+  // Ordine di lettura: prima gli effetti d'ingresso/ricorrenti, poi le abilità
+  // attivate, infine i trigger d'uscita (lascia il campo, morte) — così
+  // un'abilità attivata non finisce mai sotto l'intestazione "quando lascia".
+  const leadingTriggers = face.triggers.filter(trigger => !TRAILING_EVENTS.has(trigger.event));
+  const trailingTriggers = face.triggers.filter(trigger => TRAILING_EVENTS.has(trigger.event));
 
-  for (const action of face.actions) {
-    const actionCopy = faceCopy.abilities?.[action.displayKey] ?? {};
-    const block = element("div", "ability");
-    const healthCost = action.cost?.health;
-    const cost = element("span", "hp-cost", healthCost === undefined
-      ? "—"
-      : `−${healthCost} ${cardCopy.card?.hp ?? "HP"}`);
-    const body = element("div");
-    body.append(element("b", "", actionCopy.name ?? action.id), ": ", actionCopy.text ?? "");
-    block.append(cost, body);
-    box.append(block);
-  }
+  for (const trigger of leadingTriggers) box.append(createTriggerBlock(face, trigger, faceCopy));
+  for (const action of face.actions) box.append(createActionBlock(action, faceCopy, cardCopy));
+  for (const trigger of trailingTriggers) box.append(createTriggerBlock(face, trigger, faceCopy));
 
   if (faceCopy.flavor) box.append(element("p", "flavor", faceCopy.flavor));
   return box;
