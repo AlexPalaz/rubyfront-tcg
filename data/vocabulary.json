@@ -6,8 +6,9 @@
     "A card using a value not listed here is rejected at validation time, not at runtime.",
     "Adding a value here is a design decision: it commits the engine to resolving it.",
     "Rules source: docs/MANUALE.md (Italian). Card terms map as:",
-    "Flow=Flusso, HP=PV, Fury=Furia, Entity=Entita, Power=Potenza, Matter=Materia,",
-    "Union=Unione, Recall Zone=Zona di Richiamo, Front=Fronte, Discard pile=Pila degli scarti."
+    "Flux=Flusso, HP=PV, Fury=Furia, Entity=Entita, Power=Potenza, Matter=Materia,",
+    "Union=Unione, Recall Zone=Zona di Richiamo, Front=Fronte, Abyss=Abisso,",
+    "Requiem Zone=Zona di Requiem, Retire (to Requiem)=Ritiro (in Requiem)."
   ],
   "keyword": {
     "_note": "Keyword abilities with rules predefined by the manual (MANUALE.md §8.1)",
@@ -41,7 +42,9 @@
       "discard_card",
       "destroy",
       "lose_health",
-      "gain_health"
+      "gain_health",
+      "retire",
+      "search_card"
     ]
   },
   "timing": {
@@ -63,12 +66,13 @@
     ]
   },
   "zone": {
-    "_note": "Game zones (MANUALE.md §5). Ownership is expressed with 'owner', never baked into the zone name",
+    "_note": "Game zones (MANUALE.md §5). Ownership is expressed with 'owner', never baked into the zone name. 'abyss' holds dead/consumed cards, 'requiem' holds cards that left the game alive (retired Entities and their Objects). Removed-from-game is NOT a zone (MANUALE.md §10)",
     "values": [
       "deck",
       "hand",
       "front",
-      "discard",
+      "abyss",
+      "requiem",
       "recall"
     ]
   },
@@ -144,7 +148,7 @@
     "values": [
       "power",
       "health",
-      "flow_cost"
+      "flux_cost"
     ]
   },
   "match": {

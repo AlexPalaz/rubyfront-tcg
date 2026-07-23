@@ -57,22 +57,28 @@
           "match": "all",
           "conditions": [
             {
-              "type": "hand_size",
-              "equals": 0
-            },
-            {
-              "type": "reveal_card",
-              "zone": "deck",
-              "position": "bottom",
-              "keepInZone": true,
+              "type": "controls_card",
+              "owner": "controller",
               "filter": {
                 "cardType": "entity",
                 "race": "human",
                 "enablesMatter": {
                   "type": "zero"
+                },
+                "wasAttributedMatterThisGame": {
+                  "type": "zero"
                 }
-              },
-              "owner": "controller"
+              }
+            }
+          ],
+          "flipCost": [
+            {
+              "type": "retire",
+              "target": "condition_card",
+              "destination": {
+                "zone": "requiem",
+                "owner": "controller"
+              }
             }
           ]
         }

@@ -11,7 +11,7 @@
     "hp": "PV",
     "unionRequirement": {
       "label": "Requisito Unione",
-      "text": "Rivela un Umano con Zero in fondo avendo la mano vuota"
+      "text": "Ritira in Requiem un Umano a cui hai attribuito una Materia Zero"
     }
   },
   "matters": {
@@ -29,16 +29,16 @@
     "trigger": "Allo schieramento",
     "effect": {
       "name": "Risacca",
-      "text": "Guarda la prima carta del mazzo. Puoi metterla in fondo."
+      "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
     },
     "abilities": {
       "pressure": {
         "name": "Pressione Abissale",
-        "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
+        "text": "un’Entità avversaria a tua scelta prende −2 Potenza fino all’inizio del tuo prossimo turno."
       },
       "devour": {
         "name": "Divorare",
-        "text": "metti un’Entità avversaria con Potenza ≤ 3 in fondo al mazzo del suo proprietario."
+        "text": "metti un’Entità avversaria con Potenza pari o inferiore a 3 in fondo al mazzo del suo proprietario."
       }
     },
     "flavor": "Non emerse. Gli abissi aprirono gli occhi."
@@ -49,16 +49,16 @@
     "trigger": "Al flip",
     "effect": {
       "name": "La Prima Ondata",
-      "text": "Tappa un’Entità avversaria."
+      "text": "Tappa un’Entità avversaria a tua scelta. (Un’Entità tappata non può né attaccare né bloccare finché non si stappa.)"
     },
     "abilities": {
       "tide": {
         "name": "Marea Crescente",
-        "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
+        "text": "fino a due Entità avversarie a tua scelta prendono −2 Potenza fino all’inizio del tuo prossimo turno."
       },
       "abyss": {
         "name": "La Grande Marea",
-        "text": "tappa ogni Entità avversaria."
+        "text": "tappa tutte le Entità avversarie in campo. (Usala prima di dichiarare l’attacco: un’Entità tappata non può bloccare.)"
       }
     },
     "flavor": "L’abisso prese forma. Il mondo arretrò."

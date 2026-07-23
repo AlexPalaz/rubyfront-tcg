@@ -56,7 +56,7 @@
                 "hp": "PV",
                 "unionRequirement": {
                   "label": "Requisito Unione",
-                  "text": "Rivela un Umano con Zero in fondo avendo la mano vuota"
+                  "text": "Ritira in Requiem un Umano a cui hai attribuito una Materia Zero"
                 }
               },
               "matters": {
@@ -74,16 +74,16 @@
                 "trigger": "Allo schieramento",
                 "effect": {
                   "name": "Risacca",
-                  "text": "Guarda la prima carta del mazzo. Puoi metterla in fondo."
+                  "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
                 },
                 "abilities": {
                   "pressure": {
                     "name": "Pressione Abissale",
-                    "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
+                    "text": "un’Entità avversaria a tua scelta prende −2 Potenza fino all’inizio del tuo prossimo turno."
                   },
                   "devour": {
                     "name": "Divorare",
-                    "text": "metti un’Entità avversaria con Potenza ≤ 3 in fondo al mazzo del suo proprietario."
+                    "text": "metti un’Entità avversaria con Potenza pari o inferiore a 3 in fondo al mazzo del suo proprietario."
                   }
                 },
                 "flavor": "Non emerse. Gli abissi aprirono gli occhi."
@@ -94,16 +94,16 @@
                 "trigger": "Al flip",
                 "effect": {
                   "name": "La Prima Ondata",
-                  "text": "Tappa un’Entità avversaria."
+                  "text": "Tappa un’Entità avversaria a tua scelta. (Un’Entità tappata non può né attaccare né bloccare finché non si stappa.)"
                 },
                 "abilities": {
                   "tide": {
                     "name": "Marea Crescente",
-                    "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
+                    "text": "fino a due Entità avversarie a tua scelta prendono −2 Potenza fino all’inizio del tuo prossimo turno."
                   },
                   "abyss": {
                     "name": "La Grande Marea",
-                    "text": "tappa ogni Entità avversaria."
+                    "text": "tappa tutte le Entità avversarie in campo. (Usala prima di dichiarare l’attacco: un’Entità tappata non può bloccare.)"
                   }
                 },
                 "flavor": "L’abisso prese forma. Il mondo arretrò."
@@ -122,7 +122,7 @@
                 "hp": "HP",
                 "unionRequirement": {
                   "label": "Union requirement",
-                  "text": "Empty-handed, reveal a Human with Zero at the bottom"
+                  "text": "Retire to Requiem a Human you attributed a Zero Matter to"
                 }
               },
               "matters": {
@@ -140,16 +140,16 @@
                 "trigger": "On deployment",
                 "effect": {
                   "name": "Undertow",
-                  "text": "Look at your top card. You may put it on the bottom."
+                  "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
                 },
                 "abilities": {
                   "pressure": {
                     "name": "Abyssal Pressure",
-                    "text": "an opposing Entity gets −2 Power until your next turn."
+                    "text": "an opposing Entity of your choice gets −2 Power until the start of your next turn."
                   },
                   "devour": {
                     "name": "Devour",
-                    "text": "put an opposing Entity with Power ≤ 3 on the bottom of its owner’s deck."
+                    "text": "put an opposing Entity with Power 3 or less on the bottom of its owner’s deck."
                   }
                 },
                 "flavor": "It did not rise. The abyss opened its eyes."
@@ -160,16 +160,16 @@
                 "trigger": "On flip",
                 "effect": {
                   "name": "The First Wave",
-                  "text": "Tap an opposing Entity."
+                  "text": "Tap an opposing Entity of your choice. (A tapped Entity can neither attack nor block until it untaps.)"
                 },
                 "abilities": {
                   "tide": {
                     "name": "Rising Tide",
-                    "text": "up to two opposing Entities get −2 Power until your next turn."
+                    "text": "up to two opposing Entities of your choice get −2 Power until the start of your next turn."
                   },
                   "abyss": {
                     "name": "The Great Tide",
-                    "text": "tap every opposing Entity."
+                    "text": "tap every opposing Entity on the field. (Use it before declaring your attack: a tapped Entity cannot block.)"
                   }
                 },
                 "flavor": "The abyss no longer waits below. It walks."
@@ -220,22 +220,28 @@
                   "match": "all",
                   "conditions": [
                     {
-                      "type": "hand_size",
-                      "equals": 0
-                    },
-                    {
-                      "type": "reveal_card",
-                      "zone": "deck",
-                      "position": "bottom",
-                      "keepInZone": true,
+                      "type": "controls_card",
+                      "owner": "controller",
                       "filter": {
                         "cardType": "entity",
                         "race": "human",
                         "enablesMatter": {
                           "type": "zero"
+                        },
+                        "wasAttributedMatterThisGame": {
+                          "type": "zero"
                         }
-                      },
-                      "owner": "controller"
+                      }
+                    }
+                  ],
+                  "flipCost": [
+                    {
+                      "type": "retire",
+                      "target": "condition_card",
+                      "destination": {
+                        "zone": "requiem",
+                        "owner": "controller"
+                      }
                     }
                   ]
                 }
@@ -416,6 +422,160 @@
           "source": {
             "designNotes": "notes/rbf-001.md"
           }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-002",
+          "setId": "rubyfront-core",
+          "collectorNumber": "002",
+          "slug": "adam-the-first",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 1,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Adam, Il Primo",
+              "typeLabel": "Entità — Umano",
+              "summary": "Il tramite dello Zero: incanala la Materia Zero e apre la via all'Unione del Rubifronte degli Abissi.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "counterattack": "Contrattacco",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Adam, Il Primo",
+                "abilities": {
+                  "genesis": {
+                    "name": "Genesi",
+                    "text": "cerca nel tuo mazzo una carta Materia Zero, mostrala all’avversario e aggiungila alla tua mano, poi rimescola il mazzo. Non puoi giocare quella Materia in questo turno."
+                  }
+                },
+                "bequest": {
+                  "trigger": "Quando lascia il campo",
+                  "name": "Lascito",
+                  "text": "Pesca una carta. (Si innesca a ogni uscita dal campo: anche il Ritiro in Zona di Requiem, che non è una morte.)"
+                },
+                "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
+              }
+            },
+            "en": {
+              "name": "Adam, The First",
+              "typeLabel": "Entity — Human",
+              "summary": "The Zero's vessel: he channels Zero Matter and opens the way to the Union of the Rubyfront of the Abyss.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "counterattack": "Counterattack",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Adam, The First",
+                "abilities": {
+                  "genesis": {
+                    "name": "Genesis",
+                    "text": "search your deck for a Zero Matter card, reveal it to your opponent and add it to your hand, then shuffle your deck. You can’t play that Matter this turn."
+                  }
+                },
+                "bequest": {
+                  "trigger": "When he leaves the field",
+                  "name": "Bequest",
+                  "text": "Draw a card. (Triggers on every exit from the field: retirement to the Requiem Zone included, which is not a death.)"
+                },
+                "flavor": "He was the first to touch the Zero. Ever since, humanity was changed forever."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "zero",
+            "viatico"
+          ],
+          "rulesReference": "MANUALE.md §6.2, §7, §8.1",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 3,
+                "counterattack": 2,
+                "fluxCost": 4
+              },
+              "enablesMatters": [
+                {
+                  "type": "zero"
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "bequest",
+                  "displayKey": "bequest",
+                  "event": "on_leave_field",
+                  "effect": {
+                    "type": "draw_card",
+                    "target": {
+                      "controller": "controller"
+                    },
+                    "count": 1
+                  }
+                }
+              ],
+              "actions": [
+                {
+                  "id": "genesis",
+                  "displayKey": "genesis",
+                  "timing": [
+                    "own_turn"
+                  ],
+                  "repeatable": true,
+                  "checks": [],
+                  "cost": {
+                    "flux": 5
+                  },
+                  "effect": {
+                    "type": "search_card",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller"
+                    },
+                    "filter": {
+                      "cardType": "matter",
+                      "matterType": "zero"
+                    },
+                    "reveal": true,
+                    "to": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    },
+                    "shuffle": true,
+                    "restriction": {
+                      "cannotPlayFetchedCard": true,
+                      "duration": "until_end_of_turn"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "designNotes": "rbf-002.md",
+          "source": {
+            "designNotes": "notes/rbf-002.md"
+          }
         }
       ]
     }
@@ -447,7 +607,7 @@
             "hp": "PV",
             "unionRequirement": {
               "label": "Requisito Unione",
-              "text": "Rivela un Umano con Zero in fondo avendo la mano vuota"
+              "text": "Ritira in Requiem un Umano a cui hai attribuito una Materia Zero"
             }
           },
           "matters": {
@@ -465,16 +625,16 @@
             "trigger": "Allo schieramento",
             "effect": {
               "name": "Risacca",
-              "text": "Guarda la prima carta del mazzo. Puoi metterla in fondo."
+              "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
             },
             "abilities": {
               "pressure": {
                 "name": "Pressione Abissale",
-                "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
+                "text": "un’Entità avversaria a tua scelta prende −2 Potenza fino all’inizio del tuo prossimo turno."
               },
               "devour": {
                 "name": "Divorare",
-                "text": "metti un’Entità avversaria con Potenza ≤ 3 in fondo al mazzo del suo proprietario."
+                "text": "metti un’Entità avversaria con Potenza pari o inferiore a 3 in fondo al mazzo del suo proprietario."
               }
             },
             "flavor": "Non emerse. Gli abissi aprirono gli occhi."
@@ -485,16 +645,16 @@
             "trigger": "Al flip",
             "effect": {
               "name": "La Prima Ondata",
-              "text": "Tappa un’Entità avversaria."
+              "text": "Tappa un’Entità avversaria a tua scelta. (Un’Entità tappata non può né attaccare né bloccare finché non si stappa.)"
             },
             "abilities": {
               "tide": {
                 "name": "Marea Crescente",
-                "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
+                "text": "fino a due Entità avversarie a tua scelta prendono −2 Potenza fino all’inizio del tuo prossimo turno."
               },
               "abyss": {
                 "name": "La Grande Marea",
-                "text": "tappa ogni Entità avversaria."
+                "text": "tappa tutte le Entità avversarie in campo. (Usala prima di dichiarare l’attacco: un’Entità tappata non può bloccare.)"
               }
             },
             "flavor": "L’abisso prese forma. Il mondo arretrò."
@@ -513,7 +673,7 @@
             "hp": "HP",
             "unionRequirement": {
               "label": "Union requirement",
-              "text": "Empty-handed, reveal a Human with Zero at the bottom"
+              "text": "Retire to Requiem a Human you attributed a Zero Matter to"
             }
           },
           "matters": {
@@ -531,16 +691,16 @@
             "trigger": "On deployment",
             "effect": {
               "name": "Undertow",
-              "text": "Look at your top card. You may put it on the bottom."
+              "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
             },
             "abilities": {
               "pressure": {
                 "name": "Abyssal Pressure",
-                "text": "an opposing Entity gets −2 Power until your next turn."
+                "text": "an opposing Entity of your choice gets −2 Power until the start of your next turn."
               },
               "devour": {
                 "name": "Devour",
-                "text": "put an opposing Entity with Power ≤ 3 on the bottom of its owner’s deck."
+                "text": "put an opposing Entity with Power 3 or less on the bottom of its owner’s deck."
               }
             },
             "flavor": "It did not rise. The abyss opened its eyes."
@@ -551,16 +711,16 @@
             "trigger": "On flip",
             "effect": {
               "name": "The First Wave",
-              "text": "Tap an opposing Entity."
+              "text": "Tap an opposing Entity of your choice. (A tapped Entity can neither attack nor block until it untaps.)"
             },
             "abilities": {
               "tide": {
                 "name": "Rising Tide",
-                "text": "up to two opposing Entities get −2 Power until your next turn."
+                "text": "up to two opposing Entities of your choice get −2 Power until the start of your next turn."
               },
               "abyss": {
                 "name": "The Great Tide",
-                "text": "tap every opposing Entity."
+                "text": "tap every opposing Entity on the field. (Use it before declaring your attack: a tapped Entity cannot block.)"
               }
             },
             "flavor": "The abyss no longer waits below. It walks."
@@ -611,22 +771,28 @@
               "match": "all",
               "conditions": [
                 {
-                  "type": "hand_size",
-                  "equals": 0
-                },
-                {
-                  "type": "reveal_card",
-                  "zone": "deck",
-                  "position": "bottom",
-                  "keepInZone": true,
+                  "type": "controls_card",
+                  "owner": "controller",
                   "filter": {
                     "cardType": "entity",
                     "race": "human",
                     "enablesMatter": {
                       "type": "zero"
+                    },
+                    "wasAttributedMatterThisGame": {
+                      "type": "zero"
                     }
-                  },
-                  "owner": "controller"
+                  }
+                }
+              ],
+              "flipCost": [
+                {
+                  "type": "retire",
+                  "target": "condition_card",
+                  "destination": {
+                    "zone": "requiem",
+                    "owner": "controller"
+                  }
                 }
               ]
             }
@@ -806,6 +972,160 @@
       "designNotes": "rbf-001.md",
       "source": {
         "designNotes": "notes/rbf-001.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-002",
+      "setId": "rubyfront-core",
+      "collectorNumber": "002",
+      "slug": "adam-the-first",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 1,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Adam, Il Primo",
+          "typeLabel": "Entità — Umano",
+          "summary": "Il tramite dello Zero: incanala la Materia Zero e apre la via all'Unione del Rubifronte degli Abissi.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "counterattack": "Contrattacco",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Adam, Il Primo",
+            "abilities": {
+              "genesis": {
+                "name": "Genesi",
+                "text": "cerca nel tuo mazzo una carta Materia Zero, mostrala all’avversario e aggiungila alla tua mano, poi rimescola il mazzo. Non puoi giocare quella Materia in questo turno."
+              }
+            },
+            "bequest": {
+              "trigger": "Quando lascia il campo",
+              "name": "Lascito",
+              "text": "Pesca una carta. (Si innesca a ogni uscita dal campo: anche il Ritiro in Zona di Requiem, che non è una morte.)"
+            },
+            "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
+          }
+        },
+        "en": {
+          "name": "Adam, The First",
+          "typeLabel": "Entity — Human",
+          "summary": "The Zero's vessel: he channels Zero Matter and opens the way to the Union of the Rubyfront of the Abyss.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "counterattack": "Counterattack",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Adam, The First",
+            "abilities": {
+              "genesis": {
+                "name": "Genesis",
+                "text": "search your deck for a Zero Matter card, reveal it to your opponent and add it to your hand, then shuffle your deck. You can’t play that Matter this turn."
+              }
+            },
+            "bequest": {
+              "trigger": "When he leaves the field",
+              "name": "Bequest",
+              "text": "Draw a card. (Triggers on every exit from the field: retirement to the Requiem Zone included, which is not a death.)"
+            },
+            "flavor": "He was the first to touch the Zero. Ever since, humanity was changed forever."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "zero",
+        "viatico"
+      ],
+      "rulesReference": "MANUALE.md §6.2, §7, §8.1",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 3,
+            "counterattack": 2,
+            "fluxCost": 4
+          },
+          "enablesMatters": [
+            {
+              "type": "zero"
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "bequest",
+              "displayKey": "bequest",
+              "event": "on_leave_field",
+              "effect": {
+                "type": "draw_card",
+                "target": {
+                  "controller": "controller"
+                },
+                "count": 1
+              }
+            }
+          ],
+          "actions": [
+            {
+              "id": "genesis",
+              "displayKey": "genesis",
+              "timing": [
+                "own_turn"
+              ],
+              "repeatable": true,
+              "checks": [],
+              "cost": {
+                "flux": 5
+              },
+              "effect": {
+                "type": "search_card",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller"
+                },
+                "filter": {
+                  "cardType": "matter",
+                  "matterType": "zero"
+                },
+                "reveal": true,
+                "to": {
+                  "zone": "hand",
+                  "owner": "controller"
+                },
+                "shuffle": true,
+                "restriction": {
+                  "cannotPlayFetchedCard": true,
+                  "duration": "until_end_of_turn"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "designNotes": "rbf-002.md",
+      "source": {
+        "designNotes": "notes/rbf-002.md"
       }
     }
   ]

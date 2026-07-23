@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-002",
+  "setId": "rubyfront-core",
+  "collectorNumber": "002",
+  "slug": "adam-the-first",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 1,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "zero",
+    "viatico"
+  ],
+  "rulesReference": "MANUALE.md §6.2, §7, §8.1",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 3,
+        "counterattack": 2,
+        "fluxCost": 4
+      },
+      "enablesMatters": [
+        {
+          "type": "zero"
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "bequest",
+          "displayKey": "bequest",
+          "event": "on_leave_field",
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "genesis",
+          "displayKey": "genesis",
+          "timing": [
+            "own_turn"
+          ],
+          "repeatable": true,
+          "checks": [],
+          "cost": {
+            "flux": 5
+          },
+          "effect": {
+            "type": "search_card",
+            "from": {
+              "zone": "deck",
+              "owner": "controller"
+            },
+            "filter": {
+              "cardType": "matter",
+              "matterType": "zero"
+            },
+            "reveal": true,
+            "to": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "shuffle": true,
+            "restriction": {
+              "cannotPlayFetchedCard": true,
+              "duration": "until_end_of_turn"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "designNotes": "rbf-002.md"
+}

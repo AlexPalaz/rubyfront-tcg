@@ -1,0 +1,30 @@
+{
+  "name": "Adam, The First",
+  "typeLabel": "Entity — Human",
+  "summary": "The Zero's vessel: he channels Zero Matter and opens the way to the Union of the Rubyfront of the Abyss.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "counterattack": "Counterattack",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Adam, The First",
+    "abilities": {
+      "genesis": {
+        "name": "Genesis",
+        "text": "search your deck for a Zero Matter card, reveal it to your opponent and add it to your hand, then shuffle your deck. You can’t play that Matter this turn."
+      }
+    },
+    "bequest": {
+      "trigger": "When he leaves the field",
+      "name": "Bequest",
+      "text": "Draw a card. (Triggers on every exit from the field: retirement to the Requiem Zone included, which is not a death.)"
+    },
+    "flavor": "He was the first to touch the Zero. Ever since, humanity was changed forever."
+  }
+}
