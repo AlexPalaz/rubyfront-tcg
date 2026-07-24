@@ -69,7 +69,7 @@ Gli **Oggetti** sono carte che si **assegnano a un'Entità**:
 - una volta assegnato, l'Oggetto **non può essere spostato né sostituito**;
 - quando l'Entità lascia il campo, l'Oggetto **la segue**: va nell'**Abisso** — o in **Zona di Requiem**, se l'Entità è stata ritirata (§6.2).
 
-Il mazzo **può mischiare le razze** liberamente. Si possono avere al massimo **3 copie della stessa carta** nel mazzo.
+Il mazzo **può mischiare le razze** liberamente. Si possono avere al massimo **2 copie della stessa carta** nel mazzo; le carte **Uniche** — contrassegnate dal **simbolo dell'Unica accanto al nome** — ammettono **una sola copia**.
 
 #### Il Rubyfront come carta
 
@@ -166,7 +166,7 @@ Il campo di ogni giocatore è formato da:
 - **Fronte** — il campo di battaglia: **5 slot** in cui stanno le Entità. Il Rubyfront, quando è schierato, si posiziona **davanti** ai 5 slot (non occupa uno slot); le Materie in gioco (permanenti o in risoluzione) stanno **dietro** i 5 slot. Le permanenti si dispongono **una dietro l'altra (o una sotto l'altra), nell'ordine in cui sono scese in campo**: la fila tiene traccia dell'età di ciascuna, che serve per l'ordine di risoluzione degli effetti (§8.2).
 - **Mazzo** — le carte da pescare.
 - **Abisso** — la zona delle carte **morte o consumate**: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti che seguono un'Entità morta, carte scartate o canalizzate dalla mano. È **pubblico**: consultabile da entrambi i giocatori in qualsiasi momento.
-- **Zona di Requiem** — la zona delle carte **ancora "vive"** uscite dal gioco: le Entità **ritirate** (§6.2) e gli Oggetti che le seguono. Funziona **esattamente come l'Abisso** (pubblica, consultabile in qualsiasi momento), ma tiene separato ciò che non è mai morto da ciò che lo è: gli effetti che nominano l'Abisso **non** toccano la Requiem, e viceversa.
+- **Zona di Requiem** — la zona delle carte **ancora "vive"** uscite dal gioco: le Entità **ritirate** (§6.2) o **mandate lì da effetti di carte**, e gli Oggetti che le seguono. Funziona **esattamente come l'Abisso** (pubblica, consultabile in qualsiasi momento), ma tiene separato ciò che non è mai morto da ciò che lo è: gli effetti che nominano l'Abisso **non** toccano la Requiem, e viceversa. Una carta mandata in Requiem da un effetto **non muore** e, salvo che l'effetto dica altrimenti, **non conta come Ritiro**: conta solo come **lasciare il campo**.
 - **Zona di Richiamo** — il Rubyfront si posiziona e **parte sempre qui**, salvo diverse indicazioni sulla carta.
 
 Il **mazzo** e la **mano** sono **nascosti** all'avversario.
@@ -217,7 +217,7 @@ Terminata la Fase di Preparazione, il giocatore di turno **dichiara di entrare i
 
 1. **Pre-Fronte:** dichiarata l'apertura del Fronte, **l'avversario può giocare Materie Reattive**. Il giocatore di turno può rispondere con la catena di risposta (§7.2).
 2. **Finestra Reattive del giocatore di turno:** conclusa la Pre-Fronte, il giocatore di turno può giocare le proprie Materie Reattive (l'avversario può rispondere in catena, §7.2).
-3. **Fronte pronto — dichiarazione dell'attacco (o passo):** il giocatore di turno **seleziona tutte le Entità con cui attacca** e le dichiara **in un'unica ondata** — oppure dichiara che passa. **Dopo la dichiarazione non si possono più *iniziare* Reattive**, con un'unica eccezione: le Reattive difensive usate come blocco (vedi punto 4). Le **risposte in catena** (§7.2) restano sempre possibili: ogni Reattiva giocata può essere risposta con altre Reattive.
+3. **Fronte pronto — dichiarazione dell'attacco (o passo):** il giocatore di turno **seleziona tutte le Entità con cui attacca** e le dichiara **in un'unica ondata** — oppure dichiara che passa. **Dopo la dichiarazione non si possono più *iniziare* Reattive**, con un'unica eccezione: una Reattiva giocata come blocco (vedi punto 4). Le **risposte in catena** (§7.2) restano sempre possibili: ogni Reattiva giocata può essere risposta con altre Reattive.
 4. **Dichiarazione dei blocchi:** il difensore, vista l'intera ondata, **assegna i propri blocchi**. Ogni attaccante può essere bloccato da:
    - una **propria Entità** (sfide 1 contro 1: un bloccante per attaccante, ogni Entità blocca una sola volta; chi blocca si tappa, chi contrattacca si copre), **oppure**
    - una **Materia Reattiva il cui testo permette di bloccare** (pagandone il costo di Flusso): la Reattiva sostituisce il bloccante per quell'attacco. **Non c'è confronto di Potenza** (la Reattiva non ne ha): l'attacco è **comunque bloccato**, e l'eventuale sorte dell'attaccante la stabilisce il **testo della Reattiva**. Come ogni Reattiva, **apre la catena di risposta** (§7.2): l'attaccante può rispondere.
@@ -238,7 +238,7 @@ Terminata la Fase di Preparazione, il giocatore di turno **dichiara di entrare i
 #### Blocco
 
 - Il **difensore può scegliere di bloccare** con le proprie Entità, decidendo se far passare o meno l'attacco al Rubyfront.
-- Anche le **Materie Reattive possono bloccare attacchi**, se il testo della carta lo prevede (e c'è il Flusso per pagarle): al momento della dichiarazione dei blocchi, il difensore può assegnare a un attaccante una Reattiva-blocco **al posto di una propria Entità** (§6.3, punto 4).
+- Anche le **Materie Reattive possono bloccare attacchi**, se il testo della carta lo prevede (e c'è il Flusso per pagarle): al momento della dichiarazione dei blocchi, il difensore può assegnare a un attaccante una di queste Reattive **al posto di una propria Entità** (§6.3, punto 4).
 - La sfida è sempre **1 contro 1**: ogni attaccante può essere bloccato da **una sola Entità**, e ogni Entità può **bloccare una sola volta per turno**.
 - Un'Entità **tappata non può bloccare** (es. perché ha attaccato nel proprio turno precedente).
 - **Quando un'Entità blocca viene tappata.**
@@ -255,7 +255,7 @@ Si confrontano le **Potenze**:
 
 #### Uscite dal campo tra dichiarazione e risoluzione
 
-Tra la dichiarazione dei blocchi e la risoluzione delle battaglie possono intervenire effetti (es. una catena aperta da una Reattiva-blocco) che rimuovono dal campo carte già impegnate:
+Tra la dichiarazione dei blocchi e la risoluzione delle battaglie possono intervenire effetti (es. una catena aperta da una Reattiva giocata come blocco) che rimuovono dal campo carte già impegnate:
 
 - Se il **bloccante** assegnato a un attaccante lascia il campo prima che la sua battaglia si risolva, alla risoluzione quell'attacco è **non bloccato**: passa e infligge danni al Rubyfront. Il blocco **non si riassegna**.
 - Se è l'**attaccante** a lasciare il campo prima della risoluzione, la battaglia **non avviene**: nessun confronto, nessun danno. Il bloccante che gli era assegnato resta comunque **tappato** (e il contrattaccante **coperto**): tap e copertura scattano alla dichiarazione dei blocchi (§6.3, punto 4) e non si annullano.
@@ -361,7 +361,7 @@ Ogni carta Materia ha una **descrizione con un effetto**. In base alla dicitura 
 - **Nessuno può intervenire in qualsiasi momento a piacere:** le Reattive si giocano solo nelle finestre previste.
 - **Finestra dell'avversario (Pre-Fronte):** all'apertura della Fase di Fronte, prima della dichiarazione d'attacco, l'avversario può giocare Reattive (§6.3).
 - **Finestra del giocatore di turno:** dopo la Pre-Fronte e prima di dichiarare Fronte pronto, il giocatore di turno può giocare Reattive.
-- **Dopo la dichiarazione dell'attacco non si *iniziano* più Reattive**, con un'unica eccezione: le **Reattive-blocco** del difensore, assegnate come blocco a un attaccante al posto di un'Entità (§6.3). La Reattiva-blocco apre una **normale catena di risposta**: si risponde **solo con Reattive**, come in ogni catena. I potenziamenti giocati *di propria iniziativa*, invece, vanno giocati **prima** della dichiarazione d'attacco, "in anticipo": sono una scommessa per entrambi.
+- **Dopo la dichiarazione dell'attacco non si *iniziano* più Reattive**, con un'unica eccezione: le Reattive del difensore **giocate come blocco**, assegnate a un attaccante al posto di un'Entità (§6.3). Una Reattiva così giocata apre una **normale catena di risposta**: si risponde **solo con Reattive**, come in ogni catena. I potenziamenti giocati *di propria iniziativa*, invece, vanno giocati **prima** della dichiarazione d'attacco, "in anticipo": sono una scommessa per entrambi.
 - In tutte le finestre, chi subisce la Reattiva può **rispondere** (vedi catena di risposta).
 
 #### Catena di risposta
@@ -484,7 +484,7 @@ Il pareggio esiste in due soli casi:
 
 - Massimo **7 carte in mano** (l'eccesso si scarta a fine turno, §6.4).
 - Massimo **5 Entità sul Fronte** (i 5 slot; Rubyfront e Materie permanenti non contano, §6.2).
-- Massimo **3 copie** della stessa carta nel mazzo (§3.1).
+- Massimo **2 copie** della stessa carta nel mazzo — **una sola** se la carta è **Unica** (§3.1).
 - Massimo **20 Flussi** (§3.2). Il Gettone Flusso è fuori dal limite: è un punto a parte.
 
 ## 10. Glossario
@@ -496,8 +496,9 @@ Il pareggio esiste in due soli casi:
 - **Canalizzazione** — scartare una carta dalla mano (va nell'Abisso) per ottenere +1 Flusso per il turno in corso (max 1 a turno).
 - **Fronte** — il campo di battaglia: 5 slot per le Entità; il Rubyfront schierato sta davanti agli slot, le Materie in gioco dietro.
 - **Zona di Richiamo** — zona in cui parte il Rubyfront.
+- **Unica** — classificazione stampata sulla carta (il simbolo dell'Unica accanto al nome): il mazzo ne ammette al massimo una copia (§3.1).
 - **Abisso** — la zona delle carte morte o consumate: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti di Entità morte, carte scartate o canalizzate dalla mano. È pubblico.
-- **Zona di Requiem** — la zona delle carte ancora "vive" uscite dal gioco: le Entità ritirate (§6.2) e i loro Oggetti. Funziona come l'Abisso, ma distingue ciò che non è mai morto; gli effetti che nominano una delle due zone non toccano l'altra.
+- **Zona di Requiem** — la zona delle carte ancora "vive" uscite dal gioco: le Entità ritirate (§6.2) o mandate lì da effetti, e i loro Oggetti. Funziona come l'Abisso, ma distingue ciò che non è mai morto; gli effetti che nominano una delle due zone non toccano l'altra.
 - **Potenza** — statistica unica di un'Entità. Modificabile da effetti, non scende mai sotto 0; a Potenza 0 l'Entità resta in campo.
 - **Danno** — perdita di PV: possono subirlo solo Rubyfront e Unione. Le Entità non subiscono mai danno (le carte che le colpiscono usano diciture esplicite come "distruggi").
 - **Materia** — carta magia/evento, giocabile solo se un tipo corrispondente è abilitato da una carta in campo. Tre comportamenti: normale, permanente, Reattiva.
