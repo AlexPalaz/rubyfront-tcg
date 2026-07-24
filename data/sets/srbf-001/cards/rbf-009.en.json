@@ -1,7 +1,7 @@
 {
   "name": "Threshold Warden",
   "typeLabel": "Entity — Human",
-  "summary": "A born defender: frail on the attack, a barred door on the block.",
+  "summary": "The Procession's defender: the more of his own have passed beyond, the firmer the threshold.",
   "ui": {
     "face": "Entity"
   },
@@ -15,7 +15,7 @@
     "flavor": "No one passes. Not today.",
     "warden": {
       "trigger": "When he blocks",
-      "text": "He gets +2 Power until the end of the battle."
+      "text": "He gets +2 Power until the end of the battle; if there are at least 3 cards in your Requiem Zone, he gets +4 instead."
     }
   }
 }

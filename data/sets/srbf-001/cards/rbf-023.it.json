@@ -1,7 +1,7 @@
 {
   "name": "Vendicatrice",
   "typeLabel": "Entità — Umano",
-  "summary": "Il debutto della Vendetta: bloccarla male costa la vita.",
+  "summary": "La Vendetta ha sempre un nome: più forte da quando qualcuno dei suoi è passato oltre.",
   "ui": {
     "face": "Entità"
   },
@@ -16,6 +16,10 @@
       "name": "Vendetta",
       "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
     },
-    "flavor": "Colpiscila, se osi. Poi corri."
+    "flavor": "Colpiscila, se osi. Poi corri.",
+    "effect": {
+      "name": "Effetto",
+      "text": "Finché nella tua Zona di Requiem c’è almeno una carta, la Vendicatrice prende +1 Potenza."
+    }
   }
 }

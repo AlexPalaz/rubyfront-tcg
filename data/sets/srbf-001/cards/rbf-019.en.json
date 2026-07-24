@@ -1,7 +1,7 @@
 {
   "name": "Front Veteran",
   "typeLabel": "Entity — Human",
-  "summary": "She blocks and punishes: the counterattack mid-size attackers learn to fear.",
+  "summary": "The counterattack that teaches: every fallen enemy is worth a card.",
   "ui": {
     "face": "Entity"
   },
@@ -12,6 +12,10 @@
   },
   "face": {
     "name": "Front Veteran",
-    "flavor": "She has blocked more attacks than you have seen."
+    "flavor": "She has blocked more attacks than you have seen.",
+    "lesson": {
+      "trigger": "When she counterattacks",
+      "text": "If the attacker dies in the clash, draw a card: the covering that follows is the price of the lesson."
+    }
   }
 }

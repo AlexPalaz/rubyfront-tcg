@@ -18,7 +18,7 @@
     "name": "March of the Change",
     "effect": {
       "name": "Effect",
-      "text": "Your Entities get +1 Power."
+      "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."
     },
     "flavor": "One step at a time, all together."
   },

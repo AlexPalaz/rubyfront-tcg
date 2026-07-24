@@ -27,7 +27,7 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 2,
+        "power": 3,
         "fluxCost": 3
       },
       "enablesMatters": [
@@ -38,8 +38,25 @@
       ],
       "keywords": [],
       "requirements": {},
-      "triggers": [],
-      "actions": []
+      "triggers": [
+        {
+          "id": "shelter",
+          "displayKey": "shelter",
+          "event": "on_block",
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "cardType": "rubyfront",
+              "controller": "controller"
+            },
+            "amount": 1
+          }
+        }
+      ],
+      "actions": [],
+      "restrictions": {
+        "cannotAttack": true
+      }
     }
   ],
   "designNotes": "rbf-012.md"

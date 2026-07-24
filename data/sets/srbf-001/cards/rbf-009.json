@@ -17,7 +17,8 @@
     "entity",
     "human",
     "dynamic",
-    "defender"
+    "defender",
+    "requiem"
   ],
   "rulesReference": "MANUALE.md §6.3, §7",
   "faces": [
@@ -49,7 +50,11 @@
               "scope": "self"
             },
             "amount": 2,
-            "duration": "until_end_of_battle"
+            "duration": "until_end_of_battle",
+            "details": {
+              "requiemThreshold": 3,
+              "amountAtThreshold": 4
+            }
           }
         }
       ],

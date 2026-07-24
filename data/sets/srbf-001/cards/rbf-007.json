@@ -15,7 +15,8 @@
   ],
   "tags": [
     "object",
-    "human"
+    "human",
+    "requiem"
   ],
   "rulesReference": "MANUALE.md §3.1",
   "faces": [
@@ -41,6 +42,21 @@
             },
             "amount": 1,
             "duration": "permanent"
+          }
+        },
+        {
+          "id": "bequest-belt",
+          "displayKey": "effect2",
+          "event": "on_retire",
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1,
+            "details": {
+              "whenWearerRetired": true
+            }
           }
         }
       ],

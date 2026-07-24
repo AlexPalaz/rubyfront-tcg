@@ -1,7 +1,7 @@
 {
   "name": "Campione del Cambiamento",
   "typeLabel": "Entità — Umano",
-  "summary": "Il corpo grosso del piano e la porta al secondo grado della Dinamica.",
+  "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
   "ui": {
     "face": "Entità"
   },
@@ -12,6 +12,10 @@
   },
   "face": {
     "name": "Campione del Cambiamento",
-    "flavor": "L’umanità cambiò. Lui più di tutti."
+    "flavor": "L’umanità cambiò. Lui più di tutti.",
+    "effect": {
+      "name": "Effetto",
+      "text": "Finché controlli l’Unione, il Campione prende +2 Potenza e ha Slancio: il Cambiamento compiuto scorre in lui."
+    }
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "Lookout",
   "typeLabel": "Entity — Human",
-  "summary": "The deck's first body: an eye on the Front and access to the Dynamic.",
+  "summary": "The plan's eye: she filters the draw like the beast's Undertow.",
   "ui": {
     "face": "Entity"
   },
@@ -12,6 +12,10 @@
   },
   "face": {
     "name": "Lookout",
-    "flavor": "She saw the end coming. She whistled twice."
+    "flavor": "She saw the end coming. She whistled twice.",
+    "watch": {
+      "trigger": "When she enters the field",
+      "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
+    }
   }
 }

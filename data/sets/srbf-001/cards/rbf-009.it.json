@@ -1,7 +1,7 @@
 {
   "name": "Custode della Soglia",
   "typeLabel": "Entità — Umano",
-  "summary": "Un difensore nato: fragile in attacco, una porta sbarrata in blocco.",
+  "summary": "Il difensore della Processione: più i suoi sono passati oltre, più la soglia è invalicabile.",
   "ui": {
     "face": "Entità"
   },
@@ -15,7 +15,7 @@
     "flavor": "Nessuno passa. Non oggi.",
     "warden": {
       "trigger": "Quando blocca",
-      "text": "Prende +2 Potenza fino alla fine della battaglia."
+      "text": "Prende +2 Potenza fino alla fine della battaglia; se nella tua Zona di Requiem ci sono almeno 3 carte, prende invece +4."
     }
   }
 }

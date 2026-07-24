@@ -18,7 +18,8 @@
     "dynamic",
     "grade-1",
     "permanent",
-    "anthem"
+    "anthem",
+    "requiem"
   ],
   "rulesReference": "MANUALE.md §7.2",
   "faces": [
@@ -50,7 +51,11 @@
               "quantity": "all"
             },
             "amount": 1,
-            "duration": "permanent"
+            "duration": "permanent",
+            "details": {
+              "requiemThreshold": 4,
+              "amountAtThreshold": 2
+            }
           }
         }
       ],

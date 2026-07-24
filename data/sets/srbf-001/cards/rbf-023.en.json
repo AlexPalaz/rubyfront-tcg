@@ -1,7 +1,7 @@
 {
   "name": "Avenger",
   "typeLabel": "Entity — Human",
-  "summary": "The debut of Vengeance: blocking her carelessly costs lives.",
+  "summary": "Vengeance always has a name: stronger since one of her own passed beyond.",
   "ui": {
     "face": "Entity"
   },
@@ -16,6 +16,10 @@
       "name": "Vengeance",
       "rules": "if she blocks with higher Power, the attacker dies"
     },
-    "flavor": "Strike her if you dare. Then run."
+    "flavor": "Strike her if you dare. Then run.",
+    "effect": {
+      "name": "Effect",
+      "text": "For as long as there is at least one card in your Requiem Zone, the Avenger gets +1 Power."
+    }
   }
 }

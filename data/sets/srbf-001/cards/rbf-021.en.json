@@ -1,7 +1,7 @@
 {
   "name": "Runner",
   "typeLabel": "Entity — Human",
-  "summary": "Pressure from turn one: the debut of Surge.",
+  "summary": "The Procession's fuel: she strikes, delivers and passes beyond, alive.",
   "ui": {
     "face": "Entity"
   },
@@ -16,6 +16,10 @@
       "name": "Surge",
       "rules": "she may attack the very turn she enters the field"
     },
-    "flavor": "She arrives before word of her arrival."
+    "flavor": "She arrives before word of her arrival.",
+    "relay": {
+      "trigger": "At the end of your turn",
+      "text": "If she attacked this turn, you may retire her to the Requiem Zone, even if she entered the field this turn."
+    }
   }
 }

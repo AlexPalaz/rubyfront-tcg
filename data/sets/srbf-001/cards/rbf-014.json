@@ -16,7 +16,8 @@
   "tags": [
     "entity",
     "human",
-    "dynamic"
+    "dynamic",
+    "union"
   ],
   "rulesReference": "MANUALE.md §7",
   "faces": [
@@ -37,7 +38,27 @@
       ],
       "keywords": [],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "awakening",
+          "displayKey": "effect",
+          "event": "while_in_play",
+          "effect": {
+            "type": "empower",
+            "target": {
+              "scope": "self"
+            },
+            "powerBonus": 2,
+            "duration": "permanent",
+            "grants": [
+              "surge"
+            ],
+            "details": {
+              "requiresUnion": true
+            }
+          }
+        }
+      ],
       "actions": []
     }
   ],

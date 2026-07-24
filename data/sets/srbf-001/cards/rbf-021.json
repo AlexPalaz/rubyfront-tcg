@@ -16,7 +16,8 @@
   "tags": [
     "entity",
     "human",
-    "surge"
+    "surge",
+    "requiem"
   ],
   "rulesReference": "MANUALE.md §8.1",
   "faces": [
@@ -36,7 +37,28 @@
         }
       ],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "relay",
+          "displayKey": "relay",
+          "event": "on_turn_end",
+          "effect": {
+            "type": "retire",
+            "target": {
+              "scope": "self"
+            },
+            "destination": {
+              "zone": "requiem",
+              "owner": "controller"
+            },
+            "details": {
+              "optional": true,
+              "requiresAttackedThisTurn": true,
+              "overridesEntryTurnBan": true
+            }
+          }
+        }
+      ],
       "actions": []
     }
   ],

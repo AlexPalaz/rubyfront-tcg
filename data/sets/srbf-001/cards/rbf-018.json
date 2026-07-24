@@ -16,7 +16,8 @@
   "tags": [
     "entity",
     "human",
-    "draw"
+    "draw",
+    "requiem"
   ],
   "rulesReference": "MANUALE.md §6.2",
   "faces": [
@@ -42,7 +43,11 @@
             "target": {
               "controller": "controller"
             },
-            "count": 1
+            "count": 1,
+            "details": {
+              "requiemThreshold": 2,
+              "countAtThreshold": 2
+            }
           }
         }
       ],

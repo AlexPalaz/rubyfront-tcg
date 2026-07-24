@@ -1,7 +1,7 @@
 {
   "name": "Veterana del Fronte",
   "typeLabel": "Entità — Umano",
-  "summary": "Blocca e punisce: il contrattacco che gli attaccanti medi imparano a temere.",
+  "summary": "Il contrattacco che insegna: ogni caduto nemico vale una carta.",
   "ui": {
     "face": "Entità"
   },
@@ -12,6 +12,10 @@
   },
   "face": {
     "name": "Veterana del Fronte",
-    "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
+    "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti.",
+    "lesson": {
+      "trigger": "Quando contrattacca",
+      "text": "Se l’attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
+    }
   }
 }

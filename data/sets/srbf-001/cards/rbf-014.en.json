@@ -1,7 +1,7 @@
 {
   "name": "Champion of the Change",
   "typeLabel": "Entity — Human",
-  "summary": "The plan's big body and the gate to the Dynamic's second grade.",
+  "summary": "He sleeps until the beast is fulfilled: with the Union on the field he is the deck's hammer.",
   "ui": {
     "face": "Entity"
   },
@@ -12,6 +12,10 @@
   },
   "face": {
     "name": "Champion of the Change",
-    "flavor": "Humanity changed. He most of all."
+    "flavor": "Humanity changed. He most of all.",
+    "effect": {
+      "name": "Effect",
+      "text": "For as long as you control the Union, the Champion gets +2 Power and has Surge: the completed Change flows through him."
+    }
   }
 }

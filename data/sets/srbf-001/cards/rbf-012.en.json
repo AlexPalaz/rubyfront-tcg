@@ -1,7 +1,7 @@
 {
   "name": "Last Bastion",
   "typeLabel": "Entity — Human",
-  "summary": "The plan's wall: a wide body that holds the line and enables the Dynamic.",
+  "summary": "The wall that breathes: high-cost Power, in exchange he never leaves the line.",
   "ui": {
     "face": "Entity"
   },
@@ -12,6 +12,14 @@
   },
   "face": {
     "name": "Last Bastion",
-    "flavor": "The world may fall. He will not."
+    "flavor": "The world may fall. He will not.",
+    "effect": {
+      "name": "Effect",
+      "text": "He cannot attack."
+    },
+    "shelter": {
+      "trigger": "When he blocks",
+      "text": "Your Rubyfront recovers 1 HP: behind his shield, the beast catches its breath."
+    }
   }
 }

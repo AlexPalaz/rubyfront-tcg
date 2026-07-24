@@ -14,7 +14,7 @@
     "name": "Vigorbelt",
     "effect": {
       "name": "Effect",
-      "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power."
+      "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power. When the Human wearing it is retired, draw a card: the Vigorbelt follows them to Requiem and leaves something to those who remain."
     },
     "flavor": "Buckle it tight. Vigor does the rest."
   }

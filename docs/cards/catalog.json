@@ -727,7 +727,7 @@
                 "name": "Scatto",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno."
+                  "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno. Se controlli l’Unione, prende invece +4 Potenza."
                 },
                 "flavor": "Prima che l’occhio capisca, è già finita."
               }
@@ -752,7 +752,7 @@
                 "name": "Dash",
                 "effect": {
                   "name": "Effect",
-                  "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn."
+                  "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn. If you control the Union, it gets +4 Power instead."
                 },
                 "flavor": "By the time the eye understands, it is already over."
               }
@@ -796,7 +796,10 @@
                     "duration": "until_end_of_turn",
                     "grants": [
                       "surge"
-                    ]
+                    ],
+                    "details": {
+                      "powerBonusWithUnion": 4
+                    }
                   }
                 }
               ],
@@ -1070,7 +1073,7 @@
                 "name": "Vigorcintura",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza."
+                  "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza. Quando l’Umano che la indossa viene ritirato, pesca una carta: la Vigorcintura lo segue in Requiem e lascia qualcosa a chi resta."
                 },
                 "flavor": "Stringila forte. Il vigore fa il resto."
               }
@@ -1091,7 +1094,7 @@
                 "name": "Vigorbelt",
                 "effect": {
                   "name": "Effect",
-                  "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power."
+                  "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power. When the Human wearing it is retired, draw a card: the Vigorbelt follows them to Requiem and leaves something to those who remain."
                 },
                 "flavor": "Buckle it tight. Vigor does the rest."
               }
@@ -1099,7 +1102,8 @@
           },
           "tags": [
             "object",
-            "human"
+            "human",
+            "requiem"
           ],
           "rulesReference": "MANUALE.md §3.1",
           "faces": [
@@ -1125,6 +1129,21 @@
                     },
                     "amount": 1,
                     "duration": "permanent"
+                  }
+                },
+                {
+                  "id": "bequest-belt",
+                  "displayKey": "effect2",
+                  "event": "on_retire",
+                  "effect": {
+                    "type": "draw_card",
+                    "target": {
+                      "controller": "controller"
+                    },
+                    "count": 1,
+                    "details": {
+                      "whenWearerRetired": true
+                    }
                   }
                 }
               ],
@@ -1156,7 +1175,7 @@
             "it": {
               "name": "Vedetta",
               "typeLabel": "Entità — Umano",
-              "summary": "Il primo corpo del mazzo: un occhio sul Fronte e l'accesso alla Dinamica.",
+              "summary": "L'occhio del piano: filtra la pescata come la Risacca della bestia.",
               "ui": {
                 "face": "Entità"
               },
@@ -1167,13 +1186,17 @@
               },
               "face": {
                 "name": "Vedetta",
-                "flavor": "Vide arrivare la fine. Fischiò due volte."
+                "flavor": "Vide arrivare la fine. Fischiò due volte.",
+                "watch": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
+                }
               }
             },
             "en": {
               "name": "Lookout",
               "typeLabel": "Entity — Human",
-              "summary": "The deck's first body: an eye on the Front and access to the Dynamic.",
+              "summary": "The plan's eye: she filters the draw like the beast's Undertow.",
               "ui": {
                 "face": "Entity"
               },
@@ -1184,14 +1207,19 @@
               },
               "face": {
                 "name": "Lookout",
-                "flavor": "She saw the end coming. She whistled twice."
+                "flavor": "She saw the end coming. She whistled twice.",
+                "watch": {
+                  "trigger": "When she enters the field",
+                  "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
+                }
               }
             }
           },
           "tags": [
             "entity",
             "human",
-            "dynamic"
+            "dynamic",
+            "scry"
           ],
           "rulesReference": "MANUALE.md §6.2, §7",
           "faces": [
@@ -1212,7 +1240,28 @@
               ],
               "keywords": [],
               "requirements": {},
-              "triggers": [],
+              "triggers": [
+                {
+                  "id": "watch",
+                  "displayKey": "watch",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "look_and_optionally_move",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top",
+                      "count": 1
+                    },
+                    "to": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "bottom"
+                    },
+                    "optional": true
+                  }
+                }
+              ],
               "actions": []
             }
           ],
@@ -1236,7 +1285,7 @@
             "it": {
               "name": "Custode della Soglia",
               "typeLabel": "Entità — Umano",
-              "summary": "Un difensore nato: fragile in attacco, una porta sbarrata in blocco.",
+              "summary": "Il difensore della Processione: più i suoi sono passati oltre, più la soglia è invalicabile.",
               "ui": {
                 "face": "Entità"
               },
@@ -1250,14 +1299,14 @@
                 "flavor": "Nessuno passa. Non oggi.",
                 "warden": {
                   "trigger": "Quando blocca",
-                  "text": "Prende +2 Potenza fino alla fine della battaglia."
+                  "text": "Prende +2 Potenza fino alla fine della battaglia; se nella tua Zona di Requiem ci sono almeno 3 carte, prende invece +4."
                 }
               }
             },
             "en": {
               "name": "Threshold Warden",
               "typeLabel": "Entity — Human",
-              "summary": "A born defender: frail on the attack, a barred door on the block.",
+              "summary": "The Procession's defender: the more of his own have passed beyond, the firmer the threshold.",
               "ui": {
                 "face": "Entity"
               },
@@ -1271,7 +1320,7 @@
                 "flavor": "No one passes. Not today.",
                 "warden": {
                   "trigger": "When he blocks",
-                  "text": "He gets +2 Power until the end of the battle."
+                  "text": "He gets +2 Power until the end of the battle; if there are at least 3 cards in your Requiem Zone, he gets +4 instead."
                 }
               }
             }
@@ -1280,7 +1329,8 @@
             "entity",
             "human",
             "dynamic",
-            "defender"
+            "defender",
+            "requiem"
           ],
           "rulesReference": "MANUALE.md §6.3, §7",
           "faces": [
@@ -1312,7 +1362,11 @@
                       "scope": "self"
                     },
                     "amount": 2,
-                    "duration": "until_end_of_battle"
+                    "duration": "until_end_of_battle",
+                    "details": {
+                      "requiemThreshold": 3,
+                      "amountAtThreshold": 4
+                    }
                   }
                 }
               ],
@@ -1339,7 +1393,7 @@
             "it": {
               "name": "Medico da Campo",
               "typeLabel": "Entità — Umano",
-              "summary": "Cure per la bestia: i PV sono la valuta del piano, e lui li restituisce.",
+              "summary": "Cura due volte: all'arrivo e al congedo — il Ritiro come seconda medicina.",
               "ui": {
                 "face": "Entità"
               },
@@ -1354,13 +1408,17 @@
                 "medic": {
                   "trigger": "Quando entra in campo",
                   "text": "Il tuo Rubyfront recupera 2 PV."
+                },
+                "lastCare": {
+                  "trigger": "Quando lo ritiri",
+                  "text": "Il tuo Rubyfront recupera altri 2 PV. (Vale solo per il Ritiro volontario in Zona di Requiem, non per altre uscite dal campo.)"
                 }
               }
             },
             "en": {
               "name": "Field Medic",
               "typeLabel": "Entity — Human",
-              "summary": "Care for the beast: HP are the plan's currency, and he gives them back.",
+              "summary": "He heals twice: on arrival and on farewell — Retirement as a second medicine.",
               "ui": {
                 "face": "Entity"
               },
@@ -1375,6 +1433,10 @@
                 "medic": {
                   "trigger": "When he enters the field",
                   "text": "Your Rubyfront recovers 2 HP."
+                },
+                "lastCare": {
+                  "trigger": "When you retire him",
+                  "text": "Your Rubyfront recovers another 2 HP. (Voluntary Retirement to the Requiem Zone only, not other ways of leaving the field.)"
                 }
               }
             }
@@ -1382,7 +1444,8 @@
           "tags": [
             "entity",
             "human",
-            "heal"
+            "heal",
+            "requiem"
           ],
           "rulesReference": "MANUALE.md §6.2, §8.2",
           "faces": [
@@ -1403,6 +1466,19 @@
                   "id": "medic",
                   "displayKey": "medic",
                   "event": "on_enter_field",
+                  "effect": {
+                    "type": "gain_health",
+                    "target": {
+                      "cardType": "rubyfront",
+                      "controller": "controller"
+                    },
+                    "amount": 2
+                  }
+                },
+                {
+                  "id": "last-care",
+                  "displayKey": "lastCare",
+                  "event": "on_retire",
                   "effect": {
                     "type": "gain_health",
                     "target": {
@@ -1543,7 +1619,7 @@
             "it": {
               "name": "Ultimo Bastione",
               "typeLabel": "Entità — Umano",
-              "summary": "Il muro del piano: un corpo largo che tiene la linea e abilita la Dinamica.",
+              "summary": "Il muro che respira: Potenza da costo alto, in cambio non lascia mai la linea.",
               "ui": {
                 "face": "Entità"
               },
@@ -1554,13 +1630,21 @@
               },
               "face": {
                 "name": "Ultimo Bastione",
-                "flavor": "Cade il mondo, non lui."
+                "flavor": "Cade il mondo, non lui.",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Non può attaccare."
+                },
+                "shelter": {
+                  "trigger": "Quando blocca",
+                  "text": "Il tuo Rubyfront recupera 1 PV: dietro il suo scudo, la bestia riprende fiato."
+                }
               }
             },
             "en": {
               "name": "Last Bastion",
               "typeLabel": "Entity — Human",
-              "summary": "The plan's wall: a wide body that holds the line and enables the Dynamic.",
+              "summary": "The wall that breathes: high-cost Power, in exchange he never leaves the line.",
               "ui": {
                 "face": "Entity"
               },
@@ -1571,7 +1655,15 @@
               },
               "face": {
                 "name": "Last Bastion",
-                "flavor": "The world may fall. He will not."
+                "flavor": "The world may fall. He will not.",
+                "effect": {
+                  "name": "Effect",
+                  "text": "He cannot attack."
+                },
+                "shelter": {
+                  "trigger": "When he blocks",
+                  "text": "Your Rubyfront recovers 1 HP: behind his shield, the beast catches its breath."
+                }
               }
             }
           },
@@ -1589,7 +1681,7 @@
               "displayKey": "face",
               "race": "human",
               "stats": {
-                "power": 2,
+                "power": 3,
                 "fluxCost": 3
               },
               "enablesMatters": [
@@ -1600,8 +1692,25 @@
               ],
               "keywords": [],
               "requirements": {},
-              "triggers": [],
-              "actions": []
+              "triggers": [
+                {
+                  "id": "shelter",
+                  "displayKey": "shelter",
+                  "event": "on_block",
+                  "effect": {
+                    "type": "gain_health",
+                    "target": {
+                      "cardType": "rubyfront",
+                      "controller": "controller"
+                    },
+                    "amount": 1
+                  }
+                }
+              ],
+              "actions": [],
+              "restrictions": {
+                "cannotAttack": true
+              }
             }
           ],
           "designNotes": "rbf-012.md",
@@ -1746,7 +1855,7 @@
             "it": {
               "name": "Campione del Cambiamento",
               "typeLabel": "Entità — Umano",
-              "summary": "Il corpo grosso del piano e la porta al secondo grado della Dinamica.",
+              "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
               "ui": {
                 "face": "Entità"
               },
@@ -1757,13 +1866,17 @@
               },
               "face": {
                 "name": "Campione del Cambiamento",
-                "flavor": "L’umanità cambiò. Lui più di tutti."
+                "flavor": "L’umanità cambiò. Lui più di tutti.",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Finché controlli l’Unione, il Campione prende +2 Potenza e ha Slancio: il Cambiamento compiuto scorre in lui."
+                }
               }
             },
             "en": {
               "name": "Champion of the Change",
               "typeLabel": "Entity — Human",
-              "summary": "The plan's big body and the gate to the Dynamic's second grade.",
+              "summary": "He sleeps until the beast is fulfilled: with the Union on the field he is the deck's hammer.",
               "ui": {
                 "face": "Entity"
               },
@@ -1774,14 +1887,19 @@
               },
               "face": {
                 "name": "Champion of the Change",
-                "flavor": "Humanity changed. He most of all."
+                "flavor": "Humanity changed. He most of all.",
+                "effect": {
+                  "name": "Effect",
+                  "text": "For as long as you control the Union, the Champion gets +2 Power and has Surge: the completed Change flows through him."
+                }
               }
             }
           },
           "tags": [
             "entity",
             "human",
-            "dynamic"
+            "dynamic",
+            "union"
           ],
           "rulesReference": "MANUALE.md §7",
           "faces": [
@@ -1802,7 +1920,27 @@
               ],
               "keywords": [],
               "requirements": {},
-              "triggers": [],
+              "triggers": [
+                {
+                  "id": "awakening",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
+                  "effect": {
+                    "type": "empower",
+                    "target": {
+                      "scope": "self"
+                    },
+                    "powerBonus": 2,
+                    "duration": "permanent",
+                    "grants": [
+                      "surge"
+                    ],
+                    "details": {
+                      "requiresUnion": true
+                    }
+                  }
+                }
+              ],
               "actions": []
             }
           ],
@@ -2176,7 +2314,7 @@
             "it": {
               "name": "Cronista",
               "typeLabel": "Entità — Umano",
-              "summary": "Carte fresche per il piano: un corpo piccolo che non fa perdere nulla.",
+              "summary": "Registra chi è passato oltre: più nomi nella Requiem, più pagine da leggere.",
               "ui": {
                 "face": "Entità"
               },
@@ -2190,14 +2328,14 @@
                 "flavor": "Scrive ciò che il Cambiamento detta.",
                 "chronicle": {
                   "trigger": "Quando entra in campo",
-                  "text": "Pesca una carta."
+                  "text": "Pesca una carta; se nella tua Zona di Requiem ci sono almeno 2 carte, pescane invece due."
                 }
               }
             },
             "en": {
               "name": "Chronicler",
               "typeLabel": "Entity — Human",
-              "summary": "Fresh cards for the plan: a small body that loses you nothing.",
+              "summary": "She records those who passed beyond: more names in the Requiem, more pages to read.",
               "ui": {
                 "face": "Entity"
               },
@@ -2211,7 +2349,7 @@
                 "flavor": "She writes what the Change dictates.",
                 "chronicle": {
                   "trigger": "When she enters the field",
-                  "text": "Draw a card."
+                  "text": "Draw a card; if there are at least 2 cards in your Requiem Zone, draw two instead."
                 }
               }
             }
@@ -2219,7 +2357,8 @@
           "tags": [
             "entity",
             "human",
-            "draw"
+            "draw",
+            "requiem"
           ],
           "rulesReference": "MANUALE.md §6.2",
           "faces": [
@@ -2245,7 +2384,11 @@
                     "target": {
                       "controller": "controller"
                     },
-                    "count": 1
+                    "count": 1,
+                    "details": {
+                      "requiemThreshold": 2,
+                      "countAtThreshold": 2
+                    }
                   }
                 }
               ],
@@ -2272,7 +2415,7 @@
             "it": {
               "name": "Veterana del Fronte",
               "typeLabel": "Entità — Umano",
-              "summary": "Blocca e punisce: il contrattacco che gli attaccanti medi imparano a temere.",
+              "summary": "Il contrattacco che insegna: ogni caduto nemico vale una carta.",
               "ui": {
                 "face": "Entità"
               },
@@ -2283,13 +2426,17 @@
               },
               "face": {
                 "name": "Veterana del Fronte",
-                "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
+                "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti.",
+                "lesson": {
+                  "trigger": "Quando contrattacca",
+                  "text": "Se l’attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
+                }
               }
             },
             "en": {
               "name": "Front Veteran",
               "typeLabel": "Entity — Human",
-              "summary": "She blocks and punishes: the counterattack mid-size attackers learn to fear.",
+              "summary": "The counterattack that teaches: every fallen enemy is worth a card.",
               "ui": {
                 "face": "Entity"
               },
@@ -2300,7 +2447,11 @@
               },
               "face": {
                 "name": "Front Veteran",
-                "flavor": "She has blocked more attacks than you have seen."
+                "flavor": "She has blocked more attacks than you have seen.",
+                "lesson": {
+                  "trigger": "When she counterattacks",
+                  "text": "If the attacker dies in the clash, draw a card: the covering that follows is the price of the lesson."
+                }
               }
             }
           },
@@ -2324,7 +2475,23 @@
               "enablesMatters": [],
               "keywords": [],
               "requirements": {},
-              "triggers": [],
+              "triggers": [
+                {
+                  "id": "lesson",
+                  "displayKey": "lesson",
+                  "event": "on_counterattack",
+                  "effect": {
+                    "type": "draw_card",
+                    "target": {
+                      "controller": "controller"
+                    },
+                    "count": 1,
+                    "details": {
+                      "onlyIfAttackerDies": true
+                    }
+                  }
+                }
+              ],
               "actions": []
             }
           ],
@@ -2449,7 +2616,7 @@
             "it": {
               "name": "Staffetta",
               "typeLabel": "Entità — Umano",
-              "summary": "Pressione dal primo turno: il debutto dello Slancio.",
+              "summary": "Il carburante della Processione: colpisce, consegna e passa oltre, viva.",
               "ui": {
                 "face": "Entità"
               },
@@ -2464,13 +2631,17 @@
                   "name": "Slancio",
                   "rules": "può attaccare già nel turno in cui entra in campo"
                 },
-                "flavor": "Arriva prima della notizia del suo arrivo."
+                "flavor": "Arriva prima della notizia del suo arrivo.",
+                "relay": {
+                  "trigger": "Alla fine del tuo turno",
+                  "text": "Se ha attaccato in questo turno, puoi ritirarla in Zona di Requiem, anche se è entrata in campo in questo turno."
+                }
               }
             },
             "en": {
               "name": "Runner",
               "typeLabel": "Entity — Human",
-              "summary": "Pressure from turn one: the debut of Surge.",
+              "summary": "The Procession's fuel: she strikes, delivers and passes beyond, alive.",
               "ui": {
                 "face": "Entity"
               },
@@ -2485,14 +2656,19 @@
                   "name": "Surge",
                   "rules": "she may attack the very turn she enters the field"
                 },
-                "flavor": "She arrives before word of her arrival."
+                "flavor": "She arrives before word of her arrival.",
+                "relay": {
+                  "trigger": "At the end of your turn",
+                  "text": "If she attacked this turn, you may retire her to the Requiem Zone, even if she entered the field this turn."
+                }
               }
             }
           },
           "tags": [
             "entity",
             "human",
-            "surge"
+            "surge",
+            "requiem"
           ],
           "rulesReference": "MANUALE.md §8.1",
           "faces": [
@@ -2512,7 +2688,28 @@
                 }
               ],
               "requirements": {},
-              "triggers": [],
+              "triggers": [
+                {
+                  "id": "relay",
+                  "displayKey": "relay",
+                  "event": "on_turn_end",
+                  "effect": {
+                    "type": "retire",
+                    "target": {
+                      "scope": "self"
+                    },
+                    "destination": {
+                      "zone": "requiem",
+                      "owner": "controller"
+                    },
+                    "details": {
+                      "optional": true,
+                      "requiresAttackedThisTurn": true,
+                      "overridesEntryTurnBan": true
+                    }
+                  }
+                }
+              ],
               "actions": []
             }
           ],
@@ -2553,7 +2750,7 @@
                 "name": "Marcia del Cambiamento",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Le tue Entità prendono +1 Potenza."
+                  "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
                 },
                 "flavor": "Un passo alla volta, tutti insieme."
               },
@@ -2582,7 +2779,7 @@
                 "name": "March of the Change",
                 "effect": {
                   "name": "Effect",
-                  "text": "Your Entities get +1 Power."
+                  "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."
                 },
                 "flavor": "One step at a time, all together."
               },
@@ -2597,7 +2794,8 @@
             "dynamic",
             "grade-1",
             "permanent",
-            "anthem"
+            "anthem",
+            "requiem"
           ],
           "rulesReference": "MANUALE.md §7.2",
           "faces": [
@@ -2629,7 +2827,11 @@
                       "quantity": "all"
                     },
                     "amount": 1,
-                    "duration": "permanent"
+                    "duration": "permanent",
+                    "details": {
+                      "requiemThreshold": 4,
+                      "amountAtThreshold": 2
+                    }
                   }
                 }
               ],
@@ -2656,7 +2858,7 @@
             "it": {
               "name": "Vendicatrice",
               "typeLabel": "Entità — Umano",
-              "summary": "Il debutto della Vendetta: bloccarla male costa la vita.",
+              "summary": "La Vendetta ha sempre un nome: più forte da quando qualcuno dei suoi è passato oltre.",
               "ui": {
                 "face": "Entità"
               },
@@ -2671,13 +2873,17 @@
                   "name": "Vendetta",
                   "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
                 },
-                "flavor": "Colpiscila, se osi. Poi corri."
+                "flavor": "Colpiscila, se osi. Poi corri.",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Finché nella tua Zona di Requiem c’è almeno una carta, la Vendicatrice prende +1 Potenza."
+                }
               }
             },
             "en": {
               "name": "Avenger",
               "typeLabel": "Entity — Human",
-              "summary": "The debut of Vengeance: blocking her carelessly costs lives.",
+              "summary": "Vengeance always has a name: stronger since one of her own passed beyond.",
               "ui": {
                 "face": "Entity"
               },
@@ -2692,7 +2898,11 @@
                   "name": "Vengeance",
                   "rules": "if she blocks with higher Power, the attacker dies"
                 },
-                "flavor": "Strike her if you dare. Then run."
+                "flavor": "Strike her if you dare. Then run.",
+                "effect": {
+                  "name": "Effect",
+                  "text": "For as long as there is at least one card in your Requiem Zone, the Avenger gets +1 Power."
+                }
               }
             }
           },
@@ -2700,7 +2910,8 @@
             "entity",
             "human",
             "vengeance",
-            "defender"
+            "defender",
+            "requiem"
           ],
           "rulesReference": "MANUALE.md §8.1",
           "faces": [
@@ -2720,7 +2931,24 @@
                 }
               ],
               "requirements": {},
-              "triggers": [],
+              "triggers": [
+                {
+                  "id": "grief",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
+                  "effect": {
+                    "type": "modify_power",
+                    "target": {
+                      "scope": "self"
+                    },
+                    "amount": 1,
+                    "duration": "permanent",
+                    "details": {
+                      "requiemThreshold": 1
+                    }
+                  }
+                }
+              ],
               "actions": []
             }
           ],
@@ -3430,7 +3658,7 @@
             "name": "Scatto",
             "effect": {
               "name": "Effetto",
-              "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno."
+              "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno. Se controlli l’Unione, prende invece +4 Potenza."
             },
             "flavor": "Prima che l’occhio capisca, è già finita."
           }
@@ -3455,7 +3683,7 @@
             "name": "Dash",
             "effect": {
               "name": "Effect",
-              "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn."
+              "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn. If you control the Union, it gets +4 Power instead."
             },
             "flavor": "By the time the eye understands, it is already over."
           }
@@ -3499,7 +3727,10 @@
                 "duration": "until_end_of_turn",
                 "grants": [
                   "surge"
-                ]
+                ],
+                "details": {
+                  "powerBonusWithUnion": 4
+                }
               }
             }
           ],
@@ -3773,7 +4004,7 @@
             "name": "Vigorcintura",
             "effect": {
               "name": "Effetto",
-              "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza."
+              "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza. Quando l’Umano che la indossa viene ritirato, pesca una carta: la Vigorcintura lo segue in Requiem e lascia qualcosa a chi resta."
             },
             "flavor": "Stringila forte. Il vigore fa il resto."
           }
@@ -3794,7 +4025,7 @@
             "name": "Vigorbelt",
             "effect": {
               "name": "Effect",
-              "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power."
+              "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power. When the Human wearing it is retired, draw a card: the Vigorbelt follows them to Requiem and leaves something to those who remain."
             },
             "flavor": "Buckle it tight. Vigor does the rest."
           }
@@ -3802,7 +4033,8 @@
       },
       "tags": [
         "object",
-        "human"
+        "human",
+        "requiem"
       ],
       "rulesReference": "MANUALE.md §3.1",
       "faces": [
@@ -3828,6 +4060,21 @@
                 },
                 "amount": 1,
                 "duration": "permanent"
+              }
+            },
+            {
+              "id": "bequest-belt",
+              "displayKey": "effect2",
+              "event": "on_retire",
+              "effect": {
+                "type": "draw_card",
+                "target": {
+                  "controller": "controller"
+                },
+                "count": 1,
+                "details": {
+                  "whenWearerRetired": true
+                }
               }
             }
           ],
@@ -3859,7 +4106,7 @@
         "it": {
           "name": "Vedetta",
           "typeLabel": "Entità — Umano",
-          "summary": "Il primo corpo del mazzo: un occhio sul Fronte e l'accesso alla Dinamica.",
+          "summary": "L'occhio del piano: filtra la pescata come la Risacca della bestia.",
           "ui": {
             "face": "Entità"
           },
@@ -3870,13 +4117,17 @@
           },
           "face": {
             "name": "Vedetta",
-            "flavor": "Vide arrivare la fine. Fischiò due volte."
+            "flavor": "Vide arrivare la fine. Fischiò due volte.",
+            "watch": {
+              "trigger": "Quando entra in campo",
+              "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
+            }
           }
         },
         "en": {
           "name": "Lookout",
           "typeLabel": "Entity — Human",
-          "summary": "The deck's first body: an eye on the Front and access to the Dynamic.",
+          "summary": "The plan's eye: she filters the draw like the beast's Undertow.",
           "ui": {
             "face": "Entity"
           },
@@ -3887,14 +4138,19 @@
           },
           "face": {
             "name": "Lookout",
-            "flavor": "She saw the end coming. She whistled twice."
+            "flavor": "She saw the end coming. She whistled twice.",
+            "watch": {
+              "trigger": "When she enters the field",
+              "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
+            }
           }
         }
       },
       "tags": [
         "entity",
         "human",
-        "dynamic"
+        "dynamic",
+        "scry"
       ],
       "rulesReference": "MANUALE.md §6.2, §7",
       "faces": [
@@ -3915,7 +4171,28 @@
           ],
           "keywords": [],
           "requirements": {},
-          "triggers": [],
+          "triggers": [
+            {
+              "id": "watch",
+              "displayKey": "watch",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "look_and_optionally_move",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top",
+                  "count": 1
+                },
+                "to": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "bottom"
+                },
+                "optional": true
+              }
+            }
+          ],
           "actions": []
         }
       ],
@@ -3939,7 +4216,7 @@
         "it": {
           "name": "Custode della Soglia",
           "typeLabel": "Entità — Umano",
-          "summary": "Un difensore nato: fragile in attacco, una porta sbarrata in blocco.",
+          "summary": "Il difensore della Processione: più i suoi sono passati oltre, più la soglia è invalicabile.",
           "ui": {
             "face": "Entità"
           },
@@ -3953,14 +4230,14 @@
             "flavor": "Nessuno passa. Non oggi.",
             "warden": {
               "trigger": "Quando blocca",
-              "text": "Prende +2 Potenza fino alla fine della battaglia."
+              "text": "Prende +2 Potenza fino alla fine della battaglia; se nella tua Zona di Requiem ci sono almeno 3 carte, prende invece +4."
             }
           }
         },
         "en": {
           "name": "Threshold Warden",
           "typeLabel": "Entity — Human",
-          "summary": "A born defender: frail on the attack, a barred door on the block.",
+          "summary": "The Procession's defender: the more of his own have passed beyond, the firmer the threshold.",
           "ui": {
             "face": "Entity"
           },
@@ -3974,7 +4251,7 @@
             "flavor": "No one passes. Not today.",
             "warden": {
               "trigger": "When he blocks",
-              "text": "He gets +2 Power until the end of the battle."
+              "text": "He gets +2 Power until the end of the battle; if there are at least 3 cards in your Requiem Zone, he gets +4 instead."
             }
           }
         }
@@ -3983,7 +4260,8 @@
         "entity",
         "human",
         "dynamic",
-        "defender"
+        "defender",
+        "requiem"
       ],
       "rulesReference": "MANUALE.md §6.3, §7",
       "faces": [
@@ -4015,7 +4293,11 @@
                   "scope": "self"
                 },
                 "amount": 2,
-                "duration": "until_end_of_battle"
+                "duration": "until_end_of_battle",
+                "details": {
+                  "requiemThreshold": 3,
+                  "amountAtThreshold": 4
+                }
               }
             }
           ],
@@ -4042,7 +4324,7 @@
         "it": {
           "name": "Medico da Campo",
           "typeLabel": "Entità — Umano",
-          "summary": "Cure per la bestia: i PV sono la valuta del piano, e lui li restituisce.",
+          "summary": "Cura due volte: all'arrivo e al congedo — il Ritiro come seconda medicina.",
           "ui": {
             "face": "Entità"
           },
@@ -4057,13 +4339,17 @@
             "medic": {
               "trigger": "Quando entra in campo",
               "text": "Il tuo Rubyfront recupera 2 PV."
+            },
+            "lastCare": {
+              "trigger": "Quando lo ritiri",
+              "text": "Il tuo Rubyfront recupera altri 2 PV. (Vale solo per il Ritiro volontario in Zona di Requiem, non per altre uscite dal campo.)"
             }
           }
         },
         "en": {
           "name": "Field Medic",
           "typeLabel": "Entity — Human",
-          "summary": "Care for the beast: HP are the plan's currency, and he gives them back.",
+          "summary": "He heals twice: on arrival and on farewell — Retirement as a second medicine.",
           "ui": {
             "face": "Entity"
           },
@@ -4078,6 +4364,10 @@
             "medic": {
               "trigger": "When he enters the field",
               "text": "Your Rubyfront recovers 2 HP."
+            },
+            "lastCare": {
+              "trigger": "When you retire him",
+              "text": "Your Rubyfront recovers another 2 HP. (Voluntary Retirement to the Requiem Zone only, not other ways of leaving the field.)"
             }
           }
         }
@@ -4085,7 +4375,8 @@
       "tags": [
         "entity",
         "human",
-        "heal"
+        "heal",
+        "requiem"
       ],
       "rulesReference": "MANUALE.md §6.2, §8.2",
       "faces": [
@@ -4106,6 +4397,19 @@
               "id": "medic",
               "displayKey": "medic",
               "event": "on_enter_field",
+              "effect": {
+                "type": "gain_health",
+                "target": {
+                  "cardType": "rubyfront",
+                  "controller": "controller"
+                },
+                "amount": 2
+              }
+            },
+            {
+              "id": "last-care",
+              "displayKey": "lastCare",
+              "event": "on_retire",
               "effect": {
                 "type": "gain_health",
                 "target": {
@@ -4246,7 +4550,7 @@
         "it": {
           "name": "Ultimo Bastione",
           "typeLabel": "Entità — Umano",
-          "summary": "Il muro del piano: un corpo largo che tiene la linea e abilita la Dinamica.",
+          "summary": "Il muro che respira: Potenza da costo alto, in cambio non lascia mai la linea.",
           "ui": {
             "face": "Entità"
           },
@@ -4257,13 +4561,21 @@
           },
           "face": {
             "name": "Ultimo Bastione",
-            "flavor": "Cade il mondo, non lui."
+            "flavor": "Cade il mondo, non lui.",
+            "effect": {
+              "name": "Effetto",
+              "text": "Non può attaccare."
+            },
+            "shelter": {
+              "trigger": "Quando blocca",
+              "text": "Il tuo Rubyfront recupera 1 PV: dietro il suo scudo, la bestia riprende fiato."
+            }
           }
         },
         "en": {
           "name": "Last Bastion",
           "typeLabel": "Entity — Human",
-          "summary": "The plan's wall: a wide body that holds the line and enables the Dynamic.",
+          "summary": "The wall that breathes: high-cost Power, in exchange he never leaves the line.",
           "ui": {
             "face": "Entity"
           },
@@ -4274,7 +4586,15 @@
           },
           "face": {
             "name": "Last Bastion",
-            "flavor": "The world may fall. He will not."
+            "flavor": "The world may fall. He will not.",
+            "effect": {
+              "name": "Effect",
+              "text": "He cannot attack."
+            },
+            "shelter": {
+              "trigger": "When he blocks",
+              "text": "Your Rubyfront recovers 1 HP: behind his shield, the beast catches its breath."
+            }
           }
         }
       },
@@ -4292,7 +4612,7 @@
           "displayKey": "face",
           "race": "human",
           "stats": {
-            "power": 2,
+            "power": 3,
             "fluxCost": 3
           },
           "enablesMatters": [
@@ -4303,8 +4623,25 @@
           ],
           "keywords": [],
           "requirements": {},
-          "triggers": [],
-          "actions": []
+          "triggers": [
+            {
+              "id": "shelter",
+              "displayKey": "shelter",
+              "event": "on_block",
+              "effect": {
+                "type": "gain_health",
+                "target": {
+                  "cardType": "rubyfront",
+                  "controller": "controller"
+                },
+                "amount": 1
+              }
+            }
+          ],
+          "actions": [],
+          "restrictions": {
+            "cannotAttack": true
+          }
         }
       ],
       "designNotes": "rbf-012.md",
@@ -4449,7 +4786,7 @@
         "it": {
           "name": "Campione del Cambiamento",
           "typeLabel": "Entità — Umano",
-          "summary": "Il corpo grosso del piano e la porta al secondo grado della Dinamica.",
+          "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
           "ui": {
             "face": "Entità"
           },
@@ -4460,13 +4797,17 @@
           },
           "face": {
             "name": "Campione del Cambiamento",
-            "flavor": "L’umanità cambiò. Lui più di tutti."
+            "flavor": "L’umanità cambiò. Lui più di tutti.",
+            "effect": {
+              "name": "Effetto",
+              "text": "Finché controlli l’Unione, il Campione prende +2 Potenza e ha Slancio: il Cambiamento compiuto scorre in lui."
+            }
           }
         },
         "en": {
           "name": "Champion of the Change",
           "typeLabel": "Entity — Human",
-          "summary": "The plan's big body and the gate to the Dynamic's second grade.",
+          "summary": "He sleeps until the beast is fulfilled: with the Union on the field he is the deck's hammer.",
           "ui": {
             "face": "Entity"
           },
@@ -4477,14 +4818,19 @@
           },
           "face": {
             "name": "Champion of the Change",
-            "flavor": "Humanity changed. He most of all."
+            "flavor": "Humanity changed. He most of all.",
+            "effect": {
+              "name": "Effect",
+              "text": "For as long as you control the Union, the Champion gets +2 Power and has Surge: the completed Change flows through him."
+            }
           }
         }
       },
       "tags": [
         "entity",
         "human",
-        "dynamic"
+        "dynamic",
+        "union"
       ],
       "rulesReference": "MANUALE.md §7",
       "faces": [
@@ -4505,7 +4851,27 @@
           ],
           "keywords": [],
           "requirements": {},
-          "triggers": [],
+          "triggers": [
+            {
+              "id": "awakening",
+              "displayKey": "effect",
+              "event": "while_in_play",
+              "effect": {
+                "type": "empower",
+                "target": {
+                  "scope": "self"
+                },
+                "powerBonus": 2,
+                "duration": "permanent",
+                "grants": [
+                  "surge"
+                ],
+                "details": {
+                  "requiresUnion": true
+                }
+              }
+            }
+          ],
           "actions": []
         }
       ],
@@ -4879,7 +5245,7 @@
         "it": {
           "name": "Cronista",
           "typeLabel": "Entità — Umano",
-          "summary": "Carte fresche per il piano: un corpo piccolo che non fa perdere nulla.",
+          "summary": "Registra chi è passato oltre: più nomi nella Requiem, più pagine da leggere.",
           "ui": {
             "face": "Entità"
           },
@@ -4893,14 +5259,14 @@
             "flavor": "Scrive ciò che il Cambiamento detta.",
             "chronicle": {
               "trigger": "Quando entra in campo",
-              "text": "Pesca una carta."
+              "text": "Pesca una carta; se nella tua Zona di Requiem ci sono almeno 2 carte, pescane invece due."
             }
           }
         },
         "en": {
           "name": "Chronicler",
           "typeLabel": "Entity — Human",
-          "summary": "Fresh cards for the plan: a small body that loses you nothing.",
+          "summary": "She records those who passed beyond: more names in the Requiem, more pages to read.",
           "ui": {
             "face": "Entity"
           },
@@ -4914,7 +5280,7 @@
             "flavor": "She writes what the Change dictates.",
             "chronicle": {
               "trigger": "When she enters the field",
-              "text": "Draw a card."
+              "text": "Draw a card; if there are at least 2 cards in your Requiem Zone, draw two instead."
             }
           }
         }
@@ -4922,7 +5288,8 @@
       "tags": [
         "entity",
         "human",
-        "draw"
+        "draw",
+        "requiem"
       ],
       "rulesReference": "MANUALE.md §6.2",
       "faces": [
@@ -4948,7 +5315,11 @@
                 "target": {
                   "controller": "controller"
                 },
-                "count": 1
+                "count": 1,
+                "details": {
+                  "requiemThreshold": 2,
+                  "countAtThreshold": 2
+                }
               }
             }
           ],
@@ -4975,7 +5346,7 @@
         "it": {
           "name": "Veterana del Fronte",
           "typeLabel": "Entità — Umano",
-          "summary": "Blocca e punisce: il contrattacco che gli attaccanti medi imparano a temere.",
+          "summary": "Il contrattacco che insegna: ogni caduto nemico vale una carta.",
           "ui": {
             "face": "Entità"
           },
@@ -4986,13 +5357,17 @@
           },
           "face": {
             "name": "Veterana del Fronte",
-            "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
+            "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti.",
+            "lesson": {
+              "trigger": "Quando contrattacca",
+              "text": "Se l’attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
+            }
           }
         },
         "en": {
           "name": "Front Veteran",
           "typeLabel": "Entity — Human",
-          "summary": "She blocks and punishes: the counterattack mid-size attackers learn to fear.",
+          "summary": "The counterattack that teaches: every fallen enemy is worth a card.",
           "ui": {
             "face": "Entity"
           },
@@ -5003,7 +5378,11 @@
           },
           "face": {
             "name": "Front Veteran",
-            "flavor": "She has blocked more attacks than you have seen."
+            "flavor": "She has blocked more attacks than you have seen.",
+            "lesson": {
+              "trigger": "When she counterattacks",
+              "text": "If the attacker dies in the clash, draw a card: the covering that follows is the price of the lesson."
+            }
           }
         }
       },
@@ -5027,7 +5406,23 @@
           "enablesMatters": [],
           "keywords": [],
           "requirements": {},
-          "triggers": [],
+          "triggers": [
+            {
+              "id": "lesson",
+              "displayKey": "lesson",
+              "event": "on_counterattack",
+              "effect": {
+                "type": "draw_card",
+                "target": {
+                  "controller": "controller"
+                },
+                "count": 1,
+                "details": {
+                  "onlyIfAttackerDies": true
+                }
+              }
+            }
+          ],
           "actions": []
         }
       ],
@@ -5152,7 +5547,7 @@
         "it": {
           "name": "Staffetta",
           "typeLabel": "Entità — Umano",
-          "summary": "Pressione dal primo turno: il debutto dello Slancio.",
+          "summary": "Il carburante della Processione: colpisce, consegna e passa oltre, viva.",
           "ui": {
             "face": "Entità"
           },
@@ -5167,13 +5562,17 @@
               "name": "Slancio",
               "rules": "può attaccare già nel turno in cui entra in campo"
             },
-            "flavor": "Arriva prima della notizia del suo arrivo."
+            "flavor": "Arriva prima della notizia del suo arrivo.",
+            "relay": {
+              "trigger": "Alla fine del tuo turno",
+              "text": "Se ha attaccato in questo turno, puoi ritirarla in Zona di Requiem, anche se è entrata in campo in questo turno."
+            }
           }
         },
         "en": {
           "name": "Runner",
           "typeLabel": "Entity — Human",
-          "summary": "Pressure from turn one: the debut of Surge.",
+          "summary": "The Procession's fuel: she strikes, delivers and passes beyond, alive.",
           "ui": {
             "face": "Entity"
           },
@@ -5188,14 +5587,19 @@
               "name": "Surge",
               "rules": "she may attack the very turn she enters the field"
             },
-            "flavor": "She arrives before word of her arrival."
+            "flavor": "She arrives before word of her arrival.",
+            "relay": {
+              "trigger": "At the end of your turn",
+              "text": "If she attacked this turn, you may retire her to the Requiem Zone, even if she entered the field this turn."
+            }
           }
         }
       },
       "tags": [
         "entity",
         "human",
-        "surge"
+        "surge",
+        "requiem"
       ],
       "rulesReference": "MANUALE.md §8.1",
       "faces": [
@@ -5215,7 +5619,28 @@
             }
           ],
           "requirements": {},
-          "triggers": [],
+          "triggers": [
+            {
+              "id": "relay",
+              "displayKey": "relay",
+              "event": "on_turn_end",
+              "effect": {
+                "type": "retire",
+                "target": {
+                  "scope": "self"
+                },
+                "destination": {
+                  "zone": "requiem",
+                  "owner": "controller"
+                },
+                "details": {
+                  "optional": true,
+                  "requiresAttackedThisTurn": true,
+                  "overridesEntryTurnBan": true
+                }
+              }
+            }
+          ],
           "actions": []
         }
       ],
@@ -5256,7 +5681,7 @@
             "name": "Marcia del Cambiamento",
             "effect": {
               "name": "Effetto",
-              "text": "Le tue Entità prendono +1 Potenza."
+              "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
             },
             "flavor": "Un passo alla volta, tutti insieme."
           },
@@ -5285,7 +5710,7 @@
             "name": "March of the Change",
             "effect": {
               "name": "Effect",
-              "text": "Your Entities get +1 Power."
+              "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."
             },
             "flavor": "One step at a time, all together."
           },
@@ -5300,7 +5725,8 @@
         "dynamic",
         "grade-1",
         "permanent",
-        "anthem"
+        "anthem",
+        "requiem"
       ],
       "rulesReference": "MANUALE.md §7.2",
       "faces": [
@@ -5332,7 +5758,11 @@
                   "quantity": "all"
                 },
                 "amount": 1,
-                "duration": "permanent"
+                "duration": "permanent",
+                "details": {
+                  "requiemThreshold": 4,
+                  "amountAtThreshold": 2
+                }
               }
             }
           ],
@@ -5359,7 +5789,7 @@
         "it": {
           "name": "Vendicatrice",
           "typeLabel": "Entità — Umano",
-          "summary": "Il debutto della Vendetta: bloccarla male costa la vita.",
+          "summary": "La Vendetta ha sempre un nome: più forte da quando qualcuno dei suoi è passato oltre.",
           "ui": {
             "face": "Entità"
           },
@@ -5374,13 +5804,17 @@
               "name": "Vendetta",
               "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
             },
-            "flavor": "Colpiscila, se osi. Poi corri."
+            "flavor": "Colpiscila, se osi. Poi corri.",
+            "effect": {
+              "name": "Effetto",
+              "text": "Finché nella tua Zona di Requiem c’è almeno una carta, la Vendicatrice prende +1 Potenza."
+            }
           }
         },
         "en": {
           "name": "Avenger",
           "typeLabel": "Entity — Human",
-          "summary": "The debut of Vengeance: blocking her carelessly costs lives.",
+          "summary": "Vengeance always has a name: stronger since one of her own passed beyond.",
           "ui": {
             "face": "Entity"
           },
@@ -5395,7 +5829,11 @@
               "name": "Vengeance",
               "rules": "if she blocks with higher Power, the attacker dies"
             },
-            "flavor": "Strike her if you dare. Then run."
+            "flavor": "Strike her if you dare. Then run.",
+            "effect": {
+              "name": "Effect",
+              "text": "For as long as there is at least one card in your Requiem Zone, the Avenger gets +1 Power."
+            }
           }
         }
       },
@@ -5403,7 +5841,8 @@
         "entity",
         "human",
         "vengeance",
-        "defender"
+        "defender",
+        "requiem"
       ],
       "rulesReference": "MANUALE.md §8.1",
       "faces": [
@@ -5423,7 +5862,24 @@
             }
           ],
           "requirements": {},
-          "triggers": [],
+          "triggers": [
+            {
+              "id": "grief",
+              "displayKey": "effect",
+              "event": "while_in_play",
+              "effect": {
+                "type": "modify_power",
+                "target": {
+                  "scope": "self"
+                },
+                "amount": 1,
+                "duration": "permanent",
+                "details": {
+                  "requiemThreshold": 1
+                }
+              }
+            }
+          ],
           "actions": []
         }
       ],

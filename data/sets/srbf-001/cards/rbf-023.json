@@ -17,7 +17,8 @@
     "entity",
     "human",
     "vengeance",
-    "defender"
+    "defender",
+    "requiem"
   ],
   "rulesReference": "MANUALE.md §8.1",
   "faces": [
@@ -37,7 +38,24 @@
         }
       ],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "grief",
+          "displayKey": "effect",
+          "event": "while_in_play",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "scope": "self"
+            },
+            "amount": 1,
+            "duration": "permanent",
+            "details": {
+              "requiemThreshold": 1
+            }
+          }
+        }
+      ],
       "actions": []
     }
   ],

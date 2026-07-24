@@ -33,7 +33,23 @@
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "lesson",
+          "displayKey": "lesson",
+          "event": "on_counterattack",
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1,
+            "details": {
+              "onlyIfAttackerDies": true
+            }
+          }
+        }
+      ],
       "actions": []
     }
   ],

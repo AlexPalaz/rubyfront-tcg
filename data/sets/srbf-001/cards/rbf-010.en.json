@@ -1,7 +1,7 @@
 {
   "name": "Field Medic",
   "typeLabel": "Entity — Human",
-  "summary": "Care for the beast: HP are the plan's currency, and he gives them back.",
+  "summary": "He heals twice: on arrival and on farewell — Retirement as a second medicine.",
   "ui": {
     "face": "Entity"
   },
@@ -16,6 +16,10 @@
     "medic": {
       "trigger": "When he enters the field",
       "text": "Your Rubyfront recovers 2 HP."
+    },
+    "lastCare": {
+      "trigger": "When you retire him",
+      "text": "Your Rubyfront recovers another 2 HP. (Voluntary Retirement to the Requiem Zone only, not other ways of leaving the field.)"
     }
   }
 }

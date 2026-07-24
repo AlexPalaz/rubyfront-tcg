@@ -32,7 +32,9 @@
       "on_resolve",
       "while_assigned",
       "on_block",
-      "while_in_play"
+      "while_in_play",
+      "on_retire",
+      "on_counterattack"
     ]
   },
   "effect": {

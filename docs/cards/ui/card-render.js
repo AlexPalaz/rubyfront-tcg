@@ -275,6 +275,12 @@ function createTextBox(face, faceCopy, cardCopy) {
     return box;
   }
 
+  // Regole statiche delle Entità (restrizioni, bonus condizionali): testo
+  // semplice in testa alla textbox, senza etichetta d'innesco.
+  if (face.kind === "entity" && faceCopy.effect?.text) {
+    box.append(element("p", "matter-effect", faceCopy.effect.text));
+  }
+
   // Ordine di lettura: prima gli effetti d'ingresso/ricorrenti, poi le abilità
   // attivate, infine i trigger d'uscita (lascia il campo, morte) — così
   // un'abilità attivata non finisce mai sotto l'intestazione "quando lascia".

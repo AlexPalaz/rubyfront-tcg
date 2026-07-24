@@ -16,7 +16,8 @@
   "tags": [
     "entity",
     "human",
-    "heal"
+    "heal",
+    "requiem"
   ],
   "rulesReference": "MANUALE.md §6.2, §8.2",
   "faces": [
@@ -37,6 +38,19 @@
           "id": "medic",
           "displayKey": "medic",
           "event": "on_enter_field",
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "cardType": "rubyfront",
+              "controller": "controller"
+            },
+            "amount": 2
+          }
+        },
+        {
+          "id": "last-care",
+          "displayKey": "lastCare",
+          "event": "on_retire",
           "effect": {
             "type": "gain_health",
             "target": {

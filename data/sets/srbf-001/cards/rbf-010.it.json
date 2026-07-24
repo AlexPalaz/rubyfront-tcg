@@ -1,7 +1,7 @@
 {
   "name": "Medico da Campo",
   "typeLabel": "Entità — Umano",
-  "summary": "Cure per la bestia: i PV sono la valuta del piano, e lui li restituisce.",
+  "summary": "Cura due volte: all'arrivo e al congedo — il Ritiro come seconda medicina.",
   "ui": {
     "face": "Entità"
   },
@@ -16,6 +16,10 @@
     "medic": {
       "trigger": "Quando entra in campo",
       "text": "Il tuo Rubyfront recupera 2 PV."
+    },
+    "lastCare": {
+      "trigger": "Quando lo ritiri",
+      "text": "Il tuo Rubyfront recupera altri 2 PV. (Vale solo per il Ritiro volontario in Zona di Requiem, non per altre uscite dal campo.)"
     }
   }
 }

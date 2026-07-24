@@ -18,7 +18,7 @@
     "name": "Dash",
     "effect": {
       "name": "Effect",
-      "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn."
+      "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn. If you control the Union, it gets +4 Power instead."
     },
     "flavor": "By the time the eye understands, it is already over."
   }

@@ -1,7 +1,7 @@
 {
   "name": "Vedetta",
   "typeLabel": "Entità — Umano",
-  "summary": "Il primo corpo del mazzo: un occhio sul Fronte e l'accesso alla Dinamica.",
+  "summary": "L'occhio del piano: filtra la pescata come la Risacca della bestia.",
   "ui": {
     "face": "Entità"
   },
@@ -12,6 +12,10 @@
   },
   "face": {
     "name": "Vedetta",
-    "flavor": "Vide arrivare la fine. Fischiò due volte."
+    "flavor": "Vide arrivare la fine. Fischiò due volte.",
+    "watch": {
+      "trigger": "Quando entra in campo",
+      "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
+    }
   }
 }

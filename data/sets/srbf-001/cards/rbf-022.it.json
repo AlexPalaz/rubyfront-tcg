@@ -18,7 +18,7 @@
     "name": "Marcia del Cambiamento",
     "effect": {
       "name": "Effetto",
-      "text": "Le tue Entità prendono +1 Potenza."
+      "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
     },
     "flavor": "Un passo alla volta, tutti insieme."
   },

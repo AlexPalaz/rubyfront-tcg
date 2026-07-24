@@ -1,7 +1,7 @@
 {
   "name": "Chronicler",
   "typeLabel": "Entity — Human",
-  "summary": "Fresh cards for the plan: a small body that loses you nothing.",
+  "summary": "She records those who passed beyond: more names in the Requiem, more pages to read.",
   "ui": {
     "face": "Entity"
   },
@@ -15,7 +15,7 @@
     "flavor": "She writes what the Change dictates.",
     "chronicle": {
       "trigger": "When she enters the field",
-      "text": "Draw a card."
+      "text": "Draw a card; if there are at least 2 cards in your Requiem Zone, draw two instead."
     }
   }
 }

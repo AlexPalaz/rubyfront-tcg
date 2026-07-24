@@ -1,7 +1,7 @@
 {
   "name": "Cronista",
   "typeLabel": "Entità — Umano",
-  "summary": "Carte fresche per il piano: un corpo piccolo che non fa perdere nulla.",
+  "summary": "Registra chi è passato oltre: più nomi nella Requiem, più pagine da leggere.",
   "ui": {
     "face": "Entità"
   },
@@ -15,7 +15,7 @@
     "flavor": "Scrive ciò che il Cambiamento detta.",
     "chronicle": {
       "trigger": "Quando entra in campo",
-      "text": "Pesca una carta."
+      "text": "Pesca una carta; se nella tua Zona di Requiem ci sono almeno 2 carte, pescane invece due."
     }
   }
 }

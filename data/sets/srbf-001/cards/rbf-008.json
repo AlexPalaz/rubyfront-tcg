@@ -16,7 +16,8 @@
   "tags": [
     "entity",
     "human",
-    "dynamic"
+    "dynamic",
+    "scry"
   ],
   "rulesReference": "MANUALE.md §6.2, §7",
   "faces": [
@@ -37,7 +38,28 @@
       ],
       "keywords": [],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "watch",
+          "displayKey": "watch",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 1
+            },
+            "to": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "bottom"
+            },
+            "optional": true
+          }
+        }
+      ],
       "actions": []
     }
   ],

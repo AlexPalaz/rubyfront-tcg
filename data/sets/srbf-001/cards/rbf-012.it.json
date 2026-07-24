@@ -1,7 +1,7 @@
 {
   "name": "Ultimo Bastione",
   "typeLabel": "Entità — Umano",
-  "summary": "Il muro del piano: un corpo largo che tiene la linea e abilita la Dinamica.",
+  "summary": "Il muro che respira: Potenza da costo alto, in cambio non lascia mai la linea.",
   "ui": {
     "face": "Entità"
   },
@@ -12,6 +12,14 @@
   },
   "face": {
     "name": "Ultimo Bastione",
-    "flavor": "Cade il mondo, non lui."
+    "flavor": "Cade il mondo, non lui.",
+    "effect": {
+      "name": "Effetto",
+      "text": "Non può attaccare."
+    },
+    "shelter": {
+      "trigger": "Quando blocca",
+      "text": "Il tuo Rubyfront recupera 1 PV: dietro il suo scudo, la bestia riprende fiato."
+    }
   }
 }
