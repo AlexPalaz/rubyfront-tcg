@@ -1,0 +1,17 @@
+{
+  "name": "Last Bastion",
+  "typeLabel": "Entity — Human",
+  "summary": "The plan's wall: a wide body that holds the line and enables the Dynamic.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Last Bastion",
+    "flavor": "The world may fall. He will not."
+  }
+}

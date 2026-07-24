@@ -1,0 +1,25 @@
+{
+  "name": "Scatto",
+  "typeLabel": "Materia Dinamica I",
+  "summary": "L'aggressività degli Umani: più Potenza e nessuna attesa. La velocità è un'arma.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
+  },
+  "face": {
+    "name": "Scatto",
+    "effect": {
+      "name": "Effetto",
+      "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno."
+    },
+    "flavor": "Prima che l’occhio capisca, è già finita."
+  }
+}

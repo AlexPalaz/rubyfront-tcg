@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-008",
+  "setId": "rubyfront-core",
+  "collectorNumber": "008",
+  "slug": "lookout",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "dynamic"
+  ],
+  "rulesReference": "MANUALE.md §6.2, §7",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 1,
+        "fluxCost": 1
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-008.md"
+}

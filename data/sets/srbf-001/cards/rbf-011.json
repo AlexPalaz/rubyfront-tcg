@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-011",
+  "setId": "rubyfront-core",
+  "collectorNumber": "011",
+  "slug": "herald-of-the-first",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "tutor",
+    "viatico"
+  ],
+  "rulesReference": "MANUALE.md §6.2, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 1,
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "herald",
+          "displayKey": "herald",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "search_card",
+            "from": {
+              "zone": "deck",
+              "owner": "controller"
+            },
+            "filter": {
+              "cardType": "entity",
+              "race": "human"
+            },
+            "reveal": true,
+            "to": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "shuffle": true
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-011.md"
+}

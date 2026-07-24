@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-020",
+  "setId": "rubyfront-core",
+  "collectorNumber": "020",
+  "slug": "veil-of-the-first",
+  "type": "object",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "object",
+    "human",
+    "protection",
+    "viatico"
+  ],
+  "rulesReference": "MANUALE.md §3.1",
+  "faces": [
+    {
+      "id": "object",
+      "kind": "object",
+      "displayKey": "face",
+      "stats": {},
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "veil",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "protect",
+            "target": {
+              "cardType": "entity",
+              "scope": "assigned"
+            },
+            "details": {
+              "from": "opponent_matters"
+            }
+          }
+        }
+      ],
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "race": "human",
+        "controller": "controller"
+      }
+    }
+  ],
+  "designNotes": "rbf-020.md"
+}

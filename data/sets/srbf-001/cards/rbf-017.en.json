@@ -1,0 +1,30 @@
+{
+  "name": "Stillness",
+  "typeLabel": "Zero Matter",
+  "summary": "The game's first negation: the answer that silences the answer.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "unique": "Unique",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
+  },
+  "face": {
+    "name": "Stillness",
+    "effect": {
+      "name": "Effect",
+      "text": "Choose a Reactive Matter just played in the chain: when it would resolve, it fades and goes to the Abyss with no effect. The Flux spent is not returned."
+    },
+    "flavor": "The void does not argue."
+  },
+  "matters": {
+    "zeroTitle": "Zero Matter",
+    "zeroAria": "Zero"
+  }
+}

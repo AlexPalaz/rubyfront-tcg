@@ -1,0 +1,21 @@
+{
+  "name": "Cronista",
+  "typeLabel": "Entità — Umano",
+  "summary": "Carte fresche per il piano: un corpo piccolo che non fa perdere nulla.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Cronista",
+    "flavor": "Scrive ciò che il Cambiamento detta.",
+    "chronicle": {
+      "trigger": "Quando entra in campo",
+      "text": "Pesca una carta."
+    }
+  }
+}

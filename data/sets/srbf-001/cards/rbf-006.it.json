@@ -1,0 +1,29 @@
+{
+  "name": "Collera",
+  "typeLabel": "Materia Distruttiva I",
+  "summary": "La prima Reattiva del gioco: la collera della bestia scatta quando l'avversario meno se lo aspetta.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 1° grado",
+    "destructiveAria": "Distruttiva"
+  },
+  "face": {
+    "name": "Collera",
+    "effect": {
+      "name": "Effetto",
+      "text": "Il Rubyfront avversario perde 2 PV. (Se è in campo, la perdita lo fa tornare immediatamente in Zona di Richiamo.)"
+    },
+    "flavor": "La bestia non conosce misura."
+  }
+}

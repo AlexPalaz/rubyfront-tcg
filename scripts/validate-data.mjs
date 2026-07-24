@@ -107,6 +107,21 @@ function validateCard(card, where, set) {
   if (!Number.isInteger(card.deckLimit) || card.deckLimit <= 0) fail(where, "deckLimit deve essere un intero positivo");
   checkTerm("cardType", card.type, `${where}.type`);
 
+  // Regole di copia (MANUALE.md §3.1): massimo 2 copie, 1 per le Uniche.
+  // Politica di set: ogni Materia Zero o Dominante è Unica.
+  if (card.unique === true && card.deckLimit !== 1) {
+    fail(where, "una carta Unica deve avere deckLimit 1 (§3.1)");
+  }
+  if (card.unique !== true && card.type !== "rubyfront" && card.deckLimit > 2) {
+    fail(where, `deckLimit ${card.deckLimit} oltre il massimo di 2 copie (§3.1); serve la classificazione Unica per limiti diversi`);
+  }
+  for (const face of card.faces ?? []) {
+    const matterType = face.matter?.type;
+    if ((matterType === "zero" || matterType === "dominant") && card.unique !== true) {
+      fail(where, `le Materie ${matterType} sono Uniche per politica di set: manca "unique": true`);
+    }
+  }
+
   if (set) {
     if (card.setId !== set.id) fail(where, `setId "${card.setId}" ma è registrata in "${set.id}"`);
     if (!card.id?.startsWith(`${set.cardIdPrefix}-`)) fail(where, `id non usa il prefisso ${set.cardIdPrefix}`);
@@ -156,6 +171,8 @@ function validateCard(card, where, set) {
 
 // ---- attraversa il catalogo -------------------------------------------
 const catalog = readJson("catalog.json");
+// id carta -> { type, deckLimit }: serve alla validazione dei mazzi.
+const cardIndex = new Map();
 if (catalog) {
   requireLocales(catalog.locales, "catalog", ["name", "description"]);
   const cardIds = new Set();
@@ -176,6 +193,7 @@ if (catalog) {
 
       if (cardIds.has(card.id)) fail(file, `id duplicato ${card.id}`);
       cardIds.add(card.id);
+      cardIndex.set(card.id, { type: card.type, deckLimit: card.deckLimit });
       const key = `${set.id}/${card.collectorNumber}`;
       if (collectorKeys.has(key)) fail(file, `collectorNumber duplicato in ${set.id}`);
       collectorKeys.add(key);
@@ -189,6 +207,42 @@ if (catalog) {
     }
   }
   console.log(`  carte: ${cardIds.size}, set: ${catalog.sets?.length ?? 0}`);
+}
+
+// ---- mazzi -------------------------------------------------------------
+// Le regole di costruzione vengono dal manuale (§3.1): 40 carte esatte,
+// Rubyfront incluso (esattamente uno), copie entro il deckLimit della carta.
+const decksDir = path.join(DATA, "decks");
+if (fs.existsSync(decksDir)) {
+  const deckFiles = fs.readdirSync(decksDir).filter(name => name.endsWith(".json"));
+  for (const name of deckFiles) {
+    const relative = path.join("decks", name);
+    const deck = readJson(relative);
+    if (!deck) continue;
+    if (deck.schemaVersion !== SCHEMA_VERSION) fail(relative, `schemaVersion attesa ${SCHEMA_VERSION}`);
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(deck.id ?? "")) fail(relative, "id deve essere kebab-case");
+    requireLocales(deck.locales, relative, ["name", "description"]);
+
+    let total = 0;
+    let rubyfronts = 0;
+    const seen = new Set();
+    for (const entry of deck.cards ?? []) {
+      const where = `${relative}.${entry.card}`;
+      const known = cardIndex.get(entry.card);
+      if (!known) { fail(where, "carta non registrata nel catalogo"); continue; }
+      if (seen.has(entry.card)) fail(where, "voce duplicata nel mazzo");
+      seen.add(entry.card);
+      if (!Number.isInteger(entry.count) || entry.count <= 0) fail(where, "count deve essere un intero positivo");
+      else {
+        if (entry.count > known.deckLimit) fail(where, `count ${entry.count} oltre il deckLimit ${known.deckLimit}`);
+        total += entry.count;
+        if (known.type === "rubyfront") rubyfronts += entry.count;
+      }
+    }
+    if (total !== 40) fail(relative, `il mazzo ha ${total} carte: devono essere esattamente 40 (§3.1)`);
+    if (rubyfronts !== 1) fail(relative, `il mazzo contiene ${rubyfronts} Rubyfront: dev'essere esattamente uno (§3.1)`);
+  }
+  console.log(`  mazzi: ${deckFiles.length}`);
 }
 
 if (errors.length) {

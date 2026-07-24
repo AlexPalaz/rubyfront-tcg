@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-007",
+  "setId": "rubyfront-core",
+  "collectorNumber": "007",
+  "slug": "vigorbelt",
+  "type": "object",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "object",
+    "human"
+  ],
+  "rulesReference": "MANUALE.md §3.1",
+  "faces": [
+    {
+      "id": "object",
+      "kind": "object",
+      "displayKey": "face",
+      "stats": {},
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "band",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "race": "human",
+              "scope": "assigned"
+            },
+            "amount": 1,
+            "duration": "permanent"
+          }
+        }
+      ],
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "race": "human",
+        "controller": "controller"
+      }
+    }
+  ],
+  "designNotes": "rbf-007.md"
+}

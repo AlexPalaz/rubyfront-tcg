@@ -1,0 +1,17 @@
+{
+  "name": "Champion of the Change",
+  "typeLabel": "Entity — Human",
+  "summary": "The plan's big body and the gate to the Dynamic's second grade.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Champion of the Change",
+    "flavor": "Humanity changed. He most of all."
+  }
+}

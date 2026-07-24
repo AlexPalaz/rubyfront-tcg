@@ -1,0 +1,26 @@
+{
+  "name": "Absence",
+  "typeLabel": "Zero Matter",
+  "summary": "The void made card: it makes an Entity vanish from the field, alive, straight to the Requiem Zone.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "unique": "Unique"
+  },
+  "matters": {
+    "zeroTitle": "Zero Matter",
+    "zeroAria": "Zero"
+  },
+  "face": {
+    "name": "Absence",
+    "effect": {
+      "name": "Effect",
+      "text": "Choose an Entity: it vanishes from the field and goes to its owner’s Requiem Zone. You may choose covered Entities as well."
+    },
+    "flavor": "A cold silence, where something used to be."
+  }
+}

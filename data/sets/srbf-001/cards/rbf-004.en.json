@@ -1,0 +1,25 @@
+{
+  "name": "Dash",
+  "typeLabel": "Dynamic Matter I",
+  "summary": "Human aggression: more Power and no waiting. Speed is a weapon.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
+  },
+  "face": {
+    "name": "Dash",
+    "effect": {
+      "name": "Effect",
+      "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn."
+    },
+    "flavor": "By the time the eye understands, it is already over."
+  }
+}

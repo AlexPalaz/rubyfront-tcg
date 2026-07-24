@@ -1,0 +1,21 @@
+{
+  "name": "Medico da Campo",
+  "typeLabel": "Entità — Umano",
+  "summary": "Cure per la bestia: i PV sono la valuta del piano, e lui li restituisce.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Medico da Campo",
+    "flavor": "Anche le bestie sanguinano.",
+    "medic": {
+      "trigger": "Quando entra in campo",
+      "text": "Il tuo Rubyfront recupera 2 PV."
+    }
+  }
+}

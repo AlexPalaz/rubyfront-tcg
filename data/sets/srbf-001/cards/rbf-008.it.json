@@ -1,0 +1,17 @@
+{
+  "name": "Vedetta",
+  "typeLabel": "Entità — Umano",
+  "summary": "Il primo corpo del mazzo: un occhio sul Fronte e l'accesso alla Dinamica.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Vedetta",
+    "flavor": "Vide arrivare la fine. Fischiò due volte."
+  }
+}

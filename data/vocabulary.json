@@ -28,7 +28,11 @@
       "on_leave_field",
       "on_death",
       "on_turn_start",
-      "on_turn_end"
+      "on_turn_end",
+      "on_resolve",
+      "while_assigned",
+      "on_block",
+      "while_in_play"
     ]
   },
   "effect": {
@@ -44,7 +48,12 @@
       "lose_health",
       "gain_health",
       "retire",
-      "search_card"
+      "search_card",
+      "empower",
+      "block_attack",
+      "extra_attack",
+      "counter_card",
+      "protect"
     ]
   },
   "timing": {
@@ -96,7 +105,16 @@
     "values": [
       "until_controller_next_turn",
       "until_end_of_turn",
-      "permanent"
+      "permanent",
+      "until_end_of_battle"
+    ]
+  },
+  "matterBehavior": {
+    "_note": "How a Matter card behaves when played (MANUALE.md §7.2). Field 'behavior' on matter faces; 'normal' carries no label on the printed card",
+    "values": [
+      "normal",
+      "permanent",
+      "reactive"
     ]
   },
   "matter": {

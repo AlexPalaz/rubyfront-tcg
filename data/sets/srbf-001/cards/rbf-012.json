@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-012",
+  "setId": "rubyfront-core",
+  "collectorNumber": "012",
+  "slug": "last-bastion",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "dynamic",
+    "defender"
+  ],
+  "rulesReference": "MANUALE.md §7, §8.1",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 2,
+        "fluxCost": 3
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-012.md"
+}

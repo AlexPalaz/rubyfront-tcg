@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-018",
+  "setId": "rubyfront-core",
+  "collectorNumber": "018",
+  "slug": "chronicler",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "draw"
+  ],
+  "rulesReference": "MANUALE.md §6.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 1,
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "chronicle",
+          "displayKey": "chronicle",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-018.md"
+}

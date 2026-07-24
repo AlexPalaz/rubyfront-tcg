@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-013",
+  "setId": "rubyfront-core",
+  "collectorNumber": "013",
+  "slug": "reflex",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dynamic",
+    "grade-1",
+    "reactive",
+    "block"
+  ],
+  "rulesReference": "MANUALE.md §6.3, §7.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dynamic",
+        "grade": 1
+      },
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "reflex",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "block_attack",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "details": {
+              "killIfPowerAtMost": 3
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-013.md"
+}

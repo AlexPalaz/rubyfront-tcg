@@ -1,0 +1,21 @@
+{
+  "name": "Vigorcintura",
+  "typeLabel": "Oggetto",
+  "summary": "Il primo Oggetto del set: una cintura per soli Umani, e chi la porta colpisce più forte.",
+  "ui": {
+    "face": "Oggetto"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Vigorcintura",
+    "effect": {
+      "name": "Effetto",
+      "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza."
+    },
+    "flavor": "Stringila forte. Il vigore fa il resto."
+  }
+}

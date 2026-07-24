@@ -1,0 +1,21 @@
+{
+  "name": "Runner",
+  "typeLabel": "Entity — Human",
+  "summary": "Pressure from turn one: the debut of Surge.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Runner",
+    "keyword": {
+      "name": "Surge",
+      "rules": "she may attack the very turn she enters the field"
+    },
+    "flavor": "She arrives before word of her arrival."
+  }
+}

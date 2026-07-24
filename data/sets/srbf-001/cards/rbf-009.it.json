@@ -1,0 +1,21 @@
+{
+  "name": "Custode della Soglia",
+  "typeLabel": "Entità — Umano",
+  "summary": "Un difensore nato: fragile in attacco, una porta sbarrata in blocco.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Custode della Soglia",
+    "flavor": "Nessuno passa. Non oggi.",
+    "warden": {
+      "trigger": "Quando blocca",
+      "text": "Prende +2 Potenza fino alla fine della battaglia."
+    }
+  }
+}

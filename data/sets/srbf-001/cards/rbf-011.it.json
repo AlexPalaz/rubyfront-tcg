@@ -1,0 +1,21 @@
+{
+  "name": "Araldo del Primo",
+  "typeLabel": "Entità — Umano",
+  "summary": "Il cercatore del piano: trova Adam, o chiunque serva alla causa.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Araldo del Primo",
+    "flavor": "Il Primo cammina fra noi. Io l'ho visto.",
+    "herald": {
+      "trigger": "Quando entra in campo",
+      "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Herald of the First",
+  "typeLabel": "Entity — Human",
+  "summary": "The plan's seeker: finds Adam, or whoever the cause requires.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Herald of the First",
+    "flavor": "The First walks among us. I have seen him.",
+    "herald": {
+      "trigger": "When he enters the field",
+      "text": "Search your deck for a Human, reveal it to your opponent and add it to your hand, then shuffle your deck."
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Vigorbelt",
+  "typeLabel": "Object",
+  "summary": "The set's first Object: a belt for Humans only, and its bearer hits harder.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Vigorbelt",
+    "effect": {
+      "name": "Effect",
+      "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power."
+    },
+    "flavor": "Buckle it tight. Vigor does the rest."
+  }
+}

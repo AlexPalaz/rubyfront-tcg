@@ -89,5 +89,6 @@
       ]
     }
   ],
-  "designNotes": "rbf-002.md"
+  "designNotes": "rbf-002.md",
+  "unique": true
 }

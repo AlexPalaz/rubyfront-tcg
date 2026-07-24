@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-017",
+  "setId": "rubyfront-core",
+  "collectorNumber": "017",
+  "slug": "stillness",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 1,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "zero",
+    "reactive",
+    "counter",
+    "viatico"
+  ],
+  "rulesReference": "MANUALE.md §7.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "zero"
+      },
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "stillness",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "counter_card",
+            "target": {
+              "cardType": "matter",
+              "min": 1,
+              "max": 1
+            },
+            "details": {
+              "onlyReactiveInChain": true,
+              "toZone": "abyss"
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-017.md",
+  "unique": true
+}

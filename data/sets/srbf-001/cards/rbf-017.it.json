@@ -1,0 +1,30 @@
+{
+  "name": "Quiete",
+  "typeLabel": "Materia Zero",
+  "summary": "Il primo annullamento del gioco: la risposta che spegne la risposta.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "unique": "Unica",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
+  },
+  "face": {
+    "name": "Quiete",
+    "effect": {
+      "name": "Effetto",
+      "text": "Scegli una Materia Reattiva appena giocata nella catena: quando dovrebbe risolversi, svanisce e va nell’Abisso senza alcun effetto. Il Flusso speso non torna."
+    },
+    "flavor": "Il vuoto non discute."
+  },
+  "matters": {
+    "zeroTitle": "Materia Zero",
+    "zeroAria": "Zero"
+  }
+}

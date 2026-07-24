@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-010",
+  "setId": "rubyfront-core",
+  "collectorNumber": "010",
+  "slug": "field-medic",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "heal"
+  ],
+  "rulesReference": "MANUALE.md §6.2, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 1,
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "medic",
+          "displayKey": "medic",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "cardType": "rubyfront",
+              "controller": "controller"
+            },
+            "amount": 2
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-010.md"
+}

@@ -28,17 +28,16 @@
     },
     "trigger": "On deployment",
     "effect": {
-      "name": "Undertow",
-      "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
+      "text": "Look at the top card of your deck: you may put it on the bottom."
     },
     "abilities": {
       "pressure": {
         "name": "Abyssal Pressure",
-        "text": "an opposing Entity of your choice gets −2 Power until the start of your next turn."
+        "text": "an opposing Entity gets −2 Power until your next turn."
       },
       "devour": {
         "name": "Devour",
-        "text": "put an opposing Entity with Power 3 or less on the bottom of its owner’s deck."
+        "text": "put an opposing Entity with Power 3 or less on the bottom of its deck."
       }
     },
     "flavor": "It did not rise. The abyss opened its eyes."
@@ -46,19 +45,18 @@
   "faceB": {
     "name": "The Abyss Incarnate",
     "unionAria": "Union",
-    "trigger": "On flip",
+    "trigger": "On Union",
     "effect": {
-      "name": "The First Wave",
-      "text": "Tap an opposing Entity of your choice. (A tapped Entity can neither attack nor block until it untaps.)"
+      "text": "Tap an opposing Entity of your choice."
     },
     "abilities": {
       "tide": {
         "name": "Rising Tide",
-        "text": "up to two opposing Entities of your choice get −2 Power until the start of your next turn."
+        "text": "up to two opposing Entities get −2 Power until your next turn."
       },
       "abyss": {
         "name": "The Great Tide",
-        "text": "tap every opposing Entity on the field. (Use it before declaring your attack: a tapped Entity cannot block.)"
+        "text": "tap every opposing Entity on the field."
       }
     },
     "flavor": "The abyss no longer waits below. It walks."

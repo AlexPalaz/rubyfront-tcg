@@ -1,0 +1,21 @@
+{
+  "name": "Vendicatrice",
+  "typeLabel": "Entità — Umano",
+  "summary": "Il debutto della Vendetta: bloccarla male costa la vita.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Vendicatrice",
+    "keyword": {
+      "name": "Vendetta",
+      "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
+    },
+    "flavor": "Colpiscila, se osi. Poi corri."
+  }
+}

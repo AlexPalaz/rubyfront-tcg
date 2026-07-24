@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-016",
+  "setId": "rubyfront-core",
+  "collectorNumber": "016",
+  "slug": "hemorrhage",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "destructive",
+    "grade-2",
+    "permanent"
+  ],
+  "rulesReference": "MANUALE.md §7.2, §8.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "destructive",
+        "grade": 2
+      },
+      "behavior": "permanent",
+      "stats": {
+        "fluxCost": 4
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "bleed",
+          "displayKey": "effect",
+          "event": "on_turn_start",
+          "effect": {
+            "type": "lose_health",
+            "target": {
+              "cardType": "rubyfront",
+              "controller": "opponent"
+            },
+            "amount": 1
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-016.md"
+}

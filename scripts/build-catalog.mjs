@@ -50,11 +50,32 @@ const sets = catalog.sets.map(setDir => {
   return { ...set, cards };
 });
 
+// I mazzi sono oggetti dati come le carte: entrano nel bundle e le loro note
+// di design vengono copiate in docs/ (GitHub Pages serve solo docs/).
+const decksDir = path.join(DATA, "decks");
+const decks = fs.existsSync(decksDir)
+  ? fs.readdirSync(decksDir).filter(name => name.endsWith(".json")).map(name => {
+      const deck = readJson(path.join("decks", name));
+      let designNotes;
+      if (deck.designNotes) {
+        const from = path.join(decksDir, deck.designNotes);
+        if (fs.existsSync(from)) {
+          fs.mkdirSync(NOTES_DIR, { recursive: true });
+          const copied = `deck-${deck.designNotes}`;
+          fs.copyFileSync(from, path.join(NOTES_DIR, copied));
+          designNotes = `notes/${copied}`;
+        }
+      }
+      return { ...deck, source: { designNotes } };
+    })
+  : [];
+
 const bundle = {
   ...catalog,
   _generated: "Generato da scripts/build-catalog.mjs — non modificare a mano. Fonte: data/",
   sets,
-  cards: sets.flatMap(set => set.cards)
+  cards: sets.flatMap(set => set.cards),
+  decks
 };
 
 const output = JSON.stringify(bundle, null, 2) + "\n";

@@ -1,0 +1,29 @@
+{
+  "name": "Reflex",
+  "typeLabel": "Dynamic Matter I",
+  "summary": "Speed as a shield: a block out of nowhere, lethal to the small.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
+  },
+  "face": {
+    "name": "Reflex",
+    "effect": {
+      "name": "Effect",
+      "text": "Assign it as a block to an attacker: that attack is blocked. If the attacker has Power 3 or less, it dies."
+    },
+    "flavor": "A flash, and steel finds steel."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
+  }
+}

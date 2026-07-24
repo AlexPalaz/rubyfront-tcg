@@ -1,0 +1,29 @@
+{
+  "name": "March of the Change",
+  "typeLabel": "Dynamic Matter I",
+  "summary": "The plan's anthem: every Human one step stronger, for as long as the March lasts.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
+  },
+  "face": {
+    "name": "March of the Change",
+    "effect": {
+      "name": "Effect",
+      "text": "Your Entities get +1 Power."
+    },
+    "flavor": "One step at a time, all together."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
+  }
+}

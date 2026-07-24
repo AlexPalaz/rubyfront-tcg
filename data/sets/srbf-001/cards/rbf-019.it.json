@@ -1,0 +1,17 @@
+{
+  "name": "Veterana del Fronte",
+  "typeLabel": "Entità — Umano",
+  "summary": "Blocca e punisce: il contrattacco che gli attaccanti medi imparano a temere.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Veterana del Fronte",
+    "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
+  }
+}

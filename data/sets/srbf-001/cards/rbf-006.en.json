@@ -1,0 +1,29 @@
+{
+  "name": "Wrath",
+  "typeLabel": "Destructive Matter I",
+  "summary": "The game's first Reactive: the beast's wrath strikes when the opponent least expects it.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
+  },
+  "matters": {
+    "destructiveTitle": "Destructive Matter · 1st grade",
+    "destructiveAria": "Destructive"
+  },
+  "face": {
+    "name": "Wrath",
+    "effect": {
+      "name": "Effect",
+      "text": "The opposing Rubyfront loses 2 HP. (If deployed, the loss makes it immediately return to the Recall Zone.)"
+    },
+    "flavor": "The beast knows no measure."
+  }
+}

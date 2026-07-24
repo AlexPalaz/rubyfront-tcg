@@ -10,20 +10,20 @@
     "hp": "HP",
     "power": "Power",
     "counterattack": "Counterattack",
-    "flux": "Flux"
+    "flux": "Flux",
+    "unique": "Unique"
   },
   "face": {
     "name": "Adam, The First",
     "abilities": {
       "genesis": {
         "name": "Genesis",
-        "text": "search your deck for a Zero Matter card, reveal it to your opponent and add it to your hand, then shuffle your deck. You can’t play that Matter this turn."
+        "text": "search your deck for a Zero Matter, reveal it and add it to your hand, then shuffle. You can’t play it this turn."
       }
     },
     "bequest": {
       "trigger": "When he leaves the field",
-      "name": "Bequest",
-      "text": "Draw a card. (Triggers on every exit from the field: retirement to the Requiem Zone included, which is not a death.)"
+      "text": "Draw a card. (Retiring to Requiem triggers this too.)"
     },
     "flavor": "He was the first to touch the Zero. Ever since, humanity was changed forever."
   }

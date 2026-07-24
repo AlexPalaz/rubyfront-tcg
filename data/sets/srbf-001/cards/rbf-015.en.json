@@ -1,0 +1,25 @@
+{
+  "name": "Second Surge",
+  "typeLabel": "Dynamic Matter II",
+  "summary": "The deck's finisher: one more attack while the opposing Front is tapped.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Second Surge",
+    "effect": {
+      "name": "Effect",
+      "text": "An Entity of your choice that has already attacked this turn untaps and may attack a second time."
+    },
+    "flavor": "The first blow opens. The second closes."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicAria": "Dynamic"
+  }
+}

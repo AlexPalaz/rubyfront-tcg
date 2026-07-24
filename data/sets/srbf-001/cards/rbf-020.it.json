@@ -1,0 +1,21 @@
+{
+  "name": "Velo del Primo",
+  "typeLabel": "Oggetto",
+  "summary": "La protezione del pezzo chiave: le Materie avversarie non lo trovano.",
+  "ui": {
+    "face": "Oggetto"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Velo del Primo",
+    "effect": {
+      "name": "Effetto",
+      "text": "Assegnalo a un tuo Umano: finché lo indossa, non può essere bersagliato dalle Materie avversarie."
+    },
+    "flavor": "Ciò che il vuoto ha toccato, il vuoto protegge."
+  }
+}

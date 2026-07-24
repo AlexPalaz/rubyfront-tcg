@@ -28,17 +28,16 @@
     },
     "trigger": "Allo schieramento",
     "effect": {
-      "name": "Risacca",
-      "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
+      "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo."
     },
     "abilities": {
       "pressure": {
         "name": "Pressione Abissale",
-        "text": "un’Entità avversaria a tua scelta prende −2 Potenza fino all’inizio del tuo prossimo turno."
+        "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
       },
       "devour": {
         "name": "Divorare",
-        "text": "metti un’Entità avversaria con Potenza pari o inferiore a 3 in fondo al mazzo del suo proprietario."
+        "text": "metti in fondo al suo mazzo un’Entità avversaria con Potenza 3 o meno."
       }
     },
     "flavor": "Non emerse. Gli abissi aprirono gli occhi."
@@ -46,19 +45,18 @@
   "faceB": {
     "name": "Incarnazione dell’Abisso",
     "unionAria": "Unione",
-    "trigger": "Al flip",
+    "trigger": "All’Unione",
     "effect": {
-      "name": "La Prima Ondata",
-      "text": "Tappa un’Entità avversaria a tua scelta. (Un’Entità tappata non può né attaccare né bloccare finché non si stappa.)"
+      "text": "Tappa un’Entità avversaria a tua scelta."
     },
     "abilities": {
       "tide": {
         "name": "Marea Crescente",
-        "text": "fino a due Entità avversarie a tua scelta prendono −2 Potenza fino all’inizio del tuo prossimo turno."
+        "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
       },
       "abyss": {
         "name": "La Grande Marea",
-        "text": "tappa tutte le Entità avversarie in campo. (Usala prima di dichiarare l’attacco: un’Entità tappata non può bloccare.)"
+        "text": "tappa tutte le Entità avversarie in campo."
       }
     },
     "flavor": "L’abisso prese forma. Il mondo arretrò."

@@ -1,0 +1,17 @@
+{
+  "name": "Ultimo Bastione",
+  "typeLabel": "Entità — Umano",
+  "summary": "Il muro del piano: un corpo largo che tiene la linea e abilita la Dinamica.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Ultimo Bastione",
+    "flavor": "Cade il mondo, non lui."
+  }
+}

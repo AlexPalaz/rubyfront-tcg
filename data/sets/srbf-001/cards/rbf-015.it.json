@@ -1,0 +1,25 @@
+{
+  "name": "Secondo Impeto",
+  "typeLabel": "Materia Dinamica II",
+  "summary": "Il finisher del mazzo: un attacco in più quando il Fronte avversario è tappato.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Secondo Impeto",
+    "effect": {
+      "name": "Effetto",
+      "text": "Un’Entità a tua scelta che ha già attaccato in questo turno si stappa e può attaccare una seconda volta."
+    },
+    "flavor": "Il primo colpo apre. Il secondo chiude."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Field Medic",
+  "typeLabel": "Entity — Human",
+  "summary": "Care for the beast: HP are the plan's currency, and he gives them back.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Field Medic",
+    "flavor": "Even beasts bleed.",
+    "medic": {
+      "trigger": "When he enters the field",
+      "text": "Your Rubyfront recovers 2 HP."
+    }
+  }
+}

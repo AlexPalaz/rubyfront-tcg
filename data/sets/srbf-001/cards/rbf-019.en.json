@@ -1,0 +1,17 @@
+{
+  "name": "Front Veteran",
+  "typeLabel": "Entity — Human",
+  "summary": "She blocks and punishes: the counterattack mid-size attackers learn to fear.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Front Veteran",
+    "flavor": "She has blocked more attacks than you have seen."
+  }
+}

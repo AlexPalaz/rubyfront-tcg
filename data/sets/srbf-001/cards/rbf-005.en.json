@@ -1,0 +1,25 @@
+{
+  "name": "Rift",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "The bent space of the Auros: an Entity goes back where it came from.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Rift",
+    "effect": {
+      "name": "Effect",
+      "text": "Return an Entity of your choice from the field to its owner’s hand. Its assigned Object goes to the Abyss."
+    },
+    "flavor": "To the Auros, distance is an opinion."
+  }
+}

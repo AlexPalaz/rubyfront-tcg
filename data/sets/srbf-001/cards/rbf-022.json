@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-022",
+  "setId": "rubyfront-core",
+  "collectorNumber": "022",
+  "slug": "march-of-the-change",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dynamic",
+    "grade-1",
+    "permanent",
+    "anthem"
+  ],
+  "rulesReference": "MANUALE.md §7.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dynamic",
+        "grade": 1
+      },
+      "behavior": "permanent",
+      "stats": {
+        "fluxCost": 4
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "march",
+          "displayKey": "effect",
+          "event": "while_in_play",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "quantity": "all"
+            },
+            "amount": 1,
+            "duration": "permanent"
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-022.md"
+}

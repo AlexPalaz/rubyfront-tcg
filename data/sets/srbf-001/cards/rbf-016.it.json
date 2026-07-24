@@ -1,0 +1,29 @@
+{
+  "name": "Emorragia",
+  "typeLabel": "Materia Distruttiva II",
+  "summary": "La ferita che non si chiude: fragile con la bestia, eterna con l'Unione.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
+  },
+  "face": {
+    "name": "Emorragia",
+    "effect": {
+      "name": "Effetto",
+      "text": "All’inizio del tuo turno, il Rubyfront avversario perde 1 PV."
+    },
+    "flavor": "Alcune ferite non si chiudono."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 2° grado",
+    "destructiveAria": "Distruttiva"
+  }
+}

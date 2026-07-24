@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-009",
+  "setId": "rubyfront-core",
+  "collectorNumber": "009",
+  "slug": "threshold-warden",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "dynamic",
+    "defender"
+  ],
+  "rulesReference": "MANUALE.md §6.3, §7",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 1,
+        "fluxCost": 2
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "warden",
+          "displayKey": "warden",
+          "event": "on_block",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "scope": "self"
+            },
+            "amount": 2,
+            "duration": "until_end_of_battle"
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-009.md"
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Assenza",
+  "typeLabel": "Materia Zero",
+  "summary": "Il vuoto reso carta: fa sparire un'Entità dal campo, viva, dritta in Zona di Requiem.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "unique": "Unica"
+  },
+  "matters": {
+    "zeroTitle": "Materia Zero",
+    "zeroAria": "Zero"
+  },
+  "face": {
+    "name": "Assenza",
+    "effect": {
+      "name": "Effetto",
+      "text": "Scegli un’Entità: sparisce dal campo e va nella Zona di Requiem del suo proprietario. Puoi scegliere anche Entità coperte."
+    },
+    "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
+  }
+}

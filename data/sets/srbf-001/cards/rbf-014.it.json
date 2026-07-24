@@ -1,0 +1,17 @@
+{
+  "name": "Campione del Cambiamento",
+  "typeLabel": "Entità — Umano",
+  "summary": "Il corpo grosso del piano e la porta al secondo grado della Dinamica.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Campione del Cambiamento",
+    "flavor": "L’umanità cambiò. Lui più di tutti."
+  }
+}

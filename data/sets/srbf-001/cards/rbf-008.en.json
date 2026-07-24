@@ -1,0 +1,17 @@
+{
+  "name": "Lookout",
+  "typeLabel": "Entity — Human",
+  "summary": "The deck's first body: an eye on the Front and access to the Dynamic.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Lookout",
+    "flavor": "She saw the end coming. She whistled twice."
+  }
+}

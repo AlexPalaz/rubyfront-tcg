@@ -1,0 +1,21 @@
+{
+  "name": "Avenger",
+  "typeLabel": "Entity — Human",
+  "summary": "The debut of Vengeance: blocking her carelessly costs lives.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Avenger",
+    "keyword": {
+      "name": "Vengeance",
+      "rules": "if she blocks with higher Power, the attacker dies"
+    },
+    "flavor": "Strike her if you dare. Then run."
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-003",
+  "setId": "rubyfront-core",
+  "collectorNumber": "003",
+  "slug": "absence",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 1,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "zero",
+    "viatico"
+  ],
+  "rulesReference": "MANUALE.md §7, §8.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "zero"
+      },
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 4
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "absence",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "min": 1,
+              "max": 1,
+              "canTargetCovered": true
+            },
+            "destination": {
+              "zone": "requiem",
+              "owner": "card_owner"
+            },
+            "details": {
+              "isDeath": false,
+              "isRetirement": false,
+              "triggersLeaveField": true,
+              "objectFollows": true
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-003.md",
+  "unique": true
+}

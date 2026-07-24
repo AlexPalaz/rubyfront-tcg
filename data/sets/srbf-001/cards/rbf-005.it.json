@@ -1,0 +1,25 @@
+{
+  "name": "Varco",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "Lo spazio piegato degli Auros: un'Entità torna da dove è venuta.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Varco",
+    "effect": {
+      "name": "Effetto",
+      "text": "Riporta un’Entità a tua scelta dal campo nella mano del suo proprietario. L’Oggetto che aveva assegnato va nell’Abisso."
+    },
+    "flavor": "Per gli Auros la distanza è un’opinione."
+  }
+}

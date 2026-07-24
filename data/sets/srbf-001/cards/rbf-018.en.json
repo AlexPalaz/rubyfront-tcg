@@ -1,0 +1,21 @@
+{
+  "name": "Chronicler",
+  "typeLabel": "Entity — Human",
+  "summary": "Fresh cards for the plan: a small body that loses you nothing.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Chronicler",
+    "flavor": "She writes what the Change dictates.",
+    "chronicle": {
+      "trigger": "When she enters the field",
+      "text": "Draw a card."
+    }
+  }
+}

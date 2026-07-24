@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-006",
+  "setId": "rubyfront-core",
+  "collectorNumber": "006",
+  "slug": "wrath",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "destructive",
+    "grade-1",
+    "reactive"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "destructive",
+        "grade": 1
+      },
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "wrath",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "lose_health",
+            "target": {
+              "cardType": "rubyfront",
+              "controller": "opponent"
+            },
+            "amount": 2
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-006.md"
+}

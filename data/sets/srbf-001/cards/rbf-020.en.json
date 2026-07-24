@@ -1,0 +1,21 @@
+{
+  "name": "Veil of the First",
+  "typeLabel": "Object",
+  "summary": "Protection for the key piece: opposing Matters cannot find it.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Veil of the First",
+    "effect": {
+      "name": "Effect",
+      "text": "Assign it to one of your Humans: for as long as they wear it, they cannot be targeted by opposing Matters."
+    },
+    "flavor": "What the void has touched, the void protects."
+  }
+}

@@ -10,20 +10,20 @@
     "hp": "PV",
     "power": "Potenza",
     "counterattack": "Contrattacco",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "unique": "Unica"
   },
   "face": {
     "name": "Adam, Il Primo",
     "abilities": {
       "genesis": {
         "name": "Genesi",
-        "text": "cerca nel tuo mazzo una carta Materia Zero, mostrala all’avversario e aggiungila alla tua mano, poi rimescola il mazzo. Non puoi giocare quella Materia in questo turno."
+        "text": "cerca nel tuo mazzo una Materia Zero, mostrala e aggiungila alla mano, poi rimescola. Non puoi giocarla in questo turno."
       }
     },
     "bequest": {
       "trigger": "Quando lascia il campo",
-      "name": "Lascito",
-      "text": "Pesca una carta. (Si innesca a ogni uscita dal campo: anche il Ritiro in Zona di Requiem, che non è una morte.)"
+      "text": "Pesca una carta. (Anche il Ritiro in Requiem lo innesca.)"
     },
     "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
   }

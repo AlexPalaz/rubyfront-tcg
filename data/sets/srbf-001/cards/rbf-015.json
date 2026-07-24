@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-015",
+  "setId": "rubyfront-core",
+  "collectorNumber": "015",
+  "slug": "second-surge",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 2,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dynamic",
+    "grade-2"
+  ],
+  "rulesReference": "MANUALE.md §6.3, §7.1",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dynamic",
+        "grade": 2
+      },
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 5
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "surge-again",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "extra_attack",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-015.md"
+}

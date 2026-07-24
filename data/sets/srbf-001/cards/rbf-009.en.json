@@ -1,0 +1,21 @@
+{
+  "name": "Threshold Warden",
+  "typeLabel": "Entity — Human",
+  "summary": "A born defender: frail on the attack, a barred door on the block.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Threshold Warden",
+    "flavor": "No one passes. Not today.",
+    "warden": {
+      "trigger": "When he blocks",
+      "text": "He gets +2 Power until the end of the battle."
+    }
+  }
+}

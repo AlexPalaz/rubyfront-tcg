@@ -1,0 +1,29 @@
+{
+  "name": "Marcia del Cambiamento",
+  "typeLabel": "Materia Dinamica I",
+  "summary": "L'inno del piano: ogni Umano un passo più forte, finché la Marcia dura.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
+  },
+  "face": {
+    "name": "Marcia del Cambiamento",
+    "effect": {
+      "name": "Effetto",
+      "text": "Le tue Entità prendono +1 Potenza."
+    },
+    "flavor": "Un passo alla volta, tutti insieme."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
+  }
+}
