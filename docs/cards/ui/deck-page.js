@@ -1,3 +1,6 @@
+// Pagina del mazzo: la lista di un mazzo (data/decks/*) resa con le carte
+// vere in miniatura, disposte in griglia. Ogni tessera riusa il renderer
+// condiviso (card-render.js) alla scala definita in deck.html.
 import catalog, { getCardById } from "../catalog.js";
 import { DEFAULT_THEME, isThemeId, LIGHT_THEMES, THEMES } from "./themes.js";
 import {
@@ -8,23 +11,25 @@ import {
   element,
   FALLBACK_LOCALE,
   languagePicker,
+  metadataList,
   pageHeader,
   renderRegistryError,
-  setUrlParameter,
-  themeIndexRoute
+  setUrlParameter
 } from "./shell.js";
 import { createFace, localized } from "./card-render.js";
 
 const params = new URLSearchParams(location.search);
-const requestedCardId = params.get("card");
-const card = requestedCardId ? getCardById(requestedCardId) : catalog.cards[0];
+const requestedDeckId = params.get("deck");
+const deck = requestedDeckId
+  ? (catalog.decks ?? []).find(candidate => candidate.id === requestedDeckId)
+  : (catalog.decks ?? [])[0];
 const app = document.querySelector("#app");
 
-if (!card) {
+if (!deck) {
   const copy = copyFor(FALLBACK_LOCALE);
-  renderRegistryError(app, requestedCardId ? copy.cardMissing(requestedCardId) : copy.catalogEmpty);
+  renderRegistryError(app, copy.catalogEmpty);
 } else {
-  renderCard(card);
+  renderDeck(deck);
 }
 
 function localeFromParams(resource) {
@@ -32,21 +37,15 @@ function localeFromParams(resource) {
   return resource.locales[requested] ? requested : resource.defaultLocale;
 }
 
-function renderCard(resource) {
+function renderDeck(resource) {
   let localeId = localeFromParams(resource);
   let themeId = isThemeId(params.get("theme")) ? params.get("theme") : DEFAULT_THEME;
 
   const page = element("main", "page-shell wide");
   const trail = breadcrumb([{ label: "…", href: catalogRoute(localeId) }]);
-  const header = pageHeader({
-    eyebrow: `${resource.id} · ${resource.layout}`,
-    title: ""
-  });
-  const nav = element("nav", "quick-links");
-  const back = element("a", "button secondary");
-  const themesLink = element("a", "button secondary");
-  nav.append(back, themesLink);
-  header.append(nav);
+  const header = pageHeader({ eyebrow: "", title: "" });
+  const meta = element("div");
+  header.append(meta);
 
   const controls = element("div", "controls");
   const themeLabel = element("label");
@@ -62,51 +61,73 @@ function renderCard(resource) {
   const hint = element("code");
   controls.append(themeLabel, themeSelect, languageSlot, hint);
 
-  const table = element("section", "table");
-  table.setAttribute("aria-label", "Card faces");
-  page.append(trail, header, controls, table);
+  const grid = element("section", "deck-grid");
+  grid.setAttribute("aria-label", "Deck list");
+  page.append(trail, header, controls, grid);
   app.replaceChildren(page);
+
+  const totalCards = resource.cards.reduce((sum, entry) => sum + entry.count, 0);
 
   function applyLocale(nextLocaleId) {
     localeId = resource.locales[nextLocaleId] ? nextLocaleId : resource.defaultLocale;
-    const cardCopy = localized(resource, localeId);
+    const deckCopy = localized(resource, localeId);
     const copy = copyFor(localeId);
     document.documentElement.lang = localeId;
-    document.title = `${cardCopy.name} · ${copy.themes}`;
+    document.title = `${deckCopy.name} · ${copy.deck}`;
 
     trail.replaceChildren(...breadcrumb([
       { label: copy.catalog, href: catalogRoute(localeId) },
-      { label: cardCopy.name, href: cardRoute(resource, localeId) },
-      { label: copy.themes }
+      { label: deckCopy.name }
     ]).childNodes);
 
-    header.querySelector("h1").textContent = cardCopy.name;
+    header.querySelector(".eyebrow").textContent = `${copy.deck} · ${copy.deckCount(totalCards)}`;
+    header.querySelector("h1").textContent = deckCopy.name;
+    let lede = header.querySelector(".lede");
+    if (!lede) {
+      lede = element("p", "lede");
+      header.querySelector("h1").after(lede);
+    }
+    lede.textContent = deckCopy.description;
+    meta.replaceChildren(metadataList([
+      [copy.status, copy[resource.status] ?? resource.status]
+    ]));
     themeLabel.textContent = copy.theme;
-    back.textContent = copy.cardData;
-    back.href = cardRoute(resource, localeId);
-    themesLink.textContent = copy.themeIndex;
-    themesLink.href = themeIndexRoute(resource, localeId);
     languageSlot.replaceChildren(languagePicker(resource, localeId, applyLocale));
 
-    table.replaceChildren(...resource.faces.map(face => createFace(resource, face, cardCopy, themeId)));
-    setUrlParameter("card", resource.id);
+    grid.replaceChildren();
+    for (const entry of resource.cards) {
+      const card = getCardById(entry.card);
+      if (!card) continue;
+      const cardCopy = localized(card, localeId);
+      for (const face of card.faces) {
+        const tile = element("div", "deck-tile");
+        const anchor = element("a");
+        anchor.href = cardRoute(card, localeId);
+        anchor.title = cardCopy.name;
+        const holder = element("div", "deck-holder");
+        holder.append(createFace(card, face, cardCopy, themeId));
+        anchor.append(holder);
+        tile.append(anchor, element("span", "deck-count", `×${entry.count}`));
+        grid.append(tile);
+      }
+    }
+    applyTheme(themeId);
+    setUrlParameter("deck", resource.id);
     setUrlParameter("lang", localeId);
   }
 
   function applyTheme(nextThemeId) {
     themeId = isThemeId(nextThemeId) ? nextThemeId : DEFAULT_THEME;
-    for (const visual of table.querySelectorAll(".card")) {
+    for (const visual of grid.querySelectorAll(".card")) {
       visual.classList.remove(...THEMES.map(([id]) => id), "light-theme");
       visual.classList.add(themeId);
       if (LIGHT_THEMES.has(themeId)) visual.classList.add("light-theme");
     }
     themeSelect.value = themeId;
-    hint.textContent = `?card=${resource.id}&theme=${themeId}`;
+    hint.textContent = `?deck=${resource.id}&theme=${themeId}`;
     setUrlParameter("theme", themeId);
   }
 
   themeSelect.addEventListener("change", event => applyTheme(event.target.value));
   applyLocale(localeId);
-  applyTheme(themeId);
 }
-

@@ -56,6 +56,8 @@ export const COPY = {
     retired: "Ritirato",
     front: "Faccia A",
     back: "Faccia B",
+    deck: "Mazzo",
+    deckCount: total => `${total} carte`,
     errorTitle: "Contenuto non disponibile",
     backToCatalog: "Torna al catalogo",
     cardNotFound: "Carta non trovata",
@@ -122,6 +124,8 @@ export const COPY = {
     retired: "Retired",
     front: "Face A",
     back: "Face B",
+    deck: "Deck",
+    deckCount: total => `${total} cards`,
     errorTitle: "Content unavailable",
     backToCatalog: "Back to catalog",
     cardNotFound: "Card not found",
@@ -169,6 +173,7 @@ export const catalogRoute = localeId => uiRoute("index.html", {}, localeId);
 export const setRoute = (set, localeId) => uiRoute("set.html", { set: set.id }, localeId);
 export const cardRoute = (card, localeId) => uiRoute("card.html", { card: card.id }, localeId);
 export const themeIndexRoute = (card, localeId) => uiRoute("card-themes.html", { card: card.id }, localeId);
+export const deckRoute = (deck, localeId) => uiRoute("deck.html", { deck: deck.id }, localeId);
 export const themedCardRoute = (card, localeId, themeId) =>
   uiRoute("card-theme.html", { card: card.id, theme: themeId }, localeId);
 

@@ -10,7 +10,8 @@ import {
   pageHeader,
   renderWithLanguage,
   setRoute,
-  themedCardRoute
+  themedCardRoute,
+  deckRoute
 } from "./shell.js";
 
 function cardRow(card, localeId, copy) {
@@ -107,6 +108,10 @@ export function renderCatalogPage(catalog, root) {
       link("", copy.board, new URL("../../campo-di-gioco.html", import.meta.url).href),
       link("", copy.themes, new URL("./card-themes.html", import.meta.url).href)
     );
+    for (const deck of catalog.decks ?? []) {
+      const deckText = localize(deck, localeId);
+      nav.append(link("", `${copy.deck} · ${deckText.name}`, deckRoute(deck, localeId)));
+    }
     header.append(nav);
     page.append(header);
 
@@ -252,7 +257,8 @@ function facePanel(card, face, localeId, copy) {
     for (const trigger of face.triggers) {
       const item = element("div", "rule-item");
       const text = display[trigger.displayKey];
-      item.append(element("strong", "", text.name), element("p", "", text.text));
+      if (text.name) item.append(element("strong", "", text.name));
+      item.append(element("p", "", text.text));
       section.append(item);
     }
     panel.append(section);

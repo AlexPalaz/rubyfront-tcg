@@ -73,17 +73,16 @@
                 },
                 "trigger": "Allo schieramento",
                 "effect": {
-                  "name": "Risacca",
-                  "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
+                  "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo."
                 },
                 "abilities": {
                   "pressure": {
                     "name": "Pressione Abissale",
-                    "text": "un’Entità avversaria a tua scelta prende −2 Potenza fino all’inizio del tuo prossimo turno."
+                    "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
                   },
                   "devour": {
                     "name": "Divorare",
-                    "text": "metti un’Entità avversaria con Potenza pari o inferiore a 3 in fondo al mazzo del suo proprietario."
+                    "text": "metti in fondo al suo mazzo un’Entità avversaria con Potenza 3 o meno."
                   }
                 },
                 "flavor": "Non emerse. Gli abissi aprirono gli occhi."
@@ -91,19 +90,18 @@
               "faceB": {
                 "name": "Incarnazione dell’Abisso",
                 "unionAria": "Unione",
-                "trigger": "Al flip",
+                "trigger": "All’Unione",
                 "effect": {
-                  "name": "La Prima Ondata",
-                  "text": "Tappa un’Entità avversaria a tua scelta. (Un’Entità tappata non può né attaccare né bloccare finché non si stappa.)"
+                  "text": "Tappa un’Entità avversaria a tua scelta."
                 },
                 "abilities": {
                   "tide": {
                     "name": "Marea Crescente",
-                    "text": "fino a due Entità avversarie a tua scelta prendono −2 Potenza fino all’inizio del tuo prossimo turno."
+                    "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
                   },
                   "abyss": {
                     "name": "La Grande Marea",
-                    "text": "tappa tutte le Entità avversarie in campo. (Usala prima di dichiarare l’attacco: un’Entità tappata non può bloccare.)"
+                    "text": "tappa tutte le Entità avversarie in campo."
                   }
                 },
                 "flavor": "L’abisso prese forma. Il mondo arretrò."
@@ -139,17 +137,16 @@
                 },
                 "trigger": "On deployment",
                 "effect": {
-                  "name": "Undertow",
-                  "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
+                  "text": "Look at the top card of your deck: you may put it on the bottom."
                 },
                 "abilities": {
                   "pressure": {
                     "name": "Abyssal Pressure",
-                    "text": "an opposing Entity of your choice gets −2 Power until the start of your next turn."
+                    "text": "an opposing Entity gets −2 Power until your next turn."
                   },
                   "devour": {
                     "name": "Devour",
-                    "text": "put an opposing Entity with Power 3 or less on the bottom of its owner’s deck."
+                    "text": "put an opposing Entity with Power 3 or less on the bottom of its deck."
                   }
                 },
                 "flavor": "It did not rise. The abyss opened its eyes."
@@ -157,19 +154,18 @@
               "faceB": {
                 "name": "The Abyss Incarnate",
                 "unionAria": "Union",
-                "trigger": "On flip",
+                "trigger": "On Union",
                 "effect": {
-                  "name": "The First Wave",
-                  "text": "Tap an opposing Entity of your choice. (A tapped Entity can neither attack nor block until it untaps.)"
+                  "text": "Tap an opposing Entity of your choice."
                 },
                 "abilities": {
                   "tide": {
                     "name": "Rising Tide",
-                    "text": "up to two opposing Entities of your choice get −2 Power until the start of your next turn."
+                    "text": "up to two opposing Entities get −2 Power until your next turn."
                   },
                   "abyss": {
                     "name": "The Great Tide",
-                    "text": "tap every opposing Entity on the field. (Use it before declaring your attack: a tapped Entity cannot block.)"
+                    "text": "tap every opposing Entity on the field."
                   }
                 },
                 "flavor": "The abyss no longer waits below. It walks."
@@ -447,20 +443,20 @@
                 "hp": "PV",
                 "power": "Potenza",
                 "counterattack": "Contrattacco",
-                "flux": "Flussi"
+                "flux": "Flussi",
+                "unique": "Unica"
               },
               "face": {
                 "name": "Adam, Il Primo",
                 "abilities": {
                   "genesis": {
                     "name": "Genesi",
-                    "text": "cerca nel tuo mazzo una carta Materia Zero, mostrala all’avversario e aggiungila alla tua mano, poi rimescola il mazzo. Non puoi giocare quella Materia in questo turno."
+                    "text": "cerca nel tuo mazzo una Materia Zero, mostrala e aggiungila alla mano, poi rimescola. Non puoi giocarla in questo turno."
                   }
                 },
                 "bequest": {
                   "trigger": "Quando lascia il campo",
-                  "name": "Lascito",
-                  "text": "Pesca una carta. (Si innesca a ogni uscita dal campo: anche il Ritiro in Zona di Requiem, che non è una morte.)"
+                  "text": "Pesca una carta. (Anche il Ritiro in Requiem lo innesca.)"
                 },
                 "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
               }
@@ -477,20 +473,20 @@
                 "hp": "HP",
                 "power": "Power",
                 "counterattack": "Counterattack",
-                "flux": "Flux"
+                "flux": "Flux",
+                "unique": "Unique"
               },
               "face": {
                 "name": "Adam, The First",
                 "abilities": {
                   "genesis": {
                     "name": "Genesis",
-                    "text": "search your deck for a Zero Matter card, reveal it to your opponent and add it to your hand, then shuffle your deck. You can’t play that Matter this turn."
+                    "text": "search your deck for a Zero Matter, reveal it and add it to your hand, then shuffle. You can’t play it this turn."
                   }
                 },
                 "bequest": {
                   "trigger": "When he leaves the field",
-                  "name": "Bequest",
-                  "text": "Draw a card. (Triggers on every exit from the field: retirement to the Requiem Zone included, which is not a death.)"
+                  "text": "Draw a card. (Retiring to Requiem triggers this too.)"
                 },
                 "flavor": "He was the first to touch the Zero. Ever since, humanity was changed forever."
               }
@@ -573,8 +569,2164 @@
             }
           ],
           "designNotes": "rbf-002.md",
+          "unique": true,
           "source": {
             "designNotes": "notes/rbf-002.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-003",
+          "setId": "rubyfront-core",
+          "collectorNumber": "003",
+          "slug": "absence",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 1,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Assenza",
+              "typeLabel": "Materia Zero",
+              "summary": "Il vuoto reso carta: fa sparire un'Entità dal campo, viva, dritta in Zona di Requiem.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi",
+                "unique": "Unica"
+              },
+              "matters": {
+                "zeroTitle": "Materia Zero",
+                "zeroAria": "Zero"
+              },
+              "face": {
+                "name": "Assenza",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Scegli un’Entità: sparisce dal campo e va nella Zona di Requiem del suo proprietario. Puoi scegliere anche Entità coperte."
+                },
+                "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
+              }
+            },
+            "en": {
+              "name": "Absence",
+              "typeLabel": "Zero Matter",
+              "summary": "The void made card: it makes an Entity vanish from the field, alive, straight to the Requiem Zone.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux",
+                "unique": "Unique"
+              },
+              "matters": {
+                "zeroTitle": "Zero Matter",
+                "zeroAria": "Zero"
+              },
+              "face": {
+                "name": "Absence",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Choose an Entity: it vanishes from the field and goes to its owner’s Requiem Zone. You may choose covered Entities as well."
+                },
+                "flavor": "A cold silence, where something used to be."
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "zero",
+            "viatico"
+          ],
+          "rulesReference": "MANUALE.md §7, §8.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "zero"
+              },
+              "behavior": "normal",
+              "stats": {
+                "fluxCost": 4
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "absence",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "min": 1,
+                      "max": 1,
+                      "canTargetCovered": true
+                    },
+                    "destination": {
+                      "zone": "requiem",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "isRetirement": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": true
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-003.md",
+          "unique": true,
+          "source": {
+            "designNotes": "notes/rbf-003.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-004",
+          "setId": "rubyfront-core",
+          "collectorNumber": "004",
+          "slug": "dash",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Scatto",
+              "typeLabel": "Materia Dinamica I",
+              "summary": "L'aggressività degli Umani: più Potenza e nessuna attesa. La velocità è un'arma.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "matters": {
+                "dynamicTitle": "Materia Dinamica · 1° grado",
+                "dynamicAria": "Dinamica"
+              },
+              "face": {
+                "name": "Scatto",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno."
+                },
+                "flavor": "Prima che l’occhio capisca, è già finita."
+              }
+            },
+            "en": {
+              "name": "Dash",
+              "typeLabel": "Dynamic Matter I",
+              "summary": "Human aggression: more Power and no waiting. Speed is a weapon.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "matters": {
+                "dynamicTitle": "Dynamic Matter · 1st grade",
+                "dynamicAria": "Dynamic"
+              },
+              "face": {
+                "name": "Dash",
+                "effect": {
+                  "name": "Effect",
+                  "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn."
+                },
+                "flavor": "By the time the eye understands, it is already over."
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dynamic",
+            "grade-1"
+          ],
+          "rulesReference": "MANUALE.md §7, §8.1",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dynamic",
+                "grade": 1
+              },
+              "behavior": "normal",
+              "stats": {
+                "fluxCost": 3
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "dash",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "empower",
+                    "target": {
+                      "cardType": "entity",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "powerBonus": 2,
+                    "duration": "until_end_of_turn",
+                    "grants": [
+                      "surge"
+                    ]
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-004.md",
+          "source": {
+            "designNotes": "notes/rbf-004.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-005",
+          "setId": "rubyfront-core",
+          "collectorNumber": "005",
+          "slug": "rift",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Varco",
+              "typeLabel": "Materia Dimensionale I",
+              "summary": "Lo spazio piegato degli Auros: un'Entità torna da dove è venuta.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · 1° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Varco",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Riporta un’Entità a tua scelta dal campo nella mano del suo proprietario. L’Oggetto che aveva assegnato va nell’Abisso."
+                },
+                "flavor": "Per gli Auros la distanza è un’opinione."
+              }
+            },
+            "en": {
+              "name": "Rift",
+              "typeLabel": "Dimensional Matter I",
+              "summary": "The bent space of the Auros: an Entity goes back where it came from.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · 1st grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "Rift",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Return an Entity of your choice from the field to its owner’s hand. Its assigned Object goes to the Abyss."
+                },
+                "flavor": "To the Auros, distance is an opinion."
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dimensional",
+            "grade-1"
+          ],
+          "rulesReference": "MANUALE.md §7, §8.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dimensional",
+                "grade": 1
+              },
+              "behavior": "normal",
+              "stats": {
+                "fluxCost": 3
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "rift",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": false
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-005.md",
+          "source": {
+            "designNotes": "notes/rbf-005.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-006",
+          "setId": "rubyfront-core",
+          "collectorNumber": "006",
+          "slug": "wrath",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Collera",
+              "typeLabel": "Materia Distruttiva I",
+              "summary": "La prima Reattiva del gioco: la collera della bestia scatta quando l'avversario meno se lo aspetta.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "permanent": "Permanente"
+                }
+              },
+              "matters": {
+                "destructiveTitle": "Materia Distruttiva · 1° grado",
+                "destructiveAria": "Distruttiva"
+              },
+              "face": {
+                "name": "Collera",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Il Rubyfront avversario perde 2 PV. (Se è in campo, la perdita lo fa tornare immediatamente in Zona di Richiamo.)"
+                },
+                "flavor": "La bestia non conosce misura."
+              }
+            },
+            "en": {
+              "name": "Wrath",
+              "typeLabel": "Destructive Matter I",
+              "summary": "The game's first Reactive: the beast's wrath strikes when the opponent least expects it.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "permanent": "Permanent"
+                }
+              },
+              "matters": {
+                "destructiveTitle": "Destructive Matter · 1st grade",
+                "destructiveAria": "Destructive"
+              },
+              "face": {
+                "name": "Wrath",
+                "effect": {
+                  "name": "Effect",
+                  "text": "The opposing Rubyfront loses 2 HP. (If deployed, the loss makes it immediately return to the Recall Zone.)"
+                },
+                "flavor": "The beast knows no measure."
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "destructive",
+            "grade-1",
+            "reactive"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "destructive",
+                "grade": 1
+              },
+              "behavior": "reactive",
+              "stats": {
+                "fluxCost": 3
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "wrath",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "lose_health",
+                    "target": {
+                      "cardType": "rubyfront",
+                      "controller": "opponent"
+                    },
+                    "amount": 2
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-006.md",
+          "source": {
+            "designNotes": "notes/rbf-006.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-007",
+          "setId": "rubyfront-core",
+          "collectorNumber": "007",
+          "slug": "vigorbelt",
+          "type": "object",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Vigorcintura",
+              "typeLabel": "Oggetto",
+              "summary": "Il primo Oggetto del set: una cintura per soli Umani, e chi la porta colpisce più forte.",
+              "ui": {
+                "face": "Oggetto"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Vigorcintura",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza."
+                },
+                "flavor": "Stringila forte. Il vigore fa il resto."
+              }
+            },
+            "en": {
+              "name": "Vigorbelt",
+              "typeLabel": "Object",
+              "summary": "The set's first Object: a belt for Humans only, and its bearer hits harder.",
+              "ui": {
+                "face": "Object"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Vigorbelt",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power."
+                },
+                "flavor": "Buckle it tight. Vigor does the rest."
+              }
+            }
+          },
+          "tags": [
+            "object",
+            "human"
+          ],
+          "rulesReference": "MANUALE.md §3.1",
+          "faces": [
+            {
+              "id": "object",
+              "kind": "object",
+              "displayKey": "face",
+              "stats": {},
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "band",
+                  "displayKey": "effect",
+                  "event": "while_assigned",
+                  "effect": {
+                    "type": "modify_power",
+                    "target": {
+                      "cardType": "entity",
+                      "race": "human",
+                      "scope": "assigned"
+                    },
+                    "amount": 1,
+                    "duration": "permanent"
+                  }
+                }
+              ],
+              "actions": [],
+              "assignRestriction": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              }
+            }
+          ],
+          "designNotes": "rbf-007.md",
+          "source": {
+            "designNotes": "notes/rbf-007.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-008",
+          "setId": "rubyfront-core",
+          "collectorNumber": "008",
+          "slug": "lookout",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Vedetta",
+              "typeLabel": "Entità — Umano",
+              "summary": "Il primo corpo del mazzo: un occhio sul Fronte e l'accesso alla Dinamica.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Vedetta",
+                "flavor": "Vide arrivare la fine. Fischiò due volte."
+              }
+            },
+            "en": {
+              "name": "Lookout",
+              "typeLabel": "Entity — Human",
+              "summary": "The deck's first body: an eye on the Front and access to the Dynamic.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Lookout",
+                "flavor": "She saw the end coming. She whistled twice."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "dynamic"
+          ],
+          "rulesReference": "MANUALE.md §6.2, §7",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 1,
+                "fluxCost": 1
+              },
+              "enablesMatters": [
+                {
+                  "type": "dynamic",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-008.md",
+          "source": {
+            "designNotes": "notes/rbf-008.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-009",
+          "setId": "rubyfront-core",
+          "collectorNumber": "009",
+          "slug": "threshold-warden",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Custode della Soglia",
+              "typeLabel": "Entità — Umano",
+              "summary": "Un difensore nato: fragile in attacco, una porta sbarrata in blocco.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Custode della Soglia",
+                "flavor": "Nessuno passa. Non oggi.",
+                "warden": {
+                  "trigger": "Quando blocca",
+                  "text": "Prende +2 Potenza fino alla fine della battaglia."
+                }
+              }
+            },
+            "en": {
+              "name": "Threshold Warden",
+              "typeLabel": "Entity — Human",
+              "summary": "A born defender: frail on the attack, a barred door on the block.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Threshold Warden",
+                "flavor": "No one passes. Not today.",
+                "warden": {
+                  "trigger": "When he blocks",
+                  "text": "He gets +2 Power until the end of the battle."
+                }
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "dynamic",
+            "defender"
+          ],
+          "rulesReference": "MANUALE.md §6.3, §7",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 1,
+                "fluxCost": 2
+              },
+              "enablesMatters": [
+                {
+                  "type": "dynamic",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "warden",
+                  "displayKey": "warden",
+                  "event": "on_block",
+                  "effect": {
+                    "type": "modify_power",
+                    "target": {
+                      "scope": "self"
+                    },
+                    "amount": 2,
+                    "duration": "until_end_of_battle"
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-009.md",
+          "source": {
+            "designNotes": "notes/rbf-009.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-010",
+          "setId": "rubyfront-core",
+          "collectorNumber": "010",
+          "slug": "field-medic",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Medico da Campo",
+              "typeLabel": "Entità — Umano",
+              "summary": "Cure per la bestia: i PV sono la valuta del piano, e lui li restituisce.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Medico da Campo",
+                "flavor": "Anche le bestie sanguinano.",
+                "medic": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Il tuo Rubyfront recupera 2 PV."
+                }
+              }
+            },
+            "en": {
+              "name": "Field Medic",
+              "typeLabel": "Entity — Human",
+              "summary": "Care for the beast: HP are the plan's currency, and he gives them back.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Field Medic",
+                "flavor": "Even beasts bleed.",
+                "medic": {
+                  "trigger": "When he enters the field",
+                  "text": "Your Rubyfront recovers 2 HP."
+                }
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "heal"
+          ],
+          "rulesReference": "MANUALE.md §6.2, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 1,
+                "fluxCost": 2
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "medic",
+                  "displayKey": "medic",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "gain_health",
+                    "target": {
+                      "cardType": "rubyfront",
+                      "controller": "controller"
+                    },
+                    "amount": 2
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-010.md",
+          "source": {
+            "designNotes": "notes/rbf-010.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-011",
+          "setId": "rubyfront-core",
+          "collectorNumber": "011",
+          "slug": "herald-of-the-first",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Araldo del Primo",
+              "typeLabel": "Entità — Umano",
+              "summary": "Il cercatore del piano: trova Adam, o chiunque serva alla causa.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Araldo del Primo",
+                "flavor": "Il Primo cammina fra noi. Io l'ho visto.",
+                "herald": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
+                }
+              }
+            },
+            "en": {
+              "name": "Herald of the First",
+              "typeLabel": "Entity — Human",
+              "summary": "The plan's seeker: finds Adam, or whoever the cause requires.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Herald of the First",
+                "flavor": "The First walks among us. I have seen him.",
+                "herald": {
+                  "trigger": "When he enters the field",
+                  "text": "Search your deck for a Human, reveal it to your opponent and add it to your hand, then shuffle your deck."
+                }
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "tutor",
+            "viatico"
+          ],
+          "rulesReference": "MANUALE.md §6.2, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 1,
+                "fluxCost": 3
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "herald",
+                  "displayKey": "herald",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "search_card",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller"
+                    },
+                    "filter": {
+                      "cardType": "entity",
+                      "race": "human"
+                    },
+                    "reveal": true,
+                    "to": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    },
+                    "shuffle": true
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-011.md",
+          "source": {
+            "designNotes": "notes/rbf-011.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-012",
+          "setId": "rubyfront-core",
+          "collectorNumber": "012",
+          "slug": "last-bastion",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Ultimo Bastione",
+              "typeLabel": "Entità — Umano",
+              "summary": "Il muro del piano: un corpo largo che tiene la linea e abilita la Dinamica.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Ultimo Bastione",
+                "flavor": "Cade il mondo, non lui."
+              }
+            },
+            "en": {
+              "name": "Last Bastion",
+              "typeLabel": "Entity — Human",
+              "summary": "The plan's wall: a wide body that holds the line and enables the Dynamic.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Last Bastion",
+                "flavor": "The world may fall. He will not."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "dynamic",
+            "defender"
+          ],
+          "rulesReference": "MANUALE.md §7, §8.1",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 2,
+                "fluxCost": 3
+              },
+              "enablesMatters": [
+                {
+                  "type": "dynamic",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-012.md",
+          "source": {
+            "designNotes": "notes/rbf-012.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-013",
+          "setId": "rubyfront-core",
+          "collectorNumber": "013",
+          "slug": "reflex",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Riflesso",
+              "typeLabel": "Materia Dinamica I",
+              "summary": "La velocità come scudo: un blocco dal nulla, letale sui piccoli.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "permanent": "Permanente"
+                }
+              },
+              "face": {
+                "name": "Riflesso",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Assegnala come blocco a un attaccante: quell’attacco è bloccato. Se l’attaccante ha Potenza 3 o meno, muore."
+                },
+                "flavor": "Un lampo, e l’acciaio trova l’acciaio."
+              },
+              "matters": {
+                "dynamicTitle": "Materia Dinamica · 1° grado",
+                "dynamicAria": "Dinamica"
+              }
+            },
+            "en": {
+              "name": "Reflex",
+              "typeLabel": "Dynamic Matter I",
+              "summary": "Speed as a shield: a block out of nowhere, lethal to the small.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "permanent": "Permanent"
+                }
+              },
+              "face": {
+                "name": "Reflex",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Assign it as a block to an attacker: that attack is blocked. If the attacker has Power 3 or less, it dies."
+                },
+                "flavor": "A flash, and steel finds steel."
+              },
+              "matters": {
+                "dynamicTitle": "Dynamic Matter · 1st grade",
+                "dynamicAria": "Dynamic"
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dynamic",
+            "grade-1",
+            "reactive",
+            "block"
+          ],
+          "rulesReference": "MANUALE.md §6.3, §7.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dynamic",
+                "grade": 1
+              },
+              "behavior": "reactive",
+              "stats": {
+                "fluxCost": 2
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "reflex",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "block_attack",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "details": {
+                      "killIfPowerAtMost": 3
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-013.md",
+          "source": {
+            "designNotes": "notes/rbf-013.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-014",
+          "setId": "rubyfront-core",
+          "collectorNumber": "014",
+          "slug": "champion-of-the-change",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Campione del Cambiamento",
+              "typeLabel": "Entità — Umano",
+              "summary": "Il corpo grosso del piano e la porta al secondo grado della Dinamica.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Campione del Cambiamento",
+                "flavor": "L’umanità cambiò. Lui più di tutti."
+              }
+            },
+            "en": {
+              "name": "Champion of the Change",
+              "typeLabel": "Entity — Human",
+              "summary": "The plan's big body and the gate to the Dynamic's second grade.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Champion of the Change",
+                "flavor": "Humanity changed. He most of all."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "dynamic"
+          ],
+          "rulesReference": "MANUALE.md §7",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 3,
+                "fluxCost": 5
+              },
+              "enablesMatters": [
+                {
+                  "type": "dynamic",
+                  "maxGrade": 2
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-014.md",
+          "source": {
+            "designNotes": "notes/rbf-014.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-015",
+          "setId": "rubyfront-core",
+          "collectorNumber": "015",
+          "slug": "second-surge",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Secondo Impeto",
+              "typeLabel": "Materia Dinamica II",
+              "summary": "Il finisher del mazzo: un attacco in più quando il Fronte avversario è tappato.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Secondo Impeto",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Un’Entità a tua scelta che ha già attaccato in questo turno si stappa e può attaccare una seconda volta."
+                },
+                "flavor": "Il primo colpo apre. Il secondo chiude."
+              },
+              "matters": {
+                "dynamicTitle": "Materia Dinamica · 2° grado",
+                "dynamicAria": "Dinamica"
+              }
+            },
+            "en": {
+              "name": "Second Surge",
+              "typeLabel": "Dynamic Matter II",
+              "summary": "The deck's finisher: one more attack while the opposing Front is tapped.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Second Surge",
+                "effect": {
+                  "name": "Effect",
+                  "text": "An Entity of your choice that has already attacked this turn untaps and may attack a second time."
+                },
+                "flavor": "The first blow opens. The second closes."
+              },
+              "matters": {
+                "dynamicTitle": "Dynamic Matter · 2nd grade",
+                "dynamicAria": "Dynamic"
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dynamic",
+            "grade-2"
+          ],
+          "rulesReference": "MANUALE.md §6.3, §7.1",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dynamic",
+                "grade": 2
+              },
+              "behavior": "normal",
+              "stats": {
+                "fluxCost": 5
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "surge-again",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "extra_attack",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "controller",
+                      "min": 1,
+                      "max": 1
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-015.md",
+          "source": {
+            "designNotes": "notes/rbf-015.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-016",
+          "setId": "rubyfront-core",
+          "collectorNumber": "016",
+          "slug": "hemorrhage",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Emorragia",
+              "typeLabel": "Materia Distruttiva II",
+              "summary": "La ferita che non si chiude: fragile con la bestia, eterna con l'Unione.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "permanent": "Permanente"
+                }
+              },
+              "face": {
+                "name": "Emorragia",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "All’inizio del tuo turno, il Rubyfront avversario perde 1 PV."
+                },
+                "flavor": "Alcune ferite non si chiudono."
+              },
+              "matters": {
+                "destructiveTitle": "Materia Distruttiva · 2° grado",
+                "destructiveAria": "Distruttiva"
+              }
+            },
+            "en": {
+              "name": "Hemorrhage",
+              "typeLabel": "Destructive Matter II",
+              "summary": "The wound that never closes: fragile with the beast, eternal with the Union.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "permanent": "Permanent"
+                }
+              },
+              "face": {
+                "name": "Hemorrhage",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "At the start of your turn, the opposing Rubyfront loses 1 HP."
+                },
+                "flavor": "Some wounds never close."
+              },
+              "matters": {
+                "destructiveTitle": "Materia Distruttiva · 2nd grade",
+                "destructiveAria": "Destructive"
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "destructive",
+            "grade-2",
+            "permanent"
+          ],
+          "rulesReference": "MANUALE.md §7.2, §8.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "destructive",
+                "grade": 2
+              },
+              "behavior": "permanent",
+              "stats": {
+                "fluxCost": 4
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "bleed",
+                  "displayKey": "effect",
+                  "event": "on_turn_start",
+                  "effect": {
+                    "type": "lose_health",
+                    "target": {
+                      "cardType": "rubyfront",
+                      "controller": "opponent"
+                    },
+                    "amount": 1
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-016.md",
+          "source": {
+            "designNotes": "notes/rbf-016.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-017",
+          "setId": "rubyfront-core",
+          "collectorNumber": "017",
+          "slug": "stillness",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 1,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Quiete",
+              "typeLabel": "Materia Zero",
+              "summary": "Il primo annullamento del gioco: la risposta che spegne la risposta.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi",
+                "unique": "Unica",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "permanent": "Permanente"
+                }
+              },
+              "face": {
+                "name": "Quiete",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Scegli una Materia Reattiva appena giocata nella catena: quando dovrebbe risolversi, svanisce e va nell’Abisso senza alcun effetto. Il Flusso speso non torna."
+                },
+                "flavor": "Il vuoto non discute."
+              },
+              "matters": {
+                "zeroTitle": "Materia Zero",
+                "zeroAria": "Zero"
+              }
+            },
+            "en": {
+              "name": "Stillness",
+              "typeLabel": "Zero Matter",
+              "summary": "The game's first negation: the answer that silences the answer.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux",
+                "unique": "Unique",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "permanent": "Permanent"
+                }
+              },
+              "face": {
+                "name": "Stillness",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Choose a Reactive Matter just played in the chain: when it would resolve, it fades and goes to the Abyss with no effect. The Flux spent is not returned."
+                },
+                "flavor": "The void does not argue."
+              },
+              "matters": {
+                "zeroTitle": "Zero Matter",
+                "zeroAria": "Zero"
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "zero",
+            "reactive",
+            "counter",
+            "viatico"
+          ],
+          "rulesReference": "MANUALE.md §7.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "zero"
+              },
+              "behavior": "reactive",
+              "stats": {
+                "fluxCost": 2
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "stillness",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "counter_card",
+                    "target": {
+                      "cardType": "matter",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "details": {
+                      "onlyReactiveInChain": true,
+                      "toZone": "abyss"
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-017.md",
+          "unique": true,
+          "source": {
+            "designNotes": "notes/rbf-017.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-018",
+          "setId": "rubyfront-core",
+          "collectorNumber": "018",
+          "slug": "chronicler",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Cronista",
+              "typeLabel": "Entità — Umano",
+              "summary": "Carte fresche per il piano: un corpo piccolo che non fa perdere nulla.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Cronista",
+                "flavor": "Scrive ciò che il Cambiamento detta.",
+                "chronicle": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Pesca una carta."
+                }
+              }
+            },
+            "en": {
+              "name": "Chronicler",
+              "typeLabel": "Entity — Human",
+              "summary": "Fresh cards for the plan: a small body that loses you nothing.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Chronicler",
+                "flavor": "She writes what the Change dictates.",
+                "chronicle": {
+                  "trigger": "When she enters the field",
+                  "text": "Draw a card."
+                }
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "draw"
+          ],
+          "rulesReference": "MANUALE.md §6.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 1,
+                "fluxCost": 3
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "chronicle",
+                  "displayKey": "chronicle",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "draw_card",
+                    "target": {
+                      "controller": "controller"
+                    },
+                    "count": 1
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-018.md",
+          "source": {
+            "designNotes": "notes/rbf-018.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-019",
+          "setId": "rubyfront-core",
+          "collectorNumber": "019",
+          "slug": "front-veteran",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Veterana del Fronte",
+              "typeLabel": "Entità — Umano",
+              "summary": "Blocca e punisce: il contrattacco che gli attaccanti medi imparano a temere.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Veterana del Fronte",
+                "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
+              }
+            },
+            "en": {
+              "name": "Front Veteran",
+              "typeLabel": "Entity — Human",
+              "summary": "She blocks and punishes: the counterattack mid-size attackers learn to fear.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Front Veteran",
+                "flavor": "She has blocked more attacks than you have seen."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "defender"
+          ],
+          "rulesReference": "MANUALE.md §6.3",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 2,
+                "fluxCost": 4,
+                "counterattack": 2
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-019.md",
+          "source": {
+            "designNotes": "notes/rbf-019.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-020",
+          "setId": "rubyfront-core",
+          "collectorNumber": "020",
+          "slug": "veil-of-the-first",
+          "type": "object",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Velo del Primo",
+              "typeLabel": "Oggetto",
+              "summary": "La protezione del pezzo chiave: le Materie avversarie non lo trovano.",
+              "ui": {
+                "face": "Oggetto"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Velo del Primo",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Assegnalo a un tuo Umano: finché lo indossa, non può essere bersagliato dalle Materie avversarie."
+                },
+                "flavor": "Ciò che il vuoto ha toccato, il vuoto protegge."
+              }
+            },
+            "en": {
+              "name": "Veil of the First",
+              "typeLabel": "Object",
+              "summary": "Protection for the key piece: opposing Matters cannot find it.",
+              "ui": {
+                "face": "Object"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Veil of the First",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Assign it to one of your Humans: for as long as they wear it, they cannot be targeted by opposing Matters."
+                },
+                "flavor": "What the void has touched, the void protects."
+              }
+            }
+          },
+          "tags": [
+            "object",
+            "human",
+            "protection",
+            "viatico"
+          ],
+          "rulesReference": "MANUALE.md §3.1",
+          "faces": [
+            {
+              "id": "object",
+              "kind": "object",
+              "displayKey": "face",
+              "stats": {},
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "veil",
+                  "displayKey": "effect",
+                  "event": "while_assigned",
+                  "effect": {
+                    "type": "protect",
+                    "target": {
+                      "cardType": "entity",
+                      "scope": "assigned"
+                    },
+                    "details": {
+                      "from": "opponent_matters"
+                    }
+                  }
+                }
+              ],
+              "actions": [],
+              "assignRestriction": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              }
+            }
+          ],
+          "designNotes": "rbf-020.md",
+          "source": {
+            "designNotes": "notes/rbf-020.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-021",
+          "setId": "rubyfront-core",
+          "collectorNumber": "021",
+          "slug": "runner",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Staffetta",
+              "typeLabel": "Entità — Umano",
+              "summary": "Pressione dal primo turno: il debutto dello Slancio.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Staffetta",
+                "keyword": {
+                  "name": "Slancio",
+                  "rules": "può attaccare già nel turno in cui entra in campo"
+                },
+                "flavor": "Arriva prima della notizia del suo arrivo."
+              }
+            },
+            "en": {
+              "name": "Runner",
+              "typeLabel": "Entity — Human",
+              "summary": "Pressure from turn one: the debut of Surge.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Runner",
+                "keyword": {
+                  "name": "Surge",
+                  "rules": "she may attack the very turn she enters the field"
+                },
+                "flavor": "She arrives before word of her arrival."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "surge"
+          ],
+          "rulesReference": "MANUALE.md §8.1",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 1,
+                "fluxCost": 1
+              },
+              "enablesMatters": [],
+              "keywords": [
+                {
+                  "id": "surge"
+                }
+              ],
+              "requirements": {},
+              "triggers": [],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-021.md",
+          "source": {
+            "designNotes": "notes/rbf-021.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-022",
+          "setId": "rubyfront-core",
+          "collectorNumber": "022",
+          "slug": "march-of-the-change",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Marcia del Cambiamento",
+              "typeLabel": "Materia Dinamica I",
+              "summary": "L'inno del piano: ogni Umano un passo più forte, finché la Marcia dura.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "permanent": "Permanente"
+                }
+              },
+              "face": {
+                "name": "Marcia del Cambiamento",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Le tue Entità prendono +1 Potenza."
+                },
+                "flavor": "Un passo alla volta, tutti insieme."
+              },
+              "matters": {
+                "dynamicTitle": "Materia Dinamica · 1° grado",
+                "dynamicAria": "Dinamica"
+              }
+            },
+            "en": {
+              "name": "March of the Change",
+              "typeLabel": "Dynamic Matter I",
+              "summary": "The plan's anthem: every Human one step stronger, for as long as the March lasts.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "permanent": "Permanent"
+                }
+              },
+              "face": {
+                "name": "March of the Change",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Your Entities get +1 Power."
+                },
+                "flavor": "One step at a time, all together."
+              },
+              "matters": {
+                "dynamicTitle": "Dynamic Matter · 1st grade",
+                "dynamicAria": "Dynamic"
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dynamic",
+            "grade-1",
+            "permanent",
+            "anthem"
+          ],
+          "rulesReference": "MANUALE.md §7.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dynamic",
+                "grade": 1
+              },
+              "behavior": "permanent",
+              "stats": {
+                "fluxCost": 4
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "march",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
+                  "effect": {
+                    "type": "modify_power",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "controller",
+                      "quantity": "all"
+                    },
+                    "amount": 1,
+                    "duration": "permanent"
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-022.md",
+          "source": {
+            "designNotes": "notes/rbf-022.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-023",
+          "setId": "rubyfront-core",
+          "collectorNumber": "023",
+          "slug": "avenger",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 2,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Vendicatrice",
+              "typeLabel": "Entità — Umano",
+              "summary": "Il debutto della Vendetta: bloccarla male costa la vita.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Vendicatrice",
+                "keyword": {
+                  "name": "Vendetta",
+                  "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
+                },
+                "flavor": "Colpiscila, se osi. Poi corri."
+              }
+            },
+            "en": {
+              "name": "Avenger",
+              "typeLabel": "Entity — Human",
+              "summary": "The debut of Vengeance: blocking her carelessly costs lives.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Avenger",
+                "keyword": {
+                  "name": "Vengeance",
+                  "rules": "if she blocks with higher Power, the attacker dies"
+                },
+                "flavor": "Strike her if you dare. Then run."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "human",
+            "vengeance",
+            "defender"
+          ],
+          "rulesReference": "MANUALE.md §8.1",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "human",
+              "stats": {
+                "power": 2,
+                "fluxCost": 2
+              },
+              "enablesMatters": [],
+              "keywords": [
+                {
+                  "id": "vengeance"
+                }
+              ],
+              "requirements": {},
+              "triggers": [],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-023.md",
+          "source": {
+            "designNotes": "notes/rbf-023.md"
           }
         }
       ]
@@ -624,17 +2776,16 @@
             },
             "trigger": "Allo schieramento",
             "effect": {
-              "name": "Risacca",
-              "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
+              "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo."
             },
             "abilities": {
               "pressure": {
                 "name": "Pressione Abissale",
-                "text": "un’Entità avversaria a tua scelta prende −2 Potenza fino all’inizio del tuo prossimo turno."
+                "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
               },
               "devour": {
                 "name": "Divorare",
-                "text": "metti un’Entità avversaria con Potenza pari o inferiore a 3 in fondo al mazzo del suo proprietario."
+                "text": "metti in fondo al suo mazzo un’Entità avversaria con Potenza 3 o meno."
               }
             },
             "flavor": "Non emerse. Gli abissi aprirono gli occhi."
@@ -642,19 +2793,18 @@
           "faceB": {
             "name": "Incarnazione dell’Abisso",
             "unionAria": "Unione",
-            "trigger": "Al flip",
+            "trigger": "All’Unione",
             "effect": {
-              "name": "La Prima Ondata",
-              "text": "Tappa un’Entità avversaria a tua scelta. (Un’Entità tappata non può né attaccare né bloccare finché non si stappa.)"
+              "text": "Tappa un’Entità avversaria a tua scelta."
             },
             "abilities": {
               "tide": {
                 "name": "Marea Crescente",
-                "text": "fino a due Entità avversarie a tua scelta prendono −2 Potenza fino all’inizio del tuo prossimo turno."
+                "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
               },
               "abyss": {
                 "name": "La Grande Marea",
-                "text": "tappa tutte le Entità avversarie in campo. (Usala prima di dichiarare l’attacco: un’Entità tappata non può bloccare.)"
+                "text": "tappa tutte le Entità avversarie in campo."
               }
             },
             "flavor": "L’abisso prese forma. Il mondo arretrò."
@@ -690,17 +2840,16 @@
             },
             "trigger": "On deployment",
             "effect": {
-              "name": "Undertow",
-              "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
+              "text": "Look at the top card of your deck: you may put it on the bottom."
             },
             "abilities": {
               "pressure": {
                 "name": "Abyssal Pressure",
-                "text": "an opposing Entity of your choice gets −2 Power until the start of your next turn."
+                "text": "an opposing Entity gets −2 Power until your next turn."
               },
               "devour": {
                 "name": "Devour",
-                "text": "put an opposing Entity with Power 3 or less on the bottom of its owner’s deck."
+                "text": "put an opposing Entity with Power 3 or less on the bottom of its deck."
               }
             },
             "flavor": "It did not rise. The abyss opened its eyes."
@@ -708,19 +2857,18 @@
           "faceB": {
             "name": "The Abyss Incarnate",
             "unionAria": "Union",
-            "trigger": "On flip",
+            "trigger": "On Union",
             "effect": {
-              "name": "The First Wave",
-              "text": "Tap an opposing Entity of your choice. (A tapped Entity can neither attack nor block until it untaps.)"
+              "text": "Tap an opposing Entity of your choice."
             },
             "abilities": {
               "tide": {
                 "name": "Rising Tide",
-                "text": "up to two opposing Entities of your choice get −2 Power until the start of your next turn."
+                "text": "up to two opposing Entities get −2 Power until your next turn."
               },
               "abyss": {
                 "name": "The Great Tide",
-                "text": "tap every opposing Entity on the field. (Use it before declaring your attack: a tapped Entity cannot block.)"
+                "text": "tap every opposing Entity on the field."
               }
             },
             "flavor": "The abyss no longer waits below. It walks."
@@ -998,20 +3146,20 @@
             "hp": "PV",
             "power": "Potenza",
             "counterattack": "Contrattacco",
-            "flux": "Flussi"
+            "flux": "Flussi",
+            "unique": "Unica"
           },
           "face": {
             "name": "Adam, Il Primo",
             "abilities": {
               "genesis": {
                 "name": "Genesi",
-                "text": "cerca nel tuo mazzo una carta Materia Zero, mostrala all’avversario e aggiungila alla tua mano, poi rimescola il mazzo. Non puoi giocare quella Materia in questo turno."
+                "text": "cerca nel tuo mazzo una Materia Zero, mostrala e aggiungila alla mano, poi rimescola. Non puoi giocarla in questo turno."
               }
             },
             "bequest": {
               "trigger": "Quando lascia il campo",
-              "name": "Lascito",
-              "text": "Pesca una carta. (Si innesca a ogni uscita dal campo: anche il Ritiro in Zona di Requiem, che non è una morte.)"
+              "text": "Pesca una carta. (Anche il Ritiro in Requiem lo innesca.)"
             },
             "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
           }
@@ -1028,20 +3176,20 @@
             "hp": "HP",
             "power": "Power",
             "counterattack": "Counterattack",
-            "flux": "Flux"
+            "flux": "Flux",
+            "unique": "Unique"
           },
           "face": {
             "name": "Adam, The First",
             "abilities": {
               "genesis": {
                 "name": "Genesis",
-                "text": "search your deck for a Zero Matter card, reveal it to your opponent and add it to your hand, then shuffle your deck. You can’t play that Matter this turn."
+                "text": "search your deck for a Zero Matter, reveal it and add it to your hand, then shuffle. You can’t play it this turn."
               }
             },
             "bequest": {
               "trigger": "When he leaves the field",
-              "name": "Bequest",
-              "text": "Draw a card. (Triggers on every exit from the field: retirement to the Requiem Zone included, which is not a death.)"
+              "text": "Draw a card. (Retiring to Requiem triggers this too.)"
             },
             "flavor": "He was the first to touch the Zero. Ever since, humanity was changed forever."
           }
@@ -1124,8 +3272,2277 @@
         }
       ],
       "designNotes": "rbf-002.md",
+      "unique": true,
       "source": {
         "designNotes": "notes/rbf-002.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-003",
+      "setId": "rubyfront-core",
+      "collectorNumber": "003",
+      "slug": "absence",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 1,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Assenza",
+          "typeLabel": "Materia Zero",
+          "summary": "Il vuoto reso carta: fa sparire un'Entità dal campo, viva, dritta in Zona di Requiem.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi",
+            "unique": "Unica"
+          },
+          "matters": {
+            "zeroTitle": "Materia Zero",
+            "zeroAria": "Zero"
+          },
+          "face": {
+            "name": "Assenza",
+            "effect": {
+              "name": "Effetto",
+              "text": "Scegli un’Entità: sparisce dal campo e va nella Zona di Requiem del suo proprietario. Puoi scegliere anche Entità coperte."
+            },
+            "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
+          }
+        },
+        "en": {
+          "name": "Absence",
+          "typeLabel": "Zero Matter",
+          "summary": "The void made card: it makes an Entity vanish from the field, alive, straight to the Requiem Zone.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux",
+            "unique": "Unique"
+          },
+          "matters": {
+            "zeroTitle": "Zero Matter",
+            "zeroAria": "Zero"
+          },
+          "face": {
+            "name": "Absence",
+            "effect": {
+              "name": "Effect",
+              "text": "Choose an Entity: it vanishes from the field and goes to its owner’s Requiem Zone. You may choose covered Entities as well."
+            },
+            "flavor": "A cold silence, where something used to be."
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "zero",
+        "viatico"
+      ],
+      "rulesReference": "MANUALE.md §7, §8.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "zero"
+          },
+          "behavior": "normal",
+          "stats": {
+            "fluxCost": 4
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "absence",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "min": 1,
+                  "max": 1,
+                  "canTargetCovered": true
+                },
+                "destination": {
+                  "zone": "requiem",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "isRetirement": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": true
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-003.md",
+      "unique": true,
+      "source": {
+        "designNotes": "notes/rbf-003.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-004",
+      "setId": "rubyfront-core",
+      "collectorNumber": "004",
+      "slug": "dash",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Scatto",
+          "typeLabel": "Materia Dinamica I",
+          "summary": "L'aggressività degli Umani: più Potenza e nessuna attesa. La velocità è un'arma.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "matters": {
+            "dynamicTitle": "Materia Dinamica · 1° grado",
+            "dynamicAria": "Dinamica"
+          },
+          "face": {
+            "name": "Scatto",
+            "effect": {
+              "name": "Effetto",
+              "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno."
+            },
+            "flavor": "Prima che l’occhio capisca, è già finita."
+          }
+        },
+        "en": {
+          "name": "Dash",
+          "typeLabel": "Dynamic Matter I",
+          "summary": "Human aggression: more Power and no waiting. Speed is a weapon.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "matters": {
+            "dynamicTitle": "Dynamic Matter · 1st grade",
+            "dynamicAria": "Dynamic"
+          },
+          "face": {
+            "name": "Dash",
+            "effect": {
+              "name": "Effect",
+              "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn."
+            },
+            "flavor": "By the time the eye understands, it is already over."
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dynamic",
+        "grade-1"
+      ],
+      "rulesReference": "MANUALE.md §7, §8.1",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dynamic",
+            "grade": 1
+          },
+          "behavior": "normal",
+          "stats": {
+            "fluxCost": 3
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "dash",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "empower",
+                "target": {
+                  "cardType": "entity",
+                  "min": 1,
+                  "max": 1
+                },
+                "powerBonus": 2,
+                "duration": "until_end_of_turn",
+                "grants": [
+                  "surge"
+                ]
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-004.md",
+      "source": {
+        "designNotes": "notes/rbf-004.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-005",
+      "setId": "rubyfront-core",
+      "collectorNumber": "005",
+      "slug": "rift",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Varco",
+          "typeLabel": "Materia Dimensionale I",
+          "summary": "Lo spazio piegato degli Auros: un'Entità torna da dove è venuta.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · 1° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Varco",
+            "effect": {
+              "name": "Effetto",
+              "text": "Riporta un’Entità a tua scelta dal campo nella mano del suo proprietario. L’Oggetto che aveva assegnato va nell’Abisso."
+            },
+            "flavor": "Per gli Auros la distanza è un’opinione."
+          }
+        },
+        "en": {
+          "name": "Rift",
+          "typeLabel": "Dimensional Matter I",
+          "summary": "The bent space of the Auros: an Entity goes back where it came from.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · 1st grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "Rift",
+            "effect": {
+              "name": "Effect",
+              "text": "Return an Entity of your choice from the field to its owner’s hand. Its assigned Object goes to the Abyss."
+            },
+            "flavor": "To the Auros, distance is an opinion."
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dimensional",
+        "grade-1"
+      ],
+      "rulesReference": "MANUALE.md §7, §8.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dimensional",
+            "grade": 1
+          },
+          "behavior": "normal",
+          "stats": {
+            "fluxCost": 3
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "rift",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": false
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-005.md",
+      "source": {
+        "designNotes": "notes/rbf-005.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-006",
+      "setId": "rubyfront-core",
+      "collectorNumber": "006",
+      "slug": "wrath",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Collera",
+          "typeLabel": "Materia Distruttiva I",
+          "summary": "La prima Reattiva del gioco: la collera della bestia scatta quando l'avversario meno se lo aspetta.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "permanent": "Permanente"
+            }
+          },
+          "matters": {
+            "destructiveTitle": "Materia Distruttiva · 1° grado",
+            "destructiveAria": "Distruttiva"
+          },
+          "face": {
+            "name": "Collera",
+            "effect": {
+              "name": "Effetto",
+              "text": "Il Rubyfront avversario perde 2 PV. (Se è in campo, la perdita lo fa tornare immediatamente in Zona di Richiamo.)"
+            },
+            "flavor": "La bestia non conosce misura."
+          }
+        },
+        "en": {
+          "name": "Wrath",
+          "typeLabel": "Destructive Matter I",
+          "summary": "The game's first Reactive: the beast's wrath strikes when the opponent least expects it.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux",
+            "behaviors": {
+              "reactive": "Reactive",
+              "permanent": "Permanent"
+            }
+          },
+          "matters": {
+            "destructiveTitle": "Destructive Matter · 1st grade",
+            "destructiveAria": "Destructive"
+          },
+          "face": {
+            "name": "Wrath",
+            "effect": {
+              "name": "Effect",
+              "text": "The opposing Rubyfront loses 2 HP. (If deployed, the loss makes it immediately return to the Recall Zone.)"
+            },
+            "flavor": "The beast knows no measure."
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "destructive",
+        "grade-1",
+        "reactive"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "destructive",
+            "grade": 1
+          },
+          "behavior": "reactive",
+          "stats": {
+            "fluxCost": 3
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "wrath",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "lose_health",
+                "target": {
+                  "cardType": "rubyfront",
+                  "controller": "opponent"
+                },
+                "amount": 2
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-006.md",
+      "source": {
+        "designNotes": "notes/rbf-006.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-007",
+      "setId": "rubyfront-core",
+      "collectorNumber": "007",
+      "slug": "vigorbelt",
+      "type": "object",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Vigorcintura",
+          "typeLabel": "Oggetto",
+          "summary": "Il primo Oggetto del set: una cintura per soli Umani, e chi la porta colpisce più forte.",
+          "ui": {
+            "face": "Oggetto"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Vigorcintura",
+            "effect": {
+              "name": "Effetto",
+              "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza."
+            },
+            "flavor": "Stringila forte. Il vigore fa il resto."
+          }
+        },
+        "en": {
+          "name": "Vigorbelt",
+          "typeLabel": "Object",
+          "summary": "The set's first Object: a belt for Humans only, and its bearer hits harder.",
+          "ui": {
+            "face": "Object"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Vigorbelt",
+            "effect": {
+              "name": "Effect",
+              "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power."
+            },
+            "flavor": "Buckle it tight. Vigor does the rest."
+          }
+        }
+      },
+      "tags": [
+        "object",
+        "human"
+      ],
+      "rulesReference": "MANUALE.md §3.1",
+      "faces": [
+        {
+          "id": "object",
+          "kind": "object",
+          "displayKey": "face",
+          "stats": {},
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "band",
+              "displayKey": "effect",
+              "event": "while_assigned",
+              "effect": {
+                "type": "modify_power",
+                "target": {
+                  "cardType": "entity",
+                  "race": "human",
+                  "scope": "assigned"
+                },
+                "amount": 1,
+                "duration": "permanent"
+              }
+            }
+          ],
+          "actions": [],
+          "assignRestriction": {
+            "cardType": "entity",
+            "race": "human",
+            "controller": "controller"
+          }
+        }
+      ],
+      "designNotes": "rbf-007.md",
+      "source": {
+        "designNotes": "notes/rbf-007.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-008",
+      "setId": "rubyfront-core",
+      "collectorNumber": "008",
+      "slug": "lookout",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Vedetta",
+          "typeLabel": "Entità — Umano",
+          "summary": "Il primo corpo del mazzo: un occhio sul Fronte e l'accesso alla Dinamica.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Vedetta",
+            "flavor": "Vide arrivare la fine. Fischiò due volte."
+          }
+        },
+        "en": {
+          "name": "Lookout",
+          "typeLabel": "Entity — Human",
+          "summary": "The deck's first body: an eye on the Front and access to the Dynamic.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Lookout",
+            "flavor": "She saw the end coming. She whistled twice."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "dynamic"
+      ],
+      "rulesReference": "MANUALE.md §6.2, §7",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 1,
+            "fluxCost": 1
+          },
+          "enablesMatters": [
+            {
+              "type": "dynamic",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-008.md",
+      "source": {
+        "designNotes": "notes/rbf-008.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-009",
+      "setId": "rubyfront-core",
+      "collectorNumber": "009",
+      "slug": "threshold-warden",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Custode della Soglia",
+          "typeLabel": "Entità — Umano",
+          "summary": "Un difensore nato: fragile in attacco, una porta sbarrata in blocco.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Custode della Soglia",
+            "flavor": "Nessuno passa. Non oggi.",
+            "warden": {
+              "trigger": "Quando blocca",
+              "text": "Prende +2 Potenza fino alla fine della battaglia."
+            }
+          }
+        },
+        "en": {
+          "name": "Threshold Warden",
+          "typeLabel": "Entity — Human",
+          "summary": "A born defender: frail on the attack, a barred door on the block.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Threshold Warden",
+            "flavor": "No one passes. Not today.",
+            "warden": {
+              "trigger": "When he blocks",
+              "text": "He gets +2 Power until the end of the battle."
+            }
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "dynamic",
+        "defender"
+      ],
+      "rulesReference": "MANUALE.md §6.3, §7",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 1,
+            "fluxCost": 2
+          },
+          "enablesMatters": [
+            {
+              "type": "dynamic",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "warden",
+              "displayKey": "warden",
+              "event": "on_block",
+              "effect": {
+                "type": "modify_power",
+                "target": {
+                  "scope": "self"
+                },
+                "amount": 2,
+                "duration": "until_end_of_battle"
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-009.md",
+      "source": {
+        "designNotes": "notes/rbf-009.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-010",
+      "setId": "rubyfront-core",
+      "collectorNumber": "010",
+      "slug": "field-medic",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Medico da Campo",
+          "typeLabel": "Entità — Umano",
+          "summary": "Cure per la bestia: i PV sono la valuta del piano, e lui li restituisce.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Medico da Campo",
+            "flavor": "Anche le bestie sanguinano.",
+            "medic": {
+              "trigger": "Quando entra in campo",
+              "text": "Il tuo Rubyfront recupera 2 PV."
+            }
+          }
+        },
+        "en": {
+          "name": "Field Medic",
+          "typeLabel": "Entity — Human",
+          "summary": "Care for the beast: HP are the plan's currency, and he gives them back.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Field Medic",
+            "flavor": "Even beasts bleed.",
+            "medic": {
+              "trigger": "When he enters the field",
+              "text": "Your Rubyfront recovers 2 HP."
+            }
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "heal"
+      ],
+      "rulesReference": "MANUALE.md §6.2, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 1,
+            "fluxCost": 2
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "medic",
+              "displayKey": "medic",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "gain_health",
+                "target": {
+                  "cardType": "rubyfront",
+                  "controller": "controller"
+                },
+                "amount": 2
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-010.md",
+      "source": {
+        "designNotes": "notes/rbf-010.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-011",
+      "setId": "rubyfront-core",
+      "collectorNumber": "011",
+      "slug": "herald-of-the-first",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Araldo del Primo",
+          "typeLabel": "Entità — Umano",
+          "summary": "Il cercatore del piano: trova Adam, o chiunque serva alla causa.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Araldo del Primo",
+            "flavor": "Il Primo cammina fra noi. Io l'ho visto.",
+            "herald": {
+              "trigger": "Quando entra in campo",
+              "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
+            }
+          }
+        },
+        "en": {
+          "name": "Herald of the First",
+          "typeLabel": "Entity — Human",
+          "summary": "The plan's seeker: finds Adam, or whoever the cause requires.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Herald of the First",
+            "flavor": "The First walks among us. I have seen him.",
+            "herald": {
+              "trigger": "When he enters the field",
+              "text": "Search your deck for a Human, reveal it to your opponent and add it to your hand, then shuffle your deck."
+            }
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "tutor",
+        "viatico"
+      ],
+      "rulesReference": "MANUALE.md §6.2, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 1,
+            "fluxCost": 3
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "herald",
+              "displayKey": "herald",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "search_card",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller"
+                },
+                "filter": {
+                  "cardType": "entity",
+                  "race": "human"
+                },
+                "reveal": true,
+                "to": {
+                  "zone": "hand",
+                  "owner": "controller"
+                },
+                "shuffle": true
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-011.md",
+      "source": {
+        "designNotes": "notes/rbf-011.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-012",
+      "setId": "rubyfront-core",
+      "collectorNumber": "012",
+      "slug": "last-bastion",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Ultimo Bastione",
+          "typeLabel": "Entità — Umano",
+          "summary": "Il muro del piano: un corpo largo che tiene la linea e abilita la Dinamica.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Ultimo Bastione",
+            "flavor": "Cade il mondo, non lui."
+          }
+        },
+        "en": {
+          "name": "Last Bastion",
+          "typeLabel": "Entity — Human",
+          "summary": "The plan's wall: a wide body that holds the line and enables the Dynamic.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Last Bastion",
+            "flavor": "The world may fall. He will not."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "dynamic",
+        "defender"
+      ],
+      "rulesReference": "MANUALE.md §7, §8.1",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 2,
+            "fluxCost": 3
+          },
+          "enablesMatters": [
+            {
+              "type": "dynamic",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-012.md",
+      "source": {
+        "designNotes": "notes/rbf-012.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-013",
+      "setId": "rubyfront-core",
+      "collectorNumber": "013",
+      "slug": "reflex",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Riflesso",
+          "typeLabel": "Materia Dinamica I",
+          "summary": "La velocità come scudo: un blocco dal nulla, letale sui piccoli.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "permanent": "Permanente"
+            }
+          },
+          "face": {
+            "name": "Riflesso",
+            "effect": {
+              "name": "Effetto",
+              "text": "Assegnala come blocco a un attaccante: quell’attacco è bloccato. Se l’attaccante ha Potenza 3 o meno, muore."
+            },
+            "flavor": "Un lampo, e l’acciaio trova l’acciaio."
+          },
+          "matters": {
+            "dynamicTitle": "Materia Dinamica · 1° grado",
+            "dynamicAria": "Dinamica"
+          }
+        },
+        "en": {
+          "name": "Reflex",
+          "typeLabel": "Dynamic Matter I",
+          "summary": "Speed as a shield: a block out of nowhere, lethal to the small.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux",
+            "behaviors": {
+              "reactive": "Reactive",
+              "permanent": "Permanent"
+            }
+          },
+          "face": {
+            "name": "Reflex",
+            "effect": {
+              "name": "Effect",
+              "text": "Assign it as a block to an attacker: that attack is blocked. If the attacker has Power 3 or less, it dies."
+            },
+            "flavor": "A flash, and steel finds steel."
+          },
+          "matters": {
+            "dynamicTitle": "Dynamic Matter · 1st grade",
+            "dynamicAria": "Dynamic"
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dynamic",
+        "grade-1",
+        "reactive",
+        "block"
+      ],
+      "rulesReference": "MANUALE.md §6.3, §7.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dynamic",
+            "grade": 1
+          },
+          "behavior": "reactive",
+          "stats": {
+            "fluxCost": 2
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "reflex",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "block_attack",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
+                },
+                "details": {
+                  "killIfPowerAtMost": 3
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-013.md",
+      "source": {
+        "designNotes": "notes/rbf-013.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-014",
+      "setId": "rubyfront-core",
+      "collectorNumber": "014",
+      "slug": "champion-of-the-change",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Campione del Cambiamento",
+          "typeLabel": "Entità — Umano",
+          "summary": "Il corpo grosso del piano e la porta al secondo grado della Dinamica.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Campione del Cambiamento",
+            "flavor": "L’umanità cambiò. Lui più di tutti."
+          }
+        },
+        "en": {
+          "name": "Champion of the Change",
+          "typeLabel": "Entity — Human",
+          "summary": "The plan's big body and the gate to the Dynamic's second grade.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Champion of the Change",
+            "flavor": "Humanity changed. He most of all."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "dynamic"
+      ],
+      "rulesReference": "MANUALE.md §7",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 3,
+            "fluxCost": 5
+          },
+          "enablesMatters": [
+            {
+              "type": "dynamic",
+              "maxGrade": 2
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-014.md",
+      "source": {
+        "designNotes": "notes/rbf-014.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-015",
+      "setId": "rubyfront-core",
+      "collectorNumber": "015",
+      "slug": "second-surge",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Secondo Impeto",
+          "typeLabel": "Materia Dinamica II",
+          "summary": "Il finisher del mazzo: un attacco in più quando il Fronte avversario è tappato.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Secondo Impeto",
+            "effect": {
+              "name": "Effetto",
+              "text": "Un’Entità a tua scelta che ha già attaccato in questo turno si stappa e può attaccare una seconda volta."
+            },
+            "flavor": "Il primo colpo apre. Il secondo chiude."
+          },
+          "matters": {
+            "dynamicTitle": "Materia Dinamica · 2° grado",
+            "dynamicAria": "Dinamica"
+          }
+        },
+        "en": {
+          "name": "Second Surge",
+          "typeLabel": "Dynamic Matter II",
+          "summary": "The deck's finisher: one more attack while the opposing Front is tapped.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Second Surge",
+            "effect": {
+              "name": "Effect",
+              "text": "An Entity of your choice that has already attacked this turn untaps and may attack a second time."
+            },
+            "flavor": "The first blow opens. The second closes."
+          },
+          "matters": {
+            "dynamicTitle": "Dynamic Matter · 2nd grade",
+            "dynamicAria": "Dynamic"
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dynamic",
+        "grade-2"
+      ],
+      "rulesReference": "MANUALE.md §6.3, §7.1",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dynamic",
+            "grade": 2
+          },
+          "behavior": "normal",
+          "stats": {
+            "fluxCost": 5
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "surge-again",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "extra_attack",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "min": 1,
+                  "max": 1
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-015.md",
+      "source": {
+        "designNotes": "notes/rbf-015.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-016",
+      "setId": "rubyfront-core",
+      "collectorNumber": "016",
+      "slug": "hemorrhage",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Emorragia",
+          "typeLabel": "Materia Distruttiva II",
+          "summary": "La ferita che non si chiude: fragile con la bestia, eterna con l'Unione.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "permanent": "Permanente"
+            }
+          },
+          "face": {
+            "name": "Emorragia",
+            "effect": {
+              "name": "Effetto",
+              "text": "All’inizio del tuo turno, il Rubyfront avversario perde 1 PV."
+            },
+            "flavor": "Alcune ferite non si chiudono."
+          },
+          "matters": {
+            "destructiveTitle": "Materia Distruttiva · 2° grado",
+            "destructiveAria": "Distruttiva"
+          }
+        },
+        "en": {
+          "name": "Hemorrhage",
+          "typeLabel": "Destructive Matter II",
+          "summary": "The wound that never closes: fragile with the beast, eternal with the Union.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reactive",
+              "permanent": "Permanent"
+            }
+          },
+          "face": {
+            "name": "Hemorrhage",
+            "effect": {
+              "name": "Effetto",
+              "text": "At the start of your turn, the opposing Rubyfront loses 1 HP."
+            },
+            "flavor": "Some wounds never close."
+          },
+          "matters": {
+            "destructiveTitle": "Materia Distruttiva · 2nd grade",
+            "destructiveAria": "Destructive"
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "destructive",
+        "grade-2",
+        "permanent"
+      ],
+      "rulesReference": "MANUALE.md §7.2, §8.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "destructive",
+            "grade": 2
+          },
+          "behavior": "permanent",
+          "stats": {
+            "fluxCost": 4
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "bleed",
+              "displayKey": "effect",
+              "event": "on_turn_start",
+              "effect": {
+                "type": "lose_health",
+                "target": {
+                  "cardType": "rubyfront",
+                  "controller": "opponent"
+                },
+                "amount": 1
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-016.md",
+      "source": {
+        "designNotes": "notes/rbf-016.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-017",
+      "setId": "rubyfront-core",
+      "collectorNumber": "017",
+      "slug": "stillness",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 1,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Quiete",
+          "typeLabel": "Materia Zero",
+          "summary": "Il primo annullamento del gioco: la risposta che spegne la risposta.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi",
+            "unique": "Unica",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "permanent": "Permanente"
+            }
+          },
+          "face": {
+            "name": "Quiete",
+            "effect": {
+              "name": "Effetto",
+              "text": "Scegli una Materia Reattiva appena giocata nella catena: quando dovrebbe risolversi, svanisce e va nell’Abisso senza alcun effetto. Il Flusso speso non torna."
+            },
+            "flavor": "Il vuoto non discute."
+          },
+          "matters": {
+            "zeroTitle": "Materia Zero",
+            "zeroAria": "Zero"
+          }
+        },
+        "en": {
+          "name": "Stillness",
+          "typeLabel": "Zero Matter",
+          "summary": "The game's first negation: the answer that silences the answer.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux",
+            "unique": "Unique",
+            "behaviors": {
+              "reactive": "Reactive",
+              "permanent": "Permanent"
+            }
+          },
+          "face": {
+            "name": "Stillness",
+            "effect": {
+              "name": "Effect",
+              "text": "Choose a Reactive Matter just played in the chain: when it would resolve, it fades and goes to the Abyss with no effect. The Flux spent is not returned."
+            },
+            "flavor": "The void does not argue."
+          },
+          "matters": {
+            "zeroTitle": "Zero Matter",
+            "zeroAria": "Zero"
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "zero",
+        "reactive",
+        "counter",
+        "viatico"
+      ],
+      "rulesReference": "MANUALE.md §7.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "zero"
+          },
+          "behavior": "reactive",
+          "stats": {
+            "fluxCost": 2
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "stillness",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "counter_card",
+                "target": {
+                  "cardType": "matter",
+                  "min": 1,
+                  "max": 1
+                },
+                "details": {
+                  "onlyReactiveInChain": true,
+                  "toZone": "abyss"
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-017.md",
+      "unique": true,
+      "source": {
+        "designNotes": "notes/rbf-017.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-018",
+      "setId": "rubyfront-core",
+      "collectorNumber": "018",
+      "slug": "chronicler",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Cronista",
+          "typeLabel": "Entità — Umano",
+          "summary": "Carte fresche per il piano: un corpo piccolo che non fa perdere nulla.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Cronista",
+            "flavor": "Scrive ciò che il Cambiamento detta.",
+            "chronicle": {
+              "trigger": "Quando entra in campo",
+              "text": "Pesca una carta."
+            }
+          }
+        },
+        "en": {
+          "name": "Chronicler",
+          "typeLabel": "Entity — Human",
+          "summary": "Fresh cards for the plan: a small body that loses you nothing.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Chronicler",
+            "flavor": "She writes what the Change dictates.",
+            "chronicle": {
+              "trigger": "When she enters the field",
+              "text": "Draw a card."
+            }
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "draw"
+      ],
+      "rulesReference": "MANUALE.md §6.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 1,
+            "fluxCost": 3
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "chronicle",
+              "displayKey": "chronicle",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "draw_card",
+                "target": {
+                  "controller": "controller"
+                },
+                "count": 1
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-018.md",
+      "source": {
+        "designNotes": "notes/rbf-018.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-019",
+      "setId": "rubyfront-core",
+      "collectorNumber": "019",
+      "slug": "front-veteran",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Veterana del Fronte",
+          "typeLabel": "Entità — Umano",
+          "summary": "Blocca e punisce: il contrattacco che gli attaccanti medi imparano a temere.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Veterana del Fronte",
+            "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
+          }
+        },
+        "en": {
+          "name": "Front Veteran",
+          "typeLabel": "Entity — Human",
+          "summary": "She blocks and punishes: the counterattack mid-size attackers learn to fear.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Front Veteran",
+            "flavor": "She has blocked more attacks than you have seen."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "defender"
+      ],
+      "rulesReference": "MANUALE.md §6.3",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 2,
+            "fluxCost": 4,
+            "counterattack": 2
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-019.md",
+      "source": {
+        "designNotes": "notes/rbf-019.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-020",
+      "setId": "rubyfront-core",
+      "collectorNumber": "020",
+      "slug": "veil-of-the-first",
+      "type": "object",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Velo del Primo",
+          "typeLabel": "Oggetto",
+          "summary": "La protezione del pezzo chiave: le Materie avversarie non lo trovano.",
+          "ui": {
+            "face": "Oggetto"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Velo del Primo",
+            "effect": {
+              "name": "Effetto",
+              "text": "Assegnalo a un tuo Umano: finché lo indossa, non può essere bersagliato dalle Materie avversarie."
+            },
+            "flavor": "Ciò che il vuoto ha toccato, il vuoto protegge."
+          }
+        },
+        "en": {
+          "name": "Veil of the First",
+          "typeLabel": "Object",
+          "summary": "Protection for the key piece: opposing Matters cannot find it.",
+          "ui": {
+            "face": "Object"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Veil of the First",
+            "effect": {
+              "name": "Effect",
+              "text": "Assign it to one of your Humans: for as long as they wear it, they cannot be targeted by opposing Matters."
+            },
+            "flavor": "What the void has touched, the void protects."
+          }
+        }
+      },
+      "tags": [
+        "object",
+        "human",
+        "protection",
+        "viatico"
+      ],
+      "rulesReference": "MANUALE.md §3.1",
+      "faces": [
+        {
+          "id": "object",
+          "kind": "object",
+          "displayKey": "face",
+          "stats": {},
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "veil",
+              "displayKey": "effect",
+              "event": "while_assigned",
+              "effect": {
+                "type": "protect",
+                "target": {
+                  "cardType": "entity",
+                  "scope": "assigned"
+                },
+                "details": {
+                  "from": "opponent_matters"
+                }
+              }
+            }
+          ],
+          "actions": [],
+          "assignRestriction": {
+            "cardType": "entity",
+            "race": "human",
+            "controller": "controller"
+          }
+        }
+      ],
+      "designNotes": "rbf-020.md",
+      "source": {
+        "designNotes": "notes/rbf-020.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-021",
+      "setId": "rubyfront-core",
+      "collectorNumber": "021",
+      "slug": "runner",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Staffetta",
+          "typeLabel": "Entità — Umano",
+          "summary": "Pressione dal primo turno: il debutto dello Slancio.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Staffetta",
+            "keyword": {
+              "name": "Slancio",
+              "rules": "può attaccare già nel turno in cui entra in campo"
+            },
+            "flavor": "Arriva prima della notizia del suo arrivo."
+          }
+        },
+        "en": {
+          "name": "Runner",
+          "typeLabel": "Entity — Human",
+          "summary": "Pressure from turn one: the debut of Surge.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Runner",
+            "keyword": {
+              "name": "Surge",
+              "rules": "she may attack the very turn she enters the field"
+            },
+            "flavor": "She arrives before word of her arrival."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "surge"
+      ],
+      "rulesReference": "MANUALE.md §8.1",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 1,
+            "fluxCost": 1
+          },
+          "enablesMatters": [],
+          "keywords": [
+            {
+              "id": "surge"
+            }
+          ],
+          "requirements": {},
+          "triggers": [],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-021.md",
+      "source": {
+        "designNotes": "notes/rbf-021.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-022",
+      "setId": "rubyfront-core",
+      "collectorNumber": "022",
+      "slug": "march-of-the-change",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Marcia del Cambiamento",
+          "typeLabel": "Materia Dinamica I",
+          "summary": "L'inno del piano: ogni Umano un passo più forte, finché la Marcia dura.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "permanent": "Permanente"
+            }
+          },
+          "face": {
+            "name": "Marcia del Cambiamento",
+            "effect": {
+              "name": "Effetto",
+              "text": "Le tue Entità prendono +1 Potenza."
+            },
+            "flavor": "Un passo alla volta, tutti insieme."
+          },
+          "matters": {
+            "dynamicTitle": "Materia Dinamica · 1° grado",
+            "dynamicAria": "Dinamica"
+          }
+        },
+        "en": {
+          "name": "March of the Change",
+          "typeLabel": "Dynamic Matter I",
+          "summary": "The plan's anthem: every Human one step stronger, for as long as the March lasts.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux",
+            "behaviors": {
+              "reactive": "Reactive",
+              "permanent": "Permanent"
+            }
+          },
+          "face": {
+            "name": "March of the Change",
+            "effect": {
+              "name": "Effect",
+              "text": "Your Entities get +1 Power."
+            },
+            "flavor": "One step at a time, all together."
+          },
+          "matters": {
+            "dynamicTitle": "Dynamic Matter · 1st grade",
+            "dynamicAria": "Dynamic"
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dynamic",
+        "grade-1",
+        "permanent",
+        "anthem"
+      ],
+      "rulesReference": "MANUALE.md §7.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dynamic",
+            "grade": 1
+          },
+          "behavior": "permanent",
+          "stats": {
+            "fluxCost": 4
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "march",
+              "displayKey": "effect",
+              "event": "while_in_play",
+              "effect": {
+                "type": "modify_power",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "quantity": "all"
+                },
+                "amount": 1,
+                "duration": "permanent"
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-022.md",
+      "source": {
+        "designNotes": "notes/rbf-022.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-023",
+      "setId": "rubyfront-core",
+      "collectorNumber": "023",
+      "slug": "avenger",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 2,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Vendicatrice",
+          "typeLabel": "Entità — Umano",
+          "summary": "Il debutto della Vendetta: bloccarla male costa la vita.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Vendicatrice",
+            "keyword": {
+              "name": "Vendetta",
+              "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
+            },
+            "flavor": "Colpiscila, se osi. Poi corri."
+          }
+        },
+        "en": {
+          "name": "Avenger",
+          "typeLabel": "Entity — Human",
+          "summary": "The debut of Vengeance: blocking her carelessly costs lives.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Avenger",
+            "keyword": {
+              "name": "Vengeance",
+              "rules": "if she blocks with higher Power, the attacker dies"
+            },
+            "flavor": "Strike her if you dare. Then run."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "human",
+        "vengeance",
+        "defender"
+      ],
+      "rulesReference": "MANUALE.md §8.1",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "human",
+          "stats": {
+            "power": 2,
+            "fluxCost": 2
+          },
+          "enablesMatters": [],
+          "keywords": [
+            {
+              "id": "vengeance"
+            }
+          ],
+          "requirements": {},
+          "triggers": [],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-023.md",
+      "source": {
+        "designNotes": "notes/rbf-023.md"
+      }
+    }
+  ],
+  "decks": [
+    {
+      "schemaVersion": 1,
+      "id": "viatico",
+      "setId": "rubyfront-core",
+      "status": "draft",
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Il Viatico del Primo",
+          "description": "Mazzo Umani di controllo e scalata: sopravvivere fino a metà partita, compiere l'Unione con il Viatico di Adam e chiudere nella finestra di dominio che segue."
+        },
+        "en": {
+          "name": "The First's Viaticum",
+          "description": "A Human control-and-climb deck: survive to midgame, fulfil the Union through Adam's Viaticum and close in the window of dominance that follows."
+        }
+      },
+      "designNotes": "viatico.md",
+      "cards": [
+        {
+          "card": "RBF-001",
+          "count": 1
+        },
+        {
+          "card": "RBF-002",
+          "count": 1
+        },
+        {
+          "card": "RBF-003",
+          "count": 1
+        },
+        {
+          "card": "RBF-017",
+          "count": 1
+        },
+        {
+          "card": "RBF-008",
+          "count": 2
+        },
+        {
+          "card": "RBF-021",
+          "count": 2
+        },
+        {
+          "card": "RBF-009",
+          "count": 2
+        },
+        {
+          "card": "RBF-010",
+          "count": 2
+        },
+        {
+          "card": "RBF-023",
+          "count": 2
+        },
+        {
+          "card": "RBF-013",
+          "count": 2
+        },
+        {
+          "card": "RBF-011",
+          "count": 2
+        },
+        {
+          "card": "RBF-012",
+          "count": 2
+        },
+        {
+          "card": "RBF-018",
+          "count": 2
+        },
+        {
+          "card": "RBF-004",
+          "count": 2
+        },
+        {
+          "card": "RBF-006",
+          "count": 2
+        },
+        {
+          "card": "RBF-019",
+          "count": 2
+        },
+        {
+          "card": "RBF-016",
+          "count": 2
+        },
+        {
+          "card": "RBF-022",
+          "count": 2
+        },
+        {
+          "card": "RBF-014",
+          "count": 2
+        },
+        {
+          "card": "RBF-015",
+          "count": 2
+        },
+        {
+          "card": "RBF-007",
+          "count": 2
+        },
+        {
+          "card": "RBF-020",
+          "count": 2
+        }
+      ],
+      "source": {
+        "designNotes": "notes/deck-viatico.md"
       }
     }
   ]
