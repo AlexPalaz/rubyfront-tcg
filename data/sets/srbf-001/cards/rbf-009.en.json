@@ -1,7 +1,7 @@
 {
   "name": "Threshold Warden",
   "typeLabel": "Entity — Human",
-  "summary": "The Procession's defender: the more of his own have passed beyond, the firmer the threshold.",
+  "summary": "The Heirs' defender: the more of his own have passed beyond, the firmer the threshold.",
   "ui": {
     "face": "Entity"
   },

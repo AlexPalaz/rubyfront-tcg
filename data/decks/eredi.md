@@ -1,17 +1,17 @@
-# Processione del Primo — mazzo di riferimento (40 carte)
+# Eredi di Adam — mazzo di riferimento (40 carte)
 
 > **Status:** DRAFT — 22 progetti sotto la regola delle 2 copie (§3.1).
 > Ogni carta fa qualcosa, e ogni cosa serve a uno dei tre motori.
 
 ## I tre motori
 
-**A — La Processione (il motore di Requiem).** Il Ritiro è gratuito (§6.2) e
+**A — Il Lascito (il motore di Requiem).** Il Ritiro è gratuito (§6.2) e
 il mazzo lo pratica come rito: Staffetta si ritira da sola dopo l'attacco,
 Medico cura al congedo, la Vigorcintura segue il portatore e pesca. I payoff
 contano le carte nella **tua Zona di Requiem**, su una scala a soglie:
 **≥1** Vendicatrice +1 · **≥2** Cronista pesca 2 · **≥3** Custode blocca a +4
-· **≥4** Marcia dà +2 a tutti. L'apice della Processione è il **Viatico
-stesso**: il Ritiro di Adam è l'ultimo passo di un rito iniziato al turno 1.
+· **≥4** Marcia dà +2 a tutti. L'apice del Lascito è il **Viatico stesso**:
+il Ritiro di Adam è l'ultimo passo di un cammino iniziato al turno 1.
 
 **B — La Veglia (il Flusso aperto).** Collera, Riflesso e Quiete si giocano
 nelle finestre di risposta: il mazzo tiene Flusso non speso (§3.2) e
@@ -56,7 +56,7 @@ Curva: 1×4 · 2×8 · 3×10 (+Rubyfront 3+1) · 4×8 · 5×4 · gratis×4.
 ## Le decisioni che il mazzo mette in mano al pilota
 
 - **Chi mandare oltre, e quando:** ogni Ritiro è un corpo in meno e una
-  soglia in più. La Processione premia chi la calibra sul ritmo avversario.
+  soglia in più. Il Lascito premia chi lo calibra sul ritmo avversario.
 - **Quale Zero spendere:** Assenza rimuove, Quiete annulla — una delle due
   va incanalata in Adam per il Viatico. Genesi le trova entrambe.
 - **Flusso aperto o curva piena:** la Veglia (Collera/Riflesso/Quiete) rende
@@ -66,7 +66,7 @@ Curva: 1×4 · 2×8 · 3×10 (+Rubyfront 3+1) · 4×8 · 5×4 · gratis×4.
 
 ## Debolezze note (volute)
 
-- **Aggro veloce:** la Processione consuma corpi; contro i mazzi rapidissimi
+- **Aggro veloce:** il Lascito consuma corpi; contro i mazzi rapidissimi
   ritirarsi è un lusso. Mulligan sulla curva 1-2-3.
 - **Adam nel mirino:** il Velo copre le Materie, non battaglia né effetti
   delle Entità. Morto lui (Abisso), piano B di controllo puro.

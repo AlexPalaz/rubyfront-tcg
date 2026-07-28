@@ -1285,7 +1285,7 @@
             "it": {
               "name": "Custode della Soglia",
               "typeLabel": "Entità — Umano",
-              "summary": "Il difensore della Processione: più i suoi sono passati oltre, più la soglia è invalicabile.",
+              "summary": "Il difensore degli Eredi: più i suoi sono passati oltre, più la soglia è invalicabile.",
               "ui": {
                 "face": "Entità"
               },
@@ -1306,7 +1306,7 @@
             "en": {
               "name": "Threshold Warden",
               "typeLabel": "Entity — Human",
-              "summary": "The Procession's defender: the more of his own have passed beyond, the firmer the threshold.",
+              "summary": "The Heirs' defender: the more of his own have passed beyond, the firmer the threshold.",
               "ui": {
                 "face": "Entity"
               },
@@ -2616,7 +2616,7 @@
             "it": {
               "name": "Staffetta",
               "typeLabel": "Entità — Umano",
-              "summary": "Il carburante della Processione: colpisce, consegna e passa oltre, viva.",
+              "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, viva.",
               "ui": {
                 "face": "Entità"
               },
@@ -2641,7 +2641,7 @@
             "en": {
               "name": "Runner",
               "typeLabel": "Entity — Human",
-              "summary": "The Procession's fuel: she strikes, delivers and passes beyond, alive.",
+              "summary": "The Bequest's fuel: she strikes, delivers and passes beyond, alive.",
               "ui": {
                 "face": "Entity"
               },
@@ -4216,7 +4216,7 @@
         "it": {
           "name": "Custode della Soglia",
           "typeLabel": "Entità — Umano",
-          "summary": "Il difensore della Processione: più i suoi sono passati oltre, più la soglia è invalicabile.",
+          "summary": "Il difensore degli Eredi: più i suoi sono passati oltre, più la soglia è invalicabile.",
           "ui": {
             "face": "Entità"
           },
@@ -4237,7 +4237,7 @@
         "en": {
           "name": "Threshold Warden",
           "typeLabel": "Entity — Human",
-          "summary": "The Procession's defender: the more of his own have passed beyond, the firmer the threshold.",
+          "summary": "The Heirs' defender: the more of his own have passed beyond, the firmer the threshold.",
           "ui": {
             "face": "Entity"
           },
@@ -5547,7 +5547,7 @@
         "it": {
           "name": "Staffetta",
           "typeLabel": "Entità — Umano",
-          "summary": "Il carburante della Processione: colpisce, consegna e passa oltre, viva.",
+          "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, viva.",
           "ui": {
             "face": "Entità"
           },
@@ -5572,7 +5572,7 @@
         "en": {
           "name": "Runner",
           "typeLabel": "Entity — Human",
-          "summary": "The Procession's fuel: she strikes, delivers and passes beyond, alive.",
+          "summary": "The Bequest's fuel: she strikes, delivers and passes beyond, alive.",
           "ui": {
             "face": "Entity"
           },
@@ -5892,21 +5892,21 @@
   "decks": [
     {
       "schemaVersion": 1,
-      "id": "processione",
+      "id": "eredi",
       "setId": "rubyfront-core",
       "status": "draft",
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Processione del Primo",
+          "name": "Eredi di Adam",
           "description": "Mazzo Umani di controllo e scalata: sopravvivere fino a metà partita, compiere l'Unione con il Viatico di Adam e chiudere nella finestra di dominio che segue."
         },
         "en": {
-          "name": "Procession of the First",
+          "name": "Heirs of Adam",
           "description": "A Human control-and-climb deck: survive to midgame, fulfil the Union through Adam's Viaticum and close in the window of dominance that follows."
         }
       },
-      "designNotes": "processione.md",
+      "designNotes": "eredi.md",
       "cards": [
         {
           "card": "RBF-001",
@@ -5998,7 +5998,7 @@
         }
       ],
       "source": {
-        "designNotes": "notes/deck-processione.md"
+        "designNotes": "notes/deck-eredi.md"
       }
     }
   ]
