@@ -1,7 +1,7 @@
 {
-  "name": "Champion of the Change",
+  "name": "First Spear",
   "typeLabel": "Entity — Human",
-  "summary": "He sleeps until the beast is fulfilled: with the Union on the field he is the deck's hammer.",
+  "summary": "She sleeps until the beast is fulfilled: with the Union on the field she is the deck's hammer.",
   "ui": {
     "face": "Entity"
   },
@@ -11,11 +11,11 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Champion of the Change",
-    "flavor": "Humanity changed. He most of all.",
+    "name": "First Spear",
+    "flavor": "The enemy front knows her by name.",
     "effect": {
       "name": "Effect",
-      "text": "For as long as you control the Union, the Champion gets +2 Power and has Surge: the completed Change flows through him."
+      "text": "For as long as you control the Union, the First Spear gets +2 Power and has Surge."
     }
   }
 }

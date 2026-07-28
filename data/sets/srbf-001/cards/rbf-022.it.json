@@ -1,5 +1,5 @@
 {
-  "name": "Marcia del Cambiamento",
+  "name": "Marcia di Ferro",
   "typeLabel": "Materia Dinamica I",
   "summary": "L'inno del piano: ogni Umano un passo più forte, finché la Marcia dura.",
   "ui": {
@@ -15,7 +15,7 @@
     }
   },
   "face": {
-    "name": "Marcia del Cambiamento",
+    "name": "Marcia di Ferro",
     "effect": {
       "name": "Effetto",
       "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."

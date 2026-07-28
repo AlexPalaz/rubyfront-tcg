@@ -12,7 +12,7 @@
   },
   "face": {
     "name": "Archivista",
-    "flavor": "Scrive ciò che il Cambiamento detta.",
+    "flavor": "Scrive i nomi di chi è passato oltre.",
     "chronicle": {
       "trigger": "Quando entra in campo",
       "text": "Pesca una carta; se nella tua Zona di Requiem ci sono almeno 2 carte, pescane invece due."

@@ -1845,7 +1845,7 @@
           "id": "RBF-014",
           "setId": "rubyfront-core",
           "collectorNumber": "014",
-          "slug": "champion-of-the-change",
+          "slug": "first-spear",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -1853,7 +1853,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Campione del Cambiamento",
+              "name": "Prima Lancia",
               "typeLabel": "Entità — Umano",
               "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
               "ui": {
@@ -1865,18 +1865,18 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Campione del Cambiamento",
-                "flavor": "L’umanità cambiò. Lui più di tutti.",
+                "name": "Prima Lancia",
+                "flavor": "Il fronte nemico la conosce per nome.",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Finché controlli l’Unione, il Campione prende +2 Potenza e ha Slancio: il Cambiamento compiuto scorre in lui."
+                  "text": "Finché controlli l’Unione, la Prima Lancia prende +2 Potenza e ha Slancio."
                 }
               }
             },
             "en": {
-              "name": "Champion of the Change",
+              "name": "First Spear",
               "typeLabel": "Entity — Human",
-              "summary": "He sleeps until the beast is fulfilled: with the Union on the field he is the deck's hammer.",
+              "summary": "She sleeps until the beast is fulfilled: with the Union on the field she is the deck's hammer.",
               "ui": {
                 "face": "Entity"
               },
@@ -1886,11 +1886,11 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Champion of the Change",
-                "flavor": "Humanity changed. He most of all.",
+                "name": "First Spear",
+                "flavor": "The enemy front knows her by name.",
                 "effect": {
                   "name": "Effect",
-                  "text": "For as long as you control the Union, the Champion gets +2 Power and has Surge: the completed Change flows through him."
+                  "text": "For as long as you control the Union, the First Spear gets +2 Power and has Surge."
                 }
               }
             }
@@ -2325,7 +2325,7 @@
               },
               "face": {
                 "name": "Archivista",
-                "flavor": "Scrive ciò che il Cambiamento detta.",
+                "flavor": "Scrive i nomi di chi è passato oltre.",
                 "chronicle": {
                   "trigger": "Quando entra in campo",
                   "text": "Pesca una carta; se nella tua Zona di Requiem ci sono almeno 2 carte, pescane invece due."
@@ -2346,7 +2346,7 @@
               },
               "face": {
                 "name": "Archivist",
-                "flavor": "She writes what the Change dictates.",
+                "flavor": "She writes the names of those who passed beyond.",
                 "chronicle": {
                   "trigger": "When she enters the field",
                   "text": "Draw a card; if there are at least 2 cards in your Requiem Zone, draw two instead."
@@ -2723,7 +2723,7 @@
           "id": "RBF-022",
           "setId": "rubyfront-core",
           "collectorNumber": "022",
-          "slug": "march-of-the-change",
+          "slug": "iron-march",
           "type": "matter",
           "layout": "single",
           "status": "draft",
@@ -2731,7 +2731,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Marcia del Cambiamento",
+              "name": "Marcia di Ferro",
               "typeLabel": "Materia Dinamica I",
               "summary": "L'inno del piano: ogni Umano un passo più forte, finché la Marcia dura.",
               "ui": {
@@ -2747,7 +2747,7 @@
                 }
               },
               "face": {
-                "name": "Marcia del Cambiamento",
+                "name": "Marcia di Ferro",
                 "effect": {
                   "name": "Effetto",
                   "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
@@ -2760,7 +2760,7 @@
               }
             },
             "en": {
-              "name": "March of the Change",
+              "name": "Iron March",
               "typeLabel": "Dynamic Matter I",
               "summary": "The plan's anthem: every Human one step stronger, for as long as the March lasts.",
               "ui": {
@@ -2776,7 +2776,7 @@
                 }
               },
               "face": {
-                "name": "March of the Change",
+                "name": "Iron March",
                 "effect": {
                   "name": "Effect",
                   "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."
@@ -4776,7 +4776,7 @@
       "id": "RBF-014",
       "setId": "rubyfront-core",
       "collectorNumber": "014",
-      "slug": "champion-of-the-change",
+      "slug": "first-spear",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -4784,7 +4784,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Campione del Cambiamento",
+          "name": "Prima Lancia",
           "typeLabel": "Entità — Umano",
           "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
           "ui": {
@@ -4796,18 +4796,18 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Campione del Cambiamento",
-            "flavor": "L’umanità cambiò. Lui più di tutti.",
+            "name": "Prima Lancia",
+            "flavor": "Il fronte nemico la conosce per nome.",
             "effect": {
               "name": "Effetto",
-              "text": "Finché controlli l’Unione, il Campione prende +2 Potenza e ha Slancio: il Cambiamento compiuto scorre in lui."
+              "text": "Finché controlli l’Unione, la Prima Lancia prende +2 Potenza e ha Slancio."
             }
           }
         },
         "en": {
-          "name": "Champion of the Change",
+          "name": "First Spear",
           "typeLabel": "Entity — Human",
-          "summary": "He sleeps until the beast is fulfilled: with the Union on the field he is the deck's hammer.",
+          "summary": "She sleeps until the beast is fulfilled: with the Union on the field she is the deck's hammer.",
           "ui": {
             "face": "Entity"
           },
@@ -4817,11 +4817,11 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Champion of the Change",
-            "flavor": "Humanity changed. He most of all.",
+            "name": "First Spear",
+            "flavor": "The enemy front knows her by name.",
             "effect": {
               "name": "Effect",
-              "text": "For as long as you control the Union, the Champion gets +2 Power and has Surge: the completed Change flows through him."
+              "text": "For as long as you control the Union, the First Spear gets +2 Power and has Surge."
             }
           }
         }
@@ -5256,7 +5256,7 @@
           },
           "face": {
             "name": "Archivista",
-            "flavor": "Scrive ciò che il Cambiamento detta.",
+            "flavor": "Scrive i nomi di chi è passato oltre.",
             "chronicle": {
               "trigger": "Quando entra in campo",
               "text": "Pesca una carta; se nella tua Zona di Requiem ci sono almeno 2 carte, pescane invece due."
@@ -5277,7 +5277,7 @@
           },
           "face": {
             "name": "Archivist",
-            "flavor": "She writes what the Change dictates.",
+            "flavor": "She writes the names of those who passed beyond.",
             "chronicle": {
               "trigger": "When she enters the field",
               "text": "Draw a card; if there are at least 2 cards in your Requiem Zone, draw two instead."
@@ -5654,7 +5654,7 @@
       "id": "RBF-022",
       "setId": "rubyfront-core",
       "collectorNumber": "022",
-      "slug": "march-of-the-change",
+      "slug": "iron-march",
       "type": "matter",
       "layout": "single",
       "status": "draft",
@@ -5662,7 +5662,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Marcia del Cambiamento",
+          "name": "Marcia di Ferro",
           "typeLabel": "Materia Dinamica I",
           "summary": "L'inno del piano: ogni Umano un passo più forte, finché la Marcia dura.",
           "ui": {
@@ -5678,7 +5678,7 @@
             }
           },
           "face": {
-            "name": "Marcia del Cambiamento",
+            "name": "Marcia di Ferro",
             "effect": {
               "name": "Effetto",
               "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
@@ -5691,7 +5691,7 @@
           }
         },
         "en": {
-          "name": "March of the Change",
+          "name": "Iron March",
           "typeLabel": "Dynamic Matter I",
           "summary": "The plan's anthem: every Human one step stronger, for as long as the March lasts.",
           "ui": {
@@ -5707,7 +5707,7 @@
             }
           },
           "face": {
-            "name": "March of the Change",
+            "name": "Iron March",
             "effect": {
               "name": "Effect",
               "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."

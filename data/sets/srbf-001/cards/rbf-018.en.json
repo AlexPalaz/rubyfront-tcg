@@ -12,7 +12,7 @@
   },
   "face": {
     "name": "Archivist",
-    "flavor": "She writes what the Change dictates.",
+    "flavor": "She writes the names of those who passed beyond.",
     "chronicle": {
       "trigger": "When she enters the field",
       "text": "Draw a card; if there are at least 2 cards in your Requiem Zone, draw two instead."

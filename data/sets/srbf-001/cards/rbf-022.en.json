@@ -1,5 +1,5 @@
 {
-  "name": "March of the Change",
+  "name": "Iron March",
   "typeLabel": "Dynamic Matter I",
   "summary": "The plan's anthem: every Human one step stronger, for as long as the March lasts.",
   "ui": {
@@ -15,7 +15,7 @@
     }
   },
   "face": {
-    "name": "March of the Change",
+    "name": "Iron March",
     "effect": {
       "name": "Effect",
       "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."

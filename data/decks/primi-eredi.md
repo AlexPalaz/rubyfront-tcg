@@ -18,8 +18,8 @@ nelle finestre di risposta: il mazzo tiene Flusso non speso (§3.2) e
 trasforma l'attesa in minaccia. La Veterana paga gli scambi difensivi in
 carte; il Baluardo li paga in PV.
 
-**C — Il Cambiamento (i premi dell'Unione).** Il flip è un interruttore che
-tutto il mazzo sente: il Campione si risveglia (+2 e Slancio), Scatto passa
+**C — L'Unione compiuta (i premi del flip).** Il flip è un interruttore che
+tutto il mazzo sente: la Prima Lancia si risveglia (+2 e Slancio), Scatto passa
 da +2 a +4, Emorragia diventa incrollabile, la Grande Marea apre il Fronte e
 Secondo Impeto chiude. L'Unione non è la fine del piano: è l'inizio della
 chiusura.
@@ -45,8 +45,8 @@ chiusura.
 | 2 | RBF-006 Collera | 3 | B · Reattiva: 2 PV + scaccia il Rubyfront |
 | 2 | RBF-019 Veterana della Breccia | 4 | B · CA+2; pesca sul colpo letale |
 | 2 | RBF-016 Emorragia | 4 | C · permanente drip; eterna post-flip |
-| 2 | RBF-022 Marcia del Cambiamento | 4 | A(4) · anthem +1/+2 |
-| 2 | RBF-014 Campione del Cambiamento | 5 | C · si risveglia con l'Unione; Din II |
+| 2 | RBF-022 Marcia di Ferro | 4 | A(4) · anthem +1/+2 |
+| 2 | RBF-014 Prima Lancia | 5 | C · si risveglia con l'Unione; Din II |
 | 2 | RBF-015 Secondo Impeto | 5 | C · attacco doppio nel turno della Marea |
 | 2 | RBF-007 Vigorcintura | 0 | A · +1; pesca al Ritiro del portatore |
 | 2 | RBF-020 Velo del Primo | 0 | Protezione · Adam immune alle Materie |
