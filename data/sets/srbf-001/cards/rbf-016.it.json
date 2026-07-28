@@ -1,5 +1,5 @@
 {
-  "name": "Emorragia",
+  "name": "Ferita Aperta",
   "typeLabel": "Materia Distruttiva II",
   "summary": "La ferita che non si chiude: fragile con la bestia, eterna con l'Unione.",
   "ui": {
@@ -15,10 +15,10 @@
     }
   },
   "face": {
-    "name": "Emorragia",
+    "name": "Ferita Aperta",
     "effect": {
       "name": "Effetto",
-      "text": "All’inizio del tuo turno, il Rubyfront avversario perde 1 PV."
+      "text": "All’inizio del tuo turno, il Rubyfront avversario perde 3 PV."
     },
     "flavor": "Alcune ferite non si chiudono."
   },

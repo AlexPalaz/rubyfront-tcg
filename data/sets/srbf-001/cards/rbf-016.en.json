@@ -1,5 +1,5 @@
 {
-  "name": "Hemorrhage",
+  "name": "Open Wound",
   "typeLabel": "Destructive Matter II",
   "summary": "The wound that never closes: fragile with the beast, eternal with the Union.",
   "ui": {
@@ -15,10 +15,10 @@
     }
   },
   "face": {
-    "name": "Hemorrhage",
+    "name": "Open Wound",
     "effect": {
       "name": "Effetto",
-      "text": "At the start of your turn, the opposing Rubyfront loses 1 HP."
+      "text": "At the start of your turn, the opposing Rubyfront loses 3 HP."
     },
     "flavor": "Some wounds never close."
   },

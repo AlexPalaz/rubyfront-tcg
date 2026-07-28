@@ -2063,7 +2063,7 @@
           "id": "RBF-016",
           "setId": "rubyfront-core",
           "collectorNumber": "016",
-          "slug": "hemorrhage",
+          "slug": "open-wound",
           "type": "matter",
           "layout": "single",
           "status": "draft",
@@ -2071,7 +2071,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Emorragia",
+              "name": "Ferita Aperta",
               "typeLabel": "Materia Distruttiva II",
               "summary": "La ferita che non si chiude: fragile con la bestia, eterna con l'Unione.",
               "ui": {
@@ -2087,10 +2087,10 @@
                 }
               },
               "face": {
-                "name": "Emorragia",
+                "name": "Ferita Aperta",
                 "effect": {
                   "name": "Effetto",
-                  "text": "All’inizio del tuo turno, il Rubyfront avversario perde 1 PV."
+                  "text": "All’inizio del tuo turno, il Rubyfront avversario perde 3 PV."
                 },
                 "flavor": "Alcune ferite non si chiudono."
               },
@@ -2100,7 +2100,7 @@
               }
             },
             "en": {
-              "name": "Hemorrhage",
+              "name": "Open Wound",
               "typeLabel": "Destructive Matter II",
               "summary": "The wound that never closes: fragile with the beast, eternal with the Union.",
               "ui": {
@@ -2116,10 +2116,10 @@
                 }
               },
               "face": {
-                "name": "Hemorrhage",
+                "name": "Open Wound",
                 "effect": {
                   "name": "Effetto",
-                  "text": "At the start of your turn, the opposing Rubyfront loses 1 HP."
+                  "text": "At the start of your turn, the opposing Rubyfront loses 3 HP."
                 },
                 "flavor": "Some wounds never close."
               },
@@ -2163,7 +2163,7 @@
                       "cardType": "rubyfront",
                       "controller": "opponent"
                     },
-                    "amount": 1
+                    "amount": 3
                   }
                 }
               ],
@@ -4994,7 +4994,7 @@
       "id": "RBF-016",
       "setId": "rubyfront-core",
       "collectorNumber": "016",
-      "slug": "hemorrhage",
+      "slug": "open-wound",
       "type": "matter",
       "layout": "single",
       "status": "draft",
@@ -5002,7 +5002,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Emorragia",
+          "name": "Ferita Aperta",
           "typeLabel": "Materia Distruttiva II",
           "summary": "La ferita che non si chiude: fragile con la bestia, eterna con l'Unione.",
           "ui": {
@@ -5018,10 +5018,10 @@
             }
           },
           "face": {
-            "name": "Emorragia",
+            "name": "Ferita Aperta",
             "effect": {
               "name": "Effetto",
-              "text": "All’inizio del tuo turno, il Rubyfront avversario perde 1 PV."
+              "text": "All’inizio del tuo turno, il Rubyfront avversario perde 3 PV."
             },
             "flavor": "Alcune ferite non si chiudono."
           },
@@ -5031,7 +5031,7 @@
           }
         },
         "en": {
-          "name": "Hemorrhage",
+          "name": "Open Wound",
           "typeLabel": "Destructive Matter II",
           "summary": "The wound that never closes: fragile with the beast, eternal with the Union.",
           "ui": {
@@ -5047,10 +5047,10 @@
             }
           },
           "face": {
-            "name": "Hemorrhage",
+            "name": "Open Wound",
             "effect": {
               "name": "Effetto",
-              "text": "At the start of your turn, the opposing Rubyfront loses 1 HP."
+              "text": "At the start of your turn, the opposing Rubyfront loses 3 HP."
             },
             "flavor": "Some wounds never close."
           },
@@ -5094,7 +5094,7 @@
                   "cardType": "rubyfront",
                   "controller": "opponent"
                 },
-                "amount": 1
+                "amount": 3
               }
             }
           ],

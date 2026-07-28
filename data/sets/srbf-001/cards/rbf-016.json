@@ -3,7 +3,7 @@
   "id": "RBF-016",
   "setId": "rubyfront-core",
   "collectorNumber": "016",
-  "slug": "hemorrhage",
+  "slug": "open-wound",
   "type": "matter",
   "layout": "single",
   "status": "draft",
@@ -47,7 +47,7 @@
               "cardType": "rubyfront",
               "controller": "opponent"
             },
-            "amount": 1
+            "amount": 3
           }
         }
       ],
