@@ -1,5 +1,5 @@
 {
-  "name": "Cronista",
+  "name": "Archivista",
   "typeLabel": "Entità — Umano",
   "summary": "Registra chi è passato oltre: più nomi nella Requiem, più pagine da leggere.",
   "ui": {
@@ -11,7 +11,7 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Cronista",
+    "name": "Archivista",
     "flavor": "Scrive ciò che il Cambiamento detta.",
     "chronicle": {
       "trigger": "Quando entra in campo",

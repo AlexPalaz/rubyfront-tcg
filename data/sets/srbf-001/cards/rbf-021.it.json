@@ -1,7 +1,7 @@
 {
-  "name": "Staffetta",
+  "name": "Corriere a Vapore",
   "typeLabel": "Entità — Umano",
-  "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, viva.",
+  "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, vivo.",
   "ui": {
     "face": "Entità"
   },
@@ -11,7 +11,7 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Staffetta",
+    "name": "Corriere a Vapore",
     "keyword": {
       "name": "Slancio",
       "rules": "può attaccare già nel turno in cui entra in campo"
@@ -19,7 +19,7 @@
     "flavor": "Arriva prima della notizia del suo arrivo.",
     "relay": {
       "trigger": "Alla fine del tuo turno",
-      "text": "Se ha attaccato in questo turno, puoi ritirarla in Zona di Requiem, anche se è entrata in campo in questo turno."
+      "text": "Se ha attaccato in questo turno, puoi ritirarlo in Zona di Requiem, anche se è entrato in campo in questo turno."
     }
   }
 }

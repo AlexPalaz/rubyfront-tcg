@@ -1,5 +1,5 @@
 {
-  "name": "Custode della Soglia",
+  "name": "Guardiano della Paratia",
   "typeLabel": "Entità — Umano",
   "summary": "Il difensore degli Eredi: più i suoi sono passati oltre, più la soglia è invalicabile.",
   "ui": {
@@ -11,7 +11,7 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Custode della Soglia",
+    "name": "Guardiano della Paratia",
     "flavor": "Nessuno passa. Non oggi.",
     "warden": {
       "trigger": "Quando blocca",

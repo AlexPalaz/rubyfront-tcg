@@ -1,5 +1,5 @@
 {
-  "name": "Vendicatrice",
+  "name": "Vendicatrice d’Acciaio",
   "typeLabel": "Entità — Umano",
   "summary": "La Vendetta ha sempre un nome: più forte da quando qualcuno dei suoi è passato oltre.",
   "ui": {
@@ -11,7 +11,7 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Vendicatrice",
+    "name": "Vendicatrice d’Acciaio",
     "keyword": {
       "name": "Vendetta",
       "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"

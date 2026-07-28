@@ -1165,7 +1165,7 @@
           "id": "RBF-008",
           "setId": "rubyfront-core",
           "collectorNumber": "008",
-          "slug": "lookout",
+          "slug": "perimeter-lookout",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -1173,7 +1173,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Vedetta",
+              "name": "Vedetta del Perimetro",
               "typeLabel": "Entità — Umano",
               "summary": "L'occhio del piano: filtra la pescata come la Risacca della bestia.",
               "ui": {
@@ -1185,7 +1185,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Vedetta",
+                "name": "Vedetta del Perimetro",
                 "flavor": "Vide arrivare la fine. Fischiò due volte.",
                 "watch": {
                   "trigger": "Quando entra in campo",
@@ -1194,7 +1194,7 @@
               }
             },
             "en": {
-              "name": "Lookout",
+              "name": "Perimeter Lookout",
               "typeLabel": "Entity — Human",
               "summary": "The plan's eye: she filters the draw like the beast's Undertow.",
               "ui": {
@@ -1206,7 +1206,7 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Lookout",
+                "name": "Perimeter Lookout",
                 "flavor": "She saw the end coming. She whistled twice.",
                 "watch": {
                   "trigger": "When she enters the field",
@@ -1275,7 +1275,7 @@
           "id": "RBF-009",
           "setId": "rubyfront-core",
           "collectorNumber": "009",
-          "slug": "threshold-warden",
+          "slug": "bulkhead-warden",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -1283,7 +1283,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Custode della Soglia",
+              "name": "Guardiano della Paratia",
               "typeLabel": "Entità — Umano",
               "summary": "Il difensore degli Eredi: più i suoi sono passati oltre, più la soglia è invalicabile.",
               "ui": {
@@ -1295,7 +1295,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Custode della Soglia",
+                "name": "Guardiano della Paratia",
                 "flavor": "Nessuno passa. Non oggi.",
                 "warden": {
                   "trigger": "Quando blocca",
@@ -1304,7 +1304,7 @@
               }
             },
             "en": {
-              "name": "Threshold Warden",
+              "name": "Bulkhead Warden",
               "typeLabel": "Entity — Human",
               "summary": "The Heirs' defender: the more of his own have passed beyond, the firmer the threshold.",
               "ui": {
@@ -1316,7 +1316,7 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Threshold Warden",
+                "name": "Bulkhead Warden",
                 "flavor": "No one passes. Not today.",
                 "warden": {
                   "trigger": "When he blocks",
@@ -1383,7 +1383,7 @@
           "id": "RBF-010",
           "setId": "rubyfront-core",
           "collectorNumber": "010",
-          "slug": "field-medic",
+          "slug": "field-surgeon",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -1391,7 +1391,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Medico da Campo",
+              "name": "Chirurgo da Campo",
               "typeLabel": "Entità — Umano",
               "summary": "Cura due volte: all'arrivo e al congedo — il Ritiro come seconda medicina.",
               "ui": {
@@ -1403,7 +1403,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Medico da Campo",
+                "name": "Chirurgo da Campo",
                 "flavor": "Anche le bestie sanguinano.",
                 "medic": {
                   "trigger": "Quando entra in campo",
@@ -1416,7 +1416,7 @@
               }
             },
             "en": {
-              "name": "Field Medic",
+              "name": "Field Surgeon",
               "typeLabel": "Entity — Human",
               "summary": "He heals twice: on arrival and on farewell — Retirement as a second medicine.",
               "ui": {
@@ -1428,7 +1428,7 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Field Medic",
+                "name": "Field Surgeon",
                 "flavor": "Even beasts bleed.",
                 "medic": {
                   "trigger": "When he enters the field",
@@ -1502,7 +1502,7 @@
           "id": "RBF-011",
           "setId": "rubyfront-core",
           "collectorNumber": "011",
-          "slug": "herald-of-the-first",
+          "slug": "emissary-of-the-heirs",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -1510,7 +1510,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Araldo del Primo",
+              "name": "Emissario degli Eredi",
               "typeLabel": "Entità — Umano",
               "summary": "Il cercatore del piano: trova Adam, o chiunque serva alla causa.",
               "ui": {
@@ -1522,7 +1522,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Araldo del Primo",
+                "name": "Emissario degli Eredi",
                 "flavor": "Il Primo cammina fra noi. Io l'ho visto.",
                 "herald": {
                   "trigger": "Quando entra in campo",
@@ -1531,7 +1531,7 @@
               }
             },
             "en": {
-              "name": "Herald of the First",
+              "name": "Emissary of the Heirs",
               "typeLabel": "Entity — Human",
               "summary": "The plan's seeker: finds Adam, or whoever the cause requires.",
               "ui": {
@@ -1543,7 +1543,7 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Herald of the First",
+                "name": "Emissary of the Heirs",
                 "flavor": "The First walks among us. I have seen him.",
                 "herald": {
                   "trigger": "When he enters the field",
@@ -1609,7 +1609,7 @@
           "id": "RBF-012",
           "setId": "rubyfront-core",
           "collectorNumber": "012",
-          "slug": "last-bastion",
+          "slug": "armored-bulwark",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -1617,7 +1617,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Ultimo Bastione",
+              "name": "Baluardo Corazzato",
               "typeLabel": "Entità — Umano",
               "summary": "Il muro che respira: Potenza da costo alto, in cambio non lascia mai la linea.",
               "ui": {
@@ -1629,7 +1629,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Ultimo Bastione",
+                "name": "Baluardo Corazzato",
                 "flavor": "Cade il mondo, non lui.",
                 "effect": {
                   "name": "Effetto",
@@ -1642,7 +1642,7 @@
               }
             },
             "en": {
-              "name": "Last Bastion",
+              "name": "Armored Bulwark",
               "typeLabel": "Entity — Human",
               "summary": "The wall that breathes: high-cost Power, in exchange he never leaves the line.",
               "ui": {
@@ -1654,7 +1654,7 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Last Bastion",
+                "name": "Armored Bulwark",
                 "flavor": "The world may fall. He will not.",
                 "effect": {
                   "name": "Effect",
@@ -2304,7 +2304,7 @@
           "id": "RBF-018",
           "setId": "rubyfront-core",
           "collectorNumber": "018",
-          "slug": "chronicler",
+          "slug": "archivist",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -2312,7 +2312,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Cronista",
+              "name": "Archivista",
               "typeLabel": "Entità — Umano",
               "summary": "Registra chi è passato oltre: più nomi nella Requiem, più pagine da leggere.",
               "ui": {
@@ -2324,7 +2324,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Cronista",
+                "name": "Archivista",
                 "flavor": "Scrive ciò che il Cambiamento detta.",
                 "chronicle": {
                   "trigger": "Quando entra in campo",
@@ -2333,7 +2333,7 @@
               }
             },
             "en": {
-              "name": "Chronicler",
+              "name": "Archivist",
               "typeLabel": "Entity — Human",
               "summary": "She records those who passed beyond: more names in the Requiem, more pages to read.",
               "ui": {
@@ -2345,7 +2345,7 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Chronicler",
+                "name": "Archivist",
                 "flavor": "She writes what the Change dictates.",
                 "chronicle": {
                   "trigger": "When she enters the field",
@@ -2405,7 +2405,7 @@
           "id": "RBF-019",
           "setId": "rubyfront-core",
           "collectorNumber": "019",
-          "slug": "front-veteran",
+          "slug": "breach-veteran",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -2413,7 +2413,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Veterana del Fronte",
+              "name": "Veterana della Breccia",
               "typeLabel": "Entità — Umano",
               "summary": "Il contrattacco che insegna: ogni caduto nemico vale una carta.",
               "ui": {
@@ -2425,7 +2425,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Veterana del Fronte",
+                "name": "Veterana della Breccia",
                 "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti.",
                 "lesson": {
                   "trigger": "Quando contrattacca",
@@ -2434,7 +2434,7 @@
               }
             },
             "en": {
-              "name": "Front Veteran",
+              "name": "Breach Veteran",
               "typeLabel": "Entity — Human",
               "summary": "The counterattack that teaches: every fallen enemy is worth a card.",
               "ui": {
@@ -2446,7 +2446,7 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Front Veteran",
+                "name": "Breach Veteran",
                 "flavor": "She has blocked more attacks than you have seen.",
                 "lesson": {
                   "trigger": "When she counterattacks",
@@ -2606,7 +2606,7 @@
           "id": "RBF-021",
           "setId": "rubyfront-core",
           "collectorNumber": "021",
-          "slug": "runner",
+          "slug": "steam-courier",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -2614,9 +2614,9 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Staffetta",
+              "name": "Corriere a Vapore",
               "typeLabel": "Entità — Umano",
-              "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, viva.",
+              "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, vivo.",
               "ui": {
                 "face": "Entità"
               },
@@ -2626,7 +2626,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Staffetta",
+                "name": "Corriere a Vapore",
                 "keyword": {
                   "name": "Slancio",
                   "rules": "può attaccare già nel turno in cui entra in campo"
@@ -2634,14 +2634,14 @@
                 "flavor": "Arriva prima della notizia del suo arrivo.",
                 "relay": {
                   "trigger": "Alla fine del tuo turno",
-                  "text": "Se ha attaccato in questo turno, puoi ritirarla in Zona di Requiem, anche se è entrata in campo in questo turno."
+                  "text": "Se ha attaccato in questo turno, puoi ritirarlo in Zona di Requiem, anche se è entrato in campo in questo turno."
                 }
               }
             },
             "en": {
-              "name": "Runner",
+              "name": "Steam Courier",
               "typeLabel": "Entity — Human",
-              "summary": "The Bequest's fuel: she strikes, delivers and passes beyond, alive.",
+              "summary": "The Bequest's fuel: he strikes, delivers and passes beyond, alive.",
               "ui": {
                 "face": "Entity"
               },
@@ -2651,15 +2651,15 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Runner",
+                "name": "Steam Courier",
                 "keyword": {
                   "name": "Surge",
-                  "rules": "she may attack the very turn she enters the field"
+                  "rules": "he may attack the very turn he enters the field"
                 },
-                "flavor": "She arrives before word of her arrival.",
+                "flavor": "He arrives before word of his arrival.",
                 "relay": {
                   "trigger": "At the end of your turn",
-                  "text": "If she attacked this turn, you may retire her to the Requiem Zone, even if she entered the field this turn."
+                  "text": "If he attacked this turn, you may retire him to the Requiem Zone, even if he entered the field this turn."
                 }
               }
             }
@@ -2848,7 +2848,7 @@
           "id": "RBF-023",
           "setId": "rubyfront-core",
           "collectorNumber": "023",
-          "slug": "avenger",
+          "slug": "steel-avenger",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -2856,7 +2856,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Vendicatrice",
+              "name": "Vendicatrice d’Acciaio",
               "typeLabel": "Entità — Umano",
               "summary": "La Vendetta ha sempre un nome: più forte da quando qualcuno dei suoi è passato oltre.",
               "ui": {
@@ -2868,7 +2868,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Vendicatrice",
+                "name": "Vendicatrice d’Acciaio",
                 "keyword": {
                   "name": "Vendetta",
                   "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
@@ -2881,7 +2881,7 @@
               }
             },
             "en": {
-              "name": "Avenger",
+              "name": "Steel Avenger",
               "typeLabel": "Entity — Human",
               "summary": "Vengeance always has a name: stronger since one of her own passed beyond.",
               "ui": {
@@ -2893,7 +2893,7 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Avenger",
+                "name": "Steel Avenger",
                 "keyword": {
                   "name": "Vengeance",
                   "rules": "if she blocks with higher Power, the attacker dies"
@@ -4096,7 +4096,7 @@
       "id": "RBF-008",
       "setId": "rubyfront-core",
       "collectorNumber": "008",
-      "slug": "lookout",
+      "slug": "perimeter-lookout",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -4104,7 +4104,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Vedetta",
+          "name": "Vedetta del Perimetro",
           "typeLabel": "Entità — Umano",
           "summary": "L'occhio del piano: filtra la pescata come la Risacca della bestia.",
           "ui": {
@@ -4116,7 +4116,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Vedetta",
+            "name": "Vedetta del Perimetro",
             "flavor": "Vide arrivare la fine. Fischiò due volte.",
             "watch": {
               "trigger": "Quando entra in campo",
@@ -4125,7 +4125,7 @@
           }
         },
         "en": {
-          "name": "Lookout",
+          "name": "Perimeter Lookout",
           "typeLabel": "Entity — Human",
           "summary": "The plan's eye: she filters the draw like the beast's Undertow.",
           "ui": {
@@ -4137,7 +4137,7 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Lookout",
+            "name": "Perimeter Lookout",
             "flavor": "She saw the end coming. She whistled twice.",
             "watch": {
               "trigger": "When she enters the field",
@@ -4206,7 +4206,7 @@
       "id": "RBF-009",
       "setId": "rubyfront-core",
       "collectorNumber": "009",
-      "slug": "threshold-warden",
+      "slug": "bulkhead-warden",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -4214,7 +4214,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Custode della Soglia",
+          "name": "Guardiano della Paratia",
           "typeLabel": "Entità — Umano",
           "summary": "Il difensore degli Eredi: più i suoi sono passati oltre, più la soglia è invalicabile.",
           "ui": {
@@ -4226,7 +4226,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Custode della Soglia",
+            "name": "Guardiano della Paratia",
             "flavor": "Nessuno passa. Non oggi.",
             "warden": {
               "trigger": "Quando blocca",
@@ -4235,7 +4235,7 @@
           }
         },
         "en": {
-          "name": "Threshold Warden",
+          "name": "Bulkhead Warden",
           "typeLabel": "Entity — Human",
           "summary": "The Heirs' defender: the more of his own have passed beyond, the firmer the threshold.",
           "ui": {
@@ -4247,7 +4247,7 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Threshold Warden",
+            "name": "Bulkhead Warden",
             "flavor": "No one passes. Not today.",
             "warden": {
               "trigger": "When he blocks",
@@ -4314,7 +4314,7 @@
       "id": "RBF-010",
       "setId": "rubyfront-core",
       "collectorNumber": "010",
-      "slug": "field-medic",
+      "slug": "field-surgeon",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -4322,7 +4322,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Medico da Campo",
+          "name": "Chirurgo da Campo",
           "typeLabel": "Entità — Umano",
           "summary": "Cura due volte: all'arrivo e al congedo — il Ritiro come seconda medicina.",
           "ui": {
@@ -4334,7 +4334,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Medico da Campo",
+            "name": "Chirurgo da Campo",
             "flavor": "Anche le bestie sanguinano.",
             "medic": {
               "trigger": "Quando entra in campo",
@@ -4347,7 +4347,7 @@
           }
         },
         "en": {
-          "name": "Field Medic",
+          "name": "Field Surgeon",
           "typeLabel": "Entity — Human",
           "summary": "He heals twice: on arrival and on farewell — Retirement as a second medicine.",
           "ui": {
@@ -4359,7 +4359,7 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Field Medic",
+            "name": "Field Surgeon",
             "flavor": "Even beasts bleed.",
             "medic": {
               "trigger": "When he enters the field",
@@ -4433,7 +4433,7 @@
       "id": "RBF-011",
       "setId": "rubyfront-core",
       "collectorNumber": "011",
-      "slug": "herald-of-the-first",
+      "slug": "emissary-of-the-heirs",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -4441,7 +4441,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Araldo del Primo",
+          "name": "Emissario degli Eredi",
           "typeLabel": "Entità — Umano",
           "summary": "Il cercatore del piano: trova Adam, o chiunque serva alla causa.",
           "ui": {
@@ -4453,7 +4453,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Araldo del Primo",
+            "name": "Emissario degli Eredi",
             "flavor": "Il Primo cammina fra noi. Io l'ho visto.",
             "herald": {
               "trigger": "Quando entra in campo",
@@ -4462,7 +4462,7 @@
           }
         },
         "en": {
-          "name": "Herald of the First",
+          "name": "Emissary of the Heirs",
           "typeLabel": "Entity — Human",
           "summary": "The plan's seeker: finds Adam, or whoever the cause requires.",
           "ui": {
@@ -4474,7 +4474,7 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Herald of the First",
+            "name": "Emissary of the Heirs",
             "flavor": "The First walks among us. I have seen him.",
             "herald": {
               "trigger": "When he enters the field",
@@ -4540,7 +4540,7 @@
       "id": "RBF-012",
       "setId": "rubyfront-core",
       "collectorNumber": "012",
-      "slug": "last-bastion",
+      "slug": "armored-bulwark",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -4548,7 +4548,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Ultimo Bastione",
+          "name": "Baluardo Corazzato",
           "typeLabel": "Entità — Umano",
           "summary": "Il muro che respira: Potenza da costo alto, in cambio non lascia mai la linea.",
           "ui": {
@@ -4560,7 +4560,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Ultimo Bastione",
+            "name": "Baluardo Corazzato",
             "flavor": "Cade il mondo, non lui.",
             "effect": {
               "name": "Effetto",
@@ -4573,7 +4573,7 @@
           }
         },
         "en": {
-          "name": "Last Bastion",
+          "name": "Armored Bulwark",
           "typeLabel": "Entity — Human",
           "summary": "The wall that breathes: high-cost Power, in exchange he never leaves the line.",
           "ui": {
@@ -4585,7 +4585,7 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Last Bastion",
+            "name": "Armored Bulwark",
             "flavor": "The world may fall. He will not.",
             "effect": {
               "name": "Effect",
@@ -5235,7 +5235,7 @@
       "id": "RBF-018",
       "setId": "rubyfront-core",
       "collectorNumber": "018",
-      "slug": "chronicler",
+      "slug": "archivist",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -5243,7 +5243,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Cronista",
+          "name": "Archivista",
           "typeLabel": "Entità — Umano",
           "summary": "Registra chi è passato oltre: più nomi nella Requiem, più pagine da leggere.",
           "ui": {
@@ -5255,7 +5255,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Cronista",
+            "name": "Archivista",
             "flavor": "Scrive ciò che il Cambiamento detta.",
             "chronicle": {
               "trigger": "Quando entra in campo",
@@ -5264,7 +5264,7 @@
           }
         },
         "en": {
-          "name": "Chronicler",
+          "name": "Archivist",
           "typeLabel": "Entity — Human",
           "summary": "She records those who passed beyond: more names in the Requiem, more pages to read.",
           "ui": {
@@ -5276,7 +5276,7 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Chronicler",
+            "name": "Archivist",
             "flavor": "She writes what the Change dictates.",
             "chronicle": {
               "trigger": "When she enters the field",
@@ -5336,7 +5336,7 @@
       "id": "RBF-019",
       "setId": "rubyfront-core",
       "collectorNumber": "019",
-      "slug": "front-veteran",
+      "slug": "breach-veteran",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -5344,7 +5344,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Veterana del Fronte",
+          "name": "Veterana della Breccia",
           "typeLabel": "Entità — Umano",
           "summary": "Il contrattacco che insegna: ogni caduto nemico vale una carta.",
           "ui": {
@@ -5356,7 +5356,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Veterana del Fronte",
+            "name": "Veterana della Breccia",
             "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti.",
             "lesson": {
               "trigger": "Quando contrattacca",
@@ -5365,7 +5365,7 @@
           }
         },
         "en": {
-          "name": "Front Veteran",
+          "name": "Breach Veteran",
           "typeLabel": "Entity — Human",
           "summary": "The counterattack that teaches: every fallen enemy is worth a card.",
           "ui": {
@@ -5377,7 +5377,7 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Front Veteran",
+            "name": "Breach Veteran",
             "flavor": "She has blocked more attacks than you have seen.",
             "lesson": {
               "trigger": "When she counterattacks",
@@ -5537,7 +5537,7 @@
       "id": "RBF-021",
       "setId": "rubyfront-core",
       "collectorNumber": "021",
-      "slug": "runner",
+      "slug": "steam-courier",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -5545,9 +5545,9 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Staffetta",
+          "name": "Corriere a Vapore",
           "typeLabel": "Entità — Umano",
-          "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, viva.",
+          "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, vivo.",
           "ui": {
             "face": "Entità"
           },
@@ -5557,7 +5557,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Staffetta",
+            "name": "Corriere a Vapore",
             "keyword": {
               "name": "Slancio",
               "rules": "può attaccare già nel turno in cui entra in campo"
@@ -5565,14 +5565,14 @@
             "flavor": "Arriva prima della notizia del suo arrivo.",
             "relay": {
               "trigger": "Alla fine del tuo turno",
-              "text": "Se ha attaccato in questo turno, puoi ritirarla in Zona di Requiem, anche se è entrata in campo in questo turno."
+              "text": "Se ha attaccato in questo turno, puoi ritirarlo in Zona di Requiem, anche se è entrato in campo in questo turno."
             }
           }
         },
         "en": {
-          "name": "Runner",
+          "name": "Steam Courier",
           "typeLabel": "Entity — Human",
-          "summary": "The Bequest's fuel: she strikes, delivers and passes beyond, alive.",
+          "summary": "The Bequest's fuel: he strikes, delivers and passes beyond, alive.",
           "ui": {
             "face": "Entity"
           },
@@ -5582,15 +5582,15 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Runner",
+            "name": "Steam Courier",
             "keyword": {
               "name": "Surge",
-              "rules": "she may attack the very turn she enters the field"
+              "rules": "he may attack the very turn he enters the field"
             },
-            "flavor": "She arrives before word of her arrival.",
+            "flavor": "He arrives before word of his arrival.",
             "relay": {
               "trigger": "At the end of your turn",
-              "text": "If she attacked this turn, you may retire her to the Requiem Zone, even if she entered the field this turn."
+              "text": "If he attacked this turn, you may retire him to the Requiem Zone, even if he entered the field this turn."
             }
           }
         }
@@ -5779,7 +5779,7 @@
       "id": "RBF-023",
       "setId": "rubyfront-core",
       "collectorNumber": "023",
-      "slug": "avenger",
+      "slug": "steel-avenger",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -5787,7 +5787,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Vendicatrice",
+          "name": "Vendicatrice d’Acciaio",
           "typeLabel": "Entità — Umano",
           "summary": "La Vendetta ha sempre un nome: più forte da quando qualcuno dei suoi è passato oltre.",
           "ui": {
@@ -5799,7 +5799,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Vendicatrice",
+            "name": "Vendicatrice d’Acciaio",
             "keyword": {
               "name": "Vendetta",
               "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
@@ -5812,7 +5812,7 @@
           }
         },
         "en": {
-          "name": "Avenger",
+          "name": "Steel Avenger",
           "typeLabel": "Entity — Human",
           "summary": "Vengeance always has a name: stronger since one of her own passed beyond.",
           "ui": {
@@ -5824,7 +5824,7 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Avenger",
+            "name": "Steel Avenger",
             "keyword": {
               "name": "Vengeance",
               "rules": "if she blocks with higher Power, the attacker dies"
@@ -5892,21 +5892,21 @@
   "decks": [
     {
       "schemaVersion": 1,
-      "id": "eredi",
+      "id": "primi-eredi",
       "setId": "rubyfront-core",
       "status": "draft",
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Eredi di Adam",
+          "name": "Primi Eredi",
           "description": "Mazzo Umani di controllo e scalata: sopravvivere fino a metà partita, compiere l'Unione con il Viatico di Adam e chiudere nella finestra di dominio che segue."
         },
         "en": {
-          "name": "Heirs of Adam",
+          "name": "First Heirs",
           "description": "A Human control-and-climb deck: survive to midgame, fulfil the Union through Adam's Viaticum and close in the window of dominance that follows."
         }
       },
-      "designNotes": "eredi.md",
+      "designNotes": "primi-eredi.md",
       "cards": [
         {
           "card": "RBF-001",
@@ -5998,7 +5998,7 @@
         }
       ],
       "source": {
-        "designNotes": "notes/deck-eredi.md"
+        "designNotes": "notes/deck-primi-eredi.md"
       }
     }
   ]

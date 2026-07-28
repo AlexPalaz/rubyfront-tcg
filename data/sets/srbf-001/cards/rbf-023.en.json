@@ -1,5 +1,5 @@
 {
-  "name": "Avenger",
+  "name": "Steel Avenger",
   "typeLabel": "Entity — Human",
   "summary": "Vengeance always has a name: stronger since one of her own passed beyond.",
   "ui": {
@@ -11,7 +11,7 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Avenger",
+    "name": "Steel Avenger",
     "keyword": {
       "name": "Vengeance",
       "rules": "if she blocks with higher Power, the attacker dies"

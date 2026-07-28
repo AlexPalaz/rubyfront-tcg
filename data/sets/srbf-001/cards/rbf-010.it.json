@@ -1,5 +1,5 @@
 {
-  "name": "Medico da Campo",
+  "name": "Chirurgo da Campo",
   "typeLabel": "Entità — Umano",
   "summary": "Cura due volte: all'arrivo e al congedo — il Ritiro come seconda medicina.",
   "ui": {
@@ -11,7 +11,7 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Medico da Campo",
+    "name": "Chirurgo da Campo",
     "flavor": "Anche le bestie sanguinano.",
     "medic": {
       "trigger": "Quando entra in campo",

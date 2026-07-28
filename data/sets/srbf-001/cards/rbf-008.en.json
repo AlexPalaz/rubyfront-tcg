@@ -1,5 +1,5 @@
 {
-  "name": "Lookout",
+  "name": "Perimeter Lookout",
   "typeLabel": "Entity — Human",
   "summary": "The plan's eye: she filters the draw like the beast's Undertow.",
   "ui": {
@@ -11,7 +11,7 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Lookout",
+    "name": "Perimeter Lookout",
     "flavor": "She saw the end coming. She whistled twice.",
     "watch": {
       "trigger": "When she enters the field",

@@ -3,7 +3,7 @@
   "id": "RBF-009",
   "setId": "rubyfront-core",
   "collectorNumber": "009",
-  "slug": "threshold-warden",
+  "slug": "bulkhead-warden",
   "type": "entity",
   "layout": "single",
   "status": "draft",

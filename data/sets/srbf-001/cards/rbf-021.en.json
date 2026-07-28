@@ -1,7 +1,7 @@
 {
-  "name": "Runner",
+  "name": "Steam Courier",
   "typeLabel": "Entity — Human",
-  "summary": "The Bequest's fuel: she strikes, delivers and passes beyond, alive.",
+  "summary": "The Bequest's fuel: he strikes, delivers and passes beyond, alive.",
   "ui": {
     "face": "Entity"
   },
@@ -11,15 +11,15 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Runner",
+    "name": "Steam Courier",
     "keyword": {
       "name": "Surge",
-      "rules": "she may attack the very turn she enters the field"
+      "rules": "he may attack the very turn he enters the field"
     },
-    "flavor": "She arrives before word of her arrival.",
+    "flavor": "He arrives before word of his arrival.",
     "relay": {
       "trigger": "At the end of your turn",
-      "text": "If she attacked this turn, you may retire her to the Requiem Zone, even if she entered the field this turn."
+      "text": "If he attacked this turn, you may retire him to the Requiem Zone, even if he entered the field this turn."
     }
   }
 }
