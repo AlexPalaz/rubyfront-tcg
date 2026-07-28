@@ -20,7 +20,7 @@ carte; il Baluardo li paga in PV.
 
 **C — L'Unione compiuta (i premi del flip).** Il flip è un interruttore che
 tutto il mazzo sente: la Prima Lama si risveglia (+2 e Slancio), Scatto passa
-da +2 a +4, Ferita Aperta diventa incrollabile, la Grande Marea apre il Fronte e
+da +2 a +4, Lacerazione diventa incrollabile, la Grande Marea apre il Fronte e
 Secondo Impeto chiude. L'Unione non è la fine del piano: è l'inizio della
 chiusura.
 
@@ -44,7 +44,7 @@ chiusura.
 | 2 | RBF-004 Scatto | 3 | C · +2 (+4 con l'Unione) e pseudo-Slancio |
 | 2 | RBF-006 Collera | 3 | B · Reattiva: 2 PV + scaccia il Rubyfront |
 | 2 | RBF-019 Veterana della Breccia | 4 | B · CA+2; pesca sul colpo letale |
-| 2 | RBF-016 Ferita Aperta | 4 | C · permanente drip; eterna post-flip |
+| 2 | RBF-016 Lacerazione | 4 | C · permanente drip; eterna post-flip |
 | 2 | RBF-022 Vessillo degli Eredi | 4 | A(4) · anthem +1/+2 |
 | 2 | RBF-014 Prima Lama | 5 | C · si risveglia con l'Unione; Din II |
 | 2 | RBF-015 Secondo Impeto | 5 | C · attacco doppio nel turno della Marea |
@@ -71,4 +71,4 @@ Curva: 1×4 · 2×8 · 3×10 (+Rubyfront 3+1) · 4×8 · 5×4 · gratis×4.
 - **Adam nel mirino:** il Velo copre le Materie, non battaglia né effetti
   delle Entità. Morto lui (Abisso), piano B di controllo puro.
 - **Permanenti appese agli abilitatori** (§7.2): Vessillo alla Dinamica I,
-  Ferita Aperta alla bestia — pre-flip tutto è revocabile.
+  Lacerazione alla bestia — pre-flip tutto è revocabile.
