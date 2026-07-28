@@ -10,7 +10,7 @@ il mazzo lo pratica come rito: Corriere a Vapore si ritira da sola dopo l'attacc
 Chirurgo cura al congedo, la Vigorcintura segue il portatore e pesca. I payoff
 contano le carte nella **tua Zona di Requiem**, su una scala a soglie:
 **≥1** Vendicatrice +1 · **≥2** Archivista pesca 2 · **≥3** Guardiano blocca a +4
-· **≥4** Marcia dà +2 a tutti. L'apice del Lascito è il **Viatico stesso**:
+· **≥4** il Vessillo dà +2 a tutti. L'apice del Lascito è il **Viatico stesso**:
 il Ritiro di Adam è l'ultimo passo di un cammino iniziato al turno 1.
 
 **B — La Veglia (il Flusso aperto).** Collera, Riflesso e Quiete si giocano
@@ -19,7 +19,7 @@ trasforma l'attesa in minaccia. La Veterana paga gli scambi difensivi in
 carte; il Baluardo li paga in PV.
 
 **C — L'Unione compiuta (i premi del flip).** Il flip è un interruttore che
-tutto il mazzo sente: la Prima Lancia si risveglia (+2 e Slancio), Scatto passa
+tutto il mazzo sente: la Prima Lama si risveglia (+2 e Slancio), Scatto passa
 da +2 a +4, Emorragia diventa incrollabile, la Grande Marea apre il Fronte e
 Secondo Impeto chiude. L'Unione non è la fine del piano: è l'inizio della
 chiusura.
@@ -45,8 +45,8 @@ chiusura.
 | 2 | RBF-006 Collera | 3 | B · Reattiva: 2 PV + scaccia il Rubyfront |
 | 2 | RBF-019 Veterana della Breccia | 4 | B · CA+2; pesca sul colpo letale |
 | 2 | RBF-016 Emorragia | 4 | C · permanente drip; eterna post-flip |
-| 2 | RBF-022 Marcia di Ferro | 4 | A(4) · anthem +1/+2 |
-| 2 | RBF-014 Prima Lancia | 5 | C · si risveglia con l'Unione; Din II |
+| 2 | RBF-022 Vessillo degli Eredi | 4 | A(4) · anthem +1/+2 |
+| 2 | RBF-014 Prima Lama | 5 | C · si risveglia con l'Unione; Din II |
 | 2 | RBF-015 Secondo Impeto | 5 | C · attacco doppio nel turno della Marea |
 | 2 | RBF-007 Vigorcintura | 0 | A · +1; pesca al Ritiro del portatore |
 | 2 | RBF-020 Velo del Primo | 0 | Protezione · Adam immune alle Materie |
@@ -70,5 +70,5 @@ Curva: 1×4 · 2×8 · 3×10 (+Rubyfront 3+1) · 4×8 · 5×4 · gratis×4.
   ritirarsi è un lusso. Mulligan sulla curva 1-2-3.
 - **Adam nel mirino:** il Velo copre le Materie, non battaglia né effetti
   delle Entità. Morto lui (Abisso), piano B di controllo puro.
-- **Permanenti appese agli abilitatori** (§7.2): Marcia alla Dinamica I,
+- **Permanenti appese agli abilitatori** (§7.2): Vessillo alla Dinamica I,
   Emorragia alla bestia — pre-flip tutto è revocabile.

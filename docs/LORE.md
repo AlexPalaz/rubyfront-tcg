@@ -24,9 +24,9 @@
 ## Adam e lo Zero
 
 - **Adam toccò lo Zero inconsapevolmente**: non un rito cercato, un incontro.
-  Da quel gesto l'umanità cambiò per sempre: l'evento è ricordato come
-  **il Tocco**. (Niente nomi astratti per gli eventi del mondo: si nominano
-  con gesti e cose concrete.)
+  Da quel gesto l'umanità cambiò per sempre. **L'evento non ha ancora un nome
+  canonico**: lo sceglierà il designer — fino ad allora le carte non lo
+  nominano. (Regola: niente nomi astratti per gli eventi del mondo.)
 - **Solo gli eredi di Adam hanno lo Zero**: l'accesso alla Materia Zero è
   questione di **lignaggio**, non di studio. Ogni futura carta che abilita lo
   Zero deve appartenere a questa discendenza (o giustificare l'eccezione).

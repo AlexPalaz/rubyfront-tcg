@@ -1845,7 +1845,7 @@
           "id": "RBF-014",
           "setId": "rubyfront-core",
           "collectorNumber": "014",
-          "slug": "first-spear",
+          "slug": "first-blade",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -1853,7 +1853,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Prima Lancia",
+              "name": "Prima Lama",
               "typeLabel": "Entità — Umano",
               "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
               "ui": {
@@ -1865,16 +1865,16 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Prima Lancia",
+                "name": "Prima Lama",
                 "flavor": "Il fronte nemico la conosce per nome.",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Finché controlli l’Unione, la Prima Lancia prende +2 Potenza e ha Slancio."
+                  "text": "Finché controlli l’Unione, la Prima Lama prende +2 Potenza e ha Slancio."
                 }
               }
             },
             "en": {
-              "name": "First Spear",
+              "name": "First Blade",
               "typeLabel": "Entity — Human",
               "summary": "She sleeps until the beast is fulfilled: with the Union on the field she is the deck's hammer.",
               "ui": {
@@ -1886,11 +1886,11 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "First Spear",
+                "name": "First Blade",
                 "flavor": "The enemy front knows her by name.",
                 "effect": {
                   "name": "Effect",
-                  "text": "For as long as you control the Union, the First Spear gets +2 Power and has Surge."
+                  "text": "For as long as you control the Union, the First Blade gets +2 Power and has Surge."
                 }
               }
             }
@@ -2723,7 +2723,7 @@
           "id": "RBF-022",
           "setId": "rubyfront-core",
           "collectorNumber": "022",
-          "slug": "iron-march",
+          "slug": "heirs-banner",
           "type": "matter",
           "layout": "single",
           "status": "draft",
@@ -2731,9 +2731,9 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Marcia di Ferro",
+              "name": "Vessillo degli Eredi",
               "typeLabel": "Materia Dinamica I",
-              "summary": "L'inno del piano: ogni Umano un passo più forte, finché la Marcia dura.",
+              "summary": "L'inno del piano reso stoffa e asta: ogni Umano un passo più forte, finché sventola.",
               "ui": {
                 "face": "Materia"
               },
@@ -2747,12 +2747,12 @@
                 }
               },
               "face": {
-                "name": "Marcia di Ferro",
+                "name": "Vessillo degli Eredi",
                 "effect": {
                   "name": "Effetto",
                   "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
                 },
-                "flavor": "Un passo alla volta, tutti insieme."
+                "flavor": "Finché sventola, si avanza."
               },
               "matters": {
                 "dynamicTitle": "Materia Dinamica · 1° grado",
@@ -2760,9 +2760,9 @@
               }
             },
             "en": {
-              "name": "Iron March",
+              "name": "Banner of the Heirs",
               "typeLabel": "Dynamic Matter I",
-              "summary": "The plan's anthem: every Human one step stronger, for as long as the March lasts.",
+              "summary": "The plan's anthem made cloth and pole: every Human one step stronger, while it flies.",
               "ui": {
                 "face": "Matter"
               },
@@ -2776,12 +2776,12 @@
                 }
               },
               "face": {
-                "name": "Iron March",
+                "name": "Banner of the Heirs",
                 "effect": {
                   "name": "Effect",
                   "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."
                 },
-                "flavor": "One step at a time, all together."
+                "flavor": "While it flies, they advance."
               },
               "matters": {
                 "dynamicTitle": "Dynamic Matter · 1st grade",
@@ -4776,7 +4776,7 @@
       "id": "RBF-014",
       "setId": "rubyfront-core",
       "collectorNumber": "014",
-      "slug": "first-spear",
+      "slug": "first-blade",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -4784,7 +4784,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Prima Lancia",
+          "name": "Prima Lama",
           "typeLabel": "Entità — Umano",
           "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
           "ui": {
@@ -4796,16 +4796,16 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Prima Lancia",
+            "name": "Prima Lama",
             "flavor": "Il fronte nemico la conosce per nome.",
             "effect": {
               "name": "Effetto",
-              "text": "Finché controlli l’Unione, la Prima Lancia prende +2 Potenza e ha Slancio."
+              "text": "Finché controlli l’Unione, la Prima Lama prende +2 Potenza e ha Slancio."
             }
           }
         },
         "en": {
-          "name": "First Spear",
+          "name": "First Blade",
           "typeLabel": "Entity — Human",
           "summary": "She sleeps until the beast is fulfilled: with the Union on the field she is the deck's hammer.",
           "ui": {
@@ -4817,11 +4817,11 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "First Spear",
+            "name": "First Blade",
             "flavor": "The enemy front knows her by name.",
             "effect": {
               "name": "Effect",
-              "text": "For as long as you control the Union, the First Spear gets +2 Power and has Surge."
+              "text": "For as long as you control the Union, the First Blade gets +2 Power and has Surge."
             }
           }
         }
@@ -5654,7 +5654,7 @@
       "id": "RBF-022",
       "setId": "rubyfront-core",
       "collectorNumber": "022",
-      "slug": "iron-march",
+      "slug": "heirs-banner",
       "type": "matter",
       "layout": "single",
       "status": "draft",
@@ -5662,9 +5662,9 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Marcia di Ferro",
+          "name": "Vessillo degli Eredi",
           "typeLabel": "Materia Dinamica I",
-          "summary": "L'inno del piano: ogni Umano un passo più forte, finché la Marcia dura.",
+          "summary": "L'inno del piano reso stoffa e asta: ogni Umano un passo più forte, finché sventola.",
           "ui": {
             "face": "Materia"
           },
@@ -5678,12 +5678,12 @@
             }
           },
           "face": {
-            "name": "Marcia di Ferro",
+            "name": "Vessillo degli Eredi",
             "effect": {
               "name": "Effetto",
               "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
             },
-            "flavor": "Un passo alla volta, tutti insieme."
+            "flavor": "Finché sventola, si avanza."
           },
           "matters": {
             "dynamicTitle": "Materia Dinamica · 1° grado",
@@ -5691,9 +5691,9 @@
           }
         },
         "en": {
-          "name": "Iron March",
+          "name": "Banner of the Heirs",
           "typeLabel": "Dynamic Matter I",
-          "summary": "The plan's anthem: every Human one step stronger, for as long as the March lasts.",
+          "summary": "The plan's anthem made cloth and pole: every Human one step stronger, while it flies.",
           "ui": {
             "face": "Matter"
           },
@@ -5707,12 +5707,12 @@
             }
           },
           "face": {
-            "name": "Iron March",
+            "name": "Banner of the Heirs",
             "effect": {
               "name": "Effect",
               "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."
             },
-            "flavor": "One step at a time, all together."
+            "flavor": "While it flies, they advance."
           },
           "matters": {
             "dynamicTitle": "Dynamic Matter · 1st grade",

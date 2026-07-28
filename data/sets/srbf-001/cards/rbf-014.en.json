@@ -1,5 +1,5 @@
 {
-  "name": "First Spear",
+  "name": "First Blade",
   "typeLabel": "Entity — Human",
   "summary": "She sleeps until the beast is fulfilled: with the Union on the field she is the deck's hammer.",
   "ui": {
@@ -11,11 +11,11 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "First Spear",
+    "name": "First Blade",
     "flavor": "The enemy front knows her by name.",
     "effect": {
       "name": "Effect",
-      "text": "For as long as you control the Union, the First Spear gets +2 Power and has Surge."
+      "text": "For as long as you control the Union, the First Blade gets +2 Power and has Surge."
     }
   }
 }

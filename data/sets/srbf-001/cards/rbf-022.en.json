@@ -1,7 +1,7 @@
 {
-  "name": "Iron March",
+  "name": "Banner of the Heirs",
   "typeLabel": "Dynamic Matter I",
-  "summary": "The plan's anthem: every Human one step stronger, for as long as the March lasts.",
+  "summary": "The plan's anthem made cloth and pole: every Human one step stronger, while it flies.",
   "ui": {
     "face": "Matter"
   },
@@ -15,12 +15,12 @@
     }
   },
   "face": {
-    "name": "Iron March",
+    "name": "Banner of the Heirs",
     "effect": {
       "name": "Effect",
       "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."
     },
-    "flavor": "One step at a time, all together."
+    "flavor": "While it flies, they advance."
   },
   "matters": {
     "dynamicTitle": "Dynamic Matter · 1st grade",

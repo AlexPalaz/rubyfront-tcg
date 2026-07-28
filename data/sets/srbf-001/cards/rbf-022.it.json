@@ -1,7 +1,7 @@
 {
-  "name": "Marcia di Ferro",
+  "name": "Vessillo degli Eredi",
   "typeLabel": "Materia Dinamica I",
-  "summary": "L'inno del piano: ogni Umano un passo più forte, finché la Marcia dura.",
+  "summary": "L'inno del piano reso stoffa e asta: ogni Umano un passo più forte, finché sventola.",
   "ui": {
     "face": "Materia"
   },
@@ -15,12 +15,12 @@
     }
   },
   "face": {
-    "name": "Marcia di Ferro",
+    "name": "Vessillo degli Eredi",
     "effect": {
       "name": "Effetto",
       "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
     },
-    "flavor": "Un passo alla volta, tutti insieme."
+    "flavor": "Finché sventola, si avanza."
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 1° grado",

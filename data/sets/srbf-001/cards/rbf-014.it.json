@@ -1,5 +1,5 @@
 {
-  "name": "Prima Lancia",
+  "name": "Prima Lama",
   "typeLabel": "Entità — Umano",
   "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
   "ui": {
@@ -11,11 +11,11 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Prima Lancia",
+    "name": "Prima Lama",
     "flavor": "Il fronte nemico la conosce per nome.",
     "effect": {
       "name": "Effetto",
-      "text": "Finché controlli l’Unione, la Prima Lancia prende +2 Potenza e ha Slancio."
+      "text": "Finché controlli l’Unione, la Prima Lama prende +2 Potenza e ha Slancio."
     }
   }
 }
