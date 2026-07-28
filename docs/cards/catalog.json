@@ -541,7 +541,7 @@
                   "repeatable": true,
                   "checks": [],
                   "cost": {
-                    "flux": 5
+                    "flux": 3
                   },
                   "effect": {
                     "type": "search_card",
@@ -3472,7 +3472,7 @@
               "repeatable": true,
               "checks": [],
               "cost": {
-                "flux": 5
+                "flux": 3
               },
               "effect": {
                 "type": "search_card",
