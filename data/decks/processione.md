@@ -1,4 +1,4 @@
-# Il Viatico del Primo — mazzo di riferimento (40 carte)
+# Processione del Primo — mazzo di riferimento (40 carte)
 
 > **Status:** DRAFT — 22 progetti sotto la regola delle 2 copie (§3.1).
 > Ogni carta fa qualcosa, e ogni cosa serve a uno dei tre motori.
