@@ -10,11 +10,11 @@
   /* La pagina del mazzo mostra le carte vere, in miniatura: ogni tessera è la
      carta a grandezza piena (520×728) scalata via transform, così il renderer
      e gli stili restano identici a quelli della carta singola. */
-  .deck-grid { display: grid; grid-template-columns: repeat(auto-fill, 234px);
-    justify-content: center; gap: 26px 18px; margin-top: 28px; }
-  .deck-tile { position: relative; width: 234px; height: 328px; }
+  .deck-grid { display: grid; grid-template-columns: repeat(auto-fill, 302px);
+    justify-content: center; gap: 30px 22px; margin-top: 28px; }
+  .deck-tile { position: relative; width: 302px; height: 424px; }
   .deck-tile > a { display: block; width: 100%; height: 100%; text-decoration: none; }
-  .deck-holder { width: 520px; height: 728px; transform: scale(0.45);
+  .deck-holder { width: 520px; height: 728px; transform: scale(0.581);
     transform-origin: top left; pointer-events: none; }
   .deck-holder .face-label { display: none; }
   .deck-count { position: absolute; top: -9px; right: -7px; z-index: 2;
