@@ -7,7 +7,10 @@ import { LIGHT_THEMES } from "./themes.js";
 const SVG_NS = "http://www.w3.org/2000/svg";
 // Trigger che descrivono l'uscita di scena della carta: vanno letti in fondo
 // alla textbox, dopo le abilità attivate, mai sopra di esse.
-const TRAILING_EVENTS = new Set(["on_leave_field", "on_death"]);
+const TRAILING_EVENTS = new Set(["on_leave_field", "on_death", "on_retire"]);
+// Eventi continui: non sono momenti ma stati — la loro voce sulla carta è il
+// testo statico (faceCopy.effect), mai un blocco con etichetta d'innesco.
+const STATIC_EVENTS = new Set(["while_in_play", "while_assigned"]);
 function svgElement(tag, attributes = {}) {
   const node = document.createElementNS(SVG_NS, tag);
   for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, value);
@@ -284,7 +287,8 @@ function createTextBox(face, faceCopy, cardCopy) {
   // Ordine di lettura: prima gli effetti d'ingresso/ricorrenti, poi le abilità
   // attivate, infine i trigger d'uscita (lascia il campo, morte) — così
   // un'abilità attivata non finisce mai sotto l'intestazione "quando lascia".
-  const leadingTriggers = face.triggers.filter(trigger => !TRAILING_EVENTS.has(trigger.event));
+  const leadingTriggers = face.triggers.filter(trigger =>
+    !TRAILING_EVENTS.has(trigger.event) && !STATIC_EVENTS.has(trigger.event));
   const trailingTriggers = face.triggers.filter(trigger => TRAILING_EVENTS.has(trigger.event));
 
   for (const trigger of leadingTriggers) box.append(createTriggerBlock(face, trigger, faceCopy));
