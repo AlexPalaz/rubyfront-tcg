@@ -37,6 +37,6 @@
   fantasia liturgica pura, né fantascienza pulita.
 - Le carte Zero restano **Uniche** (regola già in vigore) — la rarità della
   sostanza e del sangue che la incanala coincidono.
-- Aperto: il registro del "culto del Primo" usato finora (Viatico,
-  Processione, Araldo) va confermato o riletto alla luce del canone — vedi
-  discussione col designer.
+- Aperto: restano due nomi in odore di rito — **Viatico** (il requisito
+  Unione di RBF-001) e **Velo del Primo** (RBF-020): il designer deciderà se
+  confermarli o sostituirli. Il resto del lessico è già tecno-medievale.

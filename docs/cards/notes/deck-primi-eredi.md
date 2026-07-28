@@ -6,8 +6,8 @@
 ## I tre motori
 
 **A — Il Lascito (il motore di Requiem).** Il Ritiro è gratuito (§6.2) e
-il mazzo lo pratica come rito: Corriere a Vapore si ritira da sola dopo l'attacco,
-Chirurgo cura al congedo, la Vigorcintura segue il portatore e pesca. I payoff
+il mazzo lo pratica come rito: il Corriere a Vapore si ritira da solo dopo l'attacco,
+il Chirurgo cura al congedo, la Vigorcintura segue il portatore e pesca. I payoff
 contano le carte nella **tua Zona di Requiem**, su una scala a soglie:
 **≥1** Vendicatrice +1 · **≥2** Archivista pesca 2 · **≥3** Guardiano blocca a +4
 · **≥4** il Vessillo dà +2 a tutti. L'apice del Lascito è il **Viatico stesso**:
@@ -32,11 +32,11 @@ chiusura.
 | 1 | RBF-002 Adam, Il Primo ✦ | 4 | La chiave del Viatico; Genesi e Lascito |
 | 1 | RBF-003 Assenza ✦ | 4 | Zero: sparizione in Requiem (anche coperte) |
 | 1 | RBF-017 Quiete ✦ | 2 | B · Zero: annulla una Reattiva in catena |
-| 2 | RBF-008 Vedetta | 1 | Consistenza · risacca d'ingresso; Din I |
+| 2 | RBF-008 Vedetta del Perimetro | 1 | Consistenza · risacca d'ingresso; Din I |
 | 2 | RBF-021 Corriere a Vapore | 1 | A · Slancio e auto-Ritiro: accende la scala |
 | 2 | RBF-009 Guardiano della Paratia | 2 | A(3) · blocca a +2/+4; Din I |
 | 2 | RBF-010 Chirurgo da Campo | 2 | A · cura 2 all'ingresso e 2 al Ritiro |
-| 2 | RBF-023 Vendicatrice | 2 | A(1) · Vendetta; +1 con Requiem avviata |
+| 2 | RBF-023 Vendicatrice d'Acciaio | 2 | A(1) · Vendetta; +1 con Requiem avviata |
 | 2 | RBF-013 Riflesso | 2 | B · Reattiva giocabile come blocco |
 | 2 | RBF-011 Emissario degli Eredi | 3 | Consistenza · tutore di Umani |
 | 2 | RBF-012 Baluardo Corazzato | 3 | PV · P3 che non attacca; cura 1 a blocco |
