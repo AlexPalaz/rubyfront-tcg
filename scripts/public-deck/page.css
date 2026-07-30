@@ -1,0 +1,43 @@
+:root {
+  --pg-bg: #17141a; --pg-ink: #efe9e4; --pg-muted: #a89ba0;
+  --pg-line: #3a3140; --pg-accent: #e56a86; --pg-chip: #efe9e4; --pg-chip-ink: #17141a;
+}
+@media (prefers-color-scheme: light) {
+  :root { --pg-bg: #f4eff0; --pg-ink: #241f26; --pg-muted: #6f6371;
+    --pg-line: #d8ccd4; --pg-accent: #9e0f34; --pg-chip: #241f26; --pg-chip-ink: #f4eff0; }
+}
+:root[data-theme="light"] { --pg-bg: #f4eff0; --pg-ink: #241f26; --pg-muted: #6f6371;
+  --pg-line: #d8ccd4; --pg-accent: #9e0f34; --pg-chip: #241f26; --pg-chip-ink: #f4eff0; }
+:root[data-theme="dark"] { --pg-bg: #17141a; --pg-ink: #efe9e4; --pg-muted: #a89ba0;
+  --pg-line: #3a3140; --pg-accent: #e56a86; --pg-chip: #efe9e4; --pg-chip-ink: #17141a; }
+
+body { background: var(--pg-bg); color: var(--pg-ink);
+  font-family: system-ui, "Helvetica Neue", Arial, sans-serif;
+  margin: 0; padding: 34px 22px 60px; }
+.wrap { max-width: 1380px; margin: 0 auto; }
+.eyebrow { color: var(--pg-accent); font-size: .72rem; font-weight: 750;
+  letter-spacing: .16em; text-transform: uppercase; margin: 0 0 10px; }
+h1 { margin: 0 0 10px; font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 650;
+  letter-spacing: -.04em; line-height: 1; text-wrap: balance; }
+.lede { max-width: 62ch; margin: 0 0 22px; color: var(--pg-muted); line-height: 1.55; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  padding: 14px 0 6px; border-top: 1px solid var(--pg-line); }
+.controls label { color: var(--pg-muted); font-size: .68rem; font-weight: 650;
+  letter-spacing: .09em; text-transform: uppercase; }
+.controls select { font: inherit; font-size: .85rem; color: var(--pg-ink);
+  background: transparent; border: 1px solid var(--pg-line); border-radius: 4px;
+  padding: 6px 8px; }
+.controls select:focus-visible { outline: 2px solid var(--pg-accent); outline-offset: 1px; }
+.deck-grid { display: grid; grid-template-columns: repeat(auto-fill, 302px);
+  justify-content: center; gap: 34px 22px; margin-top: 30px; }
+.deck-tile { position: relative; width: 302px; height: 424px; }
+.deck-holder { width: 520px; height: 728px; transform: scale(0.581);
+  transform-origin: top left; }
+.deck-holder .face-label { display: none; }
+.deck-count { position: absolute; top: -10px; right: -8px; z-index: 2;
+  min-width: 30px; text-align: center; padding: 2px 8px;
+  background: var(--pg-chip); color: var(--pg-chip-ink);
+  border-radius: 999px; font-size: .8rem; font-weight: 750; }
+/* Stili della carta visuale e dei 38 temi. Estratti da card-theme.html per
+   essere condivisi con la pagina del mazzo (deck.html): un solo posto per la
+   grafica della carta. */
