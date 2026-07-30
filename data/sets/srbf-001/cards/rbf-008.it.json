@@ -15,7 +15,7 @@
     "name": "Vedetta del Perimetro",
     "spark": {
       "trigger": "Quando entra in campo",
-      "text": "Un’altra tua Entità Umana prende +1 Potenza fino alla fine del turno."
+      "text": "Un’altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. La Vedetta segnala il bersaglio: il bonus non è mai per sé stessa."
     },
     "flavor": "Vide arrivare la fine. Fischiò due volte."
   },

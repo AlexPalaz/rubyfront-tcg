@@ -15,7 +15,7 @@
     "name": "Archivista",
     "effect": {
       "name": "Effetto",
-      "text": "Le tue altre Entità Umane prendono +1 Potenza."
+      "text": "Le tue altre Entità Umane prendono +1 Potenza. L’Archivista non conta se stesso, e il bonus vale finché resta in campo."
     },
     "flavor": "Scrive i nomi di chi è passato oltre."
   }

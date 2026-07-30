@@ -23,7 +23,7 @@
     },
     "bequest": {
       "trigger": "Quando lascia il campo",
-      "text": "Pesca una carta."
+      "text": "Pesca una carta. (Vale per ogni uscita dal campo, Ritiro in Requiem compreso.)"
     },
     "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
   },

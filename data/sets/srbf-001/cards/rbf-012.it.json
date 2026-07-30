@@ -15,7 +15,7 @@
     "name": "Baluardo Corazzato",
     "effect": {
       "name": "Effetto",
-      "text": "Non può bloccare."
+      "text": "Il Baluardo Corazzato non può bloccare. (Attaccare non lo mette in pericolo: in un blocco normale l’attaccante non muore.)"
     },
     "flavor": "Cade il mondo, non lui."
   },

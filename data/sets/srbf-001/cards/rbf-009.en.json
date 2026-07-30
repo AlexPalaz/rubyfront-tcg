@@ -15,7 +15,7 @@
     "name": "Bulkhead Warden",
     "hammer": {
       "trigger": "When it attacks",
-      "text": "It gets +2 Power until end of battle."
+      "text": "Bulkhead Warden gets +2 Power until end of battle. (Only for the attack it declared: no attack, no bonus.)"
     },
     "flavor": "No one gets through. Not today."
   },

@@ -15,7 +15,7 @@
     "name": "Armored Bulwark",
     "effect": {
       "name": "Effect",
-      "text": "It cannot block."
+      "text": "Armored Bulwark can't block. (Attacking doesn't endanger it: in a normal block the attacker doesn't die.)"
     },
     "flavor": "The world falls. He does not."
   },

@@ -212,7 +212,10 @@ function statGrid(face, copy) {
   const items = [];
   if (face.stats.deploymentCost) {
     const cost = face.stats.deploymentCost;
-    items.push([copy.deployment, `${cost.base}+${cost.increment} · max ${cost.cap}`]);
+    const base = cost.die ?? String(cost.base);
+    const parts = [cost.increment ? `${base}+${cost.increment}` : base];
+    if (cost.cap) parts.push(`max ${cost.cap}`);
+    items.push([copy.deployment, parts.join(" · ")]);
   }
   if (face.stats.fluxCost !== undefined) items.push([copy.fluxCost, face.stats.fluxCost]);
   if (face.stats.power !== undefined) items.push([copy.power, face.stats.power]);

@@ -18,7 +18,7 @@
     "name": "Laceration",
     "effect": {
       "name": "Effect",
-      "text": "At the start of your turn, the opposing Rubyfront loses 2 HP."
+      "text": "At the start of your turn, the opposing Rubyfront loses 2 HP. (Laceration is 2nd-grade Destructive: if you lose access to that type it goes to the Abyss.)"
     },
     "flavor": "Some wounds do not close."
   },

@@ -12,7 +12,8 @@
     "nexusRequirement": {
       "label": "Requisito Nexus",
       "text": "Il Rubyfront avversario ha perso almeno 6 PV"
-    }
+    },
+    "die": "Dado di schieramento"
   },
   "matters": {
     "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
@@ -37,7 +38,7 @@
       },
       "deepCall": {
         "name": "Chiamata dal Fondo",
-        "text": "un’Entità Umana prende +1 Potenza e può attaccare anche se è entrata in campo in questo turno."
+        "text": "un’Entità Umana prende +1 Potenza e ha Slancio fino alla fine del turno."
       }
     },
     "flavor": "Non emerse. Gli abissi aprirono gli occhi."

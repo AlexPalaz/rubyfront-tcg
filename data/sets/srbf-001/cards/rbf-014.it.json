@@ -15,7 +15,7 @@
     "name": "Prima Lama",
     "effect": {
       "name": "Effetto",
-      "text": "Finché controlli il Nexus, la Prima Lama prende +2 Potenza e ha Slancio."
+      "text": "Finché controlli il Nexus, la Prima Lama prende +2 Potenza e ha Slancio. (Lo Slancio le serve nel turno in cui entra: dopo, attacca comunque.)"
     },
     "flavor": "Il fronte nemico la conosce per nome."
   },

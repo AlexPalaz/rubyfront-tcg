@@ -15,7 +15,7 @@
     "name": "Guardiano della Paratia",
     "hammer": {
       "trigger": "Quando attacca",
-      "text": "Prende +2 Potenza fino alla fine della battaglia."
+      "text": "Il Guardiano della Paratia prende +2 Potenza fino alla fine della battaglia. (Solo per l’attacco che ha dichiarato: se non attacca, non c’è bonus.)"
     },
     "flavor": "Nessuno passa. Non oggi."
   },

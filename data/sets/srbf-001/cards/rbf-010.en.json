@@ -15,7 +15,7 @@
     "name": "Field Surgeon",
     "ember": {
       "trigger": "When it enters the field",
-      "text": "The opposing Rubyfront loses 1 HP."
+      "text": "The opposing Rubyfront loses 1 HP. (If it is deployed at that moment, the loss sends it straight back to the Recall Zone and cuts off its Matters.)"
     },
     "flavor": "Beasts bleed too."
   }

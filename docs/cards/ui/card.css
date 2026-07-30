@@ -10,10 +10,11 @@
        da sé, così la shell resta sans e i temi possono comunque sovrascriverlo. */
     font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
     /* Finestra dell'illustrazione, in percentuale del box interno al netto
-       del padding: 39.2% qui vale ~38% di carta piena — un soffio sotto il
-       frame M15 di Magic (40%), spazio ceduto alla textbox per reggere il
-       font a scala Magic sulla faccia più densa. */
-    --art-height: 39.2%;
+       del padding: 38% qui vale ~37% di carta piena — sotto il frame M15 di
+       Magic (40%), spazio ceduto alla textbox per reggere il font a scala
+       Magic sulla faccia più densa. Il valore è misurato, non scelto: a 39.2%
+       il Rubyfront sforava di 1px e il flavor entrava nel padding di 2,9px. */
+    --art-height: 38%;
     width: 100%;
     height: min(728px, calc(140vw - 56px));
     flex: none;
@@ -72,6 +73,21 @@
     border: 1px solid var(--ruby-light); transform: rotate(45deg);
     display: flex; align-items: center; justify-content: center;
     position: relative; top: -.34em; }
+  /* Base a dado (§3.1): un costo che si tira non deve somigliare a un costo
+     scritto. Stesso ingombro del rombo per non muovere la barra del titolo, ma
+     corpo dritto con la faccia in rilievo e due punti sulla diagonale — la
+     cifra resta la protagonista. Tutto in CSS: il renderer aggiunge la classe
+     e nient'altro, e i temi che ridisegnano .cost restano liberi di farlo. */
+  .cost.die { transform: none; border-radius: .22em;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cost-ink, #fdeef1) 30%, transparent),
+                inset 0 .55em .7em -.45em color-mix(in srgb, var(--cost-ink, #fdeef1) 28%, transparent); }
+  .cost.die i { transform: none; font-size: 1.12em; letter-spacing: -.02em; }
+  /* I due punti: un pseudo-elemento e una sua copia via box-shadow, agli
+     angoli opposti. Niente SVG, niente nodi in più nel DOM. */
+  .cost.die::before { content: ""; position: absolute;
+    top: .3em; left: .3em; width: .19em; height: .19em; border-radius: 50%;
+    background: var(--cost-ink, #fdeef1); opacity: .62;
+    box-shadow: 1.32em 1.32em 0 var(--cost-ink, #fdeef1); }
   .cost i { transform: rotate(-45deg); font-style: normal;
     font-family: inherit;
     font-size: 1em; font-weight: 400; color: var(--cost-ink, #fdeef1); }
@@ -120,7 +136,10 @@
     text-align: center; padding: 0 .3em; margin-right: .15em; }
   .hp-cost .flux-icon { width: 1.15em; height: 1.15em; display: inline-block;
     vertical-align: -.2em; margin-left: .22em; }
-  .flavor { margin-top: auto; text-align: left; font-style: italic; font-size: .92em; color: var(--muted); }
+  /* margin-top:auto incolla il flavor al fondo della textbox; senza il margine
+     inferiore i suoi discendenti finiscono dentro il padding e la riga tocca la
+     cornice — su ogni carta, non solo sulle più dense. */
+  .flavor { margin-top: auto; margin-bottom: .4em; text-align: left; font-style: italic; font-size: .92em; color: var(--muted); }
   .flavor::before { content: "\25C6"; color: var(--ornament); font-size: .6em; font-style: normal; margin-right: .9em; vertical-align: .2em; }
   .flavor::after { content: "\25C6"; color: var(--ornament); font-size: .6em; font-style: normal; margin-left: .9em; vertical-align: .2em; }
   .bottombar { display: flex; justify-content: space-between; align-items: center; padding-top: .15em; }
@@ -130,9 +149,12 @@
   .matter svg { width: 1.4em; height: 1.4em; display: block; }
   .matter b { color: #f3efe6; font-weight: 700; }
   .card.light-theme .matter b { color: #3a3430; }
-  .power-badge { justify-self: end; position: relative; width: 2.15em; height: 2.15em;
-    display: flex; align-items: center; justify-content: center; }
-  .power-badge svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* Simbolo a fianco della cifra, non dietro: le spade incrociate dentro il
+     quadrato passavano sotto il numero. Larghezza libera entro la colonna della
+     barra del titolo. */
+  .power-badge { justify-self: end; position: relative; width: auto; height: 2.15em;
+    display: flex; align-items: center; justify-content: flex-end; gap: .26em; }
+  .power-badge svg { position: static; width: 1.2em; height: 1.2em; flex: none; }
   .power-badge b { position: relative; font-weight: 600; color: var(--ruby-light); }
   .counter-badge { display: flex; align-items: center; gap: .45em; border: 1px solid var(--frame);
     background: var(--panel); padding: .18em .5em; font-size: 1em; }

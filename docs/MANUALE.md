@@ -78,7 +78,7 @@ Ogni Rubyfront è una carta con **valori propri**: non esistono valori standard 
 La carta del Rubyfront riporta:
 
 - **PV (Punti Vita)** — la sua **unica statistica**. Gli attacchi subiti fanno scendere i PV; a zero, il proprietario perde (§2).
-- **Costo di Flusso crescente** nel formato `base+incremento` (es. `2+1`) — il costo per schierarlo in campo (vedi sotto).
+- **Costo di schieramento** — il costo in Flusso per schierarlo in campo, scritto come **base + incremento**: la base è un **numero fisso** (es. `2`) o un **dado** (es. un dado da `6`), l'incremento `+X` è **opzionale**. Vedi sotto.
 - **Materie disponibili** — i tipi di Materia che il Rubyfront può usare, **con il grado massimo** per i tipi che hanno gradi (come le Entità, §7.1).
 - **Abilità principale** — nasce quando il Rubyfront entra in campo e da quel momento è **sempre attiva**.
 - **Descrizione** con l'**effetto che si risolve quando entra in campo** dalla Zona di Richiamo — **a ogni schieramento**, non solo il primo.
@@ -86,24 +86,51 @@ La carta del Rubyfront riporta:
 
 Il Rubyfront è **attaccabile anche mentre si trova in Zona di Richiamo**: i suoi PV sono un bersaglio valido dall'inizio alla fine della partita. Abilità (principale e speciali) e Materie, però, sono **utilizzabili solo quando è in campo**: schierarlo serve a sbloccarle.
 
-#### Costo di schieramento crescente
+#### Costo di schieramento
 
-Il costo di Flusso del Rubyfront è indicato nel formato **`base+incremento`** (es. `2+1`): il **primo schieramento** costa il valore base; ogni schieramento successivo costa **l'incremento in più** rispetto al precedente.
+Il costo per schierare il Rubyfront si legge in **due parti**:
 
-*Esempio: costo `2+1` → primo schieramento 2 Flussi, poi 3, poi 4, e così via.*
+1. una **base**, che è un **numero fisso** (es. `2`) oppure un **dado** (es. il simbolo del dado da `6`, cioè un d6 da tirare);
+2. un **incremento `+X`**, **opzionale**.
 
-Il costo di schieramento cresce **fino a un massimo di 20** e non può mai superarlo: raggiunto il tetto, ogni rischieramento successivo costa 20. Il Rubyfront resta quindi sempre schierabile (a 20 Flussi pieni).
+**È il `+X` a dire che il costo cresce.** Se c'è, ogni rischieramento costa X in più del precedente; se non c'è, il costo non cresce mai. La cosa vale identica sulle due basi: il dado non è un formato a sé, è solo un modo di determinare la base.
+
+| Stampato sulla carta | Come si paga |
+|---|---|
+| `2+1` | 2 Flussi al primo schieramento, poi 3, poi 4, poi 5... |
+| dado da `6` | si tira un d6 e si paga il risultato, a **ogni** schieramento, senza crescere |
+| dado da `6` `+2` | si tira un d6 e si somma l'incremento accumulato: il solo risultato al primo schieramento, risultato +2 al secondo, risultato +4 al terzo... |
+
+##### La base a dado
+
+Quando la base è un dado, il costo **non è scritto: si tira**. Si lancia il dado indicato — un `6` significa un **d6** — e si paga in Flusso **il numero uscito**, più l'eventuale incremento accumulato.
+
+- **Si può lanciare solo se il Flusso disponibile copre il risultato peggiore**, cioè **le facce del dado più l'incremento già accumulato**: 6 con un d6 al primo schieramento, 8 con un d6 `+2` al secondo, e così via. Con meno Flusso di così **il dado non si lancia** e il Rubyfront **non si schiera**. La regola esiste per garantire che **un tiro sia sempre pagabile**: non si tira mai un costo che poi non si potrebbe onorare.
+- *Esempio: al secondo turno si hanno 2 Flussi e la carta chiede un d6 → il lancio non è permesso e lo schieramento è impossibile, anche se il dado potrebbe uscire 1 o 2. Dal turno in cui si dispone di 6 Flussi il lancio diventa legale: se esce 2 si pagano 2 Flussi (e restano 4), se esce 6 se ne pagano 6.*
+- **Si tira a ogni schieramento** e il risultato vale solo per quello: la verifica del Flusso disponibile si ripete ogni volta.
+- Il **Gettone Flusso** (§3.2) conta nel Flusso disponibile ai fini della verifica e può essere speso per pagare il risultato.
+- **Il tiro del costo non è il tiro della Furia** (§8.1): sono due lanci distinti e indipendenti. Lo schieramento del Rubyfront non è **mai** soggetto al d20 della Furia — nemmeno quando la base è un dado — e un risultato alto non fa fallire nulla: si paga e si scende in campo.
+
+##### L'incremento `+X`
+
+L'incremento si accumula **a ogni ritorno in Zona di Richiamo** (§3.1, più sotto): al primo schieramento non c'è, al secondo vale X, al terzo 2X, e così via. Si somma alla base, fissa o tirata.
+
+*Esempio con un dado da `6` `+2`: primo schieramento, si tira e si paga il risultato (1-6, servono 6 Flussi per tirare); terzo schieramento, l'incremento accumulato è 4, quindi il costo starà fra 5 e 10 — e per poter tirare servono 10 Flussi.*
+
+Il costo di schieramento, base più incremento, cresce **fino a un massimo di 20** e non può mai superarlo: raggiunto il tetto, ogni rischieramento successivo costa 20. Il Rubyfront resta quindi sempre schierabile (a 20 Flussi pieni). Per la stessa ragione **il dado più grande possibile è un d20**: oltre non esisterebbe un tiro sempre pagabile.
+
+Il tetto vale **anche per la soglia del tiro**: la verifica non chiede mai più di 20, quindi a 20 Flussi pieni il dado si può sempre lanciare. Senza questa precisazione un dado con un incremento alto avrebbe finito per rendere il Rubyfront **non schierabile**, contraddicendo la regola qui sopra.
 
 #### Ritorno in Zona di Richiamo
 
 Il Rubyfront schierato **torna in Zona di Richiamo** nei seguenti casi:
 
-- **automaticamente, appena perde PV per una fonte avversaria mentre è in campo**: attacchi che passano, effetti e Materie dell'avversario. Il Rubyfront **subisce la perdita di PV** e **torna immediatamente in Zona di Richiamo**: da quell'istante smette di abilitare le sue Materie (le permanenti dei tipi che solo lui abilitava vanno nell'Abisso, §7.2). Se il proprietario lo rischiera nello stesso turno (pagando il costo aumentato) e il Rubyfront subisce un'altra perdita da fonte avversaria, torna di nuovo in Zona di Richiamo: **ogni perdita di PV inflitta dall'avversario mentre è in campo è un ritorno** (e quindi un aumento del costo di rischieramento). Le **perdite autoinflitte non fanno scattare il ritorno**: il fallimento della propria Furia (§8.1) e gli effetti delle proprie carte fanno perdere i PV, ma il Rubyfront resta in campo. I **PV spesi come costo** delle abilità speciali sono un pagamento, non una perdita subita: anch'essi **non fanno scattare il ritorno**;
+- **automaticamente, appena perde PV per una fonte avversaria mentre è in campo**: attacchi che passano, effetti e Materie dell'avversario. Il Rubyfront **subisce la perdita di PV** e **torna immediatamente in Zona di Richiamo**: da quell'istante smette di abilitare le sue Materie (le permanenti dei tipi che solo lui abilitava vanno nell'Abisso, §7.2). Se il proprietario lo rischiera nello stesso turno (ripagandone il costo di schieramento) e il Rubyfront subisce un'altra perdita da fonte avversaria, torna di nuovo in Zona di Richiamo: **ogni perdita di PV inflitta dall'avversario mentre è in campo è un ritorno** (e quindi un aumento del costo di rischieramento). Le **perdite autoinflitte non fanno scattare il ritorno**: il fallimento della propria Furia (§8.1) e gli effetti delle proprie carte fanno perdere i PV, ma il Rubyfront resta in campo. I **PV spesi come costo** delle abilità speciali sono un pagamento, non una perdita subita: anch'essi **non fanno scattare il ritorno**;
 - **volontariamente**, per scelta del proprietario.
 
-Ogni ritorno in Zona di Richiamo fa scattare l'aumento del costo di rischieramento (vedi sopra).
+Ogni ritorno in Zona di Richiamo fa scattare l'aumento del costo di rischieramento, **se la carta riporta un incremento `+X`** (vedi sopra). Senza incremento non c'è nessun aumento: si ripaga la base, che con un dado significa **un tiro nuovo**.
 
-**Finestra di movimento:** il proprietario può muovere il Rubyfront (schierarlo o richiamarlo, anche **più volte nello stesso turno**) durante tutto il proprio turno, dalla **Fase di Preparazione** fino alla **fine del turno** — anche dopo aver finito di attaccare (il Rubyfront non attacca: la sua funzione è usare abilità a costo PV e Materie, quindi muoverlo a fine turno è legittimo). Ogni rischieramento paga comunque il costo crescente. **Mai nel mezzo di una catena di risposta** (§7.2): la catena è atomica.
+**Finestra di movimento:** il proprietario può muovere il Rubyfront (schierarlo o richiamarlo, anche **più volte nello stesso turno**) durante tutto il proprio turno, dalla **Fase di Preparazione** fino alla **fine del turno** — anche dopo aver finito di attaccare (il Rubyfront non attacca: la sua funzione è usare abilità a costo PV e Materie, quindi muoverlo a fine turno è legittimo). Ogni rischieramento ripaga comunque il costo per intero: l'incremento se il costo è crescente, un tiro nuovo se è a dado. **Mai nel mezzo di una catena di risposta** (§7.2): la catena è atomica.
 
 #### Ruolo del Rubyfront in campo
 
@@ -489,6 +516,7 @@ Il pareggio esiste in due soli casi:
 - Massimo **3 copie** della stessa carta nel mazzo — **una sola** se la carta è **Unica** (§3.1).
 - Massimo **20 Flussi** (§3.2). Il Gettone Flusso è fuori dal limite: è un punto a parte.
 - Costo **minimo 1 Flusso** per qualsiasi carta (§3.2): non esistono carte gratuite.
+- Costo di schieramento con base a **dado**: si tira solo con Flusso disponibile **almeno pari alle facce del dado più l'incremento accumulato**; il dado non supera il **d20** (§3.1).
 
 ## 10. Glossario
 
@@ -496,6 +524,7 @@ Il pareggio esiste in due soli casi:
 - **Rubyfront** — la bestia di ogni giocatore; parte nella Zona di Richiamo. Portare a zero i suoi PV (o distruggerne il Nexus) fa perdere il suo proprietario.
 - **Flusso** — la risorsa per giocare le carte. Cresce +1 a turno, si ricarica a inizio turno, massimo 20.
 - **Gettone Flusso** — gettone monouso da +1 Flusso dato a chi non inizia la partita, utilizzabile in qualsiasi momento; è fuori dal limite dei 20 Flussi.
+- **Costo di schieramento** — quanto Flusso serve per portare il Rubyfront dalla Zona di Richiamo al campo (§3.1). Si legge come **base + incremento**: la base è un numero fisso o un **dado** da tirare, l'incremento `+X` è opzionale ed è la parte che fa **crescere** il costo a ogni rischieramento. Con base a dado si tira solo se il Flusso disponibile copre facce del dado più incremento accumulato.
 - **Canalizzazione** — scartare una carta dalla mano (va nell'Abisso) per ottenere +1 Flusso per il turno in corso (max 1 a turno).
 - **Fronte** — il campo di battaglia: 5 slot per le Entità; il Rubyfront schierato sta davanti agli slot, le Materie in gioco dietro.
 - **Zona di Richiamo** — zona in cui parte il Rubyfront.

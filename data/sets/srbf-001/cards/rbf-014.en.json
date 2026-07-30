@@ -15,7 +15,7 @@
     "name": "First Blade",
     "effect": {
       "name": "Effect",
-      "text": "As long as you control the Nexus, the First Blade gets +2 Power and has Surge."
+      "text": "As long as you control the Nexus, First Blade gets +2 Power and has Surge. (Surge matters the turn she enters: after that, she attacks anyway.)"
     },
     "flavor": "The enemy front knows her by name."
   },

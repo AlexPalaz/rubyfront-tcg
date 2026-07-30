@@ -23,7 +23,7 @@
     },
     "bequest": {
       "trigger": "When it leaves the field",
-      "text": "Draw a card."
+      "text": "Draw a card. (Any way of leaving the field counts, Retiring included.)"
     },
     "flavor": "He was the first to touch Zero. Humankind was never the same."
   },

@@ -29,9 +29,7 @@
       "stats": {
         "health": 18,
         "deploymentCost": {
-          "base": 2,
-          "increment": 1,
-          "cap": 20
+          "die": "d4"
         }
       },
       "enablesMatters": [

@@ -18,7 +18,7 @@
     "name": "Lacerazione",
     "effect": {
       "name": "Effetto",
-      "text": "All’inizio del tuo turno, il Rubyfront avversario perde 2 PV."
+      "text": "All’inizio del tuo turno, il Rubyfront avversario perde 2 PV. (La Lacerazione è Distruttiva di 2° grado: se perdi l’accesso a quel tipo va nell’Abisso.)"
     },
     "flavor": "Alcune ferite non si chiudono."
   },

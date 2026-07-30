@@ -15,7 +15,7 @@
     "name": "Archivist",
     "effect": {
       "name": "Effect",
-      "text": "Your other Human Entities get +1 Power."
+      "text": "Your other Human Entities get +1 Power. The Archivist doesn't count itself, and the bonus lasts as long as it stays on the field."
     },
     "flavor": "He writes the names of those who went on."
   }

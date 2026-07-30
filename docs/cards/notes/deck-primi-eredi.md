@@ -19,7 +19,7 @@
 
 | Costo | 1 | 2 | 3 | 4 | Rubyfront |
 |---|---|---|---|---|---|
-| Carte | 15 | 12 | 8 | 4 | 1 (2+1) |
+| Carte | 15 | 12 | 8 | 4 | 1 (dado `d4`) |
 
 Ogni costo del mazzo è sceso di 1, con **pavimento a 1 Flusso**: il taglio
 comprime la curva verso il basso senza mai aggirare il ritmo del Flusso. Il mazzo
@@ -39,9 +39,12 @@ La bestia non attacca e non blocca (§3.1). In questo mazzo la sua unica funzion
 | Abilità | Chiamata dal Fondo −4 PV: +1 e attacca subito | La Grande Marea −5 PV: **tutti** +2 e **non possono essere bloccate** |
 | Furia | 2 (d20 ≥12, fallimento −2 PV) | **nessuna** |
 
-Schierarla costa **2+1**: l'effetto d'ingresso è ripetibile, quindi rischierarla è
-una giocata d'attacco a tutti gli effetti — finché il costo crescente lo consente.
-È il vero limitatore del motore.
+Schierarla costa un **tiro di `d4`**, senza incremento: si paga da 1 a 4 Flussi e
+il costo **non cresce mai**, per quante volte la si rischieri. In cambio servono
+**4 Flussi disponibili per poter tirare** (§3.1), quindi la bestia non scende
+prima del **turno 4**. Il limitatore non è più il prezzo che sale, è la soglia
+d'accesso — e il fatto che il turno in cui la giochi non sia mai identico: un
+tiro da 1 lascia 3 Flussi per altro, un tiro da 4 consuma il turno intero.
 
 **Cinque carte migliorano solo perché la bestia è in campo:** Vigorcintura
 (+1 → +2), Vessillo degli Eredi (+1 → +2), Vendicatrice d'Acciaio (+1 Potenza), più
@@ -71,11 +74,11 @@ grado**, quindi Secondo Impeto diventa giocabile anche senza Prima Lama.
 |---|---|---|---|
 | T1 | 1 | **Corriere** (1, Slancio) → attacca subito | −1 |
 | T2 | 2 | **Vendicatrice** (1) + **Vigorcintura** (1) sul Corriere; attacca a 2 | −3 |
-| T3 | 3 | **Rubyfront** (2 → Umani +1) + **Guardiano** (1); attaccano Corriere a 4 (Vigorcintura +2 con la bestia in campo) e Vendicatrice a 4 | −11 |
-| T4 | 4 | Soglia dei 6 PV già superata → **flip**, poi **Onda Portante** (−2 PV) su un attaccante | letale |
-| T5+ | 5+ | Se il Fronte avversario è pieno: **La Grande Marea** (−5 PV), nessuno può bloccare | letale |
+| T3 | 3 | **Baluardo** (2) + **Guardiano** (1); attaccano Corriere a 2 e Vendicatrice a 2 | −7 |
+| T4 | 4 | **Rubyfront**: si tira il `d4` (4 Flussi per poter tirare) e si paga 1-4 → Umani +1; attaccano quattro corpi a 4 | letale |
+| T5 | 5 | Soglia dei 6 PV superata già al T3 → **flip**; a Fronte avversario pieno, **La Grande Marea** (−5 PV) e nessuno può bloccare | letale |
 
-Il flip **non porta più un colpo d'ingresso**: al turno 4 il guadagno è togliere
+Il flip **non porta più un colpo d'ingresso**: il guadagno è togliere
 il d20 dalle abilità e sbloccare La Grande Marea, non due Potenza gratis. La corsa
 è di conseguenza un filo più lenta di prima.
 

@@ -80,12 +80,20 @@ function createUniqueStar(label) {
 
 function createTitleBar(card, face, faceCopy, cardCopy) {
   const bar = element("div", "titlebar");
+  // Costo di schieramento (§3.1): base a numero fisso o a dado, piu' un
+  // incremento opzionale. Alla base a dado si aggiunge solo la classe: il
+  // disegno del dado e' interamente in card.css, come il resto della grafica.
   const deployment = face.stats.deploymentCost;
   if (deployment) {
-    const cost = element("div", "cost");
-    const value = deployment.increment
-      ? `${deployment.base}+${deployment.increment}`
-      : String(deployment.base);
+    const rolled = deployment.die !== undefined;
+    const cost = element("div", rolled ? "cost die" : "cost");
+    const base = rolled ? deployment.die.replace(/^d/, "") : String(deployment.base);
+    const value = deployment.increment ? `${base}+${deployment.increment}` : base;
+    if (rolled) {
+      const label = cardCopy.card?.die ?? "Deployment die";
+      cost.title = `${label} · ${deployment.die}`;
+      cost.setAttribute("aria-label", `${label} ${deployment.die}`);
+    }
     cost.append(element("i", "", value));
     bar.append(cost);
   } else if (face.stats.fluxCost !== undefined) {
@@ -157,15 +165,29 @@ function createFluxIcon(label) {
   return svg;
 }
 
+// Potenza (§6.3): due spade incrociate accanto alla cifra. Sta di fianco e non
+// dietro al numero — dentro il quadrato le lame passavano sotto la cifra e si
+// leggevano male. Il rombo, che prima incorniciava la Potenza, resta cosi'
+// esclusivo del costo di Flusso.
 function createPowerBadge(power, label) {
   const badge = element("div", "power-badge");
   badge.title = label;
   const svg = svgElement("svg", { viewBox: "0 0 24 24", "aria-label": label });
-  svg.append(svgElement("rect", {
-    x: "5", y: "5", width: "14", height: "14", rx: "1.5",
-    transform: "rotate(45 12 12)",
-    fill: "none", stroke: "var(--ruby-light)", "stroke-width": "1.6"
-  }));
+  svg.setAttribute("role", "img");
+  const linea = (x1, y1, x2, y2, w) => svgElement("line", {
+    x1, y1, x2, y2, stroke: "var(--ruby-light)", "stroke-width": w, "stroke-linecap": "round"
+  });
+  svg.append(
+    // lame, dall'elsa in basso alla punta in alto
+    linea(4.8, 19.2, 19.8, 4.2, 2),
+    linea(19.2, 19.2, 4.2, 4.2, 2),
+    // guardie, perpendicolari alla propria lama
+    linea(4.3, 15.4, 8.6, 19.7, 1.5),
+    linea(19.7, 15.4, 15.4, 19.7, 1.5),
+    // pomoli
+    svgElement("circle", { cx: "3.4", cy: "20.6", r: "1.15", fill: "var(--ruby-light)" }),
+    svgElement("circle", { cx: "20.6", cy: "20.6", r: "1.15", fill: "var(--ruby-light)" })
+  );
   badge.append(svg, element("b", "", String(power)));
   return badge;
 }

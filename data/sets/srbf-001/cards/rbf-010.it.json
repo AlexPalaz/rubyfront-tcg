@@ -15,7 +15,7 @@
     "name": "Chirurgo da Campo",
     "ember": {
       "trigger": "Quando entra in campo",
-      "text": "Il Rubyfront avversario perde 1 PV."
+      "text": "Il Rubyfront avversario perde 1 PV. (Se in quel momento è schierato, la perdita lo rimanda subito in Zona di Richiamo e gli stacca le Materie.)"
     },
     "flavor": "Anche le bestie sanguinano."
   }

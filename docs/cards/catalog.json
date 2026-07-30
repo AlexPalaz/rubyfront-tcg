@@ -57,7 +57,8 @@
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
                   "text": "Il Rubyfront avversario ha perso almeno 6 PV"
-                }
+                },
+                "die": "Dado di schieramento"
               },
               "matters": {
                 "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
@@ -82,7 +83,7 @@
                   },
                   "deepCall": {
                     "name": "Chiamata dal Fondo",
-                    "text": "un’Entità Umana prende +1 Potenza e può attaccare anche se è entrata in campo in questo turno."
+                    "text": "un’Entità Umana prende +1 Potenza e ha Slancio fino alla fine del turno."
                   }
                 },
                 "flavor": "Non emerse. Gli abissi aprirono gli occhi."
@@ -117,7 +118,8 @@
                 "nexusRequirement": {
                   "label": "Nexus requirement",
                   "text": "The opposing Rubyfront has lost at least 6 HP"
-                }
+                },
+                "die": "Deployment die"
               },
               "matters": {
                 "destructiveTitle": "Destructive Matter · up to 2nd grade",
@@ -142,7 +144,7 @@
                   },
                   "deepCall": {
                     "name": "Call from the Deep",
-                    "text": "a Human Entity gets +1 Power and may attack even if it entered the field this turn."
+                    "text": "a Human Entity gets +1 Power and has Surge until end of turn."
                   }
                 },
                 "flavor": "It did not surface. The deeps opened their eyes."
@@ -180,9 +182,7 @@
               "stats": {
                 "health": 18,
                 "deploymentCost": {
-                  "base": 2,
-                  "increment": 1,
-                  "cap": 20
+                  "die": "d4"
                 }
               },
               "enablesMatters": [
@@ -414,7 +414,7 @@
                 },
                 "bequest": {
                   "trigger": "Quando lascia il campo",
-                  "text": "Pesca una carta."
+                  "text": "Pesca una carta. (Vale per ogni uscita dal campo, Ritiro in Requiem compreso.)"
                 },
                 "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
               },
@@ -448,7 +448,7 @@
                 },
                 "bequest": {
                   "trigger": "When it leaves the field",
-                  "text": "Draw a card."
+                  "text": "Draw a card. (Any way of leaving the field counts, Retiring included.)"
                 },
                 "flavor": "He was the first to touch Zero. Humankind was never the same."
               },
@@ -1164,7 +1164,7 @@
                 "name": "Vedetta del Perimetro",
                 "spark": {
                   "trigger": "Quando entra in campo",
-                  "text": "Un’altra tua Entità Umana prende +1 Potenza fino alla fine del turno."
+                  "text": "Un’altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. La Vedetta segnala il bersaglio: il bonus non è mai per sé stessa."
                 },
                 "flavor": "Vide arrivare la fine. Fischiò due volte."
               },
@@ -1190,7 +1190,7 @@
                 "name": "Perimeter Lookout",
                 "spark": {
                   "trigger": "When it enters the field",
-                  "text": "Another Human Entity of yours gets +1 Power until end of turn."
+                  "text": "Another Human Entity of your choice gets +1 Power until end of turn. The Lookout marks the target: the bonus is never for herself."
                 },
                 "flavor": "She saw the end coming. She whistled twice."
               },
@@ -1284,7 +1284,7 @@
                 "name": "Guardiano della Paratia",
                 "hammer": {
                   "trigger": "Quando attacca",
-                  "text": "Prende +2 Potenza fino alla fine della battaglia."
+                  "text": "Il Guardiano della Paratia prende +2 Potenza fino alla fine della battaglia. (Solo per l’attacco che ha dichiarato: se non attacca, non c’è bonus.)"
                 },
                 "flavor": "Nessuno passa. Non oggi."
               },
@@ -1310,7 +1310,7 @@
                 "name": "Bulkhead Warden",
                 "hammer": {
                   "trigger": "When it attacks",
-                  "text": "It gets +2 Power until end of battle."
+                  "text": "Bulkhead Warden gets +2 Power until end of battle. (Only for the attack it declared: no attack, no bonus.)"
                 },
                 "flavor": "No one gets through. Not today."
               },
@@ -1397,7 +1397,7 @@
                 "name": "Chirurgo da Campo",
                 "ember": {
                   "trigger": "Quando entra in campo",
-                  "text": "Il Rubyfront avversario perde 1 PV."
+                  "text": "Il Rubyfront avversario perde 1 PV. (Se in quel momento è schierato, la perdita lo rimanda subito in Zona di Richiamo e gli stacca le Materie.)"
                 },
                 "flavor": "Anche le bestie sanguinano."
               }
@@ -1419,7 +1419,7 @@
                 "name": "Field Surgeon",
                 "ember": {
                   "trigger": "When it enters the field",
-                  "text": "The opposing Rubyfront loses 1 HP."
+                  "text": "The opposing Rubyfront loses 1 HP. (If it is deployed at that moment, the loss sends it straight back to the Recall Zone and cuts off its Matters.)"
                 },
                 "flavor": "Beasts bleed too."
               }
@@ -1605,7 +1605,7 @@
                 "name": "Baluardo Corazzato",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Non può bloccare."
+                  "text": "Il Baluardo Corazzato non può bloccare. (Attaccare non lo mette in pericolo: in un blocco normale l’attaccante non muore.)"
                 },
                 "flavor": "Cade il mondo, non lui."
               },
@@ -1631,7 +1631,7 @@
                 "name": "Armored Bulwark",
                 "effect": {
                   "name": "Effect",
-                  "text": "It cannot block."
+                  "text": "Armored Bulwark can't block. (Attacking doesn't endanger it: in a normal block the attacker doesn't die.)"
                 },
                 "flavor": "The world falls. He does not."
               },
@@ -1828,7 +1828,7 @@
                 "name": "Prima Lama",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Finché controlli il Nexus, la Prima Lama prende +2 Potenza e ha Slancio."
+                  "text": "Finché controlli il Nexus, la Prima Lama prende +2 Potenza e ha Slancio. (Lo Slancio le serve nel turno in cui entra: dopo, attacca comunque.)"
                 },
                 "flavor": "Il fronte nemico la conosce per nome."
               },
@@ -1854,7 +1854,7 @@
                 "name": "First Blade",
                 "effect": {
                   "name": "Effect",
-                  "text": "As long as you control the Nexus, the First Blade gets +2 Power and has Surge."
+                  "text": "As long as you control the Nexus, First Blade gets +2 Power and has Surge. (Surge matters the turn she enters: after that, she attacks anyway.)"
                 },
                 "flavor": "The enemy front knows her by name."
               },
@@ -2069,7 +2069,7 @@
                 "name": "Lacerazione",
                 "effect": {
                   "name": "Effetto",
-                  "text": "All’inizio del tuo turno, il Rubyfront avversario perde 2 PV."
+                  "text": "All’inizio del tuo turno, il Rubyfront avversario perde 2 PV. (La Lacerazione è Distruttiva di 2° grado: se perdi l’accesso a quel tipo va nell’Abisso.)"
                 },
                 "flavor": "Alcune ferite non si chiudono."
               },
@@ -2098,7 +2098,7 @@
                 "name": "Laceration",
                 "effect": {
                   "name": "Effect",
-                  "text": "At the start of your turn, the opposing Rubyfront loses 2 HP."
+                  "text": "At the start of your turn, the opposing Rubyfront loses 2 HP. (Laceration is 2nd-grade Destructive: if you lose access to that type it goes to the Abyss.)"
                 },
                 "flavor": "Some wounds do not close."
               },
@@ -2307,7 +2307,7 @@
                 "name": "Archivista",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Le tue altre Entità Umane prendono +1 Potenza."
+                  "text": "Le tue altre Entità Umane prendono +1 Potenza. L’Archivista non conta se stesso, e il bonus vale finché resta in campo."
                 },
                 "flavor": "Scrive i nomi di chi è passato oltre."
               }
@@ -2329,7 +2329,7 @@
                 "name": "Archivist",
                 "effect": {
                   "name": "Effect",
-                  "text": "Your other Human Entities get +1 Power."
+                  "text": "Your other Human Entities get +1 Power. The Archivist doesn't count itself, and the bonus lasts as long as it stays on the field."
                 },
                 "flavor": "He writes the names of those who went on."
               }
@@ -2621,7 +2621,7 @@
                   "name": "Slancio",
                   "rules": "può attaccare nel turno in cui entra in campo"
                 },
-                "flavor": "Arriva prima della notizia del suo arrivo."
+                "flavor": "Arriva prima della notizia del suo arrivo. Le paratie non gli chiedono più i documenti: tanto è già passato."
               }
             },
             "en": {
@@ -2643,7 +2643,7 @@
                   "name": "Surge",
                   "rules": "may attack the turn it enters the field"
                 },
-                "flavor": "He arrives before news of his arrival."
+                "flavor": "He arrives before news of his arrival. The bulkheads stopped asking for his papers: he is always already through."
               }
             }
           },
@@ -2837,7 +2837,7 @@
                 },
                 "effect": {
                   "name": "Effetto",
-                  "text": "Finché il tuo Rubyfront è in campo, la Vendicatrice prende +1 Potenza."
+                  "text": "Finché il tuo Rubyfront è in campo, la Vendicatrice d’Acciaio prende +1 Potenza. (Vale anche con il Nexus, che dal flip non lascia più il campo.)"
                 },
                 "flavor": "Colpiscila, se osi. Poi corri."
               }
@@ -2863,7 +2863,7 @@
                 },
                 "effect": {
                   "name": "Effect",
-                  "text": "As long as your Rubyfront is on the field, the Avenger gets +1 Power."
+                  "text": "As long as your Rubyfront is on the field, Steel Avenger gets +1 Power. (The Nexus counts too, and after the flip it never leaves the field.)"
                 },
                 "flavor": "Strike her, if you dare. Then run."
               }
@@ -2949,7 +2949,8 @@
             "nexusRequirement": {
               "label": "Requisito Nexus",
               "text": "Il Rubyfront avversario ha perso almeno 6 PV"
-            }
+            },
+            "die": "Dado di schieramento"
           },
           "matters": {
             "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
@@ -2974,7 +2975,7 @@
               },
               "deepCall": {
                 "name": "Chiamata dal Fondo",
-                "text": "un’Entità Umana prende +1 Potenza e può attaccare anche se è entrata in campo in questo turno."
+                "text": "un’Entità Umana prende +1 Potenza e ha Slancio fino alla fine del turno."
               }
             },
             "flavor": "Non emerse. Gli abissi aprirono gli occhi."
@@ -3009,7 +3010,8 @@
             "nexusRequirement": {
               "label": "Nexus requirement",
               "text": "The opposing Rubyfront has lost at least 6 HP"
-            }
+            },
+            "die": "Deployment die"
           },
           "matters": {
             "destructiveTitle": "Destructive Matter · up to 2nd grade",
@@ -3034,7 +3036,7 @@
               },
               "deepCall": {
                 "name": "Call from the Deep",
-                "text": "a Human Entity gets +1 Power and may attack even if it entered the field this turn."
+                "text": "a Human Entity gets +1 Power and has Surge until end of turn."
               }
             },
             "flavor": "It did not surface. The deeps opened their eyes."
@@ -3072,9 +3074,7 @@
           "stats": {
             "health": 18,
             "deploymentCost": {
-              "base": 2,
-              "increment": 1,
-              "cap": 20
+              "die": "d4"
             }
           },
           "enablesMatters": [
@@ -3306,7 +3306,7 @@
             },
             "bequest": {
               "trigger": "Quando lascia il campo",
-              "text": "Pesca una carta."
+              "text": "Pesca una carta. (Vale per ogni uscita dal campo, Ritiro in Requiem compreso.)"
             },
             "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
           },
@@ -3340,7 +3340,7 @@
             },
             "bequest": {
               "trigger": "When it leaves the field",
-              "text": "Draw a card."
+              "text": "Draw a card. (Any way of leaving the field counts, Retiring included.)"
             },
             "flavor": "He was the first to touch Zero. Humankind was never the same."
           },
@@ -4056,7 +4056,7 @@
             "name": "Vedetta del Perimetro",
             "spark": {
               "trigger": "Quando entra in campo",
-              "text": "Un’altra tua Entità Umana prende +1 Potenza fino alla fine del turno."
+              "text": "Un’altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. La Vedetta segnala il bersaglio: il bonus non è mai per sé stessa."
             },
             "flavor": "Vide arrivare la fine. Fischiò due volte."
           },
@@ -4082,7 +4082,7 @@
             "name": "Perimeter Lookout",
             "spark": {
               "trigger": "When it enters the field",
-              "text": "Another Human Entity of yours gets +1 Power until end of turn."
+              "text": "Another Human Entity of your choice gets +1 Power until end of turn. The Lookout marks the target: the bonus is never for herself."
             },
             "flavor": "She saw the end coming. She whistled twice."
           },
@@ -4176,7 +4176,7 @@
             "name": "Guardiano della Paratia",
             "hammer": {
               "trigger": "Quando attacca",
-              "text": "Prende +2 Potenza fino alla fine della battaglia."
+              "text": "Il Guardiano della Paratia prende +2 Potenza fino alla fine della battaglia. (Solo per l’attacco che ha dichiarato: se non attacca, non c’è bonus.)"
             },
             "flavor": "Nessuno passa. Non oggi."
           },
@@ -4202,7 +4202,7 @@
             "name": "Bulkhead Warden",
             "hammer": {
               "trigger": "When it attacks",
-              "text": "It gets +2 Power until end of battle."
+              "text": "Bulkhead Warden gets +2 Power until end of battle. (Only for the attack it declared: no attack, no bonus.)"
             },
             "flavor": "No one gets through. Not today."
           },
@@ -4289,7 +4289,7 @@
             "name": "Chirurgo da Campo",
             "ember": {
               "trigger": "Quando entra in campo",
-              "text": "Il Rubyfront avversario perde 1 PV."
+              "text": "Il Rubyfront avversario perde 1 PV. (Se in quel momento è schierato, la perdita lo rimanda subito in Zona di Richiamo e gli stacca le Materie.)"
             },
             "flavor": "Anche le bestie sanguinano."
           }
@@ -4311,7 +4311,7 @@
             "name": "Field Surgeon",
             "ember": {
               "trigger": "When it enters the field",
-              "text": "The opposing Rubyfront loses 1 HP."
+              "text": "The opposing Rubyfront loses 1 HP. (If it is deployed at that moment, the loss sends it straight back to the Recall Zone and cuts off its Matters.)"
             },
             "flavor": "Beasts bleed too."
           }
@@ -4497,7 +4497,7 @@
             "name": "Baluardo Corazzato",
             "effect": {
               "name": "Effetto",
-              "text": "Non può bloccare."
+              "text": "Il Baluardo Corazzato non può bloccare. (Attaccare non lo mette in pericolo: in un blocco normale l’attaccante non muore.)"
             },
             "flavor": "Cade il mondo, non lui."
           },
@@ -4523,7 +4523,7 @@
             "name": "Armored Bulwark",
             "effect": {
               "name": "Effect",
-              "text": "It cannot block."
+              "text": "Armored Bulwark can't block. (Attacking doesn't endanger it: in a normal block the attacker doesn't die.)"
             },
             "flavor": "The world falls. He does not."
           },
@@ -4720,7 +4720,7 @@
             "name": "Prima Lama",
             "effect": {
               "name": "Effetto",
-              "text": "Finché controlli il Nexus, la Prima Lama prende +2 Potenza e ha Slancio."
+              "text": "Finché controlli il Nexus, la Prima Lama prende +2 Potenza e ha Slancio. (Lo Slancio le serve nel turno in cui entra: dopo, attacca comunque.)"
             },
             "flavor": "Il fronte nemico la conosce per nome."
           },
@@ -4746,7 +4746,7 @@
             "name": "First Blade",
             "effect": {
               "name": "Effect",
-              "text": "As long as you control the Nexus, the First Blade gets +2 Power and has Surge."
+              "text": "As long as you control the Nexus, First Blade gets +2 Power and has Surge. (Surge matters the turn she enters: after that, she attacks anyway.)"
             },
             "flavor": "The enemy front knows her by name."
           },
@@ -4961,7 +4961,7 @@
             "name": "Lacerazione",
             "effect": {
               "name": "Effetto",
-              "text": "All’inizio del tuo turno, il Rubyfront avversario perde 2 PV."
+              "text": "All’inizio del tuo turno, il Rubyfront avversario perde 2 PV. (La Lacerazione è Distruttiva di 2° grado: se perdi l’accesso a quel tipo va nell’Abisso.)"
             },
             "flavor": "Alcune ferite non si chiudono."
           },
@@ -4990,7 +4990,7 @@
             "name": "Laceration",
             "effect": {
               "name": "Effect",
-              "text": "At the start of your turn, the opposing Rubyfront loses 2 HP."
+              "text": "At the start of your turn, the opposing Rubyfront loses 2 HP. (Laceration is 2nd-grade Destructive: if you lose access to that type it goes to the Abyss.)"
             },
             "flavor": "Some wounds do not close."
           },
@@ -5199,7 +5199,7 @@
             "name": "Archivista",
             "effect": {
               "name": "Effetto",
-              "text": "Le tue altre Entità Umane prendono +1 Potenza."
+              "text": "Le tue altre Entità Umane prendono +1 Potenza. L’Archivista non conta se stesso, e il bonus vale finché resta in campo."
             },
             "flavor": "Scrive i nomi di chi è passato oltre."
           }
@@ -5221,7 +5221,7 @@
             "name": "Archivist",
             "effect": {
               "name": "Effect",
-              "text": "Your other Human Entities get +1 Power."
+              "text": "Your other Human Entities get +1 Power. The Archivist doesn't count itself, and the bonus lasts as long as it stays on the field."
             },
             "flavor": "He writes the names of those who went on."
           }
@@ -5513,7 +5513,7 @@
               "name": "Slancio",
               "rules": "può attaccare nel turno in cui entra in campo"
             },
-            "flavor": "Arriva prima della notizia del suo arrivo."
+            "flavor": "Arriva prima della notizia del suo arrivo. Le paratie non gli chiedono più i documenti: tanto è già passato."
           }
         },
         "en": {
@@ -5535,7 +5535,7 @@
               "name": "Surge",
               "rules": "may attack the turn it enters the field"
             },
-            "flavor": "He arrives before news of his arrival."
+            "flavor": "He arrives before news of his arrival. The bulkheads stopped asking for his papers: he is always already through."
           }
         }
       },
@@ -5729,7 +5729,7 @@
             },
             "effect": {
               "name": "Effetto",
-              "text": "Finché il tuo Rubyfront è in campo, la Vendicatrice prende +1 Potenza."
+              "text": "Finché il tuo Rubyfront è in campo, la Vendicatrice d’Acciaio prende +1 Potenza. (Vale anche con il Nexus, che dal flip non lascia più il campo.)"
             },
             "flavor": "Colpiscila, se osi. Poi corri."
           }
@@ -5755,7 +5755,7 @@
             },
             "effect": {
               "name": "Effect",
-              "text": "As long as your Rubyfront is on the field, the Avenger gets +1 Power."
+              "text": "As long as your Rubyfront is on the field, Steel Avenger gets +1 Power. (The Nexus counts too, and after the flip it never leaves the field.)"
             },
             "flavor": "Strike her, if you dare. Then run."
           }

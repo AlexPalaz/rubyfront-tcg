@@ -12,7 +12,8 @@
     "nexusRequirement": {
       "label": "Nexus requirement",
       "text": "The opposing Rubyfront has lost at least 6 HP"
-    }
+    },
+    "die": "Deployment die"
   },
   "matters": {
     "destructiveTitle": "Destructive Matter · up to 2nd grade",
@@ -37,7 +38,7 @@
       },
       "deepCall": {
         "name": "Call from the Deep",
-        "text": "a Human Entity gets +1 Power and may attack even if it entered the field this turn."
+        "text": "a Human Entity gets +1 Power and has Surge until end of turn."
       }
     },
     "flavor": "It did not surface. The deeps opened their eyes."

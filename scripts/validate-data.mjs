@@ -141,7 +141,14 @@ function validateCard(card, where, set) {
       }
     }
 
-    for (const keyword of face.keywords ?? []) checkTerm("keyword", keyword.id, `${at}.keywords`);
+    for (const keyword of face.keywords ?? []) {
+      checkTerm("keyword", keyword.id, `${at}.keywords`);
+      checkTerm("die", keyword.check?.die, `${at}.keywords.${keyword.id}.check.die`);
+    }
+
+    // Costo di schieramento (MANUALE.md §3.1): base a numero fisso o a dado,
+    // piu' un incremento opzionale. Il dado deve stare nel registro.
+    checkTerm("die", face.stats?.deploymentCost?.die, `${at}.stats.deploymentCost.die`);
 
     for (const trigger of face.triggers ?? []) {
       checkTerm("event", trigger.event, `${at}.${trigger.id}.event`);
