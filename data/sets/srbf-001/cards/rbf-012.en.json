@@ -1,25 +1,26 @@
 {
   "name": "Armored Bulwark",
   "typeLabel": "Entity — Human",
-  "summary": "The wall that breathes: high-cost Power, in exchange he never leaves the line.",
+  "summary": "Three Power for two Flux: all forward, nothing back.",
   "ui": {
     "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
     "name": "Armored Bulwark",
-    "flavor": "The world may fall. He will not.",
     "effect": {
       "name": "Effect",
-      "text": "He cannot attack."
+      "text": "It cannot block."
     },
-    "shelter": {
-      "trigger": "When he blocks",
-      "text": "Your Rubyfront recovers 1 HP: behind his shield, the beast catches its breath."
-    }
+    "flavor": "The world falls. He does not."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

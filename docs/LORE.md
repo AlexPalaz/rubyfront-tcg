@@ -37,6 +37,10 @@
   fantasia liturgica pura, né fantascienza pulita.
 - Le carte Zero restano **Uniche** (regola già in vigore) — la rarità della
   sostanza e del sangue che la incanala coincidono.
-- Aperto: restano due nomi in odore di rito — **Viatico** (il requisito
-  Unione di RBF-001) e **Velo del Primo** (RBF-020): il designer deciderà se
-  confermarli o sostituirli. Il resto del lessico è già tecno-medievale.
+- Parzialmente chiuso: **Viatico** non esiste più — è uscito insieme al vecchio
+  requisito del Nexus di RBF-001, che ora guarda i PV persi dall'avversario e non
+  un lignaggio. **Velo del Primo** (RBF-020) invece **resta in sospeso**: il nome
+  è confermato per ora, e sarà il designer a decidere se sostituirlo.
+- Adam resta canonico e resta **l'unico accesso allo Zero** del set (lignaggio,
+  vedi sopra), ma non è più il perno meccanico di nessuna carta: è una scelta di
+  design deliberata, per non far dipendere un intero mazzo da una singola Unica.

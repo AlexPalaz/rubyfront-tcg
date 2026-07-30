@@ -75,8 +75,8 @@
   .cost i { transform: rotate(-45deg); font-style: normal;
     font-family: inherit;
     font-size: 1em; font-weight: 400; color: var(--cost-ink, #fdeef1); }
-  .union-mark { flex: none; width: 3.1em; height: 2.2em; }
-  .union-mark svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .nexus-mark { flex: none; width: 3.1em; height: 2.2em; }
+  .nexus-mark svg { display: block; width: 100%; height: 100%; overflow: visible; }
   .art { height: var(--art-height); min-height: 0; flex: 0 0 var(--art-height); border: 1px solid var(--frame); background: var(--well);
     display: flex; align-items: center; justify-content: center;
     font-size: 1em; letter-spacing: .4em; text-transform: uppercase;
@@ -103,7 +103,7 @@
   .textbox { flex: 1; border: 1px solid var(--frame-dim); background: var(--panel);
     padding: .42em .65em; display: flex; flex-direction: column; gap: .22em;
     font-size: 1em; overflow: hidden; }
-  .card:not(.union) .textbox { padding-bottom: .3em; }
+  .card:not(.nexus) .textbox { padding-bottom: .3em; }
   .fx, .ability { display: block; }
   .fx .tag { display: flex; align-items: center; gap: .8em;
     font-size: .85em; letter-spacing: .12em; text-transform: uppercase;
@@ -112,7 +112,7 @@
   .fx .body { margin: 0; }
   .requirement { margin: 0; padding: .22em .45em; font-size: .92em;
     background: var(--well); border: 1px solid var(--frame-dim); }
-  .requirement .union-mark { display: inline-block; width: 1.55em; height: 1.1em;
+  .requirement .nexus-mark { display: inline-block; width: 1.55em; height: 1.1em;
     vertical-align: -.26em; margin-right: .38em; }
   .fx b, .ability b { color: var(--accent); font-weight: 600; }
   .hp-cost { display: inline-block; font-size: .9em; white-space: nowrap; color: var(--ruby-light);
@@ -450,8 +450,8 @@
     --ruby: #c25a2a; --ruby-light: #e08a52;
     --hp-green: #2f7f6b; --cost-ink: #fff8ec;
   }
-  /* canonical Union palette, only for the default theme t01 */
-  .card.union.t01 {
+  /* canonical Nexus palette, only for the default theme t01 */
+  .card.nexus.t01 {
     --bg: #241a0b; --panel: #413013; --well: #0f0a03;
     --frame: #a8843c; --frame-dim: #5e4921;
     --ink: #f3e9d6; --muted: #bfa87b;
@@ -662,7 +662,7 @@
   .t17 .art { border-radius: 10px; border-color: #2c4457;
     background: linear-gradient(120deg, #060812 40%, #101a2e 50%, #060812 60%); }
   .t17 .keyword::before, .t17 .keyword::after { content: "\25CA"; font-size: .8em; }
-  .card.union.t17 {
+  .card.nexus.t17 {
     --bg: #141416; --panel: #202023; --well: #09090b;
     --frame: #ffe18a; --frame-dim: #746a4d;
     --ink: #fff9e9; --muted: #c9c2b0;
@@ -675,12 +675,12 @@
       linear-gradient(135deg, #d5a93d, #fff5c9, #efc95f, #fffbea, #d5a93d) border-box;
     box-shadow: 0 12px 34px rgba(0,0,0,.48), 0 0 30px rgba(255,225,138,.22);
   }
-  .union.t17 .name {
+  .nexus.t17 .name {
     background: linear-gradient(90deg, #efc85d, #fffbea, #ffe18a);
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  .union.t17 .textbox { background: rgba(32,32,35,.88); }
-  .union.t17 .art {
+  .nexus.t17 .textbox { background: rgba(32,32,35,.88); }
+  .nexus.t17 .art {
     border-color: #746a4d;
     background: linear-gradient(120deg, #09090b 39%, #302a1b 50%, #09090b 61%);
   }

@@ -1,7 +1,7 @@
 {
   "name": "Lacerazione",
   "typeLabel": "Materia Distruttiva II",
-  "summary": "La ferita che non si chiude: fragile con la bestia, eterna con l'Unione.",
+  "summary": "Alcune ferite non si chiudono: due punti a ogni tuo turno, finché la bestia resta in campo.",
   "ui": {
     "face": "Materia"
   },

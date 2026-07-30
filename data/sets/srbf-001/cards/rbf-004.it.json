@@ -1,25 +1,29 @@
 {
   "name": "Scatto",
   "typeLabel": "Materia Dinamica I",
-  "summary": "L'aggressività degli Umani: più Potenza e nessuna attesa. La velocità è un'arma.",
+  "summary": "Il colpo che arriva un turno prima del previsto — e con il Nexus arriva il doppio.",
   "ui": {
     "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi"
-  },
-  "matters": {
-    "dynamicTitle": "Materia Dinamica · 1° grado",
-    "dynamicAria": "Dinamica"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
     "name": "Scatto",
     "effect": {
       "name": "Effetto",
-      "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno. Se controlli l’Unione, prende invece +4 Potenza."
+      "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno. Se controlli il Nexus, prende invece +4 Potenza."
     },
     "flavor": "Prima che l’occhio capisca, è già finita."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

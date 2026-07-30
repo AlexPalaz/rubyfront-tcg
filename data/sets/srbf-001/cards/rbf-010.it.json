@@ -1,25 +1,22 @@
 {
   "name": "Chirurgo da Campo",
   "typeLabel": "Entità — Umano",
-  "summary": "Cura due volte: all'arrivo e al congedo — il Ritiro come seconda medicina.",
+  "summary": "Anche le bestie sanguinano: ogni corpo che scende porta un punto in meno all’avversario.",
   "ui": {
     "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
     "name": "Chirurgo da Campo",
-    "flavor": "Anche le bestie sanguinano.",
-    "medic": {
+    "ember": {
       "trigger": "Quando entra in campo",
-      "text": "Il tuo Rubyfront recupera 2 PV."
+      "text": "Il Rubyfront avversario perde 1 PV."
     },
-    "lastCare": {
-      "trigger": "Quando lo ritiri",
-      "text": "Il tuo Rubyfront recupera altri 2 PV. (Vale solo per il Ritiro volontario in Zona di Requiem, non per altre uscite dal campo.)"
-    }
+    "flavor": "Anche le bestie sanguinano."
   }
 }

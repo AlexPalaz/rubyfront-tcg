@@ -7,7 +7,7 @@
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -17,7 +17,7 @@
     "entity",
     "human",
     "dynamic",
-    "scry"
+    "anthem"
   ],
   "rulesReference": "MANUALE.md §6.2, §7",
   "faces": [
@@ -40,23 +40,23 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "watch",
-          "displayKey": "watch",
+          "id": "spark",
+          "displayKey": "spark",
           "event": "on_enter_field",
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top",
-              "count": 1
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
+              "min": 1,
+              "max": 1,
+              "details": {
+                "excludeSelf": true
+              }
             },
-            "to": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "bottom"
-            },
-            "optional": true
+            "amount": 1,
+            "duration": "until_end_of_turn"
           }
         }
       ],

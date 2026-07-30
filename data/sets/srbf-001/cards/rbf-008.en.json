@@ -1,21 +1,26 @@
 {
   "name": "Perimeter Lookout",
   "typeLabel": "Entity — Human",
-  "summary": "The plan's eye: she filters the draw like the beast's Undertow.",
+  "summary": "She does not hit hard: she marks the target, and whoever stands beside her hits better.",
   "ui": {
     "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
     "name": "Perimeter Lookout",
-    "flavor": "She saw the end coming. She whistled twice.",
-    "watch": {
-      "trigger": "When she enters the field",
-      "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
-    }
+    "spark": {
+      "trigger": "When it enters the field",
+      "text": "Another Human Entity of yours gets +1 Power until end of turn."
+    },
+    "flavor": "She saw the end coming. She whistled twice."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

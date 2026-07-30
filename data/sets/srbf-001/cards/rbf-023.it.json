@@ -1,25 +1,26 @@
 {
   "name": "Vendicatrice d’Acciaio",
   "typeLabel": "Entità — Umano",
-  "summary": "La Vendetta ha sempre un nome: più forte da quando qualcuno dei suoi è passato oltre.",
+  "summary": "A un Flusso: con la bestia in campo è un 3 che uccide chi la attacca.",
   "ui": {
     "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
     "name": "Vendicatrice d’Acciaio",
     "keyword": {
       "name": "Vendetta",
-      "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
+      "rules": "se blocca con Potenza superiore, l’attaccante muore"
     },
-    "flavor": "Colpiscila, se osi. Poi corri.",
     "effect": {
       "name": "Effetto",
-      "text": "Finché nella tua Zona di Requiem c’è almeno una carta, la Vendicatrice prende +1 Potenza."
-    }
+      "text": "Finché il tuo Rubyfront è in campo, la Vendicatrice prende +1 Potenza."
+    },
+    "flavor": "Colpiscila, se osi. Poi corri."
   }
 }

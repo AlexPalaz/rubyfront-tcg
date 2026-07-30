@@ -1,25 +1,29 @@
 {
   "name": "Dash",
   "typeLabel": "Dynamic Matter I",
-  "summary": "Human aggression: more Power and no waiting. Speed is a weapon.",
+  "summary": "The blow that lands a turn early — and twice as hard once the Nexus is out.",
   "ui": {
     "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux"
-  },
-  "matters": {
-    "dynamicTitle": "Dynamic Matter · 1st grade",
-    "dynamicAria": "Dynamic"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
     "name": "Dash",
     "effect": {
       "name": "Effect",
-      "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn. If you control the Union, it gets +4 Power instead."
+      "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn. If you control the Nexus, it gets +4 Power instead."
     },
-    "flavor": "By the time the eye understands, it is already over."
+    "flavor": "Before the eye understands, it is over."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

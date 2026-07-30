@@ -1,64 +1,60 @@
 {
   "name": "Rubyfront of the Abyss",
   "typeLabel": "Double-faced Rubyfront",
-  "summary": "Attrition control: filter the deck, weaken the opposing Front and devour its smaller Entities.",
+  "summary": "The beast does not fight: it pushes. Every time it surfaces, its Humans hit harder.",
   "ui": {
     "faceA": "Face A — Rubyfront",
-    "faceB": "Face B — Union"
+    "faceB": "Face B — Nexus"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "unionRequirement": {
-      "label": "Union requirement",
-      "text": "Retire to Requiem a Human you attributed a Zero Matter to"
+    "nexusRequirement": {
+      "label": "Nexus requirement",
+      "text": "The opposing Rubyfront has lost at least 6 HP"
     }
   },
   "matters": {
     "destructiveTitle": "Destructive Matter · up to 2nd grade",
     "destructiveAria": "Destructive",
-    "zeroTitle": "Zero Matter",
-    "zeroAria": "Zero"
+    "dynamicTitle": "Dynamic Matter · up to 2nd grade",
+    "dynamicAria": "Dynamic"
   },
   "faceA": {
     "name": "Rubyfront of the Abyss",
     "keyword": {
       "name": "Fury",
-      "rules": "d20 ≥ 12 before every action · on failure −3 HP"
+      "rules": "d20 ≥ 12 before every action · failure −2 HP"
     },
     "trigger": "On deployment",
     "effect": {
-      "text": "Look at the top card of your deck: you may put it on the bottom."
+      "text": "Your Human Entities get +1 Power until end of turn."
     },
     "abilities": {
-      "pressure": {
-        "name": "Abyssal Pressure",
-        "text": "an opposing Entity gets −2 Power until your next turn."
+      "thrust": {
+        "name": "Abyssal Thrust",
+        "text": "a Human Entity gets +2 Power until end of turn."
       },
-      "devour": {
-        "name": "Devour",
-        "text": "put an opposing Entity with Power 3 or less on the bottom of its deck."
+      "deepCall": {
+        "name": "Call from the Deep",
+        "text": "a Human Entity gets +1 Power and may attack even if it entered the field this turn."
       }
     },
-    "flavor": "It did not rise. The abyss opened its eyes."
+    "flavor": "It did not surface. The deeps opened their eyes."
   },
   "faceB": {
     "name": "The Abyss Incarnate",
-    "unionAria": "Union",
-    "trigger": "On Union",
-    "effect": {
-      "text": "Tap an opposing Entity of your choice."
-    },
+    "nexusAria": "Nexus",
     "abilities": {
-      "tide": {
-        "name": "Rising Tide",
-        "text": "up to two opposing Entities get −2 Power until your next turn."
+      "swell": {
+        "name": "Swell",
+        "text": "a Human Entity gets +3 Power until end of turn."
       },
-      "abyss": {
+      "greatTide": {
         "name": "The Great Tide",
-        "text": "tap every opposing Entity on the field."
+        "text": "all your Human Entities get +2 Power and cannot be blocked this turn."
       }
     },
-    "flavor": "The abyss no longer waits below. It walks."
+    "flavor": "The abyss took shape. The world stepped back."
   }
 }

@@ -7,7 +7,7 @@
   "type": "matter",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",

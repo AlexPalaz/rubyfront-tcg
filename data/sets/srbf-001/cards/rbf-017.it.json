@@ -1,7 +1,7 @@
 {
   "name": "Quiete",
   "typeLabel": "Materia Zero",
-  "summary": "Il primo annullamento del gioco: la risposta che spegne la risposta.",
+  "summary": "Un Flusso per spegnere la risposta avversaria nel mezzo della catena.",
   "ui": {
     "face": "Materia"
   },
@@ -9,11 +9,11 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "flux": "Flussi",
-    "unique": "Unica",
     "behaviors": {
       "reactive": "Reattiva",
       "permanent": "Permanente"
-    }
+    },
+    "unique": "Unica"
   },
   "face": {
     "name": "Quiete",

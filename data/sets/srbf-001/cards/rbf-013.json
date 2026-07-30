@@ -7,7 +7,7 @@
   "type": "matter",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -17,8 +17,7 @@
     "matter",
     "dynamic",
     "grade-1",
-    "reactive",
-    "block"
+    "reactive"
   ],
   "rulesReference": "MANUALE.md §6.3, §7.2",
   "faces": [
@@ -32,7 +31,7 @@
       },
       "behavior": "reactive",
       "stats": {
-        "fluxCost": 2
+        "fluxCost": 1
       },
       "enablesMatters": [],
       "keywords": [],

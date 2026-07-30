@@ -1,7 +1,7 @@
 {
   "name": "Adam, Il Primo",
   "typeLabel": "Entità — Umano",
-  "summary": "Il tramite dello Zero: incanala la Materia Zero e apre la via all'Unione del Rubifronte degli Abissi.",
+  "summary": "Il tramite dello Zero: incanala la Materia più rara e, quando lascia il campo, lascia qualcosa a chi resta.",
   "ui": {
     "face": "Entità"
   },
@@ -9,8 +9,8 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "power": "Potenza",
-    "counterattack": "Contrattacco",
     "flux": "Flussi",
+    "counterattack": "Contrattacco",
     "unique": "Unica"
   },
   "face": {
@@ -23,8 +23,12 @@
     },
     "bequest": {
       "trigger": "Quando lascia il campo",
-      "text": "Pesca una carta. (Anche il Ritiro in Requiem lo innesca.)"
+      "text": "Pesca una carta."
     },
     "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
+  },
+  "matters": {
+    "zeroTitle": "Materia Zero",
+    "zeroAria": "Zero"
   }
 }

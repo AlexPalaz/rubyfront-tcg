@@ -7,7 +7,7 @@
   "type": "matter",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -18,8 +18,7 @@
     "dynamic",
     "grade-1",
     "permanent",
-    "anthem",
-    "requiem"
+    "anthem"
   ],
   "rulesReference": "MANUALE.md §7.2",
   "faces": [
@@ -33,7 +32,7 @@
       },
       "behavior": "permanent",
       "stats": {
-        "fluxCost": 4
+        "fluxCost": 3
       },
       "enablesMatters": [],
       "keywords": [],
@@ -47,14 +46,14 @@
             "type": "modify_power",
             "target": {
               "cardType": "entity",
+              "race": "human",
               "controller": "controller",
               "quantity": "all"
             },
             "amount": 1,
             "duration": "permanent",
             "details": {
-              "requiemThreshold": 4,
-              "amountAtThreshold": 2
+              "amountWithRubyfrontDeployed": 2
             }
           }
         }

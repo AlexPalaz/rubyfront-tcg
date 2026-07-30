@@ -1,21 +1,22 @@
 {
   "name": "Emissario degli Eredi",
   "typeLabel": "Entità — Umano",
-  "summary": "Il cercatore del piano: trova Adam, o chiunque serva alla causa.",
+  "summary": "Due braccia in campo e un terzo in arrivo: gli Eredi non lasciano mai un posto vuoto.",
   "ui": {
     "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
     "name": "Emissario degli Eredi",
-    "flavor": "Il Primo cammina fra noi. Io l'ho visto.",
     "herald": {
       "trigger": "Quando entra in campo",
       "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
-    }
+    },
+    "flavor": "Il Primo cammina fra noi. Io l'ho visto."
   }
 }

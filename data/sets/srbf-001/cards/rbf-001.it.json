@@ -1,62 +1,58 @@
 {
   "name": "Rubifronte degli Abissi",
   "typeLabel": "Rubyfront bifronte",
-  "summary": "Controllo per logoramento: filtra il mazzo, indebolisce il Fronte avversario e divora le Entità più deboli.",
+  "summary": "La bestia non combatte: spinge. Ogni volta che emerge, i suoi Umani colpiscono più forte.",
   "ui": {
     "faceA": "Faccia A — Rubyfront",
-    "faceB": "Faccia B — Unione"
+    "faceB": "Faccia B — Nexus"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "unionRequirement": {
-      "label": "Requisito Unione",
-      "text": "Ritira in Requiem un Umano a cui hai attribuito una Materia Zero"
+    "nexusRequirement": {
+      "label": "Requisito Nexus",
+      "text": "Il Rubyfront avversario ha perso almeno 6 PV"
     }
   },
   "matters": {
     "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
     "destructiveAria": "Distruttiva",
-    "zeroTitle": "Materia Zero",
-    "zeroAria": "Zero"
+    "dynamicTitle": "Materia Dinamica · fino al 2° grado",
+    "dynamicAria": "Dinamica"
   },
   "faceA": {
     "name": "Rubifronte degli Abissi",
     "keyword": {
       "name": "Furia",
-      "rules": "d20 ≥ 12 prima di ogni azione · fallimento −3 PV"
+      "rules": "d20 ≥ 12 prima di ogni azione · fallimento −2 PV"
     },
     "trigger": "Allo schieramento",
     "effect": {
-      "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo."
+      "text": "Le tue Entità Umane prendono +1 Potenza fino alla fine del turno."
     },
     "abilities": {
-      "pressure": {
-        "name": "Pressione Abissale",
-        "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
+      "thrust": {
+        "name": "Spinta Abissale",
+        "text": "un’Entità Umana prende +2 Potenza fino alla fine del turno."
       },
-      "devour": {
-        "name": "Divorare",
-        "text": "metti in fondo al suo mazzo un’Entità avversaria con Potenza 3 o meno."
+      "deepCall": {
+        "name": "Chiamata dal Fondo",
+        "text": "un’Entità Umana prende +1 Potenza e può attaccare anche se è entrata in campo in questo turno."
       }
     },
     "flavor": "Non emerse. Gli abissi aprirono gli occhi."
   },
   "faceB": {
     "name": "Incarnazione dell’Abisso",
-    "unionAria": "Unione",
-    "trigger": "All’Unione",
-    "effect": {
-      "text": "Tappa un’Entità avversaria a tua scelta."
-    },
+    "nexusAria": "Nexus",
     "abilities": {
-      "tide": {
-        "name": "Marea Crescente",
-        "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
+      "swell": {
+        "name": "Onda Portante",
+        "text": "un’Entità Umana prende +3 Potenza fino alla fine del turno."
       },
-      "abyss": {
+      "greatTide": {
         "name": "La Grande Marea",
-        "text": "tappa tutte le Entità avversarie in campo."
+        "text": "tutte le tue Entità Umane prendono +2 Potenza e non possono essere bloccate in questo turno."
       }
     },
     "flavor": "L’abisso prese forma. Il mondo arretrò."

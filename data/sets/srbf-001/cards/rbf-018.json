@@ -7,7 +7,7 @@
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -16,8 +16,8 @@
   "tags": [
     "entity",
     "human",
-    "draw",
-    "requiem"
+    "anthem",
+    "aggro"
   ],
   "rulesReference": "MANUALE.md §6.2",
   "faces": [
@@ -28,26 +28,29 @@
       "race": "human",
       "stats": {
         "power": 1,
-        "fluxCost": 3
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "chronicle",
-          "displayKey": "chronicle",
-          "event": "on_enter_field",
+          "id": "standard",
+          "displayKey": "effect",
+          "event": "while_in_play",
           "effect": {
-            "type": "draw_card",
+            "type": "modify_power",
             "target": {
-              "controller": "controller"
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
+              "quantity": "all",
+              "details": {
+                "excludeSelf": true
+              }
             },
-            "count": 1,
-            "details": {
-              "requiemThreshold": 2,
-              "countAtThreshold": 2
-            }
+            "amount": 1,
+            "duration": "permanent"
           }
         }
       ],

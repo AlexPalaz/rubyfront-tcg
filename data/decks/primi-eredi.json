@@ -7,11 +7,11 @@
   "locales": {
     "it": {
       "name": "Primi Eredi",
-      "description": "Mazzo Umani di controllo e scalata: sopravvivere fino a metà partita, compiere l'Unione con il Viatico di Adam e chiudere nella finestra di dominio che segue."
+      "description": "Mazzo Umani aggro: corpi a costo bassissimo dal primo turno, due inni che li ingrandiscono e un Rubyfront che non combatte ma spinge. Il Nexus si accende quando l'avversario ha perso almeno 6 PV."
     },
     "en": {
       "name": "First Heirs",
-      "description": "A Human control-and-climb deck: survive to midgame, fulfil the Union through Adam's Viaticum and close in the window of dominance that follows."
+      "description": "A Human aggro deck: dirt-cheap bodies from turn one, two anthems to grow them and a Rubyfront that does not fight but pushes. The Nexus ignites once the opponent has lost at least 6 HP."
     }
   },
   "designNotes": "primi-eredi.md",
@@ -19,6 +19,50 @@
     {
       "card": "RBF-001",
       "count": 1
+    },
+    {
+      "card": "RBF-021",
+      "count": 3
+    },
+    {
+      "card": "RBF-009",
+      "count": 3
+    },
+    {
+      "card": "RBF-023",
+      "count": 3
+    },
+    {
+      "card": "RBF-010",
+      "count": 3
+    },
+    {
+      "card": "RBF-007",
+      "count": 3
+    },
+    {
+      "card": "RBF-012",
+      "count": 3
+    },
+    {
+      "card": "RBF-018",
+      "count": 3
+    },
+    {
+      "card": "RBF-004",
+      "count": 3
+    },
+    {
+      "card": "RBF-006",
+      "count": 3
+    },
+    {
+      "card": "RBF-022",
+      "count": 3
+    },
+    {
+      "card": "RBF-016",
+      "count": 3
     },
     {
       "card": "RBF-002",
@@ -29,79 +73,11 @@
       "count": 1
     },
     {
-      "card": "RBF-017",
-      "count": 1
-    },
-    {
-      "card": "RBF-008",
-      "count": 2
-    },
-    {
-      "card": "RBF-021",
-      "count": 2
-    },
-    {
-      "card": "RBF-009",
-      "count": 2
-    },
-    {
-      "card": "RBF-010",
-      "count": 2
-    },
-    {
-      "card": "RBF-023",
-      "count": 2
-    },
-    {
-      "card": "RBF-013",
-      "count": 2
-    },
-    {
-      "card": "RBF-011",
-      "count": 2
-    },
-    {
-      "card": "RBF-012",
-      "count": 2
-    },
-    {
-      "card": "RBF-018",
-      "count": 2
-    },
-    {
-      "card": "RBF-004",
-      "count": 2
-    },
-    {
-      "card": "RBF-006",
-      "count": 2
-    },
-    {
-      "card": "RBF-019",
-      "count": 2
-    },
-    {
-      "card": "RBF-016",
-      "count": 2
-    },
-    {
-      "card": "RBF-022",
-      "count": 2
-    },
-    {
       "card": "RBF-014",
       "count": 2
     },
     {
       "card": "RBF-015",
-      "count": 2
-    },
-    {
-      "card": "RBF-007",
-      "count": 2
-    },
-    {
-      "card": "RBF-020",
       "count": 2
     }
   ]

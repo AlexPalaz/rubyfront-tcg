@@ -1,14 +1,18 @@
 {
   "name": "Secondo Impeto",
   "typeLabel": "Materia Dinamica II",
-  "summary": "Il finisher del mazzo: un attacco in più quando il Fronte avversario è tappato.",
+  "summary": "Il turno in cui un solo corpo attacca due volte.",
   "ui": {
     "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
     "name": "Secondo Impeto",

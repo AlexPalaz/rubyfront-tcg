@@ -15,10 +15,10 @@
   ],
   "tags": [
     "rubyfront",
-    "union",
-    "control",
-    "destructive",
-    "zero"
+    "nexus",
+    "aggro",
+    "anthem",
+    "destructive"
   ],
   "rulesReference": "MANUALE.md §3.1, §7, §8.1",
   "faces": [
@@ -29,7 +29,7 @@
       "stats": {
         "health": 18,
         "deploymentCost": {
-          "base": 3,
+          "base": 2,
           "increment": 1,
           "cap": 20
         }
@@ -48,37 +48,21 @@
             "successAtLeast": 12
           },
           "failure": {
-            "loseHealth": 3
+            "loseHealth": 2
           }
         }
       ],
       "requirements": {
-        "union": {
+        "nexus": {
           "match": "all",
           "conditions": [
             {
-              "type": "controls_card",
-              "owner": "controller",
-              "filter": {
-                "cardType": "entity",
-                "race": "human",
-                "enablesMatter": {
-                  "type": "zero"
-                },
-                "wasAttributedMatterThisGame": {
-                  "type": "zero"
-                }
-              }
-            }
-          ],
-          "flipCost": [
-            {
-              "type": "retire",
-              "target": "condition_card",
-              "destination": {
-                "zone": "requiem",
-                "owner": "controller"
-              }
+              "type": "health_lost_at_least",
+              "target": {
+                "cardType": "rubyfront",
+                "controller": "opponent"
+              },
+              "value": 6
             }
           ]
         }
@@ -89,26 +73,22 @@
           "displayKey": "effect",
           "event": "on_deploy_from_recall",
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top",
-              "count": 1
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
+              "quantity": "all"
             },
-            "to": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "bottom"
-            },
-            "optional": true
+            "amount": 1,
+            "duration": "until_end_of_turn"
           }
         }
       ],
       "actions": [
         {
-          "id": "abyssal-pressure",
-          "displayKey": "pressure",
+          "id": "abyssal-thrust",
+          "displayKey": "thrust",
           "timing": [
             "own_preparation",
             "own_front"
@@ -123,18 +103,19 @@
           "effect": {
             "type": "modify_power",
             "target": {
-              "controller": "opponent",
               "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
               "min": 1,
               "max": 1
             },
-            "amount": -2,
-            "duration": "until_controller_next_turn"
+            "amount": 2,
+            "duration": "until_end_of_turn"
           }
         },
         {
-          "id": "devour",
-          "displayKey": "devour",
+          "id": "deep-call",
+          "displayKey": "deepCall",
           "timing": [
             "own_preparation",
             "own_front"
@@ -144,71 +125,50 @@
             "fury"
           ],
           "cost": {
-            "health": 5
+            "health": 4
           },
           "effect": {
-            "type": "move_card",
+            "type": "empower",
             "target": {
-              "controller": "opponent",
               "cardType": "entity",
-              "conditions": [
-                {
-                  "stat": "power",
-                  "operator": "lte",
-                  "value": 3
-                }
-              ],
+              "race": "human",
+              "controller": "controller",
               "min": 1,
               "max": 1
             },
-            "destination": {
-              "zone": "deck",
-              "owner": "card_owner",
-              "position": "bottom"
-            }
+            "powerBonus": 1,
+            "duration": "until_end_of_turn",
+            "grants": [
+              "surge"
+            ]
           }
         }
       ]
     },
     {
-      "id": "union",
-      "kind": "union",
+      "id": "nexus",
+      "kind": "nexus",
       "displayKey": "faceB",
       "stats": {
-        "healthRecovery": 6
+        "healthRecovery": 5
       },
       "enablesMatters": [
         {
-          "type": "destructive",
+          "type": "dynamic",
           "maxGrade": 2
         },
         {
-          "type": "zero"
+          "type": "destructive",
+          "maxGrade": 2
         }
       ],
       "keywords": [],
       "requirements": {},
-      "triggers": [
-        {
-          "id": "the-first-wave",
-          "displayKey": "effect",
-          "event": "on_flip",
-          "effect": {
-            "type": "set_state",
-            "target": {
-              "controller": "opponent",
-              "cardType": "entity",
-              "min": 1,
-              "max": 1
-            },
-            "state": "tapped"
-          }
-        }
-      ],
+      "triggers": [],
       "actions": [
         {
-          "id": "rising-tide",
-          "displayKey": "tide",
+          "id": "swell",
+          "displayKey": "swell",
           "timing": [
             "own_preparation",
             "own_front"
@@ -216,23 +176,24 @@
           "repeatable": true,
           "checks": [],
           "cost": {
-            "health": 3
+            "health": 2
           },
           "effect": {
             "type": "modify_power",
             "target": {
-              "controller": "opponent",
               "cardType": "entity",
-              "min": 0,
-              "max": 2
+              "race": "human",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
             },
-            "amount": -2,
-            "duration": "until_controller_next_turn"
+            "amount": 3,
+            "duration": "until_end_of_turn"
           }
         },
         {
-          "id": "the-great-tide",
-          "displayKey": "abyss",
+          "id": "great-tide",
+          "displayKey": "greatTide",
           "timing": [
             "own_preparation",
             "own_front"
@@ -240,16 +201,21 @@
           "repeatable": true,
           "checks": [],
           "cost": {
-            "health": 7
+            "health": 5
           },
           "effect": {
-            "type": "set_state",
+            "type": "empower",
             "target": {
-              "controller": "opponent",
               "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
               "quantity": "all"
             },
-            "state": "tapped"
+            "powerBonus": 2,
+            "duration": "until_end_of_turn",
+            "details": {
+              "cannotBeBlocked": true
+            }
           }
         }
       ]

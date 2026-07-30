@@ -1,7 +1,7 @@
 {
   "name": "Vigorbelt",
   "typeLabel": "Object",
-  "summary": "The set's first Object: a belt for Humans only, and its bearer hits harder.",
+  "summary": "One Flux, and worth double while the beast is on the field.",
   "ui": {
     "face": "Object"
   },
@@ -14,7 +14,7 @@
     "name": "Vigorbelt",
     "effect": {
       "name": "Effect",
-      "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power. When the Human wearing it is retired, draw a card: the Vigorbelt follows them to Requiem and leaves something to those who remain."
+      "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power. If your Rubyfront is on the field, they get +2 instead."
     },
     "flavor": "Buckle it tight. Vigor does the rest."
   }

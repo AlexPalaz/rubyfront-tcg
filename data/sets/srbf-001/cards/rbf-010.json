@@ -7,7 +7,7 @@
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -16,8 +16,8 @@
   "tags": [
     "entity",
     "human",
-    "heal",
-    "requiem"
+    "burn",
+    "aggro"
   ],
   "rulesReference": "MANUALE.md §6.2, §8.2",
   "faces": [
@@ -28,36 +28,23 @@
       "race": "human",
       "stats": {
         "power": 1,
-        "fluxCost": 2
+        "fluxCost": 1
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "medic",
-          "displayKey": "medic",
+          "id": "ember",
+          "displayKey": "ember",
           "event": "on_enter_field",
           "effect": {
-            "type": "gain_health",
+            "type": "lose_health",
             "target": {
               "cardType": "rubyfront",
-              "controller": "controller"
+              "controller": "opponent"
             },
-            "amount": 2
-          }
-        },
-        {
-          "id": "last-care",
-          "displayKey": "lastCare",
-          "event": "on_retire",
-          "effect": {
-            "type": "gain_health",
-            "target": {
-              "cardType": "rubyfront",
-              "controller": "controller"
-            },
-            "amount": 2
+            "amount": 1
           }
         }
       ],

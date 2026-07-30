@@ -7,7 +7,7 @@
   "type": "matter",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -17,7 +17,8 @@
     "matter",
     "destructive",
     "grade-1",
-    "reactive"
+    "reactive",
+    "burn"
   ],
   "rulesReference": "MANUALE.md §3.1, §7, §8.2",
   "faces": [
@@ -31,7 +32,7 @@
       },
       "behavior": "reactive",
       "stats": {
-        "fluxCost": 3
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],

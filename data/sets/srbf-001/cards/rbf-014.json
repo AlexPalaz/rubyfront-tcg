@@ -7,7 +7,7 @@
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -17,7 +17,8 @@
     "entity",
     "human",
     "dynamic",
-    "union"
+    "grade-2",
+    "nexus"
   ],
   "rulesReference": "MANUALE.md §7",
   "faces": [
@@ -28,7 +29,7 @@
       "race": "human",
       "stats": {
         "power": 3,
-        "fluxCost": 5
+        "fluxCost": 4
       },
       "enablesMatters": [
         {
@@ -54,7 +55,7 @@
               "surge"
             ],
             "details": {
-              "requiresUnion": true
+              "requiresNexus": true
             }
           }
         }

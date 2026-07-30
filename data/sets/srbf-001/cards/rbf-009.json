@@ -7,7 +7,7 @@
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -17,8 +17,7 @@
     "entity",
     "human",
     "dynamic",
-    "defender",
-    "requiem"
+    "aggro"
   ],
   "rulesReference": "MANUALE.md §6.3, §7",
   "faces": [
@@ -29,7 +28,7 @@
       "race": "human",
       "stats": {
         "power": 1,
-        "fluxCost": 2
+        "fluxCost": 1
       },
       "enablesMatters": [
         {
@@ -41,20 +40,16 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "warden",
-          "displayKey": "warden",
-          "event": "on_block",
+          "id": "hammer",
+          "displayKey": "hammer",
+          "event": "on_attack",
           "effect": {
             "type": "modify_power",
             "target": {
               "scope": "self"
             },
             "amount": 2,
-            "duration": "until_end_of_battle",
-            "details": {
-              "requiemThreshold": 3,
-              "amountAtThreshold": 4
-            }
+            "duration": "until_end_of_battle"
           }
         }
       ],

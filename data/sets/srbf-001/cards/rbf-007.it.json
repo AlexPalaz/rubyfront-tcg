@@ -1,7 +1,7 @@
 {
   "name": "Vigorcintura",
   "typeLabel": "Oggetto",
-  "summary": "Il primo Oggetto del set: una cintura per soli Umani, e chi la porta colpisce più forte.",
+  "summary": "Un Flusso, e con la bestia in campo vale il doppio.",
   "ui": {
     "face": "Oggetto"
   },
@@ -14,7 +14,7 @@
     "name": "Vigorcintura",
     "effect": {
       "name": "Effetto",
-      "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza. Quando l’Umano che la indossa viene ritirato, pesca una carta: la Vigorcintura lo segue in Requiem e lascia qualcosa a chi resta."
+      "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza. Se il tuo Rubyfront è in campo, prende invece +2."
     },
     "flavor": "Stringila forte. Il vigore fa il resto."
   }

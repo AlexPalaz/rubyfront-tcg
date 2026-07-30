@@ -1,21 +1,26 @@
 {
   "name": "First Blade",
   "typeLabel": "Entity — Human",
-  "summary": "She sleeps until the beast is fulfilled: with the Union on the field she is the deck's hammer.",
+  "summary": "The Heirs' finest weapon: it wakes when the Nexus takes shape.",
   "ui": {
     "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
     "name": "First Blade",
-    "flavor": "The enemy front knows her by name.",
     "effect": {
       "name": "Effect",
-      "text": "For as long as you control the Union, the First Blade gets +2 Power and has Surge."
-    }
+      "text": "As long as you control the Nexus, the First Blade gets +2 Power and has Surge."
+    },
+    "flavor": "The enemy front knows her by name."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicAria": "Dynamic"
   }
 }

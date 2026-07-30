@@ -7,7 +7,7 @@
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -17,7 +17,7 @@
     "entity",
     "human",
     "surge",
-    "requiem"
+    "aggro"
   ],
   "rulesReference": "MANUALE.md §8.1",
   "faces": [
@@ -37,28 +37,7 @@
         }
       ],
       "requirements": {},
-      "triggers": [
-        {
-          "id": "relay",
-          "displayKey": "relay",
-          "event": "on_turn_end",
-          "effect": {
-            "type": "retire",
-            "target": {
-              "scope": "self"
-            },
-            "destination": {
-              "zone": "requiem",
-              "owner": "controller"
-            },
-            "details": {
-              "optional": true,
-              "requiresAttackedThisTurn": true,
-              "overridesEntryTurnBan": true
-            }
-          }
-        }
-      ],
+      "triggers": [],
       "actions": []
     }
   ],

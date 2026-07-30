@@ -1,7 +1,7 @@
 {
   "name": "Banner of the Heirs",
   "typeLabel": "Dynamic Matter I",
-  "summary": "The plan's anthem made cloth and pole: every Human one step stronger, while it flies.",
+  "summary": "The permanent anthem: +1 to every Human, +2 while the beast is on the field.",
   "ui": {
     "face": "Matter"
   },
@@ -18,9 +18,9 @@
     "name": "Banner of the Heirs",
     "effect": {
       "name": "Effect",
-      "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."
+      "text": "Your Human Entities get +1 Power; if your Rubyfront is on the field, they get +2 instead."
     },
-    "flavor": "While it flies, they advance."
+    "flavor": "While it flies, we advance."
   },
   "matters": {
     "dynamicTitle": "Dynamic Matter · 1st grade",

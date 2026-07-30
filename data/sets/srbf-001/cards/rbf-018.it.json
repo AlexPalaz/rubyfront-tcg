@@ -1,21 +1,22 @@
 {
   "name": "Archivista",
   "typeLabel": "Entità — Umano",
-  "summary": "Registra chi è passato oltre: più nomi nella Requiem, più pagine da leggere.",
+  "summary": "Scrive i nomi e li fa valere: un inno su corpo a due Flussi.",
   "ui": {
     "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
     "name": "Archivista",
-    "flavor": "Scrive i nomi di chi è passato oltre.",
-    "chronicle": {
-      "trigger": "Quando entra in campo",
-      "text": "Pesca una carta; se nella tua Zona di Requiem ci sono almeno 2 carte, pescane invece due."
-    }
+    "effect": {
+      "name": "Effetto",
+      "text": "Le tue altre Entità Umane prendono +1 Potenza."
+    },
+    "flavor": "Scrive i nomi di chi è passato oltre."
   }
 }

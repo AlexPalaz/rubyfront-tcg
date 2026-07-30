@@ -7,7 +7,7 @@
   "type": "object",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -16,7 +16,7 @@
   "tags": [
     "object",
     "human",
-    "requiem"
+    "anthem"
   ],
   "rulesReference": "MANUALE.md §3.1",
   "faces": [
@@ -24,7 +24,9 @@
       "id": "object",
       "kind": "object",
       "displayKey": "face",
-      "stats": {},
+      "stats": {
+        "fluxCost": 1
+      },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
@@ -41,21 +43,9 @@
               "scope": "assigned"
             },
             "amount": 1,
-            "duration": "permanent"
-          }
-        },
-        {
-          "id": "bequest-belt",
-          "displayKey": "effect2",
-          "event": "on_retire",
-          "effect": {
-            "type": "draw_card",
-            "target": {
-              "controller": "controller"
-            },
-            "count": 1,
+            "duration": "permanent",
             "details": {
-              "whenWearerRetired": true
+              "amountWithRubyfrontDeployed": 2
             }
           }
         }

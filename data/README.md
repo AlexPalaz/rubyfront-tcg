@@ -84,7 +84,7 @@ valori sono in `zoneOwner`:
 
 Questa distinzione nasce da un'ambiguità reale: prima esisteva un solo token
 `owner_deck` usato in due punti con **due significati diversi** — il mazzo del
-controllore nel requisito Unione, quello dell'avversario in *Divorare*. Un
+controllore nel requisito Nexus, quello dell'avversario in *Divorare*. Un
 engine non avrebbe potuto distinguerli.
 
 ## Combinare condizioni e confrontare valori
@@ -93,7 +93,7 @@ Sono due cose diverse e portano due nomi diversi. `match` dice **come si
 combinano** più condizioni, `operator` dice **come si confronta** un valore:
 
 ```json
-"union": {
+"nexus": {
   "match": "all",
   "conditions": [
     { "type": "hand_size", "equals": 0 },

@@ -245,9 +245,9 @@ function facePanel(card, face, localeId, copy) {
     panel.append(section);
   }
 
-  if (face.requirements.union) {
+  if (face.requirements.nexus) {
     const section = element("div", "rules-section");
-    section.append(element("h3", "", copy.requirement), element("p", "", locale.card.unionRequirement.text));
+    section.append(element("h3", "", copy.requirement), element("p", "", locale.card.nexusRequirement.text));
     panel.append(section);
   }
 

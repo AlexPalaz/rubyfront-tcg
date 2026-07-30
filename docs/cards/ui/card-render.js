@@ -25,7 +25,7 @@ function createFace(card, face, cardCopy, themeId) {
   const faceCopy = cardCopy[face.displayKey] ?? {};
   const wrapper = element("article", "face");
   const label = element("div", "face-label", cardCopy.ui?.[face.displayKey] ?? face.id);
-  const visual = element("div", `card ${face.kind === "union" ? "union " : ""}${themeId}`);
+  const visual = element("div", `card ${face.kind === "nexus" ? "nexus " : ""}${themeId}`);
   if (LIGHT_THEMES.has(themeId)) visual.classList.add("light-theme");
   visual.dataset.faceId = face.id;
 
@@ -42,7 +42,7 @@ function createFace(card, face, cardCopy, themeId) {
     visual.append(createKeyword(face, keyword, faceCopy));
   }
 
-  if (face.kind === "union") {
+  if (face.kind === "nexus") {
     const divider = element("div", "divider");
     divider.setAttribute("aria-hidden", "true");
     divider.append(element("i", "", "◆"));
@@ -92,8 +92,8 @@ function createTitleBar(card, face, faceCopy, cardCopy) {
     const cost = element("div", "cost");
     cost.append(element("i", "", String(face.stats.fluxCost)));
     bar.append(cost);
-  } else if (face.kind === "union") {
-    bar.append(createUnionMark(faceCopy.unionAria ?? "Union"));
+  } else if (face.kind === "nexus") {
+    bar.append(createNexusMark(faceCopy.nexusAria ?? "Nexus"));
   } else {
     bar.append(element("div"));
   }
@@ -182,8 +182,8 @@ function createCounterattackBadge(counterattack, label) {
   return badge;
 }
 
-function createUnionMark(label) {
-  const mark = element("div", "union-mark");
+function createNexusMark(label) {
+  const mark = element("div", "nexus-mark");
   const svg = svgElement("svg", { viewBox: "0 0 40 28", "aria-label": label });
   svg.append(
     svgElement("circle", { cx: "14", cy: "15", r: "8", fill: "none", stroke: "var(--ring, var(--ruby-light))", "stroke-width": "3.2" }),
@@ -245,14 +245,14 @@ function createActionBlock(action, faceCopy, cardCopy) {
 
 function createTextBox(face, faceCopy, cardCopy) {
   const box = element("div", "textbox");
-  // Il requisito Unione non ha etichetta scritta: lo identifica il simbolo
-  // dei due anelli (lo stesso della faccia Unione), in linea col testo.
-  const unionRequirement = face.requirements?.union;
-  if (unionRequirement) {
-    const requirementCopy = cardCopy.card?.unionRequirement ?? {};
+  // Il requisito Nexus non ha etichetta scritta: lo identifica il simbolo
+  // dei due anelli (lo stesso della faccia Nexus), in linea col testo.
+  const nexusRequirement = face.requirements?.nexus;
+  if (nexusRequirement) {
+    const requirementCopy = cardCopy.card?.nexusRequirement ?? {};
     const block = element("p", "requirement");
     block.append(
-      createUnionMark(requirementCopy.label ?? "Union requirement"),
+      createNexusMark(requirementCopy.label ?? "Nexus requirement"),
       requirementCopy.text ?? ""
     );
     box.append(block);
@@ -282,6 +282,17 @@ function createTextBox(face, faceCopy, cardCopy) {
   // semplice in testa alla textbox, senza etichetta d'innesco.
   if (face.kind === "entity" && faceCopy.effect?.text) {
     box.append(element("p", "matter-effect", faceCopy.effect.text));
+  }
+
+  // Gli effetti continui di Rubyfront e Nexus (l'inno) sono regole statiche come
+  // quelle delle Entità: testo semplice, **senza etichetta d'innesco** — non sono
+  // momenti, sono stati. Le Entità sono escluse perché il ramo qui sopra le ha
+  // già stampate: entrarci anche da qui le stamperebbe due volte.
+  if (face.kind !== "entity") {
+    for (const trigger of face.triggers.filter(t => STATIC_EVENTS.has(t.event))) {
+      const staticCopy = faceCopy.triggers?.[trigger.displayKey] ?? faceCopy[trigger.displayKey];
+      if (staticCopy?.text) box.append(element("p", "matter-effect", staticCopy.text));
+    }
   }
 
   // Ordine di lettura: prima gli effetti d'ingresso/ricorrenti, poi le abilità

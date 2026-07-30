@@ -1,25 +1,22 @@
 {
   "name": "Corriere a Vapore",
   "typeLabel": "Entità — Umano",
-  "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, vivo.",
+  "summary": "Arriva prima della notizia: un Flusso, e attacca nel turno in cui entra.",
   "ui": {
     "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
     "name": "Corriere a Vapore",
     "keyword": {
       "name": "Slancio",
-      "rules": "può attaccare già nel turno in cui entra in campo"
+      "rules": "può attaccare nel turno in cui entra in campo"
     },
-    "flavor": "Arriva prima della notizia del suo arrivo.",
-    "relay": {
-      "trigger": "Alla fine del tuo turno",
-      "text": "Se ha attaccato in questo turno, puoi ritirarlo in Zona di Requiem, anche se è entrato in campo in questo turno."
-    }
+    "flavor": "Arriva prima della notizia del suo arrivo."
   }
 }

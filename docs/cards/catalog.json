@@ -46,62 +46,58 @@
             "it": {
               "name": "Rubifronte degli Abissi",
               "typeLabel": "Rubyfront bifronte",
-              "summary": "Controllo per logoramento: filtra il mazzo, indebolisce il Fronte avversario e divora le Entità più deboli.",
+              "summary": "La bestia non combatte: spinge. Ogni volta che emerge, i suoi Umani colpiscono più forte.",
               "ui": {
                 "faceA": "Faccia A — Rubyfront",
-                "faceB": "Faccia B — Unione"
+                "faceB": "Faccia B — Nexus"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
-                "unionRequirement": {
-                  "label": "Requisito Unione",
-                  "text": "Ritira in Requiem un Umano a cui hai attribuito una Materia Zero"
+                "nexusRequirement": {
+                  "label": "Requisito Nexus",
+                  "text": "Il Rubyfront avversario ha perso almeno 6 PV"
                 }
               },
               "matters": {
                 "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
                 "destructiveAria": "Distruttiva",
-                "zeroTitle": "Materia Zero",
-                "zeroAria": "Zero"
+                "dynamicTitle": "Materia Dinamica · fino al 2° grado",
+                "dynamicAria": "Dinamica"
               },
               "faceA": {
                 "name": "Rubifronte degli Abissi",
                 "keyword": {
                   "name": "Furia",
-                  "rules": "d20 ≥ 12 prima di ogni azione · fallimento −3 PV"
+                  "rules": "d20 ≥ 12 prima di ogni azione · fallimento −2 PV"
                 },
                 "trigger": "Allo schieramento",
                 "effect": {
-                  "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo."
+                  "text": "Le tue Entità Umane prendono +1 Potenza fino alla fine del turno."
                 },
                 "abilities": {
-                  "pressure": {
-                    "name": "Pressione Abissale",
-                    "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
+                  "thrust": {
+                    "name": "Spinta Abissale",
+                    "text": "un’Entità Umana prende +2 Potenza fino alla fine del turno."
                   },
-                  "devour": {
-                    "name": "Divorare",
-                    "text": "metti in fondo al suo mazzo un’Entità avversaria con Potenza 3 o meno."
+                  "deepCall": {
+                    "name": "Chiamata dal Fondo",
+                    "text": "un’Entità Umana prende +1 Potenza e può attaccare anche se è entrata in campo in questo turno."
                   }
                 },
                 "flavor": "Non emerse. Gli abissi aprirono gli occhi."
               },
               "faceB": {
                 "name": "Incarnazione dell’Abisso",
-                "unionAria": "Unione",
-                "trigger": "All’Unione",
-                "effect": {
-                  "text": "Tappa un’Entità avversaria a tua scelta."
-                },
+                "nexusAria": "Nexus",
                 "abilities": {
-                  "tide": {
-                    "name": "Marea Crescente",
-                    "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
+                  "swell": {
+                    "name": "Onda Portante",
+                    "text": "un’Entità Umana prende +3 Potenza fino alla fine del turno."
                   },
-                  "abyss": {
+                  "greatTide": {
                     "name": "La Grande Marea",
-                    "text": "tappa tutte le Entità avversarie in campo."
+                    "text": "tutte le tue Entità Umane prendono +2 Potenza e non possono essere bloccate in questo turno."
                   }
                 },
                 "flavor": "L’abisso prese forma. Il mondo arretrò."
@@ -110,74 +106,70 @@
             "en": {
               "name": "Rubyfront of the Abyss",
               "typeLabel": "Double-faced Rubyfront",
-              "summary": "Attrition control: filter the deck, weaken the opposing Front and devour its smaller Entities.",
+              "summary": "The beast does not fight: it pushes. Every time it surfaces, its Humans hit harder.",
               "ui": {
                 "faceA": "Face A — Rubyfront",
-                "faceB": "Face B — Union"
+                "faceB": "Face B — Nexus"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
-                "unionRequirement": {
-                  "label": "Union requirement",
-                  "text": "Retire to Requiem a Human you attributed a Zero Matter to"
+                "nexusRequirement": {
+                  "label": "Nexus requirement",
+                  "text": "The opposing Rubyfront has lost at least 6 HP"
                 }
               },
               "matters": {
                 "destructiveTitle": "Destructive Matter · up to 2nd grade",
                 "destructiveAria": "Destructive",
-                "zeroTitle": "Zero Matter",
-                "zeroAria": "Zero"
+                "dynamicTitle": "Dynamic Matter · up to 2nd grade",
+                "dynamicAria": "Dynamic"
               },
               "faceA": {
                 "name": "Rubyfront of the Abyss",
                 "keyword": {
                   "name": "Fury",
-                  "rules": "d20 ≥ 12 before every action · on failure −3 HP"
+                  "rules": "d20 ≥ 12 before every action · failure −2 HP"
                 },
                 "trigger": "On deployment",
                 "effect": {
-                  "text": "Look at the top card of your deck: you may put it on the bottom."
+                  "text": "Your Human Entities get +1 Power until end of turn."
                 },
                 "abilities": {
-                  "pressure": {
-                    "name": "Abyssal Pressure",
-                    "text": "an opposing Entity gets −2 Power until your next turn."
+                  "thrust": {
+                    "name": "Abyssal Thrust",
+                    "text": "a Human Entity gets +2 Power until end of turn."
                   },
-                  "devour": {
-                    "name": "Devour",
-                    "text": "put an opposing Entity with Power 3 or less on the bottom of its deck."
+                  "deepCall": {
+                    "name": "Call from the Deep",
+                    "text": "a Human Entity gets +1 Power and may attack even if it entered the field this turn."
                   }
                 },
-                "flavor": "It did not rise. The abyss opened its eyes."
+                "flavor": "It did not surface. The deeps opened their eyes."
               },
               "faceB": {
                 "name": "The Abyss Incarnate",
-                "unionAria": "Union",
-                "trigger": "On Union",
-                "effect": {
-                  "text": "Tap an opposing Entity of your choice."
-                },
+                "nexusAria": "Nexus",
                 "abilities": {
-                  "tide": {
-                    "name": "Rising Tide",
-                    "text": "up to two opposing Entities get −2 Power until your next turn."
+                  "swell": {
+                    "name": "Swell",
+                    "text": "a Human Entity gets +3 Power until end of turn."
                   },
-                  "abyss": {
+                  "greatTide": {
                     "name": "The Great Tide",
-                    "text": "tap every opposing Entity on the field."
+                    "text": "all your Human Entities get +2 Power and cannot be blocked this turn."
                   }
                 },
-                "flavor": "The abyss no longer waits below. It walks."
+                "flavor": "The abyss took shape. The world stepped back."
               }
             }
           },
           "tags": [
             "rubyfront",
-            "union",
-            "control",
-            "destructive",
-            "zero"
+            "nexus",
+            "aggro",
+            "anthem",
+            "destructive"
           ],
           "rulesReference": "MANUALE.md §3.1, §7, §8.1",
           "faces": [
@@ -188,7 +180,7 @@
               "stats": {
                 "health": 18,
                 "deploymentCost": {
-                  "base": 3,
+                  "base": 2,
                   "increment": 1,
                   "cap": 20
                 }
@@ -207,37 +199,21 @@
                     "successAtLeast": 12
                   },
                   "failure": {
-                    "loseHealth": 3
+                    "loseHealth": 2
                   }
                 }
               ],
               "requirements": {
-                "union": {
+                "nexus": {
                   "match": "all",
                   "conditions": [
                     {
-                      "type": "controls_card",
-                      "owner": "controller",
-                      "filter": {
-                        "cardType": "entity",
-                        "race": "human",
-                        "enablesMatter": {
-                          "type": "zero"
-                        },
-                        "wasAttributedMatterThisGame": {
-                          "type": "zero"
-                        }
-                      }
-                    }
-                  ],
-                  "flipCost": [
-                    {
-                      "type": "retire",
-                      "target": "condition_card",
-                      "destination": {
-                        "zone": "requiem",
-                        "owner": "controller"
-                      }
+                      "type": "health_lost_at_least",
+                      "target": {
+                        "cardType": "rubyfront",
+                        "controller": "opponent"
+                      },
+                      "value": 6
                     }
                   ]
                 }
@@ -248,26 +224,22 @@
                   "displayKey": "effect",
                   "event": "on_deploy_from_recall",
                   "effect": {
-                    "type": "look_and_optionally_move",
-                    "from": {
-                      "zone": "deck",
-                      "owner": "controller",
-                      "position": "top",
-                      "count": 1
+                    "type": "modify_power",
+                    "target": {
+                      "cardType": "entity",
+                      "race": "human",
+                      "controller": "controller",
+                      "quantity": "all"
                     },
-                    "to": {
-                      "zone": "deck",
-                      "owner": "controller",
-                      "position": "bottom"
-                    },
-                    "optional": true
+                    "amount": 1,
+                    "duration": "until_end_of_turn"
                   }
                 }
               ],
               "actions": [
                 {
-                  "id": "abyssal-pressure",
-                  "displayKey": "pressure",
+                  "id": "abyssal-thrust",
+                  "displayKey": "thrust",
                   "timing": [
                     "own_preparation",
                     "own_front"
@@ -282,18 +254,19 @@
                   "effect": {
                     "type": "modify_power",
                     "target": {
-                      "controller": "opponent",
                       "cardType": "entity",
+                      "race": "human",
+                      "controller": "controller",
                       "min": 1,
                       "max": 1
                     },
-                    "amount": -2,
-                    "duration": "until_controller_next_turn"
+                    "amount": 2,
+                    "duration": "until_end_of_turn"
                   }
                 },
                 {
-                  "id": "devour",
-                  "displayKey": "devour",
+                  "id": "deep-call",
+                  "displayKey": "deepCall",
                   "timing": [
                     "own_preparation",
                     "own_front"
@@ -303,71 +276,50 @@
                     "fury"
                   ],
                   "cost": {
-                    "health": 5
+                    "health": 4
                   },
                   "effect": {
-                    "type": "move_card",
+                    "type": "empower",
                     "target": {
-                      "controller": "opponent",
                       "cardType": "entity",
-                      "conditions": [
-                        {
-                          "stat": "power",
-                          "operator": "lte",
-                          "value": 3
-                        }
-                      ],
+                      "race": "human",
+                      "controller": "controller",
                       "min": 1,
                       "max": 1
                     },
-                    "destination": {
-                      "zone": "deck",
-                      "owner": "card_owner",
-                      "position": "bottom"
-                    }
+                    "powerBonus": 1,
+                    "duration": "until_end_of_turn",
+                    "grants": [
+                      "surge"
+                    ]
                   }
                 }
               ]
             },
             {
-              "id": "union",
-              "kind": "union",
+              "id": "nexus",
+              "kind": "nexus",
               "displayKey": "faceB",
               "stats": {
-                "healthRecovery": 6
+                "healthRecovery": 5
               },
               "enablesMatters": [
                 {
-                  "type": "destructive",
+                  "type": "dynamic",
                   "maxGrade": 2
                 },
                 {
-                  "type": "zero"
+                  "type": "destructive",
+                  "maxGrade": 2
                 }
               ],
               "keywords": [],
               "requirements": {},
-              "triggers": [
-                {
-                  "id": "the-first-wave",
-                  "displayKey": "effect",
-                  "event": "on_flip",
-                  "effect": {
-                    "type": "set_state",
-                    "target": {
-                      "controller": "opponent",
-                      "cardType": "entity",
-                      "min": 1,
-                      "max": 1
-                    },
-                    "state": "tapped"
-                  }
-                }
-              ],
+              "triggers": [],
               "actions": [
                 {
-                  "id": "rising-tide",
-                  "displayKey": "tide",
+                  "id": "swell",
+                  "displayKey": "swell",
                   "timing": [
                     "own_preparation",
                     "own_front"
@@ -375,23 +327,24 @@
                   "repeatable": true,
                   "checks": [],
                   "cost": {
-                    "health": 3
+                    "health": 2
                   },
                   "effect": {
                     "type": "modify_power",
                     "target": {
-                      "controller": "opponent",
                       "cardType": "entity",
-                      "min": 0,
-                      "max": 2
+                      "race": "human",
+                      "controller": "controller",
+                      "min": 1,
+                      "max": 1
                     },
-                    "amount": -2,
-                    "duration": "until_controller_next_turn"
+                    "amount": 3,
+                    "duration": "until_end_of_turn"
                   }
                 },
                 {
-                  "id": "the-great-tide",
-                  "displayKey": "abyss",
+                  "id": "great-tide",
+                  "displayKey": "greatTide",
                   "timing": [
                     "own_preparation",
                     "own_front"
@@ -399,16 +352,21 @@
                   "repeatable": true,
                   "checks": [],
                   "cost": {
-                    "health": 7
+                    "health": 5
                   },
                   "effect": {
-                    "type": "set_state",
+                    "type": "empower",
                     "target": {
-                      "controller": "opponent",
                       "cardType": "entity",
+                      "race": "human",
+                      "controller": "controller",
                       "quantity": "all"
                     },
-                    "state": "tapped"
+                    "powerBonus": 2,
+                    "duration": "until_end_of_turn",
+                    "details": {
+                      "cannotBeBlocked": true
+                    }
                   }
                 }
               ]
@@ -434,7 +392,7 @@
             "it": {
               "name": "Adam, Il Primo",
               "typeLabel": "Entità — Umano",
-              "summary": "Il tramite dello Zero: incanala la Materia Zero e apre la via all'Unione del Rubifronte degli Abissi.",
+              "summary": "Il tramite dello Zero: incanala la Materia più rara e, quando lascia il campo, lascia qualcosa a chi resta.",
               "ui": {
                 "face": "Entità"
               },
@@ -442,8 +400,8 @@
                 "illustration": "Illustrazione",
                 "hp": "PV",
                 "power": "Potenza",
-                "counterattack": "Contrattacco",
                 "flux": "Flussi",
+                "counterattack": "Contrattacco",
                 "unique": "Unica"
               },
               "face": {
@@ -456,15 +414,19 @@
                 },
                 "bequest": {
                   "trigger": "Quando lascia il campo",
-                  "text": "Pesca una carta. (Anche il Ritiro in Requiem lo innesca.)"
+                  "text": "Pesca una carta."
                 },
                 "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
+              },
+              "matters": {
+                "zeroTitle": "Materia Zero",
+                "zeroAria": "Zero"
               }
             },
             "en": {
               "name": "Adam, The First",
               "typeLabel": "Entity — Human",
-              "summary": "The Zero's vessel: he channels Zero Matter and opens the way to the Union of the Rubyfront of the Abyss.",
+              "summary": "The conduit of Zero: it channels the rarest Matter and, on leaving the field, leaves something behind.",
               "ui": {
                 "face": "Entity"
               },
@@ -472,8 +434,8 @@
                 "illustration": "Illustration",
                 "hp": "HP",
                 "power": "Power",
-                "counterattack": "Counterattack",
                 "flux": "Flux",
+                "counterattack": "Counterattack",
                 "unique": "Unique"
               },
               "face": {
@@ -481,14 +443,18 @@
                 "abilities": {
                   "genesis": {
                     "name": "Genesis",
-                    "text": "search your deck for a Zero Matter, reveal it and add it to your hand, then shuffle. You can’t play it this turn."
+                    "text": "search your deck for a Zero Matter, reveal it and add it to your hand, then shuffle. You cannot play it this turn."
                   }
                 },
                 "bequest": {
-                  "trigger": "When he leaves the field",
-                  "text": "Draw a card. (Retiring to Requiem triggers this too.)"
+                  "trigger": "When it leaves the field",
+                  "text": "Draw a card."
                 },
-                "flavor": "He was the first to touch the Zero. Ever since, humanity was changed forever."
+                "flavor": "He was the first to touch Zero. Humankind was never the same."
+              },
+              "matters": {
+                "zeroTitle": "Zero Matter",
+                "zeroAria": "Zero"
               }
             }
           },
@@ -496,7 +462,7 @@
             "entity",
             "human",
             "zero",
-            "viatico"
+            "unique"
           ],
           "rulesReference": "MANUALE.md §6.2, §7, §8.1",
           "faces": [
@@ -508,7 +474,7 @@
               "stats": {
                 "power": 3,
                 "counterattack": 2,
-                "fluxCost": 4
+                "fluxCost": 3
               },
               "enablesMatters": [
                 {
@@ -541,7 +507,7 @@
                   "repeatable": true,
                   "checks": [],
                   "cost": {
-                    "flux": 3
+                    "flux": 2
                   },
                   "effect": {
                     "type": "search_card",
@@ -589,7 +555,7 @@
             "it": {
               "name": "Assenza",
               "typeLabel": "Materia Zero",
-              "summary": "Il vuoto reso carta: fa sparire un'Entità dal campo, viva, dritta in Zona di Requiem.",
+              "summary": "Lo Zero non distrugge: toglie. L’Entità semplicemente non è più lì.",
               "ui": {
                 "face": "Materia"
               },
@@ -597,11 +563,11 @@
                 "illustration": "Illustrazione",
                 "hp": "PV",
                 "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "permanent": "Permanente"
+                },
                 "unique": "Unica"
-              },
-              "matters": {
-                "zeroTitle": "Materia Zero",
-                "zeroAria": "Zero"
               },
               "face": {
                 "name": "Assenza",
@@ -610,12 +576,16 @@
                   "text": "Scegli un’Entità: sparisce dal campo e va nella Zona di Requiem del suo proprietario. Puoi scegliere anche Entità coperte."
                 },
                 "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
+              },
+              "matters": {
+                "zeroTitle": "Materia Zero",
+                "zeroAria": "Zero"
               }
             },
             "en": {
               "name": "Absence",
               "typeLabel": "Zero Matter",
-              "summary": "The void made card: it makes an Entity vanish from the field, alive, straight to the Requiem Zone.",
+              "summary": "Zero does not destroy: it removes. The Entity is simply no longer there.",
               "ui": {
                 "face": "Matter"
               },
@@ -623,26 +593,31 @@
                 "illustration": "Illustration",
                 "hp": "HP",
                 "flux": "Flux",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "permanent": "Permanent"
+                },
                 "unique": "Unique"
-              },
-              "matters": {
-                "zeroTitle": "Zero Matter",
-                "zeroAria": "Zero"
               },
               "face": {
                 "name": "Absence",
                 "effect": {
                   "name": "Effect",
-                  "text": "Choose an Entity: it vanishes from the field and goes to its owner’s Requiem Zone. You may choose covered Entities as well."
+                  "text": "Choose an Entity: it vanishes from the field and goes to its owner's Requiem Zone. You may choose covered Entities too."
                 },
                 "flavor": "A cold silence, where something used to be."
+              },
+              "matters": {
+                "zeroTitle": "Zero Matter",
+                "zeroAria": "Zero"
               }
             }
           },
           "tags": [
             "matter",
             "zero",
-            "viatico"
+            "removal",
+            "unique"
           ],
           "rulesReference": "MANUALE.md §7, §8.2",
           "faces": [
@@ -655,7 +630,7 @@
               },
               "behavior": "normal",
               "stats": {
-                "fluxCost": 4
+                "fluxCost": 3
               },
               "enablesMatters": [],
               "keywords": [],
@@ -704,64 +679,73 @@
           "type": "matter",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Scatto",
               "typeLabel": "Materia Dinamica I",
-              "summary": "L'aggressività degli Umani: più Potenza e nessuna attesa. La velocità è un'arma.",
+              "summary": "Il colpo che arriva un turno prima del previsto — e con il Nexus arriva il doppio.",
               "ui": {
                 "face": "Materia"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
-                "flux": "Flussi"
-              },
-              "matters": {
-                "dynamicTitle": "Materia Dinamica · 1° grado",
-                "dynamicAria": "Dinamica"
+                "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "permanent": "Permanente"
+                }
               },
               "face": {
                 "name": "Scatto",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno. Se controlli l’Unione, prende invece +4 Potenza."
+                  "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno. Se controlli il Nexus, prende invece +4 Potenza."
                 },
                 "flavor": "Prima che l’occhio capisca, è già finita."
+              },
+              "matters": {
+                "dynamicTitle": "Materia Dinamica · 1° grado",
+                "dynamicAria": "Dinamica"
               }
             },
             "en": {
               "name": "Dash",
               "typeLabel": "Dynamic Matter I",
-              "summary": "Human aggression: more Power and no waiting. Speed is a weapon.",
+              "summary": "The blow that lands a turn early — and twice as hard once the Nexus is out.",
               "ui": {
                 "face": "Matter"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
-                "flux": "Flux"
-              },
-              "matters": {
-                "dynamicTitle": "Dynamic Matter · 1st grade",
-                "dynamicAria": "Dynamic"
+                "flux": "Flux",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "permanent": "Permanent"
+                }
               },
               "face": {
                 "name": "Dash",
                 "effect": {
                   "name": "Effect",
-                  "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn. If you control the Union, it gets +4 Power instead."
+                  "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn. If you control the Nexus, it gets +4 Power instead."
                 },
-                "flavor": "By the time the eye understands, it is already over."
+                "flavor": "Before the eye understands, it is over."
+              },
+              "matters": {
+                "dynamicTitle": "Dynamic Matter · 1st grade",
+                "dynamicAria": "Dynamic"
               }
             }
           },
           "tags": [
             "matter",
             "dynamic",
-            "grade-1"
+            "grade-1",
+            "aggro"
           ],
           "rulesReference": "MANUALE.md §7, §8.1",
           "faces": [
@@ -775,7 +759,7 @@
               },
               "behavior": "normal",
               "stats": {
-                "fluxCost": 3
+                "fluxCost": 2
               },
               "enablesMatters": [],
               "keywords": [],
@@ -798,7 +782,7 @@
                       "surge"
                     ],
                     "details": {
-                      "powerBonusWithUnion": 4
+                      "powerBonusWithNexus": 4
                     }
                   }
                 }
@@ -820,7 +804,7 @@
           "type": "matter",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
@@ -937,13 +921,13 @@
           "type": "matter",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Collera",
               "typeLabel": "Materia Distruttiva I",
-              "summary": "La prima Reattiva del gioco: la collera della bestia scatta quando l'avversario meno se lo aspetta.",
+              "summary": "Due punti dalla finestra di risposta, e la bestia avversaria torna indietro a spegnersi.",
               "ui": {
                 "face": "Materia"
               },
@@ -956,10 +940,6 @@
                   "permanent": "Permanente"
                 }
               },
-              "matters": {
-                "destructiveTitle": "Materia Distruttiva · 1° grado",
-                "destructiveAria": "Distruttiva"
-              },
               "face": {
                 "name": "Collera",
                 "effect": {
@@ -967,12 +947,16 @@
                   "text": "Il Rubyfront avversario perde 2 PV. (Se è in campo, la perdita lo fa tornare immediatamente in Zona di Richiamo.)"
                 },
                 "flavor": "La bestia non conosce misura."
+              },
+              "matters": {
+                "destructiveTitle": "Materia Distruttiva · 1° grado",
+                "destructiveAria": "Distruttiva"
               }
             },
             "en": {
               "name": "Wrath",
               "typeLabel": "Destructive Matter I",
-              "summary": "The game's first Reactive: the beast's wrath strikes when the opponent least expects it.",
+              "summary": "Two points from the response window, and the enemy beast is sent back to cool off.",
               "ui": {
                 "face": "Matter"
               },
@@ -985,17 +969,17 @@
                   "permanent": "Permanent"
                 }
               },
-              "matters": {
-                "destructiveTitle": "Destructive Matter · 1st grade",
-                "destructiveAria": "Destructive"
-              },
               "face": {
                 "name": "Wrath",
                 "effect": {
                   "name": "Effect",
-                  "text": "The opposing Rubyfront loses 2 HP. (If deployed, the loss makes it immediately return to the Recall Zone.)"
+                  "text": "The opposing Rubyfront loses 2 HP. (If it is on the field, the loss sends it back to the Recall Zone immediately.)"
                 },
                 "flavor": "The beast knows no measure."
+              },
+              "matters": {
+                "destructiveTitle": "Destructive Matter · 1st grade",
+                "destructiveAria": "Destructive"
               }
             }
           },
@@ -1003,7 +987,8 @@
             "matter",
             "destructive",
             "grade-1",
-            "reactive"
+            "reactive",
+            "burn"
           ],
           "rulesReference": "MANUALE.md §3.1, §7, §8.2",
           "faces": [
@@ -1017,7 +1002,7 @@
               },
               "behavior": "reactive",
               "stats": {
-                "fluxCost": 3
+                "fluxCost": 2
               },
               "enablesMatters": [],
               "keywords": [],
@@ -1054,13 +1039,13 @@
           "type": "object",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Vigorcintura",
               "typeLabel": "Oggetto",
-              "summary": "Il primo Oggetto del set: una cintura per soli Umani, e chi la porta colpisce più forte.",
+              "summary": "Un Flusso, e con la bestia in campo vale il doppio.",
               "ui": {
                 "face": "Oggetto"
               },
@@ -1073,7 +1058,7 @@
                 "name": "Vigorcintura",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza. Quando l’Umano che la indossa viene ritirato, pesca una carta: la Vigorcintura lo segue in Requiem e lascia qualcosa a chi resta."
+                  "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza. Se il tuo Rubyfront è in campo, prende invece +2."
                 },
                 "flavor": "Stringila forte. Il vigore fa il resto."
               }
@@ -1081,7 +1066,7 @@
             "en": {
               "name": "Vigorbelt",
               "typeLabel": "Object",
-              "summary": "The set's first Object: a belt for Humans only, and its bearer hits harder.",
+              "summary": "One Flux, and worth double while the beast is on the field.",
               "ui": {
                 "face": "Object"
               },
@@ -1094,7 +1079,7 @@
                 "name": "Vigorbelt",
                 "effect": {
                   "name": "Effect",
-                  "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power. When the Human wearing it is retired, draw a card: the Vigorbelt follows them to Requiem and leaves something to those who remain."
+                  "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power. If your Rubyfront is on the field, they get +2 instead."
                 },
                 "flavor": "Buckle it tight. Vigor does the rest."
               }
@@ -1103,7 +1088,7 @@
           "tags": [
             "object",
             "human",
-            "requiem"
+            "anthem"
           ],
           "rulesReference": "MANUALE.md §3.1",
           "faces": [
@@ -1111,7 +1096,9 @@
               "id": "object",
               "kind": "object",
               "displayKey": "face",
-              "stats": {},
+              "stats": {
+                "fluxCost": 1
+              },
               "enablesMatters": [],
               "keywords": [],
               "requirements": {},
@@ -1128,21 +1115,9 @@
                       "scope": "assigned"
                     },
                     "amount": 1,
-                    "duration": "permanent"
-                  }
-                },
-                {
-                  "id": "bequest-belt",
-                  "displayKey": "effect2",
-                  "event": "on_retire",
-                  "effect": {
-                    "type": "draw_card",
-                    "target": {
-                      "controller": "controller"
-                    },
-                    "count": 1,
+                    "duration": "permanent",
                     "details": {
-                      "whenWearerRetired": true
+                      "amountWithRubyfrontDeployed": 2
                     }
                   }
                 }
@@ -1169,49 +1144,59 @@
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Vedetta del Perimetro",
               "typeLabel": "Entità — Umano",
-              "summary": "L'occhio del piano: filtra la pescata come la Risacca della bestia.",
+              "summary": "Non colpisce forte: segnala il bersaglio, e chi le sta accanto colpisce meglio.",
               "ui": {
                 "face": "Entità"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
+                "power": "Potenza",
                 "flux": "Flussi"
               },
               "face": {
                 "name": "Vedetta del Perimetro",
-                "flavor": "Vide arrivare la fine. Fischiò due volte.",
-                "watch": {
+                "spark": {
                   "trigger": "Quando entra in campo",
-                  "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
-                }
+                  "text": "Un’altra tua Entità Umana prende +1 Potenza fino alla fine del turno."
+                },
+                "flavor": "Vide arrivare la fine. Fischiò due volte."
+              },
+              "matters": {
+                "dynamicTitle": "Materia Dinamica · 1° grado",
+                "dynamicAria": "Dinamica"
               }
             },
             "en": {
               "name": "Perimeter Lookout",
               "typeLabel": "Entity — Human",
-              "summary": "The plan's eye: she filters the draw like the beast's Undertow.",
+              "summary": "She does not hit hard: she marks the target, and whoever stands beside her hits better.",
               "ui": {
                 "face": "Entity"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
+                "power": "Power",
                 "flux": "Flux"
               },
               "face": {
                 "name": "Perimeter Lookout",
-                "flavor": "She saw the end coming. She whistled twice.",
-                "watch": {
-                  "trigger": "When she enters the field",
-                  "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
-                }
+                "spark": {
+                  "trigger": "When it enters the field",
+                  "text": "Another Human Entity of yours gets +1 Power until end of turn."
+                },
+                "flavor": "She saw the end coming. She whistled twice."
+              },
+              "matters": {
+                "dynamicTitle": "Dynamic Matter · 1st grade",
+                "dynamicAria": "Dynamic"
               }
             }
           },
@@ -1219,7 +1204,7 @@
             "entity",
             "human",
             "dynamic",
-            "scry"
+            "anthem"
           ],
           "rulesReference": "MANUALE.md §6.2, §7",
           "faces": [
@@ -1242,23 +1227,23 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "watch",
-                  "displayKey": "watch",
+                  "id": "spark",
+                  "displayKey": "spark",
                   "event": "on_enter_field",
                   "effect": {
-                    "type": "look_and_optionally_move",
-                    "from": {
-                      "zone": "deck",
-                      "owner": "controller",
-                      "position": "top",
-                      "count": 1
+                    "type": "modify_power",
+                    "target": {
+                      "cardType": "entity",
+                      "race": "human",
+                      "controller": "controller",
+                      "min": 1,
+                      "max": 1,
+                      "details": {
+                        "excludeSelf": true
+                      }
                     },
-                    "to": {
-                      "zone": "deck",
-                      "owner": "controller",
-                      "position": "bottom"
-                    },
-                    "optional": true
+                    "amount": 1,
+                    "duration": "until_end_of_turn"
                   }
                 }
               ],
@@ -1279,49 +1264,59 @@
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Guardiano della Paratia",
               "typeLabel": "Entità — Umano",
-              "summary": "Il difensore degli Eredi: più i suoi sono passati oltre, più la soglia è invalicabile.",
+              "summary": "Un Flusso per un corpo che, quando muove per primo, colpisce come un 3.",
               "ui": {
                 "face": "Entità"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
+                "power": "Potenza",
                 "flux": "Flussi"
               },
               "face": {
                 "name": "Guardiano della Paratia",
-                "flavor": "Nessuno passa. Non oggi.",
-                "warden": {
-                  "trigger": "Quando blocca",
-                  "text": "Prende +2 Potenza fino alla fine della battaglia; se nella tua Zona di Requiem ci sono almeno 3 carte, prende invece +4."
-                }
+                "hammer": {
+                  "trigger": "Quando attacca",
+                  "text": "Prende +2 Potenza fino alla fine della battaglia."
+                },
+                "flavor": "Nessuno passa. Non oggi."
+              },
+              "matters": {
+                "dynamicTitle": "Materia Dinamica · 1° grado",
+                "dynamicAria": "Dinamica"
               }
             },
             "en": {
               "name": "Bulkhead Warden",
               "typeLabel": "Entity — Human",
-              "summary": "The Heirs' defender: the more of his own have passed beyond, the firmer the threshold.",
+              "summary": "One Flux for a body that strikes like a 3 whenever it moves first.",
               "ui": {
                 "face": "Entity"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
+                "power": "Power",
                 "flux": "Flux"
               },
               "face": {
                 "name": "Bulkhead Warden",
-                "flavor": "No one passes. Not today.",
-                "warden": {
-                  "trigger": "When he blocks",
-                  "text": "He gets +2 Power until the end of the battle; if there are at least 3 cards in your Requiem Zone, he gets +4 instead."
-                }
+                "hammer": {
+                  "trigger": "When it attacks",
+                  "text": "It gets +2 Power until end of battle."
+                },
+                "flavor": "No one gets through. Not today."
+              },
+              "matters": {
+                "dynamicTitle": "Dynamic Matter · 1st grade",
+                "dynamicAria": "Dynamic"
               }
             }
           },
@@ -1329,8 +1324,7 @@
             "entity",
             "human",
             "dynamic",
-            "defender",
-            "requiem"
+            "aggro"
           ],
           "rulesReference": "MANUALE.md §6.3, §7",
           "faces": [
@@ -1341,7 +1335,7 @@
               "race": "human",
               "stats": {
                 "power": 1,
-                "fluxCost": 2
+                "fluxCost": 1
               },
               "enablesMatters": [
                 {
@@ -1353,20 +1347,16 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "warden",
-                  "displayKey": "warden",
-                  "event": "on_block",
+                  "id": "hammer",
+                  "displayKey": "hammer",
+                  "event": "on_attack",
                   "effect": {
                     "type": "modify_power",
                     "target": {
                       "scope": "self"
                     },
                     "amount": 2,
-                    "duration": "until_end_of_battle",
-                    "details": {
-                      "requiemThreshold": 3,
-                      "amountAtThreshold": 4
-                    }
+                    "duration": "until_end_of_battle"
                   }
                 }
               ],
@@ -1387,65 +1377,59 @@
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Chirurgo da Campo",
               "typeLabel": "Entità — Umano",
-              "summary": "Cura due volte: all'arrivo e al congedo — il Ritiro come seconda medicina.",
+              "summary": "Anche le bestie sanguinano: ogni corpo che scende porta un punto in meno all’avversario.",
               "ui": {
                 "face": "Entità"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
+                "power": "Potenza",
                 "flux": "Flussi"
               },
               "face": {
                 "name": "Chirurgo da Campo",
-                "flavor": "Anche le bestie sanguinano.",
-                "medic": {
+                "ember": {
                   "trigger": "Quando entra in campo",
-                  "text": "Il tuo Rubyfront recupera 2 PV."
+                  "text": "Il Rubyfront avversario perde 1 PV."
                 },
-                "lastCare": {
-                  "trigger": "Quando lo ritiri",
-                  "text": "Il tuo Rubyfront recupera altri 2 PV. (Vale solo per il Ritiro volontario in Zona di Requiem, non per altre uscite dal campo.)"
-                }
+                "flavor": "Anche le bestie sanguinano."
               }
             },
             "en": {
               "name": "Field Surgeon",
               "typeLabel": "Entity — Human",
-              "summary": "He heals twice: on arrival and on farewell — Retirement as a second medicine.",
+              "summary": "Beasts bleed too: every body that lands takes one more point off the opponent.",
               "ui": {
                 "face": "Entity"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
+                "power": "Power",
                 "flux": "Flux"
               },
               "face": {
                 "name": "Field Surgeon",
-                "flavor": "Even beasts bleed.",
-                "medic": {
-                  "trigger": "When he enters the field",
-                  "text": "Your Rubyfront recovers 2 HP."
+                "ember": {
+                  "trigger": "When it enters the field",
+                  "text": "The opposing Rubyfront loses 1 HP."
                 },
-                "lastCare": {
-                  "trigger": "When you retire him",
-                  "text": "Your Rubyfront recovers another 2 HP. (Voluntary Retirement to the Requiem Zone only, not other ways of leaving the field.)"
-                }
+                "flavor": "Beasts bleed too."
               }
             }
           },
           "tags": [
             "entity",
             "human",
-            "heal",
-            "requiem"
+            "burn",
+            "aggro"
           ],
           "rulesReference": "MANUALE.md §6.2, §8.2",
           "faces": [
@@ -1456,36 +1440,23 @@
               "race": "human",
               "stats": {
                 "power": 1,
-                "fluxCost": 2
+                "fluxCost": 1
               },
               "enablesMatters": [],
               "keywords": [],
               "requirements": {},
               "triggers": [
                 {
-                  "id": "medic",
-                  "displayKey": "medic",
+                  "id": "ember",
+                  "displayKey": "ember",
                   "event": "on_enter_field",
                   "effect": {
-                    "type": "gain_health",
+                    "type": "lose_health",
                     "target": {
                       "cardType": "rubyfront",
-                      "controller": "controller"
+                      "controller": "opponent"
                     },
-                    "amount": 2
-                  }
-                },
-                {
-                  "id": "last-care",
-                  "displayKey": "lastCare",
-                  "event": "on_retire",
-                  "effect": {
-                    "type": "gain_health",
-                    "target": {
-                      "cardType": "rubyfront",
-                      "controller": "controller"
-                    },
-                    "amount": 2
+                    "amount": 1
                   }
                 }
               ],
@@ -1506,57 +1477,58 @@
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Emissario degli Eredi",
               "typeLabel": "Entità — Umano",
-              "summary": "Il cercatore del piano: trova Adam, o chiunque serva alla causa.",
+              "summary": "Due braccia in campo e un terzo in arrivo: gli Eredi non lasciano mai un posto vuoto.",
               "ui": {
                 "face": "Entità"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
+                "power": "Potenza",
                 "flux": "Flussi"
               },
               "face": {
                 "name": "Emissario degli Eredi",
-                "flavor": "Il Primo cammina fra noi. Io l'ho visto.",
                 "herald": {
                   "trigger": "Quando entra in campo",
                   "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
-                }
+                },
+                "flavor": "Il Primo cammina fra noi. Io l'ho visto."
               }
             },
             "en": {
               "name": "Emissary of the Heirs",
               "typeLabel": "Entity — Human",
-              "summary": "The plan's seeker: finds Adam, or whoever the cause requires.",
+              "summary": "Two arms on the field and a third on the way: the Heirs never leave a place empty.",
               "ui": {
                 "face": "Entity"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
+                "power": "Power",
                 "flux": "Flux"
               },
               "face": {
                 "name": "Emissary of the Heirs",
-                "flavor": "The First walks among us. I have seen him.",
                 "herald": {
-                  "trigger": "When he enters the field",
+                  "trigger": "When it enters the field",
                   "text": "Search your deck for a Human, reveal it to your opponent and add it to your hand, then shuffle your deck."
-                }
+                },
+                "flavor": "The First walks among us. I have seen him."
               }
             }
           },
           "tags": [
             "entity",
             "human",
-            "tutor",
-            "viatico"
+            "tutor"
           ],
           "rulesReference": "MANUALE.md §6.2, §8.2",
           "faces": [
@@ -1566,8 +1538,8 @@
               "displayKey": "face",
               "race": "human",
               "stats": {
-                "power": 1,
-                "fluxCost": 3
+                "power": 2,
+                "fluxCost": 2
               },
               "enablesMatters": [],
               "keywords": [],
@@ -1613,57 +1585,59 @@
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Baluardo Corazzato",
               "typeLabel": "Entità — Umano",
-              "summary": "Il muro che respira: Potenza da costo alto, in cambio non lascia mai la linea.",
+              "summary": "Tre di Potenza a due Flussi: tutto in avanti, niente all’indietro.",
               "ui": {
                 "face": "Entità"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
+                "power": "Potenza",
                 "flux": "Flussi"
               },
               "face": {
                 "name": "Baluardo Corazzato",
-                "flavor": "Cade il mondo, non lui.",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Non può attaccare."
+                  "text": "Non può bloccare."
                 },
-                "shelter": {
-                  "trigger": "Quando blocca",
-                  "text": "Il tuo Rubyfront recupera 1 PV: dietro il suo scudo, la bestia riprende fiato."
-                }
+                "flavor": "Cade il mondo, non lui."
+              },
+              "matters": {
+                "dynamicTitle": "Materia Dinamica · 1° grado",
+                "dynamicAria": "Dinamica"
               }
             },
             "en": {
               "name": "Armored Bulwark",
               "typeLabel": "Entity — Human",
-              "summary": "The wall that breathes: high-cost Power, in exchange he never leaves the line.",
+              "summary": "Three Power for two Flux: all forward, nothing back.",
               "ui": {
                 "face": "Entity"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
+                "power": "Power",
                 "flux": "Flux"
               },
               "face": {
                 "name": "Armored Bulwark",
-                "flavor": "The world may fall. He will not.",
                 "effect": {
                   "name": "Effect",
-                  "text": "He cannot attack."
+                  "text": "It cannot block."
                 },
-                "shelter": {
-                  "trigger": "When he blocks",
-                  "text": "Your Rubyfront recovers 1 HP: behind his shield, the beast catches its breath."
-                }
+                "flavor": "The world falls. He does not."
+              },
+              "matters": {
+                "dynamicTitle": "Dynamic Matter · 1st grade",
+                "dynamicAria": "Dynamic"
               }
             }
           },
@@ -1671,7 +1645,7 @@
             "entity",
             "human",
             "dynamic",
-            "defender"
+            "aggro"
           ],
           "rulesReference": "MANUALE.md §7, §8.1",
           "faces": [
@@ -1682,7 +1656,7 @@
               "race": "human",
               "stats": {
                 "power": 3,
-                "fluxCost": 3
+                "fluxCost": 2
               },
               "enablesMatters": [
                 {
@@ -1692,24 +1666,10 @@
               ],
               "keywords": [],
               "requirements": {},
-              "triggers": [
-                {
-                  "id": "shelter",
-                  "displayKey": "shelter",
-                  "event": "on_block",
-                  "effect": {
-                    "type": "gain_health",
-                    "target": {
-                      "cardType": "rubyfront",
-                      "controller": "controller"
-                    },
-                    "amount": 1
-                  }
-                }
-              ],
+              "triggers": [],
               "actions": [],
               "restrictions": {
-                "cannotAttack": true
+                "cannotBlock": true
               }
             }
           ],
@@ -1727,13 +1687,13 @@
           "type": "matter",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Riflesso",
               "typeLabel": "Materia Dinamica I",
-              "summary": "La velocità come scudo: un blocco dal nulla, letale sui piccoli.",
+              "summary": "Un blocco che costa un Flusso e si porta via gli attaccanti piccoli.",
               "ui": {
                 "face": "Materia"
               },
@@ -1762,7 +1722,7 @@
             "en": {
               "name": "Reflex",
               "typeLabel": "Dynamic Matter I",
-              "summary": "Speed as a shield: a block out of nowhere, lethal to the small.",
+              "summary": "A block for one Flux that takes small attackers with it.",
               "ui": {
                 "face": "Matter"
               },
@@ -1779,7 +1739,7 @@
                 "name": "Reflex",
                 "effect": {
                   "name": "Effect",
-                  "text": "Assign it as a block to an attacker: that attack is blocked. If the attacker has Power 3 or less, it dies."
+                  "text": "Assign it as a block against an attacker: that attack is blocked. If the attacker has Power 3 or less, it dies."
                 },
                 "flavor": "A flash, and steel finds steel."
               },
@@ -1793,8 +1753,7 @@
             "matter",
             "dynamic",
             "grade-1",
-            "reactive",
-            "block"
+            "reactive"
           ],
           "rulesReference": "MANUALE.md §6.3, §7.2",
           "faces": [
@@ -1808,7 +1767,7 @@
               },
               "behavior": "reactive",
               "stats": {
-                "fluxCost": 2
+                "fluxCost": 1
               },
               "enablesMatters": [],
               "keywords": [],
@@ -1849,49 +1808,59 @@
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Prima Lama",
               "typeLabel": "Entità — Umano",
-              "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
+              "summary": "L’arma migliore degli Eredi: si sveglia quando il Nexus prende forma.",
               "ui": {
                 "face": "Entità"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
+                "power": "Potenza",
                 "flux": "Flussi"
               },
               "face": {
                 "name": "Prima Lama",
-                "flavor": "Il fronte nemico la conosce per nome.",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Finché controlli l’Unione, la Prima Lama prende +2 Potenza e ha Slancio."
-                }
+                  "text": "Finché controlli il Nexus, la Prima Lama prende +2 Potenza e ha Slancio."
+                },
+                "flavor": "Il fronte nemico la conosce per nome."
+              },
+              "matters": {
+                "dynamicTitle": "Materia Dinamica · 2° grado",
+                "dynamicAria": "Dinamica"
               }
             },
             "en": {
               "name": "First Blade",
               "typeLabel": "Entity — Human",
-              "summary": "She sleeps until the beast is fulfilled: with the Union on the field she is the deck's hammer.",
+              "summary": "The Heirs' finest weapon: it wakes when the Nexus takes shape.",
               "ui": {
                 "face": "Entity"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
+                "power": "Power",
                 "flux": "Flux"
               },
               "face": {
                 "name": "First Blade",
-                "flavor": "The enemy front knows her by name.",
                 "effect": {
                   "name": "Effect",
-                  "text": "For as long as you control the Union, the First Blade gets +2 Power and has Surge."
-                }
+                  "text": "As long as you control the Nexus, the First Blade gets +2 Power and has Surge."
+                },
+                "flavor": "The enemy front knows her by name."
+              },
+              "matters": {
+                "dynamicTitle": "Dynamic Matter · 2nd grade",
+                "dynamicAria": "Dynamic"
               }
             }
           },
@@ -1899,7 +1868,8 @@
             "entity",
             "human",
             "dynamic",
-            "union"
+            "grade-2",
+            "nexus"
           ],
           "rulesReference": "MANUALE.md §7",
           "faces": [
@@ -1910,7 +1880,7 @@
               "race": "human",
               "stats": {
                 "power": 3,
-                "fluxCost": 5
+                "fluxCost": 4
               },
               "enablesMatters": [
                 {
@@ -1936,7 +1906,7 @@
                       "surge"
                     ],
                     "details": {
-                      "requiresUnion": true
+                      "requiresNexus": true
                     }
                   }
                 }
@@ -1958,20 +1928,24 @@
           "type": "matter",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Secondo Impeto",
               "typeLabel": "Materia Dinamica II",
-              "summary": "Il finisher del mazzo: un attacco in più quando il Fronte avversario è tappato.",
+              "summary": "Il turno in cui un solo corpo attacca due volte.",
               "ui": {
                 "face": "Materia"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
-                "flux": "Flussi"
+                "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "permanent": "Permanente"
+                }
               },
               "face": {
                 "name": "Secondo Impeto",
@@ -1989,14 +1963,18 @@
             "en": {
               "name": "Second Surge",
               "typeLabel": "Dynamic Matter II",
-              "summary": "The deck's finisher: one more attack while the opposing Front is tapped.",
+              "summary": "The turn where a single body attacks twice.",
               "ui": {
                 "face": "Matter"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
-                "flux": "Flux"
+                "flux": "Flux",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "permanent": "Permanent"
+                }
               },
               "face": {
                 "name": "Second Surge",
@@ -2015,7 +1993,8 @@
           "tags": [
             "matter",
             "dynamic",
-            "grade-2"
+            "grade-2",
+            "aggro"
           ],
           "rulesReference": "MANUALE.md §6.3, §7.1",
           "faces": [
@@ -2029,7 +2008,7 @@
               },
               "behavior": "normal",
               "stats": {
-                "fluxCost": 5
+                "fluxCost": 4
               },
               "enablesMatters": [],
               "keywords": [],
@@ -2067,13 +2046,13 @@
           "type": "matter",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Lacerazione",
               "typeLabel": "Materia Distruttiva II",
-              "summary": "La ferita che non si chiude: fragile con la bestia, eterna con l'Unione.",
+              "summary": "Alcune ferite non si chiudono: due punti a ogni tuo turno, finché la bestia resta in campo.",
               "ui": {
                 "face": "Materia"
               },
@@ -2102,14 +2081,14 @@
             "en": {
               "name": "Laceration",
               "typeLabel": "Destructive Matter II",
-              "summary": "The wound that never closes: fragile with the beast, eternal with the Union.",
+              "summary": "Some wounds do not close: two points every turn of yours, as long as the beast stays out.",
               "ui": {
                 "face": "Matter"
               },
               "card": {
-                "illustration": "Illustrazione",
-                "hp": "PV",
-                "flux": "Flussi",
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
                   "permanent": "Permanent"
@@ -2118,13 +2097,13 @@
               "face": {
                 "name": "Laceration",
                 "effect": {
-                  "name": "Effetto",
+                  "name": "Effect",
                   "text": "At the start of your turn, the opposing Rubyfront loses 2 HP."
                 },
-                "flavor": "Some wounds never close."
+                "flavor": "Some wounds do not close."
               },
               "matters": {
-                "destructiveTitle": "Materia Distruttiva · 2nd grade",
+                "destructiveTitle": "Destructive Matter · 2nd grade",
                 "destructiveAria": "Destructive"
               }
             }
@@ -2133,7 +2112,8 @@
             "matter",
             "destructive",
             "grade-2",
-            "permanent"
+            "permanent",
+            "burn"
           ],
           "rulesReference": "MANUALE.md §7.2, §8.2",
           "faces": [
@@ -2147,7 +2127,7 @@
               },
               "behavior": "permanent",
               "stats": {
-                "fluxCost": 4
+                "fluxCost": 3
               },
               "enablesMatters": [],
               "keywords": [],
@@ -2190,7 +2170,7 @@
             "it": {
               "name": "Quiete",
               "typeLabel": "Materia Zero",
-              "summary": "Il primo annullamento del gioco: la risposta che spegne la risposta.",
+              "summary": "Un Flusso per spegnere la risposta avversaria nel mezzo della catena.",
               "ui": {
                 "face": "Materia"
               },
@@ -2198,11 +2178,11 @@
                 "illustration": "Illustrazione",
                 "hp": "PV",
                 "flux": "Flussi",
-                "unique": "Unica",
                 "behaviors": {
                   "reactive": "Reattiva",
                   "permanent": "Permanente"
-                }
+                },
+                "unique": "Unica"
               },
               "face": {
                 "name": "Quiete",
@@ -2220,7 +2200,7 @@
             "en": {
               "name": "Stillness",
               "typeLabel": "Zero Matter",
-              "summary": "The game's first negation: the answer that silences the answer.",
+              "summary": "One Flux to kill the opposing answer in mid-chain.",
               "ui": {
                 "face": "Matter"
               },
@@ -2228,17 +2208,17 @@
                 "illustration": "Illustration",
                 "hp": "HP",
                 "flux": "Flux",
-                "unique": "Unique",
                 "behaviors": {
                   "reactive": "Reactive",
                   "permanent": "Permanent"
-                }
+                },
+                "unique": "Unique"
               },
               "face": {
                 "name": "Stillness",
                 "effect": {
                   "name": "Effect",
-                  "text": "Choose a Reactive Matter just played in the chain: when it would resolve, it fades and goes to the Abyss with no effect. The Flux spent is not returned."
+                  "text": "Choose a Reactive Matter just played in the chain: when it would resolve, it vanishes and goes to the Abyss with no effect. The Flux spent is not refunded."
                 },
                 "flavor": "The void does not argue."
               },
@@ -2252,8 +2232,7 @@
             "matter",
             "zero",
             "reactive",
-            "counter",
-            "viatico"
+            "unique"
           ],
           "rulesReference": "MANUALE.md §7.2",
           "faces": [
@@ -2266,7 +2245,7 @@
               },
               "behavior": "reactive",
               "stats": {
-                "fluxCost": 2
+                "fluxCost": 1
               },
               "enablesMatters": [],
               "keywords": [],
@@ -2308,57 +2287,59 @@
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Archivista",
               "typeLabel": "Entità — Umano",
-              "summary": "Registra chi è passato oltre: più nomi nella Requiem, più pagine da leggere.",
+              "summary": "Scrive i nomi e li fa valere: un inno su corpo a due Flussi.",
               "ui": {
                 "face": "Entità"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
+                "power": "Potenza",
                 "flux": "Flussi"
               },
               "face": {
                 "name": "Archivista",
-                "flavor": "Scrive i nomi di chi è passato oltre.",
-                "chronicle": {
-                  "trigger": "Quando entra in campo",
-                  "text": "Pesca una carta; se nella tua Zona di Requiem ci sono almeno 2 carte, pescane invece due."
-                }
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Le tue altre Entità Umane prendono +1 Potenza."
+                },
+                "flavor": "Scrive i nomi di chi è passato oltre."
               }
             },
             "en": {
               "name": "Archivist",
               "typeLabel": "Entity — Human",
-              "summary": "She records those who passed beyond: more names in the Requiem, more pages to read.",
+              "summary": "He writes the names and makes them count: an anthem on a body for two Flux.",
               "ui": {
                 "face": "Entity"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
+                "power": "Power",
                 "flux": "Flux"
               },
               "face": {
                 "name": "Archivist",
-                "flavor": "She writes the names of those who passed beyond.",
-                "chronicle": {
-                  "trigger": "When she enters the field",
-                  "text": "Draw a card; if there are at least 2 cards in your Requiem Zone, draw two instead."
-                }
+                "effect": {
+                  "name": "Effect",
+                  "text": "Your other Human Entities get +1 Power."
+                },
+                "flavor": "He writes the names of those who went on."
               }
             }
           },
           "tags": [
             "entity",
             "human",
-            "draw",
-            "requiem"
+            "anthem",
+            "aggro"
           ],
           "rulesReference": "MANUALE.md §6.2",
           "faces": [
@@ -2369,26 +2350,29 @@
               "race": "human",
               "stats": {
                 "power": 1,
-                "fluxCost": 3
+                "fluxCost": 2
               },
               "enablesMatters": [],
               "keywords": [],
               "requirements": {},
               "triggers": [
                 {
-                  "id": "chronicle",
-                  "displayKey": "chronicle",
-                  "event": "on_enter_field",
+                  "id": "standard",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
                   "effect": {
-                    "type": "draw_card",
+                    "type": "modify_power",
                     "target": {
-                      "controller": "controller"
+                      "cardType": "entity",
+                      "race": "human",
+                      "controller": "controller",
+                      "quantity": "all",
+                      "details": {
+                        "excludeSelf": true
+                      }
                     },
-                    "count": 1,
-                    "details": {
-                      "requiemThreshold": 2,
-                      "countAtThreshold": 2
-                    }
+                    "amount": 1,
+                    "duration": "permanent"
                   }
                 }
               ],
@@ -2409,56 +2393,60 @@
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Veterana della Breccia",
               "typeLabel": "Entità — Umano",
-              "summary": "Il contrattacco che insegna: ogni caduto nemico vale una carta.",
+              "summary": "L’unica che insegna difendendo: ogni attaccante caduto vale una carta.",
               "ui": {
                 "face": "Entità"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
-                "flux": "Flussi"
+                "power": "Potenza",
+                "flux": "Flussi",
+                "counterattack": "Contrattacco"
               },
               "face": {
                 "name": "Veterana della Breccia",
-                "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti.",
                 "lesson": {
                   "trigger": "Quando contrattacca",
                   "text": "Se l’attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
-                }
+                },
+                "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
               }
             },
             "en": {
               "name": "Breach Veteran",
               "typeLabel": "Entity — Human",
-              "summary": "The counterattack that teaches: every fallen enemy is worth a card.",
+              "summary": "The only one who teaches by defending: every fallen attacker is worth a card.",
               "ui": {
                 "face": "Entity"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
-                "flux": "Flux"
+                "power": "Power",
+                "flux": "Flux",
+                "counterattack": "Counterattack"
               },
               "face": {
                 "name": "Breach Veteran",
-                "flavor": "She has blocked more attacks than you have seen.",
                 "lesson": {
-                  "trigger": "When she counterattacks",
+                  "trigger": "When it counterattacks",
                   "text": "If the attacker dies in the clash, draw a card: the covering that follows is the price of the lesson."
-                }
+                },
+                "flavor": "She has blocked more attacks than you have seen."
               }
             }
           },
           "tags": [
             "entity",
             "human",
-            "defender"
+            "counterattack"
           ],
           "rulesReference": "MANUALE.md §6.3",
           "faces": [
@@ -2469,7 +2457,7 @@
               "race": "human",
               "stats": {
                 "power": 2,
-                "fluxCost": 4,
+                "fluxCost": 3,
                 "counterattack": 2
               },
               "enablesMatters": [],
@@ -2509,13 +2497,13 @@
           "type": "object",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Velo del Primo",
               "typeLabel": "Oggetto",
-              "summary": "La protezione del pezzo chiave: le Materie avversarie non lo trovano.",
+              "summary": "La protezione del corpo su cui hai investito: le Materie avversarie non lo trovano.",
               "ui": {
                 "face": "Oggetto"
               },
@@ -2536,7 +2524,7 @@
             "en": {
               "name": "Veil of the First",
               "typeLabel": "Object",
-              "summary": "Protection for the key piece: opposing Matters cannot find it.",
+              "summary": "Protection for the body you invested in: opposing Matters cannot find it.",
               "ui": {
                 "face": "Object"
               },
@@ -2558,8 +2546,7 @@
           "tags": [
             "object",
             "human",
-            "protection",
-            "viatico"
+            "protection"
           ],
           "rulesReference": "MANUALE.md §3.1",
           "faces": [
@@ -2567,7 +2554,9 @@
               "id": "object",
               "kind": "object",
               "displayKey": "face",
-              "stats": {},
+              "stats": {
+                "fluxCost": 1
+              },
               "enablesMatters": [],
               "keywords": [],
               "requirements": {},
@@ -2610,57 +2599,51 @@
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Corriere a Vapore",
               "typeLabel": "Entità — Umano",
-              "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, vivo.",
+              "summary": "Arriva prima della notizia: un Flusso, e attacca nel turno in cui entra.",
               "ui": {
                 "face": "Entità"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
+                "power": "Potenza",
                 "flux": "Flussi"
               },
               "face": {
                 "name": "Corriere a Vapore",
                 "keyword": {
                   "name": "Slancio",
-                  "rules": "può attaccare già nel turno in cui entra in campo"
+                  "rules": "può attaccare nel turno in cui entra in campo"
                 },
-                "flavor": "Arriva prima della notizia del suo arrivo.",
-                "relay": {
-                  "trigger": "Alla fine del tuo turno",
-                  "text": "Se ha attaccato in questo turno, puoi ritirarlo in Zona di Requiem, anche se è entrato in campo in questo turno."
-                }
+                "flavor": "Arriva prima della notizia del suo arrivo."
               }
             },
             "en": {
               "name": "Steam Courier",
               "typeLabel": "Entity — Human",
-              "summary": "The Bequest's fuel: he strikes, delivers and passes beyond, alive.",
+              "summary": "He arrives before the news does: one Flux, and he attacks the turn he enters.",
               "ui": {
                 "face": "Entity"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
+                "power": "Power",
                 "flux": "Flux"
               },
               "face": {
                 "name": "Steam Courier",
                 "keyword": {
                   "name": "Surge",
-                  "rules": "he may attack the very turn he enters the field"
+                  "rules": "may attack the turn it enters the field"
                 },
-                "flavor": "He arrives before word of his arrival.",
-                "relay": {
-                  "trigger": "At the end of your turn",
-                  "text": "If he attacked this turn, you may retire him to the Requiem Zone, even if he entered the field this turn."
-                }
+                "flavor": "He arrives before news of his arrival."
               }
             }
           },
@@ -2668,7 +2651,7 @@
             "entity",
             "human",
             "surge",
-            "requiem"
+            "aggro"
           ],
           "rulesReference": "MANUALE.md §8.1",
           "faces": [
@@ -2688,28 +2671,7 @@
                 }
               ],
               "requirements": {},
-              "triggers": [
-                {
-                  "id": "relay",
-                  "displayKey": "relay",
-                  "event": "on_turn_end",
-                  "effect": {
-                    "type": "retire",
-                    "target": {
-                      "scope": "self"
-                    },
-                    "destination": {
-                      "zone": "requiem",
-                      "owner": "controller"
-                    },
-                    "details": {
-                      "optional": true,
-                      "requiresAttackedThisTurn": true,
-                      "overridesEntryTurnBan": true
-                    }
-                  }
-                }
-              ],
+              "triggers": [],
               "actions": []
             }
           ],
@@ -2727,13 +2689,13 @@
           "type": "matter",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Vessillo degli Eredi",
               "typeLabel": "Materia Dinamica I",
-              "summary": "L'inno del piano reso stoffa e asta: ogni Umano un passo più forte, finché sventola.",
+              "summary": "L’inno permanente: +1 a tutti gli Umani, +2 se la bestia è in campo.",
               "ui": {
                 "face": "Materia"
               },
@@ -2750,7 +2712,7 @@
                 "name": "Vessillo degli Eredi",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
+                  "text": "Le tue Entità Umane prendono +1 Potenza; se il tuo Rubyfront è in campo, prendono invece +2."
                 },
                 "flavor": "Finché sventola, si avanza."
               },
@@ -2762,7 +2724,7 @@
             "en": {
               "name": "Banner of the Heirs",
               "typeLabel": "Dynamic Matter I",
-              "summary": "The plan's anthem made cloth and pole: every Human one step stronger, while it flies.",
+              "summary": "The permanent anthem: +1 to every Human, +2 while the beast is on the field.",
               "ui": {
                 "face": "Matter"
               },
@@ -2779,9 +2741,9 @@
                 "name": "Banner of the Heirs",
                 "effect": {
                   "name": "Effect",
-                  "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."
+                  "text": "Your Human Entities get +1 Power; if your Rubyfront is on the field, they get +2 instead."
                 },
-                "flavor": "While it flies, they advance."
+                "flavor": "While it flies, we advance."
               },
               "matters": {
                 "dynamicTitle": "Dynamic Matter · 1st grade",
@@ -2794,8 +2756,7 @@
             "dynamic",
             "grade-1",
             "permanent",
-            "anthem",
-            "requiem"
+            "anthem"
           ],
           "rulesReference": "MANUALE.md §7.2",
           "faces": [
@@ -2809,7 +2770,7 @@
               },
               "behavior": "permanent",
               "stats": {
-                "fluxCost": 4
+                "fluxCost": 3
               },
               "enablesMatters": [],
               "keywords": [],
@@ -2823,14 +2784,14 @@
                     "type": "modify_power",
                     "target": {
                       "cardType": "entity",
+                      "race": "human",
                       "controller": "controller",
                       "quantity": "all"
                     },
                     "amount": 1,
                     "duration": "permanent",
                     "details": {
-                      "requiemThreshold": 4,
-                      "amountAtThreshold": 2
+                      "amountWithRubyfrontDeployed": 2
                     }
                   }
                 }
@@ -2852,66 +2813,66 @@
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 2,
+          "deckLimit": 3,
           "defaultLocale": "it",
           "locales": {
             "it": {
               "name": "Vendicatrice d’Acciaio",
               "typeLabel": "Entità — Umano",
-              "summary": "La Vendetta ha sempre un nome: più forte da quando qualcuno dei suoi è passato oltre.",
+              "summary": "A un Flusso: con la bestia in campo è un 3 che uccide chi la attacca.",
               "ui": {
                 "face": "Entità"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
+                "power": "Potenza",
                 "flux": "Flussi"
               },
               "face": {
                 "name": "Vendicatrice d’Acciaio",
                 "keyword": {
                   "name": "Vendetta",
-                  "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
+                  "rules": "se blocca con Potenza superiore, l’attaccante muore"
                 },
-                "flavor": "Colpiscila, se osi. Poi corri.",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Finché nella tua Zona di Requiem c’è almeno una carta, la Vendicatrice prende +1 Potenza."
-                }
+                  "text": "Finché il tuo Rubyfront è in campo, la Vendicatrice prende +1 Potenza."
+                },
+                "flavor": "Colpiscila, se osi. Poi corri."
               }
             },
             "en": {
               "name": "Steel Avenger",
               "typeLabel": "Entity — Human",
-              "summary": "Vengeance always has a name: stronger since one of her own passed beyond.",
+              "summary": "For one Flux: with the beast on the field she is a 3 that kills whoever attacks her.",
               "ui": {
                 "face": "Entity"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
+                "power": "Power",
                 "flux": "Flux"
               },
               "face": {
                 "name": "Steel Avenger",
                 "keyword": {
                   "name": "Vengeance",
-                  "rules": "if she blocks with higher Power, the attacker dies"
+                  "rules": "if it blocks with greater Power, the attacker dies"
                 },
-                "flavor": "Strike her if you dare. Then run.",
                 "effect": {
                   "name": "Effect",
-                  "text": "For as long as there is at least one card in your Requiem Zone, the Avenger gets +1 Power."
-                }
+                  "text": "As long as your Rubyfront is on the field, the Avenger gets +1 Power."
+                },
+                "flavor": "Strike her, if you dare. Then run."
               }
             }
           },
           "tags": [
             "entity",
             "human",
-            "vengeance",
-            "defender",
-            "requiem"
+            "vengeance"
           ],
           "rulesReference": "MANUALE.md §8.1",
           "faces": [
@@ -2922,7 +2883,7 @@
               "race": "human",
               "stats": {
                 "power": 2,
-                "fluxCost": 2
+                "fluxCost": 1
               },
               "enablesMatters": [],
               "keywords": [
@@ -2944,7 +2905,7 @@
                     "amount": 1,
                     "duration": "permanent",
                     "details": {
-                      "requiemThreshold": 1
+                      "requiresRubyfrontDeployed": true
                     }
                   }
                 }
@@ -2977,62 +2938,58 @@
         "it": {
           "name": "Rubifronte degli Abissi",
           "typeLabel": "Rubyfront bifronte",
-          "summary": "Controllo per logoramento: filtra il mazzo, indebolisce il Fronte avversario e divora le Entità più deboli.",
+          "summary": "La bestia non combatte: spinge. Ogni volta che emerge, i suoi Umani colpiscono più forte.",
           "ui": {
             "faceA": "Faccia A — Rubyfront",
-            "faceB": "Faccia B — Unione"
+            "faceB": "Faccia B — Nexus"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
-            "unionRequirement": {
-              "label": "Requisito Unione",
-              "text": "Ritira in Requiem un Umano a cui hai attribuito una Materia Zero"
+            "nexusRequirement": {
+              "label": "Requisito Nexus",
+              "text": "Il Rubyfront avversario ha perso almeno 6 PV"
             }
           },
           "matters": {
             "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
             "destructiveAria": "Distruttiva",
-            "zeroTitle": "Materia Zero",
-            "zeroAria": "Zero"
+            "dynamicTitle": "Materia Dinamica · fino al 2° grado",
+            "dynamicAria": "Dinamica"
           },
           "faceA": {
             "name": "Rubifronte degli Abissi",
             "keyword": {
               "name": "Furia",
-              "rules": "d20 ≥ 12 prima di ogni azione · fallimento −3 PV"
+              "rules": "d20 ≥ 12 prima di ogni azione · fallimento −2 PV"
             },
             "trigger": "Allo schieramento",
             "effect": {
-              "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo."
+              "text": "Le tue Entità Umane prendono +1 Potenza fino alla fine del turno."
             },
             "abilities": {
-              "pressure": {
-                "name": "Pressione Abissale",
-                "text": "un’Entità avversaria prende −2 Potenza fino al tuo prossimo turno."
+              "thrust": {
+                "name": "Spinta Abissale",
+                "text": "un’Entità Umana prende +2 Potenza fino alla fine del turno."
               },
-              "devour": {
-                "name": "Divorare",
-                "text": "metti in fondo al suo mazzo un’Entità avversaria con Potenza 3 o meno."
+              "deepCall": {
+                "name": "Chiamata dal Fondo",
+                "text": "un’Entità Umana prende +1 Potenza e può attaccare anche se è entrata in campo in questo turno."
               }
             },
             "flavor": "Non emerse. Gli abissi aprirono gli occhi."
           },
           "faceB": {
             "name": "Incarnazione dell’Abisso",
-            "unionAria": "Unione",
-            "trigger": "All’Unione",
-            "effect": {
-              "text": "Tappa un’Entità avversaria a tua scelta."
-            },
+            "nexusAria": "Nexus",
             "abilities": {
-              "tide": {
-                "name": "Marea Crescente",
-                "text": "fino a due Entità avversarie prendono −2 Potenza fino al tuo prossimo turno."
+              "swell": {
+                "name": "Onda Portante",
+                "text": "un’Entità Umana prende +3 Potenza fino alla fine del turno."
               },
-              "abyss": {
+              "greatTide": {
                 "name": "La Grande Marea",
-                "text": "tappa tutte le Entità avversarie in campo."
+                "text": "tutte le tue Entità Umane prendono +2 Potenza e non possono essere bloccate in questo turno."
               }
             },
             "flavor": "L’abisso prese forma. Il mondo arretrò."
@@ -3041,74 +2998,70 @@
         "en": {
           "name": "Rubyfront of the Abyss",
           "typeLabel": "Double-faced Rubyfront",
-          "summary": "Attrition control: filter the deck, weaken the opposing Front and devour its smaller Entities.",
+          "summary": "The beast does not fight: it pushes. Every time it surfaces, its Humans hit harder.",
           "ui": {
             "faceA": "Face A — Rubyfront",
-            "faceB": "Face B — Union"
+            "faceB": "Face B — Nexus"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
-            "unionRequirement": {
-              "label": "Union requirement",
-              "text": "Retire to Requiem a Human you attributed a Zero Matter to"
+            "nexusRequirement": {
+              "label": "Nexus requirement",
+              "text": "The opposing Rubyfront has lost at least 6 HP"
             }
           },
           "matters": {
             "destructiveTitle": "Destructive Matter · up to 2nd grade",
             "destructiveAria": "Destructive",
-            "zeroTitle": "Zero Matter",
-            "zeroAria": "Zero"
+            "dynamicTitle": "Dynamic Matter · up to 2nd grade",
+            "dynamicAria": "Dynamic"
           },
           "faceA": {
             "name": "Rubyfront of the Abyss",
             "keyword": {
               "name": "Fury",
-              "rules": "d20 ≥ 12 before every action · on failure −3 HP"
+              "rules": "d20 ≥ 12 before every action · failure −2 HP"
             },
             "trigger": "On deployment",
             "effect": {
-              "text": "Look at the top card of your deck: you may put it on the bottom."
+              "text": "Your Human Entities get +1 Power until end of turn."
             },
             "abilities": {
-              "pressure": {
-                "name": "Abyssal Pressure",
-                "text": "an opposing Entity gets −2 Power until your next turn."
+              "thrust": {
+                "name": "Abyssal Thrust",
+                "text": "a Human Entity gets +2 Power until end of turn."
               },
-              "devour": {
-                "name": "Devour",
-                "text": "put an opposing Entity with Power 3 or less on the bottom of its deck."
+              "deepCall": {
+                "name": "Call from the Deep",
+                "text": "a Human Entity gets +1 Power and may attack even if it entered the field this turn."
               }
             },
-            "flavor": "It did not rise. The abyss opened its eyes."
+            "flavor": "It did not surface. The deeps opened their eyes."
           },
           "faceB": {
             "name": "The Abyss Incarnate",
-            "unionAria": "Union",
-            "trigger": "On Union",
-            "effect": {
-              "text": "Tap an opposing Entity of your choice."
-            },
+            "nexusAria": "Nexus",
             "abilities": {
-              "tide": {
-                "name": "Rising Tide",
-                "text": "up to two opposing Entities get −2 Power until your next turn."
+              "swell": {
+                "name": "Swell",
+                "text": "a Human Entity gets +3 Power until end of turn."
               },
-              "abyss": {
+              "greatTide": {
                 "name": "The Great Tide",
-                "text": "tap every opposing Entity on the field."
+                "text": "all your Human Entities get +2 Power and cannot be blocked this turn."
               }
             },
-            "flavor": "The abyss no longer waits below. It walks."
+            "flavor": "The abyss took shape. The world stepped back."
           }
         }
       },
       "tags": [
         "rubyfront",
-        "union",
-        "control",
-        "destructive",
-        "zero"
+        "nexus",
+        "aggro",
+        "anthem",
+        "destructive"
       ],
       "rulesReference": "MANUALE.md §3.1, §7, §8.1",
       "faces": [
@@ -3119,7 +3072,7 @@
           "stats": {
             "health": 18,
             "deploymentCost": {
-              "base": 3,
+              "base": 2,
               "increment": 1,
               "cap": 20
             }
@@ -3138,37 +3091,21 @@
                 "successAtLeast": 12
               },
               "failure": {
-                "loseHealth": 3
+                "loseHealth": 2
               }
             }
           ],
           "requirements": {
-            "union": {
+            "nexus": {
               "match": "all",
               "conditions": [
                 {
-                  "type": "controls_card",
-                  "owner": "controller",
-                  "filter": {
-                    "cardType": "entity",
-                    "race": "human",
-                    "enablesMatter": {
-                      "type": "zero"
-                    },
-                    "wasAttributedMatterThisGame": {
-                      "type": "zero"
-                    }
-                  }
-                }
-              ],
-              "flipCost": [
-                {
-                  "type": "retire",
-                  "target": "condition_card",
-                  "destination": {
-                    "zone": "requiem",
-                    "owner": "controller"
-                  }
+                  "type": "health_lost_at_least",
+                  "target": {
+                    "cardType": "rubyfront",
+                    "controller": "opponent"
+                  },
+                  "value": 6
                 }
               ]
             }
@@ -3179,26 +3116,22 @@
               "displayKey": "effect",
               "event": "on_deploy_from_recall",
               "effect": {
-                "type": "look_and_optionally_move",
-                "from": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "top",
-                  "count": 1
+                "type": "modify_power",
+                "target": {
+                  "cardType": "entity",
+                  "race": "human",
+                  "controller": "controller",
+                  "quantity": "all"
                 },
-                "to": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "bottom"
-                },
-                "optional": true
+                "amount": 1,
+                "duration": "until_end_of_turn"
               }
             }
           ],
           "actions": [
             {
-              "id": "abyssal-pressure",
-              "displayKey": "pressure",
+              "id": "abyssal-thrust",
+              "displayKey": "thrust",
               "timing": [
                 "own_preparation",
                 "own_front"
@@ -3213,18 +3146,19 @@
               "effect": {
                 "type": "modify_power",
                 "target": {
-                  "controller": "opponent",
                   "cardType": "entity",
+                  "race": "human",
+                  "controller": "controller",
                   "min": 1,
                   "max": 1
                 },
-                "amount": -2,
-                "duration": "until_controller_next_turn"
+                "amount": 2,
+                "duration": "until_end_of_turn"
               }
             },
             {
-              "id": "devour",
-              "displayKey": "devour",
+              "id": "deep-call",
+              "displayKey": "deepCall",
               "timing": [
                 "own_preparation",
                 "own_front"
@@ -3234,71 +3168,50 @@
                 "fury"
               ],
               "cost": {
-                "health": 5
+                "health": 4
               },
               "effect": {
-                "type": "move_card",
+                "type": "empower",
                 "target": {
-                  "controller": "opponent",
                   "cardType": "entity",
-                  "conditions": [
-                    {
-                      "stat": "power",
-                      "operator": "lte",
-                      "value": 3
-                    }
-                  ],
+                  "race": "human",
+                  "controller": "controller",
                   "min": 1,
                   "max": 1
                 },
-                "destination": {
-                  "zone": "deck",
-                  "owner": "card_owner",
-                  "position": "bottom"
-                }
+                "powerBonus": 1,
+                "duration": "until_end_of_turn",
+                "grants": [
+                  "surge"
+                ]
               }
             }
           ]
         },
         {
-          "id": "union",
-          "kind": "union",
+          "id": "nexus",
+          "kind": "nexus",
           "displayKey": "faceB",
           "stats": {
-            "healthRecovery": 6
+            "healthRecovery": 5
           },
           "enablesMatters": [
             {
-              "type": "destructive",
+              "type": "dynamic",
               "maxGrade": 2
             },
             {
-              "type": "zero"
+              "type": "destructive",
+              "maxGrade": 2
             }
           ],
           "keywords": [],
           "requirements": {},
-          "triggers": [
-            {
-              "id": "the-first-wave",
-              "displayKey": "effect",
-              "event": "on_flip",
-              "effect": {
-                "type": "set_state",
-                "target": {
-                  "controller": "opponent",
-                  "cardType": "entity",
-                  "min": 1,
-                  "max": 1
-                },
-                "state": "tapped"
-              }
-            }
-          ],
+          "triggers": [],
           "actions": [
             {
-              "id": "rising-tide",
-              "displayKey": "tide",
+              "id": "swell",
+              "displayKey": "swell",
               "timing": [
                 "own_preparation",
                 "own_front"
@@ -3306,23 +3219,24 @@
               "repeatable": true,
               "checks": [],
               "cost": {
-                "health": 3
+                "health": 2
               },
               "effect": {
                 "type": "modify_power",
                 "target": {
-                  "controller": "opponent",
                   "cardType": "entity",
-                  "min": 0,
-                  "max": 2
+                  "race": "human",
+                  "controller": "controller",
+                  "min": 1,
+                  "max": 1
                 },
-                "amount": -2,
-                "duration": "until_controller_next_turn"
+                "amount": 3,
+                "duration": "until_end_of_turn"
               }
             },
             {
-              "id": "the-great-tide",
-              "displayKey": "abyss",
+              "id": "great-tide",
+              "displayKey": "greatTide",
               "timing": [
                 "own_preparation",
                 "own_front"
@@ -3330,16 +3244,21 @@
               "repeatable": true,
               "checks": [],
               "cost": {
-                "health": 7
+                "health": 5
               },
               "effect": {
-                "type": "set_state",
+                "type": "empower",
                 "target": {
-                  "controller": "opponent",
                   "cardType": "entity",
+                  "race": "human",
+                  "controller": "controller",
                   "quantity": "all"
                 },
-                "state": "tapped"
+                "powerBonus": 2,
+                "duration": "until_end_of_turn",
+                "details": {
+                  "cannotBeBlocked": true
+                }
               }
             }
           ]
@@ -3365,7 +3284,7 @@
         "it": {
           "name": "Adam, Il Primo",
           "typeLabel": "Entità — Umano",
-          "summary": "Il tramite dello Zero: incanala la Materia Zero e apre la via all'Unione del Rubifronte degli Abissi.",
+          "summary": "Il tramite dello Zero: incanala la Materia più rara e, quando lascia il campo, lascia qualcosa a chi resta.",
           "ui": {
             "face": "Entità"
           },
@@ -3373,8 +3292,8 @@
             "illustration": "Illustrazione",
             "hp": "PV",
             "power": "Potenza",
-            "counterattack": "Contrattacco",
             "flux": "Flussi",
+            "counterattack": "Contrattacco",
             "unique": "Unica"
           },
           "face": {
@@ -3387,15 +3306,19 @@
             },
             "bequest": {
               "trigger": "Quando lascia il campo",
-              "text": "Pesca una carta. (Anche il Ritiro in Requiem lo innesca.)"
+              "text": "Pesca una carta."
             },
             "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
+          },
+          "matters": {
+            "zeroTitle": "Materia Zero",
+            "zeroAria": "Zero"
           }
         },
         "en": {
           "name": "Adam, The First",
           "typeLabel": "Entity — Human",
-          "summary": "The Zero's vessel: he channels Zero Matter and opens the way to the Union of the Rubyfront of the Abyss.",
+          "summary": "The conduit of Zero: it channels the rarest Matter and, on leaving the field, leaves something behind.",
           "ui": {
             "face": "Entity"
           },
@@ -3403,8 +3326,8 @@
             "illustration": "Illustration",
             "hp": "HP",
             "power": "Power",
-            "counterattack": "Counterattack",
             "flux": "Flux",
+            "counterattack": "Counterattack",
             "unique": "Unique"
           },
           "face": {
@@ -3412,14 +3335,18 @@
             "abilities": {
               "genesis": {
                 "name": "Genesis",
-                "text": "search your deck for a Zero Matter, reveal it and add it to your hand, then shuffle. You can’t play it this turn."
+                "text": "search your deck for a Zero Matter, reveal it and add it to your hand, then shuffle. You cannot play it this turn."
               }
             },
             "bequest": {
-              "trigger": "When he leaves the field",
-              "text": "Draw a card. (Retiring to Requiem triggers this too.)"
+              "trigger": "When it leaves the field",
+              "text": "Draw a card."
             },
-            "flavor": "He was the first to touch the Zero. Ever since, humanity was changed forever."
+            "flavor": "He was the first to touch Zero. Humankind was never the same."
+          },
+          "matters": {
+            "zeroTitle": "Zero Matter",
+            "zeroAria": "Zero"
           }
         }
       },
@@ -3427,7 +3354,7 @@
         "entity",
         "human",
         "zero",
-        "viatico"
+        "unique"
       ],
       "rulesReference": "MANUALE.md §6.2, §7, §8.1",
       "faces": [
@@ -3439,7 +3366,7 @@
           "stats": {
             "power": 3,
             "counterattack": 2,
-            "fluxCost": 4
+            "fluxCost": 3
           },
           "enablesMatters": [
             {
@@ -3472,7 +3399,7 @@
               "repeatable": true,
               "checks": [],
               "cost": {
-                "flux": 3
+                "flux": 2
               },
               "effect": {
                 "type": "search_card",
@@ -3520,7 +3447,7 @@
         "it": {
           "name": "Assenza",
           "typeLabel": "Materia Zero",
-          "summary": "Il vuoto reso carta: fa sparire un'Entità dal campo, viva, dritta in Zona di Requiem.",
+          "summary": "Lo Zero non distrugge: toglie. L’Entità semplicemente non è più lì.",
           "ui": {
             "face": "Materia"
           },
@@ -3528,11 +3455,11 @@
             "illustration": "Illustrazione",
             "hp": "PV",
             "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "permanent": "Permanente"
+            },
             "unique": "Unica"
-          },
-          "matters": {
-            "zeroTitle": "Materia Zero",
-            "zeroAria": "Zero"
           },
           "face": {
             "name": "Assenza",
@@ -3541,12 +3468,16 @@
               "text": "Scegli un’Entità: sparisce dal campo e va nella Zona di Requiem del suo proprietario. Puoi scegliere anche Entità coperte."
             },
             "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
+          },
+          "matters": {
+            "zeroTitle": "Materia Zero",
+            "zeroAria": "Zero"
           }
         },
         "en": {
           "name": "Absence",
           "typeLabel": "Zero Matter",
-          "summary": "The void made card: it makes an Entity vanish from the field, alive, straight to the Requiem Zone.",
+          "summary": "Zero does not destroy: it removes. The Entity is simply no longer there.",
           "ui": {
             "face": "Matter"
           },
@@ -3554,26 +3485,31 @@
             "illustration": "Illustration",
             "hp": "HP",
             "flux": "Flux",
+            "behaviors": {
+              "reactive": "Reactive",
+              "permanent": "Permanent"
+            },
             "unique": "Unique"
-          },
-          "matters": {
-            "zeroTitle": "Zero Matter",
-            "zeroAria": "Zero"
           },
           "face": {
             "name": "Absence",
             "effect": {
               "name": "Effect",
-              "text": "Choose an Entity: it vanishes from the field and goes to its owner’s Requiem Zone. You may choose covered Entities as well."
+              "text": "Choose an Entity: it vanishes from the field and goes to its owner's Requiem Zone. You may choose covered Entities too."
             },
             "flavor": "A cold silence, where something used to be."
+          },
+          "matters": {
+            "zeroTitle": "Zero Matter",
+            "zeroAria": "Zero"
           }
         }
       },
       "tags": [
         "matter",
         "zero",
-        "viatico"
+        "removal",
+        "unique"
       ],
       "rulesReference": "MANUALE.md §7, §8.2",
       "faces": [
@@ -3586,7 +3522,7 @@
           },
           "behavior": "normal",
           "stats": {
-            "fluxCost": 4
+            "fluxCost": 3
           },
           "enablesMatters": [],
           "keywords": [],
@@ -3635,64 +3571,73 @@
       "type": "matter",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Scatto",
           "typeLabel": "Materia Dinamica I",
-          "summary": "L'aggressività degli Umani: più Potenza e nessuna attesa. La velocità è un'arma.",
+          "summary": "Il colpo che arriva un turno prima del previsto — e con il Nexus arriva il doppio.",
           "ui": {
             "face": "Materia"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
-            "flux": "Flussi"
-          },
-          "matters": {
-            "dynamicTitle": "Materia Dinamica · 1° grado",
-            "dynamicAria": "Dinamica"
+            "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "permanent": "Permanente"
+            }
           },
           "face": {
             "name": "Scatto",
             "effect": {
               "name": "Effetto",
-              "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno. Se controlli l’Unione, prende invece +4 Potenza."
+              "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno. Se controlli il Nexus, prende invece +4 Potenza."
             },
             "flavor": "Prima che l’occhio capisca, è già finita."
+          },
+          "matters": {
+            "dynamicTitle": "Materia Dinamica · 1° grado",
+            "dynamicAria": "Dinamica"
           }
         },
         "en": {
           "name": "Dash",
           "typeLabel": "Dynamic Matter I",
-          "summary": "Human aggression: more Power and no waiting. Speed is a weapon.",
+          "summary": "The blow that lands a turn early — and twice as hard once the Nexus is out.",
           "ui": {
             "face": "Matter"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
-            "flux": "Flux"
-          },
-          "matters": {
-            "dynamicTitle": "Dynamic Matter · 1st grade",
-            "dynamicAria": "Dynamic"
+            "flux": "Flux",
+            "behaviors": {
+              "reactive": "Reactive",
+              "permanent": "Permanent"
+            }
           },
           "face": {
             "name": "Dash",
             "effect": {
               "name": "Effect",
-              "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn. If you control the Union, it gets +4 Power instead."
+              "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn. If you control the Nexus, it gets +4 Power instead."
             },
-            "flavor": "By the time the eye understands, it is already over."
+            "flavor": "Before the eye understands, it is over."
+          },
+          "matters": {
+            "dynamicTitle": "Dynamic Matter · 1st grade",
+            "dynamicAria": "Dynamic"
           }
         }
       },
       "tags": [
         "matter",
         "dynamic",
-        "grade-1"
+        "grade-1",
+        "aggro"
       ],
       "rulesReference": "MANUALE.md §7, §8.1",
       "faces": [
@@ -3706,7 +3651,7 @@
           },
           "behavior": "normal",
           "stats": {
-            "fluxCost": 3
+            "fluxCost": 2
           },
           "enablesMatters": [],
           "keywords": [],
@@ -3729,7 +3674,7 @@
                   "surge"
                 ],
                 "details": {
-                  "powerBonusWithUnion": 4
+                  "powerBonusWithNexus": 4
                 }
               }
             }
@@ -3751,7 +3696,7 @@
       "type": "matter",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
@@ -3868,13 +3813,13 @@
       "type": "matter",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Collera",
           "typeLabel": "Materia Distruttiva I",
-          "summary": "La prima Reattiva del gioco: la collera della bestia scatta quando l'avversario meno se lo aspetta.",
+          "summary": "Due punti dalla finestra di risposta, e la bestia avversaria torna indietro a spegnersi.",
           "ui": {
             "face": "Materia"
           },
@@ -3887,10 +3832,6 @@
               "permanent": "Permanente"
             }
           },
-          "matters": {
-            "destructiveTitle": "Materia Distruttiva · 1° grado",
-            "destructiveAria": "Distruttiva"
-          },
           "face": {
             "name": "Collera",
             "effect": {
@@ -3898,12 +3839,16 @@
               "text": "Il Rubyfront avversario perde 2 PV. (Se è in campo, la perdita lo fa tornare immediatamente in Zona di Richiamo.)"
             },
             "flavor": "La bestia non conosce misura."
+          },
+          "matters": {
+            "destructiveTitle": "Materia Distruttiva · 1° grado",
+            "destructiveAria": "Distruttiva"
           }
         },
         "en": {
           "name": "Wrath",
           "typeLabel": "Destructive Matter I",
-          "summary": "The game's first Reactive: the beast's wrath strikes when the opponent least expects it.",
+          "summary": "Two points from the response window, and the enemy beast is sent back to cool off.",
           "ui": {
             "face": "Matter"
           },
@@ -3916,17 +3861,17 @@
               "permanent": "Permanent"
             }
           },
-          "matters": {
-            "destructiveTitle": "Destructive Matter · 1st grade",
-            "destructiveAria": "Destructive"
-          },
           "face": {
             "name": "Wrath",
             "effect": {
               "name": "Effect",
-              "text": "The opposing Rubyfront loses 2 HP. (If deployed, the loss makes it immediately return to the Recall Zone.)"
+              "text": "The opposing Rubyfront loses 2 HP. (If it is on the field, the loss sends it back to the Recall Zone immediately.)"
             },
             "flavor": "The beast knows no measure."
+          },
+          "matters": {
+            "destructiveTitle": "Destructive Matter · 1st grade",
+            "destructiveAria": "Destructive"
           }
         }
       },
@@ -3934,7 +3879,8 @@
         "matter",
         "destructive",
         "grade-1",
-        "reactive"
+        "reactive",
+        "burn"
       ],
       "rulesReference": "MANUALE.md §3.1, §7, §8.2",
       "faces": [
@@ -3948,7 +3894,7 @@
           },
           "behavior": "reactive",
           "stats": {
-            "fluxCost": 3
+            "fluxCost": 2
           },
           "enablesMatters": [],
           "keywords": [],
@@ -3985,13 +3931,13 @@
       "type": "object",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Vigorcintura",
           "typeLabel": "Oggetto",
-          "summary": "Il primo Oggetto del set: una cintura per soli Umani, e chi la porta colpisce più forte.",
+          "summary": "Un Flusso, e con la bestia in campo vale il doppio.",
           "ui": {
             "face": "Oggetto"
           },
@@ -4004,7 +3950,7 @@
             "name": "Vigorcintura",
             "effect": {
               "name": "Effetto",
-              "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza. Quando l’Umano che la indossa viene ritirato, pesca una carta: la Vigorcintura lo segue in Requiem e lascia qualcosa a chi resta."
+              "text": "Assegnala a un tuo Umano: finché la indossa, quell’Umano prende +1 Potenza. Se il tuo Rubyfront è in campo, prende invece +2."
             },
             "flavor": "Stringila forte. Il vigore fa il resto."
           }
@@ -4012,7 +3958,7 @@
         "en": {
           "name": "Vigorbelt",
           "typeLabel": "Object",
-          "summary": "The set's first Object: a belt for Humans only, and its bearer hits harder.",
+          "summary": "One Flux, and worth double while the beast is on the field.",
           "ui": {
             "face": "Object"
           },
@@ -4025,7 +3971,7 @@
             "name": "Vigorbelt",
             "effect": {
               "name": "Effect",
-              "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power. When the Human wearing it is retired, draw a card: the Vigorbelt follows them to Requiem and leaves something to those who remain."
+              "text": "Assign it to one of your Humans: for as long as they wear it, that Human gets +1 Power. If your Rubyfront is on the field, they get +2 instead."
             },
             "flavor": "Buckle it tight. Vigor does the rest."
           }
@@ -4034,7 +3980,7 @@
       "tags": [
         "object",
         "human",
-        "requiem"
+        "anthem"
       ],
       "rulesReference": "MANUALE.md §3.1",
       "faces": [
@@ -4042,7 +3988,9 @@
           "id": "object",
           "kind": "object",
           "displayKey": "face",
-          "stats": {},
+          "stats": {
+            "fluxCost": 1
+          },
           "enablesMatters": [],
           "keywords": [],
           "requirements": {},
@@ -4059,21 +4007,9 @@
                   "scope": "assigned"
                 },
                 "amount": 1,
-                "duration": "permanent"
-              }
-            },
-            {
-              "id": "bequest-belt",
-              "displayKey": "effect2",
-              "event": "on_retire",
-              "effect": {
-                "type": "draw_card",
-                "target": {
-                  "controller": "controller"
-                },
-                "count": 1,
+                "duration": "permanent",
                 "details": {
-                  "whenWearerRetired": true
+                  "amountWithRubyfrontDeployed": 2
                 }
               }
             }
@@ -4100,49 +4036,59 @@
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Vedetta del Perimetro",
           "typeLabel": "Entità — Umano",
-          "summary": "L'occhio del piano: filtra la pescata come la Risacca della bestia.",
+          "summary": "Non colpisce forte: segnala il bersaglio, e chi le sta accanto colpisce meglio.",
           "ui": {
             "face": "Entità"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
+            "power": "Potenza",
             "flux": "Flussi"
           },
           "face": {
             "name": "Vedetta del Perimetro",
-            "flavor": "Vide arrivare la fine. Fischiò due volte.",
-            "watch": {
+            "spark": {
               "trigger": "Quando entra in campo",
-              "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
-            }
+              "text": "Un’altra tua Entità Umana prende +1 Potenza fino alla fine del turno."
+            },
+            "flavor": "Vide arrivare la fine. Fischiò due volte."
+          },
+          "matters": {
+            "dynamicTitle": "Materia Dinamica · 1° grado",
+            "dynamicAria": "Dinamica"
           }
         },
         "en": {
           "name": "Perimeter Lookout",
           "typeLabel": "Entity — Human",
-          "summary": "The plan's eye: she filters the draw like the beast's Undertow.",
+          "summary": "She does not hit hard: she marks the target, and whoever stands beside her hits better.",
           "ui": {
             "face": "Entity"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
+            "power": "Power",
             "flux": "Flux"
           },
           "face": {
             "name": "Perimeter Lookout",
-            "flavor": "She saw the end coming. She whistled twice.",
-            "watch": {
-              "trigger": "When she enters the field",
-              "text": "Look at the top card of your deck: you may leave it there or put it on the bottom of your deck."
-            }
+            "spark": {
+              "trigger": "When it enters the field",
+              "text": "Another Human Entity of yours gets +1 Power until end of turn."
+            },
+            "flavor": "She saw the end coming. She whistled twice."
+          },
+          "matters": {
+            "dynamicTitle": "Dynamic Matter · 1st grade",
+            "dynamicAria": "Dynamic"
           }
         }
       },
@@ -4150,7 +4096,7 @@
         "entity",
         "human",
         "dynamic",
-        "scry"
+        "anthem"
       ],
       "rulesReference": "MANUALE.md §6.2, §7",
       "faces": [
@@ -4173,23 +4119,23 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "watch",
-              "displayKey": "watch",
+              "id": "spark",
+              "displayKey": "spark",
               "event": "on_enter_field",
               "effect": {
-                "type": "look_and_optionally_move",
-                "from": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "top",
-                  "count": 1
+                "type": "modify_power",
+                "target": {
+                  "cardType": "entity",
+                  "race": "human",
+                  "controller": "controller",
+                  "min": 1,
+                  "max": 1,
+                  "details": {
+                    "excludeSelf": true
+                  }
                 },
-                "to": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "bottom"
-                },
-                "optional": true
+                "amount": 1,
+                "duration": "until_end_of_turn"
               }
             }
           ],
@@ -4210,49 +4156,59 @@
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Guardiano della Paratia",
           "typeLabel": "Entità — Umano",
-          "summary": "Il difensore degli Eredi: più i suoi sono passati oltre, più la soglia è invalicabile.",
+          "summary": "Un Flusso per un corpo che, quando muove per primo, colpisce come un 3.",
           "ui": {
             "face": "Entità"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
+            "power": "Potenza",
             "flux": "Flussi"
           },
           "face": {
             "name": "Guardiano della Paratia",
-            "flavor": "Nessuno passa. Non oggi.",
-            "warden": {
-              "trigger": "Quando blocca",
-              "text": "Prende +2 Potenza fino alla fine della battaglia; se nella tua Zona di Requiem ci sono almeno 3 carte, prende invece +4."
-            }
+            "hammer": {
+              "trigger": "Quando attacca",
+              "text": "Prende +2 Potenza fino alla fine della battaglia."
+            },
+            "flavor": "Nessuno passa. Non oggi."
+          },
+          "matters": {
+            "dynamicTitle": "Materia Dinamica · 1° grado",
+            "dynamicAria": "Dinamica"
           }
         },
         "en": {
           "name": "Bulkhead Warden",
           "typeLabel": "Entity — Human",
-          "summary": "The Heirs' defender: the more of his own have passed beyond, the firmer the threshold.",
+          "summary": "One Flux for a body that strikes like a 3 whenever it moves first.",
           "ui": {
             "face": "Entity"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
+            "power": "Power",
             "flux": "Flux"
           },
           "face": {
             "name": "Bulkhead Warden",
-            "flavor": "No one passes. Not today.",
-            "warden": {
-              "trigger": "When he blocks",
-              "text": "He gets +2 Power until the end of the battle; if there are at least 3 cards in your Requiem Zone, he gets +4 instead."
-            }
+            "hammer": {
+              "trigger": "When it attacks",
+              "text": "It gets +2 Power until end of battle."
+            },
+            "flavor": "No one gets through. Not today."
+          },
+          "matters": {
+            "dynamicTitle": "Dynamic Matter · 1st grade",
+            "dynamicAria": "Dynamic"
           }
         }
       },
@@ -4260,8 +4216,7 @@
         "entity",
         "human",
         "dynamic",
-        "defender",
-        "requiem"
+        "aggro"
       ],
       "rulesReference": "MANUALE.md §6.3, §7",
       "faces": [
@@ -4272,7 +4227,7 @@
           "race": "human",
           "stats": {
             "power": 1,
-            "fluxCost": 2
+            "fluxCost": 1
           },
           "enablesMatters": [
             {
@@ -4284,20 +4239,16 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "warden",
-              "displayKey": "warden",
-              "event": "on_block",
+              "id": "hammer",
+              "displayKey": "hammer",
+              "event": "on_attack",
               "effect": {
                 "type": "modify_power",
                 "target": {
                   "scope": "self"
                 },
                 "amount": 2,
-                "duration": "until_end_of_battle",
-                "details": {
-                  "requiemThreshold": 3,
-                  "amountAtThreshold": 4
-                }
+                "duration": "until_end_of_battle"
               }
             }
           ],
@@ -4318,65 +4269,59 @@
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Chirurgo da Campo",
           "typeLabel": "Entità — Umano",
-          "summary": "Cura due volte: all'arrivo e al congedo — il Ritiro come seconda medicina.",
+          "summary": "Anche le bestie sanguinano: ogni corpo che scende porta un punto in meno all’avversario.",
           "ui": {
             "face": "Entità"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
+            "power": "Potenza",
             "flux": "Flussi"
           },
           "face": {
             "name": "Chirurgo da Campo",
-            "flavor": "Anche le bestie sanguinano.",
-            "medic": {
+            "ember": {
               "trigger": "Quando entra in campo",
-              "text": "Il tuo Rubyfront recupera 2 PV."
+              "text": "Il Rubyfront avversario perde 1 PV."
             },
-            "lastCare": {
-              "trigger": "Quando lo ritiri",
-              "text": "Il tuo Rubyfront recupera altri 2 PV. (Vale solo per il Ritiro volontario in Zona di Requiem, non per altre uscite dal campo.)"
-            }
+            "flavor": "Anche le bestie sanguinano."
           }
         },
         "en": {
           "name": "Field Surgeon",
           "typeLabel": "Entity — Human",
-          "summary": "He heals twice: on arrival and on farewell — Retirement as a second medicine.",
+          "summary": "Beasts bleed too: every body that lands takes one more point off the opponent.",
           "ui": {
             "face": "Entity"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
+            "power": "Power",
             "flux": "Flux"
           },
           "face": {
             "name": "Field Surgeon",
-            "flavor": "Even beasts bleed.",
-            "medic": {
-              "trigger": "When he enters the field",
-              "text": "Your Rubyfront recovers 2 HP."
+            "ember": {
+              "trigger": "When it enters the field",
+              "text": "The opposing Rubyfront loses 1 HP."
             },
-            "lastCare": {
-              "trigger": "When you retire him",
-              "text": "Your Rubyfront recovers another 2 HP. (Voluntary Retirement to the Requiem Zone only, not other ways of leaving the field.)"
-            }
+            "flavor": "Beasts bleed too."
           }
         }
       },
       "tags": [
         "entity",
         "human",
-        "heal",
-        "requiem"
+        "burn",
+        "aggro"
       ],
       "rulesReference": "MANUALE.md §6.2, §8.2",
       "faces": [
@@ -4387,36 +4332,23 @@
           "race": "human",
           "stats": {
             "power": 1,
-            "fluxCost": 2
+            "fluxCost": 1
           },
           "enablesMatters": [],
           "keywords": [],
           "requirements": {},
           "triggers": [
             {
-              "id": "medic",
-              "displayKey": "medic",
+              "id": "ember",
+              "displayKey": "ember",
               "event": "on_enter_field",
               "effect": {
-                "type": "gain_health",
+                "type": "lose_health",
                 "target": {
                   "cardType": "rubyfront",
-                  "controller": "controller"
+                  "controller": "opponent"
                 },
-                "amount": 2
-              }
-            },
-            {
-              "id": "last-care",
-              "displayKey": "lastCare",
-              "event": "on_retire",
-              "effect": {
-                "type": "gain_health",
-                "target": {
-                  "cardType": "rubyfront",
-                  "controller": "controller"
-                },
-                "amount": 2
+                "amount": 1
               }
             }
           ],
@@ -4437,57 +4369,58 @@
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Emissario degli Eredi",
           "typeLabel": "Entità — Umano",
-          "summary": "Il cercatore del piano: trova Adam, o chiunque serva alla causa.",
+          "summary": "Due braccia in campo e un terzo in arrivo: gli Eredi non lasciano mai un posto vuoto.",
           "ui": {
             "face": "Entità"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
+            "power": "Potenza",
             "flux": "Flussi"
           },
           "face": {
             "name": "Emissario degli Eredi",
-            "flavor": "Il Primo cammina fra noi. Io l'ho visto.",
             "herald": {
               "trigger": "Quando entra in campo",
               "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
-            }
+            },
+            "flavor": "Il Primo cammina fra noi. Io l'ho visto."
           }
         },
         "en": {
           "name": "Emissary of the Heirs",
           "typeLabel": "Entity — Human",
-          "summary": "The plan's seeker: finds Adam, or whoever the cause requires.",
+          "summary": "Two arms on the field and a third on the way: the Heirs never leave a place empty.",
           "ui": {
             "face": "Entity"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
+            "power": "Power",
             "flux": "Flux"
           },
           "face": {
             "name": "Emissary of the Heirs",
-            "flavor": "The First walks among us. I have seen him.",
             "herald": {
-              "trigger": "When he enters the field",
+              "trigger": "When it enters the field",
               "text": "Search your deck for a Human, reveal it to your opponent and add it to your hand, then shuffle your deck."
-            }
+            },
+            "flavor": "The First walks among us. I have seen him."
           }
         }
       },
       "tags": [
         "entity",
         "human",
-        "tutor",
-        "viatico"
+        "tutor"
       ],
       "rulesReference": "MANUALE.md §6.2, §8.2",
       "faces": [
@@ -4497,8 +4430,8 @@
           "displayKey": "face",
           "race": "human",
           "stats": {
-            "power": 1,
-            "fluxCost": 3
+            "power": 2,
+            "fluxCost": 2
           },
           "enablesMatters": [],
           "keywords": [],
@@ -4544,57 +4477,59 @@
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Baluardo Corazzato",
           "typeLabel": "Entità — Umano",
-          "summary": "Il muro che respira: Potenza da costo alto, in cambio non lascia mai la linea.",
+          "summary": "Tre di Potenza a due Flussi: tutto in avanti, niente all’indietro.",
           "ui": {
             "face": "Entità"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
+            "power": "Potenza",
             "flux": "Flussi"
           },
           "face": {
             "name": "Baluardo Corazzato",
-            "flavor": "Cade il mondo, non lui.",
             "effect": {
               "name": "Effetto",
-              "text": "Non può attaccare."
+              "text": "Non può bloccare."
             },
-            "shelter": {
-              "trigger": "Quando blocca",
-              "text": "Il tuo Rubyfront recupera 1 PV: dietro il suo scudo, la bestia riprende fiato."
-            }
+            "flavor": "Cade il mondo, non lui."
+          },
+          "matters": {
+            "dynamicTitle": "Materia Dinamica · 1° grado",
+            "dynamicAria": "Dinamica"
           }
         },
         "en": {
           "name": "Armored Bulwark",
           "typeLabel": "Entity — Human",
-          "summary": "The wall that breathes: high-cost Power, in exchange he never leaves the line.",
+          "summary": "Three Power for two Flux: all forward, nothing back.",
           "ui": {
             "face": "Entity"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
+            "power": "Power",
             "flux": "Flux"
           },
           "face": {
             "name": "Armored Bulwark",
-            "flavor": "The world may fall. He will not.",
             "effect": {
               "name": "Effect",
-              "text": "He cannot attack."
+              "text": "It cannot block."
             },
-            "shelter": {
-              "trigger": "When he blocks",
-              "text": "Your Rubyfront recovers 1 HP: behind his shield, the beast catches its breath."
-            }
+            "flavor": "The world falls. He does not."
+          },
+          "matters": {
+            "dynamicTitle": "Dynamic Matter · 1st grade",
+            "dynamicAria": "Dynamic"
           }
         }
       },
@@ -4602,7 +4537,7 @@
         "entity",
         "human",
         "dynamic",
-        "defender"
+        "aggro"
       ],
       "rulesReference": "MANUALE.md §7, §8.1",
       "faces": [
@@ -4613,7 +4548,7 @@
           "race": "human",
           "stats": {
             "power": 3,
-            "fluxCost": 3
+            "fluxCost": 2
           },
           "enablesMatters": [
             {
@@ -4623,24 +4558,10 @@
           ],
           "keywords": [],
           "requirements": {},
-          "triggers": [
-            {
-              "id": "shelter",
-              "displayKey": "shelter",
-              "event": "on_block",
-              "effect": {
-                "type": "gain_health",
-                "target": {
-                  "cardType": "rubyfront",
-                  "controller": "controller"
-                },
-                "amount": 1
-              }
-            }
-          ],
+          "triggers": [],
           "actions": [],
           "restrictions": {
-            "cannotAttack": true
+            "cannotBlock": true
           }
         }
       ],
@@ -4658,13 +4579,13 @@
       "type": "matter",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Riflesso",
           "typeLabel": "Materia Dinamica I",
-          "summary": "La velocità come scudo: un blocco dal nulla, letale sui piccoli.",
+          "summary": "Un blocco che costa un Flusso e si porta via gli attaccanti piccoli.",
           "ui": {
             "face": "Materia"
           },
@@ -4693,7 +4614,7 @@
         "en": {
           "name": "Reflex",
           "typeLabel": "Dynamic Matter I",
-          "summary": "Speed as a shield: a block out of nowhere, lethal to the small.",
+          "summary": "A block for one Flux that takes small attackers with it.",
           "ui": {
             "face": "Matter"
           },
@@ -4710,7 +4631,7 @@
             "name": "Reflex",
             "effect": {
               "name": "Effect",
-              "text": "Assign it as a block to an attacker: that attack is blocked. If the attacker has Power 3 or less, it dies."
+              "text": "Assign it as a block against an attacker: that attack is blocked. If the attacker has Power 3 or less, it dies."
             },
             "flavor": "A flash, and steel finds steel."
           },
@@ -4724,8 +4645,7 @@
         "matter",
         "dynamic",
         "grade-1",
-        "reactive",
-        "block"
+        "reactive"
       ],
       "rulesReference": "MANUALE.md §6.3, §7.2",
       "faces": [
@@ -4739,7 +4659,7 @@
           },
           "behavior": "reactive",
           "stats": {
-            "fluxCost": 2
+            "fluxCost": 1
           },
           "enablesMatters": [],
           "keywords": [],
@@ -4780,49 +4700,59 @@
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Prima Lama",
           "typeLabel": "Entità — Umano",
-          "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
+          "summary": "L’arma migliore degli Eredi: si sveglia quando il Nexus prende forma.",
           "ui": {
             "face": "Entità"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
+            "power": "Potenza",
             "flux": "Flussi"
           },
           "face": {
             "name": "Prima Lama",
-            "flavor": "Il fronte nemico la conosce per nome.",
             "effect": {
               "name": "Effetto",
-              "text": "Finché controlli l’Unione, la Prima Lama prende +2 Potenza e ha Slancio."
-            }
+              "text": "Finché controlli il Nexus, la Prima Lama prende +2 Potenza e ha Slancio."
+            },
+            "flavor": "Il fronte nemico la conosce per nome."
+          },
+          "matters": {
+            "dynamicTitle": "Materia Dinamica · 2° grado",
+            "dynamicAria": "Dinamica"
           }
         },
         "en": {
           "name": "First Blade",
           "typeLabel": "Entity — Human",
-          "summary": "She sleeps until the beast is fulfilled: with the Union on the field she is the deck's hammer.",
+          "summary": "The Heirs' finest weapon: it wakes when the Nexus takes shape.",
           "ui": {
             "face": "Entity"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
+            "power": "Power",
             "flux": "Flux"
           },
           "face": {
             "name": "First Blade",
-            "flavor": "The enemy front knows her by name.",
             "effect": {
               "name": "Effect",
-              "text": "For as long as you control the Union, the First Blade gets +2 Power and has Surge."
-            }
+              "text": "As long as you control the Nexus, the First Blade gets +2 Power and has Surge."
+            },
+            "flavor": "The enemy front knows her by name."
+          },
+          "matters": {
+            "dynamicTitle": "Dynamic Matter · 2nd grade",
+            "dynamicAria": "Dynamic"
           }
         }
       },
@@ -4830,7 +4760,8 @@
         "entity",
         "human",
         "dynamic",
-        "union"
+        "grade-2",
+        "nexus"
       ],
       "rulesReference": "MANUALE.md §7",
       "faces": [
@@ -4841,7 +4772,7 @@
           "race": "human",
           "stats": {
             "power": 3,
-            "fluxCost": 5
+            "fluxCost": 4
           },
           "enablesMatters": [
             {
@@ -4867,7 +4798,7 @@
                   "surge"
                 ],
                 "details": {
-                  "requiresUnion": true
+                  "requiresNexus": true
                 }
               }
             }
@@ -4889,20 +4820,24 @@
       "type": "matter",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Secondo Impeto",
           "typeLabel": "Materia Dinamica II",
-          "summary": "Il finisher del mazzo: un attacco in più quando il Fronte avversario è tappato.",
+          "summary": "Il turno in cui un solo corpo attacca due volte.",
           "ui": {
             "face": "Materia"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
-            "flux": "Flussi"
+            "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "permanent": "Permanente"
+            }
           },
           "face": {
             "name": "Secondo Impeto",
@@ -4920,14 +4855,18 @@
         "en": {
           "name": "Second Surge",
           "typeLabel": "Dynamic Matter II",
-          "summary": "The deck's finisher: one more attack while the opposing Front is tapped.",
+          "summary": "The turn where a single body attacks twice.",
           "ui": {
             "face": "Matter"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
-            "flux": "Flux"
+            "flux": "Flux",
+            "behaviors": {
+              "reactive": "Reactive",
+              "permanent": "Permanent"
+            }
           },
           "face": {
             "name": "Second Surge",
@@ -4946,7 +4885,8 @@
       "tags": [
         "matter",
         "dynamic",
-        "grade-2"
+        "grade-2",
+        "aggro"
       ],
       "rulesReference": "MANUALE.md §6.3, §7.1",
       "faces": [
@@ -4960,7 +4900,7 @@
           },
           "behavior": "normal",
           "stats": {
-            "fluxCost": 5
+            "fluxCost": 4
           },
           "enablesMatters": [],
           "keywords": [],
@@ -4998,13 +4938,13 @@
       "type": "matter",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Lacerazione",
           "typeLabel": "Materia Distruttiva II",
-          "summary": "La ferita che non si chiude: fragile con la bestia, eterna con l'Unione.",
+          "summary": "Alcune ferite non si chiudono: due punti a ogni tuo turno, finché la bestia resta in campo.",
           "ui": {
             "face": "Materia"
           },
@@ -5033,14 +4973,14 @@
         "en": {
           "name": "Laceration",
           "typeLabel": "Destructive Matter II",
-          "summary": "The wound that never closes: fragile with the beast, eternal with the Union.",
+          "summary": "Some wounds do not close: two points every turn of yours, as long as the beast stays out.",
           "ui": {
             "face": "Matter"
           },
           "card": {
-            "illustration": "Illustrazione",
-            "hp": "PV",
-            "flux": "Flussi",
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
               "permanent": "Permanent"
@@ -5049,13 +4989,13 @@
           "face": {
             "name": "Laceration",
             "effect": {
-              "name": "Effetto",
+              "name": "Effect",
               "text": "At the start of your turn, the opposing Rubyfront loses 2 HP."
             },
-            "flavor": "Some wounds never close."
+            "flavor": "Some wounds do not close."
           },
           "matters": {
-            "destructiveTitle": "Materia Distruttiva · 2nd grade",
+            "destructiveTitle": "Destructive Matter · 2nd grade",
             "destructiveAria": "Destructive"
           }
         }
@@ -5064,7 +5004,8 @@
         "matter",
         "destructive",
         "grade-2",
-        "permanent"
+        "permanent",
+        "burn"
       ],
       "rulesReference": "MANUALE.md §7.2, §8.2",
       "faces": [
@@ -5078,7 +5019,7 @@
           },
           "behavior": "permanent",
           "stats": {
-            "fluxCost": 4
+            "fluxCost": 3
           },
           "enablesMatters": [],
           "keywords": [],
@@ -5121,7 +5062,7 @@
         "it": {
           "name": "Quiete",
           "typeLabel": "Materia Zero",
-          "summary": "Il primo annullamento del gioco: la risposta che spegne la risposta.",
+          "summary": "Un Flusso per spegnere la risposta avversaria nel mezzo della catena.",
           "ui": {
             "face": "Materia"
           },
@@ -5129,11 +5070,11 @@
             "illustration": "Illustrazione",
             "hp": "PV",
             "flux": "Flussi",
-            "unique": "Unica",
             "behaviors": {
               "reactive": "Reattiva",
               "permanent": "Permanente"
-            }
+            },
+            "unique": "Unica"
           },
           "face": {
             "name": "Quiete",
@@ -5151,7 +5092,7 @@
         "en": {
           "name": "Stillness",
           "typeLabel": "Zero Matter",
-          "summary": "The game's first negation: the answer that silences the answer.",
+          "summary": "One Flux to kill the opposing answer in mid-chain.",
           "ui": {
             "face": "Matter"
           },
@@ -5159,17 +5100,17 @@
             "illustration": "Illustration",
             "hp": "HP",
             "flux": "Flux",
-            "unique": "Unique",
             "behaviors": {
               "reactive": "Reactive",
               "permanent": "Permanent"
-            }
+            },
+            "unique": "Unique"
           },
           "face": {
             "name": "Stillness",
             "effect": {
               "name": "Effect",
-              "text": "Choose a Reactive Matter just played in the chain: when it would resolve, it fades and goes to the Abyss with no effect. The Flux spent is not returned."
+              "text": "Choose a Reactive Matter just played in the chain: when it would resolve, it vanishes and goes to the Abyss with no effect. The Flux spent is not refunded."
             },
             "flavor": "The void does not argue."
           },
@@ -5183,8 +5124,7 @@
         "matter",
         "zero",
         "reactive",
-        "counter",
-        "viatico"
+        "unique"
       ],
       "rulesReference": "MANUALE.md §7.2",
       "faces": [
@@ -5197,7 +5137,7 @@
           },
           "behavior": "reactive",
           "stats": {
-            "fluxCost": 2
+            "fluxCost": 1
           },
           "enablesMatters": [],
           "keywords": [],
@@ -5239,57 +5179,59 @@
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Archivista",
           "typeLabel": "Entità — Umano",
-          "summary": "Registra chi è passato oltre: più nomi nella Requiem, più pagine da leggere.",
+          "summary": "Scrive i nomi e li fa valere: un inno su corpo a due Flussi.",
           "ui": {
             "face": "Entità"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
+            "power": "Potenza",
             "flux": "Flussi"
           },
           "face": {
             "name": "Archivista",
-            "flavor": "Scrive i nomi di chi è passato oltre.",
-            "chronicle": {
-              "trigger": "Quando entra in campo",
-              "text": "Pesca una carta; se nella tua Zona di Requiem ci sono almeno 2 carte, pescane invece due."
-            }
+            "effect": {
+              "name": "Effetto",
+              "text": "Le tue altre Entità Umane prendono +1 Potenza."
+            },
+            "flavor": "Scrive i nomi di chi è passato oltre."
           }
         },
         "en": {
           "name": "Archivist",
           "typeLabel": "Entity — Human",
-          "summary": "She records those who passed beyond: more names in the Requiem, more pages to read.",
+          "summary": "He writes the names and makes them count: an anthem on a body for two Flux.",
           "ui": {
             "face": "Entity"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
+            "power": "Power",
             "flux": "Flux"
           },
           "face": {
             "name": "Archivist",
-            "flavor": "She writes the names of those who passed beyond.",
-            "chronicle": {
-              "trigger": "When she enters the field",
-              "text": "Draw a card; if there are at least 2 cards in your Requiem Zone, draw two instead."
-            }
+            "effect": {
+              "name": "Effect",
+              "text": "Your other Human Entities get +1 Power."
+            },
+            "flavor": "He writes the names of those who went on."
           }
         }
       },
       "tags": [
         "entity",
         "human",
-        "draw",
-        "requiem"
+        "anthem",
+        "aggro"
       ],
       "rulesReference": "MANUALE.md §6.2",
       "faces": [
@@ -5300,26 +5242,29 @@
           "race": "human",
           "stats": {
             "power": 1,
-            "fluxCost": 3
+            "fluxCost": 2
           },
           "enablesMatters": [],
           "keywords": [],
           "requirements": {},
           "triggers": [
             {
-              "id": "chronicle",
-              "displayKey": "chronicle",
-              "event": "on_enter_field",
+              "id": "standard",
+              "displayKey": "effect",
+              "event": "while_in_play",
               "effect": {
-                "type": "draw_card",
+                "type": "modify_power",
                 "target": {
-                  "controller": "controller"
+                  "cardType": "entity",
+                  "race": "human",
+                  "controller": "controller",
+                  "quantity": "all",
+                  "details": {
+                    "excludeSelf": true
+                  }
                 },
-                "count": 1,
-                "details": {
-                  "requiemThreshold": 2,
-                  "countAtThreshold": 2
-                }
+                "amount": 1,
+                "duration": "permanent"
               }
             }
           ],
@@ -5340,56 +5285,60 @@
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Veterana della Breccia",
           "typeLabel": "Entità — Umano",
-          "summary": "Il contrattacco che insegna: ogni caduto nemico vale una carta.",
+          "summary": "L’unica che insegna difendendo: ogni attaccante caduto vale una carta.",
           "ui": {
             "face": "Entità"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
-            "flux": "Flussi"
+            "power": "Potenza",
+            "flux": "Flussi",
+            "counterattack": "Contrattacco"
           },
           "face": {
             "name": "Veterana della Breccia",
-            "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti.",
             "lesson": {
               "trigger": "Quando contrattacca",
               "text": "Se l’attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
-            }
+            },
+            "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
           }
         },
         "en": {
           "name": "Breach Veteran",
           "typeLabel": "Entity — Human",
-          "summary": "The counterattack that teaches: every fallen enemy is worth a card.",
+          "summary": "The only one who teaches by defending: every fallen attacker is worth a card.",
           "ui": {
             "face": "Entity"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
-            "flux": "Flux"
+            "power": "Power",
+            "flux": "Flux",
+            "counterattack": "Counterattack"
           },
           "face": {
             "name": "Breach Veteran",
-            "flavor": "She has blocked more attacks than you have seen.",
             "lesson": {
-              "trigger": "When she counterattacks",
+              "trigger": "When it counterattacks",
               "text": "If the attacker dies in the clash, draw a card: the covering that follows is the price of the lesson."
-            }
+            },
+            "flavor": "She has blocked more attacks than you have seen."
           }
         }
       },
       "tags": [
         "entity",
         "human",
-        "defender"
+        "counterattack"
       ],
       "rulesReference": "MANUALE.md §6.3",
       "faces": [
@@ -5400,7 +5349,7 @@
           "race": "human",
           "stats": {
             "power": 2,
-            "fluxCost": 4,
+            "fluxCost": 3,
             "counterattack": 2
           },
           "enablesMatters": [],
@@ -5440,13 +5389,13 @@
       "type": "object",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Velo del Primo",
           "typeLabel": "Oggetto",
-          "summary": "La protezione del pezzo chiave: le Materie avversarie non lo trovano.",
+          "summary": "La protezione del corpo su cui hai investito: le Materie avversarie non lo trovano.",
           "ui": {
             "face": "Oggetto"
           },
@@ -5467,7 +5416,7 @@
         "en": {
           "name": "Veil of the First",
           "typeLabel": "Object",
-          "summary": "Protection for the key piece: opposing Matters cannot find it.",
+          "summary": "Protection for the body you invested in: opposing Matters cannot find it.",
           "ui": {
             "face": "Object"
           },
@@ -5489,8 +5438,7 @@
       "tags": [
         "object",
         "human",
-        "protection",
-        "viatico"
+        "protection"
       ],
       "rulesReference": "MANUALE.md §3.1",
       "faces": [
@@ -5498,7 +5446,9 @@
           "id": "object",
           "kind": "object",
           "displayKey": "face",
-          "stats": {},
+          "stats": {
+            "fluxCost": 1
+          },
           "enablesMatters": [],
           "keywords": [],
           "requirements": {},
@@ -5541,57 +5491,51 @@
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Corriere a Vapore",
           "typeLabel": "Entità — Umano",
-          "summary": "Il carburante del Lascito: colpisce, consegna e passa oltre, vivo.",
+          "summary": "Arriva prima della notizia: un Flusso, e attacca nel turno in cui entra.",
           "ui": {
             "face": "Entità"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
+            "power": "Potenza",
             "flux": "Flussi"
           },
           "face": {
             "name": "Corriere a Vapore",
             "keyword": {
               "name": "Slancio",
-              "rules": "può attaccare già nel turno in cui entra in campo"
+              "rules": "può attaccare nel turno in cui entra in campo"
             },
-            "flavor": "Arriva prima della notizia del suo arrivo.",
-            "relay": {
-              "trigger": "Alla fine del tuo turno",
-              "text": "Se ha attaccato in questo turno, puoi ritirarlo in Zona di Requiem, anche se è entrato in campo in questo turno."
-            }
+            "flavor": "Arriva prima della notizia del suo arrivo."
           }
         },
         "en": {
           "name": "Steam Courier",
           "typeLabel": "Entity — Human",
-          "summary": "The Bequest's fuel: he strikes, delivers and passes beyond, alive.",
+          "summary": "He arrives before the news does: one Flux, and he attacks the turn he enters.",
           "ui": {
             "face": "Entity"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
+            "power": "Power",
             "flux": "Flux"
           },
           "face": {
             "name": "Steam Courier",
             "keyword": {
               "name": "Surge",
-              "rules": "he may attack the very turn he enters the field"
+              "rules": "may attack the turn it enters the field"
             },
-            "flavor": "He arrives before word of his arrival.",
-            "relay": {
-              "trigger": "At the end of your turn",
-              "text": "If he attacked this turn, you may retire him to the Requiem Zone, even if he entered the field this turn."
-            }
+            "flavor": "He arrives before news of his arrival."
           }
         }
       },
@@ -5599,7 +5543,7 @@
         "entity",
         "human",
         "surge",
-        "requiem"
+        "aggro"
       ],
       "rulesReference": "MANUALE.md §8.1",
       "faces": [
@@ -5619,28 +5563,7 @@
             }
           ],
           "requirements": {},
-          "triggers": [
-            {
-              "id": "relay",
-              "displayKey": "relay",
-              "event": "on_turn_end",
-              "effect": {
-                "type": "retire",
-                "target": {
-                  "scope": "self"
-                },
-                "destination": {
-                  "zone": "requiem",
-                  "owner": "controller"
-                },
-                "details": {
-                  "optional": true,
-                  "requiresAttackedThisTurn": true,
-                  "overridesEntryTurnBan": true
-                }
-              }
-            }
-          ],
+          "triggers": [],
           "actions": []
         }
       ],
@@ -5658,13 +5581,13 @@
       "type": "matter",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Vessillo degli Eredi",
           "typeLabel": "Materia Dinamica I",
-          "summary": "L'inno del piano reso stoffa e asta: ogni Umano un passo più forte, finché sventola.",
+          "summary": "L’inno permanente: +1 a tutti gli Umani, +2 se la bestia è in campo.",
           "ui": {
             "face": "Materia"
           },
@@ -5681,7 +5604,7 @@
             "name": "Vessillo degli Eredi",
             "effect": {
               "name": "Effetto",
-              "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
+              "text": "Le tue Entità Umane prendono +1 Potenza; se il tuo Rubyfront è in campo, prendono invece +2."
             },
             "flavor": "Finché sventola, si avanza."
           },
@@ -5693,7 +5616,7 @@
         "en": {
           "name": "Banner of the Heirs",
           "typeLabel": "Dynamic Matter I",
-          "summary": "The plan's anthem made cloth and pole: every Human one step stronger, while it flies.",
+          "summary": "The permanent anthem: +1 to every Human, +2 while the beast is on the field.",
           "ui": {
             "face": "Matter"
           },
@@ -5710,9 +5633,9 @@
             "name": "Banner of the Heirs",
             "effect": {
               "name": "Effect",
-              "text": "Your Entities get +1 Power; if there are at least 4 cards in your Requiem Zone, they get +2 instead."
+              "text": "Your Human Entities get +1 Power; if your Rubyfront is on the field, they get +2 instead."
             },
-            "flavor": "While it flies, they advance."
+            "flavor": "While it flies, we advance."
           },
           "matters": {
             "dynamicTitle": "Dynamic Matter · 1st grade",
@@ -5725,8 +5648,7 @@
         "dynamic",
         "grade-1",
         "permanent",
-        "anthem",
-        "requiem"
+        "anthem"
       ],
       "rulesReference": "MANUALE.md §7.2",
       "faces": [
@@ -5740,7 +5662,7 @@
           },
           "behavior": "permanent",
           "stats": {
-            "fluxCost": 4
+            "fluxCost": 3
           },
           "enablesMatters": [],
           "keywords": [],
@@ -5754,14 +5676,14 @@
                 "type": "modify_power",
                 "target": {
                   "cardType": "entity",
+                  "race": "human",
                   "controller": "controller",
                   "quantity": "all"
                 },
                 "amount": 1,
                 "duration": "permanent",
                 "details": {
-                  "requiemThreshold": 4,
-                  "amountAtThreshold": 2
+                  "amountWithRubyfrontDeployed": 2
                 }
               }
             }
@@ -5783,66 +5705,66 @@
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 2,
+      "deckLimit": 3,
       "defaultLocale": "it",
       "locales": {
         "it": {
           "name": "Vendicatrice d’Acciaio",
           "typeLabel": "Entità — Umano",
-          "summary": "La Vendetta ha sempre un nome: più forte da quando qualcuno dei suoi è passato oltre.",
+          "summary": "A un Flusso: con la bestia in campo è un 3 che uccide chi la attacca.",
           "ui": {
             "face": "Entità"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
+            "power": "Potenza",
             "flux": "Flussi"
           },
           "face": {
             "name": "Vendicatrice d’Acciaio",
             "keyword": {
               "name": "Vendetta",
-              "rules": "se blocca con Potenza superiore all’attaccante, l’attaccante muore"
+              "rules": "se blocca con Potenza superiore, l’attaccante muore"
             },
-            "flavor": "Colpiscila, se osi. Poi corri.",
             "effect": {
               "name": "Effetto",
-              "text": "Finché nella tua Zona di Requiem c’è almeno una carta, la Vendicatrice prende +1 Potenza."
-            }
+              "text": "Finché il tuo Rubyfront è in campo, la Vendicatrice prende +1 Potenza."
+            },
+            "flavor": "Colpiscila, se osi. Poi corri."
           }
         },
         "en": {
           "name": "Steel Avenger",
           "typeLabel": "Entity — Human",
-          "summary": "Vengeance always has a name: stronger since one of her own passed beyond.",
+          "summary": "For one Flux: with the beast on the field she is a 3 that kills whoever attacks her.",
           "ui": {
             "face": "Entity"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
+            "power": "Power",
             "flux": "Flux"
           },
           "face": {
             "name": "Steel Avenger",
             "keyword": {
               "name": "Vengeance",
-              "rules": "if she blocks with higher Power, the attacker dies"
+              "rules": "if it blocks with greater Power, the attacker dies"
             },
-            "flavor": "Strike her if you dare. Then run.",
             "effect": {
               "name": "Effect",
-              "text": "For as long as there is at least one card in your Requiem Zone, the Avenger gets +1 Power."
-            }
+              "text": "As long as your Rubyfront is on the field, the Avenger gets +1 Power."
+            },
+            "flavor": "Strike her, if you dare. Then run."
           }
         }
       },
       "tags": [
         "entity",
         "human",
-        "vengeance",
-        "defender",
-        "requiem"
+        "vengeance"
       ],
       "rulesReference": "MANUALE.md §8.1",
       "faces": [
@@ -5853,7 +5775,7 @@
           "race": "human",
           "stats": {
             "power": 2,
-            "fluxCost": 2
+            "fluxCost": 1
           },
           "enablesMatters": [],
           "keywords": [
@@ -5875,7 +5797,7 @@
                 "amount": 1,
                 "duration": "permanent",
                 "details": {
-                  "requiemThreshold": 1
+                  "requiresRubyfrontDeployed": true
                 }
               }
             }
@@ -5899,11 +5821,11 @@
       "locales": {
         "it": {
           "name": "Primi Eredi",
-          "description": "Mazzo Umani di controllo e scalata: sopravvivere fino a metà partita, compiere l'Unione con il Viatico di Adam e chiudere nella finestra di dominio che segue."
+          "description": "Mazzo Umani aggro: corpi a costo bassissimo dal primo turno, due inni che li ingrandiscono e un Rubyfront che non combatte ma spinge. Il Nexus si accende quando l'avversario ha perso almeno 6 PV."
         },
         "en": {
           "name": "First Heirs",
-          "description": "A Human control-and-climb deck: survive to midgame, fulfil the Union through Adam's Viaticum and close in the window of dominance that follows."
+          "description": "A Human aggro deck: dirt-cheap bodies from turn one, two anthems to grow them and a Rubyfront that does not fight but pushes. The Nexus ignites once the opponent has lost at least 6 HP."
         }
       },
       "designNotes": "primi-eredi.md",
@@ -5911,6 +5833,50 @@
         {
           "card": "RBF-001",
           "count": 1
+        },
+        {
+          "card": "RBF-021",
+          "count": 3
+        },
+        {
+          "card": "RBF-009",
+          "count": 3
+        },
+        {
+          "card": "RBF-023",
+          "count": 3
+        },
+        {
+          "card": "RBF-010",
+          "count": 3
+        },
+        {
+          "card": "RBF-007",
+          "count": 3
+        },
+        {
+          "card": "RBF-012",
+          "count": 3
+        },
+        {
+          "card": "RBF-018",
+          "count": 3
+        },
+        {
+          "card": "RBF-004",
+          "count": 3
+        },
+        {
+          "card": "RBF-006",
+          "count": 3
+        },
+        {
+          "card": "RBF-022",
+          "count": 3
+        },
+        {
+          "card": "RBF-016",
+          "count": 3
         },
         {
           "card": "RBF-002",
@@ -5921,79 +5887,11 @@
           "count": 1
         },
         {
-          "card": "RBF-017",
-          "count": 1
-        },
-        {
-          "card": "RBF-008",
-          "count": 2
-        },
-        {
-          "card": "RBF-021",
-          "count": 2
-        },
-        {
-          "card": "RBF-009",
-          "count": 2
-        },
-        {
-          "card": "RBF-010",
-          "count": 2
-        },
-        {
-          "card": "RBF-023",
-          "count": 2
-        },
-        {
-          "card": "RBF-013",
-          "count": 2
-        },
-        {
-          "card": "RBF-011",
-          "count": 2
-        },
-        {
-          "card": "RBF-012",
-          "count": 2
-        },
-        {
-          "card": "RBF-018",
-          "count": 2
-        },
-        {
-          "card": "RBF-004",
-          "count": 2
-        },
-        {
-          "card": "RBF-006",
-          "count": 2
-        },
-        {
-          "card": "RBF-019",
-          "count": 2
-        },
-        {
-          "card": "RBF-016",
-          "count": 2
-        },
-        {
-          "card": "RBF-022",
-          "count": 2
-        },
-        {
           "card": "RBF-014",
           "count": 2
         },
         {
           "card": "RBF-015",
-          "count": 2
-        },
-        {
-          "card": "RBF-007",
-          "count": 2
-        },
-        {
-          "card": "RBF-020",
           "count": 2
         }
       ],

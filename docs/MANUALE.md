@@ -30,7 +30,7 @@ Ogni giocatore ha il **proprio Rubyfront** nel mazzo (vedi §3.1), che inizia la
 Si vince in uno di questi due modi:
 
 1. portando a **zero i Punti Vita (PV) del Rubyfront avversario**, oppure
-2. **distruggendo l'Unione** del Rubyfront avversario, cioè portando a zero i PV dell'Unione, se l'avversario l'ha giocata (vedi §3.1, "L'Unione").
+2. **distruggendo il Nexus** del Rubyfront avversario, cioè portando a zero i PV del Nexus, se l'avversario l'ha giocato (vedi §3.1, "Il Nexus").
 
 ## 3. Materiale di gioco
 
@@ -39,7 +39,7 @@ Si vince in uno di questi due modi:
 - Ogni giocatore ha un **mazzo personale di 40 carte, Rubyfront incluso** (esattamente **un** Rubyfront per mazzo). Il mazzo contiene tutte le carte del giocatore: Entità, Materie e Oggetti (non esistono riserve separate).
 - Il **Rubyfront non si pesca mai**: all'inizio della partita viene messo direttamente nella **Zona di Richiamo** (vedi §5).
 
-Le carte con una razza si chiamano **Entità** (non "creature"). Ogni Entità appartiene a una **razza**: **Umani** o **Auros** (il Rubyfront è a sé). Per giocare Entità e Materie bisogna **spendere Flusso** pari al loro costo (gli Oggetti sono gratuiti, vedi sotto).
+Le carte con una razza si chiamano **Entità** (non "creature"). Ogni Entità appartiene a una **razza**: **Umani** o **Auros** (il Rubyfront è a sé). Per giocare una carta — **Entità, Materia od Oggetto** — bisogna **spendere Flusso** pari al costo stampato sulla carta.
 
 #### Anatomia di una carta Entità
 
@@ -61,15 +61,15 @@ Le **Materie** sono le carte magia/evento del gioco (vedi §7).
 
 Gli **Oggetti** sono carte che si **assegnano a un'Entità**:
 
-- **non hanno mai un costo di Flusso**;
+- **hanno un costo di Flusso**, come Entità e Materie: si paga al momento dell'assegnazione (§6.2), e come ogni altra carta non scende sotto **1** (§3.2);
 - ogni Entità può avere **al massimo un Oggetto** assegnato;
 - si assegnano **solo alle proprie Entità**, salvo diversa indicazione sulla carta;
 - **non si assegnano a un'Entità coperta** (§6.3): l'Entità coperta è intoccabile anche per il proprietario. L'Oggetto che aveva **già** assegnato, però, le rimane;
-- **non si assegnano al Rubyfront né all'Unione** (non sono Entità), salvo diversa indicazione sulla carta;
+- **non si assegnano al Rubyfront né al Nexus** (non sono Entità), salvo diversa indicazione sulla carta;
 - una volta assegnato, l'Oggetto **non può essere spostato né sostituito**;
 - quando l'Entità lascia il campo, l'Oggetto **la segue**: va nell'**Abisso** — o in **Zona di Requiem**, se l'Entità è stata ritirata (§6.2).
 
-Il mazzo **può mischiare le razze** liberamente. Si possono avere al massimo **2 copie della stessa carta** nel mazzo; le carte **Uniche** — contrassegnate dal **simbolo dell'Unica accanto al nome** — ammettono **una sola copia**.
+Il mazzo **può mischiare le razze** liberamente. Si possono avere al massimo **3 copie della stessa carta** nel mazzo; le carte **Uniche** — contrassegnate dal **simbolo dell'Unica accanto al nome** — ammettono **una sola copia**.
 
 #### Il Rubyfront come carta
 
@@ -111,25 +111,25 @@ Il Rubyfront, quando entra in campo, **non attacca** e **non blocca** (salvo div
 
 - usare le sue **abilità speciali** (pagandone il costo in PV) — attivabili **liberamente, solo nel proprio turno**, sia in Fase di Preparazione che in Fase di Fronte. La stessa abilità è attivabile **più volte per turno**, finché i PV bastano. Si risolvono **senza possibilità di risposta** (la catena vale solo per le Reattive). Un'abilità è attivabile **solo se i PV coprono l'intero costo** (PV ≥ costo): i PV non scendono mai sotto 0. **Attenzione:** pagare fino a 0 esatto è legale, ma a 0 PV si perde **immediatamente** la partita — l'effetto dell'abilità **non si risolve**;
 - usare le **Materie** a lui disponibili;
-- **triggerare l'Unione**, quando i requisiti sono soddisfatti (vedi "L'Unione", più sotto).
+- **triggerare il Nexus**, quando i requisiti sono soddisfatti (vedi "Il Nexus", più sotto).
 
 I PV sono quindi una risorsa a doppio taglio: sono la condizione di sconfitta, ma anche la valuta con cui il Rubyfront paga le proprie abilità speciali.
 
-#### L'Unione
+#### Il Nexus
 
-La carta del Rubyfront ha **due facce**: una è il **Rubyfront**, l'altra è la sua **Unione** — l'evoluzione del Rubyfront.
+La carta del Rubyfront ha **due facce**: una è il **Rubyfront**, l'altra è il suo **Nexus** — l'evoluzione del Rubyfront.
 
 - **Come si gioca:** si **flippa** la carta del Rubyfront sull'altra faccia. Requisiti e condizioni:
-  - i **requisiti** per il flip sono scritti sulla carta stessa e vanno soddisfatti **al momento del flip**: una volta giocata, l'Unione resta in campo anche se i requisiti smettono in seguito di essere veri;
+  - i **requisiti** per il flip sono scritti sulla carta stessa e vanno soddisfatti **al momento del flip**: una volta giocato, il Nexus resta in campo anche se i requisiti smettono in seguito di essere veri;
   - il **Rubyfront dev'essere in campo** (non si flippa dalla Zona di Richiamo);
   - soddisfatti i requisiti, il flip si può fare in qualsiasi momento del proprio turno, **dalla Fase di Preparazione fino alla fine del turno** (stessa finestra del movimento del Rubyfront, §3.1), e non ha altri costi.
-- **PV recuperati:** la faccia dell'Unione indica un **recupero di PV** (es. `+5`): l'Unione parte con i **PV rimasti al Rubyfront più il recupero indicato**.
-- **Permanenza:** l'Unione **sostituisce il Rubyfront** e **rimane in campo per tutta la durata della partita**, salvo diverse indicazioni sulle carte. **Non torna mai in Zona di Richiamo**: quando un attacco le passa, subisce il danno e resta in campo.
-- **Flip, effetti e Materie:** il flip **non è una nuova entrata in campo**: non innesca gli effetti "quando giochi una carta/Entità" e, ai fini dell'ordine di risoluzione (§8.2), la carta conserva l'età dello schieramento del Rubyfront. Dal momento del flip **si attiva l'effetto indicato sulla faccia dell'Unione**. Le Materie abilitate sono **quelle stampate sulla faccia dell'Unione** (nessuna eredità dal Rubyfront): le Materie permanenti dei tipi che l'Unione continua ad abilitare **sopravvivono al flip senza interruzione**; quelle dei tipi non più abilitati vanno nell'**Abisso**.
+- **PV recuperati:** la faccia del Nexus indica un **recupero di PV** (es. `+5`): il Nexus parte con i **PV rimasti al Rubyfront più il recupero indicato**.
+- **Permanenza:** il Nexus **sostituisce il Rubyfront** e **rimane in campo per tutta la durata della partita**, salvo diverse indicazioni sulle carte. **Non torna mai in Zona di Richiamo**: quando un attacco gli passa, subisce il danno e resta in campo.
+- **Flip, effetti e Materie:** il flip **non è una nuova entrata in campo**: non innesca gli effetti "quando giochi una carta/Entità" e, ai fini dell'ordine di risoluzione (§8.2), la carta conserva l'età dello schieramento del Rubyfront. Dal momento del flip **si attiva l'effetto indicato sulla faccia del Nexus**. Le Materie abilitate sono **quelle stampate sulla faccia del Nexus** (nessuna eredità dal Rubyfront): le Materie permanenti dei tipi che il Nexus continua ad abilitare **sopravvivono al flip senza interruzione**; quelle dei tipi non più abilitati vanno nell'**Abisso**.
 - **Com'è fatta:** ha la stessa struttura del Rubyfront — PV, **Materie disponibili proprie** (stampate sulla sua faccia) e **abilità speciali**, chiaramente **più potenti**. Come il Rubyfront, **non attacca e non blocca** (salvo diversa indicazione sulla carta).
-- **Nessuna eredità di abilità:** come per le Materie, anche le **abilità** (principale e speciali) dell'Unione sono **solo quelle stampate sulla sua faccia**. L'abilità principale del Rubyfront **non passa** all'Unione: se la faccia dell'Unione non ne riporta una, l'Unione **non ha abilità principale** (un'Unione può quindi essere libera dalla Furia del suo Rubyfront, o averne una propria).
-- **Distruzione = sconfitta:** portare a **0 i PV dell'Unione** significa distruggerla — è la condizione di vittoria n. 2 (§2).
-- **Regola generale:** dopo il flip, **ogni regola di questo manuale che nomina il Rubyfront si applica identica all'Unione** (bersaglio degli attacchi, danni da attacchi non bloccati, abilità speciali solo nel proprio turno, Materie abilitate...), salvo dove diversamente indicato.
+- **Nessuna eredità di abilità:** come per le Materie, anche le **abilità** (principale e speciali) del Nexus sono **solo quelle stampate sulla sua faccia**. L'abilità principale del Rubyfront **non passa** al Nexus: se la faccia del Nexus non ne riporta una, il Nexus **non ha abilità principale** (un Nexus può quindi essere libero dalla Furia del suo Rubyfront, o averne una propria).
+- **Distruzione = sconfitta:** portare a **0 i PV del Nexus** significa distruggerlo — è la condizione di vittoria n. 2 (§2).
+- **Regola generale:** dopo il flip, **ogni regola di questo manuale che nomina il Rubyfront si applica identica al Nexus** (bersaglio degli attacchi, danni da attacchi non bloccati, abilità speciali solo nel proprio turno, Materie abilitate...), salvo dove diversamente indicato.
 
 ### 3.2 Il Flusso
 
@@ -141,6 +141,8 @@ Il **Flusso** è la risorsa con cui si pagano le carte, al posto del classico ma
 - il Flusso speso **si ricarica interamente all'inizio del proprio turno**;
 - nel **turno avversario** si ha a disposizione il Flusso **non speso** rimasto dal proprio turno (es. per giocare Materie Reattive in difesa): tenersi Flusso da parte è una scelta strategica;
 - **limite assoluto: 20 Flussi.** Il Flusso non può mai superare 20 in nessun modo: anche canalizzando (vedi §6.1) a 20 Flussi, non si arriva a 21. Unica cosa che vive fuori dalla barra: il **Gettone Flusso** (vedi sotto).
+
+**Costo minimo: 1 Flusso.** Nessuna carta del gioco — Entità, Materia od Oggetto — costa meno di **1**: non esistono carte gratuite. Giocare qualsiasi cosa consuma sempre almeno un punto della barra, e questo è ciò che rende il Flusso un vero ritmo di partita: il primo turno concede **una** giocata, non un numero libero di carte a costo zero.
 
 **Costi di Flusso definiti dalle carte:** oltre a pagare la giocata delle carte, il Flusso può comparire come **costo di abilità o effetti**, quando una carta lo prevede espressamente (regola d'oro, §1.1). Si paga dalla propria barra, alle stesse condizioni di ogni altra spesa di Flusso, e nelle finestre indicate dalla carta.
 
@@ -186,10 +188,10 @@ Dichiarata dal giocatore al termine della Canalizzazione. In questa fase si iniz
 
 - **giocare Entità** (pagandone il costo di Flusso);
 - **giocare Materie** normali e permanenti (le Reattive si giocano solo in Fase di Fronte, §7.2);
-- **assegnare Oggetti** (carte Oggetto) alle Entità — massimo **un Oggetto per Entità**;
+- **assegnare Oggetti** (carte Oggetto) alle Entità, pagandone il costo di Flusso — massimo **un Oggetto per Entità**;
 - **ritirare** le proprie Entità dal Fronte (vedi "Ritiro", più sotto).
 
-**Non c'è limite al numero di carte giocabili** nella fase: il solo vincolo è il Flusso disponibile (gli Oggetti, che sono gratuiti, non hanno alcun limite di giocata).
+**Non c'è limite al numero di carte giocabili** nella fase: il solo vincolo è il Flusso disponibile — **Oggetti compresi**, che si pagano come ogni altra carta.
 
 Sul Fronte si possono avere **al massimo 5 Entità contemporaneamente** — i **5 slot** del Fronte (§5). Nel limite contano **solo le Entità**: il **Rubyfront** non occupa slot (schierato, sta davanti agli slot), le **Materie permanenti** stanno dietro gli slot e **non hanno limite di numero** (il solo vincolo è l'abilitazione, §7), gli **Oggetti** sono assegnati alle Entità e non occupano slot.
 
@@ -207,7 +209,7 @@ Il giocatore può **ritirare** le proprie Entità dal Fronte: l'Entità ritirata
 - **Oggetto assegnato:** segue la sua Entità (§3.1) — va anch'esso in **Zona di Requiem**.
 - **Abilitazione delle Materie:** l'Entità ritirata smette di abilitare i suoi tipi di Materia. Se era l'ultima ad abilitare un tipo, l'accesso si perde e le Materie permanenti di quel tipo vanno nell'Abisso (§7.2). Ritirare senza controllare cosa si sta abilitando è un errore costoso.
 - **Un'Entità coperta non può essere ritirata** (§6.3): la copertura la rende intoccabile anche per il proprietario. Un'Entità **tappata** o **in stasi** (§8.1), invece, si ritira normalmente.
-- Il **Rubyfront non si ritira**: non è un'Entità e non occupa uno slot. Per toglierlo dal campo si usa il richiamo in Zona di Richiamo (§3.1), che è cosa diversa. L'**Unione**, una volta in campo, non lascia mai il campo (§3.1).
+- Il **Rubyfront non si ritira**: non è un'Entità e non occupa uno slot. Per toglierlo dal campo si usa il richiamo in Zona di Richiamo (§3.1), che è cosa diversa. Il **Nexus**, una volta in campo, non lascia mai il campo (§3.1).
 
 **Attesa di evocazione:** un'Entità appena entrata in campo **non può attaccare nel turno in cui entra**; deve aspettare il turno successivo. Può però già **bloccare** nel turno avversario che segue.
 
@@ -371,7 +373,7 @@ Ogni carta Materia ha una **descrizione con un effetto**. In base alla dicitura 
 - Si può rispondere **solo con Materie Reattive**.
 - Chi ha lanciato può a sua volta **controrispondere**, e così via: la catena prosegue finché i giocatori possono e vogliono aggiungere Reattive. L'alternanza è **stretta**: dopo ogni Reattiva può giocare solo l'**avversario** di chi l'ha lanciata — non si possono mettere due proprie Reattive di fila sulla stessa catena.
 - Quando il giocatore a cui tocca rispondere **passa**, la catena **si risolve in ordine inverso**: l'**ultima** Materia giocata si risolve **per prima**, poi via via indietro fino alla prima. Risolta la catena, chi ne ha la finestra può eventualmente iniziarne una nuova.
-- **La catena è atomica:** dal primo lancio alla risoluzione completa non si compiono altre azioni. In particolare, **il movimento del Rubyfront e il flip verso l'Unione non possono avvenire a metà catena** (§3.1). Restano invece possibili in catena: l'uso del **Gettone Flusso** (§3.2, serve proprio a pagare le Reattive) e gli eventi **automatici**, come il ritorno immediato del Rubyfront che perde PV per una Reattiva avversaria risolta (§3.1).
+- **La catena è atomica:** dal primo lancio alla risoluzione completa non si compiono altre azioni. In particolare, **il movimento del Rubyfront e il flip verso il Nexus non possono avvenire a metà catena** (§3.1). Restano invece possibili in catena: l'uso del **Gettone Flusso** (§3.2, serve proprio a pagare le Reattive) e gli eventi **automatici**, come il ritorno immediato del Rubyfront che perde PV per una Reattiva avversaria risolta (§3.1).
 - **L'abilitazione si ricontrolla alla risoluzione:** se, quando una Reattiva in catena deve risolversi, il suo giocatore non ha più in campo una carta che abiliti quel tipo al grado richiesto (es. una risposta ha eliminato l'abilitatore), la Reattiva **svanisce** — va nell'Abisso senza alcun effetto, e il Flusso resta speso.
 
 ## 8. Abilità ed effetti delle carte
@@ -386,18 +388,18 @@ L'**abilità principale** del Rubyfront funziona allo stesso modo: è una parola
 
 ##### Furia
 
-Una carta con **Furia** non può essere **controllata direttamente** dal suo proprietario. **Furia è esclusiva del Rubyfront e dell'Unione**: compare solo come loro abilità principale — le Entità **non possono averla**.
+Una carta con **Furia** non può essere **controllata direttamente** dal suo proprietario. **Furia è esclusiva del Rubyfront e del Nexus**: compare solo come loro abilità principale — le Entità **non possono averla**.
 
 **Prima di qualsiasi azione** che coinvolga la carta con Furia, il proprietario **lancia un d20**. Le azioni soggette al tiro sono: usare una Materia **attribuita** alla carta con Furia (§7: se un'altra carta senza Furia abilita lo stesso tipo al grado richiesto, il giocatore può attribuire la Materia a quella ed evitare il tiro) e usare un'**abilità speciale**.
 
-**Il movimento del Rubyfront non è mai soggetto al tiro:** schierarsi e tornare in Zona di Richiamo (volontariamente o automaticamente dopo un colpo dell'avversario) avvengono sempre senza d20. **Nemmeno il flip verso l'Unione richiede il tiro** (§3.1): girare la carta non è un'azione soggetta a Furia.
+**Il movimento del Rubyfront non è mai soggetto al tiro:** schierarsi e tornare in Zona di Richiamo (volontariamente o automaticamente dopo un colpo dell'avversario) avvengono sempre senza d20. **Nemmeno il flip verso il Nexus richiede il tiro** (§3.1): girare la carta non è un'azione soggetta a Furia.
 
 Esito del tiro:
 
 - con **12 o più**, l'azione **va a buon fine**;
 - con **11 o meno**, l'azione **fallisce** e si perde il **valore X indicato sulla carta** accanto a Furia.
 
-**Al fallimento la Furia si ritorce contro il proprietario:** l'azione salta, i costi già pagati restano pagati e il Rubyfront (o l'Unione) perde gli X PV del fallimento — perdita **autoinflitta**: se il Rubyfront è in campo, **non** fa scattare il ritorno in Zona di Richiamo (§3.1), resta in campo. Nel dettaglio:
+**Al fallimento la Furia si ritorce contro il proprietario:** l'azione salta, i costi già pagati restano pagati e il Rubyfront (o il Nexus) perde gli X PV del fallimento — perdita **autoinflitta**: se il Rubyfront è in campo, **non** fa scattare il ritorno in Zona di Richiamo (§3.1), resta in campo. Nel dettaglio:
 
 - **Materia fallita:** va nell'**Abisso** e il Flusso resta speso;
 - **abilità speciale fallita:** non si risolve; il costo in PV resta pagato, oltre alla perdita di X PV per il fallimento.
@@ -432,7 +434,7 @@ Gli **effetti** sono il testo nella descrizione della carta (es. l'effetto che s
 
 #### Danno ed Entità
 
-**Il danno esiste solo per Rubyfront e Unione:** sono le uniche carte con PV, e subire danno significa perdere PV (con ritorno immediato in Zona di Richiamo se il Rubyfront è in campo e la perdita è inflitta dall'avversario, §3.1). **Le Entità non subiscono mai danno:** un effetto che "infligge N danni" non può bersagliarle — i suoi bersagli possibili sono solo Rubyfront e Unione (propri o avversari, per estensione massima §1.2). Le carte che agiscono sulle Entità usano diciture esplicite: "distruggi...", riduzioni di Potenza, ecc.
+**Il danno esiste solo per Rubyfront e Nexus:** sono le uniche carte con PV, e subire danno significa perdere PV (con ritorno immediato in Zona di Richiamo se il Rubyfront è in campo e la perdita è inflitta dall'avversario, §3.1). **Le Entità non subiscono mai danno:** un effetto che "infligge N danni" non può bersagliarle — i suoi bersagli possibili sono solo Rubyfront e Nexus (propri o avversari, per estensione massima §1.2). Le carte che agiscono sulle Entità usano diciture esplicite: "distruggi...", riduzioni di Potenza, ecc.
 
 #### Modifiche alla Potenza
 
@@ -467,7 +469,7 @@ La risoluzione di un effetto può generare **nuovi eventi** (una morte, un ingre
 
 Se il mazzo finisce, **si perde**: il giocatore pesca l'**ultima carta** del mazzo, gioca **quel turno per intero**, e al termine del turno **ha perso la partita**.
 
-L'ultimo turno è una vera ultima possibilità: se durante quel turno il giocatore soddisfa una condizione di vittoria (PV del Rubyfront avversario a 0 o Unione avversaria distrutta), **vince lui** — la sconfitta per esaurimento scatta solo a fine turno.
+L'ultimo turno è una vera ultima possibilità: se durante quel turno il giocatore soddisfa una condizione di vittoria (PV del Rubyfront avversario a 0 o Nexus avversario distrutto), **vince lui** — la sconfitta per esaurimento scatta solo a fine turno.
 
 **Il diritto all'ultimo turno vale solo se l'ultima carta viene pescata durante il proprio turno** (con la pesca di Canalizzazione o per effetto): si completa quel turno e si perde al suo termine. Se invece l'ultima carta viene pescata **nel turno avversario** (es. un effetto avversario che fa pescare), non c'è ultimo turno: il giocatore **ha perso direttamente** quando inizierebbe il suo turno successivo.
 
@@ -478,19 +480,20 @@ L'ultimo turno è una vera ultima possibilità: se durante quel turno il giocato
 Il pareggio esiste in due soli casi:
 
 - **di comune accordo**, dichiarato da entrambi i giocatori;
-- **automatico**, se entrambi i giocatori arrivano a **0 PV nello stesso momento** (es. un unico effetto che azzera i PV di entrambi i Rubyfront/Unioni): la partita è patta.
+- **automatico**, se entrambi i giocatori arrivano a **0 PV nello stesso momento** (es. un unico effetto che azzera i PV di entrambi i Rubyfront/Nexus): la partita è patta.
 
 ### 9.3 Riepilogo dei limiti
 
 - Massimo **7 carte in mano** (l'eccesso si scarta a fine turno, §6.4).
 - Massimo **5 Entità sul Fronte** (i 5 slot; Rubyfront e Materie permanenti non contano, §6.2).
-- Massimo **2 copie** della stessa carta nel mazzo — **una sola** se la carta è **Unica** (§3.1).
+- Massimo **3 copie** della stessa carta nel mazzo — **una sola** se la carta è **Unica** (§3.1).
 - Massimo **20 Flussi** (§3.2). Il Gettone Flusso è fuori dal limite: è un punto a parte.
+- Costo **minimo 1 Flusso** per qualsiasi carta (§3.2): non esistono carte gratuite.
 
 ## 10. Glossario
 
 - **Entità** — carta con una razza (Umani o Auros). È il termine ufficiale: non si usa "creatura".
-- **Rubyfront** — la bestia di ogni giocatore; parte nella Zona di Richiamo. Portare a zero i suoi PV (o distruggerne l'Unione) fa perdere il suo proprietario.
+- **Rubyfront** — la bestia di ogni giocatore; parte nella Zona di Richiamo. Portare a zero i suoi PV (o distruggerne il Nexus) fa perdere il suo proprietario.
 - **Flusso** — la risorsa per giocare le carte. Cresce +1 a turno, si ricarica a inizio turno, massimo 20.
 - **Gettone Flusso** — gettone monouso da +1 Flusso dato a chi non inizia la partita, utilizzabile in qualsiasi momento; è fuori dal limite dei 20 Flussi.
 - **Canalizzazione** — scartare una carta dalla mano (va nell'Abisso) per ottenere +1 Flusso per il turno in corso (max 1 a turno).
@@ -500,13 +503,13 @@ Il pareggio esiste in due soli casi:
 - **Abisso** — la zona delle carte morte o consumate: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti di Entità morte, carte scartate o canalizzate dalla mano. È pubblico.
 - **Zona di Requiem** — la zona delle carte ancora "vive" uscite dal gioco: le Entità ritirate (§6.2) o mandate lì da effetti, e i loro Oggetti. Funziona come l'Abisso, ma distingue ciò che non è mai morto; gli effetti che nominano una delle due zone non toccano l'altra.
 - **Potenza** — statistica unica di un'Entità. Modificabile da effetti, non scende mai sotto 0; a Potenza 0 l'Entità resta in campo.
-- **Danno** — perdita di PV: possono subirlo solo Rubyfront e Unione. Le Entità non subiscono mai danno (le carte che le colpiscono usano diciture esplicite come "distruggi").
+- **Danno** — perdita di PV: possono subirlo solo Rubyfront e Nexus. Le Entità non subiscono mai danno (le carte che le colpiscono usano diciture esplicite come "distruggi").
 - **Materia** — carta magia/evento, giocabile solo se un tipo corrispondente è abilitato da una carta in campo. Tre comportamenti: normale, permanente, Reattiva.
 - **Materia Reattiva** — Materia giocabile solo in Fase di Fronte; innesca la catena di risposta (risoluzione in ordine inverso).
 - **Pre-Fronte** — finestra a inizio Fase di Fronte in cui l'avversario può giocare Materie Reattive prima della dichiarazione d'attacco.
-- **Oggetto** — carta senza costo di Flusso che si assegna a un'Entità (max 1 per Entità).
+- **Oggetto** — carta con un costo di Flusso che si assegna a un'Entità (max 1 per Entità), pagandolo in Fase di Preparazione.
 - **Abilità** — parola chiave con regole predefinite da questo manuale (vedi §8.1).
-- **Furia** — abilità esclusiva del Rubyfront/Unione: prima di ogni sua azione (Materie attribuite, abilità speciali — movimento e flip esclusi) serve un d20 ≥12; al fallimento l'azione salta e si perde il valore X indicato sulla carta (perdita autoinflitta: nessun ritorno in Zona di Richiamo).
+- **Furia** — abilità esclusiva del Rubyfront/Nexus: prima di ogni sua azione (Materie attribuite, abilità speciali — movimento e flip esclusi) serve un d20 ≥12; al fallimento l'azione salta e si perde il valore X indicato sulla carta (perdita autoinflitta: nessun ritorno in Zona di Richiamo).
 - **Slancio** — abilità: l'Entità può attaccare già nel turno in cui entra in campo (ignora l'attesa di evocazione). Riguarda solo l'attacco: non permette di essere ritirata nel turno d'ingresso.
 - **Stasi** — abilità: se bloccando dovrebbe morire, resta invece sul campo permanentemente tappata.
 - **Vendetta** — abilità: se blocca con Potenza superiore all'attaccante, l'attaccante muore anche senza contrattacco.
@@ -517,4 +520,4 @@ Il pareggio esiste in due soli casi:
 - **Tappata** — stato di un'Entità che ha attaccato o bloccato: non può né attaccare né bloccare; si stappa a inizio del turno successivo del proprietario.
 - **Coperta** — stato di un'Entità che ha contrattaccato: non può fare nulla, è intoccabile da qualsiasi effetto o Materia, anche avversari (niente Oggetti né Ritiro; l'Oggetto già assegnato le rimane) e non abilita le sue Materie, per un giro completo; poi si scopre.
 - **Fronte pronto** — dichiarazione con cui il giocatore di turno annuncia che attacca o passa.
-- **Unione** — la seconda faccia della carta Rubyfront, sua evoluzione: si gioca flippando il Rubyfront in campo (requisiti sulla carta), recupera PV, resta in campo per sempre. Distruggerla (PV a 0) fa perdere il proprietario.
+- **Nexus** — la seconda faccia della carta Rubyfront, sua evoluzione: si gioca flippando il Rubyfront in campo (requisiti sulla carta), recupera PV, resta in campo per sempre. Distruggerlo (PV a 0) fa perdere il proprietario.

@@ -1,21 +1,26 @@
 {
   "name": "Guardiano della Paratia",
   "typeLabel": "Entità — Umano",
-  "summary": "Il difensore degli Eredi: più i suoi sono passati oltre, più la soglia è invalicabile.",
+  "summary": "Un Flusso per un corpo che, quando muove per primo, colpisce come un 3.",
   "ui": {
     "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
     "name": "Guardiano della Paratia",
-    "flavor": "Nessuno passa. Non oggi.",
-    "warden": {
-      "trigger": "Quando blocca",
-      "text": "Prende +2 Potenza fino alla fine della battaglia; se nella tua Zona di Requiem ci sono almeno 3 carte, prende invece +4."
-    }
+    "hammer": {
+      "trigger": "Quando attacca",
+      "text": "Prende +2 Potenza fino alla fine della battaglia."
+    },
+    "flavor": "Nessuno passa. Non oggi."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

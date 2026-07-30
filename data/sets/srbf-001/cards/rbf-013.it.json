@@ -1,7 +1,7 @@
 {
   "name": "Riflesso",
   "typeLabel": "Materia Dinamica I",
-  "summary": "La velocità come scudo: un blocco dal nulla, letale sui piccoli.",
+  "summary": "Un blocco che costa un Flusso e si porta via gli attaccanti piccoli.",
   "ui": {
     "face": "Materia"
   },

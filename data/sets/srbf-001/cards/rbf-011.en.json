@@ -1,21 +1,22 @@
 {
   "name": "Emissary of the Heirs",
   "typeLabel": "Entity — Human",
-  "summary": "The plan's seeker: finds Adam, or whoever the cause requires.",
+  "summary": "Two arms on the field and a third on the way: the Heirs never leave a place empty.",
   "ui": {
     "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
     "name": "Emissary of the Heirs",
-    "flavor": "The First walks among us. I have seen him.",
     "herald": {
-      "trigger": "When he enters the field",
+      "trigger": "When it enters the field",
       "text": "Search your deck for a Human, reveal it to your opponent and add it to your hand, then shuffle your deck."
-    }
+    },
+    "flavor": "The First walks among us. I have seen him."
   }
 }

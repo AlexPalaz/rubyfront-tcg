@@ -107,13 +107,13 @@ function validateCard(card, where, set) {
   if (!Number.isInteger(card.deckLimit) || card.deckLimit <= 0) fail(where, "deckLimit deve essere un intero positivo");
   checkTerm("cardType", card.type, `${where}.type`);
 
-  // Regole di copia (MANUALE.md §3.1): massimo 2 copie, 1 per le Uniche.
+  // Regole di copia (MANUALE.md §3.1): massimo 3 copie, 1 per le Uniche.
   // Politica di set: ogni Materia Zero o Dominante è Unica.
   if (card.unique === true && card.deckLimit !== 1) {
     fail(where, "una carta Unica deve avere deckLimit 1 (§3.1)");
   }
-  if (card.unique !== true && card.type !== "rubyfront" && card.deckLimit > 2) {
-    fail(where, `deckLimit ${card.deckLimit} oltre il massimo di 2 copie (§3.1); serve la classificazione Unica per limiti diversi`);
+  if (card.unique !== true && card.type !== "rubyfront" && card.deckLimit > 3) {
+    fail(where, `deckLimit ${card.deckLimit} oltre il massimo di 3 copie (§3.1); serve la classificazione Unica per limiti diversi`);
   }
   for (const face of card.faces ?? []) {
     const matterType = face.matter?.type;
@@ -163,8 +163,8 @@ function validateCard(card, where, set) {
     }
 
     checkEffectTree(face.requirements, `${at}.requirements`);
-    for (const condition of face.requirements?.union?.conditions ?? []) {
-      checkTerm("condition", condition.type, `${at}.requirements.union`);
+    for (const condition of face.requirements?.nexus?.conditions ?? []) {
+      checkTerm("condition", condition.type, `${at}.requirements.nexus`);
     }
   }
 }

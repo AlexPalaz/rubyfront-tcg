@@ -7,7 +7,7 @@
   "type": "matter",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -16,7 +16,8 @@
   "tags": [
     "matter",
     "dynamic",
-    "grade-1"
+    "grade-1",
+    "aggro"
   ],
   "rulesReference": "MANUALE.md §7, §8.1",
   "faces": [
@@ -30,7 +31,7 @@
       },
       "behavior": "normal",
       "stats": {
-        "fluxCost": 3
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],
@@ -53,7 +54,7 @@
               "surge"
             ],
             "details": {
-              "powerBonusWithUnion": 4
+              "powerBonusWithNexus": 4
             }
           }
         }

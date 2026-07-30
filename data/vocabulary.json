@@ -7,7 +7,7 @@
     "Adding a value here is a design decision: it commits the engine to resolving it.",
     "Rules source: docs/MANUALE.md (Italian). Card terms map as:",
     "Flux=Flusso, HP=PV, Fury=Furia, Entity=Entita, Power=Potenza, Matter=Materia,",
-    "Union=Unione, Recall Zone=Zona di Richiamo, Front=Fronte, Abyss=Abisso,",
+    "Nexus=Nexus, Recall Zone=Zona di Richiamo, Front=Fronte, Abyss=Abisso,",
     "Requiem Zone=Zona di Requiem, Retire (to Requiem)=Ritiro (in Requiem)."
   ],
   "keyword": {
@@ -31,6 +31,7 @@
       "on_turn_end",
       "on_resolve",
       "while_assigned",
+      "on_attack",
       "on_block",
       "while_in_play",
       "on_retire",
@@ -154,13 +155,14 @@
     ]
   },
   "condition": {
-    "_note": "Checkable conditions (Union requirements, target filters)",
+    "_note": "Checkable conditions (Nexus requirements, target filters)",
     "values": [
       "hand_size",
       "reveal_card",
       "controls_card",
       "health_at_most",
-      "health_at_least"
+      "health_at_least",
+      "health_lost_at_least"
     ]
   },
   "stat": {

@@ -1,14 +1,18 @@
 {
   "name": "Second Surge",
   "typeLabel": "Dynamic Matter II",
-  "summary": "The deck's finisher: one more attack while the opposing Front is tapped.",
+  "summary": "The turn where a single body attacks twice.",
   "ui": {
     "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
     "name": "Second Surge",

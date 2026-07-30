@@ -7,7 +7,7 @@
   "type": "object",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -16,8 +16,7 @@
   "tags": [
     "object",
     "human",
-    "protection",
-    "viatico"
+    "protection"
   ],
   "rulesReference": "MANUALE.md §3.1",
   "faces": [
@@ -25,7 +24,9 @@
       "id": "object",
       "kind": "object",
       "displayKey": "face",
-      "stats": {},
+      "stats": {
+        "fluxCost": 1
+      },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},

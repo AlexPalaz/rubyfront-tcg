@@ -7,7 +7,7 @@
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -17,7 +17,7 @@
     "entity",
     "human",
     "dynamic",
-    "defender"
+    "aggro"
   ],
   "rulesReference": "MANUALE.md §7, §8.1",
   "faces": [
@@ -28,7 +28,7 @@
       "race": "human",
       "stats": {
         "power": 3,
-        "fluxCost": 3
+        "fluxCost": 2
       },
       "enablesMatters": [
         {
@@ -38,24 +38,10 @@
       ],
       "keywords": [],
       "requirements": {},
-      "triggers": [
-        {
-          "id": "shelter",
-          "displayKey": "shelter",
-          "event": "on_block",
-          "effect": {
-            "type": "gain_health",
-            "target": {
-              "cardType": "rubyfront",
-              "controller": "controller"
-            },
-            "amount": 1
-          }
-        }
-      ],
+      "triggers": [],
       "actions": [],
       "restrictions": {
-        "cannotAttack": true
+        "cannotBlock": true
       }
     }
   ],

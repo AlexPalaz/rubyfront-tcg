@@ -1,7 +1,7 @@
 {
   "name": "Vessillo degli Eredi",
   "typeLabel": "Materia Dinamica I",
-  "summary": "L'inno del piano reso stoffa e asta: ogni Umano un passo più forte, finché sventola.",
+  "summary": "L’inno permanente: +1 a tutti gli Umani, +2 se la bestia è in campo.",
   "ui": {
     "face": "Materia"
   },
@@ -18,7 +18,7 @@
     "name": "Vessillo degli Eredi",
     "effect": {
       "name": "Effetto",
-      "text": "Le tue Entità prendono +1 Potenza; se nella tua Zona di Requiem ci sono almeno 4 carte, prendono invece +2."
+      "text": "Le tue Entità Umane prendono +1 Potenza; se il tuo Rubyfront è in campo, prendono invece +2."
     },
     "flavor": "Finché sventola, si avanza."
   },

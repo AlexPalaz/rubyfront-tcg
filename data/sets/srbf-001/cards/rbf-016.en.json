@@ -1,14 +1,14 @@
 {
   "name": "Laceration",
   "typeLabel": "Destructive Matter II",
-  "summary": "The wound that never closes: fragile with the beast, eternal with the Union.",
+  "summary": "Some wounds do not close: two points every turn of yours, as long as the beast stays out.",
   "ui": {
     "face": "Matter"
   },
   "card": {
-    "illustration": "Illustrazione",
-    "hp": "PV",
-    "flux": "Flussi",
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
     "behaviors": {
       "reactive": "Reactive",
       "permanent": "Permanent"
@@ -17,13 +17,13 @@
   "face": {
     "name": "Laceration",
     "effect": {
-      "name": "Effetto",
+      "name": "Effect",
       "text": "At the start of your turn, the opposing Rubyfront loses 2 HP."
     },
-    "flavor": "Some wounds never close."
+    "flavor": "Some wounds do not close."
   },
   "matters": {
-    "destructiveTitle": "Materia Distruttiva · 2nd grade",
+    "destructiveTitle": "Destructive Matter · 2nd grade",
     "destructiveAria": "Destructive"
   }
 }

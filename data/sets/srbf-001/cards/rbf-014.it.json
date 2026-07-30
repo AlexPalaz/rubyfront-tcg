@@ -1,21 +1,26 @@
 {
   "name": "Prima Lama",
   "typeLabel": "Entità — Umano",
-  "summary": "Dorme finché la bestia non si compie: con l'Unione in campo è il martello del mazzo.",
+  "summary": "L’arma migliore degli Eredi: si sveglia quando il Nexus prende forma.",
   "ui": {
     "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
     "name": "Prima Lama",
-    "flavor": "Il fronte nemico la conosce per nome.",
     "effect": {
       "name": "Effetto",
-      "text": "Finché controlli l’Unione, la Prima Lama prende +2 Potenza e ha Slancio."
-    }
+      "text": "Finché controlli il Nexus, la Prima Lama prende +2 Potenza e ha Slancio."
+    },
+    "flavor": "Il fronte nemico la conosce per nome."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicAria": "Dinamica"
   }
 }

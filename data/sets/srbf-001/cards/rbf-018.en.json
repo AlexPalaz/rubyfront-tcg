@@ -1,21 +1,22 @@
 {
   "name": "Archivist",
   "typeLabel": "Entity — Human",
-  "summary": "She records those who passed beyond: more names in the Requiem, more pages to read.",
+  "summary": "He writes the names and makes them count: an anthem on a body for two Flux.",
   "ui": {
     "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
     "name": "Archivist",
-    "flavor": "She writes the names of those who passed beyond.",
-    "chronicle": {
-      "trigger": "When she enters the field",
-      "text": "Draw a card; if there are at least 2 cards in your Requiem Zone, draw two instead."
-    }
+    "effect": {
+      "name": "Effect",
+      "text": "Your other Human Entities get +1 Power."
+    },
+    "flavor": "He writes the names of those who went on."
   }
 }

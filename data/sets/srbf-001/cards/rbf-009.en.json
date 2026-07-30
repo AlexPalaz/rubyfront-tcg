@@ -1,21 +1,26 @@
 {
   "name": "Bulkhead Warden",
   "typeLabel": "Entity — Human",
-  "summary": "The Heirs' defender: the more of his own have passed beyond, the firmer the threshold.",
+  "summary": "One Flux for a body that strikes like a 3 whenever it moves first.",
   "ui": {
     "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
     "name": "Bulkhead Warden",
-    "flavor": "No one passes. Not today.",
-    "warden": {
-      "trigger": "When he blocks",
-      "text": "He gets +2 Power until the end of the battle; if there are at least 3 cards in your Requiem Zone, he gets +4 instead."
-    }
+    "hammer": {
+      "trigger": "When it attacks",
+      "text": "It gets +2 Power until end of battle."
+    },
+    "flavor": "No one gets through. Not today."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

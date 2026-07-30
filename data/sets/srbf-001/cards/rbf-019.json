@@ -7,7 +7,7 @@
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -16,7 +16,7 @@
   "tags": [
     "entity",
     "human",
-    "defender"
+    "counterattack"
   ],
   "rulesReference": "MANUALE.md §6.3",
   "faces": [
@@ -27,7 +27,7 @@
       "race": "human",
       "stats": {
         "power": 2,
-        "fluxCost": 4,
+        "fluxCost": 3,
         "counterattack": 2
       },
       "enablesMatters": [],

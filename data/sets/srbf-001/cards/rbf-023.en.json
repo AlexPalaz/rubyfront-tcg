@@ -1,25 +1,26 @@
 {
   "name": "Steel Avenger",
   "typeLabel": "Entity — Human",
-  "summary": "Vengeance always has a name: stronger since one of her own passed beyond.",
+  "summary": "For one Flux: with the beast on the field she is a 3 that kills whoever attacks her.",
   "ui": {
     "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
     "name": "Steel Avenger",
     "keyword": {
       "name": "Vengeance",
-      "rules": "if she blocks with higher Power, the attacker dies"
+      "rules": "if it blocks with greater Power, the attacker dies"
     },
-    "flavor": "Strike her if you dare. Then run.",
     "effect": {
       "name": "Effect",
-      "text": "For as long as there is at least one card in your Requiem Zone, the Avenger gets +1 Power."
-    }
+      "text": "As long as your Rubyfront is on the field, the Avenger gets +1 Power."
+    },
+    "flavor": "Strike her, if you dare. Then run."
   }
 }

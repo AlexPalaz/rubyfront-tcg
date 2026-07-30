@@ -17,7 +17,7 @@
     "entity",
     "human",
     "zero",
-    "viatico"
+    "unique"
   ],
   "rulesReference": "MANUALE.md §6.2, §7, §8.1",
   "faces": [
@@ -29,7 +29,7 @@
       "stats": {
         "power": 3,
         "counterattack": 2,
-        "fluxCost": 4
+        "fluxCost": 3
       },
       "enablesMatters": [
         {
@@ -62,7 +62,7 @@
           "repeatable": true,
           "checks": [],
           "cost": {
-            "flux": 3
+            "flux": 2
           },
           "effect": {
             "type": "search_card",

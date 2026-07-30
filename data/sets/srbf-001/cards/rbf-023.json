@@ -7,7 +7,7 @@
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 2,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -16,9 +16,7 @@
   "tags": [
     "entity",
     "human",
-    "vengeance",
-    "defender",
-    "requiem"
+    "vengeance"
   ],
   "rulesReference": "MANUALE.md §8.1",
   "faces": [
@@ -29,7 +27,7 @@
       "race": "human",
       "stats": {
         "power": 2,
-        "fluxCost": 2
+        "fluxCost": 1
       },
       "enablesMatters": [],
       "keywords": [
@@ -51,7 +49,7 @@
             "amount": 1,
             "duration": "permanent",
             "details": {
-              "requiemThreshold": 1
+              "requiresRubyfrontDeployed": true
             }
           }
         }

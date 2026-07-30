@@ -1,21 +1,23 @@
 {
   "name": "Veterana della Breccia",
   "typeLabel": "Entità — Umano",
-  "summary": "Il contrattacco che insegna: ogni caduto nemico vale una carta.",
+  "summary": "L’unica che insegna difendendo: ogni attaccante caduto vale una carta.",
   "ui": {
     "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi"
+    "power": "Potenza",
+    "flux": "Flussi",
+    "counterattack": "Contrattacco"
   },
   "face": {
     "name": "Veterana della Breccia",
-    "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti.",
     "lesson": {
       "trigger": "Quando contrattacca",
       "text": "Se l’attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
-    }
+    },
+    "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
   }
 }

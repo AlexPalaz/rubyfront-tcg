@@ -1,25 +1,26 @@
 {
   "name": "Baluardo Corazzato",
   "typeLabel": "Entità — Umano",
-  "summary": "Il muro che respira: Potenza da costo alto, in cambio non lascia mai la linea.",
+  "summary": "Tre di Potenza a due Flussi: tutto in avanti, niente all’indietro.",
   "ui": {
     "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
     "name": "Baluardo Corazzato",
-    "flavor": "Cade il mondo, non lui.",
     "effect": {
       "name": "Effetto",
-      "text": "Non può attaccare."
+      "text": "Non può bloccare."
     },
-    "shelter": {
-      "trigger": "Quando blocca",
-      "text": "Il tuo Rubyfront recupera 1 PV: dietro il suo scudo, la bestia riprende fiato."
-    }
+    "flavor": "Cade il mondo, non lui."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

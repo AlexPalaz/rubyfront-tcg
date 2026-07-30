@@ -1,7 +1,7 @@
 {
   "name": "Velo del Primo",
   "typeLabel": "Oggetto",
-  "summary": "La protezione del pezzo chiave: le Materie avversarie non lo trovano.",
+  "summary": "La protezione del corpo su cui hai investito: le Materie avversarie non lo trovano.",
   "ui": {
     "face": "Oggetto"
   },

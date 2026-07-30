@@ -1,25 +1,22 @@
 {
   "name": "Steam Courier",
   "typeLabel": "Entity — Human",
-  "summary": "The Bequest's fuel: he strikes, delivers and passes beyond, alive.",
+  "summary": "He arrives before the news does: one Flux, and he attacks the turn he enters.",
   "ui": {
     "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
     "name": "Steam Courier",
     "keyword": {
       "name": "Surge",
-      "rules": "he may attack the very turn he enters the field"
+      "rules": "may attack the turn it enters the field"
     },
-    "flavor": "He arrives before word of his arrival.",
-    "relay": {
-      "trigger": "At the end of your turn",
-      "text": "If he attacked this turn, you may retire him to the Requiem Zone, even if he entered the field this turn."
-    }
+    "flavor": "He arrives before news of his arrival."
   }
 }

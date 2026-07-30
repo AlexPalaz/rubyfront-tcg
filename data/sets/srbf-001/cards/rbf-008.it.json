@@ -1,21 +1,26 @@
 {
   "name": "Vedetta del Perimetro",
   "typeLabel": "Entità — Umano",
-  "summary": "L'occhio del piano: filtra la pescata come la Risacca della bestia.",
+  "summary": "Non colpisce forte: segnala il bersaglio, e chi le sta accanto colpisce meglio.",
   "ui": {
     "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
     "name": "Vedetta del Perimetro",
-    "flavor": "Vide arrivare la fine. Fischiò due volte.",
-    "watch": {
+    "spark": {
       "trigger": "Quando entra in campo",
-      "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov’è oppure metterla in fondo al mazzo."
-    }
+      "text": "Un’altra tua Entità Umana prende +1 Potenza fino alla fine del turno."
+    },
+    "flavor": "Vide arrivare la fine. Fischiò due volte."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

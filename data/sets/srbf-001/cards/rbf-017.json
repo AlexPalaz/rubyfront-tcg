@@ -17,8 +17,7 @@
     "matter",
     "zero",
     "reactive",
-    "counter",
-    "viatico"
+    "unique"
   ],
   "rulesReference": "MANUALE.md §7.2",
   "faces": [
@@ -31,7 +30,7 @@
       },
       "behavior": "reactive",
       "stats": {
-        "fluxCost": 2
+        "fluxCost": 1
       },
       "enablesMatters": [],
       "keywords": [],
