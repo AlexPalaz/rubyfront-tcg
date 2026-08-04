@@ -1,7 +1,7 @@
 {
-  "name": "Rubyfront of the Abyss",
+  "name": "Rubyfront of the Pact",
   "typeLabel": "Double-faced Rubyfront",
-  "summary": "The beast does not fight: it pushes. Every time it surfaces, its Humans hit harder.",
+  "summary": "The beast of the oath: it opens the deck to the Humans on top, puts them back on their feet and drives them forward.",
   "ui": {
     "faceA": "Face A — Rubyfront",
     "faceB": "Face B — Nexus"
@@ -11,9 +11,8 @@
     "hp": "HP",
     "nexusRequirement": {
       "label": "Nexus requirement",
-      "text": "The opposing Rubyfront has lost at least 6 HP"
-    },
-    "die": "Deployment die"
+      "text": "Control at least 3 Human Entities and discard a Zero Matter card, during your Preparation Phase only"
+    }
   },
   "matters": {
     "destructiveTitle": "Destructive Matter · up to 2nd grade",
@@ -22,40 +21,46 @@
     "dynamicAria": "Dynamic"
   },
   "faceA": {
-    "name": "Rubyfront of the Abyss",
+    "name": "Rubyfront of the Pact",
     "keyword": {
       "name": "Fury",
-      "rules": "d20 ≥ 12 before every action · failure −2 HP"
+      "rules": "d20 ≥ 12 before every action · failure −1 HP"
     },
-    "trigger": "On deployment",
     "effect": {
-      "text": "Your Human Entities get +1 Power until end of turn."
+      "text": "You look at the top card of your deck, and from that top you may play your Human Entities as if they were in your hand."
     },
     "abilities": {
-      "thrust": {
-        "name": "Abyssal Thrust",
-        "text": "a Human Entity gets +2 Power until end of turn."
+      "frontCommand": {
+        "name": "Front Command",
+        "text": "untap up to 2 Human Entities you control and send them back into line."
       },
-      "deepCall": {
-        "name": "Call from the Deep",
-        "text": "a Human Entity gets +1 Power and has Surge until end of turn."
-      }
-    },
-    "flavor": "It did not surface. The deeps opened their eyes."
-  },
-  "faceB": {
-    "name": "The Abyss Incarnate",
-    "nexusAria": "Nexus",
-    "abilities": {
       "swell": {
         "name": "Swell",
-        "text": "a Human Entity gets +3 Power until end of turn."
+        "text": "all Human Entities you control get +1 Power until end of turn."
       },
-      "greatTide": {
-        "name": "The Great Tide",
-        "text": "all your Human Entities get +2 Power and cannot be blocked this turn."
+      "pactCall": {
+        "name": "Call of the Pact",
+        "text": "search your deck for a Human Entity costing 3 or less, reveal it to your opponent, take it into your hand and shuffle."
       }
     },
-    "flavor": "The abyss took shape. The world stepped back."
+    "flavor": "They did not swear to her. They swore with her."
+  },
+  "faceB": {
+    "name": "Incarnation of the Pact",
+    "nexusAria": "Nexus",
+    "effect": {
+      "text": "You look at the top card of your deck, and from that top you may play your Human Entities as if they were in your hand."
+    },
+    "abilities": {
+      "frontOrder": {
+        "name": "Order of the Front",
+        "text": "untap every Human Entity in your Front Zone, down to the last one."
+      },
+      "greatTide": {
+        "name": "Great Tide",
+        "text": "your Entities get +1 Power until end of turn and no Entity of greater Power can block them."
+      }
+    },
+    "flavor": "The pact took flesh. No one remembers who signed it first."
   }
 }

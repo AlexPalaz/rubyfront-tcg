@@ -1,7 +1,7 @@
 {
   "name": "Vessillo degli Eredi",
   "typeLabel": "Materia Dinamica I",
-  "summary": "L’inno permanente: +1 a tutti gli Umani, +2 se la bestia è in campo.",
+  "summary": "Ogni turno sceglie un Umano e lo manda avanti più forte degli altri.",
   "ui": {
     "face": "Materia"
   },
@@ -16,11 +16,11 @@
   },
   "face": {
     "name": "Vessillo degli Eredi",
+    "flavor": "Finché sventola, si avanza.",
     "effect": {
       "name": "Effetto",
-      "text": "Le tue Entità Umane prendono +1 Potenza; se il tuo Rubyfront è in campo, prendono invece +2."
-    },
-    "flavor": "Finché sventola, si avanza."
+      "text": "All'inizio del tuo turno un'Entità Umana a tua scelta prende +2 Potenza. Il vessillo sceglie chi manda avanti, e se controlli il Rubifronte del Patto quell'Entità ottiene anche Slancio."
+    }
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 1° grado",

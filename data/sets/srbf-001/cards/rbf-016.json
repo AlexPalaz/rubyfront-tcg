@@ -48,7 +48,21 @@
               "cardType": "rubyfront",
               "controller": "opponent"
             },
-            "amount": 2
+            "amount": 2,
+            "conditions": [
+              {
+                "type": "controls_card",
+                "owner": "controller",
+                "min": 3,
+                "filter": {
+                  "cardType": "entity",
+                  "race": "human"
+                }
+              }
+            ],
+            "details": {
+              "doesNotTriggerRecallReturn": true
+            }
           }
         }
       ],

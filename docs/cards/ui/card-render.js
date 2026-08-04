@@ -222,8 +222,10 @@ function createKeyword(face, keyword, faceCopy) {
     ?? (face.keywords.length === 1 ? faceCopy.keyword : undefined)
     ?? {};
   const row = element("div", "keyword");
+  // Il nome porta i due punti come le abilita' attivate e gli inneschi con
+  // nome: e' la stessa relazione fra un'etichetta e cio' che spiega.
   row.append(
-    element("span", "", keywordCopy.name ?? keyword.id),
+    element("span", "", `${keywordCopy.name ?? keyword.id}:`),
     element("span", "", keywordCopy.rules ?? "")
   );
   return row;
@@ -250,10 +252,16 @@ function createActionBlock(action, faceCopy, cardCopy) {
   const actionCopy = faceCopy.abilities?.[action.displayKey] ?? {};
   const block = element("p", "ability");
   const healthCost = action.cost?.health;
+  const healthGain = action.gain?.health;
   const fluxCost = action.cost?.flux;
   const cost = element("span", "hp-cost");
+  // Non tutte le abilita del Rubyfront si pagano: alcune restituiscono PV, e
+  // il segno e la sola cosa che distingue le due letture.
   if (healthCost !== undefined) {
     cost.append(`−${healthCost} ${cardCopy.card?.hp ?? "HP"}`);
+  } else if (healthGain !== undefined) {
+    cost.classList.add("hp-gain");
+    cost.append(`+${healthGain} ${cardCopy.card?.hp ?? "HP"}`);
   } else if (fluxCost !== undefined) {
     const label = cardCopy.card?.flux ?? "Flux";
     cost.title = label;
@@ -384,4 +392,21 @@ function roman(value) {
   return result;
 }
 
-export { createFace, localized };
+// Fit tipografico, come sulle carte stampate: quando il testo non entra nella
+// textbox il corpo scende di mezzo punto per volta finche' ci sta. Tocca solo
+// le facce che ne hanno bisogno — tutte le altre restano alla scala piena di
+// 20px, che e' la misura Magic che il resto del foglio difende.
+// Va chiamata DOPO l'inserimento nel documento: prima non c'e' nulla da
+// misurare, e la carta uscirebbe tagliata in silenzio.
+const FIT_STEPS = [1, 0.96, 0.92, 0.88, 0.84];
+
+function fitTextBoxes(root = document) {
+  for (const box of root.querySelectorAll(".textbox")) {
+    for (const step of FIT_STEPS) {
+      box.style.fontSize = step === 1 ? "" : `${step}em`;
+      if (box.scrollHeight <= box.clientHeight) break;
+    }
+  }
+}
+
+export { createFace, localized, fitTextBoxes };

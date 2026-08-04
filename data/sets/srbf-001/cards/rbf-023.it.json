@@ -1,7 +1,7 @@
 {
-  "name": "Vendicatrice d’Acciaio",
+  "name": "Vendicatrice di Acciaio",
   "typeLabel": "Entità — Umano",
-  "summary": "A un Flusso: con la bestia in campo è un 3 che uccide chi la attacca.",
+  "summary": "Un corpo che non conviene attaccare: da sola punisce chi la colpisce, accanto alla bestia lo punisce a Potenza 3.",
   "ui": {
     "face": "Entità"
   },
@@ -12,15 +12,15 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Vendicatrice d’Acciaio",
-    "keyword": {
-      "name": "Vendetta",
-      "rules": "se blocca con Potenza superiore, l’attaccante muore"
-    },
+    "name": "Vendicatrice di Acciaio",
     "effect": {
       "name": "Effetto",
-      "text": "Finché il tuo Rubyfront è in campo, la Vendicatrice d’Acciaio prende +1 Potenza. (Vale anche con il Nexus, che dal flip non lascia più il campo.)"
+      "text": "Finché controlli il Rubifronte del Patto, la Vendicatrice di Acciaio prende +2 Potenza."
     },
-    "flavor": "Colpiscila, se osi. Poi corri."
+    "flavor": "Colpiscila, se osi. Poi corri.",
+    "keyword": {
+      "name": "Vendetta",
+      "rules": "bloccando, uccide chi ha Potenza inferiore"
+    }
   }
 }

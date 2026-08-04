@@ -1,7 +1,7 @@
 {
   "name": "Lacerazione",
   "typeLabel": "Materia Distruttiva II",
-  "summary": "Alcune ferite non si chiudono: due punti a ogni tuo turno, finché la bestia resta in campo.",
+  "summary": "La ferita che non si chiude, ma solo finché il Fronte resta affollato.",
   "ui": {
     "face": "Materia"
   },
@@ -16,11 +16,11 @@
   },
   "face": {
     "name": "Lacerazione",
+    "flavor": "Alcune ferite non si chiudono.",
     "effect": {
       "name": "Effetto",
-      "text": "All’inizio del tuo turno, il Rubyfront avversario perde 2 PV. (La Lacerazione è Distruttiva di 2° grado: se perdi l’accesso a quel tipo va nell’Abisso.)"
-    },
-    "flavor": "Alcune ferite non si chiudono."
+      "text": "All'inizio del tuo turno, se controlli almeno 3 Entità Umane, il Rubyfront avversario perde 2 PV. La ferita continua a sanguinare finché il Fronte resta affollato, e questa perdita non lo fa tornare nella Zona di Richiamo."
+    }
   },
   "matters": {
     "destructiveTitle": "Materia Distruttiva · 2° grado",

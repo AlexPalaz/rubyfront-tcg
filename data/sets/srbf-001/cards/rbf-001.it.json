@@ -1,7 +1,7 @@
 {
-  "name": "Rubifronte degli Abissi",
+  "name": "Rubifronte del Patto",
   "typeLabel": "Rubyfront bifronte",
-  "summary": "La bestia non combatte: spinge. Ogni volta che emerge, i suoi Umani colpiscono più forte.",
+  "summary": "La bestia del giuramento: apre il mazzo agli Umani che stanno in cima, li rimette in piedi e li spinge avanti.",
   "ui": {
     "faceA": "Faccia A — Rubyfront",
     "faceB": "Faccia B — Nexus"
@@ -11,9 +11,8 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "Il Rubyfront avversario ha perso almeno 6 PV"
-    },
-    "die": "Dado di schieramento"
+      "text": "Controlla almeno 3 Entità Umane e scarta una carta Materia Zero, solo nella tua Fase di Preparazione"
+    }
   },
   "matters": {
     "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
@@ -22,40 +21,46 @@
     "dynamicAria": "Dinamica"
   },
   "faceA": {
-    "name": "Rubifronte degli Abissi",
+    "name": "Rubifronte del Patto",
     "keyword": {
       "name": "Furia",
-      "rules": "d20 ≥ 12 prima di ogni azione · fallimento −2 PV"
+      "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
     },
-    "trigger": "Allo schieramento",
     "effect": {
-      "text": "Le tue Entità Umane prendono +1 Potenza fino alla fine del turno."
+      "text": "Guardi la prima carta del tuo mazzo, e da quella cima puoi giocare le tue Entità Umane come se le avessi in mano."
     },
     "abilities": {
-      "thrust": {
-        "name": "Spinta Abissale",
-        "text": "un’Entità Umana prende +2 Potenza fino alla fine del turno."
+      "frontCommand": {
+        "name": "Comando dal Fronte",
+        "text": "stappa fino a 2 Entità Umane che controlli e rimandale in linea."
       },
-      "deepCall": {
-        "name": "Chiamata dal Fondo",
-        "text": "un’Entità Umana prende +1 Potenza e ha Slancio fino alla fine del turno."
-      }
-    },
-    "flavor": "Non emerse. Gli abissi aprirono gli occhi."
-  },
-  "faceB": {
-    "name": "Incarnazione dell’Abisso",
-    "nexusAria": "Nexus",
-    "abilities": {
       "swell": {
         "name": "Onda Portante",
-        "text": "un’Entità Umana prende +3 Potenza fino alla fine del turno."
+        "text": "tutte le Entità Umane che controlli prendono +1 Potenza fino alla fine del turno."
       },
-      "greatTide": {
-        "name": "La Grande Marea",
-        "text": "tutte le tue Entità Umane prendono +2 Potenza e non possono essere bloccate in questo turno."
+      "pactCall": {
+        "name": "Richiamo del Patto",
+        "text": "cerca nel mazzo un'Entità Umana di costo 3 o inferiore, mostrala all'avversario, prendila in mano e rimescola."
       }
     },
-    "flavor": "L’abisso prese forma. Il mondo arretrò."
+    "flavor": "Non giurarono a lei. Giurarono con lei."
+  },
+  "faceB": {
+    "name": "Incarnazione del Patto",
+    "nexusAria": "Nexus",
+    "effect": {
+      "text": "Guardi la prima carta del tuo mazzo, e da quella cima puoi giocare le tue Entità Umane come se le avessi in mano."
+    },
+    "abilities": {
+      "frontOrder": {
+        "name": "Ordine del Fronte",
+        "text": "stappa tutte le Entità Umane nella tua Zona del Fronte, fino all'ultima."
+      },
+      "greatTide": {
+        "name": "Grande Marea",
+        "text": "le tue Entità prendono +1 Potenza fino alla fine del turno e nessuna Entità di Potenza superiore può bloccarle."
+      }
+    },
+    "flavor": "Il patto prese carne. Nessuno ricorda chi lo firmò per primo."
   }
 }

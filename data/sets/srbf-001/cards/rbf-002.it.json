@@ -1,7 +1,7 @@
 {
-  "name": "Adam, Il Primo",
+  "name": "Adam, il Primo",
   "typeLabel": "Entità — Umano",
-  "summary": "Il tramite dello Zero: incanala la Materia più rara e, quando lascia il campo, lascia qualcosa a chi resta.",
+  "summary": "Il tramite dello Zero: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
   "ui": {
     "face": "Entità"
   },
@@ -14,16 +14,16 @@
     "unique": "Unica"
   },
   "face": {
-    "name": "Adam, Il Primo",
+    "name": "Adam, il Primo",
     "abilities": {
       "genesis": {
         "name": "Genesi",
-        "text": "cerca nel tuo mazzo una Materia Zero, mostrala e aggiungila alla mano, poi rimescola. Non puoi giocarla in questo turno."
+        "text": "cerca nel tuo mazzo una carta Materia Zero, mostrala e aggiungila alla tua mano. Non puoi giocarla né scartarla in questo turno."
       }
     },
     "bequest": {
-      "trigger": "Quando lascia il campo",
-      "text": "Pesca una carta. (Vale per ogni uscita dal campo, Ritiro in Requiem compreso.)"
+      "trigger": "Quando lascia il Fronte",
+      "text": "Pesca una carta."
     },
     "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
   },

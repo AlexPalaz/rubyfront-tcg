@@ -1,7 +1,7 @@
 {
   "name": "Corriere a Vapore",
   "typeLabel": "Entità — Umano",
-  "summary": "Arriva prima della notizia: un Flusso, e attacca nel turno in cui entra.",
+  "summary": "Un Flusso per il primo colpo della partita, e per decidere che cosa trova chi arriva dopo.",
   "ui": {
     "face": "Entità"
   },
@@ -17,6 +17,10 @@
       "name": "Slancio",
       "rules": "può attaccare nel turno in cui entra in campo"
     },
-    "flavor": "Arriva prima della notizia del suo arrivo. Le paratie non gli chiedono più i documenti: tanto è già passato."
+    "flavor": "Nessuno l'ha mai visto fermo: quando la domanda finisce, lui è già oltre la linea.",
+    "dispatch": {
+      "trigger": "Quando entra in campo",
+      "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov'è oppure metterla in fondo."
+    }
   }
 }

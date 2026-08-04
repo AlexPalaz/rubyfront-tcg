@@ -1,7 +1,7 @@
 {
   "name": "Wrath",
   "typeLabel": "Destructive Matter I",
-  "summary": "Two points from the response window, and the enemy beast is sent back to cool off.",
+  "summary": "Two clean points of damage to the enemy beast, thrown from the response window.",
   "ui": {
     "face": "Matter"
   },
@@ -18,7 +18,7 @@
     "name": "Wrath",
     "effect": {
       "name": "Effect",
-      "text": "The opposing Rubyfront loses 2 HP. (If it is on the field, the loss sends it back to the Recall Zone immediately.)"
+      "text": "Wrath deals 2 damage to the opposing Rubyfront."
     },
     "flavor": "The beast knows no measure."
   },

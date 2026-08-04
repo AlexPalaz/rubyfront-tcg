@@ -1,7 +1,7 @@
 {
   "name": "Prima Lama",
   "typeLabel": "Entità — Umano",
-  "summary": "L’arma migliore degli Eredi: si sveglia quando il Nexus prende forma.",
+  "summary": "Arriva togliendo di mezzo qualcuno, e con il Nexus in campo diventa impossibile da attaccare impunemente.",
   "ui": {
     "face": "Entità"
   },
@@ -13,9 +13,13 @@
   },
   "face": {
     "name": "Prima Lama",
+    "firstCut": {
+      "trigger": "Quando entra in campo",
+      "text": "Manda un'Entità nella Zona di Requiem del suo proprietario."
+    },
     "effect": {
       "name": "Effetto",
-      "text": "Finché controlli il Nexus, la Prima Lama prende +2 Potenza e ha Slancio. (Lo Slancio le serve nel turno in cui entra: dopo, attacca comunque.)"
+      "text": "Se controlli il Nexus, la Prima Lama ha Vendetta."
     },
     "flavor": "Il fronte nemico la conosce per nome."
   },

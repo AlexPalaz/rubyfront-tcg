@@ -37,6 +37,7 @@ function draw() {
     }
   }
   applyTheme(themeId);
+  fitTextBoxes(grid);
 }
 function applyTheme(next) {
   themeId = next;

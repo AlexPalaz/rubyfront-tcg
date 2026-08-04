@@ -1,7 +1,7 @@
 {
   "name": "Guardiano della Paratia",
   "typeLabel": "Entità — Umano",
-  "summary": "Un Flusso per un corpo che, quando muove per primo, colpisce come un 3.",
+  "summary": "Due di Potenza per un solo Flusso: il prezzo è che il primo turno lo passa a prendere posizione.",
   "ui": {
     "face": "Entità"
   },
@@ -13,9 +13,9 @@
   },
   "face": {
     "name": "Guardiano della Paratia",
-    "hammer": {
-      "trigger": "Quando attacca",
-      "text": "Il Guardiano della Paratia prende +2 Potenza fino alla fine della battaglia. (Solo per l’attacco che ha dichiarato: se non attacca, non c’è bonus.)"
+    "bulkhead": {
+      "trigger": "Quando entra in campo",
+      "text": "Il Guardiano della Paratia entra sul Fronte già tappato, e resta così finché non lo stappi."
     },
     "flavor": "Nessuno passa. Non oggi."
   },

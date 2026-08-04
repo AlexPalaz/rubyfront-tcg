@@ -1,7 +1,7 @@
 {
   "name": "Archivist",
   "typeLabel": "Entity — Human",
-  "summary": "He writes the names and makes them count: an anthem on a body for two Flux.",
+  "summary": "He grows with the ranks: how much he is worth is decided by how many of his own there are.",
   "ui": {
     "face": "Entity"
   },
@@ -15,7 +15,7 @@
     "name": "Archivist",
     "effect": {
       "name": "Effect",
-      "text": "Your other Human Entities get +1 Power. The Archivist doesn't count itself, and the bonus lasts as long as it stays on the field."
+      "text": "Archivist gets +1 Power for each Human Entity you control, himself included."
     },
     "flavor": "He writes the names of those who went on."
   }

@@ -16,7 +16,8 @@
   "tags": [
     "entity",
     "human",
-    "vengeance"
+    "revenge",
+    "aggro"
   ],
   "rulesReference": "MANUALE.md §8.1",
   "faces": [
@@ -26,13 +27,13 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 2,
+        "power": 1,
         "fluxCost": 1
       },
       "enablesMatters": [],
       "keywords": [
         {
-          "id": "vengeance"
+          "id": "revenge"
         }
       ],
       "requirements": {},
@@ -46,7 +47,7 @@
             "target": {
               "scope": "self"
             },
-            "amount": 1,
+            "amount": 2,
             "duration": "permanent",
             "details": {
               "requiresRubyfrontDeployed": true

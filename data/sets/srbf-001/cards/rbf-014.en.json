@@ -1,7 +1,7 @@
 {
   "name": "First Blade",
   "typeLabel": "Entity — Human",
-  "summary": "The Heirs' finest weapon: it wakes when the Nexus takes shape.",
+  "summary": "She arrives by removing someone, and with the Nexus out she becomes impossible to attack for free.",
   "ui": {
     "face": "Entity"
   },
@@ -13,9 +13,13 @@
   },
   "face": {
     "name": "First Blade",
+    "firstCut": {
+      "trigger": "When it enters the field",
+      "text": "Put an Entity into its owner's Requiem Zone."
+    },
     "effect": {
       "name": "Effect",
-      "text": "As long as you control the Nexus, First Blade gets +2 Power and has Surge. (Surge matters the turn she enters: after that, she attacks anyway.)"
+      "text": "If you control the Nexus, First Blade has Revenge."
     },
     "flavor": "The enemy front knows her by name."
   },

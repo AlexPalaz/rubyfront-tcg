@@ -1,7 +1,7 @@
 {
   "name": "Assenza",
   "typeLabel": "Materia Zero",
-  "summary": "Lo Zero non distrugge: toglie. L’Entità semplicemente non è più lì.",
+  "summary": "Lo Zero non distrugge: toglie. L’Entità scelta smette semplicemente di essere lì.",
   "ui": {
     "face": "Materia"
   },
@@ -19,7 +19,7 @@
     "name": "Assenza",
     "effect": {
       "name": "Effetto",
-      "text": "Scegli un’Entità: sparisce dal campo e va nella Zona di Requiem del suo proprietario. Puoi scegliere anche Entità coperte."
+      "text": "Scegli un'Entità e mettila nella Zona di Requiem del suo proprietario."
     },
     "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
   },

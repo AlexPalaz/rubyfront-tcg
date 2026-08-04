@@ -131,6 +131,9 @@
   .requirement .nexus-mark { display: inline-block; width: 1.55em; height: 1.1em;
     vertical-align: -.26em; margin-right: .38em; }
   .fx b, .ability b { color: var(--accent); font-weight: 600; }
+  /* Le abilita che restituiscono PV portano il segno + e il verde dei PV,
+     cosi il costo e il guadagno non si leggono uguali. */
+  .hp-cost.hp-gain { color: var(--hp-green); }
   .hp-cost { display: inline-block; font-size: .9em; white-space: nowrap; color: var(--ruby-light);
     background: var(--well); border: 1px solid var(--frame-dim);
     text-align: center; padding: 0 .3em; margin-right: .15em; }

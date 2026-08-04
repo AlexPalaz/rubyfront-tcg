@@ -7,11 +7,11 @@
   "locales": {
     "it": {
       "name": "Primi Eredi",
-      "description": "Mazzo Umani aggro: corpi a costo bassissimo dal primo turno, due inni che li ingrandiscono e un Rubyfront che non combatte ma spinge. Il Nexus si accende quando l'avversario ha perso almeno 6 PV."
+      "description": "Mazzo Umani aggro: corpi a costo bassissimo dal primo turno, il Rubifronte del Patto che li stappa e li spinge, e il Nexus che si apre controllando tre Umani e scartando una Materia Zero."
     },
     "en": {
       "name": "First Heirs",
-      "description": "A Human aggro deck: dirt-cheap bodies from turn one, two anthems to grow them and a Rubyfront that does not fight but pushes. The Nexus ignites once the opponent has lost at least 6 HP."
+      "description": "A Human aggro deck: dirt-cheap bodies from turn one, the Rubyfront of the Pact untapping and driving them, and the Nexus opening once you control three Humans and discard a Zero Matter."
     }
   },
   "designNotes": "primi-eredi.md",
@@ -33,10 +33,6 @@
       "count": 3
     },
     {
-      "card": "RBF-010",
-      "count": 3
-    },
-    {
       "card": "RBF-007",
       "count": 3
     },
@@ -45,15 +41,19 @@
       "count": 3
     },
     {
-      "card": "RBF-018",
-      "count": 3
-    },
-    {
       "card": "RBF-004",
       "count": 3
     },
     {
       "card": "RBF-006",
+      "count": 3
+    },
+    {
+      "card": "RBF-010",
+      "count": 3
+    },
+    {
+      "card": "RBF-018",
       "count": 3
     },
     {

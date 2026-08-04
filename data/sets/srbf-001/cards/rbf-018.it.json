@@ -1,7 +1,7 @@
 {
   "name": "Archivista",
   "typeLabel": "Entità — Umano",
-  "summary": "Scrive i nomi e li fa valere: un inno su corpo a due Flussi.",
+  "summary": "Cresce con la schiera: quanto vale lo decide quanti sono i suoi.",
   "ui": {
     "face": "Entità"
   },
@@ -15,7 +15,7 @@
     "name": "Archivista",
     "effect": {
       "name": "Effetto",
-      "text": "Le tue altre Entità Umane prendono +1 Potenza. L’Archivista non conta se stesso, e il bonus vale finché resta in campo."
+      "text": "L'Archivista prende +1 Potenza per ogni Entità Umana che controlli, se stesso compreso."
     },
     "flavor": "Scrive i nomi di chi è passato oltre."
   }

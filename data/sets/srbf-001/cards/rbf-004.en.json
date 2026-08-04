@@ -1,7 +1,7 @@
 {
   "name": "Dash",
   "typeLabel": "Dynamic Matter I",
-  "summary": "The blow that lands a turn early — and twice as hard once the Nexus is out.",
+  "summary": "Two Flux for two Power, and with the beast on the field for an early attack as well.",
   "ui": {
     "face": "Matter"
   },
@@ -18,7 +18,7 @@
     "name": "Dash",
     "effect": {
       "name": "Effect",
-      "text": "An Entity of your choice gets +2 Power until end of turn and may attack even if it entered the field this turn. If you control the Nexus, it gets +4 Power instead."
+      "text": "An Entity of your choice gets +2 Power. If you control the Rubyfront of the Pact, that Entity also gains Surge until end of turn."
     },
     "flavor": "Before the eye understands, it is over."
   },

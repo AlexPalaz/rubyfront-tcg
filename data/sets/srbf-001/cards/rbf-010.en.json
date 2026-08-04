@@ -1,7 +1,7 @@
 {
   "name": "Field Surgeon",
   "typeLabel": "Entity — Human",
-  "summary": "Beasts bleed too: every body that lands takes one more point off the opponent.",
+  "summary": "A body that arrives carrying a point of damage: it lands, hits the enemy beast and stays in line.",
   "ui": {
     "face": "Entity"
   },
@@ -15,7 +15,7 @@
     "name": "Field Surgeon",
     "ember": {
       "trigger": "When it enters the field",
-      "text": "The opposing Rubyfront loses 1 HP. (If it is deployed at that moment, the loss sends it straight back to the Recall Zone and cuts off its Matters.)"
+      "text": "Field Surgeon deals 1 damage to the opposing Rubyfront the moment he sets foot on the Front."
     },
     "flavor": "Beasts bleed too."
   }

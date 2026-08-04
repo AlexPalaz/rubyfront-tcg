@@ -17,7 +17,7 @@
     "entity",
     "human",
     "dynamic",
-    "aggro"
+    "defender"
   ],
   "rulesReference": "MANUALE.md §6.3, §7",
   "faces": [
@@ -27,7 +27,7 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 1,
+        "power": 2,
         "fluxCost": 1
       },
       "enablesMatters": [
@@ -40,16 +40,15 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "hammer",
-          "displayKey": "hammer",
-          "event": "on_attack",
+          "id": "bulkhead",
+          "displayKey": "bulkhead",
+          "event": "on_enter_field",
           "effect": {
-            "type": "modify_power",
+            "type": "set_state",
             "target": {
               "scope": "self"
             },
-            "amount": 2,
-            "duration": "until_end_of_battle"
+            "state": "tapped"
           }
         }
       ],

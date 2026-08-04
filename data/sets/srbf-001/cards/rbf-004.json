@@ -50,11 +50,10 @@
             },
             "powerBonus": 2,
             "duration": "until_end_of_turn",
-            "grants": [
-              "surge"
-            ],
             "details": {
-              "powerBonusWithNexus": 4
+              "grantsWithRubyfrontDeployed": [
+                "surge"
+              ]
             }
           }
         }

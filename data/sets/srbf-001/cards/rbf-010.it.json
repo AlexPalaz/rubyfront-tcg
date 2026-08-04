@@ -1,7 +1,7 @@
 {
   "name": "Chirurgo da Campo",
   "typeLabel": "Entità — Umano",
-  "summary": "Anche le bestie sanguinano: ogni corpo che scende porta un punto in meno all’avversario.",
+  "summary": "Il corpo che porta con sé un punto di danno: scende, colpisce la bestia avversaria e resta in linea.",
   "ui": {
     "face": "Entità"
   },
@@ -15,7 +15,7 @@
     "name": "Chirurgo da Campo",
     "ember": {
       "trigger": "Quando entra in campo",
-      "text": "Il Rubyfront avversario perde 1 PV. (Se in quel momento è schierato, la perdita lo rimanda subito in Zona di Richiamo e gli stacca le Materie.)"
+      "text": "Il Chirurgo da Campo infligge 1 danno al Rubyfront avversario nel momento stesso in cui mette piede sul Fronte."
     },
     "flavor": "Anche le bestie sanguinano."
   }

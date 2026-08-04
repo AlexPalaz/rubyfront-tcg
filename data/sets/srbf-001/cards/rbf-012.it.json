@@ -1,7 +1,7 @@
 {
   "name": "Baluardo Corazzato",
   "typeLabel": "Entità — Umano",
-  "summary": "Tre di Potenza a due Flussi: tutto in avanti, niente all’indietro.",
+  "summary": "Tre di Potenza a due Flussi, in cambio di una sola cosa: non muove mai per primo.",
   "ui": {
     "face": "Entità"
   },
@@ -15,7 +15,7 @@
     "name": "Baluardo Corazzato",
     "effect": {
       "name": "Effetto",
-      "text": "Il Baluardo Corazzato non può bloccare. (Attaccare non lo mette in pericolo: in un blocco normale l’attaccante non muore.)"
+      "text": "Il Baluardo Corazzato non può attaccare, e tiene la linea per tutta la partita."
     },
     "flavor": "Cade il mondo, non lui."
   },

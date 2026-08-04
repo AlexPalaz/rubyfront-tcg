@@ -28,7 +28,7 @@
       "race": "human",
       "stats": {
         "power": 1,
-        "fluxCost": 1
+        "fluxCost": 3
       },
       "enablesMatters": [],
       "keywords": [],

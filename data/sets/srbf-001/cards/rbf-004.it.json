@@ -1,7 +1,7 @@
 {
   "name": "Scatto",
   "typeLabel": "Materia Dinamica I",
-  "summary": "Il colpo che arriva un turno prima del previsto — e con il Nexus arriva il doppio.",
+  "summary": "Due Flussi per due Potenza, e con la bestia in campo anche per un attacco anticipato.",
   "ui": {
     "face": "Materia"
   },
@@ -18,7 +18,7 @@
     "name": "Scatto",
     "effect": {
       "name": "Effetto",
-      "text": "Un’Entità a tua scelta prende +2 Potenza fino alla fine del turno e può attaccare anche se è entrata in campo in questo turno. Se controlli il Nexus, prende invece +4 Potenza."
+      "text": "Un'Entità a tua scelta prende +2 Potenza. Se controlli il Rubifronte del Patto, quell'Entità ottiene anche Slancio fino alla fine del turno."
     },
     "flavor": "Prima che l’occhio capisca, è già finita."
   },

@@ -17,7 +17,8 @@
     "entity",
     "human",
     "surge",
-    "aggro"
+    "aggro",
+    "scry"
   ],
   "rulesReference": "MANUALE.md §8.1",
   "faces": [
@@ -37,7 +38,28 @@
         }
       ],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "dispatch",
+          "displayKey": "dispatch",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 1
+            },
+            "to": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "bottom"
+            },
+            "optional": true
+          }
+        }
+      ],
       "actions": []
     }
   ],

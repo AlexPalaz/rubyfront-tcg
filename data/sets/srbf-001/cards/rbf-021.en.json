@@ -1,7 +1,7 @@
 {
   "name": "Steam Courier",
   "typeLabel": "Entity — Human",
-  "summary": "He arrives before the news does: one Flux, and he attacks the turn he enters.",
+  "summary": "One Flux for the first hit of the game, and for deciding what whoever comes next will find.",
   "ui": {
     "face": "Entity"
   },
@@ -17,6 +17,10 @@
       "name": "Surge",
       "rules": "may attack the turn it enters the field"
     },
-    "flavor": "He arrives before news of his arrival. The bulkheads stopped asking for his papers: he is always already through."
+    "flavor": "No one has ever seen him standing still: by the time the question ends, he is already past the line.",
+    "dispatch": {
+      "trigger": "When it enters the field",
+      "text": "Look at the top card of your deck: you may leave it there or put it on the bottom."
+    }
   }
 }

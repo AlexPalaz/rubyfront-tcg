@@ -13,7 +13,7 @@ import {
   setUrlParameter,
   themeIndexRoute
 } from "./shell.js";
-import { createFace, localized } from "./card-render.js";
+import { createFace, localized, fitTextBoxes } from "./card-render.js";
 
 const params = new URLSearchParams(location.search);
 const requestedCardId = params.get("card");
@@ -89,6 +89,7 @@ function renderCard(resource) {
     languageSlot.replaceChildren(languagePicker(resource, localeId, applyLocale));
 
     table.replaceChildren(...resource.faces.map(face => createFace(resource, face, cardCopy, themeId)));
+    fitTextBoxes(table);
     setUrlParameter("card", resource.id);
     setUrlParameter("lang", localeId);
   }

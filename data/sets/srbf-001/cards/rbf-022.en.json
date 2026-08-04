@@ -1,7 +1,7 @@
 {
   "name": "Banner of the Heirs",
   "typeLabel": "Dynamic Matter I",
-  "summary": "The permanent anthem: +1 to every Human, +2 while the beast is on the field.",
+  "summary": "Every turn it picks one Human and sends him forward stronger than the rest.",
   "ui": {
     "face": "Matter"
   },
@@ -16,11 +16,11 @@
   },
   "face": {
     "name": "Banner of the Heirs",
+    "flavor": "While it flies, we advance.",
     "effect": {
       "name": "Effect",
-      "text": "Your Human Entities get +1 Power; if your Rubyfront is on the field, they get +2 instead."
-    },
-    "flavor": "While it flies, we advance."
+      "text": "At the start of your turn a Human Entity of your choice gets +2 Power. The banner picks who goes forward, and if you control the Rubyfront of the Pact that Entity also gains Surge."
+    }
   },
   "matters": {
     "dynamicTitle": "Dynamic Matter · 1st grade",

@@ -1,7 +1,7 @@
 {
   "name": "Armored Bulwark",
   "typeLabel": "Entity — Human",
-  "summary": "Three Power for two Flux: all forward, nothing back.",
+  "summary": "Three Power for two Flux, in exchange for one thing only: he never moves first.",
   "ui": {
     "face": "Entity"
   },
@@ -15,7 +15,7 @@
     "name": "Armored Bulwark",
     "effect": {
       "name": "Effect",
-      "text": "Armored Bulwark can't block. (Attacking doesn't endanger it: in a normal block the attacker doesn't die.)"
+      "text": "Armored Bulwark cannot attack, and holds the line for the whole game."
     },
     "flavor": "The world falls. He does not."
   },

@@ -1,7 +1,7 @@
 {
   "name": "Laceration",
   "typeLabel": "Destructive Matter II",
-  "summary": "Some wounds do not close: two points every turn of yours, as long as the beast stays out.",
+  "summary": "The wound that never closes, but only while the Front stays crowded.",
   "ui": {
     "face": "Matter"
   },
@@ -16,11 +16,11 @@
   },
   "face": {
     "name": "Laceration",
+    "flavor": "Some wounds do not close.",
     "effect": {
       "name": "Effect",
-      "text": "At the start of your turn, the opposing Rubyfront loses 2 HP. (Laceration is 2nd-grade Destructive: if you lose access to that type it goes to the Abyss.)"
-    },
-    "flavor": "Some wounds do not close."
+      "text": "At the start of your turn, if you control at least 3 Human Entities, the opposing Rubyfront loses 2 HP. The wound keeps bleeding as long as the Front stays crowded, and this loss does not send it back to the Recall Zone."
+    }
   },
   "matters": {
     "destructiveTitle": "Destructive Matter · 2nd grade",

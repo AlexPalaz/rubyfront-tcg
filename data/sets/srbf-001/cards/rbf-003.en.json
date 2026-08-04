@@ -1,7 +1,7 @@
 {
   "name": "Absence",
   "typeLabel": "Zero Matter",
-  "summary": "Zero does not destroy: it removes. The Entity is simply no longer there.",
+  "summary": "Zero does not destroy: it removes. The chosen Entity simply stops being there.",
   "ui": {
     "face": "Matter"
   },
@@ -19,7 +19,7 @@
     "name": "Absence",
     "effect": {
       "name": "Effect",
-      "text": "Choose an Entity: it vanishes from the field and goes to its owner's Requiem Zone. You may choose covered Entities too."
+      "text": "Choose an Entity and put it into its owner's Requiem Zone."
     },
     "flavor": "A cold silence, where something used to be."
   },

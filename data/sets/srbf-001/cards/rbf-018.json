@@ -16,8 +16,7 @@
   "tags": [
     "entity",
     "human",
-    "anthem",
-    "aggro"
+    "scaling"
   ],
   "rulesReference": "MANUALE.md §6.2",
   "faces": [
@@ -28,29 +27,29 @@
       "race": "human",
       "stats": {
         "power": 1,
-        "fluxCost": 2
+        "fluxCost": 3
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "standard",
+          "id": "chronicle",
           "displayKey": "effect",
           "event": "while_in_play",
           "effect": {
             "type": "modify_power",
             "target": {
-              "cardType": "entity",
-              "race": "human",
-              "controller": "controller",
-              "quantity": "all",
-              "details": {
-                "excludeSelf": true
-              }
+              "scope": "self"
             },
             "amount": 1,
-            "duration": "permanent"
+            "duration": "permanent",
+            "details": {
+              "perControlledEntity": {
+                "cardType": "entity",
+                "race": "human"
+              }
+            }
           }
         }
       ],

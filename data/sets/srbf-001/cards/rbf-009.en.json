@@ -1,7 +1,7 @@
 {
   "name": "Bulkhead Warden",
   "typeLabel": "Entity — Human",
-  "summary": "One Flux for a body that strikes like a 3 whenever it moves first.",
+  "summary": "Two Power for a single Flux: the price is that he spends his first turn taking position.",
   "ui": {
     "face": "Entity"
   },
@@ -13,9 +13,9 @@
   },
   "face": {
     "name": "Bulkhead Warden",
-    "hammer": {
-      "trigger": "When it attacks",
-      "text": "Bulkhead Warden gets +2 Power until end of battle. (Only for the attack it declared: no attack, no bonus.)"
+    "bulkhead": {
+      "trigger": "When it enters the field",
+      "text": "Bulkhead Warden enters the Front already tapped, and stays that way until you untap him."
     },
     "flavor": "No one gets through. Not today."
   },

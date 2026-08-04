@@ -3,7 +3,7 @@
   "id": "RBF-001",
   "setId": "rubyfront-core",
   "collectorNumber": "001",
-  "slug": "rubyfront-of-the-abyss",
+  "slug": "rubyfront-of-the-pact",
   "type": "rubyfront",
   "layout": "double-faced",
   "status": "draft",
@@ -17,7 +17,7 @@
     "rubyfront",
     "nexus",
     "aggro",
-    "anthem",
+    "human",
     "destructive"
   ],
   "rulesReference": "MANUALE.md §3.1, §7, §8.1",
@@ -27,9 +27,9 @@
       "kind": "rubyfront",
       "displayKey": "faceA",
       "stats": {
-        "health": 18,
+        "health": 21,
         "deploymentCost": {
-          "die": "d4"
+          "base": 4
         }
       },
       "enablesMatters": [
@@ -46,30 +46,104 @@
             "successAtLeast": 12
           },
           "failure": {
-            "loseHealth": 2
+            "loseHealth": 1
           }
         }
       ],
       "requirements": {
         "nexus": {
           "match": "all",
+          "timing": [
+            "own_preparation"
+          ],
           "conditions": [
             {
-              "type": "health_lost_at_least",
-              "target": {
-                "cardType": "rubyfront",
-                "controller": "opponent"
+              "type": "controls_card",
+              "owner": "controller",
+              "min": 3,
+              "filter": {
+                "cardType": "entity",
+                "race": "human"
+              }
+            }
+          ],
+          "flipCost": [
+            {
+              "type": "discard",
+              "from": {
+                "zone": "hand",
+                "owner": "controller"
               },
-              "value": 6
+              "filter": {
+                "cardType": "matter",
+                "matterType": "zero"
+              }
             }
           ]
         }
       },
       "triggers": [
         {
-          "id": "undertow",
+          "id": "patto",
           "displayKey": "effect",
-          "event": "on_deploy_from_recall",
+          "event": "while_in_play",
+          "effect": {
+            "type": "play_from_deck_top",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top"
+            },
+            "filter": {
+              "cardType": "entity",
+              "race": "human"
+            },
+            "details": {
+              "mayLookAtTop": true
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "front-command",
+          "displayKey": "frontCommand",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": true,
+          "checks": [
+            "fury"
+          ],
+          "gain": {
+            "health": 3
+          },
+          "effect": {
+            "type": "untap",
+            "target": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
+              "min": 0,
+              "max": 2
+            }
+          }
+        },
+        {
+          "id": "swell",
+          "displayKey": "swell",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": true,
+          "checks": [
+            "fury"
+          ],
+          "cost": {
+            "health": 3
+          },
           "effect": {
             "type": "modify_power",
             "target": {
@@ -81,39 +155,10 @@
             "amount": 1,
             "duration": "until_end_of_turn"
           }
-        }
-      ],
-      "actions": [
-        {
-          "id": "abyssal-thrust",
-          "displayKey": "thrust",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": true,
-          "checks": [
-            "fury"
-          ],
-          "cost": {
-            "health": 2
-          },
-          "effect": {
-            "type": "modify_power",
-            "target": {
-              "cardType": "entity",
-              "race": "human",
-              "controller": "controller",
-              "min": 1,
-              "max": 1
-            },
-            "amount": 2,
-            "duration": "until_end_of_turn"
-          }
         },
         {
-          "id": "deep-call",
-          "displayKey": "deepCall",
+          "id": "pact-call",
+          "displayKey": "pactCall",
           "timing": [
             "own_preparation",
             "own_front"
@@ -123,22 +168,31 @@
             "fury"
           ],
           "cost": {
-            "health": 4
+            "health": 5
           },
           "effect": {
-            "type": "empower",
-            "target": {
+            "type": "search_card",
+            "from": {
+              "zone": "deck",
+              "owner": "controller"
+            },
+            "filter": {
               "cardType": "entity",
               "race": "human",
-              "controller": "controller",
-              "min": 1,
-              "max": 1
+              "conditions": [
+                {
+                  "stat": "flux_cost",
+                  "operator": "lte",
+                  "value": 3
+                }
+              ]
             },
-            "powerBonus": 1,
-            "duration": "until_end_of_turn",
-            "grants": [
-              "surge"
-            ]
+            "reveal": true,
+            "to": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "shuffle": true
           }
         }
       ]
@@ -162,31 +216,51 @@
       ],
       "keywords": [],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "pact-incarnate",
+          "displayKey": "effect",
+          "event": "while_in_play",
+          "effect": {
+            "type": "play_from_deck_top",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top"
+            },
+            "filter": {
+              "cardType": "entity",
+              "race": "human"
+            },
+            "details": {
+              "mayLookAtTop": true
+            }
+          }
+        }
+      ],
       "actions": [
         {
-          "id": "swell",
-          "displayKey": "swell",
+          "id": "front-order",
+          "displayKey": "frontOrder",
           "timing": [
             "own_preparation",
             "own_front"
           ],
           "repeatable": true,
           "checks": [],
-          "cost": {
-            "health": 2
+          "gain": {
+            "health": 3
           },
           "effect": {
-            "type": "modify_power",
+            "type": "untap",
             "target": {
               "cardType": "entity",
               "race": "human",
               "controller": "controller",
-              "min": 1,
-              "max": 1
-            },
-            "amount": 3,
-            "duration": "until_end_of_turn"
+              "quantity": "all",
+              "zone": "front",
+              "owner": "controller"
+            }
           }
         },
         {
@@ -199,20 +273,19 @@
           "repeatable": true,
           "checks": [],
           "cost": {
-            "health": 5
+            "health": 7
           },
           "effect": {
-            "type": "empower",
+            "type": "modify_power",
             "target": {
               "cardType": "entity",
-              "race": "human",
               "controller": "controller",
               "quantity": "all"
             },
-            "powerBonus": 2,
+            "amount": 1,
             "duration": "until_end_of_turn",
             "details": {
-              "cannotBeBlocked": true
+              "cannotBeBlockedByGreaterPower": true
             }
           }
         }

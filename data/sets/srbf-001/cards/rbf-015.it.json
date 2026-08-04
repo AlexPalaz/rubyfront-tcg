@@ -1,7 +1,7 @@
 {
   "name": "Secondo Impeto",
   "typeLabel": "Materia Dinamica II",
-  "summary": "Il turno in cui un solo corpo attacca due volte.",
+  "summary": "Il turno in cui un solo corpo colpisce due volte.",
   "ui": {
     "face": "Materia"
   },
@@ -18,7 +18,7 @@
     "name": "Secondo Impeto",
     "effect": {
       "name": "Effetto",
-      "text": "Un’Entità a tua scelta che ha già attaccato in questo turno si stappa e può attaccare una seconda volta."
+      "text": "Un'Entità a tua scelta che ha già attaccato in questo turno può attaccare una seconda volta."
     },
     "flavor": "Il primo colpo apre. Il secondo chiude."
   },

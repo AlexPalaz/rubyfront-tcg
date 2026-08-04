@@ -16,7 +16,7 @@ import {
   renderRegistryError,
   setUrlParameter
 } from "./shell.js";
-import { createFace, localized } from "./card-render.js";
+import { createFace, localized, fitTextBoxes } from "./card-render.js";
 
 const params = new URLSearchParams(location.search);
 const requestedDeckId = params.get("deck");
@@ -112,6 +112,7 @@ function renderDeck(resource) {
       }
     }
     applyTheme(themeId);
+    fitTextBoxes(grid);
     setUrlParameter("deck", resource.id);
     setUrlParameter("lang", localeId);
   }

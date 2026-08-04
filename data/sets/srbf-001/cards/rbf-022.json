@@ -41,19 +41,22 @@
         {
           "id": "march",
           "displayKey": "effect",
-          "event": "while_in_play",
+          "event": "on_turn_start",
           "effect": {
-            "type": "modify_power",
+            "type": "empower",
             "target": {
               "cardType": "entity",
               "race": "human",
               "controller": "controller",
-              "quantity": "all"
+              "min": 1,
+              "max": 1
             },
-            "amount": 1,
-            "duration": "permanent",
+            "powerBonus": 2,
+            "duration": "until_end_of_turn",
             "details": {
-              "amountWithRubyfrontDeployed": 2
+              "grantsWithRubyfrontDeployed": [
+                "surge"
+              ]
             }
           }
         }

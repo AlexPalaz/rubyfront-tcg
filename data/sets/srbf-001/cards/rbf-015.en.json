@@ -1,7 +1,7 @@
 {
   "name": "Second Surge",
   "typeLabel": "Dynamic Matter II",
-  "summary": "The turn where a single body attacks twice.",
+  "summary": "The turn where a single body strikes twice.",
   "ui": {
     "face": "Matter"
   },
@@ -18,7 +18,7 @@
     "name": "Second Surge",
     "effect": {
       "name": "Effect",
-      "text": "An Entity of your choice that has already attacked this turn untaps and may attack a second time."
+      "text": "An Entity of your choice that has already attacked this turn may attack a second time."
     },
     "flavor": "The first blow opens. The second closes."
   },

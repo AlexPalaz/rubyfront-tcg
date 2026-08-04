@@ -1,7 +1,7 @@
 {
   "name": "Adam, The First",
   "typeLabel": "Entity — Human",
-  "summary": "The conduit of Zero: it channels the rarest Matter and, on leaving the field, leaves something behind.",
+  "summary": "The conduit of Zero: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
   "ui": {
     "face": "Entity"
   },
@@ -18,12 +18,12 @@
     "abilities": {
       "genesis": {
         "name": "Genesis",
-        "text": "search your deck for a Zero Matter, reveal it and add it to your hand, then shuffle. You cannot play it this turn."
+        "text": "search your deck for a Zero Matter card, reveal it and add it to your hand. You cannot play or discard that card this turn."
       }
     },
     "bequest": {
-      "trigger": "When it leaves the field",
-      "text": "Draw a card. (Any way of leaving the field counts, Retiring included.)"
+      "trigger": "When it leaves the Front",
+      "text": "Draw a card."
     },
     "flavor": "He was the first to touch Zero. Humankind was never the same."
   },
