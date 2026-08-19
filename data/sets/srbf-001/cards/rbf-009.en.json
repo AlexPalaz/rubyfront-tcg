@@ -1,6 +1,6 @@
 {
   "name": "Bulkhead Warden",
-  "typeLabel": "Entity — Human",
+  "typeLabel": "Entity: Human",
   "summary": "Two Power for a single Flux: the price is that he spends his first turn taking position.",
   "ui": {
     "face": "Entity"

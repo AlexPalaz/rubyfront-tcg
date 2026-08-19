@@ -1,6 +1,6 @@
 {
   "name": "Cercatrice di Sentieri",
-  "typeLabel": "Entità — Auros",
+  "typeLabel": "Entità: Auros",
   "summary": "Trova sempre la via, e con lei l'Auros giusto per il turno che verrà.",
   "ui": {
     "face": "Entità"

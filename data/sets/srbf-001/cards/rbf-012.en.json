@@ -1,6 +1,6 @@
 {
   "name": "Armored Bulwark",
-  "typeLabel": "Entity — Human",
+  "typeLabel": "Entity: Human",
   "summary": "Three Power for two Flux, in exchange for one thing only: he never moves first.",
   "ui": {
     "face": "Entity"

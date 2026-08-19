@@ -1,6 +1,6 @@
 {
   "name": "Breach Veteran",
-  "typeLabel": "Entity — Human",
+  "typeLabel": "Entity: Human",
   "summary": "The only one who teaches by defending: every fallen attacker is worth a card.",
   "ui": {
     "face": "Entity"

@@ -63,7 +63,9 @@ function renderDeck(resource) {
 
   const grid = element("section", "deck-grid");
   grid.setAttribute("aria-label", "Deck list");
-  page.append(trail, header, controls, grid);
+  // La strategia va PRIMA dell'elenco delle carte.
+  const strategy = element("section", "deck-strategy");
+  page.append(trail, header, strategy, controls, grid);
   app.replaceChildren(page);
 
   const totalCards = resource.cards.reduce((sum, entry) => sum + entry.count, 0);
@@ -91,6 +93,14 @@ function renderDeck(resource) {
     meta.replaceChildren(metadataList([
       [copy.status, copy[resource.status] ?? resource.status]
     ]));
+    if (deckCopy.strategy) {
+      strategy.replaceChildren(
+        element("h2", "deck-strategy-title", copy.strategy),
+        element("p", "deck-strategy-text", deckCopy.strategy)
+      );
+    } else {
+      strategy.replaceChildren();
+    }
     themeLabel.textContent = copy.theme;
     languageSlot.replaceChildren(languagePicker(resource, localeId, applyLocale));
 

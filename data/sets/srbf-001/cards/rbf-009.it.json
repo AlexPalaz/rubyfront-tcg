@@ -1,6 +1,6 @@
 {
   "name": "Guardiano della Paratia",
-  "typeLabel": "Entità — Umano",
+  "typeLabel": "Entità: Umano",
   "summary": "Due di Potenza per un solo Flusso: il prezzo è che il primo turno lo passa a prendere posizione.",
   "ui": {
     "face": "Entità"

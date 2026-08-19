@@ -1,6 +1,6 @@
 {
   "name": "Voce delle Radici",
-  "typeLabel": "Entità — Auros",
+  "typeLabel": "Entità: Auros",
   "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
   "ui": {
     "face": "Entità"

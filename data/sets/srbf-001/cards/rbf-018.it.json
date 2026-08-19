@@ -1,6 +1,6 @@
 {
   "name": "Archivista",
-  "typeLabel": "Entità — Umano",
+  "typeLabel": "Entità: Umano",
   "summary": "Cresce con la schiera: quanto vale lo decide quanti sono i suoi.",
   "ui": {
     "face": "Entità"

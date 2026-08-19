@@ -1,6 +1,6 @@
 {
   "name": "Vedetta del Sottobosco",
-  "typeLabel": "Entità — Auros",
+  "typeLabel": "Entità: Auros",
   "summary": "Un Auros che conosce ogni sentiero prima di percorrerlo, e apre la via alla Dimensionale.",
   "ui": {
     "face": "Entità"

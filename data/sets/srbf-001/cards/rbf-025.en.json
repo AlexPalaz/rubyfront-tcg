@@ -1,6 +1,6 @@
 {
   "name": "Undergrowth Lookout",
-  "typeLabel": "Entity — Auros",
+  "typeLabel": "Entity: Auros",
   "summary": "An Auros who knows every path before walking it, and opens the way to the Dimensional.",
   "ui": {
     "face": "Entity"

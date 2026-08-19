@@ -474,7 +474,7 @@
           "locales": {
             "it": {
               "name": "Adam, il Primo",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "Il tramite dello Zero e l'unico che apre la Dinamica di 2° grado: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
               "ui": {
                 "face": "Entità"
@@ -510,7 +510,7 @@
             },
             "en": {
               "name": "Adam, The First",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "The conduit of Zero and the only opening to 2nd-grade Dynamic: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
               "ui": {
                 "face": "Entity"
@@ -1231,7 +1231,7 @@
           "locales": {
             "it": {
               "name": "Vedetta del Perimetro",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "Non colpisce forte: segnala il bersaglio, e chi le sta accanto colpisce meglio.",
               "ui": {
                 "face": "Entità"
@@ -1257,7 +1257,7 @@
             },
             "en": {
               "name": "Perimeter Lookout",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "She does not hit hard: she marks the target, and whoever stands beside her hits better.",
               "ui": {
                 "face": "Entity"
@@ -1351,7 +1351,7 @@
           "locales": {
             "it": {
               "name": "Guardiano della Paratia",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "Due di Potenza per un solo Flusso: il prezzo è che il primo turno lo passa a prendere posizione.",
               "ui": {
                 "face": "Entità"
@@ -1377,7 +1377,7 @@
             },
             "en": {
               "name": "Bulkhead Warden",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "Two Power for a single Flux: the price is that he spends his first turn taking position.",
               "ui": {
                 "face": "Entity"
@@ -1463,7 +1463,7 @@
           "locales": {
             "it": {
               "name": "Chirurgo da Campo",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "Il corpo che porta con sé un punto di danno: scende, colpisce la bestia avversaria e resta in linea.",
               "ui": {
                 "face": "Entità"
@@ -1485,7 +1485,7 @@
             },
             "en": {
               "name": "Field Surgeon",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "A body that arrives carrying a point of damage: it lands, hits the enemy beast and stays in line.",
               "ui": {
                 "face": "Entity"
@@ -1563,7 +1563,7 @@
           "locales": {
             "it": {
               "name": "Emissario degli Eredi",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "Due braccia in campo e un terzo in arrivo: gli Eredi non lasciano mai un posto vuoto.",
               "ui": {
                 "face": "Entità"
@@ -1585,7 +1585,7 @@
             },
             "en": {
               "name": "Emissary of the Heirs",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "Two arms on the field and a third on the way: the Heirs never leave a place empty.",
               "ui": {
                 "face": "Entity"
@@ -1671,7 +1671,7 @@
           "locales": {
             "it": {
               "name": "Baluardo Corazzato",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "Tre di Potenza a due Flussi, in cambio di una sola cosa: non muove mai per primo.",
               "ui": {
                 "face": "Entità"
@@ -1697,7 +1697,7 @@
             },
             "en": {
               "name": "Armored Bulwark",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "Three Power for two Flux, in exchange for one thing only: he never moves first.",
               "ui": {
                 "face": "Entity"
@@ -1894,7 +1894,7 @@
           "locales": {
             "it": {
               "name": "Prima Lama",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "Arriva togliendo di mezzo qualcuno, e con il Nexus in campo diventa impossibile da attaccare impunemente.",
               "ui": {
                 "face": "Entità"
@@ -1924,7 +1924,7 @@
             },
             "en": {
               "name": "First Blade",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "She arrives by removing someone, and with the Nexus out she becomes impossible to attack for free.",
               "ui": {
                 "face": "Entity"
@@ -2414,7 +2414,7 @@
           "locales": {
             "it": {
               "name": "Archivista",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "Cresce con la schiera: quanto vale lo decide quanti sono i suoi.",
               "ui": {
                 "face": "Entità"
@@ -2436,7 +2436,7 @@
             },
             "en": {
               "name": "Archivist",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "He grows with the ranks: how much he is worth is decided by how many of his own there are.",
               "ui": {
                 "face": "Entity"
@@ -2520,7 +2520,7 @@
           "locales": {
             "it": {
               "name": "Veterana della Breccia",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "L’unica che insegna difendendo: ogni attaccante caduto vale una carta.",
               "ui": {
                 "face": "Entità"
@@ -2543,7 +2543,7 @@
             },
             "en": {
               "name": "Breach Veteran",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "The only one who teaches by defending: every fallen attacker is worth a card.",
               "ui": {
                 "face": "Entity"
@@ -2726,7 +2726,7 @@
           "locales": {
             "it": {
               "name": "Corriere a Vapore",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "Un Flusso per il primo colpo della partita, e per decidere che cosa trova chi arriva dopo.",
               "ui": {
                 "face": "Entità"
@@ -2752,7 +2752,7 @@
             },
             "en": {
               "name": "Steam Courier",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "One Flux for the first hit of the game, and for deciding what whoever comes next will find.",
               "ui": {
                 "face": "Entity"
@@ -2973,7 +2973,7 @@
           "locales": {
             "it": {
               "name": "Vendicatrice di Acciaio",
-              "typeLabel": "Entità — Umano",
+              "typeLabel": "Entità: Umano",
               "summary": "Un corpo che non conviene attaccare: da sola punisce chi la colpisce, accanto alla bestia lo punisce a Potenza 3.",
               "ui": {
                 "face": "Entità"
@@ -2999,7 +2999,7 @@
             },
             "en": {
               "name": "Steel Avenger",
-              "typeLabel": "Entity — Human",
+              "typeLabel": "Entity: Human",
               "summary": "A body it does not pay to attack: on her own she punishes whoever strikes her, beside the beast she punishes at Power 3.",
               "ui": {
                 "face": "Entity"
@@ -3521,7 +3521,7 @@
           "locales": {
             "it": {
               "name": "Vedetta del Sottobosco",
-              "typeLabel": "Entità — Auros",
+              "typeLabel": "Entità: Auros",
               "summary": "Un Auros che conosce ogni sentiero prima di percorrerlo, e apre la via alla Dimensionale.",
               "ui": {
                 "face": "Entità"
@@ -3543,7 +3543,7 @@
             },
             "en": {
               "name": "Undergrowth Lookout",
-              "typeLabel": "Entity — Auros",
+              "typeLabel": "Entity: Auros",
               "summary": "An Auros who knows every path before walking it, and opens the way to the Dimensional.",
               "ui": {
                 "face": "Entity"
@@ -3634,7 +3634,7 @@
           "locales": {
             "it": {
               "name": "Corriere delle Radure",
-              "typeLabel": "Entità — Auros",
+              "typeLabel": "Entità: Auros",
               "summary": "Porta parola fra le radure: quando il bosco è già popolato, torna con una carta in più.",
               "ui": {
                 "face": "Entità"
@@ -3656,7 +3656,7 @@
             },
             "en": {
               "name": "Glade Courier",
-              "typeLabel": "Entity — Auros",
+              "typeLabel": "Entity: Auros",
               "summary": "Carries word between glades: when the wood is already peopled, it comes back with a card to spare.",
               "ui": {
                 "face": "Entity"
@@ -3750,7 +3750,7 @@
           "locales": {
             "it": {
               "name": "Sentinella Perenne",
-              "typeLabel": "Entità — Auros",
+              "typeLabel": "Entità: Auros",
               "summary": "Immortale e immobile: regge la linea e tiene aperta la Dimensionale, ma non muore mai davvero.",
               "ui": {
                 "face": "Entità"
@@ -3780,7 +3780,7 @@
             },
             "en": {
               "name": "Perennial Sentinel",
-              "typeLabel": "Entity — Auros",
+              "typeLabel": "Entity: Auros",
               "summary": "Immortal and unmoving: it holds the line and keeps the Dimensional open, but never truly dies.",
               "ui": {
                 "face": "Entity"
@@ -3866,7 +3866,7 @@
           "locales": {
             "it": {
               "name": "Cercatrice di Sentieri",
-              "typeLabel": "Entità — Auros",
+              "typeLabel": "Entità: Auros",
               "summary": "Trova sempre la via, e con lei l'Auros giusto per il turno che verrà.",
               "ui": {
                 "face": "Entità"
@@ -3888,7 +3888,7 @@
             },
             "en": {
               "name": "Pathfinder of Trails",
-              "typeLabel": "Entity — Auros",
+              "typeLabel": "Entity: Auros",
               "summary": "Always finds the way, and with it the right Auros for the turn to come.",
               "ui": {
                 "face": "Entity"
@@ -3981,7 +3981,7 @@
           "locales": {
             "it": {
               "name": "Guardiana del Varco",
-              "typeLabel": "Entità — Auros",
+              "typeLabel": "Entità: Auros",
               "summary": "Apre il varco sotto i piedi di chi le sta davanti: un corpo che scende e uno che torna in mano.",
               "ui": {
                 "face": "Entità"
@@ -4003,7 +4003,7 @@
             },
             "en": {
               "name": "Warden of the Rift",
-              "typeLabel": "Entity — Auros",
+              "typeLabel": "Entity: Auros",
               "summary": "Opens the rift beneath whoever stands before it: one body comes down, one goes back to hand.",
               "ui": {
                 "face": "Entity"
@@ -4099,7 +4099,7 @@
           "locales": {
             "it": {
               "name": "Vàlaris, Prima del Bosco",
-              "typeLabel": "Entità — Auros (Unica)",
+              "typeLabel": "Entità: Auros",
               "summary": "La più antica del Bosco Errante: la sua sola presenza piega lo spazio fino al secondo grado.",
               "ui": {
                 "face": "Entità"
@@ -4126,7 +4126,7 @@
             },
             "en": {
               "name": "Valaris, First of the Wood",
-              "typeLabel": "Entity — Auros (Unique)",
+              "typeLabel": "Entity: Auros",
               "summary": "The eldest of the Wandering Wood: her mere presence folds space up to the second grade.",
               "ui": {
                 "face": "Entity"
@@ -4215,7 +4215,7 @@
           "locales": {
             "it": {
               "name": "Antico del Bosco Errante",
-              "typeLabel": "Entità — Auros",
+              "typeLabel": "Entità: Auros",
               "summary": "Quando l'Antico si desta, sradica ciò che gli sta davanti e il bosco gli porge una carta.",
               "ui": {
                 "face": "Entità"
@@ -4245,7 +4245,7 @@
             },
             "en": {
               "name": "Elder of the Wandering Wood",
-              "typeLabel": "Entity — Auros",
+              "typeLabel": "Entity: Auros",
               "summary": "When the Elder wakes, it uproots what stands before it and the wood hands it a card.",
               "ui": {
                 "face": "Entity"
@@ -4502,7 +4502,7 @@
                 "name": "Passo nel Vuoto",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Reattiva. Riporta un'Entità avversaria nella mano del suo proprietario; puoi giocarla come blocco contro un attaccante, che così viene rimosso dall'ondata. L'Oggetto assegnato va nell'Abisso."
+                  "text": "Riporta un'Entità avversaria nella mano del suo proprietario; puoi giocarla come blocco contro un attaccante, che così viene rimosso dall'ondata. L'Oggetto assegnato va nell'Abisso."
                 },
                 "flavor": "Non pararono il colpo. Tolsero il bersaglio."
               }
@@ -4527,7 +4527,7 @@
                 "name": "Step into the Void",
                 "effect": {
                   "name": "Effect",
-                  "text": "Reactive. Return an opponent Entity to its owner's hand; you may play it as a block against an attacker, removing it from the wave. Its assigned Object goes to the Abyss."
+                  "text": "Return an opponent Entity to its owner's hand; you may play it as a block against an attacker, removing it from the wave. Its assigned Object goes to the Abyss."
                 },
                 "flavor": "They did not parry the blow. They removed the target."
               }
@@ -4624,7 +4624,7 @@
                 "name": "Il Bosco Ricorda",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Permanente. All'inizio di ogni tuo turno guarda la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
+                  "text": "All'inizio di ogni tuo turno guarda la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
                 },
                 "flavor": "Ogni albero è un nome. Ogni nome torna, prima o poi."
               }
@@ -4649,7 +4649,7 @@
                 "name": "The Wood Remembers",
                 "effect": {
                   "name": "Effect",
-                  "text": "Permanent. At the start of each of your turns look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
+                  "text": "At the start of each of your turns look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
                 },
                 "flavor": "Every tree is a name. Every name returns, sooner or later."
               }
@@ -4954,7 +4954,7 @@
           "locales": {
             "it": {
               "name": "Voce delle Radici",
-              "typeLabel": "Entità — Auros",
+              "typeLabel": "Entità: Auros",
               "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
               "ui": {
                 "face": "Entità"
@@ -4976,7 +4976,7 @@
             },
             "en": {
               "name": "Voice of the Roots",
-              "typeLabel": "Entity — Auros",
+              "typeLabel": "Entity: Auros",
               "summary": "It calls by name those who left the field still alive, and brings them back from the Requiem.",
               "ui": {
                 "face": "Entity"
@@ -5503,7 +5503,7 @@
       "locales": {
         "it": {
           "name": "Adam, il Primo",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "Il tramite dello Zero e l'unico che apre la Dinamica di 2° grado: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
           "ui": {
             "face": "Entità"
@@ -5539,7 +5539,7 @@
         },
         "en": {
           "name": "Adam, The First",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "The conduit of Zero and the only opening to 2nd-grade Dynamic: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
           "ui": {
             "face": "Entity"
@@ -6260,7 +6260,7 @@
       "locales": {
         "it": {
           "name": "Vedetta del Perimetro",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "Non colpisce forte: segnala il bersaglio, e chi le sta accanto colpisce meglio.",
           "ui": {
             "face": "Entità"
@@ -6286,7 +6286,7 @@
         },
         "en": {
           "name": "Perimeter Lookout",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "She does not hit hard: she marks the target, and whoever stands beside her hits better.",
           "ui": {
             "face": "Entity"
@@ -6380,7 +6380,7 @@
       "locales": {
         "it": {
           "name": "Guardiano della Paratia",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "Due di Potenza per un solo Flusso: il prezzo è che il primo turno lo passa a prendere posizione.",
           "ui": {
             "face": "Entità"
@@ -6406,7 +6406,7 @@
         },
         "en": {
           "name": "Bulkhead Warden",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "Two Power for a single Flux: the price is that he spends his first turn taking position.",
           "ui": {
             "face": "Entity"
@@ -6492,7 +6492,7 @@
       "locales": {
         "it": {
           "name": "Chirurgo da Campo",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "Il corpo che porta con sé un punto di danno: scende, colpisce la bestia avversaria e resta in linea.",
           "ui": {
             "face": "Entità"
@@ -6514,7 +6514,7 @@
         },
         "en": {
           "name": "Field Surgeon",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "A body that arrives carrying a point of damage: it lands, hits the enemy beast and stays in line.",
           "ui": {
             "face": "Entity"
@@ -6592,7 +6592,7 @@
       "locales": {
         "it": {
           "name": "Emissario degli Eredi",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "Due braccia in campo e un terzo in arrivo: gli Eredi non lasciano mai un posto vuoto.",
           "ui": {
             "face": "Entità"
@@ -6614,7 +6614,7 @@
         },
         "en": {
           "name": "Emissary of the Heirs",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "Two arms on the field and a third on the way: the Heirs never leave a place empty.",
           "ui": {
             "face": "Entity"
@@ -6700,7 +6700,7 @@
       "locales": {
         "it": {
           "name": "Baluardo Corazzato",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "Tre di Potenza a due Flussi, in cambio di una sola cosa: non muove mai per primo.",
           "ui": {
             "face": "Entità"
@@ -6726,7 +6726,7 @@
         },
         "en": {
           "name": "Armored Bulwark",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "Three Power for two Flux, in exchange for one thing only: he never moves first.",
           "ui": {
             "face": "Entity"
@@ -6923,7 +6923,7 @@
       "locales": {
         "it": {
           "name": "Prima Lama",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "Arriva togliendo di mezzo qualcuno, e con il Nexus in campo diventa impossibile da attaccare impunemente.",
           "ui": {
             "face": "Entità"
@@ -6953,7 +6953,7 @@
         },
         "en": {
           "name": "First Blade",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "She arrives by removing someone, and with the Nexus out she becomes impossible to attack for free.",
           "ui": {
             "face": "Entity"
@@ -7443,7 +7443,7 @@
       "locales": {
         "it": {
           "name": "Archivista",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "Cresce con la schiera: quanto vale lo decide quanti sono i suoi.",
           "ui": {
             "face": "Entità"
@@ -7465,7 +7465,7 @@
         },
         "en": {
           "name": "Archivist",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "He grows with the ranks: how much he is worth is decided by how many of his own there are.",
           "ui": {
             "face": "Entity"
@@ -7549,7 +7549,7 @@
       "locales": {
         "it": {
           "name": "Veterana della Breccia",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "L’unica che insegna difendendo: ogni attaccante caduto vale una carta.",
           "ui": {
             "face": "Entità"
@@ -7572,7 +7572,7 @@
         },
         "en": {
           "name": "Breach Veteran",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "The only one who teaches by defending: every fallen attacker is worth a card.",
           "ui": {
             "face": "Entity"
@@ -7755,7 +7755,7 @@
       "locales": {
         "it": {
           "name": "Corriere a Vapore",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "Un Flusso per il primo colpo della partita, e per decidere che cosa trova chi arriva dopo.",
           "ui": {
             "face": "Entità"
@@ -7781,7 +7781,7 @@
         },
         "en": {
           "name": "Steam Courier",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "One Flux for the first hit of the game, and for deciding what whoever comes next will find.",
           "ui": {
             "face": "Entity"
@@ -8002,7 +8002,7 @@
       "locales": {
         "it": {
           "name": "Vendicatrice di Acciaio",
-          "typeLabel": "Entità — Umano",
+          "typeLabel": "Entità: Umano",
           "summary": "Un corpo che non conviene attaccare: da sola punisce chi la colpisce, accanto alla bestia lo punisce a Potenza 3.",
           "ui": {
             "face": "Entità"
@@ -8028,7 +8028,7 @@
         },
         "en": {
           "name": "Steel Avenger",
-          "typeLabel": "Entity — Human",
+          "typeLabel": "Entity: Human",
           "summary": "A body it does not pay to attack: on her own she punishes whoever strikes her, beside the beast she punishes at Power 3.",
           "ui": {
             "face": "Entity"
@@ -8550,7 +8550,7 @@
       "locales": {
         "it": {
           "name": "Vedetta del Sottobosco",
-          "typeLabel": "Entità — Auros",
+          "typeLabel": "Entità: Auros",
           "summary": "Un Auros che conosce ogni sentiero prima di percorrerlo, e apre la via alla Dimensionale.",
           "ui": {
             "face": "Entità"
@@ -8572,7 +8572,7 @@
         },
         "en": {
           "name": "Undergrowth Lookout",
-          "typeLabel": "Entity — Auros",
+          "typeLabel": "Entity: Auros",
           "summary": "An Auros who knows every path before walking it, and opens the way to the Dimensional.",
           "ui": {
             "face": "Entity"
@@ -8663,7 +8663,7 @@
       "locales": {
         "it": {
           "name": "Corriere delle Radure",
-          "typeLabel": "Entità — Auros",
+          "typeLabel": "Entità: Auros",
           "summary": "Porta parola fra le radure: quando il bosco è già popolato, torna con una carta in più.",
           "ui": {
             "face": "Entità"
@@ -8685,7 +8685,7 @@
         },
         "en": {
           "name": "Glade Courier",
-          "typeLabel": "Entity — Auros",
+          "typeLabel": "Entity: Auros",
           "summary": "Carries word between glades: when the wood is already peopled, it comes back with a card to spare.",
           "ui": {
             "face": "Entity"
@@ -8779,7 +8779,7 @@
       "locales": {
         "it": {
           "name": "Sentinella Perenne",
-          "typeLabel": "Entità — Auros",
+          "typeLabel": "Entità: Auros",
           "summary": "Immortale e immobile: regge la linea e tiene aperta la Dimensionale, ma non muore mai davvero.",
           "ui": {
             "face": "Entità"
@@ -8809,7 +8809,7 @@
         },
         "en": {
           "name": "Perennial Sentinel",
-          "typeLabel": "Entity — Auros",
+          "typeLabel": "Entity: Auros",
           "summary": "Immortal and unmoving: it holds the line and keeps the Dimensional open, but never truly dies.",
           "ui": {
             "face": "Entity"
@@ -8895,7 +8895,7 @@
       "locales": {
         "it": {
           "name": "Cercatrice di Sentieri",
-          "typeLabel": "Entità — Auros",
+          "typeLabel": "Entità: Auros",
           "summary": "Trova sempre la via, e con lei l'Auros giusto per il turno che verrà.",
           "ui": {
             "face": "Entità"
@@ -8917,7 +8917,7 @@
         },
         "en": {
           "name": "Pathfinder of Trails",
-          "typeLabel": "Entity — Auros",
+          "typeLabel": "Entity: Auros",
           "summary": "Always finds the way, and with it the right Auros for the turn to come.",
           "ui": {
             "face": "Entity"
@@ -9010,7 +9010,7 @@
       "locales": {
         "it": {
           "name": "Guardiana del Varco",
-          "typeLabel": "Entità — Auros",
+          "typeLabel": "Entità: Auros",
           "summary": "Apre il varco sotto i piedi di chi le sta davanti: un corpo che scende e uno che torna in mano.",
           "ui": {
             "face": "Entità"
@@ -9032,7 +9032,7 @@
         },
         "en": {
           "name": "Warden of the Rift",
-          "typeLabel": "Entity — Auros",
+          "typeLabel": "Entity: Auros",
           "summary": "Opens the rift beneath whoever stands before it: one body comes down, one goes back to hand.",
           "ui": {
             "face": "Entity"
@@ -9128,7 +9128,7 @@
       "locales": {
         "it": {
           "name": "Vàlaris, Prima del Bosco",
-          "typeLabel": "Entità — Auros (Unica)",
+          "typeLabel": "Entità: Auros",
           "summary": "La più antica del Bosco Errante: la sua sola presenza piega lo spazio fino al secondo grado.",
           "ui": {
             "face": "Entità"
@@ -9155,7 +9155,7 @@
         },
         "en": {
           "name": "Valaris, First of the Wood",
-          "typeLabel": "Entity — Auros (Unique)",
+          "typeLabel": "Entity: Auros",
           "summary": "The eldest of the Wandering Wood: her mere presence folds space up to the second grade.",
           "ui": {
             "face": "Entity"
@@ -9244,7 +9244,7 @@
       "locales": {
         "it": {
           "name": "Antico del Bosco Errante",
-          "typeLabel": "Entità — Auros",
+          "typeLabel": "Entità: Auros",
           "summary": "Quando l'Antico si desta, sradica ciò che gli sta davanti e il bosco gli porge una carta.",
           "ui": {
             "face": "Entità"
@@ -9274,7 +9274,7 @@
         },
         "en": {
           "name": "Elder of the Wandering Wood",
-          "typeLabel": "Entity — Auros",
+          "typeLabel": "Entity: Auros",
           "summary": "When the Elder wakes, it uproots what stands before it and the wood hands it a card.",
           "ui": {
             "face": "Entity"
@@ -9531,7 +9531,7 @@
             "name": "Passo nel Vuoto",
             "effect": {
               "name": "Effetto",
-              "text": "Reattiva. Riporta un'Entità avversaria nella mano del suo proprietario; puoi giocarla come blocco contro un attaccante, che così viene rimosso dall'ondata. L'Oggetto assegnato va nell'Abisso."
+              "text": "Riporta un'Entità avversaria nella mano del suo proprietario; puoi giocarla come blocco contro un attaccante, che così viene rimosso dall'ondata. L'Oggetto assegnato va nell'Abisso."
             },
             "flavor": "Non pararono il colpo. Tolsero il bersaglio."
           }
@@ -9556,7 +9556,7 @@
             "name": "Step into the Void",
             "effect": {
               "name": "Effect",
-              "text": "Reactive. Return an opponent Entity to its owner's hand; you may play it as a block against an attacker, removing it from the wave. Its assigned Object goes to the Abyss."
+              "text": "Return an opponent Entity to its owner's hand; you may play it as a block against an attacker, removing it from the wave. Its assigned Object goes to the Abyss."
             },
             "flavor": "They did not parry the blow. They removed the target."
           }
@@ -9653,7 +9653,7 @@
             "name": "Il Bosco Ricorda",
             "effect": {
               "name": "Effetto",
-              "text": "Permanente. All'inizio di ogni tuo turno guarda la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
+              "text": "All'inizio di ogni tuo turno guarda la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
             },
             "flavor": "Ogni albero è un nome. Ogni nome torna, prima o poi."
           }
@@ -9678,7 +9678,7 @@
             "name": "The Wood Remembers",
             "effect": {
               "name": "Effect",
-              "text": "Permanent. At the start of each of your turns look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
+              "text": "At the start of each of your turns look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
             },
             "flavor": "Every tree is a name. Every name returns, sooner or later."
           }
@@ -9983,7 +9983,7 @@
       "locales": {
         "it": {
           "name": "Voce delle Radici",
-          "typeLabel": "Entità — Auros",
+          "typeLabel": "Entità: Auros",
           "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
           "ui": {
             "face": "Entità"
@@ -10005,7 +10005,7 @@
         },
         "en": {
           "name": "Voice of the Roots",
-          "typeLabel": "Entity — Auros",
+          "typeLabel": "Entity: Auros",
           "summary": "It calls by name those who left the field still alive, and brings them back from the Requiem.",
           "ui": {
             "face": "Entity"
@@ -10095,11 +10095,13 @@
       "locales": {
         "it": {
           "name": "Marea del Bosco",
-          "description": "Mazzo Auros midrange: corpi solidi con effetti d'ingresso, la Materia Dimensionale che rimbalza e blinca per vincere di tempo e valore, e il Rubifronte del Bosco Errante che richiama i suoi e sfasa ciò che gli sta davanti."
+          "description": "Mazzo Auros midrange: corpi solidi con effetti d'ingresso, la Materia Dimensionale che rimbalza e blinca per vincere di tempo e valore, e il Rubifronte del Bosco Errante che richiama i suoi e sfasa ciò che gli sta davanti.",
+          "strategy": "Non corri: logori. Nei primi turni reggi l'urto con la Sentinella Perenne e Passo nel Vuoto, poi prendi in mano il ritmo rimbalzando le minacce avversarie — Varco, Guardiana del Varco, Sfasare — mentre riusi gli effetti d'ingresso dei tuoi Auros con il blink. Il Rubifronte del Bosco Errante e Il Bosco Ricorda ti tengono la mano piena; quando controlli tre Auros e hai già inflitto otto danni, il flip nella Radura Ripiegata chiude la partita a valore."
         },
         "en": {
           "name": "Tide of the Wood",
-          "description": "An Auros midrange deck: solid bodies with enter-the-field value, Dimensional Matter that bounces and blinks to win on tempo and card advantage, and the Rubyfront of the Wandering Wood recalling its own and phasing away what stands before it."
+          "description": "An Auros midrange deck: solid bodies with enter-the-field value, Dimensional Matter that bounces and blinks to win on tempo and card advantage, and the Rubyfront of the Wandering Wood recalling its own and phasing away what stands before it.",
+          "strategy": "You don't race — you grind. Weather the early turns with the Perennial Sentinel and Step into the Void, then seize the tempo by bouncing the opponent's threats — Rift, Warden of the Rift, Phase Away — while re-using your Auros' enter-the-field effects through blinking. The Rubyfront of the Wandering Wood and The Wood Remembers keep your hand full; once you control three Auros and have already dealt eight damage, flipping into the Folded Glade closes the game on card advantage."
         }
       },
       "designNotes": "marea-del-bosco.md",
@@ -10178,11 +10180,13 @@
       "locales": {
         "it": {
           "name": "Primi Eredi",
-          "description": "Mazzo Umani aggro: corpi a costo bassissimo dal primo turno, il Rubifronte del Patto che li stappa e li spinge, e il Nexus che si apre controllando tre Umani e scartando una Materia Zero."
+          "description": "Mazzo Umani aggro: corpi a costo bassissimo dal primo turno, il Rubifronte del Patto che li stappa e li spinge, e il Nexus che si apre controllando tre Umani e scartando una Materia Zero.",
+          "strategy": "Parti fortissimo: allaga il Fronte con corpi da 1 Flusso fin dal primo turno, poi moltiplica la loro Potenza con Vigorcintura, Vessillo degli Eredi e l'Onda Portante della bestia. Il Rubifronte del Patto stappa e spinge gli Umani — e si cura con Comando dal Fronte — mentre Collera e Lacerazione limano i PV che restano. Corri al volto prima che l'avversario stabilizzi; apri il Nexus quando controlli tre Umani e scarti una Materia Zero."
         },
         "en": {
           "name": "First Heirs",
-          "description": "A Human aggro deck: dirt-cheap bodies from turn one, the Rubyfront of the Pact untapping and driving them, and the Nexus opening once you control three Humans and discard a Zero Matter."
+          "description": "A Human aggro deck: dirt-cheap bodies from turn one, the Rubyfront of the Pact untapping and driving them, and the Nexus opening once you control three Humans and discard a Zero Matter.",
+          "strategy": "Come out swinging: flood the Front with one-Flux bodies from turn one, then multiply their Power with the Vigorbelt, the Banner of the Heirs and the beast's Swell. The Rubyfront of the Pact untaps and drives the Humans — and heals with Front Command — while Wrath and Laceration shave off the last HP. Race to the face before the opponent stabilizes; open the Nexus once you control three Humans and discard a Zero Matter."
         }
       },
       "designNotes": "primi-eredi.md",

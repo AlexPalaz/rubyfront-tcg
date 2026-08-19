@@ -1,6 +1,6 @@
 {
   "name": "Vedetta del Perimetro",
-  "typeLabel": "Entità — Umano",
+  "typeLabel": "Entità: Umano",
   "summary": "Non colpisce forte: segnala il bersaglio, e chi le sta accanto colpisce meglio.",
   "ui": {
     "face": "Entità"

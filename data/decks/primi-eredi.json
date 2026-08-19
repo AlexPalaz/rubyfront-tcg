@@ -7,11 +7,13 @@
   "locales": {
     "it": {
       "name": "Primi Eredi",
-      "description": "Mazzo Umani aggro: corpi a costo bassissimo dal primo turno, il Rubifronte del Patto che li stappa e li spinge, e il Nexus che si apre controllando tre Umani e scartando una Materia Zero."
+      "description": "Mazzo Umani aggro: corpi a costo bassissimo dal primo turno, il Rubifronte del Patto che li stappa e li spinge, e il Nexus che si apre controllando tre Umani e scartando una Materia Zero.",
+      "strategy": "Parti fortissimo: allaga il Fronte con corpi da 1 Flusso fin dal primo turno, poi moltiplica la loro Potenza con Vigorcintura, Vessillo degli Eredi e l'Onda Portante della bestia. Il Rubifronte del Patto stappa e spinge gli Umani — e si cura con Comando dal Fronte — mentre Collera e Lacerazione limano i PV che restano. Corri al volto prima che l'avversario stabilizzi; apri il Nexus quando controlli tre Umani e scarti una Materia Zero."
     },
     "en": {
       "name": "First Heirs",
-      "description": "A Human aggro deck: dirt-cheap bodies from turn one, the Rubyfront of the Pact untapping and driving them, and the Nexus opening once you control three Humans and discard a Zero Matter."
+      "description": "A Human aggro deck: dirt-cheap bodies from turn one, the Rubyfront of the Pact untapping and driving them, and the Nexus opening once you control three Humans and discard a Zero Matter.",
+      "strategy": "Come out swinging: flood the Front with one-Flux bodies from turn one, then multiply their Power with the Vigorbelt, the Banner of the Heirs and the beast's Swell. The Rubyfront of the Pact untaps and drives the Humans — and heals with Front Command — while Wrath and Laceration shave off the last HP. Race to the face before the opponent stabilizes; open the Nexus once you control three Humans and discard a Zero Matter."
     }
   },
   "designNotes": "primi-eredi.md",

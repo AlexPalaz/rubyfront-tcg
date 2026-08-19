@@ -1,6 +1,6 @@
 {
   "name": "Steam Courier",
-  "typeLabel": "Entity — Human",
+  "typeLabel": "Entity: Human",
   "summary": "One Flux for the first hit of the game, and for deciding what whoever comes next will find.",
   "ui": {
     "face": "Entity"

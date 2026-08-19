@@ -1,6 +1,6 @@
 {
   "name": "Glade Courier",
-  "typeLabel": "Entity — Auros",
+  "typeLabel": "Entity: Auros",
   "summary": "Carries word between glades: when the wood is already peopled, it comes back with a card to spare.",
   "ui": {
     "face": "Entity"

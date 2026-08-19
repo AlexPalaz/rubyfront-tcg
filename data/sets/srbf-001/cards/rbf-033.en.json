@@ -18,7 +18,7 @@
     "name": "Step into the Void",
     "effect": {
       "name": "Effect",
-      "text": "Reactive. Return an opponent Entity to its owner's hand; you may play it as a block against an attacker, removing it from the wave. Its assigned Object goes to the Abyss."
+      "text": "Return an opponent Entity to its owner's hand; you may play it as a block against an attacker, removing it from the wave. Its assigned Object goes to the Abyss."
     },
     "flavor": "They did not parry the blow. They removed the target."
   }

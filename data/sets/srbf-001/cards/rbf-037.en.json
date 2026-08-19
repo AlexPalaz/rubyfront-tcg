@@ -1,6 +1,6 @@
 {
   "name": "Voice of the Roots",
-  "typeLabel": "Entity — Auros",
+  "typeLabel": "Entity: Auros",
   "summary": "It calls by name those who left the field still alive, and brings them back from the Requiem.",
   "ui": {
     "face": "Entity"

@@ -1,6 +1,6 @@
 {
   "name": "First Blade",
-  "typeLabel": "Entity — Human",
+  "typeLabel": "Entity: Human",
   "summary": "She arrives by removing someone, and with the Nexus out she becomes impossible to attack for free.",
   "ui": {
     "face": "Entity"

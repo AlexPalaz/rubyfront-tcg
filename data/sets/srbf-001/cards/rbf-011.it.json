@@ -1,6 +1,6 @@
 {
   "name": "Emissario degli Eredi",
-  "typeLabel": "Entità — Umano",
+  "typeLabel": "Entità: Umano",
   "summary": "Due braccia in campo e un terzo in arrivo: gli Eredi non lasciano mai un posto vuoto.",
   "ui": {
     "face": "Entità"

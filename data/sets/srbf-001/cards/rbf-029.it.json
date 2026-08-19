@@ -1,6 +1,6 @@
 {
   "name": "Guardiana del Varco",
-  "typeLabel": "Entità — Auros",
+  "typeLabel": "Entità: Auros",
   "summary": "Apre il varco sotto i piedi di chi le sta davanti: un corpo che scende e uno che torna in mano.",
   "ui": {
     "face": "Entità"

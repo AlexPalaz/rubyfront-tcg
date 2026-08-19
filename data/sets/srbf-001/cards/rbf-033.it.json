@@ -18,7 +18,7 @@
     "name": "Passo nel Vuoto",
     "effect": {
       "name": "Effetto",
-      "text": "Reattiva. Riporta un'Entità avversaria nella mano del suo proprietario; puoi giocarla come blocco contro un attaccante, che così viene rimosso dall'ondata. L'Oggetto assegnato va nell'Abisso."
+      "text": "Riporta un'Entità avversaria nella mano del suo proprietario; puoi giocarla come blocco contro un attaccante, che così viene rimosso dall'ondata. L'Oggetto assegnato va nell'Abisso."
     },
     "flavor": "Non pararono il colpo. Tolsero il bersaglio."
   }

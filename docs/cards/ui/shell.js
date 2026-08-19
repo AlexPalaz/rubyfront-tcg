@@ -62,6 +62,7 @@ export const COPY = {
     front: "Faccia A",
     back: "Faccia B",
     deck: "Mazzo",
+    strategy: "Strategia",
     deckCount: total => `${total} carte`,
     errorTitle: "Contenuto non disponibile",
     backToCatalog: "Torna al catalogo",
@@ -74,7 +75,9 @@ export const COPY = {
       destructive: "Distruttiva",
       zero: "Zero",
       dominant: "Dominante"
-    }
+    },
+    faceKind: { rubyfront: "Rubifronte", nexus: "Nexus" },
+    behaviorNames: { reactive: "Reattiva", permanent: "Permanente" }
   },
   en: {
     catalog: "Catalog",
@@ -135,6 +138,7 @@ export const COPY = {
     front: "Face A",
     back: "Face B",
     deck: "Deck",
+    strategy: "Strategy",
     deckCount: total => `${total} cards`,
     errorTitle: "Content unavailable",
     backToCatalog: "Back to catalog",
@@ -147,7 +151,9 @@ export const COPY = {
       destructive: "Destructive",
       zero: "Zero",
       dominant: "Dominant"
-    }
+    },
+    faceKind: { rubyfront: "Rubyfront", nexus: "Nexus" },
+    behaviorNames: { reactive: "Reactive", permanent: "Permanent" }
   }
 };
 

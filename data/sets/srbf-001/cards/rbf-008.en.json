@@ -1,6 +1,6 @@
 {
   "name": "Perimeter Lookout",
-  "typeLabel": "Entity — Human",
+  "typeLabel": "Entity: Human",
   "summary": "She does not hit hard: she marks the target, and whoever stands beside her hits better.",
   "ui": {
     "face": "Entity"

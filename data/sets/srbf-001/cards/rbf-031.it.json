@@ -1,6 +1,6 @@
 {
   "name": "Antico del Bosco Errante",
-  "typeLabel": "Entità — Auros",
+  "typeLabel": "Entità: Auros",
   "summary": "Quando l'Antico si desta, sradica ciò che gli sta davanti e il bosco gli porge una carta.",
   "ui": {
     "face": "Entità"

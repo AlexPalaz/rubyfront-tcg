@@ -1,6 +1,6 @@
 {
   "name": "Elder of the Wandering Wood",
-  "typeLabel": "Entity — Auros",
+  "typeLabel": "Entity: Auros",
   "summary": "When the Elder wakes, it uproots what stands before it and the wood hands it a card.",
   "ui": {
     "face": "Entity"

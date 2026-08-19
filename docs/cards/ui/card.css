@@ -109,7 +109,8 @@
   .matter-effect { font-size: 1em; }
   .matter-effect .behavior-holder { display: inline-block; }
   .matter-effect .behavior-icon { width: 1.1em; height: 1.1em; display: inline-block;
-    vertical-align: -.18em; margin-right: .28em; }
+    vertical-align: -.18em; margin-right: .18em; }
+  .matter-effect .behavior-word { color: var(--accent); font-weight: 700; }
   /* Riga d'intestazione dentro la descrizione: tipo a sinistra, medaglioni
      delle Materie abilitate (e Contrattacco) a destra. Sostituisce la vecchia
      typeline e la bottombar, unite in una sola riga sopra il testo di regole. */

@@ -1,6 +1,6 @@
 {
   "name": "Steel Avenger",
-  "typeLabel": "Entity — Human",
+  "typeLabel": "Entity: Human",
   "summary": "A body it does not pay to attack: on her own she punishes whoever strikes her, beside the beast she punishes at Power 3.",
   "ui": {
     "face": "Entity"

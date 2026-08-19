@@ -1,6 +1,6 @@
 {
   "name": "Perennial Sentinel",
-  "typeLabel": "Entity — Auros",
+  "typeLabel": "Entity: Auros",
   "summary": "Immortal and unmoving: it holds the line and keeps the Dimensional open, but never truly dies.",
   "ui": {
     "face": "Entity"

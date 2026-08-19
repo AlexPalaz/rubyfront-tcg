@@ -1,6 +1,6 @@
 {
   "name": "Warden of the Rift",
-  "typeLabel": "Entity — Auros",
+  "typeLabel": "Entity: Auros",
   "summary": "Opens the rift beneath whoever stands before it: one body comes down, one goes back to hand.",
   "ui": {
     "face": "Entity"

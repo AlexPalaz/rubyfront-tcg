@@ -7,11 +7,13 @@
   "locales": {
     "it": {
       "name": "Marea del Bosco",
-      "description": "Mazzo Auros midrange: corpi solidi con effetti d'ingresso, la Materia Dimensionale che rimbalza e blinca per vincere di tempo e valore, e il Rubifronte del Bosco Errante che richiama i suoi e sfasa ciò che gli sta davanti."
+      "description": "Mazzo Auros midrange: corpi solidi con effetti d'ingresso, la Materia Dimensionale che rimbalza e blinca per vincere di tempo e valore, e il Rubifronte del Bosco Errante che richiama i suoi e sfasa ciò che gli sta davanti.",
+      "strategy": "Non corri: logori. Nei primi turni reggi l'urto con la Sentinella Perenne e Passo nel Vuoto, poi prendi in mano il ritmo rimbalzando le minacce avversarie — Varco, Guardiana del Varco, Sfasare — mentre riusi gli effetti d'ingresso dei tuoi Auros con il blink. Il Rubifronte del Bosco Errante e Il Bosco Ricorda ti tengono la mano piena; quando controlli tre Auros e hai già inflitto otto danni, il flip nella Radura Ripiegata chiude la partita a valore."
     },
     "en": {
       "name": "Tide of the Wood",
-      "description": "An Auros midrange deck: solid bodies with enter-the-field value, Dimensional Matter that bounces and blinks to win on tempo and card advantage, and the Rubyfront of the Wandering Wood recalling its own and phasing away what stands before it."
+      "description": "An Auros midrange deck: solid bodies with enter-the-field value, Dimensional Matter that bounces and blinks to win on tempo and card advantage, and the Rubyfront of the Wandering Wood recalling its own and phasing away what stands before it.",
+      "strategy": "You don't race — you grind. Weather the early turns with the Perennial Sentinel and Step into the Void, then seize the tempo by bouncing the opponent's threats — Rift, Warden of the Rift, Phase Away — while re-using your Auros' enter-the-field effects through blinking. The Rubyfront of the Wandering Wood and The Wood Remembers keep your hand full; once you control three Auros and have already dealt eight damage, flipping into the Folded Glade closes the game on card advantage."
     }
   },
   "designNotes": "marea-del-bosco.md",

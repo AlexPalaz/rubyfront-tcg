@@ -1,6 +1,6 @@
 {
   "name": "Field Surgeon",
-  "typeLabel": "Entity — Human",
+  "typeLabel": "Entity: Human",
   "summary": "A body that arrives carrying a point of damage: it lands, hits the enemy beast and stays in line.",
   "ui": {
     "face": "Entity"

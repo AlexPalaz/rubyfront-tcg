@@ -1,6 +1,6 @@
 {
   "name": "Pathfinder of Trails",
-  "typeLabel": "Entity — Auros",
+  "typeLabel": "Entity: Auros",
   "summary": "Always finds the way, and with it the right Auros for the turn to come.",
   "ui": {
     "face": "Entity"

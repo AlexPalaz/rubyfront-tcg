@@ -1,6 +1,6 @@
 {
   "name": "Veterana della Breccia",
-  "typeLabel": "Entità — Umano",
+  "typeLabel": "Entità: Umano",
   "summary": "L’unica che insegna difendendo: ogni attaccante caduto vale una carta.",
   "ui": {
     "face": "Entità"

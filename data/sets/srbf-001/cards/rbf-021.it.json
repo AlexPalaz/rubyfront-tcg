@@ -1,6 +1,6 @@
 {
   "name": "Corriere a Vapore",
-  "typeLabel": "Entità — Umano",
+  "typeLabel": "Entità: Umano",
   "summary": "Un Flusso per il primo colpo della partita, e per decidere che cosa trova chi arriva dopo.",
   "ui": {
     "face": "Entità"

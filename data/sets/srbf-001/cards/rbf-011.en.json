@@ -1,6 +1,6 @@
 {
   "name": "Emissary of the Heirs",
-  "typeLabel": "Entity — Human",
+  "typeLabel": "Entity: Human",
   "summary": "Two arms on the field and a third on the way: the Heirs never leave a place empty.",
   "ui": {
     "face": "Entity"

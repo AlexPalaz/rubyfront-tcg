@@ -1,7 +1,7 @@
 // Costruttori della carta visuale, condivisi tra la pagina dei temi
 // (card-theme-page.js) e la pagina del mazzo (deck-page.js): la grafica
 // della carta vive in un posto solo. Gli stili corrispondenti sono in card.css.
-import { element } from "./shell.js";
+import { element, copyFor } from "./shell.js";
 import { LIGHT_THEMES } from "./themes.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -299,15 +299,21 @@ function createTextBox(face, faceCopy, cardCopy, localeId) {
   // delle Materie che la carta ABILITA e l'eventuale Contrattacco. Una sola
   // riga sopra il testo di regole (sostituisce la vecchia typeline e la
   // bottombar), così l'illustrazione ha più spazio.
-  const showType = (face.kind === "entity" || face.kind === "matter" || face.kind === "object") && cardCopy.typeLabel;
+  // Etichetta a sinistra: il tipo per Entità/Materia/Oggetto; per Rubyfront e
+  // Nexus, che non hanno typeLabel, la parola "Rubifronte" / "Nexus" (invece di
+  // lasciare vuoto).
+  const kindLabels = copyFor(localeId).faceKind ?? {};
+  const typeText = ((face.kind === "entity" || face.kind === "matter" || face.kind === "object") && cardCopy.typeLabel)
+    ? cardCopy.typeLabel
+    : (kindLabels[face.kind] ?? "");
   const idents = [];
   for (const matter of face.enablesMatters) idents.push(createMatter(matter, cardCopy));
   if (face.stats.counterattack !== undefined) {
     idents.push(createCounterattackBadge(face.stats.counterattack, cardCopy.card?.counterattack ?? "Counterattack"));
   }
-  if (showType || idents.length) {
+  if (typeText || idents.length) {
     const head = element("div", "textline");
-    head.append(element("span", "textline-type", showType ? cardCopy.typeLabel : ""));
+    head.append(element("span", "textline-type", typeText));
     if (idents.length) {
       const ident = element("span", "textline-ident");
       ident.append(...idents);
@@ -335,12 +341,13 @@ function createTextBox(face, faceCopy, cardCopy, localeId) {
   if (face.kind === "matter" || face.kind === "object") {
     if (faceCopy.effect?.text) {
       const body = element("p", "matter-effect");
-      // Permanenti e Reattive dichiarano il comportamento con il proprio
-      // simbolo in testa al testo (§7.2); il comportamento normale non si
-      // stampa. Il nome resta come tooltip.
+      // Permanenti e Reattive dichiarano il comportamento (§7.2) con il proprio
+      // simbolo e la parola in grassetto in testa al testo; il comportamento
+      // normale non si stampa.
       if (face.behavior && face.behavior !== "normal") {
-        const label = cardCopy.card?.behaviors?.[face.behavior] ?? face.behavior;
-        body.append(createBehaviorIcon(face.behavior, label), " ");
+        const label = copyFor(localeId).behaviorNames?.[face.behavior]
+          ?? cardCopy.card?.behaviors?.[face.behavior] ?? face.behavior;
+        body.append(createBehaviorIcon(face.behavior, label), " ", element("b", "behavior-word", label), ". ");
       }
       body.append(faceCopy.effect.text);
       box.append(body);

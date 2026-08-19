@@ -1,6 +1,6 @@
 {
   "name": "Baluardo Corazzato",
-  "typeLabel": "Entità — Umano",
+  "typeLabel": "Entità: Umano",
   "summary": "Tre di Potenza a due Flussi, in cambio di una sola cosa: non muove mai per primo.",
   "ui": {
     "face": "Entità"

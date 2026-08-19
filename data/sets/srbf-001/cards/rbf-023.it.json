@@ -1,6 +1,6 @@
 {
   "name": "Vendicatrice di Acciaio",
-  "typeLabel": "Entità — Umano",
+  "typeLabel": "Entità: Umano",
   "summary": "Un corpo che non conviene attaccare: da sola punisce chi la colpisce, accanto alla bestia lo punisce a Potenza 3.",
   "ui": {
     "face": "Entità"

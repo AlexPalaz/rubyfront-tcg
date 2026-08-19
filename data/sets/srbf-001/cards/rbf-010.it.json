@@ -1,6 +1,6 @@
 {
   "name": "Chirurgo da Campo",
-  "typeLabel": "Entità — Umano",
+  "typeLabel": "Entità: Umano",
   "summary": "Il corpo che porta con sé un punto di danno: scende, colpisce la bestia avversaria e resta in linea.",
   "ui": {
     "face": "Entità"

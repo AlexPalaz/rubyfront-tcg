@@ -1,6 +1,6 @@
 {
   "name": "Archivist",
-  "typeLabel": "Entity — Human",
+  "typeLabel": "Entity: Human",
   "summary": "He grows with the ranks: how much he is worth is decided by how many of his own there are.",
   "ui": {
     "face": "Entity"

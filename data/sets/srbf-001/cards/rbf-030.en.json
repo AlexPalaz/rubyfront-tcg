@@ -1,6 +1,6 @@
 {
   "name": "Valaris, First of the Wood",
-  "typeLabel": "Entity — Auros (Unique)",
+  "typeLabel": "Entity: Auros",
   "summary": "The eldest of the Wandering Wood: her mere presence folds space up to the second grade.",
   "ui": {
     "face": "Entity"
