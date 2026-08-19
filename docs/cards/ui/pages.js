@@ -90,6 +90,33 @@ function globalCardRow(card, set, localeId, copy) {
   return row;
 }
 
+function deckSize(deck) {
+  return deck.cards.reduce((sum, entry) => sum + entry.count, 0);
+}
+
+// Tessera della vetrina (mazzi e set): occhiello, titolo, sommario e piede
+// con il conteggio. Stessa grammatica delle tessere dei temi.
+function showcaseCard({ kicker, name, desc, foot, href, ariaLabel }) {
+  const card = link("showcase-card", "", href);
+  if (ariaLabel) card.setAttribute("aria-label", ariaLabel);
+  card.append(element("span", "showcase-kicker", kicker));
+  card.append(element("span", "showcase-name", name));
+  if (desc) card.append(element("p", "showcase-desc", desc));
+  const footer = element("div", "showcase-foot");
+  footer.append(element("span", "showcase-foot-count", foot), element("span", "showcase-go", "→"));
+  card.append(footer);
+  return card;
+}
+
+function homeSection(title, count, lede) {
+  const section = element("section", "home-section");
+  const heading = element("div", "section-heading");
+  heading.append(element("h2", "", title), element("span", "count", String(count)));
+  section.append(heading);
+  if (lede) section.append(element("p", "section-lede", lede));
+  return section;
+}
+
 export function renderCatalogPage(catalog, root) {
   let query = new URLSearchParams(location.search).get("q") ?? "";
   renderWithLanguage(catalog, root, (localeId, copy, setLocale) => {
@@ -108,17 +135,56 @@ export function renderCatalogPage(catalog, root) {
       link("", copy.board, new URL("../../campo-di-gioco.html", import.meta.url).href),
       link("", copy.themes, new URL("./card-themes.html", import.meta.url).href)
     );
-    for (const deck of catalog.decks ?? []) {
-      const deckText = localize(deck, localeId);
-      nav.append(link("", `${copy.deck} · ${deckText.name}`, deckRoute(deck, localeId)));
-    }
     header.append(nav);
     page.append(header);
+
+    // Vetrina dei mazzi: i punti d'ingresso principali, in evidenza.
+    const decks = catalog.decks ?? [];
+    if (decks.length) {
+      const section = homeSection(copy.decks, decks.length, copy.decksLede);
+      const grid = element("div", "showcase-grid");
+      for (const deck of decks) {
+        const deckText = localize(deck, localeId);
+        grid.append(showcaseCard({
+          kicker: copy.deck,
+          name: deckText.name,
+          desc: deckText.description,
+          foot: copy.deckCount(deckSize(deck)),
+          href: deckRoute(deck, localeId),
+          ariaLabel: `${copy.openDeck}: ${deckText.name}`
+        }));
+      }
+      section.append(grid);
+      page.append(section);
+    }
+
+    // Vetrina dei set: le collezioni di carte.
+    if (catalog.sets.length) {
+      const section = homeSection(copy.sets, catalog.sets.length, copy.setsLede);
+      const grid = element("div", "showcase-grid");
+      for (const set of catalog.sets) {
+        const setText = localize(set, localeId);
+        grid.append(showcaseCard({
+          kicker: set.code,
+          name: setText.name,
+          desc: setText.description,
+          foot: copy.cardCount(set.cards.length),
+          href: setRoute(set, localeId),
+          ariaLabel: `${copy.openSet}: ${setText.name}`
+        }));
+      }
+      section.append(grid);
+      page.append(section);
+    }
 
     const catalogEntries = catalog.cards.map(card => ({
       card,
       set: catalog.sets.find(candidate => candidate.id === card.setId)
     }));
+
+    const heading = element("div", "catalog-list-heading");
+    heading.append(element("h2", "", copy.allCards));
+    page.append(heading);
 
     const searchSection = element("section", "catalog-search");
     const searchLabel = element("label", "sr-only", copy.searchLabel);
@@ -132,17 +198,6 @@ export function renderCatalogPage(catalog, root) {
     const resultCount = element("span", "search-count");
     searchSection.append(searchLabel, searchInput, resultCount);
     page.append(searchSection);
-
-    const heading = element("div", "catalog-list-heading");
-    heading.append(element("h2", "", copy.allCards));
-    const setLinks = element("nav", "set-links");
-    setLinks.setAttribute("aria-label", copy.sets);
-    catalog.sets.forEach(set => {
-      const setText = localize(set, localeId);
-      setLinks.append(link("", `${set.code} · ${setText.name}`, setRoute(set, localeId)));
-    });
-    heading.append(setLinks);
-    page.append(heading);
 
     const results = element("div", "global-card-list");
     page.append(results);
