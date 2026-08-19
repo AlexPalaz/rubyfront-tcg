@@ -440,8 +440,18 @@ function roman(value) {
 // Va chiamata DOPO l'inserimento nel documento: prima non c'e' nulla da
 // misurare, e la carta uscirebbe tagliata in silenzio.
 const FIT_STEPS = [1, 0.96, 0.92, 0.88, 0.84, 0.8];
+// Passi di riduzione del NOME (in em rispetto alla carta): "" è la scala piena.
+const NAME_FIT_STEPS = ["", "0.98em", "0.92em", "0.86em", "0.8em", "0.75em"];
 
 function fitTextBoxes(root = document) {
+  // Nome su UNA riga: se non entra nella barra del titolo, il suo corpo scende
+  // finché ci sta — niente a-capo su due righe, niente puntini di troncamento.
+  for (const name of root.querySelectorAll(".name")) {
+    for (const step of NAME_FIT_STEPS) {
+      name.style.fontSize = step;
+      if (name.scrollWidth <= name.clientWidth) break;
+    }
+  }
   for (const box of root.querySelectorAll(".textbox")) {
     for (const step of FIT_STEPS) {
       box.style.fontSize = step === 1 ? "" : `${step}em`;
