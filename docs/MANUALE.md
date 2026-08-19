@@ -50,10 +50,12 @@ Ogni carta riporta:
 - **Razza**
 - **Costo di Flusso** per entrare in campo
 - **Potenza** — statistica unica della carta (non esistono attacco e difesa separati)
-- **Contrattacco +N** (eventuale) — indicato con il proprio simbolo in basso a destra sulla carta, se la carta ce l'ha (vedi §6.3, "Contrattacco")
-- **Abilità** (eventuale) — indicata prima della descrizione, se la carta ne ha una
+- **Contrattacco +N** (eventuale) — indicato con il proprio simbolo, se la carta ce l'ha (vedi §6.3, "Contrattacco")
+- **Abilità** (eventuale) — la parola chiave della carta, se ne ha una (§8.1)
 - **Descrizione**, con l'eventuale **effetto** che si applica quando la carta viene messa in campo
 - **Tipi di Materia** che la carta può utilizzare, con il **grado massimo** per i tipi che hanno gradi (§7.1)
+
+> La **disposizione grafica** di questi elementi sulla carta **non è fissata dal manuale**: qui si elenca ciò che una carta riporta, non dove.
 
 Le **Materie** sono le carte magia/evento del gioco (vedi §7).
 
@@ -69,7 +71,7 @@ Gli **Oggetti** sono carte che si **assegnano a un'Entità**:
 - una volta assegnato, l'Oggetto **non può essere spostato né sostituito**;
 - quando l'Entità lascia il campo, l'Oggetto **la segue**: va nell'**Abisso** — o in **Zona di Requiem**, se l'Entità è stata ritirata (§6.2).
 
-Il mazzo **può mischiare le razze** liberamente. Si possono avere al massimo **3 copie della stessa carta** nel mazzo; le carte **Uniche** — contrassegnate dal **simbolo dell'Unica accanto al nome** — ammettono **una sola copia**.
+Il mazzo **può mischiare le razze** liberamente. Si possono avere al massimo **3 copie della stessa carta** nel mazzo; le carte **Uniche** — contrassegnate dal **simbolo dell'Unica** — ammettono **una sola copia**.
 
 #### Il Rubyfront come carta
 
@@ -528,7 +530,7 @@ Il pareggio esiste in due soli casi:
 - **Canalizzazione** — scartare una carta dalla mano (va nell'Abisso) per ottenere +1 Flusso per il turno in corso (max 1 a turno).
 - **Fronte** — il campo di battaglia: 5 slot per le Entità; il Rubyfront schierato sta davanti agli slot, le Materie in gioco dietro.
 - **Zona di Richiamo** — zona in cui parte il Rubyfront.
-- **Unica** — classificazione stampata sulla carta (il simbolo dell'Unica accanto al nome): il mazzo ne ammette al massimo una copia (§3.1).
+- **Unica** — classificazione stampata sulla carta (il simbolo dell'Unica): il mazzo ne ammette al massimo una copia (§3.1).
 - **Abisso** — la zona delle carte morte o consumate: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti di Entità morte, carte scartate o canalizzate dalla mano. È pubblico.
 - **Zona di Requiem** — la zona delle carte ancora "vive" uscite dal gioco: le Entità ritirate (§6.2) o mandate lì da effetti, e i loro Oggetti. Funziona come l'Abisso, ma distingue ciò che non è mai morto; gli effetti che nominano una delle due zone non toccano l'altra.
 - **Potenza** — statistica unica di un'Entità. Modificabile da effetti, non scende mai sotto 0; a Potenza 0 l'Entità resta in campo.
