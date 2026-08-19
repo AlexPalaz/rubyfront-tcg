@@ -491,6 +491,24 @@
     --ruby: #c25a2a; --ruby-light: #e08a52;
     --hp-green: #2f7f6b; --cost-ink: #fff8ec;
   }
+  /* Cobalto: dark colorato, testo bianco puro su blu cobalto, accento oro. */
+  .card.t39 {
+    --bg: #0c1836; --panel: #16264d; --well: #060f26;
+    --frame: #5480d8; --frame-dim: #253c6c;
+    --ink: #ffffff; --muted: #aebde2;
+    --accent: #ffd15c; --ornament: #6f8fd0;
+    --ruby: #2f5fb0; --ruby-light: #d5e4ff;
+    --hp-green: #86e8b4; --cost-ink: #ffffff;
+  }
+  /* Salvia: light, verde salvia tenue, inchiostro scuro, accento terracotta. */
+  .card.t40 {
+    --bg: #eef2e9; --panel: #f7faf3; --well: #dde5d3;
+    --frame: #6f8a5e; --frame-dim: #c3d0b5;
+    --ink: #26301f; --muted: #6b7860;
+    --accent: #b5502e; --ornament: #8aa07a;
+    --ruby: #b5502e; --ruby-light: #8f3d20;
+    --hp-green: #2f7a52; --cost-ink: #fff8f0;
+  }
   /* canonical Nexus palette, only for the default theme t01 */
   .card.nexus.t01 {
     --bg: #241a0b; --panel: #413013; --well: #0f0a03;
