@@ -5054,6 +5054,123 @@
           "source": {
             "designNotes": "notes/rbf-037.md"
           }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-038",
+          "setId": "rubyfront-core",
+          "collectorNumber": "038",
+          "slug": "thaw",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Disgelo",
+              "typeLabel": "Materia Dimensionale I",
+              "summary": "Il tempo degli Auros si ripiega: chi si è irrigidito in stasi torna a muoversi.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · 1° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Disgelo",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "All'inizio di ogni tuo turno stappa le Entità che controlli rimaste in stasi: la Stasi non le tiene più tappate per sempre e tornano libere di attaccare e bloccare."
+                },
+                "flavor": "La Stasi non è morte. È solo un lungo inverno."
+              }
+            },
+            "en": {
+              "name": "Thaw",
+              "typeLabel": "Dimensional Matter I",
+              "summary": "Auros time folds back: those frozen in stasis move again.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · 1st grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "Thaw",
+                "effect": {
+                  "name": "Effect",
+                  "text": "At the start of each of your turns untap the entities you control that are stuck in stasis: Stasis no longer keeps them tapped forever, and they are free to attack and block again."
+                },
+                "flavor": "Stasis is not death. It is only a long winter."
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dimensional",
+            "grade-1",
+            "permanent",
+            "stasis",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §1.1, §7.2, §8.1",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dimensional",
+                "grade": 1
+              },
+              "behavior": "permanent",
+              "stats": {
+                "fluxCost": 2
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "thaw",
+                  "displayKey": "effect",
+                  "event": "on_turn_start",
+                  "effect": {
+                    "type": "untap",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "controller",
+                      "state": "stasis",
+                      "quantity": "all",
+                      "zone": "front",
+                      "owner": "controller"
+                    },
+                    "details": {
+                      "overridesStasisPermanentTap": true
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-038.md",
+          "source": {
+            "designNotes": "notes/rbf-038.md"
+          }
         }
       ]
     }
@@ -10082,6 +10199,123 @@
       "designNotes": "rbf-037.md",
       "source": {
         "designNotes": "notes/rbf-037.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-038",
+      "setId": "rubyfront-core",
+      "collectorNumber": "038",
+      "slug": "thaw",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Disgelo",
+          "typeLabel": "Materia Dimensionale I",
+          "summary": "Il tempo degli Auros si ripiega: chi si è irrigidito in stasi torna a muoversi.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · 1° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Disgelo",
+            "effect": {
+              "name": "Effetto",
+              "text": "All'inizio di ogni tuo turno stappa le Entità che controlli rimaste in stasi: la Stasi non le tiene più tappate per sempre e tornano libere di attaccare e bloccare."
+            },
+            "flavor": "La Stasi non è morte. È solo un lungo inverno."
+          }
+        },
+        "en": {
+          "name": "Thaw",
+          "typeLabel": "Dimensional Matter I",
+          "summary": "Auros time folds back: those frozen in stasis move again.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · 1st grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "Thaw",
+            "effect": {
+              "name": "Effect",
+              "text": "At the start of each of your turns untap the entities you control that are stuck in stasis: Stasis no longer keeps them tapped forever, and they are free to attack and block again."
+            },
+            "flavor": "Stasis is not death. It is only a long winter."
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dimensional",
+        "grade-1",
+        "permanent",
+        "stasis",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §1.1, §7.2, §8.1",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dimensional",
+            "grade": 1
+          },
+          "behavior": "permanent",
+          "stats": {
+            "fluxCost": 2
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "thaw",
+              "displayKey": "effect",
+              "event": "on_turn_start",
+              "effect": {
+                "type": "untap",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "state": "stasis",
+                  "quantity": "all",
+                  "zone": "front",
+                  "owner": "controller"
+                },
+                "details": {
+                  "overridesStasisPermanentTap": true
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-038.md",
+      "source": {
+        "designNotes": "notes/rbf-038.md"
       }
     }
   ],

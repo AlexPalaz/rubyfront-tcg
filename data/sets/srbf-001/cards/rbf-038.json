@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-038",
+  "setId": "rubyfront-core",
+  "collectorNumber": "038",
+  "slug": "thaw",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dimensional",
+    "grade-1",
+    "permanent",
+    "stasis",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §1.1, §7.2, §8.1",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dimensional",
+        "grade": 1
+      },
+      "behavior": "permanent",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "thaw",
+          "displayKey": "effect",
+          "event": "on_turn_start",
+          "effect": {
+            "type": "untap",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "state": "stasis",
+              "quantity": "all",
+              "zone": "front",
+              "owner": "controller"
+            },
+            "details": {
+              "overridesStasisPermanentTap": true
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-038.md"
+}
