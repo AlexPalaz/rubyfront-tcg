@@ -94,10 +94,9 @@ function renderDeck(resource) {
       [copy.status, copy[resource.status] ?? resource.status]
     ]));
     if (deckCopy.strategy) {
-      strategy.replaceChildren(
-        element("h2", "deck-strategy-title", copy.strategy),
-        element("p", "deck-strategy-text", deckCopy.strategy)
-      );
+      const paragraphs = deckCopy.strategy.split("\n\n")
+        .map(text => element("p", "deck-strategy-text", text));
+      strategy.replaceChildren(element("h2", "deck-strategy-title", copy.strategy), ...paragraphs);
     } else {
       strategy.replaceChildren();
     }
