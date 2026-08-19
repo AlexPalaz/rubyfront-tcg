@@ -8,8 +8,8 @@
 
 | | |
 |---|---|
-| Totale | 40 carte (1 Rubyfront · 21 Entità · 15 Materie · 3 Oggetti) |
-| Progetti | 15, di cui **11 in tripla copia** |
+| Totale | 40 carte (1 Rubyfront · 20 Entità · 16 Materie · 3 Oggetti) |
+| Progetti | 16, di cui **10 in tripla copia** |
 | Razza | Auros al 100% |
 | Materia | **Dimensionale** (la Materia degli Auros) — introdotta in gioco da questo mazzo |
 | Costo minimo | **1** — nessuna carta gratuita (§3.2) |
@@ -18,7 +18,7 @@
 
 | Costo | 1 | 2 | 3 | 4 | 5 | Rubyfront |
 |---|---|---|---|---|---|---|
-| Copie | 6 | 12 | 15 | 4 | 2 | 1 (dado d6) |
+| Copie | 5 | 13 | 15 | 4 | 2 | 1 (dado d6) |
 
 Curva a **una gobba centrata sul 3**, con spalle al 2 e coda al 4-5: il profilo
 classico del midrange. Contro le due gobbe basse dell'aggro (12 carte da 1
@@ -66,10 +66,14 @@ La Dimensionale entra in gioco **con questo mazzo**: nel pool esisteva già Varc
 
 | Tipo | Carte | Abilitatori nel mazzo |
 |---|---|---|
-| Dimensionale I | Varco ×3, Sentiero tra i Rami ×3, Passo nel Vuoto ×3 | ogni Auros da 1-3 (18 corpi) |
+| Dimensionale I | Varco ×3, Sentiero tra i Rami ×2, Passo nel Vuoto ×3, Disgelo ×2 | ogni Auros da 1-3 (17 corpi) |
 | Dimensionale II | Il Bosco Ricorda ×3, Riflusso ×3 | Rubyfront, Nexus, **Vàlaris** (Unica), Antico ×2 |
 
-La DimI è iper-consistente (18 abilitatori). La DimII poggia su **Vàlaris**
+**Pacchetto Stasi:** Sentinella Perenne ×3 e Corteccia Viva ×3 danno la Stasi;
+**Disgelo ×2** la trasforma da malus in motore — i muri che bloccano e
+sopravvivono si ristappano a ogni tuo turno e tornano a difendere.
+
+La DimI è iper-consistente (17 abilitatori). La DimII poggia su **Vàlaris**
 (RBF-030, l'"Adam" del mazzo) più il Rubyfront/Nexus e due Antichi: ridondanza
 sufficiente perché perdere l'Unica **non** chiuda il grado — la differenza
 deliberata rispetto ad Adam in Primi Eredi.
