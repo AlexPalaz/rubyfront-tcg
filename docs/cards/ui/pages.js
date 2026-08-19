@@ -350,10 +350,16 @@ function facePanel(card, face, localeId, copy) {
   return panel;
 }
 
-export function renderCardPage(card, set, root) {
-  // Carte del set in ordine: servono a passare alla precedente/successiva.
-  // La navigazione cicla (dall'ultima si torna alla prima e viceversa).
-  const siblings = set.cards ?? [];
+export function renderCardPage(card, set, root, options) {
+  // Elenco su cui scorrono le frecce: se la carta è stata aperta da un mazzo
+  // (options.siblings) e vi appartiene, si scorrono le carte del MAZZO in
+  // ordine; altrimenti quelle del set. La navigazione cicla (dall'ultima si
+  // torna alla prima e viceversa).
+  const deckSiblings = options?.siblings ?? null;
+  const inDeck = Boolean(deckSiblings && deckSiblings.some(entry => entry.id === card.id));
+  const siblings = inDeck ? deckSiblings : (set.cards ?? []);
+  const navDeckId = inDeck ? options.deckId : undefined;
+  const navDeck = inDeck ? options.deck : undefined;
   const index = siblings.findIndex(entry => entry.id === card.id);
   const prevCard = siblings.length > 1 ? siblings[(index - 1 + siblings.length) % siblings.length] : null;
   const nextCard = siblings.length > 1 ? siblings[(index + 1) % siblings.length] : null;
@@ -365,8 +371,8 @@ export function renderCardPage(card, set, root) {
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
       const lang = new URLSearchParams(location.search).get("lang") ?? undefined;
-      if (event.key === "ArrowLeft" && prevCard) location.href = cardRoute(prevCard, lang);
-      else if (event.key === "ArrowRight" && nextCard) location.href = cardRoute(nextCard, lang);
+      if (event.key === "ArrowLeft" && prevCard) location.href = cardRoute(prevCard, lang, navDeckId);
+      else if (event.key === "ArrowRight" && nextCard) location.href = cardRoute(nextCard, lang, navDeckId);
     });
   }
 
@@ -376,7 +382,7 @@ export function renderCardPage(card, set, root) {
     const side = (sibling, dir) => {
       if (!sibling) return element("span", "pager-link empty");
       const name = localize(sibling, localeId).name;
-      const anchor = link(`pager-link ${dir}`, "", cardRoute(sibling, localeId));
+      const anchor = link(`pager-link ${dir}`, "", cardRoute(sibling, localeId, navDeckId));
       anchor.setAttribute("aria-label", `${dir === "prev" ? copy.previous : copy.next}: ${name}`);
       const arrow = element("span", "pager-arrow", dir === "prev" ? "←" : "→");
       const label = element("span", "pager-name", name);
@@ -394,7 +400,9 @@ export function renderCardPage(card, set, root) {
     const page = element("main", "page-shell");
     page.append(breadcrumb([
       { label: copy.catalog, href: catalogRoute(localeId) },
-      { label: setText.name, href: setRoute(set, localeId) },
+      navDeck
+        ? { label: localize(navDeck, localeId).name, href: deckRoute(navDeck, localeId) }
+        : { label: setText.name, href: setRoute(set, localeId) },
       { label: locale.name }
     ]));
 

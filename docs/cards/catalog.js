@@ -13,6 +13,7 @@ const catalog = await fetch(BUNDLE_URL).then(response => {
 
 const setIndex = Object.freeze(Object.fromEntries(catalog.sets.map(set => [set.id, set])));
 const cardIndex = Object.freeze(Object.fromEntries(catalog.cards.map(card => [card.id, card])));
+const deckIndex = Object.freeze(Object.fromEntries((catalog.decks ?? []).map(deck => [deck.id, deck])));
 
 export function getSetById(id) {
   return setIndex[id];
@@ -20,6 +21,10 @@ export function getSetById(id) {
 
 export function getCardById(id) {
   return cardIndex[id];
+}
+
+export function getDeckById(id) {
+  return deckIndex[id];
 }
 
 export function localize(resource, localeId) {

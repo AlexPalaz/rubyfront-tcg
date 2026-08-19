@@ -11,14 +11,33 @@
   <div id="app"></div>
   <noscript>Il dettaglio richiede JavaScript perché viene generato direttamente dal modulo della carta.</noscript>
   <script type="module">
-    import { getCardById, getSetById } from "../catalog.js";
+    import { getCardById, getSetById, getDeckById } from "../catalog.js";
     import { renderCardPage, renderRegistryError } from "./pages.js";
 
-    const cardId = new URLSearchParams(location.search).get("card");
+    const params = new URLSearchParams(location.search);
+    const cardId = params.get("card");
     const card = getCardById(cardId);
     const set = card ? getSetById(card.setId) : undefined;
+
+    // Se la carta è stata aperta da un mazzo (parametro deck), le frecce
+    // precedente/successiva scorrono le carte del MAZZO in ordine, non del set.
+    const deckId = params.get("deck");
+    const deck = deckId ? getDeckById(deckId) : undefined;
+    let options;
+    if (deck && Array.isArray(deck.cards)) {
+      const seen = new Set();
+      const siblings = [];
+      for (const entry of deck.cards) {
+        if (!entry || seen.has(entry.card)) continue;
+        seen.add(entry.card);
+        const sibling = getCardById(entry.card);
+        if (sibling) siblings.push(sibling);
+      }
+      options = { siblings, deckId, deck };
+    }
+
     const root = document.querySelector("#app");
-    if (card && set) renderCardPage(card, set, root);
+    if (card && set) renderCardPage(card, set, root, options);
     else renderRegistryError(root, `Carta non trovata: ${cardId ?? "ID mancante"}`);
   </script>
 </body>

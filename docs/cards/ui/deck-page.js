@@ -111,7 +111,7 @@ function renderDeck(resource) {
       for (const face of card.faces) {
         const tile = element("div", "deck-tile");
         const anchor = element("a");
-        anchor.href = cardRoute(card, localeId);
+        anchor.href = cardRoute(card, localeId, resource.id);
         anchor.title = cardCopy.name;
         const holder = element("div", "deck-holder");
         holder.append(createFace(card, face, cardCopy, themeId, localeId));

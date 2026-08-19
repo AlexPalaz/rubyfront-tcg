@@ -193,7 +193,7 @@ export function uiRoute(page, params = {}, localeId) {
 
 export const catalogRoute = localeId => uiRoute("index.html", {}, localeId);
 export const setRoute = (set, localeId) => uiRoute("set.html", { set: set.id }, localeId);
-export const cardRoute = (card, localeId) => uiRoute("card.html", { card: card.id }, localeId);
+export const cardRoute = (card, localeId, deckId) => uiRoute("card.html", { card: card.id, deck: deckId }, localeId);
 export const themeIndexRoute = (card, localeId) => uiRoute("card-themes.html", { card: card.id }, localeId);
 export const deckRoute = (deck, localeId) => uiRoute("deck.html", { deck: deck.id }, localeId);
 export const themedCardRoute = (card, localeId, themeId) =>
