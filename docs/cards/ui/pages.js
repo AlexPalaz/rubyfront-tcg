@@ -424,7 +424,7 @@ export function renderCardPage(card, set, root, options) {
     ]));
     const nav = element("nav", "quick-links");
     nav.append(
-      link("button", copy.visual, themedCardRoute(card, localeId)),
+      link("button", copy.visual, themedCardRoute(card, localeId, undefined, navDeckId)),
       link("button secondary", copy.notes, resolveSource(card, "designNotes"))
     );
     header.append(nav);

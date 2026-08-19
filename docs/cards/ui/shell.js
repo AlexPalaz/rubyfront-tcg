@@ -196,8 +196,8 @@ export const setRoute = (set, localeId) => uiRoute("set.html", { set: set.id }, 
 export const cardRoute = (card, localeId, deckId) => uiRoute("card.html", { card: card.id, deck: deckId }, localeId);
 export const themeIndexRoute = (card, localeId) => uiRoute("card-themes.html", { card: card.id }, localeId);
 export const deckRoute = (deck, localeId) => uiRoute("deck.html", { deck: deck.id }, localeId);
-export const themedCardRoute = (card, localeId, themeId) =>
-  uiRoute("card-theme.html", { card: card.id, theme: themeId }, localeId);
+export const themedCardRoute = (card, localeId, themeId, deckId) =>
+  uiRoute("card-theme.html", { card: card.id, theme: themeId, deck: deckId }, localeId);
 
 export function localeFromUrl(resource) {
   const requested = new URLSearchParams(location.search).get("lang");
