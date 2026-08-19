@@ -491,23 +491,23 @@
     --ruby: #c25a2a; --ruby-light: #e08a52;
     --hp-green: #2f7f6b; --cost-ink: #fff8ec;
   }
-  /* Cobalto: dark colorato, testo bianco puro su blu cobalto, accento oro. */
+  /* Cattedrale: gotico chiaro, pietra avorio e nero, sfumature di grigio. */
   .card.t39 {
-    --bg: #0c1836; --panel: #16264d; --well: #060f26;
-    --frame: #5480d8; --frame-dim: #253c6c;
-    --ink: #ffffff; --muted: #aebde2;
-    --accent: #ffd15c; --ornament: #6f8fd0;
-    --ruby: #2f5fb0; --ruby-light: #d5e4ff;
-    --hp-green: #86e8b4; --cost-ink: #ffffff;
+    --bg: #ebe8e1; --panel: #f6f4ee; --well: #d8d3c9;
+    --frame: #1a1a1a; --frame-dim: #9c968b;
+    --ink: #161513; --muted: #6d685f;
+    --accent: #1a1a1a; --ornament: #8a857b;
+    --ruby: #1a1a1a; --ruby-light: #2a2a2a;
+    --hp-green: #35632f; --cost-ink: #f6f4ee;
   }
-  /* Salvia: light, verde salvia tenue, inchiostro scuro, accento terracotta. */
+  /* Codice Miniato: light, manoscritto miniato, avorio e oro, rubrica cremisi. */
   .card.t40 {
-    --bg: #eef2e9; --panel: #f7faf3; --well: #dde5d3;
-    --frame: #6f8a5e; --frame-dim: #c3d0b5;
-    --ink: #26301f; --muted: #6b7860;
-    --accent: #b5502e; --ornament: #8aa07a;
-    --ruby: #b5502e; --ruby-light: #8f3d20;
-    --hp-green: #2f7a52; --cost-ink: #fff8f0;
+    --bg: #f3ecd8; --panel: #fbf6e8; --well: #e3d7b8;
+    --frame: #9a7a2e; --frame-dim: #cdbd8f;
+    --ink: #2a2418; --muted: #7d6f52;
+    --accent: #8f1d22; --ornament: #a8863f;
+    --ruby: #8f1d22; --ruby-light: #6e1216;
+    --hp-green: #3f6f3a; --cost-ink: #fbf6e8;
   }
   /* canonical Nexus palette, only for the default theme t01 */
   .card.nexus.t01 {
@@ -1018,3 +1018,31 @@
   .t38 .keyword::before, .t38 .keyword::after { content: "\2735"; font-size: .65em; }
   .t38 .textbox { border-radius: 8px; background: rgba(255,252,244,.8); }
   .t38 .matter, .t38 .hp-cost { border-radius: 6px; }
+
+  /* Cattedrale: gotico chiaro. Cornice doppia nera, arco gotico sull'arte,
+     croci grigie; niente bagliori, solo pietra e inchiostro. */
+  .card.t39 { clip-path: none; border-radius: 2px; border: 3px double #1a1a1a; outline: 1px solid #9c968b;
+    box-shadow: 0 8px 26px rgba(20,20,20,.18);
+    background: linear-gradient(180deg, #f1efe9, #ebe8e1 60%, #ded9cf); }
+  .t39 .name { font-weight: 700; letter-spacing: .08em;
+    border-top: 3px double #1a1a1a; border-bottom: 3px double #1a1a1a; }
+  .t39 .art { border: none;
+    clip-path: polygon(0 100%, 0 34%, 50% 0, 100% 34%, 100% 100%);
+    background: linear-gradient(180deg, #cfcabf, #c1bbaf); }
+  .t39 .keyword::before, .t39 .keyword::after { content: "\2720"; font-size: .8em; color: #6d685f; }
+  .t39 .textbox { border-color: #9c968b; }
+  .t39 .fx .tag::after { height: 2px; background: linear-gradient(to right, #1a1a1a, transparent); }
+
+  /* Codice Miniato: cornice doppia oro, arte incorniciata, sigillo cremisi. */
+  .card.t40 { clip-path: none; border-radius: 3px; border: 3px double #9a7a2e;
+    outline: 1px solid #cdbd8f; outline-offset: 3px;
+    box-shadow: 0 8px 26px rgba(90,70,30,.16);
+    background: radial-gradient(120% 90% at 50% 0%, #f7f0dd, #f3ecd8 55%, #e9dcbf); }
+  .t40 .name { color: #8f1d22; letter-spacing: .1em;
+    border-top: 3px double #9a7a2e; border-bottom: 3px double #9a7a2e; }
+  .t40 .art { border: 1px solid #9a7a2e; outline: 3px double #cdbd8f; outline-offset: -7px;
+    background: linear-gradient(180deg, #e7dabb, #ddcfa8); }
+  .t40 .keyword { text-shadow: none; }
+  .t40 .keyword::before, .t40 .keyword::after { content: "\2720"; font-size: .75em; color: #9a7a2e; }
+  .t40 .textbox { box-shadow: inset 0 0 16px rgba(154,122,46,.14); }
+  .t40 .fx .tag::after { background: repeating-linear-gradient(90deg, #9a7a2e 0 4px, transparent 4px 8px); }

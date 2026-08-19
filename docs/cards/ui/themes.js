@@ -39,13 +39,13 @@ export const THEMES = Object.freeze([
   ["t36", "Tempesta"],
   ["t37", "Ossario"],
   ["t38", "Miraggio"],
-  ["t39", "Cobalto"],
-  ["t40", "Salvia"]
+  ["t39", "Cattedrale"],
+  ["t40", "Codice Miniato"]
 ]);
 
 export const LIGHT_THEMES = new Set([
   "t07", "t08", "t12", "t16", "t20", "t22", "t24",
-  "t31", "t32", "t35", "t38", "t40"
+  "t31", "t32", "t35", "t38", "t39", "t40"
 ]);
 
 export function isThemeId(value) {
