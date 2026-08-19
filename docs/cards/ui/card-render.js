@@ -446,7 +446,7 @@ function roman(value) {
 // 20px, che e' la misura Magic che il resto del foglio difende.
 // Va chiamata DOPO l'inserimento nel documento: prima non c'e' nulla da
 // misurare, e la carta uscirebbe tagliata in silenzio.
-const FIT_STEPS = [1, 0.96, 0.92, 0.88, 0.84, 0.8];
+const FIT_STEPS = [1, 0.96, 0.92, 0.88, 0.84, 0.8, 0.76, 0.72, 0.68];
 // Passi di riduzione del NOME (in em rispetto alla carta): "" è la scala piena.
 const NAME_FIT_STEPS = ["", "0.98em", "0.92em", "0.86em", "0.8em", "0.75em"];
 
