@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-030",
+  "setId": "rubyfront-core",
+  "collectorNumber": "030",
+  "slug": "valaris-first-of-the-wood",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 1,
+  "unique": true,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "grade-2",
+    "legendary",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 4,
+        "fluxCost": 4
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "elder-sight",
+          "displayKey": "elderSight",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-030.md"
+}

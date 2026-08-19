@@ -1,0 +1,25 @@
+{
+  "name": "Sentiero tra i Rami",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "Il bosco ti mostra due vie e ti lascia scegliere la tua.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Sentiero tra i Rami",
+    "effect": {
+      "name": "Effetto",
+      "text": "Guarda le prime due carte del tuo mazzo: prendine una in mano e rimetti l'altra in fondo al mazzo."
+    },
+    "flavor": "Ogni ramo si divide. Nessuno porta indietro."
+  }
+}

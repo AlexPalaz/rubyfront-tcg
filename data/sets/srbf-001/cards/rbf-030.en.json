@@ -1,0 +1,27 @@
+{
+  "name": "Valaris, First of the Wood",
+  "typeLabel": "Entity — Auros (Unique)",
+  "summary": "The eldest of the Wandering Wood: her mere presence folds space up to the second grade.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux",
+    "unique": "Unique"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Valaris, First of the Wood",
+    "elderSight": {
+      "trigger": "When it enters the field",
+      "text": "Draw a card."
+    },
+    "flavor": "She was there before the wood. The wood grew around her silence."
+  }
+}

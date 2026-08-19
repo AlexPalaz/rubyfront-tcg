@@ -1,0 +1,22 @@
+{
+  "name": "Pathfinder of Trails",
+  "typeLabel": "Entity — Auros",
+  "summary": "Always finds the way, and with it the right Auros for the turn to come.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Pathfinder of Trails",
+    "pathfind": {
+      "trigger": "When it enters the field",
+      "text": "Search your deck for an Auros Entity, reveal it to the opponent and add it to your hand, then shuffle your deck."
+    },
+    "flavor": "Every root is a trail, for those who can read them."
+  }
+}

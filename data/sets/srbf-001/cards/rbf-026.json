@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-026",
+  "setId": "rubyfront-core",
+  "collectorNumber": "026",
+  "slug": "glade-courier",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "card-advantage",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §7, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 2,
+        "fluxCost": 2
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "relay",
+          "displayKey": "relay",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1,
+            "conditions": [
+              {
+                "type": "controls_card",
+                "owner": "controller",
+                "min": 2,
+                "filter": {
+                  "cardType": "entity",
+                  "race": "auros"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-026.md"
+}

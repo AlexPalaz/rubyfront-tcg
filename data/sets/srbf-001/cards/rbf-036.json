@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-036",
+  "setId": "rubyfront-core",
+  "collectorNumber": "036",
+  "slug": "living-bark",
+  "type": "object",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "object",
+    "auros",
+    "stasis",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §8.1",
+  "faces": [
+    {
+      "id": "object",
+      "kind": "object",
+      "displayKey": "face",
+      "stats": {
+        "fluxCost": 1
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "bark",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "empower",
+            "target": {
+              "scope": "assigned"
+            },
+            "powerBonus": 1,
+            "grants": [
+              "stasis"
+            ],
+            "duration": "permanent"
+          }
+        }
+      ],
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "race": "auros",
+        "controller": "controller"
+      }
+    }
+  ],
+  "designNotes": "rbf-036.md"
+}

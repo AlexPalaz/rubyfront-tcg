@@ -1,0 +1,25 @@
+{
+  "name": "The Wood Remembers",
+  "typeLabel": "Dimensional Matter II",
+  "summary": "The forest does not forget its children: each dawn it offers you one.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 2nd grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "The Wood Remembers",
+    "effect": {
+      "name": "Effect",
+      "text": "Permanent. At the start of each of your turns look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
+    },
+    "flavor": "Every tree is a name. Every name returns, sooner or later."
+  }
+}

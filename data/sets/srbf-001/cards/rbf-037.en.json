@@ -1,0 +1,22 @@
+{
+  "name": "Voice of the Roots",
+  "typeLabel": "Entity — Auros",
+  "summary": "It calls by name those who left the field still alive, and brings them back from the Requiem.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Voice of the Roots",
+    "regrow": {
+      "trigger": "When it enters the field",
+      "text": "You may return an Auros Entity from your Requiem Zone to your hand."
+    },
+    "flavor": "The Auros do not end. They only wait to be recalled."
+  }
+}

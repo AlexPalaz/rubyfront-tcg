@@ -1,0 +1,27 @@
+{
+  "name": "Vàlaris, Prima del Bosco",
+  "typeLabel": "Entità — Auros (Unica)",
+  "summary": "La più antica del Bosco Errante: la sua sola presenza piega lo spazio fino al secondo grado.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi",
+    "unique": "Unica"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Vàlaris, Prima del Bosco",
+    "elderSight": {
+      "trigger": "Quando entra in campo",
+      "text": "Pesca una carta."
+    },
+    "flavor": "C'era lei, prima del bosco. Il bosco è cresciuto attorno al suo silenzio."
+  }
+}

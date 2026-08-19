@@ -1,0 +1,22 @@
+{
+  "name": "Voce delle Radici",
+  "typeLabel": "Entità — Auros",
+  "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Voce delle Radici",
+    "regrow": {
+      "trigger": "Quando entra in campo",
+      "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Requiem."
+    },
+    "flavor": "Gli Auros non finiscono. Aspettano solo di essere richiamati."
+  }
+}

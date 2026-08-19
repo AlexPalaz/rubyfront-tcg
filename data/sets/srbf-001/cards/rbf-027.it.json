@@ -1,0 +1,30 @@
+{
+  "name": "Sentinella Perenne",
+  "typeLabel": "Entità — Auros",
+  "summary": "Immortale e immobile: regge la linea e tiene aperta la Dimensionale, ma non muore mai davvero.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Sentinella Perenne",
+    "keyword": {
+      "name": "Stasi",
+      "rules": "se bloccando dovrebbe morire, resta invece in campo permanentemente tappata"
+    },
+    "effect": {
+      "name": "Effetto",
+      "text": "La Sentinella Perenne non può attaccare, e tiene la linea per tutta la partita."
+    },
+    "flavor": "Ha visto cadere tre foreste. È ancora al suo posto."
+  }
+}

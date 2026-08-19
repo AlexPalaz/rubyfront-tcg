@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-035",
+  "setId": "rubyfront-core",
+  "collectorNumber": "035",
+  "slug": "ebbtide",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dimensional",
+    "grade-2",
+    "tempo",
+    "bounce",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dimensional",
+        "grade": 2
+      },
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 4
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "ebb",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 2
+            },
+            "destination": {
+              "zone": "hand",
+              "owner": "card_owner"
+            },
+            "details": {
+              "isDeath": false,
+              "triggersLeaveField": true,
+              "objectFollows": false
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-035.md"
+}

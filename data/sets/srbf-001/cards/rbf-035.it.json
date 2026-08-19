@@ -1,0 +1,25 @@
+{
+  "name": "Riflusso",
+  "typeLabel": "Materia Dimensionale II",
+  "summary": "La marea del bosco si ritira e porta via con sé ciò che aveva davanti.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Riflusso",
+    "effect": {
+      "name": "Effetto",
+      "text": "Riporta fino a 2 Entità avversarie nella mano dei loro proprietari. Gli Oggetti assegnati vanno nell'Abisso."
+    },
+    "flavor": "Ciò che la marea concede, la marea riprende."
+  }
+}

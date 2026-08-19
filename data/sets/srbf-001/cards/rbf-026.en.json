@@ -1,0 +1,22 @@
+{
+  "name": "Glade Courier",
+  "typeLabel": "Entity — Auros",
+  "summary": "Carries word between glades: when the wood is already peopled, it comes back with a card to spare.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Glade Courier",
+    "relay": {
+      "trigger": "When it enters the field",
+      "text": "If you control at least two Auros Entities (counting this one), draw a card."
+    },
+    "flavor": "No message is lost where the trees are listening."
+  }
+}

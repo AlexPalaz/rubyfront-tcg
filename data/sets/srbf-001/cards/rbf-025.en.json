@@ -1,0 +1,22 @@
+{
+  "name": "Undergrowth Lookout",
+  "typeLabel": "Entity — Auros",
+  "summary": "An Auros who knows every path before walking it, and opens the way to the Dimensional.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Undergrowth Lookout",
+    "scout": {
+      "trigger": "When it enters the field",
+      "text": "Look at the top card of your deck: you may put it on the bottom of your deck."
+    },
+    "flavor": "I have walked for a thousand years. The wood has never surprised me."
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "Elder of the Wandering Wood",
+  "typeLabel": "Entity — Auros",
+  "summary": "When the Elder wakes, it uproots what stands before it and the wood hands it a card.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Elder of the Wandering Wood",
+    "uproot": {
+      "trigger": "When it enters the field",
+      "text": "Return an opponent Entity to its owner's hand. Its assigned Object goes to the Abyss."
+    },
+    "gather": {
+      "trigger": "When it enters the field",
+      "text": "Draw a card."
+    },
+    "flavor": "It walks but rarely. Yet when it walks, the wood follows."
+  }
+}

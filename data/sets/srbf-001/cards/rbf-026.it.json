@@ -1,0 +1,22 @@
+{
+  "name": "Corriere delle Radure",
+  "typeLabel": "Entità — Auros",
+  "summary": "Porta parola fra le radure: quando il bosco è già popolato, torna con una carta in più.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Corriere delle Radure",
+    "relay": {
+      "trigger": "Quando entra in campo",
+      "text": "Se controlli almeno due Entità Auros (contando questa), pesca una carta."
+    },
+    "flavor": "Nessun messaggio si perde, dove gli alberi ascoltano."
+  }
+}

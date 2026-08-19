@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-027",
+  "setId": "rubyfront-core",
+  "collectorNumber": "027",
+  "slug": "perennial-sentinel",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "stasis",
+    "defender",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §7, §8.1",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 3,
+        "fluxCost": 2
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [
+        {
+          "id": "stasis"
+        }
+      ],
+      "requirements": {},
+      "triggers": [],
+      "actions": [],
+      "restrictions": {
+        "cannotAttack": true
+      }
+    }
+  ],
+  "designNotes": "rbf-027.md"
+}

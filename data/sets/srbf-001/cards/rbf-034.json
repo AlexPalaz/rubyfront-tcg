@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-034",
+  "setId": "rubyfront-core",
+  "collectorNumber": "034",
+  "slug": "the-wood-remembers",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dimensional",
+    "grade-2",
+    "permanent",
+    "card-advantage",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §7.2, §8.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dimensional",
+        "grade": 2
+      },
+      "behavior": "permanent",
+      "stats": {
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "remember",
+          "displayKey": "effect",
+          "event": "on_turn_start",
+          "effect": {
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 1
+            },
+            "to": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "optional": true,
+            "details": {
+              "onlyIf": {
+                "cardType": "entity",
+                "race": "auros"
+              }
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-034.md"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "Perennial Sentinel",
+  "typeLabel": "Entity — Auros",
+  "summary": "Immortal and unmoving: it holds the line and keeps the Dimensional open, but never truly dies.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Perennial Sentinel",
+    "keyword": {
+      "name": "Stasis",
+      "rules": "if it would die while blocking, it stays on the field permanently tapped instead"
+    },
+    "effect": {
+      "name": "Effect",
+      "text": "The Perennial Sentinel cannot attack, and holds the line for the whole game."
+    },
+    "flavor": "It has watched three forests fall. It is still at its post."
+  }
+}

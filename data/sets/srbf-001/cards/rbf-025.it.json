@@ -1,0 +1,22 @@
+{
+  "name": "Vedetta del Sottobosco",
+  "typeLabel": "Entità — Auros",
+  "summary": "Un Auros che conosce ogni sentiero prima di percorrerlo, e apre la via alla Dimensionale.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Vedetta del Sottobosco",
+    "scout": {
+      "trigger": "Quando entra in campo",
+      "text": "Guarda la prima carta del tuo mazzo: puoi rimetterla in fondo al mazzo."
+    },
+    "flavor": "Cammino da mille anni. Il bosco non mi ha mai sorpresa."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Ebbtide",
+  "typeLabel": "Dimensional Matter II",
+  "summary": "The tide of the wood pulls back, and takes with it whatever stood before it.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 2nd grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Ebbtide",
+    "effect": {
+      "name": "Effect",
+      "text": "Return up to 2 opponent Entities to their owners' hands. Their assigned Objects go to the Abyss."
+    },
+    "flavor": "What the tide grants, the tide takes back."
+  }
+}

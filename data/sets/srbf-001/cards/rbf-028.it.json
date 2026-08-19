@@ -1,0 +1,22 @@
+{
+  "name": "Cercatrice di Sentieri",
+  "typeLabel": "Entità — Auros",
+  "summary": "Trova sempre la via, e con lei l'Auros giusto per il turno che verrà.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Cercatrice di Sentieri",
+    "pathfind": {
+      "trigger": "Quando entra in campo",
+      "text": "Cerca nel tuo mazzo un'Entità Auros, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
+    },
+    "flavor": "Ogni radice è un sentiero, per chi sa leggerle."
+  }
+}

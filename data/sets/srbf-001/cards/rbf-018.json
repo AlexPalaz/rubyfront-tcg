@@ -48,7 +48,8 @@
               "perControlledEntity": {
                 "cardType": "entity",
                 "race": "human"
-              }
+              },
+              "excludeSelf": true
             }
           }
         }

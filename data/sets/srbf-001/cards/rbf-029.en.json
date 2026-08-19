@@ -1,0 +1,22 @@
+{
+  "name": "Warden of the Rift",
+  "typeLabel": "Entity — Auros",
+  "summary": "Opens the rift beneath whoever stands before it: one body comes down, one goes back to hand.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Warden of the Rift",
+    "displace": {
+      "trigger": "When it enters the field",
+      "text": "Return an opponent Entity to its owner's hand. Its assigned Object goes to the Abyss."
+    },
+    "flavor": "One step back. Then the ground is gone."
+  }
+}

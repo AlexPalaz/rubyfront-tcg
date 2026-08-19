@@ -59,19 +59,18 @@ La soglia delle 3 Entità Umane è **la stessa di Lacerazione**: le due cose
 maturano insieme, e il turno in cui il Fronte arriva a tre corpi è il turno in
 cui il mazzo cambia marcia.
 
-## 4. Il buco da sorvegliare
+## 4. Le abilitazioni
 
-**Secondo Impeto ×2 non è giocabile prima del flip.** La Prima Lama ora abilita
-la Distruttiva di 1° grado e non più la Dinamica di 2°, e nel mazzo non resta
-nessun altro abilitatore di Dinamica II: solo la faccia Nexus. Sono due carte da
-4 Flussi che restano in mano finché l'Unione non arriva.
-
-Le altre abilitazioni reggono:
+La Dinamica di 2° grado passa da **Adam**, che è Unica: una copia sola apre
+Secondo Impeto prima del flip, e dopo il flip subentra la faccia Nexus. Non è
+più una coppia di carte morte in mano, ma resta la dipendenza più sottile del
+mazzo — perdere Adam significa perdere insieme lo Zero, il flip e Secondo
+Impeto.
 
 | Tipo | Carte | Abilitatori nel mazzo |
 |---|---|---|
 | Dinamica I | Scatto ×3, Vessillo ×3 | Guardiano ×3, Baluardo ×3 |
-| Dinamica II | Secondo Impeto ×2 | **solo il Nexus** |
+| Dinamica II | Secondo Impeto ×2 | Adam, Nexus |
 | Distruttiva I | Collera ×3 | Rubyfront, Prima Lama ×2 |
 | Distruttiva II | Lacerazione ×3 | Rubyfront, Nexus |
 | Zero | Assenza | Adam |
@@ -99,4 +98,4 @@ cancellano. È la sinergia più stretta del mazzo.
   e non protezione.
 - **Molti corpi da Potenza 1 o 2 di base.** Il mazzo dipende dai moltiplicatori —
   Vigorcintura, Vessillo, Scatto e la presenza della bestia.
-- **Due carte morte fino al flip:** Secondo Impeto, per la ragione al §4.
+- **Tutto lo Zero e la Dinamica II su una carta sola:** Adam. È il punto di rottura del mazzo (§4).

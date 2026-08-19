@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-025",
+  "setId": "rubyfront-core",
+  "collectorNumber": "025",
+  "slug": "undergrowth-lookout",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "scry",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §7, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 1,
+        "fluxCost": 1
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "scout",
+          "displayKey": "scout",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 1
+            },
+            "to": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "bottom"
+            },
+            "optional": true
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-025.md"
+}

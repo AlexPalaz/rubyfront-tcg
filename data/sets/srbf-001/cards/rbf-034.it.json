@@ -1,0 +1,25 @@
+{
+  "name": "Il Bosco Ricorda",
+  "typeLabel": "Materia Dimensionale II",
+  "summary": "La foresta non dimentica i suoi figli: ogni alba te ne offre uno.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Il Bosco Ricorda",
+    "effect": {
+      "name": "Effetto",
+      "text": "Permanente. All'inizio di ogni tuo turno guarda la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
+    },
+    "flavor": "Ogni albero è un nome. Ogni nome torna, prima o poi."
+  }
+}

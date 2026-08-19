@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-032",
+  "setId": "rubyfront-core",
+  "collectorNumber": "032",
+  "slug": "path-among-the-boughs",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dimensional",
+    "grade-1",
+    "selection",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §7, §8.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dimensional",
+        "grade": 1
+      },
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "path",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 2
+            },
+            "to": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "optional": false,
+            "details": {
+              "keepToHand": 1,
+              "rest": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom"
+              }
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-032.md"
+}

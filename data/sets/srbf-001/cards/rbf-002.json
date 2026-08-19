@@ -17,6 +17,8 @@
     "entity",
     "human",
     "zero",
+    "dynamic",
+    "grade-2",
     "unique"
   ],
   "rulesReference": "MANUALE.md §6.2, §7, §8.1",
@@ -33,6 +35,10 @@
       "enablesMatters": [
         {
           "type": "zero"
+        },
+        {
+          "type": "dynamic",
+          "maxGrade": 2
         }
       ],
       "keywords": [],

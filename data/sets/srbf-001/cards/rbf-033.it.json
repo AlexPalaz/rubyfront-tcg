@@ -1,0 +1,25 @@
+{
+  "name": "Passo nel Vuoto",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "L'attaccante fa un passo — e il terreno non c'è. La difesa degli Auros è non essere lì.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Passo nel Vuoto",
+    "effect": {
+      "name": "Effetto",
+      "text": "Reattiva. Riporta un'Entità avversaria nella mano del suo proprietario; puoi giocarla come blocco contro un attaccante, che così viene rimosso dall'ondata. L'Oggetto assegnato va nell'Abisso."
+    },
+    "flavor": "Non pararono il colpo. Tolsero il bersaglio."
+  }
+}

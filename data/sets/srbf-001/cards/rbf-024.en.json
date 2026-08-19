@@ -1,0 +1,65 @@
+{
+  "name": "Rubyfront of the Wandering Wood",
+  "typeLabel": "Double-faced Rubyfront",
+  "summary": "The beast of the walking forest: it folds space, recalls its own Auros, and sends back whatever stands before it.",
+  "ui": {
+    "faceA": "Face A — Rubyfront",
+    "faceB": "Face B — Nexus"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "die": "Deployment die",
+    "nexusRequirement": {
+      "label": "Nexus requirement",
+      "text": "Control at least 3 Auros Entities and the opponent has already lost at least 8 HP from their Rubyfront, only in your Preparation Phase"
+    }
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "faceA": {
+    "name": "Rubyfront of the Wandering Wood",
+    "keyword": {
+      "name": "Fury",
+      "rules": "d20 ≥ 12 before every action · failure −1 HP"
+    },
+    "effect": {
+      "text": "Once per turn look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
+    },
+    "abilities": {
+      "frondRecall": {
+        "name": "Recall through the Boughs",
+        "text": "return an Auros Entity you control to your hand."
+      },
+      "phaseAway": {
+        "name": "Phase Away",
+        "text": "return an opponent Entity to its owner's hand."
+      },
+      "perennialSap": {
+        "name": "Perennial Sap",
+        "text": "untap up to 1 Auros Entity you control."
+      }
+    },
+    "flavor": "You do not find the wood. The wood decides to find you."
+  },
+  "faceB": {
+    "name": "Folded Glade",
+    "nexusAria": "Nexus",
+    "effect": {
+      "text": "Once per turn look at the top card of your deck and you may take it into your hand."
+    },
+    "abilities": {
+      "perennialBloom": {
+        "name": "Perennial Bloom",
+        "text": "untap all Auros Entities in your Front Zone."
+      },
+      "foldingTide": {
+        "name": "Folding Tide",
+        "text": "return up to 2 opponent Entities to their owners' hands."
+      }
+    },
+    "flavor": "Here space folds upon itself, and what enters no longer finds the way out."
+  }
+}

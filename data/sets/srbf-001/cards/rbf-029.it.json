@@ -1,0 +1,22 @@
+{
+  "name": "Guardiana del Varco",
+  "typeLabel": "Entità — Auros",
+  "summary": "Apre il varco sotto i piedi di chi le sta davanti: un corpo che scende e uno che torna in mano.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Guardiana del Varco",
+    "displace": {
+      "trigger": "Quando entra in campo",
+      "text": "Riporta un'Entità avversaria nella mano del suo proprietario. L'Oggetto che aveva assegnato va nell'Abisso."
+    },
+    "flavor": "Un passo indietro. Poi il terreno non c'è più."
+  }
+}

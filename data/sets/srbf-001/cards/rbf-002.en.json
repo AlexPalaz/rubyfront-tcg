@@ -1,7 +1,7 @@
 {
   "name": "Adam, The First",
   "typeLabel": "Entity — Human",
-  "summary": "The conduit of Zero: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
+  "summary": "The conduit of Zero and the only opening to 2nd-grade Dynamic: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
   "ui": {
     "face": "Entity"
   },
@@ -29,6 +29,8 @@
   },
   "matters": {
     "zeroTitle": "Zero Matter",
-    "zeroAria": "Zero"
+    "zeroAria": "Zero",
+    "dynamicTitle": "Dynamic Matter · up to 2nd grade",
+    "dynamicAria": "Dynamic"
   }
 }

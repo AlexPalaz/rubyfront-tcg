@@ -1,0 +1,25 @@
+{
+  "name": "Path among the Boughs",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "The wood shows you two ways and lets you choose your own.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Path among the Boughs",
+    "effect": {
+      "name": "Effect",
+      "text": "Look at the top two cards of your deck: take one into your hand and put the other on the bottom of your deck."
+    },
+    "flavor": "Every branch divides. None leads back."
+  }
+}

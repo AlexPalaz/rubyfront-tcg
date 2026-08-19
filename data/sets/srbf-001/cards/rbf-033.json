@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-033",
+  "setId": "rubyfront-core",
+  "collectorNumber": "033",
+  "slug": "step-into-the-void",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dimensional",
+    "grade-1",
+    "reactive",
+    "bounce",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §6.3, §7.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dimensional",
+        "grade": 1
+      },
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "step",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "destination": {
+              "zone": "hand",
+              "owner": "card_owner"
+            },
+            "details": {
+              "isDeath": false,
+              "triggersLeaveField": true,
+              "objectFollows": false,
+              "usableAsBlock": true
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-033.md"
+}

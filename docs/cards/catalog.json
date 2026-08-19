@@ -475,7 +475,7 @@
             "it": {
               "name": "Adam, il Primo",
               "typeLabel": "Entità — Umano",
-              "summary": "Il tramite dello Zero: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
+              "summary": "Il tramite dello Zero e l'unico che apre la Dinamica di 2° grado: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
               "ui": {
                 "face": "Entità"
               },
@@ -503,13 +503,15 @@
               },
               "matters": {
                 "zeroTitle": "Materia Zero",
-                "zeroAria": "Zero"
+                "zeroAria": "Zero",
+                "dynamicTitle": "Materia Dinamica · fino al 2° grado",
+                "dynamicAria": "Dinamica"
               }
             },
             "en": {
               "name": "Adam, The First",
               "typeLabel": "Entity — Human",
-              "summary": "The conduit of Zero: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
+              "summary": "The conduit of Zero and the only opening to 2nd-grade Dynamic: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
               "ui": {
                 "face": "Entity"
               },
@@ -537,7 +539,9 @@
               },
               "matters": {
                 "zeroTitle": "Zero Matter",
-                "zeroAria": "Zero"
+                "zeroAria": "Zero",
+                "dynamicTitle": "Dynamic Matter · up to 2nd grade",
+                "dynamicAria": "Dynamic"
               }
             }
           },
@@ -545,6 +549,8 @@
             "entity",
             "human",
             "zero",
+            "dynamic",
+            "grade-2",
             "unique"
           ],
           "rulesReference": "MANUALE.md §6.2, §7, §8.1",
@@ -561,6 +567,10 @@
               "enablesMatters": [
                 {
                   "type": "zero"
+                },
+                {
+                  "type": "dynamic",
+                  "maxGrade": 2
                 }
               ],
               "keywords": [],
@@ -2419,7 +2429,7 @@
                 "name": "Archivista",
                 "effect": {
                   "name": "Effetto",
-                  "text": "L'Archivista prende +1 Potenza per ogni Entità Umana che controlli, se stesso compreso."
+                  "text": "L’Archivista prende +1 Potenza per ogni altra Entità Umana che controlli."
                 },
                 "flavor": "Scrive i nomi di chi è passato oltre."
               }
@@ -2441,7 +2451,7 @@
                 "name": "Archivist",
                 "effect": {
                   "name": "Effect",
-                  "text": "Archivist gets +1 Power for each Human Entity you control, himself included."
+                  "text": "Archivist gets +1 Power for each other Human Entity you control."
                 },
                 "flavor": "He writes the names of those who went on."
               }
@@ -2482,7 +2492,8 @@
                       "perControlledEntity": {
                         "cardType": "entity",
                         "race": "human"
-                      }
+                      },
+                      "excludeSelf": true
                     }
                   }
                 }
@@ -3062,6 +3073,1987 @@
           "source": {
             "designNotes": "notes/rbf-023.md"
           }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-024",
+          "setId": "rubyfront-core",
+          "collectorNumber": "024",
+          "slug": "rubyfront-of-the-wandering-wood",
+          "type": "rubyfront",
+          "layout": "double-faced",
+          "status": "draft",
+          "deckLimit": 1,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Rubifronte del Bosco Errante",
+              "typeLabel": "Rubyfront bifronte",
+              "summary": "La bestia della foresta che cammina: piega lo spazio, richiama i suoi Auros e rispedisce indietro ciò che le sta davanti.",
+              "ui": {
+                "faceA": "Faccia A — Rubyfront",
+                "faceB": "Faccia B — Nexus"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "die": "Dado di schieramento",
+                "nexusRequirement": {
+                  "label": "Requisito Nexus",
+                  "text": "Controlla almeno 3 Entità Auros e l'avversario ha già perso almeno 8 PV dal suo Rubyfront, solo nella tua Fase di Preparazione"
+                }
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "faceA": {
+                "name": "Rubifronte del Bosco Errante",
+                "keyword": {
+                  "name": "Furia",
+                  "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
+                },
+                "effect": {
+                  "text": "Una volta per turno guardi la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
+                },
+                "abilities": {
+                  "frondRecall": {
+                    "name": "Richiamo tra le Fronde",
+                    "text": "riporta un'Entità Auros che controlli nella tua mano."
+                  },
+                  "phaseAway": {
+                    "name": "Sfasare",
+                    "text": "riporta un'Entità avversaria nella mano del suo proprietario."
+                  },
+                  "perennialSap": {
+                    "name": "Linfa Perenne",
+                    "text": "stappa fino a 1 Entità Auros che controlli."
+                  }
+                },
+                "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
+              },
+              "faceB": {
+                "name": "Radura Ripiegata",
+                "nexusAria": "Nexus",
+                "effect": {
+                  "text": "Una volta per turno guardi la prima carta del tuo mazzo e puoi prenderla in mano."
+                },
+                "abilities": {
+                  "perennialBloom": {
+                    "name": "Rigoglio Perenne",
+                    "text": "stappa tutte le Entità Auros nella tua Zona del Fronte."
+                  },
+                  "foldingTide": {
+                    "name": "Marea Ripiegante",
+                    "text": "riporta fino a 2 Entità avversarie nella mano dei loro proprietari."
+                  }
+                },
+                "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che entra non trova più l'uscita."
+              }
+            },
+            "en": {
+              "name": "Rubyfront of the Wandering Wood",
+              "typeLabel": "Double-faced Rubyfront",
+              "summary": "The beast of the walking forest: it folds space, recalls its own Auros, and sends back whatever stands before it.",
+              "ui": {
+                "faceA": "Face A — Rubyfront",
+                "faceB": "Face B — Nexus"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "die": "Deployment die",
+                "nexusRequirement": {
+                  "label": "Nexus requirement",
+                  "text": "Control at least 3 Auros Entities and the opponent has already lost at least 8 HP from their Rubyfront, only in your Preparation Phase"
+                }
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "faceA": {
+                "name": "Rubyfront of the Wandering Wood",
+                "keyword": {
+                  "name": "Fury",
+                  "rules": "d20 ≥ 12 before every action · failure −1 HP"
+                },
+                "effect": {
+                  "text": "Once per turn look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
+                },
+                "abilities": {
+                  "frondRecall": {
+                    "name": "Recall through the Boughs",
+                    "text": "return an Auros Entity you control to your hand."
+                  },
+                  "phaseAway": {
+                    "name": "Phase Away",
+                    "text": "return an opponent Entity to its owner's hand."
+                  },
+                  "perennialSap": {
+                    "name": "Perennial Sap",
+                    "text": "untap up to 1 Auros Entity you control."
+                  }
+                },
+                "flavor": "You do not find the wood. The wood decides to find you."
+              },
+              "faceB": {
+                "name": "Folded Glade",
+                "nexusAria": "Nexus",
+                "effect": {
+                  "text": "Once per turn look at the top card of your deck and you may take it into your hand."
+                },
+                "abilities": {
+                  "perennialBloom": {
+                    "name": "Perennial Bloom",
+                    "text": "untap all Auros Entities in your Front Zone."
+                  },
+                  "foldingTide": {
+                    "name": "Folding Tide",
+                    "text": "return up to 2 opponent Entities to their owners' hands."
+                  }
+                },
+                "flavor": "Here space folds upon itself, and what enters no longer finds the way out."
+              }
+            }
+          },
+          "tags": [
+            "rubyfront",
+            "nexus",
+            "midrange",
+            "auros",
+            "dimensional"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §7, §8.1",
+          "faces": [
+            {
+              "id": "rubyfront",
+              "kind": "rubyfront",
+              "displayKey": "faceA",
+              "stats": {
+                "health": 24,
+                "deploymentCost": {
+                  "die": "d6"
+                }
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 2
+                }
+              ],
+              "keywords": [
+                {
+                  "id": "fury",
+                  "check": {
+                    "die": "d20",
+                    "successAtLeast": 12
+                  },
+                  "failure": {
+                    "loseHealth": 1
+                  }
+                }
+              ],
+              "requirements": {
+                "nexus": {
+                  "match": "all",
+                  "timing": [
+                    "own_preparation"
+                  ],
+                  "conditions": [
+                    {
+                      "type": "controls_card",
+                      "owner": "controller",
+                      "min": 3,
+                      "filter": {
+                        "cardType": "entity",
+                        "race": "auros"
+                      }
+                    },
+                    {
+                      "type": "health_lost_at_least",
+                      "owner": "opponent",
+                      "value": 8,
+                      "filter": {
+                        "cardType": "rubyfront"
+                      }
+                    }
+                  ]
+                }
+              },
+              "triggers": [
+                {
+                  "id": "wandering-roots",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
+                  "effect": {
+                    "type": "look_and_optionally_move",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top",
+                      "count": 1
+                    },
+                    "to": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    },
+                    "optional": true,
+                    "details": {
+                      "oncePerTurn": true,
+                      "onlyIf": {
+                        "cardType": "entity",
+                        "race": "auros"
+                      }
+                    }
+                  }
+                }
+              ],
+              "actions": [
+                {
+                  "id": "frond-recall",
+                  "displayKey": "frondRecall",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [
+                    "fury"
+                  ],
+                  "cost": {
+                    "health": 3
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "race": "auros",
+                      "controller": "controller",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": false
+                    }
+                  }
+                },
+                {
+                  "id": "phase-away",
+                  "displayKey": "phaseAway",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [
+                    "fury"
+                  ],
+                  "cost": {
+                    "health": 5
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": false
+                    }
+                  }
+                },
+                {
+                  "id": "perennial-sap",
+                  "displayKey": "perennialSap",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [
+                    "fury"
+                  ],
+                  "gain": {
+                    "health": 3
+                  },
+                  "effect": {
+                    "type": "untap",
+                    "target": {
+                      "cardType": "entity",
+                      "race": "auros",
+                      "controller": "controller",
+                      "min": 0,
+                      "max": 1
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "nexus",
+              "kind": "nexus",
+              "displayKey": "faceB",
+              "stats": {
+                "healthRecovery": 6
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 2
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "folded-echo",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
+                  "effect": {
+                    "type": "look_and_optionally_move",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top",
+                      "count": 1
+                    },
+                    "to": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    },
+                    "optional": true,
+                    "details": {
+                      "oncePerTurn": true
+                    }
+                  }
+                }
+              ],
+              "actions": [
+                {
+                  "id": "perennial-bloom",
+                  "displayKey": "perennialBloom",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [],
+                  "gain": {
+                    "health": 4
+                  },
+                  "effect": {
+                    "type": "untap",
+                    "target": {
+                      "cardType": "entity",
+                      "race": "auros",
+                      "controller": "controller",
+                      "quantity": "all",
+                      "zone": "front",
+                      "owner": "controller"
+                    }
+                  }
+                },
+                {
+                  "id": "folding-tide",
+                  "displayKey": "foldingTide",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [],
+                  "cost": {
+                    "health": 6
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 2
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": false
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "designNotes": "rbf-024.md",
+          "source": {
+            "designNotes": "notes/rbf-024.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-025",
+          "setId": "rubyfront-core",
+          "collectorNumber": "025",
+          "slug": "undergrowth-lookout",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Vedetta del Sottobosco",
+              "typeLabel": "Entità — Auros",
+              "summary": "Un Auros che conosce ogni sentiero prima di percorrerlo, e apre la via alla Dimensionale.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Vedetta del Sottobosco",
+                "scout": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Guarda la prima carta del tuo mazzo: puoi rimetterla in fondo al mazzo."
+                },
+                "flavor": "Cammino da mille anni. Il bosco non mi ha mai sorpresa."
+              }
+            },
+            "en": {
+              "name": "Undergrowth Lookout",
+              "typeLabel": "Entity — Auros",
+              "summary": "An Auros who knows every path before walking it, and opens the way to the Dimensional.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Undergrowth Lookout",
+                "scout": {
+                  "trigger": "When it enters the field",
+                  "text": "Look at the top card of your deck: you may put it on the bottom of your deck."
+                },
+                "flavor": "I have walked for a thousand years. The wood has never surprised me."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "auros",
+            "dimensional",
+            "scry",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §7, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "auros",
+              "stats": {
+                "power": 1,
+                "fluxCost": 1
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "scout",
+                  "displayKey": "scout",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "look_and_optionally_move",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top",
+                      "count": 1
+                    },
+                    "to": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "bottom"
+                    },
+                    "optional": true
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-025.md",
+          "source": {
+            "designNotes": "notes/rbf-025.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-026",
+          "setId": "rubyfront-core",
+          "collectorNumber": "026",
+          "slug": "glade-courier",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Corriere delle Radure",
+              "typeLabel": "Entità — Auros",
+              "summary": "Porta parola fra le radure: quando il bosco è già popolato, torna con una carta in più.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Corriere delle Radure",
+                "relay": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Se controlli almeno due Entità Auros (contando questa), pesca una carta."
+                },
+                "flavor": "Nessun messaggio si perde, dove gli alberi ascoltano."
+              }
+            },
+            "en": {
+              "name": "Glade Courier",
+              "typeLabel": "Entity — Auros",
+              "summary": "Carries word between glades: when the wood is already peopled, it comes back with a card to spare.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Glade Courier",
+                "relay": {
+                  "trigger": "When it enters the field",
+                  "text": "If you control at least two Auros Entities (counting this one), draw a card."
+                },
+                "flavor": "No message is lost where the trees are listening."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "auros",
+            "dimensional",
+            "card-advantage",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §7, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "auros",
+              "stats": {
+                "power": 2,
+                "fluxCost": 2
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "relay",
+                  "displayKey": "relay",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "draw_card",
+                    "target": {
+                      "controller": "controller"
+                    },
+                    "count": 1,
+                    "conditions": [
+                      {
+                        "type": "controls_card",
+                        "owner": "controller",
+                        "min": 2,
+                        "filter": {
+                          "cardType": "entity",
+                          "race": "auros"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-026.md",
+          "source": {
+            "designNotes": "notes/rbf-026.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-027",
+          "setId": "rubyfront-core",
+          "collectorNumber": "027",
+          "slug": "perennial-sentinel",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Sentinella Perenne",
+              "typeLabel": "Entità — Auros",
+              "summary": "Immortale e immobile: regge la linea e tiene aperta la Dimensionale, ma non muore mai davvero.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "flux": "Flussi"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · 1° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Sentinella Perenne",
+                "keyword": {
+                  "name": "Stasi",
+                  "rules": "se bloccando dovrebbe morire, resta invece in campo permanentemente tappata"
+                },
+                "effect": {
+                  "name": "Effetto",
+                  "text": "La Sentinella Perenne non può attaccare, e tiene la linea per tutta la partita."
+                },
+                "flavor": "Ha visto cadere tre foreste. È ancora al suo posto."
+              }
+            },
+            "en": {
+              "name": "Perennial Sentinel",
+              "typeLabel": "Entity — Auros",
+              "summary": "Immortal and unmoving: it holds the line and keeps the Dimensional open, but never truly dies.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "flux": "Flux"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · 1st grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "Perennial Sentinel",
+                "keyword": {
+                  "name": "Stasis",
+                  "rules": "if it would die while blocking, it stays on the field permanently tapped instead"
+                },
+                "effect": {
+                  "name": "Effect",
+                  "text": "The Perennial Sentinel cannot attack, and holds the line for the whole game."
+                },
+                "flavor": "It has watched three forests fall. It is still at its post."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "auros",
+            "dimensional",
+            "stasis",
+            "defender",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §7, §8.1",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "auros",
+              "stats": {
+                "power": 3,
+                "fluxCost": 2
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [
+                {
+                  "id": "stasis"
+                }
+              ],
+              "requirements": {},
+              "triggers": [],
+              "actions": [],
+              "restrictions": {
+                "cannotAttack": true
+              }
+            }
+          ],
+          "designNotes": "rbf-027.md",
+          "source": {
+            "designNotes": "notes/rbf-027.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-028",
+          "setId": "rubyfront-core",
+          "collectorNumber": "028",
+          "slug": "pathfinder-of-trails",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Cercatrice di Sentieri",
+              "typeLabel": "Entità — Auros",
+              "summary": "Trova sempre la via, e con lei l'Auros giusto per il turno che verrà.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Cercatrice di Sentieri",
+                "pathfind": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Cerca nel tuo mazzo un'Entità Auros, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
+                },
+                "flavor": "Ogni radice è un sentiero, per chi sa leggerle."
+              }
+            },
+            "en": {
+              "name": "Pathfinder of Trails",
+              "typeLabel": "Entity — Auros",
+              "summary": "Always finds the way, and with it the right Auros for the turn to come.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Pathfinder of Trails",
+                "pathfind": {
+                  "trigger": "When it enters the field",
+                  "text": "Search your deck for an Auros Entity, reveal it to the opponent and add it to your hand, then shuffle your deck."
+                },
+                "flavor": "Every root is a trail, for those who can read them."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "auros",
+            "dimensional",
+            "tutor",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §7, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "auros",
+              "stats": {
+                "power": 3,
+                "fluxCost": 3
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "pathfind",
+                  "displayKey": "pathfind",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "search_card",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller"
+                    },
+                    "filter": {
+                      "cardType": "entity",
+                      "race": "auros"
+                    },
+                    "reveal": true,
+                    "to": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    },
+                    "shuffle": true
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-028.md",
+          "source": {
+            "designNotes": "notes/rbf-028.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-029",
+          "setId": "rubyfront-core",
+          "collectorNumber": "029",
+          "slug": "warden-of-the-rift",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Guardiana del Varco",
+              "typeLabel": "Entità — Auros",
+              "summary": "Apre il varco sotto i piedi di chi le sta davanti: un corpo che scende e uno che torna in mano.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Guardiana del Varco",
+                "displace": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Riporta un'Entità avversaria nella mano del suo proprietario. L'Oggetto che aveva assegnato va nell'Abisso."
+                },
+                "flavor": "Un passo indietro. Poi il terreno non c'è più."
+              }
+            },
+            "en": {
+              "name": "Warden of the Rift",
+              "typeLabel": "Entity — Auros",
+              "summary": "Opens the rift beneath whoever stands before it: one body comes down, one goes back to hand.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Warden of the Rift",
+                "displace": {
+                  "trigger": "When it enters the field",
+                  "text": "Return an opponent Entity to its owner's hand. Its assigned Object goes to the Abyss."
+                },
+                "flavor": "One step back. Then the ground is gone."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "auros",
+            "dimensional",
+            "tempo",
+            "bounce",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "auros",
+              "stats": {
+                "power": 3,
+                "fluxCost": 3
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "displace",
+                  "displayKey": "displace",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": false
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-029.md",
+          "source": {
+            "designNotes": "notes/rbf-029.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-030",
+          "setId": "rubyfront-core",
+          "collectorNumber": "030",
+          "slug": "valaris-first-of-the-wood",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 1,
+          "unique": true,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Vàlaris, Prima del Bosco",
+              "typeLabel": "Entità — Auros (Unica)",
+              "summary": "La più antica del Bosco Errante: la sua sola presenza piega lo spazio fino al secondo grado.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "flux": "Flussi",
+                "unique": "Unica"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Vàlaris, Prima del Bosco",
+                "elderSight": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Pesca una carta."
+                },
+                "flavor": "C'era lei, prima del bosco. Il bosco è cresciuto attorno al suo silenzio."
+              }
+            },
+            "en": {
+              "name": "Valaris, First of the Wood",
+              "typeLabel": "Entity — Auros (Unique)",
+              "summary": "The eldest of the Wandering Wood: her mere presence folds space up to the second grade.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "flux": "Flux",
+                "unique": "Unique"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "Valaris, First of the Wood",
+                "elderSight": {
+                  "trigger": "When it enters the field",
+                  "text": "Draw a card."
+                },
+                "flavor": "She was there before the wood. The wood grew around her silence."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "auros",
+            "dimensional",
+            "grade-2",
+            "legendary",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "auros",
+              "stats": {
+                "power": 4,
+                "fluxCost": 4
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 2
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "elder-sight",
+                  "displayKey": "elderSight",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "draw_card",
+                    "target": {
+                      "controller": "controller"
+                    },
+                    "count": 1
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-030.md",
+          "source": {
+            "designNotes": "notes/rbf-030.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-031",
+          "setId": "rubyfront-core",
+          "collectorNumber": "031",
+          "slug": "elder-of-the-wandering-wood",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Antico del Bosco Errante",
+              "typeLabel": "Entità — Auros",
+              "summary": "Quando l'Antico si desta, sradica ciò che gli sta davanti e il bosco gli porge una carta.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "flux": "Flussi"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Antico del Bosco Errante",
+                "uproot": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Riporta un'Entità avversaria nella mano del suo proprietario. L'Oggetto che aveva assegnato va nell'Abisso."
+                },
+                "gather": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Pesca una carta."
+                },
+                "flavor": "Cammina di rado. Ma quando cammina, il bosco lo segue."
+              }
+            },
+            "en": {
+              "name": "Elder of the Wandering Wood",
+              "typeLabel": "Entity — Auros",
+              "summary": "When the Elder wakes, it uproots what stands before it and the wood hands it a card.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "flux": "Flux"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "Elder of the Wandering Wood",
+                "uproot": {
+                  "trigger": "When it enters the field",
+                  "text": "Return an opponent Entity to its owner's hand. Its assigned Object goes to the Abyss."
+                },
+                "gather": {
+                  "trigger": "When it enters the field",
+                  "text": "Draw a card."
+                },
+                "flavor": "It walks but rarely. Yet when it walks, the wood follows."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "auros",
+            "dimensional",
+            "grade-2",
+            "finisher",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "auros",
+              "stats": {
+                "power": 5,
+                "fluxCost": 5
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 2
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "uproot",
+                  "displayKey": "uproot",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": false
+                    }
+                  }
+                },
+                {
+                  "id": "gather",
+                  "displayKey": "gather",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "draw_card",
+                    "target": {
+                      "controller": "controller"
+                    },
+                    "count": 1
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-031.md",
+          "source": {
+            "designNotes": "notes/rbf-031.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-032",
+          "setId": "rubyfront-core",
+          "collectorNumber": "032",
+          "slug": "path-among-the-boughs",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Sentiero tra i Rami",
+              "typeLabel": "Materia Dimensionale I",
+              "summary": "Il bosco ti mostra due vie e ti lascia scegliere la tua.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · 1° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Sentiero tra i Rami",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Guarda le prime due carte del tuo mazzo: prendine una in mano e rimetti l'altra in fondo al mazzo."
+                },
+                "flavor": "Ogni ramo si divide. Nessuno porta indietro."
+              }
+            },
+            "en": {
+              "name": "Path among the Boughs",
+              "typeLabel": "Dimensional Matter I",
+              "summary": "The wood shows you two ways and lets you choose your own.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · 1st grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "Path among the Boughs",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Look at the top two cards of your deck: take one into your hand and put the other on the bottom of your deck."
+                },
+                "flavor": "Every branch divides. None leads back."
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dimensional",
+            "grade-1",
+            "selection",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §7, §8.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dimensional",
+                "grade": 1
+              },
+              "behavior": "normal",
+              "stats": {
+                "fluxCost": 2
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "path",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "look_and_optionally_move",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top",
+                      "count": 2
+                    },
+                    "to": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    },
+                    "optional": false,
+                    "details": {
+                      "keepToHand": 1,
+                      "rest": {
+                        "zone": "deck",
+                        "owner": "controller",
+                        "position": "bottom"
+                      }
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-032.md",
+          "source": {
+            "designNotes": "notes/rbf-032.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-033",
+          "setId": "rubyfront-core",
+          "collectorNumber": "033",
+          "slug": "step-into-the-void",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Passo nel Vuoto",
+              "typeLabel": "Materia Dimensionale I",
+              "summary": "L'attaccante fa un passo — e il terreno non c'è. La difesa degli Auros è non essere lì.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · 1° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Passo nel Vuoto",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Reattiva. Riporta un'Entità avversaria nella mano del suo proprietario; puoi giocarla come blocco contro un attaccante, che così viene rimosso dall'ondata. L'Oggetto assegnato va nell'Abisso."
+                },
+                "flavor": "Non pararono il colpo. Tolsero il bersaglio."
+              }
+            },
+            "en": {
+              "name": "Step into the Void",
+              "typeLabel": "Dimensional Matter I",
+              "summary": "The attacker takes a step — and the ground is gone. The Auros defend by not being there.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · 1st grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "Step into the Void",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Reactive. Return an opponent Entity to its owner's hand; you may play it as a block against an attacker, removing it from the wave. Its assigned Object goes to the Abyss."
+                },
+                "flavor": "They did not parry the blow. They removed the target."
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dimensional",
+            "grade-1",
+            "reactive",
+            "bounce",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §6.3, §7.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dimensional",
+                "grade": 1
+              },
+              "behavior": "reactive",
+              "stats": {
+                "fluxCost": 2
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "step",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": false,
+                      "usableAsBlock": true
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-033.md",
+          "source": {
+            "designNotes": "notes/rbf-033.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-034",
+          "setId": "rubyfront-core",
+          "collectorNumber": "034",
+          "slug": "the-wood-remembers",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Il Bosco Ricorda",
+              "typeLabel": "Materia Dimensionale II",
+              "summary": "La foresta non dimentica i suoi figli: ogni alba te ne offre uno.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · 2° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Il Bosco Ricorda",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Permanente. All'inizio di ogni tuo turno guarda la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
+                },
+                "flavor": "Ogni albero è un nome. Ogni nome torna, prima o poi."
+              }
+            },
+            "en": {
+              "name": "The Wood Remembers",
+              "typeLabel": "Dimensional Matter II",
+              "summary": "The forest does not forget its children: each dawn it offers you one.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · 2nd grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "The Wood Remembers",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Permanent. At the start of each of your turns look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
+                },
+                "flavor": "Every tree is a name. Every name returns, sooner or later."
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dimensional",
+            "grade-2",
+            "permanent",
+            "card-advantage",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §7.2, §8.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dimensional",
+                "grade": 2
+              },
+              "behavior": "permanent",
+              "stats": {
+                "fluxCost": 3
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "remember",
+                  "displayKey": "effect",
+                  "event": "on_turn_start",
+                  "effect": {
+                    "type": "look_and_optionally_move",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top",
+                      "count": 1
+                    },
+                    "to": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    },
+                    "optional": true,
+                    "details": {
+                      "onlyIf": {
+                        "cardType": "entity",
+                        "race": "auros"
+                      }
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-034.md",
+          "source": {
+            "designNotes": "notes/rbf-034.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-035",
+          "setId": "rubyfront-core",
+          "collectorNumber": "035",
+          "slug": "ebbtide",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Riflusso",
+              "typeLabel": "Materia Dimensionale II",
+              "summary": "La marea del bosco si ritira e porta via con sé ciò che aveva davanti.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · 2° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Riflusso",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Riporta fino a 2 Entità avversarie nella mano dei loro proprietari. Gli Oggetti assegnati vanno nell'Abisso."
+                },
+                "flavor": "Ciò che la marea concede, la marea riprende."
+              }
+            },
+            "en": {
+              "name": "Ebbtide",
+              "typeLabel": "Dimensional Matter II",
+              "summary": "The tide of the wood pulls back, and takes with it whatever stood before it.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · 2nd grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "Ebbtide",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Return up to 2 opponent Entities to their owners' hands. Their assigned Objects go to the Abyss."
+                },
+                "flavor": "What the tide grants, the tide takes back."
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dimensional",
+            "grade-2",
+            "tempo",
+            "bounce",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dimensional",
+                "grade": 2
+              },
+              "behavior": "normal",
+              "stats": {
+                "fluxCost": 4
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "ebb",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 2
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": false
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-035.md",
+          "source": {
+            "designNotes": "notes/rbf-035.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-036",
+          "setId": "rubyfront-core",
+          "collectorNumber": "036",
+          "slug": "living-bark",
+          "type": "object",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Corteccia Viva",
+              "typeLabel": "Oggetto",
+              "summary": "Un'armatura che ricresce da sé: chi la porta impara a non morire.",
+              "ui": {
+                "face": "Oggetto"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Corteccia Viva",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Assegna la Corteccia Viva a un'Entità Auros: quell'Entità prende +1 Potenza e ottiene Stasi (se bloccando dovrebbe morire, resta invece in campo permanentemente tappata)."
+                },
+                "flavor": "Tagliala pure. Domani sarà più spessa di ieri."
+              }
+            },
+            "en": {
+              "name": "Living Bark",
+              "typeLabel": "Object",
+              "summary": "Armor that regrows on its own: whoever wears it learns not to die.",
+              "ui": {
+                "face": "Object"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Living Bark",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Assign Living Bark to an Auros Entity: that Entity gets +1 Power and gains Stasis (if it would die while blocking, it stays on the field permanently tapped instead)."
+                },
+                "flavor": "Cut it if you like. Tomorrow it will be thicker than yesterday."
+              }
+            }
+          },
+          "tags": [
+            "object",
+            "auros",
+            "stasis",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §8.1",
+          "faces": [
+            {
+              "id": "object",
+              "kind": "object",
+              "displayKey": "face",
+              "stats": {
+                "fluxCost": 1
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "bark",
+                  "displayKey": "effect",
+                  "event": "while_assigned",
+                  "effect": {
+                    "type": "empower",
+                    "target": {
+                      "scope": "assigned"
+                    },
+                    "powerBonus": 1,
+                    "grants": [
+                      "stasis"
+                    ],
+                    "duration": "permanent"
+                  }
+                }
+              ],
+              "actions": [],
+              "assignRestriction": {
+                "cardType": "entity",
+                "race": "auros",
+                "controller": "controller"
+              }
+            }
+          ],
+          "designNotes": "rbf-036.md",
+          "source": {
+            "designNotes": "notes/rbf-036.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-037",
+          "setId": "rubyfront-core",
+          "collectorNumber": "037",
+          "slug": "voice-of-the-roots",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Voce delle Radici",
+              "typeLabel": "Entità — Auros",
+              "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Voce delle Radici",
+                "regrow": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Requiem."
+                },
+                "flavor": "Gli Auros non finiscono. Aspettano solo di essere richiamati."
+              }
+            },
+            "en": {
+              "name": "Voice of the Roots",
+              "typeLabel": "Entity — Auros",
+              "summary": "It calls by name those who left the field still alive, and brings them back from the Requiem.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Voice of the Roots",
+                "regrow": {
+                  "trigger": "When it enters the field",
+                  "text": "You may return an Auros Entity from your Requiem Zone to your hand."
+                },
+                "flavor": "The Auros do not end. They only wait to be recalled."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "auros",
+            "dimensional",
+            "recursion",
+            "requiem",
+            "midrange"
+          ],
+          "rulesReference": "MANUALE.md §5, §7, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "auros",
+              "stats": {
+                "power": 3,
+                "fluxCost": 3
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "regrow",
+                  "displayKey": "regrow",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "race": "auros",
+                      "zone": "requiem",
+                      "owner": "controller",
+                      "min": 0,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    },
+                    "optional": true
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-037.md",
+          "source": {
+            "designNotes": "notes/rbf-037.md"
+          }
         }
       ]
     }
@@ -3512,7 +5504,7 @@
         "it": {
           "name": "Adam, il Primo",
           "typeLabel": "Entità — Umano",
-          "summary": "Il tramite dello Zero: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
+          "summary": "Il tramite dello Zero e l'unico che apre la Dinamica di 2° grado: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
           "ui": {
             "face": "Entità"
           },
@@ -3540,13 +5532,15 @@
           },
           "matters": {
             "zeroTitle": "Materia Zero",
-            "zeroAria": "Zero"
+            "zeroAria": "Zero",
+            "dynamicTitle": "Materia Dinamica · fino al 2° grado",
+            "dynamicAria": "Dinamica"
           }
         },
         "en": {
           "name": "Adam, The First",
           "typeLabel": "Entity — Human",
-          "summary": "The conduit of Zero: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
+          "summary": "The conduit of Zero and the only opening to 2nd-grade Dynamic: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
           "ui": {
             "face": "Entity"
           },
@@ -3574,7 +5568,9 @@
           },
           "matters": {
             "zeroTitle": "Zero Matter",
-            "zeroAria": "Zero"
+            "zeroAria": "Zero",
+            "dynamicTitle": "Dynamic Matter · up to 2nd grade",
+            "dynamicAria": "Dynamic"
           }
         }
       },
@@ -3582,6 +5578,8 @@
         "entity",
         "human",
         "zero",
+        "dynamic",
+        "grade-2",
         "unique"
       ],
       "rulesReference": "MANUALE.md §6.2, §7, §8.1",
@@ -3598,6 +5596,10 @@
           "enablesMatters": [
             {
               "type": "zero"
+            },
+            {
+              "type": "dynamic",
+              "maxGrade": 2
             }
           ],
           "keywords": [],
@@ -5456,7 +7458,7 @@
             "name": "Archivista",
             "effect": {
               "name": "Effetto",
-              "text": "L'Archivista prende +1 Potenza per ogni Entità Umana che controlli, se stesso compreso."
+              "text": "L’Archivista prende +1 Potenza per ogni altra Entità Umana che controlli."
             },
             "flavor": "Scrive i nomi di chi è passato oltre."
           }
@@ -5478,7 +7480,7 @@
             "name": "Archivist",
             "effect": {
               "name": "Effect",
-              "text": "Archivist gets +1 Power for each Human Entity you control, himself included."
+              "text": "Archivist gets +1 Power for each other Human Entity you control."
             },
             "flavor": "He writes the names of those who went on."
           }
@@ -5519,7 +7521,8 @@
                   "perControlledEntity": {
                     "cardType": "entity",
                     "race": "human"
-                  }
+                  },
+                  "excludeSelf": true
                 }
               }
             }
@@ -6099,9 +8102,2073 @@
       "source": {
         "designNotes": "notes/rbf-023.md"
       }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-024",
+      "setId": "rubyfront-core",
+      "collectorNumber": "024",
+      "slug": "rubyfront-of-the-wandering-wood",
+      "type": "rubyfront",
+      "layout": "double-faced",
+      "status": "draft",
+      "deckLimit": 1,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Rubifronte del Bosco Errante",
+          "typeLabel": "Rubyfront bifronte",
+          "summary": "La bestia della foresta che cammina: piega lo spazio, richiama i suoi Auros e rispedisce indietro ciò che le sta davanti.",
+          "ui": {
+            "faceA": "Faccia A — Rubyfront",
+            "faceB": "Faccia B — Nexus"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "die": "Dado di schieramento",
+            "nexusRequirement": {
+              "label": "Requisito Nexus",
+              "text": "Controlla almeno 3 Entità Auros e l'avversario ha già perso almeno 8 PV dal suo Rubyfront, solo nella tua Fase di Preparazione"
+            }
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "faceA": {
+            "name": "Rubifronte del Bosco Errante",
+            "keyword": {
+              "name": "Furia",
+              "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
+            },
+            "effect": {
+              "text": "Una volta per turno guardi la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
+            },
+            "abilities": {
+              "frondRecall": {
+                "name": "Richiamo tra le Fronde",
+                "text": "riporta un'Entità Auros che controlli nella tua mano."
+              },
+              "phaseAway": {
+                "name": "Sfasare",
+                "text": "riporta un'Entità avversaria nella mano del suo proprietario."
+              },
+              "perennialSap": {
+                "name": "Linfa Perenne",
+                "text": "stappa fino a 1 Entità Auros che controlli."
+              }
+            },
+            "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
+          },
+          "faceB": {
+            "name": "Radura Ripiegata",
+            "nexusAria": "Nexus",
+            "effect": {
+              "text": "Una volta per turno guardi la prima carta del tuo mazzo e puoi prenderla in mano."
+            },
+            "abilities": {
+              "perennialBloom": {
+                "name": "Rigoglio Perenne",
+                "text": "stappa tutte le Entità Auros nella tua Zona del Fronte."
+              },
+              "foldingTide": {
+                "name": "Marea Ripiegante",
+                "text": "riporta fino a 2 Entità avversarie nella mano dei loro proprietari."
+              }
+            },
+            "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che entra non trova più l'uscita."
+          }
+        },
+        "en": {
+          "name": "Rubyfront of the Wandering Wood",
+          "typeLabel": "Double-faced Rubyfront",
+          "summary": "The beast of the walking forest: it folds space, recalls its own Auros, and sends back whatever stands before it.",
+          "ui": {
+            "faceA": "Face A — Rubyfront",
+            "faceB": "Face B — Nexus"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "die": "Deployment die",
+            "nexusRequirement": {
+              "label": "Nexus requirement",
+              "text": "Control at least 3 Auros Entities and the opponent has already lost at least 8 HP from their Rubyfront, only in your Preparation Phase"
+            }
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "faceA": {
+            "name": "Rubyfront of the Wandering Wood",
+            "keyword": {
+              "name": "Fury",
+              "rules": "d20 ≥ 12 before every action · failure −1 HP"
+            },
+            "effect": {
+              "text": "Once per turn look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
+            },
+            "abilities": {
+              "frondRecall": {
+                "name": "Recall through the Boughs",
+                "text": "return an Auros Entity you control to your hand."
+              },
+              "phaseAway": {
+                "name": "Phase Away",
+                "text": "return an opponent Entity to its owner's hand."
+              },
+              "perennialSap": {
+                "name": "Perennial Sap",
+                "text": "untap up to 1 Auros Entity you control."
+              }
+            },
+            "flavor": "You do not find the wood. The wood decides to find you."
+          },
+          "faceB": {
+            "name": "Folded Glade",
+            "nexusAria": "Nexus",
+            "effect": {
+              "text": "Once per turn look at the top card of your deck and you may take it into your hand."
+            },
+            "abilities": {
+              "perennialBloom": {
+                "name": "Perennial Bloom",
+                "text": "untap all Auros Entities in your Front Zone."
+              },
+              "foldingTide": {
+                "name": "Folding Tide",
+                "text": "return up to 2 opponent Entities to their owners' hands."
+              }
+            },
+            "flavor": "Here space folds upon itself, and what enters no longer finds the way out."
+          }
+        }
+      },
+      "tags": [
+        "rubyfront",
+        "nexus",
+        "midrange",
+        "auros",
+        "dimensional"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §7, §8.1",
+      "faces": [
+        {
+          "id": "rubyfront",
+          "kind": "rubyfront",
+          "displayKey": "faceA",
+          "stats": {
+            "health": 24,
+            "deploymentCost": {
+              "die": "d6"
+            }
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 2
+            }
+          ],
+          "keywords": [
+            {
+              "id": "fury",
+              "check": {
+                "die": "d20",
+                "successAtLeast": 12
+              },
+              "failure": {
+                "loseHealth": 1
+              }
+            }
+          ],
+          "requirements": {
+            "nexus": {
+              "match": "all",
+              "timing": [
+                "own_preparation"
+              ],
+              "conditions": [
+                {
+                  "type": "controls_card",
+                  "owner": "controller",
+                  "min": 3,
+                  "filter": {
+                    "cardType": "entity",
+                    "race": "auros"
+                  }
+                },
+                {
+                  "type": "health_lost_at_least",
+                  "owner": "opponent",
+                  "value": 8,
+                  "filter": {
+                    "cardType": "rubyfront"
+                  }
+                }
+              ]
+            }
+          },
+          "triggers": [
+            {
+              "id": "wandering-roots",
+              "displayKey": "effect",
+              "event": "while_in_play",
+              "effect": {
+                "type": "look_and_optionally_move",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top",
+                  "count": 1
+                },
+                "to": {
+                  "zone": "hand",
+                  "owner": "controller"
+                },
+                "optional": true,
+                "details": {
+                  "oncePerTurn": true,
+                  "onlyIf": {
+                    "cardType": "entity",
+                    "race": "auros"
+                  }
+                }
+              }
+            }
+          ],
+          "actions": [
+            {
+              "id": "frond-recall",
+              "displayKey": "frondRecall",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [
+                "fury"
+              ],
+              "cost": {
+                "health": 3
+              },
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "race": "auros",
+                  "controller": "controller",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": false
+                }
+              }
+            },
+            {
+              "id": "phase-away",
+              "displayKey": "phaseAway",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [
+                "fury"
+              ],
+              "cost": {
+                "health": 5
+              },
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": false
+                }
+              }
+            },
+            {
+              "id": "perennial-sap",
+              "displayKey": "perennialSap",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [
+                "fury"
+              ],
+              "gain": {
+                "health": 3
+              },
+              "effect": {
+                "type": "untap",
+                "target": {
+                  "cardType": "entity",
+                  "race": "auros",
+                  "controller": "controller",
+                  "min": 0,
+                  "max": 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "nexus",
+          "kind": "nexus",
+          "displayKey": "faceB",
+          "stats": {
+            "healthRecovery": 6
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 2
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "folded-echo",
+              "displayKey": "effect",
+              "event": "while_in_play",
+              "effect": {
+                "type": "look_and_optionally_move",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top",
+                  "count": 1
+                },
+                "to": {
+                  "zone": "hand",
+                  "owner": "controller"
+                },
+                "optional": true,
+                "details": {
+                  "oncePerTurn": true
+                }
+              }
+            }
+          ],
+          "actions": [
+            {
+              "id": "perennial-bloom",
+              "displayKey": "perennialBloom",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [],
+              "gain": {
+                "health": 4
+              },
+              "effect": {
+                "type": "untap",
+                "target": {
+                  "cardType": "entity",
+                  "race": "auros",
+                  "controller": "controller",
+                  "quantity": "all",
+                  "zone": "front",
+                  "owner": "controller"
+                }
+              }
+            },
+            {
+              "id": "folding-tide",
+              "displayKey": "foldingTide",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [],
+              "cost": {
+                "health": 6
+              },
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 2
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": false
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "designNotes": "rbf-024.md",
+      "source": {
+        "designNotes": "notes/rbf-024.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-025",
+      "setId": "rubyfront-core",
+      "collectorNumber": "025",
+      "slug": "undergrowth-lookout",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Vedetta del Sottobosco",
+          "typeLabel": "Entità — Auros",
+          "summary": "Un Auros che conosce ogni sentiero prima di percorrerlo, e apre la via alla Dimensionale.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Vedetta del Sottobosco",
+            "scout": {
+              "trigger": "Quando entra in campo",
+              "text": "Guarda la prima carta del tuo mazzo: puoi rimetterla in fondo al mazzo."
+            },
+            "flavor": "Cammino da mille anni. Il bosco non mi ha mai sorpresa."
+          }
+        },
+        "en": {
+          "name": "Undergrowth Lookout",
+          "typeLabel": "Entity — Auros",
+          "summary": "An Auros who knows every path before walking it, and opens the way to the Dimensional.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Undergrowth Lookout",
+            "scout": {
+              "trigger": "When it enters the field",
+              "text": "Look at the top card of your deck: you may put it on the bottom of your deck."
+            },
+            "flavor": "I have walked for a thousand years. The wood has never surprised me."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "auros",
+        "dimensional",
+        "scry",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §7, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "auros",
+          "stats": {
+            "power": 1,
+            "fluxCost": 1
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "scout",
+              "displayKey": "scout",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "look_and_optionally_move",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top",
+                  "count": 1
+                },
+                "to": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "bottom"
+                },
+                "optional": true
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-025.md",
+      "source": {
+        "designNotes": "notes/rbf-025.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-026",
+      "setId": "rubyfront-core",
+      "collectorNumber": "026",
+      "slug": "glade-courier",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Corriere delle Radure",
+          "typeLabel": "Entità — Auros",
+          "summary": "Porta parola fra le radure: quando il bosco è già popolato, torna con una carta in più.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Corriere delle Radure",
+            "relay": {
+              "trigger": "Quando entra in campo",
+              "text": "Se controlli almeno due Entità Auros (contando questa), pesca una carta."
+            },
+            "flavor": "Nessun messaggio si perde, dove gli alberi ascoltano."
+          }
+        },
+        "en": {
+          "name": "Glade Courier",
+          "typeLabel": "Entity — Auros",
+          "summary": "Carries word between glades: when the wood is already peopled, it comes back with a card to spare.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Glade Courier",
+            "relay": {
+              "trigger": "When it enters the field",
+              "text": "If you control at least two Auros Entities (counting this one), draw a card."
+            },
+            "flavor": "No message is lost where the trees are listening."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "auros",
+        "dimensional",
+        "card-advantage",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §7, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "auros",
+          "stats": {
+            "power": 2,
+            "fluxCost": 2
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "relay",
+              "displayKey": "relay",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "draw_card",
+                "target": {
+                  "controller": "controller"
+                },
+                "count": 1,
+                "conditions": [
+                  {
+                    "type": "controls_card",
+                    "owner": "controller",
+                    "min": 2,
+                    "filter": {
+                      "cardType": "entity",
+                      "race": "auros"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-026.md",
+      "source": {
+        "designNotes": "notes/rbf-026.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-027",
+      "setId": "rubyfront-core",
+      "collectorNumber": "027",
+      "slug": "perennial-sentinel",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Sentinella Perenne",
+          "typeLabel": "Entità — Auros",
+          "summary": "Immortale e immobile: regge la linea e tiene aperta la Dimensionale, ma non muore mai davvero.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "flux": "Flussi"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · 1° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Sentinella Perenne",
+            "keyword": {
+              "name": "Stasi",
+              "rules": "se bloccando dovrebbe morire, resta invece in campo permanentemente tappata"
+            },
+            "effect": {
+              "name": "Effetto",
+              "text": "La Sentinella Perenne non può attaccare, e tiene la linea per tutta la partita."
+            },
+            "flavor": "Ha visto cadere tre foreste. È ancora al suo posto."
+          }
+        },
+        "en": {
+          "name": "Perennial Sentinel",
+          "typeLabel": "Entity — Auros",
+          "summary": "Immortal and unmoving: it holds the line and keeps the Dimensional open, but never truly dies.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "flux": "Flux"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · 1st grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "Perennial Sentinel",
+            "keyword": {
+              "name": "Stasis",
+              "rules": "if it would die while blocking, it stays on the field permanently tapped instead"
+            },
+            "effect": {
+              "name": "Effect",
+              "text": "The Perennial Sentinel cannot attack, and holds the line for the whole game."
+            },
+            "flavor": "It has watched three forests fall. It is still at its post."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "auros",
+        "dimensional",
+        "stasis",
+        "defender",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §7, §8.1",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "auros",
+          "stats": {
+            "power": 3,
+            "fluxCost": 2
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [
+            {
+              "id": "stasis"
+            }
+          ],
+          "requirements": {},
+          "triggers": [],
+          "actions": [],
+          "restrictions": {
+            "cannotAttack": true
+          }
+        }
+      ],
+      "designNotes": "rbf-027.md",
+      "source": {
+        "designNotes": "notes/rbf-027.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-028",
+      "setId": "rubyfront-core",
+      "collectorNumber": "028",
+      "slug": "pathfinder-of-trails",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Cercatrice di Sentieri",
+          "typeLabel": "Entità — Auros",
+          "summary": "Trova sempre la via, e con lei l'Auros giusto per il turno che verrà.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Cercatrice di Sentieri",
+            "pathfind": {
+              "trigger": "Quando entra in campo",
+              "text": "Cerca nel tuo mazzo un'Entità Auros, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
+            },
+            "flavor": "Ogni radice è un sentiero, per chi sa leggerle."
+          }
+        },
+        "en": {
+          "name": "Pathfinder of Trails",
+          "typeLabel": "Entity — Auros",
+          "summary": "Always finds the way, and with it the right Auros for the turn to come.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Pathfinder of Trails",
+            "pathfind": {
+              "trigger": "When it enters the field",
+              "text": "Search your deck for an Auros Entity, reveal it to the opponent and add it to your hand, then shuffle your deck."
+            },
+            "flavor": "Every root is a trail, for those who can read them."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "auros",
+        "dimensional",
+        "tutor",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §7, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "auros",
+          "stats": {
+            "power": 3,
+            "fluxCost": 3
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "pathfind",
+              "displayKey": "pathfind",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "search_card",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller"
+                },
+                "filter": {
+                  "cardType": "entity",
+                  "race": "auros"
+                },
+                "reveal": true,
+                "to": {
+                  "zone": "hand",
+                  "owner": "controller"
+                },
+                "shuffle": true
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-028.md",
+      "source": {
+        "designNotes": "notes/rbf-028.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-029",
+      "setId": "rubyfront-core",
+      "collectorNumber": "029",
+      "slug": "warden-of-the-rift",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Guardiana del Varco",
+          "typeLabel": "Entità — Auros",
+          "summary": "Apre il varco sotto i piedi di chi le sta davanti: un corpo che scende e uno che torna in mano.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Guardiana del Varco",
+            "displace": {
+              "trigger": "Quando entra in campo",
+              "text": "Riporta un'Entità avversaria nella mano del suo proprietario. L'Oggetto che aveva assegnato va nell'Abisso."
+            },
+            "flavor": "Un passo indietro. Poi il terreno non c'è più."
+          }
+        },
+        "en": {
+          "name": "Warden of the Rift",
+          "typeLabel": "Entity — Auros",
+          "summary": "Opens the rift beneath whoever stands before it: one body comes down, one goes back to hand.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Warden of the Rift",
+            "displace": {
+              "trigger": "When it enters the field",
+              "text": "Return an opponent Entity to its owner's hand. Its assigned Object goes to the Abyss."
+            },
+            "flavor": "One step back. Then the ground is gone."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "auros",
+        "dimensional",
+        "tempo",
+        "bounce",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "auros",
+          "stats": {
+            "power": 3,
+            "fluxCost": 3
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "displace",
+              "displayKey": "displace",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": false
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-029.md",
+      "source": {
+        "designNotes": "notes/rbf-029.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-030",
+      "setId": "rubyfront-core",
+      "collectorNumber": "030",
+      "slug": "valaris-first-of-the-wood",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 1,
+      "unique": true,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Vàlaris, Prima del Bosco",
+          "typeLabel": "Entità — Auros (Unica)",
+          "summary": "La più antica del Bosco Errante: la sua sola presenza piega lo spazio fino al secondo grado.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "flux": "Flussi",
+            "unique": "Unica"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Vàlaris, Prima del Bosco",
+            "elderSight": {
+              "trigger": "Quando entra in campo",
+              "text": "Pesca una carta."
+            },
+            "flavor": "C'era lei, prima del bosco. Il bosco è cresciuto attorno al suo silenzio."
+          }
+        },
+        "en": {
+          "name": "Valaris, First of the Wood",
+          "typeLabel": "Entity — Auros (Unique)",
+          "summary": "The eldest of the Wandering Wood: her mere presence folds space up to the second grade.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "flux": "Flux",
+            "unique": "Unique"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "Valaris, First of the Wood",
+            "elderSight": {
+              "trigger": "When it enters the field",
+              "text": "Draw a card."
+            },
+            "flavor": "She was there before the wood. The wood grew around her silence."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "auros",
+        "dimensional",
+        "grade-2",
+        "legendary",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "auros",
+          "stats": {
+            "power": 4,
+            "fluxCost": 4
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 2
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "elder-sight",
+              "displayKey": "elderSight",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "draw_card",
+                "target": {
+                  "controller": "controller"
+                },
+                "count": 1
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-030.md",
+      "source": {
+        "designNotes": "notes/rbf-030.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-031",
+      "setId": "rubyfront-core",
+      "collectorNumber": "031",
+      "slug": "elder-of-the-wandering-wood",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Antico del Bosco Errante",
+          "typeLabel": "Entità — Auros",
+          "summary": "Quando l'Antico si desta, sradica ciò che gli sta davanti e il bosco gli porge una carta.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "flux": "Flussi"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Antico del Bosco Errante",
+            "uproot": {
+              "trigger": "Quando entra in campo",
+              "text": "Riporta un'Entità avversaria nella mano del suo proprietario. L'Oggetto che aveva assegnato va nell'Abisso."
+            },
+            "gather": {
+              "trigger": "Quando entra in campo",
+              "text": "Pesca una carta."
+            },
+            "flavor": "Cammina di rado. Ma quando cammina, il bosco lo segue."
+          }
+        },
+        "en": {
+          "name": "Elder of the Wandering Wood",
+          "typeLabel": "Entity — Auros",
+          "summary": "When the Elder wakes, it uproots what stands before it and the wood hands it a card.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "flux": "Flux"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "Elder of the Wandering Wood",
+            "uproot": {
+              "trigger": "When it enters the field",
+              "text": "Return an opponent Entity to its owner's hand. Its assigned Object goes to the Abyss."
+            },
+            "gather": {
+              "trigger": "When it enters the field",
+              "text": "Draw a card."
+            },
+            "flavor": "It walks but rarely. Yet when it walks, the wood follows."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "auros",
+        "dimensional",
+        "grade-2",
+        "finisher",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "auros",
+          "stats": {
+            "power": 5,
+            "fluxCost": 5
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 2
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "uproot",
+              "displayKey": "uproot",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": false
+                }
+              }
+            },
+            {
+              "id": "gather",
+              "displayKey": "gather",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "draw_card",
+                "target": {
+                  "controller": "controller"
+                },
+                "count": 1
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-031.md",
+      "source": {
+        "designNotes": "notes/rbf-031.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-032",
+      "setId": "rubyfront-core",
+      "collectorNumber": "032",
+      "slug": "path-among-the-boughs",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Sentiero tra i Rami",
+          "typeLabel": "Materia Dimensionale I",
+          "summary": "Il bosco ti mostra due vie e ti lascia scegliere la tua.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · 1° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Sentiero tra i Rami",
+            "effect": {
+              "name": "Effetto",
+              "text": "Guarda le prime due carte del tuo mazzo: prendine una in mano e rimetti l'altra in fondo al mazzo."
+            },
+            "flavor": "Ogni ramo si divide. Nessuno porta indietro."
+          }
+        },
+        "en": {
+          "name": "Path among the Boughs",
+          "typeLabel": "Dimensional Matter I",
+          "summary": "The wood shows you two ways and lets you choose your own.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · 1st grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "Path among the Boughs",
+            "effect": {
+              "name": "Effect",
+              "text": "Look at the top two cards of your deck: take one into your hand and put the other on the bottom of your deck."
+            },
+            "flavor": "Every branch divides. None leads back."
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dimensional",
+        "grade-1",
+        "selection",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §7, §8.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dimensional",
+            "grade": 1
+          },
+          "behavior": "normal",
+          "stats": {
+            "fluxCost": 2
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "path",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "look_and_optionally_move",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top",
+                  "count": 2
+                },
+                "to": {
+                  "zone": "hand",
+                  "owner": "controller"
+                },
+                "optional": false,
+                "details": {
+                  "keepToHand": 1,
+                  "rest": {
+                    "zone": "deck",
+                    "owner": "controller",
+                    "position": "bottom"
+                  }
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-032.md",
+      "source": {
+        "designNotes": "notes/rbf-032.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-033",
+      "setId": "rubyfront-core",
+      "collectorNumber": "033",
+      "slug": "step-into-the-void",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Passo nel Vuoto",
+          "typeLabel": "Materia Dimensionale I",
+          "summary": "L'attaccante fa un passo — e il terreno non c'è. La difesa degli Auros è non essere lì.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · 1° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Passo nel Vuoto",
+            "effect": {
+              "name": "Effetto",
+              "text": "Reattiva. Riporta un'Entità avversaria nella mano del suo proprietario; puoi giocarla come blocco contro un attaccante, che così viene rimosso dall'ondata. L'Oggetto assegnato va nell'Abisso."
+            },
+            "flavor": "Non pararono il colpo. Tolsero il bersaglio."
+          }
+        },
+        "en": {
+          "name": "Step into the Void",
+          "typeLabel": "Dimensional Matter I",
+          "summary": "The attacker takes a step — and the ground is gone. The Auros defend by not being there.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · 1st grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "Step into the Void",
+            "effect": {
+              "name": "Effect",
+              "text": "Reactive. Return an opponent Entity to its owner's hand; you may play it as a block against an attacker, removing it from the wave. Its assigned Object goes to the Abyss."
+            },
+            "flavor": "They did not parry the blow. They removed the target."
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dimensional",
+        "grade-1",
+        "reactive",
+        "bounce",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §6.3, §7.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dimensional",
+            "grade": 1
+          },
+          "behavior": "reactive",
+          "stats": {
+            "fluxCost": 2
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "step",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": false,
+                  "usableAsBlock": true
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-033.md",
+      "source": {
+        "designNotes": "notes/rbf-033.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-034",
+      "setId": "rubyfront-core",
+      "collectorNumber": "034",
+      "slug": "the-wood-remembers",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Il Bosco Ricorda",
+          "typeLabel": "Materia Dimensionale II",
+          "summary": "La foresta non dimentica i suoi figli: ogni alba te ne offre uno.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · 2° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Il Bosco Ricorda",
+            "effect": {
+              "name": "Effetto",
+              "text": "Permanente. All'inizio di ogni tuo turno guarda la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
+            },
+            "flavor": "Ogni albero è un nome. Ogni nome torna, prima o poi."
+          }
+        },
+        "en": {
+          "name": "The Wood Remembers",
+          "typeLabel": "Dimensional Matter II",
+          "summary": "The forest does not forget its children: each dawn it offers you one.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · 2nd grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "The Wood Remembers",
+            "effect": {
+              "name": "Effect",
+              "text": "Permanent. At the start of each of your turns look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
+            },
+            "flavor": "Every tree is a name. Every name returns, sooner or later."
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dimensional",
+        "grade-2",
+        "permanent",
+        "card-advantage",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §7.2, §8.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dimensional",
+            "grade": 2
+          },
+          "behavior": "permanent",
+          "stats": {
+            "fluxCost": 3
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "remember",
+              "displayKey": "effect",
+              "event": "on_turn_start",
+              "effect": {
+                "type": "look_and_optionally_move",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top",
+                  "count": 1
+                },
+                "to": {
+                  "zone": "hand",
+                  "owner": "controller"
+                },
+                "optional": true,
+                "details": {
+                  "onlyIf": {
+                    "cardType": "entity",
+                    "race": "auros"
+                  }
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-034.md",
+      "source": {
+        "designNotes": "notes/rbf-034.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-035",
+      "setId": "rubyfront-core",
+      "collectorNumber": "035",
+      "slug": "ebbtide",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Riflusso",
+          "typeLabel": "Materia Dimensionale II",
+          "summary": "La marea del bosco si ritira e porta via con sé ciò che aveva davanti.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · 2° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Riflusso",
+            "effect": {
+              "name": "Effetto",
+              "text": "Riporta fino a 2 Entità avversarie nella mano dei loro proprietari. Gli Oggetti assegnati vanno nell'Abisso."
+            },
+            "flavor": "Ciò che la marea concede, la marea riprende."
+          }
+        },
+        "en": {
+          "name": "Ebbtide",
+          "typeLabel": "Dimensional Matter II",
+          "summary": "The tide of the wood pulls back, and takes with it whatever stood before it.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · 2nd grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "Ebbtide",
+            "effect": {
+              "name": "Effect",
+              "text": "Return up to 2 opponent Entities to their owners' hands. Their assigned Objects go to the Abyss."
+            },
+            "flavor": "What the tide grants, the tide takes back."
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dimensional",
+        "grade-2",
+        "tempo",
+        "bounce",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dimensional",
+            "grade": 2
+          },
+          "behavior": "normal",
+          "stats": {
+            "fluxCost": 4
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "ebb",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 2
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": false
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-035.md",
+      "source": {
+        "designNotes": "notes/rbf-035.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-036",
+      "setId": "rubyfront-core",
+      "collectorNumber": "036",
+      "slug": "living-bark",
+      "type": "object",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Corteccia Viva",
+          "typeLabel": "Oggetto",
+          "summary": "Un'armatura che ricresce da sé: chi la porta impara a non morire.",
+          "ui": {
+            "face": "Oggetto"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Corteccia Viva",
+            "effect": {
+              "name": "Effetto",
+              "text": "Assegna la Corteccia Viva a un'Entità Auros: quell'Entità prende +1 Potenza e ottiene Stasi (se bloccando dovrebbe morire, resta invece in campo permanentemente tappata)."
+            },
+            "flavor": "Tagliala pure. Domani sarà più spessa di ieri."
+          }
+        },
+        "en": {
+          "name": "Living Bark",
+          "typeLabel": "Object",
+          "summary": "Armor that regrows on its own: whoever wears it learns not to die.",
+          "ui": {
+            "face": "Object"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Living Bark",
+            "effect": {
+              "name": "Effect",
+              "text": "Assign Living Bark to an Auros Entity: that Entity gets +1 Power and gains Stasis (if it would die while blocking, it stays on the field permanently tapped instead)."
+            },
+            "flavor": "Cut it if you like. Tomorrow it will be thicker than yesterday."
+          }
+        }
+      },
+      "tags": [
+        "object",
+        "auros",
+        "stasis",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §8.1",
+      "faces": [
+        {
+          "id": "object",
+          "kind": "object",
+          "displayKey": "face",
+          "stats": {
+            "fluxCost": 1
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "bark",
+              "displayKey": "effect",
+              "event": "while_assigned",
+              "effect": {
+                "type": "empower",
+                "target": {
+                  "scope": "assigned"
+                },
+                "powerBonus": 1,
+                "grants": [
+                  "stasis"
+                ],
+                "duration": "permanent"
+              }
+            }
+          ],
+          "actions": [],
+          "assignRestriction": {
+            "cardType": "entity",
+            "race": "auros",
+            "controller": "controller"
+          }
+        }
+      ],
+      "designNotes": "rbf-036.md",
+      "source": {
+        "designNotes": "notes/rbf-036.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-037",
+      "setId": "rubyfront-core",
+      "collectorNumber": "037",
+      "slug": "voice-of-the-roots",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Voce delle Radici",
+          "typeLabel": "Entità — Auros",
+          "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Voce delle Radici",
+            "regrow": {
+              "trigger": "Quando entra in campo",
+              "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Requiem."
+            },
+            "flavor": "Gli Auros non finiscono. Aspettano solo di essere richiamati."
+          }
+        },
+        "en": {
+          "name": "Voice of the Roots",
+          "typeLabel": "Entity — Auros",
+          "summary": "It calls by name those who left the field still alive, and brings them back from the Requiem.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Voice of the Roots",
+            "regrow": {
+              "trigger": "When it enters the field",
+              "text": "You may return an Auros Entity from your Requiem Zone to your hand."
+            },
+            "flavor": "The Auros do not end. They only wait to be recalled."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "auros",
+        "dimensional",
+        "recursion",
+        "requiem",
+        "midrange"
+      ],
+      "rulesReference": "MANUALE.md §5, §7, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "auros",
+          "stats": {
+            "power": 3,
+            "fluxCost": 3
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "regrow",
+              "displayKey": "regrow",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "race": "auros",
+                  "zone": "requiem",
+                  "owner": "controller",
+                  "min": 0,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "controller"
+                },
+                "optional": true
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-037.md",
+      "source": {
+        "designNotes": "notes/rbf-037.md"
+      }
     }
   ],
   "decks": [
+    {
+      "schemaVersion": 1,
+      "id": "marea-del-bosco",
+      "setId": "rubyfront-core",
+      "status": "draft",
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Marea del Bosco",
+          "description": "Mazzo Auros midrange: corpi solidi con effetti d'ingresso, la Materia Dimensionale che rimbalza e blinca per vincere di tempo e valore, e il Rubifronte del Bosco Errante che richiama i suoi e sfasa ciò che gli sta davanti."
+        },
+        "en": {
+          "name": "Tide of the Wood",
+          "description": "An Auros midrange deck: solid bodies with enter-the-field value, Dimensional Matter that bounces and blinks to win on tempo and card advantage, and the Rubyfront of the Wandering Wood recalling its own and phasing away what stands before it."
+        }
+      },
+      "designNotes": "marea-del-bosco.md",
+      "cards": [
+        {
+          "card": "RBF-024",
+          "count": 1
+        },
+        {
+          "card": "RBF-025",
+          "count": 3
+        },
+        {
+          "card": "RBF-026",
+          "count": 3
+        },
+        {
+          "card": "RBF-027",
+          "count": 3
+        },
+        {
+          "card": "RBF-028",
+          "count": 3
+        },
+        {
+          "card": "RBF-029",
+          "count": 3
+        },
+        {
+          "card": "RBF-037",
+          "count": 3
+        },
+        {
+          "card": "RBF-030",
+          "count": 1
+        },
+        {
+          "card": "RBF-031",
+          "count": 2
+        },
+        {
+          "card": "RBF-005",
+          "count": 3
+        },
+        {
+          "card": "RBF-032",
+          "count": 3
+        },
+        {
+          "card": "RBF-033",
+          "count": 3
+        },
+        {
+          "card": "RBF-034",
+          "count": 3
+        },
+        {
+          "card": "RBF-035",
+          "count": 3
+        },
+        {
+          "card": "RBF-036",
+          "count": 3
+        }
+      ],
+      "source": {
+        "designNotes": "notes/deck-marea-del-bosco.md"
+      }
+    },
     {
       "schemaVersion": 1,
       "id": "primi-eredi",

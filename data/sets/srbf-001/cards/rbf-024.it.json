@@ -1,0 +1,65 @@
+{
+  "name": "Rubifronte del Bosco Errante",
+  "typeLabel": "Rubyfront bifronte",
+  "summary": "La bestia della foresta che cammina: piega lo spazio, richiama i suoi Auros e rispedisce indietro ciò che le sta davanti.",
+  "ui": {
+    "faceA": "Faccia A — Rubyfront",
+    "faceB": "Faccia B — Nexus"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "die": "Dado di schieramento",
+    "nexusRequirement": {
+      "label": "Requisito Nexus",
+      "text": "Controlla almeno 3 Entità Auros e l'avversario ha già perso almeno 8 PV dal suo Rubyfront, solo nella tua Fase di Preparazione"
+    }
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "faceA": {
+    "name": "Rubifronte del Bosco Errante",
+    "keyword": {
+      "name": "Furia",
+      "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
+    },
+    "effect": {
+      "text": "Una volta per turno guardi la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
+    },
+    "abilities": {
+      "frondRecall": {
+        "name": "Richiamo tra le Fronde",
+        "text": "riporta un'Entità Auros che controlli nella tua mano."
+      },
+      "phaseAway": {
+        "name": "Sfasare",
+        "text": "riporta un'Entità avversaria nella mano del suo proprietario."
+      },
+      "perennialSap": {
+        "name": "Linfa Perenne",
+        "text": "stappa fino a 1 Entità Auros che controlli."
+      }
+    },
+    "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
+  },
+  "faceB": {
+    "name": "Radura Ripiegata",
+    "nexusAria": "Nexus",
+    "effect": {
+      "text": "Una volta per turno guardi la prima carta del tuo mazzo e puoi prenderla in mano."
+    },
+    "abilities": {
+      "perennialBloom": {
+        "name": "Rigoglio Perenne",
+        "text": "stappa tutte le Entità Auros nella tua Zona del Fronte."
+      },
+      "foldingTide": {
+        "name": "Marea Ripiegante",
+        "text": "riporta fino a 2 Entità avversarie nella mano dei loro proprietari."
+      }
+    },
+    "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che entra non trova più l'uscita."
+  }
+}

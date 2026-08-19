@@ -1,0 +1,21 @@
+{
+  "name": "Corteccia Viva",
+  "typeLabel": "Oggetto",
+  "summary": "Un'armatura che ricresce da sé: chi la porta impara a non morire.",
+  "ui": {
+    "face": "Oggetto"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Corteccia Viva",
+    "effect": {
+      "name": "Effetto",
+      "text": "Assegna la Corteccia Viva a un'Entità Auros: quell'Entità prende +1 Potenza e ottiene Stasi (se bloccando dovrebbe morire, resta invece in campo permanentemente tappata)."
+    },
+    "flavor": "Tagliala pure. Domani sarà più spessa di ieri."
+  }
+}

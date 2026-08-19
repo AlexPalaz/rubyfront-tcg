@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-031",
+  "setId": "rubyfront-core",
+  "collectorNumber": "031",
+  "slug": "elder-of-the-wandering-wood",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "grade-2",
+    "finisher",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 5,
+        "fluxCost": 5
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "uproot",
+          "displayKey": "uproot",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "destination": {
+              "zone": "hand",
+              "owner": "card_owner"
+            },
+            "details": {
+              "isDeath": false,
+              "triggersLeaveField": true,
+              "objectFollows": false
+            }
+          }
+        },
+        {
+          "id": "gather",
+          "displayKey": "gather",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-031.md"
+}

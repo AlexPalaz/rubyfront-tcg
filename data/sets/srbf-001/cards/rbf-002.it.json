@@ -1,7 +1,7 @@
 {
   "name": "Adam, il Primo",
   "typeLabel": "Entità — Umano",
-  "summary": "Il tramite dello Zero: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
+  "summary": "Il tramite dello Zero e l'unico che apre la Dinamica di 2° grado: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
   "ui": {
     "face": "Entità"
   },
@@ -29,6 +29,8 @@
   },
   "matters": {
     "zeroTitle": "Materia Zero",
-    "zeroAria": "Zero"
+    "zeroAria": "Zero",
+    "dynamicTitle": "Materia Dinamica · fino al 2° grado",
+    "dynamicAria": "Dinamica"
   }
 }

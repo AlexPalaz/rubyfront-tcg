@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-028",
+  "setId": "rubyfront-core",
+  "collectorNumber": "028",
+  "slug": "pathfinder-of-trails",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "tutor",
+    "midrange"
+  ],
+  "rulesReference": "MANUALE.md §7, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 3,
+        "fluxCost": 3
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "pathfind",
+          "displayKey": "pathfind",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "search_card",
+            "from": {
+              "zone": "deck",
+              "owner": "controller"
+            },
+            "filter": {
+              "cardType": "entity",
+              "race": "auros"
+            },
+            "reveal": true,
+            "to": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "shuffle": true
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-028.md"
+}

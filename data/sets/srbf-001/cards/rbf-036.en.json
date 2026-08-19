@@ -1,0 +1,21 @@
+{
+  "name": "Living Bark",
+  "typeLabel": "Object",
+  "summary": "Armor that regrows on its own: whoever wears it learns not to die.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Living Bark",
+    "effect": {
+      "name": "Effect",
+      "text": "Assign Living Bark to an Auros Entity: that Entity gets +1 Power and gains Stasis (if it would die while blocking, it stays on the field permanently tapped instead)."
+    },
+    "flavor": "Cut it if you like. Tomorrow it will be thicker than yesterday."
+  }
+}
