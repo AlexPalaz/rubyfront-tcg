@@ -19,7 +19,7 @@
     "name": "Sentinella Perenne",
     "keyword": {
       "name": "Stasi",
-      "rules": "se dovesse morire bloccando, resta tappata per sempre"
+      "rules": "bloccando non muore: resta tappata per sempre"
     },
     "effect": {
       "name": "Effetto",

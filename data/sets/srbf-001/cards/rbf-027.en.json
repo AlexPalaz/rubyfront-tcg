@@ -19,7 +19,7 @@
     "name": "Perennial Sentinel",
     "keyword": {
       "name": "Stasis",
-      "rules": "if it would die blocking, it stays permanently tapped"
+      "rules": "won't die blocking: stays permanently tapped"
     },
     "effect": {
       "name": "Effect",

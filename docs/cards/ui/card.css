@@ -9,20 +9,8 @@
     /* Il serif era ereditato dal body del renderer: ora la carta se lo porta
        da sé, così la shell resta sans e i temi possono comunque sovrascriverlo. */
     font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-    /* Finestra dell'illustrazione, in percentuale del box interno al netto
-       del padding: 38% qui vale ~37% di carta piena — sotto il frame M15 di
-       Magic (40%), spazio ceduto alla textbox per reggere il font a scala
-       Magic sulla faccia più densa. Il valore è misurato, non scelto: a 39.2%
-       il Rubyfront sforava di 1px e il flavor entrava nel padding di 2,9px. */
-    --art-height: 38%;
-    /* Altezza minima dell'illustrazione: l'art è ora FLESSIBILE (vedi .art) e
-       cede spazio alla textbox sulle carte dense, scendendo fino a questo
-       minimo. Così il testo tiene sempre la scala piena di 20px e "sta
-       tranquillo", invece di rimpicciolirsi. L'art è "avida" (vedi .art): sulle
-       carte normali raggiunge il massimo (~50%, più alta della finestra d'arte
-       di Magic), e cede solo sulle pochissime carte fittissime (i Rubyfront),
-       scendendo fino a questo minimo per non tagliare nulla del testo. */
-    --art-min: 35%;
+    /* L'altezza dell'illustrazione è fissa (vedi .art): sempre il 40% della
+       carta, come la finestra d'arte di Magic. */
     width: 100%;
     height: min(728px, calc(140vw - 56px));
     flex: none;
@@ -104,11 +92,11 @@
     font-size: 1em; font-weight: 400; color: var(--cost-ink, #fdeef1); }
   .nexus-mark { flex: none; width: 3.1em; height: 2.2em; }
   .nexus-mark svg { display: block; width: 100%; height: 100%; overflow: visible; }
-  /* Illustrazione flessibile: assorbe lo spazio libero (grow 1) e, quando il
-     testo è tanto, cede per prima (shrink 4) fino a --art-min, così la textbox
-     resta al font pieno. Il max evita che sulle carte quasi vuote l'art
-     diventi sproporzionata. */
-  .art { flex: 4 4 auto; min-height: var(--art-min, 35%); max-height: 50%;
+  /* Illustrazione ad altezza FISSA: sempre il 40% della carta (come la finestra
+     d'arte di Magic), uguale su ogni carta. La textbox prende lo spazio restante;
+     sulle pochissime carte fittissime il corpo del testo scende di un filo (fit)
+     per starci — l'art resta al 40%. */
+  .art { flex: 0 0 40%; height: 40%;
     border: 1px solid var(--frame); background: var(--well);
     display: flex; align-items: center; justify-content: center;
     font-size: 1em; letter-spacing: .4em; text-transform: uppercase;
@@ -120,12 +108,18 @@
   .matter-effect .behavior-holder { display: inline-block; }
   .matter-effect .behavior-icon { width: 1.1em; height: 1.1em; display: inline-block;
     vertical-align: -.18em; margin-right: .28em; }
-  /* Riga d'intestazione dentro la descrizione, tutta in testo (niente
-     medaglioni): tipo della carta e, in coda, le Materie abilitate e
-     l'eventuale Contrattacco — la type line della carta, sopra il testo di
-     regole. Sostituisce la vecchia typeline e la bottombar. */
-  .textline { margin-bottom: .12em; padding-bottom: .34em; border-bottom: 1px solid var(--frame-dim);
-    font-variant: small-caps; letter-spacing: .08em; line-height: 1.22; color: var(--muted); font-size: .92em; }
+  /* Riga d'intestazione dentro la descrizione: tipo a sinistra, medaglioni
+     delle Materie abilitate (e Contrattacco) a destra. Sostituisce la vecchia
+     typeline e la bottombar, unite in una sola riga sopra il testo di regole. */
+  .textline { display: flex; align-items: center; justify-content: space-between; gap: .6em;
+    margin-bottom: .1em; padding-bottom: .34em; border-bottom: 1px solid var(--frame-dim); }
+  .textline-type { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-variant: small-caps; letter-spacing: .1em; color: var(--muted); font-size: .92em; }
+  .textline-ident { display: flex; align-items: center; gap: .4em; flex: none; }
+  .textline-ident .matter { padding: .12em .42em; font-size: .92em; }
+  .textline-ident .matter svg { width: 1.2em; height: 1.2em; }
+  .textline-ident .counter-badge { padding: .12em .42em; font-size: .92em; }
+  .textline-ident .counter-badge svg { width: 1.2em; height: 1.2em; }
   .keyword { text-align: center; font-size: .85em; color: var(--ruby-light);
     letter-spacing: .08em; font-variant: small-caps;
     display: flex; align-items: center; gap: .6em; justify-content: center; }

@@ -1,7 +1,7 @@
 // Costruttori della carta visuale, condivisi tra la pagina dei temi
 // (card-theme-page.js) e la pagina del mazzo (deck-page.js): la grafica
 // della carta vive in un posto solo. Gli stili corrispondenti sono in card.css.
-import { element, copyFor } from "./shell.js";
+import { element } from "./shell.js";
 import { LIGHT_THEMES } from "./themes.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -294,24 +294,27 @@ function createActionBlock(action, faceCopy, cardCopy) {
 function createTextBox(face, faceCopy, cardCopy, localeId) {
   const box = element("div", "textbox");
 
-  // Riga d'intestazione della descrizione, tutta in TESTO (nessun medaglione):
-  // il tipo della carta (Entità — Auros, Materia Dimensionale I, Oggetto) e, in
-  // coda, le Materie che ABILITA e l'eventuale Contrattacco — come la type line
-  // di Magic. Prima erano due righe separate (typeline sopra la textbox e
-  // bottombar in fondo); ora è una sola riga, così l'illustrazione ha più spazio.
+  // Riga d'intestazione della descrizione: a sinistra il tipo della carta
+  // (Entità — Auros, Materia Dimensionale I, Oggetto), a destra i MEDAGLIONI
+  // delle Materie che la carta ABILITA e l'eventuale Contrattacco. Una sola
+  // riga sopra il testo di regole (sostituisce la vecchia typeline e la
+  // bottombar), così l'illustrazione ha più spazio.
   const showType = (face.kind === "entity" || face.kind === "matter" || face.kind === "object") && cardCopy.typeLabel;
-  const matterNames = copyFor(localeId).matterNames;
-  const parts = [];
-  if (showType) parts.push(cardCopy.typeLabel);
-  for (const matter of face.enablesMatters) {
-    const name = matterNames?.[matter.type] ?? matter.type;
-    const grade = matter.maxGrade ?? matter.grade;
-    parts.push(grade ? `${name} ${roman(grade)}` : name);
-  }
+  const idents = [];
+  for (const matter of face.enablesMatters) idents.push(createMatter(matter, cardCopy));
   if (face.stats.counterattack !== undefined) {
-    parts.push(`${cardCopy.card?.counterattack ?? "Counterattack"} +${face.stats.counterattack}`);
+    idents.push(createCounterattackBadge(face.stats.counterattack, cardCopy.card?.counterattack ?? "Counterattack"));
   }
-  if (parts.length) box.append(element("div", "textline", parts.join(" · ")));
+  if (showType || idents.length) {
+    const head = element("div", "textline");
+    head.append(element("span", "textline-type", showType ? cardCopy.typeLabel : ""));
+    if (idents.length) {
+      const ident = element("span", "textline-ident");
+      ident.append(...idents);
+      head.append(ident);
+    }
+    box.append(head);
+  }
 
   // Il requisito Nexus non ha etichetta scritta: lo identifica il simbolo
   // dei due anelli (lo stesso della faccia Nexus), in linea col testo.
