@@ -491,13 +491,14 @@
     --ruby: #c25a2a; --ruby-light: #e08a52;
     --hp-green: #2f7f6b; --cost-ink: #fff8ec;
   }
-  /* Cattedrale: gotico chiaro, pietra avorio e nero, sfumature di grigio. */
+  /* Cattedrale: gotico chiaro, pietra avorio e nero, con accento rosso
+     cremisi abbinato su bold, costo, icone e statistiche per esaltarli. */
   .card.t39 {
     --bg: #ebe8e1; --panel: #f6f4ee; --well: #d8d3c9;
     --frame: #1a1a1a; --frame-dim: #9c968b;
     --ink: #161513; --muted: #6d685f;
-    --accent: #1a1a1a; --ornament: #8a857b;
-    --ruby: #1a1a1a; --ruby-light: #2a2a2a;
+    --accent: #a4162f; --ornament: #8a857b;
+    --ruby: #a4162f; --ruby-light: #8f1226;
     --hp-green: #35632f; --cost-ink: #f6f4ee;
   }
   /* Codice Miniato: light, manoscritto miniato, avorio e oro, rubrica cremisi. */
