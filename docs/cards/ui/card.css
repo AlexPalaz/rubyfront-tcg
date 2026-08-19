@@ -19,8 +19,10 @@
        cede spazio alla textbox sulle carte dense, scendendo fino a questo
        minimo. Così il testo tiene sempre la scala piena di 20px e "sta
        tranquillo", invece di rimpicciolirsi. Sulle carte leggere l'art
-       cresce e respira. */
-    --art-min: 27%;
+       cresce e respira. Il minimo è generoso perché tipo e Materie abilitate
+       vivono ora dentro la descrizione (una riga sola, non due) e liberano
+       spazio verticale. */
+    --art-min: 33%;
     width: 100%;
     height: min(728px, calc(140vw - 56px));
     flex: none;
@@ -106,7 +108,7 @@
      testo è tanto, cede per prima (shrink 4) fino a --art-min, così la textbox
      resta al font pieno. Il max evita che sulle carte quasi vuote l'art
      diventi sproporzionata. */
-  .art { flex: 1 4 auto; min-height: var(--art-min, 27%); max-height: 46%;
+  .art { flex: 1 4 auto; min-height: var(--art-min, 33%); max-height: 48%;
     border: 1px solid var(--frame); background: var(--well);
     display: flex; align-items: center; justify-content: center;
     font-size: 1em; letter-spacing: .4em; text-transform: uppercase;
@@ -118,9 +120,18 @@
   .matter-effect .behavior-holder { display: inline-block; }
   .matter-effect .behavior-icon { width: 1.1em; height: 1.1em; display: inline-block;
     vertical-align: -.18em; margin-right: .28em; }
-  .typeline { display: flex; align-items: center; justify-content: center; gap: .7em;
-    font-size: 1em; font-variant: small-caps; letter-spacing: .12em; color: var(--muted); }
-  .typeline::before, .typeline::after { content: ""; flex: 1; height: 1px; background: var(--frame-dim); }
+  /* Riga d'intestazione dentro la descrizione: tipo a sinistra, Materie
+     abilitate (e Contrattacco) a destra. Sostituisce la vecchia typeline e la
+     bottombar, unite in una sola riga sopra il testo di regole. */
+  .textline { display: flex; align-items: center; justify-content: space-between; gap: .6em;
+    margin-bottom: .1em; padding-bottom: .34em; border-bottom: 1px solid var(--frame-dim); }
+  .textline-type { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-variant: small-caps; letter-spacing: .1em; color: var(--muted); font-size: .92em; }
+  .textline-ident { display: flex; align-items: center; gap: .4em; flex: none; }
+  .textline-ident .matter { padding: .12em .42em; font-size: .92em; }
+  .textline-ident .matter svg { width: 1.2em; height: 1.2em; }
+  .textline-ident .counter-badge { padding: .12em .42em; font-size: .92em; }
+  .textline-ident .counter-badge svg { width: 1.2em; height: 1.2em; }
   .keyword { text-align: center; font-size: .85em; color: var(--ruby-light);
     letter-spacing: .08em; font-variant: small-caps;
     display: flex; align-items: center; gap: .6em; justify-content: center; }

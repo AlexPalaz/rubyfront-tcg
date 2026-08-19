@@ -34,10 +34,6 @@ function createFace(card, face, cardCopy, themeId) {
     element("div", "art", cardCopy.card?.illustration ?? "Illustration")
   );
 
-  if ((face.kind === "entity" || face.kind === "matter" || face.kind === "object") && cardCopy.typeLabel) {
-    visual.append(element("div", "typeline", cardCopy.typeLabel));
-  }
-
   for (const keyword of face.keywords) {
     visual.append(createKeyword(face, keyword, faceCopy));
   }
@@ -50,15 +46,6 @@ function createFace(card, face, cardCopy, themeId) {
   }
 
   visual.append(createTextBox(face, faceCopy, cardCopy));
-
-  const bottomBar = element("div", "bottombar");
-  const matters = element("div", "matters");
-  matters.append(...face.enablesMatters.map(matter => createMatter(matter, cardCopy)));
-  bottomBar.append(matters);
-  if (face.stats.counterattack !== undefined) {
-    bottomBar.append(createCounterattackBadge(face.stats.counterattack, cardCopy.card?.counterattack ?? "Counterattack"));
-  }
-  visual.append(bottomBar);
   wrapper.append(label, visual);
   return wrapper;
 }
@@ -275,6 +262,29 @@ function createActionBlock(action, faceCopy, cardCopy) {
 
 function createTextBox(face, faceCopy, cardCopy) {
   const box = element("div", "textbox");
+
+  // Riga d'intestazione della descrizione: a sinistra il tipo della carta
+  // (Entità — Auros, Materia Dimensionale I, Oggetto), a destra le Materie che
+  // la carta ABILITA e l'eventuale Contrattacco. Prima erano due righe
+  // separate — la typeline sopra la textbox e la bottombar in fondo — ora sono
+  // incorporate nella descrizione, così l'illustrazione riguadagna spazio.
+  const showType = (face.kind === "entity" || face.kind === "matter" || face.kind === "object") && cardCopy.typeLabel;
+  const idents = [];
+  for (const matter of face.enablesMatters) idents.push(createMatter(matter, cardCopy));
+  if (face.stats.counterattack !== undefined) {
+    idents.push(createCounterattackBadge(face.stats.counterattack, cardCopy.card?.counterattack ?? "Counterattack"));
+  }
+  if (showType || idents.length) {
+    const head = element("div", "textline");
+    head.append(element("span", "textline-type", showType ? cardCopy.typeLabel : ""));
+    if (idents.length) {
+      const ident = element("span", "textline-ident");
+      ident.append(...idents);
+      head.append(ident);
+    }
+    box.append(head);
+  }
+
   // Il requisito Nexus non ha etichetta scritta: lo identifica il simbolo
   // dei due anelli (lo stesso della faccia Nexus), in linea col testo.
   const nexusRequirement = face.requirements?.nexus;
