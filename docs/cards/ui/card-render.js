@@ -408,7 +408,7 @@ function roman(value) {
 // 20px, che e' la misura Magic che il resto del foglio difende.
 // Va chiamata DOPO l'inserimento nel documento: prima non c'e' nulla da
 // misurare, e la carta uscirebbe tagliata in silenzio.
-const FIT_STEPS = [1, 0.96, 0.92, 0.88, 0.84];
+const FIT_STEPS = [1, 0.96, 0.92, 0.88, 0.84, 0.8];
 
 function fitTextBoxes(root = document) {
   for (const box of root.querySelectorAll(".textbox")) {

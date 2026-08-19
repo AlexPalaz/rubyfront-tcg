@@ -18,11 +18,11 @@
     /* Altezza minima dell'illustrazione: l'art è ora FLESSIBILE (vedi .art) e
        cede spazio alla textbox sulle carte dense, scendendo fino a questo
        minimo. Così il testo tiene sempre la scala piena di 20px e "sta
-       tranquillo", invece di rimpicciolirsi. Sulle carte leggere l'art
-       cresce e respira. Il minimo è generoso perché tipo e Materie abilitate
-       vivono ora dentro la descrizione (una riga sola, non due) e liberano
-       spazio verticale. */
-    --art-min: 33%;
+       tranquillo", invece di rimpicciolirsi. L'art è "avida" (vedi .art): sulle
+       carte normali raggiunge il massimo (~50%, più alta della finestra d'arte
+       di Magic), e cede solo sulle pochissime carte fittissime (i Rubyfront),
+       scendendo fino a questo minimo per non tagliare nulla del testo. */
+    --art-min: 35%;
     width: 100%;
     height: min(728px, calc(140vw - 56px));
     flex: none;
@@ -108,7 +108,7 @@
      testo è tanto, cede per prima (shrink 4) fino a --art-min, così la textbox
      resta al font pieno. Il max evita che sulle carte quasi vuote l'art
      diventi sproporzionata. */
-  .art { flex: 1 4 auto; min-height: var(--art-min, 33%); max-height: 48%;
+  .art { flex: 4 4 auto; min-height: var(--art-min, 35%); max-height: 50%;
     border: 1px solid var(--frame); background: var(--well);
     display: flex; align-items: center; justify-content: center;
     font-size: 1em; letter-spacing: .4em; text-transform: uppercase;
