@@ -188,6 +188,18 @@ button, input, select { font: inherit; }
 .deck-strategy-text { margin: 0 0 .85em; color: var(--ui-ink); font-size: 1.02rem; line-height: 1.62; }
 .deck-strategy-text:last-child { margin-bottom: 0; }
 
+/* ---- pager del dettaglio carta (precedente / successiva) ---- */
+.card-pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 16px 0; }
+.card-pager .pager-link.empty { visibility: hidden; }
+.pager-link { display: inline-flex; align-items: center; gap: 8px; max-width: 47%; min-width: 0;
+  color: var(--ui-ink); text-decoration: none; font-size: .9rem; font-weight: 650;
+  padding: 8px 12px; border: 1px solid var(--ui-line); border-radius: 6px; }
+.pager-link.next { margin-left: auto; }
+.pager-link:hover, .pager-link:focus-visible { border-color: var(--ui-accent); color: var(--ui-accent); outline: none; }
+.pager-arrow { flex: none; color: var(--ui-muted); font-size: 1.1rem; }
+.pager-link:hover .pager-arrow, .pager-link:focus-visible .pager-arrow { color: var(--ui-accent); }
+.pager-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 @media (max-width: 760px) {

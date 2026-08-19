@@ -351,6 +351,42 @@ function facePanel(card, face, localeId, copy) {
 }
 
 export function renderCardPage(card, set, root) {
+  // Carte del set in ordine: servono a passare alla precedente/successiva.
+  // La navigazione cicla (dall'ultima si torna alla prima e viceversa).
+  const siblings = set.cards ?? [];
+  const index = siblings.findIndex(entry => entry.id === card.id);
+  const prevCard = siblings.length > 1 ? siblings[(index - 1 + siblings.length) % siblings.length] : null;
+  const nextCard = siblings.length > 1 ? siblings[(index + 1) % siblings.length] : null;
+
+  // Frecce da tastiera: ← carta precedente, → carta successiva.
+  if (prevCard || nextCard) {
+    document.addEventListener("keydown", event => {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+      const lang = new URLSearchParams(location.search).get("lang") ?? undefined;
+      if (event.key === "ArrowLeft" && prevCard) location.href = cardRoute(prevCard, lang);
+      else if (event.key === "ArrowRight" && nextCard) location.href = cardRoute(nextCard, lang);
+    });
+  }
+
+  const buildPager = (localeId, copy) => {
+    const pager = element("nav", "card-pager");
+    pager.setAttribute("aria-label", copy.cardNav);
+    const side = (sibling, dir) => {
+      if (!sibling) return element("span", "pager-link empty");
+      const name = localize(sibling, localeId).name;
+      const anchor = link(`pager-link ${dir}`, "", cardRoute(sibling, localeId));
+      anchor.setAttribute("aria-label", `${dir === "prev" ? copy.previous : copy.next}: ${name}`);
+      const arrow = element("span", "pager-arrow", dir === "prev" ? "←" : "→");
+      const label = element("span", "pager-name", name);
+      anchor.append(...(dir === "prev" ? [arrow, label] : [label, arrow]));
+      return anchor;
+    };
+    pager.append(side(prevCard, "prev"), side(nextCard, "next"));
+    return pager;
+  };
+
   renderWithLanguage(card, root, (localeId, copy, setLocale) => {
     const locale = localize(card, localeId);
     const setText = localize(set, localeId);
@@ -386,9 +422,13 @@ export function renderCardPage(card, set, root) {
     header.append(nav);
     page.append(header);
 
+    if (prevCard || nextCard) page.append(buildPager(localeId, copy));
+
     const faces = element("div", "faces-grid");
     card.faces.forEach(face => faces.append(facePanel(card, face, localeId, copy)));
     page.append(faces);
+
+    if (prevCard || nextCard) page.append(buildPager(localeId, copy));
     return page;
   });
 }
