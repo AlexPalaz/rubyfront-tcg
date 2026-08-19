@@ -1,7 +1,7 @@
 // Costruttori della carta visuale, condivisi tra la pagina dei temi
 // (card-theme-page.js) e la pagina del mazzo (deck-page.js): la grafica
 // della carta vive in un posto solo. Gli stili corrispondenti sono in card.css.
-import { element } from "./shell.js";
+import { element, copyFor } from "./shell.js";
 import { LIGHT_THEMES } from "./themes.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -21,7 +21,7 @@ function localized(resource, localeId) {
   return resource.locales[localeId] ?? resource.locales[resource.defaultLocale];
 }
 
-function createFace(card, face, cardCopy, themeId) {
+function createFace(card, face, cardCopy, themeId, localeId) {
   const faceCopy = cardCopy[face.displayKey] ?? {};
   const wrapper = element("article", "face");
   const label = element("div", "face-label", cardCopy.ui?.[face.displayKey] ?? face.id);
@@ -45,7 +45,7 @@ function createFace(card, face, cardCopy, themeId) {
     visual.append(divider);
   }
 
-  visual.append(createTextBox(face, faceCopy, cardCopy));
+  visual.append(createTextBox(face, faceCopy, cardCopy, localeId));
   wrapper.append(label, visual);
   return wrapper;
 }
@@ -220,19 +220,50 @@ function createKeyword(face, keyword, faceCopy) {
 
 // Costo e nome scorrono in linea col testo, come le righe di Magic: nessuna
 // colonna riservata, tutta la larghezza della textbox lavora per le parole.
-function createTriggerBlock(face, trigger, faceCopy) {
-  const triggerCopy = faceCopy.triggers?.[trigger.displayKey ?? trigger.id]
+function triggerCopyFor(trigger, faceCopy) {
+  return faceCopy.triggers?.[trigger.displayKey ?? trigger.id]
     ?? faceCopy[trigger.displayKey]
     ?? {};
-  const block = element("div", "fx");
-  block.append(element("span", "tag", triggerCopy.trigger ?? faceCopy.trigger ?? trigger.event));
+}
+
+function triggerTagText(face, trigger, faceCopy) {
+  return triggerCopyFor(trigger, faceCopy).trigger ?? faceCopy.trigger ?? trigger.event;
+}
+
+function triggerBody(trigger, faceCopy) {
+  const triggerCopy = triggerCopyFor(trigger, faceCopy);
   const body = element("p", "body");
   // Gli effetti innescati non hanno nome proprio: li identifica l'etichetta
   // d'innesco. Il nome compare solo se una carta lo dichiara esplicitamente.
   if (triggerCopy.name) body.append(element("b", "", triggerCopy.name), ": ");
   body.append(triggerCopy.text ?? "");
-  block.append(body);
+  return body;
+}
+
+// Un blocco per etichetta d'innesco: se più trigger condividono la stessa
+// etichetta (es. Antico del Bosco Errante, con due effetti "Quando entra in
+// campo"), l'etichetta si stampa UNA volta sola e i testi vanno in fila.
+function createTriggerGroup(face, triggers, faceCopy) {
+  const block = element("div", "fx");
+  block.append(element("span", "tag", triggerTagText(face, triggers[0], faceCopy)));
+  for (const trigger of triggers) block.append(triggerBody(trigger, faceCopy));
   return block;
+}
+
+// Accorpa i trigger consecutivi con la stessa etichetta e li rende in blocchi.
+function appendTriggerBlocks(box, face, triggers, faceCopy) {
+  let index = 0;
+  while (index < triggers.length) {
+    const tag = triggerTagText(face, triggers[index], faceCopy);
+    const group = [triggers[index]];
+    let next = index + 1;
+    while (next < triggers.length && triggerTagText(face, triggers[next], faceCopy) === tag) {
+      group.push(triggers[next]);
+      next += 1;
+    }
+    box.append(createTriggerGroup(face, group, faceCopy));
+    index = next;
+  }
 }
 
 function createActionBlock(action, faceCopy, cardCopy) {
@@ -260,30 +291,27 @@ function createActionBlock(action, faceCopy, cardCopy) {
   return block;
 }
 
-function createTextBox(face, faceCopy, cardCopy) {
+function createTextBox(face, faceCopy, cardCopy, localeId) {
   const box = element("div", "textbox");
 
-  // Riga d'intestazione della descrizione: a sinistra il tipo della carta
-  // (Entità — Auros, Materia Dimensionale I, Oggetto), a destra le Materie che
-  // la carta ABILITA e l'eventuale Contrattacco. Prima erano due righe
-  // separate — la typeline sopra la textbox e la bottombar in fondo — ora sono
-  // incorporate nella descrizione, così l'illustrazione riguadagna spazio.
+  // Riga d'intestazione della descrizione, tutta in TESTO (nessun medaglione):
+  // il tipo della carta (Entità — Auros, Materia Dimensionale I, Oggetto) e, in
+  // coda, le Materie che ABILITA e l'eventuale Contrattacco — come la type line
+  // di Magic. Prima erano due righe separate (typeline sopra la textbox e
+  // bottombar in fondo); ora è una sola riga, così l'illustrazione ha più spazio.
   const showType = (face.kind === "entity" || face.kind === "matter" || face.kind === "object") && cardCopy.typeLabel;
-  const idents = [];
-  for (const matter of face.enablesMatters) idents.push(createMatter(matter, cardCopy));
+  const matterNames = copyFor(localeId).matterNames;
+  const parts = [];
+  if (showType) parts.push(cardCopy.typeLabel);
+  for (const matter of face.enablesMatters) {
+    const name = matterNames?.[matter.type] ?? matter.type;
+    const grade = matter.maxGrade ?? matter.grade;
+    parts.push(grade ? `${name} ${roman(grade)}` : name);
+  }
   if (face.stats.counterattack !== undefined) {
-    idents.push(createCounterattackBadge(face.stats.counterattack, cardCopy.card?.counterattack ?? "Counterattack"));
+    parts.push(`${cardCopy.card?.counterattack ?? "Counterattack"} +${face.stats.counterattack}`);
   }
-  if (showType || idents.length) {
-    const head = element("div", "textline");
-    head.append(element("span", "textline-type", showType ? cardCopy.typeLabel : ""));
-    if (idents.length) {
-      const ident = element("span", "textline-ident");
-      ident.append(...idents);
-      head.append(ident);
-    }
-    box.append(head);
-  }
+  if (parts.length) box.append(element("div", "textline", parts.join(" · ")));
 
   // Il requisito Nexus non ha etichetta scritta: lo identifica il simbolo
   // dei due anelli (lo stesso della faccia Nexus), in linea col testo.
@@ -342,9 +370,9 @@ function createTextBox(face, faceCopy, cardCopy) {
     !TRAILING_EVENTS.has(trigger.event) && !STATIC_EVENTS.has(trigger.event));
   const trailingTriggers = face.triggers.filter(trigger => TRAILING_EVENTS.has(trigger.event));
 
-  for (const trigger of leadingTriggers) box.append(createTriggerBlock(face, trigger, faceCopy));
+  appendTriggerBlocks(box, face, leadingTriggers, faceCopy);
   for (const action of face.actions) box.append(createActionBlock(action, faceCopy, cardCopy));
-  for (const trigger of trailingTriggers) box.append(createTriggerBlock(face, trigger, faceCopy));
+  appendTriggerBlocks(box, face, trailingTriggers, faceCopy);
 
   if (faceCopy.flavor) box.append(element("p", "flavor", faceCopy.flavor));
   return box;

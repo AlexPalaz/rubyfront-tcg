@@ -88,7 +88,7 @@ function renderCard(resource) {
     themesLink.href = themeIndexRoute(resource, localeId);
     languageSlot.replaceChildren(languagePicker(resource, localeId, applyLocale));
 
-    table.replaceChildren(...resource.faces.map(face => createFace(resource, face, cardCopy, themeId)));
+    table.replaceChildren(...resource.faces.map(face => createFace(resource, face, cardCopy, themeId, localeId)));
     fitTextBoxes(table);
     setUrlParameter("card", resource.id);
     setUrlParameter("lang", localeId);

@@ -120,18 +120,12 @@
   .matter-effect .behavior-holder { display: inline-block; }
   .matter-effect .behavior-icon { width: 1.1em; height: 1.1em; display: inline-block;
     vertical-align: -.18em; margin-right: .28em; }
-  /* Riga d'intestazione dentro la descrizione: tipo a sinistra, Materie
-     abilitate (e Contrattacco) a destra. Sostituisce la vecchia typeline e la
-     bottombar, unite in una sola riga sopra il testo di regole. */
-  .textline { display: flex; align-items: center; justify-content: space-between; gap: .6em;
-    margin-bottom: .1em; padding-bottom: .34em; border-bottom: 1px solid var(--frame-dim); }
-  .textline-type { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    font-variant: small-caps; letter-spacing: .1em; color: var(--muted); font-size: .92em; }
-  .textline-ident { display: flex; align-items: center; gap: .4em; flex: none; }
-  .textline-ident .matter { padding: .12em .42em; font-size: .92em; }
-  .textline-ident .matter svg { width: 1.2em; height: 1.2em; }
-  .textline-ident .counter-badge { padding: .12em .42em; font-size: .92em; }
-  .textline-ident .counter-badge svg { width: 1.2em; height: 1.2em; }
+  /* Riga d'intestazione dentro la descrizione, tutta in testo (niente
+     medaglioni): tipo della carta e, in coda, le Materie abilitate e
+     l'eventuale Contrattacco — la type line della carta, sopra il testo di
+     regole. Sostituisce la vecchia typeline e la bottombar. */
+  .textline { margin-bottom: .12em; padding-bottom: .34em; border-bottom: 1px solid var(--frame-dim);
+    font-variant: small-caps; letter-spacing: .08em; line-height: 1.22; color: var(--muted); font-size: .92em; }
   .keyword { text-align: center; font-size: .85em; color: var(--ruby-light);
     letter-spacing: .08em; font-variant: small-caps;
     display: flex; align-items: center; gap: .6em; justify-content: center; }

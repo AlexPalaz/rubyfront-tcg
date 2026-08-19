@@ -105,7 +105,7 @@ function renderDeck(resource) {
         anchor.href = cardRoute(card, localeId);
         anchor.title = cardCopy.name;
         const holder = element("div", "deck-holder");
-        holder.append(createFace(card, face, cardCopy, themeId));
+        holder.append(createFace(card, face, cardCopy, themeId, localeId));
         anchor.append(holder);
         tile.append(anchor, element("span", "deck-count", `×${entry.count}`));
         grid.append(tile);
