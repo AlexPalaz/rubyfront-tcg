@@ -3769,7 +3769,7 @@
                 "name": "Sentinella Perenne",
                 "keyword": {
                   "name": "Stasi",
-                  "rules": "se bloccando dovrebbe morire, resta invece in campo permanentemente tappata"
+                  "rules": "se dovesse morire bloccando, resta tappata per sempre"
                 },
                 "effect": {
                   "name": "Effetto",
@@ -3799,7 +3799,7 @@
                 "name": "Perennial Sentinel",
                 "keyword": {
                   "name": "Stasis",
-                  "rules": "if it would die while blocking, it stays on the field permanently tapped instead"
+                  "rules": "if it would die blocking, it stays permanently tapped"
                 },
                 "effect": {
                   "name": "Effect",
@@ -4864,7 +4864,7 @@
                 "name": "Corteccia Viva",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Assegna la Corteccia Viva a un'Entità Auros: quell'Entità prende +1 Potenza e ottiene Stasi (se bloccando dovrebbe morire, resta invece in campo permanentemente tappata)."
+                  "text": "Assegna la Corteccia Viva a un'Entità Auros: quell'Entità prende +1 Potenza e ottiene Stasi (se dovesse morire bloccando, resta tappata per sempre)."
                 },
                 "flavor": "Tagliala pure. Domani sarà più spessa di ieri."
               }
@@ -4885,7 +4885,7 @@
                 "name": "Living Bark",
                 "effect": {
                   "name": "Effect",
-                  "text": "Assign Living Bark to an Auros Entity: that Entity gets +1 Power and gains Stasis (if it would die while blocking, it stays on the field permanently tapped instead)."
+                  "text": "Assign Living Bark to an Auros Entity: that Entity gets +1 Power and gains Stasis (if it would die blocking, it stays permanently tapped)."
                 },
                 "flavor": "Cut it if you like. Tomorrow it will be thicker than yesterday."
               }
@@ -8798,7 +8798,7 @@
             "name": "Sentinella Perenne",
             "keyword": {
               "name": "Stasi",
-              "rules": "se bloccando dovrebbe morire, resta invece in campo permanentemente tappata"
+              "rules": "se dovesse morire bloccando, resta tappata per sempre"
             },
             "effect": {
               "name": "Effetto",
@@ -8828,7 +8828,7 @@
             "name": "Perennial Sentinel",
             "keyword": {
               "name": "Stasis",
-              "rules": "if it would die while blocking, it stays on the field permanently tapped instead"
+              "rules": "if it would die blocking, it stays permanently tapped"
             },
             "effect": {
               "name": "Effect",
@@ -9893,7 +9893,7 @@
             "name": "Corteccia Viva",
             "effect": {
               "name": "Effetto",
-              "text": "Assegna la Corteccia Viva a un'Entità Auros: quell'Entità prende +1 Potenza e ottiene Stasi (se bloccando dovrebbe morire, resta invece in campo permanentemente tappata)."
+              "text": "Assegna la Corteccia Viva a un'Entità Auros: quell'Entità prende +1 Potenza e ottiene Stasi (se dovesse morire bloccando, resta tappata per sempre)."
             },
             "flavor": "Tagliala pure. Domani sarà più spessa di ieri."
           }
@@ -9914,7 +9914,7 @@
             "name": "Living Bark",
             "effect": {
               "name": "Effect",
-              "text": "Assign Living Bark to an Auros Entity: that Entity gets +1 Power and gains Stasis (if it would die while blocking, it stays on the field permanently tapped instead)."
+              "text": "Assign Living Bark to an Auros Entity: that Entity gets +1 Power and gains Stasis (if it would die blocking, it stays permanently tapped)."
             },
             "flavor": "Cut it if you like. Tomorrow it will be thicker than yesterday."
           }

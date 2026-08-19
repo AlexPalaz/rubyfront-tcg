@@ -14,7 +14,7 @@
     "name": "Corteccia Viva",
     "effect": {
       "name": "Effetto",
-      "text": "Assegna la Corteccia Viva a un'Entità Auros: quell'Entità prende +1 Potenza e ottiene Stasi (se bloccando dovrebbe morire, resta invece in campo permanentemente tappata)."
+      "text": "Assegna la Corteccia Viva a un'Entità Auros: quell'Entità prende +1 Potenza e ottiene Stasi (se dovesse morire bloccando, resta tappata per sempre)."
     },
     "flavor": "Tagliala pure. Domani sarà più spessa di ieri."
   }

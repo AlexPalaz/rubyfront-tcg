@@ -14,7 +14,7 @@
     "name": "Living Bark",
     "effect": {
       "name": "Effect",
-      "text": "Assign Living Bark to an Auros Entity: that Entity gets +1 Power and gains Stasis (if it would die while blocking, it stays on the field permanently tapped instead)."
+      "text": "Assign Living Bark to an Auros Entity: that Entity gets +1 Power and gains Stasis (if it would die blocking, it stays permanently tapped)."
     },
     "flavor": "Cut it if you like. Tomorrow it will be thicker than yesterday."
   }
