@@ -15,6 +15,12 @@
        Magic sulla faccia più densa. Il valore è misurato, non scelto: a 39.2%
        il Rubyfront sforava di 1px e il flavor entrava nel padding di 2,9px. */
     --art-height: 38%;
+    /* Altezza minima dell'illustrazione: l'art è ora FLESSIBILE (vedi .art) e
+       cede spazio alla textbox sulle carte dense, scendendo fino a questo
+       minimo. Così il testo tiene sempre la scala piena di 20px e "sta
+       tranquillo", invece di rimpicciolirsi. Sulle carte leggere l'art
+       cresce e respira. */
+    --art-min: 27%;
     width: 100%;
     height: min(728px, calc(140vw - 56px));
     flex: none;
@@ -39,8 +45,8 @@
     grid-template-columns: 2.9em minmax(0, 1fr) 2.9em;
     align-items: center;
     gap: .5em;
-    height: 2em;
-    flex: 0 0 2em;
+    min-height: 2em;
+    flex: 0 0 auto;
   }
   .titlebar > .hp {
     justify-self: end;
@@ -65,10 +71,13 @@
   .name .unique-holder { display: inline-block; }
   .name .unique-star { width: .78em; height: .78em; display: inline-block;
     vertical-align: -.05em; margin-right: .32em; }
+  /* Il nome può andare a capo su due righe invece di troncarsi coi puntini:
+     i nomi lunghi (es. "Rubifronte del Bosco Errante") si leggono per intero.
+     Il line-clamp a 2 evita che un nome fuori scala sfondi la barra. */
   .name { width: 100%; text-align: center; font-size: 1.05em; font-weight: 600;
-    letter-spacing: .05em; font-variant: small-caps; line-height: 1.2;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    border-top: 1px solid var(--frame); border-bottom: 1px solid var(--frame); padding: .2em 0; }
+    letter-spacing: .04em; font-variant: small-caps; line-height: 1.12;
+    display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    border-top: 1px solid var(--frame); border-bottom: 1px solid var(--frame); padding: .16em 0; }
   .cost { flex: none; width: 2.15em; height: 2.15em; background: var(--ruby);
     border: 1px solid var(--ruby-light); transform: rotate(45deg);
     display: flex; align-items: center; justify-content: center;
@@ -93,7 +102,12 @@
     font-size: 1em; font-weight: 400; color: var(--cost-ink, #fdeef1); }
   .nexus-mark { flex: none; width: 3.1em; height: 2.2em; }
   .nexus-mark svg { display: block; width: 100%; height: 100%; overflow: visible; }
-  .art { height: var(--art-height); min-height: 0; flex: 0 0 var(--art-height); border: 1px solid var(--frame); background: var(--well);
+  /* Illustrazione flessibile: assorbe lo spazio libero (grow 1) e, quando il
+     testo è tanto, cede per prima (shrink 4) fino a --art-min, così la textbox
+     resta al font pieno. Il max evita che sulle carte quasi vuote l'art
+     diventi sproporzionata. */
+  .art { flex: 1 4 auto; min-height: var(--art-min, 27%); max-height: 46%;
+    border: 1px solid var(--frame); background: var(--well);
     display: flex; align-items: center; justify-content: center;
     font-size: 1em; letter-spacing: .4em; text-transform: uppercase;
     color: color-mix(in srgb, var(--muted) 45%, transparent); }
@@ -116,9 +130,9 @@
     font-size: 1em; line-height: 1.48; color: var(--ornament); }
   .divider i { font-style: normal; font-size: .55em; }
   .divider::before, .divider::after { content: ""; width: 3.5em; height: 1px; background: var(--frame-dim); }
-  .textbox { flex: 1; border: 1px solid var(--frame-dim); background: var(--panel);
-    padding: .42em .65em; display: flex; flex-direction: column; gap: .22em;
-    font-size: 1em; overflow: hidden; }
+  .textbox { flex: 1 1 auto; border: 1px solid var(--frame-dim); background: var(--panel);
+    padding: .5em .7em; display: flex; flex-direction: column; gap: .34em;
+    font-size: 1em; line-height: 1.34; overflow: hidden; }
   .card:not(.nexus) .textbox { padding-bottom: .3em; }
   .fx, .ability { display: block; }
   .fx .tag { display: flex; align-items: center; gap: .8em;
