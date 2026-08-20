@@ -3751,7 +3751,7 @@
             "it": {
               "name": "Sentinella Perenne",
               "typeLabel": "Entità: Auros",
-              "summary": "Immortale e immobile: regge la linea e tiene aperta la Dimensionale, ma non muore mai davvero.",
+              "summary": "Immortale e immobile: regge la linea e non muore mai davvero.",
               "ui": {
                 "face": "Entità"
               },
@@ -3760,10 +3760,6 @@
                 "hp": "PV",
                 "power": "Potenza",
                 "flux": "Flussi"
-              },
-              "matters": {
-                "dimensionalTitle": "Materia Dimensionale · 1° grado",
-                "dimensionalAria": "Dimensionale"
               },
               "face": {
                 "name": "Sentinella Perenne",
@@ -3781,7 +3777,7 @@
             "en": {
               "name": "Perennial Sentinel",
               "typeLabel": "Entity: Auros",
-              "summary": "Immortal and unmoving: it holds the line and keeps the Dimensional open, but never truly dies.",
+              "summary": "Immortal and unmoving: it holds the line and never truly dies.",
               "ui": {
                 "face": "Entity"
               },
@@ -3790,10 +3786,6 @@
                 "hp": "HP",
                 "power": "Power",
                 "flux": "Flux"
-              },
-              "matters": {
-                "dimensionalTitle": "Dimensional Matter · 1st grade",
-                "dimensionalAria": "Dimensional"
               },
               "face": {
                 "name": "Perennial Sentinel",
@@ -3828,12 +3820,7 @@
                 "power": 3,
                 "fluxCost": 2
               },
-              "enablesMatters": [
-                {
-                  "type": "dimensional",
-                  "maxGrade": 1
-                }
-              ],
+              "enablesMatters": [],
               "keywords": [
                 {
                   "id": "stasis"
@@ -8897,7 +8884,7 @@
         "it": {
           "name": "Sentinella Perenne",
           "typeLabel": "Entità: Auros",
-          "summary": "Immortale e immobile: regge la linea e tiene aperta la Dimensionale, ma non muore mai davvero.",
+          "summary": "Immortale e immobile: regge la linea e non muore mai davvero.",
           "ui": {
             "face": "Entità"
           },
@@ -8906,10 +8893,6 @@
             "hp": "PV",
             "power": "Potenza",
             "flux": "Flussi"
-          },
-          "matters": {
-            "dimensionalTitle": "Materia Dimensionale · 1° grado",
-            "dimensionalAria": "Dimensionale"
           },
           "face": {
             "name": "Sentinella Perenne",
@@ -8927,7 +8910,7 @@
         "en": {
           "name": "Perennial Sentinel",
           "typeLabel": "Entity: Auros",
-          "summary": "Immortal and unmoving: it holds the line and keeps the Dimensional open, but never truly dies.",
+          "summary": "Immortal and unmoving: it holds the line and never truly dies.",
           "ui": {
             "face": "Entity"
           },
@@ -8936,10 +8919,6 @@
             "hp": "HP",
             "power": "Power",
             "flux": "Flux"
-          },
-          "matters": {
-            "dimensionalTitle": "Dimensional Matter · 1st grade",
-            "dimensionalAria": "Dimensional"
           },
           "face": {
             "name": "Perennial Sentinel",
@@ -8974,12 +8953,7 @@
             "power": 3,
             "fluxCost": 2
           },
-          "enablesMatters": [
-            {
-              "type": "dimensional",
-              "maxGrade": 1
-            }
-          ],
+          "enablesMatters": [],
           "keywords": [
             {
               "id": "stasis"

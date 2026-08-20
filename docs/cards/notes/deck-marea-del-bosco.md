@@ -66,14 +66,14 @@ La Dimensionale entra in gioco **con questo mazzo**: nel pool esisteva già Varc
 
 | Tipo | Carte | Abilitatori nel mazzo |
 |---|---|---|
-| Dimensionale I | Varco ×3, Sentiero tra i Rami ×2, Passo nel Vuoto ×3, Disgelo ×2 | ogni Auros da 1-3 (17 corpi) |
+| Dimensionale I | Varco ×3, Sentiero tra i Rami ×2, Passo nel Vuoto ×3, Disgelo ×2 | gli Auros da costo 1-3, tranne la Sentinella Perenne (14 corpi) |
 | Dimensionale II | Il Bosco Ricorda ×3, Riflusso ×3 | Rubyfront, Nexus, **Vàlaris** (Unica), Antico ×2 |
 
 **Pacchetto Stasi:** Sentinella Perenne ×3 e Corteccia Viva ×3 danno la Stasi;
 **Disgelo ×2** la trasforma da malus in motore — i muri che bloccano e
 sopravvivono si ristappano a ogni tuo turno e tornano a difendere.
 
-La DimI è iper-consistente (17 abilitatori). La DimII poggia su **Vàlaris**
+La DimI è iper-consistente (14 abilitatori). La DimII poggia su **Vàlaris**
 (RBF-030, l'"Adam" del mazzo) più il Rubyfront/Nexus e due Antichi: ridondanza
 sufficiente perché perdere l'Unica **non** chiuda il grado — la differenza
 deliberata rispetto ad Adam in Primi Eredi.

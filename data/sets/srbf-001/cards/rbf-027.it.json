@@ -1,7 +1,7 @@
 {
   "name": "Sentinella Perenne",
   "typeLabel": "Entità: Auros",
-  "summary": "Immortale e immobile: regge la linea e tiene aperta la Dimensionale, ma non muore mai davvero.",
+  "summary": "Immortale e immobile: regge la linea e non muore mai davvero.",
   "ui": {
     "face": "Entità"
   },
@@ -10,10 +10,6 @@
     "hp": "PV",
     "power": "Potenza",
     "flux": "Flussi"
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 1° grado",
-    "dimensionalAria": "Dimensionale"
   },
   "face": {
     "name": "Sentinella Perenne",

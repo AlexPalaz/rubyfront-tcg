@@ -32,12 +32,7 @@
         "power": 3,
         "fluxCost": 2
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 1
-        }
-      ],
+      "enablesMatters": [],
       "keywords": [
         {
           "id": "stasis"

@@ -1,7 +1,7 @@
 {
   "name": "Perennial Sentinel",
   "typeLabel": "Entity: Auros",
-  "summary": "Immortal and unmoving: it holds the line and keeps the Dimensional open, but never truly dies.",
+  "summary": "Immortal and unmoving: it holds the line and never truly dies.",
   "ui": {
     "face": "Entity"
   },
@@ -10,10 +10,6 @@
     "hp": "HP",
     "power": "Power",
     "flux": "Flux"
-  },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · 1st grade",
-    "dimensionalAria": "Dimensional"
   },
   "face": {
     "name": "Perennial Sentinel",
