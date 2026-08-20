@@ -59,8 +59,7 @@
       "counter_card",
       "protect",
       "untap",
-      "play_from_deck_top",
-      "flip_nexus"
+      "play_from_deck_top"
     ]
   },
   "timing": {
@@ -178,8 +177,7 @@
       "health_at_most",
       "health_at_least",
       "health_lost_at_least",
-      "untapped_from_stasis_this_turn",
-      "rubyfront_in_play"
+      "untapped_from_stasis_this_turn"
     ]
   },
   "stat": {

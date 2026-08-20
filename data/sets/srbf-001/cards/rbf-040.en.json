@@ -1,26 +1,26 @@
 {
-  "name": "Convergence of the Glade",
-  "typeLabel": "Zero Matter",
-  "summary": "The Zero converges upon the wood: one of the woken returns to the Requiem, and the beast folds into the Nexus.",
+  "name": "Veil of the Glade",
+  "typeLabel": "Dimensional Matter II",
+  "summary": "The veil falls on an Auros and the die decides the gift.",
   "ui": {
     "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "unique": "Unique"
+    "power": "Power",
+    "flux": "Flux"
   },
   "matters": {
-    "zeroTitle": "Zero Matter",
-    "zeroAria": "Zero"
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Convergence of the Glade",
+    "name": "Veil of the Glade",
     "effect": {
       "name": "Effect",
-      "text": "You may play this card only if your Rubyfront card is on the field on its Rubyfront side, you control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Choose one of the Entities untapped this way and put it into your Requiem Zone. Then flip your Rubyfront onto its Nexus side."
+      "text": "Choose an Auros Entity you control and roll a d6: on 1–2 it gets +1 Power until end of turn and you may untap it; on 3–4 it gets +2 Power until end of turn; on 5–6 it gets +1 Power until end of turn and you gain 1 HP."
     },
-    "flavor": "The wood held its breath. Then everything converged on a single point."
+    "flavor": "The glade does not promise. It offers."
   }
 }

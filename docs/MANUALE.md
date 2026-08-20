@@ -148,10 +148,10 @@ I PV sono quindi una risorsa a doppio taglio: sono la condizione di sconfitta, m
 
 La carta del Rubyfront ha **due facce**: una è il **Rubyfront**, l'altra è il suo **Nexus** — l'evoluzione del Rubyfront.
 
-- **Come si gioca:** si **flippa** la carta del Rubyfront sull'altra faccia. Il flip **non è un'azione libera del giocatore** e la carta del Rubyfront **non riporta alcun requisito**: a innescarlo è una **carta Materia Zero o Dominante** il cui testo lo prevede. Regole del flip:
-  - le **condizioni** del flip stanno **sulla Materia che lo innesca** (§7.1) e vanno soddisfatte quando la Materia viene giocata; il flip avviene **alla risoluzione della Materia**, nelle finestre proprie di quella carta (§7.2). Una volta flippato, il Nexus resta in campo anche se le condizioni smettono in seguito di essere vere;
-  - il **Rubyfront dev'essere in campo, sul lato Rubyfront** (non si flippa dalla Zona di Richiamo);
-  - il flip **non ha altri costi** oltre a quelli della Materia che lo innesca.
+- **Come si gioca:** si **flippa** la carta del Rubyfront sull'altra faccia. Requisiti e condizioni:
+  - i **requisiti** per il flip sono scritti sulla carta stessa e vanno soddisfatti **al momento del flip**: una volta giocato, il Nexus resta in campo anche se i requisiti smettono in seguito di essere veri;
+  - il **Rubyfront dev'essere in campo** (non si flippa dalla Zona di Richiamo);
+  - soddisfatti i requisiti, il flip si può fare in qualsiasi momento del proprio turno, **dalla Fase di Preparazione fino alla fine del turno** (stessa finestra del movimento del Rubyfront, §3.1), e non ha altri costi.
 - **PV recuperati:** la faccia del Nexus indica un **recupero di PV** (es. `+5`): il Nexus parte con i **PV rimasti al Rubyfront più il recupero indicato**.
 - **Permanenza:** il Nexus **sostituisce il Rubyfront** e **rimane in campo per tutta la durata della partita**, salvo diverse indicazioni sulle carte. **Non torna mai in Zona di Richiamo**: quando un attacco gli passa, subisce il danno e resta in campo.
 - **Flip, effetti e Materie:** il flip **non è una nuova entrata in campo**: non innesca gli effetti "quando giochi una carta/Entità" e, ai fini dell'ordine di risoluzione (§8.2), la carta conserva l'età dello schieramento del Rubyfront. Dal momento del flip **si attiva l'effetto indicato sulla faccia del Nexus**. Le Materie abilitate sono **quelle stampate sulla faccia del Nexus** (nessuna eredità dal Rubyfront): le Materie permanenti dei tipi che il Nexus continua ad abilitare **sopravvivono al flip senza interruzione**; quelle dei tipi non più abilitati vanno nell'**Abisso**.
@@ -366,7 +366,6 @@ Le prime tre Materie sono **solitamente legate a una razza**, salvo anomalie (ca
 - **Non sono legate a una razza**: possono appartenere a carte di qualsiasi razza, ma **solo poche Entità le abilitano** — sono particolarmente rare.
 - **Non hanno gradi** (i gradi esistono solo per Dinamica, Dimensionale e Distruttiva).
 - Come per ogni Materia, **cosa fanno lo dice la singola carta**: non hanno regole di comportamento speciali oltre alla rarità e all'assenza di gradi.
-- Hanno però un **privilegio esclusivo**: **solo una Materia Zero o Dominante può innescare il flip del Rubyfront nel Nexus** (§3.1). La carta definisce le condizioni; alla sua risoluzione, il Rubyfront si flippa.
 
 ### 7.2 Comportamenti delle carte Materia
 
@@ -550,4 +549,4 @@ Il pareggio esiste in due soli casi:
 - **Tappata** — stato di un'Entità che ha attaccato o bloccato: non può né attaccare, né bloccare, né essere **ritirata** (§6.2); si stappa a inizio del turno successivo del proprietario.
 - **Coperta** — stato di un'Entità che ha contrattaccato: non può fare nulla, è intoccabile da qualsiasi effetto o Materia, anche avversari (niente Oggetti né Ritiro; l'Oggetto già assegnato le rimane) e non abilita le sue Materie, per un giro completo; poi si scopre.
 - **Fronte pronto** — dichiarazione con cui il giocatore di turno annuncia che attacca o passa.
-- **Nexus** — la seconda faccia della carta Rubyfront, sua evoluzione: si gioca flippando il Rubyfront in campo, innescato da una **carta Materia Zero o Dominante** che ne definisce le condizioni (§3.1); recupera PV e resta in campo per sempre. Distruggerlo (PV a 0) fa perdere il proprietario.
+- **Nexus** — la seconda faccia della carta Rubyfront, sua evoluzione: si gioca flippando il Rubyfront in campo (requisiti sulla carta), recupera PV, resta in campo per sempre. Distruggerlo (PV a 0) fa perdere il proprietario.
