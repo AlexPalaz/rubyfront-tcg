@@ -217,8 +217,8 @@ if (catalog) {
 }
 
 // ---- mazzi -------------------------------------------------------------
-// Le regole di costruzione vengono dal manuale (§3.1): 40 carte esatte,
-// Rubyfront incluso (esattamente uno), copie entro il deckLimit della carta.
+// Le regole di costruzione vengono dal manuale (§3.1): 40 carte più il
+// Rubyfront (esattamente uno, fuori dal conto), copie entro il deckLimit.
 const decksDir = path.join(DATA, "decks");
 if (fs.existsSync(decksDir)) {
   const deckFiles = fs.readdirSync(decksDir).filter(name => name.endsWith(".json"));
@@ -246,8 +246,9 @@ if (fs.existsSync(decksDir)) {
         if (known.type === "rubyfront") rubyfronts += entry.count;
       }
     }
-    if (total !== 40) fail(relative, `il mazzo ha ${total} carte: devono essere esattamente 40 (§3.1)`);
     if (rubyfronts !== 1) fail(relative, `il mazzo contiene ${rubyfronts} Rubyfront: dev'essere esattamente uno (§3.1)`);
+    const nonRubyfront = total - rubyfronts;
+    if (nonRubyfront !== 40) fail(relative, `il mazzo ha ${nonRubyfront} carte oltre al Rubyfront: devono essere esattamente 40 (§3.1)`);
   }
   console.log(`  mazzi: ${deckFiles.length}`);
 }

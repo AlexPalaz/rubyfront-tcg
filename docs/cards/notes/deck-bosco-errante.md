@@ -1,4 +1,4 @@
-# Il Bosco Errante — precon Auros midrange difensivo (40 carte)
+# Il Bosco Errante — precon Auros midrange difensivo (40 carte + Rubyfront)
 
 > **Status:** DRAFT — v2.1, allineato al foglio del designer del 20 agosto 2026
 > (`Precon_Auros_Rubyfront_v2_1.xlsx`). Sostituisce "Marea del Bosco".
@@ -11,7 +11,7 @@
 | Focus | **Stasi → stap da effetto → vantaggio** |
 | Tema secondario | **Zona di Requiem** |
 | Materia principale | Dimensionale (più una Distruttiva dal Rubyfront) |
-| Totale | 40 carte (1 Rubyfront · 24 Entità · 12 Materie · 3 Oggetti) |
+| Totale | 40 carte più il Rubyfront (24 Entità · 13 Materie · 3 Oggetti) |
 | Carte con dado | Cercatrice di Sentieri, Passo nel Vuoto, Velo della Radura |
 
 **Concetto chiave:** entrare in Stasi non significa morire — significa
@@ -48,12 +48,12 @@ evitate altrove.
 - **Fine:** Antico e Vàlaris generano vantaggio; il Nexus converte gli stap in
   pescate.
 
-## 5. Lista (40)
+## 5. Lista (40 + Rubyfront)
 
 1× Rubifronte del Bosco Errante · 3× Sentinella del Muschio · 2× Germoglio
 Errante · 3× Guardiano delle Radici · 3× Custode del Risveglio · 2× Voce delle
 Radici · 2× Cercatrice di Sentieri · 3× Custode della Radura · 2× Tessitrice
 del Riflusso · 3× Antico del Bosco Errante · 1× Vàlaris · 3× Risveglio delle
-Radici · 2× Passo tra le Fronde · 1× Passo nel Vuoto · 2× Linfa Rinnovata ·
+Radici · 2× Passo tra le Fronde · 1× Passo nel Vuoto · 3× Linfa Rinnovata ·
 1× Il Bosco Ricorda · 1× Riflusso · 1× Velo della Radura · 1× Frattura del
 Sentiero · 2× Talismano del Risveglio · 1× Corteccia Immortale

@@ -1,4 +1,4 @@
-# Primi Eredi — mazzo aggro (40 carte)
+# Primi Eredi — mazzo aggro (40 carte + Rubyfront)
 
 > **Status:** DRAFT. Allineato alla lista del designer del 4 agosto 2026. Ogni
 > numero è contato dai dati in `data/sets/srbf-001/cards/`.
@@ -7,7 +7,7 @@
 
 | | |
 |---|---|
-| Totale | 40 carte (1 Rubyfront · 21 Entità · 15 Materie · 3 Oggetti) |
+| Totale | 40 carte più il Rubyfront (21 Entità · 16 Materie · 3 Oggetti) |
 | Progetti | 16, di cui **11 in tripla copia** |
 | Razza | Umani al 100% |
 | Costo minimo | **1** — nessuna carta gratuita (§3.2) |
@@ -70,7 +70,7 @@ Impeto.
 | Tipo | Carte | Abilitatori nel mazzo |
 |---|---|---|
 | Dinamica I | Scatto ×3, Vessillo ×3 | Guardiano ×3, Baluardo ×3 |
-| Dinamica II | Secondo Impeto ×2 | Adam, Nexus |
+| Dinamica II | Secondo Impeto ×3 | Adam, Nexus |
 | Distruttiva I | Collera ×3 | Rubyfront, Prima Lama ×2 |
 | Distruttiva II | Lacerazione ×3 | Rubyfront, Nexus |
 | Zero | Assenza | Adam |

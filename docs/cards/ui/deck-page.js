@@ -40,7 +40,11 @@ function localeFromParams(resource) {
 // Lista testuale del mazzo: intestazione + una sezione per tipo di carta.
 function buildDeckText(resource, localeId) {
   const en = localeId === "en";
-  const total = resource.cards.reduce((sum, entry) => sum + entry.count, 0);
+  // 40 carte + Rubyfront (§3.1): l'intestazione conta le sole carte del mazzo.
+  const total = resource.cards.reduce((sum, entry) => {
+    const card = getCardById(entry.card);
+    return card && card.type === "rubyfront" ? sum : sum + entry.count;
+  }, 0);
   const headings = en
     ? { rubyfront: "Rubyfront", entity: "Entities", matter: "Matters", object: "Objects" }
     : { rubyfront: "Rubyfront", entity: "Entità", matter: "Materie", object: "Oggetti" };
@@ -51,7 +55,7 @@ function buildDeckText(resource, localeId) {
     if (!groups[card.type]) groups[card.type] = [];
     groups[card.type].push({ count: entry.count, id: card.id, name: localized(card, localeId).name });
   }
-  const lines = [`${localized(resource, localeId).name} — ${total} ${en ? "cards" : "carte"}`, ""];
+  const lines = [`${localized(resource, localeId).name} — ${total} ${en ? "cards" : "carte"} + Rubyfront`, ""];
   for (const type of ["rubyfront", "entity", "matter", "object"]) {
     const list = groups[type];
     if (!list || !list.length) continue;
@@ -108,7 +112,12 @@ function renderDeck(resource) {
   page.append(trail, header, controls, grid);
   app.replaceChildren(page);
 
-  const totalCards = resource.cards.reduce((sum, entry) => sum + entry.count, 0);
+  // Il Rubyfront non conta nelle 40 (§3.1): il conteggio mostrato è delle
+  // sole carte del mazzo, la bestia è la quarantunesima.
+  const totalCards = resource.cards.reduce((sum, entry) => {
+    const card = getCardById(entry.card);
+    return card && card.type === "rubyfront" ? sum : sum + entry.count;
+  }, 0);
 
   function applyLocale(nextLocaleId) {
     localeId = resource.locales[nextLocaleId] ? nextLocaleId : resource.defaultLocale;

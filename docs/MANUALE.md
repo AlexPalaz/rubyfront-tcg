@@ -36,7 +36,7 @@ Si vince in uno di questi due modi:
 
 ### 3.1 Il mazzo
 
-- Ogni giocatore ha un **mazzo personale di 40 carte, Rubyfront incluso** (esattamente **un** Rubyfront per mazzo). Il mazzo contiene tutte le carte del giocatore: Entità, Materie e Oggetti (non esistono riserve separate).
+- Ogni giocatore ha un **mazzo personale di 40 carte, più il Rubyfront** (esattamente **un** Rubyfront per mazzo): il Rubyfront **non conta nelle 40**, è la quarantunesima carta. Il mazzo contiene tutte le altre carte del giocatore: Entità, Materie e Oggetti (non esistono riserve separate).
 - Il **Rubyfront non si pesca mai**: all'inizio della partita viene messo direttamente nella **Zona di Richiamo** (vedi §5).
 
 Le carte con una razza si chiamano **Entità** (non "creature"). Ogni Entità appartiene a una **razza**: **Umani** o **Auros** (il Rubyfront è a sé). Per giocare una carta — **Entità, Materia od Oggetto** — bisogna **spendere Flusso** pari al costo stampato sulla carta.
