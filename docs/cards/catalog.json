@@ -4554,7 +4554,8 @@
                 "illustration": "Illustrazione",
                 "hp": "PV",
                 "power": "Potenza",
-                "flux": "Flussi"
+                "flux": "Flussi",
+                "counterattack": "Contrattacco"
               },
               "matters": {
                 "dimensionalTitle": "Materia Dimensionale · 1° grado",
@@ -4580,7 +4581,8 @@
                 "illustration": "Illustration",
                 "hp": "HP",
                 "power": "Power",
-                "flux": "Flux"
+                "flux": "Flux",
+                "counterattack": "Counterattack"
               },
               "matters": {
                 "dimensionalTitle": "Dimensional Matter · 1st grade",
@@ -4600,7 +4602,8 @@
             "entity",
             "auros",
             "dimensional",
-            "stasis"
+            "stasis",
+            "counterattack"
           ],
           "rulesReference": "MANUALE.md §7, §8.2",
           "faces": [
@@ -4611,7 +4614,8 @@
               "race": "auros",
               "stats": {
                 "power": 2,
-                "fluxCost": 2
+                "fluxCost": 2,
+                "counterattack": 1
               },
               "enablesMatters": [
                 {
@@ -10350,7 +10354,8 @@
             "illustration": "Illustrazione",
             "hp": "PV",
             "power": "Potenza",
-            "flux": "Flussi"
+            "flux": "Flussi",
+            "counterattack": "Contrattacco"
           },
           "matters": {
             "dimensionalTitle": "Materia Dimensionale · 1° grado",
@@ -10376,7 +10381,8 @@
             "illustration": "Illustration",
             "hp": "HP",
             "power": "Power",
-            "flux": "Flux"
+            "flux": "Flux",
+            "counterattack": "Counterattack"
           },
           "matters": {
             "dimensionalTitle": "Dimensional Matter · 1st grade",
@@ -10396,7 +10402,8 @@
         "entity",
         "auros",
         "dimensional",
-        "stasis"
+        "stasis",
+        "counterattack"
       ],
       "rulesReference": "MANUALE.md §7, §8.2",
       "faces": [
@@ -10407,7 +10414,8 @@
           "race": "auros",
           "stats": {
             "power": 2,
-            "fluxCost": 2
+            "fluxCost": 2,
+            "counterattack": 1
           },
           "enablesMatters": [
             {

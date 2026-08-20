@@ -9,7 +9,8 @@
     "illustration": "Illustration",
     "hp": "HP",
     "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "counterattack": "Counterattack"
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · 1st grade",

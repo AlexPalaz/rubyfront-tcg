@@ -9,7 +9,8 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "counterattack": "Contrattacco"
   },
   "matters": {
     "dimensionalTitle": "Materia Dimensionale · 1° grado",
