@@ -135,9 +135,6 @@
           "checks": [
             "fury"
           ],
-          "cost": {
-            "health": 3
-          },
           "effect": {
             "type": "untap",
             "target": {
@@ -147,6 +144,9 @@
               "min": 1,
               "max": 1
             }
+          },
+          "gain": {
+            "health": 3
           }
         },
         {
@@ -267,9 +267,6 @@
           ],
           "repeatable": true,
           "checks": [],
-          "cost": {
-            "health": 4
-          },
           "effect": {
             "type": "untap",
             "target": {
@@ -279,6 +276,9 @@
               "min": 0,
               "max": 2
             }
+          },
+          "gain": {
+            "health": 4
           }
         },
         {
