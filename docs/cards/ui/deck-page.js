@@ -17,7 +17,7 @@ import {
   renderRegistryError,
   setUrlParameter
 } from "./shell.js";
-import { createFace, localized, fitTextBoxes } from "./card-render.js";
+import { createFace, localized, fitTextBoxes, faceToText } from "./card-render.js";
 
 const params = new URLSearchParams(location.search);
 const requestedDeckId = params.get("deck");
@@ -65,6 +65,29 @@ function buildDeckText(resource, localeId) {
     for (const card of list) lines.push(`${card.count}x ${card.id} ${card.name}`);
     lines.push("");
   }
+
+  // Dettaglio carta per carta: il testo è preso dalla carta RESA dal renderer
+  // (stesso ordine, stesse parole di ciò che è stampato), una sezione per
+  // carta, una sotto-sezione per faccia.
+  lines.push("", `## ${en ? "Card details" : "Dettaglio carte"}`, "");
+  const scratch = element("div");
+  scratch.style.cssText = "position:absolute;left:-20000px;top:0";
+  document.body.append(scratch);
+  for (const entry of resource.cards) {
+    const card = getCardById(entry.card);
+    if (!card) continue;
+    const cardCopy = localized(card, localeId);
+    lines.push(`${card.id} · ${cardCopy.name} (${entry.count}x) — ${cardCopy.typeLabel ?? ""}`.replace(/ — $/, ""));
+    for (const face of card.faces) {
+      scratch.replaceChildren(createFace(card, face, cardCopy, DEFAULT_THEME, localeId));
+      const visual = scratch.querySelector(".card");
+      const faceLines = faceToText(visual, cardCopy);
+      if (card.faces.length > 1) lines.push(`  [${cardCopy.ui?.[face.displayKey] ?? face.id}]`);
+      lines.push(...faceLines.map(line => (card.faces.length > 1 ? "  " : "") + line));
+    }
+    lines.push("");
+  }
+  scratch.remove();
   return lines.join("\n").trimEnd() + "\n";
 }
 

@@ -471,4 +471,65 @@ function fitTextBoxes(root = document) {
   }
 }
 
-export { createFace, localized, fitTextBoxes };
+// Testo piano di una faccia GIÀ RESA (l'elemento .card): ricalca riga per
+// riga ciò che la carta stampa, così la lista .txt del mazzo dice le stesse
+// cose della carta. I simboli (medaglioni, spade, anelli) diventano la loro
+// etichetta: "Potenza 2", "Contrattacco +1", "Dimensionale II".
+function faceToText(visual, cardCopy) {
+  const lines = [];
+  const text = node => (node?.textContent ?? "").replace(/\s+/g, " ").trim();
+  const labelOf = svg => svg?.getAttribute("aria-label") ?? svg?.closest("[title]")?.title ?? "";
+
+  const bar = visual.querySelector(".titlebar");
+  const cost = bar?.querySelector(".cost");
+  const name = text(bar?.querySelector(".name"));
+  const hp = bar?.querySelector(".hp");
+  const power = bar?.querySelector(".power-badge");
+  const head = [];
+  if (cost) {
+    const label = cost.classList.contains("die") ? cost.title : (cardCopy.card?.flux ?? cardCopy.card?.deployment ?? "Costo");
+    head.push(`${label.split(" · ")[0]} ${text(cost)}`);
+  }
+  if (hp && text(hp) !== "—") head.push(text(hp));
+  if (power) head.push(`${power.title} ${text(power.querySelector("b"))}`);
+  lines.push(head.length ? `${name} — ${head.join(" · ")}` : name);
+
+  for (const row of visual.querySelectorAll(".keyword")) lines.push(`  ${text(row.children[0])} ${text(row.children[1])}`);
+
+  const box = visual.querySelector(".textbox");
+  if (!box) return lines;
+  for (const child of box.children) {
+    if (child.classList.contains("card-id")) continue;
+    if (child.classList.contains("textline")) {
+      const parts = [];
+      const type = text(child.querySelector(".textline-type"));
+      if (type) parts.push(type);
+      for (const badge of child.querySelectorAll(".matter, .counter-badge")) {
+        parts.push(`${labelOf(badge.querySelector("svg"))} ${text(badge.querySelector("b"))}`.trim());
+      }
+      lines.push(`  ${parts.join(" · ")}`);
+    } else if (child.classList.contains("requirement")) {
+      lines.push(`  ${labelOf(child.querySelector("svg"))}: ${text(child)}`);
+    } else if (child.classList.contains("fx")) {
+      lines.push(`  [${text(child.querySelector(".tag"))}]`);
+      for (const body of child.querySelectorAll(".body")) lines.push(`    ${text(body)}`);
+    } else if (child.classList.contains("ability")) {
+      const costNode = child.querySelector(".hp-cost");
+      const flux = costNode?.querySelector("svg");
+      const costText = flux ? `${text(costNode)} ${labelOf(flux)}` : text(costNode);
+      const rest = text(child).slice(text(costNode).length).trim();
+      lines.push(`  [${costText}] ${rest}`);
+    } else if (child.classList.contains("flavor")) {
+      lines.push(`  « ${text(child)} »`);
+    } else if (child.classList.contains("matter-effect")) {
+      const icon = child.querySelector(".behavior-icon");
+      lines.push(`  ${icon ? `(${labelOf(icon)}) ` : ""}${text(child)}`);
+    } else {
+      const plain = text(child);
+      if (plain) lines.push(`  ${plain}`);
+    }
+  }
+  return lines;
+}
+
+export { createFace, localized, fitTextBoxes, faceToText };
