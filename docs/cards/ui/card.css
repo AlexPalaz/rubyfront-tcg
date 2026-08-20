@@ -158,7 +158,7 @@
   /* margin-top:auto incolla il flavor al fondo della textbox; senza il margine
      inferiore i suoi discendenti finiscono dentro il padding e la riga tocca la
      cornice — su ogni carta, non solo sulle più dense. */
-  .card-id { position: absolute; right: .5em; bottom: .2em; font-size: .58em; line-height: 1;
+  .card-id { position: absolute; right: 10px; bottom: 4px; font-size: 11.5px; line-height: 1;
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: .08em;
     color: var(--muted); font-style: normal; font-weight: 600; }
   .flavor { margin-top: auto; margin-bottom: .4em; text-align: left; font-style: italic; font-size: .92em; color: var(--muted); }
