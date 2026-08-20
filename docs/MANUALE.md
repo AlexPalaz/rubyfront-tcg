@@ -169,7 +169,7 @@ Il **Flusso** è la risorsa con cui si pagano le carte, al posto del classico ma
 - entrambi i giocatori **partono con 1 di Flusso** (1° turno: 1, 2° turno: 2, 3° turno: 3...);
 - il Flusso speso **si ricarica interamente all'inizio del proprio turno**;
 - nel **turno avversario** si ha a disposizione il Flusso **non speso** rimasto dal proprio turno (es. per giocare Materie Reattive in difesa): tenersi Flusso da parte è una scelta strategica;
-- **limite assoluto: 20 Flussi.** Il Flusso non può mai superare 20 in nessun modo: anche canalizzando (vedi §6.1) a 20 Flussi, non si arriva a 21. Unica cosa che vive fuori dalla barra: il **Gettone Flusso** (vedi sotto).
+- **limite assoluto: 20 Flussi.** Il Flusso non può mai superare 20 in nessun modo. Unica cosa che vive fuori dalla barra: il **Gettone Flusso** (vedi sotto).
 
 **Costo minimo: 1 Flusso.** Nessuna carta del gioco — Entità, Materia od Oggetto — costa meno di **1**: non esistono carte gratuite. Giocare qualsiasi cosa consuma sempre almeno un punto della barra, e questo è ciò che rende il Flusso un vero ritmo di partita: il primo turno concede **una** giocata, non un numero libero di carte a costo zero.
 
@@ -196,7 +196,7 @@ Il campo di ogni giocatore è formato da:
 
 - **Fronte** — il campo di battaglia: **5 slot** in cui stanno le Entità. Il Rubyfront, quando è schierato, si posiziona **davanti** ai 5 slot (non occupa uno slot); le Materie in gioco (permanenti o in risoluzione) stanno **dietro** i 5 slot. Le permanenti si dispongono **una dietro l'altra (o una sotto l'altra), nell'ordine in cui sono scese in campo**: la fila tiene traccia dell'età di ciascuna, che serve per l'ordine di risoluzione degli effetti (§8.2).
 - **Mazzo** — le carte da pescare.
-- **Abisso** — la zona delle carte **morte o consumate**: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti che seguono un'Entità morta, carte scartate o canalizzate dalla mano. È **pubblico**: consultabile da entrambi i giocatori in qualsiasi momento.
+- **Abisso** — la zona delle carte **morte o consumate**: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti che seguono un'Entità morta, carte scartate dalla mano. È **pubblico**: consultabile da entrambi i giocatori in qualsiasi momento.
 - **Zona di Requiem** — la zona delle carte **ancora "vive"** uscite dal gioco: le Entità **ritirate** (§6.2) o **mandate lì da effetti di carte**, e gli Oggetti che le seguono. Funziona **esattamente come l'Abisso** (pubblica, consultabile in qualsiasi momento), ma tiene separato ciò che non è mai morto da ciò che lo è: gli effetti che nominano l'Abisso **non** toccano la Requiem, e viceversa. Una carta mandata in Requiem da un effetto **non muore** e, salvo che l'effetto dica altrimenti, **non conta come Ritiro**: conta solo come **lasciare il campo**.
 - **Zona di Richiamo** — il Rubyfront si posiziona e **parte sempre qui**, salvo diverse indicazioni sulla carta.
 
@@ -204,16 +204,15 @@ Il **mazzo** e la **mano** sono **nascosti** all'avversario.
 
 ## 6. Struttura del turno
 
-Il turno si compone di tre fasi, nell'ordine: **Canalizzazione → Preparazione → Fronte**.
+Il turno si compone di tre fasi, nell'ordine: **Pesca → Preparazione → Fronte**.
 
-### 6.1 Fase di Canalizzazione
+### 6.1 Fase di Pesca
 
-1. **Pesca:** il giocatore di turno pesca una carta. Vale anche per il **primo turno di chi inizia**: la pesca non si salta mai.
-2. **Canalizzazione (opzionale):** il giocatore può **canalizzare al massimo una carta** dalla mano: la carta canalizzata va nell'**Abisso** e il giocatore ottiene **+1 Flusso valido solo per il turno in corso** (non è permanente). Si somma alla crescita automatica di +1 a turno (§3.2) e rispetta comunque il limite assoluto di 20 Flussi.
+**Pesca:** il giocatore di turno pesca una carta. Vale anche per il **primo turno di chi inizia**: la pesca non si salta mai.
 
 ### 6.2 Fase di Preparazione
 
-Dichiarata dal giocatore al termine della Canalizzazione. In questa fase si inizia a giocare con le carte e **si prepara il Fronte**. Il giocatore può:
+Dichiarata dal giocatore al termine della Pesca. In questa fase si inizia a giocare con le carte e **si prepara il Fronte**. Il giocatore può:
 
 - **giocare Entità** (pagandone il costo di Flusso);
 - **giocare Materie** normali e permanenti (le Reattive si giocano solo in Fase di Fronte, §7.2);
@@ -500,7 +499,7 @@ Se il mazzo finisce, **si perde**: il giocatore pesca l'**ultima carta** del maz
 
 L'ultimo turno è una vera ultima possibilità: se durante quel turno il giocatore soddisfa una condizione di vittoria (PV del Rubyfront avversario a 0 o Nexus avversario distrutto), **vince lui** — la sconfitta per esaurimento scatta solo a fine turno.
 
-**Il diritto all'ultimo turno vale solo se l'ultima carta viene pescata durante il proprio turno** (con la pesca di Canalizzazione o per effetto): si completa quel turno e si perde al suo termine. Se invece l'ultima carta viene pescata **nel turno avversario** (es. un effetto avversario che fa pescare), non c'è ultimo turno: il giocatore **ha perso direttamente** quando inizierebbe il suo turno successivo.
+**Il diritto all'ultimo turno vale solo se l'ultima carta viene pescata durante il proprio turno** (con la pesca della Fase di Pesca o per effetto): si completa quel turno e si perde al suo termine. Se invece l'ultima carta viene pescata **nel turno avversario** (es. un effetto avversario che fa pescare), non c'è ultimo turno: il giocatore **ha perso direttamente** quando inizierebbe il suo turno successivo.
 
 **Pesca da effetto a mazzo vuoto:** se un **effetto** chiede di pescare quando il mazzo è vuoto, la pesca semplicemente **non avviene**; il resto dell'effetto si risolve normalmente.
 
@@ -527,11 +526,10 @@ Il pareggio esiste in due soli casi:
 - **Flusso** — la risorsa per giocare le carte. Cresce +1 a turno, si ricarica a inizio turno, massimo 20.
 - **Gettone Flusso** — gettone monouso da +1 Flusso dato a chi non inizia la partita, utilizzabile in qualsiasi momento; è fuori dal limite dei 20 Flussi.
 - **Costo di schieramento** — quanto Flusso serve per portare il Rubyfront dalla Zona di Richiamo al campo (§3.1). Si legge come **base + incremento**: la base è un numero fisso o un **dado** da tirare, l'incremento `+X` è opzionale ed è la parte che fa **crescere** il costo a ogni rischieramento. Con base a dado si tira solo se il Flusso disponibile copre facce del dado più incremento accumulato.
-- **Canalizzazione** — scartare una carta dalla mano (va nell'Abisso) per ottenere +1 Flusso per il turno in corso (max 1 a turno).
 - **Fronte** — il campo di battaglia: 5 slot per le Entità; il Rubyfront schierato sta davanti agli slot, le Materie in gioco dietro.
 - **Zona di Richiamo** — zona in cui parte il Rubyfront.
 - **Unica** — classificazione stampata sulla carta (il simbolo dell'Unica): il mazzo ne ammette al massimo una copia (§3.1).
-- **Abisso** — la zona delle carte morte o consumate: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti di Entità morte, carte scartate o canalizzate dalla mano. È pubblico.
+- **Abisso** — la zona delle carte morte o consumate: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti di Entità morte, carte scartate dalla mano. È pubblico.
 - **Zona di Requiem** — la zona delle carte ancora "vive" uscite dal gioco: le Entità ritirate (§6.2) o mandate lì da effetti, e i loro Oggetti. Funziona come l'Abisso, ma distingue ciò che non è mai morto; gli effetti che nominano una delle due zone non toccano l'altra.
 - **Potenza** — statistica unica di un'Entità. Modificabile da effetti, non scende mai sotto 0; a Potenza 0 l'Entità resta in campo.
 - **Danno** — perdita di PV: possono subirlo solo Rubyfront e Nexus. Le Entità non subiscono mai danno (le carte che le colpiscono usano diciture esplicite come "distruggi").
