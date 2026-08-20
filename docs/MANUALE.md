@@ -237,7 +237,7 @@ Il giocatore può **ritirare** le proprie Entità dal Fronte: l'Entità ritirata
 - **Non è una morte:** per questo l'Entità ritirata va in **Zona di Requiem** e non nell'Abisso — il ritiro **non conta come morte o distruzione** e gli effetti "quando un'Entità muore / viene distrutta" **non si innescano**. Conta invece come **lasciare il campo** per gli effetti che usano quella dicitura (§1.2).
 - **Oggetto assegnato:** segue la sua Entità (§3.1) — va anch'esso in **Zona di Requiem**.
 - **Abilitazione delle Materie:** l'Entità ritirata smette di abilitare i suoi tipi di Materia. Se era l'ultima ad abilitare un tipo, l'accesso si perde e le Materie permanenti di quel tipo vanno nell'Abisso (§7.2). Ritirare senza controllare cosa si sta abilitando è un errore costoso.
-- **Un'Entità coperta non può essere ritirata** (§6.3): la copertura la rende intoccabile anche per il proprietario. Un'Entità **tappata** o **in stasi** (§8.1), invece, si ritira normalmente.
+- **Un'Entità tappata o coperta non può essere ritirata.** Il Ritiro richiede un'Entità **stappata**: la coperta è intoccabile anche per il proprietario (§6.3), la tappata è impegnata e non si ritira finché non si stappa. Vale anche per la **stasi** (§8.1), che è una tappata permanente: un'Entità in stasi **non è ritirabile** e resta a occupare il suo slot finché non viene stappata da un effetto o non lascia il campo in altro modo. In pratica, nel proprio turno le proprie Entità si stappano a inizio turno, quindi il vincolo pesa sulle Entità in stasi e su quelle tappate da effetti.
 - Il **Rubyfront non si ritira**: non è un'Entità e non occupa uno slot. Per toglierlo dal campo si usa il richiamo in Zona di Richiamo (§3.1), che è cosa diversa. Il **Nexus**, una volta in campo, non lascia mai il campo (§3.1).
 
 **Attesa di evocazione:** un'Entità appena entrata in campo **non può attaccare nel turno in cui entra**; deve aspettare il turno successivo. Può però già **bloccare** nel turno avversario che segue.
@@ -307,7 +307,7 @@ Risoluzione del contrattacco (totale = Potenza + N contro Potenza dell'attaccant
 
 #### Stati delle Entità: tappata e coperta
 
-- **Tappata** (per aver **attaccato o bloccato**): un'Entità tappata **non può né attaccare né bloccare**. Si **stappa all'inizio del turno successivo del proprietario**. La differenza pratica sta nel momento in cui scatta il tap:
+- **Tappata** (per aver **attaccato o bloccato**): un'Entità tappata **non può né attaccare, né bloccare, né essere ritirata** (§6.2). Si **stappa all'inizio del turno successivo del proprietario**. La differenza pratica sta nel momento in cui scatta il tap:
   - **tap in difesa** (per aver bloccato, nel turno avversario): il turno del proprietario arriva subito dopo, quindi l'Entità si stappa immediatamente e non perde nulla — il tap segna solo che ha già bloccato in quel turno di difesa;
   - **tap in attacco** (per aver attaccato, nel proprio turno): l'Entità resta tappata per **tutto il turno avversario che segue** e quindi **non può bloccare** — in sostanza, attaccare costa la difesa.
 - **Coperta** (per aver contrattaccato): l'Entità coperta **non può fare nulla** finché è coperta, ed è **intoccabile in senso totale**, da entrambi i giocatori. Per il proprietario: non può ricevere Oggetti (quello già assegnato le rimane) né essere **ritirata** (§6.2). Per chiunque: **non può essere bersagliata né subire effetti o Materie di alcun tipo, nemmeno avversari** — finché è coperta è come se non fosse in campo (continua però a occupare il suo slot del Fronte), salvo diversa indicazione sulle carte (§1.1). A differenza della tappata (§8.1), **non abilita le sue Materie**: l'abilitazione è sospesa per tutta la copertura. Se era l'unica carta ad abilitare un tipo, l'accesso a quel tipo si perde, ma le Materie permanenti di quel tipo **non decadono**: si **coprono anche loro** — restano sul campo sospese, con l'effetto spento, come se non fossero in campo — e si **riattivano automaticamente quando l'Entità si scopre**. Se però l'Entità coperta lascia il campo prima di scoprirsi, l'abilitazione è persa per davvero e le permanenti coperte vanno nell'Abisso (§7.2). La copertura dura **un giro completo**:
@@ -447,7 +447,7 @@ Quando un'Entità con **Stasi** blocca e **dovrebbe morire** (Potenza inferiore 
 
 Stasi salva anche dal **contrattacco fallito**: se l'Entità contrattacca e il suo totale resta inferiore alla Potenza dell'attaccante, invece di morire finisce anch'essa **permanentemente tappata** (lo stato di stasi sostituisce la copertura).
 
-Un'Entità in stasi è a tutti gli effetti *tappata* (non coperta): può quindi essere **ritirata** (§6.2) come qualsiasi altra Entità, senza costi né condizioni aggiuntive. È il modo per liberare lo slot che altrimenti resterebbe occupato per il resto della partita.
+Un'Entità in stasi è a tutti gli effetti *tappata* (non coperta), e come ogni tappata **non può essere ritirata** (§6.2): lo slot resta occupato finché l'Entità non viene **stappata da un effetto** (a quel punto torna un'Entità normale) o non lascia il campo in altro modo. La stasi è un salvataggio che si paga in spazio.
 
 Stasi protegge **solo in difesa** (blocco o contrattacco): un'Entità con Stasi che muore **attaccando** (es. contro un bloccante con Vendetta) muore normalmente.
 
@@ -542,13 +542,13 @@ Il pareggio esiste in due soli casi:
 - **Abilità** — parola chiave con regole predefinite da questo manuale (vedi §8.1).
 - **Furia** — abilità esclusiva del Rubyfront/Nexus: prima di ogni sua azione (Materie attribuite, abilità speciali — movimento e flip esclusi) serve un d20 ≥12; al fallimento l'azione salta e si perde il valore X indicato sulla carta (perdita autoinflitta: nessun ritorno in Zona di Richiamo).
 - **Slancio** — abilità: l'Entità può attaccare già nel turno in cui entra in campo (ignora l'attesa di evocazione). Riguarda solo l'attacco: non permette di essere ritirata nel turno d'ingresso.
-- **Stasi** — abilità: se bloccando dovrebbe morire, resta invece sul campo permanentemente tappata.
+- **Stasi** — abilità: se bloccando dovrebbe morire, resta invece sul campo permanentemente tappata. Come ogni tappata **non è ritirabile** (§6.2): occupa lo slot finché un effetto non la stappa o non lascia il campo.
 - **Vendetta** — abilità: se blocca con Potenza superiore all'attaccante, l'attaccante muore anche senza contrattacco.
 - **Attesa di evocazione** — un'Entità non può attaccare nel turno in cui entra in campo.
-- **Ritiro** — mandare volontariamente una propria Entità dal Fronte alla Zona di Requiem, in Fase di Preparazione, gratis e senza limite di numero, per liberare slot o solo per toglierla di mezzo. Non si ritira un'Entità entrata in campo nello stesso turno. **Non è una morte** (§6.2).
+- **Ritiro** — mandare volontariamente una propria Entità **stappata** dal Fronte alla Zona di Requiem, in Fase di Preparazione, gratis e senza limite di numero, per liberare slot o solo per toglierla di mezzo. Non si ritira un'Entità entrata in campo nello stesso turno, né una **tappata**, **in stasi** o **coperta** (§6.2). **Non è una morte** (§6.2).
 - **Morire / essere distrutta** — andare nell'Abisso dal campo, per una battaglia persa o per un effetto di distruzione. L'Entità **ritirata** (§6.2) **non muore**: lascia il campo e va in Zona di Requiem senza innescare effetti di morte.
 - **Contrattacco +N** — statistica di alcune Entità: quando bloccano possono sommare +N alla Potenza; se così superano l'attaccante, questo muore. Chi contrattacca viene coperto.
-- **Tappata** — stato di un'Entità che ha attaccato o bloccato: non può né attaccare né bloccare; si stappa a inizio del turno successivo del proprietario.
+- **Tappata** — stato di un'Entità che ha attaccato o bloccato: non può né attaccare, né bloccare, né essere **ritirata** (§6.2); si stappa a inizio del turno successivo del proprietario.
 - **Coperta** — stato di un'Entità che ha contrattaccato: non può fare nulla, è intoccabile da qualsiasi effetto o Materia, anche avversari (niente Oggetti né Ritiro; l'Oggetto già assegnato le rimane) e non abilita le sue Materie, per un giro completo; poi si scopre.
 - **Fronte pronto** — dichiarazione con cui il giocatore di turno annuncia che attacca o passa.
 - **Nexus** — la seconda faccia della carta Rubyfront, sua evoluzione: si gioca flippando il Rubyfront in campo (requisiti sulla carta), recupera PV, resta in campo per sempre. Distruggerlo (PV a 0) fa perdere il proprietario.
