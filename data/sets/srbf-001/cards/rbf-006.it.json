@@ -1,29 +1,21 @@
 {
-  "name": "Collera",
-  "typeLabel": "Materia Distruttiva I",
-  "summary": "Due danni secchi alla bestia avversaria, lanciati dalla finestra di risposta.",
+  "name": "Vigorcintura",
+  "typeLabel": "Oggetto",
+  "summary": "Un Flusso, e con la bestia in campo vale il doppio.",
   "ui": {
-    "face": "Materia"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Collera",
+    "name": "Vigorcintura",
     "effect": {
       "name": "Effetto",
-      "text": "La Collera infligge 2 danni al Rubyfront avversario."
+      "text": "Assegna la Vigorcintura a un'Entità Umana: quell'Entità prende +1 Potenza, e ne prende invece +2 finché controlli il Rubifronte del Patto."
     },
-    "flavor": "La bestia non conosce misura."
-  },
-  "matters": {
-    "destructiveTitle": "Materia Distruttiva · 1° grado",
-    "destructiveAria": "Distruttiva"
+    "flavor": "Stringila forte. Il vigore fa il resto."
   }
 }

@@ -1,0 +1,26 @@
+{
+  "name": "Renewed Sap",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "An untap and a sip of life: the wood heals those who rise.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Renewed Sap",
+    "effect": {
+      "name": "Effect",
+      "text": "Untap an Auros Entity you control. You gain 1 HP."
+    },
+    "flavor": "Drink. Then stand again."
+  }
+}

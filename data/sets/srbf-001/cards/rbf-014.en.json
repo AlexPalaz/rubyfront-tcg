@@ -1,27 +1,26 @@
 {
-  "name": "First Blade",
-  "typeLabel": "Entity: Human",
-  "summary": "She arrives by removing someone, and with the Nexus out she becomes impossible to attack for free.",
+  "name": "Second Surge",
+  "typeLabel": "Dynamic Matter II",
+  "summary": "The turn where a single body strikes twice.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
-    "name": "First Blade",
-    "firstCut": {
-      "trigger": "When it enters the field",
-      "text": "Put an Entity into its owner's Requiem Zone."
-    },
+    "name": "Second Surge",
     "effect": {
       "name": "Effect",
-      "text": "If you control the Nexus, First Blade has Revenge."
+      "text": "An Entity of your choice that has already attacked this turn may attack a second time."
     },
-    "flavor": "The enemy front knows her by name."
+    "flavor": "The first blow opens. The second closes."
   },
   "matters": {
     "dynamicTitle": "Dynamic Matter · 2nd grade",

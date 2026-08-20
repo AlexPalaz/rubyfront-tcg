@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-041",
+  "setId": "rubyfront-core",
+  "collectorNumber": "041",
+  "slug": "fracture-of-the-trail",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "destructive",
+    "grade-1",
+    "burn"
+  ],
+  "rulesReference": "MANUALE.md §7, §8.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "destructive",
+        "grade": 1
+      },
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "fracture",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "lose_health",
+            "target": {
+              "cardType": "rubyfront",
+              "controller": "opponent"
+            },
+            "amount": 2
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-041.md"
+}

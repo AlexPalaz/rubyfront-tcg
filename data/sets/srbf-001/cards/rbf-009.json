@@ -3,7 +3,7 @@
   "id": "RBF-009",
   "setId": "rubyfront-core",
   "collectorNumber": "009",
-  "slug": "bulkhead-warden",
+  "slug": "field-surgeon",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,10 +16,10 @@
   "tags": [
     "entity",
     "human",
-    "dynamic",
-    "defender"
+    "burn",
+    "aggro"
   ],
-  "rulesReference": "MANUALE.md §6.3, §7",
+  "rulesReference": "MANUALE.md §6.2, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -27,28 +27,24 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 2,
-        "fluxCost": 1
+        "power": 1,
+        "fluxCost": 3
       },
-      "enablesMatters": [
-        {
-          "type": "dynamic",
-          "maxGrade": 1
-        }
-      ],
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "bulkhead",
-          "displayKey": "bulkhead",
+          "id": "ember",
+          "displayKey": "ember",
           "event": "on_enter_field",
           "effect": {
-            "type": "set_state",
+            "type": "lose_health",
             "target": {
-              "scope": "self"
+              "cardType": "rubyfront",
+              "controller": "opponent"
             },
-            "state": "tapped"
+            "amount": 1
           }
         }
       ],

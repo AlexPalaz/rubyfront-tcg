@@ -3,8 +3,8 @@
   "id": "RBF-020",
   "setId": "rubyfront-core",
   "collectorNumber": "020",
-  "slug": "veil-of-the-first",
-  "type": "object",
+  "slug": "steam-courier",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,45 +14,53 @@
     "en"
   ],
   "tags": [
-    "object",
+    "entity",
     "human",
-    "protection"
+    "surge",
+    "aggro",
+    "scry"
   ],
-  "rulesReference": "MANUALE.md §3.1",
+  "rulesReference": "MANUALE.md §8.1",
   "faces": [
     {
-      "id": "object",
-      "kind": "object",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
+      "race": "human",
       "stats": {
+        "power": 1,
         "fluxCost": 1
       },
       "enablesMatters": [],
-      "keywords": [],
+      "keywords": [
+        {
+          "id": "surge"
+        }
+      ],
       "requirements": {},
       "triggers": [
         {
-          "id": "veil",
-          "displayKey": "effect",
-          "event": "while_assigned",
+          "id": "dispatch",
+          "displayKey": "dispatch",
+          "event": "on_enter_field",
           "effect": {
-            "type": "protect",
-            "target": {
-              "cardType": "entity",
-              "scope": "assigned"
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 1
             },
-            "details": {
-              "from": "opponent_matters"
-            }
+            "to": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "bottom"
+            },
+            "optional": true
           }
         }
       ],
-      "actions": [],
-      "assignRestriction": {
-        "cardType": "entity",
-        "race": "human",
-        "controller": "controller"
-      }
+      "actions": []
     }
   ],
   "designNotes": "rbf-020.md"

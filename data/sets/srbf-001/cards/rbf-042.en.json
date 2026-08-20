@@ -1,0 +1,22 @@
+{
+  "name": "Talisman of the Waking",
+  "typeLabel": "Object",
+  "summary": "Its bearer never stays in stasis for long: every dawn calls it back.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Talisman of the Waking",
+    "effect": {
+      "name": "Effect",
+      "text": "Assign this card to an Auros Entity you control. At the start of your turn, if the assigned Entity is in Stasis, untap it."
+    },
+    "flavor": "It beats softly, like a second heart."
+  }
+}

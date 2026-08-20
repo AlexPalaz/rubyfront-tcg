@@ -1,25 +1,26 @@
 {
-  "name": "The Wood Remembers",
-  "typeLabel": "Dimensional Matter II",
-  "summary": "The forest does not forget its children: each dawn it offers you one.",
+  "name": "Keeper of the Waking",
+  "typeLabel": "Entity: Auros",
+  "summary": "It walks among the sleepers and touches them: one Auros at a time, the wood rises.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "matters": {
-    "dimensionalTitle": "Dimensional Matter · 2nd grade",
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "The Wood Remembers",
-    "effect": {
-      "name": "Effect",
-      "text": "At the start of each of your turns look at the top card of your deck: if it is an Auros Entity, you may take it into your hand."
+    "name": "Keeper of the Waking",
+    "wake": {
+      "trigger": "When it enters the field",
+      "text": "You may untap another Auros Entity you control."
     },
-    "flavor": "Every tree is a name. Every name returns, sooner or later."
+    "flavor": "One touch, and winter ends."
   }
 }

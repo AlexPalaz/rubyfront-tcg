@@ -1,25 +1,30 @@
 {
-  "name": "Riflusso",
-  "typeLabel": "Materia Dimensionale II",
-  "summary": "La marea del bosco si ritira e porta via con sé ciò che aveva davanti.",
+  "name": "Custode della Radura",
+  "typeLabel": "Entità: Auros",
+  "summary": "Ogni volta che si risveglia, la radura fiorisce.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 2° grado",
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Riflusso",
-    "effect": {
-      "name": "Effetto",
-      "text": "Riporta fino a 2 Entità avversarie nella mano dei loro proprietari. Gli Oggetti assegnati vanno nell'Abisso."
+    "name": "Custode della Radura",
+    "keyword": {
+      "name": "Stasi",
+      "rules": "bloccando non muore: resta tappata per sempre"
     },
-    "flavor": "Ciò che la marea concede, la marea riprende."
+    "bloom": {
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni turno che questa Entità viene stappata da un effetto, guadagni 2 PV."
+    },
+    "flavor": "Dorme spesso. Non dorme mai invano."
   }
 }

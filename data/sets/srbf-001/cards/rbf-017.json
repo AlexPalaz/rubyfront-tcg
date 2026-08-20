@@ -3,53 +3,53 @@
   "id": "RBF-017",
   "setId": "rubyfront-core",
   "collectorNumber": "017",
-  "slug": "stillness",
-  "type": "matter",
+  "slug": "archivist",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 1,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
     "en"
   ],
   "tags": [
-    "matter",
-    "zero",
-    "reactive",
-    "unique"
+    "entity",
+    "human",
+    "scaling"
   ],
-  "rulesReference": "MANUALE.md §7.2",
+  "rulesReference": "MANUALE.md §6.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "zero"
-      },
-      "behavior": "reactive",
+      "race": "human",
       "stats": {
-        "fluxCost": 1
+        "power": 1,
+        "fluxCost": 3
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "stillness",
+          "id": "chronicle",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "while_in_play",
           "effect": {
-            "type": "counter_card",
+            "type": "modify_power",
             "target": {
-              "cardType": "matter",
-              "min": 1,
-              "max": 1
+              "scope": "self"
             },
+            "amount": 1,
+            "duration": "permanent",
             "details": {
-              "onlyReactiveInChain": true,
-              "toZone": "abyss"
+              "perControlledEntity": {
+                "cardType": "entity",
+                "race": "human"
+              },
+              "excludeSelf": true
             }
           }
         }
@@ -57,6 +57,5 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-017.md",
-  "unique": true
+  "designNotes": "rbf-017.md"
 }

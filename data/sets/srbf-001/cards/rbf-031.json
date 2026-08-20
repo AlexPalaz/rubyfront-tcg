@@ -3,7 +3,7 @@
   "id": "RBF-031",
   "setId": "rubyfront-core",
   "collectorNumber": "031",
-  "slug": "elder-of-the-wandering-wood",
+  "slug": "moss-sentinel",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -17,11 +17,9 @@
     "entity",
     "auros",
     "dimensional",
-    "grade-2",
-    "finisher",
-    "midrange"
+    "stasis"
   ],
-  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+  "rulesReference": "MANUALE.md §7, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -29,54 +27,22 @@
       "displayKey": "face",
       "race": "auros",
       "stats": {
-        "power": 5,
-        "fluxCost": 5
+        "power": 1,
+        "fluxCost": 1
       },
       "enablesMatters": [
         {
           "type": "dimensional",
-          "maxGrade": 2
+          "maxGrade": 1
         }
       ],
-      "keywords": [],
+      "keywords": [
+        {
+          "id": "stasis"
+        }
+      ],
       "requirements": {},
-      "triggers": [
-        {
-          "id": "uproot",
-          "displayKey": "uproot",
-          "event": "on_enter_field",
-          "effect": {
-            "type": "move_card",
-            "target": {
-              "cardType": "entity",
-              "controller": "opponent",
-              "min": 1,
-              "max": 1
-            },
-            "destination": {
-              "zone": "hand",
-              "owner": "card_owner"
-            },
-            "details": {
-              "isDeath": false,
-              "triggersLeaveField": true,
-              "objectFollows": false
-            }
-          }
-        },
-        {
-          "id": "gather",
-          "displayKey": "gather",
-          "event": "on_enter_field",
-          "effect": {
-            "type": "draw_card",
-            "target": {
-              "controller": "controller"
-            },
-            "count": 1
-          }
-        }
-      ],
+      "triggers": [],
       "actions": []
     }
   ],

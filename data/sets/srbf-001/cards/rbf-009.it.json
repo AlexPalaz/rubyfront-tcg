@@ -1,7 +1,7 @@
 {
-  "name": "Guardiano della Paratia",
+  "name": "Chirurgo da Campo",
   "typeLabel": "Entità: Umano",
-  "summary": "Due di Potenza per un solo Flusso: il prezzo è che il primo turno lo passa a prendere posizione.",
+  "summary": "Il corpo che porta con sé un punto di danno: scende, colpisce la bestia avversaria e resta in linea.",
   "ui": {
     "face": "Entità"
   },
@@ -12,15 +12,11 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Guardiano della Paratia",
-    "bulkhead": {
+    "name": "Chirurgo da Campo",
+    "ember": {
       "trigger": "Quando entra in campo",
-      "text": "Il Guardiano della Paratia entra sul Fronte già tappato, e resta così finché non lo stappi."
+      "text": "Il Chirurgo da Campo infligge 1 danno al Rubyfront avversario nel momento stesso in cui mette piede sul Fronte."
     },
-    "flavor": "Nessuno passa. Non oggi."
-  },
-  "matters": {
-    "dynamicTitle": "Materia Dinamica · 1° grado",
-    "dynamicAria": "Dinamica"
+    "flavor": "Anche le bestie sanguinano."
   }
 }

@@ -1,26 +1,25 @@
 {
-  "name": "Perennial Sentinel",
-  "typeLabel": "Entity: Auros",
-  "summary": "Immortal and unmoving: it holds the line and never truly dies.",
+  "name": "Step into the Void",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "The enemy takes a step and the ground is gone. But the void always takes its toll.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
     "flux": "Flux"
   },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  },
   "face": {
-    "name": "Perennial Sentinel",
-    "keyword": {
-      "name": "Stasis",
-      "rules": "won't die blocking: stays permanently tapped"
-    },
+    "name": "Step into the Void",
     "effect": {
       "name": "Effect",
-      "text": "The Perennial Sentinel cannot attack, and holds the line for the whole game."
+      "text": "Choose an Entity the opponent controls and put it into its owner's Requiem Zone. If it had an assigned Object, put that Object into the Abyss. Then roll a d6: on 1–2 you lose 4 HP, on 3–4 you lose 3 HP, on 5–6 you lose 2 HP."
     },
-    "flavor": "It has watched three forests fall. It is still at its post."
+    "flavor": "They did not parry the blow. They removed the target."
   }
 }

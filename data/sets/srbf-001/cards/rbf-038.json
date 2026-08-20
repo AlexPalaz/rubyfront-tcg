@@ -3,7 +3,7 @@
   "id": "RBF-038",
   "setId": "rubyfront-core",
   "collectorNumber": "038",
-  "slug": "thaw",
+  "slug": "step-through-the-boughs",
   "type": "matter",
   "layout": "single",
   "status": "draft",
@@ -17,11 +17,9 @@
     "matter",
     "dimensional",
     "grade-1",
-    "permanent",
-    "stasis",
-    "midrange"
+    "requiem"
   ],
-  "rulesReference": "MANUALE.md §1.1, §7.2, §8.1",
+  "rulesReference": "MANUALE.md §7, §8.2",
   "faces": [
     {
       "id": "matter",
@@ -31,7 +29,7 @@
         "type": "dimensional",
         "grade": 1
       },
-      "behavior": "permanent",
+      "behavior": "normal",
       "stats": {
         "fluxCost": 2
       },
@@ -40,21 +38,22 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "thaw",
+          "id": "step",
           "displayKey": "effect",
-          "event": "on_turn_start",
+          "event": "on_resolve",
           "effect": {
-            "type": "untap",
+            "type": "move_card",
             "target": {
               "cardType": "entity",
-              "controller": "controller",
-              "state": "stasis",
-              "quantity": "all",
-              "zone": "front",
-              "owner": "controller"
+              "race": "auros",
+              "zone": "requiem",
+              "owner": "controller",
+              "min": 1,
+              "max": 1
             },
-            "details": {
-              "overridesStasisPermanentTap": true
+            "destination": {
+              "zone": "hand",
+              "owner": "controller"
             }
           }
         }

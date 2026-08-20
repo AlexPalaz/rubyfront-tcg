@@ -3,11 +3,11 @@
   "id": "RBF-016",
   "setId": "rubyfront-core",
   "collectorNumber": "016",
-  "slug": "laceration",
+  "slug": "stillness",
   "type": "matter",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 3,
+  "deckLimit": 1,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -15,53 +15,41 @@
   ],
   "tags": [
     "matter",
-    "destructive",
-    "grade-2",
-    "permanent",
-    "burn"
+    "zero",
+    "reactive",
+    "unique"
   ],
-  "rulesReference": "MANUALE.md §7.2, §8.2",
+  "rulesReference": "MANUALE.md §7.2",
   "faces": [
     {
       "id": "matter",
       "kind": "matter",
       "displayKey": "face",
       "matter": {
-        "type": "destructive",
-        "grade": 2
+        "type": "zero"
       },
-      "behavior": "permanent",
+      "behavior": "reactive",
       "stats": {
-        "fluxCost": 3
+        "fluxCost": 1
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "bleed",
+          "id": "stillness",
           "displayKey": "effect",
-          "event": "on_turn_start",
+          "event": "on_resolve",
           "effect": {
-            "type": "lose_health",
+            "type": "counter_card",
             "target": {
-              "cardType": "rubyfront",
-              "controller": "opponent"
+              "cardType": "matter",
+              "min": 1,
+              "max": 1
             },
-            "amount": 2,
-            "conditions": [
-              {
-                "type": "controls_card",
-                "owner": "controller",
-                "min": 3,
-                "filter": {
-                  "cardType": "entity",
-                  "race": "human"
-                }
-              }
-            ],
             "details": {
-              "doesNotTriggerRecallReturn": true
+              "onlyReactiveInChain": true,
+              "toZone": "abyss"
             }
           }
         }
@@ -69,5 +57,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-016.md"
+  "designNotes": "rbf-016.md",
+  "unique": true
 }

@@ -1,29 +1,26 @@
 {
-  "name": "Vessillo degli Eredi",
-  "typeLabel": "Materia Dinamica I",
-  "summary": "Ogni turno sceglie un Umano e lo manda avanti più forte degli altri.",
+  "name": "Vendicatrice di Acciaio",
+  "typeLabel": "Entità: Umano",
+  "summary": "Un corpo che non conviene attaccare: da sola punisce chi la colpisce, accanto alla bestia lo punisce a Potenza 3.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
+    "power": "Potenza",
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Vessillo degli Eredi",
-    "flavor": "Finché sventola, si avanza.",
+    "name": "Vendicatrice di Acciaio",
     "effect": {
       "name": "Effetto",
-      "text": "All'inizio del tuo turno un'Entità Umana a tua scelta prende +2 Potenza. Il vessillo sceglie chi manda avanti, e se controlli il Rubifronte del Patto quell'Entità ottiene anche Slancio."
+      "text": "Finché controlli il Rubifronte del Patto, la Vendicatrice di Acciaio prende +2 Potenza."
+    },
+    "flavor": "Colpiscila, se osi. Poi corri.",
+    "keyword": {
+      "name": "Vendetta",
+      "rules": "bloccando, uccide chi ha Potenza inferiore"
     }
-  },
-  "matters": {
-    "dynamicTitle": "Materia Dinamica · 1° grado",
-    "dynamicAria": "Dinamica"
   }
 }

@@ -3,8 +3,8 @@
   "id": "RBF-029",
   "setId": "rubyfront-core",
   "collectorNumber": "029",
-  "slug": "warden-of-the-rift",
-  "type": "entity",
+  "slug": "ebbtide",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,53 +14,44 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
+    "matter",
     "dimensional",
-    "tempo",
-    "bounce",
+    "grade-2",
+    "reactive",
+    "untap",
     "midrange"
   ],
-  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+  "rulesReference": "MANUALE.md §6.3, §7.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
-      "stats": {
-        "power": 3,
-        "fluxCost": 3
+      "matter": {
+        "type": "dimensional",
+        "grade": 2
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 1
-        }
-      ],
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 5
+      },
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "displace",
-          "displayKey": "displace",
-          "event": "on_enter_field",
+          "id": "ebb",
+          "displayKey": "effect",
+          "event": "on_resolve",
           "effect": {
-            "type": "move_card",
+            "type": "untap",
             "target": {
               "cardType": "entity",
-              "controller": "opponent",
-              "min": 1,
-              "max": 1
-            },
-            "destination": {
-              "zone": "hand",
-              "owner": "card_owner"
-            },
-            "details": {
-              "isDeath": false,
-              "triggersLeaveField": true,
-              "objectFollows": false
+              "race": "auros",
+              "controller": "controller",
+              "quantity": "all",
+              "zone": "front",
+              "owner": "controller"
             }
           }
         }

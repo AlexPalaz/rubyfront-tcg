@@ -1,21 +1,26 @@
 {
-  "name": "Corteccia Viva",
-  "typeLabel": "Oggetto",
-  "summary": "Un'armatura che ricresce da sé: chi la porta impara a non morire.",
+  "name": "Tessitrice del Riflusso",
+  "typeLabel": "Entità: Auros",
+  "summary": "Riannoda i fili del tempo: chi era in stasi torna, e porta con sé una risposta.",
   "ui": {
-    "face": "Oggetto"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Corteccia Viva",
-    "effect": {
-      "name": "Effetto",
-      "text": "Assegna la Corteccia Viva a un'Entità Auros: quell'Entità prende +1 Potenza e ottiene Stasi (bloccando non muore: resta tappata per sempre)."
+    "name": "Tessitrice del Riflusso",
+    "weave": {
+      "trigger": "Quando entra in campo",
+      "text": "Puoi stappare un'altra Entità Auros che controlli. Se quell'Entità era in Stasi, pesca una carta."
     },
-    "flavor": "Tagliala pure. Domani sarà più spessa di ieri."
+    "flavor": "Ogni filo spezzato si può ritessere."
   }
 }

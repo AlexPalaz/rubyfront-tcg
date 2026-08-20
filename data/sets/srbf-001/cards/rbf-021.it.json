@@ -1,26 +1,29 @@
 {
-  "name": "Corriere a Vapore",
-  "typeLabel": "Entità: Umano",
-  "summary": "Un Flusso per il primo colpo della partita, e per decidere che cosa trova chi arriva dopo.",
+  "name": "Vessillo degli Eredi",
+  "typeLabel": "Materia Dinamica I",
+  "summary": "Ogni turno sceglie un Umano e lo manda avanti più forte degli altri.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Corriere a Vapore",
-    "keyword": {
-      "name": "Slancio",
-      "rules": "può attaccare nel turno in cui entra in campo"
-    },
-    "flavor": "Nessuno l'ha mai visto fermo: quando la domanda finisce, lui è già oltre la linea.",
-    "dispatch": {
-      "trigger": "Quando entra in campo",
-      "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov'è oppure metterla in fondo."
+    "name": "Vessillo degli Eredi",
+    "flavor": "Finché sventola, si avanza.",
+    "effect": {
+      "name": "Effetto",
+      "text": "All'inizio del tuo turno un'Entità Umana a tua scelta prende +2 Potenza. Il vessillo sceglie chi manda avanti, e se controlli il Rubifronte del Patto quell'Entità ottiene anche Slancio."
     }
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

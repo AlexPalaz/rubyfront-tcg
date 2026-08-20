@@ -3,8 +3,8 @@
   "id": "RBF-012",
   "setId": "rubyfront-core",
   "collectorNumber": "012",
-  "slug": "armored-bulwark",
-  "type": "entity",
+  "slug": "reflex",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,35 +14,48 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "human",
+    "matter",
     "dynamic",
-    "defender"
+    "grade-1",
+    "reactive"
   ],
-  "rulesReference": "MANUALE.md §7, §8.1",
+  "rulesReference": "MANUALE.md §6.3, §7.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "human",
-      "stats": {
-        "power": 3,
-        "fluxCost": 2
+      "matter": {
+        "type": "dynamic",
+        "grade": 1
       },
-      "enablesMatters": [
-        {
-          "type": "dynamic",
-          "maxGrade": 1
-        }
-      ],
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 1
+      },
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
-      "triggers": [],
-      "actions": [],
-      "restrictions": {
-        "cannotAttack": true
-      }
+      "triggers": [
+        {
+          "id": "reflex",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "block_attack",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "details": {
+              "killIfPowerAtMost": 3
+            }
+          }
+        }
+      ],
+      "actions": []
     }
   ],
   "designNotes": "rbf-012.md"

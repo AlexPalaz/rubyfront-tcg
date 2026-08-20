@@ -35,7 +35,8 @@
       "on_block",
       "while_in_play",
       "on_retire",
-      "on_counterattack"
+      "on_counterattack",
+      "on_untap"
     ]
   },
   "effect": {

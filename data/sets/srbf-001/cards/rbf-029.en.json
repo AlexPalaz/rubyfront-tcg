@@ -1,22 +1,25 @@
 {
-  "name": "Warden of the Rift",
-  "typeLabel": "Entity: Auros",
-  "summary": "Opens the rift beneath whoever stands before it: one body comes down, one goes back to hand.",
+  "name": "Ebbtide",
+  "typeLabel": "Dimensional Matter II",
+  "summary": "The tide of the wood returns all at once: every Auros rises again.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
     "flux": "Flux"
   },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 2nd grade",
+    "dimensionalAria": "Dimensional"
+  },
   "face": {
-    "name": "Warden of the Rift",
-    "displace": {
-      "trigger": "When it enters the field",
-      "text": "Return an opponent Entity to its owner's hand. Its assigned Object goes to the Abyss."
+    "name": "Ebbtide",
+    "effect": {
+      "name": "Effect",
+      "text": "Untap all Auros Entities you control."
     },
-    "flavor": "One step back. Then the ground is gone."
+    "flavor": "What the tide grants, the tide takes back."
   }
 }

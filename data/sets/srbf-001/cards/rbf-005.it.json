@@ -1,25 +1,29 @@
 {
-  "name": "Varco",
-  "typeLabel": "Materia Dimensionale I",
-  "summary": "Lo spazio piegato degli Auros: un'Entità torna da dove è venuta.",
+  "name": "Collera",
+  "typeLabel": "Materia Distruttiva I",
+  "summary": "Due danni secchi alla bestia avversaria, lanciati dalla finestra di risposta.",
   "ui": {
     "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi"
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 1° grado",
-    "dimensionalAria": "Dimensionale"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Varco",
+    "name": "Collera",
     "effect": {
       "name": "Effetto",
-      "text": "Riporta un’Entità a tua scelta dal campo nella mano del suo proprietario. L’Oggetto che aveva assegnato va nell’Abisso."
+      "text": "La Collera infligge 2 danni al Rubyfront avversario."
     },
-    "flavor": "Per gli Auros la distanza è un’opinione."
+    "flavor": "La bestia non conosce misura."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 1° grado",
+    "destructiveAria": "Distruttiva"
   }
 }

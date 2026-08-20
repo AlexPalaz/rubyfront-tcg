@@ -1,21 +1,26 @@
 {
-  "name": "Velo del Primo",
-  "typeLabel": "Oggetto",
-  "summary": "La protezione del corpo su cui hai investito: le Materie avversarie non lo trovano.",
+  "name": "Corriere a Vapore",
+  "typeLabel": "Entità: Umano",
+  "summary": "Un Flusso per il primo colpo della partita, e per decidere che cosa trova chi arriva dopo.",
   "ui": {
-    "face": "Oggetto"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
-    "name": "Velo del Primo",
-    "effect": {
-      "name": "Effetto",
-      "text": "Assegnalo a un tuo Umano: finché lo indossa, non può essere bersagliato dalle Materie avversarie."
+    "name": "Corriere a Vapore",
+    "keyword": {
+      "name": "Slancio",
+      "rules": "può attaccare nel turno in cui entra in campo"
     },
-    "flavor": "Ciò che il vuoto ha toccato, il vuoto protegge."
+    "flavor": "Nessuno l'ha mai visto fermo: quando la domanda finisce, lui è già oltre la linea.",
+    "dispatch": {
+      "trigger": "Quando entra in campo",
+      "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov'è oppure metterla in fondo."
+    }
   }
 }

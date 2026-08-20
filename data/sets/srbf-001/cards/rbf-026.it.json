@@ -1,7 +1,7 @@
 {
-  "name": "Corriere delle Radure",
+  "name": "Antico del Bosco Errante",
   "typeLabel": "Entità: Auros",
-  "summary": "Porta parola fra le radure: quando il bosco è già popolato, torna con una carta in più.",
+  "summary": "Quando l'Antico si desta il bosco respira con lui, e quando se ne va lascia un dono.",
   "ui": {
     "face": "Entità"
   },
@@ -11,12 +11,24 @@
     "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Corriere delle Radure",
-    "relay": {
-      "trigger": "Quando entra in campo",
-      "text": "Se controlli almeno due Entità Auros (contando questa), pesca una carta."
+    "name": "Antico del Bosco Errante",
+    "keyword": {
+      "name": "Stasi",
+      "rules": "bloccando non muore: resta tappata per sempre"
     },
-    "flavor": "Nessun messaggio si perde, dove gli alberi ascoltano."
+    "rootedVigor": {
+      "trigger": "Quando entra in campo",
+      "text": "Guadagni 4 PV."
+    },
+    "partingGift": {
+      "trigger": "Quando lascia il campo",
+      "text": "Pesca una carta."
+    },
+    "flavor": "Cammina di rado. Ma quando cammina, il bosco lo segue."
   }
 }

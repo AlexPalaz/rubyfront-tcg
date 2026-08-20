@@ -1,22 +1,25 @@
 {
-  "name": "Cercatrice di Sentieri",
-  "typeLabel": "Entità: Auros",
-  "summary": "Trova sempre la via, e con lei l'Auros giusto per il turno che verrà.",
+  "name": "Il Bosco Ricorda",
+  "typeLabel": "Materia Dimensionale II",
+  "summary": "Il bosco riprende un figlio e ne restituisce un altro: più grande dal ricordo, più piccolo dal profondo.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Cercatrice di Sentieri",
-    "pathfind": {
-      "trigger": "Quando entra in campo",
-      "text": "Cerca nel tuo mazzo un'Entità Auros, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
+    "name": "Il Bosco Ricorda",
+    "effect": {
+      "name": "Effetto",
+      "text": "Metti nella tua Zona di Requiem un'Entità che controlli, anche se è in Stasi. Poi scegli uno: metti sul tuo Fronte un'Entità dalla tua Zona di Requiem con costo di Flusso esattamente superiore di 1 rispetto a quello dell'Entità messa in Requiem in questo modo; oppure cerca nel tuo mazzo un'Entità con costo di Flusso esattamente inferiore di 1, mettila sul tuo Fronte, poi rimescola il mazzo."
     },
-    "flavor": "Ogni radice è un sentiero, per chi sa leggerle."
+    "flavor": "Ogni albero è un nome. Ogni nome torna, prima o poi."
   }
 }

@@ -3,8 +3,8 @@
   "id": "RBF-013",
   "setId": "rubyfront-core",
   "collectorNumber": "013",
-  "slug": "reflex",
-  "type": "matter",
+  "slug": "first-blade",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,43 +14,64 @@
     "en"
   ],
   "tags": [
-    "matter",
-    "dynamic",
-    "grade-1",
-    "reactive"
+    "entity",
+    "human",
+    "destructive",
+    "removal"
   ],
-  "rulesReference": "MANUALE.md §6.3, §7.2",
+  "rulesReference": "MANUALE.md §7",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "dynamic",
-        "grade": 1
-      },
-      "behavior": "reactive",
+      "race": "human",
       "stats": {
-        "fluxCost": 1
+        "power": 3,
+        "fluxCost": 4,
+        "counterattack": 2
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "destructive",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "reflex",
-          "displayKey": "effect",
-          "event": "on_resolve",
+          "id": "first-cut",
+          "displayKey": "firstCut",
+          "event": "on_enter_field",
           "effect": {
-            "type": "block_attack",
+            "type": "move_card",
             "target": {
               "cardType": "entity",
-              "controller": "opponent",
               "min": 1,
               "max": 1
             },
+            "destination": {
+              "zone": "requiem",
+              "owner": "card_owner"
+            }
+          }
+        },
+        {
+          "id": "awakening",
+          "displayKey": "effect",
+          "event": "while_in_play",
+          "effect": {
+            "type": "empower",
+            "target": {
+              "scope": "self"
+            },
+            "grants": [
+              "revenge"
+            ],
+            "duration": "permanent",
             "details": {
-              "killIfPowerAtMost": 3
+              "requiresNexus": true
             }
           }
         }

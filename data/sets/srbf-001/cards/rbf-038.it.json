@@ -1,13 +1,14 @@
 {
-  "name": "Disgelo",
+  "name": "Passo tra le Fronde",
   "typeLabel": "Materia Dimensionale I",
-  "summary": "Il tempo degli Auros si ripiega: chi si è irrigidito in stasi torna a muoversi.",
+  "summary": "Un sentiero fra i rami riporta a casa chi era uscito dal campo.",
   "ui": {
     "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "matters": {
@@ -15,11 +16,11 @@
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Disgelo",
+    "name": "Passo tra le Fronde",
     "effect": {
       "name": "Effetto",
-      "text": "All'inizio di ogni tuo turno stappa le Entità che controlli rimaste in stasi: la Stasi non le tiene più tappate per sempre e tornano libere di attaccare e bloccare."
+      "text": "Scegli un'Entità Auros nella tua Zona di Requiem e aggiungila alla tua mano."
     },
-    "flavor": "La Stasi non è morte. È solo un lungo inverno."
+    "flavor": "Nessun Auros resta indietro."
   }
 }

@@ -1,23 +1,21 @@
 {
-  "name": "Breach Veteran",
-  "typeLabel": "Entity: Human",
-  "summary": "The only one who teaches by defending: every fallen attacker is worth a card.",
+  "name": "Veil of the First",
+  "typeLabel": "Object",
+  "summary": "Protection for the body you invested in: opposing Matters cannot find it.",
   "ui": {
-    "face": "Entity"
+    "face": "Object"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux",
-    "counterattack": "Counterattack"
+    "flux": "Flux"
   },
   "face": {
-    "name": "Breach Veteran",
-    "lesson": {
-      "trigger": "When it counterattacks",
-      "text": "If the attacker dies in the clash, draw a card: the covering that follows is the price of the lesson."
+    "name": "Veil of the First",
+    "effect": {
+      "name": "Effect",
+      "text": "Assign it to one of your Humans: for as long as they wear it, they cannot be targeted by opposing Matters."
     },
-    "flavor": "She has blocked more attacks than you have seen."
+    "flavor": "What the void has touched, the void protects."
   }
 }

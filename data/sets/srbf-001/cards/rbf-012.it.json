@@ -1,23 +1,26 @@
 {
-  "name": "Baluardo Corazzato",
-  "typeLabel": "Entità: Umano",
-  "summary": "Tre di Potenza a due Flussi, in cambio di una sola cosa: non muove mai per primo.",
+  "name": "Riflesso",
+  "typeLabel": "Materia Dinamica I",
+  "summary": "Un blocco che costa un Flusso e si porta via gli attaccanti piccoli.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Baluardo Corazzato",
+    "name": "Riflesso",
     "effect": {
       "name": "Effetto",
-      "text": "Il Baluardo Corazzato non può attaccare, e tiene la linea per tutta la partita."
+      "text": "Assegnala come blocco a un attaccante: quell’attacco è bloccato. Se l’attaccante ha Potenza 3 o meno, muore."
     },
-    "flavor": "Cade il mondo, non lui."
+    "flavor": "Un lampo, e l’acciaio trova l’acciaio."
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 1° grado",

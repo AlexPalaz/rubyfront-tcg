@@ -39,7 +39,7 @@
   sostanza e del sangue che la incanala coincidono.
 - Parzialmente chiuso: **Viatico** non esiste più — è uscito insieme al vecchio
   requisito del Nexus di RBF-001, che ora guarda i PV persi dall'avversario e non
-  un lignaggio. **Velo del Primo** (RBF-020) invece **resta in sospeso**: il nome
+  un lignaggio. **Velo del Primo** (RBF-019) invece **resta in sospeso**: il nome
   è confermato per ora, e sarà il designer a decidere se sostituirlo.
 - Adam resta canonico e resta **l'unico accesso allo Zero** del set (lignaggio,
   vedi sopra), ma non è più il perno meccanico di nessuna carta: è una scelta di

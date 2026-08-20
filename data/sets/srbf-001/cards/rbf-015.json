@@ -3,7 +3,7 @@
   "id": "RBF-015",
   "setId": "rubyfront-core",
   "collectorNumber": "015",
-  "slug": "second-surge",
+  "slug": "laceration",
   "type": "matter",
   "layout": "single",
   "status": "draft",
@@ -15,42 +15,53 @@
   ],
   "tags": [
     "matter",
-    "dynamic",
+    "destructive",
     "grade-2",
-    "aggro"
+    "permanent",
+    "burn"
   ],
-  "rulesReference": "MANUALE.md §6.3, §7.1",
+  "rulesReference": "MANUALE.md §7.2, §8.2",
   "faces": [
     {
       "id": "matter",
       "kind": "matter",
       "displayKey": "face",
       "matter": {
-        "type": "dynamic",
+        "type": "destructive",
         "grade": 2
       },
-      "behavior": "normal",
+      "behavior": "permanent",
       "stats": {
-        "fluxCost": 4
+        "fluxCost": 3
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "surge-again",
+          "id": "bleed",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "on_turn_start",
           "effect": {
-            "type": "extra_attack",
+            "type": "lose_health",
             "target": {
-              "cardType": "entity",
-              "controller": "controller",
-              "min": 1,
-              "max": 1,
-              "details": {
-                "mustHaveAttackedThisTurn": true
+              "cardType": "rubyfront",
+              "controller": "opponent"
+            },
+            "amount": 2,
+            "conditions": [
+              {
+                "type": "controls_card",
+                "owner": "controller",
+                "min": 3,
+                "filter": {
+                  "cardType": "entity",
+                  "race": "human"
+                }
               }
+            ],
+            "details": {
+              "doesNotTriggerRecallReturn": true
             }
           }
         }

@@ -1,7 +1,7 @@
 {
-  "name": "Emissario degli Eredi",
+  "name": "Baluardo Corazzato",
   "typeLabel": "Entità: Umano",
-  "summary": "Due braccia in campo e un terzo in arrivo: gli Eredi non lasciano mai un posto vuoto.",
+  "summary": "Tre di Potenza a due Flussi, in cambio di una sola cosa: non muove mai per primo.",
   "ui": {
     "face": "Entità"
   },
@@ -12,11 +12,15 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Emissario degli Eredi",
-    "herald": {
-      "trigger": "Quando entra in campo",
-      "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
+    "name": "Baluardo Corazzato",
+    "effect": {
+      "name": "Effetto",
+      "text": "Il Baluardo Corazzato non può attaccare, e tiene la linea per tutta la partita."
     },
-    "flavor": "Il Primo cammina fra noi. Io l'ho visto."
+    "flavor": "Cade il mondo, non lui."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

@@ -1,13 +1,14 @@
 {
-  "name": "Sentiero tra i Rami",
-  "typeLabel": "Materia Dimensionale I",
-  "summary": "Il bosco ti mostra due vie e ti lascia scegliere la tua.",
+  "name": "Germoglio Errante",
+  "typeLabel": "Entità: Auros",
+  "summary": "Dove c'è già bosco, il germoglio nutre; e sbircia il sentiero davanti a sé.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "matters": {
@@ -15,11 +16,15 @@
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Sentiero tra i Rami",
-    "effect": {
-      "name": "Effetto",
-      "text": "Guarda le prime due carte del tuo mazzo: prendine una in mano e rimetti l'altra in fondo al mazzo."
+    "name": "Germoglio Errante",
+    "nourish": {
+      "trigger": "Quando entra in campo",
+      "text": "Se controlli un'altra Entità Auros, guadagni 2 PV."
     },
-    "flavor": "Ogni ramo si divide. Nessuno porta indietro."
+    "peek": {
+      "trigger": "Quando entra in campo",
+      "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo al mazzo."
+    },
+    "flavor": "Piccolo, ma sa già dove andare."
   }
 }

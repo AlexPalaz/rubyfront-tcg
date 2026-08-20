@@ -1,21 +1,26 @@
 {
-  "name": "Living Bark",
-  "typeLabel": "Object",
-  "summary": "Armor that regrows on its own: whoever wears it learns not to die.",
+  "name": "Weaver of the Ebb",
+  "typeLabel": "Entity: Auros",
+  "summary": "She reties the threads of time: what was in stasis returns, bringing an answer with it.",
   "ui": {
-    "face": "Object"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional"
+  },
   "face": {
-    "name": "Living Bark",
-    "effect": {
-      "name": "Effect",
-      "text": "Assign Living Bark to an Auros Entity: that Entity gets +1 Power and gains Stasis (won't die blocking: stays permanently tapped)."
+    "name": "Weaver of the Ebb",
+    "weave": {
+      "trigger": "When it enters the field",
+      "text": "You may untap another Auros Entity you control. If that Entity was in Stasis, draw a card."
     },
-    "flavor": "Cut it if you like. Tomorrow it will be thicker than yesterday."
+    "flavor": "Every broken thread can be rewoven."
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "Undergrowth Lookout",
+  "name": "Valaris, First of the Wood",
   "typeLabel": "Entity: Auros",
-  "summary": "An Auros who knows every path before walking it, and opens the way to the Dimensional.",
+  "summary": "The eldest of the Wandering Wood: she calls the fallen from the Requiem and blesses those who wake.",
   "ui": {
     "face": "Entity"
   },
@@ -9,14 +9,23 @@
     "illustration": "Illustration",
     "hp": "HP",
     "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "unique": "Unique"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Undergrowth Lookout",
-    "scout": {
+    "name": "Valaris, First of the Wood",
+    "firstCall": {
       "trigger": "When it enters the field",
-      "text": "Look at the top card of your deck: you may put it on the bottom of your deck."
+      "text": "Put an Auros Entity with Flux cost 3 or less from your Requiem Zone onto your Front."
     },
-    "flavor": "I have walked for a thousand years. The wood has never surprised me."
+    "wakingBoon": {
+      "trigger": "Effect",
+      "text": "The first time each of your turns another Auros Entity you control is untapped by an effect, that Entity gets +1 Power until end of turn."
+    },
+    "flavor": "She was there before the wood. The wood grew around her silence."
   }
 }

@@ -1,21 +1,26 @@
 {
-  "name": "Vigorcintura",
-  "typeLabel": "Oggetto",
-  "summary": "Un Flusso, e con la bestia in campo vale il doppio.",
+  "name": "Vedetta del Perimetro",
+  "typeLabel": "Entità: Umano",
+  "summary": "Non colpisce forte: segnala il bersaglio, e chi le sta accanto colpisce meglio.",
   "ui": {
-    "face": "Oggetto"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
-    "name": "Vigorcintura",
-    "effect": {
-      "name": "Effetto",
-      "text": "Assegna la Vigorcintura a un'Entità Umana: quell'Entità prende +1 Potenza, e ne prende invece +2 finché controlli il Rubifronte del Patto."
+    "name": "Vedetta del Perimetro",
+    "spark": {
+      "trigger": "Quando entra in campo",
+      "text": "Un’altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. La Vedetta segnala il bersaglio: il bonus non è mai per sé stessa."
     },
-    "flavor": "Stringila forte. Il vigore fa il resto."
+    "flavor": "Vide arrivare la fine. Fischiò due volte."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

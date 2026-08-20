@@ -1,7 +1,7 @@
 {
-  "name": "Antico del Bosco Errante",
+  "name": "Sentinella del Muschio",
   "typeLabel": "Entità: Auros",
-  "summary": "Quando l'Antico si desta, sradica ciò che gli sta davanti e il bosco gli porge una carta.",
+  "summary": "Un Flusso, un corpo che non muore bloccando: la prima pietra del muro.",
   "ui": {
     "face": "Entità"
   },
@@ -12,19 +12,15 @@
     "flux": "Flussi"
   },
   "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Antico del Bosco Errante",
-    "uproot": {
-      "trigger": "Quando entra in campo",
-      "text": "Riporta un'Entità avversaria nella mano del suo proprietario. L'Oggetto che aveva assegnato va nell'Abisso."
+    "name": "Sentinella del Muschio",
+    "keyword": {
+      "name": "Stasi",
+      "rules": "bloccando non muore: resta tappata per sempre"
     },
-    "gather": {
-      "trigger": "Quando entra in campo",
-      "text": "Pesca una carta."
-    },
-    "flavor": "Cammina di rado. Ma quando cammina, il bosco lo segue."
+    "flavor": "Il muschio non arretra. Cresce."
   }
 }

@@ -3,7 +3,7 @@
   "id": "RBF-026",
   "setId": "rubyfront-core",
   "collectorNumber": "026",
-  "slug": "glade-courier",
+  "slug": "elder-of-the-wandering-wood",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -17,10 +17,11 @@
     "entity",
     "auros",
     "dimensional",
-    "card-advantage",
+    "grade-2",
+    "stasis",
     "midrange"
   ],
-  "rulesReference": "MANUALE.md §7, §8.2",
+  "rulesReference": "MANUALE.md §7, §8.1, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -28,39 +29,45 @@
       "displayKey": "face",
       "race": "auros",
       "stats": {
-        "power": 2,
-        "fluxCost": 2
+        "power": 4,
+        "fluxCost": 5
       },
       "enablesMatters": [
         {
           "type": "dimensional",
-          "maxGrade": 1
+          "maxGrade": 2
         }
       ],
-      "keywords": [],
+      "keywords": [
+        {
+          "id": "stasis"
+        }
+      ],
       "requirements": {},
       "triggers": [
         {
-          "id": "relay",
-          "displayKey": "relay",
+          "id": "rooted-vigor",
+          "displayKey": "rootedVigor",
           "event": "on_enter_field",
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "cardType": "rubyfront",
+              "controller": "controller"
+            },
+            "amount": 4
+          }
+        },
+        {
+          "id": "parting-gift",
+          "displayKey": "partingGift",
+          "event": "on_leave_field",
           "effect": {
             "type": "draw_card",
             "target": {
               "controller": "controller"
             },
-            "count": 1,
-            "conditions": [
-              {
-                "type": "controls_card",
-                "owner": "controller",
-                "min": 2,
-                "filter": {
-                  "cardType": "entity",
-                  "race": "auros"
-                }
-              }
-            ]
+            "count": 1
           }
         }
       ],

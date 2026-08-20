@@ -1,29 +1,30 @@
 {
-  "name": "Reflex",
-  "typeLabel": "Dynamic Matter I",
-  "summary": "A block for one Flux that takes small attackers with it.",
+  "name": "First Blade",
+  "typeLabel": "Entity: Human",
+  "summary": "She arrives by removing someone, and with the Nexus out she becomes impossible to attack for free.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    }
+    "power": "Power",
+    "flux": "Flux"
   },
   "face": {
-    "name": "Reflex",
+    "name": "First Blade",
+    "firstCut": {
+      "trigger": "When it enters the field",
+      "text": "Put an Entity into its owner's Requiem Zone."
+    },
     "effect": {
       "name": "Effect",
-      "text": "Assign it as a block against an attacker: that attack is blocked. If the attacker has Power 3 or less, it dies."
+      "text": "If you control the Nexus, First Blade has Revenge."
     },
-    "flavor": "A flash, and steel finds steel."
+    "flavor": "The enemy front knows her by name."
   },
   "matters": {
-    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
     "dynamicAria": "Dynamic"
   }
 }

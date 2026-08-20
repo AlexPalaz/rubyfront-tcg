@@ -1,7 +1,7 @@
 {
-  "name": "Elder of the Wandering Wood",
+  "name": "Moss Sentinel",
   "typeLabel": "Entity: Auros",
-  "summary": "When the Elder wakes, it uproots what stands before it and the wood hands it a card.",
+  "summary": "One Flux for a body that won't die blocking: the wall's first stone.",
   "ui": {
     "face": "Entity"
   },
@@ -12,19 +12,15 @@
     "flux": "Flux"
   },
   "matters": {
-    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Elder of the Wandering Wood",
-    "uproot": {
-      "trigger": "When it enters the field",
-      "text": "Return an opponent Entity to its owner's hand. Its assigned Object goes to the Abyss."
+    "name": "Moss Sentinel",
+    "keyword": {
+      "name": "Stasis",
+      "rules": "won't die blocking: stays permanently tapped"
     },
-    "gather": {
-      "trigger": "When it enters the field",
-      "text": "Draw a card."
-    },
-    "flavor": "It walks but rarely. Yet when it walks, the wood follows."
+    "flavor": "Moss does not retreat. It grows."
   }
 }

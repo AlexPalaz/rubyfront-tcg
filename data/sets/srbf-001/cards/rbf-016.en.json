@@ -1,7 +1,7 @@
 {
-  "name": "Laceration",
-  "typeLabel": "Destructive Matter II",
-  "summary": "The wound that never closes, but only while the Front stays crowded.",
+  "name": "Stillness",
+  "typeLabel": "Zero Matter",
+  "summary": "One Flux to kill the opposing answer in mid-chain.",
   "ui": {
     "face": "Matter"
   },
@@ -12,18 +12,19 @@
     "behaviors": {
       "reactive": "Reactive",
       "permanent": "Permanent"
-    }
+    },
+    "unique": "Unique"
   },
   "face": {
-    "name": "Laceration",
-    "flavor": "Some wounds do not close.",
+    "name": "Stillness",
     "effect": {
       "name": "Effect",
-      "text": "At the start of your turn, if you control at least 3 Human Entities, the opposing Rubyfront loses 2 HP. The wound keeps bleeding as long as the Front stays crowded, and this loss does not send it back to the Recall Zone."
-    }
+      "text": "Choose a Reactive Matter just played in the chain: when it would resolve, it vanishes and goes to the Abyss with no effect. The Flux spent is not refunded."
+    },
+    "flavor": "The void does not argue."
   },
   "matters": {
-    "destructiveTitle": "Destructive Matter · 2nd grade",
-    "destructiveAria": "Destructive"
+    "zeroTitle": "Zero Matter",
+    "zeroAria": "Zero"
   }
 }

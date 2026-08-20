@@ -3,7 +3,7 @@
   "id": "RBF-018",
   "setId": "rubyfront-core",
   "collectorNumber": "018",
-  "slug": "archivist",
+  "slug": "breach-veteran",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,9 +16,9 @@
   "tags": [
     "entity",
     "human",
-    "scaling"
+    "counterattack"
   ],
-  "rulesReference": "MANUALE.md §6.2",
+  "rulesReference": "MANUALE.md §6.3",
   "faces": [
     {
       "id": "entity",
@@ -26,30 +26,26 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 1,
-        "fluxCost": 3
+        "power": 2,
+        "fluxCost": 3,
+        "counterattack": 2
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "chronicle",
-          "displayKey": "effect",
-          "event": "while_in_play",
+          "id": "lesson",
+          "displayKey": "lesson",
+          "event": "on_counterattack",
           "effect": {
-            "type": "modify_power",
+            "type": "draw_card",
             "target": {
-              "scope": "self"
+              "controller": "controller"
             },
-            "amount": 1,
-            "duration": "permanent",
+            "count": 1,
             "details": {
-              "perControlledEntity": {
-                "cardType": "entity",
-                "race": "human"
-              },
-              "excludeSelf": true
+              "onlyIfAttackerDies": true
             }
           }
         }

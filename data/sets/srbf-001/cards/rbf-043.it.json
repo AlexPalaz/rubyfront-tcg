@@ -1,0 +1,22 @@
+{
+  "name": "Corteccia Immortale",
+  "typeLabel": "Oggetto",
+  "summary": "Ogni risveglio la rende più dura.",
+  "ui": {
+    "face": "Oggetto"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Corteccia Immortale",
+    "effect": {
+      "name": "Effetto",
+      "text": "Assegna questa carta a un'Entità Auros che controlli. La prima volta in ogni tuo turno che l'Entità assegnata viene stappata da un effetto, prende +1 Potenza fino alla fine del turno."
+    },
+    "flavor": "Tagliala pure. Domani sarà più spessa di ieri."
+  }
+}

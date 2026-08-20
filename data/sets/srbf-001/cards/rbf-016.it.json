@@ -1,7 +1,7 @@
 {
-  "name": "Lacerazione",
-  "typeLabel": "Materia Distruttiva II",
-  "summary": "La ferita che non si chiude, ma solo finché il Fronte resta affollato.",
+  "name": "Quiete",
+  "typeLabel": "Materia Zero",
+  "summary": "Un Flusso per spegnere la risposta avversaria nel mezzo della catena.",
   "ui": {
     "face": "Materia"
   },
@@ -12,18 +12,19 @@
     "behaviors": {
       "reactive": "Reattiva",
       "permanent": "Permanente"
-    }
+    },
+    "unique": "Unica"
   },
   "face": {
-    "name": "Lacerazione",
-    "flavor": "Alcune ferite non si chiudono.",
+    "name": "Quiete",
     "effect": {
       "name": "Effetto",
-      "text": "All'inizio del tuo turno, se controlli almeno 3 Entità Umane, il Rubyfront avversario perde 2 PV. La ferita continua a sanguinare finché il Fronte resta affollato, e questa perdita non lo fa tornare nella Zona di Richiamo."
-    }
+      "text": "Scegli una Materia Reattiva appena giocata nella catena: quando dovrebbe risolversi, svanisce e va nell’Abisso senza alcun effetto. Il Flusso speso non torna."
+    },
+    "flavor": "Il vuoto non discute."
   },
   "matters": {
-    "destructiveTitle": "Materia Distruttiva · 2° grado",
-    "destructiveAria": "Distruttiva"
+    "zeroTitle": "Materia Zero",
+    "zeroAria": "Zero"
   }
 }

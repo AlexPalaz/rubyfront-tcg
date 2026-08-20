@@ -1,7 +1,7 @@
 {
-  "name": "Chirurgo da Campo",
+  "name": "Emissario degli Eredi",
   "typeLabel": "Entità: Umano",
-  "summary": "Il corpo che porta con sé un punto di danno: scende, colpisce la bestia avversaria e resta in linea.",
+  "summary": "Due braccia in campo e un terzo in arrivo: gli Eredi non lasciano mai un posto vuoto.",
   "ui": {
     "face": "Entità"
   },
@@ -12,11 +12,11 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Chirurgo da Campo",
-    "ember": {
+    "name": "Emissario degli Eredi",
+    "herald": {
       "trigger": "Quando entra in campo",
-      "text": "Il Chirurgo da Campo infligge 1 danno al Rubyfront avversario nel momento stesso in cui mette piede sul Fronte."
+      "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
     },
-    "flavor": "Anche le bestie sanguinano."
+    "flavor": "Il Primo cammina fra noi. Io l'ho visto."
   }
 }

@@ -1,13 +1,14 @@
 {
-  "name": "Thaw",
+  "name": "Step through the Boughs",
   "typeLabel": "Dimensional Matter I",
-  "summary": "Auros time folds back: those frozen in stasis move again.",
+  "summary": "A path through the boughs brings home those who left the field.",
   "ui": {
     "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "matters": {
@@ -15,11 +16,11 @@
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Thaw",
+    "name": "Step through the Boughs",
     "effect": {
       "name": "Effect",
-      "text": "At the start of each of your turns untap the entities you control that are stuck in stasis: Stasis no longer keeps them tapped forever, and they are free to attack and block again."
+      "text": "Choose an Auros Entity in your Requiem Zone and add it to your hand."
     },
-    "flavor": "Stasis is not death. It is only a long winter."
+    "flavor": "No Auros is left behind."
   }
 }

@@ -3,8 +3,8 @@
   "id": "RBF-035",
   "setId": "rubyfront-core",
   "collectorNumber": "035",
-  "slug": "ebbtide",
-  "type": "matter",
+  "slug": "keeper-of-the-glade",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,51 +14,54 @@
     "en"
   ],
   "tags": [
-    "matter",
+    "entity",
+    "auros",
     "dimensional",
-    "grade-2",
-    "tempo",
-    "bounce",
-    "midrange"
+    "stasis",
+    "untap",
+    "heal"
   ],
-  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+  "rulesReference": "MANUALE.md §7, §8.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "dimensional",
-        "grade": 2
-      },
-      "behavior": "normal",
+      "race": "auros",
       "stats": {
-        "fluxCost": 4
+        "power": 3,
+        "fluxCost": 3
       },
-      "enablesMatters": [],
-      "keywords": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [
+        {
+          "id": "stasis"
+        }
+      ],
       "requirements": {},
       "triggers": [
         {
-          "id": "ebb",
-          "displayKey": "effect",
-          "event": "on_resolve",
+          "id": "bloom",
+          "displayKey": "bloom",
+          "event": "on_untap",
           "effect": {
-            "type": "move_card",
+            "type": "gain_health",
             "target": {
-              "cardType": "entity",
-              "controller": "opponent",
-              "min": 1,
-              "max": 2
+              "cardType": "rubyfront",
+              "controller": "controller"
             },
-            "destination": {
-              "zone": "hand",
-              "owner": "card_owner"
-            },
+            "amount": 2,
             "details": {
-              "isDeath": false,
-              "triggersLeaveField": true,
-              "objectFollows": false
+              "oncePerTurn": true,
+              "untappedByEffect": true,
+              "watched": {
+                "scope": "self"
+              }
             }
           }
         }

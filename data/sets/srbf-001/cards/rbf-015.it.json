@@ -1,7 +1,7 @@
 {
-  "name": "Secondo Impeto",
-  "typeLabel": "Materia Dinamica II",
-  "summary": "Il turno in cui un solo corpo colpisce due volte.",
+  "name": "Lacerazione",
+  "typeLabel": "Materia Distruttiva II",
+  "summary": "La ferita che non si chiude, ma solo finché il Fronte resta affollato.",
   "ui": {
     "face": "Materia"
   },
@@ -15,15 +15,15 @@
     }
   },
   "face": {
-    "name": "Secondo Impeto",
+    "name": "Lacerazione",
+    "flavor": "Alcune ferite non si chiudono.",
     "effect": {
       "name": "Effetto",
-      "text": "Un'Entità a tua scelta che ha già attaccato in questo turno può attaccare una seconda volta."
-    },
-    "flavor": "Il primo colpo apre. Il secondo chiude."
+      "text": "All'inizio del tuo turno, se controlli almeno 3 Entità Umane, il Rubyfront avversario perde 2 PV. La ferita continua a sanguinare finché il Fronte resta affollato, e questa perdita non lo fa tornare nella Zona di Richiamo."
+    }
   },
   "matters": {
-    "dynamicTitle": "Materia Dinamica · 2° grado",
-    "dynamicAria": "Dinamica"
+    "destructiveTitle": "Materia Distruttiva · 2° grado",
+    "destructiveAria": "Distruttiva"
   }
 }

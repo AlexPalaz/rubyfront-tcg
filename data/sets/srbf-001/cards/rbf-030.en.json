@@ -1,7 +1,7 @@
 {
-  "name": "Valaris, First of the Wood",
+  "name": "Voice of the Roots",
   "typeLabel": "Entity: Auros",
-  "summary": "The eldest of the Wandering Wood: her mere presence folds space up to the second grade.",
+  "summary": "It calls by name those who left the field still alive, and brings them back from the Requiem.",
   "ui": {
     "face": "Entity"
   },
@@ -9,19 +9,14 @@
     "illustration": "Illustration",
     "hp": "HP",
     "power": "Power",
-    "flux": "Flux",
-    "unique": "Unique"
-  },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
-    "dimensionalAria": "Dimensional"
+    "flux": "Flux"
   },
   "face": {
-    "name": "Valaris, First of the Wood",
-    "elderSight": {
+    "name": "Voice of the Roots",
+    "regrow": {
       "trigger": "When it enters the field",
-      "text": "Draw a card."
+      "text": "You may return an Auros Entity from your Requiem Zone to your hand."
     },
-    "flavor": "She was there before the wood. The wood grew around her silence."
+    "flavor": "The Auros do not end. They only wait to be recalled."
   }
 }

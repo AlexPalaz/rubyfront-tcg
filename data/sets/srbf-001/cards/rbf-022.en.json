@@ -1,29 +1,26 @@
 {
-  "name": "Banner of the Heirs",
-  "typeLabel": "Dynamic Matter I",
-  "summary": "Every turn it picks one Human and sends him forward stronger than the rest.",
+  "name": "Steel Avenger",
+  "typeLabel": "Entity: Human",
+  "summary": "A body it does not pay to attack: on her own she punishes whoever strikes her, beside the beast she punishes at Power 3.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    }
+    "power": "Power",
+    "flux": "Flux"
   },
   "face": {
-    "name": "Banner of the Heirs",
-    "flavor": "While it flies, we advance.",
+    "name": "Steel Avenger",
     "effect": {
       "name": "Effect",
-      "text": "At the start of your turn a Human Entity of your choice gets +2 Power. The banner picks who goes forward, and if you control the Rubyfront of the Pact that Entity also gains Surge."
+      "text": "As long as you control the Rubyfront of the Pact, Steel Avenger gets +2 Power."
+    },
+    "flavor": "Strike her, if you dare. Then run.",
+    "keyword": {
+      "name": "Revenge",
+      "rules": "blocking, it kills a lower-Power attacker"
     }
-  },
-  "matters": {
-    "dynamicTitle": "Dynamic Matter · 1st grade",
-    "dynamicAria": "Dynamic"
   }
 }

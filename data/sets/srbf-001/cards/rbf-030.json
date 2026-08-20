@@ -3,12 +3,11 @@
   "id": "RBF-030",
   "setId": "rubyfront-core",
   "collectorNumber": "030",
-  "slug": "valaris-first-of-the-wood",
+  "slug": "voice-of-the-roots",
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 1,
-  "unique": true,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -18,11 +17,11 @@
     "entity",
     "auros",
     "dimensional",
-    "grade-2",
-    "legendary",
+    "recursion",
+    "requiem",
     "midrange"
   ],
-  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+  "rulesReference": "MANUALE.md §5, §7, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -30,28 +29,37 @@
       "displayKey": "face",
       "race": "auros",
       "stats": {
-        "power": 4,
-        "fluxCost": 4
+        "power": 2,
+        "fluxCost": 3
       },
       "enablesMatters": [
         {
           "type": "dimensional",
-          "maxGrade": 2
+          "maxGrade": 1
         }
       ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "elder-sight",
-          "displayKey": "elderSight",
+          "id": "regrow",
+          "displayKey": "regrow",
           "event": "on_enter_field",
           "effect": {
-            "type": "draw_card",
+            "type": "move_card",
             "target": {
-              "controller": "controller"
+              "cardType": "entity",
+              "race": "auros",
+              "zone": "requiem",
+              "owner": "controller",
+              "min": 0,
+              "max": 1
             },
-            "count": 1
+            "destination": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "optional": true
           }
         }
       ],

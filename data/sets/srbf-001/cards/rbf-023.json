@@ -3,59 +3,206 @@
   "id": "RBF-023",
   "setId": "rubyfront-core",
   "collectorNumber": "023",
-  "slug": "steel-avenger",
-  "type": "entity",
-  "layout": "single",
+  "slug": "rubyfront-of-the-wandering-wood",
+  "type": "rubyfront",
+  "layout": "double-faced",
   "status": "draft",
-  "deckLimit": 3,
+  "deckLimit": 1,
   "defaultLocale": "it",
   "locales": [
     "it",
     "en"
   ],
   "tags": [
-    "entity",
-    "human",
-    "revenge",
-    "aggro"
+    "rubyfront",
+    "nexus",
+    "midrange",
+    "auros",
+    "dimensional",
+    "stasis",
+    "untap"
   ],
-  "rulesReference": "MANUALE.md §8.1",
+  "rulesReference": "MANUALE.md §3.1, §7, §8.1",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
-      "displayKey": "face",
-      "race": "human",
+      "id": "rubyfront",
+      "kind": "rubyfront",
+      "displayKey": "faceA",
       "stats": {
-        "power": 1,
-        "fluxCost": 1
+        "health": 22,
+        "deploymentCost": {
+          "base": 3,
+          "increment": 1
+        }
       },
-      "enablesMatters": [],
-      "keywords": [
+      "enablesMatters": [
         {
-          "id": "revenge"
+          "type": "dimensional",
+          "maxGrade": 2
+        },
+        {
+          "type": "destructive",
+          "maxGrade": 1
         }
       ],
-      "requirements": {},
+      "keywords": [
+        {
+          "id": "fury",
+          "check": {
+            "die": "d20",
+            "successAtLeast": 12
+          },
+          "failure": {
+            "loseHealth": 1
+          }
+        }
+      ],
+      "requirements": {
+        "nexus": {
+          "match": "all",
+          "timing": [
+            "own_preparation"
+          ],
+          "conditions": [
+            {
+              "type": "controls_card",
+              "owner": "controller",
+              "min": 3,
+              "filter": {
+                "cardType": "entity",
+                "race": "auros"
+              }
+            },
+            {
+              "type": "health_lost_at_least",
+              "owner": "opponent",
+              "value": 8,
+              "filter": {
+                "cardType": "rubyfront"
+              }
+            }
+          ]
+        }
+      },
       "triggers": [
         {
-          "id": "grief",
+          "id": "wood-memory",
           "displayKey": "effect",
-          "event": "while_in_play",
+          "event": "on_untap",
           "effect": {
-            "type": "modify_power",
+            "type": "gain_health",
             "target": {
-              "scope": "self"
+              "cardType": "rubyfront",
+              "controller": "controller"
             },
-            "amount": 2,
-            "duration": "permanent",
+            "amount": 1,
             "details": {
-              "requiresRubyfrontDeployed": true
+              "oncePerTurn": true,
+              "onlyControllerTurn": true,
+              "untappedByEffect": true,
+              "watched": {
+                "cardType": "entity",
+                "controller": "controller"
+              }
             }
           }
         }
       ],
-      "actions": []
+      "actions": [
+        {
+          "id": "wood-breath",
+          "displayKey": "woodBreath",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": true,
+          "checks": [
+            "fury"
+          ],
+          "cost": {
+            "health": 2
+          },
+          "effect": {
+            "type": "untap",
+            "target": {
+              "cardType": "entity",
+              "race": "auros",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "nexus",
+      "kind": "nexus",
+      "displayKey": "faceB",
+      "stats": {
+        "healthRecovery": 6
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        },
+        {
+          "type": "destructive",
+          "maxGrade": 2
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "glade-memory",
+          "displayKey": "effect",
+          "event": "on_untap",
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1,
+            "details": {
+              "oncePerTurn": true,
+              "onlyControllerTurn": true,
+              "untappedByEffect": true,
+              "watched": {
+                "cardType": "entity",
+                "controller": "controller"
+              }
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "wood-breath",
+          "displayKey": "woodBreath",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": true,
+          "checks": [],
+          "cost": {
+            "health": 2
+          },
+          "effect": {
+            "type": "untap",
+            "target": {
+              "cardType": "entity",
+              "race": "auros",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
+            }
+          }
+        }
+      ]
     }
   ],
   "designNotes": "rbf-023.md"

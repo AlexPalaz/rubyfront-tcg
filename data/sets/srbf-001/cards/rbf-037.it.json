@@ -1,9 +1,9 @@
 {
-  "name": "Voce delle Radici",
-  "typeLabel": "Entità: Auros",
-  "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
+  "name": "Risveglio delle Radici",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "Il comando più semplice del bosco: alzati.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
@@ -11,12 +11,16 @@
     "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Voce delle Radici",
-    "regrow": {
-      "trigger": "Quando entra in campo",
-      "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Requiem."
+    "name": "Risveglio delle Radici",
+    "effect": {
+      "name": "Effetto",
+      "text": "Stappa un'Entità Auros che controlli."
     },
-    "flavor": "Gli Auros non finiscono. Aspettano solo di essere richiamati."
+    "flavor": "La linfa risale, e con lei il guerriero."
   }
 }

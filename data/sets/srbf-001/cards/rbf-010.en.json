@@ -1,7 +1,7 @@
 {
-  "name": "Field Surgeon",
+  "name": "Emissary of the Heirs",
   "typeLabel": "Entity: Human",
-  "summary": "A body that arrives carrying a point of damage: it lands, hits the enemy beast and stays in line.",
+  "summary": "Two arms on the field and a third on the way: the Heirs never leave a place empty.",
   "ui": {
     "face": "Entity"
   },
@@ -12,11 +12,11 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Field Surgeon",
-    "ember": {
+    "name": "Emissary of the Heirs",
+    "herald": {
       "trigger": "When it enters the field",
-      "text": "Field Surgeon deals 1 damage to the opposing Rubyfront the moment he sets foot on the Front."
+      "text": "Search your deck for a Human, reveal it to your opponent and add it to your hand, then shuffle your deck."
     },
-    "flavor": "Beasts bleed too."
+    "flavor": "The First walks among us. I have seen him."
   }
 }

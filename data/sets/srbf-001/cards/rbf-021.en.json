@@ -1,26 +1,29 @@
 {
-  "name": "Steam Courier",
-  "typeLabel": "Entity: Human",
-  "summary": "One Flux for the first hit of the game, and for deciding what whoever comes next will find.",
+  "name": "Banner of the Heirs",
+  "typeLabel": "Dynamic Matter I",
+  "summary": "Every turn it picks one Human and sends him forward stronger than the rest.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
-    "name": "Steam Courier",
-    "keyword": {
-      "name": "Surge",
-      "rules": "may attack the turn it enters the field"
-    },
-    "flavor": "No one has ever seen him standing still: by the time the question ends, he is already past the line.",
-    "dispatch": {
-      "trigger": "When it enters the field",
-      "text": "Look at the top card of your deck: you may leave it there or put it on the bottom."
+    "name": "Banner of the Heirs",
+    "flavor": "While it flies, we advance.",
+    "effect": {
+      "name": "Effect",
+      "text": "At the start of your turn a Human Entity of your choice gets +2 Power. The banner picks who goes forward, and if you control the Rubyfront of the Pact that Entity also gains Surge."
     }
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

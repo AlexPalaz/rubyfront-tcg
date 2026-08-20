@@ -1,22 +1,25 @@
 {
-  "name": "Pathfinder of Trails",
-  "typeLabel": "Entity: Auros",
-  "summary": "Always finds the way, and with it the right Auros for the turn to come.",
+  "name": "The Wood Remembers",
+  "typeLabel": "Dimensional Matter II",
+  "summary": "The wood takes back one child and returns another: a greater one from memory, a smaller one from the deep.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
     "flux": "Flux"
   },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 2nd grade",
+    "dimensionalAria": "Dimensional"
+  },
   "face": {
-    "name": "Pathfinder of Trails",
-    "pathfind": {
-      "trigger": "When it enters the field",
-      "text": "Search your deck for an Auros Entity, reveal it to the opponent and add it to your hand, then shuffle your deck."
+    "name": "The Wood Remembers",
+    "effect": {
+      "name": "Effect",
+      "text": "Put an Entity you control into your Requiem Zone, even if it is in Stasis. Then choose one: put onto your Front an Entity from your Requiem Zone whose Flux cost is exactly 1 higher than that of the Entity put into the Requiem this way; or search your deck for an Entity whose Flux cost is exactly 1 lower, put it onto your Front, then shuffle your deck."
     },
-    "flavor": "Every root is a trail, for those who can read them."
+    "flavor": "Every tree is a name. Every name returns, sooner or later."
   }
 }

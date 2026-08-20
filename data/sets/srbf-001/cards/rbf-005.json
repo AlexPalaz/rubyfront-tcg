@@ -3,7 +3,7 @@
   "id": "RBF-005",
   "setId": "rubyfront-core",
   "collectorNumber": "005",
-  "slug": "rift",
+  "slug": "wrath",
   "type": "matter",
   "layout": "single",
   "status": "draft",
@@ -15,47 +15,40 @@
   ],
   "tags": [
     "matter",
-    "dimensional",
-    "grade-1"
+    "destructive",
+    "grade-1",
+    "reactive",
+    "burn"
   ],
-  "rulesReference": "MANUALE.md §7, §8.2",
+  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
   "faces": [
     {
       "id": "matter",
       "kind": "matter",
       "displayKey": "face",
       "matter": {
-        "type": "dimensional",
+        "type": "destructive",
         "grade": 1
       },
-      "behavior": "normal",
+      "behavior": "reactive",
       "stats": {
-        "fluxCost": 3
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "rift",
+          "id": "wrath",
           "displayKey": "effect",
           "event": "on_resolve",
           "effect": {
-            "type": "move_card",
+            "type": "lose_health",
             "target": {
-              "cardType": "entity",
-              "min": 1,
-              "max": 1
+              "cardType": "rubyfront",
+              "controller": "opponent"
             },
-            "destination": {
-              "zone": "hand",
-              "owner": "card_owner"
-            },
-            "details": {
-              "isDeath": false,
-              "triggersLeaveField": true,
-              "objectFollows": false
-            }
+            "amount": 2
           }
         }
       ],

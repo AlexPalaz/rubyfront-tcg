@@ -1,26 +1,25 @@
 {
-  "name": "Sentinella Perenne",
-  "typeLabel": "Entità: Auros",
-  "summary": "Immortale e immobile: regge la linea e non muore mai davvero.",
+  "name": "Passo nel Vuoto",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "Il nemico fa un passo e il terreno non c'è più. Ma il vuoto chiede sempre un pedaggio.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Sentinella Perenne",
-    "keyword": {
-      "name": "Stasi",
-      "rules": "bloccando non muore: resta tappata per sempre"
-    },
+    "name": "Passo nel Vuoto",
     "effect": {
       "name": "Effetto",
-      "text": "La Sentinella Perenne non può attaccare, e tiene la linea per tutta la partita."
+      "text": "Scegli un'Entità controllata dall'avversario e mettila nella Zona di Requiem del suo proprietario. Se aveva un Oggetto assegnato, metti quell'Oggetto nell'Abisso. Poi lancia un d6: con 1–2 perdi 4 PV, con 3–4 perdi 3 PV, con 5–6 perdi 2 PV."
     },
-    "flavor": "Ha visto cadere tre foreste. È ancora al suo posto."
+    "flavor": "Non pararono il colpo. Tolsero il bersaglio."
   }
 }

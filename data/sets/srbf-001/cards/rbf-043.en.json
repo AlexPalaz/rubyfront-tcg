@@ -1,0 +1,22 @@
+{
+  "name": "Immortal Bark",
+  "typeLabel": "Object",
+  "summary": "Every waking makes it harder.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Immortal Bark",
+    "effect": {
+      "name": "Effect",
+      "text": "Assign this card to an Auros Entity you control. The first time each of your turns the assigned Entity is untapped by an effect, it gets +1 Power until end of turn."
+    },
+    "flavor": "Cut it if you like. Tomorrow it will be thicker than yesterday."
+  }
+}

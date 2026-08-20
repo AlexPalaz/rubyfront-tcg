@@ -1,7 +1,7 @@
 {
-  "name": "Vedetta del Sottobosco",
+  "name": "Vàlaris, Prima del Bosco",
   "typeLabel": "Entità: Auros",
-  "summary": "Un Auros che conosce ogni sentiero prima di percorrerlo, e apre la via alla Dimensionale.",
+  "summary": "La più antica del Bosco Errante: chiama i caduti dalla Requiem e benedice chi si risveglia.",
   "ui": {
     "face": "Entità"
   },
@@ -9,14 +9,23 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "unique": "Unica"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Vedetta del Sottobosco",
-    "scout": {
+    "name": "Vàlaris, Prima del Bosco",
+    "firstCall": {
       "trigger": "Quando entra in campo",
-      "text": "Guarda la prima carta del tuo mazzo: puoi rimetterla in fondo al mazzo."
+      "text": "Metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Requiem."
     },
-    "flavor": "Cammino da mille anni. Il bosco non mi ha mai sorpresa."
+    "wakingBoon": {
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che un'altra Entità Auros che controlli viene stappata da un effetto, quell'Entità prende +1 Potenza fino alla fine del turno."
+    },
+    "flavor": "C'era lei, prima del bosco. Il bosco è cresciuto attorno al suo silenzio."
   }
 }

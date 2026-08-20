@@ -3,8 +3,8 @@
   "id": "RBF-006",
   "setId": "rubyfront-core",
   "collectorNumber": "006",
-  "slug": "wrath",
-  "type": "matter",
+  "slug": "vigorbelt",
+  "type": "object",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,45 +14,48 @@
     "en"
   ],
   "tags": [
-    "matter",
-    "destructive",
-    "grade-1",
-    "reactive",
-    "burn"
+    "object",
+    "human",
+    "anthem"
   ],
-  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+  "rulesReference": "MANUALE.md §3.1",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "object",
+      "kind": "object",
       "displayKey": "face",
-      "matter": {
-        "type": "destructive",
-        "grade": 1
-      },
-      "behavior": "reactive",
       "stats": {
-        "fluxCost": 2
+        "fluxCost": 1
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "wrath",
+          "id": "band",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "while_assigned",
           "effect": {
-            "type": "lose_health",
+            "type": "modify_power",
             "target": {
-              "cardType": "rubyfront",
-              "controller": "opponent"
+              "cardType": "entity",
+              "race": "human",
+              "scope": "assigned"
             },
-            "amount": 2
+            "amount": 1,
+            "duration": "permanent",
+            "details": {
+              "amountWithRubyfrontDeployed": 2
+            }
           }
         }
       ],
-      "actions": []
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "race": "human",
+        "controller": "controller"
+      }
     }
   ],
   "designNotes": "rbf-006.md"

@@ -1,23 +1,26 @@
 {
-  "name": "Armored Bulwark",
-  "typeLabel": "Entity: Human",
-  "summary": "Three Power for two Flux, in exchange for one thing only: he never moves first.",
+  "name": "Reflex",
+  "typeLabel": "Dynamic Matter I",
+  "summary": "A block for one Flux that takes small attackers with it.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
-    "name": "Armored Bulwark",
+    "name": "Reflex",
     "effect": {
       "name": "Effect",
-      "text": "Armored Bulwark cannot attack, and holds the line for the whole game."
+      "text": "Assign it as a block against an attacker: that attack is blocked. If the attacker has Power 3 or less, it dies."
     },
-    "flavor": "The world falls. He does not."
+    "flavor": "A flash, and steel finds steel."
   },
   "matters": {
     "dynamicTitle": "Dynamic Matter · 1st grade",

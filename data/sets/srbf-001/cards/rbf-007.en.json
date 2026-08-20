@@ -1,21 +1,26 @@
 {
-  "name": "Vigorbelt",
-  "typeLabel": "Object",
-  "summary": "One Flux, and worth double while the beast is on the field.",
+  "name": "Perimeter Lookout",
+  "typeLabel": "Entity: Human",
+  "summary": "She does not hit hard: she marks the target, and whoever stands beside her hits better.",
   "ui": {
-    "face": "Object"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
-    "name": "Vigorbelt",
-    "effect": {
-      "name": "Effect",
-      "text": "Assign the Vigorbelt to a Human Entity: that Entity gets +1 Power, and gets +2 instead as long as you control the Rubyfront of the Pact."
+    "name": "Perimeter Lookout",
+    "spark": {
+      "trigger": "When it enters the field",
+      "text": "Another Human Entity of your choice gets +1 Power until end of turn. The Lookout marks the target: the bonus is never for herself."
     },
-    "flavor": "Buckle it tight. Vigor does the rest."
+    "flavor": "She saw the end coming. She whistled twice."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

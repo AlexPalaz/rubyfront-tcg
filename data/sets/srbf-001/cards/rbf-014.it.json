@@ -1,27 +1,26 @@
 {
-  "name": "Prima Lama",
-  "typeLabel": "Entità: Umano",
-  "summary": "Arriva togliendo di mezzo qualcuno, e con il Nexus in campo diventa impossibile da attaccare impunemente.",
+  "name": "Secondo Impeto",
+  "typeLabel": "Materia Dinamica II",
+  "summary": "Il turno in cui un solo corpo colpisce due volte.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Prima Lama",
-    "firstCut": {
-      "trigger": "Quando entra in campo",
-      "text": "Manda un'Entità nella Zona di Requiem del suo proprietario."
-    },
+    "name": "Secondo Impeto",
     "effect": {
       "name": "Effetto",
-      "text": "Se controlli il Nexus, la Prima Lama ha Vendetta."
+      "text": "Un'Entità a tua scelta che ha già attaccato in questo turno può attaccare una seconda volta."
     },
-    "flavor": "Il fronte nemico la conosce per nome."
+    "flavor": "Il primo colpo apre. Il secondo chiude."
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 2° grado",

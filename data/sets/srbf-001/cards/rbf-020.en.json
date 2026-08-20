@@ -1,21 +1,26 @@
 {
-  "name": "Veil of the First",
-  "typeLabel": "Object",
-  "summary": "Protection for the body you invested in: opposing Matters cannot find it.",
+  "name": "Steam Courier",
+  "typeLabel": "Entity: Human",
+  "summary": "One Flux for the first hit of the game, and for deciding what whoever comes next will find.",
   "ui": {
-    "face": "Object"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
-    "name": "Veil of the First",
-    "effect": {
-      "name": "Effect",
-      "text": "Assign it to one of your Humans: for as long as they wear it, they cannot be targeted by opposing Matters."
+    "name": "Steam Courier",
+    "keyword": {
+      "name": "Surge",
+      "rules": "may attack the turn it enters the field"
     },
-    "flavor": "What the void has touched, the void protects."
+    "flavor": "No one has ever seen him standing still: by the time the question ends, he is already past the line.",
+    "dispatch": {
+      "trigger": "When it enters the field",
+      "text": "Look at the top card of your deck: you may leave it there or put it on the bottom."
+    }
   }
 }

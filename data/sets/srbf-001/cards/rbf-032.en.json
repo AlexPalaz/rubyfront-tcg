@@ -1,13 +1,14 @@
 {
-  "name": "Path among the Boughs",
-  "typeLabel": "Dimensional Matter I",
-  "summary": "The wood shows you two ways and lets you choose your own.",
+  "name": "Wandering Sprout",
+  "typeLabel": "Entity: Auros",
+  "summary": "Where there is already wood, the sprout nourishes; and peeks at the trail ahead.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "matters": {
@@ -15,11 +16,15 @@
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Path among the Boughs",
-    "effect": {
-      "name": "Effect",
-      "text": "Look at the top two cards of your deck: take one into your hand and put the other on the bottom of your deck."
+    "name": "Wandering Sprout",
+    "nourish": {
+      "trigger": "When it enters the field",
+      "text": "If you control another Auros Entity, you gain 2 HP."
     },
-    "flavor": "Every branch divides. None leads back."
+    "peek": {
+      "trigger": "When it enters the field",
+      "text": "Look at the top card of your deck: you may put it on the bottom of your deck."
+    },
+    "flavor": "Small, but it already knows where to go."
   }
 }

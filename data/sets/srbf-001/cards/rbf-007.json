@@ -3,8 +3,8 @@
   "id": "RBF-007",
   "setId": "rubyfront-core",
   "collectorNumber": "007",
-  "slug": "vigorbelt",
-  "type": "object",
+  "slug": "perimeter-lookout",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,48 +14,53 @@
     "en"
   ],
   "tags": [
-    "object",
+    "entity",
     "human",
+    "dynamic",
     "anthem"
   ],
-  "rulesReference": "MANUALE.md §3.1",
+  "rulesReference": "MANUALE.md §6.2, §7",
   "faces": [
     {
-      "id": "object",
-      "kind": "object",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
+      "race": "human",
       "stats": {
+        "power": 1,
         "fluxCost": 1
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "band",
-          "displayKey": "effect",
-          "event": "while_assigned",
+          "id": "spark",
+          "displayKey": "spark",
+          "event": "on_enter_field",
           "effect": {
             "type": "modify_power",
             "target": {
               "cardType": "entity",
               "race": "human",
-              "scope": "assigned"
+              "controller": "controller",
+              "min": 1,
+              "max": 1,
+              "details": {
+                "excludeSelf": true
+              }
             },
             "amount": 1,
-            "duration": "permanent",
-            "details": {
-              "amountWithRubyfrontDeployed": 2
-            }
+            "duration": "until_end_of_turn"
           }
         }
       ],
-      "actions": [],
-      "assignRestriction": {
-        "cardType": "entity",
-        "race": "human",
-        "controller": "controller"
-      }
+      "actions": []
     }
   ],
   "designNotes": "rbf-007.md"

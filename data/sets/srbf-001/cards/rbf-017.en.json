@@ -1,30 +1,22 @@
 {
-  "name": "Stillness",
-  "typeLabel": "Zero Matter",
-  "summary": "One Flux to kill the opposing answer in mid-chain.",
+  "name": "Archivist",
+  "typeLabel": "Entity: Human",
+  "summary": "He grows with the ranks: how much he is worth is decided by how many of his own there are.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    },
-    "unique": "Unique"
+    "power": "Power",
+    "flux": "Flux"
   },
   "face": {
-    "name": "Stillness",
+    "name": "Archivist",
     "effect": {
       "name": "Effect",
-      "text": "Choose a Reactive Matter just played in the chain: when it would resolve, it vanishes and goes to the Abyss with no effect. The Flux spent is not refunded."
+      "text": "Archivist gets +1 Power for each other Human Entity you control."
     },
-    "flavor": "The void does not argue."
-  },
-  "matters": {
-    "zeroTitle": "Zero Matter",
-    "zeroAria": "Zero"
+    "flavor": "He writes the names of those who went on."
   }
 }

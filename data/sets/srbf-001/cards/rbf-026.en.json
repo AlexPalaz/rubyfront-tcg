@@ -1,7 +1,7 @@
 {
-  "name": "Glade Courier",
+  "name": "Elder of the Wandering Wood",
   "typeLabel": "Entity: Auros",
-  "summary": "Carries word between glades: when the wood is already peopled, it comes back with a card to spare.",
+  "summary": "When the Elder wakes the wood breathes with it, and when it leaves it leaves a gift.",
   "ui": {
     "face": "Entity"
   },
@@ -11,12 +11,24 @@
     "power": "Power",
     "flux": "Flux"
   },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional"
+  },
   "face": {
-    "name": "Glade Courier",
-    "relay": {
-      "trigger": "When it enters the field",
-      "text": "If you control at least two Auros Entities (counting this one), draw a card."
+    "name": "Elder of the Wandering Wood",
+    "keyword": {
+      "name": "Stasis",
+      "rules": "won't die blocking: stays permanently tapped"
     },
-    "flavor": "No message is lost where the trees are listening."
+    "rootedVigor": {
+      "trigger": "When it enters the field",
+      "text": "You gain 4 HP."
+    },
+    "partingGift": {
+      "trigger": "When it leaves the field",
+      "text": "Draw a card."
+    },
+    "flavor": "It walks but rarely. Yet when it walks, the wood follows."
   }
 }

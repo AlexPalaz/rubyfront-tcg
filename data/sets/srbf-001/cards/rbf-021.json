@@ -3,8 +3,8 @@
   "id": "RBF-021",
   "setId": "rubyfront-core",
   "collectorNumber": "021",
-  "slug": "steam-courier",
-  "type": "entity",
+  "slug": "heirs-banner",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,49 +14,50 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "human",
-    "surge",
-    "aggro",
-    "scry"
+    "matter",
+    "dynamic",
+    "grade-1",
+    "permanent",
+    "anthem"
   ],
-  "rulesReference": "MANUALE.md §8.1",
+  "rulesReference": "MANUALE.md §7.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "human",
+      "matter": {
+        "type": "dynamic",
+        "grade": 1
+      },
+      "behavior": "permanent",
       "stats": {
-        "power": 1,
-        "fluxCost": 1
+        "fluxCost": 3
       },
       "enablesMatters": [],
-      "keywords": [
-        {
-          "id": "surge"
-        }
-      ],
+      "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "dispatch",
-          "displayKey": "dispatch",
-          "event": "on_enter_field",
+          "id": "march",
+          "displayKey": "effect",
+          "event": "on_turn_start",
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top",
-              "count": 1
+            "type": "empower",
+            "target": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
             },
-            "to": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "bottom"
-            },
-            "optional": true
+            "powerBonus": 2,
+            "duration": "until_end_of_turn",
+            "details": {
+              "grantsWithRubyfrontDeployed": [
+                "surge"
+              ]
+            }
           }
         }
       ],

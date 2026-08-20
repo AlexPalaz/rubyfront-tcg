@@ -3,7 +3,7 @@
   "id": "RBF-011",
   "setId": "rubyfront-core",
   "collectorNumber": "011",
-  "slug": "emissary-of-the-heirs",
+  "slug": "armored-bulwark",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,9 +16,10 @@
   "tags": [
     "entity",
     "human",
-    "tutor"
+    "dynamic",
+    "defender"
   ],
-  "rulesReference": "MANUALE.md §6.2, §8.2",
+  "rulesReference": "MANUALE.md §7, §8.1",
   "faces": [
     {
       "id": "entity",
@@ -26,37 +27,22 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 2,
+        "power": 3,
         "fluxCost": 2
       },
-      "enablesMatters": [],
-      "keywords": [],
-      "requirements": {},
-      "triggers": [
+      "enablesMatters": [
         {
-          "id": "herald",
-          "displayKey": "herald",
-          "event": "on_enter_field",
-          "effect": {
-            "type": "search_card",
-            "from": {
-              "zone": "deck",
-              "owner": "controller"
-            },
-            "filter": {
-              "cardType": "entity",
-              "race": "human"
-            },
-            "reveal": true,
-            "to": {
-              "zone": "hand",
-              "owner": "controller"
-            },
-            "shuffle": true
-          }
+          "type": "dynamic",
+          "maxGrade": 1
         }
       ],
-      "actions": []
+      "keywords": [],
+      "requirements": {},
+      "triggers": [],
+      "actions": [],
+      "restrictions": {
+        "cannotAttack": true
+      }
     }
   ],
   "designNotes": "rbf-011.md"

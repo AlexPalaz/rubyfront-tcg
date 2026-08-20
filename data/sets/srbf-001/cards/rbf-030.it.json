@@ -1,7 +1,7 @@
 {
-  "name": "Vàlaris, Prima del Bosco",
+  "name": "Voce delle Radici",
   "typeLabel": "Entità: Auros",
-  "summary": "La più antica del Bosco Errante: la sua sola presenza piega lo spazio fino al secondo grado.",
+  "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
   "ui": {
     "face": "Entità"
   },
@@ -9,19 +9,14 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "power": "Potenza",
-    "flux": "Flussi",
-    "unique": "Unica"
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
-    "dimensionalAria": "Dimensionale"
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Vàlaris, Prima del Bosco",
-    "elderSight": {
+    "name": "Voce delle Radici",
+    "regrow": {
       "trigger": "Quando entra in campo",
-      "text": "Pesca una carta."
+      "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Requiem."
     },
-    "flavor": "C'era lei, prima del bosco. Il bosco è cresciuto attorno al suo silenzio."
+    "flavor": "Gli Auros non finiscono. Aspettano solo di essere richiamati."
   }
 }

@@ -1,25 +1,30 @@
 {
-  "name": "Ebbtide",
-  "typeLabel": "Dimensional Matter II",
-  "summary": "The tide of the wood pulls back, and takes with it whatever stood before it.",
+  "name": "Keeper of the Glade",
+  "typeLabel": "Entity: Auros",
+  "summary": "Every time it wakes, the glade blooms.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "matters": {
-    "dimensionalTitle": "Dimensional Matter · 2nd grade",
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Ebbtide",
-    "effect": {
-      "name": "Effect",
-      "text": "Return up to 2 opponent Entities to their owners' hands. Their assigned Objects go to the Abyss."
+    "name": "Keeper of the Glade",
+    "keyword": {
+      "name": "Stasis",
+      "rules": "won't die blocking: stays permanently tapped"
     },
-    "flavor": "What the tide grants, the tide takes back."
+    "bloom": {
+      "trigger": "Effect",
+      "text": "The first time each turn this Entity is untapped by an effect, you gain 2 HP."
+    },
+    "flavor": "It sleeps often. It never sleeps in vain."
   }
 }

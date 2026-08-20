@@ -3,7 +3,7 @@
   "id": "RBF-010",
   "setId": "rubyfront-core",
   "collectorNumber": "010",
-  "slug": "field-surgeon",
+  "slug": "emissary-of-the-heirs",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,8 +16,7 @@
   "tags": [
     "entity",
     "human",
-    "burn",
-    "aggro"
+    "tutor"
   ],
   "rulesReference": "MANUALE.md §6.2, §8.2",
   "faces": [
@@ -27,24 +26,33 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 1,
-        "fluxCost": 3
+        "power": 2,
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "ember",
-          "displayKey": "ember",
+          "id": "herald",
+          "displayKey": "herald",
           "event": "on_enter_field",
           "effect": {
-            "type": "lose_health",
-            "target": {
-              "cardType": "rubyfront",
-              "controller": "opponent"
+            "type": "search_card",
+            "from": {
+              "zone": "deck",
+              "owner": "controller"
             },
-            "amount": 1
+            "filter": {
+              "cardType": "entity",
+              "race": "human"
+            },
+            "reveal": true,
+            "to": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "shuffle": true
           }
         }
       ],

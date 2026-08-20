@@ -1,22 +1,25 @@
 {
-  "name": "Guardiana del Varco",
-  "typeLabel": "Entità: Auros",
-  "summary": "Apre il varco sotto i piedi di chi le sta davanti: un corpo che scende e uno che torna in mano.",
+  "name": "Riflusso",
+  "typeLabel": "Materia Dimensionale II",
+  "summary": "La marea del bosco torna tutta insieme: ogni Auros si rialza.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Guardiana del Varco",
-    "displace": {
-      "trigger": "Quando entra in campo",
-      "text": "Riporta un'Entità avversaria nella mano del suo proprietario. L'Oggetto che aveva assegnato va nell'Abisso."
+    "name": "Riflusso",
+    "effect": {
+      "name": "Effetto",
+      "text": "Stappa tutte le Entità Auros che controlli."
     },
-    "flavor": "Un passo indietro. Poi il terreno non c'è più."
+    "flavor": "Ciò che la marea concede, la marea riprende."
   }
 }

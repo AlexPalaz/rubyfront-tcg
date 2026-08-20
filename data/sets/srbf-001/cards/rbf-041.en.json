@@ -1,0 +1,26 @@
+{
+  "name": "Fracture of the Trail",
+  "typeLabel": "Destructive Matter I",
+  "summary": "The trail snaps beneath the enemy beast.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "matters": {
+    "destructiveTitle": "Destructive Matter · 1st grade",
+    "destructiveAria": "Destructive"
+  },
+  "face": {
+    "name": "Fracture of the Trail",
+    "effect": {
+      "name": "Effect",
+      "text": "The opponent's Rubyfront loses 2 HP."
+    },
+    "flavor": "Even the wood can bite."
+  }
+}

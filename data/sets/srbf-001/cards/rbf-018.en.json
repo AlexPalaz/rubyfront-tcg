@@ -1,7 +1,7 @@
 {
-  "name": "Archivist",
+  "name": "Breach Veteran",
   "typeLabel": "Entity: Human",
-  "summary": "He grows with the ranks: how much he is worth is decided by how many of his own there are.",
+  "summary": "The only one who teaches by defending: every fallen attacker is worth a card.",
   "ui": {
     "face": "Entity"
   },
@@ -9,14 +9,15 @@
     "illustration": "Illustration",
     "hp": "HP",
     "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "counterattack": "Counterattack"
   },
   "face": {
-    "name": "Archivist",
-    "effect": {
-      "name": "Effect",
-      "text": "Archivist gets +1 Power for each other Human Entity you control."
+    "name": "Breach Veteran",
+    "lesson": {
+      "trigger": "When it counterattacks",
+      "text": "If the attacker dies in the clash, draw a card: the covering that follows is the price of the lesson."
     },
-    "flavor": "He writes the names of those who went on."
+    "flavor": "She has blocked more attacks than you have seen."
   }
 }

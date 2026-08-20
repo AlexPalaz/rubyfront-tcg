@@ -3,8 +3,8 @@
   "id": "RBF-019",
   "setId": "rubyfront-core",
   "collectorNumber": "019",
-  "slug": "breach-veteran",
-  "type": "entity",
+  "slug": "veil-of-the-first",
+  "type": "object",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,43 +14,45 @@
     "en"
   ],
   "tags": [
-    "entity",
+    "object",
     "human",
-    "counterattack"
+    "protection"
   ],
-  "rulesReference": "MANUALE.md §6.3",
+  "rulesReference": "MANUALE.md §3.1",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "object",
+      "kind": "object",
       "displayKey": "face",
-      "race": "human",
       "stats": {
-        "power": 2,
-        "fluxCost": 3,
-        "counterattack": 2
+        "fluxCost": 1
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "lesson",
-          "displayKey": "lesson",
-          "event": "on_counterattack",
+          "id": "veil",
+          "displayKey": "effect",
+          "event": "while_assigned",
           "effect": {
-            "type": "draw_card",
+            "type": "protect",
             "target": {
-              "controller": "controller"
+              "cardType": "entity",
+              "scope": "assigned"
             },
-            "count": 1,
             "details": {
-              "onlyIfAttackerDies": true
+              "from": "opponent_matters"
             }
           }
         }
       ],
-      "actions": []
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "race": "human",
+        "controller": "controller"
+      }
     }
   ],
   "designNotes": "rbf-019.md"

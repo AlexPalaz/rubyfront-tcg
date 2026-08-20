@@ -1,7 +1,7 @@
 {
-  "name": "Second Surge",
-  "typeLabel": "Dynamic Matter II",
-  "summary": "The turn where a single body strikes twice.",
+  "name": "Laceration",
+  "typeLabel": "Destructive Matter II",
+  "summary": "The wound that never closes, but only while the Front stays crowded.",
   "ui": {
     "face": "Matter"
   },
@@ -15,15 +15,15 @@
     }
   },
   "face": {
-    "name": "Second Surge",
+    "name": "Laceration",
+    "flavor": "Some wounds do not close.",
     "effect": {
       "name": "Effect",
-      "text": "An Entity of your choice that has already attacked this turn may attack a second time."
-    },
-    "flavor": "The first blow opens. The second closes."
+      "text": "At the start of your turn, if you control at least 3 Human Entities, the opposing Rubyfront loses 2 HP. The wound keeps bleeding as long as the Front stays crowded, and this loss does not send it back to the Recall Zone."
+    }
   },
   "matters": {
-    "dynamicTitle": "Dynamic Matter · 2nd grade",
-    "dynamicAria": "Dynamic"
+    "destructiveTitle": "Destructive Matter · 2nd grade",
+    "destructiveAria": "Destructive"
   }
 }

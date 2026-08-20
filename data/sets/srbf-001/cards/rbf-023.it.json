@@ -1,26 +1,58 @@
 {
-  "name": "Vendicatrice di Acciaio",
-  "typeLabel": "Entità: Umano",
-  "summary": "Un corpo che non conviene attaccare: da sola punisce chi la colpisce, accanto alla bestia lo punisce a Potenza 3.",
+  "name": "Rubifronte del Bosco Errante",
+  "typeLabel": "Rubyfront bifronte",
+  "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi e li risveglia, un respiro alla volta.",
   "ui": {
-    "face": "Entità"
+    "faceA": "Faccia A — Rubyfront",
+    "faceB": "Faccia B — Nexus"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
-  },
-  "face": {
-    "name": "Vendicatrice di Acciaio",
-    "effect": {
-      "name": "Effetto",
-      "text": "Finché controlli il Rubifronte del Patto, la Vendicatrice di Acciaio prende +2 Potenza."
-    },
-    "flavor": "Colpiscila, se osi. Poi corri.",
-    "keyword": {
-      "name": "Vendetta",
-      "rules": "bloccando, uccide chi ha Potenza inferiore"
+    "nexusRequirement": {
+      "label": "Requisito Nexus",
+      "text": "Controlla almeno 3 Entità Auros e l'avversario ha già perso almeno 8 PV dal suo Rubyfront, solo nella tua Fase di Preparazione"
     }
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale",
+    "destructiveTitle": "Materia Distruttiva",
+    "destructiveAria": "Distruttiva"
+  },
+  "faceA": {
+    "name": "Rubifronte del Bosco Errante",
+    "keyword": {
+      "name": "Furia",
+      "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
+    },
+    "effect": {
+      "name": "Memoria del Bosco",
+      "text": "La prima volta in ogni tuo turno che un'Entità che controlli viene stappata da un effetto, guadagni 1 PV.",
+      "trigger": "Effetto"
+    },
+    "abilities": {
+      "woodBreath": {
+        "name": "Respiro del Bosco",
+        "text": "stappa un'Entità Auros che controlli."
+      }
+    },
+    "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
+  },
+  "faceB": {
+    "name": "Radura Ripiegata",
+    "nexusAria": "Nexus",
+    "effect": {
+      "name": "Memoria della Radura",
+      "text": "La prima volta in ogni tuo turno che un'Entità che controlli viene stappata da un effetto, pesca una carta.",
+      "trigger": "Effetto"
+    },
+    "abilities": {
+      "woodBreath": {
+        "name": "Respiro del Bosco",
+        "text": "stappa un'Entità Auros che controlli."
+      }
+    },
+    "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che dorme si risveglia."
   }
 }

@@ -1,26 +1,58 @@
 {
-  "name": "Steel Avenger",
-  "typeLabel": "Entity: Human",
-  "summary": "A body it does not pay to attack: on her own she punishes whoever strikes her, beside the beast she punishes at Power 3.",
+  "name": "Rubyfront of the Wandering Wood",
+  "typeLabel": "Double-faced Rubyfront",
+  "summary": "The beast of the walking forest: it watches over its Auros in stasis and wakes them, one breath at a time.",
   "ui": {
-    "face": "Entity"
+    "faceA": "Face A — Rubyfront",
+    "faceB": "Face B — Nexus"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
-  },
-  "face": {
-    "name": "Steel Avenger",
-    "effect": {
-      "name": "Effect",
-      "text": "As long as you control the Rubyfront of the Pact, Steel Avenger gets +2 Power."
-    },
-    "flavor": "Strike her, if you dare. Then run.",
-    "keyword": {
-      "name": "Revenge",
-      "rules": "blocking, it kills a lower-Power attacker"
+    "nexusRequirement": {
+      "label": "Nexus requirement",
+      "text": "Control at least 3 Auros Entities and the opponent has already lost at least 8 HP from their Rubyfront, only in your Preparation Phase"
     }
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional",
+    "destructiveTitle": "Destructive Matter",
+    "destructiveAria": "Destructive"
+  },
+  "faceA": {
+    "name": "Rubyfront of the Wandering Wood",
+    "keyword": {
+      "name": "Fury",
+      "rules": "d20 ≥ 12 before every action · failure −1 HP"
+    },
+    "effect": {
+      "name": "Memory of the Wood",
+      "text": "The first time each of your turns an Entity you control is untapped by an effect, you gain 1 HP.",
+      "trigger": "Effect"
+    },
+    "abilities": {
+      "woodBreath": {
+        "name": "Breath of the Wood",
+        "text": "untap an Auros Entity you control."
+      }
+    },
+    "flavor": "You do not find the wood. The wood decides to find you."
+  },
+  "faceB": {
+    "name": "Folded Glade",
+    "nexusAria": "Nexus",
+    "effect": {
+      "name": "Memory of the Glade",
+      "text": "The first time each of your turns an Entity you control is untapped by an effect, draw a card.",
+      "trigger": "Effect"
+    },
+    "abilities": {
+      "woodBreath": {
+        "name": "Breath of the Wood",
+        "text": "untap an Auros Entity you control."
+      }
+    },
+    "flavor": "Here space folds upon itself, and what sleeps awakens."
   }
 }

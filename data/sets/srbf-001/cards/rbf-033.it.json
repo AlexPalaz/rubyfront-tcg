@@ -1,13 +1,14 @@
 {
-  "name": "Passo nel Vuoto",
-  "typeLabel": "Materia Dimensionale I",
-  "summary": "L'attaccante fa un passo — e il terreno non c'è. La difesa degli Auros è non essere lì.",
+  "name": "Guardiano delle Radici",
+  "typeLabel": "Entità: Auros",
+  "summary": "Regge la linea e non cade: quando dovrebbe morire, mette radici.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "matters": {
@@ -15,11 +16,11 @@
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Passo nel Vuoto",
-    "effect": {
-      "name": "Effetto",
-      "text": "Riporta un'Entità avversaria nella mano del suo proprietario; puoi giocarla come blocco contro un attaccante, che così viene rimosso dall'ondata. L'Oggetto assegnato va nell'Abisso."
+    "name": "Guardiano delle Radici",
+    "keyword": {
+      "name": "Stasi",
+      "rules": "bloccando non muore: resta tappata per sempre"
     },
-    "flavor": "Non pararono il colpo. Tolsero il bersaglio."
+    "flavor": "Le radici non chiedono permesso. Restano."
   }
 }

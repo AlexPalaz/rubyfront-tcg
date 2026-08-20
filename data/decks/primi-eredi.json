@@ -21,39 +21,11 @@
       "count": 1
     },
     {
-      "card": "RBF-021",
+      "card": "RBF-020",
       "count": 3
     },
     {
-      "card": "RBF-009",
-      "count": 3
-    },
-    {
-      "card": "RBF-023",
-      "count": 3
-    },
-    {
-      "card": "RBF-007",
-      "count": 3
-    },
-    {
-      "card": "RBF-012",
-      "count": 3
-    },
-    {
-      "card": "RBF-004",
-      "count": 3
-    },
-    {
-      "card": "RBF-006",
-      "count": 3
-    },
-    {
-      "card": "RBF-010",
-      "count": 3
-    },
-    {
-      "card": "RBF-018",
+      "card": "RBF-008",
       "count": 3
     },
     {
@@ -61,7 +33,35 @@
       "count": 3
     },
     {
-      "card": "RBF-016",
+      "card": "RBF-006",
+      "count": 3
+    },
+    {
+      "card": "RBF-011",
+      "count": 3
+    },
+    {
+      "card": "RBF-004",
+      "count": 3
+    },
+    {
+      "card": "RBF-005",
+      "count": 3
+    },
+    {
+      "card": "RBF-009",
+      "count": 3
+    },
+    {
+      "card": "RBF-017",
+      "count": 3
+    },
+    {
+      "card": "RBF-021",
+      "count": 3
+    },
+    {
+      "card": "RBF-015",
       "count": 3
     },
     {
@@ -73,11 +73,11 @@
       "count": 1
     },
     {
-      "card": "RBF-014",
+      "card": "RBF-013",
       "count": 2
     },
     {
-      "card": "RBF-015",
+      "card": "RBF-014",
       "count": 2
     }
   ]

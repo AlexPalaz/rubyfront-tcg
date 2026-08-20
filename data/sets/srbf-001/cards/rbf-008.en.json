@@ -1,7 +1,7 @@
 {
-  "name": "Perimeter Lookout",
+  "name": "Bulkhead Warden",
   "typeLabel": "Entity: Human",
-  "summary": "She does not hit hard: she marks the target, and whoever stands beside her hits better.",
+  "summary": "Two Power for a single Flux: the price is that he spends his first turn taking position.",
   "ui": {
     "face": "Entity"
   },
@@ -12,12 +12,12 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Perimeter Lookout",
-    "spark": {
+    "name": "Bulkhead Warden",
+    "bulkhead": {
       "trigger": "When it enters the field",
-      "text": "Another Human Entity of your choice gets +1 Power until end of turn. The Lookout marks the target: the bonus is never for herself."
+      "text": "Bulkhead Warden enters the Front already tapped, and stays that way until you untap him."
     },
-    "flavor": "She saw the end coming. She whistled twice."
+    "flavor": "No one gets through. Not today."
   },
   "matters": {
     "dynamicTitle": "Dynamic Matter · 1st grade",

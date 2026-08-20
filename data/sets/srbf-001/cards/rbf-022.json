@@ -3,8 +3,8 @@
   "id": "RBF-022",
   "setId": "rubyfront-core",
   "collectorNumber": "022",
-  "slug": "heirs-banner",
-  "type": "matter",
+  "slug": "steel-avenger",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,49 +14,43 @@
     "en"
   ],
   "tags": [
-    "matter",
-    "dynamic",
-    "grade-1",
-    "permanent",
-    "anthem"
+    "entity",
+    "human",
+    "revenge",
+    "aggro"
   ],
-  "rulesReference": "MANUALE.md §7.2",
+  "rulesReference": "MANUALE.md §8.1",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "dynamic",
-        "grade": 1
-      },
-      "behavior": "permanent",
+      "race": "human",
       "stats": {
-        "fluxCost": 3
+        "power": 1,
+        "fluxCost": 1
       },
       "enablesMatters": [],
-      "keywords": [],
+      "keywords": [
+        {
+          "id": "revenge"
+        }
+      ],
       "requirements": {},
       "triggers": [
         {
-          "id": "march",
+          "id": "grief",
           "displayKey": "effect",
-          "event": "on_turn_start",
+          "event": "while_in_play",
           "effect": {
-            "type": "empower",
+            "type": "modify_power",
             "target": {
-              "cardType": "entity",
-              "race": "human",
-              "controller": "controller",
-              "min": 1,
-              "max": 1
+              "scope": "self"
             },
-            "powerBonus": 2,
-            "duration": "until_end_of_turn",
+            "amount": 2,
+            "duration": "permanent",
             "details": {
-              "grantsWithRubyfrontDeployed": [
-                "surge"
-              ]
+              "requiresRubyfrontDeployed": true
             }
           }
         }

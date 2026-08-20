@@ -1,25 +1,26 @@
 {
-  "name": "Il Bosco Ricorda",
-  "typeLabel": "Materia Dimensionale II",
-  "summary": "La foresta non dimentica i suoi figli: ogni alba te ne offre uno.",
+  "name": "Custode del Risveglio",
+  "typeLabel": "Entità: Auros",
+  "summary": "Passa tra i dormienti e li tocca: un Auros alla volta, il bosco si rialza.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 2° grado",
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Il Bosco Ricorda",
-    "effect": {
-      "name": "Effetto",
-      "text": "All'inizio di ogni tuo turno guarda la prima carta del tuo mazzo: se è un'Entità Auros, puoi prenderla in mano."
+    "name": "Custode del Risveglio",
+    "wake": {
+      "trigger": "Quando entra in campo",
+      "text": "Puoi stappare un'altra Entità Auros che controlli."
     },
-    "flavor": "Ogni albero è un nome. Ogni nome torna, prima o poi."
+    "flavor": "Un tocco, e l'inverno finisce."
   }
 }

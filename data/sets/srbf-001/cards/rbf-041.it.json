@@ -1,0 +1,26 @@
+{
+  "name": "Frattura del Sentiero",
+  "typeLabel": "Materia Distruttiva I",
+  "summary": "Il sentiero si spezza sotto la bestia nemica.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 1° grado",
+    "destructiveAria": "Distruttiva"
+  },
+  "face": {
+    "name": "Frattura del Sentiero",
+    "effect": {
+      "name": "Effetto",
+      "text": "Il Rubyfront avversario perde 2 PV."
+    },
+    "flavor": "Anche il bosco sa mordere."
+  }
+}

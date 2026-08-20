@@ -3,11 +3,12 @@
   "id": "RBF-025",
   "setId": "rubyfront-core",
   "collectorNumber": "025",
-  "slug": "undergrowth-lookout",
+  "slug": "valaris-first-of-the-wood",
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 3,
+  "deckLimit": 1,
+  "unique": true,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -17,10 +18,13 @@
     "entity",
     "auros",
     "dimensional",
-    "scry",
+    "grade-2",
+    "legendary",
+    "requiem",
+    "untap",
     "midrange"
   ],
-  "rulesReference": "MANUALE.md §7, §8.2",
+  "rulesReference": "MANUALE.md §3.1, §5, §7, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -28,36 +32,67 @@
       "displayKey": "face",
       "race": "auros",
       "stats": {
-        "power": 1,
-        "fluxCost": 1
+        "power": 5,
+        "fluxCost": 6
       },
       "enablesMatters": [
         {
           "type": "dimensional",
-          "maxGrade": 1
+          "maxGrade": 2
         }
       ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "scout",
-          "displayKey": "scout",
+          "id": "first-call",
+          "displayKey": "firstCall",
           "event": "on_enter_field",
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "race": "auros",
+              "zone": "requiem",
               "owner": "controller",
-              "position": "top",
-              "count": 1
+              "min": 1,
+              "max": 1,
+              "conditions": [
+                {
+                  "stat": "flux_cost",
+                  "operator": "lte",
+                  "value": 3
+                }
+              ]
             },
-            "to": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "bottom"
+            "destination": {
+              "zone": "front",
+              "owner": "controller"
+            }
+          }
+        },
+        {
+          "id": "waking-boon",
+          "displayKey": "wakingBoon",
+          "event": "on_untap",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "scope": "untapped_entity"
             },
-            "optional": true
+            "amount": 1,
+            "duration": "until_end_of_turn",
+            "details": {
+              "oncePerTurn": true,
+              "onlyControllerTurn": true,
+              "untappedByEffect": true,
+              "watched": {
+                "cardType": "entity",
+                "race": "auros",
+                "controller": "controller",
+                "excludeSelf": true
+              }
+            }
           }
         }
       ],

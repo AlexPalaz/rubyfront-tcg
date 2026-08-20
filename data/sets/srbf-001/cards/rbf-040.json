@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-040",
+  "setId": "rubyfront-core",
+  "collectorNumber": "040",
+  "slug": "veil-of-the-glade",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dimensional",
+    "grade-2",
+    "reactive",
+    "die",
+    "pump"
+  ],
+  "rulesReference": "MANUALE.md §7, §8.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dimensional",
+        "grade": 2
+      },
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "veil",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "empower",
+            "target": {
+              "cardType": "entity",
+              "race": "auros",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
+            },
+            "duration": "until_end_of_turn",
+            "details": {
+              "die": "d6",
+              "byRoll": {
+                "1-2": {
+                  "powerBonus": 1,
+                  "mayUntap": true
+                },
+                "3-4": {
+                  "powerBonus": 2
+                },
+                "5-6": {
+                  "powerBonus": 1,
+                  "gainHealth": 1
+                }
+              }
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-040.md"
+}

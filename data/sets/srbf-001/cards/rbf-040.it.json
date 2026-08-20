@@ -1,0 +1,26 @@
+{
+  "name": "Velo della Radura",
+  "typeLabel": "Materia Dimensionale II",
+  "summary": "Il velo cade su un Auros e il dado decide il dono.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Velo della Radura",
+    "effect": {
+      "name": "Effetto",
+      "text": "Scegli un'Entità Auros che controlli e lancia un d6: con 1–2 prende +1 Potenza fino alla fine del turno e puoi stapparla; con 3–4 prende +2 Potenza fino alla fine del turno; con 5–6 prende +1 Potenza fino alla fine del turno e guadagni 1 PV."
+    },
+    "flavor": "La radura non promette. Offre."
+  }
+}

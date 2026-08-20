@@ -3,8 +3,8 @@
   "id": "RBF-034",
   "setId": "rubyfront-core",
   "collectorNumber": "034",
-  "slug": "the-wood-remembers",
-  "type": "matter",
+  "slug": "keeper-of-the-waking",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,52 +14,45 @@
     "en"
   ],
   "tags": [
-    "matter",
+    "entity",
+    "auros",
     "dimensional",
-    "grade-2",
-    "permanent",
-    "card-advantage",
-    "midrange"
+    "untap"
   ],
-  "rulesReference": "MANUALE.md §7.2, §8.2",
+  "rulesReference": "MANUALE.md §7, §8.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "dimensional",
-        "grade": 2
-      },
-      "behavior": "permanent",
+      "race": "auros",
       "stats": {
+        "power": 1,
         "fluxCost": 3
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "remember",
-          "displayKey": "effect",
-          "event": "on_turn_start",
+          "id": "wake",
+          "displayKey": "wake",
+          "event": "on_enter_field",
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top",
-              "count": 1
-            },
-            "to": {
-              "zone": "hand",
-              "owner": "controller"
-            },
-            "optional": true,
-            "details": {
-              "onlyIf": {
-                "cardType": "entity",
-                "race": "auros"
+            "type": "untap",
+            "target": {
+              "cardType": "entity",
+              "race": "auros",
+              "controller": "controller",
+              "min": 0,
+              "max": 1,
+              "details": {
+                "excludeSelf": true
               }
             }
           }

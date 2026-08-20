@@ -1,13 +1,14 @@
 {
-  "name": "Step into the Void",
-  "typeLabel": "Dimensional Matter I",
-  "summary": "The attacker takes a step — and the ground is gone. The Auros defend by not being there.",
+  "name": "Warden of the Roots",
+  "typeLabel": "Entity: Auros",
+  "summary": "It holds the line and does not fall: when it should die, it takes root.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "matters": {
@@ -15,11 +16,11 @@
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Step into the Void",
-    "effect": {
-      "name": "Effect",
-      "text": "Return an opponent Entity to its owner's hand; you may play it as a block against an attacker, removing it from the wave. Its assigned Object goes to the Abyss."
+    "name": "Warden of the Roots",
+    "keyword": {
+      "name": "Stasis",
+      "rules": "won't die blocking: stays permanently tapped"
     },
-    "flavor": "They did not parry the blow. They removed the target."
+    "flavor": "Roots ask no permission. They stay."
   }
 }

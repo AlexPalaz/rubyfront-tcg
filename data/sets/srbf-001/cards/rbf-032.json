@@ -3,8 +3,8 @@
   "id": "RBF-032",
   "setId": "rubyfront-core",
   "collectorNumber": "032",
-  "slug": "path-among-the-boughs",
-  "type": "matter",
+  "slug": "wandering-sprout",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,55 +14,74 @@
     "en"
   ],
   "tags": [
-    "matter",
+    "entity",
+    "auros",
     "dimensional",
-    "grade-1",
-    "selection",
-    "midrange"
+    "scry",
+    "heal"
   ],
   "rulesReference": "MANUALE.md §7, §8.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "dimensional",
-        "grade": 1
-      },
-      "behavior": "normal",
+      "race": "auros",
       "stats": {
-        "fluxCost": 2
+        "power": 1,
+        "fluxCost": 1
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "path",
-          "displayKey": "effect",
-          "event": "on_resolve",
+          "id": "nourish",
+          "displayKey": "nourish",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "cardType": "rubyfront",
+              "controller": "controller"
+            },
+            "amount": 2,
+            "conditions": [
+              {
+                "type": "controls_card",
+                "owner": "controller",
+                "min": 2,
+                "filter": {
+                  "cardType": "entity",
+                  "race": "auros"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "peek",
+          "displayKey": "peek",
+          "event": "on_enter_field",
           "effect": {
             "type": "look_and_optionally_move",
             "from": {
               "zone": "deck",
               "owner": "controller",
               "position": "top",
-              "count": 2
+              "count": 1
             },
             "to": {
-              "zone": "hand",
-              "owner": "controller"
+              "zone": "deck",
+              "owner": "controller",
+              "position": "bottom"
             },
-            "optional": false,
-            "details": {
-              "keepToHand": 1,
-              "rest": {
-                "zone": "deck",
-                "owner": "controller",
-                "position": "bottom"
-              }
-            }
+            "optional": true
           }
         }
       ],

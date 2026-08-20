@@ -1,7 +1,7 @@
 {
-  "name": "Archivista",
+  "name": "Veterana della Breccia",
   "typeLabel": "Entità: Umano",
-  "summary": "Cresce con la schiera: quanto vale lo decide quanti sono i suoi.",
+  "summary": "L’unica che insegna difendendo: ogni attaccante caduto vale una carta.",
   "ui": {
     "face": "Entità"
   },
@@ -9,14 +9,15 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "counterattack": "Contrattacco"
   },
   "face": {
-    "name": "Archivista",
-    "effect": {
-      "name": "Effetto",
-      "text": "L’Archivista prende +1 Potenza per ogni altra Entità Umana che controlli."
+    "name": "Veterana della Breccia",
+    "lesson": {
+      "trigger": "Quando contrattacca",
+      "text": "Se l’attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
     },
-    "flavor": "Scrive i nomi di chi è passato oltre."
+    "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
   }
 }

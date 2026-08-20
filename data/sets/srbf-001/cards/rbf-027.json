@@ -3,8 +3,8 @@
   "id": "RBF-027",
   "setId": "rubyfront-core",
   "collectorNumber": "027",
-  "slug": "perennial-sentinel",
-  "type": "entity",
+  "slug": "step-into-the-void",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,36 +14,75 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
+    "matter",
     "dimensional",
-    "stasis",
-    "defender",
+    "grade-1",
+    "removal",
+    "requiem",
+    "die",
     "midrange"
   ],
-  "rulesReference": "MANUALE.md §7, §8.1",
+  "rulesReference": "MANUALE.md §3.1, §5, §7.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
+      "matter": {
+        "type": "dimensional",
+        "grade": 1
+      },
+      "behavior": "normal",
       "stats": {
-        "power": 3,
-        "fluxCost": 2
+        "fluxCost": 3
       },
       "enablesMatters": [],
-      "keywords": [
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
         {
-          "id": "stasis"
+          "id": "step",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "destination": {
+              "zone": "requiem",
+              "owner": "card_owner"
+            },
+            "details": {
+              "isDeath": false,
+              "triggersLeaveField": true,
+              "objectFollows": false,
+              "objectTo": {
+                "zone": "abyss",
+                "owner": "card_owner"
+              },
+              "then": {
+                "type": "lose_health",
+                "target": {
+                  "cardType": "rubyfront",
+                  "controller": "controller"
+                },
+                "die": "d6",
+                "amountByRoll": {
+                  "1-2": 4,
+                  "3-4": 3,
+                  "5-6": 2
+                },
+                "selfInflicted": true
+              }
+            }
+          }
         }
       ],
-      "requirements": {},
-      "triggers": [],
-      "actions": [],
-      "restrictions": {
-        "cannotAttack": true
-      }
+      "actions": []
     }
   ],
   "designNotes": "rbf-027.md"
