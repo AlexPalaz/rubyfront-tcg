@@ -67,6 +67,7 @@ export const COPY = {
     deck: "Mazzo",
     downloadDeck: "Scarica .txt",
     printDeck: "Stampa PDF (proxy)",
+    printDeckBorderless: "Stampa proxy senza bordi",
     printTitle: "Stampa proxy",
     printSave: "Salva PDF / Stampa",
     printHint: "Nel dialogo di stampa: formato A4, margini \"Nessuno\", grafica di sfondo attiva, destinazione \"Salva come PDF\". Le carte escono a 63×88 mm, la misura reale.",
@@ -156,6 +157,7 @@ export const COPY = {
     deck: "Deck",
     downloadDeck: "Download .txt",
     printDeck: "Print PDF (proxies)",
+    printDeckBorderless: "Print borderless proxies",
     printTitle: "Print proxies",
     printSave: "Save PDF / Print",
     printHint: "In the print dialog: A4 paper, margins \"None\", background graphics on, destination \"Save as PDF\". Cards come out at 63×88 mm, actual size.",
@@ -216,7 +218,7 @@ export const setRoute = (set, localeId) => uiRoute("set.html", { set: set.id }, 
 export const cardRoute = (card, localeId, deckId) => uiRoute("card.html", { card: card.id, deck: deckId }, localeId);
 export const themeIndexRoute = (card, localeId) => uiRoute("card-themes.html", { card: card.id }, localeId);
 export const deckRoute = (deck, localeId) => uiRoute("deck.html", { deck: deck.id }, localeId);
-export const deckPrintRoute = (deck, localeId, themeId) => uiRoute("deck-print.html", { deck: deck.id, theme: themeId }, localeId);
+export const deckPrintRoute = (deck, localeId, themeId, mode) => uiRoute("deck-print.html", { deck: deck.id, theme: themeId, mode }, localeId);
 export const themedCardRoute = (card, localeId, themeId, deckId) =>
   uiRoute("card-theme.html", { card: card.id, theme: themeId, deck: deckId }, localeId);
 

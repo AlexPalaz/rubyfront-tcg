@@ -100,6 +100,12 @@ function renderPrintPage(resource) {
   }
   gapLabel.append(`${copy.printGap} `, gapSelect);
 
+  // ?mode=borderless: carte attaccate (spazio 0) e nessun segno di taglio.
+  if (params.get("mode") === "borderless") {
+    gapSelect.value = "0";
+    marksSelect.value = "none";
+  }
+
   const printBtn = element("button", "button", copy.printSave);
   printBtn.type = "button";
   printBtn.addEventListener("click", () => window.print());

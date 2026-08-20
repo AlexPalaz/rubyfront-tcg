@@ -132,8 +132,12 @@ function renderDeck(resource) {
   // vedono a schermo prima di salvare il PDF.
   const printBtn = element("a", "button deck-print");
   printBtn.target = "_blank";
+  // Variante "senza bordi": carte attaccate, zero spazio, niente crocini
+  // (si taglia lungo le linee di contatto).
+  const printBorderlessBtn = element("a", "button deck-print");
+  printBorderlessBtn.target = "_blank";
   const hint = element("code");
-  controls.append(themeLabel, themeSelect, languageSlot, downloadBtn, printBtn, hint);
+  controls.append(themeLabel, themeSelect, languageSlot, downloadBtn, printBtn, printBorderlessBtn, hint);
 
   const grid = element("section", "deck-grid");
   grid.setAttribute("aria-label", "Deck list");
@@ -173,7 +177,9 @@ function renderDeck(resource) {
     themeLabel.textContent = copy.theme;
     downloadBtn.textContent = copy.downloadDeck;
     printBtn.textContent = copy.printDeck;
+    printBorderlessBtn.textContent = copy.printDeckBorderless;
     printBtn.href = deckPrintRoute(resource, localeId, themeId);
+    printBorderlessBtn.href = deckPrintRoute(resource, localeId, themeId, "borderless");
     languageSlot.replaceChildren(languagePicker(resource, localeId, applyLocale));
 
     grid.replaceChildren();
@@ -209,6 +215,7 @@ function renderDeck(resource) {
     themeSelect.value = themeId;
     hint.textContent = `?deck=${resource.id}&theme=${themeId}`;
     printBtn.href = deckPrintRoute(resource, localeId, themeId);
+    printBorderlessBtn.href = deckPrintRoute(resource, localeId, themeId, "borderless");
     setUrlParameter("theme", themeId);
   }
 
