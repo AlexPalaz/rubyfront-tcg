@@ -166,7 +166,11 @@
   .matter { display: flex; align-items: center; gap: .45em; border: 1px solid var(--frame);
     background: var(--panel); padding: .18em .5em; font-size: 1em; color: var(--ink); }
   .matter svg { width: 1.4em; height: 1.4em; display: block; }
-  .matter b { color: #f3efe6; font-weight: 700; }
+  /* Il numerale romano del grado è in maiuscole: il centro ottico delle
+     maiuscole sta sopra il centro del corpo del carattere (nei serif usati
+     dai temi, Palatino/Iowan, di ~0.1em), quindi il flex lo allineerebbe
+     troppo in alto rispetto al medaglione. line-height 1 + piccolo scarto. */
+  .matter b { color: #f3efe6; font-weight: 700; line-height: 1; position: relative; top: .09em; }
   .card.light-theme .matter b { color: #3a3430; }
   /* Simbolo a fianco della cifra, non dietro: le spade incrociate dentro il
      quadrato passavano sotto il numero. Larghezza libera entro la colonna della
