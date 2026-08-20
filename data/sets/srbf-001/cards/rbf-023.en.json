@@ -11,7 +11,7 @@
     "hp": "HP",
     "nexusRequirement": {
       "label": "Nexus requirement",
-      "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Then send that Entity to your Requiem Zone. That card cannot return to the field for the rest of the game"
+      "text": "You control at least 4 Auros and this turn one of your Auros was untapped from Stasis. That Auros goes to the Requiem and can never return to the field"
     }
   },
   "matters": {

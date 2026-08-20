@@ -11,7 +11,7 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi. Poi richiama quell'Entità nella tua Zona di Requiem. Quella carta non può tornare in campo per il resto della partita"
+      "text": "Controlli almeno 4 Auros e in questo turno un tuo Auros è stato stappato dalla Stasi. Quell'Auros va in Requiem e non può più tornare in campo"
     }
   },
   "matters": {
