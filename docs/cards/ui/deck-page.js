@@ -37,6 +37,45 @@ function localeFromParams(resource) {
   return resource.locales[requested] ? requested : resource.defaultLocale;
 }
 
+// Lista testuale del mazzo: intestazione + una sezione per tipo di carta.
+function buildDeckText(resource, localeId) {
+  const en = localeId === "en";
+  const total = resource.cards.reduce((sum, entry) => sum + entry.count, 0);
+  const headings = en
+    ? { rubyfront: "Rubyfront", entity: "Entities", matter: "Matters", object: "Objects" }
+    : { rubyfront: "Rubyfront", entity: "Entità", matter: "Materie", object: "Oggetti" };
+  const groups = {};
+  for (const entry of resource.cards) {
+    const card = getCardById(entry.card);
+    if (!card) continue;
+    if (!groups[card.type]) groups[card.type] = [];
+    groups[card.type].push({ count: entry.count, id: card.id, name: localized(card, localeId).name });
+  }
+  const lines = [`${localized(resource, localeId).name} — ${total} ${en ? "cards" : "carte"}`, ""];
+  for (const type of ["rubyfront", "entity", "matter", "object"]) {
+    const list = groups[type];
+    if (!list || !list.length) continue;
+    const groupTotal = list.reduce((sum, card) => sum + card.count, 0);
+    lines.push(`# ${headings[type] ?? type} (${groupTotal})`);
+    for (const card of list) lines.push(`${card.count}x ${card.id} ${card.name}`);
+    lines.push("");
+  }
+  return lines.join("\n").trimEnd() + "\n";
+}
+
+// Genera il file .txt e avvia il download del browser.
+function downloadDeckText(resource, localeId) {
+  const blob = new Blob([buildDeckText(resource, localeId)], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${resource.id}.txt`;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
 function renderDeck(resource) {
   let localeId = localeFromParams(resource);
   let themeId = isThemeId(params.get("theme")) ? params.get("theme") : DEFAULT_THEME;
@@ -58,8 +97,11 @@ function renderDeck(resource) {
     themeSelect.append(option);
   }
   const languageSlot = element("span");
+  const downloadBtn = element("button", "button secondary deck-download");
+  downloadBtn.type = "button";
+  downloadBtn.addEventListener("click", () => downloadDeckText(resource, localeId));
   const hint = element("code");
-  controls.append(themeLabel, themeSelect, languageSlot, hint);
+  controls.append(themeLabel, themeSelect, languageSlot, downloadBtn, hint);
 
   const grid = element("section", "deck-grid");
   grid.setAttribute("aria-label", "Deck list");
@@ -92,6 +134,7 @@ function renderDeck(resource) {
       [copy.status, copy[resource.status] ?? resource.status]
     ]));
     themeLabel.textContent = copy.theme;
+    downloadBtn.textContent = copy.downloadDeck;
     languageSlot.replaceChildren(languagePicker(resource, localeId, applyLocale));
 
     grid.replaceChildren();
