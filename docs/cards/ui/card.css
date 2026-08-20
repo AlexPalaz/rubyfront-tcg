@@ -159,7 +159,8 @@
      inferiore i suoi discendenti finiscono dentro il padding e la riga tocca la
      cornice — su ogni carta, non solo sulle più dense. */
   .card-id { position: absolute; right: .5em; bottom: .2em; font-size: .58em; line-height: 1;
-    letter-spacing: .08em; color: var(--muted); font-style: normal; font-weight: 600; }
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; letter-spacing: .08em;
+    color: var(--muted); font-style: normal; font-weight: 600; }
   .flavor { margin-top: auto; margin-bottom: .4em; text-align: left; font-style: italic; font-size: .92em; color: var(--muted); }
   .flavor::before { content: "\25C6"; color: var(--ornament); font-size: .6em; font-style: normal; margin-right: .9em; vertical-align: .2em; }
   .flavor::after { content: "\25C6"; color: var(--ornament); font-size: .6em; font-style: normal; margin-left: .9em; vertical-align: .2em; }
