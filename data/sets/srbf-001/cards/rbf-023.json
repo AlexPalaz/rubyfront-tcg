@@ -80,6 +80,29 @@
                 "race": "auros"
               }
             }
+          ],
+          "flipCost": [
+            {
+              "type": "move_card",
+              "target": {
+                "cardType": "entity",
+                "race": "auros",
+                "controller": "controller",
+                "min": 1,
+                "max": 1,
+                "details": {
+                  "untappedFromStasisThisTurn": true
+                }
+              },
+              "destination": {
+                "zone": "requiem",
+                "owner": "controller"
+              },
+              "details": {
+                "isDeath": false,
+                "triggersLeaveField": true
+              }
+            }
           ]
         }
       },

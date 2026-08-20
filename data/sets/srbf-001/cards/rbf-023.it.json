@@ -11,7 +11,7 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi"
+      "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi. Poi richiama quell'Entità nella tua Zona di Requiem"
     }
   },
   "matters": {

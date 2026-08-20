@@ -11,7 +11,7 @@
     "hp": "HP",
     "nexusRequirement": {
       "label": "Nexus requirement",
-      "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis"
+      "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Then send that Entity to your Requiem Zone"
     }
   },
   "matters": {

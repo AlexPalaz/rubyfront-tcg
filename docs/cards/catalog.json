@@ -2982,7 +2982,7 @@
                 "hp": "PV",
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
-                  "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi"
+                  "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi. Poi richiama quell'Entità nella tua Zona di Requiem"
                 }
               },
               "matters": {
@@ -3060,7 +3060,7 @@
                 "hp": "HP",
                 "nexusRequirement": {
                   "label": "Nexus requirement",
-                  "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis"
+                  "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Then send that Entity to your Requiem Zone"
                 }
               },
               "matters": {
@@ -3191,6 +3191,29 @@
                       "filter": {
                         "cardType": "entity",
                         "race": "auros"
+                      }
+                    }
+                  ],
+                  "flipCost": [
+                    {
+                      "type": "move_card",
+                      "target": {
+                        "cardType": "entity",
+                        "race": "auros",
+                        "controller": "controller",
+                        "min": 1,
+                        "max": 1,
+                        "details": {
+                          "untappedFromStasisThisTurn": true
+                        }
+                      },
+                      "destination": {
+                        "zone": "requiem",
+                        "owner": "controller"
+                      },
+                      "details": {
+                        "isDeath": false,
+                        "triggersLeaveField": true
                       }
                     }
                   ]
@@ -8967,7 +8990,7 @@
             "hp": "PV",
             "nexusRequirement": {
               "label": "Requisito Nexus",
-              "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi"
+              "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi. Poi richiama quell'Entità nella tua Zona di Requiem"
             }
           },
           "matters": {
@@ -9045,7 +9068,7 @@
             "hp": "HP",
             "nexusRequirement": {
               "label": "Nexus requirement",
-              "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis"
+              "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Then send that Entity to your Requiem Zone"
             }
           },
           "matters": {
@@ -9176,6 +9199,29 @@
                   "filter": {
                     "cardType": "entity",
                     "race": "auros"
+                  }
+                }
+              ],
+              "flipCost": [
+                {
+                  "type": "move_card",
+                  "target": {
+                    "cardType": "entity",
+                    "race": "auros",
+                    "controller": "controller",
+                    "min": 1,
+                    "max": 1,
+                    "details": {
+                      "untappedFromStasisThisTurn": true
+                    }
+                  },
+                  "destination": {
+                    "zone": "requiem",
+                    "owner": "controller"
+                  },
+                  "details": {
+                    "isDeath": false,
+                    "triggersLeaveField": true
                   }
                 }
               ]
