@@ -2982,7 +2982,7 @@
                 "hp": "PV",
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
-                  "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi. Poi richiama quell'Entità nella tua Zona di Requiem"
+                  "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi. Poi richiama quell'Entità nella tua Zona di Requiem. Quella carta non può tornare in campo per il resto della partita"
                 }
               },
               "matters": {
@@ -3060,7 +3060,7 @@
                 "hp": "HP",
                 "nexusRequirement": {
                   "label": "Nexus requirement",
-                  "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Then send that Entity to your Requiem Zone"
+                  "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Then send that Entity to your Requiem Zone. That card cannot return to the field for the rest of the game"
                 }
               },
               "matters": {
@@ -3213,7 +3213,8 @@
                       },
                       "details": {
                         "isDeath": false,
-                        "triggersLeaveField": true
+                        "triggersLeaveField": true,
+                        "cannotReturnToFieldThisGame": true
                       }
                     }
                   ]
@@ -8990,7 +8991,7 @@
             "hp": "PV",
             "nexusRequirement": {
               "label": "Requisito Nexus",
-              "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi. Poi richiama quell'Entità nella tua Zona di Requiem"
+              "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi. Poi richiama quell'Entità nella tua Zona di Requiem. Quella carta non può tornare in campo per il resto della partita"
             }
           },
           "matters": {
@@ -9068,7 +9069,7 @@
             "hp": "HP",
             "nexusRequirement": {
               "label": "Nexus requirement",
-              "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Then send that Entity to your Requiem Zone"
+              "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Then send that Entity to your Requiem Zone. That card cannot return to the field for the rest of the game"
             }
           },
           "matters": {
@@ -9221,7 +9222,8 @@
                   },
                   "details": {
                     "isDeath": false,
-                    "triggersLeaveField": true
+                    "triggersLeaveField": true,
+                    "cannotReturnToFieldThisGame": true
                   }
                 }
               ]

@@ -100,7 +100,8 @@
               },
               "details": {
                 "isDeath": false,
-                "triggersLeaveField": true
+                "triggersLeaveField": true,
+                "cannotReturnToFieldThisGame": true
               }
             }
           ]
