@@ -22,6 +22,45 @@
     background: var(--ui-ink); color: var(--ui-bg);
     border-radius: 999px; font-size: .8rem; font-weight: 750; }
   .deck-tile:hover { filter: brightness(1.08); }
+
+  /* ---- Foglio di stampa per proxy (solo in stampa) ----
+     Ogni carta fisica è la carta a grandezza piena (520×728 px) scalata a
+     63×88 mm, la misura reale delle carte da gioco; 9 per foglio A4 (3×3),
+     con crocini di taglio ai quattro angoli di ogni carta. A schermo il foglio
+     è fuori vista (non display:none: il fit del testo deve poter misurare). */
+  #print-sheet { position: absolute; left: -20000px; top: 0; width: 210mm; }
+  .print-page { position: relative; width: 210mm; height: 297mm; box-sizing: border-box;
+    padding: 12.5mm 6.5mm; display: grid; grid-template-columns: repeat(3, 63mm);
+    grid-template-rows: repeat(3, 88mm); column-gap: 4mm; row-gap: 4mm;
+    justify-content: center; align-content: start; break-after: page; page-break-after: always; }
+  .print-page:last-child { break-after: auto; page-break-after: auto; }
+  .print-cell { position: relative; width: 63mm; height: 88mm; overflow: visible;
+    break-inside: avoid; page-break-inside: avoid; }
+  /* Il ritaglio tiene il box della carta esattamente a 63×88 mm. */
+  .print-clip { width: 63mm; height: 88mm; overflow: hidden; }
+  /* zoom (non transform): riduce anche il box di layout, altrimenti la carta
+     a 520×728 px sforerebbe la pagina e la stampa la frammenterebbe.
+     63mm = 238.11px a 96 dpi → 238.11 / 520 */
+  .print-holder { width: 520px; height: 728px; zoom: 0.45790; }
+  .print-holder .face-label { display: none; }
+  .print-holder .card { outline: none; }
+  /* Crocini: due trattini per angolo, fuori dal bordo della carta. */
+  .crop { position: absolute; width: 0; height: 0; }
+  .crop::before, .crop::after { content: ""; position: absolute; background: #000; }
+  .crop::before { width: 3mm; height: 0.2mm; }   /* trattino orizzontale */
+  .crop::after  { width: 0.2mm; height: 3mm; }   /* trattino verticale   */
+  .crop.tl { left: 0; top: 0; }        .crop.tl::before { right: 0.6mm; top: -0.1mm; } .crop.tl::after { bottom: 0.6mm; left: -0.1mm; }
+  .crop.tr { right: 0; top: 0; }       .crop.tr::before { left: 0.6mm; top: -0.1mm; }  .crop.tr::after { bottom: 0.6mm; right: -0.1mm; }
+  .crop.bl { left: 0; bottom: 0; }     .crop.bl::before { right: 0.6mm; bottom: -0.1mm; } .crop.bl::after { top: 0.6mm; left: -0.1mm; }
+  .crop.br { right: 0; bottom: 0; }    .crop.br::before { left: 0.6mm; bottom: -0.1mm; }  .crop.br::after { top: 0.6mm; right: -0.1mm; }
+
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    html, body { margin: 0; padding: 0; background: #fff; }
+    body > *:not(#print-sheet) { display: none !important; }
+    #print-sheet { position: static; left: auto; }
+    #print-sheet, #print-sheet * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
 </style>
 </head>
 <body>
