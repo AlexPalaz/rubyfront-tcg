@@ -181,13 +181,6 @@ button, input, select { font: inherit; }
 .showcase-go { color: var(--ui-muted); font-size: 1.15rem; transition: color .15s ease; }
 .showcase-card:hover .showcase-go, .showcase-card:focus-visible .showcase-go { color: var(--ui-accent); }
 
-/* ---- strategia del mazzo (prima delle carte) ---- */
-.deck-strategy { max-width: 760px; margin: 26px 0 0; }
-.deck-strategy:empty { margin: 0; }
-.deck-strategy-title { margin: 0 0 8px; color: var(--ui-accent); font-size: .78rem; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; }
-.deck-strategy-text { margin: 0 0 .85em; color: var(--ui-ink); font-size: 1.02rem; line-height: 1.62; }
-.deck-strategy-text:last-child { margin-bottom: 0; }
-
 /* ---- pager del dettaglio carta (precedente / successiva) ---- */
 .card-pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 16px 0; }
 .card-pager .pager-link.empty { visibility: hidden; }
