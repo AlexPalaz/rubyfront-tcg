@@ -67,7 +67,15 @@ export const COPY = {
     deck: "Mazzo",
     downloadDeck: "Scarica .txt",
     printDeck: "Stampa PDF (proxy)",
-    printHint: "Nel dialogo di stampa scegli A4, margini 0, sfondi attivi, poi \"Salva come PDF\".",
+    printTitle: "Stampa proxy",
+    printSave: "Salva PDF / Stampa",
+    printHint: "Nel dialogo di stampa: formato A4, margini \"Nessuno\", grafica di sfondo attiva, destinazione \"Salva come PDF\". Le carte escono a 63×88 mm, la misura reale.",
+    printMarks: "Taglio",
+    printMarksCrop: "crocini",
+    printMarksGuides: "bordo pieno",
+    printMarksNone: "nessuno",
+    printGap: "Spazio",
+    printSummary: (cards, pages) => `${cards} carte · ${pages} fogli A4`,
     deckCount: total => `${total} carte`,
     errorTitle: "Contenuto non disponibile",
     backToCatalog: "Torna al catalogo",
@@ -148,7 +156,15 @@ export const COPY = {
     deck: "Deck",
     downloadDeck: "Download .txt",
     printDeck: "Print PDF (proxies)",
-    printHint: "In the print dialog pick A4, no margins, backgrounds on, then \"Save as PDF\".",
+    printTitle: "Print proxies",
+    printSave: "Save PDF / Print",
+    printHint: "In the print dialog: A4 paper, margins \"None\", background graphics on, destination \"Save as PDF\". Cards come out at 63×88 mm, actual size.",
+    printMarks: "Cutting",
+    printMarksCrop: "crop marks",
+    printMarksGuides: "solid border",
+    printMarksNone: "none",
+    printGap: "Spacing",
+    printSummary: (cards, pages) => `${cards} cards · ${pages} A4 sheets`,
     deckCount: total => `${total} cards`,
     errorTitle: "Content unavailable",
     backToCatalog: "Back to catalog",
@@ -200,6 +216,7 @@ export const setRoute = (set, localeId) => uiRoute("set.html", { set: set.id }, 
 export const cardRoute = (card, localeId, deckId) => uiRoute("card.html", { card: card.id, deck: deckId }, localeId);
 export const themeIndexRoute = (card, localeId) => uiRoute("card-themes.html", { card: card.id }, localeId);
 export const deckRoute = (deck, localeId) => uiRoute("deck.html", { deck: deck.id }, localeId);
+export const deckPrintRoute = (deck, localeId, themeId) => uiRoute("deck-print.html", { deck: deck.id, theme: themeId }, localeId);
 export const themedCardRoute = (card, localeId, themeId, deckId) =>
   uiRoute("card-theme.html", { card: card.id, theme: themeId, deck: deckId }, localeId);
 

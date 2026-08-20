@@ -8,6 +8,7 @@ import {
   cardRoute,
   catalogRoute,
   copyFor,
+  deckPrintRoute,
   element,
   FALLBACK_LOCALE,
   languagePicker,
@@ -80,51 +81,6 @@ function downloadDeckText(resource, localeId) {
   URL.revokeObjectURL(url);
 }
 
-// Foglio di stampa per proxy: una cella 63×88 mm per OGNI copia fisica di
-// ogni faccia (3x -> 3 carte; il Rubyfront bifronte -> le due facce), 9 per
-// pagina A4, con crocini di taglio. Si stampa nel tema corrente e si salva
-// come PDF dal dialogo del browser. Il foglio è costruito al volo, tenuto
-// fuori vista mentre il fit del testo misura, e rimosso dopo la stampa.
-function printDeckSheet(resource, localeId, themeId, { open = true } = {}) {
-  document.querySelector("#print-sheet")?.remove();
-  const sheet = element("div");
-  sheet.id = "print-sheet";
-  const cells = [];
-  for (const entry of resource.cards) {
-    const card = getCardById(entry.card);
-    if (!card) continue;
-    const cardCopy = localized(card, localeId);
-    for (let copy = 0; copy < entry.count; copy += 1) {
-      for (const face of card.faces) {
-        const cell = element("div", "print-cell");
-        const holder = element("div", "print-holder");
-        holder.append(createFace(card, face, cardCopy, themeId, localeId));
-        const clip = element("div", "print-clip");
-        clip.append(holder);
-        cell.append(clip);
-        for (const corner of ["tl", "tr", "bl", "br"]) cell.append(element("span", `crop ${corner}`));
-        cells.push(cell);
-      }
-    }
-  }
-  for (let i = 0; i < cells.length; i += 9) {
-    const page = element("section", "print-page");
-    page.append(...cells.slice(i, i + 9));
-    sheet.append(page);
-  }
-  document.body.append(sheet);
-  for (const visual of sheet.querySelectorAll(".card")) {
-    visual.classList.add(themeId);
-    if (LIGHT_THEMES.has(themeId)) visual.classList.add("light-theme");
-  }
-  fitTextBoxes(sheet);
-  if (!open) return sheet;
-  const cleanup = () => { sheet.remove(); window.removeEventListener("afterprint", cleanup); };
-  window.addEventListener("afterprint", cleanup);
-  window.print();
-  return sheet;
-}
-
 function renderDeck(resource) {
   let localeId = localeFromParams(resource);
   let themeId = isThemeId(params.get("theme")) ? params.get("theme") : DEFAULT_THEME;
@@ -149,9 +105,10 @@ function renderDeck(resource) {
   const downloadBtn = element("button", "button secondary deck-download");
   downloadBtn.type = "button";
   downloadBtn.addEventListener("click", () => downloadDeckText(resource, localeId));
-  const printBtn = element("button", "button deck-print");
-  printBtn.type = "button";
-  printBtn.addEventListener("click", () => printDeckSheet(resource, localeId, themeId));
+  // La stampa dei proxy ha una pagina sua (deck-print.html): i fogli A4 si
+  // vedono a schermo prima di salvare il PDF.
+  const printBtn = element("a", "button deck-print");
+  printBtn.target = "_blank";
   const hint = element("code");
   controls.append(themeLabel, themeSelect, languageSlot, downloadBtn, printBtn, hint);
 
@@ -193,7 +150,7 @@ function renderDeck(resource) {
     themeLabel.textContent = copy.theme;
     downloadBtn.textContent = copy.downloadDeck;
     printBtn.textContent = copy.printDeck;
-    printBtn.title = copy.printHint;
+    printBtn.href = deckPrintRoute(resource, localeId, themeId);
     languageSlot.replaceChildren(languagePicker(resource, localeId, applyLocale));
 
     grid.replaceChildren();
@@ -228,12 +185,10 @@ function renderDeck(resource) {
     }
     themeSelect.value = themeId;
     hint.textContent = `?deck=${resource.id}&theme=${themeId}`;
+    printBtn.href = deckPrintRoute(resource, localeId, themeId);
     setUrlParameter("theme", themeId);
   }
 
   themeSelect.addEventListener("change", event => applyTheme(event.target.value));
   applyLocale(localeId);
-  // ?print=1 prepara subito il foglio per proxy (utile per Cmd+P o per la
-  // generazione headless del PDF) senza aprire il dialogo.
-  if (params.get("print") === "1") printDeckSheet(resource, localeId, themeId, { open: false });
 }

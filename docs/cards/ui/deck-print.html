@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stampa proxy · Rubyfront</title>
+<link rel="stylesheet" href="./shell.css">
+<link rel="stylesheet" href="./card.css">
+<style>
+  /* ---- Pagina di stampa dei proxy ----
+     Mostra a schermo i fogli A4 esattamente come verranno stampati: ogni
+     carta fisica è la carta a grandezza piena (520×728 px) ridotta a 63×88 mm
+     (misura reale, come una carta di Magic), 9 per foglio in griglia 3×3, con
+     crocini di taglio agli angoli. "Salva PDF" apre il dialogo del browser:
+     in stampa resta solo il foglio. */
+  body { background: var(--ui-line); }
+  .print-toolbar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap;
+    align-items: center; gap: 10px 16px; padding: 12px 20px;
+    color: var(--ui-ink); background: var(--ui-bg); border-bottom: 1px solid var(--ui-line); }
+  .print-toolbar h1 { margin: 0 8px 0 0; font-size: 1rem; font-weight: 750; }
+  .print-toolbar .muted { color: var(--ui-muted); font-size: .8rem; }
+  .print-toolbar label { display: inline-flex; align-items: center; gap: 6px;
+    font-size: .8rem; cursor: pointer; }
+  .print-toolbar select { padding: 5px 8px; color: var(--ui-ink); background: transparent;
+    border: 1px solid var(--ui-line); border-radius: 4px; }
+  .print-toolbar .spacer { flex: 1; }
+  .print-toolbar .hint { width: 100%; color: var(--ui-muted); font-size: .75rem; }
+
+  #print-sheet { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 24px 0 48px; }
+  .print-page { position: relative; width: 210mm; height: 297mm; box-sizing: border-box;
+    background: #fff; box-shadow: 0 2px 14px rgba(0,0,0,.18);
+    padding: 12.5mm 6.5mm; display: grid; grid-template-columns: repeat(3, 63mm);
+    grid-template-rows: repeat(3, 88mm); column-gap: var(--gap, 4mm); row-gap: var(--gap, 4mm);
+    justify-content: center; align-content: start; break-after: page; page-break-after: always; }
+  .print-page:last-child { break-after: auto; page-break-after: auto; }
+  .page-number { position: absolute; right: 6.5mm; bottom: 4mm; font-size: 8pt; color: #888; }
+  .print-cell { position: relative; width: 63mm; height: 88mm; overflow: visible;
+    break-inside: avoid; page-break-inside: avoid; }
+  .print-clip { width: 63mm; height: 88mm; overflow: hidden; }
+  /* zoom (non transform): riduce anche il box di layout, altrimenti la carta
+     a 520×728 px sforerebbe la pagina. 63mm = 238.11px a 96 dpi → 238.11/520 */
+  .print-holder { width: 520px; height: 728px; zoom: 0.45790; }
+  .print-holder .face-label { display: none; }
+  .print-holder .card { outline: none; }
+
+  /* Crocini: due trattini per angolo, fuori dal bordo della carta. */
+  .crop { position: absolute; width: 0; height: 0; }
+  .crop::before, .crop::after { content: ""; position: absolute; background: #000; }
+  .crop::before { width: 3mm; height: 0.2mm; }
+  .crop::after  { width: 0.2mm; height: 3mm; }
+  .crop.tl { left: 0; top: 0; }        .crop.tl::before { right: 0.6mm; top: -0.1mm; } .crop.tl::after { bottom: 0.6mm; left: -0.1mm; }
+  .crop.tr { right: 0; top: 0; }       .crop.tr::before { left: 0.6mm; top: -0.1mm; }  .crop.tr::after { bottom: 0.6mm; right: -0.1mm; }
+  .crop.bl { left: 0; bottom: 0; }     .crop.bl::before { right: 0.6mm; bottom: -0.1mm; } .crop.bl::after { top: 0.6mm; left: -0.1mm; }
+  .crop.br { right: 0; bottom: 0; }    .crop.br::before { left: 0.6mm; bottom: -0.1mm; }  .crop.br::after { top: 0.6mm; right: -0.1mm; }
+  #print-sheet.no-crop .crop { display: none; }
+  /* Linee guida piene lungo i bordi (alternativa ai crocini, per chi taglia a taglierina). */
+  #print-sheet.guides .print-clip { outline: 0.2mm solid #999; outline-offset: 0; }
+
+  /* A schermo i fogli si riducono per stare nella finestra stretta. */
+  @media screen and (max-width: 840px) {
+    #print-sheet { zoom: 0.6; }
+  }
+
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    html, body { margin: 0; padding: 0; background: #fff; }
+    .print-toolbar { display: none !important; }
+    #print-sheet { display: block; padding: 0; zoom: 1; }
+    .print-page { box-shadow: none; }
+    #print-sheet, #print-sheet * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="module" src="./deck-print-page.js"></script>
+</body>
+</html>
