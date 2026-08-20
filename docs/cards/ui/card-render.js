@@ -45,7 +45,11 @@ function createFace(card, face, cardCopy, themeId, localeId) {
     visual.append(divider);
   }
 
-  visual.append(createTextBox(face, faceCopy, cardCopy, localeId));
+  const box = createTextBox(face, faceCopy, cardCopy, localeId);
+  // Codice della carta (RBF-023), minuscolo, nell'angolo in basso a destra
+  // della textbox: assoluto, così non entra nella misura del fit del testo.
+  box.append(element("span", "card-id", card.id));
+  visual.append(box);
   wrapper.append(label, visual);
   return wrapper;
 }

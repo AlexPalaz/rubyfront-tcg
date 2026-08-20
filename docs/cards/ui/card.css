@@ -132,7 +132,7 @@
     font-size: 1em; line-height: 1.48; color: var(--ornament); }
   .divider i { font-style: normal; font-size: .55em; }
   .divider::before, .divider::after { content: ""; width: 3.5em; height: 1px; background: var(--frame-dim); }
-  .textbox { flex: 1 1 auto; border: 1px solid var(--frame-dim); background: var(--panel);
+  .textbox { position: relative; flex: 1 1 auto; border: 1px solid var(--frame-dim); background: var(--panel);
     padding: .5em .7em; display: flex; flex-direction: column; gap: .34em;
     font-size: 1em; line-height: 1.34; overflow: hidden; }
   .card:not(.nexus) .textbox { padding-bottom: .3em; }
@@ -158,6 +158,8 @@
   /* margin-top:auto incolla il flavor al fondo della textbox; senza il margine
      inferiore i suoi discendenti finiscono dentro il padding e la riga tocca la
      cornice — su ogni carta, non solo sulle più dense. */
+  .card-id { position: absolute; right: .5em; bottom: .18em; font-size: .48em; line-height: 1;
+    letter-spacing: .08em; color: var(--muted); opacity: .7; font-style: normal; font-weight: 400; }
   .flavor { margin-top: auto; margin-bottom: .4em; text-align: left; font-style: italic; font-size: .92em; color: var(--muted); }
   .flavor::before { content: "\25C6"; color: var(--ornament); font-size: .6em; font-style: normal; margin-right: .9em; vertical-align: .2em; }
   .flavor::after { content: "\25C6"; color: var(--ornament); font-size: .6em; font-style: normal; margin-left: .9em; vertical-align: .2em; }
