@@ -2982,7 +2982,7 @@
                 "hp": "PV",
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
-                  "text": "Controlli almeno 4 Auros e in questo turno un tuo Auros è stato stappato dalla Stasi. Quell'Auros va in Requiem e non può più tornare in campo"
+                  "text": "Controlla almeno 4 Auros e, in questo turno, stappa un tuo Auros dalla Stasi. Poi spostalo in Requiem: non potrà più tornare in campo"
                 }
               },
               "matters": {
@@ -3060,7 +3060,7 @@
                 "hp": "HP",
                 "nexusRequirement": {
                   "label": "Nexus requirement",
-                  "text": "You control at least 4 Auros and this turn one of your Auros was untapped from Stasis. That Auros goes to the Requiem and can never return to the field"
+                  "text": "Control at least 4 Auros and, this turn, untap one of your Auros from Stasis. Then move it to the Requiem: it can never return to the field"
                 }
               },
               "matters": {
@@ -8991,7 +8991,7 @@
             "hp": "PV",
             "nexusRequirement": {
               "label": "Requisito Nexus",
-              "text": "Controlli almeno 4 Auros e in questo turno un tuo Auros è stato stappato dalla Stasi. Quell'Auros va in Requiem e non può più tornare in campo"
+              "text": "Controlla almeno 4 Auros e, in questo turno, stappa un tuo Auros dalla Stasi. Poi spostalo in Requiem: non potrà più tornare in campo"
             }
           },
           "matters": {
@@ -9069,7 +9069,7 @@
             "hp": "HP",
             "nexusRequirement": {
               "label": "Nexus requirement",
-              "text": "You control at least 4 Auros and this turn one of your Auros was untapped from Stasis. That Auros goes to the Requiem and can never return to the field"
+              "text": "Control at least 4 Auros and, this turn, untap one of your Auros from Stasis. Then move it to the Requiem: it can never return to the field"
             }
           },
           "matters": {

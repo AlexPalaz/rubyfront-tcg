@@ -11,7 +11,7 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "Controlli almeno 4 Auros e in questo turno un tuo Auros è stato stappato dalla Stasi. Quell'Auros va in Requiem e non può più tornare in campo"
+      "text": "Controlla almeno 4 Auros e, in questo turno, stappa un tuo Auros dalla Stasi. Poi spostalo in Requiem: non potrà più tornare in campo"
     }
   },
   "matters": {
