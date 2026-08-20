@@ -10,9 +10,11 @@
 | Identità | **Midrange difensivo** |
 | Focus | **Stasi → stap da effetto → vantaggio** |
 | Tema secondario | **Zona di Requiem** |
-| Materia principale | Dimensionale (più una Distruttiva dal Rubyfront) |
+| Materia principale | Dimensionale (più Distruttiva e **Zero** dal Rubyfront) |
 | Totale | 40 carte (1 Rubyfront · 24 Entità · 12 Materie · 3 Oggetti) |
-| Carte con dado | Cercatrice di Sentieri, Passo nel Vuoto, Velo della Radura |
+| Carte con dado | Cercatrice di Sentieri, Passo nel Vuoto |
+
+**Il Nexus (v2.6):** niente requisito stampato sul Rubyfront — il flip lo innesca **Convergenza della Radura** (Materia Zero ×1, abilitata dal solo Rubyfront): 4 Auros, un'Auros stappata dalla Stasi nel turno, e una di quelle va in Requiem.
 
 **Concetto chiave:** entrare in Stasi non significa morire — significa
 trasformare temporaneamente un'Entità attiva in una risorsa da recuperare.
@@ -55,5 +57,5 @@ Errante · 3× Guardiano delle Radici · 3× Custode del Risveglio · 2× Voce d
 Radici · 2× Cercatrice di Sentieri · 3× Custode della Radura · 2× Tessitrice
 del Riflusso · 3× Antico del Bosco Errante · 1× Vàlaris · 3× Risveglio delle
 Radici · 2× Passo tra le Fronde · 1× Passo nel Vuoto · 2× Linfa Rinnovata ·
-1× Il Bosco Ricorda · 1× Riflusso · 1× Velo della Radura · 1× Frattura del
+1× Il Bosco Ricorda · 1× Riflusso · 1× Convergenza della Radura · 1× Frattura del
 Sentiero · 2× Talismano del Risveglio · 1× Corteccia Immortale

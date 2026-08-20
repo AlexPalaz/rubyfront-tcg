@@ -3,11 +3,12 @@
   "id": "RBF-040",
   "setId": "rubyfront-core",
   "collectorNumber": "040",
-  "slug": "veil-of-the-glade",
+  "slug": "convergence-of-the-glade",
   "type": "matter",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 3,
+  "deckLimit": 1,
+  "unique": true,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -15,57 +16,87 @@
   ],
   "tags": [
     "matter",
-    "dimensional",
-    "grade-2",
-    "reactive",
-    "die",
-    "pump"
+    "zero",
+    "nexus-trigger",
+    "stasis",
+    "requiem"
   ],
-  "rulesReference": "MANUALE.md §7, §8.2",
+  "rulesReference": "MANUALE.md §3.1, §7.1, §7.2",
   "faces": [
     {
       "id": "matter",
       "kind": "matter",
       "displayKey": "face",
       "matter": {
-        "type": "dimensional",
-        "grade": 2
+        "type": "zero"
       },
-      "behavior": "reactive",
+      "behavior": "normal",
       "stats": {
-        "fluxCost": 2
+        "fluxCost": 4
       },
       "enablesMatters": [],
       "keywords": [],
-      "requirements": {},
+      "requirements": {
+        "play": {
+          "match": "all",
+          "conditions": [
+            {
+              "type": "rubyfront_in_play",
+              "owner": "controller",
+              "details": {
+                "side": "rubyfront"
+              }
+            },
+            {
+              "type": "controls_card",
+              "owner": "controller",
+              "min": 4,
+              "filter": {
+                "cardType": "entity",
+                "race": "auros"
+              }
+            },
+            {
+              "type": "untapped_from_stasis_this_turn",
+              "owner": "controller",
+              "min": 1,
+              "filter": {
+                "cardType": "entity",
+                "race": "auros"
+              }
+            }
+          ]
+        }
+      },
       "triggers": [
         {
-          "id": "veil",
+          "id": "convergence",
           "displayKey": "effect",
           "event": "on_resolve",
           "effect": {
-            "type": "empower",
+            "type": "move_card",
             "target": {
               "cardType": "entity",
               "race": "auros",
               "controller": "controller",
               "min": 1,
-              "max": 1
+              "max": 1,
+              "details": {
+                "untappedFromStasisThisTurn": true
+              }
             },
-            "duration": "until_end_of_turn",
+            "destination": {
+              "zone": "requiem",
+              "owner": "controller"
+            },
             "details": {
-              "die": "d6",
-              "byRoll": {
-                "1-2": {
-                  "powerBonus": 1,
-                  "mayUntap": true
-                },
-                "3-4": {
-                  "powerBonus": 2
-                },
-                "5-6": {
-                  "powerBonus": 1,
-                  "gainHealth": 1
+              "isDeath": false,
+              "triggersLeaveField": true,
+              "then": {
+                "type": "flip_nexus",
+                "target": {
+                  "cardType": "rubyfront",
+                  "controller": "controller"
                 }
               }
             }

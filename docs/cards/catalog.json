@@ -2979,17 +2979,15 @@
               },
               "card": {
                 "illustration": "Illustrazione",
-                "hp": "PV",
-                "nexusRequirement": {
-                  "label": "Requisito Nexus",
-                  "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi"
-                }
+                "hp": "PV"
               },
               "matters": {
                 "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
                 "dimensionalAria": "Dimensionale",
                 "destructiveTitle": "Materia Distruttiva",
-                "destructiveAria": "Distruttiva"
+                "destructiveAria": "Distruttiva",
+                "zeroTitle": "Materia Zero",
+                "zeroAria": "Zero"
               },
               "faceA": {
                 "name": "Rubifronte del Bosco Errante",
@@ -3057,17 +3055,15 @@
               },
               "card": {
                 "illustration": "Illustration",
-                "hp": "HP",
-                "nexusRequirement": {
-                  "label": "Nexus requirement",
-                  "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis"
-                }
+                "hp": "HP"
               },
               "matters": {
                 "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
                 "dimensionalAria": "Dimensional",
                 "destructiveTitle": "Destructive Matter",
-                "destructiveAria": "Destructive"
+                "destructiveAria": "Destructive",
+                "zeroTitle": "Zero Matter",
+                "zeroAria": "Zero"
               },
               "faceA": {
                 "name": "Rubyfront of the Wandering Wood",
@@ -3134,7 +3130,8 @@
             "dimensional",
             "stasis",
             "untap",
-            "requiem"
+            "requiem",
+            "zero"
           ],
           "rulesReference": "MANUALE.md §3.1, §7, §8.1",
           "faces": [
@@ -3157,6 +3154,9 @@
                 {
                   "type": "destructive",
                   "maxGrade": 1
+                },
+                {
+                  "type": "zero"
                 }
               ],
               "keywords": [
@@ -3171,31 +3171,7 @@
                   }
                 }
               ],
-              "requirements": {
-                "nexus": {
-                  "match": "all",
-                  "conditions": [
-                    {
-                      "type": "controls_card",
-                      "owner": "controller",
-                      "min": 4,
-                      "filter": {
-                        "cardType": "entity",
-                        "race": "auros"
-                      }
-                    },
-                    {
-                      "type": "untapped_from_stasis_this_turn",
-                      "owner": "controller",
-                      "min": 1,
-                      "filter": {
-                        "cardType": "entity",
-                        "race": "auros"
-                      }
-                    }
-                  ]
-                }
-              },
+              "requirements": {},
               "triggers": [
                 {
                   "id": "wood-memory",
@@ -5560,119 +5536,150 @@
           "id": "RBF-040",
           "setId": "rubyfront-core",
           "collectorNumber": "040",
-          "slug": "veil-of-the-glade",
+          "slug": "convergence-of-the-glade",
           "type": "matter",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 3,
+          "deckLimit": 1,
+          "unique": true,
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Velo della Radura",
-              "typeLabel": "Materia Dimensionale II",
-              "summary": "Il velo cade su un Auros e il dado decide il dono.",
+              "name": "Convergenza della Radura",
+              "typeLabel": "Materia Zero",
+              "summary": "Lo Zero converge sul bosco: un risvegliato torna alla Requiem, e la bestia si ripiega nel Nexus.",
               "ui": {
                 "face": "Materia"
               },
               "card": {
                 "illustration": "Illustrazione",
                 "hp": "PV",
-                "power": "Potenza",
-                "flux": "Flussi"
+                "flux": "Flussi",
+                "unique": "Unica"
               },
               "matters": {
-                "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
-                "dimensionalAria": "Dimensionale"
+                "zeroTitle": "Materia Zero",
+                "zeroAria": "Zero"
               },
               "face": {
-                "name": "Velo della Radura",
+                "name": "Convergenza della Radura",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Scegli un'Entità Auros che controlli e lancia un d6: con 1–2 prende +1 Potenza fino alla fine del turno e puoi stapparla; con 3–4 prende +2 Potenza fino alla fine del turno; con 5–6 prende +1 Potenza fino alla fine del turno e guadagni 1 PV."
+                  "text": "Puoi giocare questa carta solo se la carta del tuo Rubyfront è in campo sul lato Rubyfront, controlli almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi. Scegli una di quelle Entità stappate in questo modo e mettila nella tua Zona di Requiem. Poi flippa il tuo Rubyfront sul lato Nexus."
                 },
-                "flavor": "La radura non promette. Offre."
+                "flavor": "Il bosco trattenne il respiro. Poi tutto convergette in un punto."
               }
             },
             "en": {
-              "name": "Veil of the Glade",
-              "typeLabel": "Dimensional Matter II",
-              "summary": "The veil falls on an Auros and the die decides the gift.",
+              "name": "Convergence of the Glade",
+              "typeLabel": "Zero Matter",
+              "summary": "The Zero converges upon the wood: one of the woken returns to the Requiem, and the beast folds into the Nexus.",
               "ui": {
                 "face": "Matter"
               },
               "card": {
                 "illustration": "Illustration",
                 "hp": "HP",
-                "power": "Power",
-                "flux": "Flux"
+                "flux": "Flux",
+                "unique": "Unique"
               },
               "matters": {
-                "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
-                "dimensionalAria": "Dimensional"
+                "zeroTitle": "Zero Matter",
+                "zeroAria": "Zero"
               },
               "face": {
-                "name": "Veil of the Glade",
+                "name": "Convergence of the Glade",
                 "effect": {
                   "name": "Effect",
-                  "text": "Choose an Auros Entity you control and roll a d6: on 1–2 it gets +1 Power until end of turn and you may untap it; on 3–4 it gets +2 Power until end of turn; on 5–6 it gets +1 Power until end of turn and you gain 1 HP."
+                  "text": "You may play this card only if your Rubyfront card is on the field on its Rubyfront side, you control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Choose one of the Entities untapped this way and put it into your Requiem Zone. Then flip your Rubyfront onto its Nexus side."
                 },
-                "flavor": "The glade does not promise. It offers."
+                "flavor": "The wood held its breath. Then everything converged on a single point."
               }
             }
           },
           "tags": [
             "matter",
-            "dimensional",
-            "grade-2",
-            "reactive",
-            "die",
-            "pump"
+            "zero",
+            "nexus-trigger",
+            "stasis",
+            "requiem"
           ],
-          "rulesReference": "MANUALE.md §7, §8.2",
+          "rulesReference": "MANUALE.md §3.1, §7.1, §7.2",
           "faces": [
             {
               "id": "matter",
               "kind": "matter",
               "displayKey": "face",
               "matter": {
-                "type": "dimensional",
-                "grade": 2
+                "type": "zero"
               },
-              "behavior": "reactive",
+              "behavior": "normal",
               "stats": {
-                "fluxCost": 2
+                "fluxCost": 4
               },
               "enablesMatters": [],
               "keywords": [],
-              "requirements": {},
+              "requirements": {
+                "play": {
+                  "match": "all",
+                  "conditions": [
+                    {
+                      "type": "rubyfront_in_play",
+                      "owner": "controller",
+                      "details": {
+                        "side": "rubyfront"
+                      }
+                    },
+                    {
+                      "type": "controls_card",
+                      "owner": "controller",
+                      "min": 4,
+                      "filter": {
+                        "cardType": "entity",
+                        "race": "auros"
+                      }
+                    },
+                    {
+                      "type": "untapped_from_stasis_this_turn",
+                      "owner": "controller",
+                      "min": 1,
+                      "filter": {
+                        "cardType": "entity",
+                        "race": "auros"
+                      }
+                    }
+                  ]
+                }
+              },
               "triggers": [
                 {
-                  "id": "veil",
+                  "id": "convergence",
                   "displayKey": "effect",
                   "event": "on_resolve",
                   "effect": {
-                    "type": "empower",
+                    "type": "move_card",
                     "target": {
                       "cardType": "entity",
                       "race": "auros",
                       "controller": "controller",
                       "min": 1,
-                      "max": 1
+                      "max": 1,
+                      "details": {
+                        "untappedFromStasisThisTurn": true
+                      }
                     },
-                    "duration": "until_end_of_turn",
+                    "destination": {
+                      "zone": "requiem",
+                      "owner": "controller"
+                    },
                     "details": {
-                      "die": "d6",
-                      "byRoll": {
-                        "1-2": {
-                          "powerBonus": 1,
-                          "mayUntap": true
-                        },
-                        "3-4": {
-                          "powerBonus": 2
-                        },
-                        "5-6": {
-                          "powerBonus": 1,
-                          "gainHealth": 1
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "then": {
+                        "type": "flip_nexus",
+                        "target": {
+                          "cardType": "rubyfront",
+                          "controller": "controller"
                         }
                       }
                     }
@@ -8964,17 +8971,15 @@
           },
           "card": {
             "illustration": "Illustrazione",
-            "hp": "PV",
-            "nexusRequirement": {
-              "label": "Requisito Nexus",
-              "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi"
-            }
+            "hp": "PV"
           },
           "matters": {
             "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
             "dimensionalAria": "Dimensionale",
             "destructiveTitle": "Materia Distruttiva",
-            "destructiveAria": "Distruttiva"
+            "destructiveAria": "Distruttiva",
+            "zeroTitle": "Materia Zero",
+            "zeroAria": "Zero"
           },
           "faceA": {
             "name": "Rubifronte del Bosco Errante",
@@ -9042,17 +9047,15 @@
           },
           "card": {
             "illustration": "Illustration",
-            "hp": "HP",
-            "nexusRequirement": {
-              "label": "Nexus requirement",
-              "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis"
-            }
+            "hp": "HP"
           },
           "matters": {
             "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
             "dimensionalAria": "Dimensional",
             "destructiveTitle": "Destructive Matter",
-            "destructiveAria": "Destructive"
+            "destructiveAria": "Destructive",
+            "zeroTitle": "Zero Matter",
+            "zeroAria": "Zero"
           },
           "faceA": {
             "name": "Rubyfront of the Wandering Wood",
@@ -9119,7 +9122,8 @@
         "dimensional",
         "stasis",
         "untap",
-        "requiem"
+        "requiem",
+        "zero"
       ],
       "rulesReference": "MANUALE.md §3.1, §7, §8.1",
       "faces": [
@@ -9142,6 +9146,9 @@
             {
               "type": "destructive",
               "maxGrade": 1
+            },
+            {
+              "type": "zero"
             }
           ],
           "keywords": [
@@ -9156,31 +9163,7 @@
               }
             }
           ],
-          "requirements": {
-            "nexus": {
-              "match": "all",
-              "conditions": [
-                {
-                  "type": "controls_card",
-                  "owner": "controller",
-                  "min": 4,
-                  "filter": {
-                    "cardType": "entity",
-                    "race": "auros"
-                  }
-                },
-                {
-                  "type": "untapped_from_stasis_this_turn",
-                  "owner": "controller",
-                  "min": 1,
-                  "filter": {
-                    "cardType": "entity",
-                    "race": "auros"
-                  }
-                }
-              ]
-            }
-          },
+          "requirements": {},
           "triggers": [
             {
               "id": "wood-memory",
@@ -11545,119 +11528,150 @@
       "id": "RBF-040",
       "setId": "rubyfront-core",
       "collectorNumber": "040",
-      "slug": "veil-of-the-glade",
+      "slug": "convergence-of-the-glade",
       "type": "matter",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 3,
+      "deckLimit": 1,
+      "unique": true,
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Velo della Radura",
-          "typeLabel": "Materia Dimensionale II",
-          "summary": "Il velo cade su un Auros e il dado decide il dono.",
+          "name": "Convergenza della Radura",
+          "typeLabel": "Materia Zero",
+          "summary": "Lo Zero converge sul bosco: un risvegliato torna alla Requiem, e la bestia si ripiega nel Nexus.",
           "ui": {
             "face": "Materia"
           },
           "card": {
             "illustration": "Illustrazione",
             "hp": "PV",
-            "power": "Potenza",
-            "flux": "Flussi"
+            "flux": "Flussi",
+            "unique": "Unica"
           },
           "matters": {
-            "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
-            "dimensionalAria": "Dimensionale"
+            "zeroTitle": "Materia Zero",
+            "zeroAria": "Zero"
           },
           "face": {
-            "name": "Velo della Radura",
+            "name": "Convergenza della Radura",
             "effect": {
               "name": "Effetto",
-              "text": "Scegli un'Entità Auros che controlli e lancia un d6: con 1–2 prende +1 Potenza fino alla fine del turno e puoi stapparla; con 3–4 prende +2 Potenza fino alla fine del turno; con 5–6 prende +1 Potenza fino alla fine del turno e guadagni 1 PV."
+              "text": "Puoi giocare questa carta solo se la carta del tuo Rubyfront è in campo sul lato Rubyfront, controlli almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi. Scegli una di quelle Entità stappate in questo modo e mettila nella tua Zona di Requiem. Poi flippa il tuo Rubyfront sul lato Nexus."
             },
-            "flavor": "La radura non promette. Offre."
+            "flavor": "Il bosco trattenne il respiro. Poi tutto convergette in un punto."
           }
         },
         "en": {
-          "name": "Veil of the Glade",
-          "typeLabel": "Dimensional Matter II",
-          "summary": "The veil falls on an Auros and the die decides the gift.",
+          "name": "Convergence of the Glade",
+          "typeLabel": "Zero Matter",
+          "summary": "The Zero converges upon the wood: one of the woken returns to the Requiem, and the beast folds into the Nexus.",
           "ui": {
             "face": "Matter"
           },
           "card": {
             "illustration": "Illustration",
             "hp": "HP",
-            "power": "Power",
-            "flux": "Flux"
+            "flux": "Flux",
+            "unique": "Unique"
           },
           "matters": {
-            "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
-            "dimensionalAria": "Dimensional"
+            "zeroTitle": "Zero Matter",
+            "zeroAria": "Zero"
           },
           "face": {
-            "name": "Veil of the Glade",
+            "name": "Convergence of the Glade",
             "effect": {
               "name": "Effect",
-              "text": "Choose an Auros Entity you control and roll a d6: on 1–2 it gets +1 Power until end of turn and you may untap it; on 3–4 it gets +2 Power until end of turn; on 5–6 it gets +1 Power until end of turn and you gain 1 HP."
+              "text": "You may play this card only if your Rubyfront card is on the field on its Rubyfront side, you control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis. Choose one of the Entities untapped this way and put it into your Requiem Zone. Then flip your Rubyfront onto its Nexus side."
             },
-            "flavor": "The glade does not promise. It offers."
+            "flavor": "The wood held its breath. Then everything converged on a single point."
           }
         }
       },
       "tags": [
         "matter",
-        "dimensional",
-        "grade-2",
-        "reactive",
-        "die",
-        "pump"
+        "zero",
+        "nexus-trigger",
+        "stasis",
+        "requiem"
       ],
-      "rulesReference": "MANUALE.md §7, §8.2",
+      "rulesReference": "MANUALE.md §3.1, §7.1, §7.2",
       "faces": [
         {
           "id": "matter",
           "kind": "matter",
           "displayKey": "face",
           "matter": {
-            "type": "dimensional",
-            "grade": 2
+            "type": "zero"
           },
-          "behavior": "reactive",
+          "behavior": "normal",
           "stats": {
-            "fluxCost": 2
+            "fluxCost": 4
           },
           "enablesMatters": [],
           "keywords": [],
-          "requirements": {},
+          "requirements": {
+            "play": {
+              "match": "all",
+              "conditions": [
+                {
+                  "type": "rubyfront_in_play",
+                  "owner": "controller",
+                  "details": {
+                    "side": "rubyfront"
+                  }
+                },
+                {
+                  "type": "controls_card",
+                  "owner": "controller",
+                  "min": 4,
+                  "filter": {
+                    "cardType": "entity",
+                    "race": "auros"
+                  }
+                },
+                {
+                  "type": "untapped_from_stasis_this_turn",
+                  "owner": "controller",
+                  "min": 1,
+                  "filter": {
+                    "cardType": "entity",
+                    "race": "auros"
+                  }
+                }
+              ]
+            }
+          },
           "triggers": [
             {
-              "id": "veil",
+              "id": "convergence",
               "displayKey": "effect",
               "event": "on_resolve",
               "effect": {
-                "type": "empower",
+                "type": "move_card",
                 "target": {
                   "cardType": "entity",
                   "race": "auros",
                   "controller": "controller",
                   "min": 1,
-                  "max": 1
+                  "max": 1,
+                  "details": {
+                    "untappedFromStasisThisTurn": true
+                  }
                 },
-                "duration": "until_end_of_turn",
+                "destination": {
+                  "zone": "requiem",
+                  "owner": "controller"
+                },
                 "details": {
-                  "die": "d6",
-                  "byRoll": {
-                    "1-2": {
-                      "powerBonus": 1,
-                      "mayUntap": true
-                    },
-                    "3-4": {
-                      "powerBonus": 2
-                    },
-                    "5-6": {
-                      "powerBonus": 1,
-                      "gainHealth": 1
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "then": {
+                    "type": "flip_nexus",
+                    "target": {
+                      "cardType": "rubyfront",
+                      "controller": "controller"
                     }
                   }
                 }

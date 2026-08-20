@@ -8,17 +8,15 @@
   },
   "card": {
     "illustration": "Illustration",
-    "hp": "HP",
-    "nexusRequirement": {
-      "label": "Nexus requirement",
-      "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis"
-    }
+    "hp": "HP"
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
     "dimensionalAria": "Dimensional",
     "destructiveTitle": "Destructive Matter",
-    "destructiveAria": "Destructive"
+    "destructiveAria": "Destructive",
+    "zeroTitle": "Zero Matter",
+    "zeroAria": "Zero"
   },
   "faceA": {
     "name": "Rubyfront of the Wandering Wood",

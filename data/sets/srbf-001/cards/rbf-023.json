@@ -21,7 +21,8 @@
     "dimensional",
     "stasis",
     "untap",
-    "requiem"
+    "requiem",
+    "zero"
   ],
   "rulesReference": "MANUALE.md §3.1, §7, §8.1",
   "faces": [
@@ -44,6 +45,9 @@
         {
           "type": "destructive",
           "maxGrade": 1
+        },
+        {
+          "type": "zero"
         }
       ],
       "keywords": [
@@ -58,31 +62,7 @@
           }
         }
       ],
-      "requirements": {
-        "nexus": {
-          "match": "all",
-          "conditions": [
-            {
-              "type": "controls_card",
-              "owner": "controller",
-              "min": 4,
-              "filter": {
-                "cardType": "entity",
-                "race": "auros"
-              }
-            },
-            {
-              "type": "untapped_from_stasis_this_turn",
-              "owner": "controller",
-              "min": 1,
-              "filter": {
-                "cardType": "entity",
-                "race": "auros"
-              }
-            }
-          ]
-        }
-      },
+      "requirements": {},
       "triggers": [
         {
           "id": "wood-memory",
