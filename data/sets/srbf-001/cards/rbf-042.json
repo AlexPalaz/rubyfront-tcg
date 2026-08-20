@@ -26,7 +26,7 @@
       "kind": "object",
       "displayKey": "face",
       "stats": {
-        "fluxCost": 3
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],

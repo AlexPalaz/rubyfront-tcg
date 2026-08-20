@@ -5030,8 +5030,8 @@
               "displayKey": "face",
               "race": "auros",
               "stats": {
-                "power": 3,
-                "fluxCost": 3
+                "power": 1,
+                "fluxCost": 2
               },
               "enablesMatters": [
                 {
@@ -5640,7 +5640,7 @@
               },
               "behavior": "reactive",
               "stats": {
-                "fluxCost": 3
+                "fluxCost": 2
               },
               "enablesMatters": [],
               "keywords": [],
@@ -5868,7 +5868,7 @@
               "kind": "object",
               "displayKey": "face",
               "stats": {
-                "fluxCost": 3
+                "fluxCost": 2
               },
               "enablesMatters": [],
               "keywords": [],
@@ -11015,8 +11015,8 @@
           "displayKey": "face",
           "race": "auros",
           "stats": {
-            "power": 3,
-            "fluxCost": 3
+            "power": 1,
+            "fluxCost": 2
           },
           "enablesMatters": [
             {
@@ -11625,7 +11625,7 @@
           },
           "behavior": "reactive",
           "stats": {
-            "fluxCost": 3
+            "fluxCost": 2
           },
           "enablesMatters": [],
           "keywords": [],
@@ -11853,7 +11853,7 @@
           "kind": "object",
           "displayKey": "face",
           "stats": {
-            "fluxCost": 3
+            "fluxCost": 2
           },
           "enablesMatters": [],
           "keywords": [],

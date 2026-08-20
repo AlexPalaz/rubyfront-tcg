@@ -29,8 +29,8 @@
       "displayKey": "face",
       "race": "auros",
       "stats": {
-        "power": 3,
-        "fluxCost": 3
+        "power": 1,
+        "fluxCost": 2
       },
       "enablesMatters": [
         {

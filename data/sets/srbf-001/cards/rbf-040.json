@@ -33,7 +33,7 @@
       },
       "behavior": "reactive",
       "stats": {
-        "fluxCost": 3
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],
