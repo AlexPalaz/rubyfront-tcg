@@ -1,7 +1,7 @@
 {
   "name": "Rubifronte del Bosco Errante",
   "typeLabel": "Rubyfront bifronte",
-  "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi e li risveglia, un respiro alla volta.",
+  "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi, li risveglia e li richiama dalla Requiem.",
   "ui": {
     "faceA": "Faccia A — Rubyfront",
     "faceB": "Faccia B — Nexus"
@@ -11,7 +11,7 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "Controlla almeno 3 Entità Auros e l'avversario ha già perso almeno 8 PV dal suo Rubyfront, solo nella tua Fase di Preparazione"
+      "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi"
     }
   },
   "matters": {
@@ -28,13 +28,25 @@
     },
     "effect": {
       "name": "Memoria del Bosco",
-      "text": "La prima volta in ogni tuo turno che un'Entità che controlli viene stappata da un effetto, guadagni 1 PV.",
-      "trigger": "Effetto"
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che un'Entità Auros che controlli viene stappata da un effetto, guadagni 1 PV."
+    },
+    "arrival": {
+      "trigger": "Quando entra in campo",
+      "text": "Puoi stappare un'Entità Auros che controlli."
     },
     "abilities": {
-      "woodBreath": {
-        "name": "Respiro del Bosco",
+      "perennialSap": {
+        "name": "Linfa Perenne",
         "text": "stappa un'Entità Auros che controlli."
+      },
+      "frondRecall": {
+        "name": "Richiamo tra le Fronde",
+        "text": "scegli un'Entità Auros nella tua Zona di Requiem e aggiungila alla tua mano."
+      },
+      "phaseAway": {
+        "name": "Sfasare",
+        "text": "riporta un'Entità controllata dall'avversario nella mano del suo proprietario."
       }
     },
     "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
@@ -43,14 +55,22 @@
     "name": "Radura Ripiegata",
     "nexusAria": "Nexus",
     "effect": {
-      "name": "Memoria della Radura",
-      "text": "La prima volta in ogni tuo turno che un'Entità che controlli viene stappata da un effetto, pesca una carta.",
-      "trigger": "Effetto"
+      "name": "Risveglio della Radura",
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che un'Entità Auros che controlli viene stappata da un effetto, pesca una carta."
     },
     "abilities": {
-      "woodBreath": {
-        "name": "Respiro del Bosco",
-        "text": "stappa un'Entità Auros che controlli."
+      "perennialBloom": {
+        "name": "Rigoglio Perenne",
+        "text": "stappa fino a 2 Entità Auros che controlli."
+      },
+      "foldingTide": {
+        "name": "Marea Ripiegante",
+        "text": "riporta fino a 2 Entità controllate dall'avversario nelle mani dei loro proprietari."
+      },
+      "woodCall": {
+        "name": "Richiamo del Bosco",
+        "text": "metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Requiem."
       }
     },
     "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che dorme si risveglia."

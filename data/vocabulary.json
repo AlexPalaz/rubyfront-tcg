@@ -176,7 +176,8 @@
       "controls_card",
       "health_at_most",
       "health_at_least",
-      "health_lost_at_least"
+      "health_lost_at_least",
+      "untapped_from_stasis_this_turn"
     ]
   },
   "stat": {

@@ -20,7 +20,8 @@
     "auros",
     "dimensional",
     "stasis",
-    "untap"
+    "untap",
+    "requiem"
   ],
   "rulesReference": "MANUALE.md §3.1, §7, §8.1",
   "faces": [
@@ -60,25 +61,23 @@
       "requirements": {
         "nexus": {
           "match": "all",
-          "timing": [
-            "own_preparation"
-          ],
           "conditions": [
             {
               "type": "controls_card",
               "owner": "controller",
-              "min": 3,
+              "min": 4,
               "filter": {
                 "cardType": "entity",
                 "race": "auros"
               }
             },
             {
-              "type": "health_lost_at_least",
-              "owner": "opponent",
-              "value": 8,
+              "type": "untapped_from_stasis_this_turn",
+              "owner": "controller",
+              "min": 1,
               "filter": {
-                "cardType": "rubyfront"
+                "cardType": "entity",
+                "race": "auros"
               }
             }
           ]
@@ -102,16 +101,32 @@
               "untappedByEffect": true,
               "watched": {
                 "cardType": "entity",
+                "race": "auros",
                 "controller": "controller"
               }
+            }
+          }
+        },
+        {
+          "id": "arrival",
+          "displayKey": "arrival",
+          "event": "on_deploy_from_recall",
+          "effect": {
+            "type": "untap",
+            "target": {
+              "cardType": "entity",
+              "race": "auros",
+              "controller": "controller",
+              "min": 0,
+              "max": 1
             }
           }
         }
       ],
       "actions": [
         {
-          "id": "wood-breath",
-          "displayKey": "woodBreath",
+          "id": "perennial-sap",
+          "displayKey": "perennialSap",
           "timing": [
             "own_preparation",
             "own_front"
@@ -121,7 +136,7 @@
             "fury"
           ],
           "cost": {
-            "health": 2
+            "health": 3
           },
           "effect": {
             "type": "untap",
@@ -131,6 +146,69 @@
               "controller": "controller",
               "min": 1,
               "max": 1
+            }
+          }
+        },
+        {
+          "id": "frond-recall",
+          "displayKey": "frondRecall",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": true,
+          "checks": [
+            "fury"
+          ],
+          "cost": {
+            "health": 4
+          },
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "race": "auros",
+              "zone": "requiem",
+              "owner": "controller",
+              "min": 1,
+              "max": 1
+            },
+            "destination": {
+              "zone": "hand",
+              "owner": "controller"
+            }
+          }
+        },
+        {
+          "id": "phase-away",
+          "displayKey": "phaseAway",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": true,
+          "checks": [
+            "fury"
+          ],
+          "cost": {
+            "health": 5
+          },
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "destination": {
+              "zone": "hand",
+              "owner": "card_owner"
+            },
+            "details": {
+              "isDeath": false,
+              "triggersLeaveField": true,
+              "objectFollows": false
             }
           }
         }
@@ -157,7 +235,7 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "glade-memory",
+          "id": "glade-waking",
           "displayKey": "effect",
           "event": "on_untap",
           "effect": {
@@ -172,6 +250,7 @@
               "untappedByEffect": true,
               "watched": {
                 "cardType": "entity",
+                "race": "auros",
                 "controller": "controller"
               }
             }
@@ -180,8 +259,8 @@
       ],
       "actions": [
         {
-          "id": "wood-breath",
-          "displayKey": "woodBreath",
+          "id": "perennial-bloom",
+          "displayKey": "perennialBloom",
           "timing": [
             "own_preparation",
             "own_front"
@@ -189,7 +268,7 @@
           "repeatable": true,
           "checks": [],
           "cost": {
-            "health": 2
+            "health": 4
           },
           "effect": {
             "type": "untap",
@@ -197,8 +276,74 @@
               "cardType": "entity",
               "race": "auros",
               "controller": "controller",
+              "min": 0,
+              "max": 2
+            }
+          }
+        },
+        {
+          "id": "folding-tide",
+          "displayKey": "foldingTide",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": true,
+          "checks": [],
+          "cost": {
+            "health": 6
+          },
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 0,
+              "max": 2
+            },
+            "destination": {
+              "zone": "hand",
+              "owner": "card_owner"
+            },
+            "details": {
+              "isDeath": false,
+              "triggersLeaveField": true,
+              "objectFollows": false
+            }
+          }
+        },
+        {
+          "id": "wood-call",
+          "displayKey": "woodCall",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": true,
+          "checks": [],
+          "cost": {
+            "health": 7
+          },
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "race": "auros",
+              "zone": "requiem",
+              "owner": "controller",
               "min": 1,
-              "max": 1
+              "max": 1,
+              "conditions": [
+                {
+                  "stat": "flux_cost",
+                  "operator": "lte",
+                  "value": 3
+                }
+              ]
+            },
+            "destination": {
+              "zone": "front",
+              "owner": "controller"
             }
           }
         }

@@ -2972,7 +2972,7 @@
             "it": {
               "name": "Rubifronte del Bosco Errante",
               "typeLabel": "Rubyfront bifronte",
-              "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi e li risveglia, un respiro alla volta.",
+              "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi, li risveglia e li richiama dalla Requiem.",
               "ui": {
                 "faceA": "Faccia A — Rubyfront",
                 "faceB": "Faccia B — Nexus"
@@ -2982,7 +2982,7 @@
                 "hp": "PV",
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
-                  "text": "Controlla almeno 3 Entità Auros e l'avversario ha già perso almeno 8 PV dal suo Rubyfront, solo nella tua Fase di Preparazione"
+                  "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi"
                 }
               },
               "matters": {
@@ -2999,13 +2999,25 @@
                 },
                 "effect": {
                   "name": "Memoria del Bosco",
-                  "text": "La prima volta in ogni tuo turno che un'Entità che controlli viene stappata da un effetto, guadagni 1 PV.",
-                  "trigger": "Effetto"
+                  "trigger": "Effetto",
+                  "text": "La prima volta in ogni tuo turno che un'Entità Auros che controlli viene stappata da un effetto, guadagni 1 PV."
+                },
+                "arrival": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Puoi stappare un'Entità Auros che controlli."
                 },
                 "abilities": {
-                  "woodBreath": {
-                    "name": "Respiro del Bosco",
+                  "perennialSap": {
+                    "name": "Linfa Perenne",
                     "text": "stappa un'Entità Auros che controlli."
+                  },
+                  "frondRecall": {
+                    "name": "Richiamo tra le Fronde",
+                    "text": "scegli un'Entità Auros nella tua Zona di Requiem e aggiungila alla tua mano."
+                  },
+                  "phaseAway": {
+                    "name": "Sfasare",
+                    "text": "riporta un'Entità controllata dall'avversario nella mano del suo proprietario."
                   }
                 },
                 "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
@@ -3014,14 +3026,22 @@
                 "name": "Radura Ripiegata",
                 "nexusAria": "Nexus",
                 "effect": {
-                  "name": "Memoria della Radura",
-                  "text": "La prima volta in ogni tuo turno che un'Entità che controlli viene stappata da un effetto, pesca una carta.",
-                  "trigger": "Effetto"
+                  "name": "Risveglio della Radura",
+                  "trigger": "Effetto",
+                  "text": "La prima volta in ogni tuo turno che un'Entità Auros che controlli viene stappata da un effetto, pesca una carta."
                 },
                 "abilities": {
-                  "woodBreath": {
-                    "name": "Respiro del Bosco",
-                    "text": "stappa un'Entità Auros che controlli."
+                  "perennialBloom": {
+                    "name": "Rigoglio Perenne",
+                    "text": "stappa fino a 2 Entità Auros che controlli."
+                  },
+                  "foldingTide": {
+                    "name": "Marea Ripiegante",
+                    "text": "riporta fino a 2 Entità controllate dall'avversario nelle mani dei loro proprietari."
+                  },
+                  "woodCall": {
+                    "name": "Richiamo del Bosco",
+                    "text": "metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Requiem."
                   }
                 },
                 "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che dorme si risveglia."
@@ -3030,7 +3050,7 @@
             "en": {
               "name": "Rubyfront of the Wandering Wood",
               "typeLabel": "Double-faced Rubyfront",
-              "summary": "The beast of the walking forest: it watches over its Auros in stasis and wakes them, one breath at a time.",
+              "summary": "The beast of the walking forest: it watches over its Auros in stasis, wakes them and calls them back from the Requiem.",
               "ui": {
                 "faceA": "Face A — Rubyfront",
                 "faceB": "Face B — Nexus"
@@ -3040,7 +3060,7 @@
                 "hp": "HP",
                 "nexusRequirement": {
                   "label": "Nexus requirement",
-                  "text": "Control at least 3 Auros Entities and the opponent has already lost at least 8 HP from their Rubyfront, only in your Preparation Phase"
+                  "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis"
                 }
               },
               "matters": {
@@ -3057,13 +3077,25 @@
                 },
                 "effect": {
                   "name": "Memory of the Wood",
-                  "text": "The first time each of your turns an Entity you control is untapped by an effect, you gain 1 HP.",
-                  "trigger": "Effect"
+                  "trigger": "Effect",
+                  "text": "The first time each of your turns an Auros Entity you control is untapped by an effect, you gain 1 HP."
+                },
+                "arrival": {
+                  "trigger": "When it enters the field",
+                  "text": "You may untap an Auros Entity you control."
                 },
                 "abilities": {
-                  "woodBreath": {
-                    "name": "Breath of the Wood",
+                  "perennialSap": {
+                    "name": "Perennial Sap",
                     "text": "untap an Auros Entity you control."
+                  },
+                  "frondRecall": {
+                    "name": "Recall through the Boughs",
+                    "text": "choose an Auros Entity in your Requiem Zone and add it to your hand."
+                  },
+                  "phaseAway": {
+                    "name": "Phase Away",
+                    "text": "return an Entity the opponent controls to its owner's hand."
                   }
                 },
                 "flavor": "You do not find the wood. The wood decides to find you."
@@ -3072,14 +3104,22 @@
                 "name": "Folded Glade",
                 "nexusAria": "Nexus",
                 "effect": {
-                  "name": "Memory of the Glade",
-                  "text": "The first time each of your turns an Entity you control is untapped by an effect, draw a card.",
-                  "trigger": "Effect"
+                  "name": "Waking of the Glade",
+                  "trigger": "Effect",
+                  "text": "The first time each of your turns an Auros Entity you control is untapped by an effect, draw a card."
                 },
                 "abilities": {
-                  "woodBreath": {
-                    "name": "Breath of the Wood",
-                    "text": "untap an Auros Entity you control."
+                  "perennialBloom": {
+                    "name": "Perennial Bloom",
+                    "text": "untap up to 2 Auros Entities you control."
+                  },
+                  "foldingTide": {
+                    "name": "Folding Tide",
+                    "text": "return up to 2 Entities the opponent controls to their owners' hands."
+                  },
+                  "woodCall": {
+                    "name": "Call of the Wood",
+                    "text": "put an Auros Entity with Flux cost 3 or less from your Requiem Zone onto your Front."
                   }
                 },
                 "flavor": "Here space folds upon itself, and what sleeps awakens."
@@ -3093,7 +3133,8 @@
             "auros",
             "dimensional",
             "stasis",
-            "untap"
+            "untap",
+            "requiem"
           ],
           "rulesReference": "MANUALE.md §3.1, §7, §8.1",
           "faces": [
@@ -3133,25 +3174,23 @@
               "requirements": {
                 "nexus": {
                   "match": "all",
-                  "timing": [
-                    "own_preparation"
-                  ],
                   "conditions": [
                     {
                       "type": "controls_card",
                       "owner": "controller",
-                      "min": 3,
+                      "min": 4,
                       "filter": {
                         "cardType": "entity",
                         "race": "auros"
                       }
                     },
                     {
-                      "type": "health_lost_at_least",
-                      "owner": "opponent",
-                      "value": 8,
+                      "type": "untapped_from_stasis_this_turn",
+                      "owner": "controller",
+                      "min": 1,
                       "filter": {
-                        "cardType": "rubyfront"
+                        "cardType": "entity",
+                        "race": "auros"
                       }
                     }
                   ]
@@ -3175,16 +3214,32 @@
                       "untappedByEffect": true,
                       "watched": {
                         "cardType": "entity",
+                        "race": "auros",
                         "controller": "controller"
                       }
+                    }
+                  }
+                },
+                {
+                  "id": "arrival",
+                  "displayKey": "arrival",
+                  "event": "on_deploy_from_recall",
+                  "effect": {
+                    "type": "untap",
+                    "target": {
+                      "cardType": "entity",
+                      "race": "auros",
+                      "controller": "controller",
+                      "min": 0,
+                      "max": 1
                     }
                   }
                 }
               ],
               "actions": [
                 {
-                  "id": "wood-breath",
-                  "displayKey": "woodBreath",
+                  "id": "perennial-sap",
+                  "displayKey": "perennialSap",
                   "timing": [
                     "own_preparation",
                     "own_front"
@@ -3194,7 +3249,7 @@
                     "fury"
                   ],
                   "cost": {
-                    "health": 2
+                    "health": 3
                   },
                   "effect": {
                     "type": "untap",
@@ -3204,6 +3259,69 @@
                       "controller": "controller",
                       "min": 1,
                       "max": 1
+                    }
+                  }
+                },
+                {
+                  "id": "frond-recall",
+                  "displayKey": "frondRecall",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [
+                    "fury"
+                  ],
+                  "cost": {
+                    "health": 4
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "race": "auros",
+                      "zone": "requiem",
+                      "owner": "controller",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    }
+                  }
+                },
+                {
+                  "id": "phase-away",
+                  "displayKey": "phaseAway",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [
+                    "fury"
+                  ],
+                  "cost": {
+                    "health": 5
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": false
                     }
                   }
                 }
@@ -3230,7 +3348,7 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "glade-memory",
+                  "id": "glade-waking",
                   "displayKey": "effect",
                   "event": "on_untap",
                   "effect": {
@@ -3245,6 +3363,7 @@
                       "untappedByEffect": true,
                       "watched": {
                         "cardType": "entity",
+                        "race": "auros",
                         "controller": "controller"
                       }
                     }
@@ -3253,8 +3372,8 @@
               ],
               "actions": [
                 {
-                  "id": "wood-breath",
-                  "displayKey": "woodBreath",
+                  "id": "perennial-bloom",
+                  "displayKey": "perennialBloom",
                   "timing": [
                     "own_preparation",
                     "own_front"
@@ -3262,7 +3381,7 @@
                   "repeatable": true,
                   "checks": [],
                   "cost": {
-                    "health": 2
+                    "health": 4
                   },
                   "effect": {
                     "type": "untap",
@@ -3270,8 +3389,74 @@
                       "cardType": "entity",
                       "race": "auros",
                       "controller": "controller",
+                      "min": 0,
+                      "max": 2
+                    }
+                  }
+                },
+                {
+                  "id": "folding-tide",
+                  "displayKey": "foldingTide",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [],
+                  "cost": {
+                    "health": 6
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 0,
+                      "max": 2
+                    },
+                    "destination": {
+                      "zone": "hand",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "isDeath": false,
+                      "triggersLeaveField": true,
+                      "objectFollows": false
+                    }
+                  }
+                },
+                {
+                  "id": "wood-call",
+                  "displayKey": "woodCall",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [],
+                  "cost": {
+                    "health": 7
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "race": "auros",
+                      "zone": "requiem",
+                      "owner": "controller",
                       "min": 1,
-                      "max": 1
+                      "max": 1,
+                      "conditions": [
+                        {
+                          "stat": "flux_cost",
+                          "operator": "lte",
+                          "value": 3
+                        }
+                      ]
+                    },
+                    "destination": {
+                      "zone": "front",
+                      "owner": "controller"
                     }
                   }
                 }
@@ -8772,7 +8957,7 @@
         "it": {
           "name": "Rubifronte del Bosco Errante",
           "typeLabel": "Rubyfront bifronte",
-          "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi e li risveglia, un respiro alla volta.",
+          "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi, li risveglia e li richiama dalla Requiem.",
           "ui": {
             "faceA": "Faccia A — Rubyfront",
             "faceB": "Faccia B — Nexus"
@@ -8782,7 +8967,7 @@
             "hp": "PV",
             "nexusRequirement": {
               "label": "Requisito Nexus",
-              "text": "Controlla almeno 3 Entità Auros e l'avversario ha già perso almeno 8 PV dal suo Rubyfront, solo nella tua Fase di Preparazione"
+              "text": "Controlla almeno 4 Entità Auros e, durante questo turno, almeno un'Entità Auros che controlli è stata stappata mentre era in Stasi"
             }
           },
           "matters": {
@@ -8799,13 +8984,25 @@
             },
             "effect": {
               "name": "Memoria del Bosco",
-              "text": "La prima volta in ogni tuo turno che un'Entità che controlli viene stappata da un effetto, guadagni 1 PV.",
-              "trigger": "Effetto"
+              "trigger": "Effetto",
+              "text": "La prima volta in ogni tuo turno che un'Entità Auros che controlli viene stappata da un effetto, guadagni 1 PV."
+            },
+            "arrival": {
+              "trigger": "Quando entra in campo",
+              "text": "Puoi stappare un'Entità Auros che controlli."
             },
             "abilities": {
-              "woodBreath": {
-                "name": "Respiro del Bosco",
+              "perennialSap": {
+                "name": "Linfa Perenne",
                 "text": "stappa un'Entità Auros che controlli."
+              },
+              "frondRecall": {
+                "name": "Richiamo tra le Fronde",
+                "text": "scegli un'Entità Auros nella tua Zona di Requiem e aggiungila alla tua mano."
+              },
+              "phaseAway": {
+                "name": "Sfasare",
+                "text": "riporta un'Entità controllata dall'avversario nella mano del suo proprietario."
               }
             },
             "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
@@ -8814,14 +9011,22 @@
             "name": "Radura Ripiegata",
             "nexusAria": "Nexus",
             "effect": {
-              "name": "Memoria della Radura",
-              "text": "La prima volta in ogni tuo turno che un'Entità che controlli viene stappata da un effetto, pesca una carta.",
-              "trigger": "Effetto"
+              "name": "Risveglio della Radura",
+              "trigger": "Effetto",
+              "text": "La prima volta in ogni tuo turno che un'Entità Auros che controlli viene stappata da un effetto, pesca una carta."
             },
             "abilities": {
-              "woodBreath": {
-                "name": "Respiro del Bosco",
-                "text": "stappa un'Entità Auros che controlli."
+              "perennialBloom": {
+                "name": "Rigoglio Perenne",
+                "text": "stappa fino a 2 Entità Auros che controlli."
+              },
+              "foldingTide": {
+                "name": "Marea Ripiegante",
+                "text": "riporta fino a 2 Entità controllate dall'avversario nelle mani dei loro proprietari."
+              },
+              "woodCall": {
+                "name": "Richiamo del Bosco",
+                "text": "metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Requiem."
               }
             },
             "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che dorme si risveglia."
@@ -8830,7 +9035,7 @@
         "en": {
           "name": "Rubyfront of the Wandering Wood",
           "typeLabel": "Double-faced Rubyfront",
-          "summary": "The beast of the walking forest: it watches over its Auros in stasis and wakes them, one breath at a time.",
+          "summary": "The beast of the walking forest: it watches over its Auros in stasis, wakes them and calls them back from the Requiem.",
           "ui": {
             "faceA": "Face A — Rubyfront",
             "faceB": "Face B — Nexus"
@@ -8840,7 +9045,7 @@
             "hp": "HP",
             "nexusRequirement": {
               "label": "Nexus requirement",
-              "text": "Control at least 3 Auros Entities and the opponent has already lost at least 8 HP from their Rubyfront, only in your Preparation Phase"
+              "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis"
             }
           },
           "matters": {
@@ -8857,13 +9062,25 @@
             },
             "effect": {
               "name": "Memory of the Wood",
-              "text": "The first time each of your turns an Entity you control is untapped by an effect, you gain 1 HP.",
-              "trigger": "Effect"
+              "trigger": "Effect",
+              "text": "The first time each of your turns an Auros Entity you control is untapped by an effect, you gain 1 HP."
+            },
+            "arrival": {
+              "trigger": "When it enters the field",
+              "text": "You may untap an Auros Entity you control."
             },
             "abilities": {
-              "woodBreath": {
-                "name": "Breath of the Wood",
+              "perennialSap": {
+                "name": "Perennial Sap",
                 "text": "untap an Auros Entity you control."
+              },
+              "frondRecall": {
+                "name": "Recall through the Boughs",
+                "text": "choose an Auros Entity in your Requiem Zone and add it to your hand."
+              },
+              "phaseAway": {
+                "name": "Phase Away",
+                "text": "return an Entity the opponent controls to its owner's hand."
               }
             },
             "flavor": "You do not find the wood. The wood decides to find you."
@@ -8872,14 +9089,22 @@
             "name": "Folded Glade",
             "nexusAria": "Nexus",
             "effect": {
-              "name": "Memory of the Glade",
-              "text": "The first time each of your turns an Entity you control is untapped by an effect, draw a card.",
-              "trigger": "Effect"
+              "name": "Waking of the Glade",
+              "trigger": "Effect",
+              "text": "The first time each of your turns an Auros Entity you control is untapped by an effect, draw a card."
             },
             "abilities": {
-              "woodBreath": {
-                "name": "Breath of the Wood",
-                "text": "untap an Auros Entity you control."
+              "perennialBloom": {
+                "name": "Perennial Bloom",
+                "text": "untap up to 2 Auros Entities you control."
+              },
+              "foldingTide": {
+                "name": "Folding Tide",
+                "text": "return up to 2 Entities the opponent controls to their owners' hands."
+              },
+              "woodCall": {
+                "name": "Call of the Wood",
+                "text": "put an Auros Entity with Flux cost 3 or less from your Requiem Zone onto your Front."
               }
             },
             "flavor": "Here space folds upon itself, and what sleeps awakens."
@@ -8893,7 +9118,8 @@
         "auros",
         "dimensional",
         "stasis",
-        "untap"
+        "untap",
+        "requiem"
       ],
       "rulesReference": "MANUALE.md §3.1, §7, §8.1",
       "faces": [
@@ -8933,25 +9159,23 @@
           "requirements": {
             "nexus": {
               "match": "all",
-              "timing": [
-                "own_preparation"
-              ],
               "conditions": [
                 {
                   "type": "controls_card",
                   "owner": "controller",
-                  "min": 3,
+                  "min": 4,
                   "filter": {
                     "cardType": "entity",
                     "race": "auros"
                   }
                 },
                 {
-                  "type": "health_lost_at_least",
-                  "owner": "opponent",
-                  "value": 8,
+                  "type": "untapped_from_stasis_this_turn",
+                  "owner": "controller",
+                  "min": 1,
                   "filter": {
-                    "cardType": "rubyfront"
+                    "cardType": "entity",
+                    "race": "auros"
                   }
                 }
               ]
@@ -8975,16 +9199,32 @@
                   "untappedByEffect": true,
                   "watched": {
                     "cardType": "entity",
+                    "race": "auros",
                     "controller": "controller"
                   }
+                }
+              }
+            },
+            {
+              "id": "arrival",
+              "displayKey": "arrival",
+              "event": "on_deploy_from_recall",
+              "effect": {
+                "type": "untap",
+                "target": {
+                  "cardType": "entity",
+                  "race": "auros",
+                  "controller": "controller",
+                  "min": 0,
+                  "max": 1
                 }
               }
             }
           ],
           "actions": [
             {
-              "id": "wood-breath",
-              "displayKey": "woodBreath",
+              "id": "perennial-sap",
+              "displayKey": "perennialSap",
               "timing": [
                 "own_preparation",
                 "own_front"
@@ -8994,7 +9234,7 @@
                 "fury"
               ],
               "cost": {
-                "health": 2
+                "health": 3
               },
               "effect": {
                 "type": "untap",
@@ -9004,6 +9244,69 @@
                   "controller": "controller",
                   "min": 1,
                   "max": 1
+                }
+              }
+            },
+            {
+              "id": "frond-recall",
+              "displayKey": "frondRecall",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [
+                "fury"
+              ],
+              "cost": {
+                "health": 4
+              },
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "race": "auros",
+                  "zone": "requiem",
+                  "owner": "controller",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "controller"
+                }
+              }
+            },
+            {
+              "id": "phase-away",
+              "displayKey": "phaseAway",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [
+                "fury"
+              ],
+              "cost": {
+                "health": 5
+              },
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": false
                 }
               }
             }
@@ -9030,7 +9333,7 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "glade-memory",
+              "id": "glade-waking",
               "displayKey": "effect",
               "event": "on_untap",
               "effect": {
@@ -9045,6 +9348,7 @@
                   "untappedByEffect": true,
                   "watched": {
                     "cardType": "entity",
+                    "race": "auros",
                     "controller": "controller"
                   }
                 }
@@ -9053,8 +9357,8 @@
           ],
           "actions": [
             {
-              "id": "wood-breath",
-              "displayKey": "woodBreath",
+              "id": "perennial-bloom",
+              "displayKey": "perennialBloom",
               "timing": [
                 "own_preparation",
                 "own_front"
@@ -9062,7 +9366,7 @@
               "repeatable": true,
               "checks": [],
               "cost": {
-                "health": 2
+                "health": 4
               },
               "effect": {
                 "type": "untap",
@@ -9070,8 +9374,74 @@
                   "cardType": "entity",
                   "race": "auros",
                   "controller": "controller",
+                  "min": 0,
+                  "max": 2
+                }
+              }
+            },
+            {
+              "id": "folding-tide",
+              "displayKey": "foldingTide",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [],
+              "cost": {
+                "health": 6
+              },
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 0,
+                  "max": 2
+                },
+                "destination": {
+                  "zone": "hand",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "isDeath": false,
+                  "triggersLeaveField": true,
+                  "objectFollows": false
+                }
+              }
+            },
+            {
+              "id": "wood-call",
+              "displayKey": "woodCall",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [],
+              "cost": {
+                "health": 7
+              },
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "race": "auros",
+                  "zone": "requiem",
+                  "owner": "controller",
                   "min": 1,
-                  "max": 1
+                  "max": 1,
+                  "conditions": [
+                    {
+                      "stat": "flux_cost",
+                      "operator": "lte",
+                      "value": 3
+                    }
+                  ]
+                },
+                "destination": {
+                  "zone": "front",
+                  "owner": "controller"
                 }
               }
             }

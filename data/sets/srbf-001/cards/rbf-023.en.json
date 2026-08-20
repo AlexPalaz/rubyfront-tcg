@@ -1,7 +1,7 @@
 {
   "name": "Rubyfront of the Wandering Wood",
   "typeLabel": "Double-faced Rubyfront",
-  "summary": "The beast of the walking forest: it watches over its Auros in stasis and wakes them, one breath at a time.",
+  "summary": "The beast of the walking forest: it watches over its Auros in stasis, wakes them and calls them back from the Requiem.",
   "ui": {
     "faceA": "Face A — Rubyfront",
     "faceB": "Face B — Nexus"
@@ -11,7 +11,7 @@
     "hp": "HP",
     "nexusRequirement": {
       "label": "Nexus requirement",
-      "text": "Control at least 3 Auros Entities and the opponent has already lost at least 8 HP from their Rubyfront, only in your Preparation Phase"
+      "text": "Control at least 4 Auros Entities and, during this turn, at least one Auros Entity you control was untapped while it was in Stasis"
     }
   },
   "matters": {
@@ -28,13 +28,25 @@
     },
     "effect": {
       "name": "Memory of the Wood",
-      "text": "The first time each of your turns an Entity you control is untapped by an effect, you gain 1 HP.",
-      "trigger": "Effect"
+      "trigger": "Effect",
+      "text": "The first time each of your turns an Auros Entity you control is untapped by an effect, you gain 1 HP."
+    },
+    "arrival": {
+      "trigger": "When it enters the field",
+      "text": "You may untap an Auros Entity you control."
     },
     "abilities": {
-      "woodBreath": {
-        "name": "Breath of the Wood",
+      "perennialSap": {
+        "name": "Perennial Sap",
         "text": "untap an Auros Entity you control."
+      },
+      "frondRecall": {
+        "name": "Recall through the Boughs",
+        "text": "choose an Auros Entity in your Requiem Zone and add it to your hand."
+      },
+      "phaseAway": {
+        "name": "Phase Away",
+        "text": "return an Entity the opponent controls to its owner's hand."
       }
     },
     "flavor": "You do not find the wood. The wood decides to find you."
@@ -43,14 +55,22 @@
     "name": "Folded Glade",
     "nexusAria": "Nexus",
     "effect": {
-      "name": "Memory of the Glade",
-      "text": "The first time each of your turns an Entity you control is untapped by an effect, draw a card.",
-      "trigger": "Effect"
+      "name": "Waking of the Glade",
+      "trigger": "Effect",
+      "text": "The first time each of your turns an Auros Entity you control is untapped by an effect, draw a card."
     },
     "abilities": {
-      "woodBreath": {
-        "name": "Breath of the Wood",
-        "text": "untap an Auros Entity you control."
+      "perennialBloom": {
+        "name": "Perennial Bloom",
+        "text": "untap up to 2 Auros Entities you control."
+      },
+      "foldingTide": {
+        "name": "Folding Tide",
+        "text": "return up to 2 Entities the opponent controls to their owners' hands."
+      },
+      "woodCall": {
+        "name": "Call of the Wood",
+        "text": "put an Auros Entity with Flux cost 3 or less from your Requiem Zone onto your Front."
       }
     },
     "flavor": "Here space folds upon itself, and what sleeps awakens."
