@@ -15,17 +15,11 @@
   },
   "face": {
     "name": "Adam, il Primo",
-    "abilities": {
-      "genesis": {
-        "name": "Genesi",
-        "text": "cerca nel tuo mazzo una carta Materia Zero, mostrala e aggiungila alla tua mano. Non puoi giocarla né scartarla in questo turno."
-      }
-    },
-    "bequest": {
-      "trigger": "Quando lascia il Fronte",
+    "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre.",
+    "firstBlood": {
+      "trigger": "Quando infligge danno a un Rubyfront avversario",
       "text": "Pesca una carta."
-    },
-    "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
+    }
   },
   "matters": {
     "zeroTitle": "Materia Zero",

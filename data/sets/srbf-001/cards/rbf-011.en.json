@@ -15,7 +15,7 @@
     "name": "Armored Bulwark",
     "effect": {
       "name": "Effect",
-      "text": "Armored Bulwark cannot attack, and holds the line for the whole game."
+      "text": "Armored Bulwark cannot block."
     },
     "flavor": "The world falls. He does not."
   },

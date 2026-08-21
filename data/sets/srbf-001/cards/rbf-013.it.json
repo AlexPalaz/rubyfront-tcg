@@ -15,7 +15,7 @@
     "name": "Prima Lama",
     "firstCut": {
       "trigger": "Quando entra in campo",
-      "text": "Manda un'Entità nella Zona di Requiem del suo proprietario."
+      "text": "Scegli un'Entità controllata dall'avversario e mettila nella Zona di Requiem del suo proprietario."
     },
     "effect": {
       "name": "Effetto",

@@ -116,18 +116,23 @@
           "checks": [
             "fury"
           ],
-          "gain": {
-            "health": 3
+          "cost": {
+            "health": 2
           },
           "effect": {
-            "type": "untap",
+            "type": "empower",
             "target": {
               "cardType": "entity",
-              "race": "human",
               "controller": "controller",
-              "min": 0,
-              "max": 2
-            }
+              "zone": "front",
+              "owner": "controller",
+              "min": 1,
+              "max": 1
+            },
+            "grants": [
+              "surge"
+            ],
+            "duration": "until_end_of_turn"
           }
         },
         {
@@ -249,18 +254,46 @@
           "repeatable": true,
           "checks": [],
           "gain": {
-            "health": 3
+            "health": 1
           },
           "effect": {
-            "type": "untap",
+            "type": "empower",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "zone": "front",
+              "owner": "controller",
+              "quantity": "all"
+            },
+            "grants": [
+              "surge"
+            ],
+            "duration": "until_end_of_turn"
+          }
+        },
+        {
+          "id": "coordinated-assault",
+          "displayKey": "coordinatedAssault",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": true,
+          "checks": [],
+          "cost": {
+            "health": 5
+          },
+          "effect": {
+            "type": "modify_power",
             "target": {
               "cardType": "entity",
               "race": "human",
               "controller": "controller",
-              "quantity": "all",
-              "zone": "front",
-              "owner": "controller"
-            }
+              "min": 0,
+              "max": 2
+            },
+            "amount": 2,
+            "duration": "until_end_of_turn"
           }
         },
         {
@@ -279,13 +312,19 @@
             "type": "modify_power",
             "target": {
               "cardType": "entity",
+              "race": "human",
               "controller": "controller",
               "quantity": "all"
             },
             "amount": 1,
             "duration": "until_end_of_turn",
             "details": {
-              "cannotBeBlockedByGreaterPower": true
+              "cannotBeBlockedByGreaterPower": true,
+              "blockerRestrictionAppliesTo": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              }
             }
           }
         }

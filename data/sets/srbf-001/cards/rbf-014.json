@@ -50,7 +50,11 @@
               "max": 1,
               "details": {
                 "mustHaveAttackedThisTurn": true
-              }
+              },
+              "race": "human"
+            },
+            "details": {
+              "untapFirst": true
             }
           }
         }

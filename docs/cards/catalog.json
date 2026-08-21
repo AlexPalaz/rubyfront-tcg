@@ -77,7 +77,7 @@
                 "abilities": {
                   "frontCommand": {
                     "name": "Comando dal Fronte",
-                    "text": "stappa fino a 2 Entità Umane che controlli e rimandale in linea."
+                    "text": "in questo turno un'Entità dal tuo lato del Fronte ha Slancio."
                   },
                   "swell": {
                     "name": "Onda Portante",
@@ -99,11 +99,15 @@
                 "abilities": {
                   "frontOrder": {
                     "name": "Ordine del Fronte",
-                    "text": "stappa tutte le Entità Umane nella tua Zona del Fronte, fino all'ultima."
+                    "text": "in questo turno tutte le Entità dal tuo lato del Fronte hanno Slancio."
+                  },
+                  "coordinatedAssault": {
+                    "name": "Assalto Coordinato",
+                    "text": "fino a 2 Entità Umane che controlli prendono +2 Potenza fino alla fine del turno."
                   },
                   "greatTide": {
                     "name": "Grande Marea",
-                    "text": "le tue Entità prendono +1 Potenza fino alla fine del turno e nessuna Entità di Potenza superiore può bloccarle."
+                    "text": "le Entità Umane che controlli prendono +1 Potenza fino alla fine del turno. In questo turno un'Entità avversaria non può bloccare un'Entità Umana con Potenza superiore alla propria."
                   }
                 },
                 "flavor": "Il patto prese carne. Nessuno ricorda chi lo firmò per primo."
@@ -143,7 +147,7 @@
                 "abilities": {
                   "frontCommand": {
                     "name": "Front Command",
-                    "text": "untap up to 2 Human Entities you control and send them back into line."
+                    "text": "this turn one Entity on your side of the Front has Surge."
                   },
                   "swell": {
                     "name": "Swell",
@@ -165,11 +169,15 @@
                 "abilities": {
                   "frontOrder": {
                     "name": "Order of the Front",
-                    "text": "untap every Human Entity in your Front Zone, down to the last one."
+                    "text": "this turn all Entities on your side of the Front have Surge."
+                  },
+                  "coordinatedAssault": {
+                    "name": "Coordinated Assault",
+                    "text": "up to 2 Human Entities you control get +2 Power until end of turn."
                   },
                   "greatTide": {
                     "name": "Great Tide",
-                    "text": "your Entities get +1 Power until end of turn and no Entity of greater Power can block them."
+                    "text": "Human Entities you control get +1 Power until end of turn. This turn an opposing Entity cannot block a Human Entity with greater Power than its own."
                   }
                 },
                 "flavor": "The pact took flesh. No one remembers who signed it first."
@@ -279,18 +287,23 @@
                   "checks": [
                     "fury"
                   ],
-                  "gain": {
-                    "health": 3
+                  "cost": {
+                    "health": 2
                   },
                   "effect": {
-                    "type": "untap",
+                    "type": "empower",
                     "target": {
                       "cardType": "entity",
-                      "race": "human",
                       "controller": "controller",
-                      "min": 0,
-                      "max": 2
-                    }
+                      "zone": "front",
+                      "owner": "controller",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "grants": [
+                      "surge"
+                    ],
+                    "duration": "until_end_of_turn"
                   }
                 },
                 {
@@ -412,18 +425,46 @@
                   "repeatable": true,
                   "checks": [],
                   "gain": {
-                    "health": 3
+                    "health": 1
                   },
                   "effect": {
-                    "type": "untap",
+                    "type": "empower",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "controller",
+                      "zone": "front",
+                      "owner": "controller",
+                      "quantity": "all"
+                    },
+                    "grants": [
+                      "surge"
+                    ],
+                    "duration": "until_end_of_turn"
+                  }
+                },
+                {
+                  "id": "coordinated-assault",
+                  "displayKey": "coordinatedAssault",
+                  "timing": [
+                    "own_preparation",
+                    "own_front"
+                  ],
+                  "repeatable": true,
+                  "checks": [],
+                  "cost": {
+                    "health": 5
+                  },
+                  "effect": {
+                    "type": "modify_power",
                     "target": {
                       "cardType": "entity",
                       "race": "human",
                       "controller": "controller",
-                      "quantity": "all",
-                      "zone": "front",
-                      "owner": "controller"
-                    }
+                      "min": 0,
+                      "max": 2
+                    },
+                    "amount": 2,
+                    "duration": "until_end_of_turn"
                   }
                 },
                 {
@@ -442,13 +483,19 @@
                     "type": "modify_power",
                     "target": {
                       "cardType": "entity",
+                      "race": "human",
                       "controller": "controller",
                       "quantity": "all"
                     },
                     "amount": 1,
                     "duration": "until_end_of_turn",
                     "details": {
-                      "cannotBeBlockedByGreaterPower": true
+                      "cannotBeBlockedByGreaterPower": true,
+                      "blockerRestrictionAppliesTo": {
+                        "cardType": "entity",
+                        "race": "human",
+                        "controller": "controller"
+                      }
                     }
                   }
                 }
@@ -489,17 +536,11 @@
               },
               "face": {
                 "name": "Adam, il Primo",
-                "abilities": {
-                  "genesis": {
-                    "name": "Genesi",
-                    "text": "cerca nel tuo mazzo una carta Materia Zero, mostrala e aggiungila alla tua mano. Non puoi giocarla né scartarla in questo turno."
-                  }
-                },
-                "bequest": {
-                  "trigger": "Quando lascia il Fronte",
+                "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre.",
+                "firstBlood": {
+                  "trigger": "Quando infligge danno a un Rubyfront avversario",
                   "text": "Pesca una carta."
-                },
-                "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
+                }
               },
               "matters": {
                 "zeroTitle": "Materia Zero",
@@ -525,17 +566,11 @@
               },
               "face": {
                 "name": "Adam, The First",
-                "abilities": {
-                  "genesis": {
-                    "name": "Genesis",
-                    "text": "search your deck for a Zero Matter card, reveal it and add it to your hand. You cannot play or discard that card this turn."
-                  }
-                },
-                "bequest": {
-                  "trigger": "When it leaves the Front",
+                "flavor": "He was the first to touch Zero. Humankind was never the same.",
+                "firstBlood": {
+                  "trigger": "When it deals damage to an opposing Rubyfront",
                   "text": "Draw a card."
-                },
-                "flavor": "He was the first to touch Zero. Humankind was never the same."
+                }
               },
               "matters": {
                 "zeroTitle": "Zero Matter",
@@ -577,51 +612,25 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "bequest",
-                  "displayKey": "bequest",
-                  "event": "on_leave_field",
+                  "id": "first-blood",
+                  "displayKey": "firstBlood",
+                  "event": "on_deal_damage",
                   "effect": {
                     "type": "draw_card",
                     "target": {
                       "controller": "controller"
                     },
-                    "count": 1
-                  }
-                }
-              ],
-              "actions": [
-                {
-                  "id": "genesis",
-                  "displayKey": "genesis",
-                  "timing": [
-                    "own_turn"
-                  ],
-                  "repeatable": true,
-                  "checks": [],
-                  "effect": {
-                    "type": "search_card",
-                    "from": {
-                      "zone": "deck",
-                      "owner": "controller"
-                    },
-                    "filter": {
-                      "cardType": "matter",
-                      "matterType": "zero"
-                    },
-                    "reveal": true,
-                    "to": {
-                      "zone": "hand",
-                      "owner": "controller"
-                    },
-                    "shuffle": true,
-                    "restriction": {
-                      "cannotPlayFetchedCard": true,
-                      "cannotDiscardFetchedCard": true,
-                      "duration": "until_end_of_turn"
+                    "count": 1,
+                    "details": {
+                      "toRubyfront": true,
+                      "source": {
+                        "scope": "self"
+                      }
                     }
                   }
                 }
-              ]
+              ],
+              "actions": []
             }
           ],
           "designNotes": "rbf-002.md",
@@ -785,7 +794,7 @@
                 "name": "Scatto",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Un'Entità a tua scelta prende +2 Potenza. Se controlli il Rubifronte del Patto, quell'Entità ottiene anche Slancio fino alla fine del turno."
+                  "text": "Scegli un'Entità Umana che controlli: prende +2 Potenza fino alla fine del turno. Se controlli il Rubifronte del Patto, ottiene anche Slancio fino alla fine del turno."
                 },
                 "flavor": "Prima che l’occhio capisca, è già finita."
               },
@@ -814,7 +823,7 @@
                 "name": "Dash",
                 "effect": {
                   "name": "Effect",
-                  "text": "An Entity of your choice gets +2 Power. If you control the Rubyfront of the Pact, that Entity also gains Surge until end of turn."
+                  "text": "Choose a Human Entity you control: it gets +2 Power until end of turn. If you control the Rubyfront of the Pact, it also gains Surge until end of turn."
                 },
                 "flavor": "Before the eye understands, it is over."
               },
@@ -857,7 +866,9 @@
                     "target": {
                       "cardType": "entity",
                       "min": 1,
-                      "max": 1
+                      "max": 1,
+                      "race": "human",
+                      "controller": "controller"
                     },
                     "powerBonus": 2,
                     "duration": "until_end_of_turn",
@@ -1359,11 +1370,11 @@
               },
               "face": {
                 "name": "Chirurgo da Campo",
-                "ember": {
+                "flavor": "Anche le bestie sanguinano.",
+                "incision": {
                   "trigger": "Quando entra in campo",
-                  "text": "Il Chirurgo da Campo infligge 1 danno al Rubyfront avversario nel momento stesso in cui mette piede sul Fronte."
-                },
-                "flavor": "Anche le bestie sanguinano."
+                  "text": "Tappa un'Entità avversaria. Poi lancia un d6: con 5 o 6, guarda la prima carta del tuo mazzo e, se vuoi, mettila in fondo."
+                }
               }
             },
             "en": {
@@ -1381,11 +1392,11 @@
               },
               "face": {
                 "name": "Field Surgeon",
-                "ember": {
+                "flavor": "Beasts bleed too.",
+                "incision": {
                   "trigger": "When it enters the field",
-                  "text": "Field Surgeon deals 1 damage to the opposing Rubyfront the moment he sets foot on the Front."
-                },
-                "flavor": "Beasts bleed too."
+                  "text": "Tap an opposing Entity. Then roll a d6: on a 5 or 6, look at the top card of your deck and, if you wish, put it on the bottom."
+                }
               }
             }
           },
@@ -1404,23 +1415,44 @@
               "race": "human",
               "stats": {
                 "power": 1,
-                "fluxCost": 3
+                "fluxCost": 2
               },
               "enablesMatters": [],
               "keywords": [],
               "requirements": {},
               "triggers": [
                 {
-                  "id": "ember",
-                  "displayKey": "ember",
+                  "id": "incision",
+                  "displayKey": "incision",
                   "event": "on_enter_field",
                   "effect": {
-                    "type": "lose_health",
+                    "type": "set_state",
                     "target": {
-                      "cardType": "rubyfront",
-                      "controller": "opponent"
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
                     },
-                    "amount": 1
+                    "state": "tapped",
+                    "details": {
+                      "then": {
+                        "type": "look_and_optionally_move",
+                        "die": "d6",
+                        "onRoll": "5-6",
+                        "from": {
+                          "zone": "deck",
+                          "owner": "controller",
+                          "position": "top",
+                          "count": 1
+                        },
+                        "to": {
+                          "zone": "deck",
+                          "owner": "controller",
+                          "position": "bottom"
+                        },
+                        "optional": true
+                      }
+                    }
                   }
                 }
               ],
@@ -1569,7 +1601,7 @@
                 "name": "Baluardo Corazzato",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Il Baluardo Corazzato non può attaccare, e tiene la linea per tutta la partita."
+                  "text": "Il Baluardo Corazzato non può bloccare."
                 },
                 "flavor": "Cade il mondo, non lui."
               },
@@ -1595,7 +1627,7 @@
                 "name": "Armored Bulwark",
                 "effect": {
                   "name": "Effect",
-                  "text": "Armored Bulwark cannot attack, and holds the line for the whole game."
+                  "text": "Armored Bulwark cannot block."
                 },
                 "flavor": "The world falls. He does not."
               },
@@ -1633,7 +1665,7 @@
               "triggers": [],
               "actions": [],
               "restrictions": {
-                "cannotAttack": true
+                "cannotBlock": true
               }
             }
           ],
@@ -1792,7 +1824,7 @@
                 "name": "Prima Lama",
                 "firstCut": {
                   "trigger": "Quando entra in campo",
-                  "text": "Manda un'Entità nella Zona di Requiem del suo proprietario."
+                  "text": "Scegli un'Entità controllata dall'avversario e mettila nella Zona di Requiem del suo proprietario."
                 },
                 "effect": {
                   "name": "Effetto",
@@ -1822,7 +1854,7 @@
                 "name": "First Blade",
                 "firstCut": {
                   "trigger": "When it enters the field",
-                  "text": "Put an Entity into its owner's Requiem Zone."
+                  "text": "Choose an Entity your opponent controls and put it into its owner's Requiem Zone."
                 },
                 "effect": {
                   "name": "Effect",
@@ -1872,7 +1904,8 @@
                     "target": {
                       "cardType": "entity",
                       "min": 1,
-                      "max": 1
+                      "max": 1,
+                      "controller": "opponent"
                     },
                     "destination": {
                       "zone": "requiem",
@@ -1939,7 +1972,7 @@
                 "name": "Secondo Impeto",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Un'Entità a tua scelta che ha già attaccato in questo turno può attaccare una seconda volta."
+                  "text": "Scegli un'Entità Umana che controlli che ha già attaccato in questo turno. Stappala: può attaccare una seconda volta in questo turno."
                 },
                 "flavor": "Il primo colpo apre. Il secondo chiude."
               },
@@ -1968,7 +2001,7 @@
                 "name": "Second Surge",
                 "effect": {
                   "name": "Effect",
-                  "text": "An Entity of your choice that has already attacked this turn may attack a second time."
+                  "text": "Choose a Human Entity you control that has already attacked this turn. Untap it: it may attack a second time this turn."
                 },
                 "flavor": "The first blow opens. The second closes."
               },
@@ -2015,7 +2048,11 @@
                       "max": 1,
                       "details": {
                         "mustHaveAttackedThisTurn": true
-                      }
+                      },
+                      "race": "human"
+                    },
+                    "details": {
+                      "untapFirst": true
                     }
                   }
                 }
@@ -2748,7 +2785,7 @@
                 "flavor": "Finché sventola, si avanza.",
                 "effect": {
                   "name": "Effetto",
-                  "text": "All'inizio del tuo turno un'Entità Umana a tua scelta prende +2 Potenza. Il vessillo sceglie chi manda avanti, e se controlli il Rubifronte del Patto quell'Entità ottiene anche Slancio."
+                  "text": "La prima volta in ogni tuo turno che un'Entità Umana entra in campo sotto il tuo controllo, quell'Entità prende +2 Potenza fino alla fine del turno. Se controlli il Rubifronte del Patto, ottiene anche Slancio fino alla fine del turno."
                 }
               },
               "matters": {
@@ -2777,7 +2814,7 @@
                 "flavor": "While it flies, we advance.",
                 "effect": {
                   "name": "Effect",
-                  "text": "At the start of your turn a Human Entity of your choice gets +2 Power. The banner picks who goes forward, and if you control the Rubyfront of the Pact that Entity also gains Surge."
+                  "text": "The first time each of your turns a Human Entity enters the field under your control, that Entity gets +2 Power until end of turn. If you control the Rubyfront of the Pact, it also gains Surge until end of turn."
                 }
               },
               "matters": {
@@ -2814,19 +2851,22 @@
                 {
                   "id": "march",
                   "displayKey": "effect",
-                  "event": "on_turn_start",
+                  "event": "on_enter_field",
                   "effect": {
                     "type": "empower",
                     "target": {
-                      "cardType": "entity",
-                      "race": "human",
-                      "controller": "controller",
-                      "min": 1,
-                      "max": 1
+                      "scope": "entered"
                     },
                     "powerBonus": 2,
                     "duration": "until_end_of_turn",
                     "details": {
+                      "oncePerTurn": true,
+                      "onlyControllerTurn": true,
+                      "watched": {
+                        "cardType": "entity",
+                        "race": "human",
+                        "controller": "controller"
+                      },
                       "grantsWithRubyfrontDeployed": [
                         "surge"
                       ]
@@ -6086,7 +6126,7 @@
             "abilities": {
               "frontCommand": {
                 "name": "Comando dal Fronte",
-                "text": "stappa fino a 2 Entità Umane che controlli e rimandale in linea."
+                "text": "in questo turno un'Entità dal tuo lato del Fronte ha Slancio."
               },
               "swell": {
                 "name": "Onda Portante",
@@ -6108,11 +6148,15 @@
             "abilities": {
               "frontOrder": {
                 "name": "Ordine del Fronte",
-                "text": "stappa tutte le Entità Umane nella tua Zona del Fronte, fino all'ultima."
+                "text": "in questo turno tutte le Entità dal tuo lato del Fronte hanno Slancio."
+              },
+              "coordinatedAssault": {
+                "name": "Assalto Coordinato",
+                "text": "fino a 2 Entità Umane che controlli prendono +2 Potenza fino alla fine del turno."
               },
               "greatTide": {
                 "name": "Grande Marea",
-                "text": "le tue Entità prendono +1 Potenza fino alla fine del turno e nessuna Entità di Potenza superiore può bloccarle."
+                "text": "le Entità Umane che controlli prendono +1 Potenza fino alla fine del turno. In questo turno un'Entità avversaria non può bloccare un'Entità Umana con Potenza superiore alla propria."
               }
             },
             "flavor": "Il patto prese carne. Nessuno ricorda chi lo firmò per primo."
@@ -6152,7 +6196,7 @@
             "abilities": {
               "frontCommand": {
                 "name": "Front Command",
-                "text": "untap up to 2 Human Entities you control and send them back into line."
+                "text": "this turn one Entity on your side of the Front has Surge."
               },
               "swell": {
                 "name": "Swell",
@@ -6174,11 +6218,15 @@
             "abilities": {
               "frontOrder": {
                 "name": "Order of the Front",
-                "text": "untap every Human Entity in your Front Zone, down to the last one."
+                "text": "this turn all Entities on your side of the Front have Surge."
+              },
+              "coordinatedAssault": {
+                "name": "Coordinated Assault",
+                "text": "up to 2 Human Entities you control get +2 Power until end of turn."
               },
               "greatTide": {
                 "name": "Great Tide",
-                "text": "your Entities get +1 Power until end of turn and no Entity of greater Power can block them."
+                "text": "Human Entities you control get +1 Power until end of turn. This turn an opposing Entity cannot block a Human Entity with greater Power than its own."
               }
             },
             "flavor": "The pact took flesh. No one remembers who signed it first."
@@ -6288,18 +6336,23 @@
               "checks": [
                 "fury"
               ],
-              "gain": {
-                "health": 3
+              "cost": {
+                "health": 2
               },
               "effect": {
-                "type": "untap",
+                "type": "empower",
                 "target": {
                   "cardType": "entity",
-                  "race": "human",
                   "controller": "controller",
-                  "min": 0,
-                  "max": 2
-                }
+                  "zone": "front",
+                  "owner": "controller",
+                  "min": 1,
+                  "max": 1
+                },
+                "grants": [
+                  "surge"
+                ],
+                "duration": "until_end_of_turn"
               }
             },
             {
@@ -6421,18 +6474,46 @@
               "repeatable": true,
               "checks": [],
               "gain": {
-                "health": 3
+                "health": 1
               },
               "effect": {
-                "type": "untap",
+                "type": "empower",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "zone": "front",
+                  "owner": "controller",
+                  "quantity": "all"
+                },
+                "grants": [
+                  "surge"
+                ],
+                "duration": "until_end_of_turn"
+              }
+            },
+            {
+              "id": "coordinated-assault",
+              "displayKey": "coordinatedAssault",
+              "timing": [
+                "own_preparation",
+                "own_front"
+              ],
+              "repeatable": true,
+              "checks": [],
+              "cost": {
+                "health": 5
+              },
+              "effect": {
+                "type": "modify_power",
                 "target": {
                   "cardType": "entity",
                   "race": "human",
                   "controller": "controller",
-                  "quantity": "all",
-                  "zone": "front",
-                  "owner": "controller"
-                }
+                  "min": 0,
+                  "max": 2
+                },
+                "amount": 2,
+                "duration": "until_end_of_turn"
               }
             },
             {
@@ -6451,13 +6532,19 @@
                 "type": "modify_power",
                 "target": {
                   "cardType": "entity",
+                  "race": "human",
                   "controller": "controller",
                   "quantity": "all"
                 },
                 "amount": 1,
                 "duration": "until_end_of_turn",
                 "details": {
-                  "cannotBeBlockedByGreaterPower": true
+                  "cannotBeBlockedByGreaterPower": true,
+                  "blockerRestrictionAppliesTo": {
+                    "cardType": "entity",
+                    "race": "human",
+                    "controller": "controller"
+                  }
                 }
               }
             }
@@ -6498,17 +6585,11 @@
           },
           "face": {
             "name": "Adam, il Primo",
-            "abilities": {
-              "genesis": {
-                "name": "Genesi",
-                "text": "cerca nel tuo mazzo una carta Materia Zero, mostrala e aggiungila alla tua mano. Non puoi giocarla né scartarla in questo turno."
-              }
-            },
-            "bequest": {
-              "trigger": "Quando lascia il Fronte",
+            "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre.",
+            "firstBlood": {
+              "trigger": "Quando infligge danno a un Rubyfront avversario",
               "text": "Pesca una carta."
-            },
-            "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre."
+            }
           },
           "matters": {
             "zeroTitle": "Materia Zero",
@@ -6534,17 +6615,11 @@
           },
           "face": {
             "name": "Adam, The First",
-            "abilities": {
-              "genesis": {
-                "name": "Genesis",
-                "text": "search your deck for a Zero Matter card, reveal it and add it to your hand. You cannot play or discard that card this turn."
-              }
-            },
-            "bequest": {
-              "trigger": "When it leaves the Front",
+            "flavor": "He was the first to touch Zero. Humankind was never the same.",
+            "firstBlood": {
+              "trigger": "When it deals damage to an opposing Rubyfront",
               "text": "Draw a card."
-            },
-            "flavor": "He was the first to touch Zero. Humankind was never the same."
+            }
           },
           "matters": {
             "zeroTitle": "Zero Matter",
@@ -6586,51 +6661,25 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "bequest",
-              "displayKey": "bequest",
-              "event": "on_leave_field",
+              "id": "first-blood",
+              "displayKey": "firstBlood",
+              "event": "on_deal_damage",
               "effect": {
                 "type": "draw_card",
                 "target": {
                   "controller": "controller"
                 },
-                "count": 1
-              }
-            }
-          ],
-          "actions": [
-            {
-              "id": "genesis",
-              "displayKey": "genesis",
-              "timing": [
-                "own_turn"
-              ],
-              "repeatable": true,
-              "checks": [],
-              "effect": {
-                "type": "search_card",
-                "from": {
-                  "zone": "deck",
-                  "owner": "controller"
-                },
-                "filter": {
-                  "cardType": "matter",
-                  "matterType": "zero"
-                },
-                "reveal": true,
-                "to": {
-                  "zone": "hand",
-                  "owner": "controller"
-                },
-                "shuffle": true,
-                "restriction": {
-                  "cannotPlayFetchedCard": true,
-                  "cannotDiscardFetchedCard": true,
-                  "duration": "until_end_of_turn"
+                "count": 1,
+                "details": {
+                  "toRubyfront": true,
+                  "source": {
+                    "scope": "self"
+                  }
                 }
               }
             }
-          ]
+          ],
+          "actions": []
         }
       ],
       "designNotes": "rbf-002.md",
@@ -6794,7 +6843,7 @@
             "name": "Scatto",
             "effect": {
               "name": "Effetto",
-              "text": "Un'Entità a tua scelta prende +2 Potenza. Se controlli il Rubifronte del Patto, quell'Entità ottiene anche Slancio fino alla fine del turno."
+              "text": "Scegli un'Entità Umana che controlli: prende +2 Potenza fino alla fine del turno. Se controlli il Rubifronte del Patto, ottiene anche Slancio fino alla fine del turno."
             },
             "flavor": "Prima che l’occhio capisca, è già finita."
           },
@@ -6823,7 +6872,7 @@
             "name": "Dash",
             "effect": {
               "name": "Effect",
-              "text": "An Entity of your choice gets +2 Power. If you control the Rubyfront of the Pact, that Entity also gains Surge until end of turn."
+              "text": "Choose a Human Entity you control: it gets +2 Power until end of turn. If you control the Rubyfront of the Pact, it also gains Surge until end of turn."
             },
             "flavor": "Before the eye understands, it is over."
           },
@@ -6866,7 +6915,9 @@
                 "target": {
                   "cardType": "entity",
                   "min": 1,
-                  "max": 1
+                  "max": 1,
+                  "race": "human",
+                  "controller": "controller"
                 },
                 "powerBonus": 2,
                 "duration": "until_end_of_turn",
@@ -7368,11 +7419,11 @@
           },
           "face": {
             "name": "Chirurgo da Campo",
-            "ember": {
+            "flavor": "Anche le bestie sanguinano.",
+            "incision": {
               "trigger": "Quando entra in campo",
-              "text": "Il Chirurgo da Campo infligge 1 danno al Rubyfront avversario nel momento stesso in cui mette piede sul Fronte."
-            },
-            "flavor": "Anche le bestie sanguinano."
+              "text": "Tappa un'Entità avversaria. Poi lancia un d6: con 5 o 6, guarda la prima carta del tuo mazzo e, se vuoi, mettila in fondo."
+            }
           }
         },
         "en": {
@@ -7390,11 +7441,11 @@
           },
           "face": {
             "name": "Field Surgeon",
-            "ember": {
+            "flavor": "Beasts bleed too.",
+            "incision": {
               "trigger": "When it enters the field",
-              "text": "Field Surgeon deals 1 damage to the opposing Rubyfront the moment he sets foot on the Front."
-            },
-            "flavor": "Beasts bleed too."
+              "text": "Tap an opposing Entity. Then roll a d6: on a 5 or 6, look at the top card of your deck and, if you wish, put it on the bottom."
+            }
           }
         }
       },
@@ -7413,23 +7464,44 @@
           "race": "human",
           "stats": {
             "power": 1,
-            "fluxCost": 3
+            "fluxCost": 2
           },
           "enablesMatters": [],
           "keywords": [],
           "requirements": {},
           "triggers": [
             {
-              "id": "ember",
-              "displayKey": "ember",
+              "id": "incision",
+              "displayKey": "incision",
               "event": "on_enter_field",
               "effect": {
-                "type": "lose_health",
+                "type": "set_state",
                 "target": {
-                  "cardType": "rubyfront",
-                  "controller": "opponent"
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
                 },
-                "amount": 1
+                "state": "tapped",
+                "details": {
+                  "then": {
+                    "type": "look_and_optionally_move",
+                    "die": "d6",
+                    "onRoll": "5-6",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top",
+                      "count": 1
+                    },
+                    "to": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "bottom"
+                    },
+                    "optional": true
+                  }
+                }
               }
             }
           ],
@@ -7578,7 +7650,7 @@
             "name": "Baluardo Corazzato",
             "effect": {
               "name": "Effetto",
-              "text": "Il Baluardo Corazzato non può attaccare, e tiene la linea per tutta la partita."
+              "text": "Il Baluardo Corazzato non può bloccare."
             },
             "flavor": "Cade il mondo, non lui."
           },
@@ -7604,7 +7676,7 @@
             "name": "Armored Bulwark",
             "effect": {
               "name": "Effect",
-              "text": "Armored Bulwark cannot attack, and holds the line for the whole game."
+              "text": "Armored Bulwark cannot block."
             },
             "flavor": "The world falls. He does not."
           },
@@ -7642,7 +7714,7 @@
           "triggers": [],
           "actions": [],
           "restrictions": {
-            "cannotAttack": true
+            "cannotBlock": true
           }
         }
       ],
@@ -7801,7 +7873,7 @@
             "name": "Prima Lama",
             "firstCut": {
               "trigger": "Quando entra in campo",
-              "text": "Manda un'Entità nella Zona di Requiem del suo proprietario."
+              "text": "Scegli un'Entità controllata dall'avversario e mettila nella Zona di Requiem del suo proprietario."
             },
             "effect": {
               "name": "Effetto",
@@ -7831,7 +7903,7 @@
             "name": "First Blade",
             "firstCut": {
               "trigger": "When it enters the field",
-              "text": "Put an Entity into its owner's Requiem Zone."
+              "text": "Choose an Entity your opponent controls and put it into its owner's Requiem Zone."
             },
             "effect": {
               "name": "Effect",
@@ -7881,7 +7953,8 @@
                 "target": {
                   "cardType": "entity",
                   "min": 1,
-                  "max": 1
+                  "max": 1,
+                  "controller": "opponent"
                 },
                 "destination": {
                   "zone": "requiem",
@@ -7948,7 +8021,7 @@
             "name": "Secondo Impeto",
             "effect": {
               "name": "Effetto",
-              "text": "Un'Entità a tua scelta che ha già attaccato in questo turno può attaccare una seconda volta."
+              "text": "Scegli un'Entità Umana che controlli che ha già attaccato in questo turno. Stappala: può attaccare una seconda volta in questo turno."
             },
             "flavor": "Il primo colpo apre. Il secondo chiude."
           },
@@ -7977,7 +8050,7 @@
             "name": "Second Surge",
             "effect": {
               "name": "Effect",
-              "text": "An Entity of your choice that has already attacked this turn may attack a second time."
+              "text": "Choose a Human Entity you control that has already attacked this turn. Untap it: it may attack a second time this turn."
             },
             "flavor": "The first blow opens. The second closes."
           },
@@ -8024,7 +8097,11 @@
                   "max": 1,
                   "details": {
                     "mustHaveAttackedThisTurn": true
-                  }
+                  },
+                  "race": "human"
+                },
+                "details": {
+                  "untapFirst": true
                 }
               }
             }
@@ -8757,7 +8834,7 @@
             "flavor": "Finché sventola, si avanza.",
             "effect": {
               "name": "Effetto",
-              "text": "All'inizio del tuo turno un'Entità Umana a tua scelta prende +2 Potenza. Il vessillo sceglie chi manda avanti, e se controlli il Rubifronte del Patto quell'Entità ottiene anche Slancio."
+              "text": "La prima volta in ogni tuo turno che un'Entità Umana entra in campo sotto il tuo controllo, quell'Entità prende +2 Potenza fino alla fine del turno. Se controlli il Rubifronte del Patto, ottiene anche Slancio fino alla fine del turno."
             }
           },
           "matters": {
@@ -8786,7 +8863,7 @@
             "flavor": "While it flies, we advance.",
             "effect": {
               "name": "Effect",
-              "text": "At the start of your turn a Human Entity of your choice gets +2 Power. The banner picks who goes forward, and if you control the Rubyfront of the Pact that Entity also gains Surge."
+              "text": "The first time each of your turns a Human Entity enters the field under your control, that Entity gets +2 Power until end of turn. If you control the Rubyfront of the Pact, it also gains Surge until end of turn."
             }
           },
           "matters": {
@@ -8823,19 +8900,22 @@
             {
               "id": "march",
               "displayKey": "effect",
-              "event": "on_turn_start",
+              "event": "on_enter_field",
               "effect": {
                 "type": "empower",
                 "target": {
-                  "cardType": "entity",
-                  "race": "human",
-                  "controller": "controller",
-                  "min": 1,
-                  "max": 1
+                  "scope": "entered"
                 },
                 "powerBonus": 2,
                 "duration": "until_end_of_turn",
                 "details": {
+                  "oncePerTurn": true,
+                  "onlyControllerTurn": true,
+                  "watched": {
+                    "cardType": "entity",
+                    "race": "human",
+                    "controller": "controller"
+                  },
                   "grantsWithRubyfrontDeployed": [
                     "surge"
                   ]
@@ -12229,11 +12309,11 @@
         },
         {
           "card": "RBF-013",
-          "count": 2
+          "count": 3
         },
         {
           "card": "RBF-014",
-          "count": 3
+          "count": 2
         }
       ],
       "source": {

@@ -18,7 +18,7 @@
     "name": "Secondo Impeto",
     "effect": {
       "name": "Effetto",
-      "text": "Un'Entità a tua scelta che ha già attaccato in questo turno può attaccare una seconda volta."
+      "text": "Scegli un'Entità Umana che controlli che ha già attaccato in questo turno. Stappala: può attaccare una seconda volta in questo turno."
     },
     "flavor": "Il primo colpo apre. Il secondo chiude."
   },

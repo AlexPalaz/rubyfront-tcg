@@ -15,17 +15,11 @@
   },
   "face": {
     "name": "Adam, The First",
-    "abilities": {
-      "genesis": {
-        "name": "Genesis",
-        "text": "search your deck for a Zero Matter card, reveal it and add it to your hand. You cannot play or discard that card this turn."
-      }
-    },
-    "bequest": {
-      "trigger": "When it leaves the Front",
+    "flavor": "He was the first to touch Zero. Humankind was never the same.",
+    "firstBlood": {
+      "trigger": "When it deals damage to an opposing Rubyfront",
       "text": "Draw a card."
-    },
-    "flavor": "He was the first to touch Zero. Humankind was never the same."
+    }
   },
   "matters": {
     "zeroTitle": "Zero Matter",

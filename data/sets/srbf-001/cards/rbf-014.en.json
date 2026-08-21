@@ -18,7 +18,7 @@
     "name": "Second Surge",
     "effect": {
       "name": "Effect",
-      "text": "An Entity of your choice that has already attacked this turn may attack a second time."
+      "text": "Choose a Human Entity you control that has already attacked this turn. Untap it: it may attack a second time this turn."
     },
     "flavor": "The first blow opens. The second closes."
   },

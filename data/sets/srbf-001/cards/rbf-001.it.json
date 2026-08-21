@@ -32,7 +32,7 @@
     "abilities": {
       "frontCommand": {
         "name": "Comando dal Fronte",
-        "text": "stappa fino a 2 Entità Umane che controlli e rimandale in linea."
+        "text": "in questo turno un'Entità dal tuo lato del Fronte ha Slancio."
       },
       "swell": {
         "name": "Onda Portante",
@@ -54,11 +54,15 @@
     "abilities": {
       "frontOrder": {
         "name": "Ordine del Fronte",
-        "text": "stappa tutte le Entità Umane nella tua Zona del Fronte, fino all'ultima."
+        "text": "in questo turno tutte le Entità dal tuo lato del Fronte hanno Slancio."
+      },
+      "coordinatedAssault": {
+        "name": "Assalto Coordinato",
+        "text": "fino a 2 Entità Umane che controlli prendono +2 Potenza fino alla fine del turno."
       },
       "greatTide": {
         "name": "Grande Marea",
-        "text": "le tue Entità prendono +1 Potenza fino alla fine del turno e nessuna Entità di Potenza superiore può bloccarle."
+        "text": "le Entità Umane che controlli prendono +1 Potenza fino alla fine del turno. In questo turno un'Entità avversaria non può bloccare un'Entità Umana con Potenza superiore alla propria."
       }
     },
     "flavor": "Il patto prese carne. Nessuno ricorda chi lo firmò per primo."

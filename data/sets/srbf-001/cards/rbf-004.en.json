@@ -18,7 +18,7 @@
     "name": "Dash",
     "effect": {
       "name": "Effect",
-      "text": "An Entity of your choice gets +2 Power. If you control the Rubyfront of the Pact, that Entity also gains Surge until end of turn."
+      "text": "Choose a Human Entity you control: it gets +2 Power until end of turn. If you control the Rubyfront of the Pact, it also gains Surge until end of turn."
     },
     "flavor": "Before the eye understands, it is over."
   },

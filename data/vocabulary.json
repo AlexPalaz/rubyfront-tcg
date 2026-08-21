@@ -20,7 +20,7 @@
     ]
   },
   "event": {
-    "_note": "Moments that fire a trigger",
+    "_note": "Moments that fire a trigger on_deal_damage: la carta (Entità) infligge danno in combattimento a un Rubyfront; details.toRubyfront limita al bersaglio Rubyfront.",
     "values": [
       "on_deploy_from_recall",
       "on_flip",
@@ -36,7 +36,8 @@
       "while_in_play",
       "on_retire",
       "on_counterattack",
-      "on_untap"
+      "on_untap",
+      "on_deal_damage"
     ]
   },
   "effect": {

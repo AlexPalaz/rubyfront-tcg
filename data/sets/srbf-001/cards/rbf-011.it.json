@@ -15,7 +15,7 @@
     "name": "Baluardo Corazzato",
     "effect": {
       "name": "Effetto",
-      "text": "Il Baluardo Corazzato non può attaccare, e tiene la linea per tutta la partita."
+      "text": "Il Baluardo Corazzato non può bloccare."
     },
     "flavor": "Cade il mondo, non lui."
   },

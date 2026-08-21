@@ -19,7 +19,7 @@
     "flavor": "Finché sventola, si avanza.",
     "effect": {
       "name": "Effetto",
-      "text": "All'inizio del tuo turno un'Entità Umana a tua scelta prende +2 Potenza. Il vessillo sceglie chi manda avanti, e se controlli il Rubifronte del Patto quell'Entità ottiene anche Slancio."
+      "text": "La prima volta in ogni tuo turno che un'Entità Umana entra in campo sotto il tuo controllo, quell'Entità prende +2 Potenza fino alla fine del turno. Se controlli il Rubifronte del Patto, ottiene anche Slancio fino alla fine del turno."
     }
   },
   "matters": {

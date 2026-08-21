@@ -45,51 +45,25 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "bequest",
-          "displayKey": "bequest",
-          "event": "on_leave_field",
+          "id": "first-blood",
+          "displayKey": "firstBlood",
+          "event": "on_deal_damage",
           "effect": {
             "type": "draw_card",
             "target": {
               "controller": "controller"
             },
-            "count": 1
-          }
-        }
-      ],
-      "actions": [
-        {
-          "id": "genesis",
-          "displayKey": "genesis",
-          "timing": [
-            "own_turn"
-          ],
-          "repeatable": true,
-          "checks": [],
-          "effect": {
-            "type": "search_card",
-            "from": {
-              "zone": "deck",
-              "owner": "controller"
-            },
-            "filter": {
-              "cardType": "matter",
-              "matterType": "zero"
-            },
-            "reveal": true,
-            "to": {
-              "zone": "hand",
-              "owner": "controller"
-            },
-            "shuffle": true,
-            "restriction": {
-              "cannotPlayFetchedCard": true,
-              "cannotDiscardFetchedCard": true,
-              "duration": "until_end_of_turn"
+            "count": 1,
+            "details": {
+              "toRubyfront": true,
+              "source": {
+                "scope": "self"
+              }
             }
           }
         }
-      ]
+      ],
+      "actions": []
     }
   ],
   "designNotes": "rbf-002.md",

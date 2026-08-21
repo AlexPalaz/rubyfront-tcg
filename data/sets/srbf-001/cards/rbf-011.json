@@ -41,7 +41,7 @@
       "triggers": [],
       "actions": [],
       "restrictions": {
-        "cannotAttack": true
+        "cannotBlock": true
       }
     }
   ],
