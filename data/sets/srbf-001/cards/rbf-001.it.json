@@ -12,7 +12,8 @@
     "nexusRequirement": {
       "label": "Requisito Nexus",
       "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Requiem del suo proprietario, poi flippa."
-    }
+    },
+    "die": "Dado di schieramento"
   },
   "matters": {
     "destructiveTitle": "Materia Distruttiva · fino al 2° grado",

@@ -12,7 +12,8 @@
     "nexusRequirement": {
       "label": "Nexus requirement",
       "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Requiem Zone, then flip."
-    }
+    },
+    "die": "Deployment die"
   },
   "matters": {
     "destructiveTitle": "Destructive Matter · up to 2nd grade",

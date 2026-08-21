@@ -16,7 +16,7 @@
 
 | Costo | 1 | 2 | 3 | 4 | Rubyfront |
 |---|---|---|---|---|---|
-| Carte | 12 | 9 | 14 | 4 | 1 (4 fisso) |
+| Carte | 12 | 9 | 14 | 4 | 1 (d6) |
 
 La curva è a due gobbe: dodici carte da 1 Flusso per aprire e quattordici da 3
 per il corpo centrale della partita, dove cadono sia la bestia sia le carte che
@@ -24,9 +24,11 @@ chiudono il piano.
 
 ## 2. Il Rubifronte del Patto
 
-Costo **4 fisso**: la base non ha incremento, quindi ogni rischieramento costa 4
-e il rimbalzo in Zona di Richiamo non fa mai salire il prezzo. Con 21 PV la
-bestia può permettersi di rientrare.
+Costo **d6, senza incremento**: si tira e si paga il risultato, uguale a ogni
+rischieramento, e il rimbalzo in Zona di Richiamo non fa mai salire il prezzo.
+Attenzione alla regola del dado (§3.1): si lancia solo con **almeno 6 Flussi
+disponibili**, quindi la bestia non scende prima del sesto turno — ma in media
+costa 3,5, e con 21 PV può permettersi di rientrare.
 
 | | Faccia A — Rubifronte del Patto | Faccia B — Incarnazione del Patto |
 |---|---|---|
@@ -82,8 +84,10 @@ Secondo Impeto e Assenza, finché non arriva il Nexus.
 | T1 | 1 | **Corriere a Vapore**: attacca subito con Slancio |
 | T2 | 2 | **Guardiano** + **Vendicatrice**, oppure **Baluardo** |
 | T3 | 3 | **Vessillo** o il terzo corpo: il Fronte arriva a tre Umani |
-| T4 | 4 | **Rubifronte del Patto**: Vendicatrice e Vigorcintura salgono, Comando dal Fronte dà Slancio all'Umano giocato dalla cima |
-| T5+ | 5+ | Attacchi con 3 Umani, a fine combattimento ne mandi uno in Requiem e **flippi** |
+| T4 | 4 | **Prima Lama** o Archivista + drop a 1: il Fronte si allarga |
+| T5 | 5 | Scatto/Collera e il quarto corpo; si attacca già in tre |
+| T6 | 6 | **Rubifronte del Patto** (d6): Vendicatrice e Vigorcintura salgono, Comando dal Fronte dà Slancio all'Umano giocato dalla cima |
+| T7+ | 7+ | Attacchi con 3 Umani, a fine combattimento ne mandi uno in Requiem e **flippi** |
 
 Il Guardiano della Paratia entra tappato, quindi il turno in cui scende non
 difende né attacca: è il prezzo di un 2 di Potenza a 1 Flusso che abilita la

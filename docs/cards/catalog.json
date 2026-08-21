@@ -57,7 +57,8 @@
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
                   "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Requiem del suo proprietario, poi flippa."
-                }
+                },
+                "die": "Dado di schieramento"
               },
               "matters": {
                 "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
@@ -127,7 +128,8 @@
                 "nexusRequirement": {
                   "label": "Nexus requirement",
                   "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Requiem Zone, then flip."
-                }
+                },
+                "die": "Deployment die"
               },
               "matters": {
                 "destructiveTitle": "Destructive Matter · up to 2nd grade",
@@ -200,7 +202,7 @@
               "stats": {
                 "health": 21,
                 "deploymentCost": {
-                  "base": 4
+                  "die": "d6"
                 }
               },
               "enablesMatters": [
@@ -6105,7 +6107,8 @@
             "nexusRequirement": {
               "label": "Requisito Nexus",
               "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Requiem del suo proprietario, poi flippa."
-            }
+            },
+            "die": "Dado di schieramento"
           },
           "matters": {
             "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
@@ -6175,7 +6178,8 @@
             "nexusRequirement": {
               "label": "Nexus requirement",
               "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Requiem Zone, then flip."
-            }
+            },
+            "die": "Deployment die"
           },
           "matters": {
             "destructiveTitle": "Destructive Matter · up to 2nd grade",
@@ -6248,7 +6252,7 @@
           "stats": {
             "health": 21,
             "deploymentCost": {
-              "base": 4
+              "die": "d6"
             }
           },
           "enablesMatters": [
