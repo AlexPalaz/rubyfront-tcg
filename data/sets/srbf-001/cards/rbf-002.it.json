@@ -1,7 +1,7 @@
 {
   "name": "Adam, il Primo",
   "typeLabel": "Entità: Umano",
-  "summary": "Il tramite dello Zero e l'unico che apre la Dinamica di 2° grado: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
+  "summary": "Il Primo degli Eredi: un 3/3 che pesca quando colpisce la bestia avversaria, e l'unica chiave della Dinamica di 2° grado prima del Nexus.",
   "ui": {
     "face": "Entità"
   },
@@ -15,15 +15,13 @@
   },
   "face": {
     "name": "Adam, il Primo",
-    "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre.",
+    "flavor": "Fu il primo a dire «noi». Gli altri vennero dopo.",
     "firstBlood": {
       "trigger": "Quando infligge danno a un Rubyfront avversario",
       "text": "Pesca una carta."
     }
   },
   "matters": {
-    "zeroTitle": "Materia Zero",
-    "zeroAria": "Zero",
     "dynamicTitle": "Materia Dinamica · fino al 2° grado",
     "dynamicAria": "Dinamica"
   }

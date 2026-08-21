@@ -1,7 +1,7 @@
 {
   "name": "Adam, The First",
   "typeLabel": "Entity: Human",
-  "summary": "The conduit of Zero and the only opening to 2nd-grade Dynamic: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
+  "summary": "The First of the Heirs: a 3/3 that draws when it strikes the opposing beast, and the only key to 2nd-grade Dynamic before the Nexus.",
   "ui": {
     "face": "Entity"
   },
@@ -15,15 +15,13 @@
   },
   "face": {
     "name": "Adam, The First",
-    "flavor": "He was the first to touch Zero. Humankind was never the same.",
+    "flavor": "He was the first to say “we”. The others came after.",
     "firstBlood": {
       "trigger": "When it deals damage to an opposing Rubyfront",
       "text": "Draw a card."
     }
   },
   "matters": {
-    "zeroTitle": "Zero Matter",
-    "zeroAria": "Zero",
     "dynamicTitle": "Dynamic Matter · up to 2nd grade",
     "dynamicAria": "Dynamic"
   }

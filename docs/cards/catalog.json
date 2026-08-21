@@ -528,7 +528,7 @@
             "it": {
               "name": "Adam, il Primo",
               "typeLabel": "Entità: Umano",
-              "summary": "Il tramite dello Zero e l'unico che apre la Dinamica di 2° grado: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
+              "summary": "Il Primo degli Eredi: un 3/3 che pesca quando colpisce la bestia avversaria, e l'unica chiave della Dinamica di 2° grado prima del Nexus.",
               "ui": {
                 "face": "Entità"
               },
@@ -542,15 +542,13 @@
               },
               "face": {
                 "name": "Adam, il Primo",
-                "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre.",
+                "flavor": "Fu il primo a dire «noi». Gli altri vennero dopo.",
                 "firstBlood": {
                   "trigger": "Quando infligge danno a un Rubyfront avversario",
                   "text": "Pesca una carta."
                 }
               },
               "matters": {
-                "zeroTitle": "Materia Zero",
-                "zeroAria": "Zero",
                 "dynamicTitle": "Materia Dinamica · fino al 2° grado",
                 "dynamicAria": "Dinamica"
               }
@@ -558,7 +556,7 @@
             "en": {
               "name": "Adam, The First",
               "typeLabel": "Entity: Human",
-              "summary": "The conduit of Zero and the only opening to 2nd-grade Dynamic: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
+              "summary": "The First of the Heirs: a 3/3 that draws when it strikes the opposing beast, and the only key to 2nd-grade Dynamic before the Nexus.",
               "ui": {
                 "face": "Entity"
               },
@@ -572,15 +570,13 @@
               },
               "face": {
                 "name": "Adam, The First",
-                "flavor": "He was the first to touch Zero. Humankind was never the same.",
+                "flavor": "He was the first to say “we”. The others came after.",
                 "firstBlood": {
                   "trigger": "When it deals damage to an opposing Rubyfront",
                   "text": "Draw a card."
                 }
               },
               "matters": {
-                "zeroTitle": "Zero Matter",
-                "zeroAria": "Zero",
                 "dynamicTitle": "Dynamic Matter · up to 2nd grade",
                 "dynamicAria": "Dynamic"
               }
@@ -589,7 +585,6 @@
           "tags": [
             "entity",
             "human",
-            "zero",
             "dynamic",
             "grade-2",
             "unique"
@@ -606,9 +601,6 @@
                 "fluxCost": 3
               },
               "enablesMatters": [
-                {
-                  "type": "zero"
-                },
                 {
                   "type": "dynamic",
                   "maxGrade": 2
@@ -6584,7 +6576,7 @@
         "it": {
           "name": "Adam, il Primo",
           "typeLabel": "Entità: Umano",
-          "summary": "Il tramite dello Zero e l'unico che apre la Dinamica di 2° grado: trova la Materia più rara del mazzo e, quando se ne va, lascia qualcosa a chi resta.",
+          "summary": "Il Primo degli Eredi: un 3/3 che pesca quando colpisce la bestia avversaria, e l'unica chiave della Dinamica di 2° grado prima del Nexus.",
           "ui": {
             "face": "Entità"
           },
@@ -6598,15 +6590,13 @@
           },
           "face": {
             "name": "Adam, il Primo",
-            "flavor": "Fu il primo a toccare lo Zero. Da allora, l’umanità cambiò per sempre.",
+            "flavor": "Fu il primo a dire «noi». Gli altri vennero dopo.",
             "firstBlood": {
               "trigger": "Quando infligge danno a un Rubyfront avversario",
               "text": "Pesca una carta."
             }
           },
           "matters": {
-            "zeroTitle": "Materia Zero",
-            "zeroAria": "Zero",
             "dynamicTitle": "Materia Dinamica · fino al 2° grado",
             "dynamicAria": "Dinamica"
           }
@@ -6614,7 +6604,7 @@
         "en": {
           "name": "Adam, The First",
           "typeLabel": "Entity: Human",
-          "summary": "The conduit of Zero and the only opening to 2nd-grade Dynamic: he finds the deck's rarest Matter and, when he goes, leaves something to those who remain.",
+          "summary": "The First of the Heirs: a 3/3 that draws when it strikes the opposing beast, and the only key to 2nd-grade Dynamic before the Nexus.",
           "ui": {
             "face": "Entity"
           },
@@ -6628,15 +6618,13 @@
           },
           "face": {
             "name": "Adam, The First",
-            "flavor": "He was the first to touch Zero. Humankind was never the same.",
+            "flavor": "He was the first to say “we”. The others came after.",
             "firstBlood": {
               "trigger": "When it deals damage to an opposing Rubyfront",
               "text": "Draw a card."
             }
           },
           "matters": {
-            "zeroTitle": "Zero Matter",
-            "zeroAria": "Zero",
             "dynamicTitle": "Dynamic Matter · up to 2nd grade",
             "dynamicAria": "Dynamic"
           }
@@ -6645,7 +6633,6 @@
       "tags": [
         "entity",
         "human",
-        "zero",
         "dynamic",
         "grade-2",
         "unique"
@@ -6662,9 +6649,6 @@
             "fluxCost": 3
           },
           "enablesMatters": [
-            {
-              "type": "zero"
-            },
             {
               "type": "dynamic",
               "maxGrade": 2

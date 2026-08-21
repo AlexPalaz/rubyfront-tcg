@@ -21,26 +21,22 @@
   la sostanza usata.
 - **Lo Zero è una Materia rarissima.**
 
-## Adam e lo Zero
+## Adam e lo Zero: due cose distinte
 
-- **Adam toccò lo Zero inconsapevolmente**: non un rito cercato, un incontro.
-  Da quel gesto l'umanità cambiò per sempre. **L'evento non ha ancora un nome
-  canonico**: lo sceglierà il designer — fino ad allora le carte non lo
-  nominano. (Regola: niente nomi astratti per gli eventi del mondo.)
-- **Solo gli eredi di Adam hanno lo Zero**: l'accesso alla Materia Zero è
-  questione di **lignaggio**, non di studio. Ogni futura carta che abilita lo
-  Zero deve appartenere a questa discendenza (o giustificare l'eccezione).
+- **Adam e lo Zero non sono legati** (decisione del designer, 2026-08-21). Chi
+  sia Adam per il mondo — il Primo degli Eredi, il primo a dire «noi» — e che
+  cosa sia lo Zero sono due fili narrativi separati; nessuna carta deve
+  collegarli. L'origine dello Zero e chi può incanalarlo restano **aperti**.
 
 ## Vincoli di coerenza per il design
 
 - I nomi e i flavor devono suonare da **tecno-medievale rétro**: né alta
   fantasia liturgica pura, né fantascienza pulita.
-- Le carte Zero restano **Uniche** (regola già in vigore) — la rarità della
-  sostanza e del sangue che la incanala coincidono.
+- Le carte Zero restano **Uniche** (regola già in vigore) — la sostanza è
+  rarissima.
 - Parzialmente chiuso: **Viatico** non esiste più — è uscito insieme al vecchio
-  requisito del Nexus di RBF-001, che ora guarda i PV persi dall'avversario e non
-  un lignaggio. **Velo del Primo** (RBF-019) invece **resta in sospeso**: il nome
+  vecchio requisito del Nexus di RBF-001 (oggi: attaccare con tre Umani). **Velo del Primo** (RBF-019) invece **resta in sospeso**: il nome
   è confermato per ora, e sarà il designer a decidere se sostituirlo.
-- Adam resta canonico e resta **l'unico accesso allo Zero** del set (lignaggio,
-  vedi sopra), ma non è più il perno meccanico di nessuna carta: è una scelta di
-  design deliberata, per non far dipendere un intero mazzo da una singola Unica.
+- Adam resta canonico come **il Primo degli Eredi**, ma non è il perno meccanico
+  di nessuna carta né ha alcun legame con lo Zero: è una scelta di design
+  deliberata, per non far dipendere un intero mazzo da una singola Unica.

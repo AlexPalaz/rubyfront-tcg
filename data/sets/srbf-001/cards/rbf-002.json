@@ -16,7 +16,6 @@
   "tags": [
     "entity",
     "human",
-    "zero",
     "dynamic",
     "grade-2",
     "unique"
@@ -33,9 +32,6 @@
         "fluxCost": 3
       },
       "enablesMatters": [
-        {
-          "type": "zero"
-        },
         {
           "type": "dynamic",
           "maxGrade": 2
