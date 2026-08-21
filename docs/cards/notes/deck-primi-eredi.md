@@ -45,16 +45,17 @@ Due cose la distinguono da qualsiasi Rubyfront precedente del set:
   entrato dalla cima del mazzo: il motore di carte e il motore di tempo sono la
   stessa carta.
 
-## 3. Il Nexus: tre Umani e una Materia Zero
+## 3. Il Nexus: attaccare in tre, e perderne uno
 
-**Requisito: controlla almeno 3 Entità Umane e scarta una carta Materia Zero,
-solo nella tua Fase di Preparazione.**
+**Requisito: in questo turno hai attaccato con almeno 3 Entità Umane. Alla fine
+del combattimento manda una di quelle Entità nella Zona di Requiem del suo
+proprietario, poi flippa.**
 
-È un requisito a due chiavi, e il mazzo possiede una sola copia della seconda:
-**Assenza**. Non c'è più un modo di cercarla (Adam ha perso Genesi nella rev. 2):
-va pescata, e il Rubifronte che guarda la cima del mazzo aiuta a sapere quando
-arriva. La decisione ricorrente è se spendere Assenza come rimozione o
-conservarla come carburante del flip.
+Il flip si guadagna sul Fronte, non in mano: nessuna carta-chiave da pescare.
+Il costo è un corpo — scegli tu quale, tra le attaccanti ancora in campo e dopo
+che i danni sono stati risolti — e va in Requiem, non nell'Abisso: non muore.
+La decisione ricorrente è *quando* pagare: il Nexus entra subito ma le Entità
+hanno già attaccato, quindi rende dal turno dopo (più il recupero di 5 PV).
 
 La soglia delle 3 Entità Umane è **la stessa di Lacerazione**: le due cose
 maturano insieme, e il turno in cui il Fronte arriva a tre corpi è il turno in
@@ -65,15 +66,14 @@ cui il mazzo cambia marcia.
 La Dinamica di 2° grado passa da **Adam**, che è Unica: una copia sola apre
 Secondo Impeto prima del flip, e dopo il flip subentra la faccia Nexus. Resta la
 dipendenza più sottile del mazzo — perdere Adam significa perdere insieme lo
-Zero e Secondo Impeto (il flip no: Assenza si può scartare anche senza Adam).
+Secondo Impeto e Assenza, finché non arriva il Nexus.
 
 | Tipo | Carte | Abilitatori nel mazzo |
 |---|---|---|
 | Dinamica I | Scatto ×3, Vessillo ×3 | Guardiano ×3, Baluardo ×3 |
-| Dinamica II | Secondo Impeto ×2 | Adam, Nexus |
+| Dinamica II | Secondo Impeto ×2, Assenza | Adam, Nexus |
 | Distruttiva I | Collera ×3 | Rubyfront, Prima Lama ×3 |
 | Distruttiva II | Lacerazione ×3 | Rubyfront, Nexus |
-| Zero | Assenza | Adam |
 
 ## 5. Come si apre
 
@@ -83,7 +83,7 @@ Zero e Secondo Impeto (il flip no: Assenza si può scartare anche senza Adam).
 | T2 | 2 | **Guardiano** + **Vendicatrice**, oppure **Baluardo** |
 | T3 | 3 | **Vessillo** o il terzo corpo: il Fronte arriva a tre Umani |
 | T4 | 4 | **Rubifronte del Patto**: Vendicatrice e Vigorcintura salgono, Comando dal Fronte dà Slancio all'Umano giocato dalla cima |
-| T5+ | 5+ | Con 3 Umani e una Materia Zero in mano, **flip in Preparazione** |
+| T5+ | 5+ | Attacchi con 3 Umani, a fine combattimento ne mandi uno in Requiem e **flippi** |
 
 Il Guardiano della Paratia entra tappato, quindi il turno in cui scende non
 difende né attacca: è il prezzo di un 2 di Potenza a 1 Flusso che abilita la
@@ -92,11 +92,11 @@ un bloccante nel turno in cui si affonda.
 
 ## 6. Debolezze
 
-- **Una sola Materia Zero.** Assenza è Unica e il flip la consuma. Se finisce
-  nell'Abisso per altre vie, il Nexus resta chiuso per il resto della partita.
+- **Il flip costa un corpo.** Contro un avversario che blocca e uccide, arrivare
+  a tre attaccanti e poterne ancora sacrificare uno non è scontato.
 - **Nessuna difesa reattiva.** Fuori dal mazzo sono rimaste Riflesso, Quiete e
   Velo del Primo: l'unica interazione nel turno avversario è Collera, che è danno
   e non protezione.
 - **Molti corpi da Potenza 1 o 2 di base.** Il mazzo dipende dai moltiplicatori —
   Vigorcintura, Vessillo, Scatto e la presenza della bestia.
-- **Tutto lo Zero e la Dinamica II su una carta sola:** Adam. È il punto di rottura del mazzo (§4).
+- **Tutta la Dinamica II su una carta sola** prima del flip: Adam. È il punto di rottura del mazzo (§4).

@@ -56,7 +56,7 @@
                 "hp": "PV",
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
-                  "text": "Controlla almeno 3 Entità Umane e scarta una carta Materia Zero, solo nella tua Fase di Preparazione"
+                  "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Requiem del suo proprietario, poi flippa."
                 }
               },
               "matters": {
@@ -126,7 +126,7 @@
                 "hp": "HP",
                 "nexusRequirement": {
                   "label": "Nexus requirement",
-                  "text": "Control at least 3 Human Entities and discard a Zero Matter card, during your Preparation Phase only"
+                  "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Requiem Zone, then flip."
                 }
               },
               "matters": {
@@ -225,11 +225,11 @@
                 "nexus": {
                   "match": "all",
                   "timing": [
-                    "own_preparation"
+                    "own_post_combat"
                   ],
                   "conditions": [
                     {
-                      "type": "controls_card",
+                      "type": "attacked_this_turn_at_least",
                       "owner": "controller",
                       "min": 3,
                       "filter": {
@@ -240,14 +240,20 @@
                   ],
                   "flipCost": [
                     {
-                      "type": "discard",
-                      "from": {
-                        "zone": "hand",
-                        "owner": "controller"
+                      "type": "move_card",
+                      "target": {
+                        "cardType": "entity",
+                        "race": "human",
+                        "controller": "controller",
+                        "min": 1,
+                        "max": 1,
+                        "details": {
+                          "attackedThisTurn": true
+                        }
                       },
-                      "filter": {
-                        "cardType": "matter",
-                        "matterType": "zero"
+                      "destination": {
+                        "zone": "requiem",
+                        "owner": "card_owner"
                       }
                     }
                   ]
@@ -653,8 +659,8 @@
           "locales": {
             "it": {
               "name": "Assenza",
-              "typeLabel": "Materia Zero",
-              "summary": "Lo Zero non distrugge: toglie. L’Entità scelta smette semplicemente di essere lì.",
+              "typeLabel": "Materia Dinamica II",
+              "summary": "Una rimozione senza condizioni: l'Entità scelta smette semplicemente di essere lì.",
               "ui": {
                 "face": "Materia"
               },
@@ -677,14 +683,14 @@
                 "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
               },
               "matters": {
-                "zeroTitle": "Materia Zero",
-                "zeroAria": "Zero"
+                "dynamicTitle": "Materia Dinamica · 2° grado",
+                "dynamicAria": "Dinamica"
               }
             },
             "en": {
               "name": "Absence",
-              "typeLabel": "Zero Matter",
-              "summary": "Zero does not destroy: it removes. The chosen Entity simply stops being there.",
+              "typeLabel": "Dynamic Matter II",
+              "summary": "Unconditional removal: the chosen Entity simply stops being there.",
               "ui": {
                 "face": "Matter"
               },
@@ -707,14 +713,14 @@
                 "flavor": "A cold silence, where something used to be."
               },
               "matters": {
-                "zeroTitle": "Zero Matter",
-                "zeroAria": "Zero"
+                "dynamicTitle": "Dynamic Matter · 2nd grade",
+                "dynamicAria": "Dynamic"
               }
             }
           },
           "tags": [
             "matter",
-            "zero",
+            "dynamic",
             "removal",
             "unique"
           ],
@@ -725,7 +731,8 @@
               "kind": "matter",
               "displayKey": "face",
               "matter": {
-                "type": "zero"
+                "type": "dynamic",
+                "grade": 2
               },
               "behavior": "normal",
               "stats": {
@@ -6105,7 +6112,7 @@
             "hp": "PV",
             "nexusRequirement": {
               "label": "Requisito Nexus",
-              "text": "Controlla almeno 3 Entità Umane e scarta una carta Materia Zero, solo nella tua Fase di Preparazione"
+              "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Requiem del suo proprietario, poi flippa."
             }
           },
           "matters": {
@@ -6175,7 +6182,7 @@
             "hp": "HP",
             "nexusRequirement": {
               "label": "Nexus requirement",
-              "text": "Control at least 3 Human Entities and discard a Zero Matter card, during your Preparation Phase only"
+              "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Requiem Zone, then flip."
             }
           },
           "matters": {
@@ -6274,11 +6281,11 @@
             "nexus": {
               "match": "all",
               "timing": [
-                "own_preparation"
+                "own_post_combat"
               ],
               "conditions": [
                 {
-                  "type": "controls_card",
+                  "type": "attacked_this_turn_at_least",
                   "owner": "controller",
                   "min": 3,
                   "filter": {
@@ -6289,14 +6296,20 @@
               ],
               "flipCost": [
                 {
-                  "type": "discard",
-                  "from": {
-                    "zone": "hand",
-                    "owner": "controller"
+                  "type": "move_card",
+                  "target": {
+                    "cardType": "entity",
+                    "race": "human",
+                    "controller": "controller",
+                    "min": 1,
+                    "max": 1,
+                    "details": {
+                      "attackedThisTurn": true
+                    }
                   },
-                  "filter": {
-                    "cardType": "matter",
-                    "matterType": "zero"
+                  "destination": {
+                    "zone": "requiem",
+                    "owner": "card_owner"
                   }
                 }
               ]
@@ -6702,8 +6715,8 @@
       "locales": {
         "it": {
           "name": "Assenza",
-          "typeLabel": "Materia Zero",
-          "summary": "Lo Zero non distrugge: toglie. L’Entità scelta smette semplicemente di essere lì.",
+          "typeLabel": "Materia Dinamica II",
+          "summary": "Una rimozione senza condizioni: l'Entità scelta smette semplicemente di essere lì.",
           "ui": {
             "face": "Materia"
           },
@@ -6726,14 +6739,14 @@
             "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
           },
           "matters": {
-            "zeroTitle": "Materia Zero",
-            "zeroAria": "Zero"
+            "dynamicTitle": "Materia Dinamica · 2° grado",
+            "dynamicAria": "Dinamica"
           }
         },
         "en": {
           "name": "Absence",
-          "typeLabel": "Zero Matter",
-          "summary": "Zero does not destroy: it removes. The chosen Entity simply stops being there.",
+          "typeLabel": "Dynamic Matter II",
+          "summary": "Unconditional removal: the chosen Entity simply stops being there.",
           "ui": {
             "face": "Matter"
           },
@@ -6756,14 +6769,14 @@
             "flavor": "A cold silence, where something used to be."
           },
           "matters": {
-            "zeroTitle": "Zero Matter",
-            "zeroAria": "Zero"
+            "dynamicTitle": "Dynamic Matter · 2nd grade",
+            "dynamicAria": "Dynamic"
           }
         }
       },
       "tags": [
         "matter",
-        "zero",
+        "dynamic",
         "removal",
         "unique"
       ],
@@ -6774,7 +6787,8 @@
           "kind": "matter",
           "displayKey": "face",
           "matter": {
-            "type": "zero"
+            "type": "dynamic",
+            "grade": 2
           },
           "behavior": "normal",
           "stats": {
@@ -12242,11 +12256,11 @@
       "locales": {
         "it": {
           "name": "Primi Eredi",
-          "description": "Mazzo Umani aggro: corpi a costo bassissimo dal primo turno, il Rubifronte del Patto che li stappa e li spinge, e il Nexus che si apre controllando tre Umani e scartando una Materia Zero."
+          "description": "Mazzo Umani aggro: corpi a costo bassissimo dal primo turno, il Rubifronte del Patto che li gioca dalla cima del mazzo e li lancia con Slancio, e il Nexus che si apre attaccando con tre Umani."
         },
         "en": {
           "name": "First Heirs",
-          "description": "A Human aggro deck: dirt-cheap bodies from turn one, the Rubyfront of the Pact untapping and driving them, and the Nexus opening once you control three Humans and discard a Zero Matter."
+          "description": "A Human aggro deck: dirt-cheap bodies from turn one, the Rubyfront of the Pact playing them off the top and giving them Surge, and the Nexus opening once you attack with three Humans."
         }
       },
       "designNotes": "primi-eredi.md",

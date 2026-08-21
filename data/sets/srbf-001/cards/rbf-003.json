@@ -15,7 +15,7 @@
   ],
   "tags": [
     "matter",
-    "zero",
+    "dynamic",
     "removal",
     "unique"
   ],
@@ -26,7 +26,8 @@
       "kind": "matter",
       "displayKey": "face",
       "matter": {
-        "type": "zero"
+        "type": "dynamic",
+        "grade": 2
       },
       "behavior": "normal",
       "stats": {

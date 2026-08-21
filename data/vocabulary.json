@@ -64,13 +64,14 @@
     ]
   },
   "timing": {
-    "_note": "Windows in which an action may be activated (MANUALE.md §6)",
+    "_note": "Windows in which an action may be activated (MANUALE.md §6) own_post_combat: dopo la risoluzione del combattimento del proprio turno, fino alla fine del turno.",
     "values": [
       "own_preparation",
       "own_front",
       "own_turn",
       "opponent_pre_front",
-      "response_chain"
+      "response_chain",
+      "own_post_combat"
     ]
   },
   "state": {
@@ -178,7 +179,8 @@
       "health_at_most",
       "health_at_least",
       "health_lost_at_least",
-      "untapped_from_stasis_this_turn"
+      "untapped_from_stasis_this_turn",
+      "attacked_this_turn_at_least"
     ]
   },
   "stat": {

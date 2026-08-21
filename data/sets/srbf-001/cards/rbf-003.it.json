@@ -1,7 +1,7 @@
 {
   "name": "Assenza",
-  "typeLabel": "Materia Zero",
-  "summary": "Lo Zero non distrugge: toglie. L’Entità scelta smette semplicemente di essere lì.",
+  "typeLabel": "Materia Dinamica II",
+  "summary": "Una rimozione senza condizioni: l'Entità scelta smette semplicemente di essere lì.",
   "ui": {
     "face": "Materia"
   },
@@ -24,7 +24,7 @@
     "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
   },
   "matters": {
-    "zeroTitle": "Materia Zero",
-    "zeroAria": "Zero"
+    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicAria": "Dinamica"
   }
 }

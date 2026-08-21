@@ -1,7 +1,7 @@
 {
   "name": "Absence",
-  "typeLabel": "Zero Matter",
-  "summary": "Zero does not destroy: it removes. The chosen Entity simply stops being there.",
+  "typeLabel": "Dynamic Matter II",
+  "summary": "Unconditional removal: the chosen Entity simply stops being there.",
   "ui": {
     "face": "Matter"
   },
@@ -24,7 +24,7 @@
     "flavor": "A cold silence, where something used to be."
   },
   "matters": {
-    "zeroTitle": "Zero Matter",
-    "zeroAria": "Zero"
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicAria": "Dynamic"
   }
 }

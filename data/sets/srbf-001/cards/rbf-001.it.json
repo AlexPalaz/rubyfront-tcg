@@ -11,7 +11,7 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "Controlla almeno 3 Entità Umane e scarta una carta Materia Zero, solo nella tua Fase di Preparazione"
+      "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Requiem del suo proprietario, poi flippa."
     }
   },
   "matters": {
