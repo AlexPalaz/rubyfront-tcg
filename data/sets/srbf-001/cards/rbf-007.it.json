@@ -1,7 +1,7 @@
 {
-  "name": "Vedetta del Perimetro",
+  "name": "Guardiano della Paratia",
   "typeLabel": "Entità: Umano",
-  "summary": "Non colpisce forte: segnala il bersaglio, e chi le sta accanto colpisce meglio.",
+  "summary": "Due di Potenza per un solo Flusso: il prezzo è che il primo turno lo passa a prendere posizione.",
   "ui": {
     "face": "Entità"
   },
@@ -12,12 +12,12 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Vedetta del Perimetro",
-    "spark": {
+    "name": "Guardiano della Paratia",
+    "bulkhead": {
       "trigger": "Quando entra in campo",
-      "text": "Un'altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. Questa Entità segnala il bersaglio: il bonus non è mai per sé stessa."
+      "text": "Questa Entità entra sul Fronte già tappata, e resta così finché non la stappi."
     },
-    "flavor": "Vide arrivare la fine. Fischiò due volte."
+    "flavor": "Nessuno passa. Non oggi."
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 1° grado",

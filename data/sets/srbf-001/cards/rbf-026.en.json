@@ -1,34 +1,21 @@
 {
-  "name": "Elder of the Wandering Wood",
-  "typeLabel": "Entity: Auros",
-  "summary": "When the Elder wakes the wood breathes with it, and when it leaves it leaves a gift.",
+  "name": "Dimensional Sword",
+  "typeLabel": "Object",
+  "summary": "The basic equipment: one Flux, one Power.",
   "ui": {
-    "face": "Entity"
+    "face": "Object"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
     "flux": "Flux"
   },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
-    "dimensionalAria": "Dimensional"
-  },
   "face": {
-    "name": "Elder of the Wandering Wood",
-    "keyword": {
-      "name": "Stasis",
-      "rules": "won't die blocking: stays permanently tapped"
+    "name": "Dimensional Sword",
+    "effect": {
+      "name": "Effect",
+      "text": "The Entity it is assigned to has +1 Power."
     },
-    "rootedVigor": {
-      "trigger": "When it enters the field",
-      "text": "You gain 4 HP."
-    },
-    "partingGift": {
-      "trigger": "When it leaves the field",
-      "text": "Draw a card."
-    },
-    "flavor": "It walks but rarely. Yet when it walks, the wood follows."
+    "flavor": "It cuts where the world is already thin."
   }
 }

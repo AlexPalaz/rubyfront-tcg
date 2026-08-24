@@ -1,34 +1,21 @@
 {
-  "name": "Antico del Bosco Errante",
-  "typeLabel": "Entità: Auros",
-  "summary": "Quando l'Antico si desta il bosco respira con lui, e quando se ne va lascia un dono.",
+  "name": "Spada Dimensionale",
+  "typeLabel": "Oggetto",
+  "summary": "L'equipaggiamento base: un Flusso, una Potenza.",
   "ui": {
-    "face": "Entità"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
     "flux": "Flussi"
   },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
-    "dimensionalAria": "Dimensionale"
-  },
   "face": {
-    "name": "Antico del Bosco Errante",
-    "keyword": {
-      "name": "Stasi",
-      "rules": "bloccando non muore: resta tappata per sempre"
+    "name": "Spada Dimensionale",
+    "effect": {
+      "name": "Effetto",
+      "text": "L'Entità a cui è assegnata ha +1 Potenza."
     },
-    "rootedVigor": {
-      "trigger": "Quando entra in campo",
-      "text": "Guadagni 4 PV."
-    },
-    "partingGift": {
-      "trigger": "Quando lascia il campo",
-      "text": "Pesca una carta."
-    },
-    "flavor": "Cammina di rado. Ma quando cammina, il bosco lo segue."
+    "flavor": "Taglia dove il mondo è già sottile."
   }
 }

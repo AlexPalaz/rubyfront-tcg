@@ -1,7 +1,7 @@
 {
-  "name": "Valaris, First of the Wood",
+  "name": "Avy Shin, Blade of Nova Kai",
   "typeLabel": "Entity: Auros",
-  "summary": "The eldest of the Wandering Wood: she calls the fallen from the Retire Zone and blesses those who wake.",
+  "summary": "The deck's Unique: it arms the blades and returns Objects from the Retire Zone at every attack.",
   "ui": {
     "face": "Entity"
   },
@@ -17,15 +17,15 @@
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Valaris, First of the Wood",
-    "firstCall": {
-      "trigger": "When it enters the field",
-      "text": "Put an Auros Entity with Flux cost 3 or less from your Retire Zone onto your Front."
-    },
-    "wakingBoon": {
+    "name": "Avy Shin, Blade of Nova Kai",
+    "aura": {
       "trigger": "Effect",
-      "text": "The first time each of your turns another Auros Entity you control is untapped by an effect, that Entity gets +1 Power until end of turn."
+      "text": "Other Entities with an Object assigned you control have +1 Power."
     },
-    "flavor": "She was there before the wood. The wood grew around her silence."
+    "rearm": {
+      "trigger": "Effect",
+      "text": "Whenever an Entity with an Object assigned you control attacks, you may assign an Object from your Retire Zone to it without paying its Flux cost, if it can receive it."
+    },
+    "flavor": "What the Schism divides, its blade reunites."
   }
 }

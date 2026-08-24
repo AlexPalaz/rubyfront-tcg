@@ -1,21 +1,26 @@
 {
-  "name": "Velo del Primo",
-  "typeLabel": "Oggetto",
-  "summary": "La protezione del corpo su cui hai investito: le Materie avversarie non lo trovano.",
+  "name": "Mestrel, Guardiano del Campo",
+  "typeLabel": "Entità: Auros",
+  "summary": "Premia la seconda pescata del turno: più carte scorrono, più colpisce forte.",
   "ui": {
-    "face": "Oggetto"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Velo del Primo",
-    "effect": {
-      "name": "Effetto",
-      "text": "Assegnalo a un tuo Umano: chi lo indossa non può essere bersagliato dalle Materie avversarie."
+    "name": "Mestrel, Guardiano del Campo",
+    "tally": {
+      "trigger": "Effetto",
+      "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
     },
-    "flavor": "Ciò che il vuoto ha toccato, il vuoto protegge."
+    "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "Lacerazione",
-  "typeLabel": "Materia Distruttiva II",
-  "summary": "La ferita che non si chiude, ma solo finché il Fronte resta affollato.",
+  "name": "Vessillo degli Eredi",
+  "typeLabel": "Materia Dinamica I",
+  "summary": "Ogni turno sceglie un Umano e lo manda avanti più forte degli altri.",
   "ui": {
     "face": "Materia"
   },
@@ -15,15 +15,15 @@
     }
   },
   "face": {
-    "name": "Lacerazione",
-    "flavor": "Alcune ferite non si chiudono.",
+    "name": "Vessillo degli Eredi",
+    "flavor": "Finché sventola, si avanza.",
     "effect": {
       "name": "Effetto",
-      "text": "All'inizio del tuo turno, se controlli almeno 3 Entità Umane, il Rubyfront avversario perde 2 PV. La ferita continua a sanguinare finché il Fronte resta affollato, e questa perdita non lo fa tornare nella Zona di Richiamo."
+      "text": "La prima volta in ogni tuo turno che un'Entità Umana entra in campo sotto il tuo controllo, quell'Entità prende +2 Potenza fino alla fine del turno. Se controlli il Rubifronte del Patto, ottiene anche Slancio fino alla fine del turno."
     }
   },
   "matters": {
-    "destructiveTitle": "Materia Distruttiva · 2° grado",
-    "destructiveAria": "Distruttiva"
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

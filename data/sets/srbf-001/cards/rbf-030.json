@@ -3,8 +3,8 @@
   "id": "RBF-030",
   "setId": "rubyfront-core",
   "collectorNumber": "030",
-  "slug": "voice-of-the-roots",
-  "type": "entity",
+  "slug": "synaptic-amplification",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,52 +14,52 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
+    "matter",
     "dimensional",
-    "recursion",
-    "retire",
-    "midrange"
+    "grade-1",
+    "reactive",
+    "equip",
+    "untap",
+    "pump"
   ],
-  "rulesReference": "MANUALE.md §5, §7, §8.2",
+  "rulesReference": "MANUALE.md §7.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
-      "stats": {
-        "power": 2,
-        "fluxCost": 3
+      "matter": {
+        "type": "dimensional",
+        "grade": 1
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 1
-        }
-      ],
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "regrow",
-          "displayKey": "regrow",
-          "event": "on_enter_field",
+          "id": "amplify",
+          "displayKey": "effect",
+          "event": "on_resolve",
           "effect": {
-            "type": "move_card",
+            "type": "modify_power",
             "target": {
               "cardType": "entity",
-              "race": "auros",
-              "zone": "retire",
-              "owner": "controller",
+              "controller": "controller",
               "min": 0,
-              "max": 1
+              "max": 2,
+              "details": {
+                "hasObjectAssigned": true
+              }
             },
-            "destination": {
-              "zone": "hand",
-              "owner": "controller"
-            },
-            "optional": true
+            "amount": 1,
+            "duration": "until_end_of_turn",
+            "details": {
+              "alsoUntap": true
+            }
           }
         }
       ],

@@ -1,29 +1,26 @@
 {
-  "name": "Secondo Impeto",
-  "typeLabel": "Materia Dinamica II",
-  "summary": "Il turno in cui un solo corpo colpisce due volte.",
+  "name": "Corriere a Vapore",
+  "typeLabel": "Entità: Umano",
+  "summary": "Un Flusso per il primo colpo della partita, e per decidere che cosa trova chi arriva dopo.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
+    "power": "Potenza",
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Secondo Impeto",
-    "effect": {
-      "name": "Effetto",
-      "text": "Scegli un'Entità Umana che controlli che ha già attaccato in questo turno. Stappala: può attaccare una seconda volta in questo turno."
+    "name": "Corriere a Vapore",
+    "keyword": {
+      "name": "Slancio",
+      "rules": "può attaccare nel turno in cui entra in campo"
     },
-    "flavor": "Il primo colpo apre. Il secondo chiude."
-  },
-  "matters": {
-    "dynamicTitle": "Materia Dinamica · 2° grado",
-    "dynamicAria": "Dinamica"
+    "flavor": "Nessuno l'ha mai visto fermo: quando la domanda finisce, lui è già oltre la linea.",
+    "dispatch": {
+      "trigger": "Quando entra in campo",
+      "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov'è oppure metterla in fondo."
+    }
   }
 }

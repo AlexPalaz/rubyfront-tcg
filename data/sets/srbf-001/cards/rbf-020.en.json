@@ -1,7 +1,7 @@
 {
-  "name": "Steam Courier",
-  "typeLabel": "Entity: Human",
-  "summary": "One Flux for the first hit of the game, and for deciding what whoever comes next will find.",
+  "name": "Garwin, Scout",
+  "typeLabel": "Entity: Auros",
+  "summary": "The equipped vanguard: attack with an Object and filter your hand.",
   "ui": {
     "face": "Entity"
   },
@@ -11,16 +11,16 @@
     "power": "Power",
     "flux": "Flux"
   },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+    "dimensionalAria": "Dimensional"
+  },
   "face": {
-    "name": "Steam Courier",
-    "keyword": {
-      "name": "Surge",
-      "rules": "may attack the turn it enters the field"
+    "name": "Garwin, Scout",
+    "scouting": {
+      "trigger": "Effect",
+      "text": "The first time each of your turns this Entity attacks while it has an Object assigned, draw a card, then discard a card."
     },
-    "flavor": "No one has ever seen him standing still: by the time the question ends, he is already past the line.",
-    "dispatch": {
-      "trigger": "When it enters the field",
-      "text": "Look at the top card of your deck: you may leave it there or put it on the bottom."
-    }
+    "flavor": "It scouts with the eyes. It decides with the blade."
   }
 }

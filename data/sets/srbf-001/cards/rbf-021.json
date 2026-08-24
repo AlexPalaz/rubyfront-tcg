@@ -3,8 +3,8 @@
   "id": "RBF-021",
   "setId": "rubyfront-core",
   "collectorNumber": "021",
-  "slug": "heirs-banner",
-  "type": "matter",
+  "slug": "hali-artificer-of-nova-kai",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,52 +14,63 @@
     "en"
   ],
   "tags": [
-    "matter",
-    "dynamic",
-    "grade-1",
-    "permanent",
-    "anthem"
+    "entity",
+    "auros",
+    "equip",
+    "die",
+    "retire"
   ],
-  "rulesReference": "MANUALE.md §7.2",
+  "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "dynamic",
-        "grade": 1
-      },
-      "behavior": "permanent",
+      "race": "auros",
       "stats": {
+        "power": 2,
         "fluxCost": 3
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "march",
-          "displayKey": "effect",
+          "id": "forage",
+          "displayKey": "forage",
           "event": "on_enter_field",
           "effect": {
-            "type": "empower",
-            "target": {
-              "scope": "entered"
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top"
             },
-            "powerBonus": 2,
-            "duration": "until_end_of_turn",
             "details": {
-              "oncePerTurn": true,
-              "onlyControllerTurn": true,
-              "watched": {
-                "cardType": "entity",
-                "race": "human",
-                "controller": "controller"
+              "die": "d6",
+              "count": "2 + ceil(result/2)",
+              "mayReveal": {
+                "cardType": "object"
               },
-              "grantsWithRubyfrontDeployed": [
-                "surge"
-              ]
+              "revealTo": {
+                "zone": "hand",
+                "owner": "controller"
+              },
+              "thenMoveOneTo": {
+                "zone": "retire",
+                "owner": "controller"
+              },
+              "restTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom",
+                "anyOrder": true
+              }
             }
           }
         }

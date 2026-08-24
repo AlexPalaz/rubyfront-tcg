@@ -3,7 +3,7 @@
   "id": "RBF-013",
   "setId": "rubyfront-core",
   "collectorNumber": "013",
-  "slug": "first-blade",
+  "slug": "archivist",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,10 +16,9 @@
   "tags": [
     "entity",
     "human",
-    "destructive",
-    "removal"
+    "scaling"
   ],
-  "rulesReference": "MANUALE.md §7",
+  "rulesReference": "MANUALE.md §6.2",
   "faces": [
     {
       "id": "entity",
@@ -27,52 +26,30 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 3,
-        "fluxCost": 4,
-        "counterattack": 2
+        "power": 1,
+        "fluxCost": 3
       },
-      "enablesMatters": [
-        {
-          "type": "destructive",
-          "maxGrade": 1
-        }
-      ],
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "first-cut",
-          "displayKey": "firstCut",
-          "event": "on_enter_field",
-          "effect": {
-            "type": "move_card",
-            "target": {
-              "cardType": "entity",
-              "min": 1,
-              "max": 1,
-              "controller": "opponent"
-            },
-            "destination": {
-              "zone": "retire",
-              "owner": "card_owner"
-            }
-          }
-        },
-        {
-          "id": "awakening",
+          "id": "chronicle",
           "displayKey": "effect",
           "event": "while_in_play",
           "effect": {
-            "type": "empower",
+            "type": "modify_power",
             "target": {
               "scope": "self"
             },
-            "grants": [
-              "revenge"
-            ],
+            "amount": 1,
             "duration": "permanent",
             "details": {
-              "requiresNexus": true
+              "perControlledEntity": {
+                "cardType": "entity",
+                "race": "human"
+              },
+              "excludeSelf": true
             }
           }
         }

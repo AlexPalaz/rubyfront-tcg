@@ -3,374 +3,71 @@
   "id": "RBF-023",
   "setId": "rubyfront-core",
   "collectorNumber": "023",
-  "slug": "rubyfront-of-the-wandering-wood",
-  "type": "rubyfront",
-  "layout": "double-faced",
+  "slug": "krevon-underblade-of-nova-kai",
+  "type": "entity",
+  "layout": "single",
   "status": "draft",
-  "deckLimit": 1,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
     "en"
   ],
   "tags": [
-    "rubyfront",
-    "nexus",
-    "midrange",
+    "entity",
     "auros",
-    "dimensional",
-    "stasis",
-    "untap",
-    "retire"
+    "equip",
+    "surge",
+    "pump"
   ],
-  "rulesReference": "MANUALE.md §3.1, §7, §8.1",
+  "rulesReference": "MANUALE.md §3.1, §8.1, §8.2",
   "faces": [
     {
-      "id": "rubyfront",
-      "kind": "rubyfront",
-      "displayKey": "faceA",
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
       "stats": {
-        "health": 22,
-        "deploymentCost": {
-          "base": 3
-        }
+        "power": 3,
+        "fluxCost": 4
       },
       "enablesMatters": [
         {
           "type": "dimensional",
           "maxGrade": 2
-        },
-        {
-          "type": "destructive",
-          "maxGrade": 1
         }
       ],
       "keywords": [
         {
-          "id": "fury",
-          "check": {
-            "die": "d20",
-            "successAtLeast": 12
-          },
-          "failure": {
-            "loseHealth": 1
-          }
+          "id": "surge"
         }
       ],
-      "requirements": {
-        "nexus": {
-          "match": "all",
-          "conditions": [
-            {
-              "type": "controls_card",
-              "owner": "controller",
-              "min": 4,
-              "filter": {
-                "cardType": "entity",
-                "race": "auros"
-              }
-            },
-            {
-              "type": "untapped_from_stasis_this_turn",
-              "owner": "controller",
-              "min": 1,
-              "filter": {
-                "cardType": "entity",
-                "race": "auros"
-              }
-            }
-          ],
-          "flipCost": [
-            {
-              "type": "move_card",
-              "target": {
-                "cardType": "entity",
-                "race": "auros",
-                "controller": "controller",
-                "min": 1,
-                "max": 1,
-                "details": {
-                  "untappedFromStasisThisTurn": true
-                }
-              },
-              "destination": {
-                "zone": "retire",
-                "owner": "controller"
-              },
-              "details": {
-                "isDeath": false,
-                "triggersLeaveField": true,
-                "cannotReturnToFieldThisGame": true
-              }
-            }
-          ]
-        }
-      },
-      "triggers": [
-        {
-          "id": "wood-memory",
-          "displayKey": "effect",
-          "event": "on_untap",
-          "effect": {
-            "type": "gain_health",
-            "target": {
-              "cardType": "rubyfront",
-              "controller": "controller"
-            },
-            "amount": 1,
-            "details": {
-              "oncePerTurn": true,
-              "onlyControllerTurn": true,
-              "untappedByEffect": true,
-              "watched": {
-                "cardType": "entity",
-                "race": "auros",
-                "controller": "controller"
-              }
-            }
-          }
-        },
-        {
-          "id": "arrival",
-          "displayKey": "arrival",
-          "event": "on_deploy_from_recall",
-          "effect": {
-            "type": "untap",
-            "target": {
-              "cardType": "entity",
-              "race": "auros",
-              "controller": "controller",
-              "min": 0,
-              "max": 1
-            }
-          }
-        }
-      ],
-      "actions": [
-        {
-          "id": "perennial-sap",
-          "displayKey": "perennialSap",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": true,
-          "checks": [
-            "fury"
-          ],
-          "effect": {
-            "type": "untap",
-            "target": {
-              "cardType": "entity",
-              "race": "auros",
-              "controller": "controller",
-              "min": 1,
-              "max": 1
-            }
-          },
-          "gain": {
-            "health": 3
-          }
-        },
-        {
-          "id": "frond-recall",
-          "displayKey": "frondRecall",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": true,
-          "checks": [
-            "fury"
-          ],
-          "cost": {
-            "health": 4
-          },
-          "effect": {
-            "type": "move_card",
-            "target": {
-              "cardType": "entity",
-              "race": "auros",
-              "zone": "retire",
-              "owner": "controller",
-              "min": 1,
-              "max": 1
-            },
-            "destination": {
-              "zone": "hand",
-              "owner": "controller"
-            }
-          }
-        },
-        {
-          "id": "phase-away",
-          "displayKey": "phaseAway",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": true,
-          "checks": [
-            "fury"
-          ],
-          "cost": {
-            "health": 5
-          },
-          "effect": {
-            "type": "move_card",
-            "target": {
-              "cardType": "entity",
-              "controller": "opponent",
-              "min": 1,
-              "max": 1
-            },
-            "destination": {
-              "zone": "hand",
-              "owner": "card_owner"
-            },
-            "details": {
-              "isDeath": false,
-              "triggersLeaveField": true,
-              "objectFollows": false
-            }
-          }
-        }
-      ]
-    },
-    {
-      "id": "nexus",
-      "kind": "nexus",
-      "displayKey": "faceB",
-      "stats": {
-        "healthRecovery": 6
-      },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 2
-        },
-        {
-          "type": "destructive",
-          "maxGrade": 2
-        }
-      ],
-      "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "glade-waking",
-          "displayKey": "effect",
-          "event": "on_untap",
+          "id": "command",
+          "displayKey": "command",
+          "event": "on_attack",
+          "details": {
+            "requiresObjectAssigned": true
+          },
           "effect": {
-            "type": "draw_card",
+            "type": "modify_power",
             "target": {
-              "controller": "controller"
-            },
-            "count": 1,
-            "details": {
-              "oncePerTurn": true,
-              "onlyControllerTurn": true,
-              "untappedByEffect": true,
-              "watched": {
-                "cardType": "entity",
-                "race": "auros",
-                "controller": "controller"
+              "cardType": "entity",
+              "controller": "controller",
+              "quantity": "all",
+              "details": {
+                "hasObjectAssigned": true,
+                "excludeSelf": true
               }
-            }
+            },
+            "amount": 1,
+            "duration": "until_end_of_turn"
           }
         }
       ],
-      "actions": [
-        {
-          "id": "perennial-bloom",
-          "displayKey": "perennialBloom",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": true,
-          "checks": [],
-          "effect": {
-            "type": "untap",
-            "target": {
-              "cardType": "entity",
-              "race": "auros",
-              "controller": "controller",
-              "min": 0,
-              "max": 2
-            }
-          },
-          "gain": {
-            "health": 4
-          }
-        },
-        {
-          "id": "folding-tide",
-          "displayKey": "foldingTide",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": true,
-          "checks": [],
-          "cost": {
-            "health": 6
-          },
-          "effect": {
-            "type": "move_card",
-            "target": {
-              "cardType": "entity",
-              "controller": "opponent",
-              "min": 0,
-              "max": 2
-            },
-            "destination": {
-              "zone": "hand",
-              "owner": "card_owner"
-            },
-            "details": {
-              "isDeath": false,
-              "triggersLeaveField": true,
-              "objectFollows": false
-            }
-          }
-        },
-        {
-          "id": "wood-call",
-          "displayKey": "woodCall",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": true,
-          "checks": [],
-          "cost": {
-            "health": 7
-          },
-          "effect": {
-            "type": "move_card",
-            "target": {
-              "cardType": "entity",
-              "race": "auros",
-              "zone": "retire",
-              "owner": "controller",
-              "min": 1,
-              "max": 1,
-              "conditions": [
-                {
-                  "stat": "flux_cost",
-                  "operator": "lte",
-                  "value": 3
-                }
-              ]
-            },
-            "destination": {
-              "zone": "front",
-              "owner": "controller"
-            }
-          }
-        }
-      ]
+      "actions": []
     }
   ],
   "designNotes": "rbf-023.md"

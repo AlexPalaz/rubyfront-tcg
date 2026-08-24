@@ -1,7 +1,7 @@
 {
-  "name": "Corriere a Vapore",
-  "typeLabel": "Entità: Umano",
-  "summary": "Un Flusso per il primo colpo della partita, e per decidere che cosa trova chi arriva dopo.",
+  "name": "Garwin, Esploratore",
+  "typeLabel": "Entità: Auros",
+  "summary": "L'avanscoperta equipaggiata: attacca con un Oggetto e filtra la mano.",
   "ui": {
     "face": "Entità"
   },
@@ -11,16 +11,16 @@
     "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Corriere a Vapore",
-    "keyword": {
-      "name": "Slancio",
-      "rules": "può attaccare nel turno in cui entra in campo"
+    "name": "Garwin, Esploratore",
+    "scouting": {
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
     },
-    "flavor": "Nessuno l'ha mai visto fermo: quando la domanda finisce, lui è già oltre la linea.",
-    "dispatch": {
-      "trigger": "Quando entra in campo",
-      "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov'è oppure metterla in fondo."
-    }
+    "flavor": "Esplora con gli occhi. Decide con la lama."
   }
 }

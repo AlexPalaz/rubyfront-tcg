@@ -3,7 +3,7 @@
   "id": "RBF-024",
   "setId": "rubyfront-core",
   "collectorNumber": "024",
-  "slug": "pathfinder-of-trails",
+  "slug": "the-bearer",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,12 +16,10 @@
   "tags": [
     "entity",
     "auros",
-    "dimensional",
-    "dig",
-    "die",
-    "midrange"
+    "equip",
+    "draw"
   ],
-  "rulesReference": "MANUALE.md §7, §8.2",
+  "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -29,56 +27,31 @@
       "displayKey": "face",
       "race": "auros",
       "stats": {
-        "power": 2,
-        "fluxCost": 3
+        "power": 3,
+        "fluxCost": 4
       },
       "enablesMatters": [
         {
           "type": "dimensional",
-          "maxGrade": 1
+          "maxGrade": 2
         }
       ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "pathfind",
-          "displayKey": "pathfind",
-          "event": "on_enter_field",
+          "id": "carry",
+          "displayKey": "carry",
+          "event": "on_assign_object",
+          "details": {
+            "toSelf": true
+          },
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top"
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
             },
-            "to": {
-              "zone": "hand",
-              "owner": "controller"
-            },
-            "optional": true,
-            "details": {
-              "cost": {
-                "type": "discard_card",
-                "count": 1
-              },
-              "countFormula": {
-                "base": 2,
-                "plusDie": "d6"
-              },
-              "pickFilter": {
-                "cardType": "entity",
-                "race": "auros"
-              },
-              "reveal": true,
-              "maxToHand": 1,
-              "rest": {
-                "zone": "deck",
-                "owner": "controller",
-                "position": "bottom",
-                "anyOrder": true
-              }
-            }
+            "count": 1
           }
         }
       ],

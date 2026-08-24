@@ -1,7 +1,7 @@
 {
-  "name": "Chirurgo da Campo",
+  "name": "Baluardo Corazzato",
   "typeLabel": "Entità: Umano",
-  "summary": "Il corpo che porta con sé un punto di danno: scende, colpisce la bestia avversaria e resta in linea.",
+  "summary": "Tre di Potenza a due Flussi, in cambio di una sola cosa: non muove mai per primo.",
   "ui": {
     "face": "Entità"
   },
@@ -12,11 +12,15 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Chirurgo da Campo",
-    "flavor": "Anche le bestie sanguinano.",
-    "incision": {
-      "trigger": "Quando entra in campo",
-      "text": "Tappa un'Entità avversaria. Poi lancia un d6: con 5–6, guarda la prima carta del tuo mazzo e, se vuoi, mettila in fondo."
-    }
+    "name": "Baluardo Corazzato",
+    "effect": {
+      "name": "Effetto",
+      "text": "Questa Entità non può bloccare."
+    },
+    "flavor": "Cade il mondo, non lui."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

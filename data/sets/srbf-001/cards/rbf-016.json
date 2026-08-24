@@ -3,53 +3,54 @@
   "id": "RBF-016",
   "setId": "rubyfront-core",
   "collectorNumber": "016",
-  "slug": "stillness",
-  "type": "matter",
+  "slug": "steel-avenger",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 1,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
     "en"
   ],
   "tags": [
-    "matter",
-    "zero",
-    "reactive",
-    "unique"
+    "entity",
+    "human",
+    "revenge",
+    "aggro"
   ],
-  "rulesReference": "MANUALE.md §7.2",
+  "rulesReference": "MANUALE.md §8.1",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "zero"
-      },
-      "behavior": "reactive",
+      "race": "human",
       "stats": {
+        "power": 1,
         "fluxCost": 1
       },
       "enablesMatters": [],
-      "keywords": [],
+      "keywords": [
+        {
+          "id": "revenge"
+        }
+      ],
       "requirements": {},
       "triggers": [
         {
-          "id": "stillness",
+          "id": "grief",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "while_in_play",
           "effect": {
-            "type": "counter_card",
+            "type": "modify_power",
             "target": {
-              "cardType": "matter",
-              "min": 1,
-              "max": 1
+              "scope": "self"
             },
+            "amount": 2,
+            "duration": "permanent",
             "details": {
-              "onlyReactiveInChain": true,
-              "toZone": "abyss"
+              "requiresRubyfrontDeployed": true
             }
           }
         }
@@ -57,6 +58,5 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-016.md",
-  "unique": true
+  "designNotes": "rbf-016.md"
 }

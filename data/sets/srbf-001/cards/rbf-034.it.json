@@ -1,26 +1,29 @@
 {
-  "name": "Custode del Risveglio",
-  "typeLabel": "Entità: Auros",
-  "summary": "Passa tra i dormienti e li tocca: un Auros alla volta, il bosco si rialza.",
+  "name": "Scudo Riflesso",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "Un blocco dal nulla che punisce chi attacca un fronte armato.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
+  },
+  "face": {
+    "name": "Scudo Riflesso",
+    "effect": {
+      "name": "Effetto",
+      "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se controlli almeno 2 Entità con un Oggetto assegnato, l'attaccante prende −2 Potenza fino alla fine del turno."
+    },
+    "flavor": "Il muro che non c'era, finché non ci hai sbattuto contro."
   },
   "matters": {
     "dimensionalTitle": "Materia Dimensionale · 1° grado",
     "dimensionalAria": "Dimensionale"
-  },
-  "face": {
-    "name": "Custode del Risveglio",
-    "wake": {
-      "trigger": "Quando entra in campo",
-      "text": "Puoi stappare un'altra Entità Auros che controlli."
-    },
-    "flavor": "Un tocco, e l'inverno finisce."
   }
 }

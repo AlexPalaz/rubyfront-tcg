@@ -1,22 +1,72 @@
 {
-  "name": "Archivista",
-  "typeLabel": "Entità: Umano",
-  "summary": "Cresce con la schiera: quanto vale lo decide quanti sono i suoi.",
+  "name": "Rhazmora, Rubifronte della Scissione",
+  "typeLabel": "Rubyfront bifronte",
+  "summary": "La bestia della Scissione: ogni Oggetto assegnato scava nel mazzo, e il Nexus riarma il Fronte dal Ritiro.",
   "ui": {
-    "face": "Entità"
+    "faceA": "Faccia A — Rubyfront",
+    "faceB": "Faccia B — Nexus"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
+    "nexusRequirement": {
+      "label": "Requisito Nexus",
+      "text": "Controlli almeno 3 Entità con un Oggetto assegnato. Metti un'Entità Auros dalla tua Zona di Ritiro nell'Abisso, poi flippa."
+    }
   },
-  "face": {
-    "name": "Archivista",
-    "effect": {
-      "name": "Effetto",
-      "text": "Questa Entità prende +1 Potenza per ogni altra Entità Umana che controlli."
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale",
+    "destructiveTitle": "Materia Distruttiva",
+    "destructiveAria": "Distruttiva"
+  },
+  "faceA": {
+    "name": "Rhazmora, Rubifronte della Scissione",
+    "keyword": {
+      "name": "Furia",
+      "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
     },
-    "flavor": "Scrive i nomi di chi è passato oltre."
+    "effect": {
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che assegni un Oggetto a un'Entità, guarda la prima e l'ultima carta del tuo mazzo: puoi scambiarle. Poi pesca una carta e scarta una carta."
+    },
+    "abilities": {
+      "swiftForge": {
+        "name": "Forgia Rapida",
+        "text": "la prossima carta Oggetto che giochi in questo turno costa 1 Flusso in meno."
+      },
+      "calibratedStrike": {
+        "name": "Colpo Calibrato",
+        "text": "un'Entità con un Oggetto assegnato che controlli prende +2 Potenza fino alla fine del turno."
+      }
+    },
+    "flavor": "Dove passò Rhazmora, il mondo restò in due pezzi."
+  },
+  "faceB": {
+    "name": "Cuore della Scissione",
+    "nexusAria": "Nexus",
+    "flipEffect": {
+      "trigger": "Quando flippa",
+      "text": "Pesca una carta."
+    },
+    "effect": {
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che assegni un Oggetto a un'Entità, guarda la prima e l'ultima carta del tuo mazzo: aggiungine una alla tua mano e metti l'altra nella tua Zona di Ritiro."
+    },
+    "abilities": {
+      "deepForge": {
+        "name": "Forgia Profonda",
+        "text": "la prossima carta Oggetto che giochi in questo turno costa 2 Flussi in meno."
+      },
+      "bladeChorus": {
+        "name": "Coro delle Lame",
+        "text": "le Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
+      },
+      "greatRearm": {
+        "name": "Grande Riarmo",
+        "text": "assegna un qualsiasi numero di Oggetti dalla tua Zona di Ritiro ad altrettante Entità senza Oggetto sul tuo Fronte, senza pagarne il costo di Flusso."
+      }
+    },
+    "flavor": "La Scissione non è una ferita. È una porta."
   }
 }

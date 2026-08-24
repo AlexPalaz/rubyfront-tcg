@@ -1,29 +1,26 @@
 {
-  "name": "Vessillo degli Eredi",
-  "typeLabel": "Materia Dinamica I",
-  "summary": "Ogni turno sceglie un Umano e lo manda avanti più forte degli altri.",
+  "name": "Hali, Artefice di Nova Kai",
+  "typeLabel": "Entità: Auros",
+  "summary": "L'artefice che scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
-  },
-  "face": {
-    "name": "Vessillo degli Eredi",
-    "flavor": "Finché sventola, si avanza.",
-    "effect": {
-      "name": "Effetto",
-      "text": "La prima volta in ogni tuo turno che un'Entità Umana entra in campo sotto il tuo controllo, quell'Entità prende +2 Potenza fino alla fine del turno. Se controlli il Rubifronte del Patto, ottiene anche Slancio fino alla fine del turno."
-    }
+    "power": "Potenza",
+    "flux": "Flussi"
   },
   "matters": {
-    "dynamicTitle": "Materia Dinamica · 1° grado",
-    "dynamicAria": "Dinamica"
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Hali, Artefice di Nova Kai",
+    "forage": {
+      "trigger": "Quando entra in campo",
+      "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
+    },
+    "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
   }
 }

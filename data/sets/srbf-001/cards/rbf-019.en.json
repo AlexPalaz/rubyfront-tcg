@@ -1,21 +1,26 @@
 {
-  "name": "Veil of the First",
-  "typeLabel": "Object",
-  "summary": "Protection for the body you invested in: opposing Matters cannot find it.",
+  "name": "Mestrel, Camp Warden",
+  "typeLabel": "Entity: Auros",
+  "summary": "Rewards the turn's second draw: the more cards flow, the harder it hits.",
   "ui": {
-    "face": "Object"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+    "dimensionalAria": "Dimensional"
+  },
   "face": {
-    "name": "Veil of the First",
-    "effect": {
-      "name": "Effect",
-      "text": "Assign it to one of your Humans: the wearer cannot be targeted by opposing Matters."
+    "name": "Mestrel, Camp Warden",
+    "tally": {
+      "trigger": "Effect",
+      "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."
     },
-    "flavor": "What the void has touched, the void protects."
+    "flavor": "It counts cards like sentries: at the second, it sounds the alarm."
   }
 }

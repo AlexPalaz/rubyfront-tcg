@@ -1,7 +1,7 @@
 {
-  "name": "Emissario degli Eredi",
+  "name": "Prima Lama",
   "typeLabel": "Entità: Umano",
-  "summary": "Due braccia in campo e un terzo in arrivo: gli Eredi non lasciano mai un posto vuoto.",
+  "summary": "Arriva togliendo di mezzo qualcuno, e con il Nexus in campo diventa impossibile da attaccare impunemente.",
   "ui": {
     "face": "Entità"
   },
@@ -12,11 +12,19 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Emissario degli Eredi",
-    "herald": {
+    "name": "Prima Lama",
+    "firstCut": {
       "trigger": "Quando entra in campo",
-      "text": "Cerca nel tuo mazzo un'Entità Umana, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
+      "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario."
     },
-    "flavor": "Il Primo cammina fra noi. Io l'ho visto."
+    "effect": {
+      "name": "Effetto",
+      "text": "Se controlli il Nexus, questa Entità ha Vendetta."
+    },
+    "flavor": "Il fronte nemico la conosce per nome."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicAria": "Dinamica"
   }
 }

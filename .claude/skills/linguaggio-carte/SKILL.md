@@ -61,11 +61,12 @@ stessa modifica (il file è il contratto: aggiornarlo fa parte del lavoro).
 Mai: «creatura», «giocatore avversario» nei testi carta, «Requiem» (nome
 storico della Zona di Ritiro, deprecato il 2026-08-24). I **nomi propri** di
 carta si traducono (es. «Rubifronte del Patto» → "Rubyfront of the Pact"), il
-termine generico resta «Rubyfront» in entrambe le lingue. Nei **nomi** dei
-Rubyfront con prefisso personale, «Rubifronte/Rubyfront» si abbrevia **«RBF»**
-perché il nome stia su una riga («Rhazmora, RBF della Scissione» / "Rhazmora,
-RBF of the Schism"); l'abbreviazione vale solo nel nome, mai nei testi di
-regole.
+termine generico resta «Rubyfront» in entrambe le lingue. I nomi dei Rubyfront
+si scrivono **sempre per esteso** nei dati («Rhazmora, Rubifronte della
+Scissione»): quando c'è la virgola, la UI mostra da sola il nome personale
+nella barra del titolo e la qualifica nella riga del tipo (vedi
+`splitFaceName` in docs/cards/ui/card-render.js). Niente abbreviazioni tipo
+«RBF» nei nomi o nei testi.
 
 ## Formule fisse
 

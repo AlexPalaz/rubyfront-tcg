@@ -3,8 +3,8 @@
   "id": "RBF-026",
   "setId": "rubyfront-core",
   "collectorNumber": "026",
-  "slug": "elder-of-the-wandering-wood",
-  "type": "entity",
+  "slug": "dimensional-sword",
+  "type": "object",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,64 +14,42 @@
     "en"
   ],
   "tags": [
-    "entity",
+    "object",
     "auros",
-    "dimensional",
-    "grade-2",
-    "stasis",
-    "midrange"
+    "equip",
+    "pump"
   ],
-  "rulesReference": "MANUALE.md §7, §8.1, §8.2",
+  "rulesReference": "MANUALE.md §3.1, §6.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "object",
+      "kind": "object",
       "displayKey": "face",
-      "race": "auros",
       "stats": {
-        "power": 4,
-        "fluxCost": 5
+        "fluxCost": 1
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 2
-        }
-      ],
-      "keywords": [
-        {
-          "id": "stasis"
-        }
-      ],
+      "enablesMatters": [],
+      "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "rooted-vigor",
-          "displayKey": "rootedVigor",
-          "event": "on_enter_field",
+          "id": "edge",
+          "displayKey": "effect",
+          "event": "while_assigned",
           "effect": {
-            "type": "gain_health",
+            "type": "modify_power",
             "target": {
-              "cardType": "rubyfront",
-              "controller": "controller"
+              "scope": "assigned"
             },
-            "amount": 4
-          }
-        },
-        {
-          "id": "parting-gift",
-          "displayKey": "partingGift",
-          "event": "on_leave_field",
-          "effect": {
-            "type": "draw_card",
-            "target": {
-              "controller": "controller"
-            },
-            "count": 1
+            "amount": 1
           }
         }
       ],
-      "actions": []
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "controller": "controller"
+      }
     }
   ],
   "designNotes": "rbf-026.md"

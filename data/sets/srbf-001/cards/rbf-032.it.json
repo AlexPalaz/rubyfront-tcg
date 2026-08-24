@@ -1,30 +1,29 @@
 {
-  "name": "Germoglio Errante",
-  "typeLabel": "Entità: Auros",
-  "summary": "Dove c'è già bosco, il germoglio nutre; e sbircia il sentiero davanti a sé.",
+  "name": "Esversione",
+  "typeLabel": "Materia Distruttiva I",
+  "summary": "Rimozione secca nell'Abisso, pagata in PV.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 1° grado",
-    "dimensionalAria": "Dimensionale"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Germoglio Errante",
-    "nourish": {
-      "trigger": "Quando entra in campo",
-      "text": "Se controlli un'altra Entità Auros, guadagni 2 PV."
+    "name": "Esversione",
+    "effect": {
+      "name": "Effetto",
+      "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Poi perdi 2 PV."
     },
-    "peek": {
-      "trigger": "Quando entra in campo",
-      "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo al mazzo."
-    },
-    "flavor": "Piccolo, ma sa già dove andare."
+    "flavor": "Rovescia il dentro in fuori. Paga anche chi la pronuncia."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 1° grado",
+    "destructiveAria": "Distruttiva"
   }
 }

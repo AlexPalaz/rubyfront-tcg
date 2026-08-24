@@ -3,8 +3,8 @@
   "id": "RBF-029",
   "setId": "rubyfront-core",
   "collectorNumber": "029",
-  "slug": "ebbtide",
-  "type": "matter",
+  "slug": "vestige-of-the-schism",
+  "type": "object",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,49 +14,87 @@
     "en"
   ],
   "tags": [
-    "matter",
-    "dimensional",
-    "grade-2",
-    "reactive",
-    "untap",
-    "midrange"
+    "object",
+    "auros",
+    "equip",
+    "retire",
+    "recursion"
   ],
-  "rulesReference": "MANUALE.md §6.3, §7.2",
+  "rulesReference": "MANUALE.md §3.1, §6.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "object",
+      "kind": "object",
       "displayKey": "face",
-      "matter": {
-        "type": "dimensional",
-        "grade": 2
-      },
-      "behavior": "reactive",
       "stats": {
-        "fluxCost": 5
+        "fluxCost": 3
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "ebb",
+          "id": "relic",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "while_assigned",
           "effect": {
-            "type": "untap",
+            "type": "modify_power",
             "target": {
-              "cardType": "entity",
-              "race": "auros",
-              "controller": "controller",
-              "quantity": "all",
-              "zone": "front",
+              "scope": "assigned"
+            },
+            "amount": 2
+          }
+        },
+        {
+          "id": "remain",
+          "displayKey": "effect",
+          "event": "on_death",
+          "details": {
+            "ofAssignedEntity": true
+          },
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "scope": "self"
+            },
+            "destination": {
+              "zone": "retire",
               "owner": "controller"
+            },
+            "details": {
+              "insteadOfZone": {
+                "zone": "abyss",
+                "owner": "controller"
+              },
+              "thenMayAssignObject": {
+                "from": {
+                  "zone": "retire",
+                  "owner": "controller"
+                },
+                "filter": {
+                  "cardType": "object",
+                  "details": {
+                    "other": true
+                  }
+                },
+                "target": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "details": {
+                    "hasObjectAssigned": false
+                  }
+                },
+                "noFluxCost": true
+              }
             }
           }
         }
       ],
-      "actions": []
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "controller": "controller"
+      }
     }
   ],
   "designNotes": "rbf-029.md"

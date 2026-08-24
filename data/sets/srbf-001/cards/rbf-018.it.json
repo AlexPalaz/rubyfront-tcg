@@ -1,7 +1,7 @@
 {
-  "name": "Veterana della Breccia",
-  "typeLabel": "Entità: Umano",
-  "summary": "L'unica che insegna difendendo: ogni attaccante caduto vale una carta.",
+  "name": "Gyn, Recluta del Campo",
+  "typeLabel": "Entità: Auros",
+  "summary": "Un corpo da un Flusso che cresce appena gli metti in mano qualcosa.",
   "ui": {
     "face": "Entità"
   },
@@ -9,15 +9,18 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "power": "Potenza",
-    "flux": "Flussi",
-    "counterattack": "Contrattacco"
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+    "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Veterana della Breccia",
-    "lesson": {
-      "trigger": "Quando contrattacca",
-      "text": "Se l'attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
+    "name": "Gyn, Recluta del Campo",
+    "grip": {
+      "trigger": "Effetto",
+      "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
     },
-    "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
+    "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
   }
 }

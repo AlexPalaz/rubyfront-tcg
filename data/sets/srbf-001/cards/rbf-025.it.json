@@ -1,7 +1,7 @@
 {
-  "name": "Vàlaris, Prima del Bosco",
+  "name": "Avy Shin, Lama di Nova Kai",
   "typeLabel": "Entità: Auros",
-  "summary": "La più antica del Bosco Errante: chiama i caduti dalla Zona di Ritiro e benedice chi si risveglia.",
+  "summary": "L'Unica del mazzo: arma le lame e riporta gli Oggetti dal Ritiro a ogni attacco.",
   "ui": {
     "face": "Entità"
   },
@@ -17,15 +17,15 @@
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Vàlaris, Prima del Bosco",
-    "firstCall": {
-      "trigger": "Quando entra in campo",
-      "text": "Metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro."
-    },
-    "wakingBoon": {
+    "name": "Avy Shin, Lama di Nova Kai",
+    "aura": {
       "trigger": "Effetto",
-      "text": "La prima volta in ogni tuo turno che un'altra Entità Auros che controlli viene stappata da un effetto, quell'Entità prende +1 Potenza fino alla fine del turno."
+      "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
     },
-    "flavor": "C'era lei, prima del bosco. Il bosco è cresciuto attorno al suo silenzio."
+    "rearm": {
+      "trigger": "Effetto",
+      "text": "Ogni volta che un'Entità con un Oggetto assegnato che controlli attacca, puoi assegnarle un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso, se può riceverlo."
+    },
+    "flavor": "Ciò che la Scissione divide, la sua lama riunisce."
   }
 }

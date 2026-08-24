@@ -1,30 +1,26 @@
 {
-  "name": "Stillness",
-  "typeLabel": "Zero Matter",
-  "summary": "One Flux to kill the opposing answer in mid-chain.",
+  "name": "Steel Avenger",
+  "typeLabel": "Entity: Human",
+  "summary": "A body it does not pay to attack: on her own she punishes whoever strikes her, beside the beast she punishes at Power 3.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    },
-    "unique": "Unique"
+    "power": "Power",
+    "flux": "Flux"
   },
   "face": {
-    "name": "Stillness",
+    "name": "Steel Avenger",
     "effect": {
       "name": "Effect",
-      "text": "Choose a Reactive Matter just played in the chain: when it would resolve, it vanishes and goes to the Abyss with no effect. The Flux spent is not refunded."
+      "text": "As long as you control the Rubyfront of the Pact, this Entity gets +2 Power."
     },
-    "flavor": "The void does not argue."
-  },
-  "matters": {
-    "zeroTitle": "Zero Matter",
-    "zeroAria": "Zero"
+    "flavor": "Strike her, if you dare. Then run.",
+    "keyword": {
+      "name": "Revenge",
+      "rules": "blocking, it kills a lower-Power attacker"
+    }
   }
 }

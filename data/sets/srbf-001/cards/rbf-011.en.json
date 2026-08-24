@@ -1,26 +1,29 @@
 {
-  "name": "Armored Bulwark",
-  "typeLabel": "Entity: Human",
-  "summary": "Three Power for two Flux, in exchange for one thing only: he never moves first.",
+  "name": "Second Surge",
+  "typeLabel": "Dynamic Matter II",
+  "summary": "The turn where a single body strikes twice.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
-    "name": "Armored Bulwark",
+    "name": "Second Surge",
     "effect": {
       "name": "Effect",
-      "text": "This Entity cannot block."
+      "text": "Choose a Human Entity you control that has already attacked this turn. Untap it: it may attack a second time this turn."
     },
-    "flavor": "The world falls. He does not."
+    "flavor": "The first blow opens. The second closes."
   },
   "matters": {
-    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
     "dynamicAria": "Dynamic"
   }
 }

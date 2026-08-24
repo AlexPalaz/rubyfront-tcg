@@ -3,8 +3,8 @@
   "id": "RBF-027",
   "setId": "rubyfront-core",
   "collectorNumber": "027",
-  "slug": "step-into-the-void",
-  "type": "matter",
+  "slug": "camp-shield",
+  "type": "object",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,75 +14,54 @@
     "en"
   ],
   "tags": [
-    "matter",
-    "dimensional",
-    "grade-1",
-    "removal",
-    "retire",
-    "die",
-    "midrange"
+    "object",
+    "auros",
+    "equip",
+    "counterattack"
   ],
-  "rulesReference": "MANUALE.md §3.1, §5, §7.2",
+  "rulesReference": "MANUALE.md §3.1, §6.2, §6.3",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "object",
+      "kind": "object",
       "displayKey": "face",
-      "matter": {
-        "type": "dimensional",
-        "grade": 1
-      },
-      "behavior": "normal",
       "stats": {
-        "fluxCost": 3
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "step",
+          "id": "brace",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "while_assigned",
           "effect": {
-            "type": "move_card",
+            "type": "modify_power",
             "target": {
-              "cardType": "entity",
-              "controller": "opponent",
-              "min": 1,
-              "max": 1
+              "scope": "assigned"
             },
-            "destination": {
-              "zone": "retire",
-              "owner": "card_owner"
+            "amount": 1
+          }
+        },
+        {
+          "id": "spikes",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "modify_counterattack",
+            "target": {
+              "scope": "assigned"
             },
-            "details": {
-              "isDeath": false,
-              "triggersLeaveField": true,
-              "objectFollows": false,
-              "objectTo": {
-                "zone": "abyss",
-                "owner": "card_owner"
-              },
-              "then": {
-                "type": "lose_health",
-                "target": {
-                  "cardType": "rubyfront",
-                  "controller": "controller"
-                },
-                "die": "d6",
-                "amountByRoll": {
-                  "1-2": 4,
-                  "3-4": 3,
-                  "5-6": 2
-                },
-                "selfInflicted": true
-              }
-            }
+            "amount": 1
           }
         }
       ],
-      "actions": []
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "controller": "controller"
+      }
     }
   ],
   "designNotes": "rbf-027.md"

@@ -1,7 +1,7 @@
 {
-  "name": "Pathfinder of Trails",
+  "name": "The Bearer",
   "typeLabel": "Entity: Auros",
-  "summary": "She trades a memory to read the trails: the luckier she is, the farther she sees.",
+  "summary": "Every Object entrusted to it is one more card.",
   "ui": {
     "face": "Entity"
   },
@@ -12,15 +12,15 @@
     "flux": "Flux"
   },
   "matters": {
-    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Pathfinder of Trails",
-    "pathfind": {
-      "trigger": "When it enters the field",
-      "text": "You may discard a card. If you do, roll a d6 and look at a number of cards from the top of your deck equal to 2 plus the result. You may reveal an Auros Entity among them and add it to your hand. Put the rest on the bottom of your deck in any order."
+    "name": "The Bearer",
+    "carry": {
+      "trigger": "When you assign an Object to this Entity",
+      "text": "Draw a card."
     },
-    "flavor": "Every root is a trail, for those who can read them."
+    "flavor": "It never asks what it carries. Only for whom."
   }
 }

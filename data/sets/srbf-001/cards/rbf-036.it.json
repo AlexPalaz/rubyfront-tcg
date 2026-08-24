@@ -1,26 +1,29 @@
 {
-  "name": "Tessitrice del Riflusso",
-  "typeLabel": "Entità: Auros",
-  "summary": "Riannoda i fili del tempo: chi era in stasi torna, e porta con sé una risposta.",
+  "name": "Assalto Ferale",
+  "typeLabel": "Materia Distruttiva II",
+  "summary": "Il finisher: danni pari agli Oggetti schierati.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
-    "dimensionalAria": "Dimensionale"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Tessitrice del Riflusso",
-    "weave": {
-      "trigger": "Quando entra in campo",
-      "text": "Puoi stappare un'altra Entità Auros che controlli. Se quell'Entità era in Stasi, pesca una carta."
+    "name": "Assalto Ferale",
+    "effect": {
+      "name": "Effetto",
+      "text": "Il Rubyfront avversario perde PV pari al numero di Oggetti assegnati alle Entità che controlli."
     },
-    "flavor": "Ogni filo spezzato si può ritessere."
+    "flavor": "Ogni arma impugnata è una ferita promessa."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 2° grado",
+    "destructiveAria": "Distruttiva"
   }
 }

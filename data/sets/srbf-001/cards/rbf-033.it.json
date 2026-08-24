@@ -1,27 +1,29 @@
 {
-  "name": "Guardiano delle Radici",
-  "typeLabel": "Entità: Auros",
-  "summary": "Regge la linea e non cade: quando dovrebbe morire, mette radici.",
+  "name": "Rifrazione della Memoria",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "Più Entità armate controlli, più l'attaccante si sgonfia.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
     "flux": "Flussi",
-    "counterattack": "Contrattacco"
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
+  },
+  "face": {
+    "name": "Rifrazione della Memoria",
+    "effect": {
+      "name": "Effetto",
+      "text": "Un'Entità avversaria attaccante prende −1 Potenza per ogni Entità con un Oggetto assegnato che controlli, fino alla fine del turno."
+    },
+    "flavor": "Il ricordo di ogni arma, puntato contro chi avanza."
   },
   "matters": {
     "dimensionalTitle": "Materia Dimensionale · 1° grado",
     "dimensionalAria": "Dimensionale"
-  },
-  "face": {
-    "name": "Guardiano delle Radici",
-    "keyword": {
-      "name": "Stasi",
-      "rules": "bloccando non muore: resta tappata per sempre"
-    },
-    "flavor": "Le radici non chiedono permesso. Restano."
   }
 }

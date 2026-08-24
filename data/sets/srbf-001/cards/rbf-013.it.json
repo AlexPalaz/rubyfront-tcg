@@ -1,7 +1,7 @@
 {
-  "name": "Prima Lama",
+  "name": "Archivista",
   "typeLabel": "Entità: Umano",
-  "summary": "Arriva togliendo di mezzo qualcuno, e con il Nexus in campo diventa impossibile da attaccare impunemente.",
+  "summary": "Cresce con la schiera: quanto vale lo decide quanti sono i suoi.",
   "ui": {
     "face": "Entità"
   },
@@ -12,19 +12,11 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Prima Lama",
-    "firstCut": {
-      "trigger": "Quando entra in campo",
-      "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario."
-    },
+    "name": "Archivista",
     "effect": {
       "name": "Effetto",
-      "text": "Se controlli il Nexus, questa Entità ha Vendetta."
+      "text": "Questa Entità prende +1 Potenza per ogni altra Entità Umana che controlli."
     },
-    "flavor": "Il fronte nemico la conosce per nome."
-  },
-  "matters": {
-    "dynamicTitle": "Materia Dinamica · 2° grado",
-    "dynamicAria": "Dinamica"
+    "flavor": "Scrive i nomi di chi è passato oltre."
   }
 }

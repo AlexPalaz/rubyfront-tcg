@@ -1,7 +1,7 @@
 {
-  "name": "Riflesso",
-  "typeLabel": "Materia Dinamica I",
-  "summary": "Un blocco che costa un Flusso e si porta via gli attaccanti piccoli.",
+  "name": "Lacerazione",
+  "typeLabel": "Materia Distruttiva II",
+  "summary": "La ferita che non si chiude, ma solo finché il Fronte resta affollato.",
   "ui": {
     "face": "Materia"
   },
@@ -15,15 +15,15 @@
     }
   },
   "face": {
-    "name": "Riflesso",
+    "name": "Lacerazione",
+    "flavor": "Alcune ferite non si chiudono.",
     "effect": {
       "name": "Effetto",
-      "text": "Assegnala come blocco a un attaccante: quell'attacco è bloccato. Se l'attaccante ha Potenza 3 o meno, muore."
-    },
-    "flavor": "Un lampo, e l'acciaio trova l'acciaio."
+      "text": "All'inizio del tuo turno, se controlli almeno 3 Entità Umane, il Rubyfront avversario perde 2 PV. La ferita continua a sanguinare finché il Fronte resta affollato, e questa perdita non lo fa tornare nella Zona di Richiamo."
+    }
   },
   "matters": {
-    "dynamicTitle": "Materia Dinamica · 1° grado",
-    "dynamicAria": "Dinamica"
+    "destructiveTitle": "Materia Distruttiva · 2° grado",
+    "destructiveAria": "Distruttiva"
   }
 }

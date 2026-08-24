@@ -3,7 +3,7 @@
   "id": "RBF-015",
   "setId": "rubyfront-core",
   "collectorNumber": "015",
-  "slug": "laceration",
+  "slug": "heirs-banner",
   "type": "matter",
   "layout": "single",
   "status": "draft",
@@ -15,20 +15,20 @@
   ],
   "tags": [
     "matter",
-    "destructive",
-    "grade-2",
+    "dynamic",
+    "grade-1",
     "permanent",
-    "burn"
+    "anthem"
   ],
-  "rulesReference": "MANUALE.md §7.2, §8.2",
+  "rulesReference": "MANUALE.md §7.2",
   "faces": [
     {
       "id": "matter",
       "kind": "matter",
       "displayKey": "face",
       "matter": {
-        "type": "destructive",
-        "grade": 2
+        "type": "dynamic",
+        "grade": 1
       },
       "behavior": "permanent",
       "stats": {
@@ -39,29 +39,27 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "bleed",
+          "id": "march",
           "displayKey": "effect",
-          "event": "on_turn_start",
+          "event": "on_enter_field",
           "effect": {
-            "type": "lose_health",
+            "type": "empower",
             "target": {
-              "cardType": "rubyfront",
-              "controller": "opponent"
+              "scope": "entered"
             },
-            "amount": 2,
-            "conditions": [
-              {
-                "type": "controls_card",
-                "owner": "controller",
-                "min": 3,
-                "filter": {
-                  "cardType": "entity",
-                  "race": "human"
-                }
-              }
-            ],
+            "powerBonus": 2,
+            "duration": "until_end_of_turn",
             "details": {
-              "doesNotTriggerRecallReturn": true
+              "oncePerTurn": true,
+              "onlyControllerTurn": true,
+              "watched": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              },
+              "grantsWithRubyfrontDeployed": [
+                "surge"
+              ]
             }
           }
         }

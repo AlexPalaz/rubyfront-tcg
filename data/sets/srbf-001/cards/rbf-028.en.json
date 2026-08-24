@@ -1,25 +1,21 @@
 {
-  "name": "The Wood Remembers",
-  "typeLabel": "Dimensional Matter II",
-  "summary": "The wood takes back one child and returns another: a greater one from memory, a smaller one from the deep.",
+  "name": "Sygma Catalyst",
+  "typeLabel": "Object",
+  "summary": "An Object that fuels the attack and digs Matters from the deck.",
   "ui": {
-    "face": "Matter"
+    "face": "Object"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
     "flux": "Flux"
   },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · 2nd grade",
-    "dimensionalAria": "Dimensional"
-  },
   "face": {
-    "name": "The Wood Remembers",
+    "name": "Sygma Catalyst",
     "effect": {
       "name": "Effect",
-      "text": "Put an Entity you control into your Retire Zone, even if it is in Stasis. Then choose one: put onto your Front an Entity from your Retire Zone whose Flux cost is exactly 1 higher than that of the Entity put into the Retire Zone this way; or search your deck for an Entity whose Flux cost is exactly 1 lower, put it onto your Front, then shuffle your deck."
+      "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 5–6 look at the top 4 cards of your deck, you may reveal a Matter among them and add it to your hand, and put the others into your Retire Zone."
     },
-    "flavor": "Every tree is a name. Every name returns, sooner or later."
+    "flavor": "Burns slowly. Reveals quickly."
   }
 }

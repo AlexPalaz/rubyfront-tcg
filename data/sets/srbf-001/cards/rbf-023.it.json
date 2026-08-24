@@ -1,78 +1,30 @@
 {
-  "name": "Rubifronte del Bosco Errante",
-  "typeLabel": "Rubyfront bifronte",
-  "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi, li risveglia e li richiama dalla Zona di Ritiro.",
+  "name": "Krevon, Sottolama di Nova Kai",
+  "typeLabel": "Entità: Auros",
+  "summary": "Slancio e comando: quando attacca equipaggiato, tutto il fronte armato spinge.",
   "ui": {
-    "faceA": "Faccia A — Rubyfront",
-    "faceB": "Faccia B — Nexus"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "nexusRequirement": {
-      "label": "Requisito Nexus",
-      "text": "Controlli almeno 4 Entità Auros e in questo turno hai stappato dalla Stasi un tuo Auros. Manda quell'Auros nella tua Zona di Ritiro (non potrà più tornare in campo), poi flippa."
-    }
+    "power": "Potenza",
+    "flux": "Flussi"
   },
   "matters": {
     "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
-    "dimensionalAria": "Dimensionale",
-    "destructiveTitle": "Materia Distruttiva",
-    "destructiveAria": "Distruttiva"
+    "dimensionalAria": "Dimensionale"
   },
-  "faceA": {
-    "name": "Rubifronte del Bosco Errante",
+  "face": {
+    "name": "Krevon, Sottolama di Nova Kai",
     "keyword": {
-      "name": "Furia",
-      "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
+      "name": "Slancio",
+      "rules": "può attaccare nel turno in cui entra in campo"
     },
-    "effect": {
-      "name": "Memoria del Bosco",
-      "trigger": "Effetto",
-      "text": "La prima volta in ogni tuo turno che un'Entità Auros che controlli viene stappata da un effetto, guadagni 1 PV."
+    "command": {
+      "trigger": "Quando questa Entità attacca mentre ha un Oggetto assegnato",
+      "text": "Le altre Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
     },
-    "arrival": {
-      "trigger": "Quando entra in campo",
-      "text": "Puoi stappare un'Entità Auros che controlli."
-    },
-    "abilities": {
-      "perennialSap": {
-        "name": "Linfa Perenne",
-        "text": "stappa un'Entità Auros che controlli."
-      },
-      "frondRecall": {
-        "name": "Richiamo tra le Fronde",
-        "text": "scegli un'Entità Auros nella tua Zona di Ritiro e aggiungila alla tua mano."
-      },
-      "phaseAway": {
-        "name": "Sfasare",
-        "text": "riporta un'Entità avversaria nella mano del suo proprietario."
-      }
-    },
-    "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
-  },
-  "faceB": {
-    "name": "Radura Ripiegata",
-    "nexusAria": "Nexus",
-    "effect": {
-      "name": "Risveglio della Radura",
-      "trigger": "Effetto",
-      "text": "La prima volta in ogni tuo turno che un'Entità Auros che controlli viene stappata da un effetto, pesca una carta."
-    },
-    "abilities": {
-      "perennialBloom": {
-        "name": "Rigoglio Perenne",
-        "text": "stappa fino a 2 Entità Auros che controlli."
-      },
-      "foldingTide": {
-        "name": "Marea Ripiegante",
-        "text": "riporta fino a 2 Entità avversarie nelle mani dei loro proprietari."
-      },
-      "woodCall": {
-        "name": "Richiamo del Bosco",
-        "text": "metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro."
-      }
-    },
-    "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che dorme si risveglia."
+    "flavor": "Quando la sottolama scatta, le altre lame ascoltano."
   }
 }

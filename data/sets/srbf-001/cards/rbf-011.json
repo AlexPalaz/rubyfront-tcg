@@ -3,8 +3,8 @@
   "id": "RBF-011",
   "setId": "rubyfront-core",
   "collectorNumber": "011",
-  "slug": "armored-bulwark",
-  "type": "entity",
+  "slug": "second-surge",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,35 +14,52 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "human",
+    "matter",
     "dynamic",
-    "defender"
+    "grade-2",
+    "aggro"
   ],
-  "rulesReference": "MANUALE.md §7, §8.1",
+  "rulesReference": "MANUALE.md §6.3, §7.1",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "human",
-      "stats": {
-        "power": 3,
-        "fluxCost": 2
+      "matter": {
+        "type": "dynamic",
+        "grade": 2
       },
-      "enablesMatters": [
-        {
-          "type": "dynamic",
-          "maxGrade": 1
-        }
-      ],
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 4
+      },
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
-      "triggers": [],
-      "actions": [],
-      "restrictions": {
-        "cannotBlock": true
-      }
+      "triggers": [
+        {
+          "id": "surge-again",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "extra_attack",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 1,
+              "max": 1,
+              "details": {
+                "mustHaveAttackedThisTurn": true
+              },
+              "race": "human"
+            },
+            "details": {
+              "untapFirst": true
+            }
+          }
+        }
+      ],
+      "actions": []
     }
   ],
   "designNotes": "rbf-011.md"

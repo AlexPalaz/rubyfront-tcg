@@ -3,7 +3,7 @@
   "id": "RBF-020",
   "setId": "rubyfront-core",
   "collectorNumber": "020",
-  "slug": "steam-courier",
+  "slug": "garwin-scout",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -15,48 +15,47 @@
   ],
   "tags": [
     "entity",
-    "human",
-    "surge",
-    "aggro",
-    "scry"
+    "auros",
+    "equip",
+    "draw"
   ],
-  "rulesReference": "MANUALE.md §8.1",
+  "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
     {
       "id": "entity",
       "kind": "entity",
       "displayKey": "face",
-      "race": "human",
+      "race": "auros",
       "stats": {
-        "power": 1,
-        "fluxCost": 1
+        "power": 2,
+        "fluxCost": 2
       },
-      "enablesMatters": [],
-      "keywords": [
+      "enablesMatters": [
         {
-          "id": "surge"
+          "type": "dimensional",
+          "maxGrade": 1
         }
       ],
+      "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "dispatch",
-          "displayKey": "dispatch",
-          "event": "on_enter_field",
+          "id": "scouting",
+          "displayKey": "scouting",
+          "event": "on_attack",
+          "details": {
+            "oncePerEachOfYourTurns": true,
+            "requiresObjectAssigned": true
+          },
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top",
-              "count": 1
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
             },
-            "to": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "bottom"
-            },
-            "optional": true
+            "count": 1,
+            "details": {
+              "thenDiscardCards": 1
+            }
           }
         }
       ],

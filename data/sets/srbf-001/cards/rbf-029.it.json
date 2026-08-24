@@ -1,25 +1,21 @@
 {
-  "name": "Riflusso",
-  "typeLabel": "Materia Dimensionale II",
-  "summary": "La marea del bosco torna tutta insieme: ogni Auros si rialza.",
+  "name": "Vestigio della Scissione",
+  "typeLabel": "Oggetto",
+  "summary": "L'Oggetto che non muore mai: torna in Ritiro e riarma il Fronte.",
   "ui": {
-    "face": "Materia"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
     "flux": "Flussi"
   },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 2° grado",
-    "dimensionalAria": "Dimensionale"
-  },
   "face": {
-    "name": "Riflusso",
+    "name": "Vestigio della Scissione",
     "effect": {
       "name": "Effetto",
-      "text": "Stappa tutte le Entità Auros che controlli."
+      "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
     },
-    "flavor": "Ciò che la marea concede, la marea riprende."
+    "flavor": "Ciò che resta della Scissione non smette di servire."
   }
 }

@@ -1,26 +1,29 @@
 {
-  "name": "Baluardo Corazzato",
-  "typeLabel": "Entità: Umano",
-  "summary": "Tre di Potenza a due Flussi, in cambio di una sola cosa: non muove mai per primo.",
+  "name": "Secondo Impeto",
+  "typeLabel": "Materia Dinamica II",
+  "summary": "Il turno in cui un solo corpo colpisce due volte.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Baluardo Corazzato",
+    "name": "Secondo Impeto",
     "effect": {
       "name": "Effetto",
-      "text": "Questa Entità non può bloccare."
+      "text": "Scegli un'Entità Umana che controlli che ha già attaccato in questo turno. Stappala: può attaccare una seconda volta in questo turno."
     },
-    "flavor": "Cade il mondo, non lui."
+    "flavor": "Il primo colpo apre. Il secondo chiude."
   },
   "matters": {
-    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicTitle": "Materia Dinamica · 2° grado",
     "dynamicAria": "Dinamica"
   }
 }

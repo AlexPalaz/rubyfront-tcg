@@ -3,8 +3,8 @@
   "id": "RBF-035",
   "setId": "rubyfront-core",
   "collectorNumber": "035",
-  "slug": "keeper-of-the-glade",
-  "type": "entity",
+  "slug": "latent-charge",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,53 +14,72 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
+    "matter",
     "dimensional",
-    "stasis",
-    "untap",
-    "heal"
+    "grade-1",
+    "die",
+    "retire",
+    "tutor"
   ],
-  "rulesReference": "MANUALE.md §7, §8.2",
+  "rulesReference": "MANUALE.md §7",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
-      "stats": {
-        "power": 1,
-        "fluxCost": 2
+      "matter": {
+        "type": "dimensional",
+        "grade": 1
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 1
-        }
-      ],
-      "keywords": [
-        {
-          "id": "stasis"
-        }
-      ],
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
+      "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "bloom",
-          "displayKey": "bloom",
-          "event": "on_untap",
+          "id": "surge-search",
+          "displayKey": "effect",
+          "event": "on_resolve",
           "effect": {
-            "type": "gain_health",
-            "target": {
-              "cardType": "rubyfront",
-              "controller": "controller"
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 5
             },
-            "amount": 2,
             "details": {
-              "oncePerTurn": true,
-              "untappedByEffect": true,
-              "watched": {
-                "scope": "self"
+              "die": "d20",
+              "mayRevealByRoll": {
+                "1-7": {
+                  "cardType": "matter"
+                },
+                "8-14": {
+                  "cardType": "object"
+                },
+                "15-20": {
+                  "cardType": "entity"
+                }
+              },
+              "revealTo": {
+                "zone": "hand",
+                "owner": "controller"
+              },
+              "ifNoReveal": {
+                "putOneOnTop": true
+              },
+              "thenMoveOneTo": {
+                "zone": "retire",
+                "owner": "controller"
+              },
+              "restTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom",
+                "anyOrder": true
               }
             }
           }

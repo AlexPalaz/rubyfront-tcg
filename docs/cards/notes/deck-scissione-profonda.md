@@ -2,8 +2,10 @@
 
 > **Status:** DRAFT. Allineato al foglio Precon_Auros_Playtest_v3 del designer
 > (24 agosto 2026). Sostituisce il precon Auros «Bosco Errante»: nuovo nome,
-> nuovo Rubyfront e lista interamente nuova; le carte del Bosco (RBF-023–043)
-> restano nel set come progetti validi.
+> nuovo Rubyfront e lista interamente nuova. Le carte del Bosco e ogni progetto
+> non più usato dai mazzi sono stati rimossi dal set, e la numerazione è stata
+> ricompattata: Primi Eredi 001–016, Scissione Profonda 017–036 (Rubyfront in
+> testa al blocco).
 
 ## 1. Composizione
 
@@ -24,9 +26,10 @@ La gobba sta sul due: sedici copie fra corpi leggeri, Scudi e Materie di
 risposta. Il piano è armare presto, pescare con gli inneschi «con un Oggetto
 assegnato» e chiudere con Avy Shin o Assalto Ferale.
 
-## 2. Rhazmora, RBF della Scissione
+## 2. Rhazmora, Rubifronte della Scissione
 
-Costo **fisso 3**, PV 22, Furia su entrambe le facce. La statica lavora sulla
+Costo **fisso 3**, PV 22, Furia solo sulla faccia A: il Nexus non la richiede
+(decisione del 24 agosto 2026). La statica lavora sulla
 **prima assegnazione di Oggetto del turno**: in faccia A filtra (cima/fondo,
 poi pesca-e-scarta), sul Nexus diventa vantaggio carte netto e alimenta la
 Zona di Ritiro.

@@ -3,7 +3,7 @@
   "id": "RBF-022",
   "setId": "rubyfront-core",
   "collectorNumber": "022",
-  "slug": "steel-avenger",
+  "slug": "merk-sentinel-of-nova-kai",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -15,42 +15,43 @@
   ],
   "tags": [
     "entity",
-    "human",
-    "revenge",
-    "aggro"
+    "auros",
+    "equip",
+    "counterattack"
   ],
-  "rulesReference": "MANUALE.md §8.1",
+  "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
   "faces": [
     {
       "id": "entity",
       "kind": "entity",
       "displayKey": "face",
-      "race": "human",
+      "race": "auros",
       "stats": {
-        "power": 1,
-        "fluxCost": 1
+        "power": 3,
+        "fluxCost": 3,
+        "counterattack": 1
       },
-      "enablesMatters": [],
-      "keywords": [
+      "enablesMatters": [
         {
-          "id": "revenge"
+          "type": "dimensional",
+          "maxGrade": 1
         }
       ],
+      "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "grief",
-          "displayKey": "effect",
+          "id": "temper",
+          "displayKey": "temper",
           "event": "while_in_play",
           "effect": {
-            "type": "modify_power",
+            "type": "modify_counterattack",
             "target": {
               "scope": "self"
             },
-            "amount": 2,
-            "duration": "permanent",
+            "setTo": 2,
             "details": {
-              "requiresRubyfrontDeployed": true
+              "whileHasObjectAssigned": true
             }
           }
         }

@@ -1,25 +1,21 @@
 {
-  "name": "Step into the Void",
-  "typeLabel": "Dimensional Matter I",
-  "summary": "The enemy takes a step and the ground is gone. But the void always takes its toll.",
+  "name": "Camp Shield",
+  "typeLabel": "Object",
+  "summary": "Power and Counterattack in a single piece.",
   "ui": {
-    "face": "Matter"
+    "face": "Object"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
     "flux": "Flux"
   },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · 1st grade",
-    "dimensionalAria": "Dimensional"
-  },
   "face": {
-    "name": "Step into the Void",
+    "name": "Camp Shield",
     "effect": {
       "name": "Effect",
-      "text": "Choose an opposing Entity and put it into its owner's Retire Zone. If it had an assigned Object, put that Object into the Abyss. Then roll a d6: on 1–2 you lose 4 HP, on 3–4 you lose 3 HP, on 5–6 you lose 2 HP."
+      "text": "The Entity it is assigned to has +1 Power and Counterattack +1. If it already has Counterattack, that value increases by 1."
     },
-    "flavor": "They did not parry the blow. They removed the target."
+    "flavor": "It takes the blow, and returns it with interest."
   }
 }

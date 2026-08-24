@@ -1,7 +1,7 @@
 {
-  "name": "Reflex",
-  "typeLabel": "Dynamic Matter I",
-  "summary": "A block for one Flux that takes small attackers with it.",
+  "name": "Laceration",
+  "typeLabel": "Destructive Matter II",
+  "summary": "The wound that never closes, but only while the Front stays crowded.",
   "ui": {
     "face": "Matter"
   },
@@ -15,15 +15,15 @@
     }
   },
   "face": {
-    "name": "Reflex",
+    "name": "Laceration",
+    "flavor": "Some wounds do not close.",
     "effect": {
       "name": "Effect",
-      "text": "Assign it as a block against an attacker: that attack is blocked. If the attacker has Power 3 or less, it dies."
-    },
-    "flavor": "A flash, and steel finds steel."
+      "text": "At the start of your turn, if you control at least 3 Human Entities, the opposing Rubyfront loses 2 HP. The wound keeps bleeding as long as the Front stays crowded, and this loss does not send it back to the Recall Zone."
+    }
   },
   "matters": {
-    "dynamicTitle": "Dynamic Matter · 1st grade",
-    "dynamicAria": "Dynamic"
+    "destructiveTitle": "Destructive Matter · 2nd grade",
+    "destructiveAria": "Destructive"
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "Laceration",
-  "typeLabel": "Destructive Matter II",
-  "summary": "The wound that never closes, but only while the Front stays crowded.",
+  "name": "Banner of the Heirs",
+  "typeLabel": "Dynamic Matter I",
+  "summary": "Every turn it picks one Human and sends him forward stronger than the rest.",
   "ui": {
     "face": "Matter"
   },
@@ -15,15 +15,15 @@
     }
   },
   "face": {
-    "name": "Laceration",
-    "flavor": "Some wounds do not close.",
+    "name": "Banner of the Heirs",
+    "flavor": "While it flies, we advance.",
     "effect": {
       "name": "Effect",
-      "text": "At the start of your turn, if you control at least 3 Human Entities, the opposing Rubyfront loses 2 HP. The wound keeps bleeding as long as the Front stays crowded, and this loss does not send it back to the Recall Zone."
+      "text": "The first time each of your turns a Human Entity enters the field under your control, that Entity gets +2 Power until end of turn. If you control the Rubyfront of the Pact, it also gains Surge until end of turn."
     }
   },
   "matters": {
-    "destructiveTitle": "Destructive Matter · 2nd grade",
-    "destructiveAria": "Destructive"
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

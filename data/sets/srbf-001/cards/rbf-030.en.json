@@ -1,22 +1,29 @@
 {
-  "name": "Voice of the Roots",
-  "typeLabel": "Entity: Auros",
-  "summary": "It calls by name those who left the field still alive, and brings them back from the Retire Zone.",
+  "name": "Synaptic Amplification",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "A double untap and a double push for armed Entities.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
-    "name": "Voice of the Roots",
-    "regrow": {
-      "trigger": "When it enters the field",
-      "text": "You may return an Auros Entity from your Retire Zone to your hand."
+    "name": "Synaptic Amplification",
+    "effect": {
+      "name": "Effect",
+      "text": "Up to 2 Entities with an Object assigned you control get +1 Power until end of turn and are untapped."
     },
-    "flavor": "The Auros do not end. They only wait to be recalled."
+    "flavor": "One thought, many hands."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
   }
 }

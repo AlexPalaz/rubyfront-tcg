@@ -3,7 +3,7 @@
   "id": "RBF-012",
   "setId": "rubyfront-core",
   "collectorNumber": "012",
-  "slug": "reflex",
+  "slug": "laceration",
   "type": "matter",
   "layout": "single",
   "status": "draft",
@@ -15,42 +15,53 @@
   ],
   "tags": [
     "matter",
-    "dynamic",
-    "grade-1",
-    "reactive"
+    "destructive",
+    "grade-2",
+    "permanent",
+    "burn"
   ],
-  "rulesReference": "MANUALE.md §6.3, §7.2",
+  "rulesReference": "MANUALE.md §7.2, §8.2",
   "faces": [
     {
       "id": "matter",
       "kind": "matter",
       "displayKey": "face",
       "matter": {
-        "type": "dynamic",
-        "grade": 1
+        "type": "destructive",
+        "grade": 2
       },
-      "behavior": "reactive",
+      "behavior": "permanent",
       "stats": {
-        "fluxCost": 1
+        "fluxCost": 3
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "reflex",
+          "id": "bleed",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "on_turn_start",
           "effect": {
-            "type": "block_attack",
+            "type": "lose_health",
             "target": {
-              "cardType": "entity",
-              "controller": "opponent",
-              "min": 1,
-              "max": 1
+              "cardType": "rubyfront",
+              "controller": "opponent"
             },
+            "amount": 2,
+            "conditions": [
+              {
+                "type": "controls_card",
+                "owner": "controller",
+                "min": 3,
+                "filter": {
+                  "cardType": "entity",
+                  "race": "human"
+                }
+              }
+            ],
             "details": {
-              "killIfPowerAtMost": 3
+              "doesNotTriggerRecallReturn": true
             }
           }
         }

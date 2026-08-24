@@ -1,7 +1,7 @@
 {
-  "name": "Vendicatrice di Acciaio",
-  "typeLabel": "Entità: Umano",
-  "summary": "Un corpo che non conviene attaccare: da sola punisce chi la colpisce, accanto alla bestia lo punisce a Potenza 3.",
+  "name": "Merk, Sentinella di Nova Kai",
+  "typeLabel": "Entità: Auros",
+  "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte.",
   "ui": {
     "face": "Entità"
   },
@@ -9,18 +9,19 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "counterattack": "Contrattacco"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+    "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Vendicatrice di Acciaio",
-    "effect": {
-      "name": "Effetto",
-      "text": "Finché controlli il Rubifronte del Patto, questa Entità prende +2 Potenza."
+    "name": "Merk, Sentinella di Nova Kai",
+    "temper": {
+      "trigger": "Effetto",
+      "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
     },
-    "flavor": "Colpiscila, se osi. Poi corri.",
-    "keyword": {
-      "name": "Vendetta",
-      "rules": "bloccando, uccide chi ha Potenza inferiore"
-    }
+    "flavor": "Il colpo di risposta è l'unico che prepara da sempre."
   }
 }

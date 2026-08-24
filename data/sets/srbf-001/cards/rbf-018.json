@@ -3,7 +3,7 @@
   "id": "RBF-018",
   "setId": "rubyfront-core",
   "collectorNumber": "018",
-  "slug": "breach-veteran",
+  "slug": "gyn-camp-recruit",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -15,37 +15,42 @@
   ],
   "tags": [
     "entity",
-    "human",
-    "counterattack"
+    "auros",
+    "equip",
+    "aggro"
   ],
-  "rulesReference": "MANUALE.md §6.3",
+  "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
     {
       "id": "entity",
       "kind": "entity",
       "displayKey": "face",
-      "race": "human",
+      "race": "auros",
       "stats": {
-        "power": 2,
-        "fluxCost": 3,
-        "counterattack": 2
+        "power": 1,
+        "fluxCost": 1
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "lesson",
-          "displayKey": "lesson",
-          "event": "on_counterattack",
+          "id": "grip",
+          "displayKey": "grip",
+          "event": "while_in_play",
           "effect": {
-            "type": "draw_card",
+            "type": "modify_power",
             "target": {
-              "controller": "controller"
+              "scope": "self"
             },
-            "count": 1,
+            "amount": 1,
             "details": {
-              "onlyIfAttackerDies": true
+              "whileHasObjectAssigned": true
             }
           }
         }

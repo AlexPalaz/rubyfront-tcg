@@ -1,7 +1,7 @@
 {
-  "name": "Emissary of the Heirs",
+  "name": "First Blade",
   "typeLabel": "Entity: Human",
-  "summary": "Two arms on the field and a third on the way: the Heirs never leave a place empty.",
+  "summary": "She arrives by removing someone, and with the Nexus out she becomes impossible to attack for free.",
   "ui": {
     "face": "Entity"
   },
@@ -12,11 +12,19 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Emissary of the Heirs",
-    "herald": {
+    "name": "First Blade",
+    "firstCut": {
       "trigger": "When it enters the field",
-      "text": "Search your deck for a Human Entity, reveal it to your opponent and add it to your hand, then shuffle your deck."
+      "text": "Choose an opposing Entity and put it into its owner's Retire Zone."
     },
-    "flavor": "The First walks among us. I have seen him."
+    "effect": {
+      "name": "Effect",
+      "text": "If you control the Nexus, this Entity has Revenge."
+    },
+    "flavor": "The enemy front knows her by name."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicAria": "Dynamic"
   }
 }

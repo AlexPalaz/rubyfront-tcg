@@ -1,25 +1,21 @@
 {
-  "name": "Ebbtide",
-  "typeLabel": "Dimensional Matter II",
-  "summary": "The tide of the wood returns all at once: every Auros rises again.",
+  "name": "Vestige of the Schism",
+  "typeLabel": "Object",
+  "summary": "The Object that never dies: it returns to the Retire Zone and rearms the Front.",
   "ui": {
-    "face": "Matter"
+    "face": "Object"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
     "flux": "Flux"
   },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · 2nd grade",
-    "dimensionalAria": "Dimensional"
-  },
   "face": {
-    "name": "Ebbtide",
+    "name": "Vestige of the Schism",
     "effect": {
       "name": "Effect",
-      "text": "Untap all Auros Entities you control."
+      "text": "The Entity it is assigned to has +2 Power. When that Entity dies, put this Object into your Retire Zone instead of the Abyss. Then you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
     },
-    "flavor": "What the tide grants, the tide takes back."
+    "flavor": "What remains of the Schism does not stop serving."
   }
 }

@@ -1,27 +1,29 @@
 {
-  "name": "Warden of the Roots",
-  "typeLabel": "Entity: Auros",
-  "summary": "It holds the line and does not fall: when it should die, it takes root.",
+  "name": "Memory Refraction",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "The more armed Entities you control, the smaller the attacker gets.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
     "flux": "Flux",
-    "counterattack": "Counterattack"
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
+  },
+  "face": {
+    "name": "Memory Refraction",
+    "effect": {
+      "name": "Effect",
+      "text": "An attacking opposing Entity gets −1 Power for each Entity with an Object assigned you control, until end of turn."
+    },
+    "flavor": "The memory of every weapon, aimed at whoever advances."
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · 1st grade",
     "dimensionalAria": "Dimensional"
-  },
-  "face": {
-    "name": "Warden of the Roots",
-    "keyword": {
-      "name": "Stasis",
-      "rules": "won't die blocking: stays permanently tapped"
-    },
-    "flavor": "Roots ask no permission. They stay."
   }
 }

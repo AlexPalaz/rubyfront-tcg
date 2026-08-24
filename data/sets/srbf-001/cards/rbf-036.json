@@ -3,8 +3,8 @@
   "id": "RBF-036",
   "setId": "rubyfront-core",
   "collectorNumber": "036",
-  "slug": "weaver-of-the-ebb",
-  "type": "entity",
+  "slug": "feral-assault",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,53 +14,42 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
-    "dimensional",
+    "matter",
+    "destructive",
     "grade-2",
-    "untap"
+    "burn",
+    "equip"
   ],
-  "rulesReference": "MANUALE.md §7, §8.2",
+  "rulesReference": "MANUALE.md §7",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
+      "matter": {
+        "type": "destructive",
+        "grade": 2
+      },
+      "behavior": "normal",
       "stats": {
-        "power": 3,
         "fluxCost": 4
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 2
-        }
-      ],
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "weave",
-          "displayKey": "weave",
-          "event": "on_enter_field",
+          "id": "assault",
+          "displayKey": "effect",
+          "event": "on_resolve",
           "effect": {
-            "type": "untap",
+            "type": "lose_health",
             "target": {
-              "cardType": "entity",
-              "race": "auros",
-              "controller": "controller",
-              "min": 0,
-              "max": 1,
-              "details": {
-                "excludeSelf": true
-              }
+              "cardType": "rubyfront",
+              "controller": "opponent"
             },
             "details": {
-              "ifUntappedWasInStasis": {
-                "type": "draw_card",
-                "count": 1
-              }
+              "amountEqualsObjectsAssignedToControllerEntities": true
             }
           }
         }

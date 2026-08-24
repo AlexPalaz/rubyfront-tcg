@@ -3,8 +3,8 @@
   "id": "RBF-034",
   "setId": "rubyfront-core",
   "collectorNumber": "034",
-  "slug": "keeper-of-the-waking",
-  "type": "entity",
+  "slug": "reflected-shield",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,46 +14,47 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
+    "matter",
     "dimensional",
-    "untap"
+    "grade-1",
+    "reactive",
+    "block",
+    "equip"
   ],
-  "rulesReference": "MANUALE.md §7, §8.2",
+  "rulesReference": "MANUALE.md §7.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
-      "stats": {
-        "power": 1,
-        "fluxCost": 3
+      "matter": {
+        "type": "dimensional",
+        "grade": 1
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 1
-        }
-      ],
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "wake",
-          "displayKey": "wake",
-          "event": "on_enter_field",
+          "id": "reflect",
+          "displayKey": "effect",
+          "event": "on_resolve",
           "effect": {
-            "type": "untap",
+            "type": "block_attack",
             "target": {
               "cardType": "entity",
-              "race": "auros",
-              "controller": "controller",
-              "min": 0,
-              "max": 1,
-              "details": {
-                "excludeSelf": true
-              }
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "details": {
+              "ifControllerEntitiesWithObjectAtLeast": 2,
+              "attackerPowerModifier": -2,
+              "duration": "until_end_of_turn"
             }
           }
         }

@@ -1,7 +1,7 @@
 {
-  "name": "Steel Avenger",
-  "typeLabel": "Entity: Human",
-  "summary": "A body it does not pay to attack: on her own she punishes whoever strikes her, beside the beast she punishes at Power 3.",
+  "name": "Merk, Sentinel of Nova Kai",
+  "typeLabel": "Entity: Auros",
+  "summary": "A sentinel whose answer hits far harder with the right Object.",
   "ui": {
     "face": "Entity"
   },
@@ -9,18 +9,19 @@
     "illustration": "Illustration",
     "hp": "HP",
     "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "counterattack": "Counterattack"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+    "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Steel Avenger",
-    "effect": {
-      "name": "Effect",
-      "text": "As long as you control the Rubyfront of the Pact, this Entity gets +2 Power."
+    "name": "Merk, Sentinel of Nova Kai",
+    "temper": {
+      "trigger": "Effect",
+      "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
     },
-    "flavor": "Strike her, if you dare. Then run.",
-    "keyword": {
-      "name": "Revenge",
-      "rules": "blocking, it kills a lower-Power attacker"
-    }
+    "flavor": "The answering blow is the only one it has always prepared."
   }
 }

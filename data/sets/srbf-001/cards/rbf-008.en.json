@@ -1,7 +1,7 @@
 {
-  "name": "Bulkhead Warden",
+  "name": "Field Surgeon",
   "typeLabel": "Entity: Human",
-  "summary": "Two Power for a single Flux: the price is that he spends his first turn taking position.",
+  "summary": "A body that arrives carrying a point of damage: it lands, hits the enemy beast and stays in line.",
   "ui": {
     "face": "Entity"
   },
@@ -12,15 +12,11 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Bulkhead Warden",
-    "bulkhead": {
+    "name": "Field Surgeon",
+    "flavor": "Beasts bleed too.",
+    "incision": {
       "trigger": "When it enters the field",
-      "text": "This Entity enters the Front already tapped, and stays that way until you untap it."
-    },
-    "flavor": "No one gets through. Not today."
-  },
-  "matters": {
-    "dynamicTitle": "Dynamic Matter · 1st grade",
-    "dynamicAria": "Dynamic"
+      "text": "Tap an opposing Entity. Then roll a d6: on 5–6, look at the top card of your deck and, if you wish, put it on the bottom."
+    }
   }
 }

@@ -3,7 +3,7 @@
   "id": "RBF-009",
   "setId": "rubyfront-core",
   "collectorNumber": "009",
-  "slug": "field-surgeon",
+  "slug": "armored-bulwark",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,10 +16,10 @@
   "tags": [
     "entity",
     "human",
-    "burn",
-    "aggro"
+    "dynamic",
+    "defender"
   ],
-  "rulesReference": "MANUALE.md §6.2, §8.2",
+  "rulesReference": "MANUALE.md §7, §8.1",
   "faces": [
     {
       "id": "entity",
@@ -27,49 +27,22 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 1,
+        "power": 3,
         "fluxCost": 2
       },
-      "enablesMatters": [],
-      "keywords": [],
-      "requirements": {},
-      "triggers": [
+      "enablesMatters": [
         {
-          "id": "incision",
-          "displayKey": "incision",
-          "event": "on_enter_field",
-          "effect": {
-            "type": "set_state",
-            "target": {
-              "cardType": "entity",
-              "controller": "opponent",
-              "min": 1,
-              "max": 1
-            },
-            "state": "tapped",
-            "details": {
-              "then": {
-                "type": "look_and_optionally_move",
-                "die": "d6",
-                "onRoll": "5-6",
-                "from": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "top",
-                  "count": 1
-                },
-                "to": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "bottom"
-                },
-                "optional": true
-              }
-            }
-          }
+          "type": "dynamic",
+          "maxGrade": 1
         }
       ],
-      "actions": []
+      "keywords": [],
+      "requirements": {},
+      "triggers": [],
+      "actions": [],
+      "restrictions": {
+        "cannotBlock": true
+      }
     }
   ],
   "designNotes": "rbf-009.md"

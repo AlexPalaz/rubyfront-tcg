@@ -3,12 +3,11 @@
   "id": "RBF-025",
   "setId": "rubyfront-core",
   "collectorNumber": "025",
-  "slug": "valaris-first-of-the-wood",
+  "slug": "avy-shin-blade-of-nova-kai",
   "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 1,
-  "unique": true,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -17,14 +16,11 @@
   "tags": [
     "entity",
     "auros",
-    "dimensional",
-    "grade-2",
+    "equip",
     "legendary",
-    "retire",
-    "untap",
-    "midrange"
+    "retire"
   ],
-  "rulesReference": "MANUALE.md §3.1, §5, §7, §8.2",
+  "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -33,7 +29,7 @@
       "race": "auros",
       "stats": {
         "power": 5,
-        "fluxCost": 6
+        "fluxCost": 5
       },
       "enablesMatters": [
         {
@@ -45,53 +41,49 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "first-call",
-          "displayKey": "firstCall",
-          "event": "on_enter_field",
-          "effect": {
-            "type": "move_card",
-            "target": {
-              "cardType": "entity",
-              "race": "auros",
-              "zone": "retire",
-              "owner": "controller",
-              "min": 1,
-              "max": 1,
-              "conditions": [
-                {
-                  "stat": "flux_cost",
-                  "operator": "lte",
-                  "value": 3
-                }
-              ]
-            },
-            "destination": {
-              "zone": "front",
-              "owner": "controller"
-            }
-          }
-        },
-        {
-          "id": "waking-boon",
-          "displayKey": "wakingBoon",
-          "event": "on_untap",
+          "id": "aura",
+          "displayKey": "aura",
+          "event": "while_in_play",
           "effect": {
             "type": "modify_power",
             "target": {
-              "scope": "untapped_entity"
-            },
-            "amount": 1,
-            "duration": "until_end_of_turn",
-            "details": {
-              "oncePerTurn": true,
-              "onlyControllerTurn": true,
-              "untappedByEffect": true,
-              "watched": {
-                "cardType": "entity",
-                "race": "auros",
-                "controller": "controller",
+              "cardType": "entity",
+              "controller": "controller",
+              "quantity": "all",
+              "details": {
+                "hasObjectAssigned": true,
                 "excludeSelf": true
               }
+            },
+            "amount": 1
+          }
+        },
+        {
+          "id": "rearm",
+          "displayKey": "rearm",
+          "event": "on_attack",
+          "details": {
+            "attacker": {
+              "cardType": "entity",
+              "controller": "controller",
+              "details": {
+                "hasObjectAssigned": true
+              }
+            }
+          },
+          "effect": {
+            "type": "assign_object",
+            "optional": true,
+            "from": {
+              "zone": "retire",
+              "owner": "controller"
+            },
+            "target": {
+              "scope": "attacker"
+            },
+            "details": {
+              "noFluxCost": true,
+              "respectAssignRestrictions": true
             }
           }
         }
@@ -99,5 +91,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-025.md"
+  "designNotes": "rbf-025.md",
+  "unique": true
 }

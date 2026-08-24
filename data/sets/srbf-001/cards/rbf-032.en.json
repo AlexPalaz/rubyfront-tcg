@@ -1,30 +1,29 @@
 {
-  "name": "Wandering Sprout",
-  "typeLabel": "Entity: Auros",
-  "summary": "Where there is already wood, the sprout nourishes; and peeks at the trail ahead.",
+  "name": "Eversion",
+  "typeLabel": "Destructive Matter I",
+  "summary": "Clean removal into the Abyss, paid in HP.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
-  },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · 1st grade",
-    "dimensionalAria": "Dimensional"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
-    "name": "Wandering Sprout",
-    "nourish": {
-      "trigger": "When it enters the field",
-      "text": "If you control another Auros Entity, you gain 2 HP."
+    "name": "Eversion",
+    "effect": {
+      "name": "Effect",
+      "text": "Destroy an opposing Entity and put it into the Abyss. Then you lose 2 HP."
     },
-    "peek": {
-      "trigger": "When it enters the field",
-      "text": "Look at the top card of your deck: you may put it on the bottom of your deck."
-    },
-    "flavor": "Small, but it already knows where to go."
+    "flavor": "It turns the inside out. Even the one who speaks it pays."
+  },
+  "matters": {
+    "destructiveTitle": "Destructive Matter · 1st grade",
+    "destructiveAria": "Destructive"
   }
 }

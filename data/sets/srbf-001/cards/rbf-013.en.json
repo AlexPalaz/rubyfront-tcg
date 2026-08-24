@@ -1,7 +1,7 @@
 {
-  "name": "First Blade",
+  "name": "Archivist",
   "typeLabel": "Entity: Human",
-  "summary": "She arrives by removing someone, and with the Nexus out she becomes impossible to attack for free.",
+  "summary": "He grows with the ranks: how much he is worth is decided by how many of his own there are.",
   "ui": {
     "face": "Entity"
   },
@@ -12,19 +12,11 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "First Blade",
-    "firstCut": {
-      "trigger": "When it enters the field",
-      "text": "Choose an opposing Entity and put it into its owner's Retire Zone."
-    },
+    "name": "Archivist",
     "effect": {
       "name": "Effect",
-      "text": "If you control the Nexus, this Entity has Revenge."
+      "text": "This Entity gets +1 Power for each other Human Entity you control."
     },
-    "flavor": "The enemy front knows her by name."
-  },
-  "matters": {
-    "dynamicTitle": "Dynamic Matter · 2nd grade",
-    "dynamicAria": "Dynamic"
+    "flavor": "He writes the names of those who went on."
   }
 }

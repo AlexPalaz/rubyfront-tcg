@@ -3,8 +3,8 @@
   "id": "RBF-019",
   "setId": "rubyfront-core",
   "collectorNumber": "019",
-  "slug": "veil-of-the-first",
-  "type": "object",
+  "slug": "mestrel-camp-warden",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,45 +14,52 @@
     "en"
   ],
   "tags": [
-    "object",
-    "human",
-    "protection"
+    "entity",
+    "auros",
+    "equip",
+    "draw"
   ],
-  "rulesReference": "MANUALE.md §3.1",
+  "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
     {
-      "id": "object",
-      "kind": "object",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
+      "race": "auros",
       "stats": {
-        "fluxCost": 1
+        "power": 2,
+        "fluxCost": 2
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "veil",
-          "displayKey": "effect",
-          "event": "while_assigned",
+          "id": "tally",
+          "displayKey": "tally",
+          "event": "on_draw_card",
+          "details": {
+            "onSecondDrawInTurn": true
+          },
           "effect": {
-            "type": "protect",
+            "type": "modify_power",
             "target": {
-              "cardType": "entity",
-              "scope": "assigned"
+              "scope": "self"
             },
+            "amount": 1,
+            "duration": "until_end_of_turn",
             "details": {
-              "from": "opponent_matters"
+              "perCardDrawnBeyondFirstThisTurn": true
             }
           }
         }
       ],
-      "actions": [],
-      "assignRestriction": {
-        "cardType": "entity",
-        "race": "human",
-        "controller": "controller"
-      }
+      "actions": []
     }
   ],
   "designNotes": "rbf-019.md"

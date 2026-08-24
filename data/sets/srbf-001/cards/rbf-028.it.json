@@ -1,25 +1,21 @@
 {
-  "name": "Il Bosco Ricorda",
-  "typeLabel": "Materia Dimensionale II",
-  "summary": "Il bosco riprende un figlio e ne restituisce un altro: più grande dal ricordo, più piccolo dal profondo.",
+  "name": "Catalizzatore Sygma",
+  "typeLabel": "Oggetto",
+  "summary": "Un Oggetto che spinge l'attacco e pesca Materie dal mazzo.",
   "ui": {
-    "face": "Materia"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
     "flux": "Flussi"
   },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 2° grado",
-    "dimensionalAria": "Dimensionale"
-  },
   "face": {
-    "name": "Il Bosco Ricorda",
+    "name": "Catalizzatore Sygma",
     "effect": {
       "name": "Effetto",
-      "text": "Metti nella tua Zona di Ritiro un'Entità che controlli, anche se è in Stasi. Poi scegli uno: metti sul tuo Fronte un'Entità dalla tua Zona di Ritiro con costo di Flusso esattamente superiore di 1 rispetto a quello dell'Entità messa nella Zona di Ritiro in questo modo; oppure cerca nel tuo mazzo un'Entità con costo di Flusso esattamente inferiore di 1, mettila sul tuo Fronte, poi rimescola il mazzo."
+      "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 5–6 guarda le prime 4 carte del tuo mazzo, puoi mostrare una Materia tra esse e aggiungerla alla tua mano, e metti le altre nella tua Zona di Ritiro."
     },
-    "flavor": "Ogni albero è un nome. Ogni nome torna, prima o poi."
+    "flavor": "Brucia piano. Rivela in fretta."
   }
 }

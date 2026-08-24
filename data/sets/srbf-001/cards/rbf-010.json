@@ -3,7 +3,7 @@
   "id": "RBF-010",
   "setId": "rubyfront-core",
   "collectorNumber": "010",
-  "slug": "emissary-of-the-heirs",
+  "slug": "first-blade",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,9 +16,10 @@
   "tags": [
     "entity",
     "human",
-    "tutor"
+    "destructive",
+    "removal"
   ],
-  "rulesReference": "MANUALE.md §6.2, §8.2",
+  "rulesReference": "MANUALE.md §7",
   "faces": [
     {
       "id": "entity",
@@ -26,33 +27,53 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 2,
-        "fluxCost": 2
+        "power": 3,
+        "fluxCost": 4,
+        "counterattack": 2
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "destructive",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "herald",
-          "displayKey": "herald",
+          "id": "first-cut",
+          "displayKey": "firstCut",
           "event": "on_enter_field",
           "effect": {
-            "type": "search_card",
-            "from": {
-              "zone": "deck",
-              "owner": "controller"
-            },
-            "filter": {
+            "type": "move_card",
+            "target": {
               "cardType": "entity",
-              "race": "human"
+              "min": 1,
+              "max": 1,
+              "controller": "opponent"
             },
-            "reveal": true,
-            "to": {
-              "zone": "hand",
-              "owner": "controller"
+            "destination": {
+              "zone": "retire",
+              "owner": "card_owner"
+            }
+          }
+        },
+        {
+          "id": "awakening",
+          "displayKey": "effect",
+          "event": "while_in_play",
+          "effect": {
+            "type": "empower",
+            "target": {
+              "scope": "self"
             },
-            "shuffle": true
+            "grants": [
+              "revenge"
+            ],
+            "duration": "permanent",
+            "details": {
+              "requiresNexus": true
+            }
           }
         }
       ],

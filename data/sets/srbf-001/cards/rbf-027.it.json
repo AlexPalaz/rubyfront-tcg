@@ -1,25 +1,21 @@
 {
-  "name": "Passo nel Vuoto",
-  "typeLabel": "Materia Dimensionale I",
-  "summary": "Il nemico fa un passo e il terreno non c'è più. Ma il vuoto chiede sempre un pedaggio.",
+  "name": "Scudo del Campo",
+  "typeLabel": "Oggetto",
+  "summary": "Potenza e Contrattacco in un pezzo solo.",
   "ui": {
-    "face": "Materia"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
     "flux": "Flussi"
   },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 1° grado",
-    "dimensionalAria": "Dimensionale"
-  },
   "face": {
-    "name": "Passo nel Vuoto",
+    "name": "Scudo del Campo",
     "effect": {
       "name": "Effetto",
-      "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario. Se aveva un Oggetto assegnato, metti quell'Oggetto nell'Abisso. Poi lancia un d6: con 1–2 perdi 4 PV, con 3–4 perdi 3 PV, con 5–6 perdi 2 PV."
+      "text": "L'Entità a cui è assegnato ha +1 Potenza e Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
     },
-    "flavor": "Non pararono il colpo. Tolsero il bersaglio."
+    "flavor": "Regge il colpo, e lo restituisce con gli interessi."
   }
 }

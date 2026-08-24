@@ -1,78 +1,30 @@
 {
-  "name": "Rubyfront of the Wandering Wood",
-  "typeLabel": "Double-faced Rubyfront",
-  "summary": "The beast of the walking forest: it watches over its Auros in stasis, wakes them and calls them back from the Retire Zone.",
+  "name": "Krevon, Underblade of Nova Kai",
+  "typeLabel": "Entity: Auros",
+  "summary": "Surge and command: when it attacks equipped, the whole armed front pushes.",
   "ui": {
-    "faceA": "Face A — Rubyfront",
-    "faceB": "Face B — Nexus"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "nexusRequirement": {
-      "label": "Nexus requirement",
-      "text": "You control at least 4 Auros Entities and this turn you untapped one of your Auros from Stasis. Put that Auros into your Retire Zone (it can never return to the field), then flip."
-    }
+    "power": "Power",
+    "flux": "Flux"
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
-    "dimensionalAria": "Dimensional",
-    "destructiveTitle": "Destructive Matter",
-    "destructiveAria": "Destructive"
+    "dimensionalAria": "Dimensional"
   },
-  "faceA": {
-    "name": "Rubyfront of the Wandering Wood",
+  "face": {
+    "name": "Krevon, Underblade of Nova Kai",
     "keyword": {
-      "name": "Fury",
-      "rules": "d20 ≥ 12 before every action · failure −1 HP"
+      "name": "Surge",
+      "rules": "may attack the turn it enters the field"
     },
-    "effect": {
-      "name": "Memory of the Wood",
-      "trigger": "Effect",
-      "text": "The first time each of your turns an Auros Entity you control is untapped by an effect, you gain 1 HP."
+    "command": {
+      "trigger": "When this Entity attacks while it has an Object assigned",
+      "text": "Other Entities with an Object assigned you control get +1 Power until end of turn."
     },
-    "arrival": {
-      "trigger": "When it enters the field",
-      "text": "You may untap an Auros Entity you control."
-    },
-    "abilities": {
-      "perennialSap": {
-        "name": "Perennial Sap",
-        "text": "untap an Auros Entity you control."
-      },
-      "frondRecall": {
-        "name": "Recall through the Boughs",
-        "text": "choose an Auros Entity in your Retire Zone and add it to your hand."
-      },
-      "phaseAway": {
-        "name": "Phase Away",
-        "text": "return an opposing Entity to its owner's hand."
-      }
-    },
-    "flavor": "You do not find the wood. The wood decides to find you."
-  },
-  "faceB": {
-    "name": "Folded Glade",
-    "nexusAria": "Nexus",
-    "effect": {
-      "name": "Waking of the Glade",
-      "trigger": "Effect",
-      "text": "The first time each of your turns an Auros Entity you control is untapped by an effect, draw a card."
-    },
-    "abilities": {
-      "perennialBloom": {
-        "name": "Perennial Bloom",
-        "text": "untap up to 2 Auros Entities you control."
-      },
-      "foldingTide": {
-        "name": "Folding Tide",
-        "text": "return up to 2 opposing Entities to their owners' hands."
-      },
-      "woodCall": {
-        "name": "Call of the Wood",
-        "text": "put an Auros Entity with Flux cost 3 or less from your Retire Zone onto your Front."
-      }
-    },
-    "flavor": "Here space folds upon itself, and what sleeps awakens."
+    "flavor": "When the underblade strikes, the other blades listen."
   }
 }

@@ -69,6 +69,20 @@ function createUniqueStar(label) {
   return holder;
 }
 
+// Nome con qualifica ("Rhazmora, Rubifronte della Scissione"): sulle facce
+// Rubyfront/Nexus la barra del titolo mostra solo il nome personale e la
+// qualifica scende nella riga del tipo, al posto dell'etichetta generica
+// "Rubifronte"/"Nexus". Così il nome sta su una riga a corpo pieno senza
+// abbreviazioni, e la qualifica vive dove già si legge il tipo della carta.
+// Le altre facce (Entità comprese) mantengono il nome intero nella barra.
+function splitFaceName(face, faceCopy) {
+  const full = faceCopy.name ?? face.id;
+  if (face.kind !== "rubyfront" && face.kind !== "nexus") return { title: full };
+  const comma = full.indexOf(", ");
+  if (comma === -1) return { title: full };
+  return { title: full.slice(0, comma), epithet: full.slice(comma + 2) };
+}
+
 function createTitleBar(card, face, faceCopy, cardCopy) {
   const bar = element("div", "titlebar");
   // Costo di schieramento (§3.1): base a numero fisso o a dado, piu' un
@@ -99,7 +113,7 @@ function createTitleBar(card, face, faceCopy, cardCopy) {
 
   const name = element("div", "name");
   if (card.unique) name.append(createUniqueStar(cardCopy.card?.unique ?? "Unique"));
-  name.append(faceCopy.name ?? face.id);
+  name.append(splitFaceName(face, faceCopy).title);
   bar.append(name);
   const value = face.stats.health ?? (face.stats.healthRecovery !== undefined ? `+${face.stats.healthRecovery}` : undefined);
   if (value !== undefined) {
@@ -304,12 +318,13 @@ function createTextBox(face, faceCopy, cardCopy, localeId) {
   // riga sopra il testo di regole (sostituisce la vecchia typeline e la
   // bottombar), così l'illustrazione ha più spazio.
   // Etichetta a sinistra: il tipo per Entità/Materia/Oggetto; per Rubyfront e
-  // Nexus, che non hanno typeLabel, la parola "Rubifronte" / "Nexus" (invece di
-  // lasciare vuoto).
+  // Nexus la qualifica del nome ("Rubifronte della Scissione", vedi
+  // splitFaceName) oppure, senza qualifica, la parola generica "Rubifronte" /
+  // "Nexus" (invece di lasciare vuoto).
   const kindLabels = copyFor(localeId).faceKind ?? {};
   const typeText = ((face.kind === "entity" || face.kind === "matter" || face.kind === "object") && cardCopy.typeLabel)
     ? cardCopy.typeLabel
-    : (kindLabels[face.kind] ?? "");
+    : (splitFaceName(face, faceCopy).epithet ?? kindLabels[face.kind] ?? "");
   const idents = [];
   for (const matter of face.enablesMatters) idents.push(createMatter(matter, cardCopy));
   if (face.stats.counterattack !== undefined) {

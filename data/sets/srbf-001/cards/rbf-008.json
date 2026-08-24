@@ -3,7 +3,7 @@
   "id": "RBF-008",
   "setId": "rubyfront-core",
   "collectorNumber": "008",
-  "slug": "bulkhead-warden",
+  "slug": "field-surgeon",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,10 +16,10 @@
   "tags": [
     "entity",
     "human",
-    "dynamic",
-    "defender"
+    "burn",
+    "aggro"
   ],
-  "rulesReference": "MANUALE.md §6.3, §7",
+  "rulesReference": "MANUALE.md §6.2, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -27,28 +27,45 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 2,
-        "fluxCost": 1
+        "power": 1,
+        "fluxCost": 2
       },
-      "enablesMatters": [
-        {
-          "type": "dynamic",
-          "maxGrade": 1
-        }
-      ],
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "bulkhead",
-          "displayKey": "bulkhead",
+          "id": "incision",
+          "displayKey": "incision",
           "event": "on_enter_field",
           "effect": {
             "type": "set_state",
             "target": {
-              "scope": "self"
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
             },
-            "state": "tapped"
+            "state": "tapped",
+            "details": {
+              "then": {
+                "type": "look_and_optionally_move",
+                "die": "d6",
+                "onRoll": "5-6",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top",
+                  "count": 1
+                },
+                "to": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "bottom"
+                },
+                "optional": true
+              }
+            }
           }
         }
       ],

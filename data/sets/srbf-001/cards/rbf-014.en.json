@@ -1,29 +1,26 @@
 {
-  "name": "Second Surge",
-  "typeLabel": "Dynamic Matter II",
-  "summary": "The turn where a single body strikes twice.",
+  "name": "Steam Courier",
+  "typeLabel": "Entity: Human",
+  "summary": "One Flux for the first hit of the game, and for deciding what whoever comes next will find.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    }
+    "power": "Power",
+    "flux": "Flux"
   },
   "face": {
-    "name": "Second Surge",
-    "effect": {
-      "name": "Effect",
-      "text": "Choose a Human Entity you control that has already attacked this turn. Untap it: it may attack a second time this turn."
+    "name": "Steam Courier",
+    "keyword": {
+      "name": "Surge",
+      "rules": "may attack the turn it enters the field"
     },
-    "flavor": "The first blow opens. The second closes."
-  },
-  "matters": {
-    "dynamicTitle": "Dynamic Matter · 2nd grade",
-    "dynamicAria": "Dynamic"
+    "flavor": "No one has ever seen him standing still: by the time the question ends, he is already past the line.",
+    "dispatch": {
+      "trigger": "When it enters the field",
+      "text": "Look at the top card of your deck: you may leave it there or put it on the bottom."
+    }
   }
 }
