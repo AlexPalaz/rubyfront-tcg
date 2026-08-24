@@ -1,7 +1,7 @@
 {
   "name": "Voce delle Radici",
   "typeLabel": "Entità: Auros",
-  "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
+  "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Zona di Ritiro.",
   "ui": {
     "face": "Entità"
   },
@@ -15,7 +15,7 @@
     "name": "Voce delle Radici",
     "regrow": {
       "trigger": "Quando entra in campo",
-      "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Requiem."
+      "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Ritiro."
     },
     "flavor": "Gli Auros non finiscono. Aspettano solo di essere richiamati."
   }

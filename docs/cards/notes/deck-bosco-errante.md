@@ -9,7 +9,7 @@
 |---|---|
 | Identità | **Midrange difensivo** |
 | Focus | **Stasi → stap da effetto → vantaggio** |
-| Tema secondario | **Zona di Requiem** |
+| Tema secondario | **Zona di Ritiro** |
 | Materia principale | Dimensionale (più una Distruttiva dal Rubyfront) |
 | Totale | 40 carte più il Rubyfront (24 Entità · 13 Materie · 3 Oggetti) |
 | Carte con dado | Cercatrice di Sentieri, Passo nel Vuoto, Velo della Radura |
@@ -34,7 +34,7 @@ Bosco** (−2 PV, con Furia): stappa un'Auros. Vedi `rbf-023.md`.
    (+2 PV), Corteccia Immortale e Vàlaris (+1 Potenza), Tessitrice (pesca se
    era in Stasi).
 
-La **Requiem** è la seconda riserva: Voce delle Radici e Passo tra le Fronde
+La **Zona di Ritiro** è la seconda riserva: Voce delle Radici e Passo tra le Fronde
 recuperano in mano, Vàlaris e Il Bosco Ricorda rimettono direttamente sul
 Fronte. Nota regole: le Entità in stasi **non sono ritirabili** (§6.2) — nel
 mazzo ci finiscono con Passo nel Vuoto avversario, Il Bosco Ricorda o le morti

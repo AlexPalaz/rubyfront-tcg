@@ -18,9 +18,9 @@
     "name": "Riflesso",
     "effect": {
       "name": "Effetto",
-      "text": "Assegnala come blocco a un attaccante: quell’attacco è bloccato. Se l’attaccante ha Potenza 3 o meno, muore."
+      "text": "Assegnala come blocco a un attaccante: quell'attacco è bloccato. Se l'attaccante ha Potenza 3 o meno, muore."
     },
-    "flavor": "Un lampo, e l’acciaio trova l’acciaio."
+    "flavor": "Un lampo, e l'acciaio trova l'acciaio."
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 1° grado",

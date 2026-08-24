@@ -15,7 +15,7 @@
     "name": "First Blade",
     "firstCut": {
       "trigger": "When it enters the field",
-      "text": "Choose an Entity your opponent controls and put it into its owner's Requiem Zone."
+      "text": "Choose an opposing Entity and put it into its owner's Retire Zone."
     },
     "effect": {
       "name": "Effect",

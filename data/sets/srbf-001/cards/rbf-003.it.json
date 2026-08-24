@@ -19,9 +19,9 @@
     "name": "Assenza",
     "effect": {
       "name": "Effetto",
-      "text": "Scegli un'Entità e mettila nella Zona di Requiem del suo proprietario."
+      "text": "Scegli un'Entità e mettila nella Zona di Ritiro del suo proprietario."
     },
-    "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
+    "flavor": "Un gelido silenzio, dove prima c'era qualcosa."
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 2° grado",

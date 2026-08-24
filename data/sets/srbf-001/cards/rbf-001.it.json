@@ -11,7 +11,7 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Requiem del suo proprietario, poi flippa."
+      "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Ritiro del suo proprietario, poi flippa."
     },
     "die": "Dado di schieramento"
   },
@@ -41,7 +41,7 @@
       },
       "pactCall": {
         "name": "Richiamo del Patto",
-        "text": "cerca nel mazzo un'Entità Umana di costo 3 o inferiore, mostrala all'avversario, prendila in mano e rimescola."
+        "text": "cerca nel tuo mazzo un'Entità Umana con costo di Flusso 3 o inferiore, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
       }
     },
     "flavor": "Non giurarono a lei. Giurarono con lei."

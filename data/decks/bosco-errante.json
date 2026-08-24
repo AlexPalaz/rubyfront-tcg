@@ -7,11 +7,11 @@
   "locales": {
     "it": {
       "name": "Il Bosco Errante",
-      "description": "Precon Auros midrange difensivo: la Stasi trasforma le Entità in risorse da risvegliare, gli stap da effetto pagano in PV e carte, e la Zona di Requiem è la riserva del bosco. Il Rubifronte del Bosco Errante veglia e risveglia."
+      "description": "Precon Auros midrange difensivo: la Stasi trasforma le Entità in risorse da risvegliare, gli stap da effetto pagano in PV e carte, e la Zona di Ritiro è la riserva del bosco. Il Rubifronte del Bosco Errante veglia e risveglia."
     },
     "en": {
       "name": "The Wandering Wood",
-      "description": "A defensive Auros midrange precon: Stasis turns Entities into resources to reawaken, effect-untaps pay in HP and cards, and the Requiem Zone is the wood's reserve. The Rubyfront of the Wandering Wood watches and wakes."
+      "description": "A defensive Auros midrange precon: Stasis turns Entities into resources to reawaken, effect-untaps pay in HP and cards, and the Retire Zone is the wood's reserve. The Rubyfront of the Wandering Wood watches and wakes."
     }
   },
   "designNotes": "bosco-errante.md",

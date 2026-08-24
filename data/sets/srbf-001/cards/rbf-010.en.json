@@ -15,7 +15,7 @@
     "name": "Emissary of the Heirs",
     "herald": {
       "trigger": "When it enters the field",
-      "text": "Search your deck for a Human, reveal it to your opponent and add it to your hand, then shuffle your deck."
+      "text": "Search your deck for a Human Entity, reveal it to your opponent and add it to your hand, then shuffle your deck."
     },
     "flavor": "The First walks among us. I have seen him."
   }

@@ -16,7 +16,7 @@
     "flavor": "Beasts bleed too.",
     "incision": {
       "trigger": "When it enters the field",
-      "text": "Tap an opposing Entity. Then roll a d6: on a 5 or 6, look at the top card of your deck and, if you wish, put it on the bottom."
+      "text": "Tap an opposing Entity. Then roll a d6: on 5–6, look at the top card of your deck and, if you wish, put it on the bottom."
     }
   }
 }

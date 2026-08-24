@@ -18,7 +18,7 @@
     "name": "Step into the Void",
     "effect": {
       "name": "Effect",
-      "text": "Choose an Entity the opponent controls and put it into its owner's Requiem Zone. If it had an assigned Object, put that Object into the Abyss. Then roll a d6: on 1–2 you lose 4 HP, on 3–4 you lose 3 HP, on 5–6 you lose 2 HP."
+      "text": "Choose an opposing Entity and put it into its owner's Retire Zone. If it had an assigned Object, put that Object into the Abyss. Then roll a d6: on 1–2 you lose 4 HP, on 3–4 you lose 3 HP, on 5–6 you lose 2 HP."
     },
     "flavor": "They did not parry the blow. They removed the target."
   }

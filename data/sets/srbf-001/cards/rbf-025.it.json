@@ -1,7 +1,7 @@
 {
   "name": "Vàlaris, Prima del Bosco",
   "typeLabel": "Entità: Auros",
-  "summary": "La più antica del Bosco Errante: chiama i caduti dalla Requiem e benedice chi si risveglia.",
+  "summary": "La più antica del Bosco Errante: chiama i caduti dalla Zona di Ritiro e benedice chi si risveglia.",
   "ui": {
     "face": "Entità"
   },
@@ -20,7 +20,7 @@
     "name": "Vàlaris, Prima del Bosco",
     "firstCall": {
       "trigger": "Quando entra in campo",
-      "text": "Metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Requiem."
+      "text": "Metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro."
     },
     "wakingBoon": {
       "trigger": "Effetto",

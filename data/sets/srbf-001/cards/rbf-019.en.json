@@ -14,7 +14,7 @@
     "name": "Veil of the First",
     "effect": {
       "name": "Effect",
-      "text": "Assign it to one of your Humans: for as long as they wear it, they cannot be targeted by opposing Matters."
+      "text": "Assign it to one of your Humans: the wearer cannot be targeted by opposing Matters."
     },
     "flavor": "What the void has touched, the void protects."
   }

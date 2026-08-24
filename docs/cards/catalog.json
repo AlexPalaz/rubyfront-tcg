@@ -56,7 +56,7 @@
                 "hp": "PV",
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
-                  "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Requiem del suo proprietario, poi flippa."
+                  "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Ritiro del suo proprietario, poi flippa."
                 },
                 "die": "Dado di schieramento"
               },
@@ -86,7 +86,7 @@
                   },
                   "pactCall": {
                     "name": "Richiamo del Patto",
-                    "text": "cerca nel mazzo un'Entità Umana di costo 3 o inferiore, mostrala all'avversario, prendila in mano e rimescola."
+                    "text": "cerca nel tuo mazzo un'Entità Umana con costo di Flusso 3 o inferiore, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
                   }
                 },
                 "flavor": "Non giurarono a lei. Giurarono con lei."
@@ -127,7 +127,7 @@
                 "hp": "HP",
                 "nexusRequirement": {
                   "label": "Nexus requirement",
-                  "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Requiem Zone, then flip."
+                  "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Retire Zone, then flip."
                 },
                 "die": "Deployment die"
               },
@@ -157,7 +157,7 @@
                   },
                   "pactCall": {
                     "name": "Call of the Pact",
-                    "text": "search your deck for a Human Entity costing 3 or less, reveal it to your opponent, take it into your hand and shuffle."
+                    "text": "search your deck for a Human Entity with Flux cost 3 or less, reveal it to your opponent and add it to your hand, then shuffle your deck."
                   }
                 },
                 "flavor": "They did not swear to her. They swore with her."
@@ -254,7 +254,7 @@
                         }
                       },
                       "destination": {
-                        "zone": "requiem",
+                        "zone": "retire",
                         "owner": "card_owner"
                       }
                     }
@@ -672,9 +672,9 @@
                 "name": "Assenza",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Scegli un'Entità e mettila nella Zona di Requiem del suo proprietario."
+                  "text": "Scegli un'Entità e mettila nella Zona di Ritiro del suo proprietario."
                 },
-                "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
+                "flavor": "Un gelido silenzio, dove prima c'era qualcosa."
               },
               "matters": {
                 "dynamicTitle": "Materia Dinamica · 2° grado",
@@ -702,7 +702,7 @@
                 "name": "Absence",
                 "effect": {
                   "name": "Effect",
-                  "text": "Choose an Entity and put it into its owner's Requiem Zone."
+                  "text": "Choose an Entity and put it into its owner's Retire Zone."
                 },
                 "flavor": "A cold silence, where something used to be."
               },
@@ -748,7 +748,7 @@
                       "max": 1
                     },
                     "destination": {
-                      "zone": "requiem",
+                      "zone": "retire",
                       "owner": "card_owner"
                     }
                   }
@@ -797,7 +797,7 @@
                   "name": "Effetto",
                   "text": "Scegli un'Entità Umana che controlli: prende +2 Potenza fino alla fine del turno. Se controlli il Rubifronte del Patto, ottiene anche Slancio fino alla fine del turno."
                 },
-                "flavor": "Prima che l’occhio capisca, è già finita."
+                "flavor": "Prima che l'occhio capisca, è già finita."
               },
               "matters": {
                 "dynamicTitle": "Materia Dinamica · 1° grado",
@@ -1141,7 +1141,7 @@
                 "name": "Vedetta del Perimetro",
                 "spark": {
                   "trigger": "Quando entra in campo",
-                  "text": "Un’altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. La Vedetta segnala il bersaglio: il bonus non è mai per sé stessa."
+                  "text": "Un'altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. La Vedetta segnala il bersaglio: il bonus non è mai per sé stessa."
                 },
                 "flavor": "Vide arrivare la fine. Fischiò due volte."
               },
@@ -1374,7 +1374,7 @@
                 "flavor": "Anche le bestie sanguinano.",
                 "incision": {
                   "trigger": "Quando entra in campo",
-                  "text": "Tappa un'Entità avversaria. Poi lancia un d6: con 5 o 6, guarda la prima carta del tuo mazzo e, se vuoi, mettila in fondo."
+                  "text": "Tappa un'Entità avversaria. Poi lancia un d6: con 5–6, guarda la prima carta del tuo mazzo e, se vuoi, mettila in fondo."
                 }
               }
             },
@@ -1396,7 +1396,7 @@
                 "flavor": "Beasts bleed too.",
                 "incision": {
                   "trigger": "When it enters the field",
-                  "text": "Tap an opposing Entity. Then roll a d6: on a 5 or 6, look at the top card of your deck and, if you wish, put it on the bottom."
+                  "text": "Tap an opposing Entity. Then roll a d6: on 5–6, look at the top card of your deck and, if you wish, put it on the bottom."
                 }
               }
             }
@@ -1494,7 +1494,7 @@
                 "name": "Emissario degli Eredi",
                 "herald": {
                   "trigger": "Quando entra in campo",
-                  "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
+                  "text": "Cerca nel tuo mazzo un'Entità Umana, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
                 },
                 "flavor": "Il Primo cammina fra noi. Io l'ho visto."
               }
@@ -1516,7 +1516,7 @@
                 "name": "Emissary of the Heirs",
                 "herald": {
                   "trigger": "When it enters the field",
-                  "text": "Search your deck for a Human, reveal it to your opponent and add it to your hand, then shuffle your deck."
+                  "text": "Search your deck for a Human Entity, reveal it to your opponent and add it to your hand, then shuffle your deck."
                 },
                 "flavor": "The First walks among us. I have seen him."
               }
@@ -1707,9 +1707,9 @@
                 "name": "Riflesso",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Assegnala come blocco a un attaccante: quell’attacco è bloccato. Se l’attaccante ha Potenza 3 o meno, muore."
+                  "text": "Assegnala come blocco a un attaccante: quell'attacco è bloccato. Se l'attaccante ha Potenza 3 o meno, muore."
                 },
-                "flavor": "Un lampo, e l’acciaio trova l’acciaio."
+                "flavor": "Un lampo, e l'acciaio trova l'acciaio."
               },
               "matters": {
                 "dynamicTitle": "Materia Dinamica · 1° grado",
@@ -1825,7 +1825,7 @@
                 "name": "Prima Lama",
                 "firstCut": {
                   "trigger": "Quando entra in campo",
-                  "text": "Scegli un'Entità controllata dall'avversario e mettila nella Zona di Requiem del suo proprietario."
+                  "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario."
                 },
                 "effect": {
                   "name": "Effetto",
@@ -1855,7 +1855,7 @@
                 "name": "First Blade",
                 "firstCut": {
                   "trigger": "When it enters the field",
-                  "text": "Choose an Entity your opponent controls and put it into its owner's Requiem Zone."
+                  "text": "Choose an opposing Entity and put it into its owner's Retire Zone."
                 },
                 "effect": {
                   "name": "Effect",
@@ -1909,7 +1909,7 @@
                       "controller": "opponent"
                     },
                     "destination": {
-                      "zone": "requiem",
+                      "zone": "retire",
                       "owner": "card_owner"
                     }
                   }
@@ -2231,7 +2231,7 @@
                 "name": "Quiete",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Scegli una Materia Reattiva appena giocata nella catena: quando dovrebbe risolversi, svanisce e va nell’Abisso senza alcun effetto. Il Flusso speso non torna."
+                  "text": "Scegli una Materia Reattiva appena giocata nella catena: quando dovrebbe risolversi, svanisce e va nell'Abisso senza alcun effetto. Il Flusso speso non torna."
                 },
                 "flavor": "Il vuoto non discute."
               },
@@ -2350,7 +2350,7 @@
                 "name": "Archivista",
                 "effect": {
                   "name": "Effetto",
-                  "text": "L’Archivista prende +1 Potenza per ogni altra Entità Umana che controlli."
+                  "text": "L'Archivista prende +1 Potenza per ogni altra Entità Umana che controlli."
                 },
                 "flavor": "Scrive i nomi di chi è passato oltre."
               }
@@ -2442,7 +2442,7 @@
             "it": {
               "name": "Veterana della Breccia",
               "typeLabel": "Entità: Umano",
-              "summary": "L’unica che insegna difendendo: ogni attaccante caduto vale una carta.",
+              "summary": "L'unica che insegna difendendo: ogni attaccante caduto vale una carta.",
               "ui": {
                 "face": "Entità"
               },
@@ -2457,7 +2457,7 @@
                 "name": "Veterana della Breccia",
                 "lesson": {
                   "trigger": "Quando contrattacca",
-                  "text": "Se l’attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
+                  "text": "Se l'attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
                 },
                 "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
               }
@@ -2559,7 +2559,7 @@
                 "name": "Velo del Primo",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Assegnalo a un tuo Umano: finché lo indossa, non può essere bersagliato dalle Materie avversarie."
+                  "text": "Assegnalo a un tuo Umano: chi lo indossa non può essere bersagliato dalle Materie avversarie."
                 },
                 "flavor": "Ciò che il vuoto ha toccato, il vuoto protegge."
               }
@@ -2580,7 +2580,7 @@
                 "name": "Veil of the First",
                 "effect": {
                   "name": "Effect",
-                  "text": "Assign it to one of your Humans: for as long as they wear it, they cannot be targeted by opposing Matters."
+                  "text": "Assign it to one of your Humans: the wearer cannot be targeted by opposing Matters."
                 },
                 "flavor": "What the void has touched, the void protects."
               }
@@ -3013,7 +3013,7 @@
             "it": {
               "name": "Rubifronte del Bosco Errante",
               "typeLabel": "Rubyfront bifronte",
-              "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi, li risveglia e li richiama dalla Requiem.",
+              "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi, li risveglia e li richiama dalla Zona di Ritiro.",
               "ui": {
                 "faceA": "Faccia A — Rubyfront",
                 "faceB": "Faccia B — Nexus"
@@ -3023,7 +3023,7 @@
                 "hp": "PV",
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
-                  "text": "Controlla almeno 4 Auros e, in questo turno, stappa un tuo Auros dalla Stasi. Poi spostalo in Requiem: non potrà più tornare in campo"
+                  "text": "Controlli almeno 4 Entità Auros e in questo turno hai stappato dalla Stasi un tuo Auros. Manda quell'Auros nella tua Zona di Ritiro (non potrà più tornare in campo), poi flippa."
                 }
               },
               "matters": {
@@ -3054,11 +3054,11 @@
                   },
                   "frondRecall": {
                     "name": "Richiamo tra le Fronde",
-                    "text": "scegli un'Entità Auros nella tua Zona di Requiem e aggiungila alla tua mano."
+                    "text": "scegli un'Entità Auros nella tua Zona di Ritiro e aggiungila alla tua mano."
                   },
                   "phaseAway": {
                     "name": "Sfasare",
-                    "text": "riporta un'Entità controllata dall'avversario nella mano del suo proprietario."
+                    "text": "riporta un'Entità avversaria nella mano del suo proprietario."
                   }
                 },
                 "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
@@ -3078,11 +3078,11 @@
                   },
                   "foldingTide": {
                     "name": "Marea Ripiegante",
-                    "text": "riporta fino a 2 Entità controllate dall'avversario nelle mani dei loro proprietari."
+                    "text": "riporta fino a 2 Entità avversarie nelle mani dei loro proprietari."
                   },
                   "woodCall": {
                     "name": "Richiamo del Bosco",
-                    "text": "metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Requiem."
+                    "text": "metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro."
                   }
                 },
                 "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che dorme si risveglia."
@@ -3091,7 +3091,7 @@
             "en": {
               "name": "Rubyfront of the Wandering Wood",
               "typeLabel": "Double-faced Rubyfront",
-              "summary": "The beast of the walking forest: it watches over its Auros in stasis, wakes them and calls them back from the Requiem.",
+              "summary": "The beast of the walking forest: it watches over its Auros in stasis, wakes them and calls them back from the Retire Zone.",
               "ui": {
                 "faceA": "Face A — Rubyfront",
                 "faceB": "Face B — Nexus"
@@ -3101,7 +3101,7 @@
                 "hp": "HP",
                 "nexusRequirement": {
                   "label": "Nexus requirement",
-                  "text": "Control at least 4 Auros and, this turn, untap one of your Auros from Stasis. Then move it to the Requiem: it can never return to the field"
+                  "text": "You control at least 4 Auros Entities and this turn you untapped one of your Auros from Stasis. Put that Auros into your Retire Zone (it can never return to the field), then flip."
                 }
               },
               "matters": {
@@ -3132,11 +3132,11 @@
                   },
                   "frondRecall": {
                     "name": "Recall through the Boughs",
-                    "text": "choose an Auros Entity in your Requiem Zone and add it to your hand."
+                    "text": "choose an Auros Entity in your Retire Zone and add it to your hand."
                   },
                   "phaseAway": {
                     "name": "Phase Away",
-                    "text": "return an Entity the opponent controls to its owner's hand."
+                    "text": "return an opposing Entity to its owner's hand."
                   }
                 },
                 "flavor": "You do not find the wood. The wood decides to find you."
@@ -3156,11 +3156,11 @@
                   },
                   "foldingTide": {
                     "name": "Folding Tide",
-                    "text": "return up to 2 Entities the opponent controls to their owners' hands."
+                    "text": "return up to 2 opposing Entities to their owners' hands."
                   },
                   "woodCall": {
                     "name": "Call of the Wood",
-                    "text": "put an Auros Entity with Flux cost 3 or less from your Requiem Zone onto your Front."
+                    "text": "put an Auros Entity with Flux cost 3 or less from your Retire Zone onto your Front."
                   }
                 },
                 "flavor": "Here space folds upon itself, and what sleeps awakens."
@@ -3175,7 +3175,7 @@
             "dimensional",
             "stasis",
             "untap",
-            "requiem"
+            "retire"
           ],
           "rulesReference": "MANUALE.md §3.1, §7, §8.1",
           "faces": [
@@ -3249,7 +3249,7 @@
                         }
                       },
                       "destination": {
-                        "zone": "requiem",
+                        "zone": "retire",
                         "owner": "controller"
                       },
                       "details": {
@@ -3346,7 +3346,7 @@
                     "target": {
                       "cardType": "entity",
                       "race": "auros",
-                      "zone": "requiem",
+                      "zone": "retire",
                       "owner": "controller",
                       "min": 1,
                       "max": 1
@@ -3507,7 +3507,7 @@
                     "target": {
                       "cardType": "entity",
                       "race": "auros",
-                      "zone": "requiem",
+                      "zone": "retire",
                       "owner": "controller",
                       "min": 1,
                       "max": 1,
@@ -3691,7 +3691,7 @@
             "it": {
               "name": "Vàlaris, Prima del Bosco",
               "typeLabel": "Entità: Auros",
-              "summary": "La più antica del Bosco Errante: chiama i caduti dalla Requiem e benedice chi si risveglia.",
+              "summary": "La più antica del Bosco Errante: chiama i caduti dalla Zona di Ritiro e benedice chi si risveglia.",
               "ui": {
                 "face": "Entità"
               },
@@ -3710,7 +3710,7 @@
                 "name": "Vàlaris, Prima del Bosco",
                 "firstCall": {
                   "trigger": "Quando entra in campo",
-                  "text": "Metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Requiem."
+                  "text": "Metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro."
                 },
                 "wakingBoon": {
                   "trigger": "Effetto",
@@ -3722,7 +3722,7 @@
             "en": {
               "name": "Valaris, First of the Wood",
               "typeLabel": "Entity: Auros",
-              "summary": "The eldest of the Wandering Wood: she calls the fallen from the Requiem and blesses those who wake.",
+              "summary": "The eldest of the Wandering Wood: she calls the fallen from the Retire Zone and blesses those who wake.",
               "ui": {
                 "face": "Entity"
               },
@@ -3741,7 +3741,7 @@
                 "name": "Valaris, First of the Wood",
                 "firstCall": {
                   "trigger": "When it enters the field",
-                  "text": "Put an Auros Entity with Flux cost 3 or less from your Requiem Zone onto your Front."
+                  "text": "Put an Auros Entity with Flux cost 3 or less from your Retire Zone onto your Front."
                 },
                 "wakingBoon": {
                   "trigger": "Effect",
@@ -3757,7 +3757,7 @@
             "dimensional",
             "grade-2",
             "legendary",
-            "requiem",
+            "retire",
             "untap",
             "midrange"
           ],
@@ -3790,7 +3790,7 @@
                     "target": {
                       "cardType": "entity",
                       "race": "auros",
-                      "zone": "requiem",
+                      "zone": "retire",
                       "owner": "controller",
                       "min": 1,
                       "max": 1,
@@ -4020,7 +4020,7 @@
                 "name": "Passo nel Vuoto",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Scegli un'Entità controllata dall'avversario e mettila nella Zona di Requiem del suo proprietario. Se aveva un Oggetto assegnato, metti quell'Oggetto nell'Abisso. Poi lancia un d6: con 1–2 perdi 4 PV, con 3–4 perdi 3 PV, con 5–6 perdi 2 PV."
+                  "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario. Se aveva un Oggetto assegnato, metti quell'Oggetto nell'Abisso. Poi lancia un d6: con 1–2 perdi 4 PV, con 3–4 perdi 3 PV, con 5–6 perdi 2 PV."
                 },
                 "flavor": "Non pararono il colpo. Tolsero il bersaglio."
               }
@@ -4045,7 +4045,7 @@
                 "name": "Step into the Void",
                 "effect": {
                   "name": "Effect",
-                  "text": "Choose an Entity the opponent controls and put it into its owner's Requiem Zone. If it had an assigned Object, put that Object into the Abyss. Then roll a d6: on 1–2 you lose 4 HP, on 3–4 you lose 3 HP, on 5–6 you lose 2 HP."
+                  "text": "Choose an opposing Entity and put it into its owner's Retire Zone. If it had an assigned Object, put that Object into the Abyss. Then roll a d6: on 1–2 you lose 4 HP, on 3–4 you lose 3 HP, on 5–6 you lose 2 HP."
                 },
                 "flavor": "They did not parry the blow. They removed the target."
               }
@@ -4056,7 +4056,7 @@
             "dimensional",
             "grade-1",
             "removal",
-            "requiem",
+            "retire",
             "die",
             "midrange"
           ],
@@ -4091,7 +4091,7 @@
                       "max": 1
                     },
                     "destination": {
-                      "zone": "requiem",
+                      "zone": "retire",
                       "owner": "card_owner"
                     },
                     "details": {
@@ -4160,7 +4160,7 @@
                 "name": "Il Bosco Ricorda",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Metti nella tua Zona di Requiem un'Entità che controlli, anche se è in Stasi. Poi scegli uno: metti sul tuo Fronte un'Entità dalla tua Zona di Requiem con costo di Flusso esattamente superiore di 1 rispetto a quello dell'Entità messa in Requiem in questo modo; oppure cerca nel tuo mazzo un'Entità con costo di Flusso esattamente inferiore di 1, mettila sul tuo Fronte, poi rimescola il mazzo."
+                  "text": "Metti nella tua Zona di Ritiro un'Entità che controlli, anche se è in Stasi. Poi scegli uno: metti sul tuo Fronte un'Entità dalla tua Zona di Ritiro con costo di Flusso esattamente superiore di 1 rispetto a quello dell'Entità messa nella Zona di Ritiro in questo modo; oppure cerca nel tuo mazzo un'Entità con costo di Flusso esattamente inferiore di 1, mettila sul tuo Fronte, poi rimescola il mazzo."
                 },
                 "flavor": "Ogni albero è un nome. Ogni nome torna, prima o poi."
               }
@@ -4185,7 +4185,7 @@
                 "name": "The Wood Remembers",
                 "effect": {
                   "name": "Effect",
-                  "text": "Put an Entity you control into your Requiem Zone, even if it is in Stasis. Then choose one: put onto your Front an Entity from your Requiem Zone whose Flux cost is exactly 1 higher than that of the Entity put into the Requiem this way; or search your deck for an Entity whose Flux cost is exactly 1 lower, put it onto your Front, then shuffle your deck."
+                  "text": "Put an Entity you control into your Retire Zone, even if it is in Stasis. Then choose one: put onto your Front an Entity from your Retire Zone whose Flux cost is exactly 1 higher than that of the Entity put into the Retire Zone this way; or search your deck for an Entity whose Flux cost is exactly 1 lower, put it onto your Front, then shuffle your deck."
                 },
                 "flavor": "Every tree is a name. Every name returns, sooner or later."
               }
@@ -4195,7 +4195,7 @@
             "matter",
             "dimensional",
             "grade-2",
-            "requiem",
+            "retire",
             "toolbox",
             "midrange"
           ],
@@ -4233,7 +4233,7 @@
                       }
                     },
                     "destination": {
-                      "zone": "requiem",
+                      "zone": "retire",
                       "owner": "controller"
                     },
                     "details": {
@@ -4244,7 +4244,7 @@
                           "type": "move_card",
                           "target": {
                             "cardType": "entity",
-                            "zone": "requiem",
+                            "zone": "retire",
                             "owner": "controller",
                             "min": 1,
                             "max": 1,
@@ -4425,7 +4425,7 @@
             "it": {
               "name": "Voce delle Radici",
               "typeLabel": "Entità: Auros",
-              "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
+              "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Zona di Ritiro.",
               "ui": {
                 "face": "Entità"
               },
@@ -4439,7 +4439,7 @@
                 "name": "Voce delle Radici",
                 "regrow": {
                   "trigger": "Quando entra in campo",
-                  "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Requiem."
+                  "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Ritiro."
                 },
                 "flavor": "Gli Auros non finiscono. Aspettano solo di essere richiamati."
               }
@@ -4447,7 +4447,7 @@
             "en": {
               "name": "Voice of the Roots",
               "typeLabel": "Entity: Auros",
-              "summary": "It calls by name those who left the field still alive, and brings them back from the Requiem.",
+              "summary": "It calls by name those who left the field still alive, and brings them back from the Retire Zone.",
               "ui": {
                 "face": "Entity"
               },
@@ -4461,7 +4461,7 @@
                 "name": "Voice of the Roots",
                 "regrow": {
                   "trigger": "When it enters the field",
-                  "text": "You may return an Auros Entity from your Requiem Zone to your hand."
+                  "text": "You may return an Auros Entity from your Retire Zone to your hand."
                 },
                 "flavor": "The Auros do not end. They only wait to be recalled."
               }
@@ -4472,7 +4472,7 @@
             "auros",
             "dimensional",
             "recursion",
-            "requiem",
+            "retire",
             "midrange"
           ],
           "rulesReference": "MANUALE.md §5, §7, §8.2",
@@ -4504,7 +4504,7 @@
                     "target": {
                       "cardType": "entity",
                       "race": "auros",
-                      "zone": "requiem",
+                      "zone": "retire",
                       "owner": "controller",
                       "min": 0,
                       "max": 1
@@ -5411,7 +5411,7 @@
                 "name": "Passo tra le Fronde",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Scegli un'Entità Auros nella tua Zona di Requiem e aggiungila alla tua mano."
+                  "text": "Scegli un'Entità Auros nella tua Zona di Ritiro e aggiungila alla tua mano."
                 },
                 "flavor": "Nessun Auros resta indietro."
               }
@@ -5437,7 +5437,7 @@
                 "name": "Step through the Boughs",
                 "effect": {
                   "name": "Effect",
-                  "text": "Choose an Auros Entity in your Requiem Zone and add it to your hand."
+                  "text": "Choose an Auros Entity in your Retire Zone and add it to your hand."
                 },
                 "flavor": "No Auros is left behind."
               }
@@ -5447,7 +5447,7 @@
             "matter",
             "dimensional",
             "grade-1",
-            "requiem"
+            "retire"
           ],
           "rulesReference": "MANUALE.md §7, §8.2",
           "faces": [
@@ -5476,7 +5476,7 @@
                     "target": {
                       "cardType": "entity",
                       "race": "auros",
-                      "zone": "requiem",
+                      "zone": "retire",
                       "owner": "controller",
                       "min": 1,
                       "max": 1
@@ -5811,7 +5811,7 @@
                 "name": "Fracture of the Trail",
                 "effect": {
                   "name": "Effect",
-                  "text": "The opponent's Rubyfront loses 2 HP."
+                  "text": "The opposing Rubyfront loses 2 HP."
                 },
                 "flavor": "Even the wood can bite."
               }
@@ -6106,7 +6106,7 @@
             "hp": "PV",
             "nexusRequirement": {
               "label": "Requisito Nexus",
-              "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Requiem del suo proprietario, poi flippa."
+              "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Ritiro del suo proprietario, poi flippa."
             },
             "die": "Dado di schieramento"
           },
@@ -6136,7 +6136,7 @@
               },
               "pactCall": {
                 "name": "Richiamo del Patto",
-                "text": "cerca nel mazzo un'Entità Umana di costo 3 o inferiore, mostrala all'avversario, prendila in mano e rimescola."
+                "text": "cerca nel tuo mazzo un'Entità Umana con costo di Flusso 3 o inferiore, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
               }
             },
             "flavor": "Non giurarono a lei. Giurarono con lei."
@@ -6177,7 +6177,7 @@
             "hp": "HP",
             "nexusRequirement": {
               "label": "Nexus requirement",
-              "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Requiem Zone, then flip."
+              "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Retire Zone, then flip."
             },
             "die": "Deployment die"
           },
@@ -6207,7 +6207,7 @@
               },
               "pactCall": {
                 "name": "Call of the Pact",
-                "text": "search your deck for a Human Entity costing 3 or less, reveal it to your opponent, take it into your hand and shuffle."
+                "text": "search your deck for a Human Entity with Flux cost 3 or less, reveal it to your opponent and add it to your hand, then shuffle your deck."
               }
             },
             "flavor": "They did not swear to her. They swore with her."
@@ -6304,7 +6304,7 @@
                     }
                   },
                   "destination": {
-                    "zone": "requiem",
+                    "zone": "retire",
                     "owner": "card_owner"
                   }
                 }
@@ -6722,9 +6722,9 @@
             "name": "Assenza",
             "effect": {
               "name": "Effetto",
-              "text": "Scegli un'Entità e mettila nella Zona di Requiem del suo proprietario."
+              "text": "Scegli un'Entità e mettila nella Zona di Ritiro del suo proprietario."
             },
-            "flavor": "Un gelido silenzio, dove prima c’era qualcosa."
+            "flavor": "Un gelido silenzio, dove prima c'era qualcosa."
           },
           "matters": {
             "dynamicTitle": "Materia Dinamica · 2° grado",
@@ -6752,7 +6752,7 @@
             "name": "Absence",
             "effect": {
               "name": "Effect",
-              "text": "Choose an Entity and put it into its owner's Requiem Zone."
+              "text": "Choose an Entity and put it into its owner's Retire Zone."
             },
             "flavor": "A cold silence, where something used to be."
           },
@@ -6798,7 +6798,7 @@
                   "max": 1
                 },
                 "destination": {
-                  "zone": "requiem",
+                  "zone": "retire",
                   "owner": "card_owner"
                 }
               }
@@ -6847,7 +6847,7 @@
               "name": "Effetto",
               "text": "Scegli un'Entità Umana che controlli: prende +2 Potenza fino alla fine del turno. Se controlli il Rubifronte del Patto, ottiene anche Slancio fino alla fine del turno."
             },
-            "flavor": "Prima che l’occhio capisca, è già finita."
+            "flavor": "Prima che l'occhio capisca, è già finita."
           },
           "matters": {
             "dynamicTitle": "Materia Dinamica · 1° grado",
@@ -7191,7 +7191,7 @@
             "name": "Vedetta del Perimetro",
             "spark": {
               "trigger": "Quando entra in campo",
-              "text": "Un’altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. La Vedetta segnala il bersaglio: il bonus non è mai per sé stessa."
+              "text": "Un'altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. La Vedetta segnala il bersaglio: il bonus non è mai per sé stessa."
             },
             "flavor": "Vide arrivare la fine. Fischiò due volte."
           },
@@ -7424,7 +7424,7 @@
             "flavor": "Anche le bestie sanguinano.",
             "incision": {
               "trigger": "Quando entra in campo",
-              "text": "Tappa un'Entità avversaria. Poi lancia un d6: con 5 o 6, guarda la prima carta del tuo mazzo e, se vuoi, mettila in fondo."
+              "text": "Tappa un'Entità avversaria. Poi lancia un d6: con 5–6, guarda la prima carta del tuo mazzo e, se vuoi, mettila in fondo."
             }
           }
         },
@@ -7446,7 +7446,7 @@
             "flavor": "Beasts bleed too.",
             "incision": {
               "trigger": "When it enters the field",
-              "text": "Tap an opposing Entity. Then roll a d6: on a 5 or 6, look at the top card of your deck and, if you wish, put it on the bottom."
+              "text": "Tap an opposing Entity. Then roll a d6: on 5–6, look at the top card of your deck and, if you wish, put it on the bottom."
             }
           }
         }
@@ -7544,7 +7544,7 @@
             "name": "Emissario degli Eredi",
             "herald": {
               "trigger": "Quando entra in campo",
-              "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
+              "text": "Cerca nel tuo mazzo un'Entità Umana, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
             },
             "flavor": "Il Primo cammina fra noi. Io l'ho visto."
           }
@@ -7566,7 +7566,7 @@
             "name": "Emissary of the Heirs",
             "herald": {
               "trigger": "When it enters the field",
-              "text": "Search your deck for a Human, reveal it to your opponent and add it to your hand, then shuffle your deck."
+              "text": "Search your deck for a Human Entity, reveal it to your opponent and add it to your hand, then shuffle your deck."
             },
             "flavor": "The First walks among us. I have seen him."
           }
@@ -7757,9 +7757,9 @@
             "name": "Riflesso",
             "effect": {
               "name": "Effetto",
-              "text": "Assegnala come blocco a un attaccante: quell’attacco è bloccato. Se l’attaccante ha Potenza 3 o meno, muore."
+              "text": "Assegnala come blocco a un attaccante: quell'attacco è bloccato. Se l'attaccante ha Potenza 3 o meno, muore."
             },
-            "flavor": "Un lampo, e l’acciaio trova l’acciaio."
+            "flavor": "Un lampo, e l'acciaio trova l'acciaio."
           },
           "matters": {
             "dynamicTitle": "Materia Dinamica · 1° grado",
@@ -7875,7 +7875,7 @@
             "name": "Prima Lama",
             "firstCut": {
               "trigger": "Quando entra in campo",
-              "text": "Scegli un'Entità controllata dall'avversario e mettila nella Zona di Requiem del suo proprietario."
+              "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario."
             },
             "effect": {
               "name": "Effetto",
@@ -7905,7 +7905,7 @@
             "name": "First Blade",
             "firstCut": {
               "trigger": "When it enters the field",
-              "text": "Choose an Entity your opponent controls and put it into its owner's Requiem Zone."
+              "text": "Choose an opposing Entity and put it into its owner's Retire Zone."
             },
             "effect": {
               "name": "Effect",
@@ -7959,7 +7959,7 @@
                   "controller": "opponent"
                 },
                 "destination": {
-                  "zone": "requiem",
+                  "zone": "retire",
                   "owner": "card_owner"
                 }
               }
@@ -8281,7 +8281,7 @@
             "name": "Quiete",
             "effect": {
               "name": "Effetto",
-              "text": "Scegli una Materia Reattiva appena giocata nella catena: quando dovrebbe risolversi, svanisce e va nell’Abisso senza alcun effetto. Il Flusso speso non torna."
+              "text": "Scegli una Materia Reattiva appena giocata nella catena: quando dovrebbe risolversi, svanisce e va nell'Abisso senza alcun effetto. Il Flusso speso non torna."
             },
             "flavor": "Il vuoto non discute."
           },
@@ -8400,7 +8400,7 @@
             "name": "Archivista",
             "effect": {
               "name": "Effetto",
-              "text": "L’Archivista prende +1 Potenza per ogni altra Entità Umana che controlli."
+              "text": "L'Archivista prende +1 Potenza per ogni altra Entità Umana che controlli."
             },
             "flavor": "Scrive i nomi di chi è passato oltre."
           }
@@ -8492,7 +8492,7 @@
         "it": {
           "name": "Veterana della Breccia",
           "typeLabel": "Entità: Umano",
-          "summary": "L’unica che insegna difendendo: ogni attaccante caduto vale una carta.",
+          "summary": "L'unica che insegna difendendo: ogni attaccante caduto vale una carta.",
           "ui": {
             "face": "Entità"
           },
@@ -8507,7 +8507,7 @@
             "name": "Veterana della Breccia",
             "lesson": {
               "trigger": "Quando contrattacca",
-              "text": "Se l’attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
+              "text": "Se l'attaccante muore nel confronto, pesca una carta: la copertura che segue è il prezzo della lezione."
             },
             "flavor": "Ha bloccato più attacchi di quanti tu ne abbia visti."
           }
@@ -8609,7 +8609,7 @@
             "name": "Velo del Primo",
             "effect": {
               "name": "Effetto",
-              "text": "Assegnalo a un tuo Umano: finché lo indossa, non può essere bersagliato dalle Materie avversarie."
+              "text": "Assegnalo a un tuo Umano: chi lo indossa non può essere bersagliato dalle Materie avversarie."
             },
             "flavor": "Ciò che il vuoto ha toccato, il vuoto protegge."
           }
@@ -8630,7 +8630,7 @@
             "name": "Veil of the First",
             "effect": {
               "name": "Effect",
-              "text": "Assign it to one of your Humans: for as long as they wear it, they cannot be targeted by opposing Matters."
+              "text": "Assign it to one of your Humans: the wearer cannot be targeted by opposing Matters."
             },
             "flavor": "What the void has touched, the void protects."
           }
@@ -9063,7 +9063,7 @@
         "it": {
           "name": "Rubifronte del Bosco Errante",
           "typeLabel": "Rubyfront bifronte",
-          "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi, li risveglia e li richiama dalla Requiem.",
+          "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi, li risveglia e li richiama dalla Zona di Ritiro.",
           "ui": {
             "faceA": "Faccia A — Rubyfront",
             "faceB": "Faccia B — Nexus"
@@ -9073,7 +9073,7 @@
             "hp": "PV",
             "nexusRequirement": {
               "label": "Requisito Nexus",
-              "text": "Controlla almeno 4 Auros e, in questo turno, stappa un tuo Auros dalla Stasi. Poi spostalo in Requiem: non potrà più tornare in campo"
+              "text": "Controlli almeno 4 Entità Auros e in questo turno hai stappato dalla Stasi un tuo Auros. Manda quell'Auros nella tua Zona di Ritiro (non potrà più tornare in campo), poi flippa."
             }
           },
           "matters": {
@@ -9104,11 +9104,11 @@
               },
               "frondRecall": {
                 "name": "Richiamo tra le Fronde",
-                "text": "scegli un'Entità Auros nella tua Zona di Requiem e aggiungila alla tua mano."
+                "text": "scegli un'Entità Auros nella tua Zona di Ritiro e aggiungila alla tua mano."
               },
               "phaseAway": {
                 "name": "Sfasare",
-                "text": "riporta un'Entità controllata dall'avversario nella mano del suo proprietario."
+                "text": "riporta un'Entità avversaria nella mano del suo proprietario."
               }
             },
             "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
@@ -9128,11 +9128,11 @@
               },
               "foldingTide": {
                 "name": "Marea Ripiegante",
-                "text": "riporta fino a 2 Entità controllate dall'avversario nelle mani dei loro proprietari."
+                "text": "riporta fino a 2 Entità avversarie nelle mani dei loro proprietari."
               },
               "woodCall": {
                 "name": "Richiamo del Bosco",
-                "text": "metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Requiem."
+                "text": "metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro."
               }
             },
             "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che dorme si risveglia."
@@ -9141,7 +9141,7 @@
         "en": {
           "name": "Rubyfront of the Wandering Wood",
           "typeLabel": "Double-faced Rubyfront",
-          "summary": "The beast of the walking forest: it watches over its Auros in stasis, wakes them and calls them back from the Requiem.",
+          "summary": "The beast of the walking forest: it watches over its Auros in stasis, wakes them and calls them back from the Retire Zone.",
           "ui": {
             "faceA": "Face A — Rubyfront",
             "faceB": "Face B — Nexus"
@@ -9151,7 +9151,7 @@
             "hp": "HP",
             "nexusRequirement": {
               "label": "Nexus requirement",
-              "text": "Control at least 4 Auros and, this turn, untap one of your Auros from Stasis. Then move it to the Requiem: it can never return to the field"
+              "text": "You control at least 4 Auros Entities and this turn you untapped one of your Auros from Stasis. Put that Auros into your Retire Zone (it can never return to the field), then flip."
             }
           },
           "matters": {
@@ -9182,11 +9182,11 @@
               },
               "frondRecall": {
                 "name": "Recall through the Boughs",
-                "text": "choose an Auros Entity in your Requiem Zone and add it to your hand."
+                "text": "choose an Auros Entity in your Retire Zone and add it to your hand."
               },
               "phaseAway": {
                 "name": "Phase Away",
-                "text": "return an Entity the opponent controls to its owner's hand."
+                "text": "return an opposing Entity to its owner's hand."
               }
             },
             "flavor": "You do not find the wood. The wood decides to find you."
@@ -9206,11 +9206,11 @@
               },
               "foldingTide": {
                 "name": "Folding Tide",
-                "text": "return up to 2 Entities the opponent controls to their owners' hands."
+                "text": "return up to 2 opposing Entities to their owners' hands."
               },
               "woodCall": {
                 "name": "Call of the Wood",
-                "text": "put an Auros Entity with Flux cost 3 or less from your Requiem Zone onto your Front."
+                "text": "put an Auros Entity with Flux cost 3 or less from your Retire Zone onto your Front."
               }
             },
             "flavor": "Here space folds upon itself, and what sleeps awakens."
@@ -9225,7 +9225,7 @@
         "dimensional",
         "stasis",
         "untap",
-        "requiem"
+        "retire"
       ],
       "rulesReference": "MANUALE.md §3.1, §7, §8.1",
       "faces": [
@@ -9299,7 +9299,7 @@
                     }
                   },
                   "destination": {
-                    "zone": "requiem",
+                    "zone": "retire",
                     "owner": "controller"
                   },
                   "details": {
@@ -9396,7 +9396,7 @@
                 "target": {
                   "cardType": "entity",
                   "race": "auros",
-                  "zone": "requiem",
+                  "zone": "retire",
                   "owner": "controller",
                   "min": 1,
                   "max": 1
@@ -9557,7 +9557,7 @@
                 "target": {
                   "cardType": "entity",
                   "race": "auros",
-                  "zone": "requiem",
+                  "zone": "retire",
                   "owner": "controller",
                   "min": 1,
                   "max": 1,
@@ -9741,7 +9741,7 @@
         "it": {
           "name": "Vàlaris, Prima del Bosco",
           "typeLabel": "Entità: Auros",
-          "summary": "La più antica del Bosco Errante: chiama i caduti dalla Requiem e benedice chi si risveglia.",
+          "summary": "La più antica del Bosco Errante: chiama i caduti dalla Zona di Ritiro e benedice chi si risveglia.",
           "ui": {
             "face": "Entità"
           },
@@ -9760,7 +9760,7 @@
             "name": "Vàlaris, Prima del Bosco",
             "firstCall": {
               "trigger": "Quando entra in campo",
-              "text": "Metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Requiem."
+              "text": "Metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro."
             },
             "wakingBoon": {
               "trigger": "Effetto",
@@ -9772,7 +9772,7 @@
         "en": {
           "name": "Valaris, First of the Wood",
           "typeLabel": "Entity: Auros",
-          "summary": "The eldest of the Wandering Wood: she calls the fallen from the Requiem and blesses those who wake.",
+          "summary": "The eldest of the Wandering Wood: she calls the fallen from the Retire Zone and blesses those who wake.",
           "ui": {
             "face": "Entity"
           },
@@ -9791,7 +9791,7 @@
             "name": "Valaris, First of the Wood",
             "firstCall": {
               "trigger": "When it enters the field",
-              "text": "Put an Auros Entity with Flux cost 3 or less from your Requiem Zone onto your Front."
+              "text": "Put an Auros Entity with Flux cost 3 or less from your Retire Zone onto your Front."
             },
             "wakingBoon": {
               "trigger": "Effect",
@@ -9807,7 +9807,7 @@
         "dimensional",
         "grade-2",
         "legendary",
-        "requiem",
+        "retire",
         "untap",
         "midrange"
       ],
@@ -9840,7 +9840,7 @@
                 "target": {
                   "cardType": "entity",
                   "race": "auros",
-                  "zone": "requiem",
+                  "zone": "retire",
                   "owner": "controller",
                   "min": 1,
                   "max": 1,
@@ -10070,7 +10070,7 @@
             "name": "Passo nel Vuoto",
             "effect": {
               "name": "Effetto",
-              "text": "Scegli un'Entità controllata dall'avversario e mettila nella Zona di Requiem del suo proprietario. Se aveva un Oggetto assegnato, metti quell'Oggetto nell'Abisso. Poi lancia un d6: con 1–2 perdi 4 PV, con 3–4 perdi 3 PV, con 5–6 perdi 2 PV."
+              "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario. Se aveva un Oggetto assegnato, metti quell'Oggetto nell'Abisso. Poi lancia un d6: con 1–2 perdi 4 PV, con 3–4 perdi 3 PV, con 5–6 perdi 2 PV."
             },
             "flavor": "Non pararono il colpo. Tolsero il bersaglio."
           }
@@ -10095,7 +10095,7 @@
             "name": "Step into the Void",
             "effect": {
               "name": "Effect",
-              "text": "Choose an Entity the opponent controls and put it into its owner's Requiem Zone. If it had an assigned Object, put that Object into the Abyss. Then roll a d6: on 1–2 you lose 4 HP, on 3–4 you lose 3 HP, on 5–6 you lose 2 HP."
+              "text": "Choose an opposing Entity and put it into its owner's Retire Zone. If it had an assigned Object, put that Object into the Abyss. Then roll a d6: on 1–2 you lose 4 HP, on 3–4 you lose 3 HP, on 5–6 you lose 2 HP."
             },
             "flavor": "They did not parry the blow. They removed the target."
           }
@@ -10106,7 +10106,7 @@
         "dimensional",
         "grade-1",
         "removal",
-        "requiem",
+        "retire",
         "die",
         "midrange"
       ],
@@ -10141,7 +10141,7 @@
                   "max": 1
                 },
                 "destination": {
-                  "zone": "requiem",
+                  "zone": "retire",
                   "owner": "card_owner"
                 },
                 "details": {
@@ -10210,7 +10210,7 @@
             "name": "Il Bosco Ricorda",
             "effect": {
               "name": "Effetto",
-              "text": "Metti nella tua Zona di Requiem un'Entità che controlli, anche se è in Stasi. Poi scegli uno: metti sul tuo Fronte un'Entità dalla tua Zona di Requiem con costo di Flusso esattamente superiore di 1 rispetto a quello dell'Entità messa in Requiem in questo modo; oppure cerca nel tuo mazzo un'Entità con costo di Flusso esattamente inferiore di 1, mettila sul tuo Fronte, poi rimescola il mazzo."
+              "text": "Metti nella tua Zona di Ritiro un'Entità che controlli, anche se è in Stasi. Poi scegli uno: metti sul tuo Fronte un'Entità dalla tua Zona di Ritiro con costo di Flusso esattamente superiore di 1 rispetto a quello dell'Entità messa nella Zona di Ritiro in questo modo; oppure cerca nel tuo mazzo un'Entità con costo di Flusso esattamente inferiore di 1, mettila sul tuo Fronte, poi rimescola il mazzo."
             },
             "flavor": "Ogni albero è un nome. Ogni nome torna, prima o poi."
           }
@@ -10235,7 +10235,7 @@
             "name": "The Wood Remembers",
             "effect": {
               "name": "Effect",
-              "text": "Put an Entity you control into your Requiem Zone, even if it is in Stasis. Then choose one: put onto your Front an Entity from your Requiem Zone whose Flux cost is exactly 1 higher than that of the Entity put into the Requiem this way; or search your deck for an Entity whose Flux cost is exactly 1 lower, put it onto your Front, then shuffle your deck."
+              "text": "Put an Entity you control into your Retire Zone, even if it is in Stasis. Then choose one: put onto your Front an Entity from your Retire Zone whose Flux cost is exactly 1 higher than that of the Entity put into the Retire Zone this way; or search your deck for an Entity whose Flux cost is exactly 1 lower, put it onto your Front, then shuffle your deck."
             },
             "flavor": "Every tree is a name. Every name returns, sooner or later."
           }
@@ -10245,7 +10245,7 @@
         "matter",
         "dimensional",
         "grade-2",
-        "requiem",
+        "retire",
         "toolbox",
         "midrange"
       ],
@@ -10283,7 +10283,7 @@
                   }
                 },
                 "destination": {
-                  "zone": "requiem",
+                  "zone": "retire",
                   "owner": "controller"
                 },
                 "details": {
@@ -10294,7 +10294,7 @@
                       "type": "move_card",
                       "target": {
                         "cardType": "entity",
-                        "zone": "requiem",
+                        "zone": "retire",
                         "owner": "controller",
                         "min": 1,
                         "max": 1,
@@ -10475,7 +10475,7 @@
         "it": {
           "name": "Voce delle Radici",
           "typeLabel": "Entità: Auros",
-          "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Requiem.",
+          "summary": "Chiama per nome chi ha lasciato il campo ancora vivo, e lo riporta dalla Zona di Ritiro.",
           "ui": {
             "face": "Entità"
           },
@@ -10489,7 +10489,7 @@
             "name": "Voce delle Radici",
             "regrow": {
               "trigger": "Quando entra in campo",
-              "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Requiem."
+              "text": "Puoi riportare in mano un'Entità Auros dalla tua Zona di Ritiro."
             },
             "flavor": "Gli Auros non finiscono. Aspettano solo di essere richiamati."
           }
@@ -10497,7 +10497,7 @@
         "en": {
           "name": "Voice of the Roots",
           "typeLabel": "Entity: Auros",
-          "summary": "It calls by name those who left the field still alive, and brings them back from the Requiem.",
+          "summary": "It calls by name those who left the field still alive, and brings them back from the Retire Zone.",
           "ui": {
             "face": "Entity"
           },
@@ -10511,7 +10511,7 @@
             "name": "Voice of the Roots",
             "regrow": {
               "trigger": "When it enters the field",
-              "text": "You may return an Auros Entity from your Requiem Zone to your hand."
+              "text": "You may return an Auros Entity from your Retire Zone to your hand."
             },
             "flavor": "The Auros do not end. They only wait to be recalled."
           }
@@ -10522,7 +10522,7 @@
         "auros",
         "dimensional",
         "recursion",
-        "requiem",
+        "retire",
         "midrange"
       ],
       "rulesReference": "MANUALE.md §5, §7, §8.2",
@@ -10554,7 +10554,7 @@
                 "target": {
                   "cardType": "entity",
                   "race": "auros",
-                  "zone": "requiem",
+                  "zone": "retire",
                   "owner": "controller",
                   "min": 0,
                   "max": 1
@@ -11461,7 +11461,7 @@
             "name": "Passo tra le Fronde",
             "effect": {
               "name": "Effetto",
-              "text": "Scegli un'Entità Auros nella tua Zona di Requiem e aggiungila alla tua mano."
+              "text": "Scegli un'Entità Auros nella tua Zona di Ritiro e aggiungila alla tua mano."
             },
             "flavor": "Nessun Auros resta indietro."
           }
@@ -11487,7 +11487,7 @@
             "name": "Step through the Boughs",
             "effect": {
               "name": "Effect",
-              "text": "Choose an Auros Entity in your Requiem Zone and add it to your hand."
+              "text": "Choose an Auros Entity in your Retire Zone and add it to your hand."
             },
             "flavor": "No Auros is left behind."
           }
@@ -11497,7 +11497,7 @@
         "matter",
         "dimensional",
         "grade-1",
-        "requiem"
+        "retire"
       ],
       "rulesReference": "MANUALE.md §7, §8.2",
       "faces": [
@@ -11526,7 +11526,7 @@
                 "target": {
                   "cardType": "entity",
                   "race": "auros",
-                  "zone": "requiem",
+                  "zone": "retire",
                   "owner": "controller",
                   "min": 1,
                   "max": 1
@@ -11861,7 +11861,7 @@
             "name": "Fracture of the Trail",
             "effect": {
               "name": "Effect",
-              "text": "The opponent's Rubyfront loses 2 HP."
+              "text": "The opposing Rubyfront loses 2 HP."
             },
             "flavor": "Even the wood can bite."
           }
@@ -12137,11 +12137,11 @@
       "locales": {
         "it": {
           "name": "Il Bosco Errante",
-          "description": "Precon Auros midrange difensivo: la Stasi trasforma le Entità in risorse da risvegliare, gli stap da effetto pagano in PV e carte, e la Zona di Requiem è la riserva del bosco. Il Rubifronte del Bosco Errante veglia e risveglia."
+          "description": "Precon Auros midrange difensivo: la Stasi trasforma le Entità in risorse da risvegliare, gli stap da effetto pagano in PV e carte, e la Zona di Ritiro è la riserva del bosco. Il Rubifronte del Bosco Errante veglia e risveglia."
         },
         "en": {
           "name": "The Wandering Wood",
-          "description": "A defensive Auros midrange precon: Stasis turns Entities into resources to reawaken, effect-untaps pay in HP and cards, and the Requiem Zone is the wood's reserve. The Rubyfront of the Wandering Wood watches and wakes."
+          "description": "A defensive Auros midrange precon: Stasis turns Entities into resources to reawaken, effect-untaps pay in HP and cards, and the Retire Zone is the wood's reserve. The Rubyfront of the Wandering Wood watches and wakes."
         }
       },
       "designNotes": "bosco-errante.md",

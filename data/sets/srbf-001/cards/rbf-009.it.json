@@ -16,7 +16,7 @@
     "flavor": "Anche le bestie sanguinano.",
     "incision": {
       "trigger": "Quando entra in campo",
-      "text": "Tappa un'Entità avversaria. Poi lancia un d6: con 5 o 6, guarda la prima carta del tuo mazzo e, se vuoi, mettila in fondo."
+      "text": "Tappa un'Entità avversaria. Poi lancia un d6: con 5–6, guarda la prima carta del tuo mazzo e, se vuoi, mettila in fondo."
     }
   }
 }

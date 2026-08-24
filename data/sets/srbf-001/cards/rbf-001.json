@@ -81,7 +81,7 @@
                 }
               },
               "destination": {
-                "zone": "requiem",
+                "zone": "retire",
                 "owner": "card_owner"
               }
             }

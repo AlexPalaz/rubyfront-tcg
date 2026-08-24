@@ -1,7 +1,7 @@
 {
   "name": "Rubifronte del Bosco Errante",
   "typeLabel": "Rubyfront bifronte",
-  "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi, li risveglia e li richiama dalla Requiem.",
+  "summary": "La bestia della foresta che cammina: veglia sui suoi Auros in stasi, li risveglia e li richiama dalla Zona di Ritiro.",
   "ui": {
     "faceA": "Faccia A — Rubyfront",
     "faceB": "Faccia B — Nexus"
@@ -11,7 +11,7 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "Controlla almeno 4 Auros e, in questo turno, stappa un tuo Auros dalla Stasi. Poi spostalo in Requiem: non potrà più tornare in campo"
+      "text": "Controlli almeno 4 Entità Auros e in questo turno hai stappato dalla Stasi un tuo Auros. Manda quell'Auros nella tua Zona di Ritiro (non potrà più tornare in campo), poi flippa."
     }
   },
   "matters": {
@@ -42,11 +42,11 @@
       },
       "frondRecall": {
         "name": "Richiamo tra le Fronde",
-        "text": "scegli un'Entità Auros nella tua Zona di Requiem e aggiungila alla tua mano."
+        "text": "scegli un'Entità Auros nella tua Zona di Ritiro e aggiungila alla tua mano."
       },
       "phaseAway": {
         "name": "Sfasare",
-        "text": "riporta un'Entità controllata dall'avversario nella mano del suo proprietario."
+        "text": "riporta un'Entità avversaria nella mano del suo proprietario."
       }
     },
     "flavor": "Non trovi il bosco. È il bosco che decide di trovarti."
@@ -66,11 +66,11 @@
       },
       "foldingTide": {
         "name": "Marea Ripiegante",
-        "text": "riporta fino a 2 Entità controllate dall'avversario nelle mani dei loro proprietari."
+        "text": "riporta fino a 2 Entità avversarie nelle mani dei loro proprietari."
       },
       "woodCall": {
         "name": "Richiamo del Bosco",
-        "text": "metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Requiem."
+        "text": "metti sul tuo Fronte un'Entità Auros con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro."
       }
     },
     "flavor": "Qui lo spazio si ripiega su sé stesso, e ciò che dorme si risveglia."

@@ -11,7 +11,7 @@
     "hp": "HP",
     "nexusRequirement": {
       "label": "Nexus requirement",
-      "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Requiem Zone, then flip."
+      "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Retire Zone, then flip."
     },
     "die": "Deployment die"
   },
@@ -41,7 +41,7 @@
       },
       "pactCall": {
         "name": "Call of the Pact",
-        "text": "search your deck for a Human Entity costing 3 or less, reveal it to your opponent, take it into your hand and shuffle."
+        "text": "search your deck for a Human Entity with Flux cost 3 or less, reveal it to your opponent and add it to your hand, then shuffle your deck."
       }
     },
     "flavor": "They did not swear to her. They swore with her."

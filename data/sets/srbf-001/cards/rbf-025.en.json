@@ -1,7 +1,7 @@
 {
   "name": "Valaris, First of the Wood",
   "typeLabel": "Entity: Auros",
-  "summary": "The eldest of the Wandering Wood: she calls the fallen from the Requiem and blesses those who wake.",
+  "summary": "The eldest of the Wandering Wood: she calls the fallen from the Retire Zone and blesses those who wake.",
   "ui": {
     "face": "Entity"
   },
@@ -20,7 +20,7 @@
     "name": "Valaris, First of the Wood",
     "firstCall": {
       "trigger": "When it enters the field",
-      "text": "Put an Auros Entity with Flux cost 3 or less from your Requiem Zone onto your Front."
+      "text": "Put an Auros Entity with Flux cost 3 or less from your Retire Zone onto your Front."
     },
     "wakingBoon": {
       "trigger": "Effect",

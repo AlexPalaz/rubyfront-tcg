@@ -18,7 +18,7 @@
     "dimensional",
     "grade-1",
     "removal",
-    "requiem",
+    "retire",
     "die",
     "midrange"
   ],
@@ -53,7 +53,7 @@
               "max": 1
             },
             "destination": {
-              "zone": "requiem",
+              "zone": "retire",
               "owner": "card_owner"
             },
             "details": {

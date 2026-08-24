@@ -15,7 +15,7 @@
     "name": "Emissario degli Eredi",
     "herald": {
       "trigger": "Quando entra in campo",
-      "text": "Cerca nel tuo mazzo un Umano, mostralo all’avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
+      "text": "Cerca nel tuo mazzo un'Entità Umana, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
     },
     "flavor": "Il Primo cammina fra noi. Io l'ho visto."
   }

@@ -17,7 +17,7 @@
     "matter",
     "dimensional",
     "grade-2",
-    "requiem",
+    "retire",
     "toolbox",
     "midrange"
   ],
@@ -55,7 +55,7 @@
               }
             },
             "destination": {
-              "zone": "requiem",
+              "zone": "retire",
               "owner": "controller"
             },
             "details": {
@@ -66,7 +66,7 @@
                   "type": "move_card",
                   "target": {
                     "cardType": "entity",
-                    "zone": "requiem",
+                    "zone": "retire",
                     "owner": "controller",
                     "min": 1,
                     "max": 1,

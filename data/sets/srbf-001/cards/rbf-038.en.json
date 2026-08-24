@@ -19,7 +19,7 @@
     "name": "Step through the Boughs",
     "effect": {
       "name": "Effect",
-      "text": "Choose an Auros Entity in your Requiem Zone and add it to your hand."
+      "text": "Choose an Auros Entity in your Retire Zone and add it to your hand."
     },
     "flavor": "No Auros is left behind."
   }

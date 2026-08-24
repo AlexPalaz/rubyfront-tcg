@@ -69,7 +69,7 @@ Gli **Oggetti** sono carte che si **assegnano a un'Entità**:
 - **non si assegnano a un'Entità coperta** (§6.3): l'Entità coperta è intoccabile anche per il proprietario. L'Oggetto che aveva **già** assegnato, però, le rimane;
 - **non si assegnano al Rubyfront né al Nexus** (non sono Entità), salvo diversa indicazione sulla carta;
 - una volta assegnato, l'Oggetto **non può essere spostato né sostituito**;
-- quando l'Entità lascia il campo, l'Oggetto **la segue**: va nell'**Abisso** — o in **Zona di Requiem**, se l'Entità è stata ritirata (§6.2).
+- quando l'Entità lascia il campo, l'Oggetto **la segue**: va nell'**Abisso** — o in **Zona di Ritiro**, se l'Entità è stata ritirata (§6.2).
 
 Il mazzo **può mischiare le razze** liberamente. Si possono avere al massimo **3 copie della stessa carta** nel mazzo; le carte **Uniche** — contrassegnate dal **simbolo dell'Unica** — ammettono **una sola copia**.
 
@@ -80,7 +80,7 @@ Ogni Rubyfront è una carta con **valori propri**: non esistono valori standard 
 La carta del Rubyfront riporta:
 
 - **PV (Punti Vita)** — la sua **unica statistica**. Gli attacchi subiti fanno scendere i PV; a zero, il proprietario perde (§2).
-- **Costo di schieramento** — il costo in Flusso per schierarlo in campo, scritto come **base + incremento**: la base è un **numero fisso** (es. `2`) o un **dado** (es. un dado da `6`), l'incremento `+X` è **opzionale**. Vedi sotto.
+- **Costo di schieramento** — il costo in Flusso per schierarlo in campo: un **numero fisso** (es. `2`) oppure un **dado** (es. un dado da `6`) da tirare. Vedi sotto.
 - **Materie disponibili** — i tipi di Materia che il Rubyfront può usare, **con il grado massimo** per i tipi che hanno gradi (come le Entità, §7.1).
 - **Abilità principale** — nasce quando il Rubyfront entra in campo e da quel momento è **sempre attiva**.
 - **Descrizione** con l'**effetto che si risolve quando entra in campo** dalla Zona di Richiamo — **a ogni schieramento**, non solo il primo.
@@ -90,49 +90,33 @@ Il Rubyfront è **attaccabile anche mentre si trova in Zona di Richiamo**: i suo
 
 #### Costo di schieramento
 
-Il costo per schierare il Rubyfront si legge in **due parti**:
+Il costo per schierare il Rubyfront è **un numero fisso** (es. `2`) oppure **un dado** (es. il simbolo del dado da `6`, cioè un d6 da tirare).
 
-1. una **base**, che è un **numero fisso** (es. `2`) oppure un **dado** (es. il simbolo del dado da `6`, cioè un d6 da tirare);
-2. un **incremento `+X`**, **opzionale**.
-
-**È il `+X` a dire che il costo cresce.** Se c'è, ogni rischieramento costa X in più del precedente; se non c'è, il costo non cresce mai. La cosa vale identica sulle due basi: il dado non è un formato a sé, è solo un modo di determinare la base.
+**Il costo non cresce mai:** si paga identico a ogni schieramento. I rischieramenti nascono solo dal **richiamo volontario** (vedi "Permanenza in campo e richiamo volontario", più sotto), l'unico modo in cui il Rubyfront torna in Zona di Richiamo: chi richiama e poi rischiera ripaga lo stesso costo — che con un dado significa **un tiro nuovo**.
 
 | Stampato sulla carta | Come si paga |
 |---|---|
-| `2+1` | 2 Flussi al primo schieramento, poi 3, poi 4, poi 5... |
-| dado da `6` | si tira un d6 e si paga il risultato, a **ogni** schieramento, senza crescere |
-| dado da `6` `+2` | si tira un d6 e si somma l'incremento accumulato: il solo risultato al primo schieramento, risultato +2 al secondo, risultato +4 al terzo... |
+| `2` | 2 Flussi, a **ogni** schieramento |
+| dado da `6` | si tira un d6 e si paga il risultato, a **ogni** schieramento |
 
-##### La base a dado
+##### Il costo a dado
 
-Quando la base è un dado, il costo **non è scritto: si tira**. Si lancia il dado indicato — un `6` significa un **d6** — e si paga in Flusso **il numero uscito**, più l'eventuale incremento accumulato.
+Quando il costo è un dado, **non è scritto: si tira**. Si lancia il dado indicato — un `6` significa un **d6** — e si paga in Flusso **il numero uscito**.
 
-- **Si può lanciare solo se il Flusso disponibile copre il risultato peggiore**, cioè **le facce del dado più l'incremento già accumulato**: 6 con un d6 al primo schieramento, 8 con un d6 `+2` al secondo, e così via. Con meno Flusso di così **il dado non si lancia** e il Rubyfront **non si schiera**. La regola esiste per garantire che **un tiro sia sempre pagabile**: non si tira mai un costo che poi non si potrebbe onorare.
+- **Si può lanciare solo se il Flusso disponibile copre il risultato peggiore**, cioè **le facce del dado**: 6 con un d6. Con meno Flusso di così **il dado non si lancia** e il Rubyfront **non si schiera**. La regola esiste per garantire che **un tiro sia sempre pagabile**: non si tira mai un costo che poi non si potrebbe onorare.
 - *Esempio: al secondo turno si hanno 2 Flussi e la carta chiede un d6 → il lancio non è permesso e lo schieramento è impossibile, anche se il dado potrebbe uscire 1 o 2. Dal turno in cui si dispone di 6 Flussi il lancio diventa legale: se esce 2 si pagano 2 Flussi (e restano 4), se esce 6 se ne pagano 6.*
 - **Si tira a ogni schieramento** e il risultato vale solo per quello: la verifica del Flusso disponibile si ripete ogni volta.
 - Il **Gettone Flusso** (§3.2) conta nel Flusso disponibile ai fini della verifica e può essere speso per pagare il risultato.
-- **Il tiro del costo non è il tiro della Furia** (§8.1): sono due lanci distinti e indipendenti. Lo schieramento del Rubyfront non è **mai** soggetto al d20 della Furia — nemmeno quando la base è un dado — e un risultato alto non fa fallire nulla: si paga e si scende in campo.
+- **Il dado più grande possibile è un d20**: il Flusso massimo è 20 (§3.2), oltre non esisterebbe un tiro sempre pagabile.
+- **Il tiro del costo non è il tiro della Furia** (§8.1): sono due lanci distinti e indipendenti. Lo schieramento del Rubyfront non è **mai** soggetto al d20 della Furia — nemmeno quando il costo è a dado — e un risultato alto non fa fallire nulla: si paga e si scende in campo.
 
-##### L'incremento `+X`
+#### Permanenza in campo e richiamo volontario
 
-L'incremento si accumula **a ogni ritorno in Zona di Richiamo** (§3.1, più sotto): al primo schieramento non c'è, al secondo vale X, al terzo 2X, e così via. Si somma alla base, fissa o tirata.
+**Il Rubyfront non torna mai in Zona di Richiamo per una perdita di PV.** Quando subisce danni o perdite — attacchi che passano, effetti, Materie, proprie o avversarie — li subisce e **resta in campo**, esattamente come il Nexus. Le sue Materie abilitate **non si spengono** per un colpo subito.
 
-*Esempio con un dado da `6` `+2`: primo schieramento, si tira e si paga il risultato (1-6, servono 6 Flussi per tirare); terzo schieramento, l'incremento accumulato è 4, quindi il costo starà fra 5 e 10 — e per poter tirare servono 10 Flussi.*
+**L'unico ritorno in Zona di Richiamo è il richiamo volontario:** il proprietario può, per libera scelta, richiamare il Rubyfront schierato in Zona di Richiamo. È concesso anche se raramente conviene: dal momento del richiamo il Rubyfront smette di abilitare le sue Materie (le permanenti dei tipi che solo lui abilitava vanno nell'Abisso, §7.2) e ogni rischieramento successivo ripaga il costo per intero — un tiro nuovo, se il costo è a dado.
 
-Il costo di schieramento, base più incremento, cresce **fino a un massimo di 20** e non può mai superarlo: raggiunto il tetto, ogni rischieramento successivo costa 20. Il Rubyfront resta quindi sempre schierabile (a 20 Flussi pieni). Per la stessa ragione **il dado più grande possibile è un d20**: oltre non esisterebbe un tiro sempre pagabile.
-
-Il tetto vale **anche per la soglia del tiro**: la verifica non chiede mai più di 20, quindi a 20 Flussi pieni il dado si può sempre lanciare. Senza questa precisazione un dado con un incremento alto avrebbe finito per rendere il Rubyfront **non schierabile**, contraddicendo la regola qui sopra.
-
-#### Ritorno in Zona di Richiamo
-
-Il Rubyfront schierato **torna in Zona di Richiamo** nei seguenti casi:
-
-- **automaticamente, appena perde PV per una fonte avversaria mentre è in campo**: attacchi che passano, effetti e Materie dell'avversario. Il Rubyfront **subisce la perdita di PV** e **torna immediatamente in Zona di Richiamo**: da quell'istante smette di abilitare le sue Materie (le permanenti dei tipi che solo lui abilitava vanno nell'Abisso, §7.2). Se il proprietario lo rischiera nello stesso turno (ripagandone il costo di schieramento) e il Rubyfront subisce un'altra perdita da fonte avversaria, torna di nuovo in Zona di Richiamo: **ogni perdita di PV inflitta dall'avversario mentre è in campo è un ritorno** (e quindi un aumento del costo di rischieramento). Le **perdite autoinflitte non fanno scattare il ritorno**: il fallimento della propria Furia (§8.1) e gli effetti delle proprie carte fanno perdere i PV, ma il Rubyfront resta in campo. I **PV spesi come costo** delle abilità speciali sono un pagamento, non una perdita subita: anch'essi **non fanno scattare il ritorno**;
-- **volontariamente**, per scelta del proprietario.
-
-Ogni ritorno in Zona di Richiamo fa scattare l'aumento del costo di rischieramento, **se la carta riporta un incremento `+X`** (vedi sopra). Senza incremento non c'è nessun aumento: si ripaga la base, che con un dado significa **un tiro nuovo**.
-
-**Finestra di movimento:** il proprietario può muovere il Rubyfront (schierarlo o richiamarlo, anche **più volte nello stesso turno**) durante tutto il proprio turno, dalla **Fase di Preparazione** fino alla **fine del turno** — anche dopo aver finito di attaccare (il Rubyfront non attacca: la sua funzione è usare abilità a costo PV e Materie, quindi muoverlo a fine turno è legittimo). Ogni rischieramento ripaga comunque il costo per intero: l'incremento se il costo è crescente, un tiro nuovo se è a dado. **Mai nel mezzo di una catena di risposta** (§7.2): la catena è atomica.
+**Finestra di movimento:** il proprietario può muovere il Rubyfront (schierarlo o richiamarlo, anche **più volte nello stesso turno**) durante tutto il proprio turno, dalla **Fase di Preparazione** fino alla **fine del turno** — anche dopo aver finito di attaccare (il Rubyfront non attacca: la sua funzione è usare abilità a costo PV e Materie, quindi muoverlo a fine turno è legittimo). **Mai nel mezzo di una catena di risposta** (§7.2): la catena è atomica.
 
 #### Ruolo del Rubyfront in campo
 
@@ -153,7 +137,7 @@ La carta del Rubyfront ha **due facce**: una è il **Rubyfront**, l'altra è il 
   - il **Rubyfront dev'essere in campo** (non si flippa dalla Zona di Richiamo);
   - soddisfatti i requisiti, il flip si può fare in qualsiasi momento del proprio turno, **dalla Fase di Preparazione fino alla fine del turno** (stessa finestra del movimento del Rubyfront, §3.1), e non ha altri costi.
 - **PV recuperati:** la faccia del Nexus indica un **recupero di PV** (es. `+5`): il Nexus parte con i **PV rimasti al Rubyfront più il recupero indicato**.
-- **Permanenza:** il Nexus **sostituisce il Rubyfront** e **rimane in campo per tutta la durata della partita**, salvo diverse indicazioni sulle carte. **Non torna mai in Zona di Richiamo**: quando un attacco gli passa, subisce il danno e resta in campo.
+- **Permanenza:** il Nexus **sostituisce il Rubyfront** e **rimane in campo per tutta la durata della partita**, salvo diverse indicazioni sulle carte. **Non torna mai in Zona di Richiamo** — nemmeno per scelta del proprietario: il richiamo volontario esiste solo per il Rubyfront (§3.1). Quando un attacco gli passa, subisce il danno e resta in campo.
 - **Flip, effetti e Materie:** il flip **non è una nuova entrata in campo**: non innesca gli effetti "quando giochi una carta/Entità" e, ai fini dell'ordine di risoluzione (§8.2), la carta conserva l'età dello schieramento del Rubyfront. Dal momento del flip **si attiva l'effetto indicato sulla faccia del Nexus**. Le Materie abilitate sono **quelle stampate sulla faccia del Nexus** (nessuna eredità dal Rubyfront): le Materie permanenti dei tipi che il Nexus continua ad abilitare **sopravvivono al flip senza interruzione**; quelle dei tipi non più abilitati vanno nell'**Abisso**.
 - **Com'è fatta:** ha la stessa struttura del Rubyfront — PV, **Materie disponibili proprie** (stampate sulla sua faccia) e **abilità speciali**, chiaramente **più potenti**. Come il Rubyfront, **non attacca e non blocca** (salvo diversa indicazione sulla carta).
 - **Nessuna eredità di abilità:** come per le Materie, anche le **abilità** (principale e speciali) del Nexus sono **solo quelle stampate sulla sua faccia**. L'abilità principale del Rubyfront **non passa** al Nexus: se la faccia del Nexus non ne riporta una, il Nexus **non ha abilità principale** (un Nexus può quindi essere libero dalla Furia del suo Rubyfront, o averne una propria).
@@ -197,8 +181,8 @@ Il campo di ogni giocatore è formato da:
 - **Fronte** — il campo di battaglia: **5 slot** in cui stanno le Entità. Il Rubyfront, quando è schierato, si posiziona **davanti** ai 5 slot (non occupa uno slot); le Materie in gioco (permanenti o in risoluzione) stanno **dietro** i 5 slot. Le permanenti si dispongono **una dietro l'altra (o una sotto l'altra), nell'ordine in cui sono scese in campo**: la fila tiene traccia dell'età di ciascuna, che serve per l'ordine di risoluzione degli effetti (§8.2).
 - **Mazzo** — le carte da pescare.
 - **Abisso** — la zona delle carte **morte o consumate**: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti che seguono un'Entità morta, carte scartate dalla mano. È **pubblico**: consultabile da entrambi i giocatori in qualsiasi momento.
-- **Zona di Requiem** — la zona delle carte **ancora "vive"** uscite dal gioco: le Entità **ritirate** (§6.2) o **mandate lì da effetti di carte**, e gli Oggetti che le seguono. Funziona **esattamente come l'Abisso** (pubblica, consultabile in qualsiasi momento), ma tiene separato ciò che non è mai morto da ciò che lo è: gli effetti che nominano l'Abisso **non** toccano la Requiem, e viceversa. Una carta mandata in Requiem da un effetto **non muore** e, salvo che l'effetto dica altrimenti, **non conta come Ritiro**: conta solo come **lasciare il campo**.
-- **Zona di Richiamo** — il Rubyfront si posiziona e **parte sempre qui**, salvo diverse indicazioni sulla carta.
+- **Zona di Ritiro** — la zona delle carte **ancora "vive"** uscite dal gioco: le Entità **ritirate** (§6.2) o **mandate lì da effetti di carte**, e gli Oggetti che le seguono. Funziona **esattamente come l'Abisso** (pubblica, consultabile in qualsiasi momento), ma tiene separato ciò che non è mai morto da ciò che lo è: gli effetti che nominano l'Abisso **non** toccano la Zona di Ritiro, e viceversa. Una carta mandata in Zona di Ritiro da un effetto **non muore** e, salvo che l'effetto dica altrimenti, **non conta come Ritiro**: conta solo come **lasciare il campo**.
+- **Zona di Richiamo** — il Rubyfront si posiziona e **parte sempre qui**, salvo diverse indicazioni sulla carta. Una volta schierato vi torna solo per **richiamo volontario** del proprietario, mai per una perdita di PV (§3.1).
 
 Il **mazzo** e la **mano** sono **nascosti** all'avversario.
 
@@ -227,17 +211,17 @@ Sul Fronte si possono avere **al massimo 5 Entità contemporaneamente** — i **
 
 #### Ritiro
 
-Il giocatore può **ritirare** le proprie Entità dal Fronte: l'Entità ritirata va in **Zona di Requiem** (§5) e il suo slot torna libero.
+Il giocatore può **ritirare** le proprie Entità dal Fronte: l'Entità ritirata va in **Zona di Ritiro** (§5) e il suo slot torna libero.
 
 - **Quando:** solo in **Fase di Preparazione**, e solo sulle **proprie** Entità. Il ritiro è un'azione di preparazione del Fronte: non si ritira in Fase di Fronte, né nel turno avversario, né nel mezzo di una catena di risposta (§7.2).
 - **Costo:** nessuno. Non c'è **limite** al numero di Entità ritirabili in un turno: si può anche svuotare l'intero Fronte.
 - **Non nel turno d'ingresso:** un'Entità **entrata in campo in questo turno non può essere ritirata**; va aspettato il turno successivo, come per l'attesa di evocazione. Senza questo vincolo, a Fronte pieno si potrebbe giocare un'Entità solo per il suo effetto d'ingresso e ritirarla subito per liberare lo slot, trasformando il Ritiro in un motore di effetti. Lo **Slancio** (§8.1) **non** aggira questo divieto: permette di attaccare subito, non di essere ritirata subito.
 - **Non è obbligatorio giocare qualcosa al suo posto:** si può ritirare solo per liberare slot, o senza alcuna intenzione di far scendere altre carte.
-- **Non è una morte:** per questo l'Entità ritirata va in **Zona di Requiem** e non nell'Abisso — il ritiro **non conta come morte o distruzione** e gli effetti "quando un'Entità muore / viene distrutta" **non si innescano**. Conta invece come **lasciare il campo** per gli effetti che usano quella dicitura (§1.2).
-- **Oggetto assegnato:** segue la sua Entità (§3.1) — va anch'esso in **Zona di Requiem**.
+- **Non è una morte:** per questo l'Entità ritirata va in **Zona di Ritiro** e non nell'Abisso — il ritiro **non conta come morte o distruzione** e gli effetti "quando un'Entità muore / viene distrutta" **non si innescano**. Conta invece come **lasciare il campo** per gli effetti che usano quella dicitura (§1.2).
+- **Oggetto assegnato:** segue la sua Entità (§3.1) — va anch'esso in **Zona di Ritiro**.
 - **Abilitazione delle Materie:** l'Entità ritirata smette di abilitare i suoi tipi di Materia. Se era l'ultima ad abilitare un tipo, l'accesso si perde e le Materie permanenti di quel tipo vanno nell'Abisso (§7.2). Ritirare senza controllare cosa si sta abilitando è un errore costoso.
 - **Un'Entità tappata o coperta non può essere ritirata.** Il Ritiro richiede un'Entità **stappata**: la coperta è intoccabile anche per il proprietario (§6.3), la tappata è impegnata e non si ritira finché non si stappa. Vale anche per la **stasi** (§8.1), che è una tappata permanente: un'Entità in stasi **non è ritirabile** e resta a occupare il suo slot finché non viene stappata da un effetto o non lascia il campo in altro modo. In pratica, nel proprio turno le proprie Entità si stappano a inizio turno, quindi il vincolo pesa sulle Entità in stasi e su quelle tappate da effetti.
-- Il **Rubyfront non si ritira**: non è un'Entità e non occupa uno slot. Per toglierlo dal campo si usa il richiamo in Zona di Richiamo (§3.1), che è cosa diversa. Il **Nexus**, una volta in campo, non lascia mai il campo (§3.1).
+- Il **Rubyfront non si ritira**: non è un'Entità e non occupa uno slot. Per toglierlo dal campo si usa il **richiamo volontario** in Zona di Richiamo (§3.1), che è cosa diversa. Il **Nexus**, una volta in campo, non lascia mai il campo (§3.1).
 
 **Attesa di evocazione:** un'Entità appena entrata in campo **non può attaccare nel turno in cui entra**; deve aspettare il turno successivo. Può però già **bloccare** nel turno avversario che segue.
 
@@ -278,10 +262,11 @@ Terminata la Fase di Preparazione, il giocatore di turno **dichiara di entrare i
 Si confrontano le **Potenze**:
 
 - Se la Potenza del bloccante è **inferiore** a quella dell'attaccante → il bloccante **muore** (va nell'Abisso), ma **l'attacco è comunque bloccato** (il Rubyfront non subisce danno).
-- Se la Potenza del bloccante è **pari o superiore** → l'attacco è bloccato e il bloccante **non muore**.
-- L'attaccante, in un blocco normale, **non muore mai**.
+- Se le Potenze sono **pari** → **muoiono entrambe le Entità**: attaccante e bloccante vanno nell'Abisso, e l'attacco è comunque bloccato. Unica eccezione la **Stasi** (§8.1): l'Entità che ce l'ha, se sta bloccando, finisce **permanentemente tappata** anziché morire — l'altra muore comunque.
+- Se la Potenza del bloccante è **superiore** → l'attacco è bloccato e **non muore nessuno** (salvo **Vendetta**, §8.1).
+- L'attaccante, in un blocco normale, muore **solo nel pareggio**.
 
-*Esempio: un'Entità con Potenza 4 attacca; il difensore blocca con un'Entità di Potenza 3 → il bloccante muore, l'attacco non passa. Se il bloccante avesse Potenza 4 o più, non morirebbe nessuno.*
+*Esempio: un'Entità con Potenza 4 attacca; il difensore blocca con un'Entità di Potenza 3 → il bloccante muore, l'attacco non passa. Con Potenza 4 (pari) muoiono entrambe. Con Potenza 5 o più non muore nessuno.*
 
 #### Uscite dal campo tra dichiarazione e risoluzione
 
@@ -299,7 +284,7 @@ La scelta *blocco normale o contrattacco* si dichiara **al momento dell'assegnaz
 Risoluzione del contrattacco (totale = Potenza + N contro Potenza dell'attaccante):
 
 - **Totale superiore** → **l'attaccante muore**; il contrattaccante è in salvo.
-- **Totale pari** → l'attaccante **non** muore (serve necessariamente superarlo), ma il pareggio **mette in salvo** il contrattaccante.
+- **Totale pari** → **muoiono entrambe le Entità** (regola del pareggio, §6.3): attaccante e contrattaccante vanno nell'Abisso — salvo **Stasi** (§8.1) per il contrattaccante che ce l'ha.
 - **Totale inferiore** → il contrattaccante **muore** e va nell'Abisso, come in un blocco normale.
 
 *Esempio: attaccante con Potenza 4; bloccante con Potenza 3 e Contrattacco +2 sceglie di contrattaccare → 3+2 = 5 > 4: l'attaccante muore, il bloccante sopravvive ma resta coperto.*
@@ -309,6 +294,8 @@ Risoluzione del contrattacco (totale = Potenza + N contro Potenza dell'attaccant
 - **Tappata** (per aver **attaccato o bloccato**): un'Entità tappata **non può né attaccare, né bloccare, né essere ritirata** (§6.2). Si **stappa all'inizio del turno successivo del proprietario**. La differenza pratica sta nel momento in cui scatta il tap:
   - **tap in difesa** (per aver bloccato, nel turno avversario): il turno del proprietario arriva subito dopo, quindi l'Entità si stappa immediatamente e non perde nulla — il tap segna solo che ha già bloccato in quel turno di difesa;
   - **tap in attacco** (per aver attaccato, nel proprio turno): l'Entità resta tappata per **tutto il turno avversario che segue** e quindi **non può bloccare** — in sostanza, attaccare costa la difesa.
+
+  Un'Entità tappata **continua ad abilitare le sue Materie** (§7): il tap la impegna in combattimento, non ne spegne l'abilitazione. Le Materie dei tipi che abilita restano quindi giocabili anche mentre è tappata.
 - **Coperta** (per aver contrattaccato): l'Entità coperta **non può fare nulla** finché è coperta, ed è **intoccabile in senso totale**, da entrambi i giocatori. Per il proprietario: non può ricevere Oggetti (quello già assegnato le rimane) né essere **ritirata** (§6.2). Per chiunque: **non può essere bersagliata né subire effetti o Materie di alcun tipo, nemmeno avversari** — finché è coperta è come se non fosse in campo (continua però a occupare il suo slot del Fronte), salvo diversa indicazione sulle carte (§1.1). A differenza della tappata (§8.1), **non abilita le sue Materie**: l'abilitazione è sospesa per tutta la copertura. Se era l'unica carta ad abilitare un tipo, l'accesso a quel tipo si perde, ma le Materie permanenti di quel tipo **non decadono**: si **coprono anche loro** — restano sul campo sospese, con l'effetto spento, come se non fossero in campo — e si **riattivano automaticamente quando l'Entità si scopre**. Se però l'Entità coperta lascia il campo prima di scoprirsi, l'abilitazione è persa per davvero e le permanenti coperte vanno nell'Abisso (§7.2). La copertura dura **un giro completo**:
 
   1. *Turno avversario (T):* l'Entità contrattacca e viene **coperta**.
@@ -330,8 +317,8 @@ Le **Materie** sono le carte magia/evento del gioco. Non si possono giocare libe
 - Le Materie **hanno un costo di Flusso**, come le Entità.
 - Ogni Entità riporta i **tipi di Materia che abilita** (§3.1). Dal momento in cui l'Entità entra in campo, il suo proprietario può giocare le carte Materia dei tipi abilitati.
 - Anche il **Rubyfront** ha le sue Materie abilitanti, ma valgono **solo quando è schierato in campo**: finché resta in Zona di Richiamo non abilita nulla (§3.1).
-- L'abilitazione va **mantenuta**: se l'ultima carta in campo che abilitava un tipo di Materia lascia il campo **o viene coperta** (§6.3 — l'Entità coperta non abilita), il giocatore **perde immediatamente l'accesso** a quel tipo. L'abilitazione si valuta sempre **al grado richiesto** (§7.1): per le carte di secondo grado serve un abilitatore fino al secondo grado, sia per giocarle che per mantenerle.
-- **Attribuzione:** se **più carte in campo** abilitano lo stesso tipo di Materia (al grado richiesto), il giocatore **sceglie a quale carta abilitante attribuire** la Materia che gioca. La scelta è rilevante ad esempio per Furia (§8.1): attribuendo la Materia a un abilitatore senza Furia, il tiro non serve.
+- L'abilitazione va **mantenuta**: se l'ultima carta in campo che abilitava un tipo di Materia lascia il campo **o viene coperta** (§6.3 — l'Entità coperta non abilita; quella **tappata** invece **abilita normalmente**), il giocatore **perde immediatamente l'accesso** a quel tipo. L'abilitazione si valuta sempre **al grado richiesto** (§7.1): per le carte di secondo grado serve un abilitatore fino al secondo grado, sia per giocarle che per mantenerle.
+- **Attribuzione:** se **più carte in campo** abilitano lo stesso tipo di Materia (al grado richiesto), il giocatore **sceglie a quale carta abilitante attribuire** la Materia che gioca. La scelta può essere rilevante quando un effetto fa riferimento alla carta abilitante. (La Furia **non** rende più rilevante l'attribuzione: le Materie non sono soggette al suo tiro, §8.1.)
 
 *Esempio: gioco un'Entità che ha tra le Materie abilitate la Materia Dinamica → da quel momento posso giocare carte di tipo Materia Dinamica.*
 
@@ -382,12 +369,12 @@ Ogni carta Materia ha una **descrizione con un effetto**. In base alla dicitura 
 - Identica alla normale: si gioca in **Fase di Preparazione**.
 - L'effetto è **permanente**: la carta **resta in gioco** e non va nell'Abisso.
 - **Non occupa uno slot del Fronte:** sta **dietro** i 5 slot delle Entità (§5) e non conta nel limite; non c'è un limite al numero di permanenti in gioco.
-- **Decade insieme all'abilitazione:** se il giocatore perde l'accesso al tipo di Materia **al grado della permanente** (l'ultima carta che abilita quel tipo al grado richiesto lascia il campo), la permanente va nell'**Abisso**. Un abilitatore di grado inferiore **non basta**: una permanente di secondo grado decade se in campo resta solo un abilitatore di primo grado — coerente con la catena di risposta, dove l'abilitazione si ricontrolla sempre "al grado richiesto". **Eccezione — copertura:** se l'accesso si perde solo perché l'ultima carta abilitante è stata **coperta** (§6.3), la permanente non va nell'Abisso: **si copre anche lei** — resta sul campo con l'effetto sospeso, come se non fosse in campo — e si **riattiva** quando l'abilitatore si scopre. Se l'abilitatore lascia il campo mentre è coperto, la permanente coperta va nell'Abisso. **Attenzione:** vale anche per il Rubyfront — quando torna in Zona di Richiamo (immediatamente se perde PV per una fonte avversaria, §3.1, o per scelta del proprietario) smette di abilitare le sue Materie: le permanenti dei tipi che **solo lui** abilitava (tipicamente la Distruttiva) vanno nell'Abisso. È un rischio da mettere in conto quando lo si schiera.
+- **Decade insieme all'abilitazione:** se il giocatore perde l'accesso al tipo di Materia **al grado della permanente** (l'ultima carta che abilita quel tipo al grado richiesto lascia il campo), la permanente va nell'**Abisso**. Un abilitatore di grado inferiore **non basta**: una permanente di secondo grado decade se in campo resta solo un abilitatore di primo grado — coerente con la catena di risposta, dove l'abilitazione si ricontrolla sempre "al grado richiesto". **Eccezione — copertura:** se l'accesso si perde solo perché l'ultima carta abilitante è stata **coperta** (§6.3), la permanente non va nell'Abisso: **si copre anche lei** — resta sul campo con l'effetto sospeso, come se non fosse in campo — e si **riattiva** quando l'abilitatore si scopre. Se l'abilitatore lascia il campo mentre è coperto, la permanente coperta va nell'Abisso. **Vale anche per il Rubyfront** — che però lascia il campo solo in due modi: con il **richiamo volontario** in Zona di Richiamo (§3.1 — le perdite di PV non lo fanno mai tornare) smette di abilitare le sue Materie, e le permanenti dei tipi che **solo lui** abilitava (tipicamente la Distruttiva) vanno nell'Abisso; con il **flip verso il Nexus**, decadono le permanenti dei tipi che la faccia del Nexus non abilita più (§3.1, "Il Nexus").
 - Se possa essere distrutta o rimossa da effetti **dipende dalle carte**.
 
 #### Materia Reattiva
 
-- Si gioca **solo in Fase di Fronte**. Possono essere potenziamenti ad attacchi e difese, ma anche **effetti particolari di qualsiasi natura**. Una Reattiva **non è mai un "attacco"** nel senso delle regole di combattimento (§6.3): l'eventuale danno che infligge è danno da effetto (che per il Rubyfront in campo conta comunque come perdita di PV — se la Reattiva è dell'avversario, con ritorno immediato in Zona di Richiamo, §3.1).
+- Si gioca **solo in Fase di Fronte**. Possono essere potenziamenti ad attacchi e difese, ma anche **effetti particolari di qualsiasi natura**. Una Reattiva **non è mai un "attacco"** nel senso delle regole di combattimento (§6.3): l'eventuale danno che infligge è danno da effetto (che per il Rubyfront in campo conta comunque come perdita di PV; il Rubyfront la subisce e resta in campo, §3.1).
 - **Nessuno può intervenire in qualsiasi momento a piacere:** le Reattive si giocano solo nelle finestre previste.
 - **Finestra dell'avversario (Pre-Fronte):** all'apertura della Fase di Fronte, prima della dichiarazione d'attacco, l'avversario può giocare Reattive (§6.3).
 - **Finestra del giocatore di turno:** dopo la Pre-Fronte e prima di dichiarare Fronte pronto, il giocatore di turno può giocare Reattive.
@@ -401,7 +388,7 @@ Ogni carta Materia ha una **descrizione con un effetto**. In base alla dicitura 
 - Si può rispondere **solo con Materie Reattive**.
 - Chi ha lanciato può a sua volta **controrispondere**, e così via: la catena prosegue finché i giocatori possono e vogliono aggiungere Reattive. L'alternanza è **stretta**: dopo ogni Reattiva può giocare solo l'**avversario** di chi l'ha lanciata — non si possono mettere due proprie Reattive di fila sulla stessa catena.
 - Quando il giocatore a cui tocca rispondere **passa**, la catena **si risolve in ordine inverso**: l'**ultima** Materia giocata si risolve **per prima**, poi via via indietro fino alla prima. Risolta la catena, chi ne ha la finestra può eventualmente iniziarne una nuova.
-- **La catena è atomica:** dal primo lancio alla risoluzione completa non si compiono altre azioni. In particolare, **il movimento del Rubyfront e il flip verso il Nexus non possono avvenire a metà catena** (§3.1). Restano invece possibili in catena: l'uso del **Gettone Flusso** (§3.2, serve proprio a pagare le Reattive) e gli eventi **automatici**, come il ritorno immediato del Rubyfront che perde PV per una Reattiva avversaria risolta (§3.1).
+- **La catena è atomica:** dal primo lancio alla risoluzione completa non si compiono altre azioni. In particolare, **il movimento del Rubyfront (schieramento e richiamo volontario) e il flip verso il Nexus non possono avvenire a metà catena** (§3.1). Resta invece possibile in catena l'uso del **Gettone Flusso** (§3.2, serve proprio a pagare le Reattive).
 - **L'abilitazione si ricontrolla alla risoluzione:** se, quando una Reattiva in catena deve risolversi, il suo giocatore non ha più in campo una carta che abiliti quel tipo al grado richiesto (es. una risposta ha eliminato l'abilitatore), la Reattiva **svanisce** — va nell'Abisso senza alcun effetto, e il Flusso resta speso.
 
 ## 8. Abilità ed effetti delle carte
@@ -416,23 +403,22 @@ L'**abilità principale** del Rubyfront funziona allo stesso modo: è una parola
 
 ##### Furia
 
-Una carta con **Furia** non può essere **controllata direttamente** dal suo proprietario. **Furia è esclusiva del Rubyfront e del Nexus**: compare solo come loro abilità principale — le Entità **non possono averla**.
+Una carta con **Furia** è instabile: il suo potere non risponde del tutto al proprietario. **Furia è esclusiva del Rubyfront e del Nexus**: compare solo come loro abilità principale — le Entità **non possono averla**.
 
-**Prima di qualsiasi azione** che coinvolga la carta con Furia, il proprietario **lancia un d20**. Le azioni soggette al tiro sono: usare una Materia **attribuita** alla carta con Furia (§7: se un'altra carta senza Furia abilita lo stesso tipo al grado richiesto, il giocatore può attribuire la Materia a quella ed evitare il tiro) e usare un'**abilità speciale**.
+**La Furia è legata alle abilità.** Prima di usare un'**abilità speciale** della carta con Furia, il proprietario **lancia un d20**:
 
-**Il movimento del Rubyfront non è mai soggetto al tiro:** schierarsi e tornare in Zona di Richiamo (volontariamente o automaticamente dopo un colpo dell'avversario) avvengono sempre senza d20. **Nemmeno il flip verso il Nexus richiede il tiro** (§3.1): girare la carta non è un'azione soggetta a Furia.
+- con **12 o più**, l'abilità si usa **senza conseguenze**;
+- con **11 o meno**, la Furia si ritorce contro il proprietario: il Rubyfront (o il Nexus) **perde 1 PV**, ma **l'abilità si usa comunque** e si risolve normalmente.
 
-Esito del tiro:
+Il fallimento del tiro **non annulla più nulla**: è un sovrapprezzo — 1 PV in aggiunta al normale costo in PV dell'abilità. Attenzione al limite dei PV (§3.1): se la perdita del fallimento porta i PV a **0**, si perde **immediatamente** la partita e l'abilità non si risolve.
 
-- con **12 o più**, l'azione **va a buon fine**;
-- con **11 o meno**, l'azione **fallisce** e si perde il **valore X indicato sulla carta** accanto a Furia.
+**Le Materie non sono soggette alla Furia:** usare una Materia attribuita alla carta con Furia — **compresa la Materia Distruttiva**, esclusiva del Rubyfront (§7.1) — **non richiede alcun tiro**. Il d20 riguarda **solo le abilità speciali**.
 
-**Al fallimento la Furia si ritorce contro il proprietario:** l'azione salta, i costi già pagati restano pagati e il Rubyfront (o il Nexus) perde gli X PV del fallimento — perdita **autoinflitta**: se il Rubyfront è in campo, **non** fa scattare il ritorno in Zona di Richiamo (§3.1), resta in campo. Nel dettaglio:
-
-- **Materia fallita:** va nell'**Abisso** e il Flusso resta speso;
-- **abilità speciale fallita:** non si risolve; il costo in PV resta pagato, oltre alla perdita di X PV per il fallimento.
+**Il movimento del Rubyfront non è mai soggetto al tiro:** schierarsi e il richiamo volontario in Zona di Richiamo (§3.1) avvengono sempre senza d20. **Nemmeno il flip verso il Nexus richiede il tiro** (§3.1): girare la carta non è un'azione soggetta a Furia.
 
 Le Materie **avversarie** che bersagliano una carta con Furia funzionano normalmente, senza tiro: il d20 riguarda solo le azioni del proprietario.
+
+> **Nota di transizione:** il valore `X` stampato accanto a Furia su alcune carte apparteneva alla vecchia regola (perdita variabile e azione annullata al fallimento) e **non si applica più**: la perdita è sempre di **1 PV** e l'azione riesce comunque. I testi delle carte verranno aggiornati.
 
 ##### Slancio
 
@@ -442,17 +428,19 @@ Lo Slancio riguarda **solo l'attacco**: non esenta l'Entità dalle altre regole 
 
 ##### Stasi
 
-Quando un'Entità con **Stasi** blocca e **dovrebbe morire** (Potenza inferiore all'attaccante), invece di morire **rimane sul campo, permanentemente tappata**: non si stapperà mai più e non potrà più né attaccare né bloccare. Continua a occupare uno slot del Fronte, ma essendo ancora in campo **continua ad abilitare le sue Materie**.
+Quando un'Entità con **Stasi** blocca e **dovrebbe morire** — Potenza **inferiore o pari** a quella dell'attaccante (§6.3: nel pareggio muoiono entrambe) — invece di morire **rimane sul campo, permanentemente tappata**: non si stapperà mai più e non potrà più né attaccare né bloccare. Continua a occupare uno slot del Fronte, ma essendo ancora in campo **continua ad abilitare le sue Materie**.
 
-Stasi salva anche dal **contrattacco fallito**: se l'Entità contrattacca e il suo totale resta inferiore alla Potenza dell'attaccante, invece di morire finisce anch'essa **permanentemente tappata** (lo stato di stasi sostituisce la copertura).
+Stasi salva anche dal **contrattacco non riuscito**: se l'Entità contrattacca e il suo totale **non supera** la Potenza dell'attaccante (inferiore o pari), invece di morire finisce anch'essa **permanentemente tappata** (lo stato di stasi sostituisce la copertura).
 
-Un'Entità in stasi è a tutti gli effetti *tappata* (non coperta), e come ogni tappata **non può essere ritirata** (§6.2): lo slot resta occupato finché l'Entità non viene **stappata da un effetto** (a quel punto torna un'Entità normale) o non lascia il campo in altro modo. La stasi è un salvataggio che si paga in spazio.
+Nel **pareggio**, Stasi salva **solo l'Entità che ce l'ha**: l'altra Entità del confronto muore normalmente.
 
-Stasi protegge **solo in difesa** (blocco o contrattacco): un'Entità con Stasi che muore **attaccando** (es. contro un bloccante con Vendetta) muore normalmente.
+Un'Entità in stasi è a tutti gli effetti *tappata* (non coperta), e come ogni tappata **non può essere ritirata** (§6.2) ma **continua ad abilitare le sue Materie**: lo slot resta occupato finché l'Entità non viene **stappata da un effetto** (a quel punto torna un'Entità normale) o non lascia il campo in altro modo. La stasi è un salvataggio che si paga in spazio.
+
+Stasi protegge **solo in difesa** (blocco o contrattacco): un'Entità con Stasi che muore **attaccando** — contro un bloccante con Vendetta o in un pareggio (§6.3) — muore normalmente.
 
 ##### Vendetta
 
-Quando un'Entità con **Vendetta** blocca e la sua **Potenza supera** quella dell'attaccante, **l'attaccante muore** anche senza contrattacco. (Nel blocco normale, l'attaccante non morirebbe mai — §6.3.)
+Quando un'Entità con **Vendetta** blocca e la sua **Potenza supera** quella dell'attaccante, **l'attaccante muore** anche senza contrattacco. (Nel blocco normale, l'attaccante muore solo nel pareggio — §6.3.)
 
 L'Entità con Vendetta segue per il resto le normali regole di blocco: viene tappata, e non subisce la copertura (non sta contrattaccando).
 
@@ -462,7 +450,7 @@ Gli **effetti** sono il testo nella descrizione della carta (es. l'effetto che s
 
 #### Danno ed Entità
 
-**Il danno esiste solo per Rubyfront e Nexus:** sono le uniche carte con PV, e subire danno significa perdere PV (con ritorno immediato in Zona di Richiamo se il Rubyfront è in campo e la perdita è inflitta dall'avversario, §3.1). **Le Entità non subiscono mai danno:** un effetto che "infligge N danni" non può bersagliarle — i suoi bersagli possibili sono solo Rubyfront e Nexus (propri o avversari, per estensione massima §1.2). Le carte che agiscono sulle Entità usano diciture esplicite: "distruggi...", riduzioni di Potenza, ecc.
+**Il danno esiste solo per Rubyfront e Nexus:** sono le uniche carte con PV, e subire danno significa perdere PV (il Rubyfront in campo subisce la perdita e resta in campo, §3.1). **Le Entità non subiscono mai danno:** un effetto che "infligge N danni" non può bersagliarle — i suoi bersagli possibili sono solo Rubyfront e Nexus (propri o avversari, per estensione massima §1.2). Le carte che agiscono sulle Entità usano diciture esplicite: "distruggi...", riduzioni di Potenza, ecc.
 
 #### Modifiche alla Potenza
 
@@ -477,7 +465,7 @@ Quando un evento innesca **più effetti nello stesso momento**, si risolvono in 
 
 L'ordine vale anche tra carte di giocatori diversi: fa fede il momento di discesa in campo, che è unico e condiviso. Nessun giocatore sceglie mai l'ordine: è sempre determinato dallo stato del campo.
 
-Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfront rischierato dopo un ritorno in Zona di Richiamo conta come una carta **appena arrivata** (la più giovane), non mantiene l'età del primo schieramento.
+Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfront rischierato dopo un richiamo volontario (§3.1) conta come una carta **appena arrivata** (la più giovane), non mantiene l'età del primo schieramento.
 
 **Entrate simultanee** (caso raro): se un unico effetto mette in campo più carte contemporaneamente, entrano nello stesso momento ma **il giocatore che controlla l'effetto decide quale entra "prima"** — anche per le eventuali carte avversarie — e quell'ordine ne fissa l'età ai fini di questa regola.
 
@@ -517,20 +505,20 @@ Il pareggio esiste in due soli casi:
 - Massimo **3 copie** della stessa carta nel mazzo — **una sola** se la carta è **Unica** (§3.1).
 - Massimo **20 Flussi** (§3.2). Il Gettone Flusso è fuori dal limite: è un punto a parte.
 - Costo **minimo 1 Flusso** per qualsiasi carta (§3.2): non esistono carte gratuite.
-- Costo di schieramento con base a **dado**: si tira solo con Flusso disponibile **almeno pari alle facce del dado più l'incremento accumulato**; il dado non supera il **d20** (§3.1).
+- Costo di schieramento a **dado**: si tira solo con Flusso disponibile **almeno pari alle facce del dado**; il dado non supera il **d20** (§3.1).
 
 ## 10. Glossario
 
 - **Entità** — carta con una razza (Umani o Auros). È il termine ufficiale: non si usa "creatura".
-- **Rubyfront** — la bestia di ogni giocatore; parte nella Zona di Richiamo. Portare a zero i suoi PV (o distruggerne il Nexus) fa perdere il suo proprietario.
+- **Rubyfront** — la bestia di ogni giocatore; parte nella Zona di Richiamo. Una volta schierato le perdite di PV non lo fanno mai tornare indietro: torna in Zona di Richiamo solo per **richiamo volontario** del proprietario (§3.1). Portare a zero i suoi PV (o distruggerne il Nexus) fa perdere il suo proprietario.
 - **Flusso** — la risorsa per giocare le carte. Cresce +1 a turno, si ricarica a inizio turno, massimo 20.
 - **Gettone Flusso** — gettone monouso da +1 Flusso dato a chi non inizia la partita, utilizzabile in qualsiasi momento; è fuori dal limite dei 20 Flussi.
-- **Costo di schieramento** — quanto Flusso serve per portare il Rubyfront dalla Zona di Richiamo al campo (§3.1). Si legge come **base + incremento**: la base è un numero fisso o un **dado** da tirare, l'incremento `+X` è opzionale ed è la parte che fa **crescere** il costo a ogni rischieramento. Con base a dado si tira solo se il Flusso disponibile copre facce del dado più incremento accumulato.
+- **Costo di schieramento** — quanto Flusso serve per portare il Rubyfront dalla Zona di Richiamo al campo (§3.1): un numero fisso o un **dado** da tirare. Non cresce mai: si paga identico a ogni schieramento (dopo un richiamo volontario, con un dado si tira di nuovo). Il tiro è permesso solo se il Flusso disponibile copre le facce del dado.
 - **Fronte** — il campo di battaglia: 5 slot per le Entità; il Rubyfront schierato sta davanti agli slot, le Materie in gioco dietro.
-- **Zona di Richiamo** — zona in cui parte il Rubyfront.
+- **Zona di Richiamo** — zona in cui parte il Rubyfront; vi torna solo per richiamo volontario del proprietario, mai per una perdita di PV (§3.1).
 - **Unica** — classificazione stampata sulla carta (il simbolo dell'Unica): il mazzo ne ammette al massimo una copia (§3.1).
 - **Abisso** — la zona delle carte morte o consumate: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti di Entità morte, carte scartate dalla mano. È pubblico.
-- **Zona di Requiem** — la zona delle carte ancora "vive" uscite dal gioco: le Entità ritirate (§6.2) o mandate lì da effetti, e i loro Oggetti. Funziona come l'Abisso, ma distingue ciò che non è mai morto; gli effetti che nominano una delle due zone non toccano l'altra.
+- **Zona di Ritiro** — la zona delle carte ancora "vive" uscite dal gioco: le Entità ritirate (§6.2) o mandate lì da effetti, e i loro Oggetti. Funziona come l'Abisso, ma distingue ciò che non è mai morto; gli effetti che nominano una delle due zone non toccano l'altra.
 - **Potenza** — statistica unica di un'Entità. Modificabile da effetti, non scende mai sotto 0; a Potenza 0 l'Entità resta in campo.
 - **Danno** — perdita di PV: possono subirlo solo Rubyfront e Nexus. Le Entità non subiscono mai danno (le carte che le colpiscono usano diciture esplicite come "distruggi").
 - **Materia** — carta magia/evento, giocabile solo se un tipo corrispondente è abilitato da una carta in campo. Tre comportamenti: normale, permanente, Reattiva.
@@ -538,15 +526,15 @@ Il pareggio esiste in due soli casi:
 - **Pre-Fronte** — finestra a inizio Fase di Fronte in cui l'avversario può giocare Materie Reattive prima della dichiarazione d'attacco.
 - **Oggetto** — carta con un costo di Flusso che si assegna a un'Entità (max 1 per Entità), pagandolo in Fase di Preparazione.
 - **Abilità** — parola chiave con regole predefinite da questo manuale (vedi §8.1).
-- **Furia** — abilità esclusiva del Rubyfront/Nexus: prima di ogni sua azione (Materie attribuite, abilità speciali — movimento e flip esclusi) serve un d20 ≥12; al fallimento l'azione salta e si perde il valore X indicato sulla carta (perdita autoinflitta: nessun ritorno in Zona di Richiamo).
+- **Furia** — abilità esclusiva del Rubyfront/Nexus, legata alle **abilità speciali**: prima di usarne una serve un d20 ≥12; con 11 o meno si perde **1 PV** ma l'abilità si usa comunque. Le Materie (Distruttiva compresa), lo schieramento e il flip non richiedono il tiro (§8.1).
 - **Slancio** — abilità: l'Entità può attaccare già nel turno in cui entra in campo (ignora l'attesa di evocazione). Riguarda solo l'attacco: non permette di essere ritirata nel turno d'ingresso.
-- **Stasi** — abilità: se bloccando dovrebbe morire, resta invece sul campo permanentemente tappata. Come ogni tappata **non è ritirabile** (§6.2): occupa lo slot finché un effetto non la stappa o non lascia il campo.
+- **Stasi** — abilità: se bloccando o contrattaccando dovrebbe morire (confronto perso **o pari**, §6.3), resta invece sul campo permanentemente tappata. Come ogni tappata **non è ritirabile** (§6.2) ma continua ad abilitare le sue Materie: occupa lo slot finché un effetto non la stappa o non lascia il campo.
 - **Vendetta** — abilità: se blocca con Potenza superiore all'attaccante, l'attaccante muore anche senza contrattacco.
 - **Attesa di evocazione** — un'Entità non può attaccare nel turno in cui entra in campo.
-- **Ritiro** — mandare volontariamente una propria Entità **stappata** dal Fronte alla Zona di Requiem, in Fase di Preparazione, gratis e senza limite di numero, per liberare slot o solo per toglierla di mezzo. Non si ritira un'Entità entrata in campo nello stesso turno, né una **tappata**, **in stasi** o **coperta** (§6.2). **Non è una morte** (§6.2).
-- **Morire / essere distrutta** — andare nell'Abisso dal campo, per una battaglia persa o per un effetto di distruzione. L'Entità **ritirata** (§6.2) **non muore**: lascia il campo e va in Zona di Requiem senza innescare effetti di morte.
-- **Contrattacco +N** — statistica di alcune Entità: quando bloccano possono sommare +N alla Potenza; se così superano l'attaccante, questo muore. Chi contrattacca viene coperto.
-- **Tappata** — stato di un'Entità che ha attaccato o bloccato: non può né attaccare, né bloccare, né essere **ritirata** (§6.2); si stappa a inizio del turno successivo del proprietario.
+- **Ritiro** — mandare volontariamente una propria Entità **stappata** dal Fronte alla Zona di Ritiro, in Fase di Preparazione, gratis e senza limite di numero, per liberare slot o solo per toglierla di mezzo. Non si ritira un'Entità entrata in campo nello stesso turno, né una **tappata**, **in stasi** o **coperta** (§6.2). **Non è una morte** (§6.2).
+- **Morire / essere distrutta** — andare nell'Abisso dal campo, per una battaglia persa o per un effetto di distruzione. L'Entità **ritirata** (§6.2) **non muore**: lascia il campo e va in Zona di Ritiro senza innescare effetti di morte.
+- **Contrattacco +N** — statistica di alcune Entità: quando bloccano possono sommare +N alla Potenza; se così superano l'attaccante, questo muore; a totale pari muoiono entrambe (§6.3). Chi contrattacca viene coperto.
+- **Tappata** — stato di un'Entità che ha attaccato o bloccato: non può né attaccare, né bloccare, né essere **ritirata** (§6.2), ma **continua ad abilitare le sue Materie** (§7); si stappa a inizio del turno successivo del proprietario.
 - **Coperta** — stato di un'Entità che ha contrattaccato: non può fare nulla, è intoccabile da qualsiasi effetto o Materia, anche avversari (niente Oggetti né Ritiro; l'Oggetto già assegnato le rimane) e non abilita le sue Materie, per un giro completo; poi si scopre.
 - **Fronte pronto** — dichiarazione con cui il giocatore di turno annuncia che attacca o passa.
 - **Nexus** — la seconda faccia della carta Rubyfront, sua evoluzione: si gioca flippando il Rubyfront in campo (requisiti sulla carta), recupera PV, resta in campo per sempre. Distruggerlo (PV a 0) fa perdere il proprietario.

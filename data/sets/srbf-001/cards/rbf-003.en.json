@@ -19,7 +19,7 @@
     "name": "Absence",
     "effect": {
       "name": "Effect",
-      "text": "Choose an Entity and put it into its owner's Requiem Zone."
+      "text": "Choose an Entity and put it into its owner's Retire Zone."
     },
     "flavor": "A cold silence, where something used to be."
   },

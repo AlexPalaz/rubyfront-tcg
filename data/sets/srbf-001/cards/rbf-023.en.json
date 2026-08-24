@@ -1,7 +1,7 @@
 {
   "name": "Rubyfront of the Wandering Wood",
   "typeLabel": "Double-faced Rubyfront",
-  "summary": "The beast of the walking forest: it watches over its Auros in stasis, wakes them and calls them back from the Requiem.",
+  "summary": "The beast of the walking forest: it watches over its Auros in stasis, wakes them and calls them back from the Retire Zone.",
   "ui": {
     "faceA": "Face A — Rubyfront",
     "faceB": "Face B — Nexus"
@@ -11,7 +11,7 @@
     "hp": "HP",
     "nexusRequirement": {
       "label": "Nexus requirement",
-      "text": "Control at least 4 Auros and, this turn, untap one of your Auros from Stasis. Then move it to the Requiem: it can never return to the field"
+      "text": "You control at least 4 Auros Entities and this turn you untapped one of your Auros from Stasis. Put that Auros into your Retire Zone (it can never return to the field), then flip."
     }
   },
   "matters": {
@@ -42,11 +42,11 @@
       },
       "frondRecall": {
         "name": "Recall through the Boughs",
-        "text": "choose an Auros Entity in your Requiem Zone and add it to your hand."
+        "text": "choose an Auros Entity in your Retire Zone and add it to your hand."
       },
       "phaseAway": {
         "name": "Phase Away",
-        "text": "return an Entity the opponent controls to its owner's hand."
+        "text": "return an opposing Entity to its owner's hand."
       }
     },
     "flavor": "You do not find the wood. The wood decides to find you."
@@ -66,11 +66,11 @@
       },
       "foldingTide": {
         "name": "Folding Tide",
-        "text": "return up to 2 Entities the opponent controls to their owners' hands."
+        "text": "return up to 2 opposing Entities to their owners' hands."
       },
       "woodCall": {
         "name": "Call of the Wood",
-        "text": "put an Auros Entity with Flux cost 3 or less from your Requiem Zone onto your Front."
+        "text": "put an Auros Entity with Flux cost 3 or less from your Retire Zone onto your Front."
       }
     },
     "flavor": "Here space folds upon itself, and what sleeps awakens."

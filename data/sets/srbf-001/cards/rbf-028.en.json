@@ -18,7 +18,7 @@
     "name": "The Wood Remembers",
     "effect": {
       "name": "Effect",
-      "text": "Put an Entity you control into your Requiem Zone, even if it is in Stasis. Then choose one: put onto your Front an Entity from your Requiem Zone whose Flux cost is exactly 1 higher than that of the Entity put into the Requiem this way; or search your deck for an Entity whose Flux cost is exactly 1 lower, put it onto your Front, then shuffle your deck."
+      "text": "Put an Entity you control into your Retire Zone, even if it is in Stasis. Then choose one: put onto your Front an Entity from your Retire Zone whose Flux cost is exactly 1 higher than that of the Entity put into the Retire Zone this way; or search your deck for an Entity whose Flux cost is exactly 1 lower, put it onto your Front, then shuffle your deck."
     },
     "flavor": "Every tree is a name. Every name returns, sooner or later."
   }

@@ -50,12 +50,12 @@ Due cose la distinguono da qualsiasi Rubyfront precedente del set:
 ## 3. Il Nexus: attaccare in tre, e perderne uno
 
 **Requisito: in questo turno hai attaccato con almeno 3 Entità Umane. Alla fine
-del combattimento manda una di quelle Entità nella Zona di Requiem del suo
+del combattimento manda una di quelle Entità nella Zona di Ritiro del suo
 proprietario, poi flippa.**
 
 Il flip si guadagna sul Fronte, non in mano: nessuna carta-chiave da pescare.
 Il costo è un corpo — scegli tu quale, tra le attaccanti ancora in campo e dopo
-che i danni sono stati risolti — e va in Requiem, non nell'Abisso: non muore.
+che i danni sono stati risolti — e va in Zona di Ritiro, non nell'Abisso: non muore.
 La decisione ricorrente è *quando* pagare: il Nexus entra subito ma le Entità
 hanno già attaccato, quindi rende dal turno dopo (più il recupero di 5 PV).
 
@@ -87,7 +87,7 @@ Secondo Impeto e Assenza, finché non arriva il Nexus.
 | T4 | 4 | **Prima Lama** o Archivista + drop a 1: il Fronte si allarga |
 | T5 | 5 | Scatto/Collera e il quarto corpo; si attacca già in tre |
 | T6 | 6 | **Rubifronte del Patto** (d6): Vendicatrice e Vigorcintura salgono, Comando dal Fronte dà Slancio all'Umano giocato dalla cima |
-| T7+ | 7+ | Attacchi con 3 Umani, a fine combattimento ne mandi uno in Requiem e **flippi** |
+| T7+ | 7+ | Attacchi con 3 Umani, a fine combattimento ne mandi uno in Zona di Ritiro e **flippi** |
 
 Il Guardiano della Paratia entra tappato, quindi il turno in cui scende non
 difende né attacca: è il prezzo di un 2 di Potenza a 1 Flusso che abilita la

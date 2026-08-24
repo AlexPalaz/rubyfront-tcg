@@ -8,7 +8,7 @@
     "Rules source: docs/MANUALE.md (Italian). Card terms map as:",
     "Flux=Flusso, HP=PV, Fury=Furia, Entity=Entita, Power=Potenza, Matter=Materia,",
     "Nexus=Nexus, Recall Zone=Zona di Richiamo, Front=Fronte, Abyss=Abisso,",
-    "Requiem Zone=Zona di Requiem, Retire (to Requiem)=Ritiro (in Requiem)."
+    "Retire Zone=Zona di Ritiro, Retire=Ritiro."
   ],
   "keyword": {
     "_note": "Keyword abilities with rules predefined by the manual (MANUALE.md §8.1)",
@@ -83,13 +83,13 @@
     ]
   },
   "zone": {
-    "_note": "Game zones (MANUALE.md §5). Ownership is expressed with 'owner', never baked into the zone name. 'abyss' holds dead/consumed cards, 'requiem' holds cards that left the game alive (retired Entities and their Objects). Removed-from-game is NOT a zone (MANUALE.md §10)",
+    "_note": "Game zones (MANUALE.md §5). Ownership is expressed with 'owner', never baked into the zone name. 'abyss' holds dead/consumed cards, 'retire' holds cards that left the game alive (retired Entities and their Objects). Removed-from-game is NOT a zone (MANUALE.md §10)",
     "values": [
       "deck",
       "hand",
       "front",
       "abyss",
-      "requiem",
+      "retire",
       "recall"
     ]
   },
