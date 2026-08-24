@@ -1,0 +1,29 @@
+{
+  "name": "Intangible Cloud",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "A permanent cloud that makes blocks fail on a d6.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
+  },
+  "face": {
+    "name": "Intangible Cloud",
+    "effect": {
+      "name": "Effect",
+      "text": "Choose an Entity you control. As long as the Cloud and that Entity remain on the field, whenever your opponent declares a block against that Entity, roll a d6: on 1–3 the block fails and the attack stays unblocked; on 4–6 the block succeeds normally."
+    },
+    "flavor": "Like holding fog with your fingers."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

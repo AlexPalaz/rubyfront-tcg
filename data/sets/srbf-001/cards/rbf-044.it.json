@@ -1,0 +1,26 @@
+{
+  "name": "Gyn, Recluta del Campo",
+  "typeLabel": "Entità: Auros",
+  "summary": "Un corpo da un Flusso che cresce appena gli metti in mano qualcosa.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Gyn, Recluta del Campo",
+    "grip": {
+      "trigger": "Effetto",
+      "text": "Finché ha un Oggetto assegnato, Gyn prende +1 Potenza."
+    },
+    "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
+  }
+}

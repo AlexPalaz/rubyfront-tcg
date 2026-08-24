@@ -1,0 +1,29 @@
+{
+  "name": "Assalto Ferale",
+  "typeLabel": "Materia Distruttiva II",
+  "summary": "Il finisher: danni pari agli Oggetti schierati.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
+  },
+  "face": {
+    "name": "Assalto Ferale",
+    "effect": {
+      "name": "Effetto",
+      "text": "Il Rubyfront avversario perde PV pari al numero di Oggetti assegnati alle Entità che controlli."
+    },
+    "flavor": "Ogni arma impugnata è una ferita promessa."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 2° grado",
+    "destructiveAria": "Distruttiva"
+  }
+}

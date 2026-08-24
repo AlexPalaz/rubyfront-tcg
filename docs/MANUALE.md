@@ -64,12 +64,12 @@ Le **Materie** sono le carte magia/evento del gioco (vedi §7).
 Gli **Oggetti** sono carte che si **assegnano a un'Entità**:
 
 - **hanno un costo di Flusso**, come Entità e Materie: si paga al momento dell'assegnazione (§6.2), e come ogni altra carta non scende sotto **1** (§3.2);
-- ogni Entità può avere **al massimo un Oggetto** assegnato;
+- **non c'è limite** al numero di Oggetti assegnabili alla stessa Entità: il solo vincolo è il Flusso, salvo restrizioni indicate sulle carte (es. «a un'Entità senza Oggetto»);
 - si assegnano **solo alle proprie Entità**, salvo diversa indicazione sulla carta;
-- **non si assegnano a un'Entità coperta** (§6.3): l'Entità coperta è intoccabile anche per il proprietario. L'Oggetto che aveva **già** assegnato, però, le rimane;
+- **non si assegnano a un'Entità coperta** (§6.3): l'Entità coperta è intoccabile anche per il proprietario. Gli Oggetti che aveva **già** assegnati, però, le rimangono;
 - **non si assegnano al Rubyfront né al Nexus** (non sono Entità), salvo diversa indicazione sulla carta;
-- una volta assegnato, l'Oggetto **non può essere spostato né sostituito**;
-- quando l'Entità lascia il campo, l'Oggetto **la segue**: va nell'**Abisso** — o in **Zona di Ritiro**, se l'Entità è stata ritirata (§6.2).
+- una volta assegnato, l'Oggetto **non può essere spostato** su un'altra Entità;
+- quando l'Entità lascia il campo, i suoi Oggetti **la seguono**: vanno nell'**Abisso** — o in **Zona di Ritiro**, se l'Entità è stata ritirata (§6.2).
 
 Il mazzo **può mischiare le razze** liberamente. Si possono avere al massimo **3 copie della stessa carta** nel mazzo; le carte **Uniche** — contrassegnate dal **simbolo dell'Unica** — ammettono **una sola copia**.
 
@@ -200,7 +200,7 @@ Dichiarata dal giocatore al termine della Pesca. In questa fase si inizia a gioc
 
 - **giocare Entità** (pagandone il costo di Flusso);
 - **giocare Materie** normali e permanenti (le Reattive si giocano solo in Fase di Fronte, §7.2);
-- **assegnare Oggetti** (carte Oggetto) alle Entità, pagandone il costo di Flusso — massimo **un Oggetto per Entità**;
+- **assegnare Oggetti** (carte Oggetto) alle Entità, pagandone il costo di Flusso — anche più Oggetti alla stessa Entità;
 - **ritirare** le proprie Entità dal Fronte (vedi "Ritiro", più sotto).
 
 **Non c'è limite al numero di carte giocabili** nella fase: il solo vincolo è il Flusso disponibile — **Oggetti compresi**, che si pagano come ogni altra carta.
@@ -524,7 +524,7 @@ Il pareggio esiste in due soli casi:
 - **Materia** — carta magia/evento, giocabile solo se un tipo corrispondente è abilitato da una carta in campo. Tre comportamenti: normale, permanente, Reattiva.
 - **Materia Reattiva** — Materia giocabile solo in Fase di Fronte; innesca la catena di risposta (risoluzione in ordine inverso).
 - **Pre-Fronte** — finestra a inizio Fase di Fronte in cui l'avversario può giocare Materie Reattive prima della dichiarazione d'attacco.
-- **Oggetto** — carta con un costo di Flusso che si assegna a un'Entità (max 1 per Entità), pagandolo in Fase di Preparazione.
+- **Oggetto** — carta con un costo di Flusso che si assegna a un'Entità (senza limite di Oggetti per Entità), pagandolo in Fase di Preparazione.
 - **Abilità** — parola chiave con regole predefinite da questo manuale (vedi §8.1).
 - **Furia** — abilità esclusiva del Rubyfront/Nexus, legata alle **abilità speciali**: prima di usarne una serve un d20 ≥12; con 11 o meno si perde **1 PV** ma l'abilità si usa comunque. Le Materie (Distruttiva compresa), lo schieramento e il flip non richiedono il tiro (§8.1).
 - **Slancio** — abilità: l'Entità può attaccare già nel turno in cui entra in campo (ignora l'attesa di evocazione). Riguarda solo l'attacco: non permette di essere ritirata nel turno d'ingresso.
@@ -535,6 +535,6 @@ Il pareggio esiste in due soli casi:
 - **Morire / essere distrutta** — andare nell'Abisso dal campo, per una battaglia persa o per un effetto di distruzione. L'Entità **ritirata** (§6.2) **non muore**: lascia il campo e va in Zona di Ritiro senza innescare effetti di morte.
 - **Contrattacco +N** — statistica di alcune Entità: quando bloccano possono sommare +N alla Potenza; se così superano l'attaccante, questo muore; a totale pari muoiono entrambe (§6.3). Chi contrattacca viene coperto.
 - **Tappata** — stato di un'Entità che ha attaccato o bloccato: non può né attaccare, né bloccare, né essere **ritirata** (§6.2), ma **continua ad abilitare le sue Materie** (§7); si stappa a inizio del turno successivo del proprietario.
-- **Coperta** — stato di un'Entità che ha contrattaccato: non può fare nulla, è intoccabile da qualsiasi effetto o Materia, anche avversari (niente Oggetti né Ritiro; l'Oggetto già assegnato le rimane) e non abilita le sue Materie, per un giro completo; poi si scopre.
+- **Coperta** — stato di un'Entità che ha contrattaccato: non può fare nulla, è intoccabile da qualsiasi effetto o Materia, anche avversari (niente Oggetti né Ritiro; gli Oggetti già assegnati le rimangono) e non abilita le sue Materie, per un giro completo; poi si scopre.
 - **Fronte pronto** — dichiarazione con cui il giocatore di turno annuncia che attacca o passa.
 - **Nexus** — la seconda faccia della carta Rubyfront, sua evoluzione: si gioca flippando il Rubyfront in campo (requisiti sulla carta), recupera PV, resta in campo per sempre. Distruggerlo (PV a 0) fa perdere il proprietario.

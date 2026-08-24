@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-059",
+  "setId": "rubyfront-core",
+  "collectorNumber": "059",
+  "slug": "memory-refraction",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dimensional",
+    "grade-1",
+    "reactive",
+    "equip"
+  ],
+  "rulesReference": "MANUALE.md §7.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dimensional",
+        "grade": 1
+      },
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "refract",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1,
+              "details": {
+                "attacking": true
+              }
+            },
+            "amount": -1,
+            "duration": "until_end_of_turn",
+            "details": {
+              "perControllerEntityWithObjectAssigned": true
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-059.md"
+}

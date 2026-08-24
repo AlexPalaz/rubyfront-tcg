@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-052",
+  "setId": "rubyfront-core",
+  "collectorNumber": "052",
+  "slug": "dimensional-sword",
+  "type": "object",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "object",
+    "auros",
+    "equip",
+    "pump"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §6.2",
+  "faces": [
+    {
+      "id": "object",
+      "kind": "object",
+      "displayKey": "face",
+      "stats": {
+        "fluxCost": 1
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "edge",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "scope": "assigned"
+            },
+            "amount": 1
+          }
+        }
+      ],
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "controller": "controller"
+      }
+    }
+  ],
+  "designNotes": "rbf-052.md"
+}

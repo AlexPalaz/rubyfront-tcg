@@ -1,0 +1,30 @@
+{
+  "name": "Krevon, Underblade of Nova Kai",
+  "typeLabel": "Entity: Auros",
+  "summary": "Surge and command: when it attacks equipped, the whole armed front pushes.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Krevon, Underblade of Nova Kai",
+    "keyword": {
+      "name": "Surge",
+      "rules": "may attack the turn it enters the field"
+    },
+    "command": {
+      "trigger": "When it attacks while it has an Object assigned",
+      "text": "Other Entities with an Object assigned you control get +1 Power until end of turn."
+    },
+    "flavor": "When the underblade strikes, the other blades listen."
+  }
+}

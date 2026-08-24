@@ -1,0 +1,21 @@
+{
+  "name": "Dimensional Sword",
+  "typeLabel": "Object",
+  "summary": "The basic equipment: one Flux, one Power.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Dimensional Sword",
+    "effect": {
+      "name": "Effect",
+      "text": "The Entity it is assigned to has +1 Power."
+    },
+    "flavor": "It cuts where the world is already thin."
+  }
+}

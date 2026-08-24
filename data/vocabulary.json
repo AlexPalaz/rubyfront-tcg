@@ -20,7 +20,7 @@
     ]
   },
   "event": {
-    "_note": "Moments that fire a trigger on_deal_damage: la carta (Entità) infligge danno in combattimento a un Rubyfront; details.toRubyfront limita al bersaglio Rubyfront.",
+    "_note": "Moments that fire a trigger on_deal_damage: la carta (Entità) infligge danno in combattimento a un Rubyfront; details.toRubyfront limita al bersaglio Rubyfront. on_assign_object: il controllore assegna un Oggetto (details.toSelf limita alla carta stessa). on_draw_card: il controllore pesca una carta.",
     "values": [
       "on_deploy_from_recall",
       "on_flip",
@@ -37,11 +37,13 @@
       "on_retire",
       "on_counterattack",
       "on_untap",
-      "on_deal_damage"
+      "on_deal_damage",
+      "on_assign_object",
+      "on_draw_card"
     ]
   },
   "effect": {
-    "_note": "Effect types the engine must be able to resolve",
+    "_note": "Effect types the engine must be able to resolve assign_object: assegna Oggetti a Entita' senza pagarne il costo salvo indicazione. reduce_cost: sconto sul costo di Flusso di carte future (details.nextPlayedThisTurn). modify_counterattack: modifica il Contrattacco (amount additivo o setTo).",
     "values": [
       "look_and_optionally_move",
       "modify_power",
@@ -60,7 +62,10 @@
       "counter_card",
       "protect",
       "untap",
-      "play_from_deck_top"
+      "play_from_deck_top",
+      "assign_object",
+      "reduce_cost",
+      "modify_counterattack"
     ]
   },
   "timing": {

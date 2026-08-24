@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "id": "scissione-profonda",
+  "setId": "rubyfront-core",
+  "status": "draft",
+  "defaultLocale": "it",
+  "locales": {
+    "it": {
+      "name": "Scissione Profonda",
+      "description": "Mazzo Auros equip-midrange: Oggetti su ogni corpo, la Zona di Ritiro come arsenale, e Rhazmora che scava nel mazzo a ogni assegnazione finché il Nexus non riarma il Fronte gratis."
+    },
+    "en": {
+      "name": "Deep Schism",
+      "description": "An Auros equipment-midrange deck: Objects on every body, the Retire Zone as an arsenal, and Rhazmora digging through the deck at every assignment until the Nexus rearms the Front for free."
+    }
+  },
+  "designNotes": "scissione-profonda.md",
+  "cards": [
+    {
+      "card": "RBF-063",
+      "count": 1
+    },
+    {
+      "card": "RBF-044",
+      "count": 3
+    },
+    {
+      "card": "RBF-045",
+      "count": 3
+    },
+    {
+      "card": "RBF-046",
+      "count": 3
+    },
+    {
+      "card": "RBF-047",
+      "count": 2
+    },
+    {
+      "card": "RBF-048",
+      "count": 2
+    },
+    {
+      "card": "RBF-049",
+      "count": 2
+    },
+    {
+      "card": "RBF-050",
+      "count": 2
+    },
+    {
+      "card": "RBF-051",
+      "count": 1
+    },
+    {
+      "card": "RBF-052",
+      "count": 3
+    },
+    {
+      "card": "RBF-053",
+      "count": 3
+    },
+    {
+      "card": "RBF-054",
+      "count": 2
+    },
+    {
+      "card": "RBF-055",
+      "count": 2
+    },
+    {
+      "card": "RBF-056",
+      "count": 3
+    },
+    {
+      "card": "RBF-057",
+      "count": 2
+    },
+    {
+      "card": "RBF-058",
+      "count": 2
+    },
+    {
+      "card": "RBF-059",
+      "count": 1
+    },
+    {
+      "card": "RBF-060",
+      "count": 1
+    },
+    {
+      "card": "RBF-061",
+      "count": 2
+    },
+    {
+      "card": "RBF-062",
+      "count": 1
+    }
+  ]
+}

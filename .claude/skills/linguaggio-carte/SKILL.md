@@ -69,6 +69,9 @@ Trigger (campo `trigger`, iniziale maiuscola, senza punto finale):
 | Quando lascia il campo | When it leaves the field |
 | Quando contrattacca | When it counterattacks |
 | Quando infligge danno a un Rubyfront avversario | When it deals damage to an opposing Rubyfront |
+| Quando attacca mentre ha un Oggetto assegnato | When it attacks while it has an Object assigned |
+| Quando gli assegni un Oggetto | When you assign an Object to it |
+| Quando flippa *(solo faccia Nexus)* | When it flips |
 | Effetto *(statiche e «la prima volta in ogni turno»)* | Effect |
 
 Corpo degli effetti (campo `text`, frasi complete, punto finale):
@@ -101,6 +104,16 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Una volta a turno | La prima volta in ogni tuo turno che … | The first time each of your turns … |
 | Scelta modale | scegli uno: …; oppure … | choose one: …; or … |
 | Oggetto | Assegna [il Nome / questa carta] a un'Entità X: … | Assign [the Name / this card] to an X Entity: … |
+| Entità armata | un'Entità con un Oggetto assegnato | an Entity with an Object assigned |
+| Entità disarmata | un'Entità senza Oggetto | an Entity without an Object |
+| Statico dell'Oggetto | L'Entità a cui è assegnato/a ha +N Potenza. | The Entity it is assigned to has +N Power. |
+| Portatore attacca | Quando l'Entità a cui è assegnato attacca, … | When the Entity it is assigned to attacks, … |
+| Condizione «armata» su di sé | Finché ha un Oggetto assegnato, [Nome] … | As long as it has an Object assigned, [Name] … |
+| Assegnazione gratuita | assegna … senza pagarne il costo di Flusso | assign … without paying its Flux cost |
+| Sconto | la prossima carta Oggetto che giochi in questo turno costa N Flussi in meno | the next Object card you play this turn costs N less Flux |
+| Contrattacco fissato | il Contrattacco di [Nome] diventa +N | [Name]'s Counterattack becomes +N |
+| Contrattacco cumulato | ha Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1. | has Counterattack +1. If it already has Counterattack, that value increases by 1. |
+| Perdita variabile | perde PV pari a … | loses HP equal to … |
 | Rimbalzo | riporta un'Entità avversaria nella mano del suo proprietario | return an opposing Entity to its owner's hand |
 | Attacco extra | Stappala: può attaccare una seconda volta in questo turno. | Untap it: it may attack a second time this turn. |
 
@@ -123,8 +136,9 @@ carta seguono costo e nome), le altre `text` iniziano maiuscole.
 ## Tipografia e stile
 
 - Apostrofo **dritto** `'` (mai `’`), anche nei flavor.
-- Intervalli di dado con trattino en: `1–2`; segno meno U+2212 `−` nei
-  promemoria (`−1 PV`); separatore `·` nei sottotitoli; `≥` nei check.
+- Intervalli di dado con trattino en: `1–2`, sempre in forma ascendente; segno
+  meno U+2212 `−` per ogni valore negativo, anche nel corpo del testo (`−2
+  Potenza`, `−1 PV`); separatore `·` nei sottotitoli; `≥` nei check.
 - Numeri di gioco **in cifre** (+2 Potenza, 3 o inferiore, 2 danni); «una
   seconda volta» in lettere.
 - Maiuscole per i termini di gioco del glossario (Entità, Potenza, Fronte,

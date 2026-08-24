@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-049",
+  "setId": "rubyfront-core",
+  "collectorNumber": "049",
+  "slug": "krevon-underblade-of-nova-kai",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "equip",
+    "surge",
+    "pump"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §8.1, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 3,
+        "fluxCost": 4
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
+      "keywords": [
+        {
+          "id": "surge"
+        }
+      ],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "command",
+          "displayKey": "command",
+          "event": "on_attack",
+          "details": {
+            "requiresObjectAssigned": true
+          },
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "quantity": "all",
+              "details": {
+                "hasObjectAssigned": true,
+                "excludeSelf": true
+              }
+            },
+            "amount": 1,
+            "duration": "until_end_of_turn"
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-049.md"
+}

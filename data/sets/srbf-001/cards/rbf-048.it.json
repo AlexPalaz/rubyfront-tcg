@@ -1,0 +1,27 @@
+{
+  "name": "Merk, Sentinella di Nova Kai",
+  "typeLabel": "Entità: Auros",
+  "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi",
+    "counterattack": "Contrattacco"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Merk, Sentinella di Nova Kai",
+    "temper": {
+      "trigger": "Effetto",
+      "text": "Finché ha un Oggetto assegnato, il Contrattacco di Merk diventa +2."
+    },
+    "flavor": "Il colpo di risposta è l'unico che prepara da sempre."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Synaptic Amplification",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "A double untap and a double push for armed Entities.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
+  },
+  "face": {
+    "name": "Synaptic Amplification",
+    "effect": {
+      "name": "Effect",
+      "text": "Up to 2 Entities with an Object assigned you control get +1 Power until end of turn and are untapped."
+    },
+    "flavor": "One thought, many hands."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

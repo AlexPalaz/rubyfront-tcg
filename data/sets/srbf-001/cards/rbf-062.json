@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-062",
+  "setId": "rubyfront-core",
+  "collectorNumber": "062",
+  "slug": "feral-assault",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "destructive",
+    "grade-2",
+    "burn",
+    "equip"
+  ],
+  "rulesReference": "MANUALE.md §7",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "destructive",
+        "grade": 2
+      },
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 4
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "assault",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "lose_health",
+            "target": {
+              "cardType": "rubyfront",
+              "controller": "opponent"
+            },
+            "details": {
+              "amountEqualsObjectsAssignedToControllerEntities": true
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-062.md"
+}

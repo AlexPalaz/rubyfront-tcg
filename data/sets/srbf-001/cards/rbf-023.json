@@ -32,8 +32,7 @@
       "stats": {
         "health": 22,
         "deploymentCost": {
-          "base": 3,
-          "increment": 1
+          "base": 3
         }
       },
       "enablesMatters": [

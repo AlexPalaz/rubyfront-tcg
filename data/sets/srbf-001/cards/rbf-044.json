@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-044",
+  "setId": "rubyfront-core",
+  "collectorNumber": "044",
+  "slug": "gyn-camp-recruit",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "equip",
+    "aggro"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 1,
+        "fluxCost": 1
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "grip",
+          "displayKey": "grip",
+          "event": "while_in_play",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "scope": "self"
+            },
+            "amount": 1,
+            "details": {
+              "whileHasObjectAssigned": true
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-044.md"
+}
