@@ -24,7 +24,7 @@ La gobba sta sul due: sedici copie fra corpi leggeri, Scudi e Materie di
 risposta. Il piano è armare presto, pescare con gli inneschi «con un Oggetto
 assegnato» e chiudere con Avy Shin o Assalto Ferale.
 
-## 2. Rhazmora, Rubifronte della Scissione
+## 2. Rhazmora, RBF della Scissione
 
 Costo **fisso 3**, PV 22, Furia su entrambe le facce. La statica lavora sulla
 **prima assegnazione di Oggetto del turno**: in faccia A filtra (cima/fondo,

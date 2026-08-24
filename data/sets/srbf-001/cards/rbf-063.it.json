@@ -1,5 +1,5 @@
 {
-  "name": "Rhazmora, Rubifronte della Scissione",
+  "name": "Rhazmora, RBF della Scissione",
   "typeLabel": "Rubyfront bifronte",
   "summary": "La bestia della Scissione: ogni Oggetto assegnato scava nel mazzo, e il Nexus riarma il Fronte dal Ritiro.",
   "ui": {
@@ -21,7 +21,7 @@
     "destructiveAria": "Distruttiva"
   },
   "faceA": {
-    "name": "Rhazmora, Rubifronte della Scissione",
+    "name": "Rhazmora, RBF della Scissione",
     "keyword": {
       "name": "Furia",
       "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"

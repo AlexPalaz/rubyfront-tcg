@@ -61,7 +61,11 @@ stessa modifica (il file è il contratto: aggiornarlo fa parte del lavoro).
 Mai: «creatura», «giocatore avversario» nei testi carta, «Requiem» (nome
 storico della Zona di Ritiro, deprecato il 2026-08-24). I **nomi propri** di
 carta si traducono (es. «Rubifronte del Patto» → "Rubyfront of the Pact"), il
-termine generico resta «Rubyfront» in entrambe le lingue.
+termine generico resta «Rubyfront» in entrambe le lingue. Nei **nomi** dei
+Rubyfront con prefisso personale, «Rubifronte/Rubyfront» si abbrevia **«RBF»**
+perché il nome stia su una riga («Rhazmora, RBF della Scissione» / "Rhazmora,
+RBF of the Schism"); l'abbreviazione vale solo nel nome, mai nei testi di
+regole.
 
 ## Formule fisse
 

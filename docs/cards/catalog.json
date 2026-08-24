@@ -8499,7 +8499,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Rhazmora, Rubifronte della Scissione",
+              "name": "Rhazmora, RBF della Scissione",
               "typeLabel": "Rubyfront bifronte",
               "summary": "La bestia della Scissione: ogni Oggetto assegnato scava nel mazzo, e il Nexus riarma il Fronte dal Ritiro.",
               "ui": {
@@ -8521,7 +8521,7 @@
                 "destructiveAria": "Distruttiva"
               },
               "faceA": {
-                "name": "Rhazmora, Rubifronte della Scissione",
+                "name": "Rhazmora, RBF della Scissione",
                 "keyword": {
                   "name": "Furia",
                   "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
@@ -8575,7 +8575,7 @@
               }
             },
             "en": {
-              "name": "Rhazmora, Rubyfront of the Schism",
+              "name": "Rhazmora, RBF of the Schism",
               "typeLabel": "Double-faced Rubyfront",
               "summary": "The beast of the Schism: every assigned Object digs through the deck, and the Nexus rearms the Front from the Retire Zone.",
               "ui": {
@@ -8597,7 +8597,7 @@
                 "destructiveAria": "Destructive"
               },
               "faceA": {
-                "name": "Rhazmora, Rubyfront of the Schism",
+                "name": "Rhazmora, RBF of the Schism",
                 "keyword": {
                   "name": "Fury",
                   "rules": "d20 ≥ 12 before every action · failure −1 HP"
@@ -17459,7 +17459,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Rhazmora, Rubifronte della Scissione",
+          "name": "Rhazmora, RBF della Scissione",
           "typeLabel": "Rubyfront bifronte",
           "summary": "La bestia della Scissione: ogni Oggetto assegnato scava nel mazzo, e il Nexus riarma il Fronte dal Ritiro.",
           "ui": {
@@ -17481,7 +17481,7 @@
             "destructiveAria": "Distruttiva"
           },
           "faceA": {
-            "name": "Rhazmora, Rubifronte della Scissione",
+            "name": "Rhazmora, RBF della Scissione",
             "keyword": {
               "name": "Furia",
               "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
@@ -17535,7 +17535,7 @@
           }
         },
         "en": {
-          "name": "Rhazmora, Rubyfront of the Schism",
+          "name": "Rhazmora, RBF of the Schism",
           "typeLabel": "Double-faced Rubyfront",
           "summary": "The beast of the Schism: every assigned Object digs through the deck, and the Nexus rearms the Front from the Retire Zone.",
           "ui": {
@@ -17557,7 +17557,7 @@
             "destructiveAria": "Destructive"
           },
           "faceA": {
-            "name": "Rhazmora, Rubyfront of the Schism",
+            "name": "Rhazmora, RBF of the Schism",
             "keyword": {
               "name": "Fury",
               "rules": "d20 ≥ 12 before every action · failure −1 HP"

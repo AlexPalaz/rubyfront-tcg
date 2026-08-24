@@ -1,5 +1,5 @@
 {
-  "name": "Rhazmora, Rubyfront of the Schism",
+  "name": "Rhazmora, RBF of the Schism",
   "typeLabel": "Double-faced Rubyfront",
   "summary": "The beast of the Schism: every assigned Object digs through the deck, and the Nexus rearms the Front from the Retire Zone.",
   "ui": {
@@ -21,7 +21,7 @@
     "destructiveAria": "Destructive"
   },
   "faceA": {
-    "name": "Rhazmora, Rubyfront of the Schism",
+    "name": "Rhazmora, RBF of the Schism",
     "keyword": {
       "name": "Fury",
       "rules": "d20 ≥ 12 before every action · failure −1 HP"
