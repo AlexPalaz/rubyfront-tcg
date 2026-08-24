@@ -1,6 +1,7 @@
 // Costruttori della carta visuale, condivisi tra la pagina dei temi
 // (card-theme-page.js) e la pagina del mazzo (deck-page.js): la grafica
 // della carta vive in un posto solo. Gli stili corrispondenti sono in card.css.
+import { resolveSource } from "../catalog.js";
 import { element, copyFor } from "./shell.js";
 import { LIGHT_THEMES } from "./themes.js";
 
@@ -29,10 +30,19 @@ function createFace(card, face, cardCopy, themeId, localeId) {
   if (LIGHT_THEMES.has(themeId)) visual.classList.add("light-theme");
   visual.dataset.faceId = face.id;
 
-  visual.append(
-    createTitleBar(card, face, faceCopy, cardCopy),
-    element("div", "art", cardCopy.card?.illustration ?? "Illustration")
-  );
+  // Se la carta dichiara un'illustrazione (card.art nei dati madre), l'area
+  // art la mostra; altrimenti resta il segnaposto testuale localizzato.
+  const art = element("div", "art");
+  if (card.source?.art) {
+    const image = element("img");
+    image.src = resolveSource(card, "art");
+    image.alt = cardCopy.name ?? "";
+    art.append(image);
+  } else {
+    art.textContent = cardCopy.card?.illustration ?? "Illustration";
+  }
+
+  visual.append(createTitleBar(card, face, faceCopy, cardCopy), art);
 
   for (const keyword of face.keywords) {
     visual.append(createKeyword(face, keyword, faceCopy));

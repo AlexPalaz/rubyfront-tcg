@@ -2791,8 +2791,10 @@
             }
           ],
           "designNotes": "rbf-017.md",
+          "art": "rbf-017.jpg",
           "source": {
-            "designNotes": "notes/rbf-017.md"
+            "designNotes": "notes/rbf-017.md",
+            "art": "art/rbf-017.jpg"
           }
         },
         {
@@ -3799,9 +3801,11 @@
             }
           ],
           "designNotes": "rbf-025.md",
+          "art": "rbf-025.jpg",
           "unique": true,
           "source": {
-            "designNotes": "notes/rbf-025.md"
+            "designNotes": "notes/rbf-025.md",
+            "art": "art/rbf-025.jpg"
           }
         },
         {
@@ -7965,8 +7969,10 @@
         }
       ],
       "designNotes": "rbf-017.md",
+      "art": "rbf-017.jpg",
       "source": {
-        "designNotes": "notes/rbf-017.md"
+        "designNotes": "notes/rbf-017.md",
+        "art": "art/rbf-017.jpg"
       }
     },
     {
@@ -8973,9 +8979,11 @@
         }
       ],
       "designNotes": "rbf-025.md",
+      "art": "rbf-025.jpg",
       "unique": true,
       "source": {
-        "designNotes": "notes/rbf-025.md"
+        "designNotes": "notes/rbf-025.md",
+        "art": "art/rbf-025.jpg"
       }
     },
     {

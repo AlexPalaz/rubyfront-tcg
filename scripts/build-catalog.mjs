@@ -14,6 +14,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA = path.join(ROOT, "data");
 const OUT = path.join(ROOT, "docs", "cards", "catalog.json");
 const NOTES_DIR = path.join(ROOT, "docs", "cards", "notes");
+const ART_DIR = path.join(ROOT, "docs", "cards", "art");
 const checkOnly = process.argv.includes("--check");
 
 const readJson = relative => JSON.parse(fs.readFileSync(path.join(DATA, relative), "utf8"));
@@ -24,7 +25,9 @@ const sets = catalog.sets.map(setDir => {
   const set = readJson(path.join("sets", setDir, "set.json"));
 
   const cards = set.cards.map(cardId => {
-    const base = path.join("sets", setDir, "cards", cardId.toLowerCase());
+    // Ogni carta vive nella propria cartella: cards/<id>/<id>.json ecc.
+    const id = cardId.toLowerCase();
+    const base = path.join("sets", setDir, "cards", id, id);
     const card = readJson(`${base}.json`);
 
     // le lingue tornano dentro la carta: è la forma che serve alle viste
@@ -36,7 +39,7 @@ const sets = catalog.sets.map(setDir => {
     // (GitHub Pages serve solo docs/) non potrebbe raggiungere /data.
     let designNotes;
     if (card.designNotes) {
-      const from = path.join(DATA, "sets", setDir, "cards", card.designNotes);
+      const from = path.join(DATA, "sets", setDir, "cards", id, card.designNotes);
       if (fs.existsSync(from)) {
         fs.mkdirSync(NOTES_DIR, { recursive: true });
         fs.copyFileSync(from, path.join(NOTES_DIR, card.designNotes));
@@ -44,7 +47,19 @@ const sets = catalog.sets.map(setDir => {
       }
     }
 
-    return { ...card, locales, source: { designNotes } };
+    // Le illustrazioni seguono la stessa strada delle note: copiate in
+    // docs/cards/art/, dove il sito pubblicato può raggiungerle.
+    let art;
+    if (card.art) {
+      const from = path.join(DATA, "sets", setDir, "cards", id, card.art);
+      if (fs.existsSync(from)) {
+        fs.mkdirSync(ART_DIR, { recursive: true });
+        fs.copyFileSync(from, path.join(ART_DIR, card.art));
+        art = `art/${card.art}`;
+      }
+    }
+
+    return { ...card, locales, source: { designNotes, art } };
   });
 
   return { ...set, cards };

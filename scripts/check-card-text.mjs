@@ -22,10 +22,11 @@ let facce = 0;
 for (const setDir of fs.readdirSync(SETS)) {
   const cardsDir = path.join(SETS, setDir, "cards");
   if (!fs.existsSync(cardsDir)) continue;
-  for (const file of fs.readdirSync(cardsDir).filter(f => /^[a-z0-9-]+\.json$/.test(f) && !/\.(it|en)\.json$/.test(f))) {
-    const card = JSON.parse(fs.readFileSync(path.join(cardsDir, file), "utf8"));
+  // Ogni carta vive nella propria cartella: cards/<id>/<id>.json ecc.
+  for (const id of fs.readdirSync(cardsDir).filter(d => fs.statSync(path.join(cardsDir, d)).isDirectory())) {
+    const card = JSON.parse(fs.readFileSync(path.join(cardsDir, id, `${id}.json`), "utf8"));
     for (const locale of card.locales ?? [card.defaultLocale]) {
-      const copy = JSON.parse(fs.readFileSync(path.join(cardsDir, file.replace(/\.json$/, `.${locale}.json`)), "utf8"));
+      const copy = JSON.parse(fs.readFileSync(path.join(cardsDir, id, `${id}.${locale}.json`), "utf8"));
       for (const face of card.faces ?? []) {
         facce++;
         const fc = copy[face.displayKey];

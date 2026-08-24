@@ -17,10 +17,12 @@ data/
     └── srbf-001/
         ├── set.json              # manifesto del set; elenca gli id delle carte
         └── cards/
-            ├── rbf-001.json      # semantica eseguibile (niente testi)
-            ├── rbf-001.it.json   # testi italiani
-            ├── rbf-001.en.json   # testi inglesi
-            └── rbf-001.md        # note di design (prosa)
+            └── rbf-001/          # una cartella per carta
+                ├── rbf-001.json      # semantica eseguibile (niente testi)
+                ├── rbf-001.it.json   # testi italiani
+                ├── rbf-001.en.json   # testi inglesi
+                ├── rbf-001.md        # note di design (prosa)
+                └── rbf-001.jpg       # illustrazione (opzionale, campo "art")
 ```
 
 La separazione fra `rbf-001.json` e i file di lingua è deliberata: la prima
@@ -58,7 +60,7 @@ dimenticanza.
 
 ## Aggiungere una carta
 
-1. Creare `sets/<set>/cards/<id>.json` più un file per ogni lingua.
+1. Creare la cartella `sets/<set>/cards/<id>/` con `<id>.json` più un file per ogni lingua.
 2. Aggiungere l'id all'array `cards` di `set.json`.
 3. `node scripts/validate-data.mjs` — corregge i valori fuori registro.
 4. `node scripts/build-catalog.mjs` — aggiorna il sito.

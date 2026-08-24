@@ -99,7 +99,7 @@ in `data/vocabulary.json`, che è il contratto condiviso fra engine e viste.
 
 Si lavora in `/data`, mai qui: vedi `data/README.md`. In sintesi —
 
-1. Creare `data/sets/<set>/cards/<id>.json` più un file per lingua.
+1. Creare la cartella `data/sets/<set>/cards/<id>/` con `<id>.json` più un file per lingua.
 2. Aggiungere l’id all’array `cards` di `set.json`.
 3. `node scripts/validate-data.mjs`
 4. `node scripts/build-catalog.mjs`

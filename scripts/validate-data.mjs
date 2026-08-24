@@ -193,7 +193,8 @@ if (catalog) {
     if (!/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/.test(set.code ?? "")) fail(where, "code deve essere maiuscolo");
 
     for (const cardId of set.cards ?? []) {
-      const file = path.join("sets", setDir, "cards", `${cardId.toLowerCase()}.json`);
+      const id = cardId.toLowerCase();
+      const file = path.join("sets", setDir, "cards", id, `${id}.json`);
       const card = readJson(file);
       if (!card) continue;
       validateCard(card, file, set);
@@ -207,7 +208,7 @@ if (catalog) {
 
       // le localizzazioni dichiarate devono esistere come file
       for (const locale of card.locales ?? [card.defaultLocale]) {
-        const localeFile = path.join("sets", setDir, "cards", `${cardId.toLowerCase()}.${locale}.json`);
+        const localeFile = path.join("sets", setDir, "cards", id, `${id}.${locale}.json`);
         if (!fs.existsSync(path.join(DATA, localeFile))) fail(file, `manca il file di lingua ${localeFile}`);
         else requireLocales({ [locale]: readJson(localeFile) }, localeFile, ["name", "typeLabel", "summary"]);
       }
