@@ -1098,7 +1098,9 @@
       radial-gradient(50% 100% at 50% 0%, rgba(211,74,94,.16), rgba(211,74,94,0) 72%)
         top center / 7em 2.2em no-repeat,
       linear-gradient(180deg, rgba(255,255,255,.14) 0 1px, rgba(0,0,0,.5) 1px 2px)
-        center top .3em / calc(100% - 3.4em) 2px no-repeat,
+        left 1.7em top .3em / calc(50% - 2.34em) 2px no-repeat,
+      linear-gradient(180deg, rgba(255,255,255,.14) 0 1px, rgba(0,0,0,.5) 1px 2px)
+        right 1.7em top .3em / calc(50% - 2.34em) 2px no-repeat,
       linear-gradient(0deg, rgba(255,255,255,.14) 0 1px, rgba(0,0,0,.5) 1px 2px)
         center bottom .3em / calc(100% - 3.4em) 2px no-repeat,
       linear-gradient(90deg, rgba(255,255,255,.14) 0 1px, rgba(0,0,0,.5) 1px 2px)
@@ -1130,20 +1132,23 @@
     clip-path: polygon(.45em 0, calc(100% - .45em) 0, 100% .45em,
       100% calc(100% - .45em), calc(100% - .45em) 100%, .45em 100%,
       0 calc(100% - .45em), 0 .45em); }
-  /* Losanga di rubino nel suo castone: un bordino piatto di pietra scura
-     segue la sagoma della gemma su tutti e quattro i lati (quattro bande
-     parallele agli spigoli, il clip elimina l'eccedenza); dentro, il
-     rubino liscio. A cavallo del bordo superiore, in asse col nome. */
-  .t41 .art::after { content: ""; position: absolute;
-    top: -.72em; left: 50%; width: 1em; height: 1.55em;
+  /* La gemma è PARTE della cornice, non un ornamento appoggiato sopra:
+     la pietra della fascia sale a formare la cuspide (stesso colore,
+     nessun bordo disegnato) e il solco inciso dell'ottagono si
+     interrompe e confluisce nei suoi vertici laterali, che stanno alla
+     quota del solco (.3em). Dentro, il rubino: un cuore rosso ampio che
+     sfuma nella pietra (radial-gradient), senza anelli né profili.
+     Cuspide bassa per non toccare la riga del nome; z-index sopra
+     l'immagine, così la punta non viene tagliata.
+     Geometria: 1.15×1em, spalle al 74%. */
+  .t41 .art::after { content: ""; position: absolute; z-index: 1;
+    top: -.6em; left: 50%; width: 1.15em; height: 1.45em;
     transform: translateX(-50%);
-    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    clip-path: polygon(50% 0, 100% 62%, 50% 100%, 0 62%);
     background:
-      linear-gradient(213deg, #23201b 0 .52em, rgba(0,0,0,0) .52em),
-      linear-gradient(147deg, #23201b 0 .52em, rgba(0,0,0,0) .52em),
-      linear-gradient(327deg, #23201b 0 .52em, rgba(0,0,0,0) .52em),
-      linear-gradient(33deg, #23201b 0 .52em, rgba(0,0,0,0) .52em),
-      linear-gradient(172deg, #cf5468 0%, #9c1f33 55%, #701527 100%); }
+      radial-gradient(65% 55% at 50% 38%, rgba(240,130,150,.2), rgba(0,0,0,0) 70%),
+      radial-gradient(130% 120% at 50% 45%, rgba(0,0,0,0) 50%, rgba(16,3,7,.5) 100%),
+      linear-gradient(180deg, #8c1a2e 0%, #972034 42%, #5f0d1c 100%); }
   .t41 .keyword::before, .t41 .keyword::after { content: "\2720"; font-size: .8em; color: #7d786e; }
   .t41 .textbox { border-color: #33312d; box-shadow: inset 0 2px 8px rgba(0,0,0,.5); }
   .t41 .fx .tag::after { height: 2px; background: linear-gradient(to right, #9a958a, transparent); }

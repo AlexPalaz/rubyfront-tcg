@@ -1,4 +1,4 @@
-export const DEFAULT_THEME = "t39";
+export const DEFAULT_THEME = "t41";
 
 export const THEMES = Object.freeze([
   ["t01", "Rubino & Oro"],
