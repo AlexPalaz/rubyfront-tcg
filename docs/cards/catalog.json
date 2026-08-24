@@ -2826,11 +2826,10 @@
               },
               "face": {
                 "name": "Gyn, Recluta del Campo",
-                "grip": {
-                  "trigger": "Effetto",
+                "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
+                "effect": {
                   "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
-                },
-                "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
+                }
               }
             },
             "en": {
@@ -2852,11 +2851,10 @@
               },
               "face": {
                 "name": "Gyn, Camp Recruit",
-                "grip": {
-                  "trigger": "Effect",
+                "flavor": "The first weapon was patience. The Camp handed over the second.",
+                "effect": {
                   "text": "If this Entity has an Object assigned, it has +1 Power."
-                },
-                "flavor": "The first weapon was patience. The Camp handed over the second."
+                }
               }
             }
           },
@@ -2888,7 +2886,7 @@
               "triggers": [
                 {
                   "id": "grip",
-                  "displayKey": "grip",
+                  "displayKey": "effect",
                   "event": "while_in_play",
                   "effect": {
                     "type": "modify_power",
@@ -3315,11 +3313,10 @@
               },
               "face": {
                 "name": "Merk, Sentinella di Nova Kai",
-                "temper": {
-                  "trigger": "Effetto",
+                "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
+                "effect": {
                   "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
-                },
-                "flavor": "Il colpo di risposta è l'unico che prepara da sempre."
+                }
               }
             },
             "en": {
@@ -3342,11 +3339,10 @@
               },
               "face": {
                 "name": "Merk, Sentinel of Nova Kai",
-                "temper": {
-                  "trigger": "Effect",
+                "flavor": "The answering blow is the only one it has always prepared.",
+                "effect": {
                   "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
-                },
-                "flavor": "The answering blow is the only one it has always prepared."
+                }
               }
             }
           },
@@ -3379,7 +3375,7 @@
               "triggers": [
                 {
                   "id": "temper",
-                  "displayKey": "temper",
+                  "displayKey": "effect",
                   "event": "while_in_play",
                   "effect": {
                     "type": "modify_counterattack",
@@ -3683,15 +3679,14 @@
               },
               "face": {
                 "name": "Avy Shin, Lama di Nova Kai",
-                "aura": {
-                  "trigger": "Effetto",
-                  "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
-                },
                 "rearm": {
                   "trigger": "Effetto",
                   "text": "Ogni volta che un'Entità con un Oggetto assegnato che controlli attacca, puoi assegnarle un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso, se può riceverlo."
                 },
-                "flavor": "Ciò che la Scissione divide, la sua lama riunisce."
+                "flavor": "Ciò che la Scissione divide, la sua lama riunisce.",
+                "effect": {
+                  "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
+                }
               }
             },
             "en": {
@@ -3714,15 +3709,14 @@
               },
               "face": {
                 "name": "Avy Shin, Blade of Nova Kai",
-                "aura": {
-                  "trigger": "Effect",
-                  "text": "Other Entities with an Object assigned you control have +1 Power."
-                },
                 "rearm": {
                   "trigger": "Effect",
                   "text": "Whenever an Entity with an Object assigned you control attacks, you may assign an Object from your Retire Zone to it without paying its Flux cost, if it can receive it."
                 },
-                "flavor": "What the Schism divides, its blade reunites."
+                "flavor": "What the Schism divides, its blade reunites.",
+                "effect": {
+                  "text": "Other Entities with an Object assigned you control have +1 Power."
+                }
               }
             }
           },
@@ -3755,7 +3749,7 @@
               "triggers": [
                 {
                   "id": "aura",
-                  "displayKey": "aura",
+                  "displayKey": "effect",
                   "event": "while_in_play",
                   "effect": {
                     "type": "modify_power",
@@ -8006,11 +8000,10 @@
           },
           "face": {
             "name": "Gyn, Recluta del Campo",
-            "grip": {
-              "trigger": "Effetto",
+            "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
+            "effect": {
               "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
-            },
-            "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
+            }
           }
         },
         "en": {
@@ -8032,11 +8025,10 @@
           },
           "face": {
             "name": "Gyn, Camp Recruit",
-            "grip": {
-              "trigger": "Effect",
+            "flavor": "The first weapon was patience. The Camp handed over the second.",
+            "effect": {
               "text": "If this Entity has an Object assigned, it has +1 Power."
-            },
-            "flavor": "The first weapon was patience. The Camp handed over the second."
+            }
           }
         }
       },
@@ -8068,7 +8060,7 @@
           "triggers": [
             {
               "id": "grip",
-              "displayKey": "grip",
+              "displayKey": "effect",
               "event": "while_in_play",
               "effect": {
                 "type": "modify_power",
@@ -8495,11 +8487,10 @@
           },
           "face": {
             "name": "Merk, Sentinella di Nova Kai",
-            "temper": {
-              "trigger": "Effetto",
+            "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
+            "effect": {
               "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
-            },
-            "flavor": "Il colpo di risposta è l'unico che prepara da sempre."
+            }
           }
         },
         "en": {
@@ -8522,11 +8513,10 @@
           },
           "face": {
             "name": "Merk, Sentinel of Nova Kai",
-            "temper": {
-              "trigger": "Effect",
+            "flavor": "The answering blow is the only one it has always prepared.",
+            "effect": {
               "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
-            },
-            "flavor": "The answering blow is the only one it has always prepared."
+            }
           }
         }
       },
@@ -8559,7 +8549,7 @@
           "triggers": [
             {
               "id": "temper",
-              "displayKey": "temper",
+              "displayKey": "effect",
               "event": "while_in_play",
               "effect": {
                 "type": "modify_counterattack",
@@ -8863,15 +8853,14 @@
           },
           "face": {
             "name": "Avy Shin, Lama di Nova Kai",
-            "aura": {
-              "trigger": "Effetto",
-              "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
-            },
             "rearm": {
               "trigger": "Effetto",
               "text": "Ogni volta che un'Entità con un Oggetto assegnato che controlli attacca, puoi assegnarle un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso, se può riceverlo."
             },
-            "flavor": "Ciò che la Scissione divide, la sua lama riunisce."
+            "flavor": "Ciò che la Scissione divide, la sua lama riunisce.",
+            "effect": {
+              "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
+            }
           }
         },
         "en": {
@@ -8894,15 +8883,14 @@
           },
           "face": {
             "name": "Avy Shin, Blade of Nova Kai",
-            "aura": {
-              "trigger": "Effect",
-              "text": "Other Entities with an Object assigned you control have +1 Power."
-            },
             "rearm": {
               "trigger": "Effect",
               "text": "Whenever an Entity with an Object assigned you control attacks, you may assign an Object from your Retire Zone to it without paying its Flux cost, if it can receive it."
             },
-            "flavor": "What the Schism divides, its blade reunites."
+            "flavor": "What the Schism divides, its blade reunites.",
+            "effect": {
+              "text": "Other Entities with an Object assigned you control have +1 Power."
+            }
           }
         }
       },
@@ -8935,7 +8923,7 @@
           "triggers": [
             {
               "id": "aura",
-              "displayKey": "aura",
+              "displayKey": "effect",
               "event": "while_in_play",
               "effect": {
                 "type": "modify_power",

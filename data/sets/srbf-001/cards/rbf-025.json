@@ -42,7 +42,7 @@
       "triggers": [
         {
           "id": "aura",
-          "displayKey": "aura",
+          "displayKey": "effect",
           "event": "while_in_play",
           "effect": {
             "type": "modify_power",

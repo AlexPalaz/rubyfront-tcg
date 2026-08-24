@@ -18,10 +18,9 @@
   },
   "face": {
     "name": "Merk, Sentinella di Nova Kai",
-    "temper": {
-      "trigger": "Effetto",
+    "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
+    "effect": {
       "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
-    },
-    "flavor": "Il colpo di risposta è l'unico che prepara da sempre."
+    }
   }
 }

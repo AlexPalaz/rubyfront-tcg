@@ -18,14 +18,13 @@
   },
   "face": {
     "name": "Avy Shin, Lama di Nova Kai",
-    "aura": {
-      "trigger": "Effetto",
-      "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
-    },
     "rearm": {
       "trigger": "Effetto",
       "text": "Ogni volta che un'Entità con un Oggetto assegnato che controlli attacca, puoi assegnarle un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso, se può riceverlo."
     },
-    "flavor": "Ciò che la Scissione divide, la sua lama riunisce."
+    "flavor": "Ciò che la Scissione divide, la sua lama riunisce.",
+    "effect": {
+      "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
+    }
   }
 }

@@ -17,10 +17,9 @@
   },
   "face": {
     "name": "Gyn, Camp Recruit",
-    "grip": {
-      "trigger": "Effect",
+    "flavor": "The first weapon was patience. The Camp handed over the second.",
+    "effect": {
       "text": "If this Entity has an Object assigned, it has +1 Power."
-    },
-    "flavor": "The first weapon was patience. The Camp handed over the second."
+    }
   }
 }

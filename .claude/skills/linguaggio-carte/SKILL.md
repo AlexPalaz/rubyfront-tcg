@@ -133,6 +133,13 @@ Requisito Nexus (`nexusRequirement.text`): condizioni **all'indicativo**
 Abilità del Rubyfront/Nexus (`abilities.*.text`): iniziano **minuscole** (sulla
 carta seguono costo e nome), le altre `text` iniziano maiuscole.
 
+Vincolo del renderer (docs/cards/ui/card-render.js): la **regola statica di
+un'Entità** (evento `while_in_play`/`while_assigned`) si stampa SOLO dalla
+chiave di lingua `effect` — displayKey `effect` nel semantico e `face.effect:
+{text}` nei file di lingua, senza etichetta. Una chiave custom per una statica
+di Entità non viene renderizzata. Materie e Oggetti stampano solo
+`face.effect.text`: più trigger semantici → un unico testo combinato lì.
+
 ## Testi promemoria delle parole chiave (stringhe fisse, campo `keyword.rules`)
 
 | Parola chiave | IT | EN |

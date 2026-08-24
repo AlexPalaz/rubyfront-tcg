@@ -18,10 +18,9 @@
   },
   "face": {
     "name": "Merk, Sentinel of Nova Kai",
-    "temper": {
-      "trigger": "Effect",
+    "flavor": "The answering blow is the only one it has always prepared.",
+    "effect": {
       "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
-    },
-    "flavor": "The answering blow is the only one it has always prepared."
+    }
   }
 }
