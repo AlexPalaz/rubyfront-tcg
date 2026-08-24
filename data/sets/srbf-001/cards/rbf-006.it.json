@@ -14,7 +14,7 @@
     "name": "Vigorcintura",
     "effect": {
       "name": "Effetto",
-      "text": "Assegna la Vigorcintura a un'Entità Umana: quell'Entità prende +1 Potenza, e ne prende invece +2 finché controlli il Rubifronte del Patto."
+      "text": "Assegna questa carta a un'Entità Umana: quell'Entità prende +1 Potenza, e ne prende invece +2 finché controlli il Rubifronte del Patto."
     },
     "flavor": "Stringila forte. Il vigore fa il resto."
   }

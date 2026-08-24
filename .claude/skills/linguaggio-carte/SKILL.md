@@ -20,6 +20,10 @@ stessa modifica (il file è il contratto: aggiornarlo fa parte del lavoro).
 3. Scrivere i testi **partendo dalla semantica**: il testo dice esattamente ciò
    che il JSON esegue, con le formule qui sotto. EN e IT si traducono formula
    per formula, mai a senso.
+   **Rispettare la struttura delle frasi del designer**: la normalizzazione
+   tocca terminologia, formule e tipografia, non riscrive il periodo. Se il
+   foglio dice «Se questa Entità ha un Oggetto assegnato, il suo Contrattacco
+   diventa +2», la carta dice quello — non una parafrasi.
 4. `node scripts/validate-data.mjs` poi `node scripts/build-catalog.mjs`.
 5. Checklist finale (in fondo) su ogni testo toccato.
 
@@ -69,8 +73,8 @@ Trigger (campo `trigger`, iniziale maiuscola, senza punto finale):
 | Quando lascia il campo | When it leaves the field |
 | Quando contrattacca | When it counterattacks |
 | Quando infligge danno a un Rubyfront avversario | When it deals damage to an opposing Rubyfront |
-| Quando attacca mentre ha un Oggetto assegnato | When it attacks while it has an Object assigned |
-| Quando gli assegni un Oggetto | When you assign an Object to it |
+| Quando questa Entità attacca mentre ha un Oggetto assegnato | When this Entity attacks while it has an Object assigned |
+| Quando assegni un Oggetto a questa Entità | When you assign an Object to this Entity |
 | Quando flippa *(solo faccia Nexus)* | When it flips |
 | Effetto *(statiche e «la prima volta in ogni turno»)* | Effect |
 
@@ -108,7 +112,7 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Entità disarmata | un'Entità senza Oggetto | an Entity without an Object |
 | Statico dell'Oggetto | L'Entità a cui è assegnato/a ha +N Potenza. | The Entity it is assigned to has +N Power. |
 | Portatore attacca | Quando l'Entità a cui è assegnato attacca, … | When the Entity it is assigned to attacks, … |
-| Condizione «armata» su di sé | Finché ha un Oggetto assegnato, [Nome] … | As long as it has an Object assigned, [Name] … |
+| Condizione «armata» su di sé | Se questa Entità ha un Oggetto assegnato, … | If this Entity has an Object assigned, … |
 | Assegnazione gratuita | assegna … senza pagarne il costo di Flusso | assign … without paying its Flux cost |
 | Sconto | la prossima carta Oggetto che giochi in questo turno costa N Flussi in meno | the next Object card you play this turn costs N less Flux |
 | Contrattacco fissato | il Contrattacco di [Nome] diventa +N | [Name]'s Counterattack becomes +N |
@@ -143,9 +147,12 @@ carta seguono costo e nome), le altre `text` iniziano maiuscole.
   seconda volta» in lettere.
 - Maiuscole per i termini di gioco del glossario (Entità, Potenza, Fronte,
   Stasi, …); il resto segue la normale ortografia della lingua.
-- Autoriferimento: le Entità si nominano per nome («L'Archivista prende…» /
-  "Archivist gets…" — IT con articolo, EN senza); gli Oggetti «questa carta» /
-  "this card" o il nome. Mai «questa creatura».
+- Autoriferimento: **mai per nome** nel testo di regole. Le Entità dicono
+  «questa Entità» / "this Entity"; Oggetti e Materie «questa carta» / "this
+  card" (o «questo Oggetto» / "this Object" quando conta il tipo, es. un
+  Oggetto che si sposta di zona). Il nome proprio vive solo nel titolo, nel
+  flavor e quando un'ALTRA carta lo cita («Se controlli il Rubifronte del
+  Patto…»). Mai «questa creatura».
 - Pronomi EN: le Entità sono "it"; se la frase diventa ambigua si ristruttura
   ("the wearer", "that Entity"). Pronomi di genere solo per personaggi con nome
   proprio, e solo se il flavor li caratterizza.

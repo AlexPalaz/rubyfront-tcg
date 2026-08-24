@@ -15,7 +15,7 @@
     "name": "Steel Avenger",
     "effect": {
       "name": "Effect",
-      "text": "As long as you control the Rubyfront of the Pact, Steel Avenger gets +2 Power."
+      "text": "As long as you control the Rubyfront of the Pact, this Entity gets +2 Power."
     },
     "flavor": "Strike her, if you dare. Then run.",
     "keyword": {

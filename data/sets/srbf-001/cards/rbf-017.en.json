@@ -15,7 +15,7 @@
     "name": "Archivist",
     "effect": {
       "name": "Effect",
-      "text": "Archivist gets +1 Power for each other Human Entity you control."
+      "text": "This Entity gets +1 Power for each other Human Entity you control."
     },
     "flavor": "He writes the names of those who went on."
   }

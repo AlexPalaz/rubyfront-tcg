@@ -15,7 +15,7 @@
     "name": "Guardiano della Paratia",
     "bulkhead": {
       "trigger": "Quando entra in campo",
-      "text": "Il Guardiano della Paratia entra sul Fronte già tappato, e resta così finché non lo stappi."
+      "text": "Questa Entità entra sul Fronte già tappata, e resta così finché non la stappi."
     },
     "flavor": "Nessuno passa. Non oggi."
   },

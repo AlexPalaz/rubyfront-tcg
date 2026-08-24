@@ -19,7 +19,7 @@
     "name": "Mestrel, Camp Warden",
     "tally": {
       "trigger": "Effect",
-      "text": "When you draw your second card in a turn, Mestrel gets +1 Power for each card drawn beyond the first this turn, until end of turn."
+      "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."
     },
     "flavor": "It counts cards like sentries: at the second, it sounds the alarm."
   }

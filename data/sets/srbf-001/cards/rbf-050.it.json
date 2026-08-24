@@ -18,7 +18,7 @@
   "face": {
     "name": "Il Portatore",
     "carry": {
-      "trigger": "Quando gli assegni un Oggetto",
+      "trigger": "Quando assegni un Oggetto a questa Entità",
       "text": "Pesca una carta."
     },
     "flavor": "Non chiede che cosa porta. Chiede solo per chi."

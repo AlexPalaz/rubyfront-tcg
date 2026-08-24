@@ -14,7 +14,7 @@
     "name": "Vestigio della Scissione",
     "effect": {
       "name": "Effetto",
-      "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti il Vestigio nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
+      "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
     },
     "flavor": "Ciò che resta della Scissione non smette di servire."
   }

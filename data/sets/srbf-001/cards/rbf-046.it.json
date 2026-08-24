@@ -19,7 +19,7 @@
     "name": "Garwin, Esploratore",
     "scouting": {
       "trigger": "Effetto",
-      "text": "La prima volta in ogni tuo turno che Garwin attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
+      "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
     },
     "flavor": "Esplora con gli occhi. Decide con la lama."
   }

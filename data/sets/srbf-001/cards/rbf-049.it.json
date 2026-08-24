@@ -22,7 +22,7 @@
       "rules": "può attaccare nel turno in cui entra in campo"
     },
     "command": {
-      "trigger": "Quando attacca mentre ha un Oggetto assegnato",
+      "trigger": "Quando questa Entità attacca mentre ha un Oggetto assegnato",
       "text": "Le altre Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
     },
     "flavor": "Quando la sottolama scatta, le altre lame ascoltano."

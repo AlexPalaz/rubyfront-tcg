@@ -19,7 +19,7 @@
     "name": "Garwin, Scout",
     "scouting": {
       "trigger": "Effect",
-      "text": "The first time each of your turns Garwin attacks while it has an Object assigned, draw a card, then discard a card."
+      "text": "The first time each of your turns this Entity attacks while it has an Object assigned, draw a card, then discard a card."
     },
     "flavor": "It scouts with the eyes. It decides with the blade."
   }

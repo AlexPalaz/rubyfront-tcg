@@ -14,7 +14,7 @@
     "name": "Vestige of the Schism",
     "effect": {
       "name": "Effect",
-      "text": "The Entity it is assigned to has +2 Power. When that Entity dies, put the Vestige into your Retire Zone instead of the Abyss. Then you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
+      "text": "The Entity it is assigned to has +2 Power. When that Entity dies, put this Object into your Retire Zone instead of the Abyss. Then you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
     },
     "flavor": "What remains of the Schism does not stop serving."
   }

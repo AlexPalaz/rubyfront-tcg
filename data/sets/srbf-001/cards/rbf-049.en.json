@@ -22,7 +22,7 @@
       "rules": "may attack the turn it enters the field"
     },
     "command": {
-      "trigger": "When it attacks while it has an Object assigned",
+      "trigger": "When this Entity attacks while it has an Object assigned",
       "text": "Other Entities with an Object assigned you control get +1 Power until end of turn."
     },
     "flavor": "When the underblade strikes, the other blades listen."

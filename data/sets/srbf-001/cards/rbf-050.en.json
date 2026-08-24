@@ -18,7 +18,7 @@
   "face": {
     "name": "The Bearer",
     "carry": {
-      "trigger": "When you assign an Object to it",
+      "trigger": "When you assign an Object to this Entity",
       "text": "Draw a card."
     },
     "flavor": "It never asks what it carries. Only for whom."

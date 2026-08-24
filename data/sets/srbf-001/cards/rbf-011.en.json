@@ -15,7 +15,7 @@
     "name": "Armored Bulwark",
     "effect": {
       "name": "Effect",
-      "text": "Armored Bulwark cannot block."
+      "text": "This Entity cannot block."
     },
     "flavor": "The world falls. He does not."
   },

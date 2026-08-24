@@ -19,7 +19,7 @@
     "name": "Mestrel, Guardiano del Campo",
     "tally": {
       "trigger": "Effetto",
-      "text": "Quando peschi la tua seconda carta in un turno, Mestrel prende +1 Potenza per ogni carta pescata oltre la prima in questo turno, fino alla fine del turno."
+      "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
     },
     "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
   }

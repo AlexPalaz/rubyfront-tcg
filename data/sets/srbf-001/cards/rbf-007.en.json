@@ -15,7 +15,7 @@
     "name": "Perimeter Lookout",
     "spark": {
       "trigger": "When it enters the field",
-      "text": "Another Human Entity of your choice gets +1 Power until end of turn. The Lookout marks the target: the bonus is never for herself."
+      "text": "Another Human Entity of your choice gets +1 Power until end of turn. This Entity marks the target: the bonus is never for itself."
     },
     "flavor": "She saw the end coming. She whistled twice."
   },

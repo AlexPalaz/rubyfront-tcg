@@ -19,7 +19,7 @@
     "name": "Gyn, Camp Recruit",
     "grip": {
       "trigger": "Effect",
-      "text": "As long as it has an Object assigned, Gyn gets +1 Power."
+      "text": "If this Entity has an Object assigned, it has +1 Power."
     },
     "flavor": "The first weapon was patience. The Camp handed over the second."
   }

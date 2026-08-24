@@ -921,7 +921,7 @@
                 "name": "Collera",
                 "effect": {
                   "name": "Effetto",
-                  "text": "La Collera infligge 2 danni al Rubyfront avversario."
+                  "text": "Questa carta infligge 2 danni al Rubyfront avversario."
                 },
                 "flavor": "La bestia non conosce misura."
               },
@@ -950,7 +950,7 @@
                 "name": "Wrath",
                 "effect": {
                   "name": "Effect",
-                  "text": "Wrath deals 2 damage to the opposing Rubyfront."
+                  "text": "This card deals 2 damage to the opposing Rubyfront."
                 },
                 "flavor": "The beast knows no measure."
               },
@@ -1035,7 +1035,7 @@
                 "name": "Vigorcintura",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Assegna la Vigorcintura a un'Entità Umana: quell'Entità prende +1 Potenza, e ne prende invece +2 finché controlli il Rubifronte del Patto."
+                  "text": "Assegna questa carta a un'Entità Umana: quell'Entità prende +1 Potenza, e ne prende invece +2 finché controlli il Rubifronte del Patto."
                 },
                 "flavor": "Stringila forte. Il vigore fa il resto."
               }
@@ -1056,7 +1056,7 @@
                 "name": "Vigorbelt",
                 "effect": {
                   "name": "Effect",
-                  "text": "Assign the Vigorbelt to a Human Entity: that Entity gets +1 Power, and gets +2 instead as long as you control the Rubyfront of the Pact."
+                  "text": "Assign this card to a Human Entity: that Entity gets +1 Power, and gets +2 instead as long as you control the Rubyfront of the Pact."
                 },
                 "flavor": "Buckle it tight. Vigor does the rest."
               }
@@ -1141,7 +1141,7 @@
                 "name": "Vedetta del Perimetro",
                 "spark": {
                   "trigger": "Quando entra in campo",
-                  "text": "Un'altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. La Vedetta segnala il bersaglio: il bonus non è mai per sé stessa."
+                  "text": "Un'altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. Questa Entità segnala il bersaglio: il bonus non è mai per sé stessa."
                 },
                 "flavor": "Vide arrivare la fine. Fischiò due volte."
               },
@@ -1167,7 +1167,7 @@
                 "name": "Perimeter Lookout",
                 "spark": {
                   "trigger": "When it enters the field",
-                  "text": "Another Human Entity of your choice gets +1 Power until end of turn. The Lookout marks the target: the bonus is never for herself."
+                  "text": "Another Human Entity of your choice gets +1 Power until end of turn. This Entity marks the target: the bonus is never for itself."
                 },
                 "flavor": "She saw the end coming. She whistled twice."
               },
@@ -1261,7 +1261,7 @@
                 "name": "Guardiano della Paratia",
                 "bulkhead": {
                   "trigger": "Quando entra in campo",
-                  "text": "Il Guardiano della Paratia entra sul Fronte già tappato, e resta così finché non lo stappi."
+                  "text": "Questa Entità entra sul Fronte già tappata, e resta così finché non la stappi."
                 },
                 "flavor": "Nessuno passa. Non oggi."
               },
@@ -1287,7 +1287,7 @@
                 "name": "Bulkhead Warden",
                 "bulkhead": {
                   "trigger": "When it enters the field",
-                  "text": "Bulkhead Warden enters the Front already tapped, and stays that way until you untap him."
+                  "text": "This Entity enters the Front already tapped, and stays that way until you untap it."
                 },
                 "flavor": "No one gets through. Not today."
               },
@@ -1602,7 +1602,7 @@
                 "name": "Baluardo Corazzato",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Il Baluardo Corazzato non può bloccare."
+                  "text": "Questa Entità non può bloccare."
                 },
                 "flavor": "Cade il mondo, non lui."
               },
@@ -1628,7 +1628,7 @@
                 "name": "Armored Bulwark",
                 "effect": {
                   "name": "Effect",
-                  "text": "Armored Bulwark cannot block."
+                  "text": "This Entity cannot block."
                 },
                 "flavor": "The world falls. He does not."
               },
@@ -1829,7 +1829,7 @@
                 },
                 "effect": {
                   "name": "Effetto",
-                  "text": "Se controlli il Nexus, la Prima Lama ha Vendetta."
+                  "text": "Se controlli il Nexus, questa Entità ha Vendetta."
                 },
                 "flavor": "Il fronte nemico la conosce per nome."
               },
@@ -1859,7 +1859,7 @@
                 },
                 "effect": {
                   "name": "Effect",
-                  "text": "If you control the Nexus, First Blade has Revenge."
+                  "text": "If you control the Nexus, this Entity has Revenge."
                 },
                 "flavor": "The enemy front knows her by name."
               },
@@ -2350,7 +2350,7 @@
                 "name": "Archivista",
                 "effect": {
                   "name": "Effetto",
-                  "text": "L'Archivista prende +1 Potenza per ogni altra Entità Umana che controlli."
+                  "text": "Questa Entità prende +1 Potenza per ogni altra Entità Umana che controlli."
                 },
                 "flavor": "Scrive i nomi di chi è passato oltre."
               }
@@ -2372,7 +2372,7 @@
                 "name": "Archivist",
                 "effect": {
                   "name": "Effect",
-                  "text": "Archivist gets +1 Power for each other Human Entity you control."
+                  "text": "This Entity gets +1 Power for each other Human Entity you control."
                 },
                 "flavor": "He writes the names of those who went on."
               }
@@ -2912,7 +2912,7 @@
                 "name": "Vendicatrice di Acciaio",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Finché controlli il Rubifronte del Patto, la Vendicatrice di Acciaio prende +2 Potenza."
+                  "text": "Finché controlli il Rubifronte del Patto, questa Entità prende +2 Potenza."
                 },
                 "flavor": "Colpiscila, se osi. Poi corri.",
                 "keyword": {
@@ -2938,7 +2938,7 @@
                 "name": "Steel Avenger",
                 "effect": {
                   "name": "Effect",
-                  "text": "As long as you control the Rubyfront of the Pact, Steel Avenger gets +2 Power."
+                  "text": "As long as you control the Rubyfront of the Pact, this Entity gets +2 Power."
                 },
                 "flavor": "Strike her, if you dare. Then run.",
                 "keyword": {
@@ -6108,7 +6108,7 @@
                 "name": "Gyn, Recluta del Campo",
                 "grip": {
                   "trigger": "Effetto",
-                  "text": "Finché ha un Oggetto assegnato, Gyn prende +1 Potenza."
+                  "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
                 },
                 "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
               }
@@ -6134,7 +6134,7 @@
                 "name": "Gyn, Camp Recruit",
                 "grip": {
                   "trigger": "Effect",
-                  "text": "As long as it has an Object assigned, Gyn gets +1 Power."
+                  "text": "If this Entity has an Object assigned, it has +1 Power."
                 },
                 "flavor": "The first weapon was patience. The Camp handed over the second."
               }
@@ -6223,7 +6223,7 @@
                 "name": "Mestrel, Guardiano del Campo",
                 "tally": {
                   "trigger": "Effetto",
-                  "text": "Quando peschi la tua seconda carta in un turno, Mestrel prende +1 Potenza per ogni carta pescata oltre la prima in questo turno, fino alla fine del turno."
+                  "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
                 },
                 "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
               }
@@ -6249,7 +6249,7 @@
                 "name": "Mestrel, Camp Warden",
                 "tally": {
                   "trigger": "Effect",
-                  "text": "When you draw your second card in a turn, Mestrel gets +1 Power for each card drawn beyond the first this turn, until end of turn."
+                  "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."
                 },
                 "flavor": "It counts cards like sentries: at the second, it sounds the alarm."
               }
@@ -6342,7 +6342,7 @@
                 "name": "Garwin, Esploratore",
                 "scouting": {
                   "trigger": "Effetto",
-                  "text": "La prima volta in ogni tuo turno che Garwin attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
+                  "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
                 },
                 "flavor": "Esplora con gli occhi. Decide con la lama."
               }
@@ -6368,7 +6368,7 @@
                 "name": "Garwin, Scout",
                 "scouting": {
                   "trigger": "Effect",
-                  "text": "The first time each of your turns Garwin attacks while it has an Object assigned, draw a card, then discard a card."
+                  "text": "The first time each of your turns this Entity attacks while it has an Object assigned, draw a card, then discard a card."
                 },
                 "flavor": "It scouts with the eyes. It decides with the blade."
               }
@@ -6461,7 +6461,7 @@
                 "name": "Hali, Artefice di Nova Kai",
                 "forage": {
                   "trigger": "Quando entra in campo",
-                  "text": "Lancia un d6 e guarda dalla cima del tuo mazzo un numero di carte pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
+                  "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
                 },
                 "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
               }
@@ -6597,7 +6597,7 @@
                 "name": "Merk, Sentinella di Nova Kai",
                 "temper": {
                   "trigger": "Effetto",
-                  "text": "Finché ha un Oggetto assegnato, il Contrattacco di Merk diventa +2."
+                  "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
                 },
                 "flavor": "Il colpo di risposta è l'unico che prepara da sempre."
               }
@@ -6624,7 +6624,7 @@
                 "name": "Merk, Sentinel of Nova Kai",
                 "temper": {
                   "trigger": "Effect",
-                  "text": "As long as it has an Object assigned, Merk's Counterattack becomes +2."
+                  "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
                 },
                 "flavor": "The answering blow is the only one it has always prepared."
               }
@@ -6717,7 +6717,7 @@
                   "rules": "può attaccare nel turno in cui entra in campo"
                 },
                 "command": {
-                  "trigger": "Quando attacca mentre ha un Oggetto assegnato",
+                  "trigger": "Quando questa Entità attacca mentre ha un Oggetto assegnato",
                   "text": "Le altre Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
                 },
                 "flavor": "Quando la sottolama scatta, le altre lame ascoltano."
@@ -6747,7 +6747,7 @@
                   "rules": "may attack the turn it enters the field"
                 },
                 "command": {
-                  "trigger": "When it attacks while it has an Object assigned",
+                  "trigger": "When this Entity attacks while it has an Object assigned",
                   "text": "Other Entities with an Object assigned you control get +1 Power until end of turn."
                 },
                 "flavor": "When the underblade strikes, the other blades listen."
@@ -6848,7 +6848,7 @@
               "face": {
                 "name": "Il Portatore",
                 "carry": {
-                  "trigger": "Quando gli assegni un Oggetto",
+                  "trigger": "Quando assegni un Oggetto a questa Entità",
                   "text": "Pesca una carta."
                 },
                 "flavor": "Non chiede che cosa porta. Chiede solo per chi."
@@ -6874,7 +6874,7 @@
               "face": {
                 "name": "The Bearer",
                 "carry": {
-                  "trigger": "When you assign an Object to it",
+                  "trigger": "When you assign an Object to this Entity",
                   "text": "Draw a card."
                 },
                 "flavor": "It never asks what it carries. Only for whom."
@@ -7464,7 +7464,7 @@
                 "name": "Vestigio della Scissione",
                 "effect": {
                   "name": "Effetto",
-                  "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti il Vestigio nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
+                  "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
                 },
                 "flavor": "Ciò che resta della Scissione non smette di servire."
               }
@@ -7485,7 +7485,7 @@
                 "name": "Vestige of the Schism",
                 "effect": {
                   "name": "Effect",
-                  "text": "The Entity it is assigned to has +2 Power. When that Entity dies, put the Vestige into your Retire Zone instead of the Abyss. Then you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
+                  "text": "The Entity it is assigned to has +2 Power. When that Entity dies, put this Object into your Retire Zone instead of the Abyss. Then you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
                 },
                 "flavor": "What remains of the Schism does not stop serving."
               }
@@ -7741,7 +7741,7 @@
                 "name": "Nube Intangibile",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Scegli una tua Entità. Finché la Nube e quell'Entità restano in campo, ogni volta che l'avversario dichiara un blocco contro quell'Entità lancia un d6: con 1–3 il blocco fallisce e l'attacco resta non bloccato; con 4–6 il blocco riesce normalmente."
+                  "text": "Scegli una tua Entità. Finché questa carta e l'Entità scelta rimangono in campo, ogni volta che l'avversario dichiara un blocco contro quell'Entità lancia un d6: con 1–3 il blocco fallisce e l'attacco resta non bloccato; con 4–6 il blocco riesce normalmente."
                 },
                 "flavor": "Come trattenere la nebbia con le dita."
               },
@@ -7770,7 +7770,7 @@
                 "name": "Intangible Cloud",
                 "effect": {
                   "name": "Effect",
-                  "text": "Choose an Entity you control. As long as the Cloud and that Entity remain on the field, whenever your opponent declares a block against that Entity, roll a d6: on 1–3 the block fails and the attack stays unblocked; on 4–6 the block succeeds normally."
+                  "text": "Choose an Entity you control. As long as this card and the chosen Entity remain on the field, whenever your opponent declares a block against that Entity, roll a d6: on 1–3 the block fails and the attack stays unblocked; on 4–6 the block succeeds normally."
                 },
                 "flavor": "Like holding fog with your fingers."
               },
@@ -9881,7 +9881,7 @@
             "name": "Collera",
             "effect": {
               "name": "Effetto",
-              "text": "La Collera infligge 2 danni al Rubyfront avversario."
+              "text": "Questa carta infligge 2 danni al Rubyfront avversario."
             },
             "flavor": "La bestia non conosce misura."
           },
@@ -9910,7 +9910,7 @@
             "name": "Wrath",
             "effect": {
               "name": "Effect",
-              "text": "Wrath deals 2 damage to the opposing Rubyfront."
+              "text": "This card deals 2 damage to the opposing Rubyfront."
             },
             "flavor": "The beast knows no measure."
           },
@@ -9995,7 +9995,7 @@
             "name": "Vigorcintura",
             "effect": {
               "name": "Effetto",
-              "text": "Assegna la Vigorcintura a un'Entità Umana: quell'Entità prende +1 Potenza, e ne prende invece +2 finché controlli il Rubifronte del Patto."
+              "text": "Assegna questa carta a un'Entità Umana: quell'Entità prende +1 Potenza, e ne prende invece +2 finché controlli il Rubifronte del Patto."
             },
             "flavor": "Stringila forte. Il vigore fa il resto."
           }
@@ -10016,7 +10016,7 @@
             "name": "Vigorbelt",
             "effect": {
               "name": "Effect",
-              "text": "Assign the Vigorbelt to a Human Entity: that Entity gets +1 Power, and gets +2 instead as long as you control the Rubyfront of the Pact."
+              "text": "Assign this card to a Human Entity: that Entity gets +1 Power, and gets +2 instead as long as you control the Rubyfront of the Pact."
             },
             "flavor": "Buckle it tight. Vigor does the rest."
           }
@@ -10101,7 +10101,7 @@
             "name": "Vedetta del Perimetro",
             "spark": {
               "trigger": "Quando entra in campo",
-              "text": "Un'altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. La Vedetta segnala il bersaglio: il bonus non è mai per sé stessa."
+              "text": "Un'altra tua Entità Umana a tua scelta prende +1 Potenza fino alla fine del turno. Questa Entità segnala il bersaglio: il bonus non è mai per sé stessa."
             },
             "flavor": "Vide arrivare la fine. Fischiò due volte."
           },
@@ -10127,7 +10127,7 @@
             "name": "Perimeter Lookout",
             "spark": {
               "trigger": "When it enters the field",
-              "text": "Another Human Entity of your choice gets +1 Power until end of turn. The Lookout marks the target: the bonus is never for herself."
+              "text": "Another Human Entity of your choice gets +1 Power until end of turn. This Entity marks the target: the bonus is never for itself."
             },
             "flavor": "She saw the end coming. She whistled twice."
           },
@@ -10221,7 +10221,7 @@
             "name": "Guardiano della Paratia",
             "bulkhead": {
               "trigger": "Quando entra in campo",
-              "text": "Il Guardiano della Paratia entra sul Fronte già tappato, e resta così finché non lo stappi."
+              "text": "Questa Entità entra sul Fronte già tappata, e resta così finché non la stappi."
             },
             "flavor": "Nessuno passa. Non oggi."
           },
@@ -10247,7 +10247,7 @@
             "name": "Bulkhead Warden",
             "bulkhead": {
               "trigger": "When it enters the field",
-              "text": "Bulkhead Warden enters the Front already tapped, and stays that way until you untap him."
+              "text": "This Entity enters the Front already tapped, and stays that way until you untap it."
             },
             "flavor": "No one gets through. Not today."
           },
@@ -10562,7 +10562,7 @@
             "name": "Baluardo Corazzato",
             "effect": {
               "name": "Effetto",
-              "text": "Il Baluardo Corazzato non può bloccare."
+              "text": "Questa Entità non può bloccare."
             },
             "flavor": "Cade il mondo, non lui."
           },
@@ -10588,7 +10588,7 @@
             "name": "Armored Bulwark",
             "effect": {
               "name": "Effect",
-              "text": "Armored Bulwark cannot block."
+              "text": "This Entity cannot block."
             },
             "flavor": "The world falls. He does not."
           },
@@ -10789,7 +10789,7 @@
             },
             "effect": {
               "name": "Effetto",
-              "text": "Se controlli il Nexus, la Prima Lama ha Vendetta."
+              "text": "Se controlli il Nexus, questa Entità ha Vendetta."
             },
             "flavor": "Il fronte nemico la conosce per nome."
           },
@@ -10819,7 +10819,7 @@
             },
             "effect": {
               "name": "Effect",
-              "text": "If you control the Nexus, First Blade has Revenge."
+              "text": "If you control the Nexus, this Entity has Revenge."
             },
             "flavor": "The enemy front knows her by name."
           },
@@ -11310,7 +11310,7 @@
             "name": "Archivista",
             "effect": {
               "name": "Effetto",
-              "text": "L'Archivista prende +1 Potenza per ogni altra Entità Umana che controlli."
+              "text": "Questa Entità prende +1 Potenza per ogni altra Entità Umana che controlli."
             },
             "flavor": "Scrive i nomi di chi è passato oltre."
           }
@@ -11332,7 +11332,7 @@
             "name": "Archivist",
             "effect": {
               "name": "Effect",
-              "text": "Archivist gets +1 Power for each other Human Entity you control."
+              "text": "This Entity gets +1 Power for each other Human Entity you control."
             },
             "flavor": "He writes the names of those who went on."
           }
@@ -11872,7 +11872,7 @@
             "name": "Vendicatrice di Acciaio",
             "effect": {
               "name": "Effetto",
-              "text": "Finché controlli il Rubifronte del Patto, la Vendicatrice di Acciaio prende +2 Potenza."
+              "text": "Finché controlli il Rubifronte del Patto, questa Entità prende +2 Potenza."
             },
             "flavor": "Colpiscila, se osi. Poi corri.",
             "keyword": {
@@ -11898,7 +11898,7 @@
             "name": "Steel Avenger",
             "effect": {
               "name": "Effect",
-              "text": "As long as you control the Rubyfront of the Pact, Steel Avenger gets +2 Power."
+              "text": "As long as you control the Rubyfront of the Pact, this Entity gets +2 Power."
             },
             "flavor": "Strike her, if you dare. Then run.",
             "keyword": {
@@ -15068,7 +15068,7 @@
             "name": "Gyn, Recluta del Campo",
             "grip": {
               "trigger": "Effetto",
-              "text": "Finché ha un Oggetto assegnato, Gyn prende +1 Potenza."
+              "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
             },
             "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
           }
@@ -15094,7 +15094,7 @@
             "name": "Gyn, Camp Recruit",
             "grip": {
               "trigger": "Effect",
-              "text": "As long as it has an Object assigned, Gyn gets +1 Power."
+              "text": "If this Entity has an Object assigned, it has +1 Power."
             },
             "flavor": "The first weapon was patience. The Camp handed over the second."
           }
@@ -15183,7 +15183,7 @@
             "name": "Mestrel, Guardiano del Campo",
             "tally": {
               "trigger": "Effetto",
-              "text": "Quando peschi la tua seconda carta in un turno, Mestrel prende +1 Potenza per ogni carta pescata oltre la prima in questo turno, fino alla fine del turno."
+              "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
             },
             "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
           }
@@ -15209,7 +15209,7 @@
             "name": "Mestrel, Camp Warden",
             "tally": {
               "trigger": "Effect",
-              "text": "When you draw your second card in a turn, Mestrel gets +1 Power for each card drawn beyond the first this turn, until end of turn."
+              "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."
             },
             "flavor": "It counts cards like sentries: at the second, it sounds the alarm."
           }
@@ -15302,7 +15302,7 @@
             "name": "Garwin, Esploratore",
             "scouting": {
               "trigger": "Effetto",
-              "text": "La prima volta in ogni tuo turno che Garwin attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
+              "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
             },
             "flavor": "Esplora con gli occhi. Decide con la lama."
           }
@@ -15328,7 +15328,7 @@
             "name": "Garwin, Scout",
             "scouting": {
               "trigger": "Effect",
-              "text": "The first time each of your turns Garwin attacks while it has an Object assigned, draw a card, then discard a card."
+              "text": "The first time each of your turns this Entity attacks while it has an Object assigned, draw a card, then discard a card."
             },
             "flavor": "It scouts with the eyes. It decides with the blade."
           }
@@ -15421,7 +15421,7 @@
             "name": "Hali, Artefice di Nova Kai",
             "forage": {
               "trigger": "Quando entra in campo",
-              "text": "Lancia un d6 e guarda dalla cima del tuo mazzo un numero di carte pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
+              "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
             },
             "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
           }
@@ -15557,7 +15557,7 @@
             "name": "Merk, Sentinella di Nova Kai",
             "temper": {
               "trigger": "Effetto",
-              "text": "Finché ha un Oggetto assegnato, il Contrattacco di Merk diventa +2."
+              "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
             },
             "flavor": "Il colpo di risposta è l'unico che prepara da sempre."
           }
@@ -15584,7 +15584,7 @@
             "name": "Merk, Sentinel of Nova Kai",
             "temper": {
               "trigger": "Effect",
-              "text": "As long as it has an Object assigned, Merk's Counterattack becomes +2."
+              "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
             },
             "flavor": "The answering blow is the only one it has always prepared."
           }
@@ -15677,7 +15677,7 @@
               "rules": "può attaccare nel turno in cui entra in campo"
             },
             "command": {
-              "trigger": "Quando attacca mentre ha un Oggetto assegnato",
+              "trigger": "Quando questa Entità attacca mentre ha un Oggetto assegnato",
               "text": "Le altre Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
             },
             "flavor": "Quando la sottolama scatta, le altre lame ascoltano."
@@ -15707,7 +15707,7 @@
               "rules": "may attack the turn it enters the field"
             },
             "command": {
-              "trigger": "When it attacks while it has an Object assigned",
+              "trigger": "When this Entity attacks while it has an Object assigned",
               "text": "Other Entities with an Object assigned you control get +1 Power until end of turn."
             },
             "flavor": "When the underblade strikes, the other blades listen."
@@ -15808,7 +15808,7 @@
           "face": {
             "name": "Il Portatore",
             "carry": {
-              "trigger": "Quando gli assegni un Oggetto",
+              "trigger": "Quando assegni un Oggetto a questa Entità",
               "text": "Pesca una carta."
             },
             "flavor": "Non chiede che cosa porta. Chiede solo per chi."
@@ -15834,7 +15834,7 @@
           "face": {
             "name": "The Bearer",
             "carry": {
-              "trigger": "When you assign an Object to it",
+              "trigger": "When you assign an Object to this Entity",
               "text": "Draw a card."
             },
             "flavor": "It never asks what it carries. Only for whom."
@@ -16424,7 +16424,7 @@
             "name": "Vestigio della Scissione",
             "effect": {
               "name": "Effetto",
-              "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti il Vestigio nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
+              "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
             },
             "flavor": "Ciò che resta della Scissione non smette di servire."
           }
@@ -16445,7 +16445,7 @@
             "name": "Vestige of the Schism",
             "effect": {
               "name": "Effect",
-              "text": "The Entity it is assigned to has +2 Power. When that Entity dies, put the Vestige into your Retire Zone instead of the Abyss. Then you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
+              "text": "The Entity it is assigned to has +2 Power. When that Entity dies, put this Object into your Retire Zone instead of the Abyss. Then you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
             },
             "flavor": "What remains of the Schism does not stop serving."
           }
@@ -16701,7 +16701,7 @@
             "name": "Nube Intangibile",
             "effect": {
               "name": "Effetto",
-              "text": "Scegli una tua Entità. Finché la Nube e quell'Entità restano in campo, ogni volta che l'avversario dichiara un blocco contro quell'Entità lancia un d6: con 1–3 il blocco fallisce e l'attacco resta non bloccato; con 4–6 il blocco riesce normalmente."
+              "text": "Scegli una tua Entità. Finché questa carta e l'Entità scelta rimangono in campo, ogni volta che l'avversario dichiara un blocco contro quell'Entità lancia un d6: con 1–3 il blocco fallisce e l'attacco resta non bloccato; con 4–6 il blocco riesce normalmente."
             },
             "flavor": "Come trattenere la nebbia con le dita."
           },
@@ -16730,7 +16730,7 @@
             "name": "Intangible Cloud",
             "effect": {
               "name": "Effect",
-              "text": "Choose an Entity you control. As long as the Cloud and that Entity remain on the field, whenever your opponent declares a block against that Entity, roll a d6: on 1–3 the block fails and the attack stays unblocked; on 4–6 the block succeeds normally."
+              "text": "Choose an Entity you control. As long as this card and the chosen Entity remain on the field, whenever your opponent declares a block against that Entity, roll a d6: on 1–3 the block fails and the attack stays unblocked; on 4–6 the block succeeds normally."
             },
             "flavor": "Like holding fog with your fingers."
           },

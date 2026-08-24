@@ -19,7 +19,7 @@
     "name": "Gyn, Recluta del Campo",
     "grip": {
       "trigger": "Effetto",
-      "text": "Finché ha un Oggetto assegnato, Gyn prende +1 Potenza."
+      "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
     },
     "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
   }

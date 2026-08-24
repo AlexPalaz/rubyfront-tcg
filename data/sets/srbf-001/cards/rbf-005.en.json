@@ -18,7 +18,7 @@
     "name": "Wrath",
     "effect": {
       "name": "Effect",
-      "text": "Wrath deals 2 damage to the opposing Rubyfront."
+      "text": "This card deals 2 damage to the opposing Rubyfront."
     },
     "flavor": "The beast knows no measure."
   },

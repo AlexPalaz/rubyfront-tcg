@@ -15,7 +15,7 @@
     "name": "Archivista",
     "effect": {
       "name": "Effetto",
-      "text": "L'Archivista prende +1 Potenza per ogni altra Entità Umana che controlli."
+      "text": "Questa Entità prende +1 Potenza per ogni altra Entità Umana che controlli."
     },
     "flavor": "Scrive i nomi di chi è passato oltre."
   }
