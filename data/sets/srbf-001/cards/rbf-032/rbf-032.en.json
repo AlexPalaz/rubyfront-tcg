@@ -1,5 +1,5 @@
 {
-  "name": "Eversion",
+  "name": "Destructive Eversion",
   "typeLabel": "Destructive Matter I",
   "summary": "Clean removal into the Abyss, paid in HP.",
   "ui": {
@@ -15,7 +15,7 @@
     }
   },
   "face": {
-    "name": "Eversion",
+    "name": "Destructive Eversion",
     "effect": {
       "name": "Effect",
       "text": "Destroy an opposing Entity and put it into the Abyss. Then you lose 2 HP."

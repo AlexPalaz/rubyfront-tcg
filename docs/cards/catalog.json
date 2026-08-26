@@ -3926,8 +3926,10 @@
             }
           ],
           "designNotes": "rbf-026.md",
+          "art": "rbf-026.jpg",
           "source": {
-            "designNotes": "notes/rbf-026.md"
+            "designNotes": "notes/rbf-026.md",
+            "art": "art/rbf-026.jpg"
           }
         },
         {
@@ -3935,7 +3937,7 @@
           "id": "RBF-027",
           "setId": "rubyfront-core",
           "collectorNumber": "027",
-          "slug": "camp-shield",
+          "slug": "dimensional-shield",
           "type": "object",
           "layout": "single",
           "status": "draft",
@@ -3943,7 +3945,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Scudo del Campo",
+              "name": "Scudo Dimensionale",
               "typeLabel": "Oggetto",
               "summary": "Potenza e Contrattacco in un pezzo solo.",
               "ui": {
@@ -3955,7 +3957,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Scudo del Campo",
+                "name": "Scudo Dimensionale",
                 "effect": {
                   "name": "Effetto",
                   "text": "L'Entità a cui è assegnato ha +1 Potenza e Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
@@ -3964,7 +3966,7 @@
               }
             },
             "en": {
-              "name": "Camp Shield",
+              "name": "Dimensional Shield",
               "typeLabel": "Object",
               "summary": "Power and Counterattack in a single piece.",
               "ui": {
@@ -3976,7 +3978,7 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Camp Shield",
+                "name": "Dimensional Shield",
                 "effect": {
                   "name": "Effect",
                   "text": "The Entity it is assigned to has +1 Power and Counterattack +1. If it already has Counterattack, that value increases by 1."
@@ -4037,8 +4039,10 @@
             }
           ],
           "designNotes": "rbf-027.md",
+          "art": "rbf-027.jpg",
           "source": {
-            "designNotes": "notes/rbf-027.md"
+            "designNotes": "notes/rbf-027.md",
+            "art": "art/rbf-027.jpg"
           }
         },
         {
@@ -4046,7 +4050,7 @@
           "id": "RBF-028",
           "setId": "rubyfront-core",
           "collectorNumber": "028",
-          "slug": "sygma-catalyst",
+          "slug": "sigma-catalyst",
           "type": "object",
           "layout": "single",
           "status": "draft",
@@ -4054,7 +4058,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Catalizzatore Sygma",
+              "name": "Catalizzatore Sigma",
               "typeLabel": "Oggetto",
               "summary": "Un Oggetto che spinge l'attacco e pesca Materie dal mazzo.",
               "ui": {
@@ -4066,7 +4070,7 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Catalizzatore Sygma",
+                "name": "Catalizzatore Sigma",
                 "effect": {
                   "name": "Effetto",
                   "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 5–6 guarda le prime 4 carte del tuo mazzo, puoi mostrare una Materia tra esse e aggiungerla alla tua mano, e metti le altre nella tua Zona di Ritiro."
@@ -4075,7 +4079,7 @@
               }
             },
             "en": {
-              "name": "Sygma Catalyst",
+              "name": "Sigma Catalyst",
               "typeLabel": "Object",
               "summary": "An Object that fuels the attack and digs Matters from the deck.",
               "ui": {
@@ -4087,7 +4091,7 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Sygma Catalyst",
+                "name": "Sigma Catalyst",
                 "effect": {
                   "name": "Effect",
                   "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 5–6 look at the top 4 cards of your deck, you may reveal a Matter among them and add it to your hand, and put the others into your Retire Zone."
@@ -4173,8 +4177,10 @@
             }
           ],
           "designNotes": "rbf-028.md",
+          "art": "rbf-028.jpg",
           "source": {
-            "designNotes": "notes/rbf-028.md"
+            "designNotes": "notes/rbf-028.md",
+            "art": "art/rbf-028.jpg"
           }
         },
         {
@@ -4317,8 +4323,10 @@
             }
           ],
           "designNotes": "rbf-029.md",
+          "art": "rbf-029.jpg",
           "source": {
-            "designNotes": "notes/rbf-029.md"
+            "designNotes": "notes/rbf-029.md",
+            "art": "art/rbf-029.jpg"
           }
         },
         {
@@ -4446,8 +4454,10 @@
             }
           ],
           "designNotes": "rbf-030.md",
+          "art": "rbf-030.jpg",
           "source": {
-            "designNotes": "notes/rbf-030.md"
+            "designNotes": "notes/rbf-030.md",
+            "art": "art/rbf-030.jpg"
           }
         },
         {
@@ -4575,8 +4585,10 @@
             }
           ],
           "designNotes": "rbf-031.md",
+          "art": "rbf-031.jpg",
           "source": {
-            "designNotes": "notes/rbf-031.md"
+            "designNotes": "notes/rbf-031.md",
+            "art": "art/rbf-031.jpg"
           }
         },
         {
@@ -4584,7 +4596,7 @@
           "id": "RBF-032",
           "setId": "rubyfront-core",
           "collectorNumber": "032",
-          "slug": "eversion",
+          "slug": "destructive-eversion",
           "type": "matter",
           "layout": "single",
           "status": "draft",
@@ -4592,7 +4604,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Esversione",
+              "name": "Eversione Distruttiva",
               "typeLabel": "Materia Distruttiva I",
               "summary": "Rimozione secca nell'Abisso, pagata in PV.",
               "ui": {
@@ -4608,7 +4620,7 @@
                 }
               },
               "face": {
-                "name": "Esversione",
+                "name": "Eversione Distruttiva",
                 "effect": {
                   "name": "Effetto",
                   "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Poi perdi 2 PV."
@@ -4621,7 +4633,7 @@
               }
             },
             "en": {
-              "name": "Eversion",
+              "name": "Destructive Eversion",
               "typeLabel": "Destructive Matter I",
               "summary": "Clean removal into the Abyss, paid in HP.",
               "ui": {
@@ -4637,7 +4649,7 @@
                 }
               },
               "face": {
-                "name": "Eversion",
+                "name": "Destructive Eversion",
                 "effect": {
                   "name": "Effect",
                   "text": "Destroy an opposing Entity and put it into the Abyss. Then you lose 2 HP."
@@ -4700,8 +4712,10 @@
             }
           ],
           "designNotes": "rbf-032.md",
+          "art": "rbf-032.jpg",
           "source": {
-            "designNotes": "notes/rbf-032.md"
+            "designNotes": "notes/rbf-032.md",
+            "art": "art/rbf-032.jpg"
           }
         },
         {
@@ -4827,8 +4841,10 @@
             }
           ],
           "designNotes": "rbf-033.md",
+          "art": "rbf-033.jpg",
           "source": {
-            "designNotes": "notes/rbf-033.md"
+            "designNotes": "notes/rbf-033.md",
+            "art": "art/rbf-033.jpg"
           }
         },
         {
@@ -4952,8 +4968,10 @@
             }
           ],
           "designNotes": "rbf-034.md",
+          "art": "rbf-034.jpg",
           "source": {
-            "designNotes": "notes/rbf-034.md"
+            "designNotes": "notes/rbf-034.md",
+            "art": "art/rbf-034.jpg"
           }
         },
         {
@@ -5103,8 +5121,10 @@
             }
           ],
           "designNotes": "rbf-035.md",
+          "art": "rbf-035.jpg",
           "source": {
-            "designNotes": "notes/rbf-035.md"
+            "designNotes": "notes/rbf-035.md",
+            "art": "art/rbf-035.jpg"
           }
         },
         {
@@ -5223,8 +5243,10 @@
             }
           ],
           "designNotes": "rbf-036.md",
+          "art": "rbf-036.jpg",
           "source": {
-            "designNotes": "notes/rbf-036.md"
+            "designNotes": "notes/rbf-036.md",
+            "art": "art/rbf-036.jpg"
           }
         }
       ]
@@ -9127,8 +9149,10 @@
         }
       ],
       "designNotes": "rbf-026.md",
+      "art": "rbf-026.jpg",
       "source": {
-        "designNotes": "notes/rbf-026.md"
+        "designNotes": "notes/rbf-026.md",
+        "art": "art/rbf-026.jpg"
       }
     },
     {
@@ -9136,7 +9160,7 @@
       "id": "RBF-027",
       "setId": "rubyfront-core",
       "collectorNumber": "027",
-      "slug": "camp-shield",
+      "slug": "dimensional-shield",
       "type": "object",
       "layout": "single",
       "status": "draft",
@@ -9144,7 +9168,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Scudo del Campo",
+          "name": "Scudo Dimensionale",
           "typeLabel": "Oggetto",
           "summary": "Potenza e Contrattacco in un pezzo solo.",
           "ui": {
@@ -9156,7 +9180,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Scudo del Campo",
+            "name": "Scudo Dimensionale",
             "effect": {
               "name": "Effetto",
               "text": "L'Entità a cui è assegnato ha +1 Potenza e Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
@@ -9165,7 +9189,7 @@
           }
         },
         "en": {
-          "name": "Camp Shield",
+          "name": "Dimensional Shield",
           "typeLabel": "Object",
           "summary": "Power and Counterattack in a single piece.",
           "ui": {
@@ -9177,7 +9201,7 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Camp Shield",
+            "name": "Dimensional Shield",
             "effect": {
               "name": "Effect",
               "text": "The Entity it is assigned to has +1 Power and Counterattack +1. If it already has Counterattack, that value increases by 1."
@@ -9238,8 +9262,10 @@
         }
       ],
       "designNotes": "rbf-027.md",
+      "art": "rbf-027.jpg",
       "source": {
-        "designNotes": "notes/rbf-027.md"
+        "designNotes": "notes/rbf-027.md",
+        "art": "art/rbf-027.jpg"
       }
     },
     {
@@ -9247,7 +9273,7 @@
       "id": "RBF-028",
       "setId": "rubyfront-core",
       "collectorNumber": "028",
-      "slug": "sygma-catalyst",
+      "slug": "sigma-catalyst",
       "type": "object",
       "layout": "single",
       "status": "draft",
@@ -9255,7 +9281,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Catalizzatore Sygma",
+          "name": "Catalizzatore Sigma",
           "typeLabel": "Oggetto",
           "summary": "Un Oggetto che spinge l'attacco e pesca Materie dal mazzo.",
           "ui": {
@@ -9267,7 +9293,7 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Catalizzatore Sygma",
+            "name": "Catalizzatore Sigma",
             "effect": {
               "name": "Effetto",
               "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 5–6 guarda le prime 4 carte del tuo mazzo, puoi mostrare una Materia tra esse e aggiungerla alla tua mano, e metti le altre nella tua Zona di Ritiro."
@@ -9276,7 +9302,7 @@
           }
         },
         "en": {
-          "name": "Sygma Catalyst",
+          "name": "Sigma Catalyst",
           "typeLabel": "Object",
           "summary": "An Object that fuels the attack and digs Matters from the deck.",
           "ui": {
@@ -9288,7 +9314,7 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Sygma Catalyst",
+            "name": "Sigma Catalyst",
             "effect": {
               "name": "Effect",
               "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 5–6 look at the top 4 cards of your deck, you may reveal a Matter among them and add it to your hand, and put the others into your Retire Zone."
@@ -9374,8 +9400,10 @@
         }
       ],
       "designNotes": "rbf-028.md",
+      "art": "rbf-028.jpg",
       "source": {
-        "designNotes": "notes/rbf-028.md"
+        "designNotes": "notes/rbf-028.md",
+        "art": "art/rbf-028.jpg"
       }
     },
     {
@@ -9518,8 +9546,10 @@
         }
       ],
       "designNotes": "rbf-029.md",
+      "art": "rbf-029.jpg",
       "source": {
-        "designNotes": "notes/rbf-029.md"
+        "designNotes": "notes/rbf-029.md",
+        "art": "art/rbf-029.jpg"
       }
     },
     {
@@ -9647,8 +9677,10 @@
         }
       ],
       "designNotes": "rbf-030.md",
+      "art": "rbf-030.jpg",
       "source": {
-        "designNotes": "notes/rbf-030.md"
+        "designNotes": "notes/rbf-030.md",
+        "art": "art/rbf-030.jpg"
       }
     },
     {
@@ -9776,8 +9808,10 @@
         }
       ],
       "designNotes": "rbf-031.md",
+      "art": "rbf-031.jpg",
       "source": {
-        "designNotes": "notes/rbf-031.md"
+        "designNotes": "notes/rbf-031.md",
+        "art": "art/rbf-031.jpg"
       }
     },
     {
@@ -9785,7 +9819,7 @@
       "id": "RBF-032",
       "setId": "rubyfront-core",
       "collectorNumber": "032",
-      "slug": "eversion",
+      "slug": "destructive-eversion",
       "type": "matter",
       "layout": "single",
       "status": "draft",
@@ -9793,7 +9827,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Esversione",
+          "name": "Eversione Distruttiva",
           "typeLabel": "Materia Distruttiva I",
           "summary": "Rimozione secca nell'Abisso, pagata in PV.",
           "ui": {
@@ -9809,7 +9843,7 @@
             }
           },
           "face": {
-            "name": "Esversione",
+            "name": "Eversione Distruttiva",
             "effect": {
               "name": "Effetto",
               "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Poi perdi 2 PV."
@@ -9822,7 +9856,7 @@
           }
         },
         "en": {
-          "name": "Eversion",
+          "name": "Destructive Eversion",
           "typeLabel": "Destructive Matter I",
           "summary": "Clean removal into the Abyss, paid in HP.",
           "ui": {
@@ -9838,7 +9872,7 @@
             }
           },
           "face": {
-            "name": "Eversion",
+            "name": "Destructive Eversion",
             "effect": {
               "name": "Effect",
               "text": "Destroy an opposing Entity and put it into the Abyss. Then you lose 2 HP."
@@ -9901,8 +9935,10 @@
         }
       ],
       "designNotes": "rbf-032.md",
+      "art": "rbf-032.jpg",
       "source": {
-        "designNotes": "notes/rbf-032.md"
+        "designNotes": "notes/rbf-032.md",
+        "art": "art/rbf-032.jpg"
       }
     },
     {
@@ -10028,8 +10064,10 @@
         }
       ],
       "designNotes": "rbf-033.md",
+      "art": "rbf-033.jpg",
       "source": {
-        "designNotes": "notes/rbf-033.md"
+        "designNotes": "notes/rbf-033.md",
+        "art": "art/rbf-033.jpg"
       }
     },
     {
@@ -10153,8 +10191,10 @@
         }
       ],
       "designNotes": "rbf-034.md",
+      "art": "rbf-034.jpg",
       "source": {
-        "designNotes": "notes/rbf-034.md"
+        "designNotes": "notes/rbf-034.md",
+        "art": "art/rbf-034.jpg"
       }
     },
     {
@@ -10304,8 +10344,10 @@
         }
       ],
       "designNotes": "rbf-035.md",
+      "art": "rbf-035.jpg",
       "source": {
-        "designNotes": "notes/rbf-035.md"
+        "designNotes": "notes/rbf-035.md",
+        "art": "art/rbf-035.jpg"
       }
     },
     {
@@ -10424,8 +10466,10 @@
         }
       ],
       "designNotes": "rbf-036.md",
+      "art": "rbf-036.jpg",
       "source": {
-        "designNotes": "notes/rbf-036.md"
+        "designNotes": "notes/rbf-036.md",
+        "art": "art/rbf-036.jpg"
       }
     }
   ],

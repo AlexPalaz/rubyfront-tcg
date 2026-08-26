@@ -47,7 +47,7 @@ Zona di Ritiro.
 
 - **Vantaggio carte**: Portatore di Fronti (pesca a ogni assegnazione), Garwin
   (loot in attacco, una volta per turno), Mestrel (cresce con le pescate).
-- **Zona di Ritiro come arsenale**: Hali, Catalizzatore Sygma e Carica Latente
+- **Zona di Ritiro come arsenale**: Hali, Catalizzatore Sigma e Carica Latente
   la riempiono; Vestigio della Scissione, Avy Shin e il Grande Riarmo la
   svuotano riassegnando gratis.
 - **Chiusura**: Avy Shin arma le lame a ogni attacco; Assalto Ferale converte
@@ -60,5 +60,5 @@ Zona di Ritiro.
 - Garwin: «la prima volta che attacca» → **una volta per ogni tuo turno**.
 - Nube Intangibile: dal foglio «Normale» → **Permanente** (l'effetto vive
   finché la carta resta in campo).
-- Catalizzatore Sygma: «più di 4» → «con 5–6»; «zona di requiem» → Zona di
+- Catalizzatore Sigma: «più di 4» → «con 5–6»; «zona di requiem» → Zona di
   Ritiro (le carte non prese vanno tutte lì).

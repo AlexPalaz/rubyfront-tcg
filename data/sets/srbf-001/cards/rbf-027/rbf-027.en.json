@@ -1,5 +1,5 @@
 {
-  "name": "Camp Shield",
+  "name": "Dimensional Shield",
   "typeLabel": "Object",
   "summary": "Power and Counterattack in a single piece.",
   "ui": {
@@ -11,7 +11,7 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Camp Shield",
+    "name": "Dimensional Shield",
     "effect": {
       "name": "Effect",
       "text": "The Entity it is assigned to has +1 Power and Counterattack +1. If it already has Counterattack, that value increases by 1."

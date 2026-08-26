@@ -3,7 +3,7 @@
   "id": "RBF-028",
   "setId": "rubyfront-core",
   "collectorNumber": "028",
-  "slug": "sygma-catalyst",
+  "slug": "sigma-catalyst",
   "type": "object",
   "layout": "single",
   "status": "draft",
@@ -89,5 +89,6 @@
       }
     }
   ],
-  "designNotes": "rbf-028.md"
+  "designNotes": "rbf-028.md",
+  "art": "rbf-028.jpg"
 }

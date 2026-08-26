@@ -143,9 +143,30 @@ se il costume è chiuso; `muscular, heroic armor` per personaggi gracili;
   positivo, tenendo la palette vivace.
 - **Nexus (faccia B):** ambiente più che personaggio — `the heart of
   [luogo], wide establishing shot, [colore] light at the center`.
-- **Oggetti:** in scena — `[oggetto] resting on a forge workbench, close
-  shot`.
-- **Materie:** la sostanza stessa, con luce emessa.
+- **Oggetti** (standard fissato con RBF-026 Spada Dimensionale,
+  2026-08-26): oggetto da solo su **fondale neutro scuro** — `displayed
+  at a slight diagonal, close shot, painted background of a neutral
+  dark gradient, smooth and empty, softly lit around [the object]` —
+  con UN effetto pulito (per la Spada: filo blu + fenditura sottile
+  nell'aria, il flavor reso visibile). Esclusioni tipiche:
+  `people, hands, character, warrior` (Niji ci infila sempre chi lo
+  impugna), `landscape, room, furniture, table, clouds, sky` (Niji odia
+  il vuoto), `ornate, jewels, gold ornaments` sugli oggetti base.
+  Niente `dark moody lighting` nel `--no`: il fondale scuro è voluto.
+- **Materie** (standard consolidato col giro RBF-030→036, firmato
+  2026-08-26): due registri ammessi. (a) **La sostanza stessa**, con
+  luce emessa, su fondale neutro scuro o terra battuta senza cielo
+  (`no sky in frame`, camera bassa) — lo stato della sostanza racconta
+  la carta (fluido ramificato, nube, eco, specchio, sfera trattenuta).
+  (b) **L'evocatore in scena** quando la carta è un'azione: personaggio
+  del set o figura anonima che incanala la Materia (Scudo Riflesso,
+  Carica Latente, Assalto Ferale). Colore = la Materia della carta
+  (blu Dimensionale, rosso rubino Distruttiva — MAI mischiati: bandire
+  l'altro colore). Bandi ricorrenti: pareidolia (`face, eyes, creature`
+  sulla sostanza), contenitori (`bottle, flask, jar`), derive
+  (`crystal ball, planet, lightning`, meteo). La figura ricorrente
+  senza volto con la gemma nel petto (Nexus, Assalto Ferale) è canone
+  da registrare in LORE.
 
 ## Controllo qualità — OBBLIGATORIO prima di montare in carta
 
@@ -215,6 +236,18 @@ conta più che allungare il prompt.
 
 ## Coda di rigenerazione
 
+- [x] GIRO OGGETTI + MATERIE (RBF-026→036) — APPROVATO E FIRMATO in
+      blocco dal designer (2026-08-26): Spada Dimensionale, Scudo
+      Dimensionale (rinominata da «Scudo del Campo»), Catalizzatore
+      Sigma (da «Sygma»), Vestigio della Scissione, Amplificazione
+      Sinaptica, Nube Intangibile, Eversione Distruttiva (da
+      «Esversione», art: soffio del Rubyfront da fuori quadro),
+      Rifrazione della Memoria (eco che svanisce), Scudo Riflesso
+      (guerriero in uniforme da Sentinella, barriera evocata a
+      distanza), Carica Latente (la Sottolama che regge la carica),
+      Assalto Ferale (figura senza volto alla Avy Shin, gemma nel
+      petto, prima Distruttiva). Tutte finestra 16:9, nessun artZoom.
+
 - [x] RBF-017 Rhazmora faccia A — APPROVATA E FIRMATA dal designer
       (2026-08-26): notturna sul villaggio canonico, corpo organico con
       vene di luce blu, gemma rubino in fronte; nucleo tendente Arcane,
@@ -239,8 +272,8 @@ conta più che allungare il prompt.
       dismessa. Nota di mondo sempre valida: il "cyberpunk" di Rubyfront
       si esprime con ferraglia rétro (ferro rivettato, cavi, antenne,
       lanterne meccaniche), NON con ologrammi/neon.
-- [x] RBF-024 Portatore di Fronti — FATTA in firma Sintesi (2026-08-26),
-      in attesa di firma del designer: ex Lama anziano, capelli grigi
+- [x] RBF-024 Portatore di Fronti — APPROVATA E FIRMATA dal designer
+      (2026-08-26): ex Lama anziano, capelli grigi
       corti a ciocche, seggio di pietra nella sala del consiglio, mani
       sul pomolo dello spadone piantato a terra, fumo azzurro dalle
       cicatrici, sguardo giudicante abbassato (il giudicato resta fuori
@@ -261,8 +294,8 @@ conta più che allungare il prompt.
       tramonto attraverso gli occhiali; two-tone oro/arancio + blu.
       Finestra 16:9, nessun artZoom. Fuori dal villaggio: l'Esploratore
       è in avanscoperta — scena coerente col ruolo.
-- [x] RBF-023 Sottolama di Nova Kai — RIFATTA in firma Sintesi
-      (2026-08-26), in attesa di firma del designer: spadaccina bionda
+- [x] RBF-023 Sottolama di Nova Kai — RIFATTA in firma Sintesi,
+      APPROVATA E FIRMATA dal designer (2026-08-26): spadaccina bionda
       con coda ordinata, veste bianca con gilet scuro, affondo da
       schermitrice con nastri di fumo blu Dimensionale attorno alla
       lama, nel bosco coi fasci di sole. Generica di proposito (è una

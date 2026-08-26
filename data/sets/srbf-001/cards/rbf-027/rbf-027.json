@@ -3,7 +3,7 @@
   "id": "RBF-027",
   "setId": "rubyfront-core",
   "collectorNumber": "027",
-  "slug": "camp-shield",
+  "slug": "dimensional-shield",
   "type": "object",
   "layout": "single",
   "status": "draft",
@@ -64,5 +64,6 @@
       }
     }
   ],
-  "designNotes": "rbf-027.md"
+  "designNotes": "rbf-027.md",
+  "art": "rbf-027.jpg"
 }

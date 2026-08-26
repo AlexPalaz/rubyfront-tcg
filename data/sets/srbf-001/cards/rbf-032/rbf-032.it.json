@@ -1,5 +1,5 @@
 {
-  "name": "Esversione",
+  "name": "Eversione Distruttiva",
   "typeLabel": "Materia Distruttiva I",
   "summary": "Rimozione secca nell'Abisso, pagata in PV.",
   "ui": {
@@ -15,7 +15,7 @@
     }
   },
   "face": {
-    "name": "Esversione",
+    "name": "Eversione Distruttiva",
     "effect": {
       "name": "Effetto",
       "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Poi perdi 2 PV."

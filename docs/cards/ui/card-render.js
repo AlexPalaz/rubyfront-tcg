@@ -52,8 +52,12 @@ function createFace(card, face, cardCopy, themeId, localeId) {
     // prima e sfuma nel fondo dietro la textbox).
     const artShift = face.artShift ?? card.artShift;
     const artZoom = face.artZoom ?? card.artZoom;
+    // `artFocusX` sposta l'inquadratura in orizzontale (l'immagine è più
+    // larga della carta): "50%" = centro, "100%" = tutta a destra.
+    const artFocusX = face.artFocusX ?? card.artFocusX;
     if (artShift) backdrop.style.top = artShift;
     if (artZoom) backdrop.style.height = artZoom;
+    if (artFocusX) backdrop.style.objectPosition = `${artFocusX} 50%`;
     visual.append(backdrop, element("div", "bg-scrim"));
   }
 

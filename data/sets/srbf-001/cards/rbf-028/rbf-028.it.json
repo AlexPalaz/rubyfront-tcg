@@ -1,5 +1,5 @@
 {
-  "name": "Catalizzatore Sygma",
+  "name": "Catalizzatore Sigma",
   "typeLabel": "Oggetto",
   "summary": "Un Oggetto che spinge l'attacco e pesca Materie dal mazzo.",
   "ui": {
@@ -11,7 +11,7 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Catalizzatore Sygma",
+    "name": "Catalizzatore Sigma",
     "effect": {
       "name": "Effetto",
       "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 5–6 guarda le prime 4 carte del tuo mazzo, puoi mostrare una Materia tra esse e aggiungerla alla tua mano, e metti le altre nella tua Zona di Ritiro."

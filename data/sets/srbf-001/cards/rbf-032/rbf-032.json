@@ -3,7 +3,7 @@
   "id": "RBF-032",
   "setId": "rubyfront-core",
   "collectorNumber": "032",
-  "slug": "eversion",
+  "slug": "destructive-eversion",
   "type": "matter",
   "layout": "single",
   "status": "draft",
@@ -62,5 +62,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-032.md"
+  "designNotes": "rbf-032.md",
+  "art": "rbf-032.jpg"
 }

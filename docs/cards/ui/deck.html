@@ -22,6 +22,15 @@
     background: var(--ui-ink); color: var(--ui-bg);
     border-radius: 999px; font-size: .8rem; font-weight: 750; }
   .deck-tile:hover { filter: brightness(1.08); }
+  /* Su telefono niente miniature: una carta per riga, a piena larghezza e
+     ad altezza piena (la carta è responsive da sé: l'altezza segue la
+     larghezza dello schermo, il corpo del testo scala in vw). */
+  @media (max-width: 640px) {
+    .deck-grid { grid-template-columns: minmax(0, 1fr); gap: 26px 0; }
+    .deck-tile { width: 100%; height: auto; }
+    .deck-holder { width: 100%; height: auto; transform: none; }
+    .deck-count { right: 0; }
+  }
 
 </style>
 </head>

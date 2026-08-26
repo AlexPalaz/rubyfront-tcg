@@ -1,5 +1,5 @@
 {
-  "name": "Scudo del Campo",
+  "name": "Scudo Dimensionale",
   "typeLabel": "Oggetto",
   "summary": "Potenza e Contrattacco in un pezzo solo.",
   "ui": {
@@ -11,7 +11,7 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Scudo del Campo",
+    "name": "Scudo Dimensionale",
     "effect": {
       "name": "Effetto",
       "text": "L'Entità a cui è assegnato ha +1 Potenza e Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
