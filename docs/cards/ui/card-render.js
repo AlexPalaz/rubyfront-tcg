@@ -45,9 +45,9 @@ function createFace(card, face, cardCopy, themeId, localeId) {
   if (fullArt) {
     visual.classList.add("full-art");
     const backdrop = element("img", "bg-art");
-    // Lazy: nella pagina del mazzo si montano decine di carte insieme —
-    // il browser scarica solo quelle vicine allo schermo.
-    backdrop.loading = "lazy";
+    // Caricamento immediato: la carta è il contenuto della pagina, anche
+    // quando nasce sotto la piega. È la pagina del mazzo, che monta decine
+    // di carte, a rimandare le illustrazioni lontane (vedi deck-page.js).
     backdrop.decoding = "async";
     backdrop.src = resolveSource(artOwner, "art");
     backdrop.alt = "";
@@ -70,7 +70,6 @@ function createFace(card, face, cardCopy, themeId, localeId) {
     // nessuna cornice né segnaposto: la finestra lascia vedere lo sfondo
   } else if (hasArt) {
     const image = element("img");
-    image.loading = "lazy";
     image.decoding = "async";
     image.src = resolveSource(artOwner, "art");
     image.alt = cardCopy.name ?? "";

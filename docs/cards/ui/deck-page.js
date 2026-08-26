@@ -19,6 +19,16 @@ import {
 } from "./shell.js";
 import { createFace, localized, fitTextBoxes, faceToText } from "./card-render.js";
 
+// Tutte le illustrazioni partono subito — niente lazy: rimandare il
+// download le faceva comparire mentre l'occhio era già lì. A ordinare la
+// coda pensa la priorità: le prime tessere in alta, le altre in bassa, così
+// il browser dipinge presto ciò che si vede e intanto scarica il resto.
+const EAGER_TILES = 8;
+
+function lowerArtPriority(visual) {
+  for (const image of visual.querySelectorAll("img")) image.fetchPriority = "low";
+}
+
 const params = new URLSearchParams(location.search);
 const requestedDeckId = params.get("deck");
 const deck = requestedDeckId
@@ -183,6 +193,7 @@ function renderDeck(resource) {
     languageSlot.replaceChildren(languagePicker(resource, localeId, applyLocale));
 
     grid.replaceChildren();
+    let tileIndex = 0;
     for (const entry of resource.cards) {
       const card = getCardById(entry.card);
       if (!card) continue;
@@ -193,7 +204,10 @@ function renderDeck(resource) {
         anchor.href = cardRoute(card, localeId, resource.id);
         anchor.title = cardCopy.name;
         const holder = element("div", "deck-holder");
-        holder.append(createFace(card, face, cardCopy, themeId, localeId));
+        const visual = createFace(card, face, cardCopy, themeId, localeId);
+        holder.append(visual);
+        if (tileIndex >= EAGER_TILES) lowerArtPriority(visual);
+        tileIndex += 1;
         anchor.append(holder);
         tile.append(anchor, element("span", "deck-count", `×${entry.count}`));
         grid.append(tile);
