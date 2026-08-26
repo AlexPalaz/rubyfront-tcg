@@ -1,5 +1,5 @@
 {
-  "name": "Krevon, Sottolama di Nova Kai",
+  "name": "Sottolama di Nova Kai",
   "typeLabel": "Entità: Auros",
   "summary": "Slancio e comando: quando attacca equipaggiato, tutto il fronte armato spinge.",
   "ui": {
@@ -16,7 +16,7 @@
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Krevon, Sottolama di Nova Kai",
+    "name": "Sottolama di Nova Kai",
     "keyword": {
       "name": "Slancio",
       "rules": "può attaccare nel turno in cui entra in campo"

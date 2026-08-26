@@ -3,7 +3,7 @@
   "id": "RBF-021",
   "setId": "rubyfront-core",
   "collectorNumber": "021",
-  "slug": "hali-artificer-of-nova-kai",
+  "slug": "artificer-of-nova-kai",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -78,5 +78,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-021.md"
+  "designNotes": "rbf-021.md",
+  "art": "rbf-021.jpg"
 }

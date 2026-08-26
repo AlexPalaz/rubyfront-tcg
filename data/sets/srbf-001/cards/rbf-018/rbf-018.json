@@ -3,7 +3,7 @@
   "id": "RBF-018",
   "setId": "rubyfront-core",
   "collectorNumber": "018",
-  "slug": "gyn-camp-recruit",
+  "slug": "camp-recruit",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -58,5 +58,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-018.md"
+  "designNotes": "rbf-018.md",
+  "art": "rbf-018.jpg"
 }

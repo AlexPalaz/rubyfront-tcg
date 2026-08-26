@@ -59,7 +59,18 @@ const sets = catalog.sets.map(setDir => {
       }
     }
 
-    return { ...card, locales, source: { designNotes, art } };
+    // Anche una singola faccia può dichiarare la propria illustrazione
+    // (campo art nella faccia): vince su quella della carta.
+    const faces = (card.faces ?? []).map(face => {
+      if (!face.art) return face;
+      const from = path.join(DATA, "sets", setDir, "cards", id, face.art);
+      if (!fs.existsSync(from)) return face;
+      fs.mkdirSync(ART_DIR, { recursive: true });
+      fs.copyFileSync(from, path.join(ART_DIR, face.art));
+      return { ...face, source: { art: `art/${face.art}` } };
+    });
+
+    return { ...card, faces, locales, source: { designNotes, art } };
   });
 
   return { ...set, cards };

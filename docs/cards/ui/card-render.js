@@ -30,12 +30,39 @@ function createFace(card, face, cardCopy, themeId, localeId) {
   if (LIGHT_THEMES.has(themeId)) visual.classList.add("light-theme");
   visual.dataset.faceId = face.id;
 
-  // Se la carta dichiara un'illustrazione (card.art nei dati madre), l'area
-  // art la mostra; altrimenti resta il segnaposto testuale localizzato.
+  // Rubyfront e Nexus vanno a tutta illustrazione: l'immagine fa da sfondo
+  // all'intera carta (con uno scrim per la leggibilità) e l'area art resta
+  // una finestra vuota sul fondo. Le altre carte mostrano l'illustrazione
+  // nella cornice; senza illustrazione resta il segnaposto localizzato.
+  // L'illustrazione (e la sua inquadratura) può essere dichiarata dalla
+  // singola faccia, che vince su quella della carta.
+  // Oltre a Rubyfront e Nexus, una carta (o una faccia) può chiedere la
+  // resa a tutta illustrazione col campo dati `fullArt: true`.
+  const artOwner = face.source?.art ? face : card;
+  const hasArt = Boolean(artOwner.source?.art);
+  const fullArt = hasArt && (face.kind === "rubyfront" || face.kind === "nexus" ||
+    face.fullArt === true || card.fullArt === true);
+  if (fullArt) {
+    visual.classList.add("full-art");
+    const backdrop = element("img", "bg-art");
+    backdrop.src = resolveSource(artOwner, "art");
+    backdrop.alt = "";
+    // Inquadratura: `artShift` sposta lo sfondo in verticale, `artZoom`
+    // dice quanta carta copre (es. "72%" = meno zoom, l'immagine si ferma
+    // prima e sfuma nel fondo dietro la textbox).
+    const artShift = face.artShift ?? card.artShift;
+    const artZoom = face.artZoom ?? card.artZoom;
+    if (artShift) backdrop.style.top = artShift;
+    if (artZoom) backdrop.style.height = artZoom;
+    visual.append(backdrop, element("div", "bg-scrim"));
+  }
+
   const art = element("div", "art");
-  if (card.source?.art) {
+  if (fullArt) {
+    // nessuna cornice né segnaposto: la finestra lascia vedere lo sfondo
+  } else if (hasArt) {
     const image = element("img");
-    image.src = resolveSource(card, "art");
+    image.src = resolveSource(artOwner, "art");
     image.alt = cardCopy.name ?? "";
     art.append(image);
   } else {

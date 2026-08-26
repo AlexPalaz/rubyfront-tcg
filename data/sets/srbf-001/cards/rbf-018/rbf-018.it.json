@@ -1,5 +1,5 @@
 {
-  "name": "Gyn, Recluta del Campo",
+  "name": "Recluta del Campo",
   "typeLabel": "Entità: Auros",
   "summary": "Un corpo da un Flusso che cresce appena gli metti in mano qualcosa.",
   "ui": {
@@ -16,7 +16,7 @@
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Gyn, Recluta del Campo",
+    "name": "Recluta del Campo",
     "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
     "effect": {
       "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."

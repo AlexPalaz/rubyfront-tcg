@@ -1,5 +1,5 @@
 {
-  "name": "Il Portatore",
+  "name": "Portatore di Fronti",
   "typeLabel": "Entità: Auros",
   "summary": "Ogni Oggetto che gli affidi è una carta in più.",
   "ui": {
@@ -16,7 +16,7 @@
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Il Portatore",
+    "name": "Portatore di Fronti",
     "carry": {
       "trigger": "Quando assegni un Oggetto a questa Entità",
       "text": "Pesca una carta."

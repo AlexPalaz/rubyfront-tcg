@@ -1,5 +1,5 @@
 {
-  "name": "The Bearer",
+  "name": "Bearer of Fronts",
   "typeLabel": "Entity: Auros",
   "summary": "Every Object entrusted to it is one more card.",
   "ui": {
@@ -16,7 +16,7 @@
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "The Bearer",
+    "name": "Bearer of Fronts",
     "carry": {
       "trigger": "When you assign an Object to this Entity",
       "text": "Draw a card."

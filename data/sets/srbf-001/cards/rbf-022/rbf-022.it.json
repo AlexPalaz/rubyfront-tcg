@@ -1,5 +1,5 @@
 {
-  "name": "Merk, Sentinella di Nova Kai",
+  "name": "Sentinella di Nova Kai",
   "typeLabel": "Entità: Auros",
   "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte.",
   "ui": {
@@ -17,7 +17,7 @@
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Merk, Sentinella di Nova Kai",
+    "name": "Sentinella di Nova Kai",
     "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
     "effect": {
       "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."

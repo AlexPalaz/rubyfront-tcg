@@ -45,7 +45,7 @@ Zona di Ritiro.
 
 ## 3. I motori del mazzo
 
-- **Vantaggio carte**: Il Portatore (pesca a ogni assegnazione), Garwin
+- **Vantaggio carte**: Portatore di Fronti (pesca a ogni assegnazione), Garwin
   (loot in attacco, una volta per turno), Mestrel (cresce con le pescate).
 - **Zona di Ritiro come arsenale**: Hali, Catalizzatore Sygma e Carica Latente
   la riempiono; Vestigio della Scissione, Avy Shin e il Grande Riarmo la
@@ -56,7 +56,7 @@ Zona di Ritiro.
 ## 4. Decisioni di design registrate
 
 - Nessun limite di Oggetti per Entità: cambio di regolamento del 24 ago 2026,
-  scritto in MANUALE §3.1 — sblocca Avy Shin e Il Portatore.
+  scritto in MANUALE §3.1 — sblocca Avy Shin e il Portatore di Fronti.
 - Garwin: «la prima volta che attacca» → **una volta per ogni tuo turno**.
 - Nube Intangibile: dal foglio «Normale» → **Permanente** (l'effetto vive
   finché la carta resta in campo).

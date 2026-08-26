@@ -93,5 +93,8 @@
   ],
   "designNotes": "rbf-025.md",
   "art": "rbf-025.jpg",
-  "unique": true
+  "unique": true,
+  "fullArt": true,
+  "artZoom": "50%",
+  "artShift": "5%"
 }

@@ -1,5 +1,5 @@
 {
-  "name": "Mestrel, Guardiano del Campo",
+  "name": "Guardiano del Campo",
   "typeLabel": "Entità: Auros",
   "summary": "Premia la seconda pescata del turno: più carte scorrono, più colpisce forte.",
   "ui": {
@@ -16,7 +16,7 @@
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Mestrel, Guardiano del Campo",
+    "name": "Guardiano del Campo",
     "tally": {
       "trigger": "Effetto",
       "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."

@@ -3,7 +3,7 @@
   "id": "RBF-023",
   "setId": "rubyfront-core",
   "collectorNumber": "023",
-  "slug": "krevon-underblade-of-nova-kai",
+  "slug": "underblade-of-nova-kai",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -70,5 +70,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-023.md"
+  "designNotes": "rbf-023.md",
+  "art": "rbf-023.jpg"
 }

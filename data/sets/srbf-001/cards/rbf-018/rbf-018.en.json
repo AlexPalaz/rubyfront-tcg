@@ -1,5 +1,5 @@
 {
-  "name": "Gyn, Camp Recruit",
+  "name": "Camp Recruit",
   "typeLabel": "Entity: Auros",
   "summary": "A one-Flux body that grows the moment you put something in its hands.",
   "ui": {
@@ -16,7 +16,7 @@
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Gyn, Camp Recruit",
+    "name": "Camp Recruit",
     "flavor": "The first weapon was patience. The Camp handed over the second.",
     "effect": {
       "text": "If this Entity has an Object assigned, it has +1 Power."

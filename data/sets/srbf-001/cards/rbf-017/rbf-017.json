@@ -180,6 +180,8 @@
       "id": "nexus",
       "kind": "nexus",
       "displayKey": "faceB",
+      "art": "rbf-017-nexus.jpg",
+      "artZoom": "72%",
       "stats": {
         "healthRecovery": 5
       },
@@ -327,5 +329,6 @@
     }
   ],
   "designNotes": "rbf-017.md",
-  "art": "rbf-017.jpg"
+  "art": "rbf-017.jpg",
+  "artZoom": "72%"
 }

@@ -3,7 +3,7 @@
   "id": "RBF-024",
   "setId": "rubyfront-core",
   "collectorNumber": "024",
-  "slug": "the-bearer",
+  "slug": "bearer-of-fronts",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -58,5 +58,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-024.md"
+  "designNotes": "rbf-024.md",
+  "art": "rbf-024.jpg"
 }

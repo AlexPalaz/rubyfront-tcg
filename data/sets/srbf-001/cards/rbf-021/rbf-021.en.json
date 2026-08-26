@@ -1,5 +1,5 @@
 {
-  "name": "Hali, Artificer of Nova Kai",
+  "name": "Artificer of Nova Kai",
   "typeLabel": "Entity: Auros",
   "summary": "The artificer who digs through the deck by the die and fills the Retire Zone.",
   "ui": {
@@ -16,7 +16,7 @@
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Hali, Artificer of Nova Kai",
+    "name": "Artificer of Nova Kai",
     "forage": {
       "trigger": "When it enters the field",
       "text": "Roll a d6 and look at a number of cards from the top of your deck equal to 2 plus half the result, rounded up. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."

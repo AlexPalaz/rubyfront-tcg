@@ -68,6 +68,14 @@ nella barra del titolo e la qualifica nella riga del tipo (vedi
 `splitFaceName` in docs/cards/ui/card-render.js). Niente abbreviazioni tipo
 «RBF» nei nomi o nei testi.
 
+**Nomi propri solo alle carte Uniche e ai Rubyfront** (decisione del designer,
+2026-08-25): le carte non-Uniche hanno un nome **generico di ruolo**, senza
+nome personale né virgola («Recluta del Campo» / "Camp Recruit", «Sentinella
+di Nova Kai» / "Sentinel of Nova Kai"). Il nome personale (Adam, Avy Shin,
+Rhazmora…) è riservato a Uniche e Rubyfront. Lo slug segue il nome generico
+(`camp-recruit`). I flavor delle non-Uniche restano impersonali: mai citare
+un nome proprio che la carta non ha più.
+
 ## Formule fisse
 
 Trigger (campo `trigger`, iniziale maiuscola, senza punto finale):

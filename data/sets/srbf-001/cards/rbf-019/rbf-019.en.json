@@ -1,5 +1,5 @@
 {
-  "name": "Mestrel, Camp Warden",
+  "name": "Camp Warden",
   "typeLabel": "Entity: Auros",
   "summary": "Rewards the turn's second draw: the more cards flow, the harder it hits.",
   "ui": {
@@ -16,7 +16,7 @@
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Mestrel, Camp Warden",
+    "name": "Camp Warden",
     "tally": {
       "trigger": "Effect",
       "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."

@@ -1,5 +1,5 @@
 {
-  "name": "Merk, Sentinel of Nova Kai",
+  "name": "Sentinel of Nova Kai",
   "typeLabel": "Entity: Auros",
   "summary": "A sentinel whose answer hits far harder with the right Object.",
   "ui": {
@@ -17,7 +17,7 @@
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Merk, Sentinel of Nova Kai",
+    "name": "Sentinel of Nova Kai",
     "flavor": "The answering blow is the only one it has always prepared.",
     "effect": {
       "text": "If this Entity has an Object assigned, its Counterattack becomes +2."

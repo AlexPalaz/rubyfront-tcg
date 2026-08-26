@@ -1,5 +1,5 @@
 {
-  "name": "Krevon, Underblade of Nova Kai",
+  "name": "Underblade of Nova Kai",
   "typeLabel": "Entity: Auros",
   "summary": "Surge and command: when it attacks equipped, the whole armed front pushes.",
   "ui": {
@@ -16,7 +16,7 @@
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Krevon, Underblade of Nova Kai",
+    "name": "Underblade of Nova Kai",
     "keyword": {
       "name": "Surge",
       "rules": "may attack the turn it enters the field"

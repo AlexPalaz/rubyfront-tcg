@@ -3,7 +3,7 @@
   "id": "RBF-020",
   "setId": "rubyfront-core",
   "collectorNumber": "020",
-  "slug": "garwin-scout",
+  "slug": "scout",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -62,5 +62,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-020.md"
+  "designNotes": "rbf-020.md",
+  "art": "rbf-020.jpg"
 }

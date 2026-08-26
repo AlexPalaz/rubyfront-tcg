@@ -3,7 +3,7 @@
   "id": "RBF-019",
   "setId": "rubyfront-core",
   "collectorNumber": "019",
-  "slug": "mestrel-camp-warden",
+  "slug": "camp-warden",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -62,5 +62,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-019.md"
+  "designNotes": "rbf-019.md",
+  "art": "rbf-019.jpg"
 }

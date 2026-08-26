@@ -2644,6 +2644,8 @@
               "id": "nexus",
               "kind": "nexus",
               "displayKey": "faceB",
+              "art": "rbf-017-nexus.jpg",
+              "artZoom": "72%",
               "stats": {
                 "healthRecovery": 5
               },
@@ -2787,11 +2789,15 @@
                     }
                   }
                 }
-              ]
+              ],
+              "source": {
+                "art": "art/rbf-017-nexus.jpg"
+              }
             }
           ],
           "designNotes": "rbf-017.md",
           "art": "rbf-017.jpg",
+          "artZoom": "72%",
           "source": {
             "designNotes": "notes/rbf-017.md",
             "art": "art/rbf-017.jpg"
@@ -2802,7 +2808,7 @@
           "id": "RBF-018",
           "setId": "rubyfront-core",
           "collectorNumber": "018",
-          "slug": "gyn-camp-recruit",
+          "slug": "camp-recruit",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -2810,7 +2816,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Gyn, Recluta del Campo",
+              "name": "Recluta del Campo",
               "typeLabel": "Entità: Auros",
               "summary": "Un corpo da un Flusso che cresce appena gli metti in mano qualcosa.",
               "ui": {
@@ -2827,7 +2833,7 @@
                 "dimensionalAria": "Dimensionale"
               },
               "face": {
-                "name": "Gyn, Recluta del Campo",
+                "name": "Recluta del Campo",
                 "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
                 "effect": {
                   "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
@@ -2835,7 +2841,7 @@
               }
             },
             "en": {
-              "name": "Gyn, Camp Recruit",
+              "name": "Camp Recruit",
               "typeLabel": "Entity: Auros",
               "summary": "A one-Flux body that grows the moment you put something in its hands.",
               "ui": {
@@ -2852,7 +2858,7 @@
                 "dimensionalAria": "Dimensional"
               },
               "face": {
-                "name": "Gyn, Camp Recruit",
+                "name": "Camp Recruit",
                 "flavor": "The first weapon was patience. The Camp handed over the second.",
                 "effect": {
                   "text": "If this Entity has an Object assigned, it has +1 Power."
@@ -2906,8 +2912,10 @@
             }
           ],
           "designNotes": "rbf-018.md",
+          "art": "rbf-018.jpg",
           "source": {
-            "designNotes": "notes/rbf-018.md"
+            "designNotes": "notes/rbf-018.md",
+            "art": "art/rbf-018.jpg"
           }
         },
         {
@@ -2915,7 +2923,7 @@
           "id": "RBF-019",
           "setId": "rubyfront-core",
           "collectorNumber": "019",
-          "slug": "mestrel-camp-warden",
+          "slug": "camp-warden",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -2923,7 +2931,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Mestrel, Guardiano del Campo",
+              "name": "Guardiano del Campo",
               "typeLabel": "Entità: Auros",
               "summary": "Premia la seconda pescata del turno: più carte scorrono, più colpisce forte.",
               "ui": {
@@ -2940,7 +2948,7 @@
                 "dimensionalAria": "Dimensionale"
               },
               "face": {
-                "name": "Mestrel, Guardiano del Campo",
+                "name": "Guardiano del Campo",
                 "tally": {
                   "trigger": "Effetto",
                   "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
@@ -2949,7 +2957,7 @@
               }
             },
             "en": {
-              "name": "Mestrel, Camp Warden",
+              "name": "Camp Warden",
               "typeLabel": "Entity: Auros",
               "summary": "Rewards the turn's second draw: the more cards flow, the harder it hits.",
               "ui": {
@@ -2966,7 +2974,7 @@
                 "dimensionalAria": "Dimensional"
               },
               "face": {
-                "name": "Mestrel, Camp Warden",
+                "name": "Camp Warden",
                 "tally": {
                   "trigger": "Effect",
                   "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."
@@ -3025,8 +3033,10 @@
             }
           ],
           "designNotes": "rbf-019.md",
+          "art": "rbf-019.jpg",
           "source": {
-            "designNotes": "notes/rbf-019.md"
+            "designNotes": "notes/rbf-019.md",
+            "art": "art/rbf-019.jpg"
           }
         },
         {
@@ -3034,7 +3044,7 @@
           "id": "RBF-020",
           "setId": "rubyfront-core",
           "collectorNumber": "020",
-          "slug": "garwin-scout",
+          "slug": "scout",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -3042,7 +3052,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Garwin, Esploratore",
+              "name": "Esploratore",
               "typeLabel": "Entità: Auros",
               "summary": "L'avanscoperta equipaggiata: attacca con un Oggetto e filtra la mano.",
               "ui": {
@@ -3059,7 +3069,7 @@
                 "dimensionalAria": "Dimensionale"
               },
               "face": {
-                "name": "Garwin, Esploratore",
+                "name": "Esploratore",
                 "scouting": {
                   "trigger": "Effetto",
                   "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
@@ -3068,7 +3078,7 @@
               }
             },
             "en": {
-              "name": "Garwin, Scout",
+              "name": "Scout",
               "typeLabel": "Entity: Auros",
               "summary": "The equipped vanguard: attack with an Object and filter your hand.",
               "ui": {
@@ -3085,7 +3095,7 @@
                 "dimensionalAria": "Dimensional"
               },
               "face": {
-                "name": "Garwin, Scout",
+                "name": "Scout",
                 "scouting": {
                   "trigger": "Effect",
                   "text": "The first time each of your turns this Entity attacks while it has an Object assigned, draw a card, then discard a card."
@@ -3144,8 +3154,10 @@
             }
           ],
           "designNotes": "rbf-020.md",
+          "art": "rbf-020.jpg",
           "source": {
-            "designNotes": "notes/rbf-020.md"
+            "designNotes": "notes/rbf-020.md",
+            "art": "art/rbf-020.jpg"
           }
         },
         {
@@ -3153,7 +3165,7 @@
           "id": "RBF-021",
           "setId": "rubyfront-core",
           "collectorNumber": "021",
-          "slug": "hali-artificer-of-nova-kai",
+          "slug": "artificer-of-nova-kai",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -3161,7 +3173,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Hali, Artefice di Nova Kai",
+              "name": "Artefice di Nova Kai",
               "typeLabel": "Entità: Auros",
               "summary": "L'artefice che scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
               "ui": {
@@ -3178,7 +3190,7 @@
                 "dimensionalAria": "Dimensionale"
               },
               "face": {
-                "name": "Hali, Artefice di Nova Kai",
+                "name": "Artefice di Nova Kai",
                 "forage": {
                   "trigger": "Quando entra in campo",
                   "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
@@ -3187,7 +3199,7 @@
               }
             },
             "en": {
-              "name": "Hali, Artificer of Nova Kai",
+              "name": "Artificer of Nova Kai",
               "typeLabel": "Entity: Auros",
               "summary": "The artificer who digs through the deck by the die and fills the Retire Zone.",
               "ui": {
@@ -3204,7 +3216,7 @@
                 "dimensionalAria": "Dimensional"
               },
               "face": {
-                "name": "Hali, Artificer of Nova Kai",
+                "name": "Artificer of Nova Kai",
                 "forage": {
                   "trigger": "When it enters the field",
                   "text": "Roll a d6 and look at a number of cards from the top of your deck equal to 2 plus half the result, rounded up. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
@@ -3279,8 +3291,10 @@
             }
           ],
           "designNotes": "rbf-021.md",
+          "art": "rbf-021.jpg",
           "source": {
-            "designNotes": "notes/rbf-021.md"
+            "designNotes": "notes/rbf-021.md",
+            "art": "art/rbf-021.jpg"
           }
         },
         {
@@ -3288,7 +3302,7 @@
           "id": "RBF-022",
           "setId": "rubyfront-core",
           "collectorNumber": "022",
-          "slug": "merk-sentinel-of-nova-kai",
+          "slug": "sentinel-of-nova-kai",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -3296,7 +3310,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Merk, Sentinella di Nova Kai",
+              "name": "Sentinella di Nova Kai",
               "typeLabel": "Entità: Auros",
               "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte.",
               "ui": {
@@ -3314,7 +3328,7 @@
                 "dimensionalAria": "Dimensionale"
               },
               "face": {
-                "name": "Merk, Sentinella di Nova Kai",
+                "name": "Sentinella di Nova Kai",
                 "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
                 "effect": {
                   "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
@@ -3322,7 +3336,7 @@
               }
             },
             "en": {
-              "name": "Merk, Sentinel of Nova Kai",
+              "name": "Sentinel of Nova Kai",
               "typeLabel": "Entity: Auros",
               "summary": "A sentinel whose answer hits far harder with the right Object.",
               "ui": {
@@ -3340,7 +3354,7 @@
                 "dimensionalAria": "Dimensional"
               },
               "face": {
-                "name": "Merk, Sentinel of Nova Kai",
+                "name": "Sentinel of Nova Kai",
                 "flavor": "The answering blow is the only one it has always prepared.",
                 "effect": {
                   "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
@@ -3395,8 +3409,10 @@
             }
           ],
           "designNotes": "rbf-022.md",
+          "art": "rbf-022.jpg",
           "source": {
-            "designNotes": "notes/rbf-022.md"
+            "designNotes": "notes/rbf-022.md",
+            "art": "art/rbf-022.jpg"
           }
         },
         {
@@ -3404,7 +3420,7 @@
           "id": "RBF-023",
           "setId": "rubyfront-core",
           "collectorNumber": "023",
-          "slug": "krevon-underblade-of-nova-kai",
+          "slug": "underblade-of-nova-kai",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -3412,7 +3428,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Krevon, Sottolama di Nova Kai",
+              "name": "Sottolama di Nova Kai",
               "typeLabel": "Entità: Auros",
               "summary": "Slancio e comando: quando attacca equipaggiato, tutto il fronte armato spinge.",
               "ui": {
@@ -3429,7 +3445,7 @@
                 "dimensionalAria": "Dimensionale"
               },
               "face": {
-                "name": "Krevon, Sottolama di Nova Kai",
+                "name": "Sottolama di Nova Kai",
                 "keyword": {
                   "name": "Slancio",
                   "rules": "può attaccare nel turno in cui entra in campo"
@@ -3442,7 +3458,7 @@
               }
             },
             "en": {
-              "name": "Krevon, Underblade of Nova Kai",
+              "name": "Underblade of Nova Kai",
               "typeLabel": "Entity: Auros",
               "summary": "Surge and command: when it attacks equipped, the whole armed front pushes.",
               "ui": {
@@ -3459,7 +3475,7 @@
                 "dimensionalAria": "Dimensional"
               },
               "face": {
-                "name": "Krevon, Underblade of Nova Kai",
+                "name": "Underblade of Nova Kai",
                 "keyword": {
                   "name": "Surge",
                   "rules": "may attack the turn it enters the field"
@@ -3530,8 +3546,10 @@
             }
           ],
           "designNotes": "rbf-023.md",
+          "art": "rbf-023.jpg",
           "source": {
-            "designNotes": "notes/rbf-023.md"
+            "designNotes": "notes/rbf-023.md",
+            "art": "art/rbf-023.jpg"
           }
         },
         {
@@ -3539,7 +3557,7 @@
           "id": "RBF-024",
           "setId": "rubyfront-core",
           "collectorNumber": "024",
-          "slug": "the-bearer",
+          "slug": "bearer-of-fronts",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -3547,7 +3565,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Il Portatore",
+              "name": "Portatore di Fronti",
               "typeLabel": "Entità: Auros",
               "summary": "Ogni Oggetto che gli affidi è una carta in più.",
               "ui": {
@@ -3564,7 +3582,7 @@
                 "dimensionalAria": "Dimensionale"
               },
               "face": {
-                "name": "Il Portatore",
+                "name": "Portatore di Fronti",
                 "carry": {
                   "trigger": "Quando assegni un Oggetto a questa Entità",
                   "text": "Pesca una carta."
@@ -3573,7 +3591,7 @@
               }
             },
             "en": {
-              "name": "The Bearer",
+              "name": "Bearer of Fronts",
               "typeLabel": "Entity: Auros",
               "summary": "Every Object entrusted to it is one more card.",
               "ui": {
@@ -3590,7 +3608,7 @@
                 "dimensionalAria": "Dimensional"
               },
               "face": {
-                "name": "The Bearer",
+                "name": "Bearer of Fronts",
                 "carry": {
                   "trigger": "When you assign an Object to this Entity",
                   "text": "Draw a card."
@@ -3645,8 +3663,10 @@
             }
           ],
           "designNotes": "rbf-024.md",
+          "art": "rbf-024.jpg",
           "source": {
-            "designNotes": "notes/rbf-024.md"
+            "designNotes": "notes/rbf-024.md",
+            "art": "art/rbf-024.jpg"
           }
         },
         {
@@ -3803,6 +3823,9 @@
           "designNotes": "rbf-025.md",
           "art": "rbf-025.jpg",
           "unique": true,
+          "fullArt": true,
+          "artZoom": "50%",
+          "artShift": "5%",
           "source": {
             "designNotes": "notes/rbf-025.md",
             "art": "art/rbf-025.jpg"
@@ -7822,6 +7845,8 @@
           "id": "nexus",
           "kind": "nexus",
           "displayKey": "faceB",
+          "art": "rbf-017-nexus.jpg",
+          "artZoom": "72%",
           "stats": {
             "healthRecovery": 5
           },
@@ -7965,11 +7990,15 @@
                 }
               }
             }
-          ]
+          ],
+          "source": {
+            "art": "art/rbf-017-nexus.jpg"
+          }
         }
       ],
       "designNotes": "rbf-017.md",
       "art": "rbf-017.jpg",
+      "artZoom": "72%",
       "source": {
         "designNotes": "notes/rbf-017.md",
         "art": "art/rbf-017.jpg"
@@ -7980,7 +8009,7 @@
       "id": "RBF-018",
       "setId": "rubyfront-core",
       "collectorNumber": "018",
-      "slug": "gyn-camp-recruit",
+      "slug": "camp-recruit",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -7988,7 +8017,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Gyn, Recluta del Campo",
+          "name": "Recluta del Campo",
           "typeLabel": "Entità: Auros",
           "summary": "Un corpo da un Flusso che cresce appena gli metti in mano qualcosa.",
           "ui": {
@@ -8005,7 +8034,7 @@
             "dimensionalAria": "Dimensionale"
           },
           "face": {
-            "name": "Gyn, Recluta del Campo",
+            "name": "Recluta del Campo",
             "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
             "effect": {
               "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
@@ -8013,7 +8042,7 @@
           }
         },
         "en": {
-          "name": "Gyn, Camp Recruit",
+          "name": "Camp Recruit",
           "typeLabel": "Entity: Auros",
           "summary": "A one-Flux body that grows the moment you put something in its hands.",
           "ui": {
@@ -8030,7 +8059,7 @@
             "dimensionalAria": "Dimensional"
           },
           "face": {
-            "name": "Gyn, Camp Recruit",
+            "name": "Camp Recruit",
             "flavor": "The first weapon was patience. The Camp handed over the second.",
             "effect": {
               "text": "If this Entity has an Object assigned, it has +1 Power."
@@ -8084,8 +8113,10 @@
         }
       ],
       "designNotes": "rbf-018.md",
+      "art": "rbf-018.jpg",
       "source": {
-        "designNotes": "notes/rbf-018.md"
+        "designNotes": "notes/rbf-018.md",
+        "art": "art/rbf-018.jpg"
       }
     },
     {
@@ -8093,7 +8124,7 @@
       "id": "RBF-019",
       "setId": "rubyfront-core",
       "collectorNumber": "019",
-      "slug": "mestrel-camp-warden",
+      "slug": "camp-warden",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -8101,7 +8132,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Mestrel, Guardiano del Campo",
+          "name": "Guardiano del Campo",
           "typeLabel": "Entità: Auros",
           "summary": "Premia la seconda pescata del turno: più carte scorrono, più colpisce forte.",
           "ui": {
@@ -8118,7 +8149,7 @@
             "dimensionalAria": "Dimensionale"
           },
           "face": {
-            "name": "Mestrel, Guardiano del Campo",
+            "name": "Guardiano del Campo",
             "tally": {
               "trigger": "Effetto",
               "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
@@ -8127,7 +8158,7 @@
           }
         },
         "en": {
-          "name": "Mestrel, Camp Warden",
+          "name": "Camp Warden",
           "typeLabel": "Entity: Auros",
           "summary": "Rewards the turn's second draw: the more cards flow, the harder it hits.",
           "ui": {
@@ -8144,7 +8175,7 @@
             "dimensionalAria": "Dimensional"
           },
           "face": {
-            "name": "Mestrel, Camp Warden",
+            "name": "Camp Warden",
             "tally": {
               "trigger": "Effect",
               "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."
@@ -8203,8 +8234,10 @@
         }
       ],
       "designNotes": "rbf-019.md",
+      "art": "rbf-019.jpg",
       "source": {
-        "designNotes": "notes/rbf-019.md"
+        "designNotes": "notes/rbf-019.md",
+        "art": "art/rbf-019.jpg"
       }
     },
     {
@@ -8212,7 +8245,7 @@
       "id": "RBF-020",
       "setId": "rubyfront-core",
       "collectorNumber": "020",
-      "slug": "garwin-scout",
+      "slug": "scout",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -8220,7 +8253,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Garwin, Esploratore",
+          "name": "Esploratore",
           "typeLabel": "Entità: Auros",
           "summary": "L'avanscoperta equipaggiata: attacca con un Oggetto e filtra la mano.",
           "ui": {
@@ -8237,7 +8270,7 @@
             "dimensionalAria": "Dimensionale"
           },
           "face": {
-            "name": "Garwin, Esploratore",
+            "name": "Esploratore",
             "scouting": {
               "trigger": "Effetto",
               "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
@@ -8246,7 +8279,7 @@
           }
         },
         "en": {
-          "name": "Garwin, Scout",
+          "name": "Scout",
           "typeLabel": "Entity: Auros",
           "summary": "The equipped vanguard: attack with an Object and filter your hand.",
           "ui": {
@@ -8263,7 +8296,7 @@
             "dimensionalAria": "Dimensional"
           },
           "face": {
-            "name": "Garwin, Scout",
+            "name": "Scout",
             "scouting": {
               "trigger": "Effect",
               "text": "The first time each of your turns this Entity attacks while it has an Object assigned, draw a card, then discard a card."
@@ -8322,8 +8355,10 @@
         }
       ],
       "designNotes": "rbf-020.md",
+      "art": "rbf-020.jpg",
       "source": {
-        "designNotes": "notes/rbf-020.md"
+        "designNotes": "notes/rbf-020.md",
+        "art": "art/rbf-020.jpg"
       }
     },
     {
@@ -8331,7 +8366,7 @@
       "id": "RBF-021",
       "setId": "rubyfront-core",
       "collectorNumber": "021",
-      "slug": "hali-artificer-of-nova-kai",
+      "slug": "artificer-of-nova-kai",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -8339,7 +8374,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Hali, Artefice di Nova Kai",
+          "name": "Artefice di Nova Kai",
           "typeLabel": "Entità: Auros",
           "summary": "L'artefice che scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
           "ui": {
@@ -8356,7 +8391,7 @@
             "dimensionalAria": "Dimensionale"
           },
           "face": {
-            "name": "Hali, Artefice di Nova Kai",
+            "name": "Artefice di Nova Kai",
             "forage": {
               "trigger": "Quando entra in campo",
               "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
@@ -8365,7 +8400,7 @@
           }
         },
         "en": {
-          "name": "Hali, Artificer of Nova Kai",
+          "name": "Artificer of Nova Kai",
           "typeLabel": "Entity: Auros",
           "summary": "The artificer who digs through the deck by the die and fills the Retire Zone.",
           "ui": {
@@ -8382,7 +8417,7 @@
             "dimensionalAria": "Dimensional"
           },
           "face": {
-            "name": "Hali, Artificer of Nova Kai",
+            "name": "Artificer of Nova Kai",
             "forage": {
               "trigger": "When it enters the field",
               "text": "Roll a d6 and look at a number of cards from the top of your deck equal to 2 plus half the result, rounded up. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
@@ -8457,8 +8492,10 @@
         }
       ],
       "designNotes": "rbf-021.md",
+      "art": "rbf-021.jpg",
       "source": {
-        "designNotes": "notes/rbf-021.md"
+        "designNotes": "notes/rbf-021.md",
+        "art": "art/rbf-021.jpg"
       }
     },
     {
@@ -8466,7 +8503,7 @@
       "id": "RBF-022",
       "setId": "rubyfront-core",
       "collectorNumber": "022",
-      "slug": "merk-sentinel-of-nova-kai",
+      "slug": "sentinel-of-nova-kai",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -8474,7 +8511,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Merk, Sentinella di Nova Kai",
+          "name": "Sentinella di Nova Kai",
           "typeLabel": "Entità: Auros",
           "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte.",
           "ui": {
@@ -8492,7 +8529,7 @@
             "dimensionalAria": "Dimensionale"
           },
           "face": {
-            "name": "Merk, Sentinella di Nova Kai",
+            "name": "Sentinella di Nova Kai",
             "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
             "effect": {
               "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
@@ -8500,7 +8537,7 @@
           }
         },
         "en": {
-          "name": "Merk, Sentinel of Nova Kai",
+          "name": "Sentinel of Nova Kai",
           "typeLabel": "Entity: Auros",
           "summary": "A sentinel whose answer hits far harder with the right Object.",
           "ui": {
@@ -8518,7 +8555,7 @@
             "dimensionalAria": "Dimensional"
           },
           "face": {
-            "name": "Merk, Sentinel of Nova Kai",
+            "name": "Sentinel of Nova Kai",
             "flavor": "The answering blow is the only one it has always prepared.",
             "effect": {
               "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
@@ -8573,8 +8610,10 @@
         }
       ],
       "designNotes": "rbf-022.md",
+      "art": "rbf-022.jpg",
       "source": {
-        "designNotes": "notes/rbf-022.md"
+        "designNotes": "notes/rbf-022.md",
+        "art": "art/rbf-022.jpg"
       }
     },
     {
@@ -8582,7 +8621,7 @@
       "id": "RBF-023",
       "setId": "rubyfront-core",
       "collectorNumber": "023",
-      "slug": "krevon-underblade-of-nova-kai",
+      "slug": "underblade-of-nova-kai",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -8590,7 +8629,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Krevon, Sottolama di Nova Kai",
+          "name": "Sottolama di Nova Kai",
           "typeLabel": "Entità: Auros",
           "summary": "Slancio e comando: quando attacca equipaggiato, tutto il fronte armato spinge.",
           "ui": {
@@ -8607,7 +8646,7 @@
             "dimensionalAria": "Dimensionale"
           },
           "face": {
-            "name": "Krevon, Sottolama di Nova Kai",
+            "name": "Sottolama di Nova Kai",
             "keyword": {
               "name": "Slancio",
               "rules": "può attaccare nel turno in cui entra in campo"
@@ -8620,7 +8659,7 @@
           }
         },
         "en": {
-          "name": "Krevon, Underblade of Nova Kai",
+          "name": "Underblade of Nova Kai",
           "typeLabel": "Entity: Auros",
           "summary": "Surge and command: when it attacks equipped, the whole armed front pushes.",
           "ui": {
@@ -8637,7 +8676,7 @@
             "dimensionalAria": "Dimensional"
           },
           "face": {
-            "name": "Krevon, Underblade of Nova Kai",
+            "name": "Underblade of Nova Kai",
             "keyword": {
               "name": "Surge",
               "rules": "may attack the turn it enters the field"
@@ -8708,8 +8747,10 @@
         }
       ],
       "designNotes": "rbf-023.md",
+      "art": "rbf-023.jpg",
       "source": {
-        "designNotes": "notes/rbf-023.md"
+        "designNotes": "notes/rbf-023.md",
+        "art": "art/rbf-023.jpg"
       }
     },
     {
@@ -8717,7 +8758,7 @@
       "id": "RBF-024",
       "setId": "rubyfront-core",
       "collectorNumber": "024",
-      "slug": "the-bearer",
+      "slug": "bearer-of-fronts",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -8725,7 +8766,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Il Portatore",
+          "name": "Portatore di Fronti",
           "typeLabel": "Entità: Auros",
           "summary": "Ogni Oggetto che gli affidi è una carta in più.",
           "ui": {
@@ -8742,7 +8783,7 @@
             "dimensionalAria": "Dimensionale"
           },
           "face": {
-            "name": "Il Portatore",
+            "name": "Portatore di Fronti",
             "carry": {
               "trigger": "Quando assegni un Oggetto a questa Entità",
               "text": "Pesca una carta."
@@ -8751,7 +8792,7 @@
           }
         },
         "en": {
-          "name": "The Bearer",
+          "name": "Bearer of Fronts",
           "typeLabel": "Entity: Auros",
           "summary": "Every Object entrusted to it is one more card.",
           "ui": {
@@ -8768,7 +8809,7 @@
             "dimensionalAria": "Dimensional"
           },
           "face": {
-            "name": "The Bearer",
+            "name": "Bearer of Fronts",
             "carry": {
               "trigger": "When you assign an Object to this Entity",
               "text": "Draw a card."
@@ -8823,8 +8864,10 @@
         }
       ],
       "designNotes": "rbf-024.md",
+      "art": "rbf-024.jpg",
       "source": {
-        "designNotes": "notes/rbf-024.md"
+        "designNotes": "notes/rbf-024.md",
+        "art": "art/rbf-024.jpg"
       }
     },
     {
@@ -8981,6 +9024,9 @@
       "designNotes": "rbf-025.md",
       "art": "rbf-025.jpg",
       "unique": true,
+      "fullArt": true,
+      "artZoom": "50%",
+      "artShift": "5%",
       "source": {
         "designNotes": "notes/rbf-025.md",
         "art": "art/rbf-025.jpg"

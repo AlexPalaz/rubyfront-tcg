@@ -1,5 +1,5 @@
 {
-  "name": "Garwin, Esploratore",
+  "name": "Esploratore",
   "typeLabel": "Entità: Auros",
   "summary": "L'avanscoperta equipaggiata: attacca con un Oggetto e filtra la mano.",
   "ui": {
@@ -16,7 +16,7 @@
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Garwin, Esploratore",
+    "name": "Esploratore",
     "scouting": {
       "trigger": "Effetto",
       "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
