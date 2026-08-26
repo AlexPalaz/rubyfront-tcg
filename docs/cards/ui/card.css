@@ -5,6 +5,13 @@
   /* Reset locale: prima arrivava dal reset globale della pagina, che ora
      appartiene alla shell e non deve azzerare i margini della navigazione. */
   .card * { margin: 0; padding: 0; }
+  /* I contenitori che ospitano una carta (pagina carta, tessere del mazzo,
+     celle di stampa) diventano container query: la carta prende misura e
+     corpo del testo dalla LORO larghezza, non dallo schermo. È questo che
+     tiene le proporzioni giuste anche su mobile — prima l'altezza seguiva
+     una formula in vw tarata su una sola pagina, e restringendo la finestra
+     la carta si schiacciava. */
+  .face, .deck-holder, .print-holder { container-type: inline-size; }
   .card {
     /* Il serif era ereditato dal body del renderer: ora la carta se lo porta
        da sé, così la shell resta sans e i temi possono comunque sovrascriverlo. */
@@ -12,15 +19,22 @@
     /* L'altezza dell'illustrazione è fissa (vedi .art): sempre il 40% della
        carta, come la finestra d'arte di Magic. */
     width: 100%;
-    height: min(728px, calc(140vw - 56px));
+    /* L'altezza discende SOLO dall'aspect-ratio 5/7 sulla larghezza reale:
+       niente formule in vw, che si disallineavano dal contenitore e
+       schiacciavano la carta sugli schermi stretti. */
+    height: auto;
     flex: none;
     /* Unica dimensione di tutti i testi della carta: 20px è la scala reale
        di una carta Magic portata a 520px di larghezza (testo regole M15
-       ~7-8pt). Il fit si regge su interlinea stretta (come Magic) e chrome
-       compatta; i testi delle carte vanno scritti perché entrino a questa
-       misura. I temi a carattere monospazio (t03, t05, t23, t26) hanno un
-       override ridotto più sotto. Il nome resta l'unica eccezione (1.25em). */
+       ~7-8pt). 3.85cqw = larghezza del contenitore / 26 — la stessa
+       proporzione 20/520, ma agganciata al contenitore (container query).
+       La riga in vw sopra resta come ripiego per i browser senza cqw. Il
+       fit si regge su interlinea stretta (come Magic) e chrome compatta;
+       i testi delle carte vanno scritti perché entrino a questa misura.
+       I temi a carattere monospazio (t03, t05, t23, t26) hanno un override
+       ridotto più sotto. Il nome resta l'unica eccezione (1.25em). */
     font-size: min(20px, 3.63vw);
+    font-size: min(20px, 3.85cqw);
     aspect-ratio: 5 / 7;
     display: flex; flex-direction: column; gap: .34em;
     background: var(--bg); color: var(--ink);

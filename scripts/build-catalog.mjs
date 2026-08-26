@@ -8,6 +8,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -18,6 +19,28 @@ const ART_DIR = path.join(ROOT, "docs", "cards", "art");
 const checkOnly = process.argv.includes("--check");
 
 const readJson = relative => JSON.parse(fs.readFileSync(path.join(DATA, relative), "utf8"));
+
+// Le illustrazioni pubblicate su docs/ sono COPIE RIDOTTE per il web: le
+// originali a piena risoluzione restano in data/sets/**/cards/. 1040px di
+// larghezza bastano per la carta a 520px anche su schermi retina; qualità 72.
+// La riduzione usa sips (macOS); dove manca, copia il file tal quale.
+const WEB_ART_WIDTH = 1040;
+const WEB_ART_QUALITY = "72";
+function publishArt(from, to) {
+  // Rigenera solo se la sorgente è più nuova della copia pubblicata.
+  if (fs.existsSync(to) && fs.statSync(to).mtimeMs >= fs.statSync(from).mtimeMs) return;
+  try {
+    const width = parseInt(
+      execFileSync("sips", ["-g", "pixelWidth", from], { encoding: "utf8" }).match(/pixelWidth: (\d+)/)?.[1] ?? "0",
+      10
+    );
+    const args = ["-s", "format", "jpeg", "-s", "formatOptions", WEB_ART_QUALITY];
+    if (width > WEB_ART_WIDTH) args.push("--resampleWidth", String(WEB_ART_WIDTH));
+    execFileSync("sips", [...args, from, "--out", to], { stdio: "ignore" });
+  } catch {
+    fs.copyFileSync(from, to);
+  }
+}
 
 const catalog = readJson("catalog.json");
 
@@ -47,14 +70,15 @@ const sets = catalog.sets.map(setDir => {
       }
     }
 
-    // Le illustrazioni seguono la stessa strada delle note: copiate in
-    // docs/cards/art/, dove il sito pubblicato può raggiungerle.
+    // Le illustrazioni seguono la stessa strada delle note, ma in versione
+    // ridotta per il web (vedi publishArt): docs/cards/art/ è ciò che il
+    // sito pubblicato serve, data/ conserva le originali.
     let art;
     if (card.art) {
       const from = path.join(DATA, "sets", setDir, "cards", id, card.art);
       if (fs.existsSync(from)) {
         fs.mkdirSync(ART_DIR, { recursive: true });
-        fs.copyFileSync(from, path.join(ART_DIR, card.art));
+        publishArt(from, path.join(ART_DIR, card.art));
         art = `art/${card.art}`;
       }
     }
@@ -66,7 +90,7 @@ const sets = catalog.sets.map(setDir => {
       const from = path.join(DATA, "sets", setDir, "cards", id, face.art);
       if (!fs.existsSync(from)) return face;
       fs.mkdirSync(ART_DIR, { recursive: true });
-      fs.copyFileSync(from, path.join(ART_DIR, face.art));
+      publishArt(from, path.join(ART_DIR, face.art));
       return { ...face, source: { art: `art/${face.art}` } };
     });
 
