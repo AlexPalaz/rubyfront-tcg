@@ -45,6 +45,10 @@ function createFace(card, face, cardCopy, themeId, localeId) {
   if (fullArt) {
     visual.classList.add("full-art");
     const backdrop = element("img", "bg-art");
+    // Lazy: nella pagina del mazzo si montano decine di carte insieme —
+    // il browser scarica solo quelle vicine allo schermo.
+    backdrop.loading = "lazy";
+    backdrop.decoding = "async";
     backdrop.src = resolveSource(artOwner, "art");
     backdrop.alt = "";
     // Inquadratura: `artShift` sposta lo sfondo in verticale, `artZoom`
@@ -66,6 +70,8 @@ function createFace(card, face, cardCopy, themeId, localeId) {
     // nessuna cornice né segnaposto: la finestra lascia vedere lo sfondo
   } else if (hasArt) {
     const image = element("img");
+    image.loading = "lazy";
+    image.decoding = "async";
     image.src = resolveSource(artOwner, "art");
     image.alt = cardCopy.name ?? "";
     art.append(image);
