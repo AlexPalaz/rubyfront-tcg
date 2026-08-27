@@ -565,16 +565,16 @@
   /* Cattedrale Dark Rosso: stessa architettura di t41, ma la pietra è
      arenaria rossa invece che grigia — il tema del mazzo Umani. */
   .card.t42 {
-    --bg: #1d1615; --panel: #291f1d; --well: #130d0d;
-    --frame: #6b4a48; --frame-dim: #3d2927;
-    --ink: #ece2df; --muted: #a89490;
-    --accent: #e05a63; --ornament: #8f6d69;
-    --ruby: #8e1a24; --ruby-light: #e8707c;
-    --hp-green: #9ed3a4; --cost-ink: #f7eaea;
-    --stone-hi: #75524c; --stone-mid: #4c3331; --stone-low: #2d1f1e;
-    --stone-veil: rgba(224,90,99,.20);
-    --card-hi: #2a2020; --card-mid: #1d1615; --card-low: #160f0f;
-    --gem-top: #a51f30; --gem-mid: #b32538; --gem-low: #6d0f1e;
+    --bg: #24100f; --panel: #351917; --well: #170908;
+    --frame: #a2453c; --frame-dim: #5e211d;
+    --ink: #f4e3df; --muted: #c08a82;
+    --accent: #ff6f6f; --ornament: #b06258;
+    --ruby: #a3141f; --ruby-light: #ff8a92;
+    --hp-green: #9ed3a4; --cost-ink: #fff0ee;
+    --stone-hi: #b25246; --stone-mid: #71281f; --stone-low: #3c1310;
+    --stone-veil: rgba(255,120,110,.30);
+    --card-hi: #3a1a17; --card-mid: #24100f; --card-low: #170908;
+    --gem-top: #c0202f; --gem-mid: #d42a3c; --gem-low: #74101c;
   }
   /* canonical Nexus palette, only for the default theme t01 */
   .card.nexus.t01 {
