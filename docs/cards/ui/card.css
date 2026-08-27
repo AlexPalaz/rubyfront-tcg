@@ -1243,16 +1243,25 @@
     padding: .22em .3em; margin-left: -.3em; margin-right: -.3em;
     border-radius: 3px; backdrop-filter: blur(2px); }
   .card.full-art .keyword span { color: #d9d4ca; }
-  /* Temi chiari in full art: i testi appoggiati sull'illustrazione stanno
-     comunque sopra lo scrim scuro, quindi restano CHIARI (l'inchiostro
-     scuro del tema qui sarebbe illeggibile), e il pannello del testo si
-     fa quasi opaco perché l'inchiostro scuro torni leggibile. */
+  /* Temi chiari in full art: il velo è BIANCO, non nero — la carta resta
+     chiara anche dove l'illustrazione fa da sfondo. Di conseguenza i testi
+     appoggiati sull'immagine tengono l'inchiostro scuro del tema, con
+     un'ombra chiara che li stacca, e le bande di evidenza diventano
+     bianche. */
+  .card.full-art.light-theme .bg-scrim {
+    background: linear-gradient(180deg,
+      rgba(250,250,248,.72) 0%, rgba(250,250,248,.38) 20%,
+      rgba(250,250,248,.24) 38%, rgba(250,250,248,.46) 58%,
+      rgba(250,250,248,.76) 78%, rgba(250,250,248,.86) 100%); }
   .card.full-art.light-theme .textbox {
-    background: color-mix(in srgb, var(--panel) 95%, transparent); }
+    background: color-mix(in srgb, var(--panel) 92%, transparent); }
   .card.full-art.light-theme .name,
-  .card.full-art.light-theme .titlebar > .hp,
-  .card.full-art.light-theme .keyword { color: #f3f0ea; }
-  .card.full-art.light-theme .name { border-color: rgba(255,255,255,.45); }
+  .card.full-art.light-theme .hp,
+  .card.full-art.light-theme .keyword {
+    text-shadow: 0 1px 2px rgba(255,255,255,.85), 0 0 8px rgba(255,255,255,.7); }
+  .card.full-art.light-theme .keyword { background: rgba(250,250,248,.66); }
+  .card.full-art.light-theme .keyword span { color: var(--ink); }
+  .card.full-art.light-theme .titlebar > .hp { background: rgba(250,250,248,.66); }
   /* Stessa evidenza per i PV nella barra del titolo. */
   .card.full-art .titlebar > .hp { background: rgba(10,8,6,.58);
     padding: .08em .35em; border-radius: 3px; backdrop-filter: blur(2px); }
