@@ -554,6 +554,27 @@
     --accent: #d34a5e; --ornament: #7d786e;
     --ruby: #7e1524; --ruby-light: #e2657a;
     --hp-green: #9ed3a4; --cost-ink: #f5eaea;
+    /* Pietra della cornice e rubino della cuspide: sono variabili perché
+       le varianti del tema (t42) cambiano solo questi valori, non la
+       struttura, che è condivisa più sotto. */
+    --stone-hi: #5a554b; --stone-mid: #3a3630; --stone-low: #262420;
+    --stone-veil: rgba(211,74,94,.16);
+    --card-hi: #232220; --card-mid: #1c1b19; --card-low: #151412;
+    --gem-top: #8c1a2e; --gem-mid: #972034; --gem-low: #5f0d1c;
+  }
+  /* Cattedrale Dark Rosso: stessa architettura di t41, ma la pietra è
+     arenaria rossa invece che grigia — il tema del mazzo Umani. */
+  .card.t42 {
+    --bg: #1d1615; --panel: #291f1d; --well: #130d0d;
+    --frame: #6b4a48; --frame-dim: #3d2927;
+    --ink: #ece2df; --muted: #a89490;
+    --accent: #e05a63; --ornament: #8f6d69;
+    --ruby: #8e1a24; --ruby-light: #e8707c;
+    --hp-green: #9ed3a4; --cost-ink: #f7eaea;
+    --stone-hi: #75524c; --stone-mid: #4c3331; --stone-low: #2d1f1e;
+    --stone-veil: rgba(224,90,99,.20);
+    --card-hi: #2a2020; --card-mid: #1d1615; --card-low: #160f0f;
+    --gem-top: #a51f30; --gem-mid: #b32538; --gem-low: #6d0f1e;
   }
   /* canonical Nexus palette, only for the default theme t01 */
   .card.nexus.t01 {
@@ -1095,13 +1116,13 @@
 
   /* Cattedrale Dark: arco gotico e croci di t39 su pietra notturna; i
      rilievi sono incisi come t21 (luce sopra, ombra dentro), senza bagliori. */
-  .card.t41 { clip-path: none; border-radius: 2px; border: 3px double #55524c; outline: 1px solid #33312d;
+  .card.t41, .card.t42 { clip-path: none; border-radius: 2px; border: 3px double var(--frame); outline: 1px solid var(--frame-dim);
     box-shadow: inset 0 2px 0 rgba(255,255,255,.05), inset 0 -3px 8px rgba(0,0,0,.5), 0 8px 26px rgba(0,0,0,.55);
-    background: linear-gradient(180deg, #232220, #1c1b19 60%, #151412); }
-  .t41 .name { font-weight: 700; letter-spacing: .08em;
-    border-top: 3px double #55524c; border-bottom: 3px double #55524c;
+    background: linear-gradient(180deg, var(--card-hi), var(--card-mid) 60%, var(--card-low)); }
+  .t41 .name, .t42 .name { font-weight: 700; letter-spacing: .08em;
+    border-top: 3px double var(--frame); border-bottom: 3px double var(--frame);
     text-shadow: 0 1px 0 rgba(0,0,0,.7), 0 -1px 0 rgba(255,255,255,.07); }
-  .t41 .cost { border-radius: 3px; border: none;
+  .t41 .cost, .t42 .cost { border-radius: 3px; border: none;
     box-shadow: inset 0 2px 0 rgba(255,255,255,.12), inset 0 -3px 6px rgba(0,0,0,.55); }
   /* Cornice gemmata: bordo spesso di pietra lucida, sfumato con un
      conic-gradient che gira attorno all'immagine come luce radente su un
@@ -1112,14 +1133,14 @@
      rettangolo), il taglio della cornice e quello dell'immagine si fanno
      eco. Tutto piatto: una sola sfumatura discreta di pietra, un velo
      cremisi appena percettibile sotto la gemma, nessun rilievo. */
-  .t41 .art { border: none; padding: .55em; background: none; box-shadow: none;
+  .t41 .art, .t42 .art { border: none; padding: .55em; background: none; box-shadow: none;
     position: relative; overflow: visible; }
-  .t41 .art::before { content: ""; position: absolute; inset: 0;
+  .t41 .art::before, .t42 .art::before { content: ""; position: absolute; inset: 0;
     clip-path: polygon(.9em 0, calc(100% - .9em) 0, 100% .9em,
       100% calc(100% - .9em), calc(100% - .9em) 100%, .9em 100%,
       0 calc(100% - .9em), 0 .9em);
     background:
-      radial-gradient(50% 100% at 50% 0%, rgba(211,74,94,.16), rgba(211,74,94,0) 72%)
+      radial-gradient(50% 100% at 50% 0%, var(--stone-veil), rgba(0,0,0,0) 72%)
         top center / 7em 2.2em no-repeat,
       linear-gradient(180deg, rgba(255,255,255,.14) 0 1px, rgba(0,0,0,.5) 1px 2px)
         left 1.7em top .3em / calc(50% - 2.34em) 2px no-repeat,
@@ -1151,8 +1172,8 @@
         rgba(0,0,0,.5) calc(.94em + 1px) calc(.94em + 2px),
         rgba(0,0,0,0) calc(.94em + 2px))
         left bottom / 1.7em 1.7em no-repeat,
-      radial-gradient(120% 130% at 50% -20%, #5a554b 0%, #3a3630 48%, #262420 100%); }
-  .t41 .art img { position: relative;
+      radial-gradient(120% 130% at 50% -20%, var(--stone-hi) 0%, var(--stone-mid) 48%, var(--stone-low) 100%); }
+  .t41 .art img, .t42 .art img { position: relative;
     clip-path: polygon(.45em 0, calc(100% - .45em) 0, 100% .45em,
       100% calc(100% - .45em), calc(100% - .45em) 100%, .45em 100%,
       0 calc(100% - .45em), 0 .45em); }
@@ -1165,17 +1186,18 @@
      Cuspide bassa per non toccare la riga del nome; z-index sopra
      l'immagine, così la punta non viene tagliata.
      Geometria: 1.15×1em, spalle al 74%. */
-  .t41 .art::after { content: ""; position: absolute; z-index: 1;
+  .t41 .art::after, .t42 .art::after { content: ""; position: absolute; z-index: 1;
     top: -.6em; left: 50%; width: 1.15em; height: 1.45em;
     transform: translateX(-50%);
     clip-path: polygon(50% 0, 100% 62%, 50% 100%, 0 62%);
     background:
       radial-gradient(65% 55% at 50% 38%, rgba(240,130,150,.2), rgba(0,0,0,0) 70%),
       radial-gradient(130% 120% at 50% 45%, rgba(0,0,0,0) 50%, rgba(16,3,7,.5) 100%),
-      linear-gradient(180deg, #8c1a2e 0%, #972034 42%, #5f0d1c 100%); }
-  .t41 .keyword::before, .t41 .keyword::after { content: "\2720"; font-size: .8em; color: #7d786e; }
-  .t41 .textbox { border-color: #33312d; box-shadow: inset 0 2px 8px rgba(0,0,0,.5); }
-  .t41 .fx .tag::after { height: 2px; background: linear-gradient(to right, #9a958a, transparent); }
+      linear-gradient(180deg, var(--gem-top) 0%, var(--gem-mid) 42%, var(--gem-low) 100%); }
+  .t41 .keyword::before, .t41 .keyword::after,
+  .t42 .keyword::before, .t42 .keyword::after { content: "\2720"; font-size: .8em; color: var(--ornament); }
+  .t41 .textbox, .t42 .textbox { border-color: var(--frame-dim); box-shadow: inset 0 2px 8px rgba(0,0,0,.5); }
+  .t41 .fx .tag::after, .t42 .fx .tag::after { height: 2px; background: linear-gradient(to right, var(--muted), transparent); }
 
   /* ====== full-art (Rubyfront e Nexus) ====== */
   /* L'illustrazione fa da sfondo all'intera carta: l'area art diventa una

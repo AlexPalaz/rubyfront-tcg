@@ -41,7 +41,8 @@ export const THEMES = Object.freeze([
   ["t38", "Miraggio"],
   ["t39", "Cattedrale"],
   ["t40", "Codice Miniato"],
-  ["t41", "Cattedrale Dark"]
+  ["t41", "Cattedrale Dark"],
+  ["t42", "Cattedrale Dark Rosso"]
 ]);
 
 export const LIGHT_THEMES = new Set([

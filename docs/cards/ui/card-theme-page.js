@@ -36,7 +36,11 @@ function localeFromParams(resource) {
 
 function renderCard(resource) {
   let localeId = localeFromParams(resource);
-  let themeId = isThemeId(params.get("theme")) ? params.get("theme") : DEFAULT_THEME;
+  // Il tema del mazzo da cui si arriva (?deck) vale come default, così una
+  // carta aperta dal mazzo Umani nasce già col suo tema.
+  const themeFromDeck = getDeckById(params.get("deck"))?.theme;
+  let themeId = isThemeId(params.get("theme")) ? params.get("theme")
+    : (isThemeId(themeFromDeck) ? themeFromDeck : DEFAULT_THEME);
 
   // Elenco per le frecce precedente/successiva: le carte del MAZZO se la
   // visuale è stata aperta da un mazzo (?deck), altrimenti quelle del set.

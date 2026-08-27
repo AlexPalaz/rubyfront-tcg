@@ -630,8 +630,10 @@
             }
           ],
           "designNotes": "rbf-002.md",
+          "art": "rbf-002.jpg",
           "source": {
-            "designNotes": "notes/rbf-002.md"
+            "designNotes": "notes/rbf-002.md",
+            "art": "art/rbf-002.jpg"
           }
         },
         {
@@ -758,8 +760,10 @@
             }
           ],
           "designNotes": "rbf-003.md",
+          "art": "rbf-003.jpg",
           "source": {
-            "designNotes": "notes/rbf-003.md"
+            "designNotes": "notes/rbf-003.md",
+            "art": "art/rbf-003.jpg"
           }
         },
         {
@@ -6795,8 +6799,10 @@
         }
       ],
       "designNotes": "rbf-002.md",
+      "art": "rbf-002.jpg",
       "source": {
-        "designNotes": "notes/rbf-002.md"
+        "designNotes": "notes/rbf-002.md",
+        "art": "art/rbf-002.jpg"
       }
     },
     {
@@ -6923,8 +6929,10 @@
         }
       ],
       "designNotes": "rbf-003.md",
+      "art": "rbf-003.jpg",
       "source": {
-        "designNotes": "notes/rbf-003.md"
+        "designNotes": "notes/rbf-003.md",
+        "art": "art/rbf-003.jpg"
       }
     },
     {
@@ -12465,6 +12473,7 @@
           "count": 1
         }
       ],
+      "theme": "t42",
       "source": {
         "designNotes": "notes/deck-eredi-di-vhal-astra.md"
       }

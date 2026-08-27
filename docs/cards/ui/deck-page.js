@@ -116,7 +116,10 @@ function downloadDeckText(resource, localeId) {
 
 function renderDeck(resource) {
   let localeId = localeFromParams(resource);
-  let themeId = isThemeId(params.get("theme")) ? params.get("theme") : DEFAULT_THEME;
+  // Precedenza: tema chiesto nell'URL, poi quello dichiarato dal mazzo
+  // (campo `theme` nei dati), poi il default globale.
+  let themeId = isThemeId(params.get("theme")) ? params.get("theme")
+    : (isThemeId(resource.theme) ? resource.theme : DEFAULT_THEME);
 
   const page = element("main", "page-shell wide");
   const trail = breadcrumb([{ label: "…", href: catalogRoute(localeId) }]);
