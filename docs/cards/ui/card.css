@@ -1243,6 +1243,16 @@
     padding: .22em .3em; margin-left: -.3em; margin-right: -.3em;
     border-radius: 3px; backdrop-filter: blur(2px); }
   .card.full-art .keyword span { color: #d9d4ca; }
+  /* Temi chiari in full art: i testi appoggiati sull'illustrazione stanno
+     comunque sopra lo scrim scuro, quindi restano CHIARI (l'inchiostro
+     scuro del tema qui sarebbe illeggibile), e il pannello del testo si
+     fa quasi opaco perché l'inchiostro scuro torni leggibile. */
+  .card.full-art.light-theme .textbox {
+    background: color-mix(in srgb, var(--panel) 95%, transparent); }
+  .card.full-art.light-theme .name,
+  .card.full-art.light-theme .titlebar > .hp,
+  .card.full-art.light-theme .keyword { color: #f3f0ea; }
+  .card.full-art.light-theme .name { border-color: rgba(255,255,255,.45); }
   /* Stessa evidenza per i PV nella barra del titolo. */
   .card.full-art .titlebar > .hp { background: rgba(10,8,6,.58);
     padding: .08em .35em; border-radius: 3px; backdrop-filter: blur(2px); }
