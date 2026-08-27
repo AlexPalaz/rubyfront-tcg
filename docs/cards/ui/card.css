@@ -562,19 +562,20 @@
     --card-hi: #232220; --card-mid: #1c1b19; --card-low: #151412;
     --gem-top: #8c1a2e; --gem-mid: #972034; --gem-low: #5f0d1c;
   }
-  /* Cattedrale Dark Rosso: stessa architettura di t41, ma la pietra è
-     arenaria rossa invece che grigia — il tema del mazzo Umani. */
+  /* Cattedrale Argento: stessa architettura di t41, ma chiara e in
+     argento lucido — il tema del mazzo Umani, che gioca Materia Dinamica
+     (argento). Il rubino della cuspide resta l'unico tocco caldo. */
   .card.t42 {
-    --bg: #24100f; --panel: #351917; --well: #170908;
-    --frame: #a2453c; --frame-dim: #5e211d;
-    --ink: #f4e3df; --muted: #c08a82;
-    --accent: #ff6f6f; --ornament: #b06258;
-    --ruby: #a3141f; --ruby-light: #ff8a92;
-    --hp-green: #9ed3a4; --cost-ink: #fff0ee;
-    --stone-hi: #b25246; --stone-mid: #71281f; --stone-low: #3c1310;
-    --stone-veil: rgba(255,120,110,.30);
-    --card-hi: #3a1a17; --card-mid: #24100f; --card-low: #170908;
-    --gem-top: #c0202f; --gem-mid: #d42a3c; --gem-low: #74101c;
+    --bg: #e9ecef; --panel: #f5f7f8; --well: #d2d8dd;
+    --frame: #6d7780; --frame-dim: #aeb6bd;
+    --ink: #15181b; --muted: #5d666e;
+    --accent: #8c1a2a; --ornament: #8d969e;
+    --ruby: #8c1a2a; --ruby-light: #6f1322;
+    --hp-green: #35632f; --cost-ink: #f7f9fa;
+    --stone-hi: #f4f7f9; --stone-mid: #c6ced6; --stone-low: #9aa4ad;
+    --stone-veil: rgba(140,26,42,.14);
+    --card-hi: #f6f8f9; --card-mid: #e9ecef; --card-low: #d6dbe0;
+    --gem-top: #a51f30; --gem-mid: #8c1a2a; --gem-low: #5f0d1c;
   }
   /* canonical Nexus palette, only for the default theme t01 */
   .card.nexus.t01 {
