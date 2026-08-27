@@ -3,61 +3,73 @@
   "id": "RBF-003",
   "setId": "rubyfront-core",
   "collectorNumber": "003",
-  "slug": "absence",
-  "type": "matter",
+  "slug": "guide-of-the-lost-paths",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 1,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
     "en"
   ],
   "tags": [
-    "matter",
+    "entity",
+    "human",
     "dynamic",
-    "removal",
-    "unique"
+    "draw"
   ],
   "rulesReference": "MANUALE.md §7, §8.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "dynamic",
-        "grade": 2
-      },
-      "behavior": "normal",
+      "race": "human",
       "stats": {
-        "fluxCost": 3
+        "power": 1,
+        "fluxCost": 2
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "absence",
-          "displayKey": "effect",
-          "event": "on_resolve",
-          "effect": {
-            "type": "move_card",
-            "target": {
+          "id": "guide",
+          "displayKey": "guide",
+          "event": "on_enter_field",
+          "details": {
+            "enteringCard": {
               "cardType": "entity",
-              "min": 1,
-              "max": 1
+              "race": "human",
+              "controller": "controller",
+              "excludeSelf": true
             },
-            "destination": {
-              "zone": "retire",
-              "owner": "card_owner"
+            "requiresControlledAtLeast": {
+              "count": 3,
+              "filter": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              }
             }
+          },
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1
           }
         }
       ],
       "actions": []
     }
   ],
-  "designNotes": "rbf-003.md",
-  "unique": true
+  "designNotes": "rbf-003.md"
 }

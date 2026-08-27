@@ -1,21 +1,26 @@
 {
-  "name": "Catalizzatore Sigma",
-  "typeLabel": "Oggetto",
-  "summary": "Un Oggetto che spinge l'attacco e pesca Materie dal mazzo.",
+  "name": "Sentinella di Nova Kai",
+  "typeLabel": "Entità: Auros",
+  "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte.",
   "ui": {
-    "face": "Oggetto"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi"
+    "power": "Potenza",
+    "flux": "Flussi",
+    "counterattack": "Contrattacco"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+    "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Catalizzatore Sigma",
+    "name": "Sentinella di Nova Kai",
+    "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
     "effect": {
-      "name": "Effetto",
-      "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 5–6 guarda le prime 4 carte del tuo mazzo, puoi mostrare una Materia tra esse e aggiungerla alla tua mano, e metti le altre nella tua Zona di Ritiro."
-    },
-    "flavor": "Brucia piano. Rivela in fretta."
+      "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
+    }
   }
 }

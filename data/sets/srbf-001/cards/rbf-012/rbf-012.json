@@ -3,65 +3,88 @@
   "id": "RBF-012",
   "setId": "rubyfront-core",
   "collectorNumber": "012",
-  "slug": "laceration",
-  "type": "matter",
+  "slug": "rhen-heir-of-vhal-astra",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 3,
+  "deckLimit": 1,
   "defaultLocale": "it",
   "locales": [
     "it",
     "en"
   ],
   "tags": [
-    "matter",
-    "destructive",
-    "grade-2",
-    "permanent",
-    "burn"
+    "entity",
+    "human",
+    "dynamic",
+    "unique",
+    "recursion"
   ],
-  "rulesReference": "MANUALE.md §7.2, §8.2",
+  "rulesReference": "MANUALE.md §5, §8.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "destructive",
-        "grade": 2
-      },
-      "behavior": "permanent",
+      "race": "human",
       "stats": {
-        "fluxCost": 3
+        "power": 6,
+        "fluxCost": 6
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 2
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "bleed",
-          "displayKey": "effect",
-          "event": "on_turn_start",
+          "id": "heir-return",
+          "displayKey": "heirReturn",
+          "event": "on_enter_field",
           "effect": {
-            "type": "lose_health",
+            "type": "move_card",
             "target": {
-              "cardType": "rubyfront",
-              "controller": "opponent"
-            },
-            "amount": 2,
-            "conditions": [
-              {
-                "type": "controls_card",
-                "owner": "controller",
-                "min": 3,
-                "filter": {
-                  "cardType": "entity",
-                  "race": "human"
-                }
+              "controller": "controller",
+              "min": 1,
+              "max": 1,
+              "details": {
+                "permanent": true
               }
-            ],
-            "details": {
-              "doesNotTriggerRecallReturn": true
+            },
+            "from": {
+              "zone": "retire",
+              "owner": "controller"
+            },
+            "destination": {
+              "zone": "front",
+              "owner": "controller"
+            }
+          }
+        },
+        {
+          "id": "heir-charge",
+          "displayKey": "heirReturn",
+          "event": "on_attack",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "controller": "controller",
+              "min": 1,
+              "max": 1,
+              "details": {
+                "permanent": true
+              }
+            },
+            "from": {
+              "zone": "retire",
+              "owner": "controller"
+            },
+            "destination": {
+              "zone": "front",
+              "owner": "controller"
             }
           }
         }
@@ -69,5 +92,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-012.md"
+  "designNotes": "rbf-012.md",
+  "unique": true
 }

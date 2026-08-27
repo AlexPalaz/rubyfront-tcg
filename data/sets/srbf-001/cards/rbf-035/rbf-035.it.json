@@ -1,29 +1,21 @@
 {
-  "name": "Carica Latente",
-  "typeLabel": "Materia Dimensionale I",
-  "summary": "Scava cinque carte e lascia decidere al d20 che cosa peschi.",
+  "name": "Vestigio della Scissione",
+  "typeLabel": "Oggetto",
+  "summary": "L'Oggetto che non muore mai: torna in Ritiro e riarma il Fronte.",
   "ui": {
-    "face": "Materia"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Carica Latente",
+    "name": "Vestigio della Scissione",
     "effect": {
       "name": "Effetto",
-      "text": "Guarda le prime 5 carte del tuo mazzo e lancia un d20: con 1–7 puoi mostrare una Materia tra esse; con 8–14 un Oggetto; con 15–20 un'Entità. Aggiungi la carta mostrata alla tua mano; se non ne mostri una, metti una delle carte guardate in cima al mazzo. Poi metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
+      "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
     },
-    "flavor": "Il mazzo sa già. Il dado decide quando."
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 1° grado",
-    "dimensionalAria": "Dimensionale"
+    "flavor": "Ciò che resta della Scissione non smette di servire."
   }
 }

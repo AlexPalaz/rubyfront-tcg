@@ -3,7 +3,7 @@
   "id": "RBF-024",
   "setId": "rubyfront-core",
   "collectorNumber": "024",
-  "slug": "bearer-of-fronts",
+  "slug": "camp-recruit",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -17,7 +17,7 @@
     "entity",
     "auros",
     "equip",
-    "draw"
+    "aggro"
   ],
   "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
@@ -27,31 +27,31 @@
       "displayKey": "face",
       "race": "auros",
       "stats": {
-        "power": 3,
-        "fluxCost": 4
+        "power": 1,
+        "fluxCost": 1
       },
       "enablesMatters": [
         {
           "type": "dimensional",
-          "maxGrade": 2
+          "maxGrade": 1
         }
       ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "carry",
-          "displayKey": "carry",
-          "event": "on_assign_object",
-          "details": {
-            "toSelf": true
-          },
+          "id": "grip",
+          "displayKey": "effect",
+          "event": "while_in_play",
           "effect": {
-            "type": "draw_card",
+            "type": "modify_power",
             "target": {
-              "controller": "controller"
+              "scope": "self"
             },
-            "count": 1
+            "amount": 1,
+            "details": {
+              "whileHasObjectAssigned": true
+            }
           }
         }
       ],

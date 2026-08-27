@@ -3,8 +3,8 @@
   "id": "RBF-030",
   "setId": "rubyfront-core",
   "collectorNumber": "030",
-  "slug": "synaptic-amplification",
-  "type": "matter",
+  "slug": "bearer-of-fronts",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,52 +14,44 @@
     "en"
   ],
   "tags": [
-    "matter",
-    "dimensional",
-    "grade-1",
-    "reactive",
+    "entity",
+    "auros",
     "equip",
-    "untap",
-    "pump"
+    "draw"
   ],
-  "rulesReference": "MANUALE.md §7.2",
+  "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "dimensional",
-        "grade": 1
-      },
-      "behavior": "reactive",
+      "race": "auros",
       "stats": {
-        "fluxCost": 2
+        "power": 3,
+        "fluxCost": 4
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "amplify",
-          "displayKey": "effect",
-          "event": "on_resolve",
+          "id": "carry",
+          "displayKey": "carry",
+          "event": "on_assign_object",
+          "details": {
+            "toSelf": true
+          },
           "effect": {
-            "type": "modify_power",
+            "type": "draw_card",
             "target": {
-              "cardType": "entity",
-              "controller": "controller",
-              "min": 0,
-              "max": 2,
-              "details": {
-                "hasObjectAssigned": true
-              }
+              "controller": "controller"
             },
-            "amount": 1,
-            "duration": "until_end_of_turn",
-            "details": {
-              "alsoUntap": true
-            }
+            "count": 1
           }
         }
       ],

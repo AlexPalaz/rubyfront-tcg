@@ -1,7 +1,7 @@
 {
-  "name": "First Blade",
+  "name": "Simulacrum of Vhal Astra",
   "typeLabel": "Entity: Human",
-  "summary": "She arrives by removing someone, and with the Nexus out she becomes impossible to attack for free.",
+  "summary": "It grows with the crowd and, when it charges, calls a piece of it back from the Retire Zone.",
   "ui": {
     "face": "Entity"
   },
@@ -12,16 +12,15 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "First Blade",
-    "firstCut": {
-      "trigger": "When it enters the field",
-      "text": "Choose an opposing Entity and put it into its owner's Retire Zone."
-    },
+    "name": "Simulacrum of Vhal Astra",
     "effect": {
-      "name": "Effect",
-      "text": "If you control the Nexus, this Entity has Revenge."
+      "text": "This Entity has +1 Power for each other Human Entity on your Front."
     },
-    "flavor": "The enemy front knows her by name."
+    "recallFallen": {
+      "trigger": "When it attacks",
+      "text": "Roll a d6: on 5–6 put a Human Entity from your Retire Zone onto your Front. That Entity attacks together with this Entity."
+    },
+    "flavor": "It is not him. It is the shape his people gave him."
   },
   "matters": {
     "dynamicTitle": "Dynamic Matter · 2nd grade",

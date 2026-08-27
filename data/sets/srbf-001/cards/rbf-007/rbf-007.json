@@ -3,7 +3,7 @@
   "id": "RBF-007",
   "setId": "rubyfront-core",
   "collectorNumber": "007",
-  "slug": "bulkhead-warden",
+  "slug": "archer-of-the-silver-glade",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -17,9 +17,9 @@
     "entity",
     "human",
     "dynamic",
-    "defender"
+    "removal"
   ],
-  "rulesReference": "MANUALE.md §6.3, §7",
+  "rulesReference": "MANUALE.md §5, §6.2",
   "faces": [
     {
       "id": "entity",
@@ -28,7 +28,7 @@
       "race": "human",
       "stats": {
         "power": 2,
-        "fluxCost": 1
+        "fluxCost": 3
       },
       "enablesMatters": [
         {
@@ -40,15 +40,23 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "bulkhead",
-          "displayKey": "bulkhead",
+          "id": "loose",
+          "displayKey": "loose",
           "event": "on_enter_field",
           "effect": {
-            "type": "set_state",
+            "type": "move_card",
             "target": {
-              "scope": "self"
+              "cardType": "entity",
+              "controller": "opponent",
+              "zone": "front",
+              "owner": "opponent",
+              "min": 1,
+              "max": 1
             },
-            "state": "tapped"
+            "destination": {
+              "zone": "retire",
+              "owner": "card_owner"
+            }
           }
         }
       ],

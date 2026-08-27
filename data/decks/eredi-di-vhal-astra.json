@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "id": "eredi-di-vhal-astra",
+  "setId": "rubyfront-core",
+  "status": "draft",
+  "defaultLocale": "it",
+  "locales": {
+    "it": {
+      "name": "Eredi di Vhal Astra",
+      "description": "Precon Umani: Fronte largo e attacchi in sequenza. Corpi a basso costo che valgono di più in compagnia, Oblivhal che guadagna PV ogni volta che tre Umani caricano insieme, e un Nexus che riporta in campo chi era già uscito."
+    },
+    "en": {
+      "name": "Heirs of Vhal Astra",
+      "description": "The Human precon: a wide Front and attacks in sequence. Cheap bodies that are worth more in company, Oblivhal gaining HP every time three Humans charge together, and a Nexus that puts back onto the field whoever had already left."
+    }
+  },
+  "designNotes": "eredi-di-vhal-astra.md",
+  "cards": [
+    {
+      "card": "RBF-001",
+      "count": 1
+    },
+    {
+      "card": "RBF-002",
+      "count": 3
+    },
+    {
+      "card": "RBF-003",
+      "count": 3
+    },
+    {
+      "card": "RBF-004",
+      "count": 3
+    },
+    {
+      "card": "RBF-005",
+      "count": 2
+    },
+    {
+      "card": "RBF-006",
+      "count": 2
+    },
+    {
+      "card": "RBF-007",
+      "count": 2
+    },
+    {
+      "card": "RBF-008",
+      "count": 2
+    },
+    {
+      "card": "RBF-009",
+      "count": 2
+    },
+    {
+      "card": "RBF-010",
+      "count": 1
+    },
+    {
+      "card": "RBF-011",
+      "count": 1
+    },
+    {
+      "card": "RBF-012",
+      "count": 1
+    },
+    {
+      "card": "RBF-013",
+      "count": 2
+    },
+    {
+      "card": "RBF-014",
+      "count": 2
+    },
+    {
+      "card": "RBF-015",
+      "count": 2
+    },
+    {
+      "card": "RBF-016",
+      "count": 2
+    },
+    {
+      "card": "RBF-017",
+      "count": 2
+    },
+    {
+      "card": "RBF-018",
+      "count": 2
+    },
+    {
+      "card": "RBF-019",
+      "count": 2
+    },
+    {
+      "card": "RBF-020",
+      "count": 1
+    },
+    {
+      "card": "RBF-021",
+      "count": 2
+    },
+    {
+      "card": "RBF-022",
+      "count": 1
+    }
+  ]
+}

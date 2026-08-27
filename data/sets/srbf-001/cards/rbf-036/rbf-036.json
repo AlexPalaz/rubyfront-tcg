@@ -3,7 +3,7 @@
   "id": "RBF-036",
   "setId": "rubyfront-core",
   "collectorNumber": "036",
-  "slug": "feral-assault",
+  "slug": "synaptic-amplification",
   "type": "matter",
   "layout": "single",
   "status": "draft",
@@ -15,41 +15,50 @@
   ],
   "tags": [
     "matter",
-    "destructive",
-    "grade-2",
-    "burn",
-    "equip"
+    "dimensional",
+    "grade-1",
+    "reactive",
+    "equip",
+    "untap",
+    "pump"
   ],
-  "rulesReference": "MANUALE.md §7",
+  "rulesReference": "MANUALE.md §7.2",
   "faces": [
     {
       "id": "matter",
       "kind": "matter",
       "displayKey": "face",
       "matter": {
-        "type": "destructive",
-        "grade": 2
+        "type": "dimensional",
+        "grade": 1
       },
-      "behavior": "normal",
+      "behavior": "reactive",
       "stats": {
-        "fluxCost": 4
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "assault",
+          "id": "amplify",
           "displayKey": "effect",
           "event": "on_resolve",
           "effect": {
-            "type": "lose_health",
+            "type": "modify_power",
             "target": {
-              "cardType": "rubyfront",
-              "controller": "opponent"
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 0,
+              "max": 2,
+              "details": {
+                "hasObjectAssigned": true
+              }
             },
+            "amount": 1,
+            "duration": "until_end_of_turn",
             "details": {
-              "amountEqualsObjectsAssignedToControllerEntities": true
+              "alsoUntap": true
             }
           }
         }

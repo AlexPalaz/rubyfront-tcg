@@ -3,8 +3,8 @@
   "id": "RBF-004",
   "setId": "rubyfront-core",
   "collectorNumber": "004",
-  "slug": "dash",
-  "type": "matter",
+  "slug": "avenger-of-the-forgotten",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,49 +14,54 @@
     "en"
   ],
   "tags": [
-    "matter",
+    "entity",
+    "human",
     "dynamic",
-    "grade-1",
-    "aggro"
+    "revenge"
   ],
-  "rulesReference": "MANUALE.md §7, §8.1",
+  "rulesReference": "MANUALE.md §8.1, §8.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "dynamic",
-        "grade": 1
-      },
-      "behavior": "normal",
+      "race": "human",
       "stats": {
+        "power": 2,
         "fluxCost": 2
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "dash",
-          "displayKey": "effect",
-          "event": "on_resolve",
+          "id": "avenge",
+          "displayKey": "avenge",
+          "event": "on_attack",
+          "details": {
+            "oncePerEachOfYourTurns": true
+          },
           "effect": {
             "type": "empower",
             "target": {
               "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
               "min": 1,
               "max": 1,
-              "race": "human",
-              "controller": "controller"
+              "details": {
+                "nextAttackerThisTurn": true
+              }
             },
-            "powerBonus": 2,
-            "duration": "until_end_of_turn",
-            "details": {
-              "grantsWithRubyfrontDeployed": [
-                "surge"
-              ]
-            }
+            "grants": [
+              "revenge"
+            ],
+            "duration": "until_end_of_turn"
           }
         }
       ],

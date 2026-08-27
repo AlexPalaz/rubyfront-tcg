@@ -1,7 +1,7 @@
 {
-  "name": "Feral Assault",
-  "typeLabel": "Destructive Matter II",
-  "summary": "The finisher: damage equal to the Objects on the field.",
+  "name": "Synaptic Amplification",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "A double untap and a double push for armed Entities.",
   "ui": {
     "face": "Matter"
   },
@@ -15,15 +15,15 @@
     }
   },
   "face": {
-    "name": "Feral Assault",
+    "name": "Synaptic Amplification",
     "effect": {
       "name": "Effect",
-      "text": "The opposing Rubyfront loses HP equal to the number of Objects assigned to Entities you control."
+      "text": "Up to 2 Entities with an Object assigned you control get +1 Power until end of turn and are untapped."
     },
-    "flavor": "Every wielded weapon is a promised wound."
+    "flavor": "One thought, many hands."
   },
   "matters": {
-    "destructiveTitle": "Destructive Matter · 2nd grade",
-    "destructiveAria": "Destructive"
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
   }
 }

@@ -1,26 +1,29 @@
 {
-  "name": "Artefice di Nova Kai",
-  "typeLabel": "Entità: Auros",
-  "summary": "L'artefice che scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
+  "name": "Giudizio Cremisi",
+  "typeLabel": "Materia Distruttiva II",
+  "summary": "La rimozione secca del mazzo, a metà prezzo su chi si è già mosso.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
-    "dimensionalAria": "Dimensionale"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Artefice di Nova Kai",
-    "forage": {
-      "trigger": "Quando entra in campo",
-      "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
+    "name": "Giudizio Cremisi",
+    "effect": {
+      "name": "Effetto",
+      "text": "Distruggi un'Entità. Se questa carta bersaglia un'Entità tappata, costa 3 Flussi in meno."
     },
-    "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
+    "flavor": "Il rosso non giudica due volte."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 2° grado",
+    "destructiveAria": "Distruttiva"
   }
 }

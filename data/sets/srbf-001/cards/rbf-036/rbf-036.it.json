@@ -1,7 +1,7 @@
 {
-  "name": "Assalto Ferale",
-  "typeLabel": "Materia Distruttiva II",
-  "summary": "Il finisher: danni pari agli Oggetti schierati.",
+  "name": "Amplificazione Sinaptica",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "Doppio stap e doppia spinta per le Entità armate.",
   "ui": {
     "face": "Materia"
   },
@@ -15,15 +15,15 @@
     }
   },
   "face": {
-    "name": "Assalto Ferale",
+    "name": "Amplificazione Sinaptica",
     "effect": {
       "name": "Effetto",
-      "text": "Il Rubyfront avversario perde PV pari al numero di Oggetti assegnati alle Entità che controlli."
+      "text": "Fino a 2 Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno e vengono stappate."
     },
-    "flavor": "Ogni arma impugnata è una ferita promessa."
+    "flavor": "Un pensiero solo, molte mani."
   },
   "matters": {
-    "destructiveTitle": "Materia Distruttiva · 2° grado",
-    "destructiveAria": "Distruttiva"
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
   }
 }

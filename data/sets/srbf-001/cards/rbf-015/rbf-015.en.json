@@ -1,7 +1,7 @@
 {
-  "name": "Banner of the Heirs",
+  "name": "Silver Lure",
   "typeLabel": "Dynamic Matter I",
-  "summary": "Every turn it picks one Human and sends him forward stronger than the rest.",
+  "summary": "Two Flux to pick the right body out of four cards.",
   "ui": {
     "face": "Matter"
   },
@@ -15,12 +15,12 @@
     }
   },
   "face": {
-    "name": "Banner of the Heirs",
-    "flavor": "While it flies, we advance.",
+    "name": "Silver Lure",
     "effect": {
       "name": "Effect",
-      "text": "The first time each of your turns a Human Entity enters the field under your control, that Entity gets +2 Power until end of turn. If you control the Rubyfront of the Pact, it also gains Surge until end of turn."
-    }
+      "text": "Look at the top 4 cards of your deck. You may reveal up to 2 Human Entities among them and add one of them to your hand. Put the rest on the bottom of your deck."
+    },
+    "flavor": "The glade always calls the same ones."
   },
   "matters": {
     "dynamicTitle": "Dynamic Matter · 1st grade",

@@ -1,29 +1,26 @@
 {
-  "name": "Amplificazione Sinaptica",
-  "typeLabel": "Materia Dimensionale I",
-  "summary": "Doppio stap e doppia spinta per le Entità armate.",
+  "name": "Portatore di Fronti",
+  "typeLabel": "Entità: Auros",
+  "summary": "Ogni Oggetto che gli affidi è una carta in più.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
-  },
-  "face": {
-    "name": "Amplificazione Sinaptica",
-    "effect": {
-      "name": "Effetto",
-      "text": "Fino a 2 Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno e vengono stappate."
-    },
-    "flavor": "Un pensiero solo, molte mani."
+    "power": "Potenza",
+    "flux": "Flussi"
   },
   "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
     "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Portatore di Fronti",
+    "carry": {
+      "trigger": "Quando assegni un Oggetto a questa Entità",
+      "text": "Pesca una carta."
+    },
+    "flavor": "Non chiede che cosa porta. Chiede solo per chi."
   }
 }

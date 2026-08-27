@@ -1,21 +1,26 @@
 {
-  "name": "Spada Dimensionale",
-  "typeLabel": "Oggetto",
-  "summary": "L'equipaggiamento base: un Flusso, una Potenza.",
+  "name": "Esploratore",
+  "typeLabel": "Entità: Auros",
+  "summary": "L'avanscoperta equipaggiata: attacca con un Oggetto e filtra la mano.",
   "ui": {
-    "face": "Oggetto"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Spada Dimensionale",
-    "effect": {
-      "name": "Effetto",
-      "text": "L'Entità a cui è assegnata ha +1 Potenza."
+    "name": "Esploratore",
+    "scouting": {
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
     },
-    "flavor": "Taglia dove il mondo è già sottile."
+    "flavor": "Esplora con gli occhi. Decide con la lama."
   }
 }

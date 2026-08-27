@@ -3,8 +3,8 @@
   "id": "RBF-021",
   "setId": "rubyfront-core",
   "collectorNumber": "021",
-  "slug": "artificer-of-nova-kai",
-  "type": "entity",
+  "slug": "crimson-judgment",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,62 +14,50 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
-    "equip",
-    "die",
-    "retire"
+    "matter",
+    "destructive",
+    "grade-2",
+    "reactive",
+    "removal"
   ],
-  "rulesReference": "MANUALE.md §3.1, §8.2",
+  "rulesReference": "MANUALE.md §7.2, §8.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
-      "stats": {
-        "power": 2,
-        "fluxCost": 3
+      "matter": {
+        "type": "destructive",
+        "grade": 2
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 2
-        }
-      ],
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 5
+      },
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "forage",
-          "displayKey": "forage",
-          "event": "on_enter_field",
+          "id": "judgment",
+          "displayKey": "effect",
+          "event": "on_resolve",
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top"
+            "type": "destroy",
+            "target": {
+              "cardType": "entity",
+              "controller": "any",
+              "min": 1,
+              "max": 1
             },
             "details": {
-              "die": "d6",
-              "count": "2 + ceil(result/2)",
-              "mayReveal": {
-                "cardType": "object"
+              "toZone": {
+                "zone": "abyss",
+                "owner": "card_owner"
               },
-              "revealTo": {
-                "zone": "hand",
-                "owner": "controller"
-              },
-              "thenMoveOneTo": {
-                "zone": "retire",
-                "owner": "controller"
-              },
-              "restTo": {
-                "zone": "deck",
-                "owner": "controller",
-                "position": "bottom",
-                "anyOrder": true
+              "fluxCostReduction": {
+                "amount": 3,
+                "ifTargetState": "tapped"
               }
             }
           }
@@ -78,6 +66,5 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-021.md",
-  "art": "rbf-021.jpg"
+  "designNotes": "rbf-021.md"
 }

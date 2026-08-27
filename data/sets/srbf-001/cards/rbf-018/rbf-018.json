@@ -3,8 +3,8 @@
   "id": "RBF-018",
   "setId": "rubyfront-core",
   "collectorNumber": "018",
-  "slug": "camp-recruit",
-  "type": "entity",
+  "slug": "repulsion-field",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,43 +14,51 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
-    "equip",
-    "aggro"
+    "matter",
+    "destructive",
+    "grade-1",
+    "permanent",
+    "removal"
   ],
-  "rulesReference": "MANUALE.md §3.1, §8.2",
+  "rulesReference": "MANUALE.md §5, §7.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
-      "stats": {
-        "power": 1,
-        "fluxCost": 1
+      "matter": {
+        "type": "destructive",
+        "grade": 1
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 1
-        }
-      ],
+      "behavior": "permanent",
+      "stats": {
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "grip",
+          "id": "repulse",
           "displayKey": "effect",
-          "event": "while_in_play",
+          "event": "on_resolve",
           "effect": {
-            "type": "modify_power",
+            "type": "move_card",
             "target": {
-              "scope": "self"
+              "controller": "opponent",
+              "min": 1,
+              "max": 1,
+              "details": {
+                "permanent": true
+              }
             },
-            "amount": 1,
+            "destination": {
+              "zone": "abyss",
+              "owner": "card_owner"
+            },
             "details": {
-              "whileHasObjectAssigned": true
+              "whileSourceOnField": true,
+              "returnsToPlayWhenSourceLeaves": true
             }
           }
         }
@@ -58,6 +66,5 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-018.md",
-  "art": "rbf-018.jpg"
+  "designNotes": "rbf-018.md"
 }

@@ -36,6 +36,7 @@ stessa modifica (il file è il contratto: aggiornarlo fa parte del lavoro).
 | Auros | Auros | `auros` |
 | Rubyfront (termine generico, anche in IT) | Rubyfront | `rubyfront` |
 | Nexus (il Nexus, maschile) | Nexus | `nexus` |
+| Rubyfront/Nexus (bersaglio nei testi di effetto) | Rubyfront/Nexus | `rubyfront` / `nexus` |
 | Materia (Dinamica/Dimensionale/Distruttiva/Zero/Dominante) | Matter (Dynamic/Dimensional/Destructive/Zero/Dominant) | `matter` |
 | Materia Reattiva | Reactive Matter | `reactive` |
 | Oggetto | Object | `object` |
@@ -56,10 +57,22 @@ stessa modifica (il file è il contratto: aggiornarlo fa parte del lavoro).
 | tappata / stappare | tapped / untap | `tapped`, `untap` |
 | coperta | covered | `covered` |
 | catena di risposta | chain | `response_chain` |
+| Fase di Fronte | Front Phase | — |
+| permanente (carta che resta in campo) | permanent | — |
 | Unica | Unique | — |
 
+**Nel testo di un effetto il bersaglio si scrive sempre «Rubyfront/Nexus»**, mai
+«il Rubyfront» o «il Rubyfront avversario» da solo: la carta ha due facce e
+l'effetto vale su entrambe, quindi la doppia forma è obbligatoria in IT e in EN
+(«infligge 2 danni al Rubyfront/Nexus avversario» / "deals 2 damage to the
+opposing Rubyfront/Nexus"). «Rubyfront» resta da solo quando indica la **razza**
+o il **nome** di una carta («un'Entità Rubyfront», «il Rubifronte del Patto»),
+non il bersaglio da colpire.
+
 Mai: «creatura», «giocatore avversario» nei testi carta, «Requiem» (nome
-storico della Zona di Ritiro, deprecato il 2026-08-24). I **nomi propri** di
+storico della Zona di Ritiro, deprecato il 2026-08-24), «Zona di Riposo» (non
+esiste: è la Zona di Ritiro), «Zona del Fronte» (si dice **Fronte**), «fase di
+combattimento» (si dice **Fase di Fronte**, MANUALE §6.3). I **nomi propri** di
 carta si traducono (es. «Rubifronte del Patto» → "Rubyfront of the Pact"), il
 termine generico resta «Rubyfront» in entrambe le lingue. I nomi dei Rubyfront
 si scrivono **sempre per esteso** nei dati («Rhazmora, Rubifronte della
@@ -84,8 +97,9 @@ Trigger (campo `trigger`, iniziale maiuscola, senza punto finale):
 |---|---|
 | Quando entra in campo | When it enters the field |
 | Quando lascia il campo | When it leaves the field |
+| Quando attacca | When it attacks |
 | Quando contrattacca | When it counterattacks |
-| Quando infligge danno a un Rubyfront avversario | When it deals damage to an opposing Rubyfront |
+| Quando infligge danno al Rubyfront/Nexus avversario | When it deals damage to the opposing Rubyfront/Nexus |
 | Quando questa Entità attacca mentre ha un Oggetto assegnato | When this Entity attacks while it has an Object assigned |
 | Quando assegni un Oggetto a questa Entità | When you assign an Object to this Entity |
 | Quando flippa *(solo faccia Nexus)* | When it flips |
@@ -103,8 +117,8 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Concede abilità | ottiene Slancio fino alla fine del turno | gains Surge until end of turn |
 | Ha abilità (statico) | ha Vendetta | has Revenge |
 | Finché (condizione) | finché controlli X | as long as you control X |
-| Danno (solo Rubyfront/Nexus) | [Nome] infligge N danni al Rubyfront avversario. | [Name] deals N damage to the opposing Rubyfront. |
-| Perdita PV | il Rubyfront avversario perde N PV / perdi N PV | the opposing Rubyfront loses N HP / you lose N HP |
+| Danno (solo Rubyfront/Nexus) | [Nome] infligge N danni al Rubyfront/Nexus avversario. | [Name] deals N damage to the opposing Rubyfront/Nexus. |
+| Perdita PV | il Rubyfront/Nexus avversario perde N PV / perdi N PV | the opposing Rubyfront/Nexus loses N HP / you lose N HP |
 | Cura | guadagni N PV | you gain N HP |
 | Pesca | Pesca una carta. / pesca N carte | Draw a card. / draw N cards |
 | Scarto | Puoi scartare una carta. Se lo fai, … | You may discard a card. If you do, … |
@@ -118,6 +132,7 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Messa in campo | metti sul tuo Fronte un'Entità … | put an Entity … onto your Front |
 | Vincolo di costo | con costo di Flusso 3 o inferiore | with Flux cost 3 or less |
 | Dado | lancia un d6: con 1–2 …; con 3–4 …; con 5–6 … | roll a d6: on 1–2 …; on 3–4 …; on 5–6 … |
+| Fasce di d20 | lancia un d20: con 1–6 …; con 7–14 …; con 15–20 … | roll a d20: on 1–6 …; on 7–14 …; on 15–20 … |
 | Una volta a turno | La prima volta in ogni tuo turno che … | The first time each of your turns … |
 | Scelta modale | scegli uno: …; oppure … | choose one: …; or … |
 | Oggetto | Assegna [il Nome / questa carta] a un'Entità X: … | Assign [the Name / this card] to an X Entity: … |
@@ -133,6 +148,17 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Perdita variabile | perde PV pari a … | loses HP equal to … |
 | Rimbalzo | riporta un'Entità avversaria nella mano del suo proprietario | return an opposing Entity to its owner's hand |
 | Attacco extra | Stappala: può attaccare una seconda volta in questo turno. | Untap it: it may attack a second time this turn. |
+| Fase di Fronte in più | dopo questa Fase di Fronte c'è una Fase di Fronte addizionale | after this Front Phase, there is an additional Front Phase |
+| Controllo temporaneo | Prendi il controllo di un'Entità avversaria … fino alla fine del turno. | Gain control of an opposing Entity … until end of turn. |
+| Divieto di blocco | quell'Entità non può bloccare in questo turno | that Entity cannot block this turn |
+| Blocco multiplo | può essere bloccata da più Entità | may be blocked by multiple Entities |
+| Giocata come blocco | Gioca questa carta come blocco. | Play this card as a block. |
+| Scavo dalla cima | Guarda le prime N carte del tuo mazzo. Puoi mostrare … e aggiungerla alla tua mano. Metti le altre in fondo al mazzo. | Look at the top N cards of your deck. You may reveal … and add it to your hand. Put the rest on the bottom of your deck. |
+| Dal Ritiro al Fronte | metti sul tuo Fronte un'Entità … dalla tua Zona di Ritiro | put an Entity … from your Retire Zone onto your Front |
+| Esilio condizionato | Manda nell'Abisso …. Finché questa carta resta in gioco, … resta nell'Abisso. Quando questa carta lascia il gioco, … torna in gioco. | Send … to the Abyss. As long as this card remains in play, … stays in the Abyss. When this card leaves play, … returns to play. |
+| Sconto condizionato | Se questa carta bersaglia …, costa N Flussi in meno. | If this card targets …, it costs N less Flux. |
+| Contrattacco concesso | ottengono Contrattacco +1 fino alla fine del turno | they gain Counterattack +1 until end of turn |
+| Guadagno variabile | guadagni PV pari a … | you gain HP equal to … |
 
 Requisito Nexus (`nexusRequirement.text`): condizioni **all'indicativo**
 («Controlli almeno …», «In questo turno hai attaccato …»), poi il costo di flip
@@ -148,11 +174,15 @@ chiave di lingua `effect` — displayKey `effect` nel semantico e `face.effect:
 di Entità non viene renderizzata. Materie e Oggetti stampano solo
 `face.effect.text`: più trigger semantici → un unico testo combinato lì.
 
+Le fasce di dado coprono **tutto** il dado, senza buchi: se il foglio del
+designer dice «inferiore a 7» e «superiore a 14», sulla carta si scrivono le
+tre fasce esplicite (1–6, 7–14, 15–20).
+
 ## Testi promemoria delle parole chiave (stringhe fisse, campo `keyword.rules`)
 
 | Parola chiave | IT | EN |
 |---|---|---|
-| Furia / Fury | d20 ≥ 12 prima di ogni azione · fallimento −1 PV | d20 ≥ 12 before every action · failure −1 HP |
+| Furia / Fury | d20 ≥ N prima di ogni azione · fallimento −1 PV | d20 ≥ N before every action · failure −1 HP |
 | Slancio / Surge | può attaccare nel turno in cui entra in campo | may attack the turn it enters the field |
 | Stasi / Stasis | bloccando non muore: resta tappata per sempre | won't die blocking: stays permanently tapped |
 | Vendetta / Revenge | bloccando, uccide chi ha Potenza inferiore | blocking, it kills a lower-Power attacker |
@@ -178,7 +208,7 @@ di Entità non viene renderizzata. Materie e Oggetti stampano solo
   proprio, e solo se il flavor li caratterizza.
 - Le Entità **non subiscono danno**: per rimuoverle si scrive «muore»,
   «distruggi» o la messa in zona esplicita (MANUALE §10). «infligge danno» e
-  «perde PV» esistono solo verso Rubyfront e Nexus.
+  «perde PV» esistono solo verso il Rubyfront/Nexus.
 - `summary` = una frase di colore descrittiva (non regolistica); `flavor` =
   corsivo narrativo, mai termini di regole.
 

@@ -1,7 +1,7 @@
 {
-  "name": "Field Surgeon",
+  "name": "Healer of the Forgotten",
   "typeLabel": "Entity: Human",
-  "summary": "A body that arrives carrying a point of damage: it lands, hits the enemy beast and stays in line.",
+  "summary": "It attacks and heals, and now and then it brings someone back.",
   "ui": {
     "face": "Entity"
   },
@@ -12,11 +12,15 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Field Surgeon",
-    "flavor": "Beasts bleed too.",
-    "incision": {
-      "trigger": "When it enters the field",
-      "text": "Tap an opposing Entity. Then roll a d6: on 5–6, look at the top card of your deck and, if you wish, put it on the bottom."
-    }
+    "name": "Healer of the Forgotten",
+    "mend": {
+      "trigger": "When it attacks",
+      "text": "You gain 2 HP. Then roll a d6: on 5–6 return an Entity from your Retire Zone to your hand."
+    },
+    "flavor": "It heals while walking. Stopping would cost more."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

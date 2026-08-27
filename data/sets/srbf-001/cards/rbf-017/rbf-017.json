@@ -3,332 +3,68 @@
   "id": "RBF-017",
   "setId": "rubyfront-core",
   "collectorNumber": "017",
-  "slug": "rhazmora-rubyfront-of-the-schism",
-  "type": "rubyfront",
-  "layout": "double-faced",
+  "slug": "exiling-impact",
+  "type": "matter",
+  "layout": "single",
   "status": "draft",
-  "deckLimit": 1,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
     "en"
   ],
   "tags": [
-    "rubyfront",
-    "nexus",
-    "auros",
-    "equip",
-    "retire",
-    "midrange",
-    "dimensional",
-    "destructive"
+    "matter",
+    "dynamic",
+    "grade-1",
+    "removal"
   ],
-  "rulesReference": "MANUALE.md §3.1, §7, §8.1",
+  "rulesReference": "MANUALE.md §5, §7",
   "faces": [
     {
-      "id": "rubyfront",
-      "kind": "rubyfront",
-      "displayKey": "faceA",
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dynamic",
+        "grade": 1
+      },
+      "behavior": "normal",
       "stats": {
-        "health": 22,
-        "deploymentCost": {
-          "base": 3
-        }
+        "fluxCost": 1
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 2
-        },
-        {
-          "type": "destructive",
-          "maxGrade": 1
-        }
-      ],
-      "keywords": [
-        {
-          "id": "fury",
-          "check": {
-            "die": "d20",
-            "successAtLeast": 12
-          },
-          "failure": {
-            "loseHealth": 1
-          }
-        }
-      ],
-      "requirements": {
-        "nexus": {
-          "match": "all",
-          "conditions": [
-            {
-              "type": "controls_card",
-              "owner": "controller",
-              "min": 3,
-              "filter": {
-                "cardType": "entity",
-                "details": {
-                  "hasObjectAssigned": true
-                }
-              }
-            }
-          ],
-          "flipCost": [
-            {
-              "type": "move_card",
-              "target": {
-                "cardType": "entity",
-                "race": "auros",
-                "zone": "retire",
-                "owner": "controller",
-                "min": 1,
-                "max": 1
-              },
-              "destination": {
-                "zone": "abyss",
-                "owner": "card_owner"
-              }
-            }
-          ]
-        }
-      },
-      "triggers": [
-        {
-          "id": "schism-forge",
-          "displayKey": "effect",
-          "event": "on_assign_object",
-          "details": {
-            "oncePerEachOfYourTurns": true
-          },
-          "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top"
-            },
-            "details": {
-              "alsoLook": {
-                "zone": "deck",
-                "owner": "controller",
-                "position": "bottom"
-              },
-              "maySwapTopAndBottom": true,
-              "thenDrawCards": 1,
-              "thenDiscardCards": 1
-            }
-          }
-        }
-      ],
-      "actions": [
-        {
-          "id": "swift-forge",
-          "displayKey": "swiftForge",
-          "timing": [
-            "own_preparation"
-          ],
-          "repeatable": true,
-          "checks": [
-            "fury"
-          ],
-          "cost": {
-            "health": 3
-          },
-          "effect": {
-            "type": "reduce_cost",
-            "filter": {
-              "cardType": "object"
-            },
-            "amount": 1,
-            "details": {
-              "nextPlayedThisTurn": true
-            }
-          }
-        },
-        {
-          "id": "calibrated-strike",
-          "displayKey": "calibratedStrike",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": true,
-          "checks": [
-            "fury"
-          ],
-          "cost": {
-            "health": 3
-          },
-          "effect": {
-            "type": "modify_power",
-            "target": {
-              "cardType": "entity",
-              "controller": "controller",
-              "min": 1,
-              "max": 1,
-              "details": {
-                "hasObjectAssigned": true
-              }
-            },
-            "amount": 2,
-            "duration": "until_end_of_turn"
-          }
-        }
-      ]
-    },
-    {
-      "id": "nexus",
-      "kind": "nexus",
-      "displayKey": "faceB",
-      "art": "rbf-017-nexus.jpg",
-      "artZoom": "72%",
-      "stats": {
-        "healthRecovery": 5
-      },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 2
-        },
-        {
-          "type": "destructive",
-          "maxGrade": 2
-        }
-      ],
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "awakening",
-          "displayKey": "flipEffect",
-          "event": "on_flip",
-          "effect": {
-            "type": "draw_card",
-            "target": {
-              "controller": "controller"
-            },
-            "count": 1
-          }
-        },
-        {
-          "id": "deep-forge-sight",
+          "id": "impact",
           "displayKey": "effect",
-          "event": "on_assign_object",
-          "details": {
-            "oncePerEachOfYourTurns": true
-          },
+          "event": "on_resolve",
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top"
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1,
+              "conditions": [
+                {
+                  "stat": "flux_cost",
+                  "operator": "lte",
+                  "value": 2
+                }
+              ]
             },
-            "details": {
-              "alsoLook": {
-                "zone": "deck",
-                "owner": "controller",
-                "position": "bottom"
-              },
-              "addOneTo": {
-                "zone": "hand",
-                "owner": "controller"
-              },
-              "otherTo": {
-                "zone": "retire",
-                "owner": "controller"
-              }
+            "destination": {
+              "zone": "retire",
+              "owner": "card_owner"
             }
           }
         }
       ],
-      "actions": [
-        {
-          "id": "deep-forge",
-          "displayKey": "deepForge",
-          "timing": [
-            "own_preparation"
-          ],
-          "repeatable": true,
-          "checks": [],
-          "cost": {
-            "health": 3
-          },
-          "effect": {
-            "type": "reduce_cost",
-            "filter": {
-              "cardType": "object"
-            },
-            "amount": 2,
-            "details": {
-              "nextPlayedThisTurn": true
-            }
-          }
-        },
-        {
-          "id": "blade-chorus",
-          "displayKey": "bladeChorus",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": true,
-          "checks": [],
-          "cost": {
-            "health": 3
-          },
-          "effect": {
-            "type": "modify_power",
-            "target": {
-              "cardType": "entity",
-              "controller": "controller",
-              "quantity": "all",
-              "details": {
-                "hasObjectAssigned": true
-              }
-            },
-            "amount": 1,
-            "duration": "until_end_of_turn"
-          }
-        },
-        {
-          "id": "great-rearm",
-          "displayKey": "greatRearm",
-          "timing": [
-            "own_preparation"
-          ],
-          "repeatable": true,
-          "checks": [],
-          "cost": {
-            "health": 7
-          },
-          "effect": {
-            "type": "assign_object",
-            "from": {
-              "zone": "retire",
-              "owner": "controller"
-            },
-            "target": {
-              "cardType": "entity",
-              "controller": "controller",
-              "zone": "front",
-              "owner": "controller",
-              "quantity": "all",
-              "details": {
-                "hasObjectAssigned": false
-              }
-            },
-            "details": {
-              "anyNumber": true,
-              "noFluxCost": true,
-              "oneObjectPerEntity": true
-            }
-          }
-        }
-      ]
+      "actions": []
     }
   ],
-  "designNotes": "rbf-017.md",
-  "art": "rbf-017.jpg",
-  "artZoom": "72%"
+  "designNotes": "rbf-017.md"
 }

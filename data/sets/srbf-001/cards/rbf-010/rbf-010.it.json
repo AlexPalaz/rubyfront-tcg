@@ -1,7 +1,7 @@
 {
-  "name": "Prima Lama",
+  "name": "Simulacro di Vhal Astra",
   "typeLabel": "Entità: Umano",
-  "summary": "Arriva togliendo di mezzo qualcuno, e con il Nexus in campo diventa impossibile da attaccare impunemente.",
+  "summary": "Cresce con la folla e, quando carica, ne richiama un pezzo dal Ritiro.",
   "ui": {
     "face": "Entità"
   },
@@ -12,16 +12,15 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Prima Lama",
-    "firstCut": {
-      "trigger": "Quando entra in campo",
-      "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario."
-    },
+    "name": "Simulacro di Vhal Astra",
     "effect": {
-      "name": "Effetto",
-      "text": "Se controlli il Nexus, questa Entità ha Vendetta."
+      "text": "Questa Entità ha +1 Potenza per ogni altra Entità Umana sul tuo Fronte."
     },
-    "flavor": "Il fronte nemico la conosce per nome."
+    "recallFallen": {
+      "trigger": "Quando attacca",
+      "text": "Lancia un d6: con 5–6 metti sul tuo Fronte un'Entità Umana dalla tua Zona di Ritiro. Quell'Entità attacca insieme a questa Entità."
+    },
+    "flavor": "Non è lui. È la forma che la sua gente gli ha dato."
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 2° grado",

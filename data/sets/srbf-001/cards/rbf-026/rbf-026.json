@@ -3,8 +3,8 @@
   "id": "RBF-026",
   "setId": "rubyfront-core",
   "collectorNumber": "026",
-  "slug": "dimensional-sword",
-  "type": "object",
+  "slug": "scout",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,42 +14,52 @@
     "en"
   ],
   "tags": [
-    "object",
+    "entity",
     "auros",
     "equip",
-    "pump"
+    "draw"
   ],
-  "rulesReference": "MANUALE.md §3.1, §6.2",
+  "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
     {
-      "id": "object",
-      "kind": "object",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
+      "race": "auros",
       "stats": {
-        "fluxCost": 1
+        "power": 2,
+        "fluxCost": 2
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "edge",
-          "displayKey": "effect",
-          "event": "while_assigned",
+          "id": "scouting",
+          "displayKey": "scouting",
+          "event": "on_attack",
+          "details": {
+            "oncePerEachOfYourTurns": true,
+            "requiresObjectAssigned": true
+          },
           "effect": {
-            "type": "modify_power",
+            "type": "draw_card",
             "target": {
-              "scope": "assigned"
+              "controller": "controller"
             },
-            "amount": 1
+            "count": 1,
+            "details": {
+              "thenDiscardCards": 1
+            }
           }
         }
       ],
-      "actions": [],
-      "assignRestriction": {
-        "cardType": "entity",
-        "controller": "controller"
-      }
+      "actions": []
     }
   ],
   "designNotes": "rbf-026.md",

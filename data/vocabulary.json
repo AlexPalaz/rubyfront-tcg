@@ -43,7 +43,7 @@
     ]
   },
   "effect": {
-    "_note": "Effect types the engine must be able to resolve assign_object: assegna Oggetti a Entita' senza pagarne il costo salvo indicazione. reduce_cost: sconto sul costo di Flusso di carte future (details.nextPlayedThisTurn). modify_counterattack: modifica il Contrattacco (amount additivo o setTo).",
+    "_note": "Effect types the engine must be able to resolve assign_object: assegna Oggetti a Entita' senza pagarne il costo salvo indicazione. reduce_cost: sconto sul costo di Flusso di carte future (details.nextPlayedThisTurn). modify_counterattack: modifica il Contrattacco (amount additivo o setTo). gain_control: il controllore prende il controllo del bersaglio per la durata indicata; alla scadenza torna al proprietario. restrict_action: impedisce al bersaglio una specifica azione (details/restricts: attack, block) per la durata indicata.",
     "values": [
       "look_and_optionally_move",
       "modify_power",
@@ -65,7 +65,9 @@
       "play_from_deck_top",
       "assign_object",
       "reduce_cost",
-      "modify_counterattack"
+      "modify_counterattack",
+      "gain_control",
+      "restrict_action"
     ]
   },
   "timing": {

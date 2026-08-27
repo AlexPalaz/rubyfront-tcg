@@ -3,8 +3,8 @@
   "id": "RBF-029",
   "setId": "rubyfront-core",
   "collectorNumber": "029",
-  "slug": "vestige-of-the-schism",
-  "type": "object",
+  "slug": "underblade-of-nova-kai",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,87 +14,60 @@
     "en"
   ],
   "tags": [
-    "object",
+    "entity",
     "auros",
     "equip",
-    "retire",
-    "recursion"
+    "surge",
+    "pump"
   ],
-  "rulesReference": "MANUALE.md §3.1, §6.2",
+  "rulesReference": "MANUALE.md §3.1, §8.1, §8.2",
   "faces": [
     {
-      "id": "object",
-      "kind": "object",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
+      "race": "auros",
       "stats": {
-        "fluxCost": 3
+        "power": 3,
+        "fluxCost": 4
       },
-      "enablesMatters": [],
-      "keywords": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
+      "keywords": [
+        {
+          "id": "surge"
+        }
+      ],
       "requirements": {},
       "triggers": [
         {
-          "id": "relic",
-          "displayKey": "effect",
-          "event": "while_assigned",
+          "id": "command",
+          "displayKey": "command",
+          "event": "on_attack",
+          "details": {
+            "requiresObjectAssigned": true
+          },
           "effect": {
             "type": "modify_power",
             "target": {
-              "scope": "assigned"
-            },
-            "amount": 2
-          }
-        },
-        {
-          "id": "remain",
-          "displayKey": "effect",
-          "event": "on_death",
-          "details": {
-            "ofAssignedEntity": true
-          },
-          "effect": {
-            "type": "move_card",
-            "target": {
-              "scope": "self"
-            },
-            "destination": {
-              "zone": "retire",
-              "owner": "controller"
-            },
-            "details": {
-              "insteadOfZone": {
-                "zone": "abyss",
-                "owner": "controller"
-              },
-              "thenMayAssignObject": {
-                "from": {
-                  "zone": "retire",
-                  "owner": "controller"
-                },
-                "filter": {
-                  "cardType": "object",
-                  "details": {
-                    "other": true
-                  }
-                },
-                "target": {
-                  "cardType": "entity",
-                  "controller": "controller",
-                  "details": {
-                    "hasObjectAssigned": false
-                  }
-                },
-                "noFluxCost": true
+              "cardType": "entity",
+              "controller": "controller",
+              "quantity": "all",
+              "details": {
+                "hasObjectAssigned": true,
+                "excludeSelf": true
               }
-            }
+            },
+            "amount": 1,
+            "duration": "until_end_of_turn"
           }
         }
       ],
-      "actions": [],
-      "assignRestriction": {
-        "cardType": "entity",
-        "controller": "controller"
-      }
+      "actions": []
     }
   ],
   "designNotes": "rbf-029.md",

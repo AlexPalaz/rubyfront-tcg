@@ -1,29 +1,21 @@
 {
-  "name": "Scudo Riflesso",
-  "typeLabel": "Materia Dimensionale I",
-  "summary": "Un blocco dal nulla che punisce chi attacca un fronte armato.",
+  "name": "Catalizzatore Sigma",
+  "typeLabel": "Oggetto",
+  "summary": "Un Oggetto che spinge l'attacco e pesca Materie dal mazzo.",
   "ui": {
-    "face": "Materia"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Scudo Riflesso",
+    "name": "Catalizzatore Sigma",
     "effect": {
       "name": "Effetto",
-      "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se controlli almeno 2 Entità con un Oggetto assegnato, l'attaccante prende −2 Potenza fino alla fine del turno."
+      "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 5–6 guarda le prime 4 carte del tuo mazzo, puoi mostrare una Materia tra esse e aggiungerla alla tua mano, e metti le altre nella tua Zona di Ritiro."
     },
-    "flavor": "Il muro che non c'era, finché non ci hai sbattuto contro."
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 1° grado",
-    "dimensionalAria": "Dimensionale"
+    "flavor": "Brucia piano. Rivela in fretta."
   }
 }

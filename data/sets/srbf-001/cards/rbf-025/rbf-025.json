@@ -3,11 +3,11 @@
   "id": "RBF-025",
   "setId": "rubyfront-core",
   "collectorNumber": "025",
-  "slug": "avy-shin-blade-of-nova-kai",
+  "slug": "camp-warden",
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 1,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -17,8 +17,7 @@
     "entity",
     "auros",
     "equip",
-    "legendary",
-    "retire"
+    "draw"
   ],
   "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
@@ -28,62 +27,34 @@
       "displayKey": "face",
       "race": "auros",
       "stats": {
-        "power": 5,
-        "fluxCost": 5
+        "power": 2,
+        "fluxCost": 2
       },
       "enablesMatters": [
         {
           "type": "dimensional",
-          "maxGrade": 2
+          "maxGrade": 1
         }
       ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "aura",
-          "displayKey": "effect",
-          "event": "while_in_play",
+          "id": "tally",
+          "displayKey": "tally",
+          "event": "on_draw_card",
+          "details": {
+            "onSecondDrawInTurn": true
+          },
           "effect": {
             "type": "modify_power",
             "target": {
-              "cardType": "entity",
-              "controller": "controller",
-              "quantity": "all",
-              "details": {
-                "hasObjectAssigned": true,
-                "excludeSelf": true
-              }
+              "scope": "self"
             },
-            "amount": 1
-          }
-        },
-        {
-          "id": "rearm",
-          "displayKey": "rearm",
-          "event": "on_attack",
-          "details": {
-            "attacker": {
-              "cardType": "entity",
-              "controller": "controller",
-              "details": {
-                "hasObjectAssigned": true
-              }
-            }
-          },
-          "effect": {
-            "type": "assign_object",
-            "optional": true,
-            "from": {
-              "zone": "retire",
-              "owner": "controller"
-            },
-            "target": {
-              "scope": "attacker"
-            },
+            "amount": 1,
+            "duration": "until_end_of_turn",
             "details": {
-              "noFluxCost": true,
-              "respectAssignRestrictions": true
+              "perCardDrawnBeyondFirstThisTurn": true
             }
           }
         }
@@ -92,9 +63,5 @@
     }
   ],
   "designNotes": "rbf-025.md",
-  "art": "rbf-025.jpg",
-  "unique": true,
-  "fullArt": true,
-  "artZoom": "50%",
-  "artShift": "5%"
+  "art": "rbf-025.jpg"
 }

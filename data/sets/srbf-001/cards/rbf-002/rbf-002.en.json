@@ -1,7 +1,7 @@
 {
-  "name": "Adam, The First",
+  "name": "Boy of the Silver Glade",
   "typeLabel": "Entity: Human",
-  "summary": "The First of the Heirs: a 3/3 that draws when it strikes the opposing beast, and the only key to 2nd-grade Dynamic before the Nexus.",
+  "summary": "One Flux for a body that is worth more the moment it stops being alone.",
   "ui": {
     "face": "Entity"
   },
@@ -9,20 +9,13 @@
     "illustration": "Illustration",
     "hp": "HP",
     "power": "Power",
-    "flux": "Flux",
-    "counterattack": "Counterattack",
-    "unique": "Unique"
+    "flux": "Flux"
   },
   "face": {
-    "name": "Adam, The First",
-    "flavor": "He was the first to say “we”. The others came after.",
-    "firstBlood": {
-      "trigger": "When it deals damage to an opposing Rubyfront",
-      "text": "Draw a card."
-    }
-  },
-  "matters": {
-    "dynamicTitle": "Dynamic Matter · up to 2nd grade",
-    "dynamicAria": "Dynamic"
+    "name": "Boy of the Silver Glade",
+    "effect": {
+      "text": "If you control another Human Entity, this Entity has +1 Power while attacking."
+    },
+    "flavor": "It runs faster when someone runs alongside."
   }
 }

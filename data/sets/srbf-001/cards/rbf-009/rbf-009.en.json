@@ -1,7 +1,7 @@
 {
-  "name": "Armored Bulwark",
+  "name": "Rallier of the Forgotten",
   "typeLabel": "Entity: Human",
-  "summary": "Three Power for two Flux, in exchange for one thing only: he never moves first.",
+  "summary": "It lands ready and drags along a body that was not its own.",
   "ui": {
     "face": "Entity"
   },
@@ -12,15 +12,19 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Armored Bulwark",
-    "effect": {
-      "name": "Effect",
-      "text": "This Entity cannot block."
+    "name": "Rallier of the Forgotten",
+    "keyword": {
+      "name": "Surge",
+      "rules": "may attack the turn it enters the field"
     },
-    "flavor": "The world falls. He does not."
+    "rally": {
+      "trigger": "When it enters the field",
+      "text": "Gain control of an opposing Entity with Flux cost 3 or less until end of turn. That Entity gains Surge until end of turn."
+    },
+    "flavor": "It calls, and someone answers. Even from the other side."
   },
   "matters": {
-    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
     "dynamicAria": "Dynamic"
   }
 }

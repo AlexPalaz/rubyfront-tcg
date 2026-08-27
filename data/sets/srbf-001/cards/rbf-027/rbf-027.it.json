@@ -1,21 +1,26 @@
 {
-  "name": "Scudo Dimensionale",
-  "typeLabel": "Oggetto",
-  "summary": "Potenza e Contrattacco in un pezzo solo.",
+  "name": "Artefice di Nova Kai",
+  "typeLabel": "Entità: Auros",
+  "summary": "L'artefice che scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
   "ui": {
-    "face": "Oggetto"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Scudo Dimensionale",
-    "effect": {
-      "name": "Effetto",
-      "text": "L'Entità a cui è assegnato ha +1 Potenza e Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
+    "name": "Artefice di Nova Kai",
+    "forage": {
+      "trigger": "Quando entra in campo",
+      "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
     },
-    "flavor": "Regge il colpo, e lo restituisce con gli interessi."
+    "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
   }
 }

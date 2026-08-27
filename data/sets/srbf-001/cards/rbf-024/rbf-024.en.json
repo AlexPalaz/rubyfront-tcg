@@ -1,7 +1,7 @@
 {
-  "name": "Bearer of Fronts",
+  "name": "Camp Recruit",
   "typeLabel": "Entity: Auros",
-  "summary": "Every Object entrusted to it is one more card.",
+  "summary": "A one-Flux body that grows the moment you put something in its hands.",
   "ui": {
     "face": "Entity"
   },
@@ -12,15 +12,14 @@
     "flux": "Flux"
   },
   "matters": {
-    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
     "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Bearer of Fronts",
-    "carry": {
-      "trigger": "When you assign an Object to this Entity",
-      "text": "Draw a card."
-    },
-    "flavor": "It never asks what it carries. Only for whom."
+    "name": "Camp Recruit",
+    "flavor": "The first weapon was patience. The Camp handed over the second.",
+    "effect": {
+      "text": "If this Entity has an Object assigned, it has +1 Power."
+    }
   }
 }

@@ -1,29 +1,29 @@
 {
-  "name": "Collera",
-  "typeLabel": "Materia Distruttiva I",
-  "summary": "Due danni secchi alla bestia avversaria, lanciati dalla finestra di risposta.",
+  "name": "Predone delle Terre Infrante",
+  "typeLabel": "Entità: Umano",
+  "summary": "Se la carica del turno prima è stata larga, apre un varco in quella dopo.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
+    "power": "Potenza",
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Collera",
+    "name": "Predone delle Terre Infrante",
     "effect": {
-      "name": "Effetto",
-      "text": "Questa carta infligge 2 danni al Rubyfront avversario."
+      "text": "Questa Entità ha Contrattacco +1."
     },
-    "flavor": "La bestia non conosce misura."
+    "raid": {
+      "trigger": "Quando attacca",
+      "text": "Se almeno 2 Entità Umane che controlli hanno attaccato nel tuo turno precedente, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
+    },
+    "flavor": "Torna sempre dalla stessa breccia. Sa che nessuno l'ha chiusa."
   },
   "matters": {
-    "destructiveTitle": "Materia Distruttiva · 1° grado",
-    "destructiveAria": "Distruttiva"
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

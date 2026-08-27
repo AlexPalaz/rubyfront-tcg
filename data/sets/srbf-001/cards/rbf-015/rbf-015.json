@@ -3,7 +3,7 @@
   "id": "RBF-015",
   "setId": "rubyfront-core",
   "collectorNumber": "015",
-  "slug": "heirs-banner",
+  "slug": "silver-lure",
   "type": "matter",
   "layout": "single",
   "status": "draft",
@@ -17,10 +17,9 @@
     "matter",
     "dynamic",
     "grade-1",
-    "permanent",
-    "anthem"
+    "selection"
   ],
-  "rulesReference": "MANUALE.md §7.2",
+  "rulesReference": "MANUALE.md §7, §8.2",
   "faces": [
     {
       "id": "matter",
@@ -30,36 +29,43 @@
         "type": "dynamic",
         "grade": 1
       },
-      "behavior": "permanent",
+      "behavior": "normal",
       "stats": {
-        "fluxCost": 3
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "march",
+          "id": "lure",
           "displayKey": "effect",
-          "event": "on_enter_field",
+          "event": "on_resolve",
           "effect": {
-            "type": "empower",
-            "target": {
-              "scope": "entered"
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 4
             },
-            "powerBonus": 2,
-            "duration": "until_end_of_turn",
             "details": {
-              "oncePerTurn": true,
-              "onlyControllerTurn": true,
-              "watched": {
+              "mayReveal": {
                 "cardType": "entity",
-                "race": "human",
-                "controller": "controller"
+                "race": "human"
               },
-              "grantsWithRubyfrontDeployed": [
-                "surge"
-              ]
+              "maxRevealed": 2,
+              "addToHand": 1,
+              "revealTo": {
+                "zone": "hand",
+                "owner": "controller"
+              },
+              "restTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom",
+                "anyOrder": true
+              }
             }
           }
         }

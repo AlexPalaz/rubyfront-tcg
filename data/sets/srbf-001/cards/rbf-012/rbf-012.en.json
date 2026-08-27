@@ -1,29 +1,26 @@
 {
-  "name": "Laceration",
-  "typeLabel": "Destructive Matter II",
-  "summary": "The wound that never closes, but only while the Front stays crowded.",
+  "name": "Rhen, Heir of Vhal Astra",
+  "typeLabel": "Entity: Human",
+  "summary": "Every time she moves, she brings something that had left back onto the field.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    }
+    "power": "Power",
+    "flux": "Flux"
   },
   "face": {
-    "name": "Laceration",
-    "flavor": "Some wounds do not close.",
-    "effect": {
-      "name": "Effect",
-      "text": "At the start of your turn, if you control at least 3 Human Entities, the opposing Rubyfront loses 2 HP. The wound keeps bleeding as long as the Front stays crowded, and this loss does not send it back to the Recall Zone."
-    }
+    "name": "Rhen, Heir of Vhal Astra",
+    "heirReturn": {
+      "trigger": "Effect",
+      "text": "When this Entity enters the field and when it attacks, put a permanent card from your Retire Zone onto your Front."
+    },
+    "flavor": "A name is not inherited. It is taken back."
   },
   "matters": {
-    "destructiveTitle": "Destructive Matter · 2nd grade",
-    "destructiveAria": "Destructive"
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicAria": "Dynamic"
   }
 }

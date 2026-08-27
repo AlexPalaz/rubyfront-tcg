@@ -3,62 +3,87 @@
   "id": "RBF-031",
   "setId": "rubyfront-core",
   "collectorNumber": "031",
-  "slug": "intangible-cloud",
-  "type": "matter",
+  "slug": "avy-shin-blade-of-nova-kai",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 3,
+  "deckLimit": 1,
   "defaultLocale": "it",
   "locales": [
     "it",
     "en"
   ],
   "tags": [
-    "matter",
-    "dimensional",
-    "grade-1",
-    "permanent",
-    "die",
-    "evasion"
+    "entity",
+    "auros",
+    "equip",
+    "legendary",
+    "retire"
   ],
-  "rulesReference": "MANUALE.md §7.2",
+  "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "dimensional",
-        "grade": 1
-      },
-      "behavior": "permanent",
+      "race": "auros",
       "stats": {
-        "fluxCost": 2
+        "power": 5,
+        "fluxCost": 5
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "veil",
+          "id": "aura",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "while_in_play",
           "effect": {
-            "type": "protect",
+            "type": "modify_power",
             "target": {
               "cardType": "entity",
               "controller": "controller",
-              "min": 1,
-              "max": 1
-            },
-            "duration": "permanent",
-            "details": {
-              "whileSourceOnField": true,
-              "onBlockDeclared": {
-                "die": "d6",
-                "blockFails": "1-3",
-                "blockSucceeds": "4-6"
+              "quantity": "all",
+              "details": {
+                "hasObjectAssigned": true,
+                "excludeSelf": true
               }
+            },
+            "amount": 1
+          }
+        },
+        {
+          "id": "rearm",
+          "displayKey": "rearm",
+          "event": "on_attack",
+          "details": {
+            "attacker": {
+              "cardType": "entity",
+              "controller": "controller",
+              "details": {
+                "hasObjectAssigned": true
+              }
+            }
+          },
+          "effect": {
+            "type": "assign_object",
+            "optional": true,
+            "from": {
+              "zone": "retire",
+              "owner": "controller"
+            },
+            "target": {
+              "scope": "attacker"
+            },
+            "details": {
+              "noFluxCost": true,
+              "respectAssignRestrictions": true
             }
           }
         }
@@ -67,5 +92,8 @@
     }
   ],
   "designNotes": "rbf-031.md",
-  "art": "rbf-031.jpg"
+  "art": "rbf-031.jpg",
+  "unique": true,
+  "fullArt": true,
+  "artZoom": "50%"
 }

@@ -1,26 +1,23 @@
 {
-  "name": "Second Surge",
-  "typeLabel": "Dynamic Matter II",
-  "summary": "The turn where a single body strikes twice.",
+  "name": "Ajmal, Lord of the Broken Lands",
+  "typeLabel": "Entity: Human",
+  "summary": "When the die agrees with him, the turn does not end after a single combat.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    }
+    "power": "Power",
+    "flux": "Flux"
   },
   "face": {
-    "name": "Second Surge",
-    "effect": {
-      "name": "Effect",
-      "text": "Choose a Human Entity you control that has already attacked this turn. Untap it: it may attack a second time this turn."
+    "name": "Ajmal, Lord of the Broken Lands",
+    "secondCharge": {
+      "trigger": "When it attacks",
+      "text": "Roll a d20: on 15–20 untap all Entities you control and, after this Front Phase, there is an additional Front Phase."
     },
-    "flavor": "The first blow opens. The second closes."
+    "flavor": "The lands broke under him. He kept walking."
   },
   "matters": {
     "dynamicTitle": "Dynamic Matter · 2nd grade",

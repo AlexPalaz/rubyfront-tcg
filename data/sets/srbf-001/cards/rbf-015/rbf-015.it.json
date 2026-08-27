@@ -1,7 +1,7 @@
 {
-  "name": "Vessillo degli Eredi",
+  "name": "Attrazione Argentata",
   "typeLabel": "Materia Dinamica I",
-  "summary": "Ogni turno sceglie un Umano e lo manda avanti più forte degli altri.",
+  "summary": "Due Flussi per scegliere il corpo giusto fra quattro carte.",
   "ui": {
     "face": "Materia"
   },
@@ -15,12 +15,12 @@
     }
   },
   "face": {
-    "name": "Vessillo degli Eredi",
-    "flavor": "Finché sventola, si avanza.",
+    "name": "Attrazione Argentata",
     "effect": {
       "name": "Effetto",
-      "text": "La prima volta in ogni tuo turno che un'Entità Umana entra in campo sotto il tuo controllo, quell'Entità prende +2 Potenza fino alla fine del turno. Se controlli il Rubifronte del Patto, ottiene anche Slancio fino alla fine del turno."
-    }
+      "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare fino a 2 Entità Umane tra esse e aggiungerne una alla tua mano. Metti le altre in fondo al mazzo."
+    },
+    "flavor": "La radura chiama sempre gli stessi."
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 1° grado",

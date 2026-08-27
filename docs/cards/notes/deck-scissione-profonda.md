@@ -3,9 +3,10 @@
 > **Status:** DRAFT. Allineato al foglio Precon_Auros_Playtest_v3 del designer
 > (24 agosto 2026). Sostituisce il precon Auros «Bosco Errante»: nuovo nome,
 > nuovo Rubyfront e lista interamente nuova. Le carte del Bosco e ogni progetto
-> non più usato dai mazzi sono stati rimossi dal set, e la numerazione è stata
-> ricompattata: Primi Eredi 001–016, Scissione Profonda 017–036 (Rubyfront in
-> testa al blocco).
+> non più usato dai mazzi sono stati rimossi dal set. **Rinumerata il
+> 2026-08-27** (era 017–036) per far posto al precon Umani «Eredi di Vhal
+> Astra», che occupa 001–022: oggi Scissione Profonda è **023–042**, Rubyfront
+> in testa al blocco.
 
 ## 1. Composizione
 

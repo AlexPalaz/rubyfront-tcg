@@ -1,0 +1,29 @@
+{
+  "name": "Latent Charge",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "Digs five cards and lets the d20 decide what you take.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
+  },
+  "face": {
+    "name": "Latent Charge",
+    "effect": {
+      "name": "Effect",
+      "text": "Look at the top 5 cards of your deck and roll a d20: on 1–7 you may reveal a Matter among them; on 8–14 an Object; on 15–20 an Entity. Add the revealed card to your hand; if you do not reveal one, put one of the looked-at cards on top of your deck. Then put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
+    },
+    "flavor": "The deck already knows. The die decides when."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

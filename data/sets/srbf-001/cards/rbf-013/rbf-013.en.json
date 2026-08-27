@@ -1,22 +1,21 @@
 {
-  "name": "Archivist",
-  "typeLabel": "Entity: Human",
-  "summary": "He grows with the ranks: how much he is worth is decided by how many of his own there are.",
+  "name": "Vigorshield",
+  "typeLabel": "Object",
+  "summary": "Two Flux of Power, and on a Human the certainty of not dying while blocking.",
   "ui": {
-    "face": "Entity"
+    "face": "Object"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
     "flux": "Flux"
   },
   "face": {
-    "name": "Archivist",
+    "name": "Vigorshield",
     "effect": {
       "name": "Effect",
-      "text": "This Entity gets +1 Power for each other Human Entity you control."
+      "text": "The Entity this card is assigned to has +1 Power. If it is a Human Entity, it also has Stasis."
     },
-    "flavor": "He writes the names of those who went on."
+    "flavor": "It holds less than it looks. Enough."
   }
 }

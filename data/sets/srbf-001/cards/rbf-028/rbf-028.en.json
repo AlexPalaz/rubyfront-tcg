@@ -1,21 +1,26 @@
 {
-  "name": "Sigma Catalyst",
-  "typeLabel": "Object",
-  "summary": "An Object that fuels the attack and digs Matters from the deck.",
+  "name": "Sentinel of Nova Kai",
+  "typeLabel": "Entity: Auros",
+  "summary": "A sentinel whose answer hits far harder with the right Object.",
   "ui": {
-    "face": "Object"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux"
+    "power": "Power",
+    "flux": "Flux",
+    "counterattack": "Counterattack"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+    "dimensionalAria": "Dimensional"
   },
   "face": {
-    "name": "Sigma Catalyst",
+    "name": "Sentinel of Nova Kai",
+    "flavor": "The answering blow is the only one it has always prepared.",
     "effect": {
-      "name": "Effect",
-      "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 5–6 look at the top 4 cards of your deck, you may reveal a Matter among them and add it to your hand, and put the others into your Retire Zone."
-    },
-    "flavor": "Burns slowly. Reveals quickly."
+      "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
+    }
   }
 }

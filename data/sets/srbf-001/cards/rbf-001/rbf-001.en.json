@@ -1,7 +1,7 @@
 {
-  "name": "Rubyfront of the Pact",
+  "name": "Oblivhal",
   "typeLabel": "Double-faced Rubyfront",
-  "summary": "The beast of the oath: it opens the deck to the Humans on top, puts them back on their feet and drives them forward.",
+  "summary": "The beast that keeps count: every time three Humans charge together, something comes back.",
   "ui": {
     "faceA": "Face A — Rubyfront",
     "faceB": "Face B — Nexus"
@@ -11,61 +11,59 @@
     "hp": "HP",
     "nexusRequirement": {
       "label": "Nexus requirement",
-      "text": "This turn you attacked with at least 3 Human Entities. At the end of combat put one of those Entities into its owner's Retire Zone, then flip."
+      "text": "You control at least 4 Human Entities. Discard a Matter card, then flip."
     },
     "die": "Deployment die"
   },
   "matters": {
-    "destructiveTitle": "Destructive Matter · up to 2nd grade",
-    "destructiveAria": "Destructive",
-    "dynamicTitle": "Dynamic Matter · up to 2nd grade",
-    "dynamicAria": "Dynamic"
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional",
+    "destructiveTitle": "Destructive Matter · up to 1st grade",
+    "destructiveAria": "Destructive"
   },
   "faceA": {
-    "name": "Rubyfront of the Pact",
+    "name": "Oblivhal",
     "keyword": {
       "name": "Fury",
-      "rules": "d20 ≥ 12 before every action · failure −1 HP"
+      "rules": "d20 ≥ 13 before every action · failure −1 HP"
     },
     "effect": {
-      "text": "You look at the top card of your deck, and from that top you may play your Human Entities as if they were in your hand."
+      "trigger": "Effect",
+      "text": "The first time each of your turns at least 3 Human Entities you control have attacked, you gain 2 HP."
     },
     "abilities": {
-      "frontCommand": {
-        "name": "Front Command",
-        "text": "this turn one Entity on your side of the Front has Surge."
+      "gladeCall": {
+        "name": "Call of the Glade",
+        "text": "look at the top 3 cards of your deck. You may reveal a Human Entity among them and add it to your hand. Put the rest on the bottom of your deck."
       },
-      "swell": {
-        "name": "Swell",
-        "text": "all Human Entities you control get +1 Power until end of turn."
-      },
-      "pactCall": {
-        "name": "Call of the Pact",
-        "text": "search your deck for a Human Entity with Flux cost 3 or less, reveal it to your opponent and add it to your hand, then shuffle your deck."
+      "chargeOrder": {
+        "name": "Charge Order",
+        "text": "attacking Human Entities you control get +1 Power until end of turn."
       }
     },
-    "flavor": "They did not swear to her. They swore with her."
+    "flavor": "It does not lead the charge. It counts it, and remembers who came back."
   },
   "faceB": {
-    "name": "Incarnation of the Pact",
+    "name": "Return of the Heir",
     "nexusAria": "Nexus",
     "effect": {
-      "text": "You look at the top card of your deck, and from that top you may play your Human Entities as if they were in your hand."
+      "trigger": "Effect",
+      "text": "The first time each of your turns at least 3 Human Entities you control have attacked, you gain 2 HP and draw a card, then discard a card."
     },
     "abilities": {
-      "frontOrder": {
-        "name": "Order of the Front",
-        "text": "this turn all Entities on your side of the Front have Surge."
+      "heirStep": {
+        "name": "Heir's Step",
+        "text": "the next Human Entity you play this turn costs 1 less Flux."
       },
-      "coordinatedAssault": {
-        "name": "Coordinated Assault",
-        "text": "up to 2 Human Entities you control get +2 Power until end of turn."
+      "callOfSeven": {
+        "name": "Call of the Seven",
+        "text": "reveal the top 7 cards of your deck. Among them you may put a Human Entity and one other non-Human permanent onto your Front. Put the rest on the bottom of your deck."
       },
-      "greatTide": {
-        "name": "Great Tide",
-        "text": "Human Entities you control get +1 Power until end of turn. This turn an opposing Entity cannot block a Human Entity with greater Power than its own."
+      "returnInArms": {
+        "name": "Return in Arms",
+        "text": "you may put a Human Entity from your hand onto your Front without paying its Flux cost. That Entity gains Surge until end of turn, and the next Human Entities that attack this turn get +1 Power until end of turn."
       }
     },
-    "flavor": "The pact took flesh. No one remembers who signed it first."
+    "flavor": "The heir never returns alone: everyone who waited returns with him."
   }
 }

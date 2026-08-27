@@ -17,40 +17,16 @@
   "designNotes": "scissione-profonda.md",
   "cards": [
     {
-      "card": "RBF-017",
-      "count": 1
-    },
-    {
-      "card": "RBF-018",
-      "count": 3
-    },
-    {
-      "card": "RBF-019",
-      "count": 3
-    },
-    {
-      "card": "RBF-020",
-      "count": 3
-    },
-    {
-      "card": "RBF-021",
-      "count": 2
-    },
-    {
-      "card": "RBF-022",
-      "count": 2
-    },
-    {
       "card": "RBF-023",
-      "count": 2
+      "count": 1
     },
     {
       "card": "RBF-024",
-      "count": 2
+      "count": 3
     },
     {
       "card": "RBF-025",
-      "count": 1
+      "count": 3
     },
     {
       "card": "RBF-026",
@@ -58,7 +34,7 @@
     },
     {
       "card": "RBF-027",
-      "count": 3
+      "count": 2
     },
     {
       "card": "RBF-028",
@@ -70,23 +46,23 @@
     },
     {
       "card": "RBF-030",
-      "count": 3
+      "count": 2
     },
     {
       "card": "RBF-031",
-      "count": 2
+      "count": 1
     },
     {
       "card": "RBF-032",
-      "count": 2
+      "count": 3
     },
     {
       "card": "RBF-033",
-      "count": 1
+      "count": 3
     },
     {
       "card": "RBF-034",
-      "count": 1
+      "count": 2
     },
     {
       "card": "RBF-035",
@@ -94,6 +70,30 @@
     },
     {
       "card": "RBF-036",
+      "count": 3
+    },
+    {
+      "card": "RBF-037",
+      "count": 2
+    },
+    {
+      "card": "RBF-038",
+      "count": 2
+    },
+    {
+      "card": "RBF-039",
+      "count": 1
+    },
+    {
+      "card": "RBF-040",
+      "count": 1
+    },
+    {
+      "card": "RBF-041",
+      "count": 2
+    },
+    {
+      "card": "RBF-042",
       "count": 1
     }
   ]

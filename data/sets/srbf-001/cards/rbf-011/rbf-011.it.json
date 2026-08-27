@@ -1,26 +1,23 @@
 {
-  "name": "Secondo Impeto",
-  "typeLabel": "Materia Dinamica II",
-  "summary": "Il turno in cui un solo corpo colpisce due volte.",
+  "name": "Ajmal, Signore delle Terre Infrante",
+  "typeLabel": "Entità: Umano",
+  "summary": "Quando il dado gli dà ragione, il turno non finisce con un solo combattimento.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
+    "power": "Potenza",
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Secondo Impeto",
-    "effect": {
-      "name": "Effetto",
-      "text": "Scegli un'Entità Umana che controlli che ha già attaccato in questo turno. Stappala: può attaccare una seconda volta in questo turno."
+    "name": "Ajmal, Signore delle Terre Infrante",
+    "secondCharge": {
+      "trigger": "Quando attacca",
+      "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli e, dopo questa Fase di Fronte, c'è una Fase di Fronte addizionale."
     },
-    "flavor": "Il primo colpo apre. Il secondo chiude."
+    "flavor": "Le terre si sono spezzate sotto di lui. Lui ha continuato a camminare."
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 2° grado",

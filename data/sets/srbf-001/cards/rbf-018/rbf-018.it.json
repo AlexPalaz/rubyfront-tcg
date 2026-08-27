@@ -1,25 +1,29 @@
 {
-  "name": "Recluta del Campo",
-  "typeLabel": "Entità: Auros",
-  "summary": "Un corpo da un Flusso che cresce appena gli metti in mano qualcosa.",
+  "name": "Campo Repulsivo",
+  "typeLabel": "Materia Distruttiva I",
+  "summary": "Tiene un permanente avversario fuori dal campo finché regge.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
-    "dimensionalAria": "Dimensionale"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Recluta del Campo",
-    "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
+    "name": "Campo Repulsivo",
     "effect": {
-      "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
-    }
+      "name": "Effetto",
+      "text": "Manda nell'Abisso un permanente avversario. Finché questa carta resta in gioco, quel permanente resta nell'Abisso. Quando questa carta lascia il gioco, quel permanente torna in gioco."
+    },
+    "flavor": "Lo spazio si rifiuta di contenerlo. Per ora."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 1° grado",
+    "destructiveAria": "Distruttiva"
   }
 }

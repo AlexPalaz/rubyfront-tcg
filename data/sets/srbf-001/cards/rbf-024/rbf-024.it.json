@@ -1,7 +1,7 @@
 {
-  "name": "Portatore di Fronti",
+  "name": "Recluta del Campo",
   "typeLabel": "Entità: Auros",
-  "summary": "Ogni Oggetto che gli affidi è una carta in più.",
+  "summary": "Un corpo da un Flusso che cresce appena gli metti in mano qualcosa.",
   "ui": {
     "face": "Entità"
   },
@@ -12,15 +12,14 @@
     "flux": "Flussi"
   },
   "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Portatore di Fronti",
-    "carry": {
-      "trigger": "Quando assegni un Oggetto a questa Entità",
-      "text": "Pesca una carta."
-    },
-    "flavor": "Non chiede che cosa porta. Chiede solo per chi."
+    "name": "Recluta del Campo",
+    "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
+    "effect": {
+      "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
+    }
   }
 }

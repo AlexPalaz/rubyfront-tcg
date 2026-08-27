@@ -3,8 +3,8 @@
   "id": "RBF-028",
   "setId": "rubyfront-core",
   "collectorNumber": "028",
-  "slug": "sigma-catalyst",
-  "type": "object",
+  "slug": "sentinel-of-nova-kai",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,79 +14,49 @@
     "en"
   ],
   "tags": [
-    "object",
+    "entity",
     "auros",
     "equip",
-    "die",
-    "retire"
+    "counterattack"
   ],
-  "rulesReference": "MANUALE.md §3.1, §6.2",
+  "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
   "faces": [
     {
-      "id": "object",
-      "kind": "object",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
+      "race": "auros",
       "stats": {
-        "fluxCost": 3
+        "power": 3,
+        "fluxCost": 3,
+        "counterattack": 1
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "charge",
+          "id": "temper",
           "displayKey": "effect",
-          "event": "on_attack",
-          "details": {
-            "whenAssignedAttacks": true
-          },
+          "event": "while_in_play",
           "effect": {
-            "type": "modify_power",
+            "type": "modify_counterattack",
             "target": {
-              "scope": "assigned"
+              "scope": "self"
             },
-            "amount": 1,
-            "duration": "until_end_of_turn"
-          }
-        },
-        {
-          "id": "sift",
-          "displayKey": "effect",
-          "event": "on_attack",
-          "details": {
-            "whenAssignedAttacks": true
-          },
-          "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top",
-              "count": 4
-            },
+            "setTo": 2,
             "details": {
-              "die": "d6",
-              "onlyOnRoll": "5-6",
-              "mayReveal": {
-                "cardType": "matter"
-              },
-              "revealTo": {
-                "zone": "hand",
-                "owner": "controller"
-              },
-              "restTo": {
-                "zone": "retire",
-                "owner": "controller"
-              }
+              "whileHasObjectAssigned": true
             }
           }
         }
       ],
-      "actions": [],
-      "assignRestriction": {
-        "cardType": "entity",
-        "controller": "controller"
-      }
+      "actions": []
     }
   ],
   "designNotes": "rbf-028.md",

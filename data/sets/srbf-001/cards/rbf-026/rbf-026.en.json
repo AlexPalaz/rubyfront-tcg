@@ -1,21 +1,26 @@
 {
-  "name": "Dimensional Sword",
-  "typeLabel": "Object",
-  "summary": "The basic equipment: one Flux, one Power.",
+  "name": "Scout",
+  "typeLabel": "Entity: Auros",
+  "summary": "The equipped vanguard: attack with an Object and filter your hand.",
   "ui": {
-    "face": "Object"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+    "dimensionalAria": "Dimensional"
+  },
   "face": {
-    "name": "Dimensional Sword",
-    "effect": {
-      "name": "Effect",
-      "text": "The Entity it is assigned to has +1 Power."
+    "name": "Scout",
+    "scouting": {
+      "trigger": "Effect",
+      "text": "The first time each of your turns this Entity attacks while it has an Object assigned, draw a card, then discard a card."
     },
-    "flavor": "It cuts where the world is already thin."
+    "flavor": "It scouts with the eyes. It decides with the blade."
   }
 }

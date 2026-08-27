@@ -1,26 +1,21 @@
 {
-  "name": "Steam Courier",
-  "typeLabel": "Entity: Human",
-  "summary": "One Flux for the first hit of the game, and for deciding what whoever comes next will find.",
+  "name": "Vigorbelt",
+  "typeLabel": "Object",
+  "summary": "It grows with the Front, but its bearer faces more than one blocker.",
   "ui": {
-    "face": "Entity"
+    "face": "Object"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
     "flux": "Flux"
   },
   "face": {
-    "name": "Steam Courier",
-    "keyword": {
-      "name": "Surge",
-      "rules": "may attack the turn it enters the field"
+    "name": "Vigorbelt",
+    "effect": {
+      "name": "Effect",
+      "text": "The Entity this card is assigned to has +1 Power for each Human Entity on your Front, and may be blocked by multiple Entities."
     },
-    "flavor": "No one has ever seen him standing still: by the time the question ends, he is already past the line.",
-    "dispatch": {
-      "trigger": "When it enters the field",
-      "text": "Look at the top card of your deck: you may leave it there or put it on the bottom."
-    }
+    "flavor": "The more march alongside, the tighter it pulls."
   }
 }

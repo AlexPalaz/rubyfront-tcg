@@ -1,29 +1,30 @@
 {
-  "name": "Intangible Cloud",
-  "typeLabel": "Dimensional Matter I",
-  "summary": "A permanent cloud that makes blocks fail on a d6.",
+  "name": "Avy Shin, Blade of Nova Kai",
+  "typeLabel": "Entity: Auros",
+  "summary": "The deck's Unique: it arms the blades and returns Objects from the Retire Zone at every attack.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    }
-  },
-  "face": {
-    "name": "Intangible Cloud",
-    "effect": {
-      "name": "Effect",
-      "text": "Choose an Entity you control. As long as this card and the chosen Entity remain on the field, whenever your opponent declares a block against that Entity, roll a d6: on 1–3 the block fails and the attack stays unblocked; on 4–6 the block succeeds normally."
-    },
-    "flavor": "Like holding fog with your fingers."
+    "unique": "Unique"
   },
   "matters": {
-    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
     "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Avy Shin, Blade of Nova Kai",
+    "rearm": {
+      "trigger": "Effect",
+      "text": "Whenever an Entity with an Object assigned you control attacks, you may assign an Object from your Retire Zone to it without paying its Flux cost, if it can receive it."
+    },
+    "flavor": "What the Schism divides, its blade reunites.",
+    "effect": {
+      "text": "Other Entities with an Object assigned you control have +1 Power."
+    }
   }
 }

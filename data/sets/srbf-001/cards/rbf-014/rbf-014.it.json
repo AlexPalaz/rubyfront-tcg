@@ -1,26 +1,21 @@
 {
-  "name": "Corriere a Vapore",
-  "typeLabel": "Entità: Umano",
-  "summary": "Un Flusso per il primo colpo della partita, e per decidere che cosa trova chi arriva dopo.",
+  "name": "Vigorcintura",
+  "typeLabel": "Oggetto",
+  "summary": "Cresce con il Fronte, ma chi la porta se la vede con più di un bloccante.",
   "ui": {
-    "face": "Entità"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
-    "name": "Corriere a Vapore",
-    "keyword": {
-      "name": "Slancio",
-      "rules": "può attaccare nel turno in cui entra in campo"
+    "name": "Vigorcintura",
+    "effect": {
+      "name": "Effetto",
+      "text": "L'Entità a cui è assegnata questa carta ha +1 Potenza per ogni Entità Umana sul tuo Fronte, e può essere bloccata da più Entità."
     },
-    "flavor": "Nessuno l'ha mai visto fermo: quando la domanda finisce, lui è già oltre la linea.",
-    "dispatch": {
-      "trigger": "Quando entra in campo",
-      "text": "Guarda la prima carta del tuo mazzo: puoi lasciarla dov'è oppure metterla in fondo."
-    }
+    "flavor": "Più gente marcia accanto, più stringe."
   }
 }

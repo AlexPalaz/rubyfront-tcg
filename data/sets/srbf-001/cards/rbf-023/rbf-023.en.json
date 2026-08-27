@@ -1,30 +1,72 @@
 {
-  "name": "Underblade of Nova Kai",
-  "typeLabel": "Entity: Auros",
-  "summary": "Surge and command: when it attacks equipped, the whole armed front pushes.",
+  "name": "Rhazmora, Rubyfront of the Schism",
+  "typeLabel": "Double-faced Rubyfront",
+  "summary": "The beast of the Schism: every assigned Object digs through the deck, and the Nexus rearms the Front from the Retire Zone.",
   "ui": {
-    "face": "Entity"
+    "faceA": "Face A — Rubyfront",
+    "faceB": "Face B — Nexus"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
+    "nexusRequirement": {
+      "label": "Nexus requirement",
+      "text": "You control at least 3 Entities with an Object assigned. Put an Auros Entity from your Retire Zone into the Abyss, then flip."
+    }
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
-    "dimensionalAria": "Dimensional"
+    "dimensionalAria": "Dimensional",
+    "destructiveTitle": "Destructive Matter",
+    "destructiveAria": "Destructive"
   },
-  "face": {
-    "name": "Underblade of Nova Kai",
+  "faceA": {
+    "name": "Rhazmora, Rubyfront of the Schism",
     "keyword": {
-      "name": "Surge",
-      "rules": "may attack the turn it enters the field"
+      "name": "Fury",
+      "rules": "d20 ≥ 12 before every action · failure −1 HP"
     },
-    "command": {
-      "trigger": "When this Entity attacks while it has an Object assigned",
-      "text": "Other Entities with an Object assigned you control get +1 Power until end of turn."
+    "effect": {
+      "trigger": "Effect",
+      "text": "The first time each of your turns you assign an Object to an Entity, look at the top and bottom card of your deck: you may swap them. Then draw a card and discard a card."
     },
-    "flavor": "When the underblade strikes, the other blades listen."
+    "abilities": {
+      "swiftForge": {
+        "name": "Swift Forge",
+        "text": "the next Object card you play this turn costs 1 less Flux."
+      },
+      "calibratedStrike": {
+        "name": "Calibrated Strike",
+        "text": "an Entity with an Object assigned you control gets +2 Power until end of turn."
+      }
+    },
+    "flavor": "Where Rhazmora passed, the world was left in two."
+  },
+  "faceB": {
+    "name": "Heart of the Schism",
+    "nexusAria": "Nexus",
+    "flipEffect": {
+      "trigger": "When it flips",
+      "text": "Draw a card."
+    },
+    "effect": {
+      "trigger": "Effect",
+      "text": "The first time each of your turns you assign an Object to an Entity, look at the top and bottom card of your deck: add one of them to your hand and put the other into your Retire Zone."
+    },
+    "abilities": {
+      "deepForge": {
+        "name": "Deep Forge",
+        "text": "the next Object card you play this turn costs 2 less Flux."
+      },
+      "bladeChorus": {
+        "name": "Chorus of Blades",
+        "text": "Entities with an Object assigned you control get +1 Power until end of turn."
+      },
+      "greatRearm": {
+        "name": "Great Rearmament",
+        "text": "assign any number of Objects from your Retire Zone to as many Entities without an Object on your Front, without paying their Flux cost."
+      }
+    },
+    "flavor": "The Schism is not a wound. It is a door."
   }
 }

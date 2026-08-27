@@ -1,26 +1,29 @@
 {
-  "name": "Camp Warden",
-  "typeLabel": "Entity: Auros",
-  "summary": "Rewards the turn's second draw: the more cards flow, the harder it hits.",
+  "name": "Strength of the Glade",
+  "typeLabel": "Dynamic Matter II",
+  "summary": "One roll, three good outcomes and a twenty that grants them all.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
-  },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
-    "dimensionalAria": "Dimensional"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
-    "name": "Camp Warden",
-    "tally": {
-      "trigger": "Effect",
-      "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."
+    "name": "Strength of the Glade",
+    "effect": {
+      "name": "Effect",
+      "text": "Roll a d20: on 1–6 you gain 4 HP; on 7–13 put a Human Entity with Flux cost 2 or less from your hand onto your Front; on 14–19 draw a card; on 20 apply all three effects."
     },
-    "flavor": "It counts cards like sentries: at the second, it sounds the alarm."
+    "flavor": "The glade decides for itself what you need."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicAria": "Dynamic"
   }
 }

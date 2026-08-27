@@ -3,8 +3,8 @@
   "id": "RBF-020",
   "setId": "rubyfront-core",
   "collectorNumber": "020",
-  "slug": "scout",
-  "type": "entity",
+  "slug": "coordinated-counterattack",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,47 +14,54 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
-    "equip",
-    "draw"
+    "matter",
+    "dynamic",
+    "grade-2",
+    "reactive",
+    "counterattack"
   ],
-  "rulesReference": "MANUALE.md §3.1, §8.2",
+  "rulesReference": "MANUALE.md §6.3, §7.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
-      "stats": {
-        "power": 2,
-        "fluxCost": 2
+      "matter": {
+        "type": "dynamic",
+        "grade": 2
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 1
-        }
-      ],
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 4
+      },
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "scouting",
-          "displayKey": "scouting",
-          "event": "on_attack",
-          "details": {
-            "oncePerEachOfYourTurns": true,
-            "requiresObjectAssigned": true
-          },
+          "id": "coordinate",
+          "displayKey": "effect",
+          "event": "on_resolve",
           "effect": {
-            "type": "draw_card",
+            "type": "untap",
             "target": {
-              "controller": "controller"
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
+              "quantity": "all"
             },
-            "count": 1,
             "details": {
-              "thenDiscardCards": 1
+              "playedAsBlock": true,
+              "requiresControlledAtLeast": {
+                "count": 3,
+                "filter": {
+                  "cardType": "entity",
+                  "race": "human",
+                  "controller": "controller"
+                }
+              },
+              "thenCounterattackBonus": 1,
+              "duration": "until_end_of_turn"
             }
           }
         }
@@ -62,6 +69,5 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-020.md",
-  "art": "rbf-020.jpg"
+  "designNotes": "rbf-020.md"
 }

@@ -3,8 +3,8 @@
   "id": "RBF-035",
   "setId": "rubyfront-core",
   "collectorNumber": "035",
-  "slug": "latent-charge",
-  "type": "matter",
+  "slug": "vestige-of-the-schism",
+  "type": "object",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,24 +14,18 @@
     "en"
   ],
   "tags": [
-    "matter",
-    "dimensional",
-    "grade-1",
-    "die",
+    "object",
+    "auros",
+    "equip",
     "retire",
-    "tutor"
+    "recursion"
   ],
-  "rulesReference": "MANUALE.md §7",
+  "rulesReference": "MANUALE.md §3.1, §6.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "object",
+      "kind": "object",
       "displayKey": "face",
-      "matter": {
-        "type": "dimensional",
-        "grade": 1
-      },
-      "behavior": "normal",
       "stats": {
         "fluxCost": 3
       },
@@ -40,52 +34,67 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "surge-search",
+          "id": "relic",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "while_assigned",
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top",
-              "count": 5
+            "type": "modify_power",
+            "target": {
+              "scope": "assigned"
+            },
+            "amount": 2
+          }
+        },
+        {
+          "id": "remain",
+          "displayKey": "effect",
+          "event": "on_death",
+          "details": {
+            "ofAssignedEntity": true
+          },
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "scope": "self"
+            },
+            "destination": {
+              "zone": "retire",
+              "owner": "controller"
             },
             "details": {
-              "die": "d20",
-              "mayRevealByRoll": {
-                "1-7": {
-                  "cardType": "matter"
-                },
-                "8-14": {
-                  "cardType": "object"
-                },
-                "15-20": {
-                  "cardType": "entity"
-                }
-              },
-              "revealTo": {
-                "zone": "hand",
+              "insteadOfZone": {
+                "zone": "abyss",
                 "owner": "controller"
               },
-              "ifNoReveal": {
-                "putOneOnTop": true
-              },
-              "thenMoveOneTo": {
-                "zone": "retire",
-                "owner": "controller"
-              },
-              "restTo": {
-                "zone": "deck",
-                "owner": "controller",
-                "position": "bottom",
-                "anyOrder": true
+              "thenMayAssignObject": {
+                "from": {
+                  "zone": "retire",
+                  "owner": "controller"
+                },
+                "filter": {
+                  "cardType": "object",
+                  "details": {
+                    "other": true
+                  }
+                },
+                "target": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "details": {
+                    "hasObjectAssigned": false
+                  }
+                },
+                "noFluxCost": true
               }
             }
           }
         }
       ],
-      "actions": []
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "controller": "controller"
+      }
     }
   ],
   "designNotes": "rbf-035.md",

@@ -3,7 +3,7 @@
   "id": "RBF-009",
   "setId": "rubyfront-core",
   "collectorNumber": "009",
-  "slug": "armored-bulwark",
+  "slug": "rallier-of-the-forgotten",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -17,9 +17,10 @@
     "entity",
     "human",
     "dynamic",
-    "defender"
+    "surge",
+    "tempo"
   ],
-  "rulesReference": "MANUALE.md §7, §8.1",
+  "rulesReference": "MANUALE.md §8.1, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -28,21 +29,50 @@
       "race": "human",
       "stats": {
         "power": 3,
-        "fluxCost": 2
+        "fluxCost": 4
       },
       "enablesMatters": [
         {
           "type": "dynamic",
-          "maxGrade": 1
+          "maxGrade": 2
         }
       ],
-      "keywords": [],
+      "keywords": [
+        {
+          "id": "surge"
+        }
+      ],
       "requirements": {},
-      "triggers": [],
-      "actions": [],
-      "restrictions": {
-        "cannotBlock": true
-      }
+      "triggers": [
+        {
+          "id": "rally",
+          "displayKey": "rally",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "gain_control",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1,
+              "conditions": [
+                {
+                  "stat": "flux_cost",
+                  "operator": "lte",
+                  "value": 3
+                }
+              ]
+            },
+            "duration": "until_end_of_turn",
+            "details": {
+              "grants": [
+                "surge"
+              ]
+            }
+          }
+        }
+      ],
+      "actions": []
     }
   ],
   "designNotes": "rbf-009.md"

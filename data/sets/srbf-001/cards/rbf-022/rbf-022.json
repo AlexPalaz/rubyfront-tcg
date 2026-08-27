@@ -3,8 +3,8 @@
   "id": "RBF-022",
   "setId": "rubyfront-core",
   "collectorNumber": "022",
-  "slug": "sentinel-of-nova-kai",
-  "type": "entity",
+  "slug": "charge-of-the-heirs",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,44 +14,59 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
-    "equip",
-    "counterattack"
+    "matter",
+    "dynamic",
+    "grade-2",
+    "permanent",
+    "dice"
   ],
-  "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
+  "rulesReference": "MANUALE.md §7.2, §8.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
-      "stats": {
-        "power": 3,
-        "fluxCost": 3,
-        "counterattack": 1
+      "matter": {
+        "type": "dynamic",
+        "grade": 2
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 1
-        }
-      ],
+      "behavior": "permanent",
+      "stats": {
+        "fluxCost": 5
+      },
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "temper",
+          "id": "heirs-charge",
           "displayKey": "effect",
-          "event": "while_in_play",
+          "event": "on_attack",
+          "details": {
+            "attackers": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller"
+            }
+          },
           "effect": {
-            "type": "modify_counterattack",
+            "type": "empower",
             "target": {
-              "scope": "self"
+              "controller": "controller"
             },
-            "setTo": 2,
             "details": {
-              "whileHasObjectAssigned": true
+              "die": "d20",
+              "byRoll": {
+                "1-6": {
+                  "gainHealthEqualsHumanAttackersThisTurn": true
+                },
+                "15-20": {
+                  "opponentLosesHealthEqualsHumanAttackersThisTurn": true
+                },
+                "7-14": {
+                  "noEffect": true
+                }
+              }
             }
           }
         }
@@ -59,6 +74,5 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-022.md",
-  "art": "rbf-022.jpg"
+  "designNotes": "rbf-022.md"
 }

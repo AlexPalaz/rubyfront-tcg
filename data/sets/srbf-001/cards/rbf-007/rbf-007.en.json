@@ -1,7 +1,7 @@
 {
-  "name": "Bulkhead Warden",
+  "name": "Archer of the Silver Glade",
   "typeLabel": "Entity: Human",
-  "summary": "Two Power for a single Flux: the price is that he spends his first turn taking position.",
+  "summary": "A body that arrives by taking a body off the other side.",
   "ui": {
     "face": "Entity"
   },
@@ -12,12 +12,12 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Bulkhead Warden",
-    "bulkhead": {
+    "name": "Archer of the Silver Glade",
+    "loose": {
       "trigger": "When it enters the field",
-      "text": "This Entity enters the Front already tapped, and stays that way until you untap it."
+      "text": "Put an opposing Entity into its owner's Retire Zone."
     },
-    "flavor": "No one gets through. Not today."
+    "flavor": "It looses one arrow. A second is never needed."
   },
   "matters": {
     "dynamicTitle": "Dynamic Matter · 1st grade",

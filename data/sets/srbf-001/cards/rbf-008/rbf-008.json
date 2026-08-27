@@ -3,7 +3,7 @@
   "id": "RBF-008",
   "setId": "rubyfront-core",
   "collectorNumber": "008",
-  "slug": "field-surgeon",
+  "slug": "healer-of-the-forgotten",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,10 +16,10 @@
   "tags": [
     "entity",
     "human",
-    "burn",
-    "aggro"
+    "dynamic",
+    "recursion"
   ],
-  "rulesReference": "MANUALE.md §6.2, §8.2",
+  "rulesReference": "MANUALE.md §5, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -27,43 +27,44 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 1,
-        "fluxCost": 2
+        "power": 2,
+        "fluxCost": 3
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "incision",
-          "displayKey": "incision",
-          "event": "on_enter_field",
+          "id": "mend",
+          "displayKey": "mend",
+          "event": "on_attack",
           "effect": {
-            "type": "set_state",
+            "type": "gain_health",
             "target": {
-              "cardType": "entity",
-              "controller": "opponent",
-              "min": 1,
-              "max": 1
+              "controller": "controller"
             },
-            "state": "tapped",
+            "amount": 2,
             "details": {
-              "then": {
-                "type": "look_and_optionally_move",
-                "die": "d6",
-                "onRoll": "5-6",
+              "die": "d6",
+              "onRoll": "5-6",
+              "thenMoveCard": {
                 "from": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "top",
-                  "count": 1
+                  "zone": "retire",
+                  "owner": "controller"
+                },
+                "filter": {
+                  "cardType": "entity"
                 },
                 "to": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "bottom"
+                  "zone": "hand",
+                  "owner": "controller"
                 },
-                "optional": true
+                "count": 1
               }
             }
           }

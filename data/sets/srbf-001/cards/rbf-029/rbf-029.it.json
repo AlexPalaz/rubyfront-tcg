@@ -1,21 +1,30 @@
 {
-  "name": "Vestigio della Scissione",
-  "typeLabel": "Oggetto",
-  "summary": "L'Oggetto che non muore mai: torna in Ritiro e riarma il Fronte.",
+  "name": "Sottolama di Nova Kai",
+  "typeLabel": "Entità: Auros",
+  "summary": "Slancio e comando: quando attacca equipaggiato, tutto il fronte armato spinge.",
   "ui": {
-    "face": "Oggetto"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale"
+  },
   "face": {
-    "name": "Vestigio della Scissione",
-    "effect": {
-      "name": "Effetto",
-      "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
+    "name": "Sottolama di Nova Kai",
+    "keyword": {
+      "name": "Slancio",
+      "rules": "può attaccare nel turno in cui entra in campo"
     },
-    "flavor": "Ciò che resta della Scissione non smette di servire."
+    "command": {
+      "trigger": "Quando questa Entità attacca mentre ha un Oggetto assegnato",
+      "text": "Le altre Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
+    },
+    "flavor": "Quando la sottolama scatta, le altre lame ascoltano."
   }
 }

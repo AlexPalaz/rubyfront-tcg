@@ -3,8 +3,8 @@
   "id": "RBF-013",
   "setId": "rubyfront-core",
   "collectorNumber": "013",
-  "slug": "archivist",
-  "type": "entity",
+  "slug": "vigorshield",
+  "type": "object",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,42 +14,51 @@
     "en"
   ],
   "tags": [
-    "entity",
+    "object",
     "human",
-    "scaling"
+    "stasis"
   ],
-  "rulesReference": "MANUALE.md §6.2",
+  "rulesReference": "MANUALE.md §3.1, §8.1",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "object",
+      "kind": "object",
       "displayKey": "face",
-      "race": "human",
       "stats": {
-        "power": 1,
-        "fluxCost": 3
+        "fluxCost": 2
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "chronicle",
+          "id": "guard",
           "displayKey": "effect",
-          "event": "while_in_play",
+          "event": "while_assigned",
           "effect": {
             "type": "modify_power",
             "target": {
-              "scope": "self"
+              "scope": "assigned"
             },
             "amount": 1,
+            "duration": "permanent"
+          }
+        },
+        {
+          "id": "brace",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "empower",
+            "target": {
+              "scope": "assigned"
+            },
+            "grants": [
+              "stasis"
+            ],
             "duration": "permanent",
             "details": {
-              "perControlledEntity": {
-                "cardType": "entity",
-                "race": "human"
-              },
-              "excludeSelf": true
+              "ifAssignedRace": "human"
             }
           }
         }

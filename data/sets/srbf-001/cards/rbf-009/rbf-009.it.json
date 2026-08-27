@@ -1,7 +1,7 @@
 {
-  "name": "Baluardo Corazzato",
+  "name": "Radunatore dei Dimenticati",
   "typeLabel": "Entità: Umano",
-  "summary": "Tre di Potenza a due Flussi, in cambio di una sola cosa: non muove mai per primo.",
+  "summary": "Scende già pronto e si porta dietro un corpo che non era suo.",
   "ui": {
     "face": "Entità"
   },
@@ -12,15 +12,19 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Baluardo Corazzato",
-    "effect": {
-      "name": "Effetto",
-      "text": "Questa Entità non può bloccare."
+    "name": "Radunatore dei Dimenticati",
+    "keyword": {
+      "name": "Slancio",
+      "rules": "può attaccare nel turno in cui entra in campo"
     },
-    "flavor": "Cade il mondo, non lui."
+    "rally": {
+      "trigger": "Quando entra in campo",
+      "text": "Prendi il controllo di un'Entità avversaria con costo di Flusso 3 o inferiore fino alla fine del turno. Quell'Entità ottiene Slancio fino alla fine del turno."
+    },
+    "flavor": "Chiama, e qualcuno risponde. Anche dall'altra parte."
   },
   "matters": {
-    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicTitle": "Materia Dinamica · 2° grado",
     "dynamicAria": "Dinamica"
   }
 }

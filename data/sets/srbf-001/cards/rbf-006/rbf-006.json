@@ -3,8 +3,8 @@
   "id": "RBF-006",
   "setId": "rubyfront-core",
   "collectorNumber": "006",
-  "slug": "vigorbelt",
-  "type": "object",
+  "slug": "shard-seeker",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,48 +14,63 @@
     "en"
   ],
   "tags": [
-    "object",
+    "entity",
     "human",
-    "anthem"
+    "dynamic",
+    "selection"
   ],
-  "rulesReference": "MANUALE.md §3.1",
+  "rulesReference": "MANUALE.md §7, §8.2",
   "faces": [
     {
-      "id": "object",
-      "kind": "object",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
+      "race": "human",
       "stats": {
-        "fluxCost": 1
+        "power": 2,
+        "fluxCost": 3
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "band",
-          "displayKey": "effect",
-          "event": "while_assigned",
+          "id": "seek",
+          "displayKey": "seek",
+          "event": "on_enter_field",
           "effect": {
-            "type": "modify_power",
-            "target": {
-              "cardType": "entity",
-              "race": "human",
-              "scope": "assigned"
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 4
             },
-            "amount": 1,
-            "duration": "permanent",
             "details": {
-              "amountWithRubyfrontDeployed": 2
+              "mayReveal": {
+                "cardType": "entity",
+                "race": "human"
+              },
+              "revealTo": {
+                "zone": "hand",
+                "owner": "controller"
+              },
+              "restTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom",
+                "anyOrder": true
+              }
             }
           }
         }
       ],
-      "actions": [],
-      "assignRestriction": {
-        "cardType": "entity",
-        "race": "human",
-        "controller": "controller"
-      }
+      "actions": []
     }
   ],
   "designNotes": "rbf-006.md"

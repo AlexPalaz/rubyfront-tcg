@@ -3,7 +3,7 @@
   "id": "RBF-001",
   "setId": "rubyfront-core",
   "collectorNumber": "001",
-  "slug": "rubyfront-of-the-pact",
+  "slug": "oblivhal",
   "type": "rubyfront",
   "layout": "double-faced",
   "status": "draft",
@@ -16,8 +16,9 @@
   "tags": [
     "rubyfront",
     "nexus",
-    "aggro",
     "human",
+    "aggro",
+    "dimensional",
     "destructive"
   ],
   "rulesReference": "MANUALE.md §3.1, §7, §8.1",
@@ -34,8 +35,14 @@
       },
       "enablesMatters": [
         {
+          "type": "dimensional",
+          "maxGrade": 2,
+          "upTo": true
+        },
+        {
           "type": "destructive",
-          "maxGrade": 2
+          "maxGrade": 1,
+          "upTo": true
         }
       ],
       "keywords": [
@@ -43,7 +50,7 @@
           "id": "fury",
           "check": {
             "die": "d20",
-            "successAtLeast": 12
+            "successAtLeast": 13
           },
           "failure": {
             "loseHealth": 1
@@ -54,13 +61,14 @@
         "nexus": {
           "match": "all",
           "timing": [
-            "own_post_combat"
+            "own_preparation",
+            "own_front"
           ],
           "conditions": [
             {
-              "type": "attacked_this_turn_at_least",
+              "type": "controls_card",
               "owner": "controller",
-              "min": 3,
+              "min": 4,
               "filter": {
                 "cardType": "entity",
                 "race": "human"
@@ -69,20 +77,13 @@
           ],
           "flipCost": [
             {
-              "type": "move_card",
+              "type": "discard_card",
               "target": {
-                "cardType": "entity",
-                "race": "human",
-                "controller": "controller",
-                "min": 1,
-                "max": 1,
-                "details": {
-                  "attackedThisTurn": true
-                }
+                "controller": "controller"
               },
-              "destination": {
-                "zone": "retire",
-                "owner": "card_owner"
+              "count": 1,
+              "filter": {
+                "cardType": "matter"
               }
             }
           ]
@@ -90,30 +91,33 @@
       },
       "triggers": [
         {
-          "id": "patto",
+          "id": "muster",
           "displayKey": "effect",
-          "event": "while_in_play",
-          "effect": {
-            "type": "play_from_deck_top",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top"
-            },
-            "filter": {
-              "cardType": "entity",
-              "race": "human"
-            },
-            "details": {
-              "mayLookAtTop": true
+          "event": "on_attack",
+          "details": {
+            "oncePerEachOfYourTurns": true,
+            "requiresAttackersThisTurnAtLeast": {
+              "count": 3,
+              "filter": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              }
             }
+          },
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "controller": "controller"
+            },
+            "amount": 2
           }
         }
       ],
       "actions": [
         {
-          "id": "front-command",
-          "displayKey": "frontCommand",
+          "id": "glade-call",
+          "displayKey": "gladeCall",
           "timing": [
             "own_preparation",
             "own_front"
@@ -122,54 +126,38 @@
           "checks": [
             "fury"
           ],
-          "cost": {
-            "health": 2
-          },
-          "effect": {
-            "type": "empower",
-            "target": {
-              "cardType": "entity",
-              "controller": "controller",
-              "zone": "front",
-              "owner": "controller",
-              "min": 1,
-              "max": 1
-            },
-            "grants": [
-              "surge"
-            ],
-            "duration": "until_end_of_turn"
-          }
-        },
-        {
-          "id": "swell",
-          "displayKey": "swell",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": true,
-          "checks": [
-            "fury"
-          ],
-          "cost": {
+          "gain": {
             "health": 3
           },
           "effect": {
-            "type": "modify_power",
-            "target": {
-              "cardType": "entity",
-              "race": "human",
-              "controller": "controller",
-              "quantity": "all"
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 3
             },
-            "amount": 1,
-            "duration": "until_end_of_turn"
+            "details": {
+              "mayReveal": {
+                "cardType": "entity",
+                "race": "human"
+              },
+              "revealTo": {
+                "zone": "hand",
+                "owner": "controller"
+              },
+              "restTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom",
+                "anyOrder": true
+              }
+            }
           }
         },
         {
-          "id": "pact-call",
-          "displayKey": "pactCall",
+          "id": "charge-order",
+          "displayKey": "chargeOrder",
           "timing": [
             "own_preparation",
             "own_front"
@@ -182,28 +170,18 @@
             "health": 5
           },
           "effect": {
-            "type": "search_card",
-            "from": {
-              "zone": "deck",
-              "owner": "controller"
-            },
-            "filter": {
+            "type": "modify_power",
+            "target": {
               "cardType": "entity",
               "race": "human",
-              "conditions": [
-                {
-                  "stat": "flux_cost",
-                  "operator": "lte",
-                  "value": 3
-                }
-              ]
+              "controller": "controller",
+              "quantity": "all",
+              "details": {
+                "attacking": true
+              }
             },
-            "reveal": true,
-            "to": {
-              "zone": "hand",
-              "owner": "controller"
-            },
-            "shuffle": true
+            "amount": 1,
+            "duration": "until_end_of_turn"
           }
         }
       ]
@@ -217,42 +195,51 @@
       },
       "enablesMatters": [
         {
-          "type": "dynamic",
-          "maxGrade": 2
+          "type": "dimensional",
+          "maxGrade": 2,
+          "upTo": true
         },
         {
           "type": "destructive",
-          "maxGrade": 2
+          "maxGrade": 2,
+          "upTo": true
         }
       ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "pact-incarnate",
+          "id": "heirs-muster",
           "displayKey": "effect",
-          "event": "while_in_play",
+          "event": "on_attack",
+          "details": {
+            "oncePerEachOfYourTurns": true,
+            "requiresAttackersThisTurnAtLeast": {
+              "count": 3,
+              "filter": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              }
+            }
+          },
           "effect": {
-            "type": "play_from_deck_top",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top"
+            "type": "gain_health",
+            "target": {
+              "controller": "controller"
             },
-            "filter": {
-              "cardType": "entity",
-              "race": "human"
-            },
+            "amount": 2,
             "details": {
-              "mayLookAtTop": true
+              "thenDrawCards": 1,
+              "thenDiscardCards": 1
             }
           }
         }
       ],
       "actions": [
         {
-          "id": "front-order",
-          "displayKey": "frontOrder",
+          "id": "heir-step",
+          "displayKey": "heirStep",
           "timing": [
             "own_preparation",
             "own_front"
@@ -260,26 +247,24 @@
           "repeatable": true,
           "checks": [],
           "gain": {
-            "health": 1
+            "health": 3
           },
           "effect": {
-            "type": "empower",
+            "type": "reduce_cost",
             "target": {
               "cardType": "entity",
-              "controller": "controller",
-              "zone": "front",
-              "owner": "controller",
-              "quantity": "all"
+              "race": "human",
+              "controller": "controller"
             },
-            "grants": [
-              "surge"
-            ],
-            "duration": "until_end_of_turn"
+            "amount": 1,
+            "details": {
+              "nextPlayedThisTurn": true
+            }
           }
         },
         {
-          "id": "coordinated-assault",
-          "displayKey": "coordinatedAssault",
+          "id": "call-of-seven",
+          "displayKey": "callOfSeven",
           "timing": [
             "own_preparation",
             "own_front"
@@ -290,21 +275,37 @@
             "health": 5
           },
           "effect": {
-            "type": "modify_power",
-            "target": {
-              "cardType": "entity",
-              "race": "human",
-              "controller": "controller",
-              "min": 0,
-              "max": 2
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 7
             },
-            "amount": 2,
-            "duration": "until_end_of_turn"
+            "details": {
+              "reveal": true,
+              "mayMoveToFront": [
+                {
+                  "cardType": "entity",
+                  "race": "human"
+                },
+                {
+                  "permanent": true,
+                  "notRace": "human"
+                }
+              ],
+              "restTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom",
+                "anyOrder": true
+              }
+            }
           }
         },
         {
-          "id": "great-tide",
-          "displayKey": "greatTide",
+          "id": "return-in-arms",
+          "displayKey": "returnInArms",
           "timing": [
             "own_preparation",
             "own_front"
@@ -315,27 +316,41 @@
             "health": 7
           },
           "effect": {
-            "type": "modify_power",
+            "type": "move_card",
+            "optional": true,
             "target": {
               "cardType": "entity",
               "race": "human",
               "controller": "controller",
-              "quantity": "all"
+              "min": 0,
+              "max": 1
             },
-            "amount": 1,
-            "duration": "until_end_of_turn",
+            "from": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "destination": {
+              "zone": "front",
+              "owner": "controller"
+            },
             "details": {
-              "cannotBeBlockedByGreaterPower": true,
-              "blockerRestrictionAppliesTo": {
-                "cardType": "entity",
-                "race": "human",
-                "controller": "controller"
+              "noFluxCost": true,
+              "grants": [
+                "surge"
+              ],
+              "thenNextHumanAttackersThisTurn": {
+                "powerBonus": 1,
+                "duration": "until_end_of_turn"
               }
             }
           }
         }
-      ]
+      ],
+      "art": "rbf-001-nexus.jpg",
+      "artZoom": "58%"
     }
   ],
-  "designNotes": "rbf-001.md"
+  "designNotes": "rbf-001.md",
+  "art": "rbf-001.jpg",
+  "artZoom": "55%"
 }

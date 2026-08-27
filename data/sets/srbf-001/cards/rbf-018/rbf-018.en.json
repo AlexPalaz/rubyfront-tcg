@@ -1,25 +1,29 @@
 {
-  "name": "Camp Recruit",
-  "typeLabel": "Entity: Auros",
-  "summary": "A one-Flux body that grows the moment you put something in its hands.",
+  "name": "Repulsion Field",
+  "typeLabel": "Destructive Matter I",
+  "summary": "It keeps an opposing permanent off the field for as long as it holds.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
-  },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
-    "dimensionalAria": "Dimensional"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
-    "name": "Camp Recruit",
-    "flavor": "The first weapon was patience. The Camp handed over the second.",
+    "name": "Repulsion Field",
     "effect": {
-      "text": "If this Entity has an Object assigned, it has +1 Power."
-    }
+      "name": "Effect",
+      "text": "Send an opposing permanent to the Abyss. As long as this card remains in play, that permanent stays in the Abyss. When this card leaves play, that permanent returns to play."
+    },
+    "flavor": "Space refuses to hold it. For now."
+  },
+  "matters": {
+    "destructiveTitle": "Destructive Matter · 1st grade",
+    "destructiveAria": "Destructive"
   }
 }

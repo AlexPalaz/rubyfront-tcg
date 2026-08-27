@@ -1,21 +1,26 @@
 {
-  "name": "Vigorcintura",
-  "typeLabel": "Oggetto",
-  "summary": "Un Flusso, e con la bestia in campo vale il doppio.",
+  "name": "Cercatore di Schegge",
+  "typeLabel": "Entità: Umano",
+  "summary": "Scava fra le prime quattro carte e tira fuori il corpo che serviva.",
   "ui": {
-    "face": "Oggetto"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
+    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
-    "name": "Vigorcintura",
-    "effect": {
-      "name": "Effetto",
-      "text": "Assegna questa carta a un'Entità Umana: quell'Entità prende +1 Potenza, e ne prende invece +2 finché controlli il Rubifronte del Patto."
+    "name": "Cercatore di Schegge",
+    "seek": {
+      "trigger": "Quando entra in campo",
+      "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un'Entità Umana tra esse e aggiungerla alla tua mano. Metti le altre in fondo al mazzo."
     },
-    "flavor": "Stringila forte. Il vigore fa il resto."
+    "flavor": "Ogni scheggia è un pezzo di qualcuno. Le tiene tutte."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

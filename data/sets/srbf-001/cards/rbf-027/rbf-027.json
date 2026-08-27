@@ -3,8 +3,8 @@
   "id": "RBF-027",
   "setId": "rubyfront-core",
   "collectorNumber": "027",
-  "slug": "dimensional-shield",
-  "type": "object",
+  "slug": "artificer-of-nova-kai",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,54 +14,68 @@
     "en"
   ],
   "tags": [
-    "object",
+    "entity",
     "auros",
     "equip",
-    "counterattack"
+    "die",
+    "retire"
   ],
-  "rulesReference": "MANUALE.md §3.1, §6.2, §6.3",
+  "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
     {
-      "id": "object",
-      "kind": "object",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
+      "race": "auros",
       "stats": {
-        "fluxCost": 2
+        "power": 2,
+        "fluxCost": 3
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "brace",
-          "displayKey": "effect",
-          "event": "while_assigned",
+          "id": "forage",
+          "displayKey": "forage",
+          "event": "on_enter_field",
           "effect": {
-            "type": "modify_power",
-            "target": {
-              "scope": "assigned"
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top"
             },
-            "amount": 1
-          }
-        },
-        {
-          "id": "spikes",
-          "displayKey": "effect",
-          "event": "while_assigned",
-          "effect": {
-            "type": "modify_counterattack",
-            "target": {
-              "scope": "assigned"
-            },
-            "amount": 1
+            "details": {
+              "die": "d6",
+              "count": "2 + ceil(result/2)",
+              "mayReveal": {
+                "cardType": "object"
+              },
+              "revealTo": {
+                "zone": "hand",
+                "owner": "controller"
+              },
+              "thenMoveOneTo": {
+                "zone": "retire",
+                "owner": "controller"
+              },
+              "restTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom",
+                "anyOrder": true
+              }
+            }
           }
         }
       ],
-      "actions": [],
-      "assignRestriction": {
-        "cardType": "entity",
-        "controller": "controller"
-      }
+      "actions": []
     }
   ],
   "designNotes": "rbf-027.md",

@@ -3,8 +3,8 @@
   "id": "RBF-005",
   "setId": "rubyfront-core",
   "collectorNumber": "005",
-  "slug": "wrath",
-  "type": "matter",
+  "slug": "raider-of-the-broken-lands",
+  "type": "entity",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,41 +14,69 @@
     "en"
   ],
   "tags": [
-    "matter",
-    "destructive",
-    "grade-1",
-    "reactive",
-    "burn"
+    "entity",
+    "human",
+    "dynamic",
+    "counterattack"
   ],
-  "rulesReference": "MANUALE.md §3.1, §7, §8.2",
+  "rulesReference": "MANUALE.md §6.3, §7",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "entity",
+      "kind": "entity",
       "displayKey": "face",
-      "matter": {
-        "type": "destructive",
-        "grade": 1
-      },
-      "behavior": "reactive",
+      "race": "human",
       "stats": {
+        "power": 2,
         "fluxCost": 2
       },
-      "enablesMatters": [],
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "wrath",
+          "id": "spurs",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "while_in_play",
           "effect": {
-            "type": "lose_health",
+            "type": "modify_counterattack",
             "target": {
-              "cardType": "rubyfront",
-              "controller": "opponent"
+              "scope": "self"
             },
-            "amount": 2
+            "amount": 1
+          }
+        },
+        {
+          "id": "raid",
+          "displayKey": "raid",
+          "event": "on_attack",
+          "details": {
+            "requiresAttackersPreviousTurnAtLeast": {
+              "count": 2,
+              "filter": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              }
+            }
+          },
+          "effect": {
+            "type": "restrict_action",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "zone": "front",
+              "owner": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "restricts": "block",
+            "duration": "until_end_of_turn"
           }
         }
       ],

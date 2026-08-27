@@ -1,29 +1,29 @@
 {
-  "name": "Wrath",
-  "typeLabel": "Destructive Matter I",
-  "summary": "Two clean points of damage to the enemy beast, thrown from the response window.",
+  "name": "Raider of the Broken Lands",
+  "typeLabel": "Entity: Human",
+  "summary": "If last turn's charge was wide, it opens a gap in the next one.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    }
+    "power": "Power",
+    "flux": "Flux"
   },
   "face": {
-    "name": "Wrath",
+    "name": "Raider of the Broken Lands",
     "effect": {
-      "name": "Effect",
-      "text": "This card deals 2 damage to the opposing Rubyfront."
+      "text": "This Entity has Counterattack +1."
     },
-    "flavor": "The beast knows no measure."
+    "raid": {
+      "trigger": "When it attacks",
+      "text": "If at least 2 Human Entities you control attacked on your previous turn, choose an opposing Entity: that Entity cannot block this turn."
+    },
+    "flavor": "It always comes back through the same breach. It knows no one closed it."
   },
   "matters": {
-    "destructiveTitle": "Destructive Matter · 1st grade",
-    "destructiveAria": "Destructive"
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

@@ -1,7 +1,7 @@
 {
-  "name": "Rubifronte del Patto",
+  "name": "Oblivhal",
   "typeLabel": "Rubyfront bifronte",
-  "summary": "La bestia del giuramento: apre il mazzo agli Umani che stanno in cima, li rimette in piedi e li spinge avanti.",
+  "summary": "La bestia che tiene il conto: ogni volta che tre Umani caricano insieme, qualcosa torna indietro.",
   "ui": {
     "faceA": "Faccia A — Rubyfront",
     "faceB": "Faccia B — Nexus"
@@ -11,61 +11,59 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Alla fine del combattimento manda una di quelle Entità nella Zona di Ritiro del suo proprietario, poi flippa."
+      "text": "Controlli almeno 4 Entità Umane. Scarta una carta Materia, poi flippa."
     },
     "die": "Dado di schieramento"
   },
   "matters": {
-    "destructiveTitle": "Materia Distruttiva · fino al 2° grado",
-    "destructiveAria": "Distruttiva",
-    "dynamicTitle": "Materia Dinamica · fino al 2° grado",
-    "dynamicAria": "Dinamica"
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale",
+    "destructiveTitle": "Materia Distruttiva · fino al 1° grado",
+    "destructiveAria": "Distruttiva"
   },
   "faceA": {
-    "name": "Rubifronte del Patto",
+    "name": "Oblivhal",
     "keyword": {
       "name": "Furia",
-      "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
+      "rules": "d20 ≥ 13 prima di ogni azione · fallimento −1 PV"
     },
     "effect": {
-      "text": "Guardi la prima carta del tuo mazzo, e da quella cima puoi giocare le tue Entità Umane come se le avessi in mano."
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che almeno 3 Entità Umane che controlli hanno attaccato, guadagni 2 PV."
     },
     "abilities": {
-      "frontCommand": {
-        "name": "Comando dal Fronte",
-        "text": "in questo turno un'Entità dal tuo lato del Fronte ha Slancio."
+      "gladeCall": {
+        "name": "Richiamo della Radura",
+        "text": "guarda le prime 3 carte del tuo mazzo. Puoi mostrare un'Entità Umana tra esse e aggiungerla alla tua mano. Metti le altre in fondo al mazzo."
       },
-      "swell": {
-        "name": "Onda Portante",
-        "text": "tutte le Entità Umane che controlli prendono +1 Potenza fino alla fine del turno."
-      },
-      "pactCall": {
-        "name": "Richiamo del Patto",
-        "text": "cerca nel tuo mazzo un'Entità Umana con costo di Flusso 3 o inferiore, mostrala all'avversario e aggiungila alla tua mano, poi rimescola il mazzo."
+      "chargeOrder": {
+        "name": "Ordine di Carica",
+        "text": "le Entità Umane attaccanti che controlli prendono +1 Potenza fino alla fine del turno."
       }
     },
-    "flavor": "Non giurarono a lei. Giurarono con lei."
+    "flavor": "Non guida la carica. La conta, e ricorda chi è tornato."
   },
   "faceB": {
-    "name": "Incarnazione del Patto",
+    "name": "Ritorno dell'Erede",
     "nexusAria": "Nexus",
     "effect": {
-      "text": "Guardi la prima carta del tuo mazzo, e da quella cima puoi giocare le tue Entità Umane come se le avessi in mano."
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che almeno 3 Entità Umane che controlli hanno attaccato, guadagni 2 PV e pesca una carta, poi scarta una carta."
     },
     "abilities": {
-      "frontOrder": {
-        "name": "Ordine del Fronte",
-        "text": "in questo turno tutte le Entità dal tuo lato del Fronte hanno Slancio."
+      "heirStep": {
+        "name": "Passo dell'Erede",
+        "text": "la prossima Entità Umana che giochi in questo turno costa 1 Flusso in meno."
       },
-      "coordinatedAssault": {
-        "name": "Assalto Coordinato",
-        "text": "fino a 2 Entità Umane che controlli prendono +2 Potenza fino alla fine del turno."
+      "callOfSeven": {
+        "name": "Chiamata dei Sette",
+        "text": "mostra le prime 7 carte del tuo mazzo. Tra esse puoi mettere sul tuo Fronte un'Entità Umana e un altro permanente non Umano. Metti le altre in fondo al mazzo."
       },
-      "greatTide": {
-        "name": "Grande Marea",
-        "text": "le Entità Umane che controlli prendono +1 Potenza fino alla fine del turno. In questo turno un'Entità avversaria non può bloccare un'Entità Umana con Potenza superiore alla propria."
+      "returnInArms": {
+        "name": "Ritorno in Armi",
+        "text": "puoi mettere sul tuo Fronte un'Entità Umana dalla tua mano senza pagarne il costo di Flusso. Quell'Entità ottiene Slancio fino alla fine del turno, e le prossime Entità Umane che attaccano in questo turno prendono +1 Potenza fino alla fine del turno."
       }
     },
-    "flavor": "Il patto prese carne. Nessuno ricorda chi lo firmò per primo."
+    "flavor": "L'erede non torna da solo: torna con tutti quelli che lo aspettavano."
   }
 }

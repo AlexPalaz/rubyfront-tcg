@@ -1,26 +1,29 @@
 {
-  "name": "Esploratore",
-  "typeLabel": "Entità: Auros",
-  "summary": "L'avanscoperta equipaggiata: attacca con un Oggetto e filtra la mano.",
+  "name": "Contrattacco Coordinato",
+  "typeLabel": "Materia Dinamica II",
+  "summary": "Si gioca come blocco e rimette in piedi tutta la linea.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
-    "dimensionalAria": "Dimensionale"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Esploratore",
-    "scouting": {
-      "trigger": "Effetto",
-      "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
+    "name": "Contrattacco Coordinato",
+    "effect": {
+      "name": "Effetto",
+      "text": "Gioca questa carta come blocco. Se controlli almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
     },
-    "flavor": "Esplora con gli occhi. Decide con la lama."
+    "flavor": "Nessuno grida l'ordine. Si girano insieme."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicAria": "Dinamica"
   }
 }

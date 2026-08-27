@@ -1,29 +1,26 @@
 {
-  "name": "Lacerazione",
-  "typeLabel": "Materia Distruttiva II",
-  "summary": "La ferita che non si chiude, ma solo finché il Fronte resta affollato.",
+  "name": "Rhen, Erede di Vhal Astra",
+  "typeLabel": "Entità: Umano",
+  "summary": "Ogni volta che si muove, riporta in campo qualcosa che era uscito.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
+    "power": "Potenza",
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Lacerazione",
-    "flavor": "Alcune ferite non si chiudono.",
-    "effect": {
-      "name": "Effetto",
-      "text": "All'inizio del tuo turno, se controlli almeno 3 Entità Umane, il Rubyfront avversario perde 2 PV. La ferita continua a sanguinare finché il Fronte resta affollato, e questa perdita non lo fa tornare nella Zona di Richiamo."
-    }
+    "name": "Rhen, Erede di Vhal Astra",
+    "heirReturn": {
+      "trigger": "Effetto",
+      "text": "Quando questa Entità entra in campo e quando attacca, metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro."
+    },
+    "flavor": "Il nome non si eredita. Si riprende."
   },
   "matters": {
-    "destructiveTitle": "Materia Distruttiva · 2° grado",
-    "destructiveAria": "Distruttiva"
+    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicAria": "Dinamica"
   }
 }

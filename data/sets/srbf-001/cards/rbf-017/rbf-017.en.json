@@ -1,72 +1,29 @@
 {
-  "name": "Rhazmora, Rubyfront of the Schism",
-  "typeLabel": "Double-faced Rubyfront",
-  "summary": "The beast of the Schism: every assigned Object digs through the deck, and the Nexus rearms the Front from the Retire Zone.",
+  "name": "Exiling Impact",
+  "typeLabel": "Dynamic Matter I",
+  "summary": "One Flux to move a small body out of the way, right now.",
   "ui": {
-    "faceA": "Face A — Rubyfront",
-    "faceB": "Face B — Nexus"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "nexusRequirement": {
-      "label": "Nexus requirement",
-      "text": "You control at least 3 Entities with an Object assigned. Put an Auros Entity from your Retire Zone into the Abyss, then flip."
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
     }
   },
+  "face": {
+    "name": "Exiling Impact",
+    "effect": {
+      "name": "Effect",
+      "text": "Put an opposing Entity with Flux cost 2 or less into its owner's Retire Zone."
+    },
+    "flavor": "It does not kill it. It just moves it."
+  },
   "matters": {
-    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
-    "dimensionalAria": "Dimensional",
-    "destructiveTitle": "Destructive Matter",
-    "destructiveAria": "Destructive"
-  },
-  "faceA": {
-    "name": "Rhazmora, Rubyfront of the Schism",
-    "keyword": {
-      "name": "Fury",
-      "rules": "d20 ≥ 12 before every action · failure −1 HP"
-    },
-    "effect": {
-      "trigger": "Effect",
-      "text": "The first time each of your turns you assign an Object to an Entity, look at the top and bottom card of your deck: you may swap them. Then draw a card and discard a card."
-    },
-    "abilities": {
-      "swiftForge": {
-        "name": "Swift Forge",
-        "text": "the next Object card you play this turn costs 1 less Flux."
-      },
-      "calibratedStrike": {
-        "name": "Calibrated Strike",
-        "text": "an Entity with an Object assigned you control gets +2 Power until end of turn."
-      }
-    },
-    "flavor": "Where Rhazmora passed, the world was left in two."
-  },
-  "faceB": {
-    "name": "Heart of the Schism",
-    "nexusAria": "Nexus",
-    "flipEffect": {
-      "trigger": "When it flips",
-      "text": "Draw a card."
-    },
-    "effect": {
-      "trigger": "Effect",
-      "text": "The first time each of your turns you assign an Object to an Entity, look at the top and bottom card of your deck: add one of them to your hand and put the other into your Retire Zone."
-    },
-    "abilities": {
-      "deepForge": {
-        "name": "Deep Forge",
-        "text": "the next Object card you play this turn costs 2 less Flux."
-      },
-      "bladeChorus": {
-        "name": "Chorus of Blades",
-        "text": "Entities with an Object assigned you control get +1 Power until end of turn."
-      },
-      "greatRearm": {
-        "name": "Great Rearmament",
-        "text": "assign any number of Objects from your Retire Zone to as many Entities without an Object on your Front, without paying their Flux cost."
-      }
-    },
-    "flavor": "The Schism is not a wound. It is a door."
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

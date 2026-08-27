@@ -1,29 +1,21 @@
 {
-  "name": "Memory Refraction",
-  "typeLabel": "Dimensional Matter I",
-  "summary": "The more armed Entities you control, the smaller the attacker gets.",
+  "name": "Dimensional Shield",
+  "typeLabel": "Object",
+  "summary": "Power and Counterattack in a single piece.",
   "ui": {
-    "face": "Matter"
+    "face": "Object"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    }
+    "flux": "Flux"
   },
   "face": {
-    "name": "Memory Refraction",
+    "name": "Dimensional Shield",
     "effect": {
       "name": "Effect",
-      "text": "An attacking opposing Entity gets −1 Power for each Entity with an Object assigned you control, until end of turn."
+      "text": "The Entity it is assigned to has +1 Power and Counterattack +1. If it already has Counterattack, that value increases by 1."
     },
-    "flavor": "The memory of every weapon, aimed at whoever advances."
-  },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · 1st grade",
-    "dimensionalAria": "Dimensional"
+    "flavor": "It takes the blow, and returns it with interest."
   }
 }

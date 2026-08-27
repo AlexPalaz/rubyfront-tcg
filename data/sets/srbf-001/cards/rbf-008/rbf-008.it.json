@@ -1,7 +1,7 @@
 {
-  "name": "Chirurgo da Campo",
+  "name": "Guaritore dei Dimenticati",
   "typeLabel": "Entità: Umano",
-  "summary": "Il corpo che porta con sé un punto di danno: scende, colpisce la bestia avversaria e resta in linea.",
+  "summary": "Attacca e cura, e ogni tanto riporta indietro qualcuno.",
   "ui": {
     "face": "Entità"
   },
@@ -12,11 +12,15 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Chirurgo da Campo",
-    "flavor": "Anche le bestie sanguinano.",
-    "incision": {
-      "trigger": "Quando entra in campo",
-      "text": "Tappa un'Entità avversaria. Poi lancia un d6: con 5–6, guarda la prima carta del tuo mazzo e, se vuoi, mettila in fondo."
-    }
+    "name": "Guaritore dei Dimenticati",
+    "mend": {
+      "trigger": "Quando attacca",
+      "text": "Guadagni 2 PV. Poi lancia un d6: con 5–6 riporta in mano un'Entità dalla tua Zona di Ritiro."
+    },
+    "flavor": "Cura camminando. Fermarsi costerebbe di più."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

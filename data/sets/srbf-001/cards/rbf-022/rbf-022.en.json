@@ -1,26 +1,29 @@
 {
-  "name": "Sentinel of Nova Kai",
-  "typeLabel": "Entity: Auros",
-  "summary": "A sentinel whose answer hits far harder with the right Object.",
+  "name": "Charge of the Heirs",
+  "typeLabel": "Dynamic Matter II",
+  "summary": "Every wide charge asks the die whether to heal or to strike.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
     "flux": "Flux",
-    "counterattack": "Counterattack"
-  },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
-    "dimensionalAria": "Dimensional"
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
-    "name": "Sentinel of Nova Kai",
-    "flavor": "The answering blow is the only one it has always prepared.",
+    "name": "Charge of the Heirs",
     "effect": {
-      "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
-    }
+      "name": "Effect",
+      "text": "Each time Human Entities you control attack, roll a d20: on 1–6 you gain HP equal to the number of Human Entities that attacked this turn; on 15–20 the opposing Rubyfront/Nexus loses HP equal to the number of Human Entities that attacked this turn; on 7–14 nothing happens."
+    },
+    "flavor": "The count is kept afterwards, when the living are counted."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicAria": "Dynamic"
   }
 }

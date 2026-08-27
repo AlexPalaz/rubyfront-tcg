@@ -1,29 +1,21 @@
 {
-  "name": "Reflected Shield",
-  "typeLabel": "Dimensional Matter I",
-  "summary": "A block out of nowhere that punishes whoever attacks an armed front.",
+  "name": "Sigma Catalyst",
+  "typeLabel": "Object",
+  "summary": "An Object that fuels the attack and digs Matters from the deck.",
   "ui": {
-    "face": "Matter"
+    "face": "Object"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    }
+    "flux": "Flux"
   },
   "face": {
-    "name": "Reflected Shield",
+    "name": "Sigma Catalyst",
     "effect": {
       "name": "Effect",
-      "text": "Play it as a block against an attacker: that attack is blocked. If you control at least 2 Entities with an Object assigned, the attacker gets −2 Power until end of turn."
+      "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 5–6 look at the top 4 cards of your deck, you may reveal a Matter among them and add it to your hand, and put the others into your Retire Zone."
     },
-    "flavor": "The wall that was not there, until you struck it."
-  },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · 1st grade",
-    "dimensionalAria": "Dimensional"
+    "flavor": "Burns slowly. Reveals quickly."
   }
 }

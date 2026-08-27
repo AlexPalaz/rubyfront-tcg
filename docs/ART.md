@@ -236,6 +236,30 @@ conta più che allungare il prompt.
 
 ## Coda di rigenerazione
 
+- [x] RBF-001 Oblivhal (mazzo Umani «Eredi di Vhal Astra») — APPROVATA E
+      FIRMATA dal designer (2026-08-27), entrambe le facce.
+      **Faccia A — Oblivhal:** bestia dal corpo cremisi con linee di neon
+      BIANCO sottopelle (dove Rhazmora ha il blu), ali spiegate su uno
+      sperone di roccia, terra desolata con guglie sotto un cielo chiaro.
+      **Faccia B — Ritorno dell'Erede:** ragazzo dai capelli bianchi,
+      occhi rossi, scheggia di rubino cresciuta dallo sterno con le
+      crepe luminose, raggi bianchi dritti, cielo astratto rosso — lo
+      stesso trattamento del Nexus di Rhazmora, traslato dal blu al
+      rosso. Entrambe full art 16:9 senza `artShift`; artZoom 55%
+      (faccia A) e 58% (faccia B, con cielo ritagliato in alto per
+      allineare la testa al muso della bestia).
+      Note tecniche apprese su questa carta:
+      1. Per un volto poco definito NON basta descriverlo: va tolto
+         `every detail clearly resolved` dal nucleo e alzato lo stylize
+         (400+), perché la firma stessa impone la definizione.
+      2. Un colore nel `--no` (es. `white shirt`) spegne quel colore in
+         TUTTA l'immagine: bandiva anche i capelli bianchi.
+      3. La gemma nel petto attacca solo su **pelle nuda** e descritta
+         come scheggia *cresciuta da dentro* con le crepe attorno; su
+         stoffa Niji la legge sempre come ciondolo.
+      4. Se una griglia è giusta ma lontana, si ritaglia il file — non
+         serve rigenerare.
+
 - [x] GIRO OGGETTI + MATERIE (RBF-026→036) — APPROVATO E FIRMATO in
       blocco dal designer (2026-08-26): Spada Dimensionale, Scudo
       Dimensionale (rinominata da «Scudo del Campo»), Catalizzatore

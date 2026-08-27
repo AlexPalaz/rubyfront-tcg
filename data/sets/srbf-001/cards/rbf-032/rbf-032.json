@@ -3,8 +3,8 @@
   "id": "RBF-032",
   "setId": "rubyfront-core",
   "collectorNumber": "032",
-  "slug": "destructive-eversion",
-  "type": "matter",
+  "slug": "dimensional-sword",
+  "type": "object",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,52 +14,42 @@
     "en"
   ],
   "tags": [
-    "matter",
-    "destructive",
-    "grade-1",
-    "removal"
+    "object",
+    "auros",
+    "equip",
+    "pump"
   ],
-  "rulesReference": "MANUALE.md §7",
+  "rulesReference": "MANUALE.md §3.1, §6.2",
   "faces": [
     {
-      "id": "matter",
-      "kind": "matter",
+      "id": "object",
+      "kind": "object",
       "displayKey": "face",
-      "matter": {
-        "type": "destructive",
-        "grade": 1
-      },
-      "behavior": "normal",
       "stats": {
-        "fluxCost": 3
+        "fluxCost": 1
       },
       "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "evert",
+          "id": "edge",
           "displayKey": "effect",
-          "event": "on_resolve",
+          "event": "while_assigned",
           "effect": {
-            "type": "destroy",
+            "type": "modify_power",
             "target": {
-              "cardType": "entity",
-              "controller": "opponent",
-              "min": 1,
-              "max": 1
+              "scope": "assigned"
             },
-            "details": {
-              "toZone": {
-                "zone": "abyss",
-                "owner": "card_owner"
-              },
-              "thenControllerLosesHealth": 2
-            }
+            "amount": 1
           }
         }
       ],
-      "actions": []
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "controller": "controller"
+      }
     }
   ],
   "designNotes": "rbf-032.md",

@@ -1,26 +1,29 @@
 {
-  "name": "Guardiano del Campo",
-  "typeLabel": "Entità: Auros",
-  "summary": "Premia la seconda pescata del turno: più carte scorrono, più colpisce forte.",
+  "name": "Forza della Radura",
+  "typeLabel": "Materia Dinamica II",
+  "summary": "Un tiro solo, tre esiti buoni e un ventesimo che li dà tutti.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
-    "dimensionalAria": "Dimensionale"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Guardiano del Campo",
-    "tally": {
-      "trigger": "Effetto",
-      "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
+    "name": "Forza della Radura",
+    "effect": {
+      "name": "Effetto",
+      "text": "Lancia un d20: con 1–6 guadagni 4 PV; con 7–13 metti sul tuo Fronte un'Entità Umana con costo di Flusso 2 o inferiore dalla tua mano; con 14–19 pesca una carta; con 20 applica tutti e tre gli effetti."
     },
-    "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
+    "flavor": "La radura decide da sé che cosa ti serve."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicAria": "Dinamica"
   }
 }

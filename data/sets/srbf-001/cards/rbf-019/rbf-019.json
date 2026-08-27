@@ -3,8 +3,8 @@
   "id": "RBF-019",
   "setId": "rubyfront-core",
   "collectorNumber": "019",
-  "slug": "camp-warden",
-  "type": "entity",
+  "slug": "strength-of-the-glade",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,47 +14,74 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "auros",
-    "equip",
-    "draw"
+    "matter",
+    "dynamic",
+    "grade-2",
+    "dice"
   ],
-  "rulesReference": "MANUALE.md §3.1, §8.2",
+  "rulesReference": "MANUALE.md §7, §8.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "auros",
-      "stats": {
-        "power": 2,
-        "fluxCost": 2
+      "matter": {
+        "type": "dynamic",
+        "grade": 2
       },
-      "enablesMatters": [
-        {
-          "type": "dimensional",
-          "maxGrade": 1
-        }
-      ],
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "tally",
-          "displayKey": "tally",
-          "event": "on_draw_card",
-          "details": {
-            "onSecondDrawInTurn": true
-          },
+          "id": "glade-strength",
+          "displayKey": "effect",
+          "event": "on_resolve",
           "effect": {
-            "type": "modify_power",
+            "type": "empower",
             "target": {
-              "scope": "self"
+              "controller": "controller"
             },
-            "amount": 1,
-            "duration": "until_end_of_turn",
             "details": {
-              "perCardDrawnBeyondFirstThisTurn": true
+              "die": "d20",
+              "byRoll": {
+                "1-6": {
+                  "gainHealth": 4
+                },
+                "7-13": {
+                  "moveCard": {
+                    "from": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    },
+                    "filter": {
+                      "cardType": "entity",
+                      "race": "human",
+                      "conditions": [
+                        {
+                          "stat": "flux_cost",
+                          "operator": "lte",
+                          "value": 2
+                        }
+                      ]
+                    },
+                    "to": {
+                      "zone": "front",
+                      "owner": "controller"
+                    }
+                  }
+                },
+                "14-19": {
+                  "drawCards": 1
+                },
+                "20": {
+                  "allOfTheAbove": true
+                }
+              }
             }
           }
         }
@@ -62,6 +89,5 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-019.md",
-  "art": "rbf-019.jpg"
+  "designNotes": "rbf-019.md"
 }

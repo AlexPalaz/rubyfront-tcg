@@ -1,22 +1,21 @@
 {
-  "name": "Archivista",
-  "typeLabel": "Entità: Umano",
-  "summary": "Cresce con la schiera: quanto vale lo decide quanti sono i suoi.",
+  "name": "Vigorscudo",
+  "typeLabel": "Oggetto",
+  "summary": "Due Flussi di Potenza, e su un Umano anche la certezza di non morire bloccando.",
   "ui": {
-    "face": "Entità"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
     "flux": "Flussi"
   },
   "face": {
-    "name": "Archivista",
+    "name": "Vigorscudo",
     "effect": {
       "name": "Effetto",
-      "text": "Questa Entità prende +1 Potenza per ogni altra Entità Umana che controlli."
+      "text": "L'Entità a cui è assegnata questa carta ha +1 Potenza. Se è un'Entità Umana, ha anche Stasi."
     },
-    "flavor": "Scrive i nomi di chi è passato oltre."
+    "flavor": "Regge meno di quanto sembri. Abbastanza."
   }
 }

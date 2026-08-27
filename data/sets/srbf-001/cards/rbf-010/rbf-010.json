@@ -3,7 +3,7 @@
   "id": "RBF-010",
   "setId": "rubyfront-core",
   "collectorNumber": "010",
-  "slug": "first-blade",
+  "slug": "simulacrum-of-vhal-astra",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -16,10 +16,11 @@
   "tags": [
     "entity",
     "human",
-    "destructive",
-    "removal"
+    "dynamic",
+    "anthem",
+    "recursion"
   ],
-  "rulesReference": "MANUALE.md §7",
+  "rulesReference": "MANUALE.md §5, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -28,51 +29,62 @@
       "race": "human",
       "stats": {
         "power": 3,
-        "fluxCost": 4,
-        "counterattack": 2
+        "fluxCost": 4
       },
       "enablesMatters": [
         {
-          "type": "destructive",
-          "maxGrade": 1
+          "type": "dynamic",
+          "maxGrade": 2
         }
       ],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "first-cut",
-          "displayKey": "firstCut",
-          "event": "on_enter_field",
+          "id": "echo",
+          "displayKey": "effect",
+          "event": "while_in_play",
           "effect": {
-            "type": "move_card",
+            "type": "modify_power",
             "target": {
-              "cardType": "entity",
-              "min": 1,
-              "max": 1,
-              "controller": "opponent"
+              "scope": "self"
             },
-            "destination": {
-              "zone": "retire",
-              "owner": "card_owner"
+            "amount": 1,
+            "details": {
+              "perOtherControlled": {
+                "cardType": "entity",
+                "race": "human",
+                "zone": "front",
+                "owner": "controller"
+              }
             }
           }
         },
         {
-          "id": "awakening",
-          "displayKey": "effect",
-          "event": "while_in_play",
+          "id": "recall-fallen",
+          "displayKey": "recallFallen",
+          "event": "on_attack",
           "effect": {
-            "type": "empower",
+            "type": "move_card",
             "target": {
-              "scope": "self"
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
             },
-            "grants": [
-              "revenge"
-            ],
-            "duration": "permanent",
+            "from": {
+              "zone": "retire",
+              "owner": "controller"
+            },
+            "destination": {
+              "zone": "front",
+              "owner": "controller"
+            },
             "details": {
-              "requiresNexus": true
+              "die": "d6",
+              "onRoll": "5-6",
+              "joinsThisAttack": true
             }
           }
         }

@@ -3,8 +3,8 @@
   "id": "RBF-014",
   "setId": "rubyfront-core",
   "collectorNumber": "014",
-  "slug": "steam-courier",
-  "type": "entity",
+  "slug": "vigorbelt",
+  "type": "object",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,49 +14,43 @@
     "en"
   ],
   "tags": [
-    "entity",
+    "object",
     "human",
-    "surge",
-    "aggro",
-    "scry"
+    "anthem"
   ],
-  "rulesReference": "MANUALE.md §8.1",
+  "rulesReference": "MANUALE.md §3.1, §6.3",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "object",
+      "kind": "object",
       "displayKey": "face",
-      "race": "human",
       "stats": {
-        "power": 1,
-        "fluxCost": 1
+        "fluxCost": 3
       },
       "enablesMatters": [],
-      "keywords": [
-        {
-          "id": "surge"
-        }
-      ],
+      "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "dispatch",
-          "displayKey": "dispatch",
-          "event": "on_enter_field",
+          "id": "band",
+          "displayKey": "effect",
+          "event": "while_assigned",
           "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top",
-              "count": 1
+            "type": "modify_power",
+            "target": {
+              "scope": "assigned"
             },
-            "to": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "bottom"
-            },
-            "optional": true
+            "amount": 1,
+            "duration": "permanent",
+            "details": {
+              "perControlled": {
+                "cardType": "entity",
+                "race": "human",
+                "zone": "front",
+                "owner": "controller"
+              },
+              "assignedMayBeBlockedByMultipleEntities": true
+            }
           }
         }
       ],

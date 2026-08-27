@@ -1,26 +1,29 @@
 {
-  "name": "Vendicatrice di Acciaio",
-  "typeLabel": "Entità: Umano",
-  "summary": "Un corpo che non conviene attaccare: da sola punisce chi la colpisce, accanto alla bestia lo punisce a Potenza 3.",
+  "name": "Formazione Infrangibile",
+  "typeLabel": "Materia Dinamica I",
+  "summary": "Un corpo che sembrava impegnato torna in piedi, e più forte.",
   "ui": {
-    "face": "Entità"
+    "face": "Materia"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
   },
   "face": {
-    "name": "Vendicatrice di Acciaio",
+    "name": "Formazione Infrangibile",
     "effect": {
       "name": "Effetto",
-      "text": "Finché controlli il Rubifronte del Patto, questa Entità prende +2 Potenza."
+      "text": "Stappa un'Entità Umana che controlli: prende +1 Potenza fino alla fine del turno."
     },
-    "flavor": "Colpiscila, se osi. Poi corri.",
-    "keyword": {
-      "name": "Vendetta",
-      "rules": "bloccando, uccide chi ha Potenza inferiore"
-    }
+    "flavor": "La linea non si rompe. Si ricompone."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
   }
 }

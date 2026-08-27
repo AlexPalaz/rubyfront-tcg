@@ -1,29 +1,21 @@
 {
-  "name": "Eversione Distruttiva",
-  "typeLabel": "Materia Distruttiva I",
-  "summary": "Rimozione secca nell'Abisso, pagata in PV.",
+  "name": "Spada Dimensionale",
+  "typeLabel": "Oggetto",
+  "summary": "L'equipaggiamento base: un Flusso, una Potenza.",
   "ui": {
-    "face": "Materia"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Eversione Distruttiva",
+    "name": "Spada Dimensionale",
     "effect": {
       "name": "Effetto",
-      "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Poi perdi 2 PV."
+      "text": "L'Entità a cui è assegnata ha +1 Potenza."
     },
-    "flavor": "Rovescia il dentro in fuori. Paga anche chi la pronuncia."
-  },
-  "matters": {
-    "destructiveTitle": "Materia Distruttiva · 1° grado",
-    "destructiveAria": "Distruttiva"
+    "flavor": "Taglia dove il mondo è già sottile."
   }
 }

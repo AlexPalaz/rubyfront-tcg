@@ -32,7 +32,7 @@ const deck = catalog.decks?.[0];
 if (!deck) throw new Error("catalog.json non contiene mazzi: eseguire prima build-catalog.mjs");
 
 // Solo le carte del mazzo: la pagina pubblica non deve trascinarsi dietro il
-// resto del set (RBF-005 non e' nei Primi Eredi e non ha motivo di uscire).
+// resto del set: escono solo le carte elencate dal mazzo.
 const cards = {};
 for (const entry of deck.cards) {
   const card = catalog.cards?.[entry.card] ?? catalog.sets.flatMap(s => s.cards).find(c => c.id === entry.card);

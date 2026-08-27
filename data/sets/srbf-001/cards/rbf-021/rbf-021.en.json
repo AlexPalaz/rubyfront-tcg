@@ -1,26 +1,29 @@
 {
-  "name": "Artificer of Nova Kai",
-  "typeLabel": "Entity: Auros",
-  "summary": "The artificer who digs through the deck by the die and fills the Retire Zone.",
+  "name": "Crimson Judgment",
+  "typeLabel": "Destructive Matter II",
+  "summary": "The deck's clean removal, half price on anyone who already moved.",
   "ui": {
-    "face": "Entity"
+    "face": "Matter"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "power": "Power",
-    "flux": "Flux"
-  },
-  "matters": {
-    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
-    "dimensionalAria": "Dimensional"
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
   },
   "face": {
-    "name": "Artificer of Nova Kai",
-    "forage": {
-      "trigger": "When it enters the field",
-      "text": "Roll a d6 and look at a number of cards from the top of your deck equal to 2 plus half the result, rounded up. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
+    "name": "Crimson Judgment",
+    "effect": {
+      "name": "Effect",
+      "text": "Destroy an Entity. If this card targets a tapped Entity, it costs 3 less Flux."
     },
-    "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited."
+    "flavor": "Crimson does not judge twice."
+  },
+  "matters": {
+    "destructiveTitle": "Destructive Matter · 2nd grade",
+    "destructiveAria": "Destructive"
   }
 }

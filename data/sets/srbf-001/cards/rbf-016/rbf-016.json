@@ -3,8 +3,8 @@
   "id": "RBF-016",
   "setId": "rubyfront-core",
   "collectorNumber": "016",
-  "slug": "steel-avenger",
-  "type": "entity",
+  "slug": "unbreakable-formation",
+  "type": "matter",
   "layout": "single",
   "status": "draft",
   "deckLimit": 3,
@@ -14,43 +14,46 @@
     "en"
   ],
   "tags": [
-    "entity",
-    "human",
-    "revenge",
-    "aggro"
+    "matter",
+    "dynamic",
+    "grade-1",
+    "reactive",
+    "defense"
   ],
-  "rulesReference": "MANUALE.md §8.1",
+  "rulesReference": "MANUALE.md §7.2, §8.2",
   "faces": [
     {
-      "id": "entity",
-      "kind": "entity",
+      "id": "matter",
+      "kind": "matter",
       "displayKey": "face",
-      "race": "human",
+      "matter": {
+        "type": "dynamic",
+        "grade": 1
+      },
+      "behavior": "reactive",
       "stats": {
-        "power": 1,
-        "fluxCost": 1
+        "fluxCost": 2
       },
       "enablesMatters": [],
-      "keywords": [
-        {
-          "id": "revenge"
-        }
-      ],
+      "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "grief",
+          "id": "formation",
           "displayKey": "effect",
-          "event": "while_in_play",
+          "event": "on_resolve",
           "effect": {
-            "type": "modify_power",
+            "type": "untap",
             "target": {
-              "scope": "self"
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
             },
-            "amount": 2,
-            "duration": "permanent",
             "details": {
-              "requiresRubyfrontDeployed": true
+              "thenPowerBonus": 1,
+              "duration": "until_end_of_turn"
             }
           }
         }

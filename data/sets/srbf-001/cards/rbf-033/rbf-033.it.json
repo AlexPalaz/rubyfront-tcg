@@ -1,29 +1,21 @@
 {
-  "name": "Rifrazione della Memoria",
-  "typeLabel": "Materia Dimensionale I",
-  "summary": "Più Entità armate controlli, più l'attaccante si sgonfia.",
+  "name": "Scudo Dimensionale",
+  "typeLabel": "Oggetto",
+  "summary": "Potenza e Contrattacco in un pezzo solo.",
   "ui": {
-    "face": "Materia"
+    "face": "Oggetto"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    }
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Rifrazione della Memoria",
+    "name": "Scudo Dimensionale",
     "effect": {
       "name": "Effetto",
-      "text": "Un'Entità avversaria attaccante prende −1 Potenza per ogni Entità con un Oggetto assegnato che controlli, fino alla fine del turno."
+      "text": "L'Entità a cui è assegnato ha +1 Potenza e Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
     },
-    "flavor": "Il ricordo di ogni arma, puntato contro chi avanza."
-  },
-  "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 1° grado",
-    "dimensionalAria": "Dimensionale"
+    "flavor": "Regge il colpo, e lo restituisce con gli interessi."
   }
 }

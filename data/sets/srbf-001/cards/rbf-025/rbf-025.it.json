@@ -1,7 +1,7 @@
 {
-  "name": "Avy Shin, Lama di Nova Kai",
+  "name": "Guardiano del Campo",
   "typeLabel": "Entità: Auros",
-  "summary": "L'Unica del mazzo: arma le lame e riporta gli Oggetti dal Ritiro a ogni attacco.",
+  "summary": "Premia la seconda pescata del turno: più carte scorrono, più colpisce forte.",
   "ui": {
     "face": "Entità"
   },
@@ -9,22 +9,18 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "power": "Potenza",
-    "flux": "Flussi",
-    "unique": "Unica"
+    "flux": "Flussi"
   },
   "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
     "dimensionalAria": "Dimensionale"
   },
   "face": {
-    "name": "Avy Shin, Lama di Nova Kai",
-    "rearm": {
+    "name": "Guardiano del Campo",
+    "tally": {
       "trigger": "Effetto",
-      "text": "Ogni volta che un'Entità con un Oggetto assegnato che controlli attacca, puoi assegnarle un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso, se può riceverlo."
+      "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
     },
-    "flavor": "Ciò che la Scissione divide, la sua lama riunisce.",
-    "effect": {
-      "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
-    }
+    "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
   }
 }

@@ -1,21 +1,26 @@
 {
-  "name": "Vigorbelt",
-  "typeLabel": "Object",
-  "summary": "One Flux, and worth double while the beast is on the field.",
+  "name": "Shard Seeker",
+  "typeLabel": "Entity: Human",
+  "summary": "It digs through the top four and pulls out the body you needed.",
   "ui": {
-    "face": "Object"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
+    "power": "Power",
     "flux": "Flux"
   },
   "face": {
-    "name": "Vigorbelt",
-    "effect": {
-      "name": "Effect",
-      "text": "Assign this card to a Human Entity: that Entity gets +1 Power, and gets +2 instead as long as you control the Rubyfront of the Pact."
+    "name": "Shard Seeker",
+    "seek": {
+      "trigger": "When it enters the field",
+      "text": "Look at the top 4 cards of your deck. You may reveal a Human Entity among them and add it to your hand. Put the rest on the bottom of your deck."
     },
-    "flavor": "Buckle it tight. Vigor does the rest."
+    "flavor": "Every shard is a piece of someone. It keeps them all."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
   }
 }

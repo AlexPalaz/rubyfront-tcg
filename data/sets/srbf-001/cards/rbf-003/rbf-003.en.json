@@ -1,30 +1,26 @@
 {
-  "name": "Absence",
-  "typeLabel": "Dynamic Matter II",
-  "summary": "Unconditional removal: the chosen Entity simply stops being there.",
+  "name": "Guide of the Lost Paths",
+  "typeLabel": "Entity: Human",
+  "summary": "As long as the Front stays crowded, every arrival brings a card.",
   "ui": {
-    "face": "Matter"
+    "face": "Entity"
   },
   "card": {
     "illustration": "Illustration",
     "hp": "HP",
-    "flux": "Flux",
-    "behaviors": {
-      "reactive": "Reactive",
-      "permanent": "Permanent"
-    },
-    "unique": "Unique"
+    "power": "Power",
+    "flux": "Flux"
   },
   "face": {
-    "name": "Absence",
-    "effect": {
-      "name": "Effect",
-      "text": "Choose an Entity and put it into its owner's Retire Zone."
+    "name": "Guide of the Lost Paths",
+    "guide": {
+      "trigger": "Effect",
+      "text": "When another Human Entity enters your Front, if you control at least 3 Human Entities, draw a card."
     },
-    "flavor": "A cold silence, where something used to be."
+    "flavor": "It knows the shortcuts because it lost every one of them, one at a time."
   },
   "matters": {
-    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicTitle": "Dynamic Matter · 1st grade",
     "dynamicAria": "Dynamic"
   }
 }

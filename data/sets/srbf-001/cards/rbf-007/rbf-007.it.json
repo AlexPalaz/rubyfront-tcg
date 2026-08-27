@@ -1,7 +1,7 @@
 {
-  "name": "Guardiano della Paratia",
+  "name": "Arciere della Radura Argentata",
   "typeLabel": "Entità: Umano",
-  "summary": "Due di Potenza per un solo Flusso: il prezzo è che il primo turno lo passa a prendere posizione.",
+  "summary": "Un corpo che entra togliendo un corpo dall'altra parte.",
   "ui": {
     "face": "Entità"
   },
@@ -12,12 +12,12 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Guardiano della Paratia",
-    "bulkhead": {
+    "name": "Arciere della Radura Argentata",
+    "loose": {
       "trigger": "Quando entra in campo",
-      "text": "Questa Entità entra sul Fronte già tappata, e resta così finché non la stappi."
+      "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario."
     },
-    "flavor": "Nessuno passa. Non oggi."
+    "flavor": "Tira una volta sola. Non serve la seconda."
   },
   "matters": {
     "dynamicTitle": "Materia Dinamica · 1° grado",

@@ -1,30 +1,26 @@
 {
-  "name": "Assenza",
-  "typeLabel": "Materia Dinamica II",
-  "summary": "Una rimozione senza condizioni: l'Entità scelta smette semplicemente di essere lì.",
+  "name": "Guida dei Sentieri Perduti",
+  "typeLabel": "Entità: Umano",
+  "summary": "Finché il Fronte resta affollato, ogni arrivo porta una carta.",
   "ui": {
-    "face": "Materia"
+    "face": "Entità"
   },
   "card": {
     "illustration": "Illustrazione",
     "hp": "PV",
-    "flux": "Flussi",
-    "behaviors": {
-      "reactive": "Reattiva",
-      "permanent": "Permanente"
-    },
-    "unique": "Unica"
+    "power": "Potenza",
+    "flux": "Flussi"
   },
   "face": {
-    "name": "Assenza",
-    "effect": {
-      "name": "Effetto",
-      "text": "Scegli un'Entità e mettila nella Zona di Ritiro del suo proprietario."
+    "name": "Guida dei Sentieri Perduti",
+    "guide": {
+      "trigger": "Effetto",
+      "text": "Quando un'altra Entità Umana entra sul tuo Fronte, se controlli almeno 3 Entità Umane, pesca una carta."
     },
-    "flavor": "Un gelido silenzio, dove prima c'era qualcosa."
+    "flavor": "Conosce le scorciatoie perché le ha perse tutte, una per volta."
   },
   "matters": {
-    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicTitle": "Materia Dinamica · 1° grado",
     "dynamicAria": "Dinamica"
   }
 }

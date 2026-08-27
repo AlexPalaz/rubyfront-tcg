@@ -3,11 +3,11 @@
   "id": "RBF-002",
   "setId": "rubyfront-core",
   "collectorNumber": "002",
-  "slug": "adam-the-first",
+  "slug": "boy-of-the-silver-glade",
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 1,
+  "deckLimit": 3,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -16,11 +16,9 @@
   "tags": [
     "entity",
     "human",
-    "dynamic",
-    "grade-2",
-    "unique"
+    "aggro"
   ],
-  "rulesReference": "MANUALE.md §6.2, §7, §8.1",
+  "rulesReference": "MANUALE.md §6.3, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -28,32 +26,29 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 3,
-        "fluxCost": 3
+        "power": 1,
+        "fluxCost": 1
       },
-      "enablesMatters": [
-        {
-          "type": "dynamic",
-          "maxGrade": 2
-        }
-      ],
+      "enablesMatters": [],
       "keywords": [],
       "requirements": {},
       "triggers": [
         {
-          "id": "first-blood",
-          "displayKey": "firstBlood",
-          "event": "on_deal_damage",
+          "id": "glade-boy",
+          "displayKey": "effect",
+          "event": "while_in_play",
           "effect": {
-            "type": "draw_card",
+            "type": "modify_power",
             "target": {
-              "controller": "controller"
+              "scope": "self"
             },
-            "count": 1,
+            "amount": 1,
             "details": {
-              "toRubyfront": true,
-              "source": {
-                "scope": "self"
+              "whileAttacking": true,
+              "requiresOtherControlled": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
               }
             }
           }
@@ -62,6 +57,5 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-002.md",
-  "unique": true
+  "designNotes": "rbf-002.md"
 }
