@@ -1167,8 +1167,10 @@
             }
           ],
           "designNotes": "rbf-006.md",
+          "art": "rbf-006.jpg",
           "source": {
-            "designNotes": "notes/rbf-006.md"
+            "designNotes": "notes/rbf-006.md",
+            "art": "art/rbf-006.jpg"
           }
         },
         {
@@ -7340,8 +7342,10 @@
         }
       ],
       "designNotes": "rbf-006.md",
+      "art": "rbf-006.jpg",
       "source": {
-        "designNotes": "notes/rbf-006.md"
+        "designNotes": "notes/rbf-006.md",
+        "art": "art/rbf-006.jpg"
       }
     },
     {
