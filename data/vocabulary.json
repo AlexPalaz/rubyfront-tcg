@@ -157,7 +157,8 @@
     "_note": "Entity races (MANUALE.md §1)",
     "values": [
       "human",
-      "auros"
+      "auros",
+      "simulacrum"
     ]
   },
   "cardType": {

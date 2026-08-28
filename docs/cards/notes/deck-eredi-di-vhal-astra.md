@@ -11,7 +11,7 @@
 |---|---|
 | Totale | 40 carte più il Rubyfront (22 Entità · 14 Materie · 4 Oggetti) |
 | Progetti | 21, di cui **3 in tripla copia** |
-| Razza | Umani al 100% |
+| Razza | Umani, più un Simulacro (razza a sé dal 2026-08-28; conta per la Dinamica, non come Umano) |
 | Costo minimo | **1** — nessuna carta gratuita (§3.2) |
 
 **Copie per costo di Flusso:**

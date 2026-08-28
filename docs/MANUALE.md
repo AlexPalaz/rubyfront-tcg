@@ -9,7 +9,7 @@
 
 - **Nome del gioco:** Rubyfront
 - **Giocatori:** 2 (uno contro uno)
-- **Razze:** al momento due — **Umani** e **Auros** (esseri immortali)
+- **Razze:** al momento tre — **Umani**, **Auros** (esseri immortali) e **Simulacri** (forme non di carne, animate dalla Materia)
 - **Il Rubyfront:** la bestia al centro del gioco, da cui il gioco prende il nome
 - **Durata di una partita:** libera — può durare minuti come ore. Non esiste un limite di tempo né di turni.
 
@@ -39,7 +39,7 @@ Si vince in uno di questi due modi:
 - Ogni giocatore ha un **mazzo personale di 40 carte, più il Rubyfront** (esattamente **un** Rubyfront per mazzo): il Rubyfront **non conta nelle 40**, è la quarantunesima carta. Il mazzo contiene tutte le altre carte del giocatore: Entità, Materie e Oggetti (non esistono riserve separate).
 - Il **Rubyfront non si pesca mai**: all'inizio della partita viene messo direttamente nella **Zona di Richiamo** (vedi §5).
 
-Le carte con una razza si chiamano **Entità** (non "creature"). Ogni Entità appartiene a una **razza**: **Umani** o **Auros** (il Rubyfront è a sé). Per giocare una carta — **Entità, Materia od Oggetto** — bisogna **spendere Flusso** pari al costo stampato sulla carta.
+Le carte con una razza si chiamano **Entità** (non "creature"). Ogni Entità appartiene a una **razza**: **Umani**, **Auros** o **Simulacri** (il Rubyfront è a sé). Per giocare una carta — **Entità, Materia od Oggetto** — bisogna **spendere Flusso** pari al costo stampato sulla carta.
 
 #### Anatomia di una carta Entità
 
@@ -338,7 +338,7 @@ Le prime tre Materie sono **solitamente legate a una razza**, salvo anomalie (ca
 
 | Materia | Razza |
 |---------|-------|
-| **Dinamica** | Umani |
+| **Dinamica** | Umani e Simulacri |
 | **Dimensionale** | Auros |
 | **Distruttiva** | **esclusiva del Rubyfront** |
 
@@ -509,7 +509,7 @@ Il pareggio esiste in due soli casi:
 
 ## 10. Glossario
 
-- **Entità** — carta con una razza (Umani o Auros). È il termine ufficiale: non si usa "creatura".
+- **Entità** — carta con una razza (Umani, Auros o Simulacri). È il termine ufficiale: non si usa "creatura".
 - **Rubyfront** — la bestia di ogni giocatore; parte nella Zona di Richiamo. Una volta schierato le perdite di PV non lo fanno mai tornare indietro: torna in Zona di Richiamo solo per **richiamo volontario** del proprietario (§3.1). Portare a zero i suoi PV (o distruggerne il Nexus) fa perdere il suo proprietario.
 - **Flusso** — la risorsa per giocare le carte. Cresce +1 a turno, si ricarica a inizio turno, massimo 20.
 - **Gettone Flusso** — gettone monouso da +1 Flusso dato a chi non inizia la partita, utilizzabile in qualsiasi momento; è fuori dal limite dei 20 Flussi.

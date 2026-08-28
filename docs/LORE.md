@@ -11,8 +11,9 @@
   tecnologia è **rétro** nella maggior parte degli ambienti, ma in alcuni è
   **avanzata**. Convivono macchine e spade, officine e rovine.
 - Esistono anche **creature fantasy**. Le razze note: **Umani**, **Auros**
-  (esseri immortali), i **Rubyfront** (le bestie sono una razza a sé) e
-  **altre razze** ancora da rivelare.
+  (esseri immortali), i **Simulacri** (forme non di carne, animate dalla
+  Materia — il primo è il Simulacro di Vhal Astra), i **Rubyfront** (le
+  bestie sono una razza a sé) e **altre razze** ancora da rivelare.
 - **Aspetto dei Rubyfront** (canone aggiornato dal designer, 2026-08-26 —
   supera il canone «vascelli di fumo» del 2026-08-25): un Rubyfront è una
   **bestia come un drago, ma con richiami cyberpunk** — corpo **organico**

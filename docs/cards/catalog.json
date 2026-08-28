@@ -1653,7 +1653,7 @@
               "id": "entity",
               "kind": "entity",
               "displayKey": "face",
-              "race": "human",
+              "race": "simulacrum",
               "stats": {
                 "power": 3,
                 "fluxCost": 4
@@ -7836,7 +7836,7 @@
           "id": "entity",
           "kind": "entity",
           "displayKey": "face",
-          "race": "human",
+          "race": "simulacrum",
           "stats": {
             "power": 3,
             "fluxCost": 4
