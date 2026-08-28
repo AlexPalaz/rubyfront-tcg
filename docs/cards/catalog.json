@@ -1289,8 +1289,10 @@
             }
           ],
           "designNotes": "rbf-007.md",
+          "art": "rbf-007.jpg",
           "source": {
-            "designNotes": "notes/rbf-007.md"
+            "designNotes": "notes/rbf-007.md",
+            "art": "art/rbf-007.jpg"
           }
         },
         {
@@ -7464,8 +7466,10 @@
         }
       ],
       "designNotes": "rbf-007.md",
+      "art": "rbf-007.jpg",
       "source": {
-        "designNotes": "notes/rbf-007.md"
+        "designNotes": "notes/rbf-007.md",
+        "art": "art/rbf-007.jpg"
       }
     },
     {
