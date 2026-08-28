@@ -1188,7 +1188,7 @@
      l'immagine, così la punta non viene tagliata.
      Geometria: 1.15×1em, spalle al 74%. */
   .t41 .art::after, .t42 .art::after { content: ""; position: absolute; z-index: 1;
-    top: -.5em; left: 50%; width: .95em; height: 1.2em;
+    top: -.22em; left: 50%; width: .95em; height: 1.2em;
     transform: translateX(-50%);
     clip-path: polygon(50% 0, 100% 62%, 50% 100%, 0 62%);
     background:
