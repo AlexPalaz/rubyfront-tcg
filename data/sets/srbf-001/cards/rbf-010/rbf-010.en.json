@@ -1,6 +1,6 @@
 {
   "name": "Simulacrum of Vhal Astra",
-  "typeLabel": "Entity: Human",
+  "typeLabel": "Entity: Simulacrum",
   "summary": "It grows with the crowd and, when it charges, calls a piece of it back from the Retire Zone.",
   "ui": {
     "face": "Entity"

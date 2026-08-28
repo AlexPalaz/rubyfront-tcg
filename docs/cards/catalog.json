@@ -1583,7 +1583,7 @@
           "locales": {
             "it": {
               "name": "Simulacro di Vhal Astra",
-              "typeLabel": "Entità: Umano",
+              "typeLabel": "Entità: Simulacro",
               "summary": "Cresce con la folla e, quando carica, ne richiama un pezzo dal Ritiro.",
               "ui": {
                 "face": "Entità"
@@ -1612,7 +1612,7 @@
             },
             "en": {
               "name": "Simulacrum of Vhal Astra",
-              "typeLabel": "Entity: Human",
+              "typeLabel": "Entity: Simulacrum",
               "summary": "It grows with the crowd and, when it charges, calls a piece of it back from the Retire Zone.",
               "ui": {
                 "face": "Entity"
@@ -7766,7 +7766,7 @@
       "locales": {
         "it": {
           "name": "Simulacro di Vhal Astra",
-          "typeLabel": "Entità: Umano",
+          "typeLabel": "Entità: Simulacro",
           "summary": "Cresce con la folla e, quando carica, ne richiama un pezzo dal Ritiro.",
           "ui": {
             "face": "Entità"
@@ -7795,7 +7795,7 @@
         },
         "en": {
           "name": "Simulacrum of Vhal Astra",
-          "typeLabel": "Entity: Human",
+          "typeLabel": "Entity: Simulacrum",
           "summary": "It grows with the crowd and, when it charges, calls a piece of it back from the Retire Zone.",
           "ui": {
             "face": "Entity"

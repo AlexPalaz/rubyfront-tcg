@@ -1,6 +1,6 @@
 {
   "name": "Simulacro di Vhal Astra",
-  "typeLabel": "Entità: Umano",
+  "typeLabel": "Entità: Simulacro",
   "summary": "Cresce con la folla e, quando carica, ne richiama un pezzo dal Ritiro.",
   "ui": {
     "face": "Entità"

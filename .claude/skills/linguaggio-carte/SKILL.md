@@ -34,6 +34,7 @@ stessa modifica (il file è il contratto: aggiornarlo fa parte del lavoro).
 | Entità | Entity | `entity` |
 | Umano/a (razza) | Human | `human` |
 | Auros | Auros | `auros` |
+| Simulacro (tipo mostrato in etichetta; la razza a regole resta `human`) | Simulacrum | — |
 | Rubyfront (termine generico, anche in IT) | Rubyfront | `rubyfront` |
 | Nexus (il Nexus, maschile) | Nexus | `nexus` |
 | Rubyfront/Nexus (bersaglio nei testi di effetto) | Rubyfront/Nexus | `rubyfront` / `nexus` |
