@@ -14,7 +14,7 @@
   "face": {
     "name": "Boy of the Silver Glade",
     "effect": {
-      "text": "If you control another Human Entity, this Entity has +1 Power while attacking."
+      "text": "If another Human Entity is on your Front, this Entity has +1 Power while attacking."
     },
     "flavor": "It runs faster when someone runs alongside."
   }

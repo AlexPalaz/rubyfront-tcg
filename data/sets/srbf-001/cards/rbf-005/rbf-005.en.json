@@ -9,13 +9,11 @@
     "illustration": "Illustration",
     "hp": "HP",
     "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "counterattack": "Counterattack"
   },
   "face": {
     "name": "Raider of the Broken Lands",
-    "effect": {
-      "text": "This Entity has Counterattack +1."
-    },
     "raid": {
       "trigger": "When it attacks",
       "text": "If at least 2 Human Entities you control attacked on your previous turn, choose an opposing Entity: that Entity cannot block this turn."

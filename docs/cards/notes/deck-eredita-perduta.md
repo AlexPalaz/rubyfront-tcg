@@ -1,4 +1,4 @@
-# Eredi di Vhal Astra — precon Umani (40 carte + Rubyfront)
+# Eredità Perduta — precon Umani (40 carte + Rubyfront)
 
 > **Status:** DRAFT. Allineato al foglio del designer *Precon_Umani_FINAL*
 > (27 agosto 2026). Ogni numero è contato dai dati in
@@ -35,17 +35,23 @@ in media costa 3,5 e il richiamo non fa mai salire il prezzo.
 | Principale | 3+ Umani hanno attaccato → **+2 PV**, una volta per turno | idem, **+2 PV, pesca 1, scarta 1** |
 | Abilità | **+3 PV** Richiamo della Radura: guarda 3, prendi un Umano | **+3 PV** Passo dell'Erede: il prossimo Umano costa 1 Flusso in meno |
 | Abilità | **−5 PV** Ordine di Carica: Umani attaccanti +1 Potenza | **−5 PV** Chiamata dei Sette: guarda 7, metti in campo un Umano e un permanente non Umano |
-| Abilità | — | **−7 PV** Ritorno in Armi: un Umano gratis dalla mano, con Slancio |
+| Abilità | — | **−7 PV** Ritorno al Fronte: un Umano gratis dalla mano, con Slancio |
 | Materie | Dimensionale fino al 2° · Distruttiva fino al 1° | Dimensionale fino al 2° · Distruttiva fino al **2°** |
 | Furia | d20 ≥ 13 | d20 ≥ 13 |
 | Recupero al flip | | **+5 PV** |
 
 **Requisito Nexus:** controllare almeno 4 Entità Umane e scartare una carta
-Materia. È un requisito di **larghezza**, non di tempo: si apre quando il
+Entità (nell'Abisso; decisione del designer, 2026-08-28 — prima era una
+Materia). È un requisito di **larghezza**, non di tempo: si apre quando il
 Fronte è pieno, cioè quando il mazzo sta già facendo quello che vuole fare.
 
 Il Nexus **tiene la Furia**, diversamente dal Rubifronte del Patto: è il foglio
 del designer a stampare la stessa riga del dado su entrambe le facce.
+
+**Il flip consuma Rhen** (2026-08-28): quando Oblivhal flippa, Rhen, Erede di
+Vhal Astra — se in campo — va nell'Abisso, e non può più essere giocata per il
+resto della partita, ovunque si trovi. Flippare è una scelta di tempo anche per
+questo: farlo con Rhen in mano o nel mazzo la brucia comunque.
 
 ## 3. Il piano
 
@@ -59,7 +65,7 @@ Tre soglie contano, e sono tutte sullo stesso numero:
 
 L'**ordine degli attacchi** è la seconda leva: il Vendicatore dei Dimenticati
 passa Vendetta alla *prossima* Entità che attacca, quindi si dichiara prima
-lui; il Guaritore cura a ogni attacco; Carica degli Eredi tira il d20 sul
+lui; il Guaritore cura a ogni attacco; Per Vhal Astra! tira il d20 sul
 numero di attaccanti del turno. Chi attacca a caso perde metà del mazzo.
 
 ## 4. Abilitazione delle Materie — il punto da verificare
@@ -67,7 +73,7 @@ numero di attaccanti del turno. Chi attacca a caso perde metà del mazzo.
 | Tipo | Chi lo abilita | Carte |
 |---|---|---|
 | Dinamica I | 6 Entità (14 copie) | Attrazione Argentata, Formazione Infrangibile, Impatto Esiliante |
-| Dinamica II | 4 Entità (5 copie) | Forza della Radura, Contrattacco Coordinato, Carica degli Eredi |
+| Dinamica II | 4 Entità (5 copie) | Forza della Radura, Contrattacco Coordinato, Per Vhal Astra! |
 | Distruttiva I | **solo Oblivhal** | Campo Repulsivo |
 | Distruttiva II | **solo il Nexus** | Giudizio Cremisi |
 | Dimensionale II | Oblivhal e Nexus | *nessuna carta nel mazzo* |
@@ -89,7 +95,7 @@ bloccate in mano nei turni in cui servirebbero.
 
 - **Il Fronte ha 5 slot** (§6.2). Il mazzo riempie in fretta e ha tre effetti
   che *mettono in campo* Entità (Simulacro, Forza della Radura, Chiamata dei
-  Sette, Ritorno in Armi): con il Fronte pieno vanno sprecati.
+  Sette, Ritorno al Fronte): con il Fronte pieno vanno sprecati.
 - **Arciere della Radura Argentata**: 3 Flussi, entra e manda in Ritiro
   un'Entità avversaria qualsiasi, senza condizioni. È la carta che il foglio
   di playtest segnala sotto «removal troppo economiche».
@@ -112,4 +118,4 @@ più difendibile e lo dicono nella propria nota di design:
 | Contrattacco Coordinato | «gioca come blocco» | serve una regola nel manuale |
 | Attrazione Argentata | mostra 2, ne prendi 1 | riportata alla lettera |
 | Campo Repulsivo | citava «Condanna del Comandante» | «questa carta» |
-| Carica degli Eredi | fasce con un buco | 1–6 · 7–14 niente · 15–20 |
+| Per Vhal Astra! | fasce con un buco | 1–6 · 7–14 niente · 15–20 |

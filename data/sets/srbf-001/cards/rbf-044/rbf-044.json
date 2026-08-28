@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-044",
+  "setId": "rubyfront-core",
+  "collectorNumber": "044",
+  "slug": "fracture-of-the-schism",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dimensional",
+    "grade-2",
+    "removal",
+    "retire",
+    "equip"
+  ],
+  "rulesReference": "MANUALE.md §5, §7",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dimensional",
+        "grade": 2
+      },
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "sunder",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "destination": {
+              "zone": "retire",
+              "owner": "card_owner"
+            },
+            "details": {
+              "fluxCostReduction": {
+                "amount": 1,
+                "ifControllerEntitiesWithObjectAtLeast": 2
+              }
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-044.md",
+  "art": "rbf-044.jpg"
+}

@@ -93,5 +93,8 @@
     }
   ],
   "designNotes": "rbf-012.md",
-  "unique": true
+  "art": "rbf-012.jpg",
+  "unique": true,
+  "fullArt": true,
+  "artZoom": "50%"
 }

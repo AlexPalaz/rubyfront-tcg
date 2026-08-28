@@ -1,5 +1,5 @@
 {
-  "name": "Charge of the Heirs",
+  "name": "For Vhal Astra!",
   "typeLabel": "Dynamic Matter II",
   "summary": "Every wide charge asks the die whether to heal or to strike.",
   "ui": {
@@ -15,7 +15,7 @@
     }
   },
   "face": {
-    "name": "Charge of the Heirs",
+    "name": "For Vhal Astra!",
     "effect": {
       "name": "Effect",
       "text": "Each time Human Entities you control attack, roll a d20: on 1–6 you gain HP equal to the number of Human Entities that attacked this turn; on 15–20 the opposing Rubyfront/Nexus loses HP equal to the number of Human Entities that attacked this turn; on 7–14 nothing happens."

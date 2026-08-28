@@ -1,5 +1,5 @@
 {
-  "name": "Ajmal, Signore delle Terre Infrante",
+  "name": "Ajmal, Re delle Terre Infrante",
   "typeLabel": "Entità: Umano",
   "summary": "Quando il dado gli dà ragione, il turno non finisce con un solo combattimento.",
   "ui": {
@@ -9,10 +9,11 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "counterattack": "Contrattacco"
   },
   "face": {
-    "name": "Ajmal, Signore delle Terre Infrante",
+    "name": "Ajmal, Re delle Terre Infrante",
     "secondCharge": {
       "trigger": "Quando attacca",
       "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli e, dopo questa Fase di Fronte, c'è una Fase di Fronte addizionale."

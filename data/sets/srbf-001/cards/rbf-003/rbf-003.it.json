@@ -15,7 +15,7 @@
     "name": "Guida dei Sentieri Perduti",
     "guide": {
       "trigger": "Effetto",
-      "text": "Quando un'altra Entità Umana entra sul tuo Fronte, se controlli almeno 3 Entità Umane, pesca una carta."
+      "text": "Quando un'altra Entità Umana entra sul tuo Fronte, se sul tuo Fronte ci sono almeno 3 Entità Umane, pesca una carta."
     },
     "flavor": "Conosce le scorciatoie perché le ha perse tutte, una per volta."
   },

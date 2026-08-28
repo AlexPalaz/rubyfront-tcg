@@ -11,7 +11,7 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "Controlli almeno 4 Entità Umane. Scarta una carta Materia, poi flippa."
+      "text": "Controlli almeno 4 Entità Umane. Scarta una carta Entità, poi flippa."
     },
     "die": "Dado di schieramento"
   },
@@ -46,6 +46,10 @@
   "faceB": {
     "name": "Ritorno dell'Erede",
     "nexusAria": "Nexus",
+    "heirAscension": {
+      "trigger": "Quando flippa",
+      "text": "Se Rhen, Erede di Vhal Astra è sul tuo Fronte, mettila nell'Abisso. Non puoi più giocare Rhen, Erede di Vhal Astra per il resto della partita."
+    },
     "effect": {
       "trigger": "Effetto",
       "text": "La prima volta in ogni tuo turno che almeno 3 Entità Umane che controlli hanno attaccato, guadagni 2 PV e pesca una carta, poi scarta una carta."
@@ -59,8 +63,8 @@
         "name": "Chiamata dei Sette",
         "text": "mostra le prime 7 carte del tuo mazzo. Tra esse puoi mettere sul tuo Fronte un'Entità Umana e un altro permanente non Umano. Metti le altre in fondo al mazzo."
       },
-      "returnInArms": {
-        "name": "Ritorno in Armi",
+      "returnToFront": {
+        "name": "Ritorno al Fronte",
         "text": "puoi mettere sul tuo Fronte un'Entità Umana dalla tua mano senza pagarne il costo di Flusso. Quell'Entità ottiene Slancio fino alla fine del turno, e le prossime Entità Umane che attaccano in questo turno prendono +1 Potenza fino alla fine del turno."
       }
     },

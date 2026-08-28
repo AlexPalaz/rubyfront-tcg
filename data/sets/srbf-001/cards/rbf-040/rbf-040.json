@@ -19,7 +19,8 @@
     "grade-1",
     "reactive",
     "block",
-    "equip"
+    "equip",
+    "lifegain"
   ],
   "rulesReference": "MANUALE.md §7.2",
   "faces": [
@@ -53,8 +54,7 @@
             },
             "details": {
               "ifControllerEntitiesWithObjectAtLeast": 2,
-              "attackerPowerModifier": -2,
-              "duration": "until_end_of_turn"
+              "thenControllerGainsHealth": 3
             }
           }
         }

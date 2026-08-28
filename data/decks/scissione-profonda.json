@@ -30,7 +30,7 @@
     },
     {
       "card": "RBF-026",
-      "count": 3
+      "count": 2
     },
     {
       "card": "RBF-027",
@@ -54,11 +54,11 @@
     },
     {
       "card": "RBF-032",
-      "count": 3
+      "count": 2
     },
     {
       "card": "RBF-033",
-      "count": 3
+      "count": 2
     },
     {
       "card": "RBF-034",
@@ -70,11 +70,11 @@
     },
     {
       "card": "RBF-036",
-      "count": 3
+      "count": 2
     },
     {
       "card": "RBF-037",
-      "count": 2
+      "count": 1
     },
     {
       "card": "RBF-038",
@@ -82,7 +82,7 @@
     },
     {
       "card": "RBF-039",
-      "count": 1
+      "count": 2
     },
     {
       "card": "RBF-040",
@@ -95,6 +95,14 @@
     {
       "card": "RBF-042",
       "count": 1
+    },
+    {
+      "card": "RBF-043",
+      "count": 2
+    },
+    {
+      "card": "RBF-044",
+      "count": 2
     }
   ]
 }

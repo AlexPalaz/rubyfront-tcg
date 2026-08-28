@@ -1,0 +1,29 @@
+{
+  "name": "Frattura della Scissione",
+  "typeLabel": "Materia Dimensionale II",
+  "summary": "Toglie di mezzo un corpo avversario senza ucciderlo, e costa meno su un Fronte armato.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "permanent": "Permanente"
+    }
+  },
+  "face": {
+    "name": "Frattura della Scissione",
+    "effect": {
+      "name": "Effetto",
+      "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, questa carta costa 1 Flusso in meno."
+    },
+    "flavor": "La crepa non taglia: separa."
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 2° grado",
+    "dimensionalAria": "Dimensionale"
+  }
+}

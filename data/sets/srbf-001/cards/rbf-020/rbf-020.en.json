@@ -18,7 +18,7 @@
     "name": "Coordinated Counterattack",
     "effect": {
       "name": "Effect",
-      "text": "Play this card as a block. If you control at least 3 Human Entities, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
+      "text": "Play this card as a block. If there are at least 3 Human Entities on your Front, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
     },
     "flavor": "No one shouts the order. They turn together."
   },

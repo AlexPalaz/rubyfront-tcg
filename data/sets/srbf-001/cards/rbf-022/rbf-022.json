@@ -3,7 +3,7 @@
   "id": "RBF-022",
   "setId": "rubyfront-core",
   "collectorNumber": "022",
-  "slug": "charge-of-the-heirs",
+  "slug": "for-vhal-astra",
   "type": "matter",
   "layout": "single",
   "status": "draft",
@@ -74,5 +74,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-022.md"
+  "designNotes": "rbf-022.md",
+  "art": "rbf-022.jpg"
 }

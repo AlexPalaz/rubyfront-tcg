@@ -28,7 +28,8 @@
       "race": "human",
       "stats": {
         "power": 2,
-        "fluxCost": 2
+        "fluxCost": 2,
+        "counterattack": 1
       },
       "enablesMatters": [
         {
@@ -39,18 +40,6 @@
       "keywords": [],
       "requirements": {},
       "triggers": [
-        {
-          "id": "spurs",
-          "displayKey": "effect",
-          "event": "while_in_play",
-          "effect": {
-            "type": "modify_counterattack",
-            "target": {
-              "scope": "self"
-            },
-            "amount": 1
-          }
-        },
         {
           "id": "raid",
           "displayKey": "raid",

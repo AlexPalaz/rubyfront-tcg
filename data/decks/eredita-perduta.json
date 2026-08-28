@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
-  "id": "eredi-di-vhal-astra",
+  "id": "eredita-perduta",
   "setId": "rubyfront-core",
   "status": "draft",
   "defaultLocale": "it",
   "locales": {
     "it": {
-      "name": "Eredi di Vhal Astra",
+      "name": "Eredità Perduta",
       "description": "Precon Umani: Fronte largo e attacchi in sequenza. Corpi a basso costo che valgono di più in compagnia, Oblivhal che guadagna PV ogni volta che tre Umani caricano insieme, e un Nexus che riporta in campo chi era già uscito."
     },
     "en": {
-      "name": "Heirs of Vhal Astra",
+      "name": "Lost Legacy",
       "description": "The Human precon: a wide Front and attacks in sequence. Cheap bodies that are worth more in company, Oblivhal gaining HP every time three Humans charge together, and a Nexus that puts back onto the field whoever had already left."
     }
   },
-  "designNotes": "eredi-di-vhal-astra.md",
+  "designNotes": "eredita-perduta.md",
   "cards": [
     {
       "card": "RBF-001",

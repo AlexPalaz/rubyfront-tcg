@@ -18,7 +18,8 @@
     "auros",
     "equip",
     "legendary",
-    "retire"
+    "retire",
+    "dig"
   ],
   "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
@@ -84,6 +85,44 @@
             "details": {
               "noFluxCost": true,
               "respectAssignRestrictions": true
+            }
+          }
+        },
+        {
+          "id": "foresight",
+          "displayKey": "foresight",
+          "event": "on_attack",
+          "details": {
+            "oncePerEachOfYourTurns": true,
+            "attacker": {
+              "cardType": "entity",
+              "controller": "controller",
+              "details": {
+                "hasObjectAssigned": true
+              }
+            }
+          },
+          "effect": {
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 2
+            },
+            "details": {
+              "mayReveal": {
+                "cardType": "object"
+              },
+              "revealTo": {
+                "zone": "retire",
+                "owner": "controller"
+              },
+              "restTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom"
+              }
             }
           }
         }

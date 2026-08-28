@@ -1,0 +1,21 @@
+{
+  "name": "Dimensional Prism",
+  "typeLabel": "Object",
+  "summary": "It shuts an opponent into the Abyss for as long as the prism holds.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Dimensional Prism",
+    "effect": {
+      "name": "Effect",
+      "text": "When you assign this card to an Entity, send an opposing Entity to the Abyss. As long as this card remains in play, that Entity stays in the Abyss. When this card leaves play, that Entity returns to play."
+    },
+    "flavor": "It does not kill it. It puts it somewhere else."
+  }
+}

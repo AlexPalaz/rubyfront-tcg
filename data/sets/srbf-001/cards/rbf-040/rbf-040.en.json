@@ -1,7 +1,7 @@
 {
   "name": "Reflected Shield",
   "typeLabel": "Dimensional Matter I",
-  "summary": "A block out of nowhere that punishes whoever attacks an armed front.",
+  "summary": "A block out of nowhere that pays back in HP for keeping the Front armed.",
   "ui": {
     "face": "Matter"
   },
@@ -18,7 +18,7 @@
     "name": "Reflected Shield",
     "effect": {
       "name": "Effect",
-      "text": "Play it as a block against an attacker: that attack is blocked. If you control at least 2 Entities with an Object assigned, the attacker gets −2 Power until end of turn."
+      "text": "Play it as a block against an attacker: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
     },
     "flavor": "The wall that was not there, until you struck it."
   },

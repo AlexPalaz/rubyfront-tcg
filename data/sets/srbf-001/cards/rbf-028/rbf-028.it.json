@@ -1,7 +1,7 @@
 {
   "name": "Sentinella di Nova Kai",
   "typeLabel": "Entità: Auros",
-  "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte.",
+  "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte e resta in guardia.",
   "ui": {
     "face": "Entità"
   },
@@ -21,6 +21,10 @@
     "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
     "effect": {
       "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
+    },
+    "vigil": {
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, stappala dopo il combattimento."
     }
   }
 }

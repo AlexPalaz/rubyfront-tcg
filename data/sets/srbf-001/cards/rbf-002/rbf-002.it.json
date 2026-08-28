@@ -14,7 +14,7 @@
   "face": {
     "name": "Ragazzo della Radura Argentata",
     "effect": {
-      "text": "Se controlli un'altra Entità Umana, questa Entità ha +1 Potenza mentre attacca."
+      "text": "Se sul tuo Fronte c'è un'altra Entità Umana, questa Entità ha +1 Potenza mentre attacca."
     },
     "flavor": "Corre più veloce quando qualcuno corre accanto."
   }

@@ -11,7 +11,7 @@
     "hp": "HP",
     "nexusRequirement": {
       "label": "Nexus requirement",
-      "text": "You control at least 4 Human Entities. Discard a Matter card, then flip."
+      "text": "You control at least 4 Human Entities. Discard an Entity card, then flip."
     },
     "die": "Deployment die"
   },
@@ -46,6 +46,10 @@
   "faceB": {
     "name": "Return of the Heir",
     "nexusAria": "Nexus",
+    "heirAscension": {
+      "trigger": "When it flips",
+      "text": "If Rhen, Heir of Vhal Astra is on your Front, put it into the Abyss. You can no longer play Rhen, Heir of Vhal Astra for the rest of the game."
+    },
     "effect": {
       "trigger": "Effect",
       "text": "The first time each of your turns at least 3 Human Entities you control have attacked, you gain 2 HP and draw a card, then discard a card."
@@ -59,8 +63,8 @@
         "name": "Call of the Seven",
         "text": "reveal the top 7 cards of your deck. Among them you may put a Human Entity and one other non-Human permanent onto your Front. Put the rest on the bottom of your deck."
       },
-      "returnInArms": {
-        "name": "Return in Arms",
+      "returnToFront": {
+        "name": "Return to the Front",
         "text": "you may put a Human Entity from your hand onto your Front without paying its Flux cost. That Entity gains Surge until end of turn, and the next Human Entities that attack this turn get +1 Power until end of turn."
       }
     },

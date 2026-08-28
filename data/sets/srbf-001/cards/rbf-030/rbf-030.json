@@ -17,7 +17,8 @@
     "entity",
     "auros",
     "equip",
-    "draw"
+    "draw",
+    "cost-reduction"
   ],
   "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
@@ -39,6 +40,21 @@
       "keywords": [],
       "requirements": {},
       "triggers": [
+        {
+          "id": "outfit",
+          "displayKey": "effect",
+          "event": "while_in_play",
+          "effect": {
+            "type": "reduce_cost",
+            "filter": {
+              "cardType": "object"
+            },
+            "amount": 1,
+            "details": {
+              "assignedToSelf": true
+            }
+          }
+        },
         {
           "id": "carry",
           "displayKey": "carry",

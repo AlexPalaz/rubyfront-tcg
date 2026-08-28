@@ -60,7 +60,21 @@ function createFace(card, face, cardCopy, themeId, localeId) {
     // larga della carta): "50%" = centro, "100%" = tutta a destra.
     const artFocusX = face.artFocusX ?? card.artFocusX;
     if (artShift) backdrop.style.top = artShift;
-    if (artZoom) backdrop.style.height = artZoom;
+    // L'altezza in percentuale si calcola sull'altezza della carta, che è
+    // INDEFINITA (height:auto + aspect-ratio 5/7). iOS Safari non la risolve:
+    // la tratta come auto, l'immagine torna alla misura intrinseca e la full
+    // art esce tagliata (su desktop e Chrome no). Accanto alla percentuale
+    // dichiariamo quindi lo stesso valore come rapporto d'aspetto, che si
+    // calcola sulla LARGHEZZA e non richiede alcuna altezza definita:
+    // altezza art = zoom × altezza carta = zoom × larghezza × 7/5,
+    // quindi aspect-ratio = 5 / (7 × zoom). Dove la percentuale funziona
+    // vince lei (height batte aspect-ratio) e i due valori coincidono;
+    // dove non funziona, subentra il rapporto. Stesso risultato ovunque.
+    if (artZoom) {
+      backdrop.style.height = artZoom;
+      const zoom = parseFloat(artZoom) / 100;
+      if (Number.isFinite(zoom) && zoom > 0) backdrop.style.aspectRatio = String(5 / (7 * zoom));
+    }
     if (artFocusX) backdrop.style.objectPosition = `${artFocusX} 50%`;
     visual.append(backdrop, element("div", "bg-scrim"));
   }
@@ -310,7 +324,16 @@ function triggerBody(trigger, faceCopy) {
 function createTriggerGroup(face, triggers, faceCopy) {
   const block = element("div", "fx");
   block.append(element("span", "tag", triggerTagText(face, triggers[0], faceCopy)));
-  for (const trigger of triggers) block.append(triggerBody(trigger, faceCopy));
+  // Più trigger semantici possono condividere la stessa voce di testo
+  // (stesso displayKey: es. i due on_flip del Ritorno dell'Erede, o
+  // entrata+attacco di Rhen): la voce condivisa si stampa una volta sola.
+  const seen = new Set();
+  for (const trigger of triggers) {
+    const copy = triggerCopyFor(trigger, faceCopy);
+    if (seen.has(copy)) continue;
+    seen.add(copy);
+    block.append(triggerBody(trigger, faceCopy));
+  }
   return block;
 }
 
@@ -511,7 +534,9 @@ function roman(value) {
 // 20px, che e' la misura Magic che il resto del foglio difende.
 // Va chiamata DOPO l'inserimento nel documento: prima non c'e' nulla da
 // misurare, e la carta uscirebbe tagliata in silenzio.
-const FIT_STEPS = [1, 0.96, 0.92, 0.88, 0.84, 0.8, 0.76, 0.72, 0.68];
+// Gli ultimi due passi (0.64, 0.6) sono la rete di sicurezza delle facce più
+// dense (i Nexus a tre abilità): meglio un corpo piccolo che un testo tagliato.
+const FIT_STEPS = [1, 0.96, 0.92, 0.88, 0.84, 0.8, 0.76, 0.72, 0.68, 0.64, 0.6];
 // Passi di riduzione del NOME (in em rispetto alla carta): "" è la scala piena.
 const NAME_FIT_STEPS = ["", "0.98em", "0.92em", "0.86em", "0.8em", "0.75em"];
 

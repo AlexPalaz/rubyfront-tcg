@@ -1,6 +1,6 @@
 {
   "name": "Carica Latente",
-  "typeLabel": "Materia Dimensionale I",
+  "typeLabel": "Materia Dimensionale II",
   "summary": "Scava cinque carte e lascia decidere al d20 che cosa peschi.",
   "ui": {
     "face": "Materia"
@@ -23,7 +23,7 @@
     "flavor": "Il mazzo sa già. Il dado decide quando."
   },
   "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalTitle": "Materia Dimensionale · 2° grado",
     "dimensionalAria": "Dimensionale"
   }
 }

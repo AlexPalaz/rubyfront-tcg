@@ -1,7 +1,7 @@
 {
   "name": "Avy Shin, Lama di Nova Kai",
   "typeLabel": "Entità: Auros",
-  "summary": "L'Unica del mazzo: arma le lame e riporta gli Oggetti dal Ritiro a ogni attacco.",
+  "summary": "L'Unica del mazzo: arma le lame, riempie il Ritiro di Oggetti e li rimette in campo a ogni attacco.",
   "ui": {
     "face": "Entità"
   },
@@ -25,6 +25,10 @@
     "flavor": "Ciò che la Scissione divide, la sua lama riunisce.",
     "effect": {
       "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
+    },
+    "foresight": {
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che un'Entità con un Oggetto assegnato che controlli attacca, guarda le prime 2 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo."
     }
   }
 }

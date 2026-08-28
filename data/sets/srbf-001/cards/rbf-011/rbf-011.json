@@ -3,7 +3,7 @@
   "id": "RBF-011",
   "setId": "rubyfront-core",
   "collectorNumber": "011",
-  "slug": "ajmal-lord-of-the-broken-lands",
+  "slug": "ajmal-king-of-the-broken-lands",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -29,7 +29,8 @@
       "race": "human",
       "stats": {
         "power": 5,
-        "fluxCost": 5
+        "fluxCost": 5,
+          "counterattack": 1
       },
       "enablesMatters": [
         {

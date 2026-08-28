@@ -15,7 +15,7 @@
     "name": "Guide of the Lost Paths",
     "guide": {
       "trigger": "Effect",
-      "text": "When another Human Entity enters your Front, if you control at least 3 Human Entities, draw a card."
+      "text": "When another Human Entity enters your Front, if there are at least 3 Human Entities on your Front, draw a card."
     },
     "flavor": "It knows the shortcuts because it lost every one of them, one at a time."
   },

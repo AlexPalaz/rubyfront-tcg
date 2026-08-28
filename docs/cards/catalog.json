@@ -56,7 +56,7 @@
                 "hp": "PV",
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
-                  "text": "Controlli almeno 4 Entità Umane. Scarta una carta Materia, poi flippa."
+                  "text": "Controlli almeno 4 Entità Umane. Scarta una carta Entità, poi flippa."
                 },
                 "die": "Dado di schieramento"
               },
@@ -91,6 +91,10 @@
               "faceB": {
                 "name": "Ritorno dell'Erede",
                 "nexusAria": "Nexus",
+                "heirAscension": {
+                  "trigger": "Quando flippa",
+                  "text": "Se Rhen, Erede di Vhal Astra è sul tuo Fronte, mettila nell'Abisso. Non puoi più giocare Rhen, Erede di Vhal Astra per il resto della partita."
+                },
                 "effect": {
                   "trigger": "Effetto",
                   "text": "La prima volta in ogni tuo turno che almeno 3 Entità Umane che controlli hanno attaccato, guadagni 2 PV e pesca una carta, poi scarta una carta."
@@ -104,8 +108,8 @@
                     "name": "Chiamata dei Sette",
                     "text": "mostra le prime 7 carte del tuo mazzo. Tra esse puoi mettere sul tuo Fronte un'Entità Umana e un altro permanente non Umano. Metti le altre in fondo al mazzo."
                   },
-                  "returnInArms": {
-                    "name": "Ritorno in Armi",
+                  "returnToFront": {
+                    "name": "Ritorno al Fronte",
                     "text": "puoi mettere sul tuo Fronte un'Entità Umana dalla tua mano senza pagarne il costo di Flusso. Quell'Entità ottiene Slancio fino alla fine del turno, e le prossime Entità Umane che attaccano in questo turno prendono +1 Potenza fino alla fine del turno."
                   }
                 },
@@ -125,7 +129,7 @@
                 "hp": "HP",
                 "nexusRequirement": {
                   "label": "Nexus requirement",
-                  "text": "You control at least 4 Human Entities. Discard a Matter card, then flip."
+                  "text": "You control at least 4 Human Entities. Discard an Entity card, then flip."
                 },
                 "die": "Deployment die"
               },
@@ -160,6 +164,10 @@
               "faceB": {
                 "name": "Return of the Heir",
                 "nexusAria": "Nexus",
+                "heirAscension": {
+                  "trigger": "When it flips",
+                  "text": "If Rhen, Heir of Vhal Astra is on your Front, put it into the Abyss. You can no longer play Rhen, Heir of Vhal Astra for the rest of the game."
+                },
                 "effect": {
                   "trigger": "Effect",
                   "text": "The first time each of your turns at least 3 Human Entities you control have attacked, you gain 2 HP and draw a card, then discard a card."
@@ -173,8 +181,8 @@
                     "name": "Call of the Seven",
                     "text": "reveal the top 7 cards of your deck. Among them you may put a Human Entity and one other non-Human permanent onto your Front. Put the rest on the bottom of your deck."
                   },
-                  "returnInArms": {
-                    "name": "Return in Arms",
+                  "returnToFront": {
+                    "name": "Return to the Front",
                     "text": "you may put a Human Entity from your hand onto your Front without paying its Flux cost. That Entity gains Surge until end of turn, and the next Human Entities that attack this turn get +1 Power until end of turn."
                   }
                 },
@@ -252,7 +260,7 @@
                       },
                       "count": 1,
                       "filter": {
-                        "cardType": "matter"
+                        "cardType": "entity"
                       }
                     }
                   ]
@@ -378,6 +386,44 @@
               "requirements": {},
               "triggers": [
                 {
+                  "id": "heir-absorbed",
+                  "displayKey": "heirAscension",
+                  "event": "on_flip",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardId": "RBF-012",
+                      "controller": "controller",
+                      "quantity": "all"
+                    },
+                    "from": {
+                      "zone": "front",
+                      "owner": "controller"
+                    },
+                    "destination": {
+                      "zone": "abyss",
+                      "owner": "controller"
+                    }
+                  }
+                },
+                {
+                  "id": "heir-sealed",
+                  "displayKey": "heirAscension",
+                  "event": "on_flip",
+                  "effect": {
+                    "type": "restrict_action",
+                    "target": {
+                      "cardId": "RBF-012",
+                      "controller": "controller"
+                    },
+                    "restricts": "play",
+                    "duration": "permanent",
+                    "details": {
+                      "followsCard": true
+                    }
+                  }
+                },
+                {
                   "id": "heirs-muster",
                   "displayKey": "effect",
                   "event": "on_attack",
@@ -473,8 +519,8 @@
                   }
                 },
                 {
-                  "id": "return-in-arms",
-                  "displayKey": "returnInArms",
+                  "id": "return-to-front",
+                  "displayKey": "returnToFront",
                   "timing": [
                     "own_preparation",
                     "own_front"
@@ -516,7 +562,8 @@
                 }
               ],
               "art": "rbf-001-nexus.jpg",
-              "artZoom": "54%",
+              "artZoom": "48%",
+              "artShift": "0%",
               "source": {
                 "art": "art/rbf-001-nexus.jpg"
               }
@@ -524,7 +571,7 @@
           ],
           "designNotes": "rbf-001.md",
           "art": "rbf-001.jpg",
-          "artZoom": "55%",
+          "artZoom": "48%",
           "source": {
             "designNotes": "notes/rbf-001.md",
             "art": "art/rbf-001.jpg"
@@ -558,7 +605,7 @@
               "face": {
                 "name": "Ragazzo della Radura Argentata",
                 "effect": {
-                  "text": "Se controlli un'altra Entità Umana, questa Entità ha +1 Potenza mentre attacca."
+                  "text": "Se sul tuo Fronte c'è un'altra Entità Umana, questa Entità ha +1 Potenza mentre attacca."
                 },
                 "flavor": "Corre più veloce quando qualcuno corre accanto."
               }
@@ -579,7 +626,7 @@
               "face": {
                 "name": "Boy of the Silver Glade",
                 "effect": {
-                  "text": "If you control another Human Entity, this Entity has +1 Power while attacking."
+                  "text": "If another Human Entity is on your Front, this Entity has +1 Power while attacking."
                 },
                 "flavor": "It runs faster when someone runs alongside."
               }
@@ -665,7 +712,7 @@
                 "name": "Guida dei Sentieri Perduti",
                 "guide": {
                   "trigger": "Effetto",
-                  "text": "Quando un'altra Entità Umana entra sul tuo Fronte, se controlli almeno 3 Entità Umane, pesca una carta."
+                  "text": "Quando un'altra Entità Umana entra sul tuo Fronte, se sul tuo Fronte ci sono almeno 3 Entità Umane, pesca una carta."
                 },
                 "flavor": "Conosce le scorciatoie perché le ha perse tutte, una per volta."
               },
@@ -691,7 +738,7 @@
                 "name": "Guide of the Lost Paths",
                 "guide": {
                   "trigger": "Effect",
-                  "text": "When another Human Entity enters your Front, if you control at least 3 Human Entities, draw a card."
+                  "text": "When another Human Entity enters your Front, if there are at least 3 Human Entities on your Front, draw a card."
                 },
                 "flavor": "It knows the shortcuts because it lost every one of them, one at a time."
               },
@@ -916,13 +963,11 @@
                 "illustration": "Illustrazione",
                 "hp": "PV",
                 "power": "Potenza",
-                "flux": "Flussi"
+                "flux": "Flussi",
+                "counterattack": "Contrattacco"
               },
               "face": {
                 "name": "Predone delle Terre Infrante",
-                "effect": {
-                  "text": "Questa Entità ha Contrattacco +1."
-                },
                 "raid": {
                   "trigger": "Quando attacca",
                   "text": "Se almeno 2 Entità Umane che controlli hanno attaccato nel tuo turno precedente, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
@@ -945,13 +990,11 @@
                 "illustration": "Illustration",
                 "hp": "HP",
                 "power": "Power",
-                "flux": "Flux"
+                "flux": "Flux",
+                "counterattack": "Counterattack"
               },
               "face": {
                 "name": "Raider of the Broken Lands",
-                "effect": {
-                  "text": "This Entity has Counterattack +1."
-                },
                 "raid": {
                   "trigger": "When it attacks",
                   "text": "If at least 2 Human Entities you control attacked on your previous turn, choose an opposing Entity: that Entity cannot block this turn."
@@ -979,7 +1022,8 @@
               "race": "human",
               "stats": {
                 "power": 2,
-                "fluxCost": 2
+                "fluxCost": 2,
+                "counterattack": 1
               },
               "enablesMatters": [
                 {
@@ -990,18 +1034,6 @@
               "keywords": [],
               "requirements": {},
               "triggers": [
-                {
-                  "id": "spurs",
-                  "displayKey": "effect",
-                  "event": "while_in_play",
-                  "effect": {
-                    "type": "modify_counterattack",
-                    "target": {
-                      "scope": "self"
-                    },
-                    "amount": 1
-                  }
-                },
                 {
                   "id": "raid",
                   "displayKey": "raid",
@@ -1731,7 +1763,7 @@
           "id": "RBF-011",
           "setId": "rubyfront-core",
           "collectorNumber": "011",
-          "slug": "ajmal-lord-of-the-broken-lands",
+          "slug": "ajmal-king-of-the-broken-lands",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -1739,7 +1771,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Ajmal, Signore delle Terre Infrante",
+              "name": "Ajmal, Re delle Terre Infrante",
               "typeLabel": "Entità: Umano",
               "summary": "Quando il dado gli dà ragione, il turno non finisce con un solo combattimento.",
               "ui": {
@@ -1749,10 +1781,11 @@
                 "illustration": "Illustrazione",
                 "hp": "PV",
                 "power": "Potenza",
-                "flux": "Flussi"
+                "flux": "Flussi",
+                "counterattack": "Contrattacco"
               },
               "face": {
-                "name": "Ajmal, Signore delle Terre Infrante",
+                "name": "Ajmal, Re delle Terre Infrante",
                 "secondCharge": {
                   "trigger": "Quando attacca",
                   "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli e, dopo questa Fase di Fronte, c'è una Fase di Fronte addizionale."
@@ -1765,7 +1798,7 @@
               }
             },
             "en": {
-              "name": "Ajmal, Lord of the Broken Lands",
+              "name": "Ajmal, King of the Broken Lands",
               "typeLabel": "Entity: Human",
               "summary": "When the die agrees with him, the turn does not end after a single combat.",
               "ui": {
@@ -1775,10 +1808,11 @@
                 "illustration": "Illustration",
                 "hp": "HP",
                 "power": "Power",
-                "flux": "Flux"
+                "flux": "Flux",
+                "counterattack": "Counterattack"
               },
               "face": {
-                "name": "Ajmal, Lord of the Broken Lands",
+                "name": "Ajmal, King of the Broken Lands",
                 "secondCharge": {
                   "trigger": "When it attacks",
                   "text": "Roll a d20: on 15–20 untap all Entities you control and, after this Front Phase, there is an additional Front Phase."
@@ -1807,7 +1841,8 @@
               "race": "human",
               "stats": {
                 "power": 5,
-                "fluxCost": 5
+                "fluxCost": 5,
+                "counterattack": 1
               },
               "enablesMatters": [
                 {
@@ -1993,9 +2028,13 @@
             }
           ],
           "designNotes": "rbf-012.md",
+          "art": "rbf-012.jpg",
           "unique": true,
+          "fullArt": true,
+          "artZoom": "50%",
           "source": {
-            "designNotes": "notes/rbf-012.md"
+            "designNotes": "notes/rbf-012.md",
+            "art": "art/rbf-012.jpg"
           }
         },
         {
@@ -2107,8 +2146,10 @@
             }
           ],
           "designNotes": "rbf-013.md",
+          "art": "rbf-013.jpg",
           "source": {
-            "designNotes": "notes/rbf-013.md"
+            "designNotes": "notes/rbf-013.md",
+            "art": "art/rbf-013.jpg"
           }
         },
         {
@@ -2211,8 +2252,10 @@
             }
           ],
           "designNotes": "rbf-014.md",
+          "art": "rbf-014.jpg",
           "source": {
-            "designNotes": "notes/rbf-014.md"
+            "designNotes": "notes/rbf-014.md",
+            "art": "art/rbf-014.jpg"
           }
         },
         {
@@ -2347,8 +2390,10 @@
             }
           ],
           "designNotes": "rbf-015.md",
+          "art": "rbf-015.jpg",
           "source": {
-            "designNotes": "notes/rbf-015.md"
+            "designNotes": "notes/rbf-015.md",
+            "art": "art/rbf-015.jpg"
           }
         },
         {
@@ -2471,8 +2516,10 @@
             }
           ],
           "designNotes": "rbf-016.md",
+          "art": "rbf-016.jpg",
           "source": {
-            "designNotes": "notes/rbf-016.md"
+            "designNotes": "notes/rbf-016.md",
+            "art": "art/rbf-016.jpg"
           }
         },
         {
@@ -2600,8 +2647,10 @@
             }
           ],
           "designNotes": "rbf-017.md",
+          "art": "rbf-017.jpg",
           "source": {
-            "designNotes": "notes/rbf-017.md"
+            "designNotes": "notes/rbf-017.md",
+            "art": "art/rbf-017.jpg"
           }
         },
         {
@@ -2729,8 +2778,10 @@
             }
           ],
           "designNotes": "rbf-018.md",
+          "art": "rbf-018.jpg",
           "source": {
-            "designNotes": "notes/rbf-018.md"
+            "designNotes": "notes/rbf-018.md",
+            "art": "art/rbf-018.jpg"
           }
         },
         {
@@ -2881,8 +2932,10 @@
             }
           ],
           "designNotes": "rbf-019.md",
+          "art": "rbf-019.jpg",
           "source": {
-            "designNotes": "notes/rbf-019.md"
+            "designNotes": "notes/rbf-019.md",
+            "art": "art/rbf-019.jpg"
           }
         },
         {
@@ -2917,7 +2970,7 @@
                 "name": "Contrattacco Coordinato",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Gioca questa carta come blocco. Se controlli almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
+                  "text": "Gioca questa carta come blocco. Se sul tuo Fronte ci sono almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
                 },
                 "flavor": "Nessuno grida l'ordine. Si girano insieme."
               },
@@ -2946,7 +2999,7 @@
                 "name": "Coordinated Counterattack",
                 "effect": {
                   "name": "Effect",
-                  "text": "Play this card as a block. If you control at least 3 Human Entities, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
+                  "text": "Play this card as a block. If there are at least 3 Human Entities on your Front, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
                 },
                 "flavor": "No one shouts the order. They turn together."
               },
@@ -3013,8 +3066,10 @@
             }
           ],
           "designNotes": "rbf-020.md",
+          "art": "rbf-020.jpg",
           "source": {
-            "designNotes": "notes/rbf-020.md"
+            "designNotes": "notes/rbf-020.md",
+            "art": "art/rbf-020.jpg"
           }
         },
         {
@@ -3142,8 +3197,10 @@
             }
           ],
           "designNotes": "rbf-021.md",
+          "art": "rbf-021.jpg",
           "source": {
-            "designNotes": "notes/rbf-021.md"
+            "designNotes": "notes/rbf-021.md",
+            "art": "art/rbf-021.jpg"
           }
         },
         {
@@ -3151,7 +3208,7 @@
           "id": "RBF-022",
           "setId": "rubyfront-core",
           "collectorNumber": "022",
-          "slug": "charge-of-the-heirs",
+          "slug": "for-vhal-astra",
           "type": "matter",
           "layout": "single",
           "status": "draft",
@@ -3159,7 +3216,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Carica degli Eredi",
+              "name": "Per Vhal Astra!",
               "typeLabel": "Materia Dinamica II",
               "summary": "Ogni carica larga chiede al dado se curare o colpire.",
               "ui": {
@@ -3175,7 +3232,7 @@
                 }
               },
               "face": {
-                "name": "Carica degli Eredi",
+                "name": "Per Vhal Astra!",
                 "effect": {
                   "name": "Effetto",
                   "text": "Ogni volta che le Entità Umane che controlli attaccano, lancia un d20: con 1–6 guadagni PV pari al numero di Entità Umane che hanno attaccato in questo turno; con 15–20 il Rubyfront/Nexus avversario perde PV pari al numero di Entità Umane che hanno attaccato in questo turno; con 7–14 non succede nulla."
@@ -3188,7 +3245,7 @@
               }
             },
             "en": {
-              "name": "Charge of the Heirs",
+              "name": "For Vhal Astra!",
               "typeLabel": "Dynamic Matter II",
               "summary": "Every wide charge asks the die whether to heal or to strike.",
               "ui": {
@@ -3204,7 +3261,7 @@
                 }
               },
               "face": {
-                "name": "Charge of the Heirs",
+                "name": "For Vhal Astra!",
                 "effect": {
                   "name": "Effect",
                   "text": "Each time Human Entities you control attack, roll a d20: on 1–6 you gain HP equal to the number of Human Entities that attacked this turn; on 15–20 the opposing Rubyfront/Nexus loses HP equal to the number of Human Entities that attacked this turn; on 7–14 nothing happens."
@@ -3279,8 +3336,10 @@
             }
           ],
           "designNotes": "rbf-022.md",
+          "art": "rbf-022.jpg",
           "source": {
-            "designNotes": "notes/rbf-022.md"
+            "designNotes": "notes/rbf-022.md",
+            "art": "art/rbf-022.jpg"
           }
         },
         {
@@ -3344,7 +3403,7 @@
                 "nexusAria": "Nexus",
                 "flipEffect": {
                   "trigger": "Quando flippa",
-                  "text": "Pesca una carta."
+                  "text": "Se Avy Shin, Lama di Nova Kai è sul tuo Fronte, mettila nell'Abisso. Non puoi più giocare Avy Shin, Lama di Nova Kai per il resto della partita. Poi pesca una carta."
                 },
                 "effect": {
                   "trigger": "Effetto",
@@ -3361,7 +3420,7 @@
                   },
                   "greatRearm": {
                     "name": "Grande Riarmo",
-                    "text": "assegna un qualsiasi numero di Oggetti dalla tua Zona di Ritiro ad altrettante Entità senza Oggetto sul tuo Fronte, senza pagarne il costo di Flusso."
+                    "text": "assegna un qualsiasi numero di Oggetti dalla tua Zona di Ritiro ad altrettante Entità sul tuo Fronte, senza pagarne il costo di Flusso."
                   }
                 },
                 "flavor": "La Scissione non è una ferita. È una porta."
@@ -3416,7 +3475,7 @@
                 "nexusAria": "Nexus",
                 "flipEffect": {
                   "trigger": "When it flips",
-                  "text": "Draw a card."
+                  "text": "If Avy Shin, Blade of Nova Kai is on your Front, put it into the Abyss. You can no longer play Avy Shin, Blade of Nova Kai for the rest of the game. Then draw a card."
                 },
                 "effect": {
                   "trigger": "Effect",
@@ -3433,7 +3492,7 @@
                   },
                   "greatRearm": {
                     "name": "Great Rearmament",
-                    "text": "assign any number of Objects from your Retire Zone to as many Entities without an Object on your Front, without paying their Flux cost."
+                    "text": "assign any number of Objects from your Retire Zone to as many Entities on your Front, without paying their Flux cost."
                   }
                 },
                 "flavor": "The Schism is not a wound. It is a door."
@@ -3626,6 +3685,44 @@
               "requirements": {},
               "triggers": [
                 {
+                  "id": "blade-absorbed",
+                  "displayKey": "flipEffect",
+                  "event": "on_flip",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardId": "RBF-031",
+                      "controller": "controller",
+                      "quantity": "all"
+                    },
+                    "from": {
+                      "zone": "front",
+                      "owner": "controller"
+                    },
+                    "destination": {
+                      "zone": "abyss",
+                      "owner": "controller"
+                    }
+                  }
+                },
+                {
+                  "id": "blade-sealed",
+                  "displayKey": "flipEffect",
+                  "event": "on_flip",
+                  "effect": {
+                    "type": "restrict_action",
+                    "target": {
+                      "cardId": "RBF-031",
+                      "controller": "controller"
+                    },
+                    "restricts": "play",
+                    "duration": "permanent",
+                    "details": {
+                      "followsCard": true
+                    }
+                  }
+                },
+                {
                   "id": "awakening",
                   "displayKey": "flipEffect",
                   "event": "on_flip",
@@ -3740,10 +3837,7 @@
                       "controller": "controller",
                       "zone": "front",
                       "owner": "controller",
-                      "quantity": "all",
-                      "details": {
-                        "hasObjectAssigned": false
-                      }
+                      "quantity": "all"
                     },
                     "details": {
                       "anyNumber": true,
@@ -4275,7 +4369,7 @@
             "it": {
               "name": "Sentinella di Nova Kai",
               "typeLabel": "Entità: Auros",
-              "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte.",
+              "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte e resta in guardia.",
               "ui": {
                 "face": "Entità"
               },
@@ -4295,13 +4389,17 @@
                 "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
                 "effect": {
                   "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
+                },
+                "vigil": {
+                  "trigger": "Effetto",
+                  "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, stappala dopo il combattimento."
                 }
               }
             },
             "en": {
               "name": "Sentinel of Nova Kai",
               "typeLabel": "Entity: Auros",
-              "summary": "A sentinel whose answer hits far harder with the right Object.",
+              "summary": "A sentinel whose answer hits far harder with the right Object, and who stays on guard.",
               "ui": {
                 "face": "Entity"
               },
@@ -4321,6 +4419,10 @@
                 "flavor": "The answering blow is the only one it has always prepared.",
                 "effect": {
                   "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
+                },
+                "vigil": {
+                  "trigger": "Effect",
+                  "text": "The first time each of your turns this Entity attacks while it has an Object assigned, untap it after combat."
                 }
               }
             }
@@ -4329,7 +4431,8 @@
             "entity",
             "auros",
             "equip",
-            "counterattack"
+            "counterattack",
+            "untap"
           ],
           "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
           "faces": [
@@ -4364,6 +4467,24 @@
                     "setTo": 2,
                     "details": {
                       "whileHasObjectAssigned": true
+                    }
+                  }
+                },
+                {
+                  "id": "vigil",
+                  "displayKey": "vigil",
+                  "event": "on_attack",
+                  "details": {
+                    "oncePerEachOfYourTurns": true,
+                    "whileHasObjectAssigned": true
+                  },
+                  "effect": {
+                    "type": "untap",
+                    "target": {
+                      "scope": "self"
+                    },
+                    "details": {
+                      "afterCombat": true
                     }
                   }
                 }
@@ -4530,7 +4651,7 @@
             "it": {
               "name": "Portatore di Fronti",
               "typeLabel": "Entità: Auros",
-              "summary": "Ogni Oggetto che gli affidi è una carta in più.",
+              "summary": "Arma a sconto e ogni Oggetto che gli affidi è una carta in più.",
               "ui": {
                 "face": "Entità"
               },
@@ -4550,13 +4671,16 @@
                   "trigger": "Quando assegni un Oggetto a questa Entità",
                   "text": "Pesca una carta."
                 },
-                "flavor": "Non chiede che cosa porta. Chiede solo per chi."
+                "flavor": "Non chiede che cosa porta. Chiede solo per chi.",
+                "effect": {
+                  "text": "Gli Oggetti che assegni a questa Entità costano 1 Flusso in meno."
+                }
               }
             },
             "en": {
               "name": "Bearer of Fronts",
               "typeLabel": "Entity: Auros",
-              "summary": "Every Object entrusted to it is one more card.",
+              "summary": "It arms at a discount, and every Object entrusted to it is one more card.",
               "ui": {
                 "face": "Entity"
               },
@@ -4576,7 +4700,10 @@
                   "trigger": "When you assign an Object to this Entity",
                   "text": "Draw a card."
                 },
-                "flavor": "It never asks what it carries. Only for whom."
+                "flavor": "It never asks what it carries. Only for whom.",
+                "effect": {
+                  "text": "Objects you assign to this Entity cost 1 less Flux."
+                }
               }
             }
           },
@@ -4584,7 +4711,8 @@
             "entity",
             "auros",
             "equip",
-            "draw"
+            "draw",
+            "cost-reduction"
           ],
           "rulesReference": "MANUALE.md §3.1, §8.2",
           "faces": [
@@ -4606,6 +4734,21 @@
               "keywords": [],
               "requirements": {},
               "triggers": [
+                {
+                  "id": "outfit",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
+                  "effect": {
+                    "type": "reduce_cost",
+                    "filter": {
+                      "cardType": "object"
+                    },
+                    "amount": 1,
+                    "details": {
+                      "assignedToSelf": true
+                    }
+                  }
+                },
                 {
                   "id": "carry",
                   "displayKey": "carry",
@@ -4647,7 +4790,7 @@
             "it": {
               "name": "Avy Shin, Lama di Nova Kai",
               "typeLabel": "Entità: Auros",
-              "summary": "L'Unica del mazzo: arma le lame e riporta gli Oggetti dal Ritiro a ogni attacco.",
+              "summary": "L'Unica del mazzo: arma le lame, riempie il Ritiro di Oggetti e li rimette in campo a ogni attacco.",
               "ui": {
                 "face": "Entità"
               },
@@ -4671,13 +4814,17 @@
                 "flavor": "Ciò che la Scissione divide, la sua lama riunisce.",
                 "effect": {
                   "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
+                },
+                "foresight": {
+                  "trigger": "Effetto",
+                  "text": "La prima volta in ogni tuo turno che un'Entità con un Oggetto assegnato che controlli attacca, guarda le prime 2 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo."
                 }
               }
             },
             "en": {
               "name": "Avy Shin, Blade of Nova Kai",
               "typeLabel": "Entity: Auros",
-              "summary": "The deck's Unique: it arms the blades and returns Objects from the Retire Zone at every attack.",
+              "summary": "The deck's Unique: it arms the blades, stocks the Retire Zone with Objects and brings them back at every attack.",
               "ui": {
                 "face": "Entity"
               },
@@ -4701,6 +4848,10 @@
                 "flavor": "What the Schism divides, its blade reunites.",
                 "effect": {
                   "text": "Other Entities with an Object assigned you control have +1 Power."
+                },
+                "foresight": {
+                  "trigger": "Effect",
+                  "text": "The first time each of your turns an Entity with an Object assigned you control attacks, look at the top 2 cards of your deck. You may reveal an Object among them and put it into your Retire Zone. Put the rest on the bottom of your deck."
                 }
               }
             }
@@ -4710,7 +4861,8 @@
             "auros",
             "equip",
             "legendary",
-            "retire"
+            "retire",
+            "dig"
           ],
           "rulesReference": "MANUALE.md §3.1, §8.2",
           "faces": [
@@ -4776,6 +4928,44 @@
                     "details": {
                       "noFluxCost": true,
                       "respectAssignRestrictions": true
+                    }
+                  }
+                },
+                {
+                  "id": "foresight",
+                  "displayKey": "foresight",
+                  "event": "on_attack",
+                  "details": {
+                    "oncePerEachOfYourTurns": true,
+                    "attacker": {
+                      "cardType": "entity",
+                      "controller": "controller",
+                      "details": {
+                        "hasObjectAssigned": true
+                      }
+                    }
+                  },
+                  "effect": {
+                    "type": "look_and_optionally_move",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top",
+                      "count": 2
+                    },
+                    "details": {
+                      "mayReveal": {
+                        "cardType": "object"
+                      },
+                      "revealTo": {
+                        "zone": "retire",
+                        "owner": "controller"
+                      },
+                      "restTo": {
+                        "zone": "deck",
+                        "owner": "controller",
+                        "position": "bottom"
+                      }
                     }
                   }
                 }
@@ -5824,7 +6014,7 @@
             "it": {
               "name": "Scudo Riflesso",
               "typeLabel": "Materia Dimensionale I",
-              "summary": "Un blocco dal nulla che punisce chi attacca un fronte armato.",
+              "summary": "Un blocco dal nulla che ripaga in PV chi tiene il Fronte armato.",
               "ui": {
                 "face": "Materia"
               },
@@ -5841,7 +6031,7 @@
                 "name": "Scudo Riflesso",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se controlli almeno 2 Entità con un Oggetto assegnato, l'attaccante prende −2 Potenza fino alla fine del turno."
+                  "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
                 },
                 "flavor": "Il muro che non c'era, finché non ci hai sbattuto contro."
               },
@@ -5853,7 +6043,7 @@
             "en": {
               "name": "Reflected Shield",
               "typeLabel": "Dimensional Matter I",
-              "summary": "A block out of nowhere that punishes whoever attacks an armed front.",
+              "summary": "A block out of nowhere that pays back in HP for keeping the Front armed.",
               "ui": {
                 "face": "Matter"
               },
@@ -5870,7 +6060,7 @@
                 "name": "Reflected Shield",
                 "effect": {
                   "name": "Effect",
-                  "text": "Play it as a block against an attacker: that attack is blocked. If you control at least 2 Entities with an Object assigned, the attacker gets −2 Power until end of turn."
+                  "text": "Play it as a block against an attacker: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
                 },
                 "flavor": "The wall that was not there, until you struck it."
               },
@@ -5886,7 +6076,8 @@
             "grade-1",
             "reactive",
             "block",
-            "equip"
+            "equip",
+            "lifegain"
           ],
           "rulesReference": "MANUALE.md §7.2",
           "faces": [
@@ -5920,8 +6111,7 @@
                     },
                     "details": {
                       "ifControllerEntitiesWithObjectAtLeast": 2,
-                      "attackerPowerModifier": -2,
-                      "duration": "until_end_of_turn"
+                      "thenControllerGainsHealth": 3
                     }
                   }
                 }
@@ -5950,7 +6140,7 @@
           "locales": {
             "it": {
               "name": "Carica Latente",
-              "typeLabel": "Materia Dimensionale I",
+              "typeLabel": "Materia Dimensionale II",
               "summary": "Scava cinque carte e lascia decidere al d20 che cosa peschi.",
               "ui": {
                 "face": "Materia"
@@ -5973,13 +6163,13 @@
                 "flavor": "Il mazzo sa già. Il dado decide quando."
               },
               "matters": {
-                "dimensionalTitle": "Materia Dimensionale · 1° grado",
+                "dimensionalTitle": "Materia Dimensionale · 2° grado",
                 "dimensionalAria": "Dimensionale"
               }
             },
             "en": {
               "name": "Latent Charge",
-              "typeLabel": "Dimensional Matter I",
+              "typeLabel": "Dimensional Matter II",
               "summary": "Digs five cards and lets the d20 decide what you take.",
               "ui": {
                 "face": "Matter"
@@ -6002,7 +6192,7 @@
                 "flavor": "The deck already knows. The die decides when."
               },
               "matters": {
-                "dimensionalTitle": "Dimensional Matter · 1st grade",
+                "dimensionalTitle": "Dimensional Matter · 2nd grade",
                 "dimensionalAria": "Dimensional"
               }
             }
@@ -6010,7 +6200,7 @@
           "tags": [
             "matter",
             "dimensional",
-            "grade-1",
+            "grade-2",
             "die",
             "retire",
             "tutor"
@@ -6023,7 +6213,7 @@
               "displayKey": "face",
               "matter": {
                 "type": "dimensional",
-                "grade": 1
+                "grade": 2
               },
               "behavior": "normal",
               "stats": {
@@ -6210,6 +6400,253 @@
             "designNotes": "notes/rbf-042.md",
             "art": "art/rbf-042.jpg"
           }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-043",
+          "setId": "rubyfront-core",
+          "collectorNumber": "043",
+          "slug": "dimensional-prism",
+          "type": "object",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Prisma Dimensionale",
+              "typeLabel": "Oggetto",
+              "summary": "Chiude un avversario nell'Abisso finché il prisma regge.",
+              "ui": {
+                "face": "Oggetto"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Prisma Dimensionale",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Quando assegni questa carta a un'Entità, manda nell'Abisso un'Entità avversaria. Finché questa carta resta in gioco, quell'Entità resta nell'Abisso. Quando questa carta lascia il gioco, quell'Entità torna in gioco."
+                },
+                "flavor": "Non la uccide. La mette da un'altra parte."
+              }
+            },
+            "en": {
+              "name": "Dimensional Prism",
+              "typeLabel": "Object",
+              "summary": "It shuts an opponent into the Abyss for as long as the prism holds.",
+              "ui": {
+                "face": "Object"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Dimensional Prism",
+                "effect": {
+                  "name": "Effect",
+                  "text": "When you assign this card to an Entity, send an opposing Entity to the Abyss. As long as this card remains in play, that Entity stays in the Abyss. When this card leaves play, that Entity returns to play."
+                },
+                "flavor": "It does not kill it. It puts it somewhere else."
+              }
+            }
+          },
+          "tags": [
+            "object",
+            "auros",
+            "equip",
+            "removal",
+            "abyss"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §5",
+          "faces": [
+            {
+              "id": "object",
+              "kind": "object",
+              "displayKey": "face",
+              "stats": {
+                "fluxCost": 3
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "confine",
+                  "displayKey": "effect",
+                  "event": "on_assign_object",
+                  "details": {
+                    "selfAssigned": true
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "abyss",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "whileSourceOnField": true,
+                      "returnsToPlayWhenSourceLeaves": true
+                    }
+                  }
+                }
+              ],
+              "actions": [],
+              "assignRestriction": {
+                "cardType": "entity",
+                "controller": "controller"
+              }
+            }
+          ],
+          "designNotes": "rbf-043.md",
+          "art": "rbf-043.jpg",
+          "source": {
+            "designNotes": "notes/rbf-043.md",
+            "art": "art/rbf-043.jpg"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-044",
+          "setId": "rubyfront-core",
+          "collectorNumber": "044",
+          "slug": "fracture-of-the-schism",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Frattura della Scissione",
+              "typeLabel": "Materia Dimensionale II",
+              "summary": "Toglie di mezzo un corpo avversario senza ucciderlo, e costa meno su un Fronte armato.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "permanent": "Permanente"
+                }
+              },
+              "face": {
+                "name": "Frattura della Scissione",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, questa carta costa 1 Flusso in meno."
+                },
+                "flavor": "La crepa non taglia: separa."
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · 2° grado",
+                "dimensionalAria": "Dimensionale"
+              }
+            },
+            "en": {
+              "name": "Fracture of the Schism",
+              "typeLabel": "Dimensional Matter II",
+              "summary": "It removes an opposing body without killing it, and costs less on an armed Front.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "permanent": "Permanent"
+                }
+              },
+              "face": {
+                "name": "Fracture of the Schism",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Put an opposing Entity into its owner's Retire Zone. If there are at least 2 Entities with an Object assigned on your Front, this card costs 1 less Flux."
+                },
+                "flavor": "The crack does not cut: it separates."
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · 2nd grade",
+                "dimensionalAria": "Dimensional"
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "dimensional",
+            "grade-2",
+            "removal",
+            "retire",
+            "equip"
+          ],
+          "rulesReference": "MANUALE.md §5, §7",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "dimensional",
+                "grade": 2
+              },
+              "behavior": "normal",
+              "stats": {
+                "fluxCost": 3
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "sunder",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "retire",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "fluxCostReduction": {
+                        "amount": 1,
+                        "ifControllerEntitiesWithObjectAtLeast": 2
+                      }
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-044.md",
+          "art": "rbf-044.jpg",
+          "source": {
+            "designNotes": "notes/rbf-044.md",
+            "art": "art/rbf-044.jpg"
+          }
         }
       ]
     }
@@ -6241,7 +6678,7 @@
             "hp": "PV",
             "nexusRequirement": {
               "label": "Requisito Nexus",
-              "text": "Controlli almeno 4 Entità Umane. Scarta una carta Materia, poi flippa."
+              "text": "Controlli almeno 4 Entità Umane. Scarta una carta Entità, poi flippa."
             },
             "die": "Dado di schieramento"
           },
@@ -6276,6 +6713,10 @@
           "faceB": {
             "name": "Ritorno dell'Erede",
             "nexusAria": "Nexus",
+            "heirAscension": {
+              "trigger": "Quando flippa",
+              "text": "Se Rhen, Erede di Vhal Astra è sul tuo Fronte, mettila nell'Abisso. Non puoi più giocare Rhen, Erede di Vhal Astra per il resto della partita."
+            },
             "effect": {
               "trigger": "Effetto",
               "text": "La prima volta in ogni tuo turno che almeno 3 Entità Umane che controlli hanno attaccato, guadagni 2 PV e pesca una carta, poi scarta una carta."
@@ -6289,8 +6730,8 @@
                 "name": "Chiamata dei Sette",
                 "text": "mostra le prime 7 carte del tuo mazzo. Tra esse puoi mettere sul tuo Fronte un'Entità Umana e un altro permanente non Umano. Metti le altre in fondo al mazzo."
               },
-              "returnInArms": {
-                "name": "Ritorno in Armi",
+              "returnToFront": {
+                "name": "Ritorno al Fronte",
                 "text": "puoi mettere sul tuo Fronte un'Entità Umana dalla tua mano senza pagarne il costo di Flusso. Quell'Entità ottiene Slancio fino alla fine del turno, e le prossime Entità Umane che attaccano in questo turno prendono +1 Potenza fino alla fine del turno."
               }
             },
@@ -6310,7 +6751,7 @@
             "hp": "HP",
             "nexusRequirement": {
               "label": "Nexus requirement",
-              "text": "You control at least 4 Human Entities. Discard a Matter card, then flip."
+              "text": "You control at least 4 Human Entities. Discard an Entity card, then flip."
             },
             "die": "Deployment die"
           },
@@ -6345,6 +6786,10 @@
           "faceB": {
             "name": "Return of the Heir",
             "nexusAria": "Nexus",
+            "heirAscension": {
+              "trigger": "When it flips",
+              "text": "If Rhen, Heir of Vhal Astra is on your Front, put it into the Abyss. You can no longer play Rhen, Heir of Vhal Astra for the rest of the game."
+            },
             "effect": {
               "trigger": "Effect",
               "text": "The first time each of your turns at least 3 Human Entities you control have attacked, you gain 2 HP and draw a card, then discard a card."
@@ -6358,8 +6803,8 @@
                 "name": "Call of the Seven",
                 "text": "reveal the top 7 cards of your deck. Among them you may put a Human Entity and one other non-Human permanent onto your Front. Put the rest on the bottom of your deck."
               },
-              "returnInArms": {
-                "name": "Return in Arms",
+              "returnToFront": {
+                "name": "Return to the Front",
                 "text": "you may put a Human Entity from your hand onto your Front without paying its Flux cost. That Entity gains Surge until end of turn, and the next Human Entities that attack this turn get +1 Power until end of turn."
               }
             },
@@ -6437,7 +6882,7 @@
                   },
                   "count": 1,
                   "filter": {
-                    "cardType": "matter"
+                    "cardType": "entity"
                   }
                 }
               ]
@@ -6563,6 +7008,44 @@
           "requirements": {},
           "triggers": [
             {
+              "id": "heir-absorbed",
+              "displayKey": "heirAscension",
+              "event": "on_flip",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardId": "RBF-012",
+                  "controller": "controller",
+                  "quantity": "all"
+                },
+                "from": {
+                  "zone": "front",
+                  "owner": "controller"
+                },
+                "destination": {
+                  "zone": "abyss",
+                  "owner": "controller"
+                }
+              }
+            },
+            {
+              "id": "heir-sealed",
+              "displayKey": "heirAscension",
+              "event": "on_flip",
+              "effect": {
+                "type": "restrict_action",
+                "target": {
+                  "cardId": "RBF-012",
+                  "controller": "controller"
+                },
+                "restricts": "play",
+                "duration": "permanent",
+                "details": {
+                  "followsCard": true
+                }
+              }
+            },
+            {
               "id": "heirs-muster",
               "displayKey": "effect",
               "event": "on_attack",
@@ -6658,8 +7141,8 @@
               }
             },
             {
-              "id": "return-in-arms",
-              "displayKey": "returnInArms",
+              "id": "return-to-front",
+              "displayKey": "returnToFront",
               "timing": [
                 "own_preparation",
                 "own_front"
@@ -6701,7 +7184,8 @@
             }
           ],
           "art": "rbf-001-nexus.jpg",
-          "artZoom": "54%",
+          "artZoom": "48%",
+          "artShift": "0%",
           "source": {
             "art": "art/rbf-001-nexus.jpg"
           }
@@ -6709,7 +7193,7 @@
       ],
       "designNotes": "rbf-001.md",
       "art": "rbf-001.jpg",
-      "artZoom": "55%",
+      "artZoom": "48%",
       "source": {
         "designNotes": "notes/rbf-001.md",
         "art": "art/rbf-001.jpg"
@@ -6743,7 +7227,7 @@
           "face": {
             "name": "Ragazzo della Radura Argentata",
             "effect": {
-              "text": "Se controlli un'altra Entità Umana, questa Entità ha +1 Potenza mentre attacca."
+              "text": "Se sul tuo Fronte c'è un'altra Entità Umana, questa Entità ha +1 Potenza mentre attacca."
             },
             "flavor": "Corre più veloce quando qualcuno corre accanto."
           }
@@ -6764,7 +7248,7 @@
           "face": {
             "name": "Boy of the Silver Glade",
             "effect": {
-              "text": "If you control another Human Entity, this Entity has +1 Power while attacking."
+              "text": "If another Human Entity is on your Front, this Entity has +1 Power while attacking."
             },
             "flavor": "It runs faster when someone runs alongside."
           }
@@ -6850,7 +7334,7 @@
             "name": "Guida dei Sentieri Perduti",
             "guide": {
               "trigger": "Effetto",
-              "text": "Quando un'altra Entità Umana entra sul tuo Fronte, se controlli almeno 3 Entità Umane, pesca una carta."
+              "text": "Quando un'altra Entità Umana entra sul tuo Fronte, se sul tuo Fronte ci sono almeno 3 Entità Umane, pesca una carta."
             },
             "flavor": "Conosce le scorciatoie perché le ha perse tutte, una per volta."
           },
@@ -6876,7 +7360,7 @@
             "name": "Guide of the Lost Paths",
             "guide": {
               "trigger": "Effect",
-              "text": "When another Human Entity enters your Front, if you control at least 3 Human Entities, draw a card."
+              "text": "When another Human Entity enters your Front, if there are at least 3 Human Entities on your Front, draw a card."
             },
             "flavor": "It knows the shortcuts because it lost every one of them, one at a time."
           },
@@ -7101,13 +7585,11 @@
             "illustration": "Illustrazione",
             "hp": "PV",
             "power": "Potenza",
-            "flux": "Flussi"
+            "flux": "Flussi",
+            "counterattack": "Contrattacco"
           },
           "face": {
             "name": "Predone delle Terre Infrante",
-            "effect": {
-              "text": "Questa Entità ha Contrattacco +1."
-            },
             "raid": {
               "trigger": "Quando attacca",
               "text": "Se almeno 2 Entità Umane che controlli hanno attaccato nel tuo turno precedente, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
@@ -7130,13 +7612,11 @@
             "illustration": "Illustration",
             "hp": "HP",
             "power": "Power",
-            "flux": "Flux"
+            "flux": "Flux",
+            "counterattack": "Counterattack"
           },
           "face": {
             "name": "Raider of the Broken Lands",
-            "effect": {
-              "text": "This Entity has Counterattack +1."
-            },
             "raid": {
               "trigger": "When it attacks",
               "text": "If at least 2 Human Entities you control attacked on your previous turn, choose an opposing Entity: that Entity cannot block this turn."
@@ -7164,7 +7644,8 @@
           "race": "human",
           "stats": {
             "power": 2,
-            "fluxCost": 2
+            "fluxCost": 2,
+            "counterattack": 1
           },
           "enablesMatters": [
             {
@@ -7175,18 +7656,6 @@
           "keywords": [],
           "requirements": {},
           "triggers": [
-            {
-              "id": "spurs",
-              "displayKey": "effect",
-              "event": "while_in_play",
-              "effect": {
-                "type": "modify_counterattack",
-                "target": {
-                  "scope": "self"
-                },
-                "amount": 1
-              }
-            },
             {
               "id": "raid",
               "displayKey": "raid",
@@ -7916,7 +8385,7 @@
       "id": "RBF-011",
       "setId": "rubyfront-core",
       "collectorNumber": "011",
-      "slug": "ajmal-lord-of-the-broken-lands",
+      "slug": "ajmal-king-of-the-broken-lands",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -7924,7 +8393,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Ajmal, Signore delle Terre Infrante",
+          "name": "Ajmal, Re delle Terre Infrante",
           "typeLabel": "Entità: Umano",
           "summary": "Quando il dado gli dà ragione, il turno non finisce con un solo combattimento.",
           "ui": {
@@ -7934,10 +8403,11 @@
             "illustration": "Illustrazione",
             "hp": "PV",
             "power": "Potenza",
-            "flux": "Flussi"
+            "flux": "Flussi",
+            "counterattack": "Contrattacco"
           },
           "face": {
-            "name": "Ajmal, Signore delle Terre Infrante",
+            "name": "Ajmal, Re delle Terre Infrante",
             "secondCharge": {
               "trigger": "Quando attacca",
               "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli e, dopo questa Fase di Fronte, c'è una Fase di Fronte addizionale."
@@ -7950,7 +8420,7 @@
           }
         },
         "en": {
-          "name": "Ajmal, Lord of the Broken Lands",
+          "name": "Ajmal, King of the Broken Lands",
           "typeLabel": "Entity: Human",
           "summary": "When the die agrees with him, the turn does not end after a single combat.",
           "ui": {
@@ -7960,10 +8430,11 @@
             "illustration": "Illustration",
             "hp": "HP",
             "power": "Power",
-            "flux": "Flux"
+            "flux": "Flux",
+            "counterattack": "Counterattack"
           },
           "face": {
-            "name": "Ajmal, Lord of the Broken Lands",
+            "name": "Ajmal, King of the Broken Lands",
             "secondCharge": {
               "trigger": "When it attacks",
               "text": "Roll a d20: on 15–20 untap all Entities you control and, after this Front Phase, there is an additional Front Phase."
@@ -7992,7 +8463,8 @@
           "race": "human",
           "stats": {
             "power": 5,
-            "fluxCost": 5
+            "fluxCost": 5,
+            "counterattack": 1
           },
           "enablesMatters": [
             {
@@ -8178,9 +8650,13 @@
         }
       ],
       "designNotes": "rbf-012.md",
+      "art": "rbf-012.jpg",
       "unique": true,
+      "fullArt": true,
+      "artZoom": "50%",
       "source": {
-        "designNotes": "notes/rbf-012.md"
+        "designNotes": "notes/rbf-012.md",
+        "art": "art/rbf-012.jpg"
       }
     },
     {
@@ -8292,8 +8768,10 @@
         }
       ],
       "designNotes": "rbf-013.md",
+      "art": "rbf-013.jpg",
       "source": {
-        "designNotes": "notes/rbf-013.md"
+        "designNotes": "notes/rbf-013.md",
+        "art": "art/rbf-013.jpg"
       }
     },
     {
@@ -8396,8 +8874,10 @@
         }
       ],
       "designNotes": "rbf-014.md",
+      "art": "rbf-014.jpg",
       "source": {
-        "designNotes": "notes/rbf-014.md"
+        "designNotes": "notes/rbf-014.md",
+        "art": "art/rbf-014.jpg"
       }
     },
     {
@@ -8532,8 +9012,10 @@
         }
       ],
       "designNotes": "rbf-015.md",
+      "art": "rbf-015.jpg",
       "source": {
-        "designNotes": "notes/rbf-015.md"
+        "designNotes": "notes/rbf-015.md",
+        "art": "art/rbf-015.jpg"
       }
     },
     {
@@ -8656,8 +9138,10 @@
         }
       ],
       "designNotes": "rbf-016.md",
+      "art": "rbf-016.jpg",
       "source": {
-        "designNotes": "notes/rbf-016.md"
+        "designNotes": "notes/rbf-016.md",
+        "art": "art/rbf-016.jpg"
       }
     },
     {
@@ -8785,8 +9269,10 @@
         }
       ],
       "designNotes": "rbf-017.md",
+      "art": "rbf-017.jpg",
       "source": {
-        "designNotes": "notes/rbf-017.md"
+        "designNotes": "notes/rbf-017.md",
+        "art": "art/rbf-017.jpg"
       }
     },
     {
@@ -8914,8 +9400,10 @@
         }
       ],
       "designNotes": "rbf-018.md",
+      "art": "rbf-018.jpg",
       "source": {
-        "designNotes": "notes/rbf-018.md"
+        "designNotes": "notes/rbf-018.md",
+        "art": "art/rbf-018.jpg"
       }
     },
     {
@@ -9066,8 +9554,10 @@
         }
       ],
       "designNotes": "rbf-019.md",
+      "art": "rbf-019.jpg",
       "source": {
-        "designNotes": "notes/rbf-019.md"
+        "designNotes": "notes/rbf-019.md",
+        "art": "art/rbf-019.jpg"
       }
     },
     {
@@ -9102,7 +9592,7 @@
             "name": "Contrattacco Coordinato",
             "effect": {
               "name": "Effetto",
-              "text": "Gioca questa carta come blocco. Se controlli almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
+              "text": "Gioca questa carta come blocco. Se sul tuo Fronte ci sono almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
             },
             "flavor": "Nessuno grida l'ordine. Si girano insieme."
           },
@@ -9131,7 +9621,7 @@
             "name": "Coordinated Counterattack",
             "effect": {
               "name": "Effect",
-              "text": "Play this card as a block. If you control at least 3 Human Entities, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
+              "text": "Play this card as a block. If there are at least 3 Human Entities on your Front, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
             },
             "flavor": "No one shouts the order. They turn together."
           },
@@ -9198,8 +9688,10 @@
         }
       ],
       "designNotes": "rbf-020.md",
+      "art": "rbf-020.jpg",
       "source": {
-        "designNotes": "notes/rbf-020.md"
+        "designNotes": "notes/rbf-020.md",
+        "art": "art/rbf-020.jpg"
       }
     },
     {
@@ -9327,8 +9819,10 @@
         }
       ],
       "designNotes": "rbf-021.md",
+      "art": "rbf-021.jpg",
       "source": {
-        "designNotes": "notes/rbf-021.md"
+        "designNotes": "notes/rbf-021.md",
+        "art": "art/rbf-021.jpg"
       }
     },
     {
@@ -9336,7 +9830,7 @@
       "id": "RBF-022",
       "setId": "rubyfront-core",
       "collectorNumber": "022",
-      "slug": "charge-of-the-heirs",
+      "slug": "for-vhal-astra",
       "type": "matter",
       "layout": "single",
       "status": "draft",
@@ -9344,7 +9838,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Carica degli Eredi",
+          "name": "Per Vhal Astra!",
           "typeLabel": "Materia Dinamica II",
           "summary": "Ogni carica larga chiede al dado se curare o colpire.",
           "ui": {
@@ -9360,7 +9854,7 @@
             }
           },
           "face": {
-            "name": "Carica degli Eredi",
+            "name": "Per Vhal Astra!",
             "effect": {
               "name": "Effetto",
               "text": "Ogni volta che le Entità Umane che controlli attaccano, lancia un d20: con 1–6 guadagni PV pari al numero di Entità Umane che hanno attaccato in questo turno; con 15–20 il Rubyfront/Nexus avversario perde PV pari al numero di Entità Umane che hanno attaccato in questo turno; con 7–14 non succede nulla."
@@ -9373,7 +9867,7 @@
           }
         },
         "en": {
-          "name": "Charge of the Heirs",
+          "name": "For Vhal Astra!",
           "typeLabel": "Dynamic Matter II",
           "summary": "Every wide charge asks the die whether to heal or to strike.",
           "ui": {
@@ -9389,7 +9883,7 @@
             }
           },
           "face": {
-            "name": "Charge of the Heirs",
+            "name": "For Vhal Astra!",
             "effect": {
               "name": "Effect",
               "text": "Each time Human Entities you control attack, roll a d20: on 1–6 you gain HP equal to the number of Human Entities that attacked this turn; on 15–20 the opposing Rubyfront/Nexus loses HP equal to the number of Human Entities that attacked this turn; on 7–14 nothing happens."
@@ -9464,8 +9958,10 @@
         }
       ],
       "designNotes": "rbf-022.md",
+      "art": "rbf-022.jpg",
       "source": {
-        "designNotes": "notes/rbf-022.md"
+        "designNotes": "notes/rbf-022.md",
+        "art": "art/rbf-022.jpg"
       }
     },
     {
@@ -9529,7 +10025,7 @@
             "nexusAria": "Nexus",
             "flipEffect": {
               "trigger": "Quando flippa",
-              "text": "Pesca una carta."
+              "text": "Se Avy Shin, Lama di Nova Kai è sul tuo Fronte, mettila nell'Abisso. Non puoi più giocare Avy Shin, Lama di Nova Kai per il resto della partita. Poi pesca una carta."
             },
             "effect": {
               "trigger": "Effetto",
@@ -9546,7 +10042,7 @@
               },
               "greatRearm": {
                 "name": "Grande Riarmo",
-                "text": "assegna un qualsiasi numero di Oggetti dalla tua Zona di Ritiro ad altrettante Entità senza Oggetto sul tuo Fronte, senza pagarne il costo di Flusso."
+                "text": "assegna un qualsiasi numero di Oggetti dalla tua Zona di Ritiro ad altrettante Entità sul tuo Fronte, senza pagarne il costo di Flusso."
               }
             },
             "flavor": "La Scissione non è una ferita. È una porta."
@@ -9601,7 +10097,7 @@
             "nexusAria": "Nexus",
             "flipEffect": {
               "trigger": "When it flips",
-              "text": "Draw a card."
+              "text": "If Avy Shin, Blade of Nova Kai is on your Front, put it into the Abyss. You can no longer play Avy Shin, Blade of Nova Kai for the rest of the game. Then draw a card."
             },
             "effect": {
               "trigger": "Effect",
@@ -9618,7 +10114,7 @@
               },
               "greatRearm": {
                 "name": "Great Rearmament",
-                "text": "assign any number of Objects from your Retire Zone to as many Entities without an Object on your Front, without paying their Flux cost."
+                "text": "assign any number of Objects from your Retire Zone to as many Entities on your Front, without paying their Flux cost."
               }
             },
             "flavor": "The Schism is not a wound. It is a door."
@@ -9811,6 +10307,44 @@
           "requirements": {},
           "triggers": [
             {
+              "id": "blade-absorbed",
+              "displayKey": "flipEffect",
+              "event": "on_flip",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardId": "RBF-031",
+                  "controller": "controller",
+                  "quantity": "all"
+                },
+                "from": {
+                  "zone": "front",
+                  "owner": "controller"
+                },
+                "destination": {
+                  "zone": "abyss",
+                  "owner": "controller"
+                }
+              }
+            },
+            {
+              "id": "blade-sealed",
+              "displayKey": "flipEffect",
+              "event": "on_flip",
+              "effect": {
+                "type": "restrict_action",
+                "target": {
+                  "cardId": "RBF-031",
+                  "controller": "controller"
+                },
+                "restricts": "play",
+                "duration": "permanent",
+                "details": {
+                  "followsCard": true
+                }
+              }
+            },
+            {
               "id": "awakening",
               "displayKey": "flipEffect",
               "event": "on_flip",
@@ -9925,10 +10459,7 @@
                   "controller": "controller",
                   "zone": "front",
                   "owner": "controller",
-                  "quantity": "all",
-                  "details": {
-                    "hasObjectAssigned": false
-                  }
+                  "quantity": "all"
                 },
                 "details": {
                   "anyNumber": true,
@@ -10460,7 +10991,7 @@
         "it": {
           "name": "Sentinella di Nova Kai",
           "typeLabel": "Entità: Auros",
-          "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte.",
+          "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte e resta in guardia.",
           "ui": {
             "face": "Entità"
           },
@@ -10480,13 +11011,17 @@
             "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
             "effect": {
               "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
+            },
+            "vigil": {
+              "trigger": "Effetto",
+              "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, stappala dopo il combattimento."
             }
           }
         },
         "en": {
           "name": "Sentinel of Nova Kai",
           "typeLabel": "Entity: Auros",
-          "summary": "A sentinel whose answer hits far harder with the right Object.",
+          "summary": "A sentinel whose answer hits far harder with the right Object, and who stays on guard.",
           "ui": {
             "face": "Entity"
           },
@@ -10506,6 +11041,10 @@
             "flavor": "The answering blow is the only one it has always prepared.",
             "effect": {
               "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
+            },
+            "vigil": {
+              "trigger": "Effect",
+              "text": "The first time each of your turns this Entity attacks while it has an Object assigned, untap it after combat."
             }
           }
         }
@@ -10514,7 +11053,8 @@
         "entity",
         "auros",
         "equip",
-        "counterattack"
+        "counterattack",
+        "untap"
       ],
       "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
       "faces": [
@@ -10549,6 +11089,24 @@
                 "setTo": 2,
                 "details": {
                   "whileHasObjectAssigned": true
+                }
+              }
+            },
+            {
+              "id": "vigil",
+              "displayKey": "vigil",
+              "event": "on_attack",
+              "details": {
+                "oncePerEachOfYourTurns": true,
+                "whileHasObjectAssigned": true
+              },
+              "effect": {
+                "type": "untap",
+                "target": {
+                  "scope": "self"
+                },
+                "details": {
+                  "afterCombat": true
                 }
               }
             }
@@ -10715,7 +11273,7 @@
         "it": {
           "name": "Portatore di Fronti",
           "typeLabel": "Entità: Auros",
-          "summary": "Ogni Oggetto che gli affidi è una carta in più.",
+          "summary": "Arma a sconto e ogni Oggetto che gli affidi è una carta in più.",
           "ui": {
             "face": "Entità"
           },
@@ -10735,13 +11293,16 @@
               "trigger": "Quando assegni un Oggetto a questa Entità",
               "text": "Pesca una carta."
             },
-            "flavor": "Non chiede che cosa porta. Chiede solo per chi."
+            "flavor": "Non chiede che cosa porta. Chiede solo per chi.",
+            "effect": {
+              "text": "Gli Oggetti che assegni a questa Entità costano 1 Flusso in meno."
+            }
           }
         },
         "en": {
           "name": "Bearer of Fronts",
           "typeLabel": "Entity: Auros",
-          "summary": "Every Object entrusted to it is one more card.",
+          "summary": "It arms at a discount, and every Object entrusted to it is one more card.",
           "ui": {
             "face": "Entity"
           },
@@ -10761,7 +11322,10 @@
               "trigger": "When you assign an Object to this Entity",
               "text": "Draw a card."
             },
-            "flavor": "It never asks what it carries. Only for whom."
+            "flavor": "It never asks what it carries. Only for whom.",
+            "effect": {
+              "text": "Objects you assign to this Entity cost 1 less Flux."
+            }
           }
         }
       },
@@ -10769,7 +11333,8 @@
         "entity",
         "auros",
         "equip",
-        "draw"
+        "draw",
+        "cost-reduction"
       ],
       "rulesReference": "MANUALE.md §3.1, §8.2",
       "faces": [
@@ -10791,6 +11356,21 @@
           "keywords": [],
           "requirements": {},
           "triggers": [
+            {
+              "id": "outfit",
+              "displayKey": "effect",
+              "event": "while_in_play",
+              "effect": {
+                "type": "reduce_cost",
+                "filter": {
+                  "cardType": "object"
+                },
+                "amount": 1,
+                "details": {
+                  "assignedToSelf": true
+                }
+              }
+            },
             {
               "id": "carry",
               "displayKey": "carry",
@@ -10832,7 +11412,7 @@
         "it": {
           "name": "Avy Shin, Lama di Nova Kai",
           "typeLabel": "Entità: Auros",
-          "summary": "L'Unica del mazzo: arma le lame e riporta gli Oggetti dal Ritiro a ogni attacco.",
+          "summary": "L'Unica del mazzo: arma le lame, riempie il Ritiro di Oggetti e li rimette in campo a ogni attacco.",
           "ui": {
             "face": "Entità"
           },
@@ -10856,13 +11436,17 @@
             "flavor": "Ciò che la Scissione divide, la sua lama riunisce.",
             "effect": {
               "text": "Le altre Entità con un Oggetto assegnato che controlli hanno +1 Potenza."
+            },
+            "foresight": {
+              "trigger": "Effetto",
+              "text": "La prima volta in ogni tuo turno che un'Entità con un Oggetto assegnato che controlli attacca, guarda le prime 2 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo."
             }
           }
         },
         "en": {
           "name": "Avy Shin, Blade of Nova Kai",
           "typeLabel": "Entity: Auros",
-          "summary": "The deck's Unique: it arms the blades and returns Objects from the Retire Zone at every attack.",
+          "summary": "The deck's Unique: it arms the blades, stocks the Retire Zone with Objects and brings them back at every attack.",
           "ui": {
             "face": "Entity"
           },
@@ -10886,6 +11470,10 @@
             "flavor": "What the Schism divides, its blade reunites.",
             "effect": {
               "text": "Other Entities with an Object assigned you control have +1 Power."
+            },
+            "foresight": {
+              "trigger": "Effect",
+              "text": "The first time each of your turns an Entity with an Object assigned you control attacks, look at the top 2 cards of your deck. You may reveal an Object among them and put it into your Retire Zone. Put the rest on the bottom of your deck."
             }
           }
         }
@@ -10895,7 +11483,8 @@
         "auros",
         "equip",
         "legendary",
-        "retire"
+        "retire",
+        "dig"
       ],
       "rulesReference": "MANUALE.md §3.1, §8.2",
       "faces": [
@@ -10961,6 +11550,44 @@
                 "details": {
                   "noFluxCost": true,
                   "respectAssignRestrictions": true
+                }
+              }
+            },
+            {
+              "id": "foresight",
+              "displayKey": "foresight",
+              "event": "on_attack",
+              "details": {
+                "oncePerEachOfYourTurns": true,
+                "attacker": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "details": {
+                    "hasObjectAssigned": true
+                  }
+                }
+              },
+              "effect": {
+                "type": "look_and_optionally_move",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top",
+                  "count": 2
+                },
+                "details": {
+                  "mayReveal": {
+                    "cardType": "object"
+                  },
+                  "revealTo": {
+                    "zone": "retire",
+                    "owner": "controller"
+                  },
+                  "restTo": {
+                    "zone": "deck",
+                    "owner": "controller",
+                    "position": "bottom"
+                  }
                 }
               }
             }
@@ -12009,7 +12636,7 @@
         "it": {
           "name": "Scudo Riflesso",
           "typeLabel": "Materia Dimensionale I",
-          "summary": "Un blocco dal nulla che punisce chi attacca un fronte armato.",
+          "summary": "Un blocco dal nulla che ripaga in PV chi tiene il Fronte armato.",
           "ui": {
             "face": "Materia"
           },
@@ -12026,7 +12653,7 @@
             "name": "Scudo Riflesso",
             "effect": {
               "name": "Effetto",
-              "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se controlli almeno 2 Entità con un Oggetto assegnato, l'attaccante prende −2 Potenza fino alla fine del turno."
+              "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
             },
             "flavor": "Il muro che non c'era, finché non ci hai sbattuto contro."
           },
@@ -12038,7 +12665,7 @@
         "en": {
           "name": "Reflected Shield",
           "typeLabel": "Dimensional Matter I",
-          "summary": "A block out of nowhere that punishes whoever attacks an armed front.",
+          "summary": "A block out of nowhere that pays back in HP for keeping the Front armed.",
           "ui": {
             "face": "Matter"
           },
@@ -12055,7 +12682,7 @@
             "name": "Reflected Shield",
             "effect": {
               "name": "Effect",
-              "text": "Play it as a block against an attacker: that attack is blocked. If you control at least 2 Entities with an Object assigned, the attacker gets −2 Power until end of turn."
+              "text": "Play it as a block against an attacker: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
             },
             "flavor": "The wall that was not there, until you struck it."
           },
@@ -12071,7 +12698,8 @@
         "grade-1",
         "reactive",
         "block",
-        "equip"
+        "equip",
+        "lifegain"
       ],
       "rulesReference": "MANUALE.md §7.2",
       "faces": [
@@ -12105,8 +12733,7 @@
                 },
                 "details": {
                   "ifControllerEntitiesWithObjectAtLeast": 2,
-                  "attackerPowerModifier": -2,
-                  "duration": "until_end_of_turn"
+                  "thenControllerGainsHealth": 3
                 }
               }
             }
@@ -12135,7 +12762,7 @@
       "locales": {
         "it": {
           "name": "Carica Latente",
-          "typeLabel": "Materia Dimensionale I",
+          "typeLabel": "Materia Dimensionale II",
           "summary": "Scava cinque carte e lascia decidere al d20 che cosa peschi.",
           "ui": {
             "face": "Materia"
@@ -12158,13 +12785,13 @@
             "flavor": "Il mazzo sa già. Il dado decide quando."
           },
           "matters": {
-            "dimensionalTitle": "Materia Dimensionale · 1° grado",
+            "dimensionalTitle": "Materia Dimensionale · 2° grado",
             "dimensionalAria": "Dimensionale"
           }
         },
         "en": {
           "name": "Latent Charge",
-          "typeLabel": "Dimensional Matter I",
+          "typeLabel": "Dimensional Matter II",
           "summary": "Digs five cards and lets the d20 decide what you take.",
           "ui": {
             "face": "Matter"
@@ -12187,7 +12814,7 @@
             "flavor": "The deck already knows. The die decides when."
           },
           "matters": {
-            "dimensionalTitle": "Dimensional Matter · 1st grade",
+            "dimensionalTitle": "Dimensional Matter · 2nd grade",
             "dimensionalAria": "Dimensional"
           }
         }
@@ -12195,7 +12822,7 @@
       "tags": [
         "matter",
         "dimensional",
-        "grade-1",
+        "grade-2",
         "die",
         "retire",
         "tutor"
@@ -12208,7 +12835,7 @@
           "displayKey": "face",
           "matter": {
             "type": "dimensional",
-            "grade": 1
+            "grade": 2
           },
           "behavior": "normal",
           "stats": {
@@ -12395,26 +13022,273 @@
         "designNotes": "notes/rbf-042.md",
         "art": "art/rbf-042.jpg"
       }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-043",
+      "setId": "rubyfront-core",
+      "collectorNumber": "043",
+      "slug": "dimensional-prism",
+      "type": "object",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Prisma Dimensionale",
+          "typeLabel": "Oggetto",
+          "summary": "Chiude un avversario nell'Abisso finché il prisma regge.",
+          "ui": {
+            "face": "Oggetto"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Prisma Dimensionale",
+            "effect": {
+              "name": "Effetto",
+              "text": "Quando assegni questa carta a un'Entità, manda nell'Abisso un'Entità avversaria. Finché questa carta resta in gioco, quell'Entità resta nell'Abisso. Quando questa carta lascia il gioco, quell'Entità torna in gioco."
+            },
+            "flavor": "Non la uccide. La mette da un'altra parte."
+          }
+        },
+        "en": {
+          "name": "Dimensional Prism",
+          "typeLabel": "Object",
+          "summary": "It shuts an opponent into the Abyss for as long as the prism holds.",
+          "ui": {
+            "face": "Object"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Dimensional Prism",
+            "effect": {
+              "name": "Effect",
+              "text": "When you assign this card to an Entity, send an opposing Entity to the Abyss. As long as this card remains in play, that Entity stays in the Abyss. When this card leaves play, that Entity returns to play."
+            },
+            "flavor": "It does not kill it. It puts it somewhere else."
+          }
+        }
+      },
+      "tags": [
+        "object",
+        "auros",
+        "equip",
+        "removal",
+        "abyss"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §5",
+      "faces": [
+        {
+          "id": "object",
+          "kind": "object",
+          "displayKey": "face",
+          "stats": {
+            "fluxCost": 3
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "confine",
+              "displayKey": "effect",
+              "event": "on_assign_object",
+              "details": {
+                "selfAssigned": true
+              },
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "abyss",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "whileSourceOnField": true,
+                  "returnsToPlayWhenSourceLeaves": true
+                }
+              }
+            }
+          ],
+          "actions": [],
+          "assignRestriction": {
+            "cardType": "entity",
+            "controller": "controller"
+          }
+        }
+      ],
+      "designNotes": "rbf-043.md",
+      "art": "rbf-043.jpg",
+      "source": {
+        "designNotes": "notes/rbf-043.md",
+        "art": "art/rbf-043.jpg"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-044",
+      "setId": "rubyfront-core",
+      "collectorNumber": "044",
+      "slug": "fracture-of-the-schism",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Frattura della Scissione",
+          "typeLabel": "Materia Dimensionale II",
+          "summary": "Toglie di mezzo un corpo avversario senza ucciderlo, e costa meno su un Fronte armato.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "permanent": "Permanente"
+            }
+          },
+          "face": {
+            "name": "Frattura della Scissione",
+            "effect": {
+              "name": "Effetto",
+              "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, questa carta costa 1 Flusso in meno."
+            },
+            "flavor": "La crepa non taglia: separa."
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · 2° grado",
+            "dimensionalAria": "Dimensionale"
+          }
+        },
+        "en": {
+          "name": "Fracture of the Schism",
+          "typeLabel": "Dimensional Matter II",
+          "summary": "It removes an opposing body without killing it, and costs less on an armed Front.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux",
+            "behaviors": {
+              "reactive": "Reactive",
+              "permanent": "Permanent"
+            }
+          },
+          "face": {
+            "name": "Fracture of the Schism",
+            "effect": {
+              "name": "Effect",
+              "text": "Put an opposing Entity into its owner's Retire Zone. If there are at least 2 Entities with an Object assigned on your Front, this card costs 1 less Flux."
+            },
+            "flavor": "The crack does not cut: it separates."
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · 2nd grade",
+            "dimensionalAria": "Dimensional"
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "dimensional",
+        "grade-2",
+        "removal",
+        "retire",
+        "equip"
+      ],
+      "rulesReference": "MANUALE.md §5, §7",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "dimensional",
+            "grade": 2
+          },
+          "behavior": "normal",
+          "stats": {
+            "fluxCost": 3
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "sunder",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "retire",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "fluxCostReduction": {
+                    "amount": 1,
+                    "ifControllerEntitiesWithObjectAtLeast": 2
+                  }
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-044.md",
+      "art": "rbf-044.jpg",
+      "source": {
+        "designNotes": "notes/rbf-044.md",
+        "art": "art/rbf-044.jpg"
+      }
     }
   ],
   "decks": [
     {
       "schemaVersion": 1,
-      "id": "eredi-di-vhal-astra",
+      "id": "eredita-perduta",
       "setId": "rubyfront-core",
       "status": "draft",
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Eredi di Vhal Astra",
+          "name": "Eredità Perduta",
           "description": "Precon Umani: Fronte largo e attacchi in sequenza. Corpi a basso costo che valgono di più in compagnia, Oblivhal che guadagna PV ogni volta che tre Umani caricano insieme, e un Nexus che riporta in campo chi era già uscito."
         },
         "en": {
-          "name": "Heirs of Vhal Astra",
+          "name": "Lost Legacy",
           "description": "The Human precon: a wide Front and attacks in sequence. Cheap bodies that are worth more in company, Oblivhal gaining HP every time three Humans charge together, and a Nexus that puts back onto the field whoever had already left."
         }
       },
-      "designNotes": "eredi-di-vhal-astra.md",
+      "designNotes": "eredita-perduta.md",
       "cards": [
         {
           "card": "RBF-001",
@@ -12507,7 +13381,7 @@
       ],
       "theme": "t42",
       "source": {
-        "designNotes": "notes/deck-eredi-di-vhal-astra.md"
+        "designNotes": "notes/deck-eredita-perduta.md"
       }
     },
     {
@@ -12542,7 +13416,7 @@
         },
         {
           "card": "RBF-026",
-          "count": 3
+          "count": 2
         },
         {
           "card": "RBF-027",
@@ -12566,11 +13440,11 @@
         },
         {
           "card": "RBF-032",
-          "count": 3
+          "count": 2
         },
         {
           "card": "RBF-033",
-          "count": 3
+          "count": 2
         },
         {
           "card": "RBF-034",
@@ -12582,11 +13456,11 @@
         },
         {
           "card": "RBF-036",
-          "count": 3
+          "count": 2
         },
         {
           "card": "RBF-037",
-          "count": 2
+          "count": 1
         },
         {
           "card": "RBF-038",
@@ -12594,7 +13468,7 @@
         },
         {
           "card": "RBF-039",
-          "count": 1
+          "count": 2
         },
         {
           "card": "RBF-040",
@@ -12607,6 +13481,14 @@
         {
           "card": "RBF-042",
           "count": 1
+        },
+        {
+          "card": "RBF-043",
+          "count": 2
+        },
+        {
+          "card": "RBF-044",
+          "count": 2
         }
       ],
       "source": {

@@ -83,7 +83,7 @@
               },
               "count": 1,
               "filter": {
-                "cardType": "matter"
+                "cardType": "entity"
               }
             }
           ]
@@ -209,6 +209,44 @@
       "requirements": {},
       "triggers": [
         {
+          "id": "heir-absorbed",
+          "displayKey": "heirAscension",
+          "event": "on_flip",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardId": "RBF-012",
+              "controller": "controller",
+              "quantity": "all"
+            },
+            "from": {
+              "zone": "front",
+              "owner": "controller"
+            },
+            "destination": {
+              "zone": "abyss",
+              "owner": "controller"
+            }
+          }
+        },
+        {
+          "id": "heir-sealed",
+          "displayKey": "heirAscension",
+          "event": "on_flip",
+          "effect": {
+            "type": "restrict_action",
+            "target": {
+              "cardId": "RBF-012",
+              "controller": "controller"
+            },
+            "restricts": "play",
+            "duration": "permanent",
+            "details": {
+              "followsCard": true
+            }
+          }
+        },
+        {
           "id": "heirs-muster",
           "displayKey": "effect",
           "event": "on_attack",
@@ -304,8 +342,8 @@
           }
         },
         {
-          "id": "return-in-arms",
-          "displayKey": "returnInArms",
+          "id": "return-to-front",
+          "displayKey": "returnToFront",
           "timing": [
             "own_preparation",
             "own_front"
@@ -347,10 +385,11 @@
         }
       ],
       "art": "rbf-001-nexus.jpg",
-      "artZoom": "54%"
+      "artZoom": "48%",
+      "artShift": "0%"
     }
   ],
   "designNotes": "rbf-001.md",
   "art": "rbf-001.jpg",
-  "artZoom": "55%"
+  "artZoom": "48%"
 }

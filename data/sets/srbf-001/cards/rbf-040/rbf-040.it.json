@@ -1,7 +1,7 @@
 {
   "name": "Scudo Riflesso",
   "typeLabel": "Materia Dimensionale I",
-  "summary": "Un blocco dal nulla che punisce chi attacca un fronte armato.",
+  "summary": "Un blocco dal nulla che ripaga in PV chi tiene il Fronte armato.",
   "ui": {
     "face": "Materia"
   },
@@ -18,7 +18,7 @@
     "name": "Scudo Riflesso",
     "effect": {
       "name": "Effetto",
-      "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se controlli almeno 2 Entità con un Oggetto assegnato, l'attaccante prende −2 Potenza fino alla fine del turno."
+      "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
     },
     "flavor": "Il muro che non c'era, finché non ci hai sbattuto contro."
   },

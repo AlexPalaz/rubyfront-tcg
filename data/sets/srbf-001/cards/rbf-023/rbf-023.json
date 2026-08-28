@@ -199,6 +199,44 @@
       "requirements": {},
       "triggers": [
         {
+          "id": "blade-absorbed",
+          "displayKey": "flipEffect",
+          "event": "on_flip",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardId": "RBF-031",
+              "controller": "controller",
+              "quantity": "all"
+            },
+            "from": {
+              "zone": "front",
+              "owner": "controller"
+            },
+            "destination": {
+              "zone": "abyss",
+              "owner": "controller"
+            }
+          }
+        },
+        {
+          "id": "blade-sealed",
+          "displayKey": "flipEffect",
+          "event": "on_flip",
+          "effect": {
+            "type": "restrict_action",
+            "target": {
+              "cardId": "RBF-031",
+              "controller": "controller"
+            },
+            "restricts": "play",
+            "duration": "permanent",
+            "details": {
+              "followsCard": true
+            }
+          }
+        },
+        {
           "id": "awakening",
           "displayKey": "flipEffect",
           "event": "on_flip",
@@ -313,10 +351,7 @@
               "controller": "controller",
               "zone": "front",
               "owner": "controller",
-              "quantity": "all",
-              "details": {
-                "hasObjectAssigned": false
-              }
+              "quantity": "all"
             },
             "details": {
               "anyNumber": true,

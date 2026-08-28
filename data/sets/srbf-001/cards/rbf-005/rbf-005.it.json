@@ -9,13 +9,11 @@
     "illustration": "Illustrazione",
     "hp": "PV",
     "power": "Potenza",
-    "flux": "Flussi"
+    "flux": "Flussi",
+    "counterattack": "Contrattacco"
   },
   "face": {
     "name": "Predone delle Terre Infrante",
-    "effect": {
-      "text": "Questa Entità ha Contrattacco +1."
-    },
     "raid": {
       "trigger": "Quando attacca",
       "text": "Se almeno 2 Entità Umane che controlli hanno attaccato nel tuo turno precedente, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."

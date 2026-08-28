@@ -47,7 +47,7 @@
     "nexusAria": "Nexus",
     "flipEffect": {
       "trigger": "When it flips",
-      "text": "Draw a card."
+      "text": "If Avy Shin, Blade of Nova Kai is on your Front, put it into the Abyss. You can no longer play Avy Shin, Blade of Nova Kai for the rest of the game. Then draw a card."
     },
     "effect": {
       "trigger": "Effect",
@@ -64,7 +64,7 @@
       },
       "greatRearm": {
         "name": "Great Rearmament",
-        "text": "assign any number of Objects from your Retire Zone to as many Entities without an Object on your Front, without paying their Flux cost."
+        "text": "assign any number of Objects from your Retire Zone to as many Entities on your Front, without paying their Flux cost."
       }
     },
     "flavor": "The Schism is not a wound. It is a door."

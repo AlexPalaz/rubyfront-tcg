@@ -1,7 +1,7 @@
 {
   "name": "Sentinel of Nova Kai",
   "typeLabel": "Entity: Auros",
-  "summary": "A sentinel whose answer hits far harder with the right Object.",
+  "summary": "A sentinel whose answer hits far harder with the right Object, and who stays on guard.",
   "ui": {
     "face": "Entity"
   },
@@ -21,6 +21,10 @@
     "flavor": "The answering blow is the only one it has always prepared.",
     "effect": {
       "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
+    },
+    "vigil": {
+      "trigger": "Effect",
+      "text": "The first time each of your turns this Entity attacks while it has an Object assigned, untap it after combat."
     }
   }
 }

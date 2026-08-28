@@ -1,6 +1,6 @@
 {
   "name": "Latent Charge",
-  "typeLabel": "Dimensional Matter I",
+  "typeLabel": "Dimensional Matter II",
   "summary": "Digs five cards and lets the d20 decide what you take.",
   "ui": {
     "face": "Matter"
@@ -23,7 +23,7 @@
     "flavor": "The deck already knows. The die decides when."
   },
   "matters": {
-    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalTitle": "Dimensional Matter · 2nd grade",
     "dimensionalAria": "Dimensional"
   }
 }

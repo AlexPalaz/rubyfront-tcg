@@ -1,7 +1,7 @@
 {
   "name": "Avy Shin, Blade of Nova Kai",
   "typeLabel": "Entity: Auros",
-  "summary": "The deck's Unique: it arms the blades and returns Objects from the Retire Zone at every attack.",
+  "summary": "The deck's Unique: it arms the blades, stocks the Retire Zone with Objects and brings them back at every attack.",
   "ui": {
     "face": "Entity"
   },
@@ -25,6 +25,10 @@
     "flavor": "What the Schism divides, its blade reunites.",
     "effect": {
       "text": "Other Entities with an Object assigned you control have +1 Power."
+    },
+    "foresight": {
+      "trigger": "Effect",
+      "text": "The first time each of your turns an Entity with an Object assigned you control attacks, look at the top 2 cards of your deck. You may reveal an Object among them and put it into your Retire Zone. Put the rest on the bottom of your deck."
     }
   }
 }

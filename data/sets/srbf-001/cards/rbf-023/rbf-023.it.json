@@ -47,7 +47,7 @@
     "nexusAria": "Nexus",
     "flipEffect": {
       "trigger": "Quando flippa",
-      "text": "Pesca una carta."
+      "text": "Se Avy Shin, Lama di Nova Kai è sul tuo Fronte, mettila nell'Abisso. Non puoi più giocare Avy Shin, Lama di Nova Kai per il resto della partita. Poi pesca una carta."
     },
     "effect": {
       "trigger": "Effetto",
@@ -64,7 +64,7 @@
       },
       "greatRearm": {
         "name": "Grande Riarmo",
-        "text": "assegna un qualsiasi numero di Oggetti dalla tua Zona di Ritiro ad altrettante Entità senza Oggetto sul tuo Fronte, senza pagarne il costo di Flusso."
+        "text": "assegna un qualsiasi numero di Oggetti dalla tua Zona di Ritiro ad altrettante Entità sul tuo Fronte, senza pagarne il costo di Flusso."
       }
     },
     "flavor": "La Scissione non è una ferita. È una porta."

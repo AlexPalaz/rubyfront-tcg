@@ -1,5 +1,5 @@
 {
-  "name": "Ajmal, Lord of the Broken Lands",
+  "name": "Ajmal, King of the Broken Lands",
   "typeLabel": "Entity: Human",
   "summary": "When the die agrees with him, the turn does not end after a single combat.",
   "ui": {
@@ -9,10 +9,11 @@
     "illustration": "Illustration",
     "hp": "HP",
     "power": "Power",
-    "flux": "Flux"
+    "flux": "Flux",
+    "counterattack": "Counterattack"
   },
   "face": {
-    "name": "Ajmal, Lord of the Broken Lands",
+    "name": "Ajmal, King of the Broken Lands",
     "secondCharge": {
       "trigger": "When it attacks",
       "text": "Roll a d20: on 15–20 untap all Entities you control and, after this Front Phase, there is an additional Front Phase."

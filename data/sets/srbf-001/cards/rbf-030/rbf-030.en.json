@@ -1,7 +1,7 @@
 {
   "name": "Bearer of Fronts",
   "typeLabel": "Entity: Auros",
-  "summary": "Every Object entrusted to it is one more card.",
+  "summary": "It arms at a discount, and every Object entrusted to it is one more card.",
   "ui": {
     "face": "Entity"
   },
@@ -21,6 +21,9 @@
       "trigger": "When you assign an Object to this Entity",
       "text": "Draw a card."
     },
-    "flavor": "It never asks what it carries. Only for whom."
+    "flavor": "It never asks what it carries. Only for whom.",
+    "effect": {
+      "text": "Objects you assign to this Entity cost 1 less Flux."
+    }
   }
 }

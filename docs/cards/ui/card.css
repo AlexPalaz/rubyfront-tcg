@@ -162,6 +162,11 @@
     padding: .5em .7em; display: flex; flex-direction: column; gap: .34em;
     font-size: 1em; line-height: 1.34; overflow: hidden; }
   .card:not(.nexus) .textbox { padding-bottom: .3em; }
+  /* Le facce Nexus sono le più dense (requisito + inno + tre abilità): senza
+     aria in più l'ultima riga finisce a filo della cornice, sopra il codice
+     carta. Il padding entra nella misura del fit, che riduce il corpo quanto
+     basta a lasciare il margine. */
+  .card.nexus .textbox { padding-bottom: .85em; }
   .fx, .ability { display: block; }
   .fx .tag { display: flex; align-items: center; gap: .8em;
     font-size: .85em; letter-spacing: .12em; text-transform: uppercase;

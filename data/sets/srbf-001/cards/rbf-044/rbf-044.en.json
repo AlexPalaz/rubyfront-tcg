@@ -1,0 +1,29 @@
+{
+  "name": "Fracture of the Schism",
+  "typeLabel": "Dimensional Matter II",
+  "summary": "It removes an opposing body without killing it, and costs less on an armed Front.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "permanent": "Permanent"
+    }
+  },
+  "face": {
+    "name": "Fracture of the Schism",
+    "effect": {
+      "name": "Effect",
+      "text": "Put an opposing Entity into its owner's Retire Zone. If there are at least 2 Entities with an Object assigned on your Front, this card costs 1 less Flux."
+    },
+    "flavor": "The crack does not cut: it separates."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 2nd grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

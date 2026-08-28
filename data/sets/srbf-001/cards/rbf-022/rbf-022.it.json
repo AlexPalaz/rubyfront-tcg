@@ -1,5 +1,5 @@
 {
-  "name": "Carica degli Eredi",
+  "name": "Per Vhal Astra!",
   "typeLabel": "Materia Dinamica II",
   "summary": "Ogni carica larga chiede al dado se curare o colpire.",
   "ui": {
@@ -15,7 +15,7 @@
     }
   },
   "face": {
-    "name": "Carica degli Eredi",
+    "name": "Per Vhal Astra!",
     "effect": {
       "name": "Effetto",
       "text": "Ogni volta che le Entità Umane che controlli attaccano, lancia un d20: con 1–6 guadagni PV pari al numero di Entità Umane che hanno attaccato in questo turno; con 15–20 il Rubyfront/Nexus avversario perde PV pari al numero di Entità Umane che hanno attaccato in questo turno; con 7–14 non succede nulla."

@@ -1,7 +1,7 @@
 {
   "name": "Portatore di Fronti",
   "typeLabel": "Entità: Auros",
-  "summary": "Ogni Oggetto che gli affidi è una carta in più.",
+  "summary": "Arma a sconto e ogni Oggetto che gli affidi è una carta in più.",
   "ui": {
     "face": "Entità"
   },
@@ -21,6 +21,9 @@
       "trigger": "Quando assegni un Oggetto a questa Entità",
       "text": "Pesca una carta."
     },
-    "flavor": "Non chiede che cosa porta. Chiede solo per chi."
+    "flavor": "Non chiede che cosa porta. Chiede solo per chi.",
+    "effect": {
+      "text": "Gli Oggetti che assegni a questa Entità costano 1 Flusso in meno."
+    }
   }
 }

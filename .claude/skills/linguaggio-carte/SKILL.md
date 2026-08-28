@@ -73,7 +73,10 @@ non il bersaglio da colpire.
 Mai: «creatura», «giocatore avversario» nei testi carta, «Requiem» (nome
 storico della Zona di Ritiro, deprecato il 2026-08-24), «Zona di Riposo» (non
 esiste: è la Zona di Ritiro), «Zona del Fronte» (si dice **Fronte**), «fase di
-combattimento» (si dice **Fase di Fronte**, MANUALE §6.3). I **nomi propri** di
+combattimento» (si dice **Fase di Fronte**, MANUALE §6.3), «Se controlli …» /
+"If you control …" (linguaggio Magic, bandito dal designer il 2026-08-28: la
+condizione di presenza si scrive sul **Fronte** — vedi le formule «Presenza
+sul Fronte»). I **nomi propri** di
 carta si traducono (es. «Rubifronte del Patto» → "Rubyfront of the Pact"), il
 termine generico resta «Rubyfront» in entrambe le lingue. I nomi dei Rubyfront
 si scrivono **sempre per esteso** nei dati («Rhazmora, Rubifronte della
@@ -144,6 +147,7 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Condizione «armata» su di sé | Se questa Entità ha un Oggetto assegnato, … | If this Entity has an Object assigned, … |
 | Assegnazione gratuita | assegna … senza pagarne il costo di Flusso | assign … without paying its Flux cost |
 | Sconto | la prossima carta Oggetto che giochi in questo turno costa N Flussi in meno | the next Object card you play this turn costs N less Flux |
+| Sconto di assegnazione | Gli Oggetti che assegni a questa Entità costano N Flusso/i in meno. | Objects you assign to this Entity cost N less Flux. |
 | Contrattacco fissato | il Contrattacco di [Nome] diventa +N | [Name]'s Counterattack becomes +N |
 | Contrattacco cumulato | ha Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1. | has Counterattack +1. If it already has Counterattack, that value increases by 1. |
 | Perdita variabile | perde PV pari a … | loses HP equal to … |
@@ -155,11 +159,25 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Blocco multiplo | può essere bloccata da più Entità | may be blocked by multiple Entities |
 | Giocata come blocco | Gioca questa carta come blocco. | Play this card as a block. |
 | Scavo dalla cima | Guarda le prime N carte del tuo mazzo. Puoi mostrare … e aggiungerla alla tua mano. Metti le altre in fondo al mazzo. | Look at the top N cards of your deck. You may reveal … and add it to your hand. Put the rest on the bottom of your deck. |
+| Scavo verso il Ritiro | Guarda le prime N carte del tuo mazzo. Puoi mostrare … e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo. | Look at the top N cards of your deck. You may reveal … and put it into your Retire Zone. Put the rest on the bottom of your deck. |
 | Dal Ritiro al Fronte | metti sul tuo Fronte un'Entità … dalla tua Zona di Ritiro | put an Entity … from your Retire Zone onto your Front |
 | Esilio condizionato | Manda nell'Abisso …. Finché questa carta resta in gioco, … resta nell'Abisso. Quando questa carta lascia il gioco, … torna in gioco. | Send … to the Abyss. As long as this card remains in play, … stays in the Abyss. When this card leaves play, … returns to play. |
+| Rimozione senza morte | Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. | Put an opposing Entity into its owner's Retire Zone. |
 | Sconto condizionato | Se questa carta bersaglia …, costa N Flussi in meno. | If this card targets …, it costs N less Flux. |
+| Sconto condizionato su sé stessa | Se sul tuo Fronte ci sono almeno N …, questa carta costa N Flusso/i in meno. | If there are at least N … on your Front, this card costs N less Flux. |
+| Stappa dopo il combattimento | stappala dopo il combattimento | untap it after combat |
 | Contrattacco concesso | ottengono Contrattacco +1 fino alla fine del turno | they gain Counterattack +1 until end of turn |
 | Guadagno variabile | guadagni PV pari a … | you gain HP equal to … |
+| Divieto di gioco permanente | Non puoi più giocare [Nome] per il resto della partita. | You can no longer play [Name] for the rest of the game. |
+| Presenza sul Fronte (nome/singola) | Se [Nome / un'altra Entità X] è sul tuo Fronte, … | If [Name / another X Entity] is on your Front, … |
+| Presenza sul Fronte (conteggio) | Se sul tuo Fronte ci sono almeno N …, … | If there are at least N … on your Front, … |
+
+**Rimozione: quale zona.** Una rimozione che deve **tornare in gioco** usa
+l'«Esilio condizionato» sull'**Abisso** (RBF-018, RBF-043): la carta che la
+tiene ferma è anche la condizione del ritorno. Una rimozione definitiva ma che
+**non è una morte** — non innesca gli effetti di morte e lascia la carta «viva»
+— usa la **Zona di Ritiro del proprietario** (RBF-044). «Zona di Requiem» non
+esiste: è il nome deprecato della Zona di Ritiro.
 
 Requisito Nexus (`nexusRequirement.text`): condizioni **all'indicativo**
 («Controlli almeno …», «In questo turno hai attaccato …»), poi il costo di flip
@@ -202,8 +220,8 @@ tre fasce esplicite (1–6, 7–14, 15–20).
   «questa Entità» / "this Entity"; Oggetti e Materie «questa carta» / "this
   card" (o «questo Oggetto» / "this Object" quando conta il tipo, es. un
   Oggetto che si sposta di zona). Il nome proprio vive solo nel titolo, nel
-  flavor e quando un'ALTRA carta lo cita («Se controlli il Rubifronte del
-  Patto…»). Mai «questa creatura».
+  flavor e quando un'ALTRA carta lo cita («Se il Rubifronte del Patto è sul
+  tuo Fronte…»). Mai «questa creatura».
 - Pronomi EN: le Entità sono "it"; se la frase diventa ambigua si ristruttura
   ("the wearer", "that Entity"). Pronomi di genere solo per personaggi con nome
   proprio, e solo se il flavor li caratterizza.

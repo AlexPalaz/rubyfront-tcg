@@ -236,7 +236,39 @@ conta più che allungare il prompt.
 
 ## Coda di rigenerazione
 
-- [x] RBF-001 Oblivhal (mazzo Umani «Eredi di Vhal Astra») — APPROVATA E
+- [x] RBF-043 Prisma Dimensionale — SCELTA DAL DESIGNER (2026-08-28):
+      monolite di cristallo alto e sfaccettato, illuminato da dentro,
+      con una scheggia gemella staccata a mezz'aria; fondale scuro, blu
+      Dimensionale unico accento. Finestra 16:9, nessun artZoom. Prompt
+      esatto conservato nelle note di design della carta (rbf-043.md).
+      Lezioni nuove: (1) **la luce dentro batte la luce che attraversa**
+      — l'effetto «raggio che entra ed esce come vuoto» non è mai
+      attaccato, mentre un cristallo che si illumina da dentro è
+      immediato e più pulito; per gli Oggetti «contenitore» conviene
+      chiedere l'illuminazione interna, non il percorso della luce.
+      (2) **Un secondo elemento staccato racconta la meccanica meglio di
+      un effetto complicato**: la scheggia gemella a mezz'aria dice «un
+      pezzo è altrove» senza aggiungere rumore. (3) Come su RBF-044, un
+      `--no` sull'ambiente (`landscape`) non tiene: Niji ha dato al
+      prisma un piano d'appoggio con le ombre. Va bene finché il fondale
+      resta scuro e vuoto — lo standard Oggetti («gradiente neutro
+      scuro») ammette il piano d'appoggio.
+- [x] RBF-044 Frattura della Scissione — SCELTA DAL DESIGNER
+      (2026-08-28): la frattura corre in diagonale dal suolo al punto di
+      fuga e riparte in due rami nel cielo, piana bianca screpolata, blu
+      Dimensionale unico accento. Finestra 16:9, nessun artZoom. Prompt
+      esatto conservato nelle note di design della carta (rbf-044.md).
+      Lezione nuova, valida oltre questa carta: **il `--no` sugli
+      elementi d'ambiente (`sky, clouds, horizon`) non tiene** quando il
+      soggetto richiede profondità — Niji ha bisogno di un fondo per
+      costruire la prospettiva e lo reintroduce. E fa bene: è il cielo a
+      far leggere la crepa come **dimensionale** invece che come una
+      crepa nel terreno. Corollario sul canone Materie: il registro (a)
+      resta «la sostanza stessa», ma «senza cielo» va inteso come
+      default, non come vincolo — per le Materie che squarciano lo
+      spazio il cielo è parte dell'effetto.
+
+- [x] RBF-001 Oblivhal (mazzo Umani «Eredità Perduta») — APPROVATA E
       FIRMATA dal designer (2026-08-27), entrambe le facce.
       **Faccia A — Oblivhal:** bestia dal corpo cremisi con linee di neon
       BIANCO sottopelle (dove Rhazmora ha il blu), ali spiegate su uno
@@ -260,6 +292,30 @@ conta più che allungare il prompt.
       4. Se una griglia è giusta ma lontana, si ritaglia il file — non
          serve rigenerare.
 
+- [x] RBF-022 «Per Vhal Astra!» (ex «Carica degli Eredi», rinominata dal
+      designer il 2026-08-28) — art scelta dal designer il 2026-08-28:
+      Rhen di fronte col pugno alzato e un solo arco di fulmine bianco,
+      dietro di lui i ranghi dei Simulacri di Vhal Astra in controluce con
+      le crepe cyan. Finestra 16:9, nessun artZoom.
+      Lezioni nuove, valide oltre questa carta:
+      1. **Capelli bianchi + bocca spalancata = vecchio.** Niji legge il
+         bianco come età: servono l'età esplicita e il bando di
+         `old man, elderly, wrinkles, aged face` **insieme** a quello
+         dell'espressione contratta (`grimace, snarl, clenched teeth,
+         squinting, furrowed brow`), che è ciò che disegna le rughe.
+      2. **Il `--no` litiga col `--cref`.** Corollario della lezione 2 di
+         Oblivhal: bandire `four white-haired men` spegneva i capelli di
+         Rhen, `glowing eyes` i suoi occhi chiari, `blue energy` il nucleo
+         dei Simulacri. Prima di lanciare, rileggere il `--no` contro la
+         reference.
+      3. **`--cw 40` è il valore buono** (lo stesso del Nexus di
+         Rhazmora): `--cw 100` pesa su capelli e vestiario e *indebolisce*
+         il volto. Con più figure in scena il `--cref` non aggancia
+         nessuno — la folla si aggiunge dopo, in Editor.
+      4. **Folle e comparse si fanno in Editor**, non in prompt: maschera
+         sullo sfondo, image prompt sull'art della carta da replicare e
+         descrizione letterale. La dimensione di ciò che compare la decide
+         la maschera, non il testo.
 - [x] GIRO OGGETTI + MATERIE (RBF-026→036) — APPROVATO E FIRMATO in
       blocco dal designer (2026-08-26): Spada Dimensionale, Scudo
       Dimensionale (rinominata da «Scudo del Campo»), Catalizzatore

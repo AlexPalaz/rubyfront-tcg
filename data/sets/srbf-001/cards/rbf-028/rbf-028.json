@@ -17,7 +17,8 @@
     "entity",
     "auros",
     "equip",
-    "counterattack"
+    "counterattack",
+    "untap"
   ],
   "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
   "faces": [
@@ -52,6 +53,24 @@
             "setTo": 2,
             "details": {
               "whileHasObjectAssigned": true
+            }
+          }
+        },
+        {
+          "id": "vigil",
+          "displayKey": "vigil",
+          "event": "on_attack",
+          "details": {
+            "oncePerEachOfYourTurns": true,
+            "whileHasObjectAssigned": true
+          },
+          "effect": {
+            "type": "untap",
+            "target": {
+              "scope": "self"
+            },
+            "details": {
+              "afterCombat": true
             }
           }
         }
