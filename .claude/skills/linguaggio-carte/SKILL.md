@@ -179,6 +179,16 @@ tiene ferma è anche la condizione del ritorno. Una rimozione definitiva ma che
 — usa la **Zona di Ritiro del proprietario** (RBF-044). «Zona di Requiem» non
 esiste: è il nome deprecato della Zona di Ritiro.
 
+**La ridondanza utile si scrive.** Quando il testo di una carta ripete una
+regola del manuale, la ripetizione **si tiene** (decisione del designer,
+2026-08-29): la carta deve spiegarsi da sola, il giocatore non deve ricordare
+il manuale a memoria. In particolare «senza pagarne il costo di Flusso» resta
+scritto su RBF-035 e RBF-038 anche se il rientro di un Oggetto **dall'Abisso o
+dalla Zona di Ritiro direttamente in campo** è già gratuito per regola
+(MANUALE §3.1: si ripaga il costo solo quando l'Oggetto passa dalla **mano**).
+Vale come criterio generale, non come deroga a questo caso: si taglia solo ciò
+che è ridondante *e* non aiuta a giocare la carta.
+
 Requisito Nexus (`nexusRequirement.text`): condizioni **all'indicativo**
 («Controlli almeno …», «In questo turno hai attaccato …»), poi il costo di flip
 **all'imperativo**, chiuso da «, poi flippa.» / ", then flip."
