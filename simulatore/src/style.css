@@ -1631,6 +1631,19 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
      mano serve solo alla propria, da leggere e giocare — sui dorsi fa
      solo carte gonfie che rubano spazio. */
   .hand-opponent { height: calc(24px + 92px * var(--card-scale)); }
+  /* «Giocatore A/B» vive DENTRO la superficie, che su tablet è scalata
+     forte: 1rem diventa ~6px, illeggibile. La scala inversa riporta la
+     targhetta alla stessa taglia visiva di quella della mano — stesso
+     font, stessa resa. Misure e quota sbordante seguono, per non
+     spostarla rispetto alla cornice. */
+  .half-name {
+    font-size: calc(1rem / var(--card-scale));
+    top: calc(-11px / var(--card-scale));
+    left: calc(24px / var(--card-scale));
+    padding: calc(2px / var(--card-scale)) calc(12px / var(--card-scale));
+    border-width: calc(1px / var(--card-scale));
+  }
+
   /* La targhetta «Mano di … · N» non si stende più SOPRA i dorsi: corsia
      riservata a sinistra, dorsi da lì in poi, scritta centrata in verticale. */
   .hand-opponent { padding-left: 275px; }
