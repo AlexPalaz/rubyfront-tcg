@@ -1,0 +1,18 @@
+# Il relay del simulatore su Render: dashboard → New + → Blueprint, si punta
+# questo repo e questo file fa il resto. Nessuna build: il relay è trenta
+# righe di Node senza dipendenze (scripts/relay.mjs), e legge la porta da
+# PORT come Render si aspetta.
+#
+# Piano free: il servizio dorme dopo l'inattività e la prima connessione lo
+# sveglia (~30 secondi). L'URL pubblico esce come
+# https://rubyfront-relay.onrender.com → nel simulatore diventa
+# wss://rubyfront-relay.onrender.com (è il DEFAULT_RELAY di produzione in
+# simulatore/src/net.ts: se Render assegna un nome diverso, va aggiornato lì).
+services:
+  - type: web
+    name: rubyfront-relay
+    runtime: node
+    plan: free
+    buildCommand: "echo relay senza build"
+    startCommand: node scripts/relay.mjs
+    healthCheckPath: /

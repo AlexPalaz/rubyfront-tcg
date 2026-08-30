@@ -30,7 +30,30 @@ La spia accanto a "Entra" diventa verde quando la stanza è collegata.
 Per giocare fuori dalla propria macchina serve che il relay sia raggiungibile
 dall'avversario: in LAN basta `npm run dev -- --host` e mettere l'IP del
 computer nel campo del relay (`ws://192.168.x.x:8787`). Per giocare via internet
-il relay va messo su un host pubblico — vedi "Il relay", sotto.
+il relay va messo su un host pubblico — vedi "Giocare online", sotto.
+
+## Giocare online
+
+La pagina pubblicata (GitHub Pages serve `docs/`, simulatore compreso) parla
+con un relay pubblico. Il flusso per chi gioca è due gesti:
+
+1. **Crea stanza** (impostazioni → Invito): inventa un nome difficile da
+   indovinare ed entra;
+2. **Copia link**: il link porta stanza, posto opposto e relay — chi lo apre
+   è dentro, seduto dall'altra parte, senza toccare un'impostazione. Chi
+   conosce il nome della stanza può comunque entrare a mano.
+
+Il relay pubblico si mette su con **Render**: dashboard → New + → Blueprint →
+questo repo. Il `render.yaml` alla radice fa tutto (`node scripts/relay.mjs`,
+piano free, health check sulla risposta HTTP del relay). L'URL che ne esce —
+`wss://rubyfront-relay.onrender.com` — è già il default di produzione in
+`src/net.ts` (`DEFAULT_RELAY`): se Render assegna un nome diverso, va
+aggiornato lì. Nota del piano free: il relay dorme dopo l'inattività, la
+prima connessione lo sveglia in una trentina di secondi.
+
+Il relay resta stupido: ripete i messaggi della stanza e non sa nulla del
+gioco. Niente account, niente lista stanze pubblica: si gioca con chi
+conosce il nome della stanza, come a un tavolo privato.
 
 ## Comandi
 

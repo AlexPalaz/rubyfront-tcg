@@ -23,8 +23,18 @@ export interface Net {
   status(): NetStatus;
 }
 
-/** Relay locale di sviluppo: `npm run relay` nella cartella simulatore. */
-export const DEFAULT_RELAY = `ws://${location.hostname || "localhost"}:8787`;
+/**
+ * Il relay di default. In sviluppo (pagina su http) è quello locale —
+ * `node scripts/relay.mjs` — raggiunto sull'hostname della pagina, così in
+ * LAN funziona da sé. Pubblicata in https, la pagina esige `wss` (mixed
+ * content) e punta al relay pubblico su Render (vedi render.yaml alla radice
+ * del repo): se Render assegna un nome diverso, questo è il posto da
+ * aggiornare.
+ */
+export const DEFAULT_RELAY =
+  location.protocol === "https:"
+    ? "wss://rubyfront-relay.onrender.com"
+    : `ws://${location.hostname || "localhost"}:8787`;
 
 export function connect(relayUrl: string, room: string, seat: Seat, handlers: NetHandlers): Net {
   let socket: WebSocket | null = null;

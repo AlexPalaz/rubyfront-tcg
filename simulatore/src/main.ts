@@ -26,7 +26,7 @@ import {
 import { apply, newGame, shuffled, zoneCards } from "./state.js";
 import { mountTable } from "./table.js";
 import type { Action, CardInstance, GameState, Seat } from "./types.js";
-import { SEATS } from "./types.js";
+import { SEATS, otherSeat } from "./types.js";
 
 const boot = document.querySelector<HTMLElement>("#boot")!;
 
@@ -277,7 +277,9 @@ const langPick = document.querySelector<HTMLSelectElement>("#lang-pick")!;
 seatPick.value = mySeat;
 langPick.value = locale;
 roomInput.value = params.get("room") ?? store.read("room", "");
-relayInput.value = store.read("relay", DEFAULT_RELAY);
+// Il relay può arrivare dal link d'invito: chi entra così non deve sapere
+// nemmeno che esiste.
+relayInput.value = params.get("relay") ?? store.read("relay", DEFAULT_RELAY);
 
 document.querySelector("#deck-load")!.addEventListener("click", () => loadDeck(deckPick.value, mySeat));
 
@@ -309,6 +311,36 @@ document.querySelector("#do-push")!.addEventListener("click", () => {
 });
 
 document.querySelector("#do-join")!.addEventListener("click", () => join(roomInput.value, relayInput.value));
+
+// Una stanza è solo un nome: chi lo conosce entra. "Crea stanza" ne inventa
+// uno difficile da indovinare e ci entra subito; "Copia link" impacchetta
+// stanza, posto OPPOSTO e relay in un URL — chi lo apre è dentro, seduto
+// dall'altra parte, senza toccare un'impostazione.
+const GEMME = ["rubino", "ambra", "giada", "opale", "zaffiro", "onice", "perla", "agata", "topazio", "berillo"];
+document.querySelector("#room-create")!.addEventListener("click", () => {
+  const name = `${GEMME[Math.floor(Math.random() * GEMME.length)]}-${Math.floor(1000 + Math.random() * 9000)}`;
+  roomInput.value = name;
+  join(name, relayInput.value);
+});
+document.querySelector("#room-invite")!.addEventListener("click", async () => {
+  const room = roomInput.value.trim();
+  if (!room) return;
+  const url = new URL(location.href);
+  url.search = "";
+  url.searchParams.set("room", room);
+  url.searchParams.set("seat", otherSeat(mySeat));
+  if (relayInput.value && relayInput.value !== DEFAULT_RELAY) url.searchParams.set("relay", relayInput.value);
+  const button = document.querySelector<HTMLButtonElement>("#room-invite")!;
+  try {
+    await navigator.clipboard.writeText(url.href);
+    button.textContent = "Copiato ✓";
+  } catch {
+    // Niente clipboard (contesto non sicuro): almeno si vede il link.
+    prompt("Copia il link d'invito:", url.href);
+    return;
+  }
+  window.setTimeout(() => (button.textContent = "Copia link"), 1600);
+});
 
 // L'ingranaggio apre le impostazioni; un click fuori (o Esc) le richiude.
 const settingsPanel = document.querySelector<HTMLElement>("#settings")!;
