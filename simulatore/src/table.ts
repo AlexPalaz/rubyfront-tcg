@@ -175,6 +175,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   /** La mano era aperta quando è partito un trascinamento da lei: al
       rilascio va riaperta. */
   let handWasOpen = false;
+  /** Quante carte aveva la mia mano all'ultimo render: se cresce, il
+      cassetto ripiegato si apre. -1 = ancora nessun render. */
+  let lastMyHand = -1;
 
   myHand.addEventListener("click", event => {
     if ((event.target as HTMLElement).closest(".tile")) return;
@@ -816,6 +819,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (seat === me) host.dataset.drop = "hand";
       else delete host.dataset.drop;
       const cards = zoneCards(state, seat, "hand");
+      // Una carta appena arrivata in mano va vista: se il cassetto è
+      // ripiegato, si apre da solo. Vale per ogni via (Pesca, menu della
+      // pila, «rimetti in mano») ma non al primo render, che è solo lo
+      // stato di partenza — e non durante un trascinamento dalla mano, che
+      // la ripiega apposta (lì il conto non cresce).
+      if (seat === me) {
+        if (lastMyHand >= 0 && cards.length > lastMyHand && myHand.classList.contains("is-collapsed")) {
+          setHandCollapsed(false);
+        }
+        lastMyHand = cards.length;
+      }
       tag.textContent = seat === me ? `La tua mano · ${cards.length}` : `Mano di ${seatLabel(state, seat)} · ${cards.length}`;
       host.classList.toggle("is-empty", cards.length === 0);
       const wanted: HTMLElement[] = [];
