@@ -55,16 +55,6 @@ export function createVoice(options: {
   let meterRaf = 0;
   let meterWake: (() => void) | null = null;
 
-  /** Su iOS l'AudioContext nasce sospeso e si sveglia SOLO dentro un gesto
-      dell'utente: va creato qui, in sincrono nel tap, PRIMA del prompt dei
-      permessi che spezza la catena del gesto. Altrimenti il misuratore
-      legge silenzio piatto e il VU resta a zero. */
-  function primeMeter(): void {
-    if (!options.onLevel || typeof AudioContext === "undefined") return;
-    if (!meterCtx) meterCtx = new AudioContext();
-    if (meterCtx.state === "suspended") void meterCtx.resume().catch(() => {});
-  }
-
   /** Il misuratore: RMS del segnale, con attacco pronto e rilascio morbido. */
   function startMeter(source: MediaStream): void {
     if (!options.onLevel || typeof AudioContext === "undefined") return;
@@ -143,6 +133,14 @@ export function createVoice(options: {
       return;
     }
     const micId = options.micId();
+    // Su iOS getUserMedia può restare appeso per sempre dopo il consenso
+    // (sessione audio incastrata): non si può annullare, ma almeno lo si
+    // dice, con la via d'uscita.
+    const hung = window.setTimeout(() => {
+      options.log(
+        "Il microfono non risponde. Chiudi la scheda e riaprila; su iPad: menu aA → Impostazioni sito web → Microfono → Consenti."
+      );
+    }, 8000);
     try {
       // deviceId "morbido" (ideal), mai exact: su iOS gli id dei microfoni
       // cambiano a ogni sessione e un exact su un id vecchio fallisce
@@ -154,6 +152,8 @@ export function createVoice(options: {
       if (!micId) throw error;
       // Il microfono memorizzato non c'è più: si ripiega sul predefinito.
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } finally {
+      window.clearTimeout(hung);
     }
     const track = stream.getAudioTracks()[0];
     options.log(`Microfono acceso: ${track?.label || "predefinito"}.`);
@@ -190,7 +190,6 @@ export function createVoice(options: {
         stopSending(true);
         return;
       }
-      primeMeter();
       try {
         await start();
       } catch (error) {
