@@ -1621,8 +1621,24 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
      la striscia no. Il padding colma esattamente la differenza (24 + 92 ×
      scala-mano = altezza della striscia). */
   .board {
-    padding-top: max(0px, calc(24px + 92px * var(--hand-scale) - 128px * var(--card-scale)));
+    padding-top: max(0px, calc(24px + 92px * var(--card-scale) - 128px * var(--card-scale)));
   }
+
+  /* I dorsi avversari alla scala del CAMPO: la maggiorazione 1.3× della
+     mano serve solo alla propria, da leggere e giocare — sui dorsi fa
+     solo carte gonfie che rubano spazio. */
+  .hand-opponent { height: calc(24px + 92px * var(--card-scale)); }
+  .hand-opponent .tile {
+    transform: scale(var(--card-scale));
+    margin-top: calc(-424px + 92px * var(--card-scale));
+    margin-right: calc(-302px * (1 - var(--card-scale)));
+  }
+
+  /* Il doppio tap su un pulsante non deve zoomare la pagina (il tasto
+     della mano, i +/-, i dadi…). manipulation lascia scorrere e pizzicare,
+     toglie solo lo zoom da doppio tocco; le tessere restano a parte con il
+     loro touch-action: none. */
+  * { touch-action: manipulation; }
 
   /* La selezione del testo su touch parte per sbaglio (tocchi lunghi,
      trascinamenti) e non serve: spenta ovunque, tranne dove leggere e
