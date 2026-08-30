@@ -1624,13 +1624,13 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
     /* Il max() porta la cima del campo a filo della striscia; i 18px in
        più fanno spuntare la targhetta «Giocatore A» (che sborda sopra la
        cornice) senza finire sopra i dorsi. */
-    padding-top: calc(18px + max(0px, 24px + 92px * var(--card-scale) - 128px * var(--card-scale)));
+    padding-top: calc(18px + max(0px, 16px + 76px * var(--card-scale) - 128px * var(--card-scale)));
   }
 
   /* I dorsi avversari alla scala del CAMPO: la maggiorazione 1.3× della
      mano serve solo alla propria, da leggere e giocare — sui dorsi fa
      solo carte gonfie che rubano spazio. */
-  .hand-opponent { height: calc(24px + 92px * var(--card-scale)); }
+  .hand-opponent { height: calc(16px + 76px * var(--card-scale)); }
   /* La targhetta «Mano di … · N» non si stende più SOPRA i dorsi: entra
      nel flusso della striscia come primo elemento, e le carte partono
      dopo la sua larghezza REALE — niente corsie a misura fissa che il
@@ -1644,7 +1644,7 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
   }
   .hand-opponent .tile {
     transform: scale(var(--card-scale));
-    margin-top: calc(-424px + 92px * var(--card-scale));
+    margin-top: calc(-424px + 76px * var(--card-scale));
     margin-right: calc(-302px * (1 - var(--card-scale)));
   }
 
