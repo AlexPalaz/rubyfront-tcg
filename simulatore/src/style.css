@@ -223,6 +223,13 @@ body.side-closed { --side-w: 0px; }
   overflow: hidden;
 }
 
+/* Su touch il tavolo, riscalato per entrare tutto intero, partirebbe a filo
+   dell'header di vetro: la lavagna si scansa sotto la barra. Su desktop non
+   serve — lì l'aria la dà il margine canonico del tavolo. */
+@media (pointer: coarse) {
+  .board { top: var(--toolbar-h); }
+}
+
 /* La × della chat: piccola, nell'angolo, sopra lo scorrimento. */
 .side-close {
   position: absolute;
