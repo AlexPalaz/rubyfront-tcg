@@ -43,6 +43,10 @@ export function connect(relayUrl: string, room: string, seat: Seat, handlers: Ne
   let retry = 0;
   let closed = false;
   let timer: number | undefined;
+  /** Quello che si è provato a spedire mentre il socket apriva (il relay
+      free può metterci 30-50s a svegliarsi): parte appena si è dentro,
+      nell'ordine, invece di sparire in silenzio. */
+  const pending: NetMessage[] = [];
 
   const setStatus = (next: NetStatus): void => {
     status = next;
@@ -70,6 +74,7 @@ export function connect(relayUrl: string, room: string, seat: Seat, handlers: Ne
       // Chiedi lo stato a chi è già nella stanza: se non c'è nessuno, nessuno
       // risponde e si resta con la propria lavagna.
       next.send(JSON.stringify({ t: "hello", from: seat } satisfies NetMessage));
+      for (const message of pending.splice(0)) next.send(JSON.stringify(message));
     });
 
     next.addEventListener("message", event => {
@@ -115,6 +120,7 @@ export function connect(relayUrl: string, room: string, seat: Seat, handlers: Ne
   return {
     send(message) {
       if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
+      else if (pending.length < 200) pending.push(message);
     },
     close() {
       closed = true;

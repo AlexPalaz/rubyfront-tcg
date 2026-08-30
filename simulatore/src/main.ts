@@ -258,7 +258,17 @@ function setStatus(status: NetStatus, peers: number): void {
         : "Non collegato — si gioca in locale";
 }
 
+let seatClashWarned = false;
+function warnSeatClash(): void {
+  if (seatClashWarned) return;
+  seatClashWarned = true;
+  ctx.log(
+    `Attenzione: nella stanza ci sono due giocatori al posto ${mySeat.toUpperCase()}. Uno dei due cambi posto (ingranaggio → Posto), poi «Sincronizza la lavagna».`
+  );
+}
+
 function join(room: string, relay: string): void {
+  seatClashWarned = false;
   voice.shutdown();
   document.body.dataset.voice = "";
   net?.close();
@@ -272,6 +282,13 @@ function join(room: string, relay: string): void {
   net = connect(relay || DEFAULT_RELAY, room.trim(), mySeat, {
     onStatus: setStatus,
     onMessage(message) {
+      // Un messaggio col MIO posto come mittente: nella stanza c'è un altro
+      // client seduto dove sono io. Applicarlo scombinerebbe la lavagna:
+      // meglio ignorarlo e dirlo forte.
+      if ("from" in message && message.from === mySeat) {
+        warnSeatClash();
+        return;
+      }
       if (message.t === "rtc") {
         if (message.from !== mySeat) voice.receive(message.payload as VoicePayload);
         return;
@@ -292,9 +309,14 @@ function join(room: string, relay: string): void {
         return;
       }
       if (message.t === "state") {
+        // La lavagna di chi era già dentro sostituisce la mia — ma può non
+        // sapere niente di me, se il mio carico è partito mentre il relay
+        // ancora dormiva. Mazzo e nome si rimettono, e stavolta viaggiano.
+        const hadMine = Object.values(state.cards).some(card => card.owner === mySeat);
         state = message.state;
         paint();
-        // La lavagna arrivata può non sapere come mi chiamo: glielo ridico.
+        const incomingHasMine = Object.values(state.cards).some(card => card.owner === mySeat);
+        if (hadMine && !incomingHasMine && myDeckId) loadDeck(myDeckId, mySeat);
         const myName = store.read("name", "");
         if (myName && state.players[mySeat].name !== myName) {
           dispatch({ t: "player", seat: mySeat, patch: { name: myName } });
