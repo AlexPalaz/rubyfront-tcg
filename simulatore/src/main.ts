@@ -297,7 +297,10 @@ function join(room: string, relay: string): void {
         // "Nuova partita" azzera il tavolo di entrambi: ognuno rimette poi il
         // proprio mazzo, perché il suo id è noto solo al suo client.
         receive(message.action);
-        if (message.action.t === "newGame" && myDeckId) loadDeck(myDeckId, mySeat);
+        if (message.action.t === "newGame") {
+          if (myDeckId) loadDeck(myDeckId, mySeat);
+          reapplyName();
+        }
         return;
       }
       if (message.t === "hello") {
@@ -371,7 +374,14 @@ document.querySelector("#do-new")!.addEventListener("click", () => {
   if (!confirm("Nuova partita: tavolo, contatori e chat vengono azzerati. Procedo?")) return;
   dispatch({ t: "newGame" });
   if (myDeckId) loadDeck(myDeckId, mySeat);
+  reapplyName();
 });
+
+/** La nuova partita azzera anche i nomi: il proprio si rimette da sé. */
+function reapplyName(): void {
+  const myName = store.read("name", "");
+  if (myName) dispatch({ t: "player", seat: mySeat, patch: { name: myName } });
+}
 
 document.querySelector("#do-push")!.addEventListener("click", () => {
   net?.send({ t: "state", state, from: mySeat });

@@ -16,7 +16,10 @@ export function newPlayer(name: string): GameState["players"]["a"] {
 export function newGame(): GameState {
   return {
     cards: {},
-    players: { a: newPlayer("Giocatore A"), b: newPlayer("Giocatore B") },
+    // Il nome parte VUOTO: «Giocatore A/B» è solo il ripiego di seatLabel.
+    // Pre-compilarlo qui renderebbe impossibile distinguere un posto senza
+    // nessuno (che deve leggersi «In attesa…») da uno abitato.
+    players: { a: newPlayer(""), b: newPlayer("") },
     turn: 1,
     active: "a",
     chat: [],
@@ -268,8 +271,21 @@ export function nextWaveOrder(state: GameState, seat: Seat): number {
   return mine.reduce((top, d) => Math.max(top, d.order), 0) + 1;
 }
 
-export function seatLabel(state: GameState, seat: Seat): string {
-  return state.players[seat].name || (seat === "a" ? "Giocatore A" : "Giocatore B");
+/** Nessun nome e nessuna carta: quel posto non è ancora di nessuno. */
+export function seatWaiting(state: GameState, seat: Seat): boolean {
+  return (
+    !state.players[seat].name &&
+    !Object.values(state.cards).some(card => card.owner === seat)
+  );
+}
+
+export function seatLabel(state: GameState, seat: Seat, me?: Seat): string {
+  if (state.players[seat].name) return state.players[seat].name;
+  // Dall'altro lato del tavolo un posto vuoto non è un «Giocatore»
+  // fantasma: è un'attesa. Il proprio posto invece resta Giocatore A/B
+  // (dire a me stesso che sono in attesa non avrebbe senso).
+  if (seat !== me && me !== undefined && seatWaiting(state, seat)) return "In attesa…";
+  return seat === "a" ? "Giocatore A" : "Giocatore B";
 }
 
 export { SEATS };

@@ -164,7 +164,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     });
 
     syncs.push(hp.sync, flux.sync, () => {
-      name.textContent = mine ? "tu" : seatLabel(ctx.state(), seat).slice(0, 14);
+      name.textContent = mine ? "tu" : seatLabel(ctx.state(), seat, ctx.seat()).slice(0, 14);
       box.classList.toggle("is-active", ctx.state().active === seat);
       const held = ctx.state().players[seat].token;
       coin.textContent = held ? "◆" : "◇";
@@ -212,7 +212,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     const state = ctx.state();
     turnCount.textContent = `Turno ${state.turn}`;
     const mineTurn = state.active === ctx.seat();
-    turnWho.textContent = mineTurn ? "▼ tocca a te" : `▲ ${seatLabel(state, state.active)}`;
+    turnWho.textContent = mineTurn ? "▼ tocca a te" : `▲ ${seatLabel(state, state.active, ctx.seat())}`;
     turn.classList.toggle("is-mine", mineTurn);
   });
 

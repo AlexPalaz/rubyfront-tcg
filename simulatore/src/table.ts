@@ -37,6 +37,7 @@ import {
   freeFrontSlot,
   nextWaveOrder,
   seatLabel,
+  seatWaiting,
   shuffled,
   stackAt,
   zoneCards,
@@ -764,7 +765,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     for (const seat of SEATS) {
       const label = surface.querySelector<HTMLElement>(`[data-seat-name="${seat}"]`);
       if (label) {
-        label.textContent = `${seatLabel(state, seat)}${seat === me ? " · tu" : ""}`;
+        label.textContent = `${seatLabel(state, seat, me)}${seat === me ? " · tu" : ""}`;
       }
       for (const pile of PILES) {
         const slot = pileSlots.get(`${seat}:${pile.zone}`)!;
@@ -830,7 +831,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         }
         lastMyHand = cards.length;
       }
-      tag.textContent = seat === me ? `La tua mano · ${cards.length}` : `Mano di ${seatLabel(state, seat)} · ${cards.length}`;
+      tag.textContent = seat === me
+        ? `La tua mano · ${cards.length}`
+        : seatWaiting(state, seat)
+          ? "In attesa di un avversario…"
+          : `Mano di ${seatLabel(state, seat)} · ${cards.length}`;
       host.classList.toggle("is-empty", cards.length === 0);
       const wanted: HTMLElement[] = [];
       for (const card of cards) {
