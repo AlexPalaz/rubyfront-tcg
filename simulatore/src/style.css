@@ -228,6 +228,17 @@ body.side-closed { --side-w: 0px; }
    serve — lì l'aria la dà il margine canonico del tavolo. */
 @media (pointer: coarse) {
   .board, .hand-opponent { top: calc(var(--toolbar-h) + 22px); }
+
+  /* Su touch la selezione del testo parte per sbaglio (tocchi lunghi,
+     trascinamenti) e non serve: spenta ovunque, tranne dove leggere e
+     copiare ha senso — la chat, il testo delle carte nell'anteprima e i
+     campi di input. Le tessere restano non selezionabili comunque: lì la
+     pressione lunga è il menu, non la selezione. */
+  body { -webkit-user-select: none; user-select: none; }
+  .chat, .preview-layer, input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }
 
 /* La × della chat: piccola, nell'angolo, sopra lo scorrimento. */
