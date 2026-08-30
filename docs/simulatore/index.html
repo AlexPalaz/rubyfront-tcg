@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulatore · Rubyfront</title>
+  <script type="module" crossorigin src="./assets/index-BxSNNx6M.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-okvjuzQa.css">
+</head>
+<body>
+<header class="toolbar">
+  <span class="brand">Rubyfront</span>
+
+  <span class="group">
+    <select id="deck-pick" title="Mazzo da caricare al tuo posto"></select>
+    <button type="button" id="deck-load">Carica mazzo</button>
+  </span>
+
+  <span class="group">
+    <button type="button" id="do-shuffle">Mescola</button>
+    <button type="button" id="do-draw">Pesca</button>
+    <button type="button" id="do-search">Cerca carta</button>
+  </span>
+
+  <span class="group">
+    <button type="button" id="do-new" class="danger">Nuova partita</button>
+  </span>
+
+  <span class="spacer"></span>
+
+  <span class="group room">
+    <label for="seat-pick">Posto</label>
+    <select id="seat-pick">
+      <option value="a">A</option>
+      <option value="b">B</option>
+    </select>
+    <label for="room-name">Stanza</label>
+    <input id="room-name" placeholder="nome stanza" autocomplete="off">
+    <input id="relay-url" placeholder="ws://localhost:8787" autocomplete="off" size="20">
+    <button type="button" id="do-join">Entra</button>
+    <span id="net-dot" class="dot" title="Non collegato"></span>
+    <button type="button" id="do-push" class="ghost" title="Rimanda il tuo tavolo all'avversario, se le due lavagne si sono disallineate">Sincronizza</button>
+  </span>
+
+  <span class="group">
+    <select id="theme-pick" title="Tema del tavolo">
+      <option value="notte">Notte</option>
+      <option value="rubino">Rubino</option>
+      <option value="smeraldo">Smeraldo</option>
+      <option value="abisso">Abisso</option>
+      <option value="acciaio">Acciaio</option>
+    </select>
+    <select id="lang-pick" title="Lingua delle carte">
+      <option value="it">IT</option>
+      <option value="en">EN</option>
+    </select>
+  </span>
+</header>
+
+<main class="layout">
+  <div class="table" id="table">
+    <!-- L'HUD non è una colonna: fluttua sopra il tavolo, sul bordo destro. -->
+    <div class="hud" id="hud"></div>
+  </div>
+  <aside class="side" id="side">
+    <button type="button" class="side-close" id="side-close" title="Chiudi la chat e allarga il tavolo">×</button>
+    <div class="chat" id="chat"></div>
+  </aside>
+</main>
+
+<div class="boot" id="boot">Carico le carte…</div>
+
+</body>
+</html>

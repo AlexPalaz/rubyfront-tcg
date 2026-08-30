@@ -1,2 +1,5 @@
 # macOS metadata
 .DS_Store
+
+# dipendenze del simulatore (npm install le rimette)
+node_modules/

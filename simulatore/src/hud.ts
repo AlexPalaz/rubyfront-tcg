@@ -1,0 +1,351 @@
+// L'HUD: le targhe dei due posti, appoggiate sul bordo destro del tavolo.
+//
+// Non è una colonna del layout: fluttua sopra il tavolo, che sotto continua.
+// Tiene ciò che serve giocando a pannello chiuso — Punti Vita, Flusso, turno,
+// Fine turno — e l'ingranaggio che apre il pannello. Si vede solo a pannello
+// chiuso: aperto quello, gli stessi numeri stanno là (stesso stato, non una
+// copia: toccarli di qua o di là è la stessa cosa).
+//
+// Le targhe stanno nell'ordine del tavolo: l'avversario in alto, tu in basso,
+// e in mezzo la pillola del turno, con la punta verso chi tocca.
+//
+// L'HUD si sposta: lo si afferra da un punto qualsiasi che non sia un tasto e
+// lo si porta dove non dà fastidio. La posizione resta fra una partita e
+// l'altra, e un doppio click sulla maniglia lo rimette al posto suo.
+
+import type { Ctx } from "./ctx.js";
+import { seatLabel } from "./state.js";
+import { endTurn } from "./turn.js";
+import type { PlayerState, Seat } from "./types.js";
+import { otherSeat } from "./types.js";
+
+const FLUX_CAP = 20;
+/** Stessa dispensa di main.ts (`rbf-sim:*`): qui ci sta la posizione. */
+const POS_KEY = "rbf-sim:hud";
+/** E qui se l'HUD sta ridotto a icona. */
+const MIN_KEY = "rbf-sim:hud-min";
+/** L'HUD non si incolla mai ai bordi del tavolo più di così. */
+const EDGE = 10;
+
+export interface Hud {
+  render(): void;
+}
+
+/** Riga di una grandezza: −, il valore vestito come sulla carta, +. */
+function statRow(
+  kind: "hp" | "flux",
+  title: string,
+  read: () => number,
+  write: (value: number) => void,
+  options: { min?: number; max?: number } = {}
+): { row: HTMLElement; sync: () => void } {
+  const row = document.createElement("div");
+  row.className = "hud-stat";
+  row.dataset.kind = kind;
+  row.title = title;
+
+  // Il valore riprende il template della carta: il Flusso sta dentro il rombo
+  // del costo (il Flusso È il costo), i PV in mono verde con il suffisso,
+  // come nella barra del titolo. Classi hud-*: .cost e .hp sono di card.css.
+  const head = document.createElement("span");
+  head.className = kind === "flux" ? "hud-gem" : "hud-vita";
+
+  const value = document.createElement("b");
+  value.className = "hud-value";
+  head.append(value);
+  if (kind === "hp") {
+    const suffix = document.createElement("small");
+    suffix.textContent = "PV";
+    head.append(suffix);
+  }
+
+  const minus = document.createElement("button");
+  minus.type = "button";
+  minus.className = "hud-step";
+  minus.textContent = "−";
+  minus.title = `${title}: uno in meno`;
+
+  const plus = document.createElement("button");
+  plus.type = "button";
+  plus.className = "hud-step";
+  plus.textContent = "+";
+  plus.title = `${title}: uno in più`;
+
+  const clamp = (next: number): number =>
+    Math.max(options.min ?? Number.NEGATIVE_INFINITY, Math.min(options.max ?? Number.POSITIVE_INFINITY, next));
+
+  minus.addEventListener("click", () => write(clamp(read() - 1)));
+  plus.addEventListener("click", () => write(clamp(read() + 1)));
+
+  row.append(minus, head, plus);
+  return { row, sync: () => (value.textContent = String(read())) };
+}
+
+export function mountHud(root: HTMLElement, ctx: Ctx, onToggle: () => void): Hud {
+  const syncs: (() => void)[] = [];
+
+  function chip(seat: Seat, mine: boolean): HTMLElement {
+    const box = document.createElement("section");
+    box.className = `hud-chip ${mine ? "is-mine" : "is-foe"}`;
+
+    const name = document.createElement("h4");
+    name.className = "hud-name";
+    const patch = (values: Partial<PlayerState>): void => ctx.dispatch({ t: "player", seat, patch: values });
+
+    const hp = statRow("hp", "Punti Vita", () => ctx.state().players[seat].hp, value => patch({ hp: value }));
+    const flux = statRow(
+      "flux",
+      "Flusso",
+      () => ctx.state().players[seat].flux,
+      value => patch({ flux: value }),
+      { min: 0, max: FLUX_CAP }
+    );
+
+    // Il Gettone Flusso (§3.2): la moneta sull'orlo della targa È il comando.
+    // Spenta si assegna, d'oro si spende — 1 Flusso extra, fuori dai 20.
+    const coin = document.createElement("button");
+    coin.type = "button";
+    coin.className = "hud-coin";
+    coin.addEventListener("click", () => {
+      const player = ctx.state().players[seat];
+      if (!player.token) {
+        patch({ token: true });
+        ctx.log(`${seatLabel(ctx.state(), seat)} riceve il Gettone Flusso.`, seat);
+      } else {
+        // Spenderlo dà 1 Flusso oltre il tetto: è l'unico modo di arrivare a 21.
+        patch({ token: false, flux: player.flux + 1 });
+        ctx.log(`${seatLabel(ctx.state(), seat)} spende il Gettone Flusso (+1 Flusso, fuori dal limite).`, seat);
+      }
+    });
+
+    syncs.push(hp.sync, flux.sync, () => {
+      name.textContent = mine ? "tu" : seatLabel(ctx.state(), seat).slice(0, 14);
+      box.classList.toggle("is-active", ctx.state().active === seat);
+      const held = ctx.state().players[seat].token;
+      coin.textContent = held ? "◆" : "◇";
+      coin.classList.toggle("is-held", held);
+      coin.title = held
+        ? "Gettone Flusso: spendi (+1 Flusso, oltre il tetto dei 20)"
+        : "Assegna il Gettone Flusso (§3.2)";
+    });
+
+    box.append(coin, name, hp.row, flux.row);
+    return box;
+  }
+
+  const foe = chip(otherSeat(ctx.seat()), false);
+  const mine = chip(ctx.seat(), true);
+
+  // Il turno, fra le due targhe: numero e, sotto, chi tocca — con la punta
+  // rivolta alla targa giusta (▲ l'avversario sopra, ▼ tu sotto). I − e +
+  // a comparsa correggono il numero a mano, come ogni cifra del simulatore.
+  const turn = document.createElement("div");
+  turn.className = "hud-turn";
+  const turnMid = document.createElement("div");
+  turnMid.className = "hud-turn-mid";
+  const turnCount = document.createElement("span");
+  turnCount.className = "hud-turn-count";
+  const turnWho = document.createElement("span");
+  turnWho.className = "hud-turn-who";
+  turnMid.append(turnCount, turnWho);
+
+  const turnStep = (delta: number, label: string): HTMLButtonElement => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "hud-step";
+    button.textContent = delta < 0 ? "−" : "+";
+    button.title = label;
+    button.addEventListener("click", () => {
+      const state = ctx.state();
+      ctx.dispatch({ t: "turn", turn: Math.max(1, state.turn + delta), active: state.active });
+    });
+    return button;
+  };
+  turn.append(turnStep(-1, "Turno: uno in meno"), turnMid, turnStep(1, "Turno: uno in più"));
+
+  syncs.push(() => {
+    const state = ctx.state();
+    turnCount.textContent = `Turno ${state.turn}`;
+    const mineTurn = state.active === ctx.seat();
+    turnWho.textContent = mineTurn ? "▼ tocca a te" : `▲ ${seatLabel(state, state.active)}`;
+    turn.classList.toggle("is-mine", mineTurn);
+  });
+
+  // In fondo le due azioni: Fine turno — la mossa più battuta, che merita di
+  // stare a portata di mano — e l'ingranaggio che apre il pannello.
+  const actions = document.createElement("div");
+  actions.className = "hud-actions";
+
+  const pass = document.createElement("button");
+  pass.type = "button";
+  // Niente classe `primary`: quella veste i bottoni di rubino, e qui il
+  // colore lo decide la palette dell'HUD.
+  pass.className = "hud-pass";
+  pass.textContent = "Fine turno";
+  pass.title = "Passa il turno: Flusso massimo +1 (max 20) e Flusso ricaricato per chi entra";
+  pass.addEventListener("click", () => endTurn(ctx));
+
+  const chatToggle = document.createElement("button");
+  chatToggle.type = "button";
+  chatToggle.className = "hud-chat";
+  chatToggle.title = "Apri la chat";
+  chatToggle.innerHTML =
+    '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M5 4h14a2.5 2.5 0 0 1 2.5 2.5v8A2.5 2.5 0 0 1 19 17h-8.6l-4.6 3.8c-.65.54-1.65.08-1.65-.77V6.5A2.5 2.5 0 0 1 5 4z"/></svg>';
+  chatToggle.addEventListener("click", onToggle);
+
+  actions.append(pass, chatToggle);
+
+  // I dadi, in coda: quattro tagli e l'ultimo esito. Ogni tiro va in chat,
+  // firmato dal posto che tira.
+  const dice = document.createElement("div");
+  dice.className = "hud-dice";
+  const diceOut = document.createElement("div");
+  diceOut.className = "hud-dice-out";
+  for (const faces of [20, 12, 6, 4]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "hud-dice-btn";
+    button.textContent = `d${faces}`;
+    button.addEventListener("click", () => {
+      const value = 1 + Math.floor(Math.random() * faces);
+      diceOut.textContent = `d${faces} → ${value}`;
+      ctx.log(`${seatLabel(ctx.state(), ctx.seat())} tira d${faces}: ${value}`, ctx.seat());
+    });
+    dice.append(button);
+  }
+  dice.append(diceOut);
+
+  // La testata: maniglia al centro, e nell'angolo il tasto che riduce l'HUD
+  // a icona. Ridotto, resta solo una tessera col rombo: un click la riapre.
+  const top = document.createElement("div");
+  top.className = "hud-top";
+
+  const grip = document.createElement("div");
+  grip.className = "hud-grip";
+  grip.title = "Trascina per spostare l'HUD · doppio click per rimetterlo al posto suo";
+
+  const minBtn = document.createElement("button");
+  minBtn.type = "button";
+  minBtn.className = "hud-min-btn";
+  minBtn.textContent = "–";
+  minBtn.title = "Riduci l'HUD a icona";
+  minBtn.addEventListener("click", () => setMin(true));
+  top.append(grip, minBtn);
+
+  const mini = document.createElement("button");
+  mini.type = "button";
+  mini.className = "hud-mini";
+  mini.title = "Espandi l'HUD · trascina per spostarlo";
+  mini.innerHTML = '<span class="hud-mini-gem"></span>';
+  // Il click espande, ma solo se è un click davvero: dopo un trascinamento
+  // il browser lo spara lo stesso, e va lasciato cadere.
+  mini.addEventListener("click", () => {
+    if (miniDragged) {
+      miniDragged = false;
+      return;
+    }
+    setMin(false);
+  });
+
+  let minimized = localStorage.getItem(MIN_KEY) === "1";
+
+  function setMin(value: boolean): void {
+    minimized = value;
+    if (value) localStorage.setItem(MIN_KEY, "1");
+    else localStorage.removeItem(MIN_KEY);
+    root.classList.toggle("is-min", minimized);
+    // La misura cambia: l'HUD rientra nei bordi se serve.
+    place();
+  }
+
+  root.append(top, foe, turn, mine, actions, dice, mini);
+  root.classList.toggle("is-min", minimized);
+
+  // ------------------------------------------------------- trascinamento
+
+  const table = (): HTMLElement => root.parentElement as HTMLElement;
+
+  let pos: { x: number; y: number } | null = null;
+  try {
+    pos = JSON.parse(localStorage.getItem(POS_KEY) ?? "null");
+  } catch {
+    pos = null;
+  }
+  if (typeof pos?.x !== "number" || typeof pos?.y !== "number") pos = null;
+
+  /** Applica la posizione, tenendo l'HUD tutto dentro il tavolo. Senza una
+      posizione scelta comanda il CSS: bordo destro, a metà altezza. */
+  function place(): void {
+    if (!pos) {
+      root.style.left = root.style.top = root.style.right = root.style.transform = "";
+      return;
+    }
+    const x = Math.min(Math.max(EDGE, pos.x), Math.max(EDGE, table().clientWidth - root.offsetWidth - EDGE));
+    const y = Math.min(Math.max(EDGE, pos.y), Math.max(EDGE, table().clientHeight - root.offsetHeight - EDGE));
+    root.style.left = `${x}px`;
+    root.style.top = `${y}px`;
+    root.style.right = "auto";
+    root.style.transform = "none";
+  }
+
+  /** L'icona è stata appena trascinata: il click che segue non deve aprirla. */
+  let miniDragged = false;
+
+  root.addEventListener("pointerdown", event => {
+    const target = event.target as HTMLElement;
+    const onMini = Boolean(target.closest(".hud-mini"));
+    // I tasti restano tasti: si trascina da tutto il resto. L'icona è
+    // l'eccezione — è un tasto, ma ridotto a icona è anche tutto l'HUD:
+    // si sposta pure lei. Niente preventDefault lì, o il click di apertura
+    // non arriverebbe mai; la soglia qui sotto separa i due gesti.
+    if (!onMini && target.closest("button, input")) return;
+    if (!onMini) event.preventDefault();
+    const rect = root.getBoundingClientRect();
+    const host = table().getBoundingClientRect();
+    const gripX = event.clientX - rect.left;
+    const gripY = event.clientY - rect.top;
+    const startX = event.clientX;
+    const startY = event.clientY;
+    let engaged = false;
+    const move = (ev: PointerEvent): void => {
+      if (!engaged && Math.abs(ev.clientX - startX) < 4 && Math.abs(ev.clientY - startY) < 4) return;
+      engaged = true;
+      if (onMini) miniDragged = true;
+      root.classList.add("is-dragging");
+      pos = { x: Math.round(ev.clientX - host.left - gripX), y: Math.round(ev.clientY - host.top - gripY) };
+      place();
+    };
+    const drop = (): void => {
+      root.classList.remove("is-dragging");
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", drop);
+      window.removeEventListener("pointercancel", drop);
+      if (engaged && pos) localStorage.setItem(POS_KEY, JSON.stringify(pos));
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", drop);
+    window.addEventListener("pointercancel", drop);
+  });
+
+  grip.addEventListener("dblclick", () => {
+    pos = null;
+    localStorage.removeItem(POS_KEY);
+    place();
+  });
+
+  // Quando il tavolo cambia misura — pannello aperto o chiuso, finestra
+  // ridimensionata — l'HUD rientra da sé nei bordi.
+  new ResizeObserver(place).observe(table());
+  place();
+
+  return {
+    render() {
+      for (const sync of syncs) sync();
+      // La spia dei messaggi non letti sta sul tasto della chat — e anche
+      // sull'icona, che da ridotta è tutto ciò che resta in vista.
+      const unread = document.body.dataset.unread ?? "";
+      chatToggle.dataset.unread = unread;
+      mini.dataset.unread = unread;
+    },
+  };
+}
