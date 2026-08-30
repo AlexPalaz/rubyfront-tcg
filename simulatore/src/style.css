@@ -1649,6 +1649,9 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
    (Il display esplicito batterebbe [hidden]: va ribadito.) */
 #ob-step-room, #ob-step-profile { display: grid; gap: 14px; }
 .onboard [hidden] { display: none !important; }
+/* E vale anche per l'overlay stesso: il suo display:grid batterebbe
+   l'hidden di «Al tavolo» e il wizard non si chiuderebbe mai. */
+.onboard[hidden] { display: none !important; }
 #ob-step-room input, #ob-step-profile input, #ob-step-profile select {
   padding: 10px 12px;
   font-size: 1rem;
