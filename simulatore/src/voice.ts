@@ -54,10 +54,21 @@ export function createVoice(options: {
   let meterCtx: AudioContext | null = null;
   let meterRaf = 0;
 
+  /** Su iOS l'AudioContext nasce sospeso e si sveglia SOLO dentro un gesto
+      dell'utente: va creato qui, in sincrono nel tap, PRIMA del prompt dei
+      permessi che spezza la catena del gesto. Altrimenti il misuratore
+      legge silenzio piatto e il VU resta a zero. */
+  function primeMeter(): void {
+    if (!options.onLevel || typeof AudioContext === "undefined") return;
+    if (!meterCtx) meterCtx = new AudioContext();
+    if (meterCtx.state === "suspended") void meterCtx.resume().catch(() => {});
+  }
+
   /** Il misuratore: RMS del segnale, con attacco pronto e rilascio morbido. */
   function startMeter(source: MediaStream): void {
     if (!options.onLevel || typeof AudioContext === "undefined") return;
-    meterCtx = new AudioContext();
+    if (!meterCtx) meterCtx = new AudioContext();
+    if (meterCtx.state === "suspended") void meterCtx.resume().catch(() => {});
     const analyser = meterCtx.createAnalyser();
     analyser.fftSize = 512;
     meterCtx.createMediaStreamSource(source).connect(analyser);
@@ -139,6 +150,7 @@ export function createVoice(options: {
         stopSending(true);
         return;
       }
+      primeMeter();
       try {
         await start();
       } catch (error) {
