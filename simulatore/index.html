@@ -96,6 +96,35 @@
   </div>
 </div>
 
+<!-- Onboarding: al primo arrivo (nessuna stanza) accompagna dentro in due
+     passi — stanza, poi nome e mazzo. Chi ha già una stanza salvata o un
+     link d'invito non lo vede mai. -->
+<div class="onboard" id="onboard" hidden>
+  <div class="onboard-card">
+    <div class="onboard-brand">Rubyfront <span aria-hidden="true">◆</span> Simulator</div>
+
+    <div id="ob-step-room">
+      <p class="onboard-ask">Benvenuto al tavolo. Per giocare con qualcuno serve una stanza:</p>
+      <button type="button" id="ob-create" class="onboard-primary">Crea una stanza</button>
+      <div class="onboard-or">oppure entra in una stanza che conosci</div>
+      <div class="onboard-row">
+        <input id="ob-room" placeholder="nome stanza" autocomplete="off">
+        <button type="button" id="ob-join">Entra</button>
+      </div>
+      <button type="button" id="ob-local" class="onboard-skip">Gioca in locale, senza stanza</button>
+    </div>
+
+    <div id="ob-step-profile" hidden>
+      <p class="onboard-ask" id="ob-room-note" hidden></p>
+      <label class="onboard-label" for="ob-name">Il tuo nome al tavolo</label>
+      <input id="ob-name" placeholder="es. Ajmal" autocomplete="off" maxlength="24">
+      <label class="onboard-label" for="ob-deck">Il mazzo con cui giochi</label>
+      <select id="ob-deck"></select>
+      <button type="button" id="ob-go" class="onboard-primary">Al tavolo</button>
+    </div>
+  </div>
+</div>
+
 <main class="layout">
   <div class="table" id="table">
     <!-- L'HUD non è una colonna: fluttua sopra il tavolo, sul bordo destro. -->

@@ -1606,6 +1606,88 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
   box-shadow: 0 0 14px rgba(108, 113, 196, .4), 0 8px 16px rgba(101, 92, 62, .3);
 }
 
+/* --------------------------------------------------------- onboarding */
+
+/* Il velo copre tutto, HUD compreso: finché non si è scelta la porta
+   d'ingresso il tavolo aspetta. */
+.onboard {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--overlay-veil, rgba(5, 4, 10, .72));
+  backdrop-filter: blur(6px);
+}
+
+.onboard-card {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 26px 28px 24px;
+  background: var(--glass-heavy);
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+}
+
+.onboard-brand {
+  font-weight: 700;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  text-align: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.onboard-brand span { color: var(--rubino, #e0314b); }
+
+.onboard-ask { margin: 0; color: var(--ink-soft, inherit); }
+
+/* Il rubino delle azioni di gioco: entrare al tavolo è IL gesto. */
+.onboard-primary {
+  padding: 12px 16px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #fdeef1;
+  background: linear-gradient(180deg, #b81a41, #9e0f34);
+  border: 1px solid #e56a86;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
+}
+
+.onboard-or {
+  text-align: center;
+  opacity: .65;
+  font-size: 1rem;
+}
+
+.onboard-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.onboard-label {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .75;
+  margin-top: 4px;
+}
+
+.onboard-skip {
+  margin-top: 6px;
+  background: none;
+  border: none;
+  opacity: .6;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.onboard-skip:hover { opacity: .9; }
+
 /* ------------------------------------------------------------- touch
    Le correzioni per dita e tablet. IN FONDO AL FILE APPOSTA: devono
    vincere sulle regole di base (.board ha inset:0, .hand-opponent top:0

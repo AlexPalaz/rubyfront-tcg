@@ -292,6 +292,11 @@ function join(room: string, relay: string): void {
       if (message.t === "state") {
         state = message.state;
         paint();
+        // La lavagna arrivata può non sapere come mi chiamo: glielo ridico.
+        const myName = store.read("name", "");
+        if (myName && state.players[mySeat].name !== myName) {
+          dispatch({ t: "player", seat: mySeat, patch: { name: myName } });
+        }
       }
     },
   });
@@ -491,3 +496,72 @@ function frameBoard(): void {
 frameBoard();
 
 if (roomInput.value) join(roomInput.value, relayInput.value);
+
+// ------------------------------------------------------------ onboarding
+// Al primo arrivo (nessuna stanza nota) il tavolo non si spiega da solo:
+// il wizard accompagna dentro — stanza, poi nome e mazzo. Chi arriva con
+// una stanza (salvata o da link d'invito) ma senza mazzo parte dal secondo
+// passo; chi ha già tutto non lo vede.
+const onboard = document.querySelector<HTMLElement>("#onboard")!;
+const obStepRoom = document.querySelector<HTMLElement>("#ob-step-room")!;
+const obStepProfile = document.querySelector<HTMLElement>("#ob-step-profile")!;
+const obRoom = document.querySelector<HTMLInputElement>("#ob-room")!;
+const obName = document.querySelector<HTMLInputElement>("#ob-name")!;
+const obDeck = document.querySelector<HTMLSelectElement>("#ob-deck")!;
+const obRoomNote = document.querySelector<HTMLElement>("#ob-room-note")!;
+
+for (const option of deckPick.options) obDeck.append(new Option(option.textContent ?? "", option.value));
+if (myDeckId) obDeck.value = myDeckId;
+
+function obProfile(): void {
+  onboard.hidden = false;
+  obStepRoom.hidden = true;
+  obStepProfile.hidden = false;
+  obName.value = store.read("name", "");
+  const room = roomInput.value.trim();
+  obRoomNote.hidden = !room;
+  obRoomNote.textContent = room ? `Sei nella stanza «${room}». Ancora due cose:` : "";
+  obName.focus();
+}
+
+document.querySelector("#ob-create")!.addEventListener("click", () => {
+  const name = `${GEMME[Math.floor(Math.random() * GEMME.length)]}-${Math.floor(1000 + Math.random() * 9000)}`;
+  roomInput.value = name;
+  join(name, relayInput.value);
+  obProfile();
+});
+
+document.querySelector("#ob-join")!.addEventListener("click", () => {
+  const room = obRoom.value.trim();
+  if (!room) {
+    obRoom.focus();
+    return;
+  }
+  roomInput.value = room;
+  join(room, relayInput.value);
+  obProfile();
+});
+obRoom.addEventListener("keydown", event => {
+  if (event.key === "Enter") document.querySelector<HTMLButtonElement>("#ob-join")!.click();
+});
+
+document.querySelector("#ob-local")!.addEventListener("click", () => obProfile());
+
+document.querySelector("#ob-go")!.addEventListener("click", () => {
+  const name = obName.value.trim();
+  if (name) {
+    store.write("name", name);
+    dispatch({ t: "player", seat: mySeat, patch: { name } });
+  }
+  if (obDeck.value) {
+    deckPick.value = obDeck.value;
+    loadDeck(obDeck.value, mySeat);
+  }
+  onboard.hidden = true;
+});
+
+if (!roomInput.value.trim()) {
+  onboard.hidden = false;
+} else if (!myDeckId) {
+  obProfile();
+}
