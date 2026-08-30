@@ -223,24 +223,6 @@ body.side-closed { --side-w: 0px; }
   overflow: hidden;
 }
 
-/* Su touch il tavolo, riscalato per entrare tutto intero, partirebbe a filo
-   dell'header di vetro: la lavagna si scansa sotto la barra. Su desktop non
-   serve — lì l'aria la dà il margine canonico del tavolo. */
-@media (pointer: coarse) {
-  .board, .hand-opponent { top: calc(var(--toolbar-h) + 22px); }
-
-  /* Su touch la selezione del testo parte per sbaglio (tocchi lunghi,
-     trascinamenti) e non serve: spenta ovunque, tranne dove leggere e
-     copiare ha senso — la chat, il testo delle carte nell'anteprima e i
-     campi di input. Le tessere restano non selezionabili comunque: lì la
-     pressione lunga è il menu, non la selezione. */
-  body { -webkit-user-select: none; user-select: none; }
-  .chat, .preview-layer, input, textarea {
-    -webkit-user-select: text;
-    user-select: text;
-  }
-}
-
 /* La × della chat: piccola, nell'angolo, sopra lo scorrimento. */
 .side-close {
   position: absolute;
@@ -1622,4 +1604,26 @@ body[data-ui-theme="solarizzato"] .half {
 }
 body[data-ui-theme="solarizzato"] .hud-chip.is-active {
   box-shadow: 0 0 14px rgba(108, 113, 196, .4), 0 8px 16px rgba(101, 92, 62, .3);
+}
+
+/* ------------------------------------------------------------- touch
+   Le correzioni per dita e tablet. IN FONDO AL FILE APPOSTA: devono
+   vincere sulle regole di base (.board ha inset:0, .hand-opponent top:0
+   più sopra — a pari specificità conta l'ordine). */
+@media (pointer: coarse) {
+  /* Il tavolo riscalato partirebbe a filo dell'header di vetro: lavagna e
+     striscia dei dorsi avversari si scansano sotto la barra, con respiro.
+     Su desktop non serve: lì l'aria la dà il margine canonico del tavolo. */
+  .board, .hand-opponent { top: calc(var(--toolbar-h) + 22px); }
+
+  /* La selezione del testo su touch parte per sbaglio (tocchi lunghi,
+     trascinamenti) e non serve: spenta ovunque, tranne dove leggere e
+     copiare ha senso — la chat, il testo delle carte nell'anteprima e i
+     campi di input. Le tessere restano non selezionabili comunque: lì la
+     pressione lunga è il menu, non la selezione. */
+  body { -webkit-user-select: none; user-select: none; }
+  .chat, .preview-layer, input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }
