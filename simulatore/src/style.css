@@ -1622,10 +1622,10 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
 }
 
 .onboard-card {
-  width: min(420px, 100%);
+  width: min(440px, 100%);
   display: grid;
-  gap: 14px;
-  padding: 26px 28px 24px;
+  gap: 18px;
+  padding: 30px 32px 26px;
   background: var(--glass-heavy);
   border: 1px solid var(--line-soft);
   border-radius: 16px;
@@ -1637,16 +1637,27 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
   letter-spacing: .22em;
   text-transform: uppercase;
   text-align: center;
-  padding-bottom: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 2px;
   border-bottom: 1px solid var(--line-soft);
 }
 .onboard-brand span { color: var(--rubino, #e0314b); }
 
-.onboard-ask { margin: 0; color: var(--ink-soft, inherit); }
+.onboard-ask { margin: 0; line-height: 1.5; color: var(--ink-soft, inherit); }
+
+/* I due passi respirano da soli: ogni figlio del passo ha il suo spazio.
+   (Il display esplicito batterebbe [hidden]: va ribadito.) */
+#ob-step-room, #ob-step-profile { display: grid; gap: 14px; }
+.onboard [hidden] { display: none !important; }
+#ob-step-room input, #ob-step-profile input, #ob-step-profile select {
+  padding: 10px 12px;
+  font-size: 1rem;
+}
 
 /* Il rubino delle azioni di gioco: entrare al tavolo è IL gesto. */
 .onboard-primary {
-  padding: 12px 16px;
+  margin-top: 2px;
+  padding: 14px 16px;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
@@ -1661,6 +1672,7 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
   text-align: center;
   opacity: .65;
   font-size: 1rem;
+  margin-top: 4px;
 }
 
 .onboard-row {
@@ -1675,7 +1687,8 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
   letter-spacing: .08em;
   text-transform: uppercase;
   opacity: .75;
-  margin-top: 4px;
+  margin-top: 6px;
+  margin-bottom: -6px;
 }
 
 .onboard-skip {

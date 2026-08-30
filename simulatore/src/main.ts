@@ -116,7 +116,9 @@ const chat = mountChat(document.querySelector<HTMLElement>("#chat")!, ctx);
 // La colonna è solo la chat; si apre e si chiude, e la scelta resta fra una
 // partita e l'altra. Aperta la chat l'HUD si ritira: dall'HUD si apre con
 // l'ingranaggio, dalla chat si chiude con la ×.
-if (store.read("side", "open") === "closed") document.body.classList.add("side-closed");
+// La chat parte chiusa: il tavolo prima di tutto. Chi la apre se la
+// ritrova aperta alla prossima visita.
+if (store.read("side", "closed") === "closed") document.body.classList.add("side-closed");
 function toggleSide(): void {
   const closed = document.body.classList.toggle("side-closed");
   store.write("side", closed ? "closed" : "open");
