@@ -1644,7 +1644,9 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
   }
   .hand-opponent .tile {
     transform: scale(var(--card-scale));
-    margin-top: calc(-424px + 76px * var(--card-scale));
+    /* Affacciate un filo meno della striscia (76→64): restano contabili
+       ma non a filo del bordo. */
+    margin-top: calc(-424px + 64px * var(--card-scale));
     margin-right: calc(-302px * (1 - var(--card-scale)));
   }
 
