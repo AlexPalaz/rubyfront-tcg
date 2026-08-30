@@ -53,11 +53,13 @@ export const HALF_H = ROW_PAD + TILE_H + ROW_GAP + TILE_H + ROW_PAD;
 /** Margine in cima: sotto ci passa la fascia dei dorsi avversari. */
 export const TOP_PAD = 128;
 /**
- * Margine in fondo: la mano è un pannello sovrapposto al tavolo, e senza
- * questo spazio in coda la riga di servizio del posto A resterebbe sotto di
- * essa anche scorrendo fino in fondo.
+ * Margine in fondo: la mano è un pannello sovrapposto al tavolo, e serve un
+ * po' di coda perché la riga di servizio possa salire sopra di essa
+ * scorrendo. Era 500 quando la mano stava sempre aperta a misura piena; ora
+ * che si ripiega con un gesto (ed è in scala sugli schermi piccoli) basta
+ * molto meno — e meno coda vuol dire meno scorrimento.
  */
-const BOTTOM_PAD = 500;
+const BOTTOM_PAD = 240;
 const HALF_GAP = 32;
 export const SURFACE_H = TOP_PAD + HALF_H * 2 + HALF_GAP + BOTTOM_PAD;
 
@@ -163,6 +165,15 @@ function bandOfCenter(center: number): Seat | null {
 /** Dove sta la fascia di `seat` sullo schermo di `viewer`: la propria in basso. */
 export function viewBandTop(seat: Seat, viewer: Seat): number {
   return seat === viewer ? TOP_PAD + SWAP_Y : TOP_PAD;
+}
+
+/**
+ * Ordinata (in vista) della linea di battaglia: la cima del Fronte avversario,
+ * che capovolto guarda il tuo dall'altra parte del varco. È l'inquadratura di
+ * partenza: i due Fronti insieme, il proprio campo senza scorrere.
+ */
+export function viewBattleTop(viewer: Seat): number {
+  return viewBandTop(otherSeat(viewer), viewer) + HALF_H - ROW_PAD - TILE_H;
 }
 
 /**

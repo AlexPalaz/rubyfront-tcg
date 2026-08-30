@@ -114,12 +114,24 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const handToggle = document.createElement("button");
   handToggle.type = "button";
   handToggle.className = "hand-toggle";
-  handToggle.textContent = "Mano";
+
+  // Doppia freccia, non una parola: in su per aprire la mano, in giù per
+  // richiuderla.
+  const chevrons = (up: boolean): string =>
+    `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${
+      up
+        ? '<polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>'
+        : '<polyline points="7 6 12 11 17 6"/><polyline points="7 13 12 18 17 13"/>'
+    }</svg>`;
 
   function setHandCollapsed(collapsed: boolean): void {
     myHand.classList.toggle("is-collapsed", collapsed);
     handToggle.classList.toggle("is-off", collapsed);
+    handToggle.innerHTML = chevrons(collapsed);
+    handToggle.title = collapsed ? "Apri la mano" : "Chiudi la mano";
+    handToggle.setAttribute("aria-label", handToggle.title);
   }
+  setHandCollapsed(false);
   handToggle.addEventListener("click", () => setHandCollapsed(!myHand.classList.contains("is-collapsed")));
 
   // Su touch il cassetto si governa anche col gesto: swipe in giù lo ripiega,
@@ -146,6 +158,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     window.addEventListener("pointerup", release);
     window.addEventListener("pointercancel", release);
   });
+  /** La mano era aperta quando è partito un trascinamento da lei: al
+      rilascio va riaperta. */
+  let handWasOpen = false;
+
   myHand.addEventListener("click", event => {
     if ((event.target as HTMLElement).closest(".tile")) return;
     if (myHand.classList.contains("is-collapsed")) setHandCollapsed(false);
@@ -578,10 +594,25 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           const y = drop.snapped ? drop.y : unview(drop.y);
           ctx.dispatch({ t: "move", uid: card.uid, x: drop.x, y, z: Math.max(live.z, ctx.state().zTop) });
         },
+        onStart: () => {
+          // Una carta presa DALLA MANO vuole essere posata sul tavolo, e il
+          // cassetto aperto lo coprirebbe: si ripiega da solo, e al rilascio
+          // torna com'era.
+          const live = ctx.state().cards[card.uid];
+          if (!live || live.zone !== "hand" || live.owner !== ctx.seat()) return;
+          if (!myHand.classList.contains("is-collapsed")) {
+            handWasOpen = true;
+            setHandCollapsed(true);
+          }
+        },
         onDrop: drop => {
           dragging = null;
           const live = ctx.state().cards[card.uid];
           if (live) applyDrop(live, drop);
+          if (handWasOpen) {
+            handWasOpen = false;
+            setHandCollapsed(false);
+          }
           render();
         },
         onTap: up => {

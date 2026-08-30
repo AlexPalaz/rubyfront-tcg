@@ -24,6 +24,9 @@ export type Drop =
 export interface DragOptions {
   /** Falso per bloccare il trascinamento (carta non tua, mano avversaria). */
   canDrag(): boolean;
+  /** Il trascinamento è partito davvero (superata la soglia): il fantasma
+      esiste. Un click secco non passa di qui. */
+  onStart?(): void;
   /**
    * Posizione live durante il trascinamento. Passa il Drop intero e non due
    * numeri: chi ascolta deve sapere se sono coordinate di schermo (rilascio a
@@ -99,6 +102,7 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
       moveGhost(startX, startY);
       document.body.append(ghost);
       element.classList.add("is-dragging");
+      options.onStart?.();
     };
 
     const moveGhost = (clientX: number, clientY: number): void => {
@@ -124,7 +128,13 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
       element.removeEventListener("pointermove", onMove);
       element.removeEventListener("pointerup", onUp);
       element.removeEventListener("pointercancel", onUp);
-      element.releasePointerCapture?.(event.pointerId);
+      // Se la cattura non c'era (vedi sotto), il rilascio lancerebbe — e si
+      // porterebbe via il drop.
+      try {
+        element.releasePointerCapture?.(event.pointerId);
+      } catch {
+        /* niente cattura, niente rilascio */
+      }
       clearHighlight();
       if (!ghost) {
         document.body.classList.remove("is-dragging-card");
@@ -141,10 +151,16 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
       options.onDrop(drop);
     };
 
-    element.setPointerCapture?.(event.pointerId);
     element.addEventListener("pointermove", onMove);
     element.addEventListener("pointerup", onUp);
     element.addEventListener("pointercancel", onUp);
+    // La cattura può fallire (puntatore già rilasciato, o sintetico nei
+    // test): non deve portarsi via i listener, che stanno sopra apposta.
+    try {
+      element.setPointerCapture?.(event.pointerId);
+    } catch {
+      /* si trascina lo stesso, senza cattura */
+    }
   });
 }
 

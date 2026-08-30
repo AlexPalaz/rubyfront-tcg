@@ -22,14 +22,57 @@ import { otherSeat } from "./types.js";
 const FLUX_CAP = 20;
 /** Stessa dispensa di main.ts (`rbf-sim:*`): qui ci sta la posizione. */
 const POS_KEY = "rbf-sim:hud";
-/** E qui se l'HUD sta ridotto a icona. */
-const MIN_KEY = "rbf-sim:hud-min";
 /** L'HUD non si incolla mai ai bordi del tavolo più di così. */
 const EDGE = 10;
 
 export interface Hud {
   render(): void;
 }
+
+/** Le mani che l'HUD stringe verso il resto dell'app. */
+export interface HudHooks {
+  /** Apre e chiude la colonna della chat. */
+  chat(): void;
+  shuffle(): void;
+  draw(): void;
+  search(): void;
+}
+
+/** Suggerimento del tasto: bolla CSS (data-tip) + aria-label. I title nativi
+    sono lenti e su touch non compaiono affatto. */
+function tip(element: HTMLElement, text: string): void {
+  element.dataset.tip = text;
+  element.setAttribute("aria-label", text);
+}
+
+const svgIcon = (paths: string): string =>
+  `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+
+/**
+ * Le azioni di mazzo — mescola, pesca, cerca — vivono nell'HUD, non in
+ * toolbar: sono gesti di partita. Portano due vesti: fila con etichetta
+ * nell'HUD esteso, quadratini della croce in quello ridotto.
+ */
+const TOOLS = [
+  {
+    key: "shuffle",
+    label: "Mescola",
+    title: "Mescola il tuo mazzo",
+    svg: svgIcon('<path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="m4 4 5 5"/>'),
+  },
+  {
+    key: "draw",
+    label: "Pesca",
+    title: "Pesca 1 carta",
+    svg: svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M12 8v6M9 11h6"/>'),
+  },
+  {
+    key: "search",
+    label: "Cerca",
+    title: "Cerca una carta nel mazzo",
+    svg: svgIcon('<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'),
+  },
+] as const;
 
 /** Riga di una grandezza: −, il valore vestito come sulla carta, +. */
 function statRow(
@@ -63,13 +106,13 @@ function statRow(
   minus.type = "button";
   minus.className = "hud-step";
   minus.textContent = "−";
-  minus.title = `${title}: uno in meno`;
+  tip(minus, `${title}: uno in meno`);
 
   const plus = document.createElement("button");
   plus.type = "button";
   plus.className = "hud-step";
   plus.textContent = "+";
-  plus.title = `${title}: uno in più`;
+  tip(plus, `${title}: uno in più`);
 
   const clamp = (next: number): number =>
     Math.max(options.min ?? Number.NEGATIVE_INFINITY, Math.min(options.max ?? Number.POSITIVE_INFINITY, next));
@@ -81,7 +124,7 @@ function statRow(
   return { row, sync: () => (value.textContent = String(read())) };
 }
 
-export function mountHud(root: HTMLElement, ctx: Ctx, onToggle: () => void): Hud {
+export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   const syncs: (() => void)[] = [];
 
   function chip(seat: Seat, mine: boolean): HTMLElement {
@@ -124,9 +167,9 @@ export function mountHud(root: HTMLElement, ctx: Ctx, onToggle: () => void): Hud
       const held = ctx.state().players[seat].token;
       coin.textContent = held ? "◆" : "◇";
       coin.classList.toggle("is-held", held);
-      coin.title = held
+      tip(coin, held
         ? "Gettone Flusso: spendi (+1 Flusso, oltre il tetto dei 20)"
-        : "Assegna il Gettone Flusso (§3.2)";
+        : "Assegna il Gettone Flusso (§3.2)");
     });
 
     box.append(coin, name, hp.row, flux.row);
@@ -154,7 +197,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, onToggle: () => void): Hud
     button.type = "button";
     button.className = "hud-step";
     button.textContent = delta < 0 ? "−" : "+";
-    button.title = label;
+    tip(button, label);
     button.addEventListener("click", () => {
       const state = ctx.state();
       ctx.dispatch({ t: "turn", turn: Math.max(1, state.turn + delta), active: state.active });
@@ -182,18 +225,52 @@ export function mountHud(root: HTMLElement, ctx: Ctx, onToggle: () => void): Hud
   // colore lo decide la palette dell'HUD.
   pass.className = "hud-pass";
   pass.textContent = "Fine turno";
-  pass.title = "Passa il turno: Flusso massimo +1 (max 20) e Flusso ricaricato per chi entra";
+  tip(pass, "Passa il turno: Flusso massimo +1 e ricarica per chi entra (§3.2)");
   pass.addEventListener("click", () => endTurn(ctx));
+
+  /** Le due spie di un tasto: blu per i messaggi, oro per le azioni. */
+  const makeBadges = (host: HTMLElement): { chat: HTMLElement; log: HTMLElement } => {
+    const chat = document.createElement("span");
+    chat.className = "hud-badge hud-badge-chat";
+    const log = document.createElement("span");
+    log.className = "hud-badge hud-badge-log";
+    host.append(chat, log);
+    return { chat, log };
+  };
 
   const chatToggle = document.createElement("button");
   chatToggle.type = "button";
   chatToggle.className = "hud-chat";
-  chatToggle.title = "Apri la chat";
+  tip(chatToggle, "Apri e chiudi la chat");
   chatToggle.innerHTML =
     '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M5 4h14a2.5 2.5 0 0 1 2.5 2.5v8A2.5 2.5 0 0 1 19 17h-8.6l-4.6 3.8c-.65.54-1.65.08-1.65-.77V6.5A2.5 2.5 0 0 1 5 4z"/></svg>';
-  chatToggle.addEventListener("click", onToggle);
+  chatToggle.addEventListener("click", hooks.chat);
+  const chatBadges = makeBadges(chatToggle);
 
   actions.append(pass, chatToggle);
+
+  // Il Fine turno è di chi è di turno: per l'altro si ingrigisce. È l'unico
+  // "impedimento" del simulatore, e serve al ritmo: passo io, poi passi tu.
+  syncs.push(() => {
+    const mineTurn = ctx.state().active === ctx.seat();
+    pass.disabled = !mineTurn;
+    tip(pass, mineTurn
+      ? "Passa il turno: Flusso massimo +1 e ricarica per chi entra (§3.2)"
+      : "Tocca all'avversario: il Fine turno adesso è suo");
+  });
+
+  // La fila delle azioni di mazzo, per l'HUD esteso.
+  const tools = document.createElement("div");
+  tools.className = "hud-tools";
+  for (const def of TOOLS) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `hud-tool hud-tool-${def.key}`;
+    tip(button, def.title);
+    button.innerHTML = `${def.svg}<span>${def.label}</span>`;
+    button.addEventListener("click", hooks[def.key]);
+    tools.append(button);
+  }
 
   // I dadi, in coda: quattro tagli e l'ultimo esito. Ogni tiro va in chat,
   // firmato dal posto che tira.
@@ -206,6 +283,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, onToggle: () => void): Hud
     button.type = "button";
     button.className = "hud-dice-btn";
     button.textContent = `d${faces}`;
+    tip(button, `Tira il d${faces}`);
     button.addEventListener("click", () => {
       const value = 1 + Math.floor(Math.random() * faces);
       diceOut.textContent = `d${faces} → ${value}`;
@@ -222,23 +300,25 @@ export function mountHud(root: HTMLElement, ctx: Ctx, onToggle: () => void): Hud
 
   const grip = document.createElement("div");
   grip.className = "hud-grip";
-  grip.title = "Trascina per spostare l'HUD · doppio click per rimetterlo al posto suo";
+  tip(grip, "Trascina per spostare l'HUD · doppio click per rimetterlo al posto suo");
 
   const minBtn = document.createElement("button");
   minBtn.type = "button";
   minBtn.className = "hud-min-btn";
-  minBtn.textContent = "–";
-  minBtn.title = "Riduci l'HUD a icona";
+  minBtn.innerHTML = svgIcon('<path d="M5 12h14"/>');
+  tip(minBtn, "Riduci l'HUD a icona");
   minBtn.addEventListener("click", () => setMin(true));
+  // Sta sopra, accanto alla maniglia — ma da tasto vero, non da francobollo.
   top.append(grip, minBtn);
 
   const mini = document.createElement("button");
   mini.type = "button";
-  mini.className = "hud-mini";
-  mini.title = "Espandi l'HUD · trascina per spostarlo";
+  mini.className = "hud-sq hud-mini";
+  tip(mini, "Espandi l'HUD · trascina per spostarlo");
   mini.innerHTML = '<span class="hud-mini-gem"></span>';
   // Il click espande, ma solo se è un click davvero: dopo un trascinamento
   // il browser lo spara lo stesso, e va lasciato cadere.
+  const miniBadges = makeBadges(mini);
   mini.addEventListener("click", () => {
     if (miniDragged) {
       miniDragged = false;
@@ -247,18 +327,18 @@ export function mountHud(root: HTMLElement, ctx: Ctx, onToggle: () => void): Hud
     setMin(false);
   });
 
-  let minimized = localStorage.getItem(MIN_KEY) === "1";
+  // L'HUD parte SEMPRE aperto: ridurlo a icona è un gesto di sessione, non
+  // una preferenza da ricordare.
+  let minimized = false;
 
   function setMin(value: boolean): void {
     minimized = value;
-    if (value) localStorage.setItem(MIN_KEY, "1");
-    else localStorage.removeItem(MIN_KEY);
     root.classList.toggle("is-min", minimized);
     // La misura cambia: l'HUD rientra nei bordi se serve.
     place();
   }
 
-  root.append(top, foe, turn, mine, actions, dice, mini);
+  root.append(top, foe, turn, mine, actions, tools, dice, mini);
   root.classList.toggle("is-min", minimized);
 
   // ------------------------------------------------------- trascinamento
@@ -341,11 +421,14 @@ export function mountHud(root: HTMLElement, ctx: Ctx, onToggle: () => void): Hud
   return {
     render() {
       for (const sync of syncs) sync();
-      // La spia dei messaggi non letti sta sul tasto della chat — e anche
+      // Le spie dei non letti stanno sul tasto della chat — e anche
       // sull'icona, che da ridotta è tutto ciò che resta in vista.
-      const unread = document.body.dataset.unread ?? "";
-      chatToggle.dataset.unread = unread;
-      mini.dataset.unread = unread;
+      const unreadChat = document.body.dataset.unread ?? "";
+      const unreadLog = document.body.dataset.unreadLog ?? "";
+      chatBadges.chat.textContent = unreadChat;
+      chatBadges.log.textContent = unreadLog;
+      miniBadges.chat.textContent = unreadChat;
+      miniBadges.log.textContent = unreadLog;
     },
   };
 }

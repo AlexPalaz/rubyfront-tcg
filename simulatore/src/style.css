@@ -54,7 +54,15 @@
   --felt-foe: #0d0e22;
   --ok: #6fbf8b;
   --warn: #d9a84e;
-  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Il verde dei PV sulle targhe (sulle carte decide card.css). */
+  --pv: #7fe0ae;
+  /* I "vetri" dell'interfaccia: pannelli semitrasparenti sopra il tavolo.
+     Scuri di default; il tema chiaro li ribalta. */
+  --glass: rgba(9, 7, 9, .9);
+  --glass-heavy: rgba(9, 7, 9, .94);
+  --overlay-veil: rgba(8, 6, 8, .82);
+  --turn-shadow: 0 1px 4px rgba(0, 0, 0, .95), 0 0 14px rgba(0, 0, 0, .8);
+  --sans: "Space Grotesk Variable", ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --toolbar-h: 46px;
   --side-w: 320px;
@@ -190,6 +198,53 @@ body.side-closed { --side-w: 0px; }
   border-radius: 7px;
 }
 .side-close:hover { color: var(--ink); background: rgba(255, 255, 255, .08); }
+
+/* ------------------------------------------------------- impostazioni */
+
+.gear-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--muted);
+}
+.gear-btn svg { transition: transform .25s ease; }
+.gear-btn:hover { color: var(--ink); }
+.gear-btn:hover svg { transform: rotate(45deg); }
+
+/* Il pannello: un cassetto sotto l'ingranaggio, una riga per impostazione. */
+.settings {
+  position: fixed;
+  top: calc(var(--toolbar-h) + 8px);
+  right: 10px;
+  z-index: 9800;
+  width: 320px;
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .6);
+}
+.settings[hidden] { display: none; }
+.set-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+.set-label {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.set-controls { display: flex; gap: 6px; min-width: 0; }
+.set-controls > input, .set-controls > select { flex: 1; min-width: 0; }
+.set-row > input, .set-row > select { min-width: 0; }
 
 /* -------------------------------------------------------------- tavolo */
 
@@ -463,7 +518,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
      confonde: fondo pieno, bordo netto in tinta col tuo campo, e l'ombra
      buttata all'insù per dire che sta davanti. Lo sfocato dietro chiarisce
      che il campo continua là sotto, senza far finta di essere campo. */
-  background: rgba(9, 7, 9, .94);
+  background: var(--glass-heavy);
   backdrop-filter: blur(8px);
   border-top: 2px solid var(--mine-edge);
   border-radius: 16px 16px 0 0;
@@ -501,7 +556,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   height: calc(24px + 92px * var(--hand-scale));
   align-items: flex-start;
   overflow: hidden;
-  background: rgba(9, 7, 9, .94);
+  background: var(--glass-heavy);
   backdrop-filter: blur(8px);
   border-bottom: 2px solid var(--foe-edge);
   border-radius: 0 0 16px 16px;
@@ -579,8 +634,11 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   right: calc(var(--hud-lane) + 16px);
   bottom: 12px;
   z-index: 40;
-  font-size: .76rem;
-  padding: 4px 10px;
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  display: grid;
+  place-items: center;
 }
 .hand-toggle.is-off { color: var(--muted); }
 
@@ -644,8 +702,15 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   border-left-color: var(--foe-band-edge);
   background: var(--foe-band);
 }
+/* I MESSAGGI dell'avversario si staccano dalle sue azioni: azzurro, non
+   indaco. Un'occhiata e sai se ti ha parlato o se ha solo giocato. */
+.chat-row.is-them.is-chat {
+  border-left-color: #56b6e6;
+  background: rgba(38, 108, 158, .32);
+}
 .chat-row.is-me b { color: var(--mine-name); }
 .chat-row.is-them b { color: var(--foe-name); }
+.chat-row.is-them.is-chat b { color: #9fdcff; }
 .chat-row.is-log.is-me, .chat-row.is-log.is-them { color: #b8b0c4; font-style: normal; }
 .chat-form { display: flex; gap: 6px; padding: 8px 10px; border-top: 1px solid var(--line); }
 .chat-form input { flex: 1; min-width: 0; padding: 6px 12px; border-radius: 999px; }
@@ -659,7 +724,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   z-index: 9400;
   display: grid;
   place-items: center;
-  background: rgba(8, 6, 8, .82);
+  background: var(--overlay-veil);
 }
 /* `display: grid` batte il display:none dell'attributo hidden: va ridetto. */
 .overlay[hidden] { display: none; }
@@ -806,7 +871,7 @@ body.is-targeting .tile.is-legal {
   transform: translateX(-50%);
   padding: 8px 18px;
   color: var(--ink);
-  background: rgba(9, 7, 9, .94);
+  background: var(--glass-heavy);
   border: 1px solid var(--ok);
   border-radius: 999px;
   font-size: .82rem;
@@ -841,11 +906,11 @@ body.is-targeting .tile.is-legal {
 /* La testata: al centro la maniglia — dice a colpo d'occhio che l'HUD si
    sposta, ma si afferra da qualunque punto che non sia un tasto — e
    nell'angolo il tasto che lo riduce a icona. */
-.hud-top { position: relative; height: 8px; }
+.hud-top { position: relative; height: 22px; }
 .hud-grip {
   width: 52px;
   height: 6px;
-  margin: 1px auto 0;
+  margin: 8px auto 0;
   border-radius: 999px;
   background: rgba(255, 255, 255, .22);
   cursor: grab;
@@ -853,42 +918,75 @@ body.is-targeting .tile.is-legal {
 .hud-grip:hover { background: rgba(255, 255, 255, .4); }
 .hud-min-btn {
   position: absolute;
-  top: -9px;
+  top: 0;
   right: 0;
-  width: 26px;
-  height: 20px;
+  width: 30px;
+  height: 22px;
   padding: 0;
   display: grid;
   place-items: center;
-  font-size: 1.05rem;
-  line-height: 1;
   color: var(--ink);
-  background: rgba(9, 7, 9, .9);
+  background: var(--glass);
   backdrop-filter: blur(10px);
   border: 1px solid var(--line);
   border-radius: 6px;
 }
 .hud-min-btn:hover { color: #fff; border-color: var(--ruby); }
 
-/* Ridotto a icona: dell'HUD resta una tessera col rombo, con la spia dei non
-   letti addosso. Un click e si riapre. La larghezza scende con lui, così la
-   parte vuota del contenitore non copre il tavolo. */
-.hud.is-min { width: 44px; }
+/* La fila delle azioni di mazzo nell'HUD esteso: icona ed etichetta. */
+.hud-tools {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 5px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.hud-tool {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 6px 0 5px;
+  color: var(--muted);
+  background: rgba(0, 0, 0, .35);
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+}
+.hud-tool span {
+  font-size: .54rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.hud-tool:hover:not(:disabled) { color: var(--ink); }
+.hud-tool-shuffle svg { color: var(--warn); }
+.hud-tool-draw svg { color: var(--ok); }
+.hud-tool-search svg { color: var(--foe); }
+.hud-chat svg { color: var(--viola-light); }
+
+/* Ridotto a icona: resta la tessera col rombo (con la spia dei non letti),
+   trascinabile; un click la riapre. La larghezza scende con lei. */
+.hud.is-min { width: 42px; }
 .hud.is-min > * { display: none; }
 .hud.is-min .hud-mini { display: grid; }
-.hud-mini {
-  display: none;
+.hud-sq {
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   padding: 0;
+  display: grid;
   place-items: center;
-  background: rgba(9, 7, 9, .9);
+  color: var(--muted);
+  background: var(--glass);
   backdrop-filter: blur(10px);
   border: 1px solid var(--line);
   border-radius: 10px;
+  touch-action: none;
 }
-.hud-mini { cursor: grab; }
+button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
+.hud-mini { display: none; cursor: grab; }
 .hud-mini:hover { border-color: var(--ruby); }
 .hud-mini-gem {
   width: 15px;
@@ -942,7 +1040,7 @@ body.is-targeting .tile.is-legal {
 .hud-coin {
   position: absolute;
   top: -13px;
-  right: 8px;
+  left: 8px;
   width: 26px;
   height: 26px;
   padding: 0;
@@ -997,7 +1095,7 @@ body.is-targeting .tile.is-legal {
   font-size: 1.3rem;
   font-weight: 700;
   line-height: 1.15;
-  color: #7fe0ae;
+  color: var(--pv);
   white-space: nowrap;
 }
 .hud-vita b { font-weight: 700; }
@@ -1050,7 +1148,7 @@ body.is-targeting .tile.is-legal {
   align-items: center;
   padding: 0 2px;
   text-align: center;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, .95), 0 0 14px rgba(0, 0, 0, .8);
+  text-shadow: var(--turn-shadow);
 }
 .hud-turn .hud-step { color: var(--muted); }
 .hud-turn-mid { display: grid; gap: 1px; min-width: 0; }
@@ -1108,26 +1206,30 @@ body.is-targeting .tile.is-legal {
   display: grid;
   place-items: center;
   color: var(--muted);
-  background: rgba(9, 7, 9, .9);
+  background: var(--glass);
   backdrop-filter: blur(10px);
   border: 1px solid var(--line);
   border-radius: 4px;
 }
 .hud-chat:hover { color: var(--ink); }
-.hud-chat[data-unread]:not([data-unread=""])::after,
-.hud-mini[data-unread]:not([data-unread=""])::after {
-  content: attr(data-unread);
+/* Le due spie dei non letti: BLU i messaggi (a destra), ORO le azioni di
+   gioco arrivate — pescate, spostamenti, turni (a sinistra). Elementi veri:
+   gli pseudo del tasto sono già del tooltip. */
+.hud-badge {
   position: absolute;
   top: -7px;
-  right: -5px;
   min-width: 20px;
   padding: 1px 6px;
-  color: #0b090b;
-  background: var(--warn);
   border-radius: 999px;
   font-size: .7rem;
+  font-weight: 600;
   line-height: 1.5;
+  text-align: center;
+  pointer-events: none;
 }
+.hud-badge:empty { display: none; }
+.hud-badge-chat { right: -5px; color: #052430; background: #56b6e6; }
+.hud-badge-log { left: -5px; color: #241b02; background: var(--warn); }
 
 /* I dadi: quattro tagli e, sotto, l'ultimo esito. L'esito vive anche in chat,
    firmato dal posto che tira — qui resta solo l'ultimo, a portata d'occhio. */
@@ -1136,7 +1238,7 @@ body.is-targeting .tile.is-legal {
   grid-template-columns: repeat(4, 1fr);
   gap: 4px;
   padding: 5px;
-  background: rgba(9, 7, 9, .9);
+  background: var(--glass);
   backdrop-filter: blur(10px);
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -1160,6 +1262,42 @@ body.is-targeting .tile.is-legal {
   color: var(--ruby);
 }
 .hud-dice-out:empty { display: none; }
+
+/* I suggerimenti dell'HUD: una bolla scura sopra il tasto, dopo una breve
+   attesa. I title nativi sono lenti e su touch non compaiono; qui la bolla
+   esce anche col focus da tastiera. Vive in ::after — per questo la spia dei
+   non letti sta in ::before. */
+/* Niente `position: relative` a tappeto su [data-tip]: batterebbe (per
+   specificità) gli `absolute` di moneta e tasto di riduzione, strappandoli
+   dal loro angolo. Si posiziona solo chi è ancora statico. */
+.hud-step, .hud-tool, .hud-pass, .hud-dice-btn, .hud-grip { position: relative; }
+.hud [data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 120;
+  white-space: nowrap;
+  padding: 4px 10px;
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: .02em;
+  text-transform: none;
+  color: var(--ink);
+  background: var(--glass-heavy);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .15s ease .35s;
+  pointer-events: none;
+}
+.hud [data-tip]:hover::after, .hud [data-tip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}
 
 /* --------------------------------------------------------------- temi */
 
@@ -1298,4 +1436,70 @@ body[data-ui-theme="acciaio"] {
   --foe-band: rgba(130, 112, 80, .26);
   --foe-band-edge: #b3a077;
   --foe-name: #d8cbae;
+}
+
+/* Solarized light: l'unico tema chiaro. La palette è quella canonica di
+   Ethan Schoonover — base crema, violet per te, blue per l'avversario, cyan
+   per i PV, yellow per l'oro. Il rubino del gioco resta rubino. */
+body[data-ui-theme="solarizzato"] {
+  --bg: #ede7d3;
+  --surface: #f5efdc;
+  --panel: #eee8d5;
+  --panel-2: #e6dfc8;
+  --ink: #3f545e;
+  --muted: #8a9598;
+  --line: #cfc7ab;
+  --line-soft: #ded6ba;
+  --void: #e3dcc5;
+  /* I panni restano in famiglia col crema — due carte calde, non pastelli
+     freddi: l'identità dei posti la dicono gli orli violet e blue. */
+  --felt-mine: #f6f0de;
+  --felt-foe: #efe9d4;
+  --ok: #859900;
+  --warn: #b58900;
+  --pv: #21968d;
+  --glass: rgba(253, 249, 238, .92);
+  --glass-heavy: rgba(253, 249, 238, .95);
+  --overlay-veil: rgba(101, 92, 62, .4);
+  --turn-shadow: none;
+  --viola: #6c71c4;
+  --viola-light: #4f54ae;
+  --foe: #268bd2;
+  --mine-edge: rgba(108, 113, 196, .7);
+  --foe-edge: rgba(38, 139, 210, .6);
+  --mine-chip-bg: rgba(250, 246, 237, .95);
+  --mine-chip-frame: #a3a0d8;
+  --mine-chip-frame-dim: #d6d3ec;
+  --mine-chip-ink: #33404c;
+  --mine-chip-muted: #7d88a0;
+  --foe-chip-bg: rgba(247, 250, 253, .95);
+  --foe-chip-frame: #8cb8dd;
+  --foe-chip-frame-dim: #cddff0;
+  --foe-chip-ink: #2c3e4a;
+  --foe-chip-muted: #7492a8;
+  --mine-band: rgba(108, 113, 196, .16);
+  --mine-band-edge: #6c71c4;
+  --mine-name: #4a4fac;
+  --foe-band: rgba(38, 139, 210, .14);
+  --foe-band-edge: #268bd2;
+  --foe-name: #1a6aa8;
+}
+/* Sul chiaro, i veli bianchi diventano veli d'inchiostro. */
+body[data-ui-theme="solarizzato"] .hud-grip { background: rgba(0, 0, 0, .28); }
+body[data-ui-theme="solarizzato"] .hud-grip:hover { background: rgba(0, 0, 0, .45); }
+body[data-ui-theme="solarizzato"] .hud-step:hover:not(:disabled),
+body[data-ui-theme="solarizzato"] .side-close:hover {
+  background: rgba(0, 0, 0, .08);
+  color: var(--ink);
+}
+body[data-ui-theme="solarizzato"] .hud-tool,
+body[data-ui-theme="solarizzato"] .hud-dice-btn { background: rgba(0, 0, 0, .05); }
+body[data-ui-theme="solarizzato"] .hud-coin { background: #f7f2e4; }
+body[data-ui-theme="solarizzato"] .stepper-group { background: rgba(0, 0, 0, .05); }
+/* L'ombrone nero sotto i tappeti, sul crema, diventa un'ombra di seppia. */
+body[data-ui-theme="solarizzato"] .half {
+  box-shadow: 0 18px 48px rgba(101, 92, 62, .35), inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+body[data-ui-theme="solarizzato"] .hud-chip.is-active {
+  box-shadow: 0 0 14px rgba(108, 113, 196, .4), 0 8px 16px rgba(101, 92, 62, .3);
 }

@@ -5,8 +5,12 @@
 // altro modo di cambiare la partita — nemmeno per la rete, che entra dallo
 // stesso imbuto.
 
+// Il carattere dell'interfaccia (le carte hanno il loro, da card.css):
+// Space Grotesk, self-hosted — un grottesco geometrico che fa da macchina
+// attorno al manufatto delle carte.
+import "@fontsource-variable/space-grotesk";
 import { mountChat } from "./chat.js";
-import { SLOT_X, SURFACE_W, backRowY, viewBandTop, type Ctx } from "./ctx.js";
+import { SLOT_X, SURFACE_W, backRowY, viewBattleTop, type Ctx } from "./ctx.js";
 import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
@@ -95,27 +99,47 @@ if (store.read("side", "open") === "closed") document.body.classList.add("side-c
 function toggleSide(): void {
   const closed = document.body.classList.toggle("side-closed");
   store.write("side", closed ? "closed" : "open");
-  unread = 0;
+  unreadChat = 0;
+  unreadLog = 0;
   paint();
 }
-const hud = mountHud(document.querySelector<HTMLElement>("#hud")!, ctx, toggleSide);
+// Mescola, pesca e cerca stanno sull'HUD: sono gesti di partita, non di
+// impostazione. L'overlay è montato poche righe sotto: ai click esiste già.
+const hud = mountHud(document.querySelector<HTMLElement>("#hud")!, ctx, {
+  chat: toggleSide,
+  shuffle: doShuffle,
+  draw: doDraw,
+  search: () => overlay.open(mySeat, "deck"),
+});
 document.querySelector("#side-close")!.addEventListener("click", toggleSide);
 const overlay = mountOverlay(ctx, () => paint());
 table.onBrowse((seat, zone) => overlay.open(seat, zone));
 
-/** Righe di chat arrivate a pannello chiuso: la spia sul tasto le conta. */
-let unread = 0;
+/** Righe arrivate a chat chiusa: due spie — messaggi (blu) e azioni (oro). */
+let unreadChat = 0;
+let unreadLog = 0;
 let seenChat = 0;
+let seenLog = 0;
 
 function paint(): void {
   syncThemes();
-  // A pannello chiuso la chat non si vede: il tasto porta una spia, altrimenti
-  // i messaggi dell'avversario passerebbero inosservati.
-  const total = state.chat.length;
-  if (document.body.classList.contains("side-closed")) unread += Math.max(0, total - seenChat);
-  else unread = 0;
-  seenChat = total;
-  document.body.dataset.unread = unread > 0 ? String(unread) : "";
+  // A chat chiusa i tasti portano due spie — blu i messaggi, oro le azioni —
+  // altrimenti ciò che arriva passerebbe inosservato. Contano solo le righe
+  // dell'AVVERSARIO: le proprie non sono notizie.
+  const fromFoe = state.chat.filter(entry => entry.seat && entry.seat !== mySeat);
+  const chats = fromFoe.filter(entry => entry.kind === "chat").length;
+  const logs = fromFoe.filter(entry => entry.kind === "log").length;
+  if (document.body.classList.contains("side-closed")) {
+    unreadChat += Math.max(0, chats - seenChat);
+    unreadLog += Math.max(0, logs - seenLog);
+  } else {
+    unreadChat = 0;
+    unreadLog = 0;
+  }
+  seenChat = chats;
+  seenLog = logs;
+  document.body.dataset.unread = unreadChat > 0 ? String(unreadChat) : "";
+  document.body.dataset.unreadLog = unreadLog > 0 ? String(unreadLog) : "";
   table.render();
   chat.render();
   hud.render();
@@ -257,23 +281,21 @@ relayInput.value = store.read("relay", DEFAULT_RELAY);
 
 document.querySelector("#deck-load")!.addEventListener("click", () => loadDeck(deckPick.value, mySeat));
 
-document.querySelector("#do-shuffle")!.addEventListener("click", () => {
+function doShuffle(): void {
   const order = shuffled(zoneCards(state, mySeat, "deck").map(card => card.uid));
   if (order.length === 0) return;
   dispatch({ t: "shuffle", seat: mySeat, order });
   ctx.log(`Posto ${mySeat.toUpperCase()} mescola il mazzo (${order.length} carte).`, mySeat);
-});
+}
 
-document.querySelector("#do-draw")!.addEventListener("click", () => {
+function doDraw(): void {
   if (zoneCards(state, mySeat, "deck").length === 0) {
     ctx.log(`Posto ${mySeat.toUpperCase()}: mazzo vuoto.`, mySeat);
     return;
   }
   dispatch({ t: "draw", seat: mySeat, count: 1 });
   ctx.log(`Posto ${mySeat.toUpperCase()} pesca 1 carta.`, mySeat);
-});
-
-document.querySelector("#do-search")!.addEventListener("click", () => overlay.open(mySeat, "deck"));
+}
 
 document.querySelector("#do-new")!.addEventListener("click", () => {
   if (!confirm("Nuova partita: tavolo, contatori e chat vengono azzerati. Procedo?")) return;
@@ -287,6 +309,22 @@ document.querySelector("#do-push")!.addEventListener("click", () => {
 });
 
 document.querySelector("#do-join")!.addEventListener("click", () => join(roomInput.value, relayInput.value));
+
+// L'ingranaggio apre le impostazioni; un click fuori (o Esc) le richiude.
+const settingsPanel = document.querySelector<HTMLElement>("#settings")!;
+const settingsToggle = document.querySelector<HTMLElement>("#settings-toggle")!;
+settingsToggle.addEventListener("click", () => {
+  settingsPanel.hidden = !settingsPanel.hidden;
+});
+document.addEventListener("pointerdown", event => {
+  if (settingsPanel.hidden) return;
+  const target = event.target as HTMLElement;
+  if (settingsPanel.contains(target) || settingsToggle.contains(target)) return;
+  settingsPanel.hidden = true;
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") settingsPanel.hidden = true;
+});
 
 seatPick.addEventListener("change", () => {
   // Il posto decide quale metà è "tua" e cosa puoi toccare: si rilegge tutto
@@ -330,15 +368,15 @@ if (previewId) {
   tapPreview(document.querySelector<HTMLElement>(".toolbar")!, previewId, 0, defaultTheme(), locale);
 }
 
-// Ogni metà è alta due file di carte: sullo schermo non ci sta insieme
-// all'altra. Si parte inquadrando la propria dall'alto — cioè dal Fronte, che
-// è dove si gioca; per la fila di servizio si scorre giù, o si ripiega la mano
-// col tasto "Mano".
+// Ogni metà è alta due file di carte: sullo schermo non ci sta tutto. Si
+// parte inquadrando la LINEA DI BATTAGLIA — il Fronte avversario sopra, il
+// tuo subito sotto — così il proprio campo si vede senza scorrere; per le
+// file di servizio si scorre, su o giù.
 const board = document.querySelector<HTMLElement>(".board")!;
 // Lo scorrimento è in pixel di schermo: se la lavagna è disegnata in scala
 // (schermi stretti, vedi fitScale in table.ts), la misura canonica va scalata.
 const boardScale = Math.min(1, board.clientWidth / SURFACE_W);
-board.scrollTop = Math.max(0, (viewBandTop(mySeat, mySeat) - 24) * boardScale);
+board.scrollTop = Math.max(0, (viewBattleTop(mySeat) - 40) * boardScale);
 board.scrollLeft = 0;
 
 if (roomInput.value) join(roomInput.value, relayInput.value);

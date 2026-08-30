@@ -51,8 +51,15 @@ il relay va messo su un host pubblico — vedi "Il relay", sotto.
 | «–» sull'HUD | Lo riduce a icona (una tessera col rombo); un click e si riapre |
 | Doppio click su Abisso / Ritiro | Sfoglia la pila (sono pubbliche, §5) |
 
-Il tasto **Cerca carta** apre il mazzo scoperto con un filtro per nome e per
-testo: si clicca la carta e va in mano. Alla chiusura il mazzo si rimescola.
+**Mescola, Pesca e Cerca** stanno sull'HUD, sotto Fine turno (sono gesti di
+partita, non di impostazione). **Cerca** apre il mazzo scoperto con un filtro
+per nome e per testo: si clicca la carta e va in mano. Alla chiusura il mazzo
+si rimescola.
+
+L'header è scarno: marchio, stato della rete, **Nuova partita** e
+l'**ingranaggio delle impostazioni** — mazzo da caricare, posto, stanza e
+relay, sincronizzazione, tema, lingua. Si apre col click, si chiude con un
+click fuori o con Esc.
 
 ## L'HUD e la chat
 
@@ -72,14 +79,14 @@ doppio click sulla maniglia e torna al posto suo, sul bordo destro. Se il
 tavolo si restringe, rientra da sé nei bordi.
 
 Col «–» accanto alla maniglia l'HUD **si riduce a icona**: resta una tessera
-col rombo (con sopra la spia dei messaggi), e un click la riapre. Anche questa
-scelta resta fra una partita e l'altra.
+col rombo (con la spia dei messaggi), trascinabile, e un click la riapre. Al
+prossimo avvio l'HUD parte comunque aperto.
 
 La colonna a destra è **solo chat**: il fumetto la apre, la × la richiude, e
 chiusa cede i 320px al tavolo. **Chi fa cosa si vede dal colore**: le tue righe
 sono viola, quelle dell'avversario indaco — vale per i messaggi e per le righe
 di servizio (pesche, tiri, turni), che portano il segno sul filetto a sinistra.
-Se arrivano righe a chat chiusa, l'ingranaggio le conta con una spia. La scelta
+Se arrivano righe a chat chiusa, il fumetto le conta con una spia. La scelta
 aperta/chiusa resta fra una partita e l'altra.
 
 Il **Flusso massimo** non ha un contatore suo: cresce da sé a ogni proprio
@@ -87,15 +94,16 @@ turno (§3.2), e per le correzioni ci sono i − e + del Flusso.
 
 ## I temi
 
-Dalla toolbar si sceglie il **tema del tavolo**: Notte (viola & indaco, il
-tema di base), Rubino (il classico bordeaux), Smeraldo, Abisso, Acciaio. Un
+Dalle impostazioni (ingranaggio) si sceglie il **tema del tavolo**: Notte (viola & indaco, il
+tema di base), Rubino (il classico bordeaux), Smeraldo, Abisso, Acciaio, e
+Solarizzato — l'unico chiaro, sulla palette Solarized Light. Un
 tema riveste i due campi, l'HUD, le bande della chat e il mobilio attorno
 (barra, pannelli, sfondo); il rubino delle azioni di gioco — rombo del
 Flusso, Fine turno, combattimento — non cambia mai. È un vestito del client,
 non dello stato: ognuno gioca col tema suo, e la scelta resta fra una partita
 e l'altra. Per aggiungerne uno basta un blocco `body[data-ui-theme="…"]` in
-`src/style.css` (sovrascrive le variabili dei posti) e un'`option` nella
-toolbar.
+`src/style.css` (sovrascrive le variabili dei posti) e un'`option` nel
+pannello delle impostazioni.
 
 ## Il combattimento (§6.3)
 

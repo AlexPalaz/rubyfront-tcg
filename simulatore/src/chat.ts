@@ -53,10 +53,15 @@ export function mountChat(root: HTMLElement, ctx: Ctx): Chat {
       }
       const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
       for (const entry of entries.slice(painted)) {
+        // Le TUE azioni non si notificano: le hai appena fatte, le vedi sul
+        // tavolo. La chat racconta ciò che ARRIVA — le azioni dell'avversario
+        // e i messaggi (i tuoi compresi: una conversazione si legge intera).
+        if (entry.kind === "log" && entry.seat === ctx.seat()) continue;
         const row = document.createElement("p");
         row.className = `chat-row is-${entry.kind}`;
-        // Chi fa cosa si vede dal colore: viola le tue righe, indaco le sue.
-        // Le righe senza posto (sincronizzazioni, avvisi) restano neutre.
+        // I colori dicono cosa stai leggendo: viola i tuoi messaggi, indaco le
+        // azioni dell'avversario, azzurro i suoi messaggi. Le righe senza
+        // posto (sincronizzazioni, avvisi) restano neutre.
         if (entry.seat) row.classList.add(entry.seat === ctx.seat() ? "is-me" : "is-them");
         if (entry.kind === "chat" && entry.seat) {
           const who = document.createElement("b");
