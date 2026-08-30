@@ -1650,6 +1650,10 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
     margin-right: calc(-302px * (1 - var(--card-scale)));
   }
 
+  /* I tooltip sono un'affordance da mouse: su touch il tap lascia il
+     focus sul bottone e il fumetto resta incollato lì. Spenti. */
+  .hud [data-tip]::after { display: none; }
+
   /* Il doppio tap su un pulsante non deve zoomare la pagina (il tasto
      della mano, i +/-, i dadi…). manipulation lascia scorrere e pizzicare,
      toglie solo lo zoom da doppio tocco; le tessere restano a parte con il
