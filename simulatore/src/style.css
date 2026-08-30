@@ -1615,6 +1615,14 @@ body[data-ui-theme="solarizzato"] .hud-chip.is-active {
      striscia dei dorsi avversari si scansano sotto la barra, con respiro.
      Su desktop non serve: lì l'aria la dà il margine canonico del tavolo. */
   .board, .hand-opponent { top: calc(var(--toolbar-h) + 22px); }
+  /* La striscia dei dorsi copre la cima della lavagna. Sul desktop il
+     margine canonico del tavolo (TOP_PAD, 128px) la supera e la targhetta
+     «Giocatore A» spunta sotto; in scala ridotta il margine si stringe ma
+     la striscia no. Il padding colma esattamente la differenza (24 + 92 ×
+     scala-mano = altezza della striscia). */
+  .board {
+    padding-top: max(0px, calc(24px + 92px * var(--hand-scale) - 128px * var(--card-scale)));
+  }
 
   /* La selezione del testo su touch parte per sbaglio (tocchi lunghi,
      trascinamenti) e non serve: spenta ovunque, tranne dove leggere e
