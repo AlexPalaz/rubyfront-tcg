@@ -845,10 +845,19 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         wanted.push(tile);
       }
       // Le carte in mano si sovrappongono quando sono troppe: restano
-      // 302×424, si stringono soltanto le une sulle altre.
-      const room = host.clientWidth - 32;
-      const overlap = wanted.length > 1 && wanted.length * (TILE_W + 10) > room
-        ? Math.min(0, (room - TILE_W) / (wanted.length - 1) - TILE_W - 10)
+      // 302×424, si stringono soltanto le une sulle altre. Il conto va
+      // fatto sulla larghezza VISIVA (la scala della mano, o quella del
+      // campo per i dorsi avversari su touch): in pixel canonici le carte
+      // sembrerebbero enormi e si accatasterebbero già in sei.
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      const scale = seat === me || !coarse
+        ? Math.min(1, surfaceScale() * 1.3)
+        : surfaceScale();
+      const tileW = TILE_W * scale;
+      // Su touch la targhetta avversaria sta nel flusso e ruba larghezza.
+      const room = host.clientWidth - 32 - (coarse && seat !== me ? tag.offsetWidth + 14 : 0);
+      const overlap = wanted.length > 1 && wanted.length * (tileW + 10) > room
+        ? Math.min(0, (room - tileW) / (wanted.length - 1) - tileW - 10)
         : 0;
       wanted.forEach((tile, index) => {
         tile.style.marginLeft = index === 0 ? "0" : `${Math.round(overlap)}px`;
