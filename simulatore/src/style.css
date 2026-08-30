@@ -227,7 +227,7 @@ body.side-closed { --side-w: 0px; }
    dell'header di vetro: la lavagna si scansa sotto la barra. Su desktop non
    serve — lì l'aria la dà il margine canonico del tavolo. */
 @media (pointer: coarse) {
-  .board { top: calc(var(--toolbar-h) + 22px); }
+  .board, .hand-opponent { top: calc(var(--toolbar-h) + 22px); }
 }
 
 /* La × della chat: piccola, nell'angolo, sopra lo scorrimento. */
