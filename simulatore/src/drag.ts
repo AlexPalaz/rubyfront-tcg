@@ -37,9 +37,38 @@ export interface DragOptions {
   onDrop(drop: Drop): void;
   /** Pressione e rilascio senza spostamento: un tap, non un trascinamento. */
   onTap?(up: PointerEvent): void;
+  /** Pressione LUNGA senza spostamento, solo touch: il tasto destro del
+      dito. Quando scatta, il gesto è consumato — niente drag, niente tap. */
+  onContext?(event: PointerEvent): void;
 }
 
 const THRESHOLD = 4;
+/** Quanto tenere premuto (touch) perché diventi un menu contestuale. */
+const LONG_PRESS_MS = 450;
+
+/**
+ * Pressione lunga su un elemento qualsiasi (pile, slot): l'alternativa touch
+ * al tasto destro. Un dito che si sposta o si alza in tempo la annulla.
+ */
+export function enableLongPress(element: HTMLElement, handler: (x: number, y: number) => void): void {
+  let timer = 0;
+  let startX = 0;
+  let startY = 0;
+  const cancel = (): void => window.clearTimeout(timer);
+  element.addEventListener("pointerdown", event => {
+    if (event.pointerType !== "touch") return;
+    startX = event.clientX;
+    startY = event.clientY;
+    cancel();
+    timer = window.setTimeout(() => handler(startX, startY), LONG_PRESS_MS);
+  });
+  element.addEventListener("pointermove", event => {
+    if (Math.abs(event.clientX - startX) > 8 || Math.abs(event.clientY - startY) > 8) cancel();
+  });
+  element.addEventListener("pointerup", cancel);
+  element.addEventListener("pointercancel", cancel);
+  element.addEventListener("pointerleave", cancel);
+}
 
 /**
  * La scala a cui il tavolo è disegnato (--card-scale, la imposta table.ts):
@@ -72,6 +101,24 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
       ? element.getBoundingClientRect().width / element.offsetWidth || 1
       : tableScale();
     let ghost: HTMLElement | null = null;
+
+    // Su touch il tasto destro non esiste: la pressione lunga senza
+    // spostamento apre il menu contestuale. Se il dito parte davvero
+    // (soglia del drag), il timer muore e resta un trascinamento.
+    let menuTimer = 0;
+    if (event.pointerType === "touch" && options.onContext) {
+      menuTimer = window.setTimeout(() => {
+        element.removeEventListener("pointermove", onMove);
+        element.removeEventListener("pointerup", onUp);
+        element.removeEventListener("pointercancel", onUp);
+        try {
+          element.releasePointerCapture?.(event.pointerId);
+        } catch {
+          /* niente cattura */
+        }
+        options.onContext!(event);
+      }, LONG_PRESS_MS);
+    }
 
     const start = (): void => {
       // Il documento sa che si sta trascinando: serve alle zone che di norma
@@ -128,6 +175,7 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
     const onMove = (move: PointerEvent): void => {
       if (!ghost) {
         if (Math.abs(move.clientX - startX) < THRESHOLD && Math.abs(move.clientY - startY) < THRESHOLD) return;
+        window.clearTimeout(menuTimer);
         start();
       }
       moveGhost(move.clientX, move.clientY);
@@ -139,6 +187,7 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
     };
 
     const onUp = (up: PointerEvent): void => {
+      window.clearTimeout(menuTimer);
       element.removeEventListener("pointermove", onMove);
       element.removeEventListener("pointerup", onUp);
       element.removeEventListener("pointercancel", onUp);

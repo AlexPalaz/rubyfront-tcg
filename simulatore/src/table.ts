@@ -28,7 +28,7 @@ import {
   viewBandTop,
   type Ctx,
 } from "./ctx.js";
-import { enableDrag, type Drop } from "./drag.js";
+import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
 import { TILE_H, TILE_W, faceCount, faceKind, isRubyfront } from "./renderer.js";
 import {
@@ -291,6 +291,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           event.preventDefault();
           openMenu(event.clientX, event.clientY, pileMenu(seat, pile.zone));
         });
+        // Su touch: pressione lunga al posto del tasto destro.
+        enableLongPress(slot, (x, y) => openMenu(x, y, pileMenu(seat, pile.zone)));
         slot.addEventListener("dblclick", () => {
           if (pile.zone === "deck" && seat === ctx.seat()) draw(seat, 1);
           else browse(seat, pile.zone);
@@ -642,6 +644,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             setHandCollapsed(false);
           }
           render();
+        },
+        onContext: event => {
+          // La pressione lunga è il tasto destro del dito: stesso menu.
+          if (targeting) {
+            cancelTargeting();
+            return;
+          }
+          const live = ctx.state().cards[card.uid];
+          if (live) openMenu(event.clientX, event.clientY, cardMenu(live));
         },
         onTap: up => {
           // Su touch non c'è hover: è il tap a chiedere l'ingrandimento (e a
