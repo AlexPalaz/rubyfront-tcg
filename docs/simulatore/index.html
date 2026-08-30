@@ -4,15 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Simulatore · Rubyfront</title>
-  <script type="module" crossorigin src="./assets/index-CRZ9MUIQ.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BQ_tWEuT.css">
+  <script type="module" crossorigin src="./assets/index-C9TuF9zd.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DAm2nZEc.css">
 </head>
 <body>
 <!-- L'header è scarno di proposito: i gesti di partita stanno sull'HUD, le
      impostazioni dietro l'ingranaggio. Qui restano il marchio, lo stato della
      rete, Nuova partita (da sola: azzera tutto) e l'ingranaggio. -->
 <header class="toolbar">
-  <span class="brand">Rubyfront</span>
+  <span class="brand">
+    <b class="brand-main">Rubyfront</b>
+    <span class="brand-gem" aria-hidden="true"></span>
+    <span class="brand-sub">Simulator</span>
+  </span>
   <span class="spacer"></span>
   <span id="net-dot" class="dot" title="Non collegato"></span>
   <button type="button" id="do-new" class="danger">Nuova partita</button>
@@ -59,6 +63,19 @@
   <div class="set-row">
     <span class="set-label">Rete</span>
     <button type="button" id="do-push" class="ghost" title="Rimanda il tuo tavolo all'avversario, se le due lavagne si sono disallineate">Sincronizza la lavagna</button>
+  </div>
+  <div class="set-row">
+    <span class="set-label">Microfono</span>
+    <select id="mic-pick" title="Microfono per la chat vocale">
+      <option value="">Predefinito</option>
+    </select>
+  </div>
+  <div class="set-row">
+    <span class="set-label">Vista</span>
+    <label class="set-check">
+      <input type="checkbox" id="compact-toggle">
+      Compatta: sul campo solo costo, nome, potenza e illustrazione
+    </label>
   </div>
   <div class="set-row">
     <span class="set-label">Tema</span>

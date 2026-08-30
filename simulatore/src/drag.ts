@@ -6,6 +6,7 @@
 // dove serve distinguere le due metà del tavolo): chi disegna una zona non
 // deve registrare niente qui.
 
+import { isCompactView, tileViewH } from "./ctx.js";
 import type { Seat, ZoneId } from "./types.js";
 
 /** `snapped`: la carta si è agganciata a un riquadro, non posata a mano libera. */
@@ -56,8 +57,8 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
     event.preventDefault();
 
     const box = element.getBoundingClientRect();
-    const grabX = event.clientX - box.left;
-    const grabY = event.clientY - box.top;
+    let grabX = event.clientX - box.left;
+    let grabY = event.clientY - box.top;
     const startX = event.clientX;
     const startY = event.clientY;
     // La carta afferrata può avere una scala sua: in mano sta più grande che
@@ -66,7 +67,8 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
     // sempre con la scala del campo (vedi resolve). Il rapporto col rettangolo
     // a schermo è affidabile per la mano (lì le carte non ruotano mai); sul
     // campo, dove una tappata è ruotata, si usa la scala globale.
-    const grabScale = element.closest(".hand")
+    const fromHand = Boolean(element.closest(".hand"));
+    let grabScale = fromHand
       ? element.getBoundingClientRect().width / element.offsetWidth || 1
       : tableScale();
     let ghost: HTMLElement | null = null;
@@ -95,6 +97,18 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
       // disegna a modo suo); left e top restano pixel veri.
       ghost.style.width = `${element.offsetWidth}px`;
       ghost.style.height = `${element.offsetHeight}px`;
+      // In vista compatta la carta presa DALLA MANO diventa subito la sua
+      // tessera da campo: ritagliata alla testa e alla scala del tavolo,
+      // com'è dove sta per atterrare. La presa si ricentra sulla tessera
+      // ridotta — e il rilascio, che ragiona sulla stessa presa, la posa
+      // esattamente dove la si vede.
+      if (fromHand && isCompactView()) {
+        ghost.style.height = `${tileViewH()}px`;
+        ghost.classList.add("is-cropped");
+        grabScale = tableScale();
+        grabX = (element.offsetWidth * grabScale) / 2;
+        grabY = (tileViewH() * grabScale) / 2;
+      }
       if (grabScale !== 1) {
         ghost.style.transformOrigin = "top left";
         ghost.style.transform = `scale(${grabScale})`;

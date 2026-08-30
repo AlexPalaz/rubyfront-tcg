@@ -45,6 +45,92 @@ const ROW_GAP = 96;
 export const SURFACE_W = 2700;
 
 /**
+ * Vista compatta: sul campo le tessere mostrano solo barra del titolo (costo,
+ * nome, potenza/PV) e illustrazione — il resto lo taglia l'overflow della
+ * tessera, la carta sotto resta intera e intatta. È un VESTITO del client:
+ * le coordinate canoniche condivise in rete non cambiano di un pixel; a
+ * comprimersi è solo la geometria di vista, con la mappa `compress` qui
+ * sotto. Obiettivo dichiarato: col tavolo compatto non si scorre affatto
+ * (fitScale in table.ts aggancia anche l'altezza).
+ */
+let compactView = false;
+export function setCompactView(on: boolean): void {
+  compactView = on;
+}
+export function isCompactView(): boolean {
+  return compactView;
+}
+/** Altezza della tessera ritagliata: fino al fondo dell'illustrazione
+    (19 di padding + 40 di titolo + 7 di varco + 291 di art, in scala 302/520). */
+const COMPACT_TILE_H = 210;
+/** Il varco fra le due file si stringe con le carte. */
+const COMPACT_ROW_GAP = 48;
+
+/** Altezza di VISTA di una tessera sul campo. */
+export function tileViewH(): number {
+  return compactView ? COMPACT_TILE_H : TILE_H;
+}
+function rowGapView(): number {
+  return compactView ? COMPACT_ROW_GAP : ROW_GAP;
+}
+/** Altezza di VISTA di una fascia. */
+export function bandViewH(): number {
+  return ROW_PAD + tileViewH() + rowGapView() + tileViewH() + ROW_PAD;
+}
+/** Altezza di VISTA dell'intera superficie. */
+export function surfaceViewH(): number {
+  return TOP_PAD + bandViewH() * 2 + HALF_GAP + BOTTOM_PAD;
+}
+
+/**
+ * La mappa di compressione: canonico→compatto, piecewise lineare e monotona
+ * sui punti fermi del layout (pad, file, varchi). Fuori dalla modalità
+ * compatta è l'identità. `decompress` è l'inversa esatta.
+ */
+function anchors(): [number[], number[]] {
+  const canon: number[] = [0];
+  const view: number[] = [0];
+  const seg = (dc: number, dv: number): void => {
+    canon.push(canon[canon.length - 1] + dc);
+    view.push(view[view.length - 1] + dv);
+  };
+  seg(TOP_PAD, TOP_PAD);
+  for (let band = 0; band < 2; band += 1) {
+    seg(ROW_PAD, ROW_PAD);
+    seg(TILE_H, tileViewH());
+    seg(ROW_GAP, rowGapView());
+    seg(TILE_H, tileViewH());
+    seg(ROW_PAD, ROW_PAD);
+    if (band === 0) seg(HALF_GAP, HALF_GAP);
+  }
+  seg(BOTTOM_PAD, BOTTOM_PAD);
+  return [canon, view];
+}
+
+function remap(y: number, from: number[], to: number[]): number {
+  if (y <= from[0]) return to[0] + (y - from[0]);
+  for (let i = 1; i < from.length; i += 1) {
+    if (y <= from[i]) {
+      const span = from[i] - from[i - 1];
+      const ratio = span === 0 ? 0 : (y - from[i - 1]) / span;
+      return to[i - 1] + ratio * (to[i] - to[i - 1]);
+    }
+  }
+  return to[to.length - 1] + (y - from[from.length - 1]);
+}
+
+function compress(y: number): number {
+  if (!compactView) return y;
+  const [canon, view] = anchors();
+  return Math.round(remap(y, canon, view));
+}
+function decompress(y: number): number {
+  if (!compactView) return y;
+  const [canon, view] = anchors();
+  return Math.round(remap(y, view, canon));
+}
+
+/**
  * Ogni metà è alta due file di carte: il campo di un giocatore da solo occupa
  * quanto prima occupavano i due messi insieme. Sullo schermo non ci sta tutto,
  * e va bene così — si scorre.
@@ -162,9 +248,18 @@ function bandOfCenter(center: number): Seat | null {
   return null;
 }
 
+/**
+ * Dove sta la fascia di `seat` in metrica CANONICA di vista (fasce scambiate,
+ * misure piene): è il sistema in cui lavorano toView/fromView. La compressione
+ * della vista compatta arriva DOPO, una volta sola.
+ */
+function canonBandTop(seat: Seat, viewer: Seat): number {
+  return seat === viewer ? TOP_PAD + SWAP_Y : TOP_PAD;
+}
+
 /** Dove sta la fascia di `seat` sullo schermo di `viewer`: la propria in basso. */
 export function viewBandTop(seat: Seat, viewer: Seat): number {
-  return seat === viewer ? TOP_PAD + SWAP_Y : TOP_PAD;
+  return compress(canonBandTop(seat, viewer));
 }
 
 /**
@@ -173,7 +268,7 @@ export function viewBandTop(seat: Seat, viewer: Seat): number {
  * partenza: i due Fronti insieme, il proprio campo senza scorrere.
  */
 export function viewBattleTop(viewer: Seat): number {
-  return viewBandTop(otherSeat(viewer), viewer) + HALF_H - ROW_PAD - TILE_H;
+  return compress(canonBandTop(otherSeat(viewer), viewer) + HALF_H - ROW_PAD - TILE_H);
 }
 
 /**
@@ -200,10 +295,10 @@ function flipInBand(localCenter: number): number {
 export function toView(y: number, viewer: Seat): number {
   const center = y + HALF_TILE;
   const band = bandOfCenter(center);
-  if (!band) return y;
+  if (!band) return compress(y);
   const local = center - BAND_TOP[band];
-  const moved = viewBandTop(band, viewer) + (band === viewer ? local : flipInBand(local));
-  return moved - HALF_TILE;
+  const moved = canonBandTop(band, viewer) + (band === viewer ? local : flipInBand(local));
+  return compress(moved - HALF_TILE);
 }
 
 /**
@@ -212,12 +307,13 @@ export function toView(y: number, viewer: Seat): number {
  * riportato nel sistema comune prima di finire nello stato.
  */
 export function fromView(y: number, viewer: Seat): number {
-  const center = y + HALF_TILE;
+  const canonical = decompress(y);
+  const center = canonical + HALF_TILE;
   let band: Seat;
   if (center >= TOP_PAD && center < TOP_PAD + HALF_H) band = otherSeat(viewer);
   else if (center >= TOP_PAD + SWAP_Y && center < TOP_PAD + SWAP_Y + HALF_H) band = viewer;
-  else return y;
-  const local = center - viewBandTop(band, viewer);
+  else return canonical;
+  const local = center - canonBandTop(band, viewer);
   const moved = BAND_TOP[band] + (band === viewer ? local : flipInBand(local));
   return moved - HALF_TILE;
 }

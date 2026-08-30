@@ -55,6 +55,20 @@ Il relay resta stupido: ripete i messaggi della stanza e non sa nulla del
 gioco. Niente account, niente lista stanze pubblica: si gioca con chi
 conosce il nome della stanza, come a un tavolo privato.
 
+## La chat vocale
+
+Il tasto col **microfono** sull'HUD (accanto al fumetto) accende e spegne la
+voce: parte **sempre spento**, e spegnerlo ferma le tracce davvero — la spia
+del browser si spegne. L'audio viaggia **diretto fra i due browser** (WebRTC);
+il relay fa solo da postino per l'aggancio, come per tutto il resto. Nelle
+impostazioni si sceglie **quale microfono** usare (i nomi veri compaiono dopo
+il primo permesso).
+
+Limiti onesti: serve una pagina **https o localhost** (il browser non dà il
+microfono altrove — quindi niente voce provando via IP di LAN in http), e
+senza un server TURN i NAT più ostili non si agganciano: c'è solo uno STUN
+pubblico. Per LAN e reti domestiche normali basta.
+
 ## Comandi
 
 | Gesto | Effetto |
@@ -81,8 +95,22 @@ si rimescola.
 
 L'header è scarno: marchio, stato della rete, **Nuova partita** e
 l'**ingranaggio delle impostazioni** — mazzo da caricare, posto, stanza e
-relay, sincronizzazione, tema, lingua. Si apre col click, si chiude con un
-click fuori o con Esc.
+invito, relay, sincronizzazione, vista, tema, lingua. Si apre col click, si
+chiude con un click fuori o con Esc.
+
+## La vista compatta
+
+Dalle impostazioni (Vista) il tavolo passa in **compatto**: sul campo le
+tessere mostrano solo la testa della carta — costo, nome, potenza/PV — e
+l'illustrazione; il resto lo taglia il bordo della tessera (la carta sotto è
+intera e intatta: passandoci sopra col mouse, o col tap, si apre il dettaglio
+pieno). Le file si stringono di conseguenza e la scala si aggancia anche
+all'altezza: **il tavolo sta tutto nella finestra, senza scorrere**.
+
+È un vestito del client, come i temi: le coordinate condivise in rete non
+cambiano di un pixel — a comprimersi è solo la geometria di vista (la mappa
+`compress` in `src/ctx.ts`). La mano resta a carte piene, e la scelta resta
+fra una partita e l'altra.
 
 ## L'HUD e la chat
 

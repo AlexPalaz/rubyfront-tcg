@@ -12,7 +12,6 @@ import {
   FRONT_SLOT_X,
   FRONT_W,
   FRONT_X,
-  HALF_H,
   MATTER_X,
   RUBYFRONT_X,
   SLOT_X,
@@ -20,7 +19,11 @@ import {
   SURFACE_W,
   backRowY,
   frontRowY,
+  bandViewH,
   fromView,
+  isCompactView,
+  surfaceViewH,
+  tileViewH,
   toView,
   viewBandTop,
   type Ctx,
@@ -52,6 +55,9 @@ const PILES: { zone: ZoneId; label: string; x: number; hidden: boolean }[] = [
 
 export interface TableView {
   render(): void;
+  /** Rifà la geometria di vista (misure, zone, scala): per il cambio di
+      modo compatto/normale a caldo. Le carte restano dove sono. */
+  refreshLayout(): void;
   /** Callback per aprire la ricerca: la fornisce main.ts. */
   onBrowse(handler: (seat: Seat, zone: ZoneId) => void): void;
 }
@@ -70,17 +76,25 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const surface = document.createElement("div");
   surface.className = "surface";
   surface.dataset.drop = "field";
-  surface.style.width = `${SURFACE_W}px`;
-  surface.style.height = `${SURFACE_H}px`;
-  // Il transform di scala (style.css) non riduce l'ingombro nello scroll: lo
-  // pareggiano questi margini, che tolgono esattamente la parte non disegnata.
-  surface.style.marginRight = `calc(${SURFACE_W}px * (var(--card-scale) - 1))`;
-  surface.style.marginBottom = `calc(${SURFACE_H}px * (var(--card-scale) - 1))`;
 
+  /** Larghezza fissa, altezza di VISTA (la compatta la stringe). Il transform
+      di scala (style.css) non riduce l'ingombro nello scroll: lo pareggiano i
+      margini, che tolgono esattamente la parte non disegnata. */
+  function applySurfaceSize(): void {
+    surface.style.width = `${SURFACE_W}px`;
+    surface.style.height = `${surfaceViewH()}px`;
+    surface.style.marginRight = `calc(${SURFACE_W}px * (var(--card-scale) - 1))`;
+    surface.style.marginBottom = `calc(${surfaceViewH()}px * (var(--card-scale) - 1))`;
+    // Anche lo strato delle frecce segue l'altezza di vista: alto quanto la
+    // superficie canonica, allungherebbe lo scorrimento da sotto, invisibile.
+    arrowLayer.setAttribute("height", String(surfaceViewH()));
+    arrowLayer.setAttribute("viewBox", `0 0 ${SURFACE_W} ${surfaceViewH()}`);
+  }
   // Le frecce stanno sopra le carte: una punta nascosta sotto una tessera non
   // direbbe niente. Lo strato è inerte al puntatore.
   const arrowLayer = createArrowLayer(SURFACE_W, SURFACE_H);
   surface.append(arrowLayer);
+  applySurfaceSize();
 
   const board = document.createElement("div");
   board.className = "board";
@@ -180,11 +194,16 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   // carte in mano con lei, via CSS). Si vedono più piccole, ma a leggerle ci
   // pensa l'ingrandimento al passaggio, che resta a misura piena.
   function fitScale(): void {
-    const scale = Math.min(1, board.clientWidth / SURFACE_W);
+    // In vista compatta il tavolo deve stare TUTTO nella finestra: il fit
+    // guarda anche l'altezza, e lo scorrimento sparisce.
+    const heightFit = isCompactView() ? board.clientHeight / surfaceViewH() : Number.POSITIVE_INFINITY;
+    const scale = Math.min(1, board.clientWidth / SURFACE_W, heightFit);
     // Su html, non su body: le variabili derivate (--hand-scale, --hand-h)
     // sono definite in :root e si risolvono LÌ — un override sul body non le
     // raggiungerebbe, e il cassetto resterebbe ad altezza piena.
-    document.documentElement.style.setProperty("--card-scale", String(Math.round(scale * 1000) / 1000));
+    // floor, non round: arrotondare in su lascerebbe UN pixel di scorrimento
+    // proprio nella vista che promette di non scorrere.
+    document.documentElement.style.setProperty("--card-scale", String(Math.floor(scale * 1000) / 1000));
   }
   fitScale();
   new ResizeObserver(fitScale).observe(board);
@@ -195,6 +214,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const unview = (y: number): number => fromView(y, ctx.seat());
 
   const pileSlots = new Map<string, HTMLElement>();
+  /** Gli elementi delle zone: si buttano e si ridisegnano al cambio modo. */
+  const zoneEls: HTMLElement[] = [];
   buildStaticZones();
 
   // Click a vuoto sulla lavagna: chiude il menu contestuale (ci pensa menu.ts)
@@ -228,6 +249,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   });
 
   function buildStaticZones(): void {
+    for (const el of zoneEls) el.remove();
+    zoneEls.length = 0;
+    pileSlots.clear();
     for (const seat of SEATS) {
       const mine = seat === ctx.seat();
       // La fascia NON passa da `view`: quella trasformata capovolge una carta
@@ -240,12 +264,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const band = document.createElement("div");
       band.className = `half ${mine ? "is-mine" : "is-foe"}`;
       band.style.top = `${bandTop}px`;
-      band.style.height = `${HALF_H}px`;
+      band.style.height = `${bandViewH()}px`;
       const name = document.createElement("span");
       name.className = "half-name";
       name.dataset.seatName = seat;
       band.append(name);
       surface.append(band);
+      zoneEls.push(band);
 
       for (const pile of PILES) {
         const slot = document.createElement("div");
@@ -255,7 +280,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         slot.style.left = `${pile.x}px`;
         slot.style.top = `${view(back)}px`;
         slot.style.width = `${TILE_W}px`;
-        slot.style.height = `${TILE_H}px`;
+        slot.style.height = `${tileViewH()}px`;
 
         const label = document.createElement("span");
         label.className = "slot-label";
@@ -272,6 +297,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         });
 
         surface.append(slot);
+        zoneEls.push(slot);
         pileSlots.set(`${seat}:${pile.zone}`, slot);
       }
 
@@ -290,9 +316,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         slot.style.left = `${x}px`;
         slot.style.top = `${view(y)}px`;
         slot.style.width = `${TILE_W}px`;
-        slot.style.height = `${TILE_H}px`;
+        slot.style.height = `${tileViewH()}px`;
         if (label) slot.dataset.label = label;
         surface.append(slot);
+        zoneEls.push(slot);
       };
 
       // Zona di Richiamo (§5): il Rubyfront parte da qui, e ci torna solo per
@@ -308,8 +335,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       frontLabel.textContent = "Fronte";
       frontLabel.style.left = `${FRONT_X}px`;
       frontLabel.style.width = `${FRONT_W}px`;
-      frontLabel.style.top = `${view(front) + TILE_H + 4}px`;
+      frontLabel.style.top = `${view(front) + tileViewH() + 9}px`;
       surface.append(frontLabel);
+      zoneEls.push(frontLabel);
 
       // Il Rubyfront schierato sta davanti al Fronte, senza occupare uno slot.
       markSlot(RUBYFRONT_X, front, "Rubyfront", "slot-rubyfront");
@@ -660,7 +688,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   /** Rettangolo di una carta in coordinate della superficie. */
   function boxOf(card: CardInstance): Arrow["from"] {
-    return { x: card.x, y: view(card.y), w: TILE_W, h: TILE_H };
+    return { x: card.x, y: view(card.y), w: TILE_W, h: tileViewH() };
   }
 
   function paintArrows(): void {
@@ -738,6 +766,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           tile.style.left = "";
           tile.style.top = "";
           tile.style.position = "absolute";
+          // Anche la cima della pila si ritaglia in compatto, o sborderebbe
+          // dallo slot e riporterebbe lo scorrimento che si voleva togliere.
+          tile.style.height = `${tileViewH()}px`;
+          tile.classList.toggle("is-cropped", isCompactView());
           tile.style.zIndex = "1";
         }
       }
@@ -759,6 +791,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         tile.style.left = `${card.x}px`;
         tile.style.top = `${view(card.y)}px`;
       }
+      // In compatto la tessera si ritaglia al fondo dell'illustrazione: la
+      // carta sotto è intera, la taglia l'overflow. In mano resta piena.
+      tile.style.height = `${tileViewH()}px`;
+      tile.classList.toggle("is-cropped", isCompactView());
       tile.style.zIndex = String(10 + card.z);
     }
 
@@ -778,6 +814,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         tile.style.position = "relative";
         tile.style.left = "";
         tile.style.top = "";
+        tile.style.height = `${TILE_H}px`;
+        tile.classList.remove("is-cropped");
         tile.style.zIndex = "";
         wanted.push(tile);
       }
@@ -804,6 +842,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   return {
     render,
+    refreshLayout() {
+      applySurfaceSize();
+      buildStaticZones();
+      fitScale();
+      render();
+    },
     onBrowse(handler) {
       browse = handler;
     },

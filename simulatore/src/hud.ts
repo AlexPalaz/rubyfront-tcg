@@ -33,6 +33,8 @@ export interface Hud {
 export interface HudHooks {
   /** Apre e chiude la colonna della chat. */
   chat(): void;
+  /** Accende e spegne il microfono della chat vocale. */
+  voice(): void;
   shuffle(): void;
   draw(): void;
   search(): void;
@@ -247,7 +249,17 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   chatToggle.addEventListener("click", hooks.chat);
   const chatBadges = makeBadges(chatToggle);
 
-  actions.append(pass, chatToggle);
+  // Il microfono della chat vocale: SPENTO di default, l'accensione è un
+  // gesto esplicito. Lo stato visivo lo detta body.dataset.voice (main.ts).
+  const mic = document.createElement("button");
+  mic.type = "button";
+  mic.className = "hud-mic";
+  mic.innerHTML = svgIcon(
+    '<path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/>'
+  );
+  mic.addEventListener("click", hooks.voice);
+
+  actions.append(pass, mic, chatToggle);
 
   // Il Fine turno è di chi è di turno: per l'altro si ingrigisce. È l'unico
   // "impedimento" del simulatore, e serve al ritmo: passo io, poi passi tu.
@@ -423,6 +435,9 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
       for (const sync of syncs) sync();
       // Le spie dei non letti stanno sul tasto della chat — e anche
       // sull'icona, che da ridotta è tutto ciò che resta in vista.
+      const voiceOn = document.body.dataset.voice === "on";
+      mic.classList.toggle("is-on", voiceOn);
+      tip(mic, voiceOn ? "Microfono acceso: clicca per spegnerlo" : "Attiva il microfono (chat vocale)");
       const unreadChat = document.body.dataset.unread ?? "";
       const unreadLog = document.body.dataset.unreadLog ?? "";
       chatBadges.chat.textContent = unreadChat;

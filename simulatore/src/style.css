@@ -64,12 +64,12 @@
   --turn-shadow: 0 1px 4px rgba(0, 0, 0, .95), 0 0 14px rgba(0, 0, 0, .8);
   --sans: "Space Grotesk Variable", ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --toolbar-h: 46px;
+  --toolbar-h: 54px;
   --side-w: 320px;
   /* L'HUD fluttua sul bordo destro del tavolo: le targhe sono larghe --hud-w,
      e --hud-lane è la corsia che mani e tasti gli lasciano libera. */
-  --hud-w: 170px;
-  --hud-lane: 198px;
+  --hud-w: 216px;
+  --hud-lane: 252px;
   /* La scala della lavagna: 1 a tutta larghezza, meno di 1 sugli schermi
      stretti (la imposta table.ts, misurando la finestra). Scala superficie e
      carte in mano; a leggere le carte rimpicciolite ci pensa l'ingrandimento
@@ -91,7 +91,7 @@ html, body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 16px;
   /* Safari su iPad gonfia da sé il testo che giudica "da leggere": nelle
      carte sfonda il layout misurato dal fit (la descrizione arriva a filo del
      codice carta). Il corpo lo decide il renderer, non lui: la carta deve
@@ -102,27 +102,70 @@ html, body {
 
 /* ------------------------------------------------------------ toolbar */
 
+/* L'header è una lastra di vetro FISSA sopra il tavolo: sotto ci passano i
+   dorsi avversari, e il blur ha davvero qualcosa da sfocare. Il bagliore
+   rubino nasce dal marchio e sfuma lungo l'orlo. */
 .toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9000;
   display: flex;
   align-items: center;
   gap: 14px;
   height: var(--toolbar-h);
   padding: 0 14px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 62%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .35);
+}
+.toolbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -9px;
+  height: 9px;
+  pointer-events: none;
+  background: radial-gradient(46% 100% at 12% 0%, rgba(210, 74, 100, .3), transparent 70%);
 }
 
+/* Il marchio, a due voci: RUBYFRONT acceso col suo alone, il rubino in mezzo,
+   SIMULATOR sottovoce e spaziato. */
 .brand {
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 1rem;
   letter-spacing: .12em;
   text-transform: uppercase;
+}
+.brand-main {
+  font-weight: 700;
   color: var(--ruby);
-  font-size: .78rem;
+  text-shadow: 0 0 16px rgba(210, 74, 100, .6);
+}
+.brand-gem {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+  background: #9e0f34;
+  border: 1px solid #e56a86;
+  box-shadow: 0 0 10px rgba(210, 74, 100, .65);
+}
+.brand-sub {
+  font-weight: 300;
+  color: var(--muted);
+  letter-spacing: .34em;
 }
 
 .toolbar .group { display: flex; align-items: center; gap: 6px; }
 .toolbar .spacer { flex: 1; }
-.toolbar label { color: var(--muted); font-size: .76rem; }
+.toolbar label { color: var(--muted); font-size: 1rem; }
 
 button, select, input {
   font: inherit;
@@ -159,7 +202,7 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--side-w);
-  height: calc(100% - var(--toolbar-h));
+  height: 100%;
   transition: grid-template-columns .22s ease;
 }
 
@@ -172,7 +215,8 @@ body.side-closed { --side-w: 0px; }
 .side {
   position: relative;
   display: grid;
-  /* La colonna è solo la chat. */
+  /* La colonna è solo la chat; l'header di vetro le sta sopra: si scansa. */
+  padding-top: var(--toolbar-h);
   grid-template-rows: minmax(0, 1fr);
   background: var(--surface);
   border-left: 1px solid var(--line-soft);
@@ -182,7 +226,7 @@ body.side-closed { --side-w: 0px; }
 /* La × della chat: piccola, nell'angolo, sopra lo scorrimento. */
 .side-close {
   position: absolute;
-  top: 7px;
+  top: calc(var(--toolbar-h) + 7px);
   right: 9px;
   z-index: 5;
   width: 24px;
@@ -219,10 +263,10 @@ body.side-closed { --side-w: 0px; }
   top: calc(var(--toolbar-h) + 8px);
   right: 10px;
   z-index: 9800;
-  width: 320px;
+  width: 400px;
   display: grid;
-  gap: 9px;
-  padding: 12px;
+  gap: 10px;
+  padding: 14px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -231,18 +275,27 @@ body.side-closed { --side-w: 0px; }
 .settings[hidden] { display: none; }
 .set-row {
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: 112px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
 }
 .set-label {
-  font-size: .68rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .set-controls { display: flex; gap: 6px; min-width: 0; }
+.set-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.set-check input { accent-color: var(--ruby); }
 .set-controls > input, .set-controls > select { flex: 1; min-width: 0; }
 .set-row > input, .set-row > select { min-width: 0; }
 
@@ -305,7 +358,7 @@ body.side-closed { --side-w: 0px; }
   top: -11px;
   left: 24px;
   padding: 2px 12px;
-  font-size: .74rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: .18em;
   text-transform: uppercase;
@@ -326,8 +379,8 @@ body.side-closed { --side-w: 0px; }
   content: attr(data-label);
   position: absolute;
   left: 4px;
-  bottom: -19px;
-  font-size: .72rem;
+  bottom: -27px;
+  font-size: 1rem;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -351,7 +404,7 @@ body.side-closed { --side-w: 0px; }
 .row-label {
   position: absolute;
   text-align: center;
-  font-size: .72rem;
+  font-size: 1rem;
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--muted);
@@ -361,8 +414,8 @@ body.side-closed { --side-w: 0px; }
 .slot-label {
   position: absolute;
   left: 4px;
-  bottom: -19px;
-  font-size: .72rem;
+  bottom: -27px;
+  font-size: 1rem;
   letter-spacing: .1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -434,6 +487,22 @@ body.side-closed { --side-w: 0px; }
   border-radius: 4px;
 }
 .card-back svg { width: 62%; height: 62%; }
+/* Dorso in tessera ritagliata (vista compatta): il rombo non si taglia a
+   metà — il disegno si raccoglie nella fetta visibile e si centra lì.
+   49.5% = 210/424, la quota di carta che il ritaglio lascia vedere. */
+.tile.is-cropped .card-back { height: 49.5%; }
+/* Il taglio della compatta cade a filo della riga del tipo: gli slanci delle
+   lettere spuntavano dal bordo. Una velatura leggerissima li spegne. */
+.tile.is-cropped::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 18px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, .5));
+}
 
 /* La carta in volo. Posizione, z e margini glieli mette drag.ts in linea: il
    clone si porta dietro gli stili in linea della tessera, che batterebbero
@@ -494,7 +563,7 @@ body.is-dragging-card .hand-drop.is-drop-target {
   background: linear-gradient(to top, rgba(210, 74, 100, .34), transparent);
 }
 .hand-drop-hint {
-  font-size: .74rem;
+  font-size: 1rem;
   letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--muted);
@@ -584,7 +653,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   position: absolute;
   left: 24px;
   padding: 2px 12px;
-  font-size: .74rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: .18em;
   text-transform: uppercase;
@@ -684,7 +753,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 /* Il padding alto lascia posto alla × che fluttua nell'angolo. */
 .chat-log { overflow-y: auto; padding: 30px 12px 10px; }
 .chat-row { margin: 0 0 5px; line-height: 1.4; word-break: break-word; }
-.chat-row.is-log { color: var(--muted); font-size: .82rem; font-style: italic; }
+.chat-row.is-log { color: var(--muted); font-size: 1rem; font-style: italic; }
 /* Chi fa cosa si vede dal colore, e si deve vedere FORTE: le tue righe sono
    una banda viola, quelle dell'avversario una banda indaco — messaggi e righe
    di servizio allo stesso modo. Neutre restano solo le righe senza posto. */
@@ -749,7 +818,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 }
 .overlay-panel h2 { margin: 0; font-size: 1rem; }
 .overlay-search { flex: 1; min-width: 0; }
-.overlay-check { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: .8rem; white-space: nowrap; }
+.overlay-check { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 1rem; white-space: nowrap; }
 
 .overlay-grid {
   display: grid;
@@ -806,7 +875,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   height: 28px;
   padding: 0 7px;
   border-radius: 999px;
-  font-size: .84rem;
+  font-size: 1rem;
   font-weight: 800;
   line-height: 1;
   color: #fff;
@@ -874,7 +943,7 @@ body.is-targeting .tile.is-legal {
   background: var(--glass-heavy);
   border: 1px solid var(--ok);
   border-radius: 999px;
-  font-size: .82rem;
+  font-size: 1rem;
   letter-spacing: .06em;
   box-shadow: 0 12px 30px rgba(0, 0, 0, .7);
   pointer-events: none;
@@ -920,8 +989,8 @@ body.is-targeting .tile.is-legal {
   position: absolute;
   top: 0;
   right: 0;
-  width: 30px;
-  height: 22px;
+  width: 38px;
+  height: 26px;
   padding: 0;
   display: grid;
   place-items: center;
@@ -947,19 +1016,18 @@ body.is-targeting .tile.is-legal {
 .hud-tool {
   display: grid;
   justify-items: center;
-  gap: 3px;
-  padding: 6px 0 5px;
+  gap: 4px;
+  padding: 9px 0 8px;
   color: var(--muted);
   background: rgba(0, 0, 0, .35);
   border: 1px solid var(--line-soft);
   border-radius: 4px;
 }
 .hud-tool span {
-  font-size: .54rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
+  font-size: 1rem;
+  font-weight: 600;
 }
+.hud-tool svg { width: 19px; height: 19px; }
 .hud-tool:hover:not(:disabled) { color: var(--ink); }
 .hud-tool-shuffle svg { color: var(--warn); }
 .hud-tool-draw svg { color: var(--ok); }
@@ -968,13 +1036,13 @@ body.is-targeting .tile.is-legal {
 
 /* Ridotto a icona: resta la tessera col rombo (con la spia dei non letti),
    trascinabile; un click la riapre. La larghezza scende con lei. */
-.hud.is-min { width: 42px; }
+.hud.is-min { width: 50px; }
 .hud.is-min > * { display: none; }
 .hud.is-min .hud-mini { display: grid; }
 .hud-sq {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: 50px;
+  height: 50px;
   padding: 0;
   display: grid;
   place-items: center;
@@ -989,8 +1057,8 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 .hud-mini { display: none; cursor: grab; }
 .hud-mini:hover { border-color: var(--ruby); }
 .hud-mini-gem {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
   transform: rotate(45deg);
   background: #9e0f34;
   border: 1px solid #e56a86;
@@ -1039,10 +1107,10 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
    Spenta (◇) si assegna, d'oro (◆) si spende. */
 .hud-coin {
   position: absolute;
-  top: -13px;
+  top: -15px;
   left: 8px;
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   display: grid;
   place-items: center;
@@ -1068,7 +1136,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   margin: 1px 0 4px;
   padding-bottom: 4px;
   border-bottom: 1px solid var(--hc-frame);
-  font-size: .68rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -1083,7 +1151,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
    sopra la targa: a riposo restano numeri, non una pulsantiera. */
 .hud-stat {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 28px;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
   align-items: center;
   gap: 2px;
   margin-top: 2px;
@@ -1099,14 +1167,14 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   white-space: nowrap;
 }
 .hud-vita b { font-weight: 700; }
-.hud-vita small { margin-left: .3em; font-size: .6em; font-weight: 400; color: var(--hc-muted); }
+.hud-vita small { margin-left: .3em; font-size: .78em; font-weight: 400; color: var(--hc-muted); }
 /* Il rombo del costo, col Flusso dentro. Il margine fa spazio alle punte:
    ruotato, il quadrato sborda dalla propria riga. */
 .hud-gem {
   justify-self: center;
-  width: 27px;
-  height: 27px;
-  margin: 7px 0 8px;
+  width: 31px;
+  height: 31px;
+  margin: 8px 0 9px;
   transform: rotate(45deg);
   background: #9e0f34;
   border: 1px solid #e56a86;
@@ -1115,19 +1183,19 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 }
 .hud-gem b {
   transform: rotate(-45deg);
-  font-size: .95rem;
+  font-size: 1rem;
   font-weight: 400;
   line-height: 1;
   color: #fdeef1;
   font-variant-numeric: tabular-nums;
 }
 .hud-step {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   display: grid;
   place-items: center;
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   line-height: 1;
   color: var(--hc-muted);
   background: transparent;
@@ -1144,7 +1212,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
    targa giusta. L'ombra del testo lo tiene leggibile su qualunque panno. */
 .hud-turn {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 28px;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
   align-items: center;
   padding: 0 2px;
   text-align: center;
@@ -1157,7 +1225,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   align-items: center;
   justify-content: center;
   gap: .6em;
-  font-size: .62rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: .16em;
   text-transform: uppercase;
@@ -1165,7 +1233,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 }
 .hud-turn-count::before, .hud-turn-count::after { content: "\25C6"; font-size: .5em; color: color-mix(in srgb, var(--viola) 72%, #000); }
 .hud-turn-who {
-  font-size: .68rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -1182,12 +1250,12 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
    come i medaglioni delle Materie. È l'unico modo di riaprirlo. */
 .hud-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 6px;
 }
 .hud-pass {
-  padding: 8px 4px;
-  font-size: .7rem;
+  padding: 11px 4px;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -1201,7 +1269,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 .hud-pass:hover:not(:disabled) { filter: brightness(1.15); }
 .hud-chat {
   position: relative;
-  width: 32px;
+  width: 42px;
   padding: 0;
   display: grid;
   place-items: center;
@@ -1210,6 +1278,40 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   backdrop-filter: blur(10px);
   border: 1px solid var(--line);
   border-radius: 4px;
+}
+.hud-chat svg { width: 19px; height: 19px; }
+.hud-mic {
+  position: relative;
+  width: 42px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.hud-mic svg { width: 19px; height: 19px; position: relative; }
+/* Il VU meter: un riempimento verde che sale e scende con la voce
+   (--mic-level la scrive main.ts a ogni frame, solo a microfono acceso). */
+.hud-mic.is-on::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--mic-level, 0) * 100%);
+  background: color-mix(in srgb, var(--ok) 32%, transparent);
+  border-radius: 3px;
+  pointer-events: none;
+  transition: height .07s linear;
+}
+.hud-mic:hover { color: var(--ink); border-color: var(--ruby); }
+.hud-mic.is-on {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 65%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--ok) 45%, transparent);
 }
 .hud-chat:hover { color: var(--ink); }
 /* Le due spie dei non letti: BLU i messaggi (a destra), ORO le azioni di
@@ -1221,7 +1323,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   min-width: 20px;
   padding: 1px 6px;
   border-radius: 999px;
-  font-size: .7rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.5;
   text-align: center;
@@ -1244,8 +1346,8 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   border-radius: 4px;
 }
 .hud-dice-btn {
-  padding: 5px 0;
-  font-size: .72rem;
+  padding: 9px 0;
+  font-size: 1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
@@ -1258,7 +1360,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   grid-column: 1 / -1;
   text-align: center;
   font-family: var(--mono);
-  font-size: .8rem;
+  font-size: 1rem;
   color: var(--ruby);
 }
 .hud-dice-out:empty { display: none; }
@@ -1280,7 +1382,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   z-index: 120;
   white-space: nowrap;
   padding: 4px 10px;
-  font-size: .7rem;
+  font-size: 1rem;
   font-weight: 500;
   letter-spacing: .02em;
   text-transform: none;

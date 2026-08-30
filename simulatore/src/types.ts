@@ -134,4 +134,7 @@ export type Action =
 export type NetMessage =
   | { t: "action"; action: Action; from: Seat }
   | { t: "hello"; from: Seat }
-  | { t: "state"; state: GameState; from: Seat };
+  | { t: "state"; state: GameState; from: Seat }
+  /** Segnalazione WebRTC della chat vocale (voice.ts): il relay la ripete
+      come tutto il resto, il payload lo capisce solo l'altro client. */
+  | { t: "rtc"; payload: unknown; from: Seat };

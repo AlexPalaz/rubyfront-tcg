@@ -10,7 +10,7 @@
 // attorno al manufatto delle carte.
 import "@fontsource-variable/space-grotesk";
 import { mountChat } from "./chat.js";
-import { SLOT_X, SURFACE_W, backRowY, viewBattleTop, type Ctx } from "./ctx.js";
+import { SLOT_X, SURFACE_W, backRowY, isCompactView, setCompactView, viewBattleTop, type Ctx } from "./ctx.js";
 import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
@@ -25,6 +25,7 @@ import {
 } from "./renderer.js";
 import { apply, newGame, shuffled, zoneCards } from "./state.js";
 import { mountTable } from "./table.js";
+import { createVoice, type VoicePayload } from "./voice.js";
 import type { Action, CardInstance, GameState, Seat } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
 
@@ -88,7 +89,27 @@ const ctx: Ctx = {
   },
 };
 
+// ----------------------------------------------------------------- voce
+
+const voice = createVoice({
+  seat: () => mySeat,
+  send: payload => {
+    if (!net || net.status() !== "online") return false;
+    net.send({ t: "rtc", payload, from: mySeat });
+    return true;
+  },
+  log: (text, seat) => ctx.log(text, seat ?? mySeat),
+  micId: () => store.read("mic", ""),
+  // Il VU meter sul tasto del microfono: un riempimento verde che segue la
+  // voce (style.css legge --mic-level).
+  onLevel: level => document.body.style.setProperty("--mic-level", level.toFixed(3)),
+});
+
 // ----------------------------------------------------------------- viste
+
+// La vista compatta va decisa prima di montare il tavolo: le zone nascono
+// già con la geometria giusta.
+setCompactView(store.read("compact", "") === "1");
 
 const table = mountTable(document.querySelector<HTMLElement>("#table")!, ctx);
 const chat = mountChat(document.querySelector<HTMLElement>("#chat")!, ctx);
@@ -107,6 +128,18 @@ function toggleSide(): void {
 // impostazione. L'overlay è montato poche righe sotto: ai click esiste già.
 const hud = mountHud(document.querySelector<HTMLElement>("#hud")!, ctx, {
   chat: toggleSide,
+  voice: async () => {
+    const before = voice.enabled();
+    await voice.toggle();
+    const after = voice.enabled();
+    document.body.dataset.voice = after ? "on" : "";
+    if (before !== after) {
+      ctx.log(`Posto ${mySeat.toUpperCase()} ${after ? "accende" : "spegne"} il microfono.`, mySeat);
+    }
+    // Col permesso appena concesso i nomi dei microfoni diventano leggibili.
+    void fillMics();
+    paint();
+  },
   shuffle: doShuffle,
   draw: doDraw,
   search: () => overlay.open(mySeat, "deck"),
@@ -224,6 +257,8 @@ function setStatus(status: NetStatus, peers: number): void {
 }
 
 function join(room: string, relay: string): void {
+  voice.shutdown();
+  document.body.dataset.voice = "";
   net?.close();
   net = null;
   if (!room.trim()) {
@@ -235,6 +270,10 @@ function join(room: string, relay: string): void {
   net = connect(relay || DEFAULT_RELAY, room.trim(), mySeat, {
     onStatus: setStatus,
     onMessage(message) {
+      if (message.t === "rtc") {
+        if (message.from !== mySeat) voice.receive(message.payload as VoicePayload);
+        return;
+      }
       if (message.t === "action") {
         // "Nuova partita" azzera il tavolo di entrambi: ognuno rimette poi il
         // proprio mazzo, perché il suo id è noto solo al suo client.
@@ -342,6 +381,37 @@ document.querySelector("#room-invite")!.addEventListener("click", async () => {
   window.setTimeout(() => (button.textContent = "Copia link"), 1600);
 });
 
+// Vista compatta: sul campo solo testa e illustrazione delle carte, tavolo
+// tutto in vista senza scorrere. Il dettaglio pieno resta al passaggio del
+// mouse (o al tap). Cambio a caldo: si rifà la sola geometria di vista.
+const compactToggle = document.querySelector<HTMLInputElement>("#compact-toggle")!;
+compactToggle.checked = isCompactView();
+compactToggle.addEventListener("change", () => {
+  setCompactView(compactToggle.checked);
+  store.write("compact", compactToggle.checked ? "1" : "");
+  table.refreshLayout();
+  frameBoard();
+  paint();
+});
+
+// Il microfono da usare: l'elenco si riempie coi dispositivi visibili (i
+// nomi veri compaiono dopo il primo permesso) e la scelta resta salvata.
+const micPick = document.querySelector<HTMLSelectElement>("#mic-pick")!;
+async function fillMics(): Promise<void> {
+  if (!navigator.mediaDevices?.enumerateDevices) return;
+  const devices = await navigator.mediaDevices.enumerateDevices().catch(() => []);
+  const mics = devices.filter(device => device.kind === "audioinput");
+  const chosen = store.read("mic", "");
+  micPick.replaceChildren(new Option("Predefinito", ""));
+  mics.forEach((mic, index) => {
+    micPick.append(new Option(mic.label || `Microfono ${index + 1}`, mic.deviceId));
+  });
+  micPick.value = [...micPick.options].some(option => option.value === chosen) ? chosen : "";
+}
+void fillMics();
+navigator.mediaDevices?.addEventListener?.("devicechange", () => void fillMics());
+micPick.addEventListener("change", () => store.write("mic", micPick.value));
+
 // L'ingranaggio apre le impostazioni; un click fuori (o Esc) le richiude.
 const settingsPanel = document.querySelector<HTMLElement>("#settings")!;
 const settingsToggle = document.querySelector<HTMLElement>("#settings-toggle")!;
@@ -403,12 +473,21 @@ if (previewId) {
 // Ogni metà è alta due file di carte: sullo schermo non ci sta tutto. Si
 // parte inquadrando la LINEA DI BATTAGLIA — il Fronte avversario sopra, il
 // tuo subito sotto — così il proprio campo si vede senza scorrere; per le
-// file di servizio si scorre, su o giù.
+// file di servizio si scorre, su o giù. In vista compatta il tavolo sta
+// tutto nella finestra: non c'è proprio niente da scorrere.
 const board = document.querySelector<HTMLElement>(".board")!;
-// Lo scorrimento è in pixel di schermo: se la lavagna è disegnata in scala
-// (schermi stretti, vedi fitScale in table.ts), la misura canonica va scalata.
-const boardScale = Math.min(1, board.clientWidth / SURFACE_W);
-board.scrollTop = Math.max(0, (viewBattleTop(mySeat) - 40) * boardScale);
-board.scrollLeft = 0;
+function frameBoard(): void {
+  if (isCompactView()) {
+    board.scrollTop = 0;
+    board.scrollLeft = 0;
+    return;
+  }
+  // Lo scorrimento è in pixel di schermo: se la lavagna è disegnata in scala
+  // (schermi stretti, vedi fitScale in table.ts), la misura canonica scala.
+  const boardScale = Math.min(1, board.clientWidth / SURFACE_W);
+  board.scrollTop = Math.max(0, (viewBattleTop(mySeat) - 40) * boardScale);
+  board.scrollLeft = 0;
+}
+frameBoard();
 
 if (roomInput.value) join(roomInput.value, relayInput.value);
