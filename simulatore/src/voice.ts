@@ -53,6 +53,7 @@ export function createVoice(options: {
   let speaker: HTMLAudioElement | null = null;
   let meterCtx: AudioContext | null = null;
   let meterRaf = 0;
+  let meterWake: (() => void) | null = null;
 
   /** Su iOS l'AudioContext nasce sospeso e si sveglia SOLO dentro un gesto
       dell'utente: va creato qui, in sincrono nel tap, PRIMA del prompt dei
@@ -67,11 +68,37 @@ export function createVoice(options: {
   /** Il misuratore: RMS del segnale, con attacco pronto e rilascio morbido. */
   function startMeter(source: MediaStream): void {
     if (!options.onLevel || typeof AudioContext === "undefined") return;
-    if (!meterCtx) meterCtx = new AudioContext();
-    if (meterCtx.state === "suspended") void meterCtx.resume().catch(() => {});
-    const analyser = meterCtx.createAnalyser();
+    // Bug WebKit (iOS): se il contesto non gira alla stessa frequenza del
+    // microfono, la sorgente suona MUTA senza errori. Alla frequenza
+    // sbagliata si butta e se ne crea uno giusto.
+    const rate = source.getAudioTracks()[0]?.getSettings?.().sampleRate;
+    if (meterCtx && rate && meterCtx.sampleRate !== rate) {
+      void meterCtx.close().catch(() => {});
+      meterCtx = null;
+    }
+    if (!meterCtx) {
+      try {
+        meterCtx = rate ? new AudioContext({ sampleRate: rate }) : new AudioContext();
+      } catch {
+        meterCtx = new AudioContext();
+      }
+    }
+    const ctx = meterCtx;
+    // Regola dei gesti di iOS: se il contesto resta sospeso, il prossimo
+    // tocco sulla pagina lo sveglia. E se non si sveglia, lo si dice.
+    meterWake = () => {
+      if (ctx.state === "suspended") void ctx.resume().catch(() => {});
+    };
+    meterWake();
+    document.addEventListener("pointerdown", meterWake, { passive: true });
+    window.setTimeout(() => {
+      if (meterCtx === ctx && ctx.state !== "running") {
+        options.log("Misuratore audio sospeso dal browser: un tocco sullo schermo lo attiva.");
+      }
+    }, 1500);
+    const analyser = ctx.createAnalyser();
     analyser.fftSize = 512;
-    meterCtx.createMediaStreamSource(source).connect(analyser);
+    ctx.createMediaStreamSource(source).connect(analyser);
     const data = new Uint8Array(analyser.fftSize);
     let smooth = 0;
     const tick = (): void => {
@@ -90,6 +117,8 @@ export function createVoice(options: {
   }
 
   function stopMeter(): void {
+    if (meterWake) document.removeEventListener("pointerdown", meterWake);
+    meterWake = null;
     cancelAnimationFrame(meterRaf);
     void meterCtx?.close().catch(() => {});
     meterCtx = null;
