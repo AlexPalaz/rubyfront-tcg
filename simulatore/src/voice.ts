@@ -143,9 +143,20 @@ export function createVoice(options: {
       return;
     }
     const micId = options.micId();
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: micId ? { deviceId: { exact: micId } } : true,
-    });
+    try {
+      // deviceId "morbido" (ideal), mai exact: su iOS gli id dei microfoni
+      // cambiano a ogni sessione e un exact su un id vecchio fallisce
+      // subito e in silenzio.
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: micId ? { deviceId: micId } : true,
+      });
+    } catch (error) {
+      if (!micId) throw error;
+      // Il microfono memorizzato non c'è più: si ripiega sul predefinito.
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    }
+    const track = stream.getAudioTracks()[0];
+    options.log(`Microfono acceso: ${track?.label || "predefinito"}.`);
     startMeter(stream);
     const me = options.seat();
     sendPc = new RTCPeerConnection(RTC_CONFIG);
@@ -188,7 +199,7 @@ export function createVoice(options: {
         options.log(
           name === "NotAllowedError"
             ? "Microfono negato dal browser: serve il permesso."
-            : "Microfono non attivato."
+            : `Microfono non attivato (${name || "errore sconosciuto"}).`
         );
       }
     },
