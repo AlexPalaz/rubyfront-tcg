@@ -75,12 +75,17 @@ server.on("upgrade", (request, socket) => {
   announce(room);
 
   // I frame possono arrivare spezzati o incollati: si accumula e si consuma
-  // solo quando il messaggio è completo.
+  // solo quando il messaggio è completo. E un MESSAGGIO può a sua volta
+  // arrivare spezzato in più frame (FIN=0 + continuazioni 0x0): Safari
+  // frammenta i payload grossi — un mazzo intero, la lavagna — e inoltrare
+  // solo il primo pezzo significherebbe consegnare JSON troncato.
   let buffer = Buffer.alloc(0);
+  let parts = [];
   socket.on("data", chunk => {
     buffer = Buffer.concat([buffer, chunk]);
     for (;;) {
       if (buffer.length < 2) return;
+      const fin = (buffer[0] & 0x80) !== 0;
       const opcode = buffer[0] & 0x0f;
       const masked = (buffer[1] & 0x80) !== 0;
       let length = buffer[1] & 0x7f;
@@ -102,7 +107,14 @@ server.on("upgrade", (request, socket) => {
       if (mask) for (let i = 0; i < payload.length; i += 1) payload[i] ^= mask[i % 4];
       if (opcode === 0x8) return socket.end();
       if (opcode === 0x9) socket.write(Buffer.concat([Buffer.from([0x8a, payload.length]), payload]));
-      if (opcode === 0x1) broadcast(room, socket, payload.toString("utf8"));
+      if (opcode === 0x1 || (opcode === 0x0 && parts.length > 0)) {
+        parts.push(payload);
+        if (fin) {
+          const whole = Buffer.concat(parts);
+          parts = [];
+          broadcast(room, socket, whole.toString("utf8"));
+        }
+      }
     }
   });
 
