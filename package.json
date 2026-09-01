@@ -1,0 +1,8 @@
+{
+  "name": "rubyfront",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "all": "node scripts/dev.mjs"
+  }
+}

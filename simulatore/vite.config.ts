@@ -68,6 +68,10 @@ export default defineConfig(({ command }) => ({
   // funziona sia su alexpalaz.github.io/rubyfront-tcg/simulatore/ sia da
   // qualunque altra cartella lo si serva.
   base: command === "serve" ? "/simulatore/" : "./",
+  // La porta è fissa (è quella promessa dal README): le impostazioni del
+  // client — stanza, mazzo, flag dell'engine — vivono nel localStorage
+  // dell'origine, e un'origine che cambia porta le perderebbe a ogni avvio.
+  server: { port: 5199, strictPort: true },
   build: {
     outDir: resolve(import.meta.dirname, "../docs/simulatore"),
     emptyOutDir: true,
