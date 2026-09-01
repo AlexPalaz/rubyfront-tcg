@@ -6,7 +6,7 @@
 // dove serve distinguere le due metà del tavolo): chi disegna una zona non
 // deve registrare niente qui.
 
-import { isCompactView, tileViewH } from "./ctx.js";
+import { TILE_W, isCompactView, tileViewH } from "./ctx.js";
 import type { Seat, ZoneId } from "./types.js";
 
 /** `snapped`: la carta si è agganciata a un riquadro, non posata a mano libera. */
@@ -266,6 +266,40 @@ function clearHighlight(): void {
 }
 
 /**
+ * Il riquadro segnato che l'impronta della carta copre di più, se la
+ * copertura basta a leggere un'intenzione. L'impronta è la tessera com'è
+ * VISTA al rilascio (dal fantasma: presa canonica × scala del campo): è
+ * quella che il giocatore ha allineato allo slot, non il suo dito.
+ */
+function snapByFootprint(
+  clientX: number,
+  clientY: number,
+  grabCanonX: number,
+  grabCanonY: number
+): HTMLElement | null {
+  const scale = tableScale();
+  const left = clientX - grabCanonX * scale;
+  const top = clientY - grabCanonY * scale;
+  const width = TILE_W * scale;
+  const height = tileViewH() * scale;
+  let best: HTMLElement | null = null;
+  // Sotto il 40% di copertura non è un'intenzione: la lavagna resta libera.
+  let bestShare = 0.4;
+  for (const el of document.querySelectorAll<HTMLElement>("[data-snap-x]")) {
+    const box = el.getBoundingClientRect();
+    const acrossX = Math.min(left + width, box.right) - Math.max(left, box.left);
+    const acrossY = Math.min(top + height, box.bottom) - Math.max(top, box.top);
+    if (acrossX <= 0 || acrossY <= 0) continue;
+    const share = (acrossX * acrossY) / Math.min(width * height, box.width * box.height);
+    if (share > bestShare) {
+      bestShare = share;
+      best = el;
+    }
+  }
+  return best;
+}
+
+/**
  * Il punto di rilascio diventa una destinazione. Per la lavagna si riporta
  * l'angolo in alto a sinistra della tessera, non il puntatore: la carta si
  * posa dove la si vede, non dove si tiene il dito. La presa arriva già in
@@ -273,7 +307,17 @@ function clearHighlight(): void {
  * canonizza solo il punto del puntatore, con la scala del campo.
  */
 function resolve(clientX: number, clientY: number, grabCanonX: number, grabCanonY: number): Drop {
-  const target = targetAt(clientX, clientY);
+  let target = targetAt(clientX, clientY);
+  // Il dito può stare fuori dal riquadro mentre la CARTA ci sta sopra: presa
+  // per la testata, la si centra nello slot a occhio e il puntatore resta
+  // qualche pixel oltre il bordo — e la carta si poserebbe alta, «fuori
+  // slot». Se il dito è sulla LAVAGNA NUDA, decide l'IMPRONTA: il riquadro
+  // che la carta, com'è vista al rilascio, copre di più. Mano e pile restano
+  // affare del dito: l'impronta non ruba i rilasci mirati altrove.
+  if (target?.dataset.drop === "field" && target.dataset.snapX === undefined) {
+    const byCard = snapByFootprint(clientX, clientY, grabCanonX, grabCanonY);
+    if (byCard) target = byCard;
+  }
   if (!target) return null;
   const zone = target.dataset.drop as ZoneId | "field" | undefined;
   if (zone === "field") {
