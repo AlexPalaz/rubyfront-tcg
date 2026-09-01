@@ -829,6 +829,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (tile.parentElement !== slot) slot.append(tile);
           tile.style.left = "";
           tile.style.top = "";
+          tile.style.marginLeft = "";
           tile.style.position = "absolute";
           // Anche la cima della pila si ritaglia in compatto, o sborderebbe
           // dallo slot e riporterebbe lo scorrimento che si voleva togliere.
@@ -855,6 +856,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         tile.style.left = `${card.x}px`;
         tile.style.top = `${view(card.y)}px`;
       }
+      // Il margine negativo è un vestito della mano affollata: se la tessera
+      // arriva da lì e se lo tenesse addosso, si disegnerebbe a sinistra del
+      // punto vero — «fuori dallo slot» pur essendoci, nei dati, dentro.
+      tile.style.marginLeft = "";
       // In compatto la tessera si ritaglia al fondo dell'illustrazione: la
       // carta sotto è intera, la taglia l'overflow. In mano resta piena.
       tile.style.height = `${tileViewH()}px`;
