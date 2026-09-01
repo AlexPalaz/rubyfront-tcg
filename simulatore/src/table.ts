@@ -7,7 +7,7 @@
 
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
 import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js";
-import { declareAttack as declareAttackVia, declareBlock } from "./combat.js";
+import { declareAttack as declareAttackVia, declareBlock, undeclare } from "./combat.js";
 import { tapPreview } from "./preview.js";
 import {
   FRONT_SLOT_X,
@@ -471,12 +471,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         if (declared?.kind === "attack") {
           items.push({
             label: `Annulla attacco (${declared.order})`,
-            run: () => ctx.dispatch({ t: "undeclare", from: card.uid }),
+            run: () => void undeclare(ctx, card, declared),
           });
         } else if (declared) {
           items.push({
             label: declared.kind === "counter" ? "Annulla contrattacco" : "Annulla blocco",
-            run: () => ctx.dispatch({ t: "undeclare", from: card.uid }),
+            run: () => void undeclare(ctx, card, declared),
           });
         } else {
           items.push({ label: "Attacca", run: () => declareAttack(card) });

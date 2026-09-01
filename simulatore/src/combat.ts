@@ -6,7 +6,7 @@
 
 import type { Ctx } from "./ctx.js";
 import { nextWaveOrder, seatLabel } from "./state.js";
-import type { CardInstance } from "./types.js";
+import type { CardInstance, Declaration } from "./types.js";
 import { otherSeat } from "./types.js";
 
 /** Dichiara l'attacco di `card` al Rubyfront avversario (`target`). */
@@ -75,4 +75,30 @@ export async function declareBlock(
     `${seatLabel(ctx.state(), blocker.owner)} ${kind === "counter" ? "contrattacca" : "blocca"}.`,
     blocker.owner
   );
+}
+
+/**
+ * Ritira la dichiarazione di `card`: lo specchio esatto del dichiarare. Ciò
+ * che la dichiarazione aveva fatto scattare da solo si disfa da solo — il tap
+ * dell'attaccante, la copertura del contrattaccante; il blocco non aveva
+ * mosso nulla. La carta si rilegge dallo stato vivo: nel frattempo qualcuno
+ * può averla già stappata o scoperta a mano, e non c'è niente da disfare.
+ */
+export async function undeclare(ctx: Ctx, card: CardInstance, declared: Declaration): Promise<void> {
+  const passed = await ctx.dispatch({ t: "undeclare", from: card.uid });
+  if (!passed) return;
+  const live = ctx.state().cards[card.uid] ?? card;
+  if (declared.kind === "attack" && live.tapped) {
+    void ctx.dispatch({ t: "tap", uid: card.uid, tapped: false });
+  }
+  if (declared.kind === "counter" && live.facedown) {
+    void ctx.dispatch({ t: "facedown", uid: card.uid, facedown: false });
+  }
+  const gesture =
+    declared.kind === "attack"
+      ? `annulla l'attacco (${declared.order})`
+      : declared.kind === "counter"
+        ? "annulla il contrattacco"
+        : "annulla il blocco";
+  ctx.log(`${seatLabel(ctx.state(), card.owner)} ${gesture}.`, card.owner);
 }

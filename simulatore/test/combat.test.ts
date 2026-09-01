@@ -3,10 +3,10 @@
 // contrattaccante e la riga in chat non devono partire affatto.
 
 import { describe, expect, it } from "vitest";
-import { declareAttack, declareBlock } from "../src/combat.js";
+import { declareAttack, declareBlock, undeclare } from "../src/combat.js";
 import { newGame } from "../src/state.js";
 import type { Ctx } from "../src/ctx.js";
-import type { Action, CardInstance, Seat } from "../src/types.js";
+import type { Action, CardInstance, Declaration, Seat } from "../src/types.js";
 
 function cardOn(uid: string, owner: Seat): CardInstance {
   return {
@@ -88,5 +88,48 @@ describe("declareBlock", () => {
     const { ctx, sent } = fakeCtx(() => true);
     await declareBlock(ctx, cardOn("a-2", "a"), "b-1", "block");
     expect(sent.map(action => action.t)).toEqual(["declare"]);
+  });
+});
+
+function declarationBy(from: string, kind: Declaration["kind"]): Declaration {
+  return { id: "d-1", from, to: "x", kind, seat: "a", order: 1 };
+}
+
+describe("undeclare", () => {
+  it("l'attacco annullato stappa l'attaccante e annota", async () => {
+    const { ctx, sent, logs } = fakeCtx(() => true);
+    const card = { ...cardOn("a-1", "a"), tapped: true };
+    await undeclare(ctx, card, declarationBy("a-1", "attack"));
+    expect(sent.map(action => action.t)).toEqual(["undeclare", "tap"]);
+    expect(sent[1]).toMatchObject({ t: "tap", tapped: false });
+    expect(logs).toHaveLength(1);
+  });
+
+  it("se l'attaccante era già stappato a mano, non c'è nulla da disfare", async () => {
+    const { ctx, sent } = fakeCtx(() => true);
+    await undeclare(ctx, cardOn("a-1", "a"), declarationBy("a-1", "attack"));
+    expect(sent.map(action => action.t)).toEqual(["undeclare"]);
+  });
+
+  it("il contrattacco annullato scopre la carta", async () => {
+    const { ctx, sent } = fakeCtx(() => true);
+    const card = { ...cardOn("a-2", "a"), facedown: true };
+    await undeclare(ctx, card, declarationBy("a-2", "counter"));
+    expect(sent.map(action => action.t)).toEqual(["undeclare", "facedown"]);
+    expect(sent[1]).toMatchObject({ t: "facedown", facedown: false });
+  });
+
+  it("il blocco annullato non muove nient'altro", async () => {
+    const { ctx, sent } = fakeCtx(() => true);
+    await undeclare(ctx, cardOn("a-2", "a"), declarationBy("a-2", "block"));
+    expect(sent.map(action => action.t)).toEqual(["undeclare"]);
+  });
+
+  it("fermato l'undeclare, niente stappata e niente riga", async () => {
+    const { ctx, sent, logs } = fakeCtx(action => action.t !== "undeclare");
+    const card = { ...cardOn("a-1", "a"), tapped: true };
+    await undeclare(ctx, card, declarationBy("a-1", "attack"));
+    expect(sent).toHaveLength(0);
+    expect(logs).toHaveLength(0);
   });
 });
