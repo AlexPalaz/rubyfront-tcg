@@ -26,6 +26,13 @@ Regole collegate finora:
   endTurn). Resta «Scopri», finché la scoperta a fine giro (T+3) non sarà
   automatica. Limiti dichiarati: la Stasi (§8.1, RBF-013) non è modellata, e
   gli effetti delle carte che tappano/coprono non sono ancora concessi.
+- **§3.1 Oggetti: assegnazione** — l'assegnazione è un'azione del protocollo
+  (`assign {uid, to}`, generata dal rilascio di un Oggetto sopra un'Entità):
+  solo alle proprie Entità, mai al Rubyfront/Nexus, mai a una coperta, e una
+  volta assegnato l'Oggetto non si sposta su un'altra Entità. Si scioglie da
+  sé quando una delle due carte lascia il campo (il ritorno in campo è
+  sempre disarmato). È il prerequisito delle licenze (la Stasi di RBF-013
+  vive «mentre assegnato»).
 - **§3.1/§3.2 Contatori: mai sotto zero** — i PV si fermano a 0 (a 0 la
   partita è persa, sotto non si va) e Flusso e barra non scendono in
   negativo. Come per il tetto dei 20, i bottoni dell'HUD non hanno più

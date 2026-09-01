@@ -31,8 +31,9 @@ import {
 } from "./ctx.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
-import { TILE_H, TILE_W, faceCount, faceKind, isRubyfront } from "./renderer.js";
+import { TILE_H, TILE_W, cardName, faceCount, faceKind, isRubyfront } from "./renderer.js";
 import {
+  STACK_STEP,
   declarationOf,
   fieldCards,
   freeFrontSlot,
@@ -68,6 +69,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   let browse: (seat: Seat, zone: ZoneId) => void = () => {};
   /** Uid della carta in trascinamento: non va riposizionata dal render. */
   let dragging: string | null = null;
+  /**
+   * Da dove è partita la carta presa in mano: il trascinamento è condiviso
+   * IN DIRETTA (onDragMove manda i move mentre trascini), quindi se al
+   * rilascio l'engine ferma il gesto i pixel hanno già viaggiato — e la
+   * carta deve poter tornare esattamente qui.
+   */
+  let dragOrigin: { x: number; y: number; z: number } | null = null;
   /**
    * Dichiarazione di blocco in corso: si è scelto l'attaccante e si sta
    * scegliendo con chi bloccarlo. `pointer` è la punta della freccia in volo.
@@ -541,26 +549,41 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * primo con lo stesso z e uno dei due si perde. Tutto il resto sale in cima
    * come sempre.
    */
-  function dropZ(card: CardInstance, x: number, y: number): number {
-    const state = ctx.state();
-    const top = state.zTop + 1;
-    if (faceKind(card.cardId, card.face) !== "object") return top;
-    const touched = fieldCards(state).filter(
+  /** Le carte in campo toccate da un rilascio in (x, y), esclusa la mossa. */
+  function touchedAt(card: CardInstance, x: number, y: number): CardInstance[] {
+    return fieldCards(ctx.state()).filter(
       other =>
         other.uid !== card.uid &&
         Math.abs(other.x - x) < TILE_W &&
         Math.abs(other.y - y) < TILE_H
     );
+  }
+
+  /** L'Entità su cui un Oggetto è stato posato, se c'è: è lei che lo riceve. */
+  function entityUnder(card: CardInstance, x: number, y: number): CardInstance | undefined {
+    if (faceKind(card.cardId, card.face) !== "object") return undefined;
+    return touchedAt(card, x, y).find(other => faceKind(other.cardId, other.face) === "entity");
+  }
+
+  function dropZ(card: CardInstance, x: number, y: number): number {
+    const state = ctx.state();
+    const top = state.zTop + 1;
     // Va dietro solo se sotto c'è un'Entità: l'Oggetto posato sul vuoto (o su
     // altre carte qualsiasi) resta una carta come le altre.
-    if (!touched.some(other => faceKind(other.cardId, other.face) === "entity")) return top;
-    const pile = touched.filter(other => {
+    if (!entityUnder(card, x, y)) return top;
+    const pile = touchedAt(card, x, y).filter(other => {
       const kind = faceKind(other.cardId, other.face);
       return kind === "entity" || kind === "object";
     });
     // Il -9 tiene lo z-index del DOM sopra lo zero (il disegno somma 10):
     // più giù, la carta finirebbe sotto il tappeto.
     return Math.max(-9, Math.min(...pile.map(other => other.z)) - 1);
+  }
+
+  /** Posa la carta in campo: sposta se c'era già, altrimenti ce la porta. */
+  function place(card: CardInstance, x: number, y: number, z: number): void {
+    if (card.zone === "field") void ctx.dispatch({ t: "move", uid: card.uid, x, y, z });
+    else void ctx.dispatch({ t: "toZone", uid: card.uid, zone: "field", x, y, z });
   }
 
   function applyDrop(card: CardInstance, drop: Drop): void {
@@ -572,11 +595,46 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // già con sé la coordinata canonica.
       const free = { x: drop.x, y: unview(drop.y) };
       const spot = drop.snapped ? stackAt(ctx.state(), drop.x, drop.y, card.uid) : free;
-      const x = Math.max(0, Math.min(SURFACE_W - TILE_W, spot.x));
-      const y = Math.max(0, Math.min(SURFACE_H - TILE_H, spot.y));
+      let x = Math.max(0, Math.min(SURFACE_W - TILE_W, spot.x));
+      let y = Math.max(0, Math.min(SURFACE_H - TILE_H, spot.y));
+      // Un Oggetto posato su un'Entità non resta dove l'ha lasciato il dito:
+      // si accomoda da solo dietro di lei, a scaletta — in linea con la sua
+      // portatrice, un gradino per ogni Oggetto già addosso.
+      const under = entityUnder(card, x, y);
+      if (under) {
+        const worn = Object.values(ctx.state().cards)
+          .filter(other => other.assignedTo === under.uid && other.uid !== card.uid).length;
+        const step = STACK_STEP * (worn + 1);
+        x = Math.max(0, Math.min(SURFACE_W - TILE_W, under.x + step));
+        y = Math.max(0, Math.min(SURFACE_H - TILE_H, under.y + step));
+      }
       const z = dropZ(card, x, y);
-      if (card.zone === "field") ctx.dispatch({ t: "move", uid: card.uid, x, y, z });
-      else ctx.dispatch({ t: "toZone", uid: card.uid, zone: "field", x, y, z });
+      // L'assegnazione è un fatto di gioco, non di pixel: il rilascio sopra
+      // un'Entità la dichiara (azione `assign`, §3.1), il rilascio sul vuoto
+      // la scioglie. E l'ORDINE conta: se il rilascio è una RIASSEGNAZIONE
+      // (l'Oggetto era già addosso a qualcun altro), prima si chiede il
+      // permesso e solo col sì si muovono i pixel — sennò il sigillo dice
+      // «non si sposta» ma la carta intanto si è spostata.
+      const current = ctx.state().cards[card.uid]?.assignedTo;
+      const origin = dragOrigin;
+      void (async () => {
+        if (under && under.uid !== current) {
+          if (!(await ctx.dispatch({ t: "assign", uid: card.uid, to: under.uid }))) {
+            // Fermata: i pixel del trascinamento in diretta hanno già
+            // viaggiato — la carta torna da dove era partita.
+            if (origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
+            return;
+          }
+          place(card, x, y, z);
+          ctx.log(
+            `${seatLabel(ctx.state(), card.owner)} assegna «${cardName(card.cardId, ctx.locale())}» a «${cardName(under.cardId, ctx.locale())}».`,
+            card.owner
+          );
+          return;
+        }
+        place(card, x, y, z);
+        if (!under && current) void ctx.dispatch({ t: "assign", uid: card.uid, to: null });
+      })();
       return;
     }
     // Le pile e la mano sono di chi le possiede: una carta non cambia
@@ -615,10 +673,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           ctx.dispatch({ t: "move", uid: card.uid, x: drop.x, y, z: Math.max(live.z, ctx.state().zTop) });
         },
         onStart: () => {
+          const live = ctx.state().cards[card.uid];
+          // La posizione di partenza serve al ripensamento (vedi applyDrop).
+          dragOrigin = live && live.zone === "field" ? { x: live.x, y: live.y, z: live.z } : null;
           // Una carta presa DALLA MANO vuole essere posata sul tavolo, e il
           // cassetto aperto lo coprirebbe: si ripiega da solo, e al rilascio
           // torna com'era.
-          const live = ctx.state().cards[card.uid];
           if (!live || live.zone !== "hand" || live.owner !== ctx.seat()) return;
           if (!myHand.classList.contains("is-collapsed")) {
             handWasOpen = true;

@@ -32,4 +32,27 @@ class CardIndexTest < Minitest::Test
   def test_cartella_inesistente_da_indice_vuoto
     assert_empty Rubyfront::CardIndex.load("/posto/che/non/esiste")
   end
+
+  # --- razza e concessioni certificate -----------------------------------
+
+  def test_conosce_la_razza_delle_entita
+    assert_equal "human", @index["RBF-009"][:race]
+    assert_nil @index["RBF-013"][:race], "un Oggetto non ha razza"
+  end
+
+  def test_il_vigorscudo_concede_stasi_agli_umani
+    grants = @index["RBF-013"][:grants_while_assigned]
+    assert_equal 1, grants.size, "RBF-013 ha una sola concessione certificata"
+    assert_equal ["stasis"], grants.first[:keywords]
+    assert_equal "human", grants.first[:if_race]
+  end
+
+  def test_solo_la_forma_certificata_entra_nell_anagrafe
+    # RBF-013 ha anche un secondo trigger while_assigned (+1 Potenza,
+    # modify_power): non è la forma certificata e non deve comparire.
+    grants = @index["RBF-013"][:grants_while_assigned]
+    assert grants.all? { |grant| grant[:keywords].any? }, "solo empower con grants"
+    # E chi non concede nulla ha la lista vuota, mai nil.
+    assert_equal [], @index["RBF-009"][:grants_while_assigned]
+  end
 end

@@ -160,6 +160,7 @@ class EngineTest < Minitest::Test
     "SCATTANTE" => { type: "entity", keywords: ["surge"] },
     "PIETRA" => { type: "matter", keywords: [] },
     "RUBINO" => { type: "rubyfront", keywords: ["fury"] },
+    "FERRO" => { type: "object", keywords: [] },
   }.freeze
 
   def con_carte
@@ -373,5 +374,75 @@ class EngineTest < Minitest::Test
     engine = con_carte
     mano_e_campo(engine, ["LENTA"] * 5 + ["MISTERO"], cala: 5)
     refute engine.judge({ "t" => "toZone", "uid" => "a-6", "zone" => "field" })[:ruled]
+  end
+
+  # --- §3.1: l'assegnazione degli Oggetti --------------------------------
+
+  # Un tavolo apparecchiato: a-1 Entità, a-2 Oggetto, a-3 Materia, a-4
+  # seconda Entità (tutti di A, in campo), b-1 Entità di B in campo.
+  def tavolo_con_oggetto(engine)
+    mano_e_campo(engine, %w[LENTA FERRO PIETRA LENTA RUBINO], cala: 5)
+    mano_e_campo(engine, %w[LENTA], cala: 1, seat: "b")
+  end
+
+  def assegna(object, to)
+    { "t" => "assign", "uid" => object, "to" => to }
+  end
+
+  def test_l_oggetto_si_assegna_alla_propria_entita
+    engine = con_carte
+    tavolo_con_oggetto(engine)
+    verdict = engine.judge(assegna("a-2", "a-1"))
+    assert verdict[:ruled]
+    assert verdict[:ok]
+  end
+
+  def test_non_al_rubyfront_ne_a_una_materia
+    engine = con_carte
+    tavolo_con_oggetto(engine)
+    refute engine.judge(assegna("a-2", "a-5"))[:ok], "a-5 è il Rubyfront"
+    refute engine.judge(assegna("a-2", "a-3"))[:ok], "a-3 è una Materia"
+  end
+
+  def test_non_a_un_entita_avversaria
+    engine = con_carte
+    tavolo_con_oggetto(engine)
+    verdict = engine.judge(assegna("a-2", "b-1"))
+    refute verdict[:ok]
+    assert_match(/proprie Entità/, verdict[:reason])
+  end
+
+  def test_non_a_una_coperta
+    engine = con_carte
+    tavolo_con_oggetto(engine)
+    engine.judge({ "t" => "facedown", "uid" => "a-1", "facedown" => true })
+    refute engine.judge(assegna("a-2", "a-1"))[:ok]
+  end
+
+  def test_una_volta_assegnato_non_si_sposta
+    engine = con_carte
+    tavolo_con_oggetto(engine)
+    engine.judge(assegna("a-2", "a-1"))
+    verdict = engine.judge(assegna("a-2", "a-4"))
+    refute verdict[:ok]
+    assert_match(/non si sposta/, verdict[:reason])
+    assert engine.judge(assegna("a-2", "a-1"))[:ok], "ribadire la stessa assegnazione non è uno spostamento"
+  end
+
+  def test_l_entita_uscita_scioglie_l_oggetto
+    engine = con_carte
+    tavolo_con_oggetto(engine)
+    engine.judge(assegna("a-2", "a-1"))
+    engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
+    assert engine.judge(assegna("a-2", "a-4"))[:ok], "sciolto: si può riassegnare"
+  end
+
+  def test_scioglimento_e_carte_ignote_non_giudicati
+    engine = con_carte
+    tavolo_con_oggetto(engine)
+    engine.judge(assegna("a-2", "a-1"))
+    refute engine.judge({ "t" => "assign", "uid" => "a-2", "to" => nil })[:ruled]
+    mano_e_campo(engine, %w[MISTERO LENTA], cala: 2, seat: "b")
+    refute engine.judge(assegna("b-1", "b-2"))[:ruled], "Oggetto ignoto all'anagrafe: silenzio"
   end
 end

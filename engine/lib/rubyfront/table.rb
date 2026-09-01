@@ -78,7 +78,8 @@ module Rubyfront
         # quando ogni carta è scesa — e nel dubbio non si accusa nessuno.
         @cards[uid] = { owner: card["owner"], zone: card["zone"], order: card["order"].to_i,
                         card_id: card["cardId"], entered: nil,
-                        tapped: card["tapped"] == true, facedown: card["facedown"] == true }
+                        tapped: card["tapped"] == true, facedown: card["facedown"] == true,
+                        assigned_to: card["assignedTo"].is_a?(String) ? card["assignedTo"] : nil }
       end
     end
 
@@ -97,6 +98,12 @@ module Rubyfront
       when "facedown"
         card = @cards[action["uid"]]
         card[:facedown] = action["facedown"] == true if card
+      when "assign"
+        card = @cards[action["uid"]]
+        if card
+          to = action["to"]
+          card[:assigned_to] = to.is_a?(String) ? to : nil
+        end
       when "declare"
         declaration = action["declaration"]
         if declaration.is_a?(Hash) && declaration["from"]
@@ -136,8 +143,10 @@ module Rubyfront
                                 entered: card["zone"] == "field" ? @turn : nil,
                                 tapped: card["tapped"] == true, facedown: card["facedown"] == true }
       end
-      # Le frecce verso carte appena sparite non vogliono più dire niente.
+      # Frecce e assegnazioni verso carte appena sparite non vogliono più
+      # dire niente.
       @declarations.select! { |from, d| @cards.key?(from) && @cards.key?(d[:to]) }
+      @cards.each_value { |card| card[:assigned_to] = nil if card[:assigned_to] && !@cards.key?(card[:assigned_to]) }
     end
 
     # L'ordine arriva già mescolato da chi ha premuto il tasto (il caso si
@@ -180,11 +189,14 @@ module Rubyfront
 
       # Fuori dal campo la carta si raddrizza e si scopre (come in state.ts),
       # e chi esce esce anche dal combattimento: la sua freccia se ne va, e
-      # quella che gli puntava contro pure.
+      # quella che gli puntava contro pure. Le assegnazioni si sciolgono in
+      # entrambi i versi (§3.1: il ritorno in campo è sempre disarmato).
       card[:tapped] = false
       card[:facedown] = false
+      card[:assigned_to] = nil
       uid = action["uid"]
       @declarations.reject! { |from, d| from == uid || d[:to] == uid }
+      @cards.each_value { |other| other[:assigned_to] = nil if other[:assigned_to] == uid }
 
       rest = pile(card[:owner], zone).reject { |other| other.equal?(card) }
       card[:order] =

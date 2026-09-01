@@ -67,6 +67,30 @@ describe("apply", () => {
     expect(state.active).toBe("b");
   });
 
+  it("l'assegnazione segue assign e si scioglie fuori dal campo", () => {
+    let state = apply(newGame(), deckFor("a", 3));
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field" });
+    state = apply(state, { t: "toZone", uid: "a-2", zone: "field" });
+    state = apply(state, { t: "assign", uid: "a-2", to: "a-1" });
+    expect(state.cards["a-2"].assignedTo).toBe("a-1");
+    // L'Entità esce dal campo: l'Oggetto resta dov'è ma è sciolto (§3.1).
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "abisso" });
+    expect(state.cards["a-2"].assignedTo).toBeUndefined();
+    // Lo scioglimento esplicito funziona anche da solo.
+    state = apply(state, { t: "assign", uid: "a-2", to: "a-3" });
+    state = apply(state, { t: "assign", uid: "a-2", to: null });
+    expect(state.cards["a-2"].assignedTo).toBeUndefined();
+  });
+
+  it("l'Oggetto che esce dal campo si scioglie da sé", () => {
+    let state = apply(newGame(), deckFor("a", 2));
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field" });
+    state = apply(state, { t: "toZone", uid: "a-2", zone: "field" });
+    state = apply(state, { t: "assign", uid: "a-2", to: "a-1" });
+    state = apply(state, { t: "toZone", uid: "a-2", zone: "hand" });
+    expect(state.cards["a-2"].assignedTo).toBeUndefined();
+  });
+
   it("newGame azzera tutto", () => {
     let state = apply(newGame(), deckFor("a", 5));
     state = apply(state, { t: "turn", turn: 3, active: "b" });

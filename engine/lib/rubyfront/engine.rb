@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.6.0"
+    VERSION = "0.7.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -36,6 +36,7 @@ module Rubyfront
       "§6.3 Dichiarazioni: tappate, coperte, sfide 1 contro 1",
       "§6.2 Fronte: massimo 5 Entità",
       "§3.1/§3.2 Contatori: mai sotto zero",
+      "§3.1 Oggetti: assegnazione",
     ].freeze
 
     # `cards` è l'anagrafe id -> {type:, keywords:} (vedi card_index.rb):
@@ -81,8 +82,38 @@ module Rubyfront
       when "turn" then judge_turn(action)
       when "declare" then judge_declare(action)
       when "toZone" then judge_to_zone(action)
+      when "assign" then judge_assign(action)
       else no_rule(action["t"])
       end
+    end
+
+    # §3.1 — l'assegnazione di un Oggetto: solo alle PROPRIE Entità (salvo
+    # carte che dicano altrimenti — arriveranno con le licenze), mai al
+    # Rubyfront o al Nexus, mai a una coperta (intoccabile, §6.3), e una
+    # volta assegnato l'Oggetto non si sposta su un'altra Entità. Lo
+    # scioglimento (`to: null`) non è giudicato; carte ignote all'anagrafe,
+    # silenzio come sempre.
+    def judge_assign(action)
+      to = action["to"]
+      return no_rule("assign") unless to.is_a?(String)
+
+      object = @table.card(action["uid"])
+      target = @table.card(to)
+      return no_rule("assign") unless object && target
+
+      object_kind = @cards.dig(object[:card_id], :type)
+      target_kind = @cards.dig(target[:card_id], :type)
+      return no_rule("assign") unless object_kind == "object" && target_kind
+
+      return refuse("assign", "gli Oggetti non si assegnano al Rubyfront né al Nexus (§3.1, Oggetti)") if target_kind == "rubyfront"
+      return refuse("assign", "un Oggetto si assegna a un'Entità (§3.1, Oggetti)") unless target_kind == "entity"
+      return refuse("assign", "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)") if target[:facedown]
+      return refuse("assign", "gli Oggetti si assegnano solo alle proprie Entità (§3.1, Oggetti)") if target[:owner] != object[:owner]
+      if object[:assigned_to] && object[:assigned_to] != to
+        return refuse("assign", "una volta assegnato, l'Oggetto non si sposta su un'altra Entità (§3.1, Oggetti)")
+      end
+
+      allow("assign")
     end
 
     # §6.2 — «Sul Fronte si possono avere al massimo 5 Entità»: la sesta non

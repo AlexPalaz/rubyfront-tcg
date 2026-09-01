@@ -65,6 +65,14 @@ export function apply(state: GameState, action: Action): GameState {
         if (card.owner === action.seat) delete cards[card.uid];
       }
       for (const card of action.cards) cards[card.uid] = { ...card };
+      // Le assegnazioni verso carte appena sparite non vogliono più dire niente.
+      for (const [uid, card] of Object.entries(cards)) {
+        if (card.assignedTo && !cards[card.assignedTo]) {
+          const freed = { ...card };
+          delete freed.assignedTo;
+          cards[uid] = freed;
+        }
+      }
       return {
         ...state,
         cards,
@@ -138,9 +146,24 @@ export function apply(state: GameState, action: Action): GameState {
       const declarations = next.zone === "field"
         ? state.declarations
         : state.declarations.filter(d => d.from !== action.uid && d.to !== action.uid);
+      const cards = { ...state.cards, [action.uid]: next };
+      if (next.zone !== "field") {
+        // Fuori dal campo le assegnazioni si sciolgono, in entrambi i versi:
+        // l'Oggetto uscito non è più addosso a nessuno, e l'Entità uscita
+        // lascia sciolti gli Oggetti che la indicavano (§3.1: il ritorno in
+        // campo è sempre disarmato).
+        delete next.assignedTo;
+        for (const [uid, other] of Object.entries(cards)) {
+          if (other.assignedTo === action.uid) {
+            const freed = { ...other };
+            delete freed.assignedTo;
+            cards[uid] = freed;
+          }
+        }
+      }
       return {
         ...state,
-        cards: { ...state.cards, [action.uid]: next },
+        cards,
         declarations,
         zTop: Math.max(state.zTop, next.z + 1),
       };
@@ -150,6 +173,15 @@ export function apply(state: GameState, action: Action): GameState {
       const card = state.cards[action.uid];
       if (!card) return state;
       return { ...state, cards: { ...state.cards, [action.uid]: { ...card, face: action.face } } };
+    }
+
+    case "assign": {
+      const card = state.cards[action.uid];
+      if (!card) return state;
+      const next = { ...card };
+      if (action.to === null) delete next.assignedTo;
+      else next.assignedTo = action.to;
+      return { ...state, cards: { ...state.cards, [action.uid]: next } };
     }
 
     case "tap": {

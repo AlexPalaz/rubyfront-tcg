@@ -42,6 +42,13 @@ export interface CardInstance {
   facedown: boolean;
   /** Ordine di sovrapposizione sulla lavagna. */
   z: number;
+  /**
+   * Solo per gli Oggetti (§3.1): l'uid dell'Entità a cui l'Oggetto è
+   * assegnato. L'assegnazione è un fatto di gioco, non di pixel: la genera
+   * il drop sopra un'Entità (azione `assign`) e si scioglie quando una delle
+   * due carte lascia il campo. Assente = Oggetto non assegnato.
+   */
+  assignedTo?: string;
 }
 
 export interface PlayerState {
@@ -121,6 +128,8 @@ export type Action =
   | { t: "move"; uid: string; x: number; y: number; z: number }
   | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean }
   | { t: "flip"; uid: string; face: number }
+  /** Assegna l'Oggetto `uid` all'Entità `to` (§3.1); `to: null` lo scioglie. */
+  | { t: "assign"; uid: string; to: string | null }
   | { t: "tap"; uid: string; tapped: boolean }
   | { t: "facedown"; uid: string; facedown: boolean }
   | { t: "player"; seat: Seat; patch: Partial<PlayerState> }
