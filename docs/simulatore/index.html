@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Simulatore · Rubyfront</title>
-  <script type="module" crossorigin src="./assets/index-D5fjE4co.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-9CJDT2yd.css">
+  <script type="module" crossorigin src="./assets/index-Bs7yEZCq.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BJJvzZXt.css">
 </head>
 <body>
 <!-- L'header è scarno di proposito: i gesti di partita stanno sull'HUD, le
@@ -18,6 +18,7 @@
     <span class="brand-sub">Simulator</span>
   </span>
   <span class="spacer"></span>
+  <span id="engine-dot" class="dot dot-engine" hidden title="Engine spento"></span>
   <span id="net-dot" class="dot" title="Non collegato"></span>
   <button type="button" id="do-new" class="danger">Nuova partita</button>
   <button type="button" id="settings-toggle" class="gear-btn" title="Impostazioni" aria-label="Impostazioni">
@@ -59,6 +60,16 @@
   <div class="set-row">
     <span class="set-label">Relay</span>
     <input id="relay-url" placeholder="ws://localhost:8787" autocomplete="off">
+  </div>
+  <div class="set-row">
+    <span class="set-label">Engine</span>
+    <span class="set-controls">
+      <label class="set-check" title="L'arbitro esterno (engine/): per ora osserva soltanto, nessuna regola attiva">
+        <input type="checkbox" id="engine-toggle">
+        Acceso
+      </label>
+      <input id="engine-url" placeholder="ws://localhost:8788" autocomplete="off">
+    </span>
   </div>
   <div class="set-row">
     <span class="set-label">Rete</span>
@@ -121,6 +132,10 @@
       <input id="ob-name" placeholder="es. Ajmal" autocomplete="off" maxlength="24">
       <label class="onboard-label" for="ob-deck">Il mazzo con cui giochi</label>
       <select id="ob-deck"></select>
+      <!-- Solo in partita locale: si guidano entrambi i posti, serve anche
+           il mazzo dell'altra metà del tavolo. -->
+      <label class="onboard-label" for="ob-deck-b" id="ob-deck-b-label" hidden>Il mazzo dell'avversario</label>
+      <select id="ob-deck-b" hidden></select>
       <button type="button" id="ob-go" class="onboard-primary">Al tavolo</button>
     </div>
   </div>

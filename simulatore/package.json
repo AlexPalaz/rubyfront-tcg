@@ -7,12 +7,16 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "relay": "node ../scripts/relay.mjs"
+    "test": "vitest run",
+    "relay": "node ../scripts/relay.mjs",
+    "engine": "ruby ../engine/bin/server",
+    "all": "node ../scripts/dev.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",
     "typescript": "^5.6.3",
-    "vite": "^5.4.10"
+    "vite": "^5.4.10",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@fontsource-variable/space-grotesk": "^5.3.0"

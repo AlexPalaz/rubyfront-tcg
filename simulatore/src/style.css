@@ -196,6 +196,91 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
 }
 .dot[data-status="connecting"] { background: var(--warn); }
 .dot[data-status="online"] { background: var(--ok); }
+/* La spia dell'engine è quadrata: stessi colori di stato della stanza, ma le
+   due non si devono confondere — una è il tavolo, l'altra l'arbitro. */
+.dot-engine { border-radius: 3px; }
+
+/* Il fermo dell'arbitro: una regola ha bloccato l'azione. Non un alert da
+   browser ma un sigillo del gioco — la gemma del marchio, il motivo, la
+   targhetta del manuale. Il rubino è dei gesti di gioco, e questo lo è.
+   Sta sopra tutto: il gesto non è avvenuto e non deve passare inosservato. */
+.engine-stop {
+  position: fixed; inset: 0; z-index: 9900;
+  display: grid; place-items: center;
+  padding: 24px;
+  background: var(--overlay-veil, rgba(5, 4, 10, .72));
+  backdrop-filter: blur(6px);
+  animation: engine-stop-veil .18s ease-out;
+}
+.engine-stop-card {
+  width: min(400px, 100%);
+  display: grid; gap: 12px;
+  justify-items: center;
+  text-align: center;
+  padding: 26px 28px 22px;
+  background: var(--glass-heavy, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--ruby) 45%, var(--line));
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6), 0 0 44px rgba(210, 74, 100, .14);
+  animation: engine-stop-card .22s ease-out;
+}
+/* La gemma del marchio, in grande: il sigillo di chi ha fermato il gesto. */
+.engine-stop-gem {
+  width: 18px; height: 18px;
+  margin-top: 2px;
+  transform: rotate(45deg);
+  background: #9e0f34;
+  border: 1px solid #e56a86;
+  box-shadow: 0 0 14px rgba(210, 74, 100, .65);
+  animation: engine-stop-gem .9s ease-out;
+}
+.engine-stop-title {
+  margin: 2px 0 0;
+  font-size: 1.05rem; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--ruby);
+  text-shadow: 0 0 16px rgba(210, 74, 100, .5);
+}
+.engine-stop-text {
+  margin: 0;
+  max-width: 34ch;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.engine-stop-ref {
+  padding: 4px 10px;
+  font-size: .82rem;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--panel-2) 70%, transparent);
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+}
+/* Il rubino delle azioni di gioco, come «Al tavolo» nell'onboarding. */
+.engine-stop-ok {
+  justify-self: stretch;
+  margin-top: 6px;
+  padding: 12px 16px;
+  font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: #fdeef1;
+  background: linear-gradient(180deg, #b81a41, #9e0f34);
+  border: 1px solid #e56a86;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
+}
+@keyframes engine-stop-veil { from { opacity: 0; } }
+@keyframes engine-stop-card {
+  from { opacity: 0; transform: translateY(10px) scale(.96); }
+}
+@keyframes engine-stop-gem {
+  0% { box-shadow: 0 0 0 rgba(210, 74, 100, 0); }
+  55% { box-shadow: 0 0 26px rgba(210, 74, 100, .95); }
+  100% { box-shadow: 0 0 14px rgba(210, 74, 100, .65); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .engine-stop, .engine-stop-card, .engine-stop-gem { animation: none; }
+}
 
 /* ------------------------------------------------------------- layout */
 

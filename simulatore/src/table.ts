@@ -7,6 +7,7 @@
 
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
 import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js";
+import { declareAttack as declareAttackVia, declareBlock } from "./combat.js";
 import { tapPreview } from "./preview.js";
 import {
   FRONT_SLOT_X,
@@ -35,7 +36,6 @@ import {
   declarationOf,
   fieldCards,
   freeFrontSlot,
-  nextWaveOrder,
   seatLabel,
   seatWaiting,
   shuffled,
@@ -298,7 +298,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         // Su touch: pressione lunga al posto del tasto destro.
         enableLongPress(slot, (x, y) => openMenu(x, y, pileMenu(seat, pile.zone)));
         slot.addEventListener("dblclick", () => {
-          if (pile.zone === "deck" && seat === ctx.seat()) draw(seat, 1);
+          if (pile.zone === "deck" && ctx.controls(seat)) draw(seat, 1);
           else browse(seat, pile.zone);
         });
 
@@ -391,29 +391,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     return kind !== "rubyfront" && kind !== "nexus";
   }
 
+  // Dichiarazioni e loro conseguenze stanno in combat.ts: passano dal
+  // giudizio dell'engine, e il tavolo si limita a fornire il bersaglio.
   function declareAttack(card: CardInstance): void {
-    const foe = otherSeat(card.owner);
-    const target = rubyfrontOf(foe);
-    if (!target) {
-      ctx.log(`${seatLabel(ctx.state(), foe)} non ha il Rubyfront in campo: nessun bersaglio.`, foe);
-      return;
-    }
-    const order = nextWaveOrder(ctx.state(), card.owner);
-    ctx.dispatch({
-      t: "declare",
-      declaration: {
-        id: crypto.randomUUID(),
-        from: card.uid,
-        to: target.uid,
-        kind: "attack",
-        seat: card.owner,
-        order,
-      },
-    });
-    // Il tap scatta alla dichiarazione dell'ondata (§6.3). Resta comunque
-    // libero: stapparla a mano non disfa la freccia.
-    if (!card.tapped) ctx.dispatch({ t: "tap", uid: card.uid, tapped: true });
-    ctx.log(`${seatLabel(ctx.state(), card.owner)} attacca (${order}).`, card.owner);
+    void declareAttackVia(ctx, card, rubyfrontOf(otherSeat(card.owner)));
   }
 
   function startTargeting(attacker: CardInstance, kind: "block" | "counter"): void {
@@ -425,6 +406,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         : "Scegli l'Entità che blocca — Esc annulla";
     targetHint.hidden = false;
     render();
+  }
+
+  /**
+   * Il posto che sceglie il bloccante: l'altra metà rispetto all'attaccante.
+   * In rete è sempre il proprio; in partita locale può essere l'uno o l'altro,
+   * a seconda di chi ha dichiarato l'attacco. Null fuori dal modo bersaglio.
+   */
+  function defenderSeat(): Seat | null {
+    if (!targeting) return null;
+    const attacker = ctx.state().cards[targeting.attacker];
+    return attacker ? otherSeat(attacker.owner) : null;
   }
 
   function cancelTargeting(): void {
@@ -439,36 +431,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (!targeting) return;
     const { attacker, kind } = targeting;
     cancelTargeting();
-    ctx.dispatch({
-      t: "declare",
-      declaration: {
-        id: crypto.randomUUID(),
-        from: blocker.uid,
-        to: attacker,
-        kind,
-        seat: blocker.owner,
-        order: 0,
-      },
-    });
-    // Chi contrattacca si copre, e quella copertura dura un giro intero (§6.3):
-    // vale la pena farla scattare da sola.
-    //
-    // Chi blocca invece NON si tappa da solo. Il manuale dice che si tappa, ma
-    // è un tap che non costa niente — arriva nel turno avversario e si stappa
-    // subito dopo, «segna solo che ha già bloccato in quel turno di difesa»
-    // (§6.3). Quel segno lo dà già la freccia. Tapparlo aggiungeva solo una
-    // carta coricata da raddrizzare a mano.
-    if (kind === "counter" && !blocker.facedown) {
-      ctx.dispatch({ t: "facedown", uid: blocker.uid, facedown: true });
-    }
-    ctx.log(
-      `${seatLabel(ctx.state(), blocker.owner)} ${kind === "counter" ? "contrattacca" : "blocca"}.`,
-      blocker.owner
-    );
+    void declareBlock(ctx, blocker, attacker, kind);
   }
 
   function pileMenu(seat: Seat, zone: ZoneId): MenuItem[] {
-    const mine = seat === ctx.seat();
+    const mine = ctx.controls(seat);
     const count = zoneCards(ctx.state(), seat, zone).length;
     if (zone === "deck") {
       return [
@@ -484,7 +451,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   function cardMenu(card: CardInstance): MenuItem[] {
     const items: MenuItem[] = [];
-    const mine = card.owner === ctx.seat();
+    // «Mia» = di un posto che governo: in rete solo il proprio, in partita
+    // locale entrambi.
+    const mine = ctx.controls(card.owner);
     const declared = declarationOf(ctx.state(), card.uid);
 
     // Il combattimento sta in cima al menu: è quello che si cerca in Fase di
@@ -504,8 +473,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         } else {
           items.push({ label: "Attacca", run: () => declareAttack(card) });
         }
-      } else if (declared?.kind === "attack") {
-        // Si blocca un attaccante avversario: si sceglie lui, poi con chi.
+      }
+      // Un attaccante dichiarato si ferma dall'altra metà del tavolo: in rete
+      // è sempre una carta avversaria, in locale anche la propria — chi guida
+      // entrambi i posti blocca con le Entità del difensore.
+      if (declared?.kind === "attack" && ctx.controls(otherSeat(card.owner))) {
         items.push({ label: "Blocca con…", run: () => startTargeting(card, "block") });
         items.push({ label: "Contrattacca con…", run: () => startTargeting(card, "counter") });
       }
@@ -513,14 +485,27 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
 
     if (card.zone === "field") {
-      items.push({
-        label: card.tapped ? "Stappa" : "Tappa",
-        run: () => ctx.dispatch({ t: "tap", uid: card.uid, tapped: !card.tapped }),
-      });
-      items.push({
-        label: card.facedown ? "Scopri" : "Copri",
-        run: () => ctx.dispatch({ t: "facedown", uid: card.uid, facedown: !card.facedown }),
-      });
+      // Con l'arbitro al tavolo, tappare/stappare/coprire non sono più gesti
+      // liberi: il tap arriva dall'attacco, la copertura dal contrattacco, la
+      // stappata dall'inizio del turno (endTurn). Resta solo «Scopri», perché
+      // la scoperta a fine giro (§6.3, T+3) non è ancora automatica. Quando
+      // una carta concederà questi gesti (regola d'oro), sarà l'engine a
+      // riaprirli. A engine spento: lavagna libera come sempre.
+      if (!ctx.arbitrated()) {
+        items.push({
+          label: card.tapped ? "Stappa" : "Tappa",
+          run: () => ctx.dispatch({ t: "tap", uid: card.uid, tapped: !card.tapped }),
+        });
+        items.push({
+          label: card.facedown ? "Scopri" : "Copri",
+          run: () => ctx.dispatch({ t: "facedown", uid: card.uid, facedown: !card.facedown }),
+        });
+      } else if (card.facedown) {
+        items.push({
+          label: "Scopri",
+          run: () => ctx.dispatch({ t: "facedown", uid: card.uid, facedown: false }),
+        });
+      }
     }
     if (faceCount(card.cardId) > 1) {
       const next = (card.face + 1) % faceCount(card.cardId);
@@ -616,8 +601,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (targeting) return false;
           const live = ctx.state().cards[card.uid];
           if (!live) return false;
-          // La mano avversaria è nascosta (§5): non si tocca.
-          return !(live.zone === "hand" && live.owner !== ctx.seat());
+          // La mano avversaria è nascosta (§5): non si tocca — salvo in
+          // partita locale, dove anche quella mano è di chi guida il tavolo.
+          return !(live.zone === "hand" && !ctx.controls(live.owner));
         },
         onDragMove: drop => {
           const live = ctx.state().cards[card.uid];
@@ -672,8 +658,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       tile.addEventListener("click", () => {
         if (!targeting) return;
         const live = ctx.state().cards[card.uid];
-        // Solo le proprie carte in campo: le altre non bloccano niente.
-        if (live && live.zone === "field" && live.owner === ctx.seat() && live.uid !== targeting.attacker) {
+        // Solo le carte in campo del difensore: le altre non bloccano niente.
+        if (live && live.zone === "field" && live.owner === defenderSeat() && live.uid !== targeting.attacker) {
           confirmBlock(live);
         }
       });
@@ -690,8 +676,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         const live = ctx.state().cards[card.uid];
         if (!live) return;
         if (live.zone === "field") {
+          // Stesso discorso del menu: con l'arbitro al tavolo il tap non è
+          // un gesto libero, e il doppio click non lo aggira.
+          if (ctx.arbitrated()) return;
           ctx.dispatch({ t: "tap", uid: live.uid, tapped: !live.tapped });
-        } else if (live.zone === "hand" && live.owner === ctx.seat()) {
+        } else if (live.zone === "hand" && ctx.controls(live.owner)) {
           const spot = freeFrontSlot(ctx.state(), live.owner);
           ctx.dispatch({ t: "toZone", uid: live.uid, zone: "field", ...spot, z: ctx.state().zTop + 1 });
         }
@@ -794,10 +783,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       alive.add(card.uid);
       const tile = tileFor(card, card.facedown);
       markCombat(tile, card);
-      // In modo bersaglio: le proprie carte in campo sono scegliibili, e fra
-      // queste si accendono quelle che le regole permetterebbero. Le altre si
-      // smorzano soltanto — restano cliccabili.
-      const pickable = Boolean(targeting) && card.owner === ctx.seat() && card.uid !== targeting?.attacker;
+      // In modo bersaglio: le carte in campo del difensore sono scegliibili, e
+      // fra queste si accendono quelle che le regole permetterebbero. Le altre
+      // si smorzano soltanto — restano cliccabili.
+      const pickable = Boolean(targeting) && card.owner === defenderSeat() && card.uid !== targeting?.attacker;
       tile.classList.toggle("is-pickable", pickable);
       tile.classList.toggle("is-legal", pickable && looksPlayable(card));
       if (tile.parentElement !== surface) surface.append(tile);
@@ -816,8 +805,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     for (const [seat, host, tag] of [[me, myHand, myTag], [foe, oppHand, oppTag]] as const) {
       host.dataset.seat = seat;
       // `data-drop=""` sarebbe comunque selezionato da [data-drop]: la mano
-      // avversaria non deve avere l'attributo del tutto.
-      if (seat === me) host.dataset.drop = "hand";
+      // avversaria non deve avere l'attributo del tutto — in partita locale
+      // invece lo porta, e le carte del secondo posto vi tornano trascinandole.
+      if (ctx.controls(seat)) host.dataset.drop = "hand";
       else delete host.dataset.drop;
       const cards = zoneCards(state, seat, "hand");
       // Una carta appena arrivata in mano va vista: se il cassetto è
@@ -840,7 +830,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const wanted: HTMLElement[] = [];
       for (const card of cards) {
         alive.add(card.uid);
-        const tile = tileFor(card, seat !== me);
+        // La mano di un posto governato si vede scoperta: in rete solo la
+        // propria, in partita locale anche quella in alto.
+        const tile = tileFor(card, !ctx.controls(seat));
         tile.style.position = "relative";
         tile.style.left = "";
         tile.style.top = "";

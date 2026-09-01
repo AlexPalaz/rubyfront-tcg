@@ -11,6 +11,7 @@
 import "@fontsource-variable/space-grotesk";
 import { mountChat } from "./chat.js";
 import { SLOT_X, SURFACE_W, backRowY, isCompactView, setCompactView, viewBattleTop, type Ctx } from "./ctx.js";
+import { connectEngine, DEFAULT_ENGINE, type EngineLink, type EngineStatus, type EngineVerdict } from "./engine.js";
 import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
@@ -53,17 +54,53 @@ let mySeat: Seat = (params.get("seat") as Seat) ?? (store.read("seat", "a") as S
 if (!SEATS.includes(mySeat)) mySeat = "a";
 let locale = params.get("lang") ?? store.read("lang", "it");
 let net: Net | null = null;
+/** L'arbitro esterno (engine/): c'è solo se il flag nelle impostazioni è acceso. */
+let engine: EngineLink | null = null;
 /**
  * Il mazzo scelto resta noto al client anche dopo "nuova partita": a tavola
  * pulita ciascuno rimette in tavola il proprio, senza rifare la scelta.
  */
 let myDeckId: string | null = store.read("deck", "") || null;
+/**
+ * Il mazzo dell'avversario simulato in partita locale (senza stanza): c'è
+ * solo dopo «Gioca in locale», e cade appena si entra in una stanza vera.
+ */
+let localFoeDeckId: string | null = null;
 
 const themes: Record<Seat, string> = { a: defaultTheme(), b: defaultTheme() };
 
 // ------------------------------------------------------------------ ctx
 
-function dispatch(action: Action): void {
+function dispatch(action: Action): Promise<boolean> {
+  // Il poliziotto: con l'engine collegato, l'azione parte solo col suo
+  // benestare — un «no» la ferma prima che tocchi lavagna e rete, e si
+  // mostra (engineStop). Engine spento o irraggiungibile: tavolo libero,
+  // come sempre. La promessa dice se l'azione è passata: serve a chi ne
+  // accoda altre che senza questa non hanno senso (endTurn).
+  const judge = engine;
+  if (judge && judge.status() === "online") {
+    return new Promise(resolve => {
+      judge.judge(action, verdict => {
+        if (verdict?.ruled && !verdict.ok) {
+          engineStop(verdict);
+          // Un gesto trascinato (una carta posata sul Fronte) può aver già
+          // mosso i pixel: si ridisegna dallo stato — che non è cambiato —
+          // e tutto torna al suo posto.
+          paint();
+          resolve(false);
+          return;
+        }
+        commit(action);
+        resolve(true);
+      });
+    });
+  }
+  commit(action);
+  return Promise.resolve(true);
+}
+
+/** Applica, ritrasmette, ridisegna: l'azione ormai è passata. */
+function commit(action: Action): void {
   state = apply(state, action);
   net?.send({ t: "action", action, from: mySeat });
   paint();
@@ -72,6 +109,9 @@ function dispatch(action: Action): void {
 /** Applica senza ritrasmettere: per le azioni che arrivano già dalla rete. */
 function receive(action: Action): void {
   state = apply(state, action);
+  // Anche le azioni dell'avversario passano all'engine: l'arbitro guarda la
+  // partita intera, non una metà.
+  engine?.consult(action);
   paint();
 }
 
@@ -79,6 +119,10 @@ const ctx: Ctx = {
   state: () => state,
   dispatch,
   seat: () => mySeat,
+  // In partita locale (hotseat) si governano entrambi i posti: turni, mani
+  // e mazzi dei due giocatori rispondono allo stesso mouse.
+  controls: seat => seat === mySeat || localFoeDeckId !== null,
+  arbitrated: () => engine?.status() === "online",
   themeFor: seat => themes[seat],
   locale: () => locale,
   log(text, seat) {
@@ -237,8 +281,12 @@ function buildDeck(deckId: string, seat: Seat): CardInstance[] | null {
 function loadDeck(deckId: string, seat: Seat): void {
   const cards = buildDeck(deckId, seat);
   if (!cards) return;
-  myDeckId = deckId;
-  store.write("deck", deckId);
+  // Si ricorda solo il PROPRIO mazzo: quello dell'avversario locale non deve
+  // diventare "il mio" alla prossima visita.
+  if (seat === mySeat) {
+    myDeckId = deckId;
+    store.write("deck", deckId);
+  }
   dispatch({ t: "loadDeck", seat, deckId, cards });
   const deck = getDeck(deckId);
   const name = deck?.locales[locale]?.name ?? deck?.locales[deck.defaultLocale]?.name ?? deckId;
@@ -279,6 +327,16 @@ function join(room: string, relay: string): void {
   }
   store.write("room", room);
   store.write("relay", relay);
+  // In una stanza vera l'altra metà del tavolo è di qualcuno: l'avversario
+  // simulato della partita locale si alza — via le sue carte e il suo nome,
+  // il posto torna «In attesa…» per chi arriva. (La rete qui è già chiusa:
+  // il congedo resta locale.)
+  if (localFoeDeckId) {
+    localFoeDeckId = null;
+    const foe = otherSeat(mySeat);
+    void dispatch({ t: "loadDeck", seat: foe, deckId: "", cards: [] });
+    void dispatch({ t: "player", seat: foe, patch: { name: "" } });
+  }
   net = connect(relay || DEFAULT_RELAY, room.trim(), mySeat, {
     onStatus: setStatus,
     onMessage(message) {
@@ -317,6 +375,9 @@ function join(room: string, relay: string): void {
         // ancora dormiva. Mazzo e nome si rimettono, e stavolta viaggiano.
         const hadMine = Object.values(state.cards).some(card => card.owner === mySeat);
         state = message.state;
+        // La lavagna è appena stata sostituita in blocco: anche la copia
+        // dell'engine deve ripartire da qui, non dalle azioni che ha visto.
+        engine?.snapshot(state);
         paint();
         const incomingHasMine = Object.values(state.cards).some(card => card.owner === mySeat);
         if (hadMine && !incomingHasMine && myDeckId) loadDeck(myDeckId, mySeat);
@@ -375,6 +436,7 @@ document.querySelector("#do-new")!.addEventListener("click", () => {
   dispatch({ t: "newGame" });
   if (myDeckId) loadDeck(myDeckId, mySeat);
   reapplyName();
+  if (localFoeDeckId) startLocalFoe(localFoeDeckId);
 });
 
 /** La nuova partita azzera anche i nomi: il proprio si rimette da sé. */
@@ -418,6 +480,129 @@ document.querySelector("#room-invite")!.addEventListener("click", async () => {
     return;
   }
   window.setTimeout(() => (button.textContent = "Copia link"), 1600);
+});
+
+// Il fermo dell'arbitro: una regola ha bloccato l'azione. Non un alert da
+// browser ma un sigillo del gioco — la gemma del marchio, il motivo in
+// prosa, il riferimento al manuale su una targhetta. Il gesto non è
+// avvenuto e lo si deve sapere subito: sta sopra tutto e si chiude col
+// tasto, con Esc o con un click sul fondo.
+function engineStop(verdict: EngineVerdict): void {
+  document.querySelector(".engine-stop")?.remove();
+  const raw = verdict.reason ?? `l'azione «${verdict.action ?? "?"}» viola una regola del manuale`;
+  // Il «(§6.2, attesa di evocazione)» in coda diventa la targhetta; la prosa
+  // resta pulita. Se il riferimento sta a metà frase, si sfila e basta.
+  const ref = raw.match(/\s*\(§([\d.]+)(?:,\s*([^)]+))?\)/);
+  const prose = (ref ? raw.replace(ref[0], "") : raw).replace(/^\s*(\S)/, (_, ch: string) => ch.toUpperCase());
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "engine-stop";
+  const card = document.createElement("div");
+  card.className = "engine-stop-card";
+
+  const gem = document.createElement("span");
+  gem.className = "engine-stop-gem";
+  gem.setAttribute("aria-hidden", "true");
+
+  const title = document.createElement("h3");
+  title.className = "engine-stop-title";
+  title.textContent = "Azione fermata";
+
+  const reason = document.createElement("p");
+  reason.className = "engine-stop-text";
+  reason.textContent = prose.endsWith(".") ? prose : `${prose}.`;
+
+  const okay = document.createElement("button");
+  okay.type = "button";
+  okay.className = "engine-stop-ok";
+  okay.textContent = "Va bene";
+
+  const close = (): void => {
+    backdrop.remove();
+    document.removeEventListener("keydown", onKey);
+  };
+  const onKey = (event: KeyboardEvent): void => {
+    if (event.key === "Escape") close();
+  };
+  okay.addEventListener("click", close);
+  backdrop.addEventListener("pointerdown", event => {
+    if (event.target === backdrop) close();
+  });
+  document.addEventListener("keydown", onKey);
+
+  card.append(gem, title, reason);
+  if (ref) {
+    const badge = document.createElement("span");
+    badge.className = "engine-stop-ref";
+    badge.textContent = `Manuale · §${ref[1]}${ref[2] ? ` — ${ref[2]}` : ""}`;
+    card.append(badge);
+  }
+  card.append(okay);
+  backdrop.append(card);
+  document.body.append(backdrop);
+  okay.focus();
+}
+
+// L'engine: l'arbitro esterno, dietro un flag e spento di default. Acceso,
+// giudica le azioni locali PRIMA che si applichino (vedi dispatch): l'engine
+// dà solo le regole, il poliziotto è il simulatore — trattiene l'azione,
+// e su un «no» la lascia cadere mostrando l'avviso. Le azioni avversarie
+// arrivano già applicate: a quelle va solo un'occhiata (receive).
+const engineToggle = document.querySelector<HTMLInputElement>("#engine-toggle")!;
+const engineUrlInput = document.querySelector<HTMLInputElement>("#engine-url")!;
+const engineDot = document.querySelector<HTMLElement>("#engine-dot")!;
+engineToggle.checked = store.read("engine", "") === "1";
+engineUrlInput.value = store.read("engineUrl", DEFAULT_ENGINE);
+
+function setEngineStatus(status: EngineStatus): void {
+  engineDot.dataset.status = status;
+  engineDot.title =
+    status === "online"
+      ? "Engine collegato"
+      : status === "connecting"
+        ? "Engine: mi sto collegando…"
+        : "Engine non raggiungibile";
+}
+
+function engineApply(): void {
+  engine?.close();
+  engine = null;
+  engineDot.hidden = !engineToggle.checked;
+  if (!engineToggle.checked) return;
+  // Il saluto arriva a ogni riconnessione: in chat va una volta sola, salvo
+  // che l'engine sia cambiato nel frattempo (versione o regole).
+  let welcomed = "";
+  engine = connectEngine(engineUrlInput.value.trim() || DEFAULT_ENGINE, {
+    onStatus: setEngineStatus,
+    onWelcome(version, rules) {
+      // Il saluto vuol dire connessione (o riconnessione) fresca: l'engine
+      // parte con la copia del tavolo vuota — gli si passa la lavagna com'è.
+      engine?.snapshot(state);
+      const signature = `${version}|${rules.join(",")}`;
+      if (signature === welcomed) return;
+      welcomed = signature;
+      ctx.log(
+        `Engine collegato (v${version}): ` +
+          (rules.length === 0 ? "osserva soltanto, nessuna regola attiva." : `regole attive — ${rules.join(", ")}.`)
+      );
+    },
+    onVerdict(verdict) {
+      // Qui arrivano solo le occhiate sulle azioni AVVERSARIE (receive): già
+      // applicate dal client di là, non si possono fermare — una violazione
+      // si annota in chat e basta.
+      if (!verdict.ruled || verdict.ok) return;
+      ctx.log(`Engine: l'azione avversaria «${verdict.action}» viola una regola${verdict.reason ? ` — ${verdict.reason}` : ""}.`);
+    },
+  });
+}
+engineApply();
+engineToggle.addEventListener("change", () => {
+  store.write("engine", engineToggle.checked ? "1" : "");
+  engineApply();
+});
+engineUrlInput.addEventListener("change", () => {
+  store.write("engineUrl", engineUrlInput.value.trim());
+  if (engineToggle.checked) engineApply();
 });
 
 // Vista compatta: sul campo solo testa e illustrazione delle carte, tavolo
@@ -542,19 +727,37 @@ const obStepProfile = document.querySelector<HTMLElement>("#ob-step-profile")!;
 const obRoom = document.querySelector<HTMLInputElement>("#ob-room")!;
 const obName = document.querySelector<HTMLInputElement>("#ob-name")!;
 const obDeck = document.querySelector<HTMLSelectElement>("#ob-deck")!;
+const obDeckB = document.querySelector<HTMLSelectElement>("#ob-deck-b")!;
+const obDeckBLabel = document.querySelector<HTMLElement>("#ob-deck-b-label")!;
 const obRoomNote = document.querySelector<HTMLElement>("#ob-room-note")!;
 
-for (const option of deckPick.options) obDeck.append(new Option(option.textContent ?? "", option.value));
+for (const option of deckPick.options) {
+  obDeck.append(new Option(option.textContent ?? "", option.value));
+  obDeckB.append(new Option(option.textContent ?? "", option.value));
+}
 if (myDeckId) obDeck.value = myDeckId;
+// All'avversario locale un mazzo diverso dal tuo, se ce n'è più d'uno.
+const otherDeck = allDecks().find(deck => deck.id !== obDeck.value);
+if (otherDeck) obDeckB.value = otherDeck.id;
 
-function obProfile(): void {
+/** Vero quando si è entrati dal tasto «Gioca in locale»: si guidano entrambi i posti. */
+let obLocalMode = false;
+
+function obProfile(local = false): void {
+  obLocalMode = local;
   onboard.hidden = false;
   obStepRoom.hidden = true;
   obStepProfile.hidden = false;
+  obDeckB.hidden = !local;
+  obDeckBLabel.hidden = !local;
   obName.value = store.read("name", "");
   const room = roomInput.value.trim();
-  obRoomNote.hidden = !room;
-  obRoomNote.textContent = room ? `Sei nella stanza «${room}». Ancora due cose:` : "";
+  obRoomNote.hidden = !room && !local;
+  obRoomNote.textContent = room
+    ? `Sei nella stanza «${room}». Ancora due cose:`
+    : local
+      ? "Partita locale: guiderai entrambi i posti del tavolo."
+      : "";
   obName.focus();
 }
 
@@ -579,7 +782,7 @@ obRoom.addEventListener("keydown", event => {
   if (event.key === "Enter") document.querySelector<HTMLButtonElement>("#ob-join")!.click();
 });
 
-document.querySelector("#ob-local")!.addEventListener("click", () => obProfile());
+document.querySelector("#ob-local")!.addEventListener("click", () => obProfile(true));
 
 document.querySelector("#ob-go")!.addEventListener("click", () => {
   const name = obName.value.trim();
@@ -591,8 +794,22 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
     deckPick.value = obDeck.value;
     loadDeck(obDeck.value, mySeat);
   }
+  if (obLocalMode) startLocalFoe(obDeckB.value);
   onboard.hidden = true;
 });
+
+/**
+ * La partita locale siede anche l'altra metà del tavolo: mazzo caricato al
+ * posto opposto e un nome al giocatore simulato. Il mazzo resta noto al
+ * client: a «nuova partita» l'avversario locale si rimette in tavola da sé.
+ */
+function startLocalFoe(deckId: string): void {
+  if (!deckId) return;
+  localFoeDeckId = deckId;
+  const foe = otherSeat(mySeat);
+  dispatch({ t: "player", seat: foe, patch: { name: "Avversario" } });
+  loadDeck(deckId, foe);
+}
 
 if (!roomInput.value.trim()) {
   onboard.hidden = false;

@@ -1,0 +1,114 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# L'engine in ascolto per il simulatore: un client per connessione, un
+# Engine per client. Oggi l'Engine è vuoto (lib/rubyfront/engine.rb): il
+# server saluta, riceve azioni e risponde "nessuna regola" — ma il filo
+# fra simulatore ed engine è questo, e non cambierà quando le regole
+# verranno collegate.
+#
+#   ruby engine/bin/server [porta]      # default 8788
+
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+
+# In pipe (npm run all) le righe devono scorrere subito, non a blocchi.
+$stdout.sync = true
+
+require "json"
+require "socket"
+require "rubyfront/card_index"
+require "rubyfront/engine"
+require "rubyfront/websocket"
+
+PORT = Integer(ARGV[0] || ENV.fetch("PORT", 8788))
+
+# L'anagrafe delle carte viene dal repo del sito: è il SOLO legame con il
+# resto di rubyfront2, e sta qui nel trasporto apposta — quando l'engine
+# emigrerà in un repo suo basterà puntare RUBYFRONT_DATA altrove.
+DATA_DIR = ENV["RUBYFRONT_DATA"] || File.expand_path("../../data", __dir__)
+CARDS = begin
+  Rubyfront::CardIndex.load(DATA_DIR)
+rescue StandardError => error
+  warn "Anagrafe carte non caricata (#{error.message}): le regole che leggono le carte resteranno mute."
+  {}.freeze
+end
+
+# Legge l'header HTTP: se è un upgrade WebSocket completa l'handshake e
+# restituisce true; a una richiesta semplice risponde due righe di cortesia
+# (le stesse che farebbero da health check) e chiude.
+def handshake(client)
+  request = +""
+  while (line = client.gets)
+    break if line == "\r\n"
+
+    request << line
+  end
+  key = request[/^Sec-WebSocket-Key: *(.+?)\r?$/i, 1]
+  unless key
+    body = "Engine Rubyfront attivo. Regole collegate: #{Rubyfront::Engine::RULES.size}\n"
+    client.write(
+      "HTTP/1.1 200 OK\r\n" \
+      "Content-Type: text/plain; charset=utf-8\r\n" \
+      "Content-Length: #{body.bytesize}\r\n\r\n#{body}"
+    )
+    return false
+  end
+  client.write(
+    "HTTP/1.1 101 Switching Protocols\r\n" \
+    "Upgrade: websocket\r\nConnection: Upgrade\r\n" \
+    "Sec-WebSocket-Accept: #{Rubyfront::WebSocket.accept_key(key)}\r\n\r\n"
+  )
+  true
+end
+
+def reply_for(engine, text)
+  message = begin
+    JSON.parse(text)
+  rescue JSON::ParserError
+    nil
+  end
+  return nil unless message.is_a?(Hash)
+
+  case message["t"]
+  when "hello" then engine.hello
+  # `seq` è del trasporto, non del giudizio: il client se ne serve per
+  # riconoscere a quale azione risponde il verdetto.
+  when "judge" then engine.judge(message["action"]).merge(seq: message["seq"])
+  when "consult" then engine.observe(message["action"]).merge(seq: message["seq"])
+  # Lo stato intero del client: allinea la copia del tavolo, senza risposta.
+  when "snapshot" then engine.snapshot(message["state"])
+  end
+end
+
+def serve(client)
+  return client.close unless handshake(client)
+
+  engine = Rubyfront::Engine.new(cards: CARDS)
+  decoder = Rubyfront::WebSocket::Decoder.new
+  loop do
+    chunk = client.readpartial(16_384)
+    decoder.feed(chunk).each do |event, payload|
+      case event
+      when :close
+        client.write(Rubyfront::WebSocket.encode_close)
+        return client.close
+      when :ping
+        client.write(Rubyfront::WebSocket.encode_pong(payload))
+      when :text
+        reply = reply_for(engine, payload)
+        client.write(Rubyfront::WebSocket.encode_text(JSON.generate(reply))) if reply
+      end
+    end
+  end
+rescue EOFError, Errno::ECONNRESET, Errno::EPIPE
+  client.close rescue nil
+end
+
+server = TCPServer.new(PORT)
+puts "Engine Rubyfront su ws://localhost:#{PORT}"
+puts "Regole collegate: #{Rubyfront::Engine::RULES.size} (#{Rubyfront::Engine::RULES.join("; ")})."
+puts "Carte conosciute: #{CARDS.size}. Ctrl+C per fermarlo."
+
+loop do
+  Thread.new(server.accept) { |client| serve(client) }
+end

@@ -8,7 +8,14 @@ un arbitro.
 
 ## Come si avvia
 
-Servono due terminali:
+Tutto insieme, con un comando solo (pagina + relay + engine, un Ctrl+C spegne
+tutto):
+
+```bash
+npm run all              # dalla radice del repo (o da questa cartella)
+```
+
+Oppure a pezzi, in due terminali:
 
 ```bash
 cd simulatore
@@ -269,6 +276,18 @@ Per giocare via internet va rifatto su un host pubblico (Cloudflare Workers +
 Durable Object, Deno Deploy, o qualunque cosa parli WebSocket). Il client non
 cambia: basta scrivere il nuovo indirizzo nel campo del relay. Il confine è
 tutto in `src/net.ts`.
+
+## L'engine (sperimentale)
+
+L'arbitro esterno vive in `engine/` alla radice del repo, in Ruby. L'engine dà
+le regole, il poliziotto è il simulatore: ogni azione locale aspetta il
+verdetto prima di applicarsi, e un «no» la blocca con un avviso (le azioni
+senza regola collegata passano come sempre; engine assente = tavolo libero).
+Si accende dietro un flag, **spento di default**: ingranaggio → **Engine** →
+**Acceso** (la spia quadrata in alto ne mostra lo stato). Per avviarlo:
+`npm run engine` (oppure `ruby engine/bin/server`, porta 8788). Il confine
+client è tutto in `src/engine.ts`; protocollo, regole collegate e piano di
+crescita sono nel `engine/README.md`.
 
 ## Pubblicazione
 

@@ -19,7 +19,6 @@ import { endTurn } from "./turn.js";
 import type { PlayerState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
-const FLUX_CAP = 20;
 /** Stessa dispensa di main.ts (`rbf-sim:*`): qui ci sta la posizione. */
 const POS_KEY = "rbf-sim:hud";
 /** L'HUD non si incolla mai ai bordi del tavolo più di così. */
@@ -135,15 +134,20 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
 
     const name = document.createElement("h4");
     name.className = "hud-name";
-    const patch = (values: Partial<PlayerState>): void => ctx.dispatch({ t: "player", seat, patch: values });
+    const patch = (values: Partial<PlayerState>): void => {
+      void ctx.dispatch({ t: "player", seat, patch: values });
+    };
 
     const hp = statRow("hp", "Punti Vita", () => ctx.state().players[seat].hp, value => patch({ hp: value }));
+    // Niente tetto né pavimento cuciti nel bottone: il limite dei 20 e lo
+    // zero (§3.2) sono regole dell'engine — acceso, 21 e −1 li ferma il
+    // poliziotto con tanto di avviso; spento, il tavolo è libero come per
+    // ogni altro gesto.
     const flux = statRow(
       "flux",
       "Flusso",
       () => ctx.state().players[seat].flux,
-      value => patch({ flux: value }),
-      { min: 0, max: FLUX_CAP }
+      value => patch({ flux: value })
     );
 
     // Il Gettone Flusso (§3.2): la moneta sull'orlo della targa È il comando.
@@ -263,10 +267,12 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
 
   // Il Fine turno è di chi è di turno: per l'altro si ingrigisce. È l'unico
   // "impedimento" del simulatore, e serve al ritmo: passo io, poi passi tu.
+  // In partita locale si governano entrambi i posti: il tasto resta sempre
+  // acceso, e chiude il turno di chiunque tocchi.
   syncs.push(() => {
-    const mineTurn = ctx.state().active === ctx.seat();
-    pass.disabled = !mineTurn;
-    tip(pass, mineTurn
+    const canPass = ctx.controls(ctx.state().active);
+    pass.disabled = !canPass;
+    tip(pass, canPass
       ? "Passa il turno: Flusso massimo +1 e ricarica per chi entra (§3.2)"
       : "Tocca all'avversario: il Fine turno adesso è suo");
   });

@@ -11,10 +11,31 @@ import { otherSeat } from "./types.js";
 
 export interface Ctx {
   state(): GameState;
-  /** Applica in locale e ritrasmette alla stanza. */
-  dispatch(action: Action): void;
+  /**
+   * Applica in locale e ritrasmette alla stanza. Con l'engine collegato
+   * l'azione passa prima dal suo giudizio: la promessa dice se è passata
+   * (`false` = fermata dal poliziotto). Quasi nessuno deve aspettarla — solo
+   * chi accoda altre azioni che hanno senso soltanto se questa è passata
+   * (vedi endTurn in turn.ts).
+   */
+  dispatch(action: Action): Promise<boolean>;
   /** Il posto occupato da questo browser. */
   seat(): Seat;
+  /**
+   * Vero se questo client governa quel posto: il proprio sempre, ENTRAMBI in
+   * partita locale (hotseat, senza stanza). È il cancello di ogni gesto di
+   * gioco — trascinare, pescare, dichiarare, chiudere il turno — mentre
+   * `seat()` resta la prospettiva: quale metà sta in basso, quale mano è "la
+   * tua". Le due cose non vanno confuse.
+   */
+  controls(seat: Seat): boolean;
+  /**
+   * Vero quando l'engine è collegato e giudica: il tavolo smette di offrire
+   * i gesti che con l'arbitro presente non sono più liberi (tappare,
+   * stappare, coprire a mano — quegli stati discendono dalle dichiarazioni).
+   * A engine spento resta la lavagna libera di sempre.
+   */
+  arbitrated(): boolean;
   /** Il tema grafico è una proprietà del mazzo: ogni posto ha il suo. */
   themeFor(seat: Seat): string;
   locale(): string;
