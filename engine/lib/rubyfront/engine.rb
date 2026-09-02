@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.24.0"
+    VERSION = "0.25.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -42,7 +42,7 @@ module Rubyfront
       "§5 Materie: mai sugli slot del Fronte",
       "§6.3 Dichiarano solo le Entità (il Rubyfront mai)",
       "§6.3 Attacca chi è di turno, blocca chi difende",
-      "§6.4 Reazione: l'ondata passa al difensore",
+      "§6.4 Reazione: l'ondata passa al difensore, e la chiude lui",
       "§6.3/§6.4 Risoluzione delle battaglie",
       "§6.2 Le carte si giocano in Preparazione (salvo Reattive e Rubyfront)",
       "§6 Nel turno altrui non si agisce (salvo Reazione e Reattive)",
@@ -670,9 +670,18 @@ module Rubyfront
     # risolti a mano che fanno agire l'avversario nel proprio turno («il tuo
     # avversario pesca…») verrebbero fermati a torto.
     def judge_actor(action, actor)
-      return nil unless Table::SEATS.include?(actor) && actor != @table.active
+      return nil unless Table::SEATS.include?(actor)
 
       kind = action["t"]
+      # §6.4 — la Reazione è la fase del difensore, e la chiude lui: risolvere
+      # l'ondata e chiudere il turno da lì sono gesti SUOI, non di chi
+      # attacca (che «aspetta la reazione»).
+      if @table.phase == "reazione" && %w[resolve turn].include?(kind)
+        return nil if actor != @table.active
+        return refuse(kind, "la Reazione la chiude chi difende: risolve l'ondata e passa il turno (§6.4)")
+      end
+      return nil if actor == @table.active
+
       # I gesti di APPARECCHIATURA non hanno turno: caricare il proprio mazzo
       # (all'ingresso in stanza, nel turno di chiunque), «Nuova partita», il
       # proprio nome, la chat, i pixel — e una patch che non tocca i

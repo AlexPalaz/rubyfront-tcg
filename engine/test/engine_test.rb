@@ -1133,11 +1133,22 @@ class EngineTest < Minitest::Test
     refute engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 10 } }, actor: "b")[:ok]
   end
 
-  def test_l_avversario_non_risolve_l_ondata
+  def test_in_reazione_risolve_e_chiude_chi_difende
     engine = ondata([["a1", "FORTE"]], [], ["a1"], [])
-    verdict = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [battaglia("a1", damage: 4)] }, actor: "b")
-    refute verdict[:ok]
-    assert_match(/non tocca a te/, verdict[:reason])
+    da_a = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [battaglia("a1", damage: 4)] }, actor: "a")
+    refute da_a[:ok], "chi attacca aspetta la reazione (§6.4)"
+    assert_match(/chiude chi difende/, da_a[:reason])
+    refute engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "a")[:ok]
+    da_b = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [battaglia("a1", damage: 4)] }, actor: "b")
+    assert da_b[:ok], da_b[:reason]
+    assert engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "b")[:ok]
+  end
+
+  def test_fuori_dalla_reazione_chiude_chi_e_di_turno
+    engine = altrui
+    fronte!(engine)
+    refute engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "b")[:ok]
+    assert engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")[:ok]
   end
 
   # --- §3.2: le carte si pagano ---------------------------------------------

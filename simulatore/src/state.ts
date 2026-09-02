@@ -451,6 +451,15 @@ export function declarationOf(state: GameState, uid: string): Declaration | unde
   return state.declarations.find(d => d.from === uid);
 }
 
+/**
+ * Chi chiude la fase in corso: chi è di turno — salvo la Reazione, che è
+ * la fase del difensore e la chiude lui (§6.4: «conclusa la Reazione,
+ * blocchi assegnati o rinuncia del difensore»).
+ */
+export function phaseCloser(state: GameState): Seat {
+  return state.phase === "reazione" ? otherSeat(state.active) : state.active;
+}
+
 /** C'è un'ondata in piedi: almeno un attacco dichiarato (§6.3, punto 3). */
 export function waveDeclared(state: GameState): boolean {
   return state.declarations.some(d => d.kind === "attack");

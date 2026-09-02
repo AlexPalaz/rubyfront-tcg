@@ -123,9 +123,12 @@ Regole collegate finora:
   «vista l'intera ondata» (§6.4). E il **Fine turno non passa** sopra
   un'ondata dichiarata finché la parola non è passata al difensore (bottone
   «Al difensore» nell'HUD); dalla Reazione invece si chiude liberamente —
-  quanto aspettare la difesa è affare del tavolo, come a un tavolo vero
-  (via semplice, decisa dal designer: la stretta di mano esplicita arriverà
-  con la catena delle Reattive).
+  e la Reazione **la chiude chi difende** (§6.4: «conclusa la Reazione,
+  blocchi assegnati o rinuncia del difensore»): risolvere l'ondata e
+  chiudere il turno da lì sono gesti del difensore, non di chi attacca, che
+  «aspetta la reazione» — il «Fine fase» dell'HUD passa dall'altra parte
+  del tavolo, e la dogana del turno lo fa rispettare. La stretta di mano
+  esplicita sulle Reattive arriverà con la catena.
 
 - **§6.3/§6.4 Risoluzione delle battaglie** — la prima regola in cui il
   tavolo FA qualcosa da sé, con l'engine che resta arbitro. Dal «Fine fase»

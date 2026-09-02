@@ -14,7 +14,7 @@
 // l'altra, e un doppio click sulla maniglia lo rimette al posto suo.
 
 import type { Ctx } from "./ctx.js";
-import { seatLabel, waveDeclared } from "./state.js";
+import { phaseCloser, seatLabel, waveDeclared } from "./state.js";
 import { declareFront, declareReaction, endPhase, endTurn } from "./turn.js";
 import type { PlayerState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
@@ -302,7 +302,9 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   // acceso, e chiude il turno di chiunque tocchi.
   syncs.push(() => {
     const state = ctx.state();
-    const canPass = ctx.controls(state.active);
+    // La Reazione la chiude chi difende (§6.4): lì il gesto passa dall'altra
+    // parte del tavolo.
+    const canPass = ctx.controls(phaseCloser(state));
     pass.disabled = !canPass;
     tip(pass, canPass
       ? "Passa il turno: Flusso massimo +1 e ricarica per chi entra (§3.2)"
@@ -331,7 +333,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
       front.textContent = "Fine fase";
       front.disabled = !canPass;
       tip(front, !canPass
-        ? "Tocca all'avversario: le fasi le chiude chi è di turno"
+        ? (state.phase === "reazione" ? "La Reazione la chiude chi difende (§6.4)" : "Tocca all'avversario: le fasi le chiude chi è di turno")
         : state.phase === "preparazione"
           ? "Chiude la Preparazione: si apre la Fase di Fronte (§6.3)"
           : state.phase === "fronte"

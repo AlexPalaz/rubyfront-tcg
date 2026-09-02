@@ -65,8 +65,10 @@ elenco da tenere aggiornato, perché ogni gesto legittimo nel turno altrui o
 prima del primo turno deve passare di lì: apparecchiatura (`loadDeck`,
 `newGame`, nome, chat, pixel), la finestra del §4 al turno 1 in Preparazione
 (pesca, mescola, mano↔mazzo), blocchi e contrattacchi in Reazione, Reattive
-nel Fronte altrui, i propri contatori in Fronte e Reazione. Un `move` con
-`cost` non è un pixel: è lo schieramento.
+nel Fronte altrui, i propri contatori in Fronte e Reazione — e in Reazione
+è il **difensore** a risolvere e a chiudere il turno (§6.4), non chi
+attacca (`phaseCloser` in state.ts, per HUD e attore in locale). Un `move`
+con `cost` non è un pixel: è lo schieramento.
 
 ## Il flusso di lavoro per una regola nuova
 

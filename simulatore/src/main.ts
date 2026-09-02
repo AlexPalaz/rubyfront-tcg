@@ -21,7 +21,7 @@ import { showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
 import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
-import { apply, newGame, seatLabel, shuffled, zoneCards } from "./state.js";
+import { apply, newGame, phaseCloser, seatLabel, shuffled, zoneCards } from "./state.js";
 import { drawCascadeMs, mountTable } from "./table.js";
 import { describeGameOver, verdictByHp } from "./turn.js";
 import { createVoice, type VoicePayload } from "./voice.js";
@@ -167,8 +167,11 @@ function actorFor(action: Action): Seat {
   if (localFoeDeckId === null) return mySeat;
   if ("uid" in action) return state.cards[action.uid]?.owner ?? state.active;
   if ("from" in action) return state.cards[action.from]?.owner ?? state.active;
-  if ("seat" in action) return action.seat;
   if (action.t === "declare") return action.declaration.seat;
+  // Chiudere la fase (turno, fase, risoluzione) è di chi chiude: in
+  // Reazione il difensore (§6.4), altrimenti chi è di turno.
+  if (action.t === "turn" || action.t === "phase" || action.t === "resolve") return phaseCloser(state);
+  if ("seat" in action) return action.seat;
   return state.active;
 }
 
