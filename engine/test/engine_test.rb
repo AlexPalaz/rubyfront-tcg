@@ -1747,4 +1747,67 @@ class EngineTest < Minitest::Test
     assert guarda(engine)[:ok], "nessuna da mostrare: tutte in fondo"
     refute guarda(engine)[:ok], "e l'innesco è consumato"
   end
+
+  # --- §8.2: il Radunatore prende il controllo (RBF-009) ---------------------
+
+  RADUNI = {
+    "RADUNATORE" => { type: "entity", keywords: [], race: "human",
+                      enter_controls: [{ target: { type: "entity", controller: "opponent", max_cost: 3 }, grants: ["surge"] }] },
+    "PICCOLA" => { type: "entity", keywords: [], race: "auros", flux_cost: 2 },
+    "GRANDE" => { type: "entity", keywords: [], race: "auros", flux_cost: 5 },
+    "PIETRA" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 1 },
+  }.freeze
+
+  # A ha il Radunatore in mano, B quelle carte in campo; poi il Radunatore scende.
+  def radunatore(b_field)
+    engine = Rubyfront::Engine.new(cards: RADUNI)
+    a = [{ "uid" => "rad", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "RADUNATORE" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    b = b_field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "field", "order" => i, "cardId" => id, "y" => 172 } }
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
+    engine.judge({ "t" => "toZone", "uid" => "rad", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine
+  end
+
+  def prendi(engine, uid, by: "a", grants: ["surge"])
+    engine.judge({ "t" => "control", "uid" => uid, "by" => by, "grants" => grants,
+                   "effect" => { "source" => "rad", "event" => "on_enter_field", "entering" => "rad" } })
+  end
+
+  def test_il_radunatore_prende_un_entita_economica
+    engine = radunatore([["b1", "PICCOLA"]])
+    verdict = prendi(engine, "b1")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    table = engine.instance_variable_get(:@table)
+    assert_equal "a", table.controller_of(table.card("b1"))
+  end
+
+  def test_non_si_prende_chi_costa_troppo_ne_una_materia
+    engine = radunatore([["b1", "GRANDE"], ["b2", "PIETRA"]])
+    refute prendi(engine, "b1")[:ok], "costa 5"
+    refute prendi(engine, "b2")[:ok], "una Materia no"
+    refute prendi(engine, "b1", grants: [])[:ok], "le concessioni sono quelle della carta"
+  end
+
+  def test_la_controllata_attacca_per_chi_la_comanda_con_slancio
+    engine = radunatore([["b1", "PICCOLA"]])
+    prendi(engine, "b1")
+    fronte!(engine)
+    attacco = { "t" => "declare", "declaration" => { "id" => "x", "from" => "b1", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } }
+    verdict = engine.judge(attacco, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_la_restituzione_solo_a_fine_turno_e_solo_di_una_controllata
+    engine = radunatore([["b1", "PICCOLA"], ["b2", "PICCOLA"]])
+    prendi(engine, "b1")
+    refute engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 }, actor: "a")[:ok], "non prima della fine del turno"
+    refute engine.judge({ "t" => "release", "uid" => "b2", "zone" => "field" }, actor: "a")[:ok], "b2 non è controllata"
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")
+    verdict = engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 }, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    table = engine.instance_variable_get(:@table)
+    assert_equal "b", table.controller_of(table.card("b1"))
+  end
 end

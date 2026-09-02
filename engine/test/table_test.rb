@@ -348,4 +348,25 @@ class TableTest < Minitest::Test
     assert_equal 0, @table.hand_count("a")
     assert_equal %w[a-3 a-4 a-5 a-1 a-2], @table.top_of_deck("a", 5)
   end
+
+  # --- il controllo e la restituzione (§8.2) ----------------------------------
+
+  def test_il_controllo_cambia_chi_comanda_non_il_proprietario
+    cards = [{ "uid" => "b-1", "owner" => "b", "zone" => "field", "order" => 0, "y" => 172 }]
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards })
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    @table.apply({ "t" => "turn", "turn" => 3, "active" => "a" })
+    @table.apply({ "t" => "control", "uid" => "b-1", "by" => "a", "grants" => ["surge"], "effect" => {} })
+    assert_equal "a", @table.controller_of(@table.card("b-1"))
+    assert_equal "b", @table.card("b-1")[:owner]
+    assert_equal ["surge"], @table.card("b-1")[:grants]
+    assert_equal 3, @table.card("b-1")[:entered], "entra ora sul campo di chi la controlla"
+    @table.apply({ "t" => "release", "uid" => "b-1", "zone" => "field", "x" => 442, "y" => 172 })
+    assert_equal "b", @table.controller_of(@table.card("b-1"))
+    assert_nil @table.card("b-1")[:grants]
+    assert_equal 172, @table.card("b-1")[:row]
+    @table.apply({ "t" => "control", "uid" => "b-1", "by" => "a", "grants" => [], "effect" => {} })
+    @table.apply({ "t" => "release", "uid" => "b-1", "zone" => "ritiro" })
+    assert_equal "ritiro", @table.card("b-1")[:zone], "a Fronte pieno, in Zona di Ritiro"
+  end
 end

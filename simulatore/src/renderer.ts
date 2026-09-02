@@ -18,7 +18,7 @@ export const TILE_W = 302;
 export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
-import type { EnterListener, EnterLook, EnterMove, EnterReturn } from "./ctx.js";
+import type { EnterControl, EnterListener, EnterLook, EnterMove, EnterReturn } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -348,6 +348,37 @@ function enterLooksOf(face: CardFace | undefined): EnterLook[] {
   return out;
 }
 
+/**
+ * I controlli all'ingresso certificati (§8.2): evento `on_enter_field`
+ * senza `enteringCard`, effetto `gain_control` di UN'Entità avversaria
+ * (con al più una condizione sul costo di Flusso, `flux_cost lte N`),
+ * durata `until_end_of_turn`, con le parole chiave concesse. Specchio di
+ * card_index.rb, enter_controls.
+ */
+function enterControlsOf(face: CardFace | undefined): EnterControl[] {
+  const out: EnterControl[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const details = trigger.details as { enteringCard?: unknown } | undefined;
+    if (details?.enteringCard) continue;
+    const effect = trigger.effect as { type?: unknown; target?: any; duration?: unknown; details?: any } | undefined;
+    if (!effect || effect.type !== "gain_control" || effect.duration !== "until_end_of_turn") continue;
+    const target = effect.target;
+    if (!target || target.cardType !== "entity" || target.controller !== "opponent" || target.min !== 1 || target.max !== 1) continue;
+    const conditions: any[] = Array.isArray(target.conditions) ? target.conditions : [];
+    let maxCost: number | null = null;
+    let certified = true;
+    for (const condition of conditions) {
+      if (condition?.stat === "flux_cost" && condition.operator === "lte" && Number.isInteger(condition.value)) maxCost = condition.value;
+      else certified = false;
+    }
+    if (!certified) continue;
+    const grants = Array.isArray(effect.details?.grants) ? effect.details.grants.filter((g: unknown) => typeof g === "string") : [];
+    out.push({ target: { kind: "entity", controller: "opponent", maxCost }, grants });
+  }
+  return out;
+}
+
 /** Il costo di schieramento del Rubyfront (§3.1): fisso, o un dado. */
 export interface Deployment {
   fixed: number | null;
@@ -366,6 +397,7 @@ export function cardStats(cardId: string): {
   behavior: string | null;
   enterReturns: EnterReturn[];
   enterLooks: EnterLook[];
+  enterControls: EnterControl[];
 } {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
@@ -378,6 +410,7 @@ export function cardStats(cardId: string): {
     behavior: typeof face?.behavior === "string" ? face.behavior : null,
     enterReturns: enterReturnsOf(face),
     enterLooks: enterLooksOf(face),
+    enterControls: enterControlsOf(face),
     power: integer(face?.stats?.power),
     counterattack: integer(face?.stats?.counterattack),
     // Il costo di Flusso stampato (§3.2); il Rubyfront ha il costo di

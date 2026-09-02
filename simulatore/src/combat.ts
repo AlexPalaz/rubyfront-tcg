@@ -5,7 +5,7 @@
 // provare con un Ctx finto (test/combat.test.ts).
 
 import type { CardFacts, Ctx } from "./ctx.js";
-import { nextWaveOrder, seatLabel } from "./state.js";
+import { controllerOf, nextWaveOrder, seatLabel } from "./state.js";
 import type { Battle, CardInstance, Declaration, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -94,12 +94,14 @@ export async function declareAttack(
   card: CardInstance,
   target: CardInstance | undefined
 ): Promise<void> {
-  const foe = otherSeat(card.owner);
+  // Attacca chi comanda la carta: il proprietario, o chi la controlla (§8.2).
+  const by = controllerOf(card);
+  const foe = otherSeat(by);
   if (!target) {
     ctx.log(`${seatLabel(ctx.state(), foe)} non ha il Rubyfront in campo: nessun bersaglio.`, foe);
     return;
   }
-  const order = nextWaveOrder(ctx.state(), card.owner);
+  const order = nextWaveOrder(ctx.state(), by);
   const passed = await ctx.dispatch({
     t: "declare",
     declaration: {
@@ -107,7 +109,7 @@ export async function declareAttack(
       from: card.uid,
       to: target.uid,
       kind: "attack",
-      seat: card.owner,
+      seat: by,
       order,
     },
   });
@@ -117,7 +119,7 @@ export async function declareAttack(
   // Il tap scatta alla dichiarazione dell'ondata (§6.3). Resta comunque
   // libero: stapparla a mano non disfa la freccia.
   if (!card.tapped) void ctx.dispatch({ t: "tap", uid: card.uid, tapped: true });
-  ctx.log(`${seatLabel(ctx.state(), card.owner)} attacca (${order}).`, card.owner);
+  ctx.log(`${seatLabel(ctx.state(), by)} attacca (${order}).`, by);
 }
 
 /** Dichiara il blocco (o contrattacco) di `blocker` contro `attackerUid`. */
@@ -134,7 +136,7 @@ export async function declareBlock(
       from: blocker.uid,
       to: attackerUid,
       kind,
-      seat: blocker.owner,
+      seat: controllerOf(blocker),
       order: 0,
     },
   });
@@ -151,8 +153,8 @@ export async function declareBlock(
     void ctx.dispatch({ t: "facedown", uid: blocker.uid, facedown: true });
   }
   ctx.log(
-    `${seatLabel(ctx.state(), blocker.owner)} ${kind === "counter" ? "contrattacca" : "blocca"}.`,
-    blocker.owner
+    `${seatLabel(ctx.state(), controllerOf(blocker))} ${kind === "counter" ? "contrattacca" : "blocca"}.`,
+    controllerOf(blocker)
   );
 }
 

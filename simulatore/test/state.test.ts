@@ -396,3 +396,35 @@ describe("apply look", () => {
     expect(zoneCards(state, "a", "deck").map(card => card.uid)).toEqual(["a-1", "a-3", "a-4", "a-5", "a-6"]);
   });
 });
+
+// Il controllo applicato (§8.2): chi comanda cambia, la proprietà no; lo
+// slot extra; la restituzione. Gemello: table_test.rb.
+describe("apply control / release", () => {
+  it("la carta passa nello slot extra con gli Oggetti, e torna com'è", () => {
+    let state = apply(newGame(), deckFor("b", 2));
+    state = apply(state, { t: "toZone", uid: "b-1", zone: "field", x: 442, y: 172, z: 1 });
+    state = apply(state, { t: "toZone", uid: "b-2", zone: "field", x: 472, y: 202, z: 2 });
+    state = apply(state, { t: "assign", uid: "b-2", to: "b-1" });
+    const ref = { source: "x", event: "on_enter_field" as const, entering: "x" };
+    state = apply(state, { t: "control", uid: "b-1", by: "a", grants: ["surge"], effect: ref });
+    expect(state.cards["b-1"]).toMatchObject({ owner: "b", controller: "a", grants: ["surge"], x: 1199 });
+    expect(state.cards["b-1"].y).toBe(state.cards["b-1"].y); // nella fila di servizio di A
+    expect(state.cards["b-2"].x).toBe(1199 + STACK_STEP);
+    state = apply(state, { t: "release", uid: "b-1", zone: "field", x: 821, y: 172 });
+    expect(state.cards["b-1"].controller).toBeUndefined();
+    expect(state.cards["b-1"].grants).toBeUndefined();
+    expect(state.cards["b-1"]).toMatchObject({ x: 821, y: 172 });
+    expect(state.cards["b-2"]).toMatchObject({ x: 821 + STACK_STEP, assignedTo: "b-1" });
+  });
+
+  it("a Fronte pieno la restituzione va nella Zona di Ritiro, con gli Oggetti", () => {
+    let state = apply(newGame(), deckFor("b", 2));
+    state = apply(state, { t: "toZone", uid: "b-1", zone: "field", x: 442, y: 172, z: 1 });
+    state = apply(state, { t: "toZone", uid: "b-2", zone: "field", x: 472, y: 202, z: 2 });
+    state = apply(state, { t: "assign", uid: "b-2", to: "b-1" });
+    state = apply(state, { t: "control", uid: "b-1", by: "a", grants: [], effect: { source: "x", event: "on_enter_field", entering: "x" } });
+    state = apply(state, { t: "release", uid: "b-1", zone: "ritiro" });
+    expect(state.cards["b-1"].zone).toBe("ritiro");
+    expect(state.cards["b-2"].zone).toBe("ritiro");
+  });
+});

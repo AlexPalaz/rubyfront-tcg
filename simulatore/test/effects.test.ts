@@ -4,14 +4,18 @@
 import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
 import {
+  describeControl,
   describeLook,
   describeMove,
   describeReturn,
   describeTrigger,
+  enterControls,
   enterLooks,
   enterMoves,
   enterReturns,
   enterTriggers,
+  releaseControlled,
+  resolveControl,
   resolveEnter,
   resolveLook,
   resolveMove,
@@ -25,6 +29,9 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   RHEN: { kind: "entity", race: "human", enterReturns: [{ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" }] },
   PERMANENTE: { kind: "matter", behavior: "permanent" },
   CERCATORE: { kind: "entity", race: "human", enterLooks: [{ count: 4, reveal: { kind: "entity", race: "human" } }] },
+  RADUNATORE: { kind: "entity", race: "human", enterControls: [{ target: { kind: "entity", controller: "opponent", maxCost: 3 }, grants: ["surge"] }] },
+  PICCOLA: { kind: "entity", race: "auros", fluxCost: 2 },
+  GRANDE: { kind: "entity", race: "auros", fluxCost: 5 },
   NORMALE: { kind: "matter", behavior: "normal" },
   GUIDA: { kind: "entity", race: "human", enterListeners: [{ enteringRace: "human", requires: { count: 3, race: "human" }, draw: 1 }] },
   UMANO: { kind: "entity", race: "human" },
@@ -37,11 +44,13 @@ const facts = (cardId: string): CardFacts => ({
   race: null,
   power: null,
   counterattack: null,
+  fluxCost: null,
   enterListeners: [],
   enterMoves: [],
   behavior: null,
   enterReturns: [],
   enterLooks: [],
+  enterControls: [],
   ...FACTS[cardId],
 });
 
@@ -262,5 +271,56 @@ describe("enterLooks", () => {
     expect(sent[0]).toEqual({ t: "look", seat: "a", count: 4, reveal: "d2", effect: { source: "cerc", event: "on_enter_field", entering: "cerc" } });
     expect(await resolveLook(ctx, step, null)).toBe(true);
     expect(sent[1]).not.toHaveProperty("reveal");
+  });
+});
+
+// Il controllo (§8.2), la forma di RBF-009, e la restituzione a fine turno.
+// Gemello: engine_test.rb, sezione §8.2 Radunatore.
+describe("enterControls", () => {
+  function fake(state: GameState): { ctx: Ctx; sent: Action[] } {
+    const sent: Action[] = [];
+    const ctx: Ctx = {
+      state: () => state,
+      dispatch(action) {
+        sent.push(action);
+        return Promise.resolve(true);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "notte",
+      locale: () => "it",
+      card: facts,
+      log() {},
+    };
+    return { ctx, sent };
+  }
+
+  it("i candidati sono le Entità avversarie entro il costo", () => {
+    const state = newGame();
+    const rad = on(state, "rad", "RADUNATORE");
+    on(state, "b1", "PICCOLA", "b");
+    on(state, "b2", "GRANDE", "b");
+    on(state, "b3", "PIETRA", "b");
+    on(state, "a1", "PICCOLA", "a");
+    const [step] = enterControls(state, rad, facts);
+    expect(step.candidates.map(card => card.uid)).toEqual(["b1"]);
+    expect(step.grants).toEqual(["surge"]);
+    expect(describeControl(step, facts)).toMatch(/prendi il controllo/);
+  });
+
+  it("resolveControl manda l'azione control, e releaseControlled restituisce a fine turno", async () => {
+    const state = newGame();
+    const rad = on(state, "rad", "RADUNATORE");
+    const b1 = on(state, "b1", "PICCOLA", "b");
+    const { ctx, sent } = fake(state);
+    const [step] = enterControls(state, rad, facts);
+    expect(await resolveControl(ctx, step, b1)).toBe(true);
+    expect(sent[0]).toEqual({ t: "control", uid: "b1", by: "a", grants: ["surge"], effect: { source: "rad", event: "on_enter_field", entering: "rad" } });
+    b1.controller = "a";
+    await releaseControlled(ctx, "a", () => ({ x: 442, y: 172 }));
+    expect(sent[1]).toEqual({ t: "release", uid: "b1", zone: "field", x: 442, y: 172 });
+    await releaseControlled(ctx, "a", () => null);
+    expect(sent[2]).toEqual({ t: "release", uid: "b1", zone: "ritiro" });
   });
 });

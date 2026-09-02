@@ -21,7 +21,7 @@ import { showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
 import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
-import { apply, newGame, phaseCloser, seatLabel, shuffled, zoneCards } from "./state.js";
+import { apply, controllerOf, newGame, phaseCloser, seatLabel, shuffled, zoneCards } from "./state.js";
 import { drawCascadeMs, mountTable } from "./table.js";
 import { describeGameOver, verdictByHp } from "./turn.js";
 import { createVoice, type VoicePayload } from "./voice.js";
@@ -142,6 +142,14 @@ function receive(action: Action, from: Seat): void {
   // ha un bersaglio la freccia lo indica — prima che la carta parta.
   if ((action.t === "draw" || action.t === "look") && action.effect) table.flash(action.effect.source);
   let fly: (() => void) | null = null;
+  if (action.t === "control") {
+    // Il controllo dell'avversario: la fonte si accende, la freccia indica
+    // la carta presa, e la carta vola nello slot extra.
+    table.flashArrow(action.effect.source, action.uid);
+    table.flash(action.effect.source, 1600);
+    fly = table.liftToFlight(action.uid);
+  }
+  if (action.t === "release") fly = table.liftToFlight(action.uid);
   if (action.t === "toZone" && action.effect) {
     const moving = state.cards[action.uid];
     table.flash(action.effect.source, 1600);
@@ -181,8 +189,14 @@ function receive(action: Action, from: Seat): void {
  */
 function actorFor(action: Action): Seat {
   if (localFoeDeckId === null) return mySeat;
-  if ("uid" in action) return state.cards[action.uid]?.owner ?? state.active;
-  if ("from" in action) return state.cards[action.from]?.owner ?? state.active;
+  if ("uid" in action) {
+    const card = state.cards[action.uid];
+    return card ? controllerOf(card) : state.active;
+  }
+  if ("from" in action) {
+    const card = state.cards[action.from];
+    return card ? controllerOf(card) : state.active;
+  }
   if (action.t === "declare") return action.declaration.seat;
   // Chiudere la fase (turno, fase, risoluzione) è di chi chiude: in
   // Reazione il difensore (§6.4), altrimenti chi è di turno.
@@ -209,11 +223,13 @@ const ctx: Ctx = {
       race: stats.race,
       power: stats.power,
       counterattack: stats.counterattack,
+      fluxCost: stats.fluxCost,
       enterListeners: stats.enterListeners,
       enterMoves: stats.enterMoves,
       behavior: stats.behavior,
       enterReturns: stats.enterReturns,
       enterLooks: stats.enterLooks,
+      enterControls: stats.enterControls,
     };
   },
   log(text, seat) {

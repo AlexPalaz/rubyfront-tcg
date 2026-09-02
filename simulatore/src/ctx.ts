@@ -15,6 +15,8 @@ export interface CardFacts {
   race: string | null;
   power: number | null;
   counterattack: number | null;
+  /** Il costo di Flusso stampato (§3.2), null dove non c'è. */
+  fluxCost: number | null;
   /** Gli ascoltatori certificati «quando un'Entità entra sul tuo Fronte»
       (§8.2): vedi renderer.ts, enterListeners. */
   enterListeners: EnterListener[];
@@ -28,6 +30,19 @@ export interface CardFacts {
   enterReturns: EnterReturn[];
   /** Gli sguardi nel mazzo certificati «quando QUESTA entra» (§8.2): vedi enterLooks. */
   enterLooks: EnterLook[];
+  /** I controlli certificati «quando QUESTA entra» (§8.2): vedi enterControls. */
+  enterControls: EnterControl[];
+}
+
+/**
+ * La forma certificata di un controllo all'ingresso: «prendi il controllo
+ * di un'Entità avversaria con costo di Flusso N o inferiore fino alla fine
+ * del turno; ottiene [parole chiave] fino alla fine del turno». È la forma
+ * di RBF-009.
+ */
+export interface EnterControl {
+  target: { kind: "entity"; controller: "opponent"; maxCost: number | null };
+  grants: string[];
 }
 
 /**
@@ -278,6 +293,13 @@ export const FRONT_SLOT_X: readonly number[] = Array.from(
  * (§5): sta davanti al Fronte, per conto suo.
  */
 export const RUBYFRONT_X = EDGE;
+
+/**
+ * Lo slot extra del controllo (§8.2, «Prendere il controllo»): al centro
+ * della fila di servizio, perché nel Fronte non c'è spazio per un sesto
+ * posto. Un'Entità avversaria controllata sta qui, e non conta nei 5.
+ */
+export const CONTROL_X = FRONT_SLOT_X[2];
 
 /**
  * Il posto delle Materie in gioco, all'altra estremità. Le permanenti si

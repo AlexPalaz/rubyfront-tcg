@@ -53,6 +53,13 @@ export interface CardInstance {
    * due carte lascia il campo. Assente = Oggetto non assegnato.
    */
   assignedTo?: string;
+  /**
+   * Chi la controlla, se non il proprietario (§8.2, «Prendere il
+   * controllo»): fino alla fine del turno. Assente = il proprietario.
+   */
+  controller?: Seat;
+  /** Parole chiave concesse fino alla fine del turno (es. Slancio). */
+  grants?: string[];
 }
 
 export interface PlayerState {
@@ -213,6 +220,14 @@ export type Action =
       carte del mazzo di `seat`; `reveal`, se c'è, va in mano; le altre in
       fondo, nell'ordine in cui stavano. Sempre un passo d'effetto. */
   | { t: "look"; seat: Seat; count: number; reveal?: string; effect: EffectRef }
+  /** Prende il controllo di `uid` per `by` fino a fine turno (§8.2): la
+      carta passa nello slot extra, con gli Oggetti addosso e le parole
+      chiave concesse. Sempre un passo d'effetto. */
+  | { t: "control"; uid: string; by: Seat; grants: string[]; effect: EffectRef }
+  /** Restituisce una carta controllata al proprietario, a fine turno: sul
+      suo Fronte (x, y di uno slot libero) o nella sua Zona di Ritiro se è
+      pieno. La manda il tavolo di chi ha chiuso il turno. */
+  | { t: "release"; uid: string; zone: "field" | "ritiro"; x?: number; y?: number }
   /** Fine della partita (§2, §9): lo dichiara il client che l'ha vista
       arrivare, l'engine lo verifica contro PV e mazzi della sua copia. */
   | { t: "gameOver"; winner: Seat | null; reason: GameOver["reason"] }

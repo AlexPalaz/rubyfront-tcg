@@ -5,7 +5,7 @@
 // un arbitro. L'unica cosa che garantisce è che due client che partono dallo
 // stesso stato e applicano le stesse azioni finiscano identici.
 
-import { FRONT_SLOT_X, MATTER_X, SURFACE_W, TILE_W, frontRowY } from "./ctx.js";
+import { CONTROL_X, FRONT_SLOT_X, MATTER_X, SURFACE_W, TILE_W, backRowY, frontRowY } from "./ctx.js";
 import type { Action, CardInstance, Declaration, GameState, PlayerState, Seat, ZoneId } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
 
@@ -337,6 +337,53 @@ export function apply(state: GameState, action: Action): GameState {
       return { ...state, cards: { ...state.cards, [card.uid]: card } };
     }
 
+    case "control": {
+      // §8.2 — il controllo: la carta passa nello slot extra di chi la
+      // controlla, con le parole chiave concesse; gli Oggetti addosso la
+      // seguono, a scaletta. La proprietà non cambia. Gemello: table.rb.
+      const card = state.cards[action.uid];
+      if (!card || card.zone !== "field") return state;
+      const cards = { ...state.cards };
+      let z = state.zTop + 1;
+      const x = CONTROL_X;
+      const y = backRowY(action.by);
+      cards[card.uid] = { ...card, controller: action.by, grants: [...action.grants], x, y, z };
+      let step = 1;
+      for (const [uid, other] of Object.entries(state.cards)) {
+        if (other.assignedTo !== card.uid || other.zone !== "field") continue;
+        z += 1;
+        cards[uid] = { ...other, x: x + STACK_STEP * step, y: y + STACK_STEP * step, z: z - 2 };
+        step += 1;
+      }
+      return { ...state, cards, zTop: z + 1 };
+    }
+
+    case "release": {
+      // §8.2 — la restituzione: controllo e concessioni cadono; la carta
+      // torna sul Fronte del proprietario (dove dice l'azione) o nella sua
+      // Zona di Ritiro se è pieno, con gli Oggetti addosso.
+      const card = state.cards[action.uid];
+      if (!card) return state;
+      const freed: CardInstance = { ...card };
+      delete freed.controller;
+      delete freed.grants;
+      let next: GameState = { ...state, cards: { ...state.cards, [card.uid]: freed } };
+      if (action.zone === "ritiro") return apply(next, { t: "toZone", uid: card.uid, zone: "ritiro" });
+      const x = action.x ?? card.x;
+      const y = action.y ?? card.y;
+      const cards = { ...next.cards, [card.uid]: { ...freed, x, y, z: next.zTop + 1 } };
+      let step = 1;
+      let z = next.zTop + 1;
+      for (const [uid, other] of Object.entries(next.cards)) {
+        if (other.assignedTo !== card.uid || other.zone !== "field") continue;
+        z += 1;
+        cards[uid] = { ...other, x: x + STACK_STEP * step, y: y + STACK_STEP * step, z: z - 2 };
+        step += 1;
+      }
+      next = { ...next, cards, zTop: z + 1 };
+      return next;
+    }
+
     case "look": {
       // §8.2 — lo sguardo nel mazzo: le prime N; la rivelata in fondo alla
       // mano, le altre in fondo al mazzo, nell'ordine in cui stavano.
@@ -483,6 +530,21 @@ export function declarationOf(state: GameState, uid: string): Declaration | unde
  */
 export function phaseCloser(state: GameState): Seat {
   return state.phase === "reazione" ? otherSeat(state.active) : state.active;
+}
+
+/** Chi comanda la carta: chi la controlla, o il proprietario (§8.2). */
+export function controllerOf(card: CardInstance): Seat {
+  return card.controller ?? card.owner;
+}
+
+/** Il primo slot libero del Fronte di `seat`, o null se è pieno. */
+export function freeFrontSlotOrNull(state: GameState, seat: Seat): { x: number; y: number } | null {
+  const y = frontRowY(seat);
+  const busy = fieldCards(state).filter(card => Math.abs(card.y - y) < 40);
+  for (const x of FRONT_SLOT_X) {
+    if (!busy.some(card => Math.abs(card.x - x) < 40)) return { x, y };
+  }
+  return null;
 }
 
 /** C'è un'ondata in piedi: almeno un attacco dichiarato (§6.3, punto 3). */

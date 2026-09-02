@@ -3,8 +3,9 @@
 // sta nel riduttore (state.ts, `turn`): qui si dichiara e si racconta.
 
 import { describeBattle, resolveWave } from "./combat.js";
+import { releaseControlled } from "./effects.js";
 import type { Ctx } from "./ctx.js";
-import { seatLabel, waveDeclared, zoneCards } from "./state.js";
+import { freeFrontSlotOrNull, seatLabel, waveDeclared, zoneCards } from "./state.js";
 import type { GameOver, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -146,4 +147,6 @@ export async function endTurn(ctx: Ctx): Promise<void> {
   if (!(await ctx.dispatch({ t: "turn", turn: state.turn + 1, active: next }))) return;
   const player = ctx.state().players[next];
   ctx.log(`Turno ${state.turn + 1} — tocca a ${seatLabel(ctx.state(), next)} (Flusso ${player.flux}/${player.fluxMax}).`, next);
+  // §8.2 — le carte che chi chiude controllava tornano al proprietario.
+  await releaseControlled(ctx, state.active, freeFrontSlotOrNull);
 }

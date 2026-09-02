@@ -49,11 +49,13 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       race: null,
       power: facts[cardId]?.power ?? null,
       counterattack: facts[cardId]?.counterattack ?? null,
+      fluxCost: null,
       enterListeners: [],
       enterMoves: [],
       behavior: null,
       enterReturns: [],
       enterLooks: [],
+      enterControls: [],
     }),
     log(text) {
       logs.push(text);

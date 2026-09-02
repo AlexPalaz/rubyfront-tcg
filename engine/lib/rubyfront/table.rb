@@ -88,7 +88,9 @@ module Rubyfront
     end
 
     # La carta com'è annotata qui: {owner, zone, order, card_id, entered,
-    # tapped, facedown, face, row} — `entered` è il numero del turno in cui
+    # tapped, facedown, face, row, controller, grants} — `controller` è chi
+    # la comanda se non il proprietario (§8.2, fino a fine turno), `grants`
+    # le parole chiave concesse fino a fine turno — `entered` è il numero del turno in cui
     # è scesa in campo (nil se non è mai scesa o se arriva da uno snapshot,
     # che quel passato non lo porta); `face` è la faccia mostrata (il
     # Rubyfront flippato è il Nexus, §3.1); `row` è l'ordinata canonica
@@ -98,6 +100,11 @@ module Rubyfront
     # schierato (§7). nil se ignota.
     def card(uid)
       @cards[uid]
+    end
+
+    # Chi comanda la carta: chi la controlla, o il proprietario (§8.2).
+    def controller_of(card)
+      card[:controller] || card[:owner]
     end
 
     # §6.3, sfide 1 contro 1: qualcuno ferma già quell'attaccante?
@@ -195,6 +202,8 @@ module Rubyfront
                         tapped: card["tapped"] == true, facedown: card["facedown"] == true,
                         assigned_to: card["assignedTo"].is_a?(String) ? card["assignedTo"] : nil,
                         covered_turn: card["coveredTurn"].is_a?(Integer) ? card["coveredTurn"] : nil,
+                        controller: SEATS.include?(card["controller"]) ? card["controller"] : nil,
+                        grants: Array(card["grants"]).select { |keyword| keyword.is_a?(String) },
                         face: card["face"].to_i, row: card["y"].is_a?(Numeric) ? card["y"] : nil }
       end
     end
@@ -274,6 +283,30 @@ module Rubyfront
         @declarations = {}
       when "resolve" then resolve(action)
       when "look" then look(action)
+      when "control"
+        # §8.2 — il controllo: chi comanda cambia, la proprietà no; le parole
+        # chiave concesse durano fino a fine turno; entrando sul campo di chi
+        # la controlla, la carta «entra» ora (i suoi effetti d'ingresso si
+        # applicano, e l'attesa di evocazione riparte).
+        card = @cards[action["uid"]]
+        if card && card[:zone] == "field" && SEATS.include?(action["by"])
+          card[:controller] = action["by"]
+          card[:grants] = Array(action["grants"]).select { |keyword| keyword.is_a?(String) }
+          card[:entered] = @turn
+        end
+      when "release"
+        # §8.2 — la restituzione: controllo e concessioni cadono; in Zona di
+        # Ritiro, o sul Fronte del proprietario com'è.
+        card = @cards[action["uid"]]
+        if card
+          card[:controller] = nil
+          card[:grants] = nil
+          if action["zone"] == "ritiro"
+            to_zone({ "uid" => action["uid"], "zone" => "ritiro" })
+          elsif action["y"].is_a?(Numeric)
+            card[:row] = action["y"]
+          end
+        end
       when "phase"
         @phase = action["phase"] if PHASES.include?(action["phase"])
       when "turn"

@@ -480,6 +480,15 @@ Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfro
 
 *Esempio: gioco un'Entità con effetto d'ingresso "scarta una carta" mentre ho in campo due permanenti — la più vecchia dice "quando giochi un'Entità, pesca una carta", la più recente "quando giochi un'Entità, infliggi 1 danno al Rubyfront avversario". Ordine: prima l'Entità entrata (scarto), poi la permanente più giovane (danno), infine la più vecchia (pesco).*
 
+#### Prendere il controllo di un'Entità
+
+Alcuni effetti fanno **prendere il controllo** di un'Entità avversaria, di norma **fino alla fine del turno**. Il controllo non cambia la proprietà: la carta resta del suo proprietario, e cambia solo chi la comanda.
+
+- **Dove sta:** l'Entità controllata passa sul campo di chi la controlla, in uno **slot extra** — non occupa uno dei 5 slot del Fronte e non conta nel loro limite. Gli **Oggetti** che le sono assegnati la seguono.
+- **Cosa fa:** attacca per chi la controlla (se un effetto le concede Slancio, subito); i suoi eventuali effetti **«quando entra in campo» si applicano**, perché entra sul campo di chi la controlla. Continua ad abilitare le sue Materie a chi la controlla.
+- **Fine del controllo:** al **cambio di turno** torna sul Fronte del proprietario, in uno slot libero, com'è — e si stappa come ogni sua Entità all'inizio del suo turno (§6.3). Se il Fronte del proprietario è **pieno**, va nella sua **Zona di Ritiro**. Gli Oggetti tornano con lei.
+- **Se muore o lascia il campo** mentre è controllata, va nell'Abisso o nella zona del **proprietario**, come sempre.
+
 #### Eventi generati durante la risoluzione
 
 La risoluzione di un effetto può generare **nuovi eventi** (una morte, un ingresso in campo...) mentre altri effetti innescati dall'evento precedente sono ancora in attesa. In quel caso **si accodano** (FIFO): prima si esaurisce **tutto il gruppo di effetti dell'evento corrente**, nell'ordine stabilito sopra; poi si risolve il nuovo evento, con il proprio gruppo di effetti innescati ordinato allo stesso modo — e così via, evento dopo evento, finché la coda non è vuota. Un nuovo evento **non interrompe mai** il gruppo in corso di risoluzione.

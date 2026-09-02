@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.28.0"
+    VERSION = "0.29.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -55,6 +55,8 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (RBF-007)",
       "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte» (RBF-012)",
       "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una» (RBF-006)",
+      "§8.2 Effetti certificati: «quando entra, prendi il controllo di un'Entità avversaria» (RBF-009)",
+      "§8.2 Controllo: attacca e blocca chi comanda, e a fine turno si restituisce",
       "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
       "§3.1 Il Rubyfront schierato non torna in Zona di Richiamo",
     ].freeze
@@ -148,6 +150,7 @@ module Rubyfront
       when "assign" then judge_assign(action)
       when "resolve" then judge_resolve(action)
       when "move" then judge_move(action)
+      when "release" then judge_release(action)
       when "gameOver" then judge_game_over(action)
       else no_rule(action["t"])
       end
@@ -554,10 +557,12 @@ module Rubyfront
       # difende. I blocchi si dichiarano DENTRO il turno dell'attaccante,
       # dall'altra metà del tavolo — per questo il confronto è con `active`,
       # non con una fase del difensore che non esiste.
-      if kind == "attack" && card[:owner] != @table.active
+      # Chi comanda la carta: chi la controlla, o il proprietario (§8.2).
+      commander = @table.controller_of(card)
+      if kind == "attack" && commander != @table.active
         return refuse("declare", "si attacca nel proprio turno (§6.3)")
       end
-      if kind != "attack" && card[:owner] == @table.active
+      if kind != "attack" && commander == @table.active
         return refuse("declare", "blocca chi difende: i blocchi si dichiarano nel turno dell'attaccante (§6.3)")
       end
 
@@ -583,7 +588,8 @@ module Rubyfront
 
       known = @cards[card[:card_id]]
       return allow("declare") unless known && known[:type] == "entity"
-      return allow("declare") if known[:keywords].include?("surge")
+      # Lo Slancio stampato, o concesso fino a fine turno (§8.2).
+      return allow("declare") if known[:keywords].include?("surge") || Array(card[:grants]).include?("surge")
 
       if card[:entered] == @table.turn
         refuse("declare", "l'Entità è entrata in campo questo turno: senza Slancio attacca dal prossimo (§6.2, attesa di evocazione)")
@@ -692,7 +698,7 @@ module Rubyfront
       # Un `move` è pixel — salvo lo schieramento del Rubyfront, che porta
       # un costo ed è un gesto di gioco (§3.1: nel proprio turno).
       # `spawn` è lo strumento di prova del client (evoca dal catalogo).
-      return nil if %w[loadDeck newGame say spawn].include?(kind) || (kind == "move" && !action.key?("cost"))
+      return nil if %w[loadDeck newGame say spawn release].include?(kind) || (kind == "move" && !action.key?("cost"))
       if kind == "player" && action["seat"] == actor
         patch = action["patch"]
         counters = patch.is_a?(Hash) && %w[hp flux fluxMax].any? { |key| patch.key?(key) }
@@ -795,12 +801,13 @@ module Rubyfront
       kind = action["t"]
       return judge_effect_move(action, ref) if kind == "toZone"
       return judge_effect_look(action, ref) if kind == "look"
+      return judge_effect_control(action, ref) if kind == "control"
       return refuse(kind, "un effetto certificato pesca, sposta o guarda soltanto, per ora (§8.2)") unless kind == "draw"
 
       source = @table.card(ref["source"])
       entering = @table.card(ref["entering"])
       return refuse(kind, "la fonte dell'effetto non è in campo (§8.2)") unless source && source[:zone] == "field"
-      unless entering && entering[:zone] == "field" && entering[:owner] == source[:owner] && ref["entering"] != ref["source"]
+      unless entering && entering[:zone] == "field" && @table.controller_of(entering) == @table.controller_of(source) && ref["entering"] != ref["source"]
         return refuse(kind, "l'ingresso che innesca dev'essere un'altra carta dello stesso posto, in campo (§8.2)")
       end
       return refuse(kind, "quella carta non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless entering[:entered] == @table.turn
@@ -810,7 +817,7 @@ module Rubyfront
       return no_rule(kind) unless arrived
 
       listeners = Array(@cards.dig(source[:card_id], :enter_listeners))
-      owner = source[:owner]
+      owner = @table.controller_of(source)
       matched = listeners.any? do |listener|
         arrived[:type] == "entity" &&
           (listener[:entering_race].nil? || arrived[:race] == listener[:entering_race]) &&
@@ -842,7 +849,7 @@ module Rubyfront
       if action["zone"] == "field"
         ret = Array(@cards.dig(source[:card_id], :enter_returns)).first
         return refuse("toZone", "la carta non ha un effetto certificato che riporti in campo (§8.2)") unless ret
-        return refuse("toZone", "la carta da riportare dev'essere nella propria Zona di Ritiro (§8.2)") unless target[:zone] == ret[:from] && target[:owner] == source[:owner]
+        return refuse("toZone", "la carta da riportare dev'essere nella propria Zona di Ritiro (§8.2)") unless target[:zone] == ret[:from] && target[:owner] == @table.controller_of(source)
 
         entry = @cards[target[:card_id]]
         return no_rule("toZone") unless entry
@@ -859,7 +866,7 @@ module Rubyfront
       move = moves.find { |candidate| candidate[:to] == action["zone"] }
       return refuse("toZone", "la carta non ha un effetto certificato che sposti lì (§8.2)") unless move
       return refuse("toZone", "il bersaglio dev'essere in campo (§8.2)") unless target[:zone] == "field"
-      return refuse("toZone", "il bersaglio dev'essere avversario (§8.2)") if target[:owner] == source[:owner]
+      return refuse("toZone", "il bersaglio dev'essere avversario (§8.2)") if @table.controller_of(target) == @table.controller_of(source)
 
       entry = @cards[target[:card_id]]
       return no_rule("toZone") unless entry
@@ -880,7 +887,7 @@ module Rubyfront
       return refuse("look", "la fonte dell'effetto non è in campo (§8.2)") unless source && source[:zone] == "field"
       return refuse("look", "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless source[:entered] == @table.turn
       return refuse("look", "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["entering"])
-      return refuse("look", "si guarda nel proprio mazzo (§8.2)") unless action["seat"] == source[:owner]
+      return refuse("look", "si guarda nel proprio mazzo (§8.2)") unless action["seat"] == @table.controller_of(source)
 
       look = Array(@cards.dig(source[:card_id], :enter_looks)).first
       return refuse("look", "la carta non ha un effetto certificato che guardi nel mazzo (§8.2)") unless look
@@ -889,7 +896,7 @@ module Rubyfront
       reveal = action["reveal"]
       return allow("look") unless reveal
 
-      top = @table.top_of_deck(source[:owner], look[:count])
+      top = @table.top_of_deck(@table.controller_of(source), look[:count])
       return refuse("look", "la carta mostrata dev'essere fra le prime #{look[:count]} del mazzo (§8.2)") unless top.include?(reveal)
 
       shown = @table.card(reveal)
@@ -902,8 +909,60 @@ module Rubyfront
       allow("look")
     end
 
+    # §8.2 — il controllo (la forma di RBF-009): la fonte è chi entra,
+    # entrata questo turno, innesco non consumato; il bersaglio un'Entità
+    # comandata dall'avversario, in campo, col costo di Flusso entro il
+    # limite (ignoto all'anagrafe: silenzio); `by` è chi comanda la fonte e
+    # le concessioni sono quelle della forma.
+    def judge_effect_control(action, ref)
+      return refuse("control", "l'effetto di chi entra ha per ingresso se stessa (§8.2)") unless ref["source"] == ref["entering"]
+
+      source = @table.card(ref["source"])
+      return refuse("control", "la fonte dell'effetto non è in campo (§8.2)") unless source && source[:zone] == "field"
+      return refuse("control", "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless source[:entered] == @table.turn
+      return refuse("control", "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["entering"])
+
+      by = @table.controller_of(source)
+      return refuse("control", "prende il controllo chi comanda la fonte (§8.2)") unless action["by"] == by
+
+      control = Array(@cards.dig(source[:card_id], :enter_controls)).first
+      return refuse("control", "la carta non ha un effetto certificato che prenda il controllo (§8.2)") unless control
+      return refuse("control", "le parole chiave concesse non sono quelle della carta (§8.2)") unless Array(action["grants"]) == control[:grants]
+
+      target = @table.card(action["uid"])
+      return refuse("control", "il bersaglio dev'essere in campo (§8.2)") unless target && target[:zone] == "field"
+      return refuse("control", "il bersaglio dev'essere avversario (§8.2)") if @table.controller_of(target) == by
+
+      entry = @cards[target[:card_id]]
+      return no_rule("control") unless entry
+      return refuse("control", "il bersaglio dev'essere un'Entità (§8.2)") unless entry[:type] == control[:target][:type]
+
+      max_cost = control[:target][:max_cost]
+      if max_cost
+        cost = entry[:flux_cost]
+        return refuse("control", "si prende un'Entità con costo di Flusso #{max_cost} o inferiore (§8.2)") unless cost && cost <= max_cost
+      end
+
+      allow("control")
+    end
+
+    # §8.2 — la restituzione a fine turno: solo di una carta controllata, e
+    # solo quando il turno di chi la controllava è finito. La destinazione
+    # la decide il tavolo (slot libero, o Zona di Ritiro a Fronte pieno).
+    def judge_release(action)
+      card = @table.card(action["uid"])
+      return no_rule("release") unless card
+      return refuse("release", "la carta non è sotto controllo (§8.2)") unless card[:controller]
+      return refuse("release", "si restituisce a fine turno, non prima (§8.2)") if card[:controller] == @table.active
+      return refuse("release", "si restituisce sul Fronte o nella Zona di Ritiro (§8.2)") unless %w[field ritiro].include?(action["zone"])
+
+      allow("release")
+    end
+
     def count_entities(seat, race)
       @table.field_cards(seat).count do |card|
+        next false if @table.controller_of(card) != seat
+
         entry = @cards[card[:card_id]]
         entry && entry[:type] == "entity" && (race.nil? || entry[:race] == race)
       end

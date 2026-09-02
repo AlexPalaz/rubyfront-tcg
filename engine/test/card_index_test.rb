@@ -59,6 +59,11 @@ class CardIndexTest < Minitest::Test
     assert_equal [], @index["RBF-027"][:enter_looks], "col dado non è la forma certificata"
   end
 
+  def test_il_radunatore_prende_il_controllo_fino_a_fine_turno
+    assert_equal [{ target: { type: "entity", controller: "opponent", max_cost: 3 }, grants: ["surge"] }], @index["RBF-009"][:enter_controls]
+    assert_equal [], @index["RBF-007"][:enter_controls]
+  end
+
   # --- il costo di schieramento (§3.1) ------------------------------------
 
   def test_conosce_il_costo_di_schieramento_fisso_o_a_dado

@@ -9,8 +9,8 @@
 // ingresso. Tutto ciò che non ha una forma certificata resta a mano.
 
 import type { CardFacts, Ctx } from "./ctx.js";
-import { fieldCards, playSpot, seatLabel, zoneCards } from "./state.js";
-import type { CardInstance, GameState } from "./types.js";
+import { controllerOf, fieldCards, playSpot, seatLabel, zoneCards } from "./state.js";
+import type { CardInstance, GameState, Seat } from "./types.js";
 
 export interface EnterTrigger {
   source: CardInstance;
@@ -33,7 +33,7 @@ export function enterMoves(state: GameState, entering: CardInstance, facts: (car
   return facts(entering.cardId).enterMoves.map(move => ({
     source: entering,
     to: move.to,
-    candidates: fieldCards(state).filter(card => card.owner !== entering.owner && facts(card.cardId).kind === move.target.kind),
+    candidates: fieldCards(state).filter(card => controllerOf(card) !== controllerOf(entering) && facts(card.cardId).kind === move.target.kind),
   }));
 }
 
@@ -54,7 +54,7 @@ export function enterReturns(state: GameState, entering: CardInstance, facts: (c
   return facts(entering.cardId).enterReturns.map(ret => ({
     source: entering,
     from: ret.from,
-    candidates: zoneCards(state, entering.owner, ret.from).filter(card => {
+    candidates: zoneCards(state, controllerOf(entering), ret.from).filter(card => {
       const f = facts(card.cardId);
       return f.kind === ret.filter.kind && f.behavior === ret.filter.behavior;
     }),
@@ -73,6 +73,7 @@ export function describeReturn(step: EnterReturnStep, facts: (cardId: string) =>
  */
 export async function resolveReturn(ctx: Ctx, step: EnterReturnStep, card: CardInstance): Promise<boolean> {
   const spot = playSpot(ctx.state(), card.owner, ctx.card(card.cardId).kind);
+  const by = controllerOf(step.source);
   const passed = await ctx.dispatch({
     t: "toZone",
     uid: card.uid,
@@ -83,8 +84,8 @@ export async function resolveReturn(ctx: Ctx, step: EnterReturnStep, card: CardI
   });
   if (passed) {
     ctx.log(
-      `${seatLabel(ctx.state(), step.source.owner)}: «${ctx.card(step.source.cardId).name}» riporta «${ctx.card(card.cardId).name}» sul Fronte.`,
-      step.source.owner
+      `${seatLabel(ctx.state(), by)}: «${ctx.card(step.source.cardId).name}» riporta «${ctx.card(card.cardId).name}» sul Fronte.`,
+      by
     );
   }
   return passed;
@@ -104,7 +105,7 @@ export interface EnterLookStep {
  */
 export function enterLooks(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterLookStep[] {
   return facts(entering.cardId).enterLooks.map(look => {
-    const looked = zoneCards(state, entering.owner, "deck").slice(0, look.count);
+    const looked = zoneCards(state, controllerOf(entering), "deck").slice(0, look.count);
     const candidates = looked.filter(card => {
       if (!look.reveal) return false;
       const f = facts(card.cardId);
@@ -124,20 +125,21 @@ export function describeLook(step: EnterLookStep, facts: (cardId: string) => Car
  * fondo — un'azione sola, marcata come effetto.
  */
 export async function resolveLook(ctx: Ctx, step: EnterLookStep, reveal: CardInstance | null): Promise<boolean> {
+  const by = controllerOf(step.source);
   const passed = await ctx.dispatch({
     t: "look",
-    seat: step.source.owner,
+    seat: by,
     count: step.count,
     ...(reveal ? { reveal: reveal.uid } : {}),
     effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
   });
   if (passed) {
-    const who = seatLabel(ctx.state(), step.source.owner);
+    const who = seatLabel(ctx.state(), by);
     ctx.log(
       reveal
         ? `${who}: «${ctx.card(step.source.cardId).name}» mostra «${ctx.card(reveal.cardId).name}» e la prende in mano; le altre in fondo al mazzo.`
         : `${who}: «${ctx.card(step.source.cardId).name}» guarda ${step.count} carte e le mette in fondo al mazzo.`,
-      step.source.owner
+      by
     );
   }
   return passed;
@@ -161,8 +163,8 @@ export async function resolveMove(ctx: Ctx, step: EnterMoveStep, target: CardIns
   });
   if (passed) {
     ctx.log(
-      `${seatLabel(ctx.state(), step.source.owner)}: «${ctx.card(step.source.cardId).name}» manda «${ctx.card(target.cardId).name}» nella Zona di Ritiro.`,
-      step.source.owner
+      `${seatLabel(ctx.state(), controllerOf(step.source))}: «${ctx.card(step.source.cardId).name}» manda «${ctx.card(target.cardId).name}» nella Zona di Ritiro.`,
+      controllerOf(step.source)
     );
   }
   return passed;
@@ -177,7 +179,7 @@ export async function resolveMove(ctx: Ctx, step: EnterMoveStep, target: CardIns
 export function enterTriggers(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterTrigger[] {
   const arrived = facts(entering.cardId);
   if (arrived.kind !== "entity") return [];
-  const mine = fieldCards(state).filter(card => card.owner === entering.owner);
+  const mine = fieldCards(state).filter(card => controllerOf(card) === controllerOf(entering));
   const count = (race: string | null): number =>
     mine.filter(card => {
       const f = facts(card.cardId);
@@ -210,11 +212,11 @@ export function describeTrigger(trigger: EnterTrigger, facts: (cardId: string) =
 export async function resolveTrigger(ctx: Ctx, entering: CardInstance, trigger: EnterTrigger): Promise<boolean> {
   const passed = await ctx.dispatch({
     t: "draw",
-    seat: entering.owner,
+    seat: controllerOf(entering),
     count: trigger.draw,
     effect: { source: trigger.source.uid, event: "on_enter_field", entering: entering.uid },
   });
-  if (passed) ctx.log(`${seatLabel(ctx.state(), entering.owner)}: ${describeTrigger(trigger, ctx.card)}.`, entering.owner);
+  if (passed) ctx.log(`${seatLabel(ctx.state(), controllerOf(entering))}: ${describeTrigger(trigger, ctx.card)}.`, controllerOf(entering));
   return passed;
 }
 
@@ -228,4 +230,74 @@ export async function resolveEnter(ctx: Ctx, entering: CardInstance): Promise<Ca
     if (await resolveTrigger(ctx, entering, trigger)) fired.push(trigger.source);
   }
   return fired;
+}
+
+/** Un controllo all'ingresso da risolvere: chi entra, cosa concede, fra chi si sceglie. */
+export interface EnterControlStep {
+  source: CardInstance;
+  grants: string[];
+  candidates: CardInstance[];
+}
+
+/**
+ * I controlli di chi entra (§8.2, la forma di RBF-009): i candidati sono le
+ * Entità comandate dall'avversario, in campo, col costo di Flusso entro il
+ * limite (costo ignoto: no).
+ */
+export function enterControls(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterControlStep[] {
+  const by = controllerOf(entering);
+  return facts(entering.cardId).enterControls.map(control => ({
+    source: entering,
+    grants: control.grants,
+    candidates: fieldCards(state).filter(card => {
+      if (controllerOf(card) === by) return false;
+      const f = facts(card.cardId);
+      if (f.kind !== control.target.kind) return false;
+      if (control.target.maxCost === null) return true;
+      return f.fluxCost !== null && f.fluxCost <= control.target.maxCost;
+    }),
+  }));
+}
+
+/** La riga che annuncia un controllo. */
+export function describeControl(step: EnterControlStep, facts: (cardId: string) => CardFacts): string {
+  return `«${facts(step.source.cardId).name}» si innesca: prendi il controllo di un'Entità avversaria fino a fine turno`;
+}
+
+/** Esegue il controllo sul bersaglio scelto: un'azione sola, marcata come effetto. */
+export async function resolveControl(ctx: Ctx, step: EnterControlStep, target: CardInstance): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const passed = await ctx.dispatch({
+    t: "control",
+    uid: target.uid,
+    by,
+    grants: step.grants,
+    effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
+  });
+  if (passed) {
+    ctx.log(
+      `${seatLabel(ctx.state(), by)}: «${ctx.card(step.source.cardId).name}» prende il controllo di «${ctx.card(target.cardId).name}» fino a fine turno.`,
+      by
+    );
+  }
+  return passed;
+}
+
+/**
+ * La restituzione a fine turno (§8.2): ogni carta che `seat` controllava
+ * torna al proprietario — sul suo Fronte se c'è uno slot libero, se no
+ * nella sua Zona di Ritiro. La manda il tavolo di chi ha chiuso il turno.
+ */
+export async function releaseControlled(ctx: Ctx, seat: Seat, freeSlot: (state: GameState, owner: Seat) => { x: number; y: number } | null): Promise<void> {
+  const held = Object.values(ctx.state().cards).filter(card => card.controller === seat && card.zone === "field");
+  for (const card of held) {
+    const spot = freeSlot(ctx.state(), card.owner);
+    const passed = await ctx.dispatch(spot ? { t: "release", uid: card.uid, zone: "field", ...spot } : { t: "release", uid: card.uid, zone: "ritiro" });
+    if (passed) {
+      ctx.log(
+        `«${ctx.card(card.cardId).name}» torna a ${seatLabel(ctx.state(), card.owner)}${spot ? "" : ", nella Zona di Ritiro: il Fronte è pieno"}.`,
+        card.owner
+      );
+    }
+  }
 }

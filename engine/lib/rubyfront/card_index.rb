@@ -54,6 +54,12 @@ module Rubyfront
     # aggiungerla alla mano, metti le altre in fondo» — la forma di RBF-006.
     # Ogni voce: { count:, reveal: { type:, race: } }.
     #
+    # `enter_controls` sono i controlli all'ingresso CERTIFICATI (§8.2):
+    # «prendi il controllo di un'Entità avversaria con costo di Flusso N o
+    # inferiore fino alla fine del turno; ottiene [parole chiave]» — la forma
+    # di RBF-009. Ogni voce: { target: { type:, controller:, max_cost: },
+    # grants: [...] }.
+    #
     # `behavior` è il comportamento di una Materia (§7.2): "normal",
     # "permanent" o "reactive" — nil per chi non è una Materia. Serve alla
     # finestra di gioco: le Reattive sono le sole carte che scendono in Fase
@@ -97,6 +103,7 @@ module Rubyfront
           enter_moves: enter_moves(faces).freeze,
           enter_returns: enter_returns(faces).freeze,
           enter_looks: enter_looks(faces).freeze,
+          enter_controls: enter_controls(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze
@@ -197,6 +204,31 @@ module Rubyfront
         next unless may.is_a?(Hash) && may["cardType"] == "entity"
 
         { count: from["count"], reveal: { type: "entity", race: may["race"].is_a?(String) ? may["race"] : nil }.freeze }.freeze
+      end
+    end
+
+    def self.enter_controls(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+        next if trigger["details"].is_a?(Hash) && trigger["details"]["enteringCard"]
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "gain_control" && effect["duration"] == "until_end_of_turn"
+
+        target = effect["target"]
+        next unless target.is_a?(Hash) && target["cardType"] == "entity" && target["controller"] == "opponent"
+        next unless target["min"] == 1 && target["max"] == 1
+
+        max_cost = nil
+        certified = Array(target["conditions"]).all? do |condition|
+          ok = condition.is_a?(Hash) && condition["stat"] == "flux_cost" && condition["operator"] == "lte" && condition["value"].is_a?(Integer)
+          max_cost = condition["value"] if ok
+          ok
+        end
+        next unless certified
+
+        grants = Array(effect.dig("details", "grants")).select { |keyword| keyword.is_a?(String) }
+        { target: { type: "entity", controller: "opponent", max_cost: max_cost }.freeze, grants: grants.freeze }.freeze
       end
     end
 

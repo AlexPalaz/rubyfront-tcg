@@ -11,6 +11,7 @@ import { declareAttack as declareAttackVia, declareBlock, undeclare } from "./co
 import { tapPreview } from "./preview.js";
 import {
   COMPACT_TAIL_SAVED,
+  CONTROL_X,
   FRONT_SLOT_X,
   FRONT_W,
   FRONT_X,
@@ -33,18 +34,22 @@ import {
 import { showRoll } from "./dice.js";
 import { confirmEffect, showEnterEffect } from "./effect.js";
 import {
+  describeControl,
   describeLook,
   describeMove,
   describeReturn,
   describeTrigger,
+  enterControls,
   enterLooks,
   enterMoves,
   enterReturns,
   enterTriggers,
+  resolveControl,
   resolveLook,
   resolveMove,
   resolveReturn,
   resolveTrigger,
+  type EnterControlStep,
   type EnterLookStep,
   type EnterMoveStep,
   type EnterReturnStep,
@@ -54,6 +59,7 @@ import { openMenu, type MenuItem } from "./menu.js";
 import { TILE_H, TILE_W, cardName, cardStats, enterEffects, faceCount, faceKind, isRubyfront, type Deployment } from "./renderer.js";
 import {
   STACK_STEP,
+  controllerOf,
   declarationOf,
   fieldCards,
   matterSpot,
@@ -119,6 +125,9 @@ export interface TableView {
   liftForFlight(uid: string): (() => void) | null;
   /** Il volo da una pila al campo (chi riceve): dopo aver applicato l'azione. */
   flyFromPile(seat: Seat, zone: ZoneId, uid: string): void;
+  /** Il volo da dove sta a dove starà (controllo, restituzione): prima
+      dell'azione; ritorna il via, da dare dopo il disegno. */
+  liftToFlight(uid: string): (() => void) | null;
 }
 
 export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
@@ -448,6 +457,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // Zona di Richiamo (§5): il Rubyfront parte da qui, e una volta
       // schierato non ci torna (§3.1).
       markSlot(SLOT_X.richiamo, back, "Zona di Richiamo");
+      // Lo slot extra del controllo (§8.2): un'Entità avversaria presa fino
+      // a fine turno sta qui, e non conta nei 5 del Fronte.
+      markSlot(CONTROL_X, back, "Controllo");
 
       // I cinque slot del Fronte, al centro. L'etichetta è una sola per il
       // gruppo: cinque scritte "Fronte" in fila sarebbero solo rumore.
@@ -511,7 +523,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   // Dichiarazioni e loro conseguenze stanno in combat.ts: passano dal
   // giudizio dell'engine, e il tavolo si limita a fornire il bersaglio.
   function declareAttack(card: CardInstance): void {
-    void declareAttackVia(ctx, card, rubyfrontOf(otherSeat(card.owner)));
+    void declareAttackVia(ctx, card, rubyfrontOf(otherSeat(controllerOf(card))));
   }
 
   function startTargeting(attacker: CardInstance, kind: "block" | "counter"): void {
@@ -533,14 +545,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   function defenderSeat(): Seat | null {
     if (targeting?.mode !== "block") return null;
     const attacker = ctx.state().cards[targeting.attacker];
-    return attacker ? otherSeat(attacker.owner) : null;
+    return attacker ? otherSeat(controllerOf(attacker)) : null;
   }
 
   /** La carta è scegliibile nel modo bersaglio in corso? */
   function pickable(card: CardInstance): boolean {
     if (!targeting) return false;
     if (targeting.mode === "effect") return targeting.candidates.has(card.uid);
-    return card.owner === defenderSeat() && card.uid !== targeting.attacker;
+    return controllerOf(card) === defenderSeat() && card.uid !== targeting.attacker;
   }
 
   function cancelTargeting(): void {
@@ -617,7 +629,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const items: MenuItem[] = [];
     // «Mia» = di un posto che governo: in rete solo il proprio, in partita
     // locale entrambi.
-    const mine = ctx.controls(card.owner);
+    // «Mia» = comandata da un posto che governo: chi la controlla, o il
+    // proprietario (§8.2).
+    const mine = ctx.controls(controllerOf(card));
     const declared = declarationOf(ctx.state(), card.uid);
 
     // Il combattimento sta in cima al menu: è quello che si cerca in Fase di
@@ -643,7 +657,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           // d'oro concederà eccezioni, sarà lei a riaprire la voce.
           const state = ctx.state();
           const kind = faceKind(card.cardId, card.face);
-          if ((kind === null || kind === "entity") && state.phase === "fronte" && state.active === card.owner) {
+          if ((kind === null || kind === "entity") && state.phase === "fronte" && state.active === controllerOf(card)) {
             items.push({ label: "Attacca", run: () => declareAttack(card) });
           }
         }
@@ -652,7 +666,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // è sempre una carta avversaria, in locale anche la propria — chi guida
       // entrambi i posti blocca con le Entità del difensore.
       // E si blocca in Reazione, «vista l'intera ondata» (§6.4).
-      if (declared?.kind === "attack" && ctx.controls(otherSeat(card.owner)) && ctx.state().phase === "reazione") {
+      if (declared?.kind === "attack" && ctx.controls(otherSeat(controllerOf(card))) && ctx.state().phase === "reazione") {
         items.push({ label: "Blocca con…", run: () => startTargeting(card, "block") });
         items.push({ label: "Contrattacca con…", run: () => startTargeting(card, "counter") });
       }
@@ -788,6 +802,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const moves = enterMoves(ctx.state(), live, ctx.card);
       const returns = enterReturns(ctx.state(), live, ctx.card);
       const looks = enterLooks(ctx.state(), live, ctx.card);
+      const controls = enterControls(ctx.state(), live, ctx.card);
       const triggers = enterTriggers(ctx.state(), live, ctx.card);
       void showEnterEffect(root, {
         cardId: card.cardId,
@@ -800,9 +815,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           ...moves.map(step => describeMove(step, ctx.card)),
           ...returns.map(step => describeReturn(step, ctx.card)),
           ...looks.map(step => describeLook(step, ctx.card)),
+          ...controls.map(step => describeControl(step, ctx.card)),
           ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
         ],
-        onContinue: moves.length || returns.length || looks.length || triggers.length ? () => void playTriggers(live) : undefined,
+        onContinue:
+          moves.length || returns.length || looks.length || controls.length || triggers.length ? () => void playTriggers(live) : undefined,
       });
     }
     return passed;
@@ -1055,6 +1072,89 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
   }
 
+  /**
+   * Il volo di una tessera da dove sta a dove starà: si prende il suo
+   * rettangolo PRIMA dell'azione, e dopo il disegno il fantasma scivola
+   * fino al nuovo posto. Per il controllo e la restituzione (§8.2).
+   */
+  function liftToFlight(uid: string): (() => void) | null {
+    const tile = tiles.get(uid);
+    if (!tile || tile.offsetParent === null) return null;
+    const from = tile.getBoundingClientRect();
+    const layoutW = tile.offsetWidth;
+    const layoutH = tile.offsetHeight;
+    return () => {
+      const landed = tiles.get(uid);
+      if (!landed || landed.offsetParent === null) return;
+      const to = landed.getBoundingClientRect();
+      const ghost = landed.cloneNode(true) as HTMLElement;
+      ghost.classList.add("fly-ghost");
+      ghost.classList.remove("is-pickable", "is-legal", "is-triggering");
+      ghost.style.position = "fixed";
+      ghost.style.left = `${to.left}px`;
+      ghost.style.top = `${to.top}px`;
+      ghost.style.width = `${layoutW}px`;
+      ghost.style.height = `${layoutH}px`;
+      ghost.style.margin = "0";
+      ghost.style.visibility = "";
+      ghost.style.transition = "none";
+      ghost.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / layoutW})`;
+      document.body.append(ghost);
+      landed.style.visibility = "hidden";
+      requestAnimationFrame(() => {
+        ghost.style.transition = "";
+        ghost.style.transform = `scale(${to.width / layoutW})`;
+      });
+      window.setTimeout(() => {
+        ghost.remove();
+        landed.style.visibility = "";
+      }, FLY_MS + 60);
+    };
+  }
+
+  async function playControl(step: EnterControlStep): Promise<void> {
+    const by = controllerOf(step.source);
+    if (step.candidates.length === 0) {
+      ctx.log(`${seatLabel(ctx.state(), by)}: «${ctx.card(step.source.cardId).name}» non ha Entità avversarie da prendere.`, by);
+      return;
+    }
+    light(step.source.uid, true);
+    const target = await pickTarget(step.source, step.candidates, "Scegli l'Entità avversaria di cui prendere il controllo");
+    if (!target) {
+      light(step.source.uid, false);
+      return;
+    }
+    flashArrow(step.source.uid, target.uid, 60_000);
+    const sure = await confirmEffect(root, `Prendere il controllo di «${ctx.card(target.cardId).name}» fino a fine turno?`);
+    if (!sure) {
+      transientArrows = [];
+      light(step.source.uid, false);
+      render();
+      return;
+    }
+    hold(true);
+    let passed = false;
+    try {
+      await wait(CONFIRMED_LEAD_MS);
+      const fly = liftToFlight(target.uid);
+      passed = await resolveControl(ctx, step, target);
+      transientArrows = [];
+      if (passed) {
+        fly?.();
+        await wait(FLY_MS);
+      } else {
+        render();
+      }
+    } finally {
+      light(step.source.uid, false);
+      hold(false);
+    }
+    // §8.2 — entrando sul campo di chi la controlla, i suoi effetti
+    // «quando entra in campo» si applicano.
+    const taken = ctx.state().cards[target.uid];
+    if (passed && taken && taken.zone === "field") await playTriggers(taken);
+  }
+
   async function playLook(step: EnterLookStep): Promise<void> {
     const who = seatLabel(ctx.state(), step.source.owner);
     if (step.looked.length === 0) {
@@ -1131,6 +1231,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     for (const step of enterLooks(ctx.state(), entering, ctx.card)) {
       await playLook(step);
+    }
+    for (const step of enterControls(ctx.state(), entering, ctx.card)) {
+      await playControl(step);
     }
     hold(true);
     try {
@@ -1586,6 +1689,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     flashArrow: (fromUid, toUid) => flashArrow(fromUid, toUid, TRIGGER_LEAD_MS + FLY_MS),
     liftForFlight,
     flyFromPile,
+    liftToFlight,
     refreshLayout() {
       applySurfaceSize();
       buildStaticZones();
