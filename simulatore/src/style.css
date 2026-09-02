@@ -973,7 +973,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 /* Con l'arbitro, la carta che costa più del Flusso disponibile si vela: un
    velo scuro sopra, colori spenti sotto, e il cursore dice di no. Resta
    leggibile (l'anteprima al passaggio funziona), non si prende. */
-.hand .tile.is-unaffordable { filter: grayscale(.55) brightness(.85); cursor: not-allowed; }
+.hand .tile.is-unaffordable { filter: grayscale(.55) brightness(.85); }
 .hand .tile.is-unaffordable::before {
   content: "";
   position: absolute; inset: 0;

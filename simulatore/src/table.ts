@@ -850,8 +850,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   /**
    * Con l'arbitro al tavolo, una carta in mano che costa più del Flusso
-   * disponibile — barra più Gettone (§3.2) — non si gioca: si vela e non si
-   * prende. È un aiuto, non una regola: la regola è dell'engine (§3.2, il
+   * disponibile — barra più Gettone (§3.2) — non si gioca: si vela, e il
+   * doppio click non la gioca; si trascina però, perché scartarla non
+   * costa. È un aiuto, non una regola: la regola è dell'engine (§3.2, il
    * costo delle carte), che fermerebbe comunque il gesto. Il Rubyfront ha il
    * costo di schieramento, un'altra cosa; costo ignoto, carta libera.
    */
@@ -1057,9 +1058,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (!live) return false;
           // La mano avversaria è nascosta (§5): non si tocca — salvo in
           // partita locale, dove anche quella mano è di chi guida il tavolo.
-          if (live.zone === "hand" && !ctx.controls(live.owner)) return false;
-          // E la carta che non ci si può permettere resta nella mano.
-          return !unaffordable(live);
+          // La carta che non ci si può permettere si prende lo stesso: sul
+          // campo la ferma l'arbitro (§3.2), ma scartarla nell'Abisso o
+          // rimetterla nel mazzo non costa nulla.
+          return !(live.zone === "hand" && !ctx.controls(live.owner));
         },
         onDragMove: drop => {
           const live = ctx.state().cards[card.uid];
