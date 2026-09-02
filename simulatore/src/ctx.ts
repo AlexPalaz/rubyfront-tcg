@@ -51,8 +51,14 @@ export interface EnterControl {
  * aggiungerla alla mano, metti le altre in fondo». È la forma di RBF-006.
  */
 export interface EnterLook {
-  count: number;
-  reveal: { kind: "entity"; race: string | null } | null;
+  /** Quante carte, se fisso; null se dipende dal dado. */
+  count: number | null;
+  /** Col dado (RBF-027): le facce, e il conto è `countBase + ceil(tiro/2)`. */
+  die: number | null;
+  countBase: number;
+  reveal: { kind: "entity" | "object"; race: string | null } | null;
+  /** «Metti una delle altre nella tua Zona di Ritiro» (RBF-027). */
+  thenRetire: boolean;
 }
 
 /**

@@ -14,6 +14,8 @@ import {
   enterMoves,
   enterReturns,
   enterTriggers,
+  lookAfterRoll,
+  lookCount,
   releaseControlled,
   resolveControl,
   resolveEnter,
@@ -28,7 +30,9 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   ARCIERE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
   RHEN: { kind: "entity", race: "human", enterReturns: [{ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" }] },
   PERMANENTE: { kind: "matter", behavior: "permanent" },
-  CERCATORE: { kind: "entity", race: "human", enterLooks: [{ count: 4, reveal: { kind: "entity", race: "human" } }] },
+  CERCATORE: { kind: "entity", race: "human", enterLooks: [{ count: 4, die: null, countBase: 0, reveal: { kind: "entity", race: "human" }, thenRetire: false }] },
+  ARTEFICE: { kind: "entity", race: "auros", enterLooks: [{ count: null, die: 6, countBase: 2, reveal: { kind: "object", race: null }, thenRetire: true }] },
+  FERRO: { kind: "object" },
   RADUNATORE: { kind: "entity", race: "human", enterControls: [{ target: { kind: "entity", controller: "opponent", maxCost: 3 }, grants: ["surge"] }] },
   PICCOLA: { kind: "entity", race: "auros", fluxCost: 2 },
   GRANDE: { kind: "entity", race: "auros", fluxCost: 5 },
@@ -322,5 +326,25 @@ describe("enterControls", () => {
     expect(sent[1]).toEqual({ t: "release", uid: "b1", zone: "field", x: 442, y: 172 });
     await releaseControlled(ctx, "a", () => null);
     expect(sent[2]).toEqual({ t: "release", uid: "b1", zone: "ritiro" });
+  });
+});
+
+// Lo sguardo col dado (§8.2), la forma di RBF-027. Gemello: engine_test.rb.
+describe("lookAfterRoll", () => {
+  it("il conto è 2 più metà del tiro, arrotondata per eccesso", () => {
+    const look = facts("ARTEFICE").enterLooks[0];
+    expect([1, 2, 3, 4, 5, 6].map(roll => lookCount(look, roll))).toEqual([3, 3, 4, 4, 5, 5]);
+    const state = newGame();
+    const art = on(state, "art", "ARTEFICE");
+    for (let i = 1; i <= 6; i++) {
+      const card = on(state, `d${i}`, i === 2 ? "FERRO" : "PIETRA");
+      card.zone = "deck";
+      card.order = i;
+    }
+    expect(enterLooks(state, art, facts)[0].looked).toEqual([]);
+    const step = lookAfterRoll(state, art, look, 3, facts);
+    expect(step.looked.map(card => card.uid)).toEqual(["d1", "d2", "d3", "d4"]);
+    expect(step.candidates.map(card => card.uid)).toEqual(["d2"]);
+    expect(step.roll).toBe(3);
   });
 });

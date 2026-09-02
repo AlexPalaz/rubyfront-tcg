@@ -8,7 +8,7 @@
 // forma certificata e la lascia passare come effetto, una volta per
 // ingresso. Tutto ciò che non ha una forma certificata resta a mano.
 
-import type { CardFacts, Ctx } from "./ctx.js";
+import type { CardFacts, Ctx, EnterLook } from "./ctx.js";
 import { controllerOf, fieldCards, playSpot, seatLabel, zoneCards } from "./state.js";
 import type { CardInstance, GameState, Seat } from "./types.js";
 
@@ -91,56 +91,91 @@ export async function resolveReturn(ctx: Ctx, step: EnterReturnStep, card: CardI
   return passed;
 }
 
-/** Uno sguardo nel mazzo da risolvere: chi entra, le carte guardate, quali si possono mostrare. */
+/** Uno sguardo nel mazzo da risolvere: chi entra, la forma, e — dopo il
+    tiro se c'è — le carte guardate e quali si possono mostrare. */
 export interface EnterLookStep {
   source: CardInstance;
+  look: EnterLook;
+  /** Il tiro, se la forma lo vuole: lo mette il tavolo prima di guardare. */
+  roll: number | null;
   count: number;
   looked: CardInstance[];
   candidates: CardInstance[];
 }
 
+/** Quante carte si guardano, data la forma e il tiro (§8.2, RBF-027). */
+export function lookCount(look: EnterLook, roll: number | null): number {
+  if (look.count !== null) return look.count;
+  return look.countBase + Math.ceil((roll ?? 0) / 2);
+}
+
 /**
- * Gli sguardi nel mazzo di chi entra (§8.2, la forma di RBF-006): le prime
- * N del proprio mazzo, e fra queste quelle che si possono mostrare.
+ * Gli sguardi nel mazzo di chi entra (§8.2, le forme di RBF-006 e RBF-027):
+ * senza dado, le prime N del proprio mazzo e fra queste quelle che si
+ * possono mostrare; col dado, il passo resta da riempire dopo il tiro
+ * (vedi lookAfterRoll).
  */
 export function enterLooks(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterLookStep[] {
-  return facts(entering.cardId).enterLooks.map(look => {
-    const looked = zoneCards(state, controllerOf(entering), "deck").slice(0, look.count);
-    const candidates = looked.filter(card => {
-      if (!look.reveal) return false;
-      const f = facts(card.cardId);
-      return f.kind === look.reveal.kind && (look.reveal.race === null || f.race === look.reveal.race);
-    });
-    return { source: entering, count: look.count, looked, candidates };
+  return facts(entering.cardId).enterLooks.map(look => lookAfterRoll(state, entering, look, null, facts));
+}
+
+/** Lo sguardo riempito: le carte guardate col conto della forma e del tiro. */
+export function lookAfterRoll(
+  state: GameState,
+  entering: CardInstance,
+  look: EnterLook,
+  roll: number | null,
+  facts: (cardId: string) => CardFacts
+): EnterLookStep {
+  const count = look.die !== null && roll === null ? 0 : lookCount(look, roll);
+  const looked = zoneCards(state, controllerOf(entering), "deck").slice(0, count);
+  const candidates = looked.filter(card => {
+    if (!look.reveal) return false;
+    const f = facts(card.cardId);
+    return f.kind === look.reveal.kind && (look.reveal.race === null || f.race === look.reveal.race);
   });
+  return { source: entering, look, roll, count, looked, candidates };
 }
 
 /** La riga che annuncia uno sguardo nel mazzo. */
 export function describeLook(step: EnterLookStep, facts: (cardId: string) => CardFacts): string {
-  return `«${facts(step.source.cardId).name}» si innesca: guarda le prime ${step.count} carte del mazzo`;
+  const name = facts(step.source.cardId).name;
+  if (step.look.die !== null) {
+    return `«${name}» si innesca: tira un d${step.look.die} e guarda ${step.look.countBase} più metà del tiro carte del mazzo`;
+  }
+  return `«${name}» si innesca: guarda le prime ${step.count} carte del mazzo`;
 }
 
 /**
  * Esegue lo sguardo: la carta mostrata (o nessuna) in mano, le altre in
  * fondo — un'azione sola, marcata come effetto.
  */
-export async function resolveLook(ctx: Ctx, step: EnterLookStep, reveal: CardInstance | null): Promise<boolean> {
+export async function resolveLook(
+  ctx: Ctx,
+  step: EnterLookStep,
+  reveal: CardInstance | null,
+  retire: CardInstance | null = null
+): Promise<boolean> {
   const by = controllerOf(step.source);
   const passed = await ctx.dispatch({
     t: "look",
     seat: by,
     count: step.count,
     ...(reveal ? { reveal: reveal.uid } : {}),
+    ...(retire ? { retire: retire.uid } : {}),
+    ...(step.roll !== null ? { roll: step.roll } : {}),
     effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
   });
   if (passed) {
     const who = seatLabel(ctx.state(), by);
-    ctx.log(
-      reveal
-        ? `${who}: «${ctx.card(step.source.cardId).name}» mostra «${ctx.card(reveal.cardId).name}» e la prende in mano; le altre in fondo al mazzo.`
-        : `${who}: «${ctx.card(step.source.cardId).name}» guarda ${step.count} carte e le mette in fondo al mazzo.`,
-      by
-    );
+    const name = ctx.card(step.source.cardId).name;
+    const parts = [
+      step.roll !== null ? `tira d${step.look.die} → ${step.roll}, guarda ${step.count} carte` : `guarda ${step.count} carte`,
+      reveal ? `mostra «${ctx.card(reveal.cardId).name}» e la prende in mano` : "non mostra nulla",
+      retire ? `«${ctx.card(retire.cardId).name}» va nella Zona di Ritiro` : null,
+      "le altre in fondo al mazzo",
+    ].filter(Boolean);
+    ctx.log(`${who}: «${name}» ${parts.join("; ")}.`, by);
   }
   return passed;
 }

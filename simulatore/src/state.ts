@@ -397,6 +397,11 @@ export function apply(state: GameState, action: Action): GameState {
           cards[card.uid] = { ...card, zone: "hand", order: orderForBottom(state, action.seat, "hand"), facedown: false };
           continue;
         }
+        if (card.uid === action.retire) {
+          // In cima alla Zona di Ritiro, scoperta (RBF-027).
+          cards[card.uid] = { ...card, zone: "ritiro", order: orderForTop(state, action.seat, "ritiro"), facedown: false };
+          continue;
+        }
         cards[card.uid] = { ...card, order: bottom };
         bottom += 1;
       }

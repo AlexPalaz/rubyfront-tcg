@@ -339,11 +339,32 @@ function enterLooksOf(face: CardFace | undefined): EnterLook[] {
     if (!effect || effect.type !== "look_and_optionally_move") continue;
     const from = effect.from;
     const d = effect.details;
-    if (!from || from.zone !== "deck" || from.owner !== "controller" || from.position !== "top" || !Number.isInteger(from.count)) continue;
+    if (!from || from.zone !== "deck" || from.owner !== "controller" || from.position !== "top") continue;
     if (!d || d.revealTo?.zone !== "hand" || d.restTo?.zone !== "deck" || d.restTo?.position !== "bottom") continue;
     const may = d.mayReveal;
-    if (!may || may.cardType !== "entity") continue;
-    out.push({ count: from.count as number, reveal: { kind: "entity", race: typeof may.race === "string" ? may.race : null } });
+    if (!may || (may.cardType !== "entity" && may.cardType !== "object")) continue;
+    // Il conto: fisso (RBF-006), o col dado «2 + ceil(result/2)» (RBF-027),
+    // la sola formula certificata.
+    let count: number | null = null;
+    let die: number | null = null;
+    let countBase = 0;
+    if (Number.isInteger(from.count)) count = from.count as number;
+    else {
+      const faces = typeof d.die === "string" ? /^d(\d+)$/.exec(d.die) : null;
+      const formula = typeof d.count === "string" ? /^(\d+) \+ ceil\(result\/2\)$/.exec(d.count) : null;
+      if (!faces || !formula) continue;
+      die = Number(faces[1]);
+      countBase = Number(formula[1]);
+    }
+    const then = d.thenMoveOneTo;
+    if (then && then.zone !== "retire") continue;
+    out.push({
+      count,
+      die,
+      countBase,
+      reveal: { kind: may.cardType, race: typeof may.race === "string" ? may.race : null },
+      thenRetire: Boolean(then),
+    });
   }
   return out;
 }

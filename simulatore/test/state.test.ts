@@ -394,6 +394,9 @@ describe("apply look", () => {
     expect(zoneCards(state, "a", "deck").map(card => card.uid)).toEqual(["a-5", "a-6", "a-1", "a-3", "a-4"]);
     state = apply(state, { t: "look", seat: "a", count: 2, effect: ref });
     expect(zoneCards(state, "a", "deck").map(card => card.uid)).toEqual(["a-1", "a-3", "a-4", "a-5", "a-6"]);
+    state = apply(state, { t: "look", seat: "a", count: 3, retire: "a-3", roll: 1, effect: ref });
+    expect(zoneCards(state, "a", "ritiro").map(card => card.uid)).toEqual(["a-3"]);
+    expect(zoneCards(state, "a", "deck").map(card => card.uid)).toEqual(["a-5", "a-6", "a-1", "a-4"]);
   });
 });
 

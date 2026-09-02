@@ -326,7 +326,13 @@ Regole collegate finora:
   l'engine passa se il conto è quello della forma e la rivelata sta fra le
   prime N ed è del tipo e della razza chiesti; nel client si vedono le
   quattro, si sceglie fra quelle che si possono mostrare (le altre velate),
-  Chiudi per nessuna. La quinta forma è quella di RBF-009, il
+  Chiudi per nessuna. Lo stesso passo serve a RBF-027, l'**Artefice**:
+  «tira un d6 e guarda 2 più metà del tiro (arrotondata per eccesso), puoi
+  mostrare un Oggetto e aggiungerlo alla mano, metti una delle altre nella
+  Zona di Ritiro e le restanti in fondo» — `look` porta anche `roll` e
+  `retire`; l'engine verifica il tiro nella forma, il conto dalla formula
+  (la sola certificata), e che una delle altre vada in Ritiro quando ce
+  ne sono. La quinta forma è quella di RBF-009, il
   **Radunatore**: «prendi il controllo di un'Entità avversaria con costo di
   Flusso 3 o inferiore fino alla fine del turno; ottiene Slancio» — con
   essa nasce il **controllo** (§8.2, «Prendere il controllo», scritto col
@@ -339,7 +345,7 @@ Regole collegate finora:
   manda `release {uid, zone, x?, y?}` — sul Fronte del proprietario in uno
   slot libero, o nella sua Zona di Ritiro se è pieno — che l'engine passa
   solo per una carta controllata e solo a turno finito. Tutto ciò che non
-  ha una forma certificata resta a mano. Engine 0.29.0, ventinove regole.
+  ha una forma certificata resta a mano. Engine 0.30.0, trenta regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

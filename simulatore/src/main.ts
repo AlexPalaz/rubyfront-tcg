@@ -141,6 +141,11 @@ function receive(action: Action, from: Seat): void {
   // Un effetto dell'avversario si vede anche qui: la fonte si accende, e se
   // ha un bersaglio la freccia lo indica — prima che la carta parta.
   if ((action.t === "draw" || action.t === "look") && action.effect) table.flash(action.effect.source);
+  if (action.t === "look" && action.roll !== undefined) {
+    const source = state.cards[action.effect.source];
+    const look = source ? cardStats(source.cardId).enterLooks.find(entry => entry.die !== null) : undefined;
+    if (look?.die) void showRoll(document.querySelector<HTMLElement>("#table")!, look.die, action.roll, "Quante carte guardare");
+  }
   let fly: (() => void) | null = null;
   if (action.t === "control") {
     // Il controllo dell'avversario: la fonte si accende, la freccia indica

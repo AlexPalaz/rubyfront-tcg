@@ -369,4 +369,13 @@ class TableTest < Minitest::Test
     @table.apply({ "t" => "release", "uid" => "b-1", "zone" => "ritiro" })
     assert_equal "ritiro", @table.card("b-1")[:zone], "a Fronte pieno, in Zona di Ritiro"
   end
+
+  def test_look_manda_una_carta_in_ritiro
+    @table.apply(deck_for("a", 5))
+    @table.apply({ "t" => "look", "seat" => "a", "count" => 4, "reveal" => "a-2", "retire" => "a-3",
+                   "effect" => { "source" => "x", "event" => "on_enter_field", "entering" => "x" } })
+    assert_equal "hand", @table.card("a-2")[:zone]
+    assert_equal "ritiro", @table.card("a-3")[:zone]
+    assert_equal %w[a-5 a-1 a-4], @table.top_of_deck("a", 3)
+  end
 end

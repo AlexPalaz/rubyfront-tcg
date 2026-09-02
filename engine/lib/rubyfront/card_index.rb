@@ -50,9 +50,11 @@ module Rubyfront
     # filter: { type:, behavior: }, to: }.
     #
     # `enter_looks` sono gli sguardi nel mazzo CERTIFICATI (§8.2): «guarda le
-    # prime N carte del tuo mazzo, puoi mostrarne un'Entità [di razza] e
-    # aggiungerla alla mano, metti le altre in fondo» — la forma di RBF-006.
-    # Ogni voce: { count:, reveal: { type:, race: } }.
+    # prime N carte del tuo mazzo, puoi mostrarne una [di tipo e razza] e
+    # aggiungerla alla mano, [mettine una nella Zona di Ritiro,] metti le
+    # altre in fondo» — le forme di RBF-006 (N fisso) e RBF-027 (N = base +
+    # ceil(tiro/2), con un dado). Ogni voce: { count:, die:, count_base:,
+    # reveal: { type:, race: }, then_retire: }.
     #
     # `enter_controls` sono i controlli all'ingresso CERTIFICATI (§8.2):
     # «prendi il controllo di un'Entità avversaria con costo di Flusso N o
@@ -196,14 +198,32 @@ module Rubyfront
 
         from = effect["from"]
         details = effect["details"]
-        next unless from.is_a?(Hash) && from["zone"] == "deck" && from["owner"] == "controller" && from["position"] == "top" && from["count"].is_a?(Integer)
+        next unless from.is_a?(Hash) && from["zone"] == "deck" && from["owner"] == "controller" && from["position"] == "top"
         next unless details.is_a?(Hash) && details.dig("revealTo", "zone") == "hand"
         next unless details.dig("restTo", "zone") == "deck" && details.dig("restTo", "position") == "bottom"
 
         may = details["mayReveal"]
-        next unless may.is_a?(Hash) && may["cardType"] == "entity"
+        next unless may.is_a?(Hash) && %w[entity object].include?(may["cardType"])
 
-        { count: from["count"], reveal: { type: "entity", race: may["race"].is_a?(String) ? may["race"] : nil }.freeze }.freeze
+        # Il conto: fisso (RBF-006), o col dado «2 + ceil(result/2)» (RBF-027),
+        # la sola formula certificata.
+        count = from["count"].is_a?(Integer) ? from["count"] : nil
+        die = nil
+        base = 0
+        unless count
+          faces = details["die"].is_a?(String) && details["die"][/\Ad(\d+)\z/, 1]
+          formula = details["count"].is_a?(String) && details["count"][/\A(\d+) \+ ceil\(result\/2\)\z/, 1]
+          next unless faces && formula
+
+          die = faces.to_i
+          base = formula.to_i
+        end
+        then_to = details["thenMoveOneTo"]
+        next if then_to && (!then_to.is_a?(Hash) || then_to["zone"] != "retire")
+
+        { count: count, die: die, count_base: base,
+          reveal: { type: may["cardType"], race: may["race"].is_a?(String) ? may["race"] : nil }.freeze,
+          then_retire: !then_to.nil? }.freeze
       end
     end
 

@@ -44,6 +44,7 @@ import {
   enterMoves,
   enterReturns,
   enterTriggers,
+  lookAfterRoll,
   resolveControl,
   resolveLook,
   resolveMove,
@@ -1155,24 +1156,45 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (passed && taken && taken.zone === "field") await playTriggers(taken);
   }
 
-  async function playLook(step: EnterLookStep): Promise<void> {
-    const who = seatLabel(ctx.state(), step.source.owner);
+  async function playLook(first: EnterLookStep): Promise<void> {
+    const by = controllerOf(first.source);
+    const who = seatLabel(ctx.state(), by);
+    const name = ctx.card(first.source.cardId).name;
+    light(first.source.uid, true);
+    // Col dado (RBF-027): si tira, il dado gira al centro, e il conto delle
+    // carte discende dal tiro.
+    let step = first;
+    if (first.look.die !== null) {
+      const roll = 1 + Math.floor(Math.random() * first.look.die);
+      await showRoll(root, first.look.die, roll, `${name} · quante carte guardare`);
+      step = lookAfterRoll(ctx.state(), first.source, first.look, roll, ctx.card);
+    }
     if (step.looked.length === 0) {
-      ctx.log(`${who}: «${ctx.card(step.source.cardId).name}» guarda un mazzo vuoto.`, step.source.owner);
+      ctx.log(`${who}: «${name}» guarda un mazzo vuoto.`, by);
+      light(first.source.uid, false);
       return;
     }
-    light(step.source.uid, true);
+    const what = step.look.reveal?.kind === "object" ? "un Oggetto" : "una";
     const title = step.candidates.length
-      ? `Le prime ${step.looked.length} del mazzo: puoi mostrarne una e prenderla in mano — Chiudi per nessuna`
-      : `Le prime ${step.looked.length} del mazzo: nessuna da mostrare — Chiudi per metterle in fondo`;
-    const reveal = await pickFromPile(step.source.owner, "deck", step.candidates, title, step.looked);
+      ? `Le prime ${step.looked.length} del mazzo: puoi mostrarne ${what} e prenderla in mano — Chiudi per nessuna`
+      : `Le prime ${step.looked.length} del mazzo: nessuna da mostrare — Chiudi per andare avanti`;
+    const reveal = await pickFromPile(by, "deck", step.candidates, title, step.looked);
+    // «Metti una delle altre nella tua Zona di Ritiro»: obbligatoria, se
+    // restano carte — la finestra torna finché non si sceglie.
+    let retire: CardInstance | null = null;
+    if (step.look.thenRetire) {
+      const others = step.looked.filter(card => card.uid !== reveal?.uid);
+      while (others.length && !retire) {
+        retire = await pickFromPile(by, "deck", others, "Scegli la carta da mettere nella tua Zona di Ritiro (obbligatoria)", others);
+      }
+    }
     hold(true);
     try {
-      await wait(TRIGGER_LEAD_MS);
-      const passed = await resolveLook(ctx, step, reveal);
+      await wait(CONFIRMED_LEAD_MS);
+      const passed = await resolveLook(ctx, step, reveal, retire);
       await wait(passed ? TRIGGER_TAIL_MS : 0);
     } finally {
-      light(step.source.uid, false);
+      light(first.source.uid, false);
       hold(false);
     }
   }

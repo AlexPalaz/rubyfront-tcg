@@ -55,8 +55,11 @@ class CardIndexTest < Minitest::Test
   end
 
   def test_il_cercatore_guarda_quattro_carte
-    assert_equal [{ count: 4, reveal: { type: "entity", race: "human" } }], @index["RBF-006"][:enter_looks]
-    assert_equal [], @index["RBF-027"][:enter_looks], "col dado non è la forma certificata"
+    assert_equal [{ count: 4, die: nil, count_base: 0, reveal: { type: "entity", race: "human" }, then_retire: false }], @index["RBF-006"][:enter_looks]
+  end
+
+  def test_l_artefice_tira_un_d6_e_ne_manda_una_in_ritiro
+    assert_equal [{ count: nil, die: 6, count_base: 2, reveal: { type: "object", race: nil }, then_retire: true }], @index["RBF-027"][:enter_looks]
   end
 
   def test_il_radunatore_prende_il_controllo_fino_a_fine_turno

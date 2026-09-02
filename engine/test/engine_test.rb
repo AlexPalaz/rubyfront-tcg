@@ -1706,7 +1706,11 @@ class EngineTest < Minitest::Test
   # --- §8.2: il Cercatore guarda le prime quattro (RBF-006) ----------------
 
   CERCATORI = {
-    "CERCATORE" => { type: "entity", keywords: [], race: "human", enter_looks: [{ count: 4, reveal: { type: "entity", race: "human" } }] },
+    "CERCATORE" => { type: "entity", keywords: [], race: "human",
+                     enter_looks: [{ count: 4, die: nil, count_base: 0, reveal: { type: "entity", race: "human" }, then_retire: false }] },
+    "ARTEFICE" => { type: "entity", keywords: [], race: "auros",
+                    enter_looks: [{ count: nil, die: 6, count_base: 2, reveal: { type: "object", race: nil }, then_retire: true }] },
+    "FERRO" => { type: "object", keywords: [] },
     "UMANO" => { type: "entity", keywords: [], race: "human" },
     "AUROS" => { type: "entity", keywords: [], race: "auros" },
     "PIETRA" => { type: "matter", keywords: [], behavior: "normal" },
@@ -1809,5 +1813,45 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], verdict[:reason]
     table = engine.instance_variable_get(:@table)
     assert_equal "b", table.controller_of(table.card("b1"))
+  end
+
+  # --- §8.2: l'Artefice tira il dado e guarda (RBF-027) ----------------------
+
+  def artefice(deck)
+    engine = Rubyfront::Engine.new(cards: CERCATORI)
+    cards = [{ "uid" => "art", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "ARTEFICE" }]
+    cards += deck.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "deck", "order" => i, "cardId" => id } }
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    engine.judge({ "t" => "toZone", "uid" => "art", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine
+  end
+
+  def tira_e_guarda(engine, roll:, count:, reveal: nil, retire: nil)
+    action = { "t" => "look", "seat" => "a", "count" => count, "roll" => roll,
+               "effect" => { "source" => "art", "event" => "on_enter_field", "entering" => "art" } }
+    action["reveal"] = reveal if reveal
+    action["retire"] = retire if retire
+    engine.judge(action)
+  end
+
+  def test_l_artefice_guarda_due_piu_meta_del_tiro
+    engine = artefice([["d1", "PIETRA"], ["d2", "FERRO"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "PIETRA"], ["d6", "PIETRA"]])
+    # tiro 3 → 2 + ceil(3/2) = 4 carte
+    verdict = tira_e_guarda(engine, roll: 3, count: 4, reveal: "d2", retire: "d1")
+    assert verdict[:ok], verdict[:reason]
+    table = engine.instance_variable_get(:@table)
+    assert_equal "hand", table.card("d2")[:zone]
+    assert_equal "ritiro", table.card("d1")[:zone]
+    assert_equal %w[d5 d6 d3 d4], table.top_of_deck("a", 4), "le altre in fondo"
+  end
+
+  def test_il_conto_segue_il_tiro_e_il_ritiro_e_obbligatorio
+    engine = artefice([["d1", "PIETRA"], ["d2", "FERRO"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "PIETRA"]])
+    refute tira_e_guarda(engine, roll: 3, count: 5)[:ok], "con un 3 si guardano 4 carte"
+    refute tira_e_guarda(engine, roll: 7, count: 6)[:ok], "un tiro fuori dal dado"
+    refute tira_e_guarda(engine, roll: 1, count: 3, reveal: "d2")[:ok], "una delle altre va in Ritiro"
+    refute tira_e_guarda(engine, roll: 1, count: 3, reveal: "d2", retire: "d5")[:ok], "la quinta non è fra le guardate"
+    refute tira_e_guarda(engine, roll: 1, count: 3, reveal: "d1", retire: "d2")[:ok], "si mostra solo un Oggetto"
+    assert tira_e_guarda(engine, roll: 1, count: 3, retire: "d1")[:ok], "nessun Oggetto mostrato, una in Ritiro"
   end
 end

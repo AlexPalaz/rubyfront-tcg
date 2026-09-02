@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.29.0"
+    VERSION = "0.30.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -55,6 +55,7 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (RBF-007)",
       "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte» (RBF-012)",
       "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una» (RBF-006)",
+      "§8.2 Effetti certificati: «tira un d6, guarda 2 più metà, un Oggetto in mano, una in Ritiro» (RBF-027)",
       "§8.2 Effetti certificati: «quando entra, prendi il controllo di un'Entità avversaria» (RBF-009)",
       "§8.2 Controllo: attacca e blocca chi comanda, e a fine turno si restituisce",
       "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
@@ -891,19 +892,43 @@ module Rubyfront
 
       look = Array(@cards.dig(source[:card_id], :enter_looks)).first
       return refuse("look", "la carta non ha un effetto certificato che guardi nel mazzo (§8.2)") unless look
-      return refuse("look", "si guardano le prime #{look[:count]} carte, non #{action["count"]} (§8.2)") unless action["count"] == look[:count]
 
+      # Il conto: fisso, o dal dado — il tiro dev'essere valido, e il conto
+      # quello della formula. Il tiro lo verifica la forma, non la fortuna.
+      count = look[:count]
+      if look[:die]
+        roll = action["roll"]
+        return refuse("look", "si tira un d#{look[:die]}: l'azione non porta un tiro valido (§8.2)") unless roll.is_a?(Integer) && roll.between?(1, look[:die])
+
+        count = look[:count_base] + (roll + 1) / 2
+      end
+      return refuse("look", "si guardano le prime #{count} carte, non #{action["count"]} (§8.2)") unless action["count"] == count
+
+      seat = @table.controller_of(source)
+      top = @table.top_of_deck(seat, count)
       reveal = action["reveal"]
-      return allow("look") unless reveal
+      retire = action["retire"]
+      if reveal
+        return refuse("look", "la carta mostrata dev'essere fra le prime #{count} del mazzo (§8.2)") unless top.include?(reveal)
 
-      top = @table.top_of_deck(@table.controller_of(source), look[:count])
-      return refuse("look", "la carta mostrata dev'essere fra le prime #{look[:count]} del mazzo (§8.2)") unless top.include?(reveal)
-
-      shown = @table.card(reveal)
-      entry = shown && @cards[shown[:card_id]]
-      return no_rule("look") unless entry
-      unless entry[:type] == look[:reveal][:type] && (look[:reveal][:race].nil? || entry[:race] == look[:reveal][:race])
-        return refuse("look", "si può mostrare solo un'Entità #{look[:reveal][:race] ? "di razza #{look[:reveal][:race]}" : ""}: non questa (§8.2)".squeeze(" "))
+        shown = @table.card(reveal)
+        entry = shown && @cards[shown[:card_id]]
+        return no_rule("look") unless entry
+        wanted = look[:reveal]
+        unless entry[:type] == wanted[:type] && (wanted[:race].nil? || entry[:race] == wanted[:race])
+          what = wanted[:type] == "object" ? "un Oggetto" : "un'Entità"
+          what += " di razza #{wanted[:race]}" if wanted[:race]
+          return refuse("look", "si può mostrare solo #{what}: non questa (§8.2)")
+        end
+      end
+      if look[:then_retire]
+        others = top - [reveal].compact
+        if others.any?
+          return refuse("look", "una delle altre carte va nella Zona di Ritiro (§8.2)") unless retire
+          return refuse("look", "la carta per la Zona di Ritiro dev'essere fra le altre guardate (§8.2)") unless others.include?(retire)
+        end
+      elsif retire
+        return refuse("look", "questo sguardo non manda nulla in Zona di Ritiro (§8.2)")
       end
 
       allow("look")

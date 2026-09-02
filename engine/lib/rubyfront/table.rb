@@ -451,6 +451,14 @@ module Rubyfront
           card[:facedown] = false
           next
         end
+        if action["retire"] && @cards[action["retire"]].equal?(card)
+          # In cima alla Zona di Ritiro, scoperta (RBF-027).
+          top = pile(seat, "ritiro").first
+          card[:zone] = "ritiro"
+          card[:order] = top ? top[:order] - 1 : 0
+          card[:facedown] = false
+          next
+        end
         card[:order] = bottom
         bottom += 1
       end

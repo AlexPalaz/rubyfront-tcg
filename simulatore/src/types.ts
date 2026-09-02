@@ -216,10 +216,12 @@ export type Action =
   /** Risolve l'ondata (§6.4): i morti nell'Abisso, i danni al Rubyfront
       del difensore, il combattimento sgomberato. `seat` è chi è di turno. */
   | { t: "resolve"; seat: Seat; battles: Battle[] }
-  /** Lo sguardo nel mazzo (§8.2, la forma di RBF-006): le prime `count`
-      carte del mazzo di `seat`; `reveal`, se c'è, va in mano; le altre in
-      fondo, nell'ordine in cui stavano. Sempre un passo d'effetto. */
-  | { t: "look"; seat: Seat; count: number; reveal?: string; effect: EffectRef }
+  /** Lo sguardo nel mazzo (§8.2, le forme di RBF-006 e RBF-027): le prime
+      `count` carte del mazzo di `seat` — col dado, `roll` è il tiro e il
+      conto ne discende; `reveal`, se c'è, va in mano; `retire`, se c'è, in
+      Zona di Ritiro; le altre in fondo, nell'ordine in cui stavano. Sempre
+      un passo d'effetto. */
+  | { t: "look"; seat: Seat; count: number; reveal?: string; retire?: string; roll?: number; effect: EffectRef }
   /** Prende il controllo di `uid` per `by` fino a fine turno (§8.2): la
       carta passa nello slot extra, con gli Oggetti addosso e le parole
       chiave concesse. Sempre un passo d'effetto. */
