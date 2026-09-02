@@ -358,7 +358,6 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
 /* Mentre un effetto agisce il tavolo è fermo: campo, mani, HUD e chat non
    rispondono al mouse finché la fonte non si spegne. */
 body.is-resolving .table, body.is-resolving .hud, body.is-resolving .side { pointer-events: none; }
-body.is-resolving { cursor: progress; }
 .tile { transition: box-shadow .9s ease; }
 .tile.is-triggering {
   box-shadow: 0 0 0 2px #ff8ea6, 0 0 46px rgba(210, 74, 100, 1);

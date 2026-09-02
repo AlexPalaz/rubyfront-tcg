@@ -906,6 +906,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   /** Il tempo in cui la fonte resta accesa prima che l'effetto agisca. */
   const TRIGGER_LEAD_MS = 650;
+  /** Dopo una scelta e una conferma la fonte è già accesa da un pezzo: il
+      volo parte quasi subito, o sembra un caricamento. */
+  const CONFIRMED_LEAD_MS = 200;
   /** E quanto resta accesa dopo che l'effetto ha agito. */
   const TRIGGER_TAIL_MS = 350;
 
@@ -1028,7 +1031,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     hold(true);
     try {
-      await wait(TRIGGER_LEAD_MS);
+      await wait(CONFIRMED_LEAD_MS);
       const passed = await resolveReturn(ctx, step, card);
       if (passed) {
         flyFromPile(card.owner, step.from, card.uid);
@@ -1084,7 +1087,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     hold(true);
     try {
-      await wait(TRIGGER_LEAD_MS);
+      await wait(CONFIRMED_LEAD_MS);
       const fly = liftForFlight(target.uid);
       const passed = await resolveMove(ctx, step, target);
       transientArrows = [];
