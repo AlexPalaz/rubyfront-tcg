@@ -18,6 +18,8 @@ export const TILE_W = 302;
 export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
+import type { EnterListener } from "./ctx.js";
+
 export interface CardFace {
   id: string;
   kind: "rubyfront" | "nexus" | "entity" | "object" | "matter";
@@ -27,7 +29,8 @@ export interface CardFace {
   stats?: { power?: unknown; counterattack?: unknown; fluxCost?: unknown; deploymentCost?: unknown };
   /** Gli inneschi della faccia (dal file dati): qui conta l'evento
       `on_enter_field`, «quando entra in campo». */
-  triggers?: { event?: unknown; displayKey?: unknown; id?: unknown }[];
+  triggers?: { event?: unknown; displayKey?: unknown; id?: unknown; details?: unknown; effect?: unknown }[];
+  race?: unknown;
 }
 
 export interface CatalogCard {
@@ -237,6 +240,34 @@ export function enterEffects(cardId: string, faceIndex: number, locale: string):
   return out;
 }
 
+/**
+ * Gli ascoltatori d'ingresso certificati di una faccia (§8.2): evento
+ * `on_enter_field` con `enteringCard` (un'altra Entità del controllore,
+ * `excludeSelf`), `requiresControlledAtLeast` (N Entità, con razza) ed
+ * effetto `draw_card` per il controllore. Specchio di card_index.rb,
+ * enter_listeners: forma diversa, niente — l'effetto resta a mano.
+ */
+function enterListenersOf(face: CardFace | undefined): EnterListener[] {
+  const out: EnterListener[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const details = trigger.details as { enteringCard?: any; requiresControlledAtLeast?: any } | undefined;
+    const effect = trigger.effect as { type?: unknown; count?: unknown; target?: { controller?: unknown } } | undefined;
+    const entering = details?.enteringCard;
+    const requires = details?.requiresControlledAtLeast;
+    if (!entering || !requires || !effect) continue;
+    if (effect.type !== "draw_card" || !Number.isInteger(effect.count) || effect.target?.controller !== "controller") continue;
+    if (entering.cardType !== "entity" || entering.controller !== "controller" || entering.excludeSelf !== true) continue;
+    if (!Number.isInteger(requires.count) || requires.filter?.cardType !== "entity" || requires.filter?.controller !== "controller") continue;
+    out.push({
+      enteringRace: typeof entering.race === "string" ? entering.race : null,
+      requires: { count: requires.count as number, race: typeof requires.filter.race === "string" ? requires.filter.race : null },
+      draw: effect.count as number,
+    });
+  }
+  return out;
+}
+
 /** Il costo di schieramento del Rubyfront (§3.1): fisso, o un dado. */
 export interface Deployment {
   fixed: number | null;
@@ -244,15 +275,21 @@ export interface Deployment {
 }
 
 export function cardStats(cardId: string): {
+  kind: CardFace["kind"] | null;
+  race: string | null;
   power: number | null;
   counterattack: number | null;
   fluxCost: number | null;
   deployment: Deployment | null;
+  enterListeners: EnterListener[];
 } {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
   const integer = (value: unknown): number | null => (Number.isInteger(value) ? (value as number) : null);
   return {
+    kind: face?.kind ?? null,
+    race: typeof face?.race === "string" ? face.race : null,
+    enterListeners: enterListenersOf(face),
     power: integer(face?.stats?.power),
     counterattack: integer(face?.stats?.counterattack),
     // Il costo di Flusso stampato (§3.2); il Rubyfront ha il costo di

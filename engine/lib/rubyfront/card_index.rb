@@ -33,6 +33,12 @@ module Rubyfront
     # sua faccia (§3.1). Ogni voce: { type:, max_grade: } — «fino a che
     # grado» (§7.1), nil dove il grado non c'è.
     #
+    # `enter_listeners` sono gli ascoltatori d'ingresso CERTIFICATI (§8.2,
+    # regola d'oro): «quando un'altra Entità [di razza X] entra sul tuo
+    # Fronte, se ne controlli almeno N [di razza Y], pesca K carte» — la
+    # forma di RBF-003. Ogni voce: { entering_race:, requires: { count:,
+    # race: }, draw: }. Tutto ciò che non combacia esattamente non entra.
+    #
     # `behavior` è il comportamento di una Materia (§7.2): "normal",
     # "permanent" o "reactive" — nil per chi non è una Materia. Serve alla
     # finestra di gioco: le Reattive sono le sole carte che scendono in Fase
@@ -72,6 +78,7 @@ module Rubyfront
           deployment: deployment_of(stats["deploymentCost"]),
           matter: matter_of(faces),
           enables: faces.map { |face| enables_of(face) }.freeze,
+          enter_listeners: enter_listeners(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze
@@ -91,6 +98,29 @@ module Rubyfront
 
       die = value["die"].is_a?(String) && value["die"][/\Ad(\d+)\z/, 1]
       die ? { fixed: nil, die: die.to_i }.freeze : nil
+    end
+
+    def self.enter_listeners(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+
+        details = trigger["details"]
+        effect = trigger["effect"]
+        next unless details.is_a?(Hash) && effect.is_a?(Hash)
+        next unless effect["type"] == "draw_card" && effect["count"].is_a?(Integer) && effect.dig("target", "controller") == "controller"
+
+        entering = details["enteringCard"]
+        requires = details["requiresControlledAtLeast"]
+        next unless entering.is_a?(Hash) && entering["cardType"] == "entity" && entering["controller"] == "controller" && entering["excludeSelf"] == true
+        next unless requires.is_a?(Hash) && requires["count"].is_a?(Integer)
+
+        filter = requires["filter"]
+        next unless filter.is_a?(Hash) && filter["cardType"] == "entity" && filter["controller"] == "controller"
+
+        { entering_race: entering["race"].is_a?(String) ? entering["race"] : nil,
+          requires: { count: requires["count"], race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze,
+          draw: effect["count"] }.freeze
+      end
     end
 
     def self.matter_of(faces)

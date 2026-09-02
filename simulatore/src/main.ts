@@ -138,6 +138,8 @@ function receive(action: Action, from: Seat): void {
       });
     }
   }
+  // Un effetto dell'avversario si vede anche qui: la fonte si accende.
+  if (action.t === "draw" && action.effect) table.flash(action.effect.source);
   // Il tiro del dado dell'avversario si vede anche qui: la carta scende
   // insieme, ma il momento è lo stesso.
   if (action.t === "move" && action.roll !== undefined) {
@@ -180,7 +182,17 @@ const ctx: Ctx = {
   arbitrated: () => engine?.status() === "online",
   themeFor: seat => themes[seat],
   locale: () => locale,
-  card: cardId => ({ name: cardName(cardId, locale), ...cardStats(cardId) }),
+  card: cardId => {
+    const stats = cardStats(cardId);
+    return {
+      name: cardName(cardId, locale),
+      kind: stats.kind,
+      race: stats.race,
+      power: stats.power,
+      counterattack: stats.counterattack,
+      enterListeners: stats.enterListeners,
+    };
+  },
   log(text, seat) {
     dispatch({
       t: "say",

@@ -30,7 +30,14 @@ function fakeCtx(
     arbitrated: () => false,
     themeFor: () => "notte",
     locale: () => "it",
-    card: cardId => ({ name: cardId, power: facts[cardId]?.power ?? null, counterattack: facts[cardId]?.counterattack ?? null }),
+    card: cardId => ({
+      name: cardId,
+      kind: "entity",
+      race: null,
+      power: facts[cardId]?.power ?? null,
+      counterattack: facts[cardId]?.counterattack ?? null,
+      enterListeners: [],
+    }),
     log(text) {
       logs.push(text);
     },

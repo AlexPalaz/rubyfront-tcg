@@ -164,6 +164,18 @@ export interface GameState {
   zTop: number;
 }
 
+/**
+ * Il riferimento di un effetto (§8.2, regola d'oro §1.1): quale carta si
+ * innesca, per quale evento, e — per «quando un'Entità entra» — quale
+ * ingresso l'ha innescata. Viaggia dentro l'azione che l'effetto compie,
+ * e l'engine lo verifica contro la forma certificata in anagrafe.
+ */
+export interface EffectRef {
+  source: string;
+  event: "on_enter_field";
+  entering: string;
+}
+
 /** Le mutazioni possibili. Ogni client le applica in locale e le ritrasmette. */
 export type Action =
   /** Tavolo azzerato. `active` dice chi inizia (§4): lo sceglie chi preme,
@@ -171,7 +183,9 @@ export type Action =
   | { t: "newGame"; active?: Seat }
   | { t: "loadDeck"; seat: Seat; deckId: string; cards: CardInstance[] }
   | { t: "shuffle"; seat: Seat; order: string[] }
-  | { t: "draw"; seat: Seat; count: number }
+  /** `effect`: la pesca è un passo di un effetto innescato (§8.2), non un
+      gesto — la fonte e l'ingresso che l'ha innescata; l'engine verifica. */
+  | { t: "draw"; seat: Seat; count: number; effect?: EffectRef }
   /** `cost`/`roll`: lo schieramento del Rubyfront (§3.1) è un `move` dalla
       Zona di Richiamo alla sua fila, e si paga — col dado, `roll` è il tiro
       e `cost` il risultato. Senza costo è un movimento e basta. */

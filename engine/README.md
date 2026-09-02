@@ -282,6 +282,26 @@ Regole collegate finora:
   finché l'engine non saprà leggere gli effetti. Engine 0.22.0, ventitré
   regole.
 
+- **§8.2 Effetti certificati** — il primo passo della regola d'oro (§1.1:
+  «la carta vince sempre sulle regole»). Un effetto si esegue come passi di
+  azioni che esistono già, ognuno marcato con `effect {source, event,
+  entering}`; l'engine verifica il passo contro la **forma certificata** in
+  anagrafe e lo lascia passare come effetto, una volta per coppia
+  fonte/ingresso finché dura il turno (la copia del tavolo annota gli
+  inneschi consumati). Oggi una forma sola, l'ascoltatore d'ingresso di
+  RBF-003: «quando un'altra Entità Umana entra sul tuo Fronte, se ne
+  controlli almeno 3, pesca una carta» — chi entra non fa nulla da sé, sono
+  le carte già in campo a innescarsi; la fonte dev'essere in campo dello
+  stesso posto, l'ingresso un'altra carta entrata questo turno della razza
+  chiesta, il conto delle Entità fatto contando chi è appena entrato, e il
+  passo una pesca del controllore di K carte. Un passo con `effect` che non
+  combacia è fermato: un effetto finto non è un gesto qualunque. Carta di
+  chi entra ignota all'anagrafe: silenzio. Nel client l'interprete
+  (`effects.ts`, senza DOM) trova gli inneschi, la scena d'ingresso li
+  elenca e «Risolvi» li esegue, la fonte si accende sul tavolo da entrambe
+  le parti. Tutto ciò che non ha una forma certificata resta a mano.
+  Engine 0.24.0, ventiquattro regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

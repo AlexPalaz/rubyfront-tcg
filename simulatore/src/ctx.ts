@@ -11,8 +11,25 @@ import { otherSeat } from "./types.js";
 
 export interface CardFacts {
   name: string;
+  kind: "rubyfront" | "nexus" | "entity" | "object" | "matter" | null;
+  race: string | null;
   power: number | null;
   counterattack: number | null;
+  /** Gli ascoltatori certificati «quando un'Entità entra sul tuo Fronte»
+      (§8.2): vedi renderer.ts, enterListeners. */
+  enterListeners: EnterListener[];
+}
+
+/**
+ * La forma certificata di un ascoltatore d'ingresso: «quando un'altra
+ * Entità [di razza X] entra sul tuo Fronte, se ne controlli almeno N [di
+ * razza Y], pesca K carte». È la forma di RBF-003; tutto ciò che non
+ * combacia esattamente non entra, come in anagrafe.
+ */
+export interface EnterListener {
+  enteringRace: string | null;
+  requires: { count: number; race: string | null };
+  draw: number;
 }
 
 export interface Ctx {

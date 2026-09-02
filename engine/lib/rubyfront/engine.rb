@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.23.0"
+    VERSION = "0.24.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -51,6 +51,7 @@ module Rubyfront
       "§5/§6.2 Dal campo non si torna in mano né nel mazzo",
       "§7 Le Materie si giocano solo se abilitate",
       "§2/§9 Fine della partita: PV a zero, mazzo esaurito, pareggio",
+      "§8.2 Effetti certificati: «quando un'Entità entra, pesca» (RBF-003)",
       "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
       "§3.1 Il Rubyfront schierato non torna in Zona di Richiamo",
     ].freeze
@@ -87,14 +88,25 @@ module Rubyfront
     # carta o del contatore toccato). Senza attore la dogana del turno tace.
     def judge(action, actor: nil)
       verdict = verdict_for(action, actor)
-      @table.apply(action) unless verdict[:ruled] && !verdict[:ok]
+      return verdict if verdict[:ruled] && !verdict[:ok]
+
+      @table.apply(action)
+      settle_effect(action)
       verdict
     end
 
     def observe(action, actor: nil)
       verdict = verdict_for(action, actor)
       @table.apply(action)
+      settle_effect(action)
       verdict
+    end
+
+    # Un passo d'effetto applicato consuma il suo innesco (§8.2): una volta
+    # per coppia fonte/ingresso, finché dura il turno.
+    def settle_effect(action)
+      ref = action.is_a?(Hash) ? action["effect"] : nil
+      @table.fire(ref["source"], ref["entering"]) if ref.is_a?(Hash) && ref["source"] && ref["entering"]
     end
 
     # Lo stato intero del client: sostituisce la copia del tavolo. Arriva
@@ -118,6 +130,11 @@ module Rubyfront
 
       stopped = judge_actor(action, actor)
       return stopped if stopped
+
+      # §8.2 / §1.1 — un passo d'effetto: la carta vince sulle regole, se la
+      # forma è quella certificata. Verificato, passa come effetto; se no
+      # è fermato — un effetto finto non è un gesto qualunque.
+      return judge_effect(action) if action["effect"].is_a?(Hash)
 
       case action["t"]
       when "player" then judge_player(action)
@@ -750,6 +767,51 @@ module Rubyfront
       end
 
       allow("gameOver")
+    end
+
+    # §8.2 — gli effetti certificati. Oggi una forma sola, gli ascoltatori
+    # d'ingresso di RBF-003: la fonte dev'essere in campo, dello stesso posto
+    # di chi entra; chi entra dev'essere un'altra carta entrata QUESTO turno
+    # (non si riscalda un innesco vecchio), della razza chiesta; il posto
+    # deve controllare almeno N Entità della razza chiesta, contando chi è
+    # appena entrato; il passo dev'essere quello dell'effetto — una pesca del
+    # controllore, di K carte — e non già consumato. Carta di chi entra
+    # ignota all'anagrafe: il conto non si rifà, silenzio.
+    def judge_effect(action)
+      ref = action["effect"]
+      kind = action["t"]
+      return refuse(kind, "un effetto certificato pesca soltanto, per ora (§8.2)") unless kind == "draw"
+
+      source = @table.card(ref["source"])
+      entering = @table.card(ref["entering"])
+      return refuse(kind, "la fonte dell'effetto non è in campo (§8.2)") unless source && source[:zone] == "field"
+      unless entering && entering[:zone] == "field" && entering[:owner] == source[:owner] && ref["entering"] != ref["source"]
+        return refuse(kind, "l'ingresso che innesca dev'essere un'altra carta dello stesso posto, in campo (§8.2)")
+      end
+      return refuse(kind, "quella carta non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless entering[:entered] == @table.turn
+      return refuse(kind, "questo innesco è già stato risolto per quell'ingresso (§8.2)") if @table.fired?(ref["source"], ref["entering"])
+
+      arrived = @cards[entering[:card_id]]
+      return no_rule(kind) unless arrived
+
+      listeners = Array(@cards.dig(source[:card_id], :enter_listeners))
+      owner = source[:owner]
+      matched = listeners.any? do |listener|
+        arrived[:type] == "entity" &&
+          (listener[:entering_race].nil? || arrived[:race] == listener[:entering_race]) &&
+          count_entities(owner, listener[:requires][:race]) >= listener[:requires][:count] &&
+          listener[:draw] == action["count"] && action["seat"] == owner
+      end
+      return refuse(kind, "la carta non ha un effetto certificato che si innesca così (§8.2)") unless matched
+
+      allow(kind)
+    end
+
+    def count_entities(seat, race)
+      @table.field_cards(seat).count do |card|
+        entry = @cards[card[:card_id]]
+        entry && entry[:type] == "entity" && (race.nil? || entry[:race] == race)
+      end
     end
 
     def no_rule(kind)

@@ -1494,4 +1494,91 @@ class EngineTest < Minitest::Test
     engine = richiamo("IGNOTO", flux: 0)
     refute schiera(engine)[:ruled]
   end
+
+  # --- §8.2: gli effetti certificati, l'ascoltatore di RBF-003 -------------
+
+  ASCOLTATORI = {
+    "GUIDA" => { type: "entity", keywords: [], race: "human",
+                 enter_listeners: [{ entering_race: "human", requires: { count: 3, race: "human" }, draw: 1 }] },
+    "UMANO" => { type: "entity", keywords: [], race: "human", enter_listeners: [] },
+    "AUROS" => { type: "entity", keywords: [], race: "auros", enter_listeners: [] },
+    "PIETRA" => { type: "matter", keywords: [], behavior: "normal", enter_listeners: [] },
+  }.freeze
+
+  # Il campo di A con quelle carte (già in campo, turno 1) e `hand` in mano;
+  # poi `entra` fa scendere una carta dalla mano.
+  def campo(field, hand)
+    engine = Rubyfront::Engine.new(cards: ASCOLTATORI)
+    cards = field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "field", "order" => i, "cardId" => id, "y" => 1236 } }
+    cards += hand.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "hand", "order" => i, "cardId" => id } }
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    engine
+  end
+
+  def entra(engine, uid, x: 1578)
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => 1236 })
+  end
+
+  def innesco(engine, source:, entering:, count: 1, seat: "a")
+    engine.judge({ "t" => "draw", "seat" => seat, "count" => count,
+                   "effect" => { "source" => source, "event" => "on_enter_field", "entering" => entering } })
+  end
+
+  def test_la_guida_si_innesca_al_terzo_umano
+    engine = campo([["g", "GUIDA"], ["u1", "UMANO"]], [["u2", "UMANO"]])
+    assert entra(engine, "u2")[:ok]
+    verdict = innesco(engine, source: "g", entering: "u2")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_con_due_umani_non_si_innesca
+    engine = campo([["g", "GUIDA"]], [["u1", "UMANO"]])
+    entra(engine, "u1")
+    verdict = innesco(engine, source: "g", entering: "u1")
+    refute verdict[:ok]
+    assert_match(/non ha un effetto certificato.*§8\.2/, verdict[:reason])
+  end
+
+  def test_un_auros_che_entra_non_innesca_la_guida
+    engine = campo([["g", "GUIDA"], ["u1", "UMANO"], ["u2", "UMANO"]], [["x", "AUROS"]])
+    entra(engine, "x")
+    refute innesco(engine, source: "g", entering: "x")[:ok]
+  end
+
+  def test_l_innesco_si_consuma_una_volta_per_ingresso
+    engine = campo([["g", "GUIDA"], ["u1", "UMANO"]], [["u2", "UMANO"]])
+    entra(engine, "u2")
+    assert innesco(engine, source: "g", entering: "u2")[:ok]
+    verdict = innesco(engine, source: "g", entering: "u2")
+    refute verdict[:ok]
+    assert_match(/già stato risolto/, verdict[:reason])
+  end
+
+  def test_un_ingresso_vecchio_non_innesca_piu
+    engine = campo([["g", "GUIDA"], ["u1", "UMANO"]], [["u2", "UMANO"]])
+    entra(engine, "u2")
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    verdict = innesco(engine, source: "g", entering: "u2")
+    refute verdict[:ok]
+    assert_match(/non è entrata in campo questo turno/, verdict[:reason])
+  end
+
+  def test_la_forma_del_passo_deve_essere_quella_dell_effetto
+    engine = campo([["g", "GUIDA"], ["u1", "UMANO"]], [["u2", "UMANO"]])
+    entra(engine, "u2")
+    refute innesco(engine, source: "g", entering: "u2", count: 3)[:ok], "pesca 1, non 3"
+    refute innesco(engine, source: "g", entering: "u2", seat: "b")[:ok], "pesca il controllore"
+    refute innesco(engine, source: "g", entering: "g")[:ok], "non se stessa"
+    refute innesco(engine, source: "u1", entering: "u2")[:ok], "una carta senza ascoltatore"
+  end
+
+  def test_un_effetto_finto_non_e_un_gesto_qualunque
+    engine = campo([["u1", "UMANO"]], [])
+    verdict = engine.judge({ "t" => "toZone", "uid" => "u1", "zone" => "hand",
+                             "effect" => { "source" => "u1", "event" => "on_enter_field", "entering" => "u1" } })
+    refute verdict[:ok]
+    assert_match(/pesca soltanto/, verdict[:reason])
+  end
 end

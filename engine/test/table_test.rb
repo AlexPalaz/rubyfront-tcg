@@ -309,4 +309,15 @@ class TableTest < Minitest::Test
     assert_equal "field", @table.card("a-2")[:zone], "in mano no"
     assert_nil @table.card("a-2")[:assigned_to]
   end
+
+  # --- gli inneschi consumati (§8.2) -----------------------------------------
+
+  def test_un_innesco_si_consuma_una_volta_e_il_turno_lo_azzera
+    refute @table.fired?("g", "e")
+    @table.fire("g", "e")
+    assert @table.fired?("g", "e")
+    refute @table.fired?("g", "altro")
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    refute @table.fired?("g", "e")
+  end
 end

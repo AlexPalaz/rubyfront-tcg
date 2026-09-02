@@ -21,6 +21,10 @@ export interface EnterEffectShow {
   /** Chi la gioca, per il rigo sotto. */
   who: string;
   effects: { tag: string; text: string }[];
+  /** Gli inneschi che l'ingresso fa scattare sulle carte già in campo
+      (effects.ts): si elencano, e «Continua» li risolve. */
+  triggers?: string[];
+  onContinue?: () => void;
 }
 
 const CARD_W = 520;
@@ -68,10 +72,21 @@ export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promi
     block.append(tag, text);
     side.append(block);
   }
+  for (const line of show.triggers ?? []) {
+    const block = document.createElement("div");
+    block.className = "effect-text is-trigger";
+    const tag = document.createElement("span");
+    tag.className = "effect-tag";
+    tag.textContent = "Si innesca";
+    const text = document.createElement("p");
+    text.textContent = line;
+    block.append(tag, text);
+    side.append(block);
+  }
   const go = document.createElement("button");
   go.type = "button";
   go.className = "effect-go";
-  go.textContent = "Continua";
+  go.textContent = show.triggers?.length ? "Risolvi" : "Continua";
   side.append(go);
 
   stage.append(card, side);
@@ -85,6 +100,7 @@ export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promi
       document.removeEventListener("keydown", onKey);
       window.setTimeout(() => {
         veil.remove();
+        show.onContinue?.();
         resolve();
       }, 220);
     };

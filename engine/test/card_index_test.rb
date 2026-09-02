@@ -33,6 +33,16 @@ class CardIndexTest < Minitest::Test
     assert_empty Rubyfront::CardIndex.load("/posto/che/non/esiste")
   end
 
+  # --- gli ascoltatori d'ingresso certificati (§8.2) ----------------------
+
+  def test_la_guida_ascolta_gli_ingressi_degli_umani
+    listeners = @index["RBF-003"][:enter_listeners]
+    assert_equal 1, listeners.size
+    assert_equal({ entering_race: "human", requires: { count: 3, race: "human" }, draw: 1 }, listeners.first)
+    assert_equal [], @index["RBF-004"][:enter_listeners], "un on_attack non è un ascoltatore d'ingresso"
+    assert_equal [], @index["RBF-007"][:enter_listeners], "un move_card all'ingresso non è la forma certificata"
+  end
+
   # --- il costo di schieramento (§3.1) ------------------------------------
 
   def test_conosce_il_costo_di_schieramento_fisso_o_a_dado

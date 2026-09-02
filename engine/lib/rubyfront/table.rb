@@ -70,6 +70,17 @@ module Rubyfront
       @players[SEATS.find { |seat| seat != @active }][:token] = true
       # Com'è finita (§2, §9): {winner:, reason:}, nil finché si gioca.
       @over = nil
+      # Gli inneschi già risolti in questo turno (§8.2): "fonte|ingresso",
+      # una volta sola per coppia. Il cambio di turno li azzera.
+      @fired = []
+    end
+
+    def fired?(source_uid, entering_uid)
+      @fired.include?("#{source_uid}|#{entering_uid}")
+    end
+
+    def fire(source_uid, entering_uid)
+      @fired << "#{source_uid}|#{entering_uid}" unless fired?(source_uid, entering_uid)
     end
 
     def hand_count(seat)
@@ -260,6 +271,7 @@ module Rubyfront
           # ritoccato a mano (active invariato) non è un cambio di turno.
           @active = action["active"]
           @phase = "preparazione"
+          @fired = []
           @cards.each_value do |card|
             next unless card[:owner] == @active && card[:zone] == "field"
 

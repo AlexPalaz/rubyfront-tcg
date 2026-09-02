@@ -32,6 +32,7 @@ import {
 } from "./ctx.js";
 import { showRoll } from "./dice.js";
 import { showEnterEffect } from "./effect.js";
+import { describeTrigger, enterTriggers, resolveEnter } from "./effects.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
 import { TILE_H, TILE_W, cardName, cardStats, enterEffects, faceCount, faceKind, isRubyfront, type Deployment } from "./renderer.js";
@@ -89,6 +90,8 @@ export interface TableView {
   refreshLayout(): void;
   /** Callback per aprire la ricerca: la fornisce main.ts. */
   onBrowse(handler: (seat: Seat, zone: ZoneId) => void): void;
+  /** Il bagliore di una carta che si innesca: per gli effetti arrivati dalla rete. */
+  flash(uid: string): void;
 }
 
 export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
@@ -680,6 +683,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // piano e si accende; se ha un effetto che scatta entrando, lo annuncia
     // (effect.ts).
     if (passed && card.zone === "hand") {
+      // Gli inneschi delle carte già in campo (effects.ts): la scena li
+      // elenca, e «Risolvi» li esegue — con un bagliore sulla fonte.
+      const live = ctx.state().cards[card.uid] ?? card;
+      const triggers = enterTriggers(ctx.state(), live, ctx.card);
       void showEnterEffect(root, {
         cardId: card.cardId,
         face: card.face,
@@ -687,6 +694,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         locale: ctx.locale(),
         who: `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}»`,
         effects,
+        triggers: triggers.map(trigger => describeTrigger(trigger, ctx.card)),
+        onContinue: triggers.length
+          ? () => void resolveEnter(ctx, live).then(fired => fired.forEach(source => flash(source.uid)))
+          : undefined,
       });
     }
     return passed;
@@ -785,6 +796,16 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (cost === null) return false;
     const player = ctx.state().players[card.owner];
     return cost > player.flux + (player.token ? 1 : 0);
+  }
+
+  /** Il bagliore di una carta che si innesca (§8.2): un attimo, poi via. */
+  function flash(uid: string): void {
+    const tile = tiles.get(uid);
+    if (!tile) return;
+    tile.classList.remove("is-triggering");
+    void tile.offsetWidth;
+    tile.classList.add("is-triggering");
+    window.setTimeout(() => tile.classList.remove("is-triggering"), 1600);
   }
 
   function applyDrop(card: CardInstance, drop: Drop): void {
@@ -1215,6 +1236,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   return {
     render,
+    flash,
     refreshLayout() {
       applySurfaceSize();
       buildStaticZones();
