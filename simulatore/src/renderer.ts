@@ -205,12 +205,20 @@ export function faceKind(cardId: string, faceIndex: number): CardFace["kind"] | 
  * statistica non contrattacca. Solo interi, come nell'anagrafe dell'engine:
  * un valore d'altra forma resta ignoto, mai frainteso.
  */
+/** Gli eventi che «scattano» quando la carta scende: per Entità e Oggetti
+    «quando entra in campo»; per le Materie l'effetto si risolve giocandole
+    (§7.2, `on_resolve`) o dura finché restano (`while_in_play`). */
+const ENTER_EVENTS: Record<string, string[]> = {
+  entity: ["on_enter_field"],
+  object: ["on_enter_field"],
+  matter: ["on_resolve", "while_in_play"],
+};
+
 /**
- * Gli effetti «quando entra in campo» di una faccia (evento
- * `on_enter_field`), col testo nella lingua del tavolo: la targhetta (es.
- * «Effetto») e la frase. Il testo sta nel copy della faccia sotto il
- * displayKey dell'innesco, come lo legge il renderer del sito. Vuoto se
- * la carta non ne ha.
+ * Gli effetti che scattano quando una carta scende dalla mano, col testo
+ * nella lingua del tavolo: la targhetta (es. «Effetto») e la frase. Il
+ * testo sta nel copy della faccia sotto il displayKey dell'innesco, come
+ * lo legge il renderer del sito. Vuoto se la carta non ne ha.
  */
 export function enterEffects(cardId: string, faceIndex: number, locale: string): { tag: string; text: string }[] {
   const card = getCard(cardId);
@@ -218,9 +226,10 @@ export function enterEffects(cardId: string, faceIndex: number, locale: string):
   if (!card || !face) return [];
   const copy = renderer.localized(card, locale);
   const faceCopy = copy?.[face.displayKey] ?? {};
+  const events = ENTER_EVENTS[face.kind] ?? [];
   const out: { tag: string; text: string }[] = [];
   for (const trigger of face.triggers ?? []) {
-    if (trigger.event !== "on_enter_field") continue;
+    if (typeof trigger.event !== "string" || !events.includes(trigger.event)) continue;
     const key = typeof trigger.displayKey === "string" ? trigger.displayKey : typeof trigger.id === "string" ? trigger.id : "";
     const entry = faceCopy.triggers?.[key] ?? faceCopy[key];
     if (entry && typeof entry.text === "string") out.push({ tag: typeof entry.trigger === "string" ? entry.trigger : "Effetto", text: entry.text });

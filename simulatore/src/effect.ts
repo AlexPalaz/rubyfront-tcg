@@ -1,11 +1,12 @@
-// Il momento d'ingresso: quando una carta con un effetto «quando entra in
-// campo» scende, il gioco si ferma un attimo. Un velo sul tavolo, la carta
-// grande al centro che si accende, la targhetta e il testo dell'effetto, e
-// «Continua» per riprendere. L'effetto, oggi, lo risolve il giocatore a
-// mano: qui si annuncia — la lettura degli effetti arriverà con la regola
-// d'oro. Lo vede chi gioca la carta e, quando l'azione gli arriva, anche
-// l'avversario (main.ts, receive). Con prefers-reduced-motion la carta non
-// pulsa: compare accesa.
+// Il momento d'ingresso: quando una carta scende dalla mano, il gioco si
+// ferma un attimo. Un velo sul tavolo, la carta grande al centro che si
+// accende — e se ha un effetto che scatta entrando (Entità e Oggetti
+// «quando entra in campo», Materie alla risoluzione), la targhetta, il
+// testo e «Continua» per riprendere; senza effetto la scena si chiude da
+// sola dopo un attimo. L'effetto, oggi, lo risolve il giocatore a mano: qui
+// si annuncia — la lettura degli effetti arriverà con la regola d'oro. Lo
+// vede chi gioca la carta e, quando l'azione gli arriva, anche l'avversario
+// (main.ts, receive). Con prefers-reduced-motion la carta non pulsa.
 
 import { fitTexts, renderFace } from "./renderer.js";
 
@@ -21,6 +22,8 @@ export interface EnterEffectShow {
 
 const CARD_W = 520;
 const CARD_H = 728;
+/** Quanto resta una carta senza effetto, prima di chiudersi da sola. */
+const PLAIN_HOLD_MS = 1800;
 
 export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promise<void> {
   const veil = document.createElement("div");
@@ -48,7 +51,7 @@ export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promi
   side.className = "effect-side";
   const kicker = document.createElement("div");
   kicker.className = "effect-kicker";
-  kicker.textContent = "Quando entra in campo";
+  kicker.textContent = show.effects.length ? "Quando entra in campo" : "Entra in campo";
   const who = document.createElement("div");
   who.className = "effect-who";
   who.textContent = show.who;
@@ -68,7 +71,7 @@ export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promi
   go.type = "button";
   go.className = "effect-go";
   go.textContent = "Continua";
-  side.append(go);
+  if (show.effects.length) side.append(go);
 
   stage.append(card, side);
   veil.append(stage);
@@ -89,6 +92,7 @@ export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promi
     };
     go.addEventListener("click", close);
     document.addEventListener("keydown", onKey);
-    go.focus();
+    if (show.effects.length) go.focus();
+    else window.setTimeout(close, PLAIN_HOLD_MS);
   });
 }

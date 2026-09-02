@@ -123,23 +123,20 @@ function commit(action: Action): void {
 
 /** Applica senza ritrasmettere: per le azioni che arrivano già dalla rete. */
 function receive(action: Action, from: Seat): void {
-  // Il momento d'ingresso dell'avversario si vede anche qui: una carta con
-  // un effetto «quando entra in campo» giocata dalla mano ferma il tavolo
-  // un attimo da entrambe le parti (effect.ts).
+  // Il momento d'ingresso dell'avversario si vede anche qui: ogni carta
+  // giocata dalla mano ferma il tavolo un attimo da entrambe le parti, e se
+  // ha un effetto lo annuncia (effect.ts).
   if (action.t === "toZone" && action.zone === "field") {
     const card = state.cards[action.uid];
     if (card && card.zone === "hand") {
-      const effects = enterEffects(card.cardId, card.face, locale);
-      if (effects.length) {
-        void showEnterEffect(document.querySelector<HTMLElement>("#table")!, {
-          cardId: card.cardId,
-          face: card.face,
-          theme: themes[card.owner],
-          locale,
-          who: `${seatLabel(state, card.owner, mySeat)} gioca «${cardName(card.cardId, locale)}»`,
-          effects,
-        });
-      }
+      void showEnterEffect(document.querySelector<HTMLElement>("#table")!, {
+        cardId: card.cardId,
+        face: card.face,
+        theme: themes[card.owner],
+        locale,
+        who: `${seatLabel(state, card.owner, mySeat)} gioca «${cardName(card.cardId, locale)}»`,
+        effects: enterEffects(card.cardId, card.face, locale),
+      });
     }
   }
   // Il tiro del dado dell'avversario si vede anche qui: la carta scende

@@ -673,20 +673,18 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         card.owner
       );
     }
-    // Il momento d'ingresso: se la carta ha un effetto «quando entra in
-    // campo», il gioco si ferma un attimo e lo annuncia (effect.ts).
+    // Il momento d'ingresso: ogni carta giocata dalla mano si ferma in primo
+    // piano e si accende; se ha un effetto che scatta entrando, lo annuncia
+    // (effect.ts).
     if (passed && card.zone === "hand") {
-      const effects = enterEffects(card.cardId, card.face, ctx.locale());
-      if (effects.length) {
-        void showEnterEffect(root, {
-          cardId: card.cardId,
-          face: card.face,
-          theme: ctx.themeFor(card.owner),
-          locale: ctx.locale(),
-          who: `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}»`,
-          effects,
-        });
-      }
+      void showEnterEffect(root, {
+        cardId: card.cardId,
+        face: card.face,
+        theme: ctx.themeFor(card.owner),
+        locale: ctx.locale(),
+        who: `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}»`,
+        effects: enterEffects(card.cardId, card.face, ctx.locale()),
+      });
     }
     return passed;
   }
