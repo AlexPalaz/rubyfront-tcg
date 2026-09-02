@@ -25,7 +25,7 @@ function paintFace(face: HTMLElement, faces: number, value: number): void {
   if (faces === 6) {
     for (let cell = 0; cell < 9; cell += 1) {
       const pip = document.createElement("span");
-      pip.className = "die-pip";
+      pip.className = "dice-pip";
       if (!PIPS[value].includes(cell)) pip.classList.add("is-off");
       face.append(pip);
     }
@@ -47,10 +47,10 @@ export function showRoll(root: HTMLElement, faces: number, result: number, label
   const veil = document.createElement("div");
   veil.className = "dice-roll";
   const die = document.createElement("div");
-  die.className = "die";
+  die.className = "dice-cube";
   die.dataset.faces = String(faces);
   const face = document.createElement("div");
-  face.className = "die-face";
+  face.className = "dice-cube-face";
   die.append(face);
   const tag = document.createElement("div");
   tag.className = "dice-roll-tag";

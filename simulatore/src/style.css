@@ -442,7 +442,8 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
 .dice-roll.is-leaving { animation: dice-veil-out .3s ease-in both; }
 @keyframes dice-veil { from { opacity: 0; } to { opacity: 1; } }
 @keyframes dice-veil-out { from { opacity: 1; } to { opacity: 0; } }
-.die {
+/* Classi proprie (dice-*): «.die» è già del costo a dado sulle carte (card.css). */
+.dice-cube {
   width: 96px; height: 96px;
   display: grid; place-items: center;
   border-radius: 18px;
@@ -457,7 +458,7 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
   font-variant-numeric: tabular-nums;
   transform-style: preserve-3d;
 }
-.die.is-rolling { animation: die-tumble 1.1s cubic-bezier(.3, .7, .3, 1) both; }
+.dice-cube.is-rolling { animation: die-tumble 1.1s cubic-bezier(.3, .7, .3, 1) both; }
 @keyframes die-tumble {
   0%   { transform: translateY(-220px) rotate3d(1, 1, 0, 0deg) scale(.7); }
   35%  { transform: translateY(20px) rotate3d(1, 1, 0, 430deg) scale(1.05); }
@@ -465,7 +466,7 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
   75%  { transform: translateY(6px) rotate3d(0, 1, 0, 800deg) scale(1.02); }
   100% { transform: translateY(0) rotate3d(0, 1, 0, 900deg) scale(1); }
 }
-.die.is-settled {
+.dice-cube.is-settled {
   animation: die-glow 2s ease-out both;
   border-color: #ff8ea6;
 }
@@ -474,12 +475,12 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
   20%  { box-shadow: inset 0 -6px 0 rgba(0, 0, 0, .12), 0 18px 40px rgba(0, 0, 0, .6), 0 0 60px rgba(210, 74, 100, .95); transform: scale(1.06); }
   100% { box-shadow: inset 0 -6px 0 rgba(0, 0, 0, .12), 0 18px 40px rgba(0, 0, 0, .6), 0 0 26px rgba(210, 74, 100, .55); transform: scale(1); }
 }
-.die-face.is-pips {
+.dice-cube-face.is-pips {
   width: 72px; height: 72px;
   display: grid; grid-template-columns: repeat(3, 1fr); place-items: center;
 }
-.die-pip { width: 14px; height: 14px; border-radius: 50%; background: #1b1015; }
-.die-pip.is-off { visibility: hidden; }
+.dice-pip { width: 14px; height: 14px; border-radius: 50%; background: #1b1015; }
+.dice-pip.is-off { visibility: hidden; }
 .dice-roll-out {
   min-height: 1.2em;
   font-size: 2.2rem; font-weight: 700;
@@ -496,7 +497,7 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
   color: var(--muted);
 }
 @media (prefers-reduced-motion: reduce) {
-  .dice-roll, .dice-roll.is-leaving, .die.is-rolling, .die.is-settled, .dice-roll.is-settled .dice-roll-out { animation: none; }
+  .dice-roll, .dice-roll.is-leaving, .dice-cube.is-rolling, .dice-cube.is-settled, .dice-roll.is-settled .dice-roll-out { animation: none; }
   .dice-roll-out { opacity: 1; }
 }
 
