@@ -355,13 +355,17 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
 
 /* Una carta che si innesca (§8.2): un bagliore di rubino che sale e si
    spegne, sopra la tessera com'è. */
-.tile.is-triggering { animation: tile-trigger 1.6s ease-out both; }
+.tile { transition: box-shadow .25s ease; }
+.tile.is-triggering {
+  box-shadow: 0 0 0 2px #ff8ea6, 0 0 46px rgba(210, 74, 100, 1);
+  animation: tile-trigger .5s ease-out both;
+}
 @keyframes tile-trigger {
   0%   { box-shadow: 0 0 0 1px rgba(0, 0, 0, .75), 0 0 0 rgba(210, 74, 100, 0); }
-  25%  { box-shadow: 0 0 0 2px #ff8ea6, 0 0 46px rgba(210, 74, 100, 1); }
-  100% { box-shadow: 0 0 0 1px rgba(0, 0, 0, .75), 0 0 0 rgba(210, 74, 100, 0); }
+  60%  { box-shadow: 0 0 0 3px #ffb3c2, 0 0 70px rgba(210, 74, 100, 1); }
+  100% { box-shadow: 0 0 0 2px #ff8ea6, 0 0 46px rgba(210, 74, 100, 1); }
 }
-@media (prefers-reduced-motion: reduce) { .tile.is-triggering { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .tile.is-triggering { animation: none; } .tile { transition: none; } }
 .effect-text.is-trigger { border-color: color-mix(in srgb, var(--ruby) 45%, var(--line-soft)); }
 
 /* Il momento d'ingresso: velo sul tavolo (che ferma i click sotto), la carta

@@ -32,7 +32,7 @@ import {
 } from "./ctx.js";
 import { showRoll } from "./dice.js";
 import { showEnterEffect } from "./effect.js";
-import { describeTrigger, enterTriggers, resolveEnter } from "./effects.js";
+import { describeTrigger, enterTriggers, resolveTrigger } from "./effects.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
 import { TILE_H, TILE_W, cardName, cardStats, enterEffects, faceCount, faceKind, isRubyfront, type Deployment } from "./renderer.js";
@@ -695,9 +695,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         who: `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}»`,
         effects,
         triggers: triggers.map(trigger => describeTrigger(trigger, ctx.card)),
-        onContinue: triggers.length
-          ? () => void resolveEnter(ctx, live).then(fired => fired.forEach(source => flash(source.uid)))
-          : undefined,
+        onContinue: triggers.length ? () => void playTriggers(live) : undefined,
       });
     }
     return passed;
@@ -798,14 +796,38 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     return cost > player.flux + (player.token ? 1 : 0);
   }
 
-  /** Il bagliore di una carta che si innesca (§8.2): un attimo, poi via. */
+  /** Il tempo in cui la fonte resta accesa prima che l'effetto agisca. */
+  const TRIGGER_LEAD_MS = 650;
+  /** E quanto resta accesa dopo che l'effetto ha agito. */
+  const TRIGGER_TAIL_MS = 350;
+
+  /** Accende o spegne una carta che si innesca (§8.2). */
+  function light(uid: string, on: boolean): void {
+    tiles.get(uid)?.classList.toggle("is-triggering", on);
+  }
+
+  /** Il bagliore per un effetto arrivato dalla rete: la pesca è già
+      avvenuta, la fonte si accende e si spegne col ritmo di chi ha giocato. */
   function flash(uid: string): void {
-    const tile = tiles.get(uid);
-    if (!tile) return;
-    tile.classList.remove("is-triggering");
-    void tile.offsetWidth;
-    tile.classList.add("is-triggering");
-    window.setTimeout(() => tile.classList.remove("is-triggering"), 1600);
+    light(uid, true);
+    window.setTimeout(() => light(uid, false), TRIGGER_LEAD_MS + TRIGGER_TAIL_MS);
+  }
+
+  const wait = (ms: number): Promise<void> => new Promise(resolve => window.setTimeout(resolve, ms));
+
+  /**
+   * Il ritmo di un innesco: la fonte si accende e resta accesa; mentre è
+   * accesa l'effetto agisce (la carta entra in mano); 350ms dopo si spegne.
+   * Un innesco alla volta.
+   */
+  async function playTriggers(entering: CardInstance): Promise<void> {
+    for (const trigger of enterTriggers(ctx.state(), entering, ctx.card)) {
+      light(trigger.source.uid, true);
+      await wait(TRIGGER_LEAD_MS);
+      const passed = await resolveTrigger(ctx, entering, trigger);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+      light(trigger.source.uid, false);
+    }
   }
 
   function applyDrop(card: CardInstance, drop: Drop): void {

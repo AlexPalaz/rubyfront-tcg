@@ -51,22 +51,30 @@ export function describeTrigger(trigger: EnterTrigger, facts: (cardId: string) =
 }
 
 /**
- * Risolve gli inneschi d'ingresso: una pesca per ciascuno, marcata come
- * effetto. Il «no» dell'engine ferma quel passo e basta. Ritorna le fonti
- * che si sono innescate davvero, per il bagliore sul tavolo.
+ * Risolve UN innesco d'ingresso: la pesca marcata come effetto. Il «no»
+ * dell'engine ferma il passo e basta. Dice se è passato: chi lo chiama
+ * (il tavolo) accende la fonte prima e la spegne dopo, così il ritmo —
+ * accesa, pesca, spenta — è del tavolo, non di qui.
+ */
+export async function resolveTrigger(ctx: Ctx, entering: CardInstance, trigger: EnterTrigger): Promise<boolean> {
+  const passed = await ctx.dispatch({
+    t: "draw",
+    seat: entering.owner,
+    count: trigger.draw,
+    effect: { source: trigger.source.uid, event: "on_enter_field", entering: entering.uid },
+  });
+  if (passed) ctx.log(`${seatLabel(ctx.state(), entering.owner)}: ${describeTrigger(trigger, ctx.card)}.`, entering.owner);
+  return passed;
+}
+
+/**
+ * Risolve tutti gli inneschi d'ingresso, uno dopo l'altro. Ritorna le
+ * fonti che si sono innescate davvero.
  */
 export async function resolveEnter(ctx: Ctx, entering: CardInstance): Promise<CardInstance[]> {
   const fired: CardInstance[] = [];
   for (const trigger of enterTriggers(ctx.state(), entering, ctx.card)) {
-    const passed = await ctx.dispatch({
-      t: "draw",
-      seat: entering.owner,
-      count: trigger.draw,
-      effect: { source: trigger.source.uid, event: "on_enter_field", entering: entering.uid },
-    });
-    if (!passed) continue;
-    fired.push(trigger.source);
-    ctx.log(`${seatLabel(ctx.state(), entering.owner)}: ${describeTrigger(trigger, ctx.card)}.`, entering.owner);
+    if (await resolveTrigger(ctx, entering, trigger)) fired.push(trigger.source);
   }
   return fired;
 }
