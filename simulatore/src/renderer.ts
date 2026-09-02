@@ -18,7 +18,7 @@ export const TILE_W = 302;
 export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
-import type { EnterListener, EnterMove, EnterReturn } from "./ctx.js";
+import type { EnterListener, EnterLook, EnterMove, EnterReturn } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -323,6 +323,31 @@ function enterReturnsOf(face: CardFace | undefined): EnterReturn[] {
   return out;
 }
 
+/**
+ * Gli sguardi nel mazzo certificati (§8.2): evento `on_enter_field` senza
+ * `enteringCard`, effetto `look_and_optionally_move` dalla cima del
+ * proprio mazzo con `count` intero, `mayReveal` un'Entità (con razza) che
+ * va in mano, `restTo` in fondo al mazzo. Specchio di card_index.rb.
+ */
+function enterLooksOf(face: CardFace | undefined): EnterLook[] {
+  const out: EnterLook[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const details = trigger.details as { enteringCard?: unknown } | undefined;
+    if (details?.enteringCard) continue;
+    const effect = trigger.effect as { type?: unknown; from?: any; details?: any } | undefined;
+    if (!effect || effect.type !== "look_and_optionally_move") continue;
+    const from = effect.from;
+    const d = effect.details;
+    if (!from || from.zone !== "deck" || from.owner !== "controller" || from.position !== "top" || !Number.isInteger(from.count)) continue;
+    if (!d || d.revealTo?.zone !== "hand" || d.restTo?.zone !== "deck" || d.restTo?.position !== "bottom") continue;
+    const may = d.mayReveal;
+    if (!may || may.cardType !== "entity") continue;
+    out.push({ count: from.count as number, reveal: { kind: "entity", race: typeof may.race === "string" ? may.race : null } });
+  }
+  return out;
+}
+
 /** Il costo di schieramento del Rubyfront (§3.1): fisso, o un dado. */
 export interface Deployment {
   fixed: number | null;
@@ -340,6 +365,7 @@ export function cardStats(cardId: string): {
   enterMoves: EnterMove[];
   behavior: string | null;
   enterReturns: EnterReturn[];
+  enterLooks: EnterLook[];
 } {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
@@ -351,6 +377,7 @@ export function cardStats(cardId: string): {
     enterMoves: enterMovesOf(face),
     behavior: typeof face?.behavior === "string" ? face.behavior : null,
     enterReturns: enterReturnsOf(face),
+    enterLooks: enterLooksOf(face),
     power: integer(face?.stats?.power),
     counterattack: integer(face?.stats?.counterattack),
     // Il costo di Flusso stampato (§3.2); il Rubyfront ha il costo di

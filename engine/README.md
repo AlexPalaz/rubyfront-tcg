@@ -318,8 +318,16 @@ Regole collegate finora:
   si sceglie dalla pila (la finestra della ricerca, ristretta ai
   candidati), si conferma, e la carta vola dalla pila al suo posto. Il
   «quando attacca» della stessa carta arriverà con gli eventi d'attacco.
-  Tutto ciò che non ha una forma certificata resta a mano. Engine 0.27.0,
-  ventisei regole.
+  La quarta forma è quella di RBF-006, il **Cercatore**: «guarda le prime 4
+  carte del tuo mazzo, puoi mostrare un'Entità Umana e aggiungerla alla
+  mano, metti le altre in fondo» — un'azione sola, `look {seat, count,
+  reveal?}`, che riduttore e copia applicano insieme (la rivelata in fondo
+  alla mano, le altre in fondo al mazzo nell'ordine in cui stavano) e che
+  l'engine passa se il conto è quello della forma e la rivelata sta fra le
+  prime N ed è del tipo e della razza chiesti; nel client si vedono le
+  quattro, si sceglie fra quelle che si possono mostrare (le altre velate),
+  Chiudi per nessuna. Tutto ciò che non ha una forma certificata resta a
+  mano. Engine 0.28.0, ventisette regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

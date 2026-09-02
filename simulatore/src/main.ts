@@ -140,7 +140,7 @@ function receive(action: Action, from: Seat): void {
   }
   // Un effetto dell'avversario si vede anche qui: la fonte si accende, e se
   // ha un bersaglio la freccia lo indica — prima che la carta parta.
-  if (action.t === "draw" && action.effect) table.flash(action.effect.source);
+  if ((action.t === "draw" || action.t === "look") && action.effect) table.flash(action.effect.source);
   let fly: (() => void) | null = null;
   if (action.t === "toZone" && action.effect) {
     const moving = state.cards[action.uid];
@@ -213,6 +213,7 @@ const ctx: Ctx = {
       enterMoves: stats.enterMoves,
       behavior: stats.behavior,
       enterReturns: stats.enterReturns,
+      enterLooks: stats.enterLooks,
     };
   },
   log(text, seat) {
@@ -286,7 +287,7 @@ const hud = mountHud(document.querySelector<HTMLElement>("#hud")!, ctx, {
 document.querySelector("#side-close")!.addEventListener("click", toggleSide);
 const overlay = mountOverlay(ctx, () => paint());
 table.onBrowse((seat, zone) => overlay.open(seat, zone));
-table.onPick((seat, zone, candidates, title) => overlay.pick(seat, zone, candidates, title));
+table.onPick((seat, zone, candidates, title, visible) => overlay.pick(seat, zone, candidates, title, visible));
 
 /** Righe arrivate a chat chiusa: due spie — messaggi (blu) e azioni (oro). */
 let unreadChat = 0;

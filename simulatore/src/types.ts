@@ -209,6 +209,10 @@ export type Action =
   /** Risolve l'ondata (§6.4): i morti nell'Abisso, i danni al Rubyfront
       del difensore, il combattimento sgomberato. `seat` è chi è di turno. */
   | { t: "resolve"; seat: Seat; battles: Battle[] }
+  /** Lo sguardo nel mazzo (§8.2, la forma di RBF-006): le prime `count`
+      carte del mazzo di `seat`; `reveal`, se c'è, va in mano; le altre in
+      fondo, nell'ordine in cui stavano. Sempre un passo d'effetto. */
+  | { t: "look"; seat: Seat; count: number; reveal?: string; effect: EffectRef }
   /** Fine della partita (§2, §9): lo dichiara il client che l'ha vista
       arrivare, l'engine lo verifica contro PV e mazzi della sua copia. */
   | { t: "gameOver"; winner: Seat | null; reason: GameOver["reason"] }

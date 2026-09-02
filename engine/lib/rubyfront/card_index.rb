@@ -49,6 +49,11 @@ module Rubyfront
     # dalla tua Zona di Ritiro» — la forma di RBF-012. Ogni voce: { from:,
     # filter: { type:, behavior: }, to: }.
     #
+    # `enter_looks` sono gli sguardi nel mazzo CERTIFICATI (§8.2): «guarda le
+    # prime N carte del tuo mazzo, puoi mostrarne un'Entità [di razza] e
+    # aggiungerla alla mano, metti le altre in fondo» — la forma di RBF-006.
+    # Ogni voce: { count:, reveal: { type:, race: } }.
+    #
     # `behavior` è il comportamento di una Materia (§7.2): "normal",
     # "permanent" o "reactive" — nil per chi non è una Materia. Serve alla
     # finestra di gioco: le Reattive sono le sole carte che scendono in Fase
@@ -91,6 +96,7 @@ module Rubyfront
           enter_listeners: enter_listeners(faces).freeze,
           enter_moves: enter_moves(faces).freeze,
           enter_returns: enter_returns(faces).freeze,
+          enter_looks: enter_looks(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze
@@ -170,6 +176,27 @@ module Rubyfront
         next unless destination.is_a?(Hash) && destination["zone"] == "front"
 
         { from: "ritiro", filter: { type: "matter", behavior: "permanent" }.freeze, to: "field" }.freeze
+      end
+    end
+
+    def self.enter_looks(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+        next if trigger["details"].is_a?(Hash) && trigger["details"]["enteringCard"]
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "look_and_optionally_move"
+
+        from = effect["from"]
+        details = effect["details"]
+        next unless from.is_a?(Hash) && from["zone"] == "deck" && from["owner"] == "controller" && from["position"] == "top" && from["count"].is_a?(Integer)
+        next unless details.is_a?(Hash) && details.dig("revealTo", "zone") == "hand"
+        next unless details.dig("restTo", "zone") == "deck" && details.dig("restTo", "position") == "bottom"
+
+        may = details["mayReveal"]
+        next unless may.is_a?(Hash) && may["cardType"] == "entity"
+
+        { count: from["count"], reveal: { type: "entity", race: may["race"].is_a?(String) ? may["race"] : nil }.freeze }.freeze
       end
     end
 

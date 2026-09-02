@@ -53,6 +53,7 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       enterMoves: [],
       behavior: null,
       enterReturns: [],
+      enterLooks: [],
     }),
     log(text) {
       logs.push(text);

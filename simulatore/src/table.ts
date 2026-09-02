@@ -33,15 +33,19 @@ import {
 import { showRoll } from "./dice.js";
 import { confirmEffect, showEnterEffect } from "./effect.js";
 import {
+  describeLook,
   describeMove,
   describeReturn,
   describeTrigger,
+  enterLooks,
   enterMoves,
   enterReturns,
   enterTriggers,
+  resolveLook,
   resolveMove,
   resolveReturn,
   resolveTrigger,
+  type EnterLookStep,
   type EnterMoveStep,
   type EnterReturnStep,
 } from "./effects.js";
@@ -103,7 +107,9 @@ export interface TableView {
   /** Callback per aprire la ricerca: la fornisce main.ts. */
   onBrowse(handler: (seat: Seat, zone: ZoneId) => void): void;
   /** Callback per scegliere una carta da una pila (effetti): la fornisce main.ts. */
-  onPick(handler: (seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string) => Promise<CardInstance | null>): void;
+  onPick(
+    handler: (seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string, visible?: CardInstance[]) => Promise<CardInstance | null>
+  ): void;
   /** Il bagliore di una carta che si innesca: per gli effetti arrivati dalla rete. */
   flash(uid: string, ms?: number): void;
   /** La freccia di un effetto dalla fonte al bersaglio, per un attimo. */
@@ -119,8 +125,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const tiles = new Map<string, HTMLElement>();
   let browse: (seat: Seat, zone: ZoneId) => void = () => {};
   /** La scelta da una pila per un effetto: la fornisce main.ts (overlay). */
-  let pickFromPile: (seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string) => Promise<CardInstance | null> = () =>
-    Promise.resolve(null);
+  let pickFromPile: (
+    seat: Seat,
+    zone: ZoneId,
+    candidates: CardInstance[],
+    title: string,
+    visible?: CardInstance[]
+  ) => Promise<CardInstance | null> = () => Promise.resolve(null);
   /** Uid della carta in trascinamento: non va riposizionata dal render. */
   let dragging: string | null = null;
   /**
@@ -776,6 +787,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const live = ctx.state().cards[card.uid] ?? card;
       const moves = enterMoves(ctx.state(), live, ctx.card);
       const returns = enterReturns(ctx.state(), live, ctx.card);
+      const looks = enterLooks(ctx.state(), live, ctx.card);
       const triggers = enterTriggers(ctx.state(), live, ctx.card);
       void showEnterEffect(root, {
         cardId: card.cardId,
@@ -787,9 +799,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         triggers: [
           ...moves.map(step => describeMove(step, ctx.card)),
           ...returns.map(step => describeReturn(step, ctx.card)),
+          ...looks.map(step => describeLook(step, ctx.card)),
           ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
         ],
-        onContinue: moves.length || returns.length || triggers.length ? () => void playTriggers(live) : undefined,
+        onContinue: moves.length || returns.length || looks.length || triggers.length ? () => void playTriggers(live) : undefined,
       });
     }
     return passed;
@@ -1027,6 +1040,28 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
   }
 
+  async function playLook(step: EnterLookStep): Promise<void> {
+    const who = seatLabel(ctx.state(), step.source.owner);
+    if (step.looked.length === 0) {
+      ctx.log(`${who}: «${ctx.card(step.source.cardId).name}» guarda un mazzo vuoto.`, step.source.owner);
+      return;
+    }
+    light(step.source.uid, true);
+    const title = step.candidates.length
+      ? `Le prime ${step.looked.length} del mazzo: puoi mostrarne una e prenderla in mano — Chiudi per nessuna`
+      : `Le prime ${step.looked.length} del mazzo: nessuna da mostrare — Chiudi per metterle in fondo`;
+    const reveal = await pickFromPile(step.source.owner, "deck", step.candidates, title, step.looked);
+    hold(true);
+    try {
+      await wait(TRIGGER_LEAD_MS);
+      const passed = await resolveLook(ctx, step, reveal);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      light(step.source.uid, false);
+      hold(false);
+    }
+  }
+
   async function playMove(step: EnterMoveStep): Promise<void> {
     if (step.candidates.length === 0) {
       ctx.log(`${seatLabel(ctx.state(), step.source.owner)}: «${ctx.card(step.source.cardId).name}» non ha bersagli in campo.`, step.source.owner);
@@ -1078,6 +1113,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     for (const step of enterReturns(ctx.state(), entering, ctx.card)) {
       await playReturn(step);
+    }
+    for (const step of enterLooks(ctx.state(), entering, ctx.card)) {
+      await playLook(step);
     }
     hold(true);
     try {

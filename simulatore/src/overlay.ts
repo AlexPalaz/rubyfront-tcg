@@ -25,7 +25,7 @@ export interface Overlay {
   openCatalog(seat: Seat): void;
   /** La scelta per un effetto (§8.2): fra `candidates` di quella pila, un
       click sceglie; Chiudi o Esc rinunciano (null). */
-  pick(seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string): Promise<CardInstance | null>;
+  pick(seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string, visible?: CardInstance[]): Promise<CardInstance | null>;
   close(): void;
 }
 
@@ -74,7 +74,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
   /** Modalità catalogo (strumento di prova): si evoca, non si sposta. */
   let catalogMode = false;
   /** Modalità scelta (un effetto): i candidati, il titolo, e a chi dirlo. */
-  let picking: { candidates: CardInstance[]; title: string; done: (card: CardInstance | null) => void } | null = null;
+  let picking: { candidates: CardInstance[]; visible: CardInstance[]; title: string; done: (card: CardInstance | null) => void } | null = null;
   /** True se in questa sessione di ricerca si è presa almeno una carta. */
   let touched = false;
 
@@ -128,7 +128,8 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
   /** La scelta per un effetto: solo i candidati, un click sceglie. */
   function paintPick(matches: (cardId: string) => boolean): void {
     const chosen = picking!;
-    const cards = chosen.candidates.filter(card => matches(card.cardId));
+    const cards = chosen.visible.filter(card => matches(card.cardId));
+    const pickable = new Set(chosen.candidates.map(card => card.uid));
     title.textContent = chosen.title;
     empty.hidden = cards.length > 0;
     grid.replaceChildren();
@@ -138,6 +139,14 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       const tile = createCardEl(card.uid);
       syncCardEl(tile, card, { back: false, theme: ctx.themeFor(card.owner), locale: ctx.locale() });
       wirePreview(tile, ctx.locale);
+      // Si vede ma non si sceglie: velata, come la carta che non ci si può
+      // permettere in mano.
+      if (!pickable.has(card.uid)) {
+        tile.classList.add("is-unaffordable");
+        wrapper.append(tile);
+        grid.append(wrapper);
+        continue;
+      }
       tile.addEventListener("click", () => {
         const done = chosen.done;
         picking = null;
@@ -247,13 +256,13 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       paint();
       search.focus();
     },
-    pick(seat, zone, candidates, pickTitle) {
+    pick(seat, zone, candidates, pickTitle, visible) {
       return new Promise(resolve => {
         currentSeat = seat;
         currentZone = zone;
         catalogMode = false;
         touched = false;
-        picking = { candidates, title: pickTitle, done: resolve };
+        picking = { candidates, visible: visible ?? candidates, title: pickTitle, done: resolve };
         search.value = "";
         shuffleAfter.hidden = true;
         host.hidden = false;

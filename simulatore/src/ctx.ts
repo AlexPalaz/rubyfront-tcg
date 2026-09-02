@@ -26,6 +26,18 @@ export interface CardFacts {
   /** Gli effetti certificati «quando QUESTA entra in campo: metti sul tuo
       Fronte una carta dalla tua Zona di Ritiro» (§8.2): vedi enterReturns. */
   enterReturns: EnterReturn[];
+  /** Gli sguardi nel mazzo certificati «quando QUESTA entra» (§8.2): vedi enterLooks. */
+  enterLooks: EnterLook[];
+}
+
+/**
+ * La forma certificata di uno sguardo nel mazzo all'ingresso: «guarda le
+ * prime N carte del tuo mazzo, puoi mostrarne una [di tipo e razza] e
+ * aggiungerla alla mano, metti le altre in fondo». È la forma di RBF-006.
+ */
+export interface EnterLook {
+  count: number;
+  reveal: { kind: "entity"; race: string | null } | null;
 }
 
 /**

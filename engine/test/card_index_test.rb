@@ -54,6 +54,11 @@ class CardIndexTest < Minitest::Test
     assert_equal [], @index["RBF-007"][:enter_returns]
   end
 
+  def test_il_cercatore_guarda_quattro_carte
+    assert_equal [{ count: 4, reveal: { type: "entity", race: "human" } }], @index["RBF-006"][:enter_looks]
+    assert_equal [], @index["RBF-027"][:enter_looks], "col dado non è la forma certificata"
+  end
+
   # --- il costo di schieramento (§3.1) ------------------------------------
 
   def test_conosce_il_costo_di_schieramento_fisso_o_a_dado

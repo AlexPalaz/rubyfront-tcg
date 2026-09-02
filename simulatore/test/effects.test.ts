@@ -3,7 +3,20 @@
 
 import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
-import { describeMove, describeReturn, describeTrigger, enterMoves, enterReturns, enterTriggers, resolveEnter, resolveMove, resolveReturn } from "../src/effects.js";
+import {
+  describeLook,
+  describeMove,
+  describeReturn,
+  describeTrigger,
+  enterLooks,
+  enterMoves,
+  enterReturns,
+  enterTriggers,
+  resolveEnter,
+  resolveLook,
+  resolveMove,
+  resolveReturn,
+} from "../src/effects.js";
 import { newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
@@ -11,6 +24,7 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   ARCIERE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
   RHEN: { kind: "entity", race: "human", enterReturns: [{ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" }] },
   PERMANENTE: { kind: "matter", behavior: "permanent" },
+  CERCATORE: { kind: "entity", race: "human", enterLooks: [{ count: 4, reveal: { kind: "entity", race: "human" } }] },
   NORMALE: { kind: "matter", behavior: "normal" },
   GUIDA: { kind: "entity", race: "human", enterListeners: [{ enteringRace: "human", requires: { count: 3, race: "human" }, draw: 1 }] },
   UMANO: { kind: "entity", race: "human" },
@@ -27,6 +41,7 @@ const facts = (cardId: string): CardFacts => ({
   enterMoves: [],
   behavior: null,
   enterReturns: [],
+  enterLooks: [],
   ...FACTS[cardId],
 });
 
@@ -197,5 +212,55 @@ describe("enterReturns", () => {
     const [step] = enterReturns(state, rhen, facts);
     expect(await resolveReturn(ctx, step, p1)).toBe(true);
     expect(sent[0]).toMatchObject({ t: "toZone", uid: "p1", zone: "field", effect: { source: "rhen", event: "on_enter_field", entering: "rhen" } });
+  });
+});
+
+// Lo sguardo nel mazzo (§8.2), la forma di RBF-006. Gemello: engine_test.rb.
+describe("enterLooks", () => {
+  function inDeck(state: GameState, uid: string, cardId: string, order: number): CardInstance {
+    const card = on(state, uid, cardId);
+    card.zone = "deck";
+    card.order = order;
+    return card;
+  }
+
+  it("guarda le prime quattro e propone solo gli Umani", () => {
+    const state = newGame();
+    const cerc = on(state, "cerc", "CERCATORE");
+    inDeck(state, "d1", "PIETRA", 0);
+    inDeck(state, "d2", "UMANO", 1);
+    inDeck(state, "d3", "AUROS", 2);
+    inDeck(state, "d4", "UMANO", 3);
+    inDeck(state, "d5", "UMANO", 4);
+    const [step] = enterLooks(state, cerc, facts);
+    expect(step.looked.map(card => card.uid)).toEqual(["d1", "d2", "d3", "d4"]);
+    expect(step.candidates.map(card => card.uid)).toEqual(["d2", "d4"]);
+    expect(describeLook(step, facts)).toMatch(/guarda le prime 4/);
+  });
+
+  it("resolveLook manda l'azione look marcata come effetto", async () => {
+    const state = newGame();
+    const cerc = on(state, "cerc", "CERCATORE");
+    const d2 = inDeck(state, "d2", "UMANO", 0);
+    const sent: Action[] = [];
+    const ctx: Ctx = {
+      state: () => state,
+      dispatch(action) {
+        sent.push(action);
+        return Promise.resolve(true);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "notte",
+      locale: () => "it",
+      card: facts,
+      log() {},
+    };
+    const [step] = enterLooks(state, cerc, facts);
+    expect(await resolveLook(ctx, step, d2)).toBe(true);
+    expect(sent[0]).toEqual({ t: "look", seat: "a", count: 4, reveal: "d2", effect: { source: "cerc", event: "on_enter_field", entering: "cerc" } });
+    expect(await resolveLook(ctx, step, null)).toBe(true);
+    expect(sent[1]).not.toHaveProperty("reveal");
   });
 });

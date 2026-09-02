@@ -40,6 +40,7 @@ function fakeCtx(
       enterMoves: [],
       behavior: null,
       enterReturns: [],
+      enterLooks: [],
     }),
     log(text) {
       logs.push(text);

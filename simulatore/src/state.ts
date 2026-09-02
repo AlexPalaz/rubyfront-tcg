@@ -337,6 +337,25 @@ export function apply(state: GameState, action: Action): GameState {
       return { ...state, cards: { ...state.cards, [card.uid]: card } };
     }
 
+    case "look": {
+      // §8.2 — lo sguardo nel mazzo: le prime N; la rivelata in fondo alla
+      // mano, le altre in fondo al mazzo, nell'ordine in cui stavano.
+      // Gemello: table.rb, look.
+      const looked = zoneCards(state, action.seat, "deck").slice(0, action.count);
+      if (looked.length === 0) return state;
+      const cards = { ...state.cards };
+      let bottom = orderForBottom(state, action.seat, "deck");
+      for (const card of looked) {
+        if (card.uid === action.reveal) {
+          cards[card.uid] = { ...card, zone: "hand", order: orderForBottom(state, action.seat, "hand"), facedown: false };
+          continue;
+        }
+        cards[card.uid] = { ...card, order: bottom };
+        bottom += 1;
+      }
+      return { ...state, cards };
+    }
+
     case "gameOver":
       return { ...state, over: { winner: action.winner, reason: action.reason } };
 

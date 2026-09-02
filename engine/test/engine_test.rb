@@ -1702,4 +1702,49 @@ class EngineTest < Minitest::Test
     assert riporta(engine, "p1")[:ok]
     refute riporta(engine, "p2")[:ok]
   end
+
+  # --- §8.2: il Cercatore guarda le prime quattro (RBF-006) ----------------
+
+  CERCATORI = {
+    "CERCATORE" => { type: "entity", keywords: [], race: "human", enter_looks: [{ count: 4, reveal: { type: "entity", race: "human" } }] },
+    "UMANO" => { type: "entity", keywords: [], race: "human" },
+    "AUROS" => { type: "entity", keywords: [], race: "auros" },
+    "PIETRA" => { type: "matter", keywords: [], behavior: "normal" },
+  }.freeze
+
+  # A ha il Cercatore in mano e quel mazzo (dalla cima); poi il Cercatore scende.
+  def cercatore(deck)
+    engine = Rubyfront::Engine.new(cards: CERCATORI)
+    cards = [{ "uid" => "cerc", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "CERCATORE" }]
+    cards += deck.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "deck", "order" => i, "cardId" => id } }
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    engine.judge({ "t" => "toZone", "uid" => "cerc", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine
+  end
+
+  def guarda(engine, reveal: nil, count: 4, seat: "a")
+    action = { "t" => "look", "seat" => seat, "count" => count,
+               "effect" => { "source" => "cerc", "event" => "on_enter_field", "entering" => "cerc" } }
+    action["reveal"] = reveal if reveal
+    engine.judge(action)
+  end
+
+  def test_il_cercatore_mostra_un_umano_fra_le_prime_quattro
+    engine = cercatore([["d1", "PIETRA"], ["d2", "UMANO"], ["d3", "AUROS"], ["d4", "PIETRA"], ["d5", "UMANO"]])
+    verdict = guarda(engine, reveal: "d2")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    table = engine.instance_variable_get(:@table)
+    assert_equal "hand", table.card("d2")[:zone]
+    assert_equal %w[d5 d1 d3 d4], table.top_of_deck("a", 4)
+  end
+
+  def test_non_si_mostra_chi_non_e_fra_le_prime_o_non_e_umano
+    engine = cercatore([["d1", "PIETRA"], ["d2", "AUROS"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "UMANO"]])
+    refute guarda(engine, reveal: "d5")[:ok], "la quinta non si vede"
+    refute guarda(engine, reveal: "d2")[:ok], "un Auros non si mostra"
+    refute guarda(engine, count: 2)[:ok], "si guardano quattro carte"
+    assert guarda(engine)[:ok], "nessuna da mostrare: tutte in fondo"
+    refute guarda(engine)[:ok], "e l'innesco è consumato"
+  end
 end

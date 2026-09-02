@@ -144,6 +144,11 @@ module Rubyfront
       @cards.values.select { |card| card[:owner] == seat && card[:zone] == "field" }
     end
 
+    # Gli uid delle prime `count` carte del mazzo di un posto (§8.2, sguardi).
+    def top_of_deck(seat, count)
+      pile(seat, "deck").first(count).map { |card| @cards.key(card) }
+    end
+
     def zone_count(seat, zone)
       @cards.count { |_, card| card[:owner] == seat && card[:zone] == zone }
     end
@@ -268,6 +273,7 @@ module Rubyfront
       when "clearCombat"
         @declarations = {}
       when "resolve" then resolve(action)
+      when "look" then look(action)
       when "phase"
         @phase = action["phase"] if PHASES.include?(action["phase"])
       when "turn"
@@ -391,6 +397,30 @@ module Rubyfront
       # mai sotto zero — come nel riduttore.
       foe = SEATS.find { |seat| seat != action["seat"] }
       @players[foe][:hp] = [0, @players[foe][:hp] - damage].max if foe && SEATS.include?(action["seat"])
+    end
+
+    # §8.2 — lo sguardo nel mazzo (la forma di RBF-006): le prime N; la
+    # rivelata in fondo alla mano, le altre in fondo al mazzo nell'ordine in
+    # cui stavano. Gemello: state.ts, look.
+    def look(action)
+      seat = action["seat"]
+      looked = pile(seat, "deck").first(action["count"].to_i)
+      return if looked.empty?
+
+      hand = pile(seat, "hand")
+      hand_order = hand.empty? ? 0 : hand.last[:order] + 1
+      deck = pile(seat, "deck")
+      bottom = deck.last[:order] + 1
+      looked.each do |card|
+        if action["reveal"] && @cards[action["reveal"]].equal?(card)
+          card[:zone] = "hand"
+          card[:order] = hand_order
+          card[:facedown] = false
+          next
+        end
+        card[:order] = bottom
+        bottom += 1
+      end
     end
 
     def to_zone(action)

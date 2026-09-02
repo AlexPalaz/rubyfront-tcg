@@ -383,3 +383,16 @@ describe("gli Oggetti seguono l'Entità", () => {
     expect(state.cards["a-2"].assignedTo).toBeUndefined();
   });
 });
+
+// Lo sguardo nel mazzo applicato (§8.2). Gemello: table_test.rb, test_look_*.
+describe("apply look", () => {
+  it("la rivelata in mano, le altre in fondo nell'ordine in cui stavano", () => {
+    let state = apply(newGame(), deckFor("a", 6));
+    const ref = { source: "x", event: "on_enter_field" as const, entering: "x" };
+    state = apply(state, { t: "look", seat: "a", count: 4, reveal: "a-2", effect: ref });
+    expect(zoneCards(state, "a", "hand").map(card => card.uid)).toEqual(["a-2"]);
+    expect(zoneCards(state, "a", "deck").map(card => card.uid)).toEqual(["a-5", "a-6", "a-1", "a-3", "a-4"]);
+    state = apply(state, { t: "look", seat: "a", count: 2, effect: ref });
+    expect(zoneCards(state, "a", "deck").map(card => card.uid)).toEqual(["a-1", "a-3", "a-4", "a-5", "a-6"]);
+  });
+});

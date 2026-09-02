@@ -329,4 +329,23 @@ class TableTest < Minitest::Test
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
     refute @table.fired?("g", "e")
   end
+
+  # --- lo sguardo nel mazzo (§8.2) ---------------------------------------------
+
+  def test_look_mostra_una_carta_e_mette_le_altre_in_fondo
+    @table.apply(deck_for("a", 6))
+    assert_equal %w[a-1 a-2 a-3 a-4], @table.top_of_deck("a", 4)
+    @table.apply({ "t" => "look", "seat" => "a", "count" => 4, "reveal" => "a-2",
+                   "effect" => { "source" => "x", "event" => "on_enter_field", "entering" => "x" } })
+    assert_equal 1, @table.hand_count("a")
+    assert_equal "hand", @table.card("a-2")[:zone]
+    assert_equal %w[a-5 a-6 a-1 a-3 a-4], @table.top_of_deck("a", 5), "le altre in fondo, nell'ordine in cui stavano"
+  end
+
+  def test_look_senza_rivelata_mette_tutto_in_fondo
+    @table.apply(deck_for("a", 5))
+    @table.apply({ "t" => "look", "seat" => "a", "count" => 2, "effect" => { "source" => "x", "event" => "on_enter_field", "entering" => "x" } })
+    assert_equal 0, @table.hand_count("a")
+    assert_equal %w[a-3 a-4 a-5 a-1 a-2], @table.top_of_deck("a", 5)
+  end
 end

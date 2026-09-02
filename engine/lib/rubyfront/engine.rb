@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.27.0"
+    VERSION = "0.28.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -54,6 +54,7 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando un'Entità entra, pesca» (RBF-003)",
       "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (RBF-007)",
       "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte» (RBF-012)",
+      "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una» (RBF-006)",
       "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
       "§3.1 Il Rubyfront schierato non torna in Zona di Richiamo",
     ].freeze
@@ -793,7 +794,8 @@ module Rubyfront
       ref = action["effect"]
       kind = action["t"]
       return judge_effect_move(action, ref) if kind == "toZone"
-      return refuse(kind, "un effetto certificato pesca o sposta soltanto, per ora (§8.2)") unless kind == "draw"
+      return judge_effect_look(action, ref) if kind == "look"
+      return refuse(kind, "un effetto certificato pesca, sposta o guarda soltanto, per ora (§8.2)") unless kind == "draw"
 
       source = @table.card(ref["source"])
       entering = @table.card(ref["entering"])
@@ -864,6 +866,40 @@ module Rubyfront
       return refuse("toZone", "il bersaglio dev'essere un'Entità (§8.2)") unless entry[:type] == move[:target][:type]
 
       allow("toZone")
+    end
+
+    # §8.2 — lo sguardo nel mazzo (la forma di RBF-006): la fonte è chi
+    # entra, entrata questo turno, innesco non consumato; il conto delle
+    # carte è quello della forma; la rivelata, se c'è, sta fra le prime N
+    # del mazzo del posto ed è del tipo e della razza chiesti (ignota
+    # all'anagrafe: silenzio).
+    def judge_effect_look(action, ref)
+      return refuse("look", "l'effetto di chi entra ha per ingresso se stessa (§8.2)") unless ref["source"] == ref["entering"]
+
+      source = @table.card(ref["source"])
+      return refuse("look", "la fonte dell'effetto non è in campo (§8.2)") unless source && source[:zone] == "field"
+      return refuse("look", "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless source[:entered] == @table.turn
+      return refuse("look", "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["entering"])
+      return refuse("look", "si guarda nel proprio mazzo (§8.2)") unless action["seat"] == source[:owner]
+
+      look = Array(@cards.dig(source[:card_id], :enter_looks)).first
+      return refuse("look", "la carta non ha un effetto certificato che guardi nel mazzo (§8.2)") unless look
+      return refuse("look", "si guardano le prime #{look[:count]} carte, non #{action["count"]} (§8.2)") unless action["count"] == look[:count]
+
+      reveal = action["reveal"]
+      return allow("look") unless reveal
+
+      top = @table.top_of_deck(source[:owner], look[:count])
+      return refuse("look", "la carta mostrata dev'essere fra le prime #{look[:count]} del mazzo (§8.2)") unless top.include?(reveal)
+
+      shown = @table.card(reveal)
+      entry = shown && @cards[shown[:card_id]]
+      return no_rule("look") unless entry
+      unless entry[:type] == look[:reveal][:type] && (look[:reveal][:race].nil? || entry[:race] == look[:reveal][:race])
+        return refuse("look", "si può mostrare solo un'Entità #{look[:reveal][:race] ? "di razza #{look[:reveal][:race]}" : ""}: non questa (§8.2)".squeeze(" "))
+      end
+
+      allow("look")
     end
 
     def count_entities(seat, race)

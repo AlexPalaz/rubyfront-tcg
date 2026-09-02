@@ -90,6 +90,59 @@ export async function resolveReturn(ctx: Ctx, step: EnterReturnStep, card: CardI
   return passed;
 }
 
+/** Uno sguardo nel mazzo da risolvere: chi entra, le carte guardate, quali si possono mostrare. */
+export interface EnterLookStep {
+  source: CardInstance;
+  count: number;
+  looked: CardInstance[];
+  candidates: CardInstance[];
+}
+
+/**
+ * Gli sguardi nel mazzo di chi entra (§8.2, la forma di RBF-006): le prime
+ * N del proprio mazzo, e fra queste quelle che si possono mostrare.
+ */
+export function enterLooks(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterLookStep[] {
+  return facts(entering.cardId).enterLooks.map(look => {
+    const looked = zoneCards(state, entering.owner, "deck").slice(0, look.count);
+    const candidates = looked.filter(card => {
+      if (!look.reveal) return false;
+      const f = facts(card.cardId);
+      return f.kind === look.reveal.kind && (look.reveal.race === null || f.race === look.reveal.race);
+    });
+    return { source: entering, count: look.count, looked, candidates };
+  });
+}
+
+/** La riga che annuncia uno sguardo nel mazzo. */
+export function describeLook(step: EnterLookStep, facts: (cardId: string) => CardFacts): string {
+  return `«${facts(step.source.cardId).name}» si innesca: guarda le prime ${step.count} carte del mazzo`;
+}
+
+/**
+ * Esegue lo sguardo: la carta mostrata (o nessuna) in mano, le altre in
+ * fondo — un'azione sola, marcata come effetto.
+ */
+export async function resolveLook(ctx: Ctx, step: EnterLookStep, reveal: CardInstance | null): Promise<boolean> {
+  const passed = await ctx.dispatch({
+    t: "look",
+    seat: step.source.owner,
+    count: step.count,
+    ...(reveal ? { reveal: reveal.uid } : {}),
+    effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
+  });
+  if (passed) {
+    const who = seatLabel(ctx.state(), step.source.owner);
+    ctx.log(
+      reveal
+        ? `${who}: «${ctx.card(step.source.cardId).name}» mostra «${ctx.card(reveal.cardId).name}» e la prende in mano; le altre in fondo al mazzo.`
+        : `${who}: «${ctx.card(step.source.cardId).name}» guarda ${step.count} carte e le mette in fondo al mazzo.`,
+      step.source.owner
+    );
+  }
+  return passed;
+}
+
 /** La riga che annuncia uno spostamento all'ingresso. */
 export function describeMove(step: EnterMoveStep, facts: (cardId: string) => CardFacts): string {
   return `«${facts(step.source.cardId).name}» si innesca: metti un'Entità avversaria nella Zona di Ritiro`;
