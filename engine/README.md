@@ -249,6 +249,23 @@ Regole collegate finora:
   accordo (§9.2) non ha ancora un gesto, e il Nexus vale come il
   Rubyfront (stessi PV). Engine 0.20.0, ventuno regole.
 
+- **§3.1 Il Rubyfront si schiera pagando** — lo schieramento è il `move`
+  dalla Zona di Richiamo alla sua fila, e «si paga identico a ogni
+  schieramento»: il costo stampato — fisso, o un dado (`deploymentCost`,
+  che l'anagrafe legge come `{ fixed:, die: }`). Col dado «si può lanciare
+  solo se il Flusso disponibile copre il risultato peggiore», Gettone
+  compreso, e si paga il numero uscito; il client tira (il dado gira al
+  centro del tavolo, poi la carta scende) e mette nell'azione `cost` e
+  `roll`; l'engine verifica la forma — costo uguale allo stampato, tiro fra
+  1 e le facce, costo uguale al tiro, Flusso che copre le facce — non la
+  fortuna, come un arbitro con un dado tirato sul tavolo (limite
+  dichiarato). Lo schieramento è un gesto del proprio turno; il richiamo e
+  gli spostamenti sulla fila sono liberi. Con questa regola il pagamento
+  si è unificato nei due gemelli (`pay`): prima la barra, poi il
+  **Gettone**, che la copia del tavolo ora tiene (chi non inizia, patch,
+  snapshot) e che conta nel Flusso disponibile anche per il costo delle
+  carte (§3.2). Engine 0.21.0, ventidue regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

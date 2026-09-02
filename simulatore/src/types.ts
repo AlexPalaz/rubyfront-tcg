@@ -168,7 +168,10 @@ export type Action =
   | { t: "loadDeck"; seat: Seat; deckId: string; cards: CardInstance[] }
   | { t: "shuffle"; seat: Seat; order: string[] }
   | { t: "draw"; seat: Seat; count: number }
-  | { t: "move"; uid: string; x: number; y: number; z: number }
+  /** `cost`/`roll`: lo schieramento del Rubyfront (§3.1) è un `move` dalla
+      Zona di Richiamo alla sua fila, e si paga — col dado, `roll` è il tiro
+      e `cost` il risultato. Senza costo è un movimento e basta. */
+  | { t: "move"; uid: string; x: number; y: number; z: number; cost?: number; roll?: number }
   /** `cost`: il Flusso pagato giocando DALLA MANO in campo (§3.2) — lo
       mette il client dal catalogo, l'engine lo verifica, il riduttore lo
       scala. Assente da altre zone e per il Rubyfront. */

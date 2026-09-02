@@ -29,9 +29,10 @@ import {
   viewBandTop,
   type Ctx,
 } from "./ctx.js";
+import { showRoll } from "./dice.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
-import { TILE_H, TILE_W, cardName, cardStats, faceCount, faceKind, isRubyfront } from "./renderer.js";
+import { TILE_H, TILE_W, cardName, cardStats, faceCount, faceKind, isRubyfront, type Deployment } from "./renderer.js";
 import {
   STACK_STEP,
   declarationOf,
@@ -692,6 +693,55 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     return free === undefined ? null : { x: free, y: front };
   }
 
+  /**
+   * Schiera il Rubyfront pagando (§3.1): «il costo non cresce mai, si paga
+   * identico a ogni schieramento». Col dado si tira qui — il dado gira al
+   * centro del tavolo, poi la carta scende — e si paga il risultato; il
+   * tiro è permesso solo se il Flusso disponibile, Gettone compreso, copre
+   * le facce del dado. Il costo e il tiro viaggiano nell'azione: l'arbitro
+   * li verifica (il tiro nella forma, non nella fortuna), il riduttore
+   * scala. Fermato, il Rubyfront torna da dove era.
+   */
+  async function deploy(
+    card: CardInstance,
+    x: number,
+    y: number,
+    z: number,
+    deployment: Deployment,
+    origin: { x: number; y: number; z: number } | null
+  ): Promise<void> {
+    const giveBack = (): void => {
+      if (origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
+    };
+    const who = seatLabel(ctx.state(), card.owner);
+    const player = ctx.state().players[card.owner];
+    const available = player.flux + (player.token ? 1 : 0);
+    let cost: number;
+    let roll: number | undefined;
+    if (deployment.die) {
+      if (available < deployment.die) {
+        ctx.log(`${who}: il d${deployment.die} non si tira — servono ${deployment.die} Flussi disponibili, ne ha ${available} (§3.1).`, card.owner);
+        giveBack();
+        return;
+      }
+      roll = 1 + Math.floor(Math.random() * deployment.die);
+      cost = roll;
+      await showRoll(root, deployment.die, roll, "Schieramento del Rubyfront");
+    } else {
+      cost = deployment.fixed ?? 0;
+    }
+    const passed = await ctx.dispatch({ t: "move", uid: card.uid, x, y, z, cost, ...(roll !== undefined ? { roll } : {}) });
+    if (!passed) {
+      giveBack();
+      return;
+    }
+    const after = ctx.state().players[card.owner];
+    ctx.log(
+      `${who} schiera il Rubyfront${roll !== undefined ? `: d${deployment.die} → ${roll},` : ","} paga ${cost} (Flusso ${after.flux}/${after.fluxMax}${after.token ? " + Gettone" : ""}).`,
+      card.owner
+    );
+  }
+
   function applyDrop(card: CardInstance, drop: Drop): void {
     if (!drop) return;
     if (drop.kind === "field") {
@@ -720,6 +770,16 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (bound) spot = bound;
       let x = Math.max(0, Math.min(SURFACE_W - TILE_W, spot.x));
       let y = Math.max(0, Math.min(SURFACE_H - TILE_H, spot.y));
+      // Lo schieramento del Rubyfront (§3.1): dalla Zona di Richiamo alla
+      // sua fila si paga il costo stampato — fisso, o un dado tirato qui.
+      if (isRubyfront(card.cardId) && card.zone === "field") {
+        const front = frontRowY(card.owner);
+        const deployment = cardStats(card.cardId).deployment;
+        if (deployment && card.y !== front && y === front) {
+          void deploy(card, x, y, dropZ(card, x, y), deployment, origin);
+          return;
+        }
+      }
       // Un Oggetto posato su un'Entità non resta dove l'ha lasciato il dito:
       // si accomoda da solo dietro di lei, a scaletta — in linea con la sua
       // portatrice, un gradino per ogni Oggetto già addosso.

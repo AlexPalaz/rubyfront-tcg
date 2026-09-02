@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.20.0"
+    VERSION = "0.21.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -51,6 +51,7 @@ module Rubyfront
       "§5/§6.2 Dal campo non si torna in mano né nel mazzo",
       "§7 Le Materie si giocano solo se abilitate",
       "§2/§9 Fine della partita: PV a zero, mazzo esaurito, pareggio",
+      "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -193,9 +194,57 @@ module Rubyfront
     def judge_move(action)
       card = @table.card(action["uid"])
       return no_rule("move") unless card && card[:zone] == "field"
-      return no_rule("move") unless @cards.dig(card[:card_id], :type) == "entity"
+
+      kind = @cards.dig(card[:card_id], :type)
+      return judge_deploy(card, action) if kind == "rubyfront"
+      return no_rule("move") unless kind == "entity"
 
       on_slot?(card, action) ? allow("move") : refuse("move", "le Entità stanno sugli slot del Fronte, nella propria fila (§5)")
+    end
+
+    # §3.1 — lo schieramento del Rubyfront si paga: dalla Zona di Richiamo
+    # (fila di servizio) alla sua fila, «il costo si paga identico a ogni
+    # schieramento» — fisso, o un dado: «si può lanciare solo se il Flusso
+    # disponibile copre il risultato peggiore», Gettone compreso, e si paga
+    # il numero uscito. Il costo e il tiro viaggiano nell'azione: qui si
+    # verifica la forma — costo uguale allo stampato, tiro fra 1 e le facce,
+    # costo uguale al tiro — non la fortuna, come un arbitro con un dado
+    # tirato sul tavolo. Il richiamo e gli spostamenti sulla stessa fila
+    # sono liberi; fila ignota vale «non schierato»; senza costo in
+    # anagrafe, silenzio.
+    def judge_deploy(card, action)
+      y = action["y"]
+      return no_rule("move") unless y.is_a?(Numeric)
+
+      deploying = FRONT_ROW_Y.include?(y) && !(card[:row] && FRONT_ROW_Y.include?(card[:row]))
+      return no_rule("move") unless deploying
+
+      deployment = @cards.dig(card[:card_id], :deployment)
+      return no_rule("move") unless deployment
+
+      paid = action["cost"]
+      available = @table.available(card[:owner])
+      if deployment[:die]
+        faces = deployment[:die]
+        if available < faces
+          return refuse("move", "il d#{faces} non si tira: servono #{faces} Flussi disponibili per coprire ogni faccia, ne hai #{available} (§3.1)")
+        end
+        roll = action["roll"]
+        unless roll.is_a?(Integer) && roll.between?(1, faces)
+          return refuse("move", "il Rubyfront si schiera tirando il d#{faces}: l'azione non porta un tiro valido (§3.1)")
+        end
+        return refuse("move", "si paga il numero uscito: #{roll}, non #{paid.is_a?(Integer) ? paid : 0} (§3.1)") unless paid == roll
+      else
+        fixed = deployment[:fixed]
+        unless paid == fixed
+          return refuse("move", "il Rubyfront si schiera pagando #{fixed} di Flusso, l'azione ne paga #{paid.is_a?(Integer) ? paid : 0} (§3.1)")
+        end
+        if available < fixed
+          return refuse("move", "Flusso insufficiente: ne hai #{available}, lo schieramento costa #{fixed} (§3.1)")
+        end
+      end
+
+      allow("move")
     end
 
     def on_slot?(card, action)
@@ -276,7 +325,7 @@ module Rubyfront
         unless paid == cost
           return refuse("toZone", "la carta costa #{cost} di Flusso e l'azione ne paga #{paid.is_a?(Integer) ? paid : 0} (§3.2)")
         end
-        available = @table.flux(card[:owner])
+        available = @table.available(card[:owner])
         if available < cost
           return refuse("toZone", "Flusso insufficiente: ne hai #{available}, la carta costa #{cost} (§3.2)")
         end
@@ -602,7 +651,9 @@ module Rubyfront
       # (all'ingresso in stanza, nel turno di chiunque), «Nuova partita», il
       # proprio nome, la chat, i pixel — e una patch che non tocca i
       # contatori non è un'azione di gioco.
-      return nil if %w[loadDeck newGame say move].include?(kind)
+      # Un `move` è pixel — salvo lo schieramento del Rubyfront, che porta
+      # un costo ed è un gesto di gioco (§3.1: nel proprio turno).
+      return nil if %w[loadDeck newGame say].include?(kind) || (kind == "move" && !action.key?("cost"))
       if kind == "player" && action["seat"] == actor
         patch = action["patch"]
         counters = patch.is_a?(Hash) && %w[hp flux fluxMax].any? { |key| patch.key?(key) }

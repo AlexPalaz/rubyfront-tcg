@@ -22,6 +22,9 @@ module Rubyfront
     #   ...
     # }
     #
+    # `deployment` è il costo di schieramento del Rubyfront (§3.1): fisso o
+    # a dado, { fixed:, die: }, nil per chi non è un Rubyfront.
+    #
     # `matter` è l'etichetta di una Materia (§7.1): tipo ("dynamic",
     # "dimensional", "destructive", "zero", "dominant") e grado (1 o 2; nil
     # per Zero e Dominante, che non hanno gradi) — nil per chi non è una
@@ -66,6 +69,7 @@ module Rubyfront
           power: integer_stat(stats["power"]),
           counterattack: integer_stat(stats["counterattack"]),
           flux_cost: integer_stat(stats["fluxCost"]),
+          deployment: deployment_of(stats["deploymentCost"]),
           matter: matter_of(faces),
           enables: faces.map { |face| enables_of(face) }.freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
@@ -75,6 +79,18 @@ module Rubyfront
         next
       end
       index.freeze
+    end
+
+    # Il costo di schieramento del Rubyfront (§3.1): `3`, `{ "base" => 3 }`
+    # o `{ "die" => "d6" }` — { fixed:, die: }, nil se non c'è o ha una forma
+    # ignota (e lo schieramento si regola a mano).
+    def self.deployment_of(value)
+      return { fixed: value, die: nil }.freeze if value.is_a?(Integer)
+      return nil unless value.is_a?(Hash)
+      return { fixed: value["base"], die: nil }.freeze if value["base"].is_a?(Integer)
+
+      die = value["die"].is_a?(String) && value["die"][/\Ad(\d+)\z/, 1]
+      die ? { fixed: nil, die: die.to_i }.freeze : nil
     end
 
     def self.matter_of(faces)

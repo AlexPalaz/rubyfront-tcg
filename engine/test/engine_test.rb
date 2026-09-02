@@ -1397,4 +1397,93 @@ class EngineTest < Minitest::Test
     assert risolvi(engine, [battaglia("a1", damage: 4)])[:ok]
     assert fine(engine, "a", "hp")[:ok], "4 danni su 4 PV: la copia lo sa"
   end
+
+  # --- §3.1: il Rubyfront si schiera pagando --------------------------------
+
+  SCHIERAMENTI = {
+    "FISSO" => { type: "rubyfront", keywords: [], deployment: { fixed: 3, die: nil } },
+    "DADO" => { type: "rubyfront", keywords: [], deployment: { fixed: nil, die: 6 } },
+    "IGNOTO" => { type: "rubyfront", keywords: [] },
+  }.freeze
+
+  # Il Rubyfront di A in Zona di Richiamo (fila di servizio), con quel Flusso.
+  def richiamo(card_id, flux:, token: false)
+    engine = Rubyfront::Engine.new(cards: SCHIERAMENTI)
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => flux, "token" => token } })
+    cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => card_id, "y" => 1756 }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    engine
+  end
+
+  def schiera(engine, cost: nil, roll: nil, y: 1236, actor: "a")
+    action = { "t" => "move", "uid" => "rf", "x" => 30, "y" => y, "z" => 2 }
+    action["cost"] = cost unless cost.nil?
+    action["roll"] = roll unless roll.nil?
+    engine.judge(action, actor: actor)
+  end
+
+  def test_costo_fisso_si_paga_identico_a_ogni_schieramento
+    engine = richiamo("FISSO", flux: 3)
+    assert schiera(engine, cost: 3)[:ok]
+    assert_equal 0, engine.instance_variable_get(:@table).flux("a")
+    # richiamo e rischieramento: si ripaga per intero
+    assert schiera(engine, y: 1756)[:ok], "il richiamo è libero"
+    refute schiera(engine, cost: 3)[:ok], "ma il rischieramento si ripaga, e il Flusso è finito"
+  end
+
+  def test_costo_fisso_senza_flusso_o_sbagliato
+    engine = richiamo("FISSO", flux: 2)
+    verdict = schiera(engine, cost: 3)
+    refute verdict[:ok]
+    assert_match(/Flusso insufficiente.*§3\.1/, verdict[:reason])
+    refute schiera(engine, cost: 1)[:ok], "pagare meno dello stampato"
+    refute schiera(engine)[:ok], "non pagare"
+  end
+
+  def test_il_gettone_conta_nel_flusso_disponibile
+    engine = richiamo("FISSO", flux: 2, token: true)
+    assert schiera(engine, cost: 3)[:ok]
+    table = engine.instance_variable_get(:@table)
+    assert_equal 0, table.flux("a")
+    refute table.token?("a"), "il Gettone è speso"
+  end
+
+  def test_il_dado_si_tira_solo_se_il_flusso_copre_le_facce
+    engine = richiamo("DADO", flux: 5)
+    verdict = schiera(engine, cost: 2, roll: 2)
+    refute verdict[:ok]
+    assert_match(/non si tira.*6 Flussi.*ne hai 5/, verdict[:reason])
+    engine = richiamo("DADO", flux: 5, token: true)
+    assert schiera(engine, cost: 2, roll: 2)[:ok], "col Gettone il d6 è coperto (§3.1)"
+  end
+
+  def test_col_dado_si_paga_il_numero_uscito
+    engine = richiamo("DADO", flux: 6)
+    refute schiera(engine, cost: 3)[:ok], "senza tiro"
+    refute schiera(engine, cost: 7, roll: 7)[:ok], "un tiro fuori dal dado"
+    refute schiera(engine, cost: 1, roll: 4)[:ok], "pagare meno del tiro"
+    assert schiera(engine, cost: 4, roll: 4)[:ok]
+    assert_equal 2, engine.instance_variable_get(:@table).flux("a")
+  end
+
+  def test_gli_spostamenti_sulla_fila_e_il_richiamo_sono_liberi
+    engine = richiamo("FISSO", flux: 3)
+    schiera(engine, cost: 3)
+    verdict = engine.judge({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1236, "z" => 4 })
+    refute verdict[:ruled], "già schierato: si sposta e basta"
+    refute schiera(engine, y: 1756)[:ruled], "il richiamo non si paga"
+  end
+
+  def test_lo_schieramento_e_un_gesto_del_proprio_turno
+    engine = richiamo("FISSO", flux: 3)
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    verdict = schiera(engine, cost: 3, actor: "a")
+    refute verdict[:ok]
+    assert_match(/non tocca a te/, verdict[:reason])
+  end
+
+  def test_senza_costo_in_anagrafe_silenzio
+    engine = richiamo("IGNOTO", flux: 0)
+    refute schiera(engine)[:ruled]
+  end
 end

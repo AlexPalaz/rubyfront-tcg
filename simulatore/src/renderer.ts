@@ -24,7 +24,7 @@ export interface CardFace {
   displayKey: string;
   /** Le statistiche stampate (dal file dati della carta): qui contano
       quelle del combattimento, Potenza e «Contrattacco +N» (§6.3). */
-  stats?: { power?: unknown; counterattack?: unknown; fluxCost?: unknown };
+  stats?: { power?: unknown; counterattack?: unknown; fluxCost?: unknown; deploymentCost?: unknown };
 }
 
 export interface CatalogCard {
@@ -202,7 +202,18 @@ export function faceKind(cardId: string, faceIndex: number): CardFace["kind"] | 
  * statistica non contrattacca. Solo interi, come nell'anagrafe dell'engine:
  * un valore d'altra forma resta ignoto, mai frainteso.
  */
-export function cardStats(cardId: string): { power: number | null; counterattack: number | null; fluxCost: number | null } {
+/** Il costo di schieramento del Rubyfront (§3.1): fisso, o un dado. */
+export interface Deployment {
+  fixed: number | null;
+  die: number | null;
+}
+
+export function cardStats(cardId: string): {
+  power: number | null;
+  counterattack: number | null;
+  fluxCost: number | null;
+  deployment: Deployment | null;
+} {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
   const integer = (value: unknown): number | null => (Number.isInteger(value) ? (value as number) : null);
@@ -212,7 +223,23 @@ export function cardStats(cardId: string): { power: number | null; counterattack
     // Il costo di Flusso stampato (§3.2); il Rubyfront ha il costo di
     // schieramento, un'altra cosa, e qui resta null.
     fluxCost: integer(face?.stats?.fluxCost),
+    deployment: deploymentOf(face?.stats?.deploymentCost),
   };
+}
+
+/**
+ * Il costo di schieramento com'è nei dati: `3`, `{ base: 3 }` o
+ * `{ die: "d6" }` (§3.1, «un numero fisso oppure un dado»). Forma ignota:
+ * null, e lo schieramento si regola a mano.
+ */
+function deploymentOf(value: unknown): Deployment | null {
+  if (Number.isInteger(value)) return { fixed: value as number, die: null };
+  if (!value || typeof value !== "object") return null;
+  const raw = value as { base?: unknown; die?: unknown };
+  if (Number.isInteger(raw.base)) return { fixed: raw.base as number, die: null };
+  const die = typeof raw.die === "string" ? /^d(\d+)$/.exec(raw.die) : null;
+  if (die) return { fixed: null, die: Number(die[1]) };
+  return null;
 }
 
 /** Il Rubyfront non si pesca mai (§3.1): parte in Zona di Richiamo. */

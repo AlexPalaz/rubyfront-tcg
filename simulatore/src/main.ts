@@ -16,6 +16,7 @@ import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
 import { PHASE_BANNER_HOLD_MS, mountPhaseBanner } from "./banner.js";
+import { showRoll } from "./dice.js";
 import { mountHud } from "./hud.js";
 import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
@@ -121,6 +122,12 @@ function commit(action: Action): void {
 
 /** Applica senza ritrasmettere: per le azioni che arrivano già dalla rete. */
 function receive(action: Action, from: Seat): void {
+  // Il tiro del dado dell'avversario si vede anche qui: la carta scende
+  // insieme, ma il momento è lo stesso.
+  if (action.t === "move" && action.roll !== undefined) {
+    const die = cardStats(state.cards[action.uid]?.cardId ?? "").deployment?.die ?? 6;
+    void showRoll(document.querySelector<HTMLElement>("#table")!, die, action.roll, "Schieramento del Rubyfront");
+  }
   state = apply(state, action);
   // Anche le azioni dell'avversario passano all'engine: l'arbitro guarda la
   // partita intera, non una metà.

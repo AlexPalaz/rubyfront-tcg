@@ -6,11 +6,24 @@
 // stesso stato e applicano le stesse azioni finiscano identici.
 
 import { FRONT_SLOT_X, MATTER_X, SURFACE_W, TILE_W, frontRowY } from "./ctx.js";
-import type { Action, CardInstance, Declaration, GameState, Seat, ZoneId } from "./types.js";
+import type { Action, CardInstance, Declaration, GameState, PlayerState, Seat, ZoneId } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
 
 /** Il tetto del Flusso (§3.2): la barra non supera mai 20. */
 export const FLUX_CAP = 20;
+
+/**
+ * Paga `cost` (§3.2): prima dalla barra, e se non basta col Gettone — un
+ * punto a parte, monouso, «utilizzabile in qualsiasi momento». Mai sotto
+ * zero: a engine spento il tavolo resta libero, con l'arbitro il «Flusso
+ * insufficiente» ferma prima. Gemello: table.rb, pay.
+ */
+export function pay(player: PlayerState, cost: number): PlayerState {
+  if (cost <= 0) return player;
+  if (player.flux >= cost) return { ...player, flux: player.flux - cost };
+  if (player.token && player.flux + 1 >= cost) return { ...player, flux: player.flux + 1 - cost, token: false };
+  return { ...player, flux: 0 };
+}
 
 export function newPlayer(name: string): GameState["players"]["a"] {
   return { name, hp: 20, flux: 1, fluxMax: 1, token: false, deckId: null };
@@ -126,8 +139,14 @@ export function apply(state: GameState, action: Action): GameState {
     case "move": {
       const card = state.cards[action.uid];
       if (!card) return state;
+      // Lo schieramento del Rubyfront si paga (§3.1): il costo viaggia
+      // nell'azione, come per le carte giocate dalla mano.
+      const players = (action.cost ?? 0) > 0
+        ? { ...state.players, [card.owner]: pay(state.players[card.owner], action.cost!) }
+        : state.players;
       return {
         ...state,
+        players,
         cards: { ...state.cards, [action.uid]: { ...card, x: action.x, y: action.y, z: action.z } },
         zTop: Math.max(state.zTop, action.z + 1),
       };
@@ -164,7 +183,7 @@ export function apply(state: GameState, action: Action): GameState {
       // libero, con l'arbitro il «Flusso insufficiente» ferma prima.
       const paying = action.zone === "field" && card.zone === "hand" && (action.cost ?? 0) > 0;
       const players = paying
-        ? { ...state.players, [card.owner]: { ...state.players[card.owner], flux: Math.max(0, state.players[card.owner].flux - action.cost!) } }
+        ? { ...state.players, [card.owner]: pay(state.players[card.owner], action.cost!) }
         : state.players;
       if (next.zone !== "field") {
         // Fuori dal campo le assegnazioni si sciolgono, in entrambi i versi:

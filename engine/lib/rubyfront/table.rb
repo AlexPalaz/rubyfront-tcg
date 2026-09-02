@@ -35,6 +35,17 @@ module Rubyfront
       @players.fetch(seat)[:hp]
     end
 
+    # Il Gettone Flusso (§3.2), ancora da spendere?
+    def token?(seat)
+      @players.fetch(seat)[:token]
+    end
+
+    # Il Flusso spendibile ora: la barra più il Gettone, che «può essere
+    # utilizzato in qualsiasi momento» (§3.2).
+    def available(seat)
+      flux(seat) + (token?(seat) ? 1 : 0)
+    end
+
     def over?
       !@over.nil?
     end
@@ -54,7 +65,9 @@ module Rubyfront
       @phase = "preparazione"
       # I contatori che servono alle regole, come in newPlayer del client:
       # il Flusso (§3.2) e i PV (§2, la fine della partita).
-      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20 }] }
+      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20, token: false }] }
+      # §3.2/§4: il Gettone va a chi non inizia — con l'active del reset.
+      @players[SEATS.find { |seat| seat != @active }][:token] = true
       # Com'è finita (§2, §9): {winner:, reason:}, nil finché si gioca.
       @over = nil
     end
@@ -143,6 +156,7 @@ module Rubyfront
         @players[seat][:flux] = player["flux"] if player["flux"].is_a?(Integer)
         @players[seat][:flux_max] = player["fluxMax"] if player["fluxMax"].is_a?(Integer)
         @players[seat][:hp] = player["hp"] if player["hp"].is_a?(Integer)
+        @players[seat][:token] = player["token"] == true if player.key?("token")
       end
       over = state["over"]
       @over = { winner: over["winner"], reason: over["reason"] } if over.is_a?(Hash)
@@ -174,7 +188,10 @@ module Rubyfront
       case action["t"]
       when "newGame"
         reset
-        @active = action["active"] if SEATS.include?(action["active"])
+        if SEATS.include?(action["active"])
+          @active = action["active"]
+          SEATS.each { |seat| @players[seat][:token] = seat != @active }
+        end
       when "loadDeck" then load_deck(action)
       when "shuffle" then shuffle(action)
       when "draw" then draw(action)
@@ -186,6 +203,7 @@ module Rubyfront
           player[:flux] = patch["flux"] if patch["flux"].is_a?(Integer)
           player[:flux_max] = patch["fluxMax"] if patch["fluxMax"].is_a?(Integer)
           player[:hp] = patch["hp"] if patch["hp"].is_a?(Integer)
+          player[:token] = patch["token"] == true if patch.key?("token")
         end
       when "gameOver"
         winner = action["winner"]
@@ -201,7 +219,11 @@ module Rubyfront
         card[:face] = action["face"].to_i if card
       when "move"
         card = @cards[action["uid"]]
-        card[:row] = action["y"] if card && card[:zone] == "field" && action["y"].is_a?(Numeric)
+        if card
+          card[:row] = action["y"] if card[:zone] == "field" && action["y"].is_a?(Numeric)
+          # Lo schieramento del Rubyfront si paga (§3.1), come nel riduttore.
+          pay(card[:owner], action["cost"])
+        end
       when "assign"
         card = @cards[action["uid"]]
         if card
@@ -246,6 +268,22 @@ module Rubyfront
     end
 
     private
+
+    # Paga `cost` (§3.2): prima dalla barra, e se non basta col Gettone — un
+    # punto a parte, monouso. Mai sotto zero. Gemello: state.ts, pay.
+    def pay(seat, cost)
+      player = @players[seat]
+      return unless player && cost.is_a?(Integer) && cost.positive?
+
+      if player[:flux] >= cost
+        player[:flux] -= cost
+      elsif player[:token] && player[:flux] + 1 >= cost
+        player[:flux] = player[:flux] + 1 - cost
+        player[:token] = false
+      else
+        player[:flux] = 0
+      end
+    end
 
     # Le carte di una pila, dalla cima (order più basso) al fondo.
     def pile(seat, zone)
@@ -326,12 +364,9 @@ module Rubyfront
       # che resta sul campo non è un nuovo ingresso.
       card[:entered] = @turn if zone == "field" && card[:zone] != "field"
       # Giocare dalla mano costa: il costo viaggia nell'azione (`cost`, lo
-      # mette il client dal catalogo e l'engine lo verifica) e si scala dal
-      # Flusso, mai sotto zero — come nel riduttore.
-      if zone == "field" && card[:zone] == "hand" && action["cost"].is_a?(Integer) && action["cost"].positive?
-        player = @players[card[:owner]]
-        player[:flux] = [0, player[:flux] - action["cost"]].max if player
-      end
+      # mette il client dal catalogo e l'engine lo verifica) e si paga come
+      # nel riduttore (pay).
+      pay(card[:owner], action["cost"]) if zone == "field" && card[:zone] == "hand"
       card[:zone] = zone
       if zone == "field"
         card[:order] = 0

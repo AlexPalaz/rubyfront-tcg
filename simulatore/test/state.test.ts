@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { MATTER_X, frontRowY } from "../src/ctx.js";
-import { STACK_STEP, apply, matterSpot, newGame, playSpot, zoneCards } from "../src/state.js";
+import { STACK_STEP, apply, matterSpot, newGame, pay, playSpot, zoneCards } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
 function deckFor(seat: Seat, count: number): { cards: CardInstance[] } & Extract<Parameters<typeof apply>[1], { t: "loadDeck" }> {
@@ -296,5 +296,26 @@ describe("apply gameOver", () => {
     expect(state.over).toEqual({ winner: "a", reason: "hp" });
     state = apply(state, { t: "newGame", active: "a" });
     expect(state.over).toBeUndefined();
+  });
+});
+
+// Il pagamento (§3.2): la barra prima, poi il Gettone. Gemello: table.rb, pay.
+describe("pay", () => {
+  const player = (flux: number, token: boolean) => ({ name: "", hp: 20, flux, fluxMax: 5, token, deckId: null });
+
+  it("paga dalla barra, e col Gettone quando non basta", () => {
+    expect(pay(player(3, true), 2)).toMatchObject({ flux: 1, token: true });
+    expect(pay(player(2, true), 3)).toMatchObject({ flux: 0, token: false });
+    expect(pay(player(1, false), 3)).toMatchObject({ flux: 0, token: false });
+    expect(pay(player(1, true), 5)).toMatchObject({ flux: 0, token: true });
+  });
+
+  it("lo schieramento del Rubyfront si paga col move", () => {
+    let state = apply(newGame(), deckFor("a", 1));
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 30, y: 1756, z: 1 });
+    state.players.a.flux = 6;
+    state = apply(state, { t: "move", uid: "a-1", x: 30, y: 1236, z: 2, cost: 4, roll: 4 });
+    expect(state.players.a.flux).toBe(2);
+    expect(state.cards["a-1"].y).toBe(1236);
   });
 });

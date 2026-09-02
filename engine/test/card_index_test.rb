@@ -33,6 +33,16 @@ class CardIndexTest < Minitest::Test
     assert_empty Rubyfront::CardIndex.load("/posto/che/non/esiste")
   end
 
+  # --- il costo di schieramento (§3.1) ------------------------------------
+
+  def test_conosce_il_costo_di_schieramento_fisso_o_a_dado
+    assert_equal({ fixed: 3, die: nil }, @index["RBF-023"][:deployment])
+    assert_equal({ fixed: nil, die: 6 }, @index["RBF-001"][:deployment])
+    assert_nil @index["RBF-004"][:deployment], "un'Entità non si schiera"
+    assert_equal({ fixed: 2, die: nil }, Rubyfront::CardIndex.deployment_of(2))
+    assert_nil Rubyfront::CardIndex.deployment_of({ "die" => "dado" })
+  end
+
   # --- Materie e abilitazioni (§7) ----------------------------------------
 
   def test_conosce_tipo_e_grado_delle_materie

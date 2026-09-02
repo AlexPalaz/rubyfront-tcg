@@ -242,4 +242,29 @@ class TableTest < Minitest::Test
     assert @table.over?
     assert_equal 0, @table.hp("a")
   end
+
+  # --- il Gettone e il pagamento (§3.2) --------------------------------------
+
+  def test_il_gettone_va_a_chi_non_inizia_e_paga_quando_la_barra_non_basta
+    refute @table.token?("a")
+    assert @table.token?("b")
+    assert_equal 2, @table.available("b")
+    @table.apply({ "t" => "newGame", "active" => "b" })
+    assert @table.token?("a")
+    refute @table.token?("b")
+    @table.apply(deck_for("a", 1))
+    @table.apply({ "t" => "draw", "seat" => "a", "count" => 1 })
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "field", "cost" => 2 })
+    assert_equal 0, @table.flux("a"), "1 dalla barra e 1 dal Gettone"
+    refute @table.token?("a"), "il Gettone è speso"
+  end
+
+  def test_lo_schieramento_si_paga_col_move
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "flux" => 5 } })
+    cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1756 }]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    @table.apply({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1236, "z" => 2, "cost" => 4, "roll" => 4 })
+    assert_equal 1, @table.flux("a")
+    assert_equal 1236, @table.card("rf")[:row]
+  end
 end

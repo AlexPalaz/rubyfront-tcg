@@ -353,6 +353,82 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
   .phase-banner, .phase-banner-title { animation: none; }
 }
 
+/* Il tiro del dado: un velo scuro sul tavolo, il dado che rotola al
+   centro — un cubo bianco d'osso con lo spigolo di rubino — e sotto il
+   risultato in grande, che si accende quando il dado si ferma. Sopra le
+   carte e le mani, sotto l'HUD: si guarda, non si clicca. */
+.dice-roll {
+  position: absolute; inset: 0;
+  z-index: 44;
+  display: grid; place-content: center;
+  justify-items: center;
+  gap: 14px;
+  background: rgba(5, 4, 10, .55);
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+  animation: dice-veil .2s ease-out both;
+}
+.dice-roll.is-leaving { animation: dice-veil-out .3s ease-in both; }
+@keyframes dice-veil { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dice-veil-out { from { opacity: 1; } to { opacity: 0; } }
+.die {
+  width: 96px; height: 96px;
+  display: grid; place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #fbf5ec, #d9cfc3);
+  border: 2px solid #e56a86;
+  box-shadow:
+    inset 0 -6px 0 rgba(0, 0, 0, .12),
+    0 18px 40px rgba(0, 0, 0, .6),
+    0 0 0 rgba(210, 74, 100, 0);
+  color: #1b1015;
+  font-size: 44px; font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transform-style: preserve-3d;
+}
+.die.is-rolling { animation: die-tumble 1.1s cubic-bezier(.3, .7, .3, 1) both; }
+@keyframes die-tumble {
+  0%   { transform: translateY(-220px) rotate3d(1, 1, 0, 0deg) scale(.7); }
+  35%  { transform: translateY(20px) rotate3d(1, 1, 0, 430deg) scale(1.05); }
+  55%  { transform: translateY(-40px) rotate3d(1, -1, 0, 640deg) scale(1); }
+  75%  { transform: translateY(6px) rotate3d(0, 1, 0, 800deg) scale(1.02); }
+  100% { transform: translateY(0) rotate3d(0, 1, 0, 900deg) scale(1); }
+}
+.die.is-settled {
+  animation: die-glow 2s ease-out both;
+  border-color: #ff8ea6;
+}
+@keyframes die-glow {
+  0%   { box-shadow: inset 0 -6px 0 rgba(0, 0, 0, .12), 0 18px 40px rgba(0, 0, 0, .6), 0 0 0 rgba(210, 74, 100, 0); transform: scale(1.12); }
+  20%  { box-shadow: inset 0 -6px 0 rgba(0, 0, 0, .12), 0 18px 40px rgba(0, 0, 0, .6), 0 0 60px rgba(210, 74, 100, .95); transform: scale(1.06); }
+  100% { box-shadow: inset 0 -6px 0 rgba(0, 0, 0, .12), 0 18px 40px rgba(0, 0, 0, .6), 0 0 26px rgba(210, 74, 100, .55); transform: scale(1); }
+}
+.die-face.is-pips {
+  width: 72px; height: 72px;
+  display: grid; grid-template-columns: repeat(3, 1fr); place-items: center;
+}
+.die-pip { width: 14px; height: 14px; border-radius: 50%; background: #1b1015; }
+.die-pip.is-off { visibility: hidden; }
+.dice-roll-out {
+  min-height: 1.2em;
+  font-size: 2.2rem; font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--ruby);
+  text-shadow: 0 0 22px rgba(210, 74, 100, .7);
+  opacity: 0;
+}
+.dice-roll.is-settled .dice-roll-out { animation: dice-out .35s ease-out both; }
+@keyframes dice-out { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.dice-roll-tag {
+  font-size: .85rem;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dice-roll, .dice-roll.is-leaving, .die.is-rolling, .die.is-settled, .dice-roll.is-settled .dice-roll-out { animation: none; }
+  .dice-roll-out { opacity: 1; }
+}
+
 /* ------------------------------------------------------------- layout */
 
 .layout {
