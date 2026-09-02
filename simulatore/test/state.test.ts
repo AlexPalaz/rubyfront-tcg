@@ -160,3 +160,46 @@ describe("apply", () => {
     expect(state.phase).toBe("preparazione");
   });
 });
+
+// La risoluzione applicata (§6.4): i morti nell'Abisso, i danni sui PV del
+// difensore, l'ondata sgomberata. Gemello: table_test.rb, test_resolve_*.
+describe("apply resolve", () => {
+  function battlefield(): GameState {
+    let state = apply(newGame(), deckFor("a", 2));
+    state = apply(state, deckFor("b", 1));
+    for (const uid of ["a-1", "a-2", "b-1"]) state = apply(state, { t: "toZone", uid, zone: "field", x: 0, y: 0, z: 1 });
+    state.declarations = [
+      { id: "x", from: "a-1", to: "rf", kind: "attack", seat: "a", order: 1 },
+      { id: "y", from: "b-1", to: "a-1", kind: "block", seat: "b", order: 0 },
+    ];
+    return state;
+  }
+
+  it("manda i morti nell'Abisso e sgombera le frecce", () => {
+    const state = apply(battlefield(), {
+      t: "resolve",
+      seat: "a",
+      battles: [{ attacker: "a-1", blocker: "b-1", kind: "block", attackerDies: true, blockerDies: true, damage: 0 }],
+    });
+    expect(state.cards["a-1"].zone).toBe("abisso");
+    expect(state.cards["b-1"].zone).toBe("abisso");
+    expect(state.cards["a-2"].zone).toBe("field");
+    expect(state.declarations).toEqual([]);
+    expect(state.players.b.hp).toBe(20);
+  });
+
+  it("i danni scendono sui PV del difensore, mai sotto zero", () => {
+    let state = battlefield();
+    state.players.b.hp = 5;
+    state = apply(state, {
+      t: "resolve",
+      seat: "a",
+      battles: [
+        { attacker: "a-1", kind: "unblocked", attackerDies: false, blockerDies: false, damage: 4 },
+        { attacker: "a-2", kind: "unblocked", attackerDies: false, blockerDies: false, damage: 4 },
+      ],
+    });
+    expect(state.players.b.hp).toBe(0);
+    expect(state.players.a.hp).toBe(20);
+  });
+});

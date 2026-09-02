@@ -9,6 +9,12 @@
 import type { Action, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
+export interface CardFacts {
+  name: string;
+  power: number | null;
+  counterattack: number | null;
+}
+
 export interface Ctx {
   state(): GameState;
   /**
@@ -39,6 +45,10 @@ export interface Ctx {
   /** Il tema grafico è una proprietà del mazzo: ogni posto ha il suo. */
   themeFor(seat: Seat): string;
   locale(): string;
+  /** L'anagrafe di una carta per chi ragiona senza DOM (turn.ts, combat.ts):
+      il nome nella lingua del tavolo e le statistiche stampate del
+      combattimento (§6.3) — `null` dove la carta non le ha. */
+  card(cardId: string): CardFacts;
   /** Riga di servizio in chat (dadi, mescola, pesca). Il posto di chi agisce
       colora la riga: si deve vedere a colpo d'occhio chi fa cosa. */
   log(text: string, seat?: Seat | null): void;

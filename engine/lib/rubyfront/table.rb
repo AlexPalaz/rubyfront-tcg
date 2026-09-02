@@ -25,8 +25,9 @@ module Rubyfront
 
     def reset
       @cards = {}
-      # Le dichiarazioni in corso (§6.3): dichiarante -> {to:, kind:}. Come
-      # nel client, una carta dichiara una cosa sola per volta.
+      # Le dichiarazioni in corso (§6.3): dichiarante -> {to:, kind:, order:}.
+      # Come nel client, una carta dichiara una cosa sola per volta; `order`
+      # è il numero d'ondata, l'ordine in cui le battaglie si risolvono.
       @declarations = {}
       @active = "a"
       @turn = 1
@@ -62,6 +63,27 @@ module Rubyfront
       @declarations.any? { |_, d| d[:kind] == "attack" }
     end
 
+    # §6.4 — l'ondata nell'ordine di dichiarazione: [uid attaccante, ...],
+    # solo chi è ancora in campo (chi esce perde la freccia, ma per prudenza
+    # si ricontrolla).
+    def attackers_in_order
+      @declarations.select { |from, d| d[:kind] == "attack" && on_field?(from) }
+                   .sort_by { |_, d| d[:order] }
+                   .map(&:first)
+    end
+
+    # Chi ferma quell'attaccante: [uid, "block" | "counter"], o nil se
+    # l'attacco passa.
+    def blocker_of(attacker_uid)
+      found = @declarations.find { |from, d| d[:to] == attacker_uid && %w[block counter].include?(d[:kind]) && on_field?(from) }
+      found && [found[0], found[1][:kind]]
+    end
+
+    def on_field?(uid)
+      card = @cards[uid]
+      card && card[:zone] == "field"
+    end
+
     # Le carte di un posto che stanno in campo (per il conteggio del Fronte,
     # §6.2: chi è Entità e chi no lo decide l'anagrafe, non il tavolo).
     def field_cards(seat)
@@ -87,7 +109,8 @@ module Rubyfront
       Array(state["declarations"]).each do |declaration|
         next unless declaration.is_a?(Hash) && declaration["from"]
 
-        @declarations[declaration["from"]] = { to: declaration["to"], kind: declaration["kind"] }
+        @declarations[declaration["from"]] = { to: declaration["to"], kind: declaration["kind"],
+                                               order: declaration["order"].to_i }
       end
       cards = state["cards"]
       return unless cards.is_a?(Hash)
@@ -130,12 +153,14 @@ module Rubyfront
         if declaration.is_a?(Hash) && declaration["from"]
           # Una carta dichiara una cosa sola per volta: la nuova sostituisce
           # la vecchia, come nel client.
-          @declarations[declaration["from"]] = { to: declaration["to"], kind: declaration["kind"] }
+          @declarations[declaration["from"]] = { to: declaration["to"], kind: declaration["kind"],
+                                                 order: declaration["order"].to_i }
         end
       when "undeclare"
         @declarations.delete(action["from"])
       when "clearCombat"
         @declarations = {}
+      when "resolve" then resolve(action)
       when "phase"
         @phase = action["phase"] if PHASES.include?(action["phase"])
       when "turn"
@@ -198,6 +223,19 @@ module Rubyfront
         card[:facedown] = false
         order += 1
       end
+    end
+
+    # §6.4, la risoluzione applicata come nel client: i morti nell'Abisso
+    # (con tutto ciò che un'uscita dal campo comporta, vedi to_zone) e
+    # l'ondata sgomberata. I PV non stanno in questa copia.
+    def resolve(action)
+      Array(action["battles"]).each do |battle|
+        next unless battle.is_a?(Hash)
+
+        to_zone({ "uid" => battle["attacker"], "zone" => "abisso" }) if battle["attackerDies"] == true
+        to_zone({ "uid" => battle["blocker"], "zone" => "abisso" }) if battle["blockerDies"] == true && battle["blocker"]
+      end
+      @declarations = {}
     end
 
     def to_zone(action)

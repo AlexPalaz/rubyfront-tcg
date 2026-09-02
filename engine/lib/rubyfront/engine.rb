@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.13.0"
+    VERSION = "0.14.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -43,6 +43,7 @@ module Rubyfront
       "§6.3 Dichiarano solo le Entità (il Rubyfront mai)",
       "§6.3 Attacca chi è di turno, blocca chi difende",
       "§6.4 Reazione: l'ondata passa al difensore",
+      "§6.3/§6.4 Risoluzione delle battaglie",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -97,6 +98,7 @@ module Rubyfront
       when "declare" then judge_declare(action)
       when "toZone" then judge_to_zone(action)
       when "assign" then judge_assign(action)
+      when "resolve" then judge_resolve(action)
       else no_rule(action["t"])
       end
     end
@@ -388,6 +390,74 @@ module Rubyfront
       else
         allow("declare")
       end
+    end
+
+    # §6.3/§6.4 — la risoluzione delle battaglie. È la prima regola in cui
+    # il tavolo FA qualcosa da sé, e l'engine resta arbitro: l'esito lo
+    # calcola il client di chi è di turno e lo manda in un'azione sola
+    # (`resolve`, con la lista delle battaglie); qui si rifà lo stesso conto
+    # dalla copia del tavolo e dall'anagrafe — Potenze e Contrattacco
+    # stampati — e passa solo un esito identico, battaglia per battaglia,
+    # nell'ordine di dichiarazione. Il tempismo: si risolve in Reazione, e
+    # risolve chi è di turno. A una carta manca la Potenza in anagrafe: il
+    # conto non si può rifare, e l'engine tace — mai molesto. Limiti
+    # dichiarati: Stasi, Vendetta, le Reattive come bloccanti e ogni
+    # modifica di Potenza in partita (Oggetti, effetti) non si vedono.
+    def judge_resolve(action)
+      battles = action["battles"]
+      return no_rule("resolve") unless battles.is_a?(Array)
+
+      unless @table.phase == "reazione"
+        return refuse("resolve", "le battaglie si risolvono in Fase di Reazione, a difesa dichiarata (§6.4)")
+      end
+      return refuse("resolve", "risolve l'ondata chi è di turno (§6.4)") unless action["seat"] == @table.active
+
+      expected = expected_battles
+      return no_rule("resolve") if expected.nil?
+
+      claimed = battles.map { |battle| normalize_battle(battle) }
+      if claimed != expected
+        index = expected.each_index.find { |i| claimed[i] != expected[i] } || [claimed.size, expected.size].min
+        return refuse("resolve", "l'esito non torna con le Potenze in campo (§6.3, battaglia #{index + 1})")
+      end
+
+      allow("resolve")
+    end
+
+    # Il conto dell'engine (§6.3): l'ondata nell'ordine di dichiarazione,
+    # per ciascun attaccante chi lo ferma. Ritorna nil se manca una Potenza.
+    def expected_battles
+      @table.attackers_in_order.map do |attacker|
+        power = stat(attacker, :power)
+        return nil if power.nil?
+
+        blocker, kind = @table.blocker_of(attacker)
+        next { attacker: attacker, blocker: nil, kind: "unblocked", attacker_dies: false, blocker_dies: false, damage: power } unless blocker
+
+        blocker_power = stat(blocker, :power)
+        return nil if blocker_power.nil?
+
+        counter = kind == "counter"
+        total = counter ? blocker_power + (stat(blocker, :counterattack) || 0) : blocker_power
+        # Nel blocco normale l'attaccante muore SOLO nel pareggio; nel
+        # contrattacco anche quando il totale lo supera (§6.3).
+        { attacker: attacker, blocker: blocker, kind: kind,
+          attacker_dies: counter ? total >= power : total == power,
+          blocker_dies: total <= power, damage: 0 }
+      end
+    end
+
+    def stat(uid, key)
+      card = @table.card(uid)
+      card && @cards.dig(card[:card_id], key)
+    end
+
+    def normalize_battle(battle)
+      return nil unless battle.is_a?(Hash)
+
+      { attacker: battle["attacker"], blocker: battle["blocker"], kind: battle["kind"],
+        attacker_dies: battle["attackerDies"] == true, blocker_dies: battle["blockerDies"] == true,
+        damage: battle["damage"].to_i }
     end
 
     def no_rule(kind)

@@ -18,13 +18,7 @@ import { tapPreview } from "./preview.js";
 import { PHASE_BANNER_HOLD_MS, mountPhaseBanner } from "./banner.js";
 import { mountHud } from "./hud.js";
 import { setupPreview } from "./preview.js";
-import {
-  allDecks,
-  defaultTheme,
-  getDeck,
-  isRubyfront,
-  loadRenderer,
-} from "./renderer.js";
+import { allDecks, cardName, cardStats, defaultTheme, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
 import { apply, newGame, shuffled, zoneCards } from "./state.js";
 import { drawCascadeMs, mountTable } from "./table.js";
 import { createVoice, type VoicePayload } from "./voice.js";
@@ -126,6 +120,7 @@ const ctx: Ctx = {
   arbitrated: () => engine?.status() === "online",
   themeFor: seat => themes[seat],
   locale: () => locale,
+  card: cardId => ({ name: cardName(cardId, locale), ...cardStats(cardId) }),
   log(text, seat) {
     dispatch({
       t: "say",

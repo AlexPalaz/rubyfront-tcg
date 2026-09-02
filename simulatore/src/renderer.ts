@@ -22,6 +22,9 @@ export interface CardFace {
   id: string;
   kind: "rubyfront" | "nexus" | "entity" | "object" | "matter";
   displayKey: string;
+  /** Le statistiche stampate (dal file dati della carta): qui contano
+      quelle del combattimento, Potenza e «Contrattacco +N» (§6.3). */
+  stats?: { power?: unknown; counterattack?: unknown };
 }
 
 export interface CatalogCard {
@@ -191,6 +194,19 @@ export function faceKind(cardId: string, faceIndex: number): CardFace["kind"] | 
   const card = getCard(cardId);
   const face = card?.faces[faceIndex] ?? card?.faces[0];
   return face?.kind ?? null;
+}
+
+/**
+ * Potenza e Contrattacco stampati (§6.3), dalla faccia Entità della carta:
+ * `null` dove non ci sono — una Materia non ha Potenza, un'Entità senza la
+ * statistica non contrattacca. Solo interi, come nell'anagrafe dell'engine:
+ * un valore d'altra forma resta ignoto, mai frainteso.
+ */
+export function cardStats(cardId: string): { power: number | null; counterattack: number | null } {
+  const card = getCard(cardId);
+  const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
+  const integer = (value: unknown): number | null => (Number.isInteger(value) ? (value as number) : null);
+  return { power: integer(face?.stats?.power), counterattack: integer(face?.stats?.counterattack) };
 }
 
 /** Il Rubyfront non si pesca mai (§3.1): parte in Zona di Richiamo. */

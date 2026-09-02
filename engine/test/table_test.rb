@@ -80,4 +80,42 @@ class TableTest < Minitest::Test
     assert_equal "a", @table.active
     assert_equal 1, @table.turn
   end
+
+  # --- §6.4: la risoluzione applicata ------------------------------------
+
+  def battlefield
+    a = [1, 2].map { |n| { "uid" => "a-#{n}", "owner" => "a", "zone" => "field", "order" => 0 } }
+    b = [{ "uid" => "b-1", "owner" => "b", "zone" => "field", "order" => 0 }]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "a-1", "to" => "rf", "kind" => "attack", "seat" => "a", "order" => 1 } })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "b-1", "to" => "a-1", "kind" => "block", "seat" => "b", "order" => 0 } })
+  end
+
+  def test_resolve_manda_i_morti_nell_abisso_e_sgombera_le_frecce
+    battlefield
+    @table.apply({ "t" => "resolve", "seat" => "a", "battles" => [
+                   { "attacker" => "a-1", "blocker" => "b-1", "kind" => "block",
+                     "attackerDies" => true, "blockerDies" => true, "damage" => 0 },
+                 ] })
+    assert_equal "abisso", @table.card("a-1")[:zone]
+    assert_equal "abisso", @table.card("b-1")[:zone]
+    assert_equal "field", @table.card("a-2")[:zone]
+    refute @table.wave_declared?
+    assert_empty @table.attackers_in_order
+  end
+
+  def test_l_ondata_si_legge_nell_ordine_di_dichiarazione
+    battlefield
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "a-2", "to" => "rf", "kind" => "attack", "seat" => "a", "order" => 0 } })
+    assert_equal %w[a-2 a-1], @table.attackers_in_order
+    assert_equal ["b-1", "block"], @table.blocker_of("a-1")
+    assert_nil @table.blocker_of("a-2")
+  end
+
+  def test_chi_esce_dal_campo_non_e_piu_nell_ondata
+    battlefield
+    @table.apply({ "t" => "toZone", "uid" => "b-1", "zone" => "hand" })
+    assert_nil @table.blocker_of("a-1"), "il bloccante uscito lascia l'attacco non bloccato (§6.3)"
+  end
 end

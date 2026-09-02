@@ -324,7 +324,9 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
             ? waveDeclared(state)
               ? "Chiude il Fronte: l'ondata passa al difensore (§6.4)"
               : "Chiude il Fronte senza attacchi: fine del turno (§6.5)"
-            : "Chiude la Reazione: fine del turno (§6.5)");
+            : waveDeclared(state)
+              ? "Chiude la Reazione: risolve le battaglie (§6.4) e chiude il turno"
+              : "Chiude la Reazione: fine del turno (§6.5)");
       return;
     }
     front.textContent = state.phase === "preparazione" ? "Fase di Fronte" : "Al difensore";

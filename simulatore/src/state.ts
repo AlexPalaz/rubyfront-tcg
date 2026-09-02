@@ -7,7 +7,7 @@
 
 import { FRONT_SLOT_X, MATTER_X, SURFACE_W, TILE_W, frontRowY } from "./ctx.js";
 import type { Action, CardInstance, Declaration, GameState, Seat, ZoneId } from "./types.js";
-import { SEATS } from "./types.js";
+import { SEATS, otherSeat } from "./types.js";
 
 export function newPlayer(name: string): GameState["players"]["a"] {
   return { name, hp: 20, flux: 1, fluxMax: 1, token: false, deckId: null };
@@ -236,6 +236,32 @@ export function apply(state: GameState, action: Action): GameState {
 
     case "clearCombat":
       return { ...state, declarations: [] };
+
+    case "resolve": {
+      // §6.4, risoluzione: chi muore va nell'Abisso — come un toZone, quindi
+      // si raddrizza, si scopre, esce dal combattimento e scioglie le
+      // assegnazioni — e i danni degli attacchi non bloccati scendono sui PV
+      // del Rubyfront del difensore, mai sotto zero (§3.1). Poi l'ondata è
+      // finita: il tavolo si sgombera dalle frecce, come a fine turno.
+      let next = state;
+      let damage = 0;
+      for (const battle of action.battles) {
+        if (battle.attackerDies && next.cards[battle.attacker]) {
+          next = apply(next, { t: "toZone", uid: battle.attacker, zone: "abisso" });
+        }
+        if (battle.blockerDies && battle.blocker && next.cards[battle.blocker]) {
+          next = apply(next, { t: "toZone", uid: battle.blocker, zone: "abisso" });
+        }
+        damage += battle.damage;
+      }
+      const foe = otherSeat(action.seat);
+      const player = next.players[foe];
+      return {
+        ...next,
+        players: { ...next.players, [foe]: { ...player, hp: Math.max(0, player.hp - damage) } },
+        declarations: [],
+      };
+    }
 
     case "say":
       // La chat non cresce all'infinito: le ultime 200 righe bastano, e a

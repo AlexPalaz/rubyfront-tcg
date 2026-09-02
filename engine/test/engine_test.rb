@@ -812,4 +812,122 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "phase", "phase" => "reazione" })
     refute engine.judge({ "t" => "phase", "phase" => "fronte" })[:ok], "dalla Reazione non si torna al Fronte"
   end
+
+  # --- §6.3/§6.4: la risoluzione delle battaglie ---------------------------
+
+  POTENZE = {
+    "FORTE" => { type: "entity", keywords: [], power: 4, counterattack: nil },
+    "DEBOLE" => { type: "entity", keywords: [], power: 2, counterattack: nil },
+    "PARI" => { type: "entity", keywords: [], power: 4, counterattack: nil },
+    "SPINOSO" => { type: "entity", keywords: [], power: 3, counterattack: 2 },
+    "RUBINO" => { type: "rubyfront", keywords: [], power: nil, counterattack: nil },
+  }.freeze
+
+  # Un tavolo apparecchiato per l'ondata: le carte di A e di B già in campo
+  # (scese al turno 1, così al turno 3 l'attesa di evocazione è passata),
+  # tocca ad A in Reazione. `attacks` e `blocks` sono [uid, ...] e
+  # [[bloccante, attaccante, kind], ...].
+  def ondata(a_cards, b_cards, attacks, blocks)
+    engine = Rubyfront::Engine.new(cards: POTENZE)
+    load = lambda do |seat, cards|
+      list = cards.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id } }
+      engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => list })
+    end
+    load.call("a", a_cards)
+    load.call("b", b_cards)
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    fronte!(engine)
+    attacks.each_with_index do |uid, i|
+      verdict = engine.judge({ "t" => "declare", "declaration" => { "id" => uid, "from" => uid, "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => i + 1 } })
+      raise "attacco rifiutato: #{verdict[:reason]}" unless verdict[:ok]
+    end
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    blocks.each do |from, to, kind|
+      verdict = engine.judge({ "t" => "declare", "declaration" => { "id" => from, "from" => from, "to" => to, "kind" => kind, "seat" => "b", "order" => 0 } })
+      raise "blocco rifiutato: #{verdict[:reason]}" unless verdict[:ok]
+    end
+    engine
+  end
+
+  def battaglia(attacker, blocker: nil, kind: "unblocked", attacker_dies: false, blocker_dies: false, damage: 0)
+    { "attacker" => attacker, "blocker" => blocker, "kind" => kind,
+      "attackerDies" => attacker_dies, "blockerDies" => blocker_dies, "damage" => damage }.compact
+  end
+
+  def risolvi(engine, battles, seat: "a")
+    engine.judge({ "t" => "resolve", "seat" => seat, "battles" => battles })
+  end
+
+  def test_non_bloccato_fa_danni_pari_alla_potenza
+    engine = ondata([["a1", "FORTE"]], [], ["a1"], [])
+    verdict = risolvi(engine, [battaglia("a1", damage: 4)])
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_bloccante_inferiore_muore_e_l_attacco_e_bloccato
+    engine = ondata([["a1", "FORTE"]], [["b1", "DEBOLE"]], ["a1"], [["b1", "a1", "block"]])
+    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", blocker_dies: true)])
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", engine.instance_variable_get(:@table).card("b1")[:zone], "col sì la copia applica"
+  end
+
+  def test_potenze_pari_muoiono_entrambi
+    engine = ondata([["a1", "FORTE"]], [["b1", "PARI"]], ["a1"], [["b1", "a1", "block"]])
+    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", attacker_dies: true, blocker_dies: true)])
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_bloccante_superiore_non_muore_nessuno
+    engine = ondata([["a1", "DEBOLE"]], [["b1", "FORTE"]], ["a1"], [["b1", "a1", "block"]])
+    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block")])
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_contrattacco_superiore_uccide_l_attaccante
+    # 3 + 2 = 5 > 4
+    engine = ondata([["a1", "FORTE"]], [["b1", "SPINOSO"]], ["a1"], [["b1", "a1", "counter"]])
+    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "counter", attacker_dies: true)])
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_un_esito_sbagliato_viene_fermato
+    engine = ondata([["a1", "DEBOLE"]], [["b1", "FORTE"]], ["a1"], [["b1", "a1", "block"]])
+    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", blocker_dies: true)])
+    assert verdict[:ruled]
+    refute verdict[:ok], "il bloccante superiore non muore (§6.3)"
+    assert_match(/§6\.3.*battaglia 1/, verdict[:reason])
+    assert_equal "field", engine.instance_variable_get(:@table).card("b1")[:zone], "col no la copia non si tocca"
+  end
+
+  def test_le_battaglie_vanno_nell_ordine_di_dichiarazione
+    engine = ondata([["a1", "FORTE"], ["a2", "DEBOLE"]], [], %w[a2 a1], [])
+    giusto = [battaglia("a2", damage: 2), battaglia("a1", damage: 4)]
+    refute risolvi(engine, giusto.reverse)[:ok], "l'ordine è quello di dichiarazione (§6.4)"
+    assert risolvi(engine, giusto)[:ok]
+  end
+
+  def test_si_risolve_solo_in_reazione
+    engine = ondata([["a1", "FORTE"]], [], [], [])
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    verdict = risolvi(engine, [], seat: "b")
+    refute verdict[:ok]
+    assert_match(/§6\.4/, verdict[:reason])
+  end
+
+  def test_risolve_chi_e_di_turno
+    engine = ondata([["a1", "FORTE"]], [], ["a1"], [])
+    verdict = risolvi(engine, [battaglia("a1", damage: 4)], seat: "b")
+    refute verdict[:ok]
+    assert_match(/di turno/, verdict[:reason])
+  end
+
+  def test_carta_ignota_all_anagrafe_niente_regola
+    engine = ondata([["a1", "MISTERO"]], [], [], [])
+    engine.observe({ "t" => "declare", "declaration" => { "from" => "a1", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } })
+    verdict = risolvi(engine, [battaglia("a1", damage: 9)])
+    assert verdict[:ok]
+    refute verdict[:ruled], "senza la Potenza il conto non si rifà: silenzio"
+  end
 end

@@ -80,8 +80,9 @@ export interface ChatEntry {
 /**
  * Una dichiarazione di combattimento (§6.3). È solo un'annotazione condivisa:
  * dice chi ha dichiarato cosa e verso chi, e nient'altro. Non tocca i PV, non
- * confronta Potenze, non manda nessuno nell'Abisso — a risolvere sono i
- * giocatori.
+ * confronta Potenze, non manda nessuno nell'Abisso — a risolvere è l'azione
+ * `resolve` (con l'arbitro al tavolo, dal «Fine fase» della Reazione), o i
+ * giocatori a mano.
  *
  * Vive separata dallo stato di tap apposta: tappare e stappare a mano resta
  * libero in ogni momento, anche in mezzo a un attacco già dichiarato.
@@ -103,6 +104,26 @@ export interface Declaration {
    * dichiarazione degli attaccanti). Vale solo per gli attacchi.
    */
   order: number;
+}
+
+/**
+ * L'esito di una battaglia (§6.3), come lo porta l'azione `resolve`. Lo
+ * calcola il client di chi è di turno (combat.ts, resolveWave) dalle
+ * statistiche stampate del catalogo, e l'engine lo VERIFICA contro il suo
+ * calcolo: un esito che non torna con le Potenze in campo non passa. Il
+ * riduttore lo applica così com'è — è un'annotazione dell'esito, non il
+ * calcolo, e i due client devono contare allo stesso modo.
+ */
+export interface Battle {
+  attacker: string;
+  /** Il bloccante (o contrattaccante); assente = attacco non bloccato. */
+  blocker?: string;
+  kind: "unblocked" | "block" | "counter";
+  attackerDies: boolean;
+  blockerDies: boolean;
+  /** Danno al Rubyfront del difensore: la Potenza dell'attaccante se non
+      bloccato, altrimenti zero (§6.3). */
+  damage: number;
 }
 
 /**
@@ -151,6 +172,9 @@ export type Action =
   | { t: "declare"; declaration: Declaration }
   | { t: "undeclare"; from: string }
   | { t: "clearCombat" }
+  /** Risolve l'ondata (§6.4): i morti nell'Abisso, i danni al Rubyfront
+      del difensore, il combattimento sgomberato. `seat` è chi è di turno. */
+  | { t: "resolve"; seat: Seat; battles: Battle[] }
   | { t: "say"; entry: ChatEntry };
 
 /** Buste che viaggiano sul relay. */

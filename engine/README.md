@@ -45,8 +45,8 @@ Regole collegate finora:
   in campo SONO il Fronte: non hanno altro posto dove stare.
 - **§6.2 Attesa di evocazione** — un'Entità entrata in campo questo turno non
   dichiara attacchi, salvo Slancio (`surge`). È la prima regola che LEGGE LE
-  CARTE: all'avvio il server carica l'anagrafe (id → tipo, parole chiave) dai
-  dati del sito (`lib/rubyfront/card_index.rb`; il percorso si cambia con
+  CARTE: all'avvio il server carica l'anagrafe (id → tipo, parole chiave,
+  Potenza e Contrattacco) dai dati del sito (`lib/rubyfront/card_index.rb`; il percorso si cambia con
   `RUBYFRONT_DATA`) e il tavolo annota il turno d'ingresso di ogni carta.
   Carta ignota o anagrafe assente: l'engine tace, mai molesto. Limite
   dichiarato: lo Slancio CONCESSO da un effetto (es. RBF-009) non si vede
@@ -120,6 +120,27 @@ Regole collegate finora:
   quanto aspettare la difesa è affare del tavolo, come a un tavolo vero
   (via semplice, decisa dal designer: la stretta di mano esplicita arriverà
   con la catena delle Reattive).
+
+- **§6.3/§6.4 Risoluzione delle battaglie** — la prima regola in cui il
+  tavolo FA qualcosa da sé, con l'engine che resta arbitro. Dal «Fine fase»
+  della Reazione il client di chi è di turno calcola l'esito dell'ondata
+  (`combat.ts`, `resolveWave`) dalle statistiche stampate del catalogo e lo
+  manda in un'azione sola, `resolve {seat, battles}`; l'engine rifà lo
+  stesso conto dalla copia del tavolo e dall'anagrafe e passa solo un esito
+  identico, battaglia per battaglia, nell'ordine di dichiarazione. Le regole
+  (§6.3): non bloccato, danni pari alla Potenza; bloccante inferiore muore,
+  pari muoiono entrambi, superiore nessuno — e l'attacco è comunque
+  bloccato; contrattacco a Potenza più N, con l'attaccante che muore se il
+  totale lo raggiunge. Col sì il riduttore e la copia mandano i morti
+  nell'Abisso (come un toZone) e sgomberano le frecce; i danni scendono sui
+  PV del difensore, mai sotto zero. Si risolve in Reazione, e risolve chi è
+  di turno; un attaccante uscito dal campo non ha battaglia e un bloccante
+  uscito lascia l'attacco non bloccato (chi esce perde la freccia, §6.3).
+  Carta senza Potenza in anagrafe: il conto non si rifà, silenzio — e il
+  client, se gli manca nel catalogo, annota e chiude il turno come prima.
+  Limiti dichiarati: Stasi, Vendetta, le Reattive come bloccanti e ogni
+  modifica di Potenza in partita (Oggetti, effetti) non si vedono: chi le
+  usa risolve a mano. Engine 0.14.0, quattordici regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

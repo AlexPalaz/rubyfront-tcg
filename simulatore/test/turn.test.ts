@@ -8,6 +8,9 @@ import { newGame } from "../src/state.js";
 import type { Ctx } from "../src/ctx.js";
 import type { Action, GameState, Seat } from "../src/types.js";
 
+/** Le statistiche stampate delle carte di prova (§6.3), per id. */
+const facts: Record<string, { power: number; counterattack?: number }> = {};
+
 /** Un Ctx finto: registra le azioni e risponde al posto dell'engine. */
 function fakeCtx(
   judge: (action: Action) => boolean,
@@ -27,6 +30,7 @@ function fakeCtx(
     arbitrated: () => false,
     themeFor: () => "notte",
     locale: () => "it",
+    card: cardId => ({ name: cardId, power: facts[cardId]?.power ?? null, counterattack: facts[cardId]?.counterattack ?? null }),
     log(text) {
       logs.push(text);
     },
@@ -115,10 +119,30 @@ describe("endPhase", () => {
     expect(sent[0]).toMatchObject({ t: "turn", active: "b" });
   });
 
-  it("dalla Reazione chiude il turno", async () => {
+  it("dalla Reazione risolve l'ondata e poi chiude il turno", async () => {
     const state = newGame();
     state.phase = "reazione";
     attack(state);
+    const { ctx, sent } = fakeCtx(() => true, state);
+    await endPhase(ctx);
+    // L'attaccante «x» non è in campo: la sua battaglia non c'è (§6.3,
+    // uscite dal campo) — ma la risoluzione passa comunque, e poi il turno.
+    expect(sent[0]).toEqual({ t: "resolve", seat: "a", battles: [] });
+    expect(sent[1]).toMatchObject({ t: "turn", active: "b" });
+  });
+
+  it("se l'engine ferma la risoluzione il turno non si chiude", async () => {
+    const state = newGame();
+    state.phase = "reazione";
+    attack(state);
+    const { ctx, sent } = fakeCtx(action => action.t !== "resolve", state);
+    await endPhase(ctx);
+    expect(sent).toEqual([]);
+  });
+
+  it("dalla Reazione senza ondata chiude il turno e basta", async () => {
+    const state = newGame();
+    state.phase = "reazione";
     const { ctx, sent } = fakeCtx(() => true, state);
     await endPhase(ctx);
     expect(sent[0]).toMatchObject({ t: "turn", active: "b" });

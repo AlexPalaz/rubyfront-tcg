@@ -4,10 +4,89 @@
 // partire soltanto se la dichiarazione è passata. Qui niente DOM: si può
 // provare con un Ctx finto (test/combat.test.ts).
 
-import type { Ctx } from "./ctx.js";
+import type { CardFacts, Ctx } from "./ctx.js";
 import { nextWaveOrder, seatLabel } from "./state.js";
-import type { CardInstance, Declaration } from "./types.js";
+import type { Battle, CardInstance, Declaration, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
+
+/**
+ * La risoluzione dell'ondata (§6.3 «Risoluzione di una battaglia», §6.4
+ * «Risoluzione»), calcolata e basta: nessuna azione parte da qui. Le
+ * battaglie vanno nell'ordine di dichiarazione degli attaccanti; per
+ * ciascuna si guarda chi la ferma:
+ *
+ *   - nessuno → l'attacco passa: danni pari alla Potenza dell'attaccante;
+ *   - un blocco → si confrontano le Potenze: bloccante inferiore muore,
+ *     pari muoiono entrambi, superiore non muore nessuno — e l'attacco è
+ *     comunque bloccato;
+ *   - un contrattacco → la Potenza del bloccante più il suo +N: totale
+ *     superiore, muore l'attaccante; pari, entrambi; inferiore, il
+ *     contrattaccante.
+ *
+ * Le uscite dal campo fra dichiarazione e risoluzione sono già sistemate a
+ * monte: chi lascia il campo perde la sua freccia (state.ts, toZone), quindi
+ * un attaccante uscito non ha battaglia e un bloccante uscito lascia
+ * l'attacco non bloccato — «il blocco non si riassegna». Se a una carta
+ * manca la Potenza nel catalogo il calcolo si arrende (`null`): si risolve a
+ * mano, come prima. Limiti dichiarati: Stasi, Vendetta e le Reattive come
+ * bloccanti non sono modellate.
+ */
+export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string) => CardFacts): Battle[] | null {
+  const onField = (uid: string): CardInstance | undefined => {
+    const card = state.cards[uid];
+    return card && card.zone === "field" ? card : undefined;
+  };
+  const attacks = state.declarations
+    .filter(d => d.kind === "attack" && d.seat === seat && onField(d.from))
+    .sort((a, b) => a.order - b.order);
+  const battles: Battle[] = [];
+  for (const attack of attacks) {
+    const attacker = onField(attack.from)!;
+    const attackerPower = facts(attacker.cardId).power;
+    if (attackerPower === null) return null;
+    const block = state.declarations.find(
+      d => d.to === attack.from && (d.kind === "block" || d.kind === "counter") && onField(d.from)
+    );
+    if (!block) {
+      battles.push({ attacker: attack.from, kind: "unblocked", attackerDies: false, blockerDies: false, damage: attackerPower });
+      continue;
+    }
+    const blocker = onField(block.from)!;
+    const blockerFacts = facts(blocker.cardId);
+    if (blockerFacts.power === null) return null;
+    const counter = block.kind === "counter";
+    const total = counter ? blockerFacts.power + (blockerFacts.counterattack ?? 0) : blockerFacts.power;
+    // Nel blocco normale l'attaccante muore SOLO nel pareggio; nel
+    // contrattacco anche quando il totale lo supera (§6.3).
+    battles.push({
+      attacker: attack.from,
+      blocker: block.from,
+      kind: counter ? "counter" : "block",
+      attackerDies: counter ? total >= attackerPower : total === attackerPower,
+      blockerDies: total <= attackerPower,
+      damage: 0,
+    });
+  }
+  return battles;
+}
+
+/** La riga in chat di una battaglia, coi nomi e i numeri. */
+export function describeBattle(battle: Battle, index: number, name: (uid: string) => string): string {
+  const attacker = name(battle.attacker);
+  if (battle.kind === "unblocked") {
+    return `Battaglia ${index}: ${attacker} non è bloccato — ${battle.damage} danni al Rubyfront.`;
+  }
+  const blocker = name(battle.blocker ?? "?");
+  const verb = battle.kind === "counter" ? "contrattacca" : "blocca";
+  const fate = battle.attackerDies && battle.blockerDies
+    ? "muoiono entrambi"
+    : battle.attackerDies
+      ? `${attacker} muore`
+      : battle.blockerDies
+        ? `${blocker} muore`
+        : "non muore nessuno";
+  return `Battaglia ${index}: ${blocker} ${verb} ${attacker} — ${fate}.`;
+}
 
 /** Dichiara l'attacco di `card` al Rubyfront avversario (`target`). */
 export async function declareAttack(
