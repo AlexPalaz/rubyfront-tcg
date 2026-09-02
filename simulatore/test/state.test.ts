@@ -219,9 +219,15 @@ describe("apply turn", () => {
     tapped(state, "a-1", "a", true);
     state.phase = "reazione";
     state.declarations = [{ id: "x", from: "a-1", to: "rf", kind: "attack", seat: "a", order: 1 }];
+    state.players.b.flux = 0;
     const next = apply(state, { t: "turn", turn: 2, active: "b" });
-    expect(next.players.b).toMatchObject({ fluxMax: 2, flux: 2 });
+    // Al primo turno di chi entra il Flusso massimo resta 1 (§3.2, «a
+    // partire dal secondo»): si ricarica e basta.
+    expect(next.players.b).toMatchObject({ fluxMax: 1, flux: 1 });
     expect(next.players.a).toMatchObject({ fluxMax: 1, flux: 1 });
+    const third = apply(apply(next, { t: "turn", turn: 3, active: "a" }), { t: "turn", turn: 4, active: "b" });
+    expect(third.players.a).toMatchObject({ fluxMax: 2, flux: 2 });
+    expect(third.players.b).toMatchObject({ fluxMax: 2, flux: 2 });
     expect(next.cards["b-1"].tapped).toBe(false);
     expect(next.cards["a-1"].tapped).toBe(true);
     expect(next.declarations).toEqual([]);
@@ -269,5 +275,16 @@ describe("apply toZone con costo", () => {
     state = apply(state, { t: "toZone", uid: "a-1", zone: "hand" });
     state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 0, y: 0, z: 1 });
     expect(state.players.a.flux).toBe(4);
+  });
+});
+
+// Chi inizia lo dice l'azione (§4), e l'altro riceve il Gettone (§3.2).
+describe("newGame", () => {
+  it("chi non inizia ha il Gettone", () => {
+    const state = apply(newGame(), { t: "newGame", active: "b" });
+    expect(state.active).toBe("b");
+    expect(state.players.a.token).toBe(true);
+    expect(state.players.b.token).toBe(false);
+    expect(newGame().players.b.token).toBe(true);
   });
 });

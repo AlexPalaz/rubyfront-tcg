@@ -16,15 +16,23 @@ export function newPlayer(name: string): GameState["players"]["a"] {
   return { name, hp: 20, flux: 1, fluxMax: 1, token: false, deckId: null };
 }
 
-export function newGame(): GameState {
+/**
+ * La lavagna di partenza. `active` è chi inizia (§4): l'altro riceve il
+ * Gettone Flusso (§3.2, «il giocatore che non inizia la partita riceve un
+ * Gettone Flusso»). Chi inizia lo decide chi crea la partita, a caso per
+ * ora — il riduttore non tira dadi, così le due lavagne restano uguali.
+ */
+export function newGame(active: Seat = "a"): GameState {
+  const players = { a: newPlayer(""), b: newPlayer("") };
+  players[otherSeat(active)].token = true;
   return {
     cards: {},
     // Il nome parte VUOTO: «Giocatore A/B» è solo il ripiego di seatLabel.
     // Pre-compilarlo qui renderebbe impossibile distinguere un posto senza
     // nessuno (che deve leggersi «In attesa…») da uno abitato.
-    players: { a: newPlayer(""), b: newPlayer("") },
+    players,
     turn: 1,
-    active: "a",
+    active,
     phase: "preparazione",
     chat: [],
     declarations: [],
@@ -59,7 +67,7 @@ function orderForBottom(state: GameState, seat: Seat, zone: ZoneId): number {
 export function apply(state: GameState, action: Action): GameState {
   switch (action.t) {
     case "newGame":
-      return newGame();
+      return newGame(action.active ?? "a");
 
     case "loadDeck": {
       // Il mazzo sostituisce tutto ciò che quel giocatore aveva in tavola:
@@ -225,14 +233,17 @@ export function apply(state: GameState, action: Action): GameState {
       // un'azione sola — così nessuno la compie «per conto» dell'altro, e
       // l'arbitro non vede gesti nel turno altrui: la fase torna in
       // Preparazione (§6, l'unica via del ritorno); il Flusso massimo cresce
-      // di 1, mai oltre 20, e il disponibile si ricarica fin lì (§3.2); le
+      // di 1 «a partire dal secondo» proprio turno, mai oltre 20 — al primo
+      // turno di chi entra (il turno 2 del contatore) resta 1 — e il
+      // disponibile si ricarica fin lì (§3.2); le
       // Entità di chi entra si stappano («all'inizio del turno successivo
       // del proprietario», §6.3 — limite noto: la Stasi non è modellata);
       // attacchi e blocchi valevano per il turno chiuso, e le frecce se ne
       // vanno. Ogni effetto resta disfacibile a mano dai contatori.
       const next = action.active;
       const player = state.players[next];
-      const grown = Math.min(FLUX_CAP, player.fluxMax + 1);
+      const firstTurn = action.turn <= 2;
+      const grown = firstTurn ? player.fluxMax : Math.min(FLUX_CAP, player.fluxMax + 1);
       const cards = { ...state.cards };
       for (const [uid, card] of Object.entries(cards)) {
         if (card.owner === next && card.zone === "field" && card.tapped) cards[uid] = { ...card, tapped: false };

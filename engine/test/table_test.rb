@@ -144,18 +144,29 @@ class TableTest < Minitest::Test
 
   # --- il Flusso (§3.2), come lo conta il client -----------------------------
 
-  def test_il_flusso_parte_da_1_e_cresce_col_turno
+  def test_il_flusso_parte_da_1_e_cresce_dal_secondo_turno
     assert_equal 1, @table.flux("a")
     assert_equal 1, @table.flux_max("b")
+    @table.apply({ "t" => "player", "seat" => "b", "patch" => { "flux" => 0 } })
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_equal 1, @table.flux_max("b"), "al primo turno di chi entra resta 1 (§3.2)"
+    assert_equal 1, @table.flux("b"), "ma si ricarica"
+    @table.apply({ "t" => "turn", "turn" => 3, "active" => "a" })
+    assert_equal 2, @table.flux("a")
+    @table.apply({ "t" => "turn", "turn" => 4, "active" => "b" })
     assert_equal 2, @table.flux("b")
-    assert_equal 2, @table.flux_max("b")
-    assert_equal 1, @table.flux("a"), "chi esce non si ricarica"
+  end
+
+  def test_la_nuova_partita_dice_chi_inizia
+    @table.apply({ "t" => "turn", "turn" => 5, "active" => "a" })
+    @table.apply({ "t" => "newGame", "active" => "b" })
+    assert_equal "b", @table.active
+    assert_equal 1, @table.turn
   end
 
   def test_il_flusso_massimo_non_supera_20
     @table.apply({ "t" => "player", "seat" => "b", "patch" => { "fluxMax" => 20, "flux" => 3 } })
-    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    @table.apply({ "t" => "turn", "turn" => 4, "active" => "b" })
     assert_equal 20, @table.flux_max("b")
     assert_equal 20, @table.flux("b")
   end

@@ -154,7 +154,9 @@ export interface GameState {
 
 /** Le mutazioni possibili. Ogni client le applica in locale e le ritrasmette. */
 export type Action =
-  | { t: "newGame" }
+  /** Tavolo azzerato. `active` dice chi inizia (§4): lo sceglie chi preme,
+      il riduttore non tira dadi — due lavagne devono restare uguali. */
+  | { t: "newGame"; active?: Seat }
   | { t: "loadDeck"; seat: Seat; deckId: string; cards: CardInstance[] }
   | { t: "shuffle"; seat: Seat; order: string[] }
   | { t: "draw"; seat: Seat; count: number }

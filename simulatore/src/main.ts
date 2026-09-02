@@ -19,7 +19,7 @@ import { PHASE_BANNER_HOLD_MS, mountPhaseBanner } from "./banner.js";
 import { mountHud } from "./hud.js";
 import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
-import { apply, newGame, shuffled, zoneCards } from "./state.js";
+import { apply, newGame, seatLabel, shuffled, zoneCards } from "./state.js";
 import { drawCascadeMs, mountTable } from "./table.js";
 import { createVoice, type VoicePayload } from "./voice.js";
 import type { Action, CardInstance, GameState, Seat } from "./types.js";
@@ -44,7 +44,12 @@ const store = {
   write: (key: string, value: string): void => localStorage.setItem(`rbf-sim:${key}`, value),
 };
 
-let state: GameState = newGame();
+/** Chi inizia, per ora a caso (§4: la scelta o il d20 arriveranno). */
+function randomSeat(): Seat {
+  return Math.random() < 0.5 ? "a" : "b";
+}
+
+let state: GameState = newGame(randomSeat());
 let mySeat: Seat = (params.get("seat") as Seat) ?? (store.read("seat", "a") as Seat);
 if (!SEATS.includes(mySeat)) mySeat = "a";
 let locale = params.get("lang") ?? store.read("lang", "it");
@@ -497,7 +502,13 @@ function doDraw(): void {
 
 document.querySelector("#do-new")!.addEventListener("click", () => {
   if (!confirm("Nuova partita: tavolo, contatori e chat vengono azzerati. Procedo?")) return;
-  dispatch({ t: "newGame" });
+  const starter = randomSeat();
+  void dispatch({ t: "newGame", active: starter }).then(passed => {
+    if (!passed) return;
+    ctx.log(
+      `Nuova partita: inizia ${seatLabel(state, starter)}, il Gettone Flusso va a ${seatLabel(state, otherSeat(starter))} (§4).`
+    );
+  });
   if (myDeckId) loadDeck(myDeckId, mySeat);
   reapplyName();
   if (localFoeDeckId) startLocalFoe(localFoeDeckId);

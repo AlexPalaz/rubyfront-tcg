@@ -152,7 +152,9 @@ module Rubyfront
       return unless action.is_a?(Hash)
 
       case action["t"]
-      when "newGame" then reset
+      when "newGame"
+        reset
+        @active = action["active"] if SEATS.include?(action["active"])
       when "loadDeck" then load_deck(action)
       when "shuffle" then shuffle(action)
       when "draw" then draw(action)
@@ -203,10 +205,11 @@ module Rubyfront
           @phase = "preparazione"
           @cards.each_value { |card| card[:tapped] = false if card[:owner] == @active && card[:zone] == "field" }
           @declarations = {}
-          # §3.2: il Flusso massimo di chi entra cresce di 1 (mai oltre 20)
-          # e il disponibile si ricarica fin lì.
+          # §3.2: il Flusso massimo di chi entra cresce di 1 «a partire dal
+          # secondo» proprio turno (mai oltre 20) — al turno 2 del contatore,
+          # il primo di chi entra, resta com'è — e il disponibile si ricarica.
           player = @players[@active]
-          player[:flux_max] = [FLUX_CAP, player[:flux_max] + 1].min
+          player[:flux_max] = [FLUX_CAP, player[:flux_max] + 1].min unless @turn <= 2
           player[:flux] = player[:flux_max]
         end
       end
