@@ -279,6 +279,9 @@ export function apply(state: GameState, action: Action): GameState {
     case "clearCombat":
       return { ...state, declarations: [] };
 
+    case "gameOver":
+      return { ...state, over: { winner: action.winner, reason: action.reason } };
+
     case "resolve": {
       // §6.4, risoluzione: chi muore va nell'Abisso — come un toZone, quindi
       // si raddrizza, si scopre, esce dal combattimento e scioglie le

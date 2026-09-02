@@ -4,8 +4,57 @@
 
 import { describeBattle, resolveWave } from "./combat.js";
 import type { Ctx } from "./ctx.js";
-import { seatLabel, waveDeclared } from "./state.js";
+import { seatLabel, waveDeclared, zoneCards } from "./state.js";
+import type { GameOver, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
+
+/**
+ * La fine per PV (§2): a zero i PV del Rubyfront avversario, si vince;
+ * entrambi a zero nello stesso momento, è patta (§9.2). `null` finché si
+ * gioca. Si guarda dopo ogni azione applicata in locale (main.ts, commit).
+ */
+export function verdictByHp(state: GameState): GameOver | null {
+  if (state.over) return null;
+  const aDown = state.players.a.hp <= 0;
+  const bDown = state.players.b.hp <= 0;
+  if (aDown && bDown) return { winner: null, reason: "draw" };
+  if (aDown) return { winner: "b", reason: "hp" };
+  if (bDown) return { winner: "a", reason: "hp" };
+  return null;
+}
+
+/**
+ * La fine per esaurimento del mazzo (§9.1), che si decide al cambio di
+ * turno: chi ha pescato l'ultima carta nel PROPRIO turno «gioca quel turno
+ * per intero e al termine del turno ha perso»; chi l'ha pescata nel turno
+ * altrui «ha perso direttamente quando inizierebbe il suo turno
+ * successivo». Guardando i mazzi al confine dei turni, i due casi sono:
+ * chi chiude a mazzo vuoto perde; se no, chi entrerebbe a mazzo vuoto
+ * perde. Un posto senza nessuna carta non ha un mazzo esaurito: non ha
+ * ancora un mazzo (il tavolo prima del carico, l'avversario che non c'è).
+ * `null` se nessuno dei due.
+ */
+export function loserByDeck(state: GameState): Seat | null {
+  const exhausted = (seat: Seat): boolean =>
+    Object.values(state.cards).some(card => card.owner === seat) && zoneCards(state, seat, "deck").length === 0;
+  const next = otherSeat(state.active);
+  if (exhausted(state.active)) return state.active;
+  if (exhausted(next)) return next;
+  return null;
+}
+
+/** La riga in chat della fine, e cosa dice l'insegna. */
+export function describeGameOver(state: GameState, over: GameOver, me?: Seat): { title: string; detail: string } {
+  const title =
+    over.winner === null ? "Pareggio" : over.winner === me ? "Hai vinto" : `Vittoria di ${seatLabel(state, over.winner, me)}`;
+  const detail =
+    over.reason === "hp"
+      ? "PV del Rubyfront a zero (§2)"
+      : over.reason === "deck"
+        ? "mazzo esaurito (§9.1)"
+        : "PV a zero per entrambi (§9.2)";
+  return { title, detail };
+}
 
 /**
  * Dichiara l'ingresso in Fase di Fronte (§6.3). A senso unico: dal Fronte
@@ -80,6 +129,17 @@ export async function resolveCombat(ctx: Ctx): Promise<boolean> {
 export async function endTurn(ctx: Ctx): Promise<void> {
   const state = ctx.state();
   const next = otherSeat(state.active);
+  // §9.1 — l'esaurimento del mazzo si decide qui, al confine dei turni:
+  // chi chiude a mazzo vuoto ha perso, e se no chi entrerebbe a mazzo
+  // vuoto. La fine sostituisce il cambio di turno.
+  const loser = state.over ? null : loserByDeck(state);
+  if (loser) {
+    const over: GameOver = { winner: otherSeat(loser), reason: "deck" };
+    if (!(await ctx.dispatch({ t: "gameOver", ...over }))) return;
+    const { title, detail } = describeGameOver(ctx.state(), over);
+    ctx.log(`${title}: ${seatLabel(ctx.state(), loser)} ha esaurito il mazzo — ${detail}.`, over.winner);
+    return;
+  }
   // Il cambio di turno passa dal giudizio dell'engine (§6.5: mano massima 7
   // alla chiusura): fermato, non succede nulla. Passato, il riduttore ha già
   // apparecchiato il turno di chi entra (Flusso, stappata, frecce).

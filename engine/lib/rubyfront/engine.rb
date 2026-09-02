@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.19.0"
+    VERSION = "0.20.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -50,6 +50,7 @@ module Rubyfront
       "§5 Le Entità stanno sugli slot del Fronte",
       "§5/§6.2 Dal campo non si torna in mano né nel mazzo",
       "§7 Le Materie si giocano solo se abilitate",
+      "§2/§9 Fine della partita: PV a zero, mazzo esaurito, pareggio",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -107,6 +108,12 @@ module Rubyfront
     def verdict_for(action, actor = nil)
       return no_rule(nil) unless action.is_a?(Hash)
 
+      # §2/§9 — a partita finita il tavolo si ferma: restano Nuova partita,
+      # la chat, i pixel e il carico del mazzo (che segue la nuova partita).
+      if @table.over? && !%w[newGame say move loadDeck].include?(action["t"])
+        return refuse(action["t"], "la partita è finita: Nuova partita per ricominciare (§2)")
+      end
+
       stopped = judge_actor(action, actor)
       return stopped if stopped
 
@@ -119,6 +126,7 @@ module Rubyfront
       when "assign" then judge_assign(action)
       when "resolve" then judge_resolve(action)
       when "move" then judge_move(action)
+      when "gameOver" then judge_game_over(action)
       else no_rule(action["t"])
       end
     end
@@ -654,6 +662,34 @@ module Rubyfront
             (matter[:grade].nil? || grant[:max_grade].nil? || grant[:max_grade] >= matter[:grade])
         end
       end
+    end
+
+    # §2/§9 — la fine della partita la dichiara il client che l'ha vista
+    # arrivare, e qui si verifica sulla copia: per PV, chi perde deve avere
+    # 0 PV (§2) — nel pareggio entrambi (§9.2); per mazzo esaurito, chi
+    # perde deve avere il mazzo vuoto (§9.1; il tempismo del confine dei
+    # turni è del client, che lo decide in endTurn). Chi vince dev'essere
+    # un posto, o nessuno nel pareggio.
+    def judge_game_over(action)
+      winner = action["winner"]
+      reason = action["reason"]
+      return no_rule("gameOver") unless %w[hp deck draw].include?(reason)
+      return refuse("gameOver", "chi vince dev'essere un posto del tavolo (§2)") unless winner.nil? || Table::SEATS.include?(winner)
+
+      case reason
+      when "draw"
+        return refuse("gameOver", "il pareggio automatico vuole entrambi a 0 PV (§9.2)") unless winner.nil? && Table::SEATS.all? { |seat| @table.hp(seat) <= 0 }
+      when "hp"
+        loser = Table::SEATS.find { |seat| seat != winner }
+        return refuse("gameOver", "chi vince dev'essere un posto del tavolo (§2)") unless loser
+        return refuse("gameOver", "i PV di #{loser.upcase} non sono a zero: la partita continua (§2)") unless @table.hp(loser) <= 0
+      when "deck"
+        loser = Table::SEATS.find { |seat| seat != winner }
+        return refuse("gameOver", "chi vince dev'essere un posto del tavolo (§2)") unless loser
+        return refuse("gameOver", "il mazzo di #{loser.upcase} non è vuoto: la partita continua (§9.1)") unless @table.zone_count(loser, "deck").zero?
+      end
+
+      allow("gameOver")
     end
 
     def no_rule(kind)

@@ -310,6 +310,18 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     // chiude dall'ultima fase (Reazione, o Fronte senza ondata), non si
     // salta: la Preparazione si chiude sempre sul Fronte (§6.3).
     const single = ctx.arbitrated();
+    // Partita finita (§2, §9): fasi e turni si fermano, resta Nuova partita.
+    if (state.over) {
+      pass.disabled = true;
+      front.disabled = true;
+      tip(pass, "Partita finita: Nuova partita per ricominciare");
+      tip(front, "Partita finita: Nuova partita per ricominciare");
+      pass.hidden = single;
+      actions.classList.toggle("is-single", single);
+      front.classList.toggle("is-phase-end", single);
+      if (single) front.textContent = "Fine fase";
+      return;
+    }
     pass.hidden = single;
     actions.classList.toggle("is-single", single);
     front.classList.toggle("is-phase-end", single);

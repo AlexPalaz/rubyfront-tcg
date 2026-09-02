@@ -21,6 +21,7 @@ import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
 import { apply, newGame, seatLabel, shuffled, zoneCards } from "./state.js";
 import { drawCascadeMs, mountTable } from "./table.js";
+import { describeGameOver, verdictByHp } from "./turn.js";
 import { createVoice, type VoicePayload } from "./voice.js";
 import type { Action, CardInstance, GameState, Seat } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
@@ -104,6 +105,18 @@ function commit(action: Action): void {
   state = apply(state, action);
   net?.send({ t: "action", action, from: mySeat });
   paint();
+  // §2 — la fine per PV si guarda dopo ogni azione applicata in locale
+  // (la risoluzione, un contatore a mano): la dichiara il client che l'ha
+  // vista arrivare, e l'engine la verifica sulla sua copia. Una volta sola.
+  if (action.t === "gameOver") return;
+  const over = verdictByHp(state);
+  if (over) {
+    void dispatch({ t: "gameOver", ...over }).then(passed => {
+      if (!passed) return;
+      const { title, detail } = describeGameOver(state, over);
+      ctx.log(`${title} — ${detail}.`, over.winner);
+    });
+  }
 }
 
 /** Applica senza ritrasmettere: per le azioni che arrivano già dalla rete. */

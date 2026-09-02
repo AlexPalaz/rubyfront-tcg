@@ -6,6 +6,7 @@
 
 import type { Ctx } from "./ctx.js";
 import { seatLabel } from "./state.js";
+import { describeGameOver } from "./turn.js";
 import type { GameState, Phase, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -69,9 +70,32 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
 
   const keyOf = (state: GameState): string => `${state.turn}|${state.active}|${state.phase}`;
 
+  // L'insegna finale (§2, §9): resta, non svanisce — fino a Nuova partita.
+  let finalShown = false;
+  function showFinal(state: GameState): void {
+    const { title: heading, detail } = describeGameOver(state, state.over!, ctx.seat());
+    title.textContent = heading;
+    sub.textContent = detail;
+    host.dataset.phase = state.over!.winner === ctx.seat() ? "fronte" : "reazione";
+    window.clearTimeout(timer);
+    host.classList.add("is-final");
+    host.hidden = false;
+  }
+
   return {
     render() {
       const state = ctx.state();
+      if (state.over) {
+        if (!finalShown) showFinal(state);
+        finalShown = true;
+        seen = keyOf(state);
+        return;
+      }
+      if (finalShown) {
+        finalShown = false;
+        host.classList.remove("is-final");
+        host.hidden = true;
+      }
       const key = keyOf(state);
       if (key === seen) return;
       const first = seen === null;

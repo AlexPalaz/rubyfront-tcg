@@ -336,6 +336,8 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
   letter-spacing: .16em; text-transform: uppercase;
   color: var(--muted);
 }
+/* La fine della partita: stessa insegna, ma resta — niente dissolvenza. */
+.phase-banner.is-final, .phase-banner.is-final .phase-banner-title { animation: none; opacity: 1; }
 @keyframes phase-banner {
   0% { opacity: 0; }
   12% { opacity: 1; }

@@ -1344,4 +1344,57 @@ class EngineTest < Minitest::Test
     verdict = gioca_materia(engine, "m1")
     assert verdict[:ok]
   end
+
+  # --- §2/§9: la fine della partita ----------------------------------------
+
+  def fine(engine, winner, reason)
+    engine.judge({ "t" => "gameOver", "winner" => winner, "reason" => reason })
+  end
+
+  def test_a_zero_pv_la_vittoria_passa_e_il_tavolo_si_ferma
+    engine = Rubyfront::Engine.new
+    engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 0 } })
+    verdict = fine(engine, "a", "hp")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    dopo = engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 })
+    refute dopo[:ok]
+    assert_match(/partita è finita/, dopo[:reason])
+    assert engine.judge({ "t" => "say", "entry" => {} })[:ok], "la chat resta"
+    assert engine.judge({ "t" => "newGame", "active" => "a" })[:ok], "Nuova partita riapre"
+    assert engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 })[:ok]
+  end
+
+  def test_una_vittoria_pretesa_con_pv_in_piedi_viene_fermata
+    engine = Rubyfront::Engine.new
+    verdict = fine(engine, "a", "hp")
+    refute verdict[:ok]
+    assert_match(/PV di B non sono a zero.*§2/, verdict[:reason])
+  end
+
+  def test_il_pareggio_vuole_entrambi_a_zero
+    engine = Rubyfront::Engine.new
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 0 } })
+    refute fine(engine, nil, "draw")[:ok]
+    engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 0 } })
+    assert fine(engine, nil, "draw")[:ok]
+  end
+
+  def test_il_mazzo_esaurito_si_verifica_sulla_copia
+    engine = Rubyfront::Engine.new
+    cards = [{ "uid" => "b-1", "owner" => "b", "zone" => "deck", "order" => 0 }]
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards })
+    verdict = fine(engine, "a", "deck")
+    refute verdict[:ok]
+    assert_match(/mazzo di B non è vuoto.*§9\.1/, verdict[:reason])
+    engine.judge({ "t" => "draw", "seat" => "b", "count" => 1 }, actor: "b")
+    assert fine(engine, "a", "deck")[:ok]
+  end
+
+  def test_la_risoluzione_porta_i_pv_a_zero_anche_nella_copia
+    engine = ondata([["a1", "FORTE"]], [], ["a1"], [])
+    engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 4 } })
+    assert risolvi(engine, [battaglia("a1", damage: 4)])[:ok]
+    assert fine(engine, "a", "hp")[:ok], "4 danni su 4 PV: la copia lo sa"
+  end
 end

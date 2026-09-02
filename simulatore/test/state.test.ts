@@ -288,3 +288,13 @@ describe("newGame", () => {
     expect(newGame().players.b.token).toBe(true);
   });
 });
+
+// La fine (§2, §9) è un'annotazione della lavagna, e Nuova partita la toglie.
+describe("apply gameOver", () => {
+  it("annota la fine e la nuova partita la cancella", () => {
+    let state = apply(newGame(), { t: "gameOver", winner: "a", reason: "hp" });
+    expect(state.over).toEqual({ winner: "a", reason: "hp" });
+    state = apply(state, { t: "newGame", active: "a" });
+    expect(state.over).toBeUndefined();
+  });
+});

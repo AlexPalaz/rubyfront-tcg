@@ -17,7 +17,7 @@ module Rubyfront
     # confrontando gli indici.
     PHASES = %w[preparazione fronte reazione].freeze
 
-    attr_reader :active, :turn, :phase
+    attr_reader :active, :turn, :phase, :over
 
     FLUX_CAP = 20
 
@@ -28,6 +28,15 @@ module Rubyfront
 
     def flux_max(seat)
       @players.fetch(seat)[:flux_max]
+    end
+
+    # I PV del Rubyfront (§2): scendono con la risoluzione e con le patch.
+    def hp(seat)
+      @players.fetch(seat)[:hp]
+    end
+
+    def over?
+      !@over.nil?
     end
 
     def initialize
@@ -43,9 +52,11 @@ module Rubyfront
       @active = "a"
       @turn = 1
       @phase = "preparazione"
-      # I contatori che servono alle regole: il Flusso (§3.2), come in
-      # newPlayer del client. I PV ancora no: nessuna regola li legge.
-      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1 }] }
+      # I contatori che servono alle regole, come in newPlayer del client:
+      # il Flusso (§3.2) e i PV (§2, la fine della partita).
+      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20 }] }
+      # Com'è finita (§2, §9): {winner:, reason:}, nil finché si gioca.
+      @over = nil
     end
 
     def hand_count(seat)
@@ -131,7 +142,10 @@ module Rubyfront
 
         @players[seat][:flux] = player["flux"] if player["flux"].is_a?(Integer)
         @players[seat][:flux_max] = player["fluxMax"] if player["fluxMax"].is_a?(Integer)
+        @players[seat][:hp] = player["hp"] if player["hp"].is_a?(Integer)
       end
+      over = state["over"]
+      @over = { winner: over["winner"], reason: over["reason"] } if over.is_a?(Hash)
       Array(state["declarations"]).each do |declaration|
         next unless declaration.is_a?(Hash) && declaration["from"]
 
@@ -171,7 +185,11 @@ module Rubyfront
         if player && patch.is_a?(Hash)
           player[:flux] = patch["flux"] if patch["flux"].is_a?(Integer)
           player[:flux_max] = patch["fluxMax"] if patch["fluxMax"].is_a?(Integer)
+          player[:hp] = patch["hp"] if patch["hp"].is_a?(Integer)
         end
+      when "gameOver"
+        winner = action["winner"]
+        @over = { winner: SEATS.include?(winner) ? winner : nil, reason: action["reason"] }
       when "tap"
         card = @cards[action["uid"]]
         card[:tapped] = action["tapped"] == true if card
@@ -283,13 +301,19 @@ module Rubyfront
     # (con tutto ciò che un'uscita dal campo comporta, vedi to_zone) e
     # l'ondata sgomberata. I PV non stanno in questa copia.
     def resolve(action)
+      damage = 0
       Array(action["battles"]).each do |battle|
         next unless battle.is_a?(Hash)
 
         to_zone({ "uid" => battle["attacker"], "zone" => "abisso" }) if battle["attackerDies"] == true
         to_zone({ "uid" => battle["blocker"], "zone" => "abisso" }) if battle["blockerDies"] == true && battle["blocker"]
+        damage += battle["damage"].to_i
       end
       @declarations = {}
+      # I danni degli attacchi non bloccati scendono sui PV del difensore,
+      # mai sotto zero — come nel riduttore.
+      foe = SEATS.find { |seat| seat != action["seat"] }
+      @players[foe][:hp] = [0, @players[foe][:hp] - damage].max if foe && SEATS.include?(action["seat"])
     end
 
     def to_zone(action)

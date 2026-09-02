@@ -3,7 +3,7 @@
 // frecce sgomberate) non parte affatto.
 
 import { describe, expect, it } from "vitest";
-import { endPhase, endTurn } from "../src/turn.js";
+import { endPhase, endTurn, loserByDeck, verdictByHp } from "../src/turn.js";
 import { newGame } from "../src/state.js";
 import type { Ctx } from "../src/ctx.js";
 import type { Action, GameState, Seat } from "../src/types.js";
@@ -138,5 +138,49 @@ describe("endPhase", () => {
     const { ctx, sent } = fakeCtx(() => false);
     await endPhase(ctx);
     expect(sent).toEqual([]);
+  });
+});
+
+// La fine della partita (§2, §9): per PV dopo ogni azione, per mazzo al
+// confine dei turni. Gemello: engine_test.rb, sezione §2/§9.
+describe("fine della partita", () => {
+  it("verdictByHp: a zero i PV avversari si vince, entrambi a zero è patta", () => {
+    const state = newGame();
+    expect(verdictByHp(state)).toBeNull();
+    state.players.b.hp = 0;
+    expect(verdictByHp(state)).toEqual({ winner: "a", reason: "hp" });
+    state.players.a.hp = 0;
+    expect(verdictByHp(state)).toEqual({ winner: null, reason: "draw" });
+    state.over = { winner: null, reason: "draw" };
+    expect(verdictByHp(state)).toBeNull();
+  });
+
+  it("loserByDeck: chi chiude a mazzo vuoto perde, se no chi entrerebbe a mazzo vuoto", () => {
+    const state = newGame(); // attivo a, nessuna carta: nessun mazzo, nessun esaurito
+    expect(loserByDeck(state)).toBeNull();
+    fielded(state, "a-1", "a", false); // a ha carte ma il mazzo vuoto
+    expect(loserByDeck(state)).toBe("a");
+    fielded(state, "a-2", "a", false, "deck" as never);
+    expect(loserByDeck(state)).toBeNull();
+    fielded(state, "b-1", "b", false); // b entrerebbe a mazzo vuoto
+    expect(loserByDeck(state)).toBe("b");
+  });
+
+  it("endTurn a mazzo esaurito dichiara la fine invece del cambio di turno", async () => {
+    const state = newGame();
+    fielded(state, "a-1", "a", false); // a chiude a mazzo vuoto
+    fielded(state, "b-1", "b", false, "deck" as never);
+    const { ctx, sent, logs } = fakeCtx(() => true, state);
+    await endTurn(ctx);
+    expect(sent).toEqual([{ t: "gameOver", winner: "b", reason: "deck" }]);
+    expect(logs[0]).toMatch(/esaurito il mazzo/);
+  });
+
+  it("a partita finita endTurn non dichiara più nulla", async () => {
+    const state = newGame();
+    state.over = { winner: "b", reason: "deck" };
+    const { ctx, sent } = fakeCtx(() => true, state);
+    await endTurn(ctx);
+    expect(sent.map(action => action.t)).toEqual(["turn"]);
   });
 });

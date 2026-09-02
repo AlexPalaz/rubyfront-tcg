@@ -233,6 +233,22 @@ Regole collegate finora:
   l'abilitazione si perde (§7.2) arriverà a parte. Engine 0.19.0, venti
   regole.
 
+- **§2/§9 Fine della partita** — la dichiara il client che l'ha vista
+  arrivare, con un'azione `gameOver {winner, reason}`, e l'engine la
+  verifica sulla copia del tavolo, che per questo ha imparato a tenere
+  anche i **PV** (patch dei contatori, danni della risoluzione,
+  snapshot): per PV, chi perde deve essere a 0 (§2), nel pareggio
+  entrambi (§9.2); per mazzo esaurito, chi perde deve avere il mazzo vuoto
+  (§9.1 — il tempismo è del client: al confine dei turni, chi chiude a
+  mazzo vuoto ha perso, se no chi entrerebbe a mazzo vuoto, e la fine
+  sostituisce il cambio di turno; un posto senza nessuna carta non ha un
+  mazzo esaurito, non ha ancora un mazzo). A partita finita il tavolo si ferma —
+  restano Nuova partita, la chat, i pixel, il carico del mazzo — e
+  l'insegna al centro non svanisce più: «Hai vinto», «Vittoria di X»,
+  «Pareggio», col motivo sotto. Limiti dichiarati: il pareggio di comune
+  accordo (§9.2) non ha ancora un gesto, e il Nexus vale come il
+  Rubyfront (stessi PV). Engine 0.20.0, ventuno regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

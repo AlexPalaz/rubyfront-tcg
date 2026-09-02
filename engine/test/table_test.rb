@@ -213,4 +213,33 @@ class TableTest < Minitest::Test
     assert_equal 1, @table.card("rf")[:face]
     assert_equal 172, @table.card("rf")[:row]
   end
+
+  # --- i PV e la fine (§2, §9) ----------------------------------------------
+
+  def test_i_pv_scendono_con_la_risoluzione_e_con_le_patch
+    assert_equal 20, @table.hp("b")
+    @table.apply({ "t" => "resolve", "seat" => "a", "battles" => [
+                   { "attacker" => "x", "kind" => "unblocked", "attackerDies" => false, "blockerDies" => false, "damage" => 4 },
+                   { "attacker" => "y", "kind" => "unblocked", "attackerDies" => false, "blockerDies" => false, "damage" => 3 },
+                 ] })
+    assert_equal 13, @table.hp("b")
+    assert_equal 20, @table.hp("a")
+    @table.apply({ "t" => "player", "seat" => "b", "patch" => { "hp" => 2 } })
+    @table.apply({ "t" => "resolve", "seat" => "a", "battles" => [
+                   { "attacker" => "x", "kind" => "unblocked", "attackerDies" => false, "blockerDies" => false, "damage" => 9 },
+                 ] })
+    assert_equal 0, @table.hp("b"), "mai sotto zero"
+  end
+
+  def test_la_fine_si_annota_e_la_nuova_partita_la_toglie
+    refute @table.over?
+    @table.apply({ "t" => "gameOver", "winner" => "a", "reason" => "hp" })
+    assert @table.over?
+    assert_equal({ winner: "a", reason: "hp" }, @table.over)
+    @table.apply({ "t" => "newGame", "active" => "b" })
+    refute @table.over?
+    @table.load({ "players" => { "a" => { "hp" => 0 } }, "over" => { "winner" => "b", "reason" => "hp" } })
+    assert @table.over?
+    assert_equal 0, @table.hp("a")
+  end
 end

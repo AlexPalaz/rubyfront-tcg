@@ -136,7 +136,15 @@ export interface Battle {
  */
 export type Phase = "preparazione" | "fronte" | "reazione";
 
+/** Com'è finita (§2, §9): chi ha vinto — null nel pareggio — e perché. */
+export interface GameOver {
+  winner: Seat | null;
+  reason: "hp" | "deck" | "draw";
+}
+
 export interface GameState {
+  /** Partita finita (§2, §9): da qui il tavolo si ferma, fino a Nuova partita. */
+  over?: GameOver;
   cards: Record<string, CardInstance>;
   players: Record<Seat, PlayerState>;
   /** Numero di turno mostrato dal contatore. Si alza e si abbassa a mano. */
@@ -180,6 +188,9 @@ export type Action =
   /** Risolve l'ondata (§6.4): i morti nell'Abisso, i danni al Rubyfront
       del difensore, il combattimento sgomberato. `seat` è chi è di turno. */
   | { t: "resolve"; seat: Seat; battles: Battle[] }
+  /** Fine della partita (§2, §9): lo dichiara il client che l'ha vista
+      arrivare, l'engine lo verifica contro PV e mazzi della sua copia. */
+  | { t: "gameOver"; winner: Seat | null; reason: GameOver["reason"] }
   | { t: "say"; entry: ChatEntry };
 
 /** Buste che viaggiano sul relay. */
