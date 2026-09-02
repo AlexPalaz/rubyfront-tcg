@@ -806,11 +806,21 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     tiles.get(uid)?.classList.toggle("is-triggering", on);
   }
 
+  /** Mentre un effetto agisce il tavolo è fermo: niente click su campo,
+      mani e HUD finché la fonte non si spegne (body.is-resolving). */
+  function hold(on: boolean): void {
+    document.body.classList.toggle("is-resolving", on);
+  }
+
   /** Il bagliore per un effetto arrivato dalla rete: la pesca è già
       avvenuta, la fonte si accende e si spegne col ritmo di chi ha giocato. */
   function flash(uid: string): void {
     light(uid, true);
-    window.setTimeout(() => light(uid, false), TRIGGER_LEAD_MS + TRIGGER_TAIL_MS);
+    hold(true);
+    window.setTimeout(() => {
+      light(uid, false);
+      hold(false);
+    }, TRIGGER_LEAD_MS + TRIGGER_TAIL_MS);
   }
 
   const wait = (ms: number): Promise<void> => new Promise(resolve => window.setTimeout(resolve, ms));
@@ -821,12 +831,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * Un innesco alla volta.
    */
   async function playTriggers(entering: CardInstance): Promise<void> {
-    for (const trigger of enterTriggers(ctx.state(), entering, ctx.card)) {
-      light(trigger.source.uid, true);
-      await wait(TRIGGER_LEAD_MS);
-      const passed = await resolveTrigger(ctx, entering, trigger);
-      await wait(passed ? TRIGGER_TAIL_MS : 0);
-      light(trigger.source.uid, false);
+    hold(true);
+    try {
+      for (const trigger of enterTriggers(ctx.state(), entering, ctx.card)) {
+        light(trigger.source.uid, true);
+        await wait(TRIGGER_LEAD_MS);
+        const passed = await resolveTrigger(ctx, entering, trigger);
+        await wait(passed ? TRIGGER_TAIL_MS : 0);
+        light(trigger.source.uid, false);
+      }
+    } finally {
+      hold(false);
     }
   }
 
