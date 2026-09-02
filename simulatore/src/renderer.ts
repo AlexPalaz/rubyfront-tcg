@@ -18,7 +18,7 @@ export const TILE_W = 302;
 export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
-import type { EnterListener, EnterMove } from "./ctx.js";
+import type { EnterListener, EnterMove, EnterReturn } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -31,6 +31,8 @@ export interface CardFace {
       `on_enter_field`, «quando entra in campo». */
   triggers?: { event?: unknown; displayKey?: unknown; id?: unknown; details?: unknown; effect?: unknown }[];
   race?: unknown;
+  /** Il comportamento di una Materia (§7.2). */
+  behavior?: unknown;
 }
 
 export interface CatalogCard {
@@ -297,6 +299,30 @@ function enterMovesOf(face: CardFace | undefined): EnterMove[] {
   return out;
 }
 
+/**
+ * I ritorni all'ingresso certificati di una faccia (§8.2): evento
+ * `on_enter_field` senza `enteringCard`, effetto `move_card` da
+ * `{zone: retire, owner: controller}` di UNA carta del controllore con
+ * `details.permanent`, destinazione `{zone: front}`. Specchio di
+ * card_index.rb, enter_returns.
+ */
+function enterReturnsOf(face: CardFace | undefined): EnterReturn[] {
+  const out: EnterReturn[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const details = trigger.details as { enteringCard?: unknown } | undefined;
+    if (details?.enteringCard) continue;
+    const effect = trigger.effect as { type?: unknown; target?: any; from?: any; destination?: any } | undefined;
+    if (!effect || effect.type !== "move_card") continue;
+    const target = effect.target;
+    if (!target || target.controller !== "controller" || target.min !== 1 || target.max !== 1 || target.details?.permanent !== true) continue;
+    if (effect.from?.zone !== "retire" || effect.from?.owner !== "controller") continue;
+    if (effect.destination?.zone !== "front") continue;
+    out.push({ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" });
+  }
+  return out;
+}
+
 /** Il costo di schieramento del Rubyfront (§3.1): fisso, o un dado. */
 export interface Deployment {
   fixed: number | null;
@@ -312,6 +338,8 @@ export function cardStats(cardId: string): {
   deployment: Deployment | null;
   enterListeners: EnterListener[];
   enterMoves: EnterMove[];
+  behavior: string | null;
+  enterReturns: EnterReturn[];
 } {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
@@ -321,6 +349,8 @@ export function cardStats(cardId: string): {
     race: typeof face?.race === "string" ? face.race : null,
     enterListeners: enterListenersOf(face),
     enterMoves: enterMovesOf(face),
+    behavior: typeof face?.behavior === "string" ? face.behavior : null,
+    enterReturns: enterReturnsOf(face),
     power: integer(face?.stats?.power),
     counterattack: integer(face?.stats?.counterattack),
     // Il costo di Flusso stampato (§3.2); il Rubyfront ha il costo di

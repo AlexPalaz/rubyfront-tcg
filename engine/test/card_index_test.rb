@@ -49,6 +49,11 @@ class CardIndexTest < Minitest::Test
     assert_equal [], @index["RBF-012"][:enter_moves], "dalla propria Zona di Ritiro al Fronte è un'altra forma"
   end
 
+  def test_rhen_riporta_una_permanente_dalla_zona_di_ritiro
+    assert_equal [{ from: "ritiro", filter: { type: "matter", behavior: "permanent" }, to: "field" }], @index["RBF-012"][:enter_returns]
+    assert_equal [], @index["RBF-007"][:enter_returns]
+  end
+
   # --- il costo di schieramento (§3.1) ------------------------------------
 
   def test_conosce_il_costo_di_schieramento_fisso_o_a_dado

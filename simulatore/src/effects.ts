@@ -9,7 +9,7 @@
 // ingresso. Tutto ciò che non ha una forma certificata resta a mano.
 
 import type { CardFacts, Ctx } from "./ctx.js";
-import { fieldCards, seatLabel } from "./state.js";
+import { fieldCards, playSpot, seatLabel, zoneCards } from "./state.js";
 import type { CardInstance, GameState } from "./types.js";
 
 export interface EnterTrigger {
@@ -35,6 +35,59 @@ export function enterMoves(state: GameState, entering: CardInstance, facts: (car
     to: move.to,
     candidates: fieldCards(state).filter(card => card.owner !== entering.owner && facts(card.cardId).kind === move.target.kind),
   }));
+}
+
+/** Un ritorno all'ingresso da risolvere: chi entra, da dove, e fra cosa si sceglie. */
+export interface EnterReturnStep {
+  source: CardInstance;
+  from: "ritiro";
+  candidates: CardInstance[];
+}
+
+/**
+ * Gli effetti «quando questa entra: metti sul tuo Fronte una carta
+ * permanente dalla tua Zona di Ritiro» (§8.2, la forma di RBF-012): per
+ * ciascuno, i candidati — le Materie permanenti nella propria Zona di
+ * Ritiro.
+ */
+export function enterReturns(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterReturnStep[] {
+  return facts(entering.cardId).enterReturns.map(ret => ({
+    source: entering,
+    from: ret.from,
+    candidates: zoneCards(state, entering.owner, ret.from).filter(card => {
+      const f = facts(card.cardId);
+      return f.kind === ret.filter.kind && f.behavior === ret.filter.behavior;
+    }),
+  }));
+}
+
+/** La riga che annuncia un ritorno all'ingresso. */
+export function describeReturn(step: EnterReturnStep, facts: (cardId: string) => CardFacts): string {
+  return `«${facts(step.source.cardId).name}» si innesca: metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro`;
+}
+
+/**
+ * Esegue un ritorno all'ingresso: la carta scelta scende sul Fronte, nel
+ * suo posto (le Materie nella loro fila), con un toZone marcato come
+ * effetto — fonte e ingresso coincidono.
+ */
+export async function resolveReturn(ctx: Ctx, step: EnterReturnStep, card: CardInstance): Promise<boolean> {
+  const spot = playSpot(ctx.state(), card.owner, ctx.card(card.cardId).kind);
+  const passed = await ctx.dispatch({
+    t: "toZone",
+    uid: card.uid,
+    zone: "field",
+    ...spot,
+    z: ctx.state().zTop + 1,
+    effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
+  });
+  if (passed) {
+    ctx.log(
+      `${seatLabel(ctx.state(), step.source.owner)}: «${ctx.card(step.source.cardId).name}» riporta «${ctx.card(card.cardId).name}» sul Fronte.`,
+      step.source.owner
+    );
+  }
+  return passed;
 }
 
 /** La riga che annuncia uno spostamento all'ingresso. */

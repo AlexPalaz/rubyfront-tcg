@@ -32,7 +32,19 @@ import {
 } from "./ctx.js";
 import { showRoll } from "./dice.js";
 import { confirmEffect, showEnterEffect } from "./effect.js";
-import { describeMove, describeTrigger, enterMoves, enterTriggers, resolveMove, resolveTrigger, type EnterMoveStep } from "./effects.js";
+import {
+  describeMove,
+  describeReturn,
+  describeTrigger,
+  enterMoves,
+  enterReturns,
+  enterTriggers,
+  resolveMove,
+  resolveReturn,
+  resolveTrigger,
+  type EnterMoveStep,
+  type EnterReturnStep,
+} from "./effects.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
 import { TILE_H, TILE_W, cardName, cardStats, enterEffects, faceCount, faceKind, isRubyfront, type Deployment } from "./renderer.js";
@@ -90,6 +102,8 @@ export interface TableView {
   refreshLayout(): void;
   /** Callback per aprire la ricerca: la fornisce main.ts. */
   onBrowse(handler: (seat: Seat, zone: ZoneId) => void): void;
+  /** Callback per scegliere una carta da una pila (effetti): la fornisce main.ts. */
+  onPick(handler: (seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string) => Promise<CardInstance | null>): void;
   /** Il bagliore di una carta che si innesca: per gli effetti arrivati dalla rete. */
   flash(uid: string, ms?: number): void;
   /** La freccia di un effetto dalla fonte al bersaglio, per un attimo. */
@@ -97,11 +111,16 @@ export interface TableView {
   /** Prende la tessera prima che voli in una pila (chi riceve): ritorna il
       via al volo, da dare dopo aver applicato l'azione. */
   liftForFlight(uid: string): (() => void) | null;
+  /** Il volo da una pila al campo (chi riceve): dopo aver applicato l'azione. */
+  flyFromPile(seat: Seat, zone: ZoneId, uid: string): void;
 }
 
 export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const tiles = new Map<string, HTMLElement>();
   let browse: (seat: Seat, zone: ZoneId) => void = () => {};
+  /** La scelta da una pila per un effetto: la fornisce main.ts (overlay). */
+  let pickFromPile: (seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string) => Promise<CardInstance | null> = () =>
+    Promise.resolve(null);
   /** Uid della carta in trascinamento: non va riposizionata dal render. */
   let dragging: string | null = null;
   /**
@@ -756,6 +775,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // elenca, e «Risolvi» li esegue — con un bagliore sulla fonte.
       const live = ctx.state().cards[card.uid] ?? card;
       const moves = enterMoves(ctx.state(), live, ctx.card);
+      const returns = enterReturns(ctx.state(), live, ctx.card);
       const triggers = enterTriggers(ctx.state(), live, ctx.card);
       void showEnterEffect(root, {
         cardId: card.cardId,
@@ -764,8 +784,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         locale: ctx.locale(),
         who: `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}»`,
         effects,
-        triggers: [...moves.map(step => describeMove(step, ctx.card)), ...triggers.map(trigger => describeTrigger(trigger, ctx.card))],
-        onContinue: moves.length || triggers.length ? () => void playTriggers(live) : undefined,
+        triggers: [
+          ...moves.map(step => describeMove(step, ctx.card)),
+          ...returns.map(step => describeReturn(step, ctx.card)),
+          ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
+        ],
+        onContinue: moves.length || returns.length || triggers.length ? () => void playTriggers(live) : undefined,
       });
     }
     return passed;
@@ -937,6 +961,72 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     };
   }
 
+  /**
+   * Il volo da una pila al campo: il fantasma parte dal riquadro della
+   * pila e arriva dove la tessera vera è comparsa (dopo il disegno).
+   */
+  function flyFromPile(seat: Seat, zone: ZoneId, uid: string): void {
+    const slot = pileSlots.get(`${seat}:${zone}`);
+    const tile = tiles.get(uid);
+    if (!slot || !tile) return;
+    const from = slot.getBoundingClientRect();
+    const to = tile.getBoundingClientRect();
+    const ghost = tile.cloneNode(true) as HTMLElement;
+    ghost.classList.add("fly-ghost");
+    ghost.classList.remove("is-pickable", "is-legal", "is-triggering");
+    ghost.style.left = `${to.left}px`;
+    ghost.style.top = `${to.top}px`;
+    ghost.style.width = `${to.width}px`;
+    ghost.style.height = `${to.height}px`;
+    ghost.style.margin = "0";
+    ghost.style.transition = "none";
+    ghost.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width})`;
+    ghost.style.opacity = "0.4";
+    document.body.append(ghost);
+    // La tessera vera si nasconde finché il fantasma non è arrivato.
+    tile.style.visibility = "hidden";
+    requestAnimationFrame(() => {
+      ghost.style.transition = "";
+      ghost.style.transform = "none";
+      ghost.style.opacity = "1";
+    });
+    window.setTimeout(() => {
+      ghost.remove();
+      tile.style.visibility = "";
+    }, FLY_MS + 60);
+  }
+
+  async function playReturn(step: EnterReturnStep): Promise<void> {
+    const who = seatLabel(ctx.state(), step.source.owner);
+    if (step.candidates.length === 0) {
+      ctx.log(`${who}: «${ctx.card(step.source.cardId).name}» non ha carte permanenti nella Zona di Ritiro.`, step.source.owner);
+      return;
+    }
+    light(step.source.uid, true);
+    const card = await pickFromPile(step.source.owner, step.from, step.candidates, "Scegli la carta permanente da riportare sul Fronte");
+    if (!card) {
+      light(step.source.uid, false);
+      return;
+    }
+    const sure = await confirmEffect(root, `Riportare «${ctx.card(card.cardId).name}» sul Fronte?`);
+    if (!sure) {
+      light(step.source.uid, false);
+      return;
+    }
+    hold(true);
+    try {
+      await wait(TRIGGER_LEAD_MS);
+      const passed = await resolveReturn(ctx, step, card);
+      if (passed) {
+        flyFromPile(card.owner, step.from, card.uid);
+        await wait(FLY_MS + TRIGGER_TAIL_MS);
+      }
+    } finally {
+      light(step.source.uid, false);
+      hold(false);
+    }
+  }
+
   async function playMove(step: EnterMoveStep): Promise<void> {
     if (step.candidates.length === 0) {
       ctx.log(`${seatLabel(ctx.state(), step.source.owner)}: «${ctx.card(step.source.cardId).name}» non ha bersagli in campo.`, step.source.owner);
@@ -985,6 +1075,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // poi la fonte si accende, la freccia va al bersaglio, la carta parte.
     for (const step of enterMoves(ctx.state(), entering, ctx.card)) {
       await playMove(step);
+    }
+    for (const step of enterReturns(ctx.state(), entering, ctx.card)) {
+      await playReturn(step);
     }
     hold(true);
     try {
@@ -1439,11 +1532,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     flash,
     flashArrow: (fromUid, toUid) => flashArrow(fromUid, toUid, TRIGGER_LEAD_MS + FLY_MS),
     liftForFlight,
+    flyFromPile,
     refreshLayout() {
       applySurfaceSize();
       buildStaticZones();
       fitScale();
       render();
+    },
+    onPick(handler) {
+      pickFromPile = handler;
     },
     onBrowse(handler) {
       browse = handler;

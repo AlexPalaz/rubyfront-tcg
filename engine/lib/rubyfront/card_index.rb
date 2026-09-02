@@ -44,6 +44,11 @@ module Rubyfront
     # Zona di Ritiro» — la forma di RBF-007. Ogni voce: { target: { type:,
     # controller: }, to: }.
     #
+    # `enter_returns` sono i ritorni all'ingresso CERTIFICATI (§8.2): «quando
+    # questa Entità entra in campo, metti sul tuo Fronte una carta permanente
+    # dalla tua Zona di Ritiro» — la forma di RBF-012. Ogni voce: { from:,
+    # filter: { type:, behavior: }, to: }.
+    #
     # `behavior` è il comportamento di una Materia (§7.2): "normal",
     # "permanent" o "reactive" — nil per chi non è una Materia. Serve alla
     # finestra di gioco: le Reattive sono le sole carte che scendono in Fase
@@ -85,6 +90,7 @@ module Rubyfront
           enables: faces.map { |face| enables_of(face) }.freeze,
           enter_listeners: enter_listeners(faces).freeze,
           enter_moves: enter_moves(faces).freeze,
+          enter_returns: enter_returns(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze
@@ -144,6 +150,26 @@ module Rubyfront
         next unless destination.is_a?(Hash) && destination["zone"] == "retire"
 
         { target: { type: "entity", controller: "opponent" }.freeze, to: "ritiro" }.freeze
+      end
+    end
+
+    def self.enter_returns(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+        next if trigger["details"].is_a?(Hash) && trigger["details"]["enteringCard"]
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "move_card"
+
+        target = effect["target"]
+        from = effect["from"]
+        destination = effect["destination"]
+        next unless target.is_a?(Hash) && target["controller"] == "controller" && target["min"] == 1 && target["max"] == 1
+        next unless target["details"].is_a?(Hash) && target["details"]["permanent"] == true
+        next unless from.is_a?(Hash) && from["zone"] == "retire" && from["owner"] == "controller"
+        next unless destination.is_a?(Hash) && destination["zone"] == "front"
+
+        { from: "ritiro", filter: { type: "matter", behavior: "permanent" }.freeze, to: "field" }.freeze
       end
     end
 

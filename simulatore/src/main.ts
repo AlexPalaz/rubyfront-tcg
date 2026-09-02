@@ -143,9 +143,17 @@ function receive(action: Action, from: Seat): void {
   if (action.t === "draw" && action.effect) table.flash(action.effect.source);
   let fly: (() => void) | null = null;
   if (action.t === "toZone" && action.effect) {
-    table.flashArrow(action.effect.source, action.uid);
+    const moving = state.cards[action.uid];
     table.flash(action.effect.source, 1600);
-    fly = table.liftForFlight(action.uid);
+    if (action.zone === "field" && moving && moving.zone !== "field") {
+      // Un ritorno dalla pila: il volo parte dopo che la carta è comparsa.
+      const from = moving.zone;
+      const owner = moving.owner;
+      fly = () => table.flyFromPile(owner, from, action.uid);
+    } else {
+      table.flashArrow(action.effect.source, action.uid);
+      fly = table.liftForFlight(action.uid);
+    }
   }
   // Il tiro del dado dell'avversario si vede anche qui: la carta scende
   // insieme, ma il momento è lo stesso.
@@ -203,6 +211,8 @@ const ctx: Ctx = {
       counterattack: stats.counterattack,
       enterListeners: stats.enterListeners,
       enterMoves: stats.enterMoves,
+      behavior: stats.behavior,
+      enterReturns: stats.enterReturns,
     };
   },
   log(text, seat) {
@@ -276,6 +286,7 @@ const hud = mountHud(document.querySelector<HTMLElement>("#hud")!, ctx, {
 document.querySelector("#side-close")!.addEventListener("click", toggleSide);
 const overlay = mountOverlay(ctx, () => paint());
 table.onBrowse((seat, zone) => overlay.open(seat, zone));
+table.onPick((seat, zone, candidates, title) => overlay.pick(seat, zone, candidates, title));
 
 /** Righe arrivate a chat chiusa: due spie — messaggi (blu) e azioni (oro). */
 let unreadChat = 0;

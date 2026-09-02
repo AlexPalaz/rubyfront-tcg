@@ -3,12 +3,15 @@
 
 import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
-import { describeMove, describeTrigger, enterMoves, enterTriggers, resolveEnter, resolveMove } from "../src/effects.js";
+import { describeMove, describeReturn, describeTrigger, enterMoves, enterReturns, enterTriggers, resolveEnter, resolveMove, resolveReturn } from "../src/effects.js";
 import { newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
 const FACTS: Record<string, Partial<CardFacts>> = {
   ARCIERE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
+  RHEN: { kind: "entity", race: "human", enterReturns: [{ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" }] },
+  PERMANENTE: { kind: "matter", behavior: "permanent" },
+  NORMALE: { kind: "matter", behavior: "normal" },
   GUIDA: { kind: "entity", race: "human", enterListeners: [{ enteringRace: "human", requires: { count: 3, race: "human" }, draw: 1 }] },
   UMANO: { kind: "entity", race: "human" },
   AUROS: { kind: "entity", race: "auros" },
@@ -22,6 +25,8 @@ const facts = (cardId: string): CardFacts => ({
   counterattack: null,
   enterListeners: [],
   enterMoves: [],
+  behavior: null,
+  enterReturns: [],
   ...FACTS[cardId],
 });
 
@@ -145,5 +150,52 @@ describe("enterMoves", () => {
     const [step] = enterMoves(state, arc, facts);
     expect(await resolveMove(ctx, step, b1)).toBe(true);
     expect(sent).toEqual([{ t: "toZone", uid: "b1", zone: "ritiro", effect: { source: "arc", event: "on_enter_field", entering: "arc" } }]);
+  });
+});
+
+// Il ritorno all'ingresso (§8.2), la forma di RBF-012. Gemello:
+// engine_test.rb, sezione §8.2 Rhen.
+describe("enterReturns", () => {
+  function inRitiro(state: GameState, uid: string, cardId: string, owner: Seat = "a"): CardInstance {
+    const card = on(state, uid, cardId, owner);
+    card.zone = "ritiro";
+    return card;
+  }
+
+  it("i candidati sono le permanenti nella propria Zona di Ritiro", () => {
+    const state = newGame();
+    const rhen = on(state, "rhen", "RHEN");
+    inRitiro(state, "p1", "PERMANENTE");
+    inRitiro(state, "n1", "NORMALE");
+    inRitiro(state, "u1", "UMANO");
+    inRitiro(state, "bp", "PERMANENTE", "b");
+    const [step] = enterReturns(state, rhen, facts);
+    expect(step.from).toBe("ritiro");
+    expect(step.candidates.map(card => card.uid)).toEqual(["p1"]);
+    expect(describeReturn(step, facts)).toMatch(/«RHEN» si innesca/);
+  });
+
+  it("resolveReturn manda il toZone verso il campo marcato come effetto", async () => {
+    const state = newGame();
+    const rhen = on(state, "rhen", "RHEN");
+    const p1 = inRitiro(state, "p1", "PERMANENTE");
+    const sent: Action[] = [];
+    const ctx: Ctx = {
+      state: () => state,
+      dispatch(action) {
+        sent.push(action);
+        return Promise.resolve(true);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "notte",
+      locale: () => "it",
+      card: facts,
+      log() {},
+    };
+    const [step] = enterReturns(state, rhen, facts);
+    expect(await resolveReturn(ctx, step, p1)).toBe(true);
+    expect(sent[0]).toMatchObject({ t: "toZone", uid: "p1", zone: "field", effect: { source: "rhen", event: "on_enter_field", entering: "rhen" } });
   });
 });

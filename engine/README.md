@@ -310,8 +310,16 @@ Regole collegate finora:
   consumato, la zona è quella della forma e il bersaglio è un'Entità
   avversaria in campo. Nel client il bersaglio si sceglie in mira, con la
   freccia dalla fonte al dito; poi la fonte si accende, la freccia va al
-  bersaglio e la carta parte — anche per chi guarda. Tutto ciò che non ha
-  una forma certificata resta a mano. Engine 0.26.0, venticinque regole.
+  bersaglio e la carta parte — anche per chi guarda. La terza forma è
+  quella di RBF-012, **Rhen**: «quando questa Entità entra in campo, metti
+  sul tuo Fronte una carta permanente dalla tua Zona di Ritiro» — un
+  `toZone` verso il campo marcato con `effect`, che passa se la carta
+  scelta è una Materia permanente nella PROPRIA Zona di Ritiro; nel client
+  si sceglie dalla pila (la finestra della ricerca, ristretta ai
+  candidati), si conferma, e la carta vola dalla pila al suo posto. Il
+  «quando attacca» della stessa carta arriverà con gli eventi d'attacco.
+  Tutto ciò che non ha una forma certificata resta a mano. Engine 0.27.0,
+  ventisei regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

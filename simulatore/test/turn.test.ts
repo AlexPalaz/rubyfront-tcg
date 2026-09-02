@@ -38,6 +38,8 @@ function fakeCtx(
       counterattack: facts[cardId]?.counterattack ?? null,
       enterListeners: [],
       enterMoves: [],
+      behavior: null,
+      enterReturns: [],
     }),
     log(text) {
       logs.push(text);

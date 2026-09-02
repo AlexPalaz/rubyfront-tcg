@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.26.0"
+    VERSION = "0.27.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -53,6 +53,7 @@ module Rubyfront
       "§2/§9 Fine della partita: PV a zero, mazzo esaurito, pareggio",
       "§8.2 Effetti certificati: «quando un'Entità entra, pesca» (RBF-003)",
       "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (RBF-007)",
+      "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte» (RBF-012)",
       "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
       "§3.1 Il Rubyfront schierato non torna in Zona di Richiamo",
     ].freeze
@@ -831,12 +832,31 @@ module Rubyfront
       return refuse("toZone", "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless source[:entered] == @table.turn
       return refuse("toZone", "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["entering"])
 
+      target = @table.card(action["uid"])
+      return refuse("toZone", "il bersaglio dell'effetto non esiste (§8.2)") unless target
+
+      # Il ritorno (la forma di RBF-012): dalla propria Zona di Ritiro al Fronte,
+      # una carta del tipo e del comportamento chiesti.
+      if action["zone"] == "field"
+        ret = Array(@cards.dig(source[:card_id], :enter_returns)).first
+        return refuse("toZone", "la carta non ha un effetto certificato che riporti in campo (§8.2)") unless ret
+        return refuse("toZone", "la carta da riportare dev'essere nella propria Zona di Ritiro (§8.2)") unless target[:zone] == ret[:from] && target[:owner] == source[:owner]
+
+        entry = @cards[target[:card_id]]
+        return no_rule("toZone") unless entry
+        unless entry[:type] == ret[:filter][:type] && entry[:behavior] == ret[:filter][:behavior]
+          return refuse("toZone", "si riporta una carta permanente, non questa (§8.2)")
+        end
+
+        return allow("toZone")
+      end
+
+      # Lo spostamento (la forma di RBF-007): un'Entità avversaria in campo,
+      # verso la zona della forma.
       moves = Array(@cards.dig(source[:card_id], :enter_moves))
       move = moves.find { |candidate| candidate[:to] == action["zone"] }
       return refuse("toZone", "la carta non ha un effetto certificato che sposti lì (§8.2)") unless move
-
-      target = @table.card(action["uid"])
-      return refuse("toZone", "il bersaglio dev'essere in campo (§8.2)") unless target && target[:zone] == "field"
+      return refuse("toZone", "il bersaglio dev'essere in campo (§8.2)") unless target[:zone] == "field"
       return refuse("toZone", "il bersaglio dev'essere avversario (§8.2)") if target[:owner] == source[:owner]
 
       entry = @cards[target[:card_id]]

@@ -21,6 +21,22 @@ export interface CardFacts {
   /** Gli effetti certificati «quando QUESTA entra in campo: metti una carta
       avversaria in una zona» (§8.2): vedi renderer.ts, enterMoves. */
   enterMoves: EnterMove[];
+  /** Il comportamento di una Materia (§7.2): normal, permanent, reactive; null altrove. */
+  behavior: string | null;
+  /** Gli effetti certificati «quando QUESTA entra in campo: metti sul tuo
+      Fronte una carta dalla tua Zona di Ritiro» (§8.2): vedi enterReturns. */
+  enterReturns: EnterReturn[];
+}
+
+/**
+ * La forma certificata di un ritorno all'ingresso: «quando questa Entità
+ * entra in campo, metti sul tuo Fronte una carta permanente dalla tua Zona
+ * di Ritiro». È la forma di RBF-012.
+ */
+export interface EnterReturn {
+  from: "ritiro";
+  filter: { kind: "matter"; behavior: "permanent" };
+  to: "field";
 }
 
 /**

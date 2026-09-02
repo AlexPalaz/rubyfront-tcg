@@ -23,6 +23,9 @@ export interface Overlay {
   /** STRUMENTO DI PROVA, temporaneo: il catalogo intero, un click evoca la
       carta in mano a `seat`. */
   openCatalog(seat: Seat): void;
+  /** La scelta per un effetto (§8.2): fra `candidates` di quella pila, un
+      click sceglie; Chiudi o Esc rinunciano (null). */
+  pick(seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string): Promise<CardInstance | null>;
   close(): void;
 }
 
@@ -70,6 +73,8 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
   let currentZone: ZoneId = "deck";
   /** Modalità catalogo (strumento di prova): si evoca, non si sposta. */
   let catalogMode = false;
+  /** Modalità scelta (un effetto): i candidati, il titolo, e a chi dirlo. */
+  let picking: { candidates: CardInstance[]; title: string; done: (card: CardInstance | null) => void } | null = null;
   /** True se in questa sessione di ricerca si è presa almeno una carta. */
   let touched = false;
 
@@ -79,6 +84,10 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
     const matches = (cardId: string): boolean => filter === "" || cardSearchText(cardId, ctx.locale()).includes(filter);
     if (catalogMode) {
       paintCatalog(matches);
+      return;
+    }
+    if (picking) {
+      paintPick(matches);
       return;
     }
     const cards = zoneCards(state, currentSeat, currentZone).filter(card => matches(card.cardId));
@@ -109,6 +118,31 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
           { label: "Nell'Abisso", run: () => move(card.uid, "abisso"), disabled: currentZone === "abisso" },
           { label: "In Zona di Ritiro", run: () => move(card.uid, "ritiro"), disabled: currentZone === "ritiro" },
         ]);
+      });
+      wrapper.append(tile);
+      grid.append(wrapper);
+    }
+    fitPending(grid);
+  }
+
+  /** La scelta per un effetto: solo i candidati, un click sceglie. */
+  function paintPick(matches: (cardId: string) => boolean): void {
+    const chosen = picking!;
+    const cards = chosen.candidates.filter(card => matches(card.cardId));
+    title.textContent = chosen.title;
+    empty.hidden = cards.length > 0;
+    grid.replaceChildren();
+    for (const card of cards) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "overlay-item";
+      const tile = createCardEl(card.uid);
+      syncCardEl(tile, card, { back: false, theme: ctx.themeFor(card.owner), locale: ctx.locale() });
+      wirePreview(tile, ctx.locale);
+      tile.addEventListener("click", () => {
+        const done = chosen.done;
+        picking = null;
+        host.hidden = true;
+        done(card);
       });
       wrapper.append(tile);
       grid.append(wrapper);
@@ -173,6 +207,13 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
 
   function hide(): void {
     host.hidden = true;
+    if (picking) {
+      // Chiudere senza scegliere è rinunciare.
+      const done = picking.done;
+      picking = null;
+      done(null);
+      return;
+    }
     // Cercare nel mazzo lo rimescola: è la regola d'uso di ogni tutor, e
     // impedisce di memorizzare l'ordine visto durante la ricerca.
     if (!catalogMode && currentZone === "deck" && touched && shuffleBox.checked) {
@@ -198,6 +239,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       currentSeat = seat;
       currentZone = zone;
       catalogMode = false;
+      picking = null;
       touched = false;
       search.value = "";
       shuffleAfter.hidden = zone !== "deck";
@@ -205,9 +247,24 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       paint();
       search.focus();
     },
+    pick(seat, zone, candidates, pickTitle) {
+      return new Promise(resolve => {
+        currentSeat = seat;
+        currentZone = zone;
+        catalogMode = false;
+        touched = false;
+        picking = { candidates, title: pickTitle, done: resolve };
+        search.value = "";
+        shuffleAfter.hidden = true;
+        host.hidden = false;
+        paint();
+        search.focus();
+      });
+    },
     openCatalog(seat) {
       currentSeat = seat;
       catalogMode = true;
+      picking = null;
       touched = false;
       search.value = "";
       shuffleAfter.hidden = true;

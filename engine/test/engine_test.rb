@@ -1654,4 +1654,52 @@ class EngineTest < Minitest::Test
     engine = arciere([["b1", "UMANO"]])
     refute manda(engine, "b1", zone: "abisso")[:ok], "nell'Abisso non è la forma dell'Arciere"
   end
+
+  # --- §8.2: Rhen riporta una permanente dalla Zona di Ritiro (RBF-012) -----
+
+  EREDI = {
+    "RHEN" => { type: "entity", keywords: [], race: "human",
+                enter_returns: [{ from: "ritiro", filter: { type: "matter", behavior: "permanent" }, to: "field" }] },
+    "PERMANENTE" => { type: "matter", keywords: [], behavior: "permanent" },
+    "NORMALE" => { type: "matter", keywords: [], behavior: "normal" },
+    "UMANO" => { type: "entity", keywords: [], race: "human" },
+  }.freeze
+
+  # A ha Rhen in mano e quelle carte in Zona di Ritiro; poi Rhen scende.
+  def rhen(ritiro, foe_ritiro: [])
+    engine = Rubyfront::Engine.new(cards: EREDI)
+    a = [{ "uid" => "rhen", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "RHEN" }]
+    a += ritiro.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "ritiro", "order" => i, "cardId" => id } }
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    b = foe_ritiro.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "ritiro", "order" => i, "cardId" => id } }
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
+    engine.judge({ "t" => "toZone", "uid" => "rhen", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine
+  end
+
+  def riporta(engine, uid)
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 2368, "y" => 1236,
+                   "effect" => { "source" => "rhen", "event" => "on_enter_field", "entering" => "rhen" } })
+  end
+
+  def test_rhen_riporta_una_permanente_sul_fronte
+    engine = rhen([["p1", "PERMANENTE"]])
+    verdict = riporta(engine, "p1")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "field", engine.instance_variable_get(:@table).card("p1")[:zone]
+  end
+
+  def test_solo_una_permanente_e_solo_dalla_propria_zona_di_ritiro
+    engine = rhen([["n1", "NORMALE"], ["u1", "UMANO"]], foe_ritiro: [["bp", "PERMANENTE"]])
+    refute riporta(engine, "n1")[:ok], "una Materia normale no"
+    refute riporta(engine, "u1")[:ok], "un'Entità no"
+    refute riporta(engine, "bp")[:ok], "dalla Zona di Ritiro avversaria no"
+  end
+
+  def test_il_ritorno_si_consuma_una_volta
+    engine = rhen([["p1", "PERMANENTE"], ["p2", "PERMANENTE"]])
+    assert riporta(engine, "p1")[:ok]
+    refute riporta(engine, "p2")[:ok]
+  end
 end

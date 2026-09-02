@@ -51,6 +51,8 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       counterattack: facts[cardId]?.counterattack ?? null,
       enterListeners: [],
       enterMoves: [],
+      behavior: null,
+      enterReturns: [],
     }),
     log(text) {
       logs.push(text);
