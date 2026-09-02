@@ -947,8 +947,13 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
   end
 
-  def scendi_in_campo(engine, uid, x: 0, y: 0)
-    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y })
+  # Senza coordinate l'ingresso non ha forma da giudicare (§5): i test che
+  # vogliono uno slot lo dicono.
+  def scendi_in_campo(engine, uid, x: nil, y: nil)
+    action = { "t" => "toZone", "uid" => uid, "zone" => "field" }
+    action["x"] = x unless x.nil?
+    action["y"] = y unless y.nil?
+    engine.judge(action)
   end
 
   def test_in_preparazione_si_gioca
@@ -1212,5 +1217,46 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "player", "seat" => "a", "patch" => { "token" => false, "flux" => 21 } })
     assert paga(engine, "a-1", 3)[:ok]
     assert_equal 18, engine.instance_variable_get(:@table).flux("a")
+  end
+
+  # --- §5: la lavagna legata agli slot, e dal campo non si torna indietro ---
+
+  def test_l_entita_scende_su_uno_slot_della_propria_fila
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "a-1", "LENTA")
+    assert scendi_in_campo(engine, "a-1", x: 821, y: 1236)[:ok], "slot della fila di A"
+    in_mano(engine, "a", "a-2", "LENTA")
+    verdict = scendi_in_campo(engine, "a-2", x: 900, y: 1236)
+    refute verdict[:ok], "a mano libera no"
+    assert_match(/slot.*§5/, verdict[:reason])
+    refute scendi_in_campo(engine, "a-2", x: 821, y: 172)[:ok], "nella fila avversaria no"
+    assert scendi_in_campo(engine, "a-2")[:ok], "senza coordinate niente da giudicare"
+  end
+
+  def test_anche_lo_spostamento_sul_campo_e_legato_agli_slot
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    # Un carico solo: ricaricare il mazzo azzera il posto (test_ricaricare…).
+    cards = [["a-1", "LENTA"], ["m-1", "PIETRA"]].map.with_index do |(uid, id), i|
+      { "uid" => uid, "owner" => "a", "zone" => "hand", "order" => i, "cardId" => id }
+    end
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    scendi_in_campo(engine, "a-1", x: 442, y: 1236)
+    scendi_in_campo(engine, "m-1", x: 2368, y: 1236)
+    assert engine.judge({ "t" => "move", "uid" => "a-1", "x" => 1199, "y" => 1236, "z" => 3 })[:ok]
+    refute engine.judge({ "t" => "move", "uid" => "a-1", "x" => 1000, "y" => 1300, "z" => 3 })[:ok]
+    verdict = engine.judge({ "t" => "move", "uid" => "m-1", "x" => 2000, "y" => 1300, "z" => 3 })
+    refute verdict[:ruled], "una Materia in campo si sposta liberamente"
+  end
+
+  def test_dal_campo_non_si_torna_in_mano_ne_nel_mazzo
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "a-1", "LENTA")
+    scendi_in_campo(engine, "a-1", x: 442, y: 1236)
+    verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "hand" })
+    assert verdict[:ruled]
+    refute verdict[:ok]
+    assert_match(/non torna in mano.*§5/, verdict[:reason])
+    refute engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "deck" })[:ok]
+    assert engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })[:ok], "l'Abisso sì"
   end
 end

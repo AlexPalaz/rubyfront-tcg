@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.17.0"
+    VERSION = "0.18.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -47,6 +47,8 @@ module Rubyfront
       "§6.2 Le carte si giocano in Preparazione (salvo Reattive e Rubyfront)",
       "§6 Nel turno altrui non si agisce (salvo Reazione e Reattive)",
       "§3.2 Le carte si pagano: il costo di Flusso",
+      "§5 Le Entità stanno sugli slot del Fronte",
+      "§5/§6.2 Dal campo non si torna in mano né nel mazzo",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -54,6 +56,7 @@ module Rubyfront
     # lavagne e nelle azioni di rete. Entrano nel giudizio solo come forma
     # dell'AZIONE — la copia del tavolo continua a non tracciare geometria.
     FRONT_SLOT_X = [442, 821, 1199, 1578, 1956].freeze
+    # [fila del posto B (in alto), fila del posto A (in basso)] — canonico.
     FRONT_ROW_Y = [172, 1236].freeze
 
     # `cards` è l'anagrafe id -> {type:, keywords:} (vedi card_index.rb):
@@ -108,6 +111,7 @@ module Rubyfront
       when "toZone" then judge_to_zone(action)
       when "assign" then judge_assign(action)
       when "resolve" then judge_resolve(action)
+      when "move" then judge_move(action)
       else no_rule(action["t"])
       end
     end
@@ -148,11 +152,43 @@ module Rubyfront
       card = @table.card(action["uid"])
       return no_rule("toZone") unless card
 
+      # §5/§6.2 — dal campo non si torna in mano né nel mazzo: dal campo si
+      # esce con il Ritiro (§6.2), con l'Abisso, o con un effetto — e il
+      # Rubyfront ha il richiamo, che resta in campo (§3.1). Vale per tutti
+      # i posti. Limite dichiarato: un effetto «rimetti in mano» verrebbe
+      # fermato a torto (regola d'oro).
+      if card[:zone] == "field" && %w[hand deck].include?(action["zone"])
+        where = action["zone"] == "hand" ? "in mano" : "nel mazzo"
+        return refuse("toZone", "una carta in campo non torna #{where}: dal campo si esce con il Ritiro, l'Abisso o un effetto (§5, §6.2)")
+      end
+
       case action["zone"]
       when "field" then judge_enter_field(card, action)
       when "ritiro" then judge_retire(card)
       else no_rule("toZone")
       end
+    end
+
+    # §5 — «i 5 slot del Fronte»: con l'arbitro la lavagna non è libera, e
+    # un'Entità che si sposta sul campo va su uno slot della propria fila.
+    # Si guarda la FORMA dell'azione, come per le Materie: la copia del
+    # tavolo continua a non tracciare geometria, e l'occupazione dello slot
+    # è affare della lavagna (che con l'arbitro sceglie da sé un posto
+    # libero). Coordinate assenti: niente da giudicare.
+    def judge_move(action)
+      card = @table.card(action["uid"])
+      return no_rule("move") unless card && card[:zone] == "field"
+      return no_rule("move") unless @cards.dig(card[:card_id], :type) == "entity"
+
+      on_slot?(card, action) ? allow("move") : refuse("move", "le Entità stanno sugli slot del Fronte, nella propria fila (§5)")
+    end
+
+    def on_slot?(card, action)
+      x = action["x"]
+      y = action["y"]
+      return true unless x.is_a?(Numeric) && y.is_a?(Numeric)
+
+      FRONT_SLOT_X.include?(x) && y == FRONT_ROW_Y[Table::SEATS.index(card[:owner]) == 0 ? 1 : 0]
     end
 
     # §6.2 — «Sul Fronte si possono avere al massimo 5 Entità»: la sesta non
@@ -229,11 +265,11 @@ module Rubyfront
         entry = @cards[other[:card_id]]
         entry && entry[:type] == "entity"
       end
-      if on_front >= 5
-        refuse("toZone", "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)")
-      else
-        allow("toZone")
-      end
+      return refuse("toZone", "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)") if on_front >= 5
+      # §5 — e scende su uno slot della propria fila (vedi judge_move).
+      return refuse("toZone", "le Entità stanno sugli slot del Fronte, nella propria fila (§5)") unless on_slot?(card, action)
+
+      allow("toZone")
     end
 
     # §6.2 — il Ritiro: un gesto di PREPARAZIONE sulle PROPRIE Entità

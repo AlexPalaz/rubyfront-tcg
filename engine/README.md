@@ -197,6 +197,24 @@ Regole collegate finora:
   messe in campo gratis da un effetto verrebbero fermati a torto (regola
   d'oro). Engine 0.17.0, diciassette regole.
 
+- **§5 Le Entità stanno sugli slot del Fronte** — con l'arbitro la lavagna
+  non è più libera: un'Entità che scende in campo o si sposta sul campo va
+  su uno dei cinque slot della PROPRIA fila, e l'engine guarda la forma
+  dell'azione (`toZone` e `move` con le coordinate canoniche degli slot),
+  come per le Materie — la copia del tavolo continua a non tracciare
+  geometria, e l'occupazione dello slot è affare della lavagna, che con
+  l'arbitro sceglie da sé: lo slot del rilascio se è libero, altrimenti il
+  primo libero, e a Fronte pieno il gesto cade. Le Materie vanno nella loro
+  fila e si spostano liberamente; il Rubyfront ha due posti soli (il suo
+  davanti al Fronte e la Zona di Richiamo) e ci arriva solo agganciato; un
+  Oggetto si posa solo addosso a un'Entità (`table.ts`, `boundSpot`).
+  Coordinate assenti: niente da giudicare.
+- **§5/§6.2 Dal campo non si torna in mano né nel mazzo** — dal campo si
+  esce con il Ritiro, con l'Abisso o con un effetto; il Rubyfront ha il
+  richiamo, che resta in campo. Vale per tutti i posti. Limite dichiarato:
+  un effetto «rimetti in mano» verrebbe fermato a torto (regola d'oro).
+  Engine 0.18.0, diciannove regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

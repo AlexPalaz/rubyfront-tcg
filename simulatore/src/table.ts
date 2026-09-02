@@ -36,6 +36,7 @@ import {
   STACK_STEP,
   declarationOf,
   fieldCards,
+  matterSpot,
   playSpot,
   seatLabel,
   seatWaiting,
@@ -662,6 +663,35 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     return passed;
   }
 
+  /**
+   * Con l'arbitro al tavolo la lavagna non è più libera: ogni carta ha il
+   * suo posto segnato (§5) e ci si incastra, o non si posa affatto. Le
+   * Entità stanno sugli slot del Fronte — quello del rilascio se è libero,
+   * altrimenti il primo libero; a Fronte pieno il gesto cade. Le Materie
+   * vanno nella loro fila, dietro. Il Rubyfront ha due posti soli, il suo
+   * davanti al Fronte e la Zona di Richiamo, e ci arriva solo agganciato.
+   * Gli Oggetti non passano di qui: il loro posto è addosso a un'Entità, e
+   * lo decide il rilascio (vedi applyDrop). `null` = il gesto non si fa.
+   */
+  function boundSpot(card: CardInstance, drop: { x: number; y: number; snapped: boolean }): { x: number; y: number } | null {
+    const state = ctx.state();
+    const kind = faceKind(card.cardId, card.face);
+    const front = frontRowY(card.owner);
+    if (kind === "rubyfront" || kind === "nexus") {
+      if (!drop.snapped) return null;
+      const deployed = drop.x === RUBYFRONT_X && drop.y === front;
+      const recalled = drop.x === SLOT_X.richiamo && drop.y === backRowY(card.owner);
+      return deployed || recalled ? { x: drop.x, y: drop.y } : null;
+    }
+    if (kind === "matter") return matterSpot(state, card.owner);
+    if (kind !== "entity") return { x: drop.x, y: drop.y };
+    const others = fieldCards(state).filter(other => other.uid !== card.uid && Math.abs(other.y - front) < 40);
+    const busy = (x: number): boolean => others.some(other => Math.abs(other.x - x) < 40);
+    if (drop.snapped && drop.y === front && FRONT_SLOT_X.includes(drop.x) && !busy(drop.x)) return { x: drop.x, y: front };
+    const free = FRONT_SLOT_X.find(x => !busy(x));
+    return free === undefined ? null : { x: free, y: front };
+  }
+
   function applyDrop(card: CardInstance, drop: Drop): void {
     if (!drop) return;
     if (drop.kind === "field") {
@@ -674,13 +704,31 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // dell'ARBITRO, non del tavolo — il rilascio parte com'è e, con
       // l'engine collegato, torna indietro col sigillo. A engine spento,
       // lavagna libera come sempre.
-      const spot = drop.snapped ? stackAt(ctx.state(), drop.x, drop.y, card.uid) : free;
+      let spot = drop.snapped ? stackAt(ctx.state(), drop.x, drop.y, card.uid) : free;
+      // Arbitro al tavolo: il posto lo decide la lavagna, non il dito. Un
+      // gesto senza posto (Fronte pieno, Rubyfront fuori dai suoi due
+      // riquadri) non si fa: la carta torna da dove era partita.
+      const bound = ctx.arbitrated() ? boundSpot(card, { ...free, ...(drop.snapped ? { x: drop.x, y: drop.y } : {}), snapped: drop.snapped }) : undefined;
+      const origin = dragOrigin;
+      const giveBack = (): void => {
+        if (origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
+      };
+      if (bound === null) {
+        giveBack();
+        return;
+      }
+      if (bound) spot = bound;
       let x = Math.max(0, Math.min(SURFACE_W - TILE_W, spot.x));
       let y = Math.max(0, Math.min(SURFACE_H - TILE_H, spot.y));
       // Un Oggetto posato su un'Entità non resta dove l'ha lasciato il dito:
       // si accomoda da solo dietro di lei, a scaletta — in linea con la sua
       // portatrice, un gradino per ogni Oggetto già addosso.
       const under = entityUnder(card, x, y);
+      // Con l'arbitro un Oggetto ha un posto solo: addosso a un'Entità (§3.1).
+      if (ctx.arbitrated() && faceKind(card.cardId, card.face) === "object" && !under) {
+        giveBack();
+        return;
+      }
       if (under) {
         const worn = Object.values(ctx.state().cards)
           .filter(other => other.assignedTo === under.uid && other.uid !== card.uid).length;
@@ -696,7 +744,6 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // permesso e solo col sì si muovono i pixel — sennò il sigillo dice
       // «non si sposta» ma la carta intanto si è spostata.
       const current = ctx.state().cards[card.uid]?.assignedTo;
-      const origin = dragOrigin;
       void (async () => {
         if (under && under.uid !== current) {
           if (!(await ctx.dispatch({ t: "assign", uid: card.uid, to: under.uid }))) {
