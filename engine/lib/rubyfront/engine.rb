@@ -529,6 +529,32 @@ module Rubyfront
       return nil unless Table::SEATS.include?(actor) && actor != @table.active
 
       kind = action["t"]
+      # I gesti di APPARECCHIATURA non hanno turno: caricare il proprio mazzo
+      # (all'ingresso in stanza, nel turno di chiunque), «Nuova partita», il
+      # proprio nome, la chat, i pixel — e una patch che non tocca i
+      # contatori non è un'azione di gioco.
+      return nil if %w[loadDeck newGame say move].include?(kind)
+      if kind == "player" && action["seat"] == actor
+        patch = action["patch"]
+        counters = patch.is_a?(Hash) && %w[hp flux fluxMax].any? { |key| patch.key?(key) }
+        return nil unless counters
+      end
+      # §4 — la preparazione della partita: «prima che inizi il primo turno,
+      # entrambi i giocatori pescano 6 carte», e il mulligan (Mescola, Pesca
+      # 6). Il tavolo non ha un tempo «prima del turno 1»: è il turno 1 in
+      # Preparazione, e lì anche l'altro posto apparecchia il suo mazzo —
+      # pesca, mescola, mano che torna nel mazzo. Solo sulle proprie carte,
+      # solo fra mano e mazzo.
+      if @table.turn == 1 && @table.phase == "preparazione"
+        case kind
+        when "draw", "shuffle"
+          return nil if action["seat"] == actor
+        when "toZone"
+          card = @table.card(action["uid"])
+          between = %w[hand deck]
+          return nil if card && card[:owner] == actor && between.include?(card[:zone]) && between.include?(action["zone"])
+        end
+      end
       case kind
       when "declare"
         return nil if %w[block counter].include?(action.dig("declaration", "kind"))
@@ -541,8 +567,6 @@ module Rubyfront
         return nil if card && card[:owner] == actor && action["zone"] == "field" && reactive
       when "player"
         return nil if action["seat"] == actor && @table.phase != "preparazione"
-      when "say", "move"
-        return nil
       end
 
       refuse(kind, "non tocca a te: nel turno avversario si blocca in Reazione e si giocano solo Reattive (§6)")

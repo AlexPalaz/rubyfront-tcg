@@ -168,7 +168,12 @@ Regole collegate finora:
   Al difensore restano le finestre del manuale: blocchi e contrattacchi in
   Reazione (§6.4, e il ripensarci), le Materie Reattive nel Fronte altrui
   (§6.3 Pre-Fronte, §7.2), i propri contatori in Fronte e Reazione perché le
-  Reattive si pagano. Tutto il resto — pescare, giocare, ritirare, muovere
+  Reattive si pagano. I gesti di apparecchiatura non hanno turno: caricare
+  il proprio mazzo (all'ingresso in stanza), «Nuova partita», il proprio
+  nome, la chat. E prima del primo turno c'è la preparazione della
+  partita (§4): al turno 1 in Preparazione anche l'altro posto apparecchia
+  il suo mazzo — mano iniziale, mescola, mulligan fra mano e mazzo, solo
+  sulle proprie carte. Tutto il resto — pescare, giocare, ritirare, muovere
   fra le zone, cambiare fase o turno, risolvere — aspetta il proprio turno.
   Attore assente (client vecchio): la dogana tace. Limiti dichiarati: gli
   effetti risolti a mano che fanno agire l'avversario nel turno altrui («il

@@ -1043,10 +1043,38 @@ class EngineTest < Minitest::Test
   end
 
   def test_l_avversario_non_pesca_nel_mio_turno
-    verdict = altrui.judge({ "t" => "draw", "seat" => "b", "count" => 1 }, actor: "b")
+    engine = altrui
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    verdict = engine.judge({ "t" => "draw", "seat" => "b", "count" => 1 }, actor: "b")
     assert verdict[:ruled]
     refute verdict[:ok]
     assert_match(/non tocca a te.*§6/, verdict[:reason])
+  end
+
+  def test_apparecchiare_non_ha_turno
+    engine = altrui
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    assert engine.judge({ "t" => "player", "seat" => "b", "patch" => { "name" => "Ajmal" } }, actor: "b")[:ok], "il nome non è un gesto di gioco"
+    refute engine.judge({ "t" => "player", "seat" => "b", "patch" => { "name" => "Ajmal", "hp" => 3 } }, actor: "b")[:ok], "coi contatori sì (in Preparazione altrui)"
+    fronte!(engine)
+    cards = [{ "uid" => "b-1", "owner" => "b", "zone" => "deck", "order" => 0, "cardId" => "LENTA" }]
+    assert engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards }, actor: "b")[:ok], "il mazzo si carica all'ingresso, nel turno di chiunque"
+    assert engine.judge({ "t" => "say", "entry" => {} }, actor: "b")[:ok]
+    assert engine.judge({ "t" => "newGame" }, actor: "b")[:ok], "Nuova partita è di entrambi"
+  end
+
+  def test_prima_del_primo_turno_anche_l_altro_apparecchia_il_mazzo
+    # §4: mano iniziale e mulligan di chi NON apre, al turno 1 in Preparazione.
+    engine = altrui
+    in_mano(engine, "b", "b-1", "LENTA")
+    assert engine.judge({ "t" => "draw", "seat" => "b", "count" => 6 }, actor: "b")[:ok], "la mano iniziale"
+    assert engine.judge({ "t" => "shuffle", "seat" => "b", "order" => [] }, actor: "b")[:ok], "il mulligan mescola"
+    assert engine.judge({ "t" => "toZone", "uid" => "b-1", "zone" => "deck" }, actor: "b")[:ok], "la mano torna nel mazzo"
+    refute engine.judge({ "t" => "toZone", "uid" => "b-1", "zone" => "field" }, actor: "b")[:ok], "ma in campo no"
+    fronte!(engine)
+    refute engine.judge({ "t" => "draw", "seat" => "b", "count" => 1 }, actor: "b")[:ok], "chiusa la Preparazione del turno 1, finestra chiusa"
   end
 
   def test_l_avversario_non_gioca_un_entita_nel_mio_turno
