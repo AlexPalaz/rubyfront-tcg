@@ -897,13 +897,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const wait = (ms: number): Promise<void> => new Promise(resolve => window.setTimeout(resolve, ms));
 
   /** Quanto dura il volo di una carta verso una pila (come .fly-ghost). */
-  const FLY_MS = 900;
+  const FLY_MS = 1600;
 
   /**
    * La carta vola verso una pila: un fantasma della tessera, preso PRIMA che
    * lo stato cambi (la tessera vera sparirà nella pila), che scivola fino
    * al riquadro della pila del proprietario e svanisce. Chi la chiama la
-   * prende prima dell'azione e la lascia partire dopo.
+   * prende prima dell'azione e la lascia partire dopo. FLY_MS è lo stesso
+   * tempo della transizione di .fly-ghost in style.css.
    */
   function liftForFlight(uid: string): (() => void) | null {
     const tile = tiles.get(uid);

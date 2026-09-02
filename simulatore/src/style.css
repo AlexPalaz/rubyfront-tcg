@@ -481,7 +481,7 @@ body.is-resolving { cursor: progress; }
   position: fixed;
   z-index: 9550;
   pointer-events: none;
-  transition: transform .9s cubic-bezier(.3, .7, .2, 1), opacity .9s ease;
+  transition: transform 1.6s cubic-bezier(.35, .6, .2, 1), opacity 1.6s ease;
   transform-origin: 0 0;
 }
 
