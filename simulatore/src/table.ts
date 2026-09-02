@@ -532,13 +532,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             run: () => void undeclare(ctx, card, declared),
           });
         } else {
-          // «Attacca» solo a chi può attaccare: il Rubyfront non attacca
-          // (§3.1) e dichiarano solo le Entità (§6.3) — il gesto che
+          // «Attacca» solo a chi può attaccare, e solo quando si attacca:
+          // in Fase di Fronte (§6.3), nel proprio turno. Il Rubyfront non
+          // attacca (§3.1) e dichiarano solo le Entità (§6.3) — il gesto che
           // l'arbitro fermerebbe comunque non si offre nemmeno. La carta
           // ignota resta permissiva, come per l'engine; quando la regola
           // d'oro concederà eccezioni, sarà lei a riaprire la voce.
+          const state = ctx.state();
           const kind = faceKind(card.cardId, card.face);
-          if (kind === null || kind === "entity") {
+          if ((kind === null || kind === "entity") && state.phase === "fronte" && state.active === card.owner) {
             items.push({ label: "Attacca", run: () => declareAttack(card) });
           }
         }
@@ -546,7 +548,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // Un attaccante dichiarato si ferma dall'altra metà del tavolo: in rete
       // è sempre una carta avversaria, in locale anche la propria — chi guida
       // entrambi i posti blocca con le Entità del difensore.
-      if (declared?.kind === "attack" && ctx.controls(otherSeat(card.owner))) {
+      // E si blocca in Reazione, «vista l'intera ondata» (§6.4).
+      if (declared?.kind === "attack" && ctx.controls(otherSeat(card.owner)) && ctx.state().phase === "reazione") {
         items.push({ label: "Blocca con…", run: () => startTargeting(card, "block") });
         items.push({ label: "Contrattacca con…", run: () => startTargeting(card, "counter") });
       }
