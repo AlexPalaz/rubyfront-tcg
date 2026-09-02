@@ -679,7 +679,8 @@ module Rubyfront
       # contatori non è un'azione di gioco.
       # Un `move` è pixel — salvo lo schieramento del Rubyfront, che porta
       # un costo ed è un gesto di gioco (§3.1: nel proprio turno).
-      return nil if %w[loadDeck newGame say].include?(kind) || (kind == "move" && !action.key?("cost"))
+      # `spawn` è lo strumento di prova del client (evoca dal catalogo).
+      return nil if %w[loadDeck newGame say spawn].include?(kind) || (kind == "move" && !action.key?("cost"))
       if kind == "player" && action["seat"] == actor
         patch = action["patch"]
         counters = patch.is_a?(Hash) && %w[hp flux fluxMax].any? { |key| patch.key?(key) }

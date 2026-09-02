@@ -109,6 +109,11 @@ export function getDeck(deckId: string): CatalogDeck | undefined {
   return catalog.getDeckById(deckId);
 }
 
+/** Tutto il catalogo, per lo strumento di prova «Evoca». */
+export function allCards(): CatalogCard[] {
+  return catalog.default.cards;
+}
+
 export function defaultTheme(): string {
   return themes.DEFAULT_THEME;
 }

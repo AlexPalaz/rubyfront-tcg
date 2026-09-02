@@ -259,6 +259,7 @@ const hud = mountHud(document.querySelector<HTMLElement>("#hud")!, ctx, {
   shuffle: doShuffle,
   draw: doDraw,
   search: () => overlay.open(mySeat, "deck"),
+  spawn: () => overlay.openCatalog(mySeat),
 });
 document.querySelector("#side-close")!.addEventListener("click", toggleSide);
 const overlay = mountOverlay(ctx, () => paint());

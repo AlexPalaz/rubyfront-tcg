@@ -205,6 +205,15 @@ module Rubyfront
           SEATS.each { |seat| @players[seat][:token] = seat != @active }
         end
       when "loadDeck" then load_deck(action)
+      when "spawn"
+        # Strumento di prova del client: una carta in più, in fondo alla mano.
+        card = action["card"]
+        if card.is_a?(Hash) && card["uid"]
+          hand = pile(card["owner"], "hand")
+          @cards[card["uid"]] = { owner: card["owner"], zone: "hand", order: hand.empty? ? 0 : hand.last[:order] + 1,
+                                  card_id: card["cardId"], entered: nil, tapped: false, facedown: false,
+                                  face: card["face"].to_i, row: nil }
+        end
       when "shuffle" then shuffle(action)
       when "draw" then draw(action)
       when "toZone" then to_zone(action)

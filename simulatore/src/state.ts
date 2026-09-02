@@ -325,6 +325,12 @@ export function apply(state: GameState, action: Action): GameState {
     case "clearCombat":
       return { ...state, declarations: [] };
 
+    case "spawn": {
+      // Strumento di prova: la carta compare in fondo alla mano del suo posto.
+      const card = { ...action.card, zone: "hand" as const, order: orderForBottom(state, action.card.owner, "hand") };
+      return { ...state, cards: { ...state.cards, [card.uid]: card } };
+    }
+
     case "gameOver":
       return { ...state, over: { winner: action.winner, reason: action.reason } };
 

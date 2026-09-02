@@ -1360,6 +1360,15 @@ body.is-targeting .tile.is-legal {
   border: 1px solid var(--line);
   border-radius: 4px;
 }
+/* Lo strumento di prova «Evoca»: una fila a sé, resta anche con l'arbitro. */
+.hud-test {
+  display: grid;
+  padding: 5px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+}
 .hud-tool {
   display: grid;
   justify-items: center;

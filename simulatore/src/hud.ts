@@ -37,6 +37,8 @@ export interface HudHooks {
   shuffle(): void;
   draw(): void;
   search(): void;
+  /** STRUMENTO DI PROVA, temporaneo: evoca in mano una carta del catalogo. */
+  spawn(): void;
 }
 
 /** Suggerimento del tasto: bolla CSS (data-tip) + aria-label. I title nativi
@@ -431,7 +433,20 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     place();
   }
 
-  root.append(top, foe, turn, mine, actions, tools, dice, mini);
+  // STRUMENTO DI PROVA, temporaneo: «Evoca» apre il catalogo intero e mette
+  // in mano la carta scelta, per provare le regole in fretta. Sta fuori
+  // dalla fila degli strumenti perché deve restare anche con l'arbitro.
+  const test = document.createElement("div");
+  test.className = "hud-test";
+  const spawn = document.createElement("button");
+  spawn.type = "button";
+  spawn.className = "hud-tool hud-tool-spawn";
+  tip(spawn, "Prova: evoca in mano una carta del catalogo");
+  spawn.innerHTML = `${svgIcon('<path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/>')}<span>Evoca</span>`;
+  spawn.addEventListener("click", hooks.spawn);
+  test.append(spawn);
+
+  root.append(top, foe, turn, mine, actions, tools, dice, test, mini);
 
   // Con l'arbitro al tavolo i gesti manuali si ritirano: i più e meno dei
   // contatori (PV e Flusso li muovono le regole — danni della risoluzione,

@@ -8,9 +8,9 @@
 import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js";
 import type { Ctx } from "./ctx.js";
 import { openMenu } from "./menu.js";
-import { cardSearchText, faceKind } from "./renderer.js";
+import { allCards, cardSearchText, faceKind, isRubyfront } from "./renderer.js";
 import { playSpot, seatLabel, shuffled, zoneCards } from "./state.js";
-import type { Seat, ZoneId } from "./types.js";
+import type { CardInstance, Seat, ZoneId } from "./types.js";
 
 const TITLES: Record<string, string> = {
   deck: "Cerca nel mazzo",
@@ -20,6 +20,9 @@ const TITLES: Record<string, string> = {
 
 export interface Overlay {
   open(seat: Seat, zone: ZoneId): void;
+  /** STRUMENTO DI PROVA, temporaneo: il catalogo intero, un click evoca la
+      carta in mano a `seat`. */
+  openCatalog(seat: Seat): void;
   close(): void;
 }
 
@@ -65,15 +68,20 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
 
   let currentSeat: Seat = "a";
   let currentZone: ZoneId = "deck";
+  /** Modalità catalogo (strumento di prova): si evoca, non si sposta. */
+  let catalogMode = false;
   /** True se in questa sessione di ricerca si è presa almeno una carta. */
   let touched = false;
 
   function paint(): void {
     const state = ctx.state();
     const filter = search.value.trim().toLowerCase();
-    const cards = zoneCards(state, currentSeat, currentZone).filter(card =>
-      filter === "" ? true : cardSearchText(card.cardId, ctx.locale()).includes(filter)
-    );
+    const matches = (cardId: string): boolean => filter === "" || cardSearchText(cardId, ctx.locale()).includes(filter);
+    if (catalogMode) {
+      paintCatalog(matches);
+      return;
+    }
+    const cards = zoneCards(state, currentSeat, currentZone).filter(card => matches(card.cardId));
     title.textContent = `${TITLES[currentZone] ?? currentZone} · ${seatLabel(state, currentSeat)}`;
     empty.hidden = cards.length > 0;
 
@@ -108,6 +116,44 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
     fitPending(grid);
   }
 
+  /** Il catalogo intero (strumento di prova): un click evoca la carta in mano. */
+  function paintCatalog(matches: (cardId: string) => boolean): void {
+    const state = ctx.state();
+    const entries = allCards().filter(entry => !isRubyfront(entry.id) && matches(entry.id));
+    title.textContent = `Catalogo · evoca in mano a ${seatLabel(state, currentSeat)} (prova)`;
+    empty.hidden = entries.length > 0;
+    grid.replaceChildren();
+    for (const entry of entries) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "overlay-item";
+      const ghost: CardInstance = {
+        uid: `catalog:${entry.id}`,
+        cardId: entry.id,
+        owner: currentSeat,
+        zone: "hand",
+        face: 0,
+        x: 0,
+        y: 0,
+        order: 0,
+        tapped: false,
+        facedown: false,
+        z: 0,
+      };
+      const tile = createCardEl(ghost.uid);
+      syncCardEl(tile, ghost, { back: false, theme: ctx.themeFor(currentSeat), locale: ctx.locale() });
+      wirePreview(tile, ctx.locale);
+      tile.addEventListener("click", () => {
+        const card: CardInstance = { ...ghost, uid: crypto.randomUUID() };
+        void ctx.dispatch({ t: "spawn", card });
+        ctx.log(`${seatLabel(ctx.state(), currentSeat)} evoca in mano «${entry.id}» (prova).`, currentSeat);
+        afterChange();
+      });
+      wrapper.append(tile);
+      grid.append(wrapper);
+    }
+    fitPending(grid);
+  }
+
   function move(uid: string, zone: ZoneId): void {
     if (zone === "field") {
       // Nel primo slot libero del Fronte del proprietario — o nella fila
@@ -129,7 +175,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
     host.hidden = true;
     // Cercare nel mazzo lo rimescola: è la regola d'uso di ogni tutor, e
     // impedisce di memorizzare l'ordine visto durante la ricerca.
-    if (currentZone === "deck" && touched && shuffleBox.checked) {
+    if (!catalogMode && currentZone === "deck" && touched && shuffleBox.checked) {
       const order = shuffled(zoneCards(ctx.state(), currentSeat, "deck").map(card => card.uid));
       ctx.dispatch({ t: "shuffle", seat: currentSeat, order });
       ctx.log(`${seatLabel(ctx.state(), currentSeat)} rimescola dopo la ricerca.`, currentSeat);
@@ -151,9 +197,20 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
     open(seat, zone) {
       currentSeat = seat;
       currentZone = zone;
+      catalogMode = false;
       touched = false;
       search.value = "";
       shuffleAfter.hidden = zone !== "deck";
+      host.hidden = false;
+      paint();
+      search.focus();
+    },
+    openCatalog(seat) {
+      currentSeat = seat;
+      catalogMode = true;
+      touched = false;
+      search.value = "";
+      shuffleAfter.hidden = true;
       host.hidden = false;
       paint();
       search.focus();

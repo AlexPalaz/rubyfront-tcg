@@ -212,7 +212,10 @@ export type Action =
   /** Fine della partita (§2, §9): lo dichiara il client che l'ha vista
       arrivare, l'engine lo verifica contro PV e mazzi della sua copia. */
   | { t: "gameOver"; winner: Seat | null; reason: GameOver["reason"] }
-  | { t: "say"; entry: ChatEntry };
+  | { t: "say"; entry: ChatEntry }
+  /** STRUMENTO DI PROVA, temporaneo: evoca in mano una carta qualunque del
+      catalogo, per provare le regole in fretta. Non è un gesto di gioco. */
+  | { t: "spawn"; card: CardInstance };
 
 /** Buste che viaggiano sul relay. */
 export type NetMessage =
