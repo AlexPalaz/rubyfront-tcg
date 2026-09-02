@@ -421,6 +421,38 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
   .effect-card { box-shadow: 0 30px 80px rgba(0, 0, 0, .7), 0 0 40px rgba(210, 74, 100, .6); }
 }
 
+/* L'avviso per chi guarda: velo leggero che non ferma i click, e la carta
+   che poi scivola nell'angolo. */
+.effect-veil.is-peek { background: rgba(5, 4, 10, .38); backdrop-filter: none; pointer-events: none; }
+.effect-veil.is-peek.is-leaving { animation: none; background: transparent; }
+.effect-veil.is-peek .effect-side { transition: opacity .3s ease; }
+/* La tessera «ultima giocata» dell'avversario, in alto a sinistra: resta
+   fino alla giocata successiva, un click la riapre in grande. */
+.last-play {
+  /* Sotto la barra del titolo, che copre la cima del tavolo. */
+  position: absolute; left: 16px; top: calc(var(--toolbar-h) + 12px);
+  z-index: 43;
+  display: grid; gap: 4px; justify-items: center;
+  padding: 0;
+  background: none; border: 0;
+  cursor: pointer;
+}
+.last-play-card {
+  width: 114px; height: 160px;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .6), 0 0 18px rgba(210, 74, 100, .45);
+  transition: transform .15s ease;
+}
+.last-play:hover .last-play-card { transform: scale(1.04); }
+.last-play.is-arriving .last-play-card { visibility: hidden; }
+.last-play-card .face-label { display: none; }
+.last-play-card .card-holder { container-type: inline-size; }
+.last-play-label {
+  font-size: .68rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted);
+}
+
 /* Il tiro del dado: un velo scuro sul tavolo, il dado che rotola al
    centro — un cubo bianco d'osso con lo spigolo di rubino — e sotto il
    risultato in grande, che si accende quando il dado si ferma. Sopra le

@@ -666,10 +666,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       z,
       ...(cost !== null ? { cost } : {}),
     });
+    const effects = card.zone === "hand" ? enterEffects(card.cardId, card.face, ctx.locale()) : [];
     if (passed && cost !== null) {
       const player = ctx.state().players[card.owner];
+      // In chat resta anche l'effetto: la storia della partita si rilegge.
+      const told = effects.map(effect => ` — ${effect.tag}: ${effect.text}`).join("");
       ctx.log(
-        `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}» per ${cost} (Flusso ${player.flux}/${player.fluxMax}).`,
+        `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}» per ${cost} (Flusso ${player.flux}/${player.fluxMax}).${told}`,
         card.owner
       );
     }
@@ -683,7 +686,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         theme: ctx.themeFor(card.owner),
         locale: ctx.locale(),
         who: `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}»`,
-        effects: enterEffects(card.cardId, card.face, ctx.locale()),
+        effects,
       });
     }
     return passed;

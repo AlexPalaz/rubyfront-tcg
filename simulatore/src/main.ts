@@ -17,7 +17,7 @@ import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
 import { PHASE_BANNER_HOLD_MS, mountPhaseBanner } from "./banner.js";
 import { showRoll } from "./dice.js";
-import { showEnterEffect } from "./effect.js";
+import { showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
 import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
@@ -123,13 +123,12 @@ function commit(action: Action): void {
 
 /** Applica senza ritrasmettere: per le azioni che arrivano già dalla rete. */
 function receive(action: Action, from: Seat): void {
-  // Il momento d'ingresso dell'avversario si vede anche qui: ogni carta
-  // giocata dalla mano ferma il tavolo un attimo da entrambe le parti, e se
-  // ha un effetto lo annuncia (effect.ts).
+  // La giocata dell'avversario si vede anche qui, senza fermare nulla: la
+  // carta accesa un attimo, poi la tessera «ultima giocata» (effect.ts).
   if (action.t === "toZone" && action.zone === "field") {
     const card = state.cards[action.uid];
     if (card && card.zone === "hand") {
-      void showEnterEffect(document.querySelector<HTMLElement>("#table")!, {
+      void showEnterPeek(document.querySelector<HTMLElement>("#table")!, {
         cardId: card.cardId,
         face: card.face,
         theme: themes[card.owner],
