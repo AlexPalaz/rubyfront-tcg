@@ -5,7 +5,7 @@
 // un arbitro. L'unica cosa che garantisce è che due client che partono dallo
 // stesso stato e applicano le stesse azioni finiscano identici.
 
-import { FRONT_SLOT_X, SURFACE_W, TILE_W, frontRowY } from "./ctx.js";
+import { FRONT_SLOT_X, MATTER_X, SURFACE_W, TILE_W, frontRowY } from "./ctx.js";
 import type { Action, CardInstance, Declaration, GameState, Seat, ZoneId } from "./types.js";
 import { SEATS } from "./types.js";
 
@@ -22,6 +22,7 @@ export function newGame(): GameState {
     players: { a: newPlayer(""), b: newPlayer("") },
     turn: 1,
     active: "a",
+    phase: "preparazione",
     chat: [],
     declarations: [],
     zTop: 1,
@@ -206,7 +207,18 @@ export function apply(state: GameState, action: Action): GameState {
       };
 
     case "turn":
-      return { ...state, turn: action.turn, active: action.active };
+      // Il cambio di turno riporta la fase in Preparazione: è l'unica via
+      // del ritorno (§6, a senso unico). Il contatore ritoccato a mano
+      // (active invariato) non è un cambio di turno e la fase non si tocca.
+      return {
+        ...state,
+        turn: action.turn,
+        active: action.active,
+        phase: action.active === state.active ? state.phase : "preparazione",
+      };
+
+    case "phase":
+      return { ...state, phase: action.phase };
 
     case "declare":
       // Una carta dichiara una cosa sola per volta: la nuova sostituisce la
@@ -280,6 +292,25 @@ export function freeFrontSlot(state: GameState, seat: Seat): { x: number; y: num
     if (!busy.some(card => Math.abs(card.x - x) < 40)) return { x, y };
   }
   return stackAt(state, FRONT_SLOT_X[0], y);
+}
+
+/**
+ * Il posto di una Materia giocata: la fila delle Materie, dietro gli slot
+ * (§5) — in coda, una dietro l'altra nell'ordine di discesa, perché quella
+ * fila È l'età che l'ordine di risoluzione legge (§8.2). Contro il bordo
+ * destro la scaletta di stackAt scende in colonna, come §5 prevede.
+ */
+export function matterSpot(state: GameState, seat: Seat): { x: number; y: number } {
+  return stackAt(state, MATTER_X, frontRowY(seat));
+}
+
+/**
+ * Dove atterra una carta GIOCATA in campo: le Entità sul primo slot libero
+ * del Fronte, le Materie nella loro fila — mai sugli slot (§5). Tutte le vie
+ * del giocare passano di qui: doppio click, ricerca, aggancio del rilascio.
+ */
+export function playSpot(state: GameState, seat: Seat, kind: string | null): { x: number; y: number } {
+  return kind === "matter" ? matterSpot(state, seat) : freeFrontSlot(state, seat);
 }
 
 /** Mescola una copia dell'array (Fisher-Yates). */

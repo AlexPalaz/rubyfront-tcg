@@ -15,7 +15,7 @@
 
 import type { Ctx } from "./ctx.js";
 import { seatLabel } from "./state.js";
-import { endTurn } from "./turn.js";
+import { declareFront, endTurn } from "./turn.js";
 import type { PlayerState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -196,7 +196,12 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   turnCount.className = "hud-turn-count";
   const turnWho = document.createElement("span");
   turnWho.className = "hud-turn-who";
-  turnMid.append(turnCount, turnWho);
+  // La fase del turno (§6), sotto il chi tocca: dice in che momento della
+  // partita si è, e con l'arbitro al tavolo spiega perché un attacco non
+  // parte prima d'aver dichiarato il Fronte.
+  const turnPhase = document.createElement("span");
+  turnPhase.className = "hud-turn-phase";
+  turnMid.append(turnCount, turnWho, turnPhase);
 
   const turnStep = (delta: number, label: string): HTMLButtonElement => {
     const button = document.createElement("button");
@@ -218,12 +223,24 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     const mineTurn = state.active === ctx.seat();
     turnWho.textContent = mineTurn ? "▼ tocca a te" : `▲ ${seatLabel(state, state.active, ctx.seat())}`;
     turn.classList.toggle("is-mine", mineTurn);
+    turnPhase.textContent = state.phase === "fronte" ? "Fase di Fronte" : "Preparazione";
+    turnPhase.classList.toggle("is-front", state.phase === "fronte");
   });
 
   // In fondo le due azioni: Fine turno — la mossa più battuta, che merita di
   // stare a portata di mano — e l'ingranaggio che apre il pannello.
   const actions = document.createElement("div");
   actions.className = "hud-actions";
+
+  // La dichiarazione della Fase di Fronte (§6.3), sopra il Fine turno: è il
+  // gesto che apre il combattimento, e con l'arbitro al tavolo è la dogana
+  // delle dichiarazioni. A senso unico: dichiarata, si spegne fino al
+  // prossimo turno. Facoltativa: si può chiudere dalla Preparazione.
+  const front = document.createElement("button");
+  front.type = "button";
+  front.className = "hud-front";
+  front.textContent = "Fase di Fronte";
+  front.addEventListener("click", () => declareFront(ctx));
 
   const pass = document.createElement("button");
   pass.type = "button";
@@ -263,18 +280,25 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   );
   mic.addEventListener("click", hooks.voice);
 
-  actions.append(pass, mic, chatToggle);
+  actions.append(front, pass, mic, chatToggle);
 
   // Il Fine turno è di chi è di turno: per l'altro si ingrigisce. È l'unico
   // "impedimento" del simulatore, e serve al ritmo: passo io, poi passi tu.
   // In partita locale si governano entrambi i posti: il tasto resta sempre
   // acceso, e chiude il turno di chiunque tocchi.
   syncs.push(() => {
-    const canPass = ctx.controls(ctx.state().active);
+    const state = ctx.state();
+    const canPass = ctx.controls(state.active);
     pass.disabled = !canPass;
     tip(pass, canPass
       ? "Passa il turno: Flusso massimo +1 e ricarica per chi entra (§3.2)"
       : "Tocca all'avversario: il Fine turno adesso è suo");
+    front.disabled = !canPass || state.phase !== "preparazione";
+    tip(front, !canPass
+      ? "Tocca all'avversario: la fase la dichiara chi è di turno"
+      : state.phase === "fronte"
+        ? "Fronte già dichiarato: in Preparazione si torna col cambio di turno (§6)"
+        : "Dichiara la Fase di Fronte: apre il combattimento (§6.3)");
   });
 
   // La fila delle azioni di mazzo, per l'HUD esteso.

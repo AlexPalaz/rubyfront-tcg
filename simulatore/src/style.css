@@ -1329,6 +1329,15 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   text-overflow: ellipsis;
 }
 .hud-turn.is-mine .hud-turn-who { color: var(--viola-light); }
+/* La fase (§6), sotto il chi tocca: in Preparazione è una nota smorzata, col
+   Fronte dichiarato si accende di rubino — il combattimento è aperto. */
+.hud-turn-phase {
+  font-size: .85rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hud-turn-phase.is-front { color: var(--ruby); }
 
 /* In fondo le azioni: Fine turno a tutta riga — un bottone-carta, rubino,
    in maiuscoletto — e a fianco l'ingranaggio che apre il pannello, quadrato
@@ -1338,6 +1347,24 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 6px;
 }
+/* La dichiarazione del Fronte, a tutta riga sopra il Fine turno: stessa voce
+   in maiuscoletto ma in tono di vetro — il rubino pieno resta al gesto che
+   chiude il turno. Dichiarata (o nel turno altrui) si spegne da sola. */
+.hud-front {
+  grid-column: 1 / -1;
+  padding: 9px 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--ink);
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.hud-front:hover:not(:disabled) { border-color: var(--ruby); color: #fff; }
 .hud-pass {
   padding: 11px 4px;
   font-size: 1rem;
@@ -1457,7 +1484,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 /* Niente `position: relative` a tappeto su [data-tip]: batterebbe (per
    specificità) gli `absolute` di moneta e tasto di riduzione, strappandoli
    dal loro angolo. Si posiziona solo chi è ancora statico. */
-.hud-step, .hud-tool, .hud-pass, .hud-dice-btn, .hud-grip { position: relative; }
+.hud-step, .hud-tool, .hud-pass, .hud-front, .hud-dice-btn, .hud-grip { position: relative; }
 .hud [data-tip]::after {
   content: attr(data-tip);
   position: absolute;

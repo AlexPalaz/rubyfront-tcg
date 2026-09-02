@@ -105,6 +105,14 @@ export interface Declaration {
   order: number;
 }
 
+/**
+ * Le fasi del turno (§6), nel modello MINIMO: la Pesca non è una fase (è il
+ * gesto libero d'apertura) e le sotto-fasi del Fronte (Pre-Fronte, finestre
+ * Reattive) arriveranno con le Reattive. A senso unico: da «preparazione» si
+ * dichiara «fronte», e in Preparazione si torna solo col cambio di turno.
+ */
+export type Phase = "preparazione" | "fronte";
+
 export interface GameState {
   cards: Record<string, CardInstance>;
   players: Record<Seat, PlayerState>;
@@ -112,6 +120,8 @@ export interface GameState {
   turn: number;
   /** Di chi è il turno, secondo il contatore. Nessun effetto sulle azioni. */
   active: Seat;
+  /** Fase del turno in corso (§6): appartiene al posto attivo. */
+  phase: Phase;
   chat: ChatEntry[];
   /** Attacchi e blocchi dichiarati nel turno in corso (§6.3). */
   declarations: Declaration[];
@@ -134,6 +144,8 @@ export type Action =
   | { t: "facedown"; uid: string; facedown: boolean }
   | { t: "player"; seat: Seat; patch: Partial<PlayerState> }
   | { t: "turn"; turn: number; active: Seat }
+  /** Dichiara la fase (§6.3): oggi il solo passo avanti verso «fronte». */
+  | { t: "phase"; phase: Phase }
   | { t: "declare"; declaration: Declaration }
   | { t: "undeclare"; from: string }
   | { t: "clearCombat" }

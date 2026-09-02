@@ -52,6 +52,63 @@ Regole collegate finora:
   dichiarato: lo Slancio CONCESSO da un effetto (es. RBF-009) non si vede
   ancora — quell'Entità verrebbe fermata a torto.
 
+- **§6 Fasi: le dichiarazioni in Fase di Fronte** — il turno ha una fase,
+  nel modello MINIMO: `preparazione` o `fronte` (la Pesca non è una fase, le
+  sotto-fasi del Fronte arriveranno con le Reattive). La dichiara il
+  giocatore attivo (azione `phase`, bottone nell'HUD), è **a senso unico** —
+  in Preparazione si torna solo col cambio di turno, e l'engine ferma il
+  passo indietro — e resta facoltativa: chiudere il turno dalla Preparazione
+  è legale. Con la fase al tavolo, attacchi, blocchi e contrattacchi si
+  dichiarano **solo a Fronte dichiarato**: i blocchi del difensore arrivano
+  dentro la Fase di Fronte dell'attaccante, che la sua dichiarazione ha già
+  portato su entrambe le lavagne. Snapshot senza fase: si riparte dalla
+  Preparazione, la lettura più permissiva.
+
+- **§6.2 Ritiro** — un gesto di **Preparazione** sulle **proprie** Entità:
+  la `toZone` verso la Zona di Ritiro di un'Entità in campo del posto attivo
+  passa solo se la fase è Preparazione, la carta è stappata e scoperta, e
+  **non è entrata in campo questo turno** — lo Slancio non aggira il divieto
+  (permette di attaccare subito, non di essere ritirata subito). Il
+  Rubyfront non si ritira mai: per lui c'è il richiamo volontario (§3.1).
+  Un'Entità **avversaria** mandata in Ritiro nel turno di un altro è quasi
+  sempre un effetto risolto a mano («metti un'Entità avversaria nella Zona
+  di Ritiro…»): silenzio, non si accusa. `entered` ignoto (carta arrivata da
+  snapshot): via libera, nel dubbio. Limiti dichiarati: un effetto che
+  ritiri una PROPRIA Entità aggirando i vincoli verrebbe fermato a torto
+  (arriverà con la regola d'oro), e l'Oggetto assegnato non segue ancora da
+  sé la sua Entità in Zona di Ritiro (è un automatismo del client, in
+  arrivo come passo separato).
+
+- **§5 Materie: mai sugli slot del Fronte** — gli slot sono delle Entità, e
+  una Materia GIOCATA (toZone da fuori campo) con le coordinate esatte di
+  uno slot viene fermata: si posa nello spazio delle Materie, dietro. È la
+  prima regola che legge le COORDINATE dell'azione — la copia del tavolo
+  continua a non tracciare geometria: le costanti degli slot (specchio di
+  ctx.ts, coordinate canoniche condivise) servono solo a riconoscere la
+  forma del rilascio agganciato. Limiti dichiarati: il rilascio a mano
+  libera vicino a uno slot non si vede (solo l'aggancio porta le coordinate
+  esatte), e una Materia già in campo si sposta liberamente — il divieto è
+  sul giocare. Nel client, doppio click e ricerca posano le Materie
+  direttamente nella loro fila (`playSpot`): il sigillo resta per la mira
+  sbagliata del trascinamento.
+
+- **§6.3 Dichiarano solo le Entità** — la dogana del TIPO sulle
+  dichiarazioni, prima di quella dello stato: il **Rubyfront** non attacca e
+  non blocca (§3.1 — la sua funzione sono abilità a costo PV e Materie; un
+  Rubyfront tappato non è «una tappata», è un Rubyfront e il rifiuto parla
+  di lui), e Materie e Oggetti non dichiarano niente — §6.3 parla sempre di
+  Entità. Carta ignota o anagrafe assente: via libera, mai molesto. Limite
+  dichiarato: la regola d'oro («salvo diversa indicazione sulla carta») non
+  si vede ancora, come per lo Slancio concesso.
+
+- **§6.3 Attacca chi è di turno, blocca chi difende** — la dogana del
+  POSTO: un attacco parte solo da una carta del posto attivo, un blocco o
+  contrattacco solo dall'altra metà (i blocchi si dichiarano DENTRO la Fase
+  di Fronte dell'attaccante, per questo il confronto è con `active`). E un
+  blocco vuole **un attaccante vero**: il bersaglio deve avere un attacco
+  dichiarato in piedi — sgomberato il combattimento, serve un'ondata nuova
+  per bloccare di nuovo.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

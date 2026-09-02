@@ -167,6 +167,21 @@ class EngineTest < Minitest::Test
     Rubyfront::Engine.new(cards: ANAGRAFE)
   end
 
+  # Le dichiarazioni vivono in Fase di Fronte (§6): i test che dichiarano
+  # aprono la fase per la via pubblica, come farebbe il giocatore attivo.
+  def fronte!(engine)
+    engine.judge({ "t" => "phase", "phase" => "fronte" })
+  end
+
+  # Difesa apparecchiata (§6.3): tocca a B, Fronte dichiarato, e «b-9»
+  # attacca — l'osservazione registra la freccia anche senza conoscere la
+  # carta, come per un'azione avversaria arrivata dalla rete.
+  def difesa!(engine)
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    fronte!(engine)
+    engine.observe(dichiarazione("b-9", "rf-a", "attack"))
+  end
+
   def scendi(engine, uid, card_id)
     cards = [{ "uid" => uid, "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => card_id }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
@@ -181,6 +196,7 @@ class EngineTest < Minitest::Test
   def test_appena_scesa_non_attacca
     engine = con_carte
     scendi(engine, "a-1", "LENTA")
+    fronte!(engine)
     verdict = engine.judge(attacco("a-1"))
     assert verdict[:ruled]
     refute verdict[:ok]
@@ -192,6 +208,7 @@ class EngineTest < Minitest::Test
     scendi(engine, "a-1", "LENTA")
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    fronte!(engine)
     verdict = engine.judge(attacco("a-1"))
     assert verdict[:ruled]
     assert verdict[:ok]
@@ -200,25 +217,32 @@ class EngineTest < Minitest::Test
   def test_con_slancio_attacca_subito
     engine = con_carte
     scendi(engine, "a-1", "SCATTANTE")
+    fronte!(engine)
     verdict = engine.judge(attacco("a-1"))
     assert verdict[:ruled]
     assert verdict[:ok], "Slancio ignora l'attesa di evocazione (§8.1)"
   end
 
-  def test_una_non_entita_non_subisce_l_attesa
+  def test_una_non_entita_non_arriva_all_attesa
     engine = con_carte
     scendi(engine, "a-1", "PIETRA")
+    fronte!(engine)
     verdict = engine.judge(attacco("a-1"))
-    assert verdict[:ok], "l'attesa di evocazione riguarda solo le Entità note"
+    # L'attesa non la giudica: la ferma prima la dogana del tipo (§6.3,
+    # dichiarano solo le Entità).
+    refute verdict[:ok]
+    assert_match(/solo le Entità/, verdict[:reason])
   end
 
   def test_carta_ignota_o_anagrafe_assente_l_attesa_tace
     engine = con_carte
     scendi(engine, "a-1", "MISTERO")
+    fronte!(engine)
     assert engine.judge(attacco("a-1"))[:ok], "carta fuori anagrafe: l'attesa non accusa"
 
     muto = Rubyfront::Engine.new
     scendi(muto, "a-1", "LENTA")
+    fronte!(muto)
     assert muto.judge(attacco("a-1"))[:ok], "senza anagrafe: l'attesa non accusa"
   end
 
@@ -228,6 +252,7 @@ class EngineTest < Minitest::Test
       "turn" => 5, "active" => "a",
       "cards" => { "a-1" => { "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "LENTA" } },
     })
+    fronte!(engine)
     verdict = engine.judge(attacco("a-1"))
     assert verdict[:ok], "lo snapshot non dice quando la carta è scesa: nel dubbio, via libera"
   end
@@ -235,9 +260,8 @@ class EngineTest < Minitest::Test
   def test_il_blocco_non_e_soggetto_all_attesa
     engine = con_carte
     scendi(engine, "a-1", "LENTA")
-    blocco = { "t" => "declare",
-               "declaration" => { "id" => "x", "from" => "a-1", "to" => "b-9", "kind" => "block", "seat" => "a", "order" => 0 } }
-    assert engine.judge(blocco)[:ok], "§6.2: appena scesa può già bloccare nel turno avversario"
+    difesa!(engine)
+    assert engine.judge(dichiarazione("a-1", "b-9", "block"))[:ok], "§6.2: appena scesa può già bloccare nel turno avversario"
   end
 
   # --- §6.3: tappate, coperte, sfide 1 contro 1 --------------------------
@@ -250,6 +274,7 @@ class EngineTest < Minitest::Test
   def test_una_tappata_non_attacca
     engine = con_carte
     scendi(engine, "a-1", "SCATTANTE")
+    fronte!(engine)
     engine.judge({ "t" => "tap", "uid" => "a-1", "tapped" => true })
     verdict = engine.judge(attacco("a-1"))
     refute verdict[:ok]
@@ -259,6 +284,7 @@ class EngineTest < Minitest::Test
   def test_una_tappata_non_blocca
     engine = con_carte
     scendi(engine, "a-1", "LENTA")
+    difesa!(engine)
     engine.judge({ "t" => "tap", "uid" => "a-1", "tapped" => true })
     verdict = engine.judge(dichiarazione("a-1", "b-9", "block"))
     refute verdict[:ok]
@@ -268,6 +294,7 @@ class EngineTest < Minitest::Test
   def test_una_coperta_non_fa_nulla
     engine = con_carte
     scendi(engine, "a-1", "SCATTANTE")
+    fronte!(engine)
     engine.judge({ "t" => "facedown", "uid" => "a-1", "facedown" => true })
     refute engine.judge(attacco("a-1"))[:ok]
     refute engine.judge(dichiarazione("a-1", "b-9", "counter"))[:ok]
@@ -288,7 +315,7 @@ class EngineTest < Minitest::Test
   def test_un_attaccante_ha_un_solo_bloccante
     engine = con_carte
     due_bloccanti(engine)
-    engine.observe(dichiarazione("b-9", "rf-a", "attack"))
+    difesa!(engine)
     assert engine.judge(dichiarazione("a-1", "b-9", "block"))[:ok]
     verdict = engine.judge(dichiarazione("a-2", "b-9", "counter"))
     refute verdict[:ok]
@@ -298,6 +325,7 @@ class EngineTest < Minitest::Test
   def test_annullato_il_blocco_l_attaccante_torna_libero
     engine = con_carte
     due_bloccanti(engine)
+    difesa!(engine)
     engine.judge(dichiarazione("a-1", "b-9", "block"))
     engine.judge({ "t" => "undeclare", "from" => "a-1" })
     assert engine.judge(dichiarazione("a-2", "b-9", "block"))[:ok]
@@ -306,6 +334,7 @@ class EngineTest < Minitest::Test
   def test_il_bloccante_uscito_dal_campo_libera_l_attaccante
     engine = con_carte
     due_bloccanti(engine)
+    difesa!(engine)
     engine.judge(dichiarazione("a-1", "b-9", "block"))
     engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
     assert engine.judge(dichiarazione("a-2", "b-9", "block"))[:ok]
@@ -314,8 +343,12 @@ class EngineTest < Minitest::Test
   def test_sgomberato_il_combattimento_si_riparte
     engine = con_carte
     due_bloccanti(engine)
+    difesa!(engine)
     engine.judge(dichiarazione("a-1", "b-9", "block"))
     engine.judge({ "t" => "clearCombat" })
+    # Sgomberato tutto, anche l'attacco: un blocco vuole un'ondata nuova.
+    refute engine.judge(dichiarazione("a-2", "b-9", "block"))[:ok]
+    engine.observe(dichiarazione("b-9", "rf-a", "attack"))
     assert engine.judge(dichiarazione("a-2", "b-9", "block"))[:ok]
   end
 
@@ -444,5 +477,277 @@ class EngineTest < Minitest::Test
     refute engine.judge({ "t" => "assign", "uid" => "a-2", "to" => nil })[:ruled]
     mano_e_campo(engine, %w[MISTERO LENTA], cala: 2, seat: "b")
     refute engine.judge(assegna("b-1", "b-2"))[:ruled], "Oggetto ignoto all'anagrafe: silenzio"
+  end
+
+  # --- §6: le fasi del turno ---------------------------------------------
+
+  def test_in_preparazione_non_si_dichiara
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    verdict = engine.judge(attacco("a-1"))
+    assert verdict[:ruled]
+    refute verdict[:ok]
+    assert_match(/Fase di Fronte/, verdict[:reason])
+  end
+
+  def test_la_dogana_vale_anche_per_i_blocchi
+    engine = con_carte
+    due_bloccanti(engine)
+    refute engine.judge(dichiarazione("a-1", "b-9", "block"))[:ok]
+    refute engine.judge(dichiarazione("a-2", "b-9", "counter"))[:ok]
+  end
+
+  def test_la_fase_non_torna_indietro
+    engine = con_carte
+    fronte!(engine)
+    verdict = engine.judge({ "t" => "phase", "phase" => "preparazione" })
+    refute verdict[:ok]
+    assert_match(/senso unico/, verdict[:reason])
+  end
+
+  def test_il_cambio_turno_riporta_in_preparazione
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    fronte!(engine)
+    assert engine.judge(attacco("a-1"))[:ok]
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    refute engine.judge(attacco("a-1"))[:ok], "turno nuovo: si riparte dalla Preparazione"
+  end
+
+  def test_il_contatore_ritoccato_non_tocca_la_fase
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    fronte!(engine)
+    engine.judge({ "t" => "turn", "turn" => 9, "active" => "a" })
+    assert engine.judge(attacco("a-1"))[:ok], "active invariato: la fase resta Fronte"
+  end
+
+  def test_lo_snapshot_porta_la_fase
+    campo = { "a-1" => { "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "SCATTANTE" } }
+    engine = con_carte
+    engine.snapshot({ "turn" => 3, "active" => "a", "phase" => "fronte", "cards" => campo })
+    assert engine.judge(attacco("a-1"))[:ok]
+    engine.snapshot({ "turn" => 3, "active" => "a", "cards" => campo })
+    refute engine.judge(attacco("a-1"))[:ok], "senza fase nello snapshot si riparte dalla Preparazione"
+  end
+
+  def test_fase_ignota_nessuna_regola
+    refute @engine.judge({ "t" => "phase", "phase" => "boh" })[:ruled]
+  end
+
+  # --- §6.2: il Ritiro -----------------------------------------------------
+
+  def ritira(uid)
+    { "t" => "toZone", "uid" => uid, "zone" => "ritiro" }
+  end
+
+  # L'Entità è in campo dal turno scorso: il turno gira e torna ad A.
+  def giro_di_turno(engine)
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+  end
+
+  def test_in_preparazione_l_entita_si_ritira
+    engine = con_carte
+    scendi(engine, "a-1", "LENTA")
+    giro_di_turno(engine)
+    verdict = engine.judge(ritira("a-1"))
+    assert verdict[:ruled]
+    assert verdict[:ok]
+  end
+
+  def test_nel_turno_d_ingresso_non_si_ritira_e_lo_slancio_non_aggira
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    verdict = engine.judge(ritira("a-1"))
+    refute verdict[:ok]
+    assert_match(/Slancio non aggira/, verdict[:reason])
+  end
+
+  def test_a_fronte_dichiarato_non_si_ritira
+    engine = con_carte
+    scendi(engine, "a-1", "LENTA")
+    giro_di_turno(engine)
+    fronte!(engine)
+    verdict = engine.judge(ritira("a-1"))
+    refute verdict[:ok]
+    assert_match(/Preparazione/, verdict[:reason])
+  end
+
+  def test_tappata_o_coperta_non_si_ritira
+    engine = con_carte
+    scendi(engine, "a-1", "LENTA")
+    giro_di_turno(engine)
+    engine.judge({ "t" => "tap", "uid" => "a-1", "tapped" => true })
+    assert_match(/tappata/, engine.judge(ritira("a-1"))[:reason])
+    engine.judge({ "t" => "tap", "uid" => "a-1", "tapped" => false })
+    engine.judge({ "t" => "facedown", "uid" => "a-1", "facedown" => true })
+    assert_match(/coperta/, engine.judge(ritira("a-1"))[:reason])
+  end
+
+  def test_il_rubyfront_non_si_ritira
+    engine = con_carte
+    scendi(engine, "a-1", "RUBINO")
+    giro_di_turno(engine)
+    verdict = engine.judge(ritira("a-1"))
+    refute verdict[:ok]
+    assert_match(/richiamo/, verdict[:reason])
+  end
+
+  def test_materie_e_carte_ignote_il_ritiro_tace
+    engine = con_carte
+    scendi(engine, "a-1", "PIETRA")
+    giro_di_turno(engine)
+    refute engine.judge(ritira("a-1"))[:ruled]
+    scendi(engine, "a-1", "MISTERO")
+    giro_di_turno(engine)
+    refute engine.judge(ritira("a-1"))[:ruled]
+  end
+
+  def test_l_entita_avversaria_in_ritiro_e_un_effetto
+    engine = con_carte
+    mano_e_campo(engine, %w[LENTA], cala: 1, seat: "b")
+    # Entrata questo turno, eppure silenzio: nel turno di A un'Entità di B
+    # mandata in Ritiro è la risoluzione a mano di un effetto, non un ritiro.
+    refute engine.judge(ritira("b-1"))[:ruled]
+  end
+
+  def test_dalla_mano_al_ritiro_nessuna_regola
+    engine = con_carte
+    mano_e_campo(engine, %w[LENTA], cala: 0)
+    refute engine.judge(ritira("a-1"))[:ruled]
+  end
+
+  def test_dopo_uno_snapshot_il_ritiro_non_accusa
+    engine = con_carte
+    engine.snapshot({
+      "turn" => 5, "active" => "a",
+      "cards" => { "a-1" => { "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "LENTA" } },
+    })
+    assert engine.judge(ritira("a-1"))[:ok], "lo snapshot non dice quando è scesa: nel dubbio, via libera"
+  end
+
+  # --- §5: le Materie mai sugli slot del Fronte ---------------------------
+
+  def gioca(uid, x, y)
+    { "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y }
+  end
+
+  def test_la_materia_sullo_slot_del_fronte_viene_fermata
+    engine = con_carte
+    mano_e_campo(engine, %w[PIETRA], cala: 0)
+    verdict = engine.judge(gioca("a-1", 442, 1236))
+    refute verdict[:ok]
+    assert_match(/spazio delle Materie/, verdict[:reason])
+  end
+
+  def test_il_divieto_copre_entrambe_le_file_del_fronte
+    engine = con_carte
+    mano_e_campo(engine, %w[PIETRA], cala: 0, seat: "b")
+    refute engine.judge(gioca("b-1", 1956, 172))[:ok]
+  end
+
+  def test_fuori_dagli_slot_la_materia_scende_senza_regola
+    engine = con_carte
+    mano_e_campo(engine, %w[PIETRA], cala: 0)
+    refute engine.judge(gioca("a-1", 2368, 1236))[:ruled], "la fila delle Materie non è affare dell'engine"
+    mano_e_campo(engine, %w[PIETRA], cala: 0)
+    refute engine.judge(gioca("a-1", 500, 900))[:ruled], "rilascio a mano libera: lavagna libera"
+  end
+
+  def test_l_entita_sullo_slot_scende_regolarmente
+    engine = con_carte
+    mano_e_campo(engine, %w[LENTA], cala: 0)
+    assert engine.judge(gioca("a-1", 442, 1236))[:ok]
+  end
+
+  def test_carta_ignota_sullo_slot_silenzio
+    engine = con_carte
+    mano_e_campo(engine, %w[MISTERO], cala: 0)
+    refute engine.judge(gioca("a-1", 442, 1236))[:ruled]
+  end
+
+  # --- §6.3: dichiarano solo le Entità ------------------------------------
+
+  def test_il_rubyfront_non_attacca
+    engine = con_carte
+    scendi(engine, "a-1", "RUBINO")
+    fronte!(engine)
+    verdict = engine.judge(attacco("a-1"))
+    refute verdict[:ok]
+    assert_match(/Rubyfront non attacca/, verdict[:reason])
+  end
+
+  def test_il_rubyfront_non_blocca
+    engine = con_carte
+    scendi(engine, "a-1", "RUBINO")
+    fronte!(engine)
+    refute engine.judge(dichiarazione("a-1", "b-9", "block"))[:ok]
+    refute engine.judge(dichiarazione("a-1", "b-9", "counter"))[:ok]
+  end
+
+  def test_gli_oggetti_non_dichiarano
+    engine = con_carte
+    scendi(engine, "a-1", "FERRO")
+    fronte!(engine)
+    verdict = engine.judge(dichiarazione("a-1", "b-9", "block"))
+    refute verdict[:ok]
+    assert_match(/solo le Entità/, verdict[:reason])
+  end
+
+  def test_il_tipo_si_giudica_prima_dello_stato
+    engine = con_carte
+    scendi(engine, "a-1", "RUBINO")
+    fronte!(engine)
+    engine.judge({ "t" => "tap", "uid" => "a-1", "tapped" => true })
+    # Un Rubyfront tappato non è «una tappata»: il rifiuto parla di lui.
+    assert_match(/Rubyfront/, engine.judge(attacco("a-1"))[:reason])
+  end
+
+  def test_carta_ignota_dichiara_senza_dogana_del_tipo
+    muto = Rubyfront::Engine.new
+    scendi(muto, "a-1", "RUBINO")
+    fronte!(muto)
+    assert muto.judge(attacco("a-1"))[:ok], "senza anagrafe il tipo non si vede: via libera"
+  end
+
+  # --- §6.3: attacca chi è di turno, blocca chi difende --------------------
+
+  def test_non_si_attacca_nel_turno_avversario
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    fronte!(engine)
+    verdict = engine.judge(attacco("a-1"))
+    refute verdict[:ok]
+    assert_match(/proprio turno/, verdict[:reason])
+  end
+
+  def test_chi_e_di_turno_non_blocca
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    fronte!(engine)
+    verdict = engine.judge(dichiarazione("a-1", "b-9", "block"))
+    refute verdict[:ok]
+    assert_match(/chi difende/, verdict[:reason])
+    refute engine.judge(dichiarazione("a-1", "b-9", "counter"))[:ok]
+  end
+
+  def test_il_blocco_vuole_un_attaccante_vero
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    fronte!(engine)
+    # Nessun attacco dichiarato da b-9: la freccia non avrebbe senso.
+    verdict = engine.judge(dichiarazione("a-1", "b-9", "block"))
+    refute verdict[:ok]
+    assert_match(/non sta attaccando/, verdict[:reason])
+  end
+
+  def test_la_difesa_regolare_passa
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    difesa!(engine)
+    assert engine.judge(dichiarazione("a-1", "b-9", "counter"))[:ok]
   end
 end

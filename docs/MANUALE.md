@@ -181,7 +181,7 @@ Il Gettone è **fuori dal limite dei 20 Flussi**: non fa parte della barra del F
 
 Il campo di ogni giocatore è formato da:
 
-- **Fronte** — il campo di battaglia: **5 slot** in cui stanno le Entità. Il Rubyfront, quando è schierato, si posiziona **davanti** ai 5 slot (non occupa uno slot); le Materie in gioco (permanenti o in risoluzione) stanno **dietro** i 5 slot. Le permanenti si dispongono **una dietro l'altra (o una sotto l'altra), nell'ordine in cui sono scese in campo**: la fila tiene traccia dell'età di ciascuna, che serve per l'ordine di risoluzione degli effetti (§8.2).
+- **Fronte** — il campo di battaglia: **5 slot** in cui stanno le Entità. Il Rubyfront, quando è schierato, si posiziona **davanti** ai 5 slot (non occupa uno slot); le Materie in gioco (permanenti o in risoluzione) stanno **dietro** i 5 slot. Le permanenti si dispongono **una dietro l'altra (o una sotto l'altra), nell'ordine in cui sono scese in campo**: la fila tiene traccia dell'età di ciascuna, che serve per l'ordine di risoluzione degli effetti (§8.2). Le Materie **non si giocano sugli slot del Fronte**: laddove possibile, si posano **nello spazio delle Materie**, dietro gli slot — gli slot sono delle Entità, e la fila delle Materie deve restare leggibile perché è lei a dire l'età di ciascuna.
 - **Mazzo** — le carte da pescare.
 - **Abisso** — la zona delle carte **morte o consumate**: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti che seguono un'Entità morta, carte scartate dalla mano. È **pubblico**: consultabile da entrambi i giocatori in qualsiasi momento.
 - **Zona di Ritiro** — la zona delle carte **ancora "vive"** uscite dal gioco: le Entità **ritirate** (§6.2) o **mandate lì da effetti di carte**, e gli Oggetti che le seguono — Oggetti che vi **restano** anche quando l'Entità torna in campo (§3.1). Funziona **esattamente come l'Abisso** (pubblica, consultabile in qualsiasi momento), ma tiene separato ciò che non è mai morto da ciò che lo è: gli effetti che nominano l'Abisso **non** toccano la Zona di Ritiro, e viceversa. Una carta mandata in Zona di Ritiro da un effetto **non muore** e, salvo che l'effetto dica altrimenti, **non conta come Ritiro**: conta solo come **lasciare il campo**.
@@ -202,7 +202,7 @@ Il turno si compone di tre fasi, nell'ordine: **Pesca → Preparazione → Front
 Dichiarata dal giocatore al termine della Pesca. In questa fase si inizia a giocare con le carte e **si prepara il Fronte**. Il giocatore può:
 
 - **giocare Entità** (pagandone il costo di Flusso);
-- **giocare Materie** normali e permanenti (le Reattive si giocano solo in Fase di Fronte, §7.2);
+- **giocare Materie** normali e permanenti (le Reattive si giocano solo in Fase di Fronte, §7.2), posandole **nello spazio delle Materie**, mai sugli slot del Fronte (§5);
 - **assegnare Oggetti** (carte Oggetto) alle Entità, pagandone il costo di Flusso — anche più Oggetti alla stessa Entità;
 - **ritirare** le proprie Entità dal Fronte (vedi "Ritiro", più sotto).
 

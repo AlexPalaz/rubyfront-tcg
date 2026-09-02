@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.7.0"
+    VERSION = "0.12.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -37,7 +37,19 @@ module Rubyfront
       "§6.2 Fronte: massimo 5 Entità",
       "§3.1/§3.2 Contatori: mai sotto zero",
       "§3.1 Oggetti: assegnazione",
+      "§6 Fasi: le dichiarazioni in Fase di Fronte",
+      "§6.2 Ritiro: gesto di Preparazione, mai nel turno d'ingresso",
+      "§5 Materie: mai sugli slot del Fronte",
+      "§6.3 Dichiarano solo le Entità (il Rubyfront mai)",
+      "§6.3 Attacca chi è di turno, blocca chi difende",
     ].freeze
+
+    # La geometria canonica degli slot del Fronte, specchio di ctx.ts
+    # (FRONT_SLOT_X e frontRowY): coordinate CONDIVISE, le stesse sulle due
+    # lavagne e nelle azioni di rete. Entrano nel giudizio solo come forma
+    # dell'AZIONE — la copia del tavolo continua a non tracciare geometria.
+    FRONT_SLOT_X = [442, 821, 1199, 1578, 1956].freeze
+    FRONT_ROW_Y = [172, 1236].freeze
 
     # `cards` è l'anagrafe id -> {type:, keywords:} (vedi card_index.rb):
     # arriva dal trasporto già pronta — qui dentro niente I/O. Senza anagrafe
@@ -80,6 +92,7 @@ module Rubyfront
       case action["t"]
       when "player" then judge_player(action)
       when "turn" then judge_turn(action)
+      when "phase" then judge_phase(action)
       when "declare" then judge_declare(action)
       when "toZone" then judge_to_zone(action)
       when "assign" then judge_assign(action)
@@ -116,6 +129,20 @@ module Rubyfront
       allow("assign")
     end
 
+    # I movimenti fra zone con una regola: l'INGRESSO in campo (§6.2, Fronte
+    # pieno) e il RITIRO (§6.2, Ritiro). Tutto il resto — mano, pile, mazzo —
+    # resta senza regola, come sempre.
+    def judge_to_zone(action)
+      card = @table.card(action["uid"])
+      return no_rule("toZone") unless card
+
+      case action["zone"]
+      when "field" then judge_enter_field(card, action)
+      when "ritiro" then judge_retire(card)
+      else no_rule("toZone")
+      end
+    end
+
     # §6.2 — «Sul Fronte si possono avere al massimo 5 Entità»: la sesta non
     # scende, da qualunque via arrivi (giocata o effetto — «quella parte
     # dell'effetto non si applica»). Contano solo le Entità del proprietario:
@@ -123,16 +150,24 @@ module Rubyfront
     # l'anagrafe — carta ignota o anagrafe assente, silenzio. Il campo del
     # simulatore è una superficie unica, ma le Entità in campo SONO il Fronte:
     # non hanno altro posto dove stare.
-    def judge_to_zone(action)
-      return no_rule("toZone") unless action["zone"] == "field"
-
-      card = @table.card(action["uid"])
-      return no_rule("toZone") unless card
+    def judge_enter_field(card, action)
       # Un toZone che resta sul campo è uno spostamento, non un ingresso.
       return no_rule("toZone") if card[:zone] == "field"
 
       known = @cards[card[:card_id]]
-      return no_rule("toZone") unless known && known[:type] == "entity"
+      return no_rule("toZone") unless known
+
+      # §5 — «Le Materie non si giocano sugli slot del Fronte»: gli slot sono
+      # delle Entità, le Materie hanno la loro fila dietro. Si guardano le
+      # coordinate dell'azione: l'aggancio del rilascio porta ESATTAMENTE
+      # quelle degli slot, e sono le sole che contano — un rilascio a mano
+      # libera lì vicino non è «sullo slot». Materia già in campo che si
+      # sposta: affare della lavagna, non di questa regola.
+      if known[:type] == "matter" && FRONT_SLOT_X.include?(action["x"]) && FRONT_ROW_Y.include?(action["y"])
+        return refuse("toZone", "le Materie non si giocano sugli slot del Fronte: si posano nello spazio delle Materie (§5)")
+      end
+
+      return no_rule("toZone") unless known[:type] == "entity"
 
       on_front = @table.field_cards(card[:owner]).count do |other|
         entry = @cards[other[:card_id]]
@@ -143,6 +178,40 @@ module Rubyfront
       else
         allow("toZone")
       end
+    end
+
+    # §6.2 — il Ritiro: un gesto di PREPARAZIONE sulle PROPRIE Entità
+    # stappate e scoperte, mai nel turno d'ingresso — e lo Slancio non aggira
+    # il divieto (permette di attaccare subito, non di essere ritirata
+    # subito). Si giudica solo l'Entità del posto attivo che parte dal campo:
+    # una carta AVVERSARIA mandata in Ritiro nel turno di un altro è quasi
+    # sempre un effetto risolto a mano («metti un'Entità avversaria nella
+    # Zona di Ritiro…») e non si accusa. Limite dichiarato: un effetto che
+    # ritiri una PROPRIA Entità aggirando i vincoli verrebbe fermato a torto
+    # — arriverà con la regola d'oro. Il Rubyfront invece non si ritira mai:
+    # per lui esiste il richiamo volontario, che è un'altra cosa.
+    def judge_retire(card)
+      return no_rule("toZone") unless card[:zone] == "field"
+
+      kind = @cards.dig(card[:card_id], :type)
+      return refuse("toZone", "il Rubyfront non si ritira: ha il richiamo volontario (§3.1)") if kind == "rubyfront"
+      return no_rule("toZone") unless kind == "entity"
+      return no_rule("toZone") if card[:owner] != @table.active
+
+      if @table.phase == "fronte"
+        return refuse("toZone", "il ritiro è un gesto di Preparazione: a Fronte dichiarato non si ritira (§6.2, Ritiro)")
+      end
+      if card[:facedown]
+        return refuse("toZone", "l'Entità coperta è intoccabile: non si ritira finché non si scopre (§6.2, Ritiro)")
+      end
+      if card[:tapped]
+        return refuse("toZone", "un'Entità tappata è impegnata: si ritira quando si stappa (§6.2, Ritiro)")
+      end
+      if card[:entered] == @table.turn
+        return refuse("toZone", "l'Entità è entrata in campo questo turno: si ritira dal prossimo — lo Slancio non aggira il divieto (§6.2, Ritiro)")
+      end
+
+      allow("toZone")
     end
 
     # I contatori di un posto, giudicati dalla sola patch (valori assoluti,
@@ -197,7 +266,26 @@ module Rubyfront
       end
     end
 
-    # Le dichiarazioni di combattimento passano due dogane, nell'ordine:
+    # §6 — la fase è a senso unico: dalla Preparazione si dichiara il Fronte,
+    # e in Preparazione si torna solo col cambio di turno. Valore ignoto:
+    # nessuna regola, mai molesto.
+    def judge_phase(action)
+      phase = action["phase"]
+      return no_rule("phase") unless Table::PHASES.include?(phase)
+
+      if phase == "preparazione" && @table.phase == "fronte"
+        refuse("phase", "la fase è a senso unico: in Preparazione si torna col cambio di turno (§6)")
+      else
+        allow("phase")
+      end
+    end
+
+    # Le dichiarazioni di combattimento passano TRE dogane, nell'ordine:
+    #
+    # §6 — il tempismo: attacchi, blocchi e contrattacchi vivono in Fase di
+    # Fronte. Vale per tutte e tre le dichiarazioni — i blocchi del difensore
+    # arrivano dentro la Fase di Fronte dell'attaccante, che la sua
+    # dichiarazione ha già portato sul tavolo di entrambi.
     #
     # §6.3 — lo STATO della carta e della sfida, senza bisogno d'anagrafe:
     # la coperta non fa nulla, la tappata non attacca né blocca, e ogni
@@ -216,8 +304,38 @@ module Rubyfront
       kind = declaration["kind"]
       return no_rule("declare") unless %w[attack block counter].include?(kind)
 
+      if @table.phase != "fronte"
+        return refuse("declare", "prima si dichiara la Fase di Fronte: le dichiarazioni vivono lì (§6.3)")
+      end
+
       card = @table.card(declaration["from"])
       return no_rule("declare") unless card
+
+      # §3.1/§6.3 — dichiarano solo le Entità: il Rubyfront non attacca e non
+      # blocca (la sua funzione sono abilità a costo PV e Materie), e Materie
+      # e Oggetti non dichiarano niente — §6.3 parla sempre di Entità. Il
+      # tipo si controlla PRIMA dello stato: un Rubyfront tappato non è «una
+      # tappata», è un Rubyfront. Carta ignota o anagrafe assente: via
+      # libera, mai molesto. Limite dichiarato: la regola d'oro («salvo
+      # diversa indicazione sulla carta») non si vede ancora.
+      declarer = @cards.dig(card[:card_id], :type)
+      if declarer == "rubyfront"
+        return refuse("declare", "il Rubyfront non attacca e non blocca (§3.1): la sua funzione sono abilità e Materie")
+      end
+      if declarer && declarer != "entity"
+        return refuse("declare", "solo le Entità attaccano e bloccano (§6.3)")
+      end
+
+      # §6.3 — la dogana del POSTO: attacca chi è di turno, blocca chi
+      # difende. I blocchi si dichiarano DENTRO il turno dell'attaccante,
+      # dall'altra metà del tavolo — per questo il confronto è con `active`,
+      # non con una fase del difensore che non esiste.
+      if kind == "attack" && card[:owner] != @table.active
+        return refuse("declare", "si attacca nel proprio turno (§6.3)")
+      end
+      if kind != "attack" && card[:owner] == @table.active
+        return refuse("declare", "blocca chi difende: i blocchi si dichiarano nel turno dell'attaccante (§6.3)")
+      end
 
       return refuse("declare", "la carta è coperta: finché è coperta non può fare nulla (§6.3)") if card[:facedown]
 
@@ -227,6 +345,11 @@ module Rubyfront
       end
 
       if kind != "attack"
+        # Un blocco vuole un attaccante vero: senza un attacco dichiarato in
+        # piedi non c'è niente da fermare, e la freccia non direbbe niente.
+        unless @table.attacking?(declaration["to"])
+          return refuse("declare", "quella carta non sta attaccando: non c'è niente da bloccare (§6.3)")
+        end
         if @table.blocked?(declaration["to"])
           return refuse("declare", "quell'attaccante ha già chi lo ferma (§6.3, sfide 1 contro 1)")
         end

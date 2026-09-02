@@ -8,8 +8,8 @@
 import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js";
 import type { Ctx } from "./ctx.js";
 import { openMenu } from "./menu.js";
-import { cardSearchText } from "./renderer.js";
-import { freeFrontSlot, seatLabel, shuffled, zoneCards } from "./state.js";
+import { cardSearchText, faceKind } from "./renderer.js";
+import { playSpot, seatLabel, shuffled, zoneCards } from "./state.js";
 import type { Seat, ZoneId } from "./types.js";
 
 const TITLES: Record<string, string> = {
@@ -110,10 +110,12 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
 
   function move(uid: string, zone: ZoneId): void {
     if (zone === "field") {
-      // Nel primo slot libero del Fronte del proprietario, non a un punto
-      // fisso della lavagna.
-      const owner = ctx.state().cards[uid]?.owner ?? currentSeat;
-      const spot = freeFrontSlot(ctx.state(), owner);
+      // Nel primo slot libero del Fronte del proprietario — o nella fila
+      // delle Materie, se di Materia si tratta (§5) — non a un punto fisso
+      // della lavagna.
+      const live = ctx.state().cards[uid];
+      const owner = live?.owner ?? currentSeat;
+      const spot = playSpot(ctx.state(), owner, live ? faceKind(live.cardId, live.face) : null);
       ctx.dispatch({ t: "toZone", uid, zone, ...spot, z: ctx.state().zTop + 1 });
     } else {
       ctx.dispatch({ t: "toZone", uid, zone });

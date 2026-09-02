@@ -10,6 +10,19 @@ import { otherSeat } from "./types.js";
 
 const FLUX_CAP = 20;
 
+/**
+ * Dichiara l'ingresso in Fase di Fronte (§6.3). A senso unico: da qui si
+ * esce solo col cambio di turno, che riporta la fase in Preparazione — non
+ * esiste tornare indietro, nemmeno a engine spento. La fase resta
+ * facoltativa: chiudere il turno dalla Preparazione è sempre legale.
+ */
+export async function declareFront(ctx: Ctx): Promise<void> {
+  const state = ctx.state();
+  if (state.phase !== "preparazione") return;
+  if (!(await ctx.dispatch({ t: "phase", phase: "fronte" }))) return;
+  ctx.log(`${seatLabel(ctx.state(), state.active)} dichiara la Fase di Fronte.`, state.active);
+}
+
 export async function endTurn(ctx: Ctx): Promise<void> {
   const state = ctx.state();
   const next = otherSeat(state.active);

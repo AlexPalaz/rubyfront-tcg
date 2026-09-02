@@ -11,8 +11,11 @@ module Rubyfront
   # qui sono rumore e si ignorano.
   class Table
     SEATS = %w[a b].freeze
+    # Le fasi del turno (§6), nel modello minimo del client: la Pesca non è
+    # una fase e le sotto-fasi del Fronte arriveranno con le Reattive.
+    PHASES = %w[preparazione fronte].freeze
 
-    attr_reader :active, :turn
+    attr_reader :active, :turn, :phase
 
     def initialize
       reset
@@ -25,6 +28,7 @@ module Rubyfront
       @declarations = {}
       @active = "a"
       @turn = 1
+      @phase = "preparazione"
     end
 
     def hand_count(seat)
@@ -42,6 +46,12 @@ module Rubyfront
     # §6.3, sfide 1 contro 1: qualcuno ferma già quell'attaccante?
     def blocked?(attacker_uid)
       @declarations.any? { |_, d| d[:to] == attacker_uid && %w[block counter].include?(d[:kind]) }
+    end
+
+    # §6.3: quella carta ha un attacco dichiarato in piedi? Un blocco vuole
+    # un attaccante vero da fermare.
+    def attacking?(uid)
+      @declarations.any? { |from, d| from == uid && d[:kind] == "attack" }
     end
 
     # Le carte di un posto che stanno in campo (per il conteggio del Fronte,
@@ -63,6 +73,9 @@ module Rubyfront
 
       @active = state["active"] if SEATS.include?(state["active"])
       @turn = state["turn"] if state["turn"].is_a?(Numeric)
+      # Lavagna di un client più vecchio, senza fasi: resta la Preparazione
+      # del reset — nel dubbio, la fase più permissiva per chi gioca.
+      @phase = state["phase"] if PHASES.include?(state["phase"])
       Array(state["declarations"]).each do |declaration|
         next unless declaration.is_a?(Hash) && declaration["from"]
 
@@ -115,9 +128,16 @@ module Rubyfront
         @declarations.delete(action["from"])
       when "clearCombat"
         @declarations = {}
+      when "phase"
+        @phase = action["phase"] if PHASES.include?(action["phase"])
       when "turn"
         @turn = action["turn"] if action["turn"].is_a?(Numeric)
-        @active = action["active"] if SEATS.include?(action["active"])
+        if SEATS.include?(action["active"])
+          # Il cambio di turno riporta la fase in Preparazione (§6, a senso
+          # unico); il contatore ritoccato a mano (active invariato) no.
+          @phase = "preparazione" if action["active"] != @active
+          @active = action["active"]
+        end
       end
     end
 

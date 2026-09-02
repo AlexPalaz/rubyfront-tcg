@@ -374,7 +374,9 @@ function join(room: string, relay: string): void {
         // sapere niente di me, se il mio carico è partito mentre il relay
         // ancora dormiva. Mazzo e nome si rimettono, e stavolta viaggiano.
         const hadMine = Object.values(state.cards).some(card => card.owner === mySeat);
-        state = message.state;
+        // Una lavagna arrivata da un client più vecchio può non sapere delle
+        // fasi (§6): senza il campo, si riparte dalla Preparazione.
+        state = { ...message.state, phase: message.state.phase ?? "preparazione" };
         // La lavagna è appena stata sostituita in blocco: anche la copia
         // dell'engine deve ripartire da qui, non dalle azioni che ha visto.
         engine?.snapshot(state);

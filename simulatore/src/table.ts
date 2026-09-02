@@ -36,7 +36,7 @@ import {
   STACK_STEP,
   declarationOf,
   fieldCards,
-  freeFrontSlot,
+  playSpot,
   seatLabel,
   seatWaiting,
   shuffled,
@@ -479,7 +479,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             run: () => void undeclare(ctx, card, declared),
           });
         } else {
-          items.push({ label: "Attacca", run: () => declareAttack(card) });
+          // «Attacca» solo a chi può attaccare: il Rubyfront non attacca
+          // (§3.1) e dichiarano solo le Entità (§6.3) — il gesto che
+          // l'arbitro fermerebbe comunque non si offre nemmeno. La carta
+          // ignota resta permissiva, come per l'engine; quando la regola
+          // d'oro concederà eccezioni, sarà lei a riaprire la voce.
+          const kind = faceKind(card.cardId, card.face);
+          if (kind === null || kind === "entity") {
+            items.push({ label: "Attacca", run: () => declareAttack(card) });
+          }
         }
       }
       // Un attaccante dichiarato si ferma dall'altra metà del tavolo: in rete
@@ -594,6 +602,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // comparirebbe nella metà sbagliata. L'aggancio no: i riquadri portano
       // già con sé la coordinata canonica.
       const free = { x: drop.x, y: unview(drop.y) };
+      // Le Materie non si giocano sugli slot del Fronte (§5): il divieto è
+      // dell'ARBITRO, non del tavolo — il rilascio parte com'è e, con
+      // l'engine collegato, torna indietro col sigillo. A engine spento,
+      // lavagna libera come sempre.
       const spot = drop.snapped ? stackAt(ctx.state(), drop.x, drop.y, card.uid) : free;
       let x = Math.max(0, Math.min(SURFACE_W - TILE_W, spot.x));
       let y = Math.max(0, Math.min(SURFACE_H - TILE_H, spot.y));
@@ -741,7 +753,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (ctx.arbitrated()) return;
           ctx.dispatch({ t: "tap", uid: live.uid, tapped: !live.tapped });
         } else if (live.zone === "hand" && ctx.controls(live.owner)) {
-          const spot = freeFrontSlot(ctx.state(), live.owner);
+          // Il doppio click gioca: Entità sul primo slot libero del Fronte,
+          // Materie nella loro fila (§5) — mai sugli slot.
+          const spot = playSpot(ctx.state(), live.owner, faceKind(live.cardId, live.face));
           ctx.dispatch({ t: "toZone", uid: live.uid, zone: "field", ...spot, z: ctx.state().zTop + 1 });
         }
       });
