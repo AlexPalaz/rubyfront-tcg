@@ -951,15 +951,21 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const live = ctx.state().cards[uid];
     if (!tile || !live || tile.offsetParent === null) return null;
     const from = tile.getBoundingClientRect();
+    // La tessera vive dentro la lavagna, che è disegnata in scala: il
+    // fantasma sta fuori, in misura di layout, e si scala con la stessa
+    // trasformazione — sennò mostrerebbe la carta a misura piena, tagliata.
+    const layoutW = tile.offsetWidth;
+    const layoutH = tile.offsetHeight;
     const ghost = tile.cloneNode(true) as HTMLElement;
     ghost.classList.add("fly-ghost");
     ghost.classList.remove("is-pickable", "is-legal", "is-triggering");
+    ghost.style.position = "fixed";
     ghost.style.left = `${from.left}px`;
     ghost.style.top = `${from.top}px`;
-    ghost.style.width = `${from.width}px`;
-    ghost.style.height = `${from.height}px`;
+    ghost.style.width = `${layoutW}px`;
+    ghost.style.height = `${layoutH}px`;
     ghost.style.margin = "0";
-    ghost.style.transform = "none";
+    ghost.style.transform = `scale(${from.width / layoutW})`;
     document.body.append(ghost);
     return () => {
       const slot = pileSlots.get(`${live.owner}:ritiro`);
@@ -970,7 +976,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       }
       // Un frame dopo, così la transizione parte dalla posizione di ora.
       requestAnimationFrame(() => {
-        ghost.style.transform = `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / from.width})`;
+        ghost.style.transform = `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / layoutW})`;
         ghost.style.opacity = "0.15";
       });
       window.setTimeout(() => ghost.remove(), FLY_MS + 60);
@@ -987,23 +993,27 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (!slot || !tile) return;
     const from = slot.getBoundingClientRect();
     const to = tile.getBoundingClientRect();
+    // Come in liftForFlight: misura di layout, scala della lavagna.
+    const layoutW = tile.offsetWidth;
+    const layoutH = tile.offsetHeight;
     const ghost = tile.cloneNode(true) as HTMLElement;
     ghost.classList.add("fly-ghost");
     ghost.classList.remove("is-pickable", "is-legal", "is-triggering");
+    ghost.style.position = "fixed";
     ghost.style.left = `${to.left}px`;
     ghost.style.top = `${to.top}px`;
-    ghost.style.width = `${to.width}px`;
-    ghost.style.height = `${to.height}px`;
+    ghost.style.width = `${layoutW}px`;
+    ghost.style.height = `${layoutH}px`;
     ghost.style.margin = "0";
     ghost.style.transition = "none";
-    ghost.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width})`;
+    ghost.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / layoutW})`;
     ghost.style.opacity = "0.4";
     document.body.append(ghost);
     // La tessera vera si nasconde finché il fantasma non è arrivato.
     tile.style.visibility = "hidden";
     requestAnimationFrame(() => {
       ghost.style.transition = "";
-      ghost.style.transform = "none";
+      ghost.style.transform = `scale(${to.width / layoutW})`;
       ghost.style.opacity = "1";
     });
     window.setTimeout(() => {
