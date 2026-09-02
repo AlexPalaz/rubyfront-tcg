@@ -30,7 +30,23 @@ export interface EnterEffectShow {
 const CARD_W = 520;
 const CARD_H = 728;
 
+/**
+ * Le scene si mettono in fila: una alla volta, la successiva aspetta che
+ * la prima sia chiusa — due carte giocate di seguito non si accavallano.
+ * Vale per il momento pieno e per l'avviso di chi guarda, insieme.
+ */
+let queue: Promise<void> = Promise.resolve();
+function enqueue(run: () => Promise<void>): Promise<void> {
+  const turn = queue.then(run, run);
+  queue = turn.catch(() => undefined);
+  return turn;
+}
+
 export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promise<void> {
+  return enqueue(() => showEnterEffectNow(root, show));
+}
+
+function showEnterEffectNow(root: HTMLElement, show: EnterEffectShow): Promise<void> {
   const veil = document.createElement("div");
   veil.className = "effect-veil";
   const stage = document.createElement("div");
@@ -123,6 +139,10 @@ const PEEK_HOLD_MS = 2600;
  * targhetta e l'effetto di fianco, per un attimo; poi svanisce.
  */
 export function showEnterPeek(root: HTMLElement, show: EnterEffectShow): Promise<void> {
+  return enqueue(() => showEnterPeekNow(root, show));
+}
+
+function showEnterPeekNow(root: HTMLElement, show: EnterEffectShow): Promise<void> {
   const veil = document.createElement("div");
   veil.className = "effect-veil is-peek";
   const stage = document.createElement("div");
