@@ -17,9 +17,10 @@ import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
 import { PHASE_BANNER_HOLD_MS, mountPhaseBanner } from "./banner.js";
 import { showRoll } from "./dice.js";
+import { showEnterEffect } from "./effect.js";
 import { mountHud } from "./hud.js";
 import { setupPreview } from "./preview.js";
-import { allDecks, cardName, cardStats, defaultTheme, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
+import { allDecks, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
 import { apply, newGame, seatLabel, shuffled, zoneCards } from "./state.js";
 import { drawCascadeMs, mountTable } from "./table.js";
 import { describeGameOver, verdictByHp } from "./turn.js";
@@ -122,6 +123,25 @@ function commit(action: Action): void {
 
 /** Applica senza ritrasmettere: per le azioni che arrivano già dalla rete. */
 function receive(action: Action, from: Seat): void {
+  // Il momento d'ingresso dell'avversario si vede anche qui: una carta con
+  // un effetto «quando entra in campo» giocata dalla mano ferma il tavolo
+  // un attimo da entrambe le parti (effect.ts).
+  if (action.t === "toZone" && action.zone === "field") {
+    const card = state.cards[action.uid];
+    if (card && card.zone === "hand") {
+      const effects = enterEffects(card.cardId, card.face, locale);
+      if (effects.length) {
+        void showEnterEffect(document.querySelector<HTMLElement>("#table")!, {
+          cardId: card.cardId,
+          face: card.face,
+          theme: themes[card.owner],
+          locale,
+          who: `${seatLabel(state, card.owner, mySeat)} gioca «${cardName(card.cardId, locale)}»`,
+          effects,
+        });
+      }
+    }
+  }
   // Il tiro del dado dell'avversario si vede anche qui: la carta scende
   // insieme, ma il momento è lo stesso.
   if (action.t === "move" && action.roll !== undefined) {

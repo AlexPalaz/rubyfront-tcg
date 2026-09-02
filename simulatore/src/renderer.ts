@@ -25,6 +25,9 @@ export interface CardFace {
   /** Le statistiche stampate (dal file dati della carta): qui contano
       quelle del combattimento, Potenza e «Contrattacco +N» (§6.3). */
   stats?: { power?: unknown; counterattack?: unknown; fluxCost?: unknown; deploymentCost?: unknown };
+  /** Gli inneschi della faccia (dal file dati): qui conta l'evento
+      `on_enter_field`, «quando entra in campo». */
+  triggers?: { event?: unknown; displayKey?: unknown; id?: unknown }[];
 }
 
 export interface CatalogCard {
@@ -202,6 +205,29 @@ export function faceKind(cardId: string, faceIndex: number): CardFace["kind"] | 
  * statistica non contrattacca. Solo interi, come nell'anagrafe dell'engine:
  * un valore d'altra forma resta ignoto, mai frainteso.
  */
+/**
+ * Gli effetti «quando entra in campo» di una faccia (evento
+ * `on_enter_field`), col testo nella lingua del tavolo: la targhetta (es.
+ * «Effetto») e la frase. Il testo sta nel copy della faccia sotto il
+ * displayKey dell'innesco, come lo legge il renderer del sito. Vuoto se
+ * la carta non ne ha.
+ */
+export function enterEffects(cardId: string, faceIndex: number, locale: string): { tag: string; text: string }[] {
+  const card = getCard(cardId);
+  const face = card?.faces[faceIndex] ?? card?.faces[0];
+  if (!card || !face) return [];
+  const copy = renderer.localized(card, locale);
+  const faceCopy = copy?.[face.displayKey] ?? {};
+  const out: { tag: string; text: string }[] = [];
+  for (const trigger of face.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const key = typeof trigger.displayKey === "string" ? trigger.displayKey : typeof trigger.id === "string" ? trigger.id : "";
+    const entry = faceCopy.triggers?.[key] ?? faceCopy[key];
+    if (entry && typeof entry.text === "string") out.push({ tag: typeof entry.trigger === "string" ? entry.trigger : "Effetto", text: entry.text });
+  }
+  return out;
+}
+
 /** Il costo di schieramento del Rubyfront (§3.1): fisso, o un dado. */
 export interface Deployment {
   fixed: number | null;

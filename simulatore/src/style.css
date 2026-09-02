@@ -353,6 +353,74 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
   .phase-banner, .phase-banner-title { animation: none; }
 }
 
+/* Il momento d'ingresso: velo sul tavolo (che ferma i click sotto), la carta
+   grande che si accende di rubino, di fianco la targhetta, il testo
+   dell'effetto e «Continua». Sopra mani e carte, sotto l'HUD. */
+.effect-veil {
+  position: absolute; inset: 0;
+  z-index: 44;
+  display: grid; place-content: center;
+  background: rgba(5, 4, 10, .66);
+  backdrop-filter: blur(4px);
+  animation: dice-veil .2s ease-out both;
+}
+.effect-veil.is-leaving { animation: dice-veil-out .22s ease-in both; }
+.effect-stage {
+  display: grid; grid-template-columns: auto minmax(260px, 420px);
+  gap: 36px; align-items: center;
+  padding: 24px;
+}
+.effect-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .7), 0 0 0 rgba(210, 74, 100, 0);
+  animation: effect-lit 2.2s ease-out both;
+}
+@keyframes effect-lit {
+  0%   { transform: scale(.94); box-shadow: 0 30px 80px rgba(0, 0, 0, .7), 0 0 0 rgba(210, 74, 100, 0); }
+  30%  { transform: scale(1.02); box-shadow: 0 30px 80px rgba(0, 0, 0, .7), 0 0 90px rgba(210, 74, 100, 1); }
+  100% { transform: scale(1); box-shadow: 0 30px 80px rgba(0, 0, 0, .7), 0 0 40px rgba(210, 74, 100, .6); }
+}
+/* L'etichetta della faccia («Entità») è del sito: qui la carta parla da sé. */
+.effect-card .face-label { display: none; }
+/* Come nell'anteprima: la carta del sito si misura sul suo contenitore. */
+.effect-card .card-holder { container-type: inline-size; }
+.effect-side { display: grid; gap: 12px; color: var(--ink); }
+.effect-kicker {
+  font-size: 1.1rem; font-weight: 700;
+  letter-spacing: .24em; text-transform: uppercase;
+  color: var(--ruby);
+  text-shadow: 0 0 18px rgba(210, 74, 100, .5);
+}
+.effect-who { font-size: .85rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.effect-text {
+  display: grid; gap: 6px;
+  padding: 14px 16px;
+  background: color-mix(in srgb, var(--panel-2) 70%, transparent);
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+}
+.effect-text p { margin: 0; line-height: 1.5; }
+.effect-tag { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.effect-go {
+  justify-self: start;
+  margin-top: 6px;
+  padding: 12px 22px;
+  font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: #fdeef1;
+  background: linear-gradient(180deg, #b81a41, #9e0f34);
+  border: 1px solid #e56a86;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
+}
+.effect-go:hover { filter: brightness(1.15); }
+@media (prefers-reduced-motion: reduce) {
+  .effect-veil, .effect-veil.is-leaving, .effect-card { animation: none; }
+  .effect-card { box-shadow: 0 30px 80px rgba(0, 0, 0, .7), 0 0 40px rgba(210, 74, 100, .6); }
+}
+
 /* Il tiro del dado: un velo scuro sul tavolo, il dado che rotola al
    centro — un cubo bianco d'osso con lo spigolo di rubino — e sotto il
    risultato in grande, che si accende quando il dado si ferma. Sopra le

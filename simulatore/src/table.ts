@@ -31,9 +31,10 @@ import {
   type Ctx,
 } from "./ctx.js";
 import { showRoll } from "./dice.js";
+import { showEnterEffect } from "./effect.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
-import { TILE_H, TILE_W, cardName, cardStats, faceCount, faceKind, isRubyfront, type Deployment } from "./renderer.js";
+import { TILE_H, TILE_W, cardName, cardStats, enterEffects, faceCount, faceKind, isRubyfront, type Deployment } from "./renderer.js";
 import {
   STACK_STEP,
   declarationOf,
@@ -671,6 +672,21 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}» per ${cost} (Flusso ${player.flux}/${player.fluxMax}).`,
         card.owner
       );
+    }
+    // Il momento d'ingresso: se la carta ha un effetto «quando entra in
+    // campo», il gioco si ferma un attimo e lo annuncia (effect.ts).
+    if (passed && card.zone === "hand") {
+      const effects = enterEffects(card.cardId, card.face, ctx.locale());
+      if (effects.length) {
+        void showEnterEffect(root, {
+          cardId: card.cardId,
+          face: card.face,
+          theme: ctx.themeFor(card.owner),
+          locale: ctx.locale(),
+          who: `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}»`,
+          effects,
+        });
+      }
     }
     return passed;
   }
