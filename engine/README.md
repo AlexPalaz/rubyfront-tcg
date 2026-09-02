@@ -70,7 +70,7 @@ Regole collegate finora:
   passa solo se la fase è Preparazione, la carta è stappata e scoperta, e
   **non è entrata in campo questo turno** — lo Slancio non aggira il divieto
   (permette di attaccare subito, non di essere ritirata subito). Il
-  Rubyfront non si ritira mai: per lui c'è il richiamo volontario (§3.1).
+  Rubyfront non si ritira mai: una volta schierato resta in campo (§3.1).
   Un'Entità **avversaria** mandata in Ritiro nel turno di un altro è quasi
   sempre un effetto risolto a mano («metti un'Entità avversaria nella Zona
   di Ritiro…»): silenzio, non si accusa. `entered` ignoto (carta arrivata da
@@ -153,7 +153,7 @@ Regole collegate finora:
   legge il `behavior` della Materia — e il rovescio vale: una Reattiva in
   Preparazione è fuori dalla sua finestra, di chiunque sia il turno), e il
   **Rubyfront**, che si schiera o
-  richiama «in qualsiasi momento del proprio turno» (§3.1). Il Nexus non
+  schiera «in qualsiasi momento del proprio turno» (§3.1). Il Nexus non
   c'entra: è un flip, non un ingresso. Carta ignota: silenzio. Limite
   dichiarato: gli effetti che mettono in campo una carta durante il
   combattimento verrebbero fermati a torto (arriveranno con la regola
@@ -210,8 +210,8 @@ Regole collegate finora:
   Oggetto si posa solo addosso a un'Entità (`table.ts`, `boundSpot`).
   Coordinate assenti: niente da giudicare.
 - **§5/§6.2 Dal campo non si torna in mano né nel mazzo** — dal campo si
-  esce con il Ritiro, con l'Abisso o con un effetto; il Rubyfront ha il
-  richiamo, che resta in campo. Vale per tutti i posti. Limite dichiarato:
+  esce con il Ritiro, con l'Abisso o con un effetto; il Rubyfront
+  schierato resta in campo. Vale per tutti i posti. Limite dichiarato:
   un effetto «rimetti in mano» verrebbe fermato a torto (regola d'oro).
   Engine 0.18.0, diciannove regole.
 
@@ -259,12 +259,23 @@ Regole collegate finora:
   `roll`; l'engine verifica la forma — costo uguale allo stampato, tiro fra
   1 e le facce, costo uguale al tiro, Flusso che copre le facce — non la
   fortuna, come un arbitro con un dado tirato sul tavolo (limite
-  dichiarato). Lo schieramento è un gesto del proprio turno; il richiamo e
-  gli spostamenti sulla fila sono liberi. Con questa regola il pagamento
+  dichiarato). Lo schieramento è un gesto del proprio turno; gli
+  spostamenti sulla fila sono liberi. Con questa regola il pagamento
   si è unificato nei due gemelli (`pay`): prima la barra, poi il
   **Gettone**, che la copia del tavolo ora tiene (chi non inizia, patch,
   snapshot) e che conta nel Flusso disponibile anche per il costo delle
   carte (§3.2). Engine 0.21.0, ventidue regole.
+
+- **§3.1 Il Rubyfront schierato non torna in Zona di Richiamo** — «non
+  per una perdita di PV, non per scelta: non esiste un richiamo
+  volontario» (deciso dal designer, manuale aggiornato). Un `move` del
+  Rubyfront dalla sua fila alla fila di servizio viene fermato; in Zona di
+  Richiamo ci si sposta solo se non si è ancora schierati (anche nel
+  client, `boundSpot`). Limite dichiarato, e vale per ogni regola: «solo
+  una carta può riportarlo» (regola d'oro, §1.1) — oggi nessuna lo fa, e
+  quando una lo farà l'effetto risolto a mano verrebbe fermato a torto
+  finché l'engine non saprà leggere gli effetti. Engine 0.22.0, ventitré
+  regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

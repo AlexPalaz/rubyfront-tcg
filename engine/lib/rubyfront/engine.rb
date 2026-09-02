@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.21.0"
+    VERSION = "0.22.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -52,6 +52,7 @@ module Rubyfront
       "§7 Le Materie si giocano solo se abilitate",
       "§2/§9 Fine della partita: PV a zero, mazzo esaurito, pareggio",
       "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
+      "§3.1 Il Rubyfront schierato non torna in Zona di Richiamo",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -170,7 +171,7 @@ module Rubyfront
 
       # §5/§6.2 — dal campo non si torna in mano né nel mazzo: dal campo si
       # esce con il Ritiro (§6.2), con l'Abisso, o con un effetto — e il
-      # Rubyfront ha il richiamo, che resta in campo (§3.1). Vale per tutti
+      # Rubyfront schierato resta in campo (§3.1). Vale per tutti
       # i posti. Limite dichiarato: un effetto «rimetti in mano» verrebbe
       # fermato a torto (regola d'oro).
       if card[:zone] == "field" && %w[hand deck].include?(action["zone"])
@@ -209,14 +210,22 @@ module Rubyfront
     # il numero uscito. Il costo e il tiro viaggiano nell'azione: qui si
     # verifica la forma — costo uguale allo stampato, tiro fra 1 e le facce,
     # costo uguale al tiro — non la fortuna, come un arbitro con un dado
-    # tirato sul tavolo. Il richiamo e gli spostamenti sulla stessa fila
-    # sono liberi; fila ignota vale «non schierato»; senza costo in
-    # anagrafe, silenzio.
+    # tirato sul tavolo. Gli spostamenti sulla stessa fila sono liberi;
+    # fila ignota vale «non schierato»; senza costo in anagrafe, silenzio.
     def judge_deploy(card, action)
       y = action["y"]
       return no_rule("move") unless y.is_a?(Numeric)
 
-      deploying = FRONT_ROW_Y.include?(y) && !(card[:row] && FRONT_ROW_Y.include?(card[:row]))
+      deployed = card[:row] && FRONT_ROW_Y.include?(card[:row])
+      # §3.1 — «il Rubyfront, una volta schierato, non torna in Zona di
+      # Richiamo»: non per PV, non per scelta. Solo una carta può riportarlo
+      # (regola d'oro) — limite dichiarato: quell'effetto, risolto a mano,
+      # verrebbe fermato a torto.
+      if deployed && !FRONT_ROW_Y.include?(y)
+        return refuse("move", "il Rubyfront schierato non torna in Zona di Richiamo: resta in campo, salvo che una carta lo dica (§3.1)")
+      end
+
+      deploying = FRONT_ROW_Y.include?(y) && !deployed
       return no_rule("move") unless deploying
 
       deployment = @cards.dig(card[:card_id], :deployment)
@@ -273,8 +282,8 @@ module Rubyfront
       # a giocare con le carte e si prepara il Fronte». Nel Fronte si
       # dichiara, nella Reazione si difende. Due eccezioni del manuale: le
       # Materie Reattive, che «si giocano solo in Fase di Fronte» (§7.2), e
-      # il Rubyfront, che si schiera o richiama «in qualsiasi momento del
-      # proprio turno» (§3.1). Vale per entrambi i posti: nel turno altrui
+      # il Rubyfront, che si schiera «in qualsiasi momento del proprio
+      # turno» (§3.1). Vale per entrambi i posti: nel turno altrui
       # non è Preparazione di nessuno. Limite dichiarato: gli effetti che
       # mettono in campo una carta durante il combattimento verrebbero
       # fermati a torto (arriveranno con la regola d'oro).
@@ -363,12 +372,12 @@ module Rubyfront
     # Zona di Ritiro…») e non si accusa. Limite dichiarato: un effetto che
     # ritiri una PROPRIA Entità aggirando i vincoli verrebbe fermato a torto
     # — arriverà con la regola d'oro. Il Rubyfront invece non si ritira mai:
-    # per lui esiste il richiamo volontario, che è un'altra cosa.
+    # una volta schierato resta in campo (§3.1).
     def judge_retire(card)
       return no_rule("toZone") unless card[:zone] == "field"
 
       kind = @cards.dig(card[:card_id], :type)
-      return refuse("toZone", "il Rubyfront non si ritira: ha il richiamo volontario (§3.1)") if kind == "rubyfront"
+      return refuse("toZone", "il Rubyfront non si ritira: una volta schierato resta in campo (§3.1)") if kind == "rubyfront"
       return no_rule("toZone") unless kind == "entity"
       return no_rule("toZone") if card[:owner] != @table.active
 

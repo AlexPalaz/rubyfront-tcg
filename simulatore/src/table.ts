@@ -10,6 +10,7 @@ import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js
 import { declareAttack as declareAttackVia, declareBlock, undeclare } from "./combat.js";
 import { tapPreview } from "./preview.js";
 import {
+  COMPACT_TAIL_SAVED,
   FRONT_SLOT_X,
   FRONT_W,
   FRONT_X,
@@ -241,8 +242,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // h = surface·s + 48 + 424·s·boost si ha la scala che fa combaciare il
     // fondo della lavagna con l'orlo della mano.
     const compact = isCompactView();
+    // Due tetti in compatta: il tavolo con la mano sotto, e la misura di
+    // sempre — la coda accorciata (COMPACT_TAIL_SAVED) non fa crescere le
+    // carte, libera spazio.
     const heightFit = compact
-      ? (board.clientHeight - HAND_CHROME) / (surfaceViewH() + TILE_H * HAND_BOOST_COMPACT)
+      ? Math.min(
+          (board.clientHeight - HAND_CHROME) / (surfaceViewH() + TILE_H * HAND_BOOST_COMPACT),
+          board.clientHeight / (surfaceViewH() + COMPACT_TAIL_SAVED)
+        )
       : Number.POSITIVE_INFINITY;
     const scale = Math.min(1, board.clientWidth / SURFACE_W, heightFit);
     // Su html, non su body: le variabili derivate (--hand-scale, --hand-h)
@@ -382,8 +389,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         zoneEls.push(slot);
       };
 
-      // Zona di Richiamo (§5): il Rubyfront parte da qui, e ci torna solo per
-      // richiamo volontario.
+      // Zona di Richiamo (§5): il Rubyfront parte da qui, e una volta
+      // schierato non ci torna (§3.1).
       markSlot(SLOT_X.richiamo, back, "Zona di Richiamo");
 
       // I cinque slot del Fronte, al centro. L'etichetta è una sola per il
@@ -669,8 +676,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * suo posto segnato (§5) e ci si incastra, o non si posa affatto. Le
    * Entità stanno sugli slot del Fronte — quello del rilascio se è libero,
    * altrimenti il primo libero; a Fronte pieno il gesto cade. Le Materie
-   * vanno nella loro fila, dietro. Il Rubyfront ha due posti soli, il suo
-   * davanti al Fronte e la Zona di Richiamo, e ci arriva solo agganciato.
+   * vanno nella loro fila, dietro. Il Rubyfront ha due posti soli, la Zona
+   * di Richiamo da cui parte e il suo davanti al Fronte, e ci arriva solo
+   * agganciato — e una volta schierato non torna indietro (§3.1).
    * Gli Oggetti non passano di qui: il loro posto è addosso a un'Entità, e
    * lo decide il rilascio (vedi applyDrop). `null` = il gesto non si fa.
    */
@@ -681,7 +689,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (kind === "rubyfront" || kind === "nexus") {
       if (!drop.snapped) return null;
       const deployed = drop.x === RUBYFRONT_X && drop.y === front;
-      const recalled = drop.x === SLOT_X.richiamo && drop.y === backRowY(card.owner);
+      // In Zona di Richiamo si sta solo se non si è ancora schierati.
+      const recalled = drop.x === SLOT_X.richiamo && drop.y === backRowY(card.owner) && card.y !== front;
       return deployed || recalled ? { x: drop.x, y: drop.y } : null;
     }
     if (kind === "matter") return matterSpot(state, card.owner);

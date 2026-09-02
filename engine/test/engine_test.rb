@@ -593,7 +593,7 @@ class EngineTest < Minitest::Test
     giro_di_turno(engine)
     verdict = engine.judge(ritira("a-1"))
     refute verdict[:ok]
-    assert_match(/richiamo/, verdict[:reason])
+    assert_match(/resta in campo/, verdict[:reason])
   end
 
   def test_materie_e_carte_ignote_il_ritiro_tace
@@ -1426,9 +1426,16 @@ class EngineTest < Minitest::Test
     engine = richiamo("FISSO", flux: 3)
     assert schiera(engine, cost: 3)[:ok]
     assert_equal 0, engine.instance_variable_get(:@table).flux("a")
-    # richiamo e rischieramento: si ripaga per intero
-    assert schiera(engine, y: 1756)[:ok], "il richiamo è libero"
-    refute schiera(engine, cost: 3)[:ok], "ma il rischieramento si ripaga, e il Flusso è finito"
+  end
+
+  def test_una_volta_schierato_non_torna_in_zona_di_richiamo
+    engine = richiamo("FISSO", flux: 3)
+    schiera(engine, cost: 3)
+    verdict = schiera(engine, y: 1756)
+    assert verdict[:ruled]
+    refute verdict[:ok]
+    assert_match(/non torna in Zona di Richiamo.*§3\.1/, verdict[:reason])
+    refute engine.judge({ "t" => "toZone", "uid" => "rf", "zone" => "ritiro" })[:ok], "e non si ritira"
   end
 
   def test_costo_fisso_senza_flusso_o_sbagliato
@@ -1466,12 +1473,13 @@ class EngineTest < Minitest::Test
     assert_equal 2, engine.instance_variable_get(:@table).flux("a")
   end
 
-  def test_gli_spostamenti_sulla_fila_e_il_richiamo_sono_liberi
+  def test_gli_spostamenti_sulla_fila_sono_liberi
     engine = richiamo("FISSO", flux: 3)
     schiera(engine, cost: 3)
     verdict = engine.judge({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1236, "z" => 4 })
     refute verdict[:ruled], "già schierato: si sposta e basta"
-    refute schiera(engine, y: 1756)[:ruled], "il richiamo non si paga"
+    engine = richiamo("FISSO", flux: 0)
+    refute engine.judge({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1756, "z" => 4 })[:ruled], "e in Richiamo pure"
   end
 
   def test_lo_schieramento_e_un_gesto_del_proprio_turno
