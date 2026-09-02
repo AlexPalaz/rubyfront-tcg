@@ -283,8 +283,10 @@ L'arbitro esterno vive in `engine/` alla radice del repo, in Ruby. L'engine dà
 le regole, il poliziotto è il simulatore: ogni azione locale aspetta il
 verdetto prima di applicarsi, e un «no» la blocca con un avviso (le azioni
 senza regola collegata passano come sempre; engine assente = tavolo libero).
-Si accende dietro un flag, **spento di default**: ingranaggio → **Engine** →
-**Acceso** (la spia quadrata in alto ne mostra lo stato). Per avviarlo:
+Sta dietro un flag, **acceso di default** (chi l'ha spento apposta resta
+spento): ingranaggio → **Engine** → **Acceso** (la spia quadrata in alto ne
+mostra lo stato; rossa = engine non raggiungibile, e il tavolo resta libero
+come sempre). Per avviarlo:
 `npm run engine` (oppure `ruby engine/bin/server`, porta 8788). Il confine
 client è tutto in `src/engine.ts`; protocollo, regole collegate e piano di
 crescita sono nel `engine/README.md`.

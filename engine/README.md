@@ -189,9 +189,10 @@ ruby engine/bin/server        # ascolta su ws://localhost:8788
 ```
 
 (oppure, da `simulatore/`: `npm run engine`). Nel simulatore:
-ingranaggio → **Engine** → spunta **Acceso**. La spia quadrata in alto
-diventa verde e in chat compare il saluto dell'engine. Il flag è **spento di
-default**: senza toccarlo, il simulatore non sa nemmeno che l'engine esiste.
+la spia quadrata in alto diventa verde e in chat compare il saluto
+dell'engine. Il flag (ingranaggio → **Engine** → **Acceso**) è **acceso di
+default**: chi non l'ha mai toccato gioca arbitrato, chi l'ha spento apposta
+resta spento. Engine non raggiungibile: spia rossa, tavolo libero come sempre.
 
 ## Come si prova
 

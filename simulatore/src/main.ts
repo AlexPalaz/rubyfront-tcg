@@ -607,7 +607,10 @@ function engineStop(verdict: EngineVerdict): void {
   okay.focus();
 }
 
-// L'engine: l'arbitro esterno, dietro un flag e spento di default. Acceso,
+// L'engine: l'arbitro esterno, dietro un flag e ACCESO di default — chi
+// non l'ha mai toccato gioca arbitrato (chi l'ha spento apposta resta
+// spento). Senza un engine raggiungibile la spia va in rosso e il tavolo
+// resta libero, come sempre: un arbitro assente non ferma nessuno. Acceso,
 // giudica le azioni locali PRIMA che si applichino (vedi dispatch): l'engine
 // dà solo le regole, il poliziotto è il simulatore — trattiene l'azione,
 // e su un «no» la lascia cadere mostrando l'avviso. Le azioni avversarie
@@ -615,7 +618,7 @@ function engineStop(verdict: EngineVerdict): void {
 const engineToggle = document.querySelector<HTMLInputElement>("#engine-toggle")!;
 const engineUrlInput = document.querySelector<HTMLInputElement>("#engine-url")!;
 const engineDot = document.querySelector<HTMLElement>("#engine-dot")!;
-engineToggle.checked = store.read("engine", "") === "1";
+engineToggle.checked = store.read("engine", "1") === "1";
 engineUrlInput.value = store.read("engineUrl", DEFAULT_ENGINE);
 
 function setEngineStatus(status: EngineStatus): void {
