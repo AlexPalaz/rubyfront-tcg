@@ -752,6 +752,21 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     );
   }
 
+  /**
+   * Con l'arbitro al tavolo, una carta in mano che costa più del Flusso
+   * disponibile — barra più Gettone (§3.2) — non si gioca: si vela e non si
+   * prende. È un aiuto, non una regola: la regola è dell'engine (§3.2, il
+   * costo delle carte), che fermerebbe comunque il gesto. Il Rubyfront ha il
+   * costo di schieramento, un'altra cosa; costo ignoto, carta libera.
+   */
+  function unaffordable(card: CardInstance): boolean {
+    if (!ctx.arbitrated() || card.zone !== "hand" || !ctx.controls(card.owner) || isRubyfront(card.cardId)) return false;
+    const cost = cardStats(card.cardId).fluxCost;
+    if (cost === null) return false;
+    const player = ctx.state().players[card.owner];
+    return cost > player.flux + (player.token ? 1 : 0);
+  }
+
   function applyDrop(card: CardInstance, drop: Drop): void {
     if (!drop) return;
     if (drop.kind === "field") {
@@ -869,7 +884,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (!live) return false;
           // La mano avversaria è nascosta (§5): non si tocca — salvo in
           // partita locale, dove anche quella mano è di chi guida il tavolo.
-          return !(live.zone === "hand" && !ctx.controls(live.owner));
+          if (live.zone === "hand" && !ctx.controls(live.owner)) return false;
+          // E la carta che non ci si può permettere resta nella mano.
+          return !unaffordable(live);
         },
         onDragMove: drop => {
           const live = ctx.state().cards[card.uid];
@@ -954,6 +971,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (ctx.arbitrated()) return;
           ctx.dispatch({ t: "tap", uid: live.uid, tapped: !live.tapped });
         } else if (live.zone === "hand" && ctx.controls(live.owner)) {
+          if (unaffordable(live)) return;
           // Il doppio click gioca: Entità sul primo slot libero del Fronte,
           // Materie nella loro fila (§5) — mai sugli slot.
           const spot = playSpot(ctx.state(), live.owner, faceKind(live.cardId, live.face));
@@ -1079,6 +1097,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // carta sotto è intera, la taglia l'overflow. In mano resta piena.
       tile.style.height = `${tileViewH()}px`;
       tile.classList.toggle("is-cropped", isCompactView());
+      tile.classList.remove("is-unaffordable");
       tile.style.zIndex = String(10 + card.z);
     }
 
@@ -1118,6 +1137,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         tile.style.top = "";
         tile.style.height = `${TILE_H}px`;
         tile.classList.remove("is-cropped");
+        tile.classList.toggle("is-unaffordable", unaffordable(card));
         tile.style.zIndex = "";
         wanted.push(tile);
       }
