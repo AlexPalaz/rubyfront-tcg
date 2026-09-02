@@ -31,7 +31,7 @@ import {
   type Ctx,
 } from "./ctx.js";
 import { showRoll } from "./dice.js";
-import { showEnterEffect } from "./effect.js";
+import { confirmEffect, showEnterEffect } from "./effect.js";
 import { describeMove, describeTrigger, enterMoves, enterTriggers, resolveMove, resolveTrigger, type EnterMoveStep } from "./effects.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
@@ -91,9 +91,12 @@ export interface TableView {
   /** Callback per aprire la ricerca: la fornisce main.ts. */
   onBrowse(handler: (seat: Seat, zone: ZoneId) => void): void;
   /** Il bagliore di una carta che si innesca: per gli effetti arrivati dalla rete. */
-  flash(uid: string): void;
+  flash(uid: string, ms?: number): void;
   /** La freccia di un effetto dalla fonte al bersaglio, per un attimo. */
   flashArrow(fromUid: string, toUid: string): void;
+  /** Prende la tessera prima che voli in una pila (chi riceve): ritorna il
+      via al volo, da dare dopo aver applicato l'azione. */
+  liftForFlight(uid: string): (() => void) | null;
 }
 
 export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
@@ -882,16 +885,56 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   /** Il bagliore per un effetto arrivato dalla rete: la pesca è già
       avvenuta, la fonte si accende e si spegne col ritmo di chi ha giocato. */
-  function flash(uid: string): void {
+  function flash(uid: string, ms: number = TRIGGER_LEAD_MS + TRIGGER_TAIL_MS): void {
     light(uid, true);
     hold(true);
     window.setTimeout(() => {
       light(uid, false);
       hold(false);
-    }, TRIGGER_LEAD_MS + TRIGGER_TAIL_MS);
+    }, ms);
   }
 
   const wait = (ms: number): Promise<void> => new Promise(resolve => window.setTimeout(resolve, ms));
+
+  /** Quanto dura il volo di una carta verso una pila (come .fly-ghost). */
+  const FLY_MS = 900;
+
+  /**
+   * La carta vola verso una pila: un fantasma della tessera, preso PRIMA che
+   * lo stato cambi (la tessera vera sparirà nella pila), che scivola fino
+   * al riquadro della pila del proprietario e svanisce. Chi la chiama la
+   * prende prima dell'azione e la lascia partire dopo.
+   */
+  function liftForFlight(uid: string): (() => void) | null {
+    const tile = tiles.get(uid);
+    const live = ctx.state().cards[uid];
+    if (!tile || !live || tile.offsetParent === null) return null;
+    const from = tile.getBoundingClientRect();
+    const ghost = tile.cloneNode(true) as HTMLElement;
+    ghost.classList.add("fly-ghost");
+    ghost.classList.remove("is-pickable", "is-legal", "is-triggering");
+    ghost.style.left = `${from.left}px`;
+    ghost.style.top = `${from.top}px`;
+    ghost.style.width = `${from.width}px`;
+    ghost.style.height = `${from.height}px`;
+    ghost.style.margin = "0";
+    ghost.style.transform = "none";
+    document.body.append(ghost);
+    return () => {
+      const slot = pileSlots.get(`${live.owner}:ritiro`);
+      const to = slot?.getBoundingClientRect();
+      if (!to) {
+        ghost.remove();
+        return;
+      }
+      // Un frame dopo, così la transizione parte dalla posizione di ora.
+      requestAnimationFrame(() => {
+        ghost.style.transform = `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / from.width})`;
+        ghost.style.opacity = "0.15";
+      });
+      window.setTimeout(() => ghost.remove(), FLY_MS + 60);
+    };
+  }
 
   async function playMove(step: EnterMoveStep): Promise<void> {
     if (step.candidates.length === 0) {
@@ -904,12 +947,27 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       light(step.source.uid, false);
       return;
     }
+    // Scelto il bersaglio, si chiede conferma — con la freccia in vista.
+    flashArrow(step.source.uid, target.uid, 60_000);
+    const sure = await confirmEffect(root, `Mandare «${ctx.card(target.cardId).name}» nella Zona di Ritiro?`);
+    if (!sure) {
+      transientArrows = [];
+      light(step.source.uid, false);
+      render();
+      return;
+    }
     hold(true);
     try {
-      flashArrow(step.source.uid, target.uid, TRIGGER_LEAD_MS + TRIGGER_TAIL_MS);
       await wait(TRIGGER_LEAD_MS);
+      const fly = liftForFlight(target.uid);
       const passed = await resolveMove(ctx, step, target);
-      await wait(passed ? TRIGGER_TAIL_MS : 0);
+      transientArrows = [];
+      if (passed) {
+        fly?.();
+        await wait(FLY_MS + TRIGGER_TAIL_MS);
+      } else {
+        render();
+      }
     } finally {
       light(step.source.uid, false);
       hold(false);
@@ -1378,7 +1436,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   return {
     render,
     flash,
-    flashArrow: (fromUid, toUid) => flashArrow(fromUid, toUid, TRIGGER_LEAD_MS + TRIGGER_TAIL_MS),
+    flashArrow: (fromUid, toUid) => flashArrow(fromUid, toUid, TRIGGER_LEAD_MS + FLY_MS),
+    liftForFlight,
     refreshLayout() {
       applySurfaceSize();
       buildStaticZones();

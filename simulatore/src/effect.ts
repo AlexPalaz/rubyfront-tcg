@@ -195,3 +195,45 @@ function showEnterPeekNow(root: HTMLElement, show: EnterEffectShow): Promise<voi
     }, PEEK_HOLD_MS);
   });
 }
+
+/**
+ * La conferma di un effetto con bersaglio: scelto il bersaglio, prima di
+ * agire si chiede «davvero?». Un pannello piccolo al centro, «Conferma» o
+ * «Annulla» (Invio ed Esc). Risolve true se si conferma.
+ */
+export function confirmEffect(root: HTMLElement, question: string): Promise<boolean> {
+  const veil = document.createElement("div");
+  veil.className = "effect-confirm";
+  const panel = document.createElement("div");
+  panel.className = "effect-confirm-panel";
+  const text = document.createElement("p");
+  text.textContent = question;
+  const row = document.createElement("div");
+  row.className = "effect-confirm-row";
+  const no = document.createElement("button");
+  no.type = "button";
+  no.className = "effect-confirm-no";
+  no.textContent = "Annulla";
+  const yes = document.createElement("button");
+  yes.type = "button";
+  yes.className = "effect-go";
+  yes.textContent = "Conferma";
+  row.append(no, yes);
+  panel.append(text, row);
+  veil.append(panel);
+  root.append(veil);
+  return new Promise(resolve => {
+    const done = (answer: boolean): void => {
+      document.removeEventListener("keydown", onKey);
+      veil.remove();
+      resolve(answer);
+    };
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === "Enter") done(true);
+      if (event.key === "Escape") done(false);
+    };
+    yes.addEventListener("click", () => done(true));
+    no.addEventListener("click", () => done(false));
+    document.addEventListener("keydown", onKey);
+  });
+}

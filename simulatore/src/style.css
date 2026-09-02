@@ -443,6 +443,48 @@ body.is-resolving { cursor: progress; }
 /* L'avviso per chi guarda: velo leggero che non ferma i click, e la carta
    che poi scivola nell'angolo. */
 .effect-veil.is-peek { background: rgba(5, 4, 10, .38); backdrop-filter: none; pointer-events: none; }
+/* La conferma di un effetto con bersaglio: un pannello piccolo, sopra il
+   tavolo ma senza velo pieno — la freccia al bersaglio resta in vista. */
+.effect-confirm {
+  position: absolute; inset: 0;
+  z-index: 44;
+  display: grid; place-content: center;
+  pointer-events: none;
+}
+.effect-confirm-panel {
+  pointer-events: auto;
+  display: grid; gap: 14px;
+  width: min(380px, 90vw);
+  padding: 18px 20px;
+  background: var(--glass-heavy, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--ruby) 45%, var(--line));
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
+  color: var(--ink);
+  animation: engine-stop-card .18s ease-out;
+}
+.effect-confirm-panel p { margin: 0; line-height: 1.5; }
+.effect-confirm-row { display: flex; gap: 10px; justify-content: flex-end; }
+.effect-confirm-no {
+  padding: 12px 18px;
+  font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink);
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.effect-confirm-no:hover { border-color: var(--ruby); }
+/* La carta che vola verso una pila: un fantasma della tessera, fisso sullo
+   schermo, che si sposta con una transizione sola. */
+.fly-ghost {
+  position: fixed;
+  z-index: 9550;
+  pointer-events: none;
+  transition: transform .9s cubic-bezier(.3, .7, .2, 1), opacity .9s ease;
+  transform-origin: 0 0;
+}
+
 /* Il tiro del dado: un velo scuro sul tavolo, il dado che rotola al
    centro — un cubo bianco d'osso con lo spigolo di rubino — e sotto il
    risultato in grande, che si accende quando il dado si ferma. Sopra le

@@ -141,9 +141,11 @@ function receive(action: Action, from: Seat): void {
   // Un effetto dell'avversario si vede anche qui: la fonte si accende, e se
   // ha un bersaglio la freccia lo indica — prima che la carta parta.
   if (action.t === "draw" && action.effect) table.flash(action.effect.source);
+  let fly: (() => void) | null = null;
   if (action.t === "toZone" && action.effect) {
     table.flashArrow(action.effect.source, action.uid);
-    table.flash(action.effect.source);
+    table.flash(action.effect.source, 1600);
+    fly = table.liftForFlight(action.uid);
   }
   // Il tiro del dado dell'avversario si vede anche qui: la carta scende
   // insieme, ma il momento è lo stesso.
@@ -156,6 +158,7 @@ function receive(action: Action, from: Seat): void {
   // partita intera, non una metà.
   engine?.consult(action, from);
   paint();
+  fly?.();
 }
 
 /**
