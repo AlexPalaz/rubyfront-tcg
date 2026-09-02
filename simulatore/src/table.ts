@@ -69,6 +69,15 @@ export function drawCascadeMs(count: number): number {
   return (count - 1) * DRAW_STEP_MS + DRAW_RUN_MS;
 }
 
+/** La mano rispetto al campo: in vista normale le carte in mano stanno un
+    30% sopra la scala del campo (sono quelle da leggere e da giocare), in
+    compatta alla scala del campo — il cassetto deve starci sotto il tavolo.
+    Specchio di --hand-boost in style.css. */
+const HAND_BOOST = 1.3;
+const HAND_BOOST_COMPACT = 1;
+/** La cornice del cassetto oltre la carta (i 48px di --hand-h). */
+const HAND_CHROME = 48;
+
 export interface TableView {
   render(): void;
   /** Rifà la geometria di vista (misure, zone, scala): per il cambio di
@@ -220,9 +229,19 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   // carte in mano con lei, via CSS). Si vedono più piccole, ma a leggerle ci
   // pensa l'ingrandimento al passaggio, che resta a misura piena.
   function fitScale(): void {
-    // In vista compatta il tavolo deve stare TUTTO nella finestra: il fit
-    // guarda anche l'altezza, e lo scorrimento sparisce.
-    const heightFit = isCompactView() ? board.clientHeight / surfaceViewH() : Number.POSITIVE_INFINITY;
+    // In vista compatta il tavolo deve stare TUTTO nella finestra, MANO
+    // COMPRESA: il cassetto è un pannello sopra la lavagna, e se il fit non
+    // lo contasse coprirebbe la fila di servizio (Richiamo, pile). Qui le
+    // carte in mano stanno alla scala del campo (HAND_BOOST_COMPACT), non
+    // al 30% in più della vista normale — un po' più piccole, per farci
+    // stare tutto. L'altezza del cassetto è quella di --hand-h in CSS,
+    // 48px di cornice più una carta in scala di mano: risolvendo
+    // h = surface·s + 48 + 424·s·boost si ha la scala che fa combaciare il
+    // fondo della lavagna con l'orlo della mano.
+    const compact = isCompactView();
+    const heightFit = compact
+      ? (board.clientHeight - HAND_CHROME) / (surfaceViewH() + TILE_H * HAND_BOOST_COMPACT)
+      : Number.POSITIVE_INFINITY;
     const scale = Math.min(1, board.clientWidth / SURFACE_W, heightFit);
     // Su html, non su body: le variabili derivate (--hand-scale, --hand-h)
     // sono definite in :root e si risolvono LÌ — un override sul body non le
@@ -230,6 +249,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // floor, non round: arrotondare in su lascerebbe UN pixel di scorrimento
     // proprio nella vista che promette di non scorrere.
     document.documentElement.style.setProperty("--card-scale", String(Math.floor(scale * 1000) / 1000));
+    document.documentElement.style.setProperty("--hand-boost", String(compact ? HAND_BOOST_COMPACT : HAND_BOOST));
+    // Quando in compatta comanda l'altezza, la lavagna è più stretta della
+    // finestra: si centra nello spazio a sinistra della corsia dell'HUD
+    // (--hud-lane), invece di restare incollata a sinistra col vuoto a
+    // destra — o di finire sotto l'HUD. Il margine è in percentuale della
+    // lavagna e legge la scala dalla variabile: al ridimensionamento si
+    // sistema da sé. Le coordinate dei rilasci partono dal rettangolo della
+    // superficie, non dalla lavagna, quindi lo spostamento non le tocca.
+    surface.style.marginLeft = compact
+      ? `max(0px, calc((100% - var(--hud-lane) - ${SURFACE_W}px * var(--card-scale)) / 2))`
+      : "";
   }
   fitScale();
   new ResizeObserver(fitScale).observe(board);

@@ -77,7 +77,10 @@
   --card-scale: 1;
   /* In mano le carte stanno un 30% sopra la scala del campo (mai oltre il
      naturale): sono quelle da leggere e da giocare. */
-  --hand-scale: min(1, calc(var(--card-scale) * 1.3));
+  /* Il 30% lo mette il tavolo (--hand-boost, table.ts): in vista compatta
+     scende a 1, perché lì il cassetto deve stare sotto la lavagna intera. */
+  --hand-boost: 1.3;
+  --hand-scale: min(1, calc(var(--card-scale) * var(--hand-boost)));
   /* 424 di carta (in scala di mano) + spazio per etichetta e margine. */
   --hand-h: calc(48px + 424px * var(--hand-scale));
 }

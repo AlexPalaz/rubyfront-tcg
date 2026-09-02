@@ -86,6 +86,9 @@ export function isCompactView(): boolean {
 const COMPACT_TILE_H = 210;
 /** Il varco fra le due file si stringe con le carte. */
 const COMPACT_ROW_GAP = 48;
+/** In compatta la mano non si sovrappone più alla lavagna (il fit la conta,
+    vedi fitScale in table.ts): la coda in fondo serve solo da respiro. */
+const COMPACT_BOTTOM_PAD = 48;
 
 /** Altezza di VISTA di una tessera sul campo. */
 export function tileViewH(): number {
@@ -94,13 +97,16 @@ export function tileViewH(): number {
 function rowGapView(): number {
   return compactView ? COMPACT_ROW_GAP : ROW_GAP;
 }
+function bottomPadView(): number {
+  return compactView ? COMPACT_BOTTOM_PAD : BOTTOM_PAD;
+}
 /** Altezza di VISTA di una fascia. */
 export function bandViewH(): number {
   return ROW_PAD + tileViewH() + rowGapView() + tileViewH() + ROW_PAD;
 }
 /** Altezza di VISTA dell'intera superficie. */
 export function surfaceViewH(): number {
-  return TOP_PAD + bandViewH() * 2 + HALF_GAP + BOTTOM_PAD;
+  return TOP_PAD + bandViewH() * 2 + HALF_GAP + bottomPadView();
 }
 
 /**
@@ -124,7 +130,7 @@ function anchors(): [number[], number[]] {
     seg(ROW_PAD, ROW_PAD);
     if (band === 0) seg(HALF_GAP, HALF_GAP);
   }
-  seg(BOTTOM_PAD, BOTTOM_PAD);
+  seg(BOTTOM_PAD, bottomPadView());
   return [canon, view];
 }
 
