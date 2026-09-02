@@ -12,7 +12,7 @@ Regole collegate finora:
 - **§3.2 Flusso: limite 20** — il Flusso e la sua barra non superano mai 20;
   unica eccezione la spesa del Gettone (`token: false` nella stessa patch),
   l'unico 21 legale.
-- **§6.4 Mano: massimo 7 a fine turno** — il cambio di turno non passa se chi
+- **§6.5 Mano: massimo 7 a fine turno** — il cambio di turno non passa se chi
   chiude ha più di 7 carte in mano. È una regola di CHIUSURA: pescare
   all'ottava carta a metà turno resta legale, è il Fine turno che si ferma.
 - **§6.3 Dichiarazioni: tappate, coperte, sfide 1 contro 1** — la coperta non

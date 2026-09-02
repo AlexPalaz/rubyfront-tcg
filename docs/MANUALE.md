@@ -191,7 +191,7 @@ Il **mazzo** e la **mano** sono **nascosti** all'avversario.
 
 ## 6. Struttura del turno
 
-Il turno si compone di tre fasi, nell'ordine: **Pesca → Preparazione → Fronte**.
+Il turno si compone di quattro fasi, nell'ordine: **Pesca → Preparazione → Fronte → Reazione**. Le prime tre appartengono al giocatore di turno; la **Reazione** è la fase del **difensore**, dentro il turno dell'attaccante — e c'è solo se un'ondata d'attacco è stata dichiarata (§6.3).
 
 ### 6.1 Fase di Pesca
 
@@ -234,12 +234,9 @@ Terminata la Fase di Preparazione, il giocatore di turno **dichiara di entrare i
 
 1. **Pre-Fronte:** dichiarata l'apertura del Fronte, **l'avversario può giocare Materie Reattive**. Il giocatore di turno può rispondere con la catena di risposta (§7.2).
 2. **Finestra Reattive del giocatore di turno:** conclusa la Pre-Fronte, il giocatore di turno può giocare le proprie Materie Reattive (l'avversario può rispondere in catena, §7.2).
-3. **Fronte pronto — dichiarazione dell'attacco (o passo):** il giocatore di turno **seleziona tutte le Entità con cui attacca** e le dichiara **in un'unica ondata** — oppure dichiara che passa. **Dopo la dichiarazione non si possono più *iniziare* Reattive**, con un'unica eccezione: una Reattiva giocata come blocco (vedi punto 4). Le **risposte in catena** (§7.2) restano sempre possibili: ogni Reattiva giocata può essere risposta con altre Reattive.
-4. **Dichiarazione dei blocchi:** il difensore, vista l'intera ondata, **assegna i propri blocchi**. Ogni attaccante può essere bloccato da:
-   - una **propria Entità** (sfide 1 contro 1: un bloccante per attaccante, ogni Entità blocca una sola volta; chi blocca si tappa, chi contrattacca si copre), **oppure**
-   - una **Materia Reattiva il cui testo permette di bloccare** (pagandone il costo di Flusso): la Reattiva sostituisce il bloccante per quell'attacco. **Non c'è confronto di Potenza** (la Reattiva non ne ha): l'attacco è **comunque bloccato**, e l'eventuale sorte dell'attaccante la stabilisce il **testo della Reattiva**. Come ogni Reattiva, **apre la catena di risposta** (§7.2): l'attaccante può rispondere.
-5. **Risoluzione:** le battaglie si risolvono una alla volta, **nell'ordine di dichiarazione degli attaccanti** (confronto di Potenza per ogni coppia; gli attacchi non bloccati infliggono danni al Rubyfront).
-6. **Fine del turno.**
+3. **Fronte pronto — dichiarazione dell'attacco (o passo):** il giocatore di turno **seleziona tutte le Entità con cui attacca** e le dichiara **in un'unica ondata** — oppure dichiara che passa. **Dopo la dichiarazione non si possono più *iniziare* Reattive**, con un'unica eccezione: una Reattiva giocata come blocco (§6.4). Le **risposte in catena** (§7.2) restano sempre possibili: ogni Reattiva giocata può essere risposta con altre Reattive.
+
+Dichiarata l'ondata, la parola passa al difensore: si entra in **Fase di Reazione** (§6.4). Se invece il giocatore **passa**, la Reazione non c'è e si va al Fine del turno (§6.5).
 
 **Movimento del Rubyfront:** promemoria — può essere schierato o richiamato in **qualsiasi momento del proprio turno**, anche dopo gli attacchi, fino alla fine del turno (vedi §3.1, "Finestra di movimento").
 
@@ -307,7 +304,16 @@ Risoluzione del contrattacco (totale = Potenza + N contro Potenza dell'attaccant
   4. *Turno del proprietario (T+3):* viene **scoperta** e può di nuovo agire.
 
 
-### 6.4 Fine del turno
+### 6.4 Fase di Reazione
+
+La fase del **difensore**, dentro il turno dell'attaccante: dichiarata l'ondata, la parola passa a lui — **l'attaccante non aggiunge più attacchi** e aspetta la reazione. Il difensore, **vista l'intera ondata**, decide come reagire:
+
+- **assegna i propri blocchi**: ogni attaccante può essere bloccato da una **propria Entità** (sfide 1 contro 1: un bloccante per attaccante, ogni Entità blocca una sola volta; chi blocca si tappa, chi contrattacca si copre), **oppure** da una **Materia Reattiva il cui testo permette di bloccare** (pagandone il costo di Flusso): la Reattiva sostituisce il bloccante per quell'attacco. **Non c'è confronto di Potenza** (la Reattiva non ne ha): l'attacco è **comunque bloccato**, e l'eventuale sorte dell'attaccante la stabilisce il **testo della Reattiva**. Come ogni Reattiva, **apre la catena di risposta** (§7.2): l'attaccante può rispondere;
+- oppure **non blocca**, in tutto o in parte: gli attacchi lasciati passare arriveranno al Rubyfront alla risoluzione.
+
+**Risoluzione:** conclusa la Reazione (blocchi assegnati, o rinuncia del difensore), le battaglie si risolvono una alla volta, **nell'ordine di dichiarazione degli attaccanti** (confronto di Potenza per ogni coppia; gli attacchi non bloccati infliggono danni al Rubyfront). Poi il turno si chiude (§6.5).
+
+### 6.5 Fine del turno
 
 Non si possono avere **più di 7 carte in mano**: alla fine del proprio turno, le carte in eccesso vanno **scartate** (nell'Abisso).
 
@@ -503,7 +509,7 @@ Il pareggio esiste in due soli casi:
 
 ### 9.3 Riepilogo dei limiti
 
-- Massimo **7 carte in mano** (l'eccesso si scarta a fine turno, §6.4).
+- Massimo **7 carte in mano** (l'eccesso si scarta a fine turno, §6.5).
 - Massimo **5 Entità sul Fronte** (i 5 slot; Rubyfront e Materie permanenti non contano, §6.2).
 - Massimo **3 copie** della stessa carta nel mazzo — **una sola** se la carta è **Unica** (§3.1).
 - Massimo **20 Flussi** (§3.2). Il Gettone Flusso è fuori dal limite: è un punto a parte.

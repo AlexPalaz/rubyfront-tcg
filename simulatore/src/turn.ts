@@ -26,7 +26,7 @@ export async function declareFront(ctx: Ctx): Promise<void> {
 export async function endTurn(ctx: Ctx): Promise<void> {
   const state = ctx.state();
   const next = otherSeat(state.active);
-  // Il cambio di turno passa per primo dal giudizio dell'engine (§6.4: mano
+  // Il cambio di turno passa per primo dal giudizio dell'engine (§6.5: mano
   // massima 7 alla chiusura): se il poliziotto lo ferma, il resto della
   // routine — Flusso nuovo, frecce sgomberate — non deve nemmeno partire.
   if (!(await ctx.dispatch({ t: "turn", turn: state.turn + 1, active: next }))) return;

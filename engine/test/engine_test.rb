@@ -85,7 +85,7 @@ class EngineTest < Minitest::Test
     assert @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 0 } })[:ok]
   end
 
-  # --- §6.4: mano massima 7 a fine turno ---------------------------------
+  # --- §6.5: mano massima 7 a fine turno ---------------------------------
 
   def carica_e_pesca(seat, count)
     cards = (1..count).map do |serial|
@@ -105,7 +105,7 @@ class EngineTest < Minitest::Test
     assert verdict[:ruled]
     refute verdict[:ok]
     assert_match(/8 carte/, verdict[:reason])
-    assert_match(/§6\.4/, verdict[:reason])
+    assert_match(/§6\.5/, verdict[:reason])
   end
 
   def test_fine_turno_fermato_non_cambia_il_posto_attivo

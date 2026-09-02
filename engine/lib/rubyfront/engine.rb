@@ -31,7 +31,7 @@ module Rubyfront
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
     RULES = [
       "§3.2 Flusso: limite 20",
-      "§6.4 Mano: massimo 7 a fine turno",
+      "§6.5 Mano: massimo 7 a fine turno",
       "§6.2 Attesa di evocazione",
       "§6.3 Dichiarazioni: tappate, coperte, sfide 1 contro 1",
       "§6.2 Fronte: massimo 5 Entità",
@@ -249,7 +249,7 @@ module Rubyfront
       allow("player")
     end
 
-    # §6.4 — «Non si possono avere più di 7 carte in mano: alla fine del
+    # §6.5 — «Non si possono avere più di 7 carte in mano: alla fine del
     # proprio turno, le carte in eccesso vanno scartate». La regola è di
     # CHIUSURA, non un divieto continuo: pescare all'ottava carta a metà
     # turno è legale — è il Fine turno che non passa finché non si è
@@ -260,7 +260,7 @@ module Rubyfront
 
       held = @table.hand_count(@table.active)
       if held > 7
-        refuse("turn", "chi chiude il turno ha #{held} carte in mano: prima scarta fino a 7 (§6.4)")
+        refuse("turn", "chi chiude il turno ha #{held} carte in mano: prima scarta fino a 7 (§6.5)")
       else
         allow("turn")
       end
