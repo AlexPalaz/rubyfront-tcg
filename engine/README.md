@@ -215,6 +215,24 @@ Regole collegate finora:
   un effetto «rimetti in mano» verrebbe fermato a torto (regola d'oro).
   Engine 0.18.0, diciannove regole.
 
+- **§7 Le Materie si giocano solo se abilitate** — «una carta Materia è
+  giocabile solo se in campo c'è una carta che ha quel tipo di Materia
+  abilitato», al grado richiesto (§7.1): abilita una PROPRIA carta in
+  campo, non coperta (la tappata abilita normalmente), con la faccia che
+  mostra — il Nexus abilita solo ciò che è stampato su di lui (§3.1) — e il
+  Rubyfront solo schierato: in Zona di Richiamo non abilita nulla. Per
+  dirlo la copia del tavolo annota due cose in più su ogni carta: la
+  faccia (`flip`) e la fila dell'ultima posa in campo (`row`, l'ordinata
+  canonica di `toZone`/`move`) — l'unica geometria che tiene, e solo per
+  distinguere il Rubyfront schierato da quello in Richiamo. L'anagrafe
+  legge tipo e grado delle Materie e le abilitazioni per faccia. Vale
+  giocando dalla mano; Materia senza etichetta o fila ignota: nel dubbio
+  non si accusa. Il sigillo: «nessuna carta in campo abilita la Materia
+  Dinamica di grado 2». Limiti dichiarati: l'attribuzione (quale
+  abilitante, §7) non si sceglie, e il decadere delle permanenti quando
+  l'abilitazione si perde (§7.2) arriverà a parte. Engine 0.19.0, venti
+  regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

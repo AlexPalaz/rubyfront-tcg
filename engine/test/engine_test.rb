@@ -1259,4 +1259,89 @@ class EngineTest < Minitest::Test
     refute engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "deck" })[:ok]
     assert engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })[:ok], "l'Abisso sì"
   end
+
+  # --- §7: le Materie si giocano solo se abilitate -------------------------
+
+  MATERIE = {
+    "UMANO" => { type: "entity", keywords: [], enables: [[{ type: "dynamic", max_grade: 1 }]] },
+    "MAESTRO" => { type: "entity", keywords: [], enables: [[{ type: "dynamic", max_grade: 2 }]] },
+    "AUROS" => { type: "entity", keywords: [], enables: [[{ type: "dimensional", max_grade: 2 }]] },
+    "RUBINO" => { type: "rubyfront", keywords: [],
+                  enables: [[{ type: "destructive", max_grade: 1 }], [{ type: "destructive", max_grade: 2 }]] },
+    "SCINTILLA" => { type: "matter", keywords: [], behavior: "normal", matter: { type: "dynamic", grade: 1 } },
+    "TEMPESTA" => { type: "matter", keywords: [], behavior: "normal", matter: { type: "dynamic", grade: 2 } },
+    "ROVINA" => { type: "matter", keywords: [], behavior: "normal", matter: { type: "destructive", grade: 2 } },
+    "MISTERO" => { type: "matter", keywords: [], behavior: "normal", matter: nil },
+  }.freeze
+
+  # Un tavolo per A: `field` sono [uid, id, opzioni] già in campo (con la
+  # fila `y` e la faccia), `hand` [uid, id] in mano. Un carico solo.
+  def tavolo(field, hand, seat: "a")
+    engine = Rubyfront::Engine.new(cards: MATERIE)
+    cards = field.map.with_index do |(uid, id, opts), i|
+      { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id,
+        "y" => 1236, "face" => 0 }.merge((opts || {}).transform_keys(&:to_s))
+    end
+    cards += hand.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => seat, "zone" => "hand", "order" => i, "cardId" => id } }
+    engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
+    engine
+  end
+
+  def gioca_materia(engine, uid)
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 2368, "y" => 1236 })
+  end
+
+  def test_con_l_abilitante_in_campo_la_materia_scende
+    engine = tavolo([["e1", "UMANO"]], [["m1", "SCINTILLA"]])
+    assert gioca_materia(engine, "m1")[:ok]
+  end
+
+  def test_senza_abilitante_la_materia_non_scende
+    engine = tavolo([], [["m1", "SCINTILLA"]])
+    verdict = gioca_materia(engine, "m1")
+    assert verdict[:ruled]
+    refute verdict[:ok]
+    assert_match(/abilita la Materia Dinamica di grado 1.*§7/, verdict[:reason])
+  end
+
+  def test_il_grado_conta
+    engine = tavolo([["e1", "UMANO"]], [["m2", "TEMPESTA"]])
+    refute gioca_materia(engine, "m2")[:ok], "un abilitatore di primo grado non basta per il secondo (§7.1)"
+    engine = tavolo([["e1", "MAESTRO"]], [["m2", "TEMPESTA"]])
+    assert gioca_materia(engine, "m2")[:ok]
+  end
+
+  def test_il_tipo_conta
+    engine = tavolo([["e1", "AUROS"]], [["m1", "SCINTILLA"]])
+    refute gioca_materia(engine, "m1")[:ok], "la Dimensionale non abilita la Dinamica"
+  end
+
+  def test_la_coperta_non_abilita_la_tappata_si
+    engine = tavolo([["e1", "UMANO", { facedown: true }]], [["m1", "SCINTILLA"]])
+    refute gioca_materia(engine, "m1")[:ok], "l'Entità coperta non abilita (§6.3)"
+    engine = tavolo([["e1", "UMANO", { tapped: true }]], [["m1", "SCINTILLA"]])
+    assert gioca_materia(engine, "m1")[:ok], "la tappata abilita normalmente"
+  end
+
+  def test_il_rubyfront_abilita_solo_schierato
+    engine = tavolo([["rf", "RUBINO", { y: 1756 }]], [["r2", "ROVINA"]])
+    refute gioca_materia(engine, "r2")[:ok], "in Zona di Richiamo non abilita nulla (§3.1)"
+    engine = tavolo([["rf", "RUBINO", { y: 1236 }]], [["r2", "ROVINA"]])
+    refute gioca_materia(engine, "r2")[:ok], "schierato, ma la faccia Rubyfront arriva al primo grado"
+    engine = tavolo([["rf", "RUBINO", { y: 1236, face: 1 }]], [["r2", "ROVINA"]])
+    assert gioca_materia(engine, "r2")[:ok], "il Nexus abilita fino al secondo grado (§3.1)"
+  end
+
+  def test_l_abilitante_avversario_non_conta
+    engine = tavolo([], [["m1", "SCINTILLA"]])
+    cards = [{ "uid" => "b1", "owner" => "b", "zone" => "field", "order" => 0, "cardId" => "UMANO", "y" => 172 }]
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards })
+    refute gioca_materia(engine, "m1")[:ok]
+  end
+
+  def test_materia_senza_etichetta_silenzio
+    engine = tavolo([], [["m1", "MISTERO"]])
+    verdict = gioca_materia(engine, "m1")
+    assert verdict[:ok]
+  end
 end

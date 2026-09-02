@@ -22,6 +22,14 @@ module Rubyfront
     #   ...
     # }
     #
+    # `matter` è l'etichetta di una Materia (§7.1): tipo ("dynamic",
+    # "dimensional", "destructive", "zero", "dominant") e grado (1 o 2; nil
+    # per Zero e Dominante, che non hanno gradi) — nil per chi non è una
+    # Materia. `enables` sono le abilitazioni (§7), UNA LISTA PER FACCIA
+    # nell'ordine delle facce: il Nexus abilita solo ciò che è stampato sulla
+    # sua faccia (§3.1). Ogni voce: { type:, max_grade: } — «fino a che
+    # grado» (§7.1), nil dove il grado non c'è.
+    #
     # `behavior` è il comportamento di una Materia (§7.2): "normal",
     # "permanent" o "reactive" — nil per chi non è una Materia. Serve alla
     # finestra di gioco: le Reattive sono le sole carte che scendono in Fase
@@ -58,6 +66,8 @@ module Rubyfront
           power: integer_stat(stats["power"]),
           counterattack: integer_stat(stats["counterattack"]),
           flux_cost: integer_stat(stats["fluxCost"]),
+          matter: matter_of(faces),
+          enables: faces.map { |face| enables_of(face) }.freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze
@@ -65,6 +75,21 @@ module Rubyfront
         next
       end
       index.freeze
+    end
+
+    def self.matter_of(faces)
+      matter = faces.filter_map { |face| face["matter"] if face["matter"].is_a?(Hash) }.first
+      return nil unless matter && matter["type"].is_a?(String)
+
+      { type: matter["type"], grade: integer_stat(matter["grade"]) }.freeze
+    end
+
+    def self.enables_of(face)
+      Array(face["enablesMatters"]).filter_map do |entry|
+        next unless entry.is_a?(Hash) && entry["type"].is_a?(String)
+
+        { type: entry["type"], max_grade: integer_stat(entry["maxGrade"]) }.freeze
+      end.freeze
     end
 
     # Una statistica vale solo se è un intero: un costo a dado

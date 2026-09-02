@@ -53,9 +53,14 @@ module Rubyfront
     end
 
     # La carta com'è annotata qui: {owner, zone, order, card_id, entered,
-    # tapped, facedown} — `entered` è il numero del turno in cui è scesa in
-    # campo (nil se non è mai scesa o se arriva da uno snapshot, che quel
-    # passato non lo porta).
+    # tapped, facedown, face, row} — `entered` è il numero del turno in cui
+    # è scesa in campo (nil se non è mai scesa o se arriva da uno snapshot,
+    # che quel passato non lo porta); `face` è la faccia mostrata (il
+    # Rubyfront flippato è il Nexus, §3.1); `row` è l'ordinata canonica
+    # dell'ultima posa in campo — l'UNICA geometria che la copia tiene, e
+    # solo per dire se il Rubyfront è schierato (fila del Fronte) o in Zona
+    # di Richiamo (fila di servizio), perché abilita le Materie solo
+    # schierato (§7). nil se ignota.
     def card(uid)
       @cards[uid]
     end
@@ -144,7 +149,8 @@ module Rubyfront
         @cards[uid] = { owner: card["owner"], zone: card["zone"], order: card["order"].to_i,
                         card_id: card["cardId"], entered: nil,
                         tapped: card["tapped"] == true, facedown: card["facedown"] == true,
-                        assigned_to: card["assignedTo"].is_a?(String) ? card["assignedTo"] : nil }
+                        assigned_to: card["assignedTo"].is_a?(String) ? card["assignedTo"] : nil,
+                        face: card["face"].to_i, row: card["y"].is_a?(Numeric) ? card["y"] : nil }
       end
     end
 
@@ -172,6 +178,12 @@ module Rubyfront
       when "facedown"
         card = @cards[action["uid"]]
         card[:facedown] = action["facedown"] == true if card
+      when "flip"
+        card = @cards[action["uid"]]
+        card[:face] = action["face"].to_i if card
+      when "move"
+        card = @cards[action["uid"]]
+        card[:row] = action["y"] if card && card[:zone] == "field" && action["y"].is_a?(Numeric)
       when "assign"
         card = @cards[action["uid"]]
         if card
@@ -235,7 +247,8 @@ module Rubyfront
         @cards[card["uid"]] = { owner: card["owner"], zone: card["zone"], order: card["order"].to_i,
                                 card_id: card["cardId"],
                                 entered: card["zone"] == "field" ? @turn : nil,
-                                tapped: card["tapped"] == true, facedown: card["facedown"] == true }
+                                tapped: card["tapped"] == true, facedown: card["facedown"] == true,
+                                face: card["face"].to_i, row: card["y"].is_a?(Numeric) ? card["y"] : nil }
       end
       # Frecce e assegnazioni verso carte appena sparite non vogliono più
       # dire niente.
@@ -298,8 +311,10 @@ module Rubyfront
       card[:zone] = zone
       if zone == "field"
         card[:order] = 0
+        card[:row] = action["y"] if action["y"].is_a?(Numeric)
         return
       end
+      card[:row] = nil
 
       # Fuori dal campo la carta si raddrizza e si scopre (come in state.ts),
       # e chi esce esce anche dal combattimento: la sua freccia se ne va, e

@@ -192,4 +192,25 @@ class TableTest < Minitest::Test
     @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "field" })
     assert_equal 0, @table.flux("a"), "senza costo nell'azione non si paga"
   end
+
+  # --- faccia e fila (§3.1, §7) ---------------------------------------------
+
+  def test_la_copia_segue_la_faccia_e_la_fila
+    cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "face" => 0, "y" => 1756 }]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    assert_equal 0, @table.card("rf")[:face]
+    assert_equal 1756, @table.card("rf")[:row], "in Zona di Richiamo, fila di servizio"
+    @table.apply({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1236, "z" => 2 })
+    assert_equal 1236, @table.card("rf")[:row], "schierato, fila del Fronte"
+    @table.apply({ "t" => "flip", "uid" => "rf", "face" => 1 })
+    assert_equal 1, @table.card("rf")[:face], "il Nexus"
+    @table.apply({ "t" => "toZone", "uid" => "rf", "zone" => "hand" })
+    assert_nil @table.card("rf")[:row], "fuori dal campo la fila non dice niente"
+  end
+
+  def test_lo_snapshot_porta_faccia_e_fila
+    @table.load({ "cards" => { "rf" => { "owner" => "b", "zone" => "field", "face" => 1, "y" => 172, "cardId" => "X" } } })
+    assert_equal 1, @table.card("rf")[:face]
+    assert_equal 172, @table.card("rf")[:row]
+  end
 end

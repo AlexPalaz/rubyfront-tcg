@@ -33,6 +33,22 @@ class CardIndexTest < Minitest::Test
     assert_empty Rubyfront::CardIndex.load("/posto/che/non/esiste")
   end
 
+  # --- Materie e abilitazioni (§7) ----------------------------------------
+
+  def test_conosce_tipo_e_grado_delle_materie
+    assert_equal({ type: "dimensional", grade: 1 }, @index["RBF-040"][:matter])
+    assert_nil @index["RBF-004"][:matter], "un'Entità non è una Materia"
+  end
+
+  def test_conosce_le_abilitazioni_per_faccia
+    assert_equal [[{ type: "dynamic", max_grade: 1 }]], @index["RBF-004"][:enables]
+    rubino = @index["RBF-023"][:enables]
+    assert_equal 2, rubino.size, "Rubyfront e Nexus: una lista per faccia"
+    assert_includes rubino[0], { type: "destructive", max_grade: 1 }
+    assert_includes rubino[1], { type: "destructive", max_grade: 2 }, "il Nexus abilita di più (§3.1)"
+    assert_equal [[]], @index["RBF-040"][:enables], "una Materia non abilita nulla"
+  end
+
   # --- il costo di Flusso (§3.2) ------------------------------------------
 
   def test_conosce_il_costo_di_flusso

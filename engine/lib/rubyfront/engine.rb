@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.18.0"
+    VERSION = "0.19.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -49,6 +49,7 @@ module Rubyfront
       "§3.2 Le carte si pagano: il costo di Flusso",
       "§5 Le Entità stanno sugli slot del Fronte",
       "§5/§6.2 Dal campo non si torna in mano né nel mazzo",
+      "§7 Le Materie si giocano solo se abilitate",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -58,6 +59,12 @@ module Rubyfront
     FRONT_SLOT_X = [442, 821, 1199, 1578, 1956].freeze
     # [fila del posto B (in alto), fila del posto A (in basso)] — canonico.
     FRONT_ROW_Y = [172, 1236].freeze
+
+    # I nomi delle Materie (§7.1), per i sigilli.
+    MATTER_NAMES = {
+      "dynamic" => "Dinamica", "dimensional" => "Dimensionale", "destructive" => "Distruttiva",
+      "zero" => "Zero", "dominant" => "Dominante",
+    }.freeze
 
     # `cards` è l'anagrafe id -> {type:, keywords:} (vedi card_index.rb):
     # arriva dal trasporto già pronta — qui dentro niente I/O. Senza anagrafe
@@ -225,6 +232,24 @@ module Rubyfront
         # E il rovescio: una Reattiva in Preparazione è fuori dalla sua
         # finestra, di chiunque sia il turno.
         return refuse("toZone", "le Reattive si giocano solo in Fase di Fronte (§7.2)")
+      end
+
+      # §7 — «una carta Materia è giocabile solo se in campo c'è una carta
+      # che ha quel tipo di Materia abilitato», al grado richiesto (§7.1).
+      # Abilita una PROPRIA carta in campo, non coperta (la tappata abilita
+      # normalmente, §6.3), con la faccia che mostra: il Nexus abilita solo
+      # ciò che è stampato su di lui. Il Rubyfront abilita solo schierato:
+      # in Zona di Richiamo (fila di servizio) non abilita nulla (§3.1) —
+      # è la sola ragione per cui la copia del tavolo annota la fila. Vale
+      # giocando dalla mano; Materia senza etichetta o fila ignota: nel
+      # dubbio non si accusa. Limiti dichiarati: l'attribuzione (§7, quale
+      # abilitante) non si sceglie, e il decadere delle permanenti (§7.2)
+      # arriverà a parte.
+      if card[:zone] == "hand" && known[:type] == "matter" && known[:matter] && !enabled?(card[:owner], known[:matter])
+        label = known[:matter]
+        name = "Materia #{MATTER_NAMES.fetch(label[:type], label[:type])}"
+        name += " di grado #{label[:grade]}" if label[:grade]
+        return refuse("toZone", "nessuna carta in campo abilita la #{name}: serve un'Entità o il Rubyfront schierato che la abiliti (§7)")
       end
 
       # §3.2/§6.2 — le carte si pagano: «il solo vincolo è il Flusso
@@ -606,6 +631,29 @@ module Rubyfront
       end
 
       refuse(kind, "non tocca a te: nel turno avversario si blocca in Reazione e si giocano solo Reattive (§6)")
+    end
+
+    # §7 — c'è, fra le carte in campo di `seat`, un abilitante per quella
+    # Materia al grado richiesto? Vedi judge_enter_field.
+    def enabled?(seat, matter)
+      @table.field_cards(seat).any? do |other|
+        next false if other[:facedown]
+
+        entry = @cards[other[:card_id]]
+        next false unless entry
+
+        # Il Rubyfront abilita solo schierato: la fila di servizio è il
+        # Richiamo. Fila ignota: nel dubbio, abilita.
+        if entry[:type] == "rubyfront" && other[:row] && !FRONT_ROW_Y.include?(other[:row])
+          next false
+        end
+
+        grants = Array(entry[:enables])[other[:face] || 0] || []
+        grants.any? do |grant|
+          grant[:type] == matter[:type] &&
+            (matter[:grade].nil? || grant[:max_grade].nil? || grant[:max_grade] >= matter[:grade])
+        end
+      end
     end
 
     def no_rule(kind)
