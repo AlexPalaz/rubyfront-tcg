@@ -1458,6 +1458,14 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 /* Con l'arbitro al tavolo il Fine turno sparisce e il bottone di fase
    diventa «Fine fase»: prende il rubino pieno, perché è lui il gesto che
    scandisce la partita. I due tasti tondi si mettono in coda a destra. */
+/* Arbitro collegato (hud.ts): via i gesti manuali — più e meno dei contatori,
+   Mescola/Pesca/Cerca, dadi. Restano i contatori da leggere e il turno. */
+/* I passi dei contatori si spengono con visibility, non con display: sono
+   celle della griglia, e senza di loro il valore scivolerebbe nella colonna
+   del meno. */
+.hud.is-arbitrated .hud-chip .hud-step { visibility: hidden; pointer-events: none; }
+.hud.is-arbitrated .hud-tools,
+.hud.is-arbitrated .hud-dice { display: none; }
 .hud-actions.is-single { grid-template-columns: minmax(0, 1fr) auto auto; }
 .hud-actions.is-single .hud-mic { grid-column: 2; }
 /* Soli nella loro riga, i due tasti tondi non hanno più il Fine turno a

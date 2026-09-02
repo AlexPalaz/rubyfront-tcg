@@ -420,6 +420,14 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   }
 
   root.append(top, foe, turn, mine, actions, tools, dice, mini);
+
+  // Con l'arbitro al tavolo i gesti manuali si ritirano: i più e meno dei
+  // contatori (PV e Flusso li muovono le regole — danni della risoluzione,
+  // costo delle carte, ricarica del turno), Mescola, Pesca e Cerca (la pesca
+  // è quella del turno, il mulligan e la ricerca aspettano le loro regole) e
+  // i dadi (il d20 della Furia e i costi a dado arriveranno con le loro).
+  // Un interruttore solo, in CSS: .hud.is-arbitrated (style.css).
+  syncs.push(() => root.classList.toggle("is-arbitrated", ctx.arbitrated()));
   root.classList.toggle("is-min", minimized);
 
   // ------------------------------------------------------- trascinamento
