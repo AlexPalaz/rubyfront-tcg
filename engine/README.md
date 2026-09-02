@@ -142,6 +142,20 @@ Regole collegate finora:
   modifica di Potenza in partita (Oggetti, effetti) non si vedono: chi le
   usa risolve a mano. Engine 0.14.0, quattordici regole.
 
+- **§6.2 Le carte si giocano in Preparazione** — «in questa fase si inizia a
+  giocare con le carte e si prepara il Fronte»: nel Fronte si dichiara,
+  nella Reazione si difende, e un ingresso in campo da fuori (Entità,
+  Materie normali e permanenti, Oggetti) fuori dalla Preparazione viene
+  fermato — per entrambi i posti, perché nel turno altrui non è
+  Preparazione di nessuno. Due eccezioni del manuale: le **Materie
+  Reattive**, che «si giocano solo in Fase di Fronte» (§7.2; l'anagrafe
+  legge il `behavior` della Materia), e il **Rubyfront**, che si schiera o
+  richiama «in qualsiasi momento del proprio turno» (§3.1). Il Nexus non
+  c'entra: è un flip, non un ingresso. Carta ignota: silenzio. Limite
+  dichiarato: gli effetti che mettono in campo una carta durante il
+  combattimento verrebbero fermati a torto (arriveranno con la regola
+  d'oro). Engine 0.15.0, quindici regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

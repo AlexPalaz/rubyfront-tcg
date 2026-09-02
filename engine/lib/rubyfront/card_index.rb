@@ -22,6 +22,11 @@ module Rubyfront
     #   ...
     # }
     #
+    # `behavior` è il comportamento di una Materia (§7.2): "normal",
+    # "permanent" o "reactive" — nil per chi non è una Materia. Serve alla
+    # finestra di gioco: le Reattive sono le sole carte che scendono in Fase
+    # di Fronte.
+    #
     # `power` e `counterattack` sono le due statistiche del combattimento
     # (§6.3): la Potenza stampata e il «Contrattacco +N» — nil per chi non
     # ce l'ha (una Materia non ha Potenza, un'Entità senza la statistica non
@@ -48,6 +53,7 @@ module Rubyfront
           keywords: keywords.uniq.freeze,
           power: integer_stat(stats["power"]),
           counterattack: integer_stat(stats["counterattack"]),
+          behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze
       rescue JSON::ParserError

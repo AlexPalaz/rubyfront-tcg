@@ -33,6 +33,13 @@ class CardIndexTest < Minitest::Test
     assert_empty Rubyfront::CardIndex.load("/posto/che/non/esiste")
   end
 
+  # --- il comportamento delle Materie (§7.2) ------------------------------
+
+  def test_conosce_le_materie_reattive
+    assert_equal "reactive", @index["RBF-040"][:behavior]
+    assert_nil @index["RBF-004"][:behavior], "un'Entità non ha comportamento di Materia"
+  end
+
   # --- le statistiche del combattimento (§6.3) ----------------------------
 
   def test_conosce_la_potenza_delle_entita

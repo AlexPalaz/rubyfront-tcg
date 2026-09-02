@@ -930,4 +930,91 @@ class EngineTest < Minitest::Test
     assert verdict[:ok]
     refute verdict[:ruled], "senza la Potenza il conto non si rifà: silenzio"
   end
+
+  # --- §6.2: le carte si giocano in Preparazione ---------------------------
+
+  FINESTRA = {
+    "LENTA" => { type: "entity", keywords: [] },
+    "PIETRA" => { type: "matter", keywords: [], behavior: "normal" },
+    "SCINTILLA" => { type: "matter", keywords: [], behavior: "reactive" },
+    "RUBINO" => { type: "rubyfront", keywords: [] },
+    "FERRO" => { type: "object", keywords: [] },
+  }.freeze
+
+  # Una carta in mano al posto `seat`, pronta a scendere.
+  def in_mano(engine, seat, uid, card_id)
+    cards = [{ "uid" => uid, "owner" => seat, "zone" => "hand", "order" => 0, "cardId" => card_id }]
+    engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
+  end
+
+  def scendi_in_campo(engine, uid, x: 0, y: 0)
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y })
+  end
+
+  def test_in_preparazione_si_gioca
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "a-1", "LENTA")
+    assert scendi_in_campo(engine, "a-1")[:ok]
+  end
+
+  def test_nel_fronte_un_entita_non_scende
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "a-1", "LENTA")
+    fronte!(engine)
+    verdict = scendi_in_campo(engine, "a-1")
+    assert verdict[:ruled]
+    refute verdict[:ok]
+    assert_match(/Fronte.*§6\.2/, verdict[:reason])
+  end
+
+  def test_nel_fronte_nemmeno_materie_normali_e_oggetti
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "a-1", "PIETRA")
+    in_mano(engine, "b", "b-1", "FERRO")
+    fronte!(engine)
+    refute scendi_in_campo(engine, "a-1")[:ok]
+    refute scendi_in_campo(engine, "b-1")[:ok], "nel turno altrui non è Preparazione di nessuno"
+  end
+
+  def test_nel_fronte_le_reattive_scendono
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "b", "b-1", "SCINTILLA")
+    fronte!(engine)
+    verdict = scendi_in_campo(engine, "b-1")
+    assert verdict[:ok], "le Reattive si giocano solo in Fase di Fronte (§7.2)"
+  end
+
+  def test_il_rubyfront_si_schiera_anche_dopo_gli_attacchi
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "rf-a", "RUBINO")
+    fronte!(engine)
+    assert scendi_in_campo(engine, "rf-a")[:ok], "finestra di movimento: tutto il proprio turno (§3.1)"
+  end
+
+  def test_in_reazione_non_si_gioca
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "a-1", "LENTA")
+    fronte!(engine)
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    verdict = scendi_in_campo(engine, "a-1")
+    refute verdict[:ok]
+    assert_match(/Reazione/, verdict[:reason])
+  end
+
+  def test_carta_ignota_nel_fronte_niente_regola
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "a-1", "MISTERO")
+    fronte!(engine)
+    verdict = scendi_in_campo(engine, "a-1")
+    assert verdict[:ok]
+    refute verdict[:ruled]
+  end
+
+  def test_col_cambio_di_turno_si_torna_a_giocare
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "b", "b-1", "LENTA")
+    fronte!(engine)
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert scendi_in_campo(engine, "b-1")[:ok]
+  end
 end

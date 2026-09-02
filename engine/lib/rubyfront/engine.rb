@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.14.0"
+    VERSION = "0.15.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -44,6 +44,7 @@ module Rubyfront
       "§6.3 Attacca chi è di turno, blocca chi difende",
       "§6.4 Reazione: l'ondata passa al difensore",
       "§6.3/§6.4 Risoluzione delle battaglie",
+      "§6.2 Le carte si giocano in Preparazione (salvo Reattive e Rubyfront)",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -159,6 +160,23 @@ module Rubyfront
 
       known = @cards[card[:card_id]]
       return no_rule("toZone") unless known
+
+      # §6.2 — le carte si GIOCANO in Preparazione: «in questa fase si inizia
+      # a giocare con le carte e si prepara il Fronte». Nel Fronte si
+      # dichiara, nella Reazione si difende. Due eccezioni del manuale: le
+      # Materie Reattive, che «si giocano solo in Fase di Fronte» (§7.2), e
+      # il Rubyfront, che si schiera o richiama «in qualsiasi momento del
+      # proprio turno» (§3.1). Vale per entrambi i posti: nel turno altrui
+      # non è Preparazione di nessuno. Limite dichiarato: gli effetti che
+      # mettono in campo una carta durante il combattimento verrebbero
+      # fermati a torto (arriveranno con la regola d'oro).
+      if @table.phase != "preparazione"
+        playable = known[:type] == "rubyfront" || (known[:type] == "matter" && known[:behavior] == "reactive")
+        unless playable
+          phase = @table.phase == "fronte" ? "Fronte" : "Reazione"
+          return refuse("toZone", "in Fase di #{phase} si dichiara, non si gioca: le carte scendono in Preparazione (§6.2) — salvo le Reattive (§7.2) e il Rubyfront (§3.1)")
+        end
+      end
 
       # §5 — «Le Materie non si giocano sugli slot del Fronte»: gli slot sono
       # delle Entità, le Materie hanno la loro fila dietro. Si guardano le
