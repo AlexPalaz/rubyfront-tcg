@@ -133,6 +133,15 @@ class TableTest < Minitest::Test
     assert_equal "preparazione", @table.phase
   end
 
+  def test_il_cambio_di_turno_pesca_la_carta_del_turno
+    @table.apply(deck_for("b", 2))
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_equal 1, @table.hand_count("b"), "la Pesca non si salta mai (§6.1)"
+    assert_equal 1, @table.zone_count("b", "deck")
+    @table.apply({ "t" => "turn", "turn" => 3, "active" => "a" })
+    assert_equal 0, @table.hand_count("a"), "a mazzo vuoto non si pesca"
+  end
+
   def test_il_contatore_ritoccato_non_apparecchia_nulla
     battlefield
     @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true })

@@ -1007,6 +1007,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   background: var(--void);
   border-radius: 999px;
 }
+.hand-tag.is-excess { color: var(--ruby); border-color: color-mix(in srgb, var(--ruby) 60%, var(--line)); }
 .hand-mine .hand-tag {
   top: -11px;
   color: var(--viola-light);

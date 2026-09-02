@@ -1161,11 +1161,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         }
         lastMyHand = cards.length;
       }
+      // §6.5 — «non si possono avere più di 7 carte in mano» a fine turno:
+      // la targhetta lo dice prima che sia il sigillo a dirlo.
+      const excess = seat === me && cards.length > 7 && ctx.controls(seat);
       tag.textContent = seat === me
-        ? `La tua mano · ${cards.length}`
+        ? `La tua mano · ${cards.length}${excess ? " — scarta fino a 7 prima del Fine turno (§6.5)" : ""}`
         : seatWaiting(state, seat)
           ? "In attesa di un avversario…"
           : `Mano di ${seatLabel(state, seat)} · ${cards.length}`;
+      tag.classList.toggle("is-excess", excess);
       host.classList.toggle("is-empty", cards.length === 0);
       const wanted: HTMLElement[] = [];
       for (const card of cards) {

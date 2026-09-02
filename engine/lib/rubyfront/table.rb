@@ -300,6 +300,8 @@ module Rubyfront
           player = @players[@active]
           player[:flux_max] = [FLUX_CAP, player[:flux_max] + 1].min unless @turn <= 2
           player[:flux] = player[:flux_max]
+          # §6.1: la Pesca del turno, «non si salta mai» — come nel riduttore.
+          draw({ "seat" => @active, "count" => 1 })
         end
       end
     end

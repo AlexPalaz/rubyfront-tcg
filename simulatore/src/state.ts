@@ -266,7 +266,8 @@ export function apply(state: GameState, action: Action): GameState {
       // Il cambio di turno porta con sé la routine di chi entra, tutta in
       // un'azione sola — così nessuno la compie «per conto» dell'altro, e
       // l'arbitro non vede gesti nel turno altrui: la fase torna in
-      // Preparazione (§6, l'unica via del ritorno); il Flusso massimo cresce
+      // Preparazione (§6, l'unica via del ritorno); si pesca la carta del
+      // turno (§6.1); il Flusso massimo cresce
       // di 1 «a partire dal secondo» proprio turno, mai oltre 20 — al primo
       // turno di chi entra (il turno 2 del contatore) resta 1 — e il
       // disponibile si ricarica fin lì (§3.2); le
@@ -294,7 +295,7 @@ export function apply(state: GameState, action: Action): GameState {
         }
         cards[uid] = fresh;
       }
-      return {
+      const opened: GameState = {
         ...state,
         cards,
         players: { ...state.players, [next]: { ...player, fluxMax: grown, flux: grown } },
@@ -303,6 +304,11 @@ export function apply(state: GameState, action: Action): GameState {
         phase: "preparazione",
         declarations: [],
       };
+      // §6.1 — la Pesca: «il giocatore di turno pesca una carta», e «non si
+      // salta mai». A mazzo vuoto non pesca (§9.1: l'esaurimento si decide
+      // al confine dei turni, in turn.ts). La mano iniziale e la carta del
+      // turno 1 di chi apre arrivano dal carico del mazzo, non da qui.
+      return apply(opened, { t: "draw", seat: next, count: 1 });
     }
 
     case "phase":

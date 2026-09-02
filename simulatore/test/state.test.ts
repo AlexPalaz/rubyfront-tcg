@@ -212,6 +212,15 @@ describe("apply turn", () => {
     state.cards[uid] = { ...deckFor(owner, 1).cards[0], uid, zone: "field", tapped: isTapped };
   }
 
+  it("chi entra pesca la carta del turno (§6.1), e a mazzo vuoto no", () => {
+    let state = apply(newGame(), deckFor("b", 2));
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(zoneCards(state, "b", "hand")).toHaveLength(1);
+    expect(zoneCards(state, "b", "deck")).toHaveLength(1);
+    state = apply(state, { t: "turn", turn: 3, active: "a" });
+    expect(zoneCards(state, "a", "hand")).toHaveLength(0);
+  });
+
   it("chi entra si ritrova Flusso nuovo, Entità stappate e frecce sgomberate", () => {
     const state = newGame();
     tapped(state, "b-1", "b", true);

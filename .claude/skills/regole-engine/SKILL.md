@@ -41,8 +41,9 @@ fila ignota, attore assente → silenzio (`no_rule`), non un'accusa.
 2. **Automatismo dei gemelli** — il tavolo fa da sé qualcosa che il manuale
    dà per scontato, dentro un'azione che c'è già, così nessuno compie gesti
    «per conto» dell'altro. Vive in `state.ts` **e** `table.rb`, stessa
-   semantica, test speculari. Es.: la routine del cambio di turno (Flusso,
-   stappata, scoperta a T+3, frecce), gli Oggetti che seguono l'Entità.
+   semantica, test speculari. Es.: la routine del cambio di turno (pesca del
+   turno, Flusso, stappata, scoperta a T+3, frecce), gli Oggetti che seguono
+   l'Entità.
 3. **Azione calcolata e verificata** — il tavolo deve calcolare (risoluzione,
    fine partita, tiro di dado): il client calcola e manda **un'azione sola**
    con l'esito; l'engine rifà il conto sulla sua copia e passa solo un esito

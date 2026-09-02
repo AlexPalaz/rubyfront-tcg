@@ -23,8 +23,9 @@ Regole collegate finora:
   nasconde anche i gesti manuali Tappa/Stappa/Copri (`ctx.arbitrated()`):
   quegli stati discendono dalle dichiarazioni — il tap dall'attacco, la
   copertura dal contrattacco, la stappata dal cambio di turno (che porta con
-  sé la routine di chi entra: Flusso, stappata, frecce — un'azione sola, così
-  nessuno compie gesti nel turno altrui) — e così la **scoperta a fine
+  sé la routine di chi entra: la Pesca del turno (§6.1, «non si salta mai»),
+  Flusso, stappata, frecce — un'azione sola, così nessuno compie gesti nel
+  turno altrui) — e così la **scoperta a fine
   giro** (§6.3, T+3): coprire annota il turno (`coveredTurn`), e il cambio
   di turno scopre le Entità di chi entra coperte da un giro completo, nel
   riduttore e nella copia. Resta «Scopri» solo per una coperta senza data,
