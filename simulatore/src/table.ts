@@ -1045,7 +1045,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const passed = await resolveReturn(ctx, step, card);
       if (passed) {
         flyFromPile(card.owner, step.from, card.uid);
-        await wait(FLY_MS + TRIGGER_TAIL_MS);
+        // La fonte si spegne appena la Materia è arrivata: il volo è
+        // l'effetto, non c'è altro da aspettare.
+        await wait(FLY_MS);
       }
     } finally {
       light(step.source.uid, false);
