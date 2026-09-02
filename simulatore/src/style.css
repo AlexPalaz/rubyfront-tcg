@@ -359,7 +359,7 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
    rispondono al mouse finché la fonte non si spegne. */
 body.is-resolving .table, body.is-resolving .hud, body.is-resolving .side { pointer-events: none; }
 body.is-resolving { cursor: progress; }
-.tile { transition: box-shadow .25s ease; }
+.tile { transition: box-shadow .9s ease; }
 .tile.is-triggering {
   box-shadow: 0 0 0 2px #ff8ea6, 0 0 46px rgba(210, 74, 100, 1);
   animation: tile-trigger .5s ease-out both;
@@ -1216,6 +1216,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 .arrow-attack { filter: drop-shadow(0 0 9px rgba(210, 74, 100, .85)); }
 .arrow-block { filter: drop-shadow(0 0 9px color-mix(in srgb, var(--foe) 85%, transparent)); }
 .arrow-counter { filter: drop-shadow(0 0 9px rgba(217, 168, 78, .85)); }
+.arrow-effect { filter: drop-shadow(0 0 10px rgba(255, 142, 166, .95)); }
 .arrow.is-pending { opacity: .8; }
 
 /* Il numero d'ondata sull'attaccante: le battaglie si risolvono in

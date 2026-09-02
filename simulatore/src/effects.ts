@@ -17,6 +17,51 @@ export interface EnterTrigger {
   draw: number;
 }
 
+/** Uno spostamento all'ingresso da risolvere: chi entra, dove manda, e fra chi si sceglie. */
+export interface EnterMoveStep {
+  source: CardInstance;
+  to: "ritiro";
+  candidates: CardInstance[];
+}
+
+/**
+ * Gli effetti «quando questa entra» di chi entra (§8.2, la forma di
+ * RBF-007): per ciascuno, i bersagli possibili — le Entità avversarie in
+ * campo. Senza bersagli l'effetto non ha su cosa agire.
+ */
+export function enterMoves(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterMoveStep[] {
+  return facts(entering.cardId).enterMoves.map(move => ({
+    source: entering,
+    to: move.to,
+    candidates: fieldCards(state).filter(card => card.owner !== entering.owner && facts(card.cardId).kind === move.target.kind),
+  }));
+}
+
+/** La riga che annuncia uno spostamento all'ingresso. */
+export function describeMove(step: EnterMoveStep, facts: (cardId: string) => CardFacts): string {
+  return `«${facts(step.source.cardId).name}» si innesca: metti un'Entità avversaria nella Zona di Ritiro`;
+}
+
+/**
+ * Esegue uno spostamento all'ingresso sul bersaglio scelto: un toZone
+ * marcato come effetto — la fonte è chi entra, e l'ingresso è lei stessa.
+ */
+export async function resolveMove(ctx: Ctx, step: EnterMoveStep, target: CardInstance): Promise<boolean> {
+  const passed = await ctx.dispatch({
+    t: "toZone",
+    uid: target.uid,
+    zone: step.to,
+    effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
+  });
+  if (passed) {
+    ctx.log(
+      `${seatLabel(ctx.state(), step.source.owner)}: «${ctx.card(step.source.cardId).name}» manda «${ctx.card(target.cardId).name}» nella Zona di Ritiro.`,
+      step.source.owner
+    );
+  }
+  return passed;
+}
+
 /**
  * Chi si innesca all'ingresso di `entering` sul campo: le carte dello
  * stesso posto, già in campo, con un ascoltatore certificato che combacia

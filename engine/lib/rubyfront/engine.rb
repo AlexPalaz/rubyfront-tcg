@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.25.0"
+    VERSION = "0.26.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -52,6 +52,7 @@ module Rubyfront
       "§7 Le Materie si giocano solo se abilitate",
       "§2/§9 Fine della partita: PV a zero, mazzo esaurito, pareggio",
       "§8.2 Effetti certificati: «quando un'Entità entra, pesca» (RBF-003)",
+      "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (RBF-007)",
       "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
       "§3.1 Il Rubyfront schierato non torna in Zona di Richiamo",
     ].freeze
@@ -790,7 +791,8 @@ module Rubyfront
     def judge_effect(action)
       ref = action["effect"]
       kind = action["t"]
-      return refuse(kind, "un effetto certificato pesca soltanto, per ora (§8.2)") unless kind == "draw"
+      return judge_effect_move(action, ref) if kind == "toZone"
+      return refuse(kind, "un effetto certificato pesca o sposta soltanto, per ora (§8.2)") unless kind == "draw"
 
       source = @table.card(ref["source"])
       entering = @table.card(ref["entering"])
@@ -815,6 +817,33 @@ module Rubyfront
       return refuse(kind, "la carta non ha un effetto certificato che si innesca così (§8.2)") unless matched
 
       allow(kind)
+    end
+
+    # §8.2 — lo spostamento all'ingresso (la forma di RBF-007): la fonte è
+    # chi entra — in campo, entrata QUESTO turno, innesco non consumato — e
+    # il bersaglio un'Entità avversaria in campo, mandata nella zona che la
+    # forma certificata dice. Bersaglio ignoto all'anagrafe: silenzio.
+    def judge_effect_move(action, ref)
+      return refuse("toZone", "l'effetto di chi entra ha per ingresso se stessa (§8.2)") unless ref["source"] == ref["entering"]
+
+      source = @table.card(ref["source"])
+      return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)") unless source && source[:zone] == "field"
+      return refuse("toZone", "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless source[:entered] == @table.turn
+      return refuse("toZone", "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["entering"])
+
+      moves = Array(@cards.dig(source[:card_id], :enter_moves))
+      move = moves.find { |candidate| candidate[:to] == action["zone"] }
+      return refuse("toZone", "la carta non ha un effetto certificato che sposti lì (§8.2)") unless move
+
+      target = @table.card(action["uid"])
+      return refuse("toZone", "il bersaglio dev'essere in campo (§8.2)") unless target && target[:zone] == "field"
+      return refuse("toZone", "il bersaglio dev'essere avversario (§8.2)") if target[:owner] == source[:owner]
+
+      entry = @cards[target[:card_id]]
+      return no_rule("toZone") unless entry
+      return refuse("toZone", "il bersaglio dev'essere un'Entità (§8.2)") unless entry[:type] == move[:target][:type]
+
+      allow("toZone")
     end
 
     def count_entities(seat, race)

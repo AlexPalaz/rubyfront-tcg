@@ -18,6 +18,19 @@ export interface CardFacts {
   /** Gli ascoltatori certificati «quando un'Entità entra sul tuo Fronte»
       (§8.2): vedi renderer.ts, enterListeners. */
   enterListeners: EnterListener[];
+  /** Gli effetti certificati «quando QUESTA entra in campo: metti una carta
+      avversaria in una zona» (§8.2): vedi renderer.ts, enterMoves. */
+  enterMoves: EnterMove[];
+}
+
+/**
+ * La forma certificata di uno spostamento all'ingresso: «quando questa
+ * Entità entra in campo, metti un'Entità avversaria nella Zona di Ritiro
+ * del suo proprietario». È la forma di RBF-007.
+ */
+export interface EnterMove {
+  target: { kind: "entity"; controller: "opponent" };
+  to: "ritiro";
 }
 
 /**

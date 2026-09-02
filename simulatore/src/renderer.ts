@@ -18,7 +18,7 @@ export const TILE_W = 302;
 export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
-import type { EnterListener } from "./ctx.js";
+import type { EnterListener, EnterMove } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -273,6 +273,30 @@ function enterListenersOf(face: CardFace | undefined): EnterListener[] {
   return out;
 }
 
+/**
+ * Gli spostamenti all'ingresso certificati di una faccia (§8.2): evento
+ * `on_enter_field` senza `enteringCard` (è questa carta che entra), effetto
+ * `move_card` con bersaglio un'Entità avversaria sul Fronte (una sola) e
+ * destinazione la Zona di Ritiro. Specchio di card_index.rb, enter_moves.
+ */
+function enterMovesOf(face: CardFace | undefined): EnterMove[] {
+  const out: EnterMove[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const details = trigger.details as { enteringCard?: unknown } | undefined;
+    if (details?.enteringCard) continue;
+    const effect = trigger.effect as { type?: unknown; target?: any; destination?: any } | undefined;
+    if (!effect || effect.type !== "move_card") continue;
+    const target = effect.target;
+    const destination = effect.destination;
+    if (!target || target.cardType !== "entity" || target.controller !== "opponent" || target.zone !== "front") continue;
+    if (target.min !== 1 || target.max !== 1) continue;
+    if (!destination || destination.zone !== "retire") continue;
+    out.push({ target: { kind: "entity", controller: "opponent" }, to: "ritiro" });
+  }
+  return out;
+}
+
 /** Il costo di schieramento del Rubyfront (§3.1): fisso, o un dado. */
 export interface Deployment {
   fixed: number | null;
@@ -287,6 +311,7 @@ export function cardStats(cardId: string): {
   fluxCost: number | null;
   deployment: Deployment | null;
   enterListeners: EnterListener[];
+  enterMoves: EnterMove[];
 } {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
@@ -295,6 +320,7 @@ export function cardStats(cardId: string): {
     kind: face?.kind ?? null,
     race: typeof face?.race === "string" ? face.race : null,
     enterListeners: enterListenersOf(face),
+    enterMoves: enterMovesOf(face),
     power: integer(face?.stats?.power),
     counterattack: integer(face?.stats?.counterattack),
     // Il costo di Flusso stampato (§3.2); il Rubyfront ha il costo di

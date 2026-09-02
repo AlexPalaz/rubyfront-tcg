@@ -6,7 +6,7 @@
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-export type ArrowKind = "attack" | "block" | "counter";
+export type ArrowKind = "attack" | "block" | "counter" | "effect";
 
 export interface Arrow {
   kind: ArrowKind;
@@ -22,6 +22,7 @@ const COLOR: Record<ArrowKind, string> = {
   attack: "#d24a64",
   block: "#7fa3bc",
   counter: "#d9a84e",
+  effect: "#ff8ea6",
 };
 
 export function createArrowLayer(width: number, height: number): SVGSVGElement {

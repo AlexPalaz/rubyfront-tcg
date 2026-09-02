@@ -303,8 +303,15 @@ Regole collegate finora:
   chi entra ignota all'anagrafe: silenzio. Nel client l'interprete
   (`effects.ts`, senza DOM) trova gli inneschi, la scena d'ingresso li
   elenca e «Risolvi» li esegue, la fonte si accende sul tavolo da entrambe
-  le parti. Tutto ciò che non ha una forma certificata resta a mano.
-  Engine 0.24.0, ventiquattro regole.
+  le parti. La seconda forma è quella di RBF-007, l'**Arciere**: «quando
+  questa Entità entra in campo, metti un'Entità avversaria nella Zona di
+  Ritiro» — un `toZone` marcato con `effect` (fonte e ingresso coincidono),
+  che l'engine passa se la fonte è entrata questo turno, l'innesco non è
+  consumato, la zona è quella della forma e il bersaglio è un'Entità
+  avversaria in campo. Nel client il bersaglio si sceglie in mira, con la
+  freccia dalla fonte al dito; poi la fonte si accende, la freccia va al
+  bersaglio e la carta parte — anche per chi guarda. Tutto ciò che non ha
+  una forma certificata resta a mano. Engine 0.26.0, venticinque regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

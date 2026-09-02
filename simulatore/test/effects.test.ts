@@ -3,11 +3,12 @@
 
 import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
-import { describeTrigger, enterTriggers, resolveEnter } from "../src/effects.js";
+import { describeMove, describeTrigger, enterMoves, enterTriggers, resolveEnter, resolveMove } from "../src/effects.js";
 import { newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
 const FACTS: Record<string, Partial<CardFacts>> = {
+  ARCIERE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
   GUIDA: { kind: "entity", race: "human", enterListeners: [{ enteringRace: "human", requires: { count: 3, race: "human" }, draw: 1 }] },
   UMANO: { kind: "entity", race: "human" },
   AUROS: { kind: "entity", race: "auros" },
@@ -20,6 +21,7 @@ const facts = (cardId: string): CardFacts => ({
   power: null,
   counterattack: null,
   enterListeners: [],
+  enterMoves: [],
   ...FACTS[cardId],
 });
 
@@ -101,5 +103,47 @@ describe("resolveEnter", () => {
     expect(await resolveEnter(ctx, u2)).toEqual([]);
     expect(sent).toEqual([]);
     expect(logs).toEqual([]);
+  });
+});
+
+// Lo spostamento all'ingresso (§8.2), la forma di RBF-007. Gemello:
+// engine_test.rb, sezione §8.2 Arciere.
+describe("enterMoves", () => {
+  it("i candidati sono le Entità avversarie in campo", () => {
+    const state = newGame();
+    const arc = on(state, "arc", "ARCIERE");
+    on(state, "b1", "UMANO", "b");
+    on(state, "b2", "PIETRA", "b");
+    on(state, "a1", "UMANO", "a");
+    const steps = enterMoves(state, arc, facts);
+    expect(steps).toHaveLength(1);
+    expect(steps[0].to).toBe("ritiro");
+    expect(steps[0].candidates.map(card => card.uid)).toEqual(["b1"]);
+    expect(describeMove(steps[0], facts)).toMatch(/«ARCIERE» si innesca/);
+    expect(enterMoves(state, on(state, "u", "UMANO"), facts)).toEqual([]);
+  });
+
+  it("resolveMove manda il toZone marcato come effetto", async () => {
+    const state = newGame();
+    const arc = on(state, "arc", "ARCIERE");
+    const b1 = on(state, "b1", "UMANO", "b");
+    const sent: Action[] = [];
+    const ctx: Ctx = {
+      state: () => state,
+      dispatch(action) {
+        sent.push(action);
+        return Promise.resolve(true);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "notte",
+      locale: () => "it",
+      card: facts,
+      log() {},
+    };
+    const [step] = enterMoves(state, arc, facts);
+    expect(await resolveMove(ctx, step, b1)).toBe(true);
+    expect(sent).toEqual([{ t: "toZone", uid: "b1", zone: "ritiro", effect: { source: "arc", event: "on_enter_field", entering: "arc" } }]);
   });
 });

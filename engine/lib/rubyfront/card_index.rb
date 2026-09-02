@@ -39,6 +39,11 @@ module Rubyfront
     # forma di RBF-003. Ogni voce: { entering_race:, requires: { count:,
     # race: }, draw: }. Tutto ciò che non combacia esattamente non entra.
     #
+    # `enter_moves` sono gli spostamenti all'ingresso CERTIFICATI (§8.2):
+    # «quando questa Entità entra in campo, metti un'Entità avversaria nella
+    # Zona di Ritiro» — la forma di RBF-007. Ogni voce: { target: { type:,
+    # controller: }, to: }.
+    #
     # `behavior` è il comportamento di una Materia (§7.2): "normal",
     # "permanent" o "reactive" — nil per chi non è una Materia. Serve alla
     # finestra di gioco: le Reattive sono le sole carte che scendono in Fase
@@ -79,6 +84,7 @@ module Rubyfront
           matter: matter_of(faces),
           enables: faces.map { |face| enables_of(face) }.freeze,
           enter_listeners: enter_listeners(faces).freeze,
+          enter_moves: enter_moves(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze
@@ -120,6 +126,24 @@ module Rubyfront
         { entering_race: entering["race"].is_a?(String) ? entering["race"] : nil,
           requires: { count: requires["count"], race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze,
           draw: effect["count"] }.freeze
+      end
+    end
+
+    def self.enter_moves(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+        next if trigger["details"].is_a?(Hash) && trigger["details"]["enteringCard"]
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "move_card"
+
+        target = effect["target"]
+        destination = effect["destination"]
+        next unless target.is_a?(Hash) && target["cardType"] == "entity" && target["controller"] == "opponent" && target["zone"] == "front"
+        next unless target["min"] == 1 && target["max"] == 1
+        next unless destination.is_a?(Hash) && destination["zone"] == "retire"
+
+        { target: { type: "entity", controller: "opponent" }.freeze, to: "ritiro" }.freeze
       end
     end
 

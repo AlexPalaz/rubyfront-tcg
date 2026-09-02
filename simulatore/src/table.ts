@@ -32,7 +32,7 @@ import {
 } from "./ctx.js";
 import { showRoll } from "./dice.js";
 import { showEnterEffect } from "./effect.js";
-import { describeTrigger, enterTriggers, resolveTrigger } from "./effects.js";
+import { describeMove, describeTrigger, enterMoves, enterTriggers, resolveMove, resolveTrigger, type EnterMoveStep } from "./effects.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
 import { TILE_H, TILE_W, cardName, cardStats, enterEffects, faceCount, faceKind, isRubyfront, type Deployment } from "./renderer.js";
@@ -92,6 +92,8 @@ export interface TableView {
   onBrowse(handler: (seat: Seat, zone: ZoneId) => void): void;
   /** Il bagliore di una carta che si innesca: per gli effetti arrivati dalla rete. */
   flash(uid: string): void;
+  /** La freccia di un effetto dalla fonte al bersaglio, per un attimo. */
+  flashArrow(fromUid: string, toUid: string): void;
 }
 
 export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
@@ -110,7 +112,24 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * Dichiarazione di blocco in corso: si è scelto l'attaccante e si sta
    * scegliendo con chi bloccarlo. `pointer` è la punta della freccia in volo.
    */
-  let targeting: { attacker: string; kind: "block" | "counter"; pointer: { x: number; y: number } | null } | null = null;
+  /**
+   * Il modo bersaglio: si sceglie una carta sul campo. Per i blocchi
+   * (§6.3) l'attaccante da fermare; per un effetto (§8.2) il bersaglio fra
+   * i candidati — la freccia parte dalla fonte e segue il dito.
+   */
+  type Targeting =
+    | { mode: "block"; attacker: string; kind: "block" | "counter"; pointer: { x: number; y: number } | null }
+    | {
+        mode: "effect";
+        source: string;
+        candidates: Set<string>;
+        pointer: { x: number; y: number } | null;
+        pick: (card: CardInstance) => void;
+        cancel: () => void;
+      };
+  let targeting: Targeting | null = null;
+  /** Frecce di passaggio (un effetto che agisce): si spengono da sole. */
+  let transientArrows: { arrow: Arrow; until: number }[] = [];
 
   const surface = document.createElement("div");
   surface.className = "surface";
@@ -463,7 +482,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   }
 
   function startTargeting(attacker: CardInstance, kind: "block" | "counter"): void {
-    targeting = { attacker: attacker.uid, kind, pointer: null };
+    targeting = { mode: "block", attacker: attacker.uid, kind, pointer: null };
     document.body.classList.add("is-targeting");
     targetHint.textContent =
       kind === "counter"
@@ -479,24 +498,71 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * a seconda di chi ha dichiarato l'attacco. Null fuori dal modo bersaglio.
    */
   function defenderSeat(): Seat | null {
-    if (!targeting) return null;
+    if (targeting?.mode !== "block") return null;
     const attacker = ctx.state().cards[targeting.attacker];
     return attacker ? otherSeat(attacker.owner) : null;
   }
 
+  /** La carta è scegliibile nel modo bersaglio in corso? */
+  function pickable(card: CardInstance): boolean {
+    if (!targeting) return false;
+    if (targeting.mode === "effect") return targeting.candidates.has(card.uid);
+    return card.owner === defenderSeat() && card.uid !== targeting.attacker;
+  }
+
   function cancelTargeting(): void {
     if (!targeting) return;
+    const was = targeting;
     targeting = null;
     document.body.classList.remove("is-targeting");
     targetHint.hidden = true;
     render();
+    if (was.mode === "effect") was.cancel();
   }
 
   function confirmBlock(blocker: CardInstance): void {
-    if (!targeting) return;
+    if (targeting?.mode !== "block") return;
     const { attacker, kind } = targeting;
     cancelTargeting();
     void declareBlock(ctx, blocker, attacker, kind);
+  }
+
+  /**
+   * La mira di un effetto (§8.2): si sceglie il bersaglio fra i candidati,
+   * con la freccia dalla fonte al dito. Risolve con la carta scelta, o con
+   * null se si rinuncia (Esc, click a vuoto).
+   */
+  function pickTarget(source: CardInstance, candidates: CardInstance[], hint: string): Promise<CardInstance | null> {
+    return new Promise(resolve => {
+      targeting = {
+        mode: "effect",
+        source: source.uid,
+        candidates: new Set(candidates.map(card => card.uid)),
+        pointer: null,
+        pick: card => {
+          targeting = null;
+          document.body.classList.remove("is-targeting");
+          targetHint.hidden = true;
+          render();
+          resolve(card);
+        },
+        cancel: () => resolve(null),
+      };
+      document.body.classList.add("is-targeting");
+      targetHint.textContent = `${hint} — Esc rinuncia`;
+      targetHint.hidden = false;
+      render();
+    });
+  }
+
+  /** Una freccia di passaggio dalla fonte al bersaglio, per il tempo dell'effetto. */
+  function flashArrow(fromUid: string, toUid: string, ms: number): void {
+    const from = ctx.state().cards[fromUid];
+    const to = ctx.state().cards[toUid];
+    if (!from || !to || from.zone !== "field" || to.zone !== "field") return;
+    transientArrows.push({ arrow: { kind: "effect", from: boxOf(from), to: boxOf(to) }, until: Date.now() + ms });
+    render();
+    window.setTimeout(render, ms + 20);
   }
 
   function pileMenu(seat: Seat, zone: ZoneId): MenuItem[] {
@@ -686,6 +752,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // Gli inneschi delle carte già in campo (effects.ts): la scena li
       // elenca, e «Risolvi» li esegue — con un bagliore sulla fonte.
       const live = ctx.state().cards[card.uid] ?? card;
+      const moves = enterMoves(ctx.state(), live, ctx.card);
       const triggers = enterTriggers(ctx.state(), live, ctx.card);
       void showEnterEffect(root, {
         cardId: card.cardId,
@@ -694,8 +761,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         locale: ctx.locale(),
         who: `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}»`,
         effects,
-        triggers: triggers.map(trigger => describeTrigger(trigger, ctx.card)),
-        onContinue: triggers.length ? () => void playTriggers(live) : undefined,
+        triggers: [...moves.map(step => describeMove(step, ctx.card)), ...triggers.map(trigger => describeTrigger(trigger, ctx.card))],
+        onContinue: moves.length || triggers.length ? () => void playTriggers(live) : undefined,
       });
     }
     return passed;
@@ -825,12 +892,40 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   const wait = (ms: number): Promise<void> => new Promise(resolve => window.setTimeout(resolve, ms));
 
+  async function playMove(step: EnterMoveStep): Promise<void> {
+    if (step.candidates.length === 0) {
+      ctx.log(`${seatLabel(ctx.state(), step.source.owner)}: «${ctx.card(step.source.cardId).name}» non ha bersagli in campo.`, step.source.owner);
+      return;
+    }
+    light(step.source.uid, true);
+    const target = await pickTarget(step.source, step.candidates, "Scegli l'Entità avversaria da mandare nella Zona di Ritiro");
+    if (!target) {
+      light(step.source.uid, false);
+      return;
+    }
+    hold(true);
+    try {
+      flashArrow(step.source.uid, target.uid, TRIGGER_LEAD_MS + TRIGGER_TAIL_MS);
+      await wait(TRIGGER_LEAD_MS);
+      const passed = await resolveMove(ctx, step, target);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      light(step.source.uid, false);
+      hold(false);
+    }
+  }
+
   /**
    * Il ritmo di un innesco: la fonte si accende e resta accesa; mentre è
    * accesa l'effetto agisce (la carta entra in mano); 350ms dopo si spegne.
    * Un innesco alla volta.
    */
   async function playTriggers(entering: CardInstance): Promise<void> {
+    // Prima gli effetti di chi entra (§8.2, la forma di RBF-007): si mira,
+    // poi la fonte si accende, la freccia va al bersaglio, la carta parte.
+    for (const step of enterMoves(ctx.state(), entering, ctx.card)) {
+      await playMove(step);
+    }
     hold(true);
     try {
       for (const trigger of enterTriggers(ctx.state(), entering, ctx.card)) {
@@ -1026,10 +1121,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       tile.addEventListener("click", () => {
         if (!targeting) return;
         const live = ctx.state().cards[card.uid];
-        // Solo le carte in campo del difensore: le altre non bloccano niente.
-        if (live && live.zone === "field" && live.owner === defenderSeat() && live.uid !== targeting.attacker) {
-          confirmBlock(live);
-        }
+        if (!live || live.zone !== "field" || !pickable(live)) return;
+        if (targeting.mode === "effect") targeting.pick(live);
+        else confirmBlock(live);
       });
       tile.addEventListener("contextmenu", event => {
         event.preventDefault();
@@ -1080,18 +1174,22 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       arrows.push({ kind: declaration.kind, from: boxOf(from), to: boxOf(to) });
     }
     if (targeting?.pointer) {
-      const attacker = state.cards[targeting.attacker];
-      // La freccia in volo parte dal puntatore e punta all'attaccante: si sta
-      // scegliendo chi lo ferma, non dove mandarlo.
-      if (attacker) {
-        arrows.push({
-          kind: targeting.kind,
-          from: { ...targeting.pointer, w: 0, h: 0 },
-          to: boxOf(attacker),
-          pending: true,
-        });
+      if (targeting.mode === "block") {
+        const attacker = state.cards[targeting.attacker];
+        // La freccia in volo parte dal puntatore e punta all'attaccante: si
+        // sta scegliendo chi lo ferma, non dove mandarlo.
+        if (attacker) {
+          arrows.push({ kind: targeting.kind, from: { ...targeting.pointer, w: 0, h: 0 }, to: boxOf(attacker), pending: true });
+        }
+      } else {
+        // Un effetto invece mira: dalla fonte al dito.
+        const source = state.cards[targeting.source];
+        if (source) arrows.push({ kind: "effect", from: boxOf(source), to: { ...targeting.pointer, w: 0, h: 0 }, pending: true });
       }
     }
+    const now = Date.now();
+    transientArrows = transientArrows.filter(entry => entry.until > now);
+    for (const entry of transientArrows) arrows.push(entry.arrow);
     drawArrows(arrowLayer, arrows);
   }
 
@@ -1158,9 +1256,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // In modo bersaglio: le carte in campo del difensore sono scegliibili, e
       // fra queste si accendono quelle che le regole permetterebbero. Le altre
       // si smorzano soltanto — restano cliccabili.
-      const pickable = Boolean(targeting) && card.owner === defenderSeat() && card.uid !== targeting?.attacker;
-      tile.classList.toggle("is-pickable", pickable);
-      tile.classList.toggle("is-legal", pickable && looksPlayable(card));
+      const canPick = pickable(card);
+      tile.classList.toggle("is-pickable", canPick);
+      tile.classList.toggle("is-legal", canPick && (targeting?.mode === "effect" || looksPlayable(card)));
       if (tile.parentElement !== surface) surface.append(tile);
       if (card.uid !== dragging) {
         tile.style.position = "absolute";
@@ -1278,6 +1376,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   return {
     render,
     flash,
+    flashArrow: (fromUid, toUid) => flashArrow(fromUid, toUid, TRIGGER_LEAD_MS + TRIGGER_TAIL_MS),
     refreshLayout() {
       applySurfaceSize();
       buildStaticZones();

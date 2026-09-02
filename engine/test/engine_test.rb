@@ -1590,6 +1590,68 @@ class EngineTest < Minitest::Test
     verdict = engine.judge({ "t" => "toZone", "uid" => "u1", "zone" => "hand",
                              "effect" => { "source" => "u1", "event" => "on_enter_field", "entering" => "u1" } })
     refute verdict[:ok]
-    assert_match(/pesca soltanto/, verdict[:reason])
+    assert_match(/§8\.2/, verdict[:reason], "fermato come effetto finto, non come gesto")
+  end
+
+  # --- §8.2: l'Arciere manda un'Entità avversaria in Ritiro (RBF-007) ------
+
+  ARCIERI = {
+    "ARCIERE" => { type: "entity", keywords: [], race: "human",
+                   enter_moves: [{ target: { type: "entity", controller: "opponent" }, to: "ritiro" }] },
+    "UMANO" => { type: "entity", keywords: [], race: "human" },
+    "PIETRA" => { type: "matter", keywords: [], behavior: "normal" },
+  }.freeze
+
+  # A ha l'Arciere in mano, B quelle carte in campo; poi l'Arciere scende.
+  def arciere(b_field)
+    engine = Rubyfront::Engine.new(cards: ARCIERI)
+    a = [{ "uid" => "arc", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "ARCIERE" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    b = b_field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "field", "order" => i, "cardId" => id, "y" => 172 } }
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
+    engine.judge({ "t" => "toZone", "uid" => "arc", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine
+  end
+
+  def manda(engine, uid, zone: "ritiro", source: "arc")
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => zone,
+                   "effect" => { "source" => source, "event" => "on_enter_field", "entering" => source } })
+  end
+
+  def test_l_arciere_manda_un_entita_avversaria_in_ritiro
+    engine = arciere([["b1", "UMANO"]])
+    verdict = manda(engine, "b1")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "ritiro", engine.instance_variable_get(:@table).card("b1")[:zone]
+  end
+
+  def test_l_effetto_si_consuma_una_volta
+    engine = arciere([["b1", "UMANO"], ["b2", "UMANO"]])
+    assert manda(engine, "b1")[:ok]
+    verdict = manda(engine, "b2")
+    refute verdict[:ok]
+    assert_match(/già stato risolto/, verdict[:reason])
+  end
+
+  def test_il_bersaglio_deve_essere_un_entita_avversaria_in_campo
+    engine = arciere([["b1", "PIETRA"]])
+    refute manda(engine, "b1")[:ok], "una Materia no"
+    engine = arciere([])
+    refute manda(engine, "arc")[:ok], "una propria carta no"
+  end
+
+  def test_l_innesco_vale_solo_nel_turno_d_ingresso
+    engine = arciere([["b1", "UMANO"]])
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    verdict = manda(engine, "b1")
+    refute verdict[:ok]
+    assert_match(/non è entrata in campo questo turno/, verdict[:reason])
+  end
+
+  def test_la_zona_deve_essere_quella_della_forma
+    engine = arciere([["b1", "UMANO"]])
+    refute manda(engine, "b1", zone: "abisso")[:ok], "nell'Abisso non è la forma dell'Arciere"
   end
 end

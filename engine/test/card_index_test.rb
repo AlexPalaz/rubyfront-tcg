@@ -43,6 +43,12 @@ class CardIndexTest < Minitest::Test
     assert_equal [], @index["RBF-007"][:enter_listeners], "un move_card all'ingresso non è la forma certificata"
   end
 
+  def test_l_arciere_manda_un_entita_avversaria_in_ritiro
+    assert_equal [{ target: { type: "entity", controller: "opponent" }, to: "ritiro" }], @index["RBF-007"][:enter_moves]
+    assert_equal [], @index["RBF-003"][:enter_moves], "un ascoltatore non è uno spostamento di chi entra"
+    assert_equal [], @index["RBF-012"][:enter_moves], "dalla propria Zona di Ritiro al Fronte è un'altra forma"
+  end
+
   # --- il costo di schieramento (§3.1) ------------------------------------
 
   def test_conosce_il_costo_di_schieramento_fisso_o_a_dado

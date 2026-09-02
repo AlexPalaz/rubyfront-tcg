@@ -138,8 +138,13 @@ function receive(action: Action, from: Seat): void {
       });
     }
   }
-  // Un effetto dell'avversario si vede anche qui: la fonte si accende.
+  // Un effetto dell'avversario si vede anche qui: la fonte si accende, e se
+  // ha un bersaglio la freccia lo indica — prima che la carta parta.
   if (action.t === "draw" && action.effect) table.flash(action.effect.source);
+  if (action.t === "toZone" && action.effect) {
+    table.flashArrow(action.effect.source, action.uid);
+    table.flash(action.effect.source);
+  }
   // Il tiro del dado dell'avversario si vede anche qui: la carta scende
   // insieme, ma il momento è lo stesso.
   if (action.t === "move" && action.roll !== undefined) {
@@ -194,6 +199,7 @@ const ctx: Ctx = {
       power: stats.power,
       counterattack: stats.counterattack,
       enterListeners: stats.enterListeners,
+      enterMoves: stats.enterMoves,
     };
   },
   log(text, seat) {
