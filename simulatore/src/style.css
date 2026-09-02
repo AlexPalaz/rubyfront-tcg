@@ -1678,7 +1678,11 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   border-color: #a494cf;
   box-shadow: 0 4px 10px rgba(86, 68, 128, .45);
 }
-.hud-front.is-phase-end:hover:not(:disabled) { filter: brightness(1.12); }
+/* Il passaggio del mouse schiarisce e basta: la scritta resta del suo
+   colore (il hover di base dei tasti la farebbe bianca sull'avorio). */
+.hud-front.is-phase-end:hover:not(:disabled) { filter: brightness(1.12); color: #1b1015; border-color: #fbf5ec; }
+.hud-front.is-phase-end[data-phase="fronte"]:hover:not(:disabled) { color: #fdeef1; border-color: #e56a86; }
+.hud-front.is-phase-end[data-phase="reazione"]:hover:not(:disabled) { color: #f1ecfa; border-color: #a494cf; }
 .hud-front.is-phase-end:disabled { filter: saturate(.4) brightness(.75); }
 .hud-pass {
   padding: 11px 4px;
