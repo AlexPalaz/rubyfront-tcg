@@ -13,7 +13,9 @@ module Rubyfront
     SEATS = %w[a b].freeze
     # Le fasi del turno (§6), nel modello minimo del client: la Pesca non è
     # una fase e le sotto-fasi del Fronte arriveranno con le Reattive.
-    PHASES = %w[preparazione fronte].freeze
+    # L'ordine dell'array È l'ordine delle fasi: il senso unico si giudica
+    # confrontando gli indici.
+    PHASES = %w[preparazione fronte reazione].freeze
 
     attr_reader :active, :turn, :phase
 
@@ -52,6 +54,12 @@ module Rubyfront
     # un attaccante vero da fermare.
     def attacking?(uid)
       @declarations.any? { |from, d| from == uid && d[:kind] == "attack" }
+    end
+
+    # §6.4: c'è un'ondata dichiarata sul tavolo? Se sì, il turno non si
+    # chiude senza la finestra di difesa.
+    def wave_declared?
+      @declarations.any? { |_, d| d[:kind] == "attack" }
     end
 
     # Le carte di un posto che stanno in campo (per il conteggio del Fronte,

@@ -108,10 +108,12 @@ export interface Declaration {
 /**
  * Le fasi del turno (§6), nel modello MINIMO: la Pesca non è una fase (è il
  * gesto libero d'apertura) e le sotto-fasi del Fronte (Pre-Fronte, finestre
- * Reattive) arriveranno con le Reattive. A senso unico: da «preparazione» si
- * dichiara «fronte», e in Preparazione si torna solo col cambio di turno.
+ * Reattive) arriveranno con le Reattive. A senso unico: dalla Preparazione
+ * si dichiara il Fronte, dal Fronte — a ondata completa — la parola passa
+ * al difensore («reazione», §6.4), e in Preparazione si torna solo col
+ * cambio di turno.
  */
-export type Phase = "preparazione" | "fronte";
+export type Phase = "preparazione" | "fronte" | "reazione";
 
 export interface GameState {
   cards: Record<string, CardInstance>;

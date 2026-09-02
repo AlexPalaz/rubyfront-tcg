@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.12.0"
+    VERSION = "0.13.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -42,6 +42,7 @@ module Rubyfront
       "§5 Materie: mai sugli slot del Fronte",
       "§6.3 Dichiarano solo le Entità (il Rubyfront mai)",
       "§6.3 Attacca chi è di turno, blocca chi difende",
+      "§6.4 Reazione: l'ondata passa al difensore",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -258,6 +259,14 @@ module Rubyfront
     def judge_turn(action)
       return no_rule("turn") unless Table::SEATS.include?(action["active"]) && action["active"] != @table.active
 
+      # §6.4 — il turno non si chiude sopra un'ondata senza finestra di
+      # difesa: dichiarata l'ondata, prima si passa al difensore. Dalla
+      # Reazione invece si chiude liberamente: quanto aspettare la difesa
+      # è affare del tavolo, come a un tavolo vero.
+      if @table.phase == "fronte" && @table.wave_declared?
+        return refuse("turn", "l'ondata è dichiarata: passa al difensore prima di chiudere (§6.4)")
+      end
+
       held = @table.hand_count(@table.active)
       if held > 7
         refuse("turn", "chi chiude il turno ha #{held} carte in mano: prima scarta fino a 7 (§6.5)")
@@ -266,18 +275,22 @@ module Rubyfront
       end
     end
 
-    # §6 — la fase è a senso unico: dalla Preparazione si dichiara il Fronte,
-    # e in Preparazione si torna solo col cambio di turno. Valore ignoto:
-    # nessuna regola, mai molesto.
+    # §6 — la fase è a senso unico: Preparazione → Fronte → Reazione, e
+    # indietro si torna solo col cambio di turno. La Reazione si apre dal
+    # Fronte — è l'ondata che passa la parola (§6.4), non un salto dalla
+    # Preparazione. Valore ignoto: nessuna regola, mai molesto.
     def judge_phase(action)
       phase = action["phase"]
       return no_rule("phase") unless Table::PHASES.include?(phase)
 
-      if phase == "preparazione" && @table.phase == "fronte"
-        refuse("phase", "la fase è a senso unico: in Preparazione si torna col cambio di turno (§6)")
-      else
-        allow("phase")
+      if Table::PHASES.index(phase) < Table::PHASES.index(@table.phase)
+        return refuse("phase", "la fase è a senso unico: in Preparazione si torna col cambio di turno (§6)")
       end
+      if phase == "reazione" && @table.phase == "preparazione"
+        return refuse("phase", "la Reazione si apre dal Fronte: prima si dichiara l'ondata (§6.4)")
+      end
+
+      allow("phase")
     end
 
     # Le dichiarazioni di combattimento passano TRE dogane, nell'ordine:
@@ -304,8 +317,17 @@ module Rubyfront
       kind = declaration["kind"]
       return no_rule("declare") unless %w[attack block counter].include?(kind)
 
-      if @table.phase != "fronte"
-        return refuse("declare", "prima si dichiara la Fase di Fronte: le dichiarazioni vivono lì (§6.3)")
+      # Ogni dichiarazione ha la sua fase: gli attacchi vivono nel Fronte
+      # (§6.3), i blocchi nella Reazione — «vista l'intera ondata» (§6.4).
+      if kind == "attack"
+        if @table.phase == "reazione"
+          return refuse("declare", "l'ondata è passata al difensore: niente nuovi attacchi in Reazione (§6.4)")
+        end
+        if @table.phase != "fronte"
+          return refuse("declare", "prima si dichiara la Fase di Fronte: gli attacchi vivono lì (§6.3)")
+        end
+      elsif @table.phase != "reazione"
+        return refuse("declare", "i blocchi si dichiarano in Fase di Reazione, a ondata completa (§6.4)")
       end
 
       card = @table.card(declaration["from"])

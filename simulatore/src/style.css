@@ -1338,6 +1338,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   color: var(--muted);
 }
 .hud-turn-phase.is-front { color: var(--ruby); }
+.hud-turn-phase.is-reaction { color: var(--viola-light); }
 
 /* In fondo le azioni: Fine turno a tutta riga — un bottone-carta, rubino,
    in maiuscoletto — e a fianco l'ingranaggio che apre il pannello, quadrato

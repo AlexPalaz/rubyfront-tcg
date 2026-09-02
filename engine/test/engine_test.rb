@@ -180,6 +180,7 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     fronte!(engine)
     engine.observe(dichiarazione("b-9", "rf-a", "attack"))
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
   end
 
   def scendi(engine, uid, card_id)
@@ -510,6 +511,7 @@ class EngineTest < Minitest::Test
     scendi(engine, "a-1", "SCATTANTE")
     fronte!(engine)
     assert engine.judge(attacco("a-1"))[:ok]
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     refute engine.judge(attacco("a-1"))[:ok], "turno nuovo: si riparte dalla Preparazione"
   end
@@ -689,7 +691,7 @@ class EngineTest < Minitest::Test
   def test_gli_oggetti_non_dichiarano
     engine = con_carte
     scendi(engine, "a-1", "FERRO")
-    fronte!(engine)
+    difesa!(engine)
     verdict = engine.judge(dichiarazione("a-1", "b-9", "block"))
     refute verdict[:ok]
     assert_match(/solo le Entità/, verdict[:reason])
@@ -727,6 +729,8 @@ class EngineTest < Minitest::Test
     engine = con_carte
     scendi(engine, "a-1", "SCATTANTE")
     fronte!(engine)
+    engine.observe(attacco("a-1"))
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
     verdict = engine.judge(dichiarazione("a-1", "b-9", "block"))
     refute verdict[:ok]
     assert_match(/chi difende/, verdict[:reason])
@@ -738,6 +742,8 @@ class EngineTest < Minitest::Test
     scendi(engine, "a-1", "SCATTANTE")
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     fronte!(engine)
+    engine.observe(dichiarazione("b-8", "rf-a", "attack"))
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
     # Nessun attacco dichiarato da b-9: la freccia non avrebbe senso.
     verdict = engine.judge(dichiarazione("a-1", "b-9", "block"))
     refute verdict[:ok]
@@ -749,5 +755,61 @@ class EngineTest < Minitest::Test
     scendi(engine, "a-1", "SCATTANTE")
     difesa!(engine)
     assert engine.judge(dichiarazione("a-1", "b-9", "counter"))[:ok]
+  end
+
+  # --- §6.4: la Reazione — l'ondata passa al difensore ---------------------
+
+  def test_in_reazione_niente_nuovi_attacchi
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    fronte!(engine)
+    assert engine.judge(attacco("a-1"))[:ok]
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    verdict = engine.judge(attacco("a-1"))
+    refute verdict[:ok]
+    assert_match(/niente nuovi attacchi/, verdict[:reason])
+  end
+
+  def test_i_blocchi_aspettano_la_reazione
+    engine = con_carte
+    scendi(engine, "a-1", "LENTA")
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    fronte!(engine)
+    engine.observe(dichiarazione("b-9", "rf-a", "attack"))
+    # Ondata in corso, parola non ancora passata: il blocco aspetta.
+    verdict = engine.judge(dichiarazione("a-1", "b-9", "block"))
+    refute verdict[:ok]
+    assert_match(/ondata completa/, verdict[:reason])
+  end
+
+  def test_il_turno_non_si_chiude_sopra_l_ondata
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    fronte!(engine)
+    engine.judge(attacco("a-1"))
+    verdict = engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    refute verdict[:ok]
+    assert_match(/passa al difensore/, verdict[:reason])
+    # Passata la parola, il turno si chiude: quanto aspettare la difesa è
+    # affare del tavolo (via semplice, niente stretta di mano).
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })[:ok]
+  end
+
+  def test_senza_ondata_il_fronte_si_chiude_liberamente
+    engine = con_carte
+    scendi(engine, "a-1", "SCATTANTE")
+    fronte!(engine)
+    assert engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })[:ok], "il passo non trattiene il turno"
+  end
+
+  def test_la_reazione_si_apre_solo_dal_fronte
+    engine = con_carte
+    verdict = engine.judge({ "t" => "phase", "phase" => "reazione" })
+    refute verdict[:ok]
+    assert_match(/si apre dal Fronte/, verdict[:reason])
+    fronte!(engine)
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    refute engine.judge({ "t" => "phase", "phase" => "fronte" })[:ok], "dalla Reazione non si torna al Fronte"
   end
 end

@@ -138,11 +138,16 @@ describe("apply", () => {
   });
 
   // Gemelli della sezione §6 dell'engine: le due copie contano uguale.
-  it("la partita parte in Preparazione e il Fronte si dichiara", () => {
+  it("la partita parte in Preparazione, il Fronte si dichiara e l'ondata passa al difensore", () => {
     let state = newGame();
     expect(state.phase).toBe("preparazione");
     state = apply(state, { t: "phase", phase: "fronte" });
     expect(state.phase).toBe("fronte");
+    state = apply(state, { t: "phase", phase: "reazione" });
+    expect(state.phase).toBe("reazione");
+    // Il cambio di turno riparte dalla Preparazione anche dalla Reazione.
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(state.phase).toBe("preparazione");
   });
 
   it("il cambio di turno riporta in Preparazione, il ritocco del contatore no", () => {

@@ -11,16 +11,28 @@ import { otherSeat } from "./types.js";
 const FLUX_CAP = 20;
 
 /**
- * Dichiara l'ingresso in Fase di Fronte (§6.3). A senso unico: da qui si
- * esce solo col cambio di turno, che riporta la fase in Preparazione — non
- * esiste tornare indietro, nemmeno a engine spento. La fase resta
- * facoltativa: chiudere il turno dalla Preparazione è sempre legale.
+ * Dichiara l'ingresso in Fase di Fronte (§6.3). A senso unico: dal Fronte
+ * si va solo avanti (alla Reazione, o al cambio di turno che riporta in
+ * Preparazione) — non esiste tornare indietro, nemmeno a engine spento. La
+ * fase resta facoltativa: chiudere il turno dalla Preparazione è legale.
  */
 export async function declareFront(ctx: Ctx): Promise<void> {
   const state = ctx.state();
   if (state.phase !== "preparazione") return;
   if (!(await ctx.dispatch({ t: "phase", phase: "fronte" }))) return;
   ctx.log(`${seatLabel(ctx.state(), state.active)} dichiara la Fase di Fronte.`, state.active);
+}
+
+/**
+ * L'ondata è completa: la parola passa al difensore — Fase di Reazione
+ * (§6.4). Da lì niente nuovi attacchi; blocchi e contrattacchi vivono lì,
+ * e il turno può chiudersi quando la difesa ha avuto la sua finestra.
+ */
+export async function declareReaction(ctx: Ctx): Promise<void> {
+  const state = ctx.state();
+  if (state.phase !== "fronte") return;
+  if (!(await ctx.dispatch({ t: "phase", phase: "reazione" }))) return;
+  ctx.log(`${seatLabel(ctx.state(), state.active)} passa al difensore: Fase di Reazione.`, state.active);
 }
 
 export async function endTurn(ctx: Ctx): Promise<void> {

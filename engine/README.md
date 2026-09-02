@@ -109,6 +109,18 @@ Regole collegate finora:
   dichiarato in piedi — sgomberato il combattimento, serve un'ondata nuova
   per bloccare di nuovo.
 
+- **§6.4 Reazione: l'ondata passa al difensore** — terza fase del modello
+  (preparazione → fronte → reazione, sempre a senso unico; la Reazione si
+  apre solo dal Fronte). Con la Reazione al tavolo le dichiarazioni si
+  spartiscono le fasi: gli **attacchi** vivono nel Fronte (in Reazione
+  «niente nuovi attacchi»), i **blocchi e contrattacchi** nella Reazione —
+  «vista l'intera ondata» (§6.4). E il **Fine turno non passa** sopra
+  un'ondata dichiarata finché la parola non è passata al difensore (bottone
+  «Al difensore» nell'HUD); dalla Reazione invece si chiude liberamente —
+  quanto aspettare la difesa è affare del tavolo, come a un tavolo vero
+  (via semplice, decisa dal designer: la stretta di mano esplicita arriverà
+  con la catena delle Reattive).
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.
