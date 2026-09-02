@@ -15,11 +15,18 @@ module Rubyfront
   module CardIndex
     # data_dir -> {
     #   "RBF-009" => { type: "entity", race: "human", keywords: ["surge"],
-    #                  grants_while_assigned: [] },
-    #   "RBF-013" => { type: "object", race: nil, keywords: [],
+    #                  power: 3, counterattack: nil, grants_while_assigned: [] },
+    #   "RBF-013" => { type: "object", race: nil, keywords: [], power: nil,
+    #                  counterattack: nil,
     #                  grants_while_assigned: [{ keywords: ["stasis"], if_race: "human" }] },
     #   ...
     # }
+    #
+    # `power` e `counterattack` sono le due statistiche del combattimento
+    # (§6.3): la Potenza stampata e il «Contrattacco +N» — nil per chi non
+    # ce l'ha (una Materia non ha Potenza, un'Entità senza la statistica non
+    # contrattacca). Sono i numeri CANONICI della carta: le modifiche in
+    # partita (Oggetti, effetti) non stanno qui.
     def self.load(data_dir)
       index = {}
       Dir.glob(File.join(data_dir, "sets", "*", "cards", "*", "*.json")).each do |path|
@@ -34,16 +41,25 @@ module Rubyfront
         keywords = faces.flat_map do |face|
           Array(face["keywords"]).filter_map { |keyword| keyword.is_a?(Hash) ? keyword["id"] : nil }
         end
+        stats = faces.filter_map { |face| face["stats"] if face["stats"].is_a?(Hash) }.first || {}
         index[card["id"]] = {
           type: card["type"],
           race: faces.filter_map { |face| face["race"] }.first,
           keywords: keywords.uniq.freeze,
+          power: integer_stat(stats["power"]),
+          counterattack: integer_stat(stats["counterattack"]),
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze
       rescue JSON::ParserError
         next
       end
       index.freeze
+    end
+
+    # Una statistica vale solo se è un intero: un costo a dado
+    # (`{ "base": 3 }`) o un valore mancante restano nil, mai fraintesi.
+    def self.integer_stat(value)
+      value.is_a?(Integer) ? value : nil
     end
 
     # La prima forma CERTIFICATA del contratto degli effetti: «mentre questo

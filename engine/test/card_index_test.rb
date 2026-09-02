@@ -33,6 +33,29 @@ class CardIndexTest < Minitest::Test
     assert_empty Rubyfront::CardIndex.load("/posto/che/non/esiste")
   end
 
+  # --- le statistiche del combattimento (§6.3) ----------------------------
+
+  def test_conosce_la_potenza_delle_entita
+    assert_equal 2, @index["RBF-004"][:power]
+    assert_equal 3, @index["RBF-028"][:power]
+  end
+
+  def test_conosce_il_contrattacco_solo_di_chi_ce_l_ha
+    assert_equal 1, @index["RBF-028"][:counterattack]
+    assert_nil @index["RBF-004"][:counterattack], "senza la statistica non si contrattacca"
+  end
+
+  def test_chi_non_e_entita_non_ha_potenza
+    assert_nil @index["RBF-013"][:power], "un Oggetto non ha Potenza"
+    assert_nil @index["RBF-023"][:power], "il Rubyfront non ha Potenza: non attacca (§3.1)"
+  end
+
+  def test_un_valore_non_intero_resta_ignoto
+    assert_nil Rubyfront::CardIndex.integer_stat({ "base" => 3 })
+    assert_nil Rubyfront::CardIndex.integer_stat("3")
+    assert_equal 3, Rubyfront::CardIndex.integer_stat(3)
+  end
+
   # --- razza e concessioni certificate -----------------------------------
 
   def test_conosce_la_razza_delle_entita
