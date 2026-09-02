@@ -178,6 +178,7 @@ module Rubyfront
                         card_id: card["cardId"], entered: nil,
                         tapped: card["tapped"] == true, facedown: card["facedown"] == true,
                         assigned_to: card["assignedTo"].is_a?(String) ? card["assignedTo"] : nil,
+                        covered_turn: card["coveredTurn"].is_a?(Integer) ? card["coveredTurn"] : nil,
                         face: card["face"].to_i, row: card["y"].is_a?(Numeric) ? card["y"] : nil }
       end
     end
@@ -213,7 +214,11 @@ module Rubyfront
         card[:tapped] = action["tapped"] == true if card
       when "facedown"
         card = @cards[action["uid"]]
-        card[:facedown] = action["facedown"] == true if card
+        if card
+          card[:facedown] = action["facedown"] == true
+          # Coprire annota il turno (§6.3): la scoperta a fine giro parte da lì.
+          card[:covered_turn] = card[:facedown] ? @turn : nil
+        end
       when "flip"
         card = @cards[action["uid"]]
         card[:face] = action["face"].to_i if card
@@ -255,7 +260,18 @@ module Rubyfront
           # ritoccato a mano (active invariato) non è un cambio di turno.
           @active = action["active"]
           @phase = "preparazione"
-          @cards.each_value { |card| card[:tapped] = false if card[:owner] == @active && card[:zone] == "field" }
+          @cards.each_value do |card|
+            next unless card[:owner] == @active && card[:zone] == "field"
+
+            card[:tapped] = false
+            # La copertura «dura un giro completo» (§6.3): coperta al turno
+            # T, si scopre al proprio turno dopo il successivo, T+3. Senza
+            # data resta com'è, nel dubbio — come nel riduttore.
+            next unless card[:facedown] && card[:covered_turn] && @turn - card[:covered_turn] >= 3
+
+            card[:facedown] = false
+            card[:covered_turn] = nil
+          end
           @declarations = {}
           # §3.2: il Flusso massimo di chi entra cresce di 1 «a partire dal
           # secondo» proprio turno (mai oltre 20) — al turno 2 del contatore,
@@ -381,9 +397,13 @@ module Rubyfront
       # entrambi i versi (§3.1: il ritorno in campo è sempre disarmato).
       card[:tapped] = false
       card[:facedown] = false
+      card[:covered_turn] = nil
       card[:assigned_to] = nil
       uid = action["uid"]
       @declarations.reject! { |from, d| from == uid || d[:to] == uid }
+      # Gli Oggetti addosso a chi esce: sciolti, e — verso Ritiro o Abisso
+      # — la seguono (§6.2, §5), come nel riduttore. In mano o nel mazzo no.
+      worn = @cards.select { |_, other| other[:assigned_to] == uid && other[:zone] == "field" }.keys
       @cards.each_value { |other| other[:assigned_to] = nil if other[:assigned_to] == uid }
 
       rest = pile(card[:owner], zone).reject { |other| other.equal?(card) }
@@ -393,6 +413,10 @@ module Rubyfront
         else
           rest.empty? ? 0 : rest.first[:order] - 1
         end
+
+      return unless %w[ritiro abisso].include?(zone)
+
+      worn.each { |object_uid| to_zone({ "uid" => object_uid, "zone" => zone }) }
     end
   end
 end

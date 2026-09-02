@@ -319,3 +319,58 @@ describe("pay", () => {
     expect(state.cards["a-1"].y).toBe(1236);
   });
 });
+
+// La copertura dura un giro completo (§6.3): coperta al turno T, si scopre
+// al proprio turno dopo il successivo. Gemello: table_test.rb.
+describe("scoperta a T+3", () => {
+  it("coprire annota il turno e il cambio di turno scopre a T+3", () => {
+    let state = apply(newGame(), deckFor("a", 1));
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1236, z: 1 });
+    state = apply(state, { t: "turn", turn: 2, active: "b" }); // T: il turno avversario
+    state = apply(state, { t: "facedown", uid: "a-1", facedown: true });
+    expect(state.cards["a-1"].coveredTurn).toBe(2);
+    state = apply(state, { t: "turn", turn: 3, active: "a" }); // T+1
+    expect(state.cards["a-1"].facedown).toBe(true);
+    state = apply(state, { t: "turn", turn: 4, active: "b" }); // T+2
+    state = apply(state, { t: "turn", turn: 5, active: "a" }); // T+3
+    expect(state.cards["a-1"].facedown).toBe(false);
+    expect(state.cards["a-1"].coveredTurn).toBeUndefined();
+  });
+
+  it("una coperta senza data resta com'è, e scoprire a mano toglie la data", () => {
+    let state = apply(newGame(), deckFor("a", 1));
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1236, z: 1 });
+    state.cards["a-1"] = { ...state.cards["a-1"], facedown: true };
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    state = apply(state, { t: "turn", turn: 3, active: "a" });
+    expect(state.cards["a-1"].facedown).toBe(true);
+    state = apply(state, { t: "facedown", uid: "a-1", facedown: false });
+    expect(state.cards["a-1"].coveredTurn).toBeUndefined();
+  });
+});
+
+// Gli Oggetti seguono la loro Entità (§6.2, §5). Gemello: table_test.rb.
+describe("gli Oggetti seguono l'Entità", () => {
+  function worn(): GameState {
+    let state = apply(newGame(), deckFor("a", 3));
+    for (const uid of ["a-1", "a-2", "a-3"]) state = apply(state, { t: "toZone", uid, zone: "field", x: 0, y: 0, z: 1 });
+    state = apply(state, { t: "assign", uid: "a-2", to: "a-1" });
+    state = apply(state, { t: "assign", uid: "a-3", to: "a-1" });
+    return state;
+  }
+
+  it("in Zona di Ritiro e nell'Abisso, sciolti", () => {
+    let state = apply(worn(), { t: "toZone", uid: "a-1", zone: "ritiro" });
+    expect(state.cards["a-2"].zone).toBe("ritiro");
+    expect(state.cards["a-3"].zone).toBe("ritiro");
+    expect(state.cards["a-2"].assignedTo).toBeUndefined();
+    state = apply(worn(), { t: "toZone", uid: "a-1", zone: "abisso" });
+    expect(zoneCards(state, "a", "abisso").map(card => card.uid).sort()).toEqual(["a-1", "a-2", "a-3"]);
+  });
+
+  it("in mano no: restano in campo, sciolti", () => {
+    const state = apply(worn(), { t: "toZone", uid: "a-1", zone: "hand" });
+    expect(state.cards["a-2"].zone).toBe("field");
+    expect(state.cards["a-2"].assignedTo).toBeUndefined();
+  });
+});

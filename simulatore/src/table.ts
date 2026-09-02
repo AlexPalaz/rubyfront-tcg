@@ -554,12 +554,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
 
     if (card.zone === "field") {
-      // Con l'arbitro al tavolo, tappare/stappare/coprire non sono più gesti
-      // liberi: il tap arriva dall'attacco, la copertura dal contrattacco, la
-      // stappata dall'inizio del turno (endTurn). Resta solo «Scopri», perché
-      // la scoperta a fine giro (§6.3, T+3) non è ancora automatica. Quando
-      // una carta concederà questi gesti (regola d'oro), sarà l'engine a
-      // riaprirli. A engine spento: lavagna libera come sempre.
+      // Con l'arbitro al tavolo, tappare/stappare/coprire/scoprire non sono
+      // più gesti liberi: il tap arriva dall'attacco, la copertura dal
+      // contrattacco, la stappata e la scoperta a fine giro (§6.3, T+3) dal
+      // cambio di turno. Resta «Scopri» solo per una coperta SENZA data —
+      // arrivata da una lavagna che non la segnava — che altrimenti non si
+      // scoprirebbe mai. Quando una carta concederà questi gesti (regola
+      // d'oro), sarà l'engine a riaprirli. A engine spento: lavagna libera.
       if (!ctx.arbitrated()) {
         items.push({
           label: card.tapped ? "Stappa" : "Tappa",
@@ -569,7 +570,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           label: card.facedown ? "Scopri" : "Copri",
           run: () => ctx.dispatch({ t: "facedown", uid: card.uid, facedown: !card.facedown }),
         });
-      } else if (card.facedown) {
+      } else if (card.facedown && card.coveredTurn === undefined) {
         items.push({
           label: "Scopri",
           run: () => ctx.dispatch({ t: "facedown", uid: card.uid, facedown: false }),

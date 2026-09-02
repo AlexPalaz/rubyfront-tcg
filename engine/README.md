@@ -24,9 +24,13 @@ Regole collegate finora:
   quegli stati discendono dalle dichiarazioni — il tap dall'attacco, la
   copertura dal contrattacco, la stappata dal cambio di turno (che porta con
   sé la routine di chi entra: Flusso, stappata, frecce — un'azione sola, così
-  nessuno compie gesti nel turno altrui). Resta «Scopri», finché la scoperta a fine giro (T+3) non sarà
-  automatica. Limiti dichiarati: la Stasi (§8.1, RBF-013) non è modellata, e
-  gli effetti delle carte che tappano/coprono non sono ancora concessi.
+  nessuno compie gesti nel turno altrui) — e così la **scoperta a fine
+  giro** (§6.3, T+3): coprire annota il turno (`coveredTurn`), e il cambio
+  di turno scopre le Entità di chi entra coperte da un giro completo, nel
+  riduttore e nella copia. Resta «Scopri» solo per una coperta senza data,
+  arrivata da una lavagna che non la segnava. Limiti dichiarati: la Stasi
+  (§8.1, RBF-013) non è modellata, e gli effetti delle carte che
+  tappano/coprono non sono ancora concessi.
 - **§3.1 Oggetti: assegnazione** — l'assegnazione è un'azione del protocollo
   (`assign {uid, to}`, generata dal rilascio di un Oggetto sopra un'Entità):
   solo alle proprie Entità, mai al Rubyfront/Nexus, mai a una coperta, e una
@@ -76,9 +80,10 @@ Regole collegate finora:
   di Ritiro…»): silenzio, non si accusa. `entered` ignoto (carta arrivata da
   snapshot): via libera, nel dubbio. Limiti dichiarati: un effetto che
   ritiri una PROPRIA Entità aggirando i vincoli verrebbe fermato a torto
-  (arriverà con la regola d'oro), e l'Oggetto assegnato non segue ancora da
-  sé la sua Entità in Zona di Ritiro (è un automatismo del client, in
-  arrivo come passo separato).
+  (arriverà con la regola d'oro). Gli **Oggetti seguono** la loro Entità in
+  Zona di Ritiro (§6.2) e nell'Abisso (§5): sciolti dall'assegnazione,
+  vanno nella stessa pila — nel riduttore e nella copia; in mano o nel
+  mazzo no, lì degli Oggetti decide la carta che ha mosso l'Entità.
 
 - **§5 Materie: mai sugli slot del Fronte** — gli slot sono delle Entità, e
   una Materia GIOCATA (toZone da fuori campo) con le coordinate esatte di

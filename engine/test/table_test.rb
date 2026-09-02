@@ -267,4 +267,46 @@ class TableTest < Minitest::Test
     assert_equal 1, @table.flux("a")
     assert_equal 1236, @table.card("rf")[:row]
   end
+
+  # --- la scoperta a T+3 e gli Oggetti che seguono (§6.3, §6.2, §5) ---------
+
+  def test_coprire_annota_il_turno_e_il_cambio_di_turno_scopre_a_t3
+    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "field", "order" => 0 }]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    @table.apply({ "t" => "facedown", "uid" => "a-1", "facedown" => true })
+    assert_equal 2, @table.card("a-1")[:covered_turn]
+    @table.apply({ "t" => "turn", "turn" => 3, "active" => "a" })
+    assert @table.card("a-1")[:facedown], "T+1: ancora coperta"
+    @table.apply({ "t" => "turn", "turn" => 4, "active" => "b" })
+    @table.apply({ "t" => "turn", "turn" => 5, "active" => "a" })
+    refute @table.card("a-1")[:facedown], "T+3: scoperta"
+    assert_nil @table.card("a-1")[:covered_turn]
+  end
+
+  def test_una_coperta_senza_data_resta_coperta
+    @table.load({ "active" => "b", "turn" => 2, "cards" => { "a-1" => { "owner" => "a", "zone" => "field", "facedown" => true } } })
+    @table.apply({ "t" => "turn", "turn" => 3, "active" => "a" })
+    @table.apply({ "t" => "turn", "turn" => 4, "active" => "b" })
+    @table.apply({ "t" => "turn", "turn" => 5, "active" => "a" })
+    assert @table.card("a-1")[:facedown]
+  end
+
+  def test_gli_oggetti_seguono_l_entita_in_ritiro_e_abisso_non_in_mano
+    cards = %w[a-1 a-2 a-3].map { |uid| { "uid" => uid, "owner" => "a", "zone" => "field", "order" => 0 } }
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    @table.apply({ "t" => "assign", "uid" => "a-2", "to" => "a-1" })
+    @table.apply({ "t" => "assign", "uid" => "a-3", "to" => "a-1" })
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "ritiro" })
+    assert_equal "ritiro", @table.card("a-2")[:zone]
+    assert_equal "ritiro", @table.card("a-3")[:zone]
+    assert_nil @table.card("a-2")[:assigned_to]
+    assert_equal 3, @table.zone_count("a", "ritiro")
+
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    @table.apply({ "t" => "assign", "uid" => "a-2", "to" => "a-1" })
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "hand" })
+    assert_equal "field", @table.card("a-2")[:zone], "in mano no"
+    assert_nil @table.card("a-2")[:assigned_to]
+  end
 end

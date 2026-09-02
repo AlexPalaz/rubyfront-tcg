@@ -170,6 +170,7 @@ export function apply(state: GameState, action: Action): GameState {
         // l'eccezione, ed è coperto per definizione dalla vista.
         next.tapped = false;
         next.facedown = false;
+        delete next.coveredTurn;
       }
       // Chi lascia il campo esce anche dal combattimento: la sua freccia se ne
       // va, e quella che gli puntava contro pure. §6.3 dice che il blocco non
@@ -199,13 +200,23 @@ export function apply(state: GameState, action: Action): GameState {
           }
         }
       }
-      return {
+      let moved: GameState = {
         ...state,
         cards,
         players,
         declarations,
         zTop: Math.max(state.zTop, next.z + 1),
       };
+      // Gli Oggetti seguono la loro Entità in Zona di Ritiro (§6.2) e
+      // nell'Abisso (§5, «Oggetti che seguono un'Entità morta»): sciolti
+      // dall'assegnazione — il ritorno in campo è sempre disarmato — vanno
+      // nella stessa pila. In mano o nel mazzo no: lì un'Entità ci va per
+      // effetto, e degli Oggetti decide la carta.
+      if (next.zone === "ritiro" || next.zone === "abisso") {
+        const worn = Object.values(state.cards).filter(other => other.assignedTo === action.uid && other.zone === "field");
+        for (const object of worn) moved = apply(moved, { t: "toZone", uid: object.uid, zone: next.zone });
+      }
+      return moved;
     }
 
     case "flip": {
@@ -232,7 +243,11 @@ export function apply(state: GameState, action: Action): GameState {
     case "facedown": {
       const card = state.cards[action.uid];
       if (!card) return state;
-      return { ...state, cards: { ...state.cards, [action.uid]: { ...card, facedown: action.facedown } } };
+      // Coprire annota il turno (§6.3): la scoperta a fine giro parte da lì.
+      const next: CardInstance = { ...card, facedown: action.facedown };
+      if (action.facedown) next.coveredTurn = state.turn;
+      else delete next.coveredTurn;
+      return { ...state, cards: { ...state.cards, [action.uid]: next } };
     }
 
     case "player":
@@ -265,7 +280,19 @@ export function apply(state: GameState, action: Action): GameState {
       const grown = firstTurn ? player.fluxMax : Math.min(FLUX_CAP, player.fluxMax + 1);
       const cards = { ...state.cards };
       for (const [uid, card] of Object.entries(cards)) {
-        if (card.owner === next && card.zone === "field" && card.tapped) cards[uid] = { ...card, tapped: false };
+        if (card.owner !== next || card.zone !== "field") continue;
+        // La copertura «dura un giro completo» (§6.3): coperta al turno T
+        // — di regola il turno avversario del contrattacco — si scopre al
+        // proprio turno dopo il successivo, T+3. Coperta senza data (una
+        // lavagna che non lo sapeva): resta com'è, nel dubbio.
+        const uncover = card.facedown && card.coveredTurn !== undefined && action.turn - card.coveredTurn >= 3;
+        if (!card.tapped && !uncover) continue;
+        const fresh: CardInstance = { ...card, tapped: false };
+        if (uncover) {
+          fresh.facedown = false;
+          delete fresh.coveredTurn;
+        }
+        cards[uid] = fresh;
       }
       return {
         ...state,

@@ -40,6 +40,10 @@ export interface CardInstance {
   tapped: boolean;
   /** Coperta: si vede il dorso. Il mazzo è sempre coperto a prescindere. */
   facedown: boolean;
+  /** Il turno in cui è stata coperta (§6.3): la scoperta a fine giro, al
+      proprio turno dopo il successivo (T+3), parte da qui. Assente se
+      scoperta, o coperta da una lavagna che non lo sapeva. */
+  coveredTurn?: number;
   /** Ordine di sovrapposizione sulla lavagna. */
   z: number;
   /**
