@@ -183,6 +183,10 @@ export const TOP_PAD = 128;
  * molto meno — e meno coda vuol dire meno scorrimento.
  */
 const BOTTOM_PAD = 240;
+/** Quanto la coda si accorcia in compatta: il fit della compatta lo tiene
+    come tetto, così le carte non crescono oltre la misura di prima — il
+    guadagno d'altezza va allo spazio, non alla scala. */
+export const COMPACT_TAIL_SAVED = BOTTOM_PAD - COMPACT_BOTTOM_PAD;
 const HALF_GAP = 32;
 export const SURFACE_H = TOP_PAD + HALF_H * 2 + HALF_GAP + BOTTOM_PAD;
 
