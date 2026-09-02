@@ -165,11 +165,16 @@ module Rubyfront
         @phase = action["phase"] if PHASES.include?(action["phase"])
       when "turn"
         @turn = action["turn"] if action["turn"].is_a?(Numeric)
-        if SEATS.include?(action["active"])
-          # Il cambio di turno riporta la fase in Preparazione (§6, a senso
-          # unico); il contatore ritoccato a mano (active invariato) no.
-          @phase = "preparazione" if action["active"] != @active
+        if SEATS.include?(action["active"]) && action["active"] != @active
+          # Il cambio di turno porta con sé la routine di chi entra, come nel
+          # riduttore (state.ts): fase in Preparazione (§6), Entità stappate
+          # («all'inizio del turno successivo del proprietario», §6.3), frecce
+          # sgomberate. Il Flusso non vive in questa copia. Il contatore
+          # ritoccato a mano (active invariato) non è un cambio di turno.
           @active = action["active"]
+          @phase = "preparazione"
+          @cards.each_value { |card| card[:tapped] = false if card[:owner] == @active && card[:zone] == "field" }
+          @declarations = {}
         end
       end
     end

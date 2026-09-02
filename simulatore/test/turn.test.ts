@@ -56,15 +56,13 @@ function fielded(state: GameState, uid: string, owner: Seat, tapped: boolean, zo
 }
 
 describe("endTurn", () => {
-  it("col via libera chiude il turno e prepara il successivo", async () => {
+  it("col via libera chiude il turno con un'azione sola", async () => {
     const { ctx, sent, logs } = fakeCtx(() => true);
     await endTurn(ctx);
-    expect(sent.map(action => action.t)).toEqual(["turn", "player", "clearCombat"]);
-    const turn = sent[0] as Extract<Action, { t: "turn" }>;
-    expect(turn.active).toBe("b");
-    const patch = (sent[1] as Extract<Action, { t: "player" }>).patch;
-    expect(patch.fluxMax).toBe(2);
-    expect(patch.flux).toBe(2);
+    // La routine di chi entra (Flusso, stappata, frecce) sta nel riduttore
+    // (state.test.ts): da qui parte solo il cambio di turno — niente gesti
+    // compiuti «per conto» dell'altro, che l'arbitro fermerebbe (§6).
+    expect(sent).toEqual([{ t: "turn", turn: 2, active: "b" }]);
     expect(logs).toHaveLength(1);
   });
 
@@ -75,18 +73,6 @@ describe("endTurn", () => {
     expect(logs).toHaveLength(0);
   });
 
-  it("chi entra nel turno si ritrova le Entità stappate (§6.3)", async () => {
-    const state = newGame(); // attivo: a → il turno passa a b
-    fielded(state, "b-1", "b", true);
-    fielded(state, "b-2", "b", false);
-    fielded(state, "a-1", "a", true);
-    fielded(state, "b-3", "b", true, "field");
-    const { ctx, sent } = fakeCtx(() => true, state);
-    await endTurn(ctx);
-    const untaps = sent.filter(action => action.t === "tap");
-    expect(untaps.map(action => (action as Extract<Action, { t: "tap" }>).uid).sort()).toEqual(["b-1", "b-3"]);
-    expect(untaps.every(action => (action as Extract<Action, { t: "tap" }>).tapped === false)).toBe(true);
-  });
 });
 
 // «Fine fase» (HUD con l'arbitro): un gesto solo che chiude la fase in

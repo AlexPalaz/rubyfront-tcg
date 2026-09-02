@@ -9,6 +9,9 @@ import { FRONT_SLOT_X, MATTER_X, SURFACE_W, TILE_W, frontRowY } from "./ctx.js";
 import type { Action, CardInstance, Declaration, GameState, Seat, ZoneId } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
 
+/** Il tetto del Flusso (§3.2): la barra non supera mai 20. */
+export const FLUX_CAP = 20;
+
 export function newPlayer(name: string): GameState["players"]["a"] {
   return { name, hp: 20, flux: 1, fluxMax: 1, token: false, deckId: null };
 }
@@ -206,16 +209,36 @@ export function apply(state: GameState, action: Action): GameState {
         },
       };
 
-    case "turn":
-      // Il cambio di turno riporta la fase in Preparazione: è l'unica via
-      // del ritorno (§6, a senso unico). Il contatore ritoccato a mano
-      // (active invariato) non è un cambio di turno e la fase non si tocca.
+    case "turn": {
+      // Il contatore ritoccato a mano (active invariato) non è un cambio di
+      // turno: si aggiorna il numero e basta.
+      if (action.active === state.active) return { ...state, turn: action.turn };
+      // Il cambio di turno porta con sé la routine di chi entra, tutta in
+      // un'azione sola — così nessuno la compie «per conto» dell'altro, e
+      // l'arbitro non vede gesti nel turno altrui: la fase torna in
+      // Preparazione (§6, l'unica via del ritorno); il Flusso massimo cresce
+      // di 1, mai oltre 20, e il disponibile si ricarica fin lì (§3.2); le
+      // Entità di chi entra si stappano («all'inizio del turno successivo
+      // del proprietario», §6.3 — limite noto: la Stasi non è modellata);
+      // attacchi e blocchi valevano per il turno chiuso, e le frecce se ne
+      // vanno. Ogni effetto resta disfacibile a mano dai contatori.
+      const next = action.active;
+      const player = state.players[next];
+      const grown = Math.min(FLUX_CAP, player.fluxMax + 1);
+      const cards = { ...state.cards };
+      for (const [uid, card] of Object.entries(cards)) {
+        if (card.owner === next && card.zone === "field" && card.tapped) cards[uid] = { ...card, tapped: false };
+      }
       return {
         ...state,
+        cards,
+        players: { ...state.players, [next]: { ...player, fluxMax: grown, flux: grown } },
         turn: action.turn,
-        active: action.active,
-        phase: action.active === state.active ? state.phase : "preparazione",
+        active: next,
+        phase: "preparazione",
+        declarations: [],
       };
+    }
 
     case "phase":
       return { ...state, phase: action.phase };

@@ -118,4 +118,27 @@ class TableTest < Minitest::Test
     @table.apply({ "t" => "toZone", "uid" => "b-1", "zone" => "hand" })
     assert_nil @table.blocker_of("a-1"), "il bloccante uscito lascia l'attacco non bloccato (§6.3)"
   end
+
+  # --- il cambio di turno apparecchia chi entra ----------------------------
+
+  def test_il_cambio_di_turno_stappa_chi_entra_e_sgombera_le_frecce
+    battlefield
+    @table.apply({ "t" => "tap", "uid" => "b-1", "tapped" => true })
+    @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true })
+    @table.apply({ "t" => "phase", "phase" => "fronte" })
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    refute @table.card("b-1")[:tapped], "chi entra si stappa (§6.3)"
+    assert @table.card("a-1")[:tapped], "chi esce resta com'era"
+    refute @table.wave_declared?
+    assert_equal "preparazione", @table.phase
+  end
+
+  def test_il_contatore_ritoccato_non_apparecchia_nulla
+    battlefield
+    @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true })
+    @table.apply({ "t" => "turn", "turn" => 7, "active" => "a" })
+    assert @table.card("a-1")[:tapped]
+    assert @table.wave_declared?
+    assert_equal 7, @table.turn
+  end
 end

@@ -22,8 +22,9 @@ Regole collegate finora:
   raddrizza e libera le sue frecce). Con l'arbitro collegato il simulatore
   nasconde anche i gesti manuali Tappa/Stappa/Copri (`ctx.arbitrated()`):
   quegli stati discendono dalle dichiarazioni — il tap dall'attacco, la
-  copertura dal contrattacco, la stappata dall'inizio del turno (routine di
-  endTurn). Resta «Scopri», finché la scoperta a fine giro (T+3) non sarà
+  copertura dal contrattacco, la stappata dal cambio di turno (che porta con
+  sé la routine di chi entra: Flusso, stappata, frecce — un'azione sola, così
+  nessuno compie gesti nel turno altrui). Resta «Scopri», finché la scoperta a fine giro (T+3) non sarà
   automatica. Limiti dichiarati: la Stasi (§8.1, RBF-013) non è modellata, e
   gli effetti delle carte che tappano/coprono non sono ancora concessi.
 - **§3.1 Oggetti: assegnazione** — l'assegnazione è un'azione del protocollo

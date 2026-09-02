@@ -203,3 +203,46 @@ describe("apply resolve", () => {
     expect(state.players.a.hp).toBe(20);
   });
 });
+
+// Il cambio di turno porta con sé la routine di chi entra (§3.2, §6.3):
+// gemello in table_test.rb (test_il_cambio_di_turno_*), dove i PV e il
+// Flusso non sono tracciati ma stappata e frecce sì.
+describe("apply turn", () => {
+  function tapped(state: GameState, uid: string, owner: Seat, isTapped: boolean): void {
+    state.cards[uid] = { ...deckFor(owner, 1).cards[0], uid, zone: "field", tapped: isTapped };
+  }
+
+  it("chi entra si ritrova Flusso nuovo, Entità stappate e frecce sgomberate", () => {
+    const state = newGame();
+    tapped(state, "b-1", "b", true);
+    tapped(state, "b-2", "b", false);
+    tapped(state, "a-1", "a", true);
+    state.phase = "reazione";
+    state.declarations = [{ id: "x", from: "a-1", to: "rf", kind: "attack", seat: "a", order: 1 }];
+    const next = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(next.players.b).toMatchObject({ fluxMax: 2, flux: 2 });
+    expect(next.players.a).toMatchObject({ fluxMax: 1, flux: 1 });
+    expect(next.cards["b-1"].tapped).toBe(false);
+    expect(next.cards["a-1"].tapped).toBe(true);
+    expect(next.declarations).toEqual([]);
+    expect(next.phase).toBe("preparazione");
+  });
+
+  it("il Flusso massimo non supera 20 (§3.2)", () => {
+    const state = newGame();
+    state.players.b.fluxMax = 20;
+    state.players.b.flux = 3;
+    expect(apply(state, { t: "turn", turn: 2, active: "b" }).players.b).toMatchObject({ fluxMax: 20, flux: 20 });
+  });
+
+  it("il contatore ritoccato a mano non è un cambio di turno", () => {
+    const state = newGame();
+    state.phase = "fronte";
+    tapped(state, "a-1", "a", true);
+    const next = apply(state, { t: "turn", turn: 5, active: "a" });
+    expect(next.turn).toBe(5);
+    expect(next.phase).toBe("fronte");
+    expect(next.cards["a-1"].tapped).toBe(true);
+    expect(next.players.a.fluxMax).toBe(1);
+  });
+});
