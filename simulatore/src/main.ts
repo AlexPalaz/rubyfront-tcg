@@ -15,6 +15,7 @@ import { connectEngine, DEFAULT_ENGINE, type EngineLink, type EngineStatus, type
 import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
+import { PHASE_BANNER_HOLD_MS, mountPhaseBanner } from "./banner.js";
 import { mountHud } from "./hud.js";
 import { setupPreview } from "./preview.js";
 import {
@@ -156,6 +157,8 @@ const voice = createVoice({
 setCompactView(store.read("compact", "") === "1");
 
 const table = mountTable(document.querySelector<HTMLElement>("#table")!, ctx);
+// L'insegna di fase sta sul tavolo, sopra le carte: è lì che si guarda.
+const banner = mountPhaseBanner(document.querySelector<HTMLElement>("#table")!, ctx);
 const chat = mountChat(document.querySelector<HTMLElement>("#chat")!, ctx);
 // La colonna è solo la chat; si apre e si chiude, e la scelta resta fra una
 // partita e l'altra. Aperta la chat l'HUD si ritira: dall'HUD si apre con
@@ -220,6 +223,7 @@ function paint(): void {
   document.body.dataset.unread = unreadChat > 0 ? String(unreadChat) : "";
   document.body.dataset.unreadLog = unreadLog > 0 ? String(unreadLog) : "";
   table.render();
+  banner.render();
   chat.render();
   hud.render();
 }
@@ -280,8 +284,14 @@ function buildDeck(deckId: string, seat: Seat): CardInstance[] | null {
 
 /** Pausa tra la fine della cascata iniziale e la carta del turno 1. */
 const OPENING_DRAW_PAUSE_MS = 250;
-/** Timer della carta del turno 1, per posto: si azzera se si ricarica. */
-const openingDrawTimer: Record<Seat, number | undefined> = { a: undefined, b: undefined };
+/** Il timer dell'apertura, per posto (insegna → mano → carta del turno 1):
+    si azzera se il mazzo si ricarica prima che la fila sia finita. */
+const openingTimer: Record<Seat, number | undefined> = { a: undefined, b: undefined };
+
+/** Quante carte ha in mano quel posto, adesso. */
+function handSize(seat: Seat): number {
+  return Object.values(state.cards).filter(c => c.owner === seat && c.zone === "hand").length;
+}
 
 function loadDeck(deckId: string, seat: Seat): void {
   const cards = buildDeck(deckId, seat);
@@ -293,38 +303,42 @@ function loadDeck(deckId: string, seat: Seat): void {
     store.write("deck", deckId);
   }
   dispatch({ t: "loadDeck", seat, deckId, cards });
-  // §4, mano iniziale: «prima che inizi il primo turno, entrambi i
-  // giocatori pescano 6 carte». Il mazzo esce da buildDeck già mescolato,
-  // quindi la pesca parte da sola — a ogni via d'inizio (partita locale,
-  // stanza, Nuova partita), perché tutte passano di qui. Il mulligan (§4,
-  // punto 5) resta un gesto manuale: «Mescola» e poi «Pesca 6» dal mazzo.
-  void dispatch({ t: "draw", seat, count: 6 });
-  // §6.1 — «la pesca non si salta mai», nemmeno al primo turno di chi
-  // inizia: il posto di turno pesca anche la carta del turno 1.
-  // In rete ci pensa il client che governa quel posto: ognuno carica il
-  // proprio mazzo, e solo chi apre passa di qui con `active` suo.
-  // La settima carta aspetta che la cascata delle sei sia finita, più un
-  // respiro: due pesche nello stesso istante si vedrebbero come una sola.
-  // Se nel frattempo il tavolo è cambiato (altro mazzo, nuova partita), la
-  // pesca in ritardo non ha più senso e si lascia cadere.
-  const opening = seat === state.active;
-  window.clearTimeout(openingDrawTimer[seat]);
-  if (opening) {
-    openingDrawTimer[seat] = window.setTimeout(() => {
-      const untouched =
-        state.players[seat].deckId === deckId &&
-        state.active === seat &&
-        Object.values(state.cards).filter(c => c.owner === seat && c.zone === "hand").length === 6;
-      if (untouched) void dispatch({ t: "draw", seat, count: 1 });
-    }, drawCascadeMs(6) + OPENING_DRAW_PAUSE_MS);
-  }
   const deck = getDeck(deckId);
   const name = deck?.locales[locale]?.name ?? deck?.locales[deck.defaultLocale]?.name ?? deckId;
-  ctx.log(
-    `Posto ${seat.toUpperCase()}: caricato «${name}» (${cards.length} carte), mano iniziale pescata` +
-      `${opening ? " — apre la partita, pescata anche la carta del turno 1" : ""}.`,
-    seat
-  );
+  ctx.log(`Posto ${seat.toUpperCase()}: caricato «${name}» (${cards.length} carte).`, seat);
+  // L'apertura è una fila di tre tempi: l'insegna «Fase di Preparazione»
+  // al centro del tavolo; poi, mentre svanisce, la mano iniziale; poi, a
+  // cascata finita più un respiro, la carta del turno 1 di chi apre. Ogni
+  // tempo controlla che il tavolo sia ancora quello (stesso mazzo, mano
+  // com'era attesa): a mazzo ricaricato o partita nuova, la fila si lascia
+  // cadere. Il mazzo dell'avversario locale passa di qui subito dopo il
+  // proprio: l'insegna riparte da capo, e non si vede.
+  banner.announce();
+  window.clearTimeout(openingTimer[seat]);
+  openingTimer[seat] = window.setTimeout(() => {
+    if (state.players[seat].deckId !== deckId || handSize(seat) !== 0) return;
+    // §4, mano iniziale: «prima che inizi il primo turno, entrambi i
+    // giocatori pescano 6 carte». Il mazzo esce da buildDeck già mescolato,
+    // quindi la pesca parte da sola — a ogni via d'inizio (partita locale,
+    // stanza, Nuova partita), perché tutte passano di qui. Il mulligan (§4,
+    // punto 5) resta un gesto manuale: «Mescola» e poi «Pesca 6» dal mazzo.
+    void dispatch({ t: "draw", seat, count: 6 });
+    // §6.1 — «la pesca non si salta mai», nemmeno al primo turno di chi
+    // inizia: il posto di turno pesca anche la carta del turno 1. In rete
+    // ci pensa il client che governa quel posto: ognuno carica il proprio
+    // mazzo, e solo chi apre passa di qui con `active` suo.
+    const opening = seat === state.active;
+    ctx.log(
+      `Posto ${seat.toUpperCase()}: mano iniziale pescata` +
+        `${opening ? " — apre la partita, pesca anche la carta del turno 1" : ""}.`,
+      seat
+    );
+    if (!opening) return;
+    openingTimer[seat] = window.setTimeout(() => {
+      const untouched = state.players[seat].deckId === deckId && state.active === seat && handSize(seat) === 6;
+      if (untouched) void dispatch({ t: "draw", seat, count: 1 });
+    }, drawCascadeMs(6) + OPENING_DRAW_PAUSE_MS);
+  }, PHASE_BANNER_HOLD_MS);
 }
 
 // ----------------------------------------------------------------- rete
@@ -598,6 +612,9 @@ function setEngineStatus(status: EngineStatus): void {
       : status === "connecting"
         ? "Engine: mi sto collegando…"
         : "Engine non raggiungibile";
+  // L'HUD cambia faccia con l'arbitro (Fine fase al posto di Fine turno):
+  // si ridisegna subito, non alla prossima mossa.
+  paint();
 }
 
 function engineApply(): void {

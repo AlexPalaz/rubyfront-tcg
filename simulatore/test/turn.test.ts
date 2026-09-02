@@ -3,7 +3,7 @@
 // frecce sgomberate) non parte affatto.
 
 import { describe, expect, it } from "vitest";
-import { endTurn } from "../src/turn.js";
+import { endPhase, endTurn } from "../src/turn.js";
 import { newGame } from "../src/state.js";
 import type { Ctx } from "../src/ctx.js";
 import type { Action, GameState, Seat } from "../src/types.js";
@@ -82,5 +82,51 @@ describe("endTurn", () => {
     const untaps = sent.filter(action => action.t === "tap");
     expect(untaps.map(action => (action as Extract<Action, { t: "tap" }>).uid).sort()).toEqual(["b-1", "b-3"]);
     expect(untaps.every(action => (action as Extract<Action, { t: "tap" }>).tapped === false)).toBe(true);
+  });
+});
+
+// «Fine fase» (HUD con l'arbitro): un gesto solo che chiude la fase in
+// corso, sempre in avanti, e dall'ultima chiude il turno.
+describe("endPhase", () => {
+  const attack = (state: GameState): void => {
+    state.declarations.push({ id: "d1", from: "x", to: "rbf-b", kind: "attack", seat: "a", order: 1 });
+  };
+
+  it("dalla Preparazione dichiara la Fase di Fronte", async () => {
+    const { ctx, sent } = fakeCtx(() => true);
+    await endPhase(ctx);
+    expect(sent).toEqual([{ t: "phase", phase: "fronte" }]);
+  });
+
+  it("dal Fronte con un'ondata in piedi passa al difensore", async () => {
+    const state = newGame();
+    state.phase = "fronte";
+    attack(state);
+    const { ctx, sent } = fakeCtx(() => true, state);
+    await endPhase(ctx);
+    expect(sent).toEqual([{ t: "phase", phase: "reazione" }]);
+  });
+
+  it("dal Fronte senza attacchi chiude il turno: la Reazione non c'è (§6.3)", async () => {
+    const state = newGame();
+    state.phase = "fronte";
+    const { ctx, sent } = fakeCtx(() => true, state);
+    await endPhase(ctx);
+    expect(sent[0]).toMatchObject({ t: "turn", active: "b" });
+  });
+
+  it("dalla Reazione chiude il turno", async () => {
+    const state = newGame();
+    state.phase = "reazione";
+    attack(state);
+    const { ctx, sent } = fakeCtx(() => true, state);
+    await endPhase(ctx);
+    expect(sent[0]).toMatchObject({ t: "turn", active: "b" });
+  });
+
+  it("un «no» dell'engine ferma il passo e basta", async () => {
+    const { ctx, sent } = fakeCtx(() => false);
+    await endPhase(ctx);
+    expect(sent).toEqual([]);
   });
 });

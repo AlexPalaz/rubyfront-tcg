@@ -328,6 +328,11 @@ export function declarationOf(state: GameState, uid: string): Declaration | unde
   return state.declarations.find(d => d.from === uid);
 }
 
+/** C'è un'ondata in piedi: almeno un attacco dichiarato (§6.3, punto 3). */
+export function waveDeclared(state: GameState): boolean {
+  return state.declarations.some(d => d.kind === "attack");
+}
+
 /** Prossimo numero d'ondata: gli attacchi si risolvono in quest'ordine (§6.3). */
 export function nextWaveOrder(state: GameState, seat: Seat): number {
   const mine = state.declarations.filter(d => d.kind === "attack" && d.seat === seat);

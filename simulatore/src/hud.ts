@@ -14,8 +14,8 @@
 // l'altra, e un doppio click sulla maniglia lo rimette al posto suo.
 
 import type { Ctx } from "./ctx.js";
-import { seatLabel } from "./state.js";
-import { declareFront, declareReaction, endTurn } from "./turn.js";
+import { seatLabel, waveDeclared } from "./state.js";
+import { declareFront, declareReaction, endPhase, endTurn } from "./turn.js";
 import type { PlayerState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -243,6 +243,12 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   front.className = "hud-front";
   front.textContent = "Fase di Fronte";
   front.addEventListener("click", () => {
+    // Con l'arbitro al tavolo il bottone è «Fine fase»: chiude la fase in
+    // corso, e l'ultima chiude il turno (turn.ts).
+    if (ctx.arbitrated()) {
+      void endPhase(ctx);
+      return;
+    }
     const phase = ctx.state().phase;
     if (phase === "preparazione") void declareFront(ctx);
     else if (phase === "fronte") void declareReaction(ctx);
@@ -299,6 +305,28 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     tip(pass, canPass
       ? "Passa il turno: Flusso massimo +1 e ricarica per chi entra (§3.2)"
       : "Tocca all'avversario: il Fine turno adesso è suo");
+    // Arbitro collegato: le fasi le scandisce lui, e all'HUD resta un gesto
+    // solo — «Fine fase», rubino, al posto del Fine turno. Il turno si
+    // chiude dall'ultima fase (Reazione, o Fronte senza ondata), non si
+    // salta: la Preparazione si chiude sempre sul Fronte (§6.3).
+    const single = ctx.arbitrated();
+    pass.hidden = single;
+    actions.classList.toggle("is-single", single);
+    front.classList.toggle("is-phase-end", single);
+    if (single) {
+      front.textContent = "Fine fase";
+      front.disabled = !canPass;
+      tip(front, !canPass
+        ? "Tocca all'avversario: le fasi le chiude chi è di turno"
+        : state.phase === "preparazione"
+          ? "Chiude la Preparazione: si apre la Fase di Fronte (§6.3)"
+          : state.phase === "fronte"
+            ? waveDeclared(state)
+              ? "Chiude il Fronte: l'ondata passa al difensore (§6.4)"
+              : "Chiude il Fronte senza attacchi: fine del turno (§6.5)"
+            : "Chiude la Reazione: fine del turno (§6.5)");
+      return;
+    }
     front.textContent = state.phase === "preparazione" ? "Fase di Fronte" : "Al difensore";
     front.disabled = !canPass || state.phase === "reazione";
     tip(front, !canPass

@@ -282,6 +282,72 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
   .engine-stop, .engine-stop-card, .engine-stop-gem { animation: none; }
 }
 
+/* L'insegna di fase: al centro del tavolo, sopra le carte, una scritta in
+   maiuscoletto sul modello delle targhette della carta — rombi ai lati, il
+   colore della fase (rubino il Fronte, viola la Reazione, avorio la
+   Preparazione) — su una fascia d'ombra che la stacca dal tavolo. Entra
+   con un respiro, resta, svanisce: è un annuncio, non un pannello, e non
+   intercetta nessun click. */
+.phase-banner {
+  position: absolute; inset: 0;
+  z-index: 42; /* sopra mani e carte, sotto l'HUD (45) */
+  display: grid; place-content: center;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+  pointer-events: none;
+  animation: phase-banner 1.8s ease-out both;
+}
+/* Il `display: grid` qui sopra vincerebbe sul [hidden] del browser: si
+   ribadisce. Ed è proprio il passaggio da none a grid a far ripartire
+   l'animazione a ogni annuncio. */
+.phase-banner[hidden] { display: none; }
+.phase-banner::before {
+  content: "";
+  position: absolute; left: 0; right: 0;
+  top: 50%; height: 150px;
+  transform: translateY(-50%);
+  background: linear-gradient(180deg, transparent, rgba(5, 4, 10, .78) 30%, rgba(5, 4, 10, .78) 70%, transparent);
+  z-index: -1;
+}
+.phase-banner-title {
+  --phase-tone: var(--ink);
+  font-size: clamp(1.4rem, 3.4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: .28em; text-transform: uppercase;
+  color: var(--phase-tone);
+  text-shadow: 0 0 22px color-mix(in srgb, var(--phase-tone) 55%, transparent);
+  animation: phase-banner-title 1.8s ease-out both;
+}
+.phase-banner-title::before, .phase-banner-title::after {
+  content: "\25C6";
+  margin: 0 .55em;
+  font-size: .45em;
+  vertical-align: middle;
+  opacity: .8;
+}
+.phase-banner[data-phase="fronte"] .phase-banner-title { --phase-tone: var(--ruby); }
+.phase-banner[data-phase="reazione"] .phase-banner-title { --phase-tone: var(--viola-light); }
+.phase-banner-sub {
+  font-size: .85rem;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--muted);
+}
+@keyframes phase-banner {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes phase-banner-title {
+  0% { transform: scale(.9); letter-spacing: .5em; }
+  20% { transform: scale(1); letter-spacing: .28em; }
+  100% { transform: scale(1.03); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .phase-banner, .phase-banner-title { animation: none; }
+}
+
 /* ------------------------------------------------------------- layout */
 
 .layout {
@@ -1386,6 +1452,24 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   border-radius: 4px;
 }
 .hud-front:hover:not(:disabled) { border-color: var(--ruby); color: #fff; }
+/* Con l'arbitro al tavolo il Fine turno sparisce e il bottone di fase
+   diventa «Fine fase»: prende il rubino pieno, perché è lui il gesto che
+   scandisce la partita. I due tasti tondi si mettono in coda a destra. */
+.hud-actions.is-single { grid-template-columns: minmax(0, 1fr) auto auto; }
+.hud-actions.is-single .hud-mic { grid-column: 2; }
+/* Soli nella loro riga, i due tasti tondi non hanno più il Fine turno a
+   dettare l'altezza: se la tengono da sé, la stessa del bottone rubino
+   (11px di padding sopra e sotto, un rigo di testo, il bordo). */
+.hud-mic, .hud-chat { min-height: calc(1rem + 24px); }
+.hud-front.is-phase-end {
+  padding: 11px 4px;
+  color: #fdeef1;
+  background: linear-gradient(180deg, #b81a41, #9e0f34);
+  border-color: #e56a86;
+  backdrop-filter: none;
+  box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
+}
+.hud-front.is-phase-end:hover:not(:disabled) { filter: brightness(1.15); border-color: #e56a86; }
 .hud-pass {
   padding: 11px 4px;
   font-size: 1rem;

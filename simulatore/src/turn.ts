@@ -5,7 +5,7 @@
 // suo effetto si può disfare a mano dai contatori.
 
 import type { Ctx } from "./ctx.js";
-import { seatLabel } from "./state.js";
+import { seatLabel, waveDeclared } from "./state.js";
 import { otherSeat } from "./types.js";
 
 const FLUX_CAP = 20;
@@ -33,6 +33,21 @@ export async function declareReaction(ctx: Ctx): Promise<void> {
   if (state.phase !== "fronte") return;
   if (!(await ctx.dispatch({ t: "phase", phase: "reazione" }))) return;
   ctx.log(`${seatLabel(ctx.state(), state.active)} passa al difensore: Fase di Reazione.`, state.active);
+}
+
+/**
+ * «Fine fase» — il gesto unico dell'HUD con l'arbitro al tavolo: le fasi si
+ * chiudono una alla volta, sempre in avanti, e l'ultima chiude il turno.
+ * Preparazione → Fronte; Fronte con un'ondata in piedi → Reazione, senza
+ * ondata → Fine turno (§6.3: «se invece il giocatore passa, la Reazione non
+ * c'è e si va al Fine del turno»); Reazione → Fine turno. Ogni passo resta
+ * la routine di prima, giudizio dell'engine compreso.
+ */
+export async function endPhase(ctx: Ctx): Promise<void> {
+  const state = ctx.state();
+  if (state.phase === "preparazione") return declareFront(ctx);
+  if (state.phase === "fronte" && waveDeclared(state)) return declareReaction(ctx);
+  return endTurn(ctx);
 }
 
 export async function endTurn(ctx: Ctx): Promise<void> {
