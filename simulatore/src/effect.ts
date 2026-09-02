@@ -92,8 +92,10 @@ export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promi
       if (event.key === "Escape" || event.key === "Enter") close();
     };
     go.addEventListener("click", close);
+    // Invio ed Esc li ascolta la pagina: niente focus da script sul tasto,
+    // che disegnerebbe il contorno di messa a fuoco senza che nessuno abbia
+    // toccato la tastiera.
     document.addEventListener("keydown", onKey);
-    go.focus();
   });
 }
 
