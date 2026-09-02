@@ -776,7 +776,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       ctx.log(`${seatLabel(ctx.state(), card.owner)}: la carta resta al suo proprietario.`, card.owner);
       return;
     }
-    ctx.dispatch({ t: "toZone", uid: card.uid, zone: drop.zone });
+    // Fermata dall'arbitro (es. §5: dal campo non si torna in mano): i pixel
+    // del trascinamento possono aver mosso la carta — torna da dove era.
+    const origin = dragOrigin;
+    void ctx.dispatch({ t: "toZone", uid: card.uid, zone: drop.zone }).then(passed => {
+      if (!passed && origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
+    });
   }
 
   // -------------------------------------------------------------- disegno
@@ -799,6 +804,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         onDragMove: drop => {
           const live = ctx.state().cards[card.uid];
           if (!live || live.zone !== "field") return;
+          // Con l'arbitro al tavolo i pixel non viaggiano in diretta: ogni
+          // passo sarebbe un `move` fuori slot, e l'arbitro lo fermerebbe
+          // (§5). Il fantasma segue comunque il dito; l'avversario vede la
+          // carta al rilascio, quando ha un posto.
+          if (ctx.arbitrated()) return;
           dragging = card.uid;
           // Sopra un riquadro le coordinate sono già canoniche; a mano libera
           // arrivano dallo schermo e vanno riportate indietro.
