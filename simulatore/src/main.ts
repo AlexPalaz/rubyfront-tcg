@@ -25,7 +25,7 @@ import {
   loadRenderer,
 } from "./renderer.js";
 import { apply, newGame, shuffled, zoneCards } from "./state.js";
-import { mountTable } from "./table.js";
+import { drawCascadeMs, mountTable } from "./table.js";
 import { createVoice, type VoicePayload } from "./voice.js";
 import type { Action, CardInstance, GameState, Seat } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
@@ -278,6 +278,11 @@ function buildDeck(deckId: string, seat: Seat): CardInstance[] | null {
   return cards;
 }
 
+/** Pausa tra la fine della cascata iniziale e la carta del turno 1. */
+const OPENING_DRAW_PAUSE_MS = 250;
+/** Timer della carta del turno 1, per posto: si azzera se si ricarica. */
+const openingDrawTimer: Record<Seat, number | undefined> = { a: undefined, b: undefined };
+
 function loadDeck(deckId: string, seat: Seat): void {
   const cards = buildDeck(deckId, seat);
   if (!cards) return;
@@ -295,11 +300,24 @@ function loadDeck(deckId: string, seat: Seat): void {
   // punto 5) resta un gesto manuale: «Mescola» e poi «Pesca 6» dal mazzo.
   void dispatch({ t: "draw", seat, count: 6 });
   // §6.1 — «la pesca non si salta mai», nemmeno al primo turno di chi
-  // inizia: il posto di turno pesca subito anche la carta del turno 1.
+  // inizia: il posto di turno pesca anche la carta del turno 1.
   // In rete ci pensa il client che governa quel posto: ognuno carica il
   // proprio mazzo, e solo chi apre passa di qui con `active` suo.
+  // La settima carta aspetta che la cascata delle sei sia finita, più un
+  // respiro: due pesche nello stesso istante si vedrebbero come una sola.
+  // Se nel frattempo il tavolo è cambiato (altro mazzo, nuova partita), la
+  // pesca in ritardo non ha più senso e si lascia cadere.
   const opening = seat === state.active;
-  if (opening) void dispatch({ t: "draw", seat, count: 1 });
+  window.clearTimeout(openingDrawTimer[seat]);
+  if (opening) {
+    openingDrawTimer[seat] = window.setTimeout(() => {
+      const untouched =
+        state.players[seat].deckId === deckId &&
+        state.active === seat &&
+        Object.values(state.cards).filter(c => c.owner === seat && c.zone === "hand").length === 6;
+      if (untouched) void dispatch({ t: "draw", seat, count: 1 });
+    }, drawCascadeMs(6) + OPENING_DRAW_PAUSE_MS);
+  }
   const deck = getDeck(deckId);
   const name = deck?.locales[locale]?.name ?? deck?.locales[deck.defaultLocale]?.name ?? deckId;
   ctx.log(

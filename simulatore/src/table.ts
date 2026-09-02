@@ -55,6 +55,20 @@ const PILES: { zone: ZoneId; label: string; x: number; hidden: boolean }[] = [
   { zone: "deck", label: "Mazzo", x: SLOT_X.deck, hidden: true },
 ];
 
+/** Tempi della pesca animata (`card-drawn` in style.css): corsa di una carta
+    e passo della cascata. Stanno qui, esportati, perché chi accoda una pesca
+    all'altra (main.ts: la carta del turno 1 dopo la mano iniziale) deve
+    sapere quando la prima ha finito di muoversi. */
+export const DRAW_RUN_MS = 380;
+export const DRAW_STEP_MS = 70;
+/** Quanto dura, in tutto, l'entrata in cascata di `count` carte. Zero con
+    prefers-reduced-motion: lì l'animazione è spenta e non c'è da aspettare. */
+export function drawCascadeMs(count: number): number {
+  if (count <= 0) return 0;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return 0;
+  return (count - 1) * DRAW_STEP_MS + DRAW_RUN_MS;
+}
+
 export interface TableView {
   render(): void;
   /** Rifà la geometria di vista (misure, zone, scala): per il cambio di
@@ -946,16 +960,16 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       let entrance = 0;
       for (const tile of wanted) {
         if (tile.parentElement === host) continue;
-        const delay = entrance * 70;
+        const delay = entrance * DRAW_STEP_MS;
         tile.classList.add("is-drawn");
         tile.style.animationDelay = `${delay}ms`;
         entrance += 1;
         // Un timer, non animationend: gli eventi dei figli risalgono e un
-        // listener `once` se li berrebbe. 450ms coprono i 380 di corsa.
+        // listener `once` se li berrebbe. 70ms di margine sulla corsa.
         window.setTimeout(() => {
           tile.classList.remove("is-drawn");
           tile.style.animationDelay = "";
-        }, 450 + delay);
+        }, DRAW_RUN_MS + 70 + delay);
       }
       const settled =
         host.children.length === wanted.length + 1 &&
