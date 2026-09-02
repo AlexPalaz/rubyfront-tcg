@@ -24,7 +24,7 @@ export interface CardFace {
   displayKey: string;
   /** Le statistiche stampate (dal file dati della carta): qui contano
       quelle del combattimento, Potenza e «Contrattacco +N» (§6.3). */
-  stats?: { power?: unknown; counterattack?: unknown };
+  stats?: { power?: unknown; counterattack?: unknown; fluxCost?: unknown };
 }
 
 export interface CatalogCard {
@@ -202,11 +202,17 @@ export function faceKind(cardId: string, faceIndex: number): CardFace["kind"] | 
  * statistica non contrattacca. Solo interi, come nell'anagrafe dell'engine:
  * un valore d'altra forma resta ignoto, mai frainteso.
  */
-export function cardStats(cardId: string): { power: number | null; counterattack: number | null } {
+export function cardStats(cardId: string): { power: number | null; counterattack: number | null; fluxCost: number | null } {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
   const integer = (value: unknown): number | null => (Number.isInteger(value) ? (value as number) : null);
-  return { power: integer(face?.stats?.power), counterattack: integer(face?.stats?.counterattack) };
+  return {
+    power: integer(face?.stats?.power),
+    counterattack: integer(face?.stats?.counterattack),
+    // Il costo di Flusso stampato (§3.2); il Rubyfront ha il costo di
+    // schieramento, un'altra cosa, e qui resta null.
+    fluxCost: integer(face?.stats?.fluxCost),
+  };
 }
 
 /** Il Rubyfront non si pesca mai (§3.1): parte in Zona di Richiamo. */

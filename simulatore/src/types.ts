@@ -159,7 +159,10 @@ export type Action =
   | { t: "shuffle"; seat: Seat; order: string[] }
   | { t: "draw"; seat: Seat; count: number }
   | { t: "move"; uid: string; x: number; y: number; z: number }
-  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean }
+  /** `cost`: il Flusso pagato giocando DALLA MANO in campo (§3.2) — lo
+      mette il client dal catalogo, l'engine lo verifica, il riduttore lo
+      scala. Assente da altre zone e per il Rubyfront. */
+  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number }
   | { t: "flip"; uid: string; face: number }
   /** Assegna l'Oggetto `uid` all'Entità `to` (§3.1); `to: null` lo scioglie. */
   | { t: "assign"; uid: string; to: string | null }

@@ -27,6 +27,10 @@ module Rubyfront
     # finestra di gioco: le Reattive sono le sole carte che scendono in Fase
     # di Fronte.
     #
+    # `flux_cost` è il costo di Flusso stampato (§3.2): Entità, Materie e
+    # Oggetti lo pagano giocandoli dalla mano. Il Rubyfront ha un costo di
+    # schieramento a parte (`deploymentCost`, anche a dado): non sta qui.
+    #
     # `power` e `counterattack` sono le due statistiche del combattimento
     # (§6.3): la Potenza stampata e il «Contrattacco +N» — nil per chi non
     # ce l'ha (una Materia non ha Potenza, un'Entità senza la statistica non
@@ -53,6 +57,7 @@ module Rubyfront
           keywords: keywords.uniq.freeze,
           power: integer_stat(stats["power"]),
           counterattack: integer_stat(stats["counterattack"]),
+          flux_cost: integer_stat(stats["fluxCost"]),
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze

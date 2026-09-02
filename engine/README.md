@@ -176,6 +176,22 @@ Regole collegate finora:
   risolto a mano sulle carte avversarie risulta un gesto dell'avversario. In
   rete no: lì il gesto è di chi trascina. Engine 0.16.0, sedici regole.
 
+- **§3.2 Le carte si pagano** — «il solo vincolo è il Flusso disponibile —
+  Oggetti compresi». Giocare DALLA MANO scala il costo stampato dal Flusso,
+  nel riduttore e nella copia del tavolo, nella stessa azione dell'ingresso
+  in campo: il costo viaggia in `toZone` (`cost`), lo mette il client dal
+  catalogo e l'engine lo verifica contro l'anagrafe (che ora legge il
+  `fluxCost`) — un costo che non torna è fermato come uno che non si può
+  pagare («Flusso insufficiente: ne hai 2, la carta costa 3»). Da mazzo,
+  Abisso o Ritiro una carta torna in campo per effetto e non si paga. Per
+  questa regola la copia Ruby ha imparato a tenere il **Flusso** dei due
+  posti (patch dei contatori, ricarica del cambio di turno, snapshot). Il
+  Gettone resta la spesa manuale di sempre. Fuori: il Rubyfront, il cui
+  costo di schieramento può essere un dado (la regola del tiro pagabile,
+  §3.1, arriverà a parte). Limiti dichiarati: sconti da effetto e carte
+  messe in campo gratis da un effetto verrebbero fermati a torto (regola
+  d'oro). Engine 0.17.0, diciassette regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

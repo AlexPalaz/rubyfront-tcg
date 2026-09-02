@@ -31,7 +31,7 @@ import {
 } from "./ctx.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
-import { TILE_H, TILE_W, cardName, faceCount, faceKind, isRubyfront } from "./renderer.js";
+import { TILE_H, TILE_W, cardName, cardStats, faceCount, faceKind, isRubyfront } from "./renderer.js";
 import {
   STACK_STEP,
   declarationOf,
@@ -632,10 +632,34 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     return Math.max(-9, Math.min(...pile.map(other => other.z)) - 1);
   }
 
-  /** Posa la carta in campo: sposta se c'era già, altrimenti ce la porta. */
-  function place(card: CardInstance, x: number, y: number, z: number): void {
-    if (card.zone === "field") void ctx.dispatch({ t: "move", uid: card.uid, x, y, z });
-    else void ctx.dispatch({ t: "toZone", uid: card.uid, zone: "field", x, y, z });
+  /**
+   * Posa la carta in campo: sposta se c'era già, altrimenti ce la porta —
+   * e dalla mano la GIOCA, pagando il costo di Flusso stampato (§3.2). Il
+   * costo lo legge il catalogo e viaggia nell'azione: l'arbitro lo verifica
+   * e lo ferma se il Flusso non basta; il riduttore lo scala. Il Rubyfront
+   * non paga di qui: il suo costo di schieramento può essere un dado, e si
+   * regola a mano (§3.1). Dice se il gesto è passato.
+   */
+  async function place(card: CardInstance, x: number, y: number, z: number): Promise<boolean> {
+    if (card.zone === "field") return ctx.dispatch({ t: "move", uid: card.uid, x, y, z });
+    const cost = card.zone === "hand" && !isRubyfront(card.cardId) ? cardStats(card.cardId).fluxCost : null;
+    const passed = await ctx.dispatch({
+      t: "toZone",
+      uid: card.uid,
+      zone: "field",
+      x,
+      y,
+      z,
+      ...(cost !== null ? { cost } : {}),
+    });
+    if (passed && cost !== null) {
+      const player = ctx.state().players[card.owner];
+      ctx.log(
+        `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}» per ${cost} (Flusso ${player.flux}/${player.fluxMax}).`,
+        card.owner
+      );
+    }
+    return passed;
   }
 
   function applyDrop(card: CardInstance, drop: Drop): void {
@@ -681,14 +705,20 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             if (origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
             return;
           }
-          place(card, x, y, z);
+          if (!(await place(card, x, y, z))) {
+            // L'assegnazione era passata ma il gioco no (Flusso): si scioglie,
+            // e la carta torna da dove era partita.
+            void ctx.dispatch({ t: "assign", uid: card.uid, to: null });
+            if (origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
+            return;
+          }
           ctx.log(
             `${seatLabel(ctx.state(), card.owner)} assegna «${cardName(card.cardId, ctx.locale())}» a «${cardName(under.cardId, ctx.locale())}».`,
             card.owner
           );
           return;
         }
-        place(card, x, y, z);
+        void place(card, x, y, z);
         if (!under && current) void ctx.dispatch({ t: "assign", uid: card.uid, to: null });
       })();
       return;
@@ -800,7 +830,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           // Il doppio click gioca: Entità sul primo slot libero del Fronte,
           // Materie nella loro fila (§5) — mai sugli slot.
           const spot = playSpot(ctx.state(), live.owner, faceKind(live.cardId, live.face));
-          ctx.dispatch({ t: "toZone", uid: live.uid, zone: "field", ...spot, z: ctx.state().zTop + 1 });
+          void place(live, spot.x, spot.y, ctx.state().zTop + 1);
         }
       });
     }

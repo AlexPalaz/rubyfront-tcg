@@ -33,6 +33,14 @@ class CardIndexTest < Minitest::Test
     assert_empty Rubyfront::CardIndex.load("/posto/che/non/esiste")
   end
 
+  # --- il costo di Flusso (§3.2) ------------------------------------------
+
+  def test_conosce_il_costo_di_flusso
+    assert_equal 2, @index["RBF-004"][:flux_cost]
+    assert_equal 2, @index["RBF-040"][:flux_cost], "anche le Materie si pagano"
+    assert_nil @index["RBF-023"][:flux_cost], "il Rubyfront ha il costo di schieramento, non di Flusso"
+  end
+
   # --- il comportamento delle Materie (§7.2) ------------------------------
 
   def test_conosce_le_materie_reattive

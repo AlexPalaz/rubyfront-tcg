@@ -151,6 +151,13 @@ export function apply(state: GameState, action: Action): GameState {
         ? state.declarations
         : state.declarations.filter(d => d.from !== action.uid && d.to !== action.uid);
       const cards = { ...state.cards, [action.uid]: next };
+      // Giocare dalla mano costa (§3.2): il costo viaggia nell'azione e si
+      // scala dal Flusso, mai sotto zero — a engine spento il tavolo resta
+      // libero, con l'arbitro il «Flusso insufficiente» ferma prima.
+      const paying = action.zone === "field" && card.zone === "hand" && (action.cost ?? 0) > 0;
+      const players = paying
+        ? { ...state.players, [card.owner]: { ...state.players[card.owner], flux: Math.max(0, state.players[card.owner].flux - action.cost!) } }
+        : state.players;
       if (next.zone !== "field") {
         // Fuori dal campo le assegnazioni si sciolgono, in entrambi i versi:
         // l'Oggetto uscito non è più addosso a nessuno, e l'Entità uscita
@@ -168,6 +175,7 @@ export function apply(state: GameState, action: Action): GameState {
       return {
         ...state,
         cards,
+        players,
         declarations,
         zTop: Math.max(state.zTop, next.z + 1),
       };

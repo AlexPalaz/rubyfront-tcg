@@ -141,4 +141,44 @@ class TableTest < Minitest::Test
     assert @table.wave_declared?
     assert_equal 7, @table.turn
   end
+
+  # --- il Flusso (§3.2), come lo conta il client -----------------------------
+
+  def test_il_flusso_parte_da_1_e_cresce_col_turno
+    assert_equal 1, @table.flux("a")
+    assert_equal 1, @table.flux_max("b")
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_equal 2, @table.flux("b")
+    assert_equal 2, @table.flux_max("b")
+    assert_equal 1, @table.flux("a"), "chi esce non si ricarica"
+  end
+
+  def test_il_flusso_massimo_non_supera_20
+    @table.apply({ "t" => "player", "seat" => "b", "patch" => { "fluxMax" => 20, "flux" => 3 } })
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_equal 20, @table.flux_max("b")
+    assert_equal 20, @table.flux("b")
+  end
+
+  def test_la_patch_dei_contatori_e_lo_snapshot_allineano_il_flusso
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "flux" => 5 } })
+    assert_equal 5, @table.flux("a")
+    @table.load({ "active" => "a", "turn" => 4, "players" => { "a" => { "flux" => 7, "fluxMax" => 9 }, "b" => { "flux" => 2 } } })
+    assert_equal 7, @table.flux("a")
+    assert_equal 9, @table.flux_max("a")
+    assert_equal 2, @table.flux("b")
+  end
+
+  def test_giocare_dalla_mano_scala_il_costo
+    @table.apply(deck_for("a", 2))
+    @table.apply({ "t" => "draw", "seat" => "a", "count" => 2 })
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "flux" => 3 } })
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "field", "cost" => 2 })
+    assert_equal 1, @table.flux("a")
+    @table.apply({ "t" => "toZone", "uid" => "a-2", "zone" => "field", "cost" => 5 })
+    assert_equal 0, @table.flux("a"), "mai sotto zero"
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "hand" })
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "field" })
+    assert_equal 0, @table.flux("a"), "senza costo nell'azione non si paga"
+  end
 end

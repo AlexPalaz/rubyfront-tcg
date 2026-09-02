@@ -1106,4 +1106,83 @@ class EngineTest < Minitest::Test
     refute verdict[:ok]
     assert_match(/non tocca a te/, verdict[:reason])
   end
+
+  # --- §3.2: le carte si pagano ---------------------------------------------
+
+  COSTI = {
+    "CARA" => { type: "entity", keywords: [], flux_cost: 3 },
+    "ECONOMICA" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 1 },
+    "RUBINO" => { type: "rubyfront", keywords: [] },
+    "LENTA" => { type: "entity", keywords: [] },
+  }.freeze
+
+  def con_costi(flux)
+    engine = Rubyfront::Engine.new(cards: COSTI)
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => flux } })
+    engine
+  end
+
+  def paga(engine, uid, cost)
+    action = { "t" => "toZone", "uid" => uid, "zone" => "field" }
+    action["cost"] = cost unless cost.nil?
+    engine.judge(action)
+  end
+
+  def test_con_flusso_sufficiente_si_gioca_e_si_paga
+    engine = con_costi(3)
+    in_mano(engine, "a", "a-1", "CARA")
+    verdict = paga(engine, "a-1", 3)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 0, engine.instance_variable_get(:@table).flux("a"), "col sì la copia scala il costo"
+  end
+
+  def test_senza_flusso_la_carta_non_scende
+    engine = con_costi(2)
+    in_mano(engine, "a", "a-1", "CARA")
+    verdict = paga(engine, "a-1", 3)
+    assert verdict[:ruled]
+    refute verdict[:ok]
+    assert_match(/Flusso insufficiente.*2.*3.*§3\.2/, verdict[:reason])
+  end
+
+  def test_un_costo_che_non_torna_viene_fermato
+    engine = con_costi(9)
+    in_mano(engine, "a", "a-1", "CARA")
+    refute paga(engine, "a-1", 1)[:ok], "pagare meno del costo stampato"
+    refute paga(engine, "a-1", nil)[:ok], "non pagare affatto"
+    assert_match(/costa 3.*paga 0/, paga(engine, "a-1", nil)[:reason])
+  end
+
+  def test_anche_le_materie_si_pagano
+    engine = con_costi(0)
+    in_mano(engine, "a", "a-1", "ECONOMICA")
+    refute paga(engine, "a-1", 1)[:ok]
+  end
+
+  def test_da_fuori_mano_non_si_paga
+    engine = con_costi(0)
+    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "abisso", "order" => 0, "cardId" => "CARA" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    assert paga(engine, "a-1", nil)[:ok], "dall'Abisso una carta torna per effetto: nessun costo"
+  end
+
+  def test_il_rubyfront_non_passa_dalla_dogana_del_costo
+    engine = con_costi(0)
+    in_mano(engine, "a", "rf-a", "RUBINO")
+    assert paga(engine, "rf-a", nil)[:ok]
+  end
+
+  def test_carta_senza_costo_in_anagrafe_silenzio
+    engine = con_costi(0)
+    in_mano(engine, "a", "a-1", "LENTA")
+    assert paga(engine, "a-1", nil)[:ok]
+  end
+
+  def test_il_gettone_speso_paga_la_carta
+    engine = con_costi(20)
+    in_mano(engine, "a", "a-1", "CARA")
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "token" => false, "flux" => 21 } })
+    assert paga(engine, "a-1", 3)[:ok]
+    assert_equal 18, engine.instance_variable_get(:@table).flux("a")
+  end
 end

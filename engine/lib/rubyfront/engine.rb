@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.16.0"
+    VERSION = "0.17.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -46,6 +46,7 @@ module Rubyfront
       "§6.3/§6.4 Risoluzione delle battaglie",
       "§6.2 Le carte si giocano in Preparazione (salvo Reattive e Rubyfront)",
       "§6 Nel turno altrui non si agisce (salvo Reazione e Reattive)",
+      "§3.2 Le carte si pagano: il costo di Flusso",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -188,6 +189,28 @@ module Rubyfront
         # E il rovescio: una Reattiva in Preparazione è fuori dalla sua
         # finestra, di chiunque sia il turno.
         return refuse("toZone", "le Reattive si giocano solo in Fase di Fronte (§7.2)")
+      end
+
+      # §3.2/§6.2 — le carte si pagano: «il solo vincolo è il Flusso
+      # disponibile — Oggetti compresi». Vale giocando DALLA MANO; da altre
+      # zone (mazzo, Abisso, Ritiro) una carta torna in campo per effetto, e
+      # non si paga. Il costo viaggia nell'azione (`cost`): lo mette il
+      # client dal catalogo e qui si verifica contro l'anagrafe — un costo
+      # che non torna è fermato come uno che non si può pagare. Il Rubyfront
+      # non passa di qui: il suo costo di schieramento può essere un dado, e
+      # la regola del tiro pagabile (§3.1) arriverà a parte. Limiti
+      # dichiarati: sconti da effetto e carte messe in campo gratis da un
+      # effetto verrebbero fermati a torto (regola d'oro).
+      cost = known[:flux_cost]
+      if card[:zone] == "hand" && cost
+        paid = action["cost"]
+        unless paid == cost
+          return refuse("toZone", "la carta costa #{cost} di Flusso e l'azione ne paga #{paid.is_a?(Integer) ? paid : 0} (§3.2)")
+        end
+        available = @table.flux(card[:owner])
+        if available < cost
+          return refuse("toZone", "Flusso insufficiente: ne hai #{available}, la carta costa #{cost} (§3.2)")
+        end
       end
 
       # §5 — «Le Materie non si giocano sugli slot del Fronte»: gli slot sono

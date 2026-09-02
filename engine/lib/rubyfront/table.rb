@@ -19,6 +19,17 @@ module Rubyfront
 
     attr_reader :active, :turn, :phase
 
+    FLUX_CAP = 20
+
+    # Il Flusso disponibile di un posto (§3.2), come lo conta il client.
+    def flux(seat)
+      @players.fetch(seat)[:flux]
+    end
+
+    def flux_max(seat)
+      @players.fetch(seat)[:flux_max]
+    end
+
     def initialize
       reset
     end
@@ -32,6 +43,9 @@ module Rubyfront
       @active = "a"
       @turn = 1
       @phase = "preparazione"
+      # I contatori che servono alle regole: il Flusso (§3.2), come in
+      # newPlayer del client. I PV ancora no: nessuna regola li legge.
+      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1 }] }
     end
 
     def hand_count(seat)
@@ -106,6 +120,13 @@ module Rubyfront
       # Lavagna di un client più vecchio, senza fasi: resta la Preparazione
       # del reset — nel dubbio, la fase più permissiva per chi gioca.
       @phase = state["phase"] if PHASES.include?(state["phase"])
+      SEATS.each do |seat|
+        player = state.dig("players", seat)
+        next unless player.is_a?(Hash)
+
+        @players[seat][:flux] = player["flux"] if player["flux"].is_a?(Integer)
+        @players[seat][:flux_max] = player["fluxMax"] if player["fluxMax"].is_a?(Integer)
+      end
       Array(state["declarations"]).each do |declaration|
         next unless declaration.is_a?(Hash) && declaration["from"]
 
@@ -136,6 +157,13 @@ module Rubyfront
       when "shuffle" then shuffle(action)
       when "draw" then draw(action)
       when "toZone" then to_zone(action)
+      when "player"
+        patch = action["patch"]
+        player = @players[action["seat"]]
+        if player && patch.is_a?(Hash)
+          player[:flux] = patch["flux"] if patch["flux"].is_a?(Integer)
+          player[:flux_max] = patch["fluxMax"] if patch["fluxMax"].is_a?(Integer)
+        end
       when "tap"
         card = @cards[action["uid"]]
         card[:tapped] = action["tapped"] == true if card
@@ -175,6 +203,11 @@ module Rubyfront
           @phase = "preparazione"
           @cards.each_value { |card| card[:tapped] = false if card[:owner] == @active && card[:zone] == "field" }
           @declarations = {}
+          # §3.2: il Flusso massimo di chi entra cresce di 1 (mai oltre 20)
+          # e il disponibile si ricarica fin lì.
+          player = @players[@active]
+          player[:flux_max] = [FLUX_CAP, player[:flux_max] + 1].min
+          player[:flux] = player[:flux_max]
         end
       end
     end
@@ -252,6 +285,13 @@ module Rubyfront
       # evocazione): conta solo il passaggio da fuori a dentro — un toZone
       # che resta sul campo non è un nuovo ingresso.
       card[:entered] = @turn if zone == "field" && card[:zone] != "field"
+      # Giocare dalla mano costa: il costo viaggia nell'azione (`cost`, lo
+      # mette il client dal catalogo e l'engine lo verifica) e si scala dal
+      # Flusso, mai sotto zero — come nel riduttore.
+      if zone == "field" && card[:zone] == "hand" && action["cost"].is_a?(Integer) && action["cost"].positive?
+        player = @players[card[:owner]]
+        player[:flux] = [0, player[:flux] - action["cost"]].max if player
+      end
       card[:zone] = zone
       if zone == "field"
         card[:order] = 0

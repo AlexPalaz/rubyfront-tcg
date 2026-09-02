@@ -246,3 +246,28 @@ describe("apply turn", () => {
     expect(next.players.a.fluxMax).toBe(1);
   });
 });
+
+// Giocare dalla mano costa (§3.2): il costo viaggia nell'azione e si scala
+// dal Flusso. Gemello: table_test.rb, test_giocare_dalla_mano_scala_il_costo.
+describe("apply toZone con costo", () => {
+  it("dalla mano al campo scala il costo, mai sotto zero", () => {
+    let state = apply(newGame(), deckFor("a", 2));
+    state = apply(state, { t: "draw", seat: "a", count: 2 });
+    state.players.a.flux = 3;
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 0, y: 0, z: 1, cost: 2 });
+    expect(state.players.a.flux).toBe(1);
+    expect(state.players.b.flux).toBe(1);
+    state = apply(state, { t: "toZone", uid: "a-2", zone: "field", x: 0, y: 0, z: 1, cost: 5 });
+    expect(state.players.a.flux).toBe(0);
+  });
+
+  it("senza costo, o da fuori mano, non si paga", () => {
+    let state = apply(newGame(), deckFor("a", 1));
+    state.players.a.flux = 4;
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 0, y: 0, z: 1, cost: 2 });
+    expect(state.players.a.flux).toBe(4);
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "hand" });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 0, y: 0, z: 1 });
+    expect(state.players.a.flux).toBe(4);
+  });
+});
