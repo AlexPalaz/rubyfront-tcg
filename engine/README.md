@@ -149,12 +149,31 @@ Regole collegate finora:
   fermato — per entrambi i posti, perché nel turno altrui non è
   Preparazione di nessuno. Due eccezioni del manuale: le **Materie
   Reattive**, che «si giocano solo in Fase di Fronte» (§7.2; l'anagrafe
-  legge il `behavior` della Materia), e il **Rubyfront**, che si schiera o
+  legge il `behavior` della Materia — e il rovescio vale: una Reattiva in
+  Preparazione è fuori dalla sua finestra, di chiunque sia il turno), e il
+  **Rubyfront**, che si schiera o
   richiama «in qualsiasi momento del proprio turno» (§3.1). Il Nexus non
   c'entra: è un flip, non un ingresso. Carta ignota: silenzio. Limite
   dichiarato: gli effetti che mettono in campo una carta durante il
   combattimento verrebbero fermati a torto (arriveranno con la regola
   d'oro). Engine 0.15.0, quindici regole.
+
+- **§6 Nel turno altrui non si agisce** — «le prime tre fasi appartengono
+  al giocatore di turno». È la dogana che viene PRIMA di tutte le altre e
+  guarda **chi compie il gesto**, non di chi è la carta: per questo la
+  richiesta di giudizio porta un `actor` — in rete il posto del client, in
+  partita locale (lo stesso mouse per i due posti) il proprietario della
+  carta o del contatore toccato, e chi è di turno per i gesti senza posto.
+  Al difensore restano le finestre del manuale: blocchi e contrattacchi in
+  Reazione (§6.4, e il ripensarci), le Materie Reattive nel Fronte altrui
+  (§6.3 Pre-Fronte, §7.2), i propri contatori in Fronte e Reazione perché le
+  Reattive si pagano. Tutto il resto — pescare, giocare, ritirare, muovere
+  fra le zone, cambiare fase o turno, risolvere — aspetta il proprio turno.
+  Attore assente (client vecchio): la dogana tace. Limiti dichiarati: gli
+  effetti risolti a mano che fanno agire l'avversario nel turno altrui («il
+  tuo avversario pesca…») verrebbero fermati a torto; e in locale un effetto
+  risolto a mano sulle carte avversarie risulta un gesto dell'avversario. In
+  rete no: lì il gesto è di chi trascina. Engine 0.16.0, sedici regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
@@ -188,8 +207,8 @@ WebSocket, messaggi JSON. Tre buste in croce:
 | chi | messaggio | risposta |
 |---|---|---|
 | client | `{"t":"hello"}` | `{"t":"engine","version":"0.2.0","rules":[…]}` |
-| client | `{"t":"judge","seq":7,"action":{…}}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…"}` |
-| client | `{"t":"consult","seq":8,"action":{…}}` | come `judge`, ma per un'azione **già applicata** altrove |
+| client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…"}` |
+| client | `{"t":"consult","seq":8,"action":{…},"actor":"b"}` | come `judge`, ma per un'azione **già applicata** altrove |
 | client | `{"t":"snapshot","state":{…}}` | *(nessuna: allinea la copia del tavolo)* |
 
 `judge` è il giudizio preventivo sulle azioni locali: l'engine applica
@@ -201,6 +220,8 @@ client: la copia le segue comunque, il verdetto serve solo ad annotare.
 appena collegato non sa nulla) e quando il client riceve una lavagna intera
 dalla rete (ingresso in stanza, «Sincronizza la lavagna»).
 
+`actor` è il posto di chi ha compiuto il gesto (§6: nel turno altrui non si
+agisce); un client che non lo manda non viene giudicato su questo.
 `action` è un'azione della lavagna, identica a quelle che viaggiano sul relay
 (`simulatore/src/types.ts`, tipo `Action`). Il contratto dei verdetti:
 

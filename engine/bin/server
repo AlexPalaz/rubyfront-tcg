@@ -73,8 +73,10 @@ def reply_for(engine, text)
   when "hello" then engine.hello
   # `seq` è del trasporto, non del giudizio: il client se ne serve per
   # riconoscere a quale azione risponde il verdetto.
-  when "judge" then engine.judge(message["action"]).merge(seq: message["seq"])
-  when "consult" then engine.observe(message["action"]).merge(seq: message["seq"])
+  # `actor` è il posto di chi ha compiuto il gesto (§6): un client vecchio
+  # non lo manda, e l'engine allora non giudica chi agisce.
+  when "judge" then engine.judge(message["action"], actor: message["actor"]).merge(seq: message["seq"])
+  when "consult" then engine.observe(message["action"], actor: message["actor"]).merge(seq: message["seq"])
   # Lo stato intero del client: allinea la copia del tavolo, senza risposta.
   when "snapshot" then engine.snapshot(message["state"])
   end

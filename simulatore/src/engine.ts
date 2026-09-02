@@ -13,7 +13,7 @@
 // stesso motivo `judge` ha un tempo massimo: un verdetto che non arriva vale
 // via libera.
 
-import type { Action, GameState } from "./types.js";
+import type { Action, GameState, Seat } from "./types.js";
 
 export type EngineStatus = "offline" | "connecting" | "online";
 
@@ -36,15 +36,16 @@ export interface EngineHandlers {
 
 export interface EngineLink {
   /** Occhiata senza attesa: per le azioni già applicate (quelle dell'avversario).
-      L'engine le applica comunque alla sua copia del tavolo. */
-  consult(action: Action): void;
+      L'engine le applica comunque alla sua copia del tavolo. `actor` è il
+      posto di chi ha compiuto il gesto (§6: nel turno altrui non si agisce). */
+  consult(action: Action, actor: Seat): void;
   /**
    * Il giudizio che precede l'azione: `verdict` arriva alla risposta
    * dell'engine, `null` se l'engine tace oltre il tempo massimo o è
    * scollegato — e un arbitro muto vale via libera. L'engine applica
    * l'azione alla sua copia solo se il verdetto la lascia passare.
    */
-  judge(action: Action, verdict: (verdict: EngineVerdict | null) => void): void;
+  judge(action: Action, actor: Seat, verdict: (verdict: EngineVerdict | null) => void): void;
   /** Lo stato intero: allinea la copia del tavolo dell'engine alla lavagna. */
   snapshot(state: GameState): void;
   close(): void;
@@ -143,12 +144,12 @@ export function connectEngine(engineUrl: string, handlers: EngineHandlers): Engi
   open();
 
   return {
-    consult(action) {
+    consult(action, actor) {
       if (socket?.readyState !== WebSocket.OPEN) return;
       seq += 1;
-      socket.send(JSON.stringify({ t: "consult", seq, action }));
+      socket.send(JSON.stringify({ t: "consult", seq, action, actor }));
     },
-    judge(action, verdict) {
+    judge(action, actor, verdict) {
       if (socket?.readyState !== WebSocket.OPEN) {
         verdict(null);
         return;
@@ -159,7 +160,7 @@ export function connectEngine(engineUrl: string, handlers: EngineHandlers): Engi
         verdict,
         timer: window.setTimeout(() => settle(id, null), JUDGE_TIMEOUT_MS),
       });
-      socket.send(JSON.stringify({ t: "judge", seq: id, action }));
+      socket.send(JSON.stringify({ t: "judge", seq: id, action, actor }));
     },
     snapshot(state) {
       if (socket?.readyState !== WebSocket.OPEN) return;

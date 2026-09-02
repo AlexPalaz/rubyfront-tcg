@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.15.0"
+    VERSION = "0.16.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -45,6 +45,7 @@ module Rubyfront
       "§6.4 Reazione: l'ondata passa al difensore",
       "§6.3/§6.4 Risoluzione delle battaglie",
       "§6.2 Le carte si giocano in Preparazione (salvo Reattive e Rubyfront)",
+      "§6 Nel turno altrui non si agisce (salvo Reazione e Reattive)",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -67,14 +68,17 @@ module Rubyfront
       { t: "engine", version: VERSION, rules: RULES }
     end
 
-    def judge(action)
-      verdict = verdict_for(action)
+    # `actor` è il posto di chi ha compiuto il gesto — lo dice il trasporto
+    # (in rete il posto del client, in partita locale il proprietario della
+    # carta o del contatore toccato). Senza attore la dogana del turno tace.
+    def judge(action, actor: nil)
+      verdict = verdict_for(action, actor)
       @table.apply(action) unless verdict[:ruled] && !verdict[:ok]
       verdict
     end
 
-    def observe(action)
-      verdict = verdict_for(action)
+    def observe(action, actor: nil)
+      verdict = verdict_for(action, actor)
       @table.apply(action)
       verdict
     end
@@ -89,8 +93,11 @@ module Rubyfront
 
     private
 
-    def verdict_for(action)
+    def verdict_for(action, actor = nil)
       return no_rule(nil) unless action.is_a?(Hash)
+
+      stopped = judge_actor(action, actor)
+      return stopped if stopped
 
       case action["t"]
       when "player" then judge_player(action)
@@ -170,12 +177,17 @@ module Rubyfront
       # non è Preparazione di nessuno. Limite dichiarato: gli effetti che
       # mettono in campo una carta durante il combattimento verrebbero
       # fermati a torto (arriveranno con la regola d'oro).
+      reactive = known[:type] == "matter" && known[:behavior] == "reactive"
       if @table.phase != "preparazione"
-        playable = known[:type] == "rubyfront" || (known[:type] == "matter" && known[:behavior] == "reactive")
+        playable = known[:type] == "rubyfront" || reactive
         unless playable
           phase = @table.phase == "fronte" ? "Fronte" : "Reazione"
           return refuse("toZone", "in Fase di #{phase} si dichiara, non si gioca: le carte scendono in Preparazione (§6.2) — salvo le Reattive (§7.2) e il Rubyfront (§3.1)")
         end
+      elsif reactive
+        # E il rovescio: una Reattiva in Preparazione è fuori dalla sua
+        # finestra, di chiunque sia il turno.
+        return refuse("toZone", "le Reattive si giocano solo in Fase di Fronte (§7.2)")
       end
 
       # §5 — «Le Materie non si giocano sugli slot del Fronte»: gli slot sono
@@ -476,6 +488,41 @@ module Rubyfront
       { attacker: battle["attacker"], blocker: battle["blocker"], kind: battle["kind"],
         attacker_dies: battle["attackerDies"] == true, blocker_dies: battle["blockerDies"] == true,
         damage: battle["damage"].to_i }
+    end
+
+    # §6 — «le prime tre fasi appartengono al giocatore di turno»: nel turno
+    # altrui non si agisce. La dogana viene PRIMA di tutte le altre e guarda
+    # chi compie il gesto, non di chi è la carta. Al difensore restano le
+    # finestre che il manuale gli dà: i blocchi e i contrattacchi in
+    # Reazione (§6.4, e il ripensarci), le Materie Reattive nel Fronte
+    # altrui (§6.3 Pre-Fronte, §7.2 — e come blocco), e i propri contatori
+    # in Fronte e Reazione, perché le Reattive si pagano. Tutto il resto —
+    # pescare, giocare, ritirare, muovere fra le zone, cambiare fase o turno,
+    # risolvere — aspetta il proprio turno. Attore assente (client vecchio) o
+    # di turno: si passa alle altre dogane. Limite dichiarato: gli effetti
+    # risolti a mano che fanno agire l'avversario nel proprio turno («il tuo
+    # avversario pesca…») verrebbero fermati a torto.
+    def judge_actor(action, actor)
+      return nil unless Table::SEATS.include?(actor) && actor != @table.active
+
+      kind = action["t"]
+      case kind
+      when "declare"
+        return nil if %w[block counter].include?(action.dig("declaration", "kind"))
+      when "undeclare"
+        return nil
+      when "toZone"
+        card = @table.card(action["uid"])
+        known = card && @cards[card[:card_id]]
+        reactive = known && known[:type] == "matter" && known[:behavior] == "reactive"
+        return nil if card && card[:owner] == actor && action["zone"] == "field" && reactive
+      when "player"
+        return nil if action["seat"] == actor && @table.phase != "preparazione"
+      when "say", "move"
+        return nil
+      end
+
+      refuse(kind, "non tocca a te: nel turno avversario si blocca in Reazione e si giocano solo Reattive (§6)")
     end
 
     def no_rule(kind)

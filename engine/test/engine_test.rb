@@ -984,6 +984,14 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], "le Reattive si giocano solo in Fase di Fronte (§7.2)"
   end
 
+  def test_le_reattive_non_scendono_in_preparazione_nemmeno_nel_proprio_turno
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "a-1", "SCINTILLA")
+    verdict = scendi_in_campo(engine, "a-1")
+    refute verdict[:ok]
+    assert_match(/§7\.2/, verdict[:reason])
+  end
+
   def test_il_rubyfront_si_schiera_anche_dopo_gli_attacchi
     engine = Rubyfront::Engine.new(cards: FINESTRA)
     in_mano(engine, "a", "rf-a", "RUBINO")
@@ -1016,5 +1024,86 @@ class EngineTest < Minitest::Test
     fronte!(engine)
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     assert scendi_in_campo(engine, "b-1")[:ok]
+  end
+
+  # --- §6: nel turno altrui non si agisce ----------------------------------
+
+  def altrui
+    Rubyfront::Engine.new(cards: FINESTRA)
+  end
+
+  def test_senza_attore_la_dogana_del_turno_tace
+    verdict = altrui.judge({ "t" => "draw", "seat" => "b", "count" => 1 })
+    refute verdict[:ruled]
+  end
+
+  def test_chi_e_di_turno_agisce
+    verdict = altrui.judge({ "t" => "draw", "seat" => "a", "count" => 1 }, actor: "a")
+    assert verdict[:ok]
+  end
+
+  def test_l_avversario_non_pesca_nel_mio_turno
+    verdict = altrui.judge({ "t" => "draw", "seat" => "b", "count" => 1 }, actor: "b")
+    assert verdict[:ruled]
+    refute verdict[:ok]
+    assert_match(/non tocca a te.*§6/, verdict[:reason])
+  end
+
+  def test_l_avversario_non_gioca_un_entita_nel_mio_turno
+    engine = altrui
+    in_mano(engine, "b", "b-1", "LENTA")
+    verdict = engine.judge({ "t" => "toZone", "uid" => "b-1", "zone" => "field" }, actor: "b")
+    refute verdict[:ok]
+  end
+
+  def test_l_avversario_gioca_una_reattiva_nel_mio_fronte
+    engine = altrui
+    in_mano(engine, "b", "b-1", "SCINTILLA")
+    fronte!(engine)
+    verdict = engine.judge({ "t" => "toZone", "uid" => "b-1", "zone" => "field" }, actor: "b")
+    assert verdict[:ok], "Pre-Fronte: l'avversario può giocare Reattive (§6.3, §7.2)"
+  end
+
+  def test_l_avversario_non_gioca_reattive_in_preparazione
+    engine = altrui
+    in_mano(engine, "b", "b-1", "SCINTILLA")
+    verdict = engine.judge({ "t" => "toZone", "uid" => "b-1", "zone" => "field" }, actor: "b")
+    refute verdict[:ok], "le Reattive si giocano solo in Fase di Fronte (§7.2)"
+  end
+
+  def test_l_avversario_blocca_in_reazione
+    engine = ondata([["a1", "FORTE"]], [["b1", "DEBOLE"]], ["a1"], [])
+    blocco = { "t" => "declare", "declaration" => { "id" => "b1", "from" => "b1", "to" => "a1", "kind" => "block", "seat" => "b", "order" => 0 } }
+    verdict = engine.judge(blocco, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    assert engine.judge({ "t" => "undeclare", "from" => "b1" }, actor: "b")[:ok], "e può ripensarci"
+  end
+
+  def test_l_avversario_non_cambia_fase_ne_turno
+    engine = altrui
+    refute engine.judge({ "t" => "phase", "phase" => "fronte" }, actor: "b")[:ok]
+    refute engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "b")[:ok]
+    assert engine.judge({ "t" => "phase", "phase" => "fronte" }, actor: "a")[:ok]
+  end
+
+  def test_l_avversario_paga_il_flusso_solo_in_fronte_e_reazione
+    engine = altrui
+    paga = { "t" => "player", "seat" => "b", "patch" => { "flux" => 1 } }
+    refute engine.judge(paga, actor: "b")[:ok], "in Preparazione altrui i contatori non si toccano"
+    fronte!(engine)
+    assert engine.judge(paga, actor: "b")[:ok], "nel Fronte si pagano le Reattive"
+  end
+
+  def test_l_avversario_non_ritocca_i_miei_contatori
+    engine = altrui
+    fronte!(engine)
+    refute engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 10 } }, actor: "b")[:ok]
+  end
+
+  def test_l_avversario_non_risolve_l_ondata
+    engine = ondata([["a1", "FORTE"]], [], ["a1"], [])
+    verdict = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [battaglia("a1", damage: 4)] }, actor: "b")
+    refute verdict[:ok]
+    assert_match(/non tocca a te/, verdict[:reason])
   end
 end

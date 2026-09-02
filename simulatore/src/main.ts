@@ -75,7 +75,7 @@ function dispatch(action: Action): Promise<boolean> {
   const judge = engine;
   if (judge && judge.status() === "online") {
     return new Promise(resolve => {
-      judge.judge(action, verdict => {
+      judge.judge(action, actorFor(action), verdict => {
         if (verdict?.ruled && !verdict.ok) {
           engineStop(verdict);
           // Un gesto trascinato (una carta posata sul Fronte) può aver già
@@ -102,12 +102,31 @@ function commit(action: Action): void {
 }
 
 /** Applica senza ritrasmettere: per le azioni che arrivano già dalla rete. */
-function receive(action: Action): void {
+function receive(action: Action, from: Seat): void {
   state = apply(state, action);
   // Anche le azioni dell'avversario passano all'engine: l'arbitro guarda la
   // partita intera, non una metà.
-  engine?.consult(action);
+  engine?.consult(action, from);
   paint();
+}
+
+/**
+ * Chi compie il gesto, per l'arbitro (§6: nel turno altrui non si agisce).
+ * In rete è sempre questo client, cioè il suo posto. In partita locale lo
+ * stesso mouse governa entrambi i posti: l'attore è allora il proprietario
+ * della carta toccata, o il posto del contatore o del mazzo — e per i gesti
+ * senza posto (fase, turno) chi è di turno. Limite dichiarato: in locale un
+ * effetto risolto a mano sulle carte AVVERSARIE, nel proprio turno, risulta
+ * un gesto dell'avversario e l'arbitro lo ferma; in rete no, perché lì il
+ * gesto è di chi trascina.
+ */
+function actorFor(action: Action): Seat {
+  if (localFoeDeckId === null) return mySeat;
+  if ("uid" in action) return state.cards[action.uid]?.owner ?? state.active;
+  if ("from" in action) return state.cards[action.from]?.owner ?? state.active;
+  if ("seat" in action) return action.seat;
+  if (action.t === "declare") return action.declaration.seat;
+  return state.active;
 }
 
 const ctx: Ctx = {
@@ -397,7 +416,7 @@ function join(room: string, relay: string): void {
       if (message.t === "action") {
         // "Nuova partita" azzera il tavolo di entrambi: ognuno rimette poi il
         // proprio mazzo, perché il suo id è noto solo al suo client.
-        receive(message.action);
+        receive(message.action, message.from);
         if (message.action.t === "newGame") {
           if (myDeckId) loadDeck(myDeckId, mySeat);
           reapplyName();
