@@ -938,7 +938,29 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       wanted.forEach((tile, index) => {
         tile.style.marginLeft = index === 0 ? "0" : `${Math.round(overlap)}px`;
       });
-      host.replaceChildren(tag, ...wanted);
+      // La pesca si vede: le carte NUOVE della mano entrano dal bordo del
+      // cassetto, in cascata (delay per ordine d'arrivo). Il segno si mette
+      // prima dell'aggancio e cade a fine corsa — e la mano si riaggancia
+      // al DOM solo se è davvero cambiata, sennò ogni render qualunque
+      // (un dado, una mossa altrui) farebbe ripartire l'animazione.
+      let entrance = 0;
+      for (const tile of wanted) {
+        if (tile.parentElement === host) continue;
+        const delay = entrance * 70;
+        tile.classList.add("is-drawn");
+        tile.style.animationDelay = `${delay}ms`;
+        entrance += 1;
+        // Un timer, non animationend: gli eventi dei figli risalgono e un
+        // listener `once` se li berrebbe. 450ms coprono i 380 di corsa.
+        window.setTimeout(() => {
+          tile.classList.remove("is-drawn");
+          tile.style.animationDelay = "";
+        }, 450 + delay);
+      }
+      const settled =
+        host.children.length === wanted.length + 1 &&
+        wanted.every((tile, index) => host.children[index + 1] === tile);
+      if (!settled) host.replaceChildren(tag, ...wanted);
     }
 
     for (const [uid, tile] of tiles) {

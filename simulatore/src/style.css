@@ -732,6 +732,26 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   margin-right: calc(-302px * (1 - var(--hand-scale)));
 }
 
+/* La pesca si vede: la carta appena arrivata sale dal bordo del cassetto
+   (per l'avversario scende dal suo, in alto), con un filo di ritardo l'una
+   sull'altra — il delay lo mette il tavolo, in ordine d'arrivo. Il `from`
+   ripete la scala della mano perché l'animazione sovrascrive il transform;
+   il 100% mancante torna da solo allo stato di quiete. `backwards` tiene la
+   carta invisibile durante l'attesa della cascata. */
+.hand .tile.is-drawn {
+  animation: card-drawn .38s cubic-bezier(.2, .8, .3, 1) backwards;
+}
+@keyframes card-drawn {
+  from { transform: translateY(90px) scale(var(--hand-scale)); opacity: 0; }
+}
+.hand-opponent .tile.is-drawn { animation-name: card-drawn-opp; }
+@keyframes card-drawn-opp {
+  from { transform: translateY(-90px) scale(var(--hand-scale)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hand .tile.is-drawn { animation: none; }
+}
+
 /* Stessa targhetta dei campi: appoggiata sul bordo, dice di chi è il cassetto
    e insieme segna dove finisce il tavolo. */
 .hand-tag {
