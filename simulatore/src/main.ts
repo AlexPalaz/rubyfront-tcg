@@ -288,9 +288,25 @@ function loadDeck(deckId: string, seat: Seat): void {
     store.write("deck", deckId);
   }
   dispatch({ t: "loadDeck", seat, deckId, cards });
+  // §4, mano iniziale: «prima che inizi il primo turno, entrambi i
+  // giocatori pescano 6 carte». Il mazzo esce da buildDeck già mescolato,
+  // quindi la pesca parte da sola — a ogni via d'inizio (partita locale,
+  // stanza, Nuova partita), perché tutte passano di qui. Il mulligan (§4,
+  // punto 5) resta un gesto manuale: «Mescola» e poi «Pesca 6» dal mazzo.
+  void dispatch({ t: "draw", seat, count: 6 });
+  // §6.1 — «la pesca non si salta mai», nemmeno al primo turno di chi
+  // inizia: il posto di turno pesca subito anche la carta del turno 1.
+  // In rete ci pensa il client che governa quel posto: ognuno carica il
+  // proprio mazzo, e solo chi apre passa di qui con `active` suo.
+  const opening = seat === state.active;
+  if (opening) void dispatch({ t: "draw", seat, count: 1 });
   const deck = getDeck(deckId);
   const name = deck?.locales[locale]?.name ?? deck?.locales[deck.defaultLocale]?.name ?? deckId;
-  ctx.log(`Posto ${seat.toUpperCase()}: caricato «${name}» (${cards.length} carte).`, seat);
+  ctx.log(
+    `Posto ${seat.toUpperCase()}: caricato «${name}» (${cards.length} carte), mano iniziale pescata` +
+      `${opening ? " — apre la partita, pescata anche la carta del turno 1" : ""}.`,
+    seat
+  );
 }
 
 // ----------------------------------------------------------------- rete
