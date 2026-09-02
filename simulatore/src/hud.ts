@@ -16,7 +16,7 @@
 import type { Ctx } from "./ctx.js";
 import { phaseCloser, seatLabel, waveDeclared } from "./state.js";
 import { declareFront, declareReaction, endPhase, endTurn } from "./turn.js";
-import type { PlayerState, Seat } from "./types.js";
+import type { Phase, PlayerState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
 /** Stessa dispensa di main.ts (`rbf-sim:*`): qui ci sta la posizione. */
@@ -56,6 +56,13 @@ const svgIcon = (paths: string): string =>
  * toolbar: sono gesti di partita. Portano due vesti: fila con etichetta
  * nell'HUD esteso, quadratini della croce in quello ridotto.
  */
+/** Il tasto della fase, con l'arbitro: dice quale fase chiude. */
+const PHASE_END: Record<Phase, string> = {
+  preparazione: "Fine Preparazione",
+  fronte: "Fine Fronte",
+  reazione: "Fine Reazione",
+};
+
 const TOOLS = [
   {
     key: "shuffle",
@@ -323,14 +330,19 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
       pass.hidden = single;
       actions.classList.toggle("is-single", single);
       front.classList.toggle("is-phase-end", single);
-      if (single) front.textContent = "Fine fase";
+      if (single) {
+        front.textContent = PHASE_END[state.phase];
+        front.dataset.phase = state.phase;
+      }
       return;
     }
     pass.hidden = single;
     actions.classList.toggle("is-single", single);
     front.classList.toggle("is-phase-end", single);
     if (single) {
-      front.textContent = "Fine fase";
+      // Il tasto dice quale fase chiude, e ne prende il colore.
+      front.textContent = PHASE_END[state.phase];
+      front.dataset.phase = state.phase;
       front.disabled = !canPass;
       tip(front, !canPass
         ? (state.phase === "reazione" ? "La Reazione la chiude chi difende (§6.4)" : "Tocca all'avversario: le fasi le chiude chi è di turno")

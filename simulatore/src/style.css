@@ -1655,15 +1655,31 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
    dettare l'altezza: se la tengono da sé, la stessa del bottone rubino
    (11px di padding sopra e sotto, un rigo di testo, il bordo). */
 .hud-mic, .hud-chat { min-height: calc(1rem + 24px); }
+/* Il tasto prende i colori della fase che chiude, gli stessi del rigo
+   della fase nell'HUD: avorio la Preparazione, rubino il Fronte, viola la
+   Reazione. */
 .hud-front.is-phase-end {
   padding: 11px 4px;
+  backdrop-filter: none;
+  color: #1b1015;
+  background: linear-gradient(180deg, #f3ece4, #d9cfc3);
+  border-color: #fbf5ec;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .35);
+}
+.hud-front.is-phase-end[data-phase="fronte"] {
   color: #fdeef1;
   background: linear-gradient(180deg, #b81a41, #9e0f34);
   border-color: #e56a86;
-  backdrop-filter: none;
   box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
 }
-.hud-front.is-phase-end:hover:not(:disabled) { filter: brightness(1.15); border-color: #e56a86; }
+.hud-front.is-phase-end[data-phase="reazione"] {
+  color: #f1ecfa;
+  background: linear-gradient(180deg, #6a57a3, #564480);
+  border-color: #a494cf;
+  box-shadow: 0 4px 10px rgba(86, 68, 128, .45);
+}
+.hud-front.is-phase-end:hover:not(:disabled) { filter: brightness(1.12); }
+.hud-front.is-phase-end:disabled { filter: saturate(.4) brightness(.75); }
 .hud-pass {
   padding: 11px 4px;
   font-size: 1rem;
