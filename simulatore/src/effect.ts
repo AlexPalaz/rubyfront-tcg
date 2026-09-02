@@ -1,9 +1,9 @@
 // Il momento d'ingresso: quando una carta scende dalla mano, il gioco si
 // ferma un attimo. Un velo sul tavolo, la carta grande al centro che si
 // accende — e se ha un effetto che scatta entrando (Entità e Oggetti
-// «quando entra in campo», Materie alla risoluzione), la targhetta, il
-// testo e «Continua» per riprendere; senza effetto la scena si chiude da
-// sola dopo un attimo. L'effetto, oggi, lo risolve il giocatore a mano: qui
+// «quando entra in campo», Materie alla risoluzione), la targhetta e il
+// testo. «Continua» riprende, sempre: è chi gioca a decidere quando.
+// L'effetto, oggi, lo risolve il giocatore a mano: qui
 // si annuncia — la lettura degli effetti arriverà con la regola d'oro. Lo
 // vede chi gioca la carta; l'avversario, quando l'azione gli arriva, ha un
 // avviso che NON blocca (showEnterPeek): la carta accesa al centro per un
@@ -25,8 +25,6 @@ export interface EnterEffectShow {
 
 const CARD_W = 520;
 const CARD_H = 728;
-/** Quanto resta una carta senza effetto, prima di chiudersi da sola. */
-const PLAIN_HOLD_MS = 1800;
 
 export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promise<void> {
   const veil = document.createElement("div");
@@ -74,7 +72,7 @@ export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promi
   go.type = "button";
   go.className = "effect-go";
   go.textContent = "Continua";
-  if (show.effects.length) side.append(go);
+  side.append(go);
 
   stage.append(card, side);
   veil.append(stage);
@@ -95,8 +93,7 @@ export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promi
     };
     go.addEventListener("click", close);
     document.addEventListener("keydown", onKey);
-    if (show.effects.length) go.focus();
-    else window.setTimeout(close, PLAIN_HOLD_MS);
+    go.focus();
   });
 }
 
