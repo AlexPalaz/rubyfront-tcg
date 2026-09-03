@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.30.0"
+    VERSION = "0.31.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -54,6 +54,7 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando un'Entità entra, pesca» (RBF-003)",
       "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (RBF-007)",
       "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte» (RBF-012)",
+      "§8.2 Effetti certificati: «quando attacca», lo stesso ritorno di Rhen (RBF-012)",
       "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una» (RBF-006)",
       "§8.2 Effetti certificati: «tira un d6, guarda 2 più metà, un Oggetto in mano, una in Ritiro» (RBF-027)",
       "§8.2 Effetti certificati: «quando entra, prendi il controllo di un'Entità avversaria» (RBF-009)",
@@ -112,7 +113,7 @@ module Rubyfront
     # per coppia fonte/ingresso, finché dura il turno.
     def settle_effect(action)
       ref = action.is_a?(Hash) ? action["effect"] : nil
-      @table.fire(ref["source"], ref["entering"]) if ref.is_a?(Hash) && ref["source"] && ref["entering"]
+      @table.fire(ref["source"], ref["event"], ref["entering"]) if ref.is_a?(Hash) && ref["source"] && ref["entering"]
     end
 
     # Lo stato intero del client: sostituisce la copia del tavolo. Arriva
@@ -812,7 +813,7 @@ module Rubyfront
         return refuse(kind, "l'ingresso che innesca dev'essere un'altra carta dello stesso posto, in campo (§8.2)")
       end
       return refuse(kind, "quella carta non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless entering[:entered] == @table.turn
-      return refuse(kind, "questo innesco è già stato risolto per quell'ingresso (§8.2)") if @table.fired?(ref["source"], ref["entering"])
+      return refuse(kind, "questo innesco è già stato risolto per quell'ingresso (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
 
       arrived = @cards[entering[:card_id]]
       return no_rule(kind) unless arrived
@@ -834,13 +835,33 @@ module Rubyfront
     # chi entra — in campo, entrata QUESTO turno, innesco non consumato — e
     # il bersaglio un'Entità avversaria in campo, mandata nella zona che la
     # forma certificata dice. Bersaglio ignoto all'anagrafe: silenzio.
-    def judge_effect_move(action, ref)
-      return refuse("toZone", "l'effetto di chi entra ha per ingresso se stessa (§8.2)") unless ref["source"] == ref["entering"]
+    # §8.2 — la fonte di un effetto proprio (ingresso o attacco) dev'essere
+    # in campo, e l'evento deve valere ORA: entrata questo turno, o con un
+    # attacco dichiarato in Fase di Fronte. Ritorna un rifiuto, o nil.
+    def own_trigger_stopped(kind, ref)
+      return refuse(kind, "l'effetto proprio ha per ingresso se stessa (§8.2)") unless ref["source"] == ref["entering"]
 
       source = @table.card(ref["source"])
-      return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)") unless source && source[:zone] == "field"
-      return refuse("toZone", "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless source[:entered] == @table.turn
-      return refuse("toZone", "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["entering"])
+      return refuse(kind, "la fonte dell'effetto non è in campo (§8.2)") unless source && source[:zone] == "field"
+
+      case ref["event"]
+      when "on_enter_field"
+        return refuse(kind, "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless source[:entered] == @table.turn
+      when "on_attack"
+        return refuse(kind, "«quando attacca» vuole un attacco dichiarato, in Fase di Fronte (§8.2)") unless @table.phase == "fronte" && @table.attacking?(ref["source"])
+      else
+        return refuse(kind, "evento d'effetto sconosciuto (§8.2)")
+      end
+      return refuse(kind, "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
+
+      nil
+    end
+
+    def judge_effect_move(action, ref)
+      stopped = own_trigger_stopped("toZone", ref)
+      return stopped if stopped
+
+      source = @table.card(ref["source"])
 
       target = @table.card(action["uid"])
       return refuse("toZone", "il bersaglio dell'effetto non esiste (§8.2)") unless target
@@ -848,7 +869,8 @@ module Rubyfront
       # Il ritorno (la forma di RBF-012): dalla propria Zona di Ritiro al Fronte,
       # una carta del tipo e del comportamento chiesti.
       if action["zone"] == "field"
-        ret = Array(@cards.dig(source[:card_id], :enter_returns)).first
+        forms = ref["event"] == "on_attack" ? :attack_returns : :enter_returns
+        ret = Array(@cards.dig(source[:card_id], forms)).first
         return refuse("toZone", "la carta non ha un effetto certificato che riporti in campo (§8.2)") unless ret
         return refuse("toZone", "la carta da riportare dev'essere nella propria Zona di Ritiro (§8.2)") unless target[:zone] == ret[:from] && target[:owner] == @table.controller_of(source)
 
@@ -887,7 +909,7 @@ module Rubyfront
       source = @table.card(ref["source"])
       return refuse("look", "la fonte dell'effetto non è in campo (§8.2)") unless source && source[:zone] == "field"
       return refuse("look", "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless source[:entered] == @table.turn
-      return refuse("look", "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["entering"])
+      return refuse("look", "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
       return refuse("look", "si guarda nel proprio mazzo (§8.2)") unless action["seat"] == @table.controller_of(source)
 
       look = Array(@cards.dig(source[:card_id], :enter_looks)).first
@@ -945,7 +967,7 @@ module Rubyfront
       source = @table.card(ref["source"])
       return refuse("control", "la fonte dell'effetto non è in campo (§8.2)") unless source && source[:zone] == "field"
       return refuse("control", "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)") unless source[:entered] == @table.turn
-      return refuse("control", "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["entering"])
+      return refuse("control", "questo innesco è già stato risolto (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
 
       by = @table.controller_of(source)
       return refuse("control", "prende il controllo chi comanda la fonte (§8.2)") unless action["by"] == by

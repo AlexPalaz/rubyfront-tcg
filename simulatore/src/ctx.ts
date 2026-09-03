@@ -30,6 +30,8 @@ export interface CardFacts {
   enterReturns: EnterReturn[];
   /** Gli sguardi nel mazzo certificati «quando QUESTA entra» (§8.2): vedi enterLooks. */
   enterLooks: EnterLook[];
+  /** I ritorni certificati «quando QUESTA attacca» (§8.2, RBF-012): stessa forma degli ingressi. */
+  attackReturns: EnterReturn[];
   /** I controlli certificati «quando QUESTA entra» (§8.2): vedi enterControls. */
   enterControls: EnterControl[];
 }

@@ -215,6 +215,11 @@ export function faceKind(cardId: string, faceIndex: number): CardFace["kind"] | 
  * statistica non contrattacca. Solo interi, come nell'anagrafe dell'engine:
  * un valore d'altra forma resta ignoto, mai frainteso.
  */
+/** I testi degli effetti «quando attacca» di una faccia, per la scena. */
+export function attackEffects(cardId: string, faceIndex: number, locale: string): { tag: string; text: string }[] {
+  return effectsFor(cardId, faceIndex, locale, ["on_attack"]);
+}
+
 /** Gli eventi che «scattano» quando la carta scende: per Entità e Oggetti
     «quando entra in campo»; per le Materie l'effetto si risolve giocandole
     (§7.2, `on_resolve`) o dura finché restano (`while_in_play`). */
@@ -234,9 +239,15 @@ export function enterEffects(cardId: string, faceIndex: number, locale: string):
   const card = getCard(cardId);
   const face = card?.faces[faceIndex] ?? card?.faces[0];
   if (!card || !face) return [];
+  return effectsFor(cardId, faceIndex, locale, ENTER_EVENTS[face.kind] ?? []);
+}
+
+function effectsFor(cardId: string, faceIndex: number, locale: string, events: string[]): { tag: string; text: string }[] {
+  const card = getCard(cardId);
+  const face = card?.faces[faceIndex] ?? card?.faces[0];
+  if (!card || !face) return [];
   const copy = renderer.localized(card, locale);
   const faceCopy = copy?.[face.displayKey] ?? {};
-  const events = ENTER_EVENTS[face.kind] ?? [];
   const out: { tag: string; text: string }[] = [];
   for (const trigger of face.triggers ?? []) {
     if (typeof trigger.event !== "string" || !events.includes(trigger.event)) continue;
@@ -306,10 +317,10 @@ function enterMovesOf(face: CardFace | undefined): EnterMove[] {
  * `details.permanent`, destinazione `{zone: front}`. Specchio di
  * card_index.rb, enter_returns.
  */
-function enterReturnsOf(face: CardFace | undefined): EnterReturn[] {
+function enterReturnsOf(face: CardFace | undefined, event: "on_enter_field" | "on_attack"): EnterReturn[] {
   const out: EnterReturn[] = [];
   for (const trigger of face?.triggers ?? []) {
-    if (trigger.event !== "on_enter_field") continue;
+    if (trigger.event !== event) continue;
     const details = trigger.details as { enteringCard?: unknown } | undefined;
     if (details?.enteringCard) continue;
     const effect = trigger.effect as { type?: unknown; target?: any; from?: any; destination?: any } | undefined;
@@ -419,6 +430,7 @@ export function cardStats(cardId: string): {
   enterReturns: EnterReturn[];
   enterLooks: EnterLook[];
   enterControls: EnterControl[];
+  attackReturns: EnterReturn[];
 } {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
@@ -429,7 +441,8 @@ export function cardStats(cardId: string): {
     enterListeners: enterListenersOf(face),
     enterMoves: enterMovesOf(face),
     behavior: typeof face?.behavior === "string" ? face.behavior : null,
-    enterReturns: enterReturnsOf(face),
+    enterReturns: enterReturnsOf(face, "on_enter_field"),
+    attackReturns: enterReturnsOf(face, "on_attack"),
     enterLooks: enterLooksOf(face),
     enterControls: enterControlsOf(face),
     power: integer(face?.stats?.power),

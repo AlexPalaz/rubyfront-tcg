@@ -235,6 +235,7 @@ const ctx: Ctx = {
       enterReturns: stats.enterReturns,
       enterLooks: stats.enterLooks,
       enterControls: stats.enterControls,
+      attackReturns: stats.attackReturns,
     };
   },
   log(text, seat) {

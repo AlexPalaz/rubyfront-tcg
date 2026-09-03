@@ -45,6 +45,7 @@ import {
   enterReturns,
   enterTriggers,
   lookAfterRoll,
+  returnsFor,
   resolveControl,
   resolveLook,
   resolveMove,
@@ -57,7 +58,18 @@ import {
 } from "./effects.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
-import { TILE_H, TILE_W, cardName, cardStats, enterEffects, faceCount, faceKind, isRubyfront, type Deployment } from "./renderer.js";
+import {
+  TILE_H,
+  TILE_W,
+  attackEffects,
+  cardName,
+  cardStats,
+  enterEffects,
+  faceCount,
+  faceKind,
+  isRubyfront,
+  type Deployment,
+} from "./renderer.js";
 import {
   STACK_STEP,
   controllerOf,
@@ -524,7 +536,34 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   // Dichiarazioni e loro conseguenze stanno in combat.ts: passano dal
   // giudizio dell'engine, e il tavolo si limita a fornire il bersaglio.
   function declareAttack(card: CardInstance): void {
-    void declareAttackVia(ctx, card, rubyfrontOf(otherSeat(controllerOf(card))));
+    void (async () => {
+      const passed = await declareAttackVia(ctx, card, rubyfrontOf(otherSeat(controllerOf(card))));
+      if (!passed) return;
+      // §8.2 — «quando attacca»: gli effetti certificati dell'attaccante, con
+      // la stessa scena dell'ingresso ma la riga «Quando attacca».
+      const live = ctx.state().cards[card.uid];
+      if (!live) return;
+      const returns = returnsFor(ctx.state(), live, ctx.card, "on_attack");
+      if (returns.length === 0) return;
+      const effects = attackEffects(live.cardId, live.face, ctx.locale());
+      void showEnterEffect(root, {
+        cardId: live.cardId,
+        face: live.face,
+        theme: ctx.themeFor(live.owner),
+        locale: ctx.locale(),
+        who: `${seatLabel(ctx.state(), controllerOf(live))} attacca con «${cardName(live.cardId, ctx.locale())}»`,
+        effects,
+        triggers: returns.map(step => describeReturn(step, ctx.card)),
+        kicker: "Quando attacca",
+        onContinue: () => void playAttackTriggers(live),
+      });
+    })();
+  }
+
+  async function playAttackTriggers(attacker: CardInstance): Promise<void> {
+    for (const step of returnsFor(ctx.state(), attacker, ctx.card, "on_attack")) {
+      await playReturn(step);
+    }
   }
 
   function startTargeting(attacker: CardInstance, kind: "block" | "counter"): void {

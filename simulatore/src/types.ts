@@ -179,7 +179,8 @@ export interface GameState {
  */
 export interface EffectRef {
   source: string;
-  event: "on_enter_field";
+  /** L'evento che innesca: l'ingresso in campo, o l'attacco dichiarato. */
+  event: "on_enter_field" | "on_attack";
   entering: string;
 }
 

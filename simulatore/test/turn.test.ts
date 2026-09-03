@@ -43,6 +43,7 @@ function fakeCtx(
       enterReturns: [],
       enterLooks: [],
       enterControls: [],
+      attackReturns: [],
     }),
     log(text) {
       logs.push(text);

@@ -25,6 +25,8 @@ export interface EnterEffectShow {
       (effects.ts): si elencano, e «Continua» li risolve. */
   triggers?: string[];
   onContinue?: () => void;
+  /** La riga in alto: «Quando entra in campo» di norma, «Quando attacca» all'attacco. */
+  kicker?: string;
 }
 
 const CARD_W = 520;
@@ -72,7 +74,7 @@ function showEnterEffectNow(root: HTMLElement, show: EnterEffectShow): Promise<v
   side.className = "effect-side";
   const kicker = document.createElement("div");
   kicker.className = "effect-kicker";
-  kicker.textContent = show.effects.length ? "Quando entra in campo" : "Entra in campo";
+  kicker.textContent = show.kicker ?? (show.effects.length ? "Quando entra in campo" : "Entra in campo");
   const who = document.createElement("div");
   who.className = "effect-who";
   who.textContent = show.who;
@@ -164,7 +166,7 @@ function showEnterPeekNow(root: HTMLElement, show: EnterEffectShow): Promise<voi
   side.className = "effect-side";
   const kicker = document.createElement("div");
   kicker.className = "effect-kicker";
-  kicker.textContent = show.effects.length ? "Quando entra in campo" : "Entra in campo";
+  kicker.textContent = show.kicker ?? (show.effects.length ? "Quando entra in campo" : "Entra in campo");
   const who = document.createElement("div");
   who.className = "effect-who";
   who.textContent = show.who;

@@ -50,8 +50,11 @@ class CardIndexTest < Minitest::Test
   end
 
   def test_rhen_riporta_una_permanente_dalla_zona_di_ritiro
-    assert_equal [{ from: "ritiro", filter: { type: "matter", behavior: "permanent" }, to: "field" }], @index["RBF-012"][:enter_returns]
+    forma = [{ from: "ritiro", filter: { type: "matter", behavior: "permanent" }, to: "field" }]
+    assert_equal forma, @index["RBF-012"][:enter_returns]
+    assert_equal forma, @index["RBF-012"][:attack_returns], "e anche quando attacca"
     assert_equal [], @index["RBF-007"][:enter_returns]
+    assert_equal [], @index["RBF-007"][:attack_returns]
   end
 
   def test_il_cercatore_guarda_quattro_carte

@@ -316,8 +316,13 @@ Regole collegate finora:
   `toZone` verso il campo marcato con `effect`, che passa se la carta
   scelta è una Materia permanente nella PROPRIA Zona di Ritiro; nel client
   si sceglie dalla pila (la finestra della ricerca, ristretta ai
-  candidati), si conferma, e la carta vola dalla pila al suo posto. Il
-  «quando attacca» della stessa carta arriverà con gli eventi d'attacco.
+  candidati), si conferma, e la carta vola dalla pila al suo posto. E il
+  **«quando attacca»** della stessa carta: gli inneschi hanno un evento
+  (`effect.event`, ingresso o attacco), e quello dell'attacco vale con un
+  attacco dichiarato in Fase di Fronte, una volta per attacco (gli inneschi
+  consumati sono triple fonte/evento/ingresso); nel client, dichiarato
+  l'attacco, la scena dice «Quando attacca» e «Risolvi» fa lo stesso
+  ritorno.
   La quarta forma è quella di RBF-006, il **Cercatore**: «guarda le prime 4
   carte del tuo mazzo, puoi mostrare un'Entità Umana e aggiungerla alla
   mano, metti le altre in fondo» — un'azione sola, `look {seat, count,

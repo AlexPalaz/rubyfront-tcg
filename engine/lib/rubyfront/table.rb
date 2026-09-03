@@ -75,12 +75,14 @@ module Rubyfront
       @fired = []
     end
 
-    def fired?(source_uid, entering_uid)
-      @fired.include?("#{source_uid}|#{entering_uid}")
+    # Un innesco è una tripla: fonte, evento, ingresso (o la fonte stessa,
+    # per gli eventi propri come l'attacco).
+    def fired?(source_uid, event, entering_uid)
+      @fired.include?("#{source_uid}|#{event}|#{entering_uid}")
     end
 
-    def fire(source_uid, entering_uid)
-      @fired << "#{source_uid}|#{entering_uid}" unless fired?(source_uid, entering_uid)
+    def fire(source_uid, event, entering_uid)
+      @fired << "#{source_uid}|#{event}|#{entering_uid}" unless fired?(source_uid, event, entering_uid)
     end
 
     def hand_count(seat)

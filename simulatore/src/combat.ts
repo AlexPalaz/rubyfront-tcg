@@ -93,13 +93,13 @@ export async function declareAttack(
   ctx: Ctx,
   card: CardInstance,
   target: CardInstance | undefined
-): Promise<void> {
+): Promise<boolean> {
   // Attacca chi comanda la carta: il proprietario, o chi la controlla (§8.2).
   const by = controllerOf(card);
   const foe = otherSeat(by);
   if (!target) {
     ctx.log(`${seatLabel(ctx.state(), foe)} non ha il Rubyfront in campo: nessun bersaglio.`, foe);
-    return;
+    return false;
   }
   const order = nextWaveOrder(ctx.state(), by);
   const passed = await ctx.dispatch({
@@ -115,11 +115,12 @@ export async function declareAttack(
   });
   // Fermata dal poliziotto (es. §6.2, attesa di evocazione): niente tap,
   // niente riga — il gesto non è avvenuto.
-  if (!passed) return;
+  if (!passed) return false;
   // Il tap scatta alla dichiarazione dell'ondata (§6.3). Resta comunque
   // libero: stapparla a mano non disfa la freccia.
   if (!card.tapped) void ctx.dispatch({ t: "tap", uid: card.uid, tapped: true });
   ctx.log(`${seatLabel(ctx.state(), by)} attacca (${order}).`, by);
+  return true;
 }
 
 /** Dichiara il blocco (o contrattacco) di `blocker` contro `attackerUid`. */

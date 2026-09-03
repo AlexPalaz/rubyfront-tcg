@@ -10,7 +10,7 @@
 
 import type { CardFacts, Ctx, EnterLook } from "./ctx.js";
 import { controllerOf, fieldCards, playSpot, seatLabel, zoneCards } from "./state.js";
-import type { CardInstance, GameState, Seat } from "./types.js";
+import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
 export interface EnterTrigger {
   source: CardInstance;
@@ -37,28 +37,40 @@ export function enterMoves(state: GameState, entering: CardInstance, facts: (car
   }));
 }
 
-/** Un ritorno all'ingresso da risolvere: chi entra, da dove, e fra cosa si sceglie. */
+/** Un ritorno da risolvere: la fonte, l'evento, da dove, e fra cosa si sceglie. */
 export interface EnterReturnStep {
   source: CardInstance;
+  event: EffectRef["event"];
   from: "ritiro";
   candidates: CardInstance[];
 }
 
 /**
- * Gli effetti «quando questa entra: metti sul tuo Fronte una carta
- * permanente dalla tua Zona di Ritiro» (§8.2, la forma di RBF-012): per
+ * Gli effetti «metti sul tuo Fronte una carta permanente dalla tua Zona di
+ * Ritiro» (§8.2, la forma di RBF-012), all'ingresso o all'attacco: per
  * ciascuno, i candidati — le Materie permanenti nella propria Zona di
  * Ritiro.
  */
-export function enterReturns(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterReturnStep[] {
-  return facts(entering.cardId).enterReturns.map(ret => ({
-    source: entering,
+export function returnsFor(
+  state: GameState,
+  source: CardInstance,
+  facts: (cardId: string) => CardFacts,
+  event: EffectRef["event"]
+): EnterReturnStep[] {
+  const forms = event === "on_attack" ? facts(source.cardId).attackReturns : facts(source.cardId).enterReturns;
+  return forms.map(ret => ({
+    source,
+    event,
     from: ret.from,
-    candidates: zoneCards(state, controllerOf(entering), ret.from).filter(card => {
+    candidates: zoneCards(state, controllerOf(source), ret.from).filter(card => {
       const f = facts(card.cardId);
       return f.kind === ret.filter.kind && f.behavior === ret.filter.behavior;
     }),
   }));
+}
+
+export function enterReturns(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterReturnStep[] {
+  return returnsFor(state, entering, facts, "on_enter_field");
 }
 
 /** La riga che annuncia un ritorno all'ingresso. */
@@ -80,7 +92,7 @@ export async function resolveReturn(ctx: Ctx, step: EnterReturnStep, card: CardI
     zone: "field",
     ...spot,
     z: ctx.state().zTop + 1,
-    effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
+    effect: { source: step.source.uid, event: step.event, entering: step.source.uid },
   });
   if (passed) {
     ctx.log(

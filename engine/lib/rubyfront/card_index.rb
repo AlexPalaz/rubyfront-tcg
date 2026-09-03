@@ -103,7 +103,8 @@ module Rubyfront
           enables: faces.map { |face| enables_of(face) }.freeze,
           enter_listeners: enter_listeners(faces).freeze,
           enter_moves: enter_moves(faces).freeze,
-          enter_returns: enter_returns(faces).freeze,
+          enter_returns: enter_returns(faces, "on_enter_field").freeze,
+          attack_returns: enter_returns(faces, "on_attack").freeze,
           enter_looks: enter_looks(faces).freeze,
           enter_controls: enter_controls(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
@@ -168,9 +169,11 @@ module Rubyfront
       end
     end
 
-    def self.enter_returns(faces)
+    # Stessa forma all'ingresso (`enter_returns`) e all'attacco
+    # (`attack_returns`, il secondo innesco di RBF-012).
+    def self.enter_returns(faces, event)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
-        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+        next unless trigger.is_a?(Hash) && trigger["event"] == event
         next if trigger["details"].is_a?(Hash) && trigger["details"]["enteringCard"]
 
         effect = trigger["effect"]

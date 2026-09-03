@@ -18,6 +18,7 @@ import {
   lookCount,
   releaseControlled,
   resolveControl,
+  returnsFor,
   resolveEnter,
   resolveLook,
   resolveMove,
@@ -28,7 +29,12 @@ import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
 const FACTS: Record<string, Partial<CardFacts>> = {
   ARCIERE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
-  RHEN: { kind: "entity", race: "human", enterReturns: [{ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" }] },
+  RHEN: {
+    kind: "entity",
+    race: "human",
+    enterReturns: [{ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" }],
+    attackReturns: [{ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" }],
+  },
   PERMANENTE: { kind: "matter", behavior: "permanent" },
   CERCATORE: { kind: "entity", race: "human", enterLooks: [{ count: 4, die: null, countBase: 0, reveal: { kind: "entity", race: "human" }, thenRetire: false }] },
   ARTEFICE: { kind: "entity", race: "auros", enterLooks: [{ count: null, die: 6, countBase: 2, reveal: { kind: "object", race: null }, thenRetire: true }] },
@@ -55,6 +61,7 @@ const facts = (cardId: string): CardFacts => ({
   enterReturns: [],
   enterLooks: [],
   enterControls: [],
+  attackReturns: [],
   ...FACTS[cardId],
 });
 
@@ -346,5 +353,35 @@ describe("lookAfterRoll", () => {
     expect(step.looked.map(card => card.uid)).toEqual(["d1", "d2", "d3", "d4"]);
     expect(step.candidates.map(card => card.uid)).toEqual(["d2"]);
     expect(step.roll).toBe(3);
+  });
+});
+
+// «Quando attacca» (§8.2): la stessa forma di Rhen, con l'evento giusto.
+describe("returnsFor on_attack", () => {
+  it("il passo porta l'evento dell'attacco", async () => {
+    const state = newGame();
+    const rhen = on(state, "rhen", "RHEN");
+    const p1 = on(state, "p1", "PERMANENTE");
+    p1.zone = "ritiro";
+    const [step] = returnsFor(state, rhen, facts, "on_attack");
+    expect(step.event).toBe("on_attack");
+    expect(step.candidates.map(card => card.uid)).toEqual(["p1"]);
+    const sent: Action[] = [];
+    const ctx: Ctx = {
+      state: () => state,
+      dispatch(action) {
+        sent.push(action);
+        return Promise.resolve(true);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "notte",
+      locale: () => "it",
+      card: facts,
+      log() {},
+    };
+    await resolveReturn(ctx, step, p1);
+    expect(sent[0]).toMatchObject({ t: "toZone", zone: "field", effect: { source: "rhen", event: "on_attack", entering: "rhen" } });
   });
 });

@@ -322,12 +322,13 @@ class TableTest < Minitest::Test
   # --- gli inneschi consumati (§8.2) -----------------------------------------
 
   def test_un_innesco_si_consuma_una_volta_e_il_turno_lo_azzera
-    refute @table.fired?("g", "e")
-    @table.fire("g", "e")
-    assert @table.fired?("g", "e")
-    refute @table.fired?("g", "altro")
+    refute @table.fired?("g", "on_enter_field", "e")
+    @table.fire("g", "on_enter_field", "e")
+    assert @table.fired?("g", "on_enter_field", "e")
+    refute @table.fired?("g", "on_enter_field", "altro")
+    refute @table.fired?("g", "on_attack", "e"), "un altro evento è un altro innesco"
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
-    refute @table.fired?("g", "e")
+    refute @table.fired?("g", "on_enter_field", "e")
   end
 
   # --- lo sguardo nel mazzo (§8.2) ---------------------------------------------

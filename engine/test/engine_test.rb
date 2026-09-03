@@ -1854,4 +1854,46 @@ class EngineTest < Minitest::Test
     refute tira_e_guarda(engine, roll: 1, count: 3, reveal: "d1", retire: "d2")[:ok], "si mostra solo un Oggetto"
     assert tira_e_guarda(engine, roll: 1, count: 3, retire: "d1")[:ok], "nessun Oggetto mostrato, una in Ritiro"
   end
+
+  # --- §8.2: «quando attacca», il secondo innesco di Rhen ------------------
+
+  EREDI_ATTACCO = EREDI.merge(
+    "RHEN" => EREDI["RHEN"].merge(attack_returns: EREDI["RHEN"][:enter_returns])
+  ).freeze
+
+  # Rhen in campo dal turno 1, una permanente in Zona di Ritiro; al turno 3
+  # A apre il Fronte e Rhen attacca.
+  def rhen_in_carica
+    engine = Rubyfront::Engine.new(cards: EREDI_ATTACCO)
+    cards = [{ "uid" => "rhen", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "RHEN", "y" => 1236 },
+             { "uid" => "p1", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "PERMANENTE" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    engine
+  end
+
+  def riporta_attaccando(engine)
+    engine.judge({ "t" => "toZone", "uid" => "p1", "zone" => "field", "x" => 2368, "y" => 1236,
+                   "effect" => { "source" => "rhen", "event" => "on_attack", "entering" => "rhen" } })
+  end
+
+  def test_quando_rhen_attacca_riporta_una_permanente
+    engine = rhen_in_carica
+    fronte!(engine)
+    assert engine.judge(attacco("rhen"))[:ok]
+    verdict = riporta_attaccando(engine)
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    refute riporta_attaccando(engine)[:ok], "una volta per attacco"
+  end
+
+  def test_senza_attacco_dichiarato_niente_innesco
+    engine = rhen_in_carica
+    verdict = riporta_attaccando(engine)
+    refute verdict[:ok]
+    assert_match(/vuole un attacco dichiarato/, verdict[:reason])
+    fronte!(engine)
+    refute riporta_attaccando(engine)[:ok], "il Fronte da solo non basta"
+  end
 end
