@@ -38,6 +38,7 @@ function fakeCtx(
       power: facts[cardId]?.power ?? null,
       counterattack: facts[cardId]?.counterattack ?? null,
       fluxCost: null,
+  keywords: [],
       enterListeners: [],
       enterMoves: [],
       behavior: null,

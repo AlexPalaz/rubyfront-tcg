@@ -62,6 +62,7 @@ const facts = (cardId: string): CardFacts => ({
   power: null,
   counterattack: null,
   fluxCost: null,
+  keywords: [],
   enterListeners: [],
   enterMoves: [],
   behavior: null,

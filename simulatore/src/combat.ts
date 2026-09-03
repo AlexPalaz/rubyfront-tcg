@@ -32,6 +32,17 @@ import { otherSeat } from "./types.js";
  * mano, come prima. Limiti dichiarati: Stasi, Vendetta e le Reattive come
  * bloccanti non sono modellate.
  */
+/** La Potenza in campo: quella stampata più il bonus fino a fine turno (§8.2). Gemello: engine.rb, power_of. */
+export function powerOf(card: CardInstance, facts: (cardId: string) => CardFacts): number | null {
+  const printed = facts(card.cardId).power;
+  return printed === null ? null : printed + (card.powerBonus ?? 0);
+}
+
+/** Una parola chiave stampata, o concessa fino a fine turno (§8.2). */
+export function hasKeyword(card: CardInstance, keyword: string, facts: (cardId: string) => CardFacts): boolean {
+  return facts(card.cardId).keywords.includes(keyword) || (card.grants ?? []).includes(keyword);
+}
+
 export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string) => CardFacts): Battle[] | null {
   const onField = (uid: string): CardInstance | undefined => {
     const card = state.cards[uid];
@@ -43,7 +54,7 @@ export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string
   const battles: Battle[] = [];
   for (const attack of attacks) {
     const attacker = onField(attack.from)!;
-    const attackerPower = facts(attacker.cardId).power;
+    const attackerPower = powerOf(attacker, facts);
     if (attackerPower === null) return null;
     const block = state.declarations.find(
       d => d.to === attack.from && (d.kind === "block" || d.kind === "counter") && onField(d.from)
@@ -54,16 +65,19 @@ export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string
     }
     const blocker = onField(block.from)!;
     const blockerFacts = facts(blocker.cardId);
-    if (blockerFacts.power === null) return null;
+    const blockerPower = powerOf(blocker, facts);
+    if (blockerPower === null) return null;
     const counter = block.kind === "counter";
-    const total = counter ? blockerFacts.power + (blockerFacts.counterattack ?? 0) : blockerFacts.power;
-    // Nel blocco normale l'attaccante muore SOLO nel pareggio; nel
-    // contrattacco anche quando il totale lo supera (§6.3).
+    const total = counter ? blockerPower + (blockerFacts.counterattack ?? 0) : blockerPower;
+    // Nel blocco normale l'attaccante muore SOLO nel pareggio — o quando il
+    // bloccante ha Vendetta e lo supera (§8.1); nel contrattacco anche
+    // quando il totale lo supera (§6.3).
+    const revenge = !counter && hasKeyword(blocker, "revenge", facts) && total > attackerPower;
     battles.push({
       attacker: attack.from,
       blocker: block.from,
       kind: counter ? "counter" : "block",
-      attackerDies: counter ? total >= attackerPower : total === attackerPower,
+      attackerDies: counter ? total >= attackerPower : total === attackerPower || revenge,
       blockerDies: total <= attackerPower,
       damage: 0,
     });

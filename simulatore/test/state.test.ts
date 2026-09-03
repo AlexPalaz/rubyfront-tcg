@@ -431,3 +431,77 @@ describe("apply control / release", () => {
     expect(state.cards["b-2"].zone).toBe("ritiro");
   });
 });
+
+// Gli attrezzi degli effetti d'attacco (§8.2): potenziamenti fino a fine
+// turno, stappata generale con la Fase di Fronte addizionale, la stappata
+// dopo il combattimento e la memoria dell'ondata. Gemelli: table_test.rb.
+describe("attrezzi degli effetti d'attacco", () => {
+  const field = (state: GameState, uid: string, owner: Seat, extra: Partial<CardInstance> = {}): CardInstance => {
+    const card: CardInstance = { uid, cardId: "X", owner, zone: "field", face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 1, ...extra };
+    state.cards[uid] = card;
+    return card;
+  };
+  const ref = { source: "s", event: "on_attack" as const, entering: "s" };
+
+  it("empower somma la Potenza, concede parole chiave, vieta il blocco; il cambio di turno cancella tutto", () => {
+    const state = newGame("a");
+    field(state, "e", "b");
+    let next = apply(state, { t: "empower", uid: "e", power: 1, effect: ref });
+    next = apply(next, { t: "empower", uid: "e", power: 1, grants: ["revenge"], restrict: "block", effect: ref });
+    expect(next.cards.e).toMatchObject({ powerBonus: 2, grants: ["revenge"], cannotBlock: true });
+    const after = apply(next, { t: "turn", turn: 2, active: "b" });
+    expect(after.cards.e.powerBonus).toBeUndefined();
+    expect(after.cards.e.cannotBlock).toBeUndefined();
+    expect(after.cards.e.grants).toBeUndefined();
+  });
+
+  it("empower non tocca una carta fuori dal campo", () => {
+    const state = newGame("a");
+    field(state, "h", "a", { zone: "hand" });
+    expect(apply(state, { t: "empower", uid: "h", power: 1, effect: ref })).toBe(state);
+  });
+
+  it("refresh stappa chi comanda il posto e promette la Fase di Fronte addizionale col tiro", () => {
+    const state = newGame("a");
+    field(state, "a1", "a", { tapped: true });
+    field(state, "b1", "b", { tapped: true });
+    field(state, "c1", "b", { tapped: true, controller: "a" });
+    const next = apply(state, { t: "refresh", seat: "a", roll: 17, extra: true, effect: ref });
+    expect(next.cards.a1.tapped).toBe(false);
+    expect(next.cards.c1.tapped).toBe(false);
+    expect(next.cards.b1.tapped).toBe(true);
+    expect(next.extraFront).toBe(true);
+    const flat = apply(state, { t: "refresh", seat: "a", roll: 3, extra: false, effect: ref });
+    expect(flat.extraFront).toBeFalsy();
+  });
+
+  it("dalla Reazione si torna al Fronte solo se la fase addizionale è dovuta, e la promessa si consuma", () => {
+    const state = { ...newGame("a"), phase: "reazione" as const, extraFront: true, declarations: [{ id: "x", from: "a1", to: "rf", kind: "attack" as const, seat: "a" as const, order: 1 }] };
+    const back = apply(state, { t: "phase", phase: "fronte" });
+    expect(back).toMatchObject({ phase: "fronte", extraFront: false, declarations: [] });
+    const turned = apply(back, { t: "turn", turn: 2, active: "b" });
+    expect(turned.extraFront).toBe(false);
+  });
+
+  it("resolve stappa chi lo chiede e ricorda l'ondata", () => {
+    const state = newGame("a");
+    field(state, "a1", "a", { tapped: true });
+    field(state, "a2", "a", { tapped: true });
+    state.declarations = [
+      { id: "1", from: "a2", to: "rf", kind: "attack", seat: "a", order: 2 },
+      { id: "2", from: "a1", to: "rf", kind: "attack", seat: "a", order: 1 },
+    ];
+    const next = apply(state, { t: "resolve", seat: "a", battles: [], untap: ["a1"] });
+    expect(next.cards.a1.tapped).toBe(false);
+    expect(next.cards.a2.tapped).toBe(true);
+    expect(next.lastWave?.a).toEqual(["a1", "a2"]);
+  });
+
+  it("toZone con assignTo rimette in campo un Oggetto già assegnato", () => {
+    const state = newGame("a");
+    field(state, "ent", "a");
+    field(state, "obj", "a", { zone: "ritiro" });
+    const next = apply(state, { t: "toZone", uid: "obj", zone: "field", x: 0, y: 0, assignTo: "ent", effect: ref });
+    expect(next.cards.obj).toMatchObject({ zone: "field", assignedTo: "ent" });
+  });
+});

@@ -380,3 +380,54 @@ class TableTest < Minitest::Test
     assert_equal %w[a-5 a-1 a-4], @table.top_of_deck("a", 3)
   end
 end
+
+# Gli attrezzi degli effetti d'attacco (§8.2). Gemelli: state.test.ts,
+# «attrezzi degli effetti d'attacco».
+class TableAttackToolsTest < Minitest::Test
+  def setup
+    @table = Rubyfront::Table.new
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "t", "cards" => [
+                   { "uid" => "a1", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "X", "tapped" => true },
+                   { "uid" => "a2", "owner" => "a", "zone" => "field", "order" => 1, "cardId" => "X", "tapped" => true },
+                   { "uid" => "obj", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "O" }] })
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "t", "cards" => [
+                   { "uid" => "e", "owner" => "b", "zone" => "field", "order" => 0, "cardId" => "X", "tapped" => true }] })
+  end
+
+  def test_empower_somma_concede_vieta_e_il_turno_cancella
+    @table.apply({ "t" => "empower", "uid" => "e", "power" => 1 })
+    @table.apply({ "t" => "empower", "uid" => "e", "power" => 1, "grants" => ["revenge"], "restrict" => "block" })
+    assert_equal 2, @table.card("e")[:power_bonus]
+    assert_equal ["revenge"], @table.card("e")[:grants]
+    assert @table.card("e")[:cannot_block]
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_nil @table.card("e")[:power_bonus]
+    assert_nil @table.card("e")[:cannot_block]
+    assert_nil @table.card("e")[:grants]
+  end
+
+  def test_refresh_stappa_chi_comanda_e_promette_la_fase_addizionale
+    @table.apply({ "t" => "refresh", "seat" => "a", "roll" => 17, "extra" => true })
+    refute @table.card("a1")[:tapped]
+    assert @table.card("e")[:tapped]
+    assert @table.extra_front
+    @table.apply({ "t" => "phase", "phase" => "reazione" })
+    @table.apply({ "t" => "phase", "phase" => "fronte" })
+    assert_equal "fronte", @table.phase
+    refute @table.extra_front
+  end
+
+  def test_resolve_stappa_chi_lo_chiede_e_ricorda_l_ondata
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "a2", "to" => "rf", "kind" => "attack", "order" => 2 } })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "a1", "to" => "rf", "kind" => "attack", "order" => 1 } })
+    @table.apply({ "t" => "resolve", "seat" => "a", "battles" => [], "untap" => ["a1"] })
+    refute @table.card("a1")[:tapped]
+    assert @table.card("a2")[:tapped]
+    assert_equal %w[a1 a2], @table.last_wave("a")
+  end
+
+  def test_to_zone_con_assign_to_rimette_un_oggetto_gia_assegnato
+    @table.apply({ "t" => "toZone", "uid" => "obj", "zone" => "field", "y" => 1236, "assignTo" => "a1" })
+    assert_equal "a1", @table.card("obj")[:assigned_to]
+  end
+end

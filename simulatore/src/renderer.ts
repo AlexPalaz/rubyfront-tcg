@@ -33,6 +33,8 @@ export interface CardFace {
   race?: unknown;
   /** Il comportamento di una Materia (§7.2). */
   behavior?: unknown;
+  /** Le parole chiave stampate (§8.1): `{ id: "surge" }`… */
+  keywords?: unknown[];
 }
 
 export interface CatalogCard {
@@ -445,6 +447,7 @@ export function cardStats(cardId: string): {
   power: number | null;
   counterattack: number | null;
   fluxCost: number | null;
+  keywords: string[];
   deployment: Deployment | null;
   enterListeners: EnterListener[];
   enterMoves: EnterMove[];
@@ -461,6 +464,10 @@ export function cardStats(cardId: string): {
   return {
     kind: face?.kind ?? null,
     race: typeof face?.race === "string" ? face.race : null,
+    // Le parole chiave stampate sulla faccia (§8.1). Specchio di card_index.rb, keywords.
+    keywords: ((face?.keywords ?? []) as unknown[]).flatMap(keyword =>
+      typeof keyword === "object" && keyword !== null && typeof (keyword as { id?: unknown }).id === "string" ? [(keyword as { id: string }).id] : []
+    ),
     enterListeners: enterListenersOf(face),
     enterMoves: enterMovesOf(face),
     behavior: typeof face?.behavior === "string" ? face.behavior : null,

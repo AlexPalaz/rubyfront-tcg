@@ -60,6 +60,10 @@ export interface CardInstance {
   controller?: Seat;
   /** Parole chiave concesse fino alla fine del turno (es. Slancio). */
   grants?: string[];
+  /** Potenza in più fino alla fine del turno (§8.2, effetti d'attacco). */
+  powerBonus?: number;
+  /** «Non può bloccare in questo turno» (§8.2, RBF-005). */
+  cannotBlock?: boolean;
 }
 
 export interface PlayerState {
@@ -184,6 +188,12 @@ export interface GameState {
   chat: ChatEntry[];
   /** Attacchi e blocchi dichiarati nel turno in corso (§6.3). */
   declarations: Declaration[];
+  /** L'ultima ondata di ciascun posto (uid degli attaccanti, in ordine),
+      annotata alla risoluzione: serve a «nel tuo turno precedente» (RBF-005). */
+  lastWave?: Partial<Record<Seat, string[]>>;
+  /** Una Fase di Fronte addizionale è dovuta dopo questa (RBF-011): dalla
+      Reazione si torna al Fronte invece di chiudere il turno. */
+  extraFront?: boolean;
   /** Prossimo z libero: ogni carta toccata sale in cima. */
   zTop: number;
 }
@@ -199,8 +209,11 @@ export interface EffectRef {
   /** L'evento che innesca: l'ingresso in campo, o l'attacco dichiarato. */
   event: "on_enter_field" | "on_attack";
   entering: string;
-  /** Il seguito di un innesco, con la sua tripla: lo scarto dopo la pesca (RBF-026). */
-  follow?: "discard";
+  /** Il seguito di un innesco, con la sua tripla: lo scarto dopo la pesca
+      (RBF-026), il ritorno in mano dopo la cura (RBF-008), la pesca dopo la
+      cura (RBF-001 Nexus), l'attacco di chi torna (RBF-010), lo sguardo dopo
+      il potenziamento (RBF-034). */
+  follow?: "discard" | "recall" | "draw" | "join" | "look";
 }
 
 /** Le mutazioni possibili. Ogni client le applica in locale e le ritrasmette. */
@@ -220,22 +233,28 @@ export type Action =
   /** `cost`: il Flusso pagato giocando DALLA MANO in campo (§3.2) — lo
       mette il client dal catalogo, l'engine lo verifica, il riduttore lo
       scala. Assente da altre zone e per il Rubyfront. */
-  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; effect?: EffectRef }
+  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; effect?: EffectRef; assignTo?: string; roll?: number }
   | { t: "flip"; uid: string; face: number }
   /** Assegna l'Oggetto `uid` all'Entità `to` (§3.1); `to: null` lo scioglie. */
   | { t: "assign"; uid: string; to: string | null }
   | { t: "tap"; uid: string; tapped: boolean }
   | { t: "facedown"; uid: string; facedown: boolean }
-  | { t: "player"; seat: Seat; patch: Partial<PlayerState> }
+  | { t: "player"; seat: Seat; patch: Partial<PlayerState>; effect?: EffectRef; roll?: number }
   | { t: "turn"; turn: number; active: Seat }
   /** Dichiara la fase (§6.3): oggi il solo passo avanti verso «fronte». */
   | { t: "phase"; phase: Phase }
-  | { t: "declare"; declaration: Declaration }
+  | { t: "declare"; declaration: Declaration; effect?: EffectRef }
   | { t: "undeclare"; from: string }
   | { t: "clearCombat" }
   /** Risolve l'ondata (§6.4): i morti nell'Abisso, i danni al Rubyfront
       del difensore, il combattimento sgomberato. `seat` è chi è di turno. */
-  | { t: "resolve"; seat: Seat; battles: Battle[] }
+  | { t: "resolve"; seat: Seat; battles: Battle[]; untap?: string[] }
+  /** Un potenziamento fino alla fine del turno (§8.2): Potenza in più,
+      parole chiave concesse, o il divieto di bloccare. Sempre un passo d'effetto. */
+  | { t: "empower"; uid: string; power?: number; grants?: string[]; restrict?: "block"; effect: EffectRef }
+  /** Stappa tutte le Entità di `seat` e, col tiro giusto, promette una Fase
+      di Fronte addizionale (§8.2, RBF-011). Il client tira, l'engine verifica. */
+  | { t: "refresh"; seat: Seat; roll: number; extra: boolean; effect: EffectRef }
   /** Lo sguardo nel mazzo (§8.2, le forme di RBF-006 e RBF-027): le prime
       `count` carte del mazzo di `seat` — col dado, `roll` è il tiro e il
       conto ne discende; `reveal`, se c'è, va in mano; `retire`, se c'è, in

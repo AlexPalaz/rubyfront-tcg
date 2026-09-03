@@ -51,6 +51,7 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       power: facts[cardId]?.power ?? null,
       counterattack: facts[cardId]?.counterattack ?? null,
       fluxCost: null,
+  keywords: [],
       enterListeners: [],
       enterMoves: [],
       behavior: null,
@@ -167,6 +168,7 @@ describe("resolveWave", () => {
     name: cardId,
     power: stats[cardId]?.power ?? null,
     counterattack: stats[cardId]?.counterattack ?? null,
+    keywords: stats[cardId]?.keywords ?? [],
   });
   const field = (uid: string, owner: Seat, cardId: string): CardInstance => ({ ...cardOn(uid, owner), cardId });
   const attack = (from: string, order: number): Declaration => ({ id: from, from, to: "rf-b", kind: "attack", seat: "a", order });
@@ -226,5 +228,52 @@ describe("resolveWave", () => {
   it("senza la Potenza nel catalogo si arrende", () => {
     const state = table([field("a1", "a", "IGNOTA")], [attack("a1", 1)]);
     expect(resolveWave(state, "a", facts)).toBeNull();
+  });
+});
+
+// I bonus di Potenza fino a fine turno e la Vendetta (§8.1, §8.2): lo
+// stesso conto dell'engine (power_of, has_keyword?).
+describe("resolveWave con bonus e Vendetta", () => {
+  const stats: Record<string, { power: number; counterattack?: number; keywords?: string[] }> = {
+    FORTE: { power: 4 },
+    PARI: { power: 4 },
+    VENDICATIVO: { power: 5, keywords: ["revenge"] },
+    GRANDE: { power: 5 },
+  };
+  const facts = (cardId: string) => ({
+    name: cardId,
+    power: stats[cardId]?.power ?? null,
+    counterattack: stats[cardId]?.counterattack ?? null,
+    keywords: stats[cardId]?.keywords ?? [],
+  });
+  const card = (uid: string, owner: Seat, cardId: string, extra: Partial<CardInstance> = {}): CardInstance => ({
+    uid, cardId, owner, zone: "field", face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 1, ...extra,
+  });
+  function table(cards: CardInstance[], declarations: Declaration[]) {
+    const state = newGame();
+    for (const c of cards) state.cards[c.uid] = c;
+    state.declarations = declarations;
+    return state;
+  }
+  const attack = (from: string): Declaration => ({ id: from, from, to: "rf-b", kind: "attack", seat: "a", order: 1 });
+  const block = (from: string, to: string): Declaration => ({ id: from, from, to, kind: "block", seat: "b", order: 0 });
+
+  it("il bonus si somma alla Potenza stampata", () => {
+    const state = table([card("a1", "a", "FORTE", { powerBonus: 1 }), card("b1", "b", "PARI")], [attack("a1"), block("b1", "a1")]);
+    expect(resolveWave(state, "a", facts as never)![0]).toMatchObject({ attackerDies: false, blockerDies: true });
+    const unblocked = table([card("a1", "a", "FORTE", { powerBonus: 2 })], [attack("a1")]);
+    expect(resolveWave(unblocked, "a", facts as never)![0].damage).toBe(6);
+  });
+
+  it("chi blocca con Vendetta e supera l'attaccante lo uccide", () => {
+    const state = table([card("a1", "a", "FORTE"), card("b1", "b", "VENDICATIVO")], [attack("a1"), block("b1", "a1")]);
+    expect(resolveWave(state, "a", facts as never)![0]).toMatchObject({ attackerDies: true, blockerDies: false });
+    const plain = table([card("a1", "a", "FORTE"), card("b1", "b", "GRANDE")], [attack("a1"), block("b1", "a1")]);
+    expect(resolveWave(plain, "a", facts as never)![0]).toMatchObject({ attackerDies: false, blockerDies: false });
+  });
+
+  it("la Vendetta concessa fino a fine turno vale come quella stampata", () => {
+    const state = table([card("a1", "a", "FORTE"), card("b1", "b", "GRANDE", { grants: ["revenge"] })], [attack("a1"), block("b1", "a1")]);
+    expect(resolveWave(state, "a", facts as never)![0].attackerDies).toBe(true);
   });
 });

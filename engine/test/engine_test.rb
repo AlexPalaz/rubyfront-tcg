@@ -932,6 +932,56 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], verdict[:reason]
   end
 
+  # Gli attrezzi degli effetti d'attacco nella risoluzione (§8.1, §8.2): il
+  # bonus di Potenza fino a fine turno e la Vendetta, stampata o concessa.
+  POTENZE_VENDETTA = POTENZE.merge("VENDICATIVO" => { type: "entity", keywords: ["revenge"], power: 5, counterattack: nil }).freeze
+
+  def ondata_vendetta(*args)
+    engine = ondata(*args)
+    engine.instance_variable_set(:@cards, POTENZE_VENDETTA)
+    engine
+  end
+
+  def test_il_bonus_di_potenza_entra_nel_conto
+    engine = ondata([["a1", "FORTE"]], [["b1", "PARI"]], ["a1"], [["b1", "a1", "block"]])
+    engine.observe({ "t" => "empower", "uid" => "a1", "power" => 1, "effect" => { "source" => "a1", "event" => "on_attack", "entering" => "a1" } })
+    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", blocker_dies: true)])
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_la_vendetta_uccide_l_attaccante_superato
+    engine = ondata_vendetta([["a1", "FORTE"]], [["b1", "VENDICATIVO"]], ["a1"], [["b1", "a1", "block"]])
+    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", attacker_dies: true)])
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_la_vendetta_concessa_vale_come_quella_stampata
+    engine = ondata([["a1", "DEBOLE"]], [["b1", "FORTE"]], ["a1"], [["b1", "a1", "block"]])
+    engine.observe({ "t" => "empower", "uid" => "b1", "grants" => ["revenge"], "effect" => { "source" => "b1", "event" => "on_attack", "entering" => "b1" } })
+    assert risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", attacker_dies: true)])[:ok]
+    refute risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block")])[:ok]
+  end
+
+  def test_chi_non_puo_bloccare_viene_fermato
+    engine = ondata([["a1", "FORTE"]], [["b1", "PARI"]], ["a1"], [])
+    engine.observe({ "t" => "empower", "uid" => "b1", "restrict" => "block", "effect" => { "source" => "a1", "event" => "on_attack", "entering" => "a1" } })
+    verdict = engine.judge({ "t" => "declare", "declaration" => { "id" => "b1", "from" => "b1", "to" => "a1", "kind" => "block", "seat" => "b", "order" => 0 } })
+    refute verdict[:ok]
+    assert_match(/non può bloccare in questo turno/, verdict[:reason])
+  end
+
+  def test_la_fase_di_fronte_addizionale_si_apre_dalla_reazione_solo_se_dovuta
+    engine = ondata([["a1", "FORTE"]], [], ["a1"], [])
+    refute engine.judge({ "t" => "phase", "phase" => "fronte" })[:ok], "senza promessa la fase è a senso unico"
+    engine.observe({ "t" => "refresh", "seat" => "a", "roll" => 18, "extra" => true, "effect" => { "source" => "a1", "event" => "on_attack", "entering" => "a1" } })
+    assert risolvi(engine, [battaglia("a1", damage: 4)])[:ok]
+    # La apre chi chiude la Reazione: il difensore.
+    verdict = engine.judge({ "t" => "phase", "phase" => "fronte" }, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "fronte", engine.instance_variable_get(:@table).phase
+    refute engine.judge({ "t" => "phase", "phase" => "fronte" }, actor: "b")[:ok], "una volta sola"
+  end
+
   def test_un_esito_sbagliato_viene_fermato
     engine = ondata([["a1", "DEBOLE"]], [["b1", "FORTE"]], ["a1"], [["b1", "a1", "block"]])
     verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", blocker_dies: true)])

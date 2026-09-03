@@ -18,6 +18,8 @@ export interface CardFacts {
   counterattack: number | null;
   /** Il costo di Flusso stampato (§3.2), null dove non c'è. */
   fluxCost: number | null;
+  /** Le parole chiave stampate (§8.1): surge, revenge, stasis, fury… */
+  keywords: string[];
   /** Gli ascoltatori certificati «quando un'Entità entra sul tuo Fronte»
       (§8.2): vedi renderer.ts, enterListeners. */
   enterListeners: EnterListener[];

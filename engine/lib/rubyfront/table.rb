@@ -17,7 +17,12 @@ module Rubyfront
     # confrontando gli indici.
     PHASES = %w[preparazione fronte reazione].freeze
 
-    attr_reader :active, :turn, :phase, :over
+    attr_reader :active, :turn, :phase, :over, :extra_front
+
+    # L'ultima ondata di `seat`: uid degli attaccanti, in ordine.
+    def last_wave(seat)
+      Array(@last_wave[seat])
+    end
 
     FLUX_CAP = 20
 
@@ -60,6 +65,11 @@ module Rubyfront
       # Come nel client, una carta dichiara una cosa sola per volta; `order`
       # è il numero d'ondata, l'ordine in cui le battaglie si risolvono.
       @declarations = {}
+      # L'ultima ondata di ciascun posto (uid, in ordine), annotata alla
+      # risoluzione — «nel tuo turno precedente» (RBF-005). Gemello: lastWave.
+      @last_wave = {}
+      # Una Fase di Fronte addizionale dovuta (RBF-011). Gemello: extraFront.
+      @extra_front = false
       @active = "a"
       @turn = 1
       @phase = "preparazione"
@@ -316,7 +326,29 @@ module Rubyfront
             card[:row] = action["y"]
           end
         end
+      when "empower"
+        # §8.2 — un potenziamento fino alla fine del turno. Gemello: state.ts.
+        card = @cards[action["uid"]]
+        if card && card[:zone] == "field"
+          card[:power_bonus] = (card[:power_bonus] || 0) + action["power"] if action["power"].is_a?(Integer)
+          granted = Array(action["grants"]).select { |keyword| keyword.is_a?(String) }
+          card[:grants] = (Array(card[:grants]) + granted).uniq unless granted.empty?
+          card[:cannot_block] = true if action["restrict"] == "block"
+        end
+      when "refresh"
+        # §8.2 (RBF-011) — stappa chi `seat` comanda; la Fase di Fronte
+        # addizionale è dovuta col tiro giusto. Gemello: state.ts.
+        @cards.each_value do |card|
+          card[:tapped] = false if card[:zone] == "field" && controller_of(card) == action["seat"]
+        end
+        @extra_front = true if action["extra"] == true
       when "phase"
+        if action["phase"] == "fronte" && @phase == "reazione" && @extra_front
+          # La Fase di Fronte addizionale: si torna al Fronte a frecce
+          # sgombre, e la promessa si consuma.
+          @extra_front = false
+          @declarations = {}
+        end
         @phase = action["phase"] if PHASES.include?(action["phase"])
       when "turn"
         @turn = action["turn"] if action["turn"].is_a?(Numeric)
@@ -329,7 +361,13 @@ module Rubyfront
           @active = action["active"]
           @phase = "preparazione"
           @fired = []
+          @extra_front = false
           @cards.each_value do |card|
+            # «Fino alla fine del turno» (§8.2): bonus, divieti e parole chiave
+            # concesse (non dal controllo) cadono per tutti.
+            card[:power_bonus] = nil
+            card[:cannot_block] = nil
+            card[:grants] = nil unless card[:controller]
             next unless card[:owner] == @active && card[:zone] == "field"
 
             card[:tapped] = false
@@ -428,12 +466,18 @@ module Rubyfront
     # l'ondata sgomberata. I PV non stanno in questa copia.
     def resolve(action)
       damage = 0
+      @last_wave[action["seat"]] = attackers_in_order if SEATS.include?(action["seat"])
       Array(action["battles"]).each do |battle|
         next unless battle.is_a?(Hash)
 
         to_zone({ "uid" => battle["attacker"], "zone" => "abisso" }) if battle["attackerDies"] == true
         to_zone({ "uid" => battle["blocker"], "zone" => "abisso" }) if battle["blockerDies"] == true && battle["blocker"]
         damage += battle["damage"].to_i
+      end
+      # §8.2 — «stappala dopo il combattimento» (RBF-028). Gemello: state.ts.
+      Array(action["untap"]).each do |uid|
+        card = @cards[uid]
+        card[:tapped] = false if card && card[:zone] == "field"
       end
       @declarations = {}
       # I danni degli attacchi non bloccati scendono sui PV del difensore,
@@ -491,6 +535,8 @@ module Rubyfront
       if zone == "field"
         card[:order] = 0
         card[:row] = action["y"] if action["y"].is_a?(Numeric)
+        # Un Oggetto che torna già assegnato (§8.2, RBF-031). Gemello: state.ts.
+        card[:assigned_to] = action["assignTo"] if action["assignTo"].is_a?(String) && @cards.key?(action["assignTo"])
         return
       end
       card[:row] = nil

@@ -154,6 +154,14 @@ export function apply(state: GameState, action: Action): GameState {
     }
 
     case "toZone": {
+      // Un Oggetto che torna in campo già assegnato (§8.2, RBF-031): lo
+      // spostamento com'è, poi l'assegnazione. Gemello: table.rb, to_zone.
+      if (action.assignTo) {
+        const moved = apply(state, { ...action, assignTo: undefined });
+        const worn = moved.cards[action.uid];
+        if (!worn || worn.zone !== "field" || !moved.cards[action.assignTo]) return moved;
+        return { ...moved, cards: { ...moved.cards, [action.uid]: { ...worn, assignedTo: action.assignTo } } };
+      }
       const card = state.cards[action.uid];
       if (!card) return state;
       const next: CardInstance = { ...card, zone: action.zone };
@@ -282,6 +290,16 @@ export function apply(state: GameState, action: Action): GameState {
       const grown = firstTurn ? player.fluxMax : Math.min(FLUX_CAP, player.fluxMax + 1);
       const cards = { ...state.cards };
       for (const [uid, card] of Object.entries(cards)) {
+        // «Fino alla fine del turno» (§8.2): bonus di Potenza, divieti di
+        // blocco e parole chiave concesse (non dal controllo, che ha la sua
+        // restituzione) cadono col cambio di turno, per tutti.
+        if (card.powerBonus !== undefined || card.cannotBlock || (card.grants && !card.controller)) {
+          const clean: CardInstance = { ...card };
+          delete clean.powerBonus;
+          delete clean.cannotBlock;
+          if (!card.controller) delete clean.grants;
+          cards[uid] = clean;
+        }
         if (card.owner !== next || card.zone !== "field") continue;
         // La copertura «dura un giro completo» (§6.3): coperta al turno T
         // — di regola il turno avversario del contrattacco — si scopre al
@@ -289,7 +307,7 @@ export function apply(state: GameState, action: Action): GameState {
         // lavagna che non lo sapeva): resta com'è, nel dubbio.
         const uncover = card.facedown && card.coveredTurn !== undefined && action.turn - card.coveredTurn >= 3;
         if (!card.tapped && !uncover) continue;
-        const fresh: CardInstance = { ...card, tapped: false };
+        const fresh: CardInstance = { ...cards[uid], tapped: false };
         if (uncover) {
           fresh.facedown = false;
           delete fresh.coveredTurn;
@@ -304,6 +322,7 @@ export function apply(state: GameState, action: Action): GameState {
         active: next,
         phase: "preparazione",
         declarations: [],
+        extraFront: false,
       };
       // §6.1 — la Pesca: «il giocatore di turno pesca una carta», e «non si
       // salta mai». A mazzo vuoto non pesca (§9.1: l'esaurimento si decide
@@ -313,6 +332,11 @@ export function apply(state: GameState, action: Action): GameState {
     }
 
     case "phase":
+      // La Fase di Fronte addizionale (RBF-011): dalla Reazione si torna al
+      // Fronte una volta, a frecce sgombre; la promessa si consuma.
+      if (action.phase === "fronte" && state.phase === "reazione" && state.extraFront) {
+        return { ...state, phase: "fronte", extraFront: false, declarations: [] };
+      }
       return { ...state, phase: action.phase };
 
     case "declare":
@@ -429,13 +453,51 @@ export function apply(state: GameState, action: Action): GameState {
         }
         damage += battle.damage;
       }
+      // §8.2 — «stappala dopo il combattimento» (RBF-028): chi lo chiede
+      // e sta ancora in campo si raddrizza. L'engine verifica la lista.
+      const cards = { ...next.cards };
+      for (const uid of action.untap ?? []) {
+        const card = cards[uid];
+        if (card && card.zone === "field" && card.tapped) cards[uid] = { ...card, tapped: false };
+      }
+      // L'ondata appena risolta resta in memoria, per «nel tuo turno
+      // precedente» (RBF-005): gli attaccanti nell'ordine di dichiarazione.
+      const wave = state.declarations
+        .filter(d => d.kind === "attack" && d.seat === action.seat)
+        .sort((a, b) => a.order - b.order)
+        .map(d => d.from);
       const foe = otherSeat(action.seat);
       const player = next.players[foe];
       return {
         ...next,
+        cards,
         players: { ...next.players, [foe]: { ...player, hp: Math.max(0, player.hp - damage) } },
         declarations: [],
+        lastWave: { ...state.lastWave, [action.seat]: wave },
       };
+    }
+
+    case "empower": {
+      // §8.2 — un potenziamento fino alla fine del turno: si somma la
+      // Potenza, si aggiungono le parole chiave, si segna il divieto di
+      // blocco. Il cambio di turno cancella tutto. Gemello: table.rb.
+      const card = state.cards[action.uid];
+      if (!card || card.zone !== "field") return state;
+      const fresh: CardInstance = { ...card };
+      if (action.power) fresh.powerBonus = (card.powerBonus ?? 0) + action.power;
+      if (action.grants?.length) fresh.grants = [...new Set([...(card.grants ?? []), ...action.grants])];
+      if (action.restrict === "block") fresh.cannotBlock = true;
+      return { ...state, cards: { ...state.cards, [action.uid]: fresh } };
+    }
+
+    case "refresh": {
+      // §8.2 (RBF-011) — tutte le Entità che `seat` comanda si stappano; col
+      // tiro giusto è dovuta una Fase di Fronte addizionale. Gemello: table.rb.
+      const cards = { ...state.cards };
+      for (const [uid, card] of Object.entries(cards)) {
+        if (card.zone === "field" && card.tapped && controllerOf(card) === action.seat) cards[uid] = { ...card, tapped: false };
+      }
+      return { ...state, cards, extraFront: action.extra || state.extraFront === true };
     }
 
     case "say":

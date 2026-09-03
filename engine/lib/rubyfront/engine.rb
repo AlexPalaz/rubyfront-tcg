@@ -547,6 +547,9 @@ module Rubyfront
       phase = action["phase"]
       return no_rule("phase") unless Table::PHASES.include?(phase)
 
+      # La Fase di Fronte addizionale (§8.2, RBF-011): dalla Reazione si
+      # torna al Fronte, una volta, se è dovuta.
+      return allow("phase") if phase == "fronte" && @table.phase == "reazione" && @table.extra_front
       if Table::PHASES.index(phase) < Table::PHASES.index(@table.phase)
         return refuse("phase", "la fase è a senso unico: in Preparazione si torna col cambio di turno (§6)", "phases go one way: Preparation comes back with the turn change (§6)")
       end
@@ -634,6 +637,10 @@ module Rubyfront
       end
 
       if kind != "attack"
+        # §8.2 — «quell'Entità non può bloccare in questo turno» (RBF-005).
+        if card[:cannot_block]
+          return refuse("declare", "quell'Entità non può bloccare in questo turno: un effetto glielo vieta (§8.2)", "that Entity can't block this turn: an effect forbids it (§8.2)")
+        end
         # Un blocco vuole un attaccante vero: senza un attacco dichiarato in
         # piedi non c'è niente da fermare, e la freccia non direbbe niente.
         unless @table.attacking?(declaration["to"])
@@ -694,21 +701,23 @@ module Rubyfront
     # per ciascun attaccante chi lo ferma. Ritorna nil se manca una Potenza.
     def expected_battles
       @table.attackers_in_order.map do |attacker|
-        power = stat(attacker, :power)
+        power = power_of(attacker)
         return nil if power.nil?
 
         blocker, kind = @table.blocker_of(attacker)
         next { attacker: attacker, blocker: nil, kind: "unblocked", attacker_dies: false, blocker_dies: false, damage: power } unless blocker
 
-        blocker_power = stat(blocker, :power)
+        blocker_power = power_of(blocker)
         return nil if blocker_power.nil?
 
         counter = kind == "counter"
         total = counter ? blocker_power + (stat(blocker, :counterattack) || 0) : blocker_power
-        # Nel blocco normale l'attaccante muore SOLO nel pareggio; nel
-        # contrattacco anche quando il totale lo supera (§6.3).
+        # Nel blocco normale l'attaccante muore SOLO nel pareggio — o quando
+        # il bloccante ha Vendetta e lo supera (§8.1); nel contrattacco anche
+        # quando il totale lo supera (§6.3).
+        revenge = !counter && has_keyword?(blocker, "revenge") && total > power
         { attacker: attacker, blocker: blocker, kind: kind,
-          attacker_dies: counter ? total >= power : total == power,
+          attacker_dies: counter ? total >= power : total == power || revenge,
           blocker_dies: total <= power, damage: 0 }
       end
     end
@@ -716,6 +725,23 @@ module Rubyfront
     def stat(uid, key)
       card = @table.card(uid)
       card && @cards.dig(card[:card_id], key)
+    end
+
+    # La Potenza in campo: quella stampata più il bonus fino a fine turno
+    # (§8.2). Gemello: combat.ts, powerOf.
+    def power_of(uid)
+      printed = stat(uid, :power)
+      return nil if printed.nil?
+
+      printed + (@table.card(uid)[:power_bonus] || 0)
+    end
+
+    # Una parola chiave stampata, o concessa fino a fine turno (§8.2).
+    def has_keyword?(uid, keyword)
+      card = @table.card(uid)
+      return false unless card
+
+      Array(@cards.dig(card[:card_id], :keywords)).include?(keyword) || Array(card[:grants]).include?(keyword)
     end
 
     def normalize_battle(battle)
@@ -750,6 +776,9 @@ module Rubyfront
         return refuse(kind, "la Reazione la chiude chi difende: risolve l'ondata e passa il turno (§6.4)", "the defender closes the Reaction: resolves the wave and passes the turn (§6.4)")
       end
       return nil if actor == @table.active
+      # La Fase di Fronte addizionale (RBF-011) la apre chi chiude la
+      # Reazione, cioè il difensore (§6.4).
+      return nil if kind == "phase" && action["phase"] == "fronte" && @table.phase == "reazione" && @table.extra_front
 
       # I gesti di APPARECCHIATURA non hanno turno: caricare il proprio mazzo
       # (all'ingresso in stanza, nel turno di chiunque), «Nuova partita», il

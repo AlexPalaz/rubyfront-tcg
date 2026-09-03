@@ -249,6 +249,7 @@ const ctx: Ctx = {
       power: stats.power,
       counterattack: stats.counterattack,
       fluxCost: stats.fluxCost,
+      keywords: stats.keywords,
       enterListeners: stats.enterListeners,
       enterMoves: stats.enterMoves,
       behavior: stats.behavior,
