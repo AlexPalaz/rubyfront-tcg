@@ -459,7 +459,7 @@ module Rubyfront
         return refuse("toZone", "un'Entità tappata è impegnata: si ritira quando si stappa (§6.2, Ritiro)", "a tapped Entity is busy: it retires once it untaps (§6.2, Retire)")
       end
       if card[:entered] == @table.turn
-        return refuse("toZone", "l'Entità è entrata in campo questo turno: si ritira dal prossimo — lo Slancio non aggira il divieto (§6.2, Ritiro)", "the Entity entered the field this turn: it can retire from the next one — Rush doesn't get around that (§6.2, Retire)")
+        return refuse("toZone", "l'Entità è entrata in campo questo turno: si ritira dal prossimo — lo Slancio non aggira il divieto (§6.2, Ritiro)", "the Entity entered the field this turn: it can retire from the next one — Surge doesn't get around that (§6.2, Retire)")
       end
 
       allow("toZone")
@@ -642,7 +642,7 @@ module Rubyfront
       return allow("declare") if known[:keywords].include?("surge") || Array(card[:grants]).include?("surge")
 
       if card[:entered] == @table.turn
-        refuse("declare", "l'Entità è entrata in campo questo turno: senza Slancio attacca dal prossimo (§6.2, attesa di evocazione)", "the Entity entered the field this turn: without Rush it attacks from the next one (§6.2, summoning wait)")
+        refuse("declare", "l'Entità è entrata in campo questo turno: senza Slancio attacca dal prossimo (§6.2, attesa di evocazione)", "the Entity entered the field this turn: without Surge it attacks from the next one (§6.2, summoning wait)")
       else
         allow("declare")
       end

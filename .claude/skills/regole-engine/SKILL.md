@@ -75,7 +75,8 @@ con `cost` non è un pixel: è lo schieramento.
 
 1. **Leggere il §** in `docs/MANUALE.md`, per intero, e i § che cita. Se il
    manuale tace o contraddice, è una decisione del designer: chiederla, poi
-   scriverla nel manuale (mantenendo i suoi periodi) nella stessa modifica.
+   scriverla nel manuale (mantenendo i suoi periodi) nella stessa modifica —
+   e riportarla nell'edizione inglese `docs/MANUAL.md`, stesso commit.
 2. **Guardare i dati** in `data/sets/*/cards/*/<id>.json`: se la regola legge
    le carte, l'anagrafe impara il campo (con `integer_stat`/forme certificate:
    forma ignota → nil, mai fraintesa) e `card_index_test.rb` lo prova sulle

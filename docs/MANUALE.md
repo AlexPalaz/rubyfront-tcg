@@ -2,6 +2,7 @@
 
 > **Stato:** BOZZA — in fase di stesura.
 > Questo documento è la fonte di verità delle regole. L'engine di gioco verrà implementato seguendo fedelmente questo manuale.
+> Edizione inglese: `docs/MANUAL.md` — una traduzione che si aggiorna insieme a questo file; in caso di differenza fa fede l'italiano.
 
 ---
 
