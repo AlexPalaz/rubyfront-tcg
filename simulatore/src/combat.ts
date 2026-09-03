@@ -6,7 +6,7 @@
 
 import { msg, type LogMsg } from "./i18n.js";
 import type { CardFacts, Ctx } from "./ctx.js";
-import { controllerOf, nextWaveOrder } from "./state.js";
+import { controllerOf, fieldCards, nextWaveOrder } from "./state.js";
 import type { Battle, CardInstance, Declaration, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -32,15 +32,76 @@ import { otherSeat } from "./types.js";
  * mano, come prima. Limiti dichiarati: Stasi, Vendetta e le Reattive come
  * bloccanti non sono modellate.
  */
-/** La Potenza in campo: quella stampata più il bonus fino a fine turno (§8.2). Gemello: engine.rb, power_of. */
-export function powerOf(card: CardInstance, facts: (cardId: string) => CardFacts): number | null {
+/**
+ * La Potenza in campo: quella stampata, più il bonus fino a fine turno
+ * (§8.2), più gli statici certificati — mai sotto 0 (§8.2, «Modifiche alla
+ * Potenza»). Gemello: engine.rb, power_of.
+ */
+export function powerOf(card: CardInstance, facts: (cardId: string) => CardFacts, state?: GameState): number | null {
   const printed = facts(card.cardId).power;
-  return printed === null ? null : printed + (card.powerBonus ?? 0);
+  if (printed === null) return null;
+  return Math.max(0, printed + (card.powerBonus ?? 0) + (state ? staticPower(state, card, facts) : 0));
 }
 
-/** Una parola chiave stampata, o concessa fino a fine turno (§8.2). */
-export function hasKeyword(card: CardInstance, keyword: string, facts: (cardId: string) => CardFacts): boolean {
-  return facts(card.cardId).keywords.includes(keyword) || (card.grants ?? []).includes(keyword);
+/** Gli Oggetti in campo addosso a quell'Entità (§3.1). */
+export function wornBy(state: GameState, uid: string): CardInstance[] {
+  return Object.values(state.cards).filter(card => card.assignedTo === uid && card.zone === "field");
+}
+
+/** Le Entità (di `race`) che `seat` comanda in campo, tranne `except`. */
+export function countEntities(state: GameState, seat: Seat, race: string | null, facts: (cardId: string) => CardFacts, except?: string): number {
+  return fieldCards(state).filter(card => {
+    if (card.uid === except || controllerOf(card) !== seat) return false;
+    const f = facts(card.cardId);
+    return f.kind === "entity" && (race === null || f.race === race);
+  }).length;
+}
+
+/**
+ * Gli statici (§8.2): «+1 mentre attacca, se sul tuo Fronte c'è un'altra
+ * Entità Umana» (RBF-002), «+1 per ogni altra Entità Umana sul tuo Fronte»
+ * (RBF-010), e quelli degli Oggetti addosso — «+1» (RBF-013), «+1 per ogni
+ * Entità Umana sul tuo Fronte» (RBF-014, portatrice compresa). Gemello:
+ * engine.rb, static_power.
+ */
+export function staticPower(state: GameState, card: CardInstance, facts: (cardId: string) => CardFacts): number {
+  const seat = controllerOf(card);
+  let bonus = 0;
+  for (const form of facts(card.cardId).staticForms) {
+    if (form.kind !== "self_power") continue;
+    if (form.whileAttacking) {
+      const attacking = state.declarations.some(d => d.from === card.uid && d.kind === "attack");
+      if (attacking && countEntities(state, seat, form.requiresOther?.race ?? null, facts, card.uid) >= 1) bonus += form.amount;
+    } else if (form.perOther) {
+      bonus += form.amount * countEntities(state, seat, form.perOther.race, facts, card.uid);
+    }
+  }
+  for (const object of wornBy(state, card.uid)) {
+    for (const form of facts(object.cardId).staticForms) {
+      if (form.kind !== "bearer_power") continue;
+      bonus += form.per ? form.amount * countEntities(state, seat, form.per.race, facts) : form.amount;
+    }
+  }
+  return bonus;
+}
+
+/**
+ * Una parola chiave stampata, concessa fino a fine turno (§8.2), o data da
+ * un Oggetto addosso «mentre assegnato» (RBF-013: la Stasi agli Umani).
+ * Gemello: engine.rb, has_keyword?.
+ */
+export function hasKeyword(card: CardInstance, keyword: string, facts: (cardId: string) => CardFacts, state?: GameState): boolean {
+  if (facts(card.cardId).keywords.includes(keyword) || (card.grants ?? []).includes(keyword)) return true;
+  if (!state) return false;
+  const race = facts(card.cardId).race;
+  return wornBy(state, card.uid).some(object =>
+    facts(object.cardId).grantsWhileAssigned.some(grant => grant.keywords.includes(keyword) && (grant.ifRace === null || grant.ifRace === race))
+  );
+}
+
+/** §8.2 — l'attaccante porta un Oggetto che lo rende bloccabile da più Entità (RBF-014)? */
+export function multiBlock(state: GameState, attackerUid: string, facts: (cardId: string) => CardFacts): boolean {
+  return wornBy(state, attackerUid).some(object => facts(object.cardId).staticForms.some(form => form.kind === "bearer_power" && form.multiBlock));
 }
 
 export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string) => CardFacts): Battle[] | null {
@@ -54,33 +115,47 @@ export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string
   const battles: Battle[] = [];
   for (const attack of attacks) {
     const attacker = onField(attack.from)!;
-    const attackerPower = powerOf(attacker, facts);
+    const attackerPower = powerOf(attacker, facts, state);
     if (attackerPower === null) return null;
-    const block = state.declarations.find(
-      d => d.to === attack.from && (d.kind === "block" || d.kind === "counter") && onField(d.from)
-    );
-    if (!block) {
+    // Con più bloccanti (§8.2, RBF-014) l'attaccante affronta ciascuno, una
+    // battaglia per bloccante, nell'ordine dei blocchi.
+    const blocks = state.declarations.filter(d => d.to === attack.from && (d.kind === "block" || d.kind === "counter") && onField(d.from));
+    if (blocks.length === 0) {
       battles.push({ attacker: attack.from, kind: "unblocked", attackerDies: false, blockerDies: false, damage: attackerPower });
       continue;
     }
-    const blocker = onField(block.from)!;
-    const blockerFacts = facts(blocker.cardId);
-    const blockerPower = powerOf(blocker, facts);
-    if (blockerPower === null) return null;
-    const counter = block.kind === "counter";
-    const total = counter ? blockerPower + (blockerFacts.counterattack ?? 0) : blockerPower;
-    // Nel blocco normale l'attaccante muore SOLO nel pareggio — o quando il
-    // bloccante ha Vendetta e lo supera (§8.1); nel contrattacco anche
-    // quando il totale lo supera (§6.3).
-    const revenge = !counter && hasKeyword(blocker, "revenge", facts) && total > attackerPower;
-    battles.push({
-      attacker: attack.from,
-      blocker: block.from,
-      kind: counter ? "counter" : "block",
-      attackerDies: counter ? total >= attackerPower : total === attackerPower || revenge,
-      blockerDies: total <= attackerPower,
-      damage: 0,
-    });
+    for (const block of blocks) {
+      const blocker = onField(block.from)!;
+      const blockerFacts = facts(blocker.cardId);
+      // Una Reattiva giocata come blocco (§6.4): «non c'è confronto di
+      // Potenza, l'attacco è comunque bloccato, la sorte dell'attaccante la
+      // stabilisce il testo» — RBF-020 non dice nulla — e si consuma.
+      if (blockerFacts.kind === "matter") {
+        battles.push({ attacker: attack.from, blocker: block.from, kind: "block", attackerDies: false, blockerDies: false, damage: 0, blockerSpent: true });
+        continue;
+      }
+      const blockerPower = powerOf(blocker, facts, state);
+      if (blockerPower === null) return null;
+      const counter = block.kind === "counter";
+      const total = counter ? blockerPower + (blockerFacts.counterattack ?? 0) + (blocker.counterBonus ?? 0) : blockerPower;
+      // Nel blocco normale l'attaccante muore SOLO nel pareggio — o quando il
+      // bloccante ha Vendetta e lo supera (§8.1); nel contrattacco anche
+      // quando il totale lo supera (§6.3).
+      const revenge = !counter && hasKeyword(blocker, "revenge", facts, state) && total > attackerPower;
+      const dies = total <= attackerPower;
+      // §8.1 — la Stasi: chi ce l'ha, bloccando o contrattaccando, invece di
+      // morire resta tappata per sempre; l'altra muore comunque.
+      const stasis = dies && hasKeyword(blocker, "stasis", facts, state);
+      battles.push({
+        attacker: attack.from,
+        blocker: block.from,
+        kind: counter ? "counter" : "block",
+        attackerDies: counter ? total >= attackerPower : total === attackerPower || revenge,
+        blockerDies: dies && !stasis,
+        damage: 0,
+        ...(stasis ? { blockerStasis: true } : {}),
+      });
+    }
   }
   return battles;
 }
@@ -93,13 +168,17 @@ export function describeBattle(battle: Battle, index: number, cardId: (uid: stri
   }
   const blockerCard = cardId(battle.blocker ?? "?");
   const fate = msg(
-    battle.attackerDies && battle.blockerDies
-      ? "fate.both"
-      : battle.attackerDies
-        ? "fate.attacker"
-        : battle.blockerDies
-          ? "fate.blocker"
-          : "fate.none"
+    battle.blockerStasis
+      ? battle.attackerDies ? "fate.stasis.attacker" : "fate.stasis"
+      : battle.blockerSpent
+        ? "fate.spent"
+        : battle.attackerDies && battle.blockerDies
+          ? "fate.both"
+          : battle.attackerDies
+            ? "fate.attacker"
+            : battle.blockerDies
+              ? "fate.blocker"
+              : "fate.none"
   );
   return msg(battle.kind === "counter" ? "log.battle.counter" : "log.battle.block", { n: index, blockerCard, attackerCard, fate });
 }

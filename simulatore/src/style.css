@@ -371,6 +371,19 @@ body.is-resolving .table, body.is-resolving .hud, body.is-resolving .side { poin
 @media (prefers-reduced-motion: reduce) { .tile.is-triggering { animation: none; } .tile { transition: none; } }
 .effect-text.is-trigger { border-color: color-mix(in srgb, var(--ruby) 45%, var(--line-soft)); }
 
+/* La Stasi (§8.1): tappata per sempre. La tessera si spegne un po' e porta
+   la targhetta, così si distingue dalla tappata di un turno. */
+.tile.is-stasis { filter: saturate(.55) brightness(.85); }
+.tile.is-stasis::after {
+  content: attr(data-stasis);
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  padding: 4px 12px; border-radius: 999px;
+  background: rgba(10, 8, 14, .78); color: #f2d7dd;
+  font: 700 22px/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase;
+  pointer-events: none;
+}
+
 /* Il momento d'ingresso: velo sul tavolo (che ferma i click sotto), la carta
    grande che si accende di rubino, di fianco la targhetta, il testo
    dell'effetto e «Continua». Sopra mani e carte, sotto l'HUD. */

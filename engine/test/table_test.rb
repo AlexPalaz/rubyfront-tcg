@@ -430,4 +430,124 @@ class TableAttackToolsTest < Minitest::Test
     @table.apply({ "t" => "toZone", "uid" => "obj", "zone" => "field", "y" => 1236, "assignTo" => "a1" })
     assert_equal "a1", @table.card("obj")[:assigned_to]
   end
+  # --- gli attrezzi di Eredità Perduta: Stasi, Contrattacco concesso, esilio, flip, sigillo ---
+
+  def campo(seat, uid, extra = {})
+    { "uid" => uid, "owner" => seat, "zone" => "field", "order" => 0, "cardId" => "X" }.merge(extra)
+  end
+
+  def test_empower_stappa_anche_dalla_stasi_e_concede_contrattacco
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "a1", "tapped" => true)] })
+    @table.card("a1")[:stasis] = true
+    ref = { "source" => "m", "event" => "on_resolve", "entering" => "m" }
+    @table.apply({ "t" => "empower", "uid" => "a1", "counter" => 1, "untap" => true, "effect" => ref })
+    card = @table.card("a1")
+    refute card[:tapped]
+    assert_nil card[:stasis]
+    assert_equal 1, card[:counter_bonus]
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_nil card[:counter_bonus], "«fino alla fine del turno»"
+  end
+
+  def test_la_stasi_alla_risoluzione_e_il_turno_non_la_stappa
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "a1"), campo("a", "a2")] })
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [campo("b", "b1", "facedown" => true), campo("b", "m1")] })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "a1", "to" => "rf-b", "kind" => "attack", "order" => 1 } })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "a2", "to" => "rf-b", "kind" => "attack", "order" => 2 } })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "b1", "to" => "a1", "kind" => "counter", "order" => 0 } })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "m1", "to" => "a2", "kind" => "block", "order" => 0 } })
+    @table.apply({ "t" => "resolve", "seat" => "a", "battles" => [
+      { "attacker" => "a1", "blocker" => "b1", "kind" => "counter", "attackerDies" => false, "blockerDies" => false, "blockerStasis" => true, "damage" => 0 },
+      { "attacker" => "a2", "blocker" => "m1", "kind" => "block", "attackerDies" => false, "blockerDies" => false, "blockerSpent" => true, "damage" => 0 },
+    ] })
+    b1 = @table.card("b1")
+    assert_equal "field", b1[:zone], "la Stasi salva"
+    assert b1[:stasis]
+    assert b1[:tapped]
+    refute b1[:facedown], "la stasi sostituisce la copertura"
+    assert_equal "abisso", @table.card("m1")[:zone], "la Reattiva come blocco si consuma"
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert @table.card("b1")[:tapped], "tappata per sempre (§8.1)"
+    @table.apply({ "t" => "refresh", "seat" => "b", "roll" => 17, "extra" => false, "effect" => {} })
+    refute @table.card("b1")[:tapped], "stappata da un effetto torna normale"
+    assert_nil @table.card("b1")[:stasis]
+  end
+
+  def test_con_piu_bloccanti_l_attaccante_muore_una_volta_sola
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "a1")] })
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [campo("b", "b1"), campo("b", "b2")] })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "a1", "to" => "rf-b", "kind" => "attack", "order" => 1 } })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "b1", "to" => "a1", "kind" => "block", "order" => 0 } })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "b2", "to" => "a1", "kind" => "block", "order" => 0 } })
+    assert_equal [["b1", "block"], ["b2", "block"]], @table.blockers_of("a1")
+    @table.apply({ "t" => "resolve", "seat" => "a", "battles" => [
+      { "attacker" => "a1", "blocker" => "b1", "kind" => "block", "attackerDies" => true, "blockerDies" => true, "damage" => 0 },
+      { "attacker" => "a1", "blocker" => "b2", "kind" => "block", "attackerDies" => true, "blockerDies" => false, "damage" => 0 },
+    ] })
+    assert_equal "abisso", @table.card("a1")[:zone]
+    assert_equal 1, @table.zone_count("a", "abisso")
+    assert_equal "abisso", @table.card("b1")[:zone]
+    assert_equal "field", @table.card("b2")[:zone]
+  end
+
+  def test_l_esilio_tiene_la_carta_e_la_restituzione_la_riporta_in_gioco
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "m")] })
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [campo("b", "b1", "y" => 172)] })
+    @table.apply({ "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "m" })
+    assert_equal "m", @table.card("b1")[:held_by]
+    assert_equal "abisso", @table.card("b1")[:zone]
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    @table.apply({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 })
+    b1 = @table.card("b1")
+    assert_equal "field", b1[:zone]
+    assert_equal 2, b1[:entered], "torna in gioco: entra ora"
+    assert_equal 172, b1[:row]
+    assert_nil b1[:held_by]
+    # E chi torna a Fronte pieno va in Zona di Ritiro.
+    @table.apply({ "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "m" })
+    @table.apply({ "t" => "release", "uid" => "b1", "zone" => "ritiro" })
+    assert_equal "ritiro", @table.card("b1")[:zone]
+    # Uno spostamento qualunque scioglie la presa.
+    @table.apply({ "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "m" })
+    @table.apply({ "t" => "toZone", "uid" => "b1", "zone" => "hand" })
+    assert_nil @table.card("b1")[:held_by]
+  end
+
+  def test_il_flip_scarta_recupera_e_annota_il_turno
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "rf", "y" => 1236), campo("a", "h", "zone" => "hand")] })
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 12 } })
+    @table.apply({ "t" => "flip", "uid" => "rf", "face" => 1, "discard" => "h", "recover" => 5 })
+    rf = @table.card("rf")
+    assert_equal 1, rf[:face]
+    assert_equal 1, rf[:flipped]
+    assert_equal 17, @table.hp("a")
+    assert_equal "abisso", @table.card("h")[:zone]
+  end
+
+  def test_il_sigillo_e_il_bersaglio_dichiarato_viaggiano_anche_nello_snapshot
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "m", "zone" => "hand")] })
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["RBF-012"] } })
+    assert @table.sealed?("a", "RBF-012")
+    refute @table.sealed?("b", "RBF-012")
+    @table.apply({ "t" => "toZone", "uid" => "m", "zone" => "field", "target" => "x1" })
+    assert_equal "x1", @table.card("m")[:target]
+    @table.apply({ "t" => "toZone", "uid" => "m", "zone" => "abisso" })
+    assert_nil @table.card("m")[:target]
+    @table.load({
+      "turn" => 4, "active" => "a",
+      "players" => { "a" => { "sealed" => ["RBF-012"] } },
+      "cards" => {
+        "a1" => { "owner" => "a", "zone" => "field", "order" => 0, "stasis" => true, "tapped" => true, "target" => "b1" },
+        "b1" => { "owner" => "b", "zone" => "abisso", "order" => 0, "heldBy" => "a1" },
+      },
+    })
+    assert @table.sealed?("a", "RBF-012")
+    assert @table.card("a1")[:stasis]
+    assert_equal "b1", @table.card("a1")[:target]
+    assert_equal "a1", @table.card("b1")[:held_by]
+    @table.apply({ "t" => "turn", "turn" => 5, "active" => "b" })
+    @table.apply({ "t" => "turn", "turn" => 6, "active" => "a" })
+    assert @table.card("a1")[:tapped], "dallo snapshot la Stasi resta una tappata permanente"
+  end
+
 end

@@ -70,6 +70,18 @@ import {
   type EnterLookStep,
   type EnterMoveStep,
   type EnterReturnStep,
+  describeFlipStep,
+  describeResolveStep,
+  discountedCost,
+  flipRef,
+  flipSteps,
+  nexusCheck,
+  pendingResolve,
+  playsAsBlock,
+  resolveRef,
+  wantsTargetOnPlay,
+  type FlipStep,
+  type ResolveStep,
 } from "./effects.js";
 import { enableDrag, enableLongPress, type Drop } from "./drag.js";
 import { openMenu, type MenuItem } from "./menu.js";
@@ -1065,10 +1077,18 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     if (faceCount(card.cardId) > 1) {
       const next = (card.face + 1) % faceCount(card.cardId);
-      items.push({
-        label: t(card.face === 0 ? "menu.flip.nexus" : "menu.flip.rubyfront"),
-        run: () => ctx.dispatch({ t: "flip", uid: card.uid, face: next }),
-      });
+      const nexus = ctx.card(card.cardId).nexus;
+      // Con l'arbitro il flip verso il Nexus passa dal requisito (§3.1);
+      // il Nexus non torna Rubyfront. Requisito non certificato, o engine
+      // spento: la carta si gira liberamente, come prima.
+      if (ctx.arbitrated() && nexus && mine) {
+        if (card.face !== nexus.face && card.zone === "field") items.push({ label: t("menu.flip.nexus"), run: () => void flipToNexus(card) });
+      } else {
+        items.push({
+          label: t(card.face === 0 ? "menu.flip.nexus" : "menu.flip.rubyfront"),
+          run: () => ctx.dispatch({ t: "flip", uid: card.uid, face: next }),
+        });
+      }
     }
     items.push({ rule: true, label: "" });
     const send = (zone: ZoneId, label: string, toBottom = false): MenuItem => ({
@@ -1138,7 +1158,20 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    */
   async function place(card: CardInstance, x: number, y: number, z: number): Promise<boolean> {
     if (card.zone === "field") return ctx.dispatch({ t: "move", uid: card.uid, x, y, z });
-    const cost = card.zone === "hand" && !isRubyfront(card.cardId) ? cardStats(card.cardId).fluxCost : null;
+    const facts = ctx.card(card.cardId);
+    let cost = card.zone === "hand" && !isRubyfront(card.cardId) ? facts.fluxCost : null;
+    // Una Materia che chiede il bersaglio già giocandola (RBF-021: «se
+    // bersaglia un'Entità tappata, costa 3 in meno»): si mira prima, il
+    // bersaglio viaggia nell'azione e lo sconto ne discende. Esc: nessun
+    // bersaglio, costo pieno, e l'effetto sceglierà dopo.
+    let target: CardInstance | null = null;
+    if (card.zone === "hand" && facts.kind === "matter" && wantsTargetOnPlay(facts)) {
+      const form = facts.resolveForms.find(candidate => candidate.kind === "destroy");
+      const foes = fieldCards(ctx.state()).filter(other => ctx.card(other.cardId).kind === "entity" && (!form || form.kind !== "destroy" || form.target.controller !== "opponent" || controllerOf(other) !== card.owner));
+      const discount = form && form.kind === "destroy" ? form.discount?.amount ?? 0 : 0;
+      if (foes.length) target = await pickTarget(card, foes, t("target.judgment.play", { n: discount }));
+      cost = discountedCost(ctx.state(), card.cardId, target, ctx.card);
+    }
     const passed = await ctx.dispatch({
       t: "toZone",
       uid: card.uid,
@@ -1147,6 +1180,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       y,
       z,
       ...(cost !== null ? { cost } : {}),
+      ...(target ? { target: target.uid } : {}),
     });
     const effects = card.zone === "hand" ? enterEffects(card.cardId, card.face, ctx.locale()) : [];
     if (passed && cost !== null) {
@@ -1154,6 +1188,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // In chat resta anche l'effetto: la storia della partita si rilegge.
       const told = effects.map(effect => ` — ${effect.tag}: ${effect.text}`).join("");
       ctx.log(msg("log.play", { seat: card.owner, card: card.cardId, cost, flux: player.flux, max: player.fluxMax, effects: told }), card.owner);
+    }
+    // Una Materia con un effetto certificato (§7.2): la scena elenca i
+    // passi, «Risolvi» li esegue, e la carta — se non è permanente — va
+    // nell'Abisso. Quella che «si gioca come blocco» (RBF-020) prima
+    // sceglie l'attaccante da fermare.
+    if (passed && card.zone === "hand" && facts.kind === "matter" && facts.resolveForms.length) {
+      const live = ctx.state().cards[card.uid] ?? card;
+      void playMatter(live, effects);
+      return passed;
     }
     // Il momento d'ingresso: ogni carta giocata dalla mano si ferma in primo
     // piano e si accende; se ha un effetto che scatta entrando, lo annuncia
@@ -1186,6 +1229,274 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       });
     }
     return passed;
+  }
+
+  /**
+   * Una Materia giocata (§7.2): «gioca questa carta come blocco» sceglie
+   * prima l'attaccante da fermare (senza, la carta si consuma a vuoto);
+   * poi la scena coi passi e «Risolvi»; risolta, la Materia normale o
+   * Reattiva va nell'Abisso — la Reattiva che blocca resta finché
+   * l'ondata si risolve (§6.4), la permanente resta in gioco.
+   */
+  async function playMatter(matter: CardInstance, effects: { tag: string; text: string }[]): Promise<void> {
+    const facts = ctx.card(matter.cardId);
+    const by = controllerOf(matter);
+    let blocking = false;
+    if (playsAsBlock(facts)) {
+      const attackers = attackersOf(ctx.state(), otherSeat(by), null, ctx.card).filter(card => !ctx.state().declarations.some(d => d.to === card.uid && d.kind !== "attack"));
+      const attacker = attackers.length ? await pickTarget(matter, attackers, t("target.blockwith")) : null;
+      if (attacker) {
+        const passed = await ctx.dispatch({
+          t: "declare",
+          declaration: { id: crypto.randomUUID(), from: matter.uid, to: attacker.uid, kind: "block", seat: by, order: 0 },
+        });
+        if (passed) {
+          blocking = true;
+          ctx.log(msg("log.effect.blockwith", { seat: by, card: attacker.cardId, sourceCard: matter.cardId }), by);
+        }
+      }
+      if (!blocking) {
+        await spendMatter(matter);
+        return;
+      }
+    }
+    const steps = pendingResolve(ctx.state(), matter, ctx.card);
+    await showEnterEffect(root, {
+      cardId: matter.cardId,
+      face: matter.face,
+      theme: ctx.themeFor(matter.owner),
+      locale: ctx.locale(),
+      who: t("scene.resolves", { name: seatLabel(ctx.state(), by), card: `«${cardName(matter.cardId, ctx.locale())}»` }),
+      effects,
+      triggers: steps.map(step => describeResolveStep(step, ctx.card)),
+      kicker: t("scene.resolve.matter"),
+      onContinue: () => {
+        void (async () => {
+          for (const step of steps) await playResolveStep(step);
+          if (facts.behavior !== "permanent" && !blocking) await spendMatter(matter);
+        })();
+      },
+    });
+  }
+
+  /** La Materia risolta va nell'Abisso (§7.2: «poi la carta va nell'Abisso»). */
+  async function spendMatter(matter: CardInstance): Promise<void> {
+    const live = ctx.state().cards[matter.uid];
+    if (!live || live.zone !== "field") return;
+    const fly = liftForFlight(matter.uid);
+    const passed = await ctx.dispatch({ t: "toZone", uid: matter.uid, zone: "abisso" });
+    if (passed) {
+      fly?.();
+      ctx.log(msg("log.effect.spent", { seat: controllerOf(matter), card: matter.cardId }), controllerOf(matter));
+    }
+  }
+
+  /**
+   * Un passo di una Materia (§7.2, le forme di resolveSteps): la fonte si
+   * accende, si mira o si sceglie se c'è da scegliere, il dado si tira se
+   * c'è, l'azione parte col suo riferimento. Il «no» dell'engine ferma il
+   * passo e basta.
+   */
+  async function playResolveStep(first: ResolveStep): Promise<void> {
+    const by = controllerOf(first.source);
+    const form = first.form;
+    const name = ctx.card(first.source.cardId).name;
+    // I candidati si rileggono adesso: i passi precedenti possono aver mosso carte.
+    const step = pendingResolve(ctx.state(), first.source, ctx.card).find(candidate => candidate.form === form) ?? first;
+    const ref = resolveRef(step.source);
+    if (step.blocked) {
+      ctx.log(msg(step.blocked, { seat: by, card: step.source.cardId }), by);
+      return;
+    }
+    light(step.source.uid, true);
+    try {
+      switch (form.kind) {
+        case "look": {
+          const reveal = await pickFromPile(by, "deck", step.candidates, t("pick.lure", { n: step.looked.length }), step.looked);
+          hold(true);
+          await wait(CONFIRMED_LEAD_MS);
+          const passed = await ctx.dispatch({ t: "look", seat: by, count: form.count, ...(reveal ? { reveal: reveal.uid } : {}), revealTo: "hand", restTo: "deck", effect: ref });
+          if (passed) {
+            ctx.log(msg("log.effect.look", { seat: by, sourceCard: step.source.cardId, parts: [msg("look.looked", { n: step.looked.length }), reveal ? msg("look.reveal", { card: reveal.cardId }) : msg("look.noreveal"), msg("look.rest")] }), by);
+          }
+          break;
+        }
+        case "empower": {
+          if (form.targets === "own_entity") {
+            const target = await pickTarget(step.source, step.candidates, t("target.formation"));
+            if (!target) break;
+            hold(true);
+            flashArrow(step.source.uid, target.uid, FLY_MS);
+            await wait(CONFIRMED_LEAD_MS);
+            const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: form.power, untap: true, effect: ref });
+            if (passed) ctx.log(msg("log.effect.untap", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.power }), by);
+          } else {
+            hold(true);
+            await wait(TRIGGER_LEAD_MS);
+            for (const target of step.candidates) {
+              flashArrow(step.source.uid, target.uid, FLY_MS);
+              const passed = await ctx.dispatch({ t: "empower", uid: target.uid, counter: form.counter, untap: true, effect: ref });
+              if (passed) ctx.log(msg("log.effect.counter", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.counter }), by);
+              await wait(TRIGGER_TAIL_MS);
+            }
+          }
+          break;
+        }
+        case "move":
+        case "exile":
+        case "destroy": {
+          const hint = form.kind === "move" ? "target.impact" : form.kind === "exile" ? "target.repulse" : "target.judgment";
+          const target = step.candidates.length === 1 && step.source.target ? step.candidates[0] : await pickTarget(step.source, step.candidates, t(hint));
+          if (!target) break;
+          flashArrow(step.source.uid, target.uid, 60_000);
+          const question = form.kind === "move" ? "confirm.impact" : form.kind === "exile" ? "confirm.repulse" : "confirm.judgment";
+          const sure = await confirmEffect(root, t(question, { card: `«${ctx.card(target.cardId).name}»` }));
+          if (!sure) {
+            transientArrows = [];
+            render();
+            break;
+          }
+          hold(true);
+          await wait(CONFIRMED_LEAD_MS);
+          const fly = liftForFlight(target.uid);
+          const passed = await ctx.dispatch(
+            form.kind === "move"
+              ? { t: "toZone", uid: target.uid, zone: "ritiro", effect: ref }
+              : form.kind === "exile"
+                ? { t: "toZone", uid: target.uid, zone: "abisso", heldBy: step.source.uid, effect: ref }
+                : { t: "toZone", uid: target.uid, zone: "abisso", effect: ref }
+          );
+          transientArrows = [];
+          if (passed) {
+            fly?.();
+            const line = form.kind === "move" ? "log.effect.retire" : form.kind === "exile" ? "log.effect.exile" : "log.effect.destroy";
+            ctx.log(msg(line, { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
+            await wait(FLY_MS);
+          } else {
+            render();
+          }
+          break;
+        }
+        case "fortune": {
+          const roll = rollDie(form.die);
+          await showRoll(root, form.die, roll, t("dice.step", { name, what: t("dice.fortune") }));
+          const all = inRange(roll, form.allOn);
+          hold(true);
+          if (all || inRange(roll, form.gain.on)) {
+            const hp = ctx.state().players[by].hp + form.gain.amount;
+            const passed = await ctx.dispatch({ t: "player", seat: by, patch: { hp }, roll, effect: ref });
+            if (passed) ctx.log(msg("log.effect.heal", { seat: by, sourceCard: step.source.cardId, n: form.gain.amount, hp }), by);
+            await wait(TRIGGER_TAIL_MS);
+          }
+          if (all || inRange(roll, form.deploy.on)) {
+            const filter = form.deploy.filter;
+            const candidates = zoneCards(ctx.state(), by, "hand").filter(card => {
+              const f = ctx.card(card.cardId);
+              return f.kind === filter.kind && (filter.race === null || f.race === filter.race) && (filter.maxCost === null || (f.fluxCost !== null && f.fluxCost <= filter.maxCost));
+            });
+            const spot = freeFrontSlotOrNull(ctx.state(), by);
+            if (candidates.length === 0) ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
+            else if (!spot) ctx.log(msg("log.front.full", { seat: by, card: step.source.cardId }), by);
+            else {
+              const chosen = await pickFromPile(by, "hand", candidates, t("pick.fortune.deploy", { n: filter.maxCost ?? 0 }));
+              if (chosen) {
+                const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...spot, z: ctx.state().zTop + 1, roll, effect: ref });
+                if (passed) ctx.log(msg("log.effect.deploy", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
+                await wait(TRIGGER_TAIL_MS);
+              }
+            }
+          }
+          if (all || inRange(roll, form.draw.on)) {
+            const passed = await ctx.dispatch({ t: "draw", seat: by, count: form.draw.count, roll, effect: ref });
+            if (passed) ctx.log(msg("log.effect.trigger", { seat: by, card: step.source.cardId, n: form.draw.count, cards: msg(form.draw.count === 1 ? "cards.one" : "cards.many") }), by);
+          }
+          if (!all && !inRange(roll, form.gain.on) && !inRange(roll, form.deploy.on) && !inRange(roll, form.draw.on)) {
+            ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die, roll, what: msg("roll.nothing") }), by);
+          }
+          break;
+        }
+      }
+      await wait(TRIGGER_TAIL_MS);
+    } finally {
+      light(step.source.uid, false);
+      hold(false);
+    }
+  }
+
+  /**
+   * Il flip verso il Nexus (§3.1), con l'arbitro: il requisito certificato
+   * si legge qui (nexusCheck), lo scarto si sceglie dalla mano, il recupero
+   * di PV è quello stampato — tutto in un'azione sola, che l'engine
+   * verifica. Poi la scena «Quando flippa» coi passi del Nexus.
+   */
+  async function flipToNexus(card: CardInstance): Promise<void> {
+    const facts = ctx.card(card.cardId);
+    const nexus = facts.nexus;
+    if (!nexus) {
+      void ctx.dispatch({ t: "flip", uid: card.uid, face: (card.face + 1) % faceCount(card.cardId) });
+      return;
+    }
+    const by = controllerOf(card);
+    const check = nexusCheck(ctx.state(), card, ctx.card);
+    if (!check.ok) {
+      ctx.log(msg(check.why, { seat: by, n: check.n ?? 0 }), by);
+      return;
+    }
+    let discard: CardInstance | null = null;
+    if (nexus.discard) {
+      while (!discard) discard = await pickFromPile(by, "hand", check.discards, t("pick.nexus.discard"));
+    }
+    const passed = await ctx.dispatch({ t: "flip", uid: card.uid, face: nexus.face, ...(discard ? { discard: discard.uid } : {}), ...(nexus.recovery ? { recover: nexus.recovery } : {}) });
+    if (!passed) return;
+    const hp = ctx.state().players[by].hp;
+    ctx.log(msg("log.flip", { seat: by, card: card.cardId, recover: nexus.recovery ? msg("log.flip.recover", { n: nexus.recovery, hp }) : "" }), by);
+    if (discard) ctx.log(msg("log.flip.discard", { seat: by, card: discard.cardId }), by);
+    const live = ctx.state().cards[card.uid];
+    if (!live) return;
+    const steps = flipSteps(ctx.state(), live, ctx.card);
+    if (steps.length === 0) return;
+    void showEnterEffect(root, {
+      cardId: live.cardId,
+      face: live.face,
+      theme: ctx.themeFor(live.owner),
+      locale: ctx.locale(),
+      who: t("scene.flips", { name: seatLabel(ctx.state(), by), card: `«${cardName(live.cardId, ctx.locale())}»` }),
+      effects: [],
+      triggers: steps.map(step => describeFlipStep(step, ctx.card)),
+      kicker: t("scene.flip"),
+      onContinue: () => void playFlipSteps(steps),
+    });
+  }
+
+  async function playFlipSteps(steps: FlipStep[]): Promise<void> {
+    for (const step of steps) {
+      const by = controllerOf(step.source);
+      hold(true);
+      light(step.source.uid, true);
+      try {
+        await wait(TRIGGER_LEAD_MS);
+        if (step.form.kind === "move") {
+          for (const target of flipSteps(ctx.state(), step.source, ctx.card).find(s => s.form === step.form)?.candidates ?? []) {
+            flashArrow(step.source.uid, target.uid, FLY_MS);
+            const fly = liftForFlight(target.uid);
+            const passed = await ctx.dispatch({ t: "toZone", uid: target.uid, zone: "abisso", effect: flipRef(step.source) });
+            if (passed) {
+              fly?.();
+              ctx.log(msg("log.flip.absorb", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
+              await wait(FLY_MS);
+            }
+          }
+        } else {
+          const sealed = [...new Set([...(ctx.state().players[by].sealed ?? []), step.form.cardId])];
+          const passed = await ctx.dispatch({ t: "player", seat: by, patch: { sealed }, effect: flipRef(step.source) });
+          if (passed) ctx.log(msg("log.flip.seal", { seat: by, sourceCard: step.source.cardId, card: step.form.cardId }), by);
+        }
+        await wait(TRIGGER_TAIL_MS);
+      } finally {
+        light(step.source.uid, false);
+        hold(false);
+      }
+    }
   }
 
   /**
@@ -1948,6 +2259,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // fra queste si accendono quelle che le regole permetterebbero. Le altre
       // si smorzano soltanto — restano cliccabili.
       const canPick = pickable(card);
+      tile.classList.toggle("is-stasis", card.stasis === true);
+      if (card.stasis) tile.dataset.stasis = t("tile.stasis");
+      else delete tile.dataset.stasis;
       tile.classList.toggle("is-pickable", canPick);
       tile.classList.toggle("is-legal", canPick && (targeting?.mode === "effect" || looksPlayable(card)));
       if (tile.parentElement !== surface) surface.append(tile);

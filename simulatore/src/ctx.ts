@@ -41,6 +41,61 @@ export interface CardFacts {
   attackDraws: AttackDraw[];
   /** Le altre forme certificate «quando attacca» (§8.2): vedi AttackForm. */
   attackForms: AttackForm[];
+  /** Gli statici di Potenza certificati (§8.2): vedi StaticForm. */
+  staticForms: StaticForm[];
+  /** Gli effetti certificati delle Materie alla risoluzione (§7.2): vedi ResolveForm. */
+  resolveForms: ResolveForm[];
+  /** Gli effetti certificati «quando flippa» del Nexus (§3.1): vedi FlipForm. */
+  flipForms: FlipForm[];
+  /** Il requisito del flip verso il Nexus (§3.1), col recupero di PV; null se non c'è o non è certificato. */
+  nexus: NexusRequirement | null;
+  /** Le parole chiave che un Oggetto concede «mentre assegnato» (RBF-013:
+      la Stasi agli Umani). Specchio di card_index.rb, grants_while_assigned. */
+  grantsWhileAssigned: { keywords: string[]; ifRace: string | null }[];
+}
+
+/**
+ * Gli statici di Potenza certificati (§8.2), specchio di card_index.rb,
+ * static_forms: su di sé («+1 mentre attacca se c'è un'altra Entità Umana»,
+ * RBF-002; «+1 per ogni altra Entità Umana», RBF-010) o sul portatore
+ * dell'Oggetto («+1», RBF-013; «+1 per ogni Entità Umana, e può essere
+ * bloccata da più Entità», RBF-014).
+ */
+export type StaticForm =
+  | { kind: "self_power"; amount: number; whileAttacking?: true; requiresOther?: { kind: "entity"; race: string | null }; perOther?: { kind: "entity"; race: string | null } }
+  | { kind: "bearer_power"; amount: number; per?: { kind: "entity"; race: string | null }; multiBlock?: boolean };
+
+/**
+ * Gli effetti certificati delle Materie alla risoluzione (§7.2), specchio
+ * di card_index.rb, resolve_forms: `kind` è il passo del tavolo.
+ */
+export type ResolveForm =
+  /** RBF-015: guarda le prime N, mostra un'Entità Umana (fino a `showUpTo` in vista), una in mano, le altre in fondo. */
+  | { kind: "look"; count: number; reveal: { kind: "entity" | "object" | "matter"; race: string | null }; revealTo: "hand"; restTo: "deck"; showUpTo: number }
+  /** RBF-016: stappa un'Entità Umana che controlli, +1 Potenza. */
+  | { kind: "empower"; targets: "own_entity"; race: string | null; power: number; untap: true }
+  /** RBF-020: giocata come blocco, con almeno N Umani: stappa gli Umani, Contrattacco +1. */
+  | { kind: "empower"; targets: "own_entities"; race: string | null; counter: number; untap: true; asBlock: true; requires: { count: number; race: string | null } }
+  /** RBF-017: un'Entità avversaria con costo N o inferiore nella Zona di Ritiro. */
+  | { kind: "move"; target: { kind: "entity"; controller: "opponent"; maxCost: number | null }; to: "ritiro" }
+  /** RBF-018: un permanente avversario nell'Abisso, finché questa carta resta in gioco. */
+  | { kind: "exile"; target: { permanent: true; controller: "opponent" }; to: "abisso"; hold: true }
+  /** RBF-019: il d20 a fasce — PV, un'Entità dalla mano, una pesca, o tutto. */
+  | { kind: "fortune"; die: number; gain: { on: [number, number]; amount: number }; deploy: { on: [number, number]; filter: { kind: "entity"; race: string | null; maxCost: number | null } }; draw: { on: [number, number]; count: number }; allOn: [number, number] }
+  /** RBF-021: distruggi un'Entità; contro una tappata costa N in meno. */
+  | { kind: "destroy"; target: { kind: "entity"; controller: "any" | "opponent" | "controller" }; to: "abisso"; discount: { amount: number; ifTarget: "tapped" } | null };
+
+/** «Quando flippa» (§3.1, RBF-001): la carta nominata nell'Abisso, e il sigillo. */
+export type FlipForm =
+  | { kind: "move"; cardId: string; from: "field"; to: "abisso" }
+  | { kind: "seal"; cardId: string };
+
+/** Il requisito del flip verso il Nexus (§3.1), certificato: N Entità [di razza] e lo scarto di una carta [di tipo]; il recupero di PV. */
+export interface NexusRequirement {
+  face: number;
+  conditions: { count: number; kind: "entity"; race: string | null }[];
+  discard: { count: 1; kind: string | null } | null;
+  recovery: number | null;
 }
 
 /**

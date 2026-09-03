@@ -33,6 +33,17 @@ import {
   resolveLook,
   resolveMove,
   resolveReturn,
+  describeFlipStep,
+  describeResolveStep,
+  discountedCost,
+  flipSteps,
+  heldBy,
+  nexusCheck,
+  pendingResolve,
+  playsAsBlock,
+  releaseHeld,
+  resolveSteps,
+  wantsTargetOnPlay,
 } from "../src/effects.js";
 import { newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
@@ -76,6 +87,15 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   UMANO: { kind: "entity", race: "human" },
   AUROS: { kind: "entity", race: "auros" },
   PIETRA: { kind: "matter", race: null },
+  ATTRAZIONE: { kind: "matter", behavior: "normal", fluxCost: 2, resolveForms: [{ kind: "look", count: 4, reveal: { kind: "entity", race: "human" }, revealTo: "hand", restTo: "deck", showUpTo: 2 }] },
+  FORMAZIONE: { kind: "matter", behavior: "reactive", fluxCost: 2, resolveForms: [{ kind: "empower", targets: "own_entity", race: "human", power: 1, untap: true }] },
+  IMPATTO: { kind: "matter", behavior: "normal", fluxCost: 1, resolveForms: [{ kind: "move", target: { kind: "entity", controller: "opponent", maxCost: 2 }, to: "ritiro" }] },
+  CAMPO: { kind: "matter", behavior: "permanent", fluxCost: 3, resolveForms: [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }] },
+  COORDINATO: { kind: "matter", behavior: "reactive", fluxCost: 4, resolveForms: [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, asBlock: true, requires: { count: 3, race: "human" } }] },
+  GIUDIZIO: { kind: "matter", behavior: "reactive", fluxCost: 5, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, ifTarget: "tapped" } }] },
+  BESTIA: { kind: "rubyfront", nexus: { face: 1, conditions: [{ count: 4, kind: "entity", race: "human" }], discard: { count: 1, kind: "entity" }, recovery: 5 },
+    flipForms: [{ kind: "move", cardId: "EREDE", from: "field", to: "abisso" }, { kind: "seal", cardId: "EREDE" }] },
+  EREDE: { kind: "entity", race: "human", fluxCost: 6 },
 };
 const facts = (cardId: string): CardFacts => ({
   name: cardId,
@@ -94,6 +114,11 @@ const facts = (cardId: string): CardFacts => ({
   attackReturns: [],
   attackDraws: [],
   attackForms: [],
+  staticForms: [],
+  resolveForms: [],
+  flipForms: [],
+  nexus: null,
+  grantsWhileAssigned: [],
   ...FACTS[cardId],
 });
 
@@ -590,5 +615,120 @@ describe("attackSteps", () => {
     declare(state, "w", 2);
     expect(vigilUntaps(state, "a", facts)).toEqual(["v"]);
     expect(vigilUntaps({ ...state, fired: ["v|on_attack:untap|turn"] }, "a", facts)).toEqual([]);
+  });
+});
+
+// Le Materie alla risoluzione (§7.2) e il flip del Nexus (§3.1): i passi e
+// i candidati. Gemello: engine_test.rb, «Eredità Perduta».
+describe("resolveSteps", () => {
+  it("l'Attrazione guarda le prime quattro e propone gli Umani", () => {
+    const state = newGame();
+    const m = on(state, "m", "ATTRAZIONE");
+    ["d1", "d2", "d3", "d4", "d5"].forEach((uid, i) => on(state, uid, i % 2 ? "UMANO" : "AUROS"));
+    for (const uid of ["d1", "d2", "d3", "d4", "d5"]) state.cards[uid] = { ...state.cards[uid], zone: "deck", order: Number(uid[1]) };
+    const [step] = resolveSteps(state, m, facts);
+    expect(step.looked.map(c => c.uid)).toEqual(["d1", "d2", "d3", "d4"]);
+    expect(step.candidates.map(c => c.uid)).toEqual(["d2", "d4"]);
+    expect(describeResolveStep(step, facts)).toContain("prime 4");
+  });
+
+  it("la Formazione propone gli Umani propri, una volta sola; il Coordinato vuole tre Umani", () => {
+    const state = newGame();
+    const f = on(state, "f", "FORMAZIONE");
+    on(state, "u1", "UMANO");
+    on(state, "x", "AUROS");
+    on(state, "b1", "UMANO", "b");
+    expect(resolveSteps(state, f, facts)[0].candidates.map(c => c.uid)).toEqual(["u1"]);
+    state.fired = ["f|on_resolve:empower:u1|f"];
+    expect(pendingResolve(state, f, facts)).toEqual([]);
+    const c = on(state, "c", "COORDINATO");
+    expect(resolveSteps(state, c, facts)[0].blocked).toBe("log.no.humans");
+    on(state, "u2", "UMANO");
+    on(state, "u3", "UMANO");
+    expect(resolveSteps(state, c, facts)[0].blocked).toBeNull();
+    expect(resolveSteps(state, c, facts)[0].candidates.map(x => x.uid)).toEqual(["u1", "u2", "u3"]);
+    expect(playsAsBlock(facts("COORDINATO"))).toBe(true);
+    expect(playsAsBlock(facts("FORMAZIONE"))).toBe(false);
+  });
+
+  it("l'Impatto sceglie fra le avversarie economiche, il Campo fra Entità e permanenti avversari", () => {
+    const state = newGame();
+    const i = on(state, "i", "IMPATTO");
+    const c = on(state, "c", "CAMPO");
+    on(state, "p", "PICCOLA", "b");
+    on(state, "g", "GRANDE", "b");
+    on(state, "pm", "PERMANENTE", "b");
+    on(state, "f", "FERRO", "b");
+    on(state, "mine", "PICCOLA");
+    expect(resolveSteps(state, i, facts)[0].candidates.map(x => x.uid)).toEqual(["p"]);
+    expect(resolveSteps(state, c, facts)[0].candidates.map(x => x.uid)).toEqual(["p", "g", "pm"]);
+  });
+
+  it("il Giudizio: lo sconto contro una tappata, e l'effetto colpisce il bersaglio dichiarato", () => {
+    const state = newGame();
+    const g = on(state, "g", "GIUDIZIO");
+    on(state, "p", "PICCOLA", "b");
+    const tapped = on(state, "q", "GRANDE", "b");
+    tapped.tapped = true;
+    expect(wantsTargetOnPlay(facts("GIUDIZIO"))).toBe(true);
+    expect(discountedCost(state, "GIUDIZIO", null, facts)).toBe(5);
+    expect(discountedCost(state, "GIUDIZIO", state.cards.p, facts)).toBe(5);
+    expect(discountedCost(state, "GIUDIZIO", tapped, facts)).toBe(2);
+    expect(resolveSteps(state, g, facts)[0].candidates.map(x => x.uid)).toEqual(["p", "q"]);
+    g.target = "q";
+    expect(resolveSteps(state, g, facts)[0].candidates.map(x => x.uid)).toEqual(["q"]);
+  });
+
+  it("chi era tenuto nell'Abisso torna quando chi lo teneva lascia il gioco", async () => {
+    const state = newGame();
+    on(state, "c", "CAMPO");
+    const held = on(state, "p", "PICCOLA", "b");
+    held.zone = "abisso";
+    held.heldBy = "c";
+    expect(heldBy(state, "c").map(x => x.uid)).toEqual(["p"]);
+    const sent: Action[] = [];
+    const ctx: Ctx = {
+      state: () => state, dispatch: action => { sent.push(action); return Promise.resolve(true); }, seat: () => "a", controls: () => true, arbitrated: () => true,
+      themeFor: () => "notte", locale: () => "it", card: facts, log: () => undefined,
+    };
+    await releaseHeld(ctx, () => ({ x: 1, y: 2 }), () => ({ x: 9, y: 9 }));
+    expect(sent).toEqual([]);
+    state.cards.c.zone = "abisso";
+    await releaseHeld(ctx, () => ({ x: 1, y: 2 }), () => ({ x: 9, y: 9 }));
+    expect(sent).toEqual([{ t: "release", uid: "p", zone: "field", x: 1, y: 2 }]);
+    sent.length = 0;
+    await releaseHeld(ctx, () => null, () => ({ x: 9, y: 9 }));
+    expect(sent).toEqual([{ t: "release", uid: "p", zone: "ritiro" }]);
+  });
+});
+
+describe("il flip del Nexus", () => {
+  it("nexusCheck vuole quattro Umani e una carta Entità in mano da scartare", () => {
+    const state = newGame();
+    const rf = on(state, "rf", "BESTIA");
+    on(state, "u1", "UMANO");
+    on(state, "u2", "UMANO");
+    on(state, "u3", "UMANO");
+    expect(nexusCheck(state, rf, facts)).toEqual({ ok: false, why: "log.nexus.few", n: 4 });
+    on(state, "u4", "UMANO");
+    expect(nexusCheck(state, rf, facts)).toEqual({ ok: false, why: "log.nexus.nodiscard" });
+    const h = on(state, "h", "AUROS");
+    h.zone = "hand";
+    const m = on(state, "m", "PIETRA");
+    m.zone = "hand";
+    const check = nexusCheck(state, rf, facts);
+    expect(check.ok && check.discards.map(c => c.uid)).toEqual(["h"]);
+  });
+
+  it("flipSteps: Rhen sul proprio Fronte nell'Abisso, e il sigillo", () => {
+    const state = newGame();
+    const rf = on(state, "rf", "BESTIA");
+    rf.face = 1;
+    on(state, "r", "EREDE");
+    on(state, "r2", "EREDE", "b");
+    const steps = flipSteps(state, rf, facts);
+    expect(steps.map(s => [s.form.kind, s.candidates.map(c => c.uid)])).toEqual([["move", ["r"]], ["seal", []]]);
+    expect(describeFlipStep(steps[0], facts)).toContain("EREDE");
+    expect(describeFlipStep(steps[1], facts)).toContain("resto della partita");
   });
 });

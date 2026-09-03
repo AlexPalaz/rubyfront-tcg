@@ -81,11 +81,26 @@ function orderForBottom(state: GameState, seat: Seat, zone: ZoneId): number {
 /**
  * Il passo di un innesco d'attacco, letto dall'azione — specchio di
  * engine.rb, attack_step/attack_key: la stessa chiave che l'arbitro
- * consuma, così il tavolo sa cosa non riproporre.
+ * consuma, così il tavolo sa cosa non riproporre. Le Materie alla
+ * risoluzione e il flip hanno la loro chiave (resolve_step in engine.rb).
  */
 export function attackKey(action: Action): string | null {
   const ref = "effect" in action ? action.effect : undefined;
-  if (!ref || ref.event !== "on_attack") return null;
+  if (!ref) return null;
+  if (ref.event === "on_resolve" || ref.event === "on_flip") {
+    const step = (() => {
+      switch (action.t) {
+        case "draw": return "draw";
+        case "player": return "sealed" in (action.patch ?? {}) ? "seal" : "heal";
+        case "look": return "look";
+        case "empower": return `empower:${action.uid}`;
+        case "toZone": return action.zone === "field" ? "deploy" : action.heldBy ? "exile" : action.zone === "ritiro" ? "move" : "destroy";
+        default: return action.t;
+      }
+    })();
+    return `${ref.source}|${ref.event}:${step}|${ref.entering}`;
+  }
+  if (ref.event !== "on_attack") return null;
   const step = (() => {
     switch (action.t) {
       case "draw": return ref.follow ?? "draw";
@@ -103,7 +118,7 @@ export function attackKey(action: Action): string | null {
 
 export function apply(state: GameState, action: Action): GameState {
   const next = reduce(state, action);
-  // La memoria degli inneschi d'attacco (vedi attackKey).
+  // La memoria degli inneschi (vedi attackKey).
   const key = attackKey(action);
   const untaps = action.t === "resolve" ? (action.untap ?? []).map(uid => `${uid}|on_attack:untap|turn`) : [];
   if (!key && untaps.length === 0) return next;
@@ -197,11 +212,19 @@ function reduce(state: GameState, action: Action): GameState {
       const card = state.cards[action.uid];
       if (!card) return state;
       const next: CardInstance = { ...card, zone: action.zone };
+      // Chi la tiene ferma nell'Abisso (RBF-018) lo dice lo spostamento
+      // che ce la manda; ogni altro spostamento la scioglie. Il bersaglio
+      // dichiarato giocando una Materia (RBF-021) vive finché sta in
+      // campo. Gemello: table.rb, to_zone.
+      delete next.heldBy;
+      if (action.zone === "abisso" && action.heldBy) next.heldBy = action.heldBy;
+      delete next.target;
       if (action.zone === "field") {
         next.x = action.x ?? card.x;
         next.y = action.y ?? card.y;
         next.z = action.z ?? state.zTop;
         next.order = 0;
+        if (action.target) next.target = action.target;
       } else {
         next.order = action.toBottom
           ? orderForBottom(state, card.owner, action.zone)
@@ -212,6 +235,8 @@ function reduce(state: GameState, action: Action): GameState {
         next.tapped = false;
         next.facedown = false;
         delete next.coveredTurn;
+        delete next.stasis;
+        delete next.counterBonus;
       }
       // Chi lascia il campo esce anche dal combattimento: la sua freccia se ne
       // va, e quella che gli puntava contro pure. §6.3 dice che il blocco non
@@ -261,9 +286,18 @@ function reduce(state: GameState, action: Action): GameState {
     }
 
     case "flip": {
+      // §3.1 — il flip verso il Nexus: la faccia cambia, lo scarto del
+      // requisito va nell'Abisso, i PV recuperano quanto stampato.
+      // Gemello: table.rb.
       const card = state.cards[action.uid];
       if (!card) return state;
-      return { ...state, cards: { ...state.cards, [action.uid]: { ...card, face: action.face } } };
+      let next: GameState = { ...state, cards: { ...state.cards, [action.uid]: { ...card, face: action.face } } };
+      if (action.discard && next.cards[action.discard]) next = apply(next, { t: "toZone", uid: action.discard, zone: "abisso" });
+      if (action.recover) {
+        const player = next.players[card.owner];
+        next = { ...next, players: { ...next.players, [card.owner]: { ...player, hp: player.hp + action.recover } } };
+      }
+      return next;
     }
 
     case "assign": {
@@ -325,9 +359,10 @@ function reduce(state: GameState, action: Action): GameState {
         // «Fino alla fine del turno» (§8.2): bonus di Potenza, divieti di
         // blocco e parole chiave concesse (non dal controllo, che ha la sua
         // restituzione) cadono col cambio di turno, per tutti.
-        if (card.powerBonus !== undefined || card.cannotBlock || (card.grants && !card.controller)) {
+        if (card.powerBonus !== undefined || card.counterBonus !== undefined || card.cannotBlock || (card.grants && !card.controller)) {
           const clean: CardInstance = { ...card };
           delete clean.powerBonus;
+          delete clean.counterBonus;
           delete clean.cannotBlock;
           if (!card.controller) delete clean.grants;
           cards[uid] = clean;
@@ -339,7 +374,8 @@ function reduce(state: GameState, action: Action): GameState {
         // lavagna che non lo sapeva): resta com'è, nel dubbio.
         const uncover = card.facedown && card.coveredTurn !== undefined && action.turn - card.coveredTurn >= 3;
         if (!card.tapped && !uncover) continue;
-        const fresh: CardInstance = { ...cards[uid], tapped: false };
+        // La Stasi è una tappata permanente (§8.1): il turno non la stappa.
+        const fresh: CardInstance = { ...cards[uid], tapped: card.stasis === true };
         if (uncover) {
           fresh.facedown = false;
           delete fresh.coveredTurn;
@@ -425,8 +461,14 @@ function reduce(state: GameState, action: Action): GameState {
       const freed: CardInstance = { ...card };
       delete freed.controller;
       delete freed.grants;
+      delete freed.heldBy;
       let next: GameState = { ...state, cards: { ...state.cards, [card.uid]: freed } };
       if (action.zone === "ritiro") return apply(next, { t: "toZone", uid: card.uid, zone: "ritiro" });
+      // Il permanente esiliato (RBF-018) «torna in gioco»: dall'Abisso al
+      // campo, come un ingresso. Gemello: table.rb.
+      if (freed.zone !== "field") {
+        return apply(next, { t: "toZone", uid: card.uid, zone: "field", x: action.x ?? card.x, y: action.y ?? card.y, z: next.zTop + 1 });
+      }
       const x = action.x ?? card.x;
       const y = action.y ?? card.y;
       const cards = { ...next.cards, [card.uid]: { ...freed, x, y, z: next.zTop + 1 } };
@@ -487,12 +529,24 @@ function reduce(state: GameState, action: Action): GameState {
       // finita: il tavolo si sgombera dalle frecce, come a fine turno.
       let next = state;
       let damage = 0;
+      const onField = (uid: string | undefined): uid is string => !!uid && next.cards[uid]?.zone === "field";
       for (const battle of action.battles) {
-        if (battle.attackerDies && next.cards[battle.attacker]) {
+        // Con più bloccanti (RBF-014) lo stesso attaccante ha più battaglie:
+        // muore una volta sola.
+        if (battle.attackerDies && onField(battle.attacker)) {
           next = apply(next, { t: "toZone", uid: battle.attacker, zone: "abisso" });
         }
-        if (battle.blockerDies && battle.blocker && next.cards[battle.blocker]) {
-          next = apply(next, { t: "toZone", uid: battle.blocker, zone: "abisso" });
+        if (onField(battle.blocker)) {
+          if (battle.blockerStasis) {
+            // §8.1 — la Stasi: invece di morire resta in campo, tappata per
+            // sempre (e lo stato di stasi sostituisce la copertura).
+            const blocker: CardInstance = { ...next.cards[battle.blocker], stasis: true, tapped: true, facedown: false };
+            delete blocker.coveredTurn;
+            next = { ...next, cards: { ...next.cards, [battle.blocker]: blocker } };
+          } else if (battle.blockerDies || battle.blockerSpent) {
+            // Muore, o — Reattiva giocata come blocco (§6.4) — si consuma.
+            next = apply(next, { t: "toZone", uid: battle.blocker, zone: "abisso" });
+          }
         }
         damage += battle.damage;
       }
@@ -528,8 +582,16 @@ function reduce(state: GameState, action: Action): GameState {
       if (!card || card.zone !== "field") return state;
       const fresh: CardInstance = { ...card };
       if (action.power) fresh.powerBonus = (card.powerBonus ?? 0) + action.power;
+      // «Contrattacco +1 fino alla fine del turno» (RBF-020).
+      if (action.counter) fresh.counterBonus = (card.counterBonus ?? 0) + action.counter;
       if (action.grants?.length) fresh.grants = [...new Set([...(card.grants ?? []), ...action.grants])];
       if (action.restrict === "block") fresh.cannotBlock = true;
+      // «Stappa un'Entità» (RBF-016, RBF-020): stappata da un effetto, anche
+      // dalla Stasi (§8.1: «torna un'Entità normale»).
+      if (action.untap) {
+        fresh.tapped = false;
+        delete fresh.stasis;
+      }
       return { ...state, cards: { ...state.cards, [action.uid]: fresh } };
     }
 
@@ -538,7 +600,11 @@ function reduce(state: GameState, action: Action): GameState {
       // tiro giusto è dovuta una Fase di Fronte addizionale. Gemello: table.rb.
       const cards = { ...state.cards };
       for (const [uid, card] of Object.entries(cards)) {
-        if (card.zone === "field" && card.tapped && controllerOf(card) === action.seat) cards[uid] = { ...card, tapped: false };
+        if (card.zone !== "field" || !card.tapped || controllerOf(card) !== action.seat) continue;
+        // Stappata da un effetto: anche la Stasi cade (§8.1).
+        const fresh: CardInstance = { ...card, tapped: false };
+        delete fresh.stasis;
+        cards[uid] = fresh;
       }
       return { ...state, cards, extraFront: action.extra || state.extraFront === true };
     }

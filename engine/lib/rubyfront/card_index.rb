@@ -71,6 +71,36 @@ module Rubyfront
     # Oggetti lo pagano giocandoli dalla mano. Il Rubyfront ha un costo di
     # schieramento a parte (`deploymentCost`, anche a dado): non sta qui.
     #
+    # `static_forms` sono gli statici di Potenza CERTIFICATI (§8.2, «Modifiche
+    # alla Potenza»): valgono finché la carta è in campo (o addosso a
+    # un'Entità), e la risoluzione li conta.
+    #
+    #   RBF-002 { kind: "self_power", amount:, while_attacking: true, requires_other: { type:, race: } }
+    #   RBF-010 { kind: "self_power", amount:, per_other: { type:, race: } }
+    #   RBF-013 { kind: "bearer_power", amount: }
+    #   RBF-014 { kind: "bearer_power", amount:, per: { type:, race: }, multi_block: true }
+    #
+    # `resolve_forms` sono gli effetti delle Materie CERTIFICATI (§7.2,
+    # «l'effetto si risolve»), letti dall'evento `on_resolve`:
+    #
+    #   RBF-015 { kind: "look", count:, reveal: { type:, race: }, reveal_to: "hand", rest_to: "deck", show_up_to: }
+    #   RBF-016 { kind: "empower", targets: "own_entity", race:, power:, untap: true }
+    #   RBF-017 { kind: "move", target: { type: "entity", controller: "opponent", max_cost: }, to: "ritiro" }
+    #   RBF-018 { kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }
+    #   RBF-019 { kind: "fortune", die:, gain: { on:, amount: }, deploy: { on:, filter: }, draw: { on:, count: }, all_on: }
+    #   RBF-020 { kind: "empower", targets: "own_entities", race:, counter:, untap: true, as_block: true, requires: { count:, race: } }
+    #   RBF-021 { kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount:, if_target: "tapped" } }
+    #
+    # `flip_forms` sono gli effetti «quando flippa» CERTIFICATI del Nexus
+    # (§3.1), evento `on_flip`: RBF-001 { kind: "move", card_id:, from:
+    # "field", to: "abisso" } e { kind: "seal", card_id: }.
+    #
+    # `nexus` è il requisito del flip (§3.1) com'è stampato sulla faccia del
+    # Rubyfront, con il recupero di PV della faccia del Nexus: { face:,
+    # conditions: [{ count:, type:, race: }], discard: { count:, type: },
+    # recovery: } — nil dove non c'è o la forma è ignota (il flip resta a
+    # mano).
+    #
     # `power` e `counterattack` sono le due statistiche del combattimento
     # (§6.3): la Potenza stampata e il «Contrattacco +N» — nil per chi non
     # ce l'ha (una Materia non ha Potenza, un'Entità senza la statistica non
@@ -109,6 +139,10 @@ module Rubyfront
           attack_forms: attack_forms(faces).freeze,
           enter_looks: enter_looks(faces).freeze,
           enter_controls: enter_controls(faces).freeze,
+          static_forms: static_forms(faces).freeze,
+          resolve_forms: resolve_forms(faces).freeze,
+          flip_forms: flip_forms(faces).freeze,
+          nexus: nexus_of(faces),
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze
@@ -120,7 +154,8 @@ module Rubyfront
 
     # Tutti i parser delle forme certificate: ogni trigger di ogni carta
     # deve trovarne uno che lo riconosca, o è un effetto che l'engine ignora.
-    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls attack_draws attack_forms grants_while_assigned].freeze
+    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls attack_draws attack_forms grants_while_assigned
+               static_forms resolve_forms flip_forms].freeze
     RETURN_EVENTS = %w[on_enter_field on_attack].freeze
 
     # Un trigger è riconosciuto se almeno una forma certificata lo legge.
@@ -505,6 +540,250 @@ module Rubyfront
         grants = Array(effect.dig("details", "grants")).select { |keyword| keyword.is_a?(String) }
         { target: { type: "entity", controller: "opponent", max_cost: max_cost }.freeze, grants: grants.freeze }.freeze
       end
+    end
+
+    # Un intervallo "5-6" -> [5, 6], o un valore secco "20" -> [20, 20].
+    def self.band(value)
+      roll_range(value) || (value.is_a?(String) && value =~ /\A\d+\z/ ? [value.to_i, value.to_i].freeze : nil)
+    end
+
+    def self.race_filter(filter, zone: nil, owner: "controller")
+      return nil unless filter.is_a?(Hash) && filter["cardType"] == "entity"
+      return nil if zone && filter["zone"] != zone
+      return nil if owner && filter["owner"] != owner && filter["controller"] != owner
+
+      { type: "entity", race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze
+    end
+
+    # Gli statici di Potenza (§8.2): RBF-002, RBF-010 (`while_in_play`, su
+    # di sé) e RBF-013, RBF-014 (`while_assigned`, sul portatore).
+    def self.static_forms(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && %w[while_in_play while_assigned].include?(trigger["event"])
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "modify_power" && effect["amount"].is_a?(Integer)
+
+        details = effect["details"].is_a?(Hash) ? effect["details"] : {}
+        if trigger["event"] == "while_in_play"
+          next unless effect.dig("target", "scope") == "self"
+
+          if details["whileAttacking"] == true
+            other = race_filter(details["requiresOtherControlled"])
+            next unless other
+
+            { kind: "self_power", amount: effect["amount"], while_attacking: true, requires_other: other }.freeze
+          elsif details["perOtherControlled"]
+            other = race_filter(details["perOtherControlled"], zone: "front")
+            next unless other && details.keys == ["perOtherControlled"]
+
+            { kind: "self_power", amount: effect["amount"], per_other: other }.freeze
+          end
+        else
+          next unless effect.dig("target", "scope") == "assigned" && effect["duration"] == "permanent"
+
+          if details.empty?
+            { kind: "bearer_power", amount: effect["amount"] }.freeze
+          elsif details["perControlled"]
+            per = race_filter(details["perControlled"], zone: "front")
+            next unless per && (details.keys - %w[perControlled assignedMayBeBlockedByMultipleEntities]).empty?
+
+            { kind: "bearer_power", amount: effect["amount"], per: per, multi_block: details["assignedMayBeBlockedByMultipleEntities"] == true }.freeze
+          end
+        end
+      end
+    end
+
+    # Gli effetti delle Materie alla risoluzione (§7.2), evento `on_resolve`.
+    def self.resolve_forms(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_resolve"
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash)
+
+        form = resolve_look(effect) || resolve_untap(effect) || resolve_move(effect) || resolve_fortune(effect) || resolve_destroy(effect)
+        form&.freeze
+      end
+    end
+
+    # RBF-015: guarda le prime N, mostra un'Entità Umana (fino a 2 in vista), una in mano, le altre in fondo.
+    def self.resolve_look(effect)
+      return nil unless effect["type"] == "look_and_optionally_move"
+
+      from = effect["from"]
+      extra = effect["details"]
+      return nil unless from.is_a?(Hash) && from["zone"] == "deck" && from["owner"] == "controller" && from["position"] == "top" && from["count"].is_a?(Integer)
+      return nil unless extra.is_a?(Hash) && extra["mayReveal"].is_a?(Hash) && extra["mayReveal"]["cardType"].is_a?(String)
+      return nil unless extra.dig("revealTo", "zone") == "hand" && extra.dig("restTo", "zone") == "deck" && extra.dig("restTo", "position") == "bottom"
+      return nil unless [nil, 1].include?(extra["addToHand"]) && (extra["maxRevealed"].nil? || extra["maxRevealed"].is_a?(Integer))
+
+      { kind: "look", count: from["count"], reveal: { type: extra["mayReveal"]["cardType"], race: extra["mayReveal"]["race"].is_a?(String) ? extra["mayReveal"]["race"] : nil }.freeze,
+        reveal_to: "hand", rest_to: "deck", show_up_to: extra["maxRevealed"] || 1 }
+    end
+
+    # RBF-016 (stappa un'Entità Umana: +1 Potenza) e RBF-020 (come blocco: stappa gli Umani, Contrattacco +1).
+    def self.resolve_untap(effect)
+      return nil unless effect["type"] == "untap"
+
+      target = effect["target"]
+      extra = effect["details"]
+      return nil unless own_target?(target, "entity") && extra.is_a?(Hash) && extra["duration"] == "until_end_of_turn"
+
+      race = target["race"].is_a?(String) ? target["race"] : nil
+      if target["min"] == 1 && target["max"] == 1 && extra["thenPowerBonus"].is_a?(Integer) && extra.keys.sort == %w[duration thenPowerBonus]
+        return { kind: "empower", targets: "own_entity", race: race, power: extra["thenPowerBonus"], untap: true }
+      end
+      if target["quantity"] == "all" && extra["playedAsBlock"] == true && extra["thenCounterattackBonus"].is_a?(Integer)
+        requires = extra["requiresControlledAtLeast"]
+        return nil unless requires.is_a?(Hash) && requires["count"].is_a?(Integer) && own_target?(requires["filter"], "entity")
+
+        return { kind: "empower", targets: "own_entities", race: race, counter: extra["thenCounterattackBonus"], untap: true, as_block: true,
+                 requires: { count: requires["count"], race: requires["filter"]["race"].is_a?(String) ? requires["filter"]["race"] : nil }.freeze }
+      end
+      nil
+    end
+
+    # RBF-017 (un'Entità avversaria economica in Ritiro) e RBF-018 (un permanente avversario nell'Abisso, finché questa carta resta).
+    def self.resolve_move(effect)
+      return nil unless effect["type"] == "move_card"
+
+      target = effect["target"]
+      destination = effect["destination"]
+      return nil unless target.is_a?(Hash) && target["controller"] == "opponent" && target["min"] == 1 && target["max"] == 1 && destination.is_a?(Hash)
+
+      if target["cardType"] == "entity" && destination["zone"] == "retire"
+        max_cost = nil
+        certified = Array(target["conditions"]).all? do |condition|
+          ok = condition.is_a?(Hash) && condition["stat"] == "flux_cost" && condition["operator"] == "lte" && condition["value"].is_a?(Integer)
+          max_cost = condition["value"] if ok
+          ok
+        end
+        return nil unless certified && effect["details"].nil?
+
+        return { kind: "move", target: { type: "entity", controller: "opponent", max_cost: max_cost }.freeze, to: "ritiro" }
+      end
+      extra = effect["details"]
+      if target.dig("details", "permanent") == true && destination["zone"] == "abyss" && extra.is_a?(Hash) &&
+         extra["whileSourceOnField"] == true && extra["returnsToPlayWhenSourceLeaves"] == true
+        return { kind: "exile", target: { permanent: true, controller: "opponent" }.freeze, to: "abisso", hold: true }
+      end
+      nil
+    end
+
+    # RBF-019: il d20 a fasce — PV, un'Entità dalla mano, una pesca, o tutto.
+    def self.resolve_fortune(effect)
+      return nil unless effect["type"] == "empower" && effect.dig("target", "controller") == "controller"
+
+      extra = effect["details"]
+      return nil unless extra.is_a?(Hash) && extra["byRoll"].is_a?(Hash)
+
+      die = die_faces(extra["die"])
+      by = extra["byRoll"]
+      return nil unless die && by.size == 4
+
+      gain = by.find { |_, v| v.is_a?(Hash) && v["gainHealth"].is_a?(Integer) }
+      deploy = by.find { |_, v| v.is_a?(Hash) && v["moveCard"].is_a?(Hash) }
+      draw = by.find { |_, v| v.is_a?(Hash) && v["drawCards"].is_a?(Integer) }
+      all = by.find { |_, v| v.is_a?(Hash) && v["allOfTheAbove"] == true }
+      return nil unless gain && deploy && draw && all && [gain, deploy, draw, all].all? { |key, _| band(key) }
+
+      move = deploy[1]["moveCard"]
+      filter = move["filter"]
+      return nil unless move.dig("from", "zone") == "hand" && move.dig("from", "owner") == "controller" && move.dig("to", "zone") == "front" && move.dig("to", "owner") == "controller"
+      return nil unless filter.is_a?(Hash) && filter["cardType"] == "entity"
+
+      max_cost = nil
+      certified = Array(filter["conditions"]).all? do |condition|
+        ok = condition.is_a?(Hash) && condition["stat"] == "flux_cost" && condition["operator"] == "lte" && condition["value"].is_a?(Integer)
+        max_cost = condition["value"] if ok
+        ok
+      end
+      return nil unless certified
+
+      { kind: "fortune", die: die,
+        gain: { on: band(gain[0]), amount: gain[1]["gainHealth"] }.freeze,
+        deploy: { on: band(deploy[0]), filter: { type: "entity", race: filter["race"].is_a?(String) ? filter["race"] : nil, max_cost: max_cost }.freeze }.freeze,
+        draw: { on: band(draw[0]), count: draw[1]["drawCards"] }.freeze,
+        all_on: band(all[0]) }
+    end
+
+    # RBF-021: distruggi un'Entità; contro una tappata costa N in meno.
+    def self.resolve_destroy(effect)
+      return nil unless effect["type"] == "destroy"
+
+      target = effect["target"]
+      extra = effect["details"]
+      return nil unless target.is_a?(Hash) && target["cardType"] == "entity" && target["min"] == 1 && target["max"] == 1 && %w[any opponent controller].include?(target["controller"])
+      return nil unless extra.is_a?(Hash) && extra.dig("toZone", "zone") == "abyss"
+      # Un seguito ignoto (RBF-038: «poi perdi 2 PV») rende la forma ignota.
+      return nil unless (extra.keys - %w[toZone fluxCostReduction]).empty?
+
+      discount = extra["fluxCostReduction"]
+      certified = discount.nil? || (discount.is_a?(Hash) && discount["amount"].is_a?(Integer) && discount["ifTargetState"] == "tapped")
+      return nil unless certified
+
+      { kind: "destroy", target: { type: "entity", controller: target["controller"] }.freeze, to: "abisso",
+        discount: discount && { amount: discount["amount"], if_target: "tapped" }.freeze }
+    end
+
+    # «Quando flippa» (§3.1), la forma di RBF-001: la carta nominata dal
+    # proprio Fronte nell'Abisso, e il divieto di giocarla per il resto della
+    # partita.
+    def self.flip_forms(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_flip"
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash)
+
+        target = effect["target"]
+        next unless target.is_a?(Hash) && target["cardId"].is_a?(String) && target["controller"] == "controller"
+
+        case effect["type"]
+        when "move_card"
+          next unless effect.dig("from", "zone") == "front" && effect.dig("destination", "zone") == "abyss"
+
+          { kind: "move", card_id: target["cardId"], from: "field", to: "abisso" }.freeze
+        when "restrict_action"
+          next unless effect["restricts"] == "play" && effect["duration"] == "permanent" && effect.dig("details", "followsCard") == true
+
+          { kind: "seal", card_id: target["cardId"] }.freeze
+        end
+      end
+    end
+
+    # Il requisito del Nexus (§3.1), certificato solo nella forma di RBF-001
+    # e RBF-023: «controlli almeno N Entità [di razza]» e «scarta una carta
+    # [di tipo]», più il recupero di PV stampato sulla faccia del Nexus.
+    def self.nexus_of(faces)
+      rubyfront = faces.find { |face| face["kind"] == "rubyfront" }
+      nexus_index = faces.index { |face| face["kind"] == "nexus" }
+      return nil unless rubyfront && nexus_index
+
+      requirement = rubyfront.dig("requirements", "nexus")
+      return nil unless requirement.is_a?(Hash) && requirement["match"] == "all"
+
+      conditions = Array(requirement["conditions"]).map do |condition|
+        next nil unless condition.is_a?(Hash) && condition["type"] == "controls_card" && condition["owner"] == "controller" && condition["min"].is_a?(Integer)
+
+        filter = condition["filter"]
+        # Un vincolo in più (RBF-023: «con un Oggetto assegnato») è una forma ignota.
+        next nil unless filter.is_a?(Hash) && filter["cardType"] == "entity" && (filter.keys - %w[cardType race]).empty?
+
+        { count: condition["min"], type: "entity", race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze
+      end
+      return nil if conditions.empty? || conditions.any?(&:nil?)
+
+      costs = Array(requirement["flipCost"]).map do |cost|
+        next nil unless cost.is_a?(Hash) && cost["type"] == "discard_card" && cost["count"] == 1 && cost.dig("target", "controller") == "controller"
+
+        { count: 1, type: cost.dig("filter", "cardType").is_a?(String) ? cost["filter"]["cardType"] : nil }.freeze
+      end
+      return nil if costs.any?(&:nil?) || costs.size > 1
+
+      recovery = integer_stat(faces[nexus_index].dig("stats", "healthRecovery"))
+      { face: nexus_index, conditions: conditions.freeze, discard: costs.first, recovery: recovery }.freeze
     end
 
     def self.matter_of(faces)

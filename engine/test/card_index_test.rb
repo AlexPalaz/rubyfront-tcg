@@ -19,22 +19,7 @@ class CardIndexTest < Minitest::Test
   # vi compare, è una forma rotta o un dato cambiato di nascosto — e il test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBITO = [
-    "RBF-001 nexus/heir-absorbed",
-    "RBF-001 nexus/heir-sealed",
-    "RBF-002 entity/glade-boy",
-    "RBF-010 entity/echo",
-    "RBF-013 object/guard",
-    "RBF-014 object/band",
-    "RBF-015 matter/lure",
-    "RBF-016 matter/formation",
-    "RBF-017 matter/impact",
-    "RBF-018 matter/repulse",
-    "RBF-019 matter/glade-strength",
-    "RBF-020 matter/coordinate",
-    "RBF-021 matter/judgment",
     "RBF-023 rubyfront/schism-forge",
-    "RBF-023 nexus/blade-absorbed",
-    "RBF-023 nexus/blade-sealed",
     "RBF-023 nexus/awakening",
     "RBF-023 nexus/deep-forge-sight",
     "RBF-024 entity/grip",
@@ -143,6 +128,39 @@ class CardIndexTest < Minitest::Test
     assert_equal [0, 1], @index["RBF-001"][:attack_forms].map { |form| form[:then_draw] }, "solo il Nexus pesca"
     assert_equal({ targets: "next_human_attacker", grants: ["revenge"] }, @index["RBF-004"][:attack_forms][0].slice(:targets, :grants))
     assert_equal({ count: 2, race: "human" }, @index["RBF-005"][:attack_forms][0][:requires_previous_attackers])
+  end
+
+  # --- gli statici, le Materie e il flip di Eredità Perduta (§8.2, §7.2, §3.1) --
+
+  def test_gli_statici_di_potenza_delle_carte_vere
+    assert_equal [{ kind: "self_power", amount: 1, while_attacking: true, requires_other: { type: "entity", race: "human" } }], @index["RBF-002"][:static_forms]
+    assert_equal [{ kind: "self_power", amount: 1, per_other: { type: "entity", race: "human" } }], @index["RBF-010"][:static_forms]
+    assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-013"][:static_forms], "il +1 del Vigorscudo; la Stasi sta nelle concessioni"
+    assert_equal [{ kind: "bearer_power", amount: 1, per: { type: "entity", race: "human" }, multi_block: true }], @index["RBF-014"][:static_forms]
+    assert_equal [], @index["RBF-028"][:static_forms], "«Contrattacco +2 se armata» non è una forma certificata"
+    assert_equal [], @index["RBF-031"][:static_forms], "«+1 alle altre armate» resta nel debito"
+  end
+
+  def test_le_materie_di_eredita_perduta_alla_risoluzione
+    forme = ->(id) { @index[id][:resolve_forms] }
+    assert_equal [{ kind: "look", count: 4, reveal: { type: "entity", race: "human" }, reveal_to: "hand", rest_to: "deck", show_up_to: 2 }], forme.call("RBF-015")
+    assert_equal [{ kind: "empower", targets: "own_entity", race: "human", power: 1, untap: true }], forme.call("RBF-016")
+    assert_equal [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: 2 }, to: "ritiro" }], forme.call("RBF-017")
+    assert_equal [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }], forme.call("RBF-018")
+    assert_equal [{ kind: "fortune", die: 20, gain: { on: [1, 6], amount: 4 }, deploy: { on: [7, 13], filter: { type: "entity", race: "human", max_cost: 2 } },
+                    draw: { on: [14, 19], count: 1 }, all_on: [20, 20] }], forme.call("RBF-019")
+    assert_equal [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, as_block: true, requires: { count: 3, race: "human" } }], forme.call("RBF-020")
+    assert_equal [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" } }], forme.call("RBF-021")
+    assert_equal [], forme.call("RBF-038"), "«poi perdi 2 PV» è un seguito ignoto: la forma non entra"
+    assert_equal [], forme.call("RBF-022"), "la permanente degli Eredi si innesca all'attacco, non alla risoluzione"
+  end
+
+  def test_il_nexus_di_oblivhal_e_il_suo_flip
+    assert_equal({ face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 5 }, @index["RBF-001"][:nexus])
+    assert_equal [{ kind: "move", card_id: "RBF-012", from: "field", to: "abisso" }, { kind: "seal", card_id: "RBF-012" }], @index["RBF-001"][:flip_forms]
+    assert_nil @index["RBF-023"][:nexus], "«con un Oggetto assegnato» e il costo dal Ritiro sono forme ignote: il flip di Rhazmora resta a mano"
+    assert_equal %w[move seal], @index["RBF-023"][:flip_forms].map { |form| form[:kind] }, "ma i suoi «quando flippa» hanno la stessa forma"
+    assert_nil @index["RBF-004"][:nexus]
   end
 
   def test_l_esploratore_pesca_quando_attacca_armato

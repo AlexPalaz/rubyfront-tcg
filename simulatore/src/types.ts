@@ -64,6 +64,16 @@ export interface CardInstance {
   powerBonus?: number;
   /** «Non può bloccare in questo turno» (§8.2, RBF-005). */
   cannotBlock?: boolean;
+  /** Contrattacco in più fino alla fine del turno (§8.2, RBF-020). */
+  counterBonus?: number;
+  /** In Stasi (§8.1): tappata per sempre, finché un effetto non la stappa. */
+  stasis?: boolean;
+  /** Tenuta nell'Abisso da quella carta (§8.2, RBF-018): «finché questa
+      carta resta in gioco»; quando la carta lascia il gioco, torna. */
+  heldBy?: string;
+  /** Solo per le Materie: il bersaglio dichiarato giocandole (RBF-021), che
+      decide lo sconto e che l'effetto deve colpire. */
+  target?: string;
 }
 
 export interface PlayerState {
@@ -81,6 +91,9 @@ export interface PlayerState {
   token: boolean;
   /** Id del mazzo caricato, per ricaricarlo a nuova partita. */
   deckId: string | null;
+  /** Le carte (id di catalogo) che questo posto non può più giocare per il
+      resto della partita (§8.2, RBF-001: il flip sigilla Rhen). */
+  sealed?: string[];
 }
 
 /** I parametri di una riga di log: numeri, testi, posti (`seat`, `otherSeat`),
@@ -156,6 +169,11 @@ export interface Battle {
   /** Danno al Rubyfront del difensore: la Potenza dell'attaccante se non
       bloccato, altrimenti zero (§6.3). */
   damage: number;
+  /** Il bloccante avrebbe dovuto morire ma ha Stasi (§8.1): resta in campo,
+      tappato per sempre. */
+  blockerStasis?: boolean;
+  /** Il bloccante è una Reattiva giocata come blocco (§6.4): si consuma. */
+  blockerSpent?: boolean;
 }
 
 /**
@@ -210,8 +228,9 @@ export interface GameState {
  */
 export interface EffectRef {
   source: string;
-  /** L'evento che innesca: l'ingresso in campo, o l'attacco dichiarato. */
-  event: "on_enter_field" | "on_attack";
+  /** L'evento che innesca: l'ingresso in campo, l'attacco dichiarato, la
+      risoluzione di una Materia (§7.2), o il flip verso il Nexus (§3.1). */
+  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip";
   entering: string;
   /** Il seguito di un innesco, con la sua tripla: lo scarto dopo la pesca
       (RBF-026), il ritorno in mano dopo la cura (RBF-008), la pesca dopo la
@@ -231,7 +250,7 @@ export type Action =
   | { t: "shuffle"; seat: Seat; order: string[] }
   /** `effect`: la pesca è un passo di un effetto innescato (§8.2), non un
       gesto — la fonte e l'ingresso che l'ha innescata; l'engine verifica. */
-  | { t: "draw"; seat: Seat; count: number; effect?: EffectRef }
+  | { t: "draw"; seat: Seat; count: number; effect?: EffectRef; roll?: number }
   /** `cost`/`roll`: lo schieramento del Rubyfront (§3.1) è un `move` dalla
       Zona di Richiamo alla sua fila, e si paga — col dado, `roll` è il tiro
       e `cost` il risultato. Senza costo è un movimento e basta. */
@@ -239,8 +258,10 @@ export type Action =
   /** `cost`: il Flusso pagato giocando DALLA MANO in campo (§3.2) — lo
       mette il client dal catalogo, l'engine lo verifica, il riduttore lo
       scala. Assente da altre zone e per il Rubyfront. */
-  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; effect?: EffectRef; assignTo?: string; roll?: number }
-  | { t: "flip"; uid: string; face: number }
+  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string }
+  /** Il flip (§3.1): verso il Nexus porta lo scarto del requisito
+      (`discard`, nell'Abisso) e il recupero di PV stampato (`recover`). */
+  | { t: "flip"; uid: string; face: number; discard?: string; recover?: number }
   /** Assegna l'Oggetto `uid` all'Entità `to` (§3.1); `to: null` lo scioglie. */
   | { t: "assign"; uid: string; to: string | null }
   | { t: "tap"; uid: string; tapped: boolean }
@@ -257,7 +278,7 @@ export type Action =
   | { t: "resolve"; seat: Seat; battles: Battle[]; untap?: string[] }
   /** Un potenziamento fino alla fine del turno (§8.2): Potenza in più,
       parole chiave concesse, o il divieto di bloccare. Sempre un passo d'effetto. */
-  | { t: "empower"; uid: string; power?: number; grants?: string[]; restrict?: "block"; effect: EffectRef }
+  | { t: "empower"; uid: string; power?: number; grants?: string[]; restrict?: "block"; counter?: number; untap?: true; effect: EffectRef }
   /** Stappa tutte le Entità di `seat` e, col tiro giusto, promette una Fase
       di Fronte addizionale (§8.2, RBF-011). Il client tira, l'engine verifica. */
   | { t: "refresh"; seat: Seat; roll: number; extra: boolean; effect: EffectRef }
@@ -273,7 +294,8 @@ export type Action =
   | { t: "control"; uid: string; by: Seat; grants: string[]; effect: EffectRef }
   /** Restituisce una carta controllata al proprietario, a fine turno: sul
       suo Fronte (x, y di uno slot libero) o nella sua Zona di Ritiro se è
-      pieno. La manda il tavolo di chi ha chiuso il turno. */
+      pieno. La manda il tavolo di chi ha chiuso il turno. Vale anche per il
+      permanente esiliato (RBF-018) quando chi lo teneva lascia il gioco. */
   | { t: "release"; uid: string; zone: "field" | "ritiro"; x?: number; y?: number }
   /** Fine della partita (§2, §9): lo dichiara il client che l'ha vista
       arrivare, l'engine lo verifica contro PV e mazzi della sua copia. */

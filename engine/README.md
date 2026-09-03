@@ -29,9 +29,10 @@ Regole collegate finora:
   giro** (§6.3, T+3): coprire annota il turno (`coveredTurn`), e il cambio
   di turno scopre le Entità di chi entra coperte da un giro completo, nel
   riduttore e nella copia. Resta «Scopri» solo per una coperta senza data,
-  arrivata da una lavagna che non la segnava. Limiti dichiarati: la Stasi
-  (§8.1, RBF-013) non è modellata, e gli effetti delle carte che
-  tappano/coprono non sono ancora concessi.
+  arrivata da una lavagna che non la segnava. Limiti dichiarati: gli
+  effetti delle carte che tappano/coprono a mano non sono concessi (la
+  Stasi, §8.1, e le stappate per effetto sono arrivate dopo, con Eredità
+  Perduta).
 - **§3.1 Oggetti: assegnazione** — l'assegnazione è un'azione del protocollo
   (`assign {uid, to}`, generata dal rilascio di un Oggetto sopra un'Entità):
   solo alle proprie Entità, mai al Rubyfront/Nexus, mai a una coperta, e una
@@ -148,9 +149,9 @@ Regole collegate finora:
   uscito lascia l'attacco non bloccato (chi esce perde la freccia, §6.3).
   Carta senza Potenza in anagrafe: il conto non si rifà, silenzio — e il
   client, se gli manca nel catalogo, annota e chiude il turno come prima.
-  Limiti dichiarati: Stasi, Vendetta, le Reattive come bloccanti e ogni
-  modifica di Potenza in partita (Oggetti, effetti) non si vedono: chi le
-  usa risolve a mano. Engine 0.14.0, quattordici regole.
+  Limiti dichiarati allora: Stasi, Vendetta, le Reattive come bloccanti e
+  ogni modifica di Potenza in partita non si vedevano — sono arrivate
+  dopo (§8.1, §8.2, §7.2, più sotto). Engine 0.14.0, quattordici regole.
 
 - **§6.2 Le carte si giocano in Preparazione** — «in questa fase si inizia a
   giocare con le carte e si prepara il Fronte»: nel Fronte si dichiara,
@@ -389,8 +390,9 @@ Regole collegate finora:
   una risoluzione che li contasse a mano verrebbe fermata; il Furiere
   «se può riceverlo» si limita a non vestire una coperta; nella Fase di
   Fronte addizionale le Entità stappate attaccano di nuovo per la regola
-  d'oro, e la Reazione che segue è una Reazione come le altre; la Stasi
-  resta fuori dalla risoluzione. L'avversario vede gli esiti, non i dadi.
+  d'oro, e la Reazione che segue è una Reazione come le altre. (Gli
+  statici di RBF-002/010/013/014 e la Stasi sono arrivati dopo, con
+  Eredità Perduta, più sotto.) L'avversario vede gli esiti, non i dadi.
   La quarta forma è quella di RBF-006, il **Cercatore**: «guarda le prime 4
   carte del tuo mazzo, puoi mostrare un'Entità Umana e aggiungerla alla
   mano, metti le altre in fondo» — un'azione sola, `look {seat, count,
@@ -419,6 +421,130 @@ Regole collegate finora:
   slot libero, o nella sua Zona di Ritiro se è pieno — che l'engine passa
   solo per una carta controllata e solo a turno finito. Tutto ciò che non
   ha una forma certificata resta a mano. Engine 0.30.0, trenta regole.
+
+- **§8.2 Gli statici di Potenza nella risoluzione** — la prima famiglia
+  di effetti che non si «risolve» ma vale finché la carta è in campo:
+  l'anagrafe li legge in `static_forms` (e il client in `cardStats`, stessi
+  criteri) e `power_of` li conta insieme alla Potenza stampata e al bonus
+  fino a fine turno — mai sotto 0 (§8.2, «Modifiche alla Potenza»). Le
+  forme: RBF-002, il **Ragazzo** — «+1 mentre attacca, se sul tuo Fronte
+  c'è un'altra Entità Umana» (in difesa resta un 1: si guarda l'attacco
+  dichiarato); RBF-010, il **Simulacro** — «+1 per ogni altra Entità Umana
+  sul tuo Fronte»; RBF-013, il **Vigorscudo** — «+1» a chi lo porta; RBF-014,
+  la **Vigorcintura** — «+1 per ogni Entità Umana sul tuo Fronte»,
+  portatrice compresa. «Sul tuo Fronte» conta le Entità che il posto
+  comanda (le sue e quelle che controlla, §8.2). Limiti dichiarati: gli
+  statici di Scissione Profonda («+1 alle altre armate» di RBF-031,
+  «Contrattacco +2 se armata» di RBF-028, i modificatori degli Oggetti
+  RBF-032/033/035) restano nel debito, e una risoluzione che li contasse
+  a mano verrebbe fermata.
+- **§8.1 La Stasi** — «bloccando non muore: resta tappata per sempre». La
+  risoluzione la vede — stampata, concessa, o data da un Oggetto addosso
+  «mentre assegnato» (RBF-013: agli Umani) — e la battaglia lo dice
+  (`blockerStasis`): il bloccante che avrebbe dovuto morire resta in
+  campo, tappato, e nel contrattacco la stasi sostituisce la copertura;
+  l'attaccante muore comunque se doveva. Il cambio di turno non stappa chi
+  è in stasi, la copia e il riduttore la annotano (`stasis`, anche nello
+  snapshot), e la Stasi cade solo per un effetto che stappa (`empower` con
+  `untap`, `refresh`): allora «torna un'Entità normale». Tappata, non si
+  ritira (§6.2): lo dice già la dogana del Ritiro. Stasi in attacco: non
+  protegge, come dice il manuale.
+- **§8.2 Il blocco multiplo** — «può essere bloccata da più Entità»
+  (RBF-014): con la Cintura addosso all'attaccante la dogana delle sfide 1
+  contro 1 si apre, e la copia tiene tutti i bloccanti nell'ordine dei
+  blocchi (`blockers_of`). **La risoluzione con più bloccanti non è
+  scritta nel manuale**, e l'engine la legge così, da confermare col
+  designer: l'attaccante affronta ciascun bloccante in una battaglia a
+  sé, con la sua Potenza intera contro ognuno, nell'ordine dei blocchi —
+  muore se una battaglia lo uccide (una volta sola), ogni bloccante ha la
+  sua sorte, e l'attacco è bloccato. L'alternativa (le Potenze dei
+  bloccanti sommate) è una riga di manuale da scrivere.
+- **§7.2 Le Reattive: prima dell'ondata, o come blocco** — «dopo la
+  dichiarazione dell'attacco non si iniziano più Reattive, con un'unica
+  eccezione: le Reattive del difensore giocate come blocco». In Fase di
+  Fronte una Reattiva scende — di chiunque sia (Pre-Fronte
+  dell'avversario, poi la finestra di chi è di turno: le due sotto-finestre
+  non si distinguono) — solo finché l'ondata non è dichiarata; in Reazione
+  scende solo una Reattiva con la forma «si gioca come blocco», e solo dal
+  difensore. Giocata, sostituisce il bloccante (§6.4): la dogana delle
+  dichiarazioni accetta un blocco da una Materia Reattiva scesa questo
+  turno con quella forma (mai un contrattacco), e la risoluzione la conta
+  come dice il manuale — «non c'è confronto di Potenza, l'attacco è
+  comunque bloccato», la sorte dell'attaccante la dice il testo (RBF-020
+  non dice nulla) — e la Reattiva si consuma (`blockerSpent`: nell'Abisso
+  alla risoluzione, nel riduttore e nella copia). Limiti dichiarati: la
+  catena di risposta (§7.2) non c'è — una Reattiva giocata in risposta a
+  un'altra verrebbe fermata; e i passi dell'effetto di una Reattiva
+  giocata come blocco sono del difensore nel turno altrui: la dogana del
+  turno li lascia passare se la fonte è sua.
+- **§7.2 Le Materie si risolvono** — «l'effetto si risolve immediatamente,
+  poi la carta va nell'Abisso»: le sette Materie di Eredità Perduta hanno
+  la loro forma certificata (`resolve_forms`, evento `on_resolve`), e i
+  passi viaggiano marcati `effect {event: "on_resolve"}` con fonte e
+  ingresso che coincidono — la Materia stessa, in campo, scesa QUESTO
+  turno — ogni passo con la sua chiave (`fonte|on_resolve:passo|fonte`).
+  RBF-015, l'**Attrazione**: «guarda le prime 4, puoi mostrare fino a 2
+  Entità Umane e aggiungerne una alla mano» — un `look` (la seconda
+  mostrata è solo in vista: limite dichiarato, l'engine ne verifica una);
+  RBF-016, la **Formazione**: «stappa un'Entità Umana che controlli: +1
+  Potenza» — `empower {untap: true, power: 1}`, un bersaglio solo per
+  risoluzione; RBF-017, l'**Impatto**: «un'Entità avversaria con costo 2 o
+  inferiore nella Zona di Ritiro» — un `toZone` verso il Ritiro; RBF-018, il
+  **Campo Repulsivo** (permanente): «manda nell'Abisso un permanente
+  avversario; finché questa carta resta in gioco resta nell'Abisso; quando
+  lascia il gioco torna in gioco» — un `toZone` con `heldBy`, che la copia
+  e il riduttore annotano sulla carta esiliata (`heldBy`, anche nello
+  snapshot); quando chi la teneva lascia il campo, il tavolo che l'ha
+  visto uscire manda un `release` (lo stesso della restituzione del
+  controllo), sul Fronte del proprietario o nella sua Zona di Ritiro se è
+  pieno, e l'engine lo passa solo a chi tiene fuori dal campo — «permanente»
+  qui è un'Entità o una Materia permanente (mai il Rubyfront; gli Oggetti
+  seguono la loro Entità nell'Abisso e restano lì, §3.1); RBF-019, la
+  **Forza della Radura**: il d20 a fasce — con 1–6 +4 PV (`player`), con
+  7–13 un'Entità Umana con costo 2 o inferiore dalla mano sul Fronte
+  (`toZone` senza costo), con 14–19 una pesca, con 20 tutte e tre; ogni
+  passo porta il tiro, il primo lo fissa e gli altri devono dire lo stesso;
+  RBF-020, il **Contrattacco Coordinato**: giocato come blocco (sopra),
+  «se sul tuo Fronte ci sono almeno 3 Entità Umane, stappa le Entità Umane
+  che controlli: Contrattacco +1» — un `empower {untap, counter: 1}` per
+  bersaglio, che passa solo a blocco dichiarato, e la risoluzione conta
+  il Contrattacco concesso (`counter_bonus`, fino a fine turno); RBF-021,
+  il **Giudizio Cremisi**: «distruggi un'Entità; se bersaglia una tappata
+  costa 3 in meno» — il bersaglio si dichiara GIOCANDO la carta (`target`
+  nel `toZone`, annotato sulla Materia finché sta in campo), lo sconto
+  vale solo se quel bersaglio è tappato, e il passo che distrugge deve
+  colpire lui (senza bersaglio dichiarato: costo pieno, e poi si sceglie).
+  Nel client la scena elenca i passi e «Risolvi» li esegue; la Materia
+  normale o Reattiva vola poi nell'Abisso da sé, la permanente resta —
+  e chi teneva un permanente nell'Abisso lo restituisce appena esce
+  (`releaseHeld`). Limiti dichiarati: l'engine non PRETENDE che la
+  Materia risolta vada nell'Abisso (è il tavolo a mandarcela); l'ordine di
+  risoluzione degli effetti simultanei (§8.2) e il decadere delle
+  permanenti con l'abilitazione (§7.2) non sono collegati; il tiro del
+  d20 lo fa il client; RBF-038 («poi perdi 2 PV») e le altre Materie di
+  Scissione restano nel debito.
+- **§3.1 Il Nexus** — il flip è un'azione con una regola: verso la faccia
+  del Nexus passa solo dal Rubyfront in campo (non dalla Zona di Richiamo),
+  nel proprio turno in Preparazione o Fronte, con i requisiti stampati
+  soddisfatti «al momento del flip» — l'anagrafe li legge in `nexus`
+  (RBF-001: «controlli almeno 4 Entità Umane», «scarta una carta Entità»)
+  — e l'azione porta lo scarto (`discard`, dalla propria mano, nell'Abisso)
+  e il recupero di PV stampato (`recover`, +5), che riduttore e copia
+  applicano nella stessa azione; indietro non si flippa («rimane in campo
+  per tutta la partita»). Requisito con una forma ignota (RBF-023: «con un
+  Oggetto assegnato», e il costo dal Ritiro): silenzio, il flip resta a
+  mano. La copia annota il turno del flip, e i passi «quando flippa»
+  (`effect {event: "on_flip"}`, forme `flip_forms`) valgono solo per un
+  Nexus flippato questo turno: RBF-001 manda Rhen, Erede di Vhal Astra dal
+  proprio Fronte nell'Abisso (un `toZone`) e la **sigilla** — una patch
+  `sealed` del posto (`player`), che riduttore e copia tengono (anche
+  nello snapshot) e che la dogana del giocare legge: la carta sigillata
+  non scende più, da nessuna zona, «per il resto della partita». Nel
+  client «Flip → Nexus» con l'arbitro legge il requisito, chiede lo scarto
+  dalla mano e apre la scena «Quando flippa». Limiti dichiarati: le
+  abilità speciali a costo PV (§3.1) e la Furia (§8.1) non sono collegate;
+  le Materie permanenti dei tipi che il Nexus non abilita più non decadono
+  da sole (§3.1, §7.2). Engine 0.34.0, trentasei regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

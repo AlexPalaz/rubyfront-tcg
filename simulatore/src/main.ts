@@ -25,7 +25,8 @@ import { showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
 import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
-import { apply, controllerOf, newGame, phaseCloser, seatLabel, shuffled, zoneCards } from "./state.js";
+import { apply, controllerOf, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, seatLabel, shuffled, zoneCards } from "./state.js";
+import { releaseHeld } from "./effects.js";
 import { drawCascadeMs, mountTable } from "./table.js";
 import { verdictByHp } from "./turn.js";
 import { createVoice, type VoicePayload } from "./voice.js";
@@ -127,6 +128,11 @@ function commit(action: Action): void {
   state = apply(state, action);
   net?.send({ t: "action", action, from: mySeat });
   paint();
+  // §8.2 (RBF-018) — chi teneva un permanente nell'Abisso ha lasciato il
+  // gioco: il permanente torna, e lo manda il tavolo che l'ha visto uscire.
+  if (action.t !== "release" && Object.values(state.cards).some(card => card.heldBy && card.zone === "abisso" && state.cards[card.heldBy]?.zone !== "field")) {
+    void releaseHeld(ctx, freeFrontSlotOrNull, matterSpot);
+  }
   // §2 — la fine per PV si guarda dopo ogni azione applicata in locale
   // (la risoluzione, un contatore a mano): la dichiara il client che l'ha
   // vista arrivare, e l'engine la verifica sulla sua copia. Una volta sola.
@@ -259,6 +265,11 @@ const ctx: Ctx = {
       attackReturns: stats.attackReturns,
       attackDraws: stats.attackDraws,
       attackForms: stats.attackForms,
+      staticForms: stats.staticForms,
+      resolveForms: stats.resolveForms,
+      flipForms: stats.flipForms,
+      nexus: stats.nexus,
+      grantsWhileAssigned: stats.grantsWhileAssigned,
     };
   },
   log(text, seat) {

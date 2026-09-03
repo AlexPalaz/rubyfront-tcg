@@ -48,6 +48,11 @@ function fakeCtx(
       attackReturns: [],
       attackDraws: [],
       attackForms: [],
+      staticForms: [],
+      resolveForms: [],
+      flipForms: [],
+      nexus: null,
+      grantsWhileAssigned: [],
     }),
     log(text) {
       logs.push(typeof text === "string" ? text : renderLog(text, ctx.state(), id => id));

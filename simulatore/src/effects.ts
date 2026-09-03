@@ -9,9 +9,10 @@
 // ingresso. Tutto ciò che non ha una forma certificata resta a mano.
 
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
-import type { AttackForm } from "./ctx.js";
+import type { AttackForm, FlipForm, ResolveForm } from "./ctx.js";
 import type { CardFacts, Ctx, EnterLook } from "./ctx.js";
 import { controllerOf, fieldCards, playSpot, zoneCards } from "./state.js";
+import { countEntities } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
 export interface EnterTrigger {
@@ -567,4 +568,226 @@ export function rollDie(faces: number): number {
 
 export function inRange(roll: number, range: [number, number] | null): boolean {
   return range !== null && roll >= range[0] && roll <= range[1];
+}
+
+
+// ---- Le Materie alla risoluzione (§7.2) e il flip del Nexus (§3.1) ----------
+
+/** Un passo di una Materia da risolvere: la Materia, la forma, e fra chi si sceglie. */
+export interface ResolveStep {
+  source: CardInstance;
+  form: ResolveForm;
+  candidates: CardInstance[];
+  /** Le carte guardate (per lo sguardo). */
+  looked: CardInstance[];
+  /** Perché il passo non ha su cosa agire, se è così (chiave i18n). */
+  blocked: string | null;
+}
+
+/** Il riferimento d'effetto di una Materia: fonte e ingresso coincidono. */
+export function resolveRef(source: CardInstance): EffectRef {
+  return { source: source.uid, event: "on_resolve", entering: source.uid };
+}
+
+function resolveFired(state: GameState, source: CardInstance, step: string): boolean {
+  const key = `${source.uid}|on_resolve:${step}`;
+  // Un passo a prefisso («empower:») è già scattato se un bersaglio qualunque l'ha consumato.
+  return (state.fired ?? []).some(fired => step.endsWith(":") ? fired.startsWith(key) : fired === `${key}|${source.uid}`);
+}
+
+/** Un permanente avversario per RBF-018: un'Entità o una Materia permanente (mai il Rubyfront, mai un Oggetto). */
+function permanentOf(card: CardInstance, facts: (cardId: string) => CardFacts): boolean {
+  const f = facts(card.cardId);
+  return f.kind === "entity" || (f.kind === "matter" && f.behavior === "permanent");
+}
+
+/**
+ * I passi che la Materia `source` risolve (§7.2), con i candidati di
+ * ciascuno, letti dallo stato di adesso: le forme certificate del catalogo
+ * (renderer.ts, resolveForms), specchio della dogana dell'engine.
+ */
+export function resolveSteps(state: GameState, source: CardInstance, facts: (cardId: string) => CardFacts): ResolveStep[] {
+  const seat = controllerOf(source);
+  const foesAndMine = fieldCards(state);
+  return facts(source.cardId).resolveForms.map(form => {
+    const step: ResolveStep = { source, form, candidates: [], looked: [], blocked: null };
+    switch (form.kind) {
+      case "look": {
+        step.looked = zoneCards(state, seat, "deck").slice(0, form.count);
+        step.candidates = step.looked.filter(card => {
+          const f = facts(card.cardId);
+          return f.kind === form.reveal.kind && (form.reveal.race === null || f.race === form.reveal.race);
+        });
+        if (step.looked.length === 0) step.blocked = "log.look.empty";
+        break;
+      }
+      case "empower": {
+        step.candidates = foesAndMine.filter(card => {
+          const f = facts(card.cardId);
+          return controllerOf(card) === seat && f.kind === "entity" && (form.race === null || f.race === form.race);
+        });
+        if (form.targets === "own_entity" && resolveFired(state, source, "empower:")) step.candidates = [];
+        if (form.targets === "own_entities") {
+          step.candidates = step.candidates.filter(card => !resolveFired(state, source, `empower:${card.uid}`));
+          if (countEntities(state, seat, form.requires.race, facts) < form.requires.count) step.blocked = "log.no.humans";
+        }
+        if (step.candidates.length === 0 && !step.blocked) step.blocked = "log.no.target";
+        break;
+      }
+      case "move": {
+        step.candidates = foesAndMine.filter(card => {
+          const f = facts(card.cardId);
+          if (controllerOf(card) === seat || f.kind !== form.target.kind) return false;
+          return form.target.maxCost === null || (f.fluxCost !== null && f.fluxCost <= form.target.maxCost);
+        });
+        if (step.candidates.length === 0) step.blocked = "log.no.target";
+        break;
+      }
+      case "exile": {
+        step.candidates = foesAndMine.filter(card => controllerOf(card) !== seat && permanentOf(card, facts));
+        if (step.candidates.length === 0) step.blocked = "log.no.target";
+        break;
+      }
+      case "destroy": {
+        step.candidates = foesAndMine.filter(card => {
+          const f = facts(card.cardId);
+          if (f.kind !== "entity") return false;
+          if (form.target.controller === "opponent") return controllerOf(card) !== seat;
+          if (form.target.controller === "controller") return controllerOf(card) === seat;
+          return true;
+        });
+        if (source.target) step.candidates = step.candidates.filter(card => card.uid === source.target);
+        if (step.candidates.length === 0) step.blocked = "log.no.target";
+        break;
+      }
+      case "fortune":
+        break;
+    }
+    return step;
+  });
+}
+
+/** Il primo passo non ancora risolto di quella Materia (o null). */
+export function pendingResolve(state: GameState, source: CardInstance, facts: (cardId: string) => CardFacts): ResolveStep[] {
+  return resolveSteps(state, source, facts).filter(step => {
+    switch (step.form.kind) {
+      case "look": return !resolveFired(state, source, "look");
+      case "move": return !resolveFired(state, source, "move");
+      case "exile": return !resolveFired(state, source, "exile");
+      case "destroy": return !resolveFired(state, source, "destroy");
+      case "fortune": return !resolveFired(state, source, "heal") && !resolveFired(state, source, "draw") && !resolveFired(state, source, "deploy");
+      case "empower": return step.candidates.length > 0 || step.blocked !== "log.no.target";
+    }
+  });
+}
+
+/** La riga che annuncia un passo di una Materia, per la scena. */
+export function describeResolveStep(step: ResolveStep, facts: (cardId: string) => CardFacts): string {
+  const card = `«${facts(step.source.cardId).name}»`;
+  const form = step.form;
+  switch (form.kind) {
+    case "look": return t("trigger.lure", { card, n: form.count });
+    case "empower":
+      return form.targets === "own_entity"
+        ? t("trigger.formation", { card, n: form.power })
+        : t("trigger.coordinate", { card, n: form.requires.count, m: form.counter });
+    case "move": return t("trigger.impact", { card, n: form.target.maxCost ?? 0 });
+    case "exile": return t("trigger.repulse", { card });
+    case "fortune": return t("trigger.fortune", { card, die: form.die });
+    case "destroy": return t("trigger.judgment", { card });
+  }
+}
+
+/** Quanto costa giocare la Materia contro quel bersaglio (RBF-021): il costo stampato, meno lo sconto se il bersaglio è tappato. */
+export function discountedCost(state: GameState, cardId: string, target: CardInstance | null, facts: (cardId: string) => CardFacts): number | null {
+  const f = facts(cardId);
+  if (f.fluxCost === null) return null;
+  const form = f.resolveForms.find((candidate): candidate is Extract<ResolveForm, { kind: "destroy" }> => candidate.kind === "destroy" && candidate.discount !== null);
+  if (!form || !form.discount || !target) return f.fluxCost;
+  const live = state.cards[target.uid];
+  const tapped = !!live && live.zone === "field" && live.tapped && facts(live.cardId).kind === "entity";
+  return tapped ? Math.max(0, f.fluxCost - form.discount.amount) : f.fluxCost;
+}
+
+/** La Materia ha una forma «si gioca come blocco» (RBF-020)? */
+export function playsAsBlock(facts: CardFacts): boolean {
+  return facts.resolveForms.some(form => form.kind === "empower" && form.targets === "own_entities" && form.asBlock);
+}
+
+/** La Materia chiede un bersaglio già giocandola (RBF-021: lo sconto lo decide lui)? */
+export function wantsTargetOnPlay(facts: CardFacts): boolean {
+  return facts.resolveForms.some(form => form.kind === "destroy" && form.discount !== null);
+}
+
+/** Le carte che `holder` tiene nell'Abisso (RBF-018). */
+export function heldBy(state: GameState, holderUid: string): CardInstance[] {
+  return Object.values(state.cards).filter(card => card.heldBy === holderUid && card.zone === "abisso");
+}
+
+/**
+ * Le carte tenute nell'Abisso da chi non è più in gioco (RBF-018: «quando
+ * questa carta lascia il gioco, quel permanente torna in gioco»): tornano
+ * al proprietario — sul suo Fronte in uno slot libero (le Materie nella
+ * loro fila), o nella sua Zona di Ritiro se è pieno. La manda il tavolo
+ * che ha visto uscire chi le teneva.
+ */
+export async function releaseHeld(
+  ctx: Ctx,
+  freeSlot: (state: GameState, owner: Seat) => { x: number; y: number } | null,
+  matterSpotOf: (state: GameState, owner: Seat) => { x: number; y: number }
+): Promise<void> {
+  const state = ctx.state();
+  const orphans = Object.values(state.cards).filter(card => card.heldBy && card.zone === "abisso" && state.cards[card.heldBy]?.zone !== "field");
+  for (const card of orphans) {
+    const kind = ctx.card(card.cardId).kind;
+    const spot = kind === "matter" ? matterSpotOf(ctx.state(), card.owner) : freeSlot(ctx.state(), card.owner);
+    const passed = await ctx.dispatch(spot ? { t: "release", uid: card.uid, zone: "field", ...spot } : { t: "release", uid: card.uid, zone: "ritiro" });
+    if (passed) ctx.log(msg(spot ? "log.held.back" : "log.held.retire", { card: card.cardId, seat: card.owner }), card.owner);
+  }
+}
+
+/** Un passo del flip da risolvere («quando flippa», RBF-001). */
+export interface FlipStep {
+  source: CardInstance;
+  form: FlipForm;
+  candidates: CardInstance[];
+}
+
+export function flipRef(source: CardInstance): EffectRef {
+  return { source: source.uid, event: "on_flip", entering: source.uid };
+}
+
+/** I passi «quando flippa» del Nexus appena flippato: la carta nominata sul proprio Fronte, e il sigillo. */
+export function flipSteps(state: GameState, source: CardInstance, facts: (cardId: string) => CardFacts): FlipStep[] {
+  const seat = controllerOf(source);
+  return facts(source.cardId).flipForms.map(form => ({
+    source,
+    form,
+    candidates: form.kind === "move" ? fieldCards(state).filter(card => card.cardId === form.cardId && controllerOf(card) === seat) : [],
+  }));
+}
+
+export function describeFlipStep(step: FlipStep, facts: (cardId: string) => CardFacts): string {
+  const card = `«${facts(step.source.cardId).name}»`;
+  const named = `«${facts(step.form.cardId).name}»`;
+  return step.form.kind === "move" ? t("trigger.flip.absorb", { card, named }) : t("trigger.flip.seal", { card, named });
+}
+
+/**
+ * Il flip verso il Nexus (§3.1), visto dal tavolo: se il requisito
+ * certificato è soddisfatto ritorna le carte fra cui scegliere lo scarto;
+ * altrimenti la chiave del perché no.
+ */
+export function nexusCheck(state: GameState, rubyfront: CardInstance, facts: (cardId: string) => CardFacts): { ok: true; discards: CardInstance[] } | { ok: false; why: string; n?: number } {
+  const nexus = facts(rubyfront.cardId).nexus;
+  if (!nexus) return { ok: true, discards: [] };
+  const seat = controllerOf(rubyfront);
+  for (const condition of nexus.conditions) {
+    const have = countEntities(state, seat, condition.race, facts);
+    if (have < condition.count) return { ok: false, why: "log.nexus.few", n: condition.count };
+  }
+  if (!nexus.discard) return { ok: true, discards: [] };
+  const discards = zoneCards(state, seat, "hand").filter(card => nexus.discard!.kind === null || facts(card.cardId).kind === nexus.discard!.kind);
+  if (discards.length === 0) return { ok: false, why: "log.nexus.nodiscard" };
+  return { ok: true, discards };
 }

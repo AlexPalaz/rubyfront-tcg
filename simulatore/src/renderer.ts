@@ -18,7 +18,7 @@ export const TILE_W = 302;
 export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
-import type { AttackDraw, AttackForm, EnterControl, EnterListener, EnterLook, EnterMove, EnterReturn } from "./ctx.js";
+import type { AttackDraw, AttackForm, EnterControl, EnterListener, EnterLook, EnterMove, EnterReturn, FlipForm, NexusRequirement, ResolveForm, StaticForm } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -26,7 +26,7 @@ export interface CardFace {
   displayKey: string;
   /** Le statistiche stampate (dal file dati della carta): qui contano
       quelle del combattimento, Potenza e «Contrattacco +N» (§6.3). */
-  stats?: { power?: unknown; counterattack?: unknown; fluxCost?: unknown; deploymentCost?: unknown };
+  stats?: { power?: unknown; counterattack?: unknown; fluxCost?: unknown; deploymentCost?: unknown; healthRecovery?: unknown };
   /** Gli inneschi della faccia (dal file dati): qui conta l'evento
       `on_enter_field`, «quando entra in campo». */
   triggers?: { event?: unknown; displayKey?: unknown; id?: unknown; details?: unknown; effect?: unknown }[];
@@ -35,6 +35,8 @@ export interface CardFace {
   behavior?: unknown;
   /** Le parole chiave stampate (§8.1): `{ id: "surge" }`… */
   keywords?: unknown[];
+  /** I requisiti della faccia (dal file dati): qui conta `nexus`, il flip (§3.1). */
+  requirements?: unknown;
 }
 
 export interface CatalogCard {
@@ -601,6 +603,252 @@ function enterControlsOf(face: CardFace | undefined): EnterControl[] {
   return out;
 }
 
+// ---- Gli statici, le Materie alla risoluzione e il flip (Eredità Perduta).
+// Specchio di card_index.rb: static_forms, resolve_forms, flip_forms,
+// nexus_of — stesse condizioni, parser per parser.
+
+/** "5-6" → [5, 6], "20" → [20, 20]; null se non è una fascia. */
+function band(value: unknown): [number, number] | null {
+  const range = rollRange(value);
+  if (range) return range;
+  return typeof value === "string" && /^\d+$/.test(value) ? [Number(value), Number(value)] : null;
+}
+
+function raceFilter(filter: unknown, zone: string | null = null): { kind: "entity"; race: string | null } | null {
+  const f = filter as Loose | undefined;
+  if (!f || typeof f !== "object" || f.cardType !== "entity") return null;
+  if (zone && f.zone !== zone) return null;
+  if (f.owner !== "controller" && f.controller !== "controller") return null;
+  return { kind: "entity", race: typeof f.race === "string" ? f.race : null };
+}
+
+function staticFormsOf(faces: CardFace[]): StaticForm[] {
+  const out: StaticForm[] = [];
+  for (const face of faces) {
+    for (const trigger of face.triggers ?? []) {
+      if (trigger.event !== "while_in_play" && trigger.event !== "while_assigned") continue;
+      const effect = trigger.effect as Loose | undefined;
+      if (!effect || effect.type !== "modify_power" || !Number.isInteger(effect.amount)) continue;
+      const details = (typeof effect.details === "object" && effect.details ? effect.details : {}) as Loose;
+      if (trigger.event === "while_in_play") {
+        if (effect.target?.scope !== "self") continue;
+        if (details.whileAttacking === true) {
+          const other = raceFilter(details.requiresOtherControlled);
+          if (other) out.push({ kind: "self_power", amount: effect.amount, whileAttacking: true, requiresOther: other });
+        } else if (details.perOtherControlled) {
+          const other = raceFilter(details.perOtherControlled, "front");
+          if (other && Object.keys(details).length === 1) out.push({ kind: "self_power", amount: effect.amount, perOther: other });
+        }
+      } else {
+        if (effect.target?.scope !== "assigned" || effect.duration !== "permanent") continue;
+        if (Object.keys(details).length === 0) out.push({ kind: "bearer_power", amount: effect.amount });
+        else if (details.perControlled) {
+          const per = raceFilter(details.perControlled, "front");
+          const known = Object.keys(details).every(key => key === "perControlled" || key === "assignedMayBeBlockedByMultipleEntities");
+          if (per && known) out.push({ kind: "bearer_power", amount: effect.amount, per, multiBlock: details.assignedMayBeBlockedByMultipleEntities === true });
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function costCondition(conditions: unknown): { ok: boolean; maxCost: number | null } {
+  let maxCost: number | null = null;
+  const list: unknown[] = Array.isArray(conditions) ? conditions : [];
+  for (const condition of list as Loose[]) {
+    if (condition?.stat === "flux_cost" && condition.operator === "lte" && Number.isInteger(condition.value)) maxCost = condition.value;
+    else return { ok: false, maxCost: null };
+  }
+  return { ok: true, maxCost };
+}
+
+function resolveFormsOf(faces: CardFace[]): ResolveForm[] {
+  const out: ResolveForm[] = [];
+  for (const face of faces) {
+    for (const trigger of face.triggers ?? []) {
+      if (trigger.event !== "on_resolve") continue;
+      const effect = trigger.effect as Loose | undefined;
+      if (!effect || typeof effect !== "object") continue;
+      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveDestroy(effect);
+      if (form) out.push(form);
+    }
+  }
+  return out;
+}
+
+function resolveLook(effect: Loose): ResolveForm | null {
+  if (effect.type !== "look_and_optionally_move") return null;
+  const from = effect.from as Loose | undefined;
+  const extra = effect.details as Loose | undefined;
+  if (!from || from.zone !== "deck" || from.owner !== "controller" || from.position !== "top" || !Number.isInteger(from.count)) return null;
+  if (!extra || typeof extra.mayReveal?.cardType !== "string") return null;
+  if (extra.revealTo?.zone !== "hand" || extra.restTo?.zone !== "deck" || extra.restTo?.position !== "bottom") return null;
+  if (![undefined, 1].includes(extra.addToHand) || (extra.maxRevealed !== undefined && !Number.isInteger(extra.maxRevealed))) return null;
+  return {
+    kind: "look",
+    count: from.count,
+    reveal: { kind: extra.mayReveal.cardType, race: typeof extra.mayReveal.race === "string" ? extra.mayReveal.race : null },
+    revealTo: "hand",
+    restTo: "deck",
+    showUpTo: extra.maxRevealed ?? 1,
+  };
+}
+
+function resolveUntap(effect: Loose): ResolveForm | null {
+  if (effect.type !== "untap") return null;
+  const target = effect.target as Loose | undefined;
+  const extra = effect.details as Loose | undefined;
+  if (!ownTarget(target, "entity") || !extra || extra.duration !== "until_end_of_turn") return null;
+  const race = typeof target.race === "string" ? target.race : null;
+  if (target.min === 1 && target.max === 1 && Number.isInteger(extra.thenPowerBonus) && Object.keys(extra).sort().join() === "duration,thenPowerBonus") {
+    return { kind: "empower", targets: "own_entity", race, power: extra.thenPowerBonus, untap: true };
+  }
+  if (target.quantity === "all" && extra.playedAsBlock === true && Number.isInteger(extra.thenCounterattackBonus)) {
+    const requires = extra.requiresControlledAtLeast as Loose | undefined;
+    if (!requires || !Number.isInteger(requires.count) || !ownTarget(requires.filter, "entity")) return null;
+    return {
+      kind: "empower",
+      targets: "own_entities",
+      race,
+      counter: extra.thenCounterattackBonus,
+      untap: true,
+      asBlock: true,
+      requires: { count: requires.count, race: typeof requires.filter.race === "string" ? requires.filter.race : null },
+    };
+  }
+  return null;
+}
+
+function resolveMove(effect: Loose): ResolveForm | null {
+  if (effect.type !== "move_card") return null;
+  const target = effect.target as Loose | undefined;
+  const destination = effect.destination as Loose | undefined;
+  if (!target || target.controller !== "opponent" || target.min !== 1 || target.max !== 1 || !destination) return null;
+  if (target.cardType === "entity" && destination.zone === "retire") {
+    const cost = costCondition(target.conditions);
+    if (!cost.ok || effect.details !== undefined) return null;
+    return { kind: "move", target: { kind: "entity", controller: "opponent", maxCost: cost.maxCost }, to: "ritiro" };
+  }
+  const extra = effect.details as Loose | undefined;
+  if (target.details?.permanent === true && destination.zone === "abyss" && extra && extra.whileSourceOnField === true && extra.returnsToPlayWhenSourceLeaves === true) {
+    return { kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true };
+  }
+  return null;
+}
+
+function resolveFortune(effect: Loose): ResolveForm | null {
+  if (effect.type !== "empower" || effect.target?.controller !== "controller") return null;
+  const extra = effect.details as Loose | undefined;
+  if (!extra || typeof extra.byRoll !== "object" || !extra.byRoll) return null;
+  const die = dieFaces(extra.die);
+  const by = extra.byRoll as Record<string, Loose>;
+  const keys = Object.keys(by);
+  if (die === null || keys.length !== 4) return null;
+  const gain = keys.find(key => Number.isInteger(by[key]?.gainHealth));
+  const deploy = keys.find(key => typeof by[key]?.moveCard === "object" && by[key]?.moveCard);
+  const draw = keys.find(key => Number.isInteger(by[key]?.drawCards));
+  const all = keys.find(key => by[key]?.allOfTheAbove === true);
+  if (!gain || !deploy || !draw || !all) return null;
+  const bands = [band(gain), band(deploy), band(draw), band(all)];
+  if (bands.some(b => b === null)) return null;
+  const move = by[deploy].moveCard as Loose;
+  const filter = move.filter as Loose | undefined;
+  if (move.from?.zone !== "hand" || move.from?.owner !== "controller" || move.to?.zone !== "front" || move.to?.owner !== "controller") return null;
+  if (!filter || filter.cardType !== "entity") return null;
+  const cost = costCondition(filter.conditions);
+  if (!cost.ok) return null;
+  return {
+    kind: "fortune",
+    die,
+    gain: { on: bands[0]!, amount: by[gain].gainHealth },
+    deploy: { on: bands[1]!, filter: { kind: "entity", race: typeof filter.race === "string" ? filter.race : null, maxCost: cost.maxCost } },
+    draw: { on: bands[2]!, count: by[draw].drawCards },
+    allOn: bands[3]!,
+  };
+}
+
+function resolveDestroy(effect: Loose): ResolveForm | null {
+  if (effect.type !== "destroy") return null;
+  const target = effect.target as Loose | undefined;
+  const extra = effect.details as Loose | undefined;
+  if (!target || target.cardType !== "entity" || target.min !== 1 || target.max !== 1 || !["any", "opponent", "controller"].includes(target.controller)) return null;
+  if (!extra || extra.toZone?.zone !== "abyss") return null;
+  // Un seguito ignoto (RBF-038: «poi perdi 2 PV») rende la forma ignota.
+  if (!Object.keys(extra).every(key => key === "toZone" || key === "fluxCostReduction")) return null;
+  const discount = extra.fluxCostReduction as Loose | undefined;
+  if (discount !== undefined && !(discount && Number.isInteger(discount.amount) && discount.ifTargetState === "tapped")) return null;
+  return {
+    kind: "destroy",
+    target: { kind: "entity", controller: target.controller },
+    to: "abisso",
+    discount: discount ? { amount: discount.amount, ifTarget: "tapped" } : null,
+  };
+}
+
+/** Le concessioni «mentre assegnato» (RBF-013): evento `while_assigned`,
+    effetto `empower` sul portatore, durata `permanent`, con l'eventuale
+    razza. Specchio di card_index.rb, grants_while_assigned. */
+function grantsWhileAssignedOf(faces: CardFace[]): { keywords: string[]; ifRace: string | null }[] {
+  const out: { keywords: string[]; ifRace: string | null }[] = [];
+  for (const face of faces) {
+    for (const trigger of face.triggers ?? []) {
+      if (trigger.event !== "while_assigned") continue;
+      const effect = trigger.effect as Loose | undefined;
+      if (!effect || effect.type !== "empower" || effect.target?.scope !== "assigned" || effect.duration !== "permanent") continue;
+      const keywords = (Array.isArray(effect.grants) ? effect.grants : []).filter((k: unknown): k is string => typeof k === "string");
+      if (keywords.length === 0) continue;
+      out.push({ keywords, ifRace: typeof effect.details?.ifAssignedRace === "string" ? effect.details.ifAssignedRace : null });
+    }
+  }
+  return out;
+}
+
+function flipFormsOf(faces: CardFace[]): FlipForm[] {
+  const out: FlipForm[] = [];
+  for (const face of faces) {
+    for (const trigger of face.triggers ?? []) {
+      if (trigger.event !== "on_flip") continue;
+      const effect = trigger.effect as Loose | undefined;
+      const target = effect?.target as Loose | undefined;
+      if (!effect || !target || typeof target.cardId !== "string" || target.controller !== "controller") continue;
+      if (effect.type === "move_card" && effect.from?.zone === "front" && effect.destination?.zone === "abyss") {
+        out.push({ kind: "move", cardId: target.cardId, from: "field", to: "abisso" });
+      } else if (effect.type === "restrict_action" && effect.restricts === "play" && effect.duration === "permanent" && effect.details?.followsCard === true) {
+        out.push({ kind: "seal", cardId: target.cardId });
+      }
+    }
+  }
+  return out;
+}
+
+function nexusOf(faces: CardFace[]): NexusRequirement | null {
+  const rubyfront = faces.find(face => face.kind === "rubyfront");
+  const nexusIndex = faces.findIndex(face => face.kind === "nexus");
+  if (!rubyfront || nexusIndex < 0) return null;
+  const requirement = (rubyfront.requirements as Loose | undefined)?.nexus as Loose | undefined;
+  if (!requirement || requirement.match !== "all") return null;
+  const conditions: NexusRequirement["conditions"] = [];
+  for (const condition of (Array.isArray(requirement.conditions) ? requirement.conditions : []) as Loose[]) {
+    if (condition?.type !== "controls_card" || condition.owner !== "controller" || !Number.isInteger(condition.min)) return null;
+    const filter = condition.filter as Loose | undefined;
+    // Un vincolo in più (RBF-023: «con un Oggetto assegnato») è una forma ignota.
+    if (!filter || filter.cardType !== "entity" || !Object.keys(filter).every(key => key === "cardType" || key === "race")) return null;
+    conditions.push({ count: condition.min, kind: "entity", race: typeof filter.race === "string" ? filter.race : null });
+  }
+  if (conditions.length === 0) return null;
+  const costs = (Array.isArray(requirement.flipCost) ? requirement.flipCost : []) as Loose[];
+  if (costs.length > 1) return null;
+  let discard: NexusRequirement["discard"] = null;
+  if (costs.length === 1) {
+    const cost = costs[0];
+    if (cost?.type !== "discard_card" || cost.count !== 1 || cost.target?.controller !== "controller") return null;
+    discard = { count: 1, kind: typeof cost.filter?.cardType === "string" ? cost.filter.cardType : null };
+  }
+  const recovery = faces[nexusIndex].stats?.healthRecovery;
+  return { face: nexusIndex, conditions, discard, recovery: Number.isInteger(recovery) ? (recovery as number) : null };
+}
+
 /** Il costo di schieramento del Rubyfront (§3.1): fisso, o un dado. */
 export interface Deployment {
   fixed: number | null;
@@ -624,6 +872,11 @@ export function cardStats(cardId: string): {
   attackReturns: EnterReturn[];
   attackDraws: AttackDraw[];
   attackForms: AttackForm[];
+  staticForms: StaticForm[];
+  resolveForms: ResolveForm[];
+  flipForms: FlipForm[];
+  nexus: NexusRequirement | null;
+  grantsWhileAssigned: { keywords: string[]; ifRace: string | null }[];
 } {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
@@ -642,6 +895,11 @@ export function cardStats(cardId: string): {
     attackReturns: enterReturnsOf(face, "on_attack"),
     attackDraws: attackDrawsOf(face),
     attackForms: attackFormsOf(card?.faces ?? []),
+    staticForms: staticFormsOf(card?.faces ?? []),
+    resolveForms: resolveFormsOf(card?.faces ?? []),
+    flipForms: flipFormsOf(card?.faces ?? []),
+    nexus: nexusOf(card?.faces ?? []),
+    grantsWhileAssigned: grantsWhileAssignedOf(card?.faces ?? []),
     enterLooks: enterLooksOf(face),
     enterControls: enterControlsOf(face),
     power: integer(face?.stats?.power),

@@ -547,3 +547,116 @@ describe("memoria degli inneschi e sguardo", () => {
     expect(rest.cards.d3.zone).toBe("deck");
   });
 });
+
+// Gli attrezzi di Eredità Perduta nel riduttore: Stasi, Contrattacco
+// concesso, esilio condizionato, bersaglio dichiarato, flip, sigillo.
+// Gemello: table_test.rb, «gli attrezzi di Eredità Perduta».
+describe("apply — Eredità Perduta", () => {
+  const field = (state: GameState, uid: string, owner: Seat, extra: Partial<CardInstance> = {}): CardInstance => {
+    const card: CardInstance = { uid, cardId: "X", owner, zone: "field", face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 1, ...extra };
+    state.cards[uid] = card;
+    return card;
+  };
+  const ref = { source: "m", event: "on_resolve" as const, entering: "m" };
+
+  it("empower stappa anche dalla Stasi e concede Contrattacco; il turno lo cancella", () => {
+    const state = newGame("a");
+    field(state, "e", "a", { tapped: true, stasis: true });
+    const next = apply(state, { t: "empower", uid: "e", counter: 1, untap: true, effect: ref });
+    expect(next.cards.e).toMatchObject({ tapped: false, counterBonus: 1 });
+    expect(next.cards.e.stasis).toBeUndefined();
+    expect(apply(next, { t: "turn", turn: 2, active: "b" }).cards.e.counterBonus).toBeUndefined();
+  });
+
+  it("la Stasi alla risoluzione: resta in campo tappata, e il turno non la stappa; refresh sì", () => {
+    const state = newGame("a");
+    field(state, "a1", "a");
+    field(state, "a2", "a");
+    field(state, "b1", "b", { facedown: true, coveredTurn: 1 });
+    field(state, "m1", "b");
+    state.declarations = [
+      { id: "a1", from: "a1", to: "rf-b", kind: "attack", seat: "a", order: 1 },
+      { id: "a2", from: "a2", to: "rf-b", kind: "attack", seat: "a", order: 2 },
+      { id: "b1", from: "b1", to: "a1", kind: "counter", seat: "b", order: 0 },
+      { id: "m1", from: "m1", to: "a2", kind: "block", seat: "b", order: 0 },
+    ];
+    const next = apply(state, { t: "resolve", seat: "a", battles: [
+      { attacker: "a1", blocker: "b1", kind: "counter", attackerDies: false, blockerDies: false, blockerStasis: true, damage: 0 },
+      { attacker: "a2", blocker: "m1", kind: "block", attackerDies: false, blockerDies: false, blockerSpent: true, damage: 0 },
+    ] });
+    expect(next.cards.b1).toMatchObject({ zone: "field", stasis: true, tapped: true, facedown: false });
+    expect(next.cards.b1.coveredTurn).toBeUndefined();
+    expect(next.cards.m1.zone).toBe("abisso");
+    const turned = apply(next, { t: "turn", turn: 2, active: "b" });
+    expect(turned.cards.b1.tapped).toBe(true);
+    const freed = apply(turned, { t: "refresh", seat: "b", roll: 17, extra: false, effect: { source: "b1", event: "on_attack", entering: "b1" } });
+    expect(freed.cards.b1.tapped).toBe(false);
+    expect(freed.cards.b1.stasis).toBeUndefined();
+  });
+
+  it("con più bloccanti l'attaccante muore una volta sola", () => {
+    const state = newGame("a");
+    field(state, "a1", "a");
+    field(state, "b1", "b");
+    field(state, "b2", "b");
+    state.declarations = [
+      { id: "a1", from: "a1", to: "rf-b", kind: "attack", seat: "a", order: 1 },
+      { id: "b1", from: "b1", to: "a1", kind: "block", seat: "b", order: 0 },
+      { id: "b2", from: "b2", to: "a1", kind: "block", seat: "b", order: 0 },
+    ];
+    const next = apply(state, { t: "resolve", seat: "a", battles: [
+      { attacker: "a1", blocker: "b1", kind: "block", attackerDies: true, blockerDies: true, damage: 0 },
+      { attacker: "a1", blocker: "b2", kind: "block", attackerDies: true, blockerDies: false, damage: 0 },
+    ] });
+    expect(zoneCards(next, "a", "abisso").map(c => c.uid)).toEqual(["a1"]);
+    expect(next.cards.b1.zone).toBe("abisso");
+    expect(next.cards.b2.zone).toBe("field");
+  });
+
+  it("l'esilio tiene la carta; la restituzione la riporta in gioco, o in Ritiro a Fronte pieno", () => {
+    const state = newGame("a");
+    field(state, "m", "a");
+    field(state, "b1", "b", { y: frontRowY("b") });
+    let next = apply(state, { t: "toZone", uid: "b1", zone: "abisso", heldBy: "m" });
+    expect(next.cards.b1).toMatchObject({ zone: "abisso", heldBy: "m" });
+    next = apply(next, { t: "release", uid: "b1", zone: "field", x: 442, y: frontRowY("b") });
+    expect(next.cards.b1).toMatchObject({ zone: "field", x: 442, y: frontRowY("b") });
+    expect(next.cards.b1.heldBy).toBeUndefined();
+    next = apply(next, { t: "toZone", uid: "b1", zone: "abisso", heldBy: "m" });
+    next = apply(next, { t: "release", uid: "b1", zone: "ritiro" });
+    expect(next.cards.b1.zone).toBe("ritiro");
+    // Uno spostamento qualunque scioglie la presa.
+    next = apply(next, { t: "toZone", uid: "b1", zone: "abisso", heldBy: "m" });
+    expect(apply(next, { t: "toZone", uid: "b1", zone: "hand" }).cards.b1.heldBy).toBeUndefined();
+  });
+
+  it("il flip scarta e recupera; il bersaglio dichiarato e il sigillo restano nello stato", () => {
+    let state = newGame("a");
+    field(state, "rf", "a");
+    field(state, "h", "a", { zone: "hand" });
+    field(state, "m", "a", { zone: "hand" });
+    state = { ...state, players: { ...state.players, a: { ...state.players.a, hp: 12 } } };
+    let next = apply(state, { t: "flip", uid: "rf", face: 1, discard: "h", recover: 5 });
+    expect(next.cards.rf.face).toBe(1);
+    expect(next.cards.h.zone).toBe("abisso");
+    expect(next.players.a.hp).toBe(17);
+    next = apply(next, { t: "player", seat: "a", patch: { sealed: ["RBF-012"] } });
+    expect(next.players.a.sealed).toEqual(["RBF-012"]);
+    next = apply(next, { t: "toZone", uid: "m", zone: "field", target: "x1" });
+    expect(next.cards.m.target).toBe("x1");
+    expect(apply(next, { t: "toZone", uid: "m", zone: "abisso" }).cards.m.target).toBeUndefined();
+  });
+
+  it("le chiavi degli inneschi delle Materie e del flip, come le consuma l'engine", () => {
+    expect(attackKey({ t: "look", seat: "a", count: 4, effect: ref })).toBe("m|on_resolve:look|m");
+    expect(attackKey({ t: "empower", uid: "u", power: 1, untap: true, effect: ref })).toBe("m|on_resolve:empower:u|m");
+    expect(attackKey({ t: "toZone", uid: "x", zone: "abisso", heldBy: "m", effect: ref })).toBe("m|on_resolve:exile|m");
+    expect(attackKey({ t: "toZone", uid: "x", zone: "abisso", effect: ref })).toBe("m|on_resolve:destroy|m");
+    expect(attackKey({ t: "toZone", uid: "x", zone: "ritiro", effect: ref })).toBe("m|on_resolve:move|m");
+    expect(attackKey({ t: "toZone", uid: "x", zone: "field", effect: ref })).toBe("m|on_resolve:deploy|m");
+    expect(attackKey({ t: "player", seat: "a", patch: { hp: 24 }, effect: ref })).toBe("m|on_resolve:heal|m");
+    const flip = { source: "rf", event: "on_flip" as const, entering: "rf" };
+    expect(attackKey({ t: "player", seat: "a", patch: { sealed: ["RBF-012"] }, effect: flip })).toBe("rf|on_flip:seal|rf");
+    expect(attackKey({ t: "toZone", uid: "r", zone: "abisso", effect: flip })).toBe("rf|on_flip:destroy|rf");
+  });
+});

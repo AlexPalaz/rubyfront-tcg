@@ -2357,4 +2357,445 @@ class EngineTest < Minitest::Test
     engine = scena([["r", "RAZZIA"], ["u1", "UMANO"]], b: [["b1", "AUROS"]], attacks: ["r"])
     assert_match(/turno precedente/, engine.judge({ "t" => "empower", "uid" => "b1", "restrict" => "block", "effect" => ref("r") })[:reason])
   end
+  # --- Eredità Perduta: statici, Stasi, blocco multiplo, Materie, Nexus ----------
+  #
+  # Le forme come le legge l'anagrafe dalle carte vere (card_index_test);
+  # qui la dogana, scenario per scenario, su un'anagrafe di prova.
+
+  EREDITA = {
+    "RAGAZZO" => { type: "entity", keywords: [], race: "human", power: 1, flux_cost: 1,
+                   static_forms: [{ kind: "self_power", amount: 1, while_attacking: true, requires_other: { type: "entity", race: "human" } }] },
+    "SIMULACRO" => { type: "entity", keywords: [], race: "simulacrum", power: 3, flux_cost: 4,
+                     static_forms: [{ kind: "self_power", amount: 1, per_other: { type: "entity", race: "human" } }] },
+    "SCUDO" => { type: "object", keywords: [], flux_cost: 2,
+                 static_forms: [{ kind: "bearer_power", amount: 1 }],
+                 grants_while_assigned: [{ keywords: ["stasis"], if_race: "human" }] },
+    "CINTURA" => { type: "object", keywords: [], flux_cost: 3,
+                   static_forms: [{ kind: "bearer_power", amount: 1, per: { type: "entity", race: "human" }, multi_block: true }] },
+    "UMANO" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 2, enables: [[{ type: "dynamic", max_grade: 2 }, { type: "destructive", max_grade: 2 }]] },
+    "PICCOLO" => { type: "entity", keywords: [], race: "human", power: 1, flux_cost: 1 },
+    "AUROS" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 2 },
+    "GROSSO" => { type: "entity", keywords: [], race: "auros", power: 4, counterattack: nil, flux_cost: 4 },
+    "SPINOSO" => { type: "entity", keywords: [], race: "human", power: 3, counterattack: 1, flux_cost: 3 },
+    "RUBINO" => { type: "rubyfront", keywords: [] },
+    "OBLIVHAL" => { type: "rubyfront", keywords: ["fury"], enables: [[], []],
+                    nexus: { face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 5 },
+                    flip_forms: [{ kind: "move", card_id: "RHEN", from: "field", to: "abisso" }, { kind: "seal", card_id: "RHEN" }] },
+    "RHEN" => { type: "entity", keywords: [], race: "human", power: 6, flux_cost: 6 },
+    "PERMANENTE" => { type: "matter", keywords: [], behavior: "permanent", flux_cost: 2, matter: { type: "dynamic", grade: 1 } },
+    "ATTRAZIONE" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 2, matter: { type: "dynamic", grade: 1 },
+                      resolve_forms: [{ kind: "look", count: 4, reveal: { type: "entity", race: "human" }, reveal_to: "hand", rest_to: "deck", show_up_to: 2 }] },
+    "FORMAZIONE" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 2, matter: { type: "dynamic", grade: 1 },
+                      resolve_forms: [{ kind: "empower", targets: "own_entity", race: "human", power: 1, untap: true }] },
+    "IMPATTO" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 1, matter: { type: "dynamic", grade: 1 },
+                   resolve_forms: [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: 2 }, to: "ritiro" }] },
+    "CAMPO" => { type: "matter", keywords: [], behavior: "permanent", flux_cost: 3, matter: { type: "destructive", grade: 1 },
+                 resolve_forms: [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }] },
+    "FORZA" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 3, matter: { type: "dynamic", grade: 2 },
+                 resolve_forms: [{ kind: "fortune", die: 20, gain: { on: [1, 6], amount: 4 }, deploy: { on: [7, 13], filter: { type: "entity", race: "human", max_cost: 2 } },
+                                   draw: { on: [14, 19], count: 1 }, all_on: [20, 20] }] },
+    "COORDINATO" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 4, matter: { type: "dynamic", grade: 2 },
+                      resolve_forms: [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, as_block: true, requires: { count: 3, race: "human" } }] },
+    "GIUDIZIO" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 5, matter: { type: "destructive", grade: 2 },
+                    resolve_forms: [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" } }] },
+  }.freeze
+
+  # Un tavolo di Eredità Perduta: le carte di A e di B (con zona ed extra)
+  # scese al turno 1, poi turno 3 di A in Preparazione, con 10 Flussi per
+  # posto. `attacks` dichiara il Fronte e gli attacchi di A.
+  def eredita(a, b: [], attacks: nil)
+    engine = Rubyfront::Engine.new(cards: EREDITA)
+    load = lambda do |seat, list|
+      cards = list.map.with_index do |(uid, id, extra), i|
+        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1236 : 172 }.merge(extra || {})
+      end
+      engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
+    end
+    load.call("a", a + [["rf-a", "RUBINO", { "y" => 1236 }]])
+    load.call("b", b + [["rf-b", "RUBINO", { "y" => 172 }]])
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    if attacks
+      fronte!(engine)
+      attacks.each_with_index do |uid, i|
+        verdict = engine.judge({ "t" => "declare", "declaration" => { "id" => uid, "from" => uid, "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => i + 1 } })
+        raise "attacco rifiutato: #{verdict[:reason]}" unless verdict[:ok]
+      end
+    end
+    engine
+  end
+
+  def blocco(engine, blocker, attacker, kind = "block", actor: "b")
+    engine.judge({ "t" => "declare", "declaration" => { "id" => blocker, "from" => blocker, "to" => attacker, "kind" => kind, "seat" => "b", "order" => 0 } }, actor: actor)
+  end
+
+  def res_ref(source)
+    { "source" => source, "event" => "on_resolve", "entering" => source }
+  end
+
+  def esito(attacker, blocker: nil, kind: "unblocked", attacker_dies: false, blocker_dies: false, damage: 0, stasis: false, spent: false)
+    battaglia(attacker, blocker: blocker, kind: kind, attacker_dies: attacker_dies, blocker_dies: blocker_dies, damage: damage)
+      .merge("blockerStasis" => stasis, "blockerSpent" => spent)
+  end
+
+  # --- §8.2: gli statici di Potenza (RBF-002, RBF-010, RBF-013, RBF-014) ---
+
+  def test_il_ragazzo_vale_2_in_attacco_solo_con_un_altro_umano
+    solo = eredita([["r", "RAGAZZO"], ["x", "AUROS"]], attacks: ["r"])
+    solo.judge({ "t" => "phase", "phase" => "reazione" })
+    assert_match(/non torna/, risolvi(solo, [esito("r", damage: 2)])[:reason])
+    assert risolvi(solo, [esito("r", damage: 1)])[:ok]
+    insieme = eredita([["r", "RAGAZZO"], ["u", "UMANO"]], attacks: ["r"])
+    insieme.judge({ "t" => "phase", "phase" => "reazione" })
+    assert_match(/non torna/, risolvi(insieme, [esito("r", damage: 1)])[:reason])
+    assert risolvi(insieme, [esito("r", damage: 2)])[:ok]
+  end
+
+  def test_il_ragazzo_in_difesa_resta_un_1
+    engine = eredita([["u", "UMANO"], ["r", "RAGAZZO"]], b: [["g", "GROSSO"]])
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    fronte!(engine)
+    engine.judge({ "t" => "declare", "declaration" => { "id" => "g", "from" => "g", "to" => "rf-a", "kind" => "attack", "seat" => "b", "order" => 1 } }, actor: "b")
+    engine.judge({ "t" => "phase", "phase" => "reazione" }, actor: "b")
+    assert engine.judge({ "t" => "declare", "declaration" => { "id" => "r", "from" => "r", "to" => "g", "kind" => "block", "seat" => "a", "order" => 0 } }, actor: "a")[:ok]
+    verdict = engine.judge({ "t" => "resolve", "seat" => "b", "battles" => [esito("g", blocker: "r", kind: "block", blocker_dies: true)] }, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_il_simulacro_conta_le_altre_entita_umane
+    engine = eredita([["s", "SIMULACRO"], ["u1", "UMANO"], ["u2", "UMANO"], ["x", "AUROS"]], attacks: ["s"])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert_match(/non torna/, risolvi(engine, [esito("s", damage: 3)])[:reason])
+    assert risolvi(engine, [esito("s", damage: 5)])[:ok], "3 più 2 Umani"
+  end
+
+  def test_gli_oggetti_danno_potenza_al_portatore
+    engine = eredita([["u", "UMANO"], ["p", "PICCOLO"], ["o", "SCUDO", { "assignedTo" => "u" }], ["c", "CINTURA", { "assignedTo" => "p" }]], attacks: %w[u p])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    # Scudo: 2 + 1. Cintura: 1 + 1 per ogni Umano sul Fronte (due, portatrice compresa).
+    assert risolvi(engine, [esito("u", damage: 3), esito("p", damage: 3)])[:ok]
+  end
+
+  def test_la_potenza_non_scende_sotto_zero
+    engine = eredita([["p", "PICCOLO"]], attacks: ["p"])
+    engine.observe({ "t" => "empower", "uid" => "p", "power" => -3, "effect" => { "source" => "p", "event" => "on_attack", "entering" => "p" } })
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert risolvi(engine, [esito("p", damage: 0)])[:ok]
+  end
+
+  # --- §8.1: la Stasi (RBF-013) --------------------------------------------
+
+  def test_la_stasi_salva_l_umano_che_blocca_e_non_l_auros
+    engine = eredita([["g", "GROSSO"], ["g2", "GROSSO"]], b: [["u", "UMANO"], ["x", "AUROS"], ["o", "SCUDO", { "assignedTo" => "u" }], ["o2", "SCUDO", { "assignedTo" => "x" }]], attacks: %w[g g2])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert blocco(engine, "u", "g")[:ok]
+    assert blocco(engine, "x", "g2")[:ok]
+    assert_match(/non torna/, risolvi(engine, [esito("g", blocker: "u", kind: "block", blocker_dies: true), esito("g2", blocker: "x", kind: "block", blocker_dies: true)])[:reason])
+    verdict = risolvi(engine, [esito("g", blocker: "u", kind: "block", stasis: true), esito("g2", blocker: "x", kind: "block", blocker_dies: true)])
+    assert verdict[:ok], verdict[:reason]
+    u = copia(engine).card("u")
+    assert_equal "field", u[:zone]
+    assert u[:stasis]
+    assert u[:tapped]
+    assert_equal "abisso", copia(engine).card("x")[:zone]
+  end
+
+  def test_in_stasi_non_si_stappa_non_si_ritira_e_un_effetto_la_libera
+    engine = eredita([["g", "GROSSO"]], b: [["u", "UMANO"], ["o", "SCUDO", { "assignedTo" => "u" }]], attacks: ["g"])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    blocco(engine, "u", "g")
+    assert risolvi(engine, [esito("g", blocker: "u", kind: "block", stasis: true)])[:ok]
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "b")
+    assert copia(engine).card("u")[:tapped], "tappata per sempre"
+    assert_match(/tappata/, engine.judge({ "t" => "toZone", "uid" => "u", "zone" => "ritiro" }, actor: "b")[:reason])
+    engine.observe({ "t" => "refresh", "seat" => "b", "roll" => 17, "extra" => false, "effect" => { "source" => "u", "event" => "on_attack", "entering" => "u" } })
+    refute copia(engine).card("u")[:tapped]
+    assert engine.judge({ "t" => "toZone", "uid" => "u", "zone" => "ritiro" }, actor: "b")[:ok]
+  end
+
+  def test_la_stasi_nel_contrattacco_sostituisce_la_copertura
+    engine = eredita([["g", "GROSSO"]], b: [["s", "SPINOSO"], ["o", "SCUDO", { "assignedTo" => "s" }]], attacks: ["g"])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    blocco(engine, "s", "g", "counter")
+    # 3 + 1 (Scudo) + 1 (Contrattacco) = 5 > 4: l'attaccante muore, nessuna Stasi.
+    assert risolvi(engine, [esito("g", blocker: "s", kind: "counter", attacker_dies: true)])[:ok]
+  end
+
+  # --- §8.2: il blocco multiplo (RBF-014) -------------------------------------
+
+  def test_la_cintura_apre_l_attaccante_a_piu_bloccanti
+    engine = eredita([["u", "UMANO"], ["c", "CINTURA", { "assignedTo" => "u" }], ["x", "AUROS"]], b: [["b1", "AUROS"], ["b2", "AUROS"], ["b3", "AUROS"]], attacks: %w[u x])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert blocco(engine, "b1", "u")[:ok]
+    assert blocco(engine, "b2", "u")[:ok], "la Cintura lo rende bloccabile da più Entità"
+    assert blocco(engine, "b3", "x")[:ok]
+    assert_match(/1 contro 1/, blocco(engine, "b3", "x")[:reason].to_s + engine.judge({ "t" => "declare", "declaration" => { "id" => "b3", "from" => "b3", "to" => "x", "kind" => "block", "seat" => "b", "order" => 0 } }, actor: "b")[:reason].to_s) if false
+    # Senza Cintura il secondo bloccante è fermato.
+    engine.judge({ "t" => "undeclare", "from" => "b3" }, actor: "b")
+    assert blocco(engine, "b3", "x")[:ok]
+    assert_match(/1 contro 1/, engine.judge({ "t" => "declare", "declaration" => { "id" => "b2", "from" => "b2", "to" => "x", "kind" => "block", "seat" => "b", "order" => 0 } }, actor: "b")[:reason])
+    # Ogni bloccante ha la sua battaglia: u vale 2 + 1 = 3 contro due Auros da 2.
+    battles = [esito("u", blocker: "b1", kind: "block", blocker_dies: true), esito("u", blocker: "b2", kind: "block", blocker_dies: true),
+               esito("x", blocker: "b3", kind: "block", attacker_dies: true, blocker_dies: true)]
+    verdict = risolvi(engine, battles)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "field", copia(engine).card("u")[:zone]
+    assert_equal "abisso", copia(engine).card("b2")[:zone]
+  end
+
+  # --- §7.2: le finestre delle Reattive ---------------------------------------
+
+  def gioca_carta(engine, uid, cost:, actor: "a", x: 2368, y: 1236, extra: {})
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y, "cost" => cost }.merge(extra), actor: actor)
+  end
+
+  def test_una_reattiva_si_gioca_prima_dell_ondata_da_entrambi_i_posti
+    engine = eredita([["u", "UMANO"], ["m", "FORMAZIONE", { "zone" => "hand" }]], b: [["v", "UMANO"], ["n", "FORMAZIONE", { "zone" => "hand" }]])
+    assert_match(/solo in Fase di Fronte/, gioca_carta(engine, "m", cost: 2)[:reason])
+    fronte!(engine)
+    assert gioca_carta(engine, "n", cost: 2, actor: "b", y: 172)[:ok], "la Pre-Fronte è dell'avversario"
+    assert gioca_carta(engine, "m", cost: 2)[:ok]
+  end
+
+  def test_a_ondata_dichiarata_non_si_iniziano_reattive_salvo_come_blocco
+    engine = eredita([["u", "UMANO"], ["m", "FORMAZIONE", { "zone" => "hand" }]],
+                     b: [["v", "UMANO"], ["v2", "UMANO"], ["v3", "UMANO"], ["n", "FORMAZIONE", { "zone" => "hand" }], ["c", "COORDINATO", { "zone" => "hand" }]], attacks: ["u"])
+    assert_match(/ondata dichiarata/, gioca_carta(engine, "m", cost: 2)[:reason])
+    assert_match(/ondata dichiarata/, gioca_carta(engine, "n", cost: 2, actor: "b", y: 172)[:reason])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert_match(/come blocco/, gioca_carta(engine, "n", cost: 2, actor: "b", y: 172)[:reason])
+    assert gioca_carta(engine, "c", cost: 4, actor: "b", y: 172)[:ok], "il difensore gioca la Reattiva come blocco"
+  end
+
+  # --- §7.2/§8.2: le Materie di Eredità Perduta alla risoluzione -------------
+
+  # RBF-015 — guarda le prime 4, un'Entità Umana in mano, le altre in fondo.
+  def test_l_attrazione_guarda_quattro_e_mostra_un_umano
+    # La Pesca del turno 3 prende «d0»: sotto restano d1, d2, d3.
+    engine = eredita([["u", "UMANO"], ["m", "ATTRAZIONE", { "zone" => "hand" }], ["d0", "AUROS", { "zone" => "deck", "order" => 0 }],
+                      ["d1", "AUROS", { "zone" => "deck", "order" => 1 }], ["d2", "UMANO", { "zone" => "deck", "order" => 2 }], ["d3", "UMANO", { "zone" => "deck", "order" => 5 }]])
+    assert gioca_carta(engine, "m", cost: 2)[:ok]
+    look = { "t" => "look", "seat" => "a", "count" => 4, "reveal" => "d2", "effect" => res_ref("m") }
+    assert_match(/prime 4/, engine.judge(look.merge("count" => 3))[:reason])
+    assert_match(/Entità Umana/, engine.judge(look.merge("reveal" => "d1"))[:reason])
+    verdict = engine.judge(look)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "hand", copia(engine).card("d2")[:zone]
+    assert_match(/già stato risolto/, engine.judge(look.merge("reveal" => "d3"))[:reason])
+  end
+
+  # RBF-016 — stappa un'Entità Umana che controlli: +1 Potenza.
+  def test_la_formazione_stappa_un_umano_e_lo_potenzia
+    engine = eredita([["u", "UMANO", { "tapped" => true }], ["u2", "UMANO", { "tapped" => true }], ["x", "AUROS", { "tapped" => true }], ["m", "FORMAZIONE", { "zone" => "hand" }]])
+    fronte!(engine)
+    assert gioca_carta(engine, "m", cost: 2)[:ok]
+    passo = { "t" => "empower", "uid" => "u", "power" => 1, "untap" => true, "effect" => res_ref("m") }
+    assert_match(/Entità Umana/, engine.judge(passo.merge("uid" => "x"))[:reason])
+    assert_match(/non lo dice/, engine.judge(passo.reject { |k, _| k == "untap" })[:reason])
+    assert_match(/Potenza in più è 1/, engine.judge(passo.merge("power" => 2))[:reason])
+    verdict = engine.judge(passo)
+    assert verdict[:ok], verdict[:reason]
+    u = copia(engine).card("u")
+    refute u[:tapped]
+    assert_equal 1, u[:power_bonus]
+    assert_match(/UN'Entità/, engine.judge(passo.merge("uid" => "u2"))[:reason])
+  end
+
+  # RBF-017 — un'Entità avversaria con costo 2 o inferiore nella Zona di Ritiro.
+  def test_l_impatto_manda_in_ritiro_solo_chi_costa_poco
+    engine = eredita([["u", "UMANO"], ["m", "IMPATTO", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["b2", "GROSSO"]])
+    assert gioca_carta(engine, "m", cost: 1)[:ok]
+    passo = { "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("m") }
+    assert_match(/2 o inferiore/, engine.judge(passo.merge("uid" => "b2"))[:reason])
+    assert_match(/avversario/, engine.judge(passo.merge("uid" => "u"))[:reason])
+    verdict = engine.judge(passo)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "ritiro", copia(engine).card("b1")[:zone]
+  end
+
+  # RBF-018 — un permanente avversario nell'Abisso, finché questa carta resta in gioco.
+  def test_il_campo_repulsivo_esilia_e_restituisce_quando_lascia_il_gioco
+    engine = eredita([["u", "UMANO"], ["m", "CAMPO", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["bm", "PERMANENTE"], ["bo", "SCUDO", { "assignedTo" => "b1" }]])
+    assert gioca_carta(engine, "m", cost: 3)[:ok]
+    passo = { "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "m", "effect" => res_ref("m") }
+    assert_match(/Entità o una Materia permanente/, engine.judge(passo.merge("uid" => "bo"))[:reason])
+    assert_match(/Entità o una Materia permanente/, engine.judge(passo.merge("uid" => "rf-b"))[:reason])
+    assert_match(/tenuto da questa carta/, engine.judge(passo.reject { |k, _| k == "heldBy" })[:reason])
+    verdict = engine.judge(passo)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", copia(engine).card("b1")[:zone]
+    assert_equal "abisso", copia(engine).card("bo")[:zone], "l'Oggetto la segue"
+    assert_match(/già stato risolto/, engine.judge(passo.merge("uid" => "bm"))[:reason])
+    assert_match(/resta nell'Abisso/, engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 })[:reason])
+    assert engine.judge({ "t" => "toZone", "uid" => "m", "zone" => "abisso" })[:ok]
+    ritorno = engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 })
+    assert ritorno[:ok], ritorno[:reason]
+    assert_equal "field", copia(engine).card("b1")[:zone]
+    assert_equal "abisso", copia(engine).card("bo")[:zone], "torna disarmata (§3.1)"
+  end
+
+  # RBF-019 — il d20 a fasce.
+  def test_la_forza_della_radura_segue_il_dado
+    engine = eredita([["u", "UMANO"], ["m", "FORZA", { "zone" => "hand" }], ["h", "PICCOLO", { "zone" => "hand" }], ["g", "GROSSO", { "zone" => "hand" }], ["d", "AUROS", { "zone" => "deck" }]])
+    assert gioca_carta(engine, "m", cost: 3)[:ok]
+    cura = { "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 3, "effect" => res_ref("m") }
+    pesca = { "t" => "draw", "seat" => "a", "count" => 1, "roll" => 3, "effect" => res_ref("m") }
+    scesa = { "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 821, "y" => 1236, "roll" => 3, "effect" => res_ref("m") }
+    assert_match(/non si pesca/, engine.judge(pesca)[:reason])
+    assert_match(/nessuno scende/, engine.judge(scesa)[:reason])
+    assert_match(/tiro valido/, engine.judge(cura.merge("roll" => 21))[:reason])
+    assert engine.judge(cura)[:ok]
+    assert_equal 24, copia(engine).hp("a")
+    assert_match(/tira una volta/, engine.judge(pesca.merge("roll" => 15))[:reason], "il tiro è fissato dal primo passo")
+    assert_match(/già stato risolto/, engine.judge(cura.merge("patch" => { "hp" => 28 }))[:reason])
+  end
+
+  def test_con_20_la_forza_fa_tutte_e_tre_le_cose
+    engine = eredita([["u", "UMANO"], ["m", "FORZA", { "zone" => "hand" }], ["h", "PICCOLO", { "zone" => "hand" }], ["g", "GROSSO", { "zone" => "hand" }], ["d", "AUROS", { "zone" => "deck" }]])
+    assert gioca_carta(engine, "m", cost: 3)[:ok]
+    assert engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 20, "effect" => res_ref("m") })[:ok]
+    assert engine.judge({ "t" => "draw", "seat" => "a", "count" => 1, "roll" => 20, "effect" => res_ref("m") })[:ok]
+    scesa = { "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 821, "y" => 1236, "roll" => 20, "effect" => res_ref("m") }
+    assert_match(/2 o inferiore/, engine.judge(scesa.merge("uid" => "g"))[:reason])
+    assert_match(/senza pagarne/, engine.judge(scesa.merge("cost" => 1))[:reason])
+    verdict = engine.judge(scesa)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "field", copia(engine).card("h")[:zone]
+    assert_equal 7, copia(engine).flux("a"), "gratis: pagata solo la Materia"
+  end
+
+  # RBF-020 — giocata come blocco: con 3 Umani, stappa gli Umani, Contrattacco +1.
+  def test_il_contrattacco_coordinato_blocca_e_potenzia_gli_umani
+    engine = eredita([["g", "GROSSO"], ["g2", "GROSSO"]],
+                     b: [["v1", "UMANO", { "tapped" => true }], ["v2", "UMANO", { "tapped" => true }], ["v3", "SPINOSO"], ["c", "COORDINATO", { "zone" => "hand" }]], attacks: %w[g g2])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert gioca_carta(engine, "c", cost: 4, actor: "b", y: 172)[:ok]
+    passo = { "t" => "empower", "uid" => "v1", "counter" => 1, "untap" => true, "effect" => res_ref("c") }
+    assert_match(/prima si dichiara il blocco/, engine.judge(passo, actor: "b")[:reason])
+    assert_match(/niente da bloccare/, blocco(engine, "c", "v1")[:reason])
+    assert blocco(engine, "c", "g")[:ok], "la Reattiva sostituisce il bloccante"
+    assert_match(/non contrattacca|solo le Entità/, blocco(engine, "c", "g2", "counter")[:reason])
+    %w[v1 v2 v3].each do |uid|
+      verdict = engine.judge(passo.merge("uid" => uid), actor: "b")
+      assert verdict[:ok], verdict[:reason]
+    end
+    assert_match(/già stato risolto/, engine.judge(passo, actor: "b")[:reason])
+    tavolo = copia(engine)
+    refute tavolo.card("v1")[:tapped]
+    assert_equal 1, tavolo.card("v3")[:counter_bonus]
+    # Ora v3 contrattacca g2: 3 + 1 + 1 = 5 > 4.
+    assert blocco(engine, "v3", "g2", "counter")[:ok]
+    battles = [esito("g", blocker: "c", kind: "block", spent: true), esito("g2", blocker: "v3", kind: "counter", attacker_dies: true)]
+    verdict = risolvi(engine, battles)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", tavolo.card("c")[:zone], "la Reattiva si consuma"
+    assert_equal "abisso", tavolo.card("g2")[:zone]
+    assert_equal 20, tavolo.hp("b"), "bloccato: niente danni"
+  end
+
+  def test_il_contrattacco_coordinato_vuole_tre_umani
+    engine = eredita([["g", "GROSSO"]], b: [["v1", "UMANO"], ["v2", "UMANO"], ["c", "COORDINATO", { "zone" => "hand" }]], attacks: %w[g])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert gioca_carta(engine, "c", cost: 4, actor: "b", y: 172)[:ok]
+    assert blocco(engine, "c", "g")[:ok]
+    assert_match(/almeno 3 Entità Umane/, engine.judge({ "t" => "empower", "uid" => "v1", "counter" => 1, "untap" => true, "effect" => res_ref("c") }, actor: "b")[:reason])
+  end
+
+  # RBF-021 — distruggi un'Entità; contro una tappata costa 3 in meno.
+  def test_il_giudizio_cremisi_sconta_contro_la_tappata_e_colpisce_lei
+    engine = eredita([["u", "UMANO"], ["m", "GIUDIZIO", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["b2", "GROSSO"]])
+    # Tappata ORA (il cambio di turno l'aveva stappata).
+    engine.observe({ "t" => "tap", "uid" => "b1", "tapped" => true })
+    fronte!(engine)
+    assert_match(/costa 2 di Flusso/, gioca_carta(engine, "m", cost: 5, extra: { "target" => "b1" })[:reason])
+    assert_match(/costa 5 di Flusso/, gioca_carta(engine, "m", cost: 2, extra: { "target" => "b2" })[:reason], "lo sconto vale solo contro una tappata")
+    assert gioca_carta(engine, "m", cost: 2, extra: { "target" => "b1" })[:ok]
+    assert_equal 8, copia(engine).flux("a")
+    passo = { "t" => "toZone", "uid" => "b2", "zone" => "abisso", "effect" => res_ref("m") }
+    assert_match(/altro bersaglio/, engine.judge(passo)[:reason])
+    verdict = engine.judge(passo.merge("uid" => "b1"))
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", copia(engine).card("b1")[:zone]
+  end
+
+  def test_il_giudizio_cremisi_senza_bersaglio_dichiarato_costa_pieno_e_colpisce_chiunque
+    engine = eredita([["u", "UMANO"], ["m", "GIUDIZIO", { "zone" => "hand" }]], b: [["b1", "AUROS"]])
+    engine.observe({ "t" => "tap", "uid" => "b1", "tapped" => true })
+    fronte!(engine)
+    assert gioca_carta(engine, "m", cost: 5)[:ok]
+    verdict = engine.judge({ "t" => "toZone", "uid" => "u", "zone" => "abisso", "effect" => res_ref("m") })
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_una_materia_risolta_in_un_altro_turno_o_ignota_tace
+    engine = eredita([["u", "UMANO"], ["m", "IMPATTO"]], b: [["b1", "AUROS"]])
+    assert_match(/non è scesa in campo questo turno/, engine.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("m") })[:reason])
+    ignota = eredita([["u", "UMANO"], ["z", "IGNOTA"]], b: [["b1", "AUROS"]])
+    refute ignota.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("z") })[:ruled]
+  end
+
+  # --- §3.1: il Nexus — il flip e «quando flippa» (RBF-001) ------------------
+
+  def nexus_pronto(humans: 4, hand: [["h", "AUROS", { "zone" => "hand" }]], y: 1236)
+    mine = (1..humans).map { |i| ["u#{i}", "UMANO"] } + [["rhen", "RHEN"], ["rf", "OBLIVHAL", { "y" => y }]] + hand + [["rhen2", "RHEN", { "zone" => "hand" }]]
+    eredita(mine)
+  end
+
+  def flip(engine, discard: "h", recover: 5, face: 1, actor: "a")
+    engine.judge({ "t" => "flip", "uid" => "rf", "face" => face, "discard" => discard, "recover" => recover }, actor: actor)
+  end
+
+  def test_il_flip_vuole_quattro_umani_lo_scarto_e_il_recupero_giusto
+    assert_match(/almeno 4 Entità Umane.*ne hai 3/, flip(nexus_pronto(humans: 2))[:reason])
+    engine = nexus_pronto
+    assert_match(/scartare una carta Entità/, flip(engine, discard: nil)[:reason])
+    assert_match(/scartare una carta Entità/, flip(engine, discard: "u1")[:reason], "dalla mano")
+    assert_match(/recupera 5 PV, non 0/, flip(engine, recover: nil)[:reason])
+    assert_match(/Zona di Richiamo/, flip(nexus_pronto(y: 1756))[:reason])
+    assert_match(/non tocca a te/, flip(engine, actor: "b")[:reason])
+    verdict = flip(engine)
+    assert verdict[:ok], verdict[:reason]
+    tavolo = copia(engine)
+    assert_equal 1, tavolo.card("rf")[:face]
+    assert_equal 25, tavolo.hp("a")
+    assert_equal "abisso", tavolo.card("h")[:zone]
+    assert_match(/non si torna al Rubyfront/, flip(engine, face: 0)[:reason])
+  end
+
+  def test_il_flip_si_fa_in_preparazione_o_al_fronte_non_in_reazione
+    engine = nexus_pronto
+    fronte!(engine)
+    engine.judge({ "t" => "declare", "declaration" => { "id" => "u1", "from" => "u1", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } })
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert_match(/dalla Preparazione al Fronte/, flip(engine)[:reason])
+  end
+
+  def test_quando_flippa_rhen_va_nell_abisso_e_non_si_gioca_piu
+    engine = nexus_pronto
+    ref = { "source" => "rf", "event" => "on_flip", "entering" => "rf" }
+    via = { "t" => "toZone", "uid" => "rhen", "zone" => "abisso", "effect" => ref }
+    assert_match(/flippato questo turno/, engine.judge(via)[:reason])
+    assert flip(engine)[:ok]
+    assert_match(/dal proprio Fronte/, engine.judge(via.merge("uid" => "u1"))[:reason])
+    verdict = engine.judge(via)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", copia(engine).card("rhen")[:zone]
+    assert_match(/già stato risolto/, engine.judge(via)[:reason])
+    sigillo = { "t" => "player", "seat" => "a", "patch" => { "sealed" => ["RHEN"] }, "effect" => ref }
+    assert_match(/aggiunge RHEN/, engine.judge(sigillo.merge("patch" => { "sealed" => ["RHEN", "UMANO"] }))[:reason])
+    assert engine.judge(sigillo)[:ok]
+    assert copia(engine).sealed?("a", "RHEN")
+    assert_match(/non si può più giocare/, engine.judge({ "t" => "toZone", "uid" => "rhen2", "zone" => "field", "x" => 442, "y" => 1236, "cost" => 6 })[:reason])
+    # Il turno dopo il flip è passato: l'innesco non si riscalda.
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
+    assert_match(/flippato questo turno/, engine.judge(via.merge("uid" => "u2"))[:reason])
+  end
+
+  def test_un_rubyfront_senza_requisito_certificato_flippa_a_mano
+    engine = eredita([["rf", "RUBINO", { "y" => 1236 }]])
+    refute engine.judge({ "t" => "flip", "uid" => "rf", "face" => 1 })[:ruled]
+  end
+
 end
