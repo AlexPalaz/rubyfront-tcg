@@ -2,6 +2,7 @@
 // cambio di turno porta con sé — Flusso nuovo, stappata, frecce sgomberate —
 // sta nel riduttore (state.ts, `turn`): qui si dichiara e si racconta.
 
+import { msg, t, type LogMsg } from "./i18n.js";
 import { describeBattle, resolveWave } from "./combat.js";
 import { releaseControlled } from "./effects.js";
 import type { Ctx } from "./ctx.js";
@@ -46,14 +47,19 @@ export function loserByDeck(state: GameState): Seat | null {
 
 /** La riga in chat della fine, e cosa dice l'insegna. */
 export function describeGameOver(state: GameState, over: GameOver, me?: Seat): { title: string; detail: string } {
+  const { title, detail } = gameOverMsg(over, me);
+  return { title: t(title.key, { name: over.winner ? seatLabel(state, over.winner, me) : "" }), detail: t(detail.key) };
+}
+
+/** Le stesse due righe come chiavi, per la chat (ognuno le legge nella sua lingua). */
+export function gameOverMsg(over: GameOver, me?: Seat): { title: LogMsg; detail: LogMsg } {
   const title =
-    over.winner === null ? "Pareggio" : over.winner === me ? "Hai vinto" : `Vittoria di ${seatLabel(state, over.winner, me)}`;
-  const detail =
-    over.reason === "hp"
-      ? "PV del Rubyfront a zero (§2)"
-      : over.reason === "deck"
-        ? "mazzo esaurito (§9.1)"
-        : "PV a zero per entrambi (§9.2)";
+    over.winner === null
+      ? msg("over.draw")
+      : over.winner === me
+        ? msg("over.won")
+        : msg("over.victory", { name: msg("seat.name", { seat: over.winner }) });
+  const detail = msg(over.reason === "hp" ? "over.hp" : over.reason === "deck" ? "over.deck" : "over.both");
   return { title, detail };
 }
 
@@ -67,7 +73,7 @@ export async function declareFront(ctx: Ctx): Promise<void> {
   const state = ctx.state();
   if (state.phase !== "preparazione") return;
   if (!(await ctx.dispatch({ t: "phase", phase: "fronte" }))) return;
-  ctx.log(`${seatLabel(ctx.state(), state.active)} dichiara la Fase di Fronte.`, state.active);
+  ctx.log(msg("log.front", { seat: state.active }), state.active);
 }
 
 /**
@@ -79,7 +85,7 @@ export async function declareReaction(ctx: Ctx): Promise<void> {
   const state = ctx.state();
   if (state.phase !== "fronte") return;
   if (!(await ctx.dispatch({ t: "phase", phase: "reazione" }))) return;
-  ctx.log(`${seatLabel(ctx.state(), state.active)} passa al difensore: Fase di Reazione.`, state.active);
+  ctx.log(msg("log.reaction", { seat: state.active }), state.active);
 }
 
 /**
@@ -110,19 +116,16 @@ export async function resolveCombat(ctx: Ctx): Promise<boolean> {
   const state = ctx.state();
   const battles = resolveWave(state, state.active, ctx.card);
   if (battles === null) {
-    ctx.log("Risoluzione a mano: a qualche carta manca la Potenza nel catalogo.", state.active);
+    ctx.log(msg("log.resolve.manual"), state.active);
     return true;
   }
   if (!(await ctx.dispatch({ t: "resolve", seat: state.active, battles }))) return false;
-  const name = (uid: string): string => {
-    const card = state.cards[uid];
-    return card ? `«${ctx.card(card.cardId).name}»` : uid;
-  };
-  battles.forEach((battle, index) => ctx.log(describeBattle(battle, index + 1, name), state.active));
+  const cardId = (uid: string): string => state.cards[uid]?.cardId ?? uid;
+  battles.forEach((battle, index) => ctx.log(describeBattle(battle, index + 1, cardId), state.active));
   const foe = otherSeat(state.active);
   const damage = battles.reduce((sum, battle) => sum + battle.damage, 0);
   if (damage > 0) {
-    ctx.log(`${seatLabel(ctx.state(), foe)} subisce ${damage} danni (PV ${ctx.state().players[foe].hp}).`, foe);
+    ctx.log(msg("log.damage", { seat: foe, damage, hp: ctx.state().players[foe].hp }), foe);
   }
   return true;
 }
@@ -137,8 +140,8 @@ export async function endTurn(ctx: Ctx): Promise<void> {
   if (loser) {
     const over: GameOver = { winner: otherSeat(loser), reason: "deck" };
     if (!(await ctx.dispatch({ t: "gameOver", ...over }))) return;
-    const { title, detail } = describeGameOver(ctx.state(), over);
-    ctx.log(`${title}: ${seatLabel(ctx.state(), loser)} ha esaurito il mazzo — ${detail}.`, over.winner);
+    const { title, detail } = gameOverMsg(over);
+    ctx.log(msg("log.deckout", { title, seat: loser, detail }), over.winner);
     return;
   }
   // Il cambio di turno passa dal giudizio dell'engine (§6.5: mano massima 7
@@ -146,7 +149,7 @@ export async function endTurn(ctx: Ctx): Promise<void> {
   // apparecchiato il turno di chi entra (Flusso, stappata, frecce).
   if (!(await ctx.dispatch({ t: "turn", turn: state.turn + 1, active: next }))) return;
   const player = ctx.state().players[next];
-  ctx.log(`Turno ${state.turn + 1} — tocca a ${seatLabel(ctx.state(), next)} (Flusso ${player.flux}/${player.fluxMax}).`, next);
+  ctx.log(msg("log.turn", { turn: state.turn + 1, seat: next, flux: player.flux, max: player.fluxMax }), next);
   // §8.2 — le carte che chi chiude controllava tornano al proprietario.
   await releaseControlled(ctx, state.active, freeFrontSlotOrNull);
 }

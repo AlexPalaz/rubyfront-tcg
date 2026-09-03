@@ -1,6 +1,7 @@
 // L'interprete degli effetti (§8.2), la forma di RBF-003: chi si innesca
 // all'ingresso e come si risolve. Gemello: engine_test.rb, sezione §8.2.
 
+import { renderLog } from "../src/log.js";
 import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
 import {
@@ -116,7 +117,7 @@ describe("resolveEnter", () => {
       locale: () => "it",
       card: facts,
       log(text) {
-        logs.push(text);
+        logs.push(typeof text === "string" ? text : renderLog(text, ctx.state(), id => id));
       },
     };
     return { ctx, sent, logs };

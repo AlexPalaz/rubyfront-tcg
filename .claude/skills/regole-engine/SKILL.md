@@ -89,7 +89,10 @@ con `cost` non è un pixel: è lo schieramento.
    esistente, nell'ordine delle dogane già lì (attore → partita finita →
    tipo → fase → costo → abilitazione → forma). Voce in `RULES` («§x.y Cosa
    dice, in poche parole»), `VERSION` +0.1.0. Ogni `refuse` con una frase
-   che un giocatore capisce e il § in coda.
+   che un giocatore capisce e il § in coda — **in due lingue**:
+   `refuse(kind, italiano, inglese)`, stessa targhetta «(§x.y, …)» in
+   entrambe (il test `nessun_rifiuto_resta_senza_inglese` lo pretende); le
+   parole interpolate hanno la gemella `_en`.
 5. **Il client**: solo se serve un gesto nuovo o un dato nell'azione. Con
    l'arbitro i gesti manuali che la regola rende inutili si ritirano
    (`ctx.arbitrated()`); a engine spento il tavolo resta libero. Un gesto
@@ -116,7 +119,13 @@ con `cost` non è un pixel: è lo schieramento.
 
 ## Convenzioni
 
-- Italiano ovunque, nomi del manuale (Entità, Fronte, Zona di Ritiro, Zona di
+- Il simulatore è bilingue (inglese prima): ogni scritta passa da `t("chiave")`
+  in `simulatore/src/i18n.ts`, le righe di chat viaggiano come chiave e
+  parametri (`ctx.log(msg("log.x", { seat, card: cardId }))`, resa in
+  `log.ts` nella lingua di chi legge: `seat`/`otherSeat` → nome del posto,
+  `card`/`*Card` → nome dal catalogo), i motivi dell'engine hanno
+  `reason_en`. Mai una frase italiana nuda nel codice del client.
+- Italiano ovunque nel codice e nei commenti, nomi del manuale (Entità, Fronte, Zona di Ritiro, Zona di
   Richiamo, Abisso, Materia, Flusso, Gettone, Rubyfront, Nexus). Commenti che
   spiegano il perché e citano il §.
 - Il posto attivo è `active`; le fasi `preparazione | fronte | reazione`;
@@ -154,7 +163,8 @@ con `cost` non è un pixel: è lo schieramento.
 - [ ] Il § letto per intero; il manuale aggiornato se la decisione lo cambia.
 - [ ] Anagrafe e `cardStats` leggono lo stesso campo, con test sulle carte vere.
 - [ ] Riduttore e copia contano allo stesso modo, test speculari nei due mondi.
-- [ ] `RULES`, `VERSION`, `refuse` con § in coda, silenzio sull'ignoto.
+- [ ] `RULES`, `VERSION`, `refuse` con § in coda **e la frase inglese**, silenzio sull'ignoto.
+- [ ] Nessuna scritta nuda nel client: chiavi in `i18n.ts` (it + en), chat a chiavi.
 - [ ] Dogana del turno: la regola passa dalle sue eccezioni se serve.
 - [ ] README: paragrafo con limiti dichiarati e regola d'oro; debiti vecchi aggiornati.
 - [ ] Ruby, tsc, vitest, build verdi; pipeline riavviata; commit + build a parte.

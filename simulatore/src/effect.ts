@@ -11,6 +11,7 @@
 // Così chi legge non ferma nessuno e chi gioca non aspetta nessuno. Con
 // prefers-reduced-motion la carta non pulsa.
 
+import { t } from "./i18n.js";
 import { fitTexts, renderFace } from "./renderer.js";
 
 export interface EnterEffectShow {
@@ -74,7 +75,7 @@ function showEnterEffectNow(root: HTMLElement, show: EnterEffectShow): Promise<v
   side.className = "effect-side";
   const kicker = document.createElement("div");
   kicker.className = "effect-kicker";
-  kicker.textContent = show.kicker ?? (show.effects.length ? "Quando entra in campo" : "Entra in campo");
+  kicker.textContent = show.kicker ?? t(show.effects.length ? "scene.enter.effect" : "scene.enter");
   const who = document.createElement("div");
   who.className = "effect-who";
   who.textContent = show.who;
@@ -95,7 +96,7 @@ function showEnterEffectNow(root: HTMLElement, show: EnterEffectShow): Promise<v
     block.className = "effect-text is-trigger";
     const tag = document.createElement("span");
     tag.className = "effect-tag";
-    tag.textContent = "Si innesca";
+    tag.textContent = t("scene.triggers");
     const text = document.createElement("p");
     text.textContent = line;
     block.append(tag, text);
@@ -104,7 +105,7 @@ function showEnterEffectNow(root: HTMLElement, show: EnterEffectShow): Promise<v
   const go = document.createElement("button");
   go.type = "button";
   go.className = "effect-go";
-  go.textContent = show.triggers?.length ? "Risolvi" : "Continua";
+  go.textContent = t(show.triggers?.length ? "scene.resolve" : "scene.continue");
   side.append(go);
 
   stage.append(card, side);
@@ -166,7 +167,7 @@ function showEnterPeekNow(root: HTMLElement, show: EnterEffectShow): Promise<voi
   side.className = "effect-side";
   const kicker = document.createElement("div");
   kicker.className = "effect-kicker";
-  kicker.textContent = show.kicker ?? (show.effects.length ? "Quando entra in campo" : "Entra in campo");
+  kicker.textContent = show.kicker ?? t(show.effects.length ? "scene.enter.effect" : "scene.enter");
   const who = document.createElement("div");
   who.className = "effect-who";
   who.textContent = show.who;
@@ -215,11 +216,11 @@ export function confirmEffect(root: HTMLElement, question: string): Promise<bool
   const no = document.createElement("button");
   no.type = "button";
   no.className = "effect-confirm-no";
-  no.textContent = "Annulla";
+  no.textContent = t("confirm.no");
   const yes = document.createElement("button");
   yes.type = "button";
   yes.className = "effect-go";
-  yes.textContent = "Conferma";
+  yes.textContent = t("confirm.yes");
   row.append(no, yes);
   panel.append(text, row);
   veil.append(panel);

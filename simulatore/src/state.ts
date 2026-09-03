@@ -5,6 +5,7 @@
 // un arbitro. L'unica cosa che garantisce è che due client che partono dallo
 // stesso stato e applicano le stesse azioni finiscano identici.
 
+import { t } from "./i18n.js";
 import { CONTROL_X, FRONT_SLOT_X, MATTER_X, SURFACE_W, TILE_W, backRowY, frontRowY } from "./ctx.js";
 import type { Action, CardInstance, Declaration, GameState, PlayerState, Seat, ZoneId } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
@@ -576,8 +577,8 @@ export function seatLabel(state: GameState, seat: Seat, me?: Seat): string {
   // Dall'altro lato del tavolo un posto vuoto non è un «Giocatore»
   // fantasma: è un'attesa. Il proprio posto invece resta Giocatore A/B
   // (dire a me stesso che sono in attesa non avrebbe senso).
-  if (seat !== me && me !== undefined && seatWaiting(state, seat)) return "In attesa…";
-  return seat === "a" ? "Giocatore A" : "Giocatore B";
+  if (seat !== me && me !== undefined && seatWaiting(state, seat)) return t("seat.waiting");
+  return t(seat === "a" ? "seat.a" : "seat.b");
 }
 
 export { SEATS };

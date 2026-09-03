@@ -5,6 +5,7 @@
 // nell'Abisso o in Zona di Ritiro, che sono pubblici (§5). Le carte restano
 // 302×424 come ovunque, e il passaggio del mouse le ingrandisce.
 
+import { msg, t } from "./i18n.js";
 import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js";
 import type { Ctx } from "./ctx.js";
 import { openMenu } from "./menu.js";
@@ -13,9 +14,9 @@ import { playSpot, seatLabel, shuffled, zoneCards } from "./state.js";
 import type { CardInstance, Seat, ZoneId } from "./types.js";
 
 const TITLES: Record<string, string> = {
-  deck: "Cerca nel mazzo",
-  abisso: "Abisso",
-  ritiro: "Zona di Ritiro",
+  deck: "overlay.deck",
+  abisso: "zone.abisso",
+  ritiro: "zone.ritiro.full",
 };
 
 export interface Overlay {
@@ -41,7 +42,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
   const title = document.createElement("h2");
   const search = document.createElement("input");
   search.type = "search";
-  search.placeholder = "Filtra per nome o testo…";
+  search.placeholder = t("overlay.filter");
   search.className = "overlay-search";
 
   const shuffleAfter = document.createElement("label");
@@ -54,7 +55,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
   const close = document.createElement("button");
   close.type = "button";
   close.className = "overlay-close";
-  close.textContent = "Chiudi";
+  close.textContent = t("overlay.close");
 
   head.append(title, search, shuffleAfter, close);
 
@@ -63,7 +64,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
 
   const empty = document.createElement("p");
   empty.className = "overlay-empty";
-  empty.textContent = "Nessuna carta.";
+  empty.textContent = t("overlay.empty");
 
   panel.append(head, grid, empty);
   host.append(panel);
@@ -91,7 +92,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       return;
     }
     const cards = zoneCards(state, currentSeat, currentZone).filter(card => matches(card.cardId));
-    title.textContent = `${TITLES[currentZone] ?? currentZone} · ${seatLabel(state, currentSeat)}`;
+    title.textContent = t("overlay.title", { zone: t(TITLES[currentZone] ?? currentZone), name: seatLabel(state, currentSeat) });
     empty.hidden = cards.length > 0;
 
     grid.replaceChildren();
@@ -106,17 +107,17 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       tile.addEventListener("click", () => {
         ctx.dispatch({ t: "toZone", uid: card.uid, zone: "hand" });
         touched = true;
-        ctx.log(`${seatLabel(ctx.state(), currentSeat)} prende una carta da ${TITLES[currentZone] ?? currentZone}.`, currentSeat);
+        ctx.log(msg("log.take", { seat: currentSeat, zone: msg(TITLES[currentZone] ?? currentZone) }), currentSeat);
         paint();
         afterChange();
       });
       tile.addEventListener("contextmenu", event => {
         event.preventDefault();
         openMenu(event.clientX, event.clientY, [
-          { label: "In mano", run: () => move(card.uid, "hand") },
-          { label: "Sul Fronte", run: () => move(card.uid, "field") },
-          { label: "Nell'Abisso", run: () => move(card.uid, "abisso"), disabled: currentZone === "abisso" },
-          { label: "In Zona di Ritiro", run: () => move(card.uid, "ritiro"), disabled: currentZone === "ritiro" },
+          { label: t("menu.to.hand"), run: () => move(card.uid, "hand") },
+          { label: t("menu.to.field"), run: () => move(card.uid, "field") },
+          { label: t("menu.to.abisso"), run: () => move(card.uid, "abisso"), disabled: currentZone === "abisso" },
+          { label: t("menu.to.ritiro"), run: () => move(card.uid, "ritiro"), disabled: currentZone === "ritiro" },
         ]);
       });
       wrapper.append(tile);
@@ -163,7 +164,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
   function paintCatalog(matches: (cardId: string) => boolean): void {
     const state = ctx.state();
     const entries = allCards().filter(entry => !isRubyfront(entry.id) && matches(entry.id));
-    title.textContent = `Catalogo · evoca in mano a ${seatLabel(state, currentSeat)} (prova)`;
+    title.textContent = t("overlay.catalog", { name: seatLabel(state, currentSeat) });
     empty.hidden = entries.length > 0;
     grid.replaceChildren();
     for (const entry of entries) {
@@ -188,7 +189,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       tile.addEventListener("click", () => {
         const card: CardInstance = { ...ghost, uid: crypto.randomUUID() };
         void ctx.dispatch({ t: "spawn", card });
-        ctx.log(`${seatLabel(ctx.state(), currentSeat)} evoca in mano «${entry.id}» (prova).`, currentSeat);
+        ctx.log(msg("log.spawn", { seat: currentSeat, id: entry.id }), currentSeat);
         afterChange();
       });
       wrapper.append(tile);
@@ -228,7 +229,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
     if (!catalogMode && currentZone === "deck" && touched && shuffleBox.checked) {
       const order = shuffled(zoneCards(ctx.state(), currentSeat, "deck").map(card => card.uid));
       ctx.dispatch({ t: "shuffle", seat: currentSeat, order });
-      ctx.log(`${seatLabel(ctx.state(), currentSeat)} rimescola dopo la ricerca.`, currentSeat);
+      ctx.log(msg("log.reshuffle", { seat: currentSeat }), currentSeat);
       afterChange();
     }
     touched = false;

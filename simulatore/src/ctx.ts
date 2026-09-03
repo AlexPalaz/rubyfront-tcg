@@ -6,6 +6,7 @@
 // Rubyfront in Zona di Richiamo, la ricerca per mandare una carta sul Fronte):
 // se le misure si sparpagliassero, le zone e le carte finirebbero disallineate.
 
+import type { LogMsg } from "./i18n.js";
 import type { Action, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -132,7 +133,7 @@ export interface Ctx {
   card(cardId: string): CardFacts;
   /** Riga di servizio in chat (dadi, mescola, pesca). Il posto di chi agisce
       colora la riga: si deve vedere a colpo d'occhio chi fa cosa. */
-  log(text: string, seat?: Seat | null): void;
+  log(text: string | LogMsg, seat?: Seat | null): void;
 }
 
 export const TILE_W = 302;

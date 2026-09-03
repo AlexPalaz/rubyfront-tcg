@@ -8,8 +8,9 @@
 // forma certificata e la lascia passare come effetto, una volta per
 // ingresso. Tutto ciò che non ha una forma certificata resta a mano.
 
+import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
 import type { CardFacts, Ctx, EnterLook } from "./ctx.js";
-import { controllerOf, fieldCards, playSpot, seatLabel, zoneCards } from "./state.js";
+import { controllerOf, fieldCards, playSpot, zoneCards } from "./state.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
 export interface EnterTrigger {
@@ -75,7 +76,7 @@ export function enterReturns(state: GameState, entering: CardInstance, facts: (c
 
 /** La riga che annuncia un ritorno all'ingresso. */
 export function describeReturn(step: EnterReturnStep, facts: (cardId: string) => CardFacts): string {
-  return `«${facts(step.source.cardId).name}» si innesca: metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro`;
+  return t("trigger.return", { card: `«${facts(step.source.cardId).name}»` });
 }
 
 /**
@@ -95,10 +96,7 @@ export async function resolveReturn(ctx: Ctx, step: EnterReturnStep, card: CardI
     effect: { source: step.source.uid, event: step.event, entering: step.source.uid },
   });
   if (passed) {
-    ctx.log(
-      `${seatLabel(ctx.state(), by)}: «${ctx.card(step.source.cardId).name}» riporta «${ctx.card(card.cardId).name}» sul Fronte.`,
-      by
-    );
+    ctx.log(msg("log.effect.return", { seat: by, sourceCard: step.source.cardId, card: card.cardId }), by);
   }
   return passed;
 }
@@ -151,11 +149,11 @@ export function lookAfterRoll(
 
 /** La riga che annuncia uno sguardo nel mazzo. */
 export function describeLook(step: EnterLookStep, facts: (cardId: string) => CardFacts): string {
-  const name = facts(step.source.cardId).name;
+  const card = `«${facts(step.source.cardId).name}»`;
   if (step.look.die !== null) {
-    return `«${name}» si innesca: tira un d${step.look.die} e guarda ${step.look.countBase} più metà del tiro carte del mazzo`;
+    return t("trigger.look.die", { card, die: step.look.die, base: step.look.countBase });
   }
-  return `«${name}» si innesca: guarda le prime ${step.count} carte del mazzo`;
+  return t("trigger.look", { card, n: step.count });
 }
 
 /**
@@ -179,22 +177,20 @@ export async function resolveLook(
     effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
   });
   if (passed) {
-    const who = seatLabel(ctx.state(), by);
-    const name = ctx.card(step.source.cardId).name;
-    const parts = [
-      step.roll !== null ? `tira d${step.look.die} → ${step.roll}, guarda ${step.count} carte` : `guarda ${step.count} carte`,
-      reveal ? `mostra «${ctx.card(reveal.cardId).name}» e la prende in mano` : "non mostra nulla",
-      retire ? `«${ctx.card(retire.cardId).name}» va nella Zona di Ritiro` : null,
-      "le altre in fondo al mazzo",
-    ].filter(Boolean);
-    ctx.log(`${who}: «${name}» ${parts.join("; ")}.`, by);
+    const parts: LogMsg[] = [
+      step.roll !== null ? msg("look.rolled", { die: step.look.die ?? 0, roll: step.roll, n: step.count }) : msg("look.looked", { n: step.count }),
+      reveal ? msg("look.reveal", { card: reveal.cardId }) : msg("look.noreveal"),
+      ...(retire ? [msg("look.retire", { card: retire.cardId })] : []),
+      msg("look.rest"),
+    ];
+    ctx.log(msg("log.effect.look", { seat: by, sourceCard: step.source.cardId, parts }), by);
   }
   return passed;
 }
 
 /** La riga che annuncia uno spostamento all'ingresso. */
 export function describeMove(step: EnterMoveStep, facts: (cardId: string) => CardFacts): string {
-  return `«${facts(step.source.cardId).name}» si innesca: metti un'Entità avversaria nella Zona di Ritiro`;
+  return t("trigger.retire", { card: `«${facts(step.source.cardId).name}»` });
 }
 
 /**
@@ -209,10 +205,7 @@ export async function resolveMove(ctx: Ctx, step: EnterMoveStep, target: CardIns
     effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
   });
   if (passed) {
-    ctx.log(
-      `${seatLabel(ctx.state(), controllerOf(step.source))}: «${ctx.card(step.source.cardId).name}» manda «${ctx.card(target.cardId).name}» nella Zona di Ritiro.`,
-      controllerOf(step.source)
-    );
+    ctx.log(msg("log.effect.retire", { seat: controllerOf(step.source), sourceCard: step.source.cardId, card: target.cardId }), controllerOf(step.source));
   }
   return passed;
 }
@@ -247,7 +240,7 @@ export function enterTriggers(state: GameState, entering: CardInstance, facts: (
 /** La riga che annuncia un innesco, per la scena e per la chat. */
 export function describeTrigger(trigger: EnterTrigger, facts: (cardId: string) => CardFacts): string {
   const n = trigger.draw;
-  return `«${facts(trigger.source.cardId).name}» si innesca: pesca ${n} ${n === 1 ? "carta" : "carte"}`;
+  return t("trigger.draw", { card: `«${facts(trigger.source.cardId).name}»`, n, cards: cardsWord(n) });
 }
 
 /**
@@ -263,7 +256,12 @@ export async function resolveTrigger(ctx: Ctx, entering: CardInstance, trigger: 
     count: trigger.draw,
     effect: { source: trigger.source.uid, event: "on_enter_field", entering: entering.uid },
   });
-  if (passed) ctx.log(`${seatLabel(ctx.state(), controllerOf(entering))}: ${describeTrigger(trigger, ctx.card)}.`, controllerOf(entering));
+  if (passed) {
+    ctx.log(
+      msg("log.effect.trigger", { seat: controllerOf(entering), card: trigger.source.cardId, n: trigger.draw, cards: msg(trigger.draw === 1 ? "cards.one" : "cards.many") }),
+      controllerOf(entering)
+    );
+  }
   return passed;
 }
 
@@ -308,7 +306,7 @@ export function enterControls(state: GameState, entering: CardInstance, facts: (
 
 /** La riga che annuncia un controllo. */
 export function describeControl(step: EnterControlStep, facts: (cardId: string) => CardFacts): string {
-  return `«${facts(step.source.cardId).name}» si innesca: prendi il controllo di un'Entità avversaria fino a fine turno`;
+  return t("trigger.control", { card: `«${facts(step.source.cardId).name}»` });
 }
 
 /** Esegue il controllo sul bersaglio scelto: un'azione sola, marcata come effetto. */
@@ -322,10 +320,7 @@ export async function resolveControl(ctx: Ctx, step: EnterControlStep, target: C
     effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
   });
   if (passed) {
-    ctx.log(
-      `${seatLabel(ctx.state(), by)}: «${ctx.card(step.source.cardId).name}» prende il controllo di «${ctx.card(target.cardId).name}» fino a fine turno.`,
-      by
-    );
+    ctx.log(msg("log.effect.control", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
   }
   return passed;
 }
@@ -341,10 +336,7 @@ export async function releaseControlled(ctx: Ctx, seat: Seat, freeSlot: (state: 
     const spot = freeSlot(ctx.state(), card.owner);
     const passed = await ctx.dispatch(spot ? { t: "release", uid: card.uid, zone: "field", ...spot } : { t: "release", uid: card.uid, zone: "ritiro" });
     if (passed) {
-      ctx.log(
-        `«${ctx.card(card.cardId).name}» torna a ${seatLabel(ctx.state(), card.owner)}${spot ? "" : ", nella Zona di Ritiro: il Fronte è pieno"}.`,
-        card.owner
-      );
+      ctx.log(msg(spot ? "log.release.front" : "log.release.retire", { card: card.cardId, seat: card.owner }), card.owner);
     }
   }
 }

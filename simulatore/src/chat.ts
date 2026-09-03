@@ -6,6 +6,9 @@
 // esattamente ciò che serve: la cronologia di ieri non deve stare sul tavolo
 // di oggi.
 
+import { t } from "./i18n.js";
+import { renderLog } from "./log.js";
+import { cardName } from "./renderer.js";
 import type { Ctx } from "./ctx.js";
 import { seatLabel } from "./state.js";
 
@@ -20,11 +23,11 @@ export function mountChat(root: HTMLElement, ctx: Ctx): Chat {
   const form = document.createElement("form");
   form.className = "chat-form";
   const input = document.createElement("input");
-  input.placeholder = "Scrivi…";
+  input.placeholder = t("chat.placeholder");
   input.autocomplete = "off";
   const send = document.createElement("button");
   send.type = "submit";
-  send.textContent = "Invia";
+  send.textContent = t("chat.send");
   form.append(input, send);
 
   form.addEventListener("submit", event => {
@@ -68,7 +71,10 @@ export function mountChat(root: HTMLElement, ctx: Ctx): Chat {
           who.textContent = `${seatLabel(ctx.state(), entry.seat)}: `;
           row.append(who);
         }
-        row.append(document.createTextNode(entry.text));
+        // Le righe del tavolo si leggono nella propria lingua; i nomi delle
+        // carte, dal proprio catalogo.
+        const text = entry.key ? renderLog({ key: entry.key, params: entry.params }, ctx.state(), id => cardName(id, ctx.locale())) : entry.text;
+        row.append(document.createTextNode(text));
         log.append(row);
       }
       painted = entries.length;

@@ -5,6 +5,7 @@
 // stato significherebbe rilanciare il renderer e `fitTextBoxes` su decine di
 // carte a ogni mossa — e vedere la mano sfarfallare a ogni tiro di dado.
 
+import { msg, t } from "./i18n.js";
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
 import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js";
 import { declareAttack as declareAttackVia, declareBlock, undeclare } from "./combat.js";
@@ -90,9 +91,9 @@ import { SEATS, otherSeat } from "./types.js";
 // coperto per definizione (§5); Abisso e Zona di Ritiro sono pubblici e
 // mostrano la carta in cima.
 const PILES: { zone: ZoneId; label: string; x: number; hidden: boolean }[] = [
-  { zone: "abisso", label: "Abisso", x: SLOT_X.abisso, hidden: false },
-  { zone: "ritiro", label: "Ritiro", x: SLOT_X.ritiro, hidden: false },
-  { zone: "deck", label: "Mazzo", x: SLOT_X.deck, hidden: true },
+  { zone: "abisso", label: "zone.abisso", x: SLOT_X.abisso, hidden: false },
+  { zone: "ritiro", label: "zone.ritiro", x: SLOT_X.ritiro, hidden: false },
+  { zone: "deck", label: "zone.deck", x: SLOT_X.deck, hidden: true },
 ];
 
 /** Tempi della pesca animata (`card-drawn` in style.css): corsa di una carta
@@ -255,7 +256,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     myHand.classList.toggle("is-collapsed", collapsed);
     handToggle.classList.toggle("is-off", collapsed);
     handToggle.innerHTML = chevrons(collapsed);
-    handToggle.title = collapsed ? "Apri la mano" : "Chiudi la mano";
+    handToggle.title = t(collapsed ? "hand.open" : "hand.close");
     handToggle.setAttribute("aria-label", handToggle.title);
   }
   setHandCollapsed(false);
@@ -469,10 +470,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
       // Zona di Richiamo (§5): il Rubyfront parte da qui, e una volta
       // schierato non ci torna (§3.1).
-      markSlot(SLOT_X.richiamo, back, "Zona di Richiamo");
+      markSlot(SLOT_X.richiamo, back, t("zone.richiamo"));
       // Lo slot extra del controllo (§8.2): un'Entità avversaria presa fino
       // a fine turno sta qui, e non conta nei 5 del Fronte.
-      markSlot(CONTROL_X, back, "Controllo");
+      markSlot(CONTROL_X, back, t("zone.control"));
 
       // I cinque slot del Fronte, al centro. L'etichetta è una sola per il
       // gruppo: cinque scritte "Fronte" in fila sarebbero solo rumore.
@@ -480,7 +481,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
       const frontLabel = document.createElement("div");
       frontLabel.className = "row-label";
-      frontLabel.textContent = "Fronte";
+      frontLabel.textContent = t("zone.front");
       frontLabel.style.left = `${FRONT_X}px`;
       frontLabel.style.width = `${FRONT_W}px`;
       frontLabel.style.top = `${view(front) + tileViewH() + 9}px`;
@@ -488,10 +489,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       zoneEls.push(frontLabel);
 
       // Il Rubyfront schierato sta davanti al Fronte, senza occupare uno slot.
-      markSlot(RUBYFRONT_X, front, "Rubyfront", "slot-rubyfront");
+      markSlot(RUBYFRONT_X, front, t("zone.rubyfront"), "slot-rubyfront");
 
       // Le Materie in gioco, all'altra estremità della fila.
-      markSlot(MATTER_X, front, "Materie", "slot-matter");
+      markSlot(MATTER_X, front, t("zone.materie"), "slot-matter");
     }
   }
 
@@ -500,18 +501,18 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   function draw(seat: Seat, count: number): void {
     const left = zoneCards(ctx.state(), seat, "deck").length;
     if (left === 0) {
-      ctx.log(`${seatLabel(ctx.state(), seat)}: mazzo vuoto, nessuna pesca.`, seat);
+      ctx.log(msg("log.deck.empty", { seat }), seat);
       return;
     }
     const taken = Math.min(count, left);
     ctx.dispatch({ t: "draw", seat, count: taken });
-    ctx.log(`${seatLabel(ctx.state(), seat)} pesca ${taken} ${taken === 1 ? "carta" : "carte"}.`, seat);
+    ctx.log(msg("log.draw", { seat, n: taken, cards: msg(taken === 1 ? "cards.one" : "cards.many") }), seat);
   }
 
   function shuffle(seat: Seat): void {
     const order = shuffled(zoneCards(ctx.state(), seat, "deck").map(card => card.uid));
     ctx.dispatch({ t: "shuffle", seat, order });
-    ctx.log(`${seatLabel(ctx.state(), seat)} mescola il mazzo (${order.length} carte).`, seat);
+    ctx.log(msg("log.shuffle", { seat, n: order.length }), seat);
   }
 
   // ------------------------------------------------------- combattimento
@@ -551,10 +552,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         face: live.face,
         theme: ctx.themeFor(live.owner),
         locale: ctx.locale(),
-        who: `${seatLabel(ctx.state(), controllerOf(live))} attacca con «${cardName(live.cardId, ctx.locale())}»`,
+        who: t("scene.attacks", { name: seatLabel(ctx.state(), controllerOf(live)), card: `«${cardName(live.cardId, ctx.locale())}»` }),
         effects,
         triggers: returns.map(step => describeReturn(step, ctx.card)),
-        kicker: "Quando attacca",
+        kicker: t("scene.attack"),
         onContinue: () => void playAttackTriggers(live),
       });
     })();
@@ -571,8 +572,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     document.body.classList.add("is-targeting");
     targetHint.textContent =
       kind === "counter"
-        ? "Scegli l'Entità che contrattacca — Esc annulla"
-        : "Scegli l'Entità che blocca — Esc annulla";
+        ? t("target.counter")
+        : t("target.block");
     targetHint.hidden = false;
     render();
   }
@@ -634,7 +635,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         cancel: () => resolve(null),
       };
       document.body.classList.add("is-targeting");
-      targetHint.textContent = `${hint} — Esc rinuncia`;
+      targetHint.textContent = t("target.esc", { hint });
       targetHint.hidden = false;
       render();
     });
@@ -655,14 +656,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const count = zoneCards(ctx.state(), seat, zone).length;
     if (zone === "deck") {
       return [
-        { label: `Pesca 1`, run: () => draw(seat, 1), disabled: !mine || count === 0 },
-        { label: `Pesca 6 (mano iniziale)`, run: () => draw(seat, 6), disabled: !mine || count === 0 },
-        { label: "Mescola", run: () => shuffle(seat), disabled: !mine || count === 0 },
+        { label: t("menu.draw1"), run: () => draw(seat, 1), disabled: !mine || count === 0 },
+        { label: t("menu.draw6"), run: () => draw(seat, 6), disabled: !mine || count === 0 },
+        { label: t("menu.shuffle"), run: () => shuffle(seat), disabled: !mine || count === 0 },
         { rule: true, label: "" },
-        { label: `Cerca nel mazzo (${count})`, run: () => browse(seat, "deck"), disabled: !mine || count === 0 },
+        { label: t("menu.search", { n: count }), run: () => browse(seat, "deck"), disabled: !mine || count === 0 },
       ];
     }
-    return [{ label: `Sfoglia (${count})`, run: () => browse(seat, zone), disabled: count === 0 }];
+    return [{ label: t("menu.browse", { n: count }), run: () => browse(seat, zone), disabled: count === 0 }];
   }
 
   function cardMenu(card: CardInstance): MenuItem[] {
@@ -680,12 +681,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (mine) {
         if (declared?.kind === "attack") {
           items.push({
-            label: `Annulla attacco (${declared.order})`,
+            label: t("menu.attack.undo", { n: declared.order ?? "" }),
             run: () => void undeclare(ctx, card, declared),
           });
         } else if (declared) {
           items.push({
-            label: declared.kind === "counter" ? "Annulla contrattacco" : "Annulla blocco",
+            label: t(declared.kind === "counter" ? "menu.counter.undo" : "menu.block.undo"),
             run: () => void undeclare(ctx, card, declared),
           });
         } else {
@@ -698,7 +699,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           const state = ctx.state();
           const kind = faceKind(card.cardId, card.face);
           if ((kind === null || kind === "entity") && state.phase === "fronte" && state.active === controllerOf(card)) {
-            items.push({ label: "Attacca", run: () => declareAttack(card) });
+            items.push({ label: t("menu.attack"), run: () => declareAttack(card) });
           }
         }
       }
@@ -707,8 +708,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // entrambi i posti blocca con le Entità del difensore.
       // E si blocca in Reazione, «vista l'intera ondata» (§6.4).
       if (declared?.kind === "attack" && ctx.controls(otherSeat(controllerOf(card))) && ctx.state().phase === "reazione") {
-        items.push({ label: "Blocca con…", run: () => startTargeting(card, "block") });
-        items.push({ label: "Contrattacca con…", run: () => startTargeting(card, "counter") });
+        items.push({ label: t("menu.block"), run: () => startTargeting(card, "block") });
+        items.push({ label: t("menu.counter"), run: () => startTargeting(card, "counter") });
       }
       if (items.length) items.push({ rule: true, label: "" });
     }
@@ -723,16 +724,16 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // d'oro), sarà l'engine a riaprirli. A engine spento: lavagna libera.
       if (!ctx.arbitrated()) {
         items.push({
-          label: card.tapped ? "Stappa" : "Tappa",
+          label: t(card.tapped ? "menu.untap" : "menu.tap"),
           run: () => ctx.dispatch({ t: "tap", uid: card.uid, tapped: !card.tapped }),
         });
         items.push({
-          label: card.facedown ? "Scopri" : "Copri",
+          label: t(card.facedown ? "menu.uncover" : "menu.cover"),
           run: () => ctx.dispatch({ t: "facedown", uid: card.uid, facedown: !card.facedown }),
         });
       } else if (card.facedown && card.coveredTurn === undefined) {
         items.push({
-          label: "Scopri",
+          label: t("menu.uncover"),
           run: () => ctx.dispatch({ t: "facedown", uid: card.uid, facedown: false }),
         });
       }
@@ -740,7 +741,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (faceCount(card.cardId) > 1) {
       const next = (card.face + 1) % faceCount(card.cardId);
       items.push({
-        label: card.face === 0 ? "Flip → Nexus" : "Flip → Rubyfront",
+        label: t(card.face === 0 ? "menu.flip.nexus" : "menu.flip.rubyfront"),
         run: () => ctx.dispatch({ t: "flip", uid: card.uid, face: next }),
       });
     }
@@ -750,13 +751,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       disabled: card.zone === zone && !toBottom,
       run: () => ctx.dispatch({ t: "toZone", uid: card.uid, zone, toBottom }),
     });
-    if (mine) items.push(send("hand", "In mano"));
-    items.push(send("abisso", "Nell'Abisso"));
-    items.push(send("ritiro", "In Zona di Ritiro"));
+    if (mine) items.push(send("hand", t("menu.to.hand")));
+    items.push(send("abisso", t("menu.to.abisso")));
+    items.push(send("ritiro", t("menu.to.ritiro")));
     if (mine) {
-      items.push(send("deck", "In cima al mazzo"));
+      items.push(send("deck", t("menu.to.deck.top")));
       items.push({
-        label: "In fondo al mazzo",
+        label: t("menu.to.deck.bottom"),
         run: () => ctx.dispatch({ t: "toZone", uid: card.uid, zone: "deck", toBottom: true }),
       });
     }
@@ -827,10 +828,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const player = ctx.state().players[card.owner];
       // In chat resta anche l'effetto: la storia della partita si rilegge.
       const told = effects.map(effect => ` — ${effect.tag}: ${effect.text}`).join("");
-      ctx.log(
-        `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}» per ${cost} (Flusso ${player.flux}/${player.fluxMax}).${told}`,
-        card.owner
-      );
+      ctx.log(msg("log.play", { seat: card.owner, card: card.cardId, cost, flux: player.flux, max: player.fluxMax, effects: told }), card.owner);
     }
     // Il momento d'ingresso: ogni carta giocata dalla mano si ferma in primo
     // piano e si accende; se ha un effetto che scatta entrando, lo annuncia
@@ -849,7 +847,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         face: card.face,
         theme: ctx.themeFor(card.owner),
         locale: ctx.locale(),
-        who: `${seatLabel(ctx.state(), card.owner)} gioca «${cardName(card.cardId, ctx.locale())}»`,
+        who: t("scene.plays", { name: seatLabel(ctx.state(), card.owner), card: `«${cardName(card.cardId, ctx.locale())}»` }),
         effects,
         triggers: [
           ...moves.map(step => describeMove(step, ctx.card)),
@@ -916,20 +914,19 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const giveBack = (): void => {
       if (origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
     };
-    const who = seatLabel(ctx.state(), card.owner);
     const player = ctx.state().players[card.owner];
     const available = player.flux + (player.token ? 1 : 0);
     let cost: number;
     let roll: number | undefined;
     if (deployment.die) {
       if (available < deployment.die) {
-        ctx.log(`${who}: il d${deployment.die} non si tira — servono ${deployment.die} Flussi disponibili, ne ha ${available} (§3.1).`, card.owner);
+        ctx.log(msg("log.deploy.nodie", { seat: card.owner, die: deployment.die ?? 0, available }), card.owner);
         giveBack();
         return;
       }
       roll = 1 + Math.floor(Math.random() * deployment.die);
       cost = roll;
-      await showRoll(root, deployment.die, roll, "Schieramento del Rubyfront");
+      await showRoll(root, deployment.die, roll, t("dice.deploy"));
     } else {
       cost = deployment.fixed ?? 0;
     }
@@ -939,8 +936,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       return;
     }
     const after = ctx.state().players[card.owner];
+    const token = after.token ? msg("log.token.plus") : "";
     ctx.log(
-      `${who} schiera il Rubyfront${roll !== undefined ? `: d${deployment.die} → ${roll},` : ","} paga ${cost} (Flusso ${after.flux}/${after.fluxMax}${after.token ? " + Gettone" : ""}).`,
+      roll !== undefined
+        ? msg("log.deploy.roll", { seat: card.owner, die: deployment.die ?? 0, roll, cost, flux: after.flux, max: after.fluxMax, token })
+        : msg("log.deploy", { seat: card.owner, cost, flux: after.flux, max: after.fluxMax, token }),
       card.owner
     );
   }
@@ -1080,18 +1080,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   }
 
   async function playReturn(step: EnterReturnStep): Promise<void> {
-    const who = seatLabel(ctx.state(), step.source.owner);
     if (step.candidates.length === 0) {
-      ctx.log(`${who}: «${ctx.card(step.source.cardId).name}» non ha carte permanenti nella Zona di Ritiro.`, step.source.owner);
+      ctx.log(msg("log.no.permanent", { seat: step.source.owner, card: step.source.cardId }), step.source.owner);
       return;
     }
     light(step.source.uid, true);
-    const card = await pickFromPile(step.source.owner, step.from, step.candidates, "Scegli la carta permanente da riportare sul Fronte");
+    const card = await pickFromPile(step.source.owner, step.from, step.candidates, t("pick.return"));
     if (!card) {
       light(step.source.uid, false);
       return;
     }
-    const sure = await confirmEffect(root, `Riportare «${ctx.card(card.cardId).name}» sul Fronte?`);
+    const sure = await confirmEffect(root, t("confirm.return", { card: `«${ctx.card(card.cardId).name}»` }));
     if (!sure) {
       light(step.source.uid, false);
       return;
@@ -1155,17 +1154,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   async function playControl(step: EnterControlStep): Promise<void> {
     const by = controllerOf(step.source);
     if (step.candidates.length === 0) {
-      ctx.log(`${seatLabel(ctx.state(), by)}: «${ctx.card(step.source.cardId).name}» non ha Entità avversarie da prendere.`, by);
+      ctx.log(msg("log.no.control", { seat: by, card: step.source.cardId }), by);
       return;
     }
     light(step.source.uid, true);
-    const target = await pickTarget(step.source, step.candidates, "Scegli l'Entità avversaria di cui prendere il controllo");
+    const target = await pickTarget(step.source, step.candidates, t("target.control"));
     if (!target) {
       light(step.source.uid, false);
       return;
     }
     flashArrow(step.source.uid, target.uid, 60_000);
-    const sure = await confirmEffect(root, `Prendere il controllo di «${ctx.card(target.cardId).name}» fino a fine turno?`);
+    const sure = await confirmEffect(root, t("confirm.control", { card: `«${ctx.card(target.cardId).name}»` }));
     if (!sure) {
       transientArrows = [];
       light(step.source.uid, false);
@@ -1197,7 +1196,6 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   async function playLook(first: EnterLookStep): Promise<void> {
     const by = controllerOf(first.source);
-    const who = seatLabel(ctx.state(), by);
     const name = ctx.card(first.source.cardId).name;
     light(first.source.uid, true);
     // Col dado (RBF-027): si tira, il dado gira al centro, e il conto delle
@@ -1205,18 +1203,18 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     let step = first;
     if (first.look.die !== null) {
       const roll = 1 + Math.floor(Math.random() * first.look.die);
-      await showRoll(root, first.look.die, roll, `${name} · quante carte guardare`);
+      await showRoll(root, first.look.die, roll, t("dice.look", { name }));
       step = lookAfterRoll(ctx.state(), first.source, first.look, roll, ctx.card);
     }
     if (step.looked.length === 0) {
-      ctx.log(`${who}: «${name}» guarda un mazzo vuoto.`, by);
+      ctx.log(msg("log.look.empty", { seat: by, card: first.source.cardId }), by);
       light(first.source.uid, false);
       return;
     }
-    const what = step.look.reveal?.kind === "object" ? "un Oggetto" : "una";
+    const what = t(step.look.reveal?.kind === "object" ? "pick.look.object" : "pick.look.one");
     const title = step.candidates.length
-      ? `Le prime ${step.looked.length} del mazzo: puoi mostrarne ${what} e prenderla in mano — Chiudi per nessuna`
-      : `Le prime ${step.looked.length} del mazzo: nessuna da mostrare — Chiudi per andare avanti`;
+      ? t("pick.look.some", { n: step.looked.length, what })
+      : t("pick.look.none", { n: step.looked.length });
     const reveal = await pickFromPile(by, "deck", step.candidates, title, step.looked);
     // «Metti una delle altre nella tua Zona di Ritiro»: obbligatoria, se
     // restano carte — la finestra torna finché non si sceglie.
@@ -1224,7 +1222,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (step.look.thenRetire) {
       const others = step.looked.filter(card => card.uid !== reveal?.uid);
       while (others.length && !retire) {
-        retire = await pickFromPile(by, "deck", others, "Scegli la carta da mettere nella tua Zona di Ritiro (obbligatoria)", others);
+        retire = await pickFromPile(by, "deck", others, t("pick.retire"), others);
       }
     }
     hold(true);
@@ -1240,18 +1238,18 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   async function playMove(step: EnterMoveStep): Promise<void> {
     if (step.candidates.length === 0) {
-      ctx.log(`${seatLabel(ctx.state(), step.source.owner)}: «${ctx.card(step.source.cardId).name}» non ha bersagli in campo.`, step.source.owner);
+      ctx.log(msg("log.no.target", { seat: step.source.owner, card: step.source.cardId }), step.source.owner);
       return;
     }
     light(step.source.uid, true);
-    const target = await pickTarget(step.source, step.candidates, "Scegli l'Entità avversaria da mandare nella Zona di Ritiro");
+    const target = await pickTarget(step.source, step.candidates, t("target.retire"));
     if (!target) {
       light(step.source.uid, false);
       return;
     }
     // Scelto il bersaglio, si chiede conferma — con la freccia in vista.
     flashArrow(step.source.uid, target.uid, 60_000);
-    const sure = await confirmEffect(root, `Mandare «${ctx.card(target.cardId).name}» nella Zona di Ritiro?`);
+    const sure = await confirmEffect(root, t("confirm.retire", { card: `«${ctx.card(target.cardId).name}»` }));
     if (!sure) {
       transientArrows = [];
       light(step.source.uid, false);
@@ -1387,10 +1385,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             if (origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
             return;
           }
-          ctx.log(
-            `${seatLabel(ctx.state(), card.owner)} assegna «${cardName(card.cardId, ctx.locale())}» a «${cardName(under.cardId, ctx.locale())}».`,
-            card.owner
-          );
+          ctx.log(msg("log.assign", { seat: card.owner, card: card.cardId, toCard: under.cardId }), card.owner);
           return;
         }
         void place(card, x, y, z);
@@ -1401,7 +1396,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // Le pile e la mano sono di chi le possiede: una carta non cambia
     // proprietario trascinandola nella metà avversaria.
     if (drop.seat !== card.owner) {
-      ctx.log(`${seatLabel(ctx.state(), card.owner)}: la carta resta al suo proprietario.`, card.owner);
+      ctx.log(msg("log.keep.owner", { seat: card.owner }), card.owner);
       return;
     }
     // Fermata dall'arbitro (es. §5: dal campo non si torna in mano): i pixel
@@ -1594,14 +1589,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     for (const seat of SEATS) {
       const label = surface.querySelector<HTMLElement>(`[data-seat-name="${seat}"]`);
       if (label) {
-        label.textContent = `${seatLabel(state, seat, me)}${seat === me ? " · tu" : ""}`;
+        label.textContent = `${seatLabel(state, seat, me)}${seat === me ? t("label.you") : ""}`;
       }
       for (const pile of PILES) {
         const slot = pileSlots.get(`${seat}:${pile.zone}`)!;
         const cards = zoneCards(state, seat, pile.zone);
         slot.dataset.count = String(cards.length);
         const caption = slot.querySelector<HTMLElement>(".slot-label")!;
-        caption.textContent = `${pile.label} · ${cards.length}`;
+        caption.textContent = `${t(pile.label)} · ${cards.length}`;
         const top = cards[0];
         if (top) {
           alive.add(top.uid);
@@ -1671,10 +1666,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // la targhetta lo dice prima che sia il sigillo a dirlo.
       const excess = seat === me && cards.length > 7 && ctx.controls(seat);
       tag.textContent = seat === me
-        ? `La tua mano · ${cards.length}${excess ? " — scarta fino a 7 prima del Fine turno (§6.5)" : ""}`
+        ? `${t("hand.mine", { n: cards.length })}${excess ? t("hand.excess") : ""}`
         : seatWaiting(state, seat)
-          ? "In attesa di un avversario…"
-          : `Mano di ${seatLabel(state, seat)} · ${cards.length}`;
+          ? t("hand.waiting")
+          : t("hand.theirs", { name: seatLabel(state, seat), n: cards.length });
       tag.classList.toggle("is-excess", excess);
       host.classList.toggle("is-empty", cards.length === 0);
       const wanted: HTMLElement[] = [];

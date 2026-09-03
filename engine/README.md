@@ -385,7 +385,7 @@ WebSocket, messaggi JSON. Tre buste in croce:
 | chi | messaggio | risposta |
 |---|---|---|
 | client | `{"t":"hello"}` | `{"t":"engine","version":"0.2.0","rules":[…]}` |
-| client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…"}` |
+| client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…","reason_en":"…"}` |
 | client | `{"t":"consult","seq":8,"action":{…},"actor":"b"}` | come `judge`, ma per un'azione **già applicata** altrove |
 | client | `{"t":"snapshot","state":{…}}` | *(nessuna: allinea la copia del tavolo)* |
 
@@ -407,8 +407,9 @@ agisce); un client che non lo manda non viene giudicato su questo.
   simulatore la applica come sempre.
 - **`ruled: true, ok: true`** — la regola c'è e l'azione la rispetta.
 - **`ruled: true, ok: false`** — l'azione viola la regola: `reason` spiega
-  perché. Il simulatore la **ferma** — non tocca lavagna né rete — e mostra
-  l'avviso. `rules` nel saluto elenca i § del MANUALE collegati.
+  in italiano e `reason_en` in inglese (stessa frase, stessa targhetta; il
+  client mostra quella della lingua del tavolo). Il simulatore la **ferma** — non tocca lavagna né rete — e mostra
+  l'avviso. `rules` nel saluto elenca i § del MANUALE collegati (`rules_en` le stesse voci in inglese).
 
 Il giudizio vale per le azioni **locali**: quelle dell'avversario arrivano già
 applicate dal suo client (sarà il suo engine a fermarle), quindi una loro

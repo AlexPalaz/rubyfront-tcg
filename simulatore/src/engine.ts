@@ -13,6 +13,7 @@
 // stesso motivo `judge` ha un tempo massimo: un verdetto che non arriva vale
 // via libera.
 
+import { lang } from "./i18n.js";
 import type { Action, GameState, Seat } from "./types.js";
 
 export type EngineStatus = "offline" | "connecting" | "online";
@@ -26,6 +27,13 @@ export interface EngineVerdict {
   /** `false`: l'engine non ha una regola per questa azione. */
   ruled: boolean;
   reason?: string;
+  /** Lo stesso motivo in inglese: il client mostra quello della lingua del tavolo. */
+  reason_en?: string;
+}
+
+/** Il motivo nella lingua del tavolo (l'italiano è il ripiego: è la lingua del manuale). */
+export function verdictReason(verdict: EngineVerdict): string | undefined {
+  return lang() === "en" ? (verdict.reason_en ?? verdict.reason) : verdict.reason;
 }
 
 export interface EngineHandlers {
@@ -109,8 +117,10 @@ export function connectEngine(engineUrl: string, handlers: EngineHandlers): Engi
       if (!payload || typeof payload !== "object") return;
       const message = payload as { t?: string };
       if (message.t === "engine") {
-        const welcome = message as { version?: string; rules?: string[] };
-        handlers.onWelcome(welcome.version ?? "?", welcome.rules ?? []);
+        const welcome = message as { version?: string; rules?: string[]; rules_en?: string[] };
+        // Le regole nella lingua del tavolo (l'italiano è il ripiego).
+        const rules = lang() === "en" ? (welcome.rules_en ?? welcome.rules) : welcome.rules;
+        handlers.onWelcome(welcome.version ?? "?", rules ?? []);
         return;
       }
       if (message.t === "verdict") {

@@ -4,8 +4,9 @@
 // partire soltanto se la dichiarazione è passata. Qui niente DOM: si può
 // provare con un Ctx finto (test/combat.test.ts).
 
+import { msg, type LogMsg } from "./i18n.js";
 import type { CardFacts, Ctx } from "./ctx.js";
-import { controllerOf, nextWaveOrder, seatLabel } from "./state.js";
+import { controllerOf, nextWaveOrder } from "./state.js";
 import type { Battle, CardInstance, Declaration, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -71,21 +72,22 @@ export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string
 }
 
 /** La riga in chat di una battaglia, coi nomi e i numeri. */
-export function describeBattle(battle: Battle, index: number, name: (uid: string) => string): string {
-  const attacker = name(battle.attacker);
+export function describeBattle(battle: Battle, index: number, cardId: (uid: string) => string): LogMsg {
+  const attackerCard = cardId(battle.attacker);
   if (battle.kind === "unblocked") {
-    return `Battaglia ${index}: ${attacker} non è bloccato — ${battle.damage} danni al Rubyfront.`;
+    return msg("log.battle.unblocked", { n: index, attackerCard, damage: battle.damage });
   }
-  const blocker = name(battle.blocker ?? "?");
-  const verb = battle.kind === "counter" ? "contrattacca" : "blocca";
-  const fate = battle.attackerDies && battle.blockerDies
-    ? "muoiono entrambi"
-    : battle.attackerDies
-      ? `${attacker} muore`
-      : battle.blockerDies
-        ? `${blocker} muore`
-        : "non muore nessuno";
-  return `Battaglia ${index}: ${blocker} ${verb} ${attacker} — ${fate}.`;
+  const blockerCard = cardId(battle.blocker ?? "?");
+  const fate = msg(
+    battle.attackerDies && battle.blockerDies
+      ? "fate.both"
+      : battle.attackerDies
+        ? "fate.attacker"
+        : battle.blockerDies
+          ? "fate.blocker"
+          : "fate.none"
+  );
+  return msg(battle.kind === "counter" ? "log.battle.counter" : "log.battle.block", { n: index, blockerCard, attackerCard, fate });
 }
 
 /** Dichiara l'attacco di `card` al Rubyfront avversario (`target`). */
@@ -98,7 +100,7 @@ export async function declareAttack(
   const by = controllerOf(card);
   const foe = otherSeat(by);
   if (!target) {
-    ctx.log(`${seatLabel(ctx.state(), foe)} non ha il Rubyfront in campo: nessun bersaglio.`, foe);
+    ctx.log(msg("log.notarget", { seat: foe }), foe);
     return false;
   }
   const order = nextWaveOrder(ctx.state(), by);
@@ -119,7 +121,7 @@ export async function declareAttack(
   // Il tap scatta alla dichiarazione dell'ondata (§6.3). Resta comunque
   // libero: stapparla a mano non disfa la freccia.
   if (!card.tapped) void ctx.dispatch({ t: "tap", uid: card.uid, tapped: true });
-  ctx.log(`${seatLabel(ctx.state(), by)} attacca (${order}).`, by);
+  ctx.log(msg("log.attack", { seat: by, n: order }), by);
   return true;
 }
 
@@ -153,10 +155,7 @@ export async function declareBlock(
   if (kind === "counter" && !blocker.facedown) {
     void ctx.dispatch({ t: "facedown", uid: blocker.uid, facedown: true });
   }
-  ctx.log(
-    `${seatLabel(ctx.state(), controllerOf(blocker))} ${kind === "counter" ? "contrattacca" : "blocca"}.`,
-    controllerOf(blocker)
-  );
+  ctx.log(msg(kind === "counter" ? "log.counter" : "log.block", { seat: controllerOf(blocker) }), controllerOf(blocker));
 }
 
 /**
@@ -176,11 +175,9 @@ export async function undeclare(ctx: Ctx, card: CardInstance, declared: Declarat
   if (declared.kind === "counter" && live.facedown) {
     void ctx.dispatch({ t: "facedown", uid: card.uid, facedown: false });
   }
-  const gesture =
+  const line =
     declared.kind === "attack"
-      ? `annulla l'attacco (${declared.order})`
-      : declared.kind === "counter"
-        ? "annulla il contrattacco"
-        : "annulla il blocco";
-  ctx.log(`${seatLabel(ctx.state(), card.owner)} ${gesture}.`, card.owner);
+      ? msg("log.undo.attack", { seat: card.owner, n: declared.order ?? "" })
+      : msg(declared.kind === "counter" ? "log.undo.counter" : "log.undo.block", { seat: card.owner });
+  ctx.log(line, card.owner);
 }

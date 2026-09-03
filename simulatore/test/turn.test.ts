@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { endPhase, endTurn, loserByDeck, verdictByHp } from "../src/turn.js";
 import { newGame } from "../src/state.js";
 import type { Ctx } from "../src/ctx.js";
+import { renderLog } from "../src/log.js";
 import type { Action, GameState, Seat } from "../src/types.js";
 
 /** Le statistiche stampate delle carte di prova (§6.3), per id. */
@@ -46,7 +47,7 @@ function fakeCtx(
       attackReturns: [],
     }),
     log(text) {
-      logs.push(text);
+      logs.push(typeof text === "string" ? text : renderLog(text, ctx.state(), id => id));
     },
   };
   return { ctx, sent, logs };

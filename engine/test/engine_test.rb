@@ -46,6 +46,46 @@ class EngineTest < Minitest::Test
     assert_match(/§3\.2/, verdict[:reason])
   end
 
+  # --- Il motivo in due lingue: il tavolo è bilingue, l'engine pure.
+
+  def test_ogni_fermata_porta_il_motivo_anche_in_inglese
+    verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 21 } })
+    refute verdict[:ok]
+    assert_match(/Flusso/, verdict[:reason])
+    assert_match(/Flux/, verdict[:reason_en])
+    refute_equal verdict[:reason], verdict[:reason_en]
+    # La targhetta del sigillo — il «(§x.y)» in coda — sta in entrambe.
+    assert_match(/\(§3\.2\)/, verdict[:reason])
+    assert_match(/\(§3\.2\)/, verdict[:reason_en])
+  end
+
+  def test_il_saluto_porta_le_regole_anche_in_inglese
+    hello = @engine.hello
+    assert_equal Rubyfront::Engine::RULES.size, hello[:rules_en].size
+    hello[:rules].zip(hello[:rules_en]).each do |it, en|
+      # Stesso § in testa, frase diversa.
+      assert_equal it[/^§[\d.\/§]+/], en[/^§[\d.\/§]+/], "#{it} / #{en}"
+      refute_equal it, en
+    end
+  end
+
+  def test_le_parole_interpolate_seguono_la_lingua
+    engine = Rubyfront::Engine.new
+    engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 0 } })
+    engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "hp" })
+    dopo = engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 })
+    refute dopo[:ok]
+    assert_equal "la partita è finita: Nuova partita per ricominciare (§2)", dopo[:reason]
+    assert_equal "the game is over: New game to start again (§2)", dopo[:reason_en]
+  end
+
+  def test_nessun_rifiuto_resta_senza_inglese
+    sorgente = File.read(File.expand_path("../lib/rubyfront/engine.rb", __dir__))
+    senza = sorgente.lines.select { |line| line =~ /refuse\(/ && line !~ /def refuse/ }
+                    .reject { |line| line.scan(/"(?:[^"\\]|\\.)*"/).size >= 2 || line =~ /reason_en/ }
+    assert_empty senza, "refuse senza la frase inglese:\n#{senza.join}"
+  end
+
   def test_il_gettone_speso_arriva_a_21
     spesa = { "t" => "player", "seat" => "b", "patch" => { "token" => false, "flux" => 21 } }
     verdict = @engine.judge(spesa)

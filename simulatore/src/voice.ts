@@ -10,6 +10,7 @@
 // Il microfono parte SEMPRE spento, e spegnerlo ferma le tracce davvero: la
 // spia del browser si spegne, non resta un "muto" che ascolta.
 
+import { t } from "./i18n.js";
 import type { Seat } from "./types.js";
 
 export type VoicePayload =
@@ -83,7 +84,7 @@ export function createVoice(options: {
     document.addEventListener("pointerdown", meterWake, { passive: true });
     window.setTimeout(() => {
       if (meterCtx === ctx && ctx.state !== "running") {
-        options.log("Misuratore audio sospeso dal browser: un tocco sullo schermo lo attiva.");
+        options.log(t("voice.meter"));
       }
     }, 1500);
     const analyser = ctx.createAnalyser();
@@ -129,7 +130,7 @@ export function createVoice(options: {
 
   async function start(): Promise<void> {
     if (!navigator.mediaDevices?.getUserMedia) {
-      options.log("Chat vocale non disponibile qui: serve una pagina https (o localhost).");
+      options.log(t("voice.insecure"));
       return;
     }
     const micId = options.micId();
@@ -138,7 +139,7 @@ export function createVoice(options: {
     // dice, con la via d'uscita.
     const hung = window.setTimeout(() => {
       options.log(
-        "Il microfono non risponde. Chiudi la scheda e riaprila; su iPad: menu aA → Impostazioni sito web → Microfono → Consenti."
+        t("voice.stuck")
       );
     }, 8000);
     try {
@@ -156,7 +157,7 @@ export function createVoice(options: {
       window.clearTimeout(hung);
     }
     const track = stream.getAudioTracks()[0];
-    options.log(`Microfono acceso: ${track?.label || "predefinito"}.`);
+    options.log(t("voice.on", { name: track?.label || t("voice.default") }));
     startMeter(stream);
     const me = options.seat();
     sendPc = new RTCPeerConnection(RTC_CONFIG);
@@ -169,7 +170,7 @@ export function createVoice(options: {
     if (!options.send({ kind: "offer", owner: me, sdp: offer.sdp ?? "" })) {
       // Nessuna stanza collegata: un microfono acceso nel vuoto è solo spia.
       stopSending(false);
-      options.log("Per la chat vocale serve essere in una stanza collegata.");
+      options.log(t("voice.noroom"));
     }
   }
 
@@ -197,8 +198,8 @@ export function createVoice(options: {
         const name = error instanceof Error ? error.name : "";
         options.log(
           name === "NotAllowedError"
-            ? "Microfono negato dal browser: serve il permesso."
-            : `Microfono non attivato (${name || "errore sconosciuto"}).`
+            ? t("voice.denied")
+            : t("voice.failed", { error: name || t("voice.unknown") })
         );
       }
     },
@@ -221,7 +222,7 @@ export function createVoice(options: {
             element.srcObject = event.streams[0] ?? new MediaStream([event.track]);
             element.play().catch(() => {
               // Autoplay bloccato: il primo gesto sulla pagina lo sblocca.
-              options.log("L'audio dell'avversario è pronto: un click sulla pagina lo attiva.");
+              options.log(t("voice.ready"));
             });
           };
           void (async () => {
@@ -229,7 +230,7 @@ export function createVoice(options: {
             const answer = await recvPc!.createAnswer();
             await recvPc!.setLocalDescription(answer);
             options.send({ kind: "answer", owner, sdp: answer.sdp ?? "" });
-          })().catch(() => options.log("Chat vocale: aggancio non riuscito."));
+          })().catch(() => options.log(t("voice.hookfail")));
           break;
         }
         case "answer":

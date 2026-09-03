@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { declareAttack, declareBlock, resolveWave, undeclare } from "../src/combat.js";
 import { newGame } from "../src/state.js";
 import type { Ctx } from "../src/ctx.js";
+import { renderLog } from "../src/log.js";
 import type { Action, CardInstance, Declaration, Seat } from "../src/types.js";
 
 function cardOn(uid: string, owner: Seat): CardInstance {
@@ -59,7 +60,7 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       attackReturns: [],
     }),
     log(text) {
-      logs.push(text);
+      logs.push(typeof text === "string" ? text : renderLog(text, ctx.state(), id => id));
     },
   };
   return { ctx, sent, logs };

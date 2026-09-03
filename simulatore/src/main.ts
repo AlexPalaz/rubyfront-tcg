@@ -8,10 +8,14 @@
 // Il carattere dell'interfaccia (le carte hanno il loro, da card.css):
 // Space Grotesk, self-hosted — un grottesco geometrico che fa da macchina
 // attorno al manufatto delle carte.
+import { lang, msg, setLang, t } from "./i18n.js";
+import { renderLog } from "./log.js";
+import { gameOverMsg } from "./turn.js";
+import type { ChatEntry } from "./types.js";
 import "@fontsource-variable/space-grotesk";
 import { mountChat } from "./chat.js";
 import { SLOT_X, SURFACE_W, backRowY, isCompactView, setCompactView, viewBattleTop, type Ctx } from "./ctx.js";
-import { connectEngine, DEFAULT_ENGINE, type EngineLink, type EngineStatus, type EngineVerdict } from "./engine.js";
+import { connectEngine, DEFAULT_ENGINE, type EngineLink, type EngineStatus, type EngineVerdict, verdictReason } from "./engine.js";
 import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
@@ -23,7 +27,7 @@ import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
 import { apply, controllerOf, newGame, phaseCloser, seatLabel, shuffled, zoneCards } from "./state.js";
 import { drawCascadeMs, mountTable } from "./table.js";
-import { describeGameOver, verdictByHp } from "./turn.js";
+import { verdictByHp } from "./turn.js";
 import { createVoice, type VoicePayload } from "./voice.js";
 import type { Action, CardInstance, GameState, Seat } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
@@ -47,6 +51,18 @@ const store = {
   write: (key: string, value: string): void => localStorage.setItem(`rbf-sim:${key}`, value),
 };
 
+/** I testi fissi della pagina (index.html) portano la loro chiave in
+    `data-i18n` (testo), `data-i18n-title`, `data-i18n-placeholder`. */
+function applyHtmlLang(): void {
+  for (const el of document.querySelectorAll<HTMLElement>("[data-i18n]")) el.textContent = t(el.dataset.i18n!);
+  for (const el of document.querySelectorAll<HTMLElement>("[data-i18n-title]")) {
+    el.title = t(el.dataset.i18nTitle!);
+    if (el.hasAttribute("aria-label")) el.setAttribute("aria-label", el.title);
+  }
+  for (const el of document.querySelectorAll<HTMLInputElement>("[data-i18n-placeholder]")) el.placeholder = t(el.dataset.i18nPlaceholder!);
+  document.documentElement.lang = lang();
+}
+
 /** Chi inizia, per ora a caso (§4: la scelta o il d20 arriveranno). */
 function randomSeat(): Seat {
   return Math.random() < 0.5 ? "a" : "b";
@@ -56,6 +72,10 @@ let state: GameState = newGame(randomSeat());
 let mySeat: Seat = (params.get("seat") as Seat) ?? (store.read("seat", "a") as Seat);
 if (!SEATS.includes(mySeat)) mySeat = "a";
 let locale = params.get("lang") ?? store.read("lang", "it");
+// La lingua del tavolo: interfaccia, chat, sigilli — e le carte. Si fissa
+// prima di costruire qualunque vista, e la pagina la applica ai suoi testi.
+setLang(locale);
+applyHtmlLang();
 let net: Net | null = null;
 /** L'arbitro esterno (engine/): c'è solo se il flag nelle impostazioni è acceso. */
 let engine: EngineLink | null = null;
@@ -115,8 +135,8 @@ function commit(action: Action): void {
   if (over) {
     void dispatch({ t: "gameOver", ...over }).then(passed => {
       if (!passed) return;
-      const { title, detail } = describeGameOver(state, over);
-      ctx.log(`${title} — ${detail}.`, over.winner);
+      const { title, detail } = gameOverMsg(over);
+      ctx.log(msg("log.over", { title, detail }), over.winner);
     });
   }
 }
@@ -133,7 +153,7 @@ function receive(action: Action, from: Seat): void {
         face: card.face,
         theme: themes[card.owner],
         locale,
-        who: `${seatLabel(state, card.owner, mySeat)} gioca «${cardName(card.cardId, locale)}»`,
+        who: t("scene.plays", { name: seatLabel(state, card.owner, mySeat), card: `«${cardName(card.cardId, locale)}»` }),
         effects: enterEffects(card.cardId, card.face, locale),
       });
     }
@@ -172,7 +192,7 @@ function receive(action: Action, from: Seat): void {
   // insieme, ma il momento è lo stesso.
   if (action.t === "move" && action.roll !== undefined) {
     const die = cardStats(state.cards[action.uid]?.cardId ?? "").deployment?.die ?? 6;
-    void showRoll(document.querySelector<HTMLElement>("#table")!, die, action.roll, "Schieramento del Rubyfront");
+    void showRoll(document.querySelector<HTMLElement>("#table")!, die, action.roll, t("dice.deploy"));
   }
   state = apply(state, action);
   // Anche le azioni dell'avversario passano all'engine: l'arbitro guarda la
@@ -239,10 +259,21 @@ const ctx: Ctx = {
     };
   },
   log(text, seat) {
-    dispatch({
-      t: "say",
-      entry: { id: crypto.randomUUID(), seat: seat ?? null, kind: "log", text, ts: Date.now() },
-    });
+    // Una chiave viaggia come tale (chi legge la rende nella sua lingua);
+    // il testo reso qui è il ripiego per chi non la conosce.
+    const entry: ChatEntry =
+      typeof text === "string"
+        ? { id: crypto.randomUUID(), seat: seat ?? null, kind: "log", text, ts: Date.now() }
+        : {
+            id: crypto.randomUUID(),
+            seat: seat ?? null,
+            kind: "log",
+            key: text.key,
+            ...(text.params ? { params: text.params } : {}),
+            text: renderLog(text, state, id => cardName(id, locale)),
+            ts: Date.now(),
+          };
+    dispatch({ t: "say", entry });
   },
 };
 
@@ -295,7 +326,7 @@ const hud = mountHud(document.querySelector<HTMLElement>("#hud")!, ctx, {
     const after = voice.enabled();
     document.body.dataset.voice = after ? "on" : "";
     if (before !== after) {
-      ctx.log(`Posto ${mySeat.toUpperCase()} ${after ? "accende" : "spegne"} il microfono.`, mySeat);
+      ctx.log(msg("log.mic", { seat: mySeat, onoff: msg(after ? "mic.on" : "mic.off") }), mySeat);
     }
     // Col permesso appena concesso i nomi dei microfoni diventano leggibili.
     void fillMics();
@@ -419,7 +450,7 @@ function loadDeck(deckId: string, seat: Seat): void {
   dispatch({ t: "loadDeck", seat, deckId, cards });
   const deck = getDeck(deckId);
   const name = deck?.locales[locale]?.name ?? deck?.locales[deck.defaultLocale]?.name ?? deckId;
-  ctx.log(`Posto ${seat.toUpperCase()}: caricato «${name}» (${cards.length} carte).`, seat);
+  ctx.log(msg("log.loaded", { seat, name, n: cards.length }), seat);
   // L'apertura è una fila di tre tempi: l'insegna «Fase di Preparazione»
   // al centro del tavolo; poi, mentre svanisce, la mano iniziale; poi, a
   // cascata finita più un respiro, la carta del turno 1 di chi apre. Ogni
@@ -442,11 +473,7 @@ function loadDeck(deckId: string, seat: Seat): void {
     // ci pensa il client che governa quel posto: ognuno carica il proprio
     // mazzo, e solo chi apre passa di qui con `active` suo.
     const opening = seat === state.active;
-    ctx.log(
-      `Posto ${seat.toUpperCase()}: mano iniziale pescata` +
-        `${opening ? " — apre la partita, pesca anche la carta del turno 1" : ""}.`,
-      seat
-    );
+    ctx.log(msg("log.opening", { seat, opens: opening ? msg("log.opens") : "" }), seat);
     if (!opening) return;
     openingTimer[seat] = window.setTimeout(() => {
       const untouched = state.players[seat].deckId === deckId && state.active === seat && handSize(seat) === 6;
@@ -460,21 +487,14 @@ function loadDeck(deckId: string, seat: Seat): void {
 function setStatus(status: NetStatus, peers: number): void {
   const dot = document.querySelector<HTMLElement>("#net-dot")!;
   dot.dataset.status = status;
-  dot.title =
-    status === "online"
-      ? `Collegato · ${peers} nella stanza`
-      : status === "connecting"
-        ? "Mi sto collegando…"
-        : "Non collegato — si gioca in locale";
+  dot.title = status === "online" ? t("net.online", { n: peers }) : t(status === "connecting" ? "net.connecting" : "net.offline");
 }
 
 let seatClashWarned = false;
 function warnSeatClash(): void {
   if (seatClashWarned) return;
   seatClashWarned = true;
-  ctx.log(
-    `Attenzione: nella stanza ci sono due giocatori al posto ${mySeat.toUpperCase()}. Uno dei due cambi posto (ingranaggio → Posto), poi «Sincronizza la lavagna».`
-  );
+  ctx.log(t("log.seatclash", { seat: mySeat.toUpperCase() }));
 }
 
 function join(room: string, relay: string): void {
@@ -583,26 +603,24 @@ function doShuffle(): void {
   const order = shuffled(zoneCards(state, mySeat, "deck").map(card => card.uid));
   if (order.length === 0) return;
   dispatch({ t: "shuffle", seat: mySeat, order });
-  ctx.log(`Posto ${mySeat.toUpperCase()} mescola il mazzo (${order.length} carte).`, mySeat);
+  ctx.log(msg("log.shuffle", { seat: mySeat, n: order.length }), mySeat);
 }
 
 function doDraw(): void {
   if (zoneCards(state, mySeat, "deck").length === 0) {
-    ctx.log(`Posto ${mySeat.toUpperCase()}: mazzo vuoto.`, mySeat);
+    ctx.log(msg("log.deck.empty.short", { seat: mySeat }), mySeat);
     return;
   }
   dispatch({ t: "draw", seat: mySeat, count: 1 });
-  ctx.log(`Posto ${mySeat.toUpperCase()} pesca 1 carta.`, mySeat);
+  ctx.log(msg("log.draw1", { seat: mySeat }), mySeat);
 }
 
 document.querySelector("#do-new")!.addEventListener("click", () => {
-  if (!confirm("Nuova partita: tavolo, contatori e chat vengono azzerati. Procedo?")) return;
+  if (!confirm(t("html.newgame.confirm"))) return;
   const starter = randomSeat();
   void dispatch({ t: "newGame", active: starter }).then(passed => {
     if (!passed) return;
-    ctx.log(
-      `Nuova partita: inizia ${seatLabel(state, starter)}, il Gettone Flusso va a ${seatLabel(state, otherSeat(starter))} (§4).`
-    );
+    ctx.log(msg("log.newgame", { seat: starter, otherSeat: otherSeat(starter) }));
   });
   if (myDeckId) loadDeck(myDeckId, mySeat);
   reapplyName();
@@ -617,7 +635,7 @@ function reapplyName(): void {
 
 document.querySelector("#do-push")!.addEventListener("click", () => {
   net?.send({ t: "state", state, from: mySeat });
-  ctx.log("Lavagna inviata all'avversario.");
+  ctx.log(msg("log.sent"));
 });
 
 document.querySelector("#do-join")!.addEventListener("click", () => join(roomInput.value, relayInput.value));
@@ -643,13 +661,13 @@ document.querySelector("#room-invite")!.addEventListener("click", async () => {
   const button = document.querySelector<HTMLButtonElement>("#room-invite")!;
   try {
     await navigator.clipboard.writeText(url.href);
-    button.textContent = "Copiato ✓";
+    button.textContent = t("copied");
   } catch {
     // Niente clipboard (contesto non sicuro): almeno si vede il link.
-    prompt("Copia il link d'invito:", url.href);
+    prompt(t("invite.prompt"), url.href);
     return;
   }
-  window.setTimeout(() => (button.textContent = "Copia link"), 1600);
+  window.setTimeout(() => (button.textContent = t("copylink")), 1600);
 });
 
 // Il fermo dell'arbitro: una regola ha bloccato l'azione. Non un alert da
@@ -659,7 +677,7 @@ document.querySelector("#room-invite")!.addEventListener("click", async () => {
 // tasto, con Esc o con un click sul fondo.
 function engineStop(verdict: EngineVerdict): void {
   document.querySelector(".engine-stop")?.remove();
-  const raw = verdict.reason ?? `l'azione «${verdict.action ?? "?"}» viola una regola del manuale`;
+  const raw = verdictReason(verdict) ?? t("stop.default", { action: verdict.action ?? "?" });
   // Il «(§6.2, attesa di evocazione)» in coda diventa la targhetta; la prosa
   // resta pulita. Se il riferimento sta a metà frase, si sfila e basta.
   const ref = raw.match(/\s*\(§([\d.]+)(?:,\s*([^)]+))?\)/);
@@ -676,7 +694,7 @@ function engineStop(verdict: EngineVerdict): void {
 
   const title = document.createElement("h3");
   title.className = "engine-stop-title";
-  title.textContent = "Azione fermata";
+  title.textContent = t("stop.title");
 
   const reason = document.createElement("p");
   reason.className = "engine-stop-text";
@@ -685,7 +703,7 @@ function engineStop(verdict: EngineVerdict): void {
   const okay = document.createElement("button");
   okay.type = "button";
   okay.className = "engine-stop-ok";
-  okay.textContent = "Va bene";
+  okay.textContent = t("stop.ok");
 
   const close = (): void => {
     backdrop.remove();
@@ -704,7 +722,7 @@ function engineStop(verdict: EngineVerdict): void {
   if (ref) {
     const badge = document.createElement("span");
     badge.className = "engine-stop-ref";
-    badge.textContent = `Manuale · §${ref[1]}${ref[2] ? ` — ${ref[2]}` : ""}`;
+    badge.textContent = `${t("stop.ref", { ref: ref[1] })}${ref[2] ? ` — ${ref[2]}` : ""}`;
     card.append(badge);
   }
   card.append(okay);
@@ -729,12 +747,7 @@ engineUrlInput.value = store.read("engineUrl", DEFAULT_ENGINE);
 
 function setEngineStatus(status: EngineStatus): void {
   engineDot.dataset.status = status;
-  engineDot.title =
-    status === "online"
-      ? "Engine collegato"
-      : status === "connecting"
-        ? "Engine: mi sto collegando…"
-        : "Engine non raggiungibile";
+  engineDot.title = t(`engine.${status === "online" ? "online" : status === "connecting" ? "connecting" : "offline"}`);
   // L'HUD cambia faccia con l'arbitro (Fine fase al posto di Fine turno):
   // si ridisegna subito, non alla prossima mossa.
   paint();
@@ -758,8 +771,7 @@ function engineApply(): void {
       if (signature === welcomed) return;
       welcomed = signature;
       ctx.log(
-        `Engine collegato (v${version}): ` +
-          (rules.length === 0 ? "osserva soltanto, nessuna regola attiva." : `regole attive — ${rules.join(", ")}.`)
+        msg("log.engine.hello", { version, rules: rules.length === 0 ? msg("log.engine.none") : msg("log.engine.rules", { list: rules.join(", ") }) })
       );
     },
     onVerdict(verdict) {
@@ -767,7 +779,8 @@ function engineApply(): void {
       // applicate dal client di là, non si possono fermare — una violazione
       // si annota in chat e basta.
       if (!verdict.ruled || verdict.ok) return;
-      ctx.log(`Engine: l'azione avversaria «${verdict.action}» viola una regola${verdict.reason ? ` — ${verdict.reason}` : ""}.`);
+      const reason = verdictReason(verdict);
+      ctx.log(msg("log.engine.violation", { action: verdict.action ?? "?", reason: reason ? ` — ${reason}` : "" }));
     },
   });
 }
@@ -848,11 +861,10 @@ themePick.addEventListener("change", () => {
 });
 
 langPick.addEventListener("change", () => {
-  locale = langPick.value;
-  store.write("lang", locale);
-  // La lingua cambia il testo stampato: le tessere vanno ridisegnate.
-  for (const tile of document.querySelectorAll<HTMLElement>(".tile")) delete tile.dataset.signature;
-  paint();
+  store.write("lang", langPick.value);
+  // La lingua veste ogni scritta del tavolo, molte stampate una volta sola
+  // all'avvio: la pagina riparte, e rientra da sé nella stanza salvata.
+  location.reload();
 });
 
 // ---------------------------------------------------------------- avvio
@@ -929,11 +941,7 @@ function obProfile(local = false): void {
   obName.value = store.read("name", "");
   const room = roomInput.value.trim();
   obRoomNote.hidden = !room && !local;
-  obRoomNote.textContent = room
-    ? `Sei nella stanza «${room}». Ancora due cose:`
-    : local
-      ? "Partita locale: guiderai entrambi i posti del tavolo."
-      : "";
+  obRoomNote.textContent = room ? t("html.ob.room.note", { room }) : local ? t("html.ob.local.note") : "";
   obName.focus();
 }
 

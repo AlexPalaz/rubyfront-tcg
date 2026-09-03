@@ -79,12 +79,29 @@ export interface PlayerState {
   deckId: string | null;
 }
 
+/** I parametri di una riga di log: numeri, testi, posti (`seat`, `otherSeat`),
+    id di carte (`*Card`), o altre chiavi annidate. */
+export type LogParams = Record<string, LogParam>;
+export type LogParam = string | number | LogMsg | LogMsg[];
+
+/** Una riga di chat come chiave e parametri, resa nella lingua di chi legge. */
+export interface LogMsg {
+  key: string;
+  params?: LogParams;
+}
+
 export interface ChatEntry {
   id: string;
   seat: Seat | null;
   /** `log` = evento generato dal simulatore (dadi, mescola); `chat` = testo scritto. */
   kind: "chat" | "log";
+  /** Il testo così com'è stato scritto (chat), o la resa nella lingua di
+      chi ha compiuto il gesto (log): il ripiego per chi non ha la chiave. */
   text: string;
+  /** Un evento del tavolo viaggia come chiave e parametri (i18n.ts): ogni
+      giocatore lo legge nella propria lingua. */
+  key?: string;
+  params?: LogParams;
   ts: number;
 }
 

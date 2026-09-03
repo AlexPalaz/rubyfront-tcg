@@ -17,10 +17,10 @@
     <span class="brand-sub">Simulator</span>
   </span>
   <span class="spacer"></span>
-  <span id="engine-dot" class="dot dot-engine" hidden title="Engine spento"></span>
-  <span id="net-dot" class="dot" title="Non collegato"></span>
-  <button type="button" id="do-new" class="danger">Nuova partita</button>
-  <button type="button" id="settings-toggle" class="gear-btn" title="Impostazioni" aria-label="Impostazioni">
+  <span id="engine-dot" class="dot dot-engine" hidden title="Engine spento" data-i18n-title="html.engine.off"></span>
+  <span id="net-dot" class="dot" title="Non collegato" data-i18n-title="html.net.off"></span>
+  <button type="button" id="do-new" class="danger" data-i18n="html.newgame">Nuova partita</button>
+  <button type="button" id="settings-toggle" class="gear-btn" title="Impostazioni" aria-label="Impostazioni" data-i18n-title="html.settings">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M19.4 13c.04-.32.06-.65.06-1s-.02-.68-.07-1l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.73-1l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.63.26-1.21.6-1.74 1l-2.39-.96a.5.5 0 0 0-.6.22L2.68 8.78a.5.5 0 0 0 .12.64L4.83 11c-.05.32-.08.66-.08 1s.03.68.08 1l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.23.4.32.6.22l2.4-.96c.52.4 1.1.74 1.73 1l.36 2.54c.04.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54a7.3 7.3 0 0 0 1.73-1l2.4.96c.23.09.48 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
   </button>
 </header>
@@ -29,31 +29,31 @@
      un click fuori o con Esc. Tutto ciò che NON è un gesto di partita. -->
 <div class="settings" id="settings" hidden>
   <div class="set-row">
-    <span class="set-label">Mazzo</span>
+    <span class="set-label" data-i18n="html.deck">Mazzo</span>
     <span class="set-controls">
-      <select id="deck-pick" title="Mazzo da caricare al tuo posto"></select>
-      <button type="button" id="deck-load">Carica</button>
+      <select id="deck-pick" title="Mazzo da caricare al tuo posto" data-i18n-title="html.deck.tip"></select>
+      <button type="button" id="deck-load" data-i18n="html.load">Carica</button>
     </span>
   </div>
   <div class="set-row">
-    <span class="set-label">Posto</span>
+    <span class="set-label" data-i18n="html.seat">Posto</span>
     <select id="seat-pick">
       <option value="a">A</option>
       <option value="b">B</option>
     </select>
   </div>
   <div class="set-row">
-    <span class="set-label">Stanza</span>
+    <span class="set-label" data-i18n="html.room">Stanza</span>
     <span class="set-controls">
-      <input id="room-name" placeholder="nome stanza" autocomplete="off">
-      <button type="button" id="do-join">Entra</button>
+      <input id="room-name" placeholder="nome stanza" data-i18n-placeholder="html.room.ph" autocomplete="off">
+      <button type="button" id="do-join" data-i18n="html.join">Entra</button>
     </span>
   </div>
   <div class="set-row">
-    <span class="set-label">Invito</span>
+    <span class="set-label" data-i18n="html.invite">Invito</span>
     <span class="set-controls">
-      <button type="button" id="room-create">Crea stanza</button>
-      <button type="button" id="room-invite">Copia link</button>
+      <button type="button" id="room-create" data-i18n="html.room.create">Crea stanza</button>
+      <button type="button" id="room-invite" data-i18n="html.copylink">Copia link</button>
     </span>
   </div>
   <div class="set-row">
@@ -63,33 +63,33 @@
   <div class="set-row">
     <span class="set-label">Engine</span>
     <span class="set-controls">
-      <label class="set-check" title="L'arbitro esterno (engine/): giudica le azioni prima che si applichino; assente, il tavolo resta libero">
+      <label class="set-check" title="L'arbitro esterno (engine/): giudica le azioni prima che si applichino; assente, il tavolo resta libero" data-i18n-title="html.engine.tip">
         <input type="checkbox" id="engine-toggle">
-        Acceso
+        <span data-i18n="html.engine.on">Acceso</span>
       </label>
       <input id="engine-url" placeholder="ws://localhost:8788" autocomplete="off">
     </span>
   </div>
   <div class="set-row">
-    <span class="set-label">Rete</span>
-    <button type="button" id="do-push" class="ghost" title="Rimanda il tuo tavolo all'avversario, se le due lavagne si sono disallineate">Sincronizza la lavagna</button>
+    <span class="set-label" data-i18n="html.net">Rete</span>
+    <button type="button" id="do-push" class="ghost" title="Rimanda il tuo tavolo all'avversario, se le due lavagne si sono disallineate" data-i18n-title="html.sync.tip" data-i18n="html.sync">Sincronizza la lavagna</button>
   </div>
   <div class="set-row">
-    <span class="set-label">Microfono</span>
-    <select id="mic-pick" title="Microfono per la chat vocale">
-      <option value="">Predefinito</option>
+    <span class="set-label" data-i18n="html.mic">Microfono</span>
+    <select id="mic-pick" title="Microfono per la chat vocale" data-i18n-title="html.mic.tip">
+      <option value="" data-i18n="html.mic.default">Predefinito</option>
     </select>
   </div>
   <div class="set-row">
-    <span class="set-label">Vista</span>
+    <span class="set-label" data-i18n="html.view">Vista</span>
     <label class="set-check">
       <input type="checkbox" id="compact-toggle">
-      Compatta: sul campo solo costo, nome, potenza e illustrazione
+      <span data-i18n="html.compact">Compatta: sul campo solo costo, nome, potenza e illustrazione</span>
     </label>
   </div>
   <div class="set-row">
-    <span class="set-label">Tema</span>
-    <select id="theme-pick" title="Tema del tavolo">
+    <span class="set-label" data-i18n="html.theme">Tema</span>
+    <select id="theme-pick" title="Tema del tavolo" data-i18n-title="html.theme.tip">
       <option value="notte">Notte</option>
       <option value="rubino">Rubino</option>
       <option value="smeraldo">Smeraldo</option>
@@ -99,8 +99,8 @@
     </select>
   </div>
   <div class="set-row">
-    <span class="set-label">Lingua</span>
-    <select id="lang-pick" title="Lingua delle carte">
+    <span class="set-label" data-i18n="html.lang">Lingua</span>
+    <select id="lang-pick" title="Lingua del tavolo e delle carte" data-i18n-title="html.lang.tip">
       <option value="it">IT</option>
       <option value="en">EN</option>
     </select>
@@ -115,27 +115,27 @@
     <div class="onboard-brand">Rubyfront <span aria-hidden="true">◆</span> Simulator</div>
 
     <div id="ob-step-room">
-      <p class="onboard-ask">Benvenuto al tavolo. Per giocare con qualcuno serve una stanza:</p>
-      <button type="button" id="ob-create" class="onboard-primary">Crea una stanza</button>
-      <div class="onboard-or">oppure entra in una stanza che conosci</div>
+      <p class="onboard-ask" data-i18n="html.ob.ask">Benvenuto al tavolo. Per giocare con qualcuno serve una stanza:</p>
+      <button type="button" id="ob-create" class="onboard-primary" data-i18n="html.ob.create">Crea una stanza</button>
+      <div class="onboard-or" data-i18n="html.ob.or">oppure entra in una stanza che conosci</div>
       <div class="onboard-row">
-        <input id="ob-room" placeholder="nome stanza" autocomplete="off">
-        <button type="button" id="ob-join">Entra</button>
+        <input id="ob-room" placeholder="nome stanza" data-i18n-placeholder="html.room.ph" autocomplete="off">
+        <button type="button" id="ob-join" data-i18n="html.join">Entra</button>
       </div>
-      <button type="button" id="ob-local" class="onboard-skip">Gioca in locale, senza stanza</button>
+      <button type="button" id="ob-local" class="onboard-skip" data-i18n="html.ob.local">Gioca in locale, senza stanza</button>
     </div>
 
     <div id="ob-step-profile" hidden>
       <p class="onboard-ask" id="ob-room-note" hidden></p>
-      <label class="onboard-label" for="ob-name">Il tuo nome al tavolo</label>
-      <input id="ob-name" placeholder="es. Ajmal" autocomplete="off" maxlength="24">
-      <label class="onboard-label" for="ob-deck">Il mazzo con cui giochi</label>
+      <label class="onboard-label" for="ob-name" data-i18n="html.ob.name">Il tuo nome al tavolo</label>
+      <input id="ob-name" placeholder="es. Ajmal" data-i18n-placeholder="html.ob.name.ph" autocomplete="off" maxlength="24">
+      <label class="onboard-label" for="ob-deck" data-i18n="html.ob.deck">Il mazzo con cui giochi</label>
       <select id="ob-deck"></select>
       <!-- Solo in partita locale: si guidano entrambi i posti, serve anche
            il mazzo dell'altra metà del tavolo. -->
-      <label class="onboard-label" for="ob-deck-b" id="ob-deck-b-label" hidden>Il mazzo dell'avversario</label>
+      <label class="onboard-label" for="ob-deck-b" id="ob-deck-b-label" hidden data-i18n="html.ob.deck.b">Il mazzo dell'avversario</label>
       <select id="ob-deck-b" hidden></select>
-      <button type="button" id="ob-go" class="onboard-primary">Al tavolo</button>
+      <button type="button" id="ob-go" class="onboard-primary" data-i18n="html.ob.go">Al tavolo</button>
     </div>
   </div>
 </div>
@@ -146,12 +146,12 @@
     <div class="hud" id="hud"></div>
   </div>
   <aside class="side" id="side">
-    <button type="button" class="side-close" id="side-close" title="Chiudi la chat e allarga il tavolo">×</button>
+    <button type="button" class="side-close" id="side-close" title="Chiudi la chat e allarga il tavolo" data-i18n-title="html.side.close">×</button>
     <div class="chat" id="chat"></div>
   </aside>
 </main>
 
-<div class="boot" id="boot">Carico le carte…</div>
+<div class="boot" id="boot" data-i18n="html.boot">Carico le carte…</div>
 
 <script type="module" src="./src/main.ts"></script>
 </body>

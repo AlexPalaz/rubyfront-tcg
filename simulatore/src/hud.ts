@@ -13,6 +13,7 @@
 // lo si porta dove non dà fastidio. La posizione resta fra una partita e
 // l'altra, e un doppio click sulla maniglia lo rimette al posto suo.
 
+import { msg, t } from "./i18n.js";
 import type { Ctx } from "./ctx.js";
 import { phaseCloser, seatLabel, waveDeclared } from "./state.js";
 import { declareFront, declareReaction, endPhase, endTurn } from "./turn.js";
@@ -58,28 +59,28 @@ const svgIcon = (paths: string): string =>
  */
 /** Il tasto della fase, con l'arbitro: dice quale fase chiude. */
 const PHASE_END: Record<Phase, string> = {
-  preparazione: "Fine Preparazione",
-  fronte: "Fine Fronte",
-  reazione: "Fine Reazione",
+  preparazione: "phase.end.preparazione",
+  fronte: "phase.end.fronte",
+  reazione: "phase.end.reazione",
 };
 
 const TOOLS = [
   {
     key: "shuffle",
-    label: "Mescola",
-    title: "Mescola il tuo mazzo",
+    label: "hud.shuffle",
+    title: "hud.shuffle.tip",
     svg: svgIcon('<path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="m4 4 5 5"/>'),
   },
   {
     key: "draw",
-    label: "Pesca",
-    title: "Pesca 1 carta",
+    label: "hud.draw",
+    title: "hud.draw.tip",
     svg: svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M12 8v6M9 11h6"/>'),
   },
   {
     key: "search",
-    label: "Cerca",
-    title: "Cerca una carta nel mazzo",
+    label: "hud.search",
+    title: "hud.search.tip",
     svg: svgIcon('<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'),
   },
 ] as const;
@@ -108,7 +109,7 @@ function statRow(
   head.append(value);
   if (kind === "hp") {
     const suffix = document.createElement("small");
-    suffix.textContent = "PV";
+    suffix.textContent = t("hud.hp.unit");
     head.append(suffix);
   }
 
@@ -116,13 +117,13 @@ function statRow(
   minus.type = "button";
   minus.className = "hud-step";
   minus.textContent = "−";
-  tip(minus, `${title}: uno in meno`);
+  tip(minus, t("hud.step.less", { what: title }));
 
   const plus = document.createElement("button");
   plus.type = "button";
   plus.className = "hud-step";
   plus.textContent = "+";
-  tip(plus, `${title}: uno in più`);
+  tip(plus, t("hud.step.more", { what: title }));
 
   const clamp = (next: number): number =>
     Math.max(options.min ?? Number.NEGATIVE_INFINITY, Math.min(options.max ?? Number.POSITIVE_INFINITY, next));
@@ -147,14 +148,14 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
       void ctx.dispatch({ t: "player", seat, patch: values });
     };
 
-    const hp = statRow("hp", "Punti Vita", () => ctx.state().players[seat].hp, value => patch({ hp: value }));
+    const hp = statRow("hp", t("hud.hp"), () => ctx.state().players[seat].hp, value => patch({ hp: value }));
     // Niente tetto né pavimento cuciti nel bottone: il limite dei 20 e lo
     // zero (§3.2) sono regole dell'engine — acceso, 21 e −1 li ferma il
     // poliziotto con tanto di avviso; spento, il tavolo è libero come per
     // ogni altro gesto.
     const flux = statRow(
       "flux",
-      "Flusso",
+      t("hud.flux"),
       () => ctx.state().players[seat].flux,
       value => patch({ flux: value })
     );
@@ -168,23 +169,21 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
       const player = ctx.state().players[seat];
       if (!player.token) {
         patch({ token: true });
-        ctx.log(`${seatLabel(ctx.state(), seat)} riceve il Gettone Flusso.`, seat);
+        ctx.log(msg("log.token.get", { seat }), seat);
       } else {
         // Spenderlo dà 1 Flusso oltre il tetto: è l'unico modo di arrivare a 21.
         patch({ token: false, flux: player.flux + 1 });
-        ctx.log(`${seatLabel(ctx.state(), seat)} spende il Gettone Flusso (+1 Flusso, fuori dal limite).`, seat);
+        ctx.log(msg("log.token.spend", { seat }), seat);
       }
     });
 
     syncs.push(hp.sync, flux.sync, () => {
-      name.textContent = mine ? "tu" : seatLabel(ctx.state(), seat, ctx.seat()).slice(0, 14);
+      name.textContent = mine ? t("seat.you") : seatLabel(ctx.state(), seat, ctx.seat()).slice(0, 14);
       box.classList.toggle("is-active", ctx.state().active === seat);
       const held = ctx.state().players[seat].token;
       coin.textContent = held ? "◆" : "◇";
       coin.classList.toggle("is-held", held);
-      tip(coin, held
-        ? "Gettone Flusso: spendi (+1 Flusso, oltre il tetto dei 20)"
-        : "Assegna il Gettone Flusso (§3.2)");
+      tip(coin, t(held ? "hud.token.held" : "hud.token.none"));
     });
 
     box.append(coin, name, hp.row, flux.row);
@@ -224,16 +223,16 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     });
     return button;
   };
-  turn.append(turnStep(-1, "Turno: uno in meno"), turnMid, turnStep(1, "Turno: uno in più"));
+  turn.append(turnStep(-1, t("hud.turn.less")), turnMid, turnStep(1, t("hud.turn.more")));
 
   syncs.push(() => {
     const state = ctx.state();
-    turnCount.textContent = `Turno ${state.turn}`;
+    turnCount.textContent = t("hud.turn", { turn: state.turn });
     const mineTurn = state.active === ctx.seat();
-    turnWho.textContent = mineTurn ? "▼ tocca a te" : `▲ ${seatLabel(state, state.active, ctx.seat())}`;
+    turnWho.textContent = mineTurn ? t("hud.turn.you") : `▲ ${seatLabel(state, state.active, ctx.seat())}`;
     turn.classList.toggle("is-mine", mineTurn);
     turnPhase.textContent =
-      state.phase === "reazione" ? "Reazione" : state.phase === "fronte" ? "Fase di Fronte" : "Preparazione";
+      t(`phase.${state.phase}`);
     turnPhase.classList.toggle("is-front", state.phase === "fronte");
     turnPhase.classList.toggle("is-reaction", state.phase === "reazione");
   });
@@ -250,7 +249,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   const front = document.createElement("button");
   front.type = "button";
   front.className = "hud-front";
-  front.textContent = "Fase di Fronte";
+  front.textContent = t("hud.front");
   front.addEventListener("click", () => {
     // Con l'arbitro al tavolo il bottone è «Fine fase»: chiude la fase in
     // corso, e l'ultima chiude il turno (turn.ts).
@@ -268,8 +267,8 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   // Niente classe `primary`: quella veste i bottoni di rubino, e qui il
   // colore lo decide la palette dell'HUD.
   pass.className = "hud-pass";
-  pass.textContent = "Fine turno";
-  tip(pass, "Passa il turno: Flusso massimo +1 e ricarica per chi entra (§3.2)");
+  pass.textContent = t("hud.endturn");
+  tip(pass, t("hud.endturn.tip"));
   pass.addEventListener("click", () => endTurn(ctx));
 
   /** Le due spie di un tasto: blu per i messaggi, oro per le azioni. */
@@ -285,7 +284,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   const chatToggle = document.createElement("button");
   chatToggle.type = "button";
   chatToggle.className = "hud-chat";
-  tip(chatToggle, "Apri e chiudi la chat");
+  tip(chatToggle, t("hud.chat"));
   chatToggle.innerHTML =
     '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M5 4h14a2.5 2.5 0 0 1 2.5 2.5v8A2.5 2.5 0 0 1 19 17h-8.6l-4.6 3.8c-.65.54-1.65.08-1.65-.77V6.5A2.5 2.5 0 0 1 5 4z"/></svg>';
   chatToggle.addEventListener("click", hooks.chat);
@@ -313,9 +312,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     // parte del tavolo.
     const canPass = ctx.controls(phaseCloser(state));
     pass.disabled = !canPass;
-    tip(pass, canPass
-      ? "Passa il turno: Flusso massimo +1 e ricarica per chi entra (§3.2)"
-      : "Tocca all'avversario: il Fine turno adesso è suo");
+    tip(pass, t(canPass ? "hud.endturn.tip" : "hud.endturn.theirs"));
     // Arbitro collegato: le fasi le scandisce lui, e all'HUD resta un gesto
     // solo — «Fine fase», rubino, al posto del Fine turno. Il turno si
     // chiude dall'ultima fase (Reazione, o Fronte senza ondata), non si
@@ -325,13 +322,13 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     if (state.over) {
       pass.disabled = true;
       front.disabled = true;
-      tip(pass, "Partita finita: Nuova partita per ricominciare");
-      tip(front, "Partita finita: Nuova partita per ricominciare");
+      tip(pass, t("hud.over"));
+      tip(front, t("hud.over"));
       pass.hidden = single;
       actions.classList.toggle("is-single", single);
       front.classList.toggle("is-phase-end", single);
       if (single) {
-        front.textContent = PHASE_END[state.phase];
+        front.textContent = t(PHASE_END[state.phase]);
         front.dataset.phase = state.phase;
       }
       return;
@@ -341,31 +338,19 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     front.classList.toggle("is-phase-end", single);
     if (single) {
       // Il tasto dice quale fase chiude, e ne prende il colore.
-      front.textContent = PHASE_END[state.phase];
+      front.textContent = t(PHASE_END[state.phase]);
       front.dataset.phase = state.phase;
       front.disabled = !canPass;
-      tip(front, !canPass
-        ? (state.phase === "reazione" ? "La Reazione la chiude chi difende (§6.4)" : "Tocca all'avversario: le fasi le chiude chi è di turno")
+      tip(front, t(!canPass
+        ? (state.phase === "reazione" ? "hud.phase.defender" : "hud.phase.theirs")
         : state.phase === "preparazione"
-          ? "Chiude la Preparazione: si apre la Fase di Fronte (§6.3)"
-          : state.phase === "fronte"
-            ? waveDeclared(state)
-              ? "Chiude il Fronte: l'ondata passa al difensore (§6.4)"
-              : "Chiude il Fronte senza attacchi: fine del turno (§6.5)"
-            : waveDeclared(state)
-              ? "Chiude la Reazione: risolve le battaglie (§6.4) e chiude il turno"
-              : "Chiude la Reazione: fine del turno (§6.5)");
+          ? "hud.phase.tip.preparazione"
+          : `hud.phase.tip.${state.phase}.${waveDeclared(state) ? "wave" : "none"}`));
       return;
     }
-    front.textContent = state.phase === "preparazione" ? "Fase di Fronte" : "Al difensore";
+    front.textContent = t(state.phase === "preparazione" ? "hud.front" : "hud.defender");
     front.disabled = !canPass || state.phase === "reazione";
-    tip(front, !canPass
-      ? "Tocca all'avversario: le fasi le dichiara chi è di turno"
-      : state.phase === "preparazione"
-        ? "Dichiara la Fase di Fronte: apre il combattimento (§6.3)"
-        : state.phase === "fronte"
-          ? "Ondata completa: passa la parola al difensore (§6.4)"
-          : "Reazione aperta: il difensore blocca; risolvete, poi Fine turno");
+    tip(front, t(!canPass ? "hud.front.tip.theirs" : `hud.front.tip.${state.phase}`));
   });
 
   // La fila delle azioni di mazzo, per l'HUD esteso.
@@ -375,8 +360,8 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `hud-tool hud-tool-${def.key}`;
-    tip(button, def.title);
-    button.innerHTML = `${def.svg}<span>${def.label}</span>`;
+    tip(button, t(def.title));
+    button.innerHTML = `${def.svg}<span>${t(def.label)}</span>`;
     button.addEventListener("click", hooks[def.key]);
     tools.append(button);
   }
@@ -392,11 +377,11 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     button.type = "button";
     button.className = "hud-dice-btn";
     button.textContent = `d${faces}`;
-    tip(button, `Tira il d${faces}`);
+    tip(button, t("hud.die.tip", { n: faces }));
     button.addEventListener("click", () => {
       const value = 1 + Math.floor(Math.random() * faces);
       diceOut.textContent = `d${faces} → ${value}`;
-      ctx.log(`${seatLabel(ctx.state(), ctx.seat())} tira d${faces}: ${value}`, ctx.seat());
+      ctx.log(msg("log.roll", { seat: ctx.seat(), die: faces, roll: value }), ctx.seat());
     });
     dice.append(button);
   }
@@ -409,13 +394,13 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
 
   const grip = document.createElement("div");
   grip.className = "hud-grip";
-  tip(grip, "Trascina per spostare l'HUD · doppio click per rimetterlo al posto suo");
+  tip(grip, t("hud.grip"));
 
   const minBtn = document.createElement("button");
   minBtn.type = "button";
   minBtn.className = "hud-min-btn";
   minBtn.innerHTML = svgIcon('<path d="M5 12h14"/>');
-  tip(minBtn, "Riduci l'HUD a icona");
+  tip(minBtn, t("hud.min"));
   minBtn.addEventListener("click", () => setMin(true));
   // Sta sopra, accanto alla maniglia — ma da tasto vero, non da francobollo.
   top.append(grip, minBtn);
@@ -423,7 +408,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   const mini = document.createElement("button");
   mini.type = "button";
   mini.className = "hud-sq hud-mini";
-  tip(mini, "Espandi l'HUD · trascina per spostarlo");
+  tip(mini, t("hud.max"));
   mini.innerHTML = '<span class="hud-mini-gem"></span>';
   // Il click espande, ma solo se è un click davvero: dopo un trascinamento
   // il browser lo spara lo stesso, e va lasciato cadere.
@@ -455,8 +440,8 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   const spawn = document.createElement("button");
   spawn.type = "button";
   spawn.className = "hud-tool hud-tool-spawn";
-  tip(spawn, "Prova: evoca in mano una carta del catalogo");
-  spawn.innerHTML = `${svgIcon('<path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/>')}<span>Evoca</span>`;
+  tip(spawn, t("hud.spawn.tip"));
+  spawn.innerHTML = `${svgIcon('<path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/>')}<span>${t("hud.spawn")}</span>`;
   spawn.addEventListener("click", hooks.spawn);
   test.append(spawn);
 
@@ -555,7 +540,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
       // sull'icona, che da ridotta è tutto ciò che resta in vista.
       const voiceOn = document.body.dataset.voice === "on";
       mic.classList.toggle("is-on", voiceOn);
-      tip(mic, voiceOn ? "Microfono acceso: clicca per spegnerlo" : "Attiva il microfono (chat vocale)");
+      tip(mic, t(voiceOn ? "hud.mic.on" : "hud.mic.off"));
       const unreadChat = document.body.dataset.unread ?? "";
       const unreadLog = document.body.dataset.unreadLog ?? "";
       chatBadges.chat.textContent = unreadChat;

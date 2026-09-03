@@ -4,6 +4,7 @@
 // rigo nell'HUD, ma dove gli occhi stanno guardando. Solo un annuncio: non
 // si clicca, non ferma nulla, e con prefers-reduced-motion resta ferma.
 
+import { t } from "./i18n.js";
 import type { Ctx } from "./ctx.js";
 import { seatLabel } from "./state.js";
 import { describeGameOver } from "./turn.js";
@@ -25,18 +26,20 @@ export const PHASE_BANNER_MS = 1800;
 export const PHASE_BANNER_HOLD_MS = 1400;
 
 const TITLES: Record<Phase, string> = {
-  preparazione: "Fase di Preparazione",
-  fronte: "Fase di Fronte",
-  reazione: "Fase di Reazione",
+  preparazione: "phase.title.preparazione",
+  fronte: "phase.title.fronte",
+  reazione: "phase.title.reazione",
 };
 
 /** Il rigo sotto: turno e a chi tocca — in Reazione la parola è del difensore. */
 function subtitle(state: GameState, me: Seat): string {
   const who = state.phase === "reazione" ? otherSeat(state.active) : state.active;
+  const mine = who === me;
+  const name = seatLabel(state, who, me);
   if (state.phase === "reazione") {
-    return `Turno ${state.turn} · difende ${who === me ? "te" : seatLabel(state, who, me)}`;
+    return t(mine ? "banner.defends.you" : "banner.defends.them", { turn: state.turn, name });
   }
-  return `Turno ${state.turn} · ${who === me ? "tocca a te" : seatLabel(state, who, me)}`;
+  return t(mine ? "banner.turn.you" : "banner.turn.them", { turn: state.turn, name });
 }
 
 export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
@@ -57,7 +60,7 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
   let timer: number | undefined;
 
   function show(state: GameState): void {
-    title.textContent = TITLES[state.phase];
+    title.textContent = t(TITLES[state.phase]);
     sub.textContent = subtitle(state, ctx.seat());
     host.dataset.phase = state.phase;
     // Rilancio dell'animazione: si spegne, si forza il reflow, si riaccende.
