@@ -2,6 +2,7 @@
 // cambio di turno porta con sé — Flusso nuovo, stappata, frecce sgomberate —
 // sta nel riduttore (state.ts, `turn`): qui si dichiara e si racconta.
 
+import { vigilUntaps } from "./effects.js";
 import { msg, t, type LogMsg } from "./i18n.js";
 import { describeBattle, resolveWave } from "./combat.js";
 import { releaseControlled } from "./effects.js";
@@ -101,6 +102,12 @@ export async function endPhase(ctx: Ctx): Promise<void> {
   if (state.phase === "preparazione") return declareFront(ctx);
   if (state.phase === "fronte" && waveDeclared(state)) return declareReaction(ctx);
   if (state.phase === "reazione" && waveDeclared(state) && !(await resolveCombat(ctx))) return;
+  // §8.2 (RBF-011) — una Fase di Fronte addizionale è dovuta: dalla
+  // Reazione si torna al Fronte, e il turno non si chiude.
+  if (state.phase === "reazione" && ctx.state().extraFront) {
+    if (await ctx.dispatch({ t: "phase", phase: "fronte" })) ctx.log(msg("log.extrafront", { seat: state.active }), state.active);
+    return;
+  }
   return endTurn(ctx);
 }
 
@@ -119,9 +126,15 @@ export async function resolveCombat(ctx: Ctx): Promise<boolean> {
     ctx.log(msg("log.resolve.manual"), state.active);
     return true;
   }
-  if (!(await ctx.dispatch({ t: "resolve", seat: state.active, battles }))) return false;
+  // §8.2 (RBF-028) — chi si stappa dopo il combattimento viaggia con la
+  // risoluzione; l'engine verifica la lista.
+  const untap = vigilUntaps(state, state.active, ctx.card);
+  if (!(await ctx.dispatch({ t: "resolve", seat: state.active, battles, ...(untap.length ? { untap } : {}) }))) return false;
   const cardId = (uid: string): string => state.cards[uid]?.cardId ?? uid;
   battles.forEach((battle, index) => ctx.log(describeBattle(battle, index + 1, cardId), state.active));
+  for (const uid of untap) {
+    if (ctx.state().cards[uid]?.zone === "field") ctx.log(msg("log.vigil", { seat: state.active, card: cardId(uid) }), state.active);
+  }
   const foe = otherSeat(state.active);
   const damage = battles.reduce((sum, battle) => sum + battle.damage, 0);
   if (damage > 0) {

@@ -139,6 +139,12 @@ module Rubyfront
 
     # §6.4: c'è un'ondata dichiarata sul tavolo? Se sì, il turno non si
     # chiude senza la finestra di difesa.
+    # Il numero d'ondata di un attaccante (0 se non attacca).
+    def attack_order(uid)
+      declaration = @declarations[uid]
+      declaration && declaration[:kind] == "attack" ? declaration[:order] : 0
+    end
+
     def wave_declared?
       @declarations.any? { |_, d| d[:kind] == "attack" }
     end
@@ -498,19 +504,35 @@ module Rubyfront
       hand_order = hand.empty? ? 0 : hand.last[:order] + 1
       deck = pile(seat, "deck")
       bottom = deck.last[:order] + 1
+      # Dove va la mostrata (`revealTo`, di regola in mano) e dove vanno le
+      # altre (`restTo`, di regola in fondo al mazzo): RBF-031 manda la
+      # mostrata in Ritiro, RBF-034 le altre. Gemello: state.ts, look.
+      reveal_to = action["revealTo"] == "ritiro" ? "ritiro" : "hand"
+      rest_to = action["restTo"] == "ritiro" ? "ritiro" : "deck"
+      to_retire_top = lambda do |card|
+        top = pile(seat, "ritiro").first
+        card[:zone] = "ritiro"
+        card[:order] = top ? top[:order] - 1 : 0
+        card[:facedown] = false
+      end
       looked.each do |card|
         if action["reveal"] && @cards[action["reveal"]].equal?(card)
-          card[:zone] = "hand"
-          card[:order] = hand_order
-          card[:facedown] = false
+          if reveal_to == "ritiro"
+            to_retire_top.call(card)
+          else
+            card[:zone] = "hand"
+            card[:order] = hand_order
+            card[:facedown] = false
+          end
           next
         end
         if action["retire"] && @cards[action["retire"]].equal?(card)
           # In cima alla Zona di Ritiro, scoperta (RBF-027).
-          top = pile(seat, "ritiro").first
-          card[:zone] = "ritiro"
-          card[:order] = top ? top[:order] - 1 : 0
-          card[:facedown] = false
+          to_retire_top.call(card)
+          next
+        end
+        if rest_to == "ritiro"
+          to_retire_top.call(card)
           next
         end
         card[:order] = bottom

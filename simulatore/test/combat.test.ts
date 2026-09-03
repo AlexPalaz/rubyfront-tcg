@@ -59,6 +59,8 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       enterLooks: [],
       enterControls: [],
       attackReturns: [],
+      attackDraws: [],
+      attackForms: [],
     }),
     log(text) {
       logs.push(typeof text === "string" ? text : renderLog(text, ctx.state(), id => id));

@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { MATTER_X, frontRowY } from "../src/ctx.js";
-import { STACK_STEP, apply, matterSpot, newGame, pay, playSpot, zoneCards } from "../src/state.js";
+import { STACK_STEP, apply, attackKey, matterSpot, newGame, pay, playSpot, zoneCards } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
 function deckFor(seat: Seat, count: number): { cards: CardInstance[] } & Extract<Parameters<typeof apply>[1], { t: "loadDeck" }> {
@@ -458,7 +458,7 @@ describe("attrezzi degli effetti d'attacco", () => {
   it("empower non tocca una carta fuori dal campo", () => {
     const state = newGame("a");
     field(state, "h", "a", { zone: "hand" });
-    expect(apply(state, { t: "empower", uid: "h", power: 1, effect: ref })).toBe(state);
+    expect(apply(state, { t: "empower", uid: "h", power: 1, effect: ref }).cards.h).toEqual(state.cards.h);
   });
 
   it("refresh stappa chi comanda il posto e promette la Fase di Fronte addizionale col tiro", () => {
@@ -503,5 +503,47 @@ describe("attrezzi degli effetti d'attacco", () => {
     field(state, "obj", "a", { zone: "ritiro" });
     const next = apply(state, { t: "toZone", uid: "obj", zone: "field", x: 0, y: 0, assignTo: "ent", effect: ref });
     expect(next.cards.obj).toMatchObject({ zone: "field", assignedTo: "ent" });
+  });
+});
+
+// La memoria degli inneschi d'attacco e lo sguardo con le due destinazioni.
+describe("memoria degli inneschi e sguardo", () => {
+  const field = (state: GameState, uid: string, owner: Seat, extra: Partial<CardInstance> = {}): CardInstance => {
+    const card: CardInstance = { uid, cardId: "X", owner, zone: "field", face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 1, ...extra };
+    state.cards[uid] = card;
+    return card;
+  };
+
+  it("attackKey rispecchia la chiave dell'engine", () => {
+    const ref = { source: "s", event: "on_attack" as const, entering: "a" };
+    expect(attackKey({ t: "draw", seat: "a", count: 1, effect: ref })).toBe("s|on_attack:draw|a");
+    expect(attackKey({ t: "empower", uid: "u", power: 1, effect: ref })).toBe("s|on_attack:empower:u|a");
+    expect(attackKey({ t: "look", seat: "a", count: 2, effect: { ...ref, once: true } })).toBe("s|on_attack:look|turn");
+    expect(attackKey({ t: "toZone", uid: "o", zone: "field", assignTo: "a", effect: ref })).toBe("s|on_attack:rearm|a");
+    expect(attackKey({ t: "toZone", uid: "h", zone: "abisso", effect: { ...ref, follow: "discard" } })).toBe("s|on_attack:discard|a");
+    expect(attackKey({ t: "draw", seat: "a", count: 1, effect: { source: "s", event: "on_enter_field", entering: "a" } })).toBeNull();
+  });
+
+  it("apply annota gli inneschi risolti e il cambio di turno li azzera", () => {
+    const state = newGame("a");
+    field(state, "s", "a");
+    let next = apply(state, { t: "empower", uid: "s", power: 1, effect: { source: "s", event: "on_attack", entering: "s" } });
+    next = apply(next, { t: "resolve", seat: "a", battles: [], untap: ["s"] });
+    expect(next.fired).toEqual(["s|on_attack:empower:s|s", "s|on_attack:untap|turn"]);
+    expect(apply(next, { t: "turn", turn: 2, active: "b" }).fired).toEqual([]);
+  });
+
+  it("lo sguardo manda la mostrata in Ritiro, o le altre in Ritiro, a seconda della forma", () => {
+    const state = newGame("a");
+    const d = ["d1", "d2", "d3"].map((uid, order) => field(state, uid, "a", { zone: "deck", order }));
+    const ref = { source: "s", event: "on_attack" as const, entering: "s" };
+    const retire = apply(state, { t: "look", seat: "a", count: 2, reveal: "d1", revealTo: "ritiro", restTo: "deck", effect: ref });
+    expect(retire.cards.d1.zone).toBe("ritiro");
+    expect(retire.cards.d2.zone).toBe("deck");
+    expect(retire.cards.d2.order).toBeGreaterThan(d[2].order);
+    const rest = apply(state, { t: "look", seat: "a", count: 2, reveal: "d1", revealTo: "hand", restTo: "ritiro", effect: ref });
+    expect(rest.cards.d1.zone).toBe("hand");
+    expect(rest.cards.d2.zone).toBe("ritiro");
+    expect(rest.cards.d3.zone).toBe("deck");
   });
 });

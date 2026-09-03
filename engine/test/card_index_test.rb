@@ -19,17 +19,10 @@ class CardIndexTest < Minitest::Test
   # vi compare, è una forma rotta o un dato cambiato di nascosto — e il test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBITO = [
-    "RBF-001 rubyfront/muster",
     "RBF-001 nexus/heir-absorbed",
     "RBF-001 nexus/heir-sealed",
-    "RBF-001 nexus/heirs-muster",
     "RBF-002 entity/glade-boy",
-    "RBF-004 entity/avenge",
-    "RBF-005 entity/raid",
-    "RBF-008 entity/mend",
     "RBF-010 entity/echo",
-    "RBF-010 entity/recall-fallen",
-    "RBF-011 entity/second-charge",
     "RBF-013 object/guard",
     "RBF-014 object/band",
     "RBF-015 matter/lure",
@@ -39,7 +32,6 @@ class CardIndexTest < Minitest::Test
     "RBF-019 matter/glade-strength",
     "RBF-020 matter/coordinate",
     "RBF-021 matter/judgment",
-    "RBF-022 matter/heirs-charge",
     "RBF-023 rubyfront/schism-forge",
     "RBF-023 nexus/blade-absorbed",
     "RBF-023 nexus/blade-sealed",
@@ -48,18 +40,12 @@ class CardIndexTest < Minitest::Test
     "RBF-024 entity/grip",
     "RBF-025 entity/tally",
     "RBF-028 entity/temper",
-    "RBF-028 entity/vigil",
-    "RBF-029 entity/command",
     "RBF-030 entity/outfit",
     "RBF-030 entity/carry",
     "RBF-031 entity/aura",
-    "RBF-031 entity/rearm",
-    "RBF-031 entity/foresight",
     "RBF-032 object/edge",
     "RBF-033 object/brace",
     "RBF-033 object/spikes",
-    "RBF-034 object/charge",
-    "RBF-034 object/sift",
     "RBF-035 object/relic",
     "RBF-035 object/remain",
     "RBF-036 matter/amplify",
@@ -133,6 +119,30 @@ class CardIndexTest < Minitest::Test
     assert_equal forma, @index["RBF-012"][:enter_returns]
     assert_equal forma, @index["RBF-012"][:attack_returns], "e anche quando attacca"
     assert_equal [], @index["RBF-012"][:attack_draws], "Rhen riporta, non pesca"
+  end
+
+  def test_le_forme_quando_attacca_delle_carte_vere
+    forme = ->(id) { @index[id][:attack_forms].map { |form| [form[:kind], form[:who], form[:face]] } }
+    assert_equal [["untap", "self", 0]], forme.call("RBF-028")
+    assert_equal [["empower", "self", 0]], forme.call("RBF-029")
+    assert_equal [["empower", "object", 0], ["look", "object", 0]], forme.call("RBF-034")
+    assert_equal [["rearm", "ally", 0], ["look", "ally", 0]], forme.call("RBF-031")
+    assert_equal [["heal", "self", 0]], forme.call("RBF-008")
+    assert_equal [["return", "self", 0]], forme.call("RBF-010")
+    assert_equal [["refresh", "self", 0]], forme.call("RBF-011")
+    assert_equal [["heal", "permanent", 0]], forme.call("RBF-022")
+    assert_equal [["heal", "rubyfront", 0], ["heal", "rubyfront", 1]], forme.call("RBF-001")
+    assert_equal [["empower", "self", 0]], forme.call("RBF-004")
+    assert_equal [["empower", "self", 0]], forme.call("RBF-005")
+    # I dettagli che contano: dadi, soglie, destinazioni, seguiti.
+    assert_equal({ die: 6, on_roll: [5, 6], count: 4, reveal_to: "hand", rest_to: "ritiro" }, @index["RBF-034"][:attack_forms][1].slice(:die, :on_roll, :count, :reveal_to, :rest_to))
+    assert_equal({ once: true, count: 2, reveal_to: "ritiro", rest_to: "deck" }, @index["RBF-031"][:attack_forms][1].slice(:once, :count, :reveal_to, :rest_to))
+    assert_equal({ amount: 2, die: 6, on_roll: [5, 6] }, @index["RBF-008"][:attack_forms][0].slice(:amount, :die, :on_roll))
+    assert_equal({ die: 20, on_roll: [15, 20] }, @index["RBF-011"][:attack_forms][0].slice(:die, :on_roll))
+    assert_equal({ gain_on: [1, 6], drain_on: [15, 20] }, @index["RBF-022"][:attack_forms][0].slice(:gain_on, :drain_on))
+    assert_equal [0, 1], @index["RBF-001"][:attack_forms].map { |form| form[:then_draw] }, "solo il Nexus pesca"
+    assert_equal({ targets: "next_human_attacker", grants: ["revenge"] }, @index["RBF-004"][:attack_forms][0].slice(:targets, :grants))
+    assert_equal({ count: 2, race: "human" }, @index["RBF-005"][:attack_forms][0][:requires_previous_attackers])
   end
 
   def test_l_esploratore_pesca_quando_attacca_armato

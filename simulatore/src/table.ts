@@ -52,6 +52,15 @@ import {
   resolveAttackDraw,
   resolveAttackDiscard,
   type AttackDrawStep,
+  attackSteps,
+  attackRef,
+  attackersOf,
+  describeAttackStep,
+  inRange,
+  otherArmed,
+  pendingGrants,
+  rollDie,
+  type AttackStep,
   resolveControl,
   resolveLook,
   resolveMove,
@@ -88,6 +97,8 @@ import {
   shuffled,
   stackAt,
   zoneCards,
+  freeFrontSlotOrNull,
+  nextWaveOrder,
 } from "./state.js";
 import type { CardInstance, GameState, Seat, ZoneId } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
@@ -549,31 +560,309 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // la stessa scena dell'ingresso ma la riga «Quando attacca».
       const live = ctx.state().cards[card.uid];
       if (!live) return;
+      // RBF-004: la Vendetta promessa «al prossimo Umano che attacca» si
+      // dà adesso, se è lui — senza scena, con la freccia.
+      for (const grant of pendingGrants(ctx.state(), live, ctx.card)) await playGrant(grant, live);
       const returns = returnsFor(ctx.state(), live, ctx.card, "on_attack");
       const draws = attackDraws(ctx.state(), live, ctx.card);
-      if (returns.length === 0 && draws.length === 0) return;
-      const effects = attackEffects(live.cardId, live.face, ctx.locale());
-      void showEnterEffect(root, {
-        cardId: live.cardId,
-        face: live.face,
-        theme: ctx.themeFor(live.owner),
-        locale: ctx.locale(),
-        who: t("scene.attacks", { name: seatLabel(ctx.state(), controllerOf(live)), card: `«${cardName(live.cardId, ctx.locale())}»` }),
-        effects,
-        triggers: [...returns.map(step => describeReturn(step, ctx.card)), ...draws.map(step => describeAttackDraw(step, ctx.card))],
-        kicker: t("scene.attack"),
-        onContinue: () => void playAttackTriggers(live),
-      });
+      const steps = attackSteps(ctx.state(), live, ctx.card);
+      const who = t("scene.attacks", { name: seatLabel(ctx.state(), controllerOf(live)), card: `«${cardName(live.cardId, ctx.locale())}»` });
+      // Una scena per fonte: prima chi attacca (i suoi ritorni, le sue
+      // pesche, le sue forme), poi ogni altra carta che si innesca — gli
+      // Oggetti addosso, le alleate, le Materie permanenti, il Rubyfront.
+      // Le scene si accodano; «Risolvi» esegue i passi di quella fonte.
+      const own = steps.filter(step => step.source.uid === live.uid);
+      if (returns.length || draws.length || own.length) {
+        void showEnterEffect(root, {
+          cardId: live.cardId,
+          face: live.face,
+          theme: ctx.themeFor(live.owner),
+          locale: ctx.locale(),
+          who,
+          effects: attackEffects(live.cardId, live.face, ctx.locale()),
+          triggers: [
+            ...returns.map(step => describeReturn(step, ctx.card)),
+            ...draws.map(step => describeAttackDraw(step, ctx.card)),
+            ...own.map(step => describeAttackStep(step, ctx.card)),
+          ],
+          kicker: t("scene.attack"),
+          onContinue: () => void playAttackTriggers(live, own),
+        });
+      }
+      const others = new Map<string, AttackStep[]>();
+      for (const step of steps) {
+        if (step.source.uid === live.uid) continue;
+        others.set(step.source.uid, [...(others.get(step.source.uid) ?? []), step]);
+      }
+      for (const group of others.values()) {
+        const source = group[0].source;
+        void showEnterEffect(root, {
+          cardId: source.cardId,
+          face: source.face,
+          theme: ctx.themeFor(source.owner),
+          locale: ctx.locale(),
+          who,
+          effects: attackEffects(source.cardId, source.face, ctx.locale()),
+          triggers: group.map(step => describeAttackStep(step, ctx.card)),
+          kicker: t("scene.attack"),
+          onContinue: () => void playAttackSteps(group),
+        });
+      }
     })();
   }
 
-  async function playAttackTriggers(attacker: CardInstance): Promise<void> {
+  async function playAttackSteps(steps: AttackStep[]): Promise<void> {
+    for (const step of steps) await playAttackStep(step);
+  }
+
+  /** RBF-004: la Vendetta al prossimo Umano, con la freccia dalla fonte. */
+  async function playGrant(step: AttackStep, target: CardInstance): Promise<void> {
+    if (step.form.kind !== "empower" || !step.form.grants) return;
+    const by = controllerOf(step.source);
+    light(step.source.uid, true);
+    flashArrow(step.source.uid, target.uid, FLY_MS);
+    await wait(TRIGGER_LEAD_MS);
+    const passed = await ctx.dispatch({ t: "empower", uid: target.uid, grants: step.form.grants, effect: attackRef(step) });
+    if (passed) {
+      const what = step.form.grants.map(keyword => t(`grant.${keyword}`)).join(", ");
+      ctx.log(msg("log.effect.grant", { seat: by, sourceCard: step.source.cardId, card: target.cardId, what }), by);
+    }
+    await wait(TRIGGER_TAIL_MS);
+    light(step.source.uid, false);
+  }
+
+  /**
+   * Un passo d'attacco (§8.2, le forme di attackSteps): la fonte si accende,
+   * il dado si tira se c'è, si sceglie se c'è da scegliere, l'azione parte
+   * col suo riferimento. Il «no» dell'engine ferma il passo e basta.
+   */
+  async function playAttackStep(step: AttackStep): Promise<void> {
+    const by = controllerOf(step.source);
+    const form = step.form;
+    const name = ctx.card(step.source.cardId).name;
+    hold(true);
+    light(step.source.uid, true);
+    try {
+      await wait(TRIGGER_LEAD_MS);
+      switch (form.kind) {
+        case "empower": {
+          if (form.targets === "bearer") {
+            const passed = await ctx.dispatch({ t: "empower", uid: step.attacker.uid, power: form.power, effect: attackRef(step) });
+            if (passed) ctx.log(msg("log.effect.empower", { seat: by, sourceCard: step.source.cardId, card: step.attacker.cardId, n: form.power ?? 0 }), by);
+          } else if (form.targets === "others_armed") {
+            for (const target of otherArmed(ctx.state(), by, step.source.uid, ctx.card)) {
+              flashArrow(step.source.uid, target.uid, FLY_MS);
+              const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: form.power, effect: attackRef(step) });
+              if (passed) ctx.log(msg("log.effect.empower", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.power ?? 0 }), by);
+              await wait(TRIGGER_TAIL_MS);
+            }
+          } else if (form.targets === "opposing_entity") {
+            const foes = fieldCards(ctx.state()).filter(card => controllerOf(card) !== by && ctx.card(card.cardId).kind === "entity");
+            if (foes.length === 0) {
+              ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
+              break;
+            }
+            const target = await pickTarget(step.source, foes, t("target.raid"));
+            if (!target) break;
+            flashArrow(step.source.uid, target.uid, 60_000);
+            const sure = await confirmEffect(root, t("confirm.raid", { card: `«${ctx.card(target.cardId).name}»` }));
+            if (!sure) {
+              flashArrow(step.source.uid, target.uid, 0);
+              break;
+            }
+            const passed = await ctx.dispatch({ t: "empower", uid: target.uid, restrict: "block", effect: attackRef(step) });
+            if (passed) ctx.log(msg("log.effect.restrict", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
+            await wait(TRIGGER_TAIL_MS);
+            flashArrow(step.source.uid, target.uid, 0);
+          }
+          break;
+        }
+        case "look": {
+          let roll: number | undefined;
+          if (form.die !== null) {
+            roll = rollDie(form.die);
+            await showRoll(root, form.die, roll, t("dice.step", { name, what: t("dice.sift") }));
+            if (!inRange(roll, form.onRoll)) {
+              ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die, roll, what: msg("roll.nothing") }), by);
+              break;
+            }
+          }
+          const looked = zoneCards(ctx.state(), by, "deck").slice(0, form.count);
+          if (looked.length === 0) {
+            ctx.log(msg("log.look.empty", { seat: by, card: step.source.cardId }), by);
+            break;
+          }
+          const candidates = looked.filter(card => {
+            const f = ctx.card(card.cardId);
+            return f.kind === form.reveal.kind && (form.reveal.race === null || f.race === form.reveal.race);
+          });
+          const what = t(form.reveal.kind === "matter" ? "pick.look.matter" : form.reveal.kind === "object" ? "pick.look.object" : "pick.look.one");
+          const title = form.revealTo === "ritiro"
+            ? t("pick.look.retire", { n: looked.length, what })
+            : form.restTo === "ritiro"
+              ? t("pick.look.rest.retire", { n: looked.length, what })
+              : t(candidates.length ? "pick.look.some" : "pick.look.none", { n: looked.length, what });
+          const reveal = await pickFromPile(by, "deck", candidates, title, looked);
+          const passed = await ctx.dispatch({
+            t: "look",
+            seat: by,
+            count: form.count,
+            ...(reveal ? { reveal: reveal.uid } : {}),
+            ...(roll !== undefined ? { roll } : {}),
+            revealTo: form.revealTo,
+            restTo: form.restTo,
+            effect: attackRef(step),
+          });
+          if (passed) {
+            const shown = reveal
+              ? form.revealTo === "ritiro" ? msg("look.toretire", { card: reveal.cardId }) : msg("look.reveal", { card: reveal.cardId })
+              : msg("look.noreveal");
+            ctx.log(msg(form.restTo === "ritiro" ? "log.effect.look.hand" : "log.effect.look.retire", { seat: by, sourceCard: step.source.cardId, n: looked.length, what: shown }), by);
+          }
+          break;
+        }
+        case "heal": {
+          const foe = otherSeat(by);
+          if (form.who === "permanent") {
+            const roll = rollDie(form.die ?? 20);
+            await showRoll(root, form.die ?? 20, roll, t("dice.step", { name, what: t("dice.heirs") }));
+            const count = attackersOf(ctx.state(), by, form.attackers?.race ?? "human", ctx.card).length;
+            if (inRange(roll, form.gainOn ?? null)) {
+              const hp = ctx.state().players[by].hp + count;
+              const passed = await ctx.dispatch({ t: "player", seat: by, patch: { hp }, roll, effect: attackRef(step) });
+              if (passed) ctx.log(msg("log.effect.heal", { seat: by, sourceCard: step.source.cardId, n: count, hp }), by);
+            } else if (inRange(roll, form.drainOn ?? null)) {
+              const hp = Math.max(0, ctx.state().players[foe].hp - count);
+              const passed = await ctx.dispatch({ t: "player", seat: foe, patch: { hp }, roll, effect: attackRef(step) });
+              if (passed) ctx.log(msg("log.effect.drain", { seat: by, sourceCard: step.source.cardId, otherSeat: foe, n: count, hp }), by);
+            } else {
+              ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die ?? 20, roll, what: msg("roll.nothing") }), by);
+            }
+            break;
+          }
+          const amount = typeof form.amount === "number" ? form.amount : 0;
+          const hp = ctx.state().players[by].hp + amount;
+          const healed = await ctx.dispatch({ t: "player", seat: by, patch: { hp }, effect: attackRef(step) });
+          if (!healed) break;
+          ctx.log(msg("log.effect.heal", { seat: by, sourceCard: step.source.cardId, n: amount, hp }), by);
+          await wait(TRIGGER_TAIL_MS);
+          if (form.thenRecall && form.die !== null) {
+            const roll = rollDie(form.die);
+            await showRoll(root, form.die, roll, t("dice.step", { name, what: t("dice.mend", { lo: form.onRoll?.[0] ?? 0, hi: form.onRoll?.[1] ?? 0 }) }));
+            if (!inRange(roll, form.onRoll)) {
+              ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die, roll, what: msg("roll.nothing") }), by);
+              break;
+            }
+            const candidates = zoneCards(ctx.state(), by, "ritiro").filter(card => ctx.card(card.cardId).kind === "entity");
+            if (candidates.length === 0) {
+              ctx.log(msg("log.no.permanent", { seat: by, card: step.source.cardId }), by);
+              break;
+            }
+            let chosen: CardInstance | null = null;
+            while (!chosen) chosen = await pickFromPile(by, "ritiro", candidates, t("pick.recall.hand"));
+            const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "hand", roll, effect: attackRef(step, "recall") });
+            if (passed) ctx.log(msg("log.effect.recall.hand", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
+          }
+          if (form.thenDraw) {
+            const drawn = await ctx.dispatch({ t: "draw", seat: by, count: form.thenDraw, effect: attackRef(step, "draw") });
+            if (drawn) ctx.log(msg("log.effect.trigger", { seat: by, card: step.source.cardId, n: form.thenDraw, cards: msg(form.thenDraw === 1 ? "cards.one" : "cards.many") }), by);
+            await wait(TRIGGER_TAIL_MS);
+          }
+          for (let left = form.thenDiscard ?? 0; left > 0; left -= 1) {
+            const hand = zoneCards(ctx.state(), by, "hand");
+            if (hand.length === 0) break;
+            let chosen: CardInstance | null = null;
+            while (!chosen) chosen = await pickFromPile(by, "hand", hand, t("pick.discard"));
+            const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "abisso", effect: attackRef(step, "discard") });
+            if (passed) ctx.log(msg("log.effect.discard", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
+            else break;
+          }
+          break;
+        }
+        case "return": {
+          const roll = rollDie(form.die);
+          await showRoll(root, form.die, roll, t("dice.step", { name, what: t("dice.recall", { lo: form.onRoll[0], hi: form.onRoll[1] }) }));
+          if (!inRange(roll, form.onRoll)) {
+            ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die, roll, what: msg("roll.nothing") }), by);
+            break;
+          }
+          const candidates = zoneCards(ctx.state(), by, "ritiro").filter(card => {
+            const f = ctx.card(card.cardId);
+            return f.kind === form.filter.kind && f.race === form.filter.race;
+          });
+          if (candidates.length === 0) {
+            ctx.log(msg("log.no.permanent", { seat: by, card: step.source.cardId }), by);
+            break;
+          }
+          const spot = freeFrontSlotOrNull(ctx.state(), by);
+          if (!spot) {
+            ctx.log(msg("log.front.full", { seat: by, card: step.source.cardId }), by);
+            break;
+          }
+          let chosen: CardInstance | null = null;
+          while (!chosen) chosen = await pickFromPile(by, "ritiro", candidates, t("pick.recall.front"));
+          const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...spot, z: ctx.state().zTop + 1, roll, effect: attackRef(step) });
+          if (!passed) break;
+          flyFromPile(by, "ritiro", chosen.uid);
+          await wait(FLY_MS);
+          const target = rubyfrontOf(otherSeat(by));
+          if (target) {
+            const order = nextWaveOrder(ctx.state(), by);
+            const joined = await ctx.dispatch({
+              t: "declare",
+              declaration: { id: crypto.randomUUID(), from: chosen.uid, to: target.uid, kind: "attack", seat: by, order },
+              effect: { source: step.source.uid, event: "on_attack", entering: chosen.uid, follow: "join" },
+            });
+            if (joined) {
+              void ctx.dispatch({ t: "tap", uid: chosen.uid, tapped: true });
+              ctx.log(msg("log.effect.recall.front", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
+            }
+          }
+          break;
+        }
+        case "refresh": {
+          const roll = rollDie(form.die);
+          await showRoll(root, form.die, roll, t("dice.step", { name, what: t("dice.charge2", { lo: form.onRoll[0], hi: form.onRoll[1] }) }));
+          const extra = inRange(roll, form.onRoll);
+          const passed = await ctx.dispatch({ t: "refresh", seat: by, roll, extra, effect: attackRef(step) });
+          if (passed) ctx.log(msg("log.effect.refresh", { seat: by, sourceCard: step.source.cardId, extra: extra ? msg("log.extra.promised") : "" }), by);
+          break;
+        }
+        case "rearm": {
+          const objects = zoneCards(ctx.state(), by, "ritiro").filter(card => ctx.card(card.cardId).kind === "object");
+          if (objects.length === 0) break;
+          const chosen = await pickFromPile(by, "ritiro", objects, t("pick.rearm"));
+          if (!chosen) break;
+          const attacker = ctx.state().cards[step.attacker.uid];
+          if (!attacker) break;
+          const worn = Object.values(ctx.state().cards).filter(other => other.assignedTo === attacker.uid && other.zone === "field").length;
+          const spot = { x: attacker.x + STACK_STEP * (worn + 1), y: attacker.y + STACK_STEP * (worn + 1) };
+          const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...spot, z: attacker.z - 1, assignTo: attacker.uid, effect: attackRef(step) });
+          if (passed) {
+            flyFromPile(by, "ritiro", chosen.uid);
+            await wait(FLY_MS);
+            ctx.log(msg("log.effect.rearm", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId, toCard: attacker.cardId }), by);
+          }
+          break;
+        }
+        case "untap":
+          break;
+      }
+      await wait(TRIGGER_TAIL_MS);
+    } finally {
+      light(step.source.uid, false);
+      hold(false);
+    }
+  }
+
+  async function playAttackTriggers(attacker: CardInstance, own: AttackStep[] = []): Promise<void> {
     for (const step of returnsFor(ctx.state(), attacker, ctx.card, "on_attack")) {
       await playReturn(step);
     }
     for (const step of attackDraws(ctx.state(), attacker, ctx.card)) {
       await playAttackDraw(step);
     }
+    await playAttackSteps(own);
   }
 
   /**

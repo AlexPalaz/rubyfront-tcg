@@ -9,6 +9,7 @@
 // ingresso. Tutto ciò che non ha una forma certificata resta a mano.
 
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
+import type { AttackForm } from "./ctx.js";
 import type { CardFacts, Ctx, EnterLook } from "./ctx.js";
 import { controllerOf, fieldCards, playSpot, zoneCards } from "./state.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
@@ -398,4 +399,172 @@ export async function releaseControlled(ctx: Ctx, seat: Seat, freeSlot: (state: 
       ctx.log(msg(spot ? "log.release.front" : "log.release.retire", { card: card.cardId, seat: card.owner }), card.owner);
     }
   }
+}
+
+
+// ---- Le altre forme «quando attacca» (§8.2) --------------------------------
+
+/** Un passo d'attacco da risolvere: la fonte, chi attacca, la forma. */
+export interface AttackStep {
+  source: CardInstance;
+  attacker: CardInstance;
+  form: AttackForm;
+}
+
+/** Il riferimento d'effetto di un passo, come lo vuole l'engine. */
+export function attackRef(step: AttackStep, follow?: EffectRef["follow"]): EffectRef {
+  return {
+    source: step.source.uid,
+    event: "on_attack",
+    entering: step.attacker.uid,
+    ...(follow ? { follow } : {}),
+    ...("once" in step.form && step.form.once ? { once: true as const } : {}),
+  };
+}
+
+function firedKey(state: GameState, source: CardInstance, kind: string, entering: string, once: boolean): boolean {
+  return (state.fired ?? []).includes(`${source.uid}|on_attack:${kind}|${once ? "turn" : entering}`);
+}
+
+/** Le Entità di `race` che attaccano adesso per `seat`. */
+export function attackersOf(state: GameState, seat: Seat, race: string | null, facts: (cardId: string) => CardFacts): CardInstance[] {
+  return state.declarations
+    .filter(d => d.kind === "attack")
+    .map(d => state.cards[d.from])
+    .filter((card): card is CardInstance => !!card && card.zone === "field" && controllerOf(card) === seat)
+    .filter(card => {
+      const f = facts(card.cardId);
+      return f.kind === "entity" && (race === null || f.race === race);
+    });
+}
+
+/** Quante Entità di `race` di `seat` hanno attaccato nel suo turno precedente. */
+export function previousAttackers(state: GameState, seat: Seat, race: string | null, facts: (cardId: string) => CardFacts): number {
+  return (state.lastWave?.[seat] ?? []).filter(uid => {
+    const card = state.cards[uid];
+    if (!card) return false;
+    const f = facts(card.cardId);
+    return f.kind === "entity" && (race === null || f.race === race);
+  }).length;
+}
+
+/**
+ * I passi che l'attacco di `attacker` innesca, nell'ordine in cui il tavolo
+ * li risolve: le forme di chi attacca, poi quelle degli Oggetti addosso,
+ * poi quelle delle altre carte dello stesso posto (alleate, Materie
+ * permanenti, il Rubyfront). Le condizioni si valutano qui come nella
+ * dogana; ciò che è già stato risolto nel turno (una volta per turno) non
+ * si ripropone. La stappata dopo il combattimento (RBF-028) è un passo
+ * della risoluzione, non dell'attacco: sta a parte (vigilUntaps).
+ */
+export function attackSteps(state: GameState, attacker: CardInstance, facts: (cardId: string) => CardFacts): AttackStep[] {
+  const seat = controllerOf(attacker);
+  const attackerFacts = facts(attacker.cardId);
+  const out: AttackStep[] = [];
+  const consider = (source: CardInstance): void => {
+    for (const form of facts(source.cardId).attackForms) {
+      if (form.face !== source.face) continue;
+      if (form.kind === "untap") continue;
+      const once = "once" in form && form.once === true;
+      if (form.who === "self" && source.uid !== attacker.uid) continue;
+      if (form.who === "object" && source.assignedTo !== attacker.uid) continue;
+      if (form.who !== "self" && form.who !== "object" && controllerOf(source) !== seat) continue;
+      if ("requiresObject" in form && form.requiresObject && !armed(state, source.uid)) continue;
+      if ("attackerArmed" in form && form.attackerArmed && !armed(state, attacker.uid)) continue;
+      if (form.kind === "heal" && form.attackers && !(attackerFacts.kind === form.attackers.kind && attackerFacts.race === form.attackers.race)) continue;
+      if (form.kind === "heal" && form.requiresAttackers && attackersOf(state, seat, form.requiresAttackers.race, facts).length < form.requiresAttackers.count) continue;
+      if (form.kind === "empower" && form.requiresPreviousAttackers && previousAttackers(state, seat, form.requiresPreviousAttackers.race, facts) < form.requiresPreviousAttackers.count) continue;
+      // La Vendetta al PROSSIMO Umano si risolve quando quello attacca (pendingGrants), non ora.
+      if (form.kind === "empower" && form.targets === "next_human_attacker") continue;
+      // Un potenziamento ha la chiave per bersaglio: si ripropone solo con
+      // un nuovo attacco, e basta. Gli altri passi hanno la loro chiave.
+      if (form.kind !== "empower" && firedKey(state, source, form.kind, attacker.uid, once)) continue;
+      out.push({ source, attacker, form });
+    }
+  };
+  consider(attacker);
+  for (const card of fieldCards(state)) {
+    if (card.uid === attacker.uid) continue;
+    if (card.assignedTo === attacker.uid) consider(card);
+  }
+  for (const card of fieldCards(state)) {
+    if (card.uid === attacker.uid || card.assignedTo === attacker.uid) continue;
+    if (controllerOf(card) !== seat) continue;
+    consider(card);
+  }
+  return out;
+}
+
+/**
+ * RBF-004: chi ha attaccato prima con «la prossima Entità Umana che attacca
+ * ottiene Vendetta» e non l'ha ancora data — se `attacker` è quell'Umano
+ * (il primo Umano dichiarato dopo la fonte), ecco i passi da risolvere.
+ */
+export function pendingGrants(state: GameState, attacker: CardInstance, facts: (cardId: string) => CardFacts): AttackStep[] {
+  const seat = controllerOf(attacker);
+  const f = facts(attacker.cardId);
+  if (f.kind !== "entity" || f.race !== "human") return [];
+  const orderOf = (uid: string): number => state.declarations.find(d => d.from === uid && d.kind === "attack")?.order ?? 0;
+  const mine = orderOf(attacker.uid);
+  const out: AttackStep[] = [];
+  for (const source of fieldCards(state)) {
+    if (source.uid === attacker.uid || controllerOf(source) !== seat) continue;
+    const order = orderOf(source.uid);
+    if (order === 0 || order >= mine) continue;
+    for (const form of facts(source.cardId).attackForms) {
+      if (form.kind !== "empower" || form.targets !== "next_human_attacker" || form.face !== source.face) continue;
+      if ((state.fired ?? []).some(key => key.startsWith(`${source.uid}|on_attack:empower:`))) continue;
+      const between = attackersOf(state, seat, "human", facts).some(card => card.uid !== attacker.uid && orderOf(card.uid) > order && orderOf(card.uid) < mine);
+      if (between) continue;
+      out.push({ source, attacker: source, form });
+    }
+  }
+  return out;
+}
+
+/** RBF-028: fra gli attaccanti di `seat`, chi si stappa dopo il combattimento. */
+export function vigilUntaps(state: GameState, seat: Seat, facts: (cardId: string) => CardFacts): string[] {
+  return attackersOf(state, seat, null, facts)
+    .filter(card => facts(card.cardId).attackForms.some(form => form.kind === "untap" && form.face === card.face && (!form.requiresObject || armed(state, card.uid))))
+    .filter(card => !(state.fired ?? []).includes(`${card.uid}|on_attack:untap|turn`))
+    .map(card => card.uid);
+}
+
+/** Le altre Entità con un Oggetto assegnato che `seat` controlla (RBF-029). */
+export function otherArmed(state: GameState, seat: Seat, except: string, facts: (cardId: string) => CardFacts): CardInstance[] {
+  return fieldCards(state).filter(card => card.uid !== except && controllerOf(card) === seat && facts(card.cardId).kind === "entity" && armed(state, card.uid));
+}
+
+/** La riga che annuncia un passo d'attacco, per la scena. */
+export function describeAttackStep(step: AttackStep, facts: (cardId: string) => CardFacts): string {
+  const card = `«${facts(step.source.cardId).name}»`;
+  const form = step.form;
+  switch (form.kind) {
+    case "untap": return t("trigger.vigil", { card });
+    case "empower":
+      if (form.targets === "others_armed") return t("trigger.command", { card, n: form.power ?? 0 });
+      if (form.targets === "bearer") return t("trigger.charge", { card, n: form.power ?? 0 });
+      if (form.targets === "next_human_attacker") return t("trigger.avenge", { card });
+      return t("trigger.raid", { card });
+    case "look":
+      return form.die !== null
+        ? t("trigger.sift", { card, die: form.die, lo: form.onRoll?.[0] ?? 0, hi: form.onRoll?.[1] ?? 0, n: form.count })
+        : t("trigger.foresight", { card, n: form.count });
+    case "heal":
+      if (form.who === "permanent") return t("trigger.heirs", { card, die: form.die ?? 0 });
+      if (form.who === "rubyfront") return t(form.thenDraw ? "trigger.muster.nexus" : "trigger.muster", { card, n: form.amount });
+      return t("trigger.mend", { card, n: form.amount, die: form.die ?? 0, lo: form.onRoll?.[0] ?? 0, hi: form.onRoll?.[1] ?? 0 });
+    case "return": return t("trigger.recall", { card, die: form.die, lo: form.onRoll[0], hi: form.onRoll[1] });
+    case "refresh": return t("trigger.charge2", { card, die: form.die, lo: form.onRoll[0], hi: form.onRoll[1] });
+    case "rearm": return t("trigger.rearm", { card });
+  }
+}
+
+/** Il tiro di un dado del passo: 1..facce. Il caso lo tira il client. */
+export function rollDie(faces: number): number {
+  return 1 + Math.floor(Math.random() * faces);
+}
+
+export function inRange(roll: number, range: [number, number] | null): boolean {
+  return range !== null && roll >= range[0] && roll <= range[1];
 }

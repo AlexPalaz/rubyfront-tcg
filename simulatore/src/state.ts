@@ -78,7 +78,39 @@ function orderForBottom(state: GameState, seat: Seat, zone: ZoneId): number {
   return cards.length === 0 ? 0 : cards[cards.length - 1].order + 1;
 }
 
+/**
+ * Il passo di un innesco d'attacco, letto dall'azione — specchio di
+ * engine.rb, attack_step/attack_key: la stessa chiave che l'arbitro
+ * consuma, così il tavolo sa cosa non riproporre.
+ */
+export function attackKey(action: Action): string | null {
+  const ref = "effect" in action ? action.effect : undefined;
+  if (!ref || ref.event !== "on_attack") return null;
+  const step = (() => {
+    switch (action.t) {
+      case "draw": return ref.follow ?? "draw";
+      case "player": return "heal";
+      case "look": return ref.follow ?? "look";
+      case "empower": return `empower:${action.uid}`;
+      case "refresh": return "refresh";
+      case "declare": return "join";
+      case "toZone": return ref.follow ?? (action.assignTo ? "rearm" : action.zone === "field" ? "return" : "move");
+      default: return action.t;
+    }
+  })();
+  return `${ref.source}|on_attack:${step}|${ref.once ? "turn" : ref.entering}`;
+}
+
 export function apply(state: GameState, action: Action): GameState {
+  const next = reduce(state, action);
+  // La memoria degli inneschi d'attacco (vedi attackKey).
+  const key = attackKey(action);
+  const untaps = action.t === "resolve" ? (action.untap ?? []).map(uid => `${uid}|on_attack:untap|turn`) : [];
+  if (!key && untaps.length === 0) return next;
+  return { ...next, fired: [...(next.fired ?? []), ...(key ? [key] : []), ...untaps] };
+}
+
+function reduce(state: GameState, action: Action): GameState {
   switch (action.t) {
     case "newGame":
       return newGame(action.active ?? "a");
@@ -323,6 +355,7 @@ export function apply(state: GameState, action: Action): GameState {
         phase: "preparazione",
         declarations: [],
         extraFront: false,
+        fired: [],
       };
       // §6.1 — la Pesca: «il giocatore di turno pesca una carta», e «non si
       // salta mai». A mazzo vuoto non pesca (§9.1: l'esaurimento si decide
@@ -417,14 +450,24 @@ export function apply(state: GameState, action: Action): GameState {
       if (looked.length === 0) return state;
       const cards = { ...state.cards };
       let bottom = orderForBottom(state, action.seat, "deck");
+      // Dove va la mostrata (di regola in mano) e dove vanno le altre (di
+      // regola in fondo al mazzo): RBF-031 manda la mostrata in Ritiro,
+      // RBF-034 le altre. In cima alla Zona di Ritiro, scoperte, una sopra
+      // l'altra. Gemello: table.rb, look.
+      let retireTop = orderForTop(state, action.seat, "ritiro");
+      const toRetire = (card: CardInstance): CardInstance => {
+        retireTop -= 1;
+        return { ...card, zone: "ritiro", order: retireTop + 1, facedown: false };
+      };
       for (const card of looked) {
         if (card.uid === action.reveal) {
-          cards[card.uid] = { ...card, zone: "hand", order: orderForBottom(state, action.seat, "hand"), facedown: false };
+          cards[card.uid] = action.revealTo === "ritiro"
+            ? toRetire(card)
+            : { ...card, zone: "hand", order: orderForBottom(state, action.seat, "hand"), facedown: false };
           continue;
         }
-        if (card.uid === action.retire) {
-          // In cima alla Zona di Ritiro, scoperta (RBF-027).
-          cards[card.uid] = { ...card, zone: "ritiro", order: orderForTop(state, action.seat, "ritiro"), facedown: false };
+        if (card.uid === action.retire || action.restTo === "ritiro") {
+          cards[card.uid] = toRetire(card);
           continue;
         }
         cards[card.uid] = { ...card, order: bottom };

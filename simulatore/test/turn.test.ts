@@ -46,6 +46,8 @@ function fakeCtx(
       enterLooks: [],
       enterControls: [],
       attackReturns: [],
+      attackDraws: [],
+      attackForms: [],
     }),
     log(text) {
       logs.push(typeof text === "string" ? text : renderLog(text, ctx.state(), id => id));

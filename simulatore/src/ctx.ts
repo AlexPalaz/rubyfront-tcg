@@ -39,7 +39,34 @@ export interface CardFacts {
   enterControls: EnterControl[];
   /** Le pesche certificate «quando QUESTA attacca con un Oggetto» (§8.2, RBF-026). */
   attackDraws: AttackDraw[];
+  /** Le altre forme certificate «quando attacca» (§8.2): vedi AttackForm. */
+  attackForms: AttackForm[];
 }
+
+/**
+ * Le altre forme certificate «quando attacca» (§8.2), specchio di
+ * card_index.rb, attack_forms: `kind` è l'azione del tavolo, `who` chi è
+ * la fonte rispetto all'attaccante (chi attacca, un Oggetto addosso, una
+ * carta alleata, una Materia permanente, il Rubyfront), `face` la faccia
+ * che porta la forma.
+ */
+export type AttackForm =
+  /** RBF-028: stappala dopo il combattimento. */
+  | { kind: "untap"; who: "self"; once: true; requiresObject: true; face: number }
+  /** RBF-029 (+1 alle altre armate), RBF-034 (+1 al portatore), RBF-004
+      (Vendetta al prossimo Umano), RBF-005 (un'avversaria non blocca). */
+  | { kind: "empower"; who: "self" | "object"; targets: "others_armed" | "bearer" | "next_human_attacker" | "opposing_entity"; power?: number; grants?: string[]; restrict?: "block"; once?: true; requiresObject?: true; requiresPreviousAttackers?: { count: number; race: string }; face: number }
+  /** RBF-034 (col dado) e RBF-031 (una volta per turno): uno sguardo nel mazzo. */
+  | { kind: "look"; who: "object" | "ally"; count: number; reveal: { kind: "matter" | "object" | "entity"; race: string | null }; revealTo: "hand" | "ritiro"; restTo: "deck" | "ritiro"; die: number | null; onRoll: [number, number] | null; once?: true; attackerArmed?: true; face: number }
+  /** RBF-008 (+N, poi col dado un'Entità in mano), RBF-022 (il d20 sugli
+      Umani), RBF-001 (il raduno, una volta per turno). */
+  | { kind: "heal"; who: "self" | "permanent" | "rubyfront"; amount: number | "human_attackers"; die: number | null; onRoll: [number, number] | null; thenRecall?: { kind: "entity" }; attackers?: { kind: "entity"; race: string }; gainOn?: [number, number]; drainOn?: [number, number]; once?: true; requiresAttackers?: { count: number; race: string }; thenDraw?: number; thenDiscard?: number; face: number }
+  /** RBF-010: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme. */
+  | { kind: "return"; who: "self"; die: number; onRoll: [number, number]; filter: { kind: "entity"; race: string }; joins: true; face: number }
+  /** RBF-011: stappa tutte le proprie Entità; col tiro, la Fase di Fronte addizionale. */
+  | { kind: "refresh"; who: "self"; die: number; onRoll: [number, number]; face: number }
+  /** RBF-031: un Oggetto dal Ritiro addosso a chi attacca, gratis. */
+  | { kind: "rearm"; who: "ally"; attackerArmed: true; face: number };
 
 /**
  * La forma certificata di una pesca all'attacco: «la prima volta in ogni

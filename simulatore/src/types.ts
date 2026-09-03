@@ -194,6 +194,10 @@ export interface GameState {
   /** Una Fase di Fronte addizionale è dovuta dopo questa (RBF-011): dalla
       Reazione si torna al Fronte invece di chiudere il turno. */
   extraFront?: boolean;
+  /** Gli inneschi d'attacco già risolti in questo turno, con la chiave
+      dell'engine (`fonte|on_attack:passo|ingresso o turn`): il tavolo non
+      ripropone ciò che l'arbitro fermerebbe. Il cambio di turno azzera. */
+  fired?: string[];
   /** Prossimo z libero: ogni carta toccata sale in cima. */
   zTop: number;
 }
@@ -214,6 +218,8 @@ export interface EffectRef {
       cura (RBF-001 Nexus), l'attacco di chi torna (RBF-010), lo sguardo dopo
       il potenziamento (RBF-034). */
   follow?: "discard" | "recall" | "draw" | "join" | "look";
+  /** «Una volta per turno»: la tripla vale per ogni attacco del turno. */
+  once?: true;
 }
 
 /** Le mutazioni possibili. Ogni client le applica in locale e le ritrasmette. */
@@ -260,7 +266,7 @@ export type Action =
       conto ne discende; `reveal`, se c'è, va in mano; `retire`, se c'è, in
       Zona di Ritiro; le altre in fondo, nell'ordine in cui stavano. Sempre
       un passo d'effetto. */
-  | { t: "look"; seat: Seat; count: number; reveal?: string; retire?: string; roll?: number; effect: EffectRef }
+  | { t: "look"; seat: Seat; count: number; reveal?: string; retire?: string; roll?: number; revealTo?: "hand" | "ritiro"; restTo?: "deck" | "ritiro"; effect: EffectRef }
   /** Prende il controllo di `uid` per `by` fino a fine turno (§8.2): la
       carta passa nello slot extra, con gli Oggetti addosso e le parole
       chiave concesse. Sempre un passo d'effetto. */

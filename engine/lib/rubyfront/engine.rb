@@ -140,6 +140,7 @@ module Rubyfront
 
       @table.apply(action)
       settle_effect(action)
+      settle_untaps(action)
       verdict
     end
 
@@ -147,6 +148,7 @@ module Rubyfront
       verdict = verdict_for(action, actor)
       @table.apply(action)
       settle_effect(action)
+      settle_untaps(action)
       verdict
     end
 
@@ -156,13 +158,44 @@ module Rubyfront
       ref = action.is_a?(Hash) ? action["effect"] : nil
       return unless ref.is_a?(Hash) && ref["source"] && ref["entering"]
 
-      # Il passo che segue un innesco (lo scarto dopo la pesca, RBF-026) ha
-      # la sua tripla: `follow` distingue il seguito dall'innesco.
-      @table.fire(ref["source"], fired_event(ref), ref["entering"])
+      # Gli inneschi d'attacco hanno una chiave per passo (attack_key); il
+      # passo che segue un innesco d'ingresso ha la sua tripla (`follow`).
+      if ref["event"] == "on_attack"
+        @table.fire(ref["source"], *attack_key(action, ref))
+      else
+        @table.fire(ref["source"], fired_event(ref), ref["entering"])
+      end
     end
 
     def fired_event(ref)
       ref["follow"].is_a?(String) ? "#{ref["event"]}:#{ref["follow"]}" : ref["event"]
+    end
+
+    # Il passo di un innesco d'attacco, letto dall'azione: la stessa fonte
+    # può avere più passi per lo stesso attacco (RBF-034: +1 e poi lo
+    # sguardo; RBF-031: l'Oggetto e lo sguardo), e un potenziamento vale
+    # una volta per bersaglio (RBF-029).
+    def attack_step(action, ref)
+      case action["t"]
+      when "draw" then ref["follow"] || "draw"
+      when "player" then "heal"
+      when "look" then ref["follow"] || "look"
+      when "empower" then "empower:#{action["uid"]}"
+      when "refresh" then "refresh"
+      when "declare" then "join"
+      when "toZone" then ref["follow"] || (action["assignTo"] ? "rearm" : (action["zone"] == "field" ? "return" : "move"))
+      else action["t"]
+      end
+    end
+
+    # [evento, ingresso] della tripla: «una volta per turno» (`once`) vale
+    # per ogni attacco, e la tripla lo dice con "turn" al posto dell'ingresso.
+    def attack_key(action, ref)
+      ["on_attack:#{attack_step(action, ref)}", ref["once"] == true ? "turn" : ref["entering"]]
+    end
+
+    def attack_fired?(action, ref)
+      @table.fired?(ref["source"], *attack_key(action, ref))
     end
 
     # Lo stato intero del client: sostituisce la copia del tavolo. Arriva
@@ -653,6 +686,15 @@ module Rubyfront
         return allow("declare")
       end
 
+      # Chi torna sul Fronte per un effetto e «attacca insieme» (§8.2,
+      # RBF-010) non aspetta: il riferimento lo dice, e l'engine lo verifica.
+      if action["effect"].is_a?(Hash)
+        stopped = attack_join_stopped(action)
+        return stopped if stopped
+
+        return allow("declare")
+      end
+
       known = @cards[card[:card_id]]
       return allow("declare") unless known && known[:type] == "entity"
       # Lo Slancio stampato, o concesso fino a fine turno (§8.2).
@@ -684,6 +726,9 @@ module Rubyfront
         return refuse("resolve", "le battaglie si risolvono in Fase di Reazione, a difesa dichiarata (§6.4)", "battles are resolved in the Reaction Phase, once the defence is declared (§6.4)")
       end
       return refuse("resolve", "risolve l'ondata chi è di turno (§6.4)", "the active player resolves the wave (§6.4)") unless action["seat"] == @table.active
+
+      stopped = untap_stopped(action)
+      return stopped if stopped
 
       expected = expected_battles
       return no_rule("resolve") if expected.nil?
@@ -888,6 +933,15 @@ module Rubyfront
     def judge_effect(action)
       ref = action["effect"]
       kind = action["t"]
+      if ref["event"] == "on_attack"
+        case kind
+        when "empower" then return judge_attack_empower(action, ref)
+        when "player" then return judge_attack_heal(action, ref)
+        when "refresh" then return judge_attack_refresh(action, ref)
+        when "look" then return judge_attack_look(action, ref)
+        when "declare" then return judge_declare(action)
+        end
+      end
       return judge_effect_move(action, ref) if kind == "toZone"
       return judge_effect_look(action, ref) if kind == "look"
       return judge_effect_control(action, ref) if kind == "control"
@@ -926,7 +980,7 @@ module Rubyfront
     # §8.2 — la fonte di un effetto proprio (ingresso o attacco) dev'essere
     # in campo, e l'evento deve valere ORA: entrata questo turno, o con un
     # attacco dichiarato in Fase di Fronte. Ritorna un rifiuto, o nil.
-    def own_trigger_stopped(kind, ref)
+    def own_trigger_stopped(kind, ref, action = nil)
       return refuse(kind, "l'effetto proprio ha per ingresso se stessa (§8.2)", "a card's own effect has itself as the entry (§8.2)") unless ref["source"] == ref["entering"]
 
       source = @table.card(ref["source"])
@@ -937,6 +991,9 @@ module Rubyfront
         return refuse(kind, "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)", "the source didn't enter the field this turn: the trigger has passed (§8.2)") unless source[:entered] == @table.turn
       when "on_attack"
         return refuse(kind, "«quando attacca» vuole un attacco dichiarato, in Fase di Fronte (§8.2)", "“when it attacks” needs a declared attack, in the Front Phase (§8.2)") unless @table.phase == "fronte" && @table.attacking?(ref["source"])
+        return refuse(kind, "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if action && attack_fired?(action, ref)
+
+        return nil
       else
         return refuse(kind, "evento d'effetto sconosciuto (§8.2)", "unknown effect event (§8.2)")
       end
@@ -945,12 +1002,362 @@ module Rubyfront
       nil
     end
 
+    # ---- Le forme «quando attacca» (§8.2): il contesto comune ----------
+    #
+    # L'ingresso del riferimento è chi attacca: in campo, con un attacco
+    # dichiarato in Fase di Fronte. La fonte è in campo; la sua carta è
+    # nota (ignota: silenzio); il passo non è già consumato; le forme sono
+    # quelle della faccia mostrata. Ritorna [rifiuto] o [nil, source,
+    # attacker, forms].
+    def attack_context(kind, action, ref)
+      attacker = @table.card(ref["entering"])
+      unless attacker && attacker[:zone] == "field" && @table.phase == "fronte" && @table.attacking?(ref["entering"])
+        return [refuse(kind, "«quando attacca» vuole un attacco dichiarato, in Fase di Fronte (§8.2)", "“when it attacks” needs a declared attack, in the Front Phase (§8.2)")]
+      end
+
+      source = @table.card(ref["source"])
+      return [refuse(kind, "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)")] unless source && source[:zone] == "field"
+
+      known = @cards[source[:card_id]]
+      return [no_rule(kind)] unless known
+      return [refuse(kind, "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)")] if attack_fired?(action, ref)
+
+      forms = Array(known[:attack_forms]).select { |form| form[:face] == (source[:face] || 0) }
+      [nil, source, attacker, forms]
+    end
+
+    # Chi è la fonte per l'attaccante, e le condizioni della forma.
+    def attack_relation_stopped(kind, form, ref, source, attacker)
+      seat = @table.controller_of(source)
+      case form[:who]
+      when "self"
+        return refuse(kind, "l'effetto è di chi attacca: fonte e attaccante non coincidono (§8.2)", "the effect belongs to the attacker: source and attacker don't match (§8.2)") unless ref["source"] == ref["entering"]
+      when "object"
+        return refuse(kind, "l'Oggetto dev'essere addosso a chi attacca (§8.2)", "the Object must be on the attacker (§8.2)") unless source[:assigned_to] == ref["entering"]
+      else
+        return refuse(kind, "la fonte dev'essere dello stesso posto di chi attacca (§8.2)", "the source must belong to the attacker's seat (§8.2)") unless seat == @table.controller_of(attacker)
+      end
+      if (form[:once] == true) != (ref["once"] == true)
+        return refuse(kind, "il riferimento non dice se l'innesco è una volta per turno (§8.2)", "the reference doesn't say whether the trigger is once per turn (§8.2)")
+      end
+      if form[:requires_object] && !@table.armed?(ref["source"])
+        return refuse(kind, "«mentre ha un Oggetto assegnato»: senza Oggetto l'innesco non scatta (§8.2)", "“while it has an Object assigned”: without an Object the trigger doesn't fire (§8.2)")
+      end
+      if form[:attacker_armed] && !@table.armed?(ref["entering"])
+        return refuse(kind, "l'innesco vale quando attacca un'Entità con un Oggetto assegnato (§8.2)", "the trigger applies when an Entity with an Object assigned attacks (§8.2)")
+      end
+      if form[:attackers]
+        entry = @cards[attacker[:card_id]]
+        return no_rule(kind) unless entry
+        unless entry[:type] == form[:attackers][:type] && entry[:race] == form[:attackers][:race]
+          return refuse(kind, "l'innesco vale quando attaccano le Entità Umane che controlli (§8.2)", "the trigger applies when the Human Entities you control attack (§8.2)")
+        end
+      end
+      if form[:requires_attackers]
+        needed = form[:requires_attackers]
+        if attackers_of(seat, needed[:race]) < needed[:count]
+          return refuse(kind, "servono almeno #{needed[:count]} Entità Umane all'attacco in questo turno (§8.2)", "it takes at least #{needed[:count]} Human Entities attacking this turn (§8.2)")
+        end
+      end
+      if form[:requires_previous_attackers]
+        needed = form[:requires_previous_attackers]
+        previous = @table.last_wave(seat).count { |uid| entity_of_race?(uid, needed[:race]) }
+        if previous < needed[:count]
+          return refuse(kind, "nel tuo turno precedente non hanno attaccato almeno #{needed[:count]} Entità Umane (§8.2)", "at least #{needed[:count]} Human Entities didn't attack on your previous turn (§8.2)")
+        end
+      end
+      nil
+    end
+
+    # Quante Entità di `race` di `seat` stanno attaccando adesso.
+    def attackers_of(seat, race)
+      @table.attackers_in_order.count do |uid|
+        card = @table.card(uid)
+        card && @table.controller_of(card) == seat && entity_of_race?(uid, race)
+      end
+    end
+
+    def entity_of_race?(uid, race)
+      card = @table.card(uid)
+      entry = card && @cards[card[:card_id]]
+      entry && entry[:type] == "entity" && (race.nil? || entry[:race] == race)
+    end
+
+    def valid_roll?(roll, die)
+      roll.is_a?(Integer) && roll.between?(1, die)
+    end
+
+    def in_range?(roll, range)
+      roll.between?(range[0], range[1])
+    end
+
+    # RBF-029, RBF-034, RBF-004, RBF-005: un potenziamento fino a fine turno.
+    def judge_attack_empower(action, ref)
+      stopped, source, attacker, forms = attack_context("empower", action, ref)
+      return stopped if stopped
+
+      targets = if action["restrict"] then "opposing_entity"
+                elsif action["grants"] then "next_human_attacker"
+                elsif ref["source"] == ref["entering"] then "others_armed"
+                else "bearer"
+                end
+      form = forms.find { |candidate| candidate[:kind] == "empower" && candidate[:targets] == targets }
+      return refuse("empower", "la carta non ha un effetto certificato che potenzi così quando attacca (§8.2)", "the card has no certified effect that empowers this way when it attacks (§8.2)") unless form
+
+      stopped = attack_relation_stopped("empower", form, ref, source, attacker)
+      return stopped if stopped
+
+      target = @table.card(action["uid"])
+      return refuse("empower", "il bersaglio dev'essere in campo (§8.2)", "the target must be on the field (§8.2)") unless target && target[:zone] == "field"
+
+      seat = @table.controller_of(source)
+      case targets
+      when "bearer"
+        return refuse("empower", "il +1 va a chi porta l'Oggetto (§8.2)", "the +1 goes to whoever carries the Object (§8.2)") unless action["uid"] == ref["entering"]
+        return refuse("empower", "la Potenza in più è #{form[:power]} (§8.2)", "the extra Power is #{form[:power]} (§8.2)") unless action["power"] == form[:power]
+      when "others_armed"
+        unless action["uid"] != ref["source"] && @table.controller_of(target) == seat && @table.armed?(action["uid"]) && entity_of_race?(action["uid"], nil)
+          return refuse("empower", "il +1 va alle ALTRE Entità con un Oggetto assegnato che controlli (§8.2)", "the +1 goes to the OTHER Entities with an Object assigned that you control (§8.2)")
+        end
+        return refuse("empower", "la Potenza in più è #{form[:power]} (§8.2)", "the extra Power is #{form[:power]} (§8.2)") unless action["power"] == form[:power]
+      when "next_human_attacker"
+        return refuse("empower", "le parole chiave concesse non sono quelle della carta (§8.2)", "the granted keywords aren't the card's (§8.2)") unless Array(action["grants"]) == form[:grants]
+        order = @table.attack_order(ref["source"])
+        after = @table.attackers_in_order.select { |uid| @table.attack_order(uid) > order && @table.controller_of(@table.card(uid)) == seat && entity_of_race?(uid, "human") }
+        unless after.first == action["uid"]
+          return refuse("empower", "la Vendetta va alla PROSSIMA Entità Umana che attacca in questo turno (§8.2)", "Revenge goes to the NEXT Human Entity that attacks this turn (§8.2)")
+        end
+      when "opposing_entity"
+        return refuse("empower", "il divieto di blocco va a un'Entità avversaria in campo (§8.2)", "the block ban goes to an opposing Entity on the field (§8.2)") unless @table.controller_of(target) != seat && entity_of_race?(action["uid"], nil)
+        return refuse("empower", "l'effetto vieta di bloccare, non altro (§8.2)", "the effect forbids blocking, nothing else (§8.2)") unless action["restrict"] == "block" && action["power"].nil?
+      end
+
+      allow("empower")
+    end
+
+    # RBF-008, RBF-022, RBF-001: PV che cambiano per un attacco.
+    def judge_attack_heal(action, ref)
+      stopped, source, attacker, forms = attack_context("player", action, ref)
+      return stopped if stopped
+
+      form = forms.find { |candidate| candidate[:kind] == "heal" }
+      return refuse("player", "la carta non ha un effetto certificato sui PV quando attacca (§8.2)", "the card has no certified HP effect when it attacks (§8.2)") unless form
+
+      stopped = attack_relation_stopped("player", form, ref, source, attacker)
+      return stopped if stopped
+
+      patch = action["patch"]
+      return refuse("player", "l'effetto tocca solo i PV (§8.2)", "the effect touches only HP (§8.2)") unless patch.is_a?(Hash) && patch.keys == ["hp"] && patch["hp"].is_a?(Integer)
+
+      seat = @table.controller_of(source)
+      foe = Table::SEATS.find { |other| other != seat }
+      if form[:amount] == "human_attackers"
+        roll = action["roll"]
+        return refuse("player", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+
+        count = attackers_of(seat, "human")
+        if in_range?(roll, form[:gain_on])
+          return refuse("player", "con #{roll} guadagni tu #{count} PV (§8.2)", "with #{roll} you gain #{count} HP (§8.2)") unless action["seat"] == seat && patch["hp"] == @table.hp(seat) + count
+        elsif in_range?(roll, form[:drain_on])
+          return refuse("player", "con #{roll} il Rubyfront/Nexus avversario perde #{count} PV (§8.2)", "with #{roll} the opposing Rubyfront/Nexus loses #{count} HP (§8.2)") unless action["seat"] == foe && patch["hp"] == [0, @table.hp(foe) - count].max
+        else
+          return refuse("player", "con #{roll} non succede nulla (§8.2)", "with #{roll} nothing happens (§8.2)")
+        end
+        return allow("player")
+      end
+
+      return refuse("player", "guadagna PV chi comanda la fonte (§8.2)", "whoever commands the source gains HP (§8.2)") unless action["seat"] == seat
+      return refuse("player", "l'effetto dà #{form[:amount]} PV, non altro (§8.2)", "the effect gives #{form[:amount]} HP, nothing else (§8.2)") unless patch["hp"] == @table.hp(seat) + form[:amount]
+
+      allow("player")
+    end
+
+    # RBF-008, il seguito: col tiro giusto un'Entità dal Ritiro in mano.
+    def judge_attack_recall(action, ref)
+      source = @table.card(ref["source"])
+      return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+
+      known = @cards[source[:card_id]]
+      return no_rule("toZone") unless known
+
+      form = Array(known[:attack_forms]).find { |candidate| candidate[:kind] == "heal" && candidate[:then_recall] }
+      return refuse("toZone", "la carta non ha un effetto certificato che riporti in mano dopo la cura (§8.2)", "the card has no certified effect that returns to hand after the heal (§8.2)") unless form
+      return refuse("toZone", "prima i PV, poi il dado (§8.2)", "HP first, then the die (§8.2)") unless @table.fired?(ref["source"], "on_attack:heal", ref["entering"])
+      return refuse("toZone", "questo seguito è già stato risolto (§8.2)", "this follow-up has already been resolved (§8.2)") if attack_fired?(action, ref)
+
+      roll = action["roll"]
+      return refuse("toZone", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      return refuse("toZone", "con #{roll} non si riporta nulla in mano (§8.2)", "with #{roll} nothing returns to hand (§8.2)") unless in_range?(roll, form[:on_roll])
+
+      card = @table.card(action["uid"])
+      return refuse("toZone", "si riporta in mano un'Entità dalla PROPRIA Zona di Ritiro (§8.2)", "an Entity returns to hand from your OWN Retire Zone (§8.2)") unless card && card[:zone] == "ritiro" && card[:owner] == @table.controller_of(source) && entity_of_race?(action["uid"], nil)
+      return refuse("toZone", "la carta torna in mano (§8.2)", "the card returns to hand (§8.2)") unless action["zone"] == "hand"
+
+      allow("toZone")
+    end
+
+    # RBF-010: col tiro giusto un'Entità Umana dal Ritiro sul Fronte.
+    def judge_attack_return(action, ref)
+      stopped, source, attacker, forms = attack_context("toZone", action, ref)
+      return stopped if stopped
+
+      form = forms.find { |candidate| candidate[:kind] == "return" }
+      return refuse("toZone", "la carta non ha un effetto certificato che riporti in campo col dado (§8.2)", "the card has no certified effect that brings back to the field with a die (§8.2)") unless form
+
+      stopped = attack_relation_stopped("toZone", form, ref, source, attacker)
+      return stopped if stopped
+
+      roll = action["roll"]
+      return refuse("toZone", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      return refuse("toZone", "con #{roll} nessuno torna sul Fronte (§8.2)", "with #{roll} nobody returns to the Front (§8.2)") unless in_range?(roll, form[:on_roll])
+
+      card = @table.card(action["uid"])
+      unless card && card[:zone] == "ritiro" && card[:owner] == @table.controller_of(source) && entity_of_race?(action["uid"], form[:filter][:race])
+        return refuse("toZone", "si riporta un'Entità Umana dalla PROPRIA Zona di Ritiro (§8.2)", "a Human Entity returns from your OWN Retire Zone (§8.2)")
+      end
+
+      allow("toZone")
+    end
+
+    # RBF-010, il seguito: chi torna «attacca insieme» — un attacco con
+    # riferimento, esente dall'attesa di evocazione. Ritorna un rifiuto, o nil.
+    def attack_join_stopped(action)
+      ref = action["effect"]
+      return refuse("declare", "solo il seguito di un ritorno attacca con riferimento (§8.2)", "only the follow-up of a return attacks with a reference (§8.2)") unless ref["event"] == "on_attack" && ref["follow"] == "join"
+
+      source = @table.card(ref["source"])
+      return refuse("declare", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+
+      known = @cards[source[:card_id]]
+      form = known && Array(known[:attack_forms]).find { |candidate| candidate[:kind] == "return" && candidate[:joins] }
+      return refuse("declare", "la carta non ha un effetto certificato che faccia attaccare chi torna (§8.2)", "the card has no certified effect that makes the returned card attack (§8.2)") unless form
+      return refuse("declare", "prima il ritorno sul Fronte, poi l'attacco (§8.2)", "first the return to the Front, then the attack (§8.2)") unless @table.fired?(ref["source"], "on_attack:return", ref["source"])
+      return refuse("declare", "questo seguito è già stato risolto (§8.2)", "this follow-up has already been resolved (§8.2)") if attack_fired?(action, ref)
+
+      joiner = @table.card(action.dig("declaration", "from"))
+      unless joiner && joiner[:zone] == "field" && joiner[:entered] == @table.turn && @table.controller_of(joiner) == @table.controller_of(source) && action.dig("declaration", "from") == ref["entering"]
+        return refuse("declare", "attacca insieme chi è appena tornato sul Fronte (§8.2)", "the one who just returned to the Front attacks along (§8.2)")
+      end
+
+      nil
+    end
+
+    # RBF-011: stappa tutte le proprie Entità; col tiro, la Fase di Fronte addizionale.
+    def judge_attack_refresh(action, ref)
+      stopped, source, attacker, forms = attack_context("refresh", action, ref)
+      return stopped if stopped
+
+      form = forms.find { |candidate| candidate[:kind] == "refresh" }
+      return refuse("refresh", "la carta non ha un effetto certificato che stappi quando attacca (§8.2)", "the card has no certified effect that untaps when it attacks (§8.2)") unless form
+
+      stopped = attack_relation_stopped("refresh", form, ref, source, attacker)
+      return stopped if stopped
+      return refuse("refresh", "si stappano le Entità di chi comanda la fonte (§8.2)", "the Entities of whoever commands the source untap (§8.2)") unless action["seat"] == @table.controller_of(source)
+
+      roll = action["roll"]
+      return refuse("refresh", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      extra = in_range?(roll, form[:on_roll])
+      return refuse("refresh", "la Fase di Fronte addizionale c'è solo con #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)", "the additional Front Phase comes only with #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)") unless (action["extra"] == true) == extra
+
+      allow("refresh")
+    end
+
+    # RBF-031: un Oggetto dalla propria Zona di Ritiro addosso a chi attacca, gratis.
+    def judge_attack_rearm(action, ref)
+      stopped, source, attacker, forms = attack_context("toZone", action, ref)
+      return stopped if stopped
+
+      form = forms.find { |candidate| candidate[:kind] == "rearm" }
+      return refuse("toZone", "la carta non ha un effetto certificato che riarmi chi attacca (§8.2)", "the card has no certified effect that re-arms the attacker (§8.2)") unless form
+
+      stopped = attack_relation_stopped("toZone", form, ref, source, attacker)
+      return stopped if stopped
+      return refuse("toZone", "l'Oggetto va addosso a chi attacca (§8.2)", "the Object goes on the attacker (§8.2)") unless action["assignTo"] == ref["entering"] && action["zone"] == "field"
+      return refuse("toZone", "l'Oggetto arriva senza pagarne il costo (§8.2)", "the Object comes at no cost (§8.2)") if action.key?("cost")
+
+      object = @table.card(action["uid"])
+      entry = object && @cards[object[:card_id]]
+      return no_rule("toZone") if object && entry.nil?
+      unless object && object[:zone] == "ritiro" && object[:owner] == @table.controller_of(source) && entry[:type] == "object"
+        return refuse("toZone", "si assegna un Oggetto dalla PROPRIA Zona di Ritiro (§8.2)", "an Object is assigned from your OWN Retire Zone (§8.2)")
+      end
+      return refuse("toZone", "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if attacker[:facedown]
+
+      allow("toZone")
+    end
+
+    # RBF-031 e RBF-034: uno sguardo nel mazzo quando si attacca.
+    def judge_attack_look(action, ref)
+      stopped, source, attacker, forms = attack_context("look", action, ref)
+      return stopped if stopped
+
+      form = forms.find { |candidate| candidate[:kind] == "look" }
+      return refuse("look", "la carta non ha un effetto certificato che guardi nel mazzo quando attacca (§8.2)", "the card has no certified effect that looks in the deck when it attacks (§8.2)") unless form
+
+      stopped = attack_relation_stopped("look", form, ref, source, attacker)
+      return stopped if stopped
+
+      seat = @table.controller_of(source)
+      return refuse("look", "si guarda nel proprio mazzo (§8.2)", "you look in your own deck (§8.2)") unless action["seat"] == seat
+      if form[:die]
+        roll = action["roll"]
+        return refuse("look", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+        return refuse("look", "con #{roll} non si guarda nel mazzo (§8.2)", "with #{roll} you don't look in the deck (§8.2)") unless in_range?(roll, form[:on_roll])
+      end
+      return refuse("look", "si guardano le prime #{form[:count]} carte, non #{action["count"]} (§8.2)", "you look at the top #{form[:count]} cards, not #{action["count"]} (§8.2)") unless action["count"] == form[:count]
+      unless action["revealTo"] == form[:reveal_to] && action["restTo"] == form[:rest_to]
+        return refuse("look", "la mostrata va #{form[:reveal_to] == "hand" ? "in mano" : "nella Zona di Ritiro"}, le altre #{form[:rest_to] == "deck" ? "in fondo al mazzo" : "nella Zona di Ritiro"} (§8.2)", "the revealed card goes #{form[:reveal_to] == "hand" ? "to hand" : "to the Retire Zone"}, the rest #{form[:rest_to] == "deck" ? "to the bottom of the deck" : "to the Retire Zone"} (§8.2)")
+      end
+      return refuse("look", "questo sguardo non manda nulla in Zona di Ritiro a scelta (§8.2)", "this look sends nothing to the Retire Zone by choice (§8.2)") if action["retire"]
+
+      reveal = action["reveal"]
+      if reveal
+        top = @table.top_of_deck(seat, form[:count])
+        return refuse("look", "la carta mostrata dev'essere fra le prime #{form[:count]} del mazzo (§8.2)", "the revealed card must be among the top #{form[:count]} of the deck (§8.2)") unless top.include?(reveal)
+
+        shown = @table.card(reveal)
+        entry = shown && @cards[shown[:card_id]]
+        return no_rule("look") unless entry
+        wanted = form[:reveal]
+        unless entry[:type] == wanted[:type] && (wanted[:race].nil? || entry[:race] == wanted[:race])
+          return refuse("look", "si può mostrare solo #{wanted[:type] == "object" ? "un Oggetto" : "una Materia"}: non questa (§8.2)", "only #{wanted[:type] == "object" ? "an Object" : "a Matter"} can be revealed: not this one (§8.2)")
+        end
+      end
+
+      allow("look")
+    end
+
+    # RBF-028, alla risoluzione: chi lo chiede si stappa dopo il combattimento.
+    def untap_stopped(action)
+      Array(action["untap"]).each do |uid|
+        card = @table.card(uid)
+        return refuse("resolve", "si stappa dopo il combattimento chi ha attaccato (§8.2)", "whoever attacked untaps after combat (§8.2)") unless card && @table.attackers_in_order.include?(uid)
+
+        known = @cards[card[:card_id]]
+        return no_rule("resolve") unless known
+
+        form = Array(known[:attack_forms]).find { |candidate| candidate[:kind] == "untap" }
+        return refuse("resolve", "la carta non ha un effetto certificato che la stappi dopo il combattimento (§8.2)", "the card has no certified effect that untaps it after combat (§8.2)") unless form
+        return refuse("resolve", "«mentre ha un Oggetto assegnato»: senza Oggetto non si stappa (§8.2)", "“while it has an Object assigned”: without an Object it doesn't untap (§8.2)") if form[:requires_object] && !@table.armed?(uid)
+        return refuse("resolve", "si stappa una volta per turno (§8.2)", "it untaps once per turn (§8.2)") if form[:once] && @table.fired?(uid, "on_attack:untap", "turn")
+      end
+      nil
+    end
+
+    def settle_untaps(action)
+      return unless action.is_a?(Hash) && action["t"] == "resolve"
+
+      Array(action["untap"]).each { |uid| @table.fire(uid, "on_attack:untap", "turn") }
+    end
+
     # §8.2 — la pesca all'attacco (la forma di RBF-026): la fonte attacca
     # in Fase di Fronte, l'innesco non è consumato (una volta per turno:
     # un'Entità attacca una volta sola), ha un Oggetto assegnato, e pesca
     # chi la comanda, tante carte quante dice la forma. Ignota: silenzio.
     def judge_effect_attack_draw(action, ref)
-      stopped = own_trigger_stopped("draw", ref)
+      return judge_attack_heal_draw(action, ref) if ref["follow"] == "draw"
+
+      stopped = own_trigger_stopped("draw", ref, action)
       return stopped if stopped
 
       source = @table.card(ref["source"])
@@ -967,6 +1374,24 @@ module Rubyfront
       allow("draw")
     end
 
+    # RBF-001 (Nexus), il seguito della cura: «pesca una carta, poi scarta».
+    def judge_attack_heal_draw(action, ref)
+      source = @table.card(ref["source"])
+      return refuse("draw", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+
+      known = @cards[source[:card_id]]
+      return no_rule("draw") unless known
+
+      form = Array(known[:attack_forms]).find { |candidate| candidate[:kind] == "heal" && candidate[:face] == (source[:face] || 0) && candidate[:then_draw].to_i.positive? }
+      return refuse("draw", "la carta non ha un effetto certificato che peschi dopo la cura (§8.2)", "the card has no certified effect that draws after the heal (§8.2)") unless form
+      return refuse("draw", "prima i PV, poi la pesca (§8.2)", "HP first, then the draw (§8.2)") unless @table.fired?(ref["source"], "on_attack:heal", "turn")
+      return refuse("draw", "questo seguito è già stato risolto (§8.2)", "this follow-up has already been resolved (§8.2)") if attack_fired?(action, ref)
+      return refuse("draw", "si pesca #{form[:then_draw]} (§8.2)", "you draw #{form[:then_draw]} (§8.2)") unless action["count"] == form[:then_draw]
+      return refuse("draw", "pesca chi comanda la fonte, dal proprio mazzo (§8.2)", "whoever commands the source draws, from their own deck (§8.2)") unless action["seat"] == @table.controller_of(source)
+
+      allow("draw")
+    end
+
     # §8.2 — «poi scarta una carta» (RBF-026): il seguito della pesca. Un
     # `toZone` dalla mano all'Abisso marcato con `follow: "discard"`, che
     # passa se la fonte è in campo con una forma che fa scartare, la pesca
@@ -974,7 +1399,6 @@ module Rubyfront
     # sta nella mano di chi comanda la fonte.
     def judge_effect_discard(action, ref)
       kind = "toZone"
-      return refuse(kind, "l'effetto proprio ha per ingresso se stessa (§8.2)", "a card's own effect has itself as the entry (§8.2)") unless ref["source"] == ref["entering"]
 
       source = @table.card(ref["source"])
       return refuse(kind, "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
@@ -982,10 +1406,12 @@ module Rubyfront
       known = @cards[source[:card_id]]
       return no_rule(kind) unless known
 
-      form = Array(known[:attack_draws]).find { |candidate| candidate[:then_discard].positive? }
+      form = Array(known[:attack_draws]).find { |candidate| candidate[:then_discard].positive? } ||
+             Array(known[:attack_forms]).find { |candidate| candidate[:kind] == "heal" && candidate[:face] == (source[:face] || 0) && candidate[:then_discard].to_i.positive? }
       return refuse(kind, "la carta non ha un effetto certificato che faccia scartare (§8.2)", "the card has no certified effect that makes you discard (§8.2)") unless form
-      return refuse(kind, "lo scarto viene dopo la pesca: prima si pesca (§8.2)", "the discard comes after the draw: draw first (§8.2)") unless @table.fired?(ref["source"], "on_attack", ref["entering"])
-      return refuse(kind, "lo scarto dovuto è già stato fatto (§8.2)", "the discard owed has already been made (§8.2)") if @table.fired?(ref["source"], "on_attack:discard", ref["entering"])
+      drawn = @table.fired?(ref["source"], "on_attack:draw", ref["entering"]) || @table.fired?(ref["source"], "on_attack:draw", "turn")
+      return refuse(kind, "lo scarto viene dopo la pesca: prima si pesca (§8.2)", "the discard comes after the draw: draw first (§8.2)") unless drawn
+      return refuse(kind, "lo scarto dovuto è già stato fatto (§8.2)", "the discard owed has already been made (§8.2)") if attack_fired?(action, ref)
 
       card = @table.card(action["uid"])
       return refuse(kind, "si scarta una carta dalla propria mano (§8.2)", "you discard a card from your own hand (§8.2)") unless card && card[:zone] == "hand" && card[:owner] == @table.controller_of(source)
@@ -995,8 +1421,13 @@ module Rubyfront
 
     def judge_effect_move(action, ref)
       return judge_effect_discard(action, ref) if action["zone"] == "abisso" && ref["follow"] == "discard"
+      if ref["event"] == "on_attack"
+        return judge_attack_recall(action, ref) if ref["follow"] == "recall"
+        return judge_attack_rearm(action, ref) if action.key?("assignTo")
+        return judge_attack_return(action, ref) if action["zone"] == "field" && action.key?("roll")
+      end
 
-      stopped = own_trigger_stopped("toZone", ref)
+      stopped = own_trigger_stopped("toZone", ref, action)
       return stopped if stopped
 
       source = @table.card(ref["source"])

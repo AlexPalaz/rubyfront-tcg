@@ -2096,4 +2096,265 @@ class EngineTest < Minitest::Test
     engine.judge(attacco("esp"))
     refute pesca_attaccando(engine)[:ruled]
   end
+
+  # --- §8.2: le altre forme «quando attacca» ---------------------------------
+  #
+  # Le forme come le legge l'anagrafe dalle carte vere (card_index_test le
+  # prova sui file): qui si prova la dogana, scenario per scenario.
+
+  ARMATA = {
+    "VIGILE" => { type: "entity", keywords: [], race: "human", power: 3, counterattack: 1,
+                  attack_forms: [{ kind: "untap", who: "self", once: true, requires_object: true, face: 0 }] },
+    "COMANDO" => { type: "entity", keywords: ["surge"], race: "auros", power: 3,
+                   attack_forms: [{ kind: "empower", who: "self", requires_object: true, targets: "others_armed", power: 1, face: 0 }] },
+    "SIGMA" => { type: "object", keywords: [],
+                 attack_forms: [{ kind: "empower", who: "object", targets: "bearer", power: 1, face: 0 },
+                                { kind: "look", count: 4, reveal: { type: "matter", race: nil }, reveal_to: "hand", rest_to: "ritiro", who: "object", die: 6, on_roll: [5, 6], face: 0 }] },
+    "FURIERE" => { type: "entity", keywords: [], race: "auros", power: 5,
+                   attack_forms: [{ kind: "rearm", who: "ally", attacker_armed: true, face: 0 },
+                                  { kind: "look", count: 2, reveal: { type: "object", race: nil }, reveal_to: "ritiro", rest_to: "deck", who: "ally", attacker_armed: true, once: true, die: nil, face: 0 }] },
+    "GUARITORE" => { type: "entity", keywords: [], race: "human", power: 2,
+                     attack_forms: [{ kind: "heal", who: "self", amount: 2, die: 6, on_roll: [5, 6], then_recall: { type: "entity" }, face: 0 }] },
+    "ECO" => { type: "entity", keywords: [], race: "human", power: 3,
+               attack_forms: [{ kind: "return", who: "self", die: 6, on_roll: [5, 6], filter: { type: "entity", race: "human" }, joins: true, face: 0 }] },
+    "CARICA" => { type: "entity", keywords: [], race: "human", power: 5, counterattack: 1,
+                  attack_forms: [{ kind: "refresh", who: "self", die: 20, on_roll: [15, 20], face: 0 }] },
+    "EREDI" => { type: "matter", keywords: [], behavior: "permanent",
+                 attack_forms: [{ kind: "heal", who: "permanent", attackers: { type: "entity", race: "human" }, die: 20, gain_on: [1, 6], drain_on: [15, 20], amount: "human_attackers", face: 0 }] },
+    "OBLIVHAL" => { type: "rubyfront", keywords: ["fury"],
+                    attack_forms: [{ kind: "heal", who: "rubyfront", once: true, requires_attackers: { count: 3, race: "human" }, amount: 2, then_draw: 0, then_discard: 0, face: 0 },
+                                   { kind: "heal", who: "rubyfront", once: true, requires_attackers: { count: 3, race: "human" }, amount: 2, then_draw: 1, then_discard: 1, face: 1 }] },
+    "VENDICATORE" => { type: "entity", keywords: [], race: "human", power: 2,
+                       attack_forms: [{ kind: "empower", who: "self", once: true, targets: "next_human_attacker", grants: ["revenge"], face: 0 }] },
+    "RAZZIA" => { type: "entity", keywords: [], race: "human", power: 2, counterattack: 1,
+                  attack_forms: [{ kind: "empower", who: "self", requires_previous_attackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block", face: 0 }] },
+    "UMANO" => { type: "entity", keywords: [], race: "human", power: 2 },
+    "AUROS" => { type: "entity", keywords: [], race: "auros", power: 2 },
+    "FERRO" => { type: "object", keywords: [] },
+    "MATERIA" => { type: "matter", keywords: [], behavior: "normal" },
+  }.freeze
+
+  # Un tavolo per gli attacchi: le carte di A (con la loro zona e i loro
+  # extra) e di B scese al turno 1, poi turno 3 di A in Fase di Fronte,
+  # con gli attacchi dichiarati nell'ordine dato.
+  def scena(a, b: [], attacks: [])
+    engine = Rubyfront::Engine.new(cards: ARMATA)
+    load = lambda do |seat, list|
+      cards = list.map.with_index do |(uid, id, extra), i|
+        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1236 : 172 }.merge(extra || {})
+      end
+      engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
+    end
+    load.call("a", a)
+    load.call("b", b + [["rf-b", "OBLIVHAL", { "y" => 172 }]])
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    fronte!(engine)
+    attacks.each_with_index do |uid, i|
+      verdict = engine.judge({ "t" => "declare", "declaration" => { "id" => uid, "from" => uid, "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => i + 1 } })
+      raise "attacco rifiutato: #{verdict[:reason]}" unless verdict[:ok]
+    end
+    engine
+  end
+
+  def copia(engine)
+    engine.instance_variable_get(:@table)
+  end
+
+  def ref(source, entering = source, **extra)
+    { "source" => source, "event" => "on_attack", "entering" => entering }.merge(extra.transform_keys(&:to_s))
+  end
+
+  # RBF-028 — «stappala dopo il combattimento».
+  def test_il_vigile_armato_si_stappa_dopo_il_combattimento
+    engine = scena([["v", "VIGILE"], ["f", "FERRO", { "assignedTo" => "v" }]], attacks: ["v"])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    verdict = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [battaglia("v", damage: 3)], "untap" => ["v"] })
+    assert verdict[:ok], verdict[:reason]
+    refute copia(engine).card("v")[:tapped]
+  end
+
+  def test_senza_oggetto_o_senza_attacco_niente_stappata
+    engine = scena([["v", "VIGILE"], ["u", "UMANO"]], attacks: ["v"])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    disarmato = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [battaglia("v", damage: 3)], "untap" => ["v"] })
+    assert_match(/senza Oggetto/, disarmato[:reason])
+    fermo = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [battaglia("v", damage: 3)], "untap" => ["u"] })
+    assert_match(/chi ha attaccato/, fermo[:reason])
+  end
+
+  # RBF-029 — «le altre Entità con un Oggetto assegnato che controlli prendono +1».
+  def test_il_comando_potenzia_le_altre_armate
+    engine = scena([["c", "COMANDO"], ["f1", "FERRO", { "assignedTo" => "c" }], ["u", "UMANO"], ["f2", "FERRO", { "assignedTo" => "u" }], ["n", "AUROS"]], attacks: ["c"])
+    verdict = engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("c") })
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 1, copia(engine).card("u")[:power_bonus]
+    assert_match(/già stato risolto/, engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("c") })[:reason])
+    assert_match(/ALTRE Entità/, engine.judge({ "t" => "empower", "uid" => "n", "power" => 1, "effect" => ref("c") })[:reason], "senza Oggetto")
+    assert_match(/ALTRE Entità/, engine.judge({ "t" => "empower", "uid" => "c", "power" => 1, "effect" => ref("c") })[:reason], "non se stessa")
+  end
+
+  def test_il_comando_disarmato_non_potenzia
+    engine = scena([["c", "COMANDO"], ["u", "UMANO"], ["f2", "FERRO", { "assignedTo" => "u" }]], attacks: ["c"])
+    assert_match(/senza Oggetto/, engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("c") })[:reason])
+  end
+
+  # RBF-034 — l'Oggetto che potenzia chi lo porta, poi lo sguardo col dado.
+  def test_il_catalizzatore_potenzia_il_portatore_e_poi_guarda_col_dado
+    engine = scena([["u", "UMANO"], ["s", "SIGMA", { "assignedTo" => "u" }], ["pescata", "UMANO", { "zone" => "deck" }], ["d1", "MATERIA", { "zone" => "deck" }], ["d2", "UMANO", { "zone" => "deck" }],
+                    ["d3", "UMANO", { "zone" => "deck" }], ["d4", "UMANO", { "zone" => "deck" }]], attacks: ["u"])
+    verdict = engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("s", "u") })
+    assert verdict[:ok], verdict[:reason]
+    assert_match(/chi porta l'Oggetto/, engine.judge({ "t" => "empower", "uid" => "s", "power" => 1, "effect" => ref("s", "u") })[:reason])
+    sguardo = { "t" => "look", "seat" => "a", "count" => 4, "revealTo" => "hand", "restTo" => "ritiro", "effect" => ref("s", "u", follow: "look") }
+    assert_match(/non si guarda/, engine.judge(sguardo.merge("roll" => 3))[:reason])
+    assert_match(/prime 4 carte/, engine.judge(sguardo.merge("roll" => 5, "count" => 3))[:reason])
+    assert_match(/mostrare solo una Materia/, engine.judge(sguardo.merge("roll" => 5, "reveal" => "d2"))[:reason])
+    ok = engine.judge(sguardo.merge("roll" => 6, "reveal" => "d1"))
+    assert ok[:ok], ok[:reason]
+    tavolo = copia(engine)
+    assert_equal "hand", tavolo.card("d1")[:zone]
+    assert_equal "ritiro", tavolo.card("d2")[:zone], "le altre nella Zona di Ritiro"
+  end
+
+  def test_l_oggetto_non_addosso_all_attaccante_tace
+    engine = scena([["u", "UMANO"], ["n", "AUROS"], ["s", "SIGMA", { "assignedTo" => "n" }]], attacks: ["u"])
+    assert_match(/addosso a chi attacca/, engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("s", "u") })[:reason])
+  end
+
+  # RBF-031 — il Furiere: un Oggetto dal Ritiro a chi attacca armato, e lo sguardo una volta per turno.
+  def test_il_furiere_riarma_chi_attacca_armato_e_guarda_una_volta
+    engine = scena([["q", "FURIERE"], ["u", "UMANO"], ["f", "FERRO", { "assignedTo" => "u" }], ["f2", "FERRO", { "zone" => "ritiro" }],
+                    ["n", "AUROS"], ["f3", "FERRO", { "assignedTo" => "n" }], ["pescata", "UMANO", { "zone" => "deck" }], ["d1", "FERRO", { "zone" => "deck" }], ["d2", "UMANO", { "zone" => "deck" }]],
+                   attacks: %w[u n])
+    riarmo = { "t" => "toZone", "uid" => "f2", "zone" => "field", "y" => 1236, "assignTo" => "u", "effect" => ref("q", "u") }
+    assert_match(/senza pagarne/, engine.judge(riarmo.merge("cost" => 2))[:reason])
+    verdict = engine.judge(riarmo)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "u", copia(engine).card("f2")[:assigned_to]
+    sguardo = { "t" => "look", "seat" => "a", "count" => 2, "revealTo" => "ritiro", "restTo" => "deck", "reveal" => "d1", "effect" => ref("q", "u", once: true) }
+    assert_match(/una volta per turno/, engine.judge(sguardo.merge("effect" => ref("q", "u")))[:reason], "il riferimento deve dire once")
+    ok = engine.judge(sguardo)
+    assert ok[:ok], ok[:reason]
+    assert_equal "ritiro", copia(engine).card("d1")[:zone]
+    assert_match(/già stato risolto/, engine.judge(sguardo.merge("effect" => ref("q", "n", once: true), "reveal" => nil))[:reason], "una volta per turno, per qualunque attaccante")
+  end
+
+  def test_il_furiere_non_serve_chi_attacca_disarmato
+    engine = scena([["q", "FURIERE"], ["u", "UMANO"], ["f2", "FERRO", { "zone" => "ritiro" }]], attacks: ["u"])
+    verdict = engine.judge({ "t" => "toZone", "uid" => "f2", "zone" => "field", "y" => 1236, "assignTo" => "u", "effect" => ref("q", "u") })
+    assert_match(/Entità con un Oggetto assegnato/, verdict[:reason])
+  end
+
+  # RBF-008 — +2 PV, poi col dado un'Entità dal Ritiro in mano.
+  def test_il_guaritore_cura_e_col_dado_riporta_in_mano
+    engine = scena([["g", "GUARITORE"], ["r", "UMANO", { "zone" => "ritiro" }]], attacks: ["g"])
+    richiamo = { "t" => "toZone", "uid" => "r", "zone" => "hand", "roll" => 6, "effect" => ref("g", follow: "recall") }
+    assert_match(/prima i PV/, engine.judge(richiamo)[:reason])
+    assert_match(/2 PV/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 25 }, "effect" => ref("g") })[:reason])
+    cura = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("g") })
+    assert cura[:ok], cura[:reason]
+    assert_equal 22, copia(engine).hp("a")
+    assert_match(/non si riporta nulla/, engine.judge(richiamo.merge("roll" => 2))[:reason])
+    ok = engine.judge(richiamo)
+    assert ok[:ok], ok[:reason]
+    assert_equal "hand", copia(engine).card("r")[:zone]
+    assert_match(/già stato risolto/, engine.judge(richiamo)[:reason])
+  end
+
+  # RBF-010 — col dado un'Entità Umana dal Ritiro sul Fronte, che attacca insieme.
+  def test_l_eco_riporta_un_umano_che_attacca_insieme
+    engine = scena([["e", "ECO"], ["r", "UMANO", { "zone" => "ritiro" }], ["x", "AUROS", { "zone" => "ritiro" }]], attacks: ["e"])
+    ritorno = { "t" => "toZone", "uid" => "r", "zone" => "field", "x" => 2368, "y" => 1236, "roll" => 5, "effect" => ref("e") }
+    assert_match(/nessuno torna/, engine.judge(ritorno.merge("roll" => 4))[:reason])
+    assert_match(/Entità Umana/, engine.judge(ritorno.merge("uid" => "x"))[:reason])
+    ok = engine.judge(ritorno)
+    assert ok[:ok], ok[:reason]
+    insieme = { "t" => "declare", "declaration" => { "id" => "r", "from" => "r", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 2 },
+                "effect" => ref("e", "r", follow: "join") }
+    senza = engine.judge(insieme.reject { |key, _| key == "effect" })
+    assert_match(/attesa di evocazione/, senza[:reason], "senza riferimento aspetta")
+    verdict = engine.judge(insieme)
+    assert verdict[:ok], verdict[:reason]
+    assert copia(engine).attacking?("r")
+  end
+
+  # RBF-011 — stappa tutte le proprie Entità; con 15–20 la Fase di Fronte addizionale.
+  def test_la_carica_stappa_tutti_e_col_tiro_promette_il_fronte_addizionale
+    engine = scena([["c", "CARICA"], ["u", "UMANO", { "tapped" => true }]], attacks: ["c"])
+    assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "extra" => true, "effect" => ref("c") })[:reason])
+    verdict = engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "extra" => true, "effect" => ref("c") })
+    assert verdict[:ok], verdict[:reason]
+    tavolo = copia(engine)
+    refute tavolo.card("u")[:tapped]
+    refute tavolo.card("c")[:tapped]
+    assert tavolo.extra_front
+  end
+
+  # RBF-022 — la Materia permanente: il d20 quando attaccano gli Umani.
+  def test_gli_eredi_col_d20_curano_o_prosciugano
+    engine = scena([["m", "EREDI"], ["u1", "UMANO"], ["u2", "UMANO"], ["n", "AUROS"]], attacks: %w[u1 u2 n])
+    assert_match(/non succede nulla/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 10, "effect" => ref("m", "u1") })[:reason])
+    assert_match(/Entità Umane che controlli/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "n") })[:reason])
+    cura = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "u1") })
+    assert cura[:ok], cura[:reason]
+    assert_match(/perde 2 PV/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 18, "effect" => ref("m", "u2") })[:reason])
+    danno = engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 18 }, "roll" => 18, "effect" => ref("m", "u2") })
+    assert danno[:ok], danno[:reason]
+    assert_equal 18, copia(engine).hp("b")
+  end
+
+  # RBF-001 — il raduno: al terzo Umano, +2 PV una volta per turno; il Nexus poi pesca e scarta.
+  def test_il_raduno_al_terzo_umano_una_volta_per_turno
+    engine = scena([["rf", "OBLIVHAL", { "y" => 1756 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2])
+    assert_match(/almeno 3 Entità Umane/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u2", once: true) })[:reason])
+    engine.judge({ "t" => "declare", "declaration" => { "id" => "u3", "from" => "u3", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 3 } })
+    verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
+    assert verdict[:ok], verdict[:reason]
+    assert_match(/già stato risolto/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "effect" => ref("rf", "u1", once: true) })[:reason])
+    assert_match(/peschi dopo la cura/, engine.judge({ "t" => "draw", "seat" => "a", "count" => 1, "effect" => ref("rf", "u3", once: true, follow: "draw") })[:reason], "la faccia del Rubyfront non pesca")
+  end
+
+  def test_il_nexus_dopo_la_cura_pesca_e_scarta
+    engine = scena([["rf", "OBLIVHAL", { "y" => 1756, "face" => 1 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"],
+                    ["h", "UMANO", { "zone" => "hand" }], ["d", "UMANO", { "zone" => "deck" }]], attacks: %w[u1 u2 u3])
+    pesca = { "t" => "draw", "seat" => "a", "count" => 1, "effect" => ref("rf", "u3", once: true, follow: "draw") }
+    assert_match(/prima i PV/, engine.judge(pesca)[:reason])
+    assert engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })[:ok]
+    assert engine.judge(pesca)[:ok]
+    assert_match(/già stato risolto/, engine.judge(pesca)[:reason])
+    scarto = engine.judge({ "t" => "toZone", "uid" => "h", "zone" => "abisso", "effect" => ref("rf", "u3", once: true, follow: "discard") })
+    assert scarto[:ok], scarto[:reason]
+    assert_equal "abisso", copia(engine).card("h")[:zone]
+  end
+
+  # RBF-004 — la Vendetta al PROSSIMO Umano che attacca.
+  def test_il_vendicatore_concede_vendetta_al_prossimo_umano
+    engine = scena([["v", "VENDICATORE"], ["u1", "UMANO"], ["u2", "UMANO"], ["n", "AUROS"]], attacks: %w[v n u1 u2])
+    assert_match(/PROSSIMA Entità Umana/, engine.judge({ "t" => "empower", "uid" => "u2", "grants" => ["revenge"], "effect" => ref("v", "v", once: true) })[:reason])
+    assert_match(/PROSSIMA Entità Umana/, engine.judge({ "t" => "empower", "uid" => "n", "grants" => ["revenge"], "effect" => ref("v", "v", once: true) })[:reason])
+    verdict = engine.judge({ "t" => "empower", "uid" => "u1", "grants" => ["revenge"], "effect" => ref("v", "v", once: true) })
+    assert verdict[:ok], verdict[:reason]
+    assert_equal ["revenge"], copia(engine).card("u1")[:grants]
+  end
+
+  # RBF-005 — se nel turno precedente hanno attaccato almeno 2 Umani, un'Entità avversaria non blocca.
+  def test_la_razzia_vieta_il_blocco_dopo_un_turno_di_umani
+    engine = scena([["r", "RAZZIA"], ["u1", "UMANO"], ["u2", "UMANO"]], b: [["b1", "AUROS"]], attacks: %w[u1 u2])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert risolvi(engine, [battaglia("u1", damage: 2), battaglia("u2", damage: 2)])[:ok]
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
+    fronte!(engine)
+    assert engine.judge({ "t" => "declare", "declaration" => { "id" => "r", "from" => "r", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } })[:ok]
+    verdict = engine.judge({ "t" => "empower", "uid" => "b1", "restrict" => "block", "effect" => ref("r") })
+    assert verdict[:ok], verdict[:reason]
+    assert copia(engine).card("b1")[:cannot_block]
+    assert_match(/avversaria/, engine.judge({ "t" => "empower", "uid" => "u1", "restrict" => "block", "effect" => ref("r") })[:reason])
+  end
+
+  def test_la_razzia_senza_umani_nel_turno_precedente_tace
+    engine = scena([["r", "RAZZIA"], ["u1", "UMANO"]], b: [["b1", "AUROS"]], attacks: ["r"])
+    assert_match(/turno precedente/, engine.judge({ "t" => "empower", "uid" => "b1", "restrict" => "block", "effect" => ref("r") })[:reason])
+  end
 end

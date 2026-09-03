@@ -337,6 +337,60 @@ Regole collegate finora:
   manda, nessuna regola lo reclama; è il tavolo a chiederlo, e la finestra
   torna finché non si sceglie. Nel client la fonte si accende, si pesca,
   poi si sceglie dalla mano.
+- **§8.2 Le altre forme «quando attacca»** — undici inneschi su nove carte,
+  letti dall'anagrafe in `attack_forms` (con la faccia che li porta) e
+  giudicati con un contesto comune: l'ingresso del riferimento è chi
+  attacca, in campo con un attacco dichiarato in Fase di Fronte; la fonte
+  è in campo ed è, secondo la forma, chi attacca, un Oggetto addosso a chi
+  attacca, una carta dello stesso posto (un'alleata, una Materia
+  permanente, il Rubyfront/Nexus schierato); ogni passo ha la sua tripla
+  (`fonte|on_attack:passo|attaccante`, o `turn` al posto dell'attaccante
+  per «una volta per turno», che il riferimento dichiara con `once`).
+  Le forme: RBF-028, il **Vigile** — armato, «stappala dopo il
+  combattimento»: viaggia nella risoluzione (`resolve.untap`), una volta
+  per turno; RBF-029, il **Comando** — armato, «+1 Potenza alle altre
+  Entità armate che controlli» (`empower`, un passo per bersaglio);
+  RBF-034, il **Catalizzatore Sigma** — l'Oggetto dà +1 a chi lo porta,
+  «poi tira un d6: con 5–6 guarda le prime 4, una Materia in mano, le
+  altre in Zona di Ritiro» (`look` con `revealTo`/`restTo`); RBF-031, il
+  **Furiere** — quando attacca un'Entità armata che controlli, puoi
+  assegnarle un Oggetto dalla Zona di Ritiro senza pagarlo
+  (`toZone.assignTo`, senza `cost`) e, una volta per turno, guardi le
+  prime 2 e puoi mettere un Oggetto in Zona di Ritiro; RBF-008, il
+  **Guaritore** — «+2 PV» (`player` con riferimento: i PV devono essere
+  quelli di prima più due), «poi un d6: con 5–6 un'Entità dalla Zona di
+  Ritiro in mano» (il seguito `recall`, col tiro); RBF-010, l'**Eco** —
+  «un d6: con 5–6 un'Entità Umana dalla Zona di Ritiro sul Fronte, che
+  attacca insieme» (un `toZone` col tiro, poi un `declare` col seguito
+  `join`, esente dall'attesa di evocazione); RBF-011, la **Carica** —
+  «un d20: con 15–20 stappa tutte le tue Entità e c'è una Fase di Fronte
+  addizionale» (`refresh`; la promessa si consuma tornando dalla Reazione
+  al Fronte, e la apre chi chiude la Reazione); RBF-022, gli **Eredi** —
+  la Materia permanente: quando attacca un Umano che controlli, «un d20:
+  1–6 guadagni PV pari agli Umani che hanno attaccato, 15–20 li perde il
+  Rubyfront/Nexus avversario, 7–14 nulla»; RBF-001, **Oblivhal** — «la
+  prima volta in ogni tuo turno che almeno 3 Umani che controlli hanno
+  attaccato, +2 PV», e il Nexus «pesca una carta, poi scarta» (i seguiti
+  `draw` e `discard`); RBF-004, il **Vendicatore** — «la prossima Entità
+  Umana che attacca ottiene Vendetta fino a fine turno» (l'engine
+  pretende che sia il PRIMO Umano dichiarato dopo la fonte); RBF-005, la
+  **Razzia** — «se almeno 2 Umani che controlli hanno attaccato nel tuo
+  turno precedente, un'Entità avversaria non può bloccare» (la copia
+  ricorda l'ultima ondata alla risoluzione; il divieto ferma il blocco
+  alla dichiarazione). Gli attrezzi comuni: `empower` (Potenza, parole
+  chiave, divieto di blocco fino a fine turno, cancellati dal cambio di
+  turno), la Potenza in campo nella risoluzione (stampata più bonus) e la
+  **Vendetta** (§8.1, stampata o concessa: chi blocca con Vendetta e
+  supera l'attaccante lo uccide). Limiti dichiarati: il caso lo tira
+  sempre il client, l'engine verifica il tiro e la soglia, non la
+  fortuna; gli statici «+1 per ogni altro Umano» (RBF-010), «+1 alle
+  altre armate» (RBF-031) e «Contrattacco +2 se armata» (RBF-028) non
+  sono collegati (sono `while_in_play`, non inneschi d'attacco), quindi
+  una risoluzione che li contasse a mano verrebbe fermata; il Furiere
+  «se può riceverlo» si limita a non vestire una coperta; nella Fase di
+  Fronte addizionale le Entità stappate attaccano di nuovo per la regola
+  d'oro, e la Reazione che segue è una Reazione come le altre; la Stasi
+  resta fuori dalla risoluzione. L'avversario vede gli esiti, non i dadi.
   La quarta forma è quella di RBF-006, il **Cercatore**: «guarda le prime 4
   carte del tuo mazzo, puoi mostrare un'Entità Umana e aggiungerla alla
   mano, metti le altre in fondo» — un'azione sola, `look {seat, count,

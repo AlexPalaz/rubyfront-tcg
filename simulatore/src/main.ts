@@ -258,6 +258,7 @@ const ctx: Ctx = {
       enterControls: stats.enterControls,
       attackReturns: stats.attackReturns,
       attackDraws: stats.attackDraws,
+      attackForms: stats.attackForms,
     };
   },
   log(text, seat) {

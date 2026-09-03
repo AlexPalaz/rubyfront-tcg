@@ -18,7 +18,7 @@ export const TILE_W = 302;
 export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
-import type { AttackDraw, EnterControl, EnterListener, EnterLook, EnterMove, EnterReturn } from "./ctx.js";
+import type { AttackDraw, AttackForm, EnterControl, EnterListener, EnterLook, EnterMove, EnterReturn } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -255,7 +255,11 @@ function effectsFor(cardId: string, faceIndex: number, locale: string, events: s
     if (typeof trigger.event !== "string" || !events.includes(trigger.event)) continue;
     const key = typeof trigger.displayKey === "string" ? trigger.displayKey : typeof trigger.id === "string" ? trigger.id : "";
     const entry = faceCopy.triggers?.[key] ?? faceCopy[key];
-    if (entry && typeof entry.text === "string") out.push({ tag: typeof entry.trigger === "string" ? entry.trigger : "Effetto", text: entry.text });
+    if (!entry || typeof entry.text !== "string") continue;
+    // Due inneschi con lo stesso testo (RBF-034: il +1 e poi il dado stanno
+    // in una frase sola) si leggono una volta.
+    if (out.some(shown => shown.text === entry.text)) continue;
+    out.push({ tag: typeof entry.trigger === "string" ? entry.trigger : locale === "en" ? "Effect" : "Effetto", text: entry.text });
   }
   return out;
 }
@@ -358,6 +362,168 @@ function attackDrawsOf(face: CardFace | undefined): AttackDraw[] {
   return out;
 }
 
+// ---- Le altre forme «quando attacca» (§8.2). Specchio di card_index.rb,
+// attack_forms: stesse condizioni, parser per parser — una forma che non
+// combacia esattamente non entra.
+
+type Loose = Record<string, any>;
+
+function rollRange(value: unknown): [number, number] | null {
+  const match = typeof value === "string" ? value.match(/^(\d+)-(\d+)$/) : null;
+  return match ? [Number(match[1]), Number(match[2])] : null;
+}
+
+function dieFaces(value: unknown): number | null {
+  const match = typeof value === "string" ? value.match(/^d(\d+)$/) : null;
+  return match ? Number(match[1]) : null;
+}
+
+function ownTarget(target: unknown, type: string, race: string | null = null): target is Loose {
+  const t = target as Loose | undefined;
+  return !!t && typeof t === "object" && t.cardType === type && t.controller === "controller" && (race === null || t.race === race);
+}
+
+function attackFormsOf(faces: CardFace[]): AttackForm[] {
+  const out: AttackForm[] = [];
+  faces.forEach((face, index) => {
+    for (const trigger of face.triggers ?? []) {
+      if (trigger.event !== "on_attack") continue;
+      const details = (typeof trigger.details === "object" && trigger.details ? trigger.details : {}) as Loose;
+      const effect = trigger.effect as Loose | undefined;
+      if (!effect || typeof effect !== "object") continue;
+      const form =
+        attackUntap(details, effect) ?? attackEmpower(details, effect) ?? attackLook(details, effect) ?? attackHeal(details, effect) ??
+        attackRefresh(details, effect) ?? attackRecall(details, effect) ?? attackRearm(details, effect) ?? attackRestrict(details, effect);
+      if (form) out.push({ ...form, face: index } as AttackForm);
+    }
+  });
+  return out;
+}
+
+type Unfaced<F> = F extends AttackForm ? Omit<F, "face"> : never;
+
+function attackUntap(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
+  if (effect.type !== "untap" || effect.target?.scope !== "self" || effect.details?.afterCombat !== true) return null;
+  if (details.oncePerEachOfYourTurns !== true || details.whileHasObjectAssigned !== true) return null;
+  return { kind: "untap", who: "self", once: true, requiresObject: true };
+}
+
+function attackEmpower(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
+  const target = effect.target as Loose | undefined;
+  if (effect.type === "modify_power" && Number.isInteger(effect.amount) && effect.duration === "until_end_of_turn") {
+    if (details.whenAssignedAttacks === true && target?.scope === "assigned") {
+      return { kind: "empower", who: "object", targets: "bearer", power: effect.amount };
+    }
+    if (details.requiresObjectAssigned === true && ownTarget(target, "entity") && target.quantity === "all" &&
+        target.details?.hasObjectAssigned === true && target.details?.excludeSelf === true) {
+      return { kind: "empower", who: "self", requiresObject: true, targets: "others_armed", power: effect.amount };
+    }
+  }
+  if (effect.type === "empower" && effect.duration === "until_end_of_turn" && details.oncePerEachOfYourTurns === true &&
+      ownTarget(target, "entity", "human") && target.min === 1 && target.max === 1 && target.details?.nextAttackerThisTurn === true) {
+    const grants = (Array.isArray(effect.grants) ? effect.grants : []).filter((k: unknown) => typeof k === "string");
+    if (grants.length) return { kind: "empower", who: "self", once: true, targets: "next_human_attacker", grants };
+  }
+  return null;
+}
+
+function attackLook(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
+  if (effect.type !== "look_and_optionally_move") return null;
+  const from = effect.from as Loose | undefined;
+  const extra = effect.details as Loose | undefined;
+  if (!from || from.zone !== "deck" || from.owner !== "controller" || from.position !== "top" || !Number.isInteger(from.count)) return null;
+  if (!extra || typeof extra.mayReveal?.cardType !== "string") return null;
+  const revealTo = extra.revealTo?.zone;
+  const restTo = extra.restTo?.zone;
+  if (!["hand", "retire"].includes(revealTo) || !["deck", "retire"].includes(restTo)) return null;
+  if (restTo === "deck" && extra.restTo?.position !== "bottom") return null;
+  const base = {
+    count: from.count as number,
+    reveal: { kind: extra.mayReveal.cardType as "matter" | "object" | "entity", race: typeof extra.mayReveal.race === "string" ? (extra.mayReveal.race as string) : null },
+    revealTo: (revealTo === "retire" ? "ritiro" : "hand") as "hand" | "ritiro",
+    restTo: (restTo === "retire" ? "ritiro" : "deck") as "deck" | "ritiro",
+  };
+  if (details.whenAssignedAttacks === true) {
+    const die = dieFaces(extra.die);
+    const onRoll = rollRange(extra.onlyOnRoll);
+    if (die === null || onRoll === null) return null;
+    return { kind: "look", who: "object", ...base, die, onRoll };
+  }
+  const attacker = details.attacker as Loose | undefined;
+  if (ownTarget(attacker, "entity") && attacker.details?.hasObjectAssigned === true && details.oncePerEachOfYourTurns === true && extra.die === undefined) {
+    return { kind: "look", who: "ally", ...base, attackerArmed: true, once: true, die: null, onRoll: null };
+  }
+  return null;
+}
+
+function attackHeal(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
+  const extra = (typeof effect.details === "object" && effect.details ? effect.details : {}) as Loose;
+  if (effect.type === "gain_health" && Number.isInteger(effect.amount) && effect.target?.controller === "controller") {
+    const required = details.requiresAttackersThisTurnAtLeast as Loose | undefined;
+    if (details.oncePerEachOfYourTurns === true && required && Number.isInteger(required.count) && ownTarget(required.filter, "entity", "human")) {
+      const thenDraw = extra.thenDrawCards;
+      const thenDiscard = extra.thenDiscardCards;
+      if (![undefined, 1].includes(thenDraw) || ![undefined, 1].includes(thenDiscard)) return null;
+      return { kind: "heal", who: "rubyfront", once: true, requiresAttackers: { count: required.count, race: "human" }, amount: effect.amount, die: null, onRoll: null, thenDraw: thenDraw ?? 0, thenDiscard: thenDiscard ?? 0 };
+    }
+    const recall = extra.thenMoveCard as Loose | undefined;
+    if (Object.keys(details).length === 0 && recall && recall.from?.zone === "retire" && recall.to?.zone === "hand" && recall.count === 1 && recall.filter?.cardType === "entity") {
+      const die = dieFaces(extra.die);
+      const onRoll = rollRange(extra.onRoll);
+      if (die === null || onRoll === null) return null;
+      return { kind: "heal", who: "self", amount: effect.amount, die, onRoll, thenRecall: { kind: "entity" } };
+    }
+  }
+  if (effect.type === "empower" && ownTarget(details.attackers, "entity", "human") && typeof extra.byRoll === "object" && extra.byRoll) {
+    const die = dieFaces(extra.die);
+    const by = extra.byRoll as Record<string, Loose>;
+    const gain = Object.keys(by).find(key => by[key]?.gainHealthEqualsHumanAttackersThisTurn === true);
+    const drain = Object.keys(by).find(key => by[key]?.opponentLosesHealthEqualsHumanAttackersThisTurn === true);
+    const gainOn = rollRange(gain);
+    const drainOn = rollRange(drain);
+    if (die === null || !gainOn || !drainOn) return null;
+    return { kind: "heal", who: "permanent", attackers: { kind: "entity", race: "human" }, die, onRoll: null, gainOn, drainOn, amount: "human_attackers" };
+  }
+  return null;
+}
+
+function attackRefresh(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
+  if (Object.keys(details).length !== 0 || effect.type !== "untap" || !ownTarget(effect.target, "entity") || effect.target?.quantity !== "all") return null;
+  const extra = effect.details as Loose | undefined;
+  if (!extra || extra.thenAdditionalFrontPhase !== true) return null;
+  const die = dieFaces(extra.die);
+  const onRoll = rollRange(extra.onRoll);
+  return die !== null && onRoll ? { kind: "refresh", who: "self", die, onRoll } : null;
+}
+
+function attackRecall(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
+  if (Object.keys(details).length !== 0 || effect.type !== "move_card" || !ownTarget(effect.target, "entity", "human")) return null;
+  if (effect.target.min !== 1 || effect.target.max !== 1) return null;
+  if (effect.from?.zone !== "retire" || effect.destination?.zone !== "front") return null;
+  const extra = effect.details as Loose | undefined;
+  if (!extra || extra.joinsThisAttack !== true) return null;
+  const die = dieFaces(extra.die);
+  const onRoll = rollRange(extra.onRoll);
+  return die !== null && onRoll ? { kind: "return", who: "self", die, onRoll, filter: { kind: "entity", race: "human" }, joins: true } : null;
+}
+
+function attackRearm(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
+  const attacker = details.attacker as Loose | undefined;
+  if (effect.type !== "assign_object" || effect.optional !== true) return null;
+  if (effect.from?.zone !== "retire" || effect.target?.scope !== "attacker" || effect.details?.noFluxCost !== true) return null;
+  if (!ownTarget(attacker, "entity") || attacker.details?.hasObjectAssigned !== true) return null;
+  return { kind: "rearm", who: "ally", attackerArmed: true };
+}
+
+function attackRestrict(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
+  const previous = details.requiresAttackersPreviousTurnAtLeast as Loose | undefined;
+  if (effect.type !== "restrict_action" || effect.restricts !== "block" || effect.duration !== "until_end_of_turn") return null;
+  const target = effect.target as Loose | undefined;
+  if (!target || target.cardType !== "entity" || target.controller !== "opponent" || target.min !== 1 || target.max !== 1) return null;
+  if (!previous || !Number.isInteger(previous.count) || !ownTarget(previous.filter, "entity", "human")) return null;
+  return { kind: "empower", who: "self", requiresPreviousAttackers: { count: previous.count, race: "human" }, targets: "opposing_entity", restrict: "block" };
+}
+
 /**
  * Gli sguardi nel mazzo certificati (§8.2): evento `on_enter_field` senza
  * `enteringCard`, effetto `look_and_optionally_move` dalla cima del
@@ -457,6 +623,7 @@ export function cardStats(cardId: string): {
   enterControls: EnterControl[];
   attackReturns: EnterReturn[];
   attackDraws: AttackDraw[];
+  attackForms: AttackForm[];
 } {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
@@ -474,6 +641,7 @@ export function cardStats(cardId: string): {
     enterReturns: enterReturnsOf(face, "on_enter_field"),
     attackReturns: enterReturnsOf(face, "on_attack"),
     attackDraws: attackDrawsOf(face),
+    attackForms: attackFormsOf(card?.faces ?? []),
     enterLooks: enterLooksOf(face),
     enterControls: enterControlsOf(face),
     power: integer(face?.stats?.power),
