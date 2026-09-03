@@ -322,7 +322,21 @@ Regole collegate finora:
   attacco dichiarato in Fase di Fronte, una volta per attacco (gli inneschi
   consumati sono triple fonte/evento/ingresso); nel client, dichiarato
   l'attacco, la scena dice «Quando attacca» e «Risolvi» fa lo stesso
-  ritorno.
+  ritorno. Della stessa famiglia è RBF-026, l'**Esploratore**: «la prima
+  volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto
+  assegnato, pesca una carta, poi scarta una carta» — una pesca marcata
+  con `effect` (evento `on_attack`, fonte e ingresso coincidono) che passa
+  con un attacco dichiarato in Fase di Fronte, un Oggetto in campo
+  assegnato alla fonte, il conto della forma e la pesca di chi la comanda;
+  «una volta per turno» lo dà il gioco (un'Entità attacca una volta sola).
+  Lo scarto è il **seguito**: un `toZone` dalla mano all'Abisso con
+  `follow: "discard"` nel riferimento, che passa solo dopo la pesca e una
+  volta sola (gli inneschi consumati distinguono il seguito:
+  `fonte|on_attack:discard|fonte`), dalla mano di chi comanda. Limite
+  dichiarato: l'engine non **pretende** lo scarto — se il client non lo
+  manda, nessuna regola lo reclama; è il tavolo a chiederlo, e la finestra
+  torna finché non si sceglie. Nel client la fonte si accende, si pesca,
+  poi si sceglie dalla mano.
   La quarta forma è quella di RBF-006, il **Cercatore**: «guarda le prime 4
   carte del tuo mazzo, puoi mostrare un'Entità Umana e aggiungerla alla
   mano, metti le altre in fondo» — un'azione sola, `look {seat, count,

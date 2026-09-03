@@ -1936,4 +1936,114 @@ class EngineTest < Minitest::Test
     fronte!(engine)
     refute riporta_attaccando(engine)[:ok], "il Fronte da solo non basta"
   end
+
+  # --- §8.2: «quando attacca con un Oggetto, pesca, poi scarta» (RBF-026) --
+
+  AVANSCOPERTA = {
+    "ESPLORATORE" => { type: "entity", keywords: [], race: "auros",
+                       attack_draws: [{ draw: 1, then_discard: 1, requires_object: true }] },
+    "FERRO" => { type: "object", keywords: [] },
+    "UMANO" => { type: "entity", keywords: [], race: "human" },
+  }.freeze
+
+  # L'Esploratore in campo dal turno 1, con (o senza) il Ferro addosso, una
+  # carta in mano e una nel mazzo; al turno 3 A apre il Fronte e attacca.
+  def esploratore(armato: true)
+    engine = Rubyfront::Engine.new(cards: AVANSCOPERTA)
+    cards = [{ "uid" => "esp", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "ESPLORATORE", "y" => 1236 },
+             { "uid" => "h1", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "UMANO" },
+             { "uid" => "d1", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "UMANO" },
+             { "uid" => "d2", "owner" => "a", "zone" => "deck", "order" => 1, "cardId" => "UMANO" }]
+    cards << { "uid" => "ferro", "owner" => "a", "zone" => "field", "order" => 1, "cardId" => "FERRO", "assignedTo" => "esp" } if armato
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test",
+                   "cards" => [{ "uid" => "bh", "owner" => "b", "zone" => "hand", "order" => 0, "cardId" => "UMANO" }] })
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    engine
+  end
+
+  def pesca_attaccando(engine, seat: "a", count: 1)
+    engine.judge({ "t" => "draw", "seat" => seat, "count" => count,
+                   "effect" => { "source" => "esp", "event" => "on_attack", "entering" => "esp" } })
+  end
+
+  def scarta_attaccando(engine, uid)
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "abisso",
+                   "effect" => { "source" => "esp", "event" => "on_attack", "entering" => "esp", "follow" => "discard" } })
+  end
+
+  def test_l_esploratore_armato_pesca_quando_attacca
+    engine = esploratore
+    fronte!(engine)
+    assert engine.judge(attacco("esp"))[:ok]
+    verdict = pesca_attaccando(engine)
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    refute pesca_attaccando(engine)[:ok], "una volta per attacco"
+  end
+
+  def test_senza_oggetto_l_innesco_non_scatta
+    engine = esploratore(armato: false)
+    fronte!(engine)
+    engine.judge(attacco("esp"))
+    verdict = pesca_attaccando(engine)
+    refute verdict[:ok]
+    assert_match(/senza Oggetto/, verdict[:reason])
+  end
+
+  def test_senza_attacco_dichiarato_niente_pesca
+    engine = esploratore
+    refute pesca_attaccando(engine)[:ok]
+    fronte!(engine)
+    verdict = pesca_attaccando(engine)
+    refute verdict[:ok]
+    assert_match(/vuole un attacco dichiarato/, verdict[:reason])
+  end
+
+  def test_la_pesca_e_di_chi_comanda_e_del_conto_della_forma
+    engine = esploratore
+    fronte!(engine)
+    engine.judge(attacco("esp"))
+    assert_match(/chi comanda/, pesca_attaccando(engine, seat: "b")[:reason])
+    assert_match(/certificato/, pesca_attaccando(engine, count: 2)[:reason])
+  end
+
+  def test_lo_scarto_segue_la_pesca_una_volta_sola
+    engine = esploratore
+    fronte!(engine)
+    engine.judge(attacco("esp"))
+    prima = scarta_attaccando(engine, "h1")
+    refute prima[:ok]
+    assert_match(/prima si pesca/, prima[:reason])
+    assert pesca_attaccando(engine)[:ok]
+    verdict = scarta_attaccando(engine, "h1")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", engine.instance_variable_get(:@table).card("h1")[:zone]
+    di_nuovo = scarta_attaccando(engine, "d1")
+    refute di_nuovo[:ok]
+    assert_match(/già stato fatto/, di_nuovo[:reason])
+  end
+
+  def test_si_scarta_dalla_propria_mano
+    engine = esploratore
+    fronte!(engine)
+    engine.judge(attacco("esp"))
+    assert pesca_attaccando(engine)[:ok]
+    tavolo = engine.instance_variable_get(:@table)
+    nel_mazzo = %w[d1 d2].find { |uid| tavolo.card(uid)[:zone] == "deck" }
+    assert_match(/propria mano/, scarta_attaccando(engine, nel_mazzo)[:reason], "è ancora nel mazzo")
+    assert_match(/propria mano/, scarta_attaccando(engine, "bh")[:reason], "bh è in mano a B")
+  end
+
+  def test_la_pesca_all_attacco_di_una_carta_ignota_tace
+    engine = Rubyfront::Engine.new(cards: AVANSCOPERTA)
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test",
+                   "cards" => [{ "uid" => "esp", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "IGNOTA", "y" => 1236 }] })
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    fronte!(engine)
+    engine.judge(attacco("esp"))
+    refute pesca_attaccando(engine)[:ruled]
+  end
 end

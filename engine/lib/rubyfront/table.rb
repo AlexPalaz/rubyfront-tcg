@@ -85,6 +85,13 @@ module Rubyfront
       @fired << "#{source_uid}|#{event}|#{entering_uid}" unless fired?(source_uid, event, entering_uid)
     end
 
+    # «Mentre ha un Oggetto assegnato» (§3.1): un Oggetto in campo la veste.
+    def armed?(uid)
+      return false unless uid.is_a?(String)
+
+      @cards.any? { |_, card| card[:assigned_to] == uid && card[:zone] == "field" }
+    end
+
     def hand_count(seat)
       @cards.count { |_, card| card[:owner] == seat && card[:zone] == "hand" }
     end
@@ -384,6 +391,7 @@ module Rubyfront
                                 card_id: card["cardId"],
                                 entered: card["zone"] == "field" ? @turn : nil,
                                 tapped: card["tapped"] == true, facedown: card["facedown"] == true,
+                                assigned_to: card["assignedTo"].is_a?(String) ? card["assignedTo"] : nil,
                                 face: card["face"].to_i, row: card["y"].is_a?(Numeric) ? card["y"] : nil }
       end
       # Frecce e assegnazioni verso carte appena sparite non vogliono più

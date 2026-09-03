@@ -74,6 +74,65 @@ export function enterReturns(state: GameState, entering: CardInstance, facts: (c
   return returnsFor(state, entering, facts, "on_enter_field");
 }
 
+/** Una pesca all'attacco da risolvere: chi attacca, quante, e quante da scartare poi. */
+export interface AttackDrawStep {
+  source: CardInstance;
+  draw: number;
+  thenDiscard: number;
+}
+
+/** «Mentre ha un Oggetto assegnato» (§3.1): un Oggetto in campo la veste. */
+export function armed(state: GameState, uid: string): boolean {
+  return Object.values(state.cards).some(card => card.assignedTo === uid && card.zone === "field");
+}
+
+/**
+ * Le pesche «quando attacca» (§8.2, la forma di RBF-026): scattano solo
+ * se l'attaccante ha un Oggetto assegnato. Una volta per turno la dà il
+ * gioco stesso: un'Entità attacca una volta sola per turno (§6.3).
+ */
+export function attackDraws(state: GameState, attacker: CardInstance, facts: (cardId: string) => CardFacts): AttackDrawStep[] {
+  return facts(attacker.cardId).attackDraws
+    .filter(form => !form.requiresObject || armed(state, attacker.uid))
+    .map(form => ({ source: attacker, draw: form.draw, thenDiscard: form.thenDiscard }));
+}
+
+/** La riga che annuncia una pesca all'attacco. */
+export function describeAttackDraw(step: AttackDrawStep, facts: (cardId: string) => CardFacts): string {
+  const card = `«${facts(step.source.cardId).name}»`;
+  return step.thenDiscard > 0
+    ? t("trigger.attackdraw.discard", { card, n: step.draw, cards: cardsWord(step.draw), m: step.thenDiscard })
+    : t("trigger.attackdraw", { card, n: step.draw, cards: cardsWord(step.draw) });
+}
+
+/** Esegue la pesca all'attacco: una pesca del controllore marcata come effetto. */
+export async function resolveAttackDraw(ctx: Ctx, step: AttackDrawStep): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const passed = await ctx.dispatch({
+    t: "draw",
+    seat: by,
+    count: step.draw,
+    effect: { source: step.source.uid, event: "on_attack", entering: step.source.uid },
+  });
+  if (passed) {
+    ctx.log(msg("log.effect.trigger", { seat: by, card: step.source.cardId, n: step.draw, cards: msg(step.draw === 1 ? "cards.one" : "cards.many") }), by);
+  }
+  return passed;
+}
+
+/** «Poi scarta una carta»: la carta scelta va nell'Abisso, come seguito dell'innesco. */
+export async function resolveAttackDiscard(ctx: Ctx, step: AttackDrawStep, card: CardInstance): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const passed = await ctx.dispatch({
+    t: "toZone",
+    uid: card.uid,
+    zone: "abisso",
+    effect: { source: step.source.uid, event: "on_attack", entering: step.source.uid, follow: "discard" },
+  });
+  if (passed) ctx.log(msg("log.effect.discard", { seat: by, sourceCard: step.source.cardId, card: card.cardId }), by);
+  return passed;
+}
+
 /** La riga che annuncia un ritorno all'ingresso. */
 export function describeReturn(step: EnterReturnStep, facts: (cardId: string) => CardFacts): string {
   return t("trigger.return", { card: `«${facts(step.source.cardId).name}»` });

@@ -47,6 +47,11 @@ import {
   enterTriggers,
   lookAfterRoll,
   returnsFor,
+  attackDraws,
+  describeAttackDraw,
+  resolveAttackDraw,
+  resolveAttackDiscard,
+  type AttackDrawStep,
   resolveControl,
   resolveLook,
   resolveMove,
@@ -545,7 +550,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const live = ctx.state().cards[card.uid];
       if (!live) return;
       const returns = returnsFor(ctx.state(), live, ctx.card, "on_attack");
-      if (returns.length === 0) return;
+      const draws = attackDraws(ctx.state(), live, ctx.card);
+      if (returns.length === 0 && draws.length === 0) return;
       const effects = attackEffects(live.cardId, live.face, ctx.locale());
       void showEnterEffect(root, {
         cardId: live.cardId,
@@ -554,7 +560,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         locale: ctx.locale(),
         who: t("scene.attacks", { name: seatLabel(ctx.state(), controllerOf(live)), card: `«${cardName(live.cardId, ctx.locale())}»` }),
         effects,
-        triggers: returns.map(step => describeReturn(step, ctx.card)),
+        triggers: [...returns.map(step => describeReturn(step, ctx.card)), ...draws.map(step => describeAttackDraw(step, ctx.card))],
         kicker: t("scene.attack"),
         onContinue: () => void playAttackTriggers(live),
       });
@@ -564,6 +570,36 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   async function playAttackTriggers(attacker: CardInstance): Promise<void> {
     for (const step of returnsFor(ctx.state(), attacker, ctx.card, "on_attack")) {
       await playReturn(step);
+    }
+    for (const step of attackDraws(ctx.state(), attacker, ctx.card)) {
+      await playAttackDraw(step);
+    }
+  }
+
+  /**
+   * La pesca all'attacco (§8.2, RBF-026): la fonte si accende, si pesca;
+   * poi «scarta una carta» — obbligatoria: la finestra torna finché non si
+   * sceglie (a mano vuota, non c'è nulla da scartare).
+   */
+  async function playAttackDraw(step: AttackDrawStep): Promise<void> {
+    const by = controllerOf(step.source);
+    hold(true);
+    light(step.source.uid, true);
+    try {
+      await wait(TRIGGER_LEAD_MS);
+      const passed = await resolveAttackDraw(ctx, step);
+      if (!passed) return;
+      await wait(TRIGGER_TAIL_MS);
+      for (let left = step.thenDiscard; left > 0; left -= 1) {
+        const hand = zoneCards(ctx.state(), by, "hand");
+        if (hand.length === 0) break;
+        let chosen: CardInstance | null = null;
+        while (!chosen) chosen = await pickFromPile(by, "hand", hand, t("pick.discard"));
+        if (!(await resolveAttackDiscard(ctx, step, chosen))) break;
+      }
+    } finally {
+      light(step.source.uid, false);
+      hold(false);
     }
   }
 

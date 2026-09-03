@@ -199,6 +199,8 @@ export interface EffectRef {
   /** L'evento che innesca: l'ingresso in campo, o l'attacco dichiarato. */
   event: "on_enter_field" | "on_attack";
   entering: string;
+  /** Il seguito di un innesco, con la sua tripla: lo scarto dopo la pesca (RBF-026). */
+  follow?: "discard";
 }
 
 /** Le mutazioni possibili. Ogni client le applica in locale e le ritrasmette. */

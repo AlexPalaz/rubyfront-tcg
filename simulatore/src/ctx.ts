@@ -35,6 +35,19 @@ export interface CardFacts {
   attackReturns: EnterReturn[];
   /** I controlli certificati «quando QUESTA entra» (§8.2): vedi enterControls. */
   enterControls: EnterControl[];
+  /** Le pesche certificate «quando QUESTA attacca con un Oggetto» (§8.2, RBF-026). */
+  attackDraws: AttackDraw[];
+}
+
+/**
+ * La forma certificata di una pesca all'attacco: «la prima volta in ogni
+ * tuo turno che questa Entità attacca mentre ha un Oggetto assegnato,
+ * pesca N carte, poi scarta M». È la forma di RBF-026.
+ */
+export interface AttackDraw {
+  draw: number;
+  thenDiscard: number;
+  requiresObject: true;
 }
 
 /**

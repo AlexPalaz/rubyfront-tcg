@@ -1216,6 +1216,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 .overlay-panel h2 { margin: 0; font-size: 1rem; }
 .overlay-search { flex: 1; min-width: 0; }
 .overlay-check { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 1rem; white-space: nowrap; }
+.overlay-check[hidden] { display: none; }
 
 .overlay-grid {
   display: grid;

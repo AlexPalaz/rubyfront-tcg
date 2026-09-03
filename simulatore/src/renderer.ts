@@ -18,7 +18,7 @@ export const TILE_W = 302;
 export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
-import type { EnterControl, EnterListener, EnterLook, EnterMove, EnterReturn } from "./ctx.js";
+import type { AttackDraw, EnterControl, EnterListener, EnterLook, EnterMove, EnterReturn } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -335,6 +335,28 @@ function enterReturnsOf(face: CardFace | undefined, event: "on_enter_field" | "o
 }
 
 /**
+ * Le pesche all'attacco certificate (§8.2, RBF-026): evento `on_attack`
+ * con `oncePerEachOfYourTurns` e `requiresObjectAssigned`, effetto
+ * `draw_card` del controllore con `count` intero; `thenDiscardCards`
+ * certificato solo a 1. Specchio di card_index.rb, attack_draws.
+ */
+function attackDrawsOf(face: CardFace | undefined): AttackDraw[] {
+  const out: AttackDraw[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_attack") continue;
+    const details = trigger.details as { oncePerEachOfYourTurns?: unknown; requiresObjectAssigned?: unknown } | undefined;
+    const effect = trigger.effect as { type?: unknown; count?: unknown; target?: any; details?: any } | undefined;
+    if (!details || !effect || effect.type !== "draw_card" || !Number.isInteger(effect.count)) continue;
+    if (effect.target?.controller !== "controller") continue;
+    if (details.oncePerEachOfYourTurns !== true || details.requiresObjectAssigned !== true) continue;
+    const thenDiscard = effect.details?.thenDiscardCards;
+    if (thenDiscard !== undefined && thenDiscard !== 1) continue;
+    out.push({ draw: effect.count as number, thenDiscard: thenDiscard ?? 0, requiresObject: true });
+  }
+  return out;
+}
+
+/**
  * Gli sguardi nel mazzo certificati (§8.2): evento `on_enter_field` senza
  * `enteringCard`, effetto `look_and_optionally_move` dalla cima del
  * proprio mazzo con `count` intero, `mayReveal` un'Entità (con razza) che
@@ -431,6 +453,7 @@ export function cardStats(cardId: string): {
   enterLooks: EnterLook[];
   enterControls: EnterControl[];
   attackReturns: EnterReturn[];
+  attackDraws: AttackDraw[];
 } {
   const card = getCard(cardId);
   const face = card?.faces.find(candidate => candidate.kind === "entity") ?? card?.faces[0];
@@ -443,6 +466,7 @@ export function cardStats(cardId: string): {
     behavior: typeof face?.behavior === "string" ? face.behavior : null,
     enterReturns: enterReturnsOf(face, "on_enter_field"),
     attackReturns: enterReturnsOf(face, "on_attack"),
+    attackDraws: attackDrawsOf(face),
     enterLooks: enterLooksOf(face),
     enterControls: enterControlsOf(face),
     power: integer(face?.stats?.power),

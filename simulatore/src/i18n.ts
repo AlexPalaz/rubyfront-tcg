@@ -198,6 +198,10 @@ const M: Record<string, { it: string; en: string }> = {
   "trigger.look": { it: "{card} si innesca: guarda le prime {n} carte del mazzo", en: "{card} triggers: look at the top {n} cards of the deck" },
   "trigger.look.die": { it: "{card} si innesca: tira un d{die} e guarda {base} più metà del tiro carte del mazzo", en: "{card} triggers: roll a d{die} and look at {base} plus half the roll cards of the deck" },
   "trigger.control": { it: "{card} si innesca: prendi il controllo di un'Entità avversaria fino a fine turno", en: "{card} triggers: take control of an opposing Entity until end of turn" },
+  "trigger.attackdraw": { it: "{card} si innesca: pesca {n} {cards}", en: "{card} triggers: draw {n} {cards}" },
+  "trigger.attackdraw.discard": { it: "{card} si innesca: pesca {n} {cards}, poi scarta {m}", en: "{card} triggers: draw {n} {cards}, then discard {m}" },
+  "pick.discard": { it: "Scegli la carta da scartare (obbligatoria)", en: "Choose the card to discard (required)" },
+  "log.effect.discard": { it: "{seat}: {sourceCard} scarta {card}.", en: "{seat}: {sourceCard} discards {card}." },
   "cards.one": { it: "carta", en: "card" },
   "cards.many": { it: "carte", en: "cards" },
 

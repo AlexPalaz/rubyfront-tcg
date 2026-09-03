@@ -5,6 +5,10 @@ import { renderLog } from "../src/log.js";
 import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
 import {
+  attackDraws,
+  describeAttackDraw,
+  resolveAttackDiscard,
+  resolveAttackDraw,
   describeControl,
   describeLook,
   describeMove,
@@ -29,6 +33,8 @@ import { newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
 const FACTS: Record<string, Partial<CardFacts>> = {
+  ESPLORATORE: { kind: "entity", race: "auros", attackDraws: [{ draw: 1, thenDiscard: 1, requiresObject: true }] },
+  FERRO: { kind: "object" },
   ARCIERE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
   RHEN: {
     kind: "entity",
@@ -63,6 +69,7 @@ const facts = (cardId: string): CardFacts => ({
   enterLooks: [],
   enterControls: [],
   attackReturns: [],
+  attackDraws: [],
   ...FACTS[cardId],
 });
 
@@ -384,5 +391,79 @@ describe("returnsFor on_attack", () => {
     };
     await resolveReturn(ctx, step, p1);
     expect(sent[0]).toMatchObject({ t: "toZone", zone: "field", effect: { source: "rhen", event: "on_attack", entering: "rhen" } });
+  });
+});
+
+// «Quando attacca con un Oggetto, pesca, poi scarta» (§8.2, RBF-026).
+describe("attackDraws", () => {
+  function fakeCtx(state: GameState, judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]; logs: string[] } {
+    const sent: Action[] = [];
+    const logs: string[] = [];
+    const ctx: Ctx = {
+      state: () => state,
+      dispatch(action) {
+        const passed = judge(action);
+        if (passed) sent.push(action);
+        return Promise.resolve(passed);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "notte",
+      locale: () => "it",
+      card: facts,
+      log(text) {
+        logs.push(typeof text === "string" ? text : renderLog(text, ctx.state(), id => id));
+      },
+    };
+    return { ctx, sent, logs };
+  }
+
+  it("scatta solo con un Oggetto assegnato", () => {
+    const state = newGame();
+    const esp = on(state, "esp", "ESPLORATORE");
+    expect(attackDraws(state, esp, facts)).toEqual([]);
+    const ferro = on(state, "ferro", "FERRO");
+    ferro.assignedTo = "esp";
+    const [step] = attackDraws(state, esp, facts);
+    expect(step).toMatchObject({ draw: 1, thenDiscard: 1 });
+    expect(describeAttackDraw(step, facts)).toBe("«ESPLORATORE» si innesca: pesca 1 carta, poi scarta 1");
+  });
+
+  it("un Oggetto fuori dal campo non veste nessuno", () => {
+    const state = newGame();
+    const esp = on(state, "esp", "ESPLORATORE");
+    const ferro = on(state, "ferro", "FERRO");
+    ferro.assignedTo = "esp";
+    ferro.zone = "ritiro";
+    expect(attackDraws(state, esp, facts)).toEqual([]);
+  });
+
+  it("la pesca e lo scarto viaggiano marcati come effetto, lo scarto col suo seguito", async () => {
+    const state = newGame();
+    const esp = on(state, "esp", "ESPLORATORE");
+    on(state, "ferro", "FERRO").assignedTo = "esp";
+    const h1 = on(state, "h1", "UMANO");
+    h1.zone = "hand";
+    const { ctx, sent, logs } = fakeCtx(state, () => true);
+    const [step] = attackDraws(state, esp, facts);
+    expect(await resolveAttackDraw(ctx, step)).toBe(true);
+    expect(await resolveAttackDiscard(ctx, step, h1)).toBe(true);
+    expect(sent).toEqual([
+      { t: "draw", seat: "a", count: 1, effect: { source: "esp", event: "on_attack", entering: "esp" } },
+      { t: "toZone", uid: "h1", zone: "abisso", effect: { source: "esp", event: "on_attack", entering: "esp", follow: "discard" } },
+    ]);
+    expect(logs[1]).toMatch(/«ESPLORATORE» scarta «UMANO»/);
+  });
+
+  it("fermata dall'engine, la pesca non racconta nulla", async () => {
+    const state = newGame();
+    const esp = on(state, "esp", "ESPLORATORE");
+    on(state, "ferro", "FERRO").assignedTo = "esp";
+    const { ctx, sent, logs } = fakeCtx(state, () => false);
+    const [step] = attackDraws(state, esp, facts);
+    expect(await resolveAttackDraw(ctx, step)).toBe(false);
+    expect(sent).toEqual([]);
+    expect(logs).toEqual([]);
   });
 });

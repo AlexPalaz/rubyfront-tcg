@@ -105,6 +105,7 @@ module Rubyfront
           enter_moves: enter_moves(faces).freeze,
           enter_returns: enter_returns(faces, "on_enter_field").freeze,
           attack_returns: enter_returns(faces, "on_attack").freeze,
+          attack_draws: attack_draws(faces).freeze,
           enter_looks: enter_looks(faces).freeze,
           enter_controls: enter_controls(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
@@ -188,6 +189,28 @@ module Rubyfront
         next unless destination.is_a?(Hash) && destination["zone"] == "front"
 
         { from: "ritiro", filter: { type: "matter", behavior: "permanent" }.freeze, to: "field" }.freeze
+      end
+    end
+
+    # `attack_draws` è la forma di RBF-026, l'Esploratore: «la prima volta
+    # in ogni tuo turno che questa Entità attacca mentre ha un Oggetto
+    # assegnato, pesca N carte, poi scarta M». Evento `on_attack`, effetto
+    # `draw_card` del controllore, `requiresObjectAssigned`; lo scarto
+    # (`thenDiscardCards`) è certificato solo a 1 — altro, forma ignota.
+    def self.attack_draws(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_attack"
+
+        details = trigger["details"]
+        effect = trigger["effect"]
+        next unless details.is_a?(Hash) && effect.is_a?(Hash)
+        next unless effect["type"] == "draw_card" && effect["count"].is_a?(Integer) && effect.dig("target", "controller") == "controller"
+        next unless details["oncePerEachOfYourTurns"] == true && details["requiresObjectAssigned"] == true
+
+        then_discard = effect.dig("details", "thenDiscardCards")
+        next unless then_discard.nil? || then_discard == 1
+
+        { draw: effect["count"], then_discard: then_discard || 0, requires_object: true }.freeze
       end
     end
 

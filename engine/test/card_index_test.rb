@@ -53,6 +53,12 @@ class CardIndexTest < Minitest::Test
     forma = [{ from: "ritiro", filter: { type: "matter", behavior: "permanent" }, to: "field" }]
     assert_equal forma, @index["RBF-012"][:enter_returns]
     assert_equal forma, @index["RBF-012"][:attack_returns], "e anche quando attacca"
+    assert_equal [], @index["RBF-012"][:attack_draws], "Rhen riporta, non pesca"
+  end
+
+  def test_l_esploratore_pesca_quando_attacca_armato
+    assert_equal [{ draw: 1, then_discard: 1, requires_object: true }], @index["RBF-026"][:attack_draws]
+    assert_equal [], @index["RBF-003"][:attack_draws], "la Guida ascolta gli ingressi, non attacca"
     assert_equal [], @index["RBF-007"][:enter_returns]
     assert_equal [], @index["RBF-007"][:attack_returns]
   end

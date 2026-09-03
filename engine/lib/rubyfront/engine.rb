@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.32.0"
+    VERSION = "0.33.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -61,6 +61,7 @@ module Rubyfront
       "§8.2 Controllo: attacca e blocca chi comanda, e a fine turno si restituisce",
       "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
       "§3.1 Il Rubyfront schierato non torna in Zona di Richiamo",
+      "§8.2 Effetti certificati: «quando attacca con un Oggetto, pesca, poi scarta» (RBF-026)",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -96,6 +97,7 @@ module Rubyfront
       "§8.2 Control: whoever commands attacks and blocks, and returns it at end of turn",
       "§3.1 The Rubyfront is deployed by paying: fixed cost or a die",
       "§3.1 A deployed Rubyfront doesn't go back to the Recall Zone",
+      "§8.2 Certified effects: “when it attacks with an Object, draw, then discard” (RBF-026)",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -152,7 +154,15 @@ module Rubyfront
     # per coppia fonte/ingresso, finché dura il turno.
     def settle_effect(action)
       ref = action.is_a?(Hash) ? action["effect"] : nil
-      @table.fire(ref["source"], ref["event"], ref["entering"]) if ref.is_a?(Hash) && ref["source"] && ref["entering"]
+      return unless ref.is_a?(Hash) && ref["source"] && ref["entering"]
+
+      # Il passo che segue un innesco (lo scarto dopo la pesca, RBF-026) ha
+      # la sua tripla: `follow` distingue il seguito dall'innesco.
+      @table.fire(ref["source"], fired_event(ref), ref["entering"])
+    end
+
+    def fired_event(ref)
+      ref["follow"].is_a?(String) ? "#{ref["event"]}:#{ref["follow"]}" : ref["event"]
     end
 
     # Lo stato intero del client: sostituisce la copia del tavolo. Arriva
@@ -853,6 +863,7 @@ module Rubyfront
       return judge_effect_look(action, ref) if kind == "look"
       return judge_effect_control(action, ref) if kind == "control"
       return refuse(kind, "un effetto certificato pesca, sposta o guarda soltanto, per ora (§8.2)", "a certified effect only draws, moves or looks, for now (§8.2)") unless kind == "draw"
+      return judge_effect_attack_draw(action, ref) if ref["event"] == "on_attack"
 
       source = @table.card(ref["source"])
       entering = @table.card(ref["entering"])
@@ -905,7 +916,57 @@ module Rubyfront
       nil
     end
 
+    # §8.2 — la pesca all'attacco (la forma di RBF-026): la fonte attacca
+    # in Fase di Fronte, l'innesco non è consumato (una volta per turno:
+    # un'Entità attacca una volta sola), ha un Oggetto assegnato, e pesca
+    # chi la comanda, tante carte quante dice la forma. Ignota: silenzio.
+    def judge_effect_attack_draw(action, ref)
+      stopped = own_trigger_stopped("draw", ref)
+      return stopped if stopped
+
+      source = @table.card(ref["source"])
+      known = @cards[source[:card_id]]
+      return no_rule("draw") unless known
+
+      form = Array(known[:attack_draws]).find { |candidate| candidate[:draw] == action["count"] }
+      return refuse("draw", "la carta non ha un effetto certificato che peschi quando attacca (§8.2)", "the card has no certified effect that draws when it attacks (§8.2)") unless form
+      return refuse("draw", "pesca chi comanda la fonte, dal proprio mazzo (§8.2)", "whoever commands the source draws, from their own deck (§8.2)") unless action["seat"] == @table.controller_of(source)
+      if form[:requires_object] && !@table.armed?(ref["source"])
+        return refuse("draw", "«mentre ha un Oggetto assegnato»: senza Oggetto l'innesco non scatta (§8.2)", "“while it has an Object assigned”: without an Object the trigger doesn't fire (§8.2)")
+      end
+
+      allow("draw")
+    end
+
+    # §8.2 — «poi scarta una carta» (RBF-026): il seguito della pesca. Un
+    # `toZone` dalla mano all'Abisso marcato con `follow: "discard"`, che
+    # passa se la fonte è in campo con una forma che fa scartare, la pesca
+    # dell'attacco è già avvenuta e lo scarto dovuto non ancora, e la carta
+    # sta nella mano di chi comanda la fonte.
+    def judge_effect_discard(action, ref)
+      kind = "toZone"
+      return refuse(kind, "l'effetto proprio ha per ingresso se stessa (§8.2)", "a card's own effect has itself as the entry (§8.2)") unless ref["source"] == ref["entering"]
+
+      source = @table.card(ref["source"])
+      return refuse(kind, "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+
+      known = @cards[source[:card_id]]
+      return no_rule(kind) unless known
+
+      form = Array(known[:attack_draws]).find { |candidate| candidate[:then_discard].positive? }
+      return refuse(kind, "la carta non ha un effetto certificato che faccia scartare (§8.2)", "the card has no certified effect that makes you discard (§8.2)") unless form
+      return refuse(kind, "lo scarto viene dopo la pesca: prima si pesca (§8.2)", "the discard comes after the draw: draw first (§8.2)") unless @table.fired?(ref["source"], "on_attack", ref["entering"])
+      return refuse(kind, "lo scarto dovuto è già stato fatto (§8.2)", "the discard owed has already been made (§8.2)") if @table.fired?(ref["source"], "on_attack:discard", ref["entering"])
+
+      card = @table.card(action["uid"])
+      return refuse(kind, "si scarta una carta dalla propria mano (§8.2)", "you discard a card from your own hand (§8.2)") unless card && card[:zone] == "hand" && card[:owner] == @table.controller_of(source)
+
+      allow(kind)
+    end
+
     def judge_effect_move(action, ref)
+      return judge_effect_discard(action, ref) if action["zone"] == "abisso" && ref["follow"] == "discard"
+
       stopped = own_trigger_stopped("toZone", ref)
       return stopped if stopped
 
