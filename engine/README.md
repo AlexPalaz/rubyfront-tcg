@@ -437,11 +437,23 @@ health check, come per il relay.
 
 - `lib/rubyfront/engine.rb` — il giudizio: puro stato, niente I/O. È qui che
   le regole verranno collegate.
+- `lib/rubyfront/card_index.rb` — l'anagrafe: legge le carte da `data/` una
+  volta all'avvio e consegna al giudizio i fatti canonici (tipo, razza,
+  statistiche, abilitazioni) e le **forme certificate** degli effetti; una
+  forma che non combacia esattamente non entra (ignorare, mai fraintendere).
+  `unknown_triggers` elenca gli effetti che nessuna forma legge: il test
+  dell'anagrafe li tiene come debito dichiarato, così una forma rotta o un
+  dato cambiato di nascosto fallisce forte.
+- `lib/rubyfront/table.rb` — la copia del tavolo, gemella del riduttore del
+  simulatore: stessa semantica, test speculari.
 - `lib/rubyfront/websocket.rb` — il minimo di WebSocket che serve: handshake
   e frame di testo (con la lezione del relay: byte spezzati, incollati e
   messaggi frammentati si riassemblano).
 - `bin/server` — il trasporto: un thread per client, un `Engine` per client.
 - `test/` — minitest, si lanciano con `ruby` e basta.
+
+Il disegno dell'insieme — chi legge cosa, dove gira ogni pezzo, come viaggia
+un'azione — sta nel README alla radice del repo.
 
 ## Un repo a parte, un giorno
 

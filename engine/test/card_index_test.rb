@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "json"
 require "minitest/autorun"
 require_relative "../lib/rubyfront/card_index"
 
@@ -10,6 +11,84 @@ class CardIndexTest < Minitest::Test
 
   def setup
     @index = Rubyfront::CardIndex.load(DATA_DIR)
+  end
+
+  # Il debito dichiarato della regola d'oro (§1.1): i trigger delle carte
+  # che NESSUNA forma certificata legge ancora. Ogni carta collegata toglie
+  # la sua voce; un trigger che sparisce da qui senza una forma nuova, o che
+  # vi compare, è una forma rotta o un dato cambiato di nascosto — e il test
+  # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
+  DEBITO = [
+    "RBF-001 rubyfront/muster",
+    "RBF-001 nexus/heir-absorbed",
+    "RBF-001 nexus/heir-sealed",
+    "RBF-001 nexus/heirs-muster",
+    "RBF-002 entity/glade-boy",
+    "RBF-004 entity/avenge",
+    "RBF-005 entity/raid",
+    "RBF-008 entity/mend",
+    "RBF-010 entity/echo",
+    "RBF-010 entity/recall-fallen",
+    "RBF-011 entity/second-charge",
+    "RBF-013 object/guard",
+    "RBF-014 object/band",
+    "RBF-015 matter/lure",
+    "RBF-016 matter/formation",
+    "RBF-017 matter/impact",
+    "RBF-018 matter/repulse",
+    "RBF-019 matter/glade-strength",
+    "RBF-020 matter/coordinate",
+    "RBF-021 matter/judgment",
+    "RBF-022 matter/heirs-charge",
+    "RBF-023 rubyfront/schism-forge",
+    "RBF-023 nexus/blade-absorbed",
+    "RBF-023 nexus/blade-sealed",
+    "RBF-023 nexus/awakening",
+    "RBF-023 nexus/deep-forge-sight",
+    "RBF-024 entity/grip",
+    "RBF-025 entity/tally",
+    "RBF-028 entity/temper",
+    "RBF-028 entity/vigil",
+    "RBF-029 entity/command",
+    "RBF-030 entity/outfit",
+    "RBF-030 entity/carry",
+    "RBF-031 entity/aura",
+    "RBF-031 entity/rearm",
+    "RBF-031 entity/foresight",
+    "RBF-032 object/edge",
+    "RBF-033 object/brace",
+    "RBF-033 object/spikes",
+    "RBF-034 object/charge",
+    "RBF-034 object/sift",
+    "RBF-035 object/relic",
+    "RBF-035 object/remain",
+    "RBF-036 matter/amplify",
+    "RBF-037 matter/veil",
+    "RBF-038 matter/evert",
+    "RBF-039 matter/refract",
+    "RBF-040 matter/reflect",
+    "RBF-041 matter/surge-search",
+    "RBF-042 matter/assault",
+    "RBF-043 object/confine",
+    "RBF-044 matter/sunder",
+  ].freeze
+
+  def test_ogni_trigger_ha_una_forma_o_sta_nel_debito_dichiarato
+    ignoti = Rubyfront::CardIndex.unknown_triggers(DATA_DIR)
+    rotti = ignoti - DEBITO
+    assert_empty rotti, "trigger che nessuna forma legge più (forma rotta o dato cambiato): #{rotti.join(", ")}"
+    saldati = DEBITO - ignoti
+    assert_empty saldati, "trigger ormai riconosciuti: toglierli dal DEBITO: #{saldati.join(", ")}"
+  end
+
+  def test_i_trigger_certificati_sono_riconosciuti
+    scout = JSON.parse(File.read(File.join(DATA_DIR, "sets", "srbf-001", "cards", "rbf-026", "rbf-026.json")))
+    trigger = scout["faces"].flat_map { |face| face["triggers"] }.find { |t| t["id"] == "scouting" }
+    assert Rubyfront::CardIndex.recognized?(trigger)
+    # Lo stesso trigger con lo scarto a 2 esce dalla forma: ignoto, non frainteso.
+    altro = Marshal.load(Marshal.dump(trigger))
+    altro["effect"]["details"]["thenDiscardCards"] = 2
+    refute Rubyfront::CardIndex.recognized?(altro)
   end
 
   def test_legge_il_set

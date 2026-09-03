@@ -163,6 +163,7 @@ con `cost` non è un pixel: è lo schieramento.
 
 - [ ] Il § letto per intero; il manuale aggiornato se la decisione lo cambia.
 - [ ] Anagrafe e `cardStats` leggono lo stesso campo, con test sulle carte vere.
+- [ ] Forma nuova: la carta esce dal `DEBITO` in `card_index_test.rb` (il test lo pretende).
 - [ ] Riduttore e copia contano allo stesso modo, test speculari nei due mondi.
 - [ ] `RULES`, `VERSION`, `refuse` con § in coda **e la frase inglese**, silenzio sull'ignoto.
 - [ ] Nessuna scritta nuda nel client: chiavi in `i18n.ts` (it + en), chat a chiavi.

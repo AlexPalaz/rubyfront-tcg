@@ -117,6 +117,40 @@ module Rubyfront
       index.freeze
     end
 
+    # Tutti i parser delle forme certificate: ogni trigger di ogni carta
+    # deve trovarne uno che lo riconosca, o è un effetto che l'engine ignora.
+    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls attack_draws grants_while_assigned].freeze
+    RETURN_EVENTS = %w[on_enter_field on_attack].freeze
+
+    # Un trigger è riconosciuto se almeno una forma certificata lo legge.
+    def self.recognized?(trigger)
+      faces = [{ "triggers" => [trigger] }]
+      FORMS.any? { |form| !send(form, faces).empty? } ||
+        RETURN_EVENTS.any? { |event| !enter_returns(faces, event).empty? }
+    end
+
+    # I trigger delle carte in `data_dir` che nessuna forma riconosce:
+    # «RBF-001 nexus/heirs-muster». È il debito dichiarato della regola
+    # d'oro (§1.1) — il test dell'anagrafe lo tiene aggiornato.
+    def self.unknown_triggers(data_dir)
+      Dir.glob(File.join(data_dir, "sets", "*", "cards", "*", "*.json")).sort.flat_map do |path|
+        next [] unless File.basename(path, ".json") == File.basename(File.dirname(path))
+
+        card = JSON.parse(File.read(path))
+        next [] unless card.is_a?(Hash) && card["id"]
+
+        Array(card["faces"]).flat_map do |face|
+          Array(face["triggers"]).filter_map do |trigger|
+            next unless trigger.is_a?(Hash)
+
+            "#{card["id"]} #{face["id"]}/#{trigger["id"]}" unless recognized?(trigger)
+          end
+        end
+      rescue JSON::ParserError
+        []
+      end
+    end
+
     # Il costo di schieramento del Rubyfront (§3.1): `3`, `{ "base" => 3 }`
     # o `{ "die" => "d6" }` — { fixed:, die: }, nil se non c'è o ha una forma
     # ignota (e lo schieramento si regola a mano).
