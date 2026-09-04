@@ -11,7 +11,7 @@
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
 import type { AttackForm, FlipForm, ResolveForm } from "./ctx.js";
 import type { CardFacts, Ctx, EnterLook } from "./ctx.js";
-import { controllerOf, fieldCards, playSpot, zoneCards } from "./state.js";
+import { controllerOf, fieldCards, inPlay, playSpot, zoneCards } from "./state.js";
 import { countEntities } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
@@ -280,7 +280,7 @@ export async function resolveMove(ctx: Ctx, step: EnterMoveStep, target: CardIns
 export function enterTriggers(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterTrigger[] {
   const arrived = facts(entering.cardId);
   if (arrived.kind !== "entity") return [];
-  const mine = fieldCards(state).filter(card => controllerOf(card) === controllerOf(entering));
+  const mine = fieldCards(state).filter(card => controllerOf(card) === controllerOf(entering) && inPlay(card, facts(card.cardId).kind));
   const count = (race: string | null): number =>
     mine.filter(card => {
       const f = facts(card.cardId);
@@ -463,6 +463,9 @@ export function attackSteps(state: GameState, attacker: CardInstance, facts: (ca
   const attackerFacts = facts(attacker.cardId);
   const out: AttackStep[] = [];
   const consider = (source: CardInstance): void => {
+    // §3.1 — il Rubyfront in Zona di Richiamo non ha abilità: si attacca,
+    // ma non innesca niente finché non è schierato.
+    if (!inPlay(source, facts(source.cardId).kind)) return;
     for (const form of facts(source.cardId).attackForms) {
       if (form.face !== source.face) continue;
       if (form.kind === "untap") continue;
@@ -662,9 +665,21 @@ export function resolveSteps(state: GameState, source: CardInstance, facts: (car
       }
       case "fortune":
         break;
+      case "block": {
+        // RBF-040 — il blocco è la giocata stessa (§6.4, la Reattiva come
+        // bloccante); il passo è la cura, «se sul tuo Fronte ci sono
+        // almeno N Entità con un Oggetto assegnato».
+        if (armedCount(state, seat, facts) < form.requiresArmed) step.blocked = "log.no.armed";
+        break;
+      }
     }
     return step;
   });
+}
+
+/** Le Entità di `seat` in campo con un Oggetto addosso (§3.1). Gemello: table.rb, armed_uids. */
+export function armedCount(state: GameState, seat: Seat, facts: (cardId: string) => CardFacts): number {
+  return fieldCards(state).filter(card => controllerOf(card) === seat && facts(card.cardId).kind === "entity" && armed(state, card.uid)).length;
 }
 
 /** Il primo passo non ancora risolto di quella Materia (o null). */
@@ -676,6 +691,7 @@ export function pendingResolve(state: GameState, source: CardInstance, facts: (c
       case "exile": return !resolveFired(state, source, "exile");
       case "destroy": return !resolveFired(state, source, "destroy");
       case "fortune": return !resolveFired(state, source, "heal") && !resolveFired(state, source, "draw") && !resolveFired(state, source, "deploy");
+      case "block": return !resolveFired(state, source, "heal");
       case "empower": return step.candidates.length > 0 || step.blocked !== "log.no.target";
     }
   });
@@ -695,6 +711,7 @@ export function describeResolveStep(step: ResolveStep, facts: (cardId: string) =
     case "exile": return t("trigger.repulse", { card });
     case "fortune": return t("trigger.fortune", { card, die: form.die });
     case "destroy": return t("trigger.judgment", { card });
+    case "block": return t("trigger.reflect", { card, n: form.requiresArmed, m: form.heal });
   }
 }
 
@@ -709,9 +726,19 @@ export function discountedCost(state: GameState, cardId: string, target: CardIns
   return tapped ? Math.max(0, f.fluxCost - form.discount.amount) : f.fluxCost;
 }
 
-/** La Materia ha una forma «si gioca come blocco» (RBF-020)? */
+/**
+ * La Materia «si gioca come blocco» (§7.2): nella finestra dei blocchi, in
+ * Reazione. RBF-040 ferma davvero un attaccante; RBF-020 — lettura del
+ * designer, 2026-09-04 — si gioca lì ma non ferma nessuno: il suo effetto
+ * (stappa gli Umani, Contrattacco +1) è tutto quel che fa.
+ */
 export function playsAsBlock(facts: CardFacts): boolean {
-  return facts.resolveForms.some(form => form.kind === "empower" && form.targets === "own_entities" && form.asBlock);
+  return facts.resolveForms.some(form => "asBlock" in form && form.asBlock);
+}
+
+/** La Materia, giocata, ferma un attaccante — e quindi ne sceglie uno (§6.4): solo RBF-040. */
+export function blocksAttacker(facts: CardFacts): boolean {
+  return facts.resolveForms.some(form => form.kind === "block");
 }
 
 /** La Materia chiede un bersaglio già giocandola (RBF-021: lo sconto lo decide lui)? */

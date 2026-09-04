@@ -216,8 +216,26 @@ export interface GameState {
       dell'engine (`fonte|on_attack:passo|ingresso o turn`): il tavolo non
       ripropone ciò che l'arbitro fermerebbe. Il cambio di turno azzera. */
   fired?: string[];
+  /** La catena di risposta (§7.2), se ce n'è una aperta: vedi ResponseChain. */
+  chain?: ResponseChain;
   /** Prossimo z libero: ogni carta toccata sale in cima. */
   zTop: number;
+}
+
+/**
+ * La catena di risposta (§7.2): «ogni volta che un giocatore lancia una
+ * Reattiva, l'avversario può sempre rispondere» — solo con Reattive, ad
+ * alternanza stretta — e «quando il giocatore a cui tocca rispondere passa,
+ * la catena si risolve in ordine inverso». `stack` sono le Reattive giocate
+ * nell'ordine in cui sono scese; `turn` chi deve rispondere o accettare
+ * adesso; `resolving` dice che qualcuno ha accettato e le carte si stanno
+ * risolvendo, dall'ultima alla prima — ognuna esce dalla pila quando lascia
+ * il campo. La catena è atomica: finché c'è, non si fa altro.
+ */
+export interface ResponseChain {
+  stack: string[];
+  turn: Seat;
+  resolving: boolean;
 }
 
 /**
@@ -258,7 +276,11 @@ export type Action =
   /** `cost`: il Flusso pagato giocando DALLA MANO in campo (§3.2) — lo
       mette il client dal catalogo, l'engine lo verifica, il riduttore lo
       scala. Assente da altre zone e per il Rubyfront. */
-  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string }
+  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string; chain?: true }
+  /** §7.2 — chi deve rispondere accetta: la catena si risolve. */
+  | { t: "pass"; seat: Seat }
+  /** §7.2 — la Reattiva in cima è risolta: esce dalla pila (anche se resta in campo a bloccare, §6.4). */
+  | { t: "settle"; uid: string }
   /** Il flip (§3.1): verso il Nexus porta lo scarto del requisito
       (`discard`, nell'Abisso) e il recupero di PV stampato (`recover`). */
   | { t: "flip"; uid: string; face: number; discard?: string; recover?: number }

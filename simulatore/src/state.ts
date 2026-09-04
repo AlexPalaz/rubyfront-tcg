@@ -54,6 +54,19 @@ export function newGame(active: Seat = "a"): GameState {
   };
 }
 
+/** Lo stato senza catena di risposta (§7.2): chiusa, o mai aperta. */
+function withoutChain(state: GameState): GameState {
+  if (!state.chain) return state;
+  const { chain: _closed, ...rest } = state;
+  return rest;
+}
+
+/** L'ultima Reattiva della catena (§7.2): quella che si risolve per prima. */
+export function chainTop(state: GameState): CardInstance | undefined {
+  const uid = state.chain?.stack[state.chain.stack.length - 1];
+  return uid ? state.cards[uid] : undefined;
+}
+
 /** Carte di una zona, nell'ordine della pila (indice 0 = cima). */
 export function zoneCards(state: GameState, seat: Seat, zone: ZoneId): CardInstance[] {
   return Object.values(state.cards)
@@ -66,6 +79,25 @@ export function fieldCards(state: GameState): CardInstance[] {
   return Object.values(state.cards)
     .filter(card => card.zone === "field")
     .sort((left, right) => left.z - right.z);
+}
+
+/**
+ * §3.1 — la carta è IN GIOCO, cioè i suoi effetti contano?
+ *
+ * Per tutte le carte basta la zona. Per il Rubyfront no: parte in Zona di
+ * Richiamo, che sta sulla lavagna ma non è il campo, e lì «è attaccabile —
+ * i suoi PV sono un bersaglio valido dall'inizio alla fine della partita —
+ * ma abilità (principale e speciali) e Materie sono utilizzabili solo
+ * quando è in campo: schierarlo serve a sbloccarle». Lo schieramento è
+ * esattamente il passaggio dalla fila di servizio a quella del Fronte
+ * (§3.1, costo di schieramento), quindi la fila dice tutto. Il Nexus passa
+ * di qui per simmetria: si flippa solo da schierato, ma la lettura non
+ * cambia. Gemello: engine.rb, in_play?.
+ */
+export function inPlay(card: CardInstance, kind: string | null): boolean {
+  if (card.zone !== "field") return false;
+  if (kind !== "rubyfront" && kind !== "nexus") return true;
+  return card.y === frontRowY(card.owner);
 }
 
 function orderForTop(state: GameState, seat: Seat, zone: ZoneId): number {
@@ -236,7 +268,15 @@ function reduce(state: GameState, action: Action): GameState {
         next.facedown = false;
         delete next.coveredTurn;
         delete next.stasis;
+        // «Fino alla fine del turno» (§8.2): i bonus e i divieti valevano per
+        // la carta IN CAMPO. Chi esce li lascia lì — e «il ritorno in campo è
+        // sempre disarmato» (§3.1) vale anche per questi: rientrando, la
+        // carta è quella stampata. Le parole chiave del controllo (§8.2)
+        // hanno la loro restituzione e non passano di qui.
         delete next.counterBonus;
+        delete next.powerBonus;
+        delete next.cannotBlock;
+        if (!next.controller) delete next.grants;
       }
       // Chi lascia il campo esce anche dal combattimento: la sua freccia se ne
       // va, e quella che gli puntava contro pure. §6.3 dice che il blocco non
@@ -282,7 +322,35 @@ function reduce(state: GameState, action: Action): GameState {
         const worn = Object.values(state.cards).filter(other => other.assignedTo === action.uid && other.zone === "field");
         for (const object of worn) moved = apply(moved, { t: "toZone", uid: object.uid, zone: next.zone });
       }
+      // §7.2 — la catena di risposta: la Reattiva giocata (`chain`, lo dice
+      // il client che la gioca e l'engine lo pretende) apre la catena o la
+      // allunga, e la parola passa all'avversario di chi l'ha giocata; la
+      // carta che lascia il campo (risolta, o svanita) esce dalla pila, e
+      // l'ultima uscita chiude la catena. Gemello: table.rb, to_zone.
+      if (action.chain && next.zone === "field") {
+        moved = { ...moved, chain: { stack: [...(state.chain?.stack ?? []), action.uid], turn: otherSeat(card.owner), resolving: false } };
+      } else if (next.zone !== "field" && state.chain?.stack.includes(action.uid)) {
+        const stack = state.chain.stack.filter(uid => uid !== action.uid);
+        moved = stack.length ? { ...moved, chain: { ...state.chain, stack } } : withoutChain(moved);
+      }
       return moved;
+    }
+
+    case "settle": {
+      // §7.2 — la Reattiva risolta esce dalla pila, anche se resta in campo
+      // a bloccare (§6.4); l'ultima chiude la catena. Gemello: table.rb.
+      if (!state.chain) return state;
+      const stack = state.chain.stack.filter(uid => uid !== action.uid);
+      return stack.length ? { ...state, chain: { ...state.chain, stack } } : withoutChain(state);
+    }
+
+    case "pass": {
+      // §7.2 — «quando il giocatore a cui tocca rispondere passa, la catena
+      // si risolve in ordine inverso»: da qui le carte si risolvono,
+      // dall'ultima alla prima, e nessuno ne aggiunge più. Gemello: table.rb.
+      if (!state.chain) return state;
+      if (state.chain.stack.length === 0) return withoutChain(state);
+      return { ...state, chain: { ...state.chain, resolving: true } };
     }
 
     case "flip": {
@@ -383,7 +451,7 @@ function reduce(state: GameState, action: Action): GameState {
         cards[uid] = fresh;
       }
       const opened: GameState = {
-        ...state,
+        ...withoutChain(state),
         cards,
         players: { ...state.players, [next]: { ...player, fluxMax: grown, flux: grown } },
         turn: action.turn,

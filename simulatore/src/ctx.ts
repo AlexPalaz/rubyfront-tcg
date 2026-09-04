@@ -83,7 +83,9 @@ export type ResolveForm =
   /** RBF-019: il d20 a fasce — PV, un'Entità dalla mano, una pesca, o tutto. */
   | { kind: "fortune"; die: number; gain: { on: [number, number]; amount: number }; deploy: { on: [number, number]; filter: { kind: "entity"; race: string | null; maxCost: number | null } }; draw: { on: [number, number]; count: number }; allOn: [number, number] }
   /** RBF-021: distruggi un'Entità; contro una tappata costa N in meno. */
-  | { kind: "destroy"; target: { kind: "entity"; controller: "any" | "opponent" | "controller" }; to: "abisso"; discount: { amount: number; ifTarget: "tapped" } | null };
+  | { kind: "destroy"; target: { kind: "entity"; controller: "any" | "opponent" | "controller" }; to: "abisso"; discount: { amount: number; ifTarget: "tapped" } | null }
+  /** RBF-040: giocata come blocco a un attaccante (l'attacco è bloccato, §6.4); con almeno N Entità armate sul Fronte, +M PV. */
+  | { kind: "block"; requiresArmed: number; heal: number; asBlock: true };
 
 /** «Quando flippa» (§3.1, RBF-001): la carta nominata nell'Abisso, e il sigillo. */
 export type FlipForm =

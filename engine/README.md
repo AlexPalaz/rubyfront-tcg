@@ -176,7 +176,11 @@ Regole collegate finora:
   partita locale (lo stesso mouse per i due posti) il proprietario della
   carta o del contatore toccato, e chi è di turno per i gesti senza posto.
   Al difensore restano le finestre del manuale: blocchi e contrattacchi in
-  Reazione (§6.4, e il ripensarci), le Materie Reattive nel Fronte altrui
+  Reazione (§6.4, e il ripensarci), la **copertura del contrattaccante**, che
+  «scatta alla dichiarazione dei blocchi» (§6.3, punto 4: «chi blocca si
+  tappa, chi contrattacca si copre») e quindi cade nel turno di chi attacca —
+  coprire e scoprire una propria Entità in campo, in Reazione, è un gesto suo
+  —, le Materie Reattive nel Fronte altrui
   (§6.3 Pre-Fronte, §7.2), i propri contatori in Fronte e Reazione perché le
   Reattive si pagano. I gesti di apparecchiatura non hanno turno: caricare
   il proprio mazzo (all'ingresso in stanza), «Nuova partita», il proprio
@@ -545,6 +549,106 @@ Regole collegate finora:
   abilità speciali a costo PV (§3.1) e la Furia (§8.1) non sono collegate;
   le Materie permanenti dei tipi che il Nexus non abilita più non decadono
   da sole (§3.1, §7.2). Engine 0.34.0, trentasei regole.
+
+- **§3.1 Il Rubyfront in Zona di Richiamo non ha abilità** — «è
+  attaccabile anche mentre si trova in Zona di Richiamo: i suoi PV sono un
+  bersaglio valido dall'inizio alla fine della partita. Abilità (principale
+  e speciali) e Materie, però, sono utilizzabili solo quando è in campo:
+  schierarlo serve a sbloccarle». La Zona di Richiamo sta sulla lavagna
+  (zona `field`, fila di servizio), e finora bastava quella zona perché il
+  Rubyfront contasse come in gioco: Oblivhal curava «al terzo Umano»
+  ancora da schierare. Ora c'è un solo modo di dire «in gioco» nei due
+  gemelli (`in_play?` / `inPlay`): per ogni carta è la zona, per il
+  Rubyfront è anche la fila, perché lo schieramento è esattamente il
+  passaggio dalla fila di servizio a quella del Fronte. L'engine lo legge
+  nell'imbuto di tutti gli effetti certificati, una volta sola e prima di
+  ogni altra verifica — nessuna forma innesca dalla Zona di Richiamo — e
+  già dava lo stesso per le Materie (§7) e per il flip. Il client non
+  propone gli inneschi di un Rubyfront non schierato, né «quando attacca»
+  né come ascoltatore d'ingresso. Fila ignota (snapshot da una lavagna che
+  non la segnava): nel dubbio è in gioco, mai molesto. Limiti dichiarati:
+  le abilità speciali a costo PV non sono collegate, quindi il divieto
+  per loro resta a mano; e se una carta riporterà il Rubyfront in Zona di
+  Richiamo (regola d'oro, §3.1) la lettura vale da sé. Engine 0.35.0,
+  trentasette regole.
+
+- **§5 L'Abisso: ci si va morendo, consumandosi o scartando, e non si
+  torna** — «la zona delle carte morte o consumate: Entità morte o
+  distrutte, Materie risolte, decadute o svanite, Oggetti che seguono
+  un'Entità morta, carte scartate dalla mano». Un `toZone` verso l'Abisso
+  senza riferimento d'effetto passa solo per una **Materia in campo** (la
+  risolta che si consuma, la permanente che decade: gesto a mano) e per lo
+  **scarto per eccesso** dalla mano (§6.5, oltre le 7 carte). Il resto —
+  un'Entità trascinata nell'Abisso, una carta dal mazzo o dal Ritiro — è
+  fermato: si muore con la risoluzione (§6.4), si scarta per effetto, e
+  l'effetto passa con il suo riferimento da `judge_effect`, non da qui. E
+  **dall'Abisso non si torna**: verso mano, mazzo, campo o Ritiro senza
+  riferimento è fermato — «solo una carta può riportarne fuori» (l'esilio
+  condizionato di RBF-018 ha già il suo `release`). Carta ignota: silenzio.
+  Limiti dichiarati: un effetto risolto a mano che scarti o riporti («puoi
+  scartare una carta», non certificato) verrebbe fermato a torto (regola
+  d'oro); la proprietà non si guarda (una Materia avversaria in campo
+  passerebbe: la dogana del turno ferma il gesto nel turno altrui, non nel
+  proprio).
+
+- **§5 Le Entità restano nello slot in cui sono scese** — «un'Entità
+  occupa lo slot in cui è scesa: non si sposta da uno slot all'altro, salvo
+  che una carta lo dica» (decisione del designer, 2026-09-04, scritta nel
+  manuale). Con la fila nota e sul Fronte ogni `move` di un'Entità è un
+  cambio di slot, e viene fermato; il client non manda più il gesto a
+  vuoto (riposare la carta dov'era, il «torna indietro» dopo un sigillo).
+  Fila ignota (lavagna vecchia): resta la dogana della forma, poi la fila
+  si annota e lo slot è quello. Limite dichiarato: l'effetto che sposti
+  un'Entità di slot, se mai ci sarà, verrebbe fermato a torto.
+
+- **§7.2 Le Reattive come blocco, due letture** — RBF-040, lo **Scudo
+  Riflesso**: «giocala come blocco a un attaccante: quell'attacco è
+  bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto
+  assegnato, guadagni 3 PV» — forma certificata `block` (anagrafe e
+  renderer): si gioca in Reazione, la dichiarazione dalla Materia ferma
+  l'attaccante (§6.4, senza confronto di Potenza), e il passo è la cura,
+  di chi comanda la fonte, esatta, con gli armati che bastano (la copia
+  del tavolo conta gli armati, `armed_uids`). RBF-020, il **Contrattacco
+  Coordinato**: «gioca questa carta come blocco» — **lettura del designer
+  (2026-09-04)**: si gioca nella finestra dei blocchi ma **non ferma
+  nessun attaccante** e non chiede più una dichiarazione di blocco; il
+  suo effetto (stappa gli Umani, Contrattacco +1) è tutto quel che fa. Il
+  manuale (§6.4, §7.2) parla ancora di Reattive «assegnate a un
+  attaccante»: la distinzione fra le due formule va scritta lì. Nel client
+  sceglie l'attaccante solo la Reattiva che lo ferma (`blocksAttacker`), e
+  una Materia che adesso non farebbe nulla chiede conferma prima di
+  pagare («Gioca comunque» / «Non giocare»). Engine 0.36.0, quaranta
+  regole.
+
+- **§7.2 La catena di risposta** — «ogni volta che un giocatore lancia una
+  Reattiva, l'avversario può sempre rispondere», solo con Reattive, ad
+  alternanza stretta; «quando il giocatore a cui tocca rispondere passa, la
+  catena si risolve in ordine inverso»; «la catena è atomica». La lavagna
+  ha la catena (`chain {stack, turn, resolving}`, nel riduttore e nella
+  copia, anche nello snapshot): la Reattiva giocata porta il segno
+  `chain: true` (l'engine lo pretende: una Reattiva senza segno non passa,
+  una carta che non è Reattiva col segno nemmeno), apre la catena o la
+  allunga e passa la parola all'avversario; `pass {seat}` è l'accettazione
+  di chi ha la parola, e da lì le carte si risolvono dall'ultima alla
+  prima — ogni client risolve le proprie, e chiuso il passo `settle {uid}`
+  toglie la carta dalla pila (la Reattiva che blocca resta in campo fino
+  all'ondata, §6.4: «lascia il campo» non basta); l'ultima chiude la
+  catena. La dogana (`judge_chain`, subito dopo quella del turno): a
+  catena aperta passano solo la Reattiva di chi ha la parola, la sua
+  accettazione, il blocco che accompagna la cima (RBF-040), il Gettone
+  Flusso (§3.2, «serve proprio a pagare le Reattive»), chat, pixel e
+  apparecchiatura; in risoluzione passano solo il passo, la chiusura e
+  l'uscita della cima. In catena le finestre delle Reattive (§7.2) non
+  contano più: risponde chi ha la parola — anche l'attaccante in
+  Reazione, quando il difensore ha aperto con un blocco (§6.4). Nel client
+  la Reattiva giocata va al centro del tavolo, a scaletta; la barra sotto
+  l'insegna dice cosa c'è in cima e a chi tocca, e chi ha la parola ha il
+  tasto «Accetta» (o risponde giocando, come sempre); la risoluzione
+  scorre da sola, un client per carta. Limiti dichiarati:
+  «l'abilitazione si ricontrolla alla risoluzione» (la Reattiva svanisce)
+  non si vede, la Reattiva si risolve comunque; e la proprietà delle
+  carte in catena non si guarda oltre la parola. Engine 0.37.0,
+  quarantuno regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

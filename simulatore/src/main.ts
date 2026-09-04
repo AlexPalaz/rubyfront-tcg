@@ -106,6 +106,16 @@ function dispatch(action: Action): Promise<boolean> {
     return new Promise(resolve => {
       judge.judge(action, actorFor(action), verdict => {
         if (verdict?.ruled && !verdict.ok) {
+          // §6.5 — il Fine turno fermato dalla mano piena: l'Abisso di chi
+          // chiude si accende e invita, così il sigillo dice anche DOVE si
+          // scarta. Nessuna frase da leggere: il posto è quello che chiude
+          // e ha più di 7 carte.
+          if (action.t === "turn") {
+            const closing = state.active;
+            if (Object.values(state.cards).filter(card => card.owner === closing && card.zone === "hand").length > 7) {
+              table.promptDiscard(closing);
+            }
+          }
           engineStop(verdict);
           // Un gesto trascinato (una carta posata sul Fronte) può aver già
           // mosso i pixel: si ridisegna dallo stato — che non è cambiato —
@@ -176,7 +186,7 @@ function receive(action: Action, from: Seat): void {
   if (action.t === "control") {
     // Il controllo dell'avversario: la fonte si accende, la freccia indica
     // la carta presa, e la carta vola nello slot extra.
-    table.flashArrow(action.effect.source, action.uid);
+    table.strike(action.uid);
     table.flash(action.effect.source, 1600);
     fly = table.liftToFlight(action.uid);
   }
@@ -190,7 +200,7 @@ function receive(action: Action, from: Seat): void {
       const owner = moving.owner;
       fly = () => table.flyFromPile(owner, from, action.uid);
     } else {
-      table.flashArrow(action.effect.source, action.uid);
+      table.strike(action.uid);
       fly = table.liftForFlight(action.uid);
     }
   }
@@ -448,6 +458,12 @@ const OPENING_DRAW_PAUSE_MS = 250;
 const openingTimer: Record<Seat, number | undefined> = { a: undefined, b: undefined };
 
 /** Quante carte ha in mano quel posto, adesso. */
+/** Il mazzo è ancora intero: tutte le carte del posto, Rubyfront a parte, stanno lì. */
+function deckUntouched(seat: Seat): boolean {
+  const mine = Object.values(state.cards).filter(card => card.owner === seat && !isRubyfront(card.cardId));
+  return mine.length > 0 && zoneCards(state, seat, "deck").length === mine.length;
+}
+
 function handSize(seat: Seat): number {
   return Object.values(state.cards).filter(c => c.owner === seat && c.zone === "hand").length;
 }
@@ -473,6 +489,11 @@ function loadDeck(deckId: string, seat: Seat): void {
   // cadere. Il mazzo dell'avversario locale passa di qui subito dopo il
   // proprio: l'insegna riparte da capo, e non si vede.
   banner.announce();
+  scheduleOpening(seat, deckId);
+}
+
+/** La mano iniziale e la carta del turno 1 (§4, §6.1), a tempo dopo l'insegna. */
+function scheduleOpening(seat: Seat, deckId: string): void {
   window.clearTimeout(openingTimer[seat]);
   openingTimer[seat] = window.setTimeout(() => {
     if (state.players[seat].deckId !== deckId || handSize(seat) !== 0) return;
@@ -579,6 +600,14 @@ function join(room: string, relay: string): void {
         paint();
         const incomingHasMine = Object.values(state.cards).some(card => card.owner === mySeat);
         if (hadMine && !incomingHasMine && myDeckId) loadDeck(myDeckId, mySeat);
+        // La mano iniziale che manca (§4): la lavagna arrivata ha il mio
+        // mazzo ma non la mia mano — la pagina è stata ricaricata prima che
+        // la pesca d'apertura partisse, che è un tempo del client e non
+        // un'azione della lavagna. Al turno 1 in Preparazione, a mazzo
+        // intero, la pesca riparte da qui; altrimenti la mano vuota è vera.
+        else if (incomingHasMine && myDeckId && state.players[mySeat].deckId === myDeckId && handSize(mySeat) === 0 && state.turn === 1 && state.phase === "preparazione" && deckUntouched(mySeat)) {
+          scheduleOpening(mySeat, myDeckId);
+        }
         const myName = store.read("name", "");
         if (myName && state.players[mySeat].name !== myName) {
           dispatch({ t: "player", seat: mySeat, patch: { name: myName } });

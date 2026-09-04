@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.34.0"
+    VERSION = "0.37.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -68,6 +68,11 @@ module Rubyfront
       "§7.2 Le Reattive: prima dell'ondata, o come blocco in Reazione",
       "§7.2 Le Materie si risolvono: le forme certificate di Eredità Perduta (RBF-015…RBF-021)",
       "§3.1 Il Nexus: il flip coi suoi requisiti, il recupero di PV, «quando flippa» (RBF-001)",
+      "§3.1 Il Rubyfront in Zona di Richiamo non ha abilità: schierarlo le sblocca",
+      "§5 L'Abisso: ci si va morendo, consumandosi o scartando per eccesso, e non si torna",
+      "§5 Le Entità restano nello slot in cui sono scese",
+      "§7.2 Le Reattive come blocco: RBF-040 ferma un attaccante e cura, RBF-020 si gioca nella finestra dei blocchi",
+      "§7.2 La catena di risposta: una Reattiva apre, l'avversario risponde o accetta, si risolve al contrario",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -110,6 +115,11 @@ module Rubyfront
       "§7.2 Reactives: before the wave, or as a block in Reaction",
       "§7.2 Matters resolve: the certified forms of Lost Legacy (RBF-015…RBF-021)",
       "§3.1 The Nexus: the flip with its requirements, the HP recovery, “when it flips” (RBF-001)",
+      "§3.1 A Rubyfront in the Recall Zone has no abilities: deploying it unlocks them",
+      "§5 The Abyss: reached by dying, being spent or discarding down to 7, and there's no way back",
+      "§5 Entities stay in the slot they came down on",
+      "§7.2 Reactives as a block: RBF-040 stops an attacker and heals, RBF-020 is played in the block window",
+      "§7.2 The response chain: a Reactive opens it, the opponent answers or accepts, it resolves in reverse",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -264,6 +274,10 @@ module Rubyfront
       stopped = judge_actor(action, actor)
       return stopped if stopped
 
+      # §7.2 — la catena di risposta è atomica: finché c'è, passa solo lei.
+      stopped = judge_chain(action, actor)
+      return stopped if stopped
+
       # §8.2 / §1.1 — un passo d'effetto: la carta vince sulle regole, se la
       # forma è quella certificata. Verificato, passa come effetto; se no
       # è fermato — un effetto finto non è un gesto qualunque.
@@ -332,6 +346,32 @@ module Rubyfront
         return refuse("toZone", "una carta in campo non torna #{where}: dal campo si esce con il Ritiro, l'Abisso o un effetto (§5, §6.2)", "a card on the field doesn't go back #{where_en}: the field is left through Retire, the Abyss or an effect (§5, §6.2)")
       end
 
+      # §5 — l'Abisso è «la zona delle carte morte o consumate: Entità morte
+      # o distrutte, Materie risolte, decadute o svanite, Oggetti che seguono
+      # un'Entità morta, carte scartate dalla mano». Ci si arriva morendo
+      # (la risoluzione, §6.4), consumandosi (la Materia, §7.2), scartando
+      # per eccesso (§6.5, «le carte in eccesso vanno scartate») o per un
+      # effetto — che passa di qui col suo riferimento, e non arriva a
+      # questa dogana. Trascinarci una carta a mano non è nessuna di queste.
+      # E da lì non si torna: solo una carta riporta fuori dall'Abisso
+      # (§5, l'esilio condizionato; RBF-018). Limiti dichiarati: un effetto
+      # risolto a mano che scarti o riporti verrebbe fermato a torto (regola
+      # d'oro); il decadere di una permanente (§7.2) resta un gesto a mano,
+      # e passa perché una Materia in campo può sempre andare nell'Abisso.
+      if card[:zone] == "abisso"
+        return refuse("toZone", "dall'Abisso non si torna: solo una carta può riportarne fuori (§5)", "there's no way back from the Abyss: only a card can bring something out of it (§5)")
+      end
+      if action["zone"] == "abisso"
+        known = @cards[card[:card_id]]
+        return no_rule("toZone") unless known
+
+        spent = card[:zone] == "field" && known[:type] == "matter"
+        excess = card[:zone] == "hand" && @table.zone_count(card[:owner], "hand") > 7
+        unless spent || excess
+          return refuse("toZone", "nell'Abisso si va morendo, consumandosi o scartando per eccesso, non a mano (§5, §6.5)", "the Abyss is reached by dying, being spent or discarding down to 7, not by hand (§5, §6.5)")
+        end
+      end
+
       case action["zone"]
       when "field" then judge_enter_field(card, action)
       when "ritiro" then judge_retire(card)
@@ -352,6 +392,15 @@ module Rubyfront
       kind = @cards.dig(card[:card_id], :type)
       return judge_deploy(card, action) if kind == "rubyfront"
       return no_rule("move") unless kind == "entity"
+
+      # §5 — «un'Entità occupa lo slot in cui è scesa: non si sposta da uno
+      # slot all'altro, salvo che una carta lo dica» (decisione del
+      # designer, 2026-09-04). Con la fila nota e sul Fronte, ogni `move`
+      # è un cambio di slot — il tavolo non manda un gesto a vuoto. Fila
+      # ignota (lavagna vecchia): resta la dogana della forma, qui sotto.
+      if card[:row] && FRONT_ROW_Y.include?(card[:row])
+        return refuse("move", "l'Entità resta nello slot in cui è scesa: da uno slot all'altro non si sposta, salvo che una carta lo dica (§5)", "an Entity stays in the slot it came down on: it doesn't move from one slot to another, unless a card says so (§5)")
+      end
 
       on_slot?(card, action) ? allow("move") : refuse("move", "le Entità stanno sugli slot del Fronte, nella propria fila (§5)", "Entities sit on the Front slots, in their own row (§5)")
     end
@@ -454,7 +503,10 @@ module Rubyfront
         # più Reattive», salvo quelle del difensore giocate COME BLOCCO
         # (§6.4), in Reazione. Limite dichiarato: la catena di risposta
         # non c'è ancora — una Reattiva in risposta verrebbe fermata.
-        if reactive && card[:zone] != "field"
+        # In catena (§7.2) le finestre non contano più: risponde chi ne ha
+        # la parola, e l'ha già detto judge_chain — anche l'attaccante in
+        # Reazione, quando il difensore ha aperto con un blocco (§6.4).
+        if reactive && card[:zone] != "field" && @table.chain.nil?
           as_block = Array(known[:resolve_forms]).any? { |form| form[:as_block] }
           if @table.phase == "fronte" && @table.wave_declared?
             return refuse("toZone", "a ondata dichiarata non si iniziano Reattive: solo come blocco, in Reazione (§7.2)", "once the wave is declared no Reactive is started: only as a block, in Reaction (§7.2)")
@@ -467,6 +519,16 @@ module Rubyfront
         # E il rovescio: una Reattiva in Preparazione è fuori dalla sua
         # finestra, di chiunque sia il turno.
         return refuse("toZone", "le Reattive si giocano solo in Fase di Fronte (§7.2)", "Reactives are played only in the Front Phase (§7.2)")
+      end
+
+      # §7.2 — il segno della catena di risposta (`chain: true`): sempre
+      # sulla Reattiva giocata da fuori, mai su altro. Dopo le finestre,
+      # così il rifiuto che il giocatore legge è quello della finestra.
+      if reactive && card[:zone] != "field" && action["chain"] != true
+        return refuse("toZone", "una Reattiva apre sempre la catena di risposta: l'azione non lo dice (§7.2)", "a Reactive always opens the response chain: the action doesn't say so (§7.2)")
+      end
+      if action["chain"] == true && !reactive
+        return refuse("toZone", "solo una Materia Reattiva apre o allunga la catena di risposta (§7.2)", "only a Reactive Matter opens or extends the response chain (§7.2)")
       end
 
       # §7 — «una carta Materia è giocabile solo se in campo c'è una carta
@@ -874,10 +936,13 @@ module Rubyfront
 
     # §6.4 — la Reattiva come blocco: una Materia Reattiva con la forma «si
     # gioca come blocco», scesa in campo questo turno.
+    # Ferma un attaccante solo la Reattiva con la forma `block` (RBF-040):
+    # quella che «si gioca come blocco» senza fermare nessuno (RBF-020,
+    # lettura del designer 2026-09-04) non dichiara niente.
     def reactive_block?(card)
       known = @cards[card[:card_id]]
       known && known[:type] == "matter" && known[:behavior] == "reactive" && card[:entered] == @table.turn &&
-        Array(known[:resolve_forms]).any? { |form| form[:as_block] }
+        Array(known[:resolve_forms]).any? { |form| form[:kind] == "block" }
     end
 
     # §8.2 — l'attaccante porta un Oggetto che lo rende bloccabile da più Entità (RBF-014)?
@@ -992,6 +1057,9 @@ module Rubyfront
       # un costo ed è un gesto di gioco (§3.1: nel proprio turno).
       # `spawn` è lo strumento di prova del client (evoca dal catalogo).
       return nil if %w[loadDeck newGame say spawn release].include?(kind) || (kind == "move" && !action.key?("cost"))
+      # §7.2 — accettare e chiudere un passo della catena sono gesti di chi
+      # ne ha la parola, di chiunque sia il turno: li giudica judge_chain.
+      return nil if %w[pass settle].include?(kind)
       if kind == "player" && action["seat"] == actor
         patch = action["patch"]
         counters = patch.is_a?(Hash) && %w[hp flux fluxMax].any? { |key| patch.key?(key) }
@@ -1030,11 +1098,113 @@ module Rubyfront
         known = card && @cards[card[:card_id]]
         reactive = known && known[:type] == "matter" && known[:behavior] == "reactive"
         return nil if card && card[:owner] == actor && action["zone"] == "field" && reactive
+        # …e la Reattiva risolta si consuma (§7.2, «poi la carta va
+        # nell'Abisso»): un gesto del difensore sulla propria Materia.
+        return nil if card && card[:owner] == actor && action["zone"] == "abisso" && known && known[:type] == "matter"
+      when "facedown"
+        # §6.3, punto 4 — «chi blocca si tappa, chi contrattacca si copre»:
+        # la copertura scatta alla dichiarazione dei blocchi, che avviene
+        # nel turno di chi attacca. È un gesto del DIFENSORE sulla propria
+        # Entità, dentro la sua Reazione, e va lasciato passare come il
+        # blocco stesso — e con lui il suo rovescio, la copertura disfatta
+        # quando la dichiarazione si ritira.
+        card = @table.card(action["uid"])
+        return nil if card && card[:zone] == "field" && @table.controller_of(card) == actor && @table.phase == "reazione"
       when "player"
         return nil if action["seat"] == actor && @table.phase != "preparazione"
       end
 
       refuse(kind, "non tocca a te: nel turno avversario si blocca in Reazione e si giocano solo Reattive (§6)", "it's not your turn: on the opponent's turn you block in Reaction and play only Reactives (§6)")
+    end
+
+    # §7.2 — la catena di risposta. «Ogni volta che un giocatore lancia una
+    # Reattiva, l'avversario può sempre rispondere»: solo con Reattive, ad
+    # alternanza stretta; «quando il giocatore a cui tocca rispondere passa,
+    # la catena si risolve in ordine inverso»; «la catena è atomica: dal
+    # primo lancio alla risoluzione completa non si compiono altre azioni»
+    # — resta il Gettone Flusso (§3.2, «serve proprio a pagare le
+    # Reattive»). Il client segna la Reattiva giocata con `chain: true` e
+    # l'engine lo pretende: una Reattiva senza il segno non passa, una
+    # carta che non è Reattiva col segno nemmeno. Chiusa la risoluzione di
+    # ogni carta, `settle` la toglie dalla pila (la Reattiva che blocca
+    # resta in campo fino all'ondata, §6.4: non basta «lascia il campo»).
+    # Limite dichiarato: «l'abilitazione si ricontrolla alla risoluzione»
+    # (la Reattiva svanisce) non si vede — si risolve comunque.
+    def judge_chain(action, actor)
+      kind = action["t"]
+      chain = @table.chain
+      return nil unless chain
+
+      # Liberi anche in catena: chat, pixel, apparecchiatura, e il Gettone.
+      return nil if %w[say loadDeck newGame spawn].include?(kind) || (kind == "move" && !action.key?("cost"))
+      return nil if kind == "player" && action.dig("patch", "token") == false
+
+      top = @table.chain_top
+      if chain[:resolving]
+        # Dall'ultima alla prima: passa solo il passo della cima, la cima che
+        # si chiude (`settle`), la cima che se ne va.
+        ref = action["effect"]
+        return nil if ref.is_a?(Hash) && ref["source"] == top
+        return nil if kind == "settle" && action["uid"] == top
+        return nil if kind == "toZone" && action["uid"] == top && action["zone"] != "field"
+        return refuse(kind, "la catena si sta risolvendo, dall'ultima Reattiva alla prima: il resto aspetta (§7.2)", "the chain is resolving, from the last Reactive to the first: everything else waits (§7.2)")
+      end
+
+      waiting = chain[:turn]
+      case kind
+      when "pass"
+        unless action["seat"] == waiting && (actor.nil? || actor == waiting)
+          return refuse(kind, "accetta chi deve rispondere: tocca a #{waiting.upcase} (§7.2)", "whoever must answer accepts: it's #{waiting.upcase}'s call (§7.2)")
+        end
+        return nil
+      when "toZone"
+        if action["zone"] == "field" && action["chain"] == true
+          card = @table.card(action["uid"])
+          unless card && card[:owner] == waiting
+            return refuse(kind, "in catena risponde l'avversario di chi ha giocato l'ultima Reattiva: tocca a #{waiting.upcase} (§7.2)", "on the chain the opponent of whoever played the last Reactive answers: it's #{waiting.upcase}'s call (§7.2)")
+          end
+          return nil
+        end
+        # La Reattiva appena giocata che si consuma a vuoto (come blocco, senza attaccante).
+        return nil if action["uid"] == top && action["zone"] == "abisso"
+      when "declare"
+        # Il blocco che accompagna la Reattiva giocata come blocco (RBF-040): della cima, subito.
+        return nil if action.dig("declaration", "from") == top && action.dig("declaration", "kind") == "block"
+      when "settle"
+        return nil if action["uid"] == top
+      end
+      refuse(kind, "la catena di risposta è atomica: si risponde con una Reattiva o si accetta, il resto aspetta (§7.2)", "the response chain is atomic: answer with a Reactive or accept, everything else waits (§7.2)")
+    end
+
+    # §3.1 — la carta è IN GIOCO, cioè i suoi effetti contano?
+    #
+    # Per ogni carta basta la zona. Per il Rubyfront no: parte in Zona di
+    # Richiamo, che sta sulla lavagna ma non è il campo, e lì «è attaccabile
+    # — i suoi PV sono un bersaglio valido dall'inizio alla fine della
+    # partita — ma abilità (principale e speciali) e Materie sono
+    # utilizzabili solo quando è in campo: schierarlo serve a sbloccarle».
+    # Lo schieramento è esattamente il passaggio dalla fila di servizio a
+    # quella del Fronte (§3.1, costo di schieramento), quindi la fila dice
+    # tutto. Fila ignota (lavagna che non la segnava): nel dubbio è in
+    # gioco, mai molesto. Gemello: state.ts, inPlay.
+    def in_play?(card)
+      return false unless card && card[:zone] == "field"
+
+      entry = @cards[card[:card_id]]
+      return true unless entry && entry[:type] == "rubyfront"
+
+      card[:row].nil? || FRONT_ROW_Y.include?(card[:row])
+    end
+
+    # Il rifiuto per una fonte che sta sulla lavagna ma non è ancora in
+    # gioco: oggi solo il Rubyfront in Zona di Richiamo (§3.1). Fonte
+    # assente o fuori dal campo: silenzio — di quello parlano, con parole
+    # loro, le dogane di ciascuna forma.
+    def recall_zone_stopped(kind, source)
+      return nil unless source && source[:zone] == "field"
+      return nil if in_play?(source)
+
+      refuse(kind, "il Rubyfront in Zona di Richiamo non ha abilità: schieralo per sbloccarle (§3.1)", "a Rubyfront in the Recall Zone has no abilities: deploy it to unlock them (§3.1)")
     end
 
     # §7 — c'è, fra le carte in campo di `seat`, un abilitante per quella
@@ -1099,6 +1269,13 @@ module Rubyfront
     def judge_effect(action)
       ref = action["effect"]
       kind = action["t"]
+      # §3.1 — l'imbuto di tutte le forme certificate è qui, e qui si ferma
+      # la fonte che sta sulla lavagna ma non è in gioco: il Rubyfront in
+      # Zona di Richiamo non ha abilità, quindi non innesca niente, in
+      # nessuna forma. Prima di ogni altra verifica, e una volta sola.
+      recalled = recall_zone_stopped(kind, @table.card(ref["source"]))
+      return recalled if recalled
+
       return judge_resolve_effect(action, ref) if ref["event"] == "on_resolve"
       return judge_flip_effect(action, ref) if ref["event"] == "on_flip"
       if ref["event"] == "on_attack"
@@ -1815,9 +1992,35 @@ module Rubyfront
         elsif forms.any? { |form| form[:kind] == "destroy" } then judge_resolve_destroy(action, ref, source, forms, seat)
         else judge_resolve_exile(action, ref, source, forms, seat)
         end
-      when "player", "draw" then judge_fortune_step(action, ref, source, forms, seat)
+      when "player"
+        forms.any? { |form| form[:kind] == "block" } ? judge_resolve_block(action, ref, source, forms, seat) : judge_fortune_step(action, ref, source, forms, seat)
+      when "draw" then judge_fortune_step(action, ref, source, forms, seat)
       else refuse(kind, "una Materia certificata guarda, potenzia, sposta, distrugge, cura o pesca soltanto, per ora (§8.2)", "a certified Matter only looks, empowers, moves, destroys, heals or draws, for now (§8.2)")
       end
+    end
+
+    # RBF-040 — «giocala come blocco a un attaccante: quell'attacco è
+    # bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto
+    # assegnato, guadagni 3 PV». Il blocco è la giocata stessa (§6.4, la
+    # dichiarazione dalla Materia); il passo è la cura: di chi comanda la
+    # fonte, esatta, con gli armati che bastano.
+    def judge_resolve_block(action, ref, source, forms, seat)
+      form = forms.find { |candidate| candidate[:kind] == "block" }
+      patch = action["patch"]
+      return refuse("player", "guadagna PV chi comanda la fonte (§8.2)", "whoever commands the source gains HP (§8.2)") unless action["seat"] == seat
+      unless patch.is_a?(Hash) && patch.keys == ["hp"] && patch["hp"] == @table.hp(seat) + form[:heal]
+        return refuse("player", "l'effetto dà #{form[:heal]} PV, non altro (§8.2)", "the effect gives #{form[:heal]} HP, nothing else (§8.2)")
+      end
+      if armed_entities(seat) < form[:requires_armed]
+        return refuse("player", "servono almeno #{form[:requires_armed]} Entità con un Oggetto assegnato sul tuo Fronte (§8.2)", "it takes at least #{form[:requires_armed]} Entities with an Object assigned on your Front (§8.2)")
+      end
+
+      allow("player")
+    end
+
+    # Le Entità di `seat` in campo con un Oggetto addosso (§3.1).
+    def armed_entities(seat)
+      @table.armed_uids(seat).count { |uid| entity_of_race?(uid, nil) }
     end
 
     # RBF-015: guarda le prime N, mostra un'Entità Umana, in mano, le altre in fondo.
@@ -1863,9 +2066,10 @@ module Rubyfront
         return refuse("empower", "si stappa UN'Entità: questo passo è già stato risolto (§8.2)", "you untap ONE Entity: this step has already been resolved (§8.2)") if @table.fired_prefix?(ref["source"], "on_resolve:empower:")
       else
         return refuse("empower", "il Contrattacco in più è #{form[:counter]} (§8.2)", "the extra Counterattack is #{form[:counter]} (§8.2)") unless action["counter"] == form[:counter] && action["power"].nil?
-        if form[:as_block] && !@table.blocking?(ref["source"])
-          return refuse("empower", "«gioca questa carta come blocco»: prima si dichiara il blocco (§6.4)", "“play this card as a block”: declare the block first (§6.4)")
-        end
+        # «Gioca questa carta come blocco» (RBF-020): la finestra è quella
+        # dei blocchi, ma la carta non ferma nessun attaccante — lettura del
+        # designer (2026-09-04): il suo effetto è tutto quel che fa, e non
+        # pretende una dichiarazione di blocco.
         needed = form[:requires]
         if needed && count_entities(seat, needed[:race]) < needed[:count]
           return refuse("empower", "servono almeno #{needed[:count]} Entità Umane sul tuo Fronte (§8.2)", "it takes at least #{needed[:count]} Human Entities on your Front (§8.2)")

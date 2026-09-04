@@ -4,6 +4,7 @@
 import { renderLog } from "../src/log.js";
 import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
+import { backRowY, frontRowY } from "../src/ctx.js";
 import {
   attackRef,
   attackSteps,
@@ -44,6 +45,8 @@ import {
   releaseHeld,
   resolveSteps,
   wantsTargetOnPlay,
+  armedCount,
+  blocksAttacker,
 } from "../src/effects.js";
 import { newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
@@ -60,6 +63,8 @@ const FACTS: Record<string, Partial<CardFacts>> = {
     { kind: "rearm", who: "ally", attackerArmed: true, face: 0 },
     { kind: "look", who: "ally", count: 2, reveal: { kind: "object", race: null }, revealTo: "ritiro", restTo: "deck", die: null, onRoll: null, once: true, attackerArmed: true, face: 0 },
   ] },
+  RIFLESSO: { kind: "matter", behavior: "reactive", resolveForms: [{ kind: "block", requiresArmed: 2, heal: 3, asBlock: true }] },
+  SCUDETTO: { kind: "object", grantsWhileAssigned: [] },
   EREDI: { kind: "matter", behavior: "permanent", attackForms: [{ kind: "heal", who: "permanent", attackers: { kind: "entity", race: "human" }, die: 20, onRoll: null, gainOn: [1, 6], drainOn: [15, 20], amount: "human_attackers", face: 0 }] },
   OBLIVHAL: { kind: "rubyfront", attackForms: [
     { kind: "heal", who: "rubyfront", once: true, requiresAttackers: { count: 3, race: "human" }, amount: 2, die: null, onRoll: null, thenDraw: 0, thenDiscard: 0, face: 0 },
@@ -125,6 +130,13 @@ const facts = (cardId: string): CardFacts => ({
 function on(state: GameState, uid: string, cardId: string, owner: Seat = "a"): CardInstance {
   const card: CardInstance = { uid, cardId, owner, zone: "field", face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 1 };
   state.cards[uid] = card;
+  return card;
+}
+
+/** Il Rubyfront schierato (§3.1): sulla fila del Fronte, non su quella di servizio. */
+function deploy(state: GameState, uid: string, cardId: string, owner: Seat = "a"): CardInstance {
+  const card = on(state, uid, cardId, owner);
+  card.y = frontRowY(owner);
   return card;
 }
 
@@ -561,7 +573,7 @@ describe("attackSteps", () => {
   it("la Materia permanente ascolta solo gli Umani; il Rubyfront il terzo Umano, una volta", () => {
     const state = newGame();
     on(state, "m", "EREDI");
-    on(state, "rf", "OBLIVHAL");
+    deploy(state, "rf", "OBLIVHAL");
     const u1 = on(state, "u1", "UMANO");
     const u2 = on(state, "u2", "UMANO");
     const n = on(state, "n", "AUROS");
@@ -578,6 +590,22 @@ describe("attackSteps", () => {
     const muster = attackSteps(nexus, u3, facts).find(s => s.source.uid === "rf")!;
     expect(muster.form).toMatchObject({ thenDraw: 1, face: 1 });
     expect(attackSteps({ ...state, fired: ["rf|on_attack:heal|turn"] }, u3, facts).map(s => s.source.uid)).toEqual(["m"]);
+  });
+
+  it("il Rubyfront in Zona di Richiamo non innesca niente: schierarlo sblocca le abilità (§3.1)", () => {
+    const state = newGame();
+    const rf = on(state, "rf", "OBLIVHAL");
+    rf.y = backRowY("a");
+    const u1 = on(state, "u1", "UMANO");
+    const u2 = on(state, "u2", "UMANO");
+    const u3 = on(state, "u3", "UMANO");
+    declare(state, "u1", 1);
+    declare(state, "u2", 2);
+    declare(state, "u3", 3);
+    expect(attackSteps(state, u3, facts)).toEqual([]);
+    // Lo schieramento è il passaggio alla fila del Fronte, e da lì scatta.
+    rf.y = frontRowY("a");
+    expect(attackSteps(state, u3, facts).map(s => s.source.uid)).toEqual(["rf"]);
   });
 
   it("la Razzia vuole due Umani nel turno precedente", () => {
@@ -730,5 +758,25 @@ describe("il flip del Nexus", () => {
     expect(steps.map(s => [s.form.kind, s.candidates.map(c => c.uid)])).toEqual([["move", ["r"]], ["seal", []]]);
     expect(describeFlipStep(steps[0], facts)).toContain("EREDE");
     expect(describeFlipStep(steps[1], facts)).toContain("resto della partita");
+  });
+});
+
+// RBF-040 — la Reattiva che ferma un attaccante e cura. Gemello: engine_test.rb, «lo scudo riflesso».
+describe("RBF-040, giocata come blocco", () => {
+  it("si gioca nella finestra dei blocchi, ferma un attaccante, e cura solo con due armati", () => {
+    const state = newGame();
+    const r = on(state, "r", "RIFLESSO", "b");
+    on(state, "v1", "UMANO", "b");
+    on(state, "v2", "UMANO", "b");
+    on(state, "o1", "SCUDETTO", "b").assignedTo = "v1";
+    expect(playsAsBlock(facts("RIFLESSO"))).toBe(true);
+    expect(blocksAttacker(facts("RIFLESSO"))).toBe(true);
+    expect(armedCount(state, "b", facts)).toBe(1);
+    const [step] = resolveSteps(state, r, facts);
+    expect(step.blocked).toBe("log.no.armed");
+    expect(describeResolveStep(step, facts)).toContain("3");
+    on(state, "o2", "SCUDETTO", "b").assignedTo = "v2";
+    expect(armedCount(state, "b", facts)).toBe(2);
+    expect(resolveSteps(state, r, facts)[0].blocked).toBeNull();
   });
 });

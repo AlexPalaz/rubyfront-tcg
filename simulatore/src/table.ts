@@ -8,7 +8,7 @@
 import { msg, t } from "./i18n.js";
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
 import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js";
-import { declareAttack as declareAttackVia, declareBlock, undeclare } from "./combat.js";
+import { declareAttack as declareAttackVia, declareBlock, powerOf, staticPower, undeclare, wornBy } from "./combat.js";
 import { tapPreview } from "./preview.js";
 import {
   COMPACT_TAIL_SAVED,
@@ -77,7 +77,8 @@ import {
   flipSteps,
   nexusCheck,
   pendingResolve,
-  playsAsBlock,
+  blocksAttacker,
+  resolveSteps,
   resolveRef,
   wantsTargetOnPlay,
   type FlipStep,
@@ -110,8 +111,7 @@ import {
   stackAt,
   zoneCards,
   freeFrontSlotOrNull,
-  nextWaveOrder,
-} from "./state.js";
+  nextWaveOrder, chainTop } from "./state.js";
 import type { CardInstance, GameState, Seat, ZoneId } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
 
@@ -158,10 +158,13 @@ export interface TableView {
   onPick(
     handler: (seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string, visible?: CardInstance[]) => Promise<CardInstance | null>
   ): void;
+  /** §6.5 — il Fine turno fermato dalla mano piena: da qui l'Abisso di quel
+      posto si accende e invita, finché non si scarta o non cambia il turno. */
+  promptDiscard(seat: Seat): void;
   /** Il bagliore di una carta che si innesca: per gli effetti arrivati dalla rete. */
   flash(uid: string, ms?: number): void;
-  /** La freccia di un effetto dalla fonte al bersaglio, per un attimo. */
-  flashArrow(fromUid: string, toUid: string): void;
+  /** Il lampo rosso sulla carta colpita da un effetto, per un attimo. */
+  strike(uid: string): void;
   /** Prende la tessera prima che voli in una pila (chi riceve): ritorna il
       via al volo, da dare dopo aver applicato l'azione. */
   liftForFlight(uid: string): (() => void) | null;
@@ -171,6 +174,26 @@ export interface TableView {
       dell'azione; ritorna il via, da dare dopo il disegno. */
   liftToFlight(uid: string): (() => void) | null;
 }
+
+/**
+ * Le icone della Potenza e del Contrattacco stampati (card-render.js,
+ * createPowerBadge e createCounterattackBadge), in currentColor: i segni
+ * sulle tessere sono pezzi della carta, non adesivi sopra.
+ */
+const SWORDS_SVG =
+  '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+  '<line x1="4.8" y1="19.2" x2="19.8" y2="4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+  '<line x1="19.2" y1="19.2" x2="4.2" y2="4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+  '<line x1="4.3" y1="15.4" x2="8.6" y2="19.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+  '<line x1="19.7" y1="15.4" x2="15.4" y2="19.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+  '<circle cx="3.4" cy="20.6" r="1.15" fill="currentColor"/>' +
+  '<circle cx="20.6" cy="20.6" r="1.15" fill="currentColor"/>' +
+  "</svg>";
+const COUNTER_SVG =
+  '<svg viewBox="0 0 20 20" aria-hidden="true">' +
+  '<path d="M 4.5 12.5 A 6 6 0 1 1 10 16.5" fill="none" stroke="currentColor" stroke-width="1.8"/>' +
+  '<path d="M 4.5 12.5 L 2 9.8 M 4.5 12.5 L 8 11.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
+  "</svg>";
 
 export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const tiles = new Map<string, HTMLElement>();
@@ -332,7 +355,28 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   targetHint.className = "target-hint";
   targetHint.hidden = true;
 
-  root.append(board, oppHand, myHand, handDrop, handToggle, targetHint);
+  // §7.2 — la catena di risposta: chi deve rispondere legge cosa c'è in
+  // catena e accetta con un tasto (o risponde giocando una Reattiva, come
+  // sempre); l'altro legge chi ha la parola.
+  const chainBar = document.createElement("div");
+  chainBar.className = "chain-bar";
+  chainBar.hidden = true;
+  const chainText = document.createElement("span");
+  const chainAccept = document.createElement("button");
+  chainAccept.type = "button";
+  chainAccept.textContent = t("chain.accept");
+  chainAccept.title = t("chain.accept.tip");
+  chainAccept.addEventListener("click", () => {
+    const chain = ctx.state().chain;
+    if (!chain || chain.resolving) return;
+    const seat = chain.turn;
+    void ctx.dispatch({ t: "pass", seat }).then(passed => {
+      if (passed) ctx.log(msg("log.chain.pass", { seat }), seat);
+    });
+  });
+  chainBar.append(chainText, chainAccept);
+
+  root.append(board, oppHand, myHand, handDrop, handToggle, targetHint, chainBar);
 
   // La lavagna si vede sempre tutta in larghezza: quando la finestra è più
   // stretta dei 2700px canonici, la superficie si scala di conseguenza (e le
@@ -388,6 +432,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const pileSlots = new Map<string, HTMLElement>();
   /** Gli elementi delle zone: si buttano e si ridisegnano al cambio modo. */
   const zoneEls: HTMLElement[] = [];
+  /** Il riquadro del controllo di ciascun posto (§8.2), acceso solo se
+      occupato. Sta QUI, prima della chiamata: buildStaticZones lo riempie,
+      e una const dichiarata più sotto sarebbe ancora nella sua zona morta. */
+  const controlSlots = new Map<Seat, HTMLElement>();
   buildStaticZones();
 
   // Click a vuoto sulla lavagna: chiude il menu contestuale (ci pensa menu.ts)
@@ -479,7 +527,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // carta sul campo, con le sue coordinate. L'unica differenza è che ci si
       // aggancia dentro invece di posarsi dove capita — come chiedono i
       // riquadri di Abisso e Ritiro, che però sono pile vere.
-      const markSlot = (x: number, y: number, label: string, extra = ""): void => {
+      const markSlot = (x: number, y: number, label: string, extra = ""): HTMLElement => {
         const slot = document.createElement("div");
         slot.className = `slot slot-mark ${extra}`.trim();
         slot.dataset.drop = "field";
@@ -494,14 +542,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         if (label) slot.dataset.label = label;
         surface.append(slot);
         zoneEls.push(slot);
+        return slot;
       };
 
       // Zona di Richiamo (§5): il Rubyfront parte da qui, e una volta
       // schierato non ci torna (§3.1).
       markSlot(SLOT_X.richiamo, back, t("zone.richiamo"));
       // Lo slot extra del controllo (§8.2): un'Entità avversaria presa fino
-      // a fine turno sta qui, e non conta nei 5 del Fronte.
-      markSlot(CONTROL_X, back, t("zone.control"));
+      // a fine turno sta qui, e non conta nei 5 del Fronte. Si vede solo
+      // quando c'è: un riquadro vuoto sempre acceso diceva una regola che
+      // quasi mai è in gioco (render lo accende e lo spegne).
+      controlSlots.set(seat, markSlot(CONTROL_X, back, t("zone.control")));
 
       // I cinque slot del Fronte, al centro. L'etichetta è una sola per il
       // gruppo: cinque scritte "Fronte" in fila sarebbero solo rumore.
@@ -573,7 +624,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const live = ctx.state().cards[card.uid];
       if (!live) return;
       // RBF-004: la Vendetta promessa «al prossimo Umano che attacca» si
-      // dà adesso, se è lui — senza scena, con la freccia.
+      // dà adesso, se è lui — senza scena: il segno resta sulla carta.
       for (const grant of pendingGrants(ctx.state(), live, ctx.card)) await playGrant(grant, live);
       const returns = returnsFor(ctx.state(), live, ctx.card, "on_attack");
       const draws = attackDraws(ctx.state(), live, ctx.card);
@@ -616,7 +667,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           who,
           effects: attackEffects(source.cardId, source.face, ctx.locale()),
           triggers: group.map(step => describeAttackStep(step, ctx.card)),
-          kicker: t("scene.attack"),
+          // Non è questa carta ad attaccare: si innesca PERCHÉ qualcuno
+          // attacca. Il Rubyfront non attacca mai (§3.1), e leggergli sopra
+          // «Quando attacca» faceva pensare a un attacco suo — la riga sotto
+          // dice già chi attacca e con che carta.
+          kicker: t("scene.attack.other"),
           onContinue: () => void playAttackSteps(group),
         });
       }
@@ -627,12 +682,16 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     for (const step of steps) await playAttackStep(step);
   }
 
-  /** RBF-004: la Vendetta al prossimo Umano, con la freccia dalla fonte. */
+  /**
+   * RBF-004: la Vendetta al prossimo Umano. La fonte si accende e basta:
+   * la parola chiave ottenuta si segna sulla carta che la ottiene
+   * (markMarks), e quel segno resta finché dura — una freccia che sparisce
+   * non lo diceva.
+   */
   async function playGrant(step: AttackStep, target: CardInstance): Promise<void> {
     if (step.form.kind !== "empower" || !step.form.grants) return;
     const by = controllerOf(step.source);
     light(step.source.uid, true);
-    flashArrow(step.source.uid, target.uid, FLY_MS);
     await wait(TRIGGER_LEAD_MS);
     const passed = await ctx.dispatch({ t: "empower", uid: target.uid, grants: step.form.grants, effect: attackRef(step) });
     if (passed) {
@@ -663,7 +722,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             if (passed) ctx.log(msg("log.effect.empower", { seat: by, sourceCard: step.source.cardId, card: step.attacker.cardId, n: form.power ?? 0 }), by);
           } else if (form.targets === "others_armed") {
             for (const target of otherArmed(ctx.state(), by, step.source.uid, ctx.card)) {
-              flashArrow(step.source.uid, target.uid, FLY_MS);
+              strike(target.uid, FLY_MS);
               const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: form.power, effect: attackRef(step) });
               if (passed) ctx.log(msg("log.effect.empower", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.power ?? 0 }), by);
               await wait(TRIGGER_TAIL_MS);
@@ -676,16 +735,16 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             }
             const target = await pickTarget(step.source, foes, t("target.raid"));
             if (!target) break;
-            flashArrow(step.source.uid, target.uid, 60_000);
+            strike(target.uid, 60_000);
             const sure = await confirmEffect(root, t("confirm.raid", { card: `«${ctx.card(target.cardId).name}»` }));
             if (!sure) {
-              flashArrow(step.source.uid, target.uid, 0);
+              strike(target.uid, 0);
               break;
             }
             const passed = await ctx.dispatch({ t: "empower", uid: target.uid, restrict: "block", effect: attackRef(step) });
             if (passed) ctx.log(msg("log.effect.restrict", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
             await wait(TRIGGER_TAIL_MS);
-            flashArrow(step.source.uid, target.uid, 0);
+            strike(target.uid, 0);
           }
           break;
         }
@@ -926,6 +985,29 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     return attacker ? otherSeat(controllerOf(attacker)) : null;
   }
 
+  /**
+   * §6.5 — «non si possono avere più di 7 carte in mano: alla fine del
+   * proprio turno, le carte in eccesso vanno scartate (nell'Abisso)». Con
+   * l'eccesso in mano lo scarto è l'unico modo di andare nell'Abisso a
+   * mano, e il gesto resta sempre possibile.
+   */
+  function canDiscard(card: CardInstance): boolean {
+    return card.zone === "hand" && ctx.controls(card.owner) && zoneCards(ctx.state(), card.owner, "hand").length > 7;
+  }
+
+  /**
+   * L'invito a scartare: l'Abisso acceso. Non si accende da sé alla settima
+   * carta — sarebbe un rimprovero per tutto il turno, e §6.5 è una regola di
+   * CHIUSURA: pescare l'ottava a metà turno è legale. Si accende quando il
+   * Fine turno viene fermato, e si spegne al primo scarto o al cambio di
+   * turno: il turno se lo porta scritto, così non riaccende quello dopo.
+   */
+  let discardPrompt: { seat: Seat; turn: number } | null = null;
+
+  function clearDiscardPrompt(seat: Seat): void {
+    if (discardPrompt?.seat === seat) discardPrompt = null;
+  }
+
   /** La carta è scegliibile nel modo bersaglio in corso? */
   function pickable(card: CardInstance): boolean {
     if (!targeting) return false;
@@ -957,6 +1039,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    */
   function pickTarget(source: CardInstance, candidates: CardInstance[], hint: string): Promise<CardInstance | null> {
     return new Promise(resolve => {
+      // Mentre un effetto si risolve il tavolo è insensibile al puntatore
+      // (`is-resolving`), perché nessuno ci metta le mani a metà. Ma la mira
+      // È il gesto del giocatore: qui la presa si molla, e si riprende
+      // scelto il bersaglio — o rinunciando. Senza, la carta da colpire non
+      // si lasciava cliccare (RBF-005, «un'Entità avversaria non potrà
+      // bloccare»).
+      const held = document.body.classList.contains("is-resolving");
+      if (held) hold(false);
+      const release = (): void => {
+        if (held) hold(true);
+      };
       targeting = {
         mode: "effect",
         source: source.uid,
@@ -966,10 +1059,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           targeting = null;
           document.body.classList.remove("is-targeting");
           targetHint.hidden = true;
+          release();
           render();
           resolve(card);
         },
-        cancel: () => resolve(null),
+        cancel: () => {
+          release();
+          resolve(null);
+        },
       };
       document.body.classList.add("is-targeting");
       targetHint.textContent = t("target.esc", { hint });
@@ -978,14 +1075,35 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     });
   }
 
-  /** Una freccia di passaggio dalla fonte al bersaglio, per il tempo dell'effetto. */
-  function flashArrow(fromUid: string, toUid: string, ms: number): void {
-    const from = ctx.state().cards[fromUid];
-    const to = ctx.state().cards[toUid];
-    if (!from || !to || from.zone !== "field" || to.zone !== "field") return;
-    transientArrows.push({ arrow: { kind: "effect", from: boxOf(from), to: boxOf(to) }, until: Date.now() + ms });
-    render();
-    window.setTimeout(render, ms + 20);
+  /**
+   * La carta colpita da un effetto si accende di rosso per un attimo.
+   *
+   * Prima era una freccia dalla fonte al bersaglio, ma una freccia che
+   * compare e sparisce si legge male: chiede di seguire due punti mentre la
+   * cosa che conta è UNA, la carta toccata. Il lampo sta addosso a lei.
+   * `ms` a zero spegne subito — serve a chi tiene acceso il bersaglio
+   * mentre chiede conferma, e poi lo lascia.
+   */
+  const strikes = new Map<string, number>();
+
+  function strike(uid: string, ms: number): void {
+    const tile = tiles.get(uid);
+    window.clearTimeout(strikes.get(uid));
+    strikes.delete(uid);
+    if (!tile) return;
+    if (ms <= 0) {
+      tile.classList.remove("is-struck");
+      return;
+    }
+    // Togliere e rimettere la classe fa ripartire l'animazione anche se la
+    // stessa carta viene colpita due volte di fila.
+    tile.classList.remove("is-struck");
+    void tile.offsetWidth;
+    tile.classList.add("is-struck");
+    strikes.set(uid, window.setTimeout(() => {
+      tile.classList.remove("is-struck");
+      strikes.delete(uid);
+    }, ms));
   }
 
   function pileMenu(seat: Seat, zone: ZoneId): MenuItem[] {
@@ -1097,7 +1215,24 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       run: () => ctx.dispatch({ t: "toZone", uid: card.uid, zone, toBottom }),
     });
     if (mine) items.push(send("hand", t("menu.to.hand")));
-    items.push(send("abisso", t("menu.to.abisso")));
+    // §5/§6.5 — con l'arbitro nell'Abisso non si va a mano: ci si va morendo,
+    // consumandosi (una Materia in campo) o scartando per eccesso a fine
+    // turno. La voce libera resta solo dove l'arbitro la lascerebbe passare;
+    // lo scarto per eccesso ha la sua, che dice perché si può.
+    if (canDiscard(card)) {
+      items.push({
+        label: t("menu.discard"),
+        run: () =>
+          void ctx.dispatch({ t: "toZone", uid: card.uid, zone: "abisso" }).then(passed => {
+            if (!passed) return;
+            clearDiscardPrompt(card.owner);
+            ctx.log(msg("log.discard", { seat: card.owner, card: card.cardId, n: zoneCards(ctx.state(), card.owner, "hand").length }), card.owner);
+            render();
+          }),
+      });
+    } else if (!ctx.arbitrated() || (card.zone === "field" && ctx.card(card.cardId).kind === "matter")) {
+      items.push(send("abisso", t("menu.to.abisso")));
+    }
     items.push(send("ritiro", t("menu.to.ritiro")));
     if (mine) {
       items.push(send("deck", t("menu.to.deck.top")));
@@ -1157,8 +1292,27 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * regola a mano (§3.1). Dice se il gesto è passato.
    */
   async function place(card: CardInstance, x: number, y: number, z: number): Promise<boolean> {
-    if (card.zone === "field") return ctx.dispatch({ t: "move", uid: card.uid, x, y, z });
+    if (card.zone === "field") {
+      // Con l'arbitro i pixel non si sono mossi durante il trascinamento:
+      // riposare la carta dov'era non è uno spostamento, e la dogana degli
+      // slot (§5) fermerebbe a torto un gesto che non c'è.
+      if (ctx.arbitrated() && card.x === x && card.y === y) return true;
+      return ctx.dispatch({ t: "move", uid: card.uid, x, y, z });
+    }
     const facts = ctx.card(card.cardId);
+    // Una Materia che adesso non farebbe nulla (nessun bersaglio, la
+    // condizione non c'è) si gioca solo apposta: l'avviso lo dice prima
+    // di pagare. Il blocco di una Reattiva bloccante è già un effetto.
+    if (card.zone === "hand" && facts.kind === "matter" && facts.resolveForms.length) {
+      const steps = resolveSteps(ctx.state(), card, ctx.card);
+      if (steps.length && steps.every(step => step.blocked !== null && step.form.kind !== "block")) {
+        const go = await confirmEffect(root, t("confirm.matter.noeffect", { card: `«${cardName(card.cardId, ctx.locale())}»` }), { yes: t("confirm.play.anyway"), no: t("confirm.play.not") });
+        if (!go) {
+          render();
+          return false;
+        }
+      }
+    }
     let cost = card.zone === "hand" && !isRubyfront(card.cardId) ? facts.fluxCost : null;
     // Una Materia che chiede il bersaglio già giocandola (RBF-021: «se
     // bersaglia un'Entità tappata, costa 3 in meno»): si mira prima, il
@@ -1172,6 +1326,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (foes.length) target = await pickTarget(card, foes, t("target.judgment.play", { n: discount }));
       cost = discountedCost(ctx.state(), card.cardId, target, ctx.card);
     }
+    // §7.2 — la Reattiva giocata apre (o allunga) la catena di risposta: il
+    // segno viaggia nell'azione, e l'engine lo pretende.
+    const reactive = card.zone === "hand" && facts.kind === "matter" && facts.behavior === "reactive";
     const passed = await ctx.dispatch({
       t: "toZone",
       uid: card.uid,
@@ -1181,6 +1338,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       z,
       ...(cost !== null ? { cost } : {}),
       ...(target ? { target: target.uid } : {}),
+      ...(reactive ? { chain: true as const } : {}),
     });
     const effects = card.zone === "hand" ? enterEffects(card.cardId, card.face, ctx.locale()) : [];
     if (passed && cost !== null) {
@@ -1193,6 +1351,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // passi, «Risolvi» li esegue, e la carta — se non è permanente — va
     // nell'Abisso. Quella che «si gioca come blocco» (RBF-020) prima
     // sceglie l'attaccante da fermare.
+    if (passed && reactive) {
+      // La Reattiva aspetta in catena: si risolve quando l'avversario
+      // accetta (driveChain), non adesso.
+      void openChain(ctx.state().cards[card.uid] ?? card);
+      return passed;
+    }
     if (passed && card.zone === "hand" && facts.kind === "matter" && facts.resolveForms.length) {
       const live = ctx.state().cards[card.uid] ?? card;
       void playMatter(live, effects);
@@ -1232,34 +1396,58 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   }
 
   /**
-   * Una Materia giocata (§7.2): «gioca questa carta come blocco» sceglie
-   * prima l'attaccante da fermare (senza, la carta si consuma a vuoto);
-   * poi la scena coi passi e «Risolvi»; risolta, la Materia normale o
-   * Reattiva va nell'Abisso — la Reattiva che blocca resta finché
-   * l'ondata si risolve (§6.4), la permanente resta in gioco.
+   * Una Materia normale o permanente giocata (§7.2): la scena coi passi e
+   * «Risolvi», e la normale va nell'Abisso. Le Reattive non passano di qui:
+   * aprono la catena (openChain) e si risolvono quando l'avversario accetta.
    */
   async function playMatter(matter: CardInstance, effects: { tag: string; text: string }[]): Promise<void> {
+    await resolveMatter(matter, effects, false);
+  }
+
+  /**
+   * §7.2 — la Reattiva giocata è in catena. Quella che ferma un attaccante
+   * (RBF-040, §6.4) lo sceglie subito: il blocco è la giocata; senza
+   * attaccante si consuma a vuoto ed esce dalla catena. Poi si aspetta la
+   * parola dell'avversario.
+   */
+  async function openChain(matter: CardInstance): Promise<void> {
     const facts = ctx.card(matter.cardId);
     const by = controllerOf(matter);
-    let blocking = false;
-    if (playsAsBlock(facts)) {
-      const attackers = attackersOf(ctx.state(), otherSeat(by), null, ctx.card).filter(card => !ctx.state().declarations.some(d => d.to === card.uid && d.kind !== "attack"));
-      const attacker = attackers.length ? await pickTarget(matter, attackers, t("target.blockwith")) : null;
-      if (attacker) {
-        const passed = await ctx.dispatch({
-          t: "declare",
-          declaration: { id: crypto.randomUUID(), from: matter.uid, to: attacker.uid, kind: "block", seat: by, order: 0 },
-        });
-        if (passed) {
-          blocking = true;
-          ctx.log(msg("log.effect.blockwith", { seat: by, card: attacker.cardId, sourceCard: matter.cardId }), by);
-        }
-      }
+    if (blocksAttacker(facts)) {
+      const blocking = await declareMatterBlock(matter);
       if (!blocking) {
         await spendMatter(matter);
         return;
       }
     }
+    const stack = ctx.state().chain?.stack ?? [];
+    ctx.log(msg(stack.length > 1 ? "log.chain.respond" : "log.chain.open", { seat: by, card: matter.cardId }), by);
+  }
+
+  /** «Gioca questa carta come blocco a un attaccante» (§6.4): sceglie e dichiara. Dice se blocca. */
+  async function declareMatterBlock(matter: CardInstance): Promise<boolean> {
+    const by = controllerOf(matter);
+    const attackers = attackersOf(ctx.state(), otherSeat(by), null, ctx.card).filter(card => !ctx.state().declarations.some(d => d.to === card.uid && d.kind !== "attack"));
+    const attacker = attackers.length ? await pickTarget(matter, attackers, t("target.blockwith")) : null;
+    if (!attacker) return false;
+    const passed = await ctx.dispatch({
+      t: "declare",
+      declaration: { id: crypto.randomUUID(), from: matter.uid, to: attacker.uid, kind: "block", seat: by, order: 0 },
+    });
+    if (passed) ctx.log(msg("log.effect.blockwith", { seat: by, card: attacker.cardId, sourceCard: matter.cardId }), by);
+    return passed;
+  }
+
+  /**
+   * La risoluzione di una Materia (§7.2): la scena coi passi e «Risolvi»;
+   * risolta, la normale o Reattiva va nell'Abisso — la Reattiva che blocca
+   * resta finché l'ondata si risolve (§6.4), la permanente resta in gioco.
+   * Se era in catena, chiuso il passo esce dalla pila (`settle`), e la
+   * catena passa alla carta sotto.
+   */
+  async function resolveMatter(matter: CardInstance, effects: { tag: string; text: string }[], blocking: boolean): Promise<void> {
+    const facts = ctx.card(matter.cardId);
+    const by = controllerOf(matter);
     const steps = pendingResolve(ctx.state(), matter, ctx.card);
     await showEnterEffect(root, {
       cardId: matter.cardId,
@@ -1270,13 +1458,38 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       effects,
       triggers: steps.map(step => describeResolveStep(step, ctx.card)),
       kicker: t("scene.resolve.matter"),
-      onContinue: () => {
-        void (async () => {
-          for (const step of steps) await playResolveStep(step);
-          if (facts.behavior !== "permanent" && !blocking) await spendMatter(matter);
-        })();
-      },
+      // I passi seguono la scena, qui sotto: il tasto dice solo «Risolvi».
+      onContinue: () => undefined,
     });
+    for (const step of steps) await playResolveStep(step);
+    if (facts.behavior !== "permanent" && !blocking) await spendMatter(matter);
+    if (ctx.state().chain?.stack.includes(matter.uid)) await ctx.dispatch({ t: "settle", uid: matter.uid });
+  }
+
+  /**
+   * §7.2 — la catena si risolve «in ordine inverso: l'ultima Materia giocata
+   * si risolve per prima». Chi comanda la carta in cima la risolve; risolta,
+   * esce dalla pila e la cima passa alla carta sotto, che il suo client
+   * risolverà a sua volta — ogni lavagna passa di qui a ogni ridisegno, e
+   * si muove solo per una carta sua, una alla volta.
+   */
+  let chainBusy: string | null = null;
+  function driveChain(): void {
+    const state = ctx.state();
+    if (!state.chain?.resolving || chainBusy) return;
+    const top = chainTop(state);
+    if (!top || top.zone !== "field" || !ctx.controls(controllerOf(top))) return;
+    chainBusy = top.uid;
+    const blocking = state.declarations.some(d => d.from === top.uid && d.kind === "block");
+    void resolveMatter(top, enterEffects(top.cardId, top.face, ctx.locale()), blocking).finally(() => {
+      chainBusy = null;
+      render();
+    });
+  }
+
+  /** Il posto della carta in catena, al centro del tavolo, a scaletta: in coordinate di VISTA. */
+  function chainSpot(index: number): { x: number; y: number } {
+    return { x: (SURFACE_W - TILE_W) / 2 + index * 44, y: (surfaceViewH() - tileViewH()) / 2 + index * 26 };
   }
 
   /** La Materia risolta va nell'Abisso (§7.2: «poi la carta va nell'Abisso»). */
@@ -1326,7 +1539,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             const target = await pickTarget(step.source, step.candidates, t("target.formation"));
             if (!target) break;
             hold(true);
-            flashArrow(step.source.uid, target.uid, FLY_MS);
+            strike(target.uid, FLY_MS);
             await wait(CONFIRMED_LEAD_MS);
             const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: form.power, untap: true, effect: ref });
             if (passed) ctx.log(msg("log.effect.untap", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.power }), by);
@@ -1334,7 +1547,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             hold(true);
             await wait(TRIGGER_LEAD_MS);
             for (const target of step.candidates) {
-              flashArrow(step.source.uid, target.uid, FLY_MS);
+              strike(target.uid, FLY_MS);
               const passed = await ctx.dispatch({ t: "empower", uid: target.uid, counter: form.counter, untap: true, effect: ref });
               if (passed) ctx.log(msg("log.effect.counter", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.counter }), by);
               await wait(TRIGGER_TAIL_MS);
@@ -1348,11 +1561,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           const hint = form.kind === "move" ? "target.impact" : form.kind === "exile" ? "target.repulse" : "target.judgment";
           const target = step.candidates.length === 1 && step.source.target ? step.candidates[0] : await pickTarget(step.source, step.candidates, t(hint));
           if (!target) break;
-          flashArrow(step.source.uid, target.uid, 60_000);
+          strike(target.uid, 60_000);
           const question = form.kind === "move" ? "confirm.impact" : form.kind === "exile" ? "confirm.repulse" : "confirm.judgment";
           const sure = await confirmEffect(root, t(question, { card: `«${ctx.card(target.cardId).name}»` }));
           if (!sure) {
-            transientArrows = [];
+            strike(target.uid, 0);
             render();
             break;
           }
@@ -1366,7 +1579,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
                 ? { t: "toZone", uid: target.uid, zone: "abisso", heldBy: step.source.uid, effect: ref }
                 : { t: "toZone", uid: target.uid, zone: "abisso", effect: ref }
           );
-          transientArrows = [];
+          strike(target.uid, 0);
           if (passed) {
             fly?.();
             const line = form.kind === "move" ? "log.effect.retire" : form.kind === "exile" ? "log.effect.exile" : "log.effect.destroy";
@@ -1375,6 +1588,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           } else {
             render();
           }
+          break;
+        }
+        case "block": {
+          // RBF-040 — il blocco è già avvenuto giocandola (§6.4); qui la
+          // cura, se gli armati sul Fronte bastano (sennò step.blocked).
+          hold(true);
+          await wait(TRIGGER_LEAD_MS);
+          const hp = ctx.state().players[by].hp + form.heal;
+          const passed = await ctx.dispatch({ t: "player", seat: by, patch: { hp }, effect: ref });
+          if (passed) ctx.log(msg("log.effect.heal", { seat: by, sourceCard: step.source.cardId, n: form.heal, hp }), by);
+          await wait(TRIGGER_TAIL_MS);
           break;
         }
         case "fortune": {
@@ -1477,7 +1701,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         await wait(TRIGGER_LEAD_MS);
         if (step.form.kind === "move") {
           for (const target of flipSteps(ctx.state(), step.source, ctx.card).find(s => s.form === step.form)?.candidates ?? []) {
-            flashArrow(step.source.uid, target.uid, FLY_MS);
+            strike(target.uid, FLY_MS);
             const fly = liftForFlight(target.uid);
             const passed = await ctx.dispatch({ t: "toZone", uid: target.uid, zone: "abisso", effect: flipRef(step.source) });
             if (passed) {
@@ -1651,7 +1875,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const layoutH = tile.offsetHeight;
     const ghost = tile.cloneNode(true) as HTMLElement;
     ghost.classList.add("fly-ghost");
-    ghost.classList.remove("is-pickable", "is-legal", "is-triggering");
+    ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck");
     ghost.style.position = "fixed";
     ghost.style.left = `${from.left}px`;
     ghost.style.top = `${from.top}px`;
@@ -1691,7 +1915,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const layoutH = tile.offsetHeight;
     const ghost = tile.cloneNode(true) as HTMLElement;
     ghost.classList.add("fly-ghost");
-    ghost.classList.remove("is-pickable", "is-legal", "is-triggering");
+    ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck");
     ghost.style.position = "fixed";
     ghost.style.left = `${to.left}px`;
     ghost.style.top = `${to.top}px`;
@@ -1764,7 +1988,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const to = landed.getBoundingClientRect();
       const ghost = landed.cloneNode(true) as HTMLElement;
       ghost.classList.add("fly-ghost");
-      ghost.classList.remove("is-pickable", "is-legal", "is-triggering");
+      ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck");
       ghost.style.position = "fixed";
       ghost.style.left = `${to.left}px`;
       ghost.style.top = `${to.top}px`;
@@ -1799,10 +2023,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       light(step.source.uid, false);
       return;
     }
-    flashArrow(step.source.uid, target.uid, 60_000);
+    strike(target.uid, 60_000);
     const sure = await confirmEffect(root, t("confirm.control", { card: `«${ctx.card(target.cardId).name}»` }));
     if (!sure) {
-      transientArrows = [];
+      strike(target.uid, 0);
       light(step.source.uid, false);
       render();
       return;
@@ -1813,7 +2037,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       await wait(CONFIRMED_LEAD_MS);
       const fly = liftToFlight(target.uid);
       passed = await resolveControl(ctx, step, target);
-      transientArrows = [];
+      strike(target.uid, 0);
       if (passed) {
         fly?.();
         await wait(FLY_MS);
@@ -1883,11 +2107,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       light(step.source.uid, false);
       return;
     }
-    // Scelto il bersaglio, si chiede conferma — con la freccia in vista.
-    flashArrow(step.source.uid, target.uid, 60_000);
+    // Scelto il bersaglio, si chiede conferma — con la carta accesa.
+    strike(target.uid, 60_000);
     const sure = await confirmEffect(root, t("confirm.retire", { card: `«${ctx.card(target.cardId).name}»` }));
     if (!sure) {
-      transientArrows = [];
+      strike(target.uid, 0);
       light(step.source.uid, false);
       render();
       return;
@@ -1897,7 +2121,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       await wait(CONFIRMED_LEAD_MS);
       const fly = liftForFlight(target.uid);
       const passed = await resolveMove(ctx, step, target);
-      transientArrows = [];
+      strike(target.uid, 0);
       if (passed) {
         fly?.();
         await wait(FLY_MS + TRIGGER_TAIL_MS);
@@ -1963,7 +2187,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const bound = ctx.arbitrated() ? boundSpot(card, { ...free, ...(drop.snapped ? { x: drop.x, y: drop.y } : {}), snapped: drop.snapped }) : undefined;
       const origin = dragOrigin;
       const giveBack = (): void => {
-        if (origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
+        // Con l'arbitro i pixel non hanno viaggiato: la carta è già dov'era,
+        // e un «torna indietro» sarebbe uno spostamento vero — che la dogana
+        // degli slot (§5) fermerebbe con un secondo sigillo. Basta ridisegnare.
+        const live = ctx.state().cards[card.uid];
+        if (origin && live && (live.x !== origin.x || live.y !== origin.y)) {
+          void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
+        } else {
+          render();
+        }
       };
       if (bound === null) {
         giveBack();
@@ -2038,8 +2270,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // Fermata dall'arbitro (es. §5: dal campo non si torna in mano): i pixel
     // del trascinamento possono aver mosso la carta — torna da dove era.
     const origin = dragOrigin;
+    const discarding = drop.zone === "abisso" && canDiscard(card);
     void ctx.dispatch({ t: "toZone", uid: card.uid, zone: drop.zone }).then(passed => {
       if (!passed && origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
+      if (passed && discarding) {
+        clearDiscardPrompt(card.owner);
+        ctx.log(msg("log.discard", { seat: card.owner, card: card.cardId, n: zoneCards(ctx.state(), card.owner, "hand").length }), card.owner);
+        render();
+      }
     });
   }
 
@@ -2159,6 +2397,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   /** Rettangolo di una carta in coordinate della superficie. */
   function boxOf(card: CardInstance): Arrow["from"] {
+    const chainIndex = ctx.state().chain?.stack.indexOf(card.uid) ?? -1;
+    if (chainIndex >= 0) return { ...chainSpot(chainIndex), w: TILE_W, h: tileViewH() };
     return { x: card.x, y: view(card.y), w: TILE_W, h: tileViewH() };
   }
 
@@ -2195,12 +2435,33 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     drawArrows(arrowLayer, arrows);
   }
 
-  /** Distintivo d'angolo: il numero d'ondata, o lo scudo di chi ferma. */
-  function markCombat(tile: HTMLElement, card: CardInstance): void {
-    const declaration = declarationOf(ctx.state(), card.uid);
+  /**
+   * I segni che valgono solo in campo: combattimento — col distintivo
+   * d'angolo, il numero d'ondata o lo scudo di chi ferma — Stasi, bersaglio.
+   *
+   * Le tessere stanno in cache per uid e si riusano da una zona all'altra,
+   * quindi i segni vanno spenti a mano quando la carta lascia la lavagna:
+   * l'attaccante che muore sotto Vendetta arrivava sulla cima dell'Abisso
+   * ancora contornato di rosso, col suo numero d'ondata addosso.
+   */
+  function markField(tile: HTMLElement, card: CardInstance): void {
+    const onField = card.zone === "field";
+    const declaration = onField ? declarationOf(ctx.state(), card.uid) : undefined;
     tile.classList.toggle("is-attacking", declaration?.kind === "attack");
     tile.classList.toggle("is-blocking", declaration?.kind === "block");
     tile.classList.toggle("is-countering", declaration?.kind === "counter");
+
+    // In modo bersaglio: le carte in campo del difensore sono scegliibili, e
+    // fra queste si accendono quelle che le regole permetterebbero. Le altre
+    // si smorzano soltanto — restano cliccabili.
+    const canPick = onField && pickable(card);
+    const stasis = onField && card.stasis === true;
+    tile.classList.toggle("is-stasis", stasis);
+    if (stasis) tile.dataset.stasis = t("tile.stasis");
+    else delete tile.dataset.stasis;
+    tile.classList.toggle("is-pickable", canPick);
+    tile.classList.toggle("is-legal", canPick && (targeting?.mode === "effect" || looksPlayable(card)));
+    markMarks(tile, card, onField);
 
     let badge = tile.querySelector<HTMLElement>(".combat-badge");
     if (!declaration) {
@@ -2214,6 +2475,92 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     badge.textContent = declaration.kind === "attack" ? String(declaration.order) : "⛨";
     badge.className = `combat-badge is-${declaration.kind}`;
+  }
+
+  /**
+   * §8.2 — i segni di ciò che la carta ha in più rispetto allo stampato, in
+   * colonna in basso a destra: lo scarto di Potenza (statici e potenziamenti
+   * fino a fine turno: «+1 mentre attacca, se sul tuo Fronte c'è un'altra
+   * Entità Umana», RBF-002), le parole chiave ottenute — da un effetto fino
+   * a fine turno («la prossima Entità Umana che attacca ottiene Vendetta»,
+   * RBF-004) o da un Oggetto addosso («se è Umana ha anche Stasi»,
+   * RBF-013) — e il Contrattacco in più (RBF-020). Ogni abilità ottenuta si
+   * segna sulla carta che la ottiene: è la regola generale del tavolo, e
+   * prende il posto delle frecce, che sparivano.
+   *
+   * Il numero stampato sulla carta non cambia mai, e senza un segno il
+   * giocatore non ha modo di accorgersi di ciò che si accende e si spegne
+   * da solo. I segni sono pezzi della carta (le sue icone, il suo serif, il
+   * suo rubino), non adesivi. Non si mostrano su una carta coperta: finché
+   * è coperta è come se non fosse in campo (§6.3).
+   */
+  function markMarks(tile: HTMLElement, card: CardInstance, onField: boolean): void {
+    let box = tile.querySelector<HTMLElement>(".tile-marks");
+    const marks: { key: string; cls: string; icon: string; text: string; title: string }[] = [];
+    if (onField && !card.facedown) {
+      const facts = ctx.card(card.cardId);
+      const state = ctx.state();
+      const now = facts.power === null ? null : powerOf(card, ctx.card, state);
+      if (now !== null && facts.power !== null && now !== facts.power) {
+        const delta = now - facts.power;
+        // Il segno meno è quello tipografico (U+2212), come sulle carte.
+        const sign = delta > 0 ? `+${delta}` : `−${-delta}`;
+        // Da dove viene lo scarto: gli statici delle carte in campo restano
+        // finché resta la carta che li dà (l'Oggetto assegnato, l'Umano
+        // accanto), i potenziamenti cadono col turno. Sono due cose diverse
+        // e il numero da solo non le distingue: il suggerimento sì.
+        const fromTurn = card.powerBonus ?? 0;
+        const fromField = staticPower(state, card, ctx.card);
+        const parts =
+          (fromField ? t("tile.power.static", { delta: fromField > 0 ? `+${fromField}` : `−${-fromField}` }) : "") +
+          (fromTurn ? t("tile.power.turn", { delta: fromTurn > 0 ? `+${fromTurn}` : `−${-fromTurn}` }) : "");
+        marks.push({ key: "power", cls: delta > 0 ? "power-delta is-up" : "power-delta is-down", icon: SWORDS_SVG, text: sign, title: t("tile.power", { n: now, printed: facts.power, parts }) });
+      }
+      // Le parole chiave date da un Oggetto «mentre assegnato» (RBF-013),
+      // se la razza è quella chiesta; poi quelle concesse fino a fine turno.
+      const fromObjects = new Set<string>();
+      for (const object of wornBy(state, card.uid)) {
+        for (const grant of ctx.card(object.cardId).grantsWhileAssigned) {
+          if (grant.ifRace === null || grant.ifRace === facts.race) grant.keywords.forEach(keyword => fromObjects.add(keyword));
+        }
+      }
+      const untilEnd = card.grants ?? [];
+      for (const keyword of new Set([...untilEnd, ...fromObjects])) {
+        // Stampata sulla carta: niente da segnare.
+        if (facts.keywords.includes(keyword)) continue;
+        const what = t(`grant.${keyword}`);
+        const how = untilEnd.includes(keyword) ? "tile.grant.turn" : "tile.grant.assigned";
+        marks.push({ key: `grant:${keyword}`, cls: "grant-mark", icon: "", text: what, title: t(how, { what }) });
+      }
+      if (card.counterBonus) {
+        marks.push({ key: "counter", cls: "counter-mark", icon: COUNTER_SVG, text: `+${card.counterBonus}`, title: t("tile.counter.turn", { n: card.counterBonus }) });
+      }
+    }
+    if (marks.length === 0) {
+      box?.remove();
+      return;
+    }
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "tile-marks";
+      tile.append(box);
+    }
+    // Ogni render passa di qui: si ricostruisce solo se qualcosa è cambiato.
+    const signature = marks.map(mark => `${mark.key}=${mark.text}`).join("|");
+    if (box.dataset.signature === signature) return;
+    box.dataset.signature = signature;
+    box.replaceChildren(
+      ...marks.map(mark => {
+        const chip = document.createElement("span");
+        chip.className = mark.cls;
+        chip.innerHTML = mark.icon;
+        const label = document.createElement("b");
+        label.textContent = mark.text;
+        chip.append(label);
+        chip.title = mark.title;
+        return chip;
+      })
+    );
   }
 
   function render(): void {
@@ -2230,6 +2577,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       for (const pile of PILES) {
         const slot = pileSlots.get(`${seat}:${pile.zone}`)!;
         const cards = zoneCards(state, seat, pile.zone);
+        // §6.5 — la mano oltre le 7: l'Abisso di quel posto si accende e
+        // invita, perché scartare lì è l'ultimo gesto prima del Fine turno.
+        const discard =
+          pile.zone === "abisso" &&
+          discardPrompt?.seat === seat &&
+          discardPrompt.turn === state.turn &&
+          ctx.controls(seat) &&
+          zoneCards(state, seat, "hand").length > 7;
+        slot.classList.toggle("is-discard", discard);
+        if (discard) slot.dataset.hint = t("slot.discard");
+        else delete slot.dataset.hint;
         slot.dataset.count = String(cards.length);
         const caption = slot.querySelector<HTMLElement>(".slot-label")!;
         caption.textContent = `${t(pile.label)} · ${cards.length}`;
@@ -2237,6 +2595,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         if (top) {
           alive.add(top.uid);
           const tile = tileFor(top, pile.hidden);
+          markField(tile, top);
           if (tile.parentElement !== slot) slot.append(tile);
           tile.style.left = "";
           tile.style.top = "";
@@ -2251,24 +2610,46 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       }
     }
 
+    for (const [seat, slot] of controlSlots) {
+      slot.style.visibility = fieldCards(state).some(card => card.controller === seat) ? "" : "hidden";
+    }
+
+    // §7.2 — la barra della catena: cosa c'è in cima, e a chi tocca.
+    const chain = state.chain;
+    const top = chainTop(state);
+    if (chain && top) {
+      const card = `«${cardName(top.cardId, ctx.locale())}»`;
+      const mine = !chain.resolving && ctx.controls(chain.turn);
+      chainText.textContent = chain.resolving
+        ? t("chain.bar.resolving")
+        : mine
+          ? t("chain.bar.mine", { card })
+          : t("chain.bar.theirs", { card, name: seatLabel(state, chain.turn, me) });
+      chainAccept.hidden = !mine;
+      chainBar.hidden = false;
+    } else {
+      chainBar.hidden = true;
+    }
+
     for (const card of fieldCards(state)) {
       alive.add(card.uid);
       const tile = tileFor(card, card.facedown);
-      markCombat(tile, card);
-      // In modo bersaglio: le carte in campo del difensore sono scegliibili, e
-      // fra queste si accendono quelle che le regole permetterebbero. Le altre
-      // si smorzano soltanto — restano cliccabili.
-      const canPick = pickable(card);
-      tile.classList.toggle("is-stasis", card.stasis === true);
-      if (card.stasis) tile.dataset.stasis = t("tile.stasis");
-      else delete tile.dataset.stasis;
-      tile.classList.toggle("is-pickable", canPick);
-      tile.classList.toggle("is-legal", canPick && (targeting?.mode === "effect" || looksPlayable(card)));
+      markField(tile, card);
       if (tile.parentElement !== surface) surface.append(tile);
+      // La carta in catena (§7.2) sta al centro del tavolo, a scaletta,
+      // sopra tutto: i suoi pixel di lavagna restano quelli della fila
+      // delle Materie, dove tornerebbe se la catena si sciogliesse.
+      const chainIndex = chain?.stack.indexOf(card.uid) ?? -1;
       if (card.uid !== dragging) {
         tile.style.position = "absolute";
-        tile.style.left = `${card.x}px`;
-        tile.style.top = `${view(card.y)}px`;
+        if (chainIndex >= 0) {
+          const spot = chainSpot(chainIndex);
+          tile.style.left = `${spot.x}px`;
+          tile.style.top = `${spot.y}px`;
+        } else {
+          tile.style.left = `${card.x}px`;
+          tile.style.top = `${view(card.y)}px`;
+        }
       }
       // Il margine negativo è un vestito della mano affollata: se la tessera
       // arriva da lì e se lo tenesse addosso, si disegnerebbe a sinistra del
@@ -2279,7 +2660,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       tile.style.height = `${tileViewH()}px`;
       tile.classList.toggle("is-cropped", isCompactView());
       tile.classList.remove("is-unaffordable");
-      tile.style.zIndex = String(10 + card.z);
+      tile.style.zIndex = chainIndex >= 0 ? String(900 + chainIndex) : String(10 + card.z);
     }
 
     for (const [seat, host, tag] of [[me, myHand, myTag], [foe, oppHand, oppTag]] as const) {
@@ -2317,6 +2698,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         // La mano di un posto governato si vede scoperta: in rete solo la
         // propria, in partita locale anche quella in alto.
         const tile = tileFor(card, !ctx.controls(seat));
+        markField(tile, card);
         tile.style.position = "relative";
         tile.style.left = "";
         tile.style.top = "";
@@ -2376,12 +2758,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     paintArrows();
     fitPending(document.body);
+    driveChain();
   }
 
   return {
     render,
     flash,
-    flashArrow: (fromUid, toUid) => flashArrow(fromUid, toUid, TRIGGER_LEAD_MS + FLY_MS),
+    promptDiscard(seat) {
+      discardPrompt = { seat, turn: ctx.state().turn };
+      render();
+    },
+    strike: uid => strike(uid, TRIGGER_LEAD_MS + FLY_MS),
     liftForFlight,
     flyFromPile,
     liftToFlight,

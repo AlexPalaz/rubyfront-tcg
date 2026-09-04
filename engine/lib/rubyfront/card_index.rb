@@ -90,6 +90,7 @@ module Rubyfront
     #   RBF-019 { kind: "fortune", die:, gain: { on:, amount: }, deploy: { on:, filter: }, draw: { on:, count: }, all_on: }
     #   RBF-020 { kind: "empower", targets: "own_entities", race:, counter:, untap: true, as_block: true, requires: { count:, race: } }
     #   RBF-021 { kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount:, if_target: "tapped" } }
+    #   RBF-040 { kind: "block", requires_armed:, heal:, as_block: true } — giocata come blocco a un attaccante (§6.4); con N armati sul Fronte, +M PV
     #
     # `flip_forms` sono gli effetti «quando flippa» CERTIFICATI del Nexus
     # (§3.1), evento `on_flip`: RBF-001 { kind: "move", card_id:, from:
@@ -602,7 +603,7 @@ module Rubyfront
         effect = trigger["effect"]
         next unless effect.is_a?(Hash)
 
-        form = resolve_look(effect) || resolve_untap(effect) || resolve_move(effect) || resolve_fortune(effect) || resolve_destroy(effect)
+        form = resolve_look(effect) || resolve_untap(effect) || resolve_move(effect) || resolve_fortune(effect) || resolve_destroy(effect) || resolve_block(effect)
         form&.freeze
       end
     end
@@ -642,6 +643,20 @@ module Rubyfront
                  requires: { count: requires["count"], race: requires["filter"]["race"].is_a?(String) ? requires["filter"]["race"] : nil }.freeze }
       end
       nil
+    end
+
+    # RBF-040: «giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo
+    # Fronte ci sono almeno N Entità con un Oggetto assegnato, guadagni M PV». Gemello: renderer.ts, resolveBlock.
+    def self.resolve_block(effect)
+      return nil unless effect["type"] == "block_attack"
+
+      target = effect["target"]
+      extra = effect["details"]
+      return nil unless target.is_a?(Hash) && target["cardType"] == "entity" && target["controller"] == "opponent" && target["min"] == 1 && target["max"] == 1
+      return nil unless extra.is_a?(Hash) && extra.keys.sort == %w[ifControllerEntitiesWithObjectAtLeast thenControllerGainsHealth]
+      return nil unless extra["ifControllerEntitiesWithObjectAtLeast"].is_a?(Integer) && extra["thenControllerGainsHealth"].is_a?(Integer)
+
+      { kind: "block", requires_armed: extra["ifControllerEntitiesWithObjectAtLeast"], heal: extra["thenControllerGainsHealth"], as_block: true }
     end
 
     # RBF-017 (un'Entità avversaria economica in Ritiro) e RBF-018 (un permanente avversario nell'Abisso, finché questa carta resta).

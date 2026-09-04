@@ -204,7 +204,7 @@ function showEnterPeekNow(root: HTMLElement, show: EnterEffectShow): Promise<voi
  * agire si chiede «davvero?». Un pannello piccolo al centro, «Conferma» o
  * «Annulla» (Invio ed Esc). Risolve true se si conferma.
  */
-export function confirmEffect(root: HTMLElement, question: string): Promise<boolean> {
+export function confirmEffect(root: HTMLElement, question: string, labels?: { yes: string; no: string }): Promise<boolean> {
   const veil = document.createElement("div");
   veil.className = "effect-confirm";
   const panel = document.createElement("div");
@@ -216,11 +216,11 @@ export function confirmEffect(root: HTMLElement, question: string): Promise<bool
   const no = document.createElement("button");
   no.type = "button";
   no.className = "effect-confirm-no";
-  no.textContent = t("confirm.no");
+  no.textContent = labels?.no ?? t("confirm.no");
   const yes = document.createElement("button");
   yes.type = "button";
   yes.className = "effect-go";
-  yes.textContent = t("confirm.yes");
+  yes.textContent = labels?.yes ?? t("confirm.yes");
   row.append(no, yes);
   panel.append(text, row);
   veil.append(panel);

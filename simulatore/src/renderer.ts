@@ -670,7 +670,7 @@ function resolveFormsOf(faces: CardFace[]): ResolveForm[] {
       if (trigger.event !== "on_resolve") continue;
       const effect = trigger.effect as Loose | undefined;
       if (!effect || typeof effect !== "object") continue;
-      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveDestroy(effect);
+      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveDestroy(effect) ?? resolveBlock(effect);
       if (form) out.push(form);
     }
   }
@@ -718,6 +718,17 @@ function resolveUntap(effect: Loose): ResolveForm | null {
     };
   }
   return null;
+}
+
+/** RBF-040: «giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno N Entità con un Oggetto assegnato, guadagni M PV». Specchio di card_index.rb, resolve_block. */
+function resolveBlock(effect: Loose): ResolveForm | null {
+  if (effect.type !== "block_attack") return null;
+  const target = effect.target as Loose | undefined;
+  const extra = effect.details as Loose | undefined;
+  if (!target || target.cardType !== "entity" || target.controller !== "opponent" || target.min !== 1 || target.max !== 1) return null;
+  if (!extra || !Number.isInteger(extra.ifControllerEntitiesWithObjectAtLeast) || !Number.isInteger(extra.thenControllerGainsHealth)) return null;
+  if (Object.keys(extra).sort().join() !== "ifControllerEntitiesWithObjectAtLeast,thenControllerGainsHealth") return null;
+  return { kind: "block", requiresArmed: extra.ifControllerEntitiesWithObjectAtLeast, heal: extra.thenControllerGainsHealth, asBlock: true };
 }
 
 function resolveMove(effect: Loose): ResolveForm | null {

@@ -551,3 +551,80 @@ class TableAttackToolsTest < Minitest::Test
   end
 
 end
+
+# §7.2 — la catena di risposta. Gemello: state.test.ts, «la catena di risposta».
+class TableChainTest < Minitest::Test
+  def setup
+    @table = Rubyfront::Table.new
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "t", "cards" => [{ "uid" => "r1", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "R" }] })
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "t", "cards" => [{ "uid" => "r2", "owner" => "b", "zone" => "hand", "order" => 0, "cardId" => "R" }] })
+  end
+
+  def gioca(uid, chain: true)
+    @table.apply({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 10, "y" => 10, "z" => 2 }.merge(chain ? { "chain" => true } : {}))
+  end
+
+  def test_la_reattiva_apre_la_risposta_allunga_e_l_accettazione_risolve_al_contrario
+    gioca("r1")
+    assert_equal({ stack: ["r1"], turn: "b", resolving: false }, @table.chain)
+    gioca("r2")
+    assert_equal({ stack: %w[r1 r2], turn: "a", resolving: false }, @table.chain)
+    @table.apply({ "t" => "pass", "seat" => "a" })
+    assert_equal({ stack: %w[r1 r2], turn: "a", resolving: true }, @table.chain)
+    assert_equal "r2", @table.chain_top
+    @table.apply({ "t" => "settle", "uid" => "r2" })
+    assert_equal ["r1"], @table.chain[:stack], "risolta, esce dalla pila anche restando in campo"
+    assert_equal "r1", @table.chain_top
+    @table.apply({ "t" => "toZone", "uid" => "r1", "zone" => "abisso" })
+    assert_nil @table.chain
+    assert_nil @table.chain_top
+  end
+
+  def test_senza_il_segno_non_si_apre_il_turno_chiude_e_accettare_senza_catena_non_fa_nulla
+    gioca("r1", chain: false)
+    assert_nil @table.chain
+    @table.apply({ "t" => "pass", "seat" => "b" })
+    assert_nil @table.chain
+    @table.apply({ "t" => "toZone", "uid" => "r1", "zone" => "hand" })
+    gioca("r1")
+    assert_equal ["r1"], @table.chain[:stack]
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_nil @table.chain
+  end
+
+  def test_lo_snapshot_porta_la_catena
+    @table.load({ "active" => "a", "turn" => 3, "phase" => "fronte", "cards" => [], "players" => {},
+                  "chain" => { "stack" => %w[r1 r2], "turn" => "a", "resolving" => true } })
+    assert_equal({ stack: %w[r1 r2], turn: "a", resolving: true }, @table.chain)
+    @table.load({ "active" => "a", "turn" => 3, "cards" => [], "players" => {}, "chain" => { "stack" => [], "turn" => "a" } })
+    assert_nil @table.chain, "pila vuota: nessuna catena"
+  end
+end
+
+# §8.2 — i bonus «fino alla fine del turno» sulla carta che lascia il campo.
+# Gemello: state.test.ts, «il bonus fino a fine turno».
+class TableBonusTest < Minitest::Test
+  def setup
+    @table = Rubyfront::Table.new
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "t", "cards" => [
+                   { "uid" => "u", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "U", "y" => 1236 }] })
+    @table.apply({ "t" => "empower", "uid" => "u", "power" => 1, "counter" => 2, "grants" => ["revenge"], "restrict" => "block" })
+  end
+
+  def test_il_cambio_di_turno_azzera_i_bonus
+    assert_equal 1, @table.card("u")[:power_bonus]
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_nil @table.card("u")[:power_bonus]
+    assert_nil @table.card("u")[:counter_bonus]
+    assert_nil @table.card("u")[:cannot_block]
+    assert_nil @table.card("u")[:grants]
+  end
+
+  def test_chi_lascia_il_campo_lascia_i_bonus
+    @table.apply({ "t" => "toZone", "uid" => "u", "zone" => "abisso" })
+    assert_nil @table.card("u")[:power_bonus], "il ritorno in campo è sempre quello stampato (§3.1, §8.2)"
+    assert_nil @table.card("u")[:counter_bonus]
+    assert_nil @table.card("u")[:cannot_block]
+    assert_nil @table.card("u")[:grants]
+  end
+end

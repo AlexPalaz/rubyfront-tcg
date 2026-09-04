@@ -37,7 +37,6 @@ class CardIndexTest < Minitest::Test
     "RBF-037 matter/veil",
     "RBF-038 matter/evert",
     "RBF-039 matter/refract",
-    "RBF-040 matter/reflect",
     "RBF-041 matter/surge-search",
     "RBF-042 matter/assault",
     "RBF-043 object/confine",
@@ -150,6 +149,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "fortune", die: 20, gain: { on: [1, 6], amount: 4 }, deploy: { on: [7, 13], filter: { type: "entity", race: "human", max_cost: 2 } },
                     draw: { on: [14, 19], count: 1 }, all_on: [20, 20] }], forme.call("RBF-019")
     assert_equal [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, as_block: true, requires: { count: 3, race: "human" } }], forme.call("RBF-020")
+    assert_equal [{ kind: "block", requires_armed: 2, heal: 3, as_block: true }], forme.call("RBF-040"), "RBF-040: giocata come blocco, con 2 armati +3 PV"
     assert_equal [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" } }], forme.call("RBF-021")
     assert_equal [], forme.call("RBF-038"), "«poi perdi 2 PV» è un seguito ignoto: la forma non entra"
     assert_equal [], forme.call("RBF-022"), "la permanente degli Eredi si innesca all'attacco, non alla risoluzione"

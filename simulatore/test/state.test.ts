@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { MATTER_X, frontRowY } from "../src/ctx.js";
-import { STACK_STEP, apply, attackKey, matterSpot, newGame, pay, playSpot, zoneCards } from "../src/state.js";
+import { STACK_STEP, apply, attackKey, matterSpot, newGame, pay, playSpot, zoneCards, chainTop } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
 function deckFor(seat: Seat, count: number): { cards: CardInstance[] } & Extract<Parameters<typeof apply>[1], { t: "loadDeck" }> {
@@ -658,5 +658,79 @@ describe("apply — Eredità Perduta", () => {
     const flip = { source: "rf", event: "on_flip" as const, entering: "rf" };
     expect(attackKey({ t: "player", seat: "a", patch: { sealed: ["RBF-012"] }, effect: flip })).toBe("rf|on_flip:seal|rf");
     expect(attackKey({ t: "toZone", uid: "r", zone: "abisso", effect: flip })).toBe("rf|on_flip:destroy|rf");
+  });
+});
+
+// §7.2 — la catena di risposta. Gemello: table_test.rb, «la catena di risposta».
+describe("la catena di risposta (§7.2)", () => {
+  const reactive = (uid: string, owner: Seat) => ({ uid, cardId: "R", owner, zone: "hand" as const, face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 1 });
+
+  it("una Reattiva apre la catena, la risposta la allunga e passa la parola, l'accettazione la risolve al contrario", () => {
+    let state = newGame("a");
+    state.cards.r1 = reactive("r1", "a");
+    state.cards.r2 = reactive("r2", "b");
+    state = apply(state, { t: "toZone", uid: "r1", zone: "field", x: 10, y: 10, z: 2, chain: true });
+    expect(state.chain).toEqual({ stack: ["r1"], turn: "b", resolving: false });
+    state = apply(state, { t: "toZone", uid: "r2", zone: "field", x: 10, y: 10, z: 3, chain: true });
+    expect(state.chain).toEqual({ stack: ["r1", "r2"], turn: "a", resolving: false });
+    state = apply(state, { t: "pass", seat: "a" });
+    expect(state.chain).toEqual({ stack: ["r1", "r2"], turn: "a", resolving: true });
+    expect(chainTop(state)?.uid).toBe("r2");
+    // L'ultima giocata si risolve per prima e se ne va; poi la prima; poi niente catena.
+    state = apply(state, { t: "settle", uid: "r2" });
+    expect(state.chain?.stack).toEqual(["r1"]);
+    expect(chainTop(state)?.uid).toBe("r1");
+    expect(state.cards.r2.zone).toBe("field");
+    state = apply(state, { t: "toZone", uid: "r1", zone: "abisso" });
+    expect(state.chain).toBeUndefined();
+    expect(chainTop(state)).toBeUndefined();
+  });
+
+  it("una Materia giocata senza il segno della catena non la apre; il cambio di turno la chiude; accettare senza catena non fa nulla", () => {
+    let state = newGame("a");
+    state.cards.r1 = reactive("r1", "a");
+    state = apply(state, { t: "toZone", uid: "r1", zone: "field", x: 10, y: 10, z: 2 });
+    expect(state.chain).toBeUndefined();
+    expect(apply(state, { t: "pass", seat: "b" })).toBe(state);
+    state = apply(state, { t: "toZone", uid: "r1", zone: "hand" });
+    state = apply(state, { t: "toZone", uid: "r1", zone: "field", x: 10, y: 10, z: 2, chain: true });
+    expect(state.chain?.stack).toEqual(["r1"]);
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(state.chain).toBeUndefined();
+  });
+});
+
+// §8.2 — i bonus «fino alla fine del turno». Gemello: table_test.rb, TableBonusTest.
+describe("i bonus fino a fine turno (§8.2)", () => {
+  const armed = (uid: string) => ({
+    uid, cardId: "U", owner: "a" as Seat, zone: "field" as const, face: 0, x: 0, y: 0, order: 0,
+    tapped: false, facedown: false, z: 1, powerBonus: 1, counterBonus: 2, cannotBlock: true as const, grants: ["revenge"],
+  });
+
+  it("cadono col cambio di turno, per tutti", () => {
+    let state = newGame("a");
+    state.cards.u = armed("u");
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(state.cards.u.powerBonus).toBeUndefined();
+    expect(state.cards.u.counterBonus).toBeUndefined();
+    expect(state.cards.u.cannotBlock).toBeUndefined();
+    expect(state.cards.u.grants).toBeUndefined();
+  });
+
+  it("ma non se il contatore del turno si ritocca a mano", () => {
+    let state = newGame("a");
+    state.cards.u = armed("u");
+    state = apply(state, { t: "turn", turn: 2, active: "a" });
+    expect(state.cards.u.powerBonus).toBe(1);
+  });
+
+  it("e chi lascia il campo li lascia lì: il ritorno è sempre quello stampato", () => {
+    let state = newGame("a");
+    state.cards.u = armed("u");
+    state = apply(state, { t: "toZone", uid: "u", zone: "abisso" });
+    expect(state.cards.u.powerBonus).toBeUndefined();
+    expect(state.cards.u.counterBonus).toBeUndefined();
+    expect(state.cards.u.cannotBlock).toBeUndefined();
+    expect(state.cards.u.grants).toBeUndefined();
   });
 });

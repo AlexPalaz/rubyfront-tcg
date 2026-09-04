@@ -377,7 +377,8 @@ class EngineTest < Minitest::Test
     due_bloccanti(engine)
     difesa!(engine)
     engine.judge(dichiarazione("a-1", "b-9", "block"))
-    engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
+    # Muore (la risoluzione la applica da sé): nell'Abisso a mano non si va (§5).
+    engine.observe({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
     assert engine.judge(dichiarazione("a-2", "b-9", "block"))[:ok]
   end
 
@@ -440,7 +441,8 @@ class EngineTest < Minitest::Test
   def test_uno_slot_liberato_riapre_il_fronte
     engine = con_carte
     mano_e_campo(engine, ["LENTA"] * 6, cala: 5)
-    engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
+    # Muore (la risoluzione la applica da sé): nell'Abisso a mano non si va (§5).
+    engine.observe({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
     assert engine.judge({ "t" => "toZone", "uid" => "a-6", "zone" => "field" })[:ok]
   end
 
@@ -507,7 +509,8 @@ class EngineTest < Minitest::Test
     engine = con_carte
     tavolo_con_oggetto(engine)
     engine.judge(assegna("a-2", "a-1"))
-    engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
+    # Muore (la risoluzione la applica da sé): nell'Abisso a mano non si va (§5).
+    engine.observe({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
     assert engine.judge(assegna("a-2", "a-4"))[:ok], "sciolto: si può riassegnare"
   end
 
@@ -1075,7 +1078,7 @@ class EngineTest < Minitest::Test
     engine = Rubyfront::Engine.new(cards: FINESTRA)
     in_mano(engine, "b", "b-1", "SCINTILLA")
     fronte!(engine)
-    verdict = scendi_in_campo(engine, "b-1")
+    verdict = engine.judge({ "t" => "toZone", "uid" => "b-1", "zone" => "field", "chain" => true })
     assert verdict[:ok], "le Reattive si giocano solo in Fase di Fronte (§7.2)"
   end
 
@@ -1183,7 +1186,7 @@ class EngineTest < Minitest::Test
     engine = altrui
     in_mano(engine, "b", "b-1", "SCINTILLA")
     fronte!(engine)
-    verdict = engine.judge({ "t" => "toZone", "uid" => "b-1", "zone" => "field" }, actor: "b")
+    verdict = engine.judge({ "t" => "toZone", "uid" => "b-1", "zone" => "field", "chain" => true }, actor: "b")
     assert verdict[:ok], "Pre-Fronte: l'avversario può giocare Reattive (§6.3, §7.2)"
   end
 
@@ -1200,6 +1203,33 @@ class EngineTest < Minitest::Test
     verdict = engine.judge(blocco, actor: "b")
     assert verdict[:ok], verdict[:reason]
     assert engine.judge({ "t" => "undeclare", "from" => "b1" }, actor: "b")[:ok], "e può ripensarci"
+  end
+
+  def test_chi_contrattacca_si_copre_nel_turno_altrui
+    # §6.3, punto 4: «chi blocca si tappa, chi contrattacca si copre», e la
+    # copertura scatta alla dichiarazione — quindi nel turno di chi attacca.
+    engine = ondata([["a1", "FORTE"]], [["b1", "SPINOSO"]], ["a1"], [["b1", "a1", "counter"]])
+    verdict = engine.judge({ "t" => "facedown", "uid" => "b1", "facedown" => true }, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    assert engine.judge({ "t" => "facedown", "uid" => "b1", "facedown" => false }, actor: "b")[:ok], "e il ripensamento la scopre"
+  end
+
+  def test_il_difensore_non_copre_le_carte_di_chi_attacca
+    engine = ondata([["a1", "FORTE"]], [["b1", "SPINOSO"]], ["a1"], [["b1", "a1", "counter"]])
+    verdict = engine.judge({ "t" => "facedown", "uid" => "a1", "facedown" => true }, actor: "b")
+    refute verdict[:ok]
+    assert_match(/non tocca a te/, verdict[:reason])
+  end
+
+  def test_fuori_dalla_reazione_il_difensore_non_copre
+    engine = Rubyfront::Engine.new(cards: POTENZE)
+    campo = [{ "uid" => "b1", "owner" => "b", "zone" => "field", "order" => 0, "cardId" => "SPINOSO" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => campo })
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    fronte!(engine)
+    verdict = engine.judge({ "t" => "facedown", "uid" => "b1", "facedown" => true }, actor: "b")
+    refute verdict[:ok], "la copertura è quella del contrattacco, e i blocchi vivono in Reazione (§6.4)"
   end
 
   def test_l_avversario_non_cambia_fase_ne_turno
@@ -1295,9 +1325,9 @@ class EngineTest < Minitest::Test
 
   def test_da_fuori_mano_non_si_paga
     engine = con_costi(0)
-    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "abisso", "order" => 0, "cardId" => "CARA" }]
+    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "CARA" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
-    assert paga(engine, "a-1", nil)[:ok], "dall'Abisso una carta torna per effetto: nessun costo"
+    assert paga(engine, "a-1", nil)[:ok], "dal mazzo una carta scende per effetto: nessun costo"
   end
 
   def test_il_rubyfront_non_passa_dalla_dogana_del_costo
@@ -1343,7 +1373,11 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     scendi_in_campo(engine, "a-1", x: 442, y: 1236)
     scendi_in_campo(engine, "m-1", x: 2368, y: 1236)
-    assert engine.judge({ "t" => "move", "uid" => "a-1", "x" => 1199, "y" => 1236, "z" => 3 })[:ok]
+    # §5 — «un'Entità occupa lo slot in cui è scesa»: nemmeno su uno slot libero.
+    verdict = engine.judge({ "t" => "move", "uid" => "a-1", "x" => 1199, "y" => 1236, "z" => 3 })
+    refute verdict[:ok]
+    assert_match(/resta nello slot.*§5/, verdict[:reason])
+    assert_match(/stays in the slot.*§5/, verdict[:reason_en])
     refute engine.judge({ "t" => "move", "uid" => "a-1", "x" => 1000, "y" => 1300, "z" => 3 })[:ok]
     verdict = engine.judge({ "t" => "move", "uid" => "m-1", "x" => 2000, "y" => 1300, "z" => 3 })
     refute verdict[:ruled], "una Materia in campo si sposta liberamente"
@@ -1358,7 +1392,63 @@ class EngineTest < Minitest::Test
     refute verdict[:ok]
     assert_match(/non torna in mano.*§5/, verdict[:reason])
     refute engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "deck" })[:ok]
-    assert engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })[:ok], "l'Abisso sì"
+    refute engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })[:ok], "e nell'Abisso non a mano (§5)"
+  end
+
+  def test_la_fila_ignota_lascia_la_dogana_della_forma
+    # Lavagna vecchia, senza la fila: resta il vincolo dello slot (§5), non quello dello spostamento.
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "LENTA" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    assert engine.judge({ "t" => "move", "uid" => "a-1", "x" => 1199, "y" => 1236, "z" => 3 })[:ok]
+    refute engine.judge({ "t" => "move", "uid" => "a-1", "x" => 442, "y" => 1236, "z" => 4 })[:ok], "annotata la fila, lo slot è quello"
+  end
+
+  # --- §5: l'Abisso -----------------------------------------------------------
+
+  def test_nell_abisso_non_si_va_a_mano
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "a-1", "LENTA")
+    scendi_in_campo(engine, "a-1", x: 442, y: 1236)
+    verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
+    refute verdict[:ok]
+    assert_match(/non a mano.*§5/, verdict[:reason])
+    assert_match(/not by hand.*§5/, verdict[:reason_en])
+  end
+
+  def test_la_materia_in_campo_va_nell_abisso
+    # «Materie risolte, decadute o svanite» (§5): la Materia in campo ci va sempre.
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    in_mano(engine, "a", "m-1", "PIETRA")
+    scendi_in_campo(engine, "m-1", x: 2368, y: 1236)
+    assert engine.judge({ "t" => "toZone", "uid" => "m-1", "zone" => "abisso" })[:ok]
+  end
+
+  def test_lo_scarto_per_eccesso_passa_dalla_mano
+    # §6.5: «le carte in eccesso vanno scartate (nell'Abisso)» — solo oltre le 7.
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    cards = (1..8).map { |i| { "uid" => "a-#{i}", "owner" => "a", "zone" => "hand", "order" => i, "cardId" => "LENTA" } }
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    assert engine.judge({ "t" => "toZone", "uid" => "a-8", "zone" => "abisso" })[:ok], "otto in mano: l'ottava si scarta"
+    refute engine.judge({ "t" => "toZone", "uid" => "a-7", "zone" => "abisso" })[:ok], "a sette non si scarta più"
+  end
+
+  def test_dall_abisso_non_si_torna
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "abisso", "order" => 0, "cardId" => "LENTA" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    %w[hand deck field ritiro].each do |zone|
+      verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => zone, "x" => 442, "y" => 1236 })
+      refute verdict[:ok], zone
+      assert_match(/dall'Abisso non si torna.*§5/, verdict[:reason])
+    end
+  end
+
+  def test_la_carta_ignota_nell_abisso_tace
+    engine = Rubyfront::Engine.new(cards: FINESTRA)
+    cards = [{ "uid" => "x-1", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "IGNOTA" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    refute engine.judge({ "t" => "toZone", "uid" => "x-1", "zone" => "abisso" })[:ruled]
   end
 
   # --- §7: le Materie si giocano solo se abilitate -------------------------
@@ -2305,8 +2395,10 @@ class EngineTest < Minitest::Test
   end
 
   # RBF-001 — il raduno: al terzo Umano, +2 PV una volta per turno; il Nexus poi pesca e scarta.
+  # Il Rubyfront è SCHIERATO (fila del Fronte, 1236): in Zona di Richiamo
+  # (1756) non avrebbe abilità (§3.1, test più sotto).
   def test_il_raduno_al_terzo_umano_una_volta_per_turno
-    engine = scena([["rf", "OBLIVHAL", { "y" => 1756 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2])
+    engine = scena([["rf", "OBLIVHAL", { "y" => 1236 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2])
     assert_match(/almeno 3 Entità Umane/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u2", once: true) })[:reason])
     engine.judge({ "t" => "declare", "declaration" => { "id" => "u3", "from" => "u3", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 3 } })
     verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
@@ -2316,7 +2408,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_nexus_dopo_la_cura_pesca_e_scarta
-    engine = scena([["rf", "OBLIVHAL", { "y" => 1756, "face" => 1 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"],
+    engine = scena([["rf", "OBLIVHAL", { "y" => 1236, "face" => 1 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"],
                     ["h", "UMANO", { "zone" => "hand" }], ["d", "UMANO", { "zone" => "deck" }]], attacks: %w[u1 u2 u3])
     pesca = { "t" => "draw", "seat" => "a", "count" => 1, "effect" => ref("rf", "u3", once: true, follow: "draw") }
     assert_match(/prima i PV/, engine.judge(pesca)[:reason])
@@ -2326,6 +2418,30 @@ class EngineTest < Minitest::Test
     scarto = engine.judge({ "t" => "toZone", "uid" => "h", "zone" => "abisso", "effect" => ref("rf", "u3", once: true, follow: "discard") })
     assert scarto[:ok], scarto[:reason]
     assert_equal "abisso", copia(engine).card("h")[:zone]
+  end
+
+  # §3.1 — «abilità (principale e speciali) e Materie sono utilizzabili solo
+  # quando è in campo: schierarlo serve a sbloccarle». In Zona di Richiamo
+  # il Rubyfront si attacca, ma non innesca niente.
+  def test_il_rubyfront_in_zona_di_richiamo_non_ha_abilita
+    engine = scena([["rf", "OBLIVHAL", { "y" => 1756 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2 u3])
+    verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
+    refute verdict[:ok]
+    assert_match(/Zona di Richiamo non ha abilità.*§3\.1/, verdict[:reason])
+    assert_match(/Recall Zone has no abilities.*§3\.1/, verdict[:reason_en])
+    # Schierato — la fila del Fronte — la stessa cura passa.
+    engine.observe({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1236, "z" => 3, "cost" => 0 })
+    assert_equal 1236, copia(engine).card("rf")[:row]
+    verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
+    assert verdict[:ok], verdict[:reason]
+  end
+
+  def test_la_fila_ignota_del_rubyfront_non_accusa
+    # Snapshot da una lavagna che non segnava la fila: nel dubbio è in gioco.
+    engine = scena([["rf", "OBLIVHAL", { "y" => nil }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2 u3])
+    assert_nil copia(engine).card("rf")[:row]
+    verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
+    assert verdict[:ok], verdict[:reason]
   end
 
   # RBF-004 — la Vendetta al PROSSIMO Umano che attacca.
@@ -2396,6 +2512,8 @@ class EngineTest < Minitest::Test
                                    draw: { on: [14, 19], count: 1 }, all_on: [20, 20] }] },
     "COORDINATO" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 4, matter: { type: "dynamic", grade: 2 },
                       resolve_forms: [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, as_block: true, requires: { count: 3, race: "human" } }] },
+    "RIFLESSO" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 2, matter: nil,
+                    resolve_forms: [{ kind: "block", requires_armed: 2, heal: 3, as_block: true }] },
     "GIUDIZIO" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 5, matter: { type: "destructive", grade: 2 },
                     resolve_forms: [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" } }] },
   }.freeze
@@ -2546,8 +2664,20 @@ class EngineTest < Minitest::Test
 
   # --- §7.2: le finestre delle Reattive ---------------------------------------
 
+  # Gioca dalla mano. Una Reattiva porta il segno della catena (§7.2), come
+  # fa il client: la catena resta aperta finché l'avversario non `accetta!`.
   def gioca_carta(engine, uid, cost:, actor: "a", x: 2368, y: 1236, extra: {})
+    card = copia(engine).card(uid)
+    known = card && EREDITA[card[:card_id]]
+    extra = { "chain" => true }.merge(extra) if known && known[:behavior] == "reactive"
     engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y, "cost" => cost }.merge(extra), actor: actor)
+  end
+
+  # §7.2 — chi deve rispondere accetta: la catena si risolve.
+  def accetta!(engine, seat)
+    verdict = engine.judge({ "t" => "pass", "seat" => seat }, actor: seat)
+    raise "accettazione rifiutata: #{verdict[:reason]}" unless verdict[:ok]
+    verdict
   end
 
   def test_una_reattiva_si_gioca_prima_dell_ondata_da_entrambi_i_posti
@@ -2556,6 +2686,7 @@ class EngineTest < Minitest::Test
     fronte!(engine)
     assert gioca_carta(engine, "n", cost: 2, actor: "b", y: 172)[:ok], "la Pre-Fronte è dell'avversario"
     assert gioca_carta(engine, "m", cost: 2)[:ok]
+    accetta!(engine, "b")
   end
 
   def test_a_ondata_dichiarata_non_si_iniziano_reattive_salvo_come_blocco
@@ -2576,6 +2707,7 @@ class EngineTest < Minitest::Test
     engine = eredita([["u", "UMANO"], ["m", "ATTRAZIONE", { "zone" => "hand" }], ["d0", "AUROS", { "zone" => "deck", "order" => 0 }],
                       ["d1", "AUROS", { "zone" => "deck", "order" => 1 }], ["d2", "UMANO", { "zone" => "deck", "order" => 2 }], ["d3", "UMANO", { "zone" => "deck", "order" => 5 }]])
     assert gioca_carta(engine, "m", cost: 2)[:ok]
+    accetta!(engine, "b")
     look = { "t" => "look", "seat" => "a", "count" => 4, "reveal" => "d2", "effect" => res_ref("m") }
     assert_match(/prime 4/, engine.judge(look.merge("count" => 3))[:reason])
     assert_match(/Entità Umana/, engine.judge(look.merge("reveal" => "d1"))[:reason])
@@ -2590,6 +2722,7 @@ class EngineTest < Minitest::Test
     engine = eredita([["u", "UMANO", { "tapped" => true }], ["u2", "UMANO", { "tapped" => true }], ["x", "AUROS", { "tapped" => true }], ["m", "FORMAZIONE", { "zone" => "hand" }]])
     fronte!(engine)
     assert gioca_carta(engine, "m", cost: 2)[:ok]
+    accetta!(engine, "b")
     passo = { "t" => "empower", "uid" => "u", "power" => 1, "untap" => true, "effect" => res_ref("m") }
     assert_match(/Entità Umana/, engine.judge(passo.merge("uid" => "x"))[:reason])
     assert_match(/non lo dice/, engine.judge(passo.reject { |k, _| k == "untap" })[:reason])
@@ -2606,6 +2739,7 @@ class EngineTest < Minitest::Test
   def test_l_impatto_manda_in_ritiro_solo_chi_costa_poco
     engine = eredita([["u", "UMANO"], ["m", "IMPATTO", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["b2", "GROSSO"]])
     assert gioca_carta(engine, "m", cost: 1)[:ok]
+    accetta!(engine, "b")
     passo = { "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("m") }
     assert_match(/2 o inferiore/, engine.judge(passo.merge("uid" => "b2"))[:reason])
     assert_match(/avversario/, engine.judge(passo.merge("uid" => "u"))[:reason])
@@ -2618,6 +2752,7 @@ class EngineTest < Minitest::Test
   def test_il_campo_repulsivo_esilia_e_restituisce_quando_lascia_il_gioco
     engine = eredita([["u", "UMANO"], ["m", "CAMPO", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["bm", "PERMANENTE"], ["bo", "SCUDO", { "assignedTo" => "b1" }]])
     assert gioca_carta(engine, "m", cost: 3)[:ok]
+    accetta!(engine, "b")
     passo = { "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "m", "effect" => res_ref("m") }
     assert_match(/Entità o una Materia permanente/, engine.judge(passo.merge("uid" => "bo"))[:reason])
     assert_match(/Entità o una Materia permanente/, engine.judge(passo.merge("uid" => "rf-b"))[:reason])
@@ -2639,6 +2774,7 @@ class EngineTest < Minitest::Test
   def test_la_forza_della_radura_segue_il_dado
     engine = eredita([["u", "UMANO"], ["m", "FORZA", { "zone" => "hand" }], ["h", "PICCOLO", { "zone" => "hand" }], ["g", "GROSSO", { "zone" => "hand" }], ["d", "AUROS", { "zone" => "deck" }]])
     assert gioca_carta(engine, "m", cost: 3)[:ok]
+    accetta!(engine, "b")
     cura = { "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 3, "effect" => res_ref("m") }
     pesca = { "t" => "draw", "seat" => "a", "count" => 1, "roll" => 3, "effect" => res_ref("m") }
     scesa = { "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 821, "y" => 1236, "roll" => 3, "effect" => res_ref("m") }
@@ -2654,6 +2790,7 @@ class EngineTest < Minitest::Test
   def test_con_20_la_forza_fa_tutte_e_tre_le_cose
     engine = eredita([["u", "UMANO"], ["m", "FORZA", { "zone" => "hand" }], ["h", "PICCOLO", { "zone" => "hand" }], ["g", "GROSSO", { "zone" => "hand" }], ["d", "AUROS", { "zone" => "deck" }]])
     assert gioca_carta(engine, "m", cost: 3)[:ok]
+    accetta!(engine, "b")
     assert engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 20, "effect" => res_ref("m") })[:ok]
     assert engine.judge({ "t" => "draw", "seat" => "a", "count" => 1, "roll" => 20, "effect" => res_ref("m") })[:ok]
     scesa = { "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 821, "y" => 1236, "roll" => 20, "effect" => res_ref("m") }
@@ -2665,17 +2802,124 @@ class EngineTest < Minitest::Test
     assert_equal 7, copia(engine).flux("a"), "gratis: pagata solo la Materia"
   end
 
+  # --- §7.2: la catena di risposta ------------------------------------------
+
+  # A di turno in Fronte, ondata non dichiarata: Reattive in mano da entrambe le parti.
+  def catena
+    engine = eredita([["r1", "RIFLESSO", { "zone" => "hand" }], ["r3", "RIFLESSO", { "zone" => "hand" }], ["e", "UMANO", { "zone" => "hand" }]],
+                     b: [["r2", "RIFLESSO", { "zone" => "hand" }]])
+    fronte!(engine)
+    engine
+  end
+
+  def in_catena(engine, uid, actor:, chain: true)
+    gioca_carta(engine, uid, cost: 2, actor: actor, y: actor == "a" ? 1236 : 172, extra: { "chain" => chain })
+  end
+
+  def test_una_reattiva_apre_sempre_la_catena
+    engine = catena
+    senza = in_catena(engine, "r1", actor: "a", chain: false)
+    refute senza[:ok]
+    assert_match(/apre sempre la catena.*§7\.2/, senza[:reason])
+    assert_match(/always opens the response chain.*§7\.2/, senza[:reason_en])
+    # Il segno su una carta che non è Reattiva: in Preparazione, dove l'Entità scenderebbe.
+    preparazione = eredita([["e", "UMANO", { "zone" => "hand" }]])
+    falsa = preparazione.judge({ "t" => "toZone", "uid" => "e", "zone" => "field", "x" => 442, "y" => 1236, "chain" => true }, actor: "a")
+    assert_match(/solo una Materia Reattiva.*§7\.2/, falsa[:reason])
+    verdict = in_catena(engine, "r1", actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal({ stack: ["r1"], turn: "b", resolving: false }, copia(engine).chain)
+  end
+
+  def test_in_catena_risponde_l_avversario_e_accetta_chi_ha_la_parola
+    engine = catena
+    in_catena(engine, "r1", actor: "a")
+    assert_match(/tocca a B.*§7\.2/, in_catena(engine, "r3", actor: "a")[:reason], "due proprie Reattive di fila no")
+    assert_match(/tocca a B/, engine.judge({ "t" => "pass", "seat" => "a" }, actor: "a")[:reason])
+    risposta = in_catena(engine, "r2", actor: "b")
+    assert risposta[:ok], risposta[:reason]
+    assert_equal({ stack: %w[r1 r2], turn: "a", resolving: false }, copia(engine).chain)
+    assert_match(/tocca a A/, engine.judge({ "t" => "pass", "seat" => "b" }, actor: "b")[:reason])
+    accetta = engine.judge({ "t" => "pass", "seat" => "a" }, actor: "a")
+    assert accetta[:ok], accetta[:reason]
+    assert copia(engine).chain[:resolving]
+  end
+
+  def test_la_catena_e_atomica_ma_il_gettone_passa
+    engine = catena
+    in_catena(engine, "r1", actor: "a")
+    assert_match(/atomica.*§7\.2/, engine.judge({ "t" => "phase", "phase" => "reazione" }, actor: "a")[:reason])
+    assert_match(/atomica/, engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "a")[:reason])
+    assert_match(/atomica/, engine.judge({ "t" => "declare", "declaration" => { "id" => "e", "from" => "e", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } }, actor: "a")[:reason])
+    assert engine.judge({ "t" => "say", "entry" => {} }, actor: "b")[:ok]
+    gettone = engine.judge({ "t" => "player", "seat" => "b", "patch" => { "token" => false, "flux" => 11 } }, actor: "b")
+    assert gettone[:ok], gettone[:reason]
+  end
+
+  def test_risolta_la_catena_passa_solo_la_cima_e_poi_si_chiude
+    engine = catena
+    in_catena(engine, "r1", actor: "a")
+    in_catena(engine, "r2", actor: "b")
+    engine.judge({ "t" => "pass", "seat" => "a" }, actor: "a")
+    assert_match(/si sta risolvendo/, in_catena(engine, "r3", actor: "a")[:reason], "nessuna Reattiva nuova")
+    assert_match(/si sta risolvendo/, engine.judge({ "t" => "pass", "seat" => "a" }, actor: "a")[:reason])
+    hp_a = copia(engine).hp("a")
+    hp_b = copia(engine).hp("b")
+    assert_match(/si sta risolvendo/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => hp_a + 3 }, "effect" => res_ref("r1") }, actor: "a")[:reason], "r1 non è la cima")
+    # La cima passa alla dogana dell'effetto (che qui la ferma per gli armati: la catena l'ha lasciata passare).
+    assert_match(/Oggetto assegnato/, engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => hp_b + 3 }, "effect" => res_ref("r2") }, actor: "b")[:reason])
+    assert_match(/si sta risolvendo/, engine.judge({ "t" => "settle", "uid" => "r1" }, actor: "a")[:reason])
+    assert engine.judge({ "t" => "toZone", "uid" => "r2", "zone" => "abisso" }, actor: "b")[:ok], "la Reattiva risolta si consuma: esce dalla pila"
+    assert_equal ["r1"], copia(engine).chain[:stack]
+    assert_match(/Oggetto assegnato/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => hp_a + 3 }, "effect" => res_ref("r1") }, actor: "a")[:reason], "ora la cima è r1")
+    # Chi resta in campo (la Reattiva che blocca, §6.4) si chiude con `settle`.
+    assert engine.judge({ "t" => "settle", "uid" => "r1" }, actor: "a")[:ok]
+    assert_nil copia(engine).chain
+    assert engine.judge({ "t" => "toZone", "uid" => "r1", "zone" => "abisso" }, actor: "a")[:ok]
+    assert engine.judge({ "t" => "phase", "phase" => "reazione" }, actor: "a")[:ok], "chiusa la catena, il tavolo riparte"
+  end
+
+  def test_in_reazione_la_reattiva_come_blocco_apre_e_l_attaccante_risponde
+    engine = eredita([["g", "GROSSO"], ["r3", "RIFLESSO", { "zone" => "hand" }]], b: [["r2", "RIFLESSO", { "zone" => "hand" }]], attacks: %w[g])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert in_catena(engine, "r2", actor: "b")[:ok]
+    assert blocco(engine, "r2", "g")[:ok], "il blocco della cima passa in catena"
+    risposta = in_catena(engine, "r3", actor: "a")
+    assert risposta[:ok], "«l'attaccante può rispondere» (§6.4): #{risposta[:reason]}"
+  end
+
+  # RBF-040 — giocata come blocco a un attaccante: l'attacco è bloccato; con 2 armati sul Fronte, +3 PV.
+  def test_lo_scudo_riflesso_ferma_l_attaccante_e_cura_se_gli_armati_bastano
+    engine = eredita([["g", "GROSSO"], ["g2", "GROSSO"]],
+                     b: [["v1", "UMANO"], ["v2", "UMANO"], ["o1", "SCUDO", { "assignedTo" => "v1" }], ["o2", "SCUDO"], ["r", "RIFLESSO", { "zone" => "hand" }]], attacks: %w[g g2])
+    refute gioca_carta(engine, "r", cost: 2, actor: "b", y: 172)[:ok], "nel Fronte a ondata dichiarata no (§7.2)"
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert gioca_carta(engine, "r", cost: 2, actor: "b", y: 172)[:ok], "in Reazione sì: si gioca come blocco (§7.2)"
+    assert blocco(engine, "r", "g")[:ok], "la Reattiva ferma l'attaccante (§6.4)"
+    accetta!(engine, "a")
+    hp = copia(engine).hp("b")
+    cura = { "t" => "player", "seat" => "b", "patch" => { "hp" => hp + 3 }, "effect" => res_ref("r") }
+    assert_match(/Entità con un Oggetto assegnato.*§8\.2/, engine.judge(cura, actor: "b")[:reason], "un armato solo: niente PV")
+    engine.observe({ "t" => "assign", "uid" => "o2", "to" => "v2" })
+    assert_match(/dà 3 PV/, engine.judge(cura.merge("patch" => { "hp" => hp + 5 }), actor: "b")[:reason])
+    assert_match(/chi comanda la fonte/, engine.judge(cura.merge("seat" => "a"), actor: "b")[:reason])
+    verdict = engine.judge(cura, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal hp + 3, copia(engine).hp("b")
+    assert_match(/già stato risolto/, engine.judge(cura.merge("patch" => { "hp" => hp + 6 }), actor: "b")[:reason])
+  end
+
   # RBF-020 — giocata come blocco: con 3 Umani, stappa gli Umani, Contrattacco +1.
   def test_il_contrattacco_coordinato_blocca_e_potenzia_gli_umani
     engine = eredita([["g", "GROSSO"], ["g2", "GROSSO"]],
                      b: [["v1", "UMANO", { "tapped" => true }], ["v2", "UMANO", { "tapped" => true }], ["v3", "SPINOSO"], ["c", "COORDINATO", { "zone" => "hand" }]], attacks: %w[g g2])
     engine.judge({ "t" => "phase", "phase" => "reazione" })
     assert gioca_carta(engine, "c", cost: 4, actor: "b", y: 172)[:ok]
+    accetta!(engine, "a")
+    # «Gioca questa carta come blocco»: la finestra è quella dei blocchi, ma
+    # la carta non ferma nessun attaccante e non pretende una dichiarazione
+    # (lettura del designer, 2026-09-04): l'effetto parte subito.
     passo = { "t" => "empower", "uid" => "v1", "counter" => 1, "untap" => true, "effect" => res_ref("c") }
-    assert_match(/prima si dichiara il blocco/, engine.judge(passo, actor: "b")[:reason])
-    assert_match(/niente da bloccare/, blocco(engine, "c", "v1")[:reason])
-    assert blocco(engine, "c", "g")[:ok], "la Reattiva sostituisce il bloccante"
-    assert_match(/non contrattacca|solo le Entità/, blocco(engine, "c", "g2", "counter")[:reason])
     %w[v1 v2 v3].each do |uid|
       verdict = engine.judge(passo.merge("uid" => uid), actor: "b")
       assert verdict[:ok], verdict[:reason]
@@ -2684,21 +2928,23 @@ class EngineTest < Minitest::Test
     tavolo = copia(engine)
     refute tavolo.card("v1")[:tapped]
     assert_equal 1, tavolo.card("v3")[:counter_bonus]
-    # Ora v3 contrattacca g2: 3 + 1 + 1 = 5 > 4.
+    # La Reattiva risolta si consuma, e lo fa il difensore nel turno altrui (§7.2).
+    assert engine.judge({ "t" => "toZone", "uid" => "c", "zone" => "abisso" }, actor: "b")[:ok]
+    assert_equal "abisso", tavolo.card("c")[:zone], "la Reattiva si consuma"
+    # Ora v3 contrattacca g2: 3 + 1 + 1 = 5 > 4. g, che nessuno ferma, passa.
     assert blocco(engine, "v3", "g2", "counter")[:ok]
-    battles = [esito("g", blocker: "c", kind: "block", spent: true), esito("g2", blocker: "v3", kind: "counter", attacker_dies: true)]
+    battles = [esito("g", damage: 4), esito("g2", blocker: "v3", kind: "counter", attacker_dies: true)]
     verdict = risolvi(engine, battles)
     assert verdict[:ok], verdict[:reason]
-    assert_equal "abisso", tavolo.card("c")[:zone], "la Reattiva si consuma"
     assert_equal "abisso", tavolo.card("g2")[:zone]
-    assert_equal 20, tavolo.hp("b"), "bloccato: niente danni"
+    assert_equal 16, tavolo.hp("b"), "la Reattiva non ferma nessuno: i 4 di g passano"
   end
 
   def test_il_contrattacco_coordinato_vuole_tre_umani
     engine = eredita([["g", "GROSSO"]], b: [["v1", "UMANO"], ["v2", "UMANO"], ["c", "COORDINATO", { "zone" => "hand" }]], attacks: %w[g])
     engine.judge({ "t" => "phase", "phase" => "reazione" })
     assert gioca_carta(engine, "c", cost: 4, actor: "b", y: 172)[:ok]
-    assert blocco(engine, "c", "g")[:ok]
+    accetta!(engine, "a")
     assert_match(/almeno 3 Entità Umane/, engine.judge({ "t" => "empower", "uid" => "v1", "counter" => 1, "untap" => true, "effect" => res_ref("c") }, actor: "b")[:reason])
   end
 
@@ -2711,6 +2957,7 @@ class EngineTest < Minitest::Test
     assert_match(/costa 2 di Flusso/, gioca_carta(engine, "m", cost: 5, extra: { "target" => "b1" })[:reason])
     assert_match(/costa 5 di Flusso/, gioca_carta(engine, "m", cost: 2, extra: { "target" => "b2" })[:reason], "lo sconto vale solo contro una tappata")
     assert gioca_carta(engine, "m", cost: 2, extra: { "target" => "b1" })[:ok]
+    accetta!(engine, "b")
     assert_equal 8, copia(engine).flux("a")
     passo = { "t" => "toZone", "uid" => "b2", "zone" => "abisso", "effect" => res_ref("m") }
     assert_match(/altro bersaglio/, engine.judge(passo)[:reason])
@@ -2724,6 +2971,7 @@ class EngineTest < Minitest::Test
     engine.observe({ "t" => "tap", "uid" => "b1", "tapped" => true })
     fronte!(engine)
     assert gioca_carta(engine, "m", cost: 5)[:ok]
+    accetta!(engine, "b")
     verdict = engine.judge({ "t" => "toZone", "uid" => "u", "zone" => "abisso", "effect" => res_ref("m") })
     assert verdict[:ok], verdict[:reason]
   end

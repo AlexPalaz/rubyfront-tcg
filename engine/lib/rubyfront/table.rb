@@ -70,6 +70,9 @@ module Rubyfront
       @last_wave = {}
       # Una Fase di Fronte addizionale dovuta (RBF-011). Gemello: extraFront.
       @extra_front = false
+      # La catena di risposta (§7.2): {stack: [uid…], turn:, resolving:}, o
+      # nil. Gemello: chain (types.ts, ResponseChain).
+      @chain = nil
       @active = "a"
       @turn = 1
       @phase = "preparazione"
@@ -133,6 +136,11 @@ module Rubyfront
     end
 
     # «Mentre ha un Oggetto assegnato» (§3.1): un Oggetto in campo la veste.
+    # §3.1 — le carte di `seat` in campo con un Oggetto addosso (RBF-040). Gemello: effects.ts, armedCount.
+    def armed_uids(seat)
+      @cards.select { |uid, card| card[:zone] == "field" && controller_of(card) == seat && armed?(uid) }.keys
+    end
+
     def armed?(uid)
       return false unless uid.is_a?(String)
 
@@ -161,6 +169,14 @@ module Rubyfront
     # Chi comanda la carta: chi la controlla, o il proprietario (§8.2).
     def controller_of(card)
       card[:controller] || card[:owner]
+    end
+
+    # §7.2 — la catena di risposta com'è adesso, e la sua cima (l'ultima
+    # Reattiva giocata: la prima a risolversi).
+    attr_reader :chain
+
+    def chain_top
+      @chain && @chain[:stack].last
     end
 
     # §6.3, sfide 1 contro 1: qualcuno ferma già quell'attaccante?
@@ -245,6 +261,11 @@ module Rubyfront
       # Lavagna di un client più vecchio, senza fasi: resta la Preparazione
       # del reset — nel dubbio, la fase più permissiva per chi gioca.
       @phase = state["phase"] if PHASES.include?(state["phase"])
+      chain = state["chain"]
+      if chain.is_a?(Hash) && chain["stack"].is_a?(Array) && SEATS.include?(chain["turn"])
+        @chain = { stack: chain["stack"].select { |uid| uid.is_a?(String) }, turn: chain["turn"], resolving: chain["resolving"] == true }
+        @chain = nil if @chain[:stack].empty?
+      end
       SEATS.each do |seat|
         player = state.dig("players", seat)
         next unless player.is_a?(Hash)
@@ -369,6 +390,17 @@ module Rubyfront
       when "clearCombat"
         @declarations = {}
       when "resolve" then resolve(action)
+      when "pass"
+        # §7.2 — chi deve rispondere accetta: la catena si risolve, dall'ultima
+        # Reattiva alla prima; nessuno ne aggiunge più. Gemello: state.ts.
+        @chain = @chain[:stack].empty? ? nil : @chain.merge(resolving: true) if @chain
+      when "settle"
+        # §7.2 — la Reattiva risolta esce dalla pila (anche se resta in campo
+        # a bloccare, §6.4); l'ultima chiude la catena. Gemello: state.ts.
+        if @chain && action["uid"].is_a?(String)
+          stack = @chain[:stack] - [action["uid"]]
+          @chain = stack.empty? ? nil : @chain.merge(stack: stack)
+        end
       when "look" then look(action)
       when "control"
         # §8.2 — il controllo: chi comanda cambia, la proprietà no; le parole
@@ -441,6 +473,7 @@ module Rubyfront
           @fired = []
           @rolls = {}
           @extra_front = false
+          @chain = nil
           @cards.each_value do |card|
             # «Fino alla fine del turno» (§8.2): bonus, divieti e parole chiave
             # concesse (non dal controllo) cadono per tutti.
@@ -661,12 +694,31 @@ module Rubyfront
         # Il bersaglio dichiarato giocando la carta (RBF-021: lo sconto lo
         # decide lui, e l'effetto deve colpire lui). Gemello: state.ts.
         card[:target] = action["target"].is_a?(String) ? action["target"] : nil
+        # §7.2 — la Reattiva giocata apre la catena o la allunga, e la parola
+        # passa all'avversario di chi l'ha giocata. Gemello: state.ts, toZone.
+        if action["chain"] == true
+          stack = (@chain ? @chain[:stack] : []) + [action["uid"]]
+          @chain = { stack: stack, turn: SEATS.find { |seat| seat != card[:owner] }, resolving: false }
+        end
         return
+      end
+      # La carta della catena che lascia il campo (risolta, o svanita) esce
+      # dalla pila; l'ultima uscita chiude la catena. Gemello: state.ts.
+      if @chain && @chain[:stack].include?(action["uid"])
+        stack = @chain[:stack] - [action["uid"]]
+        @chain = stack.empty? ? nil : @chain.merge(stack: stack)
       end
       card[:row] = nil
       card[:target] = nil
       card[:stasis] = nil
+      # «Fino alla fine del turno» (§8.2): i bonus e i divieti valevano per la
+      # carta IN CAMPO, e chi esce li lascia lì — «il ritorno in campo è
+      # sempre disarmato» (§3.1) vale anche per questi. Le parole chiave del
+      # controllo (§8.2) hanno la loro restituzione. Gemello: state.ts, toZone.
       card[:counter_bonus] = nil
+      card[:power_bonus] = nil
+      card[:cannot_block] = nil
+      card[:grants] = nil unless card[:controller]
 
       # Fuori dal campo la carta si raddrizza e si scopre (come in state.ts),
       # e chi esce esce anche dal combattimento: la sua freccia se ne va, e

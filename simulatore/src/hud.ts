@@ -337,8 +337,12 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     actions.classList.toggle("is-single", single);
     front.classList.toggle("is-phase-end", single);
     if (single) {
-      // Il tasto dice quale fase chiude, e ne prende il colore.
-      front.textContent = t(PHASE_END[state.phase]);
+      // Il tasto dice quale fase chiude, e ne prende il colore. Col Fronte
+      // dichiarato ma nessun attacco il tasto dice il vero: «se il giocatore
+      // passa, la Reazione non c'è e si va al Fine del turno» (§6.3), quindi
+      // quel gesto chiude il turno — e con la mano piena si ferma lì (§6.5).
+      const endsTurn = state.phase === "fronte" && !waveDeclared(state);
+      front.textContent = t(endsTurn ? "hud.endturn" : PHASE_END[state.phase]);
       front.dataset.phase = state.phase;
       front.disabled = !canPass;
       tip(front, t(!canPass
