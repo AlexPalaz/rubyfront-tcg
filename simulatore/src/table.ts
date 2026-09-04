@@ -237,6 +237,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   let targeting: Targeting | null = null;
   /** Frecce di passaggio (un effetto che agisce): si spengono da sole. */
   let transientArrows: { arrow: Arrow; until: number }[] = [];
+  /** Quando è finito l'ultimo trascinamento: il click che lo chiude non apre le pile. */
+  let lastDropAt = 0;
 
   const surface = document.createElement("div");
   surface.className = "surface";
@@ -513,6 +515,18 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         });
         // Su touch: pressione lunga al posto del tasto destro.
         enableLongPress(slot, (x, y) => openMenu(x, y, pileMenu(seat, pile.zone)));
+        // L'Abisso e la Zona di Ritiro sono PUBBLICI (§5): «consultabili da
+        // entrambi i giocatori in qualsiasi momento», quindi si aprono con
+        // un click solo. Il mazzo no: è nascosto, e il doppio click lì pesca.
+        if (pile.zone === "abisso" || pile.zone === "ritiro") {
+          slot.addEventListener("click", () => {
+            // Non mentre si mira (il click sceglie il bersaglio), e non
+            // subito dopo un rilascio: il click che chiude un trascinamento
+            // arriva sulla tessera appena posata, e da lì risale allo slot.
+            if (targeting || Date.now() - lastDropAt < 300) return;
+            browse(seat, pile.zone);
+          });
+        }
         slot.addEventListener("dblclick", () => {
           if (pile.zone === "deck" && ctx.controls(seat)) draw(seat, 1);
           else browse(seat, pile.zone);
@@ -1214,7 +1228,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       disabled: card.zone === zone && !toBottom,
       run: () => ctx.dispatch({ t: "toZone", uid: card.uid, zone, toBottom }),
     });
-    if (mine) items.push(send("hand", t("menu.to.hand")));
+    // §5/§6.2 — con l'arbitro, dall'Abisso e dalla Zona di Ritiro si esce
+    // solo per effetto: nessuna destinazione a mano. Ci si ENTRA liberamente
+    // (il Ritiro è un gesto, §6.2), ma non se ne torna.
+    const sealedPile = ctx.arbitrated() && (card.zone === "abisso" || card.zone === "ritiro");
+    if (mine && !sealedPile) items.push(send("hand", t("menu.to.hand")));
     // §5/§6.5 — con l'arbitro nell'Abisso non si va a mano: ci si va morendo,
     // consumandosi (una Materia in campo) o scartando per eccesso a fine
     // turno. La voce libera resta solo dove l'arbitro la lascerebbe passare;
@@ -1233,8 +1251,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     } else if (!ctx.arbitrated() || (card.zone === "field" && ctx.card(card.cardId).kind === "matter")) {
       items.push(send("abisso", t("menu.to.abisso")));
     }
-    items.push(send("ritiro", t("menu.to.ritiro")));
-    if (mine) {
+    // Il Ritiro resta un gesto libero: ci si manda una carta da dove sia.
+    if (!sealedPile) items.push(send("ritiro", t("menu.to.ritiro")));
+    if (mine && !sealedPile) {
       items.push(send("deck", t("menu.to.deck.top")));
       items.push({
         label: t("menu.to.deck.bottom"),
@@ -2169,6 +2188,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   }
 
   function applyDrop(card: CardInstance, drop: Drop): void {
+    lastDropAt = Date.now();
     if (!drop) return;
     if (drop.kind === "field") {
       // Il rilascio a mano libera arriva in coordinate di schermo: va riportato

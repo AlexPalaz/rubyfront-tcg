@@ -151,7 +151,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       tile.addEventListener("click", () => {
         const done = chosen.done;
         picking = null;
-        host.hidden = true;
+        vanish();
         done(card);
       });
       wrapper.append(tile);
@@ -215,8 +215,36 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
     afterChange();
   }
 
+  /** La durata della dissolvenza in uscita: la stessa di overlay-out in style.css. */
+  const FADE_OUT_MS = 160;
+  let fading: number | undefined;
+
+  /** Apre in dissolvenza: se una chiusura era in volo, la si annulla. */
+  function reveal(): void {
+    window.clearTimeout(fading);
+    fading = undefined;
+    host.classList.remove("is-leaving");
+    host.hidden = false;
+  }
+
+  /** Chiude in dissolvenza: il pannello resta finché l'animazione finisce. */
+  function vanish(): void {
+    if (host.hidden) return;
+    host.classList.add("is-leaving");
+    window.clearTimeout(fading);
+    fading = window.setTimeout(() => {
+      host.hidden = true;
+      host.classList.remove("is-leaving");
+      fading = undefined;
+    }, FADE_OUT_MS);
+  }
+
   function hide(): void {
-    host.hidden = true;
+    // Già chiusa, o in chiusura: il secondo Esc (o il secondo click fuori)
+    // non deve rifare la coda della chiusura — la rimescolata del mazzo si
+    // fa una volta sola.
+    if (host.hidden || host.classList.contains("is-leaving")) return;
+    vanish();
     if (picking) {
       // Chiudere senza scegliere è rinunciare.
       const done = picking.done;
@@ -253,7 +281,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       touched = false;
       search.value = "";
       shuffleAfter.hidden = zone !== "deck";
-      host.hidden = false;
+      reveal();
       paint();
       search.focus();
     },
@@ -266,7 +294,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
         picking = { candidates, visible: visible ?? candidates, title: pickTitle, done: resolve };
         search.value = "";
         shuffleAfter.hidden = true;
-        host.hidden = false;
+        reveal();
         paint();
         search.focus();
       });
@@ -278,7 +306,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       touched = false;
       search.value = "";
       shuffleAfter.hidden = true;
-      host.hidden = false;
+      reveal();
       paint();
       search.focus();
     },

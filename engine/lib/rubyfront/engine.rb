@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.37.0"
+    VERSION = "0.38.1"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -38,7 +38,7 @@ module Rubyfront
       "§3.1/§3.2 Contatori: mai sotto zero",
       "§3.1 Oggetti: assegnazione",
       "§6 Fasi: le dichiarazioni in Fase di Fronte",
-      "§6.2 Ritiro: gesto di Preparazione, mai nel turno d'ingresso",
+      "§6.2 Ritiro: gesto di Preparazione; nella fase, libero",
       "§5 Materie: mai sugli slot del Fronte",
       "§6.3 Dichiarano solo le Entità (il Rubyfront mai)",
       "§6.3 Attacca chi è di turno, blocca chi difende",
@@ -70,6 +70,7 @@ module Rubyfront
       "§3.1 Il Nexus: il flip coi suoi requisiti, il recupero di PV, «quando flippa» (RBF-001)",
       "§3.1 Il Rubyfront in Zona di Richiamo non ha abilità: schierarlo le sblocca",
       "§5 L'Abisso: ci si va morendo, consumandosi o scartando per eccesso, e non si torna",
+      "§5/§6.2 Dalla Zona di Ritiro si torna solo per effetto",
       "§5 Le Entità restano nello slot in cui sono scese",
       "§7.2 Le Reattive come blocco: RBF-040 ferma un attaccante e cura, RBF-020 si gioca nella finestra dei blocchi",
       "§7.2 La catena di risposta: una Reattiva apre, l'avversario risponde o accetta, si risolve al contrario",
@@ -85,7 +86,7 @@ module Rubyfront
       "§3.1/§3.2 Counters: never below zero",
       "§3.1 Objects: assignment",
       "§6 Phases: declarations in the Front Phase",
-      "§6.2 Retire: a Preparation move, never on the turn of entry",
+      "§6.2 Retire: a Preparation move; within the phase, free",
       "§5 Matters: never on the Front slots",
       "§6.3 Only Entities declare (the Rubyfront never)",
       "§6.3 The active player attacks, the defender blocks",
@@ -117,6 +118,7 @@ module Rubyfront
       "§3.1 The Nexus: the flip with its requirements, the HP recovery, “when it flips” (RBF-001)",
       "§3.1 A Rubyfront in the Recall Zone has no abilities: deploying it unlocks them",
       "§5 The Abyss: reached by dying, being spent or discarding down to 7, and there's no way back",
+      "§5/§6.2 Cards leave the Retire Zone only through an effect",
       "§5 Entities stay in the slot they came down on",
       "§7.2 Reactives as a block: RBF-040 stops an attacker and heals, RBF-020 is played in the block window",
       "§7.2 The response chain: a Reactive opens it, the opponent answers or accepts, it resolves in reverse",
@@ -360,6 +362,15 @@ module Rubyfront
       # e passa perché una Materia in campo può sempre andare nell'Abisso.
       if card[:zone] == "abisso"
         return refuse("toZone", "dall'Abisso non si torna: solo una carta può riportarne fuori (§5)", "there's no way back from the Abyss: only a card can bring something out of it (§5)")
+      end
+      # §5/§6.2 — la Zona di Ritiro «funziona esattamente come l'Abisso»: ci
+      # si mette liberamente (il Ritiro è un gesto, e resta libero), ma se ne
+      # esce solo per effetto — «riporta in mano un'Entità dalla tua Zona di
+      # Ritiro», «metti sul tuo Fronte una permanente dalla tua Zona di
+      # Ritiro» — e un effetto passa da judge_effect col suo riferimento,
+      # non da qui.
+      if card[:zone] == "ritiro"
+        return refuse("toZone", "dalla Zona di Ritiro si esce solo per effetto: sul Fronte non si torna a mano (§5, §6.2)", "cards leave the Retire Zone only through an effect: no going back to the Front by hand (§5, §6.2)")
       end
       if action["zone"] == "abisso"
         known = @cards[card[:card_id]]
@@ -622,20 +633,21 @@ module Rubyfront
 
       kind = @cards.dig(card[:card_id], :type)
       return refuse("toZone", "il Rubyfront non si ritira: una volta schierato resta in campo (§3.1)", "the Rubyfront doesn't retire: once deployed it stays on the field (§3.1)") if kind == "rubyfront"
-      return no_rule("toZone") unless kind == "entity"
+
+      # Una carta di un ALTRO posto mandata in Ritiro non è un ritiro: è la
+      # risoluzione a mano di un effetto («metti un'Entità avversaria nella
+      # Zona di Ritiro…»). Silenzio, non si accusa.
       return no_rule("toZone") if card[:owner] != @table.active
 
-      if @table.phase == "fronte"
+      # §6.2 — «il ritiro è un'azione di preparazione del Fronte: non si
+      # ritira in Fase di Fronte, né nel turno avversario». La FASE è il solo
+      # vincolo che resta (decisione del designer, 2026-09-04): dentro la
+      # Preparazione il gesto è libero — tappata, coperta, appena entrata,
+      # Materia — perché è anche l'attrezzo con cui si risolve a mano ciò che
+      # l'engine non legge ancora. La strada di RITORNO è chiusa comunque
+      # (vedi judge_to_zone): è lì che il vantaggio si prenderebbe.
+      unless @table.phase == "preparazione"
         return refuse("toZone", "il ritiro è un gesto di Preparazione: a Fronte dichiarato non si ritira (§6.2, Ritiro)", "retiring is a Preparation move: once the Front is declared, nothing retires (§6.2, Retire)")
-      end
-      if card[:facedown]
-        return refuse("toZone", "l'Entità coperta è intoccabile: non si ritira finché non si scopre (§6.2, Ritiro)", "a covered Entity is untouchable: it doesn't retire until it's uncovered (§6.2, Retire)")
-      end
-      if card[:tapped]
-        return refuse("toZone", "un'Entità tappata è impegnata: si ritira quando si stappa (§6.2, Ritiro)", "a tapped Entity is busy: it retires once it untaps (§6.2, Retire)")
-      end
-      if card[:entered] == @table.turn
-        return refuse("toZone", "l'Entità è entrata in campo questo turno: si ritira dal prossimo — lo Slancio non aggira il divieto (§6.2, Ritiro)", "the Entity entered the field this turn: it can retire from the next one — Surge doesn't get around that (§6.2, Retire)")
       end
 
       allow("toZone")

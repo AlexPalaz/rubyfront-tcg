@@ -601,14 +601,28 @@ class EngineTest < Minitest::Test
     assert verdict[:ok]
   end
 
-  def test_nel_turno_d_ingresso_non_si_ritira_e_lo_slancio_non_aggira
-    engine = con_carte
-    scendi(engine, "a-1", "SCATTANTE")
-    verdict = engine.judge(ritira("a-1"))
-    refute verdict[:ok]
-    assert_match(/Slancio non aggira/, verdict[:reason])
+  # §6.2 pone le sue condizioni al Ritiro, ma il gesto resta LIBERO
+  # (decisione del designer, 2026-09-04): è anche l'attrezzo con cui si
+  # risolve a mano ciò che l'engine non legge. È il ritorno a essere chiuso.
+  def test_il_ritiro_e_libero
+    # Un tavolo per condizione: il giudizio APPLICA, e la carta ritirata non
+    # è più in campo per la prova dopo.
+    campo = lambda do |card_id, &apparecchia|
+      engine = con_carte
+      scendi(engine, "a-1", card_id)
+      giro_di_turno(engine) unless card_id == "SCATTANTE"
+      apparecchia&.call(engine)
+      engine
+    end
+    assert campo.call("SCATTANTE").judge(ritira("a-1"))[:ok], "anche nel turno d'ingresso"
+    tappata = campo.call("LENTA") { |e| e.judge({ "t" => "tap", "uid" => "a-1", "tapped" => true }) }
+    assert tappata.judge(ritira("a-1"))[:ok], "anche tappata"
+    coperta = campo.call("LENTA") { |e| e.judge({ "t" => "facedown", "uid" => "a-1", "facedown" => true }) }
+    assert coperta.judge(ritira("a-1"))[:ok], "anche coperta"
   end
 
+  # §6.2 — «il ritiro è un'azione di preparazione del Fronte»: è il solo
+  # vincolo rimasto, e vale anche in Reazione.
   def test_a_fronte_dichiarato_non_si_ritira
     engine = con_carte
     scendi(engine, "a-1", "LENTA")
@@ -616,18 +630,30 @@ class EngineTest < Minitest::Test
     fronte!(engine)
     verdict = engine.judge(ritira("a-1"))
     refute verdict[:ok]
-    assert_match(/Preparazione/, verdict[:reason])
+    assert_match(/gesto di Preparazione.*§6\.2/, verdict[:reason])
+    assert_match(/Preparation move.*§6\.2/, verdict[:reason_en])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    refute engine.judge(ritira("a-1"))[:ok], "e nemmeno in Reazione"
   end
 
-  def test_tappata_o_coperta_non_si_ritira
+  def test_l_entita_avversaria_si_ritira_in_ogni_fase
+    # Non è un ritiro: è un effetto risolto a mano. Silenzio, in ogni fase.
     engine = con_carte
-    scendi(engine, "a-1", "LENTA")
-    giro_di_turno(engine)
-    engine.judge({ "t" => "tap", "uid" => "a-1", "tapped" => true })
-    assert_match(/tappata/, engine.judge(ritira("a-1"))[:reason])
-    engine.judge({ "t" => "tap", "uid" => "a-1", "tapped" => false })
-    engine.judge({ "t" => "facedown", "uid" => "a-1", "facedown" => true })
-    assert_match(/coperta/, engine.judge(ritira("a-1"))[:reason])
+    mano_e_campo(engine, %w[LENTA], cala: 1, seat: "b")
+    fronte!(engine)
+    refute engine.judge(ritira("b-1"))[:ruled]
+  end
+
+  def test_dalla_zona_di_ritiro_si_esce_solo_per_effetto
+    engine = con_carte
+    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "LENTA" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    %w[field hand deck abisso].each do |zone|
+      verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => zone, "x" => 442, "y" => 1236 })
+      refute verdict[:ok], zone
+      assert_match(/dalla Zona di Ritiro si esce solo per effetto.*§5, §6\.2/, verdict[:reason])
+      assert_match(/leave the Retire Zone only through an effect.*§5, §6\.2/, verdict[:reason_en])
+    end
   end
 
   def test_il_rubyfront_non_si_ritira
@@ -639,23 +665,16 @@ class EngineTest < Minitest::Test
     assert_match(/resta in campo/, verdict[:reason])
   end
 
-  def test_materie_e_carte_ignote_il_ritiro_tace
+  def test_materie_e_carte_ignote_si_ritirano
     engine = con_carte
     scendi(engine, "a-1", "PIETRA")
     giro_di_turno(engine)
-    refute engine.judge(ritira("a-1"))[:ruled]
+    assert engine.judge(ritira("a-1"))[:ok]
     scendi(engine, "a-1", "MISTERO")
     giro_di_turno(engine)
-    refute engine.judge(ritira("a-1"))[:ruled]
+    assert engine.judge(ritira("a-1"))[:ok]
   end
 
-  def test_l_entita_avversaria_in_ritiro_e_un_effetto
-    engine = con_carte
-    mano_e_campo(engine, %w[LENTA], cala: 1, seat: "b")
-    # Entrata questo turno, eppure silenzio: nel turno di A un'Entità di B
-    # mandata in Ritiro è la risoluzione a mano di un effetto, non un ritiro.
-    refute engine.judge(ritira("b-1"))[:ruled]
-  end
 
   def test_dalla_mano_al_ritiro_nessuna_regola
     engine = con_carte
@@ -2626,10 +2645,11 @@ class EngineTest < Minitest::Test
     assert risolvi(engine, [esito("g", blocker: "u", kind: "block", stasis: true)])[:ok]
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "b")
     assert copia(engine).card("u")[:tapped], "tappata per sempre"
-    assert_match(/tappata/, engine.judge({ "t" => "toZone", "uid" => "u", "zone" => "ritiro" }, actor: "b")[:reason])
-    engine.observe({ "t" => "refresh", "seat" => "b", "roll" => 17, "extra" => false, "effect" => { "source" => "u", "event" => "on_attack", "entering" => "u" } })
-    refute copia(engine).card("u")[:tapped]
+    # Il Ritiro è un gesto libero (§6.2, decisione del designer): la Stasi
+    # non lo ferma. Quel che la Stasi tiene è la tappata permanente.
     assert engine.judge({ "t" => "toZone", "uid" => "u", "zone" => "ritiro" }, actor: "b")[:ok]
+    engine.observe({ "t" => "refresh", "seat" => "b", "roll" => 17, "extra" => false, "effect" => { "source" => "u", "event" => "on_attack", "entering" => "u" } })
+    refute copia(engine).card("u")[:tapped], "un effetto la stappa"
   end
 
   def test_la_stasi_nel_contrattacco_sostituisce_la_copertura

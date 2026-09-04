@@ -71,18 +71,20 @@ Regole collegate finora:
   portato su entrambe le lavagne. Snapshot senza fase: si riparte dalla
   Preparazione, la lettura più permissiva.
 
-- **§6.2 Ritiro** — un gesto di **Preparazione** sulle **proprie** Entità:
-  la `toZone` verso la Zona di Ritiro di un'Entità in campo del posto attivo
-  passa solo se la fase è Preparazione, la carta è stappata e scoperta, e
-  **non è entrata in campo questo turno** — lo Slancio non aggira il divieto
-  (permette di attaccare subito, non di essere ritirata subito). Il
-  Rubyfront non si ritira mai: una volta schierato resta in campo (§3.1).
-  Un'Entità **avversaria** mandata in Ritiro nel turno di un altro è quasi
-  sempre un effetto risolto a mano («metti un'Entità avversaria nella Zona
-  di Ritiro…»): silenzio, non si accusa. `entered` ignoto (carta arrivata da
-  snapshot): via libera, nel dubbio. Limiti dichiarati: un effetto che
-  ritiri una PROPRIA Entità aggirando i vincoli verrebbe fermato a torto
-  (arriverà con la regola d'oro). Gli **Oggetti seguono** la loro Entità in
+- **§6.2 Ritiro** — «il ritiro è un'azione di preparazione del Fronte: non
+  si ritira in Fase di Fronte, né nel turno avversario». La **fase** è il
+  solo vincolo, e vale anche in Reazione; il Rubyfront non si ritira mai
+  (§3.1). Dentro la Preparazione il gesto è **libero** — tappata, coperta,
+  appena entrata, Materia — per **decisione del designer (2026-09-04)**:
+  §6.2 chiede anche stappata, scoperta e non entrata questo turno, ma il
+  Ritiro è l'attrezzo con cui si risolve a mano tutto ciò che l'engine non
+  legge ancora, e quelle condizioni bloccavano più gioco vero di quanto ne
+  proteggessero. Il vantaggio si prenderebbe al RITORNO, e quella strada è
+  chiusa: dalla Zona di Ritiro si esce solo per effetto (voce più sotto).
+  Una carta di un ALTRO posto mandata in Ritiro non è un ritiro ma un
+  effetto risolto a mano: silenzio, in ogni fase. Limite dichiarato: il
+  manuale al §6.2 elenca ancora le altre condizioni. Gli **Oggetti
+  seguono** la loro Entità in
   Zona di Ritiro (§6.2) e nell'Abisso (§5): sciolti dall'assegnazione,
   vanno nella stessa pila — nel riduttore e nella copia; in mano o nel
   mazzo no, lì degli Oggetti decide la carta che ha mosso l'Entità.
@@ -591,6 +593,19 @@ Regole collegate finora:
   passerebbe: la dogana del turno ferma il gesto nel turno altrui, non nel
   proprio).
 
+- **§5/§6.2 Dalla Zona di Ritiro si esce solo per effetto** — la Zona di
+  Ritiro «funziona esattamente come l'Abisso», e questa è la metà che
+  conta: ci si **entra** liberamente (il Ritiro è un gesto, sopra), ma un
+  `toZone` che ne porti FUORI una carta — verso il Fronte, la mano, il
+  mazzo, l'Abisso — senza riferimento d'effetto è fermato. Le carte tornano
+  con gli effetti che le nominano («riporta in mano un'Entità dalla tua Zona
+  di Ritiro», «metti sul tuo Fronte una permanente dalla tua Zona di
+  Ritiro»), e un effetto passa da `judge_effect` col suo riferimento, non da
+  questa dogana. Nel client, con l'arbitro al tavolo, una carta nell'Abisso
+  o in Zona di Ritiro non offre più destinazioni nel menu. Limite
+  dichiarato: un effetto risolto a mano che riporti fuori una carta (non
+  ancora certificato) verrebbe fermato a torto — regola d'oro.
+
 - **§5 Le Entità restano nello slot in cui sono scese** — «un'Entità
   occupa lo slot in cui è scesa: non si sposta da uno slot all'altro, salvo
   che una carta lo dica» (decisione del designer, 2026-09-04, scritta nel
@@ -648,7 +663,8 @@ Regole collegate finora:
   «l'abilitazione si ricontrolla alla risoluzione» (la Reattiva svanisce)
   non si vede, la Reattiva si risolve comunque; e la proprietà delle
   carte in catena non si guarda oltre la parola. Engine 0.37.0,
-  quarantuno regole.
+  quarantuno regole. Col Ritiro alla sola fase e la Zona di Ritiro chiusa
+  in uscita: engine 0.38.1, quarantaquattro regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

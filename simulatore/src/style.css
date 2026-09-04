@@ -1254,6 +1254,24 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 }
 /* `display: grid` batte il display:none dell'attributo hidden: va ridetto. */
 .overlay[hidden] { display: none; }
+/* L'Abisso e la Zona di Ritiro si aprono con un click (§5: sono pubblici):
+   la dissolvenza dice che è una finestra che va e viene, non un salto di
+   schermata. Il pannello sale di un soffio, così l'occhio sa dove guardare.
+   L'uscita dura quanto FADE_OUT_MS in overlay.ts: se cambia una, cambia
+   l'altra. */
+.overlay { animation: overlay-in .18s ease-out both; }
+.overlay.is-leaving { animation: overlay-out .16s ease-in both; }
+.overlay .overlay-panel { animation: overlay-panel-in .18s ease-out both; }
+.overlay.is-leaving .overlay-panel { animation: none; }
+@keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes overlay-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes overlay-panel-in {
+  from { opacity: 0; transform: translateY(10px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay, .overlay.is-leaving, .overlay .overlay-panel { animation: none; }
+}
 
 .overlay-panel {
   display: grid;
