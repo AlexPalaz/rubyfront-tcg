@@ -21,9 +21,7 @@ import type { Phase, PlayerState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
 /** Stessa dispensa di main.ts (`rbf-sim:*`): qui ci sta la posizione. */
-const POS_KEY = "rbf-sim:hud";
 /** L'HUD non si incolla mai ai bordi del tavolo più di così. */
-const EDGE = 10;
 
 export interface Hud {
   render(): void;
@@ -193,23 +191,20 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   const foe = chip(otherSeat(ctx.seat()), false);
   const mine = chip(ctx.seat(), true);
 
-  // Il turno, fra le due targhe: numero e, sotto, chi tocca — con la punta
-  // rivolta alla targa giusta (▲ l'avversario sopra, ▼ tu sotto). I − e +
-  // a comparsa correggono il numero a mano, come ogni cifra del simulatore.
+  // La testata del pannello: a sinistra il numero del turno e la fase (§6),
+  // a destra chi tocca. I − e + a comparsa correggono il numero a mano,
+  // come ogni cifra del simulatore.
   const turn = document.createElement("div");
   turn.className = "hud-turn";
-  const turnMid = document.createElement("div");
-  turnMid.className = "hud-turn-mid";
   const turnCount = document.createElement("span");
   turnCount.className = "hud-turn-count";
   const turnWho = document.createElement("span");
   turnWho.className = "hud-turn-who";
-  // La fase del turno (§6), sotto il chi tocca: dice in che momento della
-  // partita si è, e con l'arbitro al tavolo spiega perché un attacco non
-  // parte prima d'aver dichiarato il Fronte.
+  // La fase del turno (§6): dice in che momento della partita si è, e con
+  // l'arbitro al tavolo spiega perché un attacco non parte prima d'aver
+  // dichiarato il Fronte.
   const turnPhase = document.createElement("span");
   turnPhase.className = "hud-turn-phase";
-  turnMid.append(turnCount, turnWho, turnPhase);
 
   const turnStep = (delta: number, label: string): HTMLButtonElement => {
     const button = document.createElement("button");
@@ -223,13 +218,13 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     });
     return button;
   };
-  turn.append(turnStep(-1, t("hud.turn.less")), turnMid, turnStep(1, t("hud.turn.more")));
+  turn.append(turnStep(-1, t("hud.turn.less")), turnCount, turnStep(1, t("hud.turn.more")), turnPhase, turnWho);
 
   syncs.push(() => {
     const state = ctx.state();
     turnCount.textContent = t("hud.turn", { turn: state.turn });
     const mineTurn = state.active === ctx.seat();
-    turnWho.textContent = mineTurn ? t("hud.turn.you") : `▲ ${seatLabel(state, state.active, ctx.seat())}`;
+    turnWho.textContent = mineTurn ? t("hud.turn.you") : t("hud.turn.wait", { name: seatLabel(state, state.active, ctx.seat()) });
     turn.classList.toggle("is-mine", mineTurn);
     turnPhase.textContent =
       t(`phase.${state.phase}`);
@@ -300,7 +295,13 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   );
   mic.addEventListener("click", hooks.voice);
 
-  actions.append(front, pass, mic, chatToggle);
+  actions.append(front, pass);
+
+  // La riga di servizio in fondo: chat e microfono, tasti piccoli. Stanno
+  // lontani dal bottone di fase, che è il gesto di partita.
+  const util = document.createElement("div");
+  util.className = "hud-util";
+  util.append(chatToggle, mic);
 
   // Il Fine turno è di chi è di turno: per l'altro si ingrigisce. È l'unico
   // "impedimento" del simulatore, e serve al ritmo: passo io, poi passi tu.
@@ -391,14 +392,11 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   }
   dice.append(diceOut);
 
-  // La testata: maniglia al centro, e nell'angolo il tasto che riduce l'HUD
-  // a icona. Ridotto, resta solo una tessera col rombo: un click la riapre.
+  // La testata: nell'angolo il tasto che riduce l'HUD a icona. Ridotto,
+  // resta solo una tessera col rombo: un click la riapre. L'HUD è FISSO,
+  // ancorato in basso a destra accanto alla mano: non si trascina.
   const top = document.createElement("div");
   top.className = "hud-top";
-
-  const grip = document.createElement("div");
-  grip.className = "hud-grip";
-  tip(grip, t("hud.grip"));
 
   const minBtn = document.createElement("button");
   minBtn.type = "button";
@@ -406,24 +404,15 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   minBtn.innerHTML = svgIcon('<path d="M5 12h14"/>');
   tip(minBtn, t("hud.min"));
   minBtn.addEventListener("click", () => setMin(true));
-  // Sta sopra, accanto alla maniglia — ma da tasto vero, non da francobollo.
-  top.append(grip, minBtn);
+  top.append(minBtn);
 
   const mini = document.createElement("button");
   mini.type = "button";
   mini.className = "hud-sq hud-mini";
   tip(mini, t("hud.max"));
   mini.innerHTML = '<span class="hud-mini-gem"></span>';
-  // Il click espande, ma solo se è un click davvero: dopo un trascinamento
-  // il browser lo spara lo stesso, e va lasciato cadere.
   const miniBadges = makeBadges(mini);
-  mini.addEventListener("click", () => {
-    if (miniDragged) {
-      miniDragged = false;
-      return;
-    }
-    setMin(false);
-  });
+  mini.addEventListener("click", () => setMin(false));
 
   // L'HUD parte SEMPRE aperto: ridurlo a icona è un gesto di sessione, non
   // una preferenza da ricordare.
@@ -432,8 +421,6 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   function setMin(value: boolean): void {
     minimized = value;
     root.classList.toggle("is-min", minimized);
-    // La misura cambia: l'HUD rientra nei bordi se serve.
-    place();
   }
 
   // STRUMENTO DI PROVA, temporaneo: «Evoca» apre il catalogo intero e mette
@@ -449,7 +436,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   spawn.addEventListener("click", hooks.spawn);
   test.append(spawn);
 
-  root.append(top, foe, turn, mine, actions, tools, dice, test, mini);
+  root.append(top, turn, foe, mine, actions, tools, dice, util, test, mini);
 
   // Con l'arbitro al tavolo i gesti manuali si ritirano: i più e meno dei
   // contatori (PV e Flusso li muovono le regole — danni della risoluzione,
@@ -459,83 +446,6 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   // Un interruttore solo, in CSS: .hud.is-arbitrated (style.css).
   syncs.push(() => root.classList.toggle("is-arbitrated", ctx.arbitrated()));
   root.classList.toggle("is-min", minimized);
-
-  // ------------------------------------------------------- trascinamento
-
-  const table = (): HTMLElement => root.parentElement as HTMLElement;
-
-  let pos: { x: number; y: number } | null = null;
-  try {
-    pos = JSON.parse(localStorage.getItem(POS_KEY) ?? "null");
-  } catch {
-    pos = null;
-  }
-  if (typeof pos?.x !== "number" || typeof pos?.y !== "number") pos = null;
-
-  /** Applica la posizione, tenendo l'HUD tutto dentro il tavolo. Senza una
-      posizione scelta comanda il CSS: bordo destro, a metà altezza. */
-  function place(): void {
-    if (!pos) {
-      root.style.left = root.style.top = root.style.right = root.style.transform = "";
-      return;
-    }
-    const x = Math.min(Math.max(EDGE, pos.x), Math.max(EDGE, table().clientWidth - root.offsetWidth - EDGE));
-    const y = Math.min(Math.max(EDGE, pos.y), Math.max(EDGE, table().clientHeight - root.offsetHeight - EDGE));
-    root.style.left = `${x}px`;
-    root.style.top = `${y}px`;
-    root.style.right = "auto";
-    root.style.transform = "none";
-  }
-
-  /** L'icona è stata appena trascinata: il click che segue non deve aprirla. */
-  let miniDragged = false;
-
-  root.addEventListener("pointerdown", event => {
-    const target = event.target as HTMLElement;
-    const onMini = Boolean(target.closest(".hud-mini"));
-    // I tasti restano tasti: si trascina da tutto il resto. L'icona è
-    // l'eccezione — è un tasto, ma ridotto a icona è anche tutto l'HUD:
-    // si sposta pure lei. Niente preventDefault lì, o il click di apertura
-    // non arriverebbe mai; la soglia qui sotto separa i due gesti.
-    if (!onMini && target.closest("button, input")) return;
-    if (!onMini) event.preventDefault();
-    const rect = root.getBoundingClientRect();
-    const host = table().getBoundingClientRect();
-    const gripX = event.clientX - rect.left;
-    const gripY = event.clientY - rect.top;
-    const startX = event.clientX;
-    const startY = event.clientY;
-    let engaged = false;
-    const move = (ev: PointerEvent): void => {
-      if (!engaged && Math.abs(ev.clientX - startX) < 4 && Math.abs(ev.clientY - startY) < 4) return;
-      engaged = true;
-      if (onMini) miniDragged = true;
-      root.classList.add("is-dragging");
-      pos = { x: Math.round(ev.clientX - host.left - gripX), y: Math.round(ev.clientY - host.top - gripY) };
-      place();
-    };
-    const drop = (): void => {
-      root.classList.remove("is-dragging");
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", drop);
-      window.removeEventListener("pointercancel", drop);
-      if (engaged && pos) localStorage.setItem(POS_KEY, JSON.stringify(pos));
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", drop);
-    window.addEventListener("pointercancel", drop);
-  });
-
-  grip.addEventListener("dblclick", () => {
-    pos = null;
-    localStorage.removeItem(POS_KEY);
-    place();
-  });
-
-  // Quando il tavolo cambia misura — pannello aperto o chiuso, finestra
-  // ridimensionata — l'HUD rientra da sé nei bordi.
-  new ResizeObserver(place).observe(table());
-  place();
 
   return {
     render() {

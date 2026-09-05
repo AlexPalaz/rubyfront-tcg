@@ -25,7 +25,7 @@ describe("t", () => {
 
   it("mette i parametri al posto delle graffe, anche ripetute", () => {
     expect(t("log.turn", { turn: 3, seat: "Ajmal", flux: 2, max: 3 })).toBe("Turno 3 — tocca a Ajmal (Flusso 2/3).");
-    expect(t("log.deploy.nodie", { seat: "A", die: 6, available: 4 })).toContain("servono 6 Flussi disponibili, ne ha 4");
+    expect(t("log.deploy.nodie", { seat: "A", die: 6, available: 4 })).toContain("servono 6 Flussi (ne ha 4)");
   });
 
   it("una chiave ignota resta visibile, mai un vuoto", () => {
@@ -84,10 +84,10 @@ describe("renderLog", () => {
   });
 
   it("la stessa riga di chat si legge in due lingue diverse ai due lati del tavolo", () => {
-    const line = msg("log.newgame", { seat: "a", otherSeat: "b" });
-    expect(renderLog(line, state, names)).toBe("Nuova partita: inizia Giocatore A, il Gettone Flusso va a Giocatore B (§4).");
+    const line = msg("log.newgame", { seat: "a" });
+    expect(renderLog(line, state, names)).toBe("Nuova partita: inizia Giocatore A.");
     setLang("en");
-    expect(renderLog(line, state, names)).toBe("New game: Player A starts, the Flux Token goes to Player B (§4).");
+    expect(renderLog(line, state, names)).toBe("New game: Player A starts.");
   });
 });
 

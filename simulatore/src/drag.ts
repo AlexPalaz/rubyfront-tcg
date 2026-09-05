@@ -144,14 +144,13 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
       // disegna a modo suo); left e top restano pixel veri.
       ghost.style.width = `${element.offsetWidth}px`;
       ghost.style.height = `${element.offsetHeight}px`;
-      // In vista compatta la carta presa DALLA MANO diventa subito la sua
-      // tessera da campo: ritagliata alla testa e alla scala del tavolo,
-      // com'è dove sta per atterrare. La presa si ricentra sulla tessera
+      // In vista compatta la carta presa DALLA MANO è già la tessera da
+      // campo (stessa misura): si porta alla scala del tavolo, com'è dove
+      // sta per atterrare. La presa si ricentra sulla tessera
       // ridotta — e il rilascio, che ragiona sulla stessa presa, la posa
       // esattamente dove la si vede.
       if (fromHand && isCompactView()) {
         ghost.style.height = `${tileViewH()}px`;
-        ghost.classList.add("is-cropped");
         grabScale = tableScale();
         grabX = (element.offsetWidth * grabScale) / 2;
         grabY = (tileViewH() * grabScale) / 2;
@@ -240,6 +239,31 @@ function isPrecise(target: HTMLElement): boolean {
   return zone !== "field" && zone !== "hand";
 }
 
+/**
+ * La calamita delle pile: quanto (in pixel di schermo) attorno al riquadro
+ * di una pila un rilascio conta ancora come «nella pila». Una carta lasciata
+ * a un dito dall'Abisso voleva andare nell'Abisso, non posarsi sul tavolo
+ * accanto — dove resterebbe fuori da ogni zona, mezza nascosta dalla pila.
+ */
+const PILE_MAGNET = 64;
+
+/** La pila il cui riquadro, allargato della calamita, contiene il punto. */
+function pileNear(clientX: number, clientY: number): HTMLElement | null {
+  let best: HTMLElement | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const el of document.querySelectorAll<HTMLElement>(".slot.pile[data-drop]")) {
+    const box = el.getBoundingClientRect();
+    const dx = Math.max(box.left - clientX, 0, clientX - box.right);
+    const dy = Math.max(box.top - clientY, 0, clientY - box.bottom);
+    const distance = Math.hypot(dx, dy);
+    if (distance <= PILE_MAGNET && distance < bestDistance) {
+      bestDistance = distance;
+      best = el;
+    }
+  }
+  return best;
+}
+
 function targetAt(clientX: number, clientY: number): HTMLElement | null {
   const found: HTMLElement[] = [];
   for (const node of document.elementsFromPoint(clientX, clientY)) {
@@ -248,7 +272,16 @@ function targetAt(clientX: number, clientY: number): HTMLElement | null {
   }
   // La mano è disegnata sopra il tavolo: senza questa precedenza, lasciare una
   // carta nella Zona di Richiamo (che le sta sotto) la rimanderebbe in mano.
-  return found.find(isPrecise) ?? found[0] ?? null;
+  const precise = found.find(isPrecise);
+  if (precise) return precise;
+  // Sulla lavagna nuda, a un dito da una pila, vale la pila. Sulla mano no:
+  // rimettere in mano una carta accanto all'Abisso resta un rimetterla in mano.
+  const loose = found[0] ?? null;
+  if (!loose || loose.dataset.drop === "field") {
+    const pile = pileNear(clientX, clientY);
+    if (pile) return pile;
+  }
+  return loose;
 }
 
 function highlight(clientX: number, clientY: number): void {
@@ -275,7 +308,10 @@ function snapByFootprint(
   clientX: number,
   clientY: number,
   grabCanonX: number,
-  grabCanonY: number
+  grabCanonY: number,
+  selector = "[data-snap-x]",
+  // Sotto il 40% di copertura non è un'intenzione: la lavagna resta libera.
+  minShare = 0.4
 ): HTMLElement | null {
   const scale = tableScale();
   const left = clientX - grabCanonX * scale;
@@ -283,9 +319,8 @@ function snapByFootprint(
   const width = TILE_W * scale;
   const height = tileViewH() * scale;
   let best: HTMLElement | null = null;
-  // Sotto il 40% di copertura non è un'intenzione: la lavagna resta libera.
-  let bestShare = 0.4;
-  for (const el of document.querySelectorAll<HTMLElement>("[data-snap-x]")) {
+  let bestShare = minShare;
+  for (const el of document.querySelectorAll<HTMLElement>(selector)) {
     const box = el.getBoundingClientRect();
     const acrossX = Math.min(left + width, box.right) - Math.max(left, box.left);
     const acrossY = Math.min(top + height, box.bottom) - Math.max(top, box.top);
@@ -317,6 +352,12 @@ function resolve(clientX: number, clientY: number, grabCanonX: number, grabCanon
   if (target?.dataset.drop === "field" && target.dataset.snapX === undefined) {
     const byCard = snapByFootprint(clientX, clientY, grabCanonX, grabCanonY);
     if (byCard) target = byCard;
+    else {
+      // E se l'impronta copre per un buon terzo una pila, è la pila che si
+      // voleva: la calamita del dito (pileNear) più quella della carta.
+      const pile = snapByFootprint(clientX, clientY, grabCanonX, grabCanonY, ".slot.pile[data-drop]", 0.3);
+      if (pile) target = pile;
+    }
   }
   if (!target) return null;
   const zone = target.dataset.drop as ZoneId | "field" | undefined;

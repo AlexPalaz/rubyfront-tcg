@@ -19,7 +19,7 @@
       "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli."
     },
     "effect": {
-      "text": "Questa Entità non si tappa mai."
+      "text": "Questa Entità non viene tappata dopo l'attacco."
     },
     "flavor": "Le terre si sono spezzate sotto di lui. Lui ha continuato a camminare."
   },

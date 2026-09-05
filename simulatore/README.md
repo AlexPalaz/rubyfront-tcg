@@ -107,38 +107,47 @@ chiude con un click fuori o con Esc.
 
 ## La vista compatta
 
-Dalle impostazioni (Vista) il tavolo passa in **compatto**: sul campo le
-tessere mostrano solo la testa della carta — costo, nome, potenza/PV — e
-l'illustrazione; il resto lo taglia il bordo della tessera (la carta sotto è
-intera e intatta: passandoci sopra col mouse, o col tap, si apre il dettaglio
-pieno). Le file si stringono di conseguenza e la scala si aggancia anche
-all'altezza: **il tavolo sta tutto nella finestra, senza scorrere**.
+È la vista di default (impostazioni → Vista → «Tavolo»): **il tavolo sta
+tutto nella finestra, senza scorrere**, e ogni scritta resta a 16px
+qualunque sia la finestra. Sul campo, nelle pile e in mano le carte sono
+**tessere**: l'illustrazione col nome, il costo e la Potenza (o i PV)
+sovrapposti — non la carta rimpicciolita, che a quelle scale avrebbe il
+testo a 5–8px. Il testo di regole si legge passandoci sopra col mouse (o col
+tap): si apre la carta intera, alla misura del renderer. La Potenza sulla
+tessera è quella **attuale** (§8.2), in rubino se sale.
+
+Il trucco è uno solo: la lavagna è scalata con un transform (`--card-scale`),
+e tutto ciò che deve restare leggibile — tessere, etichette delle file e
+delle pile, targa del posto — si moltiplica per l'inverso (`--ui-inv`).
+Quando comanda la larghezza, la mano cresce da sola (fino a una volta e
+mezza) e la lavagna si centra nello spazio che resta.
 
 È un vestito del client, come i temi: le coordinate condivise in rete non
 cambiano di un pixel — a comprimersi è solo la geometria di vista (la mappa
-`compress` in `src/ctx.ts`). La mano resta a carte piene, e la scelta resta
-fra una partita e l'altra.
+`compress` in `src/ctx.ts`). L'altra vista, «Carte intere», mostra le carte
+piene sul tavolo e si scorre.
 
 ## L'HUD e la chat
 
-Sul tavolo fluttua un **HUD** che tiene tutto il gioco: due targhe — Punti Vita
-e Flusso per entrambi i posti, disposti come al tavolo, l'avversario in alto e
-tu in basso — in mezzo il turno con la punta rivolta a chi tocca, e in fondo
-**Fine turno** (la routine di §3.2: chi entra si trova il Flusso massimo
-cresciuto di 1 e ricaricato) e i **dadi**, con l'ultimo esito sott'occhio e il
-tiro firmato in chat. I − e i + compaiono passando col mouse su targhe e turno:
-ogni numero resta correggibile a mano. La moneta sull'orlo di ogni targa è il
-**Gettone Flusso** (§3.2): spenta (◇) lo assegna, d'oro (◆) lo spende — 1
-Flusso extra, fuori dal tetto dei 20. Il posto attivo brilla del suo colore.
+In basso a destra, accanto al cassetto della mano, sta fisso un **HUD**: un
+pannello pieno, non un vetro, fatto di righe. In testa il turno e la fase
+(§6), e a destra chi tocca. Poi una riga per posto — il Gettone, il nome nel
+colore del posto, i Punti Vita, il Flusso nel rombo — con la riga di chi è di
+turno tinta del suo colore. Sotto, a tutta larghezza, il bottone di fase
+(**Fine turno**, o **Fine fase** con l'arbitro: la routine di §3.2, chi entra
+si trova il Flusso massimo cresciuto di 1 e ricaricato); senza arbitro
+seguono Mescola/Pesca/Cerca e i **dadi**, con l'ultimo esito sott'occhio e il
+tiro firmato in chat. In fondo, piccoli, chat e microfono. I − e i + compaiono
+passando col mouse sulle righe: ogni numero resta correggibile a mano. La
+moneta all'inizio di ogni riga è il **Gettone Flusso** (§3.2): spenta (◇) lo
+assegna, d'oro (◆) lo spende — 1 Flusso extra, fuori dal tetto dei 20.
 
-L'HUD **si sposta**: lo si afferra da un punto qualsiasi che non sia un tasto e
-lo si porta dove non dà fastidio. La posizione resta fra una partita e l'altra;
-doppio click sulla maniglia e torna al posto suo, sul bordo destro. Se il
-tavolo si restringe, rientra da sé nei bordi.
-
-Col «–» accanto alla maniglia l'HUD **si riduce a icona**: resta una tessera
-col rombo (con la spia dei messaggi), trascinabile, e un click la riapre. Al
-prossimo avvio l'HUD parte comunque aperto.
+L'HUD **non si sposta**: il tavolo sopra prende tutta la larghezza, e in
+compatta si ferma sopra il più alto fra cassetto e HUD. Col «–» sopra
+l'angolo l'HUD **si riduce a icona**: resta una tessera col rombo (con la
+spia dei messaggi), e un click la riapre. Al prossimo avvio l'HUD parte
+comunque aperto. Accanto al «–» c'è **Evoca**, strumento di prova
+provvisorio.
 
 La colonna a destra è **solo chat**: il fumetto la apre, la × la richiude, e
 chiusa cede i 320px al tavolo. **Chi fa cosa si vede dal colore**: le tue righe
@@ -152,10 +161,14 @@ turno (§3.2), e per le correzioni ci sono i − e + del Flusso.
 
 ## I temi
 
-Dalle impostazioni (ingranaggio) si sceglie il **tema del tavolo**: Notte (viola & indaco, il
-tema di base), Rubino (il classico bordeaux), Smeraldo, Abisso, Acciaio, e
-Solarizzato — l'unico chiaro, sulla palette Solarized Light. Un
-tema riveste i due campi, l'HUD, le bande della chat e il mobilio attorno
+Dalle impostazioni (ingranaggio) si sceglie il **tema del tavolo**: due
+soli, **Scuro** (viola & indaco, il tema di base) e **Chiaro** (bianco
+quasi pieno, solare: nasce dalla carta a tema chiaro di card.css — cornici
+grigie, inchiostro quasi nero, rubino cupo. I campi sono bianchi, il posto
+lo dicono orli e targhe: rosso rubino il tuo, nero l'avversario — il
+viola sul bianco non regge). Il mobilio è spigoloso: nessun angolo arrotondato, come il
+template della carta; gli angoli delle carte sono di card.css e restano suoi.
+Un tema riveste i due campi, l'HUD, le bande della chat e il mobilio attorno
 (barra, pannelli, sfondo); il rubino delle azioni di gioco — rombo del
 Flusso, Fine turno, combattimento — non cambia mai. È un vestito del client,
 non dello stato: ognuno gioca col tema suo, e la scelta resta fra una partita

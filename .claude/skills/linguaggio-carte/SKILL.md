@@ -174,7 +174,7 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Divieto di gioco permanente | Non puoi più giocare [Nome] per il resto della partita. | You can no longer play [Name] for the rest of the game. |
 | Presenza sul Fronte (nome/singola) | Se [Nome / un'altra Entità X] è sul tuo Fronte, … | If [Name / another X Entity] is on your Front, … |
 | Presenza sul Fronte (conteggio) | Se sul tuo Fronte ci sono almeno N …, … | If there are at least N … on your Front, … |
-| Mai tappata (statico) | Questa Entità non si tappa mai. | This Entity never taps. |
+| Non si tappa attaccando (statico) | Questa Entità non viene tappata dopo l'attacco. | This Entity is not tapped after attacking. |
 
 **Rimozione: quale zona.** Una rimozione che deve **tornare in gioco** usa
 l'«Esilio condizionato» sull'**Abisso** (RBF-018, RBF-043; nella variante

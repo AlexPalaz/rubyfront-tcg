@@ -287,28 +287,54 @@ export function setCompactView(on: boolean): void {
 export function isCompactView(): boolean {
   return compactView;
 }
-/** Altezza della tessera ritagliata: fino al fondo dell'illustrazione
-    (19 di padding + 40 di titolo + 7 di varco + 291 di art, in scala 302/520). */
-const COMPACT_TILE_H = 210;
+
+/**
+ * Le due viste del tavolo. «Piena»: carte intere ovunque, si scorre.
+ * «Compatta»: tutto nella finestra, senza scorrere; sul campo e in mano le
+ * carte sono TESSERE (illustrazione, nome, costo, Potenza a corpo fisso),
+ * il testo di regole si legge nell'ingrandimento al passaggio. Le
+ * coordinate canoniche non cambiano di un pixel: cambia solo la mappa di
+ * vista.
+ */
+export type ViewMode = "full" | "compact";
+export function setViewMode(mode: ViewMode): void {
+  compactView = mode === "compact";
+}
+export function viewMode(): ViewMode {
+  return compactView ? "compact" : "full";
+}
+/**
+ * Altezza della tessera compatta. Non deriva più dalla carta: è il riquadro
+ * dell'illustrazione (302 di larghezza, poco meno di 3:2), con nome e
+ * distintivi sovrapposti. Vale sul campo, nelle pile e in mano.
+ */
+export const COMPACT_TILE_H = 200;
 /** Il varco fra le due file si stringe con le carte. */
 const COMPACT_ROW_GAP = 48;
+/** Il margine sopra e sotto le file, in compatta: più largo del canonico,
+    perché lì sotto stanno le etichette a corpo fisso (16px reali, cioè
+    fino a ~37px canonici a scala 0.43) con un po' d'aria dal riquadro. */
+const COMPACT_ROW_PAD = 72;
 /** In compatta la mano non si sovrappone più alla lavagna (il fit la conta,
     vedi fitScale in table.ts): la coda in fondo serve solo da respiro. */
 const COMPACT_BOTTOM_PAD = 48;
 
-/** Altezza di VISTA di una tessera sul campo. */
+/** Altezza di VISTA di una tessera, sul campo e nelle pile. */
 export function tileViewH(): number {
   return compactView ? COMPACT_TILE_H : TILE_H;
 }
 function rowGapView(): number {
   return compactView ? COMPACT_ROW_GAP : ROW_GAP;
 }
+function rowPadView(): number {
+  return compactView ? COMPACT_ROW_PAD : ROW_PAD;
+}
 function bottomPadView(): number {
   return compactView ? COMPACT_BOTTOM_PAD : BOTTOM_PAD;
 }
 /** Altezza di VISTA di una fascia. */
 export function bandViewH(): number {
-  return ROW_PAD + tileViewH() + rowGapView() + tileViewH() + ROW_PAD;
+  return rowPadView() + tileViewH() + rowGapView() + tileViewH() + rowPadView();
 }
 /** Altezza di VISTA dell'intera superficie. */
 export function surfaceViewH(): number {
@@ -329,11 +355,11 @@ function anchors(): [number[], number[]] {
   };
   seg(TOP_PAD, TOP_PAD);
   for (let band = 0; band < 2; band += 1) {
-    seg(ROW_PAD, ROW_PAD);
+    seg(ROW_PAD, rowPadView());
     seg(TILE_H, tileViewH());
     seg(ROW_GAP, rowGapView());
     seg(TILE_H, tileViewH());
-    seg(ROW_PAD, ROW_PAD);
+    seg(ROW_PAD, rowPadView());
     if (band === 0) seg(HALF_GAP, HALF_GAP);
   }
   seg(BOTTOM_PAD, bottomPadView());
@@ -379,10 +405,6 @@ export const TOP_PAD = 128;
  * molto meno — e meno coda vuol dire meno scorrimento.
  */
 const BOTTOM_PAD = 240;
-/** Quanto la coda si accorcia in compatta: il fit della compatta lo tiene
-    come tetto, così le carte non crescono oltre la misura di prima — il
-    guadagno d'altezza va allo spazio, non alla scala. */
-export const COMPACT_TAIL_SAVED = BOTTOM_PAD - COMPACT_BOTTOM_PAD;
 const HALF_GAP = 32;
 export const SURFACE_H = TOP_PAD + HALF_H * 2 + HALF_GAP + BOTTOM_PAD;
 

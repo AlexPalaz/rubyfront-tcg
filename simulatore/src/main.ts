@@ -14,7 +14,7 @@ import { gameOverMsg } from "./turn.js";
 import type { ChatEntry } from "./types.js";
 import "@fontsource-variable/space-grotesk";
 import { mountChat } from "./chat.js";
-import { SLOT_X, SURFACE_W, backRowY, isCompactView, setCompactView, viewBattleTop, type Ctx } from "./ctx.js";
+import { SLOT_X, SURFACE_W, backRowY, isCompactView, setViewMode, viewBattleTop, viewMode, type Ctx, type ViewMode } from "./ctx.js";
 import { connectEngine, DEFAULT_ENGINE, type EngineLink, type EngineStatus, type EngineVerdict, verdictReason } from "./engine.js";
 import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
@@ -325,9 +325,12 @@ const voice = createVoice({
 
 // ----------------------------------------------------------------- viste
 
-// La vista compatta va decisa prima di montare il tavolo: le zone nascono
-// già con la geometria giusta.
-setCompactView(store.read("compact", "") === "1");
+// La vista va decisa prima di montare il tavolo: le zone nascono già con la
+// geometria giusta. Di default il tavolo è tutto in vista (compatta); chi
+// aveva scelto le carte intere le ritrova. La «table» di una prova
+// precedente si legge come compatta.
+const savedView = store.read("view", "") || (store.read("compact", "") === "1" ? "compact" : "");
+setViewMode(savedView === "full" ? "full" : "compact");
 
 const table = mountTable(document.querySelector<HTMLElement>("#table")!, ctx);
 // L'insegna di fase sta sul tavolo, sopra le carte: è lì che si guarda.
@@ -514,7 +517,7 @@ function scheduleOpening(seat: Seat, deckId: string): void {
     // ci pensa il client che governa quel posto: ognuno carica il proprio
     // mazzo, e solo chi apre passa di qui con `active` suo.
     const opening = seat === state.active;
-    ctx.log(msg("log.opening", { seat, opens: opening ? msg("log.opens") : "" }), seat);
+    ctx.log(msg("log.opening", { seat }), seat);
     if (!opening) return;
     openingTimer[seat] = window.setTimeout(() => {
       const untouched = state.players[seat].deckId === deckId && state.active === seat && handSize(seat) === 6;
@@ -669,7 +672,7 @@ document.querySelector("#do-new")!.addEventListener("click", () => {
   const starter = randomSeat();
   void dispatch({ t: "newGame", active: starter }).then(passed => {
     if (!passed) return;
-    ctx.log(msg("log.newgame", { seat: starter, otherSeat: otherSeat(starter) }));
+    ctx.log(msg("log.newgame", { seat: starter }));
   });
   if (myDeckId) loadDeck(myDeckId, mySeat);
   reapplyName();
@@ -819,9 +822,9 @@ function engineApply(): void {
       const signature = `${version}|${rules.join(",")}`;
       if (signature === welcomed) return;
       welcomed = signature;
-      ctx.log(
-        msg("log.engine.hello", { version, rules: rules.length === 0 ? msg("log.engine.none") : msg("log.engine.rules", { list: rules.join(", ") }) })
-      );
+      // In chat solo l'essenziale: la lista delle regole attive resta nel
+      // protocollo, non nello storico della partita.
+      ctx.log(msg("log.engine.hello", { version }));
     },
     onVerdict(verdict) {
       // Qui arrivano solo le occhiate sulle azioni AVVERSARIE (receive): già
@@ -843,14 +846,15 @@ engineUrlInput.addEventListener("change", () => {
   if (engineToggle.checked) engineApply();
 });
 
-// Vista compatta: sul campo solo testa e illustrazione delle carte, tavolo
-// tutto in vista senza scorrere. Il dettaglio pieno resta al passaggio del
-// mouse (o al tap). Cambio a caldo: si rifà la sola geometria di vista.
-const compactToggle = document.querySelector<HTMLInputElement>("#compact-toggle")!;
-compactToggle.checked = isCompactView();
-compactToggle.addEventListener("change", () => {
-  setCompactView(compactToggle.checked);
-  store.write("compact", compactToggle.checked ? "1" : "");
+// Vista compatta: tessere (illustrazione, nome, costo, Potenza) al posto
+// delle carte, tavolo tutto in vista senza scorrere. Il testo di regole
+// resta al passaggio del mouse (o al tap). Cambio a caldo: si rifà la sola
+// geometria di vista, e le tessere si ridisegnano.
+const viewPick = document.querySelector<HTMLSelectElement>("#view-pick")!;
+viewPick.value = viewMode();
+viewPick.addEventListener("change", () => {
+  setViewMode(viewPick.value as ViewMode);
+  store.write("view", viewPick.value);
   table.refreshLayout();
   frameBoard();
   paint();
@@ -901,8 +905,12 @@ seatPick.addEventListener("change", () => {
 
 // Il tema del tavolo è tutto CSS: si stampa sul body e il foglio fa il resto.
 // È un vestito del client, non dello stato: ognuno gioca col tema suo.
+// Due temi soli, uno scuro e uno chiaro: un tema salvato da prima (rubino,
+// smeraldo…) ricade sullo scuro; il vecchio chiaro (solarizzato) sul chiaro.
+const savedTheme = store.read("uitheme", "notte");
 const themePick = document.querySelector<HTMLSelectElement>("#theme-pick")!;
-document.body.dataset.uiTheme = store.read("uitheme", "notte");
+const knownTheme = [...themePick.options].some(option => option.value === savedTheme);
+document.body.dataset.uiTheme = knownTheme ? savedTheme : savedTheme === "solarizzato" ? "chiaro" : "notte";
 themePick.value = document.body.dataset.uiTheme;
 themePick.addEventListener("change", () => {
   document.body.dataset.uiTheme = themePick.value;

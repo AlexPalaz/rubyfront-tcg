@@ -82,20 +82,18 @@
   </div>
   <div class="set-row">
     <span class="set-label" data-i18n="html.view">Vista</span>
-    <label class="set-check">
-      <input type="checkbox" id="compact-toggle">
-      <span data-i18n="html.compact">Compatta: sul campo solo costo, nome, potenza e illustrazione</span>
-    </label>
+    <select id="view-pick" title="Come si vede il tavolo" data-i18n-title="html.view.tip">
+      <option value="compact" data-i18n="html.view.compact">Tavolo: tutto in vista, tessere con nome, costo e Potenza; il testo al passaggio</option>
+      <option value="full" data-i18n="html.view.full">Carte intere: si legge tutto sul tavolo, si scorre</option>
+    </select>
   </div>
   <div class="set-row">
     <span class="set-label" data-i18n="html.theme">Tema</span>
     <select id="theme-pick" title="Tema del tavolo" data-i18n-title="html.theme.tip">
-      <option value="notte">Notte</option>
-      <option value="rubino">Rubino</option>
-      <option value="smeraldo">Smeraldo</option>
-      <option value="abisso">Abisso</option>
-      <option value="acciaio">Acciaio</option>
-      <option value="solarizzato">Solarizzato</option>
+      <option value="notte" data-i18n="html.theme.dark">Scuro · Notte</option>
+      <option value="notte-ardesia" data-i18n="html.theme.dark.ardesia">Scuro · Ardesia (prova)</option>
+      <option value="notte-panno" data-i18n="html.theme.dark.panno">Scuro · Panno verde (prova)</option>
+      <option value="chiaro" data-i18n="html.theme.light">Chiaro</option>
     </select>
   </div>
   <div class="set-row">

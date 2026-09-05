@@ -16,7 +16,24 @@ export interface FaceOptions {
   back: boolean;
   theme: string;
   locale: string;
+  /**
+   * La TESSERA della vista compatta: non la carta rimpicciolita, ma la sua
+   * illustrazione col nome, il costo e la Potenza (o i PV) sovrapposti in
+   * corpo fisso — leggibili a qualunque scala del tavolo, perché il corpo
+   * si contro-scala col CSS (--ui-inv). Il testo di regole si legge
+   * nell'ingrandimento al passaggio, che resta la carta intera.
+   */
+  tess?: boolean;
 }
+
+/** Le spade della Potenza, le stesse della carta e dei segni del tavolo. */
+const TESS_SWORDS =
+  '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+  '<line x1="4.8" y1="19.2" x2="19.8" y2="4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+  '<line x1="19.2" y1="19.2" x2="4.2" y2="4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+  '<line x1="4.3" y1="15.4" x2="8.6" y2="19.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+  '<line x1="19.7" y1="15.4" x2="15.4" y2="19.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+  "</svg>";
 
 export function createCardEl(uid: string): HTMLElement {
   const element = document.createElement("div");
@@ -57,9 +74,24 @@ export function syncCardEl(element: HTMLElement, card: CardInstance, options: Fa
     : `${card.cardId}:${card.face}:${options.theme}:${options.locale}`;
   const scaler = element.firstElementChild as HTMLElement;
 
-  if (element.dataset.signature !== signature) {
-    element.dataset.signature = signature;
-    if (options.back) {
+  const tess = options.tess === true;
+  // La tessera entra nella firma: al cambio di vista ogni carta si ridisegna
+  // nella forma giusta, e la carta intera rifà il suo fit.
+  const fullSignature = tess ? `tess:${signature}` : signature;
+
+  if (element.dataset.signature !== fullSignature) {
+    element.dataset.signature = fullSignature;
+    element.classList.toggle("is-tess", tess);
+    element.querySelector(":scope > .tess")?.remove();
+    delete element.dataset.fit;
+    if (tess) {
+      // La carta si disegna lo stesso, ma solo per leggerne i dati: da lì
+      // escono illustrazione, nome, costo e Potenza. Non entra nel documento
+      // e non passa dal fit.
+      scaler.replaceChildren();
+      const face = options.back ? null : renderFace(card.cardId, card.face, options.theme, options.locale);
+      element.append(buildTess(face));
+    } else if (options.back) {
       scaler.replaceChildren(cardBack());
     } else {
       const face = renderFace(card.cardId, card.face, options.theme, options.locale);
@@ -76,6 +108,85 @@ export function syncCardEl(element: HTMLElement, card: CardInstance, options: Fa
   element.classList.toggle("is-back", options.back);
   element.dataset.cardId = card.cardId;
   element.dataset.face = String(card.face);
+}
+
+/**
+ * La tessera compatta, letta dalla carta disegnata dal renderer: così il
+ * costo a dado, i PV del Rubyfront, il nome della faccia sono ESATTAMENTE
+ * quelli stampati, senza rifare la logica della carta. Niente carta: dorso.
+ */
+function buildTess(face: HTMLElement | null): HTMLElement {
+  const tess = document.createElement("div");
+  tess.className = "tess";
+  if (!face) {
+    tess.append(cardBack());
+    return tess;
+  }
+  const source =
+    face.querySelector<HTMLImageElement>(".bg-art") ??
+    face.querySelector<HTMLImageElement>(".art img");
+  const art = document.createElement("img");
+  art.className = "tess-art";
+  art.alt = "";
+  art.draggable = false;
+  if (source?.src) art.src = source.src;
+  else art.classList.add("is-missing");
+  tess.append(art);
+
+  const cost = face.querySelector<HTMLElement>(".titlebar .cost");
+  if (cost) {
+    const chip = document.createElement("span");
+    chip.className = "tess-cost";
+    if (cost.classList.contains("die")) {
+      chip.classList.add("is-die");
+      chip.title = cost.title;
+    }
+    chip.textContent = cost.textContent?.trim() ?? "";
+    tess.append(chip);
+  }
+
+  const hp = face.querySelector<HTMLElement>(".titlebar .hp");
+  const power = face.querySelector<HTMLElement>(".titlebar .power-badge");
+  if (hp && hp.textContent?.trim() !== "—") {
+    const chip = document.createElement("span");
+    chip.className = "tess-hp";
+    const value = hp.firstChild?.textContent?.trim() ?? "";
+    const unit = hp.querySelector("small")?.textContent?.trim() ?? "";
+    chip.append(Object.assign(document.createElement("b"), { textContent: value }), " ", Object.assign(document.createElement("small"), { textContent: unit }));
+    tess.append(chip);
+  } else if (power) {
+    const chip = document.createElement("span");
+    chip.className = "tess-power";
+    chip.title = power.title;
+    chip.innerHTML = TESS_SWORDS;
+    const printed = power.textContent?.trim() ?? "";
+    chip.dataset.printed = printed;
+    chip.append(Object.assign(document.createElement("b"), { textContent: printed }));
+    tess.append(chip);
+  }
+
+  const name = document.createElement("div");
+  name.className = "tess-name";
+  name.textContent = face.querySelector(".titlebar .name")?.textContent?.trim() ?? "";
+  tess.append(name);
+  return tess;
+}
+
+/**
+ * La Potenza attuale sulla tessera (§8.2): il numero stampato resta nel
+ * dato, quello mostrato è ciò che vale adesso — in rubino se sale, spento se
+ * scende. `null` riporta lo stampato.
+ */
+export function setTessPower(element: HTMLElement, now: number | null): void {
+  const chip = element.querySelector<HTMLElement>(":scope > .tess > .tess-power");
+  if (!chip) return;
+  const printed = Number(chip.dataset.printed);
+  const shown = now === null || Number.isNaN(printed) ? chip.dataset.printed ?? "" : String(now);
+  const label = chip.querySelector("b");
+  if (label && label.textContent !== shown) label.textContent = shown;
+  const delta = now === null || Number.isNaN(printed) ? 0 : now - printed;
+  chip.classList.toggle("is-up", delta > 0);
+  chip.classList.toggle("is-down", delta < 0);
 }
 
 /** Completa il fit delle tessere costruite prima di entrare nel documento. */

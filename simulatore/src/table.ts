@@ -7,11 +7,10 @@
 
 import { msg, t } from "./i18n.js";
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
-import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js";
+import { createCardEl, fitPending, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
 import { declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticPower, undeclare, wornBy } from "./combat.js";
 import { tapPreview } from "./preview.js";
 import {
-  COMPACT_TAIL_SAVED,
   CONTROL_X,
   FRONT_SLOT_X,
   FRONT_W,
@@ -148,8 +147,12 @@ export function drawCascadeMs(count: number): number {
     Specchio di --hand-boost in style.css. */
 const HAND_BOOST = 1.3;
 const HAND_BOOST_COMPACT = 1;
+/** …e fin dove può crescere quando sotto la lavagna resta spazio. */
+const HAND_BOOST_COMPACT_MAX = 1.5;
 /** La cornice del cassetto oltre la carta (i 48px di --hand-h). */
 const HAND_CHROME = 48;
+/** L'aria attorno all'HUD agganciato in basso (12px sotto, e altrettanti sopra). */
+const HUD_CHROME = 24;
 
 export interface TableView {
   render(): void;
@@ -322,9 +325,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   handToggle.addEventListener("click", () => setHandCollapsed(!myHand.classList.contains("is-collapsed")));
 
   // Su touch il cassetto si governa anche col gesto: swipe in giù lo ripiega,
-  // swipe in su (o un tap sull'orlo ripiegato) lo riapre. E si parte ripiegati:
-  // su uno schermo piccolo la mano aperta si mangerebbe il tavolo.
-  if (window.matchMedia("(pointer: coarse)").matches) setHandCollapsed(true);
+  // swipe in su (o un tap sull'orlo ripiegato) lo riapre. Si parte APERTI
+  // ovunque: in compatta la mano è di tessere e il fit la conta, non si
+  // mangia il tavolo.
   myHand.addEventListener("pointerdown", event => {
     if (event.pointerType !== "touch") return;
     // Le carte si trascinano: il gesto del cassetto vale solo fuori da esse.
@@ -390,6 +393,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   // stretta dei 2700px canonici, la superficie si scala di conseguenza (e le
   // carte in mano con lei, via CSS). Si vedono più piccole, ma a leggerle ci
   // pensa l'ingrandimento al passaggio, che resta a misura piena.
+  const hudEl = root.querySelector<HTMLElement>(".hud");
   function fitScale(): void {
     // In vista compatta il tavolo deve stare TUTTO nella finestra, MANO
     // COMPRESA: il cassetto è un pannello sopra la lavagna, e se il fit non
@@ -401,23 +405,38 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // h = surface·s + 48 + 424·s·boost si ha la scala che fa combaciare il
     // fondo della lavagna con l'orlo della mano.
     const compact = isCompactView();
-    // Due tetti in compatta: il tavolo con la mano sotto, e la misura di
-    // sempre — la coda accorciata (COMPACT_TAIL_SAVED) non fa crescere le
-    // carte, libera spazio.
+    // In compatta anche la mano è di tessere (tileViewH): il fit conta
+    // quella. Un tetto solo: il tavolo con la mano sotto — le tessere più
+    // sono grandi meglio è, il corpo dei testi non dipende dalla scala.
+    const handTileH = compact ? tileViewH() : TILE_H;
     const heightFit = compact
-      ? Math.min(
-          (board.clientHeight - HAND_CHROME) / (surfaceViewH() + TILE_H * HAND_BOOST_COMPACT),
-          board.clientHeight / (surfaceViewH() + COMPACT_TAIL_SAVED)
-        )
+      ? (board.clientHeight - HAND_CHROME) / (surfaceViewH() + handTileH * HAND_BOOST_COMPACT)
       : Number.POSITIVE_INFINITY;
-    const scale = Math.min(1, board.clientWidth / SURFACE_W, heightFit);
+    // L'HUD è fisso in basso a destra, accanto alla mano: in compatta la
+    // lavagna deve fermarsi sopra il più alto dei due, cassetto o HUD.
+    const dockH = compact ? (hudEl?.offsetHeight ?? 0) + HUD_CHROME : 0;
+    const scale = Math.min(
+      1,
+      board.clientWidth / SURFACE_W,
+      heightFit,
+      compact ? (board.clientHeight - dockH) / surfaceViewH() : Number.POSITIVE_INFINITY
+    );
+    // Quando in compatta comanda la larghezza, sotto la lavagna resta
+    // spazio: lo prende la mano, che cresce (fino a una volta e mezza) —
+    // sono le carte da giocare, e il corpo dei testi non cambia comunque.
+    const slack = board.clientHeight - HAND_CHROME - surfaceViewH() * scale;
+    const handBoost = compact
+      ? Math.max(HAND_BOOST_COMPACT, Math.min(HAND_BOOST_COMPACT_MAX, slack / (handTileH * scale)))
+      : HAND_BOOST;
+    document.documentElement.style.setProperty("--hand-tile-h", `${handTileH}px`);
+    document.body.classList.toggle("view-compact", compact);
     // Su html, non su body: le variabili derivate (--hand-scale, --hand-h)
     // sono definite in :root e si risolvono LÌ — un override sul body non le
     // raggiungerebbe, e il cassetto resterebbe ad altezza piena.
     // floor, non round: arrotondare in su lascerebbe UN pixel di scorrimento
     // proprio nella vista che promette di non scorrere.
     document.documentElement.style.setProperty("--card-scale", String(Math.floor(scale * 1000) / 1000));
-    document.documentElement.style.setProperty("--hand-boost", String(compact ? HAND_BOOST_COMPACT : HAND_BOOST));
+    document.documentElement.style.setProperty("--hand-boost", String(Math.floor(handBoost * 1000) / 1000));
     // Quando in compatta comanda l'altezza, la lavagna è più stretta della
     // finestra: si centra nello spazio a sinistra della corsia dell'HUD
     // (--hud-lane), invece di restare incollata a sinistra col vuoto a
@@ -426,11 +445,30 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // sistema da sé. Le coordinate dei rilasci partono dal rettangolo della
     // superficie, non dalla lavagna, quindi lo spostamento non le tocca.
     surface.style.marginLeft = compact
-      ? `max(0px, calc((100% - var(--hud-lane) - ${SURFACE_W}px * var(--card-scale)) / 2))`
+      ? `max(0px, calc((100% - ${SURFACE_W}px * var(--card-scale)) / 2))`
       : "";
+    // E quando anche la mano cresciuta non basta a riempire l'altezza
+    // (finestre molto larghe), la lavagna si centra in verticale fra la
+    // fascia dei dorsi avversari e il cassetto, invece di lasciare tutto il
+    // vuoto in fondo.
+    const handH = HAND_CHROME + handTileH * scale * handBoost;
+    const rest = compact ? board.clientHeight - surfaceViewH() * scale - Math.max(handH, dockH) : 0;
+    surface.style.marginTop = rest > 0 ? `${Math.floor(rest / 2)}px` : "";
   }
   fitScale();
-  new ResizeObserver(fitScale).observe(board);
+  // Al ridimensionamento non basta rifare la scala: la disposizione della
+  // mano (quanto le carte si accavallano, e con quale spinta) la calcola il
+  // render sulla larghezza del cassetto e sulla scala del momento. Senza il
+  // render le carte restavano ai margini di prima e sbordavano dal cassetto
+  // finché una mossa qualunque non lo ridisegnava.
+  const refit = new ResizeObserver(() => {
+    fitScale();
+    render();
+  });
+  refit.observe(board);
+  // L'HUD si monta dopo il tavolo e cambia misura (ridotto a icona, arbitro
+  // acceso): la lavagna si riadatta alla sua altezza.
+  if (hudEl) refit.observe(hudEl);
 
   /** Da coordinata condivisa a coordinata di schermo, per questo giocatore. */
   const view = (y: number): number => toView(y, ctx.seat());
@@ -1382,9 +1420,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const effects = card.zone === "hand" ? enterEffects(card.cardId, card.face, ctx.locale()) : [];
     if (passed && cost !== null) {
       const player = ctx.state().players[card.owner];
-      // In chat resta anche l'effetto: la storia della partita si rilegge.
-      const told = effects.map(effect => ` — ${effect.tag}: ${effect.text}`).join("");
-      ctx.log(msg("log.play", { seat: card.owner, card: card.cardId, cost, flux: player.flux, max: player.fluxMax, effects: told }), card.owner);
+      // In chat solo il gesto: il testo dell'effetto si legge sulla carta,
+      // lo storico resta pulito.
+      ctx.log(msg("log.play", { seat: card.owner, card: card.cardId, cost, flux: player.flux, max: player.fluxMax }), card.owner);
     }
     // Una Materia con un effetto certificato (§7.2): la scena elenca i
     // passi, «Risolvi» li esegue, e la carta — se non è permanente — va
@@ -2472,7 +2510,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         }
       });
     }
-    syncCardEl(tile, card, { back, theme: ctx.themeFor(card.owner), locale: ctx.locale() });
+    syncCardEl(tile, card, { back, theme: ctx.themeFor(card.owner), locale: ctx.locale(), tess: isCompactView() });
     return tile;
   }
 
@@ -2582,6 +2620,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const facts = ctx.card(card.cardId);
       const state = ctx.state();
       const now = facts.power === null ? null : powerOf(card, ctx.card, state);
+      // Sulla tessera compatta il numero mostrato è la Potenza attuale.
+      setTessPower(tile, now);
       if (now !== null && facts.power !== null && now !== facts.power) {
         const delta = now - facts.power;
         // Il segno meno è quello tipografico (U+2212), come sulle carte.
@@ -2617,6 +2657,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         marks.push({ key: "counter", cls: "counter-mark", icon: COUNTER_SVG, text: `+${card.counterBonus}`, title: t("tile.counter.turn", { n: card.counterBonus }) });
       }
     }
+    if (!onField || card.facedown) setTessPower(tile, null);
     if (marks.length === 0) {
       box?.remove();
       return;
@@ -2682,10 +2723,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           tile.style.top = "";
           tile.style.marginLeft = "";
           tile.style.position = "absolute";
-          // Anche la cima della pila si ritaglia in compatto, o sborderebbe
+          // Anche la cima della pila è una tessera in compatto, o sborderebbe
           // dallo slot e riporterebbe lo scorrimento che si voleva togliere.
           tile.style.height = `${tileViewH()}px`;
-          tile.classList.toggle("is-cropped", isCompactView());
           tile.style.zIndex = "1";
         }
       }
@@ -2736,10 +2776,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // arriva da lì e se lo tenesse addosso, si disegnerebbe a sinistra del
       // punto vero — «fuori dallo slot» pur essendoci, nei dati, dentro.
       tile.style.marginLeft = "";
-      // In compatto la tessera si ritaglia al fondo dell'illustrazione: la
-      // carta sotto è intera, la taglia l'overflow. In mano resta piena.
+      // In compatto la tessera è il riquadro dell'illustrazione (tileViewH);
+      // la forma la decide syncCardEl (tileFor), qui solo la misura.
       tile.style.height = `${tileViewH()}px`;
-      tile.classList.toggle("is-cropped", isCompactView());
       tile.classList.remove("is-unaffordable");
       tile.style.zIndex = chainIndex >= 0 ? String(900 + chainIndex) : String(10 + card.z);
     }
@@ -2783,8 +2822,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         tile.style.position = "relative";
         tile.style.left = "";
         tile.style.top = "";
-        tile.style.height = `${TILE_H}px`;
-        tile.classList.remove("is-cropped");
+        // In compatto anche in mano si sta a tessere: la mano entra nella
+        // finestra e la carta si legge al passaggio, come sul campo.
+        tile.style.height = `${isCompactView() ? tileViewH() : TILE_H}px`;
         tile.classList.toggle("is-unaffordable", unaffordable(card));
         tile.style.zIndex = "";
         wanted.push(tile);
@@ -2795,8 +2835,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // campo per i dorsi avversari su touch): in pixel canonici le carte
       // sembrerebbero enormi e si accatasterebbero già in sei.
       const coarse = window.matchMedia("(pointer: coarse)").matches;
+      // La spinta della mano è quella che fitScale ha scritto in --hand-boost.
+      const boost = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hand-boost")) || 1;
       const scale = seat === me || !coarse
-        ? Math.min(1, surfaceScale() * 1.3)
+        ? Math.min(1, surfaceScale() * boost)
         : surfaceScale();
       const tileW = TILE_W * scale;
       // Su touch la targhetta avversaria sta nel flusso e ruba larghezza.

@@ -19,7 +19,7 @@
       "text": "Roll a d20: on 15–20 untap all Entities you control."
     },
     "effect": {
-      "text": "This Entity never taps."
+      "text": "This Entity is not tapped after attacking."
     },
     "flavor": "The lands broke under him. He kept walking."
   },
