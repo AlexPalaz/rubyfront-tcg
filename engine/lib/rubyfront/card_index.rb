@@ -14,9 +14,9 @@ module Rubyfront
   # l'indice già pronto e non fa mai I/O.
   module CardIndex
     # data_dir -> {
-    #   "RBF-009" => { type: "entity", race: "human", keywords: ["surge"],
+    #   "<id>" => { type: "entity", race: "human", keywords: ["surge"],
     #                  power: 3, counterattack: nil, grants_while_assigned: [] },
-    #   "RBF-013" => { type: "object", race: nil, keywords: [], power: nil,
+    #   "<id>" => { type: "object", race: nil, keywords: [], power: nil,
     #                  counterattack: nil,
     #                  grants_while_assigned: [{ keywords: ["stasis"], if_race: "human" }] },
     #   ...
@@ -35,31 +35,28 @@ module Rubyfront
     #
     # `enter_listeners` sono gli ascoltatori d'ingresso CERTIFICATI (§8.2,
     # regola d'oro): «quando un'altra Entità [di razza X] entra sul tuo
-    # Fronte, se ne controlli almeno N [di razza Y], pesca K carte» — la
-    # forma di RBF-003. Ogni voce: { entering_race:, requires: { count:,
+    # Fronte, se ne controlli almeno N [di razza Y], pesca K carte». Ogni voce: { entering_race:, requires: { count:,
     # race: }, draw: }. Tutto ciò che non combacia esattamente non entra.
     #
     # `enter_moves` sono gli spostamenti all'ingresso CERTIFICATI (§8.2):
     # «quando questa Entità entra in campo, metti un'Entità avversaria nella
-    # Zona di Ritiro» — la forma di RBF-007. Ogni voce: { target: { type:,
+    # Zona di Ritiro» (forma senza carte dal 2026-09-04). Ogni voce: { target: { type:,
     # controller: }, to: }.
     #
     # `enter_returns` sono i ritorni all'ingresso CERTIFICATI (§8.2): «quando
     # questa Entità entra in campo, metti sul tuo Fronte una carta permanente
-    # dalla tua Zona di Ritiro» — la forma di RBF-012. Ogni voce: { from:,
+    # dalla tua Zona di Ritiro». Ogni voce: { from:,
     # filter: { type:, behavior: }, to: }.
     #
     # `enter_looks` sono gli sguardi nel mazzo CERTIFICATI (§8.2): «guarda le
     # prime N carte del tuo mazzo, puoi mostrarne una [di tipo e razza] e
     # aggiungerla alla mano, [mettine una nella Zona di Ritiro,] metti le
-    # altre in fondo» — le forme di RBF-006 (N fisso) e RBF-027 (N = base +
-    # ceil(tiro/2), con un dado). Ogni voce: { count:, die:, count_base:,
+    # altre in fondo» — con N fisso, o N = base + ceil(tiro/2) con un dado. Ogni voce: { count:, die:, count_base:,
     # reveal: { type:, race: }, then_retire: }.
     #
     # `enter_controls` sono i controlli all'ingresso CERTIFICATI (§8.2):
     # «prendi il controllo di un'Entità avversaria con costo di Flusso N o
-    # inferiore fino alla fine del turno; ottiene [parole chiave]» — la forma
-    # di RBF-009. Ogni voce: { target: { type:, controller:, max_cost: },
+    # inferiore fino alla fine del turno; ottiene [parole chiave]». Ogni voce: { target: { type:, controller:, max_cost: },
     # grants: [...] }.
     #
     # `behavior` è il comportamento di una Materia (§7.2): "normal",
@@ -75,25 +72,25 @@ module Rubyfront
     # alla Potenza»): valgono finché la carta è in campo (o addosso a
     # un'Entità), e la risoluzione li conta.
     #
-    #   RBF-002 { kind: "self_power", amount:, while_attacking: true, requires_other: { type:, race: } }
-    #   RBF-010 { kind: "self_power", amount:, per_other: { type:, race: } }
-    #   RBF-013 { kind: "bearer_power", amount: }
-    #   RBF-014 { kind: "bearer_power", amount:, per: { type:, race: }, multi_block: true }
+    #   { kind: "self_power", amount:, while_attacking: true, requires_other: { type:, race: } }
+    #   { kind: "self_power", amount:, per_other: { type:, race: } }
+    #   { kind: "bearer_power", amount: }
+    #   { kind: "bearer_power", amount:, per: { type:, race: }, multi_block: true }
     #
     # `resolve_forms` sono gli effetti delle Materie CERTIFICATI (§7.2,
     # «l'effetto si risolve»), letti dall'evento `on_resolve`:
     #
-    #   RBF-015 { kind: "look", count:, reveal: { type:, race: }, reveal_to: "hand", rest_to: "deck", show_up_to: }
-    #   RBF-016 { kind: "empower", targets: "own_entity", race:, power:, untap: true }
-    #   RBF-017 { kind: "move", target: { type: "entity", controller: "opponent", max_cost: }, to: "ritiro" }
-    #   RBF-018 { kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }
-    #   RBF-019 { kind: "fortune", die:, gain: { on:, amount: }, deploy: { on:, filter: }, draw: { on:, count: }, all_on: }
-    #   RBF-020 { kind: "empower", targets: "own_entities", race:, counter:, untap: true, requires: { count:, race: } } — in Reazione, senza bloccare
-    #   RBF-021 { kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount:, if_target: "tapped" } }
-    #   RBF-040 { kind: "block", requires_armed:, heal:, as_block: true } — giocata come bloccante di un'Entità attaccante (§6.4); con N armati sul Fronte, +M PV
+    #   { kind: "look", count:, reveal: { type:, race: }, reveal_to: "hand", rest_to: "deck", show_up_to: }
+    #   { kind: "empower", targets: "own_entity", race:, power:, untap: true }
+    #   { kind: "move", target: { type: "entity", controller: "opponent", max_cost: }, to: "ritiro" }
+    #   { kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }
+    #   { kind: "fortune", die:, gain: { on:, amount: }, deploy: { on:, filter: }, draw: { on:, count: }, all_on: }
+    #   { kind: "empower", targets: "own_entities", race:, counter:, untap: true, requires: { count:, race: } } — la stappata di gruppo: in Reazione, senza bloccare
+    #   { kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount:, if_target: "tapped" } }
+    #   { kind: "block", requires_armed:, heal:, as_block: true } — giocata come bloccante di un'Entità attaccante (§6.4); con N armati sul Fronte, +M PV
     #
     # `flip_forms` sono gli effetti «quando flippa» CERTIFICATI del Nexus
-    # (§3.1), evento `on_flip`: RBF-001 { kind: "move", card_id:, from:
+    # (§3.1), evento `on_flip`: { kind: "move", card_id:, from:
     # "field", to: "abisso" } e { kind: "seal", card_id: }.
     #
     # `nexus` è il requisito del flip (§3.1) com'è stampato sulla faccia del
@@ -110,7 +107,7 @@ module Rubyfront
     def self.load(data_dir)
       index = {}
       Dir.glob(File.join(data_dir, "sets", "*", "cards", "*", "*.json")).each do |path|
-        # Il file dati porta il nome della sua cartella (rbf-009/rbf-009.json);
+        # Il file dati porta il nome della sua cartella (<id>/<id>.json);
         # i compagni .it.json/.en.json sono testi e non c'entrano.
         next unless File.basename(path, ".json") == File.basename(File.dirname(path))
 
@@ -168,7 +165,7 @@ module Rubyfront
     end
 
     # I trigger delle carte in `data_dir` che nessuna forma riconosce:
-    # «RBF-001 nexus/heirs-muster». È il debito dichiarato della regola
+    # «<id> <faccia>/<trigger>». È il debito dichiarato della regola
     # d'oro (§1.1) — il test dell'anagrafe lo tiene aggiornato.
     def self.unknown_triggers(data_dir)
       Dir.glob(File.join(data_dir, "sets", "*", "cards", "*", "*.json")).sort.flat_map do |path|
@@ -243,7 +240,7 @@ module Rubyfront
     end
 
     # Stessa forma all'ingresso (`enter_returns`) e all'attacco
-    # (`attack_returns`, il secondo innesco di RBF-012).
+    # (`attack_returns`, lo stesso ritorno all'attacco).
     def self.enter_returns(faces, event)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
         next unless trigger.is_a?(Hash) && trigger["event"] == event
@@ -262,12 +259,12 @@ module Rubyfront
 
         # «una carta permanente» (§10): quel che resta in campo — un'Entità
         # o una Materia permanente, mai il Rubyfront, mai un Oggetto. Stessa
-        # lettura dell'esilio di RBF-018. Gemello: renderer.ts, enterReturnsOf.
+        # lettura dell'esilio condizionato. Gemello: renderer.ts, enterReturnsOf.
         { from: "ritiro", filter: { permanent: true }.freeze, to: "field" }.freeze
       end
     end
 
-    # `attack_draws` è la forma di RBF-026, l'Esploratore: «la prima volta
+    # `attack_draws` è la pesca all'attacco: «la prima volta
     # in ogni tuo turno che questa Entità attacca mentre ha un Oggetto
     # assegnato, pesca N carte, poi scarta M». Evento `on_attack`, effetto
     # `draw_card` del controllore, `requiresObjectAssigned`; lo scarto
@@ -297,18 +294,18 @@ module Rubyfront
     # "permanent" (una Materia permanente), "rubyfront" (il Rubyfront/Nexus
     # schierato). `face` è la faccia che porta la forma (il Nexus ha le sue).
     #
-    #   RBF-028 { kind: "untap",   who: "self", once:, requires_object: }        stappa dopo il combattimento
-    #   RBF-029 { kind: "empower", who: "self", targets: "others_armed", power: } +1 alle altre armate
-    #   RBF-034 { kind: "empower", who: "object", targets: "bearer", power: }    +1 al portatore
-    #   RBF-034 { kind: "look", who: "object", die:, on_roll:, count:, reveal:, reveal_to:, rest_to: }
-    #   RBF-031 { kind: "look", who: "ally", attacker_armed:, once:, count:, reveal:, reveal_to:, rest_to: }
-    #   RBF-031 { kind: "rearm", who: "ally", attacker_armed: }                  un Oggetto dal Ritiro, gratis
-    #   RBF-008 { kind: "heal", who: "self", amount:, die:, on_roll:, then_recall: } +2 PV, poi col dado un'Entità in mano
-    #   RBF-010 { kind: "return", who: "self", die:, on_roll:, filter:, joins: }  un'Entità dal Ritiro, che attacca
-    #   RBF-022 { kind: "heal", who: "permanent", attackers:, die:, gain_on:, drain_on: } PV pari agli Umani attaccanti
-    #   RBF-001 { kind: "heal", who: "rubyfront", once:, requires_attackers:, amount:, then_draw:, then_discard: }
-    #   RBF-004 { kind: "empower", who: "self", once:, targets: "next_human_attacker", grants: }
-    #   RBF-005 { kind: "empower", who: "self", requires_previous_attackers:, targets: "opposing_entity", restrict: }
+    #   { kind: "untap",   who: "self", once:, requires_object: }        stappa dopo il combattimento
+    #   { kind: "empower", who: "self", targets: "others_armed", power: } +1 alle altre armate
+    #   { kind: "empower", who: "object", targets: "bearer", power: }    +1 al portatore
+    #   { kind: "look", who: "object", die:, on_roll:, count:, reveal:, reveal_to:, rest_to: }
+    #   { kind: "look", who: "ally", attacker_armed:, once:, count:, reveal:, reveal_to:, rest_to: }
+    #   { kind: "rearm", who: "ally", attacker_armed: }                  un Oggetto dal Ritiro, gratis
+    #   { kind: "heal", who: "self", amount:, die:, on_roll:, then_recall: } +2 PV, poi col dado un'Entità in mano
+    #   { kind: "return", who: "self", die:, on_roll:, filter:, joins: }  un'Entità dal Ritiro, che attacca
+    #   { kind: "heal", who: "permanent", attackers:, die:, gain_on:, drain_on: } PV pari agli Umani attaccanti
+    #   { kind: "heal", who: "rubyfront", once:, requires_attackers:, amount:, then_draw:, then_discard: }
+    #   { kind: "empower", who: "self", once:, targets: "next_human_attacker", grants: }
+    #   { kind: "empower", who: "self", requires_previous_attackers:, targets: "opposing_entity", restrict: }
     def self.attack_forms(faces)
       faces.each_with_index.flat_map do |face, index|
         Array(face["triggers"]).filter_map do |trigger|
@@ -340,7 +337,7 @@ module Rubyfront
       target.is_a?(Hash) && target["cardType"] == type && target["controller"] == "controller" && (race.nil? || target["race"] == race)
     end
 
-    # RBF-028: «stappala dopo il combattimento».
+    # «Stappala dopo il combattimento».
     def self.attack_untap(details, effect)
       return nil unless effect["type"] == "untap" && effect.dig("target", "scope") == "self" && effect.dig("details", "afterCombat") == true
       return nil unless details["oncePerEachOfYourTurns"] == true && details["whileHasObjectAssigned"] == true
@@ -348,7 +345,7 @@ module Rubyfront
       { kind: "untap", who: "self", once: true, requires_object: true }
     end
 
-    # RBF-029 (+1 alle altre armate), RBF-034 (+1 al portatore), RBF-004 (Vendetta al prossimo Umano).
+    # I potenziamenti d'attacco: +1 alle altre armate, +1 al portatore, Vendetta al prossimo Umano.
     def self.attack_empower(details, effect)
       target = effect["target"]
       if effect["type"] == "modify_power" && effect["amount"].is_a?(Integer) && effect["duration"] == "until_end_of_turn"
@@ -368,7 +365,7 @@ module Rubyfront
       nil
     end
 
-    # RBF-034 (col dado, una Materia in mano, le altre in Ritiro) e RBF-031 (un Oggetto in Ritiro, le altre in fondo).
+    # Gli sguardi d'attacco: col dado, una Materia in mano e le altre in Ritiro; o un Oggetto in Ritiro e le altre in fondo.
     def self.attack_look(details, effect)
       return nil unless effect["type"] == "look_and_optionally_move"
 
@@ -398,7 +395,7 @@ module Rubyfront
       nil
     end
 
-    # RBF-008 (+2 PV, poi col dado un'Entità dal Ritiro in mano), RBF-022 (il d20 sugli Umani attaccanti), RBF-001 (il raduno).
+    # Le cure d'attacco: +N PV poi col dado un'Entità dal Ritiro in mano; il d20 sugli Umani attaccanti; il raduno del Rubyfront.
     def self.attack_heal(details, effect)
       extra = effect["details"].is_a?(Hash) ? effect["details"] : {}
       if effect["type"] == "gain_health" && effect["amount"].is_a?(Integer) && effect.dig("target", "controller") == "controller"
@@ -434,7 +431,7 @@ module Rubyfront
       nil
     end
 
-    # RBF-010: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme.
+    # Il ritorno d'attacco: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme.
     def self.attack_recall(details, effect)
       return nil unless details.empty? && effect["type"] == "move_card" && own_target?(effect["target"], "entity", "human")
       return nil unless effect["target"]["min"] == 1 && effect["target"]["max"] == 1
@@ -448,7 +445,7 @@ module Rubyfront
       die && on_roll ? { kind: "return", who: "self", die: die, on_roll: on_roll, filter: { type: "entity", race: "human" }.freeze, joins: true } : nil
     end
 
-    # RBF-031: quando un'Entità armata che controlli attacca, puoi assegnarle un Oggetto dal Ritiro, gratis.
+    # Il riarmo: quando un'Entità armata che controlli attacca, puoi assegnarle un Oggetto dal Ritiro, gratis.
     def self.attack_rearm(details, effect)
       attacker = details["attacker"]
       return nil unless effect["type"] == "assign_object" && effect["optional"] == true
@@ -458,7 +455,7 @@ module Rubyfront
       { kind: "rearm", who: "ally", attacker_armed: true }
     end
 
-    # RBF-005: se almeno N Umani hanno attaccato nel turno precedente, un'Entità avversaria non blocca.
+    # Il divieto di blocco: se almeno N Umani hanno attaccato nel turno precedente, un'Entità avversaria non blocca.
     def self.attack_restrict(details, effect)
       previous = details["requiresAttackersPreviousTurnAtLeast"]
       return nil unless effect["type"] == "restrict_action" && effect["restricts"] == "block" && effect["duration"] == "until_end_of_turn"
@@ -487,7 +484,7 @@ module Rubyfront
         may = details["mayReveal"]
         next unless may.is_a?(Hash) && %w[entity object].include?(may["cardType"])
 
-        # Il conto: fisso (RBF-006), o col dado «2 + ceil(result/2)» (RBF-027),
+        # Il conto: fisso, o col dado «2 + ceil(result/2)»,
         # la sola formula certificata.
         count = from["count"].is_a?(Integer) ? from["count"] : nil
         die = nil
@@ -509,7 +506,7 @@ module Rubyfront
       end
     end
 
-    # RBF-011 (dal 2026-09-05): «quando entra in campo, lancia un d20: con
+    # La stappata all'ingresso: «quando entra in campo, lancia un d20: con
     # 15–20 stappa tutte le Entità che controlli». Gemello: renderer.ts, enterRefreshesOf.
     def self.enter_refreshes(faces)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
@@ -568,15 +565,15 @@ module Rubyfront
       { type: "entity", race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze
     end
 
-    # Gli statici di Potenza (§8.2): RBF-002, RBF-010 (`while_in_play`, su
-    # di sé) e RBF-013, RBF-014 (`while_assigned`, sul portatore).
+    # Gli statici di Potenza (§8.2): su di sé (`while_in_play`) e sul
+    # portatore (`while_assigned`).
     def self.static_forms(faces)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
         next unless trigger.is_a?(Hash) && %w[while_in_play while_assigned].include?(trigger["event"])
 
         effect = trigger["effect"]
         next unless effect.is_a?(Hash)
-        # «Questa Entità non si tappa mai» (RBF-011): uno statico senza numeri.
+        # «Questa Entità non si tappa mai»: uno statico senza numeri.
         if effect["type"] == "prevent_tap"
           next unless trigger["event"] == "while_in_play" && effect.dig("target", "scope") == "self" && effect["duration"] == "permanent"
 
@@ -627,7 +624,7 @@ module Rubyfront
       end
     end
 
-    # RBF-015: guarda le prime N, mostra un'Entità Umana (fino a 2 in vista), una in mano, le altre in fondo.
+    # Lo sguardo alla risoluzione: guarda le prime N, mostra un'Entità Umana (fino a 2 in vista), una in mano, le altre in fondo.
     def self.resolve_look(effect)
       return nil unless effect["type"] == "look_and_optionally_move"
 
@@ -642,7 +639,7 @@ module Rubyfront
         reveal_to: "hand", rest_to: "deck", show_up_to: extra["maxRevealed"] || 1 }
     end
 
-    # RBF-016 (stappa un'Entità Umana: +1 Potenza) e RBF-020 (in Reazione, senza bloccare: stappa gli Umani, Contrattacco +1).
+    # Le stappate alla risoluzione: «stappa un'Entità Umana: +1 Potenza», e «stappa gli Umani: Contrattacco +1» (in Reazione, senza bloccare).
     def self.resolve_untap(effect)
       return nil unless effect["type"] == "untap"
 
@@ -664,7 +661,7 @@ module Rubyfront
       nil
     end
 
-    # RBF-040: «gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è bloccato. Se sul tuo
+    # La forma `block`: «gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è bloccato. Se sul tuo
     # Fronte ci sono almeno N Entità con un Oggetto assegnato, guadagni M PV». Gemello: renderer.ts, resolveBlock.
     def self.resolve_block(effect)
       return nil unless effect["type"] == "block_attack"
@@ -678,7 +675,7 @@ module Rubyfront
       { kind: "block", requires_armed: extra["ifControllerEntitiesWithObjectAtLeast"], heal: extra["thenControllerGainsHealth"], as_block: true }
     end
 
-    # RBF-017 (un'Entità avversaria economica in Ritiro) e RBF-018 (un permanente avversario nell'Abisso, finché questa carta resta).
+    # Gli spostamenti alla risoluzione: un'Entità avversaria economica in Ritiro; un permanente avversario nell'Abisso, finché questa carta resta.
     def self.resolve_move(effect)
       return nil unless effect["type"] == "move_card"
 
@@ -705,7 +702,7 @@ module Rubyfront
       nil
     end
 
-    # RBF-019: il d20 a fasce — PV, un'Entità dalla mano, una pesca, o tutto.
+    # Il d20 a fasce — PV, un'Entità dalla mano, una pesca, o tutto.
     def self.resolve_fortune(effect)
       return nil unless effect["type"] == "empower" && effect.dig("target", "controller") == "controller"
 
@@ -742,7 +739,7 @@ module Rubyfront
         all_on: band(all[0]) }
     end
 
-    # RBF-021: distruggi un'Entità; contro una tappata costa N in meno.
+    # La distruzione: distruggi un'Entità; contro una tappata costa N in meno.
     def self.resolve_destroy(effect)
       return nil unless effect["type"] == "destroy"
 
@@ -750,7 +747,7 @@ module Rubyfront
       extra = effect["details"]
       return nil unless target.is_a?(Hash) && target["cardType"] == "entity" && target["min"] == 1 && target["max"] == 1 && %w[any opponent controller].include?(target["controller"])
       return nil unless extra.is_a?(Hash) && extra.dig("toZone", "zone") == "abyss"
-      # Un seguito ignoto (RBF-038: «poi perdi 2 PV») rende la forma ignota.
+      # Un seguito ignoto (es. «poi perdi 2 PV») rende la forma ignota.
       return nil unless (extra.keys - %w[toZone fluxCostReduction]).empty?
 
       discount = extra["fluxCostReduction"]
@@ -761,7 +758,7 @@ module Rubyfront
         discount: discount && { amount: discount["amount"], if_target: "tapped" }.freeze }
     end
 
-    # «Quando flippa» (§3.1), la forma di RBF-001: la carta nominata dal
+    # «Quando flippa» (§3.1): la carta nominata dal
     # proprio Fronte nell'Abisso, e il divieto di giocarla per il resto della
     # partita.
     def self.flip_forms(faces)
@@ -787,8 +784,8 @@ module Rubyfront
       end
     end
 
-    # Il requisito del Nexus (§3.1), certificato solo nella forma di RBF-001
-    # e RBF-023: «controlli almeno N Entità [di razza]» e «scarta una carta
+    # Il requisito del Nexus (§3.1), certificato solo nella forma
+    # «controlli almeno N Entità [di razza]» e «scarta una carta
     # [di tipo]», più il recupero di PV stampato sulla faccia del Nexus.
     def self.nexus_of(faces)
       rubyfront = faces.find { |face| face["kind"] == "rubyfront" }
@@ -802,7 +799,7 @@ module Rubyfront
         next nil unless condition.is_a?(Hash) && condition["type"] == "controls_card" && condition["owner"] == "controller" && condition["min"].is_a?(Integer)
 
         filter = condition["filter"]
-        # Un vincolo in più (RBF-023: «con un Oggetto assegnato») è una forma ignota.
+        # Un vincolo in più (es. «con un Oggetto assegnato») è una forma ignota.
         next nil unless filter.is_a?(Hash) && filter["cardType"] == "entity" && (filter.keys - %w[cardType race]).empty?
 
         { count: condition["min"], type: "entity", race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze
@@ -843,8 +840,8 @@ module Rubyfront
 
     # La prima forma CERTIFICATA del contratto degli effetti: «mentre questo
     # Oggetto è assegnato, l'Entità che lo porta ottiene le parole chiave X»
-    # — con l'eventuale condizione di razza. È il trigger del Vigorscudo
-    # (RBF-013): evento `while_assigned`, effetto `empower` sul portatore
+    # — con l'eventuale condizione di razza. È il trigger di un Oggetto
+    # che concede: evento `while_assigned`, effetto `empower` sul portatore
     # (`scope: assigned`), durata `permanent`. Tutto ciò che non combacia
     # esattamente con questa forma NON entra nell'anagrafe: l'engine
     # preferisce ignorare un effetto che fraintenderlo.

@@ -51,32 +51,32 @@ module Rubyfront
       "§5/§6.2 Dal campo non si torna in mano né nel mazzo",
       "§7 Le Materie si giocano solo se abilitate",
       "§2/§9 Fine della partita: PV a zero, mazzo esaurito, pareggio",
-      "§8.2 Effetti certificati: «quando un'Entità entra, pesca» (RBF-003)",
-      "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (la forma dell'Arciere fino al 2026-09-04)",
-      "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte» (RBF-012)",
-      "§8.2 Effetti certificati: «quando attacca», lo stesso ritorno di Rhen (RBF-012)",
-      "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una» (RBF-006)",
-      "§8.2 Effetti certificati: «tira un d6, guarda 2 più metà, un Oggetto in mano, una in Ritiro» (RBF-027)",
-      "§8.2 Effetti certificati: «quando entra, prendi il controllo di un'Entità avversaria» (RBF-009)",
+      "§8.2 Effetti certificati: «quando un'altra Entità entra, pesca»",
+      "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (forma senza carte dal 2026-09-04)",
+      "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte»",
+      "§8.2 Effetti certificati: «quando attacca», lo stesso ritorno dalla Zona di Ritiro",
+      "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una»",
+      "§8.2 Effetti certificati: «tira un d6, guarda 2 più metà, un Oggetto in mano, una in Ritiro»",
+      "§8.2 Effetti certificati: «quando entra, prendi il controllo di un'Entità avversaria»",
       "§8.2 Controllo: attacca e blocca chi comanda, e a fine turno si restituisce",
       "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
       "§3.1 Il Rubyfront schierato non torna in Zona di Richiamo",
-      "§8.2 Effetti certificati: «quando attacca con un Oggetto, pesca, poi scarta» (RBF-026)",
-      "§8.2 Gli statici di Potenza contano nella risoluzione (RBF-002, RBF-010, RBF-013, RBF-014)",
+      "§8.2 Effetti certificati: «quando attacca con un Oggetto, pesca, poi scarta»",
+      "§8.2 Gli statici di Potenza contano nella risoluzione: su di sé e sul portatore",
       "§8.1 Stasi: bloccando non muore, resta tappata per sempre",
-      "§8.2 Blocco multiplo: «può essere bloccata da più Entità» (RBF-014)",
+      "§8.2 Blocco multiplo: «può essere bloccata da più Entità»",
       "§7.2 Le Reattive: chi è di turno prima dell'ondata, il difensore in Reazione",
-      "§7.2 Le Materie si risolvono: le forme certificate di Eredità Perduta (RBF-015…RBF-021)",
-      "§3.1 Il Nexus: il flip coi suoi requisiti, il recupero di PV, «quando flippa» (RBF-001)",
+      "§7.2 Le Materie si risolvono: sguardo, stappata, spostamento, esilio, d20 a fasce, distruzione",
+      "§3.1 Il Nexus: il flip coi suoi requisiti, il recupero di PV, «quando flippa»",
       "§3.1 Il Rubyfront in Zona di Richiamo non ha abilità: schierarlo le sblocca",
       "§5 L'Abisso: ci si va morendo, consumandosi o scartando per eccesso, e non si torna",
       "§5/§6.2 Dalla Zona di Ritiro si torna solo per effetto",
       "§8.2 L'Entità presa in controllo non si sposta fra le zone",
       "§5 Le Entità restano nello slot in cui sono scese",
-      "§7.2 Le Reattive in Reazione: RBF-040 blocca un'Entità attaccante e cura, RBF-020 stappa gli Umani senza bloccare",
+      "§7.2 Le Reattive in Reazione: chi si gioca come bloccante di un'Entità ferma l'attacco, le altre fanno solo il loro effetto",
       "§7.2 La catena di risposta: una Reattiva apre, l'avversario risponde o accetta, si risolve al contrario",
-      "§8.2 Effetti certificati: «quando entra, un d20: con 15–20 stappa tutte le Entità che controlli» (RBF-011, dal 2026-09-05)",
-      "§8.2 «Questa Entità non si tappa mai»: nessun gesto la tappa (RBF-011)",
+      "§8.2 Effetti certificati: «quando entra, col dado stappa tutte le Entità che controlli»",
+      "§8.2 «Questa Entità non si tappa mai»: nessun gesto la tappa",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -102,32 +102,32 @@ module Rubyfront
       "§5/§6.2 No going back from the field to hand or deck",
       "§7 Matters are played only when enabled",
       "§2/§9 End of the game: HP at zero, deck exhausted, draw",
-      "§8.2 Certified effects: “when an Entity enters, draw” (RBF-003)",
-      "§8.2 Certified effects: “when it enters, an opposing Entity to Retire” (the Archer's form until 2026-09-04)",
-      "§8.2 Certified effects: “when it enters, a permanent from the Retire Zone to the Front” (RBF-012)",
-      "§8.2 Certified effects: “when it attacks”, Rhen's same return (RBF-012)",
-      "§8.2 Certified effects: “when it enters, look at the top N and reveal one” (RBF-006)",
-      "§8.2 Certified effects: “roll a d6, look at 2 plus half, an Object to hand, one to Retire” (RBF-027)",
-      "§8.2 Certified effects: “when it enters, take control of an opposing Entity” (RBF-009)",
+      "§8.2 Certified effects: “when another Entity enters, draw”",
+      "§8.2 Certified effects: “when it enters, an opposing Entity to Retire” (a form with no card since 2026-09-04)",
+      "§8.2 Certified effects: “when it enters, a permanent from the Retire Zone to the Front”",
+      "§8.2 Certified effects: “when it attacks”, the same return from the Retire Zone",
+      "§8.2 Certified effects: “when it enters, look at the top N and reveal one”",
+      "§8.2 Certified effects: “roll a d6, look at 2 plus half, an Object to hand, one to Retire”",
+      "§8.2 Certified effects: “when it enters, take control of an opposing Entity”",
       "§8.2 Control: whoever commands attacks and blocks, and returns it at end of turn",
       "§3.1 The Rubyfront is deployed by paying: fixed cost or a die",
       "§3.1 A deployed Rubyfront doesn't go back to the Recall Zone",
-      "§8.2 Certified effects: “when it attacks with an Object, draw, then discard” (RBF-026)",
-      "§8.2 Static Power modifiers count in the resolution (RBF-002, RBF-010, RBF-013, RBF-014)",
+      "§8.2 Certified effects: “when it attacks with an Object, draw, then discard”",
+      "§8.2 Static Power modifiers count in the resolution: on itself and on the bearer",
       "§8.1 Stasis: blocking, it doesn't die, it stays tapped for good",
-      "§8.2 Multiple blockers: “may be blocked by multiple Entities” (RBF-014)",
+      "§8.2 Multiple blockers: “may be blocked by multiple Entities”",
       "§7.2 Reactives: the active player before the wave, the defender in Reaction",
-      "§7.2 Matters resolve: the certified forms of Lost Legacy (RBF-015…RBF-021)",
-      "§3.1 The Nexus: the flip with its requirements, the HP recovery, “when it flips” (RBF-001)",
+      "§7.2 Matters resolve: look, untap, move, exile, banded d20, destroy",
+      "§3.1 The Nexus: the flip with its requirements, the HP recovery, “when it flips”",
       "§3.1 A Rubyfront in the Recall Zone has no abilities: deploying it unlocks them",
       "§5 The Abyss: reached by dying, being spent or discarding down to 7, and there's no way back",
       "§5/§6.2 Cards leave the Retire Zone only through an effect",
       "§8.2 An Entity you took control of doesn't move between zones",
       "§5 Entities stay in the slot they came down on",
-      "§7.2 Reactives in Reaction: RBF-040 blocks an attacking Entity and heals, RBF-020 untaps the Humans without blocking",
+      "§7.2 Reactives in Reaction: the one played as a blocker of an Entity stops the attack, the others only do their effect",
       "§7.2 The response chain: a Reactive opens it, the opponent answers or accepts, it resolves in reverse",
-      "§8.2 Certified effects: “when it enters, a d20: on 15–20 untap all Entities you control” (RBF-011, since 2026-09-05)",
-      "§8.2 “This Entity never taps”: no gesture taps it (RBF-011)",
+      "§8.2 Certified effects: “when it enters, with the die untap all Entities you control”",
+      "§8.2 “This Entity never taps”: no gesture taps it",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -234,9 +234,9 @@ module Rubyfront
     end
 
     # Il passo di un innesco d'attacco, letto dall'azione: la stessa fonte
-    # può avere più passi per lo stesso attacco (RBF-034: +1 e poi lo
-    # sguardo; RBF-031: l'Oggetto e lo sguardo), e un potenziamento vale
-    # una volta per bersaglio (RBF-029).
+    # può avere più passi per lo stesso attacco (l'Oggetto che dà +1 e poi lo
+    # sguardo; il riarmo e lo sguardo), e un potenziamento vale
+    # una volta per bersaglio.
     def attack_step(action, ref)
       case action["t"]
       when "draw" then ref["follow"] || "draw"
@@ -308,11 +308,11 @@ module Rubyfront
       end
     end
 
-    # §8.2 — «questa Entità non si tappa mai» (RBF-011, dal 2026-09-05): il
+    # §8.2 — «questa Entità non si tappa mai» (statico certificato): il
     # gesto di tapparla è fermato, chiunque lo compia e per qualunque
     # ragione — l'attacco (§6.3), un effetto, la mano. Stapparla passa
     # sempre. Carta ignota all'anagrafe: silenzio. Limite dichiarato: la
-    # Stasi concessa (RBF-013) alla risoluzione la lascerebbe tappata; la
+    # Stasi concessa da un Oggetto alla risoluzione la lascerebbe tappata; la
     # copia non lo impedisce finché la risoluzione non legge lo statico.
     def judge_tap(action)
       return no_rule("tap") unless action["tapped"] == true
@@ -396,7 +396,7 @@ module Rubyfront
       # effetto — che passa di qui col suo riferimento, e non arriva a
       # questa dogana. Trascinarci una carta a mano non è nessuna di queste.
       # E da lì non si torna: solo una carta riporta fuori dall'Abisso
-      # (§5, l'esilio condizionato; RBF-018). Limiti dichiarati: un effetto
+      # (§5, l'esilio condizionato). Limiti dichiarati: un effetto
       # risolto a mano che scarti o riporti verrebbe fermato a torto (regola
       # d'oro); il decadere di una permanente (§7.2) resta un gesto a mano,
       # e passa perché una Materia in campo può sempre andare nell'Abisso.
@@ -553,8 +553,8 @@ module Rubyfront
         # finestra è di CHI È DI TURNO; «dopo la dichiarazione il giocatore
         # di turno non inizia più Reattive»; la finestra del DIFENSORE è la
         # Fase di Reazione (§6.4), dove gioca qualsiasi Reattiva — compresa
-        # quella che «si gioca come bloccante di un'Entità» (RBF-040) e
-        # quella che non blocca nessuno (RBF-020).
+        # quella che «si gioca come bloccante di un'Entità» (forma `block`) e
+        # quella che non blocca nessuno.
         # In catena (§7.2) le finestre non contano più: risponde chi ne ha
         # la parola, e l'ha già detto judge_chain — anche l'attaccante in
         # Reazione, quando il difensore ha aperto (§6.4).
@@ -615,7 +615,7 @@ module Rubyfront
       # la regola del tiro pagabile (§3.1) arriverà a parte. Limiti
       # dichiarati: sconti da effetto e carte messe in campo gratis da un
       # effetto verrebbero fermati a torto (regola d'oro).
-      # §8.2 — «Non puoi più giocare … per il resto della partita» (RBF-001,
+      # §8.2 — «Non puoi più giocare … per il resto della partita» (il sigillo del flip,
       # il sigillo del flip): la carta non scende, da nessuna zona.
       if @table.sealed?(card[:owner], card[:card_id])
         return refuse("toZone", "quella carta non si può più giocare per il resto della partita: l'ha sigillata il flip del Nexus (§8.2)", "that card can no longer be played for the rest of the game: the Nexus flip sealed it (§8.2)")
@@ -624,7 +624,7 @@ module Rubyfront
       cost = known[:flux_cost]
       if card[:zone] == "hand" && cost
         # §8.2 — «Se questa carta bersaglia un'Entità tappata, costa N
-        # Flussi in meno» (RBF-021): il bersaglio si dichiara giocandola
+        # Flussi in meno» (la distruzione scontata): il bersaglio si dichiara giocandola
         # (`target`), e lo sconto vale solo se il bersaglio è davvero
         # tappato. L'effetto poi dovrà colpire lui.
         cost -= discount_for(known, action)
@@ -793,7 +793,7 @@ module Rubyfront
     # entrata in campo non può attaccare nel turno in cui entra», salvo
     # Slancio (`surge`, §8.1). Qui serve l'anagrafe: carta ignota o anagrafe
     # assente, questa parte tace — l'engine preferisce non accusare a torto.
-    # Limite dichiarato: lo Slancio CONCESSO da un effetto (es. RBF-009) non
+    # Limite dichiarato: lo Slancio CONCESSO da un effetto (es. il controllo all'ingresso) non
     # si vede ancora.
     def judge_declare(action)
       declaration = action["declaration"]
@@ -830,7 +830,7 @@ module Rubyfront
         return refuse("declare", "il Rubyfront non attacca e non blocca (§3.1): la sua funzione sono abilità e Materie", "the Rubyfront neither attacks nor blocks (§3.1): its job is abilities and Matters")
       end
       # §6.4 — «una Materia Reattiva il cui testo dice che si gioca come
-      # bloccante di un'Entità» (RBF-040): giocata questo turno, sostituisce
+      # bloccante di un'Entità» (forma `block`): giocata questo turno, sostituisce
       # il bloccante per quell'attacco. Non contrattacca.
       matter_block = declarer == "matter" && kind == "block" && reactive_block?(card)
       if declarer && declarer != "entity" && !matter_block
@@ -859,7 +859,7 @@ module Rubyfront
       end
 
       if kind != "attack"
-        # §8.2 — «quell'Entità non può bloccare in questo turno» (RBF-005).
+        # §8.2 — «quell'Entità non può bloccare in questo turno» (il divieto di blocco).
         if card[:cannot_block]
           return refuse("declare", "quell'Entità non può bloccare in questo turno: un effetto glielo vieta (§8.2)", "that Entity can't block this turn: an effect forbids it (§8.2)")
         end
@@ -868,7 +868,7 @@ module Rubyfront
         unless @table.attacking?(declaration["to"])
           return refuse("declare", "quella carta non sta attaccando: non c'è niente da bloccare (§6.3)", "that card isn't attacking: there's nothing to block (§6.3)")
         end
-        # §8.2 — «può essere bloccata da più Entità» (RBF-014): l'Oggetto
+        # §8.2 — «può essere bloccata da più Entità»: l'Oggetto
         # addosso all'attaccante apre la sfida a più bloccanti.
         if @table.blocked?(declaration["to"]) && !multi_block?(declaration["to"])
           return refuse("declare", "quell'attaccante ha già chi lo ferma (§6.3, sfide 1 contro 1)", "that attacker already has someone stopping it (§6.3, 1-on-1 challenges)")
@@ -878,7 +878,7 @@ module Rubyfront
       end
 
       # Chi torna sul Fronte per un effetto e «attacca insieme» (§8.2,
-      # RBF-010) non aspetta: il riferimento lo dice, e l'engine lo verifica.
+      # il ritorno che attacca insieme) non aspetta: il riferimento lo dice, e l'engine lo verifica.
       if action["effect"].is_a?(Hash)
         stopped = attack_join_stopped(action)
         return stopped if stopped
@@ -946,7 +946,7 @@ module Rubyfront
                   blocker_stasis: false, blocker_spent: false }]
         end
 
-        # Con più bloccanti (§8.2, RBF-014) l'attaccante affronta ciascuno,
+        # Con più bloccanti (§8.2, blocco multiplo) l'attaccante affronta ciascuno,
         # una battaglia per bloccante, nell'ordine dei blocchi.
         blockers.map do |blocker, kind|
           battle = battle_of(attacker, power, blocker, kind)
@@ -958,10 +958,10 @@ module Rubyfront
     end
 
     # Una battaglia (§6.3), con gli attrezzi degli effetti: la Vendetta
-    # (§8.1), la Stasi (§8.1), il Contrattacco concesso (RBF-020), e la
+    # (§8.1), la Stasi (§8.1), il Contrattacco concesso, e la
     # Reattiva giocata come bloccante di un'Entità (§6.4: «non c'è confronto
     # di Potenza, l'attacco è comunque bloccato, la sorte dell'attaccante la
-    # stabilisce il testo» — RBF-040 non dice nulla, e la Reattiva si consuma).
+    # stabilisce il testo» — la forma `block` non dice nulla, e la Reattiva si consuma).
     def battle_of(attacker, power, blocker, kind)
       if stat(blocker, :type) == "matter"
         return { attacker: attacker, blocker: blocker, kind: "block", attacker_dies: false, blocker_dies: false, damage: 0,
@@ -987,9 +987,9 @@ module Rubyfront
     end
 
     # §6.4 — la Reattiva come bloccante di un'Entità: una Materia Reattiva
-    # con la forma `block` (RBF-040, «gioca questa carta come bloccante di
+    # con la forma `block` («gioca questa carta come bloccante di
     # un'Entità attaccante»), scesa in campo questo turno. Una Reattiva che
-    # non dice cosa blocca (RBF-020) non blocca nulla e non dichiara niente
+    # non dice cosa blocca non blocca nulla e non dichiara niente
     # (§6.4, decisione del designer 2026-09-05).
     def reactive_block?(card)
       known = @cards[card[:card_id]]
@@ -997,7 +997,7 @@ module Rubyfront
         Array(known[:resolve_forms]).any? { |form| form[:kind] == "block" }
     end
 
-    # §8.2 — l'attaccante porta un Oggetto che lo rende bloccabile da più Entità (RBF-014)?
+    # §8.2 — l'attaccante porta un Oggetto che lo rende bloccabile da più Entità?
     def multi_block?(attacker_uid)
       @table.worn_by(attacker_uid).any? do |object|
         Array(@cards.dig(object[:card_id], :static_forms)).any? { |form| form[:multi_block] }
@@ -1021,9 +1021,9 @@ module Rubyfront
     end
 
     # Gli statici (§8.2): «+1 mentre attacca, se sul tuo Fronte c'è un'altra
-    # Entità Umana» (RBF-002), «+1 per ogni altra Entità Umana sul tuo
-    # Fronte» (RBF-010), e quelli degli Oggetti addosso — «+1» (RBF-013),
-    # «+1 per ogni Entità Umana sul tuo Fronte» (RBF-014, portatrice
+    # Entità Umana», «+1 per ogni altra Entità Umana sul tuo
+    # Fronte», e quelli degli Oggetti addosso — «+1»,
+    # «+1 per ogni Entità Umana sul tuo Fronte» (portatrice
     # compresa). Gemello: combat.ts, staticPower.
     def static_power(uid, card)
       seat = @table.controller_of(card)
@@ -1050,7 +1050,7 @@ module Rubyfront
     end
 
     # Una parola chiave stampata, concessa fino a fine turno (§8.2), o data
-    # da un Oggetto addosso «mentre assegnato» (RBF-013: la Stasi agli Umani).
+    # da un Oggetto addosso «mentre assegnato» (es. la Stasi agli Umani).
     # Gemello: combat.ts, hasKeyword.
     def has_keyword?(uid, keyword)
       card = @table.card(uid)
@@ -1217,7 +1217,7 @@ module Rubyfront
         # La Reattiva appena giocata che si consuma a vuoto (come blocco, senza attaccante).
         return nil if action["uid"] == top && action["zone"] == "abisso"
       when "declare"
-        # Il blocco che accompagna la Reattiva giocata come blocco (RBF-040): della cima, subito.
+        # Il blocco che accompagna la Reattiva giocata come bloccante (forma `block`): della cima, subito.
         return nil if action.dig("declaration", "from") == top && action.dig("declaration", "kind") == "block"
       when "settle"
         return nil if action["uid"] == top
@@ -1315,7 +1315,7 @@ module Rubyfront
     end
 
     # §8.2 — gli effetti certificati. Oggi una forma sola, gli ascoltatori
-    # d'ingresso di RBF-003: la fonte dev'essere in campo, dello stesso posto
+    # d'ingresso («quando un'altra Entità entra, pesca»): la fonte dev'essere in campo, dello stesso posto
     # di chi entra; chi entra dev'essere un'altra carta entrata QUESTO turno
     # (non si riscalda un innesco vecchio), della razza chiesta; il posto
     # deve controllare almeno N Entità della razza chiesta, contando chi è
@@ -1374,7 +1374,7 @@ module Rubyfront
       allow(kind)
     end
 
-    # §8.2 — lo spostamento all'ingresso (la forma di RBF-007): la fonte è
+    # §8.2 — lo spostamento all'ingresso (un'Entità avversaria in Ritiro): la fonte è
     # chi entra — in campo, entrata QUESTO turno, innesco non consumato — e
     # il bersaglio un'Entità avversaria in campo, mandata nella zona che la
     # forma certificata dice. Bersaglio ignoto all'anagrafe: silenzio.
@@ -1492,7 +1492,7 @@ module Rubyfront
       roll.between?(range[0], range[1])
     end
 
-    # RBF-029, RBF-034, RBF-004, RBF-005: un potenziamento fino a fine turno.
+    # Le forme `empower` d'attacco: un potenziamento fino a fine turno.
     def judge_attack_empower(action, ref)
       stopped, source, attacker, forms = attack_context("empower", action, ref)
       return stopped if stopped
@@ -1536,7 +1536,7 @@ module Rubyfront
       allow("empower")
     end
 
-    # RBF-008, RBF-022, RBF-001: PV che cambiano per un attacco.
+    # Le forme `heal` d'attacco: PV che cambiano per un attacco.
     def judge_attack_heal(action, ref)
       stopped, source, attacker, forms = attack_context("player", action, ref)
       return stopped if stopped
@@ -1573,7 +1573,7 @@ module Rubyfront
       allow("player")
     end
 
-    # RBF-008, il seguito: col tiro giusto un'Entità dal Ritiro in mano.
+    # La cura, il seguito: col tiro giusto un'Entità dal Ritiro in mano.
     def judge_attack_recall(action, ref)
       source = @table.card(ref["source"])
       return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
@@ -1597,7 +1597,7 @@ module Rubyfront
       allow("toZone")
     end
 
-    # RBF-010: col tiro giusto un'Entità Umana dal Ritiro sul Fronte.
+    # Il ritorno: col tiro giusto un'Entità Umana dal Ritiro sul Fronte.
     def judge_attack_return(action, ref)
       stopped, source, attacker, forms = attack_context("toZone", action, ref)
       return stopped if stopped
@@ -1620,7 +1620,7 @@ module Rubyfront
       allow("toZone")
     end
 
-    # RBF-010, il seguito: chi torna «attacca insieme» — un attacco con
+    # Il ritorno, il seguito: chi torna «attacca insieme» — un attacco con
     # riferimento, esente dall'attesa di evocazione. Ritorna un rifiuto, o nil.
     def attack_join_stopped(action)
       ref = action["effect"]
@@ -1643,7 +1643,7 @@ module Rubyfront
       nil
     end
 
-    # RBF-011 (dal 2026-09-05): «quando entra in campo, lancia un d20: con
+    # La stappata all'ingresso: «quando entra in campo, lancia un d20: con
     # 15–20 stappa tutte le Entità che controlli». La fonte è chi entra —
     # in campo, entrata questo turno, innesco non consumato; il client tira,
     # l'engine verifica il tiro, la soglia, e che la stappata (`untap`)
@@ -1671,7 +1671,7 @@ module Rubyfront
       allow("refresh")
     end
 
-    # RBF-031: un Oggetto dalla propria Zona di Ritiro addosso a chi attacca, gratis.
+    # Il riarmo: un Oggetto dalla propria Zona di Ritiro addosso a chi attacca, gratis.
     def judge_attack_rearm(action, ref)
       stopped, source, attacker, forms = attack_context("toZone", action, ref)
       return stopped if stopped
@@ -1695,7 +1695,7 @@ module Rubyfront
       allow("toZone")
     end
 
-    # RBF-031 e RBF-034: uno sguardo nel mazzo quando si attacca.
+    # Lo sguardo d'attacco: uno sguardo nel mazzo quando si attacca.
     def judge_attack_look(action, ref)
       stopped, source, attacker, forms = attack_context("look", action, ref)
       return stopped if stopped
@@ -1736,7 +1736,7 @@ module Rubyfront
       allow("look")
     end
 
-    # RBF-028, alla risoluzione: chi lo chiede si stappa dopo il combattimento.
+    # «Stappala dopo il combattimento», alla risoluzione: chi lo chiede si stappa dopo il combattimento.
     def untap_stopped(action)
       Array(action["untap"]).each do |uid|
         card = @table.card(uid)
@@ -1759,7 +1759,7 @@ module Rubyfront
       Array(action["untap"]).each { |uid| @table.fire(uid, "on_attack:untap", "turn") }
     end
 
-    # §8.2 — la pesca all'attacco (la forma di RBF-026): la fonte attacca
+    # §8.2 — la pesca all'attacco (con un Oggetto addosso): la fonte attacca
     # in Fase di Fronte, l'innesco non è consumato (una volta per turno:
     # un'Entità attacca una volta sola), ha un Oggetto assegnato, e pesca
     # chi la comanda, tante carte quante dice la forma. Ignota: silenzio.
@@ -1783,7 +1783,7 @@ module Rubyfront
       allow("draw")
     end
 
-    # RBF-001 (Nexus), il seguito della cura: «pesca una carta, poi scarta».
+    # Il Nexus, il seguito della cura: «pesca una carta, poi scarta».
     def judge_attack_heal_draw(action, ref)
       source = @table.card(ref["source"])
       return refuse("draw", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
@@ -1801,7 +1801,7 @@ module Rubyfront
       allow("draw")
     end
 
-    # §8.2 — «poi scarta una carta» (RBF-026): il seguito della pesca. Un
+    # §8.2 — «poi scarta una carta»: il seguito della pesca. Un
     # `toZone` dalla mano all'Abisso marcato con `follow: "discard"`, che
     # passa se la fonte è in campo con una forma che fa scartare, la pesca
     # dell'attacco è già avvenuta e lo scarto dovuto non ancora, e la carta
@@ -1844,7 +1844,7 @@ module Rubyfront
       target = @table.card(action["uid"])
       return refuse("toZone", "il bersaglio dell'effetto non esiste (§8.2)", "the effect's target doesn't exist (§8.2)") unless target
 
-      # Il ritorno (la forma di RBF-012): dalla propria Zona di Ritiro al Fronte,
+      # Il ritorno (una permanente): dalla propria Zona di Ritiro al Fronte,
       # una carta del tipo e del comportamento chiesti.
       if action["zone"] == "field"
         forms = ref["event"] == "on_attack" ? :attack_returns : :enter_returns
@@ -1867,7 +1867,7 @@ module Rubyfront
         return allow("toZone")
       end
 
-      # Lo spostamento (la forma di RBF-007): un'Entità avversaria in campo,
+      # Lo spostamento all'ingresso: un'Entità avversaria in campo,
       # verso la zona della forma.
       moves = Array(@cards.dig(source[:card_id], :enter_moves))
       move = moves.find { |candidate| candidate[:to] == action["zone"] }
@@ -1882,7 +1882,7 @@ module Rubyfront
       allow("toZone")
     end
 
-    # §8.2 — lo sguardo nel mazzo (la forma di RBF-006): la fonte è chi
+    # §8.2 — lo sguardo nel mazzo all'ingresso: la fonte è chi
     # entra, entrata questo turno, innesco non consumato; il conto delle
     # carte è quello della forma; la rivelata, se c'è, sta fra le prime N
     # del mazzo del posto ed è del tipo e della razza chiesti (ignota
@@ -1942,7 +1942,7 @@ module Rubyfront
       allow("look")
     end
 
-    # §8.2 — il controllo (la forma di RBF-009): la fonte è chi entra,
+    # §8.2 — il controllo all'ingresso: la fonte è chi entra,
     # entrata questo turno, innesco non consumato; il bersaglio un'Entità
     # comandata dall'avversario, in campo, col costo di Flusso entro il
     # limite (ignoto all'anagrafe: silenzio); `by` è chi comanda la fonte e
@@ -1987,7 +1987,7 @@ module Rubyfront
       return no_rule("release") unless card
       return refuse("release", "si restituisce sul Fronte o nella Zona di Ritiro (§8.2)", "it's returned to the Front or to the Retire Zone (§8.2)") unless %w[field ritiro].include?(action["zone"])
 
-      # §8.2 — il permanente esiliato (RBF-018): «quando questa carta lascia
+      # §8.2 — il permanente esiliato: «quando questa carta lascia
       # il gioco, quel permanente torna in gioco» — e non prima.
       if card[:held_by]
         holder = @table.card(card[:held_by])
@@ -2015,7 +2015,7 @@ module Rubyfront
       end
     end
 
-    # §8.2 — lo sconto dichiarato giocando una Materia (RBF-021): quanto
+    # §8.2 — lo sconto dichiarato giocando una Materia: quanto
     # costa in meno, dato il bersaglio nell'azione. Zero se non c'è forma,
     # bersaglio, o il bersaglio non è nello stato chiesto.
     def discount_for(known, action)
@@ -2069,7 +2069,7 @@ module Rubyfront
       end
     end
 
-    # RBF-040 — «giocala come blocco a un attaccante: quell'attacco è
+    # La forma `block` — «gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è
     # bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto
     # assegnato, guadagni 3 PV». Il blocco è la giocata stessa (§6.4, la
     # dichiarazione dalla Materia); il passo è la cura: di chi comanda la
@@ -2093,7 +2093,7 @@ module Rubyfront
       @table.armed_uids(seat).count { |uid| entity_of_race?(uid, nil) }
     end
 
-    # RBF-015: guarda le prime N, mostra un'Entità Umana, in mano, le altre in fondo.
+    # Lo sguardo alla risoluzione: guarda le prime N, mostra un'Entità Umana, in mano, le altre in fondo.
     def judge_resolve_look(action, ref, source, forms, seat)
       form = forms.find { |candidate| candidate[:kind] == "look" }
       return refuse("look", "la Materia non ha un effetto certificato che guardi nel mazzo (§8.2)", "the Matter has no certified effect that looks in the deck (§8.2)") unless form
@@ -2119,7 +2119,7 @@ module Rubyfront
       allow("look")
     end
 
-    # RBF-016 (stappa un'Entità Umana: +1) e RBF-020 (in Reazione: stappa gli Umani, Contrattacco +1).
+    # Le stappate alla risoluzione: «stappa un'Entità Umana: +1» e «stappa gli Umani: Contrattacco +1».
     def judge_resolve_empower(action, ref, source, forms, seat)
       form = forms.find { |candidate| candidate[:kind] == "empower" && (action["counter"] ? candidate[:counter] : candidate[:power]) }
       return refuse("empower", "la Materia non ha un effetto certificato che potenzi così (§8.2)", "the Matter has no certified effect that empowers this way (§8.2)") unless form
@@ -2136,7 +2136,7 @@ module Rubyfront
         return refuse("empower", "si stappa UN'Entità: questo passo è già stato risolto (§8.2)", "you untap ONE Entity: this step has already been resolved (§8.2)") if @table.fired_prefix?(ref["source"], "on_resolve:empower:")
       else
         return refuse("empower", "il Contrattacco in più è #{form[:counter]} (§8.2)", "the extra Counterattack is #{form[:counter]} (§8.2)") unless action["counter"] == form[:counter] && action["power"].nil?
-        # RBF-020 si gioca in Reazione, la finestra del difensore (§6.4),
+        # La stappata di gruppo si gioca in Reazione, la finestra del difensore (§6.4),
         # ma non blocca nessun attaccante — decisione del designer
         # (2026-09-05): il suo effetto è tutto quel che fa, e non pretende
         # una dichiarazione di blocco.
@@ -2149,7 +2149,7 @@ module Rubyfront
       allow("empower")
     end
 
-    # RBF-017: un'Entità avversaria con costo di Flusso N o inferiore nella Zona di Ritiro.
+    # Lo spostamento in Ritiro: un'Entità avversaria con costo di Flusso N o inferiore nella Zona di Ritiro.
     def judge_resolve_move(action, ref, source, forms, seat)
       form = forms.find { |candidate| candidate[:kind] == "move" && candidate[:to] == "ritiro" }
       return refuse("toZone", "la Materia non ha un effetto certificato che mandi in Zona di Ritiro (§8.2)", "the Matter has no certified effect that sends to the Retire Zone (§8.2)") unless form
@@ -2170,7 +2170,7 @@ module Rubyfront
       allow("toZone")
     end
 
-    # RBF-018: un permanente avversario nell'Abisso, tenuto fermo finché questa carta resta in gioco.
+    # L'esilio condizionato: un permanente avversario nell'Abisso, tenuto fermo finché questa carta resta in gioco.
     def judge_resolve_exile(action, ref, source, forms, seat)
       form = forms.find { |candidate| candidate[:kind] == "exile" }
       return refuse("toZone", "la Materia non ha un effetto certificato che esili (§8.2)", "the Matter has no certified effect that exiles (§8.2)") unless form
@@ -2188,7 +2188,7 @@ module Rubyfront
       allow("toZone")
     end
 
-    # RBF-021: distruggi un'Entità — quella dichiarata giocando la carta, se c'è.
+    # La distruzione: distruggi un'Entità — quella dichiarata giocando la carta, se c'è.
     def judge_resolve_destroy(action, ref, source, forms, seat)
       form = forms.find { |candidate| candidate[:kind] == "destroy" }
       return refuse("toZone", "la Materia non ha un effetto certificato che distrugga (§8.2)", "the Matter has no certified effect that destroys (§8.2)") unless form
@@ -2211,7 +2211,7 @@ module Rubyfront
       allow("toZone")
     end
 
-    # RBF-019: il d20 a fasce — ogni passo porta il tiro, lo stesso per tutti,
+    # Il d20 a fasce — ogni passo porta il tiro, lo stesso per tutti,
     # e vale solo nella sua fascia (o con il «tutti e tre»).
     def judge_fortune_step(action, ref, source, forms, seat)
       kind = action["t"]
@@ -2315,7 +2315,7 @@ module Rubyfront
       allow("flip")
     end
 
-    # «Quando flippa» (RBF-001): la fonte è il Nexus appena flippato — in
+    # «Quando flippa»: la fonte è il Nexus appena flippato — in
     # campo, sulla faccia del Nexus, flippato QUESTO turno; il passo è uno
     # spostamento (la carta nominata dal proprio Fronte nell'Abisso) o il
     # sigillo (la patch `sealed` del posto, con quella carta in più).

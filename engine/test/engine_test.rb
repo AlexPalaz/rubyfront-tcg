@@ -105,7 +105,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_una_patch_che_non_tocca_i_contatori_non_e_giudicata
-    verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "name" => "Ajmal", "token" => true } })
+    verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "name" => "Ale", "token" => true } })
     assert verdict[:ok]
     refute verdict[:ruled]
   end
@@ -1165,8 +1165,8 @@ class EngineTest < Minitest::Test
     engine = altrui
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
-    assert engine.judge({ "t" => "player", "seat" => "b", "patch" => { "name" => "Ajmal" } }, actor: "b")[:ok], "il nome non è un gesto di gioco"
-    refute engine.judge({ "t" => "player", "seat" => "b", "patch" => { "name" => "Ajmal", "hp" => 3 } }, actor: "b")[:ok], "coi contatori sì (in Preparazione altrui)"
+    assert engine.judge({ "t" => "player", "seat" => "b", "patch" => { "name" => "Ale" } }, actor: "b")[:ok], "il nome non è un gesto di gioco"
+    refute engine.judge({ "t" => "player", "seat" => "b", "patch" => { "name" => "Ale", "hp" => 3 } }, actor: "b")[:ok], "coi contatori sì (in Preparazione altrui)"
     fronte!(engine)
     cards = [{ "uid" => "b-1", "owner" => "b", "zone" => "deck", "order" => 0, "cardId" => "LENTA" }]
     assert engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards }, actor: "b")[:ok], "il mazzo si carica all'ingresso, nel turno di chiunque"
@@ -1698,10 +1698,10 @@ class EngineTest < Minitest::Test
     refute schiera(engine)[:ruled]
   end
 
-  # --- §8.2: gli effetti certificati, l'ascoltatore di RBF-003 -------------
+  # --- §8.2: gli effetti certificati, l'ascoltatore d'ingresso ---------------
 
   ASCOLTATORI = {
-    "GUIDA" => { type: "entity", keywords: [], race: "human",
+    "ASCOLTATORE" => { type: "entity", keywords: [], race: "human",
                  enter_listeners: [{ entering_race: "human", requires: { count: 3, race: "human" }, draw: 1 }] },
     "UMANO" => { type: "entity", keywords: [], race: "human", enter_listeners: [] },
     "AUROS" => { type: "entity", keywords: [], race: "auros", enter_listeners: [] },
@@ -1728,7 +1728,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_la_guida_si_innesca_al_terzo_umano
-    engine = campo([["g", "GUIDA"], ["u1", "UMANO"]], [["u2", "UMANO"]])
+    engine = campo([["g", "ASCOLTATORE"], ["u1", "UMANO"]], [["u2", "UMANO"]])
     assert entra(engine, "u2")[:ok]
     verdict = innesco(engine, source: "g", entering: "u2")
     assert verdict[:ruled]
@@ -1736,7 +1736,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_con_due_umani_non_si_innesca
-    engine = campo([["g", "GUIDA"]], [["u1", "UMANO"]])
+    engine = campo([["g", "ASCOLTATORE"]], [["u1", "UMANO"]])
     entra(engine, "u1")
     verdict = innesco(engine, source: "g", entering: "u1")
     refute verdict[:ok]
@@ -1744,13 +1744,13 @@ class EngineTest < Minitest::Test
   end
 
   def test_un_auros_che_entra_non_innesca_la_guida
-    engine = campo([["g", "GUIDA"], ["u1", "UMANO"], ["u2", "UMANO"]], [["x", "AUROS"]])
+    engine = campo([["g", "ASCOLTATORE"], ["u1", "UMANO"], ["u2", "UMANO"]], [["x", "AUROS"]])
     entra(engine, "x")
     refute innesco(engine, source: "g", entering: "x")[:ok]
   end
 
   def test_l_innesco_si_consuma_una_volta_per_ingresso
-    engine = campo([["g", "GUIDA"], ["u1", "UMANO"]], [["u2", "UMANO"]])
+    engine = campo([["g", "ASCOLTATORE"], ["u1", "UMANO"]], [["u2", "UMANO"]])
     entra(engine, "u2")
     assert innesco(engine, source: "g", entering: "u2")[:ok]
     verdict = innesco(engine, source: "g", entering: "u2")
@@ -1759,7 +1759,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_un_ingresso_vecchio_non_innesca_piu
-    engine = campo([["g", "GUIDA"], ["u1", "UMANO"]], [["u2", "UMANO"]])
+    engine = campo([["g", "ASCOLTATORE"], ["u1", "UMANO"]], [["u2", "UMANO"]])
     entra(engine, "u2")
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
@@ -1769,7 +1769,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_la_forma_del_passo_deve_essere_quella_dell_effetto
-    engine = campo([["g", "GUIDA"], ["u1", "UMANO"]], [["u2", "UMANO"]])
+    engine = campo([["g", "ASCOLTATORE"], ["u1", "UMANO"]], [["u2", "UMANO"]])
     entra(engine, "u2")
     refute innesco(engine, source: "g", entering: "u2", count: 3)[:ok], "pesca 1, non 3"
     refute innesco(engine, source: "g", entering: "u2", seat: "b")[:ok], "pesca il controllore"
@@ -1785,19 +1785,19 @@ class EngineTest < Minitest::Test
     assert_match(/§8\.2/, verdict[:reason], "fermato come effetto finto, non come gesto")
   end
 
-  # --- §8.2: l'Arciere manda un'Entità avversaria in Ritiro (RBF-007) ------
+  # --- §8.2: lo spostamento all'ingresso manda un'Entità avversaria in Ritiro --
 
   ARCIERI = {
-    "ARCIERE" => { type: "entity", keywords: [], race: "human",
+    "SPOSTATORE" => { type: "entity", keywords: [], race: "human",
                    enter_moves: [{ target: { type: "entity", controller: "opponent" }, to: "ritiro" }] },
     "UMANO" => { type: "entity", keywords: [], race: "human" },
     "PIETRA" => { type: "matter", keywords: [], behavior: "normal" },
   }.freeze
 
-  # A ha l'Arciere in mano, B quelle carte in campo; poi l'Arciere scende.
-  def arciere(b_field)
+  # A ha la fonte in mano, B quelle carte in campo; poi la fonte scende.
+  def spostatore(b_field)
     engine = Rubyfront::Engine.new(cards: ARCIERI)
-    a = [{ "uid" => "arc", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "ARCIERE" }]
+    a = [{ "uid" => "arc", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "SPOSTATORE" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
     b = b_field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "field", "order" => i, "cardId" => id, "y" => 172 } }
     engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
@@ -1810,8 +1810,8 @@ class EngineTest < Minitest::Test
                    "effect" => { "source" => source, "event" => "on_enter_field", "entering" => source } })
   end
 
-  def test_l_arciere_manda_un_entita_avversaria_in_ritiro
-    engine = arciere([["b1", "UMANO"]])
+  def test_lo_spostamento_manda_un_entita_avversaria_in_ritiro
+    engine = spostatore([["b1", "UMANO"]])
     verdict = manda(engine, "b1")
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
@@ -1819,7 +1819,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_l_effetto_si_consuma_una_volta
-    engine = arciere([["b1", "UMANO"], ["b2", "UMANO"]])
+    engine = spostatore([["b1", "UMANO"], ["b2", "UMANO"]])
     assert manda(engine, "b1")[:ok]
     verdict = manda(engine, "b2")
     refute verdict[:ok]
@@ -1827,14 +1827,14 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_bersaglio_deve_essere_un_entita_avversaria_in_campo
-    engine = arciere([["b1", "PIETRA"]])
+    engine = spostatore([["b1", "PIETRA"]])
     refute manda(engine, "b1")[:ok], "una Materia no"
-    engine = arciere([])
+    engine = spostatore([])
     refute manda(engine, "arc")[:ok], "una propria carta no"
   end
 
   def test_l_innesco_vale_solo_nel_turno_d_ingresso
-    engine = arciere([["b1", "UMANO"]])
+    engine = spostatore([["b1", "UMANO"]])
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
     verdict = manda(engine, "b1")
@@ -1843,42 +1843,42 @@ class EngineTest < Minitest::Test
   end
 
   def test_la_zona_deve_essere_quella_della_forma
-    engine = arciere([["b1", "UMANO"]])
-    refute manda(engine, "b1", zone: "abisso")[:ok], "nell'Abisso non è la forma dell'Arciere"
+    engine = spostatore([["b1", "UMANO"]])
+    refute manda(engine, "b1", zone: "abisso")[:ok], "nell'Abisso non è la forma dello spostamento"
   end
 
-  # --- §8.2: Rhen riporta una permanente dalla Zona di Ritiro (RBF-012) -----
+  # --- §8.2: il ritorno riporta una permanente dalla Zona di Ritiro ----------
 
   EREDI = {
-    "RHEN" => { type: "entity", keywords: [], race: "human",
+    "RIPORTANTE" => { type: "entity", keywords: [], race: "human",
                 enter_returns: [{ from: "ritiro", filter: { permanent: true }, to: "field" }] },
     "PERMANENTE" => { type: "matter", keywords: [], behavior: "permanent" },
     "NORMALE" => { type: "matter", keywords: [], behavior: "normal" },
     "UMANO" => { type: "entity", keywords: [], race: "human" },
   }.freeze
 
-  # A ha Rhen in mano e quelle carte in Zona di Ritiro; poi Rhen scende.
+  # A ha la fonte in mano e quelle carte in Zona di Ritiro; poi la fonte scende.
   # `campo` è quante Entità stanno già sul Fronte di A (per il Fronte pieno,
-  # §6.2): Rhen compresa, che scende sempre per prima.
-  def rhen(ritiro, foe_ritiro: [], campo: 1)
+  # §6.2): la fonte compresa, che scende sempre per prima.
+  def riportante(ritiro, foe_ritiro: [], campo: 1)
     engine = Rubyfront::Engine.new(cards: EREDI)
-    a = [{ "uid" => "rhen", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "RHEN" }]
+    a = [{ "uid" => "riportante", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "RIPORTANTE" }]
     a += (2..campo).map { |i| { "uid" => "f#{i}", "owner" => "a", "zone" => "field", "order" => i, "cardId" => "UMANO", "x" => Rubyfront::Engine::FRONT_SLOT_X[i - 1], "y" => 1236 } }
     a += ritiro.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "ritiro", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
     b = foe_ritiro.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "ritiro", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
-    engine.judge({ "t" => "toZone", "uid" => "rhen", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine.judge({ "t" => "toZone", "uid" => "riportante", "zone" => "field", "x" => 442, "y" => 1236 })
     engine
   end
 
   def riporta(engine, uid)
     engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 2368, "y" => 1236,
-                   "effect" => { "source" => "rhen", "event" => "on_enter_field", "entering" => "rhen" } })
+                   "effect" => { "source" => "riportante", "event" => "on_enter_field", "entering" => "riportante" } })
   end
 
-  def test_rhen_riporta_una_permanente_sul_fronte
-    engine = rhen([["p1", "PERMANENTE"]])
+  def test_il_ritorno_riporta_una_permanente_sul_fronte
+    engine = riportante([["p1", "PERMANENTE"]])
     verdict = riporta(engine, "p1")
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
@@ -1888,7 +1888,7 @@ class EngineTest < Minitest::Test
   def test_una_permanente_e_l_entita_o_la_materia_permanente
     # «Una carta permanente» (§10) è quel che resta in campo: l'Entità e la
     # Materia permanente. Non la Materia normale, non le carte altrui.
-    engine = rhen([["n1", "NORMALE"], ["u1", "UMANO"]], foe_ritiro: [["bp", "PERMANENTE"]])
+    engine = riportante([["n1", "NORMALE"], ["u1", "UMANO"]], foe_ritiro: [["bp", "PERMANENTE"]])
     refute riporta(engine, "n1")[:ok], "una Materia normale no"
     verdict = riporta(engine, "u1")
     assert verdict[:ok], "un'Entità sì: #{verdict[:reason]}"
@@ -1898,7 +1898,7 @@ class EngineTest < Minitest::Test
   # §6.2, Fronte pieno: «anche la parte d'effetto che metterebbe in campo non
   # si applica» — per le Entità; una Materia permanente non occupa slot (§5).
   def test_a_fronte_pieno_l_entita_non_torna_la_materia_si
-    engine = rhen([["u1", "UMANO"], ["p1", "PERMANENTE"]], campo: 5)
+    engine = riportante([["u1", "UMANO"], ["p1", "PERMANENTE"]], campo: 5)
     verdict = riporta(engine, "u1")
     refute verdict[:ok]
     assert_match(/Fronte è pieno.*§6\.2/, verdict[:reason])
@@ -1907,17 +1907,17 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_ritorno_si_consuma_una_volta
-    engine = rhen([["p1", "PERMANENTE"], ["p2", "PERMANENTE"]])
+    engine = riportante([["p1", "PERMANENTE"], ["p2", "PERMANENTE"]])
     assert riporta(engine, "p1")[:ok]
     refute riporta(engine, "p2")[:ok]
   end
 
-  # --- §8.2: il Cercatore guarda le prime quattro (RBF-006) ----------------
+  # --- §8.2: lo sguardo all'ingresso guarda le prime quattro -----------------
 
   CERCATORI = {
-    "CERCATORE" => { type: "entity", keywords: [], race: "human",
+    "SGUARDO" => { type: "entity", keywords: [], race: "human",
                      enter_looks: [{ count: 4, die: nil, count_base: 0, reveal: { type: "entity", race: "human" }, then_retire: false }] },
-    "ARTEFICE" => { type: "entity", keywords: [], race: "auros",
+    "SCRUTATORE" => { type: "entity", keywords: [], race: "auros",
                     enter_looks: [{ count: nil, die: 6, count_base: 2, reveal: { type: "object", race: nil }, then_retire: true }] },
     "FERRO" => { type: "object", keywords: [] },
     "UMANO" => { type: "entity", keywords: [], race: "human" },
@@ -1925,10 +1925,10 @@ class EngineTest < Minitest::Test
     "PIETRA" => { type: "matter", keywords: [], behavior: "normal" },
   }.freeze
 
-  # A ha il Cercatore in mano e quel mazzo (dalla cima); poi il Cercatore scende.
-  def cercatore(deck)
+  # A ha la fonte in mano e quel mazzo (dalla cima); poi la fonte scende.
+  def sguardo_ingresso(deck)
     engine = Rubyfront::Engine.new(cards: CERCATORI)
-    cards = [{ "uid" => "cerc", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "CERCATORE" }]
+    cards = [{ "uid" => "cerc", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "SGUARDO" }]
     cards += deck.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "deck", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     engine.judge({ "t" => "toZone", "uid" => "cerc", "zone" => "field", "x" => 442, "y" => 1236 })
@@ -1942,8 +1942,8 @@ class EngineTest < Minitest::Test
     engine.judge(action)
   end
 
-  def test_il_cercatore_mostra_un_umano_fra_le_prime_quattro
-    engine = cercatore([["d1", "PIETRA"], ["d2", "UMANO"], ["d3", "AUROS"], ["d4", "PIETRA"], ["d5", "UMANO"]])
+  def test_lo_sguardo_mostra_un_umano_fra_le_prime_quattro
+    engine = sguardo_ingresso([["d1", "PIETRA"], ["d2", "UMANO"], ["d3", "AUROS"], ["d4", "PIETRA"], ["d5", "UMANO"]])
     verdict = guarda(engine, reveal: "d2")
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
@@ -1953,7 +1953,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_non_si_mostra_chi_non_e_fra_le_prime_o_non_e_umano
-    engine = cercatore([["d1", "PIETRA"], ["d2", "AUROS"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "UMANO"]])
+    engine = sguardo_ingresso([["d1", "PIETRA"], ["d2", "AUROS"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "UMANO"]])
     refute guarda(engine, reveal: "d5")[:ok], "la quinta non si vede"
     refute guarda(engine, reveal: "d2")[:ok], "un Auros non si mostra"
     refute guarda(engine, count: 2)[:ok], "si guardano quattro carte"
@@ -1961,20 +1961,20 @@ class EngineTest < Minitest::Test
     refute guarda(engine)[:ok], "e l'innesco è consumato"
   end
 
-  # --- §8.2: il Radunatore prende il controllo (RBF-009) ---------------------
+  # --- §8.2: il controllo all'ingresso ----------------------------------------
 
   RADUNI = {
-    "RADUNATORE" => { type: "entity", keywords: [], race: "human",
+    "CONTROLLORE" => { type: "entity", keywords: [], race: "human",
                       enter_controls: [{ target: { type: "entity", controller: "opponent", max_cost: 3 }, grants: ["surge"] }] },
     "PICCOLA" => { type: "entity", keywords: [], race: "auros", flux_cost: 2 },
     "GRANDE" => { type: "entity", keywords: [], race: "auros", flux_cost: 5 },
     "PIETRA" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 1 },
   }.freeze
 
-  # A ha il Radunatore in mano, B quelle carte in campo; poi il Radunatore scende.
-  def radunatore(b_field)
+  # A ha la fonte in mano, B quelle carte in campo; poi la fonte scende.
+  def controllore(b_field)
     engine = Rubyfront::Engine.new(cards: RADUNI)
-    a = [{ "uid" => "rad", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "RADUNATORE" }]
+    a = [{ "uid" => "rad", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "CONTROLLORE" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
     b = b_field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "field", "order" => i, "cardId" => id, "y" => 172 } }
     engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
@@ -1987,8 +1987,8 @@ class EngineTest < Minitest::Test
                    "effect" => { "source" => "rad", "event" => "on_enter_field", "entering" => "rad" } })
   end
 
-  def test_il_radunatore_prende_un_entita_economica
-    engine = radunatore([["b1", "PICCOLA"]])
+  def test_il_controllo_prende_un_entita_economica
+    engine = controllore([["b1", "PICCOLA"]])
     verdict = prendi(engine, "b1")
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
@@ -1997,14 +1997,14 @@ class EngineTest < Minitest::Test
   end
 
   def test_non_si_prende_chi_costa_troppo_ne_una_materia
-    engine = radunatore([["b1", "GRANDE"], ["b2", "PIETRA"]])
+    engine = controllore([["b1", "GRANDE"], ["b2", "PIETRA"]])
     refute prendi(engine, "b1")[:ok], "costa 5"
     refute prendi(engine, "b2")[:ok], "una Materia no"
     refute prendi(engine, "b1", grants: [])[:ok], "le concessioni sono quelle della carta"
   end
 
   def test_la_controllata_attacca_per_chi_la_comanda_con_slancio
-    engine = radunatore([["b1", "PICCOLA"]])
+    engine = controllore([["b1", "PICCOLA"]])
     prendi(engine, "b1")
     fronte!(engine)
     attacco = { "t" => "declare", "declaration" => { "id" => "x", "from" => "b1", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } }
@@ -2016,7 +2016,7 @@ class EngineTest < Minitest::Test
   # non te la dà. A mano non la si sposta fra le zone, nemmeno nella Zona di
   # Ritiro del proprietario. La restituzione ha la sua azione.
   def test_la_controllata_non_si_sposta_fra_le_zone
-    engine = radunatore([["b1", "PICCOLA"]])
+    engine = controllore([["b1", "PICCOLA"]])
     prendi(engine, "b1")
     %w[abisso ritiro hand deck].each do |zone|
       verdict = engine.judge({ "t" => "toZone", "uid" => "b1", "zone" => zone }, actor: "a")
@@ -2031,7 +2031,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_la_restituzione_solo_a_fine_turno_e_solo_di_una_controllata
-    engine = radunatore([["b1", "PICCOLA"], ["b2", "PICCOLA"]])
+    engine = controllore([["b1", "PICCOLA"], ["b2", "PICCOLA"]])
     prendi(engine, "b1")
     refute engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 }, actor: "a")[:ok], "non prima della fine del turno"
     refute engine.judge({ "t" => "release", "uid" => "b2", "zone" => "field" }, actor: "a")[:ok], "b2 non è controllata"
@@ -2042,11 +2042,11 @@ class EngineTest < Minitest::Test
     assert_equal "b", table.controller_of(table.card("b1"))
   end
 
-  # --- §8.2: l'Artefice tira il dado e guarda (RBF-027) ----------------------
+  # --- §8.2: lo sguardo col dado all'ingresso ---------------------------------
 
-  def artefice(deck)
+  def scrutatore(deck)
     engine = Rubyfront::Engine.new(cards: CERCATORI)
-    cards = [{ "uid" => "art", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "ARTEFICE" }]
+    cards = [{ "uid" => "art", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "SCRUTATORE" }]
     cards += deck.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "deck", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     engine.judge({ "t" => "toZone", "uid" => "art", "zone" => "field", "x" => 442, "y" => 1236 })
@@ -2061,8 +2061,8 @@ class EngineTest < Minitest::Test
     engine.judge(action)
   end
 
-  def test_l_artefice_guarda_due_piu_meta_del_tiro
-    engine = artefice([["d1", "PIETRA"], ["d2", "FERRO"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "PIETRA"], ["d6", "PIETRA"]])
+  def test_lo_sguardo_col_dado_guarda_due_piu_meta_del_tiro
+    engine = scrutatore([["d1", "PIETRA"], ["d2", "FERRO"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "PIETRA"], ["d6", "PIETRA"]])
     # tiro 3 → 2 + ceil(3/2) = 4 carte
     verdict = tira_e_guarda(engine, roll: 3, count: 4, reveal: "d2", retire: "d1")
     assert verdict[:ok], verdict[:reason]
@@ -2073,7 +2073,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_conto_segue_il_tiro_e_il_ritiro_e_obbligatorio
-    engine = artefice([["d1", "PIETRA"], ["d2", "FERRO"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "PIETRA"]])
+    engine = scrutatore([["d1", "PIETRA"], ["d2", "FERRO"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "PIETRA"]])
     refute tira_e_guarda(engine, roll: 3, count: 5)[:ok], "con un 3 si guardano 4 carte"
     refute tira_e_guarda(engine, roll: 7, count: 6)[:ok], "un tiro fuori dal dado"
     refute tira_e_guarda(engine, roll: 1, count: 3, reveal: "d2")[:ok], "una delle altre va in Ritiro"
@@ -2082,17 +2082,17 @@ class EngineTest < Minitest::Test
     assert tira_e_guarda(engine, roll: 1, count: 3, retire: "d1")[:ok], "nessun Oggetto mostrato, una in Ritiro"
   end
 
-  # --- §8.2: «quando attacca», il secondo innesco di Rhen ------------------
+  # --- §8.2: «quando attacca», lo stesso ritorno all'attacco -----------------
 
   EREDI_ATTACCO = EREDI.merge(
-    "RHEN" => EREDI["RHEN"].merge(attack_returns: EREDI["RHEN"][:enter_returns])
+    "RIPORTANTE" => EREDI["RIPORTANTE"].merge(attack_returns: EREDI["RIPORTANTE"][:enter_returns])
   ).freeze
 
-  # Rhen in campo dal turno 1, una permanente in Zona di Ritiro; al turno 3
-  # A apre il Fronte e Rhen attacca.
+  # La fonte in campo dal turno 1, una permanente in Zona di Ritiro; al turno 3
+  # A apre il Fronte e la fonte attacca.
   def rhen_in_carica
     engine = Rubyfront::Engine.new(cards: EREDI_ATTACCO)
-    cards = [{ "uid" => "rhen", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "RHEN", "y" => 1236 },
+    cards = [{ "uid" => "riportante", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "RIPORTANTE", "y" => 1236 },
              { "uid" => "p1", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "PERMANENTE" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
@@ -2102,13 +2102,13 @@ class EngineTest < Minitest::Test
 
   def riporta_attaccando(engine)
     engine.judge({ "t" => "toZone", "uid" => "p1", "zone" => "field", "x" => 2368, "y" => 1236,
-                   "effect" => { "source" => "rhen", "event" => "on_attack", "entering" => "rhen" } })
+                   "effect" => { "source" => "riportante", "event" => "on_attack", "entering" => "riportante" } })
   end
 
-  def test_quando_rhen_attacca_riporta_una_permanente
+  def test_quando_la_fonte_attacca_riporta_una_permanente
     engine = rhen_in_carica
     fronte!(engine)
-    assert engine.judge(attacco("rhen"))[:ok]
+    assert engine.judge(attacco("riportante"))[:ok]
     verdict = riporta_attaccando(engine)
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
@@ -2124,10 +2124,10 @@ class EngineTest < Minitest::Test
     refute riporta_attaccando(engine)[:ok], "il Fronte da solo non basta"
   end
 
-  # --- §8.2: «quando attacca con un Oggetto, pesca, poi scarta» (RBF-026) --
+  # --- §8.2: «quando attacca con un Oggetto, pesca, poi scarta» --------------
 
   AVANSCOPERTA = {
-    "ESPLORATORE" => { type: "entity", keywords: [], race: "auros",
+    "PESCATORE" => { type: "entity", keywords: [], race: "auros",
                        attack_draws: [{ draw: 1, then_discard: 1, requires_object: true }] },
     "FERRO" => { type: "object", keywords: [] },
     "UMANO" => { type: "entity", keywords: [], race: "human" },
@@ -2137,7 +2137,7 @@ class EngineTest < Minitest::Test
   # carta in mano e una nel mazzo; al turno 3 A apre il Fronte e attacca.
   def esploratore(armato: true)
     engine = Rubyfront::Engine.new(cards: AVANSCOPERTA)
-    cards = [{ "uid" => "esp", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "ESPLORATORE", "y" => 1236 },
+    cards = [{ "uid" => "esp", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "PESCATORE", "y" => 1236 },
              { "uid" => "h1", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "UMANO" },
              { "uid" => "d1", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "UMANO" },
              { "uid" => "d2", "owner" => "a", "zone" => "deck", "order" => 1, "cardId" => "UMANO" }]
@@ -2244,13 +2244,13 @@ class EngineTest < Minitest::Test
                   attack_forms: [{ kind: "untap", who: "self", once: true, requires_object: true, face: 0 }] },
     "COMANDO" => { type: "entity", keywords: ["surge"], race: "auros", power: 3,
                    attack_forms: [{ kind: "empower", who: "self", requires_object: true, targets: "others_armed", power: 1, face: 0 }] },
-    "SIGMA" => { type: "object", keywords: [],
+    "REAGENTE" => { type: "object", keywords: [],
                  attack_forms: [{ kind: "empower", who: "object", targets: "bearer", power: 1, face: 0 },
                                 { kind: "look", count: 4, reveal: { type: "matter", race: nil }, reveal_to: "hand", rest_to: "ritiro", who: "object", die: 6, on_roll: [5, 6], face: 0 }] },
     "FURIERE" => { type: "entity", keywords: [], race: "auros", power: 5,
                    attack_forms: [{ kind: "rearm", who: "ally", attacker_armed: true, face: 0 },
                                   { kind: "look", count: 2, reveal: { type: "object", race: nil }, reveal_to: "ritiro", rest_to: "deck", who: "ally", attacker_armed: true, once: true, die: nil, face: 0 }] },
-    "GUARITORE" => { type: "entity", keywords: [], race: "human", power: 2,
+    "CURATORE" => { type: "entity", keywords: [], race: "human", power: 2,
                      attack_forms: [{ kind: "heal", who: "self", amount: 2, die: 6, on_roll: [5, 6], then_recall: { type: "entity" }, face: 0 }] },
     "ECO" => { type: "entity", keywords: [], race: "human", power: 3,
                attack_forms: [{ kind: "return", who: "self", die: 6, on_roll: [5, 6], filter: { type: "entity", race: "human" }, joins: true, face: 0 }] },
@@ -2258,10 +2258,10 @@ class EngineTest < Minitest::Test
                   enter_refreshes: [{ die: 20, on_roll: [15, 20] }], static_forms: [{ kind: "never_taps" }] },
     "EREDI" => { type: "matter", keywords: [], behavior: "permanent",
                  attack_forms: [{ kind: "heal", who: "permanent", attackers: { type: "entity", race: "human" }, die: 20, gain_on: [1, 6], drain_on: [15, 20], amount: "human_attackers", face: 0 }] },
-    "OBLIVHAL" => { type: "rubyfront", keywords: ["fury"],
+    "RADUNO" => { type: "rubyfront", keywords: ["fury"],
                     attack_forms: [{ kind: "heal", who: "rubyfront", once: true, requires_attackers: { count: 3, race: "human" }, amount: 2, then_draw: 0, then_discard: 0, face: 0 },
                                    { kind: "heal", who: "rubyfront", once: true, requires_attackers: { count: 3, race: "human" }, amount: 2, then_draw: 1, then_discard: 1, face: 1 }] },
-    "VENDICATORE" => { type: "entity", keywords: [], race: "human", power: 2,
+    "VENDICANTE" => { type: "entity", keywords: [], race: "human", power: 2,
                        attack_forms: [{ kind: "empower", who: "self", once: true, targets: "next_human_attacker", grants: ["revenge"], face: 0 }] },
     "RAZZIA" => { type: "entity", keywords: [], race: "human", power: 2, counterattack: 1,
                   attack_forms: [{ kind: "empower", who: "self", requires_previous_attackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block", face: 0 }] },
@@ -2283,7 +2283,7 @@ class EngineTest < Minitest::Test
       engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
     end
     load.call("a", a)
-    load.call("b", b + [["rf-b", "OBLIVHAL", { "y" => 172 }]])
+    load.call("b", b + [["rf-b", "RADUNO", { "y" => 172 }]])
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
     fronte!(engine)
@@ -2302,7 +2302,7 @@ class EngineTest < Minitest::Test
     { "source" => source, "event" => "on_attack", "entering" => entering }.merge(extra.transform_keys(&:to_s))
   end
 
-  # RBF-028 — «stappala dopo il combattimento».
+  # «Stappala dopo il combattimento».
   def test_il_vigile_armato_si_stappa_dopo_il_combattimento
     engine = scena([["v", "VIGILE"], ["f", "FERRO", { "assignedTo" => "v" }]], attacks: ["v"])
     engine.judge({ "t" => "phase", "phase" => "reazione" })
@@ -2320,7 +2320,7 @@ class EngineTest < Minitest::Test
     assert_match(/chi ha attaccato/, fermo[:reason])
   end
 
-  # RBF-029 — «le altre Entità con un Oggetto assegnato che controlli prendono +1».
+  # «Le altre Entità con un Oggetto assegnato che controlli prendono +1».
   def test_il_comando_potenzia_le_altre_armate
     engine = scena([["c", "COMANDO"], ["f1", "FERRO", { "assignedTo" => "c" }], ["u", "UMANO"], ["f2", "FERRO", { "assignedTo" => "u" }], ["n", "AUROS"]], attacks: ["c"])
     verdict = engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("c") })
@@ -2336,9 +2336,9 @@ class EngineTest < Minitest::Test
     assert_match(/senza Oggetto/, engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("c") })[:reason])
   end
 
-  # RBF-034 — l'Oggetto che potenzia chi lo porta, poi lo sguardo col dado.
+  # L'Oggetto che potenzia chi lo porta, poi lo sguardo col dado.
   def test_il_catalizzatore_potenzia_il_portatore_e_poi_guarda_col_dado
-    engine = scena([["u", "UMANO"], ["s", "SIGMA", { "assignedTo" => "u" }], ["pescata", "UMANO", { "zone" => "deck" }], ["d1", "MATERIA", { "zone" => "deck" }], ["d2", "UMANO", { "zone" => "deck" }],
+    engine = scena([["u", "UMANO"], ["s", "REAGENTE", { "assignedTo" => "u" }], ["pescata", "UMANO", { "zone" => "deck" }], ["d1", "MATERIA", { "zone" => "deck" }], ["d2", "UMANO", { "zone" => "deck" }],
                     ["d3", "UMANO", { "zone" => "deck" }], ["d4", "UMANO", { "zone" => "deck" }]], attacks: ["u"])
     verdict = engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("s", "u") })
     assert verdict[:ok], verdict[:reason]
@@ -2355,11 +2355,11 @@ class EngineTest < Minitest::Test
   end
 
   def test_l_oggetto_non_addosso_all_attaccante_tace
-    engine = scena([["u", "UMANO"], ["n", "AUROS"], ["s", "SIGMA", { "assignedTo" => "n" }]], attacks: ["u"])
+    engine = scena([["u", "UMANO"], ["n", "AUROS"], ["s", "REAGENTE", { "assignedTo" => "n" }]], attacks: ["u"])
     assert_match(/addosso a chi attacca/, engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("s", "u") })[:reason])
   end
 
-  # RBF-031 — il Furiere: un Oggetto dal Ritiro a chi attacca armato, e lo sguardo una volta per turno.
+  # Il riarmo: un Oggetto dal Ritiro a chi attacca armato, e lo sguardo una volta per turno.
   def test_il_furiere_riarma_chi_attacca_armato_e_guarda_una_volta
     engine = scena([["q", "FURIERE"], ["u", "UMANO"], ["f", "FERRO", { "assignedTo" => "u" }], ["f2", "FERRO", { "zone" => "ritiro" }],
                     ["n", "AUROS"], ["f3", "FERRO", { "assignedTo" => "n" }], ["pescata", "UMANO", { "zone" => "deck" }], ["d1", "FERRO", { "zone" => "deck" }], ["d2", "UMANO", { "zone" => "deck" }]],
@@ -2383,9 +2383,9 @@ class EngineTest < Minitest::Test
     assert_match(/Entità con un Oggetto assegnato/, verdict[:reason])
   end
 
-  # RBF-008 — +2 PV, poi col dado un'Entità dal Ritiro in mano.
+  # La cura: +2 PV, poi col dado un'Entità dal Ritiro in mano.
   def test_il_guaritore_cura_e_col_dado_riporta_in_mano
-    engine = scena([["g", "GUARITORE"], ["r", "UMANO", { "zone" => "ritiro" }]], attacks: ["g"])
+    engine = scena([["g", "CURATORE"], ["r", "UMANO", { "zone" => "ritiro" }]], attacks: ["g"])
     richiamo = { "t" => "toZone", "uid" => "r", "zone" => "hand", "roll" => 6, "effect" => ref("g", follow: "recall") }
     assert_match(/prima i PV/, engine.judge(richiamo)[:reason])
     assert_match(/2 PV/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 25 }, "effect" => ref("g") })[:reason])
@@ -2399,7 +2399,7 @@ class EngineTest < Minitest::Test
     assert_match(/già stato risolto/, engine.judge(richiamo)[:reason])
   end
 
-  # RBF-010 — col dado un'Entità Umana dal Ritiro sul Fronte, che attacca insieme.
+  # Il ritorno: col dado un'Entità Umana dal Ritiro sul Fronte, che attacca insieme.
   def test_l_eco_riporta_un_umano_che_attacca_insieme
     engine = scena([["e", "ECO"], ["r", "UMANO", { "zone" => "ritiro" }], ["x", "AUROS", { "zone" => "ritiro" }]], attacks: ["e"])
     ritorno = { "t" => "toZone", "uid" => "r", "zone" => "field", "x" => 2368, "y" => 1236, "roll" => 5, "effect" => ref("e") }
@@ -2416,7 +2416,7 @@ class EngineTest < Minitest::Test
     assert copia(engine).attacking?("r")
   end
 
-  # RBF-011 — «questa Entità non si tappa mai»: il gesto di tapparla è fermato, stapparla passa.
+  # «Questa Entità non si tappa mai»: il gesto di tapparla è fermato, stapparla passa.
   def test_la_carica_non_si_tappa_mai
     engine = scena([["c", "CARICA"], ["u", "UMANO"]], attacks: ["c"])
     verdict = engine.judge({ "t" => "tap", "uid" => "c", "tapped" => true })
@@ -2428,7 +2428,7 @@ class EngineTest < Minitest::Test
     refute engine.judge({ "t" => "tap", "uid" => "zz", "tapped" => true })[:ruled], "carta ignota: silenzio"
   end
 
-  # RBF-011 — quando entra, un d20: con 15–20 stappa tutte le proprie Entità (dal 2026-09-05).
+  # La stappata all'ingresso: un d20, con 15–20 stappa tutte le proprie Entità.
   def test_la_carica_entrando_col_tiro_stappa_tutti
     engine = scena([["c", "CARICA", { "zone" => "hand" }], ["u", "UMANO", { "tapped" => true }]])
     entra = { "source" => "c", "event" => "on_enter_field", "entering" => "c" }
@@ -2436,7 +2436,7 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
     engine.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
-    assert engine.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1236, "cost" => 5 })[:ok], "Ajmal scende in Preparazione"
+    assert engine.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1236, "cost" => 5 })[:ok], "la fonte scende in Preparazione"
     assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => true, "effect" => entra })[:reason])
     assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => false, "effect" => entra })[:reason])
     assert_match(/innesco d'ingresso/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => ref("c") })[:reason])
@@ -2455,7 +2455,7 @@ class EngineTest < Minitest::Test
     assert_match(/già stato risolto/, mancato.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => entra })[:reason])
   end
 
-  # RBF-022 — la Materia permanente: il d20 quando attaccano gli Umani.
+  # La Materia permanente: il d20 quando attaccano gli Umani.
   def test_gli_eredi_col_d20_curano_o_prosciugano
     engine = scena([["m", "EREDI"], ["u1", "UMANO"], ["u2", "UMANO"], ["n", "AUROS"]], attacks: %w[u1 u2 n])
     assert_match(/non succede nulla/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 10, "effect" => ref("m", "u1") })[:reason])
@@ -2468,11 +2468,11 @@ class EngineTest < Minitest::Test
     assert_equal 18, copia(engine).hp("b")
   end
 
-  # RBF-001 — il raduno: al terzo Umano, +2 PV una volta per turno; il Nexus poi pesca e scarta.
+  # Il raduno: al terzo Umano, +2 PV una volta per turno; il Nexus poi pesca e scarta.
   # Il Rubyfront è SCHIERATO (fila del Fronte, 1236): in Zona di Richiamo
   # (1756) non avrebbe abilità (§3.1, test più sotto).
   def test_il_raduno_al_terzo_umano_una_volta_per_turno
-    engine = scena([["rf", "OBLIVHAL", { "y" => 1236 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2])
+    engine = scena([["rf", "RADUNO", { "y" => 1236 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2])
     assert_match(/almeno 3 Entità Umane/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u2", once: true) })[:reason])
     engine.judge({ "t" => "declare", "declaration" => { "id" => "u3", "from" => "u3", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 3 } })
     verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
@@ -2482,7 +2482,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_nexus_dopo_la_cura_pesca_e_scarta
-    engine = scena([["rf", "OBLIVHAL", { "y" => 1236, "face" => 1 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"],
+    engine = scena([["rf", "RADUNO", { "y" => 1236, "face" => 1 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"],
                     ["h", "UMANO", { "zone" => "hand" }], ["d", "UMANO", { "zone" => "deck" }]], attacks: %w[u1 u2 u3])
     pesca = { "t" => "draw", "seat" => "a", "count" => 1, "effect" => ref("rf", "u3", once: true, follow: "draw") }
     assert_match(/prima i PV/, engine.judge(pesca)[:reason])
@@ -2498,7 +2498,7 @@ class EngineTest < Minitest::Test
   # quando è in campo: schierarlo serve a sbloccarle». In Zona di Richiamo
   # il Rubyfront si attacca, ma non innesca niente.
   def test_il_rubyfront_in_zona_di_richiamo_non_ha_abilita
-    engine = scena([["rf", "OBLIVHAL", { "y" => 1756 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2 u3])
+    engine = scena([["rf", "RADUNO", { "y" => 1756 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2 u3])
     verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
     refute verdict[:ok]
     assert_match(/Zona di Richiamo non ha abilità.*§3\.1/, verdict[:reason])
@@ -2512,15 +2512,15 @@ class EngineTest < Minitest::Test
 
   def test_la_fila_ignota_del_rubyfront_non_accusa
     # Snapshot da una lavagna che non segnava la fila: nel dubbio è in gioco.
-    engine = scena([["rf", "OBLIVHAL", { "y" => nil }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2 u3])
+    engine = scena([["rf", "RADUNO", { "y" => nil }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2 u3])
     assert_nil copia(engine).card("rf")[:row]
     verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
     assert verdict[:ok], verdict[:reason]
   end
 
-  # RBF-004 — la Vendetta al PROSSIMO Umano che attacca.
+  # La Vendetta al PROSSIMO Umano che attacca.
   def test_il_vendicatore_concede_vendetta_al_prossimo_umano
-    engine = scena([["v", "VENDICATORE"], ["u1", "UMANO"], ["u2", "UMANO"], ["n", "AUROS"]], attacks: %w[v n u1 u2])
+    engine = scena([["v", "VENDICANTE"], ["u1", "UMANO"], ["u2", "UMANO"], ["n", "AUROS"]], attacks: %w[v n u1 u2])
     assert_match(/PROSSIMA Entità Umana/, engine.judge({ "t" => "empower", "uid" => "u2", "grants" => ["revenge"], "effect" => ref("v", "v", once: true) })[:reason])
     assert_match(/PROSSIMA Entità Umana/, engine.judge({ "t" => "empower", "uid" => "n", "grants" => ["revenge"], "effect" => ref("v", "v", once: true) })[:reason])
     verdict = engine.judge({ "t" => "empower", "uid" => "u1", "grants" => ["revenge"], "effect" => ref("v", "v", once: true) })
@@ -2528,7 +2528,7 @@ class EngineTest < Minitest::Test
     assert_equal ["revenge"], copia(engine).card("u1")[:grants]
   end
 
-  # RBF-005 — se nel turno precedente hanno attaccato almeno 2 Umani, un'Entità avversaria non blocca.
+  # Il divieto di blocco: se nel turno precedente hanno attaccato almeno 2 Umani, un'Entità avversaria non blocca.
   def test_la_razzia_vieta_il_blocco_dopo_un_turno_di_umani
     engine = scena([["r", "RAZZIA"], ["u1", "UMANO"], ["u2", "UMANO"]], b: [["b1", "AUROS"]], attacks: %w[u1 u2])
     engine.judge({ "t" => "phase", "phase" => "reazione" })
@@ -2547,13 +2547,13 @@ class EngineTest < Minitest::Test
     engine = scena([["r", "RAZZIA"], ["u1", "UMANO"]], b: [["b1", "AUROS"]], attacks: ["r"])
     assert_match(/turno precedente/, engine.judge({ "t" => "empower", "uid" => "b1", "restrict" => "block", "effect" => ref("r") })[:reason])
   end
-  # --- Eredità Perduta: statici, Stasi, blocco multiplo, Materie, Nexus ----------
+  # --- Il secondo lotto di forme: statici, Stasi, blocco multiplo, Materie, Nexus ---
   #
   # Le forme come le legge l'anagrafe dalle carte vere (card_index_test);
   # qui la dogana, scenario per scenario, su un'anagrafe di prova.
 
   EREDITA = {
-    "RAGAZZO" => { type: "entity", keywords: [], race: "human", power: 1, flux_cost: 1,
+    "CORRIDORE" => { type: "entity", keywords: [], race: "human", power: 1, flux_cost: 1,
                    static_forms: [{ kind: "self_power", amount: 1, while_attacking: true, requires_other: { type: "entity", race: "human" } }] },
     "SIMULACRO" => { type: "entity", keywords: [], race: "simulacrum", power: 3, flux_cost: 4,
                      static_forms: [{ kind: "self_power", amount: 1, per_other: { type: "entity", race: "human" } }] },
@@ -2568,10 +2568,10 @@ class EngineTest < Minitest::Test
     "GROSSO" => { type: "entity", keywords: [], race: "auros", power: 4, counterattack: nil, flux_cost: 4 },
     "SPINOSO" => { type: "entity", keywords: [], race: "human", power: 3, counterattack: 1, flux_cost: 3 },
     "RUBINO" => { type: "rubyfront", keywords: [] },
-    "OBLIVHAL" => { type: "rubyfront", keywords: ["fury"], enables: [[], []],
+    "RADUNO" => { type: "rubyfront", keywords: ["fury"], enables: [[], []],
                     nexus: { face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 5 },
-                    flip_forms: [{ kind: "move", card_id: "RHEN", from: "field", to: "abisso" }, { kind: "seal", card_id: "RHEN" }] },
-    "RHEN" => { type: "entity", keywords: [], race: "human", power: 6, flux_cost: 6 },
+                    flip_forms: [{ kind: "move", card_id: "RIPORTANTE", from: "field", to: "abisso" }, { kind: "seal", card_id: "RIPORTANTE" }] },
+    "RIPORTANTE" => { type: "entity", keywords: [], race: "human", power: 6, flux_cost: 6 },
     "PERMANENTE" => { type: "matter", keywords: [], behavior: "permanent", flux_cost: 2, matter: { type: "dynamic", grade: 1 } },
     "ATTRAZIONE" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 2, matter: { type: "dynamic", grade: 1 },
                       resolve_forms: [{ kind: "look", count: 4, reveal: { type: "entity", race: "human" }, reveal_to: "hand", rest_to: "deck", show_up_to: 2 }] },
@@ -2592,7 +2592,7 @@ class EngineTest < Minitest::Test
                     resolve_forms: [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" } }] },
   }.freeze
 
-  # Un tavolo di Eredità Perduta: le carte di A e di B (con zona ed extra)
+  # Un tavolo del secondo lotto: le carte di A e di B (con zona ed extra)
   # scese al turno 1, poi turno 3 di A in Preparazione, con 10 Flussi per
   # posto. `attacks` dichiara il Fronte e gli attacchi di A.
   def eredita(a, b: [], attacks: nil)
@@ -2631,21 +2631,21 @@ class EngineTest < Minitest::Test
       .merge("blockerStasis" => stasis, "blockerSpent" => spent)
   end
 
-  # --- §8.2: gli statici di Potenza (RBF-002, RBF-010, RBF-013, RBF-014) ---
+  # --- §8.2: gli statici di Potenza ------------------------------------------
 
   def test_il_ragazzo_vale_2_in_attacco_solo_con_un_altro_umano
-    solo = eredita([["r", "RAGAZZO"], ["x", "AUROS"]], attacks: ["r"])
+    solo = eredita([["r", "CORRIDORE"], ["x", "AUROS"]], attacks: ["r"])
     solo.judge({ "t" => "phase", "phase" => "reazione" })
     assert_match(/non torna/, risolvi(solo, [esito("r", damage: 2)])[:reason])
     assert risolvi(solo, [esito("r", damage: 1)])[:ok]
-    insieme = eredita([["r", "RAGAZZO"], ["u", "UMANO"]], attacks: ["r"])
+    insieme = eredita([["r", "CORRIDORE"], ["u", "UMANO"]], attacks: ["r"])
     insieme.judge({ "t" => "phase", "phase" => "reazione" })
     assert_match(/non torna/, risolvi(insieme, [esito("r", damage: 1)])[:reason])
     assert risolvi(insieme, [esito("r", damage: 2)])[:ok]
   end
 
   def test_il_ragazzo_in_difesa_resta_un_1
-    engine = eredita([["u", "UMANO"], ["r", "RAGAZZO"]], b: [["g", "GROSSO"]])
+    engine = eredita([["u", "UMANO"], ["r", "CORRIDORE"]], b: [["g", "GROSSO"]])
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     fronte!(engine)
     engine.judge({ "t" => "declare", "declaration" => { "id" => "g", "from" => "g", "to" => "rf-a", "kind" => "attack", "seat" => "b", "order" => 1 } }, actor: "b")
@@ -2676,7 +2676,7 @@ class EngineTest < Minitest::Test
     assert risolvi(engine, [esito("p", damage: 0)])[:ok]
   end
 
-  # --- §8.1: la Stasi (RBF-013) --------------------------------------------
+  # --- §8.1: la Stasi concessa da un Oggetto ---------------------------------
 
   def test_la_stasi_salva_l_umano_che_blocca_e_non_l_auros
     engine = eredita([["g", "GROSSO"], ["g2", "GROSSO"]], b: [["u", "UMANO"], ["x", "AUROS"], ["o", "SCUDO", { "assignedTo" => "u" }], ["o2", "SCUDO", { "assignedTo" => "x" }]], attacks: %w[g g2])
@@ -2715,7 +2715,7 @@ class EngineTest < Minitest::Test
     assert risolvi(engine, [esito("g", blocker: "s", kind: "counter", attacker_dies: true)])[:ok]
   end
 
-  # --- §8.2: il blocco multiplo (RBF-014) -------------------------------------
+  # --- §8.2: il blocco multiplo -----------------------------------------------
 
   def test_la_cintura_apre_l_attaccante_a_piu_bloccanti
     engine = eredita([["u", "UMANO"], ["c", "CINTURA", { "assignedTo" => "u" }], ["x", "AUROS"]], b: [["b1", "AUROS"], ["b2", "AUROS"], ["b3", "AUROS"]], attacks: %w[u x])
@@ -2777,10 +2777,10 @@ class EngineTest < Minitest::Test
     assert gioca_carta(engine, "c", cost: 4, actor: "b", y: 172)[:ok], "e anche quella che non blocca nessuno"
   end
 
-  # --- §7.2/§8.2: le Materie di Eredità Perduta alla risoluzione -------------
+  # --- §7.2/§8.2: le Materie alla risoluzione ---------------------------------
 
-  # RBF-015 — guarda le prime 4, un'Entità Umana in mano, le altre in fondo.
-  def test_l_attrazione_guarda_quattro_e_mostra_un_umano
+  # Lo sguardo: guarda le prime 4, un'Entità Umana in mano, le altre in fondo.
+  def test_lo_sguardo_alla_risoluzione_guarda_quattro_e_mostra_un_umano
     # La Pesca del turno 3 prende «d0»: sotto restano d1, d2, d3.
     engine = eredita([["u", "UMANO"], ["m", "ATTRAZIONE", { "zone" => "hand" }], ["d0", "AUROS", { "zone" => "deck", "order" => 0 }],
                       ["d1", "AUROS", { "zone" => "deck", "order" => 1 }], ["d2", "UMANO", { "zone" => "deck", "order" => 2 }], ["d3", "UMANO", { "zone" => "deck", "order" => 5 }]])
@@ -2795,8 +2795,8 @@ class EngineTest < Minitest::Test
     assert_match(/già stato risolto/, engine.judge(look.merge("reveal" => "d3"))[:reason])
   end
 
-  # RBF-016 — stappa un'Entità Umana che controlli: +1 Potenza.
-  def test_la_formazione_stappa_un_umano_e_lo_potenzia
+  # La stappata: stappa un'Entità Umana che controlli: +1 Potenza.
+  def test_la_stappata_singola_stappa_un_umano_e_lo_potenzia
     engine = eredita([["u", "UMANO", { "tapped" => true }], ["u2", "UMANO", { "tapped" => true }], ["x", "AUROS", { "tapped" => true }], ["m", "FORMAZIONE", { "zone" => "hand" }]])
     fronte!(engine)
     assert gioca_carta(engine, "m", cost: 2)[:ok]
@@ -2813,8 +2813,8 @@ class EngineTest < Minitest::Test
     assert_match(/UN'Entità/, engine.judge(passo.merge("uid" => "u2"))[:reason])
   end
 
-  # RBF-017 — un'Entità avversaria con costo 2 o inferiore nella Zona di Ritiro.
-  def test_l_impatto_manda_in_ritiro_solo_chi_costa_poco
+  # Lo spostamento: un'Entità avversaria con costo 2 o inferiore nella Zona di Ritiro.
+  def test_lo_spostamento_in_ritiro_manda_solo_chi_costa_poco
     engine = eredita([["u", "UMANO"], ["m", "IMPATTO", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["b2", "GROSSO"]])
     assert gioca_carta(engine, "m", cost: 1)[:ok]
     accetta!(engine, "b")
@@ -2826,8 +2826,8 @@ class EngineTest < Minitest::Test
     assert_equal "ritiro", copia(engine).card("b1")[:zone]
   end
 
-  # RBF-018 — un permanente avversario nell'Abisso, finché questa carta resta in gioco.
-  def test_il_campo_repulsivo_esilia_e_restituisce_quando_lascia_il_gioco
+  # L'esilio condizionato: un permanente avversario nell'Abisso, finché questa carta resta in gioco.
+  def test_l_esilio_condizionato_esilia_e_restituisce_quando_lascia_il_gioco
     engine = eredita([["u", "UMANO"], ["m", "CAMPO", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["bm", "PERMANENTE"], ["bo", "SCUDO", { "assignedTo" => "b1" }]])
     assert gioca_carta(engine, "m", cost: 3)[:ok]
     accetta!(engine, "b")
@@ -2848,8 +2848,8 @@ class EngineTest < Minitest::Test
     assert_equal "abisso", copia(engine).card("bo")[:zone], "torna disarmata (§3.1)"
   end
 
-  # RBF-019 — il d20 a fasce.
-  def test_la_forza_della_radura_segue_il_dado
+  # Il d20 a fasce.
+  def test_il_d20_a_fasce_segue_il_dado
     engine = eredita([["u", "UMANO"], ["m", "FORZA", { "zone" => "hand" }], ["h", "PICCOLO", { "zone" => "hand" }], ["g", "GROSSO", { "zone" => "hand" }], ["d", "AUROS", { "zone" => "deck" }]])
     assert gioca_carta(engine, "m", cost: 3)[:ok]
     accetta!(engine, "b")
@@ -2865,7 +2865,7 @@ class EngineTest < Minitest::Test
     assert_match(/già stato risolto/, engine.judge(cura.merge("patch" => { "hp" => 28 }))[:reason])
   end
 
-  def test_con_20_la_forza_fa_tutte_e_tre_le_cose
+  def test_con_20_il_d20_a_fasce_fa_tutte_e_tre_le_cose
     engine = eredita([["u", "UMANO"], ["m", "FORZA", { "zone" => "hand" }], ["h", "PICCOLO", { "zone" => "hand" }], ["g", "GROSSO", { "zone" => "hand" }], ["d", "AUROS", { "zone" => "deck" }]])
     assert gioca_carta(engine, "m", cost: 3)[:ok]
     accetta!(engine, "b")
@@ -2966,8 +2966,8 @@ class EngineTest < Minitest::Test
     assert risposta[:ok], "«l'attaccante può rispondere» (§6.4): #{risposta[:reason]}"
   end
 
-  # RBF-040 — giocata come blocco a un attaccante: l'attacco è bloccato; con 2 armati sul Fronte, +3 PV.
-  def test_lo_scudo_riflesso_ferma_l_attaccante_e_cura_se_gli_armati_bastano
+  # La forma `block`: giocata come bloccante di un'Entità attaccante, l'attacco è bloccato; con 2 armati sul Fronte, +3 PV.
+  def test_la_reattiva_bloccante_ferma_l_attaccante_e_cura_se_gli_armati_bastano
     engine = eredita([["g", "GROSSO"], ["g2", "GROSSO"]],
                      b: [["v1", "UMANO"], ["v2", "UMANO"], ["o1", "SCUDO", { "assignedTo" => "v1" }], ["o2", "SCUDO"], ["r", "RIFLESSO", { "zone" => "hand" }]], attacks: %w[g g2])
     refute gioca_carta(engine, "r", cost: 2, actor: "b", y: 172)[:ok], "nel Fronte a ondata dichiarata no (§7.2)"
@@ -2987,8 +2987,8 @@ class EngineTest < Minitest::Test
     assert_match(/già stato risolto/, engine.judge(cura.merge("patch" => { "hp" => hp + 6 }), actor: "b")[:reason])
   end
 
-  # RBF-020 — in Reazione, senza bloccare: con 3 Umani, stappa gli Umani, Contrattacco +1.
-  def test_il_contrattacco_coordinato_in_reazione_potenzia_gli_umani_senza_bloccare
+  # La stappata di gruppo, in Reazione, senza bloccare: con 3 Umani, stappa gli Umani, Contrattacco +1.
+  def test_la_stappata_di_gruppo_in_reazione_potenzia_gli_umani_senza_bloccare
     engine = eredita([["g", "GROSSO"], ["g2", "GROSSO"]],
                      b: [["v1", "UMANO", { "tapped" => true }], ["v2", "UMANO", { "tapped" => true }], ["v3", "SPINOSO"], ["c", "COORDINATO", { "zone" => "hand" }]], attacks: %w[g g2])
     engine.judge({ "t" => "phase", "phase" => "reazione" })
@@ -3018,7 +3018,7 @@ class EngineTest < Minitest::Test
     assert_equal 16, tavolo.hp("b"), "la Reattiva non ferma nessuno: i 4 di g passano"
   end
 
-  def test_il_contrattacco_coordinato_vuole_tre_umani
+  def test_la_stappata_di_gruppo_vuole_tre_umani
     engine = eredita([["g", "GROSSO"]], b: [["v1", "UMANO"], ["v2", "UMANO"], ["c", "COORDINATO", { "zone" => "hand" }]], attacks: %w[g])
     engine.judge({ "t" => "phase", "phase" => "reazione" })
     assert gioca_carta(engine, "c", cost: 4, actor: "b", y: 172)[:ok]
@@ -3026,8 +3026,8 @@ class EngineTest < Minitest::Test
     assert_match(/almeno 3 Entità Umane/, engine.judge({ "t" => "empower", "uid" => "v1", "counter" => 1, "untap" => true, "effect" => res_ref("c") }, actor: "b")[:reason])
   end
 
-  # RBF-021 — distruggi un'Entità; contro una tappata costa 3 in meno.
-  def test_il_giudizio_cremisi_sconta_contro_la_tappata_e_colpisce_lei
+  # La distruzione: distruggi un'Entità; contro una tappata costa 3 in meno.
+  def test_la_distruzione_sconta_contro_la_tappata_e_colpisce_lei
     engine = eredita([["u", "UMANO"], ["m", "GIUDIZIO", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["b2", "GROSSO"]])
     # Tappata ORA (il cambio di turno l'aveva stappata).
     engine.observe({ "t" => "tap", "uid" => "b1", "tapped" => true })
@@ -3044,7 +3044,7 @@ class EngineTest < Minitest::Test
     assert_equal "abisso", copia(engine).card("b1")[:zone]
   end
 
-  def test_il_giudizio_cremisi_senza_bersaglio_dichiarato_costa_pieno_e_colpisce_chiunque
+  def test_la_distruzione_senza_bersaglio_dichiarato_costa_pieno_e_colpisce_chiunque
     engine = eredita([["u", "UMANO"], ["m", "GIUDIZIO", { "zone" => "hand" }]], b: [["b1", "AUROS"]])
     engine.observe({ "t" => "tap", "uid" => "b1", "tapped" => true })
     fronte!(engine)
@@ -3061,10 +3061,10 @@ class EngineTest < Minitest::Test
     refute ignota.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("z") })[:ruled]
   end
 
-  # --- §3.1: il Nexus — il flip e «quando flippa» (RBF-001) ------------------
+  # --- §3.1: il Nexus — il flip e «quando flippa» -----------------------------
 
   def nexus_pronto(humans: 4, hand: [["h", "AUROS", { "zone" => "hand" }]], y: 1236)
-    mine = (1..humans).map { |i| ["u#{i}", "UMANO"] } + [["rhen", "RHEN"], ["rf", "OBLIVHAL", { "y" => y }]] + hand + [["rhen2", "RHEN", { "zone" => "hand" }]]
+    mine = (1..humans).map { |i| ["u#{i}", "UMANO"] } + [["riportante", "RIPORTANTE"], ["rf", "RADUNO", { "y" => y }]] + hand + [["rip2", "RIPORTANTE", { "zone" => "hand" }]]
     eredita(mine)
   end
 
@@ -3097,22 +3097,22 @@ class EngineTest < Minitest::Test
     assert_match(/dalla Preparazione al Fronte/, flip(engine)[:reason])
   end
 
-  def test_quando_flippa_rhen_va_nell_abisso_e_non_si_gioca_piu
+  def test_quando_flippa_la_carta_nominata_va_nell_abisso_e_non_si_gioca_piu
     engine = nexus_pronto
     ref = { "source" => "rf", "event" => "on_flip", "entering" => "rf" }
-    via = { "t" => "toZone", "uid" => "rhen", "zone" => "abisso", "effect" => ref }
+    via = { "t" => "toZone", "uid" => "riportante", "zone" => "abisso", "effect" => ref }
     assert_match(/flippato questo turno/, engine.judge(via)[:reason])
     assert flip(engine)[:ok]
     assert_match(/dal proprio Fronte/, engine.judge(via.merge("uid" => "u1"))[:reason])
     verdict = engine.judge(via)
     assert verdict[:ok], verdict[:reason]
-    assert_equal "abisso", copia(engine).card("rhen")[:zone]
+    assert_equal "abisso", copia(engine).card("riportante")[:zone]
     assert_match(/già stato risolto/, engine.judge(via)[:reason])
-    sigillo = { "t" => "player", "seat" => "a", "patch" => { "sealed" => ["RHEN"] }, "effect" => ref }
-    assert_match(/aggiunge RHEN/, engine.judge(sigillo.merge("patch" => { "sealed" => ["RHEN", "UMANO"] }))[:reason])
+    sigillo = { "t" => "player", "seat" => "a", "patch" => { "sealed" => ["RIPORTANTE"] }, "effect" => ref }
+    assert_match(/aggiunge RIPORTANTE/, engine.judge(sigillo.merge("patch" => { "sealed" => ["RIPORTANTE", "UMANO"] }))[:reason])
     assert engine.judge(sigillo)[:ok]
-    assert copia(engine).sealed?("a", "RHEN")
-    assert_match(/non si può più giocare/, engine.judge({ "t" => "toZone", "uid" => "rhen2", "zone" => "field", "x" => 442, "y" => 1236, "cost" => 6 })[:reason])
+    assert copia(engine).sealed?("a", "RIPORTANTE")
+    assert_match(/non si può più giocare/, engine.judge({ "t" => "toZone", "uid" => "rip2", "zone" => "field", "x" => 442, "y" => 1236, "cost" => 6 })[:reason])
     # Il turno dopo il flip è passato: l'innesco non si riscalda.
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })

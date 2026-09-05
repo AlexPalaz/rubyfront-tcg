@@ -66,7 +66,7 @@ module Rubyfront
       # è il numero d'ondata, l'ordine in cui le battaglie si risolvono.
       @declarations = {}
       # L'ultima ondata di ciascun posto (uid, in ordine), annotata alla
-      # risoluzione — «nel tuo turno precedente» (RBF-005). Gemello: lastWave.
+      # risoluzione — «nel tuo turno precedente». Gemello: lastWave.
       @last_wave = {}
       # La catena di risposta (§7.2): {stack: [uid…], turn:, resolving:}, o
       # nil. Gemello: chain (types.ts, ResponseChain).
@@ -98,12 +98,12 @@ module Rubyfront
     end
 
     # Un innesco di quella fonte con quel prefisso d'evento è già scattato?
-    # («stappa UN'Entità», RBF-016: un solo bersaglio per risoluzione.)
+    # («stappa UN'Entità»: un solo bersaglio per risoluzione.)
     def fired_prefix?(source_uid, prefix)
       @fired.any? { |key| key.start_with?("#{source_uid}|#{prefix}") }
     end
 
-    # Il tiro di un effetto a più passi (RBF-019): il primo passo lo fissa, i
+    # Il tiro di un effetto a più passi (il d20 a fasce): il primo passo lo fissa, i
     # seguenti devono portare lo stesso. Il cambio di turno lo dimentica.
     def remember_roll(source_uid, roll)
       @rolls[source_uid] = roll
@@ -134,7 +134,7 @@ module Rubyfront
     end
 
     # «Mentre ha un Oggetto assegnato» (§3.1): un Oggetto in campo la veste.
-    # §3.1 — le carte di `seat` in campo con un Oggetto addosso (RBF-040). Gemello: effects.ts, armedCount.
+    # §3.1 — le carte di `seat` in campo con un Oggetto addosso (la Reattiva bloccante che cura). Gemello: effects.ts, armedCount.
     def armed_uids(seat)
       @cards.select { |uid, card| card[:zone] == "field" && controller_of(card) == seat && armed?(uid) }.keys
     end
@@ -221,7 +221,7 @@ module Rubyfront
     end
 
     # Tutti quelli che fermano quell'attaccante, nell'ordine in cui l'hanno
-    # dichiarato (§8.2, «può essere bloccata da più Entità», RBF-014).
+    # dichiarato (§8.2, «può essere bloccata da più Entità»).
     def blockers_of(attacker_uid)
       @declarations.select { |from, d| d[:to] == attacker_uid && %w[block counter].include?(d[:kind]) && on_field?(from) }
                    .map { |from, d| [from, d[:kind]] }
@@ -414,7 +414,7 @@ module Rubyfront
       when "release"
         # §8.2 — la restituzione: controllo e concessioni cadono; in Zona di
         # Ritiro, o sul Fronte del proprietario com'è. Vale anche per il
-        # permanente esiliato «finché questa carta resta in gioco» (RBF-018):
+        # permanente esiliato «finché questa carta resta in gioco»:
         # dall'Abisso torna in gioco. Gemello: state.ts.
         card = @cards[action["uid"]]
         if card
@@ -434,17 +434,17 @@ module Rubyfront
         card = @cards[action["uid"]]
         if card && card[:zone] == "field"
           card[:power_bonus] = (card[:power_bonus] || 0) + action["power"] if action["power"].is_a?(Integer)
-          # «Contrattacco +1 fino alla fine del turno» (RBF-020).
+          # «Contrattacco +1 fino alla fine del turno».
           card[:counter_bonus] = (card[:counter_bonus] || 0) + action["counter"] if action["counter"].is_a?(Integer)
           granted = Array(action["grants"]).select { |keyword| keyword.is_a?(String) }
           card[:grants] = (Array(card[:grants]) + granted).uniq unless granted.empty?
           card[:cannot_block] = true if action["restrict"] == "block"
-          # «Stappa un'Entità» (RBF-016, RBF-020): stappata da un effetto,
+          # «Stappa un'Entità»: stappata da un effetto,
           # anche dalla Stasi (§8.1: «torna un'Entità normale»).
           untap!(card) if action["untap"] == true
         end
       when "refresh"
-        # §8.2 (RBF-011) — col tiro giusto (`untap`), stappa tutte le Entità
+        # §8.2 (la stappata all'ingresso) — col tiro giusto (`untap`), stappa tutte le Entità
         # che `seat` comanda; col tiro mancato non succede nulla. Gemello: state.ts.
         if action["untap"] == true
           @cards.each_value do |card|
@@ -582,7 +582,7 @@ module Rubyfront
       Array(action["battles"]).each do |battle|
         next unless battle.is_a?(Hash)
 
-        # Con più bloccanti (RBF-014) lo stesso attaccante ha più battaglie:
+        # Con più bloccanti (blocco multiplo) lo stesso attaccante ha più battaglie:
         # muore una volta sola.
         to_zone({ "uid" => battle["attacker"], "zone" => "abisso" }) if battle["attackerDies"] == true && on_field?(battle["attacker"])
         if battle["blocker"] && on_field?(battle["blocker"])
@@ -601,7 +601,7 @@ module Rubyfront
         end
         damage += battle["damage"].to_i
       end
-      # §8.2 — «stappala dopo il combattimento» (RBF-028). Gemello: state.ts.
+      # §8.2 — «stappala dopo il combattimento». Gemello: state.ts.
       Array(action["untap"]).each do |uid|
         card = @cards[uid]
         card[:tapped] = false if card && card[:zone] == "field"
@@ -613,7 +613,7 @@ module Rubyfront
       @players[foe][:hp] = [0, @players[foe][:hp] - damage].max if foe && SEATS.include?(action["seat"])
     end
 
-    # §8.2 — lo sguardo nel mazzo (la forma di RBF-006): le prime N; la
+    # §8.2 — lo sguardo nel mazzo: le prime N; la
     # rivelata in fondo alla mano, le altre in fondo al mazzo nell'ordine in
     # cui stavano. Gemello: state.ts, look.
     def look(action)
@@ -626,8 +626,8 @@ module Rubyfront
       deck = pile(seat, "deck")
       bottom = deck.last[:order] + 1
       # Dove va la mostrata (`revealTo`, di regola in mano) e dove vanno le
-      # altre (`restTo`, di regola in fondo al mazzo): RBF-031 manda la
-      # mostrata in Ritiro, RBF-034 le altre. Gemello: state.ts, look.
+      # altre (`restTo`, di regola in fondo al mazzo): una forma manda la
+      # mostrata in Ritiro, un'altra le altre. Gemello: state.ts, look.
       reveal_to = action["revealTo"] == "ritiro" ? "ritiro" : "hand"
       rest_to = action["restTo"] == "ritiro" ? "ritiro" : "deck"
       to_retire_top = lambda do |card|
@@ -648,7 +648,7 @@ module Rubyfront
           next
         end
         if action["retire"] && @cards[action["retire"]].equal?(card)
-          # In cima alla Zona di Ritiro, scoperta (RBF-027).
+          # In cima alla Zona di Ritiro, scoperta.
           to_retire_top.call(card)
           next
         end
@@ -675,15 +675,15 @@ module Rubyfront
       # nel riduttore (pay).
       pay(card[:owner], action["cost"]) if zone == "field" && card[:zone] == "hand"
       card[:zone] = zone
-      # Chi lo tiene fermo nell'Abisso (RBF-018): lo dice lo spostamento che
+      # Chi lo tiene fermo nell'Abisso (l'esilio condizionato): lo dice lo spostamento che
       # ce lo manda; ogni altro spostamento lo scioglie. Gemello: state.ts.
       card[:held_by] = action["heldBy"].is_a?(String) && zone == "abisso" ? action["heldBy"] : nil
       if zone == "field"
         card[:order] = 0
         card[:row] = action["y"] if action["y"].is_a?(Numeric)
-        # Un Oggetto che torna già assegnato (§8.2, RBF-031). Gemello: state.ts.
+        # Un Oggetto che torna già assegnato (§8.2, il riarmo). Gemello: state.ts.
         card[:assigned_to] = action["assignTo"] if action["assignTo"].is_a?(String) && @cards.key?(action["assignTo"])
-        # Il bersaglio dichiarato giocando la carta (RBF-021: lo sconto lo
+        # Il bersaglio dichiarato giocando la carta (la distruzione: lo sconto lo
         # decide lui, e l'effetto deve colpire lui). Gemello: state.ts.
         card[:target] = action["target"].is_a?(String) ? action["target"] : nil
         # §7.2 — la Reattiva giocata apre la catena o la allunga, e la parola

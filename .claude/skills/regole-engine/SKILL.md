@@ -118,6 +118,21 @@ con `cost` non è un pixel: è lo schieramento.
    nello stile del repo (titolo con la regola e il §, corpo che racconta
    perché, i limiti, i conteggi dei test), push solo su richiesta.
 
+## L'engine non conosce le carte
+
+L'engine è **puro** (decisione del designer, 2026-09-05): in `engine/` — codice,
+commenti, voci di `RULES`, messaggi di rifiuto, README, test — non compaiono
+nomi di carta («Ajmal», «Contrattacco Coordinato») né identificativi
+(`RBF-011`), e nemmeno i nomi dei mazzi. L'engine parla di **regole del
+manuale (§x.y)** e di **forme certificate**, descritte per quello che fanno:
+«la stappata all'ingresso col dado», «lo statico "non si tappa mai"», «la
+Reattiva con la forma `block`». Le fixture dei test portano etichette di
+forma (`RADUNO`, `SPOSTATORE`, `SGUARDO`), non nomi di carta. La mappa
+carta → forma vive **fuori** dall'engine: nel `.md` della carta e nelle
+note del mazzo. Unica eccezione: `card_index_test.rb` legge i dati veri e
+li indirizza per id, perché prova l'anagrafe sulle carte esistenti — ma
+nei messaggi delle asserzioni non nomina le carte.
+
 ## Convenzioni
 
 - Il simulatore è bilingue (inglese prima): ogni scritta passa da `t("chiave")`
@@ -166,6 +181,7 @@ con `cost` non è un pixel: è lo schieramento.
 - [ ] Forma nuova: la carta esce dal `DEBITO` in `card_index_test.rb` (il test lo pretende).
 - [ ] Riduttore e copia contano allo stesso modo, test speculari nei due mondi.
 - [ ] `RULES`, `VERSION`, `refuse` con § in coda **e la frase inglese**, silenzio sull'ignoto.
+- [ ] Niente nomi né id di carta in `engine/`: solo § e forme (vedi «L'engine non conosce le carte»).
 - [ ] Nessuna scritta nuda nel client: chiavi in `i18n.ts` (it + en), chat a chiavi.
 - [ ] Dogana del turno: la regola passa dalle sue eccezioni se serve.
 - [ ] README: paragrafo con limiti dichiarati e regola d'oro; debiti vecchi aggiornati.

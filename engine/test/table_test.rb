@@ -427,7 +427,7 @@ class TableAttackToolsTest < Minitest::Test
     @table.apply({ "t" => "toZone", "uid" => "obj", "zone" => "field", "y" => 1236, "assignTo" => "a1" })
     assert_equal "a1", @table.card("obj")[:assigned_to]
   end
-  # --- gli attrezzi di Eredità Perduta: Stasi, Contrattacco concesso, esilio, flip, sigillo ---
+  # --- gli attrezzi degli effetti: Stasi, Contrattacco concesso, esilio, flip, sigillo ---
 
   def campo(seat, uid, extra = {})
     { "uid" => uid, "owner" => seat, "zone" => "field", "order" => 0, "cardId" => "X" }.merge(extra)
@@ -523,22 +523,22 @@ class TableAttackToolsTest < Minitest::Test
 
   def test_il_sigillo_e_il_bersaglio_dichiarato_viaggiano_anche_nello_snapshot
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "m", "zone" => "hand")] })
-    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["RBF-012"] } })
-    assert @table.sealed?("a", "RBF-012")
-    refute @table.sealed?("b", "RBF-012")
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["CARTA-1"] } })
+    assert @table.sealed?("a", "CARTA-1")
+    refute @table.sealed?("b", "CARTA-1")
     @table.apply({ "t" => "toZone", "uid" => "m", "zone" => "field", "target" => "x1" })
     assert_equal "x1", @table.card("m")[:target]
     @table.apply({ "t" => "toZone", "uid" => "m", "zone" => "abisso" })
     assert_nil @table.card("m")[:target]
     @table.load({
       "turn" => 4, "active" => "a",
-      "players" => { "a" => { "sealed" => ["RBF-012"] } },
+      "players" => { "a" => { "sealed" => ["CARTA-1"] } },
       "cards" => {
         "a1" => { "owner" => "a", "zone" => "field", "order" => 0, "stasis" => true, "tapped" => true, "target" => "b1" },
         "b1" => { "owner" => "b", "zone" => "abisso", "order" => 0, "heldBy" => "a1" },
       },
     })
-    assert @table.sealed?("a", "RBF-012")
+    assert @table.sealed?("a", "CARTA-1")
     assert @table.card("a1")[:stasis]
     assert_equal "b1", @table.card("a1")[:target]
     assert_equal "a1", @table.card("b1")[:held_by]

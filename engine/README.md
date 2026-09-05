@@ -31,14 +31,14 @@ Regole collegate finora:
   riduttore e nella copia. Resta «Scopri» solo per una coperta senza data,
   arrivata da una lavagna che non la segnava. Limiti dichiarati: gli
   effetti delle carte che tappano/coprono a mano non sono concessi (la
-  Stasi, §8.1, e le stappate per effetto sono arrivate dopo, con Eredità
-  Perduta).
+  Stasi, §8.1, e le stappate per effetto sono arrivate dopo, col secondo
+  lotto di forme).
 - **§3.1 Oggetti: assegnazione** — l'assegnazione è un'azione del protocollo
   (`assign {uid, to}`, generata dal rilascio di un Oggetto sopra un'Entità):
   solo alle proprie Entità, mai al Rubyfront/Nexus, mai a una coperta, e una
   volta assegnato l'Oggetto non si sposta su un'altra Entità. Si scioglie da
   sé quando una delle due carte lascia il campo (il ritorno in campo è
-  sempre disarmato). È il prerequisito delle licenze (la Stasi di RBF-013
+  sempre disarmato). È il prerequisito delle licenze (la Stasi concessa da un Oggetto
   vive «mentre assegnato»).
 - **§3.1/§3.2 Contatori: mai sotto zero** — i PV si fermano a 0 (a 0 la
   partita è persa, sotto non si va) e Flusso e barra non scendono in
@@ -56,7 +56,7 @@ Regole collegate finora:
   Potenza e Contrattacco) dai dati del sito (`lib/rubyfront/card_index.rb`; il percorso si cambia con
   `RUBYFRONT_DATA`) e il tavolo annota il turno d'ingresso di ogni carta.
   Carta ignota o anagrafe assente: l'engine tace, mai molesto. Limite
-  dichiarato: lo Slancio CONCESSO da un effetto (es. RBF-009) non si vede
+  dichiarato: lo Slancio CONCESSO da un effetto (es. il controllo all'ingresso) non si vede
   ancora — quell'Entità verrebbe fermata a torto.
 
 - **§6 Fasi: le dichiarazioni in Fase di Fronte** — il turno ha una fase,
@@ -299,8 +299,8 @@ Regole collegate finora:
   entering}`; l'engine verifica il passo contro la **forma certificata** in
   anagrafe e lo lascia passare come effetto, una volta per coppia
   fonte/ingresso finché dura il turno (la copia del tavolo annota gli
-  inneschi consumati). Oggi una forma sola, l'ascoltatore d'ingresso di
-  RBF-003: «quando un'altra Entità Umana entra sul tuo Fronte, se ne
+  inneschi consumati). Oggi una forma sola, l'ascoltatore d'ingresso:
+  «quando un'altra Entità Umana entra sul tuo Fronte, se ne
   controlli almeno 3, pesca una carta» — chi entra non fa nulla da sé, sono
   le carte già in campo a innescarsi; la fonte dev'essere in campo dello
   stesso posto, l'ingresso un'altra carta entrata questo turno della razza
@@ -310,8 +310,8 @@ Regole collegate finora:
   chi entra ignota all'anagrafe: silenzio. Nel client l'interprete
   (`effects.ts`, senza DOM) trova gli inneschi, la scena d'ingresso li
   elenca e «Risolvi» li esegue, la fonte si accende sul tavolo da entrambe
-  le parti. La seconda forma era quella di RBF-007, l'**Arciere** (fino al
-  2026-09-04: la revisione del foglio lo ha portato all'esilio condizionato
+  le parti. La seconda forma era lo **spostamento all'ingresso** (fino al
+  2026-09-04: la revisione del foglio ha portato la carta che lo aveva all'esilio condizionato
   nell'Abisso, forma ignota, quindi risolta a mano finché non si collega):
   «quando questa Entità entra in campo, metti un'Entità avversaria nella Zona
   di Ritiro» — un `toZone` marcato con `effect` (fonte e ingresso coincidono),
@@ -320,13 +320,13 @@ Regole collegate finora:
   avversaria in campo. Nel client il bersaglio si sceglie in mira, con la
   freccia dalla fonte al dito; poi la fonte si accende, la freccia va al
   bersaglio e la carta parte — anche per chi guarda. La terza forma è
-  quella di RBF-012, **Rhen**: «quando questa Entità entra in campo, metti
+  il **ritorno**: «quando questa Entità entra in campo, metti
   sul tuo Fronte una carta permanente dalla tua Zona di Ritiro» — un
   `toZone` verso il campo marcato con `effect`, che passa se la carta
   scelta è una **permanente** nella PROPRIA Zona di Ritiro — «una carta
   permanente» (§10) è quel che resta in campo: un'**Entità** o una Materia
   permanente, mai il Rubyfront, mai un Oggetto, la stessa lettura
-  dell'esilio di RBF-018 (`permanent_card?` / `permanentOf`). A **Fronte
+  dell'esilio condizionato (`permanent_card?` / `permanentOf`). A **Fronte
   pieno** un'Entità non torna, «anche la parte d'effetto che metterebbe in
   campo non si applica» (§6.2); una Materia permanente sì, perché sta
   dietro il Fronte e non occupa uno slot (§5). Nel client si sceglie dalla
@@ -339,7 +339,7 @@ Regole collegate finora:
   attacco dichiarato in Fase di Fronte, una volta per attacco (gli inneschi
   consumati sono triple fonte/evento/ingresso); nel client, dichiarato
   l'attacco, la scena dice «Quando attacca» e «Risolvi» fa lo stesso
-  ritorno. Della stessa famiglia è RBF-026, l'**Esploratore**: «la prima
+  ritorno. Della stessa famiglia è la **pesca all'attacco**: «la prima
   volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto
   assegnato, pesca una carta, poi scarta una carta» — una pesca marcata
   con `effect` (evento `on_attack`, fonte e ingresso coincidono) che passa
@@ -363,40 +363,38 @@ Regole collegate finora:
   permanente, il Rubyfront/Nexus schierato); ogni passo ha la sua tripla
   (`fonte|on_attack:passo|attaccante`, o `turn` al posto dell'attaccante
   per «una volta per turno», che il riferimento dichiara con `once`).
-  Le forme: RBF-028, il **Vigile** — armato, «stappala dopo il
+  Le forme: la **stappata dopo il combattimento** — armato, «stappala dopo il
   combattimento»: viaggia nella risoluzione (`resolve.untap`), una volta
-  per turno; RBF-029, il **Comando** — armato, «+1 Potenza alle altre
+  per turno; il **comando** — armato, «+1 Potenza alle altre
   Entità armate che controlli» (`empower`, un passo per bersaglio);
-  RBF-034, il **Catalizzatore Sigma** — l'Oggetto dà +1 a chi lo porta,
+  l'**Oggetto che potenzia e guarda** — dà +1 a chi lo porta,
   «poi tira un d6: con 5–6 guarda le prime 4, una Materia in mano, le
-  altre in Zona di Ritiro» (`look` con `revealTo`/`restTo`); RBF-031, il
-  **Furiere** — quando attacca un'Entità armata che controlli, puoi
+  altre in Zona di Ritiro» (`look` con `revealTo`/`restTo`); il
+  **riarmo** — quando attacca un'Entità armata che controlli, puoi
   assegnarle un Oggetto dalla Zona di Ritiro senza pagarlo
   (`toZone.assignTo`, senza `cost`) e, una volta per turno, guardi le
-  prime 2 e puoi mettere un Oggetto in Zona di Ritiro; RBF-008, il
-  **Guaritore** — «+2 PV» (`player` con riferimento: i PV devono essere
+  prime 2 e puoi mettere un Oggetto in Zona di Ritiro; la **cura** — «+2 PV» (`player` con riferimento: i PV devono essere
   quelli di prima più due), «poi un d6: con 5–6 un'Entità dalla Zona di
-  Ritiro in mano» (il seguito `recall`, col tiro); RBF-010, l'**Eco** —
+  Ritiro in mano» (il seguito `recall`, col tiro); il **ritorno che attacca insieme** —
   «un d6: con 5–6 un'Entità Umana dalla Zona di Ritiro sul Fronte, che
   attacca insieme» (un `toZone` col tiro, poi un `declare` col seguito
-  `join`, esente dall'attesa di evocazione); RBF-011, la **Carica**, com'era
+  `join`, esente dall'attesa di evocazione); la **stappata d'attacco**, com'era
   fino al 2026-09-05 — «quando attacca, un d20: con 15–20 stappa tutte le
   tue Entità e c'è una Fase di Fronte addizionale» — è stata riscritta dal
   designer come innesco d'ingresso senza la fase in più (vedi sotto, §8.2
   «quando entra, un d20»), e la Fase di Fronte addizionale è uscita
-  dall'engine con lei; RBF-022, gli **Eredi** —
+  dall'engine con lei; la **permanente col d20** —
   la Materia permanente: quando attacca un Umano che controlli, «un d20:
   1–6 guadagni PV pari agli Umani che hanno attaccato, 15–20 li perde il
-  Rubyfront/Nexus avversario, 7–14 nulla»; RBF-001, **Oblivhal** — «la
+  Rubyfront/Nexus avversario, 7–14 nulla»; il **raduno del Rubyfront** — «la
   prima volta in ogni tuo turno che almeno 3 Umani che controlli hanno
   attaccato, +2 PV», e il Nexus «pesca una carta, poi scarta» (i seguiti
-  `draw` e `discard`); il **Vendicatore** RBF-004 com'era fino al 2026-09-04
+  `draw` e `discard`); la **Vendetta al prossimo Umano**, com'era fino al 2026-09-04
   — «la prossima Entità Umana che attacca ottiene Vendetta fino a fine
   turno» (l'engine pretende che sia il PRIMO Umano dichiarato dopo la
   fonte; la revisione del foglio lo ha riscritto in «se almeno 2 Umani
   attaccano, un'Entità avversaria non blocca», forma ignota e a mano finché
-  non si collega); RBF-005, la
-  **Razzia** — «se almeno 2 Umani che controlli hanno attaccato nel tuo
+  non si collega); il **divieto di blocco** — «se almeno 2 Umani che controlli hanno attaccato nel tuo
   turno precedente, un'Entità avversaria non può bloccare» (la copia
   ricorda l'ultima ondata alla risoluzione; il divieto ferma il blocco
   alla dichiarazione). Gli attrezzi comuni: `empower` (Potenza, parole
@@ -405,14 +403,14 @@ Regole collegate finora:
   **Vendetta** (§8.1, stampata o concessa: chi blocca con Vendetta e
   supera l'attaccante lo uccide). Limiti dichiarati: il caso lo tira
   sempre il client, l'engine verifica il tiro e la soglia, non la
-  fortuna; gli statici «+1 per ogni altro Umano» (RBF-010), «+1 alle
-  altre armate» (RBF-031) e «Contrattacco +2 se armata» (RBF-028) non
+  fortuna; gli statici «+1 per ogni altro Umano», «+1 alle
+  altre armate» e «Contrattacco +2 se armata» non
   sono collegati (sono `while_in_play`, non inneschi d'attacco), quindi
-  una risoluzione che li contasse a mano verrebbe fermata; il Furiere
+  una risoluzione che li contasse a mano verrebbe fermata; il riarmo
   «se può riceverlo» si limita a non vestire una coperta. (Gli
-  statici di RBF-002/010/013/014 e la Stasi sono arrivati dopo, con
-  Eredità Perduta, più sotto.) L'avversario vede gli esiti, non i dadi.
-  La quarta forma è quella di RBF-006, il **Cercatore**: «guarda le prime 4
+  statici di Potenza e la Stasi sono arrivati dopo, col secondo lotto di
+  forme, più sotto.) L'avversario vede gli esiti, non i dadi.
+  La quarta forma è lo **sguardo all'ingresso**: «guarda le prime 4
   carte del tuo mazzo, puoi mostrare un'Entità Umana e aggiungerla alla
   mano, metti le altre in fondo» — un'azione sola, `look {seat, count,
   reveal?}`, che riduttore e copia applicano insieme (la rivelata in fondo
@@ -420,14 +418,14 @@ Regole collegate finora:
   l'engine passa se il conto è quello della forma e la rivelata sta fra le
   prime N ed è del tipo e della razza chiesti; nel client si vedono le
   quattro, si sceglie fra quelle che si possono mostrare (le altre velate),
-  Chiudi per nessuna. Lo stesso passo serve a RBF-027, l'**Artefice**:
+  Chiudi per nessuna. Lo stesso passo serve allo **sguardo col dado**:
   «tira un d6 e guarda 2 più metà del tiro (arrotondata per eccesso), puoi
   mostrare un Oggetto e aggiungerlo alla mano, metti una delle altre nella
   Zona di Ritiro e le restanti in fondo» — `look` porta anche `roll` e
   `retire`; l'engine verifica il tiro nella forma, il conto dalla formula
   (la sola certificata), e che una delle altre vada in Ritiro quando ce
-  ne sono. La quinta forma è quella di RBF-009, il
-  **Radunatore**: «prendi il controllo di un'Entità avversaria con costo di
+  ne sono. La quinta forma è il
+  **controllo all'ingresso**: «prendi il controllo di un'Entità avversaria con costo di
   Flusso 3 o inferiore fino alla fine del turno; ottiene Slancio» — con
   essa nasce il **controllo** (§8.2, «Prendere il controllo», scritto col
   designer): un'azione `control {uid, by, grants}` che cambia chi comanda,
@@ -446,20 +444,20 @@ Regole collegate finora:
   l'anagrafe li legge in `static_forms` (e il client in `cardStats`, stessi
   criteri) e `power_of` li conta insieme alla Potenza stampata e al bonus
   fino a fine turno — mai sotto 0 (§8.2, «Modifiche alla Potenza»). Le
-  forme: RBF-002, il **Ragazzo** — «+1 mentre attacca, se sul tuo Fronte
+  forme: **su di sé, mentre attacca** — «+1 mentre attacca, se sul tuo Fronte
   c'è un'altra Entità Umana» (in difesa resta un 1: si guarda l'attacco
-  dichiarato); RBF-010, il **Simulacro** — «+1 per ogni altra Entità Umana
-  sul tuo Fronte»; RBF-013, il **Vigorscudo** — «+1» a chi lo porta; RBF-014,
-  la **Vigorcintura** — «+1 per ogni Entità Umana sul tuo Fronte»,
+  dichiarato); **su di sé, per conteggio** — «+1 per ogni altra Entità Umana
+  sul tuo Fronte»; **sul portatore** — «+1» a chi lo porta; **sul
+  portatore, per conteggio** — «+1 per ogni Entità Umana sul tuo Fronte»,
   portatrice compresa. «Sul tuo Fronte» conta le Entità che il posto
   comanda (le sue e quelle che controlla, §8.2). Limiti dichiarati: gli
-  statici di Scissione Profonda («+1 alle altre armate» di RBF-031,
-  «Contrattacco +2 se armata» di RBF-028, i modificatori degli Oggetti
-  RBF-032/033/035) restano nel debito, e una risoluzione che li contasse
+  statici del primo lotto («+1 alle altre armate»,
+  «Contrattacco +2 se armata», i modificatori di altri Oggetti)
+  restano nel debito, e una risoluzione che li contasse
   a mano verrebbe fermata.
 - **§8.1 La Stasi** — «bloccando non muore: resta tappata per sempre». La
   risoluzione la vede — stampata, concessa, o data da un Oggetto addosso
-  «mentre assegnato» (RBF-013: agli Umani) — e la battaglia lo dice
+  «mentre assegnato» (es. agli Umani) — e la battaglia lo dice
   (`blockerStasis`): il bloccante che avrebbe dovuto morire resta in
   campo, tappato, e nel contrattacco la stasi sostituisce la copertura;
   l'attaccante muore comunque se doveva. Il cambio di turno non stappa chi
@@ -468,8 +466,8 @@ Regole collegate finora:
   `untap`, `refresh`): allora «torna un'Entità normale». Tappata, non si
   ritira (§6.2): lo dice già la dogana del Ritiro. Stasi in attacco: non
   protegge, come dice il manuale.
-- **§8.2 Il blocco multiplo** — «può essere bloccata da più Entità»
-  (RBF-014): con la Cintura addosso all'attaccante la dogana delle sfide 1
+- **§8.2 Il blocco multiplo** — «può essere bloccata da più Entità»:
+  con l'Oggetto che lo dice addosso all'attaccante la dogana delle sfide 1
   contro 1 si apre, e la copia tiene tutti i bloccanti nell'ordine dei
   blocchi (`blockers_of`). **La risoluzione con più bloccanti non è
   scritta nel manuale**, e l'engine la legge così, da confermare col
@@ -485,14 +483,14 @@ Regole collegate finora:
   inizia più Reattive»; la finestra del difensore è la **Fase di Reazione**
   (§6.4), dove gioca **qualsiasi** Reattiva, di sua iniziativa — e chi
   attacca lì risponde solo in catena. La Reattiva il cui testo dice che si
-  gioca «come bloccante di un'Entità attaccante» (RBF-040) sostituisce il
+  gioca «come bloccante di un'Entità attaccante» (forma `block`) sostituisce il
   bloccante (§6.4): la dogana delle dichiarazioni accetta un blocco da una
   Materia Reattiva scesa questo turno con la forma `block` (mai un
   contrattacco), e la risoluzione la conta come dice il manuale — «non c'è
   confronto di Potenza, l'attacco è comunque bloccato», la sorte
-  dell'attaccante la dice il testo (RBF-040 non dice nulla) — e la Reattiva
+  dell'attaccante la dice il testo (la forma `block` non dice nulla) — e la Reattiva
   si consuma (`blockerSpent`: nell'Abisso alla risoluzione, nel riduttore e
-  nella copia). Una Reattiva che non dice cosa blocca (RBF-020) non blocca
+  nella copia). Una Reattiva che non dice cosa blocca non blocca
   nulla e non dichiara niente. I passi dell'effetto di una Reattiva del
   difensore sono suoi nel turno altrui: la dogana del turno li lascia
   passare se la fonte è sua. Limite dichiarato: se chi è di turno non
@@ -500,19 +498,19 @@ Regole collegate finora:
   finestra, come dice il manuale — l'engine non gliene apre una. Engine
   0.40.0.
 - **§7.2 Le Materie si risolvono** — «l'effetto si risolve immediatamente,
-  poi la carta va nell'Abisso»: le sette Materie di Eredità Perduta hanno
+  poi la carta va nell'Abisso»: le sette Materie del secondo lotto hanno
   la loro forma certificata (`resolve_forms`, evento `on_resolve`), e i
   passi viaggiano marcati `effect {event: "on_resolve"}` con fonte e
   ingresso che coincidono — la Materia stessa, in campo, scesa QUESTO
   turno — ogni passo con la sua chiave (`fonte|on_resolve:passo|fonte`).
-  RBF-015, l'**Attrazione**: «guarda le prime 4, puoi mostrare fino a 2
+  Lo **sguardo alla risoluzione**: «guarda le prime 4, puoi mostrare fino a 2
   Entità Umane e aggiungerne una alla mano» — un `look` (la seconda
   mostrata è solo in vista: limite dichiarato, l'engine ne verifica una);
-  RBF-016, la **Formazione**: «stappa un'Entità Umana che controlli: +1
+  la **stappata singola**: «stappa un'Entità Umana che controlli: +1
   Potenza» — `empower {untap: true, power: 1}`, un bersaglio solo per
-  risoluzione; RBF-017, l'**Impatto**: «un'Entità avversaria con costo 2 o
-  inferiore nella Zona di Ritiro» — un `toZone` verso il Ritiro; RBF-018, il
-  **Campo Repulsivo** (permanente): «manda nell'Abisso un permanente
+  risoluzione; lo **spostamento in Ritiro**: «un'Entità avversaria con costo 2 o
+  inferiore nella Zona di Ritiro» — un `toZone` verso il Ritiro; l'**esilio
+  condizionato** (permanente): «manda nell'Abisso un permanente
   avversario; finché questa carta resta in gioco resta nell'Abisso; quando
   lascia il gioco torna in gioco» — un `toZone` con `heldBy`, che la copia
   e il riduttore annotano sulla carta esiliata (`heldBy`, anche nello
@@ -521,18 +519,18 @@ Regole collegate finora:
   controllo), sul Fronte del proprietario o nella sua Zona di Ritiro se è
   pieno, e l'engine lo passa solo a chi tiene fuori dal campo — «permanente»
   qui è un'Entità o una Materia permanente (mai il Rubyfront; gli Oggetti
-  seguono la loro Entità nell'Abisso e restano lì, §3.1); RBF-019, la
-  **Forza della Radura**: il d20 a fasce — con 1–6 +4 PV (`player`), con
+  seguono la loro Entità nell'Abisso e restano lì, §3.1); il **d20 a
+  fasce** — con 1–6 +4 PV (`player`), con
   7–13 un'Entità Umana con costo 2 o inferiore dalla mano sul Fronte
   (`toZone` senza costo), con 14–19 una pesca, con 20 tutte e tre; ogni
   passo porta il tiro, il primo lo fissa e gli altri devono dire lo stesso;
-  RBF-020, il **Contrattacco Coordinato**: giocato in Reazione senza
+  la **stappata di gruppo**: giocata in Reazione senza
   bloccare (sopra), «se sul tuo Fronte ci sono almeno 3 Entità Umane,
   stappa le Entità Umane che controlli: Contrattacco +1» — un `empower
   {untap, counter: 1}` per bersaglio, con almeno 3 Umani sul Fronte, e la
   risoluzione conta il Contrattacco concesso (`counter_bonus`, fino a fine
-  turno); RBF-021,
-  il **Giudizio Cremisi**: «distruggi un'Entità; se bersaglia una tappata
+  turno); la
+  **distruzione scontata**: «distruggi un'Entità; se bersaglia una tappata
   costa 3 in meno» — il bersaglio si dichiara GIOCANDO la carta (`target`
   nel `toZone`, annotato sulla Materia finché sta in campo), lo sconto
   vale solo se quel bersaglio è tappato, e il passo che distrugge deve
@@ -544,21 +542,21 @@ Regole collegate finora:
   Materia risolta vada nell'Abisso (è il tavolo a mandarcela); l'ordine di
   risoluzione degli effetti simultanei (§8.2) e il decadere delle
   permanenti con l'abilitazione (§7.2) non sono collegati; il tiro del
-  d20 lo fa il client; RBF-038 («poi perdi 2 PV») e le altre Materie di
-  Scissione restano nel debito.
+  d20 lo fa il client; la Materia col seguito ignoto («poi perdi 2 PV») e le
+  altre del primo lotto restano nel debito.
 - **§3.1 Il Nexus** — il flip è un'azione con una regola: verso la faccia
   del Nexus passa solo dal Rubyfront in campo (non dalla Zona di Richiamo),
   nel proprio turno in Preparazione o Fronte, con i requisiti stampati
   soddisfatti «al momento del flip» — l'anagrafe li legge in `nexus`
-  (RBF-001: «controlli almeno 4 Entità Umane», «scarta una carta Entità»)
+  («controlli almeno N Entità [di razza]», «scarta una carta [di tipo]»)
   — e l'azione porta lo scarto (`discard`, dalla propria mano, nell'Abisso)
   e il recupero di PV stampato (`recover`, +5), che riduttore e copia
   applicano nella stessa azione; indietro non si flippa («rimane in campo
-  per tutta la partita»). Requisito con una forma ignota (RBF-023: «con un
+  per tutta la partita»). Requisito con una forma ignota (es. «con un
   Oggetto assegnato», e il costo dal Ritiro): silenzio, il flip resta a
   mano. La copia annota il turno del flip, e i passi «quando flippa»
   (`effect {event: "on_flip"}`, forme `flip_forms`) valgono solo per un
-  Nexus flippato questo turno: RBF-001 manda Rhen, Erede di Vhal Astra dal
+  Nexus flippato questo turno: il flip manda la carta nominata dal
   proprio Fronte nell'Abisso (un `toZone`) e la **sigilla** — una patch
   `sealed` del posto (`player`), che riduttore e copia tengono (anche
   nello snapshot) e che la dogana del giocare legge: la carta sigillata
@@ -575,7 +573,7 @@ Regole collegate finora:
   e speciali) e Materie, però, sono utilizzabili solo quando è in campo:
   schierarlo serve a sbloccarle». La Zona di Richiamo sta sulla lavagna
   (zona `field`, fila di servizio), e finora bastava quella zona perché il
-  Rubyfront contasse come in gioco: Oblivhal curava «al terzo Umano»
+  Rubyfront contasse come in gioco: il raduno curava «al terzo Umano»
   ancora da schierare. Ora c'è un solo modo di dire «in gioco» nei due
   gemelli (`in_play?` / `inPlay`): per ogni carta è la zona, per il
   Rubyfront è anche la fila, perché lo schieramento è esattamente il
@@ -603,7 +601,7 @@ Regole collegate finora:
   l'effetto passa con il suo riferimento da `judge_effect`, non da qui. E
   **dall'Abisso non si torna**: verso mano, mazzo, campo o Ritiro senza
   riferimento è fermato — «solo una carta può riportarne fuori» (l'esilio
-  condizionato di RBF-018 ha già il suo `release`). Carta ignota: silenzio.
+  condizionato ha già il suo `release`). Carta ignota: silenzio.
   Limiti dichiarati: un effetto risolto a mano che scarti o riporti («puoi
   scartare una carta», non certificato) verrebbe fermato a torto (regola
   d'oro); la proprietà non si guarda (una Materia avversaria in campo
@@ -645,15 +643,15 @@ Regole collegate finora:
   si annota e lo slot è quello. Limite dichiarato: l'effetto che sposti
   un'Entità di slot, se mai ci sarà, verrebbe fermato a torto.
 
-- **§7.2 Le Reattive in Reazione: chi blocca lo dice** — RBF-040, lo
-  **Scudo Riflesso**: «gioca questa carta come bloccante di un'Entità
+- **§7.2 Le Reattive in Reazione: chi blocca lo dice** — la **Reattiva
+  bloccante**: «gioca questa carta come bloccante di un'Entità
   attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2
   Entità con un Oggetto assegnato, guadagni 3 PV» — forma certificata
   `block` (anagrafe e renderer): si gioca in Reazione, la dichiarazione
   dalla Materia ferma l'attaccante (§6.4, senza confronto di Potenza), e il
   passo è la cura, di chi comanda la fonte, esatta, con gli armati che
-  bastano (la copia del tavolo conta gli armati, `armed_uids`). RBF-020, il
-  **Contrattacco Coordinato**, non dice cosa blocca e quindi **non blocca
+  bastano (la copia del tavolo conta gli armati, `armed_uids`). La
+  **stappata di gruppo** non dice cosa blocca e quindi **non blocca
   nessuno** (decisione del designer, 2026-09-05, scritta in §6.3, §6.4 e
   §7.2 del manuale e nella skill `linguaggio-carte`: la formula «come
   bloccante di …» è solo dei blocchi diretti, e dice sempre cosa si
@@ -665,7 +663,7 @@ Regole collegate finora:
   0.40.0.
 
 - **§8.2 «Quando entra, un d20: con 15–20 stappa tutte le Entità che
-  controlli»** — RBF-011, **Ajmal**, riscritto dal designer il 2026-09-05:
+  controlli»** — la **stappata all'ingresso**, riscritta dal designer il 2026-09-05:
   l'innesco passa da «quando attacca» a «quando entra in campo», e la Fase
   di Fronte addizionale è tolta (e con lei `extra_front`/`extraFront`, il
   ritorno dalla Reazione al Fronte e la sua eccezione nella dogana del
@@ -676,7 +674,7 @@ Regole collegate finora:
   stappata segua il tiro — col tiro mancato l'azione passa, non stappa
   nessuno e consuma l'innesco. La stappata vale su tutte le Entità che
   comanda chi ha giocato la fonte, Stasi compresa (§8.1). Limite dichiarato:
-  se Ajmal entra in Fase di Fronte per un effetto, chi si stappa non può
+  se la fonte entra in Fase di Fronte per un effetto, chi si stappa non può
   attaccare una seconda volta (§6.3), ma l'engine non lo ferma finché la
   dogana dell'attacco non conta gli attacchi già fatti. Nello stesso giorno
   il designer ha aggiunto lo statico **«questa Entità non si tappa mai»**
@@ -684,8 +682,8 @@ Regole collegate finora:
   vocabolario): la dogana del `tap` ferma il gesto di tapparla — chiunque
   lo compia, per l'attacco (§6.3), per un effetto o a mano — e lascia
   passare la stappata; il client non fa partire il tap alla dichiarazione
-  d'attacco né al ritorno che attacca insieme (RBF-010). Limite dichiarato:
-  la Stasi concessa da un Oggetto (RBF-013) alla risoluzione la lascerebbe
+  d'attacco né al ritorno che attacca insieme. Limite dichiarato:
+  la Stasi concessa da un Oggetto alla risoluzione la lascerebbe
   tappata, perché la copia del tavolo non legge ancora lo statico lì.
   Engine 0.41.0.
 
@@ -704,7 +702,7 @@ Regole collegate finora:
   all'ondata, §6.4: «lascia il campo» non basta); l'ultima chiude la
   catena. La dogana (`judge_chain`, subito dopo quella del turno): a
   catena aperta passano solo la Reattiva di chi ha la parola, la sua
-  accettazione, il blocco che accompagna la cima (RBF-040), il Gettone
+  accettazione, il blocco che accompagna la cima (la Reattiva bloccante), il Gettone
   Flusso (§3.2, «serve proprio a pagare le Reattive»), chat, pixel e
   apparecchiatura; in risoluzione passano solo il passo, la chiusura e
   l'uscita della cima. In catena le finestre delle Reattive (§7.2) non
@@ -719,7 +717,7 @@ Regole collegate finora:
   carte in catena non si guarda oltre la parola. Engine 0.37.0,
   quarantuno regole. Col Ritiro alla sola fase e la Zona di Ritiro chiusa
   in uscita: engine 0.38.1, quarantaquattro regole. Con «permanente» letta
-  come nel §10 e il Fronte pieno nel ritorno di Rhen: engine 0.38.2. Con la
+  come nel §10 e il Fronte pieno nel ritorno: engine 0.38.2. Con la
   controllata ferma nelle zone: engine 0.39.0, quarantacinque regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
