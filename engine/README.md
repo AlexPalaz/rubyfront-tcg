@@ -182,9 +182,9 @@ Regole collegate finora:
   «scatta alla dichiarazione dei blocchi» (§6.3, punto 4: «chi blocca si
   tappa, chi contrattacca si copre») e quindi cade nel turno di chi attacca —
   coprire e scoprire una propria Entità in campo, in Reazione, è un gesto suo
-  —, le Materie Reattive nel Fronte altrui
-  (§6.3 Pre-Fronte, §7.2), i propri contatori in Fronte e Reazione perché le
-  Reattive si pagano. I gesti di apparecchiatura non hanno turno: caricare
+  —, le Materie Reattive nel turno altrui (in Reazione, §6.4, §7.2, e in
+  catena), i propri contatori in Fronte e Reazione perché le Reattive si
+  pagano. I gesti di apparecchiatura non hanno turno: caricare
   il proprio mazzo (all'ingresso in stanza), «Nuova partita», il proprio
   nome, la chat. E prima del primo turno c'è la preparazione della
   partita (§4): al turno 1 in Preparazione anche l'altro posto apparecchia
@@ -310,9 +310,11 @@ Regole collegate finora:
   chi entra ignota all'anagrafe: silenzio. Nel client l'interprete
   (`effects.ts`, senza DOM) trova gli inneschi, la scena d'ingresso li
   elenca e «Risolvi» li esegue, la fonte si accende sul tavolo da entrambe
-  le parti. La seconda forma è quella di RBF-007, l'**Arciere**: «quando
-  questa Entità entra in campo, metti un'Entità avversaria nella Zona di
-  Ritiro» — un `toZone` marcato con `effect` (fonte e ingresso coincidono),
+  le parti. La seconda forma era quella di RBF-007, l'**Arciere** (fino al
+  2026-09-04: la revisione del foglio lo ha portato all'esilio condizionato
+  nell'Abisso, forma ignota, quindi risolta a mano finché non si collega):
+  «quando questa Entità entra in campo, metti un'Entità avversaria nella Zona
+  di Ritiro» — un `toZone` marcato con `effect` (fonte e ingresso coincidono),
   che l'engine passa se la fonte è entrata questo turno, l'innesco non è
   consumato, la zona è quella della forma e il bersaglio è un'Entità
   avversaria in campo. Nel client il bersaglio si sceglie in mira, con la
@@ -321,9 +323,17 @@ Regole collegate finora:
   quella di RBF-012, **Rhen**: «quando questa Entità entra in campo, metti
   sul tuo Fronte una carta permanente dalla tua Zona di Ritiro» — un
   `toZone` verso il campo marcato con `effect`, che passa se la carta
-  scelta è una Materia permanente nella PROPRIA Zona di Ritiro; nel client
-  si sceglie dalla pila (la finestra della ricerca, ristretta ai
-  candidati), si conferma, e la carta vola dalla pila al suo posto. E il
+  scelta è una **permanente** nella PROPRIA Zona di Ritiro — «una carta
+  permanente» (§10) è quel che resta in campo: un'**Entità** o una Materia
+  permanente, mai il Rubyfront, mai un Oggetto, la stessa lettura
+  dell'esilio di RBF-018 (`permanent_card?` / `permanentOf`). A **Fronte
+  pieno** un'Entità non torna, «anche la parte d'effetto che metterebbe in
+  campo non si applica» (§6.2); una Materia permanente sì, perché sta
+  dietro il Fronte e non occupa uno slot (§5). Nel client si sceglie dalla
+  pila (la finestra della ricerca, ristretta ai candidati), si conferma, e
+  la carta vola dalla pila al suo posto; se il Fronte pieno ha tolto tutti
+  i candidati, un avviso a un tasto lo dice invece di aprire un pannello
+  vuoto. E il
   **«quando attacca»** della stessa carta: gli inneschi hanno un evento
   (`effect.event`, ingresso o attacco), e quello dell'attacco vale con un
   attacco dichiarato in Fase di Fronte, una volta per attacco (gli inneschi
@@ -378,9 +388,12 @@ Regole collegate finora:
   Rubyfront/Nexus avversario, 7–14 nulla»; RBF-001, **Oblivhal** — «la
   prima volta in ogni tuo turno che almeno 3 Umani che controlli hanno
   attaccato, +2 PV», e il Nexus «pesca una carta, poi scarta» (i seguiti
-  `draw` e `discard`); RBF-004, il **Vendicatore** — «la prossima Entità
-  Umana che attacca ottiene Vendetta fino a fine turno» (l'engine
-  pretende che sia il PRIMO Umano dichiarato dopo la fonte); RBF-005, la
+  `draw` e `discard`); il **Vendicatore** RBF-004 com'era fino al 2026-09-04
+  — «la prossima Entità Umana che attacca ottiene Vendetta fino a fine
+  turno» (l'engine pretende che sia il PRIMO Umano dichiarato dopo la
+  fonte; la revisione del foglio lo ha riscritto in «se almeno 2 Umani
+  attaccano, un'Entità avversaria non blocca», forma ignota e a mano finché
+  non si collega); RBF-005, la
   **Razzia** — «se almeno 2 Umani che controlli hanno attaccato nel tuo
   turno precedente, un'Entità avversaria non può bloccare» (la copia
   ricorda l'ultima ondata alla risoluzione; il divieto ferma il blocco
@@ -465,24 +478,27 @@ Regole collegate finora:
   muore se una battaglia lo uccide (una volta sola), ogni bloccante ha la
   sua sorte, e l'attacco è bloccato. L'alternativa (le Potenze dei
   bloccanti sommate) è una riga di manuale da scrivere.
-- **§7.2 Le Reattive: prima dell'ondata, o come blocco** — «dopo la
-  dichiarazione dell'attacco non si iniziano più Reattive, con un'unica
-  eccezione: le Reattive del difensore giocate come blocco». In Fase di
-  Fronte una Reattiva scende — di chiunque sia (Pre-Fronte
-  dell'avversario, poi la finestra di chi è di turno: le due sotto-finestre
-  non si distinguono) — solo finché l'ondata non è dichiarata; in Reazione
-  scende solo una Reattiva con la forma «si gioca come blocco», e solo dal
-  difensore. Giocata, sostituisce il bloccante (§6.4): la dogana delle
-  dichiarazioni accetta un blocco da una Materia Reattiva scesa questo
-  turno con quella forma (mai un contrattacco), e la risoluzione la conta
-  come dice il manuale — «non c'è confronto di Potenza, l'attacco è
-  comunque bloccato», la sorte dell'attaccante la dice il testo (RBF-020
-  non dice nulla) — e la Reattiva si consuma (`blockerSpent`: nell'Abisso
-  alla risoluzione, nel riduttore e nella copia). Limiti dichiarati: la
-  catena di risposta (§7.2) non c'è — una Reattiva giocata in risposta a
-  un'altra verrebbe fermata; e i passi dell'effetto di una Reattiva
-  giocata come blocco sono del difensore nel turno altrui: la dogana del
-  turno li lascia passare se la fonte è sua.
+- **§7.2 Le Reattive: chi è di turno prima dell'ondata, il difensore in
+  Reazione** — decisione del designer del 2026-09-05: il **Pre-Fronte non
+  c'è più**. In Fase di Fronte, prima dell'ondata, una Reattiva scende solo
+  da chi è di turno; «dopo la dichiarazione il giocatore di turno non
+  inizia più Reattive»; la finestra del difensore è la **Fase di Reazione**
+  (§6.4), dove gioca **qualsiasi** Reattiva, di sua iniziativa — e chi
+  attacca lì risponde solo in catena. La Reattiva il cui testo dice che si
+  gioca «come bloccante di un'Entità attaccante» (RBF-040) sostituisce il
+  bloccante (§6.4): la dogana delle dichiarazioni accetta un blocco da una
+  Materia Reattiva scesa questo turno con la forma `block` (mai un
+  contrattacco), e la risoluzione la conta come dice il manuale — «non c'è
+  confronto di Potenza, l'attacco è comunque bloccato», la sorte
+  dell'attaccante la dice il testo (RBF-040 non dice nulla) — e la Reattiva
+  si consuma (`blockerSpent`: nell'Abisso alla risoluzione, nel riduttore e
+  nella copia). Una Reattiva che non dice cosa blocca (RBF-020) non blocca
+  nulla e non dichiara niente. I passi dell'effetto di una Reattiva del
+  difensore sono suoi nel turno altrui: la dogana del turno li lascia
+  passare se la fonte è sua. Limite dichiarato: se chi è di turno non
+  dichiara l'ondata, la Reazione non c'è e il difensore resta senza
+  finestra, come dice il manuale — l'engine non gliene apre una. Engine
+  0.40.0.
 - **§7.2 Le Materie si risolvono** — «l'effetto si risolve immediatamente,
   poi la carta va nell'Abisso»: le sette Materie di Eredità Perduta hanno
   la loro forma certificata (`resolve_forms`, evento `on_resolve`), e i
@@ -510,11 +526,12 @@ Regole collegate finora:
   7–13 un'Entità Umana con costo 2 o inferiore dalla mano sul Fronte
   (`toZone` senza costo), con 14–19 una pesca, con 20 tutte e tre; ogni
   passo porta il tiro, il primo lo fissa e gli altri devono dire lo stesso;
-  RBF-020, il **Contrattacco Coordinato**: giocato come blocco (sopra),
-  «se sul tuo Fronte ci sono almeno 3 Entità Umane, stappa le Entità Umane
-  che controlli: Contrattacco +1» — un `empower {untap, counter: 1}` per
-  bersaglio, che passa solo a blocco dichiarato, e la risoluzione conta
-  il Contrattacco concesso (`counter_bonus`, fino a fine turno); RBF-021,
+  RBF-020, il **Contrattacco Coordinato**: giocato in Reazione senza
+  bloccare (sopra), «se sul tuo Fronte ci sono almeno 3 Entità Umane,
+  stappa le Entità Umane che controlli: Contrattacco +1» — un `empower
+  {untap, counter: 1}` per bersaglio, con almeno 3 Umani sul Fronte, e la
+  risoluzione conta il Contrattacco concesso (`counter_bonus`, fino a fine
+  turno); RBF-021,
   il **Giudizio Cremisi**: «distruggi un'Entità; se bersaglia una tappata
   costa 3 in meno» — il bersaglio si dichiara GIOCANDO la carta (`target`
   nel `toZone`, annotato sulla Materia finché sta in campo), lo sconto
@@ -606,6 +623,18 @@ Regole collegate finora:
   dichiarato: un effetto risolto a mano che riporti fuori una carta (non
   ancora certificato) verrebbe fermato a torto — regola d'oro.
 
+- **§8.2 L'Entità presa in controllo non si sposta fra le zone** — «prendi
+  il controllo di un'Entità avversaria fino alla fine del turno»: te la
+  comanda, non te la dà. Attacca e blocca per chi la comanda (regola già
+  collegata), ma un `toZone` a mano su una carta con un `controller` diverso
+  dal proprietario è fermato: né nell'Abisso, né nella Zona di Ritiro del
+  PROPRIETARIO, né in mano o nel mazzo. Alla fine del turno «si
+  restituisce», e la restituzione ha la sua azione (`release`, con la sua
+  dogana). Nel client il menu di una carta soltanto comandata non offre più
+  destinazioni. Limite dichiarato: un effetto risolto a mano su una carta
+  controllata verrebbe fermato a torto (regola d'oro); gli effetti
+  certificati passano da `judge_effect` col loro riferimento.
+
 - **§5 Le Entità restano nello slot in cui sono scese** — «un'Entità
   occupa lo slot in cui è scesa: non si sposta da uno slot all'altro, salvo
   che una carta lo dica» (decisione del designer, 2026-09-04, scritta nel
@@ -616,24 +645,24 @@ Regole collegate finora:
   si annota e lo slot è quello. Limite dichiarato: l'effetto che sposti
   un'Entità di slot, se mai ci sarà, verrebbe fermato a torto.
 
-- **§7.2 Le Reattive come blocco, due letture** — RBF-040, lo **Scudo
-  Riflesso**: «giocala come blocco a un attaccante: quell'attacco è
-  bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto
-  assegnato, guadagni 3 PV» — forma certificata `block` (anagrafe e
-  renderer): si gioca in Reazione, la dichiarazione dalla Materia ferma
-  l'attaccante (§6.4, senza confronto di Potenza), e il passo è la cura,
-  di chi comanda la fonte, esatta, con gli armati che bastano (la copia
-  del tavolo conta gli armati, `armed_uids`). RBF-020, il **Contrattacco
-  Coordinato**: «gioca questa carta come blocco» — **lettura del designer
-  (2026-09-04)**: si gioca nella finestra dei blocchi ma **non ferma
-  nessun attaccante** e non chiede più una dichiarazione di blocco; il
-  suo effetto (stappa gli Umani, Contrattacco +1) è tutto quel che fa. Il
-  manuale (§6.4, §7.2) parla ancora di Reattive «assegnate a un
-  attaccante»: la distinzione fra le due formule va scritta lì. Nel client
-  sceglie l'attaccante solo la Reattiva che lo ferma (`blocksAttacker`), e
-  una Materia che adesso non farebbe nulla chiede conferma prima di
-  pagare («Gioca comunque» / «Non giocare»). Engine 0.36.0, quaranta
-  regole.
+- **§7.2 Le Reattive in Reazione: chi blocca lo dice** — RBF-040, lo
+  **Scudo Riflesso**: «gioca questa carta come bloccante di un'Entità
+  attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2
+  Entità con un Oggetto assegnato, guadagni 3 PV» — forma certificata
+  `block` (anagrafe e renderer): si gioca in Reazione, la dichiarazione
+  dalla Materia ferma l'attaccante (§6.4, senza confronto di Potenza), e il
+  passo è la cura, di chi comanda la fonte, esatta, con gli armati che
+  bastano (la copia del tavolo conta gli armati, `armed_uids`). RBF-020, il
+  **Contrattacco Coordinato**, non dice cosa blocca e quindi **non blocca
+  nessuno** (decisione del designer, 2026-09-05, scritta in §6.3, §6.4 e
+  §7.2 del manuale e nella skill `linguaggio-carte`: la formula «come
+  bloccante di …» è solo dei blocchi diretti, e dice sempre cosa si
+  blocca): è una Reattiva qualsiasi del difensore, in Reazione, e il suo
+  effetto (stappa gli Umani, Contrattacco +1) è tutto quel che fa. Nel
+  client sceglie l'attaccante solo la Reattiva che lo ferma
+  (`blocksAttacker`), e una Materia che adesso non farebbe nulla chiede
+  conferma prima di pagare («Gioca comunque» / «Non giocare»). Engine
+  0.40.0.
 
 - **§7.2 La catena di risposta** — «ogni volta che un giocatore lancia una
   Reattiva, l'avversario può sempre rispondere», solo con Reattive, ad
@@ -664,7 +693,9 @@ Regole collegate finora:
   non si vede, la Reattiva si risolve comunque; e la proprietà delle
   carte in catena non si guarda oltre la parola. Engine 0.37.0,
   quarantuno regole. Col Ritiro alla sola fase e la Zona di Ritiro chiusa
-  in uscita: engine 0.38.1, quarantaquattro regole.
+  in uscita: engine 0.38.1, quarantaquattro regole. Con «permanente» letta
+  come nel §10 e il Fronte pieno nel ritorno di Rhen: engine 0.38.2. Con la
+  controllata ferma nelle zone: engine 0.39.0, quarantacinque regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

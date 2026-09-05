@@ -762,8 +762,8 @@
               "displayKey": "face",
               "race": "human",
               "stats": {
-                "power": 1,
-                "fluxCost": 2
+                "power": 2,
+                "fluxCost": 3
               },
               "enablesMatters": [
                 {
@@ -828,7 +828,7 @@
             "it": {
               "name": "Vendicatore dei Dimenticati",
               "typeLabel": "Entità: Umano",
-              "summary": "Apre la carica e passa la rabbia a chi lo segue.",
+              "summary": "Carica in compagnia e toglie all'avversario il bloccante su cui contava.",
               "ui": {
                 "face": "Entità"
               },
@@ -841,8 +841,8 @@
               "face": {
                 "name": "Vendicatore dei Dimenticati",
                 "avenge": {
-                  "trigger": "Effetto",
-                  "text": "La prima volta in ogni tuo turno che questa Entità attacca, la prossima Entità Umana che attacca in questo turno ottiene Vendetta fino alla fine del turno."
+                  "trigger": "Quando attacca",
+                  "text": "Se almeno 2 Entità Umane che controlli attaccano, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
                 },
                 "flavor": "Nessuno li ricorda. Lui li conta."
               },
@@ -854,7 +854,7 @@
             "en": {
               "name": "Avenger of the Forgotten",
               "typeLabel": "Entity: Human",
-              "summary": "It opens the charge and hands the anger to whoever comes next.",
+              "summary": "It charges in company and takes away the blocker the enemy was counting on.",
               "ui": {
                 "face": "Entity"
               },
@@ -867,8 +867,8 @@
               "face": {
                 "name": "Avenger of the Forgotten",
                 "avenge": {
-                  "trigger": "Effect",
-                  "text": "The first time each of your turns this Entity attacks, the next Human Entity that attacks this turn gains Revenge until end of turn."
+                  "trigger": "When it attacks",
+                  "text": "If at least 2 Human Entities you control attack, choose an opposing Entity: that Entity cannot block this turn."
                 },
                 "flavor": "No one remembers them. It counts them."
               },
@@ -909,23 +909,26 @@
                   "displayKey": "avenge",
                   "event": "on_attack",
                   "details": {
-                    "oncePerEachOfYourTurns": true
+                    "requiresAttackersThisTurnAtLeast": {
+                      "count": 2,
+                      "filter": {
+                        "cardType": "entity",
+                        "race": "human",
+                        "controller": "controller"
+                      }
+                    }
                   },
                   "effect": {
-                    "type": "empower",
+                    "type": "restrict_action",
                     "target": {
                       "cardType": "entity",
-                      "race": "human",
-                      "controller": "controller",
+                      "controller": "opponent",
+                      "zone": "front",
+                      "owner": "opponent",
                       "min": 1,
-                      "max": 1,
-                      "details": {
-                        "nextAttackerThisTurn": true
-                      }
+                      "max": 1
                     },
-                    "grants": [
-                      "revenge"
-                    ],
+                    "restricts": "block",
                     "duration": "until_end_of_turn"
                   }
                 }
@@ -1152,8 +1155,8 @@
               "displayKey": "face",
               "race": "human",
               "stats": {
-                "power": 2,
-                "fluxCost": 3
+                "power": 1,
+                "fluxCost": 2
               },
               "enablesMatters": [
                 {
@@ -1220,7 +1223,7 @@
             "it": {
               "name": "Arciere della Radura Argentata",
               "typeLabel": "Entità: Umano",
-              "summary": "Un corpo che entra togliendo un corpo dall'altra parte.",
+              "summary": "Entra e porta via un corpo avversario, finché resta in piedi.",
               "ui": {
                 "face": "Entità"
               },
@@ -1234,7 +1237,7 @@
                 "name": "Arciere della Radura Argentata",
                 "loose": {
                   "trigger": "Quando entra in campo",
-                  "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario."
+                  "text": "Manda nell'Abisso un'Entità avversaria. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
                 },
                 "flavor": "Tira una volta sola. Non serve la seconda."
               },
@@ -1246,7 +1249,7 @@
             "en": {
               "name": "Archer of the Silver Glade",
               "typeLabel": "Entity: Human",
-              "summary": "A body that arrives by taking a body off the other side.",
+              "summary": "It arrives and takes an enemy body away for as long as it stands.",
               "ui": {
                 "face": "Entity"
               },
@@ -1260,7 +1263,7 @@
                 "name": "Archer of the Silver Glade",
                 "loose": {
                   "trigger": "When it enters the field",
-                  "text": "Put an opposing Entity into its owner's Retire Zone."
+                  "text": "Send an opposing Entity to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
                 },
                 "flavor": "It looses one arrow. A second is never needed."
               },
@@ -1311,8 +1314,12 @@
                       "max": 1
                     },
                     "destination": {
-                      "zone": "retire",
+                      "zone": "abyss",
                       "owner": "card_owner"
+                    },
+                    "details": {
+                      "whileSourceOnField": true,
+                      "returnsToPlayWhenSourceLeaves": true
                     }
                   }
                 }
@@ -1687,7 +1694,7 @@
               "displayKey": "face",
               "race": "simulacrum",
               "stats": {
-                "power": 3,
+                "power": 1,
                 "fluxCost": 4
               },
               "enablesMatters": [
@@ -1911,8 +1918,8 @@
               "face": {
                 "name": "Rhen, Erede di Vhal Astra",
                 "heirReturn": {
-                  "trigger": "Effetto",
-                  "text": "Quando questa Entità entra in campo e quando attacca, metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro."
+                  "trigger": "Quando attacca",
+                  "text": "Metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro."
                 },
                 "flavor": "Il nome non si eredita. Si riprende."
               },
@@ -1937,8 +1944,8 @@
               "face": {
                 "name": "Rhen, Heir of Vhal Astra",
                 "heirReturn": {
-                  "trigger": "Effect",
-                  "text": "When this Entity enters the field and when it attacks, put a permanent card from your Retire Zone onto your Front."
+                  "trigger": "When it attacks",
+                  "text": "Put a permanent card from your Retire Zone onto your Front."
                 },
                 "flavor": "A name is not inherited. It is taken back."
               },
@@ -1975,30 +1982,6 @@
               "keywords": [],
               "requirements": {},
               "triggers": [
-                {
-                  "id": "heir-return",
-                  "displayKey": "heirReturn",
-                  "event": "on_enter_field",
-                  "effect": {
-                    "type": "move_card",
-                    "target": {
-                      "controller": "controller",
-                      "min": 1,
-                      "max": 1,
-                      "details": {
-                        "permanent": true
-                      }
-                    },
-                    "from": {
-                      "zone": "retire",
-                      "owner": "controller"
-                    },
-                    "destination": {
-                      "zone": "front",
-                      "owner": "controller"
-                    }
-                  }
-                },
                 {
                   "id": "heir-charge",
                   "displayKey": "heirReturn",
@@ -2953,7 +2936,7 @@
             "it": {
               "name": "Contrattacco Coordinato",
               "typeLabel": "Materia Dinamica II",
-              "summary": "Si gioca come blocco e rimette in piedi tutta la linea.",
+              "summary": "Si gioca in Reazione e rimette in piedi tutta la linea.",
               "ui": {
                 "face": "Materia"
               },
@@ -2970,7 +2953,7 @@
                 "name": "Contrattacco Coordinato",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Gioca questa carta come blocco. Se sul tuo Fronte ci sono almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
+                  "text": "Se sul tuo Fronte ci sono almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
                 },
                 "flavor": "Nessuno grida l'ordine. Si girano insieme."
               },
@@ -2982,7 +2965,7 @@
             "en": {
               "name": "Coordinated Counterattack",
               "typeLabel": "Dynamic Matter II",
-              "summary": "It is played as a block and puts the whole line back on its feet.",
+              "summary": "Played in Reaction, it puts the whole line back on its feet.",
               "ui": {
                 "face": "Matter"
               },
@@ -2999,7 +2982,7 @@
                 "name": "Coordinated Counterattack",
                 "effect": {
                   "name": "Effect",
-                  "text": "Play this card as a block. If there are at least 3 Human Entities on your Front, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
+                  "text": "If there are at least 3 Human Entities on your Front, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
                 },
                 "flavor": "No one shouts the order. They turn together."
               },
@@ -3016,7 +2999,7 @@
             "reactive",
             "counterattack"
           ],
-          "rulesReference": "MANUALE.md §6.3, §7.2",
+          "rulesReference": "MANUALE.md §6.4, §7.2",
           "faces": [
             {
               "id": "matter",
@@ -3047,7 +3030,6 @@
                       "quantity": "all"
                     },
                     "details": {
-                      "playedAsBlock": true,
                       "requiresControlledAtLeast": {
                         "count": 3,
                         "filter": {
@@ -6031,7 +6013,7 @@
                 "name": "Scudo Riflesso",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
+                  "text": "Gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
                 },
                 "flavor": "Il muro che non c'era, finché non ci hai sbattuto contro."
               },
@@ -6060,7 +6042,7 @@
                 "name": "Reflected Shield",
                 "effect": {
                   "name": "Effect",
-                  "text": "Play it as a block against an attacker: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
+                  "text": "Play this card as a blocker of an attacking Entity: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
                 },
                 "flavor": "The wall that was not there, until you struck it."
               },
@@ -7384,8 +7366,8 @@
           "displayKey": "face",
           "race": "human",
           "stats": {
-            "power": 1,
-            "fluxCost": 2
+            "power": 2,
+            "fluxCost": 3
           },
           "enablesMatters": [
             {
@@ -7450,7 +7432,7 @@
         "it": {
           "name": "Vendicatore dei Dimenticati",
           "typeLabel": "Entità: Umano",
-          "summary": "Apre la carica e passa la rabbia a chi lo segue.",
+          "summary": "Carica in compagnia e toglie all'avversario il bloccante su cui contava.",
           "ui": {
             "face": "Entità"
           },
@@ -7463,8 +7445,8 @@
           "face": {
             "name": "Vendicatore dei Dimenticati",
             "avenge": {
-              "trigger": "Effetto",
-              "text": "La prima volta in ogni tuo turno che questa Entità attacca, la prossima Entità Umana che attacca in questo turno ottiene Vendetta fino alla fine del turno."
+              "trigger": "Quando attacca",
+              "text": "Se almeno 2 Entità Umane che controlli attaccano, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
             },
             "flavor": "Nessuno li ricorda. Lui li conta."
           },
@@ -7476,7 +7458,7 @@
         "en": {
           "name": "Avenger of the Forgotten",
           "typeLabel": "Entity: Human",
-          "summary": "It opens the charge and hands the anger to whoever comes next.",
+          "summary": "It charges in company and takes away the blocker the enemy was counting on.",
           "ui": {
             "face": "Entity"
           },
@@ -7489,8 +7471,8 @@
           "face": {
             "name": "Avenger of the Forgotten",
             "avenge": {
-              "trigger": "Effect",
-              "text": "The first time each of your turns this Entity attacks, the next Human Entity that attacks this turn gains Revenge until end of turn."
+              "trigger": "When it attacks",
+              "text": "If at least 2 Human Entities you control attack, choose an opposing Entity: that Entity cannot block this turn."
             },
             "flavor": "No one remembers them. It counts them."
           },
@@ -7531,23 +7513,26 @@
               "displayKey": "avenge",
               "event": "on_attack",
               "details": {
-                "oncePerEachOfYourTurns": true
+                "requiresAttackersThisTurnAtLeast": {
+                  "count": 2,
+                  "filter": {
+                    "cardType": "entity",
+                    "race": "human",
+                    "controller": "controller"
+                  }
+                }
               },
               "effect": {
-                "type": "empower",
+                "type": "restrict_action",
                 "target": {
                   "cardType": "entity",
-                  "race": "human",
-                  "controller": "controller",
+                  "controller": "opponent",
+                  "zone": "front",
+                  "owner": "opponent",
                   "min": 1,
-                  "max": 1,
-                  "details": {
-                    "nextAttackerThisTurn": true
-                  }
+                  "max": 1
                 },
-                "grants": [
-                  "revenge"
-                ],
+                "restricts": "block",
                 "duration": "until_end_of_turn"
               }
             }
@@ -7774,8 +7759,8 @@
           "displayKey": "face",
           "race": "human",
           "stats": {
-            "power": 2,
-            "fluxCost": 3
+            "power": 1,
+            "fluxCost": 2
           },
           "enablesMatters": [
             {
@@ -7842,7 +7827,7 @@
         "it": {
           "name": "Arciere della Radura Argentata",
           "typeLabel": "Entità: Umano",
-          "summary": "Un corpo che entra togliendo un corpo dall'altra parte.",
+          "summary": "Entra e porta via un corpo avversario, finché resta in piedi.",
           "ui": {
             "face": "Entità"
           },
@@ -7856,7 +7841,7 @@
             "name": "Arciere della Radura Argentata",
             "loose": {
               "trigger": "Quando entra in campo",
-              "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario."
+              "text": "Manda nell'Abisso un'Entità avversaria. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
             },
             "flavor": "Tira una volta sola. Non serve la seconda."
           },
@@ -7868,7 +7853,7 @@
         "en": {
           "name": "Archer of the Silver Glade",
           "typeLabel": "Entity: Human",
-          "summary": "A body that arrives by taking a body off the other side.",
+          "summary": "It arrives and takes an enemy body away for as long as it stands.",
           "ui": {
             "face": "Entity"
           },
@@ -7882,7 +7867,7 @@
             "name": "Archer of the Silver Glade",
             "loose": {
               "trigger": "When it enters the field",
-              "text": "Put an opposing Entity into its owner's Retire Zone."
+              "text": "Send an opposing Entity to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
             },
             "flavor": "It looses one arrow. A second is never needed."
           },
@@ -7933,8 +7918,12 @@
                   "max": 1
                 },
                 "destination": {
-                  "zone": "retire",
+                  "zone": "abyss",
                   "owner": "card_owner"
+                },
+                "details": {
+                  "whileSourceOnField": true,
+                  "returnsToPlayWhenSourceLeaves": true
                 }
               }
             }
@@ -8309,7 +8298,7 @@
           "displayKey": "face",
           "race": "simulacrum",
           "stats": {
-            "power": 3,
+            "power": 1,
             "fluxCost": 4
           },
           "enablesMatters": [
@@ -8533,8 +8522,8 @@
           "face": {
             "name": "Rhen, Erede di Vhal Astra",
             "heirReturn": {
-              "trigger": "Effetto",
-              "text": "Quando questa Entità entra in campo e quando attacca, metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro."
+              "trigger": "Quando attacca",
+              "text": "Metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro."
             },
             "flavor": "Il nome non si eredita. Si riprende."
           },
@@ -8559,8 +8548,8 @@
           "face": {
             "name": "Rhen, Heir of Vhal Astra",
             "heirReturn": {
-              "trigger": "Effect",
-              "text": "When this Entity enters the field and when it attacks, put a permanent card from your Retire Zone onto your Front."
+              "trigger": "When it attacks",
+              "text": "Put a permanent card from your Retire Zone onto your Front."
             },
             "flavor": "A name is not inherited. It is taken back."
           },
@@ -8597,30 +8586,6 @@
           "keywords": [],
           "requirements": {},
           "triggers": [
-            {
-              "id": "heir-return",
-              "displayKey": "heirReturn",
-              "event": "on_enter_field",
-              "effect": {
-                "type": "move_card",
-                "target": {
-                  "controller": "controller",
-                  "min": 1,
-                  "max": 1,
-                  "details": {
-                    "permanent": true
-                  }
-                },
-                "from": {
-                  "zone": "retire",
-                  "owner": "controller"
-                },
-                "destination": {
-                  "zone": "front",
-                  "owner": "controller"
-                }
-              }
-            },
             {
               "id": "heir-charge",
               "displayKey": "heirReturn",
@@ -9575,7 +9540,7 @@
         "it": {
           "name": "Contrattacco Coordinato",
           "typeLabel": "Materia Dinamica II",
-          "summary": "Si gioca come blocco e rimette in piedi tutta la linea.",
+          "summary": "Si gioca in Reazione e rimette in piedi tutta la linea.",
           "ui": {
             "face": "Materia"
           },
@@ -9592,7 +9557,7 @@
             "name": "Contrattacco Coordinato",
             "effect": {
               "name": "Effetto",
-              "text": "Gioca questa carta come blocco. Se sul tuo Fronte ci sono almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
+              "text": "Se sul tuo Fronte ci sono almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
             },
             "flavor": "Nessuno grida l'ordine. Si girano insieme."
           },
@@ -9604,7 +9569,7 @@
         "en": {
           "name": "Coordinated Counterattack",
           "typeLabel": "Dynamic Matter II",
-          "summary": "It is played as a block and puts the whole line back on its feet.",
+          "summary": "Played in Reaction, it puts the whole line back on its feet.",
           "ui": {
             "face": "Matter"
           },
@@ -9621,7 +9586,7 @@
             "name": "Coordinated Counterattack",
             "effect": {
               "name": "Effect",
-              "text": "Play this card as a block. If there are at least 3 Human Entities on your Front, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
+              "text": "If there are at least 3 Human Entities on your Front, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
             },
             "flavor": "No one shouts the order. They turn together."
           },
@@ -9638,7 +9603,7 @@
         "reactive",
         "counterattack"
       ],
-      "rulesReference": "MANUALE.md §6.3, §7.2",
+      "rulesReference": "MANUALE.md §6.4, §7.2",
       "faces": [
         {
           "id": "matter",
@@ -9669,7 +9634,6 @@
                   "quantity": "all"
                 },
                 "details": {
-                  "playedAsBlock": true,
                   "requiresControlledAtLeast": {
                     "count": 3,
                     "filter": {
@@ -12653,7 +12617,7 @@
             "name": "Scudo Riflesso",
             "effect": {
               "name": "Effetto",
-              "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
+              "text": "Gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
             },
             "flavor": "Il muro che non c'era, finché non ci hai sbattuto contro."
           },
@@ -12682,7 +12646,7 @@
             "name": "Reflected Shield",
             "effect": {
               "name": "Effect",
-              "text": "Play it as a block against an attacker: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
+              "text": "Play this card as a blocker of an attacking Entity: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
             },
             "flavor": "The wall that was not there, until you struck it."
           },
@@ -13300,7 +13264,7 @@
         },
         {
           "card": "RBF-003",
-          "count": 3
+          "count": 2
         },
         {
           "card": "RBF-004",
@@ -13308,7 +13272,7 @@
         },
         {
           "card": "RBF-005",
-          "count": 2
+          "count": 3
         },
         {
           "card": "RBF-006",

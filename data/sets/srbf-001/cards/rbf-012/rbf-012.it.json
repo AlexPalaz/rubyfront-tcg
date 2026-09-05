@@ -14,8 +14,8 @@
   "face": {
     "name": "Rhen, Erede di Vhal Astra",
     "heirReturn": {
-      "trigger": "Effetto",
-      "text": "Quando questa Entità entra in campo e quando attacca, metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro."
+      "trigger": "Quando attacca",
+      "text": "Metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro."
     },
     "flavor": "Il nome non si eredita. Si riprende."
   },

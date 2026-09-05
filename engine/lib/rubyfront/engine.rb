@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.38.1"
+    VERSION = "0.40.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -52,7 +52,7 @@ module Rubyfront
       "§7 Le Materie si giocano solo se abilitate",
       "§2/§9 Fine della partita: PV a zero, mazzo esaurito, pareggio",
       "§8.2 Effetti certificati: «quando un'Entità entra, pesca» (RBF-003)",
-      "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (RBF-007)",
+      "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (la forma dell'Arciere fino al 2026-09-04)",
       "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte» (RBF-012)",
       "§8.2 Effetti certificati: «quando attacca», lo stesso ritorno di Rhen (RBF-012)",
       "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una» (RBF-006)",
@@ -65,14 +65,15 @@ module Rubyfront
       "§8.2 Gli statici di Potenza contano nella risoluzione (RBF-002, RBF-010, RBF-013, RBF-014)",
       "§8.1 Stasi: bloccando non muore, resta tappata per sempre",
       "§8.2 Blocco multiplo: «può essere bloccata da più Entità» (RBF-014)",
-      "§7.2 Le Reattive: prima dell'ondata, o come blocco in Reazione",
+      "§7.2 Le Reattive: chi è di turno prima dell'ondata, il difensore in Reazione",
       "§7.2 Le Materie si risolvono: le forme certificate di Eredità Perduta (RBF-015…RBF-021)",
       "§3.1 Il Nexus: il flip coi suoi requisiti, il recupero di PV, «quando flippa» (RBF-001)",
       "§3.1 Il Rubyfront in Zona di Richiamo non ha abilità: schierarlo le sblocca",
       "§5 L'Abisso: ci si va morendo, consumandosi o scartando per eccesso, e non si torna",
       "§5/§6.2 Dalla Zona di Ritiro si torna solo per effetto",
+      "§8.2 L'Entità presa in controllo non si sposta fra le zone",
       "§5 Le Entità restano nello slot in cui sono scese",
-      "§7.2 Le Reattive come blocco: RBF-040 ferma un attaccante e cura, RBF-020 si gioca nella finestra dei blocchi",
+      "§7.2 Le Reattive in Reazione: RBF-040 blocca un'Entità attaccante e cura, RBF-020 stappa gli Umani senza bloccare",
       "§7.2 La catena di risposta: una Reattiva apre, l'avversario risponde o accetta, si risolve al contrario",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
@@ -100,7 +101,7 @@ module Rubyfront
       "§7 Matters are played only when enabled",
       "§2/§9 End of the game: HP at zero, deck exhausted, draw",
       "§8.2 Certified effects: “when an Entity enters, draw” (RBF-003)",
-      "§8.2 Certified effects: “when it enters, an opposing Entity to Retire” (RBF-007)",
+      "§8.2 Certified effects: “when it enters, an opposing Entity to Retire” (the Archer's form until 2026-09-04)",
       "§8.2 Certified effects: “when it enters, a permanent from the Retire Zone to the Front” (RBF-012)",
       "§8.2 Certified effects: “when it attacks”, Rhen's same return (RBF-012)",
       "§8.2 Certified effects: “when it enters, look at the top N and reveal one” (RBF-006)",
@@ -113,14 +114,15 @@ module Rubyfront
       "§8.2 Static Power modifiers count in the resolution (RBF-002, RBF-010, RBF-013, RBF-014)",
       "§8.1 Stasis: blocking, it doesn't die, it stays tapped for good",
       "§8.2 Multiple blockers: “may be blocked by multiple Entities” (RBF-014)",
-      "§7.2 Reactives: before the wave, or as a block in Reaction",
+      "§7.2 Reactives: the active player before the wave, the defender in Reaction",
       "§7.2 Matters resolve: the certified forms of Lost Legacy (RBF-015…RBF-021)",
       "§3.1 The Nexus: the flip with its requirements, the HP recovery, “when it flips” (RBF-001)",
       "§3.1 A Rubyfront in the Recall Zone has no abilities: deploying it unlocks them",
       "§5 The Abyss: reached by dying, being spent or discarding down to 7, and there's no way back",
       "§5/§6.2 Cards leave the Retire Zone only through an effect",
+      "§8.2 An Entity you took control of doesn't move between zones",
       "§5 Entities stay in the slot they came down on",
-      "§7.2 Reactives as a block: RBF-040 stops an attacker and heals, RBF-020 is played in the block window",
+      "§7.2 Reactives in Reaction: RBF-040 blocks an attacking Entity and heals, RBF-020 untaps the Humans without blocking",
       "§7.2 The response chain: a Reactive opens it, the opponent answers or accepts, it resolves in reverse",
     ].freeze
 
@@ -337,6 +339,18 @@ module Rubyfront
       card = @table.card(action["uid"])
       return no_rule("toZone") unless card
 
+      # §8.2 — «prendi il controllo di un'Entità avversaria fino alla fine
+      # del turno»: te la comanda, non te la dà. Non è tua, e a mano non la
+      # si sposta fra le zone — né nel proprio Abisso, né nella Zona di
+      # Ritiro del proprietario: alla fine del turno «si restituisce», e la
+      # restituzione ha la sua azione (`release`). Un effetto che la muova
+      # passa da judge_effect col suo riferimento, non da qui. Limite
+      # dichiarato: un effetto risolto a mano su una carta controllata
+      # verrebbe fermato a torto (regola d'oro).
+      if card[:controller] && card[:controller] != card[:owner]
+        return refuse("toZone", "l'Entità presa in controllo non si sposta fra le zone: attacca e blocca per te fino alla fine del turno, poi torna al proprietario (§8.2)", "an Entity you took control of doesn't move between zones: it attacks and blocks for you until end of turn, then goes back to its owner (§8.2)")
+      end
+
       # §5/§6.2 — dal campo non si torna in mano né nel mazzo: dal campo si
       # esce con il Ritiro (§6.2), con l'Abisso, o con un effetto — e il
       # Rubyfront schierato resta in campo (§3.1). Vale per tutti
@@ -508,22 +522,25 @@ module Rubyfront
           phase_en = @table.phase == "fronte" ? "Front" : "Reaction"
           return refuse("toZone", "in Fase di #{phase} si dichiara, non si gioca: le carte scendono in Preparazione (§6.2) — salvo le Reattive (§7.2) e il Rubyfront (§3.1)", "in the #{phase_en} Phase you declare, you don't play: cards come down in Preparation (§6.2) — except Reactives (§7.2) and the Rubyfront (§3.1)")
         end
-        # §7.2 — le finestre delle Reattive: prima della dichiarazione
-        # dell'ondata (Pre-Fronte dell'avversario, poi la finestra di chi è
-        # di turno); «dopo la dichiarazione dell'attacco non si iniziano
-        # più Reattive», salvo quelle del difensore giocate COME BLOCCO
-        # (§6.4), in Reazione. Limite dichiarato: la catena di risposta
-        # non c'è ancora — una Reattiva in risposta verrebbe fermata.
+        # §7.2 — le finestre delle Reattive (decisione del designer,
+        # 2026-09-05: il Pre-Fronte non c'è più): prima dell'ondata la
+        # finestra è di CHI È DI TURNO; «dopo la dichiarazione il giocatore
+        # di turno non inizia più Reattive»; la finestra del DIFENSORE è la
+        # Fase di Reazione (§6.4), dove gioca qualsiasi Reattiva — compresa
+        # quella che «si gioca come bloccante di un'Entità» (RBF-040) e
+        # quella che non blocca nessuno (RBF-020).
         # In catena (§7.2) le finestre non contano più: risponde chi ne ha
         # la parola, e l'ha già detto judge_chain — anche l'attaccante in
-        # Reazione, quando il difensore ha aperto con un blocco (§6.4).
+        # Reazione, quando il difensore ha aperto (§6.4).
         if reactive && card[:zone] != "field" && @table.chain.nil?
-          as_block = Array(known[:resolve_forms]).any? { |form| form[:as_block] }
           if @table.phase == "fronte" && @table.wave_declared?
-            return refuse("toZone", "a ondata dichiarata non si iniziano Reattive: solo come blocco, in Reazione (§7.2)", "once the wave is declared no Reactive is started: only as a block, in Reaction (§7.2)")
+            return refuse("toZone", "a ondata dichiarata non si iniziano Reattive nel Fronte: il difensore le gioca in Reazione (§6.3, §7.2)", "once the wave is declared no Reactive is started in the Front: the defender plays them in Reaction (§6.3, §7.2)")
           end
-          if @table.phase == "reazione" && !(as_block && card[:owner] != @table.active)
-            return refuse("toZone", "in Reazione il difensore gioca solo una Reattiva che si gioca come blocco (§7.2, §6.4)", "in Reaction the defender plays only a Reactive that is played as a block (§7.2, §6.4)")
+          if @table.phase == "fronte" && card[:owner] != @table.active
+            return refuse("toZone", "prima dell'ondata le Reattive sono di chi è di turno: il difensore le gioca in Reazione (§6.3, §7.2)", "before the wave Reactives belong to the active player: the defender plays them in Reaction (§6.3, §7.2)")
+          end
+          if @table.phase == "reazione" && card[:owner] == @table.active
+            return refuse("toZone", "in Reazione le Reattive le gioca il difensore: chi attacca risponde solo in catena (§6.4, §7.2)", "in Reaction the defender plays Reactives: the attacker only answers in the chain (§6.4, §7.2)")
           end
         end
       elsif reactive
@@ -789,9 +806,9 @@ module Rubyfront
       if declarer == "rubyfront"
         return refuse("declare", "il Rubyfront non attacca e non blocca (§3.1): la sua funzione sono abilità e Materie", "the Rubyfront neither attacks nor blocks (§3.1): its job is abilities and Matters")
       end
-      # §6.4 — «una Materia Reattiva il cui testo permette di bloccare»
-      # (RBF-020, «gioca questa carta come blocco»): giocata questo turno,
-      # sostituisce il bloccante per quell'attacco. Non contrattacca.
+      # §6.4 — «una Materia Reattiva il cui testo dice che si gioca come
+      # bloccante di un'Entità» (RBF-040): giocata questo turno, sostituisce
+      # il bloccante per quell'attacco. Non contrattacca.
       matter_block = declarer == "matter" && kind == "block" && reactive_block?(card)
       if declarer && declarer != "entity" && !matter_block
         return refuse("declare", "solo le Entità attaccano e bloccano (§6.3)", "only Entities attack and block (§6.3)")
@@ -919,9 +936,9 @@ module Rubyfront
 
     # Una battaglia (§6.3), con gli attrezzi degli effetti: la Vendetta
     # (§8.1), la Stasi (§8.1), il Contrattacco concesso (RBF-020), e la
-    # Reattiva giocata come blocco (§6.4: «non c'è confronto di Potenza,
-    # l'attacco è comunque bloccato, la sorte dell'attaccante la stabilisce
-    # il testo» — RBF-020 non dice nulla, e la Reattiva si consuma).
+    # Reattiva giocata come bloccante di un'Entità (§6.4: «non c'è confronto
+    # di Potenza, l'attacco è comunque bloccato, la sorte dell'attaccante la
+    # stabilisce il testo» — RBF-040 non dice nulla, e la Reattiva si consuma).
     def battle_of(attacker, power, blocker, kind)
       if stat(blocker, :type) == "matter"
         return { attacker: attacker, blocker: blocker, kind: "block", attacker_dies: false, blocker_dies: false, damage: 0,
@@ -946,11 +963,11 @@ module Rubyfront
         blocker_dies: dies && !stasis, damage: 0, blocker_stasis: stasis, blocker_spent: false }
     end
 
-    # §6.4 — la Reattiva come blocco: una Materia Reattiva con la forma «si
-    # gioca come blocco», scesa in campo questo turno.
-    # Ferma un attaccante solo la Reattiva con la forma `block` (RBF-040):
-    # quella che «si gioca come blocco» senza fermare nessuno (RBF-020,
-    # lettura del designer 2026-09-04) non dichiara niente.
+    # §6.4 — la Reattiva come bloccante di un'Entità: una Materia Reattiva
+    # con la forma `block` (RBF-040, «gioca questa carta come bloccante di
+    # un'Entità attaccante»), scesa in campo questo turno. Una Reattiva che
+    # non dice cosa blocca (RBF-020) non blocca nulla e non dichiara niente
+    # (§6.4, decisione del designer 2026-09-05).
     def reactive_block?(card)
       known = @cards[card[:card_id]]
       known && known[:type] == "matter" && known[:behavior] == "reactive" && card[:entered] == @table.turn &&
@@ -1038,7 +1055,7 @@ module Rubyfront
     # chi compie il gesto, non di chi è la carta. Al difensore restano le
     # finestre che il manuale gli dà: i blocchi e i contrattacchi in
     # Reazione (§6.4, e il ripensarci), le Materie Reattive nel Fronte
-    # altrui (§6.3 Pre-Fronte, §7.2 — e come blocco), e i propri contatori
+    # altrui (in Reazione, §6.4, §7.2 — e in catena), e i propri contatori
     # in Fronte e Reazione, perché le Reattive si pagano. Tutto il resto —
     # pescare, giocare, ritirare, muovere fra le zone, cambiare fase o turno,
     # risolvere — aspetta il proprio turno. Attore assente (client vecchio) o
@@ -1093,8 +1110,8 @@ module Rubyfront
           return nil if card && card[:owner] == actor && between.include?(card[:zone]) && between.include?(action["zone"])
         end
       end
-      # §7.2 — la Reattiva giocata come blocco si risolve nel turno altrui:
-      # i passi del suo effetto sono del difensore che l'ha giocata.
+      # §7.2 — la Reattiva del difensore si risolve nel turno altrui: i
+      # passi del suo effetto sono del difensore che l'ha giocata.
       ref = action["effect"]
       if ref.is_a?(Hash) && ref["event"] == "on_resolve"
         source = @table.card(ref["source"])
@@ -1186,6 +1203,13 @@ module Rubyfront
         return nil if action["uid"] == top
       end
       refuse(kind, "la catena di risposta è atomica: si risponde con una Reattiva o si accetta, il resto aspetta (§7.2)", "the response chain is atomic: answer with a Reactive or accept, everything else waits (§7.2)")
+    end
+
+    # «Una carta permanente» (§10): quel che resta in campo — un'Entità o una
+    # Materia permanente, mai il Rubyfront, mai un Oggetto. Gemello:
+    # effects.ts, permanentOf.
+    def permanent_card?(entry)
+      entry[:type] == "entity" || (entry[:type] == "matter" && entry[:behavior] == "permanent")
     end
 
     # §3.1 — la carta è IN GIOCO, cioè i suoi effetti contano?
@@ -1802,8 +1826,14 @@ module Rubyfront
 
         entry = @cards[target[:card_id]]
         return no_rule("toZone") unless entry
-        unless entry[:type] == ret[:filter][:type] && entry[:behavior] == ret[:filter][:behavior]
+        unless permanent_card?(entry)
           return refuse("toZone", "si riporta una carta permanente, non questa (§8.2)", "a permanent card is brought back, not this one (§8.2)")
+        end
+        # §6.2, Fronte pieno: «anche la parte d'effetto che metterebbe in
+        # campo non si applica». Riguarda le sole Entità — una Materia
+        # permanente sta dietro il Fronte e non occupa uno slot (§5).
+        if entry[:type] == "entity" && count_entities(@table.controller_of(source), nil) >= 5
+          return refuse("toZone", "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)", "the Front is full: five Entities are the maximum (§6.2, Full Front)")
         end
 
         return allow("toZone")
@@ -2061,7 +2091,7 @@ module Rubyfront
       allow("look")
     end
 
-    # RBF-016 (stappa un'Entità Umana: +1) e RBF-020 (come blocco: stappa gli Umani, Contrattacco +1).
+    # RBF-016 (stappa un'Entità Umana: +1) e RBF-020 (in Reazione: stappa gli Umani, Contrattacco +1).
     def judge_resolve_empower(action, ref, source, forms, seat)
       form = forms.find { |candidate| candidate[:kind] == "empower" && (action["counter"] ? candidate[:counter] : candidate[:power]) }
       return refuse("empower", "la Materia non ha un effetto certificato che potenzi così (§8.2)", "the Matter has no certified effect that empowers this way (§8.2)") unless form
@@ -2078,10 +2108,10 @@ module Rubyfront
         return refuse("empower", "si stappa UN'Entità: questo passo è già stato risolto (§8.2)", "you untap ONE Entity: this step has already been resolved (§8.2)") if @table.fired_prefix?(ref["source"], "on_resolve:empower:")
       else
         return refuse("empower", "il Contrattacco in più è #{form[:counter]} (§8.2)", "the extra Counterattack is #{form[:counter]} (§8.2)") unless action["counter"] == form[:counter] && action["power"].nil?
-        # «Gioca questa carta come blocco» (RBF-020): la finestra è quella
-        # dei blocchi, ma la carta non ferma nessun attaccante — lettura del
-        # designer (2026-09-04): il suo effetto è tutto quel che fa, e non
-        # pretende una dichiarazione di blocco.
+        # RBF-020 si gioca in Reazione, la finestra del difensore (§6.4),
+        # ma non blocca nessun attaccante — decisione del designer
+        # (2026-09-05): il suo effetto è tutto quel che fa, e non pretende
+        # una dichiarazione di blocco.
         needed = form[:requires]
         if needed && count_entities(seat, needed[:race]) < needed[:count]
           return refuse("empower", "servono almeno #{needed[:count]} Entità Umane sul tuo Fronte (§8.2)", "it takes at least #{needed[:count]} Human Entities on your Front (§8.2)")

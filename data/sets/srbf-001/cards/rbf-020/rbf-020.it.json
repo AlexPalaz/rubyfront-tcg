@@ -1,7 +1,7 @@
 {
   "name": "Contrattacco Coordinato",
   "typeLabel": "Materia Dinamica II",
-  "summary": "Si gioca come blocco e rimette in piedi tutta la linea.",
+  "summary": "Si gioca in Reazione e rimette in piedi tutta la linea.",
   "ui": {
     "face": "Materia"
   },
@@ -18,7 +18,7 @@
     "name": "Contrattacco Coordinato",
     "effect": {
       "name": "Effetto",
-      "text": "Gioca questa carta come blocco. Se sul tuo Fronte ci sono almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
+      "text": "Se sul tuo Fronte ci sono almeno 3 Entità Umane, stappa le Entità Umane che controlli: ottengono Contrattacco +1 fino alla fine del turno."
     },
     "flavor": "Nessuno grida l'ordine. Si girano insieme."
   },

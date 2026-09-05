@@ -337,7 +337,7 @@ function enterReturnsOf(face: CardFace | undefined, event: "on_enter_field" | "o
     if (!target || target.controller !== "controller" || target.min !== 1 || target.max !== 1 || target.details?.permanent !== true) continue;
     if (effect.from?.zone !== "retire" || effect.from?.owner !== "controller") continue;
     if (effect.destination?.zone !== "front") continue;
-    out.push({ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" });
+    out.push({ from: "ritiro", filter: { permanent: true }, to: "field" });
   }
   return out;
 }
@@ -704,7 +704,7 @@ function resolveUntap(effect: Loose): ResolveForm | null {
   if (target.min === 1 && target.max === 1 && Number.isInteger(extra.thenPowerBonus) && Object.keys(extra).sort().join() === "duration,thenPowerBonus") {
     return { kind: "empower", targets: "own_entity", race, power: extra.thenPowerBonus, untap: true };
   }
-  if (target.quantity === "all" && extra.playedAsBlock === true && Number.isInteger(extra.thenCounterattackBonus)) {
+  if (target.quantity === "all" && Number.isInteger(extra.thenCounterattackBonus)) {
     const requires = extra.requiresControlledAtLeast as Loose | undefined;
     if (!requires || !Number.isInteger(requires.count) || !ownTarget(requires.filter, "entity")) return null;
     return {
@@ -713,7 +713,6 @@ function resolveUntap(effect: Loose): ResolveForm | null {
       race,
       counter: extra.thenCounterattackBonus,
       untap: true,
-      asBlock: true,
       requires: { count: requires.count, race: typeof requires.filter.race === "string" ? requires.filter.race : null },
     };
   }

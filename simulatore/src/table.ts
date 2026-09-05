@@ -33,7 +33,7 @@ import {
   type Ctx,
 } from "./ctx.js";
 import { showRoll } from "./dice.js";
-import { confirmEffect, showEnterEffect } from "./effect.js";
+import { confirmEffect, noticeEffect, showEnterEffect } from "./effect.js";
 import {
   describeControl,
   describeLook,
@@ -159,8 +159,10 @@ export interface TableView {
     handler: (seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string, visible?: CardInstance[]) => Promise<CardInstance | null>
   ): void;
   /** §6.5 — il Fine turno fermato dalla mano piena: da qui l'Abisso di quel
-      posto si accende e invita, finché non si scarta o non cambia il turno. */
-  promptDiscard(seat: Seat): void;
+      posto si accende e invita, finché non si scarta o non cambia il turno.
+      Dice se l'ha acceso ADESSO: il sigillo lo vede solo chi ha premuto, e
+      la riga in chat che avvisa l'avversario va scritta una volta sola. */
+  promptDiscard(seat: Seat): boolean;
   /** Il bagliore di una carta che si innesca: per gli effetti arrivati dalla rete. */
   flash(uid: string, ms?: number): void;
   /** Il lampo rosso sulla carta colpita da un effetto, per un attimo. */
@@ -1231,8 +1233,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // §5/§6.2 — con l'arbitro, dall'Abisso e dalla Zona di Ritiro si esce
     // solo per effetto: nessuna destinazione a mano. Ci si ENTRA liberamente
     // (il Ritiro è un gesto, §6.2), ma non se ne torna.
-    const sealedPile = ctx.arbitrated() && (card.zone === "abisso" || card.zone === "ritiro");
-    if (mine && !sealedPile) items.push(send("hand", t("menu.to.hand")));
+    //
+    // §8.2 — e l'Entità PRESA IN CONTROLLO non è tua: te la comanda fino a
+    // fine turno, poi torna al proprietario. Non si manda da nessuna parte,
+    // men che meno nella Zona di Ritiro di chi la possiede.
+    const borrowed = ctx.arbitrated() && card.controller !== undefined && card.controller !== card.owner;
+    const sealed = borrowed || (ctx.arbitrated() && (card.zone === "abisso" || card.zone === "ritiro"));
+    const owned = ctx.controls(card.owner);
+    if (owned && !sealed) items.push(send("hand", t("menu.to.hand")));
     // §5/§6.5 — con l'arbitro nell'Abisso non si va a mano: ci si va morendo,
     // consumandosi (una Materia in campo) o scartando per eccesso a fine
     // turno. La voce libera resta solo dove l'arbitro la lascerebbe passare;
@@ -1248,12 +1256,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             render();
           }),
       });
-    } else if (!ctx.arbitrated() || (card.zone === "field" && ctx.card(card.cardId).kind === "matter")) {
+    } else if (!sealed && (!ctx.arbitrated() || (card.zone === "field" && ctx.card(card.cardId).kind === "matter"))) {
       items.push(send("abisso", t("menu.to.abisso")));
     }
     // Il Ritiro resta un gesto libero: ci si manda una carta da dove sia.
-    if (!sealedPile) items.push(send("ritiro", t("menu.to.ritiro")));
-    if (mine && !sealedPile) {
+    if (!sealed) items.push(send("ritiro", t("menu.to.ritiro")));
+    if (owned && !sealed) {
       items.push(send("deck", t("menu.to.deck.top")));
       items.push({
         label: t("menu.to.deck.bottom"),
@@ -1279,6 +1287,22 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         Math.abs(other.x - x) < TILE_W &&
         Math.abs(other.y - y) < TILE_H
     );
+  }
+
+  /**
+   * §3.1 — l'Entità che riceverebbe l'Oggetto se lo lasciassi adesso: si
+   * accende di rubino mentre il dito è sopra, e si spegne al rilascio.
+   * L'assegnazione è l'unico gesto del tavolo in cui una carta ne cerca
+   * un'altra, e senza un segno si tira a indovinare — soprattutto con
+   * l'arbitro, che tiene i pixel fermi fino al rilascio.
+   */
+  let bersaglioAssegnazione = null as string | null;
+
+  function segnaAssegnazione(uid: string | null): void {
+    if (bersaglioAssegnazione === uid) return;
+    if (bersaglioAssegnazione) tiles.get(bersaglioAssegnazione)?.classList.remove("is-assign-target");
+    bersaglioAssegnazione = uid;
+    if (uid) tiles.get(uid)?.classList.add("is-assign-target");
   }
 
   /** L'Entità su cui un Oggetto è stato posato, se c'è: è lei che lo riceve. */
@@ -1959,6 +1983,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   }
 
   async function playReturn(step: EnterReturnStep): Promise<void> {
+    const who = `«${cardName(step.source.cardId, ctx.locale())}»`;
+    // §6.2, Fronte pieno: «anche la parte d'effetto che metterebbe in campo
+    // non si applica». Il giocatore lo deve sapere: un pannello vuoto, o il
+    // silenzio, sembrerebbero un difetto del tavolo.
+    if (step.candidates.length === 0 && step.frontFull) {
+      ctx.log(msg("log.front.full", { seat: step.source.owner, card: step.source.cardId }), step.source.owner);
+      await noticeEffect(root, t("notice.front.full", { card: who }));
+      return;
+    }
     if (step.candidates.length === 0) {
       ctx.log(msg("log.no.permanent", { seat: step.source.owner, card: step.source.cardId }), step.source.owner);
       return;
@@ -2189,6 +2222,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   function applyDrop(card: CardInstance, drop: Drop): void {
     lastDropAt = Date.now();
+    segnaAssegnazione(null);
     if (!drop) return;
     if (drop.kind === "field") {
       // Il rilascio a mano libera arriva in coordinate di schermo: va riportato
@@ -2323,7 +2357,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         },
         onDragMove: drop => {
           const live = ctx.state().cards[card.uid];
-          if (!live || live.zone !== "field") return;
+          if (!live) return;
+          // Il segno sull'Entità sotto il dito vale anche per l'Oggetto che
+          // arriva DALLA MANO, e anche con l'arbitro, che ferma i pixel ma
+          // non il gesto: va calcolato prima delle uscite qui sotto.
+          segnaAssegnazione(entityUnder(live, drop.x, drop.snapped ? drop.y : unview(drop.y))?.uid ?? null);
+          if (live.zone !== "field") return;
           // Con l'arbitro al tavolo i pixel non viaggiano in diretta: ogni
           // passo sarebbe un `move` fuori slot, e l'arbitro lo fermerebbe
           // (§5). Il fantasma segue comunque il dito; l'avversario vede la
@@ -2336,6 +2375,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           ctx.dispatch({ t: "move", uid: card.uid, x: drop.x, y, z: Math.max(live.z, ctx.state().zTop) });
         },
         onStart: () => {
+          segnaAssegnazione(null);
           const live = ctx.state().cards[card.uid];
           // La posizione di partenza serve al ripensamento (vedi applyDrop).
           dragOrigin = live && live.zone === "field" ? { x: live.x, y: live.y, z: live.z } : null;
@@ -2785,8 +2825,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     render,
     flash,
     promptDiscard(seat) {
-      discardPrompt = { seat, turn: ctx.state().turn };
+      const turn = ctx.state().turn;
+      const already = discardPrompt?.seat === seat && discardPrompt.turn === turn;
+      discardPrompt = { seat, turn };
       render();
+      return !already;
     },
     strike: uid => strike(uid, TRIGGER_LEAD_MS + FLY_MS),
     liftForFlight,

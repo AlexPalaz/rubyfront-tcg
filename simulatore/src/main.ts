@@ -112,8 +112,13 @@ function dispatch(action: Action): Promise<boolean> {
           // e ha più di 7 carte.
           if (action.t === "turn") {
             const closing = state.active;
-            if (Object.values(state.cards).filter(card => card.owner === closing && card.zone === "hand").length > 7) {
-              table.promptDiscard(closing);
+            const held = Object.values(state.cards).filter(card => card.owner === closing && card.zone === "hand").length;
+            // Il sigillo lo vede solo chi ha premuto: l'avversario resterebbe
+            // ad aspettare un turno che non passa, senza sapere perché. La
+            // riga in chat viaggia in rete e lo dice a entrambi, una volta
+            // sola per ogni volta che l'avviso si accende.
+            if (held > 7 && table.promptDiscard(closing)) {
+              ctx.log(msg("log.discard.needed", { seat: closing, n: held }), closing);
             }
           }
           engineStop(verdict);

@@ -1,7 +1,7 @@
 {
   "name": "Arciere della Radura Argentata",
   "typeLabel": "Entità: Umano",
-  "summary": "Un corpo che entra togliendo un corpo dall'altra parte.",
+  "summary": "Entra e porta via un corpo avversario, finché resta in piedi.",
   "ui": {
     "face": "Entità"
   },
@@ -15,7 +15,7 @@
     "name": "Arciere della Radura Argentata",
     "loose": {
       "trigger": "Quando entra in campo",
-      "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario."
+      "text": "Manda nell'Abisso un'Entità avversaria. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
     },
     "flavor": "Tira una volta sola. Non serve la seconda."
   },

@@ -27,8 +27,8 @@
       "displayKey": "face",
       "race": "human",
       "stats": {
-        "power": 1,
-        "fluxCost": 2
+        "power": 2,
+        "fluxCost": 3
       },
       "enablesMatters": [
         {

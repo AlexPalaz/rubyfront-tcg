@@ -374,6 +374,15 @@ body.is-resolving .table, body.is-resolving .hud, body.is-resolving .side { poin
 }
 @media (prefers-reduced-motion: reduce) { .tile.is-struck { animation: none; } }
 
+/* §3.1 — l'assegnazione: mentre trascini un Oggetto, l'Entità che lo
+   riceverebbe si accende di rubino. È un anello fermo, non un lampo: dice
+   «se lasci adesso, va a lei», e sparisce quando lasci. Serve soprattutto
+   con l'arbitro al tavolo, che tiene i pixel della carta fermi fino al
+   rilascio: senza il segno si mira alla cieca. */
+.tile.is-assign-target {
+  box-shadow: 0 0 0 3px var(--ruby), 0 0 26px rgba(210, 74, 100, .6), 0 8px 22px rgba(0, 0, 0, .6);
+}
+
 .tile.is-triggering {
   box-shadow: 0 0 0 2px #ff8ea6, 0 0 46px rgba(210, 74, 100, 1);
   animation: tile-trigger .5s ease-out both;
@@ -1428,12 +1437,27 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 /* Una Potenza in calo si scrive con lo stesso pezzo, ma spento: il rubino
    resta a ciò che sale. */
 .tile > .tile-marks > .power-delta.is-down { color: #bb8e9a; border-color: rgba(187, 142, 154, .45); }
-/* La tappata ruota: la colonna va solo riportata dritta. L'angolo non si
-   sposta, perché basso-destra è proprio quello che la rotazione porta in
-   basso a SINISTRA — la fascia libera, opposta sia al numero d'ondata (che
-   finisce in alto a sinistra) sia alla banda di destra, che si accavalla
-   sulla carta accanto. */
-.tile.is-tapped > .tile-marks { transform: rotate(-90deg); }
+/* La tappata ruota di 90°, e il gruppo si raddrizza con la rotazione opposta:
+   il testo torna dritto, ma l'ANCORAGGIO va rifatto. Ancorato all'angolo, il
+   gruppo ruotava attorno al proprio centro e finiva mezzo fuori dalla
+   tessera, che è ritagliata (overflow: hidden): la parola chiave si leggeva
+   a metà.
+
+   Qui il perno è l'angolo in basso a sinistra del gruppo, e allora vale una
+   cosa comoda: ruotare attorno a un punto lo lascia fermo, quindi quel
+   punto sullo schermo è l'immagine ruotata di dov'era nel riquadro. Messo
+   l'angolo del gruppo a (100% − 10px, 100% − 10px), la rotazione della
+   tessera lo porta esattamente a 10px dal bordo sinistro e 10px dal fondo
+   della carta coricata — e il conto non dipende dalla grandezza del gruppo
+   né da quella della tessera, quindi regge in compatto e con più segni. Il
+   numero d'ondata finisce in alto a sinistra: i due non si incontrano. */
+.tile.is-tapped > .tile-marks {
+  right: auto;
+  left: calc(100% - 10px);
+  bottom: 10px;
+  transform-origin: bottom left;
+  transform: rotate(-90deg);
+}
 
 /* L'attaccante non ha freccia: l'alone è tutto il segnale, quindi deve essere
    forte. Il respiro lento lo distingue da un semplice bordo colorato senza

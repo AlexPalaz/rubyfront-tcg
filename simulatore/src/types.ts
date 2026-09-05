@@ -178,8 +178,9 @@ export interface Battle {
 
 /**
  * Le fasi del turno (§6), nel modello MINIMO: la Pesca non è una fase (è il
- * gesto libero d'apertura) e le sotto-fasi del Fronte (Pre-Fronte, finestre
- * Reattive) arriveranno con le Reattive. A senso unico: dalla Preparazione
+ * gesto libero d'apertura) e le finestre delle Reattive stanno dentro le
+ * fasi (chi è di turno nel Fronte prima dell'ondata, il difensore in
+ * Reazione, §7.2). A senso unico: dalla Preparazione
  * si dichiara il Fronte, dal Fronte — a ondata completa — la parola passa
  * al difensore («reazione», §6.4), e in Preparazione si torna solo col
  * cambio di turno.

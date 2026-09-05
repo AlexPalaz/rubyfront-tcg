@@ -1,7 +1,7 @@
 {
   "name": "Vendicatore dei Dimenticati",
   "typeLabel": "Entità: Umano",
-  "summary": "Apre la carica e passa la rabbia a chi lo segue.",
+  "summary": "Carica in compagnia e toglie all'avversario il bloccante su cui contava.",
   "ui": {
     "face": "Entità"
   },
@@ -14,8 +14,8 @@
   "face": {
     "name": "Vendicatore dei Dimenticati",
     "avenge": {
-      "trigger": "Effetto",
-      "text": "La prima volta in ogni tuo turno che questa Entità attacca, la prossima Entità Umana che attacca in questo turno ottiene Vendetta fino alla fine del turno."
+      "trigger": "Quando attacca",
+      "text": "Se almeno 2 Entità Umane che controlli attaccano, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
     },
     "flavor": "Nessuno li ricorda. Lui li conta."
   },

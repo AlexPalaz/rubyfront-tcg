@@ -74,8 +74,8 @@ export type ResolveForm =
   | { kind: "look"; count: number; reveal: { kind: "entity" | "object" | "matter"; race: string | null }; revealTo: "hand"; restTo: "deck"; showUpTo: number }
   /** RBF-016: stappa un'Entità Umana che controlli, +1 Potenza. */
   | { kind: "empower"; targets: "own_entity"; race: string | null; power: number; untap: true }
-  /** RBF-020: giocata come blocco, con almeno N Umani: stappa gli Umani, Contrattacco +1. */
-  | { kind: "empower"; targets: "own_entities"; race: string | null; counter: number; untap: true; asBlock: true; requires: { count: number; race: string | null } }
+  /** RBF-020: in Reazione, senza bloccare (§6.4); con almeno N Umani: stappa gli Umani, Contrattacco +1. */
+  | { kind: "empower"; targets: "own_entities"; race: string | null; counter: number; untap: true; requires: { count: number; race: string | null } }
   /** RBF-017: un'Entità avversaria con costo N o inferiore nella Zona di Ritiro. */
   | { kind: "move"; target: { kind: "entity"; controller: "opponent"; maxCost: number | null }; to: "ritiro" }
   /** RBF-018: un permanente avversario nell'Abisso, finché questa carta resta in gioco. */
@@ -84,7 +84,7 @@ export type ResolveForm =
   | { kind: "fortune"; die: number; gain: { on: [number, number]; amount: number }; deploy: { on: [number, number]; filter: { kind: "entity"; race: string | null; maxCost: number | null } }; draw: { on: [number, number]; count: number }; allOn: [number, number] }
   /** RBF-021: distruggi un'Entità; contro una tappata costa N in meno. */
   | { kind: "destroy"; target: { kind: "entity"; controller: "any" | "opponent" | "controller" }; to: "abisso"; discount: { amount: number; ifTarget: "tapped" } | null }
-  /** RBF-040: giocata come blocco a un attaccante (l'attacco è bloccato, §6.4); con almeno N Entità armate sul Fronte, +M PV. */
+  /** RBF-040: giocata come bloccante di un'Entità attaccante (l'attacco è bloccato, §6.4); con almeno N Entità armate sul Fronte, +M PV. */
   | { kind: "block"; requiresArmed: number; heal: number; asBlock: true };
 
 /** «Quando flippa» (§3.1, RBF-001): la carta nominata nell'Abisso, e il sigillo. */
@@ -170,7 +170,10 @@ export interface EnterLook {
  */
 export interface EnterReturn {
   from: "ritiro";
-  filter: { kind: "matter"; behavior: "permanent" };
+  /** «una carta permanente» (§10): quel che resta in campo — un'Entità o
+      una Materia permanente, mai il Rubyfront, mai un Oggetto. Stessa
+      lettura dell'esilio di RBF-018 (effects.ts, permanentOf). */
+  filter: { permanent: true };
   to: "field";
 }
 

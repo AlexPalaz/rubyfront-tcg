@@ -1,7 +1,7 @@
 {
   "name": "Avenger of the Forgotten",
   "typeLabel": "Entity: Human",
-  "summary": "It opens the charge and hands the anger to whoever comes next.",
+  "summary": "It charges in company and takes away the blocker the enemy was counting on.",
   "ui": {
     "face": "Entity"
   },
@@ -14,8 +14,8 @@
   "face": {
     "name": "Avenger of the Forgotten",
     "avenge": {
-      "trigger": "Effect",
-      "text": "The first time each of your turns this Entity attacks, the next Human Entity that attacks this turn gains Revenge until end of turn."
+      "trigger": "When it attacks",
+      "text": "If at least 2 Human Entities you control attack, choose an opposing Entity: that Entity cannot block this turn."
     },
     "flavor": "No one remembers them. It counts them."
   },

@@ -231,11 +231,10 @@ Il giocatore può **ritirare** le proprie Entità dal Fronte: l'Entità ritirata
 
 ### 6.3 Fase di Fronte (combattimento)
 
-Terminata la Fase di Preparazione, il giocatore di turno **dichiara di entrare in Fase di Fronte**. La fase è **facoltativa**: il giocatore può anche chiudere il turno direttamente dalla Fase di Preparazione, senza dichiararla. In quel caso **non c'è Pre-Fronte** e in quel turno non si apre nessuna finestra per giocare Reattive. Se dichiarata, la fase si svolge in questo ordine:
+Terminata la Fase di Preparazione, il giocatore di turno **dichiara di entrare in Fase di Fronte**. La fase è **facoltativa**: il giocatore può anche chiudere il turno direttamente dalla Fase di Preparazione, senza dichiararla. In quel caso in quel turno **non si apre nessuna finestra per giocare Reattive**. Se dichiarata, la fase si svolge in questo ordine:
 
-1. **Pre-Fronte:** dichiarata l'apertura del Fronte, **l'avversario può giocare Materie Reattive**. Il giocatore di turno può rispondere con la catena di risposta (§7.2).
-2. **Finestra Reattive del giocatore di turno:** conclusa la Pre-Fronte, il giocatore di turno può giocare le proprie Materie Reattive (l'avversario può rispondere in catena, §7.2).
-3. **Fronte pronto — dichiarazione dell'attacco (o passo):** il giocatore di turno **seleziona tutte le Entità con cui attacca** e le dichiara **in un'unica ondata** — oppure dichiara che passa. **Dopo la dichiarazione non si possono più *iniziare* Reattive**, con un'unica eccezione: una Reattiva giocata come blocco (§6.4). Le **risposte in catena** (§7.2) restano sempre possibili: ogni Reattiva giocata può essere risposta con altre Reattive.
+1. **Finestra Reattive del giocatore di turno:** dichiarata l'apertura del Fronte, il giocatore di turno può giocare le proprie Materie Reattive (l'avversario può rispondere in catena, §7.2).
+2. **Fronte pronto — dichiarazione dell'attacco (o passo):** il giocatore di turno **seleziona tutte le Entità con cui attacca** e le dichiara **in un'unica ondata** — oppure dichiara che passa. **Dopo la dichiarazione il giocatore di turno non può più *iniziare* Reattive**: le Reattive del difensore si giocano in Fase di Reazione (§6.4). Le **risposte in catena** (§7.2) restano sempre possibili: ogni Reattiva giocata può essere risposta con altre Reattive.
 
 Dichiarata l'ondata, la parola passa al difensore: si entra in **Fase di Reazione** (§6.4). Se invece il giocatore **passa**, la Reazione non c'è e si va al Fine del turno (§6.5).
 
@@ -253,7 +252,7 @@ Dichiarata l'ondata, la parola passa al difensore: si entra in **Fase di Reazion
 #### Blocco
 
 - Il **difensore può scegliere di bloccare** con le proprie Entità, decidendo se far passare o meno l'attacco al Rubyfront.
-- Anche le **Materie Reattive possono bloccare attacchi**, se il testo della carta lo prevede (e c'è il Flusso per pagarle): al momento della dichiarazione dei blocchi, il difensore può assegnare a un attaccante una di queste Reattive **al posto di una propria Entità** (§6.3, punto 4).
+- Anche le **Materie Reattive possono bloccare attacchi**, se il testo della carta dice che si gioca **come bloccante di un'Entità** (e c'è il Flusso per pagarle): al momento della dichiarazione dei blocchi, il difensore può assegnare a un attaccante una di queste Reattive **al posto di una propria Entità** (§6.4). Una Reattiva il cui testo non dice cosa blocca **non blocca nulla**: si gioca in Fase di Reazione per il suo effetto.
 - La sfida è sempre **1 contro 1**: ogni attaccante può essere bloccato da **una sola Entità**, e ogni Entità può **bloccare una sola volta per turno**.
 - Un'Entità **tappata non può bloccare** (es. perché ha attaccato nel proprio turno precedente).
 - **Quando un'Entità blocca viene tappata.**
@@ -309,7 +308,8 @@ Risoluzione del contrattacco (totale = Potenza + N contro Potenza dell'attaccant
 
 La fase del **difensore**, dentro il turno dell'attaccante: dichiarata l'ondata, la parola passa a lui — **l'attaccante non aggiunge più attacchi** e aspetta la reazione. Il difensore, **vista l'intera ondata**, decide come reagire:
 
-- **assegna i propri blocchi**: ogni attaccante può essere bloccato da una **propria Entità** (sfide 1 contro 1: un bloccante per attaccante, ogni Entità blocca una sola volta; chi blocca si tappa, chi contrattacca si copre), **oppure** da una **Materia Reattiva il cui testo permette di bloccare** (pagandone il costo di Flusso): la Reattiva sostituisce il bloccante per quell'attacco. **Non c'è confronto di Potenza** (la Reattiva non ne ha): l'attacco è **comunque bloccato**, e l'eventuale sorte dell'attaccante la stabilisce il **testo della Reattiva**. Come ogni Reattiva, **apre la catena di risposta** (§7.2): l'attaccante può rispondere;
+- **gioca le proprie Materie Reattive**: la Fase di Reazione è la **finestra del difensore** per le Reattive (§7.2). Ogni Reattiva apre la catena di risposta: l'attaccante può rispondere, solo con Reattive;
+- **assegna i propri blocchi**: ogni attaccante può essere bloccato da una **propria Entità** (sfide 1 contro 1: un bloccante per attaccante, ogni Entità blocca una sola volta; chi blocca si tappa, chi contrattacca si copre), **oppure** da una **Materia Reattiva il cui testo dice che si gioca come bloccante di un'Entità** (pagandone il costo di Flusso): la Reattiva sostituisce il bloccante per quell'attacco. **Non c'è confronto di Potenza** (la Reattiva non ne ha): l'attacco è **comunque bloccato**, e l'eventuale sorte dell'attaccante la stabilisce il **testo della Reattiva**. Come ogni Reattiva, **apre la catena di risposta** (§7.2): l'attaccante può rispondere;
 - oppure **non blocca**, in tutto o in parte: gli attacchi lasciati passare arriveranno al Rubyfront alla risoluzione.
 
 **Risoluzione:** conclusa la Reazione (blocchi assegnati, o rinuncia del difensore), le battaglie si risolvono una alla volta, **nell'ordine di dichiarazione degli attaccanti** (confronto di Potenza per ogni coppia; gli attacchi non bloccati infliggono danni al Rubyfront). Poi il turno si chiude (§6.5).
@@ -386,9 +386,9 @@ Ogni carta Materia ha una **descrizione con un effetto**. In base alla dicitura 
 
 - Si gioca **solo in Fase di Fronte**. Possono essere potenziamenti ad attacchi e difese, ma anche **effetti particolari di qualsiasi natura**. Una Reattiva **non è mai un "attacco"** nel senso delle regole di combattimento (§6.3): l'eventuale danno che infligge è danno da effetto (che per il Rubyfront in campo conta comunque come perdita di PV; il Rubyfront la subisce e resta in campo, §3.1).
 - **Nessuno può intervenire in qualsiasi momento a piacere:** le Reattive si giocano solo nelle finestre previste.
-- **Finestra dell'avversario (Pre-Fronte):** all'apertura della Fase di Fronte, prima della dichiarazione d'attacco, l'avversario può giocare Reattive (§6.3).
-- **Finestra del giocatore di turno:** dopo la Pre-Fronte e prima di dichiarare Fronte pronto, il giocatore di turno può giocare Reattive.
-- **Dopo la dichiarazione dell'attacco non si *iniziano* più Reattive**, con un'unica eccezione: le Reattive del difensore **giocate come blocco**, assegnate a un attaccante al posto di un'Entità (§6.3). Una Reattiva così giocata apre una **normale catena di risposta**: si risponde **solo con Reattive**, come in ogni catena. I potenziamenti giocati *di propria iniziativa*, invece, vanno giocati **prima** della dichiarazione d'attacco, "in anticipo": sono una scommessa per entrambi.
+- **Finestra del giocatore di turno:** all'apertura della Fase di Fronte, prima di dichiarare Fronte pronto, il giocatore di turno può giocare Reattive (§6.3).
+- **Finestra del difensore (Fase di Reazione):** dichiarata l'ondata, il difensore può giocare Reattive (§6.4) — comprese quelle il cui testo dice che si giocano **come bloccante di un'Entità**, assegnate a un attaccante al posto di un'Entità. Il testo della carta dice sempre **cosa** blocca: una Reattiva che non lo dice non blocca nulla.
+- **Dopo la dichiarazione dell'attacco il giocatore di turno non *inizia* più Reattive**: i potenziamenti giocati *di propria iniziativa* dall'attaccante vanno giocati **prima** della dichiarazione d'attacco, "in anticipo": sono una scommessa per entrambi. Se il giocatore di turno non dichiara l'ondata, la Reazione non c'è e il difensore non ha finestra in quel turno.
 - In tutte le finestre, chi subisce la Reattiva può **rispondere** (vedi catena di risposta).
 
 #### Catena di risposta
@@ -542,7 +542,6 @@ Il pareggio esiste in due soli casi:
 - **Danno** — perdita di PV: possono subirlo solo Rubyfront e Nexus. Le Entità non subiscono mai danno (le carte che le colpiscono usano diciture esplicite come "distruggi").
 - **Materia** — carta magia/evento, giocabile solo se un tipo corrispondente è abilitato da una carta in campo. Tre comportamenti: normale, permanente, Reattiva.
 - **Materia Reattiva** — Materia giocabile solo in Fase di Fronte; innesca la catena di risposta (risoluzione in ordine inverso).
-- **Pre-Fronte** — finestra a inizio Fase di Fronte in cui l'avversario può giocare Materie Reattive prima della dichiarazione d'attacco.
 - **Oggetto** — carta con un costo di Flusso che si assegna a un'Entità (senza limite di Oggetti per Entità), pagandolo in Fase di Preparazione a ogni assegnazione fatta **dalla mano** — anche quando l'Oggetto vi è tornato dopo essere già stato in campo. Un effetto che lo riporta in campo **direttamente dall'Abisso o dalla Zona di Ritiro** non fa ripagare nulla (§3.1). Segue l'Entità che lascia il campo (Abisso o Zona di Ritiro), ma **non torna con lei**: un'Entità che rientra in campo rientra sempre disarmata (§3.1).
 - **Abilità** — parola chiave con regole predefinite da questo manuale (vedi §8.1).
 - **Furia** — abilità esclusiva del Rubyfront/Nexus, legata alle **abilità speciali**: prima di usarne una serve un d20 ≥12; con 11 o meno si perde **1 PV** ma l'abilità si usa comunque. Le Materie (Distruttiva compresa), lo schieramento e il flip non richiedono il tiro (§8.1).

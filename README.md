@@ -158,13 +158,36 @@ debito lo dice.
 - `docs/` — il sito: manuale, lore, direzione artistica, catalogo, pagine, build del simulatore.
 - `simulatore/` — il client TypeScript (Vite, vitest).
 - `engine/` — l'arbitro in Ruby (minitest), col suo README che racconta ogni regola collegata e i suoi limiti.
-- `scripts/` — catalogo, validazioni, relay, pipeline di sviluppo.
+- `scripts/` — catalogo, validazioni, relay, pipeline di sviluppo, e il ponte col foglio dei mazzi.
 - `.claude/skills/` — i contratti di lavoro: `linguaggio-carte` per i testi, `regole-engine` per le regole.
+
+## Il foglio dei mazzi
+
+I mazzi si disegnano su un foglio condiviso (Google Fogli), un sottofoglio per
+mazzo. `npm run mazzi` è il ponte fra quel foglio e il catalogo: legge il
+foglio, elenca i mazzi dicendo quali sono già in catalogo, e per quello scelto
+mostra le differenze — copie, costo, Potenza, razza, Materia, parole chiave,
+testo dell'effetto, e il blocco Rubyfront/Nexus in fondo. Col tuo sì apre una
+sessione Claude che applica le modifiche seguendo le skill `linguaggio-carte`
+e `regole-engine`, e poi riscrive il foglio dal catalogo — così il linguaggio
+normalizzato torna anche lì. `npm run mazzi -- --esporta` fa solo quest'ultimo
+passo.
+
+Il foglio è privato, quindi due passaggi restano a mano, ed è voluto: nessun
+programma entra nel tuo Drive.
+
+1. su Fogli: **File → Scarica → Microsoft Excel**, in `~/Downloads`;
+2. finito: **File → Importa → carica il file → «Sostituisci foglio di
+   lavoro»**, così il documento resta lo stesso e il link condiviso non cambia.
+
+Rendendo il foglio leggibile da chi ha il link, il primo passaggio si
+automatizza: `npm run mazzi -- --url <link del foglio>`.
 
 ## Comandi
 
 ```sh
 npm run all                          # pagina + relay + engine, un Ctrl+C spegne tutto
+npm run mazzi                        # il foglio condiviso dei mazzi ↔ il catalogo
 node scripts/build-catalog.mjs       # data/ → docs/cards/catalog.json
 node scripts/validate-data.mjs       # i dati e il catalogo sono allineati?
 ruby engine/test/engine_test.rb      # e table_test, card_index_test, websocket_test

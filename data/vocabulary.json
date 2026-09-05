@@ -76,7 +76,7 @@
       "own_preparation",
       "own_front",
       "own_turn",
-      "opponent_pre_front",
+      "opponent_reaction",
       "response_chain",
       "own_post_combat"
     ]

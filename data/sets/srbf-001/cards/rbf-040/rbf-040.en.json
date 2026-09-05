@@ -18,7 +18,7 @@
     "name": "Reflected Shield",
     "effect": {
       "name": "Effect",
-      "text": "Play it as a block against an attacker: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
+      "text": "Play this card as a blocker of an attacking Entity: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
     },
     "flavor": "The wall that was not there, until you struck it."
   },

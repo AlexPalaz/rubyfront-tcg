@@ -4,7 +4,7 @@
 import { renderLog } from "../src/log.js";
 import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
-import { backRowY, frontRowY } from "../src/ctx.js";
+import { FRONT_SLOT_X, backRowY, frontRowY } from "../src/ctx.js";
 import {
   attackRef,
   attackSteps,
@@ -74,11 +74,14 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   RAZZIA: { kind: "entity", race: "human", attackForms: [{ kind: "empower", who: "self", requiresPreviousAttackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block", face: 0 }] },
   FERRO: { kind: "object" },
   ARCIERE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
+  // La carta vera ha il solo innesco d'attacco (decisione del designer,
+  // 2026-09-04); qui restano entrambi perché servono a provare che
+  // `returnsFor` distingue i due eventi.
   RHEN: {
     kind: "entity",
     race: "human",
-    enterReturns: [{ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" }],
-    attackReturns: [{ from: "ritiro", filter: { kind: "matter", behavior: "permanent" }, to: "field" }],
+    enterReturns: [{ from: "ritiro", filter: { permanent: true }, to: "field" }],
+    attackReturns: [{ from: "ritiro", filter: { permanent: true }, to: "field" }],
   },
   PERMANENTE: { kind: "matter", behavior: "permanent" },
   CERCATORE: { kind: "entity", race: "human", enterLooks: [{ count: 4, die: null, countBase: 0, reveal: { kind: "entity", race: "human" }, thenRetire: false }] },
@@ -96,7 +99,7 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   FORMAZIONE: { kind: "matter", behavior: "reactive", fluxCost: 2, resolveForms: [{ kind: "empower", targets: "own_entity", race: "human", power: 1, untap: true }] },
   IMPATTO: { kind: "matter", behavior: "normal", fluxCost: 1, resolveForms: [{ kind: "move", target: { kind: "entity", controller: "opponent", maxCost: 2 }, to: "ritiro" }] },
   CAMPO: { kind: "matter", behavior: "permanent", fluxCost: 3, resolveForms: [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }] },
-  COORDINATO: { kind: "matter", behavior: "reactive", fluxCost: 4, resolveForms: [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, asBlock: true, requires: { count: 3, race: "human" } }] },
+  COORDINATO: { kind: "matter", behavior: "reactive", fluxCost: 4, resolveForms: [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, requires: { count: 3, race: "human" } }] },
   GIUDIZIO: { kind: "matter", behavior: "reactive", fluxCost: 5, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, ifTarget: "tapped" } }] },
   BESTIA: { kind: "rubyfront", nexus: { face: 1, conditions: [{ count: 4, kind: "entity", race: "human" }], discard: { count: 1, kind: "entity" }, recovery: 5 },
     flipForms: [{ kind: "move", cardId: "EREDE", from: "field", to: "abisso" }, { kind: "seal", cardId: "EREDE" }] },
@@ -266,7 +269,7 @@ describe("enterReturns", () => {
     return card;
   }
 
-  it("i candidati sono le permanenti nella propria Zona di Ritiro", () => {
+  it("i candidati sono le permanenti nella propria Zona di Ritiro: Entità e Materie permanenti", () => {
     const state = newGame();
     const rhen = on(state, "rhen", "RHEN");
     inRitiro(state, "p1", "PERMANENTE");
@@ -275,8 +278,30 @@ describe("enterReturns", () => {
     inRitiro(state, "bp", "PERMANENTE", "b");
     const [step] = enterReturns(state, rhen, facts);
     expect(step.from).toBe("ritiro");
-    expect(step.candidates.map(card => card.uid)).toEqual(["p1"]);
+    // «Permanente» (§10) è quel che resta in campo: l'Entità e la Materia
+    // permanente. Non la Materia normale, non le carte dell'avversario.
+    expect(step.candidates.map(card => card.uid)).toEqual(["p1", "u1"]);
+    expect(step.frontFull).toBe(false);
     expect(describeReturn(step, facts)).toMatch(/«RHEN» si innesca/);
+  });
+
+  it("a Fronte pieno le Entità non tornano, le Materie permanenti sì (§6.2)", () => {
+    const state = newGame();
+    const rhen = on(state, "rhen", "RHEN");
+    // Cinque Entità sulla fila del Fronte: gli slot sono tutti presi.
+    FRONT_SLOT_X.forEach((x, index) => {
+      const card = on(state, `f${index}`, "UMANO");
+      card.x = x;
+      card.y = frontRowY("a");
+    });
+    inRitiro(state, "u1", "UMANO");
+    const [pieno] = enterReturns(state, rhen, facts);
+    expect(pieno.candidates).toEqual([]);
+    expect(pieno.frontFull).toBe(true);
+    inRitiro(state, "p1", "PERMANENTE");
+    const [conMateria] = enterReturns(state, rhen, facts);
+    expect(conMateria.candidates.map(card => card.uid)).toEqual(["p1"]);
+    expect(conMateria.frontFull).toBe(true), "l'Entità resta fuori";
   });
 
   it("resolveReturn manda il toZone verso il campo marcato come effetto", async () => {
@@ -675,7 +700,7 @@ describe("resolveSteps", () => {
     on(state, "u3", "UMANO");
     expect(resolveSteps(state, c, facts)[0].blocked).toBeNull();
     expect(resolveSteps(state, c, facts)[0].candidates.map(x => x.uid)).toEqual(["u1", "u2", "u3"]);
-    expect(playsAsBlock(facts("COORDINATO"))).toBe(true);
+    expect(playsAsBlock(facts("COORDINATO"))).toBe(false);
     expect(playsAsBlock(facts("FORMAZIONE"))).toBe(false);
   });
 

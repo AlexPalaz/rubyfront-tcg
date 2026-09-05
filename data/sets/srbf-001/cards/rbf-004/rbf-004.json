@@ -44,23 +44,26 @@
           "displayKey": "avenge",
           "event": "on_attack",
           "details": {
-            "oncePerEachOfYourTurns": true
+            "requiresAttackersThisTurnAtLeast": {
+              "count": 2,
+              "filter": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              }
+            }
           },
           "effect": {
-            "type": "empower",
+            "type": "restrict_action",
             "target": {
               "cardType": "entity",
-              "race": "human",
-              "controller": "controller",
+              "controller": "opponent",
+              "zone": "front",
+              "owner": "opponent",
               "min": 1,
-              "max": 1,
-              "details": {
-                "nextAttackerThisTurn": true
-              }
+              "max": 1
             },
-            "grants": [
-              "revenge"
-            ],
+            "restricts": "block",
             "duration": "until_end_of_turn"
           }
         }

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "all": "node scripts/dev.mjs"
+    "all": "node scripts/dev.mjs",
+    "mazzi": "node scripts/mazzi.mjs"
   }
 }

@@ -18,7 +18,7 @@
     "name": "Scudo Riflesso",
     "effect": {
       "name": "Effetto",
-      "text": "Giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
+      "text": "Gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
     },
     "flavor": "Il muro che non c'era, finché non ci hai sbattuto contro."
   },

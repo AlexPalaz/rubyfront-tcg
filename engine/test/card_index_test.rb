@@ -19,6 +19,8 @@ class CardIndexTest < Minitest::Test
   # vi compare, è una forma rotta o un dato cambiato di nascosto — e il test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBITO = [
+    "RBF-004 entity/avenge",
+    "RBF-007 entity/loose",
     "RBF-023 rubyfront/schism-forge",
     "RBF-023 nexus/awakening",
     "RBF-023 nexus/deep-forge-sight",
@@ -92,16 +94,23 @@ class CardIndexTest < Minitest::Test
     assert_equal [], @index["RBF-007"][:enter_listeners], "un move_card all'ingresso non è la forma certificata"
   end
 
-  def test_l_arciere_manda_un_entita_avversaria_in_ritiro
-    assert_equal [{ target: { type: "entity", controller: "opponent" }, to: "ritiro" }], @index["RBF-007"][:enter_moves]
+  def test_l_arciere_non_ha_piu_la_forma_dello_spostamento_in_ritiro
+    # Dal 2026-09-04 l'Arciere esilia nell'Abisso «finché resta in campo»
+    # (revisione del foglio del designer): forma ignota, non fraintesa.
+    assert_equal [], @index["RBF-007"][:enter_moves]
+    forma = { "target" => { "cardType" => "entity", "controller" => "opponent", "zone" => "front", "owner" => "opponent", "min" => 1, "max" => 1 },
+              "destination" => { "zone" => "retire" } }
+    refute_nil Rubyfront::CardIndex.enter_moves([{ "triggers" => [{ "event" => "on_enter_field", "effect" => forma.merge("type" => "move_card") }] }]).first, "la forma resta leggibile, anche senza una carta che la porti"
     assert_equal [], @index["RBF-003"][:enter_moves], "un ascoltatore non è uno spostamento di chi entra"
     assert_equal [], @index["RBF-012"][:enter_moves], "dalla propria Zona di Ritiro al Fronte è un'altra forma"
   end
 
   def test_rhen_riporta_una_permanente_dalla_zona_di_ritiro
-    forma = [{ from: "ritiro", filter: { type: "matter", behavior: "permanent" }, to: "field" }]
-    assert_equal forma, @index["RBF-012"][:enter_returns]
-    assert_equal forma, @index["RBF-012"][:attack_returns], "e anche quando attacca"
+    # Solo «quando attacca» (decisione del designer, 2026-09-04): l'innesco
+    # d'ingresso è stato tolto dalla carta.
+    forma = [{ from: "ritiro", filter: { permanent: true }, to: "field" }]
+    assert_equal forma, @index["RBF-012"][:attack_returns]
+    assert_equal [], @index["RBF-012"][:enter_returns], "non più all'ingresso"
     assert_equal [], @index["RBF-012"][:attack_draws], "Rhen riporta, non pesca"
   end
 
@@ -116,7 +125,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [["refresh", "self", 0]], forme.call("RBF-011")
     assert_equal [["heal", "permanent", 0]], forme.call("RBF-022")
     assert_equal [["heal", "rubyfront", 0], ["heal", "rubyfront", 1]], forme.call("RBF-001")
-    assert_equal [["empower", "self", 0]], forme.call("RBF-004")
+    assert_equal [], forme.call("RBF-004"), "«se almeno 2 Umani attaccano» (2026-09-04) è una forma ignota: resta a mano"
     assert_equal [["empower", "self", 0]], forme.call("RBF-005")
     # I dettagli che contano: dadi, soglie, destinazioni, seguiti.
     assert_equal({ die: 6, on_roll: [5, 6], count: 4, reveal_to: "hand", rest_to: "ritiro" }, @index["RBF-034"][:attack_forms][1].slice(:die, :on_roll, :count, :reveal_to, :rest_to))
@@ -125,7 +134,6 @@ class CardIndexTest < Minitest::Test
     assert_equal({ die: 20, on_roll: [15, 20] }, @index["RBF-011"][:attack_forms][0].slice(:die, :on_roll))
     assert_equal({ gain_on: [1, 6], drain_on: [15, 20] }, @index["RBF-022"][:attack_forms][0].slice(:gain_on, :drain_on))
     assert_equal [0, 1], @index["RBF-001"][:attack_forms].map { |form| form[:then_draw] }, "solo il Nexus pesca"
-    assert_equal({ targets: "next_human_attacker", grants: ["revenge"] }, @index["RBF-004"][:attack_forms][0].slice(:targets, :grants))
     assert_equal({ count: 2, race: "human" }, @index["RBF-005"][:attack_forms][0][:requires_previous_attackers])
   end
 
@@ -148,8 +156,8 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }], forme.call("RBF-018")
     assert_equal [{ kind: "fortune", die: 20, gain: { on: [1, 6], amount: 4 }, deploy: { on: [7, 13], filter: { type: "entity", race: "human", max_cost: 2 } },
                     draw: { on: [14, 19], count: 1 }, all_on: [20, 20] }], forme.call("RBF-019")
-    assert_equal [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, as_block: true, requires: { count: 3, race: "human" } }], forme.call("RBF-020")
-    assert_equal [{ kind: "block", requires_armed: 2, heal: 3, as_block: true }], forme.call("RBF-040"), "RBF-040: giocata come blocco, con 2 armati +3 PV"
+    assert_equal [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, requires: { count: 3, race: "human" } }], forme.call("RBF-020"), "RBF-020: in Reazione, senza bloccare"
+    assert_equal [{ kind: "block", requires_armed: 2, heal: 3, as_block: true }], forme.call("RBF-040"), "RBF-040: bloccante di un'Entità attaccante, con 2 armati +3 PV"
     assert_equal [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" } }], forme.call("RBF-021")
     assert_equal [], forme.call("RBF-038"), "«poi perdi 2 PV» è un seguito ignoto: la forma non entra"
     assert_equal [], forme.call("RBF-022"), "la permanente degli Eredi si innesca all'attacco, non alla risoluzione"

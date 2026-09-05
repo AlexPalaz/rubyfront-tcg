@@ -230,11 +230,10 @@ The player may **retire** their own Entities from the Front: the retired Entity 
 
 ### 6.3 Front Phase (combat)
 
-Once the Preparation Phase is over, the active player **declares entry into the Front Phase**. The phase is **optional**: the player may also end the turn directly from the Preparation Phase, without declaring it. In that case **there is no Pre-Front** and no window to play Reactives opens that turn. If declared, the phase unfolds in this order:
+Once the Preparation Phase is over, the active player **declares entry into the Front Phase**. The phase is **optional**: the player may also end the turn directly from the Preparation Phase, without declaring it. In that case **no window to play Reactives opens** that turn. If declared, the phase unfolds in this order:
 
-1. **Pre-Front:** once the opening of the Front is declared, **the opponent may play Reactive Matters**. The active player may respond with the response chain (§7.2).
-2. **The active player's Reactive window:** once the Pre-Front is over, the active player may play their own Reactive Matters (the opponent may respond in a chain, §7.2).
-3. **Front ready — attack declaration (or pass):** the active player **selects all the Entities they attack with** and declares them **in a single wave** — or declares that they pass. **After the declaration no more Reactives can be *started***, with a single exception: a Reactive played as a block (§6.4). **Chain responses** (§7.2) always remain possible: every Reactive played can be answered with other Reactives.
+1. **The active player's Reactive window:** once the opening of the Front is declared, the active player may play their own Reactive Matters (the opponent may respond in a chain, §7.2).
+2. **Front ready — attack declaration (or pass):** the active player **selects all the Entities they attack with** and declares them **in a single wave** — or declares that they pass. **After the declaration the active player can no longer *start* Reactives**: the defender's Reactives are played in the Reaction Phase (§6.4). **Chain responses** (§7.2) always remain possible: every Reactive played can be answered with other Reactives.
 
 Once the wave is declared, the word passes to the defender: you enter the **Reaction Phase** (§6.4). If instead the player **passes**, there is no Reaction and you go to the End of turn (§6.5).
 
@@ -252,7 +251,7 @@ Once the wave is declared, the word passes to the defender: you enter the **Reac
 #### Blocking
 
 - The **defender may choose to block** with their own Entities, deciding whether or not to let the attack through to the Rubyfront.
-- **Reactive Matters can also block attacks**, if the card's text provides for it (and there is Flux to pay for them): when blocks are declared, the defender may assign one of these Reactives to an attacker **in place of one of their own Entities** (§6.3, point 4).
+- **Reactive Matters can also block attacks**, if the card's text says it is played **as a blocker of an Entity** (and there is Flux to pay for them): when blocks are declared, the defender may assign one of these Reactives to an attacker **in place of one of their own Entities** (§6.4). A Reactive whose text doesn't say what it blocks **blocks nothing**: it is played in the Reaction Phase for its effect.
 - The challenge is always **1 against 1**: each attacker may be blocked by **a single Entity**, and each Entity may **block only once per turn**.
 - A **tapped** Entity **cannot block** (e.g. because it attacked on its own previous turn).
 - **When an Entity blocks it is tapped.**
@@ -308,7 +307,8 @@ Resolution of the counterattack (total = Power + N against the attacker's Power)
 
 The **defender's** phase, inside the attacker's turn: once the wave is declared, the word passes to them — **the attacker adds no more attacks** and waits for the reaction. The defender, **having seen the whole wave**, decides how to react:
 
-- **assigns their blocks**: each attacker may be blocked by **one of their own Entities** (1-against-1 challenges: one blocker per attacker, each Entity blocks only once; whoever blocks taps, whoever counterattacks is covered), **or** by a **Reactive Matter whose text allows blocking** (paying its Flux cost): the Reactive replaces the blocker for that attack. **There is no Power comparison** (the Reactive has none): the attack is **blocked anyway**, and the attacker's fate, if any, is set by the **Reactive's text**. Like every Reactive, **it opens the response chain** (§7.2): the attacker may respond;
+- **plays their own Reactive Matters**: the Reaction Phase is the **defender's window** for Reactives (§7.2). Every Reactive opens the response chain: the attacker may respond, only with Reactives;
+- **assigns their blocks**: each attacker may be blocked by **one of their own Entities** (1-against-1 challenges: one blocker per attacker, each Entity blocks only once; whoever blocks taps, whoever counterattacks is covered), **or** by a **Reactive Matter whose text says it is played as a blocker of an Entity** (paying its Flux cost): the Reactive replaces the blocker for that attack. **There is no Power comparison** (the Reactive has none): the attack is **blocked anyway**, and the attacker's fate, if any, is set by the **Reactive's text**. Like every Reactive, **it opens the response chain** (§7.2): the attacker may respond;
 - or **doesn't block**, in whole or in part: the attacks let through will reach the Rubyfront at resolution.
 
 **Resolution:** once the Reaction is over (blocks assigned, or the defender waives), the battles resolve one at a time, **in the order in which the attackers were declared** (Power comparison for each pair; unblocked attacks deal damage to the Rubyfront). Then the turn ends (§6.5).
@@ -385,9 +385,9 @@ Every Matter card has a **description with an effect**. Depending on the wording
 
 - It is played **only in the Front Phase**. Reactives can be boosts to attacks and defences, but also **special effects of any kind**. A Reactive **is never an "attack"** in the sense of the combat rules (§6.3): any damage it deals is effect damage (which for a Rubyfront on the field still counts as HP loss; the Rubyfront takes it and stays on the field, §3.1).
 - **Nobody can step in whenever they please:** Reactives are played only in the windows provided.
-- **The opponent's window (Pre-Front):** at the opening of the Front Phase, before the attack declaration, the opponent may play Reactives (§6.3).
-- **The active player's window:** after the Pre-Front and before declaring Front ready, the active player may play Reactives.
-- **After the attack declaration no more Reactives are *started***, with a single exception: the defender's Reactives **played as a block**, assigned to an attacker in place of an Entity (§6.3). A Reactive played this way opens a **normal response chain**: you respond **only with Reactives**, as in every chain. Boosts played *on your own initiative*, instead, must be played **before** the attack declaration, "in advance": they are a gamble for both.
+- **The active player's window:** at the opening of the Front Phase, before declaring Front ready, the active player may play Reactives (§6.3).
+- **The defender's window (Reaction Phase):** once the wave is declared, the defender may play Reactives (§6.4) — including those whose text says they are played **as a blocker of an Entity**, assigned to an attacker in place of an Entity. The card's text always says **what** it blocks: a Reactive that doesn't say so blocks nothing.
+- **After the attack declaration the active player no longer *starts* Reactives**: boosts played *on their own initiative* by the attacker must be played **before** the attack declaration, "in advance": they are a gamble for both. If the active player doesn't declare a wave, there is no Reaction and the defender has no window that turn.
 - In every window, whoever is hit by the Reactive may **respond** (see response chain).
 
 #### Response chain
@@ -541,7 +541,6 @@ A draw exists in only two cases:
 - **Damage** — HP loss: only the Rubyfront and the Nexus can take it. Entities never take damage (cards that hit them use explicit wordings such as "destroy").
 - **Matter** — a spell/event card, playable only if a matching type is enabled by a card on the field. Three behaviours: normal, permanent, Reactive.
 - **Reactive Matter** — a Matter playable only in the Front Phase; it triggers the response chain (resolution in reverse order).
-- **Pre-Front** — the window at the start of the Front Phase in which the opponent may play Reactive Matters before the attack declaration.
 - **Object** — a card with a Flux cost that is assigned to an Entity (with no limit of Objects per Entity), paying it in the Preparation Phase on every assignment made **from the hand** — even when the Object has returned there after already having been on the field. An effect that brings it back onto the field **directly from the Abyss or the Retire Zone** makes you pay nothing (§3.1). It follows the Entity that leaves the field (Abyss or Retire Zone), but **doesn't come back with it**: an Entity re-entering the field always re-enters unarmed (§3.1).
 - **Ability** — a keyword with rules predefined by this rulebook (see §8.1).
 - **Fury** — ability exclusive to the Rubyfront/Nexus, tied to **special abilities**: before using one you need a d20 ≥12; with 11 or less you lose **1 HP** but the ability is used anyway. Matters (Destructive included), deployment and the flip require no roll (§8.1).

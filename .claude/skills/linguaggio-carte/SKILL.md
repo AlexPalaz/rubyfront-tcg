@@ -76,7 +76,8 @@ esiste: è la Zona di Ritiro), «Zona del Fronte» (si dice **Fronte**), «fase 
 combattimento» (si dice **Fase di Fronte**, MANUALE §6.3), «Se controlli …» /
 "If you control …" (linguaggio Magic, bandito dal designer il 2026-08-28: la
 condizione di presenza si scrive sul **Fronte** — vedi le formule «Presenza
-sul Fronte»). I **nomi propri** di
+sul Fronte»), «Gioca questa carta come blocco» senza dire **cosa** blocca
+(decisione del designer, 2026-09-05: vedi «Blocco diretto», più sotto). I **nomi propri** di
 carta si traducono (es. «Rubifronte del Patto» → "Rubyfront of the Pact"), il
 termine generico resta «Rubyfront» in entrambe le lingue. I nomi dei Rubyfront
 si scrivono **sempre per esteso** nei dati («Rhazmora, Rubifronte della
@@ -157,11 +158,13 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Controllo temporaneo | Prendi il controllo di un'Entità avversaria … fino alla fine del turno. | Gain control of an opposing Entity … until end of turn. |
 | Divieto di blocco | quell'Entità non può bloccare in questo turno | that Entity cannot block this turn |
 | Blocco multiplo | può essere bloccata da più Entità | may be blocked by multiple Entities |
-| Giocata come blocco | Gioca questa carta come blocco. | Play this card as a block. |
+| Blocco diretto di un'Entità | Gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è bloccato. | Play this card as a blocker of an attacking Entity: that attack is blocked. |
+| Blocco diretto di una Materia | Gioca questa carta come bloccante di una Materia: … | Play this card as a blocker of a Matter: … |
 | Scavo dalla cima | Guarda le prime N carte del tuo mazzo. Puoi mostrare … e aggiungerla alla tua mano. Metti le altre in fondo al mazzo. | Look at the top N cards of your deck. You may reveal … and add it to your hand. Put the rest on the bottom of your deck. |
 | Scavo verso il Ritiro | Guarda le prime N carte del tuo mazzo. Puoi mostrare … e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo. | Look at the top N cards of your deck. You may reveal … and put it into your Retire Zone. Put the rest on the bottom of your deck. |
 | Dal Ritiro al Fronte | metti sul tuo Fronte un'Entità … dalla tua Zona di Ritiro | put an Entity … from your Retire Zone onto your Front |
 | Esilio condizionato | Manda nell'Abisso …. Finché questa carta resta in gioco, … resta nell'Abisso. Quando questa carta lascia il gioco, … torna in gioco. | Send … to the Abyss. As long as this card remains in play, … stays in the Abyss. When this card leaves play, … returns to play. |
+| Esilio condizionato (da un'Entità) | Manda nell'Abisso …. Finché questa Entità resta in campo, … resta nell'Abisso. Quando questa Entità lascia il campo, … torna in gioco. | Send … to the Abyss. As long as this Entity remains on the field, … stays in the Abyss. When this Entity leaves the field, … returns to play. |
 | Rimozione senza morte | Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. | Put an opposing Entity into its owner's Retire Zone. |
 | Sconto condizionato | Se questa carta bersaglia …, costa N Flussi in meno. | If this card targets …, it costs N less Flux. |
 | Sconto condizionato su sé stessa | Se sul tuo Fronte ci sono almeno N …, questa carta costa N Flusso/i in meno. | If there are at least N … on your Front, this card costs N less Flux. |
@@ -173,11 +176,23 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Presenza sul Fronte (conteggio) | Se sul tuo Fronte ci sono almeno N …, … | If there are at least N … on your Front, … |
 
 **Rimozione: quale zona.** Una rimozione che deve **tornare in gioco** usa
-l'«Esilio condizionato» sull'**Abisso** (RBF-018, RBF-043): la carta che la
-tiene ferma è anche la condizione del ritorno. Una rimozione definitiva ma che
+l'«Esilio condizionato» sull'**Abisso** (RBF-018, RBF-043; nella variante
+da Entità, RBF-007): la carta che la tiene ferma è anche la condizione del
+ritorno. Una rimozione definitiva ma che
 **non è una morte** — non innesca gli effetti di morte e lascia la carta «viva»
 — usa la **Zona di Ritiro del proprietario** (RBF-044). «Zona di Requiem» non
 esiste: è il nome deprecato della Zona di Ritiro.
+
+**Blocco: si scrive sempre COSA si blocca.** La formula «Gioca questa carta
+come bloccante di …» è riservata ai **blocchi diretti**: una Materia che
+sostituisce il bloccante contro un'Entità attaccante (RBF-040, MANUALE §6.4)
+o che blocca una Materia. Il testo dice sempre cosa blocca — un'Entità o una
+Materia — mai un «come blocco» generico. Una Reattiva che **non blocca**
+nulla (RBF-020: stappa gli Umani e concede Contrattacco) non porta la
+formula: si gioca nella finestra del difensore, la Fase di Reazione (§6.4,
+§7.2), e il testo dice solo il suo effetto. La variante «bloccante di una
+Materia» è la formula pronta per quando il manuale ne scriverà la regola:
+oggi nessuna carta la usa.
 
 **La ridondanza utile si scrive.** Quando il testo di una carta ripete una
 regola del manuale, la ripetizione **si tiene** (decisione del designer,

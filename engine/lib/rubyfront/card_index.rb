@@ -88,9 +88,9 @@ module Rubyfront
     #   RBF-017 { kind: "move", target: { type: "entity", controller: "opponent", max_cost: }, to: "ritiro" }
     #   RBF-018 { kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }
     #   RBF-019 { kind: "fortune", die:, gain: { on:, amount: }, deploy: { on:, filter: }, draw: { on:, count: }, all_on: }
-    #   RBF-020 { kind: "empower", targets: "own_entities", race:, counter:, untap: true, as_block: true, requires: { count:, race: } }
+    #   RBF-020 { kind: "empower", targets: "own_entities", race:, counter:, untap: true, requires: { count:, race: } } — in Reazione, senza bloccare
     #   RBF-021 { kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount:, if_target: "tapped" } }
-    #   RBF-040 { kind: "block", requires_armed:, heal:, as_block: true } — giocata come blocco a un attaccante (§6.4); con N armati sul Fronte, +M PV
+    #   RBF-040 { kind: "block", requires_armed:, heal:, as_block: true } — giocata come bloccante di un'Entità attaccante (§6.4); con N armati sul Fronte, +M PV
     #
     # `flip_forms` sono gli effetti «quando flippa» CERTIFICATI del Nexus
     # (§3.1), evento `on_flip`: RBF-001 { kind: "move", card_id:, from:
@@ -259,7 +259,10 @@ module Rubyfront
         next unless from.is_a?(Hash) && from["zone"] == "retire" && from["owner"] == "controller"
         next unless destination.is_a?(Hash) && destination["zone"] == "front"
 
-        { from: "ritiro", filter: { type: "matter", behavior: "permanent" }.freeze, to: "field" }.freeze
+        # «una carta permanente» (§10): quel che resta in campo — un'Entità
+        # o una Materia permanente, mai il Rubyfront, mai un Oggetto. Stessa
+        # lettura dell'esilio di RBF-018. Gemello: renderer.ts, enterReturnsOf.
+        { from: "ritiro", filter: { permanent: true }.freeze, to: "field" }.freeze
       end
     end
 
@@ -623,7 +626,7 @@ module Rubyfront
         reveal_to: "hand", rest_to: "deck", show_up_to: extra["maxRevealed"] || 1 }
     end
 
-    # RBF-016 (stappa un'Entità Umana: +1 Potenza) e RBF-020 (come blocco: stappa gli Umani, Contrattacco +1).
+    # RBF-016 (stappa un'Entità Umana: +1 Potenza) e RBF-020 (in Reazione, senza bloccare: stappa gli Umani, Contrattacco +1).
     def self.resolve_untap(effect)
       return nil unless effect["type"] == "untap"
 
@@ -635,17 +638,17 @@ module Rubyfront
       if target["min"] == 1 && target["max"] == 1 && extra["thenPowerBonus"].is_a?(Integer) && extra.keys.sort == %w[duration thenPowerBonus]
         return { kind: "empower", targets: "own_entity", race: race, power: extra["thenPowerBonus"], untap: true }
       end
-      if target["quantity"] == "all" && extra["playedAsBlock"] == true && extra["thenCounterattackBonus"].is_a?(Integer)
+      if target["quantity"] == "all" && extra["thenCounterattackBonus"].is_a?(Integer)
         requires = extra["requiresControlledAtLeast"]
         return nil unless requires.is_a?(Hash) && requires["count"].is_a?(Integer) && own_target?(requires["filter"], "entity")
 
-        return { kind: "empower", targets: "own_entities", race: race, counter: extra["thenCounterattackBonus"], untap: true, as_block: true,
+        return { kind: "empower", targets: "own_entities", race: race, counter: extra["thenCounterattackBonus"], untap: true,
                  requires: { count: requires["count"], race: requires["filter"]["race"].is_a?(String) ? requires["filter"]["race"] : nil }.freeze }
       end
       nil
     end
 
-    # RBF-040: «giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo
+    # RBF-040: «gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è bloccato. Se sul tuo
     # Fronte ci sono almeno N Entità con un Oggetto assegnato, guadagni M PV». Gemello: renderer.ts, resolveBlock.
     def self.resolve_block(effect)
       return nil unless effect["type"] == "block_attack"

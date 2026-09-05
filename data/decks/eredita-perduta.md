@@ -1,7 +1,7 @@
 # Eredità Perduta — precon Umani (40 carte + Rubyfront)
 
 > **Status:** DRAFT. Allineato al foglio del designer *Precon_Umani_FINAL*
-> (27 agosto 2026). Ogni numero è contato dai dati in
+> (27 agosto 2026) e alla sua revisione del 4 settembre 2026. Ogni numero è contato dai dati in
 > `data/sets/srbf-001/cards/`. Sostituisce il vecchio precon "Primi Eredi",
 > rimosso insieme alle sue carte.
 
@@ -63,9 +63,10 @@ Tre soglie contano, e sono tutte sullo stesso numero:
   Contrattacco Coordinato stappa tutta la linea.
 - **4 Umani in campo** → si apre il Nexus.
 
-L'**ordine degli attacchi** è la seconda leva: il Vendicatore dei Dimenticati
-passa Vendetta alla *prossima* Entità che attacca, quindi si dichiara prima
-lui; il Guaritore cura a ogni attacco; Per Vhal Astra! tira il d20 sul
+La **carica in compagnia** è la seconda leva: il Vendicatore dei Dimenticati,
+se attacca insieme ad almeno un altro Umano, toglie all'avversario un
+bloccante; il Predone fa lo stesso guardando alla carica del turno prima;
+il Guaritore cura a ogni attacco; Per Vhal Astra! tira il d20 sul
 numero di attaccanti del turno. Chi attacca a caso perde metà del mazzo.
 
 ## 4. Abilitazione delle Materie — il punto da verificare
@@ -96,9 +97,10 @@ bloccate in mano nei turni in cui servirebbero.
 - **Il Fronte ha 5 slot** (§6.2). Il mazzo riempie in fretta e ha tre effetti
   che *mettono in campo* Entità (Simulacro, Forza della Radura, Chiamata dei
   Sette, Ritorno al Fronte): con il Fronte pieno vanno sprecati.
-- **Arciere della Radura Argentata**: 3 Flussi, entra e manda in Ritiro
-  un'Entità avversaria qualsiasi, senza condizioni. È la carta che il foglio
-  di playtest segnala sotto «removal troppo economiche».
+- **Arciere della Radura Argentata**: 3 Flussi, entra e manda nell'Abisso
+  un'Entità avversaria qualsiasi. Dal 2026-09-04 l'esilio dura finché
+  l'Arciere resta in campo: la risposta del foglio di playtest a «removal
+  troppo economiche» è che ora basta ucciderlo per riavere l'Entità.
 - **Rhen a 6 Flussi** è l'unica carta oltre il quinto turno: se la partita
   arriva lì, il mazzo ha già perso il suo tempo migliore.
 
@@ -110,12 +112,14 @@ più difendibile e lo dicono nella propria nota di design:
 | Carta | Punto aperto | Lettura adottata |
 |---|---|---|
 | Predone delle Terre Infrante | nessun innesco indicato | Quando attacca |
+| Vendicatore dei Dimenticati | «Zona del Fronte avversaria», attaccanti di quale turno | un'Entità avversaria; questo turno, quando attacca |
+| Arciere della Radura Argentata | esilio «fintanto che resta sul campo», senza il dopo | torna in gioco quando l'Arciere lascia il campo |
 | Simulacro di Vhal Astra | «Zona di Riposo» | Zona di Ritiro |
 | Rhen, Erede di Vhal Astra | «un permanente» dal Ritiro | Entità o Oggetto |
 | Ajmal | la Fase di Fronte in più è condizionata? | sì, al 15–20 |
 | Formazione Infrangibile | frase interrotta nel foglio | stappo **più** +1 Potenza |
 | Forza della Radura | da dove arriva l'Entità | dalla mano |
-| Contrattacco Coordinato | «gioca come blocco» | serve una regola nel manuale |
+| Contrattacco Coordinato | «gioca come blocco» | non blocca: Reattiva del difensore in Fase di Reazione (§6.4, 2026-09-05) |
 | Attrazione Argentata | mostra 2, ne prendi 1 | riportata alla lettera |
 | Campo Repulsivo | citava «Condanna del Comandante» | «questa carta» |
 | Per Vhal Astra! | fasce con un buco | 1–6 · 7–14 niente · 15–20 |

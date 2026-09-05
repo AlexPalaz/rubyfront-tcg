@@ -28,7 +28,7 @@
       "displayKey": "face",
       "race": "simulacrum",
       "stats": {
-        "power": 3,
+        "power": 1,
         "fluxCost": 4
       },
       "enablesMatters": [

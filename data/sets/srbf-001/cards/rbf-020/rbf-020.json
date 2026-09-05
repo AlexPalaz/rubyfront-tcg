@@ -20,7 +20,7 @@
     "reactive",
     "counterattack"
   ],
-  "rulesReference": "MANUALE.md §6.3, §7.2",
+  "rulesReference": "MANUALE.md §6.4, §7.2",
   "faces": [
     {
       "id": "matter",
@@ -51,7 +51,6 @@
               "quantity": "all"
             },
             "details": {
-              "playedAsBlock": true,
               "requiresControlledAtLeast": {
                 "count": 3,
                 "filter": {

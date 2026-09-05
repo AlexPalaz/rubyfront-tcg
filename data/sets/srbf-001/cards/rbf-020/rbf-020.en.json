@@ -1,7 +1,7 @@
 {
   "name": "Coordinated Counterattack",
   "typeLabel": "Dynamic Matter II",
-  "summary": "It is played as a block and puts the whole line back on its feet.",
+  "summary": "Played in Reaction, it puts the whole line back on its feet.",
   "ui": {
     "face": "Matter"
   },
@@ -18,7 +18,7 @@
     "name": "Coordinated Counterattack",
     "effect": {
       "name": "Effect",
-      "text": "Play this card as a block. If there are at least 3 Human Entities on your Front, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
+      "text": "If there are at least 3 Human Entities on your Front, untap the Human Entities you control: they gain Counterattack +1 until end of turn."
     },
     "flavor": "No one shouts the order. They turn together."
   },

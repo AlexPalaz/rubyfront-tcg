@@ -127,9 +127,10 @@ export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string
     for (const block of blocks) {
       const blocker = onField(block.from)!;
       const blockerFacts = facts(blocker.cardId);
-      // Una Reattiva giocata come blocco (§6.4): «non c'è confronto di
-      // Potenza, l'attacco è comunque bloccato, la sorte dell'attaccante la
-      // stabilisce il testo» — RBF-020 non dice nulla — e si consuma.
+      // Una Reattiva giocata come bloccante di un'Entità (§6.4): «non c'è
+      // confronto di Potenza, l'attacco è comunque bloccato, la sorte
+      // dell'attaccante la stabilisce il testo» — RBF-040 non dice nulla —
+      // e si consuma.
       if (blockerFacts.kind === "matter") {
         battles.push({ attacker: attack.from, blocker: block.from, kind: "block", attackerDies: false, blockerDies: false, damage: 0, blockerSpent: true });
         continue;

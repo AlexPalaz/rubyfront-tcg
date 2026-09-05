@@ -204,6 +204,43 @@ function showEnterPeekNow(root: HTMLElement, show: EnterEffectShow): Promise<voi
  * agire si chiede «davvero?». Un pannello piccolo al centro, «Conferma» o
  * «Annulla» (Invio ed Esc). Risolve true se si conferma.
  */
+/**
+ * Un avviso a un tasto solo: qualcosa non si è potuto fare, e il giocatore
+ * deve saperlo prima di andare avanti — «a Fronte pieno anche la parte
+ * d'effetto che metterebbe in campo non si applica» (§6.2). Stesso pannello
+ * della conferma, senza la scelta.
+ */
+export function noticeEffect(root: HTMLElement, message: string): Promise<void> {
+  const veil = document.createElement("div");
+  veil.className = "effect-confirm";
+  const panel = document.createElement("div");
+  panel.className = "effect-confirm-panel";
+  const text = document.createElement("p");
+  text.textContent = message;
+  const row = document.createElement("div");
+  row.className = "effect-confirm-row";
+  const okay = document.createElement("button");
+  okay.type = "button";
+  okay.className = "effect-go";
+  okay.textContent = t("stop.ok");
+  row.append(okay);
+  panel.append(text, row);
+  veil.append(panel);
+  root.append(veil);
+  return new Promise(resolve => {
+    const done = (): void => {
+      document.removeEventListener("keydown", onKey);
+      veil.remove();
+      resolve();
+    };
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === "Enter" || event.key === "Escape") done();
+    };
+    okay.addEventListener("click", done);
+    document.addEventListener("keydown", onKey);
+  });
+}
+
 export function confirmEffect(root: HTMLElement, question: string, labels?: { yes: string; no: string }): Promise<boolean> {
   const veil = document.createElement("div");
   veil.className = "effect-confirm";

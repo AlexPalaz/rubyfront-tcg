@@ -11,7 +11,7 @@
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
 import type { AttackForm, FlipForm, ResolveForm } from "./ctx.js";
 import type { CardFacts, Ctx, EnterLook } from "./ctx.js";
-import { controllerOf, fieldCards, inPlay, playSpot, zoneCards } from "./state.js";
+import { controllerOf, fieldCards, inPlay, playSpot, zoneCards, freeFrontSlotOrNull } from "./state.js";
 import { countEntities } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
@@ -46,6 +46,8 @@ export interface EnterReturnStep {
   event: EffectRef["event"];
   from: "ritiro";
   candidates: CardInstance[];
+  /** Il Fronte pieno ha tolto dei candidati (§6.2): il tavolo lo dice. */
+  frontFull: boolean;
 }
 
 /**
@@ -61,15 +63,24 @@ export function returnsFor(
   event: EffectRef["event"]
 ): EnterReturnStep[] {
   const forms = event === "on_attack" ? facts(source.cardId).attackReturns : facts(source.cardId).enterReturns;
-  return forms.map(ret => ({
-    source,
-    event,
-    from: ret.from,
-    candidates: zoneCards(state, controllerOf(source), ret.from).filter(card => {
-      const f = facts(card.cardId);
-      return f.kind === ret.filter.kind && f.behavior === ret.filter.behavior;
-    }),
-  }));
+  const seat = controllerOf(source);
+  // §6.2, Fronte pieno: «anche la parte d'effetto che metterebbe in campo
+  // non si applica». Riguarda le sole Entità — una Materia permanente sta
+  // dietro il Fronte e non occupa uno slot (§5).
+  const full = freeFrontSlotOrNull(state, seat) === null;
+  return forms.map(ret => {
+    const permanents = zoneCards(state, seat, ret.from).filter(card => permanentOf(card, facts));
+    const candidates = full ? permanents.filter(card => facts(card.cardId).kind !== "entity") : permanents;
+    return {
+      source,
+      event,
+      from: ret.from,
+      candidates,
+      // Il Fronte pieno ha tolto qualcosa: il tavolo lo dice, invece di
+      // aprire un pannello vuoto o di tacere.
+      frontFull: full && candidates.length < permanents.length,
+    };
+  });
 }
 
 export function enterReturns(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterReturnStep[] {
@@ -598,8 +609,8 @@ function resolveFired(state: GameState, source: CardInstance, step: string): boo
   return (state.fired ?? []).some(fired => step.endsWith(":") ? fired.startsWith(key) : fired === `${key}|${source.uid}`);
 }
 
-/** Un permanente avversario per RBF-018: un'Entità o una Materia permanente (mai il Rubyfront, mai un Oggetto). */
-function permanentOf(card: CardInstance, facts: (cardId: string) => CardFacts): boolean {
+/** Una carta «permanente» (§10): quel che resta in campo — un'Entità o una Materia permanente, mai il Rubyfront, mai un Oggetto. */
+export function permanentOf(card: CardInstance, facts: (cardId: string) => CardFacts): boolean {
   const f = facts(card.cardId);
   return f.kind === "entity" || (f.kind === "matter" && f.behavior === "permanent");
 }
@@ -727,10 +738,11 @@ export function discountedCost(state: GameState, cardId: string, target: CardIns
 }
 
 /**
- * La Materia «si gioca come blocco» (§7.2): nella finestra dei blocchi, in
- * Reazione. RBF-040 ferma davvero un attaccante; RBF-020 — lettura del
- * designer, 2026-09-04 — si gioca lì ma non ferma nessuno: il suo effetto
- * (stappa gli Umani, Contrattacco +1) è tutto quel che fa.
+ * La Materia «si gioca come bloccante di un'Entità attaccante» (§6.4):
+ * sostituisce il bloccante, in Reazione. Solo RBF-040. Una Reattiva che non
+ * dice cosa blocca (RBF-020) non blocca nulla — decisione del designer,
+ * 2026-09-05: si gioca in Reazione come ogni Reattiva del difensore, e il
+ * suo effetto (stappa gli Umani, Contrattacco +1) è tutto quel che fa.
  */
 export function playsAsBlock(facts: CardFacts): boolean {
   return facts.resolveForms.some(form => "asBlock" in form && form.asBlock);

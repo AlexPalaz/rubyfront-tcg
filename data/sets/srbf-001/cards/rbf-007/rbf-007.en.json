@@ -1,7 +1,7 @@
 {
   "name": "Archer of the Silver Glade",
   "typeLabel": "Entity: Human",
-  "summary": "A body that arrives by taking a body off the other side.",
+  "summary": "It arrives and takes an enemy body away for as long as it stands.",
   "ui": {
     "face": "Entity"
   },
@@ -15,7 +15,7 @@
     "name": "Archer of the Silver Glade",
     "loose": {
       "trigger": "When it enters the field",
-      "text": "Put an opposing Entity into its owner's Retire Zone."
+      "text": "Send an opposing Entity to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
     },
     "flavor": "It looses one arrow. A second is never needed."
   },
