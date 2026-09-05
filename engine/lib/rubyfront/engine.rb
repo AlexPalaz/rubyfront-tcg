@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.40.0"
+    VERSION = "0.41.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -75,6 +75,8 @@ module Rubyfront
       "§5 Le Entità restano nello slot in cui sono scese",
       "§7.2 Le Reattive in Reazione: RBF-040 blocca un'Entità attaccante e cura, RBF-020 stappa gli Umani senza bloccare",
       "§7.2 La catena di risposta: una Reattiva apre, l'avversario risponde o accetta, si risolve al contrario",
+      "§8.2 Effetti certificati: «quando entra, un d20: con 15–20 stappa tutte le Entità che controlli» (RBF-011, dal 2026-09-05)",
+      "§8.2 «Questa Entità non si tappa mai»: nessun gesto la tappa (RBF-011)",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -124,6 +126,8 @@ module Rubyfront
       "§5 Entities stay in the slot they came down on",
       "§7.2 Reactives in Reaction: RBF-040 blocks an attacking Entity and heals, RBF-020 untaps the Humans without blocking",
       "§7.2 The response chain: a Reactive opens it, the opponent answers or accepts, it resolves in reverse",
+      "§8.2 Certified effects: “when it enters, a d20: on 15–20 untap all Entities you control” (RBF-011, since 2026-09-05)",
+      "§8.2 “This Entity never taps”: no gesture taps it (RBF-011)",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -299,8 +303,30 @@ module Rubyfront
       when "release" then judge_release(action)
       when "flip" then judge_flip(action)
       when "gameOver" then judge_game_over(action)
+      when "tap" then judge_tap(action)
       else no_rule(action["t"])
       end
+    end
+
+    # §8.2 — «questa Entità non si tappa mai» (RBF-011, dal 2026-09-05): il
+    # gesto di tapparla è fermato, chiunque lo compia e per qualunque
+    # ragione — l'attacco (§6.3), un effetto, la mano. Stapparla passa
+    # sempre. Carta ignota all'anagrafe: silenzio. Limite dichiarato: la
+    # Stasi concessa (RBF-013) alla risoluzione la lascerebbe tappata; la
+    # copia non lo impedisce finché la risoluzione non legge lo statico.
+    def judge_tap(action)
+      return no_rule("tap") unless action["tapped"] == true
+
+      card = @table.card(action["uid"])
+      known = card && @cards[card[:card_id]]
+      return no_rule("tap") unless known
+      return refuse("tap", "questa Entità non si tappa mai (§8.2)", "this Entity never taps (§8.2)") if never_taps?(known)
+
+      allow("tap")
+    end
+
+    def never_taps?(known)
+      Array(known[:static_forms]).any? { |form| form[:kind] == "never_taps" }
     end
 
     # §3.1 — l'assegnazione di un Oggetto: solo alle PROPRIE Entità (salvo
@@ -742,9 +768,6 @@ module Rubyfront
       phase = action["phase"]
       return no_rule("phase") unless Table::PHASES.include?(phase)
 
-      # La Fase di Fronte addizionale (§8.2, RBF-011): dalla Reazione si
-      # torna al Fronte, una volta, se è dovuta.
-      return allow("phase") if phase == "fronte" && @table.phase == "reazione" && @table.extra_front
       if Table::PHASES.index(phase) < Table::PHASES.index(@table.phase)
         return refuse("phase", "la fase è a senso unico: in Preparazione si torna col cambio di turno (§6)", "phases go one way: Preparation comes back with the turn change (§6)")
       end
@@ -1074,9 +1097,6 @@ module Rubyfront
         return refuse(kind, "la Reazione la chiude chi difende: risolve l'ondata e passa il turno (§6.4)", "the defender closes the Reaction: resolves the wave and passes the turn (§6.4)")
       end
       return nil if actor == @table.active
-      # La Fase di Fronte addizionale (RBF-011) la apre chi chiude la
-      # Reazione, cioè il difensore (§6.4).
-      return nil if kind == "phase" && action["phase"] == "fronte" && @table.phase == "reazione" && @table.extra_front
 
       # I gesti di APPARECCHIATURA non hanno turno: caricare il proprio mazzo
       # (all'ingresso in stanza, nel turno di chiunque), «Nuova partita», il
@@ -1318,11 +1338,11 @@ module Rubyfront
         case kind
         when "empower" then return judge_attack_empower(action, ref)
         when "player" then return judge_attack_heal(action, ref)
-        when "refresh" then return judge_attack_refresh(action, ref)
         when "look" then return judge_attack_look(action, ref)
         when "declare" then return judge_declare(action)
         end
       end
+      return judge_enter_refresh(action, ref) if kind == "refresh"
       return judge_effect_move(action, ref) if kind == "toZone"
       return judge_effect_look(action, ref) if kind == "look"
       return judge_effect_control(action, ref) if kind == "control"
@@ -1623,22 +1643,30 @@ module Rubyfront
       nil
     end
 
-    # RBF-011: stappa tutte le proprie Entità; col tiro, la Fase di Fronte addizionale.
-    def judge_attack_refresh(action, ref)
-      stopped, source, attacker, forms = attack_context("refresh", action, ref)
+    # RBF-011 (dal 2026-09-05): «quando entra in campo, lancia un d20: con
+    # 15–20 stappa tutte le Entità che controlli». La fonte è chi entra —
+    # in campo, entrata questo turno, innesco non consumato; il client tira,
+    # l'engine verifica il tiro, la soglia, e che la stappata (`untap`)
+    # segua il tiro: col tiro mancato l'azione passa e non stappa nessuno,
+    # così l'innesco si consuma lo stesso.
+    def judge_enter_refresh(action, ref)
+      return refuse("refresh", "la stappata di chi entra è un innesco d'ingresso: l'azione dice un altro evento (§8.2)", "the untap of the entering card is an entry trigger: the action names another event (§8.2)") unless ref["event"] == "on_enter_field"
+
+      stopped = own_trigger_stopped("refresh", ref)
       return stopped if stopped
 
-      form = forms.find { |candidate| candidate[:kind] == "refresh" }
-      return refuse("refresh", "la carta non ha un effetto certificato che stappi quando attacca (§8.2)", "the card has no certified effect that untaps when it attacks (§8.2)") unless form
+      source = @table.card(ref["source"])
+      known = @cards[source[:card_id]]
+      return no_rule("refresh") unless known
 
-      stopped = attack_relation_stopped("refresh", form, ref, source, attacker)
-      return stopped if stopped
+      form = Array(known[:enter_refreshes]).first
+      return refuse("refresh", "la carta non ha un effetto certificato che stappi quando entra (§8.2)", "the card has no certified effect that untaps when it enters (§8.2)") unless form
       return refuse("refresh", "si stappano le Entità di chi comanda la fonte (§8.2)", "the Entities of whoever commands the source untap (§8.2)") unless action["seat"] == @table.controller_of(source)
 
       roll = action["roll"]
       return refuse("refresh", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
-      extra = in_range?(roll, form[:on_roll])
-      return refuse("refresh", "la Fase di Fronte addizionale c'è solo con #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)", "the additional Front Phase comes only with #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)") unless (action["extra"] == true) == extra
+      hit = in_range?(roll, form[:on_roll])
+      return refuse("refresh", "la stappata c'è solo con #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)", "the untap comes only with #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)") unless (action["untap"] == true) == hit
 
       allow("refresh")
     end

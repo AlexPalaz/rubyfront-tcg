@@ -64,6 +64,11 @@ export function countEntities(state: GameState, seat: Seat, race: string | null,
  * Entità Umana sul tuo Fronte» (RBF-014, portatrice compresa). Gemello:
  * engine.rb, static_power.
  */
+/** «Questa Entità non si tappa mai» (§8.2, RBF-011). Gemello: engine.rb, never_taps?. */
+export function neverTaps(facts: CardFacts): boolean {
+  return facts.staticForms.some(form => form.kind === "never_taps");
+}
+
 export function staticPower(state: GameState, card: CardInstance, facts: (cardId: string) => CardFacts): number {
   const seat = controllerOf(card);
   let bonus = 0;
@@ -213,8 +218,9 @@ export async function declareAttack(
   // niente riga — il gesto non è avvenuto.
   if (!passed) return false;
   // Il tap scatta alla dichiarazione dell'ondata (§6.3). Resta comunque
-  // libero: stapparla a mano non disfa la freccia.
-  if (!card.tapped) void ctx.dispatch({ t: "tap", uid: card.uid, tapped: true });
+  // libero: stapparla a mano non disfa la freccia. «Questa Entità non si
+  // tappa mai» (RBF-011): il gesto non parte.
+  if (!card.tapped && !neverTaps(ctx.card(card.cardId))) void ctx.dispatch({ t: "tap", uid: card.uid, tapped: true });
   ctx.log(msg("log.attack", { seat: by, n: order }), by);
   return true;
 }

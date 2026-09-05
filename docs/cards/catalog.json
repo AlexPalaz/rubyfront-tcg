@@ -1793,9 +1793,12 @@
               },
               "face": {
                 "name": "Ajmal, Re delle Terre Infrante",
-                "secondCharge": {
-                  "trigger": "Quando attacca",
-                  "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli e, dopo questa Fase di Fronte, c'è una Fase di Fronte addizionale."
+                "rally": {
+                  "trigger": "Quando entra in campo",
+                  "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli."
+                },
+                "effect": {
+                  "text": "Questa Entità non si tappa mai."
                 },
                 "flavor": "Le terre si sono spezzate sotto di lui. Lui ha continuato a camminare."
               },
@@ -1820,9 +1823,12 @@
               },
               "face": {
                 "name": "Ajmal, King of the Broken Lands",
-                "secondCharge": {
-                  "trigger": "When it attacks",
-                  "text": "Roll a d20: on 15–20 untap all Entities you control and, after this Front Phase, there is an additional Front Phase."
+                "rally": {
+                  "trigger": "When it enters the field",
+                  "text": "Roll a d20: on 15–20 untap all Entities you control."
+                },
+                "effect": {
+                  "text": "This Entity never taps."
                 },
                 "flavor": "The lands broke under him. He kept walking."
               },
@@ -1839,7 +1845,7 @@
             "unique",
             "combat"
           ],
-          "rulesReference": "MANUALE.md §6.3, §8.2",
+          "rulesReference": "MANUALE.md §6.2, §8.2",
           "faces": [
             {
               "id": "entity",
@@ -1861,9 +1867,9 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "second-charge",
-                  "displayKey": "secondCharge",
-                  "event": "on_attack",
+                  "id": "rally",
+                  "displayKey": "rally",
+                  "event": "on_enter_field",
                   "effect": {
                     "type": "untap",
                     "target": {
@@ -1873,9 +1879,20 @@
                     },
                     "details": {
                       "die": "d20",
-                      "onRoll": "15-20",
-                      "thenAdditionalFrontPhase": true
+                      "onRoll": "15-20"
                     }
+                  }
+                },
+                {
+                  "id": "unbending",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
+                  "effect": {
+                    "type": "prevent_tap",
+                    "target": {
+                      "scope": "self"
+                    },
+                    "duration": "permanent"
                   }
                 }
               ],
@@ -8397,9 +8414,12 @@
           },
           "face": {
             "name": "Ajmal, Re delle Terre Infrante",
-            "secondCharge": {
-              "trigger": "Quando attacca",
-              "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli e, dopo questa Fase di Fronte, c'è una Fase di Fronte addizionale."
+            "rally": {
+              "trigger": "Quando entra in campo",
+              "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli."
+            },
+            "effect": {
+              "text": "Questa Entità non si tappa mai."
             },
             "flavor": "Le terre si sono spezzate sotto di lui. Lui ha continuato a camminare."
           },
@@ -8424,9 +8444,12 @@
           },
           "face": {
             "name": "Ajmal, King of the Broken Lands",
-            "secondCharge": {
-              "trigger": "When it attacks",
-              "text": "Roll a d20: on 15–20 untap all Entities you control and, after this Front Phase, there is an additional Front Phase."
+            "rally": {
+              "trigger": "When it enters the field",
+              "text": "Roll a d20: on 15–20 untap all Entities you control."
+            },
+            "effect": {
+              "text": "This Entity never taps."
             },
             "flavor": "The lands broke under him. He kept walking."
           },
@@ -8443,7 +8466,7 @@
         "unique",
         "combat"
       ],
-      "rulesReference": "MANUALE.md §6.3, §8.2",
+      "rulesReference": "MANUALE.md §6.2, §8.2",
       "faces": [
         {
           "id": "entity",
@@ -8465,9 +8488,9 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "second-charge",
-              "displayKey": "secondCharge",
-              "event": "on_attack",
+              "id": "rally",
+              "displayKey": "rally",
+              "event": "on_enter_field",
               "effect": {
                 "type": "untap",
                 "target": {
@@ -8477,9 +8500,20 @@
                 },
                 "details": {
                   "die": "d20",
-                  "onRoll": "15-20",
-                  "thenAdditionalFrontPhase": true
+                  "onRoll": "15-20"
                 }
+              }
+            },
+            {
+              "id": "unbending",
+              "displayKey": "effect",
+              "event": "while_in_play",
+              "effect": {
+                "type": "prevent_tap",
+                "target": {
+                  "scope": "self"
+                },
+                "duration": "permanent"
               }
             }
           ],

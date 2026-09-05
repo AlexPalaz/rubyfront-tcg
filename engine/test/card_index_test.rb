@@ -122,7 +122,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [["rearm", "ally", 0], ["look", "ally", 0]], forme.call("RBF-031")
     assert_equal [["heal", "self", 0]], forme.call("RBF-008")
     assert_equal [["return", "self", 0]], forme.call("RBF-010")
-    assert_equal [["refresh", "self", 0]], forme.call("RBF-011")
+    assert_equal [], forme.call("RBF-011"), "dal 2026-09-05 la Carica si innesca entrando, non attaccando"
     assert_equal [["heal", "permanent", 0]], forme.call("RBF-022")
     assert_equal [["heal", "rubyfront", 0], ["heal", "rubyfront", 1]], forme.call("RBF-001")
     assert_equal [], forme.call("RBF-004"), "«se almeno 2 Umani attaccano» (2026-09-04) è una forma ignota: resta a mano"
@@ -131,7 +131,7 @@ class CardIndexTest < Minitest::Test
     assert_equal({ die: 6, on_roll: [5, 6], count: 4, reveal_to: "hand", rest_to: "ritiro" }, @index["RBF-034"][:attack_forms][1].slice(:die, :on_roll, :count, :reveal_to, :rest_to))
     assert_equal({ once: true, count: 2, reveal_to: "ritiro", rest_to: "deck" }, @index["RBF-031"][:attack_forms][1].slice(:once, :count, :reveal_to, :rest_to))
     assert_equal({ amount: 2, die: 6, on_roll: [5, 6] }, @index["RBF-008"][:attack_forms][0].slice(:amount, :die, :on_roll))
-    assert_equal({ die: 20, on_roll: [15, 20] }, @index["RBF-011"][:attack_forms][0].slice(:die, :on_roll))
+    assert_equal [{ die: 20, on_roll: [15, 20] }], @index["RBF-011"][:enter_refreshes], "RBF-011: quando entra, col d20 stappa tutto"
     assert_equal({ gain_on: [1, 6], drain_on: [15, 20] }, @index["RBF-022"][:attack_forms][0].slice(:gain_on, :drain_on))
     assert_equal [0, 1], @index["RBF-001"][:attack_forms].map { |form| form[:then_draw] }, "solo il Nexus pesca"
     assert_equal({ count: 2, race: "human" }, @index["RBF-005"][:attack_forms][0][:requires_previous_attackers])
@@ -145,6 +145,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-013"][:static_forms], "il +1 del Vigorscudo; la Stasi sta nelle concessioni"
     assert_equal [{ kind: "bearer_power", amount: 1, per: { type: "entity", race: "human" }, multi_block: true }], @index["RBF-014"][:static_forms]
     assert_equal [], @index["RBF-028"][:static_forms], "«Contrattacco +2 se armata» non è una forma certificata"
+    assert_equal [{ kind: "never_taps" }], @index["RBF-011"][:static_forms], "«questa Entità non si tappa mai» (RBF-011)"
     assert_equal [], @index["RBF-031"][:static_forms], "«+1 alle altre armate» resta nel debito"
   end
 

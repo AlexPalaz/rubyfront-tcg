@@ -406,15 +406,12 @@ class TableAttackToolsTest < Minitest::Test
     assert_nil @table.card("e")[:grants]
   end
 
-  def test_refresh_stappa_chi_comanda_e_promette_la_fase_addizionale
-    @table.apply({ "t" => "refresh", "seat" => "a", "roll" => 17, "extra" => true })
+  def test_refresh_stappa_chi_comanda_solo_col_tiro
+    @table.apply({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => false })
+    assert @table.card("a1")[:tapped], "col tiro mancato nessuno si stappa"
+    @table.apply({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true })
     refute @table.card("a1")[:tapped]
     assert @table.card("e")[:tapped]
-    assert @table.extra_front
-    @table.apply({ "t" => "phase", "phase" => "reazione" })
-    @table.apply({ "t" => "phase", "phase" => "fronte" })
-    assert_equal "fronte", @table.phase
-    refute @table.extra_front
   end
 
   def test_resolve_stappa_chi_lo_chiede_e_ricorda_l_ondata
@@ -468,7 +465,7 @@ class TableAttackToolsTest < Minitest::Test
     assert_equal "abisso", @table.card("m1")[:zone], "la Reattiva come blocco si consuma"
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
     assert @table.card("b1")[:tapped], "tappata per sempre (§8.1)"
-    @table.apply({ "t" => "refresh", "seat" => "b", "roll" => 17, "extra" => false, "effect" => {} })
+    @table.apply({ "t" => "refresh", "seat" => "b", "roll" => 17, "untap" => true, "effect" => {} })
     refute @table.card("b1")[:tapped], "stappata da un effetto torna normale"
     assert_nil @table.card("b1")[:stasis]
   end

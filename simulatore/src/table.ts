@@ -8,7 +8,7 @@
 import { msg, t } from "./i18n.js";
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
 import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js";
-import { declareAttack as declareAttackVia, declareBlock, powerOf, staticPower, undeclare, wornBy } from "./combat.js";
+import { declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticPower, undeclare, wornBy } from "./combat.js";
 import { tapPreview } from "./preview.js";
 import {
   COMPACT_TAIL_SAVED,
@@ -36,12 +36,14 @@ import { showRoll } from "./dice.js";
 import { confirmEffect, noticeEffect, showEnterEffect } from "./effect.js";
 import {
   describeControl,
+  describeRefresh,
   describeLook,
   describeMove,
   describeReturn,
   describeTrigger,
   enterControls,
   enterLooks,
+  enterRefreshes,
   enterMoves,
   enterReturns,
   enterTriggers,
@@ -63,11 +65,13 @@ import {
   type AttackStep,
   resolveControl,
   resolveLook,
+  resolveRefresh,
   resolveMove,
   resolveReturn,
   resolveTrigger,
   type EnterControlStep,
   type EnterLookStep,
+  type EnterRefreshStep,
   type EnterMoveStep,
   type EnterReturnStep,
   describeFlipStep,
@@ -901,18 +905,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
               effect: { source: step.source.uid, event: "on_attack", entering: chosen.uid, follow: "join" },
             });
             if (joined) {
-              void ctx.dispatch({ t: "tap", uid: chosen.uid, tapped: true });
+              if (!neverTaps(ctx.card(chosen.cardId))) void ctx.dispatch({ t: "tap", uid: chosen.uid, tapped: true });
               ctx.log(msg("log.effect.recall.front", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
             }
           }
-          break;
-        }
-        case "refresh": {
-          const roll = rollDie(form.die);
-          await showRoll(root, form.die, roll, t("dice.step", { name, what: t("dice.charge2", { lo: form.onRoll[0], hi: form.onRoll[1] }) }));
-          const extra = inRange(roll, form.onRoll);
-          const passed = await ctx.dispatch({ t: "refresh", seat: by, roll, extra, effect: attackRef(step) });
-          if (passed) ctx.log(msg("log.effect.refresh", { seat: by, sourceCard: step.source.cardId, extra: extra ? msg("log.extra.promised") : "" }), by);
           break;
         }
         case "rearm": {
@@ -1416,6 +1412,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const returns = enterReturns(ctx.state(), live, ctx.card);
       const looks = enterLooks(ctx.state(), live, ctx.card);
       const controls = enterControls(ctx.state(), live, ctx.card);
+      const refreshes = enterRefreshes(live, ctx.card);
       const triggers = enterTriggers(ctx.state(), live, ctx.card);
       void showEnterEffect(root, {
         cardId: card.cardId,
@@ -1429,10 +1426,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           ...returns.map(step => describeReturn(step, ctx.card)),
           ...looks.map(step => describeLook(step, ctx.card)),
           ...controls.map(step => describeControl(step, ctx.card)),
+          ...refreshes.map(step => describeRefresh(step, ctx.card)),
           ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
         ],
         onContinue:
-          moves.length || returns.length || looks.length || controls.length || triggers.length ? () => void playTriggers(live) : undefined,
+          moves.length || returns.length || looks.length || controls.length || refreshes.length || triggers.length ? () => void playTriggers(live) : undefined,
       });
     }
     return passed;
@@ -2106,6 +2104,26 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (passed && taken && taken.zone === "field") await playTriggers(taken);
   }
 
+  /**
+   * La stappata di chi entra (§8.2, RBF-011): la fonte si accende, il dado
+   * gira al centro, e l'esito — stappata o niente — va all'engine in
+   * un'azione sola.
+   */
+  async function playRefresh(step: EnterRefreshStep): Promise<void> {
+    const name = ctx.card(step.source.cardId).name;
+    light(step.source.uid, true);
+    hold(true);
+    try {
+      const roll = rollDie(step.refresh.die);
+      await showRoll(root, step.refresh.die, roll, t("dice.step", { name, what: t("dice.rally", { lo: step.refresh.onRoll[0], hi: step.refresh.onRoll[1] }) }));
+      const passed = await resolveRefresh(ctx, step, roll);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      light(step.source.uid, false);
+      hold(false);
+    }
+  }
+
   async function playLook(first: EnterLookStep): Promise<void> {
     const by = controllerOf(first.source);
     const name = ctx.card(first.source.cardId).name;
@@ -2205,6 +2223,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     for (const step of enterControls(ctx.state(), entering, ctx.card)) {
       await playControl(step);
+    }
+    for (const step of enterRefreshes(entering, ctx.card)) {
+      await playRefresh(step);
     }
     hold(true);
     try {

@@ -17,7 +17,7 @@ module Rubyfront
     # confrontando gli indici.
     PHASES = %w[preparazione fronte reazione].freeze
 
-    attr_reader :active, :turn, :phase, :over, :extra_front
+    attr_reader :active, :turn, :phase, :over
 
     # L'ultima ondata di `seat`: uid degli attaccanti, in ordine.
     def last_wave(seat)
@@ -68,8 +68,6 @@ module Rubyfront
       # L'ultima ondata di ciascun posto (uid, in ordine), annotata alla
       # risoluzione — «nel tuo turno precedente» (RBF-005). Gemello: lastWave.
       @last_wave = {}
-      # Una Fase di Fronte addizionale dovuta (RBF-011). Gemello: extraFront.
-      @extra_front = false
       # La catena di risposta (§7.2): {stack: [uid…], turn:, resolving:}, o
       # nil. Gemello: chain (types.ts, ResponseChain).
       @chain = nil
@@ -446,19 +444,14 @@ module Rubyfront
           untap!(card) if action["untap"] == true
         end
       when "refresh"
-        # §8.2 (RBF-011) — stappa chi `seat` comanda; la Fase di Fronte
-        # addizionale è dovuta col tiro giusto. Gemello: state.ts.
-        @cards.each_value do |card|
-          untap!(card) if card[:zone] == "field" && controller_of(card) == action["seat"]
+        # §8.2 (RBF-011) — col tiro giusto (`untap`), stappa tutte le Entità
+        # che `seat` comanda; col tiro mancato non succede nulla. Gemello: state.ts.
+        if action["untap"] == true
+          @cards.each_value do |card|
+            untap!(card) if card[:zone] == "field" && controller_of(card) == action["seat"]
+          end
         end
-        @extra_front = true if action["extra"] == true
       when "phase"
-        if action["phase"] == "fronte" && @phase == "reazione" && @extra_front
-          # La Fase di Fronte addizionale: si torna al Fronte a frecce
-          # sgombre, e la promessa si consuma.
-          @extra_front = false
-          @declarations = {}
-        end
         @phase = action["phase"] if PHASES.include?(action["phase"])
       when "turn"
         @turn = action["turn"] if action["turn"].is_a?(Numeric)
@@ -472,7 +465,6 @@ module Rubyfront
           @phase = "preparazione"
           @fired = []
           @rolls = {}
-          @extra_front = false
           @chain = nil
           @cards.each_value do |card|
             # «Fino alla fine del turno» (§8.2): bonus, divieti e parole chiave

@@ -27,7 +27,7 @@ function cardOn(uid: string, owner: Seat): CardInstance {
 }
 
 /** Le statistiche stampate delle carte di prova (§6.3), per id. */
-const facts: Record<string, { power: number; counterattack?: number }> = {};
+const facts: Record<string, { power: number; counterattack?: number; neverTaps?: boolean }> = {};
 
 function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]; logs: string[] } {
   const state = newGame();
@@ -59,10 +59,11 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       enterReturns: [],
       enterLooks: [],
       enterControls: [],
+      enterRefreshes: [],
       attackReturns: [],
       attackDraws: [],
       attackForms: [],
-      staticForms: [],
+      staticForms: facts[cardId]?.neverTaps ? [{ kind: "never_taps" }] : [],
       resolveForms: [],
       flipForms: [],
       nexus: null,
@@ -81,6 +82,15 @@ describe("declareAttack", () => {
     await declareAttack(ctx, cardOn("a-1", "a"), cardOn("rf-b", "b"));
     expect(sent.map(action => action.t)).toEqual(["declare", "tap"]);
     expect(logs).toHaveLength(1);
+  });
+
+  it("«questa Entità non si tappa mai» (RBF-011): dichiara e annota, ma il tap non parte", async () => {
+    facts["TEST-ajmal"] = { power: 5, neverTaps: true };
+    const { ctx, sent, logs } = fakeCtx(() => true);
+    await declareAttack(ctx, cardOn("ajmal", "a"), cardOn("rf-b", "b"));
+    expect(sent.map(action => action.t)).toEqual(["declare"]);
+    expect(logs).toHaveLength(1);
+    delete facts["TEST-ajmal"];
   });
 
   it("fermato il declare, niente tap e niente riga", async () => {
@@ -307,7 +317,7 @@ describe("resolveWave con statici, Stasi e più bloccanti", () => {
   };
   const facts = (cardId: string): CardFacts => ({
     name: cardId, kind: null, race: null, power: null, counterattack: null, fluxCost: null, keywords: [], enterListeners: [], enterMoves: [], behavior: null,
-    enterReturns: [], enterLooks: [], enterControls: [], attackReturns: [], attackDraws: [], attackForms: [], staticForms: [], resolveForms: [], flipForms: [], nexus: null, grantsWhileAssigned: [],
+    enterReturns: [], enterLooks: [], enterControls: [], enterRefreshes: [], attackReturns: [], attackDraws: [], attackForms: [], staticForms: [], resolveForms: [], flipForms: [], nexus: null, grantsWhileAssigned: [],
     ...EREDITA[cardId],
   });
   const card = (uid: string, owner: Seat, cardId: string, extra: Partial<CardInstance> = {}): CardInstance => ({

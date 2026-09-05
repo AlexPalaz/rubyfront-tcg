@@ -140,6 +140,7 @@ module Rubyfront
           attack_forms: attack_forms(faces).freeze,
           enter_looks: enter_looks(faces).freeze,
           enter_controls: enter_controls(faces).freeze,
+          enter_refreshes: enter_refreshes(faces).freeze,
           static_forms: static_forms(faces).freeze,
           resolve_forms: resolve_forms(faces).freeze,
           flip_forms: flip_forms(faces).freeze,
@@ -155,7 +156,7 @@ module Rubyfront
 
     # Tutti i parser delle forme certificate: ogni trigger di ogni carta
     # deve trovarne uno che lo riconosca, o è un effetto che l'engine ignora.
-    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls attack_draws attack_forms grants_while_assigned
+    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls enter_refreshes attack_draws attack_forms grants_while_assigned
                static_forms resolve_forms flip_forms].freeze
     RETURN_EVENTS = %w[on_enter_field on_attack].freeze
 
@@ -304,7 +305,6 @@ module Rubyfront
     #   RBF-031 { kind: "rearm", who: "ally", attacker_armed: }                  un Oggetto dal Ritiro, gratis
     #   RBF-008 { kind: "heal", who: "self", amount:, die:, on_roll:, then_recall: } +2 PV, poi col dado un'Entità in mano
     #   RBF-010 { kind: "return", who: "self", die:, on_roll:, filter:, joins: }  un'Entità dal Ritiro, che attacca
-    #   RBF-011 { kind: "refresh", who: "self", die:, on_roll: }                  stappa tutto, Fronte addizionale
     #   RBF-022 { kind: "heal", who: "permanent", attackers:, die:, gain_on:, drain_on: } PV pari agli Umani attaccanti
     #   RBF-001 { kind: "heal", who: "rubyfront", once:, requires_attackers:, amount:, then_draw:, then_discard: }
     #   RBF-004 { kind: "empower", who: "self", once:, targets: "next_human_attacker", grants: }
@@ -319,7 +319,7 @@ module Rubyfront
           next unless effect.is_a?(Hash)
 
           form = attack_untap(details, effect) || attack_empower(details, effect) || attack_look(details, effect) ||
-                 attack_heal(details, effect) || attack_refresh(details, effect) || attack_recall(details, effect) ||
+                 attack_heal(details, effect) || attack_recall(details, effect) ||
                  attack_rearm(details, effect) || attack_restrict(details, effect)
           form && form.merge(face: index).freeze
         end
@@ -434,18 +434,6 @@ module Rubyfront
       nil
     end
 
-    # RBF-011: stappa tutte le proprie Entità e, col tiro, una Fase di Fronte addizionale.
-    def self.attack_refresh(details, effect)
-      return nil unless details.empty? && effect["type"] == "untap" && own_target?(effect["target"], "entity") && effect.dig("target", "quantity") == "all"
-
-      extra = effect["details"]
-      return nil unless extra.is_a?(Hash) && extra["thenAdditionalFrontPhase"] == true
-
-      die = die_faces(extra["die"])
-      on_roll = roll_range(extra["onRoll"])
-      die && on_roll ? { kind: "refresh", who: "self", die: die, on_roll: on_roll } : nil
-    end
-
     # RBF-010: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme.
     def self.attack_recall(details, effect)
       return nil unless details.empty? && effect["type"] == "move_card" && own_target?(effect["target"], "entity", "human")
@@ -521,6 +509,27 @@ module Rubyfront
       end
     end
 
+    # RBF-011 (dal 2026-09-05): «quando entra in campo, lancia un d20: con
+    # 15–20 stappa tutte le Entità che controlli». Gemello: renderer.ts, enterRefreshesOf.
+    def self.enter_refreshes(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+        next if trigger["details"].is_a?(Hash) && trigger["details"]["enteringCard"]
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "untap" && own_target?(effect["target"], "entity") && effect.dig("target", "quantity") == "all"
+
+        extra = effect["details"]
+        next unless extra.is_a?(Hash) && extra.keys.sort == %w[die onRoll]
+
+        die = die_faces(extra["die"])
+        on_roll = roll_range(extra["onRoll"])
+        next unless die && on_roll
+
+        { die: die, on_roll: on_roll }.freeze
+      end
+    end
+
     def self.enter_controls(faces)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
         next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
@@ -566,7 +575,14 @@ module Rubyfront
         next unless trigger.is_a?(Hash) && %w[while_in_play while_assigned].include?(trigger["event"])
 
         effect = trigger["effect"]
-        next unless effect.is_a?(Hash) && effect["type"] == "modify_power" && effect["amount"].is_a?(Integer)
+        next unless effect.is_a?(Hash)
+        # «Questa Entità non si tappa mai» (RBF-011): uno statico senza numeri.
+        if effect["type"] == "prevent_tap"
+          next unless trigger["event"] == "while_in_play" && effect.dig("target", "scope") == "self" && effect["duration"] == "permanent"
+
+          next { kind: "never_taps" }.freeze
+        end
+        next unless effect["type"] == "modify_power" && effect["amount"].is_a?(Integer)
 
         details = effect["details"].is_a?(Hash) ? effect["details"] : {}
         if trigger["event"] == "while_in_play"

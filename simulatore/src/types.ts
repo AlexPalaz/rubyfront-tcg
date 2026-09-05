@@ -210,9 +210,6 @@ export interface GameState {
   /** L'ultima ondata di ciascun posto (uid degli attaccanti, in ordine),
       annotata alla risoluzione: serve a «nel tuo turno precedente» (RBF-005). */
   lastWave?: Partial<Record<Seat, string[]>>;
-  /** Una Fase di Fronte addizionale è dovuta dopo questa (RBF-011): dalla
-      Reazione si torna al Fronte invece di chiudere il turno. */
-  extraFront?: boolean;
   /** Gli inneschi d'attacco già risolti in questo turno, con la chiave
       dell'engine (`fonte|on_attack:passo|ingresso o turn`): il tavolo non
       ripropone ciò che l'arbitro fermerebbe. Il cambio di turno azzera. */
@@ -302,9 +299,11 @@ export type Action =
   /** Un potenziamento fino alla fine del turno (§8.2): Potenza in più,
       parole chiave concesse, o il divieto di bloccare. Sempre un passo d'effetto. */
   | { t: "empower"; uid: string; power?: number; grants?: string[]; restrict?: "block"; counter?: number; untap?: true; effect: EffectRef }
-  /** Stappa tutte le Entità di `seat` e, col tiro giusto, promette una Fase
-      di Fronte addizionale (§8.2, RBF-011). Il client tira, l'engine verifica. */
-  | { t: "refresh"; seat: Seat; roll: number; extra: boolean; effect: EffectRef }
+  /** «Quando entra in campo, un d20: con 15–20 stappa tutte le Entità che
+      controlli» (§8.2, RBF-011): col tiro giusto (`untap`) stappa tutte le
+      Entità di `seat`, col tiro mancato non fa nulla e consuma l'innesco.
+      Il client tira, l'engine verifica. */
+  | { t: "refresh"; seat: Seat; roll: number; untap: boolean; effect: EffectRef }
   /** Lo sguardo nel mazzo (§8.2, le forme di RBF-006 e RBF-027): le prime
       `count` carte del mazzo di `seat` — col dado, `roll` è il tiro e il
       conto ne discende; `reveal`, se c'è, va in mano; `retire`, se c'è, in

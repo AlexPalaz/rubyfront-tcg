@@ -461,26 +461,18 @@ describe("attrezzi degli effetti d'attacco", () => {
     expect(apply(state, { t: "empower", uid: "h", power: 1, effect: ref }).cards.h).toEqual(state.cards.h);
   });
 
-  it("refresh stappa chi comanda il posto e promette la Fase di Fronte addizionale col tiro", () => {
+  it("refresh stappa chi comanda il posto solo col tiro giusto (RBF-011)", () => {
     const state = newGame("a");
     field(state, "a1", "a", { tapped: true });
     field(state, "b1", "b", { tapped: true });
     field(state, "c1", "b", { tapped: true, controller: "a" });
-    const next = apply(state, { t: "refresh", seat: "a", roll: 17, extra: true, effect: ref });
+    const entra = { source: "a1", event: "on_enter_field" as const, entering: "a1" };
+    const next = apply(state, { t: "refresh", seat: "a", roll: 17, untap: true, effect: entra });
     expect(next.cards.a1.tapped).toBe(false);
     expect(next.cards.c1.tapped).toBe(false);
     expect(next.cards.b1.tapped).toBe(true);
-    expect(next.extraFront).toBe(true);
-    const flat = apply(state, { t: "refresh", seat: "a", roll: 3, extra: false, effect: ref });
-    expect(flat.extraFront).toBeFalsy();
-  });
-
-  it("dalla Reazione si torna al Fronte solo se la fase addizionale è dovuta, e la promessa si consuma", () => {
-    const state = { ...newGame("a"), phase: "reazione" as const, extraFront: true, declarations: [{ id: "x", from: "a1", to: "rf", kind: "attack" as const, seat: "a" as const, order: 1 }] };
-    const back = apply(state, { t: "phase", phase: "fronte" });
-    expect(back).toMatchObject({ phase: "fronte", extraFront: false, declarations: [] });
-    const turned = apply(back, { t: "turn", turn: 2, active: "b" });
-    expect(turned.extraFront).toBe(false);
+    const flat = apply(state, { t: "refresh", seat: "a", roll: 3, untap: false, effect: entra });
+    expect(flat.cards.a1.tapped).toBe(true);
   });
 
   it("resolve stappa chi lo chiede e ricorda l'ondata", () => {
@@ -589,7 +581,7 @@ describe("apply — Eredità Perduta", () => {
     expect(next.cards.m1.zone).toBe("abisso");
     const turned = apply(next, { t: "turn", turn: 2, active: "b" });
     expect(turned.cards.b1.tapped).toBe(true);
-    const freed = apply(turned, { t: "refresh", seat: "b", roll: 17, extra: false, effect: { source: "b1", event: "on_attack", entering: "b1" } });
+    const freed = apply(turned, { t: "refresh", seat: "b", roll: 17, untap: true, effect: { source: "b1", event: "on_enter_field", entering: "b1" } });
     expect(freed.cards.b1.tapped).toBe(false);
     expect(freed.cards.b1.stasis).toBeUndefined();
   });

@@ -102,12 +102,6 @@ export async function endPhase(ctx: Ctx): Promise<void> {
   if (state.phase === "preparazione") return declareFront(ctx);
   if (state.phase === "fronte" && waveDeclared(state)) return declareReaction(ctx);
   if (state.phase === "reazione" && waveDeclared(state) && !(await resolveCombat(ctx))) return;
-  // §8.2 (RBF-011) — una Fase di Fronte addizionale è dovuta: dalla
-  // Reazione si torna al Fronte, e il turno non si chiude.
-  if (state.phase === "reazione" && ctx.state().extraFront) {
-    if (await ctx.dispatch({ t: "phase", phase: "fronte" })) ctx.log(msg("log.extrafront", { seat: state.active }), state.active);
-    return;
-  }
   return endTurn(ctx);
 }
 

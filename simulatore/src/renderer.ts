@@ -18,7 +18,7 @@ export const TILE_W = 302;
 export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
-import type { AttackDraw, AttackForm, EnterControl, EnterListener, EnterLook, EnterMove, EnterReturn, FlipForm, NexusRequirement, ResolveForm, StaticForm } from "./ctx.js";
+import type { AttackDraw, AttackForm, EnterControl, EnterListener, EnterLook, EnterRefresh, EnterMove, EnterReturn, FlipForm, NexusRequirement, ResolveForm, StaticForm } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -395,7 +395,7 @@ function attackFormsOf(faces: CardFace[]): AttackForm[] {
       if (!effect || typeof effect !== "object") continue;
       const form =
         attackUntap(details, effect) ?? attackEmpower(details, effect) ?? attackLook(details, effect) ?? attackHeal(details, effect) ??
-        attackRefresh(details, effect) ?? attackRecall(details, effect) ?? attackRearm(details, effect) ?? attackRestrict(details, effect);
+        attackRecall(details, effect) ?? attackRearm(details, effect) ?? attackRestrict(details, effect);
       if (form) out.push({ ...form, face: index } as AttackForm);
     }
   });
@@ -489,13 +489,26 @@ function attackHeal(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
   return null;
 }
 
-function attackRefresh(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
-  if (Object.keys(details).length !== 0 || effect.type !== "untap" || !ownTarget(effect.target, "entity") || effect.target?.quantity !== "all") return null;
-  const extra = effect.details as Loose | undefined;
-  if (!extra || extra.thenAdditionalFrontPhase !== true) return null;
-  const die = dieFaces(extra.die);
-  const onRoll = rollRange(extra.onRoll);
-  return die !== null && onRoll ? { kind: "refresh", who: "self", die, onRoll } : null;
+/**
+ * Le stappate certificate all'ingresso (§8.2, RBF-011): evento
+ * `on_enter_field` senza `enteringCard`, effetto `untap` su tutte le
+ * proprie Entità, col dado e la soglia. Specchio di card_index.rb, enter_refreshes.
+ */
+function enterRefreshesOf(face: CardFace | undefined): EnterRefresh[] {
+  const out: EnterRefresh[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const details = trigger.details as { enteringCard?: unknown } | undefined;
+    if (details?.enteringCard) continue;
+    const effect = trigger.effect as Loose | undefined;
+    if (!effect || effect.type !== "untap" || !ownTarget(effect.target, "entity") || effect.target?.quantity !== "all") continue;
+    const extra = effect.details as Loose | undefined;
+    if (!extra || Object.keys(extra).sort().join() !== "die,onRoll") continue;
+    const die = dieFaces(extra.die);
+    const onRoll = rollRange(extra.onRoll);
+    if (die !== null && onRoll) out.push({ die, onRoll });
+  }
+  return out;
 }
 
 function attackRecall(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
@@ -628,7 +641,13 @@ function staticFormsOf(faces: CardFace[]): StaticForm[] {
     for (const trigger of face.triggers ?? []) {
       if (trigger.event !== "while_in_play" && trigger.event !== "while_assigned") continue;
       const effect = trigger.effect as Loose | undefined;
-      if (!effect || effect.type !== "modify_power" || !Number.isInteger(effect.amount)) continue;
+      if (!effect) continue;
+      // «Questa Entità non si tappa mai» (RBF-011): uno statico senza numeri.
+      if (effect.type === "prevent_tap") {
+        if (trigger.event === "while_in_play" && effect.target?.scope === "self" && effect.duration === "permanent") out.push({ kind: "never_taps" });
+        continue;
+      }
+      if (effect.type !== "modify_power" || !Number.isInteger(effect.amount)) continue;
       const details = (typeof effect.details === "object" && effect.details ? effect.details : {}) as Loose;
       if (trigger.event === "while_in_play") {
         if (effect.target?.scope !== "self") continue;
@@ -879,6 +898,7 @@ export function cardStats(cardId: string): {
   enterReturns: EnterReturn[];
   enterLooks: EnterLook[];
   enterControls: EnterControl[];
+  enterRefreshes: EnterRefresh[];
   attackReturns: EnterReturn[];
   attackDraws: AttackDraw[];
   attackForms: AttackForm[];
@@ -912,6 +932,7 @@ export function cardStats(cardId: string): {
     grantsWhileAssigned: grantsWhileAssignedOf(card?.faces ?? []),
     enterLooks: enterLooksOf(face),
     enterControls: enterControlsOf(face),
+    enterRefreshes: enterRefreshesOf(face),
     power: integer(face?.stats?.power),
     counterattack: integer(face?.stats?.counterattack),
     // Il costo di Flusso stampato (§3.2); il Rubyfront ha il costo di

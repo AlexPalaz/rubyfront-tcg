@@ -14,9 +14,12 @@
   },
   "face": {
     "name": "Ajmal, Re delle Terre Infrante",
-    "secondCharge": {
-      "trigger": "Quando attacca",
-      "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli e, dopo questa Fase di Fronte, c'è una Fase di Fronte addizionale."
+    "rally": {
+      "trigger": "Quando entra in campo",
+      "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli."
+    },
+    "effect": {
+      "text": "Questa Entità non si tappa mai."
     },
     "flavor": "Le terre si sono spezzate sotto di lui. Lui ha continuato a camminare."
   },

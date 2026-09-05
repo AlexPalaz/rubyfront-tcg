@@ -14,9 +14,12 @@
   },
   "face": {
     "name": "Ajmal, King of the Broken Lands",
-    "secondCharge": {
-      "trigger": "When it attacks",
-      "text": "Roll a d20: on 15–20 untap all Entities you control and, after this Front Phase, there is an additional Front Phase."
+    "rally": {
+      "trigger": "When it enters the field",
+      "text": "Roll a d20: on 15–20 untap all Entities you control."
+    },
+    "effect": {
+      "text": "This Entity never taps."
     },
     "flavor": "The lands broke under him. He kept walking."
   },

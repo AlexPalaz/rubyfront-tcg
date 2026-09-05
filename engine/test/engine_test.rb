@@ -992,18 +992,6 @@ class EngineTest < Minitest::Test
     assert_match(/non può bloccare in questo turno/, verdict[:reason])
   end
 
-  def test_la_fase_di_fronte_addizionale_si_apre_dalla_reazione_solo_se_dovuta
-    engine = ondata([["a1", "FORTE"]], [], ["a1"], [])
-    refute engine.judge({ "t" => "phase", "phase" => "fronte" })[:ok], "senza promessa la fase è a senso unico"
-    engine.observe({ "t" => "refresh", "seat" => "a", "roll" => 18, "extra" => true, "effect" => { "source" => "a1", "event" => "on_attack", "entering" => "a1" } })
-    assert risolvi(engine, [battaglia("a1", damage: 4)])[:ok]
-    # La apre chi chiude la Reazione: il difensore.
-    verdict = engine.judge({ "t" => "phase", "phase" => "fronte" }, actor: "b")
-    assert verdict[:ok], verdict[:reason]
-    assert_equal "fronte", engine.instance_variable_get(:@table).phase
-    refute engine.judge({ "t" => "phase", "phase" => "fronte" }, actor: "b")[:ok], "una volta sola"
-  end
-
   def test_un_esito_sbagliato_viene_fermato
     engine = ondata([["a1", "DEBOLE"]], [["b1", "FORTE"]], ["a1"], [["b1", "a1", "block"]])
     verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", blocker_dies: true)])
@@ -2267,7 +2255,7 @@ class EngineTest < Minitest::Test
     "ECO" => { type: "entity", keywords: [], race: "human", power: 3,
                attack_forms: [{ kind: "return", who: "self", die: 6, on_roll: [5, 6], filter: { type: "entity", race: "human" }, joins: true, face: 0 }] },
     "CARICA" => { type: "entity", keywords: [], race: "human", power: 5, counterattack: 1,
-                  attack_forms: [{ kind: "refresh", who: "self", die: 20, on_roll: [15, 20], face: 0 }] },
+                  enter_refreshes: [{ die: 20, on_roll: [15, 20] }], static_forms: [{ kind: "never_taps" }] },
     "EREDI" => { type: "matter", keywords: [], behavior: "permanent",
                  attack_forms: [{ kind: "heal", who: "permanent", attackers: { type: "entity", race: "human" }, die: 20, gain_on: [1, 6], drain_on: [15, 20], amount: "human_attackers", face: 0 }] },
     "OBLIVHAL" => { type: "rubyfront", keywords: ["fury"],
@@ -2428,16 +2416,43 @@ class EngineTest < Minitest::Test
     assert copia(engine).attacking?("r")
   end
 
-  # RBF-011 — stappa tutte le proprie Entità; con 15–20 la Fase di Fronte addizionale.
-  def test_la_carica_stappa_tutti_e_col_tiro_promette_il_fronte_addizionale
-    engine = scena([["c", "CARICA"], ["u", "UMANO", { "tapped" => true }]], attacks: ["c"])
-    assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "extra" => true, "effect" => ref("c") })[:reason])
-    verdict = engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "extra" => true, "effect" => ref("c") })
+  # RBF-011 — «questa Entità non si tappa mai»: il gesto di tapparla è fermato, stapparla passa.
+  def test_la_carica_non_si_tappa_mai
+    engine = scena([["c", "CARICA"], ["u", "UMANO"]], attacks: ["c"])
+    verdict = engine.judge({ "t" => "tap", "uid" => "c", "tapped" => true })
+    refute verdict[:ok]
+    assert_match(/non si tappa mai/, verdict[:reason])
+    refute copia(engine).card("c")[:tapped], "attacca e resta stappata"
+    assert engine.judge({ "t" => "tap", "uid" => "c", "tapped" => false })[:ok]
+    assert engine.judge({ "t" => "tap", "uid" => "u", "tapped" => true })[:ok], "le altre si tappano"
+    refute engine.judge({ "t" => "tap", "uid" => "zz", "tapped" => true })[:ruled], "carta ignota: silenzio"
+  end
+
+  # RBF-011 — quando entra, un d20: con 15–20 stappa tutte le proprie Entità (dal 2026-09-05).
+  def test_la_carica_entrando_col_tiro_stappa_tutti
+    engine = scena([["c", "CARICA", { "zone" => "hand" }], ["u", "UMANO", { "tapped" => true }]])
+    entra = { "source" => "c", "event" => "on_enter_field", "entering" => "c" }
+    assert_match(/non è in campo/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => entra })[:reason], "dalla mano non innesca")
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
+    engine.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
+    assert engine.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1236, "cost" => 5 })[:ok], "Ajmal scende in Preparazione"
+    assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => true, "effect" => entra })[:reason])
+    assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => false, "effect" => entra })[:reason])
+    assert_match(/innesco d'ingresso/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => ref("c") })[:reason])
+    assert_match(/chi comanda la fonte/, engine.judge({ "t" => "refresh", "seat" => "b", "roll" => 17, "untap" => true, "effect" => entra })[:reason])
+    verdict = engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => entra })
     assert verdict[:ok], verdict[:reason]
-    tavolo = copia(engine)
-    refute tavolo.card("u")[:tapped]
-    refute tavolo.card("c")[:tapped]
-    assert tavolo.extra_front
+    refute copia(engine).card("u")[:tapped]
+    assert_match(/già stato risolto/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => entra })[:reason])
+    mancato = scena([["c", "CARICA", { "zone" => "hand" }], ["u", "UMANO", { "tapped" => true }]])
+    mancato.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    mancato.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
+    mancato.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
+    assert mancato.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1236, "cost" => 5 })[:ok]
+    assert mancato.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => false, "effect" => entra })[:ok], "il tiro mancato passa e consuma l'innesco"
+    assert copia(mancato).card("u")[:tapped], "col tiro mancato nessuno si stappa"
+    assert_match(/già stato risolto/, mancato.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => entra })[:reason])
   end
 
   # RBF-022 — la Materia permanente: il d20 quando attaccano gli Umani.
@@ -2688,7 +2703,7 @@ class EngineTest < Minitest::Test
     # Il Ritiro è un gesto libero (§6.2, decisione del designer): la Stasi
     # non lo ferma. Quel che la Stasi tiene è la tappata permanente.
     assert engine.judge({ "t" => "toZone", "uid" => "u", "zone" => "ritiro" }, actor: "b")[:ok]
-    engine.observe({ "t" => "refresh", "seat" => "b", "roll" => 17, "extra" => false, "effect" => { "source" => "u", "event" => "on_attack", "entering" => "u" } })
+    engine.observe({ "t" => "refresh", "seat" => "b", "roll" => 17, "untap" => true, "effect" => { "source" => "u", "event" => "on_enter_field", "entering" => "u" } })
     refute copia(engine).card("u")[:tapped], "un effetto la stappa"
   end
 

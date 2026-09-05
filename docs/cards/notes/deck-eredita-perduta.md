@@ -116,7 +116,7 @@ più difendibile e lo dicono nella propria nota di design:
 | Arciere della Radura Argentata | esilio «fintanto che resta sul campo», senza il dopo | torna in gioco quando l'Arciere lascia il campo |
 | Simulacro di Vhal Astra | «Zona di Riposo» | Zona di Ritiro |
 | Rhen, Erede di Vhal Astra | «un permanente» dal Ritiro | Entità o Oggetto |
-| Ajmal | la Fase di Fronte in più è condizionata? | sì, al 15–20 |
+| Ajmal | la Fase di Fronte in più è condizionata? | tolta il 2026-09-05: quando entra, con 15–20 stappa tutte le Entità |
 | Formazione Infrangibile | frase interrotta nel foglio | stappo **più** +1 Potenza |
 | Forza della Radura | da dove arriva l'Entità | dalla mano |
 | Contrattacco Coordinato | «gioca come blocco» | non blocca: Reattiva del difensore in Fase di Reazione (§6.4, 2026-09-05) |

@@ -20,7 +20,7 @@
     "unique",
     "combat"
   ],
-  "rulesReference": "MANUALE.md §6.3, §8.2",
+  "rulesReference": "MANUALE.md §6.2, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -42,9 +42,9 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "second-charge",
-          "displayKey": "secondCharge",
-          "event": "on_attack",
+          "id": "rally",
+          "displayKey": "rally",
+          "event": "on_enter_field",
           "effect": {
             "type": "untap",
             "target": {
@@ -54,9 +54,20 @@
             },
             "details": {
               "die": "d20",
-              "onRoll": "15-20",
-              "thenAdditionalFrontPhase": true
+              "onRoll": "15-20"
             }
+          }
+        },
+        {
+          "id": "unbending",
+          "displayKey": "effect",
+          "event": "while_in_play",
+          "effect": {
+            "type": "prevent_tap",
+            "target": {
+              "scope": "self"
+            },
+            "duration": "permanent"
           }
         }
       ],

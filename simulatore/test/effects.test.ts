@@ -119,6 +119,7 @@ const facts = (cardId: string): CardFacts => ({
   enterReturns: [],
   enterLooks: [],
   enterControls: [],
+  enterRefreshes: [],
   attackReturns: [],
   attackDraws: [],
   attackForms: [],

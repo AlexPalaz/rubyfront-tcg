@@ -379,10 +379,12 @@ Regole collegate finora:
   Ritiro in mano» (il seguito `recall`, col tiro); RBF-010, l'**Eco** —
   «un d6: con 5–6 un'Entità Umana dalla Zona di Ritiro sul Fronte, che
   attacca insieme» (un `toZone` col tiro, poi un `declare` col seguito
-  `join`, esente dall'attesa di evocazione); RBF-011, la **Carica** —
-  «un d20: con 15–20 stappa tutte le tue Entità e c'è una Fase di Fronte
-  addizionale» (`refresh`; la promessa si consuma tornando dalla Reazione
-  al Fronte, e la apre chi chiude la Reazione); RBF-022, gli **Eredi** —
+  `join`, esente dall'attesa di evocazione); RBF-011, la **Carica**, com'era
+  fino al 2026-09-05 — «quando attacca, un d20: con 15–20 stappa tutte le
+  tue Entità e c'è una Fase di Fronte addizionale» — è stata riscritta dal
+  designer come innesco d'ingresso senza la fase in più (vedi sotto, §8.2
+  «quando entra, un d20»), e la Fase di Fronte addizionale è uscita
+  dall'engine con lei; RBF-022, gli **Eredi** —
   la Materia permanente: quando attacca un Umano che controlli, «un d20:
   1–6 guadagni PV pari agli Umani che hanno attaccato, 15–20 li perde il
   Rubyfront/Nexus avversario, 7–14 nulla»; RBF-001, **Oblivhal** — «la
@@ -407,9 +409,7 @@ Regole collegate finora:
   altre armate» (RBF-031) e «Contrattacco +2 se armata» (RBF-028) non
   sono collegati (sono `while_in_play`, non inneschi d'attacco), quindi
   una risoluzione che li contasse a mano verrebbe fermata; il Furiere
-  «se può riceverlo» si limita a non vestire una coperta; nella Fase di
-  Fronte addizionale le Entità stappate attaccano di nuovo per la regola
-  d'oro, e la Reazione che segue è una Reazione come le altre. (Gli
+  «se può riceverlo» si limita a non vestire una coperta. (Gli
   statici di RBF-002/010/013/014 e la Stasi sono arrivati dopo, con
   Eredità Perduta, più sotto.) L'avversario vede gli esiti, non i dadi.
   La quarta forma è quella di RBF-006, il **Cercatore**: «guarda le prime 4
@@ -663,6 +663,31 @@ Regole collegate finora:
   (`blocksAttacker`), e una Materia che adesso non farebbe nulla chiede
   conferma prima di pagare («Gioca comunque» / «Non giocare»). Engine
   0.40.0.
+
+- **§8.2 «Quando entra, un d20: con 15–20 stappa tutte le Entità che
+  controlli»** — RBF-011, **Ajmal**, riscritto dal designer il 2026-09-05:
+  l'innesco passa da «quando attacca» a «quando entra in campo», e la Fase
+  di Fronte addizionale è tolta (e con lei `extra_front`/`extraFront`, il
+  ritorno dalla Reazione al Fronte e la sua eccezione nella dogana del
+  turno). Forma certificata `enter_refreshes` (anagrafe e renderer): il
+  passo è un `refresh {seat, roll, untap}` marcato `on_enter_field`, con la
+  fonte che è chi entra, in campo, entrata QUESTO turno, innesco non
+  consumato; il client tira, l'engine verifica il tiro, la soglia e che la
+  stappata segua il tiro — col tiro mancato l'azione passa, non stappa
+  nessuno e consuma l'innesco. La stappata vale su tutte le Entità che
+  comanda chi ha giocato la fonte, Stasi compresa (§8.1). Limite dichiarato:
+  se Ajmal entra in Fase di Fronte per un effetto, chi si stappa non può
+  attaccare una seconda volta (§6.3), ma l'engine non lo ferma finché la
+  dogana dell'attacco non conta gli attacchi già fatti. Nello stesso giorno
+  il designer ha aggiunto lo statico **«questa Entità non si tappa mai»**
+  (forma certificata `never_taps`, tipo di effetto `prevent_tap` nel
+  vocabolario): la dogana del `tap` ferma il gesto di tapparla — chiunque
+  lo compia, per l'attacco (§6.3), per un effetto o a mano — e lascia
+  passare la stappata; il client non fa partire il tap alla dichiarazione
+  d'attacco né al ritorno che attacca insieme (RBF-010). Limite dichiarato:
+  la Stasi concessa da un Oggetto (RBF-013) alla risoluzione la lascerebbe
+  tappata, perché la copia del tavolo non legge ancora lo statico lì.
+  Engine 0.41.0.
 
 - **§7.2 La catena di risposta** — «ogni volta che un giocatore lancia una
   Reattiva, l'avversario può sempre rispondere», solo con Reattive, ad

@@ -10,7 +10,7 @@
 
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
 import type { AttackForm, FlipForm, ResolveForm } from "./ctx.js";
-import type { CardFacts, Ctx, EnterLook } from "./ctx.js";
+import type { CardFacts, Ctx, EnterLook, EnterRefresh } from "./ctx.js";
 import { controllerOf, fieldCards, inPlay, playSpot, zoneCards, freeFrontSlotOrNull } from "./state.js";
 import { countEntities } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
@@ -376,6 +376,43 @@ export function enterControls(state: GameState, entering: CardInstance, facts: (
   }));
 }
 
+/** Una stappata all'ingresso da risolvere (§8.2, RBF-011): la fonte e la forma. */
+export interface EnterRefreshStep {
+  source: CardInstance;
+  refresh: EnterRefresh;
+}
+
+/** Le stappate di chi entra (§8.2, la forma di RBF-011): col dado, alla risoluzione. */
+export function enterRefreshes(entering: CardInstance, facts: (cardId: string) => CardFacts): EnterRefreshStep[] {
+  return facts(entering.cardId).enterRefreshes.map(refresh => ({ source: entering, refresh }));
+}
+
+/** La riga che annuncia una stappata all'ingresso. */
+export function describeRefresh(step: EnterRefreshStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.rally", { card: `«${facts(step.source.cardId).name}»`, die: step.refresh.die, lo: step.refresh.onRoll[0], hi: step.refresh.onRoll[1] });
+}
+
+/**
+ * Esegue la stappata col tiro fatto: un'azione sola, marcata come effetto,
+ * anche col tiro mancato — così l'innesco si consuma e non si ripropone.
+ */
+export async function resolveRefresh(ctx: Ctx, step: EnterRefreshStep, roll: number): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const untap = inRange(roll, step.refresh.onRoll);
+  const passed = await ctx.dispatch({
+    t: "refresh",
+    seat: by,
+    roll,
+    untap,
+    effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
+  });
+  if (passed) {
+    if (untap) ctx.log(msg("log.effect.refresh", { seat: by, sourceCard: step.source.cardId }), by);
+    else ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: step.refresh.die, roll, what: msg("roll.nothing") }), by);
+  }
+  return passed;
+}
+
 /** La riga che annuncia un controllo. */
 export function describeControl(step: EnterControlStep, facts: (cardId: string) => CardFacts): string {
   return t("trigger.control", { card: `«${facts(step.source.cardId).name}»` });
@@ -570,7 +607,6 @@ export function describeAttackStep(step: AttackStep, facts: (cardId: string) => 
       if (form.who === "rubyfront") return t(form.thenDraw ? "trigger.muster.nexus" : "trigger.muster", { card, n: form.amount });
       return t("trigger.mend", { card, n: form.amount, die: form.die ?? 0, lo: form.onRoll?.[0] ?? 0, hi: form.onRoll?.[1] ?? 0 });
     case "return": return t("trigger.recall", { card, die: form.die, lo: form.onRoll[0], hi: form.onRoll[1] });
-    case "refresh": return t("trigger.charge2", { card, die: form.die, lo: form.onRoll[0], hi: form.onRoll[1] });
     case "rearm": return t("trigger.rearm", { card });
   }
 }

@@ -37,6 +37,8 @@ export interface CardFacts {
   attackReturns: EnterReturn[];
   /** I controlli certificati «quando QUESTA entra» (§8.2): vedi enterControls. */
   enterControls: EnterControl[];
+  /** Le stappate certificate «quando QUESTA entra» (§8.2, RBF-011): vedi enterRefreshes. */
+  enterRefreshes: EnterRefresh[];
   /** Le pesche certificate «quando QUESTA attacca con un Oggetto» (§8.2, RBF-026). */
   attackDraws: AttackDraw[];
   /** Le altre forme certificate «quando attacca» (§8.2): vedi AttackForm. */
@@ -63,7 +65,9 @@ export interface CardFacts {
  */
 export type StaticForm =
   | { kind: "self_power"; amount: number; whileAttacking?: true; requiresOther?: { kind: "entity"; race: string | null }; perOther?: { kind: "entity"; race: string | null } }
-  | { kind: "bearer_power"; amount: number; per?: { kind: "entity"; race: string | null }; multiBlock?: boolean };
+  | { kind: "bearer_power"; amount: number; per?: { kind: "entity"; race: string | null }; multiBlock?: boolean }
+  /** RBF-011: «questa Entità non si tappa mai». */
+  | { kind: "never_taps" };
 
 /**
  * Gli effetti certificati delle Materie alla risoluzione (§7.2), specchio
@@ -120,8 +124,6 @@ export type AttackForm =
   | { kind: "heal"; who: "self" | "permanent" | "rubyfront"; amount: number | "human_attackers"; die: number | null; onRoll: [number, number] | null; thenRecall?: { kind: "entity" }; attackers?: { kind: "entity"; race: string }; gainOn?: [number, number]; drainOn?: [number, number]; once?: true; requiresAttackers?: { count: number; race: string }; thenDraw?: number; thenDiscard?: number; face: number }
   /** RBF-010: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme. */
   | { kind: "return"; who: "self"; die: number; onRoll: [number, number]; filter: { kind: "entity"; race: string }; joins: true; face: number }
-  /** RBF-011: stappa tutte le proprie Entità; col tiro, la Fase di Fronte addizionale. */
-  | { kind: "refresh"; who: "self"; die: number; onRoll: [number, number]; face: number }
   /** RBF-031: un Oggetto dal Ritiro addosso a chi attacca, gratis. */
   | { kind: "rearm"; who: "ally"; attackerArmed: true; face: number };
 
@@ -145,6 +147,16 @@ export interface AttackDraw {
 export interface EnterControl {
   target: { kind: "entity"; controller: "opponent"; maxCost: number | null };
   grants: string[];
+}
+
+/**
+ * La forma certificata di una stappata all'ingresso: «quando entra in
+ * campo, lancia un d20: con 15–20 stappa tutte le Entità che controlli». È
+ * la forma di RBF-011 (dal 2026-09-05).
+ */
+export interface EnterRefresh {
+  die: number;
+  onRoll: [number, number];
 }
 
 /**

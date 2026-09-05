@@ -277,6 +277,7 @@ const ctx: Ctx = {
       enterReturns: stats.enterReturns,
       enterLooks: stats.enterLooks,
       enterControls: stats.enterControls,
+      enterRefreshes: stats.enterRefreshes,
       attackReturns: stats.attackReturns,
       attackDraws: stats.attackDraws,
       attackForms: stats.attackForms,

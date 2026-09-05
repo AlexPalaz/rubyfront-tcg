@@ -139,7 +139,6 @@ export function attackKey(action: Action): string | null {
       case "player": return "heal";
       case "look": return ref.follow ?? "look";
       case "empower": return `empower:${action.uid}`;
-      case "refresh": return "refresh";
       case "declare": return "join";
       case "toZone": return ref.follow ?? (action.assignTo ? "rearm" : action.zone === "field" ? "return" : "move");
       default: return action.t;
@@ -458,7 +457,6 @@ function reduce(state: GameState, action: Action): GameState {
         active: next,
         phase: "preparazione",
         declarations: [],
-        extraFront: false,
         fired: [],
       };
       // §6.1 — la Pesca: «il giocatore di turno pesca una carta», e «non si
@@ -469,11 +467,6 @@ function reduce(state: GameState, action: Action): GameState {
     }
 
     case "phase":
-      // La Fase di Fronte addizionale (RBF-011): dalla Reazione si torna al
-      // Fronte una volta, a frecce sgombre; la promessa si consuma.
-      if (action.phase === "fronte" && state.phase === "reazione" && state.extraFront) {
-        return { ...state, phase: "fronte", extraFront: false, declarations: [] };
-      }
       return { ...state, phase: action.phase };
 
     case "declare":
@@ -664,8 +657,9 @@ function reduce(state: GameState, action: Action): GameState {
     }
 
     case "refresh": {
-      // §8.2 (RBF-011) — tutte le Entità che `seat` comanda si stappano; col
-      // tiro giusto è dovuta una Fase di Fronte addizionale. Gemello: table.rb.
+      // §8.2 (RBF-011) — col tiro giusto (`untap`) tutte le Entità che `seat`
+      // comanda si stappano; col tiro mancato non succede nulla. Gemello: table.rb.
+      if (!action.untap) return state;
       const cards = { ...state.cards };
       for (const [uid, card] of Object.entries(cards)) {
         if (card.zone !== "field" || !card.tapped || controllerOf(card) !== action.seat) continue;
@@ -674,7 +668,7 @@ function reduce(state: GameState, action: Action): GameState {
         delete fresh.stasis;
         cards[uid] = fresh;
       }
-      return { ...state, cards, extraFront: action.extra || state.extraFront === true };
+      return { ...state, cards };
     }
 
     case "say":
