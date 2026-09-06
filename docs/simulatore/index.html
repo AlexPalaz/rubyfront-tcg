@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Simulatore · Rubyfront</title>
-  <script type="module" crossorigin src="./assets/index-BtPyNCi0.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-CUS6eTvb.css">
+  <script type="module" crossorigin src="./assets/index-BmgXBlp8.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CJfiNkSs.css">
 </head>
 <body>
-<!-- L'header è scarno di proposito: i gesti di partita stanno sull'HUD, le
-     impostazioni dietro l'ingranaggio. Qui restano il marchio, lo stato della
-     rete, Nuova partita (da sola: azzera tutto) e l'ingranaggio. -->
+<!-- L'header: il marchio; al centro il turno con la fase e il gesto che la
+     chiude (#game-bar, lo riempie hud.ts); a destra Evoca, chat e microfono
+     (#game-tools), lo stato della rete, Nuova partita (da sola: azzera
+     tutto) e l'ingranaggio delle impostazioni. -->
 <header class="toolbar">
   <span class="brand">
     <b class="brand-main">Rubyfront</b>
@@ -18,6 +19,9 @@
     <span class="brand-sub">Simulator</span>
   </span>
   <span class="spacer"></span>
+  <span id="game-bar" class="game-bar"></span>
+  <span class="spacer"></span>
+  <span id="game-tools" class="game-tools"></span>
   <span id="engine-dot" class="dot dot-engine" hidden title="Engine spento" data-i18n-title="html.engine.off"></span>
   <span id="net-dot" class="dot" title="Non collegato" data-i18n-title="html.net.off"></span>
   <button type="button" id="do-new" class="danger" data-i18n="html.newgame">Nuova partita</button>
@@ -84,6 +88,7 @@
   <div class="set-row">
     <span class="set-label" data-i18n="html.view">Vista</span>
     <select id="view-pick" title="Come si vede il tavolo" data-i18n-title="html.view.tip">
+      <option value="recess" data-i18n="html.view.recess">Carte intere · rincasso: stesso tavolo tutto in vista, pile avversarie a pannello</option>
       <option value="compact" data-i18n="html.view.compact">Tavolo: tutto in vista, tessere con nome, costo e Potenza; il testo al passaggio</option>
       <option value="full" data-i18n="html.view.full">Carte intere: si legge tutto sul tavolo, si scorre</option>
     </select>
@@ -140,10 +145,7 @@
 </div>
 
 <main class="layout">
-  <div class="table" id="table">
-    <!-- L'HUD non è una colonna: fluttua sopra il tavolo, sul bordo destro. -->
-    <div class="hud" id="hud"></div>
-  </div>
+  <div class="table" id="table"></div>
   <aside class="side" id="side">
     <button type="button" class="side-close" id="side-close" title="Chiudi la chat e allarga il tavolo" data-i18n-title="html.side.close">×</button>
     <div class="chat" id="chat"></div>
