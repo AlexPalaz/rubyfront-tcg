@@ -171,9 +171,16 @@ tessera). Nelle pile aperte, a scala piena, non servono.
 
 La fila di servizio avversaria, azzerata in rincasso, **si riapre da sola
 finché l'avversario controlla un'Entità** (§8.2): il suo riquadro del
-controllo sta lì, e senza la fila cadrebbe sul terzo slot del Fronte.
-A fine controllo si richiude (`setFoeBackRow` in `src/ctx.ts`, acceso dal
-render di table.ts). La scala non conta la
+controllo sta lì, e senza la fila cadrebbe sul terzo slot del Fronte. A
+fine controllo si richiude (`setFoeBackRow` in `src/ctx.ts`, acceso dal
+render di table.ts). Non salta: le zone si ricostruiscono, ma ogni
+riquadro parte dal posto vecchio e scivola al suo, chi non c'era entra con
+una dissolvenza, e la scala del tavolo scivola con loro — `--card-scale` è
+una proprietà CSS registrata, e va in transizione solo in quel momento
+(`morphZones` in table.ts). Le pile avversarie restano invece nel loro
+**pannello** in alto a destra (provato ad aprirle nella fila vera: quattro
+file di carte intere a 1180×820 fanno una scala da 0,28), che si apre e si
+chiude con una transizione (il corpo è una griglia da 0fr a 1fr). La scala non conta la
 mano, che resta un cassetto fisso sopra la lavagna come
 in «Carte intere» (la mano si ripiega col gesto per vedere la fila di servizio
 là sotto, e sta alla scala del tavolo, non al 30% in più). Su un 3440×1264

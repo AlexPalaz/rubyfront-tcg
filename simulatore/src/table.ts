@@ -166,6 +166,8 @@ const HAND_CHROME = 48;
 const LABEL_ROOM_PX = 42;
 /** La testata del campo sporge dentro il campo di metà della sua altezza (15px), più l'aria. */
 const HEAD_ROOM_PX = 24;
+/** In cima al tavolo la testata sporge SOPRA l'orlo, verso l'header: 15px di sporgenza e 25 d'aria. */
+const TOP_ROOM_PX = 40;
 
 export interface TableView {
   render(): void;
@@ -241,12 +243,21 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       return true;
     }
   }
+  /** La scelta di questa seduta: prima del primo click vale quella salvata
+      (ma a lavagna piccola si parte chiusi). */
+  let pileChoice: boolean | null = null;
+  function foePilesOpen(): boolean {
+    return pileChoice ?? (pileDockOpen() && !isTightView());
+  }
   function setPileDockOpen(open: boolean): void {
     try {
       localStorage.setItem(PILE_DOCK_KEY, open ? "open" : "closed");
     } catch {
       /* niente memoria: si riparte aperto */
     }
+    pileChoice = open;
+    // Il pannello si apre e si chiude sul posto, con la sua transizione
+    // (style.css, .pile-dock-body): niente geometria da rifare.
     pileDock?.classList.toggle("is-collapsed", !open);
   }
   /** La scelta da una pila per un effetto: la fornisce main.ts (overlay). */
@@ -484,9 +495,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // stacco, 16 di testo, 8 d'aria (LABEL_ROOM_PX), in unità di vista.
     const labelPx = recess ? LABEL_ROOM_PX : 0;
     const headPx = recess ? HEAD_ROOM_PX : 0;
+    const topPx = recess ? TOP_ROOM_PX : 0;
     const reserve = (at: number): void => {
       setCornerReserve(cornerPx / at);
-      setLabelRoom(labelPx / at, headPx / at);
+      setLabelRoom(labelPx / at, headPx / at, topPx / at);
     };
     setViewSlack(0);
     reserve(Number.POSITIVE_INFINITY);
@@ -721,7 +733,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
       // Rincasso: le pile avversarie non hanno una fila sulla lavagna. Stanno
       // in un pannello sopra il suo campo, in alto a destra, che si ripiega a
-      // una testata coi conti — è informazione, non spazio di gioco.
+      // una testata coi conti — è informazione, non spazio di gioco. Si apre
+      // e si chiude con una transizione (style.css, .pile-dock-body).
+      // (Provato ad aprire la fila vera, come per il controllo: quattro
+      // file di carte intere a 1180×820 fanno una scala da 0,28 — «tornerei
+      // alla visualizzazione di prima, però con un'animazione».)
       const docked = isRecessView() && !mine;
       let dockRow: HTMLElement | null = null;
       if (docked) {
@@ -729,7 +745,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         // A lavagna piccola il pannello aperto è mezzo campo avversario:
         // parte ripiegato (una testata coi conti), e si apre col click; la
         // scelta salvata vale per la lavagna grande.
-        dock.className = `pile-dock${pileDockOpen() && !isTightView() ? "" : " is-collapsed"}`;
+        dock.className = `pile-dock${foePilesOpen() ? "" : " is-collapsed"}`;
         // Ancorato al bordo destro della lavagna, non a una colonna: dentro
         // ci stanno quattro riquadri (tre pile e la mano) e la misura la fa
         // il contenuto.
@@ -747,9 +763,19 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         counts.className = "pile-dock-counts";
         head.append(title, counts);
         head.addEventListener("click", () => setPileDockOpen(dock.classList.contains("is-collapsed")));
+        // Il corpo è una griglia a una riga che va da 1fr a 0fr: è ciò che
+        // si anima. Dentro, un ritaglio senza padding (una traccia a 0fr
+        // non scende sotto il padding di ciò che contiene) e poi la fila
+        // coi riquadri.
+        const body = document.createElement("div");
+        body.className = "pile-dock-body";
+        const clip = document.createElement("div");
+        clip.className = "pile-dock-clip";
         dockRow = document.createElement("div");
         dockRow.className = "pile-dock-row";
-        dock.append(head, dockRow);
+        clip.append(dockRow);
+        body.append(clip);
+        dock.append(head, body);
         surface.append(dock);
         zoneEls.push(dock);
         pileDock = dock;
@@ -2941,6 +2967,66 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     );
   }
 
+  /** Quanto dura l'apertura della fila (specchio di --morph-ms in style.css). */
+  const MORPH_MS = 380;
+  /** La chiave con cui un riquadro si riconosce da una costruzione all'altra. */
+  const zoneKey = (el: HTMLElement): string =>
+    el.classList.contains("half")
+      ? `half:${el.classList.contains("is-mine") ? "mine" : "foe"}`
+      : el.classList.contains("pile-dock")
+        ? "dock"
+        : `slot:${el.dataset.seat ?? ""}:${el.dataset.drop ?? ""}:${el.dataset.label ?? ""}:${el.dataset.snapX ?? ""}:${el.classList.contains("dock-hand") ? "hand" : ""}`;
+  /**
+   * La fila di servizio avversaria che si apre e si chiude non salta: si
+   * anima. Le zone si ricostruiscono da capo (buildStaticZones), quindi si
+   * ricorda dov'era ciascun riquadro, si ricostruisce, e ogni riquadro
+   * nuovo parte dal posto vecchio e scivola al suo (transizione su top e
+   * height, style.css .is-morphing); chi non c'era entra con una
+   * dissolvenza (.is-arriving); la scala del tavolo scivola con loro
+   * (html.is-morphing: --card-scale è una proprietà registrata, e va in
+   * transizione). Le carte, che restano le stesse, seguono con la loro
+   * transizione. A corsa finita si toglie tutto e si ridisegna una volta:
+   * la scala letta a metà corsa (drag.ts, la mano) torna quella vera.
+   */
+  function morphZones(rebuild: () => void): void {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      rebuild();
+      return;
+    }
+    const before = new Map<string, { top: string; height: string }>();
+    for (const el of surface.querySelectorAll<HTMLElement>(".half, .slot, .pile-dock")) {
+      if (el.parentElement !== surface) continue;
+      before.set(zoneKey(el), { top: el.style.top, height: el.style.height });
+    }
+    document.documentElement.classList.add("is-morphing");
+    for (const tile of tiles.values()) tile.classList.add("is-morphing");
+    rebuild();
+    for (const el of surface.querySelectorAll<HTMLElement>(".half, .slot, .pile-dock")) {
+      if (el.parentElement !== surface) continue;
+      const old = before.get(zoneKey(el));
+      if (!old || !old.top) {
+        el.classList.add("is-arriving");
+        continue;
+      }
+      const next = { top: el.style.top, height: el.style.height };
+      el.style.top = old.top;
+      if (el.classList.contains("half")) el.style.height = old.height;
+      el.classList.add("is-morphing");
+      void el.offsetHeight;
+      el.style.top = next.top;
+      if (el.classList.contains("half")) el.style.height = next.height;
+    }
+    window.setTimeout(() => {
+      document.documentElement.classList.remove("is-morphing");
+      for (const el of surface.querySelectorAll<HTMLElement>(".is-morphing, .is-arriving")) {
+        el.classList.remove("is-morphing", "is-arriving");
+      }
+      for (const tile of tiles.values()) tile.classList.remove("is-morphing");
+      render();
+    }, MORPH_MS + 40);
+  }
+
   function render(): void {
     const state = ctx.state();
     const me = ctx.seat();
@@ -2948,13 +3034,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // Rincasso: la fila di servizio avversaria si riapre finché l'avversario
     // controlla un'Entità (§8.2) — il suo riquadro del controllo sta lì — e
     // si richiude dopo. Geometria nuova: zone e scala da rifare, prima di
-    // posare le carte.
-    const foeControls = isRecessView() && fieldCards(state).some(card => card.controller === foe);
-    if (foeControls !== hasFoeBackRow()) {
-      setFoeBackRow(foeControls);
-      applySurfaceSize();
-      buildStaticZones();
-      fitScale();
+    // posare le carte, con l'animazione (morphZones).
+    const foeRow = isRecessView() && fieldCards(state).some(card => card.controller === foe);
+    if (foeRow !== hasFoeBackRow()) {
+      morphZones(() => {
+        setFoeBackRow(foeRow);
+        applySurfaceSize();
+        buildStaticZones();
+        fitScale();
+      });
     }
     const alive = new Set<string>();
 

@@ -819,6 +819,35 @@ body.side-closed .side { border-left: 0; }
   transform: scale(var(--card-scale));
   transform-origin: 0 0;
 }
+/* La scala del tavolo è una proprietà REGISTRATA: così può andare in
+   transizione, e con lei tutto ciò che ne deriva (transform della
+   superficie, margini, --ui-inv). La transizione si accende solo mentre la
+   fila di servizio avversaria si apre o si chiude (html.is-morphing,
+   table.ts morphZones), non a ogni ridimensionamento. Chi non conosce
+   @property ignora la registrazione: nessuna animazione, nessun danno. */
+@property --card-scale {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+:root { --morph-ms: 380ms; }
+html.is-morphing { transition: --card-scale var(--morph-ms) ease; }
+/* I riquadri e i campi che scivolano dal posto vecchio al nuovo, e le
+   carte che li seguono. */
+.half.is-morphing, .slot.is-morphing, .pile-dock.is-morphing { transition: top var(--morph-ms) ease, height var(--morph-ms) ease; }
+.tile.is-morphing { transition: top var(--morph-ms) ease, left var(--morph-ms) ease; }
+/* I riquadri che prima non c'erano (le pile e la mano avversaria che
+   scendono sulla lavagna) entrano con una dissolvenza. */
+.slot.is-arriving { animation: slot-arrive var(--morph-ms) ease-out both; }
+@keyframes slot-arrive {
+  from { opacity: 0; transform: translateY(calc(-14px * var(--ui-inv))); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.is-morphing { transition: none; }
+  .half.is-morphing, .slot.is-morphing, .pile-dock.is-morphing, .tile.is-morphing { transition: none; }
+  .slot.is-arriving { animation: none; }
+}
 /* In rincasso il tavolo sta tutto nella finestra e i margini sono stretti:
    la lavagna comincia SOTTO la lastra di vetro dell'header, o la cima del
    campo avversario (targhetta compresa) ci finirebbe dietro. Nella vista
@@ -947,6 +976,11 @@ body.view-recess .board { top: var(--toolbar-h); }
   text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
+  /* A scala piccola l'etichetta, a corpo fisso, è più larga del riquadro:
+     si tronca coi puntini invece di finire sulla vicina. */
+  max-width: calc(100% - 8px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .slot.is-drop-target {
@@ -1273,24 +1307,33 @@ body.view-compact .slot.is-discard::before, body.view-recess .slot.is-discard::b
 .pile-dock-head::before { content: "\25BE"; color: var(--ink); }
 .pile-dock.is-collapsed .pile-dock-head::before { content: "\25B8"; }
 .pile-dock-head:hover { color: var(--ink); }
+/* Il corpo del pannello: una griglia a una riga, da 1fr (aperto) a 0fr
+   (ripiegato). È ciò che si anima — la riga dentro si stringe con lui e
+   ciò che sborda si taglia; ripiegato, sparisce anche al puntatore. */
+.pile-dock-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--morph-ms) ease, opacity var(--morph-ms) ease;
+}
+.pile-dock.is-collapsed .pile-dock-body { grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows var(--morph-ms) ease, opacity var(--morph-ms) ease, visibility 0s linear var(--morph-ms); }
+.pile-dock-clip { min-height: 0; overflow: hidden; }
 .pile-dock-row {
   display: flex;
   gap: 20px;
   padding: 8px 16px calc(44px * var(--ui-inv));
 }
-.pile-dock.is-collapsed .pile-dock-row { display: none; }
-.pile-dock .pile-dock-counts { display: none; }
-.pile-dock.is-collapsed .pile-dock-counts { display: inline; }
-.pile-dock.is-collapsed .pile-dock-title { display: none; }
 /* Dentro il pannello le pile stanno nel flusso, non a coordinate. */
 .pile-dock .slot.pile { position: relative; }
 /* Lavagna piccola: il pannello si dispone a due per riga invece di quattro
    in fila, e smette di mangiarsi mezzo campo avversario. */
-.pile-dock.is-tight:not(.is-collapsed) .pile-dock-row {
+.pile-dock.is-tight .pile-dock-row {
   display: grid;
   grid-template-columns: repeat(2, auto);
 }
-/* La mano avversaria è l'ultimo riquadro del pannello: dorsi col conto. */
+@media (prefers-reduced-motion: reduce) { .pile-dock-body, .pile-dock.is-collapsed .pile-dock-body { transition: none; } }
+.pile-dock .pile-dock-counts { display: none; }
+.pile-dock.is-collapsed .pile-dock-counts { display: inline; }
+.pile-dock.is-collapsed .pile-dock-title { display: none; }
 .pile-dock .dock-hand.is-empty { opacity: .55; }
 /* In rincasso la fascia dei dorsi in cima non c'è più: la mano avversaria
    sta nel pannello, e quel margine di tavolo torna alle carte. */
@@ -2187,19 +2230,22 @@ body.is-targeting .tile.is-legal {
 /* Il tasto prende i colori della fase che chiude, gli stessi del rigo
    della fase nell'HUD: avorio la Preparazione, rubino il Fronte, viola la
    Reazione. */
+/* «Fine preparazione» è il gesto principale della partita: rubino pieno,
+   com'era il Fine turno (l'avorio sul tema chiaro spariva — 2026-09-06).
+   Il Fronte resta rubino ma più cupo, granato; la Reazione viola. */
 .hud-front.is-phase-end {
   padding: 11px 4px;
   backdrop-filter: none;
-  color: #1b1015;
-  background: linear-gradient(180deg, #f3ece4, #d9cfc3);
-  border-color: #fbf5ec;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, .35);
-}
-.hud-front.is-phase-end[data-phase="fronte"] {
   color: #fdeef1;
   background: linear-gradient(180deg, #b81a41, #9e0f34);
   border-color: #e56a86;
   box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
+}
+.hud-front.is-phase-end[data-phase="fronte"] {
+  color: #fdeef1;
+  background: linear-gradient(180deg, #8e0c2f, #6b0822);
+  border-color: #d24a64;
+  box-shadow: 0 4px 10px rgba(107, 8, 34, .45);
 }
 .hud-front.is-phase-end[data-phase="reazione"] {
   color: #f1ecfa;
@@ -2209,7 +2255,7 @@ body.is-targeting .tile.is-legal {
 }
 /* Il passaggio del mouse schiarisce e basta: la scritta resta del suo
    colore (il hover di base dei tasti la farebbe bianca sull'avorio). */
-.hud-front.is-phase-end:hover:not(:disabled) { filter: brightness(1.12); color: #1b1015; border-color: #fbf5ec; }
+.hud-front.is-phase-end:hover:not(:disabled) { filter: brightness(1.12); color: #fdeef1; border-color: #fbf5ec; }
 .hud-front.is-phase-end[data-phase="fronte"]:hover:not(:disabled) { color: #fdeef1; border-color: #e56a86; }
 .hud-front.is-phase-end[data-phase="reazione"]:hover:not(:disabled) { color: #f1ecfa; border-color: #a494cf; }
 .hud-front.is-phase-end:disabled { filter: saturate(.4) brightness(.75); }
@@ -2693,6 +2739,11 @@ body[data-ui-theme^="chiaro"] .half {
      striscia dei dorsi avversari si scansano sotto la barra, con respiro.
      Su desktop non serve: lì l'aria la dà il margine canonico del tavolo. */
   .board, .hand-opponent { top: calc(var(--toolbar-h) + 22px); }
+  /* In rincasso la striscia dei dorsi non c'è (la mano avversaria sta nel
+     pannello delle pile) e l'aria in cima la dà già il margine di testa:
+     niente scanso in più e niente padding, che il fit non conta e su iPad
+     faceva scorrere la lavagna di quei pixel. */
+  body.view-recess .board { top: var(--toolbar-h); padding-top: 0; }
   /* La striscia dei dorsi copre la cima della lavagna. Sul desktop il
      margine canonico del tavolo (TOP_PAD, 128px) la supera e la targhetta
      «Giocatore A» spunta sotto; in scala ridotta il margine si stringe ma

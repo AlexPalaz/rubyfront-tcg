@@ -389,15 +389,19 @@ let labelRoom = 0;
 /** E lo spazio della testata del campo (targhetta e targa), che sporge
     dentro il campo dall'orlo in alto: la metà della sua altezza più l'aria. */
 let headRoom = 0;
-export function setLabelRoom(labels: number, head: number): void {
+/** E il margine in cima al tavolo: la targhetta del campo avversario
+    sporge sopra il suo orlo, e sotto l'header ci vuole aria vera. */
+let topRoom = 0;
+export function setLabelRoom(labels: number, head: number, top = head): void {
   labelRoom = labels;
   headRoom = head;
+  topRoom = top;
 }
 /** Le quote della distribuzione: cima e fondo, varco fra i campi, varco fra
     le file (una sola, nel campo tuo), i quattro margini di fila. */
 const SLACK = { TOP: 0.12, BOTTOM: 0.1, HALF_GAP: 0.3, ROW_GAP: 0.2, ROW_PAD: 0.07 } as const;
 function topPadView(): number {
-  if (recessView) return (tightView ? TIGHT.TOP_PAD : RECESS_TOP_PAD) + viewSlack * SLACK.TOP;
+  if (recessView) return Math.max(tightView ? TIGHT.TOP_PAD : RECESS_TOP_PAD, topRoom) + viewSlack * SLACK.TOP;
   return TOP_PAD;
 }
 function halfGapView(): number {
@@ -450,9 +454,10 @@ function bottomPadView(): number {
 /**
  * Rincasso: la fila di servizio avversaria si riapre quando serve — quando
  * l'avversario controlla un'Entità (§8.2), che sta nel suo riquadro del
- * controllo, in quella fila. Senza, il riquadro cadrebbe sul Fronte, sopra
- * il terzo slot. Lo accende table.ts leggendo lo stato; costa scala solo
- * finché dura il controllo (fine del turno).
+ * controllo, in quella fila, o quando si aprono le sue pile dalla testata
+ * (table.ts): Abisso, Ritiro, Mazzo e la mano scendono sulla lavagna ai
+ * loro posti. Chiusa, il riquadro del controllo cadrebbe sul Fronte, sopra
+ * il terzo slot. Lo accende table.ts; costa scala finché resta aperta.
  */
 let foeBackRow = false;
 export function setFoeBackRow(on: boolean): void {
