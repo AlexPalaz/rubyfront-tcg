@@ -190,7 +190,7 @@ export interface TableView {
    * mano, armare un'Entità, schierare il Rubyfront, attaccare — con le
    * stesse scene ed effetti di un giocatore.
    */
-  setAuto(chooser: AutoChooser | null): void;
+  setAuto(seat: Seat | null, chooser: AutoChooser): void;
   playFromHand(card: CardInstance, spot: { x: number; y: number }): Promise<boolean>;
   assignObject(card: CardInstance, bearer: CardInstance): Promise<boolean>;
   /** Vero se ha schierato (o tirato); falso se lo schieramento non passerebbe. */
@@ -286,9 +286,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     title: string,
     visible?: CardInstance[]
   ) => Promise<CardInstance | null> = () => Promise.resolve(null);
-  /** Il selettore automatico del bot (main.ts): acceso, mira e pile
-      rispondono da sole, senza finestre. */
-  let auto: AutoChooser | null = null;
+  /** Il selettore automatico del bot (main.ts), legato al SUO posto: per
+      i gesti di quel posto mira, pile e conferme rispondono da sole, senza
+      finestre — anche negli effetti che si risolvono dopo, a scena chiusa.
+      I gesti dell'altro posto restano del giocatore. */
+  let auto: { seat: Seat; chooser: AutoChooser } | null = null;
+  const isAuto = (seat: Seat): boolean => auto !== null && auto.seat === seat;
   const pickFromPile = (
     seat: Seat,
     zone: ZoneId,
@@ -296,9 +299,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     title: string,
     visible?: CardInstance[]
   ): Promise<CardInstance | null> => {
-    if (auto) return Promise.resolve(auto.pickFromPile(zone, candidates, visible));
+    if (auto && isAuto(seat)) return Promise.resolve(auto.chooser.pickFromPile(zone, candidates, visible));
     return pickFromPileUi(seat, zone, candidates, title, visible);
   };
+  /** La conferma di un effetto: per il bot è un sì, per il giocatore la finestra. */
+  const confirmFor = (seat: Seat, question: string, labels?: { yes: string; no: string }): Promise<boolean> =>
+    isAuto(seat) ? Promise.resolve(true) : confirmEffect(root, question, labels);
   /** Uid della carta in trascinamento: non va riposizionata dal render. */
   let dragging: string | null = null;
   /**
@@ -1030,6 +1036,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             ...own.map(step => describeAttackStep(step, ctx.card)),
           ],
           kicker: t("scene.attack"),
+          auto: isAuto(controllerOf(live)),
           onContinue: () => void playAttackTriggers(live, own),
         });
       }
@@ -1053,6 +1060,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           // «Quando attacca» faceva pensare a un attacco suo — la riga sotto
           // dice già chi attacca e con che carta.
           kicker: t("scene.attack.other"),
+          auto: isAuto(controllerOf(live)),
           onContinue: () => void playAttackSteps(group),
         });
       }
@@ -1117,7 +1125,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             const target = await pickTarget(step.source, foes, t("target.raid"));
             if (!target) break;
             strike(target.uid, 60_000);
-            const sure = await confirmEffect(root, t("confirm.raid", { card: `«${ctx.card(target.cardId).name}»` }));
+            const sure = await confirmFor(by, t("confirm.raid", { card: `«${ctx.card(target.cardId).name}»` }));
             if (!sure) {
               strike(target.uid, 0);
               break;
@@ -1413,8 +1421,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   function pickTarget(source: CardInstance, candidates: CardInstance[], hint: string): Promise<CardInstance | null> {
     // Il bot sceglie da sé: il bersaglio si accende un attimo, così chi
     // guarda vede cosa è stato scelto, e la mira non si apre.
-    if (auto) {
-      const chosen = auto.pickTarget(source, candidates);
+    if (auto && isAuto(controllerOf(source))) {
+      const chosen = auto.chooser.pickTarget(source, candidates);
       if (chosen) strike(chosen.uid, 900);
       return wait(450).then(() => chosen);
     }
@@ -1713,7 +1721,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (card.zone === "hand" && facts.kind === "matter" && facts.resolveForms.length) {
       const steps = resolveSteps(ctx.state(), card, ctx.card);
       if (steps.length && steps.every(step => step.blocked !== null && step.form.kind !== "block")) {
-        const go = await confirmEffect(root, t("confirm.matter.noeffect", { card: `«${cardName(card.cardId, ctx.locale())}»` }), { yes: t("confirm.play.anyway"), no: t("confirm.play.not") });
+        const go = await confirmFor(card.owner, t("confirm.matter.noeffect", { card: `«${cardName(card.cardId, ctx.locale())}»` }), { yes: t("confirm.play.anyway"), no: t("confirm.play.not") });
         if (!go) {
           render();
           return false;
@@ -1797,6 +1805,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           ...refreshes.map(step => describeRefresh(step, ctx.card)),
           ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
         ],
+        auto: isAuto(card.owner),
         onContinue:
           moves.length || returns.length || looks.length || controls.length || refreshes.length || triggers.length ? () => void playTriggers(live) : undefined,
       });
@@ -1867,6 +1876,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       effects,
       triggers: steps.map(step => describeResolveStep(step, ctx.card)),
       kicker: t("scene.resolve.matter"),
+      auto: isAuto(by),
       // I passi seguono la scena, qui sotto: il tasto dice solo «Risolvi».
       onContinue: () => undefined,
     });
@@ -1973,7 +1983,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (!target) break;
           strike(target.uid, 60_000);
           const question = form.kind === "move" ? "confirm.impact" : form.kind === "exile" ? "confirm.repulse" : "confirm.judgment";
-          const sure = await confirmEffect(root, t(question, { card: `«${ctx.card(target.cardId).name}»` }));
+          const sure = await confirmFor(controllerOf(step.source), t(question, { card: `«${ctx.card(target.cardId).name}»` }));
           if (!sure) {
             strike(target.uid, 0);
             render();
@@ -2098,6 +2108,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       effects: [],
       triggers: steps.map(step => describeFlipStep(step, ctx.card)),
       kicker: t("scene.flip"),
+      auto: isAuto(by),
       onContinue: () => void playFlipSteps(steps),
     });
   }
@@ -2369,7 +2380,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       light(step.source.uid, false);
       return;
     }
-    const sure = await confirmEffect(root, t("confirm.return", { card: `«${ctx.card(card.cardId).name}»` }));
+    const sure = await confirmFor(controllerOf(step.source), t("confirm.return", { card: `«${ctx.card(card.cardId).name}»` }));
     if (!sure) {
       light(step.source.uid, false);
       return;
@@ -2443,7 +2454,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       return;
     }
     strike(target.uid, 60_000);
-    const sure = await confirmEffect(root, t("confirm.control", { card: `«${ctx.card(target.cardId).name}»` }));
+    const sure = await confirmFor(by, t("confirm.control", { card: `«${ctx.card(target.cardId).name}»` }));
     if (!sure) {
       strike(target.uid, 0);
       light(step.source.uid, false);
@@ -2548,7 +2559,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     // Scelto il bersaglio, si chiede conferma — con la carta accesa.
     strike(target.uid, 60_000);
-    const sure = await confirmEffect(root, t(step.hold ? "confirm.loose" : "confirm.retire", { card: `«${ctx.card(target.cardId).name}»` }));
+    const sure = await confirmFor(controllerOf(step.source), t(step.hold ? "confirm.loose" : "confirm.retire", { card: `«${ctx.card(target.cardId).name}»` }));
     if (!sure) {
       strike(target.uid, 0);
       light(step.source.uid, false);
@@ -3397,8 +3408,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     onPick(handler) {
       pickFromPileUi = handler;
     },
-    setAuto(chooser) {
-      auto = chooser;
+    setAuto(seat, chooser) {
+      auto = seat ? { seat, chooser } : null;
     },
     playFromHand(card, spot) {
       return place(card, spot.x, spot.y, dropZ(card, spot.x, spot.y));

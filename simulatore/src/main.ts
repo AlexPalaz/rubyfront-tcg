@@ -25,7 +25,6 @@ import { showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
 import { endPhase } from "./turn.js";
 import { chooseAttackers, chooseBlocks, chooseDiscards, choosePlay, freshMemory, pickBest, type BotMemory } from "./bot.js";
-import { setAutoScenes } from "./effect.js";
 import { declareBlock } from "./combat.js";
 import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
@@ -100,7 +99,6 @@ let botSeat: Seat | null = null;
 // paint() chiama scheduleBot già durante il montaggio.
 let botMemory: BotMemory = freshMemory(0);
 let botBusy = false;
-let botActing = false;
 let botTimer: number | undefined;
 /** Il passo del bot: un gesto ogni tanto, per farsi seguire. */
 const BOT_PACE_MS = 750;
@@ -136,8 +134,9 @@ function dispatch(action: Action): Promise<boolean> {
             }
           }
           // Il bot che sbatte contro l'arbitro non mostra il sigillo a
-          // chi guarda: prende nota (bot.ts, tried) e cambia gesto.
-          if (!botActing) engineStop(verdict);
+          // chi guarda: prende nota (bot.ts, tried) e cambia gesto. Vale
+          // per ogni gesto del suo posto, anche gli effetti risolti dopo.
+          if (!(botSeat && actorFor(action) === botSeat)) engineStop(verdict);
           // Un gesto trascinato (una carta posata sul Fronte) può aver già
           // mosso i pixel: si ridisegna dallo stato — che non è cambiato —
           // e tutto torna al suo posto.
@@ -244,13 +243,20 @@ function receive(action: Action, from: Seat): void {
  * In rete è sempre questo client, cioè il suo posto. In partita locale lo
  * stesso mouse governa entrambi i posti: l'attore è allora il proprietario
  * della carta toccata, o il posto del contatore o del mazzo — e per i gesti
- * senza posto (fase, turno) chi è di turno. Limite dichiarato: in locale un
- * effetto risolto a mano sulle carte AVVERSARIE, nel proprio turno, risulta
- * un gesto dell'avversario e l'arbitro lo ferma; in rete no, perché lì il
- * gesto è di chi trascina.
+ * senza posto (fase, turno) chi è di turno. Un passo d'effetto è di chi
+ * comanda la fonte dell'effetto (vedi sotto), non della carta che lo
+ * subisce. In rete il gesto è di chi trascina.
  */
 function actorFor(action: Action): Seat {
   if (localFoeDeckId === null) return mySeat;
+  // Un passo d'effetto è di chi comanda la FONTE dell'effetto, qualunque
+  // carta tocchi: mandare nell'Abisso un'Entità avversaria è un gesto di
+  // chi ha giocato la carta che lo fa, non dell'avversario che la subisce.
+  // Senza questo l'arbitro fermava il passo con «non tocca a te».
+  if ("effect" in action && action.effect) {
+    const source = state.cards[action.effect.source];
+    if (source) return controllerOf(source);
+  }
   if ("uid" in action) {
     const card = state.cards[action.uid];
     return card ? controllerOf(card) : state.active;
@@ -589,6 +595,7 @@ function join(room: string, relay: string): void {
   if (localFoeDeckId) {
     localFoeDeckId = null;
     botSeat = null;
+    table.setAuto(null, botChooser);
     const foe = otherSeat(mySeat);
     void dispatch({ t: "loadDeck", seat: foe, deckId: "", cards: [] });
     void dispatch({ t: "player", seat: foe, patch: { name: "" } });
@@ -1091,6 +1098,7 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
 function leaveTable(): void {
   window.clearTimeout(botTimer);
   botSeat = null;
+  table.setAuto(null, botChooser);
   localFoeDeckId = null;
   join("", relayInput.value);
   store.write("room", "");
@@ -1127,15 +1135,19 @@ function startLocalFoe(deckId: string): void {
 // stanza — ma la gioca lui. Le decisioni stanno in bot.ts (pure); qui la
 // guida: a ogni ridisegno, se è il suo momento, compie UN gesto — con le
 // stesse azioni e lo stesso arbitro di un giocatore — poi ridisegna e
-// riparte. Mentre agisce, mira e conferme del tavolo rispondono da sole
-// (table.setAuto, setAutoScenes) e i «no» dell'arbitro non mostrano il
-// sigillo: il bot prende nota e cambia gesto.
+// riparte. Per i gesti del suo posto mira, conferme e scene del tavolo
+// rispondono da sole (table.setAuto: legato al posto, così vale anche per
+// gli effetti che si risolvono a scena chiusa) e i «no» dell'arbitro non
+// mostrano il sigillo: il bot prende nota e cambia gesto.
 
 function startBot(deckId: string): void {
   if (!deckId) return;
   localFoeDeckId = deckId;
   botSeat = otherSeat(mySeat);
   botMemory = freshMemory(state.turn);
+  // Le scelte automatiche sono legate al posto del bot, non al momento:
+  // valgono anche per gli effetti che si risolvono a scena chiusa.
+  table.setAuto(botSeat, botChooser);
   dispatch({ t: "player", seat: botSeat, patch: { name: t("bot.name") } });
   loadDeck(deckId, botSeat);
   scheduleBot();
@@ -1179,9 +1191,6 @@ async function botTick(): Promise<void> {
   }
   if (state.turn !== botMemory.turn) botMemory = freshMemory(state.turn);
   botBusy = true;
-  botActing = true;
-  table.setAuto(botChooser);
-  setAutoScenes(true);
   let again = false;
   try {
     again = await botStep(botSeat);
@@ -1190,9 +1199,6 @@ async function botTick(): Promise<void> {
     console.warn("bot", error);
   } finally {
     botBusy = false;
-    botActing = false;
-    table.setAuto(null);
-    setAutoScenes(false);
   }
   if (again) scheduleBot();
 }
