@@ -312,8 +312,17 @@ function enterMovesOf(face: CardFace | undefined): EnterMove[] {
     const destination = effect.destination;
     if (!target || target.cardType !== "entity" || target.controller !== "opponent" || target.zone !== "front") continue;
     if (target.min !== 1 || target.max !== 1) continue;
-    if (!destination || destination.zone !== "retire") continue;
-    out.push({ target: { kind: "entity", controller: "opponent" }, to: "ritiro" });
+    if (!destination) continue;
+    // Due destinazioni certificate: il Ritiro (senza dettagli) e l'Abisso
+    // «finché questa Entità resta in campo; quando lascia il campo, torna
+    // in gioco» — l'esilio condizionato (heldBy, release). Specchio di
+    // card_index.rb, enter_moves.
+    const extra = (trigger.effect as { details?: unknown }).details as Loose | undefined;
+    if (destination.zone === "retire" && extra === undefined) {
+      out.push({ target: { kind: "entity", controller: "opponent" }, to: "ritiro" });
+    } else if (destination.zone === "abyss" && extra && extra.whileSourceOnField === true && extra.returnsToPlayWhenSourceLeaves === true) {
+      out.push({ target: { kind: "entity", controller: "opponent" }, to: "abisso", hold: true });
+    }
   }
   return out;
 }

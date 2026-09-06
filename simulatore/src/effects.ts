@@ -23,7 +23,9 @@ export interface EnterTrigger {
 /** Uno spostamento all'ingresso da risolvere: chi entra, dove manda, e fra chi si sceglie. */
 export interface EnterMoveStep {
   source: CardInstance;
-  to: "ritiro";
+  to: "ritiro" | "abisso";
+  /** L'esilio condizionato: la carta va nell'Abisso tenuta da chi entra (heldBy). */
+  hold: boolean;
   candidates: CardInstance[];
 }
 
@@ -36,6 +38,7 @@ export function enterMoves(state: GameState, entering: CardInstance, facts: (car
   return facts(entering.cardId).enterMoves.map(move => ({
     source: entering,
     to: move.to,
+    hold: move.hold === true,
     candidates: fieldCards(state).filter(card => controllerOf(card) !== controllerOf(entering) && facts(card.cardId).kind === move.target.kind),
   }));
 }
@@ -262,7 +265,7 @@ export async function resolveLook(
 
 /** La riga che annuncia uno spostamento all'ingresso. */
 export function describeMove(step: EnterMoveStep, facts: (cardId: string) => CardFacts): string {
-  return t("trigger.retire", { card: `«${facts(step.source.cardId).name}»` });
+  return t(step.hold ? "trigger.loose" : "trigger.retire", { card: `«${facts(step.source.cardId).name}»` });
 }
 
 /**
@@ -274,10 +277,13 @@ export async function resolveMove(ctx: Ctx, step: EnterMoveStep, target: CardIns
     t: "toZone",
     uid: target.uid,
     zone: step.to,
+    // L'esilio condizionato: chi entra tiene la carta nell'Abisso (heldBy);
+    // quando lascia il campo, il release la riporta in gioco (main.ts).
+    ...(step.hold ? { heldBy: step.source.uid } : {}),
     effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
   });
   if (passed) {
-    ctx.log(msg("log.effect.retire", { seat: controllerOf(step.source), sourceCard: step.source.cardId, card: target.cardId }), controllerOf(step.source));
+    ctx.log(msg(step.hold ? "log.effect.exile" : "log.effect.retire", { seat: controllerOf(step.source), sourceCard: step.source.cardId, card: target.cardId }), controllerOf(step.source));
   }
   return passed;
 }

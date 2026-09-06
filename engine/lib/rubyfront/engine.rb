@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.42.0"
+    VERSION = "0.43.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -54,6 +54,7 @@ module Rubyfront
       "§2/§9 Fine della partita: PV a zero, mazzo esaurito, pareggio",
       "§8.2 Effetti certificati: «quando un'altra Entità entra, pesca»",
       "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (forma senza carte dal 2026-09-04)",
+      "§8.2 Effetti certificati: «quando entra, un'Entità avversaria nell'Abisso finché questa resta in campo»",
       "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte»",
       "§8.2 Effetti certificati: «quando attacca», lo stesso ritorno dalla Zona di Ritiro",
       "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una»",
@@ -106,6 +107,7 @@ module Rubyfront
       "§2/§9 End of the game: HP at zero, deck exhausted, draw",
       "§8.2 Certified effects: “when another Entity enters, draw”",
       "§8.2 Certified effects: “when it enters, an opposing Entity to Retire” (a form with no card since 2026-09-04)",
+      "§8.2 Certified effects: “when it enters, an opposing Entity to the Abyss as long as this one remains on the field”",
       "§8.2 Certified effects: “when it enters, a permanent from the Retire Zone to the Front”",
       "§8.2 Certified effects: “when it attacks”, the same return from the Retire Zone",
       "§8.2 Certified effects: “when it enters, look at the top N and reveal one”",
@@ -1894,6 +1896,12 @@ module Rubyfront
       moves = Array(@cards.dig(source[:card_id], :enter_moves))
       move = moves.find { |candidate| candidate[:to] == action["zone"] }
       return refuse("toZone", "la carta non ha un effetto certificato che sposti lì (§8.2)", "the card has no certified effect that moves there (§8.2)") unless move
+      # L'esilio condizionato all'ingresso: nell'Abisso, tenuta da chi
+      # entra (held_by) — è ciò che poi la fa tornare in gioco col release
+      # quando chi la tiene lascia il campo.
+      if move[:hold] && action["heldBy"] != ref["source"]
+        return refuse("toZone", "l'Entità va nell'Abisso tenuta da chi entra: finché questa resta in campo (§8.2)", "the Entity goes to the Abyss held by the entering card: as long as it remains on the field (§8.2)")
+      end
       return refuse("toZone", "il bersaglio dev'essere in campo (§8.2)", "the target must be on the field (§8.2)") unless target[:zone] == "field"
       return refuse("toZone", "il bersaglio dev'essere avversario (§8.2)", "the target must be an opponent's (§8.2)") if @table.controller_of(target) == @table.controller_of(source)
 

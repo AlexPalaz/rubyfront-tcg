@@ -2450,14 +2450,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       return;
     }
     light(step.source.uid, true);
-    const target = await pickTarget(step.source, step.candidates, t("target.retire"));
+    const target = await pickTarget(step.source, step.candidates, t(step.hold ? "target.loose" : "target.retire"));
     if (!target) {
       light(step.source.uid, false);
       return;
     }
     // Scelto il bersaglio, si chiede conferma — con la carta accesa.
     strike(target.uid, 60_000);
-    const sure = await confirmEffect(root, t("confirm.retire", { card: `«${ctx.card(target.cardId).name}»` }));
+    const sure = await confirmEffect(root, t(step.hold ? "confirm.loose" : "confirm.retire", { card: `«${ctx.card(target.cardId).name}»` }));
     if (!sure) {
       strike(target.uid, 0);
       light(step.source.uid, false);

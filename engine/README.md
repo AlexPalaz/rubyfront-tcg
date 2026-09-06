@@ -366,6 +366,21 @@ Regole collegate finora:
   manda, nessuna regola lo reclama; è il tavolo a chiederlo, e la finestra
   torna finché non si sceglie. Nel client la fonte si accende, si pesca,
   poi si sceglie dalla mano.
+- **§8.2 Effetti certificati: «quando entra, un'Entità avversaria nell'Abisso
+  finché questa resta in campo»** — l'esilio condizionato all'ingresso di
+  un'Entità: la stessa meccanica dell'esilio della Materia (più sotto, fra
+  le risoluzioni), letta dalla forma «quando entra: sposta un'Entità
+  avversaria dal Fronte nell'Abisso, `whileSourceOnField` e
+  `returnsToPlayWhenSourceLeaves`». Il passo è un `toZone` verso l'Abisso
+  marcato come effetto **con `heldBy`** = chi entra: la copia e il
+  riduttore annotano chi la tiene; quando chi la tiene lascia il campo, il
+  tavolo che l'ha visto uscire manda il `release` (sul Fronte del
+  proprietario, o nella sua Zona di Ritiro se è pieno), e l'engine lo passa
+  solo allora. Dogane: la destinazione della forma, l'Abisso; `heldBy`
+  uguale alla fonte; il bersaglio un'Entità avversaria in campo; una volta
+  per ingresso, nel turno d'ingresso. Limiti dichiarati: torna «in gioco»
+  disarmata (§3.1, gli Oggetti restano nell'Abisso) e nello slot che il
+  tavolo le dà; la regola d'oro vale come sempre. Engine 0.43.0.
 - **§8.2 Le altre forme «quando attacca»** — undici inneschi su nove carte,
   letti dall'anagrafe in `attack_forms` (con la faccia che li porta) e
   giudicati con un contesto comune: l'ingresso del riferimento è chi

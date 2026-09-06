@@ -236,9 +236,20 @@ module Rubyfront
         destination = effect["destination"]
         next unless target.is_a?(Hash) && target["cardType"] == "entity" && target["controller"] == "opponent" && target["zone"] == "front"
         next unless target["min"] == 1 && target["max"] == 1
-        next unless destination.is_a?(Hash) && destination["zone"] == "retire"
+        next unless destination.is_a?(Hash)
 
-        { target: { type: "entity", controller: "opponent" }.freeze, to: "ritiro" }.freeze
+        # Due destinazioni certificate: la Zona di Ritiro (senza dettagli),
+        # e l'Abisso «finché questa Entità resta in campo; quando lascia il
+        # campo, quell'Entità torna in gioco» — l'esilio condizionato,
+        # stessa meccanica della Materia (held_by, release). Gemello:
+        # renderer.ts, enterMovesOf.
+        extra = effect["details"]
+        if destination["zone"] == "retire" && extra.nil?
+          { target: { type: "entity", controller: "opponent" }.freeze, to: "ritiro" }.freeze
+        elsif destination["zone"] == "abyss" && extra.is_a?(Hash) &&
+              extra["whileSourceOnField"] == true && extra["returnsToPlayWhenSourceLeaves"] == true
+          { target: { type: "entity", controller: "opponent" }.freeze, to: "abisso", hold: true }.freeze
+        end
       end
     end
 

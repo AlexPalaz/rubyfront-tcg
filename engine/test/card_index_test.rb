@@ -20,7 +20,6 @@ class CardIndexTest < Minitest::Test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBITO = [
     "RBF-004 entity/avenge",
-    "RBF-007 entity/loose",
     "RBF-023 rubyfront/schism-forge",
     "RBF-023 nexus/awakening",
     "RBF-023 nexus/deep-forge-sight",
@@ -103,10 +102,11 @@ class CardIndexTest < Minitest::Test
     assert_equal [], @index["RBF-007"][:enter_listeners], "un move_card all'ingresso non è la forma certificata"
   end
 
-  def test_l_arciere_non_ha_piu_la_forma_dello_spostamento_in_ritiro
+  def test_l_arciere_esilia_nell_abisso_e_lo_spostamento_in_ritiro_resta_leggibile
     # Dal 2026-09-04 l'Arciere esilia nell'Abisso «finché resta in campo»
-    # (revisione del foglio del designer): forma ignota, non fraintesa.
-    assert_equal [], @index["RBF-007"][:enter_moves]
+    # (revisione del foglio del designer): dal 2026-09-06 è la forma
+    # certificata dell'esilio condizionato all'ingresso.
+    assert_equal [{ target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true }], @index["RBF-007"][:enter_moves]
     forma = { "target" => { "cardType" => "entity", "controller" => "opponent", "zone" => "front", "owner" => "opponent", "min" => 1, "max" => 1 },
               "destination" => { "zone" => "retire" } }
     refute_nil Rubyfront::CardIndex.enter_moves([{ "triggers" => [{ "event" => "on_enter_field", "effect" => forma.merge("type" => "move_card") }] }]).first, "la forma resta leggibile, anche senza una carta che la porti"

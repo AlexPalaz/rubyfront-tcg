@@ -1900,6 +1900,76 @@ class EngineTest < Minitest::Test
     refute manda(engine, "b1", zone: "abisso")[:ok], "nell'Abisso non è la forma dello spostamento"
   end
 
+  # --- §8.2: l'esilio condizionato all'ingresso — un'Entità avversaria nell'Abisso
+  #     finché chi entra resta in campo; quando lascia il campo, torna in gioco.
+
+  ESILIATORI = {
+    "TIRATORE" => { type: "entity", keywords: [], race: "human",
+                    enter_moves: [{ target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
+    "UMANO" => { type: "entity", keywords: [], race: "human" },
+    "PIETRA" => { type: "matter", keywords: [], behavior: "normal" },
+  }.freeze
+
+  def tiratore(b_field)
+    engine = Rubyfront::Engine.new(cards: ESILIATORI)
+    a = [{ "uid" => "tir", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "TIRATORE" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    b = b_field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "field", "order" => i, "cardId" => id, "y" => 172 } }
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
+    engine.judge({ "t" => "toZone", "uid" => "tir", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine
+  end
+
+  def esilia(engine, uid, zone: "abisso", held_by: "tir")
+    action = { "t" => "toZone", "uid" => uid, "zone" => zone,
+               "effect" => { "source" => "tir", "event" => "on_enter_field", "entering" => "tir" } }
+    action["heldBy"] = held_by if held_by
+    engine.judge(action)
+  end
+
+  def test_l_esilio_all_ingresso_manda_un_entita_avversaria_nell_abisso_tenuta
+    engine = tiratore([["b1", "UMANO"]])
+    verdict = esilia(engine, "b1")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    card = engine.instance_variable_get(:@table).card("b1")
+    assert_equal "abisso", card[:zone]
+    assert_equal "tir", card[:held_by]
+  end
+
+  def test_l_esilio_all_ingresso_vuole_chi_entra_a_tenere
+    engine = tiratore([["b1", "UMANO"]])
+    verdict = esilia(engine, "b1", held_by: nil)
+    refute verdict[:ok]
+    assert_match(/tenuta da chi entra/, verdict[:reason])
+    assert_includes verdict[:reason_en], "(§8.2)"
+    refute esilia(engine, "b1", held_by: "b1")[:ok], "tenuta da un altro no"
+    refute esilia(engine, "b1", zone: "ritiro")[:ok], "il Ritiro non è la forma"
+  end
+
+  def test_l_esilio_all_ingresso_vuole_un_entita_avversaria_in_campo
+    engine = tiratore([["b1", "PIETRA"]])
+    refute esilia(engine, "b1")[:ok], "una Materia no"
+    engine = tiratore([])
+    refute esilia(engine, "tir")[:ok], "una propria carta no"
+  end
+
+  def test_l_esiliata_torna_in_gioco_solo_quando_chi_la_tiene_lascia_il_campo
+    engine = tiratore([["b1", "UMANO"]])
+    assert esilia(engine, "b1")[:ok]
+    trattenuta = engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "y" => 172 })
+    refute trattenuta[:ok]
+    assert_match(/finché la carta che lo tiene è in gioco/, trattenuta[:reason])
+    # Chi tiene lascia il campo (il Ritiro, libero in Preparazione — §6.2):
+    # nell'Abisso a mano non si va (§5).
+    assert engine.judge({ "t" => "toZone", "uid" => "tir", "zone" => "ritiro" })[:ok]
+    libera = engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "y" => 172 })
+    assert libera[:ok], libera[:reason]
+    card = engine.instance_variable_get(:@table).card("b1")
+    assert_equal "field", card[:zone]
+    assert_nil card[:held_by]
+  end
+
   # --- §8.2: il ritorno riporta una permanente dalla Zona di Ritiro ----------
 
   EREDI = {

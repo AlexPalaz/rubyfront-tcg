@@ -74,6 +74,7 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   RAZZIA: { kind: "entity", race: "human", attackForms: [{ kind: "empower", who: "self", requiresPreviousAttackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block", face: 0 }] },
   FERRO: { kind: "object" },
   ARCIERE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
+  TIRATORE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
   // La carta vera ha il solo innesco d'attacco (decisione del designer,
   // 2026-09-04); qui restano entrambi perché servono a provare che
   // `returnsFor` distingue i due eventi.
@@ -258,6 +259,35 @@ describe("enterMoves", () => {
     const [step] = enterMoves(state, arc, facts);
     expect(await resolveMove(ctx, step, b1)).toBe(true);
     expect(sent).toEqual([{ t: "toZone", uid: "b1", zone: "ritiro", effect: { source: "arc", event: "on_enter_field", entering: "arc" } }]);
+  });
+
+  // L'esilio condizionato all'ingresso (§8.2): nell'Abisso, tenuta da chi
+  // entra. Gemello: engine_test.rb, «l'esilio all'ingresso…».
+  it("l'esilio all'ingresso manda il toZone nell'Abisso con heldBy", async () => {
+    const state = newGame();
+    const tir = on(state, "tir", "TIRATORE");
+    const b1 = on(state, "b1", "UMANO", "b");
+    const sent: Action[] = [];
+    const ctx: Ctx = {
+      state: () => state,
+      dispatch(action) {
+        sent.push(action);
+        return Promise.resolve(true);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "notte",
+      locale: () => "it",
+      card: facts,
+      log() {},
+    };
+    const [step] = enterMoves(state, tir, facts);
+    expect(step.to).toBe("abisso");
+    expect(step.hold).toBe(true);
+    expect(describeMove(step, facts)).toMatch(/nell'Abisso/);
+    expect(await resolveMove(ctx, step, b1)).toBe(true);
+    expect(sent).toEqual([{ t: "toZone", uid: "b1", zone: "abisso", heldBy: "tir", effect: { source: "tir", event: "on_enter_field", entering: "tir" } }]);
   });
 });
 

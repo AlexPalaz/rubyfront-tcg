@@ -196,7 +196,9 @@ export interface EnterReturn {
  */
 export interface EnterMove {
   target: { kind: "entity"; controller: "opponent" };
-  to: "ritiro";
+  to: "ritiro" | "abisso";
+  /** L'esilio condizionato: nell'Abisso «finché questa resta in campo», tenuta da chi entra (heldBy). */
+  hold?: true;
 }
 
 /**
