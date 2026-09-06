@@ -62,6 +62,36 @@ Il relay resta stupido: ripete i messaggi della stanza e non sa nulla del
 gioco. Niente account, niente lista stanze pubblica: si gioca con chi
 conosce il nome della stanza, come a un tavolo privato.
 
+## Giocare contro il bot
+
+Dall'accoglienza, **«Gioca contro il bot»**: si sceglie il proprio mazzo e
+quello del bot, e l'altra metà del tavolo la gioca lui — senza stanza, con
+l'arbitro acceso se c'è. Difficoltà **media**, la sola per ora (facile,
+difficile e leggenda verranno).
+
+Il bot non ha scorciatoie: gioca attraverso le **stesse azioni** di un
+giocatore e passa dallo **stesso arbitro**. Le decisioni stanno in
+`src/bot.ts`, senza DOM (provabili con uno stato finto, `test/bot.test.ts`):
+cosa vale una carta (Potenza attuale e parole chiave), **con chi attaccare**
+(chi non muore contro i bloccanti possibili; tutti se il colpo che passa è
+letale; chi almeno pareggia quando il Rubyfront avversario è sotto la metà),
+**come bloccare** (un contrattacco che uccide e resta in piedi, se no un
+muro — Potenza maggiore o Stasi —, se no uno scambio alla pari che conviene,
+se no un sacrificio solo se i PV sono in pericolo), **cosa giocare** (la
+carta che rende di più per Flusso: Entità con uno slot libero, Oggetti
+sull'Entità più forte disarmata, Materie con un passo che agisce davvero; il
+Gettone se manca un Flusso), **cosa scartare** per stare nei 7. Schiera il
+Rubyfront appena il Flusso copre il costo, passa in catena (le Reattive
+aspettano una difficoltà più alta).
+
+La guida sta in `src/main.ts` (`botTick`): a ogni ridisegno, se è il suo
+momento, compie **un gesto** — e aspetta che il tavolo sia fermo — poi
+riparte. Mentre agisce, mira e conferme del tavolo rispondono da sole
+(`table.setAuto`, `setAutoScenes` in effect.ts): le scene si vedono lo
+stesso e si chiudono da sole, il bersaglio scelto si accende un attimo. I
+«no» dell'arbitro non mostrano il sigillo: il bot prende nota e cambia
+gesto. Aspetta le aperture (§4) prima di muoversi.
+
 ## La chat vocale
 
 Il tasto col **microfono** in header (accanto al fumetto) accende e spegne la

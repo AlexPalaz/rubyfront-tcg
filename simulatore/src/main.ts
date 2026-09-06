@@ -23,6 +23,10 @@ import { PHASE_BANNER_HOLD_MS, mountPhaseBanner } from "./banner.js";
 import { showRoll } from "./dice.js";
 import { showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
+import { endPhase } from "./turn.js";
+import { chooseAttackers, chooseBlocks, chooseDiscards, choosePlay, freshMemory, pickBest, type BotMemory } from "./bot.js";
+import { setAutoScenes } from "./effect.js";
+import { declareBlock } from "./combat.js";
 import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
 import { apply, controllerOf, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, seatLabel, shuffled, zoneCards } from "./state.js";
@@ -30,7 +34,7 @@ import { releaseHeld } from "./effects.js";
 import { drawCascadeMs, mountTable } from "./table.js";
 import { verdictByHp } from "./turn.js";
 import { createVoice, type VoicePayload } from "./voice.js";
-import type { Action, CardInstance, GameState, Seat } from "./types.js";
+import type { Action, CardInstance, GameState, Seat, ZoneId } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
 
 const boot = document.querySelector<HTMLElement>("#boot")!;
@@ -90,6 +94,16 @@ let myDeckId: string | null = store.read("deck", "") || null;
  * solo dopo «Gioca in locale», e cade appena si entra in una stanza vera.
  */
 let localFoeDeckId: string | null = null;
+/** Il posto del bot, quando l'altra metà del tavolo la gioca lui (botTick). */
+let botSeat: Seat | null = null;
+// Lo stato della guida del bot (in fondo al file): sta qui in testa perché
+// paint() chiama scheduleBot già durante il montaggio.
+let botMemory: BotMemory = freshMemory(0);
+let botBusy = false;
+let botActing = false;
+let botTimer: number | undefined;
+/** Il passo del bot: un gesto ogni tanto, per farsi seguire. */
+const BOT_PACE_MS = 750;
 
 const themes: Record<Seat, string> = { a: defaultTheme(), b: defaultTheme() };
 
@@ -121,7 +135,9 @@ function dispatch(action: Action): Promise<boolean> {
               ctx.log(msg("log.discard.needed", { seat: closing, n: held }), closing);
             }
           }
-          engineStop(verdict);
+          // Il bot che sbatte contro l'arbitro non mostra il sigillo a
+          // chi guarda: prende nota (bot.ts, tried) e cambia gesto.
+          if (!botActing) engineStop(verdict);
           // Un gesto trascinato (una carta posata sul Fronte) può aver già
           // mosso i pixel: si ridisegna dallo stato — che non è cambiato —
           // e tutto torna al suo posto.
@@ -257,7 +273,8 @@ const ctx: Ctx = {
   seat: () => mySeat,
   // In partita locale (hotseat) si governano entrambi i posti: turni, mani
   // e mazzi dei due giocatori rispondono allo stesso mouse.
-  controls: seat => seat === mySeat || localFoeDeckId !== null,
+  // Col bot al tavolo l'altra metà è sua: il mouse governa solo il proprio posto.
+  controls: seat => seat === mySeat || (localFoeDeckId !== null && botSeat === null),
   arbitrated: () => engine?.status() === "online",
   themeFor: seat => themes[seat],
   locale: () => locale,
@@ -405,6 +422,7 @@ function paint(): void {
   banner.render();
   chat.render();
   hud.render();
+  scheduleBot();
 }
 
 /** Il tema di un posto è quello del suo mazzo (data/decks/*.json). */
@@ -466,6 +484,8 @@ const OPENING_DRAW_PAUSE_MS = 250;
 /** Il timer dell'apertura, per posto (insegna → mano → carta del turno 1):
     si azzera se il mazzo si ricarica prima che la fila sia finita. */
 const openingTimer: Record<Seat, number | undefined> = { a: undefined, b: undefined };
+/** L'apertura (§4) di un posto è in arrivo: il bot aspetta che sia passata. */
+const openingPending: Record<Seat, boolean> = { a: false, b: false };
 
 /** Quante carte ha in mano quel posto, adesso. */
 /** Il mazzo è ancora intero: tutte le carte del posto, Rubyfront a parte, stanno lì. */
@@ -509,7 +529,9 @@ function loadDeck(deckId: string, seat: Seat): void {
 /** La mano iniziale e la carta del turno 1 (§4, §6.1), a tempo dopo l'insegna. */
 function scheduleOpening(seat: Seat, deckId: string): void {
   window.clearTimeout(openingTimer[seat]);
+  openingPending[seat] = true;
   openingTimer[seat] = window.setTimeout(() => {
+    openingPending[seat] = false;
     if (state.players[seat].deckId !== deckId || handSize(seat) !== 0) return;
     // §4, mano iniziale: «prima che inizi il primo turno, entrambi i
     // giocatori pescano 6 carte». Il mazzo esce da buildDeck già mescolato,
@@ -524,7 +546,9 @@ function scheduleOpening(seat: Seat, deckId: string): void {
     const opening = seat === state.active;
     ctx.log(msg("log.opening", { seat }), seat);
     if (!opening) return;
+    openingPending[seat] = true;
     openingTimer[seat] = window.setTimeout(() => {
+      openingPending[seat] = false;
       const untouched = state.players[seat].deckId === deckId && state.active === seat && handSize(seat) === 6;
       if (untouched) void dispatch({ t: "draw", seat, count: 1 });
     }, drawCascadeMs(6) + OPENING_DRAW_PAUSE_MS);
@@ -564,6 +588,7 @@ function join(room: string, relay: string): void {
   // il congedo resta locale.)
   if (localFoeDeckId) {
     localFoeDeckId = null;
+    botSeat = null;
     const foe = otherSeat(mySeat);
     void dispatch({ t: "loadDeck", seat: foe, deckId: "", cards: [] });
     void dispatch({ t: "player", seat: foe, patch: { name: "" } });
@@ -681,7 +706,10 @@ document.querySelector("#do-new")!.addEventListener("click", () => {
   });
   if (myDeckId) loadDeck(myDeckId, mySeat);
   reapplyName();
-  if (localFoeDeckId) startLocalFoe(localFoeDeckId);
+  if (localFoeDeckId) {
+    if (botSeat) startBot(localFoeDeckId);
+    else startLocalFoe(localFoeDeckId);
+  }
 });
 
 /** La nuova partita azzera anche i nomi: il proprio si rimette da sé. */
@@ -990,20 +1018,23 @@ if (myDeckId) obDeck.value = myDeckId;
 const otherDeck = allDecks().find(deck => deck.id !== obDeck.value);
 if (otherDeck) obDeckB.value = otherDeck.id;
 
-/** Vero quando si è entrati dal tasto «Gioca in locale»: si guidano entrambi i posti. */
-let obLocalMode = false;
+/** Da dove si è entrati: una stanza, «Gioca in locale» (si guidano entrambi
+    i posti) o «Gioca contro il bot» (l'altra metà la gioca lui). */
+let obMode: "net" | "local" | "bot" = "net";
 
-function obProfile(local = false): void {
-  obLocalMode = local;
+function obProfile(mode: "net" | "local" | "bot" = "net"): void {
+  obMode = mode;
+  const twoDecks = mode !== "net";
   onboard.hidden = false;
   obStepRoom.hidden = true;
   obStepProfile.hidden = false;
-  obDeckB.hidden = !local;
-  obDeckBLabel.hidden = !local;
+  obDeckB.hidden = !twoDecks;
+  obDeckBLabel.hidden = !twoDecks;
+  obDeckBLabel.textContent = t(mode === "bot" ? "html.ob.deck.bot" : "html.ob.deck.b");
   obName.value = store.read("name", "");
   const room = roomInput.value.trim();
-  obRoomNote.hidden = !room && !local;
-  obRoomNote.textContent = room ? t("html.ob.room.note", { room }) : local ? t("html.ob.local.note") : "";
+  obRoomNote.hidden = !room && !twoDecks;
+  obRoomNote.textContent = room ? t("html.ob.room.note", { room }) : mode === "bot" ? t("html.ob.bot.note") : mode === "local" ? t("html.ob.local.note") : "";
   obName.focus();
 }
 
@@ -1028,7 +1059,8 @@ obRoom.addEventListener("keydown", event => {
   if (event.key === "Enter") document.querySelector<HTMLButtonElement>("#ob-join")!.click();
 });
 
-document.querySelector("#ob-local")!.addEventListener("click", () => obProfile(true));
+document.querySelector("#ob-local")!.addEventListener("click", () => obProfile("local"));
+document.querySelector("#ob-bot")!.addEventListener("click", () => obProfile("bot"));
 
 document.querySelector("#ob-go")!.addEventListener("click", () => {
   const name = obName.value.trim();
@@ -1040,7 +1072,8 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
     deckPick.value = obDeck.value;
     loadDeck(obDeck.value, mySeat);
   }
-  if (obLocalMode) startLocalFoe(obDeckB.value);
+  if (obMode === "local") startLocalFoe(obDeckB.value);
+  if (obMode === "bot") startBot(obDeckB.value);
   onboard.hidden = true;
 });
 
@@ -1055,6 +1088,153 @@ function startLocalFoe(deckId: string): void {
   const foe = otherSeat(mySeat);
   dispatch({ t: "player", seat: foe, patch: { name: "Avversario" } });
   loadDeck(deckId, foe);
+}
+
+// ------------------------------------------------------------------ il bot
+//
+// L'avversario automatico siede all'altra metà del tavolo come l'avversario
+// locale — stesso mazzo caricato al posto opposto, stessa partita senza
+// stanza — ma la gioca lui. Le decisioni stanno in bot.ts (pure); qui la
+// guida: a ogni ridisegno, se è il suo momento, compie UN gesto — con le
+// stesse azioni e lo stesso arbitro di un giocatore — poi ridisegna e
+// riparte. Mentre agisce, mira e conferme del tavolo rispondono da sole
+// (table.setAuto, setAutoScenes) e i «no» dell'arbitro non mostrano il
+// sigillo: il bot prende nota e cambia gesto.
+
+function startBot(deckId: string): void {
+  if (!deckId) return;
+  localFoeDeckId = deckId;
+  botSeat = otherSeat(mySeat);
+  botMemory = freshMemory(state.turn);
+  dispatch({ t: "player", seat: botSeat, patch: { name: t("bot.name") } });
+  loadDeck(deckId, botSeat);
+  scheduleBot();
+}
+
+function scheduleBot(delay = BOT_PACE_MS): void {
+  if (!botSeat) return;
+  window.clearTimeout(botTimer);
+  botTimer = window.setTimeout(() => void botTick(), delay);
+}
+
+/** Il tavolo è fermo: nessuna scena, nessun dado, nessuna mira, nessun effetto in corso. */
+function tableQuiet(): boolean {
+  return (
+    !document.body.classList.contains("is-resolving") &&
+    !document.body.classList.contains("is-targeting") &&
+    !document.querySelector(".effect-veil, .effect-confirm, .dice-roll")
+  );
+}
+
+const sleep = (ms: number): Promise<void> => new Promise(resolve => window.setTimeout(resolve, ms));
+
+async function awaitQuiet(limit = 15_000): Promise<void> {
+  const start = Date.now();
+  while (!tableQuiet() && Date.now() - start < limit) await sleep(120);
+}
+
+const botChooser = {
+  pickTarget: (_source: CardInstance, candidates: CardInstance[]) => (botSeat ? pickBest(state, botSeat, candidates, ctx.card) : null),
+  pickFromPile: (zone: ZoneId, candidates: CardInstance[]) =>
+    botSeat ? pickBest(state, botSeat, candidates, ctx.card, zone === "hand" ? "weakest" : "auto") : null,
+};
+
+async function botTick(): Promise<void> {
+  if (!botSeat || botBusy || state.over) return;
+  // Le aperture (§4) prima di tutto: senza, il bot chiudeva il primo turno
+  // a mano vuota e la sua pesca iniziale arrivava nel turno altrui.
+  if (!tableQuiet() || openingPending.a || openingPending.b) {
+    scheduleBot(500);
+    return;
+  }
+  if (state.turn !== botMemory.turn) botMemory = freshMemory(state.turn);
+  botBusy = true;
+  botActing = true;
+  table.setAuto(botChooser);
+  setAutoScenes(true);
+  let again = false;
+  try {
+    again = await botStep(botSeat);
+    await awaitQuiet();
+  } catch (error) {
+    console.warn("bot", error);
+  } finally {
+    botBusy = false;
+    botActing = false;
+    table.setAuto(null);
+    setAutoScenes(false);
+  }
+  if (again) scheduleBot();
+}
+
+/** Un gesto del bot. Torna vero se ha fatto qualcosa e potrebbe farne altro. */
+async function botStep(bot: Seat): Promise<boolean> {
+  const s = state;
+  // §7.2 — la catena: quando la parola è sua, passa (le Reattive aspettano
+  // una difficoltà più alta); mentre si risolve, aspetta.
+  if (s.chain) {
+    if (!s.chain.resolving && s.chain.turn === bot) {
+      await dispatch({ t: "pass", seat: bot });
+      return true;
+    }
+    return false;
+  }
+  if (s.active === bot) {
+    if (s.phase === "preparazione") {
+      if (await table.deployRubyfront(bot)) return true;
+      const play = choosePlay(s, bot, ctx.card, botMemory);
+      if (play) {
+        if (play.useToken) {
+          const player = s.players[bot];
+          await dispatch({ t: "player", seat: bot, patch: { token: false, flux: player.flux + 1 } });
+          ctx.log(msg("log.token.spend", { seat: bot }), bot);
+        }
+        const ok = play.kind === "object" ? await table.assignObject(play.card, play.to) : await table.playFromHand(play.card, play.spot);
+        if (!ok) botMemory.tried.add(play.card.uid);
+        else if (play.kind === "entity") botMemory.entered.add(play.card.uid);
+        return true;
+      }
+      // §6.5 — sotto i 7 prima di chiudere: chi chiude a mano piena non chiude.
+      const [discard] = chooseDiscards(s, bot, ctx.card);
+      if (discard) {
+        await dispatch({ t: "toZone", uid: discard.uid, zone: "abisso" });
+        ctx.log(msg("log.discard", { seat: bot, card: discard.cardId, n: zoneCards(state, bot, "hand").length }), bot);
+        return true;
+      }
+      await endPhase(ctx);
+      return true;
+    }
+    if (s.phase === "fronte") {
+      if (!botMemory.attacked) {
+        botMemory.attacked = true;
+        for (const attacker of chooseAttackers(s, bot, ctx.card, botMemory)) {
+          await table.attackWith(attacker);
+          await awaitQuiet();
+          await sleep(350);
+        }
+        return true;
+      }
+      await endPhase(ctx);
+      return true;
+    }
+    // Reazione: difende l'altro, e chiude lui (§6.4).
+    return false;
+  }
+  if (s.phase === "reazione") {
+    if (!botMemory.blocked) {
+      botMemory.blocked = true;
+      for (const block of chooseBlocks(s, bot, ctx.card)) {
+        await declareBlock(ctx, block.blocker, block.attacker.uid, block.kind);
+        await sleep(450);
+      }
+      return true;
+    }
+    // Un respiro perché chi attacca veda i blocchi, poi la risoluzione.
+    await sleep(1200);
+    await endPhase(ctx);
+    return true;
+  }
+  return false;
 }
 
 if (!roomInput.value.trim()) {

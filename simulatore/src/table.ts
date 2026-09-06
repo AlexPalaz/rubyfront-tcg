@@ -169,6 +169,12 @@ const HEAD_ROOM_PX = 24;
 /** In cima al tavolo la testata sporge SOPRA l'orlo, verso l'header: 15px di sporgenza e 25 d'aria. */
 const TOP_ROOM_PX = 40;
 
+/** Le scelte del bot al posto delle finestre (bot.ts, pickBest). */
+export interface AutoChooser {
+  pickTarget(source: CardInstance, candidates: CardInstance[]): CardInstance | null;
+  pickFromPile(zone: ZoneId, candidates: CardInstance[], visible?: CardInstance[]): CardInstance | null;
+}
+
 export interface TableView {
   render(): void;
   /** Rifà la geometria di vista (misure, zone, scala): per il cambio di
@@ -178,6 +184,18 @@ export interface TableView {
   onStats(provider: (seat: Seat) => HTMLElement): void;
   /** Callback per aprire la ricerca: la fornisce main.ts. */
   onBrowse(handler: (seat: Seat, zone: ZoneId) => void): void;
+  /**
+   * Il bot (main.ts): il selettore che risponde a mira e pile al posto
+   * delle finestre, e i gesti del tavolo che il bot compie — giocare dalla
+   * mano, armare un'Entità, schierare il Rubyfront, attaccare — con le
+   * stesse scene ed effetti di un giocatore.
+   */
+  setAuto(chooser: AutoChooser | null): void;
+  playFromHand(card: CardInstance, spot: { x: number; y: number }): Promise<boolean>;
+  assignObject(card: CardInstance, bearer: CardInstance): Promise<boolean>;
+  /** Vero se ha schierato (o tirato); falso se lo schieramento non passerebbe. */
+  deployRubyfront(seat: Seat): Promise<boolean>;
+  attackWith(card: CardInstance): Promise<void>;
   /** Callback per scegliere una carta da una pila (effetti): la fornisce main.ts. */
   onPick(
     handler: (seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string, visible?: CardInstance[]) => Promise<CardInstance | null>
@@ -261,13 +279,26 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     pileDock?.classList.toggle("is-collapsed", !open);
   }
   /** La scelta da una pila per un effetto: la fornisce main.ts (overlay). */
-  let pickFromPile: (
+  let pickFromPileUi: (
     seat: Seat,
     zone: ZoneId,
     candidates: CardInstance[],
     title: string,
     visible?: CardInstance[]
   ) => Promise<CardInstance | null> = () => Promise.resolve(null);
+  /** Il selettore automatico del bot (main.ts): acceso, mira e pile
+      rispondono da sole, senza finestre. */
+  let auto: AutoChooser | null = null;
+  const pickFromPile = (
+    seat: Seat,
+    zone: ZoneId,
+    candidates: CardInstance[],
+    title: string,
+    visible?: CardInstance[]
+  ): Promise<CardInstance | null> => {
+    if (auto) return Promise.resolve(auto.pickFromPile(zone, candidates, visible));
+    return pickFromPileUi(seat, zone, candidates, title, visible);
+  };
   /** Uid della carta in trascinamento: non va riposizionata dal render. */
   let dragging: string | null = null;
   /**
@@ -674,10 +705,37 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * il render gli dà lo stato (is-recall / can-deploy), e sulla
    * carta in attesa compare «Schiera» — paga il costo, col dado se c'è (§3.1).
    */
+  /**
+   * Lo schieramento passerebbe? (§3.1) Nel proprio turno, a partita in
+   * corso, fuori da una catena di risposta (§7.2), e col Flusso che copre
+   * il costo — fisso, o ogni faccia del dado, Gettone compreso. È un
+   * aiuto al tasto, non la regola: la regola è dell'engine (judge_deploy),
+   * che ferma comunque il gesto di chi forzasse il tasto. Torna la chiave
+   * del motivo, o null se si può.
+   */
+  function deployBlock(waiting: CardInstance): string | null {
+    const state = ctx.state();
+    const deployment = cardStats(waiting.cardId).deployment;
+    if (!deployment) return "recall.deploy.unknown";
+    if (state.over) return "hud.over";
+    if (state.active !== waiting.owner) return "recall.deploy.theirs";
+    if (state.chain) return "recall.deploy.chain";
+    const player = state.players[waiting.owner];
+    const available = player.flux + (player.token ? 1 : 0);
+    const needed = deployment.die ?? deployment.fixed ?? 0;
+    if (available < needed) return deployment.die ? "recall.deploy.nodie" : "recall.deploy.noflux";
+    return null;
+  }
+  function waitingRubyfront(seat: Seat): CardInstance | undefined {
+    const back = backRowY(seat);
+    return fieldCards(ctx.state()).find(
+      card => card.owner === seat && Math.abs(card.x - SLOT_X.richiamo) < 160 && Math.abs(card.y - back) < 160
+    );
+  }
+
   function armRecallSlot(seat: Seat, slot: HTMLElement): void {
     rubySlots.set(seat, slot);
     const front = frontRowY(seat);
-    const back = backRowY(seat);
     const button = document.createElement("button");
     button.type = "button";
     button.className = "deploy-btn";
@@ -685,11 +743,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     button.title = t("recall.deploy.tip");
     button.addEventListener("click", event => {
       event.stopPropagation();
-      const waiting = fieldCards(ctx.state()).find(
-        card => card.owner === seat && Math.abs(card.x - SLOT_X.richiamo) < 160 && Math.abs(card.y - back) < 160
-      );
+      const waiting = waitingRubyfront(seat);
       const deployment = waiting ? cardStats(waiting.cardId).deployment : undefined;
-      if (!waiting || !deployment || !ctx.controls(seat)) return;
+      // Il tasto spento non parte; se qualcuno lo forza, l'engine ferma il
+      // gesto (§3.1) e la carta torna da dov'era.
+      if (!waiting || !deployment || !ctx.controls(seat) || deployBlock(waiting)) return;
       void deploy(waiting, RUBYFRONT_X, front, dropZ(waiting, RUBYFRONT_X, front), deployment, { x: waiting.x, y: waiting.y, z: waiting.z });
     });
     slot.append(button);
@@ -938,8 +996,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   // Dichiarazioni e loro conseguenze stanno in combat.ts: passano dal
   // giudizio dell'engine, e il tavolo si limita a fornire il bersaglio.
-  function declareAttack(card: CardInstance): void {
-    void (async () => {
+  function declareAttack(card: CardInstance): Promise<void> {
+    return (async () => {
       const passed = await declareAttackVia(ctx, card, rubyfrontOf(otherSeat(controllerOf(card))));
       if (!passed) return;
       // §8.2 — «quando attacca»: gli effetti certificati dell'attaccante, con
@@ -1353,6 +1411,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * null se si rinuncia (Esc, click a vuoto).
    */
   function pickTarget(source: CardInstance, candidates: CardInstance[], hint: string): Promise<CardInstance | null> {
+    // Il bot sceglie da sé: il bersaglio si accende un attimo, così chi
+    // guarda vede cosa è stato scelto, e la mira non si apre.
+    if (auto) {
+      const chosen = auto.pickTarget(source, candidates);
+      if (chosen) strike(chosen.uid, 900);
+      return wait(450).then(() => chosen);
+    }
     return new Promise(resolve => {
       // Mentre un effetto si risolve il tavolo è insensibile al puntatore
       // (`is-resolving`), perché nessuno ci metta le mani a metà. Ma la mira
@@ -2936,7 +3001,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (card.counterBonus) {
         marks.push({ key: "counter", cls: "counter-mark", icon: COUNTER_SVG, text: `+${card.counterBonus}`, title: t("tile.counter.turn", { n: card.counterBonus }) });
       }
+      // «Non può bloccare in questo turno» (§8.2): il segno, e la carta
+      // resta accesa fino a fine turno — così in Reazione il difensore vede
+      // subito quale delle sue non blocca.
+      if (card.cannotBlock) {
+        marks.push({ key: "noblock", cls: "noblock-mark", icon: "", text: t("tile.noblock"), title: t("tile.noblock.tip") });
+      }
     }
+    tile.classList.toggle("is-restrained", onField && !card.facedown && card.cannotBlock === true);
     if (!onField || card.facedown) setTessPower(tile, null);
     // I PV del giocatore stanno sul suo Rubyfront (§3), e solo lì.
     if (isRubyfront(card.cardId)) setTessHp(tile, onField && !card.facedown ? ctx.state().players[card.owner].hp : null);
@@ -3097,12 +3169,23 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // Il riquadro del Rubyfront dice se il Rubyfront è ancora in Zona di
     // Richiamo: tratteggiato, col tasto Schiera.
     for (const [seat, slot] of rubySlots) {
-      const back = backRowY(seat);
-      const waiting = fieldCards(state).some(
-        card => card.owner === seat && Math.abs(card.x - SLOT_X.richiamo) < 160 && Math.abs(card.y - back) < 160
-      );
+      const card = waitingRubyfront(seat);
+      const waiting = card !== undefined;
       slot.classList.toggle("is-recall", waiting);
       slot.classList.toggle("can-deploy", waiting && ctx.controls(seat));
+      // Il tasto si spegne quando lo schieramento non passerebbe (§3.1), e
+      // dice perché nel suggerimento.
+      const button = slot.querySelector<HTMLButtonElement>(".deploy-btn");
+      if (button) {
+        const block = card ? deployBlock(card) : null;
+        button.disabled = block !== null;
+        const player = card ? state.players[card.owner] : null;
+        const available = player ? player.flux + (player.token ? 1 : 0) : 0;
+        const deployment = card ? cardStats(card.cardId).deployment : null;
+        button.title = block
+          ? t(block, { available, cost: deployment?.fixed ?? 0, die: deployment?.die ?? 0 })
+          : t("recall.deploy.tip");
+      }
       // Un posto solo, due stati. Finché il Rubyfront aspetta l'etichetta
       // non c'è: al suo posto, a cavallo del bordo basso della carta, sta il
       // tasto Schiera — e un'etichetta lì sotto ci finirebbe dietro.
@@ -3312,7 +3395,40 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       }
     },
     onPick(handler) {
-      pickFromPile = handler;
+      pickFromPileUi = handler;
+    },
+    setAuto(chooser) {
+      auto = chooser;
+    },
+    playFromHand(card, spot) {
+      return place(card, spot.x, spot.y, dropZ(card, spot.x, spot.y));
+    },
+    async assignObject(card, bearer) {
+      // Lo stesso ordine del rilascio sopra un'Entità: prima l'assegnazione
+      // (§3.1), poi la giocata; se la giocata non passa, si scioglie.
+      if (!(await ctx.dispatch({ t: "assign", uid: card.uid, to: bearer.uid }))) return false;
+      const worn = Object.values(ctx.state().cards).filter(other => other.assignedTo === bearer.uid && other.uid !== card.uid).length;
+      const step = STACK_STEP * (worn + 1);
+      const x = Math.max(0, Math.min(SURFACE_W - TILE_W, bearer.x + step));
+      const y = Math.max(0, Math.min(SURFACE_H - TILE_H, bearer.y + step));
+      if (!(await place(card, x, y, dropZ(card, x, y)))) {
+        void ctx.dispatch({ t: "assign", uid: card.uid, to: null });
+        return false;
+      }
+      ctx.log(msg("log.assign", { seat: card.owner, card: card.cardId, toCard: bearer.cardId }), card.owner);
+      return true;
+    },
+    async deployRubyfront(seat) {
+      const waiting = waitingRubyfront(seat);
+      if (!waiting || deployBlock(waiting)) return false;
+      const deployment = cardStats(waiting.cardId).deployment;
+      if (!deployment) return false;
+      const front = frontRowY(seat);
+      await deploy(waiting, RUBYFRONT_X, front, dropZ(waiting, RUBYFRONT_X, front), deployment, { x: waiting.x, y: waiting.y, z: waiting.z });
+      return true;
+    },
+    attackWith(card) {
+      return declareAttack(card);
     },
     onBrowse(handler) {
       browse = handler;

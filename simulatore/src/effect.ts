@@ -39,6 +39,19 @@ const CARD_H = 728;
  * Vale per il momento pieno e per l'avviso di chi guarda, insieme.
  */
 let queue: Promise<void> = Promise.resolve();
+
+/**
+ * Le scene e le conferme «automatiche»: quando agisce il bot (main.ts),
+ * la scena si mostra lo stesso — chi guarda deve vedere cosa succede — ma
+ * si chiude da sola dopo un attimo, e le domande rispondono sì senza
+ * finestra. Lo accende la guida del bot solo per la durata del suo passo.
+ */
+let autoScenes = false;
+export function setAutoScenes(on: boolean): void {
+  autoScenes = on;
+}
+/** Quanto resta in vista una scena che si chiude da sola. */
+const AUTO_SCENE_MS = 1400;
 function enqueue(run: () => Promise<void>): Promise<void> {
   const turn = queue.then(run, run);
   queue = turn.catch(() => undefined);
@@ -131,6 +144,7 @@ function showEnterEffectNow(root: HTMLElement, show: EnterEffectShow): Promise<v
     // che disegnerebbe il contorno di messa a fuoco senza che nessuno abbia
     // toccato la tastiera.
     document.addEventListener("keydown", onKey);
+    if (autoScenes) window.setTimeout(close, AUTO_SCENE_MS);
   });
 }
 
@@ -242,6 +256,7 @@ export function noticeEffect(root: HTMLElement, message: string): Promise<void> 
 }
 
 export function confirmEffect(root: HTMLElement, question: string, labels?: { yes: string; no: string }): Promise<boolean> {
+  if (autoScenes) return Promise.resolve(true);
   const veil = document.createElement("div");
   veil.className = "effect-confirm";
   const panel = document.createElement("div");
