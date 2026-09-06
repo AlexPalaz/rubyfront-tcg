@@ -92,6 +92,11 @@ stesso e si chiudono da sole, il bersaglio scelto si accende un attimo. I
 «no» dell'arbitro non mostrano il sigillo: il bot prende nota e cambia
 gesto. Aspetta le aperture (§4) prima di muoversi.
 
+**Uscire dal tavolo**: dalle impostazioni, «Esci dal tavolo» lascia la
+stanza (o congeda il bot, o l'avversario locale), azzera la partita e
+riporta all'accoglienza. La stanza salvata si dimentica; nome e mazzo
+restano.
+
 ## La chat vocale
 
 Il tasto col **microfono** in header (accanto al fumetto) accende e spegne la

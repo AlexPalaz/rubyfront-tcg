@@ -430,6 +430,10 @@ const M: Record<string, { it: string; en: string }> = {
   // ---- pagina (index.html, data-i18n)
   "html.engine.off": { it: "Engine spento", en: "Engine off" },
   "html.net.off": { it: "Non collegato", en: "Not connected" },
+  "html.table": { it: "Tavolo", en: "Table" },
+  "html.leave": { it: "Esci dal tavolo", en: "Leave the table" },
+  "html.leave.tip": { it: "Lascia la stanza o congeda il bot: il tavolo si azzera e si torna all'accoglienza", en: "Leave the room or dismiss the bot: the table resets and you go back to the welcome screen" },
+  "html.leave.confirm": { it: "Uscire dal tavolo? La partita in corso si azzera.", en: "Leave the table? The current game is reset." },
   "html.newgame": { it: "Nuova partita", en: "New game" },
   "html.settings": { it: "Impostazioni", en: "Settings" },
   "html.deck": { it: "Mazzo", en: "Deck" },

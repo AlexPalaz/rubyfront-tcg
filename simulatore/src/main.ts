@@ -1082,6 +1082,36 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
  * posto opposto e un nome al giocatore simulato. Il mazzo resta noto al
  * client: a «nuova partita» l'avversario locale si rimette in tavola da sé.
  */
+/**
+ * «Esci dal tavolo»: si lascia la stanza (o si congeda il bot o l'avversario
+ * locale), il tavolo si azzera e si torna all'accoglienza, al primo passo.
+ * La stanza salvata si dimentica: alla prossima visita si sceglie di nuovo.
+ * Il proprio nome e il proprio mazzo restano ricordati.
+ */
+function leaveTable(): void {
+  window.clearTimeout(botTimer);
+  botSeat = null;
+  localFoeDeckId = null;
+  join("", relayInput.value);
+  store.write("room", "");
+  roomInput.value = "";
+  obRoom.value = "";
+  void dispatch({ t: "newGame", active: randomSeat() });
+  const foe = otherSeat(mySeat);
+  void dispatch({ t: "player", seat: foe, patch: { name: "" } });
+  reapplyName();
+  onboard.hidden = false;
+  obStepRoom.hidden = false;
+  obStepProfile.hidden = true;
+  settingsPanel.hidden = true;
+  paint();
+}
+
+document.querySelector("#do-leave")!.addEventListener("click", () => {
+  if (!confirm(t("html.leave.confirm"))) return;
+  leaveTable();
+});
+
 function startLocalFoe(deckId: string): void {
   if (!deckId) return;
   localFoeDeckId = deckId;
