@@ -6,7 +6,7 @@
 // dove serve distinguere le due metà del tavolo): chi disegna una zona non
 // deve registrare niente qui.
 
-import { TILE_W, isCompactView, tileViewH } from "./ctx.js";
+import { TILE_W, isCompactView, isRecessView, tileViewH } from "./ctx.js";
 import type { Seat, ZoneId } from "./types.js";
 
 /** `snapped`: la carta si è agganciata a un riquadro, non posata a mano libera. */
@@ -155,6 +155,10 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
         grabX = (element.offsetWidth * grabScale) / 2;
         grabY = (tileViewH() * grabScale) / 2;
       }
+      // In rincasso una carta presa dalla fila di servizio (il Rubyfront in
+      // Richiamo, la cima di una pila) è mostrata a testa: in volo torna
+      // intera, com'è dove sta per atterrare.
+      if (!fromHand && isRecessView()) ghost.style.height = `${tileViewH()}px`;
       if (grabScale !== 1) {
         ghost.style.transformOrigin = "top left";
         ghost.style.transform = `scale(${grabScale})`;

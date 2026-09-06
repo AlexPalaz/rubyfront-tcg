@@ -7,10 +7,14 @@
 
 import { msg, t } from "./i18n.js";
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
-import { createCardEl, fitPending, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
+import { createCardEl, fitPending, setTessHp, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
 import { declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticPower, undeclare, wornBy } from "./combat.js";
 import { tapPreview } from "./preview.js";
 import {
+  COMPACT_TILE_H,
+  fromViewPoint,
+  surfaceViewW,
+  viewOf,
   CONTROL_X,
   FRONT_SLOT_X,
   FRONT_W,
@@ -23,9 +27,16 @@ import {
   backRowY,
   frontRowY,
   bandViewH,
-  fromView,
   isCompactView,
+  isRecessView,
+  isTightView,
+  setTightView,
   surfaceViewH,
+  setViewSlack,
+  setCornerReserve,
+  setLabelRoom,
+  setFoeBackRow,
+  hasFoeBackRow,
   tileViewH,
   toView,
   viewBandTop,
@@ -151,14 +162,18 @@ const HAND_BOOST_COMPACT = 1;
 const HAND_BOOST_COMPACT_MAX = 1.5;
 /** La cornice del cassetto oltre la carta (i 48px di --hand-h). */
 const HAND_CHROME = 48;
-/** L'aria attorno all'HUD agganciato in basso (12px sotto, e altrettanti sopra). */
-const HUD_CHROME = 24;
+/** Un'etichetta sotto un riquadro: stacco (10), rigo di testo (20), aria (12); pixel reali. */
+const LABEL_ROOM_PX = 42;
+/** La testata del campo sporge dentro il campo di metà della sua altezza (15px), più l'aria. */
+const HEAD_ROOM_PX = 24;
 
 export interface TableView {
   render(): void;
   /** Rifà la geometria di vista (misure, zone, scala): per il cambio di
       modo compatto/normale a caldo. Le carte restano dove sono. */
   refreshLayout(): void;
+  /** Le targhe dei posti (Gettone, PV, Flusso), da appendere in testa a ciascun campo: le fornisce hud.ts. */
+  onStats(provider: (seat: Seat) => HTMLElement): void;
   /** Callback per aprire la ricerca: la fornisce main.ts. */
   onBrowse(handler: (seat: Seat, zone: ZoneId) => void): void;
   /** Callback per scegliere una carta da una pila (effetti): la fornisce main.ts. */
@@ -207,6 +222,33 @@ const COUNTER_SVG =
 export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const tiles = new Map<string, HTMLElement>();
   let browse: (seat: Seat, zone: ZoneId) => void = () => {};
+  /** I riquadri del Rubyfront, per posto: cambiano stato col Richiamo. */
+  const rubySlots = new Map<Seat, HTMLElement>();
+  /** Le zone esistono già? Al primo fitScale (che gira PRIMA del primo
+      buildStaticZones) non c'è ancora niente da ridisegnare — e chiederlo
+      toccherebbe const non ancora inizializzate. */
+  let zonesReady = false;
+  /** Rincasso: il pannello ripiegabile con le pile avversarie, sopra il suo campo. */
+  let pileDock: HTMLElement | null = null;
+  /** …e dentro il pannello, la mano avversaria: dorsi in pila, col conto.
+      In rincasso non è più una fascia in cima al tavolo. */
+  let dockHand: HTMLElement | null = null;
+  const PILE_DOCK_KEY = "rbf-sim:piledock";
+  function pileDockOpen(): boolean {
+    try {
+      return localStorage.getItem(PILE_DOCK_KEY) !== "closed";
+    } catch {
+      return true;
+    }
+  }
+  function setPileDockOpen(open: boolean): void {
+    try {
+      localStorage.setItem(PILE_DOCK_KEY, open ? "open" : "closed");
+    } catch {
+      /* niente memoria: si riparte aperto */
+    }
+    pileDock?.classList.toggle("is-collapsed", !open);
+  }
   /** La scelta da una pila per un effetto: la fornisce main.ts (overlay). */
   let pickFromPile: (
     seat: Seat,
@@ -257,14 +299,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       di scala (style.css) non riduce l'ingombro nello scroll: lo pareggiano i
       margini, che tolgono esattamente la parte non disegnata. */
   function applySurfaceSize(): void {
-    surface.style.width = `${SURFACE_W}px`;
+    surface.style.width = `${surfaceViewW()}px`;
     surface.style.height = `${surfaceViewH()}px`;
-    surface.style.marginRight = `calc(${SURFACE_W}px * (var(--card-scale) - 1))`;
+    surface.style.marginRight = `calc(${surfaceViewW()}px * (var(--card-scale) - 1))`;
     surface.style.marginBottom = `calc(${surfaceViewH()}px * (var(--card-scale) - 1))`;
-    // Anche lo strato delle frecce segue l'altezza di vista: alto quanto la
+    // Anche lo strato delle frecce segue la misura di vista: alto quanto la
     // superficie canonica, allungherebbe lo scorrimento da sotto, invisibile.
+    arrowLayer.setAttribute("width", String(surfaceViewW()));
     arrowLayer.setAttribute("height", String(surfaceViewH()));
-    arrowLayer.setAttribute("viewBox", `0 0 ${SURFACE_W} ${surfaceViewH()}`);
+    arrowLayer.setAttribute("viewBox", `0 0 ${surfaceViewW()} ${surfaceViewH()}`);
   }
   // Le frecce stanno sopra le carte: una punta nascosta sotto una tessera non
   // direbbe niente. Lo strato è inerte al puntatore.
@@ -393,7 +436,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   // stretta dei 2700px canonici, la superficie si scala di conseguenza (e le
   // carte in mano con lei, via CSS). Si vedono più piccole, ma a leggerle ci
   // pensa l'ingrandimento al passaggio, che resta a misura piena.
-  const hudEl = root.querySelector<HTMLElement>(".hud");
+  /** L'ultima aria distribuita nei margini, e l'ultimo angolo riservato al
+      gesto di fase (unità di vista): le zone si rifanno solo se cambiano. */
+  let viewSlackUnits = 0;
+  let cornerUnits = 0;
   function fitScale(): void {
     // In vista compatta il tavolo deve stare TUTTO nella finestra, MANO
     // COMPRESA: il cassetto è un pannello sopra la lavagna, e se il fit non
@@ -405,31 +451,119 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // h = surface·s + 48 + 424·s·boost si ha la scala che fa combaciare il
     // fondo della lavagna con l'orlo della mano.
     const compact = isCompactView();
+    // Il rincasso si adatta all'altezza della finestra come la compatta,
+    // ma SENZA contare la mano: la mano resta un cassetto fisso sopra il
+    // tavolo, come in «Carte intere» (si ripiega col gesto), e il tavolo
+    // prende tutta l'altezza — è quello che decide la scala.
+    const recess = isRecessView();
+    const fitAll = compact || recess;
+    document.documentElement.style.setProperty("--hand-cap", "1");
     // In compatta anche la mano è di tessere (tileViewH): il fit conta
     // quella. Un tetto solo: il tavolo con la mano sotto — le tessere più
     // sono grandi meglio è, il corpo dei testi non dipende dalla scala.
     const handTileH = compact ? tileViewH() : TILE_H;
-    const heightFit = compact
-      ? (board.clientHeight - HAND_CHROME) / (surfaceViewH() + handTileH * HAND_BOOST_COMPACT)
-      : Number.POSITIVE_INFINITY;
-    // L'HUD è fisso in basso a destra, accanto alla mano: in compatta la
-    // lavagna deve fermarsi sopra il più alto dei due, cassetto o HUD.
-    const dockH = compact ? (hudEl?.offsetHeight ?? 0) + HUD_CHROME : 0;
-    const scale = Math.min(
-      1,
-      board.clientWidth / SURFACE_W,
-      heightFit,
-      compact ? (board.clientHeight - dockH) / surfaceViewH() : Number.POSITIVE_INFINITY
-    );
+    // Il tavolo prende tutta l'altezza della lavagna (sotto l'header, sopra
+    // l'orlo della finestra): nient'altro è nel conto, la mano è un
+    // pannello sopra.
+    const heightFit = (): number => {
+      if (!fitAll) return Number.POSITIVE_INFINITY;
+      const h = board.clientHeight;
+      if (recess) return h / surfaceViewH();
+      return Math.min((h - HAND_CHROME) / (surfaceViewH() + handTileH * HAND_BOOST_COMPACT), h / surfaceViewH());
+    };
+    const fit = (): number => Math.min(1, board.clientWidth / SURFACE_W, heightFit());
+    // La scala si misura a margini di base: l'altezza che avanza si
+    // distribuisce DOPO (setViewSlack), e non deve rientrare nel conto.
+    // L'angolo del gesto di fase invece SÌ: è spazio che il tavolo cede
+    // (setCornerReserve, ctx.ts). In unità di vista dipende dalla scala,
+    // e la scala da lui: due passate, e si è a posto (la seconda cambia
+    // la scala solo se comanda l'altezza, e di poco).
+    const actionsEl = root.querySelector<HTMLElement>(":scope > .hud-actions");
+    const cornerPx = recess && actionsEl ? actionsEl.offsetHeight + 24 : 0;
+    // E lo spazio delle etichette sotto i riquadri, stessa storia: 10px di
+    // stacco, 16 di testo, 8 d'aria (LABEL_ROOM_PX), in unità di vista.
+    const labelPx = recess ? LABEL_ROOM_PX : 0;
+    const headPx = recess ? HEAD_ROOM_PX : 0;
+    const reserve = (at: number): void => {
+      setCornerReserve(cornerPx / at);
+      setLabelRoom(labelPx / at, headPx / at);
+    };
+    setViewSlack(0);
+    reserve(Number.POSITIVE_INFINITY);
+    let scale = fit();
+    // Le riserve in unità di vista crescono quando la scala cala, e la
+    // scala cala quando le riserve crescono: quando comanda l'altezza si
+    // converge per punto fisso, in pochi giri (il rapporto è piccolo).
+    // Fermarsi a una passata lasciava la lavagna più alta della finestra
+    // di una decina di pixel: si scorreva, nella vista che promette di no.
+    if (cornerPx || labelPx) {
+      for (let round = 0; round < 6; round += 1) {
+        reserve(scale);
+        const next = fit();
+        if (Math.abs(next - scale) < 0.0005) break;
+        scale = next;
+      }
+      reserve(scale);
+    }
+    // Lavagne piccole: sotto il 50% i margini si stringono (setTightView in
+    // ctx.ts) e la scala si rifà — quei pixel vanno alle carte, che a quelle
+    // misure sono già piccole. Due soglie diverse, per non far ballare il
+    // tavolo attorno a una sola: si stringe sotto 0,5 e si allarga sopra
+    // 0,56. La geometria cambia, quindi le zone vanno ridisegnate.
+    let geometryChanged = false;
+    if (fitAll && (scale < 0.5) !== isTightView()) {
+      setTightView(scale < 0.5 || (isTightView() && scale < 0.56));
+      geometryChanged = true;
+      for (let round = 0; round < 6; round += 1) {
+        const next = fit();
+        if (Math.abs(next - scale) < 0.0005) break;
+        scale = next;
+        reserve(scale);
+      }
+    }
+    // L'ultima parola: la lavagna non deve MAI superare la finestra, nemmeno
+    // di un pixel (la scala in CSS è arrotondata per difetto, e basta).
+    if (fitAll) scale = Math.min(scale, board.clientHeight / surfaceViewH());
+    // La riserva cambia con la scala: se è cambiata, le zone si rifanno
+    // (il fondo della fascia si sposta). A scatti, come l'aria qui sotto.
+    const corner = Math.ceil((cornerPx + labelPx) / Math.max(scale, 0.1) / 8) * 8;
+    if (corner !== cornerUnits) geometryChanged = true;
+    cornerUnits = corner;
+    // Un fondo alla scala: se la lavagna viene misurata a zero (succede
+    // sulle finestre strettissime, prima che il layout si assesti) senza
+    // questo il tavolo sparirebbe del tutto invece di restare piccolo.
+    scale = Math.max(0.1, scale);
+    // Rincasso: quando comanda la larghezza, l'altezza che avanza va nei
+    // margini del tavolo (ctx.ts, setViewSlack) invece che nel vuoto sopra e
+    // sotto. In unità di vista, a scatti di 16: la scala cambia a ogni pixel
+    // di finestra, e non vale la pena rifare le zone per un'unità in più.
+    const air = recess
+      ? Math.floor(Math.max(0, board.clientHeight / scale - surfaceViewH()) / 16) * 16
+      : 0;
+    if (air !== viewSlackUnits) geometryChanged = true;
+    viewSlackUnits = air;
+    setViewSlack(air);
+    // La geometria è cambiata (margini stretti o larghi, o l'aria che
+    // avanza): zone da rifare. Alla prima passata non ci sono ancora, e
+    // nascono già giuste.
+    // La misura della superficie si riscrive sempre (è a buon mercato): le
+    // riserve la cambiano anche quando le zone non vanno rifatte.
+    applySurfaceSize();
+    if (geometryChanged && zonesReady) buildStaticZones();
     // Quando in compatta comanda la larghezza, sotto la lavagna resta
     // spazio: lo prende la mano, che cresce (fino a una volta e mezza) —
     // sono le carte da giocare, e il corpo dei testi non cambia comunque.
     const slack = board.clientHeight - HAND_CHROME - surfaceViewH() * scale;
+    // In rincasso la mano sta alla scala del tavolo: al 30% in più
+    // coprirebbe mezzo Fronte.
     const handBoost = compact
       ? Math.max(HAND_BOOST_COMPACT, Math.min(HAND_BOOST_COMPACT_MAX, slack / (handTileH * scale)))
-      : HAND_BOOST;
+      : recess
+        ? HAND_BOOST_COMPACT
+        : HAND_BOOST;
     document.documentElement.style.setProperty("--hand-tile-h", `${handTileH}px`);
     document.body.classList.toggle("view-compact", compact);
+    document.body.classList.toggle("view-recess", isRecessView());
     // Su html, non su body: le variabili derivate (--hand-scale, --hand-h)
     // sono definite in :root e si risolvono LÌ — un override sul body non le
     // raggiungerebbe, e il cassetto resterebbe ad altezza piena.
@@ -444,7 +578,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // lavagna e legge la scala dalla variabile: al ridimensionamento si
     // sistema da sé. Le coordinate dei rilasci partono dal rettangolo della
     // superficie, non dalla lavagna, quindi lo spostamento non le tocca.
-    surface.style.marginLeft = compact
+    surface.style.marginLeft = fitAll
       ? `max(0px, calc((100% - ${SURFACE_W}px * var(--card-scale)) / 2))`
       : "";
     // E quando anche la mano cresciuta non basta a riempire l'altezza
@@ -452,9 +586,18 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // fascia dei dorsi avversari e il cassetto, invece di lasciare tutto il
     // vuoto in fondo.
     const handH = HAND_CHROME + handTileH * scale * handBoost;
-    const rest = compact ? board.clientHeight - surfaceViewH() * scale - Math.max(handH, dockH) : 0;
+    const rest = compact
+      ? board.clientHeight - surfaceViewH() * scale - handH
+      : recess
+        ? board.clientHeight - surfaceViewH() * scale
+        : 0;
     surface.style.marginTop = rest > 0 ? `${Math.floor(rest / 2)}px` : "";
+    // Il pannello delle pile avversarie tiene quattro carte intere in fila:
+    // su una lavagna piccola sarebbe mezzo campo. Sotto una certa scala si
+    // dispone a due per riga.
+    pileDock?.classList.toggle("is-tight", scale < 0.52);
   }
+
   fitScale();
   // Al ridimensionamento non basta rifare la scala: la disposizione della
   // mano (quanto le carte si accavallano, e con quale spinta) la calcola il
@@ -466,15 +609,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     render();
   });
   refit.observe(board);
-  // L'HUD si monta dopo il tavolo e cambia misura (ridotto a icona, arbitro
-  // acceso): la lavagna si riadatta alla sua altezza.
-  if (hudEl) refit.observe(hudEl);
 
   /** Da coordinata condivisa a coordinata di schermo, per questo giocatore. */
   const view = (y: number): number => toView(y, ctx.seat());
+  /** In due dimensioni: dove va una carta (e se è una miniatura, in Arena). */
+  const spotOf = (x: number, y: number) => viewOf(x, y, ctx.seat());
   /** E il viaggio di ritorno, per il punto in cui una carta viene lasciata. */
-  const unview = (y: number): number => fromView(y, ctx.seat());
-
+  const unspot = (vx: number, vy: number) => fromViewPoint(vx, vy, ctx.seat());
+  /** Le targhe dei posti (hud.ts): appese in testa a ciascun campo. */
+  let statsFor: ((seat: Seat) => HTMLElement) | null = null;
   const pileSlots = new Map<string, HTMLElement>();
   /** Gli elementi delle zone: si buttano e si ridisegnano al cambio modo. */
   const zoneEls: HTMLElement[] = [];
@@ -502,7 +645,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   // La freccia in volo segue il puntatore finché non si sceglie.
   /** La scala a cui la superficie è disegnata (1 a tutta larghezza). */
-  const surfaceScale = (): number => surface.getBoundingClientRect().width / SURFACE_W;
+  const surfaceScale = (): number => surface.getBoundingClientRect().width / surfaceViewW();
 
   board.addEventListener("pointermove", event => {
     if (!targeting) return;
@@ -514,10 +657,40 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     paintArrows();
   });
 
+  /**
+   * Il riquadro del Rubyfront che fa anche da Zona di Richiamo (rincasso):
+   * il render gli dà lo stato (is-recall / can-deploy), e sulla
+   * carta in attesa compare «Schiera» — paga il costo, col dado se c'è (§3.1).
+   */
+  function armRecallSlot(seat: Seat, slot: HTMLElement): void {
+    rubySlots.set(seat, slot);
+    const front = frontRowY(seat);
+    const back = backRowY(seat);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "deploy-btn";
+    button.textContent = t("recall.deploy");
+    button.title = t("recall.deploy.tip");
+    button.addEventListener("click", event => {
+      event.stopPropagation();
+      const waiting = fieldCards(ctx.state()).find(
+        card => card.owner === seat && Math.abs(card.x - SLOT_X.richiamo) < 160 && Math.abs(card.y - back) < 160
+      );
+      const deployment = waiting ? cardStats(waiting.cardId).deployment : undefined;
+      if (!waiting || !deployment || !ctx.controls(seat)) return;
+      void deploy(waiting, RUBYFRONT_X, front, dropZ(waiting, RUBYFRONT_X, front), deployment, { x: waiting.x, y: waiting.y, z: waiting.z });
+    });
+    slot.append(button);
+  }
+
   function buildStaticZones(): void {
+    zonesReady = true;
     for (const el of zoneEls) el.remove();
     zoneEls.length = 0;
     pileSlots.clear();
+    rubySlots.clear();
+    pileDock = null;
+    dockHand = null;
     for (const seat of SEATS) {
       const mine = seat === ctx.seat();
       // La fascia NON passa da `view`: quella trasformata capovolge una carta
@@ -530,21 +703,67 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const band = document.createElement("div");
       band.className = `half ${mine ? "is-mine" : "is-foe"}`;
       band.style.top = `${bandTop}px`;
-      band.style.height = `${bandViewH()}px`;
+      band.style.height = `${bandViewH(!mine)}px`;
+      // La testata del campo, sull'orlo in alto a sinistra: la targhetta col
+      // nome e, accanto, la targa del posto (Gettone, PV, Flusso) che crea
+      // hud.ts e arriva da onStats — anche dopo, a zone già costruite.
+      const head = document.createElement("div");
+      head.className = "half-head";
+      head.dataset.seat = seat;
       const name = document.createElement("span");
       name.className = "half-name";
       name.dataset.seatName = seat;
-      band.append(name);
+      head.append(name);
+      if (statsFor) head.append(statsFor(seat));
+      band.append(head);
       surface.append(band);
       zoneEls.push(band);
+
+      // Rincasso: le pile avversarie non hanno una fila sulla lavagna. Stanno
+      // in un pannello sopra il suo campo, in alto a destra, che si ripiega a
+      // una testata coi conti — è informazione, non spazio di gioco.
+      const docked = isRecessView() && !mine;
+      let dockRow: HTMLElement | null = null;
+      if (docked) {
+        const dock = document.createElement("div");
+        // A lavagna piccola il pannello aperto è mezzo campo avversario:
+        // parte ripiegato (una testata coi conti), e si apre col click; la
+        // scelta salvata vale per la lavagna grande.
+        dock.className = `pile-dock${pileDockOpen() && !isTightView() ? "" : " is-collapsed"}`;
+        // Ancorato al bordo destro della lavagna, non a una colonna: dentro
+        // ci stanno quattro riquadri (tre pile e la mano) e la misura la fa
+        // il contenuto.
+        dock.style.right = "16px";
+        dock.style.top = `${bandTop + 8}px`;
+        const head = document.createElement("button");
+        head.type = "button";
+        head.className = "pile-dock-head";
+        // Aperto, la testata è solo il titolo: i conti li dicono le
+        // etichette delle pile. Ripiegato, i conti passano nella testata.
+        const title = document.createElement("span");
+        title.className = "pile-dock-title";
+        title.textContent = t("recess.piles");
+        const counts = document.createElement("span");
+        counts.className = "pile-dock-counts";
+        head.append(title, counts);
+        head.addEventListener("click", () => setPileDockOpen(dock.classList.contains("is-collapsed")));
+        dockRow = document.createElement("div");
+        dockRow.className = "pile-dock-row";
+        dock.append(head, dockRow);
+        surface.append(dock);
+        zoneEls.push(dock);
+        pileDock = dock;
+      }
 
       for (const pile of PILES) {
         const slot = document.createElement("div");
         slot.className = "slot pile";
         slot.dataset.drop = pile.zone;
         slot.dataset.seat = seat;
-        slot.style.left = `${pile.x}px`;
-        slot.style.top = `${view(back)}px`;
+        if (!docked) {
+          slot.style.left = `${pile.x}px`;
+          slot.style.top = `${view(back)}px`;
+        }
         slot.style.width = `${TILE_W}px`;
         slot.style.height = `${tileViewH()}px`;
 
@@ -576,9 +795,27 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           else browse(seat, pile.zone);
         });
 
-        surface.append(slot);
+        (dockRow ?? surface).append(slot);
         zoneEls.push(slot);
         pileSlots.set(`${seat}:${pile.zone}`, slot);
+      }
+
+      // La mano avversaria sta nel pannello insieme alle pile: un mazzetto di
+      // dorsi col conto, non più una fascia che toglie un margine di tavolo
+      // in cima. In partita locale è anche la zona di rientro delle sue carte.
+      if (dockRow) {
+        const slot = document.createElement("div");
+        slot.className = "slot pile dock-hand";
+        slot.dataset.seat = seat;
+        if (ctx.controls(seat)) slot.dataset.drop = "hand";
+        slot.style.width = `${TILE_W}px`;
+        slot.style.height = `${tileViewH()}px`;
+        const label = document.createElement("span");
+        label.className = "slot-label";
+        slot.append(label);
+        dockRow.append(slot);
+        zoneEls.push(slot);
+        dockHand = slot;
       }
 
       // I posti segnati non sono zone a sé: la carta che ci finisce resta una
@@ -604,8 +841,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       };
 
       // Zona di Richiamo (§5): il Rubyfront parte da qui, e una volta
-      // schierato non ci torna (§3.1).
-      markSlot(SLOT_X.richiamo, back, t("zone.richiamo"));
+      // schierato non ci torna (§3.1). In rincasso non ha un riquadro suo:
+      // è il riquadro del Rubyfront nell'altro stato (vedi sotto).
+      if (!isRecessView()) markSlot(SLOT_X.richiamo, back, t("zone.richiamo"));
       // Lo slot extra del controllo (§8.2): un'Entità avversaria presa fino
       // a fine turno sta qui, e non conta nei 5 del Fronte. Si vede solo
       // quando c'è: un riquadro vuoto sempre acceso diceva una regola che
@@ -626,7 +864,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       zoneEls.push(frontLabel);
 
       // Il Rubyfront schierato sta davanti al Fronte, senza occupare uno slot.
-      markSlot(RUBYFRONT_X, front, t("zone.rubyfront"), "slot-rubyfront");
+      const rubySlot = markSlot(RUBYFRONT_X, front, t("zone.rubyfront"), "slot-rubyfront");
+      if (isRecessView()) armRecallSlot(seat, rubySlot);
 
       // Le Materie in gioco, all'altra estremità della fila.
       markSlot(MATTER_X, front, t("zone.materie"), "slot-matter");
@@ -1568,7 +1807,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   /** Il posto della carta in catena, al centro del tavolo, a scaletta: in coordinate di VISTA. */
   function chainSpot(index: number): { x: number; y: number } {
-    return { x: (SURFACE_W - TILE_W) / 2 + index * 44, y: (surfaceViewH() - tileViewH()) / 2 + index * 26 };
+    const centerX = SURFACE_W / 2;
+    return { x: centerX - TILE_W / 2 + index * 44, y: (surfaceViewH() - tileViewH()) / 2 + index * 26 };
   }
 
   /** La Materia risolta va nell'Abisso (§7.2: «poi la carta va nell'Abisso»). */
@@ -2288,7 +2528,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // in canoniche prima di finire nello stato, o al posto B ogni carta
       // comparirebbe nella metà sbagliata. L'aggancio no: i riquadri portano
       // già con sé la coordinata canonica.
-      const free = { x: drop.x, y: unview(drop.y) };
+      const free = unspot(drop.x, drop.y);
       // Le Materie non si giocano sugli slot del Fronte (§5): il divieto è
       // dell'ARBITRO, non del tavolo — il rilascio parte com'è e, con
       // l'engine collegato, torna indietro col sigillo. A engine spento,
@@ -2396,7 +2636,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   // -------------------------------------------------------------- disegno
 
-  function tileFor(card: CardInstance, back: boolean): HTMLElement {
+  function tileFor(card: CardInstance, back: boolean, tess = isCompactView()): HTMLElement {
     let tile = tiles.get(card.uid);
     if (!tile) {
       tile = createCardEl(card.uid);
@@ -2420,7 +2660,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           // Il segno sull'Entità sotto il dito vale anche per l'Oggetto che
           // arriva DALLA MANO, e anche con l'arbitro, che ferma i pixel ma
           // non il gesto: va calcolato prima delle uscite qui sotto.
-          segnaAssegnazione(entityUnder(live, drop.x, drop.snapped ? drop.y : unview(drop.y))?.uid ?? null);
+          const at = drop.snapped ? { x: drop.x, y: drop.y } : unspot(drop.x, drop.y);
+          segnaAssegnazione(entityUnder(live, at.x, at.y)?.uid ?? null);
           if (live.zone !== "field") return;
           // Con l'arbitro al tavolo i pixel non viaggiano in diretta: ogni
           // passo sarebbe un `move` fuori slot, e l'arbitro lo fermerebbe
@@ -2430,8 +2671,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           dragging = card.uid;
           // Sopra un riquadro le coordinate sono già canoniche; a mano libera
           // arrivano dallo schermo e vanno riportate indietro.
-          const y = drop.snapped ? drop.y : unview(drop.y);
-          ctx.dispatch({ t: "move", uid: card.uid, x: drop.x, y, z: Math.max(live.z, ctx.state().zTop) });
+          ctx.dispatch({ t: "move", uid: card.uid, x: at.x, y: at.y, z: Math.max(live.z, ctx.state().zTop) });
         },
         onStart: () => {
           segnaAssegnazione(null);
@@ -2510,7 +2750,20 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         }
       });
     }
-    syncCardEl(tile, card, { back, theme: ctx.themeFor(card.owner), locale: ctx.locale(), tess: isCompactView() });
+    // In rincasso la carta intera SUL CAMPO porta i distintivi della tessera
+    // (costo, Potenza o PV, parole chiave) a corpo fisso: la carta a un
+    // terzo non si legge, i distintivi sì. Non in mano (scelta del
+    // designer: lì la carta è più grande e si legge al passaggio), non
+    // nelle pile aperte (overlay.ts), a scala piena.
+    syncCardEl(tile, card, {
+      back,
+      theme: ctx.themeFor(card.owner),
+      locale: ctx.locale(),
+      tess,
+      // Il Rubyfront li porta in ogni vista: il distintivo dei PV è il
+      // conto dei PV del giocatore (setTessHp), e va letto sempre.
+      badges: card.zone === "field" && (isRecessView() || isRubyfront(card.cardId)),
+    });
     return tile;
   }
 
@@ -2518,7 +2771,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   function boxOf(card: CardInstance): Arrow["from"] {
     const chainIndex = ctx.state().chain?.stack.indexOf(card.uid) ?? -1;
     if (chainIndex >= 0) return { ...chainSpot(chainIndex), w: TILE_W, h: tileViewH() };
-    return { x: card.x, y: view(card.y), w: TILE_W, h: tileViewH() };
+    const spot = spotOf(card.x, card.y);
+    return { x: spot.x, y: spot.y, w: TILE_W, h: tileViewH() };
   }
 
   function paintArrows(): void {
@@ -2658,6 +2912,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       }
     }
     if (!onField || card.facedown) setTessPower(tile, null);
+    // I PV del giocatore stanno sul suo Rubyfront (§3), e solo lì.
+    if (isRubyfront(card.cardId)) setTessHp(tile, onField && !card.facedown ? ctx.state().players[card.owner].hp : null);
     if (marks.length === 0) {
       box?.remove();
       return;
@@ -2689,6 +2945,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const state = ctx.state();
     const me = ctx.seat();
     const foe = otherSeat(me);
+    // Rincasso: la fila di servizio avversaria si riapre finché l'avversario
+    // controlla un'Entità (§8.2) — il suo riquadro del controllo sta lì — e
+    // si richiude dopo. Geometria nuova: zone e scala da rifare, prima di
+    // posare le carte.
+    const foeControls = isRecessView() && fieldCards(state).some(card => card.controller === foe);
+    if (foeControls !== hasFoeBackRow()) {
+      setFoeBackRow(foeControls);
+      applySurfaceSize();
+      buildStaticZones();
+      fitScale();
+    }
     const alive = new Set<string>();
 
     for (const seat of SEATS) {
@@ -2719,13 +2986,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           const tile = tileFor(top, pile.hidden);
           markField(tile, top);
           if (tile.parentElement !== slot) slot.append(tile);
-          tile.style.left = "";
-          tile.style.top = "";
           tile.style.marginLeft = "";
           tile.style.position = "absolute";
           // Anche la cima della pila è una tessera in compatto, o sborderebbe
           // dallo slot e riporterebbe lo scorrimento che si voleva togliere.
           tile.style.height = `${tileViewH()}px`;
+          tile.style.left = "";
+          tile.style.top = "";
           tile.style.zIndex = "1";
         }
       }
@@ -2733,6 +3000,25 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
     for (const [seat, slot] of controlSlots) {
       slot.style.visibility = fieldCards(state).some(card => card.controller === seat) ? "" : "hidden";
+    }
+    // La testata del pannello delle pile avversarie: i conti, sempre in vista.
+    if (pileDock) {
+      const counts = pileDock.querySelector<HTMLElement>(".pile-dock-counts")!;
+      counts.textContent = PILES.map(pile => `${t(pile.label)} · ${zoneCards(state, foe, pile.zone).length}`).join("   ");
+    }
+    // Il riquadro del Rubyfront dice se il Rubyfront è ancora in Zona di
+    // Richiamo: tratteggiato, col tasto Schiera.
+    for (const [seat, slot] of rubySlots) {
+      const back = backRowY(seat);
+      const waiting = fieldCards(state).some(
+        card => card.owner === seat && Math.abs(card.x - SLOT_X.richiamo) < 160 && Math.abs(card.y - back) < 160
+      );
+      slot.classList.toggle("is-recall", waiting);
+      slot.classList.toggle("can-deploy", waiting && ctx.controls(seat));
+      // Un posto solo, due stati. Finché il Rubyfront aspetta l'etichetta
+      // non c'è: al suo posto, a cavallo del bordo basso della carta, sta il
+      // tasto Schiera — e un'etichetta lì sotto ci finirebbe dietro.
+      slot.dataset.label = waiting ? "" : t("zone.rubyfront");
     }
 
     // §7.2 — la barra della catena: cosa c'è in cima, e a chi tocca.
@@ -2754,22 +3040,23 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
     for (const card of fieldCards(state)) {
       alive.add(card.uid);
-      const tile = tileFor(card, card.facedown);
-      markField(tile, card);
-      if (tile.parentElement !== surface) surface.append(tile);
       // La carta in catena (§7.2) sta al centro del tavolo, a scaletta,
       // sopra tutto: i suoi pixel di lavagna restano quelli della fila
       // delle Materie, dove tornerebbe se la catena si sciogliesse.
       const chainIndex = chain?.stack.indexOf(card.uid) ?? -1;
+      const spot = spotOf(card.x, card.y);
+      const tile = tileFor(card, card.facedown, isCompactView());
+      markField(tile, card);
+      if (tile.parentElement !== surface) surface.append(tile);
       if (card.uid !== dragging) {
         tile.style.position = "absolute";
         if (chainIndex >= 0) {
-          const spot = chainSpot(chainIndex);
+          const at = chainSpot(chainIndex);
+          tile.style.left = `${at.x}px`;
+          tile.style.top = `${at.y}px`;
+        } else {
           tile.style.left = `${spot.x}px`;
           tile.style.top = `${spot.y}px`;
-        } else {
-          tile.style.left = `${card.x}px`;
-          tile.style.top = `${view(card.y)}px`;
         }
       }
       // Il margine negativo è un vestito della mano affollata: se la tessera
@@ -2783,7 +3070,27 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       tile.style.zIndex = chainIndex >= 0 ? String(900 + chainIndex) : String(10 + card.z);
     }
 
-    for (const [seat, host, tag] of [[me, myHand, myTag], [foe, oppHand, oppTag]] as const) {
+    // In rincasso la mano avversaria vive nel pannello: la fascia in cima
+    // non c'è (CSS), e qui si disegna il mazzetto col conto.
+    if (dockHand) {
+      const cards = zoneCards(state, foe, "hand");
+      dockHand.querySelector<HTMLElement>(".slot-label")!.textContent = t("recess.hand", { n: cards.length });
+      dockHand.classList.toggle("is-empty", cards.length === 0);
+      const top = cards[cards.length - 1];
+      if (top) {
+        alive.add(top.uid);
+        const tile = tileFor(top, !ctx.controls(foe));
+        markField(tile, top);
+        if (tile.parentElement !== dockHand) dockHand.append(tile);
+        tile.style.position = "absolute";
+        tile.style.left = "";
+        tile.style.top = "";
+        tile.style.marginLeft = "";
+        tile.style.height = `${tileViewH()}px`;
+        tile.style.zIndex = "1";
+      }
+    }
+    for (const [seat, host, tag] of ([[me, myHand, myTag], ...(dockHand ? [] : [[foe, oppHand, oppTag] as const])] as const)) {
       host.dataset.seat = seat;
       // `data-drop=""` sarebbe comunque selezionato da [data-drop]: la mano
       // avversaria non deve avere l'attributo del tutto — in partita locale
@@ -2813,7 +3120,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       tag.classList.toggle("is-excess", excess);
       host.classList.toggle("is-empty", cards.length === 0);
       const wanted: HTMLElement[] = [];
-      for (const card of cards) {
+      cards.forEach(card => {
         alive.add(card.uid);
         // La mano di un posto governato si vede scoperta: in rete solo la
         // propria, in partita locale anche quella in alto.
@@ -2823,12 +3130,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         tile.style.left = "";
         tile.style.top = "";
         // In compatto anche in mano si sta a tessere: la mano entra nella
-        // finestra e la carta si legge al passaggio, come sul campo.
-        tile.style.height = `${isCompactView() ? tileViewH() : TILE_H}px`;
-        tile.classList.toggle("is-unaffordable", unaffordable(card));
+        // finestra e la carta si legge al passaggio.
+        tile.style.height = `${isCompactView() ? COMPACT_TILE_H : TILE_H}px`;
         tile.style.zIndex = "";
+        tile.classList.toggle("is-unaffordable", unaffordable(card));
         wanted.push(tile);
-      }
+      });
       // Le carte in mano si sovrappongono quando sono troppe: restano
       // 302×424, si stringono soltanto le une sulle altre. Il conto va
       // fatto sulla larghezza VISIVA (la scala della mano, o quella del
@@ -2842,7 +3149,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         : surfaceScale();
       const tileW = TILE_W * scale;
       // Su touch la targhetta avversaria sta nel flusso e ruba larghezza.
-      const room = host.clientWidth - 32 - (coarse && seat !== me ? tag.offsetWidth + 14 : 0);
+      // Nella propria mano, sull'orlo destro, sta il tasto che ripiega: le
+      // carte si fermano prima. (Il gesto di fase sta fuori dal cassetto,
+      // nell'angolo che il tavolo gli riserva.)
+      const corner = seat === me ? 50 : 0;
+      const room = host.clientWidth - 32 - corner - (coarse && seat !== me ? tag.offsetWidth + 14 : 0);
       const overlap = wanted.length > 1 && wanted.length * (tileW + 10) > room
         ? Math.min(0, (room - tileW) / (wanted.length - 1) - tileW - 10)
         : 0;
@@ -2903,6 +3214,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       buildStaticZones();
       fitScale();
       render();
+    },
+    onStats(provider) {
+      statsFor = provider;
+      // Le zone sono già costruite (main.ts monta l'HUD dopo il tavolo):
+      // le targhe si appendono adesso, e a ogni ricostruzione da qui in poi.
+      for (const head of surface.querySelectorAll<HTMLElement>(".half-head")) {
+        head.append(provider(head.dataset.seat as Seat));
+      }
     },
     onPick(handler) {
       pickFromPile = handler;

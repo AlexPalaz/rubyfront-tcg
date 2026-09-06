@@ -64,7 +64,7 @@ conosce il nome della stanza, come a un tavolo privato.
 
 ## La chat vocale
 
-Il tasto col **microfono** sull'HUD (accanto al fumetto) accende e spegne la
+Il tasto col **microfono** in header (accanto al fumetto) accende e spegne la
 voce: parte **sempre spento**, e spegnerlo ferma le tracce davvero — la spia
 del browser si spegne. L'audio viaggia **diretto fra i due browser** (WebRTC);
 il relay fa solo da postino per l'aggancio, come per tutto il resto. Nelle
@@ -90,13 +90,12 @@ pubblico. Per LAN e reti domestiche normali basta.
 | Tasto destro su un attaccante avversario → *Blocca con…* | Scegli l'Entità che lo ferma; *Contrattacca con…* la copre |
 | Tasto destro sul mazzo | Pesca 1, pesca 6, mescola, cerca |
 | Passare il mouse su una carta | La mostra a 520×728, anche se è sotto un'altra |
-| Fumetto sull'HUD / × sulla chat | Apre e chiude la chat; il tavolo si allarga |
-| Trascinare l'HUD | Si sposta dove non dà fastidio; doppio click sulla maniglia per rimetterlo al posto suo |
-| «–» sull'HUD | Lo riduce a icona (una tessera col rombo); un click e si riapre |
+| Fumetto in header / × sulla chat | Apre e chiude la chat; il tavolo si allarga |
+| Moneta sulla targa del posto | Gettone Flusso (§3.2): spenta (◇) lo assegna, d'oro (◆) lo spende |
 | Doppio click su Abisso / Ritiro | Sfoglia la pila (sono pubbliche, §5) |
 
-**Mescola, Pesca e Cerca** stanno sull'HUD, sotto Fine turno (sono gesti di
-partita, non di impostazione). **Cerca** apre il mazzo scoperto con un filtro
+**Mescola, Pesca e Cerca** stanno in header accanto al turno, senza arbitro
+(sono gesti di partita, non di impostazione). **Cerca** apre il mazzo scoperto con un filtro
 per nome e per testo: si clicca la carta e va in mano. Alla chiusura il mazzo
 si rimescola.
 
@@ -107,14 +106,16 @@ chiude con un click fuori o con Esc.
 
 ## La vista compatta
 
-È la vista di default (impostazioni → Vista → «Tavolo»): **il tavolo sta
+Dalle impostazioni → Vista → «Tavolo»: **il tavolo sta
 tutto nella finestra, senza scorrere**, e ogni scritta resta a 16px
 qualunque sia la finestra. Sul campo, nelle pile e in mano le carte sono
 **tessere**: l'illustrazione col nome, il costo e la Potenza (o i PV)
 sovrapposti — non la carta rimpicciolita, che a quelle scale avrebbe il
 testo a 5–8px. Il testo di regole si legge passandoci sopra col mouse (o col
 tap): si apre la carta intera, alla misura del renderer. La Potenza sulla
-tessera è quella **attuale** (§8.2), in rubino se sale.
+tessera è quella **attuale** (§8.2), in rubino se sale, e le parole chiave
+stampate (§8.1) sono icone sotto il costo: fulmine lo Slancio, due barre la
+Stasi, freccia di ritorno la Vendetta, fiamma la Furia.
 
 Il trucco è uno solo: la lavagna è scalata con un transform (`--card-scale`),
 e tutto ciò che deve restare leggibile — tessere, etichette delle file e
@@ -124,30 +125,103 @@ mezza) e la lavagna si centra nello spazio che resta.
 
 È un vestito del client, come i temi: le coordinate condivise in rete non
 cambiano di un pixel — a comprimersi è solo la geometria di vista (la mappa
-`compress` in `src/ctx.ts`). L'altra vista, «Carte intere», mostra le carte
-piene sul tavolo e si scorre.
+`compress` in `src/ctx.ts`). «Carte intere» mostra le carte piene sul tavolo
+e si scorre.
 
-## L'HUD e la chat
+## Carte intere · rincasso
 
-In basso a destra, accanto al cassetto della mano, sta fisso un **HUD**: un
-pannello pieno, non un vetro, fatto di righe. In testa il turno e la fase
-(§6), e a destra chi tocca. Poi una riga per posto — il Gettone, il nome nel
-colore del posto, i Punti Vita, il Flusso nel rombo — con la riga di chi è di
-turno tinta del suo colore. Sotto, a tutta larghezza, il bottone di fase
-(**Fine turno**, o **Fine fase** con l'arbitro: la routine di §3.2, chi entra
-si trova il Flusso massimo cresciuto di 1 e ricaricato); senza arbitro
-seguono Mescola/Pesca/Cerca e i **dadi**, con l'ultimo esito sott'occhio e il
-tiro firmato in chat. In fondo, piccoli, chat e microfono. I − e i + compaiono
-passando col mouse sulle righe: ogni numero resta correggibile a mano. La
-moneta all'inizio di ogni riga è il **Gettone Flusso** (§3.2): spenta (◇) lo
-assegna, d'oro (◆) lo spende — 1 Flusso extra, fuori dal tetto dei 20.
+**È la vista di partenza.** Lo stesso tavolo a due file della vista piena, senza scorrere, con le
+**carte intere ovunque** — Fronte, fila di servizio e mano, tutte alla
+stessa misura. Ci sta perché la fascia AVVERSARIA perde la sua fila di
+servizio: le sue tre pile — Abisso, Ritiro, Mazzo — vanno in un **pannello
+ripiegabile** (`.pile-dock`) in alto a destra sopra il suo campo, in
+`position: absolute` con z-index sopra le carte (aperto mostra le pile a
+carta intera con le etichette, ripiegato resta una testata coi conti; la
+scelta si ricorda in `rbf-sim:piledock`), e la sua Zona di Richiamo è il
+riquadro del Rubyfront. Restano tre file di carte intere invece di quattro.
 
-L'HUD **non si sposta**: il tavolo sopra prende tutta la larghezza, e in
-compatta si ferma sopra il più alto fra cassetto e HUD. Col «–» sopra
-l'angolo l'HUD **si riduce a icona**: resta una tessera col rombo (con la
-spia dei messaggi), e un click la riapre. Al prossimo avvio l'HUD parte
-comunque aperto. Accanto al «–» c'è **Evoca**, strumento di prova
-provvisorio.
+**La Zona di Richiamo non ha un riquadro suo**: è il
+riquadro del Rubyfront in testa al Fronte, in due stati — tratteggiato,
+senza etichetta e col tasto **Schiera** a cavallo del bordo basso della
+carta finché il Rubyfront aspetta; cornice piena ed etichetta «Rubyfront»
+una volta schierato. Le coordinate della carta in attesa restano quelle
+canoniche della Zona di Richiamo (`atRecall` e il ramo di `viewOf` in
+`src/ctx.ts`): cambia solo dove la si vede.
+
+Il tavolo prende **tutta l'altezza sotto l'header**, e quando comanda la
+larghezza l'altezza che avanza non resta vuota sopra e sotto: si
+distribuisce nei margini — cima e fondo, il varco fra i campi, i varchi fra
+le file (`setViewSlack` in `src/ctx.ts`, scritto da `fitScale`). E prima
+ancora dell'aria, i margini rispettano ciò che sta a corpo fisso: sotto un
+riquadro ci vuole lo spazio reale di un'etichetta (42px), in testa a un
+campo quello della targhetta che sporge (`setLabelRoom`), e in fondo al
+tavolo l'angolo del gesto di fase — misure in pixel divise per la scala,
+così le etichette non toccano mai un bordo o una fila, a qualunque
+finestra (costa ~0,04 di scala a 1180×820). Le riserve dipendono dalla
+scala e la scala da loro: il fit converge per punto fisso, e la lavagna non
+supera mai la finestra — in rincasso non si scorre.
+
+In rincasso la carta intera **sul campo** (non in mano) porta **i distintivi della tessera** — costo in
+alto a sinistra, Potenza (o PV) in alto a destra, Contrattacco e parole
+chiave — a corpo fisso, come nella vista compatta: la carta a un terzo non
+si legge, i distintivi sì, e sotto resta la carta vera (`badges` in
+`src/cardview.ts`, uno strato `.tess.is-badges` trasparente e inerte; i
+segni del tavolo e la Potenza attuale lo trovano allo stesso posto della
+tessera). Nelle pile aperte, a scala piena, non servono.
+
+La fila di servizio avversaria, azzerata in rincasso, **si riapre da sola
+finché l'avversario controlla un'Entità** (§8.2): il suo riquadro del
+controllo sta lì, e senza la fila cadrebbe sul terzo slot del Fronte.
+A fine controllo si richiude (`setFoeBackRow` in `src/ctx.ts`, acceso dal
+render di table.ts). La scala non conta la
+mano, che resta un cassetto fisso sopra la lavagna come
+in «Carte intere» (la mano si ripiega col gesto per vedere la fila di servizio
+là sotto, e sta alla scala del tavolo, non al 30% in più). Su un 3440×1264
+la scala è ~0,69 e le carte sul tavolo ~208px. Su lavagne piccole (scala
+sotto il 50%) i margini si stringono ancora — `setTightView` in
+`src/ctx.ts`, con due soglie per non far ballare il tavolo — e il pannello
+delle pile si dispone a due riquadri per riga invece di quattro in fila:
+su un 1180×820 sono ~90 pixel di altezza canonica in più per le carte. È la mappa `compress` con
+la fila di servizio avversaria azzerata (`bandViewH(true)` in
+`src/ctx.ts`): le coordinate condivise non cambiano.
+
+## Turno, targhe e chat
+
+Non c'è più un HUD — né pannello né barra: il tavolo è la cosa, e il resto
+sta ai suoi bordi (deciso il 2026-09-06, vista minima **1180×820**).
+
+**Il turno e la fase** (§6) li dice l'**insegna** al centro del tavolo, a
+ogni cambio: «Turno 3» sopra, «Fase di Fronte» grande, sotto a chi tocca. In header
+non c'è un contatore (tolto il 2026-09-06 su richiesta). **In header, al
+centro**, senza arbitro, Mescola, Pesca, Cerca e i dadi (veste provvisoria:
+il tavolo senza arbitro se ne andrà). **A destra** «Evoca» (strumento di
+prova), chat e microfono. Sotto i 1400px «Simulator» si ritira dal marchio
+per far posto.
+
+**Sul tavolo, in basso a destra**, il **gesto di fase**: con l'arbitro «Fine
+fase» (Fine preparazione, Fine Fronte, Fine Reazione; la routine di §3.2,
+chi entra si trova il Flusso massimo cresciuto di 1 e ricaricato); senza
+arbitro la dichiarazione del Fronte e il Fine turno. Sta nell'angolo che la
+mano lascia libero: il **cassetto della mano è largo il 75%** del tavolo, da
+sinistra, col tasto che lo ripiega sul suo orlo destro. Il tavolo gli
+**riserva l'angolo** (`setCornerReserve` in `src/ctx.ts`, nel margine di
+fondo): le pile, che stanno a destra nella fila di servizio, e le loro
+etichette restano sopra, mai coperte.
+
+**Sul tavolo**, sull'orlo di ciascun campo accanto alla targhetta del nome,
+la **targa del posto**: il Gettone Flusso e il Flusso nel rombo. I **Punti
+Vita** non ci sono: si leggono **sul Rubyfront**, una volta sola — il
+distintivo dei PV della carta mostra quelli rimasti, non lo stampato, e
+quando cambiano il numero scorre fino al nuovo valore e il distintivo
+lampeggia (rubino in calo, verde in salita; `setTessHp` in
+`src/cardview.ts`). Per questo il Rubyfront porta il distintivo in ogni
+vista, anche in «Carte intere». Niente nome (lo dice la targhetta) e niente «tocca a te»: la targa
+di chi è di turno **si tinge**. La moneta è il **Gettone Flusso** (§3.2):
+spenta (◇) lo assegna, d'oro (◆) lo spende — 1 Flusso extra, fuori dal
+tetto dei 20. Senza arbitro i − e i + compaiono passando col mouse. Le
+targhe le crea `src/hud.ts` e le appende `table.ts` in `.half-head`
+(`onStats`); stanno dentro la lavagna scalata e ogni misura passa per
+`--ui-inv`, così restano a 16px in ogni vista, «Carte intere» compresa.
 
 La colonna a destra è **solo chat**: il fumetto la apre, la × la richiude, e
 chiusa cede i 320px al tavolo. **Chi fa cosa si vede dal colore**: le tue righe

@@ -60,6 +60,9 @@
      Scuri di default; il tema chiaro li ribalta. */
   --glass: rgba(9, 7, 9, .9);
   --glass-heavy: rgba(9, 7, 9, .94);
+  /* Il cassetto della mano è un VETRO: il fondo resta traslucido perché lo
+     sfocato dietro si veda davvero (a .94 il blur non si notava). */
+  --hand-veil: rgba(9, 7, 9, .62);
   --overlay-veil: rgba(8, 6, 8, .82);
   /* Il velo dei momenti sul tavolo (ingresso di una carta, tiro di dado):
      scuro sul buio, bianco sul chiaro — un velo nero sul tavolo bianco era
@@ -87,11 +90,6 @@
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --toolbar-h: 54px;
   --side-w: 320px;
-  /* L'HUD è fisso in basso a destra, accanto alla mano: largo --hud-w, e
-     --hud-lane è la corsia che la mano e i suoi tasti gli lasciano libera.
-     Il tavolo, sopra, prende tutta la larghezza. */
-  --hud-w: 520px;
-  --hud-lane: calc(var(--hud-w) + 40px);
   /* La scala della lavagna: 1 a tutta larghezza, meno di 1 sugli schermi
      stretti (la imposta table.ts, misurando la finestra). Scala superficie e
      carte in mano; a leggere le carte rimpicciolite ci pensa l'ingrandimento
@@ -102,7 +100,9 @@
   /* Il 30% lo mette il tavolo (--hand-boost, table.ts): in vista compatta
      scende a 1, perché lì il cassetto deve stare sotto la lavagna intera. */
   --hand-boost: 1.3;
-  --hand-scale: min(1, calc(var(--card-scale) * var(--hand-boost)));
+  /* Il tetto della scala di mano: mai oltre il naturale. */
+  --hand-cap: 1;
+  --hand-scale: min(var(--hand-cap), calc(var(--card-scale) * var(--hand-boost)));
   /* La carta in mano: intera (424) o, in compatta, la tessera (200,
      COMPACT_TILE_H in ctx.ts). La imposta table.ts. */
   --hand-tile-h: 424px;
@@ -391,8 +391,16 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
 /* I toni di fase sull'argento: rubino cupo il Fronte, viola cupo la Reazione. */
 .phase-banner[data-phase="fronte"] .phase-banner-title { --phase-tone: var(--banda-ruby); }
 .phase-banner[data-phase="reazione"] .phase-banner-title { --phase-tone: var(--banda-viola, var(--viola-light)); }
+/* Il turno, sopra il titolo: stesso corpo del rigo sotto, ma in inchiostro. */
+.phase-banner-turn {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .24em; text-transform: uppercase;
+  color: var(--banda-ink);
+}
+.phase-banner-turn[hidden] { display: none; }
 .phase-banner-sub {
-  font-size: .85rem;
+  font-size: 1rem;
   letter-spacing: .16em; text-transform: uppercase;
   color: var(--banda-muted);
 }
@@ -417,7 +425,8 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
    spegne, sopra la tessera com'è. */
 /* Mentre un effetto agisce il tavolo è fermo: campo, mani, HUD e chat non
    rispondono al mouse finché la fonte non si spegne. */
-body.is-resolving .table, body.is-resolving .hud, body.is-resolving .side { pointer-events: none; }
+body.is-resolving .table, body.is-resolving .game-bar, body.is-resolving .game-tools, body.is-resolving .side { pointer-events: none; }
+
 .tile { transition: box-shadow .9s ease; }
 /* La carta COLPITA da un effetto: un lampo rosso addosso a lei, non una
    freccia che compare e sparisce — quel che conta è la carta toccata, e sta
@@ -687,6 +696,9 @@ body.is-resolving .table, body.is-resolving .hud, body.is-resolving .side { poin
 /* Chat chiusa: la colonna va a zero e il tavolo si prende lo spazio.
    L'HUD resta sempre: è lui il posto dei comandi di gioco. */
 body.side-closed { --side-w: 0px; }
+/* A colonna chiusa anche il filetto se ne va: un pixel di bordo su una
+   colonna a zero faceva scorrere la pagina di un pixel. */
+body.side-closed .side { border-left: 0; }
 
 .table { position: relative; overflow: hidden; }
 
@@ -807,6 +819,11 @@ body.side-closed { --side-w: 0px; }
   transform: scale(var(--card-scale));
   transform-origin: 0 0;
 }
+/* In rincasso il tavolo sta tutto nella finestra e i margini sono stretti:
+   la lavagna comincia SOTTO la lastra di vetro dell'header, o la cima del
+   campo avversario (targhetta compresa) ci finirebbe dietro. Nella vista
+   piena non serve: lì l'aria la dà il margine canonico del tavolo. */
+body.view-recess .board { top: var(--toolbar-h); }
 
 .half {
   position: absolute;
@@ -832,11 +849,11 @@ body.side-closed { --side-w: 0px; }
 
 /* Il nome del posto è una targhetta appoggiata sul bordo del tappeto. */
 .half-name {
-  position: absolute;
-  top: -11px;
-  left: 24px;
-  padding: 2px 12px;
-  font-size: 1rem;
+  flex: none;
+  white-space: nowrap;
+  padding: calc(2px * var(--ui-inv)) calc(12px * var(--ui-inv));
+  border-width: calc(1px * var(--ui-inv));
+  font-size: calc(1rem * var(--ui-inv));
   font-weight: 600;
   letter-spacing: .18em;
   text-transform: uppercase;
@@ -1008,9 +1025,9 @@ body.side-closed { --side-w: 0px; }
    regole della carta si leggono nell'ingrandimento al passaggio.
 
    I nomi di classe portano il prefisso tess- e non esistono in card.css. */
-body.view-compact .surface { --ui-inv: calc(1 / var(--card-scale)); }
-body.view-compact .hand { --ui-inv: calc(1 / var(--hand-scale)); }
-body.view-compact .drag-ghost { --ui-inv: calc(1 / var(--card-scale)); }
+body.view-compact .surface, body.view-recess .surface { --ui-inv: calc(1 / var(--card-scale)); }
+body.view-compact .hand, body.view-recess .hand { --ui-inv: calc(1 / var(--hand-scale)); }
+body.view-compact .drag-ghost, body.view-recess .drag-ghost { --ui-inv: calc(1 / var(--card-scale)); }
 /* Gli elenchi (pile, ricerca nel mazzo) mostrano la carta intera a scala 1. */
 .overlay-item .tile { --ui-inv: 1; }
 
@@ -1022,6 +1039,9 @@ body.view-compact .drag-ghost { --ui-inv: calc(1 / var(--card-scale)); }
   font-family: var(--sans);
   background: var(--tess-bg);
 }
+/* I distintivi soli sopra la carta intera (rincasso, cardview.ts
+   buildBadges): strato trasparente e inerte, la carta sotto resta viva. */
+.tile > .tess.is-badges { background: transparent; pointer-events: none; z-index: 2; }
 .tile > .tess > .card-back { width: 100%; height: 100%; border-radius: 0; }
 .tess-art {
   position: absolute;
@@ -1062,7 +1082,7 @@ body.view-compact .drag-ghost { --ui-inv: calc(1 / var(--card-scale)); }
 /* I distintivi: costo in alto a sinistra, Potenza o PV in alto a destra.
    Stessa officina dei segni del tavolo (.tile-marks): pannello scuro, filo
    di cornice, il serif e il rubino della barra del titolo. */
-.tess-cost, .tess-power, .tess-hp {
+.tess-cost, .tess-power, .tess-hp, .tess-counter {
   position: absolute;
   top: calc(6px * var(--ui-inv));
   z-index: 2;
@@ -1093,18 +1113,92 @@ body.view-compact .drag-ghost { --ui-inv: calc(1 / var(--card-scale)); }
 }
 /* Il costo a dado (§3.1): il pannello si riconosce dal filo tratteggiato. */
 .tess-cost.is-die { border-style: dashed; }
-.tess-power, .tess-hp { right: calc(6px * var(--ui-inv)); }
+.tess-power, .tess-hp, .tess-counter { right: calc(6px * var(--ui-inv)); }
+/* Il Contrattacco sotto la Potenza: freccia che torna, oro come le sue frecce
+   sul tavolo (.arrow-counter), così non si confonde con le spade. */
+.tess-counter { top: calc(42px * var(--ui-inv)); color: var(--warn); }
+.tess-counter svg { width: calc(15px * var(--ui-inv)); height: calc(15px * var(--ui-inv)); flex: none; }
+.tess-counter b { position: relative; top: .04em; }
+/* I segni §8.2 scendono sotto il Contrattacco, quando c'è. */
+.tile.is-tess:has(.tess-counter):not(.is-tapped) > .tile-marks,
+.tile.is-badged:has(.tess-counter):not(.is-tapped) > .tile-marks { top: calc(78px * var(--ui-inv)); }
 .tess-power svg { width: calc(14px * var(--ui-inv)); height: calc(14px * var(--ui-inv)); flex: none; color: var(--tess-ruby); }
 .tess-power b, .tess-hp b { position: relative; top: .04em; }
 /* La Potenza attuale (§8.2): rubino se sale, spenta se scende. */
 .tess-power.is-up b { color: var(--tess-ruby); }
 .tess-power.is-down b { color: var(--tess-ruby-dim); }
 .tess-hp { color: var(--pv); }
+/* I PV che cambiano (setTessHp): il distintivo lampeggia — rubino in calo,
+   verde in salita — mentre il numero scorre. */
+.tess-hp.is-down { animation: tess-hp-down .9s ease-out; }
+.tess-hp.is-up { animation: tess-hp-up .9s ease-out; }
+@keyframes tess-hp-down {
+  0% { transform: scale(1); }
+  15% { transform: scale(1.25); background: var(--ruby-deep); color: #fdeef1; border-color: #e56a86; box-shadow: 0 0 calc(14px * var(--ui-inv)) rgba(210, 74, 100, .8); }
+  100% { transform: scale(1); }
+}
+@keyframes tess-hp-up {
+  0% { transform: scale(1); }
+  15% { transform: scale(1.25); background: color-mix(in srgb, var(--ok) 35%, var(--tess-chip-bg)); border-color: var(--ok); box-shadow: 0 0 calc(14px * var(--ui-inv)) color-mix(in srgb, var(--ok) 70%, transparent); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .tess-hp.is-down, .tess-hp.is-up { animation: none; } }
 .tess-hp small { font-size: .7em; font-weight: 400; color: var(--tess-hp-unit); }
+
+/* Le parole chiave stampate (§8.1), icone in colonna sotto il costo. */
+.tess-keys {
+  position: absolute;
+  left: calc(6px * var(--ui-inv));
+  top: calc(42px * var(--ui-inv));
+  z-index: 2;
+  display: grid;
+  gap: calc(4px * var(--ui-inv));
+  pointer-events: none;
+}
+.tess-key {
+  width: calc(26px * var(--ui-inv));
+  height: calc(26px * var(--ui-inv));
+  display: grid;
+  place-items: center;
+  border: calc(1px * var(--ui-inv)) solid var(--tess-chip-frame);
+  background: var(--tess-chip-bg);
+  color: var(--tess-ruby);
+  box-shadow: 0 calc(2px * var(--ui-inv)) calc(8px * var(--ui-inv)) var(--tess-chip-shadow);
+}
+.tess-key svg { width: calc(16px * var(--ui-inv)); height: calc(16px * var(--ui-inv)); }
+.tess-key.is-stasis { color: var(--tess-chip-ink); }
 
 /* Con la carta coricata (tappata) ruota tutto il riquadro, testo compreso:
    come al tavolo vero. */
 
+/* Il riquadro del Rubyfront è anche la Zona di Richiamo: prima dello
+   schieramento è tratteggiato, l'etichetta dice «da schierare» e sulla carta
+   compare «Schiera». Schierato, cornice rubino piena. */
+body.view-recess .slot-rubyfront.is-recall { border-style: dashed; border-color: var(--line); background: transparent; }
+body.view-recess .slot-rubyfront:not(.is-recall) { border-style: solid; }
+.deploy-btn {
+  display: none;
+  position: absolute;
+  left: 50%;
+  /* A cavallo del bordo basso della carta: non copre il testo di regole. */
+  bottom: calc(-17px * var(--ui-inv));
+  transform: translateX(-50%);
+  z-index: 60;
+  padding: calc(9px * var(--ui-inv)) calc(18px * var(--ui-inv));
+  font-size: calc(1rem * var(--ui-inv));
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: #fdeef1;
+  background: linear-gradient(180deg, #b81a41, #9e0f34);
+  border: calc(1px * var(--ui-inv)) solid #e56a86;
+  border-radius: 0;
+  box-shadow: 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(158, 15, 52, .5);
+  white-space: nowrap;
+}
+.deploy-btn:hover { filter: brightness(1.15); }
+body.view-recess .slot-rubyfront.can-deploy .deploy-btn { display: block; }
 /* I dorsi avversari in compatta si affacciano meno (60px canonici, alla
    scala del CAMPO e non della mano, che può essere cresciuta): stanno
    dentro il margine in cima alla lavagna e non coprono la targa del posto. */
@@ -1119,17 +1213,16 @@ body.view-compact .hand-opponent .tile {
 }
 
 /* Le etichette della lavagna (righe, pile, nome del giocatore) sono nella
-   superficie scalata: in compatta si contro-scalano anche loro, e stanno a
-   16px come tutto il resto. */
-body.view-compact .row-label,
-body.view-compact .slot::after,
-body.view-compact .slot-label,
-body.view-compact .half-name { font-size: calc(1rem * var(--ui-inv)); }
+   superficie scalata: in compatta e in rincasso si contro-scalano anche
+   loro, e stanno a 16px come tutto il resto. */
+body.view-compact .row-label, body.view-recess .row-label,
+body.view-compact .slot::after, body.view-recess .slot::after,
+body.view-compact .slot-label, body.view-recess .slot-label { font-size: calc(1rem * var(--ui-inv)); }
 /* Un solo carattere per tutte le scritte della lavagna: le etichette delle
    pile (.slot-label), quelle degli slot (::after) e quelle di fila
    (.row-label) hanno lo stesso corpo e la stessa spaziatura. */
-body.view-compact .slot::after,
-body.view-compact .slot-label {
+body.view-compact .slot::after, body.view-recess .slot::after,
+body.view-compact .slot-label, body.view-recess .slot-label {
   bottom: auto;
   top: calc(100% + 10px * var(--ui-inv));
   left: calc(4px * var(--ui-inv));
@@ -1137,18 +1230,71 @@ body.view-compact .slot-label {
 }
 /* L'etichetta di fila la posa table.ts a 9px canonici dal Fronte: qui si
    aggiunge la stessa aria, a corpo fisso. */
-body.view-compact .row-label { letter-spacing: .12em; margin-top: calc(8px * var(--ui-inv)); }
-body.view-compact .half-name {
-  top: calc(-11px * var(--ui-inv));
-  left: calc(24px * var(--ui-inv));
-  padding: calc(2px * var(--ui-inv)) calc(12px * var(--ui-inv));
-  border-width: calc(1px * var(--ui-inv));
-}
-body.view-compact .slot.is-discard::before {
+body.view-compact .row-label, body.view-recess .row-label { letter-spacing: .12em; margin-top: calc(8px * var(--ui-inv)); }
+body.view-compact .slot.is-discard::before, body.view-recess .slot.is-discard::before {
   font-size: calc(.92rem * var(--ui-inv));
   padding: calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv));
   transform: translate(-50%, calc(-8px * var(--ui-inv)));
 }
+
+/* Rincasso: le pile avversarie (Abisso, Ritiro, Mazzo) in un pannello sopra
+   il suo campo — position absolute nella lavagna, sopra le carte. Aperto
+   mostra le tre teste con le etichette; ripiegato resta la testata coi
+   conti. Un pannello pieno, mai vetro; le misure in --ui-inv per stare a
+   16px reali a qualunque scala. */
+.pile-dock {
+  position: absolute;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: calc(1px * var(--ui-inv)) solid var(--line);
+  border-radius: 0;
+  box-shadow: 0 calc(10px * var(--ui-inv)) calc(28px * var(--ui-inv)) rgba(0, 0, 0, .5);
+}
+.pile-dock-head {
+  display: flex;
+  align-items: center;
+  gap: calc(12px * var(--ui-inv));
+  height: calc(32px * var(--ui-inv));
+  padding: 0 calc(14px * var(--ui-inv));
+  font: inherit;
+  font-size: calc(1rem * var(--ui-inv));
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: pre;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.pile-dock-head::before { content: "\25BE"; color: var(--ink); }
+.pile-dock.is-collapsed .pile-dock-head::before { content: "\25B8"; }
+.pile-dock-head:hover { color: var(--ink); }
+.pile-dock-row {
+  display: flex;
+  gap: 20px;
+  padding: 8px 16px calc(44px * var(--ui-inv));
+}
+.pile-dock.is-collapsed .pile-dock-row { display: none; }
+.pile-dock .pile-dock-counts { display: none; }
+.pile-dock.is-collapsed .pile-dock-counts { display: inline; }
+.pile-dock.is-collapsed .pile-dock-title { display: none; }
+/* Dentro il pannello le pile stanno nel flusso, non a coordinate. */
+.pile-dock .slot.pile { position: relative; }
+/* Lavagna piccola: il pannello si dispone a due per riga invece di quattro
+   in fila, e smette di mangiarsi mezzo campo avversario. */
+.pile-dock.is-tight:not(.is-collapsed) .pile-dock-row {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+}
+/* La mano avversaria è l'ultimo riquadro del pannello: dorsi col conto. */
+.pile-dock .dock-hand.is-empty { opacity: .55; }
+/* In rincasso la fascia dei dorsi in cima non c'è più: la mano avversaria
+   sta nel pannello, e quel margine di tavolo torna alle carte. */
+body.view-recess .hand-opponent { display: none; }
 
 /* La carta in volo. Posizione, z e margini glieli mette drag.ts in linea: il
    clone si porta dietro gli stili in linea della tessera, che batterebbero
@@ -1164,9 +1310,7 @@ body.view-compact .slot.is-discard::before {
 .hand {
   position: absolute;
   left: 0;
-  /* Le mani si fermano prima della corsia dell'HUD: le targhe non devono
-     coprire carte né rubare i rilasci. */
-  right: var(--hud-lane);
+  right: 0;
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -1189,7 +1333,7 @@ body.is-dragging-card .hand-mine { pointer-events: auto; }
 .hand-drop {
   position: absolute;
   left: 0;
-  right: var(--hud-lane);
+  right: 0;
   bottom: 0;
   height: 208px;
   z-index: 35;
@@ -1226,6 +1370,9 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 .hand-mine {
   z-index: 30;
   bottom: 0;
+  /* Largo tre quarti del tavolo, da sinistra: a destra restano in vista la
+     fine della fila di servizio e, in basso, il gesto di fase (hud.ts). */
+  right: 25%;
   height: var(--hand-h);
   align-items: flex-end;
   padding-bottom: 14px;
@@ -1233,8 +1380,9 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
      confonde: fondo pieno, bordo netto in tinta col tuo campo, e l'ombra
      buttata all'insù per dire che sta davanti. Lo sfocato dietro chiarisce
      che il campo continua là sotto, senza far finta di essere campo. */
-  background: var(--glass-heavy);
-  backdrop-filter: blur(8px);
+  background: var(--hand-veil, var(--glass-heavy));
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
   border-top: 2px solid var(--mine-edge);
   border-radius: 0;
   box-shadow:
@@ -1381,7 +1529,8 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 
 .hand-toggle {
   position: absolute;
-  right: calc(var(--hud-lane) + 16px);
+  /* Dentro l'orlo destro del cassetto, che è largo il 75% del tavolo. */
+  right: calc(25% + 12px);
   bottom: 12px;
   z-index: 40;
   width: 34px;
@@ -1599,7 +1748,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 
 /* Sulla tessera compatta l'angolo in alto a sinistra è del costo: il numero
    d'ondata si mette in alto al centro, a corpo fisso come il resto. */
-.tile.is-tess .combat-badge {
+.tile.is-tess .combat-badge, .tile.is-badged .combat-badge {
   left: 50%;
   top: calc(6px * var(--ui-inv));
   min-width: calc(30px * var(--ui-inv));
@@ -1608,7 +1757,7 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   font-size: calc(1rem * var(--ui-inv));
   transform: translateX(-50%);
 }
-.tile.is-tess.is-tapped .combat-badge {
+.tile.is-tess.is-tapped .combat-badge, .tile.is-badged.is-tapped .combat-badge {
   top: auto;
   bottom: calc(6px * var(--ui-inv));
   transform: translateX(-50%) rotate(-90deg);
@@ -1671,13 +1820,13 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 .tile > .tile-marks > .power-delta.is-down { color: var(--tess-ruby-dim); border-color: color-mix(in srgb, var(--tess-ruby-dim) 45%, transparent); }
 /* Sulla tessera compatta il fondo è del nome: i segni salgono sotto la
    Potenza, in alto a destra, e si contro-scalano come tutto il resto. */
-.tile.is-tess:not(.is-tapped) > .tile-marks {
+.tile.is-tess:not(.is-tapped) > .tile-marks, .tile.is-badged:not(.is-tapped) > .tile-marks {
   top: calc(42px * var(--ui-inv));
   right: calc(6px * var(--ui-inv));
   bottom: auto;
   gap: calc(4px * var(--ui-inv));
 }
-.tile.is-tess > .tile-marks > span {
+.tile.is-tess > .tile-marks > span, .tile.is-badged > .tile-marks > span {
   height: calc(26px * var(--ui-inv));
   padding: 0 calc(7px * var(--ui-inv)) 0 calc(5px * var(--ui-inv));
   gap: calc(4px * var(--ui-inv));
@@ -1685,8 +1834,8 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   border-radius: 0;
   font-size: calc(15px * var(--ui-inv));
 }
-.tile.is-tess > .tile-marks svg { width: calc(14px * var(--ui-inv)); height: calc(14px * var(--ui-inv)); }
-.tile.is-tess > .tile-marks > .grant-mark { padding: 0 calc(8px * var(--ui-inv)); font-size: calc(13px * var(--ui-inv)); }
+.tile.is-tess > .tile-marks svg, .tile.is-badged > .tile-marks svg { width: calc(14px * var(--ui-inv)); height: calc(14px * var(--ui-inv)); }
+.tile.is-tess > .tile-marks > .grant-mark, .tile.is-badged > .tile-marks > .grant-mark { padding: 0 calc(8px * var(--ui-inv)); font-size: calc(13px * var(--ui-inv)); }
 /* La tappata ruota di 90°, e il gruppo si raddrizza con la rotazione opposta:
    il testo torna dritto, ma l'ANCORAGGIO va rifatto. Ancorato all'angolo, il
    gruppo ruotava attorno al proprio centro e finiva mezzo fuori dalla
@@ -1790,79 +1939,44 @@ body.is-targeting .tile.is-legal {
 
 /* ------------------------------------------------------------------ HUD */
 
-/* Le targhe dei posti fluttuano sul tavolo, vestite come il template della
-   carta (docs/cards/ui/card.css): rettangoli puliti con la doppia cornice
-   (bordo + outline sfalsata, come la carta vera), serif in maiuscoletto, il
-   rombo del costo per il Flusso — il Flusso È il costo — e i PV in mono
-   verde. Le palette sono la t01 (bordeaux, tua) e la t02 (blu notte,
+/* Turno e fase, gesti di partita, targhe dei posti (hud.ts). L'HUD come
+   pannello o barra non c'è più: il tavolo è la cosa, e il resto sta ai
+   suoi bordi. In HEADER, al centro, «Turno 1 · Preparazione» col gesto che
+   chiude la fase (.game-bar); a destra Evoca, chat e microfono
+   (.game-tools). Sul TAVOLO, sull'orlo di ciascun campo accanto alla
+   targhetta del nome, la targa del posto (.hud-chip: Gettone, PV, Flusso);
+   sta dentro la lavagna scalata, quindi ogni misura passa per --ui-inv.
+   Le palette delle targhe sono la t01 (bordeaux, tua) e la t02 (blu notte,
    avversario) dei temi carta, copiate qui in variabili --hc-*: card.css
    resta suo, e nessuna classe è in comune (vedi testa del foglio). */
-/* L'HUD sta in basso a destra, accanto al cassetto della mano, alla sua
-   stessa altezza: il tavolo sopra è tutto libero. È un PANNELLO pieno, non
-   un vetro: una colonna di righe — la testata col turno e la fase, una riga
-   per posto coi contatori, i bottoni di partita a tutta larghezza, in fondo
-   strumenti di mazzo, dadi e la riga di servizio (chat, microfono). */
-.hud {
-  position: absolute;
-  right: 16px;
-  bottom: 12px;
-  z-index: 45;
-  display: grid;
-  gap: 6px;
-  width: var(--hud-w);
-  padding: 10px 12px 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
-  user-select: none;
-  touch-action: none;
-}
-body[data-ui-theme^="chiaro"] .hud { box-shadow: 0 12px 30px rgba(27, 26, 31, .14); }
-/* La testata non occupa una riga: il tasto che riduce a icona sporge
-   sopra l'angolo destro dell'HUD. */
-.hud-top { position: absolute; top: -30px; right: 0; width: 38px; height: 26px; }
-/* «Evoca» è uno strumento di prova, domani solo per chi amministra: sta
-   fuori dalla griglia, in alto accanto al tasto che riduce a icona, piccolo
-   e tratteggiato. */
-.hud-test {
-  position: absolute; top: -30px; right: 46px; height: 26px; padding: 0;
-}
-.hud-test .hud-tool {
-  display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; border: none; background: transparent;
-}
-.hud-test .hud-tool svg { width: 15px; height: 15px; }
-.hud-test .hud-tool span { line-height: 1; }
-.hud-min-btn {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 38px;
-  height: 26px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  color: var(--ink);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 0;
-}
-.hud-min-btn:hover { color: #fff; border-color: var(--ruby); }
-
-/* La fila delle azioni di mazzo nell'HUD esteso: icona ed etichetta. */
-.hud-tools {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-/* Lo strumento di prova «Evoca»: resta anche con l'arbitro. Dove sta e
-   come si dispone lo dice la regola dell'HUD agganciato (.hud-test, sopra):
-   qui solo il vestito. */
-.hud-test {
+.game-bar {
   display: flex;
   align-items: center;
-  background: var(--panel);
-  border: 1px dashed var(--line);
-  border-radius: 0;
+  gap: 10px;
+  min-width: 0;
+}
+.game-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+/* Sotto i 1400px l'header non ha posto per tutto: «Simulator» si ritira,
+   il marchio resta «Rubyfront» col rombo. La vista minima è 1180×820. */
+@media (max-width: 1400px) {
+  .brand-sub { display: none; }
+  .toolbar { gap: 10px; }
+}
+
+/* Gli strumenti di mazzo nella barra: in fila, icona ed etichetta accanto. */
+.hud-tools {
+  display: flex;
+  gap: 6px;
+}
+.hud-tools .hud-tool {
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
 }
 .hud-tool {
   display: grid;
@@ -1885,49 +1999,34 @@ body[data-ui-theme^="chiaro"] .hud { box-shadow: 0 12px 30px rgba(27, 26, 31, .1
 .hud-tool-search svg { color: var(--foe); }
 .hud-chat svg { color: var(--viola-light); }
 
-/* Ridotto a icona: resta la tessera col rombo (con la spia dei non letti),
-   trascinabile; un click la riapre. La larghezza scende con lei. */
-.hud.is-min { display: block; width: 50px; }
-.hud.is-min > * { display: none; }
-.hud.is-min .hud-mini { display: grid; }
-.hud-sq {
-  position: relative;
-  width: 50px;
-  height: 50px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 0;
-  touch-action: none;
+/* La testata del campo, sull'orlo in alto a sinistra: la targhetta col
+   nome e, accanto, la targa del posto. Dentro la lavagna scalata: misure
+   in --ui-inv, che fuori dalle viste compresse vale 1. */
+.half-head {
+  /* A corpo fisso in OGNI vista, anche in «Carte intere» dove il resto della
+     lavagna si scala: le targhe si leggono e si toccano, sempre a 16px. */
+  --ui-inv: calc(1 / var(--card-scale));
+  position: absolute;
+  top: calc(-15px * var(--ui-inv));
+  left: calc(24px * var(--ui-inv));
+  display: flex;
+  align-items: center;
+  gap: calc(10px * var(--ui-inv));
 }
-button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
-.hud-mini { display: none; }
-.hud-mini:hover { border-color: var(--ruby); }
-.hud-mini-gem {
-  width: 18px;
-  height: 18px;
-  transform: rotate(45deg);
-  background: #9e0f34;
-  border: 1px solid #e56a86;
-}
-
+/* La targa del posto: Gettone, PV, rombo del Flusso. Vestita come la
+   targhetta del nome (fondo del vuoto, filo del posto), col filo grosso a
+   sinistra nel colore del posto; quella di chi è di turno si tinge. */
 .hud-chip {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
-  min-height: 36px;
-  padding: 2px 6px 2px 10px;
-  color: var(--ink);
-  /* Il colore del posto sta sul filo a sinistra e sul nome; il resto è il
-     pannello. Il posto attivo si tinge appena. */
-  background: transparent;
-  border: 0;
-  border-left: 3px solid var(--hc-frame);
+  gap: calc(4px * var(--ui-inv));
+  height: calc(30px * var(--ui-inv));
+  padding: 0 calc(6px * var(--ui-inv)) 0 calc(4px * var(--ui-inv));
+  color: var(--hc-ink);
+  background: var(--void);
+  border: calc(1px * var(--ui-inv)) solid var(--edge);
+  border-left: calc(3px * var(--ui-inv)) solid var(--hc-frame);
   border-radius: 0;
 }
 /* Tu in viola profondo, l'avversario in blu profondo — gli stessi dei campi.
@@ -1947,22 +2046,23 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   --hc-ink: var(--foe-chip-ink);
   --hc-muted: var(--foe-chip-muted);
 }
-/* Il posto attivo: la riga si tinge del suo colore. */
-.hud-chip.is-active { background: color-mix(in srgb, var(--hc-frame) 16%, transparent); }
+/* Il posto attivo: la targa si tinge del suo colore. Chi tocca lo dice
+   questo, e basta: niente scritta «tocca a te». */
+.hud-chip.is-active { background: color-mix(in srgb, var(--hc-frame) 28%, var(--void)); }
 /* Il Gettone Flusso (§3.2): la moneta sull'orlo della targa È il comando.
    Spenta (◇) si assegna, d'oro (◆) si spende. */
 .hud-coin {
   flex: none;
-  width: 26px;
-  height: 26px;
+  width: calc(22px * var(--ui-inv));
+  height: calc(22px * var(--ui-inv));
   padding: 0;
   display: grid;
   place-items: center;
-  font-size: 1rem;
+  font-size: calc(1rem * var(--ui-inv));
   line-height: 1;
   color: var(--hc-muted);
   background: var(--panel-2);
-  border: 1px solid var(--hc-frame-dim);
+  border: calc(1px * var(--ui-inv)) solid var(--hc-frame-dim);
   border-radius: 0;
 }
 .hud-coin:hover { color: var(--warn); border-color: rgba(217, 168, 78, .5); }
@@ -1970,31 +2070,11 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   color: var(--warn);
   background: #221808;
   border-color: rgba(217, 168, 78, .75);
-  box-shadow: 0 0 12px rgba(217, 168, 78, .55);
+  box-shadow: 0 0 calc(12px * var(--ui-inv)) rgba(217, 168, 78, .55);
 }
-
-/* Il nome centrato col filetto sotto — la barra del titolo, nel colore del
-   posto. Niente serif delle carte: l'HUD parla il sans dell'interfaccia,
-   come le targhette dei campi. */
-.hud-name {
-  flex: 1 1 auto;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  text-align: left;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--hc-frame);
-}
-
 /* −, il valore, +. I tasti stanno lì ma si fanno notare solo col puntatore
-   sopra la targa: a riposo restano numeri, non una pulsantiera. */
+   sopra la targa: a riposo restano numeri, non una pulsantiera. Con
+   l'arbitro non ci sono proprio: i numeri li muovono le regole. */
 .hud-stat {
   flex: none;
   display: flex;
@@ -2005,7 +2085,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 /* I PV della barra del titolo: mono, verdi, col suffisso piccolo. */
 .hud-vita {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 1.15rem;
+  font-size: calc(1.15rem * var(--ui-inv));
   font-weight: 700;
   line-height: 1;
   color: var(--pv);
@@ -2018,30 +2098,30 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 /* Il rombo del costo, col Flusso dentro. Il margine fa spazio alle punte:
    ruotato, il quadrato sborda dalla propria riga. */
 .hud-gem {
-  width: 26px;
-  height: 26px;
-  margin: 0 8px;
+  width: calc(24px * var(--ui-inv));
+  height: calc(24px * var(--ui-inv));
+  margin: 0 calc(8px * var(--ui-inv));
   transform: rotate(45deg);
   background: #9e0f34;
-  border: 1px solid #e56a86;
+  border: calc(1px * var(--ui-inv)) solid #e56a86;
   display: grid;
   place-items: center;
 }
 .hud-gem b {
   transform: rotate(-45deg);
-  font-size: 1rem;
+  font-size: calc(1rem * var(--ui-inv));
   font-weight: 400;
   line-height: 1;
   color: #fdeef1;
   font-variant-numeric: tabular-nums;
 }
 .hud-step {
-  width: 22px;
-  height: 28px;
+  width: calc(20px * var(--ui-inv));
+  height: calc(24px * var(--ui-inv));
   padding: 0;
   display: grid;
   place-items: center;
-  font-size: 1.1rem;
+  font-size: calc(1.1rem * var(--ui-inv));
   line-height: 1;
   color: var(--hc-muted, var(--muted));
   background: transparent;
@@ -2050,72 +2130,29 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   opacity: 0;
   transition: opacity .12s ease;
 }
-.hud-chip:hover .hud-step, .hud-turn:hover .hud-step, .hud-step:focus-visible { opacity: 1; }
+.hud-chip:hover .hud-step, .hud-step:focus-visible { opacity: 1; }
 .hud-step:hover:not(:disabled) { background: rgba(255, 255, 255, .12); color: var(--hc-ink); }
+.hud-chip.is-arbitrated .hud-step { display: none; }
 
-/* Il turno, fra le due targhe: niente scatola — testo libero sul tavolo, fra
-   gli ornamenti della carta, e sotto chi tocca, con la punta rivolta alla
-   targa giusta. L'ombra del testo lo tiene leggibile su qualunque panno. */
-.hud-turn {
+
+/* Il gesto di fase sul tavolo, in basso a destra, accanto al tasto che
+   ripiega la mano (.hand-toggle, a destra di tutto) e sopra il cassetto:
+   con l'arbitro «Fine fase» soltanto; senza, Fronte/Difensore e il Fine
+   turno rubino. La mano gli lascia il posto (table.ts). */
+.hud-actions {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  z-index: 40;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 2px 6px;
-  border-bottom: 1px solid var(--line-soft);
-  text-shadow: none;
+  gap: 8px;
 }
-.hud-turn .hud-step { color: var(--muted); }
-.hud-turn-count {
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--ink);
-  white-space: nowrap;
-}
-.hud-turn-who {
-  margin-left: auto;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--foe);
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.hud-turn.is-mine .hud-turn-who { color: var(--viola-light); }
-/* La fase (§6), sotto il chi tocca: in Preparazione è una nota smorzata, col
-   Fronte dichiarato si accende di rubino — il combattimento è aperto. */
-.hud-turn-phase {
-  font-size: 1rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.hud-turn-phase::before { content: "\00B7"; margin-right: 6px; color: var(--muted); }
-.hud-turn-phase.is-front { color: var(--ruby); }
-.hud-turn-phase.is-reaction { color: var(--viola-light); }
-
-/* In fondo le azioni: Fine turno a tutta riga — un bottone-carta, rubino,
-   in maiuscoletto — e a fianco l'ingranaggio che apre il pannello, quadrato
-   come i medaglioni delle Materie. È l'unico modo di riaprirlo. */
-/* Le azioni: con l'arbitro una riga sola — «Fine fase», chat, microfono.
-   Senza arbitro c'è anche il Fine turno: il bottone di fase prende la riga
-   sopra, e sotto stanno Fine turno e i due tasti. */
-.hud-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-}
-.hud-util { display: flex; gap: 6px; }
 /* La dichiarazione del Fronte, a tutta riga sopra il Fine turno: stessa voce
    in maiuscoletto ma in tono di vetro — il rubino pieno resta al gesto che
    chiude il turno. Dichiarata (o nel turno altrui) si spegne da sola. */
 .hud-front {
-  padding: 11px 4px;
+  padding: 8px 18px;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: .12em;
@@ -2127,24 +2164,18 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   border-radius: 0;
 }
 .hud-front:hover:not(:disabled) { border-color: var(--ruby); color: #fff; }
-/* Con l'arbitro al tavolo il Fine turno sparisce e il bottone di fase
-   diventa «Fine fase»: prende il rubino pieno, perché è lui il gesto che
-   scandisce la partita. I due tasti tondi si mettono in coda a destra. */
-/* Arbitro collegato (hud.ts): via i gesti manuali — più e meno dei contatori,
-   Mescola/Pesca/Cerca, dadi. Restano i contatori da leggere e il turno. */
-/* I passi dei contatori si spengono con visibility, non con display: sono
-   celle della griglia, e senza di loro il valore scivolerebbe nella colonna
-   del meno. */
-.hud.is-arbitrated .hud-chip .hud-step { visibility: hidden; pointer-events: none; }
-.hud.is-arbitrated .hud-tools,
-.hud.is-arbitrated .hud-dice { display: none; }
+/* Arbitro collegato (hud.ts): via i gesti manuali — Mescola/Pesca/Cerca e
+   dadi (i − e + delle targhe: vedi .hud-chip.is-arbitrated). Restano il
+   turno da leggere e il gesto di fase. */
+.game-bar.is-arbitrated .hud-tools,
+.game-bar.is-arbitrated .hud-dice { display: none; }
 
-/* Soli nella loro riga, i due tasti tondi non hanno più il Fine turno a
-   dettare l'altezza: se la tengono da sé, la stessa del bottone rubino
-   (11px di padding sopra e sotto, un rigo di testo, il bordo). */
+/* Chat e microfono in header: due tasti quadrati, alti quanto il gesto di
+   fase. */
 .hud-mic, .hud-chat {
   position: relative;
-  width: 44px;
+  width: 34px;
+  height: 30px;
   padding: 0;
   display: grid;
   place-items: center;
@@ -2183,7 +2214,7 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 .hud-front.is-phase-end[data-phase="reazione"]:hover:not(:disabled) { color: #f1ecfa; border-color: #a494cf; }
 .hud-front.is-phase-end:disabled { filter: saturate(.4) brightness(.75); }
 .hud-pass {
-  padding: 11px 4px;
+  padding: 8px 18px;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: .12em;
@@ -2264,13 +2295,14 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 
 /* I dadi: quattro tagli e, sotto, l'ultimo esito. L'esito vive anche in chat,
    firmato dal posto che tira — qui resta solo l'ultimo, a portata d'occhio. */
+/* I dadi nella barra: quattro tagli in fila, l'esito accanto. */
 .hud-dice {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .hud-dice-btn {
-  padding: 8px 0;
+  padding: 6px 9px;
   font-size: 1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -2281,26 +2313,26 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
 }
 .hud-dice-btn:hover:not(:disabled) { color: var(--ink); }
 .hud-dice-out {
-  grid-column: 1 / -1;
-  text-align: center;
+  padding-left: 4px;
   font-family: var(--mono);
   font-size: 1rem;
   color: var(--ruby);
 }
 .hud-dice-out:empty { display: none; }
 
-/* I suggerimenti dell'HUD: una bolla scura sopra il tasto, dopo una breve
-   attesa. I title nativi sono lenti e su touch non compaiono; qui la bolla
-   esce anche col focus da tastiera. Vive in ::after — per questo la spia dei
-   non letti sta in ::before. */
+/* I suggerimenti: una bolla scura SOTTO il tasto, dopo una breve attesa
+   (sopra finirebbe fuori dall'header, o dietro di esso per la targa del
+   campo avversario). I title nativi sono lenti e su touch non compaiono;
+   qui la bolla esce anche col focus da tastiera. Vive in ::after — per
+   questo la spia dei non letti sta in ::before. */
 /* Niente `position: relative` a tappeto su [data-tip]: batterebbe (per
-   specificità) gli `absolute` di moneta e tasto di riduzione, strappandoli
-   dal loro angolo. Si posiziona solo chi è ancora statico. */
-.hud-step, .hud-tool, .hud-pass, .hud-front, .hud-dice-btn { position: relative; }
-.hud [data-tip]::after {
+   specificità) gli `absolute` di altri tasti. Si posiziona solo chi è
+   ancora statico. */
+.hud-step, .hud-tool, .hud-pass, .hud-front, .hud-dice-btn, .hud-coin { position: relative; }
+.game-bar [data-tip]::after, .game-tools [data-tip]::after, .hud-chip [data-tip]::after, .hud-actions [data-tip]::after {
   content: attr(data-tip);
   position: absolute;
-  bottom: calc(100% + 8px);
+  top: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 120;
@@ -2320,7 +2352,24 @@ button.hud-sq:hover { color: var(--ink); border-color: var(--ruby); }
   transition: opacity .15s ease .35s;
   pointer-events: none;
 }
-.hud [data-tip]:hover::after, .hud [data-tip]:focus-visible::after {
+/* Sulla targa, dentro la lavagna scalata, la bolla si contro-scala. Il
+   Gettone sta a sinistra: la sua bolla si ancora a sinistra, o uscirebbe
+   dal campo. */
+.hud-chip [data-tip]::after {
+  top: calc(100% + 8px * var(--ui-inv));
+  padding: calc(4px * var(--ui-inv)) calc(10px * var(--ui-inv));
+  font-size: calc(1rem * var(--ui-inv));
+  border-width: calc(1px * var(--ui-inv));
+  box-shadow: 0 calc(6px * var(--ui-inv)) calc(16px * var(--ui-inv)) rgba(0, 0, 0, .5);
+}
+.hud-chip .hud-coin[data-tip]::after { left: 0; transform: none; }
+/* Il gesto di fase sta in fondo alla finestra: la sua bolla sta SOPRA il
+   tasto, e a filo del bordo destro. */
+.hud-actions [data-tip]::after { top: auto; bottom: calc(100% + 8px); left: auto; right: 0; transform: none; }
+.game-bar [data-tip]:hover::after, .game-bar [data-tip]:focus-visible::after,
+.game-tools [data-tip]:hover::after, .game-tools [data-tip]:focus-visible::after,
+.hud-chip [data-tip]:hover::after, .hud-chip [data-tip]:focus-visible::after,
+.hud-actions [data-tip]:hover::after, .hud-actions [data-tip]:focus-visible::after {
   opacity: 1;
   visibility: visible;
 }
@@ -2355,6 +2404,7 @@ body[data-ui-theme="notte-ardesia"] {
   --felt-foe: #1c202d;
   --glass: rgba(20, 22, 28, .9);
   --glass-heavy: rgba(20, 22, 28, .94);
+  --hand-veil: rgba(20, 22, 28, .62);
 }
 /* «Panno»: il panno verde del tavolo da gioco, scuro; i posti restano
    negli orli viola e indaco. */
@@ -2370,6 +2420,7 @@ body[data-ui-theme="notte-panno"] {
   --felt-foe: #172529;
   --glass: rgba(12, 16, 13, .9);
   --glass-heavy: rgba(12, 16, 13, .94);
+  --hand-veil: rgba(12, 16, 13, .62);
 }
 
 /* Il tema chiaro viene dalla carta a tema chiaro (card.css, t42 — pietra
@@ -2389,6 +2440,7 @@ body[data-ui-theme^="chiaro"] {
   --pv: #35632f;
   --glass: rgba(245, 247, 248, .92);
   --glass-heavy: rgba(245, 247, 248, .96);
+  --hand-veil: rgba(245, 247, 248, .58);
   --overlay-veil: rgba(21, 24, 27, .45);
   --moment-veil: rgba(247, 248, 250, .62);
   --moment-veil-soft: rgba(247, 248, 250, .38);
@@ -2478,6 +2530,7 @@ body[data-ui-theme="chiaro"] {
   --foe-edge: rgba(21, 24, 27, .7);
   --glass: rgba(255, 255, 255, .9);
   --glass-heavy: rgba(255, 255, 255, .96);
+  --hand-veil: rgba(255, 255, 255, .58);
   --mine-chip-bg: rgba(255, 255, 255, .97);
   --mine-chip-frame: #d47c8c;
   --mine-chip-frame-dim: #efd0d6;
@@ -2498,7 +2551,7 @@ body[data-ui-theme="chiaro"] {
   --tess-ink-shadow: 0 0 6px rgba(255, 255, 255, .9);
   --tess-chip-bg: rgba(255, 255, 255, .95);
   --tess-missing: #e6eaee;
-  --tile-veil: rgba(255, 255, 255, .64);
+  --tile-veil: rgba(255, 255, 255, .5);
   --tile-stasis-bg: rgba(255, 255, 255, .82);
 }
 /* Sul bianco, i veli bianchi diventano veli d'inchiostro. */
@@ -2677,7 +2730,7 @@ body[data-ui-theme^="chiaro"] .half {
 
   /* I tooltip sono un'affordance da mouse: su touch il tap lascia il
      focus sul bottone e il fumetto resta incollato lì. Spenti. */
-  .hud [data-tip]::after { display: none; }
+  .game-bar [data-tip]::after, .game-tools [data-tip]::after, .hud-chip [data-tip]::after, .hud-actions [data-tip]::after { display: none; }
 
   /* Il doppio tap su un pulsante non deve zoomare la pagina (il tasto
      della mano, i +/-, i dadi…). manipulation lascia scorrere e pizzicare,

@@ -1,30 +1,32 @@
-// L'HUD: le targhe dei due posti, appoggiate sul bordo destro del tavolo.
+// Turno e fase, i gesti di partita e le targhe dei posti.
 //
-// Non è una colonna del layout: fluttua sopra il tavolo, che sotto continua.
-// Tiene ciò che serve giocando a pannello chiuso — Punti Vita, Flusso, turno,
-// Fine turno — e l'ingranaggio che apre il pannello. Si vede solo a pannello
-// chiuso: aperto quello, gli stessi numeri stanno là (stesso stato, non una
-// copia: toccarli di qua o di là è la stessa cosa).
+// L'HUD come pannello o barra non c'è più (2026-09-06): il tavolo è la
+// cosa, e tutto il resto sta ai suoi bordi.
 //
-// Le targhe stanno nell'ordine del tavolo: l'avversario in alto, tu in basso,
-// e in mezzo la pillola del turno, con la punta verso chi tocca.
-//
-// L'HUD si sposta: lo si afferra da un punto qualsiasi che non sia un tasto e
-// lo si porta dove non dà fastidio. La posizione resta fra una partita e
-// l'altra, e un doppio click sulla maniglia lo rimette al posto suo.
+// - In HEADER, al centro (#game-bar): senza arbitro, strumenti di mazzo e
+//   dadi (veste provvisoria: il tavolo senza arbitro se ne va). Il turno e
+//   la fase li dice l'insegna sul tavolo (banner.ts), non l'header.
+// - In HEADER, a destra (#game-tools): «Evoca» (strumento di prova), chat e
+//   microfono.
+// - Sul TAVOLO, in basso a destra (#table > .hud-actions): il gesto che
+//   chiude la fase — con l'arbitro «Fine fase»; senza, Fronte e Fine turno.
+// - Sul TAVOLO, sull'orlo di ciascun campo accanto alla targhetta del nome:
+//   la TARGA del posto — Gettone Flusso e Flusso. Il nome lo dice già la
+//   targhetta, i Punti Vita li dice il Rubyfront (cardview.ts, setTessHp);
+//   la targa di chi è di turno si tinge. Le targhe le crea questo modulo e le appende table.ts
+//   (.half-head, via onStats): dentro la lavagna scalata le misure passano
+//   per --ui-inv (style.css) e restano a corpo fisso.
 
 import { msg, t } from "./i18n.js";
 import type { Ctx } from "./ctx.js";
-import { phaseCloser, seatLabel, waveDeclared } from "./state.js";
+import { phaseCloser, waveDeclared } from "./state.js";
 import { declareFront, declareReaction, endPhase, endTurn } from "./turn.js";
 import type { Phase, PlayerState, Seat } from "./types.js";
-import { otherSeat } from "./types.js";
-
-/** Stessa dispensa di main.ts (`rbf-sim:*`): qui ci sta la posizione. */
-/** L'HUD non si incolla mai ai bordi del tavolo più di così. */
 
 export interface Hud {
   render(): void;
+  /** La targa di un posto (Gettone, PV, Flusso): la appende table.ts sull'orlo del campo. */
+  chip(seat: Seat): HTMLElement;
 }
 
 /** Le mani che l'HUD stringe verso il resto dell'app. */
@@ -50,11 +52,6 @@ function tip(element: HTMLElement, text: string): void {
 const svgIcon = (paths: string): string =>
   `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 
-/**
- * Le azioni di mazzo — mescola, pesca, cerca — vivono nell'HUD, non in
- * toolbar: sono gesti di partita. Portano due vesti: fila con etichetta
- * nell'HUD esteso, quadratini della croce in quello ridotto.
- */
 /** Il tasto della fase, con l'arbitro: dice quale fase chiude. */
 const PHASE_END: Record<Phase, string> = {
   preparazione: "phase.end.preparazione",
@@ -62,6 +59,10 @@ const PHASE_END: Record<Phase, string> = {
   reazione: "phase.end.reazione",
 };
 
+/**
+ * Le azioni di mazzo — mescola, pesca, cerca — sono gesti di partita, non
+ * di impostazione: stanno accanto al turno. Senza arbitro soltanto.
+ */
 const TOOLS = [
   {
     key: "shuffle",
@@ -133,20 +134,23 @@ function statRow(
   return { row, sync: () => (value.textContent = String(read())) };
 }
 
-export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
+export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
+  const bar = document.querySelector<HTMLElement>("#game-bar")!;
+  const toolsHost = document.querySelector<HTMLElement>("#game-tools")!;
   const syncs: (() => void)[] = [];
 
+  /** La targa di un posto: Gettone, PV, Flusso. Niente nome: sta accanto. */
   function chip(seat: Seat, mine: boolean): HTMLElement {
     const box = document.createElement("section");
     box.className = `hud-chip ${mine ? "is-mine" : "is-foe"}`;
+    box.dataset.seat = seat;
 
-    const name = document.createElement("h4");
-    name.className = "hud-name";
     const patch = (values: Partial<PlayerState>): void => {
       void ctx.dispatch({ t: "player", seat, patch: values });
     };
 
-    const hp = statRow("hp", t("hud.hp"), () => ctx.state().players[seat].hp, value => patch({ hp: value }));
+    // I Punti Vita NON stanno qui: si leggono sul Rubyfront (setTessHp in
+    // cardview.ts), una volta sola. La targa dice Gettone e Flusso.
     // Niente tetto né pavimento cuciti nel bottone: il limite dei 20 e lo
     // zero (§3.2) sono regole dell'engine — acceso, 21 e −1 li ferma il
     // poliziotto con tanto di avviso; spento, il tavolo è libero come per
@@ -175,79 +179,41 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
       }
     });
 
-    syncs.push(hp.sync, flux.sync, () => {
-      name.textContent = mine ? t("seat.you") : seatLabel(ctx.state(), seat, ctx.seat()).slice(0, 14);
+    syncs.push(flux.sync, () => {
       box.classList.toggle("is-active", ctx.state().active === seat);
+      box.classList.toggle("is-arbitrated", ctx.arbitrated());
       const held = ctx.state().players[seat].token;
       coin.textContent = held ? "◆" : "◇";
       coin.classList.toggle("is-held", held);
       tip(coin, t(held ? "hud.token.held" : "hud.token.none"));
     });
 
-    box.append(coin, name, hp.row, flux.row);
+    box.append(coin, flux.row);
     return box;
   }
 
-  const foe = chip(otherSeat(ctx.seat()), false);
-  const mine = chip(ctx.seat(), true);
-
-  // La testata del pannello: a sinistra il numero del turno e la fase (§6),
-  // a destra chi tocca. I − e + a comparsa correggono il numero a mano,
-  // come ogni cifra del simulatore.
-  const turn = document.createElement("div");
-  turn.className = "hud-turn";
-  const turnCount = document.createElement("span");
-  turnCount.className = "hud-turn-count";
-  const turnWho = document.createElement("span");
-  turnWho.className = "hud-turn-who";
-  // La fase del turno (§6): dice in che momento della partita si è, e con
-  // l'arbitro al tavolo spiega perché un attacco non parte prima d'aver
-  // dichiarato il Fronte.
-  const turnPhase = document.createElement("span");
-  turnPhase.className = "hud-turn-phase";
-
-  const turnStep = (delta: number, label: string): HTMLButtonElement => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "hud-step";
-    button.textContent = delta < 0 ? "−" : "+";
-    tip(button, label);
-    button.addEventListener("click", () => {
-      const state = ctx.state();
-      ctx.dispatch({ t: "turn", turn: Math.max(1, state.turn + delta), active: state.active });
-    });
-    return button;
+  const chips: Record<Seat, HTMLElement> = {
+    a: chip("a", ctx.seat() === "a"),
+    b: chip("b", ctx.seat() === "b"),
   };
-  turn.append(turnStep(-1, t("hud.turn.less")), turnCount, turnStep(1, t("hud.turn.more")), turnPhase, turnWho);
 
-  syncs.push(() => {
-    const state = ctx.state();
-    turnCount.textContent = t("hud.turn", { turn: state.turn });
-    const mineTurn = state.active === ctx.seat();
-    turnWho.textContent = mineTurn ? t("hud.turn.you") : t("hud.turn.wait", { name: seatLabel(state, state.active, ctx.seat()) });
-    turn.classList.toggle("is-mine", mineTurn);
-    turnPhase.textContent =
-      t(`phase.${state.phase}`);
-    turnPhase.classList.toggle("is-front", state.phase === "fronte");
-    turnPhase.classList.toggle("is-reaction", state.phase === "reazione");
-  });
+  // Il turno non sta in header: lo dice l'insegna di fase al centro del
+  // tavolo (banner.ts), grande, a ogni cambio — «Turno 3 · Fase di Fronte».
 
-  // In fondo le due azioni: Fine turno — la mossa più battuta, che merita di
-  // stare a portata di mano — e l'ingranaggio che apre il pannello.
+  // Il gesto di fase, in basso a destra. Con l'arbitro è «Fine fase»: chiude
+  // la fase in corso, e l'ultima chiude il turno (turn.ts). Senza, è un
+  // gesto a due tempi: in Preparazione dichiara la Fase di Fronte (§6.3); a
+  // ondata completa passa la parola al difensore — Fase di Reazione (§6.4).
+  // A senso unico: in Reazione si spegne, e col cambio di turno si
+  // ricomincia. E accanto il Fine turno, la mossa più battuta.
   const actions = document.createElement("div");
   actions.className = "hud-actions";
 
-  // Il bottone delle fasi, sopra il Fine turno: un gesto a due tempi. In
-  // Preparazione dichiara la Fase di Fronte (§6.3); a ondata completa passa
-  // la parola al difensore — Fase di Reazione (§6.4). A senso unico: in
-  // Reazione si spegne, e col cambio di turno si ricomincia.
   const front = document.createElement("button");
   front.type = "button";
   front.className = "hud-front";
   front.textContent = t("hud.front");
   front.addEventListener("click", () => {
-    // Con l'arbitro al tavolo il bottone è «Fine fase»: chiude la fase in
-    // corso, e l'ultima chiude il turno (turn.ts).
     if (ctx.arbitrated()) {
       void endPhase(ctx);
       return;
@@ -260,11 +226,12 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   const pass = document.createElement("button");
   pass.type = "button";
   // Niente classe `primary`: quella veste i bottoni di rubino, e qui il
-  // colore lo decide la palette dell'HUD.
+  // colore lo decide la palette dei gesti.
   pass.className = "hud-pass";
   pass.textContent = t("hud.endturn");
   tip(pass, t("hud.endturn.tip"));
   pass.addEventListener("click", () => endTurn(ctx));
+  actions.append(front, pass);
 
   /** Le due spie di un tasto: blu per i messaggi, oro per le azioni. */
   const makeBadges = (host: HTMLElement): { chat: HTMLElement; log: HTMLElement } => {
@@ -295,14 +262,6 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   );
   mic.addEventListener("click", hooks.voice);
 
-  actions.append(front, pass);
-
-  // La riga di servizio in fondo: chat e microfono, tasti piccoli. Stanno
-  // lontani dal bottone di fase, che è il gesto di partita.
-  const util = document.createElement("div");
-  util.className = "hud-util";
-  util.append(chatToggle, mic);
-
   // Il Fine turno è di chi è di turno: per l'altro si ingrigisce. È l'unico
   // "impedimento" del simulatore, e serve al ritmo: passo io, poi passi tu.
   // In partita locale si governano entrambi i posti: il tasto resta sempre
@@ -314,29 +273,26 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     const canPass = ctx.controls(phaseCloser(state));
     pass.disabled = !canPass;
     tip(pass, t(canPass ? "hud.endturn.tip" : "hud.endturn.theirs"));
-    // Arbitro collegato: le fasi le scandisce lui, e all'HUD resta un gesto
-    // solo — «Fine fase», rubino, al posto del Fine turno. Il turno si
-    // chiude dall'ultima fase (Reazione, o Fronte senza ondata), non si
-    // salta: la Preparazione si chiude sempre sul Fronte (§6.3).
+    // Arbitro collegato: le fasi le scandisce lui, e resta un gesto solo —
+    // «Fine fase», rubino, al posto del Fine turno. Il turno si chiude
+    // dall'ultima fase (Reazione, o Fronte senza ondata), non si salta: la
+    // Preparazione si chiude sempre sul Fronte (§6.3).
     const single = ctx.arbitrated();
+    pass.hidden = single;
+    actions.classList.toggle("is-single", single);
+    front.classList.toggle("is-phase-end", single);
     // Partita finita (§2, §9): fasi e turni si fermano, resta Nuova partita.
     if (state.over) {
       pass.disabled = true;
       front.disabled = true;
       tip(pass, t("hud.over"));
       tip(front, t("hud.over"));
-      pass.hidden = single;
-      actions.classList.toggle("is-single", single);
-      front.classList.toggle("is-phase-end", single);
       if (single) {
         front.textContent = t(PHASE_END[state.phase]);
         front.dataset.phase = state.phase;
       }
       return;
     }
-    pass.hidden = single;
-    actions.classList.toggle("is-single", single);
-    front.classList.toggle("is-phase-end", single);
     if (single) {
       // Il tasto dice quale fase chiude, e ne prende il colore. Col Fronte
       // dichiarato ma nessun attacco il tasto dice il vero: «se il giocatore
@@ -358,7 +314,7 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     tip(front, t(!canPass ? "hud.front.tip.theirs" : `hud.front.tip.${state.phase}`));
   });
 
-  // La fila delle azioni di mazzo, per l'HUD esteso.
+  // La fila delle azioni di mazzo (senza arbitro): icona e tooltip.
   const tools = document.createElement("div");
   tools.className = "hud-tools";
   for (const def of TOOLS) {
@@ -366,13 +322,13 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
     button.type = "button";
     button.className = `hud-tool hud-tool-${def.key}`;
     tip(button, t(def.title));
-    button.innerHTML = `${def.svg}<span>${t(def.label)}</span>`;
+    button.innerHTML = def.svg;
     button.addEventListener("click", hooks[def.key]);
     tools.append(button);
   }
 
-  // I dadi, in coda: quattro tagli e l'ultimo esito. Ogni tiro va in chat,
-  // firmato dal posto che tira.
+  // I dadi (senza arbitro): quattro tagli e l'ultimo esito. Ogni tiro va in
+  // chat, firmato dal posto che tira.
   const dice = document.createElement("div");
   dice.className = "hud-dice";
   const diceOut = document.createElement("div");
@@ -392,75 +348,45 @@ export function mountHud(root: HTMLElement, ctx: Ctx, hooks: HudHooks): Hud {
   }
   dice.append(diceOut);
 
-  // La testata: nell'angolo il tasto che riduce l'HUD a icona. Ridotto,
-  // resta solo una tessera col rombo: un click la riapre. L'HUD è FISSO,
-  // ancorato in basso a destra accanto alla mano: non si trascina.
-  const top = document.createElement("div");
-  top.className = "hud-top";
-
-  const minBtn = document.createElement("button");
-  minBtn.type = "button";
-  minBtn.className = "hud-min-btn";
-  minBtn.innerHTML = svgIcon('<path d="M5 12h14"/>');
-  tip(minBtn, t("hud.min"));
-  minBtn.addEventListener("click", () => setMin(true));
-  top.append(minBtn);
-
-  const mini = document.createElement("button");
-  mini.type = "button";
-  mini.className = "hud-sq hud-mini";
-  tip(mini, t("hud.max"));
-  mini.innerHTML = '<span class="hud-mini-gem"></span>';
-  const miniBadges = makeBadges(mini);
-  mini.addEventListener("click", () => setMin(false));
-
-  // L'HUD parte SEMPRE aperto: ridurlo a icona è un gesto di sessione, non
-  // una preferenza da ricordare.
-  let minimized = false;
-
-  function setMin(value: boolean): void {
-    minimized = value;
-    root.classList.toggle("is-min", minimized);
-  }
-
   // STRUMENTO DI PROVA, temporaneo: «Evoca» apre il catalogo intero e mette
-  // in mano la carta scelta, per provare le regole in fretta. Sta fuori
-  // dalla fila degli strumenti perché deve restare anche con l'arbitro.
-  const test = document.createElement("div");
-  test.className = "hud-test";
+  // in mano la carta scelta, per provare le regole in fretta. Resta anche
+  // con l'arbitro.
   const spawn = document.createElement("button");
   spawn.type = "button";
   spawn.className = "hud-tool hud-tool-spawn";
   tip(spawn, t("hud.spawn.tip"));
-  spawn.innerHTML = `${svgIcon('<path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/>')}<span>${t("hud.spawn")}</span>`;
+  spawn.innerHTML = svgIcon('<path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/>');
   spawn.addEventListener("click", hooks.spawn);
-  test.append(spawn);
 
-  root.append(top, turn, foe, mine, actions, tools, dice, util, test, mini);
+  bar.append(tools, dice);
+  toolsHost.append(spawn, chatToggle, mic);
+  // Il gesto di fase sta sul tavolo, in basso a destra, sopra il cassetto
+  // della mano e accanto al tasto che la ripiega: a portata di mano, e la
+  // fila di servizio lì sotto è libera (le pile stanno a sinistra, ctx.ts).
+  // La mano gli lascia il posto (table.ts misura .hud-actions).
+  document.querySelector<HTMLElement>("#table")!.append(actions);
 
   // Con l'arbitro al tavolo i gesti manuali si ritirano: i più e meno dei
   // contatori (PV e Flusso li muovono le regole — danni della risoluzione,
   // costo delle carte, ricarica del turno), Mescola, Pesca e Cerca (la pesca
   // è quella del turno, il mulligan e la ricerca aspettano le loro regole) e
   // i dadi (il d20 della Furia e i costi a dado arriveranno con le loro).
-  // Un interruttore solo, in CSS: .hud.is-arbitrated (style.css).
-  syncs.push(() => root.classList.toggle("is-arbitrated", ctx.arbitrated()));
-  root.classList.toggle("is-min", minimized);
+  // Un interruttore solo, in CSS: .game-bar.is-arbitrated (style.css); le
+  // targhe portano la loro classe, sono altrove.
+  syncs.push(() => bar.classList.toggle("is-arbitrated", ctx.arbitrated()));
 
   return {
+    chip: seat => chips[seat],
     render() {
       for (const sync of syncs) sync();
-      // Le spie dei non letti stanno sul tasto della chat — e anche
-      // sull'icona, che da ridotta è tutto ciò che resta in vista.
       const voiceOn = document.body.dataset.voice === "on";
       mic.classList.toggle("is-on", voiceOn);
       tip(mic, t(voiceOn ? "hud.mic.on" : "hud.mic.off"));
+      // Le spie dei non letti stanno sul tasto della chat.
       const unreadChat = document.body.dataset.unread ?? "";
       const unreadLog = document.body.dataset.unreadLog ?? "";
       chatBadges.chat.textContent = unreadChat;
       chatBadges.log.textContent = unreadLog;
-      miniBadges.chat.textContent = unreadChat;
-      miniBadges.log.textContent = unreadLog;
     },
   };
 }

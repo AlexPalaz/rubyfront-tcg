@@ -289,19 +289,33 @@ export function isCompactView(): boolean {
 }
 
 /**
- * Le due viste del tavolo. «Piena»: carte intere ovunque, si scorre.
+ * Le viste del tavolo. «Piena»: carte intere ovunque, si scorre.
  * «Compatta»: tutto nella finestra, senza scorrere; sul campo e in mano le
  * carte sono TESSERE (illustrazione, nome, costo, Potenza a corpo fisso),
- * il testo di regole si legge nell'ingrandimento al passaggio. Le
- * coordinate canoniche non cambiano di un pixel: cambia solo la mappa di
- * vista.
+ * il testo di regole si legge nell'ingrandimento al passaggio.
+ * «Rincasso»: lo stesso tavolo a due file della piena, carte intere
+ * OVUNQUE — Fronte, fila di servizio e mano — e senza scorrere. Ci sta
+ * perché la fascia avversaria perde la sua fila di servizio: le sue pile
+ * vanno in un pannello sopra la lavagna, e la sua Zona di Richiamo è il
+ * riquadro del Rubyfront. Restano tre file di carte intere invece di
+ * quattro. Le coordinate canoniche non cambiano di un pixel: cambia solo
+ * la mappa di vista.
  */
-export type ViewMode = "full" | "compact";
+export type ViewMode = "full" | "compact" | "recess";
+let recessView = false;
 export function setViewMode(mode: ViewMode): void {
   compactView = mode === "compact";
+  recessView = mode === "recess";
 }
 export function viewMode(): ViewMode {
-  return compactView ? "compact" : "full";
+  return compactView ? "compact" : recessView ? "recess" : "full";
+}
+export function isRecessView(): boolean {
+  return recessView;
+}
+/** Le viste che comprimono la geometria verticale (mappa `compress`). */
+function stretched(): boolean {
+  return compactView || recessView;
 }
 /**
  * Altezza della tessera compatta. Non deriva più dalla carta: è il riquadro
@@ -318,27 +332,140 @@ const COMPACT_ROW_PAD = 72;
 /** In compatta la mano non si sovrappone più alla lavagna (il fit la conta,
     vedi fitScale in table.ts): la coda in fondo serve solo da respiro. */
 const COMPACT_BOTTOM_PAD = 48;
+/** Fra il Fronte e la fila di servizio, in rincasso, ci passa una riga di
+    etichette a corpo fisso (16px reali) con la sua aria: meno del varco
+    canonico, che lì porta anche le Materie permanenti. */
+const RECESS_ROW_GAP = 64;
+/** In rincasso la mano avversaria non è più una fascia in cima al tavolo
+    (sta nel pannello delle pile, col suo conto): il margine di testa serve
+    solo da aria, e quei pixel tornano alle carte. */
+const RECESS_TOP_PAD = 40;
+/**
+ * Lavagna piccola: sotto una certa scala i margini si stringono ancora, e
+ * quei pixel vanno alle carte — su una finestra da 1180×820 valgono più di
+ * un dito d'aria. Lo accende fitScale (table.ts), che è l'unico a conoscere
+ * la scala; qui restano solo le misure.
+ */
+let tightView = false;
+export function setTightView(on: boolean): void {
+  tightView = on;
+}
+export function isTightView(): boolean {
+  return tightView;
+}
+const TIGHT = { ROW_PAD: 44, ROW_GAP: 40, TOP_PAD: 24, BOTTOM_PAD: 24, HALF_GAP: 16 } as const;
+/**
+ * Rincasso: quando comanda la larghezza, sotto e sopra il tavolo avanza
+ * altezza. Invece di centrare il tavolo nel vuoto, quell'altezza (in unità
+ * di vista, già divisa per la scala) si distribuisce nei margini — cima e
+ * fondo, il varco fra i campi, i varchi fra le file — così le etichette
+ * prendono aria e il tavolo riempie la finestra. Lo scrive fitScale
+ * (table.ts), che è l'unico a conoscere la finestra; zero nelle altre viste.
+ */
+let viewSlack = 0;
+export function setViewSlack(units: number): void {
+  viewSlack = units;
+}
+/**
+ * L'angolo in basso a destra è del gesto di fase (hud.ts, .hud-actions),
+ * che sta sopra il tavolo in pixel di schermo: il margine di fondo gli fa
+ * posto, così non copre le pile e le loro etichette. In unità di vista
+ * (pixel divisi per la scala), lo scrive fitScale; zero fuori dal rincasso.
+ */
+let cornerReserve = 0;
+export function setCornerReserve(units: number): void {
+  cornerReserve = units;
+}
+/**
+ * Lo spazio di un'etichetta sotto un riquadro (RUBYFRONT, FRONTE, MATERIE,
+ * le pile): a corpo fisso, 16px più l'aria, quindi in unità di vista
+ * dipende dalla scala. In rincasso i margini di fila e il varco fra le
+ * file non scendono mai sotto questa misura, o l'etichetta finirebbe sul
+ * bordo del campo o sulla fila sotto. Lo scrive fitScale (table.ts).
+ */
+let labelRoom = 0;
+/** E lo spazio della testata del campo (targhetta e targa), che sporge
+    dentro il campo dall'orlo in alto: la metà della sua altezza più l'aria. */
+let headRoom = 0;
+export function setLabelRoom(labels: number, head: number): void {
+  labelRoom = labels;
+  headRoom = head;
+}
+/** Le quote della distribuzione: cima e fondo, varco fra i campi, varco fra
+    le file (una sola, nel campo tuo), i quattro margini di fila. */
+const SLACK = { TOP: 0.12, BOTTOM: 0.1, HALF_GAP: 0.3, ROW_GAP: 0.2, ROW_PAD: 0.07 } as const;
+function topPadView(): number {
+  if (recessView) return (tightView ? TIGHT.TOP_PAD : RECESS_TOP_PAD) + viewSlack * SLACK.TOP;
+  return TOP_PAD;
+}
+function halfGapView(): number {
+  const base = stretched() && tightView ? TIGHT.HALF_GAP : HALF_GAP;
+  return recessView ? base + viewSlack * SLACK.HALF_GAP : base;
+}
 
-/** Altezza di VISTA di una tessera, sul campo e nelle pile. */
+/** Altezza di VISTA di una tessera: in rincasso è la carta intera come
+    nella vista piena, sul Fronte, nella fila di servizio e in mano. */
 export function tileViewH(): number {
   return compactView ? COMPACT_TILE_H : TILE_H;
 }
-function rowGapView(): number {
-  return compactView ? COMPACT_ROW_GAP : ROW_GAP;
+/** La carta sta in Zona di Richiamo (coordinate canoniche)? In rincasso
+    quel posto non ha un riquadro suo: è il riquadro del Rubyfront
+    nell'altro stato, e la carta ci si disegna lì. */
+export function atRecall(x: number, y: number): boolean {
+  const center = y + HALF_TILE;
+  const band = bandOfCenter(center);
+  if (!band || rowOfLocal(center - BAND_TOP[band]) !== "back") return false;
+  return Math.abs(x - SLOT_X.richiamo) < 160;
 }
-function rowPadView(): number {
-  return compactView ? COMPACT_ROW_PAD : ROW_PAD;
+function rowGapView(): number {
+  if (compactView) return COMPACT_ROW_GAP;
+  if (!recessView) return ROW_GAP;
+  return Math.max(tightView ? TIGHT.ROW_GAP : RECESS_ROW_GAP, labelRoom) + viewSlack * SLACK.ROW_GAP;
+}
+/** Il margine in testa a una fascia: fa posto alla testata, che sporge. */
+function rowPadTopView(): number {
+  if (!stretched()) return ROW_PAD;
+  const base = tightView ? TIGHT.ROW_PAD : COMPACT_ROW_PAD;
+  return recessView ? Math.max(base, headRoom) + viewSlack * SLACK.ROW_PAD : base;
+}
+/** Il margine in fondo a una fascia: fa posto alle etichette sotto i riquadri. */
+function rowPadBottomView(): number {
+  if (!stretched()) return ROW_PAD;
+  const base = tightView ? TIGHT.ROW_PAD : COMPACT_ROW_PAD;
+  return recessView ? Math.max(base, labelRoom) + viewSlack * SLACK.ROW_PAD : base;
 }
 function bottomPadView(): number {
-  return compactView ? COMPACT_BOTTOM_PAD : BOTTOM_PAD;
+  if (!stretched()) return BOTTOM_PAD;
+  const base = tightView ? TIGHT.BOTTOM_PAD : COMPACT_BOTTOM_PAD;
+  return recessView ? base + cornerReserve + viewSlack * SLACK.BOTTOM : base;
 }
-/** Altezza di VISTA di una fascia. */
-export function bandViewH(): number {
-  return rowPadView() + tileViewH() + rowGapView() + tileViewH() + rowPadView();
+/**
+ * Altezza di VISTA di una fascia. In rincasso la fascia AVVERSARIA (quella
+ * in alto) non ha la fila di servizio: le sue pile stanno in un pannello
+ * ripiegabile sopra il suo campo (`.pile-dock`, table.ts), e la Zona di
+ * Richiamo è il riquadro del Rubyfront. Resta solo il Fronte.
+ */
+/**
+ * Rincasso: la fila di servizio avversaria si riapre quando serve — quando
+ * l'avversario controlla un'Entità (§8.2), che sta nel suo riquadro del
+ * controllo, in quella fila. Senza, il riquadro cadrebbe sul Fronte, sopra
+ * il terzo slot. Lo accende table.ts leggendo lo stato; costa scala solo
+ * finché dura il controllo (fine del turno).
+ */
+let foeBackRow = false;
+export function setFoeBackRow(on: boolean): void {
+  foeBackRow = on;
+}
+export function hasFoeBackRow(): boolean {
+  return foeBackRow;
+}
+export function bandViewH(foe = false): number {
+  if (recessView && foe && !foeBackRow) return rowPadTopView() + tileViewH() + rowPadBottomView();
+  return rowPadTopView() + tileViewH() + rowGapView() + tileViewH() + rowPadBottomView();
 }
 /** Altezza di VISTA dell'intera superficie. */
 export function surfaceViewH(): number {
-  return TOP_PAD + bandViewH() * 2 + HALF_GAP + bottomPadView();
+  return topPadView() + bandViewH(true) + bandViewH(false) + halfGapView() + bottomPadView();
 }
 
 /**
@@ -353,14 +480,23 @@ function anchors(): [number[], number[]] {
     canon.push(canon[canon.length - 1] + dc);
     view.push(view[view.length - 1] + dv);
   };
-  seg(TOP_PAD, TOP_PAD);
+  seg(TOP_PAD, topPadView());
   for (let band = 0; band < 2; band += 1) {
-    seg(ROW_PAD, rowPadView());
-    seg(TILE_H, tileViewH());
-    seg(ROW_GAP, rowGapView());
-    seg(TILE_H, tileViewH());
-    seg(ROW_PAD, rowPadView());
-    if (band === 0) seg(HALF_GAP, HALF_GAP);
+    // In metrica di vista la fascia in alto è sempre l'avversaria,
+    // capovolta: prima la fila di servizio, poi il Fronte. La propria, in
+    // basso, il contrario. Conta solo in rincasso, dove le due file hanno
+    // altezze diverse.
+    // In rincasso la fila di servizio avversaria si azzera: le sue carte
+    // cadono sull'orlo del Fronte (le pile stanno nel pannello, che non
+    // passa di qui).
+    const foeBack = band === 0 && recessView && !foeBackRow;
+    const rows = band === 0 ? [foeBack ? 0 : tileViewH(), tileViewH()] : [tileViewH(), tileViewH()];
+    seg(ROW_PAD, rowPadTopView());
+    seg(TILE_H, rows[0]);
+    seg(ROW_GAP, foeBack ? 0 : rowGapView());
+    seg(TILE_H, rows[1]);
+    seg(ROW_PAD, rowPadBottomView());
+    if (band === 0) seg(HALF_GAP, halfGapView());
   }
   seg(BOTTOM_PAD, bottomPadView());
   return [canon, view];
@@ -379,12 +515,12 @@ function remap(y: number, from: number[], to: number[]): number {
 }
 
 function compress(y: number): number {
-  if (!compactView) return y;
+  if (!stretched()) return y;
   const [canon, view] = anchors();
   return Math.round(remap(y, canon, view));
 }
 function decompress(y: number): number {
-  if (!compactView) return y;
+  if (!stretched()) return y;
   const [canon, view] = anchors();
   return Math.round(remap(y, view, canon));
 }
@@ -582,4 +718,42 @@ export function fromView(y: number, viewer: Seat): number {
   const local = center - canonBandTop(band, viewer);
   const moved = BAND_TOP[band] + (band === viewer ? local : flipInBand(local));
   return moved - HALF_TILE;
+}
+
+/** Il posto di una carta sullo schermo. */
+export interface ViewSpot {
+  x: number;
+  y: number;
+}
+
+/** In quale fila della fascia cade una carta: Fronte o fila di servizio. */
+function rowOfLocal(local: number): "front" | "back" {
+  return local < ROW_PAD + TILE_H + ROW_GAP / 2 ? "front" : "back";
+}
+
+/**
+ * Da coordinata condivisa a posto sullo schermo, per questo giocatore, in
+ * due dimensioni. La x non cambia mai e la y passa da `toView`; l'unica
+ * eccezione è il rincasso, dove la Zona di Richiamo non ha un riquadro suo
+ * e il Rubyfront in attesa si disegna in quello del Rubyfront, sulla fila
+ * del Fronte.
+ */
+export function viewOf(x: number, y: number, viewer: Seat): ViewSpot {
+  if (recessView && atRecall(x, y)) {
+    // Le coordinate restano quelle della Zona di Richiamo: è solo dove lo
+    // si vede — il riquadro dice lo stato, col tasto Schiera.
+    const band = bandOfCenter(y + HALF_TILE)!;
+    return { x: RUBYFRONT_X + Math.round(x - SLOT_X.richiamo), y: toView(frontRowY(band) + (y - backRowY(band)), viewer) };
+  }
+  return { x, y: toView(y, viewer) };
+}
+
+/** Da posto sullo schermo a coordinata condivisa: il rilascio a mano libera. */
+export function fromViewPoint(vx: number, vy: number, viewer: Seat): { x: number; y: number } {
+  return { x: vx, y: fromView(vy, viewer) };
+}
+
+/** Larghezza di VISTA della superficie. */
+export function surfaceViewW(): number {
+  return SURFACE_W;
 }

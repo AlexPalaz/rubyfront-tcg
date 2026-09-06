@@ -3,7 +3,7 @@
 // qui cambia, quasi certamente va cambiato anche il gemello là.
 
 import { describe, expect, it } from "vitest";
-import { MATTER_X, frontRowY } from "../src/ctx.js";
+import { CONTROL_X, MATTER_X, frontRowY } from "../src/ctx.js";
 import { STACK_STEP, apply, attackKey, matterSpot, newGame, pay, playSpot, zoneCards, chainTop } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
@@ -418,9 +418,9 @@ describe("apply control / release", () => {
     state = apply(state, { t: "assign", uid: "b-2", to: "b-1" });
     const ref = { source: "x", event: "on_enter_field" as const, entering: "x" };
     state = apply(state, { t: "control", uid: "b-1", by: "a", grants: ["surge"], effect: ref });
-    expect(state.cards["b-1"]).toMatchObject({ owner: "b", controller: "a", grants: ["surge"], x: 1199 });
+    expect(state.cards["b-1"]).toMatchObject({ owner: "b", controller: "a", grants: ["surge"], x: CONTROL_X });
     expect(state.cards["b-1"].y).toBe(state.cards["b-1"].y); // nella fila di servizio di A
-    expect(state.cards["b-2"].x).toBe(1199 + STACK_STEP);
+    expect(state.cards["b-2"].x).toBe(CONTROL_X + STACK_STEP);
     state = apply(state, { t: "release", uid: "b-1", zone: "field", x: 821, y: 172 });
     expect(state.cards["b-1"].controller).toBeUndefined();
     expect(state.cards["b-1"].grants).toBeUndefined();

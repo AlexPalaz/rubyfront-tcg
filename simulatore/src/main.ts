@@ -14,7 +14,7 @@ import { gameOverMsg } from "./turn.js";
 import type { ChatEntry } from "./types.js";
 import "@fontsource-variable/space-grotesk";
 import { mountChat } from "./chat.js";
-import { SLOT_X, SURFACE_W, backRowY, isCompactView, setViewMode, viewBattleTop, viewMode, type Ctx, type ViewMode } from "./ctx.js";
+import { SLOT_X, SURFACE_W, backRowY, isCompactView, isRecessView, setViewMode, viewBattleTop, viewMode, type Ctx, type ViewMode } from "./ctx.js";
 import { connectEngine, DEFAULT_ENGINE, type EngineLink, type EngineStatus, type EngineVerdict, verdictReason } from "./engine.js";
 import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
@@ -326,11 +326,10 @@ const voice = createVoice({
 // ----------------------------------------------------------------- viste
 
 // La vista va decisa prima di montare il tavolo: le zone nascono già con la
-// geometria giusta. Di default il tavolo è tutto in vista (compatta); chi
-// aveva scelto le carte intere le ritrova. La «table» di una prova
-// precedente si legge come compatta.
-const savedView = store.read("view", "") || (store.read("compact", "") === "1" ? "compact" : "");
-setViewMode(savedView === "full" ? "full" : "compact");
+// geometria giusta. Di default il rincasso — carte intere ovunque e tutto in
+// vista; chi ha scelto un'altra vista la ritrova.
+const savedView = store.read("view", "");
+setViewMode(savedView === "full" || savedView === "compact" || savedView === "recess" ? savedView : "recess");
 
 const table = mountTable(document.querySelector<HTMLElement>("#table")!, ctx);
 // L'insegna di fase sta sul tavolo, sopra le carte: è lì che si guarda.
@@ -349,9 +348,10 @@ function toggleSide(): void {
   unreadLog = 0;
   paint();
 }
-// Mescola, pesca e cerca stanno sull'HUD: sono gesti di partita, non di
-// impostazione. L'overlay è montato poche righe sotto: ai click esiste già.
-const hud = mountHud(document.querySelector<HTMLElement>("#hud")!, ctx, {
+// Turno, gesto di fase, Evoca, chat e microfono stanno in header; le targhe
+// dei posti sull'orlo dei campi (table.onStats, sotto). L'overlay è montato
+// poche righe sotto: ai click esiste già.
+const hud = mountHud(ctx, {
   chat: toggleSide,
   voice: async () => {
     const before = voice.enabled();
@@ -370,6 +370,7 @@ const hud = mountHud(document.querySelector<HTMLElement>("#hud")!, ctx, {
   search: () => overlay.open(mySeat, "deck"),
   spawn: () => overlay.openCatalog(mySeat),
 });
+table.onStats(hud.chip);
 document.querySelector("#side-close")!.addEventListener("click", toggleSide);
 const overlay = mountOverlay(ctx, () => paint());
 table.onBrowse((seat, zone) => overlay.open(seat, zone));
@@ -946,11 +947,11 @@ if (previewId) {
 // Ogni metà è alta due file di carte: sullo schermo non ci sta tutto. Si
 // parte inquadrando la LINEA DI BATTAGLIA — il Fronte avversario sopra, il
 // tuo subito sotto — così il proprio campo si vede senza scorrere; per le
-// file di servizio si scorre, su o giù. In vista compatta il tavolo sta
-// tutto nella finestra: non c'è proprio niente da scorrere.
+// file di servizio si scorre, su o giù. In compatta e in rincasso il tavolo
+// sta tutto nella finestra: non c'è proprio niente da scorrere.
 const board = document.querySelector<HTMLElement>(".board")!;
 function frameBoard(): void {
-  if (isCompactView()) {
+  if (isCompactView() || isRecessView()) {
     board.scrollTop = 0;
     board.scrollLeft = 0;
     return;

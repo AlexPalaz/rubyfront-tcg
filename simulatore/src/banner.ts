@@ -1,7 +1,7 @@
 // L'insegna di fase: a ogni cambio di fase (o di turno, che riporta in
 // Preparazione) una scritta compare al centro del tavolo, resta un attimo e
-// svanisce. Dice in che momento della partita si è — la stessa notizia del
-// rigo nell'HUD, ma dove gli occhi stanno guardando. Solo un annuncio: non
+// svanisce. Dice in che momento della partita si è — turno e fase — dove
+// gli occhi stanno guardando: è l'unico posto in cui si legge il turno. Solo un annuncio: non
 // si clicca, non ferma nulla, e con prefers-reduced-motion resta ferma.
 
 import { t } from "./i18n.js";
@@ -31,7 +31,9 @@ const TITLES: Record<Phase, string> = {
   reazione: "phase.title.reazione",
 };
 
-/** Il rigo sotto: turno e a chi tocca — in Reazione la parola è del difensore. */
+/** Il rigo sotto: a chi tocca — in Reazione la parola è del difensore. Il
+    turno sta nel titolo, grande: è lì che si legge (deciso 2026-09-06, al
+    posto del contatore in header). */
 function subtitle(state: GameState, me: Seat): string {
   const who = state.phase === "reazione" ? otherSeat(state.active) : state.active;
   const mine = who === me;
@@ -47,11 +49,15 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
   host.className = "phase-banner";
   host.hidden = true;
   host.setAttribute("aria-live", "polite");
+  // Tre righe: il turno sopra, piccolo; il titolo della fase, grande; sotto
+  // a chi tocca.
+  const turn = document.createElement("span");
+  turn.className = "phase-banner-turn";
   const title = document.createElement("span");
   title.className = "phase-banner-title";
   const sub = document.createElement("span");
   sub.className = "phase-banner-sub";
-  host.append(title, sub);
+  host.append(turn, title, sub);
   root.append(host);
 
   // La chiave di ciò che si è già annunciato: la fase da sola non basta,
@@ -60,6 +66,8 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
   let timer: number | undefined;
 
   function show(state: GameState): void {
+    turn.textContent = t("hud.turn", { turn: state.turn });
+    turn.hidden = false;
     title.textContent = t(TITLES[state.phase]);
     sub.textContent = subtitle(state, ctx.seat());
     host.dataset.phase = state.phase;
@@ -77,6 +85,7 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
   let finalShown = false;
   function showFinal(state: GameState): void {
     const { title: heading, detail } = describeGameOver(state, state.over!, ctx.seat());
+    turn.hidden = true;
     title.textContent = heading;
     sub.textContent = detail;
     host.dataset.phase = state.over!.winner === ctx.seat() ? "fronte" : "reazione";
