@@ -16,6 +16,17 @@ class TableTest < Minitest::Test
     { "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards }
   end
 
+  # §3.1 — il mazzo porta i PV stampati sul Rubyfront: la copia parte da lì.
+  # Gemello: state.test.ts, «loadDeck porta i PV del Rubyfront».
+  def test_il_mazzo_porta_i_pv_iniziali
+    action = deck_for("a", 3)
+    @table.apply(action.merge("hp" => 21))
+    assert_equal 21, @table.hp("a")
+    assert_equal 20, @table.hp("b")
+    @table.apply(deck_for("b", 3))
+    assert_equal 20, @table.hp("b"), "senza hp la copia non tocca i PV"
+  end
+
   def test_carico_e_pesca
     @table.apply(deck_for("a", 10))
     assert_equal 0, @table.hand_count("a")

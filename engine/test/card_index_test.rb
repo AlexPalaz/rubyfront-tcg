@@ -63,6 +63,15 @@ class CardIndexTest < Minitest::Test
     refute Rubyfront::CardIndex.recognized?(altro)
   end
 
+  # §3.1 — ogni Rubyfront del set stampa i suoi PV, e l'anagrafe li legge.
+  def test_ogni_rubyfront_ha_i_pv_stampati
+    rubyfronts = @index.select { |_, card| card[:type] == "rubyfront" }
+    refute_empty rubyfronts
+    rubyfronts.each do |id, card|
+      assert card[:health].is_a?(Integer) && card[:health].positive?, "il Rubyfront #{id} non ha PV stampati leggibili"
+    end
+  end
+
   def test_legge_il_set
     refute_empty @index, "nessuna carta trovata in #{DATA_DIR}"
   end

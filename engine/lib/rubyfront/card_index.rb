@@ -15,7 +15,7 @@ module Rubyfront
   module CardIndex
     # data_dir -> {
     #   "<id>" => { type: "entity", race: "human", keywords: ["surge"],
-    #                  power: 3, counterattack: nil, grants_while_assigned: [] },
+    #                  power: 3, counterattack: nil, health: nil, grants_while_assigned: [] },
     #   "<id>" => { type: "object", race: nil, keywords: [], power: nil,
     #                  counterattack: nil,
     #                  grants_while_assigned: [{ keywords: ["stasis"], if_race: "human" }] },
@@ -125,6 +125,9 @@ module Rubyfront
           keywords: keywords.uniq.freeze,
           power: integer_stat(stats["power"]),
           counterattack: integer_stat(stats["counterattack"]),
+          # I PV stampati sul Rubyfront (§3.1): sono i PV con cui il suo
+          # giocatore inizia la partita. nil per chi non ne ha.
+          health: integer_stat(stats["health"]),
           flux_cost: integer_stat(stats["fluxCost"]),
           deployment: deployment_of(stats["deploymentCost"]),
           matter: matter_of(faces),

@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.41.0"
+    VERSION = "0.42.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -36,6 +36,7 @@ module Rubyfront
       "§6.3 Dichiarazioni: tappate, coperte, sfide 1 contro 1",
       "§6.2 Fronte: massimo 5 Entità",
       "§3.1/§3.2 Contatori: mai sotto zero",
+      "§3.1 I PV iniziali sono quelli stampati sul Rubyfront",
       "§3.1 Oggetti: assegnazione",
       "§6 Fasi: le dichiarazioni in Fase di Fronte",
       "§6.2 Ritiro: gesto di Preparazione; nella fase, libero",
@@ -87,6 +88,7 @@ module Rubyfront
       "§6.3 Declarations: tapped, covered, 1-on-1 challenges",
       "§6.2 Front: at most 5 Entities",
       "§3.1/§3.2 Counters: never below zero",
+      "§3.1 Starting Health Points are the ones printed on the Rubyfront",
       "§3.1 Objects: assignment",
       "§6 Phases: declarations in the Front Phase",
       "§6.2 Retire: a Preparation move; within the phase, free",
@@ -292,6 +294,7 @@ module Rubyfront
       return judge_effect(action) if action["effect"].is_a?(Hash)
 
       case action["t"]
+      when "loadDeck" then judge_load_deck(action)
       when "player" then judge_player(action)
       when "turn" then judge_turn(action)
       when "phase" then judge_phase(action)
@@ -706,6 +709,25 @@ module Rubyfront
     # §3.1/§3.2 — sotto zero non scende niente: i PV si fermano a 0 (a 0 si
     # perde, ma sotto non si va) e il Flusso speso non può superare quello
     # che c'è.
+    # §3.1 — «sono i PV del giocatore: la partita inizia con il valore
+    # stampato sulla carta». Il mazzo porta `hp`; qui si confronta con
+    # l'anagrafe, sul Rubyfront che il mazzo contiene. Un mazzo senza
+    # Rubyfront, o con un Rubyfront ignoto (o senza PV in anagrafe), non ha
+    # regola: silenzio. Niente numeri fidati in rete.
+    def judge_load_deck(action)
+      rubyfront = Array(action["cards"]).find do |card|
+        card.is_a?(Hash) && @cards.dig(card["cardId"], :type) == "rubyfront"
+      end
+      return no_rule("loadDeck") unless rubyfront
+
+      printed = @cards.dig(rubyfront["cardId"], :health)
+      return no_rule("loadDeck") unless printed.is_a?(Integer)
+      return allow("loadDeck") if action["hp"] == printed
+
+      given = action["hp"].inspect
+      refuse("loadDeck", "i Punti Vita iniziali sono quelli stampati sul Rubyfront: #{printed}, non #{given} (§3.1)", "starting Health Points are the ones printed on the Rubyfront: #{printed}, not #{given} (§3.1)")
+    end
+
     def judge_player(action)
       patch = action["patch"]
       return no_rule("player") unless patch.is_a?(Hash)

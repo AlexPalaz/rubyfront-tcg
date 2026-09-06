@@ -76,6 +76,8 @@ module Rubyfront
       @phase = "preparazione"
       # I contatori che servono alle regole, come in newPlayer del client:
       # il Flusso (§3.2) e i PV (§2, la fine della partita).
+      # I 20 PV sono un segnaposto: i PV veri li porta il mazzo (§3.1,
+      # load_deck), stampati sul Rubyfront.
       @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20, token: false, sealed: [] }] }
       # §3.2/§4: il Gettone va a chi non inizia — con l'active del reset.
       @players[SEATS.find { |seat| seat != @active }][:token] = true
@@ -533,6 +535,10 @@ module Rubyfront
     # le sue carte, dentro quelle nuove così come arrivano.
     def load_deck(action)
       seat = action["seat"]
+      # §3.1 — i PV del giocatore sono quelli stampati sul suo Rubyfront: il
+      # mazzo li porta (`hp`, verificato dall'engine contro l'anagrafe), e
+      # la partita comincia da lì. Gemello: state.ts, «loadDeck».
+      @players[seat][:hp] = action["hp"] if @players.key?(seat) && action["hp"].is_a?(Integer)
       @cards.reject! { |_, card| card[:owner] == seat }
       Array(action["cards"]).each do |card|
         next unless card.is_a?(Hash) && card["uid"]

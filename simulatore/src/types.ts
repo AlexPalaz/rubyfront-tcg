@@ -262,7 +262,9 @@ export type Action =
   /** Tavolo azzerato. `active` dice chi inizia (§4): lo sceglie chi preme,
       il riduttore non tira dadi — due lavagne devono restare uguali. */
   | { t: "newGame"; active?: Seat }
-  | { t: "loadDeck"; seat: Seat; deckId: string; cards: CardInstance[] }
+  /** `hp`: i PV stampati sul Rubyfront del mazzo (§3.1) — i PV con cui il
+      giocatore inizia; l'engine li confronta con l'anagrafe. */
+  | { t: "loadDeck"; seat: Seat; deckId: string; cards: CardInstance[]; hp?: number }
   | { t: "shuffle"; seat: Seat; order: string[] }
   /** `effect`: la pesca è un passo di un effetto innescato (§8.2), non un
       gesto — la fonte e l'ingresso che l'ha innescata; l'engine verifica. */

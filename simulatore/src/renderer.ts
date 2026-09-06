@@ -26,7 +26,7 @@ export interface CardFace {
   displayKey: string;
   /** Le statistiche stampate (dal file dati della carta): qui contano
       quelle del combattimento, Potenza e «Contrattacco +N» (§6.3). */
-  stats?: { power?: unknown; counterattack?: unknown; fluxCost?: unknown; deploymentCost?: unknown; healthRecovery?: unknown };
+  stats?: { power?: unknown; counterattack?: unknown; health?: unknown; fluxCost?: unknown; deploymentCost?: unknown; healthRecovery?: unknown };
   /** Gli inneschi della faccia (dal file dati): qui conta l'evento
       `on_enter_field`, «quando entra in campo». */
   triggers?: { event?: unknown; displayKey?: unknown; id?: unknown; details?: unknown; effect?: unknown }[];
@@ -889,6 +889,8 @@ export function cardStats(cardId: string): {
   race: string | null;
   power: number | null;
   counterattack: number | null;
+  /** I PV stampati sul Rubyfront (§3.1): i PV con cui il giocatore inizia. Specchio di card_index.rb, health. */
+  health: number | null;
   fluxCost: number | null;
   keywords: string[];
   deployment: Deployment | null;
@@ -935,6 +937,7 @@ export function cardStats(cardId: string): {
     enterRefreshes: enterRefreshesOf(face),
     power: integer(face?.stats?.power),
     counterattack: integer(face?.stats?.counterattack),
+    health: integer(card?.faces.find(candidate => candidate.kind === "rubyfront")?.stats?.health),
     // Il costo di Flusso stampato (§3.2); il Rubyfront ha il costo di
     // schieramento, un'altra cosa, e qui resta null.
     fluxCost: integer(face?.stats?.fluxCost),

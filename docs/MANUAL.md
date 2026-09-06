@@ -82,7 +82,7 @@ Every Rubyfront is a card with **values of its own**: there are no standard valu
 
 The Rubyfront card shows:
 
-- **HP (Health Points)** — its **only statistic**. Attacks taken lower its HP; at zero, the owner loses (§2).
+- **HP (Health Points)** — its **only statistic**, and they are the player's HP: the game starts at the value printed on the card. Attacks taken lower its HP; at zero, the owner loses (§2).
 - **Deployment cost** — the Flux cost to deploy it onto the field: a **fixed number** (e.g. `2`) or a **die** (e.g. a `6`-sided die) to roll. See below.
 - **Available Matters** — the Matter types the Rubyfront can use, **with the maximum grade** for the types that have grades (like Entities, §7.1).
 - **Main ability** — it is born when the Rubyfront enters the field and from then on it is **always active**.

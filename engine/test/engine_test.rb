@@ -1033,6 +1033,59 @@ class EngineTest < Minitest::Test
 
   # --- §6.2: le carte si giocano in Preparazione ---------------------------
 
+  # --- §3.1: i PV iniziali sono quelli stampati sul Rubyfront
+  # Un Rubyfront con i PV in anagrafe, uno senza (forma ignota: silenzio).
+  VITA = {
+    "RUBINO" => { type: "rubyfront", keywords: [], health: 21 },
+    "OPACO" => { type: "rubyfront", keywords: [] },
+    "LENTA" => { type: "entity", keywords: [] },
+  }.freeze
+
+  def mazzo_con(engine, seat, rubyfront_id, hp: nil)
+    cards = [{ "uid" => "#{seat}-rf", "owner" => seat, "zone" => "field", "order" => 0, "cardId" => rubyfront_id, "y" => 1580 }]
+    action = { "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards }
+    action["hp"] = hp unless hp.nil?
+    engine.judge(action)
+  end
+
+  def test_il_mazzo_porta_i_pv_stampati_e_la_copia_parte_da_li
+    engine = Rubyfront::Engine.new(cards: VITA)
+    verdict = mazzo_con(engine, "a", "RUBINO", hp: 21)
+    assert verdict[:ruled]
+    assert verdict[:ok]
+    assert_equal 21, engine.instance_variable_get(:@table).hp("a")
+  end
+
+  def test_pv_diversi_dallo_stampato_sono_fermati
+    engine = Rubyfront::Engine.new(cards: VITA)
+    verdict = mazzo_con(engine, "a", "RUBINO", hp: 20)
+    assert verdict[:ruled]
+    refute verdict[:ok]
+    assert_includes verdict[:reason], "(§3.1)"
+    assert_includes verdict[:reason_en], "(§3.1)"
+    assert_equal 20, engine.instance_variable_get(:@table).hp("a"), "la copia resta com'era"
+  end
+
+  def test_pv_assenti_con_rubyfront_noto_sono_fermati
+    engine = Rubyfront::Engine.new(cards: VITA)
+    verdict = mazzo_con(engine, "a", "RUBINO")
+    assert verdict[:ruled]
+    refute verdict[:ok]
+  end
+
+  def test_rubyfront_senza_pv_in_anagrafe_o_ignoto_non_ha_regola
+    engine = Rubyfront::Engine.new(cards: VITA)
+    refute mazzo_con(engine, "a", "OPACO", hp: 5)[:ruled]
+    refute mazzo_con(engine, "b", "SCONOSCIUTO", hp: 5)[:ruled]
+  end
+
+  def test_un_mazzo_senza_rubyfront_non_ha_regola
+    engine = Rubyfront::Engine.new(cards: VITA)
+    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "LENTA" }]
+    verdict = engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards, "hp" => 7 })
+    refute verdict[:ruled]
+  end
+
   FINESTRA = {
     "LENTA" => { type: "entity", keywords: [] },
     "PIETRA" => { type: "matter", keywords: [], behavior: "normal" },

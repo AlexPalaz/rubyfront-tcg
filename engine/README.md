@@ -44,6 +44,18 @@ Regole collegate finora:
   partita è persa, sotto non si va) e Flusso e barra non scendono in
   negativo. Come per il tetto dei 20, i bottoni dell'HUD non hanno più
   pavimenti cuciti: a engine spento il tavolo resta libero.
+- **§3.1 I PV iniziali sono quelli stampati sul Rubyfront** — «sono i PV
+  del giocatore: la partita inizia con il valore stampato sulla carta». Il
+  carico del mazzo (`loadDeck`) porta `hp`, i PV stampati sul Rubyfront che
+  contiene; riduttore e copia partono da lì, e l'engine confronta il numero
+  con l'anagrafe (`health`): un valore diverso, o assente, è fermato. Un
+  mazzo senza Rubyfront, o con un Rubyfront ignoto all'anagrafe, non ha
+  regola. Limiti dichiarati: il segnaposto dei 20 PV resta finché un mazzo
+  non è caricato; il Nexus, che parte «con i PV rimasti al Rubyfront più il
+  recupero indicato», ha la sua regola nel flip e non passa di qui; e la
+  regola d'oro vale come sempre — un effetto di carta che oggi non esiste,
+  risolto a mano sui PV, verrebbe fermato a torto finché l'engine non legge
+  gli effetti. Engine 0.42.0.
 - **§6.2 Fronte: massimo 5 Entità** — la sesta Entità non scende, da
   qualunque via arrivi (§6.2: a Fronte pieno anche la parte d'effetto che
   metterebbe in campo «non si applica»). Contano solo le Entità del

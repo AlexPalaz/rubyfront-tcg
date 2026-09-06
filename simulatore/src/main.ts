@@ -486,7 +486,11 @@ function loadDeck(deckId: string, seat: Seat): void {
     myDeckId = deckId;
     store.write("deck", deckId);
   }
-  dispatch({ t: "loadDeck", seat, deckId, cards });
+  // §3.1 — i PV con cui si inizia sono quelli stampati sul Rubyfront del
+  // mazzo: viaggiano nell'azione, e l'engine li confronta con l'anagrafe.
+  const rubyfront = cards.find(card => isRubyfront(card.cardId));
+  const hp = rubyfront ? cardStats(rubyfront.cardId).health : null;
+  dispatch({ t: "loadDeck", seat, deckId, cards, ...(hp === null ? {} : { hp }) });
   const deck = getDeck(deckId);
   const name = deck?.locales[locale]?.name ?? deck?.locales[deck.defaultLocale]?.name ?? deckId;
   ctx.log(msg("log.loaded", { seat, name, n: cards.length }), seat);

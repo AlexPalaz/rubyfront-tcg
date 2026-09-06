@@ -403,6 +403,14 @@ describe("apply look", () => {
 // Il controllo applicato (§8.2): chi comanda cambia, la proprietà no; lo
 // slot extra; la restituzione. Gemello: table_test.rb.
 describe("apply control / release", () => {
+  it("loadDeck porta i PV del Rubyfront (§3.1), e senza hp non li tocca — gemello: table_test.rb", () => {
+    let state = apply(newGame(), { ...deckFor("a", 3), hp: 21 });
+    expect(state.players.a.hp).toBe(21);
+    expect(state.players.b.hp).toBe(20);
+    state = apply(state, deckFor("b", 3));
+    expect(state.players.b.hp).toBe(20);
+  });
+
   it("la carta passa nello slot extra con gli Oggetti, e torna com'è", () => {
     let state = apply(newGame(), deckFor("b", 2));
     state = apply(state, { t: "toZone", uid: "b-1", zone: "field", x: 442, y: 172, z: 1 });

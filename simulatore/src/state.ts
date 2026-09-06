@@ -27,6 +27,8 @@ export function pay(player: PlayerState, cost: number): PlayerState {
 }
 
 export function newPlayer(name: string): GameState["players"]["a"] {
+  // I 20 PV sono un segnaposto: i PV veri li porta il mazzo (§3.1, loadDeck),
+  // stampati sul Rubyfront.
   return { name, hp: 20, flux: 1, fluxMax: 1, token: false, deckId: null };
 }
 
@@ -185,7 +187,14 @@ function reduce(state: GameState, action: Action): GameState {
         declarations: state.declarations.filter(d => cards[d.from] && cards[d.to]),
         players: {
           ...state.players,
-          [action.seat]: { ...state.players[action.seat], deckId: action.deckId },
+          // §3.1 — i PV del giocatore sono quelli stampati sul suo Rubyfront:
+          // il mazzo li porta, e la partita comincia da lì. Gemello:
+          // table.rb, load_deck.
+          [action.seat]: {
+            ...state.players[action.seat],
+            deckId: action.deckId,
+            ...(Number.isInteger(action.hp) ? { hp: action.hp as number } : {}),
+          },
         },
       };
     }

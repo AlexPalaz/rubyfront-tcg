@@ -83,7 +83,7 @@ Ogni Rubyfront è una carta con **valori propri**: non esistono valori standard 
 
 La carta del Rubyfront riporta:
 
-- **PV (Punti Vita)** — la sua **unica statistica**. Gli attacchi subiti fanno scendere i PV; a zero, il proprietario perde (§2).
+- **PV (Punti Vita)** — la sua **unica statistica**, e sono i PV del giocatore: la partita inizia con il valore stampato sulla carta. Gli attacchi subiti fanno scendere i PV; a zero, il proprietario perde (§2).
 - **Costo di schieramento** — il costo in Flusso per schierarlo in campo: un **numero fisso** (es. `2`) oppure un **dado** (es. un dado da `6`) da tirare. Vedi sotto.
 - **Materie disponibili** — i tipi di Materia che il Rubyfront può usare, **con il grado massimo** per i tipi che hanno gradi (come le Entità, §7.1).
 - **Abilità principale** — nasce quando il Rubyfront entra in campo e da quel momento è **sempre attiva**.
