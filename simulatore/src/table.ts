@@ -8,6 +8,7 @@
 import { msg, t } from "./i18n.js";
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
 import { createCardEl, fitPending, setTessHp, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
+import { playSound } from "./sound.js";
 import { declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticPower, undeclare, wornBy } from "./combat.js";
 import { tapPreview } from "./preview.js";
 import {
@@ -1449,6 +1450,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           targetHint.hidden = true;
           release();
           render();
+          playSound("select");
           resolve(card);
         },
         cancel: () => {
@@ -2745,6 +2747,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       tiles.set(card.uid, tile);
       wirePreview(tile, ctx.locale);
       enableDrag(tile, {
+        onGrab: () => playSound("select"),
         canDrag: () => {
           if (targeting) return false;
           const live = ctx.state().cards[card.uid];

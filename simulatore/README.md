@@ -100,6 +100,25 @@ stanza (o congeda il bot, o l'avversario locale), azzera la partita e
 riporta all'accoglienza. La stanza salvata si dimentica; nome e mazzo
 restano.
 
+## Suoni e cursore
+
+Il tavolo **suona**, sommesso: un tocco quando si prende una carta o si
+sceglie un bersaglio, uno scatto sui tasti (Fine fase, Continua, Risolvi,
+conferme), un colpo sordo quando una carta si posa sul Fronte, un taglio
+all'attacco, un tonfo al blocco, un rintocco al contrattacco. Sono
+**sintetizzati al volo** con la Web Audio API (`src/sound.ts`): niente
+file, niente licenze. Il suono è del tavolo, non del mouse: vale per le
+azioni di chiunque — le proprie, quelle del bot, quelle arrivate dalla
+rete (`cueFor` in main.ts). Il browser non suona prima di un gesto: il
+contesto nasce al primo tocco. L'interruttore **Suoni** nelle impostazioni
+spegne tutto, e la scelta resta salvata.
+
+Il **cursore** è del gioco: una freccia col rubino in punta, accesa sui
+tasti e sulle carte; il rombo del costo per prendere e per tenere una
+carta; il mirino per scegliere un bersaglio. Sono SVG in linea nel foglio
+di stile (`--cur-*`); dove il browser non li accetta — Safari — resta il
+cursore di sistema.
+
 ## La chat vocale
 
 Il tasto col **microfono** in header (accanto al fumetto) accende e spegne la

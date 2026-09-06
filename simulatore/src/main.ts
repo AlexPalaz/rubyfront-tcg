@@ -23,6 +23,7 @@ import { PHASE_BANNER_HOLD_MS, mountPhaseBanner } from "./banner.js";
 import { showRoll } from "./dice.js";
 import { showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
+import { playSound, setSoundEnabled, unlockSound } from "./sound.js";
 import { endPhase } from "./turn.js";
 import { chooseAttackers, chooseBlocks, chooseDiscards, choosePlay, freshMemory, pickBest, type BotMemory } from "./bot.js";
 import { declareBlock } from "./combat.js";
@@ -153,8 +154,26 @@ function dispatch(action: Action): Promise<boolean> {
   return Promise.resolve(true);
 }
 
+/**
+ * Il suono di un'azione, letto PRIMA che si applichi (serve la zona di
+ * partenza): la carta posata sul Fronte dalla mano, l'attacco, il blocco, il
+ * contrattacco. Vale per le azioni di chiunque — le proprie, quelle del bot,
+ * quelle arrivate dalla rete — perché il suono è del tavolo, non del mouse.
+ */
+function cueFor(action: Action): void {
+  if (action.t === "declare") {
+    playSound(action.declaration.kind === "attack" ? "attack" : action.declaration.kind === "block" ? "block" : "counter");
+    return;
+  }
+  if (action.t === "toZone" && action.zone === "field") {
+    const card = state.cards[action.uid];
+    if (card && card.zone === "hand") playSound("play");
+  }
+}
+
 /** Applica, ritrasmette, ridisegna: l'azione ormai è passata. */
 function commit(action: Action): void {
+  cueFor(action);
   state = apply(state, action);
   net?.send({ t: "action", action, from: mySeat });
   paint();
@@ -179,6 +198,7 @@ function commit(action: Action): void {
 
 /** Applica senza ritrasmettere: per le azioni che arrivano già dalla rete. */
 function receive(action: Action, from: Seat): void {
+  cueFor(action);
   // La giocata dell'avversario si vede anche qui, senza fermare nulla: la
   // carta accesa un attimo, poi la tessera «ultima giocata» (effect.ts).
   if (action.t === "toZone" && action.zone === "field") {
@@ -1114,6 +1134,27 @@ function leaveTable(): void {
   settingsPanel.hidden = true;
   paint();
 }
+
+// I suoni: il contesto audio nasce al primo tocco (il browser non suona
+// prima di un gesto), ogni tasto fa il suo scatto, e l'interruttore nelle
+// impostazioni spegne tutto — la scelta resta salvata.
+document.addEventListener("pointerdown", () => unlockSound(), { capture: true });
+document.addEventListener(
+  "click",
+  event => {
+    const button = (event.target as HTMLElement | null)?.closest?.("button");
+    if (button && !button.disabled) playSound("button");
+  },
+  { capture: true }
+);
+const soundToggle = document.querySelector<HTMLInputElement>("#sound-toggle")!;
+soundToggle.checked = store.read("sound", "on") !== "off";
+setSoundEnabled(soundToggle.checked);
+soundToggle.addEventListener("change", () => {
+  setSoundEnabled(soundToggle.checked);
+  store.write("sound", soundToggle.checked ? "on" : "off");
+  if (soundToggle.checked) playSound("button");
+});
 
 document.querySelector("#do-leave")!.addEventListener("click", () => {
   if (!confirm(t("html.leave.confirm"))) return;

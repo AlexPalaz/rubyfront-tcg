@@ -25,6 +25,9 @@ export type Drop =
 export interface DragOptions {
   /** Falso per bloccare il trascinamento (carta non tua, mano avversaria). */
   canDrag(): boolean;
+  /** La carta è stata presa (tasto sinistro, e si può): prima di sapere se
+      sarà un trascinamento o un tap. Il suono del tocco sta qui. */
+  onGrab?(): void;
   /** Il trascinamento è partito davvero (superata la soglia): il fantasma
       esiste. Un click secco non passa di qui. */
   onStart?(): void;
@@ -84,6 +87,7 @@ export function enableDrag(element: HTMLElement, options: DragOptions): void {
     // Solo tasto sinistro: il destro apre il menu contestuale.
     if (event.button !== 0 || !options.canDrag()) return;
     event.preventDefault();
+    options.onGrab?.();
 
     const box = element.getBoundingClientRect();
     let grabX = event.clientX - box.left;

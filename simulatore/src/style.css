@@ -2808,3 +2808,23 @@ body[data-ui-theme^="chiaro"] .half {
     user-select: text;
   }
 }
+
+/* Il cursore del tavolo: una freccia col rubino in punta, e la sua gemella
+   accesa sui tasti e sulle carte; il rombo del costo per prendere e per
+   tenere, il mirino per scegliere un bersaglio. Sono SVG in linea (niente
+   file); dove il browser non li accetta — Safari — resta il cursore di
+   sistema, che segue dopo la virgola. La punta è in alto a sinistra
+   (3 2); rombo e mirino puntano al centro. */
+:root {
+  --cur-arrow: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><path d='M3 2 L3 22.5 L8.6 17.4 L12.6 26 L16.6 24.2 L12.7 15.8 L20.5 15.4 Z' fill='%231b1015' stroke='%23f3ece4' stroke-width='1.6' stroke-linejoin='round'/><path d='M3 2 L11 10.2 L5.2 12.2 Z' fill='%23d24a64'/></svg>") 3 2, default;
+  --cur-point: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><path d='M3 2 L3 22.5 L8.6 17.4 L12.6 26 L16.6 24.2 L12.7 15.8 L20.5 15.4 Z' fill='%23b81a41' stroke='%23fdeef1' stroke-width='1.6' stroke-linejoin='round'/><path d='M3 2 L11 10.2 L5.2 12.2 Z' fill='%23fdeef1' fill-opacity='0.85'/></svg>") 3 2, pointer;
+  --cur-grab: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><path d='M14 3 L25 14 L14 25 L3 14 Z' fill='none' stroke='%23f3ece4' stroke-width='3.2' stroke-linejoin='round'/><path d='M14 3 L25 14 L14 25 L3 14 Z' fill='none' stroke='%23b81a41' stroke-width='1.6' stroke-linejoin='round'/></svg>") 14 14, grab;
+  --cur-grabbing: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><path d='M14 4 L24 14 L14 24 L4 14 Z' fill='%23b81a41' stroke='%23fdeef1' stroke-width='1.8' stroke-linejoin='round'/><path d='M14 4 L24 14 L14 14 Z' fill='%23e56a86'/></svg>") 14 14, grabbing;
+  --cur-aim: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><circle cx='14' cy='14' r='8' fill='none' stroke='%23f3ece4' stroke-width='3'/><circle cx='14' cy='14' r='8' fill='none' stroke='%23d24a64' stroke-width='1.5'/><path d='M14 1.5 V6 M14 22 V26.5 M1.5 14 H6 M22 14 H26.5' stroke='%23d24a64' stroke-width='2' stroke-linecap='round'/><circle cx='14' cy='14' r='1.6' fill='%23d24a64'/></svg>") 14 14, crosshair;
+}
+html, body { cursor: var(--cur-arrow); }
+button, select, label.set-check, .deploy-btn, .pile-dock-head, .hand-toggle, .overlay-item .tile, .chat-log a { cursor: var(--cur-point); }
+button:disabled, .deploy-btn:disabled { cursor: var(--cur-arrow); }
+.tile { cursor: var(--cur-grab); }
+body.is-dragging-card, body.is-dragging-card * { cursor: var(--cur-grabbing) !important; }
+body.is-targeting .tile.is-pickable { cursor: var(--cur-aim); }
