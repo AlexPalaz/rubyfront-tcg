@@ -63,17 +63,24 @@ function serveSiteCards(): Plugin {
 }
 
 export default defineConfig(({ command }) => ({
-  // In sviluppo la pagina sta a /simulatore/, così `../cards/ui/` risolve
-  // esattamente come sul sito. In produzione la base è relativa: il bundle
-  // funziona sia su alexpalaz.github.io/rubyfront-tcg/simulatore/ sia da
-  // qualunque altra cartella lo si serva.
+  // In sviluppo la pagina sta a /simulatore/ e le carte a /cards (il
+  // middleware qui sopra). In produzione il GIOCO è la radice del sito e il
+  // catalogo sta sotto /catalog (scripts/build-site.mjs): la base resta
+  // relativa, e la grafica delle carte si cerca in ./catalog/cards/ui/ —
+  // VITE_CARDS_UI, che renderer.ts legge.
   base: command === "serve" ? "/simulatore/" : "./",
+  define: {
+    "import.meta.env.VITE_CARDS_UI": JSON.stringify(command === "serve" ? "../cards/ui/" : "./catalog/cards/ui/"),
+  },
   // La porta è fissa (è quella promessa dal README): le impostazioni del
   // client — stanza, mazzo, flag dell'engine — vivono nel localStorage
   // dell'origine, e un'origine che cambia porta le perderebbe a ogni avvio.
   server: { port: 5199, strictPort: true },
   build: {
-    outDir: resolve(import.meta.dirname, "../docs/simulatore"),
+    // La build del gioco, alla radice del sito pubblicato (dist/): la
+    // completa scripts/build-site.mjs, che ci mette accanto il catalogo.
+    // Non si committa.
+    outDir: resolve(import.meta.dirname, "../dist"),
     emptyOutDir: true,
     target: "esnext",
   },

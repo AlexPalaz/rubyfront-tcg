@@ -1,34 +1,21 @@
-# Il relay del simulatore su Render: dashboard → New + → Blueprint, si punta
-# questo repo e questo file fa il resto. Nessuna build: il relay è trenta
-# righe di Node senza dipendenze (scripts/relay.mjs), e legge la porta da
-# PORT come Render si aspetta.
+# Il tavolo online su Render, piano free: UN servizio solo (Docker, vedi
+# Dockerfile) che tiene dentro relay ed engine — due servizi sempre svegli
+# supererebbero le 750 ore al mese del piano free. Dashboard → Blueprint su
+# questo repo; a ogni push su main Render ricostruisce (auto-deploy), o si
+# fa Manual sync.
 #
-# Piano free: il servizio dorme dopo l'inattività e la prima connessione lo
-# sveglia (~30 secondi). L'URL pubblico esce come
-# https://rubyfront-relay.onrender.com → nel simulatore diventa
-# wss://rubyfront-relay.onrender.com (è il DEFAULT_RELAY di produzione in
-# simulatore/src/net.ts: se Render assegna un nome diverso, va aggiornato lì).
+# L'URL pubblico esce come https://rubyfront.onrender.com:
+#   wss://rubyfront.onrender.com/relay   il relay (DEFAULT_RELAY, net.ts)
+#   wss://rubyfront.onrender.com/engine  l'engine (DEFAULT_ENGINE, engine.ts)
+# Se Render assegna un nome diverso, si aggiornano quei due default (o le
+# variabili VITE_RELAY_URL / VITE_ENGINE_URL al build della pagina).
 #
-# L'engine (l'arbitro, engine/bin/server) è un secondo servizio dello
-# stesso Blueprint: Ruby senza gemme (il Gemfile alla radice è vuoto, serve
-# solo al runtime di Render), legge PORT e risponde 200 a una GET semplice
-# (l'health check). L'URL pubblico esce come
-# https://rubyfront-engine.onrender.com → wss://rubyfront-engine.onrender.com,
-# il DEFAULT_ENGINE di produzione in simulatore/src/engine.ts. Su GitHub
-# Pages, che serve solo file statici, l'engine non può girare: senza questo
-# servizio la pagina pubblica gioca senza arbitro.
+# Il piano free dorme dopo un quarto d'ora senza traffico: il workflow
+# .github/workflows/keepalive.yml lo tocca ogni dieci minuti.
 services:
   - type: web
-    name: rubyfront-relay
-    runtime: node
+    name: rubyfront
+    runtime: docker
     plan: free
-    buildCommand: "echo relay senza build"
-    startCommand: node scripts/relay.mjs
-    healthCheckPath: /
-  - type: web
-    name: rubyfront-engine
-    runtime: ruby
-    plan: free
-    buildCommand: "echo engine senza build"
-    startCommand: ruby engine/bin/server
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /

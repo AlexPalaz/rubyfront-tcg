@@ -74,10 +74,12 @@ interface ThemesModule {
 
 /**
  * Il sito sta una cartella sopra il simulatore, sia in sviluppo
- * (/simulatore/ → /cards/) sia su GitHub Pages
- * (/rubyfront-tcg/simulatore/ → /rubyfront-tcg/cards/).
+ * (/simulatore/ → /cards/) sia sul sito pubblicato (/ → /catalog/cards/).
  */
-const SITE_UI = new URL("../cards/ui/", document.baseURI);
+// Dove sta la grafica delle carte: in sviluppo ../cards/ui/ (la pagina è a
+// /simulatore/, le carte a /cards), in produzione ./catalog/cards/ui/ (il
+// gioco è la radice, il catalogo sotto /catalog). Lo dice vite.config.ts.
+const SITE_UI = new URL((import.meta.env.VITE_CARDS_UI as string | undefined) ?? "../cards/ui/", document.baseURI);
 
 let renderer: RendererModule;
 let catalog: CatalogModule;

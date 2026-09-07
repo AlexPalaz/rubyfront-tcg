@@ -458,6 +458,13 @@ crescita sono nel `engine/README.md`.
 
 ## Pubblicazione
 
-`npm run build` compila in `docs/simulatore/`, dentro il sito. Da lì il
-simulatore è raggiungibile insieme al resto (`/simulatore/`) e trova le carte in
-`../cards/` esattamente come in sviluppo.
+`npm run build` compila in `dist/` alla radice del repo; `node
+scripts/build-site.mjs` (dalla radice) completa il sito: il **gioco alla
+radice** `/` e il **catalogo** delle carte sotto `/catalog` (è `docs/`
+copiata tale e quale), da cui il gioco carica la grafica delle carte
+(`./catalog/cards/ui/`, `VITE_CARDS_UI`). La build **non si committa**: la
+fa Vercel a ogni push (`vercel.json`), con un'anteprima per ogni ramo. Relay ed
+engine stanno su Render in un servizio solo (`scripts/server.mjs`,
+`Dockerfile`, `render.yaml`): in produzione il simulatore cerca
+`wss://rubyfront.onrender.com/relay` e `/engine`, salvo `VITE_RELAY_URL` e
+`VITE_ENGINE_URL` impostate al build. I test girano in CI a ogni push.

@@ -72,9 +72,8 @@ const JUDGE_TIMEOUT_MS = 1500;
  * automatica lo aggancia.
  */
 export const DEFAULT_ENGINE =
-  location.protocol === "https:"
-    ? "wss://rubyfront-engine.onrender.com"
-    : `ws://${location.hostname || "localhost"}:8788`;
+  (import.meta.env.VITE_ENGINE_URL as string | undefined) ||
+  (location.protocol === "https:" ? "wss://rubyfront.onrender.com/engine" : `ws://${location.hostname || "localhost"}:8788`);
 
 export function connectEngine(engineUrl: string, handlers: EngineHandlers): EngineLink {
   let socket: WebSocket | null = null;

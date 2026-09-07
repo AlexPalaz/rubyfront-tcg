@@ -6,11 +6,14 @@
 // trenta righe su Cloudflare/Deno: il client non cambia (vedi src/net.ts).
 //
 //   node scripts/relay.mjs [porta]
+//
+// In produzione (scripts/server.mjs) il relay non ha un server suo: si
+// AGGANCIA a quello unico, sul percorso /relay, accanto all'engine.
 
 import { createHash } from "node:crypto";
 import { createServer } from "node:http";
+import { fileURLToPath } from "node:url";
 
-const PORT = Number(process.argv[2] ?? process.env.PORT ?? 8787);
 const GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
 /** stanza -> Set di socket */
@@ -52,12 +55,24 @@ function announce(room) {
   for (const peer of peers) if (peer.writable) peer.write(frame);
 }
 
-const server = createServer((request, response) => {
-  response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
-  response.end(`Relay Rubyfront attivo. Stanze aperte: ${rooms.size}\n`);
-});
+/** Quante stanze sono aperte: per l'health check. */
+export function openRooms() {
+  return rooms.size;
+}
 
-server.on("upgrade", (request, socket) => {
+/**
+ * Aggancia il relay a un server HTTP: gestisce l'upgrade WebSocket delle
+ * richieste che `accepts` riconosce (tutte, da solo; solo /relay nel server
+ * unico) e lascia le altre a chi viene dopo.
+ */
+export function attachRelay(server, accepts = () => true) {
+  server.on("upgrade", (request, socket) => {
+    if (!accepts(request)) return;
+    handleUpgrade(request, socket);
+  });
+}
+
+function handleUpgrade(request, socket) {
   const key = request.headers["sec-websocket-key"];
   if (!key) return socket.destroy();
   const room = new URL(request.url, "http://localhost").searchParams.get("room") ?? "default";
@@ -128,9 +143,18 @@ server.on("upgrade", (request, socket) => {
   };
   socket.on("close", leave);
   socket.on("error", leave);
-});
+}
 
-server.listen(PORT, () => {
-  console.log(`Relay Rubyfront su ws://localhost:${PORT}`);
-  console.log("Stessa stanza = stessa partita. Ctrl+C per fermarlo.");
-});
+// Da solo: il relay di sviluppo, sulla sua porta.
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const PORT = Number(process.argv[2] ?? process.env.PORT ?? 8787);
+  const server = createServer((request, response) => {
+    response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+    response.end(`Relay Rubyfront attivo. Stanze aperte: ${rooms.size}\n`);
+  });
+  attachRelay(server);
+  server.listen(PORT, () => {
+    console.log(`Relay Rubyfront su ws://localhost:${PORT}`);
+    console.log("Stessa stanza = stessa partita. Ctrl+C per fermarlo.");
+  });
+}

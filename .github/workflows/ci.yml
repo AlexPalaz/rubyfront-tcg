@@ -1,0 +1,33 @@
+# I test a ogni push e a ogni PR: l'engine (Ruby, i quattro file di test),
+# il simulatore (tsc, vitest) e la build della pagina.
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  engine:
+    name: Engine (Ruby)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+      - run: for t in engine/test/*_test.rb; do ruby -Iengine/lib "$t"; done
+  simulatore:
+    name: Simulatore (tsc, vitest, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: simulatore
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: simulatore/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx vitest run
+      - run: node ../scripts/build-site.mjs

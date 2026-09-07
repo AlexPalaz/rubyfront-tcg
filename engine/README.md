@@ -760,15 +760,16 @@ Nessuna dipendenza: Ruby e la sua libreria standard, come il relay
 ruby engine/bin/server        # ascolta su ws://localhost:8788
 ```
 
-**Online** l'engine sta su Render, come il relay (`render.yaml` alla radice,
-servizio `rubyfront-engine`, piano free): la pagina su GitHub Pages, che
-serve solo file statici, non può farlo girare — senza il servizio su Render
-la pagina pubblica gioca senza arbitro. In produzione (https) il simulatore
-si collega a `wss://rubyfront-engine.onrender.com` (`DEFAULT_ENGINE` in
-`simulatore/src/engine.ts`). Il piano free dorme: la prima connessione lo
-sveglia in una trentina di secondi, e la riconnessione automatica lo
-aggancia. A ogni regola nuova va fatto il deploy (manual sync del
-Blueprint, o auto-deploy dal push se attivo).
+**Online** l'engine sta su Render, nello stesso servizio del relay
+(`render.yaml` e `Dockerfile` alla radice, `scripts/server.mjs`: l'engine è
+un processo figlio raggiunto per proxy sul percorso `/engine`): una pagina
+statica non può farlo girare, e senza quel servizio la pagina pubblica
+gioca senza arbitro. In produzione (https) il simulatore si collega a
+`wss://rubyfront.onrender.com/engine` (`DEFAULT_ENGINE` in
+`simulatore/src/engine.ts`, o `VITE_ENGINE_URL` al build). Il piano free
+dormirebbe dopo un quarto d'ora: un workflow lo tocca ogni dieci minuti.
+A ogni regola nuova Render ricostruisce dal push (auto-deploy) o con un
+manual sync del Blueprint.
 
 (oppure, da `simulatore/`: `npm run engine`). Nel simulatore:
 la spia quadrata in alto diventa verde e in chat compare il saluto

@@ -29,12 +29,12 @@ export interface Net {
  * LAN funziona da sé. Pubblicata in https, la pagina esige `wss` (mixed
  * content) e punta al relay pubblico su Render (vedi render.yaml alla radice
  * del repo): se Render assegna un nome diverso, questo è il posto da
- * aggiornare.
+ * aggiornare — o la variabile VITE_RELAY_URL al build della pagina
+ * (Vercel), che vince su tutto.
  */
 export const DEFAULT_RELAY =
-  location.protocol === "https:"
-    ? "wss://rubyfront-relay.onrender.com"
-    : `ws://${location.hostname || "localhost"}:8787`;
+  (import.meta.env.VITE_RELAY_URL as string | undefined) ||
+  (location.protocol === "https:" ? "wss://rubyfront.onrender.com/relay" : `ws://${location.hostname || "localhost"}:8787`);
 
 export function connect(relayUrl: string, room: string, seat: Seat, handlers: NetHandlers): Net {
   let socket: WebSocket | null = null;

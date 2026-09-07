@@ -1,0 +1,13 @@
+# Render free dorme dopo un quarto d'ora senza traffico, e la prima
+# connessione aspetta trenta secondi: un tocco ogni dieci minuti lo tiene
+# sveglio. È l'health check del server unico (scripts/server.mjs).
+name: Keep-alive
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS --max-time 60 https://rubyfront.onrender.com/ || echo "non risponde (dorme o non c'è ancora)"

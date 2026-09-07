@@ -43,7 +43,7 @@ flowchart LR
     WS["bin/server"]
   end
 
-  RELAY["scripts/relay.mjs<br/>su Render (free)<br/>ripete, non legge"]
+  RELAY["scripts/server.mjs<br/>su Render (free): /relay e /engine<br/>il relay ripete, non legge"]
   PEER["il simulatore<br/>dell'avversario"]
 
   MAN -. "una regola alla volta" .-> EN
@@ -148,9 +148,17 @@ debito lo dice.
 
 | Pezzo | In locale | In produzione |
 |---|---|---|
-| Sito e simulatore | `npm run all` → vite su `:5199` | GitHub Pages (`docs/`), build committata a parte |
-| Relay | `:8787` | Render, piano free (`render.yaml`), `wss://rubyfront-relay.onrender.com` |
-| Engine | `:8788` | sulla macchina di chi gioca (il simulatore cerca `ws://<host>:8788`) |
+| Gioco e catalogo | `npm run all` → vite su `:5199` (`/simulatore/`, carte su `/cards`) | Vercel, build a ogni push (`vercel.json` → `scripts/build-site.mjs`): il **gioco alla radice** `/`, il **catalogo** sotto `/catalog`; esce `dist/`, non si committa |
+| Relay | `:8787` | Render, piano free, **un servizio solo** (`render.yaml` + `Dockerfile`, `scripts/server.mjs`): `wss://rubyfront.onrender.com/relay` |
+| Engine | `:8788` | lo stesso servizio, per proxy: `wss://rubyfront.onrender.com/engine` |
+| CI | — | GitHub Actions: test Ruby, tsc, vitest e build a ogni push (`ci.yml`); un tocco ogni dieci minuti tiene sveglio Render (`keepalive.yml`) |
+
+Tutto free (deciso 2026-09-07). Render free dà 750 ore al mese per
+account: relay ed engine stanno in un processo solo (`scripts/server.mjs`:
+smista per percorso, l'engine Ruby è un figlio raggiunto per proxy) perché
+due servizi sempre svegli ne consumerebbero 1440. Gli indirizzi di
+produzione sono i default di `net.ts` ed `engine.ts`; le variabili
+`VITE_RELAY_URL` e `VITE_ENGINE_URL` al build (Vercel) vincono su tutto.
 
 ## Cartelle
 

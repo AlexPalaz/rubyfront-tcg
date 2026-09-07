@@ -3,3 +3,8 @@
 
 # dipendenze del simulatore (npm install le rimette)
 node_modules/
+
+
+# la build del sito la fa la CI (Vercel): non si committa più
+docs/simulatore/
+dist/
