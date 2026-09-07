@@ -13,7 +13,7 @@
 //   attack  — la lama che esce, il taglio, il colpo di metallo
 //   block   — lo scudo: piastra, legno pesante sotto, fermaglio sopra
 //   counter — il taglio, il metallo pesante e il rintocco
-//   tap     — stoffa, soft: la carta che si corica e si raddrizza
+//   tap     — cuoio che si posa, soft e senza acuti: la carta che si corica
 //
 // Si suona con la Web Audio API (decodifica una volta, poi buffer in
 // memoria): il browser non suona prima di un gesto dell'utente, quindi il
@@ -31,7 +31,7 @@ const VARIANTS: Record<Cue, string[]> = {
   button: ["button-1", "button-2"],
   // La fase: montata ma non usata — «togli i suoni di ogni fase».
   phase: [],
-  // Il tap e lo stap: stoffa, soft.
+  // Il tap e lo stap: cuoio che si posa, soft.
   tap: ["tap-1", "tap-2", "tap-3"],
   attack: ["attack-1", "attack-2"],
   block: ["block-1", "block-2"],
