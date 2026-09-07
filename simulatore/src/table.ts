@@ -1048,7 +1048,6 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             ...own.map(step => describeAttackStep(step, ctx.card)),
           ],
           kicker: t("scene.attack"),
-          auto: isAuto(controllerOf(live)),
           onContinue: () => void playAttackTriggers(live, own),
         });
       }
@@ -1072,7 +1071,6 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           // «Quando attacca» faceva pensare a un attacco suo — la riga sotto
           // dice già chi attacca e con che carta.
           kicker: t("scene.attack.other"),
-          auto: isAuto(controllerOf(live)),
           onContinue: () => void playAttackSteps(group),
         });
       }
