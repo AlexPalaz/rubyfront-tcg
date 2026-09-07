@@ -17,5 +17,7 @@ services:
     name: rubyfront
     runtime: docker
     plan: free
+    # Francoforte: chi gioca è in Italia, e un WebSocket sente la distanza.
+    region: frankfurt
     dockerfilePath: ./Dockerfile
     healthCheckPath: /
