@@ -1271,10 +1271,12 @@ function startLocalFoe(deckId: string): void {
 // stanza — ma la gioca lui. Le decisioni stanno in bot.ts (pure); qui la
 // guida: a ogni ridisegno, se è il suo momento, compie UN gesto — con le
 // stesse azioni e lo stesso arbitro di un giocatore — poi ridisegna e
-// riparte. Per i gesti del suo posto mira, conferme e scene del tavolo
-// rispondono da sole (table.setAuto: legato al posto, così vale anche per
-// gli effetti che si risolvono a scena chiusa) e i «no» dell'arbitro non
-// mostrano il sigillo: il bot prende nota e cambia gesto.
+// riparte. Per i gesti del suo posto mira e conferme del tavolo rispondono
+// da sole (table.setAuto: legato al posto, così vale anche per gli effetti
+// che si risolvono a scena chiusa) e i «no» dell'arbitro non mostrano il
+// sigillo: il bot prende nota e cambia gesto. Le SCENE delle sue carte
+// invece le chiude il giocatore, con Continua o Risolvi: finché la scena è
+// aperta il tavolo non è fermo, e il bot aspetta.
 
 function startBot(deckId: string): void {
   if (!deckId) return;

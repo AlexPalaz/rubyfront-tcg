@@ -88,9 +88,9 @@ La guida sta in `src/main.ts` (`botTick`): a ogni ridisegno, se è il suo
 momento, compie **un gesto** — e aspetta che il tavolo sia fermo — poi
 riparte. Per i gesti del **suo posto** mira, conferme e scene del tavolo
 rispondono da sole (`table.setAuto`, legato al posto e non al momento:
-vale anche per gli effetti che si risolvono a scena chiusa): le scene si
-vedono lo stesso e si chiudono da sole, il bersaglio scelto si accende un
-attimo. I «no» dell'arbitro ai suoi gesti non mostrano il sigillo: il bot
+vale anche per gli effetti che si risolvono a scena chiusa); le scene delle
+sue carte le chiudi tu con Continua o Risolvi, e finché sono aperte il bot
+aspetta; il bersaglio scelto si accende un attimo. I «no» dell'arbitro ai suoi gesti non mostrano il sigillo: il bot
 prende nota e cambia gesto. Aspetta le aperture (§4) prima di muoversi. In
 locale e col bot, un passo d'effetto è di chi comanda la **fonte**
 dell'effetto (`actorFor`), qualunque carta tocchi.

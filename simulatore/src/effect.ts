@@ -28,8 +28,9 @@ export interface EnterEffectShow {
   onContinue?: () => void;
   /** La riga in alto: «Quando entra in campo» di norma, «Quando attacca» all'attacco. */
   kicker?: string;
-  /** La scena del bot (main.ts): si mostra lo stesso — chi guarda deve
-      vedere cosa succede — ma si chiude da sola dopo un attimo. */
+  /** Una scena che si chiude da sola dopo un attimo. Oggi nessuno la usa:
+      anche le scene del bot le chiude il giocatore, con Continua o Risolvi
+      (deciso 2026-09-07), e il bot aspetta. */
   auto?: boolean;
 }
 

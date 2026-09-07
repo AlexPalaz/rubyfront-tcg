@@ -1818,7 +1818,6 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           ...refreshes.map(step => describeRefresh(step, ctx.card)),
           ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
         ],
-        auto: isAuto(card.owner),
         onContinue:
           moves.length || returns.length || looks.length || controls.length || refreshes.length || triggers.length ? () => void playTriggers(live) : undefined,
       });
@@ -1889,7 +1888,6 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       effects,
       triggers: steps.map(step => describeResolveStep(step, ctx.card)),
       kicker: t("scene.resolve.matter"),
-      auto: isAuto(by),
       // I passi seguono la scena, qui sotto: il tasto dice solo «Risolvi».
       onContinue: () => undefined,
     });
@@ -2124,7 +2122,6 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       effects: [],
       triggers: steps.map(step => describeFlipStep(step, ctx.card)),
       kicker: t("scene.flip"),
-      auto: isAuto(by),
       onContinue: () => void playFlipSteps(steps),
     });
   }
