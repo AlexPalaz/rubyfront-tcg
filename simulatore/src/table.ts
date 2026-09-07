@@ -192,6 +192,8 @@ export interface TableView {
   onStats(provider: (seat: Seat) => HTMLElement): void;
   /** Callback per aprire la ricerca: la fornisce main.ts. */
   onBrowse(handler: (seat: Seat, zone: ZoneId) => void): void;
+  /** La lista delle carte controllate (§8.2), con un menu per carta: la apre main.ts. */
+  onListControl(handler: (seat: Seat, cards: () => CardInstance[], menuFor: (card: CardInstance) => MenuItem[]) => void): void;
   /**
    * Il bot (main.ts): il selettore che risponde a mira e pile al posto
    * delle finestre, e i gesti del tavolo che il bot compie — giocare dalla
@@ -250,6 +252,16 @@ const COUNTER_SVG =
 export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const tiles = new Map<string, HTMLElement>();
   let browse: (seat: Seat, zone: ZoneId) => void = () => {};
+  /** La lista delle carte controllate (§8.2), con un menu per carta: la
+      apre main.ts nell'overlay. */
+  let listControlHandler: (seat: Seat, cards: () => CardInstance[], menuFor: (card: CardInstance) => MenuItem[]) => void = () => {};
+  function listControlled(seat: Seat): void {
+    const cards = (): CardInstance[] =>
+      fieldCards(ctx.state())
+        .filter(card => card.controller === seat && !card.assignedTo)
+        .sort((first, second) => first.z - second.z);
+    listControlHandler(seat, cards, card => cardMenu(card));
+  }
   /** I riquadri del Rubyfront, per posto: cambiano stato col Richiamo. */
   const rubySlots = new Map<Seat, HTMLElement>();
   /** Le zone esistono già? Al primo fitScale (che gira PRIMA del primo
@@ -685,6 +697,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       occupato. Sta QUI, prima della chiamata: buildStaticZones lo riempie,
       e una const dichiarata più sotto sarebbe ancora nella sua zona morta. */
   const controlSlots = new Map<Seat, HTMLElement>();
+  /** …e il suo coperchio: con più carte controllate (§8.2) copre la pila,
+      al passaggio si accende e al click apre la lista (main.ts → overlay)
+      con un menu per carta. Sopra le tessere, sotto le mani. */
+  const controlLids = new Map<Seat, HTMLElement>();
   buildStaticZones();
 
   // Click a vuoto sulla lavagna: chiude il menu contestuale (ci pensa menu.ts)
@@ -953,7 +969,23 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // a fine turno sta qui, e non conta nei 5 del Fronte. Si vede solo
       // quando c'è: un riquadro vuoto sempre acceso diceva una regola che
       // quasi mai è in gioco (render lo accende e lo spegne).
-      controlSlots.set(seat, markSlot(CONTROL_X, back, t("zone.control")));
+      const controlSlot = markSlot(CONTROL_X, back, t("zone.control"));
+      controlSlots.set(seat, controlSlot);
+      const lid = document.createElement("button");
+      lid.type = "button";
+      lid.className = "control-lid";
+      lid.hidden = true;
+      lid.style.left = controlSlot.style.left;
+      lid.style.top = controlSlot.style.top;
+      lid.style.width = controlSlot.style.width;
+      lid.style.height = controlSlot.style.height;
+      lid.addEventListener("click", event => {
+        event.stopPropagation();
+        listControlled(seat);
+      });
+      surface.append(lid);
+      zoneEls.push(lid);
+      controlLids.set(seat, lid);
 
       // I cinque slot del Fronte, al centro. L'etichetta è una sola per il
       // gruppo: cinque scritte "Fronte" in fila sarebbero solo rumore.
@@ -3232,7 +3264,18 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
 
     for (const [seat, slot] of controlSlots) {
-      slot.style.visibility = fieldCards(state).some(card => card.controller === seat) ? "" : "hidden";
+      const held = fieldCards(state).filter(card => card.controller === seat && !card.assignedTo);
+      slot.style.visibility = held.length ? "" : "hidden";
+      // Il coperchio: solo con più carte, e solo per chi le comanda — a
+      // carta sola si agisce su di lei direttamente, come su ogni altra.
+      const lid = controlLids.get(seat);
+      if (lid) {
+        const stacked = held.length > 1 && ctx.controls(seat);
+        lid.hidden = !stacked;
+        lid.dataset.count = String(held.length);
+        lid.dataset.hint = t("control.open", { n: held.length });
+        lid.title = t("control.open", { n: held.length });
+      }
     }
     // La testata del pannello delle pile avversarie: i conti, sempre in vista.
     if (pileDock) {
@@ -3514,6 +3557,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     },
     onBrowse(handler) {
       browse = handler;
+    },
+    onListControl(handler) {
+      listControlHandler = handler;
     },
   };
 }

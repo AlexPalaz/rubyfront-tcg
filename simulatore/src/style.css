@@ -955,6 +955,56 @@ body.view-recess .board { top: var(--toolbar-h); }
   /* Uno slot vuoto deve leggersi come un posto, non sparire nel reticolo. */
   background: rgba(255, 255, 255, .018);
 }
+/* Il coperchio dello slot Controllo (§8.2): con più Entità controllate
+   copre la pila, sopra le tessere. Fermo è quasi invisibile — un conto
+   nell'angolo; al passaggio si accende un velo rubino con l'invito, e il
+   click apre la lista (overlay) con un menu per carta. */
+.control-lid {
+  position: absolute;
+  z-index: 100000;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+  cursor: var(--cur-point);
+  transition: background .18s ease, border-color .18s ease;
+}
+.control-lid[hidden] { display: none; }
+.control-lid::before {
+  content: "×" attr(data-count);
+  position: absolute;
+  top: 6px; right: 6px;
+  padding: 2px 8px;
+  font-size: calc(1rem * var(--ui-inv));
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: #fdeef1;
+  background: var(--ruby);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .35);
+}
+.control-lid::after {
+  content: attr(data-hint);
+  position: absolute;
+  inset: auto 10px 12px 10px;
+  font-size: calc(1rem * var(--ui-inv));
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #fdeef1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+.control-lid:hover, .control-lid:focus-visible {
+  background: rgba(166, 38, 64, .38);
+  border-color: var(--ruby);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+}
+.control-lid:hover::after, .control-lid:focus-visible::after { opacity: 1; }
+
 /* Il posto del Rubyfront si distingue: è l'unico riquadro del Fronte che non
    è uno dei cinque slot. */
 .slot-rubyfront { border-color: rgba(210, 74, 100, .42); }

@@ -183,6 +183,8 @@ const M: Record<string, { it: string; en: string }> = {
   "overlay.empty": { it: "Nessuna carta.", en: "No cards." },
   "overlay.shuffle": { it: " mescola alla chiusura", en: " shuffle on close" },
   "overlay.title": { it: "{zone} · {name}", en: "{zone} · {name}" },
+  "overlay.control": { it: "Entità che controlli · {n}", en: "Entities you control · {n}" },
+  "control.open": { it: "{n} Entità controllate — apri la lista", en: "{n} controlled Entities — open the list" },
   "overlay.catalog": { it: "Catalogo · evoca in mano a {name} (prova)", en: "Catalogue · summon into {name}'s hand (test)" },
 
   // ---- scena d'ingresso

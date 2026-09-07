@@ -467,6 +467,7 @@ table.onStats(hud.chip);
 document.querySelector("#side-close")!.addEventListener("click", toggleSide);
 const overlay = mountOverlay(ctx, () => paint());
 table.onBrowse((seat, zone) => overlay.open(seat, zone));
+table.onListControl((_seat, cards, menuFor) => overlay.list(t("overlay.control", { n: cards().length }), cards, menuFor));
 table.onPick((seat, zone, candidates, title, visible) => overlay.pick(seat, zone, candidates, title, visible));
 
 /** Righe arrivate a chat chiusa: due spie — messaggi (blu) e azioni (oro). */

@@ -8,7 +8,7 @@
 import { msg, t } from "./i18n.js";
 import { createCardEl, fitPending, syncCardEl, wirePreview } from "./cardview.js";
 import type { Ctx } from "./ctx.js";
-import { openMenu } from "./menu.js";
+import { openMenu, type MenuItem } from "./menu.js";
 import { allCards, cardSearchText, faceKind, isRubyfront } from "./renderer.js";
 import { playSpot, seatLabel, shuffled, zoneCards } from "./state.js";
 import type { CardInstance, Seat, ZoneId } from "./types.js";
@@ -27,6 +27,10 @@ export interface Overlay {
   /** La scelta per un effetto (§8.2): fra `candidates` di quella pila, un
       click sceglie; Chiudi o Esc rinunciano (null). */
   pick(seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string, visible?: CardInstance[]): Promise<CardInstance | null>;
+  /** Una lista di carte con un menu per ciascuna (le Entità che controlli,
+      §8.2): un click apre il menu della carta; la voce scelta chiude la
+      lista e poi agisce. */
+  list(title: string, cards: () => CardInstance[], menuFor: (card: CardInstance) => MenuItem[]): void;
   close(): void;
 }
 
@@ -76,6 +80,8 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
   let catalogMode = false;
   /** Modalità scelta (un effetto): i candidati, il titolo, e a chi dirlo. */
   let picking: { candidates: CardInstance[]; visible: CardInstance[]; title: string; done: (card: CardInstance | null) => void } | null = null;
+  /** Modalità lista (le carte controllate): un menu per carta. */
+  let listing: { title: string; cards: () => CardInstance[]; menuFor: (card: CardInstance) => MenuItem[] } | null = null;
   /** True se in questa sessione di ricerca si è presa almeno una carta. */
   let touched = false;
 
@@ -89,6 +95,10 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
     }
     if (picking) {
       paintPick(matches);
+      return;
+    }
+    if (listing) {
+      paintList(matches);
       return;
     }
     const cards = zoneCards(state, currentSeat, currentZone).filter(card => matches(card.cardId));
@@ -154,6 +164,37 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
         vanish();
         done(card);
       });
+      wrapper.append(tile);
+      grid.append(wrapper);
+    }
+    fitPending(grid);
+  }
+
+  /** La lista con un menu per carta: click o tasto destro aprono il menu
+      della carta; la voce scelta chiude la lista prima di agire, così il
+      gesto (un attacco, una mira) si vede sul tavolo. */
+  function paintList(matches: (cardId: string) => boolean): void {
+    const shown = listing!;
+    const cards = shown.cards().filter(card => matches(card.cardId));
+    title.textContent = shown.title;
+    empty.hidden = cards.length > 0;
+    grid.replaceChildren();
+    for (const card of cards) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "overlay-item";
+      const tile = createCardEl(card.uid);
+      syncCardEl(tile, card, { back: false, theme: ctx.themeFor(card.owner), locale: ctx.locale() });
+      wirePreview(tile, ctx.locale);
+      const menu = (event: MouseEvent): void => {
+        event.preventDefault();
+        const live = ctx.state().cards[card.uid] ?? card;
+        const items = shown.menuFor(live).map(item =>
+          item.run ? { ...item, run: () => { hide(); item.run!(); } } : item
+        );
+        if (items.some(item => !item.rule)) openMenu(event.clientX, event.clientY, items);
+      };
+      tile.addEventListener("click", menu);
+      tile.addEventListener("contextmenu", menu);
       wrapper.append(tile);
       grid.append(wrapper);
     }
@@ -245,6 +286,10 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
     // fa una volta sola.
     if (host.hidden || host.classList.contains("is-leaving")) return;
     vanish();
+    if (listing) {
+      listing = null;
+      return;
+    }
     if (picking) {
       // Chiudere senza scegliere è rinunciare.
       const done = picking.done;
@@ -277,6 +322,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       currentSeat = seat;
       currentZone = zone;
       catalogMode = false;
+      listing = null;
       picking = null;
       touched = false;
       search.value = "";
@@ -290,6 +336,7 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
         currentSeat = seat;
         currentZone = zone;
         catalogMode = false;
+        listing = null;
         touched = false;
         picking = { candidates, visible: visible ?? candidates, title: pickTitle, done: resolve };
         search.value = "";
@@ -299,9 +346,20 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
         search.focus();
       });
     },
+    list(listTitle, cards, menuFor) {
+      catalogMode = false;
+      picking = null;
+      touched = false;
+      listing = { title: listTitle, cards, menuFor };
+      search.value = "";
+      shuffleAfter.hidden = true;
+      reveal();
+      paint();
+    },
     openCatalog(seat) {
       currentSeat = seat;
       catalogMode = true;
+      listing = null;
       picking = null;
       touched = false;
       search.value = "";
