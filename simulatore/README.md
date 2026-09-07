@@ -66,7 +66,9 @@ conosce il nome della stanza, come a un tavolo privato.
 
 Dall'accoglienza, **«Gioca contro il bot»**: si sceglie il proprio mazzo e
 quello del bot, e l'altra metà del tavolo la gioca lui — senza stanza, con
-l'arbitro acceso se c'è. Difficoltà **media**, la sola per ora (facile,
+l'arbitro acceso se c'è. È l'unica via senza stanza: la partita locale a
+due posti sullo stesso mouse è stata tolta il 2026-09-07 («ormai c'è il
+bot»). Difficoltà **media**, la sola per ora (facile,
 difficile e leggenda verranno).
 
 Il bot non ha scorciatoie: gioca attraverso le **stesse azioni** di un
@@ -96,7 +98,7 @@ locale e col bot, un passo d'effetto è di chi comanda la **fonte**
 dell'effetto (`actorFor`), qualunque carta tocchi.
 
 **Uscire dal tavolo**: dalle impostazioni, «Esci dal tavolo» lascia la
-stanza (o congeda il bot, o l'avversario locale), azzera la partita e
+stanza (o congeda il bot), azzera la partita e
 riporta all'accoglienza. La stanza salvata si dimentica; nome e mazzo
 restano.
 

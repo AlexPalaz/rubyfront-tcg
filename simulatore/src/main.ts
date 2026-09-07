@@ -100,10 +100,11 @@ let engine: EngineLink | null = null;
  */
 let myDeckId: string | null = store.read("deck", "") || null;
 /**
- * Il mazzo dell'avversario simulato in partita locale (senza stanza): c'è
- * solo dopo «Gioca in locale», e cade appena si entra in una stanza vera.
+ * Il mazzo del bot (senza stanza): c'è solo dopo «Gioca contro il bot», e
+ * cade appena si entra in una stanza vera. Il bot rimette il suo mazzo da
+ * sé a «Nuova partita».
  */
-let localFoeDeckId: string | null = null;
+let botDeckId: string | null = null;
 /** Il posto del bot, quando l'altra metà del tavolo la gioca lui (botTick). */
 let botSeat: Seat | null = null;
 // Lo stato della guida del bot (in fondo al file): sta qui in testa perché
@@ -302,15 +303,15 @@ function receive(action: Action, from: Seat): void {
 
 /**
  * Chi compie il gesto, per l'arbitro (§6: nel turno altrui non si agisce).
- * In rete è sempre questo client, cioè il suo posto. In partita locale lo
- * stesso mouse governa entrambi i posti: l'attore è allora il proprietario
- * della carta toccata, o il posto del contatore o del mazzo — e per i gesti
- * senza posto (fase, turno) chi è di turno. Un passo d'effetto è di chi
- * comanda la fonte dell'effetto (vedi sotto), non della carta che lo
- * subisce. In rete il gesto è di chi trascina.
+ * In rete è sempre questo client, cioè il suo posto. Col bot al tavolo i
+ * gesti passano di qui per entrambi i posti: l'attore è allora il
+ * proprietario della carta toccata, o il posto del contatore o del mazzo —
+ * e per i gesti senza posto (fase, turno) chi è di turno. Un passo
+ * d'effetto è di chi comanda la fonte dell'effetto (vedi sotto), non della
+ * carta che lo subisce.
  */
 function actorFor(action: Action): Seat {
-  if (localFoeDeckId === null) return mySeat;
+  if (botDeckId === null) return mySeat;
   // Un passo d'effetto è di chi comanda la FONTE dell'effetto, qualunque
   // carta tocchi: mandare nell'Abisso un'Entità avversaria è un gesto di
   // chi ha giocato la carta che lo fa, non dell'avversario che la subisce.
@@ -339,10 +340,9 @@ const ctx: Ctx = {
   state: () => state,
   dispatch,
   seat: () => mySeat,
-  // In partita locale (hotseat) si governano entrambi i posti: turni, mani
-  // e mazzi dei due giocatori rispondono allo stesso mouse.
-  // Col bot al tavolo l'altra metà è sua: il mouse governa solo il proprio posto.
-  controls: seat => seat === mySeat || (localFoeDeckId !== null && botSeat === null),
+  // Il mouse governa solo il proprio posto: l'altra metà è di chi c'è
+  // (in rete) o del bot.
+  controls: seat => seat === mySeat,
   arbitrated: () => engine?.status() === "online",
   themeFor: seat => themes[seat],
   locale: () => locale,
@@ -603,7 +603,7 @@ function scheduleOpening(seat: Seat, deckId: string): void {
     if (state.players[seat].deckId !== deckId || handSize(seat) !== 0) return;
     // §4, mano iniziale: «prima che inizi il primo turno, entrambi i
     // giocatori pescano 6 carte». Il mazzo esce da buildDeck già mescolato,
-    // quindi la pesca parte da sola — a ogni via d'inizio (partita locale,
+    // quindi la pesca parte da sola — a ogni via d'inizio (bot,
     // stanza, Nuova partita), perché tutte passano di qui. Il mulligan (§4,
     // punto 5) resta un gesto manuale: «Mescola» e poi «Pesca 6» dal mazzo.
     void dispatch({ t: "draw", seat, count: 6 });
@@ -687,12 +687,11 @@ function join(room: string, relay: string): void {
   }
   store.write("room", room);
   store.write("relay", relay);
-  // In una stanza vera l'altra metà del tavolo è di qualcuno: l'avversario
-  // simulato della partita locale si alza — via le sue carte e il suo nome,
-  // il posto torna «In attesa…» per chi arriva. (La rete qui è già chiusa:
-  // il congedo resta locale.)
-  if (localFoeDeckId) {
-    localFoeDeckId = null;
+  // In una stanza vera l'altra metà del tavolo è di qualcuno: il bot si
+  // alza — via le sue carte e il suo nome, il posto torna «In attesa…» per
+  // chi arriva. (La rete qui è già chiusa: il congedo resta locale.)
+  if (botDeckId) {
+    botDeckId = null;
     botSeat = null;
     table.setAuto(null, botChooser);
     const foe = otherSeat(mySeat);
@@ -814,10 +813,7 @@ document.querySelector("#do-new")!.addEventListener("click", () => {
   // torna all'attesa e il mazzo si rimette quando entra.
   seatOrWait();
   reapplyName();
-  if (localFoeDeckId) {
-    if (botSeat) startBot(localFoeDeckId);
-    else startLocalFoe(localFoeDeckId);
-  }
+  if (botDeckId) startBot(botDeckId);
 });
 
 /** La nuova partita azzera anche i nomi: il proprio si rimette da sé. */
@@ -1131,24 +1127,23 @@ if (myDeckId) obDeck.value = myDeckId;
 const otherDeck = allDecks().find(deck => deck.id !== obDeck.value);
 if (otherDeck) obDeckB.value = otherDeck.id;
 
-/** Da dove si è entrati: una stanza, «Gioca in locale» (si guidano entrambi
-    i posti) o «Gioca contro il bot» (l'altra metà la gioca lui). */
-let obMode: "net" | "local" | "bot" = "net";
+/** Da dove si è entrati: una stanza, o «Gioca contro il bot» (l'altra metà
+    la gioca lui, e serve anche il suo mazzo). */
+let obMode: "net" | "bot" = "net";
 
-function obProfile(mode: "net" | "local" | "bot" = "net"): void {
+function obProfile(mode: "net" | "bot" = "net"): void {
   obMode = mode;
-  const twoDecks = mode !== "net";
+  const twoDecks = mode === "bot";
   onboard.hidden = false;
   obStepRoom.hidden = true;
   obStepWait.hidden = true;
   obStepProfile.hidden = false;
   obDeckB.hidden = !twoDecks;
   obDeckBLabel.hidden = !twoDecks;
-  obDeckBLabel.textContent = t(mode === "bot" ? "html.ob.deck.bot" : "html.ob.deck.b");
   obName.value = store.read("name", "");
   const room = roomInput.value.trim();
   obRoomNote.hidden = !room && !twoDecks;
-  obRoomNote.textContent = room ? t("html.ob.room.note", { room }) : mode === "bot" ? t("html.ob.bot.note") : mode === "local" ? t("html.ob.local.note") : "";
+  obRoomNote.textContent = room ? t("html.ob.room.note", { room }) : mode === "bot" ? t("html.ob.bot.note") : "";
   obName.focus();
 }
 
@@ -1173,7 +1168,6 @@ obRoom.addEventListener("keydown", event => {
   if (event.key === "Enter") document.querySelector<HTMLButtonElement>("#ob-join")!.click();
 });
 
-document.querySelector("#ob-local")!.addEventListener("click", () => obProfile("local"));
 document.querySelector("#ob-bot")!.addEventListener("click", () => obProfile("bot"));
 
 document.querySelector("#ob-go")!.addEventListener("click", () => {
@@ -1188,7 +1182,6 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
     store.write("deck", obDeck.value);
   }
   onboard.hidden = true;
-  if (obMode === "local") startLocalFoe(obDeckB.value);
   if (obMode === "bot") startBot(obDeckB.value);
   // In stanza il tavolo si apre solo quando c'è anche l'altro giocatore:
   // il mazzo si mette giù ora o al suo arrivo.
@@ -1197,13 +1190,8 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
 });
 
 /**
- * La partita locale siede anche l'altra metà del tavolo: mazzo caricato al
- * posto opposto e un nome al giocatore simulato. Il mazzo resta noto al
- * client: a «nuova partita» l'avversario locale si rimette in tavola da sé.
- */
-/**
- * «Esci dal tavolo»: si lascia la stanza (o si congeda il bot o l'avversario
- * locale), il tavolo si azzera e si torna all'accoglienza, al primo passo.
+ * «Esci dal tavolo»: si lascia la stanza (o si congeda il bot), il tavolo
+ * si azzera e si torna all'accoglienza, al primo passo.
  * La stanza salvata si dimentica: alla prossima visita si sceglie di nuovo.
  * Il proprio nome e il proprio mazzo restano ricordati.
  */
@@ -1213,7 +1201,7 @@ function leaveTable(): void {
   deckDeferred = false;
   botSeat = null;
   table.setAuto(null, botChooser);
-  localFoeDeckId = null;
+  botDeckId = null;
   join("", relayInput.value);
   store.write("room", "");
   roomInput.value = "";
@@ -1256,19 +1244,10 @@ document.querySelector("#do-leave")!.addEventListener("click", () => {
   leaveTable();
 });
 
-function startLocalFoe(deckId: string): void {
-  if (!deckId) return;
-  localFoeDeckId = deckId;
-  const foe = otherSeat(mySeat);
-  dispatch({ t: "player", seat: foe, patch: { name: "Avversario" } });
-  loadDeck(deckId, foe);
-}
-
 // ------------------------------------------------------------------ il bot
 //
-// L'avversario automatico siede all'altra metà del tavolo come l'avversario
-// locale — stesso mazzo caricato al posto opposto, stessa partita senza
-// stanza — ma la gioca lui. Le decisioni stanno in bot.ts (pure); qui la
+// L'avversario automatico siede all'altra metà del tavolo — il suo mazzo
+// caricato al posto opposto, una partita senza stanza — e la gioca lui. Le decisioni stanno in bot.ts (pure); qui la
 // guida: a ogni ridisegno, se è il suo momento, compie UN gesto — con le
 // stesse azioni e lo stesso arbitro di un giocatore — poi ridisegna e
 // riparte. Per i gesti del suo posto mira e conferme del tavolo rispondono
@@ -1280,7 +1259,7 @@ function startLocalFoe(deckId: string): void {
 
 function startBot(deckId: string): void {
   if (!deckId) return;
-  localFoeDeckId = deckId;
+  botDeckId = deckId;
   botSeat = otherSeat(mySeat);
   botMemory = freshMemory(state.turn);
   // Le scelte automatiche sono legate al posto del bot, non al momento:

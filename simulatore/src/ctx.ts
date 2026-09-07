@@ -226,8 +226,8 @@ export interface Ctx {
   /** Il posto occupato da questo browser. */
   seat(): Seat;
   /**
-   * Vero se questo client governa quel posto: il proprio sempre, ENTRAMBI in
-   * partita locale (hotseat, senza stanza). È il cancello di ogni gesto di
+   * Vero se questo client governa quel posto: il proprio, e basta — l'altra
+   * metà è di chi c'è in rete o del bot. È il cancello di ogni gesto di
    * gioco — trascinare, pescare, dichiarare, chiudere il turno — mentre
    * `seat()` resta la prospettiva: quale metà sta in basso, quale mano è "la
    * tua". Le due cose non vanno confuse.

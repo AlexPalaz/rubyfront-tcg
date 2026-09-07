@@ -264,8 +264,8 @@ export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
 
   // Il Fine turno è di chi è di turno: per l'altro si ingrigisce. È l'unico
   // "impedimento" del simulatore, e serve al ritmo: passo io, poi passi tu.
-  // In partita locale si governano entrambi i posti: il tasto resta sempre
-  // acceso, e chiude il turno di chiunque tocchi.
+  // Col bot al tavolo l'altra metà è sua: il tasto si accende solo quando
+  // il gesto è del proprio posto.
   syncs.push(() => {
     const state = ctx.state();
     // La Reazione la chiude chi difende (§6.4): lì il gesto passa dall'altra

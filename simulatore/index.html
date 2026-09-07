@@ -137,7 +137,6 @@
         <button type="button" id="ob-join" data-i18n="html.join">Entra</button>
       </div>
       <button type="button" id="ob-bot" class="onboard-skip" data-i18n="html.ob.bot">Gioca contro il bot</button>
-      <button type="button" id="ob-local" class="onboard-skip" data-i18n="html.ob.local">Gioca in locale, senza stanza</button>
     </div>
 
     <div id="ob-step-profile" hidden>
@@ -146,9 +145,8 @@
       <input id="ob-name" placeholder="es. Ajmal" data-i18n-placeholder="html.ob.name.ph" autocomplete="off" maxlength="24">
       <label class="onboard-label" for="ob-deck" data-i18n="html.ob.deck">Il mazzo con cui giochi</label>
       <select id="ob-deck"></select>
-      <!-- Solo in partita locale: si guidano entrambi i posti, serve anche
-           il mazzo dell'altra metà del tavolo. -->
-      <label class="onboard-label" for="ob-deck-b" id="ob-deck-b-label" hidden data-i18n="html.ob.deck.b">Il mazzo dell'avversario</label>
+      <!-- Solo contro il bot: serve anche il suo mazzo. -->
+      <label class="onboard-label" for="ob-deck-b" id="ob-deck-b-label" hidden data-i18n="html.ob.deck.bot">Il mazzo del bot</label>
       <select id="ob-deck-b" hidden></select>
       <button type="button" id="ob-go" class="onboard-primary" data-i18n="html.ob.go">Al tavolo</button>
     </div>
