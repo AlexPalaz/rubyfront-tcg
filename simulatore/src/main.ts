@@ -82,6 +82,16 @@ let locale = params.get("lang") ?? store.read("lang", "it");
 setLang(locale);
 applyHtmlLang();
 let net: Net | null = null;
+/** Quanti client il relay conta nella stanza (me compreso), 0 se scollegati. */
+let roomPeers = 0;
+/**
+ * Il tavolo si apre solo quando c'è anche l'altro giocatore: chi crea o
+ * entra in una stanza resta all'accoglienza finché il relay conta due. Il
+ * mazzo scelto si mette in tavola solo allora (deckDeferred), così
+ * l'apertura — insegna, mano, carta del turno 1 — si vede insieme.
+ */
+let awaitingPeer = false;
+let deckDeferred = false;
 /** L'arbitro esterno (engine/): c'è solo se il flag nelle impostazioni è acceso. */
 let engine: EngineLink | null = null;
 /**
@@ -587,6 +597,43 @@ function setStatus(status: NetStatus, peers: number): void {
   const dot = document.querySelector<HTMLElement>("#net-dot")!;
   dot.dataset.status = status;
   dot.title = status === "online" ? t("net.online", { n: peers }) : t(status === "connecting" ? "net.connecting" : "net.offline");
+  roomPeers = status === "online" ? peers : 0;
+  obWaitText.textContent = t(status === "online" ? "html.ob.wait.alone" : "html.ob.wait.connecting");
+  if (awaitingPeer && roomPeers >= 2) seatTable();
+}
+
+// L'accoglienza sta in fondo al file, ma il passo d'attesa serve già qui:
+// setStatus parte con la prima join, prima che il wizard sia montato.
+const onboard = document.querySelector<HTMLElement>("#onboard")!;
+const obStepWait = document.querySelector<HTMLElement>("#ob-step-wait")!;
+const obWaitNote = document.querySelector<HTMLElement>("#ob-wait-note")!;
+const obWaitText = document.querySelector<HTMLElement>("#ob-wait-text")!;
+
+/** Si resta all'accoglienza finché nella stanza non c'è anche l'altro. */
+function waitForPeer(): void {
+  awaitingPeer = true;
+  obWaitNote.textContent = t("html.ob.wait.note", { room: roomInput.value.trim() });
+  for (const step of onboard.querySelectorAll<HTMLElement>("[id^='ob-step-']")) step.hidden = step !== obStepWait;
+  onboard.hidden = false;
+}
+
+/** L'altro è entrato: si va al tavolo, e il mazzo rimandato si mette giù. */
+function seatTable(): void {
+  awaitingPeer = false;
+  onboard.hidden = true;
+  obStepWait.hidden = true;
+  if (deckDeferred && myDeckId) loadDeck(myDeckId, mySeat);
+  deckDeferred = false;
+}
+
+/** Il mazzo va in tavola ora, oppure quando arriva l'altro giocatore. */
+function seatOrWait(): void {
+  if (net && roomPeers < 2) {
+    deckDeferred = true;
+    waitForPeer();
+    return;
+  }
+  if (myDeckId) loadDeck(myDeckId, mySeat);
 }
 
 let seatClashWarned = false;
@@ -731,7 +778,9 @@ document.querySelector("#do-new")!.addEventListener("click", () => {
     if (!passed) return;
     ctx.log(msg("log.newgame", { seat: starter }));
   });
-  if (myDeckId) loadDeck(myDeckId, mySeat);
+  // In stanza, senza l'altro giocatore, la partita nuova aspetta lui: si
+  // torna all'attesa e il mazzo si rimette quando entra.
+  seatOrWait();
   reapplyName();
   if (localFoeDeckId) {
     if (botSeat) startBot(localFoeDeckId);
@@ -762,7 +811,7 @@ document.querySelector("#room-create")!.addEventListener("click", () => {
   roomInput.value = name;
   join(name, relayInput.value);
 });
-document.querySelector("#room-invite")!.addEventListener("click", async () => {
+async function copyInvite(button: HTMLButtonElement, resetKey: string): Promise<void> {
   const room = roomInput.value.trim();
   if (!room) return;
   const url = new URL(location.href);
@@ -770,7 +819,6 @@ document.querySelector("#room-invite")!.addEventListener("click", async () => {
   url.searchParams.set("room", room);
   url.searchParams.set("seat", otherSeat(mySeat));
   if (relayInput.value && relayInput.value !== DEFAULT_RELAY) url.searchParams.set("relay", relayInput.value);
-  const button = document.querySelector<HTMLButtonElement>("#room-invite")!;
   try {
     await navigator.clipboard.writeText(url.href);
     button.textContent = t("copied");
@@ -779,8 +827,15 @@ document.querySelector("#room-invite")!.addEventListener("click", async () => {
     prompt(t("invite.prompt"), url.href);
     return;
   }
-  window.setTimeout(() => (button.textContent = t("copylink")), 1600);
+  window.setTimeout(() => (button.textContent = t(resetKey)), 1600);
+}
+document.querySelector("#room-invite")!.addEventListener("click", function (this: HTMLButtonElement) {
+  void copyInvite(this, "copylink");
 });
+document.querySelector("#ob-wait-invite")!.addEventListener("click", function (this: HTMLButtonElement) {
+  void copyInvite(this, "html.ob.wait.invite");
+});
+document.querySelector("#ob-wait-leave")!.addEventListener("click", () => leaveTable());
 
 // Il fermo dell'arbitro: una regola ha bloccato l'azione. Non un alert da
 // browser ma un sigillo del gioco — la gemma del marchio, il motivo in
@@ -1026,7 +1081,6 @@ if (roomInput.value) join(roomInput.value, relayInput.value);
 // il wizard accompagna dentro — stanza, poi nome e mazzo. Chi arriva con
 // una stanza (salvata o da link d'invito) ma senza mazzo parte dal secondo
 // passo; chi ha già tutto non lo vede.
-const onboard = document.querySelector<HTMLElement>("#onboard")!;
 const obStepRoom = document.querySelector<HTMLElement>("#ob-step-room")!;
 const obStepProfile = document.querySelector<HTMLElement>("#ob-step-profile")!;
 const obRoom = document.querySelector<HTMLInputElement>("#ob-room")!;
@@ -1054,6 +1108,7 @@ function obProfile(mode: "net" | "local" | "bot" = "net"): void {
   const twoDecks = mode !== "net";
   onboard.hidden = false;
   obStepRoom.hidden = true;
+  obStepWait.hidden = true;
   obStepProfile.hidden = false;
   obDeckB.hidden = !twoDecks;
   obDeckBLabel.hidden = !twoDecks;
@@ -1097,11 +1152,16 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
   }
   if (obDeck.value) {
     deckPick.value = obDeck.value;
-    loadDeck(obDeck.value, mySeat);
+    myDeckId = obDeck.value;
+    store.write("deck", obDeck.value);
   }
+  onboard.hidden = true;
   if (obMode === "local") startLocalFoe(obDeckB.value);
   if (obMode === "bot") startBot(obDeckB.value);
-  onboard.hidden = true;
+  // In stanza il tavolo si apre solo quando c'è anche l'altro giocatore:
+  // il mazzo si mette giù ora o al suo arrivo.
+  if (obMode === "net") seatOrWait();
+  else if (myDeckId) loadDeck(myDeckId, mySeat);
 });
 
 /**
@@ -1117,6 +1177,8 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
  */
 function leaveTable(): void {
   window.clearTimeout(botTimer);
+  awaitingPeer = false;
+  deckDeferred = false;
   botSeat = null;
   table.setAuto(null, botChooser);
   localFoeDeckId = null;
@@ -1131,6 +1193,7 @@ function leaveTable(): void {
   onboard.hidden = false;
   obStepRoom.hidden = false;
   obStepProfile.hidden = true;
+  obStepWait.hidden = true;
   settingsPanel.hidden = true;
   paint();
 }
