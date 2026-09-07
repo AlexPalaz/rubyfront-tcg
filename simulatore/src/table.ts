@@ -2309,6 +2309,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   /** Quanto dura il volo di una carta verso una pila (come .fly-ghost). */
   const FLY_MS = 1600;
+  /** …e verso il pannello ripiegato delle pile avversarie: un guizzo, non un volo. */
+  const DOCK_FLY_MS = 400;
 
   /**
    * La carta vola verso una pila: un fantasma della tessera, preso PRIMA che
@@ -2342,17 +2344,20 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const slot = pileSlots.get(`${live.owner}:${zone}`);
       let to = slot?.getBoundingClientRect();
       // In rincasso le pile avversarie stanno nel pannello: ripiegato, il
-      // riquadro non ha misura sullo schermo e il fantasma restava a
-      // rimpicciolirsi nel vuoto per un secondo e mezzo. Si vola alla
-      // TESTATA del pannello (i conti), in fretta, e si svanisce del tutto.
-      const docked = !!to && to.width < 4 && pileDock !== null;
+      // riquadro non si vede (la fila si chiude in ALTEZZA: la larghezza
+      // resta, quindi non basta misurarla) e il fantasma restava a
+      // rimpicciolirsi nel vuoto per un secondo e mezzo, con un velo
+      // residuo. Si vola alla TESTATA del pannello (i conti), in fretta,
+      // e si svanisce del tutto.
+      const docked =
+        !!to && pileDock !== null && (pileDock.classList.contains("is-collapsed") && pileDock.contains(slot!) || to.width < 4 || to.height < 4);
       if (docked) to = pileDock!.querySelector<HTMLElement>(".pile-dock-head")?.getBoundingClientRect() ?? undefined;
       if (!to) {
         ghost.remove();
         return;
       }
       const target = to;
-      if (docked) ghost.style.transitionDuration = "650ms";
+      if (docked) ghost.style.transitionDuration = `${DOCK_FLY_MS}ms`;
       // Un frame dopo, così la transizione parte dalla posizione di ora.
       requestAnimationFrame(() => {
         const scale = docked ? 0.25 : target.width / layoutW;
@@ -2361,7 +2366,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         ghost.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
         ghost.style.opacity = docked ? "0" : "0.15";
       });
-      window.setTimeout(() => ghost.remove(), (docked ? 650 : FLY_MS) + 60);
+      window.setTimeout(() => ghost.remove(), (docked ? DOCK_FLY_MS : FLY_MS) + 60);
     }) as Flight;
     // Il «no» dell'arbitro: la carta non parte, e il fantasma — che è
     // già sul tavolo, sopra la tessera vera — deve sparire, o resta lì
