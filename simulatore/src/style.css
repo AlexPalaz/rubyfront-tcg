@@ -2351,7 +2351,6 @@ body.is-targeting .tile.is-legal {
 }
 .hud-badge:empty { display: none; }
 .hud-badge-chat { right: -5px; color: #052430; background: #56b6e6; }
-.hud-badge-log { left: -5px; color: #241b02; background: var(--warn); }
 
 /* I dadi: quattro tagli e, sotto, l'ultimo esito. L'esito vive anche in chat,
    firmato dal posto che tira — qui resta solo l'ultimo, a portata d'occhio. */

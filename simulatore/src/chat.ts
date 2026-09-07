@@ -56,10 +56,10 @@ export function mountChat(root: HTMLElement, ctx: Ctx): Chat {
       }
       const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
       for (const entry of entries.slice(painted)) {
-        // Le TUE azioni non si notificano: le hai appena fatte, le vedi sul
-        // tavolo. La chat racconta ciò che ARRIVA — le azioni dell'avversario
-        // e i messaggi (i tuoi compresi: una conversazione si legge intera).
-        if (entry.kind === "log" && entry.seat === ctx.seat()) continue;
+        // La chat è SOLO conversazione (scelta del designer, 2026-09-07): la
+        // cronaca delle azioni resta nello stato (l'engine e la rete la
+        // usano) ma non si stampa — il tavolo racconta da sé quel che accade.
+        if (entry.kind !== "chat") continue;
         const row = document.createElement("p");
         row.className = `chat-row is-${entry.kind}`;
         // I colori dicono cosa stai leggendo: viola i tuoi messaggi, indaco le

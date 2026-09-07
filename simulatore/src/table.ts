@@ -262,11 +262,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       In rincasso non è più una fascia in cima al tavolo. */
   let dockHand: HTMLElement | null = null;
   const PILE_DOCK_KEY = "rbf-sim:piledock";
+  /** Il pannello parte CHIUSO (scelta del designer, 2026-09-07): si apre
+      solo chi l'ha aperto l'ultima volta. */
   function pileDockOpen(): boolean {
     try {
-      return localStorage.getItem(PILE_DOCK_KEY) !== "closed";
+      return localStorage.getItem(PILE_DOCK_KEY) === "open";
     } catch {
-      return true;
+      return false;
     }
   }
   /** La scelta di questa seduta: prima del primo click vale quella salvata
@@ -279,7 +281,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     try {
       localStorage.setItem(PILE_DOCK_KEY, open ? "open" : "closed");
     } catch {
-      /* niente memoria: si riparte aperto */
+      /* niente memoria: si riparte chiuso */
     }
     pileChoice = open;
     // Il pannello si apre e si chiude sul posto, con la sua transizione

@@ -234,13 +234,11 @@ export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
   actions.append(front, pass);
 
   /** Le due spie di un tasto: blu per i messaggi, oro per le azioni. */
-  const makeBadges = (host: HTMLElement): { chat: HTMLElement; log: HTMLElement } => {
+  const makeBadges = (host: HTMLElement): { chat: HTMLElement } => {
     const chat = document.createElement("span");
     chat.className = "hud-badge hud-badge-chat";
-    const log = document.createElement("span");
-    log.className = "hud-badge hud-badge-log";
-    host.append(chat, log);
-    return { chat, log };
+    host.append(chat);
+    return { chat };
   };
 
   const chatToggle = document.createElement("button");
@@ -382,11 +380,8 @@ export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
       const voiceOn = document.body.dataset.voice === "on";
       mic.classList.toggle("is-on", voiceOn);
       tip(mic, t(voiceOn ? "hud.mic.on" : "hud.mic.off"));
-      // Le spie dei non letti stanno sul tasto della chat.
-      const unreadChat = document.body.dataset.unread ?? "";
-      const unreadLog = document.body.dataset.unreadLog ?? "";
-      chatBadges.chat.textContent = unreadChat;
-      chatBadges.log.textContent = unreadLog;
+      // La spia dei messaggi non letti sta sul tasto della chat.
+      chatBadges.chat.textContent = document.body.dataset.unread ?? "";
     },
   };
 }

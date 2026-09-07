@@ -430,7 +430,6 @@ function toggleSide(): void {
   const closed = document.body.classList.toggle("side-closed");
   store.write("side", closed ? "closed" : "open");
   unreadChat = 0;
-  unreadLog = 0;
   paint();
 }
 // Turno, gesto di fase, Evoca, chat e microfono stanno in header; le targhe
@@ -463,29 +462,19 @@ table.onPick((seat, zone, candidates, title, visible) => overlay.pick(seat, zone
 
 /** Righe arrivate a chat chiusa: due spie — messaggi (blu) e azioni (oro). */
 let unreadChat = 0;
-let unreadLog = 0;
 let seenChat = 0;
-let seenLog = 0;
 
 function paint(): void {
   syncThemes();
-  // A chat chiusa i tasti portano due spie — blu i messaggi, oro le azioni —
-  // altrimenti ciò che arriva passerebbe inosservato. Contano solo le righe
-  // dell'AVVERSARIO: le proprie non sono notizie.
-  const fromFoe = state.chat.filter(entry => entry.seat && entry.seat !== mySeat);
-  const chats = fromFoe.filter(entry => entry.kind === "chat").length;
-  const logs = fromFoe.filter(entry => entry.kind === "log").length;
-  if (document.body.classList.contains("side-closed")) {
-    unreadChat += Math.max(0, chats - seenChat);
-    unreadLog += Math.max(0, logs - seenLog);
-  } else {
-    unreadChat = 0;
-    unreadLog = 0;
-  }
+  // A chat chiusa il tasto porta la spia dei messaggi non letti, altrimenti
+  // ciò che arriva passerebbe inosservato. Contano solo i messaggi
+  // dell'AVVERSARIO: i propri non sono notizie. La cronaca delle azioni
+  // non si stampa più in chat, e non ha spia.
+  const chats = state.chat.filter(entry => entry.kind === "chat" && entry.seat && entry.seat !== mySeat).length;
+  if (document.body.classList.contains("side-closed")) unreadChat += Math.max(0, chats - seenChat);
+  else unreadChat = 0;
   seenChat = chats;
-  seenLog = logs;
   document.body.dataset.unread = unreadChat > 0 ? String(unreadChat) : "";
-  document.body.dataset.unreadLog = unreadLog > 0 ? String(unreadLog) : "";
   table.render();
   banner.render();
   chat.render();
