@@ -2325,17 +2325,28 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     document.body.append(ghost);
     const flight = (() => {
       const slot = pileSlots.get(`${live.owner}:${zone}`);
-      const to = slot?.getBoundingClientRect();
+      let to = slot?.getBoundingClientRect();
+      // In rincasso le pile avversarie stanno nel pannello: ripiegato, il
+      // riquadro non ha misura sullo schermo e il fantasma restava a
+      // rimpicciolirsi nel vuoto per un secondo e mezzo. Si vola alla
+      // TESTATA del pannello (i conti), in fretta, e si svanisce del tutto.
+      const docked = !!to && to.width < 4 && pileDock !== null;
+      if (docked) to = pileDock!.querySelector<HTMLElement>(".pile-dock-head")?.getBoundingClientRect() ?? undefined;
       if (!to) {
         ghost.remove();
         return;
       }
+      const target = to;
+      if (docked) ghost.style.transitionDuration = "650ms";
       // Un frame dopo, così la transizione parte dalla posizione di ora.
       requestAnimationFrame(() => {
-        ghost.style.transform = `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / layoutW})`;
-        ghost.style.opacity = "0.15";
+        const scale = docked ? 0.25 : target.width / layoutW;
+        const dx = docked ? target.left + target.width / 2 - from.left - (layoutW * scale) / 2 : target.left - from.left;
+        const dy = docked ? target.top + target.height / 2 - from.top - (layoutH * scale) / 2 : target.top - from.top;
+        ghost.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+        ghost.style.opacity = docked ? "0" : "0.15";
       });
-      window.setTimeout(() => ghost.remove(), FLY_MS + 60);
+      window.setTimeout(() => ghost.remove(), (docked ? 650 : FLY_MS) + 60);
     }) as Flight;
     // Il «no» dell'arbitro: la carta non parte, e il fantasma — che è
     // già sul tavolo, sopra la tessera vera — deve sparire, o resta lì
@@ -2352,7 +2363,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const slot = pileSlots.get(`${seat}:${zone}`);
     const tile = tiles.get(uid);
     if (!slot || !tile) return;
-    const from = slot.getBoundingClientRect();
+    let from = slot.getBoundingClientRect();
+    // Pila avversaria nel pannello ripiegato (rincasso): si parte dalla
+    // sua testata, che sullo schermo c'è.
+    if (from.width < 4 && pileDock) from = pileDock.querySelector<HTMLElement>(".pile-dock-head")?.getBoundingClientRect() ?? from;
+    if (from.width < 4) return;
     const to = tile.getBoundingClientRect();
     // Come in liftForFlight: misura di layout, scala della lavagna.
     const layoutW = tile.offsetWidth;
