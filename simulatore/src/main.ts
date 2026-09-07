@@ -1273,6 +1273,8 @@ function scheduleBot(delay = BOT_PACE_MS): void {
 /** Il tavolo è fermo: nessuna scena, nessun dado, nessuna mira, nessun effetto in corso. */
 function tableQuiet(): boolean {
   return (
+    // L'insegna di fase ferma tutti, bot compreso (banner.ts).
+    !document.body.classList.contains("is-announcing") &&
     !document.body.classList.contains("is-resolving") &&
     !document.body.classList.contains("is-targeting") &&
     !document.querySelector(".effect-veil, .effect-confirm, .dice-roll")

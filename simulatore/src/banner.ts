@@ -1,8 +1,11 @@
 // L'insegna di fase: a ogni cambio di fase (o di turno, che riporta in
 // Preparazione) una scritta compare al centro del tavolo, resta un attimo e
 // svanisce. Dice in che momento della partita si è — turno e fase — dove
-// gli occhi stanno guardando: è l'unico posto in cui si legge il turno. Solo un annuncio: non
-// si clicca, non ferma nulla, e con prefers-reduced-motion resta ferma.
+// gli occhi stanno guardando: è l'unico posto in cui si legge il turno. Non
+// si clicca, e con prefers-reduced-motion resta ferma. Finché è in vista il
+// tavolo si FERMA per tutti (scelta del designer, 2026-09-07): il corpo porta
+// `is-announcing`, che spegne il puntatore (style.css) e trattiene il bot
+// (tableQuiet in main.ts) — nessuno gioca sotto la scritta.
 
 import { t } from "./i18n.js";
 import type { Ctx } from "./ctx.js";
@@ -76,7 +79,11 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
     host.hidden = true;
     void host.offsetWidth;
     host.hidden = false;
-    timer = window.setTimeout(() => (host.hidden = true), PHASE_BANNER_MS);
+    document.body.classList.add("is-announcing");
+    timer = window.setTimeout(() => {
+      host.hidden = true;
+      document.body.classList.remove("is-announcing");
+    }, PHASE_BANNER_MS);
   }
 
   const keyOf = (state: GameState): string => `${state.turn}|${state.active}|${state.phase}`;
@@ -90,6 +97,7 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
     sub.textContent = detail;
     host.dataset.phase = state.over!.winner === ctx.seat() ? "fronte" : "reazione";
     window.clearTimeout(timer);
+    document.body.classList.remove("is-announcing");
     host.classList.add("is-final");
     host.hidden = false;
   }

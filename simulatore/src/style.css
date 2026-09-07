@@ -426,6 +426,10 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
 /* Mentre un effetto agisce il tavolo è fermo: campo, mani, HUD e chat non
    rispondono al mouse finché la fonte non si spegne. */
 body.is-resolving .table, body.is-resolving .game-bar, body.is-resolving .game-tools, body.is-resolving .side { pointer-events: none; }
+/* …e sotto l'insegna di fase (banner.ts) il tavolo si ferma per tutti:
+   niente gesti finché la scritta non se n'è andata. La barra e la chat
+   restano vive: non sono gesti di gioco. */
+body.is-announcing .table { pointer-events: none; }
 
 .tile { transition: box-shadow .9s ease; }
 /* La carta COLPITA da un effetto: un lampo rosso addosso a lei, non una
