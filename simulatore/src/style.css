@@ -1506,6 +1506,12 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   pointer-events: none;
 }
 
+/* La mano chiusa a chiave (§6, «nel turno altrui non si agisce»): le carte
+   si spengono un poco e il cursore torna freccia. Si leggono al passaggio,
+   non si prendono; il cassetto si apre e chiude come sempre. */
+.hand-mine.is-locked .tile { filter: grayscale(.35) brightness(.9); cursor: var(--cur-arrow); }
+.hand-mine.is-locked .hand-tag { opacity: .8; }
+
 /* La pesca si vede: la carta appena arrivata sale dal bordo del cassetto
    (per l'avversario scende dal suo, in alto), con un filo di ritardo l'una
    sull'altra — il delay lo mette il tavolo, in ordine d'arrivo. Il `from`

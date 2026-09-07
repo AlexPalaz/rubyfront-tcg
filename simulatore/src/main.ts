@@ -1051,12 +1051,14 @@ seatPick.addEventListener("change", () => {
 
 // Il tema del tavolo è tutto CSS: si stampa sul body e il foglio fa il resto.
 // È un vestito del client, non dello stato: ognuno gioca col tema suo.
-// Due temi soli, uno scuro e uno chiaro: un tema salvato da prima (rubino,
-// smeraldo…) ricade sullo scuro; il vecchio chiaro (solarizzato) sul chiaro.
-const savedTheme = store.read("uitheme", "notte");
+// Il chiaro è il tema di casa (scelta del designer, 2026-09-07): chi non ha
+// mai scelto lo trova, e un tema salvato da prima che non esiste più
+// (rubino, smeraldo, solarizzato…) ricade sul chiaro. Chi ha scelto il
+// Notte se lo tiene.
+const savedTheme = store.read("uitheme", "chiaro");
 const themePick = document.querySelector<HTMLSelectElement>("#theme-pick")!;
 const knownTheme = [...themePick.options].some(option => option.value === savedTheme);
-document.body.dataset.uiTheme = knownTheme ? savedTheme : savedTheme === "solarizzato" ? "chiaro" : "notte";
+document.body.dataset.uiTheme = knownTheme ? savedTheme : "chiaro";
 themePick.value = document.body.dataset.uiTheme;
 themePick.addEventListener("change", () => {
   document.body.dataset.uiTheme = themePick.value;

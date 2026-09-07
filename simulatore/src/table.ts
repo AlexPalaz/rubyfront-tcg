@@ -119,6 +119,7 @@ import {
   declarationOf,
   fieldCards,
   matterSpot,
+  phaseCloser,
   playSpot,
   seatLabel,
   seatWaiting,
@@ -1383,7 +1384,24 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * mano, e il gesto resta sempre possibile.
    */
   function canDiscard(card: CardInstance): boolean {
-    return card.zone === "hand" && ctx.controls(card.owner) && zoneCards(ctx.state(), card.owner, "hand").length > 7;
+    return card.zone === "hand" && ctx.controls(card.owner) && !handLocked(card.owner) && zoneCards(ctx.state(), card.owner, "hand").length > 7;
+  }
+
+  /**
+   * §6 — «nel turno altrui non si agisce»: la mano di `seat` è chiusa a
+   * chiave quando il momento non è suo. Il momento è suo quando chiude la
+   * fase (chi è di turno; in Reazione il difensore, §6.4) o quando la
+   * catena di risposta aspetta lui (§7.2). Fuori di lì la mano si guarda e
+   * basta: niente trascinamento, niente doppio click, niente menu — salvo
+   * che il tavolo gli chieda esplicitamente una carta (pickFromPile apre
+   * la sua vetrina, non passa dalla mano). Vale per il bot come per un
+   * avversario in rete: a tavolo libero (senza arbitro) resta libera.
+   */
+  function handLocked(seat: Seat): boolean {
+    if (!ctx.arbitrated()) return false;
+    const state = ctx.state();
+    if (state.chain && !state.chain.resolving) return state.chain.turn !== seat;
+    return phaseCloser(state) !== seat;
   }
 
   /**
@@ -2788,7 +2806,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           // La carta che non ci si può permettere si prende lo stesso: sul
           // campo la ferma l'arbitro (§3.2), ma scartarla nell'Abisso o
           // rimetterla nel mazzo non costa nulla.
-          return !(live.zone === "hand" && !ctx.controls(live.owner));
+          return !(live.zone === "hand" && (!ctx.controls(live.owner) || handLocked(live.owner)));
         },
         onDragMove: drop => {
           const live = ctx.state().cards[card.uid];
@@ -2843,7 +2861,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             return;
           }
           const live = ctx.state().cards[card.uid];
-          if (live) openMenu(event.clientX, event.clientY, cardMenu(live));
+          if (live && !(live.zone === "hand" && handLocked(live.owner))) openMenu(event.clientX, event.clientY, cardMenu(live));
         },
         onTap: up => {
           // Su touch non c'è hover: è il tap a chiedere l'ingrandimento (e a
@@ -2870,7 +2888,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           return;
         }
         const live = ctx.state().cards[card.uid];
-        if (live) openMenu(event.clientX, event.clientY, cardMenu(live));
+        if (live && !(live.zone === "hand" && handLocked(live.owner))) openMenu(event.clientX, event.clientY, cardMenu(live));
       });
       tile.addEventListener("dblclick", () => {
         const live = ctx.state().cards[card.uid];
@@ -2881,7 +2899,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (ctx.arbitrated()) return;
           ctx.dispatch({ t: "tap", uid: live.uid, tapped: !live.tapped });
         } else if (live.zone === "hand" && ctx.controls(live.owner)) {
-          if (unaffordable(live)) return;
+          if (unaffordable(live) || handLocked(live.owner)) return;
           // Il doppio click gioca: Entità sul primo slot libero del Fronte,
           // Materie nella loro fila (§5) — mai sugli slot.
           const spot = playSpot(ctx.state(), live.owner, faceKind(live.cardId, live.face));
@@ -3331,8 +3349,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // §6.5 — «non si possono avere più di 7 carte in mano» a fine turno:
       // la targhetta lo dice prima che sia il sigillo a dirlo.
       const excess = seat === me && cards.length > 7 && ctx.controls(seat);
+      // La mano chiusa a chiave (§6) lo dice sulla targhetta e si spegne un
+      // po': si guarda, non si tocca, finché il momento non torna suo.
+      const locked = seat === me && ctx.controls(seat) && handLocked(seat);
+      host.classList.toggle("is-locked", locked);
       tag.textContent = seat === me
-        ? `${t("hand.mine", { n: cards.length })}${excess ? t("hand.excess") : ""}`
+        ? `${t("hand.mine", { n: cards.length })}${excess ? t("hand.excess") : locked ? t("hand.locked", { name: seatLabel(state, otherSeat(seat), me) }) : ""}`
         : seatWaiting(state, seat)
           ? t("hand.waiting")
           : t("hand.theirs", { name: seatLabel(state, seat), n: cards.length });

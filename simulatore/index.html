@@ -6,7 +6,7 @@
 <title>Simulatore · Rubyfront</title>
 <link rel="stylesheet" href="./src/style.css">
 </head>
-<body>
+<body data-ui-theme="chiaro">
 <!-- L'header: il marchio; al centro il turno con la fase e il gesto che la
      chiude (#game-bar, lo riempie hud.ts); a destra Evoca, chat e microfono
      (#game-tools), lo stato della rete, Nuova partita (da sola: azzera
@@ -106,10 +106,10 @@
   <div class="set-row">
     <span class="set-label" data-i18n="html.theme">Tema</span>
     <select id="theme-pick" title="Tema del tavolo" data-i18n-title="html.theme.tip">
+      <option value="chiaro" data-i18n="html.theme.light">Chiaro</option>
       <option value="notte" data-i18n="html.theme.dark">Scuro · Notte</option>
       <option value="notte-ardesia" data-i18n="html.theme.dark.ardesia">Scuro · Ardesia (prova)</option>
       <option value="notte-panno" data-i18n="html.theme.dark.panno">Scuro · Panno verde (prova)</option>
-      <option value="chiaro" data-i18n="html.theme.light">Chiaro</option>
     </select>
   </div>
   <div class="set-row">

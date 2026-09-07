@@ -124,6 +124,7 @@ const M: Record<string, { it: string; en: string }> = {
   "hand.close": { it: "Chiudi la mano", en: "Close the hand" },
   "hand.mine": { it: "La tua mano · {n}", en: "Your hand · {n}" },
   "hand.excess": { it: " — scarta fino a 7 prima del Fine turno (§6.5)", en: " — discard down to 7 before End turn (§6.5)" },
+  "hand.locked": { it: " — tocca a {name}", en: " — {name} to act" },
   "hand.waiting": { it: "In attesa di un avversario…", en: "Waiting for an opponent…" },
   "hand.theirs": { it: "Mano di {name} · {n}", en: "{name}'s hand · {n}" },
   "label.you": { it: " · tu", en: " · you" },
