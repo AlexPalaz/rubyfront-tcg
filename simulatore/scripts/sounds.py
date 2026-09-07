@@ -78,6 +78,10 @@ build("attack-2", [("rpg", "drawKnife2", 0, -7, ""), ("rpg", "knifeSlice2", 160,
 # il blocco: lo scudo — piastra, legno pesante sotto, fermaglio sopra
 build("block-1", [("impact", "impactPlate_heavy_000", 0, -5, ""), ("impact", "impactWood_heavy_000", 0, -6, "lowpass=f=700"), ("rpg", "metalLatch", 60, -14, "highpass=f=800"), ("impact", "impactSoft_heavy_004", 0, -9, "lowpass=f=250")])
 build("block-2", [("impact", "impactPlate_heavy_003", 0, -5, ""), ("impact", "impactWood_heavy_002", 0, -6, "lowpass=f=700"), ("rpg", "metalLatch", 60, -14, "highpass=f=800"), ("impact", "impactSoft_heavy_001", 0, -9, "lowpass=f=250")])
+# il tap (e lo stap): stoffa, soft — la carta che si corica
+build("tap-1", [("rpg", "cloth1", 0, -7, "lowpass=f=2200"), ("impact", "impactSoft_medium_004", 20, -20, "lowpass=f=300")])
+build("tap-2", [("rpg", "cloth2", 0, -7, "lowpass=f=2200"), ("impact", "impactSoft_medium_000", 20, -20, "lowpass=f=300")])
+build("tap-3", [("rpg", "cloth3", 0, -7, "lowpass=f=2200"), ("impact", "impactSoft_medium_001", 20, -20, "lowpass=f=300")])
 # il contrattacco: il taglio, il metallo pesante, il rintocco
 build("counter-1", [("rpg", "knifeSlice", 0, -5, ""), ("impact", "impactMetal_heavy_001", 120, -6, ""), ("rpg", "metalPot1", 130, -10, "highpass=f=600"), ("impact", "impactSoft_heavy_000", 120, -10, "lowpass=f=300")])
 build("counter-2", [("rpg", "knifeSlice2", 0, -5, ""), ("impact", "impactMetal_heavy_003", 120, -6, ""), ("rpg", "metalPot2", 130, -10, "highpass=f=600"), ("impact", "impactSoft_heavy_002", 120, -10, "lowpass=f=300")])

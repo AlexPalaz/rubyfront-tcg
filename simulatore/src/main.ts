@@ -177,6 +177,10 @@ function cueFor(action: Action): void {
     playSound(action.declaration.kind === "attack" ? "attack" : action.declaration.kind === "block" ? "block" : "counter");
     return;
   }
+  if (action.t === "tap") {
+    playSound("tap");
+    return;
+  }
   if (action.t === "toZone" && action.zone === "field") {
     const card = state.cards[action.uid];
     if (card && card.zone === "hand") playSound("play");

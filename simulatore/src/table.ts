@@ -2769,7 +2769,6 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       tiles.set(card.uid, tile);
       wirePreview(tile, ctx.locale);
       enableDrag(tile, {
-        onGrab: () => playSound("select"),
         canDrag: () => {
           if (targeting) return false;
           const live = ctx.state().cards[card.uid];
@@ -2801,6 +2800,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           ctx.dispatch({ t: "move", uid: card.uid, x: at.x, y: at.y, z: Math.max(live.z, ctx.state().zTop) });
         },
         onStart: () => {
+          // Il suono del prendere parte col trascinamento vero, non a ogni
+          // pressione: il doppio click che tappa ha il suo suono (cueFor).
+          playSound("select");
           segnaAssegnazione(null);
           const live = ctx.state().cards[card.uid];
           // La posizione di partenza serve al ripensamento (vedi applyDrop).

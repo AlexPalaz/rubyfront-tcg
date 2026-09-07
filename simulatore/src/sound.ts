@@ -13,6 +13,7 @@
 //   attack  — la lama che esce, il taglio, il colpo di metallo
 //   block   — lo scudo: piastra, legno pesante sotto, fermaglio sopra
 //   counter — il taglio, il metallo pesante e il rintocco
+//   tap     — stoffa, soft: la carta che si corica e si raddrizza
 //
 // Si suona con la Web Audio API (decodifica una volta, poi buffer in
 // memoria): il browser non suona prima di un gesto dell'utente, quindi il
@@ -20,7 +21,7 @@
 // browser decodifica. L'interruttore nelle impostazioni spegne
 // tutto; la scelta resta salvata (main.ts).
 
-export type Cue = "select" | "button" | "play" | "attack" | "block" | "counter" | "draw" | "phase";
+export type Cue = "select" | "button" | "play" | "attack" | "block" | "counter" | "draw" | "phase" | "tap";
 
 /** Le varianti di ogni voce: i file in public/sounds, senza estensione. */
 const VARIANTS: Record<Cue, string[]> = {
@@ -30,13 +31,15 @@ const VARIANTS: Record<Cue, string[]> = {
   button: ["button-1", "button-2"],
   // La fase: montata ma non usata — «togli i suoni di ogni fase».
   phase: [],
+  // Il tap e lo stap: stoffa, soft.
+  tap: ["tap-1", "tap-2", "tap-3"],
   attack: ["attack-1", "attack-2"],
   block: ["block-1", "block-2"],
   counter: ["counter-1", "counter-2"],
 };
 
 /** Il volume di ogni voce: i colpi pesanti sotto, i tocchi leggeri più vicini. */
-const LEVEL: Record<Cue, number> = { select: 0.7, button: 0.55, play: 0.9, draw: 0.6, attack: 0.8, block: 0.85, counter: 0.8, phase: 0.9 };
+const LEVEL: Record<Cue, number> = { select: 0.7, button: 0.55, play: 0.9, draw: 0.6, attack: 0.8, block: 0.85, counter: 0.8, phase: 0.9, tap: 0.5 };
 
 let context: AudioContext | null = null;
 let master: GainNode | null = null;
