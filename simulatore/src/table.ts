@@ -2536,10 +2536,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       light(step.source.uid, false);
       hold(false);
     }
-    // §8.2 — entrando sul campo di chi la controlla, i suoi effetti
-    // «quando entra in campo» si applicano.
-    const taken = ctx.state().cards[target.uid];
-    if (passed && taken && taken.zone === "field") await playTriggers(taken);
+    // §8.2 — il controllo non è un ingresso: la carta è già entrata in
+    // campo, cambia solo chi la comanda. I suoi effetti «quando entra» NON
+    // si riapplicano (decisione del designer, 2026-09-07); quelli «quando
+    // attacca» valgono per chi la comanda, e passano dalla via normale.
   }
 
   /**

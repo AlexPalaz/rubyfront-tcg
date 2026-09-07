@@ -485,7 +485,7 @@ For the purposes of this order what always counts is **the latest entry onto the
 Some effects let you **take control** of an opposing Entity, usually **until the end of the turn**. Control doesn't change ownership: the card remains its owner's, and only who commands it changes.
 
 - **Where it stands:** the controlled Entity moves to the controller's field, in an **extra slot** — it doesn't take up one of the 5 Front slots and doesn't count towards their limit. The **Objects** assigned to it follow it.
-- **What it does:** it attacks for its controller (if an effect grants it Surge, at once); its **"when it enters the field" effects**, if any, **apply**, because it enters the controller's field. It keeps enabling its Matters for its controller.
+- **What it does:** it attacks for its controller (if an effect grants it Surge, at once); its **"when it attacks" effects apply** for its controller. Its **"when it enters the field" effects don't apply again**: the card already entered the field, only who commands it changes (it would be different if the effect said "when it enters your Front"). It keeps enabling its Matters for its controller.
 - **End of control:** at the **turn change** it goes back to its owner's Front, in a free slot, as it is — and untaps like each of their Entities at the start of their turn (§6.3). If the owner's Front is **full**, it goes to their **Retire Zone**. The Objects go back with it.
 - **If it dies or leaves the field** while controlled, it goes to the Abyss or to the **owner's** zone, as always.
 

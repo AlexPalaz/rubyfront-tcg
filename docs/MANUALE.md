@@ -486,7 +486,7 @@ Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfro
 Alcuni effetti fanno **prendere il controllo** di un'Entità avversaria, di norma **fino alla fine del turno**. Il controllo non cambia la proprietà: la carta resta del suo proprietario, e cambia solo chi la comanda.
 
 - **Dove sta:** l'Entità controllata passa sul campo di chi la controlla, in uno **slot extra** — non occupa uno dei 5 slot del Fronte e non conta nel loro limite. Gli **Oggetti** che le sono assegnati la seguono.
-- **Cosa fa:** attacca per chi la controlla (se un effetto le concede Slancio, subito); i suoi eventuali effetti **«quando entra in campo» si applicano**, perché entra sul campo di chi la controlla. Continua ad abilitare le sue Materie a chi la controlla.
+- **Cosa fa:** attacca per chi la controlla (se un effetto le concede Slancio, subito); i suoi eventuali effetti **«quando attacca» valgono** per chi la controlla. I suoi effetti **«quando entra in campo» non si riapplicano**: la carta è già entrata in campo, cambia solo chi la comanda (sarebbe diverso se l'effetto dicesse «quando entra sul tuo Fronte»). Continua ad abilitare le sue Materie a chi la controlla.
 - **Fine del controllo:** al **cambio di turno** torna sul Fronte del proprietario, in uno slot libero, com'è — e si stappa come ogni sua Entità all'inizio del suo turno (§6.3). Se il Fronte del proprietario è **pieno**, va nella sua **Zona di Ritiro**. Gli Oggetti tornano con lei.
 - **Se muore o lascia il campo** mentre è controllata, va nell'Abisso o nella zona del **proprietario**, come sempre.
 

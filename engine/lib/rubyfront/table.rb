@@ -404,14 +404,14 @@ module Rubyfront
       when "look" then look(action)
       when "control"
         # §8.2 — il controllo: chi comanda cambia, la proprietà no; le parole
-        # chiave concesse durano fino a fine turno; entrando sul campo di chi
-        # la controlla, la carta «entra» ora (i suoi effetti d'ingresso si
-        # applicano, e l'attesa di evocazione riparte).
+        # chiave concesse durano fino a fine turno. Non è un ingresso: la
+        # carta è già entrata in campo, `entered` resta com'è (i suoi effetti
+        # «quando entra» non si riapplicano — decisione del designer,
+        # 2026-09-07). Gemello: state.ts.
         card = @cards[action["uid"]]
         if card && card[:zone] == "field" && SEATS.include?(action["by"])
           card[:controller] = action["by"]
           card[:grants] = Array(action["grants"]).select { |keyword| keyword.is_a?(String) }
-          card[:entered] = @turn
         end
       when "release"
         # §8.2 — la restituzione: controllo e concessioni cadono; in Zona di

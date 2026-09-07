@@ -372,7 +372,7 @@ class TableTest < Minitest::Test
     assert_equal "a", @table.controller_of(@table.card("b-1"))
     assert_equal "b", @table.card("b-1")[:owner]
     assert_equal ["surge"], @table.card("b-1")[:grants]
-    assert_equal 3, @table.card("b-1")[:entered], "entra ora sul campo di chi la controlla"
+    assert_equal 1, @table.card("b-1")[:entered], "il controllo non è un ingresso: entered resta (§8.2)"
     @table.apply({ "t" => "release", "uid" => "b-1", "zone" => "field", "x" => 442, "y" => 172 })
     assert_equal "b", @table.controller_of(@table.card("b-1"))
     assert_nil @table.card("b-1")[:grants]

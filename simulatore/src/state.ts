@@ -504,7 +504,10 @@ function reduce(state: GameState, action: Action): GameState {
     case "control": {
       // §8.2 — il controllo: la carta passa nello slot extra di chi la
       // controlla, con le parole chiave concesse; gli Oggetti addosso la
-      // seguono, a scaletta. La proprietà non cambia. Gemello: table.rb.
+      // seguono, a scaletta. La proprietà non cambia; e il controllo non è
+      // un ingresso (§8.2): gli effetti «quando entra» non si riapplicano,
+      // il turno d'ingresso (`entered`, nella copia Ruby) resta. Gemello:
+      // table.rb.
       const card = state.cards[action.uid];
       if (!card || card.zone !== "field") return state;
       const cards = { ...state.cards };

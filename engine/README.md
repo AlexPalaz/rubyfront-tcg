@@ -457,8 +457,8 @@ Regole collegate finora:
   essa nasce il **controllo** (§8.2, «Prendere il controllo», scritto col
   designer): un'azione `control {uid, by, grants}` che cambia chi comanda,
   non il proprietario — la carta passa nello slot extra di chi la
-  controlla, con gli Oggetti addosso, «entra» ora (i suoi effetti
-  d'ingresso si applicano) e attacca per lui; attacchi, blocchi, ascolti
+  controlla, con gli Oggetti addosso, e attacca per lui (non «entra»:
+  vedi sotto, «Il controllo non è un ingresso»); attacchi, blocchi, ascolti
   ed effetti guardano chi comanda (`controller_of`), lo Slancio concesso
   vale come quello stampato; e a fine turno il tavolo di chi ha chiuso
   manda `release {uid, zone, x?, y?}` — sul Fronte del proprietario in uno
@@ -746,6 +746,19 @@ Regole collegate finora:
   in uscita: engine 0.38.1, quarantaquattro regole. Con «permanente» letta
   come nel §10 e il Fronte pieno nel ritorno: engine 0.38.2. Con la
   controllata ferma nelle zone: engine 0.39.0, quarantacinque regole.
+
+- **§8.2 Il controllo non è un ingresso** — «i suoi effetti "quando entra
+  in campo" non si riapplicano: la carta è già entrata in campo, cambia
+  solo chi la comanda» (scritto col designer il 2026-09-07, rovesciando
+  la lettura di prima: sarebbe diverso se l'effetto dicesse «quando entra
+  sul tuo Fronte»). I gemelli non toccano più `entered` al `control`:
+  così le dogane che già c'erano fanno il resto — l'effetto proprio
+  d'ingresso della controllata è «passato» (`own_trigger_stopped`), e
+  per chi ascolta «un'altra Entità che entra» la controllata non è
+  entrata. Gli effetti «quando attacca» valgono per chi la comanda, come
+  prima. Limite dichiarato: un effetto che dicesse davvero «quando entra
+  sul tuo Fronte» non ha una forma certificata, e verrebbe fermato a
+  torto finché non ce l'ha. Engine 0.44.0, cinquanta regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

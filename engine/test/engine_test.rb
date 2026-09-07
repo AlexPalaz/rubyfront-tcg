@@ -2153,6 +2153,40 @@ class EngineTest < Minitest::Test
     assert engine.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro" }, actor: "b")[:ok]
   end
 
+  # §8.2 — il controllo non è un ingresso: la carta è già entrata in campo,
+  # cambia solo chi la comanda. Il suo effetto «quando entra» non si
+  # riapplica per chi la prende (decisione del designer, 2026-09-07);
+  # quello «quando attacca» sì (test sopra: attacca per chi la comanda).
+  MOSSA = { type: "entity", keywords: [], race: "auros", flux_cost: 2,
+            enter_moves: [{ target: { type: "entity", controller: "opponent" }, to: "ritiro" }] }.freeze
+
+  def test_il_controllo_non_riapplica_l_effetto_d_ingresso
+    engine = Rubyfront::Engine.new(cards: RADUNI.merge("MOSSA" => MOSSA))
+    a = [{ "uid" => "rad", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "CONTROLLORE" },
+         { "uid" => "a1", "owner" => "a", "zone" => "field", "order" => 1, "cardId" => "PICCOLA", "y" => 1236 }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    b = [{ "uid" => "b1", "owner" => "b", "zone" => "field", "order" => 0, "cardId" => "MOSSA", "y" => 172 },
+         { "uid" => "b2", "owner" => "b", "zone" => "field", "order" => 1, "cardId" => "PICCOLA", "y" => 172 }]
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
+    # Le carte di B sono entrate al turno 1; il controllo arriva al turno 3.
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" }, actor: "b")
+    assert engine.judge({ "t" => "toZone", "uid" => "rad", "zone" => "field", "x" => 442, "y" => 1236 }, actor: "a")[:ok]
+    assert prendi(engine, "b1")[:ok]
+    table = engine.instance_variable_get(:@table)
+    assert_equal 1, table.card("b1")[:entered], "il controllo non tocca il turno d'ingresso"
+    # L'effetto «quando entra» della controllata, risolto da chi la comanda
+    # contro l'altra carta di B: l'innesco è passato.
+    verdict = engine.judge({ "t" => "toZone", "uid" => "b2", "zone" => "ritiro",
+                             "effect" => { "source" => "b1", "event" => "on_enter_field", "entering" => "b1" } }, actor: "a")
+    refute verdict[:ok]
+    assert_match(/non è entrata in campo questo turno.*§8\.2/, verdict[:reason])
+    assert_match(/didn't enter the field this turn.*§8\.2/, verdict[:reason_en])
+    # E non conta nemmeno come «un'altra Entità che entra» per chi ascolta.
+    refute engine.judge({ "t" => "draw", "seat" => "a", "count" => 1,
+                          "effect" => { "source" => "a1", "event" => "on_enter_field", "entering" => "b1" } }, actor: "a")[:ok]
+  end
+
   def test_la_restituzione_solo_a_fine_turno_e_solo_di_una_controllata
     engine = controllore([["b1", "PICCOLA"], ["b2", "PICCOLA"]])
     prendi(engine, "b1")

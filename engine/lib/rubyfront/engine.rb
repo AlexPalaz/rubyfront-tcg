@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.43.0"
+    VERSION = "0.44.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -79,6 +79,7 @@ module Rubyfront
       "§7.2 La catena di risposta: una Reattiva apre, l'avversario risponde o accetta, si risolve al contrario",
       "§8.2 Effetti certificati: «quando entra, col dado stappa tutte le Entità che controlli»",
       "§8.2 «Questa Entità non si tappa mai»: nessun gesto la tappa",
+      "§8.2 Il controllo non è un ingresso: gli effetti «quando entra» non si riapplicano",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -132,6 +133,7 @@ module Rubyfront
       "§7.2 The response chain: a Reactive opens it, the opponent answers or accepts, it resolves in reverse",
       "§8.2 Certified effects: “when it enters, with the die untap all Entities you control”",
       "§8.2 “This Entity never taps”: no gesture taps it",
+      "§8.2 Taking control isn't an entry: “when it enters” effects don't apply again",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
