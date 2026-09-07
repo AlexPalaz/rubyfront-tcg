@@ -62,6 +62,7 @@ const M: Record<string, { it: string; en: string }> = {
   "over.draw": { it: "Pareggio", en: "Draw" },
   "over.won": { it: "Hai vinto", en: "You win" },
   "over.victory": { it: "Vittoria di {name}", en: "{name} wins" },
+  "over.newgame": { it: "Gioca una nuova partita", en: "Play a new game" },
   "over.hp": { it: "PV del Rubyfront a zero (§2)", en: "Rubyfront HP at zero (§2)" },
   "over.deck": { it: "mazzo esaurito (§9.1)", en: "deck exhausted (§9.1)" },
   "over.both": { it: "PV a zero per entrambi (§9.2)", en: "both at zero HP (§9.2)" },

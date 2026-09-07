@@ -420,7 +420,14 @@ setViewMode(savedView === "full" || savedView === "compact" || savedView === "re
 
 const table = mountTable(document.querySelector<HTMLElement>("#table")!, ctx);
 // L'insegna di fase sta sul tavolo, sopra le carte: è lì che si guarda.
-const banner = mountPhaseBanner(document.querySelector<HTMLElement>("#table")!, ctx);
+// In sviluppo il tavolo si può pilotare dalla console (prove a mano di
+// stati difficili da raggiungere: la fine partita, un contatore). In
+// produzione non esiste.
+if (import.meta.env.DEV) {
+  (window as unknown as { __rbf: unknown }).__rbf = { dispatch: (action: Action) => dispatch(action), state: () => state };
+}
+
+const banner = mountPhaseBanner(document.querySelector<HTMLElement>("#table")!, ctx, { newGame: () => startNewGame() });
 const chat = mountChat(document.querySelector<HTMLElement>("#chat")!, ctx);
 // La colonna è solo la chat; si apre e si chiude, e la scelta resta fra una
 // partita e l'altra. Aperta la chat l'HUD si ritira: dall'HUD si apre con
@@ -797,6 +804,11 @@ function doDraw(): void {
 
 document.querySelector("#do-new")!.addEventListener("click", () => {
   if (!confirm(t("html.newgame.confirm"))) return;
+  startNewGame();
+});
+
+/** La partita nuova: dal tasto in barra (con conferma) o dall'insegna finale. */
+function startNewGame(): void {
   const starter = randomSeat();
   void dispatch({ t: "newGame", active: starter }).then(passed => {
     if (!passed) return;
@@ -807,7 +819,7 @@ document.querySelector("#do-new")!.addEventListener("click", () => {
   seatOrWait();
   reapplyName();
   if (botDeckId) startBot(botDeckId);
-});
+}
 
 /** La nuova partita azzera anche i nomi: il proprio si rimette da sé. */
 function reapplyName(): void {

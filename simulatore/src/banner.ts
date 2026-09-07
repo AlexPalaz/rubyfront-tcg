@@ -14,6 +14,11 @@ import { describeGameOver } from "./turn.js";
 import type { GameState, Phase, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
+export interface BannerHooks {
+  /** «Gioca una nuova partita», dall'insegna finale. */
+  newGame(): void;
+}
+
 export interface PhaseBanner {
   render(): void;
   /** Annuncia la fase com'è ORA, anche se non è cambiata: è l'apertura
@@ -48,7 +53,7 @@ function subtitle(state: GameState, me: Seat): string {
   return t(mine ? "banner.turn.you" : "banner.turn.them", { turn: state.turn, name });
 }
 
-export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
+export function mountPhaseBanner(root: HTMLElement, ctx: Ctx, hooks: BannerHooks): PhaseBanner {
   const host = document.createElement("div");
   host.className = "phase-banner";
   host.hidden = true;
@@ -61,7 +66,15 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
   title.className = "phase-banner-title";
   const sub = document.createElement("span");
   sub.className = "phase-banner-sub";
-  host.append(turn, title, sub);
+  // L'insegna finale porta l'unico gesto rimasto: la partita nuova. Sotto
+  // di lei il tavolo e la barra sono spenti (body.is-over, style.css).
+  const again = document.createElement("button");
+  again.type = "button";
+  again.className = "phase-banner-new";
+  again.textContent = t("over.newgame");
+  again.hidden = true;
+  again.addEventListener("click", hooks.newGame);
+  host.append(turn, title, sub, again);
   root.append(host);
 
   // La chiave di ciò che si è già annunciato: la fase da sola non basta,
@@ -92,16 +105,21 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
   const keyOf = (state: GameState): string => `${state.turn}|${state.active}|${state.phase}`;
 
   // L'insegna finale (§2, §9): resta, non svanisce — fino a Nuova partita.
+  // Dice solo chi ha vinto (il perché resta alla chat: scelta del designer,
+  // 2026-09-07) e offre il solo gesto rimasto, la partita nuova.
   let finalShown = false;
   function showFinal(state: GameState): void {
-    const { title: heading, detail } = describeGameOver(state, state.over!, ctx.seat());
+    const { title: heading } = describeGameOver(state, state.over!, ctx.seat());
     turn.hidden = true;
     title.textContent = heading;
-    sub.textContent = detail;
+    sub.textContent = "";
+    sub.hidden = true;
+    again.hidden = false;
     host.dataset.phase = state.over!.winner === ctx.seat() ? "fronte" : "reazione";
     window.clearTimeout(timer);
     document.body.classList.remove("is-announcing");
     delete document.body.dataset.announceUntil;
+    document.body.classList.add("is-over");
     host.classList.add("is-final");
     host.hidden = false;
   }
@@ -118,6 +136,9 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
       if (finalShown) {
         finalShown = false;
         host.classList.remove("is-final");
+        document.body.classList.remove("is-over");
+        sub.hidden = false;
+        again.hidden = true;
         host.hidden = true;
       }
       const key = keyOf(state);
