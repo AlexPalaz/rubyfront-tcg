@@ -1,0 +1,7 @@
+Suoni del tavolo — campioni da due pacchetti di Kenney (www.kenney.nl),
+licenza Creative Commons Zero (CC0): http://creativecommons.org/publicdomain/zero/1.0/
+
+  Impact Sounds (1.0, 2019): impactMetal_light/heavy, impactPlate_heavy, impactMining
+  Casino Audio (2024): card-slide, card-place
+
+Rinominati per momento di gioco: select, button, play, attack, block, counter.

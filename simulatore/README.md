@@ -102,22 +102,28 @@ restano.
 
 ## Suoni e cursore
 
-Il tavolo **suona**, sommesso: un tocco quando si prende una carta o si
-sceglie un bersaglio, uno scatto sui tasti (Fine fase, Continua, Risolvi,
-conferme), un colpo sordo quando una carta si posa sul Fronte, un taglio
-all'attacco, un tonfo al blocco, un rintocco al contrattacco. Sono
-**sintetizzati al volo** con la Web Audio API (`src/sound.ts`): niente
-file, niente licenze. Il suono è del tavolo, non del mouse: vale per le
-azioni di chiunque — le proprie, quelle del bot, quelle arrivate dalla
-rete (`cueFor` in main.ts). Il browser non suona prima di un gesto: il
-contesto nasce al primo tocco. L'interruttore **Suoni** nelle impostazioni
-spegne tutto, e la scelta resta salvata.
+Il tavolo **suona**, da videogioco: la carta che scivola quando si prende
+una carta o si sceglie un bersaglio, un colpo di metallo leggero sui tasti
+(Fine fase, Continua, Risolvi, conferme), la carta che si posa sul Fronte,
+il **clash** del metallo pesante all'attacco, la piastra dello scudo al
+blocco, il **crack** del piccone sulla pietra al contrattacco. Sono
+**campioni registrati** dai pacchetti CC0 di Kenney (Impact Sounds, Casino
+Audio) in `public/sounds`, con la licenza accanto; ogni voce ha qualche
+variante scelta a caso e un filo di variazione d'intonazione. Ogg dove il
+browser lo decodifica, AAC altrove (Safari). Il suono è del tavolo, non del
+mouse: vale per le azioni di chiunque — le proprie, quelle del bot, quelle
+arrivate dalla rete (`cueFor` in main.ts). Il browser non suona prima di
+un gesto: il contesto nasce al primo tocco e i campioni si caricano lì.
+L'interruttore **Suoni** nelle impostazioni spegne tutto, e la scelta resta
+salvata. (Le due sintesi al volo provate prima — oscillatori, poi
+«incastonamenti» con riverbero — sono state bocciate: «brutti».)
 
-Il **cursore** è del gioco: una freccia col rubino in punta, accesa sui
-tasti e sulle carte; il rombo del costo per prendere e per tenere una
-carta; il mirino per scegliere un bersaglio. Sono SVG in linea nel foglio
-di stile (`--cur-*`); dove il browser non li accetta — Safari — resta il
-cursore di sistema.
+Il **cursore** è del gioco: una punta rubino, il colore del marchio,
+inclinata come un puntatore, con l'intaglio in basso e un alone morbido;
+sui tasti e sulle carte si schiarisce con un alone bianco; per prendere una
+carta si svuota, tenendola si fa granata; il mirino per scegliere un
+bersaglio. Sono SVG in linea nel foglio di stile (`--cur-*`); dove il
+browser non li accetta — Safari — resta il cursore di sistema.
 
 ## La chat vocale
 

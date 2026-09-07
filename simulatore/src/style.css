@@ -2681,7 +2681,30 @@ body[data-ui-theme^="chiaro"] .half {
 
 /* I due passi respirano da soli: ogni figlio del passo ha il suo spazio.
    (Il display esplicito batterebbe [hidden]: va ribadito.) */
-#ob-step-room, #ob-step-profile { display: grid; gap: 14px; }
+#ob-step-room, #ob-step-profile, #ob-step-wait { display: grid; gap: 14px; }
+/* L'attesa dell'altro giocatore: una riga di stato con un punto che
+   respira, così si vede che la pagina è viva e non bloccata. */
+.onboard-wait {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  opacity: .8;
+}
+.onboard-wait-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rubino, #e0314b);
+  box-shadow: 0 0 10px var(--rubino, #e0314b);
+  animation: onboard-breathe 1.6s ease-in-out infinite;
+}
+@keyframes onboard-breathe {
+  0%, 100% { opacity: .35; transform: scale(.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
 .onboard [hidden] { display: none !important; }
 /* E vale anche per l'overlay stesso: il suo display:grid batterebbe
    l'hidden di «Al tavolo» e il wizard non si chiuderebbe mai. */

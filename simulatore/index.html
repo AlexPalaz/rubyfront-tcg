@@ -152,6 +152,15 @@
       <select id="ob-deck-b" hidden></select>
       <button type="button" id="ob-go" class="onboard-primary" data-i18n="html.ob.go">Al tavolo</button>
     </div>
+
+    <!-- L'attesa: in una stanza si va al tavolo solo quando c'è anche
+         l'altro giocatore. Finché il relay conta uno, si resta qui. -->
+    <div id="ob-step-wait" hidden>
+      <p class="onboard-ask" id="ob-wait-note"></p>
+      <p class="onboard-wait" id="ob-wait-status"><span class="onboard-wait-dot" aria-hidden="true"></span><span id="ob-wait-text"></span></p>
+      <button type="button" id="ob-wait-invite" class="onboard-primary" data-i18n="html.ob.wait.invite">Copia il link d'invito</button>
+      <button type="button" id="ob-wait-leave" class="onboard-skip" data-i18n="html.ob.wait.leave">Esci dalla stanza</button>
+    </div>
   </div>
 </div>
 
