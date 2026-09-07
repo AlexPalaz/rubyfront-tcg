@@ -10,7 +10,7 @@
 //   button  — lo scatto del fermaglio di metallo: Continua, Risolvi, conferme
 //   phase   — la porta pesante che si chiude, la campana intonata giù, il
 //             colpo grave: ogni fase nuova, e il cambio di turno
-//   attack  — la lama che esce, il taglio, il colpo di metallo
+//   attack  — la lama che esce e il taglio
 //   block   — lo scudo: piastra, legno pesante sotto, fermaglio sopra
 //   counter — il taglio, il metallo pesante e il rintocco
 //   tap     — cuoio che si posa, soft e senza acuti: la carta che si corica
@@ -33,7 +33,7 @@ const VARIANTS: Record<Cue, string[]> = {
   phase: [],
   // Il tap e lo stap: cuoio che si posa, soft.
   tap: ["tap-1", "tap-2", "tap-3"],
-  attack: ["attack-1", "attack-2"],
+  attack: ["attack-1", "attack-2", "attack-3"],
   block: ["block-1", "block-2"],
   counter: ["counter-1", "counter-2"],
 };

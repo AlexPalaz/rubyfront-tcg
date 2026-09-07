@@ -72,9 +72,11 @@ build("button-2", [("rpg", "metalLatch", 0, -8, "highpass=f=300"), ("impact", "i
 # la fase nuova: la porta pesante, la campana intonata giù, il colpo grave
 build("phase-1", [("rpg", "doorClose_1", 0, -4, "lowpass=f=900"), ("impact", "impactBell_heavy_000", 40, -12, "asetrate=44100*0.62,aresample=44100,lowpass=f=2500"), ("impact", "impactSoft_heavy_000", 0, -8, "lowpass=f=300")])
 build("phase-2", [("rpg", "doorClose_2", 0, -4, "lowpass=f=900"), ("impact", "impactBell_heavy_002", 40, -12, "asetrate=44100*0.66,aresample=44100,lowpass=f=2500"), ("impact", "impactSoft_heavy_001", 0, -8, "lowpass=f=300")])
-# l'attacco: la lama che esce, il taglio, il colpo di metallo
-build("attack-1", [("rpg", "drawKnife1", 0, -7, ""), ("rpg", "knifeSlice", 160, -3, ""), ("impact", "impactMetal_medium_000", 300, -7, ""), ("impact", "impactSoft_heavy_002", 300, -10, "lowpass=f=300")])
-build("attack-2", [("rpg", "drawKnife2", 0, -7, ""), ("rpg", "knifeSlice2", 160, -3, ""), ("impact", "impactMetal_medium_003", 300, -7, ""), ("impact", "impactSoft_heavy_003", 300, -10, "lowpass=f=300")])
+# l'attacco: la lama che esce e il taglio — pulito, senza il colpo di
+# metallo (bocciato: «non va bene»)
+build("attack-1", [("rpg", "drawKnife1", 0, -6, ""), ("rpg", "knifeSlice", 140, -4, ""), ("impact", "impactSoft_heavy_002", 150, -16, "lowpass=f=250")])
+build("attack-2", [("rpg", "drawKnife2", 0, -6, ""), ("rpg", "knifeSlice2", 140, -4, ""), ("impact", "impactSoft_heavy_003", 150, -16, "lowpass=f=250")])
+build("attack-3", [("rpg", "drawKnife3", 0, -6, ""), ("rpg", "knifeSlice", 140, -4, "asetrate=44100*0.95,aresample=44100"), ("impact", "impactSoft_heavy_001", 150, -16, "lowpass=f=250")])
 # il blocco: lo scudo — piastra, legno pesante sotto, fermaglio sopra
 build("block-1", [("impact", "impactPlate_heavy_000", 0, -5, ""), ("impact", "impactWood_heavy_000", 0, -6, "lowpass=f=700"), ("rpg", "metalLatch", 60, -14, "highpass=f=800"), ("impact", "impactSoft_heavy_004", 0, -9, "lowpass=f=250")])
 build("block-2", [("impact", "impactPlate_heavy_003", 0, -5, ""), ("impact", "impactWood_heavy_002", 0, -6, "lowpass=f=700"), ("rpg", "metalLatch", 60, -14, "highpass=f=800"), ("impact", "impactSoft_heavy_001", 0, -9, "lowpass=f=250")])

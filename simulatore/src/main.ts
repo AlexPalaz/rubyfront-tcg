@@ -170,14 +170,23 @@ function dispatch(action: Action): Promise<boolean> {
  * contrattacco. Vale per le azioni di chiunque — le proprie, quelle del bot,
  * quelle arrivate dalla rete — perché il suono è del tavolo, non del mouse.
  */
+let lastDeclareAt = 0;
 function cueFor(action: Action): void {
   // Le fasi non suonano (deciso 2026-09-07: «togli i suoni di ogni fase»);
   // i tasti di fase tengono lo scatto dei tasti.
   if (action.t === "declare") {
+    lastDeclareAt = Date.now();
     playSound(action.declaration.kind === "attack" ? "attack" : action.declaration.kind === "block" ? "block" : "counter");
     return;
   }
+  // L'annullamento è muto; il tap che segue una dichiarazione (l'attacco
+  // tappa da sé) o un annullamento (che stappa) non suona: un suono solo.
+  if (action.t === "undeclare") {
+    lastDeclareAt = Date.now();
+    return;
+  }
   if (action.t === "tap") {
+    if (Date.now() - lastDeclareAt < 600) return;
     playSound("tap");
     return;
   }
