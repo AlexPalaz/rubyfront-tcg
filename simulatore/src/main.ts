@@ -938,7 +938,10 @@ const engineToggle = document.querySelector<HTMLInputElement>("#engine-toggle")!
 const engineUrlInput = document.querySelector<HTMLInputElement>("#engine-url")!;
 const engineDot = document.querySelector<HTMLElement>("#engine-dot")!;
 engineToggle.checked = store.read("engine", "1") === "1";
-engineUrlInput.value = store.read("engineUrl", DEFAULT_ENGINE);
+// Un indirizzo salvato in `ws://` su una pagina https non può funzionare
+// (contenuto misto): si torna al default di produzione.
+const savedEngineUrl = store.read("engineUrl", "");
+engineUrlInput.value = savedEngineUrl && !(location.protocol === "https:" && savedEngineUrl.startsWith("ws://")) ? savedEngineUrl : DEFAULT_ENGINE;
 
 function setEngineStatus(status: EngineStatus): void {
   engineDot.dataset.status = status;

@@ -760,6 +760,16 @@ Nessuna dipendenza: Ruby e la sua libreria standard, come il relay
 ruby engine/bin/server        # ascolta su ws://localhost:8788
 ```
 
+**Online** l'engine sta su Render, come il relay (`render.yaml` alla radice,
+servizio `rubyfront-engine`, piano free): la pagina su GitHub Pages, che
+serve solo file statici, non può farlo girare — senza il servizio su Render
+la pagina pubblica gioca senza arbitro. In produzione (https) il simulatore
+si collega a `wss://rubyfront-engine.onrender.com` (`DEFAULT_ENGINE` in
+`simulatore/src/engine.ts`). Il piano free dorme: la prima connessione lo
+sveglia in una trentina di secondi, e la riconnessione automatica lo
+aggancia. A ogni regola nuova va fatto il deploy (manual sync del
+Blueprint, o auto-deploy dal push se attivo).
+
 (oppure, da `simulatore/`: `npm run engine`). Nel simulatore:
 la spia quadrata in alto diventa verde e in chat compare il saluto
 dell'engine. Il flag (ingranaggio → **Engine** → **Acceso**) è **acceso di

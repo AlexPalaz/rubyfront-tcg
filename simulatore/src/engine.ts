@@ -63,8 +63,18 @@ export interface EngineLink {
 /** Oltre quest'attesa il verdetto vale via libera: l'engine non ferma il tavolo. */
 const JUDGE_TIMEOUT_MS = 1500;
 
-/** L'engine gira di fianco al client: `ruby engine/bin/server`, porta 8788. */
-export const DEFAULT_ENGINE = `ws://${location.hostname || "localhost"}:8788`;
+/**
+ * L'engine gira di fianco al client in sviluppo (`ruby engine/bin/server`,
+ * porta 8788); in produzione (la pagina su Pages, https) sta su Render, come
+ * il relay (render.yaml): se Render assegna un nome diverso, questo è il
+ * posto da aggiornare. Piano free: dorme, e la prima connessione lo sveglia
+ * — la spia resta rossa una trentina di secondi, poi la riconnessione
+ * automatica lo aggancia.
+ */
+export const DEFAULT_ENGINE =
+  location.protocol === "https:"
+    ? "wss://rubyfront-engine.onrender.com"
+    : `ws://${location.hostname || "localhost"}:8788`;
 
 export function connectEngine(engineUrl: string, handlers: EngineHandlers): EngineLink {
   let socket: WebSocket | null = null;
