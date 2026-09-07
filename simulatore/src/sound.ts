@@ -1,35 +1,42 @@
-// I suoni del tavolo: campioni registrati, da videogioco — clash e crack —
-// presi dai pacchetti CC0 di Kenney (public/sounds, con la licenza accanto).
-// Sei voci, ognuna con qualche variante scelta a caso, perché due colpi di
-// fila non siano identici:
+// I suoni del tavolo: DISEGNATI a strati, fuori linea, con materie prime
+// dai pacchetti CC0 di Kenney (RPG Audio, Impact Sounds, Casino Audio) —
+// il montaggio è in scripts/sounds.py, i file in public/sounds con la
+// licenza accanto. Ogni voce ha due o tre varianti scelte a caso:
 //
-//   select  — la carta che scivola: prendere una carta, scegliere un bersaglio
-//   button  — un colpo di metallo leggero: i tasti (Fine fase, Continua, Risolvi)
-//   play    — la carta che si posa: sul Fronte
-//   attack  — il clash: metallo pesante
-//   block   — lo scudo: la piastra pesante
-//   counter — il crack: il piccone sulla pietra
+//   select  — cuoio in mano e carta che scivola: prendere, scegliere
+//   draw    — la carta spinta dal mazzo con lo sfoglio di pergamena, una
+//             per ogni carta pescata, in cascata — solo la PROPRIA pesca
+//   play    — la carta che si posa, col libro chiuso e un colpo sordo sotto
+//   button  — lo scatto del fermaglio di metallo: Continua, Risolvi, conferme
+//   phase   — la porta pesante che si chiude, la campana intonata giù, il
+//             colpo grave: ogni fase nuova, e il cambio di turno
+//   attack  — la lama che esce, il taglio, il colpo di metallo
+//   block   — lo scudo: piastra, legno pesante sotto, fermaglio sopra
+//   counter — il taglio, il metallo pesante e il rintocco
 //
 // Si suona con la Web Audio API (decodifica una volta, poi buffer in
 // memoria): il browser non suona prima di un gesto dell'utente, quindi il
-// contesto nasce al primo tocco (unlock). Formati: Ogg Vorbis dove si può,
-// AAC (m4a) dove no — Safari. L'interruttore nelle impostazioni spegne
+// contesto nasce al primo tocco (unlock). Formato: AAC (m4a), che ogni
+// browser decodifica. L'interruttore nelle impostazioni spegne
 // tutto; la scelta resta salvata (main.ts).
 
-export type Cue = "select" | "button" | "play" | "attack" | "block" | "counter";
+export type Cue = "select" | "button" | "play" | "attack" | "block" | "counter" | "draw" | "phase";
 
 /** Le varianti di ogni voce: i file in public/sounds, senza estensione. */
 const VARIANTS: Record<Cue, string[]> = {
   select: ["select-1", "select-2"],
-  button: ["button-1", "button-2"],
+  draw: ["draw-1", "draw-2", "draw-3"],
   play: ["play-1", "play-2"],
-  attack: ["attack-1", "attack-2", "attack-3"],
+  button: ["button-1", "button-2"],
+  // La fase: montata ma non usata — «togli i suoni di ogni fase».
+  phase: [],
+  attack: ["attack-1", "attack-2"],
   block: ["block-1", "block-2"],
   counter: ["counter-1", "counter-2"],
 };
 
 /** Il volume di ogni voce: i colpi pesanti sotto, i tocchi leggeri più vicini. */
-const LEVEL: Record<Cue, number> = { select: 0.7, button: 0.55, play: 0.9, attack: 0.8, block: 0.85, counter: 0.8 };
+const LEVEL: Record<Cue, number> = { select: 0.7, button: 0.55, play: 0.9, draw: 0.6, attack: 0.8, block: 0.85, counter: 0.8, phase: 0.9 };
 
 let context: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -68,15 +75,8 @@ function ensure(): AudioContext | null {
   return context;
 }
 
-/** Ogg dove il browser lo decodifica, AAC altrove. */
-const extension = ((): string => {
-  try {
-    const probe = document.createElement("audio");
-    return probe.canPlayType('audio/ogg; codecs="vorbis"') ? "ogg" : "m4a";
-  } catch {
-    return "m4a";
-  }
-})();
+/** AAC (m4a): lo decodificano tutti i browser che ci interessano. */
+const extension = "m4a";
 
 function load(ctx: AudioContext, name: string): Promise<AudioBuffer | null> {
   const known = buffers.get(name);
@@ -96,6 +96,7 @@ export function playSound(cue: Cue): void {
   if (!ctx || !master) return;
   if (ctx.state === "suspended") void ctx.resume();
   const names = VARIANTS[cue];
+  if (names.length === 0) return;
   const name = names[Math.floor(Math.random() * names.length)];
   const out = master;
   void load(ctx, name).then(buffer => {

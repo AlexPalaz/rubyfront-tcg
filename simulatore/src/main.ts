@@ -31,7 +31,7 @@ import { setupPreview } from "./preview.js";
 import { allDecks, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
 import { apply, controllerOf, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, seatLabel, shuffled, zoneCards } from "./state.js";
 import { releaseHeld } from "./effects.js";
-import { drawCascadeMs, mountTable } from "./table.js";
+import { DRAW_STEP_MS, drawCascadeMs, mountTable } from "./table.js";
 import { verdictByHp } from "./turn.js";
 import { createVoice, type VoicePayload } from "./voice.js";
 import type { Action, CardInstance, GameState, Seat, ZoneId } from "./types.js";
@@ -171,6 +171,8 @@ function dispatch(action: Action): Promise<boolean> {
  * quelle arrivate dalla rete — perché il suono è del tavolo, non del mouse.
  */
 function cueFor(action: Action): void {
+  // Le fasi non suonano (deciso 2026-09-07: «togli i suoni di ogni fase»);
+  // i tasti di fase tengono lo scatto dei tasti.
   if (action.t === "declare") {
     playSound(action.declaration.kind === "attack" ? "attack" : action.declaration.kind === "block" ? "block" : "counter");
     return;
@@ -178,6 +180,23 @@ function cueFor(action: Action): void {
   if (action.t === "toZone" && action.zone === "field") {
     const card = state.cards[action.uid];
     if (card && card.zone === "hand") playSound("play");
+    return;
+  }
+  // La pesca: un suono per carta, in cascata col ritmo con cui entrano in
+  // mano (DRAW_STEP_MS, table.ts) — non più di quante ce ne sono nel mazzo.
+  // Solo la PROPRIA: le carte dell'avversario (bot o rete) entrano nella
+  // sua mano, che qui non si vede, e il suo fruscio sarebbe solo rumore.
+  if (action.t === "draw" && action.seat === mySeat) {
+    const available = zoneCards(state, action.seat, "deck").length;
+    const count = Math.min(action.count, available);
+    for (let i = 0; i < count; i += 1) window.setTimeout(() => playSound("draw"), i * DRAW_STEP_MS);
+    return;
+  }
+  // La pesca del turno (§6.1) non è un'azione a sé: la fa il cambio di
+  // turno, dentro l'azione `turn` (state.ts). Se chi entra sono io e il
+  // mazzo non è vuoto, la carta che arriva suona come le altre.
+  if (action.t === "turn" && action.active === mySeat && zoneCards(state, mySeat, "deck").length > 0) {
+    playSound("draw");
   }
 }
 

@@ -169,8 +169,14 @@ const LABEL_ROOM_PX = 42;
 const HEAD_ROOM_PX = 24;
 /** In cima al tavolo la testata sporge SOPRA l'orlo, verso l'header: 15px di sporgenza e 25 d'aria. */
 const TOP_ROOM_PX = 40;
+/** Il pannello delle pile avversarie, in testa al campo avversario, sta a cavallo dell'orlo come la targhetta
+    (15px sopra): dentro il campo ne restano 17 di testata, più 12 d'aria. */
+const DOCK_ROOM_PX = 30;
 
 /** Le scelte del bot al posto delle finestre (bot.ts, pickBest). */
+/** Il volo di una carta verso una pila: si fa partire, o si annulla se l'azione non è passata. */
+export type Flight = (() => void) & { cancel(): void };
+
 export interface AutoChooser {
   pickTarget(source: CardInstance, candidates: CardInstance[]): CardInstance | null;
   pickFromPile(zone: ZoneId, candidates: CardInstance[], visible?: CardInstance[]): CardInstance | null;
@@ -212,7 +218,7 @@ export interface TableView {
   strike(uid: string): void;
   /** Prende la tessera prima che voli in una pila (chi riceve): ritorna il
       via al volo, da dare dopo aver applicato l'azione. */
-  liftForFlight(uid: string): (() => void) | null;
+  liftForFlight(uid: string, zone?: "ritiro" | "abisso"): Flight | null;
   /** Il volo da una pila al campo (chi riceve): dopo aver applicato l'azione. */
   flyFromPile(seat: Seat, zone: ZoneId, uid: string): void;
   /** Il volo da dove sta a dove starà (controllo, restituzione): prima
@@ -534,9 +540,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const labelPx = recess ? LABEL_ROOM_PX : 0;
     const headPx = recess ? HEAD_ROOM_PX : 0;
     const topPx = recess ? TOP_ROOM_PX : 0;
+    const dockPx = recess ? DOCK_ROOM_PX : 0;
     const reserve = (at: number): void => {
       setCornerReserve(cornerPx / at);
-      setLabelRoom(labelPx / at, headPx / at, topPx / at);
+      setLabelRoom(labelPx / at, headPx / at, topPx / at, dockPx / at);
     };
     setViewSlack(0);
     reserve(Number.POSITIVE_INFINITY);
@@ -815,7 +822,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         // ci stanno quattro riquadri (tre pile e la mano) e la misura la fa
         // il contenuto.
         dock.style.right = "16px";
-        dock.style.top = `${bandTop + 8}px`;
+        // A cavallo dell'orlo in alto, sulla stessa linea della targhetta
+        // del posto (.half-head, 15px sopra a corpo fisso): così ruba al
+        // campo solo metà della sua testata, e i riquadri del Fronte
+        // restano liberi (DOCK_ROOM_PX, rowPadTopView in ctx.ts).
+        dock.style.top = `calc(${bandTop}px - 15px / var(--card-scale))`;
         const head = document.createElement("button");
         head.type = "button";
         head.className = "pile-dock-head";
@@ -1918,11 +1929,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   async function spendMatter(matter: CardInstance): Promise<void> {
     const live = ctx.state().cards[matter.uid];
     if (!live || live.zone !== "field") return;
-    const fly = liftForFlight(matter.uid);
+    const fly = liftForFlight(matter.uid, "abisso");
     const passed = await ctx.dispatch({ t: "toZone", uid: matter.uid, zone: "abisso" });
     if (passed) {
       fly?.();
       ctx.log(msg("log.effect.spent", { seat: controllerOf(matter), card: matter.cardId }), controllerOf(matter));
+    } else {
+      fly?.cancel();
     }
   }
 
@@ -1993,7 +2006,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           }
           hold(true);
           await wait(CONFIRMED_LEAD_MS);
-          const fly = liftForFlight(target.uid);
+          const fly = liftForFlight(target.uid, form.kind === "move" ? "ritiro" : "abisso");
           const passed = await ctx.dispatch(
             form.kind === "move"
               ? { t: "toZone", uid: target.uid, zone: "ritiro", effect: ref }
@@ -2008,6 +2021,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             ctx.log(msg(line, { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
             await wait(FLY_MS);
           } else {
+            fly?.cancel();
             render();
           }
           break;
@@ -2125,12 +2139,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         if (step.form.kind === "move") {
           for (const target of flipSteps(ctx.state(), step.source, ctx.card).find(s => s.form === step.form)?.candidates ?? []) {
             strike(target.uid, FLY_MS);
-            const fly = liftForFlight(target.uid);
+            const fly = liftForFlight(target.uid, "abisso");
             const passed = await ctx.dispatch({ t: "toZone", uid: target.uid, zone: "abisso", effect: flipRef(step.source) });
             if (passed) {
               fly?.();
               ctx.log(msg("log.flip.absorb", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
               await wait(FLY_MS);
+            } else {
+              fly?.cancel();
             }
           }
         } else {
@@ -2286,7 +2302,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * prende prima dell'azione e la lascia partire dopo. FLY_MS è lo stesso
    * tempo della transizione di .fly-ghost in style.css.
    */
-  function liftForFlight(uid: string): (() => void) | null {
+  function liftForFlight(uid: string, zone: "ritiro" | "abisso" = "ritiro"): Flight | null {
     const tile = tiles.get(uid);
     const live = ctx.state().cards[uid];
     if (!tile || !live || tile.offsetParent === null) return null;
@@ -2307,8 +2323,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     ghost.style.margin = "0";
     ghost.style.transform = `scale(${from.width / layoutW})`;
     document.body.append(ghost);
-    return () => {
-      const slot = pileSlots.get(`${live.owner}:ritiro`);
+    const flight = (() => {
+      const slot = pileSlots.get(`${live.owner}:${zone}`);
       const to = slot?.getBoundingClientRect();
       if (!to) {
         ghost.remove();
@@ -2320,7 +2336,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         ghost.style.opacity = "0.15";
       });
       window.setTimeout(() => ghost.remove(), FLY_MS + 60);
-    };
+    }) as Flight;
+    // Il «no» dell'arbitro: la carta non parte, e il fantasma — che è
+    // già sul tavolo, sopra la tessera vera — deve sparire, o resta lì
+    // come un doppione della carta.
+    flight.cancel = () => ghost.remove();
+    return flight;
   }
 
   /**
@@ -2571,13 +2592,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     hold(true);
     try {
       await wait(CONFIRMED_LEAD_MS);
-      const fly = liftForFlight(target.uid);
+      const fly = liftForFlight(target.uid, step.to);
       const passed = await resolveMove(ctx, step, target);
       strike(target.uid, 0);
       if (passed) {
         fly?.();
         await wait(FLY_MS + TRIGGER_TAIL_MS);
       } else {
+        fly?.cancel();
         render();
       }
     } finally {

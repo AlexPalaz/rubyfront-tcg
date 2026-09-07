@@ -392,10 +392,15 @@ let headRoom = 0;
 /** E il margine in cima al tavolo: la targhetta del campo avversario
     sporge sopra il suo orlo, e sotto l'header ci vuole aria vera. */
 let topRoom = 0;
-export function setLabelRoom(labels: number, head: number, top = head): void {
+/** E il pannello delle pile avversarie, ripiegato a testata nell'angolo in
+    alto del campo avversario (table.ts, .pile-dock): il suo stacco dall'orlo,
+    la sua altezza e l'aria sotto, perché non cada sui riquadri del Fronte. */
+let dockRoom = 0;
+export function setLabelRoom(labels: number, head: number, top = head, dock = head): void {
   labelRoom = labels;
   headRoom = head;
   topRoom = top;
+  dockRoom = dock;
 }
 /** Le quote della distribuzione: cima e fondo, varco fra i campi, varco fra
     le file (una sola, nel campo tuo), i quattro margini di fila. */
@@ -406,7 +411,10 @@ function topPadView(): number {
 }
 function halfGapView(): number {
   const base = stretched() && tightView ? TIGHT.HALF_GAP : HALF_GAP;
-  return recessView ? base + viewSlack * SLACK.HALF_GAP : base;
+  // La testata del campo tuo sporge SOPRA il suo orlo, nel varco: il varco
+  // non scende mai sotto il suo spazio, o finirebbe sull'orlo del campo
+  // avversario (a 1180×820 il varco stretto è 7px, la testata ne sporge 15).
+  return recessView ? Math.max(base, headRoom) + viewSlack * SLACK.HALF_GAP : base;
 }
 
 /** Altezza di VISTA di una tessera: in rincasso è la carta intera come
@@ -428,11 +436,13 @@ function rowGapView(): number {
   if (!recessView) return ROW_GAP;
   return Math.max(tightView ? TIGHT.ROW_GAP : RECESS_ROW_GAP, labelRoom) + viewSlack * SLACK.ROW_GAP;
 }
-/** Il margine in testa a una fascia: fa posto alla testata, che sporge. */
-function rowPadTopView(): number {
+/** Il margine in testa a una fascia: fa posto alla testata, che sporge —
+    e, nella fascia avversaria in rincasso, al pannello delle pile ripiegato. */
+function rowPadTopView(foe = false): number {
   if (!stretched()) return ROW_PAD;
   const base = tightView ? TIGHT.ROW_PAD : COMPACT_ROW_PAD;
-  return recessView ? Math.max(base, headRoom) + viewSlack * SLACK.ROW_PAD : base;
+  const room = foe ? Math.max(headRoom, dockRoom) : headRoom;
+  return recessView ? Math.max(base, room) + viewSlack * SLACK.ROW_PAD : base;
 }
 /** Il margine in fondo a una fascia: fa posto alle etichette sotto i riquadri. */
 function rowPadBottomView(): number {
@@ -467,8 +477,8 @@ export function hasFoeBackRow(): boolean {
   return foeBackRow;
 }
 export function bandViewH(foe = false): number {
-  if (recessView && foe && !foeBackRow) return rowPadTopView() + tileViewH() + rowPadBottomView();
-  return rowPadTopView() + tileViewH() + rowGapView() + tileViewH() + rowPadBottomView();
+  if (recessView && foe && !foeBackRow) return rowPadTopView(true) + tileViewH() + rowPadBottomView();
+  return rowPadTopView(foe) + tileViewH() + rowGapView() + tileViewH() + rowPadBottomView();
 }
 /** Altezza di VISTA dell'intera superficie. */
 export function surfaceViewH(): number {
@@ -498,7 +508,7 @@ function anchors(): [number[], number[]] {
     // passa di qui).
     const foeBack = band === 0 && recessView && !foeBackRow;
     const rows = band === 0 ? [foeBack ? 0 : tileViewH(), tileViewH()] : [tileViewH(), tileViewH()];
-    seg(ROW_PAD, rowPadTopView());
+    seg(ROW_PAD, rowPadTopView(band === 0));
     seg(TILE_H, rows[0]);
     seg(ROW_GAP, foeBack ? 0 : rowGapView());
     seg(TILE_H, rows[1]);

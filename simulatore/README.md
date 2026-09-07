@@ -102,21 +102,27 @@ restano.
 
 ## Suoni e cursore
 
-Il tavolo **suona**, da videogioco: la carta che scivola quando si prende
-una carta o si sceglie un bersaglio, un colpo di metallo leggero sui tasti
-(Fine fase, Continua, Risolvi, conferme), la carta che si posa sul Fronte,
-il **clash** del metallo pesante all'attacco, la piastra dello scudo al
-blocco, il **crack** del piccone sulla pietra al contrattacco. Sono
-**campioni registrati** dai pacchetti CC0 di Kenney (Impact Sounds, Casino
-Audio) in `public/sounds`, con la licenza accanto; ogni voce ha qualche
-variante scelta a caso e un filo di variazione d'intonazione. Ogg dove il
-browser lo decodifica, AAC altrove (Safari). Il suono è del tavolo, non del
-mouse: vale per le azioni di chiunque — le proprie, quelle del bot, quelle
-arrivate dalla rete (`cueFor` in main.ts). Il browser non suona prima di
-un gesto: il contesto nasce al primo tocco e i campioni si caricano lì.
-L'interruttore **Suoni** nelle impostazioni spegne tutto, e la scelta resta
-salvata. (Le due sintesi al volo provate prima — oscillatori, poi
-«incastonamenti» con riverbero — sono state bocciate: «brutti».)
+Il tavolo **suona**, con suoni **disegnati a strati** come in un gioco
+vero: materie prime dai pacchetti CC0 di Kenney (RPG Audio, Impact Sounds,
+Casino Audio) montate fuori linea con ffmpeg — `scripts/sounds.py` è la
+ricetta: per ogni voce gli strati (file, ritardo, guadagno, filtro), poi la
+stessa catena per tutti (riverbero corto, taglio delle frequenze estreme,
+limitatore). I file, AAC, stanno in `public/sounds` con la licenza accanto;
+ogni voce ha due o tre varianti scelte a caso con un filo d'intonazione
+diversa. Le voci: cuoio in mano e carta che scivola quando si **prende** una
+carta o si **sceglie** un bersaglio; carta spinta dal mazzo con lo sfoglio
+di pergamena a ogni carta **pescata** (solo la propria pesca, in cascata,
+anche quella del turno); la carta che si **posa** sul Fronte col libro
+chiuso e un colpo sordo; lo scatto del fermaglio sui **tasti**; la lama che
+esce, il taglio e il colpo di metallo all'**attacco**; lo scudo al
+**blocco**; il taglio, il metallo pesante e il rintocco al
+**contrattacco**. Le fasi non suonano (montato, poi tolto su richiesta).
+Il suono è del tavolo, non del mouse: vale per le azioni di chiunque — le
+proprie, quelle del bot, quelle arrivate dalla rete (`cueFor` in main.ts).
+Il browser non suona prima di un gesto: il contesto nasce al primo tocco.
+L'interruttore **Suoni** nelle impostazioni spegne tutto, e resta salvato.
+(Le due sintesi al volo provate prima e i campioni nudi sono stati
+bocciati: «fai una cosa professionale come un gioco vero».)
 
 Il **cursore** è del gioco: una punta rubino, il colore del marchio,
 inclinata come un puntatore, con l'intaglio in basso e un alone morbido;
