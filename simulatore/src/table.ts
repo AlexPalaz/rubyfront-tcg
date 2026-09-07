@@ -3413,10 +3413,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // prima dell'aggancio e cade a fine corsa — e la mano si riaggancia
       // al DOM solo se è davvero cambiata, sennò ogni render qualunque
       // (un dado, una mossa altrui) farebbe ripartire l'animazione.
+      // Sotto l'insegna di fase (banner.ts) la carta del turno aspetta:
+      // prima la scritta, poi sparisce, poi la pesca. `backwards` la tiene
+      // invisibile nell'attesa; il posto in fila lo prende subito.
+      const until = Number(document.body.dataset.announceUntil ?? 0);
+      const hold = until > Date.now() ? until - Date.now() + 80 : 0;
       let entrance = 0;
       for (const tile of wanted) {
         if (tile.parentElement === host) continue;
-        const delay = entrance * DRAW_STEP_MS;
+        const delay = hold + entrance * DRAW_STEP_MS;
         tile.classList.add("is-drawn");
         tile.style.animationDelay = `${delay}ms`;
         entrance += 1;

@@ -21,12 +21,13 @@ export interface PhaseBanner {
   announce(): void;
 }
 
-/** Quanto resta in vista, corsa d'ingresso e d'uscita comprese. */
+/** Quanto resta in vista, corsa d'ingresso e d'uscita comprese. Chi vuole
+    accodare un gesto all'insegna — la mano iniziale, la pesca del turno —
+    parte DOPO (scelta del designer, 2026-09-07: prima la scritta, poi
+    sparisce, poi la carta). Finché è in vista, il corpo porta anche
+    `data-announce-until` (l'istante in cui se ne va): la mano lo legge per
+    trattenere le carte in arrivo (table.ts). */
 export const PHASE_BANNER_MS = 1800;
-/** Quando comincia a svanire (il 78% della corsa, come nei keyframes): chi
-    vuole accodare un gesto all'insegna — la mano iniziale — parte da qui,
-    così le carte entrano mentre la scritta si spegne. */
-export const PHASE_BANNER_HOLD_MS = 1400;
 
 const TITLES: Record<Phase, string> = {
   preparazione: "phase.title.preparazione",
@@ -80,9 +81,11 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
     void host.offsetWidth;
     host.hidden = false;
     document.body.classList.add("is-announcing");
+    document.body.dataset.announceUntil = String(Date.now() + PHASE_BANNER_MS);
     timer = window.setTimeout(() => {
       host.hidden = true;
       document.body.classList.remove("is-announcing");
+      delete document.body.dataset.announceUntil;
     }, PHASE_BANNER_MS);
   }
 
@@ -98,6 +101,7 @@ export function mountPhaseBanner(root: HTMLElement, ctx: Ctx): PhaseBanner {
     host.dataset.phase = state.over!.winner === ctx.seat() ? "fronte" : "reazione";
     window.clearTimeout(timer);
     document.body.classList.remove("is-announcing");
+    delete document.body.dataset.announceUntil;
     host.classList.add("is-final");
     host.hidden = false;
   }

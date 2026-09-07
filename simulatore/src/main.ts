@@ -19,7 +19,7 @@ import { connectEngine, DEFAULT_ENGINE, type EngineLink, type EngineStatus, type
 import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
-import { PHASE_BANNER_HOLD_MS, mountPhaseBanner } from "./banner.js";
+import { PHASE_BANNER_MS, mountPhaseBanner } from "./banner.js";
 import { showRoll } from "./dice.js";
 import { showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
@@ -209,8 +209,10 @@ function cueFor(action: Action): void {
   // La pesca del turno (§6.1) non è un'azione a sé: la fa il cambio di
   // turno, dentro l'azione `turn` (state.ts). Se chi entra sono io e il
   // mazzo non è vuoto, la carta che arriva suona come le altre.
+  // La carta entra in mano quando l'insegna del turno se n'è andata
+  // (table.ts): il suono la aspetta.
   if (action.t === "turn" && action.active === mySeat && zoneCards(state, mySeat, "deck").length > 0) {
-    playSound("draw");
+    window.setTimeout(() => playSound("draw"), PHASE_BANNER_MS + 80);
   }
 }
 
@@ -475,8 +477,10 @@ function paint(): void {
   else unreadChat = 0;
   seenChat = chats;
   document.body.dataset.unread = unreadChat > 0 ? String(unreadChat) : "";
-  table.render();
+  // L'insegna PRIMA del tavolo: la mano legge se c'è una scritta in corso
+  // per trattenere la carta del turno (data-announce-until).
   banner.render();
+  table.render();
   chat.render();
   hud.render();
   scheduleBot();
@@ -609,7 +613,7 @@ function scheduleOpening(seat: Seat, deckId: string): void {
       const untouched = state.players[seat].deckId === deckId && state.active === seat && handSize(seat) === 6;
       if (untouched) void dispatch({ t: "draw", seat, count: 1 });
     }, drawCascadeMs(6) + OPENING_DRAW_PAUSE_MS);
-  }, PHASE_BANNER_HOLD_MS);
+  }, PHASE_BANNER_MS + 80);
 }
 
 // ----------------------------------------------------------------- rete
