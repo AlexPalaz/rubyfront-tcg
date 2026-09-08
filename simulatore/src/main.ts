@@ -227,6 +227,7 @@ function cueFor(action: Action): void {
 /** Applica, ritrasmette, ridisegna: l'azione ormai è passata. */
 function commit(action: Action): void {
   cueFor(action);
+  peekReveal(action);
   state = apply(state, action);
   net?.send({ t: "action", action, from: mySeat });
   paint();
@@ -249,9 +250,31 @@ function commit(action: Action): void {
   }
 }
 
+/**
+ * «Mostrala all'avversario»: la carta che l'altro rivela da uno sguardo nel
+ * mazzo (un effetto o un'abilità del Rubyfront) si vede anche qui, a
+ * grandezza piena, prima che finisca in mano. Vale per l'avversario in rete
+ * (receive) e per il bot (commit): chi rivela sono sempre loro, mai io.
+ */
+function peekReveal(action: Action): void {
+  if (action.t !== "look" || !action.reveal) return;
+  const card = state.cards[action.reveal];
+  if (!card || card.owner === mySeat) return;
+  void showEnterPeek(document.querySelector<HTMLElement>("#table")!, {
+    cardId: card.cardId,
+    face: card.face,
+    theme: themes[card.owner],
+    locale,
+    kicker: t("scene.reveal.kicker"),
+    who: t("scene.reveals", { name: seatLabel(state, card.owner, mySeat), card: `«${cardName(card.cardId, locale)}»` }),
+    effects: [],
+  });
+}
+
 /** Applica senza ritrasmettere: per le azioni che arrivano già dalla rete. */
 function receive(action: Action, from: Seat): void {
   cueFor(action);
+  peekReveal(action);
   // La giocata dell'avversario si vede anche qui, senza fermare nulla: la
   // carta accesa un attimo, poi la tessera «ultima giocata» (effect.ts).
   if (action.t === "toZone" && action.zone === "field") {

@@ -211,6 +211,8 @@ const M: Record<string, { it: string; en: string }> = {
   "scene.enter": { it: "Entra sul Fronte", en: "Enters the Front" },
   "scene.attack": { it: "Quando attacca", en: "When it attacks" },
   "scene.attack.other": { it: "Quando un'Entità attacca", en: "When an Entity attacks" },
+  "scene.reveals": { it: "{name} mostra {card}", en: "{name} reveals {card}" },
+  "scene.reveal.kicker": { it: "Mostra all'avversario", en: "Reveals to the opponent" },
   "scene.plays": { it: "{name} gioca {card}", en: "{name} plays {card}" },
   "scene.attacks": { it: "{name} attacca con {card}", en: "{name} attacks with {card}" },
   "scene.triggers": { it: "Si innesca", en: "Triggers" },
