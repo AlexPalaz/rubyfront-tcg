@@ -173,7 +173,7 @@ function dispatch(action: Action): Promise<boolean> {
  */
 let lastDeclareAt = 0;
 /** Il brano del tavolo (public/music, fornito dal designer). */
-const TABLE_MUSIC = "neon-duel";
+const TABLE_MUSIC = "neon-medieval-arena";
 
 function cueFor(action: Action): void {
   // La musica del tavolo: parte quando la partita comincia (il proprio
