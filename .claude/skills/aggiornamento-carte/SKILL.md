@@ -34,7 +34,9 @@ giro; se un passo manca, si aggiunge qui nella stessa modifica.
    effetto — e per il Rubyfront/Nexus PV, costo di schieramento, Furia,
    requisito e recupero del Nexus, effetti e abilità di entrambe le facce.
    Elencare le differenze prima di toccare i file: il designer le legge nel
-   riepilogo finale.
+   riepilogo finale. Il confronto è **colonna per colonna**, non solo
+   sull'effetto: il 2026-09-08 è sfuggita una Vendetta nella colonna Tipo /
+   Keyword, perché i dati avevano il tag ma non la parola chiave stampata.
 3. **Aggiornare i dati** di ogni carta cambiata: `<id>.json` (semantica, con
    gli identificatori di `data/vocabulary.json`; una forma nuova nel
    registro solo se serve davvero), `<id>.it.json` e `<id>.en.json` (testi
