@@ -34,7 +34,7 @@ in media costa 3,5 e il richiamo non fa mai salire il prezzo.
 |---|---|---|
 | Principale | 3+ Umani hanno attaccato → **+2 PV**, una volta per turno | idem, **+2 PV, pesca 1, scarta 1** |
 | Abilità | **+3 PV** Richiamo della Radura: guarda 3, prendi un Umano | **+3 PV** Passo dell'Erede: il prossimo Umano costa 1 Flusso in meno |
-| Abilità | **−5 PV** Ordine di Carica: Umani attaccanti +1 Potenza | **−5 PV** Chiamata dei Sette: guarda 7, metti in campo un Umano e un permanente non Umano |
+| Abilità | **−5 PV** Ordine di Carica: Umani attaccanti +1 Potenza | — |
 | Abilità | — | **−7 PV** Ritorno al Fronte: un Umano gratis dalla mano, con Slancio |
 | Materie | Dimensionale fino al 2° · Distruttiva fino al 1° | Dimensionale fino al 2° · Distruttiva fino al **2°** |
 | Furia | d20 ≥ 13 | d20 ≥ 13 |

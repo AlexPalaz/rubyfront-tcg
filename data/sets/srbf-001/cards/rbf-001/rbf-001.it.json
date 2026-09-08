@@ -59,10 +59,6 @@
         "name": "Passo dell'Erede",
         "text": "la prossima Entità Umana che giochi in questo turno costa 1 Flusso in meno."
       },
-      "callOfSeven": {
-        "name": "Chiamata dei Sette",
-        "text": "mostra le prime 7 carte del tuo mazzo. Tra esse puoi mettere sul tuo Fronte un'Entità Umana e un altro permanente non Umano. Metti le altre in fondo al mazzo."
-      },
       "returnToFront": {
         "name": "Ritorno al Fronte",
         "text": "puoi mettere sul tuo Fronte un'Entità Umana dalla tua mano senza pagarne il costo di Flusso. Quell'Entità ottiene Slancio fino alla fine del turno, e le prossime Entità Umane che attaccano in questo turno prendono +1 Potenza fino alla fine del turno."

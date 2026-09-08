@@ -788,9 +788,9 @@ Regole collegate finora:
   mai sotto 1 di costo; il riduttore e la copia lo consumano. Limiti
   dichiarati: un'abilità il cui effetto non ha forma certificata **non si
   attiva** con l'arbitro (l'engine non saprebbe verificarne l'effetto, e i
-  PV non si pagano per niente): oggi «mostra le prime 7 e metti sul
-  Fronte…», «metti sul tuo Fronte un Umano dalla mano senza costo…» e «il
-  riarmo dalla Zona di Ritiro» restano a mano, e la voce di menu lo dice;
+  PV non si pagano per niente): oggi «metti sul tuo Fronte un Umano dalla
+  mano senza costo…» e «il riarmo dalla Zona di Ritiro» restano a mano, e
+  la voce lo dice;
   la perdita della partita a PV zero dopo un'abilità la chiude la fine
   partita, non questa dogana; le attivazioni in sospeso e gli sconti non
   viaggiano nello snapshot d'allineamento (dopo un riallineamento a metà

@@ -104,10 +104,6 @@
                     "name": "Passo dell'Erede",
                     "text": "la prossima Entità Umana che giochi in questo turno costa 1 Flusso in meno."
                   },
-                  "callOfSeven": {
-                    "name": "Chiamata dei Sette",
-                    "text": "mostra le prime 7 carte del tuo mazzo. Tra esse puoi mettere sul tuo Fronte un'Entità Umana e un altro permanente non Umano. Metti le altre in fondo al mazzo."
-                  },
                   "returnToFront": {
                     "name": "Ritorno al Fronte",
                     "text": "puoi mettere sul tuo Fronte un'Entità Umana dalla tua mano senza pagarne il costo di Flusso. Quell'Entità ottiene Slancio fino alla fine del turno, e le prossime Entità Umane che attaccano in questo turno prendono +1 Potenza fino alla fine del turno."
@@ -176,10 +172,6 @@
                   "heirStep": {
                     "name": "Heir's Step",
                     "text": "the next Human Entity you play this turn costs 1 less Flux."
-                  },
-                  "callOfSeven": {
-                    "name": "Call of the Seven",
-                    "text": "reveal the top 7 cards of your deck. Among them you may put a Human Entity and one other non-Human permanent onto your Front. Put the rest on the bottom of your deck."
                   },
                   "returnToFront": {
                     "name": "Return to the Front",
@@ -474,47 +466,6 @@
                     "amount": 1,
                     "details": {
                       "nextPlayedThisTurn": true
-                    }
-                  }
-                },
-                {
-                  "id": "call-of-seven",
-                  "displayKey": "callOfSeven",
-                  "timing": [
-                    "own_preparation",
-                    "own_front"
-                  ],
-                  "repeatable": false,
-                  "checks": [],
-                  "cost": {
-                    "health": 5
-                  },
-                  "effect": {
-                    "type": "look_and_optionally_move",
-                    "from": {
-                      "zone": "deck",
-                      "owner": "controller",
-                      "position": "top",
-                      "count": 7
-                    },
-                    "details": {
-                      "reveal": true,
-                      "mayMoveToFront": [
-                        {
-                          "cardType": "entity",
-                          "race": "human"
-                        },
-                        {
-                          "permanent": true,
-                          "notRace": "human"
-                        }
-                      ],
-                      "restTo": {
-                        "zone": "deck",
-                        "owner": "controller",
-                        "position": "bottom",
-                        "anyOrder": true
-                      }
                     }
                   }
                 },
@@ -6719,10 +6670,6 @@
                 "name": "Passo dell'Erede",
                 "text": "la prossima Entità Umana che giochi in questo turno costa 1 Flusso in meno."
               },
-              "callOfSeven": {
-                "name": "Chiamata dei Sette",
-                "text": "mostra le prime 7 carte del tuo mazzo. Tra esse puoi mettere sul tuo Fronte un'Entità Umana e un altro permanente non Umano. Metti le altre in fondo al mazzo."
-              },
               "returnToFront": {
                 "name": "Ritorno al Fronte",
                 "text": "puoi mettere sul tuo Fronte un'Entità Umana dalla tua mano senza pagarne il costo di Flusso. Quell'Entità ottiene Slancio fino alla fine del turno, e le prossime Entità Umane che attaccano in questo turno prendono +1 Potenza fino alla fine del turno."
@@ -6791,10 +6738,6 @@
               "heirStep": {
                 "name": "Heir's Step",
                 "text": "the next Human Entity you play this turn costs 1 less Flux."
-              },
-              "callOfSeven": {
-                "name": "Call of the Seven",
-                "text": "reveal the top 7 cards of your deck. Among them you may put a Human Entity and one other non-Human permanent onto your Front. Put the rest on the bottom of your deck."
               },
               "returnToFront": {
                 "name": "Return to the Front",
@@ -7089,47 +7032,6 @@
                 "amount": 1,
                 "details": {
                   "nextPlayedThisTurn": true
-                }
-              }
-            },
-            {
-              "id": "call-of-seven",
-              "displayKey": "callOfSeven",
-              "timing": [
-                "own_preparation",
-                "own_front"
-              ],
-              "repeatable": false,
-              "checks": [],
-              "cost": {
-                "health": 5
-              },
-              "effect": {
-                "type": "look_and_optionally_move",
-                "from": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "top",
-                  "count": 7
-                },
-                "details": {
-                  "reveal": true,
-                  "mayMoveToFront": [
-                    {
-                      "cardType": "entity",
-                      "race": "human"
-                    },
-                    {
-                      "permanent": true,
-                      "notRace": "human"
-                    }
-                  ],
-                  "restTo": {
-                    "zone": "deck",
-                    "owner": "controller",
-                    "position": "bottom",
-                    "anyOrder": true
-                  }
                 }
               }
             },

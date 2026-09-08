@@ -59,10 +59,6 @@
         "name": "Heir's Step",
         "text": "the next Human Entity you play this turn costs 1 less Flux."
       },
-      "callOfSeven": {
-        "name": "Call of the Seven",
-        "text": "reveal the top 7 cards of your deck. Among them you may put a Human Entity and one other non-Human permanent onto your Front. Put the rest on the bottom of your deck."
-      },
       "returnToFront": {
         "name": "Return to the Front",
         "text": "you may put a Human Entity from your hand onto your Front without paying its Flux cost. That Entity gains Surge until end of turn, and the next Human Entities that attack this turn get +1 Power until end of turn."

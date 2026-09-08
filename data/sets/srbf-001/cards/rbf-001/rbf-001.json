@@ -301,47 +301,6 @@
           }
         },
         {
-          "id": "call-of-seven",
-          "displayKey": "callOfSeven",
-          "timing": [
-            "own_preparation",
-            "own_front"
-          ],
-          "repeatable": false,
-          "checks": [],
-          "cost": {
-            "health": 5
-          },
-          "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top",
-              "count": 7
-            },
-            "details": {
-              "reveal": true,
-              "mayMoveToFront": [
-                {
-                  "cardType": "entity",
-                  "race": "human"
-                },
-                {
-                  "permanent": true,
-                  "notRace": "human"
-                }
-              ],
-              "restTo": {
-                "zone": "deck",
-                "owner": "controller",
-                "position": "bottom",
-                "anyOrder": true
-              }
-            }
-          }
-        },
-        {
           "id": "return-to-front",
           "displayKey": "returnToFront",
           "timing": [
