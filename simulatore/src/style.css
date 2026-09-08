@@ -599,6 +599,27 @@ body.is-announcing .table { pointer-events: none; }
   box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
 }
 .effect-go:hover { filter: brightness(1.15); }
+/* La scelta fra più voci (abilità del Rubyfront, flip): una lista di
+   tasti-scheda, nome e prezzo in testa, il testo sotto; spenti col perché. */
+.effect-choices { display: grid; gap: 8px; max-width: 520px; }
+.effect-choice {
+  display: grid; gap: 4px;
+  padding: 12px 14px;
+  text-align: left;
+  color: var(--banda-ink);
+  background: var(--banda-panel);
+  border: 1px solid var(--banda-panel-filo);
+  border-radius: 0;
+  line-height: 1.4;
+}
+.effect-choice:hover:not(:disabled) { border-color: var(--banda-ruby); background: color-mix(in srgb, var(--banda-panel) 80%, var(--banda-ruby)); }
+.effect-choice:disabled { opacity: .55; cursor: default; }
+.effect-choice-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.effect-choice-head b { font-size: 1.05rem; }
+.effect-choice-price { font-weight: 700; letter-spacing: .06em; color: var(--banda-ruby); white-space: nowrap; }
+.effect-choice p { margin: 0; }
+.effect-choice-hint { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--banda-muted); }
+.effect-go.is-ghost { color: var(--banda-ink); background: transparent; border-color: var(--banda-panel-filo); box-shadow: none; }
 @media (prefers-reduced-motion: reduce) {
   .effect-veil, .effect-veil.is-leaving, .effect-card { animation: none; }
   .effect-card { box-shadow: 0 30px 80px rgba(0, 0, 0, .7), 0 0 40px rgba(210, 74, 100, .6); }
@@ -1310,6 +1331,31 @@ body.view-recess .slot-rubyfront:not(.is-recall) { border-style: solid; }
    il perché al passaggio. */
 .deploy-btn:disabled { opacity: .45; cursor: default; filter: saturate(.5); }
 body.view-recess .slot-rubyfront.can-deploy .deploy-btn { display: block; }
+/* Il tasto Abilità (§3.1): stesso posto e stesso vestito di «Schiera», per
+   il Rubyfront schierato di chi lo comanda; spento nel turno altrui. */
+.ability-btn {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: calc(-17px * var(--ui-inv));
+  transform: translateX(-50%);
+  z-index: 60;
+  padding: calc(9px * var(--ui-inv)) calc(18px * var(--ui-inv));
+  font-size: calc(1rem * var(--ui-inv));
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: #fdeef1;
+  background: linear-gradient(180deg, #b81a41, #9e0f34);
+  border: calc(1px * var(--ui-inv)) solid #e56a86;
+  border-radius: 0;
+  box-shadow: 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(158, 15, 52, .5);
+  white-space: nowrap;
+}
+.ability-btn:hover:not(:disabled) { filter: brightness(1.15); }
+.ability-btn:disabled { opacity: .45; cursor: default; filter: saturate(.5); }
+.slot-rubyfront.can-abilities .ability-btn { display: block; }
 /* I dorsi avversari in compatta si affacciano meno (60px canonici, alla
    scala del CAMPO e non della mano, che può essere cresciuta): stanno
    dentro il margine in cima alla lavagna e non coprono la targa del posto. */

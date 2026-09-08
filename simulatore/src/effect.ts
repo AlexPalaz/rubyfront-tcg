@@ -285,3 +285,113 @@ export function confirmEffect(root: HTMLElement, question: string, labels?: { ye
     document.addEventListener("keydown", onKey);
   });
 }
+
+/** Una scelta fra più voci, con la carta di fianco: le abilità del Rubyfront e il flip (§3.1). */
+export interface ChoiceShow {
+  cardId: string;
+  face: number;
+  theme: string;
+  locale: string;
+  kicker: string;
+  who: string;
+  options: { id: string; label: string; price?: string; text: string; disabled?: boolean; hint?: string }[];
+  closeLabel: string;
+}
+
+/** Risolve con l'id della voce scelta, o null se si chiude senza scegliere. */
+export function showChoices(root: HTMLElement, show: ChoiceShow): Promise<string | null> {
+  let chosen: string | null = null;
+  return enqueue(() => showChoicesNow(root, show, id => (chosen = id))).then(() => chosen);
+}
+
+function showChoicesNow(root: HTMLElement, show: ChoiceShow, pick: (id: string) => void): Promise<void> {
+  const veil = document.createElement("div");
+  veil.className = "effect-veil is-choices";
+  const stage = document.createElement("div");
+  stage.className = "effect-stage";
+  const holder = renderFace(show.cardId, show.face, show.theme, show.locale);
+  const card = document.createElement("div");
+  card.className = "effect-card";
+  const scale = Math.min(0.7, (root.clientHeight - 200) / CARD_H, (root.clientWidth - 120) / (CARD_W * 2.4));
+  card.style.width = `${Math.round(CARD_W * scale)}px`;
+  card.style.height = `${Math.round(CARD_H * scale)}px`;
+  if (holder) {
+    holder.style.width = `${CARD_W}px`;
+    holder.style.height = `${CARD_H}px`;
+    holder.style.transform = `scale(${scale})`;
+    holder.style.transformOrigin = "0 0";
+    card.append(holder);
+  }
+  const side = document.createElement("div");
+  side.className = "effect-side";
+  const kicker = document.createElement("div");
+  kicker.className = "effect-kicker";
+  kicker.textContent = show.kicker;
+  const who = document.createElement("div");
+  who.className = "effect-who";
+  who.textContent = show.who;
+  side.append(kicker, who);
+  const list = document.createElement("div");
+  list.className = "effect-choices";
+  let close: () => void = () => undefined;
+  for (const option of show.options) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "effect-choice";
+    button.disabled = option.disabled === true;
+    const head = document.createElement("span");
+    head.className = "effect-choice-head";
+    const label = document.createElement("b");
+    label.textContent = option.label;
+    head.append(label);
+    if (option.price) {
+      const price = document.createElement("span");
+      price.className = "effect-choice-price";
+      price.textContent = option.price;
+      head.append(price);
+    }
+    const text = document.createElement("p");
+    text.textContent = option.text;
+    button.append(head, text);
+    if (option.hint) {
+      const hint = document.createElement("span");
+      hint.className = "effect-choice-hint";
+      hint.textContent = option.hint;
+      button.append(hint);
+    }
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      pick(option.id);
+      close();
+    });
+    list.append(button);
+  }
+  side.append(list);
+  const go = document.createElement("button");
+  go.type = "button";
+  go.className = "effect-go is-ghost";
+  go.textContent = show.closeLabel;
+  side.append(go);
+  stage.append(card, side);
+  veil.append(stage);
+  root.append(veil);
+  if (holder) fitTexts(holder);
+  return new Promise(resolve => {
+    close = (): void => {
+      veil.classList.add("is-leaving");
+      document.removeEventListener("keydown", onKey);
+      window.setTimeout(() => {
+        veil.remove();
+        resolve();
+      }, 220);
+    };
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") close();
+    };
+    go.addEventListener("click", () => close());
+    veil.addEventListener("click", event => {
+      if (event.target === veil) close();
+    });
+    document.addEventListener("keydown", onKey);
+  });
+}

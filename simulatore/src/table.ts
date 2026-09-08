@@ -44,7 +44,7 @@ import {
   type Ctx,
 } from "./ctx.js";
 import { showRoll } from "./dice.js";
-import { confirmEffect, noticeEffect, showEnterEffect } from "./effect.js";
+import { confirmEffect, noticeEffect, showChoices, showEnterEffect } from "./effect.js";
 import {
   describeControl,
   describeRefresh,
@@ -113,6 +113,7 @@ import {
   isRubyfront,
   type Deployment,
   abilityCopy,
+  nexusRequirementCopy,
 } from "./renderer.js";
 import {
   STACK_STEP,
@@ -789,6 +790,86 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       void deploy(waiting, RUBYFRONT_X, front, dropZ(waiting, RUBYFRONT_X, front), deployment, { x: waiting.x, y: waiting.y, z: waiting.z });
     });
     slot.append(button);
+    // Schierato, al posto di «Schiera» sta «Abilità»: apre la scelta fra le
+    // abilità speciali della faccia in vista e il flip verso il Nexus
+    // (§3.1) — un tasto, non il tasto destro (deciso 2026-09-08).
+    const abilities = document.createElement("button");
+    abilities.type = "button";
+    abilities.className = "ability-btn";
+    abilities.textContent = t("recall.abilities");
+    abilities.title = t("recall.abilities.tip");
+    abilities.addEventListener("click", event => {
+      event.stopPropagation();
+      void openAbilities(seat);
+    });
+    slot.append(abilities);
+  }
+
+  /** Il Rubyfront/Nexus di `seat` schierato, in gioco. */
+  function deployedRubyfront(seat: Seat): CardInstance | undefined {
+    return fieldCards(ctx.state()).find(card => card.owner === seat && isRubyfront(card.cardId) && inPlay(card, ctx.card(card.cardId).kind));
+  }
+
+  /**
+   * La scelta delle abilità (§3.1): la carta di fianco, una voce per
+   * abilità della faccia in vista — nome, prezzo, testo — e il flip verso
+   * il Nexus col suo requisito. Le voci che ora non passerebbero restano in
+   * vista, spente, col perché.
+   */
+  async function openAbilities(seat: Seat): Promise<void> {
+    const card = deployedRubyfront(seat);
+    if (!card || !ctx.controls(seat) || !ctx.arbitrated()) return;
+    const state = ctx.state();
+    const facts = ctx.card(card.cardId);
+    const own = state.active === seat;
+    const player = state.players[seat];
+    const spent = player.abilityTurn === state.turn;
+    const options: Parameters<typeof showChoices>[1]["options"] = [];
+    for (const ability of facts.abilities.filter(candidate => candidate.face === card.face)) {
+      const copy = abilityCopy(card.cardId, ability.face, ability.displayKey, ctx.locale());
+      const price = ability.cost !== null ? t("ability.cost", { n: ability.cost }) : t("ability.gain", { n: ability.gain ?? 0 });
+      let hint: string | null = null;
+      if (!ability.form) hint = t("ability.hint.manual");
+      else if (!own) hint = t("ability.hint.turn");
+      else if (!ability.timing.includes(state.phase)) hint = t("ability.hint.window", { phase: t(ability.timing.length === 1 ? `phase.title.${ability.timing[0]}` : "ability.window.both") });
+      else if (spent) hint = t("ability.hint.used");
+      else if (player.hp < (ability.cost ?? 0)) hint = t("ability.hint.hp", { n: ability.cost ?? 0 });
+      options.push({ id: `ability:${ability.id}`, label: copy.name, price, text: copy.text, disabled: hint !== null, ...(hint ? { hint } : {}) });
+    }
+    const nexus = facts.nexus;
+    if (nexus && card.face !== nexus.face) {
+      const check = nexusCheck(state, card, ctx.card);
+      let hint: string | null = null;
+      if (!own || (state.phase !== "preparazione" && state.phase !== "fronte")) hint = t("ability.hint.turn");
+      else if (!check.ok) hint = t(check.why === "log.nexus.few" ? "flip.hint.few" : "flip.hint.nodiscard", { n: check.n ?? 0 });
+      options.push({
+        id: "flip",
+        label: t("menu.flip.nexus"),
+        ...(nexus.recovery ? { price: t("ability.gain", { n: nexus.recovery }) } : {}),
+        text: nexusRequirementCopy(card.cardId, ctx.locale()),
+        disabled: hint !== null,
+        ...(hint ? { hint } : {}),
+      });
+    }
+    const chosen = await showChoices(root, {
+      cardId: card.cardId,
+      face: card.face,
+      theme: ctx.themeFor(card.owner),
+      locale: ctx.locale(),
+      kicker: t("scene.abilities"),
+      who: t("scene.abilities.who", { name: cardName(card.cardId, ctx.locale()), hp: player.hp }),
+      options,
+      closeLabel: t("overlay.close"),
+    });
+    if (!chosen) return;
+    const live = ctx.state().cards[card.uid];
+    if (!live) return;
+    if (chosen === "flip") {
+      await flipToNexus(live);
+      return;
+    }
+    const ability = facts.abilities.find(candidate => `ability:${candidate.id}` === chosen && candidate.face === live.face);
+    if (ability) await useAbility(live, ability);
   }
 
   function buildStaticZones(): void {
@@ -1651,29 +1732,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         });
       }
     }
-    // §3.1 — le abilità speciali del Rubyfront/Nexus, con l'arbitro: quelle
-    // della faccia in vista, nel proprio turno e nella loro finestra, coi PV
-    // che coprono il costo. Senza forma certificata restano a mano: la voce
-    // lo dice, spenta.
-    if (ctx.arbitrated() && mine && card.zone === "field" && inPlay(card, ctx.card(card.cardId).kind)) {
-      const state = ctx.state();
-      const facts = ctx.card(card.cardId);
-      const own = state.active === controllerOf(card);
-      for (const ability of facts.abilities.filter(candidate => candidate.face === card.face)) {
-        const copy = abilityCopy(card.cardId, ability.face, ability.displayKey, ctx.locale());
-        const price = ability.cost !== null ? t("ability.cost", { n: ability.cost }) : t("ability.gain", { n: ability.gain ?? 0 });
-        if (!ability.form) {
-          items.push({ label: t("ability.manual", { name: copy.name }), disabled: true });
-          continue;
-        }
-        // §3.1 — una sola abilità speciale per turno.
-        const spent = state.players[card.owner].abilityTurn === state.turn;
-        const open = own && !spent && ability.timing.includes(state.phase) && state.players[card.owner].hp >= (ability.cost ?? 0);
-        items.push({ label: t("menu.ability", { name: copy.name, price }), disabled: !open, run: () => void useAbility(card, ability) });
-      }
-      if (facts.abilities.some(candidate => candidate.face === card.face)) items.push({ rule: true, label: "" });
-    }
-    if (faceCount(card.cardId) > 1) {
+    // §3.1 — le abilità speciali e il flip verso il Nexus, con l'arbitro,
+    // stanno sul tasto «Abilità» sotto il Rubyfront (openAbilities), non nel
+    // menu (deciso 2026-09-08). A tavolo libero il flip resta qui.
+    if (faceCount(card.cardId) > 1 && !(ctx.arbitrated() && mine)) {
       const next = (card.face + 1) % faceCount(card.cardId);
       const nexus = ctx.card(card.cardId).nexus;
       // Con l'arbitro il flip verso il Nexus passa dal requisito (§3.1);
@@ -3434,6 +3496,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         button.title = block
           ? t(block, { available, cost: deployment?.fixed ?? 0, die: deployment?.die ?? 0 })
           : t("recall.deploy.tip");
+      }
+      // Schierato: il tasto Abilità, di chi lo comanda, con l'arbitro. Nel
+      // turno altrui resta in vista ma spento.
+      const abilitiesButton = slot.querySelector<HTMLButtonElement>(".ability-btn");
+      if (abilitiesButton) {
+        const deployed = !waiting && ctx.arbitrated() && ctx.controls(seat) && deployedRubyfront(seat) !== undefined;
+        slot.classList.toggle("can-abilities", deployed);
+        abilitiesButton.disabled = deployed && state.active !== seat;
+        abilitiesButton.title = abilitiesButton.disabled ? t("ability.hint.turn") : t("recall.abilities.tip");
       }
       // Un posto solo, due stati. Finché il Rubyfront aspetta l'etichetta
       // non c'è: al suo posto, a cavallo del bordo basso della carta, sta il

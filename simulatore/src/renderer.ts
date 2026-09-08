@@ -939,6 +939,14 @@ function furyAtOf(faces: CardFace[]): Record<number, number> {
   return out;
 }
 
+/** Il requisito del Nexus nella lingua di chi legge (la riga «Controlli almeno …, poi flippa»). */
+export function nexusRequirementCopy(cardId: string, locale: string): string {
+  const card = getCard(cardId);
+  const copy = card ? (renderer.localized(card, locale) as Loose | null) : null;
+  const text = copy?.card?.nexusRequirement?.text;
+  return typeof text === "string" ? text : "";
+}
+
 /** Nome e testo di un'abilità speciale nella lingua di chi legge. */
 export function abilityCopy(cardId: string, faceIndex: number, displayKey: string, locale: string): { name: string; text: string } {
   const card = getCard(cardId);
