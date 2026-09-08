@@ -762,8 +762,9 @@ Regole collegate finora:
 
 - **§3.1 Le abilità speciali del Rubyfront, con la Furia (§8.1)** — «per
   essere usate costano PV», «attivabili liberamente, solo nel proprio turno,
-  sia in Fase di Preparazione che in Fase di Fronte», «più volte per turno,
-  finché i PV bastano», «solo se i PV coprono l'intero costo (PV ≥ costo)»,
+  sia in Fase di Preparazione che in Fase di Fronte», «una sola abilità
+  speciale per turno, qualunque sia» (scritto col designer il 2026-09-08),
+  «solo se i PV coprono l'intero costo (PV ≥ costo)»,
   «utilizzabili solo quando è in campo»; e la Furia: «prima di usare
   un'abilità speciale il proprietario lancia un d20», sotto la soglia
   stampata «perde 1 PV, ma l'abilità si usa comunque». L'anagrafe legge le
@@ -778,7 +779,8 @@ Regole collegate finora:
   colpo: il client calcola (tira il d20, sceglie i bersagli), l'engine rifà
   il conto sulla forma e passa solo un esito identico; la copia paga o
   recupera i PV, toglie 1 alla Furia fallita, potenzia i bersagli, annota
-  lo sconto. Lo sguardo si risolve dopo, con `look` marcato `on_ability`,
+  lo sconto, e annota il turno dell'uso (la seconda abilità nel turno
+  non passa). Lo sguardo si risolve dopo, con `look` marcato `on_ability`,
   una volta per attivazione (la copia tiene il conto delle attivazioni in
   sospeso, che cade col turno). Lo sconto vale nel turno: giocando la carta
   l'azione lo dichiara (`toZone … discount`), la dogana del costo lo

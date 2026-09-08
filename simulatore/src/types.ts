@@ -104,6 +104,8 @@ export interface PlayerState {
   sealed?: string[];
   /** Gli sconti delle abilità del Rubyfront, validi in questo turno (§3.1). Gemello: table.rb, discounts. */
   discounts?: Discount[];
+  /** Il turno in cui il posto ha usato un'abilità speciale (§3.1: una sola per turno). Gemello: table.rb, ability_used?. */
+  abilityTurn?: number;
 }
 
 /** I parametri di una riga di log: numeri, testi, posti (`seat`, `otherSeat`),

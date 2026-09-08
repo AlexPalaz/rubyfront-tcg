@@ -127,7 +127,7 @@
           "timing": [
             "own_preparation"
           ],
-          "repeatable": true,
+          "repeatable": false,
           "checks": [
             "fury"
           ],
@@ -152,7 +152,7 @@
             "own_preparation",
             "own_front"
           ],
-          "repeatable": true,
+          "repeatable": false,
           "checks": [
             "fury"
           ],
@@ -287,7 +287,7 @@
           "timing": [
             "own_preparation"
           ],
-          "repeatable": true,
+          "repeatable": false,
           "checks": [],
           "cost": {
             "health": 3
@@ -310,7 +310,7 @@
             "own_preparation",
             "own_front"
           ],
-          "repeatable": true,
+          "repeatable": false,
           "checks": [],
           "cost": {
             "health": 3
@@ -335,7 +335,7 @@
           "timing": [
             "own_preparation"
           ],
-          "repeatable": true,
+          "repeatable": false,
           "checks": [],
           "cost": {
             "health": 7

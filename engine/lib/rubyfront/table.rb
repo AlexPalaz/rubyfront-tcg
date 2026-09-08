@@ -89,6 +89,9 @@ module Rubyfront
       # Le abilità attivate in questo turno (§3.1) che aspettano il loro
       # seguito (lo sguardo nel mazzo): "rubyfront|abilità" => quante volte.
       @ability_pending = Hash.new(0)
+      # Il turno in cui ciascun posto ha usato un'abilità speciale (§3.1: una
+      # sola per turno). seat => turno.
+      @ability_used = {}
       @rolls = {}
     end
 
@@ -125,6 +128,11 @@ module Rubyfront
 
     # Le carte in campo che `seat` comanda: le sue, più quelle che controlla (§8.2).
     # Le abilità in sospeso e gli sconti del turno (§3.1): li legge l'engine.
+    # §3.1 — «una sola abilità speciale per turno»: il posto l'ha già usata in questo turno?
+    def ability_used?(seat)
+      @ability_used[seat] == @turn
+    end
+
     def pending_ability?(uid, ability)
       @ability_pending["#{uid}|#{ability}"].positive?
     end
@@ -573,6 +581,7 @@ module Rubyfront
         player[:discounts] << { amount: discount["amount"], type: discount["type"], race: discount["race"].is_a?(String) ? discount["race"] : nil }
       end
       @ability_pending["#{action["uid"]}|#{action["ability"]}"] += 1 if action["ability"].is_a?(String) && !action.key?("targets") && !discount
+      @ability_used[card[:owner]] = @turn
     end
 
     def pay(seat, cost)

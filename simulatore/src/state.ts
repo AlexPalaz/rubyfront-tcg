@@ -388,7 +388,7 @@ function reduce(state: GameState, action: Action): GameState {
           if (target && target.zone === "field") cards[uid] = { ...target, powerBonus: (target.powerBonus ?? 0) + action.power };
         }
       }
-      return { ...state, cards, players: { ...state.players, [card.owner]: { ...player, hp, ...(discounts ? { discounts } : {}) } } };
+      return { ...state, cards, players: { ...state.players, [card.owner]: { ...player, hp, abilityTurn: state.turn, ...(discounts ? { discounts } : {}) } } };
     }
 
     case "flip": {

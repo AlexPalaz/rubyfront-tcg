@@ -1666,7 +1666,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           items.push({ label: t("ability.manual", { name: copy.name }), disabled: true });
           continue;
         }
-        const open = own && ability.timing.includes(state.phase) && state.players[card.owner].hp >= (ability.cost ?? 0);
+        // §3.1 — una sola abilità speciale per turno.
+        const spent = state.players[card.owner].abilityTurn === state.turn;
+        const open = own && !spent && ability.timing.includes(state.phase) && state.players[card.owner].hp >= (ability.cost ?? 0);
         items.push({ label: t("menu.ability", { name: copy.name, price }), disabled: !open, run: () => void useAbility(card, ability) });
       }
       if (facts.abilities.some(candidate => candidate.face === card.face)) items.push({ rule: true, label: "" });

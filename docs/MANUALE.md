@@ -126,7 +126,7 @@ Quando il costo è un dado, **non è scritto: si tira**. Si lancia il dado indic
 
 Il Rubyfront, quando entra in campo, **non attacca** e **non blocca** (salvo diversa indicazione sulla carta — la regola d'oro §1.1 vale sempre). Il senso di schierarlo è:
 
-- usare le sue **abilità speciali** (pagandone il costo in PV) — attivabili **liberamente, solo nel proprio turno**, sia in Fase di Preparazione che in Fase di Fronte. La stessa abilità è attivabile **più volte per turno**, finché i PV bastano. Si risolvono **senza possibilità di risposta** (la catena vale solo per le Reattive). Un'abilità è attivabile **solo se i PV coprono l'intero costo** (PV ≥ costo): i PV non scendono mai sotto 0. **Attenzione:** pagare fino a 0 esatto è legale, ma a 0 PV si perde **immediatamente** la partita — l'effetto dell'abilità **non si risolve**;
+- usare le sue **abilità speciali** (pagandone il costo in PV) — attivabili **liberamente, solo nel proprio turno**, sia in Fase di Preparazione che in Fase di Fronte. Si può usare **una sola abilità speciale per turno**, qualunque sia. Si risolvono **senza possibilità di risposta** (la catena vale solo per le Reattive). Un'abilità è attivabile **solo se i PV coprono l'intero costo** (PV ≥ costo): i PV non scendono mai sotto 0. **Attenzione:** pagare fino a 0 esatto è legale, ma a 0 PV si perde **immediatamente** la partita — l'effetto dell'abilità **non si risolve**;
 - usare le **Materie** a lui disponibili;
 - **triggerare il Nexus**, quando i requisiti sono soddisfatti (vedi "Il Nexus", più sotto).
 

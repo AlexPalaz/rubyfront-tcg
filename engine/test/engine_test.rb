@@ -3282,10 +3282,13 @@ class EngineTest < Minitest::Test
     verdict = abilita(engine, "carica", cost: 5, roll: 7, fail: true, targets: [], power: 1)
     assert verdict[:ok], verdict[:reason]
     assert_equal 15, copia(engine).hp("a"), "5 di costo e 1 di Furia fallita"
+    assert_match(/una sola abilità speciale per turno/, abilita(engine, "sguardo", gain: 3, roll: 13, fail: false)[:reason], "la seconda nel turno non passa")
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "a")
+    engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" }, actor: "b")
     verdict = abilita(engine, "sguardo", gain: 3, roll: 13, fail: false)
     assert verdict[:ok], verdict[:reason]
-    assert_equal 18, copia(engine).hp("a"), "il recupero"
-    assert_match(/non tira la Furia/, abilita(engine, "sconto", cost: 3, roll: 20, fail: false, discount: { "amount" => 1, "type" => "object", "race" => nil })[:reason])
+    assert_equal 18, copia(engine).hp("a"), "il recupero, al turno dopo"
+    assert_match(/non tira la Furia/, abilita(arcano, "sconto", cost: 3, roll: 20, fail: false, discount: { "amount" => 1, "type" => "object", "race" => nil })[:reason])
   end
 
   def test_l_abilita_vuole_pv_a_sufficienza_il_campo_il_turno_e_la_finestra
@@ -3294,6 +3297,7 @@ class EngineTest < Minitest::Test
     assert_match(/servono 5 PV, ne hai 4/, abilita(engine, "carica", cost: 5, roll: 15, fail: false, targets: [], power: 1)[:reason])
     engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 5 } })
     assert abilita(engine, "carica", cost: 5, roll: 15, fail: false, targets: [], power: 1)[:ok], "pagare fino a 0 esatto è legale"
+    assert_match(/una sola abilità speciale per turno/, abilita(engine, "sguardo", gain: 3, roll: 15, fail: false)[:reason])
     assert_match(/Zona di Richiamo/, abilita(arcano(y: 1756), "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil })[:reason])
     assert_match(/non tocca a te/, abilita(arcano, "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil }, actor: "b")[:reason])
     engine = arcano
@@ -3312,9 +3316,10 @@ class EngineTest < Minitest::Test
     verdict = abilita(engine, "carica", cost: 5, roll: 15, fail: false, targets: %w[u1], power: 1)
     assert verdict[:ok], verdict[:reason]
     assert_equal 1, copia(engine).card("u1")[:power_bonus]
+    engine = arcano
     assert_match(/UNA Entità/, abilita(engine, "colpo", cost: 3, roll: 15, fail: false, targets: %w[u2], power: 2)[:reason], "u2 non ha Oggetti")
     assert abilita(engine, "colpo", cost: 3, roll: 15, fail: false, targets: %w[u1], power: 2)[:ok]
-    assert_equal 3, copia(engine).card("u1")[:power_bonus]
+    assert_equal 2, copia(engine).card("u1")[:power_bonus]
   end
 
   def test_lo_sguardo_dell_abilita_si_risolve_dopo_una_volta_per_attivazione
@@ -3342,10 +3347,12 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], verdict[:reason]
     assert_equal 9, copia(engine).flux("a")
     assert_empty copia(engine).discounts("a"), "consumato"
-    # Un'Entità non è un Oggetto: lo sconto non vale.
+    # Un'Entità non è un Oggetto: lo sconto non vale (turno nuovo: una sola abilità per turno).
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "a")
+    engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" }, actor: "b")
     assert abilita(engine, "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil })[:ok]
     assert_match(/nessuno sconto/, engine.judge({ "t" => "toZone", "uid" => "h2", "zone" => "field", "x" => 632, "y" => 1236, "cost" => 0, "discount" => 1 }, actor: "a")[:reason])
-    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "a")
+    engine.judge({ "t" => "turn", "turn" => 6, "active" => "b" }, actor: "a")
     assert_empty copia(engine).discounts("a"), "gli sconti cadono col turno"
   end
 

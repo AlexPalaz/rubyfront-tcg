@@ -125,7 +125,7 @@ When the cost is a die, **it isn't written: it is rolled**. You roll the die sho
 
 When it enters the field, the Rubyfront **does not attack** and **does not block** (unless the card says otherwise — the golden rule §1.1 always applies). The point of deploying it is to:
 
-- use its **special abilities** (paying their HP cost) — activated **freely, only on your own turn**, in the Preparation Phase as well as the Front Phase. The same ability can be activated **several times per turn**, as long as the HP suffice. They resolve **with no chance of response** (the chain applies only to Reactives). An ability can be activated **only if the HP cover the whole cost** (HP ≥ cost): HP never go below 0. **Beware:** paying down to exactly 0 is legal, but at 0 HP you lose the game **immediately** — the ability's effect **does not resolve**;
+- use its **special abilities** (paying their HP cost) — activated **freely, only on your own turn**, in the Preparation Phase as well as the Front Phase. You may use **only one special ability per turn**, whichever it is. They resolve **with no chance of response** (the chain applies only to Reactives). An ability can be activated **only if the HP cover the whole cost** (HP ≥ cost): HP never go below 0. **Beware:** paying down to exactly 0 is legal, but at 0 HP you lose the game **immediately** — the ability's effect **does not resolve**;
 - use the **Matters** available to it;
 - **trigger the Nexus**, when the requirements are met (see "The Nexus", below).
 

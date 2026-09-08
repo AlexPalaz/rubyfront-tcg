@@ -646,6 +646,7 @@ class TableBonusTest < Minitest::Test
     @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 20, "flux" => 5 } })
     @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "carica", "cost" => 5, "roll" => 3, "fail" => true, "targets" => ["u"], "power" => 1 })
     assert_equal 14, @table.hp("a"), "5 di costo e 1 di Furia fallita"
+    assert @table.ability_used?("a"), "una sola per turno: la copia lo annota"
     assert_equal 1, @table.card("u")[:power_bonus]
     @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "sguardo", "gain" => 3 })
     assert_equal 17, @table.hp("a")
@@ -660,6 +661,7 @@ class TableBonusTest < Minitest::Test
     @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "sconto", "cost" => 3, "discount" => { "amount" => 1, "type" => "object", "race" => nil } })
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
     assert_empty @table.discounts("a"), "cadono col turno"
+    refute @table.ability_used?("a"), "e l'uso è del turno passato"
     assert_nil @table.card("u")[:power_bonus]
   end
 end

@@ -80,7 +80,7 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando entra, col dado stappa tutte le Entità che controlli»",
       "§8.2 «Questa Entità non si tappa mai»: nessun gesto la tappa",
       "§8.2 Il controllo non è un ingresso: gli effetti «quando entra» non si riapplicano",
-      "§3.1 Le abilità speciali del Rubyfront: costano PV, in campo, nel proprio turno, nella loro finestra",
+      "§3.1 Le abilità speciali del Rubyfront: costano PV, in campo, nel proprio turno, nella loro finestra, una sola per turno",
       "§8.1 La Furia: un d20 prima dell'abilità, col fallimento −1 PV",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
@@ -136,7 +136,7 @@ module Rubyfront
       "§8.2 Certified effects: “when it enters, with the die untap all Entities you control”",
       "§8.2 “This Entity never taps”: no gesture taps it",
       "§8.2 Taking control isn't an entry: “when it enters” effects don't apply again",
-      "§3.1 The Rubyfront's special abilities: they cost HP, on the field, on your own turn, in their window",
+      "§3.1 The Rubyfront's special abilities: they cost HP, on the field, on your own turn, in their window, only one per turn",
       "§8.1 Fury: a d20 before the ability, −1 HP on a failure",
     ].freeze
 
@@ -2318,8 +2318,8 @@ module Rubyfront
     # anagrafe: silenzio, il flip resta a mano.
     # §3.1 — le abilità speciali del Rubyfront/Nexus: «per essere usate
     # costano PV», «attivabili liberamente, solo nel proprio turno, sia in
-    # Fase di Preparazione che in Fase di Fronte», «più volte per turno,
-    # finché i PV bastano», «solo se i PV coprono l'intero costo (PV ≥
+    # Fase di Preparazione che in Fase di Fronte», «una sola abilità
+    # speciale per turno» (decisione del designer, 2026-09-08), «solo se i PV coprono l'intero costo (PV ≥
     # costo)», «utilizzabili solo quando è in campo». §8.1 — la Furia:
     # «prima di usare un'abilità speciale il proprietario lancia un d20»,
     # sotto la soglia «perde 1 PV, ma l'abilità si usa comunque». L'azione
@@ -2348,6 +2348,8 @@ module Rubyfront
         windows_en = ability[:timing].map { |phase| phase == "preparazione" ? "Preparation" : "Front" }
         return refuse("ability", "le abilità speciali si usano nel proprio turno, in Fase di #{windows.join(" o di ")} (§3.1)", "special abilities are used on your own turn, in the #{windows_en.join(" or ")} Phase (§3.1)")
       end
+      return refuse("ability", "una sola abilità speciale per turno: in questo turno l'hai già usata (§3.1)", "only one special ability per turn: you already used one this turn (§3.1)") if @table.ability_used?(card[:owner])
+
       form = ability[:form]
       return refuse("ability", "l'abilità non ha un effetto che l'engine sappia verificare: resta a mano finché non si collega (§3.1)", "the ability has no effect the engine can verify: it stays manual until it's connected (§3.1)") unless form
 
