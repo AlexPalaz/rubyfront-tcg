@@ -3506,10 +3506,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         abilitiesButton.disabled = deployed && state.active !== seat;
         abilitiesButton.title = abilitiesButton.disabled ? t("ability.hint.turn") : t("recall.abilities.tip");
       }
-      // Un posto solo, due stati. Finché il Rubyfront aspetta l'etichetta
-      // non c'è: al suo posto, a cavallo del bordo basso della carta, sta il
-      // tasto Schiera — e un'etichetta lì sotto ci finirebbe dietro.
-      slot.dataset.label = waiting ? "" : t("zone.rubyfront");
+      // Un posto solo, due stati, due nomi: «Zona di Richiamo» finché il
+      // Rubyfront aspetta, «Rubyfront» da schierato (deciso 2026-09-08). Il
+      // tasto a cavallo del bordo basso (Schiera, poi Abilità) spinge
+      // l'etichetta più giù (style.css), così non ci finisce dietro.
+      slot.dataset.label = waiting ? t("zone.richiamo") : t("zone.rubyfront");
     }
 
     // §7.2 — la barra della catena: cosa c'è in cima, e a chi tocca.

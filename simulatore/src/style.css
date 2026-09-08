@@ -1356,6 +1356,13 @@ body.view-recess .slot-rubyfront.can-deploy .deploy-btn { display: block; }
 .ability-btn:hover:not(:disabled) { filter: brightness(1.15); }
 .ability-btn:disabled { opacity: .45; cursor: default; filter: saturate(.5); }
 .slot-rubyfront.can-abilities .ability-btn { display: block; }
+/* Col tasto a cavallo del bordo basso (Schiera o Abilità) l'etichetta del
+   posto scende sotto il tasto, invece di finirci dietro. */
+body.view-recess .slot-rubyfront.can-deploy::after, body.view-recess .slot-rubyfront.can-abilities::after {
+  /* In rincasso l'etichetta è posata da `top` (bottom: auto, sopra): si
+     sposta quello — sotto il tasto (17px oltre il bordo) e la sua ombra. */
+  top: calc(100% + 30px * var(--ui-inv));
+}
 /* I dorsi avversari in compatta si affacciano meno (60px canonici, alla
    scala del CAMPO e non della mano, che può essere cresciuta): stanno
    dentro il margine in cima alla lavagna e non coprono la targa del posto. */
