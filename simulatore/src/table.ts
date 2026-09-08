@@ -3397,13 +3397,18 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       }
       // §6.5 — «non si possono avere più di 7 carte in mano» a fine turno:
       // la targhetta lo dice prima che sia il sigillo a dirlo.
-      const excess = seat === me && cards.length > 7 && ctx.controls(seat);
+      const over = seat === me && cards.length > 7 && ctx.controls(seat);
       // La mano chiusa a chiave (§6) lo dice sulla targhetta e si spegne un
       // po': si guarda, non si tocca, finché il momento non torna suo.
       const locked = seat === me && ctx.controls(seat) && handLocked(seat);
       host.classList.toggle("is-locked", locked);
+      // §6.5 — l'eccesso si scarta alla fine del PROPRIO turno: l'invito a
+      // scartare vale nel proprio turno; nel turno altrui, con la mano
+      // chiusa, la targhetta dice solo che si scarterà a fine del proprio.
+      const excess = over && !locked && state.active === seat;
+      const foeName = seatLabel(state, otherSeat(seat), me);
       tag.textContent = seat === me
-        ? `${t("hand.mine", { n: cards.length })}${excess ? t("hand.excess") : locked ? t("hand.locked", { name: seatLabel(state, otherSeat(seat), me) }) : ""}`
+        ? `${t("hand.mine", { n: cards.length })}${excess ? t("hand.excess") : locked ? t(over ? "hand.excess.later" : "hand.locked", { name: foeName }) : ""}`
         : seatWaiting(state, seat)
           ? t("hand.waiting")
           : t("hand.theirs", { name: seatLabel(state, seat), n: cards.length });
