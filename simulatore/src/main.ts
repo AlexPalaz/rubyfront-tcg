@@ -172,14 +172,15 @@ function dispatch(action: Action): Promise<boolean> {
  * quelle arrivate dalla rete — perché il suono è del tavolo, non del mouse.
  */
 let lastDeclareAt = 0;
-/** Il brano delle battaglie (public/music, fornito dal designer). */
-const BATTLE_MUSIC = "neon-duel";
+/** Il brano del tavolo (public/music, fornito dal designer). */
+const TABLE_MUSIC = "neon-duel";
 
 function cueFor(action: Action): void {
-  // La musica delle battaglie: parte con la Fase di Fronte (di chiunque),
-  // resta per la Reazione, si spegne al cambio di turno e a fine partita.
-  if (action.t === "phase" && action.phase === "fronte") startMusic(BATTLE_MUSIC);
-  if (action.t === "turn" || action.t === "gameOver" || action.t === "newGame") stopMusic();
+  // La musica del tavolo: parte quando la partita comincia (il proprio
+  // mazzo al tavolo), gira in loop per tutta la seduta, e a partita nuova
+  // riparte da capo. Si spegne solo uscendo dal tavolo (leaveTable).
+  if (action.t === "loadDeck" && action.seat === mySeat) startMusic(TABLE_MUSIC);
+  if (action.t === "newGame") startMusic(TABLE_MUSIC, true);
   // Le fasi non suonano (deciso 2026-09-07: «togli i suoni di ogni fase»);
   // i tasti di fase tengono lo scatto dei tasti.
   if (action.t === "declare") {

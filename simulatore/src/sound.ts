@@ -49,8 +49,8 @@ const buffers = new Map<string, Promise<AudioBuffer | null>>();
 /** Il volume generale: sommesso, sotto la voce della chat vocale. */
 const MASTER_GAIN = 0.6;
 
-// La musica delle battaglie: un brano in loop che parte con la Fase di
-// Fronte e si spegne al cambio di turno (main.ts). Sta sotto ai suoni,
+// La musica del tavolo: un brano in loop che parte con la partita e dura
+// tutta la seduta; a partita nuova riparte da capo (main.ts). Sta sotto ai suoni,
 // che devono restare accentuati (scelta del designer): volume basso di
 // suo, e a ogni suono la musica si abbassa ancora per un attimo (ducking)
 // e risale. Il brano è normalizzato fuori linea (-18 LUFS, ffmpeg loudnorm).
@@ -79,8 +79,10 @@ export function setMusicEnabled(on: boolean): void {
   else if (musicWanted) startMusic(musicWanted);
 }
 
-/** Il brano parte (in dissolvenza) e gira in loop finché non lo si ferma. */
-export function startMusic(name: string): void {
+/** Il brano parte (in dissolvenza) e gira in loop finché non lo si ferma.
+    Con `restart` riparte da capo anche se sta già suonando. */
+export function startMusic(name: string, restart = false): void {
+  if (restart && music) stopMusic(true);
   musicWanted = name;
   if (!enabled || !musicEnabled) return;
   if (music?.name === name) return;
