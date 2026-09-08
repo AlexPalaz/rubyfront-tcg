@@ -89,17 +89,30 @@ export function startMusic(name: string, restart = false): void {
   void loadMusic(ctx, name).then(buffer => {
     // Nel frattempo qualcuno l'ha fermata, o ne vuole un'altra.
     if (!buffer || musicWanted !== name || music?.name === name) return;
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, ctx.currentTime);
     gain.gain.linearRampToValueAtTime(MUSIC_GAIN, ctx.currentTime + MUSIC_FADE_IN_S);
-    source.connect(gain);
     gain.connect(out);
-    source.start();
-    music = { name, source, gain };
+    spin(ctx, buffer, name, gain);
   });
+}
+
+/** Il giro del brano: la sorgente in loop su tutto il buffer — e, se per
+    qualunque motivo finisce lo stesso (il loop non ripartito), un giro
+    nuovo attacca subito, senza dissolvenza, finché la musica è voluta. */
+function spin(ctx: AudioContext, buffer: AudioBuffer, name: string, gain: GainNode): void {
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+  source.loopStart = 0;
+  source.loopEnd = buffer.duration;
+  source.connect(gain);
+  source.onended = () => {
+    if (music?.source !== source || musicWanted !== name) return;
+    spin(ctx, buffer, name, gain);
+  };
+  source.start();
+  music = { name, source, gain };
 }
 
 /** Il brano si spegne in dissolvenza (o di colpo). */
