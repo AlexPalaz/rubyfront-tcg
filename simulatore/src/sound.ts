@@ -52,15 +52,11 @@ const MASTER_GAIN = 0.6;
 // La musica del tavolo: un brano in loop che parte con la partita e dura
 // tutta la seduta; a partita nuova riparte da capo (main.ts). Sta sotto ai suoni,
 // che devono restare accentuati (scelta del designer): volume basso di
-// suo, e a ogni suono la musica si abbassa ancora per un attimo (ducking)
-// e risale. Il brano è normalizzato fuori linea (-18 LUFS, ffmpeg loudnorm).
+// suo, e basta — niente abbassamento a ogni suono (tolto su richiesta del
+// designer, 2026-09-08). Il brano è normalizzato fuori linea (-18 LUFS,
+// ffmpeg loudnorm).
 /** Il volume della musica, relativo al generale: ben sotto i suoni (0.5–0.9). */
 const MUSIC_GAIN = 0.2;
-/** Quanto si abbassa sotto un suono (frazione di MUSIC_GAIN), e i tempi. */
-const DUCK_TO = 0.4;
-const DUCK_IN_S = 0.04;
-const DUCK_HOLD_S = 0.25;
-const DUCK_OUT_S = 0.9;
 const MUSIC_FADE_IN_S = 1.4;
 const MUSIC_FADE_OUT_S = 1.6;
 let musicEnabled = true;
@@ -118,18 +114,6 @@ export function stopMusic(abrupt = false): void {
   const tail = abrupt ? 0.08 : MUSIC_FADE_OUT_S;
   playing.gain.gain.linearRampToValueAtTime(0, now + tail);
   playing.source.stop(now + tail + 0.05);
-}
-
-/** Sotto un suono la musica si abbassa un attimo, poi risale. */
-function duckMusic(): void {
-  if (!music || !context) return;
-  const gain = music.gain.gain;
-  const now = context.currentTime;
-  gain.cancelScheduledValues(now);
-  gain.setValueAtTime(gain.value, now);
-  gain.linearRampToValueAtTime(MUSIC_GAIN * DUCK_TO, now + DUCK_IN_S);
-  gain.setValueAtTime(MUSIC_GAIN * DUCK_TO, now + DUCK_IN_S + DUCK_HOLD_S);
-  gain.linearRampToValueAtTime(MUSIC_GAIN, now + DUCK_IN_S + DUCK_HOLD_S + DUCK_OUT_S);
 }
 
 const musicBuffers = new Map<string, Promise<AudioBuffer | null>>();
@@ -196,7 +180,6 @@ export function playSound(cue: Cue): void {
   const out = master;
   void load(ctx, name).then(buffer => {
     if (!buffer) return;
-    duckMusic();
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     // Un filo di variazione d'intonazione: lo stesso campione non suona mai
