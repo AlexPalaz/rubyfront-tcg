@@ -7,7 +7,7 @@
 
 import { msg, t } from "./i18n.js";
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
-import { createCardEl, fitPending, setTessHp, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
+import { createCardEl, fitPending, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
 import { playSound } from "./sound.js";
 import { declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticPower, undeclare, wornBy } from "./combat.js";
 import { tapPreview } from "./preview.js";
@@ -813,11 +813,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const head = document.createElement("div");
       head.className = "half-head";
       head.dataset.seat = seat;
+      // Prima la targa (PV, Gettone, Flusso), poi il nome: i numeri sono la
+      // cosa da leggere, il nome li firma (scelta del designer, 2026-09-08).
       const name = document.createElement("span");
       name.className = "half-name";
       name.dataset.seatName = seat;
-      head.append(name);
       if (statsFor) head.append(statsFor(seat));
+      head.append(name);
       band.append(head);
       surface.append(band);
       zoneEls.push(band);
@@ -2956,9 +2958,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       theme: ctx.themeFor(card.owner),
       locale: ctx.locale(),
       tess,
-      // Il Rubyfront li porta in ogni vista: il distintivo dei PV è il
-      // conto dei PV del giocatore (setTessHp), e va letto sempre.
-      badges: card.zone === "field" && (isRecessView() || isRubyfront(card.cardId)),
+      // (I PV del giocatore stanno nel medaglione della targa, hud.ts.)
+      badges: card.zone === "field" && isRecessView(),
     });
     return tile;
   }
@@ -3115,8 +3116,6 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     tile.classList.toggle("is-restrained", onField && !card.facedown && card.cannotBlock === true);
     if (!onField || card.facedown) setTessPower(tile, null);
-    // I PV del giocatore stanno sul suo Rubyfront (§3), e solo lì.
-    if (isRubyfront(card.cardId)) setTessHp(tile, onField && !card.facedown ? ctx.state().players[card.owner].hp : null);
     if (marks.length === 0) {
       box?.remove();
       return;

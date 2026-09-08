@@ -206,16 +206,11 @@ function appendBadges(tess: HTMLElement, face: HTMLElement, cardId: string, face
     tess.append(chip);
   }
 
-  const hp = face.querySelector<HTMLElement>(".titlebar .hp");
+  // I PV del Rubyfront NON stanno sulla tessera: si leggono nel medaglione
+  // della targa del posto (hud.ts), e solo lì (scelta del designer,
+  // 2026-09-08). Il distintivo della Potenza resta per le Entità.
   const power = face.querySelector<HTMLElement>(".titlebar .power-badge");
-  if (hp && hp.textContent?.trim() !== "—") {
-    const chip = document.createElement("span");
-    chip.className = "tess-hp";
-    const value = hp.firstChild?.textContent?.trim() ?? "";
-    const unit = hp.querySelector("small")?.textContent?.trim() ?? "";
-    chip.append(Object.assign(document.createElement("b"), { textContent: value }), " ", Object.assign(document.createElement("small"), { textContent: unit }));
-    tess.append(chip);
-  } else if (power) {
+  if (power) {
     const chip = document.createElement("span");
     chip.className = "tess-power";
     chip.title = power.title;
@@ -274,52 +269,6 @@ export function setTessPower(element: HTMLElement, now: number | null): void {
   chip.classList.toggle("is-down", delta < 0);
 }
 
-/**
- * I Punti Vita del giocatore SUL Rubyfront (§3): il distintivo dei PV mostra
- * quelli rimasti, non lo stampato — i PV si segnano una volta sola, dove
- * sta il Rubyfront. Quando cambiano, il numero scorre fino al nuovo valore
- * e il distintivo lampeggia: rubino se scende, verde se sale. `null`
- * riporta lo stampato (carta fuori dal campo).
- */
-export function setTessHp(element: HTMLElement, now: number | null): void {
-  const chip = element.querySelector<HTMLElement>(":scope > .tess > .tess-hp");
-  if (!chip) return;
-  const label = chip.querySelector("b");
-  if (!label) return;
-  const printed = chip.dataset.printed ?? label.textContent ?? "";
-  chip.dataset.printed = printed;
-  const target = now === null ? Number(printed) : now;
-  const shown = Number(chip.dataset.shown ?? printed);
-  if (target === shown || Number.isNaN(target)) {
-    if (Number.isNaN(target)) label.textContent = printed;
-    return;
-  }
-  const from = Number.isNaN(shown) ? target : shown;
-  chip.dataset.shown = String(target);
-  // La corsa del numero: scorre di uno in uno, in HP_TWEEN_MS, e il colore
-  // resta acceso un attimo oltre la fine. Una corsa nuova soppianta quella
-  // in atto (la sua chiave la ferma).
-  const run = String(Date.now() + Math.random());
-  chip.dataset.run = run;
-  chip.classList.remove("is-down", "is-up");
-  void chip.offsetWidth;
-  chip.classList.add(target < from ? "is-down" : "is-up");
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduced) {
-    label.textContent = String(target);
-    return;
-  }
-  const start = performance.now();
-  const step = (time: number): void => {
-    if (chip.dataset.run !== run) return;
-    const k = Math.min(1, (time - start) / HP_TWEEN_MS);
-    const eased = 1 - (1 - k) * (1 - k);
-    label.textContent = String(Math.round(from + (target - from) * eased));
-    if (k < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-}
-const HP_TWEEN_MS = 650;
 
 /** Completa il fit delle tessere costruite prima di entrare nel documento. */
 export function fitPending(root: ParentNode): void {

@@ -10,9 +10,9 @@
 //   microfono.
 // - Sul TAVOLO, in basso a destra (#table > .hud-actions): il gesto che
 //   chiude la fase — con l'arbitro «Fine fase»; senza, Fronte e Fine turno.
-// - Sul TAVOLO, sull'orlo di ciascun campo accanto alla targhetta del nome:
-//   la TARGA del posto — Gettone Flusso e Flusso. Il nome lo dice già la
-//   targhetta, i Punti Vita li dice il Rubyfront (cardview.ts, setTessHp);
+// - Sul TAVOLO, sull'orlo di ciascun campo, prima della targhetta del nome:
+//   la TARGA del posto — il medaglione dei Punti Vita, il Gettone Flusso e
+//   il Flusso. Il nome lo dice la targhetta accanto;
 //   la targa di chi è di turno si tinge. Le targhe le crea questo modulo e le appende table.ts
 //   (.half-head, via onStats): dentro la lavagna scalata le misure passano
 //   per --ui-inv (style.css) e restano a corpo fisso.
@@ -134,7 +134,7 @@ function statRow(
   return { row, sync: () => (value.textContent = String(read())) };
 }
 
-/** La corsa del numero dei PV nel medaglione (come setTessHp). */
+/** La corsa del numero dei PV nel medaglione. */
 const HP_TWEEN_MS = 650;
 
 export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
@@ -156,8 +156,8 @@ export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
     // corpo fisso, che scorre di uno in uno quando cambiano — rosso e
     // scosso quando scendono, verde quando salgono, pulsante sotto i 6
     // (ripensato col designer il 2026-09-08: prima stavano solo sul
-    // Rubyfront, che in rincasso è troppo piccolo per leggerli). Sulla
-    // carta del Rubyfront il distintivo segue lo stesso numero (setTessHp).
+    // Rubyfront, che in rincasso è troppo piccolo per leggerli; poi il
+    // distintivo sulla carta è stato tolto: i PV si leggono qui e basta).
     const hp = document.createElement("div");
     hp.className = "hud-hp";
     const gem = document.createElement("span");
