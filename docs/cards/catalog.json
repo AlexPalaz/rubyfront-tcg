@@ -1104,7 +1104,7 @@
               "face": {
                 "name": "Cercatore di Schegge",
                 "seek": {
-                  "trigger": "Quando entra in campo",
+                  "trigger": "Quando entra sul Fronte",
                   "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un'Entità Umana tra esse e aggiungerla alla tua mano. Metti le altre in fondo al mazzo."
                 },
                 "flavor": "Ogni scheggia è un pezzo di qualcuno. Le tiene tutte."
@@ -1130,7 +1130,7 @@
               "face": {
                 "name": "Shard Seeker",
                 "seek": {
-                  "trigger": "When it enters the field",
+                  "trigger": "When it enters the Front",
                   "text": "Look at the top 4 cards of your deck. You may reveal a Human Entity among them and add it to your hand. Put the rest on the bottom of your deck."
                 },
                 "flavor": "Every shard is a piece of someone. It keeps them all."
@@ -1236,7 +1236,7 @@
               "face": {
                 "name": "Arciere della Radura Argentata",
                 "loose": {
-                  "trigger": "Quando entra in campo",
+                  "trigger": "Quando entra sul Fronte",
                   "text": "Manda nell'Abisso un'Entità avversaria. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
                 },
                 "flavor": "Tira una volta sola. Non serve la seconda."
@@ -1262,7 +1262,7 @@
               "face": {
                 "name": "Archer of the Silver Glade",
                 "loose": {
-                  "trigger": "When it enters the field",
+                  "trigger": "When it enters the Front",
                   "text": "Send an opposing Entity to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
                 },
                 "flavor": "It looses one arrow. A second is never needed."
@@ -1495,10 +1495,10 @@
                 "name": "Radunatore dei Dimenticati",
                 "keyword": {
                   "name": "Slancio",
-                  "rules": "può attaccare nel turno in cui entra in campo"
+                  "rules": "può attaccare nel turno in cui entra sul Fronte"
                 },
                 "rally": {
-                  "trigger": "Quando entra in campo",
+                  "trigger": "Quando entra sul Fronte",
                   "text": "Prendi il controllo di un'Entità avversaria con costo di Flusso 3 o inferiore fino alla fine del turno. Quell'Entità ottiene Slancio fino alla fine del turno."
                 },
                 "flavor": "Chiama, e qualcuno risponde. Anche dall'altra parte."
@@ -1525,10 +1525,10 @@
                 "name": "Rallier of the Forgotten",
                 "keyword": {
                   "name": "Surge",
-                  "rules": "may attack the turn it enters the field"
+                  "rules": "may attack the turn it enters the Front"
                 },
                 "rally": {
-                  "trigger": "When it enters the field",
+                  "trigger": "When it enters the Front",
                   "text": "Gain control of an opposing Entity with Flux cost 3 or less until end of turn. That Entity gains Surge until end of turn."
                 },
                 "flavor": "It calls, and someone answers. Even from the other side."
@@ -1794,7 +1794,7 @@
               "face": {
                 "name": "Ajmal, Re delle Terre Infrante",
                 "rally": {
-                  "trigger": "Quando entra in campo",
+                  "trigger": "Quando entra sul Fronte",
                   "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli."
                 },
                 "effect": {
@@ -1824,7 +1824,7 @@
               "face": {
                 "name": "Ajmal, King of the Broken Lands",
                 "rally": {
-                  "trigger": "When it enters the field",
+                  "trigger": "When it enters the Front",
                   "text": "Roll a d20: on 15–20 untap all Entities you control."
                 },
                 "effect": {
@@ -4248,7 +4248,7 @@
               "face": {
                 "name": "Artefice di Nova Kai",
                 "forage": {
-                  "trigger": "Quando entra in campo",
+                  "trigger": "Quando entra sul Fronte",
                   "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
                 },
                 "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
@@ -4274,7 +4274,7 @@
               "face": {
                 "name": "Artificer of Nova Kai",
                 "forage": {
-                  "trigger": "When it enters the field",
+                  "trigger": "When it enters the Front",
                   "text": "Roll a d6 and look at a number of cards from the top of your deck equal to 2 plus half the result, rounded up. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
                 },
                 "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited."
@@ -4531,7 +4531,7 @@
                 "name": "Sottolama di Nova Kai",
                 "keyword": {
                   "name": "Slancio",
-                  "rules": "può attaccare nel turno in cui entra in campo"
+                  "rules": "può attaccare nel turno in cui entra sul Fronte"
                 },
                 "command": {
                   "trigger": "Quando questa Entità attacca mentre ha un Oggetto assegnato",
@@ -4561,7 +4561,7 @@
                 "name": "Underblade of Nova Kai",
                 "keyword": {
                   "name": "Surge",
-                  "rules": "may attack the turn it enters the field"
+                  "rules": "may attack the turn it enters the Front"
                 },
                 "command": {
                   "trigger": "When this Entity attacks while it has an Object assigned",
@@ -7725,7 +7725,7 @@
           "face": {
             "name": "Cercatore di Schegge",
             "seek": {
-              "trigger": "Quando entra in campo",
+              "trigger": "Quando entra sul Fronte",
               "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un'Entità Umana tra esse e aggiungerla alla tua mano. Metti le altre in fondo al mazzo."
             },
             "flavor": "Ogni scheggia è un pezzo di qualcuno. Le tiene tutte."
@@ -7751,7 +7751,7 @@
           "face": {
             "name": "Shard Seeker",
             "seek": {
-              "trigger": "When it enters the field",
+              "trigger": "When it enters the Front",
               "text": "Look at the top 4 cards of your deck. You may reveal a Human Entity among them and add it to your hand. Put the rest on the bottom of your deck."
             },
             "flavor": "Every shard is a piece of someone. It keeps them all."
@@ -7857,7 +7857,7 @@
           "face": {
             "name": "Arciere della Radura Argentata",
             "loose": {
-              "trigger": "Quando entra in campo",
+              "trigger": "Quando entra sul Fronte",
               "text": "Manda nell'Abisso un'Entità avversaria. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
             },
             "flavor": "Tira una volta sola. Non serve la seconda."
@@ -7883,7 +7883,7 @@
           "face": {
             "name": "Archer of the Silver Glade",
             "loose": {
-              "trigger": "When it enters the field",
+              "trigger": "When it enters the Front",
               "text": "Send an opposing Entity to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
             },
             "flavor": "It looses one arrow. A second is never needed."
@@ -8116,10 +8116,10 @@
             "name": "Radunatore dei Dimenticati",
             "keyword": {
               "name": "Slancio",
-              "rules": "può attaccare nel turno in cui entra in campo"
+              "rules": "può attaccare nel turno in cui entra sul Fronte"
             },
             "rally": {
-              "trigger": "Quando entra in campo",
+              "trigger": "Quando entra sul Fronte",
               "text": "Prendi il controllo di un'Entità avversaria con costo di Flusso 3 o inferiore fino alla fine del turno. Quell'Entità ottiene Slancio fino alla fine del turno."
             },
             "flavor": "Chiama, e qualcuno risponde. Anche dall'altra parte."
@@ -8146,10 +8146,10 @@
             "name": "Rallier of the Forgotten",
             "keyword": {
               "name": "Surge",
-              "rules": "may attack the turn it enters the field"
+              "rules": "may attack the turn it enters the Front"
             },
             "rally": {
-              "trigger": "When it enters the field",
+              "trigger": "When it enters the Front",
               "text": "Gain control of an opposing Entity with Flux cost 3 or less until end of turn. That Entity gains Surge until end of turn."
             },
             "flavor": "It calls, and someone answers. Even from the other side."
@@ -8415,7 +8415,7 @@
           "face": {
             "name": "Ajmal, Re delle Terre Infrante",
             "rally": {
-              "trigger": "Quando entra in campo",
+              "trigger": "Quando entra sul Fronte",
               "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli."
             },
             "effect": {
@@ -8445,7 +8445,7 @@
           "face": {
             "name": "Ajmal, King of the Broken Lands",
             "rally": {
-              "trigger": "When it enters the field",
+              "trigger": "When it enters the Front",
               "text": "Roll a d20: on 15–20 untap all Entities you control."
             },
             "effect": {
@@ -10869,7 +10869,7 @@
           "face": {
             "name": "Artefice di Nova Kai",
             "forage": {
-              "trigger": "Quando entra in campo",
+              "trigger": "Quando entra sul Fronte",
               "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
             },
             "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
@@ -10895,7 +10895,7 @@
           "face": {
             "name": "Artificer of Nova Kai",
             "forage": {
-              "trigger": "When it enters the field",
+              "trigger": "When it enters the Front",
               "text": "Roll a d6 and look at a number of cards from the top of your deck equal to 2 plus half the result, rounded up. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
             },
             "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited."
@@ -11152,7 +11152,7 @@
             "name": "Sottolama di Nova Kai",
             "keyword": {
               "name": "Slancio",
-              "rules": "può attaccare nel turno in cui entra in campo"
+              "rules": "può attaccare nel turno in cui entra sul Fronte"
             },
             "command": {
               "trigger": "Quando questa Entità attacca mentre ha un Oggetto assegnato",
@@ -11182,7 +11182,7 @@
             "name": "Underblade of Nova Kai",
             "keyword": {
               "name": "Surge",
-              "rules": "may attack the turn it enters the field"
+              "rules": "may attack the turn it enters the Front"
             },
             "command": {
               "trigger": "When this Entity attacks while it has an Object assigned",

@@ -23,12 +23,12 @@ export interface CardFacts {
   /** Gli ascoltatori certificati «quando un'Entità entra sul tuo Fronte»
       (§8.2): vedi renderer.ts, enterListeners. */
   enterListeners: EnterListener[];
-  /** Gli effetti certificati «quando QUESTA entra in campo: metti una carta
+  /** Gli effetti certificati «quando QUESTA entra sul Fronte: metti una carta
       avversaria in una zona» (§8.2): vedi renderer.ts, enterMoves. */
   enterMoves: EnterMove[];
   /** Il comportamento di una Materia (§7.2): normal, permanent, reactive; null altrove. */
   behavior: string | null;
-  /** Gli effetti certificati «quando QUESTA entra in campo: metti sul tuo
+  /** Gli effetti certificati «quando QUESTA entra sul Fronte: metti sul tuo
       Fronte una carta dalla tua Zona di Ritiro» (§8.2): vedi enterReturns. */
   enterReturns: EnterReturn[];
   /** Gli sguardi nel mazzo certificati «quando QUESTA entra» (§8.2): vedi enterLooks. */
@@ -177,7 +177,7 @@ export interface EnterLook {
 
 /**
  * La forma certificata di un ritorno all'ingresso: «quando questa Entità
- * entra in campo, metti sul tuo Fronte una carta permanente dalla tua Zona
+ * entra sul Fronte, metti sul tuo Fronte una carta permanente dalla tua Zona
  * di Ritiro». È la forma di RBF-012.
  */
 export interface EnterReturn {
@@ -191,7 +191,7 @@ export interface EnterReturn {
 
 /**
  * La forma certificata di uno spostamento all'ingresso: «quando questa
- * Entità entra in campo, metti un'Entità avversaria nella Zona di Ritiro
+ * Entità entra sul Fronte, metti un'Entità avversaria nella Zona di Ritiro
  * del suo proprietario». È la forma di RBF-007.
  */
 export interface EnterMove {

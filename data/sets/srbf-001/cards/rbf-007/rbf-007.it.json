@@ -14,7 +14,7 @@
   "face": {
     "name": "Arciere della Radura Argentata",
     "loose": {
-      "trigger": "Quando entra in campo",
+      "trigger": "Quando entra sul Fronte",
       "text": "Manda nell'Abisso un'Entità avversaria. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
     },
     "flavor": "Tira una volta sola. Non serve la seconda."

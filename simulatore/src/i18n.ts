@@ -188,8 +188,8 @@ const M: Record<string, { it: string; en: string }> = {
   "overlay.catalog": { it: "Catalogo · evoca in mano a {name} (prova)", en: "Catalogue · summon into {name}'s hand (test)" },
 
   // ---- scena d'ingresso
-  "scene.enter.effect": { it: "Quando entra in campo", en: "When it enters the field" },
-  "scene.enter": { it: "Entra in campo", en: "Enters the field" },
+  "scene.enter.effect": { it: "Quando entra sul Fronte", en: "When it enters the Front" },
+  "scene.enter": { it: "Entra sul Fronte", en: "Enters the Front" },
   "scene.attack": { it: "Quando attacca", en: "When it attacks" },
   "scene.attack.other": { it: "Quando un'Entità attacca", en: "When an Entity attacks" },
   "scene.plays": { it: "{name} gioca {card}", en: "{name} plays {card}" },

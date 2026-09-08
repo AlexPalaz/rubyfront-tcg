@@ -219,7 +219,7 @@ Il giocatore può **ritirare** le proprie Entità dal Fronte: l'Entità ritirata
 
 - **Quando:** solo in **Fase di Preparazione**, e solo sulle **proprie** Entità. Il ritiro è un'azione di preparazione del Fronte: non si ritira in Fase di Fronte, né nel turno avversario, né nel mezzo di una catena di risposta (§7.2).
 - **Costo:** nessuno. Non c'è **limite** al numero di Entità ritirabili in un turno: si può anche svuotare l'intero Fronte.
-- **Non nel turno d'ingresso:** un'Entità **entrata in campo in questo turno non può essere ritirata**; va aspettato il turno successivo, come per l'attesa di evocazione. Senza questo vincolo, a Fronte pieno si potrebbe giocare un'Entità solo per il suo effetto d'ingresso e ritirarla subito per liberare lo slot, trasformando il Ritiro in un motore di effetti. Lo **Slancio** (§8.1) **non** aggira questo divieto: permette di attaccare subito, non di essere ritirata subito.
+- **Non nel turno d'ingresso:** un'Entità **entrata sul Fronte in questo turno non può essere ritirata**; va aspettato il turno successivo, come per l'attesa di evocazione. Senza questo vincolo, a Fronte pieno si potrebbe giocare un'Entità solo per il suo effetto d'ingresso e ritirarla subito per liberare lo slot, trasformando il Ritiro in un motore di effetti. Lo **Slancio** (§8.1) **non** aggira questo divieto: permette di attaccare subito, non di essere ritirata subito.
 - **Non è obbligatorio giocare qualcosa al suo posto:** si può ritirare solo per liberare slot, o senza alcuna intenzione di far scendere altre carte.
 - **Non è una morte:** per questo l'Entità ritirata va in **Zona di Ritiro** e non nell'Abisso — il ritiro **non conta come morte o distruzione** e gli effetti "quando un'Entità muore / viene distrutta" **non si innescano**. Conta invece come **lasciare il campo** per gli effetti che usano quella dicitura (§1.2).
 - **Oggetto assegnato:** segue la sua Entità (§3.1) — va anch'esso in **Zona di Ritiro**. Se l'Entità **torna in campo**, però, torna **senza Oggetti**: quelli restano in Zona di Ritiro finché una nuova assegnazione — dalla mano, pagando, o per effetto di una carta che li riporti in campo dalla zona — non li rimette in gioco (§3.1).
@@ -227,7 +227,7 @@ Il giocatore può **ritirare** le proprie Entità dal Fronte: l'Entità ritirata
 - **Un'Entità tappata o coperta non può essere ritirata.** Il Ritiro richiede un'Entità **stappata**: la coperta è intoccabile anche per il proprietario (§6.3), la tappata è impegnata e non si ritira finché non si stappa. Vale anche per la **stasi** (§8.1), che è una tappata permanente: un'Entità in stasi **non è ritirabile** e resta a occupare il suo slot finché non viene stappata da un effetto o non lascia il campo in altro modo. In pratica, nel proprio turno le proprie Entità si stappano a inizio turno, quindi il vincolo pesa sulle Entità in stasi e su quelle tappate da effetti.
 - Il **Rubyfront non si ritira**: non è un'Entità e non occupa uno slot. Una volta schierato **resta in campo** e non torna in Zona di Richiamo, salvo che una carta ve lo riporti (§3.1). Il **Nexus**, una volta in campo, non lascia mai il campo (§3.1).
 
-**Attesa di evocazione:** un'Entità appena entrata in campo **non può attaccare nel turno in cui entra**; deve aspettare il turno successivo. Può però già **bloccare** nel turno avversario che segue.
+**Attesa di evocazione:** un'Entità appena entrata sul Fronte **non può attaccare nel turno in cui entra**; deve aspettare il turno successivo. Può però già **bloccare** nel turno avversario che segue.
 
 ### 6.3 Fase di Fronte (combattimento)
 
@@ -245,7 +245,7 @@ Dichiarata l'ondata, la parola passa al difensore: si entra in **Fase di Reazion
 - Ogni Entità **attacca una sola volta per turno**.
 - **Chi attacca viene tappato al momento della dichiarazione dell'ondata** (§6.3, punto 3), non alla risoluzione della sua battaglia. L'Entità si stapperà all'inizio del turno successivo del proprietario: resta quindi tappata per **tutto il turno avversario che segue** e **non potrà bloccare** — attaccare costa la possibilità di difendersi (vedi "Stati delle Entità", più sotto).
 - Un'Entità **tappata non può attaccare**.
-- Un'Entità entrata in campo in quel turno **non può attaccare** (attesa di evocazione, §6.2).
+- Un'Entità entrata sul Fronte in quel turno **non può attaccare** (attesa di evocazione, §6.2).
 - **Si attacca sempre il Rubyfront avversario**, mai le altre Entità direttamente.
 - Un **attacco non bloccato** infligge al Rubyfront danni pari alla **Potenza dell'attaccante** (i suoi PV scendono di altrettanto).
 
@@ -325,7 +325,7 @@ Lo scarto per eccesso è **l'ultima azione del turno**: prima si risolvono gli e
 Le **Materie** sono le carte magia/evento del gioco. Non si possono giocare liberamente: una carta Materia è giocabile **solo se in campo c'è una carta che ha quel tipo di Materia abilitato**.
 
 - Le Materie **hanno un costo di Flusso**, come le Entità.
-- Ogni Entità riporta i **tipi di Materia che abilita** (§3.1). Dal momento in cui l'Entità entra in campo, il suo proprietario può giocare le carte Materia dei tipi abilitati.
+- Ogni Entità riporta i **tipi di Materia che abilita** (§3.1). Dal momento in cui l'Entità entra sul Fronte, il suo proprietario può giocare le carte Materia dei tipi abilitati.
 - Anche il **Rubyfront** ha le sue Materie abilitanti, ma valgono **solo quando è schierato in campo**: finché resta in Zona di Richiamo non abilita nulla (§3.1).
 - L'abilitazione va **mantenuta**: se l'ultima carta in campo che abilitava un tipo di Materia lascia il campo **o viene coperta** (§6.3 — l'Entità coperta non abilita; quella **tappata** invece **abilita normalmente**), il giocatore **perde immediatamente l'accesso** a quel tipo. L'abilitazione si valuta sempre **al grado richiesto** (§7.1): per le carte di secondo grado serve un abilitatore fino al secondo grado, sia per giocarle che per mantenerle.
 - **Attribuzione:** se **più carte in campo** abilitano lo stesso tipo di Materia (al grado richiesto), il giocatore **sceglie a quale carta abilitante attribuire** la Materia che gioca. La scelta può essere rilevante quando un effetto fa riferimento alla carta abilitante. (La Furia **non** rende più rilevante l'attribuzione: le Materie non sono soggette al suo tiro, §8.1.)
@@ -432,7 +432,7 @@ Le Materie **avversarie** che bersagliano una carta con Furia funzionano normalm
 
 ##### Slancio
 
-Un'Entità con **Slancio** può **attaccare già nel turno in cui entra in campo**, ignorando l'attesa di evocazione (§6.2).
+Un'Entità con **Slancio** può **attaccare già nel turno in cui entra sul Fronte**, ignorando l'attesa di evocazione (§6.2).
 
 Lo Slancio riguarda **solo l'attacco**: non esenta l'Entità dalle altre regole legate al turno d'ingresso. In particolare, un'Entità con Slancio **non può essere ritirata nel turno in cui entra** (§6.2), come qualsiasi altra.
 
@@ -456,7 +456,7 @@ L'Entità con Vendetta segue per il resto le normali regole di blocco: viene tap
 
 ### 8.2 Effetti
 
-Gli **effetti** sono il testo nella descrizione della carta (es. l'effetto che si risolve quando la carta entra in campo). A differenza delle abilità, non sono parole chiave: fanno ciò che il testo dice (regola d'oro, §1.1).
+Gli **effetti** sono il testo nella descrizione della carta (es. l'effetto che si risolve quando un'Entità entra sul Fronte). A differenza delle abilità, non sono parole chiave: fanno ciò che il testo dice (regola d'oro, §1.1).
 
 #### Danno ed Entità
 
@@ -470,7 +470,7 @@ Gli effetti possono aumentare o ridurre la Potenza di un'Entità. La Potenza **n
 
 Quando un evento innesca **più effetti nello stesso momento**, si risolvono in quest'ordine:
 
-1. **Prima la protagonista dell'evento:** la carta a cui è successo qualcosa (è entrata in campo, è morta...) risolve per prima il proprio effetto.
+1. **Prima la protagonista dell'evento:** la carta a cui è successo qualcosa (è entrata sul Fronte, è morta...) risolve per prima il proprio effetto.
 2. **Poi gli altri effetti innescati, dalla carta più giovane alla più vecchia:** si risolve prima l'effetto della carta scesa in campo **più di recente**, poi via via indietro fino alla più vecchia (come una pila: le carte si impilano nell'ordine in cui scendono e si risolvono dalla cima).
 
 L'ordine vale anche tra carte di giocatori diversi: fa fede il momento di discesa in campo, che è unico e condiviso. Nessun giocatore sceglie mai l'ordine: è sempre determinato dallo stato del campo.
@@ -486,7 +486,7 @@ Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfro
 Alcuni effetti fanno **prendere il controllo** di un'Entità avversaria, di norma **fino alla fine del turno**. Il controllo non cambia la proprietà: la carta resta del suo proprietario, e cambia solo chi la comanda.
 
 - **Dove sta:** l'Entità controllata passa sul campo di chi la controlla, in uno **slot extra** — non occupa uno dei 5 slot del Fronte e non conta nel loro limite. Gli **Oggetti** che le sono assegnati la seguono.
-- **Cosa fa:** attacca per chi la controlla (se un effetto le concede Slancio, subito); i suoi eventuali effetti **«quando attacca» valgono** per chi la controlla. I suoi effetti **«quando entra in campo» non si riapplicano**: la carta è già entrata in campo, cambia solo chi la comanda (sarebbe diverso se l'effetto dicesse «quando entra sul tuo Fronte»). Continua ad abilitare le sue Materie a chi la controlla.
+- **Cosa fa:** attacca per chi la controlla (se un effetto le concede Slancio, subito); i suoi eventuali effetti **«quando attacca» valgono** per chi la controlla. I suoi effetti **«quando entra sul Fronte» non si riapplicano**: passando sotto il controllo la carta va nello slot extra, non sul Fronte di chi la controlla; è già entrata sul Fronte una volta, e cambia solo chi la comanda. Continua ad abilitare le sue Materie a chi la controlla.
 - **Fine del controllo:** al **cambio di turno** torna sul Fronte del proprietario, in uno slot libero, com'è — e si stappa come ogni sua Entità all'inizio del suo turno (§6.3). Se il Fronte del proprietario è **pieno**, va nella sua **Zona di Ritiro**. Gli Oggetti tornano con lei.
 - **Se muore o lascia il campo** mentre è controllata, va nell'Abisso o nella zona del **proprietario**, come sempre.
 
@@ -545,10 +545,10 @@ Il pareggio esiste in due soli casi:
 - **Oggetto** — carta con un costo di Flusso che si assegna a un'Entità (senza limite di Oggetti per Entità), pagandolo in Fase di Preparazione a ogni assegnazione fatta **dalla mano** — anche quando l'Oggetto vi è tornato dopo essere già stato in campo. Un effetto che lo riporta in campo **direttamente dall'Abisso o dalla Zona di Ritiro** non fa ripagare nulla (§3.1). Segue l'Entità che lascia il campo (Abisso o Zona di Ritiro), ma **non torna con lei**: un'Entità che rientra in campo rientra sempre disarmata (§3.1).
 - **Abilità** — parola chiave con regole predefinite da questo manuale (vedi §8.1).
 - **Furia** — abilità esclusiva del Rubyfront/Nexus, legata alle **abilità speciali**: prima di usarne una serve un d20 ≥12; con 11 o meno si perde **1 PV** ma l'abilità si usa comunque. Le Materie (Distruttiva compresa), lo schieramento e il flip non richiedono il tiro (§8.1).
-- **Slancio** — abilità: l'Entità può attaccare già nel turno in cui entra in campo (ignora l'attesa di evocazione). Riguarda solo l'attacco: non permette di essere ritirata nel turno d'ingresso.
+- **Slancio** — abilità: l'Entità può attaccare già nel turno in cui entra sul Fronte (ignora l'attesa di evocazione). Riguarda solo l'attacco: non permette di essere ritirata nel turno d'ingresso.
 - **Stasi** — abilità: se bloccando o contrattaccando dovrebbe morire (confronto perso **o pari**, §6.3), resta invece sul campo permanentemente tappata. Come ogni tappata **non è ritirabile** (§6.2) ma continua ad abilitare le sue Materie: occupa lo slot finché un effetto non la stappa o non lascia il campo.
 - **Vendetta** — abilità: se blocca con Potenza superiore all'attaccante, l'attaccante muore anche senza contrattacco.
-- **Attesa di evocazione** — un'Entità non può attaccare nel turno in cui entra in campo.
+- **Attesa di evocazione** — un'Entità non può attaccare nel turno in cui entra sul Fronte.
 - **Ritiro** — mandare volontariamente una propria Entità **stappata** dal Fronte alla Zona di Ritiro, in Fase di Preparazione, gratis e senza limite di numero, per liberare slot o solo per toglierla di mezzo. Non si ritira un'Entità entrata in campo nello stesso turno, né una **tappata**, **in stasi** o **coperta** (§6.2). **Non è una morte** (§6.2).
 - **Morire / essere distrutta** — andare nell'Abisso dal campo, per una battaglia persa o per un effetto di distruzione. L'Entità **ritirata** (§6.2) **non muore**: lascia il campo e va in Zona di Ritiro senza innescare effetti di morte.
 - **Contrattacco +N** — statistica di alcune Entità: quando bloccano possono sommare +N alla Potenza; se così superano l'attaccante, questo muore; a totale pari muoiono entrambe (§6.3). Chi contrattacca viene coperto.

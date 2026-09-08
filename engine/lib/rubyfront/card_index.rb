@@ -39,12 +39,12 @@ module Rubyfront
     # race: }, draw: }. Tutto ciò che non combacia esattamente non entra.
     #
     # `enter_moves` sono gli spostamenti all'ingresso CERTIFICATI (§8.2):
-    # «quando questa Entità entra in campo, metti un'Entità avversaria nella
+    # «quando questa Entità entra sul Fronte, metti un'Entità avversaria nella
     # Zona di Ritiro» (forma senza carte dal 2026-09-04). Ogni voce: { target: { type:,
     # controller: }, to: }.
     #
     # `enter_returns` sono i ritorni all'ingresso CERTIFICATI (§8.2): «quando
-    # questa Entità entra in campo, metti sul tuo Fronte una carta permanente
+    # questa Entità entra sul Fronte, metti sul tuo Fronte una carta permanente
     # dalla tua Zona di Ritiro». Ogni voce: { from:,
     # filter: { type:, behavior: }, to: }.
     #
@@ -520,7 +520,7 @@ module Rubyfront
       end
     end
 
-    # La stappata all'ingresso: «quando entra in campo, lancia un d20: con
+    # La stappata all'ingresso: «quando entra sul Fronte, lancia un d20: con
     # 15–20 stappa tutte le Entità che controlli». Gemello: renderer.ts, enterRefreshesOf.
     def self.enter_refreshes(faces)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|

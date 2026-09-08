@@ -1,7 +1,7 @@
 // Il momento d'ingresso: quando una carta scende dalla mano, il gioco si
 // ferma un attimo. Un velo sul tavolo, la carta grande al centro che si
 // accende — e se ha un effetto che scatta entrando (Entità e Oggetti
-// «quando entra in campo», Materie alla risoluzione), la targhetta e il
+// «quando entra sul Fronte», Materie alla risoluzione), la targhetta e il
 // testo. «Continua» riprende, sempre: è chi gioca a decidere quando.
 // L'effetto, oggi, lo risolve il giocatore a mano: qui
 // si annuncia — la lettura degli effetti arriverà con la regola d'oro. Lo
@@ -26,7 +26,7 @@ export interface EnterEffectShow {
       (effects.ts): si elencano, e «Continua» li risolve. */
   triggers?: string[];
   onContinue?: () => void;
-  /** La riga in alto: «Quando entra in campo» di norma, «Quando attacca» all'attacco. */
+  /** La riga in alto: «Quando entra sul Fronte» di norma, «Quando attacca» all'attacco. */
   kicker?: string;
   /** Una scena che si chiude da sola dopo un attimo. Oggi nessuno la usa:
       anche le scene del bot le chiude il giocatore, con Continua o Risolvi

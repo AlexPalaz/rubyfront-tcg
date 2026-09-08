@@ -19,7 +19,7 @@
     "name": "Underblade of Nova Kai",
     "keyword": {
       "name": "Surge",
-      "rules": "may attack the turn it enters the field"
+      "rules": "may attack the turn it enters the Front"
     },
     "command": {
       "trigger": "When this Entity attacks while it has an Object assigned",

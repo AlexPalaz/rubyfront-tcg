@@ -15,10 +15,10 @@
     "name": "Radunatore dei Dimenticati",
     "keyword": {
       "name": "Slancio",
-      "rules": "può attaccare nel turno in cui entra in campo"
+      "rules": "può attaccare nel turno in cui entra sul Fronte"
     },
     "rally": {
-      "trigger": "Quando entra in campo",
+      "trigger": "Quando entra sul Fronte",
       "text": "Prendi il controllo di un'Entità avversaria con costo di Flusso 3 o inferiore fino alla fine del turno. Quell'Entità ottiene Slancio fino alla fine del turno."
     },
     "flavor": "Chiama, e qualcuno risponde. Anche dall'altra parte."

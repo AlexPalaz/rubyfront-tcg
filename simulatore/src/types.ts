@@ -301,7 +301,7 @@ export type Action =
   /** Un potenziamento fino alla fine del turno (§8.2): Potenza in più,
       parole chiave concesse, o il divieto di bloccare. Sempre un passo d'effetto. */
   | { t: "empower"; uid: string; power?: number; grants?: string[]; restrict?: "block"; counter?: number; untap?: true; effect: EffectRef }
-  /** «Quando entra in campo, un d20: con 15–20 stappa tutte le Entità che
+  /** «Quando entra sul Fronte, un d20: con 15–20 stappa tutte le Entità che
       controlli» (§8.2, RBF-011): col tiro giusto (`untap`) stappa tutte le
       Entità di `seat`, col tiro mancato non fa nulla e consuma l'innesco.
       Il client tira, l'engine verifica. */

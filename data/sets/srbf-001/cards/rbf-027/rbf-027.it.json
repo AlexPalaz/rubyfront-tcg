@@ -18,7 +18,7 @@
   "face": {
     "name": "Artefice di Nova Kai",
     "forage": {
-      "trigger": "Quando entra in campo",
+      "trigger": "Quando entra sul Fronte",
       "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
     },
     "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."

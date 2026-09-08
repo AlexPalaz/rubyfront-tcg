@@ -100,7 +100,7 @@ Trigger (campo `trigger`, iniziale maiuscola, senza punto finale):
 
 | IT | EN |
 |---|---|
-| Quando entra in campo | When it enters the field |
+| Quando entra sul Fronte | When it enters the Front |
 | Quando lascia il campo | When it leaves the field |
 | Quando attacca | When it attacks |
 | Quando contrattacca | When it counterattacks |
@@ -109,6 +109,15 @@ Trigger (campo `trigger`, iniziale maiuscola, senza punto finale):
 | Quando assegni un Oggetto a questa Entità | When you assign an Object to this Entity |
 | Quando flippa *(solo faccia Nexus)* | When it flips |
 | Effetto *(statiche e «la prima volta in ogni turno»)* | Effect |
+
+**«Sul Fronte», non «in campo», per l'ingresso di un'Entità** (decisione del
+designer, 2026-09-08): il trigger d'ingresso e il promemoria dello Slancio
+dicono «entra sul Fronte» / "enters the Front". Un'Entità presa in controllo
+va nello slot extra, non sul Fronte di chi la controlla: per questo il suo
+«Quando entra sul Fronte» non si riapplica (MANUALE §8.2). «In campo» / "on
+the field" resta per lo stare in gioco («Finché questa Entità resta in
+campo», «Quando questa Entità lascia il campo»), per il Rubyfront che si
+schiera dalla Zona di Richiamo e per le Materie.
 
 Corpo degli effetti (campo `text`, frasi complete, punto finale):
 
@@ -228,7 +237,7 @@ tre fasce esplicite (1–6, 7–14, 15–20).
 | Parola chiave | IT | EN |
 |---|---|---|
 | Furia / Fury | d20 ≥ N prima di ogni azione · fallimento −1 PV | d20 ≥ N before every action · failure −1 HP |
-| Slancio / Surge | può attaccare nel turno in cui entra in campo | may attack the turn it enters the field |
+| Slancio / Surge | può attaccare nel turno in cui entra sul Fronte | may attack the turn it enters the Front |
 | Stasi / Stasis | bloccando non muore: resta tappata per sempre | won't die blocking: stays permanently tapped |
 | Vendetta / Revenge | bloccando, uccide chi ha Potenza inferiore | blocking, it kills a lower-Power attacker |
 

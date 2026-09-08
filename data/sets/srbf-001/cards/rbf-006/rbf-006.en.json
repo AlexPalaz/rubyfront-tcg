@@ -14,7 +14,7 @@
   "face": {
     "name": "Shard Seeker",
     "seek": {
-      "trigger": "When it enters the field",
+      "trigger": "When it enters the Front",
       "text": "Look at the top 4 cards of your deck. You may reveal a Human Entity among them and add it to your hand. Put the rest on the bottom of your deck."
     },
     "flavor": "Every shard is a piece of someone. It keeps them all."

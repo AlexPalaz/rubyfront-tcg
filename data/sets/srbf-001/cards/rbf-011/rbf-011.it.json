@@ -15,7 +15,7 @@
   "face": {
     "name": "Ajmal, Re delle Terre Infrante",
     "rally": {
-      "trigger": "Quando entra in campo",
+      "trigger": "Quando entra sul Fronte",
       "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli."
     },
     "effect": {

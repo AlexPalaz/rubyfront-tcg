@@ -62,7 +62,7 @@ Regole collegate finora:
   proprietario — Rubyfront, Materie e Oggetti non occupano slot, lo dice
   l'anagrafe. Il campo del simulatore è una superficie unica, ma le Entità
   in campo SONO il Fronte: non hanno altro posto dove stare.
-- **§6.2 Attesa di evocazione** — un'Entità entrata in campo questo turno non
+- **§6.2 Attesa di evocazione** — un'Entità entrata sul Fronte questo turno non
   dichiara attacchi, salvo Slancio (`surge`). È la prima regola che LEGGE LE
   CARTE: all'avvio il server carica l'anagrafe (id → tipo, parole chiave,
   Potenza e Contrattacco) dai dati del sito (`lib/rubyfront/card_index.rb`; il percorso si cambia con
@@ -325,14 +325,14 @@ Regole collegate finora:
   le parti. La seconda forma era lo **spostamento all'ingresso** (fino al
   2026-09-04: la revisione del foglio ha portato la carta che lo aveva all'esilio condizionato
   nell'Abisso, forma ignota, quindi risolta a mano finché non si collega):
-  «quando questa Entità entra in campo, metti un'Entità avversaria nella Zona
+  «quando questa Entità entra sul Fronte, metti un'Entità avversaria nella Zona
   di Ritiro» — un `toZone` marcato con `effect` (fonte e ingresso coincidono),
   che l'engine passa se la fonte è entrata questo turno, l'innesco non è
   consumato, la zona è quella della forma e il bersaglio è un'Entità
   avversaria in campo. Nel client il bersaglio si sceglie in mira, con la
   freccia dalla fonte al dito; poi la fonte si accende, la freccia va al
   bersaglio e la carta parte — anche per chi guarda. La terza forma è
-  il **ritorno**: «quando questa Entità entra in campo, metti
+  il **ritorno**: «quando questa Entità entra sul Fronte, metti
   sul tuo Fronte una carta permanente dalla tua Zona di Ritiro» — un
   `toZone` verso il campo marcato con `effect`, che passa se la carta
   scelta è una **permanente** nella PROPRIA Zona di Ritiro — «una carta
@@ -691,7 +691,7 @@ Regole collegate finora:
 
 - **§8.2 «Quando entra, un d20: con 15–20 stappa tutte le Entità che
   controlli»** — la **stappata all'ingresso**, riscritta dal designer il 2026-09-05:
-  l'innesco passa da «quando attacca» a «quando entra in campo», e la Fase
+  l'innesco passa da «quando attacca» a «quando entra sul Fronte», e la Fase
   di Fronte addizionale è tolta (e con lei `extra_front`/`extraFront`, il
   ritorno dalla Reazione al Fronte e la sua eccezione nella dogana del
   turno). Forma certificata `enter_refreshes` (anagrafe e renderer): il
@@ -748,17 +748,17 @@ Regole collegate finora:
   controllata ferma nelle zone: engine 0.39.0, quarantacinque regole.
 
 - **§8.2 Il controllo non è un ingresso** — «i suoi effetti "quando entra
-  in campo" non si riapplicano: la carta è già entrata in campo, cambia
-  solo chi la comanda» (scritto col designer il 2026-09-07, rovesciando
-  la lettura di prima: sarebbe diverso se l'effetto dicesse «quando entra
-  sul tuo Fronte»). I gemelli non toccano più `entered` al `control`:
-  così le dogane che già c'erano fanno il resto — l'effetto proprio
-  d'ingresso della controllata è «passato» (`own_trigger_stopped`), e
-  per chi ascolta «un'altra Entità che entra» la controllata non è
-  entrata. Gli effetti «quando attacca» valgono per chi la comanda, come
-  prima. Limite dichiarato: un effetto che dicesse davvero «quando entra
-  sul tuo Fronte» non ha una forma certificata, e verrebbe fermato a
-  torto finché non ce l'ha. Engine 0.44.0, cinquanta regole.
+  sul Fronte" non si riapplicano: passando sotto il controllo la carta va
+  nello slot extra, non sul Fronte di chi la controlla» (scritto col
+  designer il 2026-09-07, rovesciando la lettura di prima; dal 2026-09-08
+  le carte dicono «Quando entra sul Fronte», non più «in campo», e il
+  manuale e i rifiuti dell'engine parlano come loro). I gemelli non
+  toccano più `entered` al `control`: così le dogane che già c'erano
+  fanno il resto — l'effetto proprio d'ingresso della controllata è
+  «passato» (`own_trigger_stopped`), e per chi ascolta «un'altra Entità
+  che entra» la controllata non è entrata. Gli effetti «quando attacca»
+  valgono per chi la comanda, come prima. Engine 0.44.0, cinquanta
+  regole; con le parole nuove nei rifiuti, 0.44.1.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

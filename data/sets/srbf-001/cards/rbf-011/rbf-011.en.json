@@ -15,7 +15,7 @@
   "face": {
     "name": "Ajmal, King of the Broken Lands",
     "rally": {
-      "trigger": "When it enters the field",
+      "trigger": "When it enters the Front",
       "text": "Roll a d20: on 15–20 untap all Entities you control."
     },
     "effect": {

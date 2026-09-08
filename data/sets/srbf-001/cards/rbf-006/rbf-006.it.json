@@ -14,7 +14,7 @@
   "face": {
     "name": "Cercatore di Schegge",
     "seek": {
-      "trigger": "Quando entra in campo",
+      "trigger": "Quando entra sul Fronte",
       "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un'Entità Umana tra esse e aggiungerla alla tua mano. Metti le altre in fondo al mazzo."
     },
     "flavor": "Ogni scheggia è un pezzo di qualcuno. Le tiene tutte."

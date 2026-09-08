@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.44.0"
+    VERSION = "0.44.1"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -816,7 +816,7 @@ module Rubyfront
     # attaccante ha al più un bloccante (sfide 1 contro 1).
     #
     # §6.2 — l'attesa di evocazione, solo per gli attacchi: «un'Entità appena
-    # entrata in campo non può attaccare nel turno in cui entra», salvo
+    # entrata sul Fronte non può attaccare nel turno in cui entra», salvo
     # Slancio (`surge`, §8.1). Qui serve l'anagrafe: carta ignota o anagrafe
     # assente, questa parte tace — l'engine preferisce non accusare a torto.
     # Limite dichiarato: lo Slancio CONCESSO da un effetto (es. il controllo all'ingresso) non
@@ -918,7 +918,7 @@ module Rubyfront
       return allow("declare") if known[:keywords].include?("surge") || Array(card[:grants]).include?("surge")
 
       if card[:entered] == @table.turn
-        refuse("declare", "l'Entità è entrata in campo questo turno: senza Slancio attacca dal prossimo (§6.2, attesa di evocazione)", "the Entity entered the field this turn: without Surge it attacks from the next one (§6.2, summoning wait)")
+        refuse("declare", "l'Entità è entrata sul Fronte questo turno: senza Slancio attacca dal prossimo (§6.2, attesa di evocazione)", "the Entity entered the Front this turn: without Surge it attacks from the next one (§6.2, summoning wait)")
       else
         allow("declare")
       end
@@ -1381,7 +1381,7 @@ module Rubyfront
       unless entering && entering[:zone] == "field" && @table.controller_of(entering) == @table.controller_of(source) && ref["entering"] != ref["source"]
         return refuse(kind, "l'ingresso che innesca dev'essere un'altra carta dello stesso posto, in campo (§8.2)", "the triggering entry must be another card of the same seat, on the field (§8.2)")
       end
-      return refuse(kind, "quella carta non è entrata in campo questo turno: l'innesco è passato (§8.2)", "that card didn't enter the field this turn: the trigger has passed (§8.2)") unless entering[:entered] == @table.turn
+      return refuse(kind, "quella carta non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "that card didn't enter the Front this turn: the trigger has passed (§8.2)") unless entering[:entered] == @table.turn
       return refuse(kind, "questo innesco è già stato risolto per quell'ingresso (§8.2)", "this trigger has already been resolved for that entry (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
 
       arrived = @cards[entering[:card_id]]
@@ -1415,7 +1415,7 @@ module Rubyfront
 
       case ref["event"]
       when "on_enter_field"
-        return refuse(kind, "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)", "the source didn't enter the field this turn: the trigger has passed (§8.2)") unless source[:entered] == @table.turn
+        return refuse(kind, "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless source[:entered] == @table.turn
       when "on_attack"
         return refuse(kind, "«quando attacca» vuole un attacco dichiarato, in Fase di Fronte (§8.2)", "“when it attacks” needs a declared attack, in the Front Phase (§8.2)") unless @table.phase == "fronte" && @table.attacking?(ref["source"])
         return refuse(kind, "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if action && attack_fired?(action, ref)
@@ -1669,7 +1669,7 @@ module Rubyfront
       nil
     end
 
-    # La stappata all'ingresso: «quando entra in campo, lancia un d20: con
+    # La stappata all'ingresso: «quando entra sul Fronte, lancia un d20: con
     # 15–20 stappa tutte le Entità che controlli». La fonte è chi entra —
     # in campo, entrata questo turno, innesco non consumato; il client tira,
     # l'engine verifica il tiro, la soglia, e che la stappata (`untap`)
@@ -1924,7 +1924,7 @@ module Rubyfront
 
       source = @table.card(ref["source"])
       return refuse("look", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
-      return refuse("look", "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)", "the source didn't enter the field this turn: the trigger has passed (§8.2)") unless source[:entered] == @table.turn
+      return refuse("look", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless source[:entered] == @table.turn
       return refuse("look", "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
       return refuse("look", "si guarda nel proprio mazzo (§8.2)", "you look in your own deck (§8.2)") unless action["seat"] == @table.controller_of(source)
 
@@ -1984,7 +1984,7 @@ module Rubyfront
 
       source = @table.card(ref["source"])
       return refuse("control", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
-      return refuse("control", "la fonte non è entrata in campo questo turno: l'innesco è passato (§8.2)", "the source didn't enter the field this turn: the trigger has passed (§8.2)") unless source[:entered] == @table.turn
+      return refuse("control", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless source[:entered] == @table.turn
       return refuse("control", "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
 
       by = @table.controller_of(source)

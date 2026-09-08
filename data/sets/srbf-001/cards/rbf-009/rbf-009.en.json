@@ -15,10 +15,10 @@
     "name": "Rallier of the Forgotten",
     "keyword": {
       "name": "Surge",
-      "rules": "may attack the turn it enters the field"
+      "rules": "may attack the turn it enters the Front"
     },
     "rally": {
-      "trigger": "When it enters the field",
+      "trigger": "When it enters the Front",
       "text": "Gain control of an opposing Entity with Flux cost 3 or less until end of turn. That Entity gains Surge until end of turn."
     },
     "flavor": "It calls, and someone answers. Even from the other side."

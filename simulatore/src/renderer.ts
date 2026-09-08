@@ -28,7 +28,7 @@ export interface CardFace {
       quelle del combattimento, Potenza e «Contrattacco +N» (§6.3). */
   stats?: { power?: unknown; counterattack?: unknown; health?: unknown; fluxCost?: unknown; deploymentCost?: unknown; healthRecovery?: unknown };
   /** Gli inneschi della faccia (dal file dati): qui conta l'evento
-      `on_enter_field`, «quando entra in campo». */
+      `on_enter_field`, «quando entra sul Fronte». */
   triggers?: { event?: unknown; displayKey?: unknown; id?: unknown; details?: unknown; effect?: unknown }[];
   race?: unknown;
   /** Il comportamento di una Materia (§7.2). */
@@ -227,7 +227,7 @@ export function attackEffects(cardId: string, faceIndex: number, locale: string)
 }
 
 /** Gli eventi che «scattano» quando la carta scende: per Entità e Oggetti
-    «quando entra in campo»; per le Materie l'effetto si risolve giocandole
+    «quando entra sul Fronte»; per le Materie l'effetto si risolve giocandole
     (§7.2, `on_resolve`) o dura finché restano (`while_in_play`). */
 const ENTER_EVENTS: Record<string, string[]> = {
   entity: ["on_enter_field"],

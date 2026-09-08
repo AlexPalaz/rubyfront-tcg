@@ -218,7 +218,7 @@ The player may **retire** their own Entities from the Front: the retired Entity 
 
 - **When:** only in the **Preparation Phase**, and only on your **own** Entities. Retiring is an action of Front preparation: you don't retire in the Front Phase, nor on the opponent's turn, nor in the middle of a response chain (§7.2).
 - **Cost:** none. There is **no limit** to the number of Entities you can retire in a turn: you may even empty the whole Front.
-- **Not on the turn of entry:** an Entity **that entered the field this turn cannot be retired**; you must wait for the next turn, as with the summoning wait. Without this constraint, with a full Front you could play an Entity just for its entry effect and retire it at once to free the slot, turning Retire into an effect engine. **Surge** (§8.1) does **not** get around this ban: it lets you attack at once, not be retired at once.
+- **Not on the turn of entry:** an Entity **that entered the Front this turn cannot be retired**; you must wait for the next turn, as with the summoning wait. Without this constraint, with a full Front you could play an Entity just for its entry effect and retire it at once to free the slot, turning Retire into an effect engine. **Surge** (§8.1) does **not** get around this ban: it lets you attack at once, not be retired at once.
 - **You don't have to play something in its place:** you may retire just to free slots, or with no intention of bringing other cards down.
 - **It is not a death:** that's why the retired Entity goes to the **Retire Zone** and not to the Abyss — retiring **does not count as dying or being destroyed** and "when an Entity dies / is destroyed" effects **do not trigger**. It does count as **leaving the field** for effects that use that wording (§1.2).
 - **Assigned Object:** it follows its Entity (§3.1) — it too goes to the **Retire Zone**. If the Entity **comes back onto the field**, though, it comes back **without Objects**: those stay in the Retire Zone until a new assignment — from the hand, paying, or through the effect of a card that brings them back onto the field from the zone — puts them back into play (§3.1).
@@ -226,7 +226,7 @@ The player may **retire** their own Entities from the Front: the retired Entity 
 - **A tapped or covered Entity cannot be retired.** Retiring requires an **untapped** Entity: a covered one is untouchable even for its owner (§6.3), a tapped one is busy and doesn't retire until it untaps. This also applies to **stasis** (§8.1), which is a permanent tap: an Entity in stasis **cannot be retired** and keeps taking up its slot until it is untapped by an effect or leaves the field some other way. In practice, on your own turn your Entities untap at the start of the turn, so the constraint weighs on Entities in stasis and on those tapped by effects.
 - The **Rubyfront doesn't retire**: it isn't an Entity and takes no slot. Once deployed it **stays on the field** and doesn't go back to the Recall Zone, unless a card sends it back (§3.1). The **Nexus**, once on the field, never leaves it (§3.1).
 
-**Summoning wait:** an Entity that has just entered the field **cannot attack on the turn it enters**; it must wait for the next turn. It can, however, already **block** on the opponent's turn that follows.
+**Summoning wait:** an Entity that has just entered the Front **cannot attack on the turn it enters**; it must wait for the next turn. It can, however, already **block** on the opponent's turn that follows.
 
 ### 6.3 Front Phase (combat)
 
@@ -244,7 +244,7 @@ Once the wave is declared, the word passes to the defender: you enter the **Reac
 - Each Entity **attacks only once per turn**.
 - **The attacker is tapped at the moment the wave is declared** (§6.3, point 3), not at the resolution of its battle. The Entity will untap at the start of its owner's next turn: it therefore stays tapped for **the whole opponent's turn that follows** and **won't be able to block** — attacking costs the chance to defend (see "States of Entities", below).
 - A **tapped** Entity **cannot attack**.
-- An Entity that entered the field that turn **cannot attack** (summoning wait, §6.2).
+- An Entity that entered the Front that turn **cannot attack** (summoning wait, §6.2).
 - **You always attack the opposing Rubyfront**, never the other Entities directly.
 - An **unblocked attack** deals the Rubyfront damage equal to the **attacker's Power** (its HP go down by that much).
 
@@ -324,7 +324,7 @@ The discard for excess is **the last action of the turn**: first any "at end of 
 **Matters** are the game's spell/event cards. They can't be played freely: a Matter card is playable **only if there is a card on the field that has that Matter type enabled**.
 
 - Matters **have a Flux cost**, like Entities.
-- Every Entity shows the **Matter types it enables** (§3.1). From the moment the Entity enters the field, its owner may play Matter cards of the enabled types.
+- Every Entity shows the **Matter types it enables** (§3.1). From the moment the Entity enters the Front, its owner may play Matter cards of the enabled types.
 - The **Rubyfront** has its own enabling Matters too, but they apply **only when it is deployed on the field**: as long as it stays in the Recall Zone it enables nothing (§3.1).
 - Enabling must be **maintained**: if the last card on the field enabling a Matter type leaves the field **or is covered** (§6.3 — a covered Entity doesn't enable; a **tapped** one **enables normally**), the player **immediately loses access** to that type. Enabling is always assessed **at the required grade** (§7.1): second-grade cards need an enabler up to the second grade, both to play them and to maintain them.
 - **Attribution:** if **several cards on the field** enable the same Matter type (at the required grade), the player **chooses which enabling card to attribute** the Matter they play to. The choice can matter when an effect refers to the enabling card. (Fury does **not** make attribution more relevant: Matters are not subject to its roll, §8.1.)
@@ -431,7 +431,7 @@ A failed roll **no longer cancels anything**: it is a surcharge — 1 HP on top 
 
 ##### Surge
 
-An Entity with **Surge** may **attack already on the turn it enters the field**, ignoring the summoning wait (§6.2).
+An Entity with **Surge** may **attack already on the turn it enters the Front**, ignoring the summoning wait (§6.2).
 
 Surge concerns **the attack only**: it doesn't exempt the Entity from the other rules tied to the turn of entry. In particular, an Entity with Surge **cannot be retired on the turn it enters** (§6.2), like any other.
 
@@ -455,7 +455,7 @@ For the rest, the Entity with Revenge follows the normal blocking rules: it is t
 
 ### 8.2 Effects
 
-**Effects** are the text in the card's description (e.g. the effect that resolves when the card enters the field). Unlike abilities, they are not keywords: they do what the text says (golden rule, §1.1).
+**Effects** are the text in the card's description (e.g. the effect that resolves when an Entity enters the Front). Unlike abilities, they are not keywords: they do what the text says (golden rule, §1.1).
 
 #### Damage and Entities
 
@@ -469,7 +469,7 @@ Effects can raise or lower an Entity's Power. Power **never goes below 0**: any 
 
 When an event triggers **several effects at the same moment**, they resolve in this order:
 
-1. **First the protagonist of the event:** the card to which something happened (it entered the field, it died…) resolves its own effect first.
+1. **First the protagonist of the event:** the card to which something happened (it entered the Front, it died…) resolves its own effect first.
 2. **Then the other triggered effects, from the youngest card to the oldest:** the effect of the card that came onto the field **most recently** resolves first, then back and back to the oldest (like a stack: cards pile up in the order they come down and resolve from the top).
 
 The order also applies between cards of different players: what counts is the moment of coming onto the field, which is single and shared. No player ever chooses the order: it is always determined by the state of the field.
@@ -485,7 +485,7 @@ For the purposes of this order what always counts is **the latest entry onto the
 Some effects let you **take control** of an opposing Entity, usually **until the end of the turn**. Control doesn't change ownership: the card remains its owner's, and only who commands it changes.
 
 - **Where it stands:** the controlled Entity moves to the controller's field, in an **extra slot** — it doesn't take up one of the 5 Front slots and doesn't count towards their limit. The **Objects** assigned to it follow it.
-- **What it does:** it attacks for its controller (if an effect grants it Surge, at once); its **"when it attacks" effects apply** for its controller. Its **"when it enters the field" effects don't apply again**: the card already entered the field, only who commands it changes (it would be different if the effect said "when it enters your Front"). It keeps enabling its Matters for its controller.
+- **What it does:** it attacks for its controller (if an effect grants it Surge, at once); its **"when it attacks" effects apply** for its controller. Its **"when it enters the Front" effects don't apply again**: taken under control, the card goes to the extra slot, not onto its controller's Front; it already entered the Front once, and only who commands it changes. It keeps enabling its Matters for its controller.
 - **End of control:** at the **turn change** it goes back to its owner's Front, in a free slot, as it is — and untaps like each of their Entities at the start of their turn (§6.3). If the owner's Front is **full**, it goes to their **Retire Zone**. The Objects go back with it.
 - **If it dies or leaves the field** while controlled, it goes to the Abyss or to the **owner's** zone, as always.
 
@@ -544,10 +544,10 @@ A draw exists in only two cases:
 - **Object** — a card with a Flux cost that is assigned to an Entity (with no limit of Objects per Entity), paying it in the Preparation Phase on every assignment made **from the hand** — even when the Object has returned there after already having been on the field. An effect that brings it back onto the field **directly from the Abyss or the Retire Zone** makes you pay nothing (§3.1). It follows the Entity that leaves the field (Abyss or Retire Zone), but **doesn't come back with it**: an Entity re-entering the field always re-enters unarmed (§3.1).
 - **Ability** — a keyword with rules predefined by this rulebook (see §8.1).
 - **Fury** — ability exclusive to the Rubyfront/Nexus, tied to **special abilities**: before using one you need a d20 ≥12; with 11 or less you lose **1 HP** but the ability is used anyway. Matters (Destructive included), deployment and the flip require no roll (§8.1).
-- **Surge** — ability: the Entity may attack already on the turn it enters the field (it ignores the summoning wait). It concerns the attack only: it doesn't allow being retired on the turn of entry.
+- **Surge** — ability: the Entity may attack already on the turn it enters the Front (it ignores the summoning wait). It concerns the attack only: it doesn't allow being retired on the turn of entry.
 - **Stasis** — ability: if, blocking or counterattacking, it should die (comparison lost **or tied**, §6.3), it stays on the field permanently tapped instead. Like every tapped one **it cannot be retired** (§6.2) but keeps enabling its Matters: it takes up the slot until an effect untaps it or it leaves the field.
 - **Revenge** — ability: if it blocks with Power higher than the attacker's, the attacker dies even without a counterattack.
-- **Summoning wait** — an Entity cannot attack on the turn it enters the field.
+- **Summoning wait** — an Entity cannot attack on the turn it enters the Front.
 - **Retire** — voluntarily sending one of your own **untapped** Entities from the Front to the Retire Zone, in the Preparation Phase, for free and with no limit in number, to free slots or just to get it out of the way. You don't retire an Entity that entered the field on the same turn, nor a **tapped**, **in-stasis** or **covered** one (§6.2). **It is not a death** (§6.2).
 - **Dying / being destroyed** — going from the field to the Abyss, for a lost battle or a destruction effect. A **retired** Entity (§6.2) **does not die**: it leaves the field and goes to the Retire Zone without triggering death effects.
 - **Counterattack +N** — statistic of some Entities: when they block they may add +N to their Power; if they thus exceed the attacker, it dies; on an equal total both die (§6.3). Whoever counterattacks is covered.

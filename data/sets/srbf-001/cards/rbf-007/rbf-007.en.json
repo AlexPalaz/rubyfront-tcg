@@ -14,7 +14,7 @@
   "face": {
     "name": "Archer of the Silver Glade",
     "loose": {
-      "trigger": "When it enters the field",
+      "trigger": "When it enters the Front",
       "text": "Send an opposing Entity to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
     },
     "flavor": "It looses one arrow. A second is never needed."

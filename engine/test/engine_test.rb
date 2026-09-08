@@ -1818,7 +1818,7 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
     verdict = innesco(engine, source: "g", entering: "u2")
     refute verdict[:ok]
-    assert_match(/non è entrata in campo questo turno/, verdict[:reason])
+    assert_match(/non è entrata sul Fronte questo turno/, verdict[:reason])
   end
 
   def test_la_forma_del_passo_deve_essere_quella_dell_effetto
@@ -1892,7 +1892,7 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
     verdict = manda(engine, "b1")
     refute verdict[:ok]
-    assert_match(/non è entrata in campo questo turno/, verdict[:reason])
+    assert_match(/non è entrata sul Fronte questo turno/, verdict[:reason])
   end
 
   def test_la_zona_deve_essere_quella_della_forma
@@ -2153,7 +2153,7 @@ class EngineTest < Minitest::Test
     assert engine.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro" }, actor: "b")[:ok]
   end
 
-  # §8.2 — il controllo non è un ingresso: la carta è già entrata in campo,
+  # §8.2 — il controllo non è un ingresso: la carta è già entrata sul Fronte,
   # cambia solo chi la comanda. Il suo effetto «quando entra» non si
   # riapplica per chi la prende (decisione del designer, 2026-09-07);
   # quello «quando attacca» sì (test sopra: attacca per chi la comanda).
@@ -2180,8 +2180,8 @@ class EngineTest < Minitest::Test
     verdict = engine.judge({ "t" => "toZone", "uid" => "b2", "zone" => "ritiro",
                              "effect" => { "source" => "b1", "event" => "on_enter_field", "entering" => "b1" } }, actor: "a")
     refute verdict[:ok]
-    assert_match(/non è entrata in campo questo turno.*§8\.2/, verdict[:reason])
-    assert_match(/didn't enter the field this turn.*§8\.2/, verdict[:reason_en])
+    assert_match(/non è entrata sul Fronte questo turno.*§8\.2/, verdict[:reason])
+    assert_match(/didn't enter the Front this turn.*§8\.2/, verdict[:reason_en])
     # E non conta nemmeno come «un'altra Entità che entra» per chi ascolta.
     refute engine.judge({ "t" => "draw", "seat" => "a", "count" => 1,
                           "effect" => { "source" => "a1", "event" => "on_enter_field", "entering" => "b1" } }, actor: "a")[:ok]

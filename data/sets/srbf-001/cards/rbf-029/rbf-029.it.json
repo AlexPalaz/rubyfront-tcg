@@ -19,7 +19,7 @@
     "name": "Sottolama di Nova Kai",
     "keyword": {
       "name": "Slancio",
-      "rules": "può attaccare nel turno in cui entra in campo"
+      "rules": "può attaccare nel turno in cui entra sul Fronte"
     },
     "command": {
       "trigger": "Quando questa Entità attacca mentre ha un Oggetto assegnato",
