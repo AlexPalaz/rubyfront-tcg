@@ -7,7 +7,7 @@
 // se le misure si sparpagliassero, le zone e le carte finirebbero disallineate.
 
 import type { LogMsg } from "./i18n.js";
-import type { Action, GameState, Seat } from "./types.js";
+import type { Action, GameState, Seat, Phase } from "./types.js";
 import { otherSeat } from "./types.js";
 
 export interface CardFacts {
@@ -51,6 +51,10 @@ export interface CardFacts {
   flipForms: FlipForm[];
   /** Il requisito del flip verso il Nexus (§3.1), col recupero di PV; null se non c'è o non è certificato. */
   nexus: NexusRequirement | null;
+  /** Le abilità speciali del Rubyfront/Nexus (§3.1), per faccia: vedi Ability. */
+  abilities: Ability[];
+  /** La soglia della Furia per faccia (§8.1), «d20 ≥ N»; assente dove non c'è Furia. */
+  furyAt: Record<number, number>;
   /** Le parole chiave che un Oggetto concede «mentre assegnato» (RBF-013:
       la Stasi agli Umani). Specchio di card_index.rb, grants_while_assigned. */
   grantsWhileAssigned: { keywords: string[]; ifRace: string | null }[];
@@ -97,6 +101,32 @@ export type FlipForm =
   | { kind: "seal"; cardId: string };
 
 /** Il requisito del flip verso il Nexus (§3.1), certificato: N Entità [di razza] e lo scarto di una carta [di tipo]; il recupero di PV. */
+/**
+ * Un'abilità speciale del Rubyfront/Nexus (§3.1), specchio di
+ * card_index.rb, abilities: la faccia che la porta, la finestra (le fasi
+ * del proprio turno), il costo o il recupero in PV, se la Furia (§8.1) la
+ * precede, e la forma certificata del suo effetto — null se l'engine non la
+ * legge (resta a mano, e non si attiva con l'arbitro).
+ */
+export interface Ability {
+  id: string;
+  displayKey: string;
+  face: number;
+  timing: Phase[];
+  cost: number | null;
+  gain: number | null;
+  fury: boolean;
+  form: AbilityForm | null;
+}
+
+export type AbilityForm =
+  /** «Guarda le prime N carte del tuo mazzo. Puoi mostrare … e aggiungerla alla tua mano. Metti le altre in fondo.» */
+  | { kind: "look"; count: number; reveal: { kind: "entity" | "object"; race: string | null } }
+  /** «+N Potenza fino alla fine del turno» a tutte le proprie Entità del filtro, o a una. */
+  | { kind: "power"; amount: number; targets: "all" | "one"; race: string | null; attacking: boolean; armed: boolean }
+  /** «La prossima carta X che giochi in questo turno costa N in meno.» */
+  | { kind: "discount"; amount: number; type: "entity" | "object"; race: string | null };
+
 export interface NexusRequirement {
   face: number;
   conditions: { count: number; kind: "entity"; race: string | null }[];

@@ -145,6 +145,8 @@ module Rubyfront
           resolve_forms: resolve_forms(faces).freeze,
           flip_forms: flip_forms(faces).freeze,
           nexus: nexus_of(faces),
+          abilities: abilities(faces).freeze,
+          fury_at: fury_at(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
           grants_while_assigned: grants_while_assigned(faces).freeze,
         }.freeze
@@ -801,6 +803,79 @@ module Rubyfront
     # Il requisito del Nexus (§3.1), certificato solo nella forma
     # «controlli almeno N Entità [di razza]» e «scarta una carta
     # [di tipo]», più il recupero di PV stampato sulla faccia del Nexus.
+    # Le abilità speciali del Rubyfront/Nexus (§3.1), per faccia: id,
+    # finestra (le fasi del proprio turno), costo o recupero in PV, se la
+    # Furia le precede (§8.1), e la FORMA certificata dell'effetto — o nil,
+    # quando l'effetto è di una forma che l'engine non legge (resta a mano).
+    # Forme certificate: lo sguardo nel mazzo (le prime N, mostrane una del
+    # tipo/razza in mano, le altre in fondo), il potenziamento di Potenza
+    # fino a fine turno (a tutte le proprie Entità di un filtro, o a una), lo
+    # sconto sulla prossima carta di un tipo giocata nel turno.
+    def self.abilities(faces)
+      faces.each_with_index.flat_map do |face, index|
+        Array(face["actions"]).filter_map do |action|
+          next unless action.is_a?(Hash) && action["id"].is_a?(String)
+
+          timing = Array(action["timing"]).filter_map { |window| { "own_preparation" => "preparazione", "own_front" => "fronte" }[window] }
+          next if timing.empty?
+
+          cost = integer_stat(action.dig("cost", "health"))
+          gain = integer_stat(action.dig("gain", "health"))
+          next unless cost || gain
+
+          { id: action["id"], face: index, timing: timing.freeze, cost: cost, gain: gain,
+            fury: Array(action["checks"]).include?("fury"), form: ability_form(action["effect"]) }.freeze
+        end
+      end
+    end
+
+    def self.ability_form(effect)
+      return nil unless effect.is_a?(Hash)
+
+      case effect["type"]
+      when "look_and_optionally_move"
+        from = effect["from"]
+        details = effect["details"]
+        return nil unless from.is_a?(Hash) && from["zone"] == "deck" && from["owner"] == "controller" && from["position"] == "top" && from["count"].is_a?(Integer)
+        return nil unless details.is_a?(Hash) && details.dig("revealTo", "zone") == "hand" && details.dig("restTo", "zone") == "deck" && details.dig("restTo", "position") == "bottom"
+
+        may = details["mayReveal"]
+        return nil unless may.is_a?(Hash) && %w[entity object].include?(may["cardType"])
+
+        { kind: "look", count: from["count"], reveal: { type: may["cardType"], race: may["race"].is_a?(String) ? may["race"] : nil }.freeze }.freeze
+      when "modify_power"
+        target = effect["target"]
+        return nil unless target.is_a?(Hash) && target["cardType"] == "entity" && target["controller"] == "controller"
+        return nil unless effect["amount"].is_a?(Integer) && effect["duration"] == "until_end_of_turn"
+
+        all = target["quantity"] == "all"
+        one = target["min"] == 1 && target["max"] == 1
+        return nil unless all || one
+
+        details = target["details"].is_a?(Hash) ? target["details"] : {}
+        { kind: "power", amount: effect["amount"], targets: all ? "all" : "one", race: target["race"].is_a?(String) ? target["race"] : nil,
+          attacking: details["attacking"] == true, armed: details["hasObjectAssigned"] == true }.freeze
+      when "reduce_cost"
+        return nil unless effect["amount"].is_a?(Integer) && effect.dig("details", "nextPlayedThisTurn") == true
+
+        filter = effect["target"].is_a?(Hash) ? effect["target"] : effect["filter"]
+        return nil unless filter.is_a?(Hash) && %w[entity object].include?(filter["cardType"])
+
+        { kind: "discount", amount: effect["amount"], type: filter["cardType"], race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze
+      end
+    end
+
+    # La soglia della Furia per faccia (§8.1): «d20 ≥ N» dal check della
+    # parola chiave; una faccia senza Furia non compare.
+    def self.fury_at(faces)
+      faces.each_with_index.filter_map do |face, index|
+        fury = Array(face["keywords"]).find { |keyword| keyword.is_a?(Hash) && keyword["id"] == "fury" }
+        next unless fury
+
+        [index, integer_stat(fury.dig("check", "successAtLeast")) || 12]
+      end.to_h
+    end
+
     def self.nexus_of(faces)
       rubyfront = faces.find { |face| face["kind"] == "rubyfront" }
       nexus_index = faces.index { |face| face["kind"] == "nexus" }

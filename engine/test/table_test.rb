@@ -635,4 +635,31 @@ class TableBonusTest < Minitest::Test
     assert_nil @table.card("u")[:cannot_block]
     assert_nil @table.card("u")[:grants]
   end
+
+  # --- le abilità speciali del Rubyfront (§3.1) e gli sconti ------------------
+
+  def test_l_abilita_paga_i_pv_potenzia_i_bersagli_e_lascia_lo_sconto
+    cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1236 },
+             { "uid" => "u", "owner" => "a", "zone" => "field", "order" => 1, "y" => 1236 },
+             { "uid" => "o", "owner" => "a", "zone" => "hand", "order" => 2 }]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 20, "flux" => 5 } })
+    @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "carica", "cost" => 5, "roll" => 3, "fail" => true, "targets" => ["u"], "power" => 1 })
+    assert_equal 14, @table.hp("a"), "5 di costo e 1 di Furia fallita"
+    assert_equal 1, @table.card("u")[:power_bonus]
+    @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "sguardo", "gain" => 3 })
+    assert_equal 17, @table.hp("a")
+    assert @table.pending_ability?("rf", "sguardo"), "lo sguardo aspetta"
+    @table.apply({ "t" => "look", "seat" => "a", "count" => 3, "effect" => { "source" => "rf", "event" => "on_ability", "entering" => "rf", "ability" => "sguardo" } })
+    refute @table.pending_ability?("rf", "sguardo")
+    @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "sconto", "cost" => 3, "discount" => { "amount" => 1, "type" => "object", "race" => nil } })
+    assert_equal [{ amount: 1, type: "object", race: nil }], @table.discounts("a")
+    @table.apply({ "t" => "toZone", "uid" => "o", "zone" => "field", "x" => 632, "y" => 1236, "cost" => 1, "discount" => 1, "assignTo" => "u" })
+    assert_equal 4, @table.flux("a")
+    assert_empty @table.discounts("a"), "consumato giocando"
+    @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "sconto", "cost" => 3, "discount" => { "amount" => 1, "type" => "object", "race" => nil } })
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_empty @table.discounts("a"), "cadono col turno"
+    assert_nil @table.card("u")[:power_bonus]
+  end
 end

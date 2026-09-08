@@ -7,7 +7,7 @@
 
 import { t } from "./i18n.js";
 import { CONTROL_X, FRONT_SLOT_X, MATTER_X, SURFACE_W, TILE_W, backRowY, frontRowY } from "./ctx.js";
-import type { Action, CardInstance, Declaration, GameState, PlayerState, Seat, ZoneId } from "./types.js";
+import type { Action, CardInstance, Declaration, GameState, PlayerState, Seat, ZoneId, Discount } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
 
 /** Il tetto del Flusso (§3.2): la barra non supera mai 20. */
@@ -297,9 +297,18 @@ function reduce(state: GameState, action: Action): GameState {
       // scala dal Flusso, mai sotto zero — a engine spento il tavolo resta
       // libero, con l'arbitro il «Flusso insufficiente» ferma prima.
       const paying = action.zone === "field" && card.zone === "hand" && (action.cost ?? 0) > 0;
-      const players = paying
+      let players = paying
         ? { ...state.players, [card.owner]: pay(state.players[card.owner], action.cost!) }
         : state.players;
+      // Lo sconto di un'abilità (§3.1) si consuma giocando: via il primo di
+      // quell'importo. Gemello: table.rb, consume_discount.
+      if (action.zone === "field" && card.zone === "hand" && action.discount !== undefined) {
+        const owner = players[card.owner];
+        const list = [...(owner.discounts ?? [])];
+        const index = list.findIndex(discount => discount.amount === action.discount);
+        if (index >= 0) list.splice(index, 1);
+        players = { ...players, [card.owner]: { ...owner, discounts: list } };
+      }
       if (next.zone !== "field") {
         // Fuori dal campo le assegnazioni si sciolgono, in entrambi i versi:
         // l'Oggetto uscito non è più addosso a nessuno, e l'Entità uscita
@@ -359,6 +368,27 @@ function reduce(state: GameState, action: Action): GameState {
       if (!state.chain) return state;
       if (state.chain.stack.length === 0) return withoutChain(state);
       return { ...state, chain: { ...state.chain, resolving: true } };
+    }
+
+    case "ability": {
+      // §3.1 — l'abilità speciale del Rubyfront: i PV pagati o recuperati,
+      // il sovrapprezzo della Furia fallita (§8.1), il potenziamento dei
+      // bersagli fino a fine turno, lo sconto per il turno. Gemello:
+      // table.rb, use_ability.
+      const card = state.cards[action.uid];
+      if (!card) return state;
+      const player = state.players[card.owner];
+      let hp = player.hp - (action.cost ?? 0) + (action.gain ?? 0) - (action.fail ? 1 : 0);
+      if (hp < 0) hp = 0;
+      const discounts = action.discount ? [...(player.discounts ?? []), action.discount] : player.discounts;
+      const cards = { ...state.cards };
+      if (action.power !== undefined) {
+        for (const uid of action.targets ?? []) {
+          const target = cards[uid];
+          if (target && target.zone === "field") cards[uid] = { ...target, powerBonus: (target.powerBonus ?? 0) + action.power };
+        }
+      }
+      return { ...state, cards, players: { ...state.players, [card.owner]: { ...player, hp, ...(discounts ? { discounts } : {}) } } };
     }
 
     case "flip": {
@@ -458,10 +488,17 @@ function reduce(state: GameState, action: Action): GameState {
         }
         cards[uid] = fresh;
       }
+      // Gli sconti delle abilità valgono «in questo turno» (§3.1): cadono per tutti.
+      const cleared = Object.fromEntries(
+        Object.entries(state.players).map(([seat, who]) => {
+          const { discounts: _spent, ...rest } = who;
+          return [seat, rest];
+        })
+      ) as GameState["players"];
       const opened: GameState = {
         ...withoutChain(state),
         cards,
-        players: { ...state.players, [next]: { ...player, fluxMax: grown, flux: grown } },
+        players: { ...cleared, [next]: { ...cleared[next], fluxMax: grown, flux: grown } },
         turn: action.turn,
         active: next,
         phase: "preparazione",
@@ -827,3 +864,17 @@ export function seatLabel(state: GameState, seat: Seat, me?: Seat): string {
 }
 
 export { SEATS };
+
+/**
+ * Lo sconto di un'abilità del Rubyfront (§3.1) che vale per una carta di
+ * questo tipo e razza giocata ora da `seat`: il primo del conto, o null.
+ * Gemello: engine.rb, ability_discount_stopped.
+ */
+export function abilityDiscount(state: GameState, seat: Seat, facts: { kind: string | null; race: string | null }): Discount | null {
+  for (const discount of state.players[seat].discounts ?? []) {
+    if (discount.type !== facts.kind) continue;
+    if (discount.race !== null && discount.race !== facts.race) continue;
+    return discount;
+  }
+  return null;
+}

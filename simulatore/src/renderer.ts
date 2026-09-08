@@ -18,7 +18,8 @@ export const TILE_W = 302;
 export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
-import type { AttackDraw, AttackForm, EnterControl, EnterListener, EnterLook, EnterRefresh, EnterMove, EnterReturn, FlipForm, NexusRequirement, ResolveForm, StaticForm } from "./ctx.js";
+import type { Phase } from "./types.js";
+import type { AttackDraw, AttackForm, EnterControl, EnterListener, EnterLook, EnterRefresh, EnterMove, EnterReturn, FlipForm, NexusRequirement, ResolveForm, StaticForm, Ability, AbilityForm } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -862,6 +863,91 @@ function flipFormsOf(faces: CardFace[]): FlipForm[] {
   return out;
 }
 
+/**
+ * Le abilità speciali del Rubyfront/Nexus (§3.1), specchio di
+ * card_index.rb, abilities: dalle `actions` di ogni faccia, con la forma
+ * certificata dell'effetto (sguardo, potenziamento, sconto) o null.
+ */
+function abilitiesOf(faces: CardFace[]): Ability[] {
+  const out: Ability[] = [];
+  faces.forEach((face, index) => {
+    for (const action of ((face as Loose).actions ?? []) as Loose[]) {
+      if (!action || typeof action.id !== "string") continue;
+      const timing: Phase[] = [];
+      for (const window of Array.isArray(action.timing) ? action.timing : []) {
+        if (window === "own_preparation") timing.push("preparazione");
+        if (window === "own_front") timing.push("fronte");
+      }
+      if (timing.length === 0) continue;
+      const cost = Number.isInteger(action.cost?.health) ? (action.cost.health as number) : null;
+      const gain = Number.isInteger(action.gain?.health) ? (action.gain.health as number) : null;
+      if (cost === null && gain === null) continue;
+      out.push({
+        id: action.id,
+        displayKey: typeof action.displayKey === "string" ? action.displayKey : action.id,
+        face: index,
+        timing,
+        cost,
+        gain,
+        fury: Array.isArray(action.checks) && action.checks.includes("fury"),
+        form: abilityFormOf(action.effect as Loose | undefined),
+      });
+    }
+  });
+  return out;
+}
+
+function abilityFormOf(effect: Loose | undefined): AbilityForm | null {
+  if (!effect) return null;
+  if (effect.type === "look_and_optionally_move") {
+    const from = effect.from as Loose | undefined;
+    const d = effect.details as Loose | undefined;
+    if (!from || from.zone !== "deck" || from.owner !== "controller" || from.position !== "top" || !Number.isInteger(from.count)) return null;
+    if (!d || d.revealTo?.zone !== "hand" || d.restTo?.zone !== "deck" || d.restTo?.position !== "bottom") return null;
+    const may = d.mayReveal as Loose | undefined;
+    if (!may || (may.cardType !== "entity" && may.cardType !== "object")) return null;
+    return { kind: "look", count: from.count as number, reveal: { kind: may.cardType, race: typeof may.race === "string" ? may.race : null } };
+  }
+  if (effect.type === "modify_power") {
+    const target = effect.target as Loose | undefined;
+    if (!target || target.cardType !== "entity" || target.controller !== "controller") return null;
+    if (!Number.isInteger(effect.amount) || effect.duration !== "until_end_of_turn") return null;
+    const all = target.quantity === "all";
+    const one = target.min === 1 && target.max === 1;
+    if (!all && !one) return null;
+    const details = (target.details ?? {}) as Loose;
+    return { kind: "power", amount: effect.amount as number, targets: all ? "all" : "one", race: typeof target.race === "string" ? target.race : null, attacking: details.attacking === true, armed: details.hasObjectAssigned === true };
+  }
+  if (effect.type === "reduce_cost") {
+    if (!Number.isInteger(effect.amount) || effect.details?.nextPlayedThisTurn !== true) return null;
+    const filter = (effect.target ?? effect.filter) as Loose | undefined;
+    if (!filter || (filter.cardType !== "entity" && filter.cardType !== "object")) return null;
+    return { kind: "discount", amount: effect.amount as number, type: filter.cardType, race: typeof filter.race === "string" ? filter.race : null };
+  }
+  return null;
+}
+
+/** La soglia della Furia per faccia (§8.1). Specchio di card_index.rb, fury_at. */
+function furyAtOf(faces: CardFace[]): Record<number, number> {
+  const out: Record<number, number> = {};
+  faces.forEach((face, index) => {
+    const fury = ((face.keywords ?? []) as Loose[]).find(keyword => keyword && keyword.id === "fury");
+    if (!fury) return;
+    const at = (fury.check as Loose | undefined)?.successAtLeast;
+    out[index] = Number.isInteger(at) ? (at as number) : 12;
+  });
+  return out;
+}
+
+/** Nome e testo di un'abilità speciale nella lingua di chi legge. */
+export function abilityCopy(cardId: string, faceIndex: number, displayKey: string, locale: string): { name: string; text: string } {
+  const card = getCard(cardId);
+  const face = card?.faces[faceIndex];
+  const copy = card ? renderer.localized(card, locale) : null;
+  const entry = ((copy as Loose | null)?.[face?.displayKey ?? ""]?.abilities?.[displayKey] ?? {}) as Loose;
+  return { name: typeof entry.name === "string" ? entry.name : displayKey, text: typeof entry.text === "string" ? entry.text : "" };
+}
+
 function nexusOf(faces: CardFace[]): NexusRequirement | null {
   const rubyfront = faces.find(face => face.kind === "rubyfront");
   const nexusIndex = faces.findIndex(face => face.kind === "nexus");
@@ -919,6 +1005,8 @@ export function cardStats(cardId: string): {
   resolveForms: ResolveForm[];
   flipForms: FlipForm[];
   nexus: NexusRequirement | null;
+  abilities: Ability[];
+  furyAt: Record<number, number>;
   grantsWhileAssigned: { keywords: string[]; ifRace: string | null }[];
 } {
   const card = getCard(cardId);
@@ -942,6 +1030,8 @@ export function cardStats(cardId: string): {
     resolveForms: resolveFormsOf(card?.faces ?? []),
     flipForms: flipFormsOf(card?.faces ?? []),
     nexus: nexusOf(card?.faces ?? []),
+    abilities: abilitiesOf(card?.faces ?? []),
+    furyAt: furyAtOf(card?.faces ?? []),
     grantsWhileAssigned: grantsWhileAssignedOf(card?.faces ?? []),
     enterLooks: enterLooksOf(face),
     enterControls: enterControlsOf(face),

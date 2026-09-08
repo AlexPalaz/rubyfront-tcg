@@ -76,6 +76,14 @@ export interface CardInstance {
   target?: string;
 }
 
+/** Lo sconto di un'abilità del Rubyfront (§3.1): «la prossima carta X che
+    giochi in questo turno costa N in meno». Cade col cambio di turno. */
+export interface Discount {
+  amount: number;
+  type: "entity" | "object";
+  race: string | null;
+}
+
 export interface PlayerState {
   name: string;
   /** Punti Vita: si impostano e si correggono a mano, senza limiti imposti. */
@@ -94,6 +102,8 @@ export interface PlayerState {
   /** Le carte (id di catalogo) che questo posto non può più giocare per il
       resto della partita (§8.2, RBF-001: il flip sigilla Rhen). */
   sealed?: string[];
+  /** Gli sconti delle abilità del Rubyfront, validi in questo turno (§3.1). Gemello: table.rb, discounts. */
+  discounts?: Discount[];
 }
 
 /** I parametri di una riga di log: numeri, testi, posti (`seat`, `otherSeat`),
@@ -246,8 +256,10 @@ export interface EffectRef {
   source: string;
   /** L'evento che innesca: l'ingresso in campo, l'attacco dichiarato, la
       risoluzione di una Materia (§7.2), o il flip verso il Nexus (§3.1). */
-  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip";
+  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip" | "on_ability";
   entering: string;
+  /** Il seguito di un'abilità speciale del Rubyfront (§3.1): l'id dell'abilità attivata. */
+  ability?: string;
   /** Il seguito di un innesco, con la sua tripla: lo scarto dopo la pesca
       (RBF-026), il ritorno in mano dopo la cura (RBF-008), la pesca dopo la
       cura (RBF-001 Nexus), l'attacco di chi torna (RBF-010), lo sguardo dopo
@@ -276,7 +288,7 @@ export type Action =
   /** `cost`: il Flusso pagato giocando DALLA MANO in campo (§3.2) — lo
       mette il client dal catalogo, l'engine lo verifica, il riduttore lo
       scala. Assente da altre zone e per il Rubyfront. */
-  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string; chain?: true }
+  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; discount?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string; chain?: true }
   /** §7.2 — chi deve rispondere accetta: la catena si risolve. */
   | { t: "pass"; seat: Seat }
   /** §7.2 — la Reattiva in cima è risolta: esce dalla pila (anche se resta in campo a bloccare, §6.4). */
@@ -284,6 +296,11 @@ export type Action =
   /** Il flip (§3.1): verso il Nexus porta lo scarto del requisito
       (`discard`, nell'Abisso) e il recupero di PV stampato (`recover`). */
   | { t: "flip"; uid: string; face: number; discard?: string; recover?: number }
+  /** L'abilità speciale del Rubyfront (§3.1): `cost` o `gain` in PV come
+      stampato; con la Furia (§8.1) il tiro `roll` e l'esito `fail` (−1 PV
+      in più); per un potenziamento i `targets` e il `power`; per uno sconto
+      lo sconto. Il client calcola, l'engine verifica sulla forma. */
+  | { t: "ability"; uid: string; ability: string; cost?: number; gain?: number; roll?: number; fail?: true; targets?: string[]; power?: number; discount?: Discount }
   /** Assegna l'Oggetto `uid` all'Entità `to` (§3.1); `to: null` lo scioglie. */
   | { t: "assign"; uid: string; to: string | null }
   | { t: "tap"; uid: string; tapped: boolean }

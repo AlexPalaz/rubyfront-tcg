@@ -78,7 +78,7 @@ module Rubyfront
       # il Flusso (§3.2) e i PV (§2, la fine della partita).
       # I 20 PV sono un segnaposto: i PV veri li porta il mazzo (§3.1,
       # load_deck), stampati sul Rubyfront.
-      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20, token: false, sealed: [] }] }
+      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20, token: false, sealed: [], discounts: [] }] }
       # §3.2/§4: il Gettone va a chi non inizia — con l'active del reset.
       @players[SEATS.find { |seat| seat != @active }][:token] = true
       # Com'è finita (§2, §9): {winner:, reason:}, nil finché si gioca.
@@ -86,6 +86,9 @@ module Rubyfront
       # Gli inneschi già risolti in questo turno (§8.2): "fonte|ingresso",
       # una volta sola per coppia. Il cambio di turno li azzera.
       @fired = []
+      # Le abilità attivate in questo turno (§3.1) che aspettano il loro
+      # seguito (lo sguardo nel mazzo): "rubyfront|abilità" => quante volte.
+      @ability_pending = Hash.new(0)
       @rolls = {}
     end
 
@@ -121,6 +124,31 @@ module Rubyfront
     end
 
     # Le carte in campo che `seat` comanda: le sue, più quelle che controlla (§8.2).
+    # Le abilità in sospeso e gli sconti del turno (§3.1): li legge l'engine.
+    def pending_ability?(uid, ability)
+      @ability_pending["#{uid}|#{ability}"].positive?
+    end
+
+    def close_ability(uid, ability)
+      key = "#{uid}|#{ability}"
+      @ability_pending[key] -= 1 if @ability_pending[key].positive?
+    end
+
+    def discounts(seat)
+      Array(@players.dig(seat, :discounts))
+    end
+
+    def consume_discount(seat, amount)
+      list = discounts(seat)
+      index = list.index { |discount| discount[:amount] == amount }
+      list.delete_at(index) if index
+    end
+
+    # …e i loro uid, per chi deve nominarle in un'azione.
+    def commanded_uids(seat)
+      @cards.select { |_uid, card| card[:zone] == "field" && controller_of(card) == seat }.keys
+    end
+
     def commanded_cards(seat)
       @cards.values.select { |card| card[:zone] == "field" && controller_of(card) == seat }
     end
@@ -275,6 +303,11 @@ module Rubyfront
         @players[seat][:hp] = player["hp"] if player["hp"].is_a?(Integer)
         @players[seat][:token] = player["token"] == true if player.key?("token")
         @players[seat][:sealed] = Array(player["sealed"]).select { |id| id.is_a?(String) }
+        @players[seat][:discounts] = Array(player["discounts"]).filter_map do |discount|
+          next unless discount.is_a?(Hash) && discount["amount"].is_a?(Integer) && discount["type"].is_a?(String)
+
+          { amount: discount["amount"], type: discount["type"], race: discount["race"].is_a?(String) ? discount["race"] : nil }
+        end
       end
       over = state["over"]
       @over = { winner: over["winner"], reason: over["reason"] } if over.is_a?(Hash)
@@ -401,6 +434,7 @@ module Rubyfront
           stack = @chain[:stack] - [action["uid"]]
           @chain = stack.empty? ? nil : @chain.merge(stack: stack)
         end
+      when "ability" then use_ability(action)
       when "look" then look(action)
       when "control"
         # §8.2 — il controllo: chi comanda cambia, la proprietà no; le parole
@@ -467,6 +501,9 @@ module Rubyfront
           @phase = "preparazione"
           @fired = []
           @rolls = {}
+          @ability_pending = Hash.new(0)
+          # Gli sconti delle abilità valgono «in questo turno» (§3.1).
+          @players.each_value { |player| player[:discounts] = [] }
           @chain = nil
           @cards.each_value do |card|
             # «Fino alla fine del turno» (§8.2): bonus, divieti e parole chiave
@@ -510,6 +547,34 @@ module Rubyfront
 
     # Paga `cost` (§3.2): prima dalla barra, e se non basta col Gettone — un
     # punto a parte, monouso. Mai sotto zero. Gemello: state.ts, pay.
+    # §3.1 — l'abilità speciale del Rubyfront: i PV pagati (o recuperati),
+    # il sovrapprezzo della Furia fallita (§8.1), il potenziamento dei
+    # bersagli fino a fine turno, lo sconto per il turno; e lo sguardo nel
+    # mazzo che resta in sospeso finché non arriva. Gemello: state.ts, ability.
+    def use_ability(action)
+      card = @cards[action["uid"]]
+      return unless card
+
+      player = @players[card[:owner]]
+      return unless player
+
+      player[:hp] -= action["cost"] if action["cost"].is_a?(Integer)
+      player[:hp] += action["gain"] if action["gain"].is_a?(Integer)
+      player[:hp] -= 1 if action["fail"] == true
+      player[:hp] = 0 if player[:hp].negative?
+      if action["power"].is_a?(Integer)
+        Array(action["targets"]).each do |uid|
+          target = @cards[uid]
+          target[:power_bonus] = (target[:power_bonus] || 0) + action["power"] if target && target[:zone] == "field"
+        end
+      end
+      discount = action["discount"]
+      if discount.is_a?(Hash) && discount["amount"].is_a?(Integer)
+        player[:discounts] << { amount: discount["amount"], type: discount["type"], race: discount["race"].is_a?(String) ? discount["race"] : nil }
+      end
+      @ability_pending["#{action["uid"]}|#{action["ability"]}"] += 1 if action["ability"].is_a?(String) && !action.key?("targets") && !discount
+    end
+
     def pay(seat, cost)
       player = @players[seat]
       return unless player && cost.is_a?(Integer) && cost.positive?
@@ -624,6 +689,8 @@ module Rubyfront
     # cui stavano. Gemello: state.ts, look.
     def look(action)
       seat = action["seat"]
+      ref = action["effect"]
+      close_ability(ref["source"], ref["ability"]) if ref.is_a?(Hash) && ref["event"] == "on_ability"
       looked = pile(seat, "deck").first(action["count"].to_i)
       return if looked.empty?
 
@@ -679,7 +746,10 @@ module Rubyfront
       # Giocare dalla mano costa: il costo viaggia nell'azione (`cost`, lo
       # mette il client dal catalogo e l'engine lo verifica) e si paga come
       # nel riduttore (pay).
-      pay(card[:owner], action["cost"]) if zone == "field" && card[:zone] == "hand"
+      if zone == "field" && card[:zone] == "hand"
+        pay(card[:owner], action["cost"])
+        consume_discount(card[:owner], action["discount"]) if action["discount"].is_a?(Integer)
+      end
       card[:zone] = zone
       # Chi lo tiene fermo nell'Abisso (l'esilio condizionato): lo dice lo spostamento che
       # ce lo manda; ogni altro spostamento lo scioglie. Gemello: state.ts.

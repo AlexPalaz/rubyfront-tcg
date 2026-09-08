@@ -112,6 +112,7 @@ import {
   faceKind,
   isRubyfront,
   type Deployment,
+  abilityCopy,
 } from "./renderer.js";
 import {
   STACK_STEP,
@@ -127,8 +128,12 @@ import {
   stackAt,
   zoneCards,
   freeFrontSlotOrNull,
-  nextWaveOrder, chainTop } from "./state.js";
-import type { CardInstance, GameState, Seat, ZoneId } from "./types.js";
+  nextWaveOrder, chainTop,
+  abilityDiscount,
+  inPlay,
+} from "./state.js";
+import type { CardInstance, Discount, EffectRef, GameState, Seat, ZoneId } from "./types.js";
+import type { Ability } from "./ctx.js";
 import { SEATS, otherSeat } from "./types.js";
 
 // Le tre pile stanno in fila a destra, nella riga di servizio. Il Mazzo è
@@ -1646,6 +1651,26 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         });
       }
     }
+    // §3.1 — le abilità speciali del Rubyfront/Nexus, con l'arbitro: quelle
+    // della faccia in vista, nel proprio turno e nella loro finestra, coi PV
+    // che coprono il costo. Senza forma certificata restano a mano: la voce
+    // lo dice, spenta.
+    if (ctx.arbitrated() && mine && card.zone === "field" && inPlay(card, ctx.card(card.cardId).kind)) {
+      const state = ctx.state();
+      const facts = ctx.card(card.cardId);
+      const own = state.active === controllerOf(card);
+      for (const ability of facts.abilities.filter(candidate => candidate.face === card.face)) {
+        const copy = abilityCopy(card.cardId, ability.face, ability.displayKey, ctx.locale());
+        const price = ability.cost !== null ? t("ability.cost", { n: ability.cost }) : t("ability.gain", { n: ability.gain ?? 0 });
+        if (!ability.form) {
+          items.push({ label: t("ability.manual", { name: copy.name }), disabled: true });
+          continue;
+        }
+        const open = own && ability.timing.includes(state.phase) && state.players[card.owner].hp >= (ability.cost ?? 0);
+        items.push({ label: t("menu.ability", { name: copy.name, price }), disabled: !open, run: () => void useAbility(card, ability) });
+      }
+      if (facts.abilities.some(candidate => candidate.face === card.face)) items.push({ rule: true, label: "" });
+    }
     if (faceCount(card.cardId) > 1) {
       const next = (card.face + 1) % faceCount(card.cardId);
       const nexus = ctx.card(card.cardId).nexus;
@@ -1806,6 +1831,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (foes.length) target = await pickTarget(card, foes, t("target.judgment.play", { n: discount }));
       cost = discountedCost(ctx.state(), card.cardId, target, ctx.card);
     }
+    // §3.1 — lo sconto di un'abilità del Rubyfront («la prossima carta X
+    // del turno costa N in meno»): si dichiara nell'azione, e il costo
+    // scende — mai sotto 1. Lo consuma il riduttore.
+    const abilityOff = card.zone === "hand" && cost !== null ? abilityDiscount(ctx.state(), card.owner, facts) : null;
+    if (abilityOff && cost !== null) cost = Math.max(1, cost - abilityOff.amount);
     // §7.2 — la Reattiva giocata apre (o allunga) la catena di risposta: il
     // segno viaggia nell'azione, e l'engine lo pretende.
     const reactive = card.zone === "hand" && facts.kind === "matter" && facts.behavior === "reactive";
@@ -1817,6 +1847,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       y,
       z,
       ...(cost !== null ? { cost } : {}),
+      ...(abilityOff ? { discount: abilityOff.amount } : {}),
       ...(target ? { target: target.uid } : {}),
       ...(reactive ? { chain: true as const } : {}),
     });
@@ -1826,6 +1857,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // In chat solo il gesto: il testo dell'effetto si legge sulla carta,
       // lo storico resta pulito.
       ctx.log(msg("log.play", { seat: card.owner, card: card.cardId, cost, flux: player.flux, max: player.fluxMax }), card.owner);
+      if (abilityOff) ctx.log(msg("log.play.discount", { n: abilityOff.amount }), card.owner);
     }
     // Una Materia con un effetto certificato (§7.2): la scena elenca i
     // passi, «Risolvi» li esegue, e la carta — se non è permanente — va
@@ -2303,8 +2335,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    */
   function unaffordable(card: CardInstance): boolean {
     if (!ctx.arbitrated() || card.zone !== "hand" || !ctx.controls(card.owner) || isRubyfront(card.cardId)) return false;
-    const cost = cardStats(card.cardId).fluxCost;
+    const stats = cardStats(card.cardId);
+    let cost = stats.fluxCost;
     if (cost === null) return false;
+    const off = abilityDiscount(ctx.state(), card.owner, stats);
+    if (off) cost = Math.max(1, cost - off.amount);
     const player = ctx.state().players[card.owner];
     return cost > player.flux + (player.token ? 1 : 0);
   }
@@ -2596,7 +2631,104 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
   }
 
-  async function playLook(first: EnterLookStep): Promise<void> {
+  /**
+   * L'abilità speciale del Rubyfront (§3.1): la Furia tira il d20 al
+   * centro (§8.1), il potenziamento sceglie i bersagli PRIMA di pagare (chi
+   * rinuncia non paga), poi l'azione — PV, tiro, esito, bersagli o sconto —
+   * va all'engine in un colpo solo; lo sguardo nel mazzo si risolve dopo,
+   * con la stessa vetrina degli ingressi, marcato `on_ability`.
+   */
+  async function useAbility(card: CardInstance, ability: Ability): Promise<void> {
+    const by = controllerOf(card);
+    const copy = abilityCopy(card.cardId, ability.face, ability.displayKey, ctx.locale());
+    const price = ability.cost !== null ? t("ability.cost", { n: ability.cost }) : t("ability.gain", { n: ability.gain ?? 0 });
+    const form = ability.form;
+    if (!form) return;
+    let targets: string[] | null = null;
+    if (form.kind === "power") {
+      const candidates = fieldCards(ctx.state()).filter(other => {
+        if (controllerOf(other) !== by) return false;
+        const facts = ctx.card(other.cardId);
+        if (facts.kind !== "entity") return false;
+        if (form.race !== null && facts.race !== form.race) return false;
+        if (form.attacking && declarationOf(ctx.state(), other.uid)?.kind !== "attack") return false;
+        if (form.armed && wornBy(ctx.state(), other.uid).length === 0) return false;
+        return true;
+      });
+      if (form.targets === "one") {
+        if (candidates.length === 0) {
+          const go = await confirmFor(by, t("confirm.ability.notargets", { name: copy.name, price }));
+          if (!go) return;
+          targets = [];
+        } else {
+          light(card.uid, true);
+          const chosen = await pickTarget(card, candidates, t("target.ability.power", { n: form.amount }));
+          light(card.uid, false);
+          if (!chosen) return;
+          targets = [chosen.uid];
+        }
+      } else {
+        if (candidates.length === 0) {
+          const go = await confirmFor(by, t("confirm.ability.notargets", { name: copy.name, price }));
+          if (!go) return;
+        }
+        targets = candidates.map(other => other.uid);
+      }
+    }
+    // §8.1 — la Furia: il d20 al centro, prima dell'abilità.
+    let roll: number | null = null;
+    let fail = false;
+    if (ability.fury) {
+      const threshold = ctx.card(card.cardId).furyAt[card.face] ?? 12;
+      roll = 1 + Math.floor(Math.random() * 20);
+      await showRoll(root, 20, roll, t("dice.fury", { name: copy.name, n: threshold }));
+      fail = roll < threshold;
+    }
+    const discount: Discount | null = form.kind === "discount" ? { amount: form.amount, type: form.type, race: form.race } : null;
+    light(card.uid, true);
+    hold(true);
+    let passed = false;
+    try {
+      passed = await ctx.dispatch({
+        t: "ability",
+        uid: card.uid,
+        ability: ability.id,
+        ...(ability.cost !== null ? { cost: ability.cost } : {}),
+        ...(ability.gain !== null ? { gain: ability.gain } : {}),
+        ...(roll !== null ? { roll } : {}),
+        ...(fail ? { fail: true as const } : {}),
+        ...(targets !== null ? { targets, power: form.kind === "power" ? form.amount : 0 } : {}),
+        ...(discount ? { discount } : {}),
+      });
+      if (passed) {
+        if (roll !== null) ctx.log(msg("log.ability.fury", { seat: by, roll, outcome: msg(fail ? "fury.fail" : "fury.ok") }), by);
+        ctx.log(msg("log.ability", { seat: by, name: copy.name, price, hp: ctx.state().players[by].hp }), by);
+        if (form.kind === "power" && targets && targets.length) {
+          ctx.log(msg("log.ability.power", { seat: by, n: form.amount, cards: targets.map(uid => cardName(ctx.state().cards[uid]?.cardId ?? uid, ctx.locale())).join(", ") }), by);
+          for (const uid of targets) strike(uid, 900);
+        }
+        if (discount) {
+          const what = msg(discount.type === "object" ? "what.object" : discount.race === "human" ? "what.entity.human" : "what.entity");
+          ctx.log(msg("log.ability.discount", { seat: by, what, n: discount.amount }), by);
+        }
+        await wait(TRIGGER_TAIL_MS);
+      }
+    } finally {
+      light(card.uid, false);
+      hold(false);
+    }
+    if (!passed || form.kind !== "look") {
+      render();
+      return;
+    }
+    // Lo sguardo nel mazzo: le prime N, con la vetrina degli ingressi.
+    const live = ctx.state().cards[card.uid];
+    if (!live) return;
+    const step = lookAfterRoll(ctx.state(), live, { count: form.count, die: null, countBase: 0, reveal: form.reveal, thenRetire: false }, null, ctx.card);
+    await playLook(step, { source: live.uid, event: "on_ability", entering: live.uid, ability: ability.id });
+  }
+
+  async function playLook(first: EnterLookStep, ref: EffectRef | null = null): Promise<void> {
     const by = controllerOf(first.source);
     const name = ctx.card(first.source.cardId).name;
     light(first.source.uid, true);
@@ -2630,7 +2762,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     hold(true);
     try {
       await wait(CONFIRMED_LEAD_MS);
-      const passed = await resolveLook(ctx, step, reveal, retire);
+      const passed = await resolveLook(ctx, step, reveal, retire, ref);
       await wait(passed ? TRIGGER_TAIL_MS : 0);
     } finally {
       light(first.source.uid, false);

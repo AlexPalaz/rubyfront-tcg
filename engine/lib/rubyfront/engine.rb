@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.44.1"
+    VERSION = "0.45.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -80,6 +80,8 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando entra, col dado stappa tutte le Entità che controlli»",
       "§8.2 «Questa Entità non si tappa mai»: nessun gesto la tappa",
       "§8.2 Il controllo non è un ingresso: gli effetti «quando entra» non si riapplicano",
+      "§3.1 Le abilità speciali del Rubyfront: costano PV, in campo, nel proprio turno, nella loro finestra",
+      "§8.1 La Furia: un d20 prima dell'abilità, col fallimento −1 PV",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -134,6 +136,8 @@ module Rubyfront
       "§8.2 Certified effects: “when it enters, with the die untap all Entities you control”",
       "§8.2 “This Entity never taps”: no gesture taps it",
       "§8.2 Taking control isn't an entry: “when it enters” effects don't apply again",
+      "§3.1 The Rubyfront's special abilities: they cost HP, on the field, on your own turn, in their window",
+      "§8.1 Fury: a d20 before the ability, −1 HP on a failure",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -309,6 +313,7 @@ module Rubyfront
       when "move" then judge_move(action)
       when "release" then judge_release(action)
       when "flip" then judge_flip(action)
+      when "ability" then judge_ability(action)
       when "gameOver" then judge_game_over(action)
       when "tap" then judge_tap(action)
       else no_rule(action["t"])
@@ -635,6 +640,16 @@ module Rubyfront
         # (`target`), e lo sconto vale solo se il bersaglio è davvero
         # tappato. L'effetto poi dovrà colpire lui.
         cost -= discount_for(known, action)
+        # §3.1 — lo sconto di un'abilità («la prossima carta X che giochi in
+        # questo turno costa N in meno»): l'azione lo dichiara, e deve
+        # esserci nel conto del giocatore per una carta di quel tipo. Il
+        # costo non scende sotto 1 (§3.1, Oggetti; stessa lettura per tutte).
+        if action.key?("discount")
+          stopped = ability_discount_stopped(card, known, action)
+          return stopped if stopped
+
+          cost = [cost - action["discount"], 1].max
+        end
         paid = action["cost"]
         unless paid == cost
           return refuse("toZone", "la carta costa #{cost} di Flusso e l'azione ne paga #{paid.is_a?(Integer) ? paid : 0} (§3.2)", "the card costs #{cost} Flux and the action pays #{paid.is_a?(Integer) ? paid : 0} (§3.2)")
@@ -1360,6 +1375,7 @@ module Rubyfront
 
       return judge_resolve_effect(action, ref) if ref["event"] == "on_resolve"
       return judge_flip_effect(action, ref) if ref["event"] == "on_flip"
+      return judge_ability_effect(action, ref) if ref["event"] == "on_ability"
       if ref["event"] == "on_attack"
         case kind
         when "empower" then return judge_attack_empower(action, ref)
@@ -2300,6 +2316,154 @@ module Rubyfront
     # applicano; qui si verifica la forma. Il Nexus «rimane in campo per
     # tutta la partita»: indietro non si flippa. Requisito non certificato in
     # anagrafe: silenzio, il flip resta a mano.
+    # §3.1 — le abilità speciali del Rubyfront/Nexus: «per essere usate
+    # costano PV», «attivabili liberamente, solo nel proprio turno, sia in
+    # Fase di Preparazione che in Fase di Fronte», «più volte per turno,
+    # finché i PV bastano», «solo se i PV coprono l'intero costo (PV ≥
+    # costo)», «utilizzabili solo quando è in campo». §8.1 — la Furia:
+    # «prima di usare un'abilità speciale il proprietario lancia un d20»,
+    # sotto la soglia «perde 1 PV, ma l'abilità si usa comunque». L'azione
+    # porta costo o recupero, il tiro e l'esito del tiro (`fail`), e per il
+    # potenziamento i bersagli, per lo sconto lo sconto: il client calcola,
+    # l'engine rifà il conto sulla forma certificata dell'anagrafe. Lo
+    # sguardo nel mazzo si risolve dopo, con `look` marcato `on_ability`
+    # (una volta per attivazione). Limiti dichiarati: un'abilità senza forma
+    # certificata non si attiva (l'engine non saprebbe verificarne
+    # l'effetto), e la risoluzione dell'abilità a PV zero (§3.1: «l'effetto
+    # non si risolve», la partita è persa) la chiude la fine partita.
+    def judge_ability(action)
+      card = @table.card(action["uid"])
+      return no_rule("ability") unless card
+
+      known = @cards[card[:card_id]]
+      return no_rule("ability") unless known && known[:type] == "rubyfront"
+
+      face = card[:face] || 0
+      ability = Array(known[:abilities]).find { |candidate| candidate[:id] == action["ability"] && candidate[:face] == face }
+      return refuse("ability", "questa faccia del Rubyfront non ha quell'abilità (§3.1)", "this face of the Rubyfront has no such ability (§3.1)") unless ability
+      return refuse("ability", "il Rubyfront in Zona di Richiamo non ha abilità: schieralo per sbloccarle (§3.1)", "a Rubyfront in the Recall Zone has no abilities: deploy it to unlock them (§3.1)") unless in_play?(card)
+
+      unless card[:owner] == @table.active && ability[:timing].include?(@table.phase)
+        windows = ability[:timing].map { |phase| phase == "preparazione" ? "Preparazione" : "Fronte" }
+        windows_en = ability[:timing].map { |phase| phase == "preparazione" ? "Preparation" : "Front" }
+        return refuse("ability", "le abilità speciali si usano nel proprio turno, in Fase di #{windows.join(" o di ")} (§3.1)", "special abilities are used on your own turn, in the #{windows_en.join(" or ")} Phase (§3.1)")
+      end
+      form = ability[:form]
+      return refuse("ability", "l'abilità non ha un effetto che l'engine sappia verificare: resta a mano finché non si collega (§3.1)", "the ability has no effect the engine can verify: it stays manual until it's connected (§3.1)") unless form
+
+      cost = ability[:cost] || 0
+      gain = ability[:gain] || 0
+      unless (action["cost"] || 0) == cost && (action["gain"] || 0) == gain
+        return refuse("ability", "l'abilità #{cost.positive? ? "costa #{cost} PV" : "recupera #{gain} PV"}: l'azione dice altro (§3.1)", "the ability #{cost.positive? ? "costs #{cost} HP" : "recovers #{gain} HP"}: the action says otherwise (§3.1)")
+      end
+      hp = @table.hp(card[:owner])
+      return refuse("ability", "i PV non coprono il costo: servono #{cost} PV, ne hai #{hp} (§3.1)", "HP doesn't cover the cost: it takes #{cost} HP, you have #{hp} (§3.1)") if hp < cost
+
+      if ability[:fury]
+        roll = action["roll"]
+        return refuse("ability", "la Furia vuole un d20 prima dell'abilità: l'azione non porta un tiro valido (§8.1)", "Fury takes a d20 before the ability: the action carries no valid roll (§8.1)") unless roll.is_a?(Integer) && roll.between?(1, 20)
+
+        threshold = known[:fury_at][face] || 12
+        expected = roll < threshold
+        return refuse("ability", "la Furia fallisce sotto #{threshold}: col #{roll} l'esito dev'essere #{expected ? "il fallimento" : "il successo"} (§8.1)", "Fury fails below #{threshold}: with a #{roll} the outcome must be #{expected ? "a failure" : "a success"} (§8.1)") unless (action["fail"] == true) == expected
+      elsif action.key?("roll") || action.key?("fail")
+        return refuse("ability", "questa abilità non tira la Furia (§8.1)", "this ability doesn't roll Fury (§8.1)")
+      end
+
+      case form[:kind]
+      when "power"
+        stopped = ability_power_stopped(card, form, action)
+        return stopped if stopped
+      when "discount"
+        given = action["discount"]
+        unless given.is_a?(Hash) && given["amount"] == form[:amount] && given["type"] == form[:type] && given["race"] == form[:race]
+          return refuse("ability", "lo sconto dell'abilità è di #{form[:amount]} sulla prossima carta #{form[:type] == "object" ? "Oggetto" : "Entità"}#{form[:race] ? " #{form[:race]}" : ""} del turno (§3.1)", "the ability's discount is #{form[:amount]} on the next #{form[:type] == "object" ? "Object" : "Entity"}#{form[:race] ? " #{form[:race]}" : ""} card this turn (§3.1)")
+        end
+      when "look"
+        return refuse("ability", "lo sguardo nel mazzo si risolve dopo, con l'azione di sguardo (§3.1)", "the look into the deck resolves afterwards, with the look action (§3.1)") if action.key?("targets") || action.key?("discount")
+      end
+      allow("ability")
+    end
+
+    # I bersagli del potenziamento: le proprie Entità in campo del filtro
+    # (razza, «attaccanti», «con un Oggetto assegnato») — tutte, o una sola.
+    def ability_power_targets(seat, form)
+      @table.commanded_uids(seat).select do |uid|
+        entry = @cards[@table.card(uid)[:card_id]]
+        next false unless entry && entry[:type] == "entity"
+        next false if form[:race] && entry[:race] != form[:race]
+        next false if form[:attacking] && !@table.attacking?(uid)
+        next false if form[:armed] && !@table.armed?(uid)
+
+        true
+      end
+    end
+
+    def ability_power_stopped(card, form, action)
+      targets = action["targets"]
+      return refuse("ability", "il potenziamento vuole i bersagli nell'azione (§3.1)", "the empowerment takes its targets in the action (§3.1)") unless targets.is_a?(Array) && targets.all? { |uid| uid.is_a?(String) }
+      return refuse("ability", "il potenziamento è di +#{form[:amount]} Potenza, non #{action["power"].inspect} (§3.1)", "the empowerment is +#{form[:amount]} Power, not #{action["power"].inspect} (§3.1)") unless action["power"] == form[:amount]
+
+      legal = ability_power_targets(card[:owner], form)
+      if form[:targets] == "one"
+        return refuse("ability", "il potenziamento va a UNA Entità che controlli del tipo chiesto (§3.1)", "the empowerment goes to ONE Entity you control of the kind asked (§3.1)") unless targets.size == 1 && legal.include?(targets.first)
+      else
+        return refuse("ability", "il potenziamento va a TUTTE le Entità che controlli del tipo chiesto, e solo a loro (§3.1)", "the empowerment goes to ALL the Entities you control of the kind asked, and only to them (§3.1)") unless targets.sort == legal.sort
+      end
+      nil
+    end
+
+    # Lo sconto dichiarato giocando una carta: dev'essere nel conto del
+    # giocatore, e per una carta di quel tipo (e razza).
+    def ability_discount_stopped(card, known, action)
+      amount = action["discount"]
+      return refuse("toZone", "lo sconto dichiarato non è un numero (§3.1)", "the declared discount isn't a number (§3.1)") unless amount.is_a?(Integer) && amount.positive?
+
+      matching = @table.discounts(card[:owner]).any? do |discount|
+        discount[:amount] == amount && discount[:type] == known[:type] && (discount[:race].nil? || discount[:race] == known[:race])
+      end
+      return refuse("toZone", "nessuno sconto di #{amount} vale per questa carta in questo turno (§3.1)", "no discount of #{amount} applies to this card this turn (§3.1)") unless matching
+
+      nil
+    end
+
+    # §3.1 — il seguito di un'abilità: oggi solo lo sguardo nel mazzo
+    # (`look` marcato `on_ability`), una volta per attivazione.
+    def judge_ability_effect(action, ref)
+      kind = action["t"]
+      return refuse(kind, "il seguito di un'abilità è lo sguardo nel mazzo, per ora (§3.1)", "an ability's follow-up is the look into the deck, for now (§3.1)") unless kind == "look"
+
+      source = @table.card(ref["source"])
+      return refuse(kind, "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+
+      known = @cards[source[:card_id]]
+      return no_rule(kind) unless known && known[:type] == "rubyfront"
+
+      ability = Array(known[:abilities]).find { |candidate| candidate[:id] == ref["ability"] && candidate[:face] == (source[:face] || 0) }
+      form = ability && ability[:form]
+      return refuse(kind, "quell'abilità non guarda nel mazzo (§3.1)", "that ability doesn't look into the deck (§3.1)") unless form && form[:kind] == "look"
+      return refuse(kind, "quell'abilità non è stata attivata in questo turno, o il suo sguardo è già stato fatto (§3.1)", "that ability wasn't activated this turn, or its look has already been done (§3.1)") unless @table.pending_ability?(ref["source"], ref["ability"])
+      return refuse(kind, "si guarda nel proprio mazzo (§8.2)", "you look in your own deck (§8.2)") unless action["seat"] == source[:owner]
+      return refuse(kind, "si guardano le prime #{form[:count]} carte, non #{action["count"]} (§8.2)", "you look at the top #{form[:count]} cards, not #{action["count"]} (§8.2)") unless action["count"] == form[:count]
+      return refuse(kind, "questo sguardo non manda nulla in Zona di Ritiro (§8.2)", "this look sends nothing to the Retire Zone (§8.2)") if action["retire"]
+
+      reveal = action["reveal"]
+      if reveal
+        top = @table.top_of_deck(source[:owner], form[:count])
+        return refuse(kind, "la carta mostrata dev'essere fra le prime #{form[:count]} del mazzo (§8.2)", "the revealed card must be among the top #{form[:count]} of the deck (§8.2)") unless top.include?(reveal)
+
+        shown = @table.card(reveal)
+        entry = shown && @cards[shown[:card_id]]
+        return no_rule(kind) unless entry
+
+        wanted = form[:reveal]
+        unless entry[:type] == wanted[:type] && (wanted[:race].nil? || entry[:race] == wanted[:race])
+          return refuse(kind, "si può mostrare solo #{wanted[:type] == "object" ? "un Oggetto" : "un'Entità"}#{wanted[:race] ? " di razza #{wanted[:race]}" : ""}: non questa (§8.2)", "only #{wanted[:type] == "object" ? "an Object" : "an Entity"}#{wanted[:race] ? " of race #{wanted[:race]}" : ""} can be revealed: not this one (§8.2)")
+        end
+      end
+      allow(kind)
+    end
+
     def judge_flip(action)
       card = @table.card(action["uid"])
       return no_rule("flip") unless card

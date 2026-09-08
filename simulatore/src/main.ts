@@ -361,6 +361,8 @@ const ctx: Ctx = {
     return {
       name: cardName(cardId, locale),
       kind: stats.kind,
+      abilities: stats.abilities,
+      furyAt: stats.furyAt,
       race: stats.race,
       power: stats.power,
       counterattack: stats.counterattack,

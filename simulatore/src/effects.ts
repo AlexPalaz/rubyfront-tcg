@@ -239,7 +239,8 @@ export async function resolveLook(
   ctx: Ctx,
   step: EnterLookStep,
   reveal: CardInstance | null,
-  retire: CardInstance | null = null
+  retire: CardInstance | null = null,
+  ref: EffectRef | null = null
 ): Promise<boolean> {
   const by = controllerOf(step.source);
   const passed = await ctx.dispatch({
@@ -249,7 +250,9 @@ export async function resolveLook(
     ...(reveal ? { reveal: reveal.uid } : {}),
     ...(retire ? { retire: retire.uid } : {}),
     ...(step.roll !== null ? { roll: step.roll } : {}),
-    effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
+    // Di regola lo sguardo di chi entra; un'abilità del Rubyfront (§3.1)
+    // passa il suo riferimento.
+    effect: ref ?? { source: step.source.uid, event: "on_enter_field", entering: step.source.uid },
   });
   if (passed) {
     const parts: LogMsg[] = [

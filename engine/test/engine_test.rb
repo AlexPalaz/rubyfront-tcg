@@ -3218,6 +3218,137 @@ class EngineTest < Minitest::Test
     refute ignota.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("z") })[:ruled]
   end
 
+  # --- §3.1: le abilità speciali del Rubyfront, con la Furia (§8.1) ------------
+
+  ABILITA = EREDITA.merge(
+    "ARCANO" => { type: "rubyfront", keywords: ["fury"], health: 21, fury_at: { 0 => 13 },
+                  abilities: [
+                    { id: "sguardo", face: 0, timing: %w[preparazione fronte], cost: nil, gain: 3, fury: true,
+                      form: { kind: "look", count: 3, reveal: { type: "entity", race: "human" } } },
+                    { id: "carica", face: 0, timing: %w[preparazione fronte], cost: 5, gain: nil, fury: true,
+                      form: { kind: "power", amount: 1, targets: "all", race: "human", attacking: true, armed: false } },
+                    { id: "colpo", face: 0, timing: %w[preparazione fronte], cost: 3, gain: nil, fury: true,
+                      form: { kind: "power", amount: 2, targets: "one", race: nil, attacking: false, armed: true } },
+                    { id: "sconto", face: 0, timing: %w[preparazione], cost: 3, gain: nil, fury: false,
+                      form: { kind: "discount", amount: 1, type: "object", race: nil } },
+                    { id: "ignota", face: 0, timing: %w[preparazione], cost: 7, gain: nil, fury: false, form: nil },
+                    { id: "passo", face: 1, timing: %w[preparazione], cost: nil, gain: 3, fury: false,
+                      form: { kind: "discount", amount: 1, type: "entity", race: "human" } },
+                  ] },
+    "FERRO" => { type: "object", keywords: [], flux_cost: 2 },
+    "GEMMA" => { type: "object", keywords: [], flux_cost: 1 }
+  ).freeze
+
+  # A ha il Rubyfront ARCANO schierato, due Umani e un Auros sul Fronte, un
+  # Oggetto addosso all'Umano u1; in mano un Oggetto (FERRO) e un Umano.
+  def arcano(y: 1236, hand: [])
+    engine = Rubyfront::Engine.new(cards: ABILITA)
+    a = [["u1", "UMANO"], ["u2", "UMANO"], ["x", "AUROS"], ["rf", "ARCANO", { "y" => y }],
+         ["o1", "FERRO", { "assignedTo" => "u1" }], ["h1", "FERRO", { "zone" => "hand" }], ["h2", "CORRIDORE", { "zone" => "hand" }]] + hand
+    b = [["b1", "AUROS"], ["rf-b", "RUBINO", { "y" => 172 }]]
+    load = lambda do |seat, list|
+      cards = list.map.with_index do |(uid, id, extra), i|
+        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1236 : 172 }.merge(extra || {})
+      end
+      deck = { "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards }
+      deck["hp"] = 21 if seat == "a"
+      engine.judge(deck)
+    end
+    load.call("a", a + (1..4).map { |i| ["d#{i}", i.odd? ? "UMANO" : "AUROS", { "zone" => "deck" }] })
+    load.call("b", b)
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    engine
+  end
+
+  def abilita(engine, id, cost: nil, gain: nil, roll: nil, fail: nil, targets: nil, power: nil, discount: nil, actor: "a")
+    action = { "t" => "ability", "uid" => "rf", "ability" => id }
+    action["cost"] = cost unless cost.nil?
+    action["gain"] = gain unless gain.nil?
+    action["roll"] = roll unless roll.nil?
+    action["fail"] = fail unless fail.nil?
+    action["targets"] = targets unless targets.nil?
+    action["power"] = power unless power.nil?
+    action["discount"] = discount unless discount.nil?
+    engine.judge(action, actor: actor)
+  end
+
+  def test_l_abilita_paga_o_recupera_i_pv_stampati_e_vuole_il_tiro_della_furia
+    engine = arcano
+    assert_match(/costa 5 PV/, abilita(engine, "carica", cost: 4, roll: 15, fail: false, targets: [], power: 1)[:reason])
+    assert_match(/non porta un tiro valido/, abilita(engine, "carica", cost: 5, targets: [], power: 1)[:reason])
+    assert_match(/col 7 l'esito dev'essere il fallimento/, abilita(engine, "carica", cost: 5, roll: 7, fail: false, targets: [], power: 1)[:reason])
+    verdict = abilita(engine, "carica", cost: 5, roll: 7, fail: true, targets: [], power: 1)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 15, copia(engine).hp("a"), "5 di costo e 1 di Furia fallita"
+    verdict = abilita(engine, "sguardo", gain: 3, roll: 13, fail: false)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 18, copia(engine).hp("a"), "il recupero"
+    assert_match(/non tira la Furia/, abilita(engine, "sconto", cost: 3, roll: 20, fail: false, discount: { "amount" => 1, "type" => "object", "race" => nil })[:reason])
+  end
+
+  def test_l_abilita_vuole_pv_a_sufficienza_il_campo_il_turno_e_la_finestra
+    engine = arcano
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 4 } })
+    assert_match(/servono 5 PV, ne hai 4/, abilita(engine, "carica", cost: 5, roll: 15, fail: false, targets: [], power: 1)[:reason])
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 5 } })
+    assert abilita(engine, "carica", cost: 5, roll: 15, fail: false, targets: [], power: 1)[:ok], "pagare fino a 0 esatto è legale"
+    assert_match(/Zona di Richiamo/, abilita(arcano(y: 1756), "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil })[:reason])
+    assert_match(/non tocca a te/, abilita(arcano, "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil }, actor: "b")[:reason])
+    engine = arcano
+    fronte!(engine)
+    assert_match(/in Fase di Preparazione \(§3.1\)/, abilita(engine, "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil })[:reason], "lo sconto è solo di Preparazione")
+    assert_match(/non ha quell'abilità/, abilita(engine, "passo", gain: 3, discount: { "amount" => 1, "type" => "entity", "race" => "human" })[:reason], "abilità dell'altra faccia")
+    assert_match(/resta a mano/, abilita(arcano, "ignota", cost: 7)[:reason])
+  end
+
+  def test_il_potenziamento_dell_abilita_va_ai_bersagli_della_forma
+    engine = arcano
+    fronte!(engine)
+    engine.judge({ "t" => "declare", "declaration" => { "id" => "u1", "from" => "u1", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } }, actor: "a")
+    assert_match(/TUTTE le Entità/, abilita(engine, "carica", cost: 5, roll: 15, fail: false, targets: %w[u1 u2], power: 1)[:reason], "u2 non attacca")
+    assert_match(/\+1 Potenza, not|\+1 Potenza, non/, abilita(engine, "carica", cost: 5, roll: 15, fail: false, targets: %w[u1], power: 2)[:reason])
+    verdict = abilita(engine, "carica", cost: 5, roll: 15, fail: false, targets: %w[u1], power: 1)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 1, copia(engine).card("u1")[:power_bonus]
+    assert_match(/UNA Entità/, abilita(engine, "colpo", cost: 3, roll: 15, fail: false, targets: %w[u2], power: 2)[:reason], "u2 non ha Oggetti")
+    assert abilita(engine, "colpo", cost: 3, roll: 15, fail: false, targets: %w[u1], power: 2)[:ok]
+    assert_equal 3, copia(engine).card("u1")[:power_bonus]
+  end
+
+  def test_lo_sguardo_dell_abilita_si_risolve_dopo_una_volta_per_attivazione
+    engine = arcano
+    ref = { "source" => "rf", "event" => "on_ability", "entering" => "rf", "ability" => "sguardo" }
+    assert_match(/non è stata attivata/, engine.judge({ "t" => "look", "seat" => "a", "count" => 3, "effect" => ref }, actor: "a")[:reason])
+    assert abilita(engine, "sguardo", gain: 3, roll: 15, fail: false)[:ok]
+    assert_match(/prime 3 carte, non 2/, engine.judge({ "t" => "look", "seat" => "a", "count" => 2, "effect" => ref }, actor: "a")[:reason])
+    verdict = engine.judge({ "t" => "look", "seat" => "a", "count" => 3, "effect" => ref }, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    assert_match(/non è stata attivata|già stato fatto/, engine.judge({ "t" => "look", "seat" => "a", "count" => 3, "effect" => ref }, actor: "a")[:reason], "una volta sola")
+  end
+
+  def test_lo_sconto_dell_abilita_vale_sulla_prossima_carta_del_tipo_nel_turno
+    engine = arcano
+    assert abilita(engine, "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil })[:ok]
+    gioca = lambda do |uid, cost, discount = nil|
+      action = { "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 632, "y" => 1236, "cost" => cost, "assignTo" => "u2" }
+      action["discount"] = discount if discount
+      engine.judge(action, actor: "a")
+    end
+    assert_match(/costa 2 di Flusso e l'azione ne paga 1/, gioca.call("h1", 1)[:reason], "senza dichiararlo lo sconto non c'è")
+    assert_match(/nessuno sconto di 2/, gioca.call("h1", 0, 2)[:reason])
+    verdict = gioca.call("h1", 1, 1)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 9, copia(engine).flux("a")
+    assert_empty copia(engine).discounts("a"), "consumato"
+    # Un'Entità non è un Oggetto: lo sconto non vale.
+    assert abilita(engine, "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil })[:ok]
+    assert_match(/nessuno sconto/, engine.judge({ "t" => "toZone", "uid" => "h2", "zone" => "field", "x" => 632, "y" => 1236, "cost" => 0, "discount" => 1 }, actor: "a")[:reason])
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "a")
+    assert_empty copia(engine).discounts("a"), "gli sconti cadono col turno"
+  end
+
   # --- §3.1: il Nexus — il flip e «quando flippa» -----------------------------
 
   def nexus_pronto(humans: 4, hand: [["h", "AUROS", { "zone" => "hand" }]], y: 1236)

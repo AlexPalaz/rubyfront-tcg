@@ -760,6 +760,40 @@ Regole collegate finora:
   valgono per chi la comanda, come prima. Engine 0.44.0, cinquanta
   regole; con le parole nuove nei rifiuti, 0.44.1.
 
+- **§3.1 Le abilità speciali del Rubyfront, con la Furia (§8.1)** — «per
+  essere usate costano PV», «attivabili liberamente, solo nel proprio turno,
+  sia in Fase di Preparazione che in Fase di Fronte», «più volte per turno,
+  finché i PV bastano», «solo se i PV coprono l'intero costo (PV ≥ costo)»,
+  «utilizzabili solo quando è in campo»; e la Furia: «prima di usare
+  un'abilità speciale il proprietario lancia un d20», sotto la soglia
+  stampata «perde 1 PV, ma l'abilità si usa comunque». L'anagrafe legge le
+  abilità di ogni faccia (id, finestra, costo o recupero, se la Furia le
+  precede, la soglia della Furia) e la **forma certificata** del loro
+  effetto: lo sguardo nel mazzo («guarda le prime N, mostrane una del
+  tipo/razza in mano, le altre in fondo»), il potenziamento («+N Potenza
+  fino a fine turno» a tutte le proprie Entità di un filtro — razza,
+  attaccanti, armate — o a una sola), lo sconto («la prossima carta X che
+  giochi in questo turno costa N in meno»). L'azione `ability {uid, ability,
+  cost|gain, roll?, fail?, targets?, power?, discount?}` porta tutto in un
+  colpo: il client calcola (tira il d20, sceglie i bersagli), l'engine rifà
+  il conto sulla forma e passa solo un esito identico; la copia paga o
+  recupera i PV, toglie 1 alla Furia fallita, potenzia i bersagli, annota
+  lo sconto. Lo sguardo si risolve dopo, con `look` marcato `on_ability`,
+  una volta per attivazione (la copia tiene il conto delle attivazioni in
+  sospeso, che cade col turno). Lo sconto vale nel turno: giocando la carta
+  l'azione lo dichiara (`toZone … discount`), la dogana del costo lo
+  ammette solo se è nel conto del giocatore e vale per quel tipo (e razza),
+  mai sotto 1 di costo; il riduttore e la copia lo consumano. Limiti
+  dichiarati: un'abilità il cui effetto non ha forma certificata **non si
+  attiva** con l'arbitro (l'engine non saprebbe verificarne l'effetto, e i
+  PV non si pagano per niente): oggi «mostra le prime 7 e metti sul
+  Fronte…», «metti sul tuo Fronte un Umano dalla mano senza costo…» e «il
+  riarmo dalla Zona di Ritiro» restano a mano, e la voce di menu lo dice;
+  la perdita della partita a PV zero dopo un'abilità la chiude la fine
+  partita, non questa dogana; le attivazioni in sospeso e gli sconti non
+  viaggiano nello snapshot d'allineamento (dopo un riallineamento a metà
+  turno si perdono). Engine 0.45.0, cinquantadue regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

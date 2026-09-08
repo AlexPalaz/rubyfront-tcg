@@ -147,6 +147,29 @@ class CardIndexTest < Minitest::Test
 
   # --- gli statici, le Materie e il flip di Eredità Perduta (§8.2, §7.2, §3.1) --
 
+  def test_le_abilita_speciali_dei_rubyfront_veri
+    oblivhal = @index["RBF-001"][:abilities]
+    assert_equal %w[glade-call charge-order heir-step call-of-seven return-to-front], oblivhal.map { |a| a[:id] }
+    assert_equal({ id: "glade-call", face: 0, timing: %w[preparazione fronte], cost: nil, gain: 3, fury: true,
+                   form: { kind: "look", count: 3, reveal: { type: "entity", race: "human" } } }, oblivhal[0])
+    assert_equal({ kind: "power", amount: 1, targets: "all", race: "human", attacking: true, armed: false }, oblivhal[1][:form])
+    assert_equal 5, oblivhal[1][:cost]
+    assert_equal({ kind: "discount", amount: 1, type: "entity", race: "human" }, oblivhal[2][:form])
+    assert_equal [1, 1], oblivhal[2..3].map { |a| a[:face] }
+    assert_nil oblivhal[3][:form], "«mostra le prime 7, metti sul Fronte…» non è una forma certificata"
+    assert_nil oblivhal[4][:form], "«metti sul tuo Fronte un Umano dalla mano senza costo…» non è una forma certificata"
+    assert_equal({ 0 => 13 }, @index["RBF-001"][:fury_at], "la Furia solo sulla faccia del Rubyfront, a 13")
+    rhazmora = @index["RBF-023"][:abilities]
+    assert_equal %w[swift-forge calibrated-strike deep-forge blade-chorus great-rearm], rhazmora.map { |a| a[:id] }
+    assert_equal({ kind: "discount", amount: 1, type: "object", race: nil }, rhazmora[0][:form])
+    assert_equal %w[preparazione], rhazmora[0][:timing]
+    assert_equal({ kind: "power", amount: 2, targets: "one", race: nil, attacking: false, armed: true }, rhazmora[1][:form])
+    assert_equal({ kind: "power", amount: 1, targets: "all", race: nil, attacking: false, armed: true }, rhazmora[3][:form])
+    assert_nil rhazmora[4][:form], "il riarmo dalla Zona di Ritiro non è una forma certificata"
+    assert_equal({ 0 => 12 }, @index["RBF-023"][:fury_at])
+    assert_equal [], @index["RBF-002"][:abilities], "un'Entità non ha abilità speciali"
+  end
+
   def test_gli_statici_di_potenza_delle_carte_vere
     assert_equal [{ kind: "self_power", amount: 1, while_attacking: true, requires_other: { type: "entity", race: "human" } }], @index["RBF-002"][:static_forms]
     assert_equal [{ kind: "self_power", amount: 1, per_other: { type: "entity", race: "human" } }], @index["RBF-010"][:static_forms]

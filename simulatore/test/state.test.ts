@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { CONTROL_X, MATTER_X, frontRowY } from "../src/ctx.js";
-import { STACK_STEP, apply, attackKey, matterSpot, newGame, pay, playSpot, zoneCards, chainTop } from "../src/state.js";
+import { STACK_STEP, abilityDiscount, apply, attackKey, matterSpot, newGame, pay, playSpot, zoneCards, chainTop } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
 function deckFor(seat: Seat, count: number): { cards: CardInstance[] } & Extract<Parameters<typeof apply>[1], { t: "loadDeck" }> {
@@ -732,5 +732,40 @@ describe("i bonus fino a fine turno (§8.2)", () => {
     expect(state.cards.u.counterBonus).toBeUndefined();
     expect(state.cards.u.cannotBlock).toBeUndefined();
     expect(state.cards.u.grants).toBeUndefined();
+  });
+});
+
+// L'abilità speciale del Rubyfront (§3.1): PV pagati o recuperati, la Furia
+// fallita (§8.1), il potenziamento dei bersagli, lo sconto che vale nel
+// turno e si consuma giocando. Gemello: table_test.rb.
+describe("apply ability / sconti", () => {
+  it("paga i PV, potenzia i bersagli e tiene lo sconto finché non si gioca", () => {
+    let state = apply(newGame("a"), { ...deckFor("a", 3), hp: 20 });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1236, z: 1 });
+    state = apply(state, { t: "ability", uid: "a-2", ability: "carica", cost: 5, roll: 3, fail: true, targets: ["a-1"], power: 1 });
+    expect(state.players.a.hp).toBe(14);
+    expect(state.cards["a-1"].powerBonus).toBe(1);
+    state = apply(state, { t: "ability", uid: "a-2", ability: "sguardo", gain: 3 });
+    expect(state.players.a.hp).toBe(17);
+    state = apply(state, { t: "ability", uid: "a-2", ability: "sconto", cost: 3, discount: { amount: 1, type: "object", race: null } });
+    expect(state.players.a.discounts).toEqual([{ amount: 1, type: "object", race: null }]);
+    expect(abilityDiscount(state, "a", { kind: "object", race: null })).toEqual({ amount: 1, type: "object", race: null });
+    expect(abilityDiscount(state, "a", { kind: "entity", race: "human" })).toBeNull();
+    state = apply(state, { t: "toZone", uid: "a-3", zone: "hand" });
+    state = apply(state, { t: "player", seat: "a", patch: { flux: 4 } });
+    state = apply(state, { t: "toZone", uid: "a-3", zone: "field", x: 632, y: 1236, z: 2, cost: 1, discount: 1 });
+    const flux = 4;
+    expect(state.players.a.flux).toBe(flux - 1);
+    expect(state.players.a.discounts).toEqual([]);
+    state = apply(state, { t: "ability", uid: "a-2", ability: "sconto", cost: 3, discount: { amount: 1, type: "object", race: null } });
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(state.players.a.discounts).toBeUndefined();
+    expect(state.cards["a-1"].powerBonus).toBeUndefined();
+  });
+
+  it("i PV non scendono sotto zero", () => {
+    let state = apply(newGame("a"), { ...deckFor("a", 1), hp: 3 });
+    state = apply(state, { t: "ability", uid: "a-1", ability: "x", cost: 3, roll: 1, fail: true });
+    expect(state.players.a.hp).toBe(0);
   });
 });
