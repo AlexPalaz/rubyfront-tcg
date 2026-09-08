@@ -118,6 +118,7 @@ const M: Record<string, { it: string; en: string }> = {
   "zone.ritiro.full": { it: "Zona di Ritiro", en: "Retire Zone" },
   "zone.richiamo": { it: "Zona di Richiamo", en: "Recall Zone" },
   "zone.control": { it: "Controllo", en: "Control" },
+  "zone.control.full": { it: "Zona di Controllo", en: "Control Zone" },
   "zone.front": { it: "Fronte", en: "Front" },
   "zone.rubyfront": { it: "Rubyfront", en: "Rubyfront" },
   "zone.materie": { it: "Materie", en: "Matters" },
@@ -183,8 +184,8 @@ const M: Record<string, { it: string; en: string }> = {
   "overlay.empty": { it: "Nessuna carta.", en: "No cards." },
   "overlay.shuffle": { it: " mescola alla chiusura", en: " shuffle on close" },
   "overlay.title": { it: "{zone} · {name}", en: "{zone} · {name}" },
-  "overlay.control": { it: "Entità che controlli · {n}", en: "Entities you control · {n}" },
-  "control.open": { it: "{n} Entità controllate — apri la lista", en: "{n} controlled Entities — open the list" },
+  "overlay.control": { it: "Zona di Controllo · {n}", en: "Control Zone · {n}" },
+  "control.open": { it: "Zona di Controllo: {n} Entità — apri la lista", en: "Control Zone: {n} Entities — open the list" },
   "overlay.catalog": { it: "Catalogo · evoca in mano a {name} (prova)", en: "Catalogue · summon into {name}'s hand (test)" },
 
   // ---- scena d'ingresso

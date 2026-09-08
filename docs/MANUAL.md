@@ -186,6 +186,7 @@ Each player's field is made up of:
 - **Abyss** — the zone of **dead or spent** cards: Entities that died or were destroyed, Matters that resolved, decayed or vanished, Objects following a dead Entity, cards discarded from hand. It is **public**: either player may look through it at any time.
 - **Retire Zone** — the zone of cards **still "alive"** that have left the game: Entities that were **retired** (§6.2) or **sent there by card effects**, and the Objects that follow them — Objects that **stay** there even when the Entity comes back onto the field (§3.1). It works **exactly like the Abyss** (public, viewable at any time), but keeps apart what never died from what did: effects that name the Abyss **do not** touch the Retire Zone, and vice versa. A card sent to the Retire Zone by an effect **does not die** and, unless the effect says otherwise, **does not count as a Retire**: it only counts as **leaving the field**.
 - **Recall Zone** — the Rubyfront is placed here and **always starts here**, unless the card says otherwise. Once deployed **it never returns** — neither for HP loss nor by choice — unless a card sends it back (§3.1).
+- **Control Zone** — the extra slot where an opposing Entity you **took control of** (§8.2) stands, with the Objects assigned to it. It is not one of the 5 Front slots and doesn't count towards their limit; it appears only when needed and empties when control ends.
 
 The **deck** and the **hand** are **hidden** from the opponent.
 
@@ -484,8 +485,8 @@ For the purposes of this order what always counts is **the latest entry onto the
 
 Some effects let you **take control** of an opposing Entity, usually **until the end of the turn**. Control doesn't change ownership: the card remains its owner's, and only who commands it changes.
 
-- **Where it stands:** the controlled Entity moves to the controller's field, in an **extra slot** — it doesn't take up one of the 5 Front slots and doesn't count towards their limit. The **Objects** assigned to it follow it.
-- **What it does:** it attacks for its controller (if an effect grants it Surge, at once); its **"when it attacks" effects apply** for its controller. Its **"when it enters the Front" effects don't apply again**: taken under control, the card goes to the extra slot, not onto its controller's Front; it already entered the Front once, and only who commands it changes. It keeps enabling its Matters for its controller.
+- **Where it stands:** the controlled Entity moves to the controller's field, into their **Control Zone** (§5): an extra slot that doesn't take up one of the 5 Front slots and doesn't count towards their limit. The **Objects** assigned to it follow it.
+- **What it does:** it attacks for its controller (if an effect grants it Surge, at once); its **"when it attacks" effects apply** for its controller. Its **"when it enters the Front" effects don't apply again**: taken under control, the card goes to the Control Zone, not onto its controller's Front; it already entered the Front once, and only who commands it changes. It keeps enabling its Matters for its controller.
 - **End of control:** at the **turn change** it goes back to its owner's Front, in a free slot, as it is — and untaps like each of their Entities at the start of their turn (§6.3). If the owner's Front is **full**, it goes to their **Retire Zone**. The Objects go back with it.
 - **If it dies or leaves the field** while controlled, it goes to the Abyss or to the **owner's** zone, as always.
 
@@ -534,6 +535,7 @@ A draw exists in only two cases:
 - **Deployment cost** — how much Flux it takes to bring the Rubyfront from the Recall Zone to the field (§3.1): a fixed number or a **die** to roll. It never grows: it is paid the same on every deployment (if a card sends the Rubyfront back to the Recall Zone, you pay again — and with a die you roll again). The roll is allowed only if the available Flux covers the faces of the die.
 - **Front** — the battlefield: 5 slots for Entities; the deployed Rubyfront stands in front of the slots, Matters in play behind.
 - **Recall Zone** — the zone where the Rubyfront starts; once deployed it never returns, unless a card sends it back (§3.1).
+- **Control Zone** — the extra slot where an opposing Entity you took control of stands (§8.2); it is not one of the 5 Front slots and doesn't count towards their limit.
 - **Unique** — a classification printed on the card (the Unique symbol): the deck allows at most one copy (§3.1).
 - **Abyss** — the zone of dead or spent cards: Entities that died or were destroyed, Matters that resolved, decayed or vanished, Objects of dead Entities, cards discarded from hand. It is public.
 - **Retire Zone** — the zone of cards still "alive" that have left the game: retired Entities (§6.2) or ones sent there by effects, and their Objects. It works like the Abyss, but sets apart what never died; effects that name one of the two zones don't touch the other.

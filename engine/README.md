@@ -456,7 +456,7 @@ Regole collegate finora:
   Flusso 3 o inferiore fino alla fine del turno; ottiene Slancio» — con
   essa nasce il **controllo** (§8.2, «Prendere il controllo», scritto col
   designer): un'azione `control {uid, by, grants}` che cambia chi comanda,
-  non il proprietario — la carta passa nello slot extra di chi la
+  non il proprietario — la carta passa nella Zona di Controllo (§5) di chi la
   controlla, con gli Oggetti addosso, e attacca per lui (non «entra»:
   vedi sotto, «Il controllo non è un ingresso»); attacchi, blocchi, ascolti
   ed effetti guardano chi comanda (`controller_of`), lo Slancio concesso
@@ -749,7 +749,7 @@ Regole collegate finora:
 
 - **§8.2 Il controllo non è un ingresso** — «i suoi effetti "quando entra
   sul Fronte" non si riapplicano: passando sotto il controllo la carta va
-  nello slot extra, non sul Fronte di chi la controlla» (scritto col
+  nella Zona di Controllo, non sul Fronte di chi la controlla» (scritto col
   designer il 2026-09-07, rovesciando la lettura di prima; dal 2026-09-08
   le carte dicono «Quando entra sul Fronte», non più «in campo», e il
   manuale e i rifiuti dell'engine parlano come loro). I gemelli non

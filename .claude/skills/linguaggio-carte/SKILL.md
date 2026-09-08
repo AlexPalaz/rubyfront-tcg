@@ -48,6 +48,7 @@ stessa modifica (il file è il contratto: aggiornarlo fa parte del lavoro).
 | Abisso | Abyss | `abyss` |
 | Zona di Ritiro | Retire Zone | `retire` |
 | Zona di Richiamo | Recall Zone | `recall` |
+| Zona di Controllo (lo slot extra di chi prende il controllo, §8.2) | Control Zone | — |
 | Ritiro / ritirare | Retire / to retire | `retire` (effect) |
 | mazzo | deck | `deck` |
 | mano | hand | `hand` |
@@ -113,7 +114,7 @@ Trigger (campo `trigger`, iniziale maiuscola, senza punto finale):
 **«Sul Fronte», non «in campo», per l'ingresso di un'Entità** (decisione del
 designer, 2026-09-08): il trigger d'ingresso e il promemoria dello Slancio
 dicono «entra sul Fronte» / "enters the Front". Un'Entità presa in controllo
-va nello slot extra, non sul Fronte di chi la controlla: per questo il suo
+va nella Zona di Controllo (§5), non sul Fronte di chi la controlla: per questo il suo
 «Quando entra sul Fronte» non si riapplica (MANUALE §8.2). «In campo» / "on
 the field" resta per lo stare in gioco («Finché questa Entità resta in
 campo», «Quando questa Entità lascia il campo»), per il Rubyfront che si

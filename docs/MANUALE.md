@@ -187,6 +187,7 @@ Il campo di ogni giocatore è formato da:
 - **Abisso** — la zona delle carte **morte o consumate**: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti che seguono un'Entità morta, carte scartate dalla mano. È **pubblico**: consultabile da entrambi i giocatori in qualsiasi momento.
 - **Zona di Ritiro** — la zona delle carte **ancora "vive"** uscite dal gioco: le Entità **ritirate** (§6.2) o **mandate lì da effetti di carte**, e gli Oggetti che le seguono — Oggetti che vi **restano** anche quando l'Entità torna in campo (§3.1). Funziona **esattamente come l'Abisso** (pubblica, consultabile in qualsiasi momento), ma tiene separato ciò che non è mai morto da ciò che lo è: gli effetti che nominano l'Abisso **non** toccano la Zona di Ritiro, e viceversa. Una carta mandata in Zona di Ritiro da un effetto **non muore** e, salvo che l'effetto dica altrimenti, **non conta come Ritiro**: conta solo come **lasciare il campo**.
 - **Zona di Richiamo** — il Rubyfront si posiziona e **parte sempre qui**, salvo diverse indicazioni sulla carta. Una volta schierato **non vi torna più** — né per una perdita di PV né per scelta — salvo che una carta ve lo riporti (§3.1).
+- **Zona di Controllo** — lo slot extra in cui sta un'Entità avversaria di cui hai **preso il controllo** (§8.2), con gli Oggetti che le sono assegnati. Non è uno dei 5 slot del Fronte e non conta nel loro limite; compare solo quando serve e si svuota alla fine del controllo.
 
 Il **mazzo** e la **mano** sono **nascosti** all'avversario.
 
@@ -485,8 +486,8 @@ Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfro
 
 Alcuni effetti fanno **prendere il controllo** di un'Entità avversaria, di norma **fino alla fine del turno**. Il controllo non cambia la proprietà: la carta resta del suo proprietario, e cambia solo chi la comanda.
 
-- **Dove sta:** l'Entità controllata passa sul campo di chi la controlla, in uno **slot extra** — non occupa uno dei 5 slot del Fronte e non conta nel loro limite. Gli **Oggetti** che le sono assegnati la seguono.
-- **Cosa fa:** attacca per chi la controlla (se un effetto le concede Slancio, subito); i suoi eventuali effetti **«quando attacca» valgono** per chi la controlla. I suoi effetti **«quando entra sul Fronte» non si riapplicano**: passando sotto il controllo la carta va nello slot extra, non sul Fronte di chi la controlla; è già entrata sul Fronte una volta, e cambia solo chi la comanda. Continua ad abilitare le sue Materie a chi la controlla.
+- **Dove sta:** l'Entità controllata passa sul campo di chi la controlla, nella sua **Zona di Controllo** (§5): uno slot extra, che non occupa uno dei 5 slot del Fronte e non conta nel loro limite. Gli **Oggetti** che le sono assegnati la seguono.
+- **Cosa fa:** attacca per chi la controlla (se un effetto le concede Slancio, subito); i suoi eventuali effetti **«quando attacca» valgono** per chi la controlla. I suoi effetti **«quando entra sul Fronte» non si riapplicano**: passando sotto il controllo la carta va nella Zona di Controllo, non sul Fronte di chi la controlla; è già entrata sul Fronte una volta, e cambia solo chi la comanda. Continua ad abilitare le sue Materie a chi la controlla.
 - **Fine del controllo:** al **cambio di turno** torna sul Fronte del proprietario, in uno slot libero, com'è — e si stappa come ogni sua Entità all'inizio del suo turno (§6.3). Se il Fronte del proprietario è **pieno**, va nella sua **Zona di Ritiro**. Gli Oggetti tornano con lei.
 - **Se muore o lascia il campo** mentre è controllata, va nell'Abisso o nella zona del **proprietario**, come sempre.
 
@@ -535,6 +536,7 @@ Il pareggio esiste in due soli casi:
 - **Costo di schieramento** — quanto Flusso serve per portare il Rubyfront dalla Zona di Richiamo al campo (§3.1): un numero fisso o un **dado** da tirare. Non cresce mai: si paga identico a ogni schieramento (se una carta riporta il Rubyfront in Zona di Richiamo, si ripaga — e con un dado si tira di nuovo). Il tiro è permesso solo se il Flusso disponibile copre le facce del dado.
 - **Fronte** — il campo di battaglia: 5 slot per le Entità; il Rubyfront schierato sta davanti agli slot, le Materie in gioco dietro.
 - **Zona di Richiamo** — zona in cui parte il Rubyfront; una volta schierato non vi torna più, salvo che una carta ve lo riporti (§3.1).
+- **Zona di Controllo** — lo slot extra in cui sta un'Entità avversaria di cui si è preso il controllo (§8.2); non è uno dei 5 slot del Fronte e non conta nel loro limite.
 - **Unica** — classificazione stampata sulla carta (il simbolo dell'Unica): il mazzo ne ammette al massimo una copia (§3.1).
 - **Abisso** — la zona delle carte morte o consumate: Entità morte o distrutte, Materie risolte, decadute o svanite, Oggetti di Entità morte, carte scartate dalla mano. È pubblico.
 - **Zona di Ritiro** — la zona delle carte ancora "vive" uscite dal gioco: le Entità ritirate (§6.2) o mandate lì da effetti, e i loro Oggetti. Funziona come l'Abisso, ma distingue ciò che non è mai morto; gli effetti che nominano una delle due zone non toccano l'altra.
