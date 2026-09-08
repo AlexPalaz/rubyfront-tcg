@@ -23,7 +23,7 @@ import { PHASE_BANNER_MS, mountPhaseBanner } from "./banner.js";
 import { showRoll } from "./dice.js";
 import { showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
-import { playSound, setSoundEnabled, unlockSound } from "./sound.js";
+import { playSound, setMusicEnabled, setSoundEnabled, startMusic, stopMusic, unlockSound } from "./sound.js";
 import { endPhase } from "./turn.js";
 import { chooseAttackers, chooseBlocks, chooseDiscards, choosePlay, freshMemory, pickBest, type BotMemory } from "./bot.js";
 import { declareBlock } from "./combat.js";
@@ -172,7 +172,14 @@ function dispatch(action: Action): Promise<boolean> {
  * quelle arrivate dalla rete — perché il suono è del tavolo, non del mouse.
  */
 let lastDeclareAt = 0;
+/** Il brano delle battaglie (public/music, fornito dal designer). */
+const BATTLE_MUSIC = "neon-duel";
+
 function cueFor(action: Action): void {
+  // La musica delle battaglie: parte con la Fase di Fronte (di chiunque),
+  // resta per la Reazione, si spegne al cambio di turno e a fine partita.
+  if (action.t === "phase" && action.phase === "fronte") startMusic(BATTLE_MUSIC);
+  if (action.t === "turn" || action.t === "gameOver" || action.t === "newGame") stopMusic();
   // Le fasi non suonano (deciso 2026-09-07: «togli i suoni di ogni fase»);
   // i tasti di fase tengono lo scatto dei tasti.
   if (action.t === "declare") {
@@ -1207,6 +1214,7 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
  * Il proprio nome e il proprio mazzo restano ricordati.
  */
 function leaveTable(): void {
+  stopMusic(true);
   window.clearTimeout(botTimer);
   awaitingPeer = false;
   deckDeferred = false;
@@ -1248,6 +1256,13 @@ soundToggle.addEventListener("change", () => {
   setSoundEnabled(soundToggle.checked);
   store.write("sound", soundToggle.checked ? "on" : "off");
   if (soundToggle.checked) playSound("button");
+});
+const musicToggle = document.querySelector<HTMLInputElement>("#music-toggle")!;
+musicToggle.checked = store.read("music", "on") !== "off";
+setMusicEnabled(musicToggle.checked);
+musicToggle.addEventListener("change", () => {
+  setMusicEnabled(musicToggle.checked);
+  store.write("music", musicToggle.checked ? "on" : "off");
 });
 
 document.querySelector("#do-leave")!.addEventListener("click", () => {

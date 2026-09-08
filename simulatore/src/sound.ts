@@ -49,8 +49,98 @@ const buffers = new Map<string, Promise<AudioBuffer | null>>();
 /** Il volume generale: sommesso, sotto la voce della chat vocale. */
 const MASTER_GAIN = 0.6;
 
+// La musica delle battaglie: un brano in loop che parte con la Fase di
+// Fronte e si spegne al cambio di turno (main.ts). Sta sotto ai suoni,
+// che devono restare accentuati (scelta del designer): volume basso di
+// suo, e a ogni suono la musica si abbassa ancora per un attimo (ducking)
+// e risale. Il brano è normalizzato fuori linea (-18 LUFS, ffmpeg loudnorm).
+/** Il volume della musica, relativo al generale: ben sotto i suoni (0.5–0.9). */
+const MUSIC_GAIN = 0.2;
+/** Quanto si abbassa sotto un suono (frazione di MUSIC_GAIN), e i tempi. */
+const DUCK_TO = 0.4;
+const DUCK_IN_S = 0.04;
+const DUCK_HOLD_S = 0.25;
+const DUCK_OUT_S = 0.9;
+const MUSIC_FADE_IN_S = 1.4;
+const MUSIC_FADE_OUT_S = 1.6;
+let musicEnabled = true;
+let music: { name: string; source: AudioBufferSourceNode; gain: GainNode } | null = null;
+let musicWanted: string | null = null;
+
 export function setSoundEnabled(on: boolean): void {
   enabled = on;
+  if (!on) stopMusic(true);
+}
+
+/** L'interruttore della musica, separato dai suoni (impostazioni). */
+export function setMusicEnabled(on: boolean): void {
+  musicEnabled = on;
+  if (!on) stopMusic(true);
+  else if (musicWanted) startMusic(musicWanted);
+}
+
+/** Il brano parte (in dissolvenza) e gira in loop finché non lo si ferma. */
+export function startMusic(name: string): void {
+  musicWanted = name;
+  if (!enabled || !musicEnabled) return;
+  if (music?.name === name) return;
+  const ctx = ensure();
+  if (!ctx || !master) return;
+  if (ctx.state === "suspended") void ctx.resume();
+  const out = master;
+  void loadMusic(ctx, name).then(buffer => {
+    // Nel frattempo qualcuno l'ha fermata, o ne vuole un'altra.
+    if (!buffer || musicWanted !== name || music?.name === name) return;
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(MUSIC_GAIN, ctx.currentTime + MUSIC_FADE_IN_S);
+    source.connect(gain);
+    gain.connect(out);
+    source.start();
+    music = { name, source, gain };
+  });
+}
+
+/** Il brano si spegne in dissolvenza (o di colpo). */
+export function stopMusic(abrupt = false): void {
+  musicWanted = null;
+  const playing = music;
+  if (!playing || !context) return;
+  music = null;
+  const now = context.currentTime;
+  playing.gain.gain.cancelScheduledValues(now);
+  playing.gain.gain.setValueAtTime(playing.gain.gain.value, now);
+  const tail = abrupt ? 0.08 : MUSIC_FADE_OUT_S;
+  playing.gain.gain.linearRampToValueAtTime(0, now + tail);
+  playing.source.stop(now + tail + 0.05);
+}
+
+/** Sotto un suono la musica si abbassa un attimo, poi risale. */
+function duckMusic(): void {
+  if (!music || !context) return;
+  const gain = music.gain.gain;
+  const now = context.currentTime;
+  gain.cancelScheduledValues(now);
+  gain.setValueAtTime(gain.value, now);
+  gain.linearRampToValueAtTime(MUSIC_GAIN * DUCK_TO, now + DUCK_IN_S);
+  gain.setValueAtTime(MUSIC_GAIN * DUCK_TO, now + DUCK_IN_S + DUCK_HOLD_S);
+  gain.linearRampToValueAtTime(MUSIC_GAIN, now + DUCK_IN_S + DUCK_HOLD_S + DUCK_OUT_S);
+}
+
+const musicBuffers = new Map<string, Promise<AudioBuffer | null>>();
+function loadMusic(ctx: AudioContext, name: string): Promise<AudioBuffer | null> {
+  const known = musicBuffers.get(name);
+  if (known) return known;
+  const url = new URL(`music/${name}.${extension}`, document.baseURI).href;
+  const pending = fetch(url)
+    .then(response => (response.ok ? response.arrayBuffer() : Promise.reject(new Error(response.statusText))))
+    .then(data => ctx.decodeAudioData(data))
+    .catch(() => null);
+  musicBuffers.set(name, pending);
+  return pending;
 }
 export function soundEnabled(): boolean {
   return enabled;
@@ -104,6 +194,7 @@ export function playSound(cue: Cue): void {
   const out = master;
   void load(ctx, name).then(buffer => {
     if (!buffer) return;
+    duckMusic();
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     // Un filo di variazione d'intonazione: lo stesso campione non suona mai
