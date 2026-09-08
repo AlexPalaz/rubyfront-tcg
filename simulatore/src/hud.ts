@@ -134,6 +134,9 @@ function statRow(
   return { row, sync: () => (value.textContent = String(read())) };
 }
 
+/** La corsa del numero dei PV nel medaglione (come setTessHp). */
+const HP_TWEEN_MS = 650;
+
 export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
   const bar = document.querySelector<HTMLElement>("#game-bar")!;
   const toolsHost = document.querySelector<HTMLElement>("#game-tools")!;
@@ -149,8 +152,54 @@ export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
       void ctx.dispatch({ t: "player", seat, patch: values });
     };
 
-    // I Punti Vita NON stanno qui: si leggono sul Rubyfront (setTessHp in
-    // cardview.ts), una volta sola. La targa dice Gettone e Flusso.
+    // I Punti Vita: il medaglione rubino in testa alla targa, grande e a
+    // corpo fisso, che scorre di uno in uno quando cambiano — rosso e
+    // scosso quando scendono, verde quando salgono, pulsante sotto i 6
+    // (ripensato col designer il 2026-09-08: prima stavano solo sul
+    // Rubyfront, che in rincasso è troppo piccolo per leggerli). Sulla
+    // carta del Rubyfront il distintivo segue lo stesso numero (setTessHp).
+    const hp = document.createElement("div");
+    hp.className = "hud-hp";
+    const gem = document.createElement("span");
+    gem.className = "hud-hp-gem";
+    const hpValue = document.createElement("b");
+    const hpUnit = document.createElement("small");
+    hpUnit.textContent = t("hud.hp.unit");
+    gem.append(hpValue);
+    hp.append(gem, hpUnit);
+    tip(hp, t("hud.hp"));
+    let hpShown: number | null = null;
+    let hpRun = "";
+    const syncHp = (): void => {
+      const now = ctx.state().players[seat].hp;
+      hp.classList.toggle("is-low", now <= 5);
+      if (hpShown === now) return;
+      const from = hpShown ?? now;
+      hpShown = now;
+      if (from === now) {
+        hpValue.textContent = String(now);
+        return;
+      }
+      hp.classList.remove("is-down", "is-up");
+      void gem.offsetWidth;
+      hp.classList.add(now < from ? "is-down" : "is-up");
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        hpValue.textContent = String(now);
+        return;
+      }
+      const run = String(Date.now() + Math.random());
+      hpRun = run;
+      const start = performance.now();
+      const step = (time: number): void => {
+        if (hpRun !== run) return;
+        const k = Math.min(1, (time - start) / HP_TWEEN_MS);
+        const eased = 1 - (1 - k) * (1 - k);
+        hpValue.textContent = String(Math.round(from + (now - from) * eased));
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+
     // Niente tetto né pavimento cuciti nel bottone: il limite dei 20 e lo
     // zero (§3.2) sono regole dell'engine — acceso, 21 e −1 li ferma il
     // poliziotto con tanto di avviso; spento, il tavolo è libero come per
@@ -179,7 +228,7 @@ export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
       }
     });
 
-    syncs.push(flux.sync, () => {
+    syncs.push(flux.sync, syncHp, () => {
       box.classList.toggle("is-active", ctx.state().active === seat);
       box.classList.toggle("is-arbitrated", ctx.arbitrated());
       const held = ctx.state().players[seat].token;
@@ -188,7 +237,7 @@ export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
       tip(coin, t(held ? "hud.token.held" : "hud.token.none"));
     });
 
-    box.append(coin, flux.row);
+    box.append(hp, coin, flux.row);
     return box;
   }
 
