@@ -135,7 +135,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [["heal", "permanent", 0]], forme.call("RBF-022")
     assert_equal [["heal", "rubyfront", 0], ["heal", "rubyfront", 1]], forme.call("RBF-001")
     assert_equal [], forme.call("RBF-004"), "«se almeno 2 Umani attaccano» (2026-09-04) è una forma ignota: resta a mano"
-    assert_equal [["empower", "self", 0]], forme.call("RBF-005")
+    assert_equal [], forme.call("RBF-005"), "dal 2026-09-08 non ha più inneschi d'attacco: è uno statico"
     # I dettagli che contano: dadi, soglie, destinazioni, seguiti.
     assert_equal({ die: 6, on_roll: [5, 6], count: 4, reveal_to: "hand", rest_to: "ritiro" }, @index["RBF-034"][:attack_forms][1].slice(:die, :on_roll, :count, :reveal_to, :rest_to))
     assert_equal({ once: true, count: 2, reveal_to: "ritiro", rest_to: "deck" }, @index["RBF-031"][:attack_forms][1].slice(:once, :count, :reveal_to, :rest_to))
@@ -143,7 +143,6 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ die: 20, on_roll: [15, 20] }], @index["RBF-011"][:enter_refreshes], "quando entra, col d20 stappa tutto"
     assert_equal({ gain_on: [1, 6], drain_on: [15, 20] }, @index["RBF-022"][:attack_forms][0].slice(:gain_on, :drain_on))
     assert_equal [0, 1], @index["RBF-001"][:attack_forms].map { |form| form[:then_draw] }, "solo il Nexus pesca"
-    assert_equal({ count: 2, race: "human" }, @index["RBF-005"][:attack_forms][0][:requires_previous_attackers])
   end
 
   # --- gli statici, le Materie e il flip di Eredità Perduta (§8.2, §7.2, §3.1) --
@@ -155,6 +154,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "bearer_power", amount: 1, per: { type: "entity", race: "human" }, multi_block: true }], @index["RBF-014"][:static_forms]
     assert_equal [], @index["RBF-028"][:static_forms], "«Contrattacco +2 se armata» non è una forma certificata"
     assert_equal [{ kind: "never_taps" }], @index["RBF-011"][:static_forms], "«questa Entità non si tappa mai»"
+    assert_equal [{ kind: "never_taps" }], @index["RBF-005"][:static_forms], "dal 2026-09-08 anche il 2 Flussi non si tappa attaccando"
     assert_equal [], @index["RBF-031"][:static_forms], "«+1 alle altre armate» resta nel debito"
   end
 

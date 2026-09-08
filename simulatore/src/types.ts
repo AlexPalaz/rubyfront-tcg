@@ -62,7 +62,7 @@ export interface CardInstance {
   grants?: string[];
   /** Potenza in più fino alla fine del turno (§8.2, effetti d'attacco). */
   powerBonus?: number;
-  /** «Non può bloccare in questo turno» (§8.2, RBF-005). */
+  /** «Non può bloccare in questo turno» (§8.2, RBF-004). */
   cannotBlock?: boolean;
   /** Contrattacco in più fino alla fine del turno (§8.2, RBF-020). */
   counterBonus?: number;

@@ -958,7 +958,7 @@
             "it": {
               "name": "Predone delle Terre Infrante",
               "typeLabel": "Entità: Umano",
-              "summary": "Se la carica del turno prima è stata larga, apre un varco in quella dopo.",
+              "summary": "Torna dalla breccia senza fermarsi mai: attacca, e resta in piedi.",
               "ui": {
                 "face": "Entità"
               },
@@ -971,9 +971,8 @@
               },
               "face": {
                 "name": "Predone delle Terre Infrante",
-                "raid": {
-                  "trigger": "Quando attacca",
-                  "text": "Se almeno 2 Entità Umane che controlli hanno attaccato nel tuo turno precedente, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
+                "effect": {
+                  "text": "Questa Entità non viene tappata dopo l'attacco."
                 },
                 "flavor": "Torna sempre dalla stessa breccia. Sa che nessuno l'ha chiusa."
               },
@@ -985,7 +984,7 @@
             "en": {
               "name": "Raider of the Broken Lands",
               "typeLabel": "Entity: Human",
-              "summary": "If last turn's charge was wide, it opens a gap in the next one.",
+              "summary": "It comes back through the breach without ever stopping: it attacks, and stays on its feet.",
               "ui": {
                 "face": "Entity"
               },
@@ -998,9 +997,8 @@
               },
               "face": {
                 "name": "Raider of the Broken Lands",
-                "raid": {
-                  "trigger": "When it attacks",
-                  "text": "If at least 2 Human Entities you control attacked on your previous turn, choose an opposing Entity: that Entity cannot block this turn."
+                "effect": {
+                  "text": "This Entity is not tapped after attacking."
                 },
                 "flavor": "It always comes back through the same breach. It knows no one closed it."
               },
@@ -1016,7 +1014,7 @@
             "dynamic",
             "counterattack"
           ],
-          "rulesReference": "MANUALE.md §6.3, §7",
+          "rulesReference": "MANUALE.md §6.3, §7, §8.2",
           "faces": [
             {
               "id": "entity",
@@ -1038,31 +1036,15 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "raid",
-                  "displayKey": "raid",
-                  "event": "on_attack",
-                  "details": {
-                    "requiresAttackersPreviousTurnAtLeast": {
-                      "count": 2,
-                      "filter": {
-                        "cardType": "entity",
-                        "race": "human",
-                        "controller": "controller"
-                      }
-                    }
-                  },
+                  "id": "tireless",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
                   "effect": {
-                    "type": "restrict_action",
+                    "type": "prevent_tap",
                     "target": {
-                      "cardType": "entity",
-                      "controller": "opponent",
-                      "zone": "front",
-                      "owner": "opponent",
-                      "min": 1,
-                      "max": 1
+                      "scope": "self"
                     },
-                    "restricts": "block",
-                    "duration": "until_end_of_turn"
+                    "duration": "permanent"
                   }
                 }
               ],
@@ -7579,7 +7561,7 @@
         "it": {
           "name": "Predone delle Terre Infrante",
           "typeLabel": "Entità: Umano",
-          "summary": "Se la carica del turno prima è stata larga, apre un varco in quella dopo.",
+          "summary": "Torna dalla breccia senza fermarsi mai: attacca, e resta in piedi.",
           "ui": {
             "face": "Entità"
           },
@@ -7592,9 +7574,8 @@
           },
           "face": {
             "name": "Predone delle Terre Infrante",
-            "raid": {
-              "trigger": "Quando attacca",
-              "text": "Se almeno 2 Entità Umane che controlli hanno attaccato nel tuo turno precedente, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
+            "effect": {
+              "text": "Questa Entità non viene tappata dopo l'attacco."
             },
             "flavor": "Torna sempre dalla stessa breccia. Sa che nessuno l'ha chiusa."
           },
@@ -7606,7 +7587,7 @@
         "en": {
           "name": "Raider of the Broken Lands",
           "typeLabel": "Entity: Human",
-          "summary": "If last turn's charge was wide, it opens a gap in the next one.",
+          "summary": "It comes back through the breach without ever stopping: it attacks, and stays on its feet.",
           "ui": {
             "face": "Entity"
           },
@@ -7619,9 +7600,8 @@
           },
           "face": {
             "name": "Raider of the Broken Lands",
-            "raid": {
-              "trigger": "When it attacks",
-              "text": "If at least 2 Human Entities you control attacked on your previous turn, choose an opposing Entity: that Entity cannot block this turn."
+            "effect": {
+              "text": "This Entity is not tapped after attacking."
             },
             "flavor": "It always comes back through the same breach. It knows no one closed it."
           },
@@ -7637,7 +7617,7 @@
         "dynamic",
         "counterattack"
       ],
-      "rulesReference": "MANUALE.md §6.3, §7",
+      "rulesReference": "MANUALE.md §6.3, §7, §8.2",
       "faces": [
         {
           "id": "entity",
@@ -7659,31 +7639,15 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "raid",
-              "displayKey": "raid",
-              "event": "on_attack",
-              "details": {
-                "requiresAttackersPreviousTurnAtLeast": {
-                  "count": 2,
-                  "filter": {
-                    "cardType": "entity",
-                    "race": "human",
-                    "controller": "controller"
-                  }
-                }
-              },
+              "id": "tireless",
+              "displayKey": "effect",
+              "event": "while_in_play",
               "effect": {
-                "type": "restrict_action",
+                "type": "prevent_tap",
                 "target": {
-                  "cardType": "entity",
-                  "controller": "opponent",
-                  "zone": "front",
-                  "owner": "opponent",
-                  "min": 1,
-                  "max": 1
+                  "scope": "self"
                 },
-                "restricts": "block",
-                "duration": "until_end_of_turn"
+                "duration": "permanent"
               }
             }
           ],

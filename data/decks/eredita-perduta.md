@@ -65,7 +65,7 @@ Tre soglie contano, e sono tutte sullo stesso numero:
 
 La **carica in compagnia** è la seconda leva: il Vendicatore dei Dimenticati,
 se attacca insieme ad almeno un altro Umano, toglie all'avversario un
-bloccante; il Predone fa lo stesso guardando alla carica del turno prima;
+bloccante; il Predone non si tappa attaccando, e resta a bloccare;
 il Guaritore cura a ogni attacco; Per Vhal Astra! tira il d20 sul
 numero di attaccanti del turno. Chi attacca a caso perde metà del mazzo.
 
@@ -111,7 +111,7 @@ più difendibile e lo dicono nella propria nota di design:
 
 | Carta | Punto aperto | Lettura adottata |
 |---|---|---|
-| Predone delle Terre Infrante | nessun innesco indicato | Quando attacca |
+| Predone delle Terre Infrante | «quando attacca: non tappa» (foglio 2026-09-08) | statico: non viene tappata dopo l'attacco |
 | Vendicatore dei Dimenticati | «Zona del Fronte avversaria», attaccanti di quale turno | un'Entità avversaria; questo turno, quando attacca |
 | Arciere della Radura Argentata | esilio «fintanto che resta sul campo», senza il dopo | torna in gioco quando l'Arciere lascia il campo |
 | Simulacro di Vhal Astra | «Zona di Riposo» | Zona di Ritiro |

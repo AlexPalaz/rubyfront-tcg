@@ -19,7 +19,7 @@
     "dynamic",
     "counterattack"
   ],
-  "rulesReference": "MANUALE.md §6.3, §7",
+  "rulesReference": "MANUALE.md §6.3, §7, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -41,31 +41,15 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "raid",
-          "displayKey": "raid",
-          "event": "on_attack",
-          "details": {
-            "requiresAttackersPreviousTurnAtLeast": {
-              "count": 2,
-              "filter": {
-                "cardType": "entity",
-                "race": "human",
-                "controller": "controller"
-              }
-            }
-          },
+          "id": "tireless",
+          "displayKey": "effect",
+          "event": "while_in_play",
           "effect": {
-            "type": "restrict_action",
+            "type": "prevent_tap",
             "target": {
-              "cardType": "entity",
-              "controller": "opponent",
-              "zone": "front",
-              "owner": "opponent",
-              "min": 1,
-              "max": 1
+              "scope": "self"
             },
-            "restricts": "block",
-            "duration": "until_end_of_turn"
+            "duration": "permanent"
           }
         }
       ],

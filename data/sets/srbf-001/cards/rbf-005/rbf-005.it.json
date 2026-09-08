@@ -1,7 +1,7 @@
 {
   "name": "Predone delle Terre Infrante",
   "typeLabel": "Entità: Umano",
-  "summary": "Se la carica del turno prima è stata larga, apre un varco in quella dopo.",
+  "summary": "Torna dalla breccia senza fermarsi mai: attacca, e resta in piedi.",
   "ui": {
     "face": "Entità"
   },
@@ -14,9 +14,8 @@
   },
   "face": {
     "name": "Predone delle Terre Infrante",
-    "raid": {
-      "trigger": "Quando attacca",
-      "text": "Se almeno 2 Entità Umane che controlli hanno attaccato nel tuo turno precedente, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
+    "effect": {
+      "text": "Questa Entità non viene tappata dopo l'attacco."
     },
     "flavor": "Torna sempre dalla stessa breccia. Sa che nessuno l'ha chiusa."
   },

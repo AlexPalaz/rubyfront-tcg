@@ -1,7 +1,7 @@
 {
   "name": "Raider of the Broken Lands",
   "typeLabel": "Entity: Human",
-  "summary": "If last turn's charge was wide, it opens a gap in the next one.",
+  "summary": "It comes back through the breach without ever stopping: it attacks, and stays on its feet.",
   "ui": {
     "face": "Entity"
   },
@@ -14,9 +14,8 @@
   },
   "face": {
     "name": "Raider of the Broken Lands",
-    "raid": {
-      "trigger": "When it attacks",
-      "text": "If at least 2 Human Entities you control attacked on your previous turn, choose an opposing Entity: that Entity cannot block this turn."
+    "effect": {
+      "text": "This Entity is not tapped after attacking."
     },
     "flavor": "It always comes back through the same breach. It knows no one closed it."
   },
