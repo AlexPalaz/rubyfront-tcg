@@ -23,7 +23,7 @@ import { PHASE_BANNER_MS, mountPhaseBanner } from "./banner.js";
 import { showRoll } from "./dice.js";
 import { showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
-import { playSound, setMusicEnabled, setSoundEnabled, startMusic, stopMusic, unlockSound } from "./sound.js";
+import { musicState, playSound, setMusicEnabled, setSoundEnabled, startMusic, stopMusic, unlockSound } from "./sound.js";
 import { endPhase } from "./turn.js";
 import { chooseAttackers, chooseBlocks, chooseDiscards, choosePlay, freshMemory, pickBest, type BotMemory } from "./bot.js";
 import { declareBlock } from "./combat.js";
@@ -432,7 +432,7 @@ const table = mountTable(document.querySelector<HTMLElement>("#table")!, ctx);
 // stati difficili da raggiungere: la fine partita, un contatore). In
 // produzione non esiste.
 if (import.meta.env.DEV) {
-  (window as unknown as { __rbf: unknown }).__rbf = { dispatch: (action: Action) => dispatch(action), state: () => state };
+  (window as unknown as { __rbf: unknown }).__rbf = { dispatch: (action: Action) => dispatch(action), state: () => state, music: musicState };
 }
 
 const banner = mountPhaseBanner(document.querySelector<HTMLElement>("#table")!, ctx, { newGame: () => startNewGame() });

@@ -43,6 +43,8 @@ const LEVEL: Record<Cue, number> = { select: 0.7, button: 0.55, play: 0.9, draw:
 
 let context: AudioContext | null = null;
 let master: GainNode | null = null;
+/** L'orecchio di prova sul generale (musicState, solo DEV). */
+let meter: AnalyserNode | null = null;
 let enabled = true;
 const buffers = new Map<string, Promise<AudioBuffer | null>>();
 
@@ -62,9 +64,38 @@ const MUSIC_FADE_OUT_S = 1.6;
 let musicEnabled = true;
 let music: { name: string; source: AudioBufferSourceNode; gain: GainNode } | null = null;
 let musicWanted: string | null = null;
+/** Il diario della musica, per le prove dalla console (main.ts, solo DEV). */
+const musicLog: string[] = [];
+function noteMusic(what: string): void {
+  musicLog.push(`${(context?.currentTime ?? 0).toFixed(1)}s ${what}`);
+  if (musicLog.length > 200) musicLog.shift();
+}
+export function musicState(): Record<string, unknown> {
+  let rms: number | null = null;
+  if (meter) {
+    const wave = new Float32Array(meter.fftSize);
+    meter.getFloatTimeDomainData(wave);
+    rms = Math.sqrt(wave.reduce((sum, value) => sum + value * value, 0) / wave.length);
+  }
+  return {
+    rms,
+    name: music?.name ?? null,
+    wanted: musicWanted,
+    enabled,
+    musicEnabled,
+    contextState: context?.state ?? null,
+    contextTime: context?.currentTime ?? null,
+    gain: music?.gain.gain.value ?? null,
+    loop: music?.source.loop ?? null,
+    loopEnd: music?.source.loopEnd ?? null,
+    duration: music?.source.buffer?.duration ?? null,
+    log: [...musicLog],
+  };
+}
 
 export function setSoundEnabled(on: boolean): void {
   enabled = on;
+  noteMusic(`suoni ${on ? "accesi" : "spenti"}`);
   if (!on) stopMusic(true);
 }
 
@@ -78,6 +109,7 @@ export function setMusicEnabled(on: boolean): void {
 /** Il brano parte (in dissolvenza) e gira in loop finché non lo si ferma.
     Con `restart` riparte da capo anche se sta già suonando. */
 export function startMusic(name: string, restart = false): void {
+  noteMusic(`startMusic ${name}${restart ? " (da capo)" : ""}`);
   if (restart && music) stopMusic(true);
   musicWanted = name;
   if (!enabled || !musicEnabled) return;
@@ -97,26 +129,37 @@ export function startMusic(name: string, restart = false): void {
   });
 }
 
-/** Il giro del brano: la sorgente in loop su tutto il buffer — e, se per
-    qualunque motivo finisce lo stesso (il loop non ripartito), un giro
-    nuovo attacca subito, senza dissolvenza, finché la musica è voluta. */
+/** Quanto si toglie dalla coda del brano per chiudere il loop: con la
+    fine del loop sull'ULTIMO campione del buffer (il default, o la durata
+    intera) Chrome ammutolisce al primo giro e non riparte — visto al
+    tavolo il 2026-09-08, riprodotto in prova: stessa sorgente, fine del
+    loop 50 ms prima, e il giro continua. Cinquanta millisecondi non si
+    sentono. */
+const LOOP_TAIL_S = 0.05;
+
+/** Il giro del brano: la sorgente in loop (quasi) su tutto il buffer — e,
+    se per qualunque motivo finisce lo stesso (il loop non ripartito), un
+    giro nuovo attacca subito, senza dissolvenza, finché la musica è voluta. */
 function spin(ctx: AudioContext, buffer: AudioBuffer, name: string, gain: GainNode): void {
   const source = ctx.createBufferSource();
   source.buffer = buffer;
   source.loop = true;
   source.loopStart = 0;
-  source.loopEnd = buffer.duration;
+  source.loopEnd = Math.max(1, buffer.duration - LOOP_TAIL_S);
   source.connect(gain);
   source.onended = () => {
+    noteMusic(`onended ${name}${music?.source === source ? " (corrente)" : " (vecchia)"}`);
     if (music?.source !== source || musicWanted !== name) return;
     spin(ctx, buffer, name, gain);
   };
   source.start();
+  noteMusic(`spin ${name} (${buffer.duration.toFixed(1)}s, ctx ${ctx.state})`);
   music = { name, source, gain };
 }
 
 /** Il brano si spegne in dissolvenza (o di colpo). */
 export function stopMusic(abrupt = false): void {
+  noteMusic(`stopMusic${abrupt ? " (di colpo)" : ""}`);
   musicWanted = null;
   const playing = music;
   if (!playing || !context) return;
@@ -164,6 +207,8 @@ function ensure(): AudioContext | null {
   master = context.createGain();
   master.gain.value = MASTER_GAIN;
   master.connect(context.destination);
+  meter = context.createAnalyser();
+  master.connect(meter);
   return context;
 }
 
