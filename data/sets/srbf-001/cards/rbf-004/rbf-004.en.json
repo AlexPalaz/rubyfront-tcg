@@ -13,6 +13,10 @@
   },
   "face": {
     "name": "Avenger of the Forgotten",
+    "keyword": {
+      "name": "Revenge",
+      "rules": "blocking, it kills a lower-Power attacker"
+    },
     "avenge": {
       "trigger": "When it attacks",
       "text": "If at least 2 Human Entities you control attack, choose an opposing Entity: that Entity cannot block this turn."

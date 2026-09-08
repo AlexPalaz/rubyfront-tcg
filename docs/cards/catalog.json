@@ -840,6 +840,10 @@
               },
               "face": {
                 "name": "Vendicatore dei Dimenticati",
+                "keyword": {
+                  "name": "Vendetta",
+                  "rules": "bloccando, uccide chi ha Potenza inferiore"
+                },
                 "avenge": {
                   "trigger": "Quando attacca",
                   "text": "Se almeno 2 Entità Umane che controlli attaccano, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
@@ -866,6 +870,10 @@
               },
               "face": {
                 "name": "Avenger of the Forgotten",
+                "keyword": {
+                  "name": "Revenge",
+                  "rules": "blocking, it kills a lower-Power attacker"
+                },
                 "avenge": {
                   "trigger": "When it attacks",
                   "text": "If at least 2 Human Entities you control attack, choose an opposing Entity: that Entity cannot block this turn."
@@ -901,7 +909,11 @@
                   "maxGrade": 1
                 }
               ],
-              "keywords": [],
+              "keywords": [
+                {
+                  "id": "revenge"
+                }
+              ],
               "requirements": {},
               "triggers": [
                 {
@@ -7443,6 +7455,10 @@
           },
           "face": {
             "name": "Vendicatore dei Dimenticati",
+            "keyword": {
+              "name": "Vendetta",
+              "rules": "bloccando, uccide chi ha Potenza inferiore"
+            },
             "avenge": {
               "trigger": "Quando attacca",
               "text": "Se almeno 2 Entità Umane che controlli attaccano, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."
@@ -7469,6 +7485,10 @@
           },
           "face": {
             "name": "Avenger of the Forgotten",
+            "keyword": {
+              "name": "Revenge",
+              "rules": "blocking, it kills a lower-Power attacker"
+            },
             "avenge": {
               "trigger": "When it attacks",
               "text": "If at least 2 Human Entities you control attack, choose an opposing Entity: that Entity cannot block this turn."
@@ -7504,7 +7524,11 @@
               "maxGrade": 1
             }
           ],
-          "keywords": [],
+          "keywords": [
+            {
+              "id": "revenge"
+            }
+          ],
           "requirements": {},
           "triggers": [
             {

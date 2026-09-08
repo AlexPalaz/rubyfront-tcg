@@ -13,6 +13,10 @@
   },
   "face": {
     "name": "Vendicatore dei Dimenticati",
+    "keyword": {
+      "name": "Vendetta",
+      "rules": "bloccando, uccide chi ha Potenza inferiore"
+    },
     "avenge": {
       "trigger": "Quando attacca",
       "text": "Se almeno 2 Entità Umane che controlli attaccano, scegli un'Entità avversaria: quell'Entità non può bloccare in questo turno."

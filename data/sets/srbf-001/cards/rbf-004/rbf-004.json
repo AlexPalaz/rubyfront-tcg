@@ -36,7 +36,11 @@
           "maxGrade": 1
         }
       ],
-      "keywords": [],
+      "keywords": [
+        {
+          "id": "revenge"
+        }
+      ],
       "requirements": {},
       "triggers": [
         {
