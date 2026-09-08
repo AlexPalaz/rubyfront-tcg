@@ -1250,21 +1250,27 @@ document.addEventListener(
   },
   { capture: true }
 );
-const soundToggle = document.querySelector<HTMLInputElement>("#sound-toggle")!;
-soundToggle.checked = store.read("sound", "on") !== "off";
-setSoundEnabled(soundToggle.checked);
-soundToggle.addEventListener("change", () => {
-  setSoundEnabled(soundToggle.checked);
-  store.write("sound", soundToggle.checked ? "on" : "off");
-  if (soundToggle.checked) playSound("button");
-});
-const musicToggle = document.querySelector<HTMLInputElement>("#music-toggle")!;
-musicToggle.checked = store.read("music", "on") !== "off";
-setMusicEnabled(musicToggle.checked);
-musicToggle.addEventListener("change", () => {
-  setMusicEnabled(musicToggle.checked);
-  store.write("music", musicToggle.checked ? "on" : "off");
-});
+// Due tasti indipendenti nelle impostazioni: i suoni delle carte e la
+// musica. Ognuno dice il suo stato; la scelta resta salvata.
+function mountAudioToggle(id: string, key: string, onKey: string, offKey: string, apply: (on: boolean) => void): void {
+  const button = document.querySelector<HTMLButtonElement>(`#${id}`)!;
+  let on = store.read(key, "on") !== "off";
+  const paintToggle = (): void => {
+    button.textContent = t(on ? onKey : offKey);
+    button.setAttribute("aria-pressed", String(on));
+    button.classList.toggle("is-off", !on);
+  };
+  apply(on);
+  paintToggle();
+  button.addEventListener("click", () => {
+    on = !on;
+    apply(on);
+    store.write(key, on ? "on" : "off");
+    paintToggle();
+  });
+}
+mountAudioToggle("sound-toggle", "sound", "html.sound.on", "html.sound.off", setSoundEnabled);
+mountAudioToggle("music-toggle", "music", "html.music.on", "html.music.off", setMusicEnabled);
 
 document.querySelector("#do-leave")!.addEventListener("click", () => {
   if (!confirm(t("html.leave.confirm"))) return;

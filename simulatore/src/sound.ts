@@ -93,10 +93,10 @@ export function musicState(): Record<string, unknown> {
   };
 }
 
+/** I suoni delle carte: indipendenti dalla musica (impostazioni). */
 export function setSoundEnabled(on: boolean): void {
   enabled = on;
   noteMusic(`suoni ${on ? "accesi" : "spenti"}`);
-  if (!on) stopMusic(true);
 }
 
 /** L'interruttore della musica, separato dai suoni (impostazioni). */
@@ -112,7 +112,7 @@ export function startMusic(name: string, restart = false): void {
   noteMusic(`startMusic ${name}${restart ? " (da capo)" : ""}`);
   if (restart && music) stopMusic(true);
   musicWanted = name;
-  if (!enabled || !musicEnabled) return;
+  if (!musicEnabled) return;
   if (music?.name === name) return;
   const ctx = ensure();
   if (!ctx || !master) return;
@@ -190,10 +190,11 @@ export function soundEnabled(): boolean {
 
 /** Al primo gesto: il contesto nasce e, se sospeso, riparte; i campioni si caricano. */
 export function unlockSound(): void {
-  if (!enabled) return;
+  if (!enabled && !musicEnabled) return;
   const ctx = ensure();
   if (!ctx) return;
   if (ctx.state === "suspended") void ctx.resume();
+  if (!enabled) return;
   for (const names of Object.values(VARIANTS)) for (const name of names) void load(ctx, name);
 }
 

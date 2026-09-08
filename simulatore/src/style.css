@@ -242,6 +242,10 @@ button.primary {
 button.primary:hover:not(:disabled) { filter: brightness(1.12); }
 button.danger:hover { border-color: var(--warn); color: var(--warn); }
 button.ghost { background: transparent; color: var(--muted); }
+/* I tasti dell'audio nelle impostazioni: accesi in inchiostro pieno, spenti
+   smorzati — lo stato lo dice il testo, il colore lo conferma. */
+#sound-toggle[aria-pressed="true"], #music-toggle[aria-pressed="true"] { color: var(--ink); }
+#sound-toggle.is-off, #music-toggle.is-off { opacity: .7; }
 input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby); outline-offset: 1px; }
 
 .dot {
