@@ -151,7 +151,7 @@ debito lo dice.
 | Gioco e catalogo | `npm run all` → vite su `:5199` (`/simulatore/`, carte su `/cards`) | Vercel, build a ogni push (`vercel.json` → `scripts/build-site.mjs`): il **gioco alla radice** `/`, il **catalogo** sotto `/catalog`; esce `dist/`, non si committa |
 | Relay | `:8787` | Render, piano free, **un servizio solo** (`render.yaml` + `Dockerfile`, `scripts/server.mjs`): `wss://rubyfront.onrender.com/relay` |
 | Engine | `:8788` | lo stesso servizio, per proxy: `wss://rubyfront.onrender.com/engine` |
-| CI | — | GitHub Actions: test Ruby, tsc, vitest e build a ogni push (`ci.yml`); un tocco ogni dieci minuti tiene sveglio Render (`keepalive.yml`) |
+| CI | — | GitHub Actions: test Ruby, tsc, vitest e build a ogni push (`ci.yml`); `keepalive.yml` tocca Render (ma GitHub lo fa girare ogni 2-4 ore: il server si tocca da solo, `scripts/server.mjs`) |
 
 Tutto free (deciso 2026-09-07). Render free dà 750 ore al mese per
 account: relay ed engine stanno in un processo solo (`scripts/server.mjs`:

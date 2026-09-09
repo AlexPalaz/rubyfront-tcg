@@ -1,6 +1,9 @@
 # Render free dorme dopo un quarto d'ora senza traffico, e la prima
-# connessione aspetta trenta secondi: un tocco ogni dieci minuti lo tiene
-# sveglio. È l'health check del server unico (scripts/server.mjs).
+# connessione aspetta trenta secondi. Questo tocco era il rimedio, ma
+# GitHub fa girare gli schedule ogni due-quattro ore, non ogni dieci
+# minuti: il rimedio vero è il server che si tocca da solo
+# (scripts/server.mjs, RENDER_EXTERNAL_URL). Questo resta come seconda
+# mano, e come sveglia dopo un deploy.
 name: Keep-alive
 on:
   schedule:

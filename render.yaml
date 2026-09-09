@@ -10,8 +10,10 @@
 # Se Render assegna un nome diverso, si aggiornano quei due default (o le
 # variabili VITE_RELAY_URL / VITE_ENGINE_URL al build della pagina).
 #
-# Il piano free dorme dopo un quarto d'ora senza traffico: il workflow
-# .github/workflows/keepalive.yml lo tocca ogni dieci minuti.
+# Il piano free dorme dopo un quarto d'ora senza traffico: il server si
+# tocca da solo ogni dieci minuti (scripts/server.mjs, RENDER_EXTERNAL_URL);
+# il workflow .github/workflows/keepalive.yml è la seconda mano, ma GitHub
+# lo fa girare ogni due-quattro ore.
 services:
   - type: web
     name: rubyfront

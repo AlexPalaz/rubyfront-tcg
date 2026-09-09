@@ -14,6 +14,15 @@
 //
 // Il Dockerfile alla radice mette insieme Node e Ruby; render.yaml lo usa.
 //
+// Render free si addormenta dopo un quarto d'ora senza richieste in
+// entrata, e chi arriva dopo aspetta mezzo minuto con l'arbitro «spento».
+// Il workflow di GitHub (keepalive.yml) doveva toccarlo ogni dieci minuti,
+// ma GitHub lo fa girare ogni due-quattro ore. Così il server SI TOCCA DA
+// SOLO: ogni dieci minuti una GET al proprio indirizzo pubblico
+// (RENDER_EXTERNAL_URL, che Render imposta da sé), che passa dal bordo di
+// Render e conta come traffico. In locale la variabile non c'è e non si fa
+// nulla. Le 750 ore al mese del piano free bastano a un servizio solo.
+//
 //   node scripts/server.mjs        (PORT, default 10000; ENGINE_PORT, default 8788)
 
 import { spawn } from "node:child_process";
@@ -44,10 +53,30 @@ function startEngine() {
 }
 startEngine();
 
+// Il tocco a se stesso (vedi in testa). Il conto va nell'health check, per
+// vedere da fuori che gira.
+const SELF_PING_MS = 10 * 60 * 1000;
+const selfUrl = process.env.RENDER_EXTERNAL_URL ?? "";
+let selfPings = 0;
+let selfPingFailed = 0;
+if (selfUrl) {
+  setInterval(() => {
+    fetch(`${selfUrl}/?keepalive=1`, { signal: AbortSignal.timeout(30_000) })
+      .then(response => {
+        if (response.ok) selfPings += 1;
+        else selfPingFailed += 1;
+      })
+      .catch(() => {
+        selfPingFailed += 1;
+      });
+  }, SELF_PING_MS).unref();
+}
+
 const server = createServer((request, response) => {
   response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+  const awake = selfUrl ? ` Sveglio da sé: ${selfPings} tocchi${selfPingFailed ? ` (${selfPingFailed} falliti)` : ""}.` : "";
   response.end(
-    `Rubyfront online. Relay: ${openRooms()} stanze aperte. Engine: ${engine ? "vivo" : "in riavvio"} (avvii: ${engineStarts}).\n`
+    `Rubyfront online. Relay: ${openRooms()} stanze aperte. Engine: ${engine ? "vivo" : "in riavvio"} (avvii: ${engineStarts}).${awake}\n`
   );
 });
 

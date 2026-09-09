@@ -56,8 +56,11 @@ questo repo. Il `render.yaml` alla radice fa tutto (`node scripts/relay.mjs`,
 piano free, health check sulla risposta HTTP del relay). L'URL che ne esce —
 `wss://rubyfront-relay.onrender.com` — è già il default di produzione in
 `src/net.ts` (`DEFAULT_RELAY`): se Render assegna un nome diverso, va
-aggiornato lì. Nota del piano free: il relay dorme dopo l'inattività, la
-prima connessione lo sveglia in una trentina di secondi.
+aggiornato lì. Nota del piano free: il servizio dormirebbe dopo un quarto
+d'ora senza traffico (la prima connessione lo sveglia in una trentina di
+secondi): per questo il server si tocca da solo ogni dieci minuti
+(`scripts/server.mjs`, con `RENDER_EXTERNAL_URL`), e l'health check dice
+quanti tocchi ha fatto.
 
 Il relay resta stupido: ripete i messaggi della stanza e non sa nulla del
 gioco. Niente account, niente lista stanze pubblica: si gioca con chi
