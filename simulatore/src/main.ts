@@ -30,7 +30,7 @@ import { declareBlock } from "./combat.js";
 import { setupPreview } from "./preview.js";
 import { mountMazzi } from "./mazzi.js";
 import { askConfirm } from "./ask.js";
-import { allDecks, artUrl, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
+import { allDecks, artUrl, cardName, cardStats, deckTint, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer, type Tint } from "./renderer.js";
 import { apply, controllerOf, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, playSpot, seatLabel, shuffled, zoneCards } from "./state.js";
 import { releaseHeld } from "./effects.js";
 import { DRAW_STEP_MS, drawCascadeMs, mountTable } from "./table.js";
@@ -121,6 +121,7 @@ let botTimer: number | undefined;
 const BOT_PACE_MS = 750;
 
 const themes: Record<Seat, string> = { a: defaultTheme(), b: defaultTheme() };
+const tints: Record<Seat, Tint> = { a: "dynamic", b: "dynamic" };
 
 // ------------------------------------------------------------------ ctx
 
@@ -392,6 +393,7 @@ const ctx: Ctx = {
   controls: seat => seat === mySeat,
   arbitrated: () => engine?.status() === "online",
   themeFor: seat => themes[seat],
+  tintFor: seat => tints[seat],
   locale: () => locale,
   promptDiscard: seat => table.promptDiscard(seat),
   card: cardId => {
@@ -556,7 +558,11 @@ function syncThemes(): void {
     const deckId = state.players[seat].deckId;
     const deck = deckId ? getDeck(deckId) : undefined;
     themes[seat] = deck?.theme ?? defaultTheme();
+    tints[seat] = deckId ? deckTint(deckId) : "dynamic";
   }
+  // Il cassetto della mano sta fuori dai campi: la tua tinta la legge dal body.
+  document.body.dataset.myTint = tints[mySeat];
+  table.retint();
 }
 
 // ------------------------------------------------------------- mazzi

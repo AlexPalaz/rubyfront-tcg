@@ -123,6 +123,33 @@ export function getDeck(deckId: string): CatalogDeck | undefined {
   return catalog.getDeckById(deckId);
 }
 
+/** La TINTA di una carta secondo la sua Materia (stessa regola del renderer,
+    card-render.js: la Materia della carta Materia o quelle che la faccia
+    abilita; Distruttiva > Dimensionale > Dinamica; senza Materia, Dinamica). */
+export type Tint = "destructive" | "dimensional" | "dynamic";
+const TINT_ORDER: Tint[] = ["destructive", "dimensional", "dynamic"];
+export function cardTint(cardId: string): Tint {
+  const card = getCard(cardId);
+  const types = new Set<string>();
+  for (const face of card?.faces ?? []) {
+    const f = face as { enablesMatters?: { type?: string }[]; matter?: { type?: string } };
+    for (const m of f.enablesMatters ?? []) if (m.type) types.add(m.type);
+    if (f.matter?.type) types.add(f.matter.type);
+  }
+  return TINT_ORDER.find(t => types.has(t)) ?? "dynamic";
+}
+
+/** La tinta di un MAZZO: quella della maggioranza delle sue carte (copie
+    comprese); a parità vince l'ordine Distruttiva > Dimensionale > Dinamica.
+    Il tavolo la usa per tingere il campo di ciascun posto (deciso dal
+    designer, 2026-09-09). */
+export function deckTint(deckId: string): Tint {
+  const deck = getDeck(deckId);
+  const counts: Record<Tint, number> = { destructive: 0, dimensional: 0, dynamic: 0 };
+  for (const entry of deck?.cards ?? []) counts[cardTint(entry.card)] += entry.count;
+  return TINT_ORDER.reduce((best, t) => (counts[t] > counts[best] ? t : best), TINT_ORDER[0]);
+}
+
 /** Tutto il catalogo, per lo strumento di prova «Evoca». */
 export function allCards(): CatalogCard[] {
   return catalog.default.cards;

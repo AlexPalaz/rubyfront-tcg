@@ -221,6 +221,9 @@ export interface TableView {
       Dice se l'ha acceso ADESSO: il sigillo lo vede solo chi ha premuto, e
       la riga in chat che avvisa l'avversario va scritta una volta sola. */
   promptDiscard(seat: Seat): boolean;
+  /** Riallinea la tinta dei campi e degli slot a quella dei mazzi (ctx.tintFor):
+      i riquadri nascono prima che i mazzi siano caricati. */
+  retint(): void;
   /** Il bagliore di una carta che si innesca: per gli effetti arrivati dalla rete. */
   flash(uid: string, ms?: number): void;
   /** Il lampo rosso sulla carta colpita da un effetto, per un attimo. */
@@ -900,6 +903,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
       const band = document.createElement("div");
       band.className = `half ${mine ? "is-mine" : "is-foe"}`;
+      // La tinta del campo segue il mazzo del posto (ctx.tintFor): i temi la
+      // leggono come data-tint, il layout no.
+      band.dataset.seat = seat;
+      band.dataset.tint = ctx.tintFor(seat);
       band.style.top = `${bandTop}px`;
       band.style.height = `${bandViewH(!mine)}px`;
       // La testata del campo, sull'orlo in alto a sinistra: la targhetta col
@@ -978,6 +985,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         slot.className = "slot pile";
         slot.dataset.drop = pile.zone;
         slot.dataset.seat = seat;
+        slot.dataset.side = mine ? "mine" : "foe";
+        slot.dataset.tint = ctx.tintFor(seat);
         if (!docked) {
           slot.style.left = `${pile.x}px`;
           slot.style.top = `${view(back)}px`;
@@ -1024,6 +1033,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (dockRow) {
         const slot = document.createElement("div");
         slot.className = "slot pile dock-hand";
+        slot.dataset.side = mine ? "mine" : "foe";
+        slot.dataset.seat = seat;
+        slot.dataset.tint = ctx.tintFor(seat);
         slot.dataset.seat = seat;
         if (ctx.controls(seat)) slot.dataset.drop = "hand";
         slot.style.width = `${TILE_W}px`;
@@ -1043,6 +1055,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const markSlot = (x: number, y: number, label: string, extra = ""): HTMLElement => {
         const slot = document.createElement("div");
         slot.className = `slot slot-mark ${extra}`.trim();
+        // Il lato del posto (tuo/avversario): ai temi serve per tingere
+        // l'alloggio, il layout non lo legge.
+        slot.dataset.side = mine ? "mine" : "foe";
+        slot.dataset.seat = seat;
+        slot.dataset.tint = ctx.tintFor(seat);
         slot.dataset.drop = "field";
         // snapX/snapY restano CANONICI: sono i dati che finiranno nell'azione.
         // A spostarsi è soltanto il riquadro sullo schermo.
@@ -3884,6 +3901,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   return {
     render,
     flash,
+    retint() {
+      for (const el of zoneEls) {
+        const seat = el.dataset.seat as Seat | undefined;
+        if (seat && el.dataset.tint !== undefined) el.dataset.tint = ctx.tintFor(seat);
+      }
+    },
     promptDiscard(seat) {
       const turn = ctx.state().turn;
       const already = discardPrompt?.seat === seat && discardPrompt.turn === turn;

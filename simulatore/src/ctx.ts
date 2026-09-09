@@ -1,3 +1,4 @@
+import type { Tint } from "./renderer.js";
 // Il contesto che le viste condividono: leggere lo stato, mandare un'azione,
 // sapere chi sono. Niente altro — le viste non parlano mai fra loro.
 //
@@ -272,6 +273,9 @@ export interface Ctx {
   arbitrated(): boolean;
   /** Il tema grafico è una proprietà del mazzo: ogni posto ha il suo. */
   themeFor(seat: Seat): string;
+  /** La tinta del campo di un posto: segue la Materia dominante del suo mazzo
+      (renderer.ts deckTint); i temi del tavolo la leggono come data-tint. */
+  tintFor(seat: Seat): Tint;
   locale(): string;
   /** L'anagrafe di una carta per chi ragiona senza DOM (turn.ts, combat.ts):
       il nome nella lingua del tavolo e le statistiche stampate del

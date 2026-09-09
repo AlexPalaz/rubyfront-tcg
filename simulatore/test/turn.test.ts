@@ -30,6 +30,7 @@ function fakeCtx(
     controls: seat => seat === "a",
     arbitrated: () => false,
     themeFor: () => "notte",
+    tintFor: () => "dynamic",
     locale: () => "it",
     card: cardId => ({
       name: cardId,

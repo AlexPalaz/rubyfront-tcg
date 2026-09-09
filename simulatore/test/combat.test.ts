@@ -44,6 +44,7 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
     controls: seat => seat === "a",
     arbitrated: () => false,
     themeFor: () => "notte",
+    tintFor: () => "dynamic",
     locale: () => "it",
     card: cardId => ({
       name: cardId,

@@ -189,6 +189,7 @@ describe("resolveEnter", () => {
       controls: seat => seat === "a",
       arbitrated: () => true,
       themeFor: () => "notte",
+      tintFor: () => "dynamic",
       locale: () => "it",
       card: facts,
       log(text) {
@@ -254,6 +255,7 @@ describe("enterMoves", () => {
       controls: seat => seat === "a",
       arbitrated: () => true,
       themeFor: () => "notte",
+      tintFor: () => "dynamic",
       locale: () => "it",
       card: facts,
       log() {},
@@ -280,6 +282,7 @@ describe("enterMoves", () => {
       controls: seat => seat === "a",
       arbitrated: () => true,
       themeFor: () => "notte",
+      tintFor: () => "dynamic",
       locale: () => "it",
       card: facts,
       log() {},
@@ -352,6 +355,7 @@ describe("enterReturns", () => {
       controls: seat => seat === "a",
       arbitrated: () => true,
       themeFor: () => "notte",
+      tintFor: () => "dynamic",
       locale: () => "it",
       card: facts,
       log() {},
@@ -400,6 +404,7 @@ describe("enterLooks", () => {
       controls: seat => seat === "a",
       arbitrated: () => true,
       themeFor: () => "notte",
+      tintFor: () => "dynamic",
       locale: () => "it",
       card: facts,
       log() {},
@@ -427,6 +432,7 @@ describe("enterControls", () => {
       controls: seat => seat === "a",
       arbitrated: () => true,
       themeFor: () => "notte",
+      tintFor: () => "dynamic",
       locale: () => "it",
       card: facts,
       log() {},
@@ -504,6 +510,7 @@ describe("returnsFor on_attack", () => {
       controls: seat => seat === "a",
       arbitrated: () => true,
       themeFor: () => "notte",
+      tintFor: () => "dynamic",
       locale: () => "it",
       card: facts,
       log() {},
@@ -529,6 +536,7 @@ describe("attackDraws", () => {
       controls: seat => seat === "a",
       arbitrated: () => true,
       themeFor: () => "notte",
+      tintFor: () => "dynamic",
       locale: () => "it",
       card: facts,
       log(text) {
@@ -790,7 +798,8 @@ describe("resolveSteps", () => {
     const sent: Action[] = [];
     const ctx: Ctx = {
       state: () => state, dispatch: action => { sent.push(action); return Promise.resolve(true); }, seat: () => "a", controls: () => true, arbitrated: () => true,
-      themeFor: () => "notte", locale: () => "it", card: facts, log: () => undefined,
+      themeFor: () => "notte",
+      tintFor: () => "dynamic", locale: () => "it", card: facts, log: () => undefined,
     };
     await releaseHeld(ctx, () => ({ x: 1, y: 2 }), () => ({ x: 9, y: 9 }));
     expect(sent).toEqual([]);
