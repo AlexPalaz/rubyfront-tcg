@@ -3079,13 +3079,16 @@ body:has(.home:not([hidden])) #do-leave { display: none; }
 }
 .home-hello, .home-deck { position: relative; z-index: 1; }
 
-/* Il saluto sopra le carte: una riga sola, nell'inchiostro del tema. */
+/* Il saluto sopra le carte è un'INSEGNA: la gemma del marchio in cima, che
+   respira di luce rubino, e sotto la frase fra due fili di luce che
+   sfumano ai lati. Sta sopra il cielo del paesaggio, scuro in qualunque
+   tema: bianco, pieno, con l'ombra scura che lo stacca dalle nuvole. */
 .home-hello {
   flex: none;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
   margin: 0;
-  min-height: 1.5em;
-  /* Sta sopra il cielo del paesaggio, scuro in qualunque tema: bianco,
-     pieno, con l'ombra scura che lo stacca dalle nuvole. */
   font-size: clamp(1.35rem, 1.7vw, 1.9rem);
   font-weight: 700;
   letter-spacing: .16em;
@@ -3094,6 +3097,32 @@ body:has(.home:not([hidden])) #do-leave { display: none; }
   text-shadow: 0 2px 6px rgba(0, 0, 0, .75), 0 0 22px rgba(0, 0, 0, .6);
 }
 .home-hello:empty { display: none; }
+.home-hello::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  transform: rotate(45deg);
+  background: linear-gradient(135deg, #e0314b, #9e0f34);
+  border: 1px solid #ffb7c6;
+  box-shadow: 0 0 16px rgba(224, 49, 75, .8), 0 0 40px rgba(224, 49, 75, .45);
+  animation: home-gem-breathe 3.2s ease-in-out infinite;
+}
+@keyframes home-gem-breathe {
+  0%, 100% { box-shadow: 0 0 12px rgba(224, 49, 75, .6), 0 0 30px rgba(224, 49, 75, .3); }
+  50% { box-shadow: 0 0 22px rgba(224, 49, 75, 1), 0 0 56px rgba(224, 49, 75, .6); }
+}
+.home-hello-text { display: flex; align-items: center; gap: 18px; }
+.home-hello-text::before,
+.home-hello-text::after {
+  content: "";
+  flex: none;
+  width: clamp(48px, 7vw, 140px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .9));
+  box-shadow: 0 0 8px rgba(255, 255, 255, .6);
+}
+.home-hello-text::after { background: linear-gradient(270deg, transparent, rgba(255, 255, 255, .9)); }
+@media (prefers-reduced-motion: reduce) { .home-hello::before { animation: none; } }
 
 .home-deck {
   display: flex;

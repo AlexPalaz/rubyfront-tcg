@@ -1275,7 +1275,11 @@ function paintHello(): void {
   const stats = readStats();
   const hello = name ? t("html.home.hello", { name }) : t("html.home.hello.new");
   const record = stats.games === 0 ? "" : t(stats.games === 1 ? "html.home.record.one" : "html.home.record", { games: stats.games, wins: stats.wins });
-  homeHello.textContent = record ? `${hello} ${record}` : hello;
+  // L'insegna: la gemma sopra (CSS, ::before), la frase fra due fili di luce.
+  const text = document.createElement("span");
+  text.className = "home-hello-text";
+  text.textContent = record ? `${hello} · ${record}` : hello;
+  homeHello.replaceChildren(text);
 }
 
 // «Riprendi con …»: nome e mazzo già salvati, si va al tavolo con un click,
