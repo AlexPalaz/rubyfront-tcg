@@ -196,7 +196,17 @@ html, body {
   font-size: 1rem;
   letter-spacing: .12em;
   text-transform: uppercase;
+  /* È un tasto (torna alla home), ma vestito da marchio: niente cornice. */
+  padding: 0;
+  color: inherit;
+  background: none;
+  border: none;
+  font: inherit;
+  letter-spacing: .12em;
+  text-transform: uppercase;
 }
+.brand:hover:not(:disabled) { border-color: transparent; }
+.brand:hover .brand-main { text-shadow: 0 0 22px rgba(210, 74, 100, .9); }
 .brand-main {
   font-weight: 700;
   color: var(--ruby);
@@ -327,6 +337,27 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--ruby)
   border-radius: 0;
   box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
 }
+/* La domanda del gioco (ask.ts): lo stesso sigillo, con due tasti in riga —
+   il ripensamento a sinistra, spoglio; il gesto a destra, rubino. */
+.ask-card { width: min(460px, 100%); }
+.ask-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  justify-self: stretch;
+  margin-top: 6px;
+}
+.ask-row .engine-stop-ok { margin-top: 0; }
+.ask-no {
+  padding: 12px 16px;
+  font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 0;
+}
+.ask-no:hover { border-color: var(--ruby); }
 @keyframes engine-stop-veil { from { opacity: 0; } }
 @keyframes engine-stop-card {
   from { opacity: 0; transform: translateY(10px) scale(.96); }
@@ -661,13 +692,63 @@ body.is-announcing .table { pointer-events: none; }
 }
 .effect-confirm-no:hover { border-color: var(--ruby); }
 /* La carta che vola verso una pila: un fantasma della tessera, fisso sullo
-   schermo, che si sposta con una transizione sola. */
+   schermo, che si sposta con una transizione sola (il volo dalla pila al
+   campo, flyFromPile / liftToFlight). */
 .fly-ghost {
   position: fixed;
   z-index: 9550;
   pointer-events: none;
   transition: transform 1.6s cubic-bezier(.35, .6, .2, 1), opacity 1.6s ease;
   transform-origin: 0 0;
+}
+/* La carta che VA in una pila (Abisso, Ritiro): non scivola, si dissolve
+   sul posto. Prima si solleva e si accende di rubino, poi sfuma in luce e
+   sfocatura fino a sparire. La scala della lavagna sta in --fly-scale. */
+.fly-ghost.is-dissolving {
+  transition: none;
+  animation: fly-dissolve 1.1s cubic-bezier(.3, .5, .3, 1) forwards;
+}
+@keyframes fly-dissolve {
+  0% { transform: scale(var(--fly-scale, 1)); opacity: 1; filter: none; }
+  30% { transform: translateY(-10px) scale(calc(var(--fly-scale, 1) * 1.05)); opacity: 1; filter: brightness(1.2) drop-shadow(0 0 26px rgba(224, 49, 75, 1)); }
+  60% { opacity: .85; filter: brightness(1.5) blur(4px) drop-shadow(0 0 30px rgba(224, 49, 75, .8)); }
+  100% { transform: translateY(-26px) scale(calc(var(--fly-scale, 1) * 1.12)); opacity: 0; filter: brightness(1.9) blur(12px) drop-shadow(0 0 30px rgba(224, 49, 75, 0)); }
+}
+/* La scintilla: la gemma del marchio in piccolo, che parte dal cuore della
+   carta con un attimo di ritardo, corre alla pila e si spegne arrivando. */
+.fly-spark {
+  position: fixed;
+  z-index: 9551;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  pointer-events: none;
+  background: #e0314b;
+  border: 1px solid #ffb7c6;
+  box-shadow: 0 0 14px rgba(224, 49, 75, .95), 0 0 34px rgba(224, 49, 75, .6);
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: transform .75s cubic-bezier(.4, .1, .2, 1) .3s;
+}
+/* Nasce a .3s (quando la carta comincia a sfumare), corre, e si spegne
+   toccando la pila (a 1.05s). */
+.fly-spark.is-flying { animation: spark-life 1.15s linear forwards; }
+@keyframes spark-life {
+  0%, 24% { opacity: 0; }
+  32% { opacity: 1; }
+  86% { opacity: 1; }
+  100% { opacity: 0; }
+}
+/* La pila che riceve: un anello rubino che si allarga e sfuma. */
+.pile-landing { animation: pile-landing .7s ease-out; }
+@keyframes pile-landing {
+  0% { box-shadow: 0 0 0 0 rgba(224, 49, 75, .9), 0 0 24px rgba(224, 49, 75, .7); }
+  100% { box-shadow: 0 0 0 14px rgba(224, 49, 75, 0), 0 0 0 rgba(224, 49, 75, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fly-ghost.is-dissolving { animation-duration: .01s; }
+  .fly-spark, .fly-spark.is-flying { transition: none; opacity: 0; }
+  .pile-landing { animation: none; }
 }
 
 /* Il tiro del dado: un velo scuro sul tavolo, il dado che rotola al
@@ -2845,6 +2926,13 @@ body[data-ui-theme^="chiaro"] .half {
 
 /* --------------------------------------------------------- onboarding */
 
+/* «Esci dalla partita» in barra: lo stesso tasto rubino della home
+   (.home-primary, «Nuova partita» in Partita singola), a misura di barra.
+   Solo al tavolo: in home non c'è da dove uscire, e sotto il velo
+   dell'accoglienza si torna con «Esci dalla stanza». */
+#do-leave.home-primary { padding: 7px 14px; font-size: 1rem; }
+body:has(.home:not([hidden])) #do-leave { display: none; }
+
 /* Il velo copre tutto, HUD compreso: finché non si è scelta la porta
    d'ingresso il tavolo aspetta. */
 .onboard {
@@ -2884,7 +2972,7 @@ body[data-ui-theme^="chiaro"] .half {
 
 /* I due passi respirano da soli: ogni figlio del passo ha il suo spazio.
    (Il display esplicito batterebbe [hidden]: va ribadito.) */
-#ob-step-room, #ob-step-profile, #ob-step-wait { display: grid; gap: 14px; }
+#ob-step-profile, #ob-step-wait { display: grid; gap: 14px; }
 /* L'attesa dell'altro giocatore: una riga di stato con un punto che
    respira, così si vede che la pagina è viva e non bloccata. */
 .onboard-wait {
@@ -2912,7 +3000,7 @@ body[data-ui-theme^="chiaro"] .half {
 /* E vale anche per l'overlay stesso: il suo display:grid batterebbe
    l'hidden di «Al tavolo» e il wizard non si chiuderebbe mai. */
 .onboard[hidden] { display: none !important; }
-#ob-step-room input, #ob-step-profile input, #ob-step-profile select {
+#ob-step-profile input, #ob-step-profile select {
   padding: 10px 12px;
   font-size: 1rem;
 }
@@ -2929,19 +3017,6 @@ body[data-ui-theme^="chiaro"] .half {
   border: 1px solid #e56a86;
   border-radius: 0;
   box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
-}
-
-.onboard-or {
-  text-align: center;
-  opacity: .65;
-  font-size: 1rem;
-  margin-top: 4px;
-}
-
-.onboard-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
 }
 
 .onboard-label {
@@ -2963,6 +3038,455 @@ body[data-ui-theme^="chiaro"] .half {
   cursor: pointer;
 }
 .onboard-skip:hover { opacity: .9; }
+
+/* --------------------------------------------------------------- home
+   Le quattro carte d'ingresso, in fila e senza scorrere: sotto l'header,
+   sopra il tavolo (che intanto aspetta), sotto il velo dell'accoglienza
+   (z 300) che poi le sfoca alle spalle del nome e del mazzo. Al passaggio
+   del mouse una carta si allarga e scopre il suo contenuto; le carte in
+   grigio (evento, torneo) non rispondono ancora. I testi sono sempre chiari
+   su illustrazione velata di scuro, in qualunque tema. */
+.home {
+  position: fixed;
+  inset: var(--toolbar-h) 0 0 0;
+  z-index: 250;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 22px 40px 30px;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 50% at 10% 0%, rgba(210, 74, 100, .16), transparent 70%),
+    radial-gradient(50% 60% at 100% 100%, rgba(86, 68, 128, .22), transparent 70%),
+    var(--bg);
+}
+.home[hidden] { display: none !important; }
+/* Il paesaggio di fondo: copre tutto, sotto un velo del tema (scuro qui,
+   bianco di carta sul chiaro) che lo tiene dietro alle carte. */
+.home-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: center / cover no-repeat;
+}
+.home-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(19, 16, 19, .3) 0%, rgba(19, 16, 19, .25) 60%, rgba(19, 16, 19, .6) 100%);
+}
+.home-hello, .home-deck { position: relative; z-index: 1; }
+
+/* Il saluto sopra le carte: una riga sola, nell'inchiostro del tema. */
+.home-hello {
+  flex: none;
+  margin: 0;
+  min-height: 1.5em;
+  /* Sta sopra il cielo del paesaggio, scuro in qualunque tema: bianco,
+     pieno, con l'ombra scura che lo stacca dalle nuvole. */
+  font-size: clamp(1.35rem, 1.7vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, .75), 0 0 22px rgba(0, 0, 0, .6);
+}
+.home-hello:empty { display: none; }
+
+.home-deck {
+  display: flex;
+  gap: 16px;
+  width: min(100%, 1560px);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 960px;
+}
+
+.home-card {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: #0b090c;
+  color: #f3edf0;
+  cursor: pointer;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .45);
+  transition: flex-grow .55s cubic-bezier(.2, .8, .2, 1), border-color .4s, box-shadow .4s;
+}
+.home-card:not(.is-off):hover,
+.home-card:not(.is-off):focus-within,
+.home-card.is-open {
+  flex-grow: 2.2;
+  border-color: rgba(229, 106, 134, .7);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, .55), 0 0 0 1px rgba(229, 106, 134, .25), 0 0 34px rgba(210, 74, 100, .28);
+}
+/* Quando una carta è aperta, le altre si spengono un poco: l'occhio va lì. */
+.home-deck:has(.home-card:not(.is-off):hover) .home-card:not(:hover):not(.is-off) .home-art,
+.home-deck:has(.home-card.is-open) .home-card:not(.is-open):not(.is-off) .home-art { filter: brightness(.62) saturate(.85); }
+
+/* L'illustrazione: copre tutto, un poco ingrandita finché la carta è
+   chiusa, a misura quando si apre. Il velo scuro in basso regge il testo. */
+.home-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #0b090c center / cover no-repeat;
+  /* Poco ingrandimento: ogni scala in più stira i pixel dell'illustrazione. */
+  transform: scale(1.04);
+  transition: transform .8s cubic-bezier(.2, .8, .2, 1), filter .5s;
+}
+.home-card:not(.is-off):hover .home-art,
+.home-card:not(.is-off):focus-within .home-art,
+.home-card.is-open .home-art { transform: scale(1); }
+.home-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 4, 8, .28) 0%, rgba(6, 4, 8, .06) 30%, rgba(6, 4, 8, .3) 55%, rgba(6, 4, 8, .94) 100%);
+}
+
+/* Illustrazione «allontanata» (data-fit): non arriva in fondo, e l'orlo
+   sfuma prima della zona del testo, così non si vede il taglio. */
+.home-card.is-fit .home-art {
+  -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 86%);
+  mask-image: linear-gradient(180deg, #000 60%, transparent 86%);
+}
+
+.home-text {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  padding: 22px 20px 24px;
+}
+.home-tag {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: #e56a86;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, .8);
+}
+.home-title {
+  margin: 0;
+  font-size: clamp(1rem, 1.4vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: .06em;
+  overflow-wrap: break-word;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .8);
+}
+
+/* Il contenuto si scopre con l'apertura: da 0fr a 1fr, così l'altezza
+   cresce da sola su quanto c'è dentro. */
+.home-more {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows .5s cubic-bezier(.2, .8, .2, 1), opacity .35s;
+}
+.home-more-in {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  gap: 12px;
+}
+.home-card:not(.is-off):hover .home-more,
+.home-card:not(.is-off):focus-within .home-more,
+.home-card.is-open .home-more { grid-template-rows: 1fr; opacity: 1; transition-delay: .08s; }
+.home-lead {
+  margin: 4px 0 2px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(243, 237, 240, .88);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, .8);
+}
+
+/* Il rubino del gesto principale, come «Al tavolo» nell'accoglienza. */
+.home-primary {
+  padding: 13px 16px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #fdeef1;
+  background: linear-gradient(180deg, #b81a41, #9e0f34);
+  border: 1px solid #e56a86;
+  border-radius: 0;
+  box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
+}
+.home-primary:hover { filter: brightness(1.12); border-color: #f0a0b4; }
+/* Il gesto secondario (cambiare nome o mazzo, sotto «Riprendi»): vetro. */
+.home-primary.home-secondary {
+  color: #f3edf0;
+  background: rgba(8, 6, 9, .55);
+  border-color: rgba(255, 255, 255, .28);
+  box-shadow: none;
+  backdrop-filter: blur(6px);
+}
+.home-primary.home-secondary:hover { filter: none; border-color: #e56a86; }
+.home-or {
+  text-align: center;
+  font-size: 1rem;
+  opacity: .7;
+}
+.home-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.home-row input, .home-row button {
+  padding: 10px 12px;
+  font-size: 1rem;
+  color: #f3edf0;
+  background: rgba(8, 6, 9, .55);
+  border: 1px solid rgba(255, 255, 255, .28);
+  backdrop-filter: blur(6px);
+}
+.home-row input::placeholder { color: rgba(243, 237, 240, .55); }
+.home-row input:focus { outline: none; border-color: #e56a86; }
+.home-row button:hover { border-color: #e56a86; }
+
+/* Evento e torneo: in grigio, muti, finché non esistono — e più stretti:
+   lo spazio va alle porte che si aprono. */
+.home-card.is-off { flex-grow: .72; cursor: default; border-color: rgba(255, 255, 255, .08); box-shadow: none; }
+.home-card.is-off .home-art { filter: grayscale(1) brightness(.42); }
+.home-card.is-off .home-title { color: rgba(243, 237, 240, .55); text-shadow: none; }
+.home-card.is-off .home-tag {
+  justify-self: start;
+  max-width: 100%;
+  padding: 3px 8px;
+  letter-spacing: .08em;
+  color: rgba(243, 237, 240, .6);
+  border: 1px solid rgba(255, 255, 255, .22);
+  text-shadow: none;
+}
+
+
+/* La home sul tema chiaro: le quattro carte sono STAMPE su cartoncino
+   bianco, non lastre nere. Un passe-partout di carta attorno
+   all'illustrazione, la didascalia SOTTO l'immagine (titolo in inchiostro,
+   etichetta nel rubino cupo), la cornice d'argento del tema e un'ombra
+   morbida che le posa sul tavolo. Niente velo sull'immagine: si vede tutta.
+   Le carte in grigio sono stampe sbiadite. */
+body[data-ui-theme^="chiaro"] .home {
+  background:
+    radial-gradient(60% 50% at 10% 0%, rgba(180, 36, 63, .08), transparent 70%),
+    radial-gradient(50% 60% at 100% 100%, rgba(91, 74, 147, .08), transparent 70%),
+    var(--bg);
+}
+body[data-ui-theme^="chiaro"] .home-bg::after {
+  background: linear-gradient(180deg, rgba(247, 248, 250, .08) 0%, rgba(247, 248, 250, .04) 55%, rgba(247, 248, 250, .22) 100%);
+}
+body[data-ui-theme^="chiaro"] .home-card {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  padding: 10px;
+  color: #15181b;
+  background: #ffffff;
+  border-color: #c5cbd3;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 14px 34px rgba(21, 24, 27, .14), 0 2px 6px rgba(21, 24, 27, .08);
+}
+body[data-ui-theme^="chiaro"] .home-card:not(.is-off):hover,
+body[data-ui-theme^="chiaro"] .home-card:not(.is-off):focus-within,
+body[data-ui-theme^="chiaro"] .home-card.is-open {
+  border-color: #b4243f;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 22px 50px rgba(21, 24, 27, .2), 0 0 0 1px rgba(180, 36, 63, .25);
+}
+/* L'illustrazione sta nel passe-partout: un pezzo della griglia, non un
+   velo assoluto; niente zoom (uscirebbe dalla carta) e niente sfumatura. */
+body[data-ui-theme^="chiaro"] .home-art {
+  position: relative;
+  inset: auto;
+  min-height: 0;
+  background-color: #eef1f4;
+  transform: none;
+  box-shadow: inset 0 0 0 1px rgba(21, 24, 27, .12);
+}
+body[data-ui-theme^="chiaro"] .home-art::after { background: none; }
+body[data-ui-theme^="chiaro"] .home-deck:has(.home-card:not(.is-off):hover) .home-card:not(:hover):not(.is-off) .home-art,
+body[data-ui-theme^="chiaro"] .home-deck:has(.home-card.is-open) .home-card:not(.is-open):not(.is-off) .home-art { filter: saturate(.55) contrast(.92); }
+/* La didascalia sotto la stampa. */
+body[data-ui-theme^="chiaro"] .home-text {
+  position: static;
+  inset: auto;
+  padding: 16px 6px 6px;
+  gap: 6px;
+  /* Spazio per due righe di titolo in tutte le didascalie, così le stampe
+     finiscono alla stessa altezza anche quando il titolo sta su una riga;
+     il testo si appoggia in basso e l'aria resta sotto l'immagine. */
+  min-height: calc(2.2 * clamp(1.25rem, 1.9vw, 1.85rem) + 3.6rem);
+  align-content: end;
+}
+body[data-ui-theme^="chiaro"] .home-tag { color: #8c1a2a; text-shadow: none; }
+body[data-ui-theme^="chiaro"] .home-title { color: #15181b; text-shadow: none; }
+body[data-ui-theme^="chiaro"] .home-lead { color: #4a5058; text-shadow: none; }
+body[data-ui-theme^="chiaro"] .home-or { color: #5d666e; opacity: 1; }
+body[data-ui-theme^="chiaro"] .home-row input,
+body[data-ui-theme^="chiaro"] .home-row button {
+  color: #15181b;
+  background: #f7f8fa;
+  border-color: #c5cbd3;
+  backdrop-filter: none;
+}
+body[data-ui-theme^="chiaro"] .home-row input::placeholder { color: #6b737b; }
+body[data-ui-theme^="chiaro"] .home-primary.home-secondary { color: #15181b; background: #f7f8fa; border-color: #c5cbd3; backdrop-filter: none; }
+body[data-ui-theme^="chiaro"] .home-primary.home-secondary:hover { border-color: #b4243f; }
+
+body[data-ui-theme^="chiaro"] .home-row input:focus,
+body[data-ui-theme^="chiaro"] .home-row button:hover { border-color: #b4243f; }
+/* Le stampe sbiadite: carta un filo grigia, immagine slavata, titolo muto. */
+body[data-ui-theme^="chiaro"] .home-card.is-off {
+  background: #f4f6f8;
+  border-color: #d3d9df;
+  box-shadow: 0 8px 22px rgba(21, 24, 27, .07);
+}
+body[data-ui-theme^="chiaro"] .home-card.is-off .home-art { filter: grayscale(1) contrast(.75) brightness(1.1); opacity: .55; }
+body[data-ui-theme^="chiaro"] .home-card.is-off .home-title { color: #7a828a; text-shadow: none; }
+body[data-ui-theme^="chiaro"] .home-card.is-off .home-tag { color: #5d666e; border-color: #b9c1ca; background: #ffffff; text-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-card, .home-art, .home-more { transition: none; }
+}
+
+
+/* -------------------------------------------------------------- mazzi
+   La vista dei mazzi per chi gioca: sopra la home (z 260), sotto il velo
+   dell'accoglienza (z 300). Scorre, a differenza della home: quaranta
+   tessere non stanno in una schermata. Ogni mazzo è una stampa larga —
+   copertina (il Rubyfront), presentazione e gesti — e sotto, se aperta,
+   le sue carte a tessera. */
+.mazzi {
+  position: fixed;
+  inset: var(--toolbar-h) 0 0 0;
+  z-index: 260;
+  overflow-y: auto;
+  padding: 22px 40px 40px;
+  background: var(--bg);
+  color: var(--ink);
+}
+.mazzi[hidden] { display: none !important; }
+.mazzi-bar {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "back title" "back lead";
+  align-items: baseline;
+  column-gap: 22px;
+  row-gap: 4px;
+  width: min(100%, 1560px);
+  margin: 0 auto 22px;
+}
+.mazzi-back {
+  grid-area: back;
+  align-self: start;
+  padding: 8px 14px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+}
+.mazzi-title {
+  grid-area: title;
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.mazzi-lead { grid-area: lead; margin: 0; color: var(--muted); font-size: 1rem; }
+.mazzi-shelf {
+  display: grid;
+  gap: 22px;
+  width: min(100%, 1560px);
+  margin: 0 auto;
+}
+.mazzi-print {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 28px;
+  padding: 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .25);
+}
+.mazzi-cover { align-self: start; }
+.mazzi-body { display: grid; gap: 12px; align-content: start; padding-top: 6px; }
+.mazzi-name {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.mazzi-facts { margin: 0; font-size: 1rem; color: var(--muted); letter-spacing: .03em; }
+.mazzi-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.mazzi-play {
+  padding: 12px 18px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #fdeef1;
+  background: linear-gradient(180deg, #b81a41, #9e0f34);
+  border: 1px solid #e56a86;
+  box-shadow: 0 4px 10px rgba(158, 15, 52, .4);
+}
+.mazzi-play:hover { filter: brightness(1.12); }
+.mazzi-browse { padding: 12px 18px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+/* Le carte del mazzo: tessere in griglia, a capo, sotto copertina e testo. */
+.mazzi-cards {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-soft);
+}
+.mazzi-cards[hidden] { display: none; }
+/* La tessera è quella del tavolo (.tile): stesso fondo, stesso filo scuro
+   attorno, stessa ombra, angoli vivi — la carta disegna da sé i suoi. */
+.mazzi-tile {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  border-radius: 0;
+  background: var(--tess-bg);
+  box-shadow: 0 0 0 1px var(--tile-ring), 0 8px 22px rgba(0, 0, 0, .6);
+}
+.mazzi-scaler { transform-origin: 0 0; }
+/* L'etichetta della faccia («Rubyfront») è del sito: qui la carta parla da sé. */
+.mazzi-tile .face-label { display: none; }
+.mazzi-tile .card-holder { container-type: inline-size; }
+/* La copertina è più grande di una tessera: 72% della carta vera. */
+.mazzi-cover .mazzi-tile { width: calc(520px * .72) !important; height: calc(728px * .72) !important; }
+.mazzi-cover .mazzi-scaler { transform: scale(.72) !important; }
+/* Le copie, in basso a destra: in alto c'è il nome della carta. */
+.mazzi-copies {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 2px 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fdeef1;
+  background: #9e0f34;
+  border: 1px solid #e56a86;
+  border-radius: 999px;
+}
+body[data-ui-theme^="chiaro"] .mazzi-print { box-shadow: 0 14px 34px rgba(21, 24, 27, .12); }
+body[data-ui-theme^="chiaro"] .mazzi-tile { box-shadow: 0 0 0 1px var(--tile-ring), 0 8px 22px rgba(21, 24, 27, .22); }
+body[data-ui-theme^="chiaro"] .mazzi-play { background: linear-gradient(180deg, #c23e58, #8c1a2a); border-color: #b4243f; }
+@media (max-width: 1400px) {
+  .mazzi-print { grid-template-columns: 1fr; }
+  .mazzi-cover { justify-self: center; }
+}
 
 /* ------------------------------------------------------------- touch
    Le correzioni per dita e tablet. IN FONDO AL FILE APPOSTA: devono

@@ -61,6 +61,11 @@ const MASTER_GAIN = 0.6;
 const MUSIC_GAIN = 0.2;
 const MUSIC_FADE_IN_S = 1.4;
 const MUSIC_FADE_OUT_S = 1.6;
+/** Fra un brano e l'altro (dalla home al tavolo, e ritorno) due secondi
+    di silenzio: il nuovo non attacca sulla coda del vecchio. */
+const MUSIC_GAP_MS = 2000;
+/** Quando l'ultimo brano ha cominciato a spegnersi (per contare il silenzio). */
+let musicStoppedAt = 0;
 let musicEnabled = true;
 let music: { name: string; source: AudioBufferSourceNode; gain: GainNode } | null = null;
 let musicWanted: string | null = null;
@@ -114,18 +119,31 @@ export function startMusic(name: string, restart = false): void {
   musicWanted = name;
   if (!musicEnabled) return;
   if (music?.name === name) return;
+  // Un altro brano sta suonando (dalla home al tavolo, o viceversa): si
+  // spegne in dissolvenza, e il nuovo attacca dopo il silenzio dovuto.
+  if (music) {
+    fadeOut(music, MUSIC_FADE_OUT_S);
+    music = null;
+    musicStoppedAt = performance.now();
+  }
   const ctx = ensure();
   if (!ctx || !master) return;
   if (ctx.state === "suspended") void ctx.resume();
   const out = master;
+  const gap = musicStoppedAt ? Math.max(0, MUSIC_GAP_MS - (performance.now() - musicStoppedAt)) : 0;
   void loadMusic(ctx, name).then(buffer => {
     // Nel frattempo qualcuno l'ha fermata, o ne vuole un'altra.
     if (!buffer || musicWanted !== name || music?.name === name) return;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(MUSIC_GAIN, ctx.currentTime + MUSIC_FADE_IN_S);
-    gain.connect(out);
-    spin(ctx, buffer, name, gain);
+    const attack = (): void => {
+      if (musicWanted !== name || music?.name === name) return;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(MUSIC_GAIN, ctx.currentTime + MUSIC_FADE_IN_S);
+      gain.connect(out);
+      spin(ctx, buffer, name, gain);
+    };
+    if (gap > 0) window.setTimeout(attack, gap);
+    else attack();
   });
 }
 
@@ -162,12 +180,18 @@ export function stopMusic(abrupt = false): void {
   noteMusic(`stopMusic${abrupt ? " (di colpo)" : ""}`);
   musicWanted = null;
   const playing = music;
-  if (!playing || !context) return;
+  if (!playing) return;
   music = null;
+  musicStoppedAt = performance.now();
+  fadeOut(playing, abrupt ? 0.08 : MUSIC_FADE_OUT_S);
+}
+
+/** Una sorgente si spegne in `tail` secondi e poi si ferma. */
+function fadeOut(playing: { source: AudioBufferSourceNode; gain: GainNode }, tail: number): void {
+  if (!context) return;
   const now = context.currentTime;
   playing.gain.gain.cancelScheduledValues(now);
   playing.gain.gain.setValueAtTime(playing.gain.gain.value, now);
-  const tail = abrupt ? 0.08 : MUSIC_FADE_OUT_S;
   playing.gain.gain.linearRampToValueAtTime(0, now + tail);
   playing.source.stop(now + tail + 0.05);
 }

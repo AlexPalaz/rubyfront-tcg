@@ -9,61 +9,34 @@
 <body data-ui-theme="chiaro">
 <!-- L'header: il marchio; al centro il turno con la fase e il gesto che la
      chiude (#game-bar, lo riempie hud.ts); a destra Evoca, chat e microfono
-     (#game-tools), lo stato della rete, Nuova partita (da sola: azzera
-     tutto) e l'ingranaggio delle impostazioni. -->
+     (#game-tools), lo stato della rete, Esci dalla partita (torna alla
+     home) e l'ingranaggio delle impostazioni. -->
 <header class="toolbar">
-  <span class="brand">
+  <!-- Il marchio è un tasto: riporta alla home (in partita chiede prima). -->
+  <button type="button" class="brand" id="brand-home" title="Torna alla home" data-i18n-title="html.brand.home">
     <b class="brand-main">Rubyfront</b>
     <span class="brand-gem" aria-hidden="true"></span>
     <span class="brand-sub">Simulator</span>
-  </span>
+  </button>
   <span class="spacer"></span>
   <span id="game-bar" class="game-bar"></span>
   <span class="spacer"></span>
   <span id="game-tools" class="game-tools"></span>
   <span id="engine-dot" class="dot dot-engine" hidden title="Engine spento" data-i18n-title="html.engine.off"></span>
   <span id="net-dot" class="dot" title="Non collegato" data-i18n-title="html.net.off"></span>
-  <button type="button" id="do-new" class="danger" data-i18n="html.newgame">Nuova partita</button>
+  <!-- «Esci dalla partita», rubino: si vede solo al tavolo, in home non c'è
+       da dove uscire. La partita nuova la offre l'insegna finale. -->
+  <button type="button" id="do-leave" class="home-primary" title="Lascia la stanza o congeda il bot: il tavolo si azzera e si torna alla home" data-i18n-title="html.leave.tip" data-i18n="html.leave">Esci dalla partita</button>
   <button type="button" id="settings-toggle" class="gear-btn" title="Impostazioni" aria-label="Impostazioni" data-i18n-title="html.settings">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M19.4 13c.04-.32.06-.65.06-1s-.02-.68-.07-1l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.73-1l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.63.26-1.21.6-1.74 1l-2.39-.96a.5.5 0 0 0-.6.22L2.68 8.78a.5.5 0 0 0 .12.64L4.83 11c-.05.32-.08.66-.08 1s.03.68.08 1l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.23.4.32.6.22l2.4-.96c.52.4 1.1.74 1.73 1l.36 2.54c.04.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54a7.3 7.3 0 0 0 1.73-1l2.4.96c.23.09.48 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
   </button>
 </header>
 
 <!-- Il pannello delle impostazioni: si apre dall'ingranaggio, si chiude con
-     un click fuori o con Esc. Tutto ciò che NON è un gesto di partita. -->
+     un click fuori o con Esc. Solo preferenze: mazzo, posto e stanza si
+     scelgono dalla home (il posto da sé: chi crea la stanza è A, chi entra
+     è B). -->
 <div class="settings" id="settings" hidden>
-  <div class="set-row">
-    <span class="set-label" data-i18n="html.deck">Mazzo</span>
-    <span class="set-controls">
-      <select id="deck-pick" title="Mazzo da caricare al tuo posto" data-i18n-title="html.deck.tip"></select>
-      <button type="button" id="deck-load" data-i18n="html.load">Carica</button>
-    </span>
-  </div>
-  <div class="set-row">
-    <span class="set-label" data-i18n="html.seat">Posto</span>
-    <select id="seat-pick">
-      <option value="a">A</option>
-      <option value="b">B</option>
-    </select>
-  </div>
-  <div class="set-row">
-    <span class="set-label" data-i18n="html.room">Stanza</span>
-    <span class="set-controls">
-      <input id="room-name" placeholder="nome stanza" data-i18n-placeholder="html.room.ph" autocomplete="off">
-      <button type="button" id="do-join" data-i18n="html.join">Entra</button>
-    </span>
-  </div>
-  <div class="set-row">
-    <span class="set-label" data-i18n="html.table">Tavolo</span>
-    <button type="button" id="do-leave" class="ghost" title="Lascia la stanza o congeda il bot: il tavolo si azzera e si torna all'accoglienza" data-i18n-title="html.leave.tip" data-i18n="html.leave">Esci dal tavolo</button>
-  </div>
-  <div class="set-row">
-    <span class="set-label" data-i18n="html.invite">Invito</span>
-    <span class="set-controls">
-      <button type="button" id="room-create" data-i18n="html.room.create">Crea stanza</button>
-      <button type="button" id="room-invite" data-i18n="html.copylink">Copia link</button>
-    </span>
-  </div>
   <div class="set-row">
     <span class="set-label">Relay</span>
     <input id="relay-url" placeholder="ws://localhost:8787" autocomplete="off">
@@ -122,23 +95,95 @@
   </div>
 </div>
 
-<!-- Onboarding: al primo arrivo (nessuna stanza) accompagna dentro in due
-     passi — stanza, poi nome e mazzo. Chi ha già una stanza salvata o un
-     link d'invito non lo vede mai. -->
+<!-- La home: quattro carte in fila, senza scorrere. Al passaggio del mouse
+     una si allarga e mostra il suo contenuto: contro il computer si parte
+     subito, in multigiocatore si crea o si raggiunge una stanza; evento e
+     torneo aspettano in grigio. Sta sotto l'header (che resta) e sotto il
+     velo dell'accoglienza, che le fa da secondo passo. -->
+<section class="home" id="home" hidden data-bg="home/sfondo">
+  <!-- Il paesaggio di fondo (public/home/sfondo, via data-bg), sotto un velo
+       del tema perché saluto e carte restino leggibili. -->
+  <div class="home-bg" aria-hidden="true"></div>
+  <!-- Il saluto: il nome salvato e, se ci sono, le partite contro il bot. -->
+  <p class="home-hello" id="home-hello"></p>
+  <div class="home-deck">
+    <article class="home-card" id="home-solo" data-bg="home/oblivhal" data-open-with="ob-bot">
+      <div class="home-art" aria-hidden="true"></div>
+      <div class="home-text">
+        <span class="home-tag" data-i18n="html.home.solo.tag">Partita singola</span>
+        <h2 class="home-title" data-i18n="html.home.solo.title">Contro il computer</h2>
+        <div class="home-more">
+          <div class="home-more-in">
+            <p class="home-lead" data-i18n="html.home.solo.text">Una partita subito: l'altra metà del tavolo la gioca il bot, a difficoltà media.</p>
+            <!-- Chi ha già nome e mazzo salvati riparte con un click; il tasto
+                 sotto passa comunque da nome e mazzo. -->
+            <button type="button" id="ob-resume" class="home-primary" hidden></button>
+            <button type="button" id="ob-bot" class="home-primary" data-i18n="html.newgame">Nuova partita</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="home-card" id="home-multi" data-bg="home/duello" data-pos="55% 50%">
+      <div class="home-art" aria-hidden="true"></div>
+      <div class="home-text">
+        <span class="home-tag" data-i18n="html.home.multi.tag">In rete</span>
+        <h2 class="home-title" data-i18n="html.home.multi.title">Multigiocatore</h2>
+        <div class="home-more">
+          <div class="home-more-in">
+            <p class="home-lead" data-i18n="html.home.multi.text">Un tavolo per due, ciascuno dal suo schermo. Crea una stanza e manda il link, o entra in una che conosci.</p>
+            <button type="button" id="ob-create" class="home-primary" data-i18n="html.ob.create">Crea una stanza</button>
+            <div class="home-or" data-i18n="html.ob.or">oppure entra in una stanza che conosci</div>
+            <div class="home-row">
+              <input id="ob-room" placeholder="nome stanza" data-i18n-placeholder="html.room.ph" autocomplete="off">
+              <button type="button" id="ob-join" data-i18n="html.join">Entra</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="home-card is-off" id="home-event" data-bg="home/rhen" data-pos="38% 50%" aria-disabled="true">
+      <div class="home-art" aria-hidden="true"></div>
+      <div class="home-text">
+        <span class="home-tag" data-i18n="html.home.soon">In arrivo</span>
+        <h2 class="home-title" data-i18n="html.home.event.title">Evento</h2>
+      </div>
+    </article>
+
+    <article class="home-card is-off" id="home-tourney" data-art="rbf-023" aria-disabled="true">
+      <div class="home-art" aria-hidden="true"></div>
+      <div class="home-text">
+        <span class="home-tag" data-i18n="html.home.soon">In arrivo</span>
+        <h2 class="home-title" data-i18n="html.home.tourney.title">Torneo</h2>
+      </div>
+    </article>
+
+    <article class="home-card" id="home-decks" data-bg="home/mazzi" data-open-with="home-decks-go">
+      <div class="home-art" aria-hidden="true"></div>
+      <div class="home-text">
+        <span class="home-tag" data-i18n="html.home.decks.tag">Collezione</span>
+        <h2 class="home-title" data-i18n="html.home.decks.title">Mazzi</h2>
+        <div class="home-more">
+          <div class="home-more-in">
+            <p class="home-lead" data-i18n="html.home.decks.text">I mazzi pronti del gioco: il Rubyfront, le carte, e con quale giocare.</p>
+            <button type="button" id="home-decks-go" class="home-primary" data-i18n="html.home.decks.go">Sfoglia i mazzi</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- I mazzi, per chi gioca: si apre dalla carta «Mazzi» della home, la
+     riempie src/mazzi.ts. -->
+<section class="mazzi" id="mazzi" hidden></section>
+
+<!-- Onboarding: dopo la scelta in home, il velo accompagna dentro —
+     nome e mazzo, poi (in stanza) l'attesa dell'altro giocatore. -->
 <div class="onboard" id="onboard" hidden>
   <div class="onboard-card">
     <div class="onboard-brand">Rubyfront <span aria-hidden="true">◆</span> Simulator</div>
-
-    <div id="ob-step-room">
-      <p class="onboard-ask" data-i18n="html.ob.ask">Benvenuto al tavolo. Per giocare con qualcuno serve una stanza:</p>
-      <button type="button" id="ob-create" class="onboard-primary" data-i18n="html.ob.create">Crea una stanza</button>
-      <div class="onboard-or" data-i18n="html.ob.or">oppure entra in una stanza che conosci</div>
-      <div class="onboard-row">
-        <input id="ob-room" placeholder="nome stanza" data-i18n-placeholder="html.room.ph" autocomplete="off">
-        <button type="button" id="ob-join" data-i18n="html.join">Entra</button>
-      </div>
-      <button type="button" id="ob-bot" class="onboard-skip" data-i18n="html.ob.bot">Gioca contro il bot</button>
-    </div>
 
     <div id="ob-step-profile" hidden>
       <p class="onboard-ask" id="ob-room-note" hidden></p>

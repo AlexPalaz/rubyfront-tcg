@@ -2440,17 +2440,20 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   const wait = (ms: number): Promise<void> => new Promise(resolve => window.setTimeout(resolve, ms));
 
-  /** Quanto dura il volo di una carta verso una pila (come .fly-ghost). */
+  /** Quanto dura l'andata di una carta in una pila: dissolvenza della
+      tessera più corsa della scintilla (i tempi in style.css). */
   const FLY_MS = 1600;
-  /** …e verso il pannello ripiegato delle pile avversarie: un guizzo, non un volo. */
-  const DOCK_FLY_MS = 400;
+  /** Quando la scintilla tocca la pila (ritardo + corsa, .fly-spark). */
+  const SPARK_ARRIVE_MS = 1050;
 
   /**
-   * La carta vola verso una pila: un fantasma della tessera, preso PRIMA che
-   * lo stato cambi (la tessera vera sparirà nella pila), che scivola fino
-   * al riquadro della pila del proprietario e svanisce. Chi la chiama la
-   * prende prima dell'azione e la lascia partire dopo. FLY_MS è lo stesso
-   * tempo della transizione di .fly-ghost in style.css.
+   * La carta va in una pila: un fantasma della tessera, preso PRIMA che lo
+   * stato cambi (la tessera vera sparirà nella pila), che si solleva e si
+   * DISSOLVE sul posto — luce, sfocatura, via — mentre una scintilla
+   * rubino corre fino al riquadro della pila del proprietario, che si
+   * accende al suo arrivo. Chi la chiama la prende prima dell'azione e la
+   * lascia partire dopo. FLY_MS è la durata dell'insieme (i tempi stanno in
+   * style.css: fly-dissolve, .fly-spark, pile-landing).
    */
   function liftForFlight(uid: string, zone: "ritiro" | "abisso" = "ritiro"): Flight | null {
     const tile = tiles.get(uid);
@@ -2472,6 +2475,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     ghost.style.height = `${layoutH}px`;
     ghost.style.margin = "0";
     ghost.style.transform = `scale(${from.width / layoutW})`;
+    ghost.style.setProperty("--fly-scale", String(from.width / layoutW));
     document.body.append(ghost);
     const flight = (() => {
       const slot = pileSlots.get(`${live.owner}:${zone}`);
@@ -2490,20 +2494,37 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         return;
       }
       const target = to;
-      if (docked) ghost.style.transitionDuration = `${DOCK_FLY_MS}ms`;
-      // Un frame dopo, così la transizione parte dalla posizione di ora.
+      // La scintilla: parte dal cuore della carta e corre al centro della
+      // pila (o della testata del pannello), poi si spegne.
+      const spark = document.createElement("span");
+      spark.className = "fly-spark";
+      spark.style.left = `${from.left + from.width / 2}px`;
+      spark.style.top = `${from.top + from.height / 2}px`;
+      document.body.append(spark);
+      // Un frame dopo, così le transizioni partono dalla posizione di ora.
       requestAnimationFrame(() => {
-        const scale = docked ? 0.25 : target.width / layoutW;
-        const dx = docked ? target.left + target.width / 2 - from.left - (layoutW * scale) / 2 : target.left - from.left;
-        const dy = docked ? target.top + target.height / 2 - from.top - (layoutH * scale) / 2 : target.top - from.top;
-        ghost.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
-        ghost.style.opacity = docked ? "0" : "0.15";
+        ghost.classList.add("is-dissolving");
+        const dx = target.left + target.width / 2 - (from.left + from.width / 2);
+        const dy = target.top + target.height / 2 - (from.top + from.height / 2);
+        spark.style.transform = `translate(${dx}px, ${dy}px) rotate(45deg)`;
+        spark.classList.add("is-flying");
       });
-      window.setTimeout(() => ghost.remove(), (docked ? DOCK_FLY_MS : FLY_MS) + 60);
+      // All'arrivo la pila si accende (il riquadro vero, non la testata).
+      if (!docked && slot) {
+        window.setTimeout(() => {
+          slot.classList.add("pile-landing");
+          window.setTimeout(() => slot.classList.remove("pile-landing"), 700);
+        }, SPARK_ARRIVE_MS);
+      }
+      window.setTimeout(() => {
+        ghost.remove();
+        spark.remove();
+      }, FLY_MS + 60);
     }) as Flight;
     // Il «no» dell'arbitro: la carta non parte, e il fantasma — che è
     // già sul tavolo, sopra la tessera vera — deve sparire, o resta lì
-    // come un doppione della carta.
+    // come un doppione della carta (la scintilla non è ancora nata: nasce
+    // solo se il volo parte).
     flight.cancel = () => ghost.remove();
     return flight;
   }

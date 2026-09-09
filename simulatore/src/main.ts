@@ -28,7 +28,9 @@ import { endPhase } from "./turn.js";
 import { chooseAttackers, chooseBlocks, chooseDiscards, choosePlay, freshMemory, pickBest, type BotMemory } from "./bot.js";
 import { declareBlock } from "./combat.js";
 import { setupPreview } from "./preview.js";
-import { allDecks, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
+import { mountMazzi } from "./mazzi.js";
+import { askConfirm } from "./ask.js";
+import { allDecks, artUrl, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
 import { apply, controllerOf, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, seatLabel, shuffled, zoneCards } from "./state.js";
 import { releaseHeld } from "./effects.js";
 import { DRAW_STEP_MS, drawCascadeMs, mountTable } from "./table.js";
@@ -74,6 +76,9 @@ function randomSeat(): Seat {
 }
 
 let state: GameState = newGame(randomSeat());
+// Il posto non si sceglie: chi crea la stanza è A, chi entra (a mano o dal
+// link d'invito, che porta `seat`) è B; contro il bot si è A. Resta salvato
+// con la stanza, e il cambio passa da una ricarica (enterRoomAs).
 let mySeat: Seat = (params.get("seat") as Seat) ?? (store.read("seat", "a") as Seat);
 if (!SEATS.includes(mySeat)) mySeat = "a";
 let locale = params.get("lang") ?? store.read("lang", "it");
@@ -174,13 +179,18 @@ function dispatch(action: Action): Promise<boolean> {
 let lastDeclareAt = 0;
 /** Il brano del tavolo (public/music, fornito dal designer). */
 const TABLE_MUSIC = "neon-medieval-arena";
+/** Il brano della home: parte con la home, in loop, e lascia il posto a
+    quello del tavolo (in dissolvenza) quando il mazzo si mette giù. */
+const HOME_MUSIC = "strategic-dawn";
 
 function cueFor(action: Action): void {
   // La musica del tavolo: parte quando la partita comincia (il proprio
   // mazzo al tavolo), gira in loop per tutta la seduta, e a partita nuova
   // riparte da capo. Si spegne solo uscendo dal tavolo (leaveTable).
   if (action.t === "loadDeck" && action.seat === mySeat) startMusic(TABLE_MUSIC);
-  if (action.t === "newGame") startMusic(TABLE_MUSIC, true);
+  // La partita nuova che azzera il tavolo uscendo (leaveTable) non è una
+  // partita: lì suona la home.
+  if (action.t === "newGame" && home.hidden) startMusic(TABLE_MUSIC, true);
   // Le fasi non suonano (deciso 2026-09-07: «togli i suoni di ogni fase»);
   // i tasti di fase tengono lo scatto dei tasti.
   if (action.t === "declare") {
@@ -246,6 +256,7 @@ function commit(action: Action): void {
       if (!passed) return;
       const { title, detail } = gameOverMsg(over);
       ctx.log(msg("log.over", { title, detail }), over.winner);
+      if (botSeat) recordBotGame(over.winner === mySeat);
     });
   }
 }
@@ -671,6 +682,18 @@ function setStatus(status: NetStatus, peers: number): void {
 // L'accoglienza sta in fondo al file, ma il passo d'attesa serve già qui:
 // setStatus parte con la prima join, prima che il wizard sia montato.
 const onboard = document.querySelector<HTMLElement>("#onboard")!;
+// La home (le carte d'ingresso) sta sotto il velo dell'accoglienza: gli fa
+// da sfondo finché non si è seduti al tavolo. Con la home parte il suo brano
+// (il browser lo lascia suonare dal primo gesto, unlockSound).
+const home = document.querySelector<HTMLElement>("#home")!;
+function showHome(): void {
+  home.hidden = false;
+  startMusic(HOME_MUSIC);
+  // I campioni dei tasti si caricano subito: così anche il primo click in
+  // home scatta (il contesto resta sospeso finché il browser non vede un
+  // gesto, ma decodificare si può).
+  unlockSound();
+}
 const obStepWait = document.querySelector<HTMLElement>("#ob-step-wait")!;
 const obWaitNote = document.querySelector<HTMLElement>("#ob-wait-note")!;
 const obWaitText = document.querySelector<HTMLElement>("#ob-wait-text")!;
@@ -687,6 +710,7 @@ function waitForPeer(): void {
 function seatTable(): void {
   awaitingPeer = false;
   onboard.hidden = true;
+  home.hidden = true;
   obStepWait.hidden = true;
   if (deckDeferred && myDeckId) loadDeck(myDeckId, mySeat);
   deckDeferred = false;
@@ -699,6 +723,7 @@ function seatOrWait(): void {
     waitForPeer();
     return;
   }
+  home.hidden = true;
   if (myDeckId) loadDeck(myDeckId, mySeat);
 }
 
@@ -797,28 +822,22 @@ function join(room: string, relay: string): void {
 
 // -------------------------------------------------------------- comandi
 
-const deckPick = document.querySelector<HTMLSelectElement>("#deck-pick")!;
-for (const deck of allDecks()) {
-  const option = document.createElement("option");
-  option.value = deck.id;
-  option.textContent = deck.locales[locale]?.name ?? deck.locales[deck.defaultLocale]?.name ?? deck.id;
-  deckPick.append(option);
+/** Il nome di un mazzo nella lingua del tavolo. */
+function deckName(deckId: string): string {
+  const deck = getDeck(deckId);
+  return deck?.locales[locale]?.name ?? deck?.locales[deck.defaultLocale]?.name ?? deckId;
 }
-if (myDeckId) deckPick.value = myDeckId;
 
-const seatPick = document.querySelector<HTMLSelectElement>("#seat-pick")!;
-const roomInput = document.querySelector<HTMLInputElement>("#room-name")!;
+// La stanza non ha più un campo nelle impostazioni: si sceglie dalla home.
+// Qui resta il suo valore corrente (link, memoria del browser, o vuoto).
+const roomInput = { value: params.get("room") ?? store.read("room", "") };
 const relayInput = document.querySelector<HTMLInputElement>("#relay-url")!;
 const langPick = document.querySelector<HTMLSelectElement>("#lang-pick")!;
 
-seatPick.value = mySeat;
 langPick.value = locale;
-roomInput.value = params.get("room") ?? store.read("room", "");
 // Il relay può arrivare dal link d'invito: chi entra così non deve sapere
 // nemmeno che esiste.
 relayInput.value = params.get("relay") ?? store.read("relay", DEFAULT_RELAY);
-
-document.querySelector("#deck-load")!.addEventListener("click", () => loadDeck(deckPick.value, mySeat));
 
 function doShuffle(): void {
   const order = shuffled(zoneCards(state, mySeat, "deck").map(card => card.uid));
@@ -836,12 +855,7 @@ function doDraw(): void {
   ctx.log(msg("log.draw1", { seat: mySeat }), mySeat);
 }
 
-document.querySelector("#do-new")!.addEventListener("click", () => {
-  if (!confirm(t("html.newgame.confirm"))) return;
-  startNewGame();
-});
-
-/** La partita nuova: dal tasto in barra (con conferma) o dall'insegna finale. */
+/** La partita nuova, dall'insegna finale. */
 function startNewGame(): void {
   const starter = randomSeat();
   void dispatch({ t: "newGame", active: starter }).then(passed => {
@@ -866,18 +880,36 @@ document.querySelector("#do-push")!.addEventListener("click", () => {
   ctx.log(msg("log.sent"));
 });
 
-document.querySelector("#do-join")!.addEventListener("click", () => join(roomInput.value, relayInput.value));
-
-// Una stanza è solo un nome: chi lo conosce entra. "Crea stanza" ne inventa
-// uno difficile da indovinare e ci entra subito; "Copia link" impacchetta
-// stanza, posto OPPOSTO e relay in un URL — chi lo apre è dentro, seduto
-// dall'altra parte, senza toccare un'impostazione.
+// Una stanza è solo un nome: chi lo conosce entra. «Crea una stanza» (home)
+// ne inventa uno difficile da indovinare e ci entra subito, al posto A;
+// «Copia il link d'invito» impacchetta stanza, posto OPPOSTO e relay in un
+// URL — chi lo apre è dentro, seduto dall'altra parte, senza toccare
+// un'impostazione.
 const GEMME = ["rubino", "ambra", "giada", "opale", "zaffiro", "onice", "perla", "agata", "topazio", "berillo"];
-document.querySelector("#room-create")!.addEventListener("click", () => {
-  const name = `${GEMME[Math.floor(Math.random() * GEMME.length)]}-${Math.floor(1000 + Math.random() * 9000)}`;
-  roomInput.value = name;
-  join(name, relayInput.value);
-});
+
+/**
+ * Entrare in una stanza al posto dovuto: A chi la crea, B chi entra. Se il
+ * posto è già quello, si entra e si passa al nome; se no la pagina riparte
+ * con stanza e posto nell'indirizzo — il posto decide quale metà è «tua» e
+ * cosa puoi toccare, e si rilegge tutto da capo invece di ricucire le viste
+ * già montate (è la stessa strada del link d'invito).
+ */
+function enterRoomAs(room: string, seat: Seat): void {
+  if (mySeat === seat) {
+    roomInput.value = room;
+    join(room, relayInput.value);
+    obProfile();
+    return;
+  }
+  store.write("seat", seat);
+  store.write("room", room);
+  store.write("relay", relayInput.value);
+  const next = new URL(location.href);
+  next.search = "";
+  next.searchParams.set("room", room);
+  next.searchParams.set("seat", seat);
+  location.href = next.href;
+}
 async function copyInvite(button: HTMLButtonElement, resetKey: string): Promise<void> {
   const room = roomInput.value.trim();
   if (!room) return;
@@ -896,9 +928,6 @@ async function copyInvite(button: HTMLButtonElement, resetKey: string): Promise<
   }
   window.setTimeout(() => (button.textContent = t(resetKey)), 1600);
 }
-document.querySelector("#room-invite")!.addEventListener("click", function (this: HTMLButtonElement) {
-  void copyInvite(this, "copylink");
-});
 document.querySelector("#ob-wait-invite")!.addEventListener("click", function (this: HTMLButtonElement) {
   void copyInvite(this, "html.ob.wait.invite");
 });
@@ -1079,15 +1108,6 @@ document.addEventListener("keydown", event => {
   if (event.key === "Escape") settingsPanel.hidden = true;
 });
 
-seatPick.addEventListener("change", () => {
-  // Il posto decide quale metà è "tua" e cosa puoi toccare: si rilegge tutto
-  // da capo invece di ricucire le viste già montate.
-  store.write("seat", seatPick.value);
-  const next = new URL(location.href);
-  next.searchParams.set("seat", seatPick.value);
-  location.href = next.href;
-});
-
 // Il tema del tavolo è tutto CSS: si stampa sul body e il foglio fa il resto.
 // È un vestito del client, non dello stato: ognuno gioca col tema suo.
 // Il chiaro è il tema di casa (scelta del designer, 2026-09-07): chi non ha
@@ -1149,11 +1169,11 @@ frameBoard();
 if (roomInput.value) join(roomInput.value, relayInput.value);
 
 // ------------------------------------------------------------ onboarding
-// Al primo arrivo (nessuna stanza nota) il tavolo non si spiega da solo:
-// il wizard accompagna dentro — stanza, poi nome e mazzo. Chi arriva con
-// una stanza (salvata o da link d'invito) ma senza mazzo parte dal secondo
-// passo; chi ha già tutto non lo vede.
-const obStepRoom = document.querySelector<HTMLElement>("#ob-step-room")!;
+// Al primo arrivo (nessuna stanza nota) si parte dalla home: le quattro
+// carte d'ingresso. Da lì il velo accompagna dentro — nome e mazzo, poi
+// (in stanza) l'attesa dell'altro. Chi arriva con una stanza (salvata o da
+// link d'invito) ma senza mazzo parte dal nome; chi ha già tutto non vede
+// nulla di tutto questo.
 const obStepProfile = document.querySelector<HTMLElement>("#ob-step-profile")!;
 const obRoom = document.querySelector<HTMLInputElement>("#ob-room")!;
 const obName = document.querySelector<HTMLInputElement>("#ob-name")!;
@@ -1162,9 +1182,9 @@ const obDeckB = document.querySelector<HTMLSelectElement>("#ob-deck-b")!;
 const obDeckBLabel = document.querySelector<HTMLElement>("#ob-deck-b-label")!;
 const obRoomNote = document.querySelector<HTMLElement>("#ob-room-note")!;
 
-for (const option of deckPick.options) {
-  obDeck.append(new Option(option.textContent ?? "", option.value));
-  obDeckB.append(new Option(option.textContent ?? "", option.value));
+for (const deck of allDecks()) {
+  obDeck.append(new Option(deckName(deck.id), deck.id));
+  obDeckB.append(new Option(deckName(deck.id), deck.id));
 }
 if (myDeckId) obDeck.value = myDeckId;
 // All'avversario locale un mazzo diverso dal tuo, se ce n'è più d'uno.
@@ -1179,7 +1199,6 @@ function obProfile(mode: "net" | "bot" = "net"): void {
   obMode = mode;
   const twoDecks = mode === "bot";
   onboard.hidden = false;
-  obStepRoom.hidden = true;
   obStepWait.hidden = true;
   obStepProfile.hidden = false;
   obDeckB.hidden = !twoDecks;
@@ -1193,9 +1212,7 @@ function obProfile(mode: "net" | "bot" = "net"): void {
 
 document.querySelector("#ob-create")!.addEventListener("click", () => {
   const name = `${GEMME[Math.floor(Math.random() * GEMME.length)]}-${Math.floor(1000 + Math.random() * 9000)}`;
-  roomInput.value = name;
-  join(name, relayInput.value);
-  obProfile();
+  enterRoomAs(name, "a");
 });
 
 document.querySelector("#ob-join")!.addEventListener("click", () => {
@@ -1204,9 +1221,7 @@ document.querySelector("#ob-join")!.addEventListener("click", () => {
     obRoom.focus();
     return;
   }
-  roomInput.value = room;
-  join(room, relayInput.value);
-  obProfile();
+  enterRoomAs(room, "b");
 });
 obRoom.addEventListener("keydown", event => {
   if (event.key === "Enter") document.querySelector<HTMLButtonElement>("#ob-join")!.click();
@@ -1221,17 +1236,149 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
     dispatch({ t: "player", seat: mySeat, patch: { name } });
   }
   if (obDeck.value) {
-    deckPick.value = obDeck.value;
     myDeckId = obDeck.value;
     store.write("deck", obDeck.value);
   }
+  paintHello();
+  paintResume();
   onboard.hidden = true;
-  if (obMode === "bot") startBot(obDeckB.value);
+  if (obMode === "bot") {
+    home.hidden = true;
+    startBot(obDeckB.value);
+  }
   // In stanza il tavolo si apre solo quando c'è anche l'altro giocatore:
-  // il mazzo si mette giù ora o al suo arrivo.
+  // il mazzo si mette giù ora o al suo arrivo (la home resta dietro al velo).
   if (obMode === "net") seatOrWait();
   else if (myDeckId) loadDeck(myDeckId, mySeat);
 });
+
+// Il saluto in home: il nome salvato e il conto delle partite contro il
+// bot (`stats`, nel browser: si scrive a ogni fine partita per PV).
+const homeHello = document.querySelector<HTMLElement>("#home-hello")!;
+function readStats(): { games: number; wins: number } {
+  try {
+    const parsed = JSON.parse(store.read("stats", "")) as { games?: number; wins?: number };
+    return { games: parsed.games ?? 0, wins: parsed.wins ?? 0 };
+  } catch {
+    return { games: 0, wins: 0 };
+  }
+}
+function recordBotGame(won: boolean): void {
+  const stats = readStats();
+  stats.games += 1;
+  if (won) stats.wins += 1;
+  store.write("stats", JSON.stringify(stats));
+  paintHello();
+}
+function paintHello(): void {
+  const name = store.read("name", "");
+  const stats = readStats();
+  const hello = name ? t("html.home.hello", { name }) : t("html.home.hello.new");
+  const record = stats.games === 0 ? "" : t(stats.games === 1 ? "html.home.record.one" : "html.home.record", { games: stats.games, wins: stats.wins });
+  homeHello.textContent = record ? `${hello} ${record}` : hello;
+}
+
+// «Riprendi con …»: nome e mazzo già salvati, si va al tavolo con un click,
+// il bot col mazzo diverso dal tuo (o lo stesso, se è l'unico). Il tasto
+// «Nuova partita» resta sotto e passa da nome e mazzo.
+const obResume = document.querySelector<HTMLButtonElement>("#ob-resume")!;
+const obBot = document.querySelector<HTMLButtonElement>("#ob-bot")!;
+function paintResume(): void {
+  const deck = myDeckId ? getDeck(myDeckId) : undefined;
+  const ready = Boolean(store.read("name", "") && deck);
+  obResume.hidden = !ready;
+  obBot.classList.toggle("home-secondary", ready);
+  if (deck) obResume.textContent = t("html.home.resume", { deck: deck.locales[lang()]?.name ?? deck.locales[deck.defaultLocale]?.name ?? deck.id });
+}
+obResume.addEventListener("click", () => {
+  if (!myDeckId) return;
+  const botDeck = allDecks().find(deck => deck.id !== myDeckId) ?? getDeck(myDeckId);
+  if (!botDeck) return;
+  home.hidden = true;
+  startBot(botDeck.id);
+  loadDeck(myDeckId, mySeat);
+});
+// La carta «Contro il computer» apre il gesto giusto: Riprendi se c'è, se
+// no Nuova partita.
+document.querySelector<HTMLElement>("#home-solo")!.dataset.openWith = "ob-bot";
+paintHello();
+paintResume();
+
+// I mazzi, per chi gioca: la vista che si apre dalla carta «Mazzi».
+// «Gioca con questo mazzo» lo sceglie e passa dal nome (poi il bot).
+const mazzi = mountMazzi(
+  document.querySelector<HTMLElement>("#mazzi")!,
+  deckId => {
+    mazzi.close();
+    myDeckId = deckId;
+    store.write("deck", deckId);
+    obDeck.value = deckId;
+    paintResume();
+    obProfile("bot");
+  },
+  () => {}
+);
+document.querySelector("#home-decks-go")!.addEventListener("click", () => mazzi.open());
+
+// Le carte della home: l'illustrazione di sfondo e il tocco. Lo sfondo è
+// una coppia di file in public/home/ (`data-bg`, senza estensione: <nome>.jpg
+// per gli schermi normali e <nome>@2x.jpg per i Retina, fatti da
+// scripts/home-art.mjs dall'upscale di Midjourney; il browser sceglie con
+// image-set) oppure, finché l'originale manca, l'art di una carta
+// (`data-art`: ridotta a 1040px per il sito, su una colonna alta sfoca). Una carta con `data-open-with` è un unico gesto (il suo tasto);
+// le altre si aprono al tocco, per chi non ha un mouse da passarci sopra.
+// Le carte in grigio (is-off) non rispondono.
+const homeCards = [...home.querySelectorAll<HTMLElement>(".home-card")];
+for (const card of homeCards) {
+  const art = card.querySelector<HTMLElement>(".home-art");
+  if (art && card.dataset.bg) art.style.backgroundImage = homeArtSet(card.dataset.bg);
+  else if (art && card.dataset.art) art.style.backgroundImage = `url("${artUrl(card.dataset.art)}")`;
+  // `data-pos`: dove cade il ritaglio (background-position), quando il
+  // soggetto non sta al centro del quadro.
+  if (art && card.dataset.pos) art.style.backgroundPosition = card.dataset.pos;
+  // `data-fit`: l'illustrazione non copre tutta la colonna ma solo quella
+  // quota d'altezza, appesa in alto — si vede più quadro (è l'unico modo di
+  // «allontanare» un 16:9 in una carta verticale); il fondo che resta
+  // scoperto sfuma nel nero della zona del testo (is-fit, style.css).
+  if (art && card.dataset.fit) {
+    const [x = "50%"] = (card.dataset.pos ?? "").split(" ");
+    art.style.backgroundSize = `auto ${card.dataset.fit}`;
+    art.style.backgroundPosition = `${x} top`;
+    card.classList.add("is-fit");
+  }
+  card.addEventListener("click", event => {
+    if (card.classList.contains("is-off")) return;
+    const target = event.target as HTMLElement;
+    if (target.closest("button, input, select, a")) return;
+    const go = card.dataset.openWith;
+    if (go) {
+      // Contro il computer: se c'è «Riprendi», è quello il gesto della carta.
+      // (Il click sul tasto porta con sé lo scatto, come ogni tasto.)
+      if (go === "ob-bot" && !obResume.hidden) obResume.click();
+      else document.getElementById(go)?.click();
+      return;
+    }
+    // Aprire o chiudere una carta al tocco è un gesto come un tasto: scatta.
+    playSound("button");
+    for (const other of homeCards) other.classList.toggle("is-open", other === card && !card.classList.contains("is-open"));
+    if (card.classList.contains("is-open")) card.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
+  });
+}
+/** L'image-set dei due file di uno sfondo della home (1x e 2x); dove il
+    browser non lo conosce, il solo 1x. */
+function homeArtSet(base: string): string {
+  const one = new URL(`${base}.jpg`, document.baseURI).href;
+  const two = new URL(`${base}@2x.jpg`, document.baseURI).href;
+  const set = `url("${one}") 1x, url("${two}") 2x`;
+  if (CSS.supports("background-image", `image-set(${set})`)) return `image-set(${set})`;
+  if (CSS.supports("background-image", `-webkit-image-set(${set})`)) return `-webkit-image-set(${set})`;
+  return `url("${one}")`;
+}
+// Il paesaggio dietro la home, con la stessa coppia di file 1x/2x.
+if (home.dataset.bg) home.querySelector<HTMLElement>(".home-bg")!.style.backgroundImage = homeArtSet(home.dataset.bg);
+function closeHomeCards(): void {
+  for (const card of homeCards) card.classList.remove("is-open");
+}
 
 /**
  * «Esci dal tavolo»: si lascia la stanza (o si congeda il bot), il tavolo
@@ -1251,14 +1398,29 @@ function leaveTable(): void {
   store.write("room", "");
   roomInput.value = "";
   obRoom.value = "";
+  // Fuori dalla stanza il posto torna A (chi crea la prossima è A); se qui si
+  // era B, la pagina riparte: il posto è cucito in ogni vista.
+  if (mySeat !== "a") {
+    store.write("seat", "a");
+    const next = new URL(location.href);
+    next.search = "";
+    location.href = next.href;
+    return;
+  }
   void dispatch({ t: "newGame", active: randomSeat() });
+  // Il nome dell'altro posto si cancella IN LOCALE (commit, non dispatch):
+  // è una scritta, non un gesto di gioco, e l'arbitro fermerebbe un'azione
+  // dell'altro posto fuori dal suo turno — col sigillo sopra la home.
   const foe = otherSeat(mySeat);
-  void dispatch({ t: "player", seat: foe, patch: { name: "" } });
+  commit({ t: "player", seat: foe, patch: { name: "" } });
+  document.querySelector(".engine-stop")?.remove();
   reapplyName();
-  onboard.hidden = false;
-  obStepRoom.hidden = false;
+  onboard.hidden = true;
   obStepProfile.hidden = true;
   obStepWait.hidden = true;
+  closeHomeCards();
+  mazzi.close();
+  showHome();
   settingsPanel.hidden = true;
   paint();
 }
@@ -1297,9 +1459,31 @@ function mountAudioToggle(id: string, key: string, onKey: string, offKey: string
 mountAudioToggle("sound-toggle", "sound", "html.sound.on", "html.sound.off", setSoundEnabled);
 mountAudioToggle("music-toggle", "music", "html.music.on", "html.music.off", setMusicEnabled);
 
+/** «Uscire dalla partita?» — il sigillo del gioco, non un alert del browser. */
+function askLeave(titleKey: string, textKey: string, yesKey: string): Promise<boolean> {
+  return askConfirm({ title: t(titleKey), text: t(textKey), yes: t(yesKey), no: t("ask.stay") });
+}
 document.querySelector("#do-leave")!.addEventListener("click", () => {
-  if (!confirm(t("html.leave.confirm"))) return;
-  leaveTable();
+  void askLeave("ask.leave.title", "html.leave.confirm", "ask.leave.yes").then(yes => {
+    if (yes) leaveTable();
+  });
+});
+
+// Il marchio riporta alla home. Dalla vista dei mazzi o dal velo
+// dell'accoglienza si torna e basta; al tavolo (stanza o bot) si chiede,
+// perché la partita in corso si chiude.
+document.querySelector("#brand-home")!.addEventListener("click", () => {
+  if (!home.hidden) {
+    mazzi.close();
+    onboard.hidden = true;
+    obStepProfile.hidden = true;
+    obStepWait.hidden = true;
+    if (awaitingPeer || roomInput.value.trim()) leaveTable();
+    return;
+  }
+  void askLeave("ask.home.title", "html.brand.confirm", "ask.home.yes").then(yes => {
+    if (yes) leaveTable();
+  });
 });
 
 // ------------------------------------------------------------------ il bot
@@ -1451,7 +1635,14 @@ async function botStep(bot: Seat): Promise<boolean> {
 }
 
 if (!roomInput.value.trim()) {
-  onboard.hidden = false;
+  showHome();
 } else if (!myDeckId) {
+  showHome();
   obProfile();
+} else {
+  // Stanza e mazzo già noti (link d'invito, o il cambio posto entrando in
+  // una stanza): si aspetta l'altro giocatore, e il mazzo si mette giù
+  // quando c'è — o subito, se c'è già.
+  showHome();
+  seatOrWait();
 }

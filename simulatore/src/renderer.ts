@@ -82,6 +82,11 @@ interface ThemesModule {
 // gioco è la radice, il catalogo sotto /catalog). Lo dice vite.config.ts.
 const SITE_UI = new URL((import.meta.env.VITE_CARDS_UI as string | undefined) ?? "../cards/ui/", document.baseURI);
 
+/** L'illustrazione di una carta (docs/cards/art), per gli sfondi della home. */
+export function artUrl(cardId: string): string {
+  return new URL(`../art/${cardId.toLowerCase()}.jpg`, SITE_UI).href;
+}
+
 let renderer: RendererModule;
 let catalog: CatalogModule;
 let themes: ThemesModule;

@@ -27,12 +27,11 @@ npm run dev          # la pagina: http://localhost:5199/simulatore/
 node scripts/relay.mjs   # il ponte fra i due giocatori (porta 8787)
 ```
 
-Poi, nella pagina: si sceglie un **Posto** (A o B), si scrive lo stesso nome di
-**Stanza** su entrambi i browser, si preme **Entra**, e infine **Carica mazzo**.
-La spia accanto a "Entra" diventa verde quando la stanza è collegata.
-
-> L'ordine conta: prima si entra nella stanza, poi si carica il mazzo. Chi entra
-> per ultimo riceve la lavagna già in corso da chi c'era.
+Poi, dalla home, carta **Multigiocatore**: uno **crea la stanza** (ed è il
+posto A), l'altro **entra** col nome della stanza o dal link d'invito (ed è
+il posto B). Il posto non si sceglie: lo decide la porta da cui si entra.
+Poi ciascuno mette nome e mazzo; la spia della rete in barra diventa verde
+quando la stanza è collegata, e il tavolo si apre quando ci sono entrambi.
 
 Per giocare fuori dalla propria macchina serve che il relay sia raggiungibile
 dall'avversario: in LAN basta `npm run dev -- --host` e mettere l'IP del
@@ -44,11 +43,12 @@ il relay va messo su un host pubblico — vedi "Giocare online", sotto.
 La pagina pubblicata (GitHub Pages serve `docs/`, simulatore compreso) parla
 con un relay pubblico. Il flusso per chi gioca è due gesti:
 
-1. **Crea stanza** (impostazioni → Invito): inventa un nome difficile da
-   indovinare ed entra;
-2. **Copia link**: il link porta stanza, posto opposto e relay — chi lo apre
-   è dentro, seduto dall'altra parte, senza toccare un'impostazione. Chi
-   conosce il nome della stanza può comunque entrare a mano.
+1. **Crea una stanza** (home → Multigiocatore): inventa un nome difficile
+   da indovinare ed entra, al posto A;
+2. **Copia il link d'invito** (nell'attesa dell'altro): il link porta
+   stanza, posto opposto e relay — chi lo apre è dentro, seduto dall'altra
+   parte, senza toccare un'impostazione. Chi conosce il nome della stanza
+   può comunque entrare a mano, al posto B.
 
 Il relay pubblico si mette su con **Render**: dashboard → New + → Blueprint →
 questo repo. Il `render.yaml` alla radice fa tutto (`node scripts/relay.mjs`,
@@ -62,9 +62,54 @@ Il relay resta stupido: ripete i messaggi della stanza e non sa nulla del
 gioco. Niente account, niente lista stanze pubblica: si gioca con chi
 conosce il nome della stanza, come a un tavolo privato.
 
+## La home
+
+Al primo arrivo (nessuna stanza salvata) si apre la **home**: sotto
+l'header, senza scorrere, cinque carte verticali in fila con le
+illustrazioni del set, e sopra un saluto col nome salvato e il conto delle
+partite contro il bot (`stats` nel browser: partite e vittorie, scritte a
+ogni fine partita per PV). Al passaggio del mouse una carta si allarga e
+scopre il suo contenuto (al tocco, dove il mouse non c'è): **Contro il
+computer** parte subito — con nome e mazzo già salvati il gesto è «Riprendi
+con «mazzo»», bot col mazzo diverso dal tuo, e «Nuova partita» passa dal
+wizard; **Multigiocatore** ha dentro «Crea una stanza» e «Entra» in una
+che si conosce; **Mazzi** apre la vista dei mazzi (sotto); **Evento** e
+**Torneo** aspettano in grigio, più stretti. Dalla carta scelta si
+passa al velo dell'accoglienza — nome e mazzo, poi in stanza l'attesa
+dell'altro — con la home sfocata alle spalle. Chi arriva con una stanza
+salvata o da un link d'invito la salta. Markup in `index.html` (`#home`,
+classi `home-*`), stili in `src/style.css`.
+
+Gli **sfondi** delle carte non sono le art del catalogo (ridotte a 1040px
+per la carta: stirate su una colonna alta sfocano) ma file propri in
+`public/home/`, due per sfondo — `<nome>.jpg` alto al massimo 1080px per gli
+schermi normali e `<nome>@2x.jpg` fino a 2160px per i Retina — che il
+browser sceglie con `image-set`. Li produce `scripts/home-art.mjs` dall'upscale
+di Midjourney (2912×1632):
+
+```sh
+node scripts/home-art.mjs ~/Downloads/<upscale>.png rhen   # → public/home/rhen.jpg + rhen@2x.jpg
+```
+
+La carta li indica con `data-bg="home/rhen"`; una carta senza sfondo proprio
+ripiega sull'art di una carta del set (`data-art`, via `artUrl` in
+`src/renderer.ts`).
+
+### I mazzi
+
+La vista **Mazzi** (`src/mazzi.ts`, sezione `#mazzi`) è per chi gioca, non è
+il catalogo del sito (`/catalog`, strumento di lavoro del team, che potrà
+anche sparire). Un mazzo per stampa: il Rubyfront in copertina disegnato dal
+renderer vero, il nome dal file del mazzo (`data/decks/`), la composizione
+contata dal catalogo, **«Gioca con questo mazzo»** (lo sceglie e
+passa dal nome, poi il bot) e **«Sfoglia le carte»**: tutte le carte a
+tessera, Rubyfront e Nexus per primi poi Entità, Materie e Oggetti per costo,
+con le copie all'angolo e l'ingrandimento al passaggio. Le tessere si
+disegnano solo alla prima apertura. Niente id, stati o note di design.
+
 ## Giocare contro il bot
 
-Dall'accoglienza, **«Gioca contro il bot»**: si sceglie il proprio mazzo e
+Dalla home, **«Contro il computer»**: si sceglie il proprio mazzo e
 quello del bot, e l'altra metà del tavolo la gioca lui — senza stanza, con
 l'arbitro acceso se c'è. È l'unica via senza stanza: la partita locale a
 due posti sullo stesso mouse è stata tolta il 2026-09-07 («ormai c'è il
@@ -97,9 +142,9 @@ prende nota e cambia gesto. Aspetta le aperture (§4) prima di muoversi. In
 locale e col bot, un passo d'effetto è di chi comanda la **fonte**
 dell'effetto (`actorFor`), qualunque carta tocchi.
 
-**Uscire dal tavolo**: dalle impostazioni, «Esci dal tavolo» lascia la
-stanza (o congeda il bot), azzera la partita e
-riporta all'accoglienza. La stanza salvata si dimentica; nome e mazzo
+**Uscire dalla partita**: in barra, «Esci dalla partita» (si vede solo al
+tavolo) lascia la stanza (o congeda il bot), azzera la partita e riporta
+alla home; il posto torna A. La stanza salvata si dimentica; nome e mazzo
 restano.
 
 ## Suoni e cursore
@@ -170,10 +215,12 @@ pubblico. Per LAN e reti domestiche normali basta.
 per nome e per testo: si clicca la carta e va in mano. Alla chiusura il mazzo
 si rimescola.
 
-L'header è scarno: marchio, stato della rete, **Nuova partita** e
-l'**ingranaggio delle impostazioni** — mazzo da caricare, posto, stanza e
-invito, relay, sincronizzazione, vista, tema, lingua. Si apre col click, si
-chiude con un click fuori o con Esc.
+L'header è scarno: marchio, stato della rete, **Esci dalla partita** (in
+rubino, solo al tavolo) e l'**ingranaggio delle impostazioni** — solo
+preferenze: relay, engine, sincronizzazione, suoni, microfono, vista, tema,
+lingua. Mazzo, posto e stanza si scelgono dalla home. La partita nuova la
+offre l'insegna finale. Si apre col click, si chiude con un click fuori o
+con Esc.
 
 ## La vista compatta
 
