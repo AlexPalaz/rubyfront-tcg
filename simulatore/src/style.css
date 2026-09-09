@@ -1945,6 +1945,22 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 .overlay-item .tile:hover { outline: 2px solid var(--ruby); }
 .overlay-empty { grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--muted); }
 
+/* ------------------------------------------------------------ sipario
+   Nero sopra tutto (barra compresa), che cala e si alza in dissolvenza;
+   finché c'è, assorbe i click. I tempi li detta main.ts (curtainInto). */
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 9950;
+  background: #000;
+  opacity: 0;
+  transition: opacity .6s ease;
+}
+.curtain.is-down { opacity: 1; }
+.curtain.is-rising { transition-duration: .8s; }
+.curtain[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .curtain { transition: none; } }
+
 /* -------------------------------------------------------------- boot */
 
 .boot {
@@ -2932,6 +2948,8 @@ body[data-ui-theme^="chiaro"] .half {
    dell'accoglienza si torna con «Esci dalla stanza». */
 #do-leave.home-primary { padding: 7px 14px; font-size: 1rem; }
 body:has(.home:not([hidden])) #do-leave { display: none; }
+/* Evoca, chat e microfono sono gesti di partita: in home non ci sono. */
+body:has(.home:not([hidden])) #game-tools { display: none; }
 
 /* Il velo copre tutto, HUD compreso: finché non si è scelta la porta
    d'ingresso il tavolo aspetta. */

@@ -1233,16 +1233,59 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
   }
   paintHello();
   paintResume();
-  onboard.hidden = true;
   if (obMode === "bot") {
-    home.hidden = true;
-    startBot(obDeckB.value);
+    // Col bot si passa dal sipario: il velo e la home spariscono al buio.
+    const botDeck = obDeckB.value;
+    const deckId = myDeckId;
+    curtainInto(() => {
+      startBot(botDeck);
+      if (deckId) loadDeck(deckId, mySeat);
+    });
+    return;
   }
+  onboard.hidden = true;
   // In stanza il tavolo si apre solo quando c'è anche l'altro giocatore:
   // il mazzo si mette giù ora o al suo arrivo (la home resta dietro al velo).
-  if (obMode === "net") seatOrWait();
-  else if (myDeckId) loadDeck(myDeckId, mySeat);
+  seatOrWait();
 });
+
+// Il sipario verso la partita col bot: il nero cala sulla home (.6s), resta
+// giù due secondi — intanto home e velo spariscono e sotto c'è il tavolo
+// vuoto —, poi si alza (.8s) e, appena comincia ad alzarsi, la partita
+// parte (bot, mazzo, insegna «Fase di Preparazione»): così la Preparazione
+// si vede nascere sul tavolo che affiora, non al buio. La musica della home
+// sfuma col nero; quella del tavolo attacca con la partita (dopo il suo
+// silenzio, sound.ts).
+const curtain = document.querySelector<HTMLElement>("#curtain")!;
+const CURTAIN_FALL_MS = 600;
+const CURTAIN_HOLD_MS = 2000;
+const CURTAIN_RISE_MS = 800;
+const CURTAIN_START_AFTER_MS = 250;
+function curtainInto(begin: () => void): void {
+  curtain.hidden = false;
+  curtain.classList.remove("is-rising");
+  stopMusic();
+  // Da display:none il browser non ha uno stile «prima» da cui partire, e
+  // il nero calerebbe di colpo: si forza un calcolo di stile a sipario
+  // trasparente, poi si abbassa.
+  void curtain.offsetWidth;
+  curtain.classList.add("is-down");
+  window.setTimeout(() => {
+    home.hidden = true;
+    onboard.hidden = true;
+    mazzi.close();
+    paint();
+  }, CURTAIN_FALL_MS);
+  window.setTimeout(() => {
+    curtain.classList.add("is-rising");
+    curtain.classList.remove("is-down");
+    window.setTimeout(begin, CURTAIN_START_AFTER_MS);
+    window.setTimeout(() => {
+      curtain.hidden = true;
+      curtain.classList.remove("is-rising");
+    }, CURTAIN_RISE_MS + 50);
+  }, CURTAIN_FALL_MS + CURTAIN_HOLD_MS);
+}
 
 // Il saluto in home: il nome salvato e il conto delle partite contro il
 // bot (`stats`, nel browser: si scrive a ogni fine partita per PV).
@@ -1290,9 +1333,11 @@ obResume.addEventListener("click", () => {
   if (!myDeckId) return;
   const botDeck = allDecks().find(deck => deck.id !== myDeckId) ?? getDeck(myDeckId);
   if (!botDeck) return;
-  home.hidden = true;
-  startBot(botDeck.id);
-  loadDeck(myDeckId, mySeat);
+  const deckId = myDeckId;
+  curtainInto(() => {
+    startBot(botDeck.id);
+    loadDeck(deckId, mySeat);
+  });
 });
 // La carta «Contro il computer» apre il gesto giusto: Riprendi se c'è, se
 // no Nuova partita.
