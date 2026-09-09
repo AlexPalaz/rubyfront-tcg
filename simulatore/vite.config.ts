@@ -62,6 +62,10 @@ function serveSiteCards(): Plugin {
         if (!info.isFile()) return next();
         response.setHeader("Content-Type", MIME[extname(file).toLowerCase()] ?? "application/octet-stream");
         response.setHeader("Content-Length", String(info.size));
+        // In sviluppo i fogli e i moduli del catalogo cambiano di continuo:
+        // niente cache, o il simulatore (che carica card.css a runtime) e le
+        // pagine del catalogo restano sul vecchio finché non si svuota a mano.
+        response.setHeader("Cache-Control", "no-cache");
         createReadStream(file).pipe(response);
       });
     },

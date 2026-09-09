@@ -29,6 +29,8 @@ function createFace(card, face, cardCopy, themeId, localeId) {
   const visual = element("div", `card ${face.kind === "nexus" ? "nexus " : ""}${themeId}`);
   if (LIGHT_THEMES.has(themeId)) visual.classList.add("light-theme");
   if (CATHEDRAL_THEMES.has(themeId)) visual.classList.add("cathedral");
+  const matterTint = tintFor(face);
+  if (matterTint) visual.classList.add(`mat-${matterTint}`);
   visual.dataset.faceId = face.id;
 
   // Rubyfront e Nexus vanno a tutta illustrazione: l'immagine fa da sfondo
@@ -475,6 +477,19 @@ function createTextBox(face, faceCopy, cardCopy, localeId) {
 
   if (faceCopy.flavor) box.append(element("p", "flavor", faceCopy.flavor));
   return box;
+}
+
+// La TINTA della faccia secondo la sua Materia: la Materia della carta
+// Materia stessa oppure quelle che la faccia abilita. Distruttiva vince su
+// Dimensionale, che vince su Dinamica (decisione del designer, 2026-09-09).
+// Senza Materia (Entità e Oggetti che non abilitano nulla) la tinta è la
+// Dinamica (decisione del designer, 2026-09-09). I temi la leggono come
+// classe `mat-*`.
+const TINT_ORDER = ["destructive", "dimensional", "dynamic"];
+function tintFor(face) {
+  const types = new Set((face.enablesMatters ?? []).map((matter) => matter.type));
+  if (face.matter?.type) types.add(face.matter.type);
+  return TINT_ORDER.find((type) => types.has(type)) ?? "dynamic";
 }
 
 function createMatter(matter, cardCopy) {

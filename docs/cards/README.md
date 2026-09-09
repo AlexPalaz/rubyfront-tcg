@@ -48,6 +48,13 @@ ottagonale con la gemma di rubino in cuspide, nome a doppio filo, riquadro
 del testo inciso — e palette diverse. Il renderer aggiunge la classe
 `cathedral` (`CATHEDRAL_THEMES`), e `card.css` veste la struttura una volta
 sola (`.cathedral …`); una palette nuova è solo un blocco di variabili.
+Il renderer aggiunge anche la **tinta della Materia** come classe `mat-*`
+(`destructive`, `dimensional`, `dynamic`), letta dalla Materia della carta o
+da quelle che la faccia abilita; Distruttiva vince su Dimensionale, che vince
+su Dinamica; chi non ha Materia (Entità e Oggetti che non abilitano nulla) è Dinamica. Il tema Rubino (t49) la
+usa: tutto ciò che è rosso resta rubino per la Distruttiva, diventa bianco
+argento per la Dinamica e blu per la Dimensionale (crepe al neon comprese,
+con nuclei SVG e bagliore PNG in tre tinte).
 Le palette sono **materiali con la loro luce**, a sfumature discrete:
 `--card-*` il fondo della carta (alto→basso), `--stone-*` la pietra della
 cornice (luce radente), `--band-*` la banda del nome, `--panel-*` il riquadro
