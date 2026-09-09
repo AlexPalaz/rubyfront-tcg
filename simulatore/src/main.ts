@@ -21,7 +21,7 @@ import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
 import { PHASE_BANNER_MS, mountPhaseBanner } from "./banner.js";
 import { showRoll } from "./dice.js";
-import { showEnterPeek } from "./effect.js";
+import { showEnterEffect, showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
 import { musicState, playSound, setMusicEnabled, setSoundEnabled, startMusic, stopMusic, unlockSound } from "./sound.js";
 import { endPhase } from "./turn.js";
@@ -271,7 +271,10 @@ function peekReveal(action: Action): void {
   if (action.t !== "look" || !action.reveal) return;
   const card = state.cards[action.reveal];
   if (!card || card.owner === mySeat) return;
-  void showEnterPeek(document.querySelector<HTMLElement>("#table")!, {
+  // La carta mostrata resta finché non si preme «Continua» (deciso
+  // 2026-09-09): è una carta da leggere, non un lampo che passa da sé come
+  // la giocata avversaria (showEnterPeek).
+  void showEnterEffect(document.querySelector<HTMLElement>("#table")!, {
     cardId: card.cardId,
     face: card.face,
     theme: themes[card.owner],
