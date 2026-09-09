@@ -24,6 +24,12 @@ const MIME: Record<string, string> = {
   ".svg": "image/svg+xml",
   ".webp": "image/webp",
   ".md": "text/markdown; charset=utf-8",
+  // Le pagine del catalogo (docs/cards/ui/*.html) e i loro font: senza il
+  // tipo giusto Chrome scaricava l'HTML invece di aprirlo (2026-09-09).
+  ".html": "text/html; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8",
+  ".woff2": "font/woff2",
+  ".woff": "font/woff",
 };
 
 /** In sviluppo monta docs/cards su /cards, come sul sito pubblicato. */
