@@ -1996,25 +1996,37 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   z-index: 99998;
   pointer-events: none;
 }
-/* Il pannello: un vetro scuro al centro della carta, i tasti in colonna,
-   larghi uguali. */
+/* La carta con un gesto disponibile: l'anello rubino che respira. */
+.tile.has-actions { box-shadow: 0 0 0 2px rgba(224, 49, 75, .9), 0 0 18px rgba(224, 49, 75, .55), 0 8px 22px rgba(0, 0, 0, .6); animation: has-actions-breathe 2.2s ease-in-out infinite; }
+@keyframes has-actions-breathe {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(224, 49, 75, .75), 0 0 10px rgba(224, 49, 75, .35), 0 8px 22px rgba(0, 0, 0, .6); }
+  50% { box-shadow: 0 0 0 2px rgba(224, 49, 75, 1), 0 0 26px rgba(224, 49, 75, .8), 0 8px 22px rgba(0, 0, 0, .6); }
+}
+/* Il velo: grande quanto la carta, chiuso finché non ci si passa sopra; da
+   aperto copre la carta con un vetro scuro e mette i tasti in colonna, al
+   centro, larghi uguali. */
 .combat-tabs {
   position: absolute;
   display: flex;
   flex-direction: column;
-  gap: calc(8px * var(--ui-inv));
-  padding: calc(10px * var(--ui-inv));
+  justify-content: center;
+  gap: calc(10px * var(--ui-inv));
+  padding: calc(14px * var(--ui-inv));
+  box-sizing: border-box;
   transform: translate(-50%, -50%);
-  background: rgba(9, 7, 9, .72);
-  border: calc(1px * var(--ui-inv)) solid rgba(255, 255, 255, .18);
-  box-shadow: 0 calc(10px * var(--ui-inv)) calc(30px * var(--ui-inv)) rgba(0, 0, 0, .5);
-  backdrop-filter: blur(3px);
-  pointer-events: auto;
+  background: rgba(9, 7, 9, .8);
+  border: calc(1px * var(--ui-inv)) solid rgba(224, 49, 75, .7);
+  box-shadow: 0 0 0 calc(2px * var(--ui-inv)) rgba(224, 49, 75, .35), 0 calc(10px * var(--ui-inv)) calc(30px * var(--ui-inv)) rgba(0, 0, 0, .5);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .16s ease;
 }
+.combat-tabs.is-open { opacity: 1; pointer-events: auto; }
 .combat-tab {
   pointer-events: auto;
-  min-width: calc(150px * var(--ui-inv));
-  padding: calc(10px * var(--ui-inv)) calc(16px * var(--ui-inv));
+  width: 100%;
+  padding: calc(12px * var(--ui-inv)) calc(10px * var(--ui-inv));
   font-size: calc(1rem * var(--ui-inv));
   font-weight: 700;
   letter-spacing: .12em;
@@ -2029,8 +2041,9 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 }
 .combat-tab:hover { filter: brightness(1.15); }
 .combat-tab.is-counter { color: #1a1206; background: linear-gradient(180deg, #e8b85a, #c8922a); border-color: #f5d68a; box-shadow: 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(200, 146, 42, .45); }
-.combat-tab.is-cancel { color: var(--ink); background: var(--glass-heavy); border-color: var(--line); box-shadow: 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(0, 0, 0, .3); }
-.combat-tab.is-cancel:hover { filter: none; border-color: var(--ruby); }
+.combat-tab.is-cancel { color: #f3edf0; background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .35); box-shadow: none; }
+.combat-tab.is-cancel:hover { filter: none; background: rgba(255, 255, 255, .16); border-color: #ffffff; }
+@media (prefers-reduced-motion: reduce) { .tile.has-actions { animation: none; } .combat-tabs { transition: none; } }
 .arrow-attack { filter: drop-shadow(0 0 9px rgba(210, 74, 100, .85)); }
 .arrow-block { filter: drop-shadow(0 0 9px color-mix(in srgb, var(--foe) 85%, transparent)); }
 .arrow-counter { filter: drop-shadow(0 0 9px rgba(217, 168, 78, .85)); }

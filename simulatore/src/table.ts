@@ -1534,7 +1534,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // l'ha coperta: quel tasto resta, in Reazione, a chi la governa.
     if (card.facedown) {
       if (!targeting && state.phase === "reazione" && declared && declared.kind !== "attack" && ctx.controls(controller)) {
-        return [{ label: t(declared.kind === "counter" ? "menu.counter.undo" : "menu.block.undo"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
+        return [{ label: t("tab.cancel"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
       }
       return [];
     }
@@ -1554,7 +1554,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // Fase di Fronte, il proprio turno: si attacca (§6.3). Il Rubyfront non
     // attacca (§3.1), dichiarano le Entità; una tappata non può.
     if (state.phase === "fronte" && state.active === controller && ctx.controls(controller) && entity) {
-      if (declared?.kind === "attack") return [{ label: t("tab.attack.undo"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
+      if (declared?.kind === "attack") return [{ label: t("tab.cancel"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
       if (!declared && !card.tapped) return [{ label: t("menu.attack"), kind: "attack", run: () => void declareAttack(card) }];
       return [];
     }
@@ -1571,7 +1571,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       ];
     }
     if (controller !== defender) return [];
-    if (declared) return [{ label: t(declared.kind === "counter" ? "menu.counter.undo" : "menu.block.undo"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
+    if (declared) return [{ label: t("tab.cancel"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
     if (!entity || card.tapped || card.cannotBlock) return [];
     const attackers = state.declarations.some(d => d.kind === "attack" && controllerOf(state.cards[d.from]) === state.active);
     if (!attackers) return [];
@@ -1581,20 +1581,47 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     ];
   }
 
-  /** Ridisegna i tasti di combattimento: un pannello sopra la carta, al suo
-      centro, coi tasti in colonna (deciso 2026-09-09: «un overlay con i
-      bottoni, Blocca e Contrattacca a capo»). Il centro non cambia con la
-      tappata: la carta coricata ruota attorno a sé. */
+  /**
+   * Ridisegna i tasti di combattimento. La carta resta pulita: chi ha un
+   * gesto disponibile porta un anello rubino che respira (has-actions), e
+   * al passaggio del mouse (al tocco, su touch) si apre un VELO scuro
+   * grande quanto la carta, coi tasti in colonna, larghi uguali (deciso
+   * 2026-09-09: «un overlay con i bottoni, Blocca e Contrattacca a capo»).
+   * Il velo si chiude quando il puntatore lo lascia. La carta coricata ruota
+   * attorno al suo centro: il velo prende la misura che si vede.
+   */
+  const combatGroups = new Map<string, HTMLElement>();
+  /** La carta col velo aperto: sopravvive ai ridisegni (ogni render rifà i
+      veli), finché il puntatore non lo lascia. */
+  let openCombatUid: string | null = null;
+  function openCombatGroup(uid: string): void {
+    openCombatUid = uid;
+    for (const [other, group] of combatGroups) group.classList.toggle("is-open", other === uid);
+  }
   function paintCombatTabs(): void {
     combatLayer.replaceChildren();
+    combatGroups.clear();
     for (const card of fieldCards(ctx.state())) {
       const tabs = combatTabsFor(card);
+      const tile = tiles.get(card.uid);
+      if (tile) {
+        tile.classList.toggle("has-actions", tabs.length > 0);
+        tile.onpointerenter = tabs.length ? event => { if (event.pointerType !== "touch") openCombatGroup(card.uid); } : null;
+      }
       if (!tabs.length) continue;
       const box = boxOf(card);
       const group = document.createElement("div");
       group.className = "combat-tabs";
       group.style.left = `${box.x + box.w / 2}px`;
       group.style.top = `${box.y + box.h / 2}px`;
+      group.style.width = `${card.tapped ? box.h : box.w}px`;
+      group.style.height = `${card.tapped ? box.w : box.h}px`;
+      group.addEventListener("pointerleave", () => {
+        group.classList.remove("is-open");
+        if (openCombatUid === card.uid) openCombatUid = null;
+      });
+      if (openCombatUid === card.uid) group.classList.add("is-open");
+      combatGroups.set(card.uid, group);
       for (const tab of tabs) {
         const button = document.createElement("button");
         button.type = "button";
@@ -3238,6 +3265,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           const live = ctx.state().cards[card.uid];
           const element = tiles.get(card.uid);
           if (!live || !element || element.classList.contains("is-back")) return;
+          // Una carta coi tasti di combattimento: il tocco apre il velo.
+          if (combatGroups.has(card.uid)) {
+            openCombatGroup(card.uid);
+            return;
+          }
           tapPreview(element, live.cardId, live.face, ctx.themeFor(live.owner), ctx.locale());
         },
       });
