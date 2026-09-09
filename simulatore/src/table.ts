@@ -1621,6 +1621,16 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         if (openCombatUid === card.uid) openCombatUid = null;
       });
       if (openCombatUid === card.uid) group.classList.add("is-open");
+      // In mira, la carta scegliibile si sceglie anche cliccandola: il velo
+      // aperto sta sopra la tessera, e il click sul suo fondo (non sul
+      // tasto) vale come «Con questa» / «Ferma questo».
+      if (targeting && targeting.mode !== "effect" && pickable(card)) {
+        group.addEventListener("click", event => {
+          if ((event.target as HTMLElement).closest("button")) return;
+          event.stopPropagation();
+          confirmBlock(card);
+        });
+      }
       combatGroups.set(card.uid, group);
       for (const tab of tabs) {
         const button = document.createElement("button");
