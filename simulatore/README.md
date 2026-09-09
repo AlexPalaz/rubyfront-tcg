@@ -34,9 +34,10 @@ Poi ciascuno mette nome e mazzo; la spia della rete in barra diventa verde
 quando la stanza è collegata, e il tavolo si apre quando ci sono entrambi.
 
 Per giocare fuori dalla propria macchina serve che il relay sia raggiungibile
-dall'avversario: in LAN basta `npm run dev -- --host` e mettere l'IP del
-computer nel campo del relay (`ws://192.168.x.x:8787`). Per giocare via internet
-il relay va messo su un host pubblico — vedi "Giocare online", sotto.
+dall'avversario: in LAN basta `npm run dev -- --host` e aprire la pagina con
+`?relay=ws://192.168.x.x:8787` (il relay non ha più un campo nelle
+impostazioni: è quello di produzione, o quello del link). Per giocare via
+internet il relay va messo su un host pubblico — vedi "Giocare online", sotto.
 
 ## Giocare online
 
@@ -217,14 +218,16 @@ si rimescola.
 
 L'header è scarno: marchio, stato della rete, **Esci dalla partita** (in
 rubino, solo al tavolo) e l'**ingranaggio delle impostazioni** — solo
-preferenze: relay, engine, sincronizzazione, suoni, microfono, vista, tema,
+preferenze: sincronizzazione, suoni, musica, microfono, vista, tema,
 lingua. Mazzo, posto e stanza si scelgono dalla home. La partita nuova la
 offre l'insegna finale. Si apre col click, si chiude con un click fuori o
 con Esc.
 
 ## La vista compatta
 
-Dalle impostazioni → Vista → «Tavolo»: **il tavolo sta
+Non si sceglie più dalle impostazioni (tolta il 2026-09-09: restano
+«Carte intere · rincasso» e «Carte intere»); il codice resta (`view-compact`)
+per quando servirà su schermi piccoli. Era: **il tavolo sta
 tutto nella finestra, senza scorrere**, e ogni scritta resta a 16px
 qualunque sia la finestra. Sul campo, nelle pile e in mano le carte sono
 **tessere**: l'illustrazione col nome, il costo e la Potenza (o i PV)
@@ -486,8 +489,8 @@ messaggi, non sa cosa sia una carta.
 
 Per giocare via internet va rifatto su un host pubblico (Cloudflare Workers +
 Durable Object, Deno Deploy, o qualunque cosa parli WebSocket). Il client non
-cambia: basta scrivere il nuovo indirizzo nel campo del relay. Il confine è
-tutto in `src/net.ts`.
+cambia: basta il nuovo indirizzo in `DEFAULT_RELAY` (o `?relay=` per
+provarlo). Il confine è tutto in `src/net.ts`.
 
 ## L'engine (sperimentale)
 
@@ -495,10 +498,10 @@ L'arbitro esterno vive in `engine/` alla radice del repo, in Ruby. L'engine dà
 le regole, il poliziotto è il simulatore: ogni azione locale aspetta il
 verdetto prima di applicarsi, e un «no» la blocca con un avviso (le azioni
 senza regola collegata passano come sempre; engine assente = tavolo libero).
-Sta dietro un flag, **acceso di default** (chi l'ha spento apposta resta
-spento): ingranaggio → **Engine** → **Acceso** (la spia quadrata in alto ne
-mostra lo stato; rossa = engine non raggiungibile, e il tavolo resta libero
-come sempre). Per avviarlo:
+È **sempre acceso** (deciso 2026-09-09: via interruttore e indirizzo dalle
+impostazioni; la spia quadrata in alto ne mostra lo stato; rossa = engine
+non raggiungibile, e il tavolo resta libero come sempre). L'indirizzo è
+`DEFAULT_ENGINE` in `src/engine.ts`, o `?engine=` per le prove. Per avviarlo:
 `npm run engine` (oppure `ruby engine/bin/server`, porta 8788). Il confine
 client è tutto in `src/engine.ts`; protocollo, regole collegate e piano di
 crescita sono nel `engine/README.md`.

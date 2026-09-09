@@ -35,22 +35,10 @@
 <!-- Il pannello delle impostazioni: si apre dall'ingranaggio, si chiude con
      un click fuori o con Esc. Solo preferenze: mazzo, posto e stanza si
      scelgono dalla home (il posto da sé: chi crea la stanza è A, chi entra
-     è B). -->
+     è B); relay ed engine non si toccano (l'engine è sempre acceso, gli
+     indirizzi sono quelli di produzione, o ?relay= / ?engine= per le
+     prove). -->
 <div class="settings" id="settings" hidden>
-  <div class="set-row">
-    <span class="set-label">Relay</span>
-    <input id="relay-url" placeholder="ws://localhost:8787" autocomplete="off">
-  </div>
-  <div class="set-row">
-    <span class="set-label">Engine</span>
-    <span class="set-controls">
-      <label class="set-check" title="L'arbitro esterno (engine/): giudica le azioni prima che si applichino; assente, il tavolo resta libero" data-i18n-title="html.engine.tip">
-        <input type="checkbox" id="engine-toggle">
-        <span data-i18n="html.engine.on">Acceso</span>
-      </label>
-      <input id="engine-url" placeholder="ws://localhost:8788" autocomplete="off">
-    </span>
-  </div>
   <div class="set-row">
     <span class="set-label" data-i18n="html.net">Rete</span>
     <button type="button" id="do-push" class="ghost" title="Rimanda il tuo tavolo all'avversario, se le due lavagne si sono disallineate" data-i18n-title="html.sync.tip" data-i18n="html.sync">Sincronizza la lavagna</button>
@@ -73,7 +61,6 @@
     <span class="set-label" data-i18n="html.view">Vista</span>
     <select id="view-pick" title="Come si vede il tavolo" data-i18n-title="html.view.tip">
       <option value="recess" data-i18n="html.view.recess">Carte intere · rincasso: stesso tavolo tutto in vista, pile avversarie a pannello</option>
-      <option value="compact" data-i18n="html.view.compact">Tavolo: tutto in vista, tessere con nome, costo e Potenza; il testo al passaggio</option>
       <option value="full" data-i18n="html.view.full">Carte intere: si legge tutto sul tavolo, si scorre</option>
     </select>
   </div>

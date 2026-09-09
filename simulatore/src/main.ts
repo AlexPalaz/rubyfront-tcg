@@ -459,8 +459,10 @@ const voice = createVoice({
 // La vista va decisa prima di montare il tavolo: le zone nascono già con la
 // geometria giusta. Di default il rincasso — carte intere ovunque e tutto in
 // vista; chi ha scelto un'altra vista la ritrova.
+// La vista compatta («Tavolo») non si sceglie più (tolta dalle impostazioni
+// il 2026-09-09): chi l'aveva salvata torna al rincasso.
 const savedView = store.read("view", "");
-setViewMode(savedView === "full" || savedView === "compact" || savedView === "recess" ? savedView : "recess");
+setViewMode(savedView === "full" || savedView === "recess" ? savedView : "recess");
 
 const table = mountTable(document.querySelector<HTMLElement>("#table")!, ctx);
 // L'insegna di fase sta sul tavolo, sopra le carte: è lì che si guarda.
@@ -831,13 +833,13 @@ function deckName(deckId: string): string {
 // La stanza non ha più un campo nelle impostazioni: si sceglie dalla home.
 // Qui resta il suo valore corrente (link, memoria del browser, o vuoto).
 const roomInput = { value: params.get("room") ?? store.read("room", "") };
-const relayInput = document.querySelector<HTMLInputElement>("#relay-url")!;
+// Il relay non ha un campo nelle impostazioni: è quello di produzione, o
+// arriva dal link d'invito (chi entra così non deve sapere nemmeno che
+// esiste), o da ?relay= per le prove.
+const relayInput = { value: params.get("relay") ?? store.read("relay", DEFAULT_RELAY) };
 const langPick = document.querySelector<HTMLSelectElement>("#lang-pick")!;
 
 langPick.value = locale;
-// Il relay può arrivare dal link d'invito: chi entra così non deve sapere
-// nemmeno che esiste.
-relayInput.value = params.get("relay") ?? store.read("relay", DEFAULT_RELAY);
 
 function doShuffle(): void {
   const order = shuffled(zoneCards(state, mySeat, "deck").map(card => card.uid));
@@ -1002,14 +1004,13 @@ function engineStop(verdict: EngineVerdict): void {
 // dà solo le regole, il poliziotto è il simulatore — trattiene l'azione,
 // e su un «no» la lascia cadere mostrando l'avviso. Le azioni avversarie
 // arrivano già applicate: a quelle va solo un'occhiata (receive).
-const engineToggle = document.querySelector<HTMLInputElement>("#engine-toggle")!;
-const engineUrlInput = document.querySelector<HTMLInputElement>("#engine-url")!;
+// L'arbitro è sempre acceso (deciso 2026-09-09: via l'interruttore e il
+// campo dell'indirizzo dalle impostazioni). L'indirizzo è quello di
+// produzione (DEFAULT_ENGINE), o ?engine= per le prove; un ws:// su una
+// pagina https non può funzionare (contenuto misto) e si ignora.
 const engineDot = document.querySelector<HTMLElement>("#engine-dot")!;
-engineToggle.checked = store.read("engine", "1") === "1";
-// Un indirizzo salvato in `ws://` su una pagina https non può funzionare
-// (contenuto misto): si torna al default di produzione.
-const savedEngineUrl = store.read("engineUrl", "");
-engineUrlInput.value = savedEngineUrl && !(location.protocol === "https:" && savedEngineUrl.startsWith("ws://")) ? savedEngineUrl : DEFAULT_ENGINE;
+const engineParam = params.get("engine")?.trim() ?? "";
+const engineUrl = engineParam && !(location.protocol === "https:" && engineParam.startsWith("ws://")) ? engineParam : DEFAULT_ENGINE;
 
 function setEngineStatus(status: EngineStatus): void {
   engineDot.dataset.status = status;
@@ -1022,12 +1023,11 @@ function setEngineStatus(status: EngineStatus): void {
 function engineApply(): void {
   engine?.close();
   engine = null;
-  engineDot.hidden = !engineToggle.checked;
-  if (!engineToggle.checked) return;
+  engineDot.hidden = false;
   // Il saluto arriva a ogni riconnessione: in chat va una volta sola, salvo
   // che l'engine sia cambiato nel frattempo (versione o regole).
   let welcomed = "";
-  engine = connectEngine(engineUrlInput.value.trim() || DEFAULT_ENGINE, {
+  engine = connectEngine(engineUrl, {
     onStatus: setEngineStatus,
     onWelcome(version, rules) {
       // Il saluto vuol dire connessione (o riconnessione) fresca: l'engine
@@ -1051,14 +1051,6 @@ function engineApply(): void {
   });
 }
 engineApply();
-engineToggle.addEventListener("change", () => {
-  store.write("engine", engineToggle.checked ? "1" : "");
-  engineApply();
-});
-engineUrlInput.addEventListener("change", () => {
-  store.write("engineUrl", engineUrlInput.value.trim());
-  if (engineToggle.checked) engineApply();
-});
 
 // Vista compatta: tessere (illustrazione, nome, costo, Potenza) al posto
 // delle carte, tavolo tutto in vista senza scorrere. Il testo di regole
