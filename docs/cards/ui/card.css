@@ -1355,9 +1355,13 @@
      un vino meno saturo che si scurisce verso i bordi, con la luce che
      entra dall'alto: una sfumatura, non una tinta. */
   .card.cathedral.t49 { border: 4px solid transparent; outline: none; border-radius: 3px;
+    /* La LUCE DI FORGIA: il fondo non sfuma dall'alto in basso ma si accende
+       dietro la gemma in cima — un cuore cremisi che si spegne verso gli
+       angoli, quasi nero — e un riflesso diagonale appena percettibile,
+       nello stesso verso della luce sull'orlo di metallo. */
     background:
-      radial-gradient(120% 90% at 50% -10%, rgba(255,150,170,.2), rgba(0,0,0,0) 55%) padding-box,
-      linear-gradient(180deg, var(--card-hi), var(--card-mid) 55%, var(--card-low)) padding-box,
+      linear-gradient(160deg, rgba(255,170,190,0) 30%, rgba(255,170,190,.07) 46%, rgba(255,170,190,0) 62%) padding-box,
+      radial-gradient(85% 60% at 50% 12%, var(--card-hi) 0%, var(--card-mid) 42%, var(--card-low) 100%) padding-box,
       linear-gradient(160deg, #f4a3b7 0%, #c8264c 22%, #7a1029 48%, #9e1a3c 72%, #f08aa2 100%) border-box;
     box-shadow: inset 0 0 0 1px rgba(255,190,205,.28), 0 0 0 1px #4a0a18, 0 10px 30px rgba(0,0,0,.6); }
   .t49 .textbox { color: #1b1719; --muted: #6a6266; --accent: #8c1a2a; --ruby-light: #9e0f34;
