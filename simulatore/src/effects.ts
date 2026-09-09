@@ -534,6 +534,8 @@ export function attackSteps(state: GameState, attacker: CardInstance, facts: (ca
       if ("attackerArmed" in form && form.attackerArmed && !armed(state, attacker.uid)) continue;
       if (form.kind === "heal" && form.attackers && !(attackerFacts.kind === form.attackers.kind && attackerFacts.race === form.attackers.race)) continue;
       if (form.kind === "heal" && form.requiresAttackers && attackersOf(state, seat, form.requiresAttackers.race, facts).length < form.requiresAttackers.count) continue;
+      // «Se almeno N Umani che controlli attaccano»: gli attaccanti dichiarati in questo turno, la fonte compresa.
+      if (form.kind === "empower" && form.requiresAttackers && attackersOf(state, seat, form.requiresAttackers.race, facts).length < form.requiresAttackers.count) continue;
       if (form.kind === "empower" && form.requiresPreviousAttackers && previousAttackers(state, seat, form.requiresPreviousAttackers.race, facts) < form.requiresPreviousAttackers.count) continue;
       // La Vendetta al PROSSIMO Umano si risolve quando quello attacca (pendingGrants), non ora.
       if (form.kind === "empower" && form.targets === "next_human_attacker") continue;

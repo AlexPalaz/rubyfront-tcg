@@ -420,11 +420,13 @@ Regole collegate finora:
   — «la prossima Entità Umana che attacca ottiene Vendetta fino a fine
   turno» (l'engine pretende che sia il PRIMO Umano dichiarato dopo la
   fonte; la revisione del foglio lo ha riscritto in «se almeno 2 Umani
-  attaccano, un'Entità avversaria non blocca», forma ignota e a mano finché
-  non si collega); il **divieto di blocco** — «se almeno 2 Umani che controlli hanno attaccato nel tuo
-  turno precedente, un'Entità avversaria non può bloccare» (la copia
-  ricorda l'ultima ondata alla risoluzione; il divieto ferma il blocco
-  alla dichiarazione). Gli attrezzi comuni: `empower` (Potenza, parole
+  attaccano, un'Entità avversaria non blocca», che dal 2026-09-09 è il
+  divieto di blocco di questo turno, qui sotto); il **divieto di blocco** — «se almeno 2 Umani che
+  controlli attaccano, un'Entità avversaria non può bloccare in questo
+  turno» (conta gli attaccanti dichiarati in questo turno, la fonte
+  compresa; la forma storica «nel tuo turno precedente» resta letta: la
+  copia ricorda l'ultima ondata alla risoluzione; il divieto ferma il
+  blocco alla dichiarazione). Gli attrezzi comuni: `empower` (Potenza, parole
   chiave, divieto di blocco fino a fine turno, cancellati dal cambio di
   turno), la Potenza in campo nella risoluzione (stampata più bonus) e la
   **Vendetta** (§8.1, stampata o concessa: chi blocca con Vendetta e

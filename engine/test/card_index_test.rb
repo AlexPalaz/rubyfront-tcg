@@ -19,7 +19,6 @@ class CardIndexTest < Minitest::Test
   # vi compare, è una forma rotta o un dato cambiato di nascosto — e il test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBITO = [
-    "RBF-004 entity/avenge",
     "RBF-023 rubyfront/schism-forge",
     "RBF-023 nexus/awakening",
     "RBF-023 nexus/deep-forge-sight",
@@ -134,7 +133,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [], forme.call("RBF-011"), "dal 2026-09-05 la stappata si innesca entrando, non attaccando"
     assert_equal [["heal", "permanent", 0]], forme.call("RBF-022")
     assert_equal [["heal", "rubyfront", 0], ["heal", "rubyfront", 1]], forme.call("RBF-001")
-    assert_equal [], forme.call("RBF-004"), "«se almeno 2 Umani attaccano» (2026-09-04) è una forma ignota: resta a mano"
+    assert_equal [["empower", "self", 0]], forme.call("RBF-004"), "dal 2026-09-09 «se almeno 2 Umani attaccano» è il divieto di blocco di questo turno"
     assert_equal [], forme.call("RBF-005"), "dal 2026-09-08 non ha più inneschi d'attacco: è uno statico"
     # I dettagli che contano: dadi, soglie, destinazioni, seguiti.
     assert_equal({ die: 6, on_roll: [5, 6], count: 4, reveal_to: "hand", rest_to: "ritiro" }, @index["RBF-034"][:attack_forms][1].slice(:die, :on_roll, :count, :reveal_to, :rest_to))
@@ -142,6 +141,7 @@ class CardIndexTest < Minitest::Test
     assert_equal({ amount: 2, die: 6, on_roll: [5, 6] }, @index["RBF-008"][:attack_forms][0].slice(:amount, :die, :on_roll))
     assert_equal [{ die: 20, on_roll: [15, 20] }], @index["RBF-011"][:enter_refreshes], "quando entra, col d20 stappa tutto"
     assert_equal({ gain_on: [1, 6], drain_on: [15, 20] }, @index["RBF-022"][:attack_forms][0].slice(:gain_on, :drain_on))
+    assert_equal({ requires_attackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block" }, @index["RBF-004"][:attack_forms][0].slice(:requires_attackers, :targets, :restrict), "conta gli attaccanti di questo turno, non del precedente")
     assert_equal [0, 1], @index["RBF-001"][:attack_forms].map { |form| form[:then_draw] }, "solo il Nexus pesca"
   end
 

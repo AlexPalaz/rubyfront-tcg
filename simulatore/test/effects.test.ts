@@ -72,6 +72,8 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   ] },
   VENDICATORE: { kind: "entity", race: "human", attackForms: [{ kind: "empower", who: "self", once: true, targets: "next_human_attacker", grants: ["revenge"], face: 0 }] },
   RAZZIA: { kind: "entity", race: "human", attackForms: [{ kind: "empower", who: "self", requiresPreviousAttackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block", face: 0 }] },
+  // Il divieto di blocco «se almeno 2 Umani che controlli attaccano» (questo turno, la fonte compresa).
+  CARICA: { kind: "entity", race: "human", attackForms: [{ kind: "empower", who: "self", requiresAttackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block", face: 0 }] },
   FERRO: { kind: "object" },
   ARCIERE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
   TIRATORE: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
@@ -672,6 +674,21 @@ describe("attackSteps", () => {
     declare(state, "r", 1);
     expect(attackSteps(state, r, facts)).toEqual([]);
     expect(attackSteps({ ...state, lastWave: { a: ["u1", "u2"] } }, r, facts).map(s => s.form.kind)).toEqual(["empower"]);
+  });
+
+  it("la Carica vuole due Umani all'attacco in questo turno, e conta se stessa", () => {
+    const state = newGame();
+    const c = on(state, "c", "CARICA");
+    on(state, "u1", "UMANO");
+    on(state, "n", "AUROS");
+    declare(state, "c", 1);
+    expect(attackSteps(state, c, facts)).toEqual([], "da sola no");
+    declare(state, "n", 2);
+    expect(attackSteps(state, c, facts)).toEqual([], "l'Auros non conta");
+    declare(state, "u1", 3);
+    expect(attackSteps(state, c, facts).map(s => s.form.kind)).toEqual(["empower"]);
+    // Gli attaccanti del turno precedente non c'entrano.
+    expect(attackSteps({ ...newGame(), cards: { c: state.cards.c }, declarations: state.declarations.filter(d => d.from === "c"), lastWave: { a: ["u1", "n"] } } as typeof state, c, facts)).toEqual([]);
   });
 
   it("la Vendetta va al primo Umano dichiarato dopo il Vendicatore", () => {

@@ -547,13 +547,23 @@ function attackRearm(details: Loose, effect: Loose): Unfaced<AttackForm> | null 
   return { kind: "rearm", who: "ally", attackerArmed: true };
 }
 
+/**
+ * Il divieto di blocco: «se almeno N Entità Umane che controlli attaccano,
+ * un'Entità avversaria non può bloccare in questo turno». La condizione
+ * conta gli attaccanti di QUESTO turno (`requiresAttackersThisTurnAtLeast`,
+ * la fonte compresa — revisione del foglio) o, nella forma storica, quelli
+ * del turno precedente (`requiresAttackersPreviousTurnAtLeast`).
+ */
 function attackRestrict(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
+  const thisTurn = details.requiresAttackersThisTurnAtLeast as Loose | undefined;
   const previous = details.requiresAttackersPreviousTurnAtLeast as Loose | undefined;
+  const required = thisTurn ?? previous;
   if (effect.type !== "restrict_action" || effect.restricts !== "block" || effect.duration !== "until_end_of_turn") return null;
   const target = effect.target as Loose | undefined;
   if (!target || target.cardType !== "entity" || target.controller !== "opponent" || target.min !== 1 || target.max !== 1) return null;
-  if (!previous || !Number.isInteger(previous.count) || !ownTarget(previous.filter, "entity", "human")) return null;
-  return { kind: "empower", who: "self", requiresPreviousAttackers: { count: previous.count, race: "human" }, targets: "opposing_entity", restrict: "block" };
+  if (!required || !Number.isInteger(required.count) || !ownTarget(required.filter, "entity", "human")) return null;
+  const condition = thisTurn ? { requiresAttackers: { count: required.count, race: "human" } } : { requiresPreviousAttackers: { count: required.count, race: "human" } };
+  return { kind: "empower", who: "self", ...condition, targets: "opposing_entity", restrict: "block" };
 }
 
 /**

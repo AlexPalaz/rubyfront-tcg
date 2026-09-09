@@ -471,16 +471,21 @@ module Rubyfront
       { kind: "rearm", who: "ally", attacker_armed: true }
     end
 
-    # Il divieto di blocco: se almeno N Umani hanno attaccato nel turno precedente, un'Entità avversaria non blocca.
+    # Il divieto di blocco: se almeno N Umani che controlli attaccano, un'Entità avversaria non blocca in questo turno.
+    # La condizione conta gli attaccanti di QUESTO turno (requiresAttackersThisTurnAtLeast, la fonte compresa) o,
+    # nella forma storica, quelli del turno precedente (requiresAttackersPreviousTurnAtLeast).
     def self.attack_restrict(details, effect)
+      this_turn = details["requiresAttackersThisTurnAtLeast"]
       previous = details["requiresAttackersPreviousTurnAtLeast"]
+      required = this_turn || previous
       return nil unless effect["type"] == "restrict_action" && effect["restricts"] == "block" && effect["duration"] == "until_end_of_turn"
 
       target = effect["target"]
       return nil unless target.is_a?(Hash) && target["cardType"] == "entity" && target["controller"] == "opponent" && target["min"] == 1 && target["max"] == 1
-      return nil unless previous.is_a?(Hash) && previous["count"].is_a?(Integer) && own_target?(previous["filter"], "entity", "human")
+      return nil unless required.is_a?(Hash) && required["count"].is_a?(Integer) && own_target?(required["filter"], "entity", "human")
 
-      { kind: "empower", who: "self", requires_previous_attackers: { count: previous["count"], race: "human" }.freeze, targets: "opposing_entity", restrict: "block" }
+      condition = this_turn ? { requires_attackers: { count: required["count"], race: "human" }.freeze } : { requires_previous_attackers: { count: required["count"], race: "human" }.freeze }
+      { kind: "empower", who: "self", targets: "opposing_entity", restrict: "block" }.merge(condition)
     end
 
     def self.enter_looks(faces)

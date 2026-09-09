@@ -2422,6 +2422,9 @@ class EngineTest < Minitest::Test
                        attack_forms: [{ kind: "empower", who: "self", once: true, targets: "next_human_attacker", grants: ["revenge"], face: 0 }] },
     "RAZZIA" => { type: "entity", keywords: [], race: "human", power: 2, counterattack: 1,
                   attack_forms: [{ kind: "empower", who: "self", requires_previous_attackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block", face: 0 }] },
+    # Il divieto di blocco «se almeno 2 Umani che controlli attaccano» (questo turno, la fonte compresa).
+    "ASSALTO" => { type: "entity", keywords: [], race: "human", power: 2,
+                   attack_forms: [{ kind: "empower", who: "self", requires_attackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block", face: 0 }] },
     "UMANO" => { type: "entity", keywords: [], race: "human", power: 2 },
     "AUROS" => { type: "entity", keywords: [], race: "auros", power: 2 },
     "FERRO" => { type: "object", keywords: [] },
@@ -2703,6 +2706,23 @@ class EngineTest < Minitest::Test
   def test_la_razzia_senza_umani_nel_turno_precedente_tace
     engine = scena([["r", "RAZZIA"], ["u1", "UMANO"]], b: [["b1", "AUROS"]], attacks: ["r"])
     assert_match(/turno precedente/, engine.judge({ "t" => "empower", "uid" => "b1", "restrict" => "block", "effect" => ref("r") })[:reason])
+  end
+
+  # Il divieto di blocco di QUESTO turno: se almeno 2 Umani che controlli attaccano (la fonte compresa),
+  # un'Entità avversaria non blocca. Il turno precedente non c'entra.
+  def test_l_assalto_vieta_il_blocco_con_due_umani_all_attacco
+    engine = scena([["s", "ASSALTO"], ["u1", "UMANO"]], b: [["b1", "AUROS"]], attacks: %w[s u1])
+    verdict = engine.judge({ "t" => "empower", "uid" => "b1", "restrict" => "block", "effect" => ref("s") })
+    assert verdict[:ok], verdict[:reason]
+    assert copia(engine).card("b1")[:cannot_block]
+    assert_match(/avversaria/, engine.judge({ "t" => "empower", "uid" => "u1", "restrict" => "block", "effect" => ref("s") })[:reason])
+  end
+
+  def test_l_assalto_da_solo_o_con_un_auros_tace
+    solo = scena([["s", "ASSALTO"], ["u1", "UMANO"]], b: [["b1", "AUROS"]], attacks: ["s"])
+    assert_match(/almeno 2 Entità Umane/, solo.judge({ "t" => "empower", "uid" => "b1", "restrict" => "block", "effect" => ref("s") })[:reason])
+    auros = scena([["s", "ASSALTO"], ["n", "AUROS"]], b: [["b1", "AUROS"]], attacks: %w[s n])
+    assert_match(/almeno 2 Entità Umane/, auros.judge({ "t" => "empower", "uid" => "b1", "restrict" => "block", "effect" => ref("s") })[:reason])
   end
   # --- Il secondo lotto di forme: statici, Stasi, blocco multiplo, Materie, Nexus ---
   #
