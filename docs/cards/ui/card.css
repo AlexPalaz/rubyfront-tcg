@@ -684,6 +684,25 @@
     --panel-hi: #282e31; --panel-low: #1a1f21;
     --gem-top: #b02039; --gem-mid: #8c1a2e; --gem-low: #4d0a17;
   }
+  /* Rubino: il rosso del marchio e dei tasti del gioco (#b81a41→#9e0f34,
+     filo #e56a86) fatto carta. Vino profondo nel fondo e nel riquadro del
+     testo perché il testo si legga; cornice di rubino lucido con la luce
+     radente rosa; nome su banda cremisi; testi in rosa chiarissimo, con
+     l'oro caldo per le parole in evidenza. La gemma è il rubino più acceso. */
+  .card.t49 {
+    --bg: #2a0a14; --panel: #380e1c; --well: #16050b;
+    --frame: #a62640; --frame-dim: #5c1428;
+    --ink: #fdeef1; --muted: #d99aa9;
+    --accent: #f2c56f; --ornament: #c2506a;
+    --ruby: #9e0f34; --ruby-light: #ff9fb3;
+    --hp-green: #b6e3b0; --cost-ink: #fdeef1;
+    --stone-hi: #ea6a86; --stone-mid: #b81a41; --stone-low: #6a0d24;
+    --stone-veil: rgba(255,159,179,.22);
+    --card-hi: #3a0d1c; --card-mid: #260913; --card-low: #16050b;
+    --band-hi: #8f1434; --band-low: #5a0d22;
+    --panel-hi: #330c19; --panel-low: #1c0610;
+    --gem-top: #ff4d6d; --gem-mid: #b81a41; --gem-low: #5f0d1c;
+  }
   /* canonical Nexus palette, only for the default theme t01 */
   .card.nexus.t01 {
     --bg: #241a0b; --panel: #413013; --well: #0f0a03;

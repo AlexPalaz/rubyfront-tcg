@@ -48,7 +48,8 @@ export const THEMES = Object.freeze([
   ["t45", "Cattedrale Bronzo"],
   ["t46", "Cattedrale Porcellana"],
   ["t47", "Cattedrale Avorio"],
-  ["t48", "Cattedrale Rame"]
+  ["t48", "Cattedrale Rame"],
+  ["t49", "Cattedrale Rubino"]
 ]);
 
 export const LIGHT_THEMES = new Set([
@@ -60,7 +61,7 @@ export const LIGHT_THEMES = new Set([
     lastra ottagonale, gemma di rubino in cuspide, nome a doppio filo —
     e palette a sfumature diverse. Il renderer aggiunge la classe
     `cathedral`, e card.css veste la struttura una volta sola. */
-export const CATHEDRAL_THEMES = new Set(["t41", "t42", "t43", "t44", "t45", "t46", "t47", "t48"]);
+export const CATHEDRAL_THEMES = new Set(["t41", "t42", "t43", "t44", "t45", "t46", "t47", "t48", "t49"]);
 
 export function isThemeId(value) {
   return THEMES.some(([id]) => id === value);

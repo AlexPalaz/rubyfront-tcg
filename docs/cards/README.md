@@ -56,8 +56,10 @@ del testo, `--gem-*` la gemma e il rombo del costo. Chi non dichiara
 Dark e Argento (t41, t42), Ossidiana (t43, vetro nero e rubino vivo),
 Acciaio (t44, blu-acciaio con filo ciano), Bronzo (t45, metallo caldo),
 Porcellana (t46, chiaro, la coppia di Rhazmora), Avorio (t47, chiaro, foglia
-d'oro), Rame (t48, ardesia e rame). Il rubino della gemma resta rosso in
-tutte (canone dei Rubyfront, ART.md).
+d'oro), Rame (t48, ardesia e rame), Rubino (t49: il rosso del marchio e dei
+tasti del gioco fatto carta — cornice di rubino lucido, fondo vino, testi
+rosa chiaro con l'oro per le parole in evidenza). Il rubino della gemma
+resta rosso in tutte (canone dei Rubyfront, ART.md).
 
 ## La shell di navigazione
 
