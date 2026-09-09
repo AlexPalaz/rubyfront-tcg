@@ -39,6 +39,26 @@ Il renderer `card-theme.html` costruisce le facce usando `card.faces` e le
 localizzazioni, quindi può visualizzare qualsiasi carta registrata senza
 duplicare il template.
 
+### I temi e la famiglia Cattedrale
+
+I temi stanno in `ui/themes.js` (id e nome, l'insieme dei chiari) e in
+`ui/card.css` (le variabili di ciascuno). Da t41 in su i temi sono una
+**famiglia**, la Cattedrale: stessa architettura — cornice a lastra
+ottagonale con la gemma di rubino in cuspide, nome a doppio filo, riquadro
+del testo inciso — e palette diverse. Il renderer aggiunge la classe
+`cathedral` (`CATHEDRAL_THEMES`), e `card.css` veste la struttura una volta
+sola (`.cathedral …`); una palette nuova è solo un blocco di variabili.
+Le palette sono **materiali con la loro luce**, a sfumature discrete:
+`--card-*` il fondo della carta (alto→basso), `--stone-*` la pietra della
+cornice (luce radente), `--band-*` la banda del nome, `--panel-*` il riquadro
+del testo, `--gem-*` la gemma e il rombo del costo. Chi non dichiara
+`--band-*`/`--panel-*` resta piatto (t41, t42). Le palette (2026-09-09):
+Dark e Argento (t41, t42), Ossidiana (t43, vetro nero e rubino vivo),
+Acciaio (t44, blu-acciaio con filo ciano), Bronzo (t45, metallo caldo),
+Porcellana (t46, chiaro, la coppia di Rhazmora), Avorio (t47, chiaro, foglia
+d'oro), Rame (t48, ardesia e rame). Il rubino della gemma resta rosso in
+tutte (canone dei Rubyfront, ART.md).
+
 ## La shell di navigazione
 
 Tutte e cinque le pagine condividono una sola shell: `shell.css` per lo stile e

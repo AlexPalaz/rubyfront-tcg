@@ -3,7 +3,7 @@
 // della carta vive in un posto solo. Gli stili corrispondenti sono in card.css.
 import { resolveSource } from "../catalog.js";
 import { element, copyFor } from "./shell.js";
-import { LIGHT_THEMES } from "./themes.js";
+import { CATHEDRAL_THEMES, LIGHT_THEMES } from "./themes.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 // Trigger che descrivono l'uscita di scena della carta: vanno letti in fondo
@@ -28,6 +28,7 @@ function createFace(card, face, cardCopy, themeId, localeId) {
   const label = element("div", "face-label", cardCopy.ui?.[face.displayKey] ?? face.id);
   const visual = element("div", `card ${face.kind === "nexus" ? "nexus " : ""}${themeId}`);
   if (LIGHT_THEMES.has(themeId)) visual.classList.add("light-theme");
+  if (CATHEDRAL_THEMES.has(themeId)) visual.classList.add("cathedral");
   visual.dataset.faceId = face.id;
 
   // Rubyfront e Nexus vanno a tutta illustrazione: l'immagine fa da sfondo

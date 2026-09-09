@@ -582,6 +582,108 @@
     --card-hi: #f6f8f9; --card-mid: #e9ecef; --card-low: #d6dbe0;
     --gem-top: #a51f30; --gem-mid: #8c1a2a; --gem-low: #5f0d1c;
   }
+
+  /* ====== la famiglia Cattedrale: le palette a sfumature (2026-09-09) ======
+     Stessa architettura di t41/t42; ogni palette è un MATERIALE con la sua
+     luce: --card-* il fondo della carta (alto→basso), --stone-* la pietra
+     della cornice (luce radente), --band-* la banda del nome, --panel-* il
+     riquadro del testo, --gem-* la gemma e il rombo del costo. Il rubino
+     resta il solo tocco caldo delle palette fredde; nelle calde è la gemma
+     più scura del metallo. Sfumature discrete: due toni vicini, mai un arco. */
+  /* Ossidiana: vetro vulcanico nero con riflesso violaceo; il rubino vivo. */
+  .card.t43 {
+    --bg: #0f0d11; --panel: #17141a; --well: #0a080c;
+    --frame: #4b4350; --frame-dim: #2c262f;
+    --ink: #efe7ec; --muted: #9c909a;
+    --accent: #e0314b; --ornament: #7a6e78;
+    --ruby: #8c1a2e; --ruby-light: #ea6a82;
+    --hp-green: #9ed3a4; --cost-ink: #fdeef1;
+    --stone-hi: #4e4552; --stone-mid: #2d2730; --stone-low: #17141a;
+    --stone-veil: rgba(224,49,75,.2);
+    --card-hi: #1b171e; --card-mid: #110e13; --card-low: #0a080b;
+    --band-hi: #221d26; --band-low: #130f15;
+    --panel-hi: #1a161d; --panel-low: #100d12;
+    --gem-top: #b02039; --gem-mid: #8c1a2e; --gem-low: #4d0a17;
+  }
+  /* Acciaio: lastra d'acciaio azzurrata, luce fredda, filo ciano
+     dimensionale nei testi; la gemma rubino è l'unico caldo. */
+  .card.t44 {
+    --bg: #151b23; --panel: #1b2330; --well: #0c1016;
+    --frame: #5b6874; --frame-dim: #333d47;
+    --ink: #e4ebf1; --muted: #8f9eab;
+    --accent: #5ec8e2; --ornament: #7a8896;
+    --ruby: #8c1a2e; --ruby-light: #ea6a82;
+    --hp-green: #9ed3a4; --cost-ink: #fdeef1;
+    --stone-hi: #7c8a98; --stone-mid: #4a5663; --stone-low: #29323b;
+    --stone-veil: rgba(94,200,226,.14);
+    --card-hi: #1d2530; --card-mid: #141b23; --card-low: #0c1016;
+    --band-hi: #26303c; --band-low: #171e26;
+    --panel-hi: #1c2531; --panel-low: #121820;
+    --gem-top: #b02039; --gem-mid: #8c1a2e; --gem-low: #4d0a17;
+  }
+  /* Bronzo: metallo caldo brunito, luce d'ambra, testi avorio. */
+  .card.t45 {
+    --bg: #1c1610; --panel: #241c13; --well: #100b07;
+    --frame: #8a6a35; --frame-dim: #4d3a1d;
+    --ink: #f3e8d4; --muted: #b39a72;
+    --accent: #e6c47a; --ornament: #9a7a45;
+    --ruby: #8c1a2e; --ruby-light: #ea6a82;
+    --hp-green: #b8d39e; --cost-ink: #fdeef1;
+    --stone-hi: #b8925a; --stone-mid: #74562c; --stone-low: #3f2e17;
+    --stone-veil: rgba(230,196,122,.16);
+    --card-hi: #261d13; --card-mid: #1a130c; --card-low: #100b07;
+    --band-hi: #33271a; --band-low: #1e160e;
+    --panel-hi: #261d14; --panel-low: #17110b;
+    --gem-top: #b02039; --gem-mid: #8c1a2e; --gem-low: #4d0a17;
+  }
+  /* Porcellana: bianco freddo lucido, ombre azzurrine, rubino cupo —
+     la coppia di Rhazmora. Chiaro. */
+  .card.t46 {
+    --bg: #f5f7f9; --panel: #fbfcfd; --well: #e1e6eb;
+    --frame: #8d98a3; --frame-dim: #c5cdd5;
+    --ink: #171b1f; --muted: #5f6a75;
+    --accent: #8c1a2a; --ornament: #97a2ad;
+    --ruby: #8c1a2a; --ruby-light: #6f1322;
+    --hp-green: #35632f; --cost-ink: #f7f9fa;
+    --stone-hi: #ffffff; --stone-mid: #dde4ea; --stone-low: #b3bec8;
+    --stone-veil: rgba(140,26,42,.12);
+    --card-hi: #ffffff; --card-mid: #f2f5f8; --card-low: #e2e7ec;
+    --band-hi: #ffffff; --band-low: #eaeef2;
+    --panel-hi: #fdfdfe; --panel-low: #eef2f5;
+    --gem-top: #b4243f; --gem-mid: #8c1a2a; --gem-low: #5f0d1c;
+  }
+  /* Avorio: carta d'avorio con foglia d'oro alla cornice, inchiostro
+     seppia; il rubino resta in cuspide. Chiaro. */
+  .card.t47 {
+    --bg: #f7f1e3; --panel: #fbf7ec; --well: #e6dcc4;
+    --frame: #a88b4a; --frame-dim: #d2c39a;
+    --ink: #2a2216; --muted: #7a6a4a;
+    --accent: #8c1a2a; --ornament: #b39a5e;
+    --ruby: #8c1a2a; --ruby-light: #6f1322;
+    --hp-green: #3f6a2e; --cost-ink: #fdf6ec;
+    --stone-hi: #f3e2b0; --stone-mid: #cfae62; --stone-low: #967431;
+    --stone-veil: rgba(140,26,42,.12);
+    --card-hi: #fcf8ee; --card-mid: #f3ecd9; --card-low: #e4d9bd;
+    --band-hi: #fbf5e6; --band-low: #ecdfc2;
+    --panel-hi: #fcf9f0; --panel-low: #f0e7d1;
+    --gem-top: #b4243f; --gem-mid: #8c1a2a; --gem-low: #5f0d1c;
+  }
+  /* Rame: ardesia grigio-verde e rame brunito, luce di forgia; testi
+     chiari. Scuro, ma non nero. */
+  .card.t48 {
+    --bg: #1f2426; --panel: #262c2e; --well: #141819;
+    --frame: #8a5a3a; --frame-dim: #4d3323;
+    --ink: #ecebe6; --muted: #a3a49b;
+    --accent: #e0955f; --ornament: #a8724d;
+    --ruby: #8c1a2e; --ruby-light: #ea6a82;
+    --hp-green: #a8d3a4; --cost-ink: #fdeef1;
+    --stone-hi: #c98b5c; --stone-mid: #8a5a3a; --stone-low: #4a3021;
+    --stone-veil: rgba(224,149,95,.16);
+    --card-hi: #2a3033; --card-mid: #1f2426; --card-low: #141819;
+    --band-hi: #33393c; --band-low: #212628;
+    --panel-hi: #282e31; --panel-low: #1a1f21;
+    --gem-top: #b02039; --gem-mid: #8c1a2e; --gem-low: #4d0a17;
+  }
   /* canonical Nexus palette, only for the default theme t01 */
   .card.nexus.t01 {
     --bg: #241a0b; --panel: #413013; --well: #0f0a03;
@@ -1122,14 +1224,19 @@
 
   /* Cattedrale Dark: arco gotico e croci di t39 su pietra notturna; i
      rilievi sono incisi come t21 (luce sopra, ombra dentro), senza bagliori. */
-  .card.t41, .card.t42 { clip-path: none; border-radius: 2px; border: 3px double var(--frame); outline: 1px solid var(--frame-dim);
+  .card.cathedral { clip-path: none; border-radius: 2px; border: 3px double var(--frame); outline: 1px solid var(--frame-dim);
     box-shadow: inset 0 2px 0 rgba(255,255,255,.05), inset 0 -3px 8px rgba(0,0,0,.5), 0 8px 26px rgba(0,0,0,.55);
     background: linear-gradient(180deg, var(--card-hi), var(--card-mid) 60%, var(--card-low)); }
-  .t41 .name, .t42 .name { font-weight: 700; letter-spacing: .08em;
+  /* Le sfumature della famiglia: la banda del nome, il riquadro del testo e
+     il rombo del costo prendono un gradiente (--band-*, --panel-*, --gem-*);
+     i temi che non li dichiarano restano piatti (t41, t42). */
+  .cathedral .name { font-weight: 700; letter-spacing: .08em;
     border-top: 3px double var(--frame); border-bottom: 3px double var(--frame);
+    background: linear-gradient(180deg, var(--band-hi, transparent), var(--band-low, transparent));
     text-shadow: 0 1px 0 rgba(0,0,0,.7), 0 -1px 0 rgba(255,255,255,.07); }
-  .t41 .cost, .t42 .cost { border-radius: 3px; border: none;
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.12), inset 0 -3px 6px rgba(0,0,0,.55); }
+  .cathedral .cost { border-radius: 3px; border: none;
+    background: linear-gradient(160deg, var(--gem-top), var(--gem-mid) 55%, var(--gem-low));
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -3px 6px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.35); }
   /* Cornice gemmata: bordo spesso di pietra lucida, sfumato con un
      conic-gradient che gira attorno all'immagine come luce radente su un
      intaglio; filo scuro esterno, filo chiaro interno, e l'illustrazione
@@ -1139,9 +1246,9 @@
      rettangolo), il taglio della cornice e quello dell'immagine si fanno
      eco. Tutto piatto: una sola sfumatura discreta di pietra, un velo
      cremisi appena percettibile sotto la gemma, nessun rilievo. */
-  .t41 .art, .t42 .art { border: none; padding: .55em; background: none; box-shadow: none;
+  .cathedral .art { border: none; padding: .55em; background: none; box-shadow: none;
     position: relative; overflow: visible; }
-  .t41 .art::before, .t42 .art::before { content: ""; position: absolute; inset: 0;
+  .cathedral .art::before { content: ""; position: absolute; inset: 0;
     clip-path: polygon(.9em 0, calc(100% - .9em) 0, 100% .9em,
       100% calc(100% - .9em), calc(100% - .9em) 100%, .9em 100%,
       0 calc(100% - .9em), 0 .9em);
@@ -1179,7 +1286,7 @@
         rgba(0,0,0,0) calc(.94em + 2px))
         left bottom / 1.7em 1.7em no-repeat,
       radial-gradient(120% 130% at 50% -20%, var(--stone-hi) 0%, var(--stone-mid) 48%, var(--stone-low) 100%); }
-  .t41 .art img, .t42 .art img { position: relative;
+  .cathedral .art img { position: relative;
     clip-path: polygon(.45em 0, calc(100% - .45em) 0, 100% .45em,
       100% calc(100% - .45em), calc(100% - .45em) 100%, .45em 100%,
       0 calc(100% - .45em), 0 .45em); }
@@ -1192,7 +1299,7 @@
      Cuspide bassa per non toccare la riga del nome; z-index sopra
      l'immagine, così la punta non viene tagliata.
      Geometria: 1.15×1em, spalle al 74%. */
-  .t41 .art::after, .t42 .art::after { content: ""; position: absolute; z-index: 1;
+  .cathedral .art::after { content: ""; position: absolute; z-index: 1;
     top: -.22em; left: 50%; width: .95em; height: 1.2em;
     transform: translateX(-50%);
     clip-path: polygon(50% 0, 100% 62%, 50% 100%, 0 62%);
@@ -1200,10 +1307,12 @@
       radial-gradient(65% 55% at 50% 38%, rgba(240,130,150,.2), rgba(0,0,0,0) 70%),
       radial-gradient(130% 120% at 50% 45%, rgba(0,0,0,0) 50%, rgba(16,3,7,.5) 100%),
       linear-gradient(180deg, var(--gem-top) 0%, var(--gem-mid) 42%, var(--gem-low) 100%); }
-  .t41 .keyword::before, .t41 .keyword::after,
-  .t42 .keyword::before, .t42 .keyword::after { content: "\2720"; font-size: .8em; color: var(--ornament); }
-  .t41 .textbox, .t42 .textbox { border-color: var(--frame-dim); box-shadow: inset 0 2px 8px rgba(0,0,0,.5); }
-  .t41 .fx .tag::after, .t42 .fx .tag::after { height: 2px; background: linear-gradient(to right, var(--muted), transparent); }
+  .cathedral .keyword::before, .cathedral .keyword::after { content: "\2720"; font-size: .8em; color: var(--ornament); }
+  .cathedral .textbox { border-color: var(--frame-dim); box-shadow: inset 0 2px 8px rgba(0,0,0,.5);
+    background: linear-gradient(180deg, var(--panel-hi, var(--panel)), var(--panel-low, var(--panel))); }
+  .cathedral .matter, .cathedral .counter-badge, .cathedral .hp-cost {
+    background: linear-gradient(180deg, var(--panel-hi, var(--panel)), var(--panel-low, var(--panel))); }
+  .cathedral .fx .tag::after { height: 2px; background: linear-gradient(to right, var(--muted), transparent); }
 
   /* ====== full-art (Rubyfront e Nexus) ====== */
   /* L'illustrazione fa da sfondo all'intera carta: l'area art diventa una
