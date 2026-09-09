@@ -698,7 +698,9 @@
     --hp-green: #b6e3b0; --cost-ink: #fdeef1;
     --stone-hi: #ea6a86; --stone-mid: #b81a41; --stone-low: #6a0d24;
     --stone-veil: rgba(255,159,179,.22);
-    --card-hi: #6a1230; --card-mid: #4a0c21; --card-low: #2a0612;
+    /* Il fondo: il rubino del marchio portato a carta — cremisi saturo, non
+       vino bruno; luce dall'alto, si scurisce verso il basso. */
+    --card-hi: #7a0f2e; --card-mid: #560a21; --card-low: #330511;
     /* Niente banda sotto il nome (tolta su richiesta): il titolo poggia sul fondo. */
     --band-hi: transparent; --band-low: transparent;
     --panel-hi: #f0eeec; --panel-low: #dedbd8;
@@ -1354,7 +1356,7 @@
      entra dall'alto: una sfumatura, non una tinta. */
   .card.cathedral.t49 { border: 4px solid transparent; outline: none; border-radius: 3px;
     background:
-      radial-gradient(120% 90% at 50% -10%, rgba(255,140,165,.22), rgba(0,0,0,0) 55%) padding-box,
+      radial-gradient(120% 90% at 50% -10%, rgba(255,150,170,.2), rgba(0,0,0,0) 55%) padding-box,
       linear-gradient(180deg, var(--card-hi), var(--card-mid) 55%, var(--card-low)) padding-box,
       linear-gradient(160deg, #f4a3b7 0%, #c8264c 22%, #7a1029 48%, #9e1a3c 72%, #f08aa2 100%) border-box;
     box-shadow: inset 0 0 0 1px rgba(255,190,205,.28), 0 0 0 1px #4a0a18, 0 10px 30px rgba(0,0,0,.6); }
@@ -1409,6 +1411,8 @@
   .t49 .textbox .textline-type { color: #5e4e55; letter-spacing: .12em; }
   .t49 .textbox .fx .tag::after { background: linear-gradient(to right, #b8657a, transparent); }
   .t49 .textbox .hp-cost, .t49 .textbox .matter, .t49 .textbox .counter-badge { background: #f4f2f0; border-color: #c6c0bc; }
+  /* Il numerale del grado della Materia (I, II) era bianco: sulla pietra chiara si scrive scuro. */
+  .t49 .textbox .matter b { color: #3a3034; }
   .t49 .textbox::after { content: ""; position: absolute; left: 50%; bottom: 1.2em; z-index: 0;
     width: 4.2em; height: 5.2em; transform: translateX(-50%); pointer-events: none;
     clip-path: polygon(50% 0, 100% 46%, 50% 100%, 0 46%);
