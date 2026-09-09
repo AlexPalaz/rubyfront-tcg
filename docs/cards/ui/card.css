@@ -700,9 +700,10 @@
     --stone-veil: rgba(255,159,179,.22);
     /* Il fondo: il rubino del marchio portato a carta — cremisi saturo, non
        vino bruno; luce dall'alto, si scurisce verso il basso. */
-    /* Il rosso è LUCE, non tinta: il fondo è nero-vino, e il cremisi vive nel
-       cuore di luce dietro la gemma, nell'orlo, nelle crepe. */
-    --card-hi: #5a0b24; --card-mid: #2a0611; --card-low: #120307;
+    /* Il fondo è NEUTRO: grafite scura, che con la pietra grigia della lastra
+       e il rubino degli accenti fa una terna calma. Il cremisi resta come
+       luce leggera dietro il titolo, nell'orlo, nelle crepe, nella gemma. */
+    --card-hi: #3b3b43; --card-mid: #23232a; --card-low: #121216;
     /* Niente banda sotto il nome (tolta su richiesta): il titolo poggia sul fondo. */
     --band-hi: transparent; --band-low: transparent;
     --panel-hi: #f0eeec; --panel-low: #dedbd8;
@@ -1365,7 +1366,8 @@
        angoli, quasi nero — e un riflesso diagonale appena percettibile,
        nello stesso verso della luce sull'orlo di metallo. */
     background:
-      linear-gradient(160deg, rgba(255,170,190,0) 30%, rgba(255,170,190,.07) 46%, rgba(255,170,190,0) 62%) padding-box,
+      linear-gradient(160deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.05) 46%, rgba(255,255,255,0) 62%) padding-box,
+      radial-gradient(60% 36% at 50% 10%, rgba(200,40,80,.32), rgba(200,40,80,0) 100%) padding-box,
       radial-gradient(70% 42% at 50% 11%, var(--card-hi) 0%, var(--card-mid) 55%, var(--card-low) 100%) padding-box,
       linear-gradient(160deg, #f4a3b7 0%, #c8264c 22%, #7a1029 48%, #9e1a3c 72%, #f08aa2 100%) border-box;
     box-shadow: inset 0 0 0 1px rgba(255,190,205,.28), 0 0 0 1px #4a0a18, 0 10px 30px rgba(0,0,0,.6); }
