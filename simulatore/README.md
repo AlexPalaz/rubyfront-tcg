@@ -206,9 +206,9 @@ pubblico. Per LAN e reti domestiche normali basta.
 | Doppio click sul campo | Tappa / stappa |
 | Doppio click in mano | Gioca la carta sul Fronte |
 | Tasto destro su una carta | Tappa, copri, flip Rubyfront↔Nexus, manda in una zona |
-| Tasto destro sulla tua Entità → *Attacca* | Freccia verso il Rubyfront avversario, e la carta si tappa |
-| Click su un attaccante avversario → *Blocca con…* / *Contrattacca con…* | Poi scegli l'Entità che lo ferma (il contrattacco la copre) |
-| Click sulla tua Entità → *Blocca un attaccante…* / *Contrattacca un attaccante…* | Poi scegli chi fermare; su un bloccante già dichiarato, *Annulla* |
+| Tasto **Attacca** sotto la tua Entità (Fase di Fronte, tuo turno) | La carta si tappa e attacca il Rubyfront avversario; sotto, *Annulla attacco* |
+| Tasti **Blocca** / **Contrattacca** sotto un attaccante avversario (Reazione) | Poi *Con questa* sotto l'Entità che lo ferma (il contrattacco la copre) |
+| Tasti **Blocca** / **Contrattacca** sotto la tua Entità (Reazione) | Poi *Ferma questo* sotto l'attaccante; sotto un bloccante dichiarato, *Annulla*; *Annulla* anche sotto la carta da cui è partita la scelta |
 | Tasto destro sul mazzo | Pesca 1, pesca 6, mescola, cerca |
 | Passare il mouse su una carta | La mostra a 520×728, anche se è sotto un'altra |
 | Fumetto in header / × sulla chat | Apre e chiude la chat; il tavolo si allarga |
@@ -394,14 +394,20 @@ nell'ordine di dichiarazione (§6.3 punto 5) e a mente lo si perde. Un attaccant
 senza freccia di blocco addosso è un attacco che passa: il colpo d'occhio è
 tutto il guadagno.
 
-**Bloccare** è un click sinistro, in Reazione, da uno dei due capi: sull'
-**attaccante** avversario compare la scelta «Blocca con…» / «Contrattacca
-con…», poi si sceglie con chi fermarlo; sulla **propria Entità** compare
-«Blocca un attaccante…» / «Contrattacca un attaccante…», poi si sceglie chi
-fermare; su un bloccante già dichiarato, «Annulla». Il tasto destro non
-c'entra più col blocco (deciso 2026-09-09). Il tavolo entra in modo
-bersaglio, una freccia tratteggiata segue il puntatore e le carte
-scegliibili si accendono. Fra queste, l'anello
+**Attaccare e bloccare sono TASTI sotto le carte**, come «Schiera» sotto il
+Rubyfront — non il click sulla carta, non il tasto destro, non il
+trascinamento (deciso 2026-09-09: «dev'essere intuitivo»). In Fase di
+Fronte, nel proprio turno, sotto ogni propria Entità che può attaccare c'è
+«Attacca» (poi «Annulla attacco»). In Reazione, per il difensore, sotto ogni
+attaccante avversario ci sono «Blocca» e «Contrattacca», e poi «Con questa»
+sotto le proprie Entità; oppure «Blocca» e «Contrattacca» sotto la propria
+Entità, e poi «Ferma questo» sotto gli attaccanti; sotto un bloccante
+dichiarato «Annulla blocco» / «Annulla contrattacco» (anche se la carta è
+coperta), sotto la carta da cui è partita la scelta «Annulla». Nel frattempo
+il tavolo è in modo bersaglio: una freccia tratteggiata segue il puntatore e
+le carte scegliibili si accendono (cliccarle vale come il tasto). I tasti
+stanno in un livello sopra le tessere (`paintCombatTabs`), a cavallo del
+bordo basso della carta — quello che si vede: una tappata è coricata. Fra queste, l'anello
 verde segna quelle che le regole permetterebbero (§6.3: una tappata non può
 bloccare, una coperta non può fare nulla, il Rubyfront non è un'Entità) — ma le
 altre **restano cliccabili**: qui si smorza, non si impedisce.

@@ -391,6 +391,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   // direbbe niente. Lo strato è inerte al puntatore.
   const arrowLayer = createArrowLayer(SURFACE_W, SURFACE_H);
   surface.append(arrowLayer);
+  // I tasti di combattimento (§6.3, §6.4): «Attacca», «Blocca»,
+  // «Contrattacca», «Con questa», «Annulla» — a cavallo del bordo basso
+  // della carta, come «Schiera» sotto il Rubyfront. Un livello a sé sopra
+  // le tessere: le tessere ritagliano ciò che sborda, e ruotano da tappate.
+  const combatLayer = document.createElement("div");
+  combatLayer.className = "combat-layer";
+  surface.append(combatLayer);
   applySurfaceSize();
 
   const board = document.createElement("div");
@@ -1500,43 +1507,108 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   }
 
   /**
-   * La scelta del blocco al click sinistro (§6.3, §6.4), in Reazione, per chi
-   * governa il difensore. Sull'ATTACCANTE avversario: «Blocca» o
-   * «Contrattacca», poi si sceglie con chi. Sulla PROPRIA Entità: «Blocca un
-   * attaccante» o «Contrattacca un attaccante», poi si sceglie chi fermare.
-   * Su un bloccante già dichiarato: l'annullo. Fuori da questi casi il click
-   * non fa nulla. (Il tasto destro non c'entra più col blocco.)
+   * I tasti di combattimento sotto le carte (§6.3, §6.4) — non il click
+   * sulla carta, non il tasto destro, non il trascinamento (deciso
+   * 2026-09-09): un tasto, come «Schiera».
+   *
+   * In Fase di Fronte, nel proprio turno, sotto ogni propria Entità che può
+   * attaccare: «Attacca»; sotto l'attaccante dichiarato: «Annulla attacco».
+   * In Reazione, per chi governa il difensore: sotto ogni attaccante
+   * avversario «Blocca» e «Contrattacca», poi sotto le proprie Entità «Con
+   * questa»; oppure sotto la propria Entità «Blocca» e «Contrattacca», poi
+   * sotto gli attaccanti «Ferma questo»; sotto un bloccante dichiarato, e
+   * sotto la carta da cui è partita una scelta, «Annulla».
    */
-  function blockChoice(card: CardInstance, clientX: number, clientY: number): boolean {
+  type Tab = { label: string; kind: "attack" | "block" | "counter" | "confirm" | "cancel"; run: () => void };
+
+  function combatTabsFor(card: CardInstance): Tab[] {
     const state = ctx.state();
-    if (card.zone !== "field" || state.phase !== "reazione" || card.facedown) return false;
+    if (card.zone !== "field") return [];
     const controller = controllerOf(card);
     const declared = declarationOf(state, card.uid);
-    if (declared?.kind === "attack") {
-      if (!ctx.controls(otherSeat(controller))) return false;
-      openMenu(clientX, clientY, [
-        { label: t("menu.block"), run: () => startTargeting(card, "block") },
-        { label: t("menu.counter"), run: () => startTargeting(card, "counter") },
-      ]);
-      return true;
-    }
-    // La propria metà: chi difende è l'altro posto rispetto a chi è di turno.
-    if (!ctx.controls(controller) || controller === state.active) return false;
-    if (declared) {
-      openMenu(clientX, clientY, [
-        { label: t(declared.kind === "counter" ? "menu.counter.undo" : "menu.block.undo"), run: () => void undeclare(ctx, card, declared) },
-      ]);
-      return true;
-    }
     const kind = faceKind(card.cardId, card.face);
-    if (kind !== null && kind !== "entity") return false;
-    const attackers = state.declarations.some(d => d.kind === "attack" && controllerOf(state.cards[d.from]) === otherSeat(controller));
-    if (!attackers) return false;
-    openMenu(clientX, clientY, [
-      { label: t("pop.block.from"), run: () => startTargetingFrom(card, "block") },
-      { label: t("pop.counter.from"), run: () => startTargetingFrom(card, "counter") },
-    ]);
-    return true;
+    const entity = kind === null || kind === "entity";
+    // Un effetto in mira: nessun tasto di combattimento in mezzo.
+    if (targeting?.mode === "effect") return [];
+    // Una coperta non fa nulla (§6.3) — salvo ripensare il contrattacco che
+    // l'ha coperta: quel tasto resta, in Reazione, a chi la governa.
+    if (card.facedown) {
+      if (!targeting && state.phase === "reazione" && declared && declared.kind !== "attack" && ctx.controls(controller)) {
+        return [{ label: t(declared.kind === "counter" ? "menu.counter.undo" : "menu.block.undo"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
+      }
+      return [];
+    }
+
+    // La scelta in corso: si conferma o si annulla.
+    if (targeting?.mode === "block") {
+      if (card.uid === targeting.attacker) return [{ label: t("tab.cancel"), kind: "cancel", run: cancelTargeting }];
+      if (pickable(card) && entity && !declared) return [{ label: t("tab.with"), kind: targeting.kind, run: () => confirmBlock(card) }];
+      return [];
+    }
+    if (targeting?.mode === "blocker") {
+      if (card.uid === targeting.blocker) return [{ label: t("tab.cancel"), kind: "cancel", run: cancelTargeting }];
+      if (pickable(card)) return [{ label: t("tab.this"), kind: targeting.kind, run: () => confirmBlock(card) }];
+      return [];
+    }
+
+    // Fase di Fronte, il proprio turno: si attacca (§6.3). Il Rubyfront non
+    // attacca (§3.1), dichiarano le Entità; una tappata non può.
+    if (state.phase === "fronte" && state.active === controller && ctx.controls(controller) && entity) {
+      if (declared?.kind === "attack") return [{ label: t("tab.attack.undo"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
+      if (!declared && !card.tapped) return [{ label: t("menu.attack"), kind: "attack", run: () => void declareAttack(card) }];
+      return [];
+    }
+
+    // Reazione: il difensore (l'altro posto rispetto a chi è di turno) ferma
+    // gli attaccanti, «vista l'intera ondata» (§6.4).
+    if (state.phase !== "reazione") return [];
+    const defender = otherSeat(state.active);
+    if (!ctx.controls(defender)) return [];
+    if (declared?.kind === "attack" && controller === state.active) {
+      return [
+        { label: t("tab.block"), kind: "block", run: () => startTargeting(card, "block") },
+        { label: t("tab.counter"), kind: "counter", run: () => startTargeting(card, "counter") },
+      ];
+    }
+    if (controller !== defender) return [];
+    if (declared) return [{ label: t(declared.kind === "counter" ? "menu.counter.undo" : "menu.block.undo"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
+    if (!entity || card.tapped || card.cannotBlock) return [];
+    const attackers = state.declarations.some(d => d.kind === "attack" && controllerOf(state.cards[d.from]) === state.active);
+    if (!attackers) return [];
+    return [
+      { label: t("tab.block"), kind: "block", run: () => startTargetingFrom(card, "block") },
+      { label: t("tab.counter"), kind: "counter", run: () => startTargetingFrom(card, "counter") },
+    ];
+  }
+
+  /** Ridisegna i tasti di combattimento: uno o due per carta, al centro del
+      bordo basso — quello che si vede: una tappata è coricata. */
+  function paintCombatTabs(): void {
+    combatLayer.replaceChildren();
+    for (const card of fieldCards(ctx.state())) {
+      const tabs = combatTabsFor(card);
+      if (!tabs.length) continue;
+      const box = boxOf(card);
+      const group = document.createElement("div");
+      group.className = "combat-tabs";
+      const cx = box.x + box.w / 2;
+      const bottom = box.y + box.h / 2 + (card.tapped ? box.w : box.h) / 2;
+      group.style.left = `${cx}px`;
+      group.style.top = `${bottom}px`;
+      for (const tab of tabs) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `combat-tab is-${tab.kind}`;
+        button.textContent = tab.label;
+        button.addEventListener("pointerdown", event => event.stopPropagation());
+        button.addEventListener("click", event => {
+          event.stopPropagation();
+          tab.run();
+        });
+        group.append(button);
+      }
+      combatLayer.append(group);
+    }
   }
 
   /**
@@ -1732,38 +1804,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // «Mia» = comandata da un posto che governo: chi la controlla, o il
     // proprietario (§8.2).
     const mine = ctx.controls(controllerOf(card));
-    const declared = declarationOf(ctx.state(), card.uid);
 
-    // Il combattimento sta in cima al menu: è quello che si cerca in Fase di
-    // Fronte. Tappa/Stappa resta subito sotto e sempre disponibile.
+    // Attaccare, bloccare, contrattaccare e annullare NON passano dal tasto
+    // destro: sono i tasti sotto le carte (combatTabsFor), come «Schiera»
+    // (deciso 2026-09-09). Qui restano i gesti di lavagna.
     if (card.zone === "field") {
-      if (mine) {
-        if (declared?.kind === "attack") {
-          items.push({
-            label: t("menu.attack.undo", { n: declared.order ?? "" }),
-            run: () => void undeclare(ctx, card, declared),
-          });
-        } else if (declared) {
-          // Blocco o contrattacco dichiarati: l'annullo sta al click
-          // sinistro sulla carta (blockChoice), non qui.
-        } else {
-          // «Attacca» solo a chi può attaccare, e solo quando si attacca:
-          // in Fase di Fronte (§6.3), nel proprio turno. Il Rubyfront non
-          // attacca (§3.1) e dichiarano solo le Entità (§6.3) — il gesto che
-          // l'arbitro fermerebbe comunque non si offre nemmeno. La carta
-          // ignota resta permissiva, come per l'engine; quando la regola
-          // d'oro concederà eccezioni, sarà lei a riaprire la voce.
-          const state = ctx.state();
-          const kind = faceKind(card.cardId, card.face);
-          if ((kind === null || kind === "entity") && state.phase === "fronte" && state.active === controllerOf(card)) {
-            items.push({ label: t("menu.attack"), run: () => declareAttack(card) });
-          }
-        }
-      }
-      // Bloccare e contrattaccare non passano dal tasto destro: si sceglie
-      // col click sinistro sull'attaccante o sulla propria Entità
-      // (blockChoice), in Reazione, «vista l'intera ondata» (§6.4).
-      if (items.length) items.push({ rule: true, label: "" });
+      void mine;
     }
 
     if (card.zone === "field") {
@@ -3185,17 +3231,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (live && !(live.zone === "hand" && handLocked(live.owner))) openMenu(event.clientX, event.clientY, cardMenu(live));
         },
         onTap: up => {
-          // Il tap (click secco, non un trascinamento). In targeting sceglie
-          // (vedi il click sotto). Fuori: se la carta chiede una scelta di
-          // blocco (Reazione), si apre quella; se no, su touch — dove non
-          // c'è hover — è il tap a chiedere l'ingrandimento (e a
-          // richiuderlo, sulla stessa carta).
-          if (targeting) return;
+          // Su touch non c'è hover: è il tap a chiedere l'ingrandimento (e a
+          // richiuderlo, sulla stessa carta). In targeting il tap sceglie il
+          // bloccante e l'ingrandimento non deve mettersi in mezzo.
+          if (up.pointerType !== "touch" || targeting) return;
           const live = ctx.state().cards[card.uid];
           const element = tiles.get(card.uid);
           if (!live || !element || element.classList.contains("is-back")) return;
-          if (blockChoice(live, up.clientX, up.clientY)) return;
-          if (up.pointerType !== "touch") return;
           tapPreview(element, live.cardId, live.face, ctx.themeFor(live.owner), ctx.locale());
         },
       });
@@ -3792,6 +3834,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       tiles.delete(uid);
     }
     paintArrows();
+    paintCombatTabs();
     fitPending(document.body);
     driveChain();
   }

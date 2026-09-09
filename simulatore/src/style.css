@@ -1985,6 +1985,43 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   overflow: visible;
   pointer-events: none;
 }
+/* I tasti di combattimento (table.ts, paintCombatTabs): un livello sopra le
+   tessere, inerte al puntatore salvo i tasti; ogni gruppo sta al centro del
+   bordo basso della carta, a cavallo, come «Schiera». Stesso vestito del
+   tasto Schiera, a corpo fisso (--ui-inv): rubino per attacco e blocco, oro
+   per il contrattacco, spoglio per annullare. */
+.combat-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 99998;
+  pointer-events: none;
+}
+.combat-tabs {
+  position: absolute;
+  display: flex;
+  gap: calc(6px * var(--ui-inv));
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.combat-tab {
+  pointer-events: auto;
+  padding: calc(9px * var(--ui-inv)) calc(16px * var(--ui-inv));
+  font-size: calc(1rem * var(--ui-inv));
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  color: #fdeef1;
+  background: linear-gradient(180deg, #b81a41, #9e0f34);
+  border: calc(1px * var(--ui-inv)) solid #e56a86;
+  border-radius: 0;
+  box-shadow: 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(158, 15, 52, .5);
+}
+.combat-tab:hover { filter: brightness(1.15); }
+.combat-tab.is-counter { color: #1a1206; background: linear-gradient(180deg, #e8b85a, #c8922a); border-color: #f5d68a; box-shadow: 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(200, 146, 42, .45); }
+.combat-tab.is-cancel { color: var(--ink); background: var(--glass-heavy); border-color: var(--line); box-shadow: 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(0, 0, 0, .3); }
+.combat-tab.is-cancel:hover { filter: none; border-color: var(--ruby); }
 .arrow-attack { filter: drop-shadow(0 0 9px rgba(210, 74, 100, .85)); }
 .arrow-block { filter: drop-shadow(0 0 9px color-mix(in srgb, var(--foe) 85%, transparent)); }
 .arrow-counter { filter: drop-shadow(0 0 9px rgba(217, 168, 78, .85)); }
