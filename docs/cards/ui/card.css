@@ -1364,6 +1364,12 @@
       radial-gradient(85% 60% at 50% 12%, var(--card-hi) 0%, var(--card-mid) 42%, var(--card-low) 100%) padding-box,
       linear-gradient(160deg, #f4a3b7 0%, #c8264c 22%, #7a1029 48%, #9e1a3c 72%, #f08aa2 100%) border-box;
     box-shadow: inset 0 0 0 1px rgba(255,190,205,.28), 0 0 0 1px #4a0a18, 0 10px 30px rgba(0,0,0,.6); }
+  /* Il rombo del costo è della stessa pietra della lastra del testo, con la
+     cifra scura: un pezzo di pietra incastonato nel rubino, non un rubino
+     nel rubino. */
+  .card.cathedral.t49 .cost { --cost-ink: #2a2226;
+    background: linear-gradient(160deg, #eeebe8 0%, #d9d5d1 55%, #c3beb9 100%);
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.85), inset 0 -3px 6px rgba(0,0,0,.28), 0 2px 6px rgba(0,0,0,.45); }
   .t49 .textbox { color: #1b1719; --muted: #6a6266; --accent: #8c1a2a; --ruby-light: #9e0f34;
     --well: #e9e6e3; --frame-dim: #c6c0bc; --ornament: #b8657a; --hp-green: #2f6a3a;
     border: none; padding: calc(.55em + 9px) calc(.7em + 9px) calc(.3em + 9px);
