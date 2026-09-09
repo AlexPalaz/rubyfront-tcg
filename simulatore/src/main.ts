@@ -1251,40 +1251,54 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
 
 // Il sipario verso la partita col bot: il nero cala sulla home (.6s), resta
 // giù due secondi — intanto home e velo spariscono e sotto c'è il tavolo
-// vuoto —, poi si alza (.8s) e, appena comincia ad alzarsi, la partita
-// parte (bot, mazzo, insegna «Fase di Preparazione»): così la Preparazione
-// si vede nascere sul tavolo che affiora, non al buio. La musica della home
+// vuoto —, poi si alza (.8s); a sipario alzato, dopo un respiro, la partita
+// parte (bot, mazzo, insegna «Fase di Preparazione»): la Preparazione si
+// vede nascere sul tavolo già in vista, non al buio né mentre affiora. La musica della home
 // sfuma col nero; quella del tavolo attacca con la partita (dopo il suo
 // silenzio, sound.ts).
 const curtain = document.querySelector<HTMLElement>("#curtain")!;
 const CURTAIN_FALL_MS = 600;
 const CURTAIN_HOLD_MS = 2000;
 const CURTAIN_RISE_MS = 800;
-const CURTAIN_START_AFTER_MS = 250;
-function curtainInto(begin: () => void): void {
+const CURTAIN_START_AFTER_MS = CURTAIN_RISE_MS + 400;
+/** Il sipario: cala, a nero fa `atBlack` (cambiare schermata), resta giù
+    `hold` ms, si alza, e a sipario alzato più un respiro fa `afterRise`. */
+function curtainPass(run: { atBlack: () => void; afterRise?: () => void; hold?: number }): void {
   curtain.hidden = false;
   curtain.classList.remove("is-rising");
-  stopMusic();
   // Da display:none il browser non ha uno stile «prima» da cui partire, e
   // il nero calerebbe di colpo: si forza un calcolo di stile a sipario
   // trasparente, poi si abbassa.
   void curtain.offsetWidth;
   curtain.classList.add("is-down");
-  window.setTimeout(() => {
-    home.hidden = true;
-    onboard.hidden = true;
-    mazzi.close();
-    paint();
-  }, CURTAIN_FALL_MS);
+  window.setTimeout(run.atBlack, CURTAIN_FALL_MS);
   window.setTimeout(() => {
     curtain.classList.add("is-rising");
     curtain.classList.remove("is-down");
-    window.setTimeout(begin, CURTAIN_START_AFTER_MS);
+    if (run.afterRise) window.setTimeout(run.afterRise, CURTAIN_START_AFTER_MS);
     window.setTimeout(() => {
       curtain.hidden = true;
       curtain.classList.remove("is-rising");
     }, CURTAIN_RISE_MS + 50);
-  }, CURTAIN_FALL_MS + CURTAIN_HOLD_MS);
+  }, CURTAIN_FALL_MS + (run.hold ?? CURTAIN_HOLD_MS));
+}
+/** Dalla home alla partita col bot: al nero spariscono home e velo. */
+function curtainInto(begin: () => void): void {
+  stopMusic();
+  curtainPass({
+    atBlack: () => {
+      home.hidden = true;
+      onboard.hidden = true;
+      mazzi.close();
+      paint();
+    },
+    afterRise: begin,
+  });
+}
+/** Dalla partita alla home: al nero il tavolo si azzera e la home torna
+    (leaveTable); il nero resta meno, non c'è niente da preparare. */
+function curtainHome(): void {
+  curtainPass({ atBlack: leaveTable, hold: 900 });
 }
 
 // Il saluto in home: il nome salvato e il conto delle partite contro il
@@ -1506,7 +1520,7 @@ function askLeave(titleKey: string, textKey: string, yesKey: string): Promise<bo
 }
 document.querySelector("#do-leave")!.addEventListener("click", () => {
   void askLeave("ask.leave.title", "html.leave.confirm", "ask.leave.yes").then(yes => {
-    if (yes) leaveTable();
+    if (yes) curtainHome();
   });
 });
 
@@ -1523,7 +1537,7 @@ document.querySelector("#brand-home")!.addEventListener("click", () => {
     return;
   }
   void askLeave("ask.home.title", "html.brand.confirm", "ask.home.yes").then(yes => {
-    if (yes) leaveTable();
+    if (yes) curtainHome();
   });
 });
 
