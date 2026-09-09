@@ -31,7 +31,7 @@ import { setupPreview } from "./preview.js";
 import { mountMazzi } from "./mazzi.js";
 import { askConfirm } from "./ask.js";
 import { allDecks, artUrl, cardName, cardStats, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer } from "./renderer.js";
-import { apply, controllerOf, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, seatLabel, shuffled, zoneCards } from "./state.js";
+import { apply, controllerOf, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, playSpot, seatLabel, shuffled, zoneCards } from "./state.js";
 import { releaseHeld } from "./effects.js";
 import { DRAW_STEP_MS, drawCascadeMs, mountTable } from "./table.js";
 import { verdictByHp } from "./turn.js";
@@ -470,7 +470,13 @@ const table = mountTable(document.querySelector<HTMLElement>("#table")!, ctx);
 // stati difficili da raggiungere: la fine partita, un contatore). In
 // produzione non esiste.
 if (import.meta.env.DEV) {
-  (window as unknown as { __rbf: unknown }).__rbf = { dispatch: (action: Action) => dispatch(action), state: () => state, music: musicState };
+  (window as unknown as { __rbf: unknown }).__rbf = {
+    dispatch: (action: Action) => dispatch(action),
+    state: () => state,
+    music: musicState,
+    // Dove si posa una carta di quel tipo per quel posto (per montare a mano uno stato).
+    spot: (seat: Seat, kind: "entity" | "matter" | "object" | "rubyfront" | "nexus" | null) => playSpot(state, seat, kind),
+  };
 }
 
 const banner = mountPhaseBanner(document.querySelector<HTMLElement>("#table")!, ctx, { newGame: () => startNewGame() });

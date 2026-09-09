@@ -2043,8 +2043,12 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 }
 
 .combat-badge.is-attack { background: var(--ruby); }
-.combat-badge.is-block { background: var(--foe); color: #0b090b; }
+/* Il bloccante: scudo bianco su indaco, uguale in ogni tema (con --foe, che
+   sul chiaro è nero, il distintivo era un quadrato nero). */
+.combat-badge.is-block { background: #3d4c9c; color: #ffffff; border: 1px solid rgba(255, 255, 255, .35); }
 .combat-badge.is-counter { background: var(--warn); color: #0b090b; }
+.combat-badge svg { width: 16px; height: 16px; }
+.tile.is-tess .combat-badge svg, .tile.is-badged .combat-badge svg { width: calc(16px * var(--ui-inv)); height: calc(16px * var(--ui-inv)); }
 
 /* §8.2 — i segni di ciò che la carta ha in più rispetto allo stampato, in
    colonna in basso a destra: lo scarto di Potenza (statici e potenziamenti

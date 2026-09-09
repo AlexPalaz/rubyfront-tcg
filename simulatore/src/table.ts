@@ -353,6 +353,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    */
   type Targeting =
     | { mode: "block"; attacker: string; kind: "block" | "counter"; pointer: { x: number; y: number } | null }
+    /** Dalla propria carta: si è scelto il bloccante, si cerca l'attaccante. */
+    | { mode: "blocker"; blocker: string; kind: "block" | "counter"; pointer: { x: number; y: number } | null }
     | {
         mode: "effect";
         source: string;
@@ -1488,6 +1490,55 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     render();
   }
 
+  /** Il verso opposto: dalla propria Entità, si sceglie l'attaccante da fermare. */
+  function startTargetingFrom(blocker: CardInstance, kind: "block" | "counter"): void {
+    targeting = { mode: "blocker", blocker: blocker.uid, kind, pointer: null };
+    document.body.classList.add("is-targeting");
+    targetHint.textContent = t(kind === "counter" ? "target.attacker.counter" : "target.attacker.block");
+    targetHint.hidden = false;
+    render();
+  }
+
+  /**
+   * La scelta del blocco al click sinistro (§6.3, §6.4), in Reazione, per chi
+   * governa il difensore. Sull'ATTACCANTE avversario: «Blocca» o
+   * «Contrattacca», poi si sceglie con chi. Sulla PROPRIA Entità: «Blocca un
+   * attaccante» o «Contrattacca un attaccante», poi si sceglie chi fermare.
+   * Su un bloccante già dichiarato: l'annullo. Fuori da questi casi il click
+   * non fa nulla. (Il tasto destro non c'entra più col blocco.)
+   */
+  function blockChoice(card: CardInstance, clientX: number, clientY: number): boolean {
+    const state = ctx.state();
+    if (card.zone !== "field" || state.phase !== "reazione" || card.facedown) return false;
+    const controller = controllerOf(card);
+    const declared = declarationOf(state, card.uid);
+    if (declared?.kind === "attack") {
+      if (!ctx.controls(otherSeat(controller))) return false;
+      openMenu(clientX, clientY, [
+        { label: t("menu.block"), run: () => startTargeting(card, "block") },
+        { label: t("menu.counter"), run: () => startTargeting(card, "counter") },
+      ]);
+      return true;
+    }
+    // La propria metà: chi difende è l'altro posto rispetto a chi è di turno.
+    if (!ctx.controls(controller) || controller === state.active) return false;
+    if (declared) {
+      openMenu(clientX, clientY, [
+        { label: t(declared.kind === "counter" ? "menu.counter.undo" : "menu.block.undo"), run: () => void undeclare(ctx, card, declared) },
+      ]);
+      return true;
+    }
+    const kind = faceKind(card.cardId, card.face);
+    if (kind !== null && kind !== "entity") return false;
+    const attackers = state.declarations.some(d => d.kind === "attack" && controllerOf(state.cards[d.from]) === otherSeat(controller));
+    if (!attackers) return false;
+    openMenu(clientX, clientY, [
+      { label: t("pop.block.from"), run: () => startTargetingFrom(card, "block") },
+      { label: t("pop.counter.from"), run: () => startTargetingFrom(card, "counter") },
+    ]);
+    return true;
+  }
+
   /**
    * Il posto che sceglie il bloccante: l'altra metà rispetto all'attaccante.
    * In rete è sempre il proprio; in partita locale può essere l'uno o l'altro,
@@ -1543,6 +1594,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   function pickable(card: CardInstance): boolean {
     if (!targeting) return false;
     if (targeting.mode === "effect") return targeting.candidates.has(card.uid);
+    if (targeting.mode === "blocker") {
+      // Si cerca l'attaccante: le carte dichiarate in attacco dall'altra metà.
+      const blocker = ctx.state().cards[targeting.blocker];
+      if (!blocker) return false;
+      return controllerOf(card) === otherSeat(controllerOf(blocker)) && declarationOf(ctx.state(), card.uid)?.kind === "attack";
+    }
     return controllerOf(card) === defenderSeat() && card.uid !== targeting.attacker;
   }
 
@@ -1556,11 +1613,19 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (was.mode === "effect") was.cancel();
   }
 
-  function confirmBlock(blocker: CardInstance): void {
-    if (targeting?.mode !== "block") return;
-    const { attacker, kind } = targeting;
-    cancelTargeting();
-    void declareBlock(ctx, blocker, attacker, kind);
+  function confirmBlock(chosen: CardInstance): void {
+    if (targeting?.mode === "block") {
+      const { attacker, kind } = targeting;
+      cancelTargeting();
+      void declareBlock(ctx, chosen, attacker, kind);
+      return;
+    }
+    if (targeting?.mode === "blocker") {
+      const { blocker, kind } = targeting;
+      const blockerCard = ctx.state().cards[blocker];
+      cancelTargeting();
+      if (blockerCard) void declareBlock(ctx, blockerCard, chosen.uid, kind);
+    }
   }
 
   /**
@@ -1679,10 +1744,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             run: () => void undeclare(ctx, card, declared),
           });
         } else if (declared) {
-          items.push({
-            label: t(declared.kind === "counter" ? "menu.counter.undo" : "menu.block.undo"),
-            run: () => void undeclare(ctx, card, declared),
-          });
+          // Blocco o contrattacco dichiarati: l'annullo sta al click
+          // sinistro sulla carta (blockChoice), non qui.
         } else {
           // «Attacca» solo a chi può attaccare, e solo quando si attacca:
           // in Fase di Fronte (§6.3), nel proprio turno. Il Rubyfront non
@@ -1697,14 +1760,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           }
         }
       }
-      // Un attaccante dichiarato si ferma dall'altra metà del tavolo: in rete
-      // è sempre una carta avversaria, in locale anche la propria — chi guida
-      // entrambi i posti blocca con le Entità del difensore.
-      // E si blocca in Reazione, «vista l'intera ondata» (§6.4).
-      if (declared?.kind === "attack" && ctx.controls(otherSeat(controllerOf(card))) && ctx.state().phase === "reazione") {
-        items.push({ label: t("menu.block"), run: () => startTargeting(card, "block") });
-        items.push({ label: t("menu.counter"), run: () => startTargeting(card, "counter") });
-      }
+      // Bloccare e contrattaccare non passano dal tasto destro: si sceglie
+      // col click sinistro sull'attaccante o sulla propria Entità
+      // (blockChoice), in Reazione, «vista l'intera ondata» (§6.4).
       if (items.length) items.push({ rule: true, label: "" });
     }
 
@@ -2440,6 +2498,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   const wait = (ms: number): Promise<void> => new Promise(resolve => window.setTimeout(resolve, ms));
 
+  /** Lo scudo del bloccante (combat-badge), lo stesso tratto delle icone delle tessere. */
+  const SHIELD_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M12 3 5 6v6c0 4.5 3 8 7 9 4-1 7-4.5 7-9V6z"/></svg>';
+
   /** Quanto dura l'andata di una carta in una pila: dissolvenza della
       tessera più corsa della scintilla (i tempi in style.css). */
   const FLY_MS = 1600;
@@ -3122,13 +3185,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (live && !(live.zone === "hand" && handLocked(live.owner))) openMenu(event.clientX, event.clientY, cardMenu(live));
         },
         onTap: up => {
-          // Su touch non c'è hover: è il tap a chiedere l'ingrandimento (e a
-          // richiuderlo, sulla stessa carta). In targeting il tap sceglie il
-          // bloccante e l'ingrandimento non deve mettersi in mezzo.
-          if (up.pointerType !== "touch" || targeting) return;
+          // Il tap (click secco, non un trascinamento). In targeting sceglie
+          // (vedi il click sotto). Fuori: se la carta chiede una scelta di
+          // blocco (Reazione), si apre quella; se no, su touch — dove non
+          // c'è hover — è il tap a chiedere l'ingrandimento (e a
+          // richiuderlo, sulla stessa carta).
+          if (targeting) return;
           const live = ctx.state().cards[card.uid];
           const element = tiles.get(card.uid);
           if (!live || !element || element.classList.contains("is-back")) return;
+          if (blockChoice(live, up.clientX, up.clientY)) return;
+          if (up.pointerType !== "touch") return;
           tapPreview(element, live.cardId, live.face, ctx.themeFor(live.owner), ctx.locale());
         },
       });
@@ -3210,6 +3277,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         if (attacker) {
           arrows.push({ kind: targeting.kind, from: { ...targeting.pointer, w: 0, h: 0 }, to: boxOf(attacker), pending: true });
         }
+      } else if (targeting.mode === "blocker") {
+        // Dal bloccante scelto al dito: si cerca chi fermare.
+        const blocker = state.cards[targeting.blocker];
+        if (blocker) arrows.push({ kind: targeting.kind, from: boxOf(blocker), to: { ...targeting.pointer, w: 0, h: 0 }, pending: true });
       } else {
         // Un effetto invece mira: dalla fonte al dito.
         const source = state.cards[targeting.source];
@@ -3247,7 +3318,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (stasis) tile.dataset.stasis = t("tile.stasis");
     else delete tile.dataset.stasis;
     tile.classList.toggle("is-pickable", canPick);
-    tile.classList.toggle("is-legal", canPick && (targeting?.mode === "effect" || looksPlayable(card)));
+    tile.classList.toggle("is-legal", canPick && (targeting?.mode === "effect" || targeting?.mode === "blocker" || looksPlayable(card)));
     markMarks(tile, card, onField);
 
     let badge = tile.querySelector<HTMLElement>(".combat-badge");
@@ -3260,7 +3331,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       badge.className = "combat-badge";
       tile.append(badge);
     }
-    badge.textContent = declaration.kind === "attack" ? String(declaration.order) : "⛨";
+    // Il numero d'ondata sull'attaccante; sul bloccante lo scudo (disegnato:
+    // il glifo ⛨ del font usciva come un quadrato nero sul tema chiaro).
+    if (declaration.kind === "attack") badge.textContent = String(declaration.order);
+    else badge.innerHTML = SHIELD_SVG;
     badge.className = `combat-badge is-${declaration.kind}`;
   }
 

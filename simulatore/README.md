@@ -207,7 +207,8 @@ pubblico. Per LAN e reti domestiche normali basta.
 | Doppio click in mano | Gioca la carta sul Fronte |
 | Tasto destro su una carta | Tappa, copri, flip Rubyfront↔Nexus, manda in una zona |
 | Tasto destro sulla tua Entità → *Attacca* | Freccia verso il Rubyfront avversario, e la carta si tappa |
-| Tasto destro su un attaccante avversario → *Blocca con…* | Scegli l'Entità che lo ferma; *Contrattacca con…* la copre |
+| Click su un attaccante avversario → *Blocca con…* / *Contrattacca con…* | Poi scegli l'Entità che lo ferma (il contrattacco la copre) |
+| Click sulla tua Entità → *Blocca un attaccante…* / *Contrattacca un attaccante…* | Poi scegli chi fermare; su un bloccante già dichiarato, *Annulla* |
 | Tasto destro sul mazzo | Pesca 1, pesca 6, mescola, cerca |
 | Passare il mouse su una carta | La mostra a 520×728, anche se è sotto un'altra |
 | Fumetto in header / × sulla chat | Apre e chiude la chat; il tavolo si allarga |
@@ -393,9 +394,14 @@ nell'ordine di dichiarazione (§6.3 punto 5) e a mente lo si perde. Un attaccant
 senza freccia di blocco addosso è un attacco che passa: il colpo d'occhio è
 tutto il guadagno.
 
-**Bloccare** parte invece dall'attaccante: tasto destro su di lui, poi si sceglie
-con chi fermarlo. Il tavolo entra in modo bersaglio, una freccia tratteggiata
-segue il puntatore e le tue carte in campo si accendono. Fra queste, l'anello
+**Bloccare** è un click sinistro, in Reazione, da uno dei due capi: sull'
+**attaccante** avversario compare la scelta «Blocca con…» / «Contrattacca
+con…», poi si sceglie con chi fermarlo; sulla **propria Entità** compare
+«Blocca un attaccante…» / «Contrattacca un attaccante…», poi si sceglie chi
+fermare; su un bloccante già dichiarato, «Annulla». Il tasto destro non
+c'entra più col blocco (deciso 2026-09-09). Il tavolo entra in modo
+bersaglio, una freccia tratteggiata segue il puntatore e le carte
+scegliibili si accendono. Fra queste, l'anello
 verde segna quelle che le regole permetterebbero (§6.3: una tappata non può
 bloccare, una coperta non può fare nulla, il Rubyfront non è un'Entità) — ma le
 altre **restano cliccabili**: qui si smorza, non si impedisce.
