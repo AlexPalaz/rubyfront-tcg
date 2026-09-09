@@ -700,7 +700,7 @@
     --stone-veil: rgba(255,159,179,.22);
     /* Il fondo: il rubino del marchio portato a carta — cremisi saturo, non
        vino bruno; luce dall'alto, si scurisce verso il basso. */
-    --card-hi: #7a0f2e; --card-mid: #560a21; --card-low: #330511;
+    --card-hi: #660c27; --card-mid: #45081b; --card-low: #26040d;
     /* Niente banda sotto il nome (tolta su richiesta): il titolo poggia sul fondo. */
     --band-hi: transparent; --band-low: transparent;
     --panel-hi: #f0eeec; --panel-low: #dedbd8;
