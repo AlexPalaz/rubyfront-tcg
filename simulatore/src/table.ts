@@ -1581,8 +1581,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     ];
   }
 
-  /** Ridisegna i tasti di combattimento: uno o due per carta, al centro del
-      bordo basso — quello che si vede: una tappata è coricata. */
+  /** Ridisegna i tasti di combattimento: un pannello sopra la carta, al suo
+      centro, coi tasti in colonna (deciso 2026-09-09: «un overlay con i
+      bottoni, Blocca e Contrattacca a capo»). Il centro non cambia con la
+      tappata: la carta coricata ruota attorno a sé. */
   function paintCombatTabs(): void {
     combatLayer.replaceChildren();
     for (const card of fieldCards(ctx.state())) {
@@ -1591,10 +1593,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const box = boxOf(card);
       const group = document.createElement("div");
       group.className = "combat-tabs";
-      const cx = box.x + box.w / 2;
-      const bottom = box.y + box.h / 2 + (card.tapped ? box.w : box.h) / 2;
-      group.style.left = `${cx}px`;
-      group.style.top = `${bottom}px`;
+      group.style.left = `${box.x + box.w / 2}px`;
+      group.style.top = `${box.y + box.h / 2}px`;
       for (const tab of tabs) {
         const button = document.createElement("button");
         button.type = "button";

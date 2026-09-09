@@ -151,8 +151,19 @@ export async function endTurn(ctx: Ctx): Promise<void> {
     ctx.log(msg("log.deckout", { title, seat: loser, detail }), over.winner);
     return;
   }
-  // Il cambio di turno passa dal giudizio dell'engine (§6.5: mano massima 7
-  // alla chiusura): fermato, non succede nulla. Passato, il riduttore ha già
+  // §6.5 — «non si possono avere più di 7 carte in mano: alla fine del
+  // proprio turno, le carte in eccesso vanno scartate». Lo dice anche
+  // l'engine, fermando il cambio di turno col sigillo; ma la regola è del
+  // tavolo, e vale anche quando l'arbitro non c'è o si sta ricollegando
+  // (2026-09-09: un fine turno passato a 8 carte mentre l'engine era
+  // scollegato). Qui ci si ferma prima, con la riga in chat che dice cosa fare.
+  const held = zoneCards(state, state.active, "hand").length;
+  if (held > 7) {
+    ctx.log(msg("log.discard.needed", { seat: state.active, n: held }), state.active);
+    return;
+  }
+  // Il cambio di turno passa dal giudizio dell'engine (§6.5, di nuovo, sulla
+  // sua copia): fermato, non succede nulla. Passato, il riduttore ha già
   // apparecchiato il turno di chi entra (Flusso, stappata, frecce).
   if (!(await ctx.dispatch({ t: "turn", turn: state.turn + 1, active: next }))) return;
   const player = ctx.state().players[next];

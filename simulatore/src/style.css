@@ -1996,16 +1996,25 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   z-index: 99998;
   pointer-events: none;
 }
+/* Il pannello: un vetro scuro al centro della carta, i tasti in colonna,
+   larghi uguali. */
 .combat-tabs {
   position: absolute;
   display: flex;
-  gap: calc(6px * var(--ui-inv));
+  flex-direction: column;
+  gap: calc(8px * var(--ui-inv));
+  padding: calc(10px * var(--ui-inv));
   transform: translate(-50%, -50%);
-  pointer-events: none;
+  background: rgba(9, 7, 9, .72);
+  border: calc(1px * var(--ui-inv)) solid rgba(255, 255, 255, .18);
+  box-shadow: 0 calc(10px * var(--ui-inv)) calc(30px * var(--ui-inv)) rgba(0, 0, 0, .5);
+  backdrop-filter: blur(3px);
+  pointer-events: auto;
 }
 .combat-tab {
   pointer-events: auto;
-  padding: calc(9px * var(--ui-inv)) calc(16px * var(--ui-inv));
+  min-width: calc(150px * var(--ui-inv));
+  padding: calc(10px * var(--ui-inv)) calc(16px * var(--ui-inv));
   font-size: calc(1rem * var(--ui-inv));
   font-weight: 700;
   letter-spacing: .12em;

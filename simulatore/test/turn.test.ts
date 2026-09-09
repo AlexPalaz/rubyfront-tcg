@@ -96,6 +96,25 @@ describe("endTurn", () => {
     expect(logs).toHaveLength(0);
   });
 
+  it("con più di 7 carte in mano il turno non si chiude, anche senza arbitro (§6.5)", async () => {
+    const state = newGame("a");
+    for (let i = 0; i < 8; i += 1) {
+      state.cards[`h${i}`] = { uid: `h${i}`, cardId: "X", owner: "a", zone: "hand", face: 0, x: 0, y: 0, z: 0, order: i, tapped: false, facedown: false };
+    }
+    // Mazzi non vuoti: qui si prova la mano, non l'esaurimento (§9.1).
+    for (const seat of ["a", "b"] as const) {
+      state.cards[`d${seat}`] = { uid: `d${seat}`, cardId: "X", owner: seat, zone: "deck", face: 0, x: 0, y: 0, z: 0, order: 0, tapped: false, facedown: false };
+    }
+    const { ctx, sent, logs } = fakeCtx(() => true, state);
+    await endTurn(ctx);
+    expect(sent).toHaveLength(0);
+    expect(logs).toEqual(["Giocatore A: 8 carte in mano, scarta fino a 7."]);
+    // Scartata una, si chiude.
+    delete state.cards.h7;
+    await endTurn(ctx);
+    expect(sent).toEqual([{ t: "turn", turn: 2, active: "b" }]);
+  });
+
 });
 
 // «Fine fase» (HUD con l'arbitro): un gesto solo che chiude la fase in
