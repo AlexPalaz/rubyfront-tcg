@@ -393,6 +393,7 @@ const ctx: Ctx = {
   arbitrated: () => engine?.status() === "online",
   themeFor: seat => themes[seat],
   locale: () => locale,
+  promptDiscard: seat => table.promptDiscard(seat),
   card: cardId => {
     const stats = cardStats(cardId);
     return {

@@ -280,6 +280,10 @@ export interface Ctx {
   /** Riga di servizio in chat (dadi, mescola, pesca). Il posto di chi agisce
       colora la riga: si deve vedere a colpo d'occhio chi fa cosa. */
   log(text: string | LogMsg, seat?: Seat | null): void;
+  /** §6.5 — l'invito a scartare: l'Abisso di `seat` si accende. Torna true
+      la prima volta nel turno (quando vale la pena dirlo anche in chat).
+      Facoltativo: un Ctx senza tavolo (i test) non ce l'ha. */
+  promptDiscard?(seat: Seat): boolean;
 }
 
 export const TILE_W = 302;
