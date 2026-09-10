@@ -7,7 +7,7 @@
 
 import { msg, t } from "./i18n.js";
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
-import { createCardEl, fitPending, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
+import { createCardEl, fitPending, keywordIcon, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
 import { playSound } from "./sound.js";
 import { declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticCounter, staticPower, undeclare, wornBy } from "./combat.js";
 import { tapPreview } from "./preview.js";
@@ -3856,9 +3856,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       for (const keyword of new Set([...untilEnd, ...fromObjects])) {
         // Stampata sulla carta: niente da segnare.
         if (facts.keywords.includes(keyword)) continue;
+        // La stessa icona della parola chiave stampata (deciso 2026-09-10):
+        // il nome per esteso sta nel suggerimento.
         const what = t(`grant.${keyword}`);
         const how = untilEnd.includes(keyword) ? "tile.grant.turn" : "tile.grant.assigned";
-        marks.push({ key: `grant:${keyword}`, cls: "grant-mark", icon: "", text: what, title: t(how, { what }) });
+        const icon = keywordIcon(keyword);
+        marks.push({ key: `grant:${keyword}`, cls: `grant-mark is-${keyword}`, icon: icon ?? "", text: icon ? "" : what, title: t(how, { what }) });
       }
       // Il Contrattacco in più: concesso fino a fine turno, o statico dagli
       // Oggetti addosso (§6.3, §8.2).

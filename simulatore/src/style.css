@@ -2897,6 +2897,68 @@ body.is-targeting .tile.is-legal {
   border-radius: 0;
 }
 .hud-chat svg { width: 19px; height: 19px; }
+/* Il tastino della legenda («?»): lo stesso vestito della chat. */
+.hud-legend {
+  position: relative;
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 0;
+}
+.hud-legend svg { width: 18px; height: 18px; }
+.hud-legend:hover { color: var(--ink); }
+/* La legenda: un pannello come le impostazioni, una riga per simbolo. */
+.legend {
+  position: fixed;
+  top: calc(var(--toolbar-h) + 8px);
+  right: 10px;
+  z-index: 9800;
+  width: 440px;
+  max-height: calc(100vh - var(--toolbar-h) - 24px);
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .6);
+}
+.legend[hidden] { display: none; }
+.legend-title { margin: 0 0 6px; font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.legend-row {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  padding: 6px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.legend-row > b { font-size: .9rem; color: var(--ink); }
+.legend-row > .legend-text { grid-column: 2; font-size: .82rem; line-height: 1.35; color: var(--muted); }
+.legend-icon {
+  grid-row: 1 / span 2;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: var(--ruby);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  font-weight: 800;
+}
+.legend-icon svg { width: 18px; height: 18px; }
+.legend-icon.is-stasis, .legend-icon.is-tapped, .legend-icon.is-covered, .legend-icon.is-chain { color: var(--ink); }
+.legend-icon.is-hp { color: #3fbf7a; }
+.legend-icon.is-token { color: var(--warn); }
+.legend-icon.is-wave { color: #fdeef1; background: var(--ruby-deep); }
+.legend-icon.is-shield { color: var(--foe); }
+.legend-icon.is-extra { color: var(--warn); }
 .hud-mic {
   position: relative;
   width: 44px;

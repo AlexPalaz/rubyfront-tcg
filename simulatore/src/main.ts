@@ -16,6 +16,7 @@ import "@fontsource-variable/space-grotesk";
 import { mountChat } from "./chat.js";
 import { SLOT_X, SURFACE_W, backRowY, isCompactView, isRecessView, setViewMode, viewBattleTop, viewMode, type Ctx, type ViewMode } from "./ctx.js";
 import { connectEngine, DEFAULT_ENGINE, type EngineLink, type EngineStatus, type EngineVerdict, verdictReason } from "./engine.js";
+import { mountLegend } from "./legend.js";
 import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
@@ -588,8 +589,13 @@ function toggleSide(): void {
 // Turno, gesto di fase, Evoca, chat e microfono stanno in header; le targhe
 // dei posti sull'orlo dei campi (table.onStats, sotto). L'overlay è montato
 // poche righe sotto: ai click esiste già.
+let legendPanel: ReturnType<typeof mountLegend> | null = null;
 const hud = mountHud(ctx, {
   chat: toggleSide,
+  legend: button => {
+    legendPanel ??= mountLegend(document.body, button);
+    legendPanel.toggle();
+  },
   voice: async () => {
     const before = voice.enabled();
     await voice.toggle();

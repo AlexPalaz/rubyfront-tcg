@@ -35,6 +35,8 @@ export interface HudHooks {
   chat(): void;
   /** Accende e spegne il microfono della chat vocale. */
   voice(): void;
+  /** Apre e chiude la legenda dei simboli (il tastino «?» accanto alla chat). */
+  legend(button: HTMLElement): void;
   shuffle(): void;
   draw(): void;
   search(): void;
@@ -299,6 +301,16 @@ export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
   chatToggle.addEventListener("click", hooks.chat);
   const chatBadges = makeBadges(chatToggle);
 
+  // La legenda dei simboli (deciso 2026-09-10): un «?» accanto alla chat.
+  const legend = document.createElement("button");
+  legend.type = "button";
+  legend.className = "hud-legend";
+  tip(legend, t("hud.legend"));
+  legend.innerHTML = svgIcon(
+    '<path d="M9.5 9a2.5 2.5 0 1 1 3.6 2.24c-.7.35-1.1.9-1.1 1.76v.5"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9.5"/>'
+  );
+  legend.addEventListener("click", () => hooks.legend(legend));
+
   // Il microfono della chat vocale: SPENTO di default, l'accensione è un
   // gesto esplicito. Lo stato visivo lo detta body.dataset.voice (main.ts).
   const mic = document.createElement("button");
@@ -406,7 +418,7 @@ export function mountHud(ctx: Ctx, hooks: HudHooks): Hud {
   spawn.addEventListener("click", hooks.spawn);
 
   bar.append(tools, dice);
-  toolsHost.append(spawn, chatToggle, mic);
+  toolsHost.append(spawn, chatToggle, legend, mic);
   // Il gesto di fase sta sul tavolo, in basso a destra, sopra il cassetto
   // della mano e accanto al tasto che la ripiega: a portata di mano, e la
   // fila di servizio lì sotto è libera (le pile stanno a sinistra, ctx.ts).

@@ -69,6 +69,15 @@ const KEY_ICON: Record<string, string> = {
 const keyIcon = (paths: string): string =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 
+/** L'icona di una parola chiave (§8.1), la stessa della tessera; null se non ne ha una. */
+export function keywordIcon(id: string): string | null {
+  return id in KEY_ICON ? keyIcon(KEY_ICON[id]) : null;
+}
+/** Le parole chiave con un'icona, nell'ordine della legenda. */
+export const KEYWORD_IDS = Object.keys(KEY_ICON);
+/** Le icone della Potenza e del Contrattacco, le stesse della tessera. */
+export const ICONS = { swords: TESS_SWORDS, counter: TESS_COUNTER } as const;
+
 export function createCardEl(uid: string): HTMLElement {
   const element = document.createElement("div");
   element.className = "tile";
