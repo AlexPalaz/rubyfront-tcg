@@ -18,7 +18,7 @@
   "face": {
     "name": "Bound Immortal",
     "boundReturn": {
-      "trigger": "When it leaves the field",
+      "trigger": "When it is sent to the Abyss or the Retire Zone",
       "text": "If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object with Flux cost 2 or less from your Retire Zone, without paying its cost. If there is no such Object in your Retire Zone, it doesn't come back."
     },
     "flavor": "It doesn't die: it waits for the weapon that calls it back."
