@@ -4156,7 +4156,7 @@
                 "flux": "Flussi"
               },
               "matters": {
-                "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+                "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
                 "dimensionalAria": "Dimensionale"
               },
               "face": {
@@ -4182,7 +4182,7 @@
                 "flux": "Flux"
               },
               "matters": {
-                "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+                "dimensionalTitle": "Dimensional Matter · up to 1st grade",
                 "dimensionalAria": "Dimensional"
               },
               "face": {
@@ -4215,7 +4215,7 @@
               "enablesMatters": [
                 {
                   "type": "dimensional",
-                  "maxGrade": 2
+                  "maxGrade": 1
                 }
               ],
               "keywords": [],
@@ -10701,7 +10701,7 @@
             "flux": "Flussi"
           },
           "matters": {
-            "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+            "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
             "dimensionalAria": "Dimensionale"
           },
           "face": {
@@ -10727,7 +10727,7 @@
             "flux": "Flux"
           },
           "matters": {
-            "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+            "dimensionalTitle": "Dimensional Matter · up to 1st grade",
             "dimensionalAria": "Dimensional"
           },
           "face": {
@@ -10760,7 +10760,7 @@
           "enablesMatters": [
             {
               "type": "dimensional",
-              "maxGrade": 2
+              "maxGrade": 1
             }
           ],
           "keywords": [],

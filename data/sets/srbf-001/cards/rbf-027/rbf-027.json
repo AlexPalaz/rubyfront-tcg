@@ -33,7 +33,7 @@
       "enablesMatters": [
         {
           "type": "dimensional",
-          "maxGrade": 2
+          "maxGrade": 1
         }
       ],
       "keywords": [],

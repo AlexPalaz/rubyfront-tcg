@@ -170,5 +170,5 @@ collegati il 2026-09-10 (engine 0.46–0.48).
   Forma certificata (Contrattacco statico per Oggetto), insieme al
   Contrattacco +1 dello Scudo Dimensionale.
 - **Sentinella di Nova Kai** ha anche Slancio; **Kyo Shin** abilita la
-  Dimensionale II (decisioni del designer).
+  Dimensionale II e l'**Artefice** la Dimensionale I (decisioni del designer).
 - Eredità Perduta invariata. Conteggi invariati (19 · 10 · 11 = 40).
