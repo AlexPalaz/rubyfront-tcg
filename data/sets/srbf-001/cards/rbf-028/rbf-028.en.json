@@ -1,7 +1,7 @@
 {
   "name": "Sentinel of Nova Kai",
   "typeLabel": "Entity: Auros",
-  "summary": "A body with Counterattack that grows with every Object it wears.",
+  "summary": "A body with Surge and Counterattack that grows with every Object it wears.",
   "ui": {
     "face": "Entity"
   },
@@ -21,6 +21,10 @@
     "flavor": "The answering blow is the only one it has always prepared.",
     "effect": {
       "text": "This Entity's Counterattack increases by 1 for each Object assigned to this Entity."
+    },
+    "keyword": {
+      "name": "Surge",
+      "rules": "may attack the turn it enters the Front"
     }
   }
 }

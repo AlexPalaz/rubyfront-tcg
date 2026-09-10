@@ -17,7 +17,8 @@
     "entity",
     "auros",
     "equip",
-    "counterattack"
+    "counterattack",
+    "surge"
   ],
   "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
   "faces": [
@@ -37,7 +38,11 @@
           "maxGrade": 1
         }
       ],
-      "keywords": [],
+      "keywords": [
+        {
+          "id": "surge"
+        }
+      ],
       "requirements": {},
       "triggers": [
         {

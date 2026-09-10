@@ -4274,7 +4274,7 @@
             "it": {
               "name": "Sentinella di Nova Kai",
               "typeLabel": "Entità: Auros",
-              "summary": "Un corpo con Contrattacco che cresce con ogni Oggetto che porta.",
+              "summary": "Un corpo con Slancio e Contrattacco che cresce con ogni Oggetto che porta.",
               "ui": {
                 "face": "Entità"
               },
@@ -4294,13 +4294,17 @@
                 "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
                 "effect": {
                   "text": "Il Contrattacco di questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità."
+                },
+                "keyword": {
+                  "name": "Slancio",
+                  "rules": "può attaccare nel turno in cui entra sul Fronte"
                 }
               }
             },
             "en": {
               "name": "Sentinel of Nova Kai",
               "typeLabel": "Entity: Auros",
-              "summary": "A body with Counterattack that grows with every Object it wears.",
+              "summary": "A body with Surge and Counterattack that grows with every Object it wears.",
               "ui": {
                 "face": "Entity"
               },
@@ -4320,6 +4324,10 @@
                 "flavor": "The answering blow is the only one it has always prepared.",
                 "effect": {
                   "text": "This Entity's Counterattack increases by 1 for each Object assigned to this Entity."
+                },
+                "keyword": {
+                  "name": "Surge",
+                  "rules": "may attack the turn it enters the Front"
                 }
               }
             }
@@ -4328,7 +4336,8 @@
             "entity",
             "auros",
             "equip",
-            "counterattack"
+            "counterattack",
+            "surge"
           ],
           "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
           "faces": [
@@ -4348,7 +4357,11 @@
                   "maxGrade": 1
                 }
               ],
-              "keywords": [],
+              "keywords": [
+                {
+                  "id": "surge"
+                }
+              ],
               "requirements": {},
               "triggers": [
                 {
@@ -10814,7 +10827,7 @@
         "it": {
           "name": "Sentinella di Nova Kai",
           "typeLabel": "Entità: Auros",
-          "summary": "Un corpo con Contrattacco che cresce con ogni Oggetto che porta.",
+          "summary": "Un corpo con Slancio e Contrattacco che cresce con ogni Oggetto che porta.",
           "ui": {
             "face": "Entità"
           },
@@ -10834,13 +10847,17 @@
             "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
             "effect": {
               "text": "Il Contrattacco di questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità."
+            },
+            "keyword": {
+              "name": "Slancio",
+              "rules": "può attaccare nel turno in cui entra sul Fronte"
             }
           }
         },
         "en": {
           "name": "Sentinel of Nova Kai",
           "typeLabel": "Entity: Auros",
-          "summary": "A body with Counterattack that grows with every Object it wears.",
+          "summary": "A body with Surge and Counterattack that grows with every Object it wears.",
           "ui": {
             "face": "Entity"
           },
@@ -10860,6 +10877,10 @@
             "flavor": "The answering blow is the only one it has always prepared.",
             "effect": {
               "text": "This Entity's Counterattack increases by 1 for each Object assigned to this Entity."
+            },
+            "keyword": {
+              "name": "Surge",
+              "rules": "may attack the turn it enters the Front"
             }
           }
         }
@@ -10868,7 +10889,8 @@
         "entity",
         "auros",
         "equip",
-        "counterattack"
+        "counterattack",
+        "surge"
       ],
       "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
       "faces": [
@@ -10888,7 +10910,11 @@
               "maxGrade": 1
             }
           ],
-          "keywords": [],
+          "keywords": [
+            {
+              "id": "surge"
+            }
+          ],
           "requirements": {},
           "triggers": [
             {

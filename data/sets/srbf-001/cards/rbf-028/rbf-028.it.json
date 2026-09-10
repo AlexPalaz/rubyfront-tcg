@@ -1,7 +1,7 @@
 {
   "name": "Sentinella di Nova Kai",
   "typeLabel": "Entità: Auros",
-  "summary": "Un corpo con Contrattacco che cresce con ogni Oggetto che porta.",
+  "summary": "Un corpo con Slancio e Contrattacco che cresce con ogni Oggetto che porta.",
   "ui": {
     "face": "Entità"
   },
@@ -21,6 +21,10 @@
     "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
     "effect": {
       "text": "Il Contrattacco di questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità."
+    },
+    "keyword": {
+      "name": "Slancio",
+      "rules": "può attaccare nel turno in cui entra sul Fronte"
     }
   }
 }

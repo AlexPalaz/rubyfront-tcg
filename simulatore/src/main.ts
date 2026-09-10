@@ -25,7 +25,7 @@ import { showEnterEffect, showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
 import { musicState, playSound, setMusicEnabled, setSoundEnabled, startMusic, stopMusic, unlockSound } from "./sound.js";
 import { endPhase } from "./turn.js";
-import { chooseAttackers, chooseBlocks, chooseDiscards, choosePlay, freshMemory, pickBest, type BotMemory } from "./bot.js";
+import { chooseAttackers, chooseBlocks, chooseDiscards, chooseResponse, choosePlay, freshMemory, pickBest, type BotMemory } from "./bot.js";
 import { declareBlock } from "./combat.js";
 import { setupPreview } from "./preview.js";
 import { mountMazzi } from "./mazzi.js";
@@ -1726,11 +1726,19 @@ async function botTick(): Promise<void> {
 /** Un gesto del bot. Torna vero se ha fatto qualcosa e potrebbe farne altro. */
 async function botStep(bot: Seat): Promise<boolean> {
   const s = state;
-  // §7.2 — la catena: quando la parola è sua, passa (le Reattive aspettano
-  // una difficoltà più alta); mentre si risolve, aspetta.
+  // §7.2 — la catena: quando la parola è sua, il bot ci pensa un attimo
+  // (così chi guarda vede la barra «può rispondere»), poi risponde con una
+  // Reattiva che agisce, se ce l'ha e la paga — o accetta. Mentre la
+  // catena si risolve, aspetta.
   if (s.chain) {
     if (!s.chain.resolving && s.chain.turn === bot) {
+      await sleep(1400);
+      const live = state;
+      if (!live.chain || live.chain.resolving || live.chain.turn !== bot) return true;
+      const answer = chooseResponse(live, bot, ctx.card);
+      if (answer?.kind === "matter" && (await table.playFromHand(answer.card, answer.spot))) return true;
       await dispatch({ t: "pass", seat: bot });
+      ctx.log(msg("log.chain.pass", { seat: bot }), bot);
       return true;
     }
     return false;

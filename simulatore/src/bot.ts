@@ -238,6 +238,28 @@ export function choosePlay(state: GameState, seat: Seat, facts: Facts, memory: B
 }
 
 /**
+ * §7.2 — la risposta in catena: fra le Reattive in mano che la barra del
+ * Flusso copre (il Gettone no: la catena è atomica, e spenderlo è un gesto
+ * a parte che l'arbitro ferma), quella con un passo che agisce davvero —
+ * non la Reattiva bloccante, che in catena non ferma nessuno. Nessuna:
+ * null, e il bot accetta.
+ */
+export function chooseResponse(state: GameState, seat: Seat, facts: Facts): BotPlay | null {
+  const player = state.players[seat];
+  const options: { play: BotPlay; score: number }[] = [];
+  for (const card of zoneCards(state, seat, "hand")) {
+    const f = facts(card.cardId);
+    if (f.kind !== "matter" || f.behavior !== "reactive" || f.fluxCost === null || f.fluxCost > player.flux) continue;
+    const steps = resolveSteps(state, card, facts);
+    const acting = steps.filter(step => step.blocked === null && step.form.kind !== "block");
+    if (acting.length === 0) continue;
+    options.push({ play: { kind: "matter", card, spot: matterSpot(state, seat), useToken: false }, score: acting.length });
+  }
+  options.sort((a, b) => b.score - a.score);
+  return options[0]?.play ?? null;
+}
+
+/**
  * Le carte da scartare per stare nei 7 a fine turno (§6.5): quelle che
  * valgono meno, e a pari valore le più care da giocare.
  */

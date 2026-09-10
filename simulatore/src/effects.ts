@@ -424,6 +424,15 @@ export async function resolveDisarm(ctx: Ctx, step: EnterDisarmStep, object: Car
   return passed;
 }
 
+/**
+ * Lo z di un Oggetto che va addosso a un'Entità: sotto di lei e sotto gli
+ * Oggetti che già porta, a scaletta (come il rilascio a mano, dropZ in
+ * table.ts); il -9 tiene lo z-index del DOM sopra lo zero.
+ */
+export function underStack(bearer: CardInstance, worn: CardInstance[]): number {
+  return Math.max(-9, Math.min(bearer.z, ...worn.map(other => other.z)) - 1);
+}
+
 /** Un riarmo all'ingresso da risolvere (§8.2): la fonte; i candidati si rileggono a ogni giro. */
 export interface EnterRearmStep {
   source: CardInstance;
@@ -449,14 +458,14 @@ export function rearmChoices(state: GameState, source: CardInstance, facts: (car
 export async function resolveRearm(ctx: Ctx, step: EnterRearmStep, object: CardInstance, bearer: CardInstance): Promise<boolean> {
   const state = ctx.state();
   const live = state.cards[bearer.uid] ?? bearer;
-  const worn = Object.values(state.cards).filter(other => other.assignedTo === live.uid && other.zone === "field").length;
+  const worn = Object.values(state.cards).filter(other => other.assignedTo === live.uid && other.zone === "field");
   const passed = await ctx.dispatch({
     t: "toZone",
     uid: object.uid,
     zone: "field",
-    x: live.x + STACK_STEP * (worn + 1),
-    y: live.y + STACK_STEP * (worn + 1),
-    z: live.z - 1,
+    x: live.x + STACK_STEP * (worn.length + 1),
+    y: live.y + STACK_STEP * (worn.length + 1),
+    z: underStack(live, worn),
     assignTo: live.uid,
     effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid, follow: "rearm" },
   });

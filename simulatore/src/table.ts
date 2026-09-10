@@ -32,6 +32,7 @@ import {
   isRecessView,
   isTightView,
   setTightView,
+  chainRowY,
   surfaceViewH,
   setViewSlack,
   setCornerReserve,
@@ -55,6 +56,7 @@ import {
   enterRearms,
   leaveReturns,
   rearmChoices,
+  underStack,
   resolveDisarm,
   resolveRearm,
   resolveLeaveReturn,
@@ -1470,9 +1472,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           if (!chosen) break;
           const attacker = ctx.state().cards[step.attacker.uid];
           if (!attacker) break;
-          const worn = Object.values(ctx.state().cards).filter(other => other.assignedTo === attacker.uid && other.zone === "field").length;
-          const spot = { x: attacker.x + STACK_STEP * (worn + 1), y: attacker.y + STACK_STEP * (worn + 1) };
-          const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...spot, z: attacker.z - 1, assignTo: attacker.uid, effect: attackRef(step) });
+          const worn = Object.values(ctx.state().cards).filter(other => other.assignedTo === attacker.uid && other.zone === "field");
+          const spot = { x: attacker.x + STACK_STEP * (worn.length + 1), y: attacker.y + STACK_STEP * (worn.length + 1) };
+          const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...spot, z: underStack(attacker, worn), assignTo: attacker.uid, effect: attackRef(step) });
           if (passed) {
             flyFromPile(by, "ritiro", chosen.uid);
             await wait(FLY_MS);
@@ -2251,7 +2253,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const state = ctx.state();
     if (!state.chain?.resolving || chainBusy) return;
     const top = chainTop(state);
-    if (!top || top.zone !== "field" || !ctx.controls(controllerOf(top))) return;
+    // Col bot al tavolo le sue Reattive in catena le risolve questa lavagna,
+    // col suo selettore (setAuto): nessun altro client lo farebbe.
+    if (!top || top.zone !== "field" || !(ctx.controls(controllerOf(top)) || isAuto(controllerOf(top)))) return;
     chainBusy = top.uid;
     const blocking = state.declarations.some(d => d.from === top.uid && d.kind === "block");
     void resolveMatter(top, enterEffects(top.cardId, top.face, ctx.locale()), blocking).finally(() => {
@@ -2260,10 +2264,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     });
   }
 
-  /** Il posto della carta in catena, al centro del tavolo, a scaletta: in coordinate di VISTA. */
+  /** Il posto della carta in catena, nel varco fra i due campi, a scaletta: in coordinate di VISTA. */
   function chainSpot(index: number): { x: number; y: number } {
     const centerX = SURFACE_W / 2;
-    return { x: centerX - TILE_W / 2 + index * 44, y: (surfaceViewH() - tileViewH()) / 2 + index * 26 };
+    return { x: centerX - TILE_W / 2 + index * 44, y: chainRowY() + index * 26 };
   }
 
   /** La Materia risolta va nell'Abisso (§7.2: «poi la carta va nell'Abisso»). */

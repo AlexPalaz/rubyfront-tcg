@@ -567,6 +567,16 @@ export function bandViewH(foe = false): number {
   return rowPadTopView(foe) + tileViewH() + rowGapView() + tileViewH() + rowPadBottomView();
 }
 /** Altezza di VISTA dell'intera superficie. */
+/**
+ * L'ordinata di VISTA della carta in catena di risposta (§7.2): centrata sul
+ * varco fra il campo avversario e il tuo — «in mezzo fra il giocatore e
+ * l'avversario» (deciso 2026-09-10), non sul centro della lavagna, che coi
+ * margini diversi in cima e in fondo scivolava su un Fronte.
+ */
+export function chainRowY(): number {
+  return topPadView() + bandViewH(true) + halfGapView() / 2 - tileViewH() / 2;
+}
+
 export function surfaceViewH(): number {
   return topPadView() + bandViewH(true) + bandViewH(false) + halfGapView() + bottomPadView();
 }

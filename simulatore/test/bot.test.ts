@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import type { CardFacts } from "../src/ctx.js";
 import { FRONT_SLOT_X, frontRowY } from "../src/ctx.js";
-import { cardValue, chooseAttackers, chooseBlocks, chooseDiscards, choosePlay, freshMemory, pickBest } from "../src/bot.js";
+import { cardValue, chooseAttackers, chooseBlocks, chooseDiscards, choosePlay, chooseResponse, freshMemory, pickBest } from "../src/bot.js";
 import { newGame } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
@@ -32,6 +32,8 @@ const CARDS: Record<string, Partial<CardFacts>> = {
   ROCCIA: { kind: "entity", race: "human", power: 1, fluxCost: 2, keywords: ["stasis"] },
   FERRO: { kind: "object", fluxCost: 1 },
   PIETRA: { kind: "matter", fluxCost: 1, behavior: "permanent" },
+  SCATTO: { kind: "matter", fluxCost: 2, behavior: "reactive", resolveForms: [{ kind: "empower", targets: "own_entity", race: null, power: 1, untap: true }] },
+  RIPARO: { kind: "matter", fluxCost: 2, behavior: "reactive", resolveForms: [{ kind: "block", requiresArmed: 0, heal: 0, asBlock: true }] },
   RUBINO: { kind: "rubyfront", power: null },
 };
 const facts = (cardId: string): CardFacts => ({
@@ -213,5 +215,25 @@ describe("scarti e scelte", () => {
     expect(pickBest(state, "b", [mine], facts)?.uid).toBe(mine.uid);
     expect(pickBest(state, "b", [big, small], facts, "weakest")?.uid).toBe(small.uid);
     expect(cardValue(state, big, facts)).toBe(4);
+  });
+});
+
+describe("chooseResponse (§7.2, la catena)", () => {
+  it("risponde con la Reattiva che agisce e che paga, mai con la bloccante; senza, accetta", () => {
+    const state = newGame();
+    state.players.b.flux = 2;
+    put(state, "PICCOLA", "b", "field");
+    const scatto = put(state, "SCATTO", "b", "hand");
+    put(state, "RIPARO", "b", "hand");
+    expect(chooseResponse(state, "b", facts)?.card.uid).toBe(scatto.uid);
+    // Il Gettone in catena non si spende (la catena è atomica): senza barra, si accetta.
+    state.players.b.flux = 1;
+    state.players.b.token = true;
+    expect(chooseResponse(state, "b", facts)).toBeNull();
+    // Senza un'Entità da stappare la Reattiva non agisce: si accetta.
+    const empty = newGame();
+    empty.players.b.flux = 5;
+    put(empty, "SCATTO", "b", "hand");
+    expect(chooseResponse(empty, "b", facts)).toBeNull();
   });
 });
