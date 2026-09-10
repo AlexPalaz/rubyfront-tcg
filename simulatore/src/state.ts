@@ -121,8 +121,11 @@ function orderForBottom(state: GameState, seat: Seat, zone: ZoneId): number {
 export function attackKey(action: Action): string | null {
   const ref = "effect" in action ? action.effect : undefined;
   if (!ref) return null;
+  // «Quando quell'Entità muore» (§8.2): l'Oggetto che resta, e il suo riarmo.
+  if (ref.event === "on_death") return `${ref.source}|${ref.follow ? `on_death:${ref.follow}` : "on_death"}|${ref.entering}`;
   if (ref.event === "on_resolve" || ref.event === "on_flip" || ref.event === "on_assign_object") {
     const step = (() => {
+      if (ref.follow) return ref.follow;
       switch (action.t) {
         case "draw": return "draw";
         case "player": return "sealed" in (action.patch ?? {}) ? "seal" : "heal";
@@ -132,7 +135,8 @@ export function attackKey(action: Action): string | null {
         default: return action.t;
       }
     })();
-    return `${ref.source}|${ref.event}:${step}|${ref.entering}`;
+    // «La prima volta in ogni tuo turno» (`once`) vale per il turno, non per l'ingresso. Gemello: engine.rb, resolve_key.
+    return `${ref.source}|${ref.event}:${step}|${ref.once ? "turn" : ref.entering}`;
   }
   if (ref.event !== "on_attack") return null;
   const step = (() => {
@@ -631,7 +635,14 @@ function reduce(state: GameState, action: Action): GameState {
         retireTop -= 1;
         return { ...card, zone: "ritiro", order: retireTop + 1, facedown: false };
       };
+      // «Se non ne mostri una, metti una delle carte guardate in cima al
+      // mazzo» (`top`): resta sopra tutte le altre. Gemello: table.rb, look.
+      const topOrder = orderForTop(state, action.seat, "deck");
       for (const card of looked) {
+        if (card.uid === action.top) {
+          cards[card.uid] = { ...card, order: topOrder };
+          continue;
+        }
         if (card.uid === action.reveal) {
           cards[card.uid] = action.revealTo === "ritiro"
             ? toRetire(card)
@@ -646,6 +657,42 @@ function reduce(state: GameState, action: Action): GameState {
         bottom += 1;
       }
       return { ...state, cards };
+    }
+
+    case "ends": {
+      // §3.1 — gli estremi del mazzo: la prima e l'ultima carta scambiate
+      // (`swap`), o una in mano (`toHand`) e l'altra in cima alla Zona di
+      // Ritiro (`toRetire`). Gemello: table.rb, ends.
+      const deck = zoneCards(state, action.seat, "deck");
+      if (deck.length === 0) return state;
+      const top = deck[0];
+      const bottom = deck[deck.length - 1];
+      const cards = { ...state.cards };
+      if (action.swap) {
+        if (top.uid !== bottom.uid) {
+          cards[top.uid] = { ...top, order: bottom.order };
+          cards[bottom.uid] = { ...bottom, order: top.order };
+        }
+        return { ...state, cards };
+      }
+      const ends = [top.uid, bottom.uid];
+      if (action.toHand && ends.includes(action.toHand)) {
+        cards[action.toHand] = { ...state.cards[action.toHand], zone: "hand", order: orderForBottom(state, action.seat, "hand"), facedown: false };
+      }
+      if (action.toRetire && action.toRetire !== action.toHand && ends.includes(action.toRetire)) {
+        cards[action.toRetire] = { ...state.cards[action.toRetire], zone: "ritiro", order: orderForTop(state, action.seat, "ritiro"), facedown: false };
+      }
+      return { ...state, cards };
+    }
+
+    case "remain": {
+      // §8.2 — «metti questo Oggetto nella tua Zona di Ritiro invece che
+      // nell'Abisso»: dall'Abisso, in cima alla Zona di Ritiro. Gemello: table.rb, remain.
+      const card = state.cards[action.uid];
+      if (!card || card.zone !== "abisso") return state;
+      const fresh: CardInstance = { ...card, zone: "ritiro", order: orderForTop(state, card.owner, "ritiro") };
+      delete fresh.heldBy;
+      return { ...state, cards: { ...state.cards, [action.uid]: fresh } };
     }
 
     case "gameOver":

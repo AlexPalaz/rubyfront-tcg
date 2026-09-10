@@ -578,6 +578,48 @@ describe("memoria degli inneschi e sguardo", () => {
     expect(rest.cards.d2.zone).toBe("ritiro");
     expect(rest.cards.d3.zone).toBe("deck");
   });
+
+  it("la ricerca senza mostrata rimette una guardata in cima, una in Ritiro, le altre in fondo", () => {
+    const state = newGame("a");
+    ["d1", "d2", "d3", "d4"].forEach((uid, order) => field(state, uid, "a", { zone: "deck", order }));
+    const ref = { source: "m", event: "on_resolve" as const, entering: "m" };
+    const next = apply(state, { t: "look", seat: "a", count: 3, roll: 3, top: "d2", retire: "d3", revealTo: "hand", restTo: "deck", effect: ref });
+    expect(zoneCards(next, "a", "deck").map(c => c.uid)).toEqual(["d2", "d4", "d1"]);
+    expect(next.cards.d3.zone).toBe("ritiro");
+    expect(next.fired).toEqual(["m|on_resolve:look|m"]);
+  });
+
+  it("gli estremi del mazzo: scambiati, o uno in mano e l'altro in Ritiro", () => {
+    const state = newGame("a");
+    ["d1", "d2", "d3"].forEach((uid, order) => field(state, uid, "a", { zone: "deck", order }));
+    const ref = { source: "rf", event: "on_assign_object" as const, entering: "o", once: true as const };
+    const swapped = apply(state, { t: "ends", seat: "a", swap: true, effect: ref });
+    expect(zoneCards(swapped, "a", "deck").map(c => c.uid)).toEqual(["d3", "d2", "d1"]);
+    expect(swapped.fired).toEqual(["rf|on_assign_object:ends|turn"]);
+    const kept = apply(state, { t: "ends", seat: "a", effect: ref });
+    expect(zoneCards(kept, "a", "deck").map(c => c.uid)).toEqual(["d1", "d2", "d3"]);
+    const picked = apply(state, { t: "ends", seat: "a", toHand: "d3", toRetire: "d1", effect: ref });
+    expect(picked.cards.d3.zone).toBe("hand");
+    expect(picked.cards.d1.zone).toBe("ritiro");
+    expect(zoneCards(picked, "a", "deck").map(c => c.uid)).toEqual(["d2"]);
+    // Il seguito ha la sua chiave; il turno cancella tutto.
+    const drew = apply(swapped, { t: "draw", seat: "a", count: 1, effect: { ...ref, follow: "draw" } });
+    expect(drew.fired).toEqual(["rf|on_assign_object:ends|turn", "rf|on_assign_object:draw|turn"]);
+    expect(apply(drew, { t: "turn", turn: 2, active: "b" }).fired).toEqual([]);
+  });
+
+  it("l'Oggetto che resta: dall'Abisso in cima alla Zona di Ritiro, con la sua chiave", () => {
+    const state = newGame("a");
+    field(state, "v", "a", { zone: "abisso", order: 0 });
+    field(state, "w", "a", { zone: "ritiro", order: 0 });
+    const next = apply(state, { t: "remain", uid: "v", effect: { source: "v", event: "on_death", entering: "u" } });
+    expect(next.cards.v.zone).toBe("ritiro");
+    expect(zoneCards(next, "a", "ritiro").map(c => c.uid)).toEqual(["v", "w"]);
+    expect(next.fired).toEqual(["v|on_death|u"]);
+    const rearm = apply(next, { t: "toZone", uid: "w", zone: "field", x: 0, y: 0, assignTo: "n", effect: { source: "v", event: "on_death", entering: "u", follow: "rearm" } });
+    expect(rearm.fired).toContain("v|on_death:rearm|u");
+    expect(apply(state, { t: "remain", uid: "w", effect: { source: "w", event: "on_death", entering: "u" } }).cards.w.zone).toBe("ritiro");
+  });
 });
 
 // Gli attrezzi di Eredità Perduta nel riduttore: Stasi, Contrattacco

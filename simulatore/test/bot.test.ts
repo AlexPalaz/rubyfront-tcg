@@ -20,7 +20,7 @@ const BASE: Omit<CardFacts, "name" | "kind" | "race" | "power" | "counterattack"
   attackForms: [],
   staticForms: [],
   resolveForms: [],
-  flipForms: [],
+  flipForms: [], assignForms: [], deathForms: [],
   nexus: null,
   grantsWhileAssigned: [],
 };

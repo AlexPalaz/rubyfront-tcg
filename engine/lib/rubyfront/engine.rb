@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.59.0"
+    VERSION = "0.62.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -95,6 +95,9 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando assegni questo Oggetto, un'Entità avversaria nell'Abisso finché resta in gioco»",
       "§8.2 Effetti certificati: «il Rubyfront/Nexus avversario perde PV pari ai tuoi Oggetti assegnati», «distruggi, poi perdi N PV», «quando flippa, pesca»",
       "§8.2 Effetti certificati: «quando assegni un Oggetto a questa Entità, pesca», «gli Oggetti che le assegni costano N in meno», «le altre armate hanno +N»",
+      "§8.2 Effetti certificati: «guarda le prime N e tira un d20: mostra per fascia, o una in cima; poi una in Ritiro, le altre in fondo»",
+      "§3.1 Il Rubyfront/Nexus «la prima volta in ogni tuo turno che assegni un Oggetto»: prima e ultima del mazzo, scambiate (poi pesca e scarta) o una in mano e l'altra in Ritiro",
+      "§8.2 Effetti certificati: «quando quell'Entità muore, questo Oggetto in Ritiro invece che nell'Abisso; poi un altro Oggetto dal Ritiro a una disarmata, gratis»",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -164,6 +167,9 @@ module Rubyfront
       "§8.2 Certified effects: “when you assign this Object, an opposing Entity to the Abyss as long as it stays in play”",
       "§8.2 Certified effects: “the opposing Rubyfront/Nexus loses HP equal to your assigned Objects”, “destroy, then lose N HP”, “when it flips, draw”",
       "§8.2 Certified effects: “when you assign an Object to this Entity, draw”, “Objects you assign it cost N less”, “the other armed ones have +N”",
+      "§8.2 Certified effects: “look at the top N and roll a d20: reveal by band, or one on top; then one to Retire, the rest to the bottom”",
+      "§3.1 The Rubyfront/Nexus “the first time each of your turns you assign an Object”: top and bottom of the deck, swapped (then draw and discard) or one to hand and the other to Retire",
+      "§8.2 Certified effects: “when that Entity dies, this Object to Retire instead of the Abyss; then another Object from Retire onto an unarmed one, for free”",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -261,7 +267,10 @@ module Rubyfront
     end
 
     def resolve_key(action, ref)
-      ["#{ref["event"]}:#{resolve_step(action, ref)}", ref["entering"]]
+      # Il seguito («poi pesca», «poi scarta») ha la sua chiave; «la prima
+      # volta in ogni tuo turno» (`once`) vale per il turno, non per l'ingresso.
+      step = ref["follow"].is_a?(String) ? ref["follow"] : resolve_step(action, ref)
+      ["#{ref["event"]}:#{step}", ref["once"] == true ? "turn" : ref["entering"]]
     end
 
     def resolve_fired?(action, ref)
@@ -1285,7 +1294,7 @@ module Rubyfront
       # §7.2 — la Reattiva del difensore si risolve nel turno altrui: i
       # passi del suo effetto sono del difensore che l'ha giocata.
       ref = action["effect"]
-      if ref.is_a?(Hash) && %w[on_resolve on_assign_object].include?(ref["event"])
+      if ref.is_a?(Hash) && %w[on_resolve on_assign_object on_death].include?(ref["event"])
         source = @table.card(ref["source"])
         return nil if source && source[:owner] == actor
       end
@@ -1487,7 +1496,12 @@ module Rubyfront
 
       return judge_resolve_effect(action, ref) if ref["event"] == "on_resolve"
       if ref["event"] == "on_assign_object"
+        return judge_assign_ends(action, ref) if kind == "ends"
+        return judge_assign_ends_follow(action, ref) if ref["follow"].is_a?(String)
         return kind == "draw" ? judge_assign_draw(action, ref) : judge_assign_exile(action, ref)
+      end
+      if ref["event"] == "on_death"
+        return ref["follow"] == "rearm" ? judge_death_rearm(action, ref) : judge_remain(action, ref)
       end
       return judge_flip_effect(action, ref) if ref["event"] == "on_flip"
       return judge_ability_effect(action, ref) if ref["event"] == "on_ability"
@@ -2207,6 +2221,143 @@ module Rubyfront
       allow(kind)
     end
 
+    # §3.1/§8.2 — il Rubyfront/Nexus «la prima volta in ogni tuo turno che
+    # assegni un Oggetto a un'Entità»: la fonte è il Rubyfront schierato con
+    # la faccia della forma in vista, l'ingresso l'Oggetto appena assegnato a
+    # un'Entità che comanda, una volta per turno (`once`); l'azione `ends`
+    # scambia la prima e l'ultima del mazzo, o ne mette una in mano e
+    # l'altra in Ritiro — secondo la forma della faccia.
+    def judge_assign_ends(action, ref)
+      kind = "ends"
+      stopped, source, form, seat = assign_ends_context(kind, ref)
+      return stopped if stopped
+      return refuse(kind, "questo innesco è già scattato in questo turno: vale la prima volta soltanto (§3.1)", "this trigger already fired this turn: it's the first time only (§3.1)") if resolve_fired?(action, ref)
+      return refuse(kind, "il Rubyfront guarda nel proprio mazzo (§3.1)", "the Rubyfront looks in its own deck (§3.1)") unless action["seat"] == seat
+
+      top, bottom = @table.deck_ends(seat)
+      return refuse(kind, "il mazzo è vuoto: niente da guardare (§3.1)", "the deck is empty: nothing to look at (§3.1)") unless top
+
+      if form[:swap]
+        return refuse(kind, "questa faccia scambia la prima e l'ultima carta, o le lascia (§3.1)", "this face swaps the top and bottom cards, or leaves them (§3.1)") unless [true, nil, false].include?(action["swap"]) && action["toHand"].nil? && action["toRetire"].nil?
+      else
+        return refuse(kind, "questa faccia non scambia: una in mano e l'altra in Ritiro (§3.1)", "this face doesn't swap: one to hand and the other to Retire (§3.1)") if action["swap"]
+        return refuse(kind, "una delle due (la prima o l'ultima) va in mano (§3.1)", "one of the two (top or bottom) goes to hand (§3.1)") unless [top, bottom].include?(action["toHand"])
+        other = action["toHand"] == top ? bottom : top
+        expected = other == action["toHand"] ? nil : other
+        return refuse(kind, "l'altra va nella Zona di Ritiro (§3.1)", "the other goes to the Retire Zone (§3.1)") unless action["toRetire"] == expected
+      end
+
+      allow(kind)
+    end
+
+    # Il seguito: «poi pesca una carta e scarta una carta», dopo lo sguardo.
+    def judge_assign_ends_follow(action, ref)
+      kind = action["t"]
+      stopped, source, form, seat = assign_ends_context(kind, ref)
+      return stopped if stopped
+      return refuse(kind, "prima lo sguardo agli estremi del mazzo (§3.1)", "first the look at the deck's ends (§3.1)") unless @table.fired?(ref["source"], "on_assign_object:ends", "turn")
+      return refuse(kind, "questo seguito è già stato fatto (§3.1)", "this follow-up has already been done (§3.1)") if resolve_fired?(action, ref)
+
+      case ref["follow"]
+      when "draw"
+        return refuse(kind, "il seguito pesca #{form[:then_draw].to_i} (§3.1)", "the follow-up draws #{form[:then_draw].to_i} (§3.1)") unless kind == "draw" && form[:then_draw].to_i.positive? && action["seat"] == seat && action["count"] == form[:then_draw]
+      when "discard"
+        return refuse(kind, "lo scarto viene dopo la pesca: prima si pesca (§3.1)", "the discard comes after the draw: draw first (§3.1)") unless @table.fired?(ref["source"], "on_assign_object:draw", "turn")
+
+        card = @table.card(action["uid"])
+        return refuse(kind, "si scarta una carta dalla propria mano, in Zona di Ritiro (§3.1)", "you discard a card from your own hand, to the Retire Zone (§3.1)") unless kind == "toZone" && action["zone"] == "ritiro" && card && card[:zone] == "hand" && card[:owner] == seat && form[:then_discard].to_i.positive?
+      else
+        return refuse(kind, "seguito sconosciuto (§3.1)", "unknown follow-up (§3.1)")
+      end
+
+      allow(kind)
+    end
+
+    # Il contesto comune: il Rubyfront in gioco, la forma della faccia in
+    # vista, l'Oggetto appena assegnato a un'Entità che comanda.
+    def assign_ends_context(kind, ref)
+      source = @table.card(ref["source"])
+      return [refuse(kind, "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)")] unless source && source[:zone] == "field"
+
+      known = @cards[source[:card_id]]
+      return [no_rule(kind)] unless known
+
+      form = Array(known[:assign_forms]).find { |candidate| candidate[:kind] == "ends" && candidate[:face] == (source[:face] || 0) }
+      return [refuse(kind, "questa faccia non ha un effetto certificato «quando assegni un Oggetto» (§3.1)", "this face has no certified “when you assign an Object” effect (§3.1)")] unless form
+      return [refuse(kind, "l'innesco vale la prima volta nel turno: l'azione non lo dice (§3.1)", "the trigger is once per turn: the action doesn't say so (§3.1)")] unless ref["once"] == true
+
+      seat = @table.controller_of(source)
+      object = @table.card(ref["entering"])
+      bearer = object && object[:assigned_to] && @table.card(object[:assigned_to])
+      unless object && object[:zone] == "field" && bearer && bearer[:zone] == "field" && @table.controller_of(bearer) == seat
+        return [refuse(kind, "l'ingresso dell'innesco è un Oggetto assegnato a un'Entità che controlli: non lo è (§3.1)", "the trigger's entry is an Object assigned to an Entity you control: it isn't (§3.1)")]
+      end
+      return [refuse(kind, "si assegna nel proprio turno: l'innesco è del turno di chi comanda (§3.1)", "you assign in your own turn: the trigger belongs to the turn of whoever commands (§3.1)")] unless @table.active == seat
+
+      [nil, source, form, seat]
+    end
+
+    # §5/§8.2 — «quando quell'Entità muore, metti questo Oggetto nella tua
+    # Zona di Ritiro invece che nell'Abisso»: l'Oggetto è appena finito
+    # nell'Abisso (questo turno) seguendo l'Entità a cui era assegnato — che
+    # è morta, cioè è nell'Abisso, uscita questo turno — e passa in Ritiro.
+    def judge_remain(action, ref)
+      kind = action["t"]
+      return refuse(kind, "l'Oggetto resta in Ritiro con l'azione `remain` (§8.2)", "the Object stays in Retire with the `remain` action (§8.2)") unless kind == "remain" && action["uid"] == ref["source"]
+
+      stopped, source, seat = death_context(kind, ref)
+      return stopped if stopped
+      return refuse(kind, "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if @table.fired?(ref["source"], "on_death", ref["entering"])
+      return refuse(kind, "l'Oggetto dev'essere nell'Abisso, appena finito lì (§8.2)", "the Object must be in the Abyss, just ended up there (§8.2)") unless source[:zone] == "abisso"
+
+      allow(kind)
+    end
+
+    # «Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza
+    # pagarne il costo, a un'Entità senza Oggetto che controlli».
+    def judge_death_rearm(action, ref)
+      kind = "toZone"
+      stopped, source, seat = death_context(kind, ref)
+      return stopped if stopped
+      return refuse(kind, "prima l'Oggetto resta in Ritiro, poi il riarmo (§8.2)", "first the Object stays in Retire, then the rearm (§8.2)") unless @table.fired?(ref["source"], "on_death", ref["entering"])
+      return refuse(kind, "il riarmo è già stato fatto (§8.2)", "the rearm has already been done (§8.2)") if @table.fired?(ref["source"], "on_death:rearm", ref["entering"])
+      return refuse(kind, "l'Oggetto va addosso a un'Entità che controlli, in campo (§8.2)", "the Object goes on an Entity you control, on the field (§8.2)") unless action["zone"] == "field" && action["assignTo"].is_a?(String)
+      return refuse(kind, "l'Oggetto arriva senza pagarne il costo (§8.2)", "the Object comes at no cost (§8.2)") if action.key?("cost")
+
+      object = @table.card(action["uid"])
+      entry = object && @cards[object[:card_id]]
+      return no_rule(kind) if object && entry.nil?
+      unless object && object[:zone] == "ritiro" && object[:owner] == seat && entry[:type] == "object" && action["uid"] != ref["source"]
+        return refuse(kind, "si assegna un ALTRO Oggetto dalla propria Zona di Ritiro (§8.2)", "ANOTHER Object is assigned from your own Retire Zone (§8.2)")
+      end
+      bearer = @table.card(action["assignTo"])
+      bearer_entry = bearer && @cards[bearer[:card_id]]
+      unless bearer && bearer[:zone] == "field" && @table.controller_of(bearer) == seat && (bearer_entry.nil? || bearer_entry[:type] == "entity")
+        return refuse(kind, "l'Oggetto va addosso a un'Entità che controlli, in campo (§8.2)", "the Object goes on an Entity you control, on the field (§8.2)")
+      end
+      return refuse(kind, "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if bearer[:facedown]
+      return refuse(kind, "a un'Entità SENZA Oggetto (§8.2)", "onto an Entity WITHOUT an Object (§8.2)") if @table.armed?(action["assignTo"])
+
+      allow(kind)
+    end
+
+    def death_context(kind, ref)
+      source = @table.card(ref["source"])
+      return [refuse(kind, "l'Oggetto dell'innesco non esiste (§8.2)", "the trigger's Object doesn't exist (§8.2)")] unless source
+
+      known = @cards[source[:card_id]]
+      return [no_rule(kind)] unless known
+      return [refuse(kind, "l'Oggetto non ha un effetto certificato «quando quell'Entità muore» (§8.2)", "the Object has no certified “when that Entity dies” effect (§8.2)")] if Array(known[:death_forms]).none? { |form| form[:kind] == "remain" }
+
+      left = source[:left]
+      bearer = @table.card(ref["entering"])
+      unless left && left[:turn] == @table.turn && left[:bearer] == ref["entering"] && bearer && bearer[:zone] == "abisso" && bearer[:left] && bearer[:left][:turn] == @table.turn
+        return [refuse(kind, "l'Oggetto deve aver seguito questo turno nell'Abisso l'Entità a cui era assegnato, morta (§8.2)", "the Object must have followed the Entity it was assigned to into the Abyss this turn, dead (§8.2)")]
+      end
+
+      [nil, source, source[:owner]]
+    end
+
     def judge_release(action)
       card = @table.card(action["uid"])
       return no_rule("release") unless card
@@ -2382,6 +2533,9 @@ module Rubyfront
 
     # Lo sguardo alla risoluzione: guarda le prime N, mostra un'Entità Umana, in mano, le altre in fondo.
     def judge_resolve_look(action, ref, source, forms, seat)
+      search = forms.find { |candidate| candidate[:kind] == "search" }
+      return judge_resolve_search(action, ref, source, search, seat) if search
+
       form = forms.find { |candidate| candidate[:kind] == "look" }
       return refuse("look", "la Materia non ha un effetto certificato che guardi nel mazzo (§8.2)", "the Matter has no certified effect that looks in the deck (§8.2)") unless form
       return refuse("look", "si guarda nel proprio mazzo (§8.2)", "you look in your own deck (§8.2)") unless action["seat"] == seat
@@ -2404,6 +2558,52 @@ module Rubyfront
       end
 
       allow("look")
+    end
+
+    # La ricerca col dado: guarda le prime N e tira un d20 — la mostrata è
+    # del tipo della fascia del tiro e va in mano; senza mostrata, una delle
+    # guardate torna in cima; poi una delle altre in Ritiro, le restanti in
+    # fondo. Il tiro lo fa il client: qui la forma, non la fortuna.
+    def judge_resolve_search(action, ref, source, form, seat)
+      return refuse("look", "si guarda nel proprio mazzo (§8.2)", "you look in your own deck (§8.2)") unless action["seat"] == seat
+      return refuse("look", "si guardano le prime #{form[:count]} carte, non #{action["count"]} (§8.2)", "you look at the top #{form[:count]} cards, not #{action["count"]} (§8.2)") unless action["count"] == form[:count]
+      return refuse("look", "la mostrata va in mano, le altre in fondo al mazzo (§8.2)", "the revealed card goes to hand, the rest to the bottom of the deck (§8.2)") unless [nil, "hand"].include?(action["revealTo"]) && [nil, "deck"].include?(action["restTo"])
+
+      roll = action["roll"]
+      return refuse("look", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+
+      looked = @table.top_of_deck(seat, form[:count])
+      reveal = action["reveal"]
+      top = action["top"]
+      retire = action["retire"]
+      wanted = form[:bands].find { |_, range| in_range?(roll, range) }&.first
+      if reveal
+        return refuse("look", "la carta mostrata dev'essere fra le prime #{form[:count]} del mazzo (§8.2)", "the revealed card must be among the top #{form[:count]} of the deck (§8.2)") unless looked.include?(reveal)
+
+        shown = @table.card(reveal)
+        entry = shown && @cards[shown[:card_id]]
+        return no_rule("look") unless entry
+        return refuse("look", "con #{roll} si può mostrare solo #{tipo_it(wanted)}: non questa (§8.2)", "with #{roll} only #{tipo_en(wanted)} can be revealed: not this one (§8.2)") unless entry[:type] == wanted
+        return refuse("look", "mostrata una carta, nessuna torna in cima (§8.2)", "with a card revealed, none goes back on top (§8.2)") if top
+      else
+        return refuse("look", "senza mostrarne una, una delle guardate va in cima al mazzo (§8.2)", "without revealing one, one of the cards looked at goes on top of the deck (§8.2)") unless top && looked.include?(top)
+      end
+      others = looked - [reveal, top].compact
+      if others.any?
+        return refuse("look", "una delle altre carte va nella Zona di Ritiro (§8.2)", "one of the other cards goes to the Retire Zone (§8.2)") unless retire && others.include?(retire)
+      elsif retire
+        return refuse("look", "non restano carte per la Zona di Ritiro (§8.2)", "no cards are left for the Retire Zone (§8.2)")
+      end
+
+      allow("look")
+    end
+
+    def tipo_it(type)
+      { "matter" => "una Materia", "object" => "un Oggetto", "entity" => "un'Entità" }[type] || "nulla"
+    end
+
+    def tipo_en(type)
+      { "matter" => "a Matter", "object" => "an Object", "entity" => "an Entity" }[type] || "nothing"
     end
 
     # Le stappate alla risoluzione: «stappa un'Entità Umana: +1» e «stappa gli Umani: Contrattacco +1».

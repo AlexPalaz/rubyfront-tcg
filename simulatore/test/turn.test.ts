@@ -51,7 +51,7 @@ function fakeCtx(
       attackForms: [],
       staticForms: [],
       resolveForms: [],
-      flipForms: [],
+      flipForms: [], assignForms: [], deathForms: [],
       nexus: null,
       grantsWhileAssigned: [],
     }),

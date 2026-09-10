@@ -58,6 +58,8 @@ export interface CardFacts {
   flipForms: FlipForm[];
   /** Gli effetti certificati «quando assegni questa carta» di un Oggetto (§3.1): vedi AssignForm. */
   assignForms: AssignForm[];
+  /** Gli effetti certificati «quando quell'Entità muore» di un Oggetto (§8.2): vedi DeathForm. */
+  deathForms: DeathForm[];
   /** Il requisito del flip verso il Nexus (§3.1), col recupero di PV; null se non c'è o non è certificato. */
   nexus: NexusRequirement | null;
   /** Le abilità speciali del Rubyfront/Nexus (§3.1), per faccia: vedi Ability. */
@@ -117,6 +119,8 @@ export type ResolveForm =
   | { kind: "destroy"; target: { kind: "entity"; controller: "any" | "opponent" | "controller" }; to: "abisso"; discount: { amount: number; ifTarget: "tapped" } | null; thenLose: number | null }
   /** Il prosciugamento (dal 2026-09-10): «il Rubyfront/Nexus avversario perde PV pari al numero di Oggetti assegnati alle Entità che controlli». */
   | { kind: "drain"; amount: "objects" }
+  /** La ricerca col dado (dal 2026-09-10): guarda le prime N e tira un d20 — mostra per fascia in mano, o una in cima; poi una in Ritiro, le altre in fondo. */
+  | { kind: "search"; count: number; die: number; bands: Record<"matter" | "object" | "entity", [number, number] | undefined>; revealTo: "hand"; ifNoRevealTop: true; thenRetire: true; restTo: "deck" }
   /** la Reattiva bloccante (forma `block`): giocata come bloccante di un'Entità attaccante (l'attacco è bloccato, §6.4); con almeno N Entità armate sul Fronte, +M PV. */
   | { kind: "block"; requiresArmed: number; heal: number; asBlock: true };
 
@@ -129,7 +133,18 @@ export type AssignForm =
   /** Sull'Oggetto: «quando assegni questa carta a un'Entità, manda nell'Abisso un'Entità avversaria finché questa carta resta in gioco». */
   | { kind: "exile"; target: { kind: "entity"; controller: "opponent" }; to: "abisso"; hold: true }
   /** Sull'Entità: «quando assegni un Oggetto a questa Entità: pesca una carta». */
-  | { kind: "draw"; count: number; toSelf: true };
+  | { kind: "draw"; count: number; toSelf: true }
+  /** Sul Rubyfront: «la prima volta in ogni tuo turno che assegni un Oggetto, guarda la prima e l'ultima carta del tuo mazzo: puoi scambiarle. Poi pesca N e scarta M». */
+  | { kind: "ends"; face: number; swap: true; thenDraw: number; thenDiscard: number; once: true }
+  /** Sul Nexus: «…guarda la prima e l'ultima carta del tuo mazzo: aggiungine una alla tua mano e metti l'altra nella tua Zona di Ritiro». */
+  | { kind: "ends"; face: number; toHand: true; otherToRetire: true; once: true };
+
+/**
+ * Gli effetti certificati di un Oggetto «quando quell'Entità muore» (§5,
+ * §8.2), specchio di card_index.rb, death_forms: resta in Ritiro invece
+ * che nell'Abisso, poi un altro Oggetto dal Ritiro a una disarmata, gratis.
+ */
+export type DeathForm = { kind: "remain"; to: "ritiro"; thenRearm: { other: true; to: "unarmed"; free: true } };
 
 /** «Quando flippa» (§3.1, RBF-001): la carta nominata nell'Abisso, e il sigillo. */
 export type FlipForm =

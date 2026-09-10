@@ -57,6 +57,12 @@ import {
   assignCandidates,
   describeAssignStep,
   objectCost,
+  searchCandidates,
+  deckEnds,
+  deathSteps,
+  deathRef,
+  describeDeathStep,
+  rearmAfterDeath,
   weakenAmount,
   wornObjects,
 } from "../src/effects.js";
@@ -130,6 +136,9 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   GIUDIZIO: { kind: "matter", behavior: "reactive", fluxCost: 5, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, ifTarget: "tapped" }, thenLose: null }] },
   EVERSIONE: { kind: "matter", behavior: "normal", fluxCost: 3, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "opponent" }, to: "abisso", discount: null, thenLose: 2 }] },
   ASSALTO: { kind: "matter", behavior: "normal", fluxCost: 4, resolveForms: [{ kind: "drain", amount: "objects" }] },
+  LATENTE: { kind: "matter", behavior: "normal", fluxCost: 3, resolveForms: [{ kind: "search", count: 5, die: 20, bands: { matter: [1, 7], object: [8, 14], entity: [15, 20] }, revealTo: "hand", ifNoRevealTop: true, thenRetire: true, restTo: "deck" }] },
+  FORGIA: { kind: "rubyfront", assignForms: [{ kind: "ends", face: 0, swap: true, thenDraw: 1, thenDiscard: 1, once: true }, { kind: "ends", face: 1, toHand: true, otherToRetire: true, once: true }] },
+  VESTIGIO: { kind: "object", fluxCost: 3, deathForms: [{ kind: "remain", to: "ritiro", thenRearm: { other: true, to: "unarmed", free: true } }] },
   BESTIA: { kind: "rubyfront", nexus: { face: 1, conditions: [{ count: 4, kind: "entity", race: "human" }], discard: { count: 1, kind: "entity" }, recovery: 5 },
     flipForms: [{ kind: "move", cardId: "EREDE", from: "field", to: "abisso" }, { kind: "seal", cardId: "EREDE" }, { kind: "draw", count: 1 }] },
   EREDE: { kind: "entity", race: "human", fluxCost: 6 },
@@ -158,7 +167,7 @@ const facts = (cardId: string): CardFacts => ({
   staticForms: [],
   resolveForms: [],
   flipForms: [],
-  assignForms: [],
+  assignForms: [], deathForms: [],
   nexus: null,
   grantsWhileAssigned: [],
   ...FACTS[cardId],
@@ -1047,6 +1056,85 @@ describe("resolveSteps", () => {
     cheap.zone = "hand";
     cheap.assignedTo = "p";
     expect(objectCost(after, cheap, facts)).toBe(1);
+  });
+
+  it("la ricerca col dado propone le guardate del tipo della fascia", () => {
+    const state = newGame();
+    const m = on(state, "m", "LATENTE");
+    const deck: [string, string][] = [["d1", "AUROS"], ["d2", "FERRO"], ["d3", "NORMALE"], ["d4", "UMANO"], ["d5", "FERRO"], ["d6", "UMANO"]];
+    deck.forEach(([uid, id], i) => { on(state, uid, id); state.cards[uid] = { ...state.cards[uid], zone: "deck", order: i }; });
+    const [step] = resolveSteps(state, m, facts);
+    expect(step.looked.map(c => c.uid)).toEqual(["d1", "d2", "d3", "d4", "d5"]);
+    expect(step.blocked).toBeNull();
+    expect(searchCandidates(step.form as never, step.looked, 16, facts)).toEqual({ type: "entity", candidates: [state.cards.d1, state.cards.d4] });
+    expect(searchCandidates(step.form as never, step.looked, 9, facts).candidates.map(c => c.uid)).toEqual(["d2", "d5"]);
+    expect(searchCandidates(step.form as never, step.looked, 2, facts).candidates.map(c => c.uid)).toEqual(["d3"]);
+    expect(describeResolveStep(step, facts)).toContain("d20");
+    state.fired = ["m|on_resolve:look|m"];
+    expect(pendingResolve(state, m, facts)).toEqual([]);
+  });
+
+  it("il Rubyfront schierato innesca agli estremi del mazzo la prima volta che assegni, sulla faccia in vista", () => {
+    const before = newGame();
+    before.active = "a";
+    const rf = deploy(before, "rf", "FORGIA");
+    on(before, "u", "AUROS");
+    const s = on(before, "s", "FERRO");
+    s.zone = "hand";
+    const after = structuredClone(before);
+    after.cards.s = { ...after.cards.s, zone: "field", assignedTo: "u" };
+    let steps = assignSteps(before, after, facts);
+    expect(steps.map(x => [x.source.uid, x.object.uid, x.form.kind, "face" in x.form ? x.form.face : null])).toEqual([["rf", "s", "ends", 0]]);
+    expect(assignRef(steps[0])).toEqual({ source: "rf", event: "on_assign_object", entering: "s", once: true });
+    expect(describeAssignStep(steps[0], facts)).toContain("scambiarle");
+    after.cards.rf = { ...after.cards.rf, face: 1 };
+    steps = assignSteps(before, after, facts);
+    expect("face" in steps[0].form ? steps[0].form.face : null).toBe(1);
+    expect(describeAssignStep(steps[0], facts)).toContain("una in mano");
+    after.fired = ["rf|on_assign_object:ends|turn"];
+    expect(assignSteps(before, after, facts)).toEqual([]);
+    // Nel turno altrui, o col Rubyfront in Zona di Richiamo, niente.
+    after.fired = [];
+    after.active = "b";
+    expect(assignSteps(before, after, facts)).toEqual([]);
+    after.active = "a";
+    after.cards.rf = { ...after.cards.rf, y: rf.y + 500 };
+    expect(assignSteps(before, after, facts)).toEqual([]);
+    expect(deckEnds(after, "a")).toBeNull();
+  });
+
+  it("l'Oggetto che resta: quando la sua Entità muore con lui, e poi il riarmo di una disarmata", () => {
+    const before = newGame();
+    on(before, "u", "AUROS");
+    on(before, "v", "VESTIGIO").assignedTo = "u";
+    on(before, "n", "AUROS");
+    on(before, "z", "AUROS");
+    on(before, "zo", "FERRO").assignedTo = "z";
+    on(before, "w", "FERRO").zone = "ritiro";
+    const after = structuredClone(before);
+    after.cards.u = { ...after.cards.u, zone: "abisso" };
+    after.cards.v = { ...after.cards.v, zone: "abisso", assignedTo: undefined };
+    const steps = deathSteps(before, after, facts);
+    expect(steps.map(x => [x.object.uid, x.bearer.uid, x.form.kind])).toEqual([["v", "u", "remain"]]);
+    expect(deathRef(steps[0])).toEqual({ source: "v", event: "on_death", entering: "u" });
+    expect(deathRef(steps[0], "rearm").follow).toBe("rearm");
+    expect(describeDeathStep(steps[0], facts)).toContain("Zona di Ritiro");
+    after.fired = ["v|on_death|u"];
+    expect(deathSteps(before, after, facts)).toEqual([]);
+    after.cards.v = { ...after.cards.v, zone: "ritiro" };
+    const { objects, bearers } = rearmAfterDeath(after, steps[0], facts);
+    expect(objects.map(c => c.uid)).toEqual(["w"]);
+    expect(bearers.map(c => c.uid)).toEqual(["n"]);
+    // Un Oggetto senza la forma, o un'Entità che va in Ritiro (non muore): niente.
+    const plain = structuredClone(after);
+    plain.fired = [];
+    plain.cards.v = { ...plain.cards.v, zone: "abisso", cardId: "FERRO" };
+    expect(deathSteps(before, plain, facts)).toEqual([]);
+    const retired = structuredClone(after);
+    retired.fired = [];
+    retired.cards.v = { ...retired.cards.v, zone: "abisso" };
+    retired.cards.u = { ...retired.cards.u, zone: "ritiro" };
+    expect(deathSteps(before, retired, facts)).toEqual([]);
   });
 
   it("chi era tenuto nell'Abisso torna quando chi lo teneva lascia il gioco", async () => {

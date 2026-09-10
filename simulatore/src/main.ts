@@ -295,6 +295,8 @@ function commit(action: Action): void {
   // §3.1 — «quando assegni questa carta a un'Entità»: l'Oggetto appena
   // assegnato innesca per chi lo comanda — io, o il bot.
   table.offerAssignTriggers(before, state, botSeat ? [mySeat, botSeat] : [mySeat]);
+  // §8.2 — «quando quell'Entità muore»: l'Oggetto che resta, per il proprietario — io, o il bot.
+  if (action.t !== "remain") table.offerDeathRemains(before, state, botSeat ? [mySeat, botSeat] : [mySeat]);
   // §8.2 (RBF-018) — chi teneva un permanente nell'Abisso ha lasciato il
   // gioco: il permanente torna, e lo manda il tavolo che l'ha visto uscire.
   if (action.t !== "release" && Object.values(state.cards).some(card => card.heldBy && card.zone === "abisso" && state.cards[card.heldBy]?.zone !== "field")) {
@@ -429,6 +431,7 @@ function receive(action: Action, from: Seat): void {
   // §8.2 — una mia carta uscita dal campo per mano dell'avversario (la sua
   // risoluzione, un suo effetto): il ritorno vincolato lo offro io.
   if (action.t !== "revive") table.offerLeaveReturns(before, state, [mySeat]);
+  if (action.t !== "remain") table.offerDeathRemains(before, state, [mySeat]);
 }
 
 /**
@@ -510,6 +513,7 @@ const ctx: Ctx = {
       resolveForms: stats.resolveForms,
       flipForms: stats.flipForms,
       assignForms: stats.assignForms,
+      deathForms: stats.deathForms,
       nexus: stats.nexus,
       grantsWhileAssigned: stats.grantsWhileAssigned,
     };

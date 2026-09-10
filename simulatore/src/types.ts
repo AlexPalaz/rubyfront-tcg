@@ -262,7 +262,7 @@ export interface EffectRef {
   source: string;
   /** L'evento che innesca: l'ingresso in campo, l'attacco dichiarato, la
       risoluzione di una Materia (§7.2), o il flip verso il Nexus (§3.1). */
-  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip" | "on_ability" | "on_leave_field" | "on_assign_object";
+  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip" | "on_ability" | "on_leave_field" | "on_assign_object" | "on_death";
   entering: string;
   /** Il seguito di un'abilità speciale del Rubyfront (§3.1): l'id dell'abilità attivata. */
   ability?: string;
@@ -342,7 +342,11 @@ export type Action =
       conto ne discende; `reveal`, se c'è, va in mano; `retire`, se c'è, in
       Zona di Ritiro; le altre in fondo, nell'ordine in cui stavano. Sempre
       un passo d'effetto. */
-  | { t: "look"; seat: Seat; count: number; reveal?: string; retire?: string; roll?: number; revealTo?: "hand" | "ritiro"; restTo?: "deck" | "ritiro"; effect: EffectRef }
+  | { t: "look"; seat: Seat; count: number; reveal?: string; retire?: string; top?: string; roll?: number; revealTo?: "hand" | "ritiro"; restTo?: "deck" | "ritiro"; effect: EffectRef }
+  /** Gli estremi del mazzo (§3.1, il Rubyfront «la prima volta che assegni»): la prima e l'ultima scambiate, o una in mano e l'altra in Ritiro. */
+  | { t: "ends"; seat: Seat; swap?: true; toHand?: string; toRetire?: string; effect: EffectRef }
+  /** «Metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso» (§8.2): dall'Abisso, appena finito lì, in Ritiro. */
+  | { t: "remain"; uid: string; effect: EffectRef }
   /** Prende il controllo di `uid` per `by` fino a fine turno (§8.2): la
       carta passa nello slot extra, con gli Oggetti addosso e le parole
       chiave concesse. Sempre un passo d'effetto. */

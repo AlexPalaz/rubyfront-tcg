@@ -9,7 +9,7 @@
 // ingresso. Tutto ciò che non ha una forma certificata resta a mano.
 
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
-import type { AssignForm, AttackForm, FlipForm, ResolveForm } from "./ctx.js";
+import type { AssignForm, AttackForm, DeathForm, FlipForm, ResolveForm } from "./ctx.js";
 import type { CardFacts, Ctx, EnterLook, EnterRefresh } from "./ctx.js";
 import { STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, zoneCards, freeFrontSlotOrNull } from "./state.js";
 import { countEntities } from "./combat.js";
@@ -889,6 +889,14 @@ export function resolveSteps(state: GameState, source: CardInstance, facts: (car
         if (wornObjects(state, seat) === 0) step.blocked = "log.no.objects";
         break;
       }
+      case "search": {
+        // La ricerca col dado: le guardate; i candidati li decide il tiro,
+        // dopo (searchCandidates).
+        step.looked = zoneCards(state, seat, "deck").slice(0, form.count);
+        step.candidates = step.looked;
+        if (step.looked.length === 0) step.blocked = "log.look.empty";
+        break;
+      }
       case "block": {
         // la Reattiva bloccante (forma `block`) — il blocco è la giocata stessa (§6.4, la Reattiva come
         // bloccante); il passo è la cura, «se sul tuo Fronte ci sono
@@ -921,6 +929,7 @@ export function pendingResolve(state: GameState, source: CardInstance, facts: (c
       case "exile": return !resolveFired(state, source, "exile");
       case "weaken": return !resolveFired(state, source, "empower:");
       case "drain": return !resolveFired(state, source, "heal");
+      case "search": return !resolveFired(state, source, "look");
       case "destroy": return !resolveFired(state, source, "destroy") || (step.form.thenLose !== null && !resolveFired(state, source, "heal"));
       case "fortune": return !resolveFired(state, source, "heal") && !resolveFired(state, source, "draw") && !resolveFired(state, source, "deploy");
       case "block": return !resolveFired(state, source, "heal");
@@ -947,8 +956,18 @@ export function describeResolveStep(step: ResolveStep, facts: (cardId: string) =
     case "fortune": return t("trigger.fortune", { card, die: form.die });
     case "destroy": return form.thenLose === null ? t("trigger.judgment", { card }) : t("trigger.evert", { card, n: form.thenLose });
     case "drain": return t("trigger.assault", { card });
+    case "search": return t("trigger.search", { card, n: form.count, die: form.die });
     case "block": return t("trigger.reflect", { card, n: form.requiresArmed, m: form.heal });
   }
+}
+
+/** Il tipo di carta che la ricerca col dado può mostrare con quel tiro, e le guardate di quel tipo. */
+export function searchCandidates(form: Extract<ResolveForm, { kind: "search" }>, looked: CardInstance[], roll: number, facts: (cardId: string) => CardFacts): { type: "matter" | "object" | "entity" | null; candidates: CardInstance[] } {
+  const type = (["matter", "object", "entity"] as const).find(candidate => {
+    const range = form.bands[candidate];
+    return range && roll >= range[0] && roll <= range[1];
+  }) ?? null;
+  return { type, candidates: type ? looked.filter(card => facts(card.cardId).kind === type) : [] };
 }
 
 /** La Potenza che l'indebolimento toglie adesso: −1 per ogni armata di `seat`. Gemello: engine.rb, judge_resolve_weaken. */
@@ -991,7 +1010,8 @@ export interface AssignStep {
 
 /** La tripla dell'innesco: fonte e ingresso sono l'uno l'altro — l'Oggetto con l'Entità, l'Entità con l'Oggetto. */
 export function assignRef(step: AssignStep): EffectRef {
-  return { source: step.source.uid, event: "on_assign_object", entering: step.form.kind === "exile" ? step.bearer.uid : step.object.uid };
+  const entering = step.form.kind === "exile" ? step.bearer.uid : step.object.uid;
+  return { source: step.source.uid, event: "on_assign_object", entering, ...(step.form.kind === "ends" ? { once: true as const } : {}) };
 }
 
 /** Quanto costa giocare l'Oggetto dalla mano sul portatore già scelto: il costo stampato meno lo sconto d'assegnazione del portatore, mai sotto 1 (§3.2). Gemello: engine.rb, assign_discount_for. */
@@ -1025,12 +1045,77 @@ export function assignSteps(before: GameState, after: GameState, facts: (cardId:
     for (const form of facts(card.cardId).assignForms) {
       if (form.kind === "exile" && !fired(card.uid, bearer.uid)) out.push({ source: card, object: card, bearer, form });
     }
-    // …e quelle dell'Entità che lo riceve (fonte l'Entità, ingresso l'Oggetto).
+    // …e quelle dell'Entità che lo riceve (fonte l'Entità, ingresso l'Oggetto)…
     for (const form of facts(bearer.cardId).assignForms) {
       if (form.kind === "draw" && !fired(bearer.uid, card.uid)) out.push({ source: bearer, object: card, bearer, form });
     }
+    // …e quella del Rubyfront/Nexus schierato di chi comanda il portatore,
+    // sulla faccia in vista, la prima volta nel turno (fonte il Rubyfront,
+    // ingresso l'Oggetto, chiave del turno).
+    const seat = controllerOf(bearer);
+    if (after.active !== seat) continue;
+    for (const rubyfront of fieldCards(after)) {
+      if (rubyfront.owner !== seat) continue;
+      const f = facts(rubyfront.cardId);
+      if (f.kind !== "rubyfront" || !inPlay(rubyfront, f.kind)) continue;
+      for (const form of f.assignForms) {
+        if (form.kind !== "ends" || form.face !== rubyfront.face) continue;
+        if ((after.fired ?? []).some(key => key.startsWith(`${rubyfront.uid}|on_assign_object:ends|`))) continue;
+        out.push({ source: rubyfront, object: card, bearer, form });
+      }
+    }
   }
   return out;
+}
+
+/** Gli estremi del mazzo di `seat`: la prima e l'ultima carta (la stessa, se è una sola; nessuna a mazzo vuoto). */
+export function deckEnds(state: GameState, seat: Seat): { top: CardInstance; bottom: CardInstance } | null {
+  const deck = zoneCards(state, seat, "deck");
+  if (deck.length === 0) return null;
+  return { top: deck[0], bottom: deck[deck.length - 1] };
+}
+
+/** Un Oggetto «quando quell'Entità muore» da risolvere (§8.2): l'Oggetto appena finito nell'Abisso, l'Entità morta, la forma. */
+export interface DeathStep {
+  object: CardInstance;
+  bearer: CardInstance;
+  form: DeathForm;
+}
+
+export function deathRef(step: DeathStep, follow?: "rearm"): EffectRef {
+  return { source: step.object.uid, event: "on_death", entering: step.bearer.uid, ...(follow ? { follow } : {}) };
+}
+
+/**
+ * Gli Oggetti con la forma «quando quell'Entità muore» appena finiti
+ * nell'Abisso seguendo la loro Entità (fra `before` e `after`: l'Oggetto
+ * era in campo addosso a lei, ora sono entrambi nell'Abisso). Li offre
+ * main.ts dopo ogni azione applicata, come il ritorno vincolato.
+ */
+export function deathSteps(before: GameState, after: GameState, facts: (cardId: string) => CardFacts): DeathStep[] {
+  const out: DeathStep[] = [];
+  for (const object of Object.values(after.cards)) {
+    if (object.zone !== "abisso") continue;
+    const was = before.cards[object.uid];
+    if (!was || was.zone !== "field" || !was.assignedTo) continue;
+    const form = facts(object.cardId).deathForms.find(candidate => candidate.kind === "remain");
+    if (!form) continue;
+    const bearer = after.cards[was.assignedTo];
+    const bearerWas = before.cards[was.assignedTo];
+    if (!bearer || bearer.zone !== "abisso" || !bearerWas || bearerWas.zone !== "field") continue;
+    if ((after.fired ?? []).includes(`${object.uid}|on_death|${bearer.uid}`)) continue;
+    out.push({ object, bearer, form });
+  }
+  return out;
+}
+
+/** Dopo il «resta»: gli altri Oggetti in Ritiro del proprietario, e le sue Entità senza Oggetto in campo. */
+export function rearmAfterDeath(state: GameState, step: DeathStep, facts: (cardId: string) => CardFacts): { objects: CardInstance[]; bearers: CardInstance[] } {
+  const seat = step.object.owner;
+  return {
+    objects: zoneCards(state, seat, "ritiro").filter(card => card.uid !== step.object.uid && facts(card.cardId).kind === "object"),
+    bearers: fieldCards(state).filter(card => controllerOf(card) === seat && facts(card.cardId).kind === "entity" && !card.facedown && !armed(state, card.uid)),
+  };
 }
 
 /** I bersagli di un innesco d'assegnazione, letti dallo stato di adesso. */
@@ -1041,7 +1126,14 @@ export function assignCandidates(state: GameState, step: AssignStep, facts: (car
 
 export function describeAssignStep(step: AssignStep, facts: (cardId: string) => CardFacts): string {
   const card = `«${facts(step.source.cardId).name}»`;
-  return step.form.kind === "exile" ? t("trigger.confine", { card }) : t("trigger.carry", { card, n: step.form.count });
+  const form = step.form;
+  if (form.kind === "exile") return t("trigger.confine", { card });
+  if (form.kind === "draw") return t("trigger.carry", { card, n: form.count });
+  return "swap" in form ? t("trigger.ends.swap", { card, n: form.thenDraw, m: form.thenDiscard }) : t("trigger.ends.pick", { card });
+}
+
+export function describeDeathStep(step: DeathStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.remain", { card: `«${facts(step.object.cardId).name}»` });
 }
 
 /**

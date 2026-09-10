@@ -90,6 +90,7 @@ module Rubyfront
     #   { kind: "empower", targets: "own_entities", race:, counter:, untap: true, requires: { count:, race: } } — la stappata di gruppo: in Reazione, senza bloccare
     #   { kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount:, if_target: "tapped" }, then_lose: nil | N } — «poi perdi N PV»
     #   { kind: "drain", amount: "objects" } — il Rubyfront/Nexus avversario perde PV pari ai propri Oggetti assegnati
+    #   { kind: "search", count:, die:, bands: { type => [lo, hi] }, reveal_to: "hand", if_no_reveal_top: true, then_retire: true, rest_to: "deck" } — la ricerca col dado
     #   { kind: "block", requires_armed:, heal:, as_block: true } — giocata come bloccante di un'Entità attaccante (§6.4); con N armati sul Fronte, +M PV
     #
     # `assign_forms` sono gli effetti CERTIFICATI «quando assegni questa
@@ -97,6 +98,12 @@ module Rubyfront
     #
     #   { kind: "exile", target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true } — l'esilio condizionato, tenuto dall'Oggetto
     #   { kind: "draw", count:, to_self: true } — sull'Entità: «quando assegni un Oggetto a questa Entità, pesca»
+    #   { kind: "ends", face:, swap: true, then_draw:, then_discard:, once: true } — sul Rubyfront: prima e ultima del mazzo, scambiale, poi pesca e scarta (una volta per turno)
+    #   { kind: "ends", face:, to_hand: true, other_to_retire: true, once: true } — sul Nexus: prima e ultima, una in mano e l'altra in Ritiro
+    #
+    # `death_forms` sono gli effetti CERTIFICATI di un Oggetto «quando quell'Entità muore» (§5, §8.2), evento `on_death`:
+    #
+    #   { kind: "remain", to: "ritiro", then_rearm: { other: true, to: "unarmed", free: true } } — in Ritiro invece che nell'Abisso, poi un altro Oggetto dal Ritiro a una disarmata
     #
     # Fra gli `static_forms` (sotto) stanno anche { kind: "assign_discount", amount: } — «gli Oggetti
     # che assegni a questa Entità costano N in meno» — e { kind: "others_armed_power", amount: } —
@@ -162,6 +169,7 @@ module Rubyfront
           enter_rearms: enter_rearms(faces).freeze,
           leave_returns: leave_returns(faces).freeze,
           assign_forms: assign_forms(faces).freeze,
+          death_forms: death_forms(faces).freeze,
           abilities: abilities(faces).freeze,
           fury_at: fury_at(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
@@ -176,7 +184,7 @@ module Rubyfront
     # Tutti i parser delle forme certificate: ogni trigger di ogni carta
     # deve trovarne uno che lo riconosca, o è un effetto che l'engine ignora.
     FORMS = %i[enter_listeners enter_moves enter_looks enter_controls enter_refreshes enter_disarms enter_rearms leave_returns
-               attack_draws attack_forms grants_while_assigned static_forms resolve_forms flip_forms assign_forms].freeze
+               attack_draws attack_forms grants_while_assigned static_forms resolve_forms flip_forms assign_forms death_forms].freeze
     RETURN_EVENTS = %w[on_enter_field on_attack].freeze
 
     # Un trigger è riconosciuto se almeno una forma certificata lo legge.
@@ -280,11 +288,34 @@ module Rubyfront
     # stessa meccanica della Materia e dell'Entità (held_by, release).
     # Gemello: renderer.ts, assignFormsOf.
     def self.assign_forms(faces)
-      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+      faces.each_with_index.flat_map { |face, index| Array(face["triggers"]).map { |trigger| [trigger, index] } }.filter_map do |trigger, index|
         next unless trigger.is_a?(Hash) && trigger["event"] == "on_assign_object"
 
         effect = trigger["effect"]
         next unless effect.is_a?(Hash)
+        # Il Rubyfront/Nexus: «la prima volta in ogni tuo turno che assegni un
+        # Oggetto a un'Entità, guarda la prima e l'ultima carta del tuo
+        # mazzo: puoi scambiarle; poi pesca una carta e scarta una carta» —
+        # o «aggiungine una alla tua mano e metti l'altra nella tua Zona di
+        # Ritiro». Una volta per turno, sulla faccia in vista.
+        if trigger["details"] == { "oncePerEachOfYourTurns" => true }
+          next unless effect["type"] == "look_and_optionally_move" && effect["from"] == { "zone" => "deck", "owner" => "controller", "position" => "top" }
+
+          extra = effect["details"]
+          next unless extra.is_a?(Hash) && extra["alsoLook"] == { "zone" => "deck", "owner" => "controller", "position" => "bottom" }
+
+          if extra.keys.sort == %w[alsoLook maySwapTopAndBottom thenDiscardCards thenDrawCards]
+            next unless extra["maySwapTopAndBottom"] == true && extra["thenDrawCards"].is_a?(Integer) && extra["thenDiscardCards"].is_a?(Integer)
+
+            next { kind: "ends", face: index, swap: true, then_draw: extra["thenDrawCards"], then_discard: extra["thenDiscardCards"], once: true }.freeze
+          end
+          if extra.keys.sort == %w[addOneTo alsoLook otherTo]
+            next unless extra["addOneTo"] == { "zone" => "hand", "owner" => "controller" } && extra["otherTo"] == { "zone" => "retire", "owner" => "controller" }
+
+            next { kind: "ends", face: index, to_hand: true, other_to_retire: true, once: true }.freeze
+          end
+          next
+        end
         # L'Entità: «quando assegni un Oggetto a questa Entità: pesca una carta».
         if trigger["details"] == { "toSelf" => true }
           next unless effect["type"] == "draw_card" && effect["target"] == { "controller" => "controller" } && effect["count"].is_a?(Integer) && effect["count"].positive?
@@ -302,6 +333,34 @@ module Rubyfront
         next unless extra.is_a?(Hash) && extra["whileSourceOnField"] == true && extra["returnsToPlayWhenSourceLeaves"] == true
 
         { kind: "exile", target: { type: "entity", controller: "opponent" }.freeze, to: "abisso", hold: true }.freeze
+      end
+    end
+
+    # Gli effetti certificati «quando quell'Entità muore» di un Oggetto (§5,
+    # §8.2; dal 2026-09-10): evento `on_death` dell'Entità a cui è assegnato,
+    # effetto `move_card` di sé nella propria Zona di Ritiro «invece che
+    # nell'Abisso», poi «puoi assegnare un altro Oggetto dalla tua Zona di
+    # Ritiro, senza pagarne il costo, a un'Entità senza Oggetto che
+    # controlli». Gemello: renderer.ts, deathFormsOf.
+    def self.death_forms(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_death" && trigger["details"] == { "ofAssignedEntity" => true }
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "move_card" && effect["target"] == { "scope" => "self" }
+        next unless effect["destination"] == { "zone" => "retire", "owner" => "controller" }
+
+        extra = effect["details"]
+        next unless extra.is_a?(Hash) && extra.keys.sort == %w[insteadOfZone thenMayAssignObject]
+        next unless extra["insteadOfZone"] == { "zone" => "abyss", "owner" => "controller" }
+
+        rearm = extra["thenMayAssignObject"]
+        next unless rearm == { "from" => { "zone" => "retire", "owner" => "controller" },
+                               "filter" => { "cardType" => "object", "details" => { "other" => true } },
+                               "target" => { "cardType" => "entity", "controller" => "controller", "details" => { "hasObjectAssigned" => false } },
+                               "noFluxCost" => true }
+
+        { kind: "remain", to: "ritiro", then_rearm: { other: true, to: "unarmed", free: true }.freeze }.freeze
       end
     end
 
@@ -745,7 +804,7 @@ module Rubyfront
         next unless effect.is_a?(Hash)
 
         form = resolve_look(effect) || resolve_untap(effect) || resolve_move(effect) || resolve_fortune(effect) || resolve_destroy(effect) ||
-               resolve_block(effect) || resolve_weaken(effect) || resolve_amplify(effect) || resolve_drain(effect)
+               resolve_block(effect) || resolve_weaken(effect) || resolve_amplify(effect) || resolve_drain(effect) || resolve_search(effect)
         form&.freeze
       end
     end
@@ -932,6 +991,40 @@ module Rubyfront
 
       { kind: "destroy", target: { type: "entity", controller: target["controller"] }.freeze, to: "abisso",
         discount: discount && { amount: discount["amount"], if_target: "tapped" }.freeze, then_lose: then_lose }
+    end
+
+    # La ricerca col dado (dal 2026-09-10): «guarda le prime N carte e lancia
+    # un dN: con A–B puoi mostrare una Materia; con C–D un Oggetto; con E–F
+    # un'Entità. Aggiungi la mostrata alla mano; se non ne mostri una, metti
+    # una delle guardate in cima al mazzo. Poi una delle altre nella Zona di
+    # Ritiro e le restanti in fondo in qualsiasi ordine». Gemello:
+    # renderer.ts, resolveSearch.
+    def self.resolve_search(effect)
+      return nil unless effect["type"] == "look_and_optionally_move"
+
+      from = effect["from"]
+      extra = effect["details"]
+      return nil unless from == { "zone" => "deck", "owner" => "controller", "position" => "top", "count" => from.is_a?(Hash) ? from["count"] : nil } && from["count"].is_a?(Integer)
+      return nil unless extra.is_a?(Hash) && extra.keys.sort == %w[die ifNoReveal mayRevealByRoll restTo revealTo thenMoveOneTo]
+
+      die = die_faces(extra["die"])
+      by_roll = extra["mayRevealByRoll"]
+      return nil unless die && by_roll.is_a?(Hash) && !by_roll.empty?
+
+      bands = {}
+      by_roll.each do |key, value|
+        range = band(key)
+        type = value.is_a?(Hash) && value["cardType"]
+        return nil unless range && %w[matter object entity].include?(type) && !bands.key?(type)
+
+        bands[type] = range
+      end
+      return nil unless extra["revealTo"] == { "zone" => "hand", "owner" => "controller" }
+      return nil unless extra["ifNoReveal"] == { "putOneOnTop" => true }
+      return nil unless extra["thenMoveOneTo"] == { "zone" => "retire", "owner" => "controller" }
+      return nil unless extra["restTo"] == { "zone" => "deck", "owner" => "controller", "position" => "bottom", "anyOrder" => true }
+
+      { kind: "search", count: from["count"], die: die, bands: bands.freeze, reveal_to: "hand", if_no_reveal_top: true, then_retire: true, rest_to: "deck" }
     end
 
     # Il prosciugamento (dal 2026-09-10): «il Rubyfront/Nexus avversario perde

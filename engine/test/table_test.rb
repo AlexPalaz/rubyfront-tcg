@@ -695,7 +695,8 @@ class TableBonusTest < Minitest::Test
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
     @table.apply({ "t" => "toZone", "uid" => "e", "zone" => "abisso" })
-    assert_equal({ turn: 2, armed: true }, @table.card("e")[:left])
+    assert_equal({ turn: 2, armed: true, bearer: nil }, @table.card("e")[:left])
+    assert_equal({ turn: 2, armed: false, bearer: "e" }, @table.card("o")[:left], "l'Oggetto che segue annota a chi era addosso")
     @table.apply({ "t" => "revive", "uid" => "e", "x" => 821, "y" => 1260, "z" => 5, "object" => "p" })
     assert_equal "field", @table.card("e")[:zone]
     assert_nil @table.card("e")[:left], "rientrando, l'annotazione si cancella"

@@ -297,6 +297,14 @@ module Rubyfront
       pile(seat, "deck").first(count).map { |card| @cards.key(card) }
     end
 
+    # Gli uid della prima e dell'ultima carta del mazzo di `seat` (nil se vuoto).
+    def deck_ends(seat)
+      deck = pile(seat, "deck")
+      return [nil, nil] if deck.empty?
+
+      [@cards.key(deck.first), @cards.key(deck.last)]
+    end
+
     def zone_count(seat, zone)
       @cards.count { |_, card| card[:owner] == seat && card[:zone] == zone }
     end
@@ -467,6 +475,8 @@ module Rubyfront
           to_zone({ "uid" => action["object"], "zone" => "field", "y" => action["y"], "assignTo" => action["uid"] })
         end
       when "look" then look(action)
+      when "ends" then ends(action)
+      when "remain" then remain(action)
       when "control"
         # §8.2 — il controllo: chi comanda cambia, la proprietà no; le parole
         # chiave concesse durano fino a fine turno. Non è un ingresso: la
@@ -738,6 +748,9 @@ module Rubyfront
       # mostrata in Ritiro, un'altra le altre. Gemello: state.ts, look.
       reveal_to = action["revealTo"] == "ritiro" ? "ritiro" : "hand"
       rest_to = action["restTo"] == "ritiro" ? "ritiro" : "deck"
+      # «Se non ne mostri una, metti una delle carte guardate in cima al
+      # mazzo» (`top`): resta sopra tutte le altre. Gemello: state.ts, look.
+      top_order = deck.first[:order] - 1
       to_retire_top = lambda do |card|
         top = pile(seat, "ritiro").first
         card[:zone] = "ritiro"
@@ -760,6 +773,10 @@ module Rubyfront
           to_retire_top.call(card)
           next
         end
+        if action["top"] && @cards[action["top"]].equal?(card)
+          card[:order] = top_order
+          next
+        end
         if rest_to == "ritiro"
           to_retire_top.call(card)
           next
@@ -767,6 +784,49 @@ module Rubyfront
         card[:order] = bottom
         bottom += 1
       end
+    end
+
+    # Gli estremi del mazzo (§8.2): la prima e l'ultima carta, scambiate
+    # (`swap`), o una in mano (`toHand`) e l'altra in Zona di Ritiro
+    # (`toRetire`). Gemello: state.ts, ends.
+    def ends(action)
+      seat = action["seat"]
+      deck = pile(seat, "deck")
+      return if deck.empty?
+
+      top = deck.first
+      bottom = deck.last
+      if action["swap"] == true
+        top[:order], bottom[:order] = bottom[:order], top[:order] unless top.equal?(bottom)
+        return
+      end
+      to_hand = action["toHand"].is_a?(String) ? @cards[action["toHand"]] : nil
+      to_retire = action["toRetire"].is_a?(String) ? @cards[action["toRetire"]] : nil
+      if to_hand && [top, bottom].any? { |card| card.equal?(to_hand) }
+        hand = pile(seat, "hand")
+        to_hand[:zone] = "hand"
+        to_hand[:order] = hand.empty? ? 0 : hand.last[:order] + 1
+        to_hand[:facedown] = false
+      end
+      return unless to_retire && !to_retire.equal?(to_hand) && [top, bottom].any? { |card| card.equal?(to_retire) }
+
+      first = pile(seat, "ritiro").first
+      to_retire[:zone] = "ritiro"
+      to_retire[:order] = first ? first[:order] - 1 : 0
+      to_retire[:facedown] = false
+    end
+
+    # «Metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso»
+    # (§8.2): l'Oggetto appena finito nell'Abisso passa in cima alla Zona di
+    # Ritiro. Gemello: state.ts, remain.
+    def remain(action)
+      card = @cards[action["uid"]]
+      return unless card && card[:zone] == "abisso"
+
+      first = pile(card[:owner], "ritiro").first
+      card[:zone] = "ritiro"
+      card[:order] = first ? first[:order] - 1 : 0
+      card[:held_by] = nil
     end
 
     def to_zone(action)
@@ -831,6 +891,7 @@ module Rubyfront
       card[:tapped] = false
       card[:facedown] = false
       card[:covered_turn] = nil
+      bearer = action["bearer"] || card[:assigned_to]
       card[:assigned_to] = nil
       uid = action["uid"]
       @declarations.reject! { |from, d| from == uid || d[:to] == uid }
@@ -839,7 +900,8 @@ module Rubyfront
       worn = @cards.select { |_, other| other[:assigned_to] == uid && other[:zone] == "field" }.keys
       # L'uscita dal campo si annota (§8.2, il ritorno vincolato): in quale
       # turno, e se aveva Oggetti addosso.
-      card[:left] = { turn: @turn, armed: !worn.empty? } if %w[abisso ritiro].include?(zone)
+      # …e per un Oggetto, a chi era addosso (§8.2, «quando quell'Entità muore»).
+      card[:left] = { turn: @turn, armed: !worn.empty?, bearer: bearer } if %w[abisso ritiro].include?(zone)
       @cards.each_value { |other| other[:assigned_to] = nil if other[:assigned_to] == uid }
 
       rest = pile(card[:owner], zone).reject { |other| other.equal?(card) }
@@ -852,7 +914,7 @@ module Rubyfront
 
       return unless %w[ritiro abisso].include?(zone)
 
-      worn.each { |object_uid| to_zone({ "uid" => object_uid, "zone" => zone }) }
+      worn.each { |object_uid| to_zone({ "uid" => object_uid, "zone" => zone, "bearer" => uid }) }
     end
   end
 end

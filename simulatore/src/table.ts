@@ -107,7 +107,14 @@ import {
   weakenAmount,
   wornObjects,
   objectCost,
+  searchCandidates,
+  deckEnds,
+  deathSteps,
+  deathRef,
+  describeDeathStep,
+  rearmAfterDeath,
   type AssignStep,
+  type DeathStep,
   flipRef,
   flipSteps,
   nexusCheck,
@@ -158,7 +165,7 @@ import {
   inPlay,
 } from "./state.js";
 import type { CardInstance, Discount, EffectRef, GameState, Seat, ZoneId } from "./types.js";
-import type { Ability } from "./ctx.js";
+import type { Ability, AssignForm } from "./ctx.js";
 import { SEATS, otherSeat } from "./types.js";
 
 // Le tre pile stanno in fila a destra, nella riga di servizio. Il Mazzo è
@@ -249,6 +256,9 @@ export interface TableView {
       Oggetti con la forma appena assegnati innescano per chi li comanda
       (il giocatore, o il bot col suo selettore). */
   offerAssignTriggers(before: GameState, after: GameState, owners: Seat[]): void;
+  /** §8.2 — «quando quell'Entità muore»: l'Oggetto con la forma appena
+      finito nell'Abisso con la sua Entità resta in Ritiro, per chi lo possiede. */
+  offerDeathRemains(before: GameState, after: GameState, owners: Seat[]): void;
   assignObject(card: CardInstance, bearer: CardInstance): Promise<boolean>;
   /** Vero se ha schierato (o tirato); falso se lo schieramento non passerebbe. */
   deployRubyfront(seat: Seat): Promise<boolean>;
@@ -2477,6 +2487,44 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           }
           break;
         }
+        case "search": {
+          const roll = rollDie(form.die);
+          await showRoll(root, form.die, roll, t("dice.step", { name, what: t("dice.search") }));
+          const live = pendingResolve(ctx.state(), step.source, ctx.card).find(candidate => candidate.form === form) ?? step;
+          const looked = live.looked;
+          if (looked.length === 0) break;
+          const { type, candidates } = searchCandidates(form, looked, roll, ctx.card);
+          const what = t(type === "matter" ? "pick.look.matter" : type === "object" ? "pick.look.object" : "pick.look.one");
+          const reveal = candidates.length
+            ? await pickFromPile(by, "deck", candidates, t("pick.search.some", { roll, what }), looked)
+            : await pickFromPile(by, "deck", [], t("pick.search.none", { roll, what }), looked);
+          // Senza mostrata, una delle guardate torna in cima: obbligatoria.
+          let top: CardInstance | null = null;
+          while (!reveal && !top) top = await pickFromPile(by, "deck", looked, t("pick.search.top"), looked);
+          // Poi una delle altre nella Zona di Ritiro: obbligatoria, se restano carte.
+          const others = looked.filter(card => card.uid !== reveal?.uid && card.uid !== top?.uid);
+          let retire: CardInstance | null = null;
+          while (others.length && !retire) retire = await pickFromPile(by, "deck", others, t("pick.retire"), others);
+          hold(true);
+          await wait(CONFIRMED_LEAD_MS);
+          const passed = await ctx.dispatch({
+            t: "look", seat: by, count: form.count, roll,
+            ...(reveal ? { reveal: reveal.uid } : {}),
+            ...(top ? { top: top.uid } : {}),
+            ...(retire ? { retire: retire.uid } : {}),
+            revealTo: "hand", restTo: "deck", effect: ref,
+          });
+          if (passed) {
+            ctx.log(msg("log.effect.look", { seat: by, sourceCard: step.source.cardId, parts: [
+              msg("look.rolled", { die: form.die, roll, n: looked.length }),
+              reveal ? msg("look.reveal", { card: reveal.cardId }) : msg("look.noreveal"),
+              ...(top ? [msg("look.top", { card: top.cardId })] : []),
+              ...(retire ? [msg("look.retire", { card: retire.cardId })] : []),
+              msg("look.rest"),
+            ] }), by);
+          }
+          break;
+        }
         case "drain": {
           hold(true);
           await wait(TRIGGER_LEAD_MS);
@@ -3495,6 +3543,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         await wait(TRIGGER_TAIL_MS);
         return;
       }
+      if (step.form.kind === "ends") {
+        await playEnds(step, step.form);
+        return;
+      }
       const target = await pickTarget(step.source, candidates, t("target.confine"));
       if (!target) return;
       strike(target.uid, 60_000);
@@ -3519,6 +3571,118 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       }
     } finally {
       light(step.source.uid, false);
+      hold(false);
+    }
+  }
+
+  /**
+   * §3.1 — il Rubyfront/Nexus «la prima volta in ogni tuo turno che assegni
+   * un Oggetto»: la prima e l'ultima carta del mazzo in vista; sul Rubyfront
+   * si possono scambiare (e poi si pesca e si scarta), sul Nexus una va in
+   * mano e l'altra nella Zona di Ritiro.
+   */
+  async function playEnds(step: AssignStep, form: Extract<AssignForm, { kind: "ends" }>): Promise<void> {
+    const by = controllerOf(step.source);
+    const ref = assignRef(step);
+    const ends = deckEnds(ctx.state(), by);
+    if (!ends) {
+      ctx.log(msg("log.look.empty", { seat: by, card: step.source.cardId }), by);
+      return;
+    }
+    const pair = ends.top.uid === ends.bottom.uid ? [ends.top] : [ends.top, ends.bottom];
+    if ("swap" in form) {
+      // Scegliere una delle due vale «scambiale»; Chiudi le lascia.
+      const chosen = pair.length === 2 ? await pickFromPile(by, "deck", pair, t("pick.ends.swap"), pair) : null;
+      hold(true);
+      await wait(CONFIRMED_LEAD_MS);
+      const passed = await ctx.dispatch({ t: "ends", seat: by, ...(chosen ? { swap: true as const } : {}), effect: ref });
+      if (!passed) return;
+      ctx.log(msg(chosen ? "log.effect.ends.swap" : "log.effect.ends.kept", { seat: by, sourceCard: step.source.cardId }), by);
+      await wait(TRIGGER_TAIL_MS);
+      // «Poi pesca una carta e scarta una carta».
+      if (form.thenDraw > 0) {
+        const drew = await ctx.dispatch({ t: "draw", seat: by, count: form.thenDraw, effect: { ...ref, follow: "draw" } });
+        if (!drew) return;
+        ctx.log(msg("log.effect.trigger", { seat: by, card: step.source.cardId, n: form.thenDraw, cards: msg(form.thenDraw === 1 ? "cards.one" : "cards.many") }), by);
+        await wait(TRIGGER_TAIL_MS);
+      }
+      for (let left = form.thenDiscard; left > 0; left -= 1) {
+        const hand = zoneCards(ctx.state(), by, "hand");
+        if (hand.length === 0) break;
+        let chosen: CardInstance | null = null;
+        while (!chosen) chosen = await pickFromPile(by, "hand", hand, t("pick.discard"));
+        const fly = liftForFlight(chosen.uid, "ritiro");
+        const discarded = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "ritiro", effect: { ...ref, follow: "discard" } });
+        if (discarded) {
+          fly?.();
+          ctx.log(msg("log.effect.discard", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
+        } else {
+          fly?.cancel();
+          break;
+        }
+      }
+      return;
+    }
+    // Il Nexus: una in mano, l'altra in Ritiro — la scelta è obbligatoria.
+    let chosen: CardInstance | null = null;
+    while (!chosen) chosen = await pickFromPile(by, "deck", pair, t("pick.ends.hand"), pair);
+    const other = pair.find(card => card.uid !== chosen?.uid);
+    hold(true);
+    await wait(CONFIRMED_LEAD_MS);
+    const passed = await ctx.dispatch({ t: "ends", seat: by, toHand: chosen.uid, ...(other ? { toRetire: other.uid } : {}), effect: ref });
+    if (passed) ctx.log(msg("log.effect.ends.pick", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId, ...(other ? { otherCard: other.cardId } : {}) }), by);
+    await wait(TRIGGER_TAIL_MS);
+  }
+
+  /**
+   * §5/§8.2 — «quando quell'Entità muore, metti questo Oggetto nella tua
+   * Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro
+   * Oggetto dalla tua Zona di Ritiro, senza pagarne il costo, a un'Entità
+   * senza Oggetto che controlli»: l'Oggetto vola dall'Abisso al Ritiro, poi
+   * la scelta dell'altro Oggetto e del portatore — Chiudi per nessuno.
+   */
+  async function playRemainStep(step: DeathStep): Promise<void> {
+    const by = step.object.owner;
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await sceneIdle();
+    await showEnterEffect(root, {
+      cardId: step.object.cardId,
+      face: step.object.face,
+      theme: ctx.themeFor(step.object.owner),
+      locale: ctx.locale(),
+      who: t("scene.dies", { name: seatLabel(ctx.state(), by), card: `«${cardName(step.bearer.cardId, ctx.locale())}»`, object: `«${cardName(step.object.cardId, ctx.locale())}»` }),
+      effects: enterEffects(step.object.cardId, step.object.face, ctx.locale()),
+      triggers: [describeDeathStep(step, ctx.card)],
+      kicker: t("scene.resolve.matter"),
+      onContinue: () => undefined,
+    });
+    hold(true);
+    try {
+      await wait(CONFIRMED_LEAD_MS);
+      const passed = await ctx.dispatch({ t: "remain", uid: step.object.uid, effect: deathRef(step) });
+      if (!passed) return;
+      flyFromPile(by, "abisso", step.object.uid);
+      ctx.log(msg("log.effect.remain", { seat: by, card: step.object.cardId }), by);
+      await wait(FLY_MS + TRIGGER_TAIL_MS);
+      const { objects, bearers } = rearmAfterDeath(ctx.state(), step, ctx.card);
+      if (objects.length === 0 || bearers.length === 0) return;
+      const object = await pickFromPile(by, "ritiro", objects, t("pick.remain.rearm"));
+      if (!object) return;
+      const bearer = await pickTarget(object, bearers, t("target.remain.bearer"));
+      if (!bearer) return;
+      const live = ctx.state().cards[bearer.uid] ?? bearer;
+      const worn = Object.values(ctx.state().cards).filter(other => other.assignedTo === live.uid && other.zone === "field");
+      const rearmed = await ctx.dispatch({
+        t: "toZone", uid: object.uid, zone: "field",
+        x: live.x + STACK_STEP * (worn.length + 1), y: live.y + STACK_STEP * (worn.length + 1), z: underStack(live, worn),
+        assignTo: live.uid, effect: deathRef(step, "rearm"),
+      });
+      if (rearmed) {
+        flyFromPile(by, "ritiro", object.uid);
+        ctx.log(msg("log.effect.rearm", { seat: by, sourceCard: step.object.cardId, card: object.cardId, toCard: live.cardId }), by);
+        await wait(FLY_MS);
+      }
+    } finally {
       hold(false);
     }
   }
@@ -4468,6 +4632,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (steps.length === 0) return;
       void (async () => {
         for (const step of steps) await playLeaveReturn(step);
+      })();
+    },
+    offerDeathRemains(before, after, owners) {
+      const steps = deathSteps(before, after, ctx.card).filter(step => owners.includes(step.object.owner));
+      if (steps.length === 0) return;
+      void (async () => {
+        for (const step of steps) await playRemainStep(step);
       })();
     },
     offerAssignTriggers(before, after, owners) {

@@ -948,6 +948,41 @@ Regole collegate finora:
   gratis, §3.1); l'aura non distingue Entità sotto controllo altrui oltre
   a chi le comanda adesso. Engine 0.59.0, sessantacinque regole.
 
+- **§8.2 La ricerca col dado, gli estremi del mazzo, l'Oggetto che resta**
+  (dal 2026-09-10, le ultime tre forme del secondo mazzo). La **ricerca**
+  (`search`): «guarda le prime 5 carte e tira un d20: con 1–7 puoi mostrare
+  una Materia, con 8–14 un Oggetto, con 15–20 un'Entità; la mostrata in
+  mano; senza mostrarne una, una delle guardate in cima al mazzo; poi una
+  delle altre nella Zona di Ritiro e le restanti in fondo» — lo stesso
+  `look` con `roll`, `reveal` (del tipo della fascia), `top` (a mano vuota),
+  `retire`; il tiro lo fa il client, l'engine verifica la forma; «in
+  qualsiasi ordine» resta l'ordine di lettura (limite dichiarato). Gli
+  **estremi del mazzo** (`assign_forms` `ends`, sul Rubyfront/Nexus per
+  faccia): «la prima volta in ogni tuo turno che assegni un Oggetto a
+  un'Entità, guarda la prima e l'ultima carta del tuo mazzo: puoi
+  scambiarle; poi pesca una carta e scarta una carta» (faccia A) o «una in
+  mano e l'altra nella Zona di Ritiro» (Nexus) — l'azione nuova `ends
+  {seat, swap | toHand+toRetire}` marcata `on_assign_object` con `once`
+  (chiave del turno: `rubyfront|on_assign_object:ends|turn`), fonte il
+  Rubyfront in gioco con la faccia della forma in vista, ingresso
+  l'Oggetto appena assegnato a un'Entità che comanda, nel proprio turno;
+  i seguiti `draw` e `toZone ritiro` portano `follow: "draw" |
+  "discard"`, nell'ordine. L'**Oggetto che resta** (`death_forms`
+  `remain`): «quando quell'Entità muore, metti questo Oggetto nella tua
+  Zona di Ritiro invece che nell'Abisso; poi puoi assegnare un altro
+  Oggetto dalla tua Zona di Ritiro, senza pagarne il costo, a un'Entità
+  senza Oggetto che controlli» — l'Oggetto segue l'Entità nell'Abisso come
+  sempre (la copia annota su di lui `left {turn, armed, bearer}`: il
+  portatore a cui era addosso), poi l'azione nuova `remain {uid}` marcata
+  `on_death` (fonte l'Oggetto, ingresso l'Entità morta: entrambi usciti
+  questo turno, lei nell'Abisso) lo porta in cima al Ritiro, e il riarmo è
+  un `toZone … assignTo` con `follow: "rearm"` — un ALTRO Oggetto dal
+  proprio Ritiro, su una propria Entità senza Oggetto, senza costo. Nel
+  client `deathSteps` confronta lo stato prima e dopo ogni azione e apre la
+  scena al proprietario. Limiti dichiarati: `left.bearer` non viaggia nello
+  snapshot; il bot sceglie con il suo selettore. Engine 0.62.0,
+  sessantotto regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

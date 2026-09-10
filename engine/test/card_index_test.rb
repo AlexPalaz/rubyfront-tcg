@@ -19,10 +19,6 @@ class CardIndexTest < Minitest::Test
   # vi compare, è una forma rotta o un dato cambiato di nascosto — e il test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBITO = [
-    "RBF-023 rubyfront/schism-forge",
-    "RBF-023 nexus/deep-forge-sight",
-    "RBF-035 object/remain",
-    "RBF-041 matter/surge-search",
   ].freeze
 
   def test_ogni_trigger_ha_una_forma_o_sta_nel_debito_dichiarato
@@ -205,6 +201,10 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" }, then_lose: nil }], forme.call("RBF-021")
     assert_equal [{ kind: "destroy", target: { type: "entity", controller: "opponent" }, to: "abisso", discount: nil, then_lose: 2 }], forme.call("RBF-038"), "«poi perdi 2 PV» è certificato dal 2026-09-10"
     assert_equal [{ kind: "drain", amount: "objects" }], forme.call("RBF-042"), "il Rubyfront/Nexus avversario perde PV pari agli Oggetti assegnati"
+    assert_equal [{ kind: "search", count: 5, die: 20, bands: { "matter" => [1, 7], "object" => [8, 14], "entity" => [15, 20] }, reveal_to: "hand", if_no_reveal_top: true, then_retire: true, rest_to: "deck" }], forme.call("RBF-041"), "la ricerca col dado"
+    assert_equal [{ kind: "ends", face: 0, swap: true, then_draw: 1, then_discard: 1, once: true }, { kind: "ends", face: 1, to_hand: true, other_to_retire: true, once: true }], @index["RBF-023"][:assign_forms], "gli estremi del mazzo, per faccia"
+    assert_equal [{ kind: "remain", to: "ritiro", then_rearm: { other: true, to: "unarmed", free: true } }], @index["RBF-035"][:death_forms], "«quando quell'Entità muore»: in Ritiro, poi il riarmo"
+    assert_equal [], @index["RBF-043"][:death_forms]
   end
 
   def test_le_materie_di_scissione_profonda_alla_risoluzione

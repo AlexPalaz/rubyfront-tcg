@@ -66,7 +66,7 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       attackForms: [],
       staticForms: facts[cardId]?.neverTaps ? [{ kind: "never_taps" }] : [],
       resolveForms: [],
-      flipForms: [],
+      flipForms: [], assignForms: [], deathForms: [],
       nexus: null,
       grantsWhileAssigned: [],
     }),

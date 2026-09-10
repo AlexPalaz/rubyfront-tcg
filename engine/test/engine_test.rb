@@ -2811,7 +2811,14 @@ class EngineTest < Minitest::Test
                     nexus: { face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 5 },
                     flip_forms: [{ kind: "move", card_id: "RIPORTANTE", from: "field", to: "abisso" }, { kind: "seal", card_id: "RIPORTANTE" }, { kind: "draw", count: 1 }] },
     "FORGIA" => { type: "rubyfront", keywords: [], power: nil, counterattack: nil,
-                  nexus: { face: 1, conditions: [{ count: 3, type: "entity", race: nil, armed: true }], discard: { count: 1, type: nil }, recovery: 5 } },
+                  nexus: { face: 1, conditions: [{ count: 3, type: "entity", race: nil, armed: true }], discard: { count: 1, type: nil }, recovery: 5 },
+                  assign_forms: [{ kind: "ends", face: 0, swap: true, then_draw: 1, then_discard: 1, once: true },
+                                 { kind: "ends", face: 1, to_hand: true, other_to_retire: true, once: true }] },
+    "CARICA" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 3, matter: { type: "dynamic", grade: 2 },
+                  resolve_forms: [{ kind: "search", count: 5, die: 20, bands: { "matter" => [1, 7], "object" => [8, 14], "entity" => [15, 20] },
+                                    reveal_to: "hand", if_no_reveal_top: true, then_retire: true, rest_to: "deck" }] },
+    "VESTIGIO" => { type: "object", keywords: [], flux_cost: 3, static_forms: [{ kind: "bearer_power", amount: 2 }],
+                    death_forms: [{ kind: "remain", to: "ritiro", then_rearm: { other: true, to: "unarmed", free: true } }] },
     "RIPORTANTE" => { type: "entity", keywords: [], race: "human", power: 6, flux_cost: 6 },
     "PERMANENTE" => { type: "matter", keywords: [], behavior: "permanent", flux_cost: 2, matter: { type: "dynamic", grade: 1 } },
     "ATTRAZIONE" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 2, matter: { type: "dynamic", grade: 1 },
@@ -3517,6 +3524,126 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], verdict[:reason]
   end
 
+  # La ricerca col dado: guarda le prime 5, mostra per fascia o una in cima, poi una in Ritiro.
+  def test_la_ricerca_col_dado_mostra_per_fascia_o_rimette_una_in_cima
+    mazzo = [["d0", "AUROS"], ["d1", "AUROS"], ["d2", "SCUDO"], ["d3", "PERMANENTE"], ["d4", "UMANO"], ["d5", "AUROS"], ["d6", "UMANO"]]
+    deck = mazzo.map.with_index { |(uid, id), i| [uid, id, { "zone" => "deck", "order" => i }] }
+    # La Pesca del turno 3 prende «d0»: guardate d1…d5, sotto resta d6.
+    engine = eredita([["u", "UMANO"], ["m", "CARICA", { "zone" => "hand" }]] + deck)
+    assert gioca_carta(engine, "m", cost: 3)[:ok]
+    accetta!(engine, "b")
+    look = { "t" => "look", "seat" => "a", "count" => 5, "roll" => 16, "reveal" => "d1", "retire" => "d2", "revealTo" => "hand", "restTo" => "deck", "effect" => res_ref("m") }
+    assert_match(/tiro valido/, engine.judge(look.merge("roll" => 21))[:reason])
+    assert_match(/prime 5/, engine.judge(look.merge("count" => 4))[:reason])
+    assert_match(/solo un'Entità/, engine.judge(look.merge("reveal" => "d2"))[:reason], "con 16 si mostra un'Entità")
+    assert_match(/solo un Oggetto/, engine.judge(look.merge("roll" => 9))[:reason])
+    assert_match(/nessuna torna in cima/, engine.judge(look.merge("top" => "d3"))[:reason])
+    assert_match(/una delle altre carte va nella Zona di Ritiro/, engine.judge(look.reject { |k, _| k == "retire" })[:reason])
+    assert_match(/una delle altre carte va nella Zona di Ritiro/, engine.judge(look.merge("retire" => "d1"))[:reason], "non la mostrata")
+    senza = look.reject { |k, _| k == "reveal" }
+    assert_match(/una delle guardate va in cima/, engine.judge(senza)[:reason])
+    assert_match(/una delle guardate va in cima/, engine.judge(senza.merge("top" => "d6"))[:reason], "fra le guardate")
+    verdict = engine.judge(look)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "hand", copia(engine).card("d1")[:zone]
+    assert_equal "ritiro", copia(engine).card("d2")[:zone]
+    assert_equal %w[d6 d3 d4 d5], copia(engine).top_of_deck("a", 4), "le altre in fondo, nell'ordine"
+    assert_match(/già stato risolto/, engine.judge(look)[:reason])
+    cima = eredita([["u", "UMANO"], ["m", "CARICA", { "zone" => "hand" }]] + deck)
+    assert gioca_carta(cima, "m", cost: 3)[:ok]
+    accetta!(cima, "b")
+    verdict = cima.judge(senza.merge("top" => "d3", "retire" => "d4"))
+    assert verdict[:ok], verdict[:reason]
+    assert_equal %w[d3 d6 d1 d2 d5], copia(cima).top_of_deck("a", 5), "la scelta resta in cima, le altre in fondo"
+    assert_equal "ritiro", copia(cima).card("d4")[:zone]
+  end
+
+  # Il Rubyfront «la prima volta in ogni tuo turno che assegni un Oggetto»: gli estremi del mazzo.
+  def test_il_rubyfront_scambia_gli_estremi_del_mazzo_poi_pesca_e_scarta_una_volta_per_turno
+    deck = [["d0", "AUROS"], ["d1", "AUROS"], ["d2", "SCUDO"], ["d3", "UMANO"]].map.with_index { |(uid, id), i| [uid, id, { "zone" => "deck", "order" => i }] }
+    engine = eredita([["forgia", "FORGIA", { "y" => 1260 }], ["u", "UMANO"], ["s", "SCUDO", { "zone" => "hand" }], ["s2", "SCUDO", { "zone" => "hand" }]] + deck)
+    ref = { "source" => "forgia", "event" => "on_assign_object", "entering" => "s", "once" => true }
+    ends = { "t" => "ends", "seat" => "a", "swap" => true, "effect" => ref }
+    assert_match(/non lo è/, engine.judge(ends)[:reason], "l'Oggetto non è ancora assegnato")
+    assert engine.judge({ "t" => "assign", "uid" => "s", "to" => "u" })[:ok]
+    assert gioca_carta(engine, "s", cost: 2, x: 470, y: 1288)[:ok]
+    assert_match(/prima volta nel turno/, engine.judge(ends.merge("effect" => ref.reject { |k, _| k == "once" }))[:reason])
+    assert_match(/non lo è/, engine.judge(ends.merge("effect" => ref.merge("entering" => "u")))[:reason])
+    assert_match(/scambia la prima e l'ultima/, engine.judge(ends.merge("swap" => nil, "toHand" => "d1"))[:reason], "questa faccia non mette in mano")
+    assert_equal %w[d1 d2 d3], copia(engine).top_of_deck("a", 3)
+    verdict = engine.judge(ends)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal %w[d3 d2 d1], copia(engine).top_of_deck("a", 3), "prima e ultima scambiate"
+    assert_match(/già scattato in questo turno/, engine.judge(ends)[:reason])
+    scarto = { "t" => "toZone", "uid" => "s2", "zone" => "ritiro", "effect" => ref.merge("follow" => "discard") }
+    assert_match(/prima si pesca/, engine.judge(scarto)[:reason])
+    pesca = { "t" => "draw", "seat" => "a", "count" => 1, "effect" => ref.merge("follow" => "draw") }
+    assert_match(/pesca 1/, engine.judge(pesca.merge("count" => 2))[:reason])
+    assert engine.judge(pesca)[:ok]
+    assert_equal "hand", copia(engine).card("d3")[:zone]
+    assert_match(/già stato fatto/, engine.judge(pesca)[:reason])
+    assert_match(/dalla propria mano/, engine.judge(scarto.merge("uid" => "u"))[:reason])
+    assert engine.judge(scarto)[:ok]
+    assert_equal "ritiro", copia(engine).card("s2")[:zone]
+    assert_match(/già stato fatto/, engine.judge(scarto.merge("uid" => "d3"))[:reason])
+  end
+
+  def test_il_nexus_mette_un_estremo_in_mano_e_l_altro_in_ritiro
+    deck = [["d0", "AUROS"], ["d1", "AUROS"], ["d2", "SCUDO"], ["d3", "UMANO"]].map.with_index { |(uid, id), i| [uid, id, { "zone" => "deck", "order" => i }] }
+    engine = eredita([["forgia", "FORGIA", { "y" => 1260, "face" => 1 }], ["u", "UMANO"], ["s", "SCUDO", { "zone" => "hand" }]] + deck)
+    assert engine.judge({ "t" => "assign", "uid" => "s", "to" => "u" })[:ok]
+    assert gioca_carta(engine, "s", cost: 2, x: 470, y: 1288)[:ok]
+    ref = { "source" => "forgia", "event" => "on_assign_object", "entering" => "s", "once" => true }
+    ends = { "t" => "ends", "seat" => "a", "toHand" => "d3", "toRetire" => "d1", "effect" => ref }
+    assert_match(/non scambia/, engine.judge(ends.merge("swap" => true))[:reason])
+    assert_match(/la prima o l'ultima/, engine.judge(ends.merge("toHand" => "d2"))[:reason])
+    assert_match(/l'altra va nella Zona di Ritiro/, engine.judge(ends.merge("toRetire" => "d2"))[:reason])
+    verdict = engine.judge(ends)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "hand", copia(engine).card("d3")[:zone]
+    assert_equal "ritiro", copia(engine).card("d1")[:zone]
+    assert_equal %w[d2], copia(engine).top_of_deck("a", 3)
+    assert_match(/il seguito pesca 0/, engine.judge({ "t" => "draw", "seat" => "a", "count" => 1, "effect" => ref.merge("follow" => "draw") })[:reason], "il Nexus non pesca")
+    # Nel turno altrui non scatta.
+    altrui = eredita([["forgia", "FORGIA", { "y" => 1260, "face" => 1 }], ["u", "UMANO"], ["s", "SCUDO", { "assignedTo" => "u" }]] + deck)
+    altrui.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    assert_match(/nel proprio turno/, altrui.judge(ends)[:reason])
+  end
+
+  # «Quando quell'Entità muore, metti questo Oggetto in Ritiro invece che nell'Abisso; poi puoi riarmare».
+  def test_il_vestigio_resta_in_ritiro_alla_morte_del_portatore_e_riarma_una_disarmata
+    engine = eredita([["u", "UMANO"], ["v", "VESTIGIO", { "assignedTo" => "u" }], ["w", "SCUDO", { "zone" => "ritiro" }], ["n", "AUROS"], ["z", "AUROS"], ["zo", "SPINE", { "assignedTo" => "z" }]],
+                     b: [["g", "GROSSO"]], attacks: ["u"])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert blocco(engine, "g", "u")[:ok]
+    ref = { "source" => "v", "event" => "on_death", "entering" => "u" }
+    resta = { "t" => "remain", "uid" => "v", "effect" => ref }
+    assert_match(/seguito questo turno/, engine.judge(resta)[:reason], "prima che muoia, niente")
+    # UMANO 2 + 2 del Vestigio = 4 contro GROSSO 4: muoiono entrambi.
+    verdict = risolvi(engine, [esito("u", blocker: "g", kind: "block", attacker_dies: true, blocker_dies: true)])
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", copia(engine).card("v")[:zone]
+    assert_match(/seguito questo turno/, engine.judge(resta.merge("effect" => ref.merge("entering" => "g")))[:reason])
+    assert_match(/azione `remain`/, engine.judge(resta.merge("uid" => "u"))[:reason])
+    verdict = engine.judge(resta)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "ritiro", copia(engine).card("v")[:zone]
+    assert_match(/già stato risolto/, engine.judge(resta)[:reason])
+    riarmo = { "t" => "toZone", "uid" => "w", "zone" => "field", "x" => 1230, "y" => 1288, "assignTo" => "n", "effect" => ref.merge("follow" => "rearm") }
+    assert_match(/ALTRO Oggetto/, engine.judge(riarmo.merge("uid" => "v"))[:reason])
+    assert_match(/SENZA Oggetto/, engine.judge(riarmo.merge("assignTo" => "z"))[:reason])
+    assert_match(/senza pagarne il costo/, engine.judge(riarmo.merge("cost" => 2))[:reason])
+    verdict = engine.judge(riarmo)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "field", copia(engine).card("w")[:zone]
+    assert_equal "n", copia(engine).card("w")[:assigned_to]
+    assert_match(/già stato fatto/, engine.judge(riarmo.merge("uid" => "v"))[:reason])
+    nudo = eredita([["u", "UMANO"], ["s", "SCUDO", { "assignedTo" => "u" }]])
+    verdict = nudo.judge({ "t" => "remain", "uid" => "s", "effect" => { "source" => "s", "event" => "on_death", "entering" => "u" } })
+    assert_match(/quando quell'Entità muore/, verdict[:reason])
+    assert_includes verdict[:reason_en], "(§8.2)"
+  end
+
   # --- §3.2: la tassa di Flusso viaggia nel cambio di turno ---------------------
 
   TASSE = EREDITA.merge(
@@ -4004,7 +4131,7 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], verdict[:reason]
     table = engine.instance_variable_get(:@table)
     assert_equal "abisso", table.card("red")[:zone]
-    assert_equal({ turn: 3, armed: false }, table.card("red")[:left])
+    assert_equal({ turn: 3, armed: false, bearer: nil }, table.card("red")[:left])
     assert ritorna(engine, actor: "a")[:ok]
   end
 end

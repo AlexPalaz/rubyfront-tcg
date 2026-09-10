@@ -19,7 +19,7 @@ export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
 import type { Phase } from "./types.js";
-import type { AssignForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, StaticForm, Ability, AbilityForm } from "./ctx.js";
+import type { AssignForm, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, StaticForm, Ability, AbilityForm } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -855,7 +855,7 @@ function resolveFormsOf(faces: CardFace[]): ResolveForm[] {
       if (trigger.event !== "on_resolve") continue;
       const effect = trigger.effect as Loose | undefined;
       if (!effect || typeof effect !== "object") continue;
-      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveDestroy(effect) ?? resolveBlock(effect) ?? resolveWeaken(effect) ?? resolveAmplify(effect) ?? resolveDrain(effect);
+      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveDestroy(effect) ?? resolveBlock(effect) ?? resolveWeaken(effect) ?? resolveAmplify(effect) ?? resolveDrain(effect) ?? resolveSearch(effect);
       if (form) out.push(form);
     }
   }
@@ -872,12 +872,26 @@ function resolveFormsOf(faces: CardFace[]): ResolveForm[] {
  */
 function assignFormsOf(faces: CardFace[]): AssignForm[] {
   const out: AssignForm[] = [];
-  for (const face of faces) {
+  faces.forEach((face, index) => {
     for (const trigger of face.triggers ?? []) {
       if (trigger.event !== "on_assign_object") continue;
       const details = trigger.details as Loose | undefined;
       const effect = trigger.effect as Loose | undefined;
       if (!effect) continue;
+      // Il Rubyfront/Nexus: «la prima volta in ogni tuo turno che assegni un
+      // Oggetto», gli estremi del mazzo — per faccia. Specchio di card_index.rb.
+      if (sameShape(details, { oncePerEachOfYourTurns: true })) {
+        const extra = effect.details as Loose | undefined;
+        if (effect.type !== "look_and_optionally_move" || !sameShape(effect.from, { zone: "deck", owner: "controller", position: "top" })) continue;
+        if (!extra || !sameShape(extra.alsoLook, { zone: "deck", owner: "controller", position: "bottom" })) continue;
+        const keys = Object.keys(extra).sort().join();
+        if (keys === "alsoLook,maySwapTopAndBottom,thenDiscardCards,thenDrawCards" && extra.maySwapTopAndBottom === true && Number.isInteger(extra.thenDrawCards) && Number.isInteger(extra.thenDiscardCards)) {
+          out.push({ kind: "ends", face: index, swap: true, thenDraw: extra.thenDrawCards, thenDiscard: extra.thenDiscardCards, once: true });
+        } else if (keys === "addOneTo,alsoLook,otherTo" && sameShape(extra.addOneTo, { zone: "hand", owner: "controller" }) && sameShape(extra.otherTo, { zone: "retire", owner: "controller" })) {
+          out.push({ kind: "ends", face: index, toHand: true, otherToRetire: true, once: true });
+        }
+        continue;
+      }
       // L'Entità: «quando assegni un Oggetto a questa Entità: pesca una carta».
       if (sameShape(details, { toSelf: true })) {
         if (effect.type === "draw_card" && sameShape(effect.target, { controller: "controller" }) && Number.isInteger(effect.count) && effect.count > 0) out.push({ kind: "draw", count: effect.count, toSelf: true });
@@ -892,6 +906,32 @@ function assignFormsOf(faces: CardFace[]): AssignForm[] {
       if (!destination || destination.zone !== "abyss") continue;
       if (!extra || extra.whileSourceOnField !== true || extra.returnsToPlayWhenSourceLeaves !== true) continue;
       out.push({ kind: "exile", target: { kind: "entity", controller: "opponent" }, to: "abisso", hold: true });
+    }
+  });
+  return out;
+}
+
+/**
+ * Gli effetti certificati «quando quell'Entità muore» di un Oggetto (§5,
+ * §8.2): in Ritiro invece che nell'Abisso, poi «puoi assegnare un altro
+ * Oggetto dalla tua Zona di Ritiro, senza pagarne il costo, a un'Entità
+ * senza Oggetto che controlli». Specchio di card_index.rb, death_forms.
+ */
+function deathFormsOf(faces: CardFace[]): DeathForm[] {
+  const out: DeathForm[] = [];
+  for (const face of faces) {
+    for (const trigger of face.triggers ?? []) {
+      if (trigger.event !== "on_death" || !sameShape(trigger.details, { ofAssignedEntity: true })) continue;
+      const effect = trigger.effect as Loose | undefined;
+      if (!effect || effect.type !== "move_card" || !sameShape(effect.target, { scope: "self" }) || !sameShape(effect.destination, { zone: "retire", owner: "controller" })) continue;
+      const extra = effect.details as Loose | undefined;
+      if (!extra || Object.keys(extra).sort().join() !== "insteadOfZone,thenMayAssignObject" || !sameShape(extra.insteadOfZone, { zone: "abyss", owner: "controller" })) continue;
+      const rearm = extra.thenMayAssignObject as Loose | undefined;
+      if (!rearm || rearm.noFluxCost !== true || Object.keys(rearm).length !== 4) continue;
+      if (!sameShape(rearm.from, { zone: "retire", owner: "controller" })) continue;
+      if (!rearm.filter || rearm.filter.cardType !== "object" || !sameShape(rearm.filter.details, { other: true }) || Object.keys(rearm.filter).length !== 2) continue;
+      if (!rearm.target || rearm.target.cardType !== "entity" || rearm.target.controller !== "controller" || !sameShape(rearm.target.details, { hasObjectAssigned: false }) || Object.keys(rearm.target).length !== 3) continue;
+      out.push({ kind: "remain", to: "ritiro", thenRearm: { other: true, to: "unarmed", free: true } });
     }
   }
   return out;
@@ -1060,6 +1100,29 @@ function resolveDestroy(effect: Loose): ResolveForm | null {
     discount: discount ? { amount: discount.amount, ifTarget: "tapped" } : null,
     thenLose: thenLose ?? null,
   };
+}
+
+/** La ricerca col dado (dal 2026-09-10): guarda le prime N e tira un d20 — mostra per fascia in mano, o una in cima; poi una in Ritiro, le altre in fondo in qualsiasi ordine. Specchio di card_index.rb, resolve_search. */
+function resolveSearch(effect: Loose): ResolveForm | null {
+  if (effect.type !== "look_and_optionally_move") return null;
+  const from = effect.from as Loose | undefined;
+  const extra = effect.details as Loose | undefined;
+  if (!from || !Number.isInteger(from.count) || !sameShape(from, { zone: "deck", owner: "controller", position: "top", count: from.count })) return null;
+  if (!extra || Object.keys(extra).sort().join() !== "die,ifNoReveal,mayRevealByRoll,restTo,revealTo,thenMoveOneTo") return null;
+  const die = dieFaces(extra.die);
+  const byRoll = extra.mayRevealByRoll as Record<string, Loose> | undefined;
+  if (die === null || !byRoll || typeof byRoll !== "object" || Object.keys(byRoll).length === 0) return null;
+  const bands: Record<"matter" | "object" | "entity", [number, number] | undefined> = { matter: undefined, object: undefined, entity: undefined };
+  for (const [key, value] of Object.entries(byRoll)) {
+    const range = band(key);
+    const type = value?.cardType as unknown;
+    if (!range || (type !== "matter" && type !== "object" && type !== "entity") || bands[type]) return null;
+    bands[type] = range;
+  }
+  if (!sameShape(extra.revealTo, { zone: "hand", owner: "controller" }) || !sameShape(extra.ifNoReveal, { putOneOnTop: true })) return null;
+  if (!sameShape(extra.thenMoveOneTo, { zone: "retire", owner: "controller" })) return null;
+  if (!sameShape(extra.restTo, { zone: "deck", owner: "controller", position: "bottom", anyOrder: true })) return null;
+  return { kind: "search", count: from.count, die, bands, revealTo: "hand", ifNoRevealTop: true, thenRetire: true, restTo: "deck" };
 }
 
 /** Il prosciugamento (dal 2026-09-10): «il Rubyfront/Nexus avversario perde PV pari al numero di Oggetti assegnati alle Entità che controlli». Specchio di card_index.rb, resolve_drain. */
@@ -1268,6 +1331,7 @@ export function cardStats(cardId: string): {
   resolveForms: ResolveForm[];
   flipForms: FlipForm[];
   assignForms: AssignForm[];
+  deathForms: DeathForm[];
   nexus: NexusRequirement | null;
   abilities: Ability[];
   furyAt: Record<number, number>;
@@ -1294,6 +1358,7 @@ export function cardStats(cardId: string): {
     resolveForms: resolveFormsOf(card?.faces ?? []),
     flipForms: flipFormsOf(card?.faces ?? []),
     assignForms: assignFormsOf(card?.faces ?? []),
+    deathForms: deathFormsOf(card?.faces ?? []),
     nexus: nexusOf(card?.faces ?? []),
     abilities: abilitiesOf(card?.faces ?? []),
     furyAt: furyAtOf(card?.faces ?? []),
