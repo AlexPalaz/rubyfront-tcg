@@ -204,35 +204,62 @@ corretti. Procedura per ogni carta:
   titolo); la metà bassa finisce dietro la textbox.
 - **Finestra 16:9 (40% della carta)**: il crop taglia alto/basso — punto
   focale nella fascia orizzontale centrale, testa mai a filo del bordo.
+- **Velo per carta** (2026-09-10): il velo comune delle full art è stato
+  alleggerito del 10%; poi si tara carta per carta nel JSON: `artVeil`
+  (0–1, moltiplica il velo: Kyo Shin 0.5 perché l'art è già molto scura; Avy Shin resta a 1) e
+  `artDim` (0–1, velo piatto in più: Rhazmora 0.14 perché l'art è chiara).
 - Resta da fare: trattamento CSS di raccordo art→textbox per le full art
   (sfumatura verso il pannello testo, velo dietro il titolo).
 
-## Esempio canonico (approvato 2026-08-25; prompt esatto fornito dal
-## designer il 2026-08-26)
+## Esempio canonico — Avy Shin (RBF-031, art montata)
 
-Avy Shin, sintesi vincente — prompt COMPLETO e letterale, lanciato con
-`--ar 4:3 --niji 6 --stylize 250` e **senza alcun `--no`**:
+Prompt ESATTO fornito dal designer il 2026-09-10 (l'art oggi in carta; il
+precedente esempio del 2026-08-26 era la prova iniziale). Lanciato con
+`--ar 16:9 --niji 6 --stylize 250` e `--cw 40` (peso del character
+reference: la coerenza dei personaggi si tiene con `--cref` sulle nostre
+art, oltre allo `--sref`). Tratti canonici di Avy Shin da qui in avanti:
+20 anni, viso giovane e affilato, capelli neri con lunghe ciocche frastagliate
+ai lati e punte all'indietro, **braccio sinistro interamente nero** come
+macchiato di energia oscura, camicia bianca aperta sopra un kimono scuro
+aderente, fascia scura, spada dritta e sottile, fumo blu a nastri, picco
+roccioso sotto un cielo di tempesta con fulmini blu.
 
 ```
 painted fantasy trading card illustration blending Magic the Gathering
 realism, Arcane stylization and elegant anime features, graphic clarity,
-poster-like readability, large clean areas of color, controlled
-deliberate brushwork, only a few crisp intentional details, every detail
-clearly resolved, a 25 year old swordsman with black hair, confident
-expression, stylized yet grounded face, defined expressive eyes, simple
-iconic costume: closed white kimono shirt, dark hakama, strong readable
-silhouette, dynamic pose swinging a katana trailing one clean arc of
-glowing blue energy, dramatic epic lighting, vibrant color palette with
-bold saturated accents, painted background of a medieval eastern city in
-simplified shapes, clearly composed, atmospheric depth
+poster-like readability, large clean areas of color, controlled deliberate
+brushwork, only a few crisp intentional details, every detail clearly
+resolved, a 20 year old swordsman, youthful sharp face, black hair with
+long jagged bangs framing both sides of his face and spiky strands swept
+at the back, confident composed expression, stylized yet grounded face,
+defined expressive eyes, gaze locked on the viewer, his left arm entirely
+black from shoulder to fingertips as if stained by dark energy, simple
+iconic costume: a white shirt worn open over a fitted dark kimono, a dark
+sash at the waist, fitted dark trousers, impeccable upright bearing, strong
+readable silhouette, facing the camera head-on, extending his slender
+straight sword in his right hand pointing directly at the viewer, the blade
+in sharp foreshortening aimed at the camera, one clean line of glowing blue
+energy along the blade, his blackened left arm held at his side clearly
+visible, a few clean ribbons of glowing blue smoke curling around him
+through the air, the panels of his open shirt swept by the wind, dynamic
+waist-up composition, dramatic epic lighting, vibrant color palette with
+bold saturated blue accents over deep dark tones, painted background of a
+dark jagged mountain peak under a storm sky, bolts of blue lightning
+striking around him, in simplified shapes, clearly composed, atmospheric
+depth --no photo, cartoon, comic book, chibi, ornate costume, cluttered,
+busy composition, visual noise, floating particles, grunge, muted colors,
+desaturated, text, watermark, border, mask, helmet, cape, armor, glove,
+gauntlet, prosthetic arm, robot arm, samurai, pagoda, crowd, multiple
+enemies, speed lines, rain, heavy fog, pitch black darkness, lightning
+hitting his body, side view, profile view, long hair, ponytail, beard,
+stubble, wrinkles, middle-aged, neon signs, holograms, modern city
+--ar 16:9 --niji 6 --cw 40 --stylize 250
 ```
 
-Nota: più corto del nucleo documentato sopra — niente `waist-up`,
-accenti saturi senza colore imposto, sfondo senza ferraglia, nessuna
-esclusione. Lezione: un `--no` lungo cambia la resa quanto il prompt
-stesso; per restare nello stile delle art montate, ancorarsi con
-`--sref` alle nostre immagini (o alla Moodboard `--p` quando esiste)
-conta più che allungare il prompt.
+Lezioni: il `--no` lungo e mirato QUI ha tenuto (niente samurai, niente
+armature); il braccio nero va detto due volte (nel costume e nella posa) o
+Niji lo perde; la spada in scorcio verso la camera è il gesto che rende la
+carta.
 
 ## Coda di rigenerazione
 

@@ -79,7 +79,15 @@ function createFace(card, face, cardCopy, themeId, localeId) {
       if (Number.isFinite(zoom) && zoom > 0) backdrop.style.aspectRatio = String(5 / (7 * zoom));
     }
     if (artFocusX) backdrop.style.objectPosition = `${artFocusX} 50%`;
-    visual.append(backdrop, element("div", "bg-scrim"));
+    // Il velo per carta: `artVeil` (0–1) alleggerisce il velo di questa
+    // carta rispetto a quello comune, `artDim` (0–1) aggiunge un velo piatto
+    // in più — per illustrazioni troppo scure o troppo chiare di per sé.
+    const scrim = element("div", "bg-scrim");
+    const artVeil = face.artVeil ?? card.artVeil;
+    const artDim = face.artDim ?? card.artDim;
+    if (artVeil !== undefined) scrim.style.setProperty("--art-veil", String(artVeil));
+    if (artDim !== undefined) scrim.style.setProperty("--art-dim", String(artDim));
+    visual.append(backdrop, scrim);
   }
 
   const art = element("div", "art");

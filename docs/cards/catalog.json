@@ -3596,6 +3596,7 @@
               "displayKey": "faceB",
               "art": "rbf-023-nexus.jpg",
               "artZoom": "72%",
+              "artDim": 0.14,
               "stats": {
                 "healthRecovery": 5
               },
@@ -3752,6 +3753,7 @@
           "designNotes": "rbf-023.md",
           "art": "rbf-023.jpg",
           "artZoom": "72%",
+          "artDim": 0.14,
           "source": {
             "designNotes": "notes/rbf-023.md",
             "art": "art/rbf-023.jpg"
@@ -6566,9 +6568,14 @@
             }
           ],
           "designNotes": "rbf-046.md",
+          "art": "rbf-046.jpg",
           "unique": true,
+          "fullArt": true,
+          "artZoom": "50%",
+          "artVeil": 0.5,
           "source": {
-            "designNotes": "notes/rbf-046.md"
+            "designNotes": "notes/rbf-046.md",
+            "art": "art/rbf-046.jpg"
           }
         }
       ]
@@ -10141,6 +10148,7 @@
           "displayKey": "faceB",
           "art": "rbf-023-nexus.jpg",
           "artZoom": "72%",
+          "artDim": 0.14,
           "stats": {
             "healthRecovery": 5
           },
@@ -10297,6 +10305,7 @@
       "designNotes": "rbf-023.md",
       "art": "rbf-023.jpg",
       "artZoom": "72%",
+      "artDim": 0.14,
       "source": {
         "designNotes": "notes/rbf-023.md",
         "art": "art/rbf-023.jpg"
@@ -13111,9 +13120,14 @@
         }
       ],
       "designNotes": "rbf-046.md",
+      "art": "rbf-046.jpg",
       "unique": true,
+      "fullArt": true,
+      "artZoom": "50%",
+      "artVeil": 0.5,
       "source": {
-        "designNotes": "notes/rbf-046.md"
+        "designNotes": "notes/rbf-046.md",
+        "art": "art/rbf-046.jpg"
       }
     }
   ],
