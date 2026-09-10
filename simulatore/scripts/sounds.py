@@ -88,3 +88,16 @@ build("tap-3", [("rpg", "dropLeather", 0, -9, "lowpass=f=1300,asetrate=44100*1.0
 # il contrattacco: il taglio, il metallo pesante, il rintocco
 build("counter-1", [("rpg", "knifeSlice", 0, -5, ""), ("impact", "impactMetal_heavy_001", 120, -6, ""), ("rpg", "metalPot1", 130, -10, "highpass=f=600"), ("impact", "impactSoft_heavy_000", 120, -10, "lowpass=f=300")])
 build("counter-2", [("rpg", "knifeSlice2", 0, -5, ""), ("impact", "impactMetal_heavy_003", 120, -6, ""), ("rpg", "metalPot2", 130, -10, "highpass=f=600"), ("impact", "impactSoft_heavy_002", 120, -10, "lowpass=f=300")])
+# il Rubyfront in ingresso (dal 2026-09-11, «suoni differenti e adatti»,
+# non quelli delle carte): tre momenti, senza carta né cuoio.
+# — l'arrivo: la porta pesante che si apre e un colpo grave che si avvicina
+build("rubyfront-arrive-1", [("rpg", "doorOpen_1", 0, -5, "lowpass=f=1100"), ("impact", "impactSoft_heavy_003", 60, -6, "lowpass=f=220"), ("impact", "impactPlate_heavy_002", 80, -18, "lowpass=f=600")])
+build("rubyfront-arrive-2", [("rpg", "doorOpen_2", 0, -5, "lowpass=f=1100"), ("impact", "impactSoft_heavy_004", 60, -6, "lowpass=f=220"), ("impact", "impactPlate_heavy_004", 80, -18, "lowpass=f=600")])
+# — l'accensione: la campana grave e lunga, il rubino che si accende con un
+#   tocco di vetro, un colpo sordo sotto
+build("rubyfront-ignite-1", [("impact", "impactBell_heavy_001", 0, -6, "asetrate=44100*0.55,aresample=44100,lowpass=f=3200"), ("impact", "impactGlass_light_001", 30, -16, "highpass=f=1800"), ("impact", "impactMetal_light_002", 40, -18, "highpass=f=2500,asetrate=44100*1.3,aresample=44100"), ("impact", "impactSoft_heavy_000", 0, -10, "lowpass=f=200")])
+build("rubyfront-ignite-2", [("impact", "impactBell_heavy_003", 0, -6, "asetrate=44100*0.58,aresample=44100,lowpass=f=3200"), ("impact", "impactGlass_light_003", 30, -16, "highpass=f=1800"), ("impact", "impactMetal_light_004", 40, -18, "highpass=f=2500,asetrate=44100*1.3,aresample=44100"), ("impact", "impactSoft_heavy_002", 0, -10, "lowpass=f=200")])
+# — la posa: la lastra pesante che si assesta, legno grave sotto, un
+#   fermaglio di metallo che chiude
+build("rubyfront-land-1", [("impact", "impactPlate_heavy_001", 0, -4, "lowpass=f=1600"), ("impact", "impactWood_heavy_001", 0, -5, "lowpass=f=500"), ("impact", "impactSoft_heavy_001", 0, -6, "lowpass=f=200"), ("rpg", "metalLatch", 90, -16, "highpass=f=900")])
+build("rubyfront-land-2", [("impact", "impactPlate_heavy_003", 0, -4, "lowpass=f=1600"), ("impact", "impactWood_heavy_003", 0, -5, "lowpass=f=500"), ("impact", "impactSoft_heavy_003", 0, -6, "lowpass=f=200"), ("rpg", "metalLatch", 90, -16, "highpass=f=900")])

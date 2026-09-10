@@ -3057,11 +3057,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     ghost.classList.add("is-arriving");
     ghost.style.transform = `translate(${cx}px, ${cy}px) rotate(0deg) scale(${scale})`;
     ghost.style.opacity = "1";
-    playSound("draw");
+    // I suoi suoni, non quelli delle carte (deciso 2026-09-11).
+    playSound("rubyfront-arrive");
     await pause(950);
     // Si accende.
     ghost.classList.add("is-lit");
-    playSound("play");
+    playSound("rubyfront-ignite");
     await pause(1250);
     // Vola al suo posto in Zona di Richiamo e ci si posa.
     const to = tile.getBoundingClientRect();
@@ -3076,7 +3077,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     rubySlots.get(seat)?.classList.add("is-landed");
     window.setTimeout(() => tile.classList.remove("intro-landed"), 900);
     ghost.remove();
-    playSound("tap");
+    playSound("rubyfront-land");
     await pause(350);
   }
 
@@ -3157,39 +3158,51 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * rettangolo PRIMA dell'azione, e dopo il disegno il fantasma scivola
    * fino al nuovo posto. Per il controllo e la restituzione (§8.2).
    */
+  /**
+   * Il volo di una carta da dov'è a dove sarà (il controllo, §8.2): si
+   * prende la tessera PRIMA che lo stato cambi, e a stato cambiato il
+   * fantasma parte dal posto vecchio verso il nuovo. Gli Oggetti addosso
+   * volano con lei (deciso 2026-09-11), sotto, a scaletta com'erano.
+   */
   function liftToFlight(uid: string): (() => void) | null {
-    const tile = tiles.get(uid);
-    if (!tile || tile.offsetParent === null) return null;
-    const from = tile.getBoundingClientRect();
-    const layoutW = tile.offsetWidth;
-    const layoutH = tile.offsetHeight;
+    // Prima gli Oggetti, poi l'Entità: i fantasmi si appendono in quest'ordine
+    // e l'Entità resta sopra la sua pila.
+    const group = [...wornBy(ctx.state(), uid).map(object => object.uid), uid];
+    const starts = group.flatMap(member => {
+      const tile = tiles.get(member);
+      if (!tile || tile.offsetParent === null) return [];
+      return [{ member, from: tile.getBoundingClientRect(), layoutW: tile.offsetWidth, layoutH: tile.offsetHeight }];
+    });
+    if (!starts.some(start => start.member === uid)) return null;
     return () => {
-      const landed = tiles.get(uid);
-      if (!landed || landed.offsetParent === null) return;
-      const to = landed.getBoundingClientRect();
-      const ghost = landed.cloneNode(true) as HTMLElement;
-      ghost.classList.add("fly-ghost");
-      ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
-    ghost.querySelector(".combat-badge")?.remove();
-      ghost.style.position = "fixed";
-      ghost.style.left = `${to.left}px`;
-      ghost.style.top = `${to.top}px`;
-      ghost.style.width = `${layoutW}px`;
-      ghost.style.height = `${layoutH}px`;
-      ghost.style.margin = "0";
-      ghost.style.visibility = "";
-      ghost.style.transition = "none";
-      ghost.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / layoutW})`;
-      document.body.append(ghost);
-      landed.style.visibility = "hidden";
-      requestAnimationFrame(() => {
-        ghost.style.transition = "";
-        ghost.style.transform = `scale(${to.width / layoutW})`;
-      });
-      window.setTimeout(() => {
-        ghost.remove();
-        landed.style.visibility = "";
-      }, FLY_MS + 60);
+      for (const { member, from, layoutW, layoutH } of starts) {
+        const landed = tiles.get(member);
+        if (!landed || landed.offsetParent === null) continue;
+        const to = landed.getBoundingClientRect();
+        const ghost = landed.cloneNode(true) as HTMLElement;
+        ghost.classList.add("fly-ghost");
+        ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
+        ghost.querySelector(".combat-badge")?.remove();
+        ghost.style.position = "fixed";
+        ghost.style.left = `${to.left}px`;
+        ghost.style.top = `${to.top}px`;
+        ghost.style.width = `${layoutW}px`;
+        ghost.style.height = `${layoutH}px`;
+        ghost.style.margin = "0";
+        ghost.style.visibility = "";
+        ghost.style.transition = "none";
+        ghost.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / layoutW})`;
+        document.body.append(ghost);
+        landed.style.visibility = "hidden";
+        requestAnimationFrame(() => {
+          ghost.style.transition = "";
+          ghost.style.transform = `scale(${to.width / layoutW})`;
+        });
+        window.setTimeout(() => {
+          ghost.remove();
+          landed.style.visibility = "";
+        }, FLY_MS + 60);
+      }
     };
   }
 

@@ -3,9 +3,10 @@ tre pacchetti di Kenney (www.kenney.nl), licenza Creative Commons Zero (CC0):
 http://creativecommons.org/publicdomain/zero/1.0/
 
   RPG Audio (2019): handleSmallLeather, bookFlip, bookPlace, metalClick,
-    metalLatch, doorClose, drawKnife, knifeSlice, metalPot
+    metalLatch, doorClose, doorOpen, drawKnife, knifeSlice, metalPot, dropLeather
   Impact Sounds (1.0, 2019): impactSoft, impactBell_heavy, impactMetal,
-    impactPlate_heavy, impactWood_heavy
+    impactPlate_heavy, impactWood_heavy, impactGlass_light, impactMetal_light
   Casino Audio (2024): card-slide, card-shove, card-place
 
-Nomi per momento di gioco: select, draw, play, button, phase, attack, block, counter.
+Nomi per momento di gioco: select, draw, play, button, phase, attack, block,
+counter, tap, rubyfront-arrive, rubyfront-ignite, rubyfront-land.
