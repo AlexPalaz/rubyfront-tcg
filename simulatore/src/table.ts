@@ -1803,6 +1803,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (!ctx.arbitrated()) return false;
     const state = ctx.state();
     if (state.chain && !state.chain.resolving) return state.chain.turn !== seat;
+    // §6.5 — l'eccesso si scarta alla fine del PROPRIO turno, anche quando
+    // la Reazione la chiude il difensore (§6.4): con più di 7 carte la mano
+    // di chi è di turno resta aperta, o il turno non passerebbe mai (visto
+    // 2026-09-10: pescate in più da effetto, Reazione in mano al bot, e
+    // nessuno poteva scartare).
+    if (state.active === seat && zoneCards(state, seat, "hand").length > 7) return false;
     return phaseCloser(state) !== seat;
   }
 

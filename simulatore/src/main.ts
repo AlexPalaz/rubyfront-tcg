@@ -1814,7 +1814,15 @@ async function botStep(bot: Seat): Promise<boolean> {
       await endPhase(ctx);
       return true;
     }
-    // Reazione: difende l'altro, e chiude lui (§6.4).
+    // Reazione: difende l'altro, e chiude lui (§6.4) — ma l'eccesso in mano
+    // è di chi è di turno (§6.5): con più di 7 carte il bot scarta, o il
+    // difensore non riuscirebbe mai a chiudere il suo turno.
+    const [excess] = zoneCards(s, bot, "hand").length > 7 ? chooseDiscards(s, bot, ctx.card) : [];
+    if (excess) {
+      await dispatch({ t: "toZone", uid: excess.uid, zone: "ritiro" });
+      ctx.log(msg("log.discard", { seat: bot, card: excess.cardId, n: zoneCards(state, bot, "hand").length }), bot);
+      return true;
+    }
     return false;
   }
   if (s.phase === "reazione") {
