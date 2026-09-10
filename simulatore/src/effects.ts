@@ -11,7 +11,7 @@
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
 import type { AttackForm, FlipForm, ResolveForm } from "./ctx.js";
 import type { CardFacts, Ctx, EnterLook, EnterRefresh } from "./ctx.js";
-import { controllerOf, fieldCards, inPlay, playSpot, zoneCards, freeFrontSlotOrNull } from "./state.js";
+import { STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, zoneCards, freeFrontSlotOrNull } from "./state.js";
 import { countEntities } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
@@ -385,6 +385,129 @@ export function enterControls(state: GameState, entering: CardInstance, facts: (
       return f.fluxCost !== null && f.fluxCost <= control.target.maxCost;
     }),
   }));
+}
+
+/** Un disarmo all'ingresso da risolvere (§8.2): la fonte e gli Oggetti avversari assegnati, in campo. */
+export interface EnterDisarmStep {
+  source: CardInstance;
+  to: "ritiro";
+  candidates: CardInstance[];
+}
+
+/**
+ * I disarmi di chi entra (§8.2, dal 2026-09-10): ogni Oggetto in campo
+ * assegnato a un'Entità comandata dall'avversario. Senza Oggetti l'effetto
+ * non ha su cosa agire, ma il riarmo che segue vale lo stesso.
+ */
+export function enterDisarms(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterDisarmStep[] {
+  const by = controllerOf(entering);
+  return facts(entering.cardId).enterDisarms.map(disarm => ({
+    source: entering,
+    to: disarm.to,
+    candidates: fieldCards(state).filter(card => {
+      if (facts(card.cardId).kind !== "object" || !card.assignedTo) return false;
+      const bearer = state.cards[card.assignedTo];
+      return bearer !== undefined && bearer.zone === "field" && controllerOf(bearer) !== by;
+    }),
+  }));
+}
+
+/** Un Oggetto disarmato: nella Zona di Ritiro del suo proprietario, marcato come effetto. */
+export async function resolveDisarm(ctx: Ctx, step: EnterDisarmStep, object: CardInstance): Promise<boolean> {
+  const passed = await ctx.dispatch({
+    t: "toZone",
+    uid: object.uid,
+    zone: step.to,
+    effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid, follow: "disarm" },
+  });
+  if (passed) ctx.log(msg("log.effect.disarm", { seat: controllerOf(step.source), sourceCard: step.source.cardId, card: object.cardId }), controllerOf(step.source));
+  return passed;
+}
+
+/** Un riarmo all'ingresso da risolvere (§8.2): la fonte; i candidati si rileggono a ogni giro. */
+export interface EnterRearmStep {
+  source: CardInstance;
+}
+
+/** I riarmi di chi entra (§8.2, dal 2026-09-10): uno per forma, a giri. */
+export function enterRearms(entering: CardInstance, facts: (cardId: string) => CardFacts): EnterRearmStep[] {
+  return facts(entering.cardId).enterRearms.map(() => ({ source: entering }));
+}
+
+/** Gli Oggetti nella propria Zona di Ritiro, e le proprie Entità in campo scoperte: fra cosa si sceglie a ogni giro del riarmo. */
+export function rearmChoices(state: GameState, source: CardInstance, facts: (cardId: string) => CardFacts): { objects: CardInstance[]; bearers: CardInstance[] } {
+  const by = controllerOf(source);
+  return {
+    objects: zoneCards(state, by, "ritiro").filter(card => facts(card.cardId).kind === "object"),
+    bearers: fieldCards(state).filter(card => controllerOf(card) === by && facts(card.cardId).kind === "entity" && !card.facedown),
+  };
+}
+
+/** L'Oggetto va addosso all'Entità scelta, dalla Zona di Ritiro, gratis (§8.2). */
+export async function resolveRearm(ctx: Ctx, step: EnterRearmStep, object: CardInstance, bearer: CardInstance): Promise<boolean> {
+  const state = ctx.state();
+  const live = state.cards[bearer.uid] ?? bearer;
+  const worn = Object.values(state.cards).filter(other => other.assignedTo === live.uid && other.zone === "field").length;
+  const passed = await ctx.dispatch({
+    t: "toZone",
+    uid: object.uid,
+    zone: "field",
+    x: live.x + STACK_STEP * (worn + 1),
+    y: live.y + STACK_STEP * (worn + 1),
+    z: live.z - 1,
+    assignTo: live.uid,
+    effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid, follow: "rearm" },
+  });
+  if (passed) ctx.log(msg("log.effect.rearm", { seat: controllerOf(step.source), sourceCard: step.source.cardId, card: object.cardId, toCard: live.cardId }), controllerOf(step.source));
+  return passed;
+}
+
+/** Un ritorno vincolato da offrire (§8.2): la carta uscita, e gli Oggetti fra cui scegliere. */
+export interface LeaveReturnStep {
+  card: CardInstance;
+  maxCost: number;
+  candidates: CardInstance[];
+  /** Il Fronte pieno (§6.2): non torna, e il tavolo lo dice. */
+  frontFull: boolean;
+}
+
+/**
+ * Chi è appena uscita dal campo verso l'Abisso o la Zona di Ritiro con la
+ * forma del ritorno vincolato (§8.2, dal 2026-09-10) — e senza Oggetti
+ * addosso PRIMA di uscire: si confronta lo stato di prima con quello di
+ * dopo. I candidati sono gli Oggetti del proprietario in Ritiro entro il
+ * costo.
+ */
+export function leaveReturns(before: GameState, after: GameState, facts: (cardId: string) => CardFacts): LeaveReturnStep[] {
+  const out: LeaveReturnStep[] = [];
+  for (const card of Object.values(after.cards)) {
+    if (card.zone !== "abisso" && card.zone !== "ritiro") continue;
+    const was = before.cards[card.uid];
+    if (!was || was.zone !== "field") continue;
+    const form = facts(card.cardId).leaveReturns[0];
+    if (!form) continue;
+    if (Object.values(before.cards).some(other => other.assignedTo === card.uid && other.zone === "field")) continue;
+    const candidates = zoneCards(after, card.owner, "ritiro").filter(object => {
+      const f = facts(object.cardId);
+      return f.kind === "object" && f.fluxCost !== null && f.fluxCost <= form.maxCost;
+    });
+    out.push({ card, maxCost: form.maxCost, candidates, frontFull: freeFrontSlotOrNull(after, card.owner) === null });
+  }
+  return out;
+}
+
+/** Il ritorno vincolato, eseguito: un'azione sola, calcolata qui e verificata dall'engine. */
+export async function resolveLeaveReturn(ctx: Ctx, step: LeaveReturnStep, object: CardInstance, spot: { x: number; y: number }): Promise<boolean> {
+  const passed = await ctx.dispatch({
+    t: "revive",
+    uid: step.card.uid,
+    ...spot,
+    z: ctx.state().zTop,
+    object: object.uid,
+    effect: { source: step.card.uid, event: "on_leave_field", entering: step.card.uid },
+  });
+  if (passed) ctx.log(msg("log.effect.revive", { seat: step.card.owner, card: step.card.cardId, objectCard: object.cardId }), step.card.owner);
+  return passed;
 }
 
 /** Una stappata all'ingresso da risolvere (§8.2, RBF-011): la fonte e la forma. */

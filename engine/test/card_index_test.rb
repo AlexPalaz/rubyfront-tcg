@@ -19,9 +19,6 @@ class CardIndexTest < Minitest::Test
   # vi compare, è una forma rotta o un dato cambiato di nascosto — e il test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBITO = [
-    "RBF-045 entity/bound-return",
-    "RBF-046 entity/disarm",
-    "RBF-046 entity/rearm",
     "RBF-023 rubyfront/schism-forge",
     "RBF-023 nexus/awakening",
     "RBF-023 nexus/deep-forge-sight",
@@ -178,6 +175,30 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "never_taps" }], @index["RBF-011"][:static_forms], "«questa Entità non si tappa mai»"
     assert_equal [{ kind: "never_taps" }], @index["RBF-005"][:static_forms], "dal 2026-09-08 anche il 2 Flussi non si tappa attaccando"
     assert_equal [], @index["RBF-031"][:static_forms], "«+1 alle altre armate» resta nel debito"
+  end
+
+  # Dal 2026-09-10: il disarmo con riarmo all'ingresso e il ritorno vincolato.
+  def test_disarmo_riarmo_e_ritorno_vincolato
+    assert_equal [{ to: "ritiro" }], @index["RBF-046"][:enter_disarms]
+    assert_equal [{ any: true }], @index["RBF-046"][:enter_rearms]
+    assert_equal [], @index["RBF-046"][:enter_moves], "gli Oggetti avversari in Ritiro non sono lo spostamento di un'Entità"
+    assert_equal [], @index["RBF-025"][:enter_disarms]
+    assert_equal [], @index["RBF-012"][:enter_rearms], "dal Ritiro al Fronte è un'altra forma"
+    assert_equal [{ max_cost: 2 }], @index["RBF-045"][:leave_returns]
+    assert_equal [], @index["RBF-007"][:leave_returns], "il ritorno di chi è stato esiliato non è il ritorno vincolato"
+
+    # Il riarmo che costa, o su un'Entità sola, esce dalla forma: ignoto.
+    card = JSON.parse(File.read(File.join(DATA_DIR, "sets", "srbf-001", "cards", "rbf-046", "rbf-046.json")))
+    rearm = card["faces"].flat_map { |face| face["triggers"] }.find { |t| t["id"] == "rearm" }
+    caro = Marshal.load(Marshal.dump(rearm))
+    caro["effect"]["details"]["noFluxCost"] = false
+    refute Rubyfront::CardIndex.recognized?(caro)
+    # Il ritorno vincolato senza il vincolo «senza Oggetti» non è certificato.
+    card = JSON.parse(File.read(File.join(DATA_DIR, "sets", "srbf-001", "cards", "rbf-045", "rbf-045.json")))
+    ritorno = card["faces"].flat_map { |face| face["triggers"] }.find { |t| t["id"] == "bound-return" }
+    libero = Marshal.load(Marshal.dump(ritorno))
+    libero["details"].delete("requiresNoObjectAssignedWhenLeft")
+    refute Rubyfront::CardIndex.recognized?(libero)
   end
 
   def test_le_materie_di_eredita_perduta_alla_risoluzione

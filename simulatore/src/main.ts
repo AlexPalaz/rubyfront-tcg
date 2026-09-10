@@ -239,9 +239,13 @@ function cueFor(action: Action): void {
 function commit(action: Action): void {
   cueFor(action);
   peekReveal(action);
+  const before = state;
   state = apply(state, action);
   net?.send({ t: "action", action, from: mySeat });
   paint();
+  // §8.2 — il ritorno vincolato: chi è appena uscita dal campo senza
+  // Oggetti può tornare, e lo decide il proprietario — io, o il bot.
+  if (action.t !== "revive") table.offerLeaveReturns(before, state, botSeat ? [mySeat, botSeat] : [mySeat]);
   // §8.2 (RBF-018) — chi teneva un permanente nell'Abisso ha lasciato il
   // gioco: il permanente torna, e lo manda il tavolo che l'ha visto uscire.
   if (action.t !== "release" && Object.values(state.cards).some(card => card.heldBy && card.zone === "abisso" && state.cards[card.heldBy]?.zone !== "field")) {
@@ -341,12 +345,29 @@ function receive(action: Action, from: Seat): void {
     const die = cardStats(state.cards[action.uid]?.cardId ?? "").deployment?.die ?? 6;
     void showRoll(document.querySelector<HTMLElement>("#table")!, die, action.roll, t("dice.deploy"));
   }
+  // Il ritorno vincolato dell'avversario (§8.2): la carta e l'Oggetto
+  // volano dalle sue pile al suo Fronte, dopo il disegno.
+  if (action.t === "revive") {
+    const back = state.cards[action.uid];
+    const object = state.cards[action.object];
+    if (back && object) {
+      const zone = back.zone;
+      fly = () => {
+        table.flyFromPile(back.owner, zone, action.uid);
+        table.flyFromPile(object.owner, "ritiro", action.object);
+      };
+    }
+  }
+  const before = state;
   state = apply(state, action);
   // Anche le azioni dell'avversario passano all'engine: l'arbitro guarda la
   // partita intera, non una metà.
   engine?.consult(action, from);
   paint();
   fly?.();
+  // §8.2 — una mia carta uscita dal campo per mano dell'avversario (la sua
+  // risoluzione, un suo effetto): il ritorno vincolato lo offro io.
+  if (action.t !== "revive") table.offerLeaveReturns(before, state, [mySeat]);
 }
 
 /**
@@ -364,6 +385,9 @@ function actorFor(action: Action): Seat {
   // carta tocchi: mandare nell'Abisso un'Entità avversaria è un gesto di
   // chi ha giocato la carta che lo fa, non dell'avversario che la subisce.
   // Senza questo l'arbitro fermava il passo con «non tocca a te».
+  // Il ritorno vincolato (§8.2) è del proprietario: la carta è nell'Abisso
+  // o in Ritiro, dove chi la comandava non conta più.
+  if (action.t === "revive") return state.cards[action.uid]?.owner ?? state.active;
   if ("effect" in action && action.effect) {
     const source = state.cards[action.effect.source];
     if (source) return controllerOf(source);
@@ -414,6 +438,9 @@ const ctx: Ctx = {
       enterReturns: stats.enterReturns,
       enterLooks: stats.enterLooks,
       enterControls: stats.enterControls,
+      enterDisarms: stats.enterDisarms,
+      enterRearms: stats.enterRearms,
+      leaveReturns: stats.leaveReturns,
       enterRefreshes: stats.enterRefreshes,
       attackReturns: stats.attackReturns,
       attackDraws: stats.attackDraws,
@@ -480,6 +507,8 @@ if (import.meta.env.DEV) {
     dispatch: (action: Action) => dispatch(action),
     state: () => state,
     music: musicState,
+    // Il tavolo, coi suoi gesti (playFromHand, assignObject…): per provare le scene senza il mouse.
+    table,
     // Dove si posa una carta di quel tipo per quel posto (per montare a mano uno stato).
     spot: (seat: Seat, kind: "entity" | "matter" | "object" | "rubyfront" | "nexus" | null) => playSpot(state, seat, kind),
   };

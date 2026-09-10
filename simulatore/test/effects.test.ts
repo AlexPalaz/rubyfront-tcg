@@ -6,6 +6,11 @@ import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
 import { FRONT_SLOT_X, backRowY, frontRowY } from "../src/ctx.js";
 import {
+  enterDisarms,
+  enterRearms,
+  leaveReturns,
+  rearmChoices,
+  resolveLeaveReturn,
   attackRef,
   attackSteps,
   describeAttackStep,
@@ -52,6 +57,10 @@ import { newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
 const FACTS: Record<string, Partial<CardFacts>> = {
+  OMBRA: { kind: "entity", race: "auros", enterDisarms: [{ to: "ritiro" }], enterRearms: [{ any: true }] },
+  VINCOLATA: { kind: "entity", race: "auros", fluxCost: 1, leaveReturns: [{ maxCost: 2 }] },
+  LAMA: { kind: "object", fluxCost: 2 },
+  MAZZA: { kind: "object", fluxCost: 3 },
   ESPLORATORE: { kind: "entity", race: "auros", attackDraws: [{ draw: 1, thenDiscard: 1, requiresObject: true }] },
   VIGILE: { kind: "entity", race: "human", attackForms: [{ kind: "untap", who: "self", once: true, requiresObject: true, face: 0 }] },
   COMANDO: { kind: "entity", race: "auros", attackForms: [{ kind: "empower", who: "self", requiresObject: true, targets: "others_armed", power: 1, face: 0 }] },
@@ -124,6 +133,9 @@ const facts = (cardId: string): CardFacts => ({
   enterLooks: [],
   enterControls: [],
   enterRefreshes: [],
+  enterDisarms: [],
+  enterRearms: [],
+  leaveReturns: [],
   attackReturns: [],
   attackDraws: [],
   attackForms: [],
@@ -420,6 +432,86 @@ describe("enterLooks", () => {
 
 // Il controllo (§8.2), la forma di RBF-009, e la restituzione a fine turno.
 // Gemello: engine_test.rb, sezione §8.2 Radunatore.
+describe("disarmo, riarmo e ritorno vincolato (§8.2, dal 2026-09-10)", () => {
+  it("enterDisarms elenca gli Oggetti assegnati a Entità avversarie in campo, non i propri né gli sciolti", () => {
+    const state = newGame();
+    const ombra = on(state, "ombra", "OMBRA");
+    on(state, "mio", "UMANO");
+    on(state, "lama-a", "LAMA").assignedTo = "mio";
+    on(state, "suo", "UMANO", "b");
+    on(state, "lama-b", "LAMA", "b").assignedTo = "suo";
+    on(state, "mazza-b", "MAZZA", "b");
+    const steps = enterDisarms(state, ombra, facts);
+    expect(steps).toHaveLength(1);
+    expect(steps[0].candidates.map(card => card.uid)).toEqual(["lama-b"]);
+    expect(steps[0].to).toBe("ritiro");
+    expect(enterDisarms(state, state.cards.mio, facts)).toEqual([]);
+  });
+
+  it("rearmChoices legge gli Oggetti del proprio Ritiro e le proprie Entità scoperte", () => {
+    const state = newGame();
+    const ombra = on(state, "ombra", "OMBRA");
+    on(state, "mio", "UMANO");
+    on(state, "coperto", "UMANO").facedown = true;
+    on(state, "suo", "UMANO", "b");
+    on(state, "lama-a", "LAMA").zone = "ritiro";
+    on(state, "lama-b", "LAMA", "b").zone = "ritiro";
+    const { objects, bearers } = rearmChoices(state, ombra, facts);
+    expect(objects.map(card => card.uid)).toEqual(["lama-a"]);
+    expect(bearers.map(card => card.uid).sort()).toEqual(["mio", "ombra"]);
+    expect(enterRearms(ombra, facts)).toHaveLength(1);
+  });
+
+  it("leaveReturns vede chi è appena uscita senza Oggetti, coi candidati entro il costo", () => {
+    const before = newGame();
+    on(before, "vinc", "VINCOLATA");
+    on(before, "lama-a", "LAMA").zone = "ritiro";
+    on(before, "mazza-a", "MAZZA").zone = "ritiro";
+    on(before, "lama-b", "LAMA", "b").zone = "ritiro";
+    const after: GameState = { ...before, cards: { ...before.cards, vinc: { ...before.cards.vinc, zone: "abisso" } } };
+    const steps = leaveReturns(before, after, facts);
+    expect(steps).toHaveLength(1);
+    expect(steps[0].card.uid).toBe("vinc");
+    expect(steps[0].maxCost).toBe(2);
+    expect(steps[0].candidates.map(card => card.uid)).toEqual(["lama-a"]);
+    expect(steps[0].frontFull).toBe(false);
+    // Uscita armata: niente.
+    const armed: GameState = { ...before, cards: { ...before.cards, worn: { ...before.cards["lama-a"], uid: "worn", zone: "field", assignedTo: "vinc" } } };
+    const disarmed: GameState = { ...after, cards: { ...after.cards, worn: { ...armed.cards.worn, zone: "ritiro", assignedTo: undefined } } };
+    expect(leaveReturns(armed, disarmed, facts)).toEqual([]);
+    // In mano non è un'uscita dal campo; senza cambiamenti nemmeno.
+    expect(leaveReturns(before, { ...before, cards: { ...before.cards, vinc: { ...before.cards.vinc, zone: "hand" } } }, facts)).toEqual([]);
+    expect(leaveReturns(before, before, facts)).toEqual([]);
+  });
+
+  it("resolveLeaveReturn manda un'azione revive sola, marcata on_leave_field", async () => {
+    const before = newGame();
+    const vinc = on(before, "vinc", "VINCOLATA");
+    const lama = on(before, "lama-a", "LAMA");
+    lama.zone = "ritiro";
+    const after: GameState = { ...before, cards: { ...before.cards, vinc: { ...vinc, zone: "ritiro" } } };
+    const sent: Action[] = [];
+    const ctx: Ctx = {
+      state: () => after,
+      dispatch(action) {
+        sent.push(action);
+        return Promise.resolve(true);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "notte",
+      tintFor: () => "dynamic",
+      locale: () => "it",
+      card: facts,
+      log() {},
+    };
+    const step = leaveReturns(before, after, facts)[0];
+    expect(await resolveLeaveReturn(ctx, step, lama, { x: FRONT_SLOT_X[1], y: frontRowY("a") })).toBe(true);
+    expect(sent).toEqual([{ t: "revive", uid: "vinc", x: FRONT_SLOT_X[1], y: frontRowY("a"), z: after.zTop, object: "lama-a", effect: { source: "vinc", event: "on_leave_field", entering: "vinc" } }]);
+  });
+});
+
 describe("enterControls", () => {
   function fake(state: GameState): { ctx: Ctx; sent: Action[] } {
     const sent: Action[] = [];

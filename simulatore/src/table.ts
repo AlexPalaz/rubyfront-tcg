@@ -51,6 +51,16 @@ import {
   describeLook,
   describeMove,
   describeReturn,
+  enterDisarms,
+  enterRearms,
+  leaveReturns,
+  rearmChoices,
+  resolveDisarm,
+  resolveRearm,
+  resolveLeaveReturn,
+  type EnterDisarmStep,
+  type EnterRearmStep,
+  type LeaveReturnStep,
   describeTrigger,
   enterControls,
   enterLooks,
@@ -212,6 +222,11 @@ export interface TableView {
    */
   setAuto(seat: Seat | null, chooser: AutoChooser): void;
   playFromHand(card: CardInstance, spot: { x: number; y: number }): Promise<boolean>;
+  /** §8.2 — il ritorno vincolato: dopo ogni azione applicata, main.ts
+      confronta lo stato di prima con quello di dopo e, per ogni carta con
+      la forma appena uscita dal campo, offre il ritorno a chi la possiede
+      (il giocatore, o il bot col suo selettore). */
+  offerLeaveReturns(before: GameState, after: GameState, owners: Seat[]): void;
   assignObject(card: CardInstance, bearer: CardInstance): Promise<boolean>;
   /** Vero se ha schierato (o tirato); falso se lo schieramento non passerebbe. */
   deployRubyfront(seat: Seat): Promise<boolean>;
@@ -2117,6 +2132,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const looks = enterLooks(ctx.state(), live, ctx.card);
       const controls = enterControls(ctx.state(), live, ctx.card);
       const refreshes = enterRefreshes(live, ctx.card);
+      const disarms = enterDisarms(ctx.state(), live, ctx.card);
+      const rearms = enterRearms(live, ctx.card);
       const triggers = enterTriggers(ctx.state(), live, ctx.card);
       void showEnterEffect(root, {
         cardId: card.cardId,
@@ -2131,10 +2148,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           ...looks.map(step => describeLook(step, ctx.card)),
           ...controls.map(step => describeControl(step, ctx.card)),
           ...refreshes.map(step => describeRefresh(step, ctx.card)),
+          ...disarms.map(step => t("trigger.disarm", { card: `«${ctx.card(step.source.cardId).name}»` })),
+          ...rearms.map(step => t("trigger.rearm.any", { card: `«${ctx.card(step.source.cardId).name}»` })),
           ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
         ],
         onContinue:
-          moves.length || returns.length || looks.length || controls.length || refreshes.length || triggers.length ? () => void playTriggers(live) : undefined,
+          moves.length || returns.length || looks.length || controls.length || refreshes.length || disarms.length || rearms.length || triggers.length
+            ? () => void playTriggers(live)
+            : undefined,
       });
     }
     return passed;
@@ -3124,6 +3145,114 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
   }
 
+  /**
+   * Il disarmo all'ingresso (§8.2, dal 2026-09-10): nessuna scelta — ogni
+   * Oggetto assegnato a un'Entità avversaria vola nella Zona di Ritiro del
+   * suo proprietario, uno dopo l'altro, con la fonte accesa.
+   */
+  async function playDisarm(step: EnterDisarmStep): Promise<void> {
+    if (step.candidates.length === 0) {
+      ctx.log(msg("log.no.target", { seat: step.source.owner, card: step.source.cardId }), step.source.owner);
+      return;
+    }
+    light(step.source.uid, true);
+    hold(true);
+    try {
+      await wait(CONFIRMED_LEAD_MS);
+      for (const object of step.candidates) {
+        const live = ctx.state().cards[object.uid];
+        if (!live || live.zone !== "field") continue;
+        strike(object.uid, 60_000);
+        const fly = liftForFlight(object.uid, step.to);
+        const passed = await resolveDisarm(ctx, step, live);
+        strike(object.uid, 0);
+        if (passed) {
+          fly?.();
+          await wait(FLY_MS);
+        } else {
+          fly?.cancel();
+          render();
+        }
+      }
+      await wait(TRIGGER_TAIL_MS);
+    } finally {
+      light(step.source.uid, false);
+      hold(false);
+    }
+  }
+
+  /**
+   * Il riarmo all'ingresso (§8.2, dal 2026-09-10): a giri — un Oggetto dalla
+   * propria Zona di Ritiro, poi l'Entità che lo riceve — finché ci sono
+   * Oggetti ed Entità, o finché si chiude la pila.
+   */
+  async function playRearm(step: EnterRearmStep): Promise<void> {
+    const by = controllerOf(step.source);
+    light(step.source.uid, true);
+    try {
+      for (;;) {
+        const { objects, bearers } = rearmChoices(ctx.state(), step.source, ctx.card);
+        if (objects.length === 0 || bearers.length === 0) break;
+        const object = await pickFromPile(by, "ritiro", objects, t("pick.rearm.any"));
+        if (!object) break;
+        const bearer = await pickTarget(step.source, bearers, t("target.rearm"));
+        if (!bearer) break;
+        hold(true);
+        try {
+          const passed = await resolveRearm(ctx, step, object, bearer);
+          if (passed) {
+            flyFromPile(by, "ritiro", object.uid);
+            await wait(FLY_MS);
+          }
+        } finally {
+          hold(false);
+        }
+        // Il bot riarma una volta per Entità e basta: il suo selettore non chiude mai la pila.
+        if (isAuto(by) && rearmChoices(ctx.state(), step.source, ctx.card).bearers.every(entity => wornBy(ctx.state(), entity.uid).length > 0)) break;
+      }
+    } finally {
+      light(step.source.uid, false);
+    }
+  }
+
+  /**
+   * Il ritorno vincolato (§8.2, dal 2026-09-10): la carta è appena finita
+   * nell'Abisso o in Ritiro senza Oggetti addosso; il proprietario sceglie
+   * dalla sua Zona di Ritiro l'Oggetto da assegnarle — o chiude la pila e
+   * la lascia dov'è. Il Fronte pieno e la pila senza Oggetti adatti si
+   * dicono in chat.
+   */
+  async function playLeaveReturn(step: LeaveReturnStep): Promise<void> {
+    const seat = step.card.owner;
+    if (step.frontFull) {
+      ctx.log(msg("log.revive.frontfull", { seat, card: step.card.cardId }), seat);
+      return;
+    }
+    if (step.candidates.length === 0) {
+      ctx.log(msg("log.revive.noobject", { seat, card: step.card.cardId }), seat);
+      return;
+    }
+    const object = await pickFromPile(seat, "ritiro", step.candidates, t("pick.revive", { card: `«${ctx.card(step.card.cardId).name}»` }));
+    if (!object) return;
+    const spot = freeFrontSlotOrNull(ctx.state(), seat);
+    if (!spot) {
+      ctx.log(msg("log.revive.frontfull", { seat, card: step.card.cardId }), seat);
+      return;
+    }
+    hold(true);
+    try {
+      await wait(CONFIRMED_LEAD_MS);
+      const passed = await resolveLeaveReturn(ctx, step, object, spot);
+      if (passed) {
+        flyFromPile(seat, step.card.zone, step.card.uid);
+        flyFromPile(seat, "ritiro", object.uid);
+        await wait(FLY_MS + TRIGGER_TAIL_MS);
+      }
+    } finally {
+      hold(false);
+    }
+  }
+
   async function playMove(step: EnterMoveStep): Promise<void> {
     if (step.candidates.length === 0) {
       ctx.log(msg("log.no.target", { seat: step.source.owner, card: step.source.cardId }), step.source.owner);
@@ -3185,6 +3314,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     for (const step of enterRefreshes(entering, ctx.card)) {
       await playRefresh(step);
+    }
+    for (const step of enterDisarms(ctx.state(), entering, ctx.card)) {
+      await playDisarm(step);
+    }
+    for (const step of enterRearms(entering, ctx.card)) {
+      await playRearm(step);
     }
     hold(true);
     try {
@@ -4045,6 +4180,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     },
     setAuto(seat, chooser) {
       auto = seat ? { seat, chooser } : null;
+    },
+    offerLeaveReturns(before, after, owners) {
+      const steps = leaveReturns(before, after, ctx.card).filter(step => owners.includes(step.card.owner));
+      if (steps.length === 0) return;
+      void (async () => {
+        for (const step of steps) await playLeaveReturn(step);
+      })();
     },
     playFromHand(card, spot) {
       return place(card, spot.x, spot.y, dropZ(card, spot.x, spot.y));

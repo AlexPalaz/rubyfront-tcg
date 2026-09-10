@@ -145,6 +145,9 @@ module Rubyfront
           resolve_forms: resolve_forms(faces).freeze,
           flip_forms: flip_forms(faces).freeze,
           nexus: nexus_of(faces),
+          enter_disarms: enter_disarms(faces).freeze,
+          enter_rearms: enter_rearms(faces).freeze,
+          leave_returns: leave_returns(faces).freeze,
           abilities: abilities(faces).freeze,
           fury_at: fury_at(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
@@ -158,8 +161,8 @@ module Rubyfront
 
     # Tutti i parser delle forme certificate: ogni trigger di ogni carta
     # deve trovarne uno che lo riconosca, o è un effetto che l'engine ignora.
-    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls enter_refreshes attack_draws attack_forms grants_while_assigned
-               static_forms resolve_forms flip_forms].freeze
+    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls enter_refreshes enter_disarms enter_rearms leave_returns
+               attack_draws attack_forms grants_while_assigned static_forms resolve_forms flip_forms].freeze
     RETURN_EVENTS = %w[on_enter_field on_attack].freeze
 
     # Un trigger è riconosciuto se almeno una forma certificata lo legge.
@@ -892,6 +895,67 @@ module Rubyfront
 
         [index, integer_stat(fury.dig("check", "successAtLeast")) || 12]
       end.to_h
+    end
+
+    # Il disarmo all'ingresso (§8.2, dal 2026-09-10): «quando entra sul
+    # Fronte, metti nella Zona di Ritiro del suo proprietario ogni Oggetto
+    # assegnato a un'Entità avversaria». Ogni voce: { to: "ritiro" }.
+    def self.enter_disarms(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "move_card"
+
+        target = effect["target"]
+        next unless target.is_a?(Hash) && target["cardType"] == "object" && target["controller"] == "opponent" && target["zone"] == "front" && target["quantity"] == "all"
+        next unless target.dig("details", "assigned") == true
+        next unless effect.dig("destination", "zone") == "retire" && effect.dig("destination", "owner") == "card_owner"
+
+        { to: "ritiro" }.freeze
+      end
+    end
+
+    # Il riarmo all'ingresso (§8.2, dal 2026-09-10): «poi puoi assegnare alle
+    # Entità che controlli, come preferisci e senza pagarne il costo di
+    # Flusso, gli Oggetti della tua Zona di Ritiro». Ogni voce: { any: true }.
+    def self.enter_rearms(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "assign_object" && effect["optional"] == true
+        next unless effect.dig("from", "zone") == "retire" && effect.dig("from", "owner") == "controller"
+        next unless own_target?(effect["target"], "entity") && effect.dig("target", "quantity") == "all"
+        next unless effect.dig("details", "anyNumber") == true && effect.dig("details", "noFluxCost") == true
+
+        { any: true }.freeze
+      end
+    end
+
+    # Il ritorno vincolato (§8.2, dal 2026-09-10): «quando viene mandata
+    # nell'Abisso o nella Zona di Ritiro, se non aveva Oggetti assegnati,
+    # puoi rimetterla sul tuo Fronte assegnandole un Oggetto con costo di
+    # Flusso N o inferiore dalla tua Zona di Ritiro, senza pagarne il costo».
+    # Ogni voce: { max_cost: }.
+    def self.leave_returns(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_leave_field"
+        next unless trigger.dig("details", "requiresNoObjectAssignedWhenLeft") == true
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "move_card" && effect["optional"] == true
+        next unless effect.dig("target", "scope") == "self" && effect.dig("destination", "zone") == "front"
+
+        rearm = effect.dig("details", "thenAssignObject")
+        next unless rearm.is_a?(Hash) && rearm.dig("from", "zone") == "retire" && rearm["noFluxCost"] == true && rearm["required"] == true
+
+        conditions = Array(rearm.dig("filter", "conditions"))
+        max_cost = conditions.find { |c| c.is_a?(Hash) && c["stat"] == "flux_cost" && c["operator"] == "lte" && c["value"].is_a?(Integer) }
+        next unless rearm.dig("filter", "cardType") == "object" && max_cost && conditions.size == 1
+
+        { max_cost: max_cost["value"] }.freeze
+      end
     end
 
     def self.nexus_of(faces)

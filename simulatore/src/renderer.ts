@@ -19,7 +19,7 @@ export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
 import type { Phase } from "./types.js";
-import type { AttackDraw, AttackForm, EnterControl, EnterListener, EnterLook, EnterRefresh, EnterMove, EnterReturn, FlipForm, NexusRequirement, ResolveForm, StaticForm, Ability, AbilityForm } from "./ctx.js";
+import type { AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, StaticForm, Ability, AbilityForm } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -673,6 +673,71 @@ function enterControlsOf(face: CardFace | undefined): EnterControl[] {
   return out;
 }
 
+/**
+ * I disarmi all'ingresso certificati (§8.2, dal 2026-09-10): `move_card` di
+ * OGNI Oggetto assegnato a un'Entità avversaria sul Fronte, verso la Zona
+ * di Ritiro del proprietario. Specchio di card_index.rb, enter_disarms.
+ */
+function enterDisarmsOf(face: CardFace | undefined): EnterDisarm[] {
+  const out: EnterDisarm[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const effect = trigger.effect as { type?: unknown; target?: any; destination?: any } | undefined;
+    if (!effect || effect.type !== "move_card") continue;
+    const target = effect.target;
+    if (!target || target.cardType !== "object" || target.controller !== "opponent" || target.zone !== "front" || target.quantity !== "all") continue;
+    if (target.details?.assigned !== true) continue;
+    if (effect.destination?.zone !== "retire" || effect.destination?.owner !== "card_owner") continue;
+    out.push({ to: "ritiro" });
+  }
+  return out;
+}
+
+/**
+ * I riarmi all'ingresso certificati (§8.2, dal 2026-09-10): `assign_object`
+ * facoltativo dalla propria Zona di Ritiro alle proprie Entità, quanti si
+ * vuole, gratis. Specchio di card_index.rb, enter_rearms.
+ */
+function enterRearmsOf(face: CardFace | undefined): EnterRearm[] {
+  const out: EnterRearm[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const effect = trigger.effect as { type?: unknown; optional?: unknown; from?: any; target?: any; details?: any } | undefined;
+    if (!effect || effect.type !== "assign_object" || effect.optional !== true) continue;
+    if (effect.from?.zone !== "retire" || effect.from?.owner !== "controller") continue;
+    const target = effect.target;
+    if (!target || target.cardType !== "entity" || target.controller !== "controller" || target.quantity !== "all") continue;
+    if (effect.details?.anyNumber !== true || effect.details?.noFluxCost !== true) continue;
+    out.push({ any: true });
+  }
+  return out;
+}
+
+/**
+ * I ritorni vincolati certificati (§8.2, dal 2026-09-10): `on_leave_field`
+ * col vincolo «senza Oggetti addosso», `move_card` di sé stessa sul Fronte,
+ * poi un Oggetto dal Ritiro con `flux_cost lte N`, gratis, obbligatorio.
+ * Specchio di card_index.rb, leave_returns.
+ */
+function leaveReturnsOf(face: CardFace | undefined): LeaveReturn[] {
+  const out: LeaveReturn[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_leave_field") continue;
+    const details = trigger.details as { requiresNoObjectAssignedWhenLeft?: unknown } | undefined;
+    if (details?.requiresNoObjectAssignedWhenLeft !== true) continue;
+    const effect = trigger.effect as { type?: unknown; optional?: unknown; target?: any; destination?: any; details?: any } | undefined;
+    if (!effect || effect.type !== "move_card" || effect.optional !== true) continue;
+    if (effect.target?.scope !== "self" || effect.destination?.zone !== "front") continue;
+    const rearm = effect.details?.thenAssignObject;
+    if (!rearm || rearm.from?.zone !== "retire" || rearm.noFluxCost !== true || rearm.required !== true) continue;
+    const conditions: any[] = Array.isArray(rearm.filter?.conditions) ? rearm.filter.conditions : [];
+    const cost = conditions.find(c => c?.stat === "flux_cost" && c.operator === "lte" && Number.isInteger(c.value));
+    if (rearm.filter?.cardType !== "object" || !cost || conditions.length !== 1) continue;
+    out.push({ maxCost: cost.value });
+  }
+  return out;
+}
+
 // ---- Gli statici, le Materie alla risoluzione e il flip (Eredità Perduta).
 // Specchio di card_index.rb: static_forms, resolve_forms, flip_forms,
 // nexus_of — stesse condizioni, parser per parser.
@@ -1060,6 +1125,9 @@ export function cardStats(cardId: string): {
   enterLooks: EnterLook[];
   enterControls: EnterControl[];
   enterRefreshes: EnterRefresh[];
+  enterDisarms: EnterDisarm[];
+  enterRearms: EnterRearm[];
+  leaveReturns: LeaveReturn[];
   attackReturns: EnterReturn[];
   attackDraws: AttackDraw[];
   attackForms: AttackForm[];
@@ -1098,6 +1166,9 @@ export function cardStats(cardId: string): {
     enterLooks: enterLooksOf(face),
     enterControls: enterControlsOf(face),
     enterRefreshes: enterRefreshesOf(face),
+    enterDisarms: enterDisarmsOf(face),
+    enterRearms: enterRearmsOf(face),
+    leaveReturns: leaveReturnsOf(face),
     power: integer(face?.stats?.power),
     counterattack: integer(face?.stats?.counterattack),
     health: integer(card?.faces.find(candidate => candidate.kind === "rubyfront")?.stats?.health),

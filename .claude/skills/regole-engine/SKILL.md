@@ -145,7 +145,7 @@ nei messaggi delle asserzioni non nomina le carte.
   Richiamo, Abisso, Materia, Flusso, Gettone, Rubyfront, Nexus). Commenti che
   spiegano il perché e citano il §.
 - Il posto attivo è `active`; le fasi `preparazione | fronte | reazione`;
-  le file canoniche del Fronte sono `FRONT_ROW_Y = [172, 1236]` (B, A), gli
+  le file canoniche del Fronte sono `FRONT_ROW_Y = [172, 1260]` (B, A), gli
   slot `FRONT_SLOT_X`, specchio di `ctx.ts`: se cambia la geometria, cambia
   in due posti.
 - Il Flusso si paga con `pay` (barra, poi Gettone) nei due gemelli; i costi

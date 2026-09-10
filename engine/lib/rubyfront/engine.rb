@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.46.0"
+    VERSION = "0.48.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -84,6 +84,8 @@ module Rubyfront
       "§8.1 La Furia: un d20 prima dell'abilità, col fallimento −1 PV",
       "§8.2 Effetti certificati: «quando entra, tira un d6 e guarda tante carte quanto il tiro»",
       "§3.2 La tassa di Flusso: «all'inizio di ogni tuo turno hai N Flusso in meno» viaggia nel cambio di turno",
+      "§8.2 Effetti certificati: «quando entra, gli Oggetti avversari in Ritiro, poi riarma dal tuo Ritiro»",
+      "§8.2 Effetti certificati: «mandata nell'Abisso o in Ritiro senza Oggetti, torna sul Fronte con un Oggetto dal Ritiro»",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -142,6 +144,8 @@ module Rubyfront
       "§8.1 Fury: a d20 before the ability, −1 HP on a failure",
       "§8.2 Certified effects: “when it enters, roll a d6 and look at as many cards as the roll”",
       "§3.2 The Flux toll: “at the start of each of your turns you have N less Flux” travels in the turn change",
+      "§8.2 Certified effects: “when it enters, opposing Objects to Retire, then rearm from your Retire Zone”",
+      "§8.2 Certified effects: “sent to the Abyss or Retire without Objects, it returns to the Front with an Object from Retire”",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -150,7 +154,7 @@ module Rubyfront
     # dell'AZIONE — la copia del tavolo continua a non tracciare geometria.
     FRONT_SLOT_X = [442, 821, 1199, 1578, 1956].freeze
     # [fila del posto B (in alto), fila del posto A (in basso)] — canonico.
-    FRONT_ROW_Y = [172, 1236].freeze
+    FRONT_ROW_Y = [172, 1260].freeze
 
     # I nomi delle Materie (§7.1), per i sigilli.
     MATTER_NAMES = {
@@ -1176,6 +1180,12 @@ module Rubyfront
       # §7.2 — accettare e chiudere un passo della catena sono gesti di chi
       # ne ha la parola, di chiunque sia il turno: li giudica judge_chain.
       return nil if %w[pass settle].include?(kind)
+      # §8.2 — il ritorno vincolato è un innesco del proprietario: la carta
+      # esce spesso nel turno altrui (muore bloccando), e lui la rimette.
+      if kind == "revive"
+        card = @table.card(action["uid"])
+        return nil if card && card[:owner] == actor
+      end
       if kind == "player" && action["seat"] == actor
         patch = action["patch"]
         counters = patch.is_a?(Hash) && %w[hp flux fluxMax].any? { |key| patch.key?(key) }
@@ -1392,6 +1402,7 @@ module Rubyfront
     def judge_effect(action)
       ref = action["effect"]
       kind = action["t"]
+      return judge_revive(action, ref) if kind == "revive"
       # §3.1 — l'imbuto di tutte le forme certificate è qui, e qui si ferma
       # la fonte che sta sulla lavagna ma non è in gioco: il Rubyfront in
       # Zona di Richiamo non ha abilità, quindi non innesca niente, in
@@ -1411,6 +1422,10 @@ module Rubyfront
         end
       end
       return judge_enter_refresh(action, ref) if kind == "refresh"
+      if kind == "toZone" && ref["event"] == "on_enter_field"
+        return judge_enter_disarm(action, ref) if ref["follow"] == "disarm"
+        return judge_enter_rearm(action, ref) if ref["follow"] == "rearm"
+      end
       return judge_effect_move(action, ref) if kind == "toZone"
       return judge_effect_look(action, ref) if kind == "look"
       return judge_effect_control(action, ref) if kind == "control"
@@ -2491,6 +2506,97 @@ module Rubyfront
         end
       end
       allow(kind)
+    end
+
+    # §8.2 — il disarmo all'ingresso: la fonte è entrata sul Fronte questo
+    # turno e ha la forma; ogni Oggetto assegnato a un'Entità avversaria va
+    # nella Zona di Ritiro del proprietario, uno per azione, tutti.
+    def judge_enter_disarm(action, ref)
+      source = @table.card(ref["source"])
+      return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+      return refuse("toZone", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless ref["entering"] == ref["source"] && source[:entered] == @table.turn
+
+      known = @cards[source[:card_id]]
+      return no_rule("toZone") unless known
+      return refuse("toZone", "la carta non ha un effetto certificato che disarmi all'ingresso (§8.2)", "the card has no certified effect that disarms on entry (§8.2)") if Array(known[:enter_disarms]).empty?
+      return refuse("toZone", "gli Oggetti disarmati vanno nella Zona di Ritiro del proprietario (§8.2)", "disarmed Objects go to their owner's Retire Zone (§8.2)") unless action["zone"] == "ritiro"
+
+      object = @table.card(action["uid"])
+      entry = object && @cards[object[:card_id]]
+      return refuse("toZone", "il bersaglio dell'effetto non esiste (§8.2)", "the effect's target doesn't exist (§8.2)") unless object
+      return no_rule("toZone") unless entry
+      bearer = object[:assigned_to] && @table.card(object[:assigned_to])
+      unless entry[:type] == "object" && object[:zone] == "field" && bearer && bearer[:zone] == "field" && @table.controller_of(bearer) != @table.controller_of(source)
+        return refuse("toZone", "si disarma un Oggetto assegnato a un'Entità avversaria in campo (§8.2)", "you disarm an Object assigned to an opposing Entity on the field (§8.2)")
+      end
+
+      allow("toZone")
+    end
+
+    # §8.2 — il riarmo all'ingresso: dopo il disarmo, gli Oggetti della
+    # propria Zona di Ritiro alle proprie Entità, quanti si vuole, gratis.
+    def judge_enter_rearm(action, ref)
+      source = @table.card(ref["source"])
+      return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+      return refuse("toZone", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless ref["entering"] == ref["source"] && source[:entered] == @table.turn
+
+      known = @cards[source[:card_id]]
+      return no_rule("toZone") unless known
+      return refuse("toZone", "la carta non ha un effetto certificato che riarmi all'ingresso (§8.2)", "the card has no certified effect that rearms on entry (§8.2)") if Array(known[:enter_rearms]).empty?
+      return refuse("toZone", "l'Oggetto va addosso a un'Entità che controlli, in campo (§8.2)", "the Object goes on an Entity you control, on the field (§8.2)") unless action["zone"] == "field" && action["assignTo"].is_a?(String)
+      return refuse("toZone", "l'Oggetto arriva senza pagarne il costo (§8.2)", "the Object comes at no cost (§8.2)") if action.key?("cost")
+
+      seat = @table.controller_of(source)
+      object = @table.card(action["uid"])
+      entry = object && @cards[object[:card_id]]
+      return no_rule("toZone") if object && entry.nil?
+      unless object && object[:zone] == "ritiro" && object[:owner] == seat && entry[:type] == "object"
+        return refuse("toZone", "si assegna un Oggetto dalla PROPRIA Zona di Ritiro (§8.2)", "an Object is assigned from your OWN Retire Zone (§8.2)")
+      end
+      bearer = @table.card(action["assignTo"])
+      bearer_entry = bearer && @cards[bearer[:card_id]]
+      unless bearer && bearer[:zone] == "field" && @table.controller_of(bearer) == seat && (bearer_entry.nil? || bearer_entry[:type] == "entity")
+        return refuse("toZone", "l'Oggetto va addosso a un'Entità che controlli, in campo (§8.2)", "the Object goes on an Entity you control, on the field (§8.2)")
+      end
+      return refuse("toZone", "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if bearer[:facedown]
+
+      allow("toZone")
+    end
+
+    # §8.2 — il ritorno vincolato: la carta ha la forma, è appena uscita
+    # (questo turno) nell'Abisso o in Ritiro senza Oggetti addosso, torna sul
+    # proprio Fronte — non pieno, su uno slot — con un Oggetto dalla propria
+    # Zona di Ritiro entro il costo, gratis. Azione calcolata dal client e
+    # verificata qui: `revive {uid, x, y, object}`.
+    def judge_revive(action, ref)
+      card = @table.card(action["uid"])
+      return no_rule("revive") unless card
+
+      known = @cards[card[:card_id]]
+      return no_rule("revive") unless known
+      form = Array(known[:leave_returns]).first
+      return refuse("revive", "la carta non ha un effetto certificato che la riporti sul Fronte (§8.2)", "the card has no certified effect that brings it back to the Front (§8.2)") unless form
+      return refuse("revive", "l'effetto ha per fonte la carta stessa (§8.2)", "the effect's source is the card itself (§8.2)") unless ref.is_a?(Hash) && ref["source"] == action["uid"] && ref["event"] == "on_leave_field"
+      return refuse("revive", "torna chi è stata mandata nell'Abisso o nella Zona di Ritiro (§8.2)", "only a card sent to the Abyss or the Retire Zone comes back (§8.2)") unless %w[abisso ritiro].include?(card[:zone])
+
+      left = card[:left]
+      return refuse("revive", "non è uscita dal campo in questo turno: l'innesco è passato (§8.2)", "it didn't leave the field this turn: the trigger has passed (§8.2)") unless left && left[:turn] == @table.turn
+      return refuse("revive", "è uscita con Oggetti addosso: non torna (§8.2)", "it left with Objects on it: it doesn't come back (§8.2)") if left[:armed]
+
+      object = @table.card(action["object"])
+      entry = object && @cards[object[:card_id]]
+      return refuse("revive", "torna assegnandole un Oggetto dalla propria Zona di Ritiro (§8.2)", "it comes back by assigning it an Object from your own Retire Zone (§8.2)") unless object && object[:zone] == "ritiro" && object[:owner] == card[:owner]
+      return no_rule("revive") unless entry
+      unless entry[:type] == "object" && entry[:flux_cost] && entry[:flux_cost] <= form[:max_cost]
+        return refuse("revive", "l'Oggetto dev'essere un Oggetto con costo di Flusso #{form[:max_cost]} o inferiore (§8.2)", "the Object must be an Object with Flux cost #{form[:max_cost]} or less (§8.2)")
+      end
+      return refuse("revive", "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)", "the Front is full: five Entities are the maximum (§6.2, Full Front)") if count_entities(card[:owner], nil) >= 5
+      front = FRONT_ROW_Y[Table::SEATS.index(card[:owner]) == 0 ? 1 : 0]
+      unless FRONT_SLOT_X.include?(action["x"]) && action["y"] == front
+        return refuse("revive", "torna su uno slot del proprio Fronte (§5)", "it comes back on a slot of your own Front (§5)")
+      end
+
+      allow("revive")
     end
 
     def judge_flip(action)

@@ -258,7 +258,7 @@ export interface EffectRef {
   source: string;
   /** L'evento che innesca: l'ingresso in campo, l'attacco dichiarato, la
       risoluzione di una Materia (§7.2), o il flip verso il Nexus (§3.1). */
-  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip" | "on_ability";
+  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip" | "on_ability" | "on_leave_field";
   entering: string;
   /** Il seguito di un'abilità speciale del Rubyfront (§3.1): l'id dell'abilità attivata. */
   ability?: string;
@@ -266,7 +266,7 @@ export interface EffectRef {
       (RBF-026), il ritorno in mano dopo la cura (RBF-008), la pesca dopo la
       cura (RBF-001 Nexus), l'attacco di chi torna (RBF-010), lo sguardo dopo
       il potenziamento (RBF-034). */
-  follow?: "discard" | "recall" | "draw" | "join" | "look";
+  follow?: "discard" | "recall" | "draw" | "join" | "look" | "disarm" | "rearm";
   /** «Una volta per turno»: la tripla vale per ogni attacco del turno. */
   once?: true;
 }
@@ -303,6 +303,11 @@ export type Action =
       in più); per un potenziamento i `targets` e il `power`; per uno sconto
       lo sconto. Il client calcola, l'engine verifica sulla forma. */
   | { t: "ability"; uid: string; ability: string; cost?: number; gain?: number; roll?: number; fail?: true; targets?: string[]; power?: number; discount?: Discount }
+  /** Il ritorno vincolato (§8.2): l'Entità `uid`, appena mandata
+      nell'Abisso o nella Zona di Ritiro senza Oggetti addosso, torna sullo
+      slot (x, y) del proprio Fronte e l'Oggetto `object` le va addosso dal
+      Ritiro, gratis. Il client calcola, l'engine verifica sulla forma. */
+  | { t: "revive"; uid: string; x: number; y: number; z: number; object: string; effect: EffectRef }
   /** Assegna l'Oggetto `uid` all'Entità `to` (§3.1); `to: null` lo scioglie. */
   | { t: "assign"; uid: string; to: string | null }
   | { t: "tap"; uid: string; tapped: boolean }

@@ -370,6 +370,17 @@ function reduce(state: GameState, action: Action): GameState {
       return { ...state, chain: { ...state.chain, resolving: true } };
     }
 
+    case "revive": {
+      // §8.2 — il ritorno vincolato: l'Entità torna sul Fronte, poi
+      // l'Oggetto le va addosso dalla Zona di Ritiro. Gemello: table.rb,
+      // apply "revive".
+      const card = state.cards[action.uid];
+      const object = state.cards[action.object];
+      if (!card || !object) return state;
+      const back = reduce(state, { t: "toZone", uid: action.uid, zone: "field", x: action.x, y: action.y, z: action.z });
+      return reduce(back, { t: "toZone", uid: action.object, zone: "field", x: action.x + STACK_STEP, y: action.y + STACK_STEP, z: action.z - 1, assignTo: action.uid });
+    }
+
     case "ability": {
       // §3.1 — l'abilità speciale del Rubyfront: i PV pagati o recuperati,
       // il sovrapprezzo della Furia fallita (§8.1), il potenziamento dei

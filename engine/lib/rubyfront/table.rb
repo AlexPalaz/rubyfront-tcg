@@ -443,6 +443,13 @@ module Rubyfront
           @chain = stack.empty? ? nil : @chain.merge(stack: stack)
         end
       when "ability" then use_ability(action)
+      when "revive"
+        # §8.2 — il ritorno vincolato: la carta torna sul Fronte e l'Oggetto
+        # le va addosso, dal Ritiro. Gemello: state.ts, revive.
+        if @cards[action["uid"]] && @cards[action["object"]]
+          to_zone({ "uid" => action["uid"], "zone" => "field", "y" => action["y"] })
+          to_zone({ "uid" => action["object"], "zone" => "field", "y" => action["y"], "assignTo" => action["uid"] })
+        end
       when "look" then look(action)
       when "control"
         # §8.2 — il controllo: chi comanda cambia, la proprietà no; le parole
@@ -755,6 +762,7 @@ module Rubyfront
       # evocazione): conta solo il passaggio da fuori a dentro — un toZone
       # che resta sul campo non è un nuovo ingresso.
       card[:entered] = @turn if zone == "field" && card[:zone] != "field"
+      card[:left] = nil if zone == "field"
       # Giocare dalla mano costa: il costo viaggia nell'azione (`cost`, lo
       # mette il client dal catalogo e l'engine lo verifica) e si paga come
       # nel riduttore (pay).
@@ -813,6 +821,9 @@ module Rubyfront
       # Gli Oggetti addosso a chi esce: sciolti, e — verso Ritiro o Abisso
       # — la seguono (§6.2, §5), come nel riduttore. In mano o nel mazzo no.
       worn = @cards.select { |_, other| other[:assigned_to] == uid && other[:zone] == "field" }.keys
+      # L'uscita dal campo si annota (§8.2, il ritorno vincolato): in quale
+      # turno, e se aveva Oggetti addosso.
+      card[:left] = { turn: @turn, armed: !worn.empty? } if %w[abisso ritiro].include?(zone)
       @cards.each_value { |other| other[:assigned_to] = nil if other[:assigned_to] == uid }
 
       rest = pile(card[:owner], zone).reject { |other| other.equal?(card) }

@@ -40,6 +40,12 @@ export interface CardFacts {
   enterControls: EnterControl[];
   /** Le stappate certificate «quando QUESTA entra» (§8.2, RBF-011): vedi enterRefreshes. */
   enterRefreshes: EnterRefresh[];
+  /** I disarmi certificati «quando QUESTA entra: gli Oggetti avversari in Ritiro» (§8.2): vedi enterDisarms. */
+  enterDisarms: EnterDisarm[];
+  /** I riarmi certificati «quando QUESTA entra: gli Oggetti dal tuo Ritiro alle tue Entità, gratis» (§8.2). */
+  enterRearms: EnterRearm[];
+  /** I ritorni vincolati certificati «mandata nell'Abisso o in Ritiro senza Oggetti, torna con un Oggetto» (§8.2). */
+  leaveReturns: LeaveReturn[];
   /** Le pesche certificate «quando QUESTA attacca con un Oggetto» (§8.2, RBF-026). */
   attackDraws: AttackDraw[];
   /** Le altre forme certificate «quando attacca» (§8.2): vedi AttackForm. */
@@ -190,6 +196,37 @@ export interface EnterControl {
 export interface EnterRefresh {
   die: number;
   onRoll: [number, number];
+}
+
+/**
+ * La forma certificata di un disarmo all'ingresso (dal 2026-09-10): «quando
+ * entra sul Fronte, metti nella Zona di Ritiro del suo proprietario ogni
+ * Oggetto assegnato a un'Entità avversaria». Specchio di card_index.rb,
+ * enter_disarms.
+ */
+export interface EnterDisarm {
+  to: "ritiro";
+}
+
+/**
+ * La forma certificata di un riarmo all'ingresso (dal 2026-09-10): «poi
+ * puoi assegnare alle Entità che controlli, come preferisci e senza pagarne
+ * il costo di Flusso, gli Oggetti della tua Zona di Ritiro». Specchio di
+ * card_index.rb, enter_rearms.
+ */
+export interface EnterRearm {
+  any: true;
+}
+
+/**
+ * La forma certificata del ritorno vincolato (dal 2026-09-10): «quando viene
+ * mandata nell'Abisso o nella Zona di Ritiro, se non aveva Oggetti
+ * assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto con
+ * costo di Flusso N o inferiore dalla tua Zona di Ritiro, senza pagarne il
+ * costo». Specchio di card_index.rb, leave_returns.
+ */
+export interface LeaveReturn {
+  maxCost: number;
 }
 
 /**

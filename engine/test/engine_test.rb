@@ -649,7 +649,7 @@ class EngineTest < Minitest::Test
     cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "LENTA" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     %w[field hand deck abisso].each do |zone|
-      verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => zone, "x" => 442, "y" => 1236 })
+      verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => zone, "x" => 442, "y" => 1260 })
       refute verdict[:ok], zone
       assert_match(/dalla Zona di Ritiro si esce solo per effetto.*§5, §6\.2/, verdict[:reason])
       assert_match(/leave the Retire Zone only through an effect.*§5, §6\.2/, verdict[:reason_en])
@@ -700,7 +700,7 @@ class EngineTest < Minitest::Test
   def test_la_materia_sullo_slot_del_fronte_viene_fermata
     engine = con_carte
     mano_e_campo(engine, %w[PIETRA], cala: 0)
-    verdict = engine.judge(gioca("a-1", 442, 1236))
+    verdict = engine.judge(gioca("a-1", 442, 1260))
     refute verdict[:ok]
     assert_match(/spazio delle Materie/, verdict[:reason])
   end
@@ -714,7 +714,7 @@ class EngineTest < Minitest::Test
   def test_fuori_dagli_slot_la_materia_scende_senza_regola
     engine = con_carte
     mano_e_campo(engine, %w[PIETRA], cala: 0)
-    refute engine.judge(gioca("a-1", 2368, 1236))[:ruled], "la fila delle Materie non è affare dell'engine"
+    refute engine.judge(gioca("a-1", 2368, 1260))[:ruled], "la fila delle Materie non è affare dell'engine"
     mano_e_campo(engine, %w[PIETRA], cala: 0)
     refute engine.judge(gioca("a-1", 500, 900))[:ruled], "rilascio a mano libera: lavagna libera"
   end
@@ -722,13 +722,13 @@ class EngineTest < Minitest::Test
   def test_l_entita_sullo_slot_scende_regolarmente
     engine = con_carte
     mano_e_campo(engine, %w[LENTA], cala: 0)
-    assert engine.judge(gioca("a-1", 442, 1236))[:ok]
+    assert engine.judge(gioca("a-1", 442, 1260))[:ok]
   end
 
   def test_carta_ignota_sullo_slot_silenzio
     engine = con_carte
     mano_e_campo(engine, %w[MISTERO], cala: 0)
-    refute engine.judge(gioca("a-1", 442, 1236))[:ruled]
+    refute engine.judge(gioca("a-1", 442, 1260))[:ruled]
   end
 
   # --- §6.3: dichiarano solo le Entità ------------------------------------
@@ -1420,9 +1420,9 @@ class EngineTest < Minitest::Test
   def test_l_entita_scende_su_uno_slot_della_propria_fila
     engine = Rubyfront::Engine.new(cards: FINESTRA)
     in_mano(engine, "a", "a-1", "LENTA")
-    assert scendi_in_campo(engine, "a-1", x: 821, y: 1236)[:ok], "slot della fila di A"
+    assert scendi_in_campo(engine, "a-1", x: 821, y: 1260)[:ok], "slot della fila di A"
     in_mano(engine, "a", "a-2", "LENTA")
-    verdict = scendi_in_campo(engine, "a-2", x: 900, y: 1236)
+    verdict = scendi_in_campo(engine, "a-2", x: 900, y: 1260)
     refute verdict[:ok], "a mano libera no"
     assert_match(/slot.*§5/, verdict[:reason])
     refute scendi_in_campo(engine, "a-2", x: 821, y: 172)[:ok], "nella fila avversaria no"
@@ -1436,10 +1436,10 @@ class EngineTest < Minitest::Test
       { "uid" => uid, "owner" => "a", "zone" => "hand", "order" => i, "cardId" => id }
     end
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
-    scendi_in_campo(engine, "a-1", x: 442, y: 1236)
-    scendi_in_campo(engine, "m-1", x: 2368, y: 1236)
+    scendi_in_campo(engine, "a-1", x: 442, y: 1260)
+    scendi_in_campo(engine, "m-1", x: 2368, y: 1260)
     # §5 — «un'Entità occupa lo slot in cui è scesa»: nemmeno su uno slot libero.
-    verdict = engine.judge({ "t" => "move", "uid" => "a-1", "x" => 1199, "y" => 1236, "z" => 3 })
+    verdict = engine.judge({ "t" => "move", "uid" => "a-1", "x" => 1199, "y" => 1260, "z" => 3 })
     refute verdict[:ok]
     assert_match(/resta nello slot.*§5/, verdict[:reason])
     assert_match(/stays in the slot.*§5/, verdict[:reason_en])
@@ -1451,7 +1451,7 @@ class EngineTest < Minitest::Test
   def test_dal_campo_non_si_torna_in_mano_ne_nel_mazzo
     engine = Rubyfront::Engine.new(cards: FINESTRA)
     in_mano(engine, "a", "a-1", "LENTA")
-    scendi_in_campo(engine, "a-1", x: 442, y: 1236)
+    scendi_in_campo(engine, "a-1", x: 442, y: 1260)
     verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "hand" })
     assert verdict[:ruled]
     refute verdict[:ok]
@@ -1465,8 +1465,8 @@ class EngineTest < Minitest::Test
     engine = Rubyfront::Engine.new(cards: FINESTRA)
     cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "LENTA" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
-    assert engine.judge({ "t" => "move", "uid" => "a-1", "x" => 1199, "y" => 1236, "z" => 3 })[:ok]
-    refute engine.judge({ "t" => "move", "uid" => "a-1", "x" => 442, "y" => 1236, "z" => 4 })[:ok], "annotata la fila, lo slot è quello"
+    assert engine.judge({ "t" => "move", "uid" => "a-1", "x" => 1199, "y" => 1260, "z" => 3 })[:ok]
+    refute engine.judge({ "t" => "move", "uid" => "a-1", "x" => 442, "y" => 1260, "z" => 4 })[:ok], "annotata la fila, lo slot è quello"
   end
 
   # --- §5: l'Abisso -----------------------------------------------------------
@@ -1474,7 +1474,7 @@ class EngineTest < Minitest::Test
   def test_nell_abisso_non_si_va_a_mano
     engine = Rubyfront::Engine.new(cards: FINESTRA)
     in_mano(engine, "a", "a-1", "LENTA")
-    scendi_in_campo(engine, "a-1", x: 442, y: 1236)
+    scendi_in_campo(engine, "a-1", x: 442, y: 1260)
     verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
     refute verdict[:ok]
     assert_match(/non a mano.*§5/, verdict[:reason])
@@ -1485,7 +1485,7 @@ class EngineTest < Minitest::Test
     # «Materie risolte, decadute o svanite» (§5): la Materia in campo ci va sempre.
     engine = Rubyfront::Engine.new(cards: FINESTRA)
     in_mano(engine, "a", "m-1", "PIETRA")
-    scendi_in_campo(engine, "m-1", x: 2368, y: 1236)
+    scendi_in_campo(engine, "m-1", x: 2368, y: 1260)
     assert engine.judge({ "t" => "toZone", "uid" => "m-1", "zone" => "abisso" })[:ok]
   end
 
@@ -1503,7 +1503,7 @@ class EngineTest < Minitest::Test
     cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "abisso", "order" => 0, "cardId" => "LENTA" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     %w[hand deck field ritiro].each do |zone|
-      verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => zone, "x" => 442, "y" => 1236 })
+      verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => zone, "x" => 442, "y" => 1260 })
       refute verdict[:ok], zone
       assert_match(/dall'Abisso non si torna.*§5/, verdict[:reason])
     end
@@ -1536,7 +1536,7 @@ class EngineTest < Minitest::Test
     engine = Rubyfront::Engine.new(cards: MATERIE)
     cards = field.map.with_index do |(uid, id, opts), i|
       { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id,
-        "y" => 1236, "face" => 0 }.merge((opts || {}).transform_keys(&:to_s))
+        "y" => 1260, "face" => 0 }.merge((opts || {}).transform_keys(&:to_s))
     end
     cards += hand.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => seat, "zone" => "hand", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
@@ -1544,7 +1544,7 @@ class EngineTest < Minitest::Test
   end
 
   def gioca_materia(engine, uid)
-    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 2368, "y" => 1236 })
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 2368, "y" => 1260 })
   end
 
   def test_con_l_abilitante_in_campo_la_materia_scende
@@ -1582,9 +1582,9 @@ class EngineTest < Minitest::Test
   def test_il_rubyfront_abilita_solo_schierato
     engine = tavolo([["rf", "RUBINO", { y: 1756 }]], [["r2", "ROVINA"]])
     refute gioca_materia(engine, "r2")[:ok], "in Zona di Richiamo non abilita nulla (§3.1)"
-    engine = tavolo([["rf", "RUBINO", { y: 1236 }]], [["r2", "ROVINA"]])
+    engine = tavolo([["rf", "RUBINO", { y: 1260 }]], [["r2", "ROVINA"]])
     refute gioca_materia(engine, "r2")[:ok], "schierato, ma la faccia Rubyfront arriva al primo grado"
-    engine = tavolo([["rf", "RUBINO", { y: 1236, face: 1 }]], [["r2", "ROVINA"]])
+    engine = tavolo([["rf", "RUBINO", { y: 1260, face: 1 }]], [["r2", "ROVINA"]])
     assert gioca_materia(engine, "r2")[:ok], "il Nexus abilita fino al secondo grado (§3.1)"
   end
 
@@ -1671,7 +1671,7 @@ class EngineTest < Minitest::Test
     engine
   end
 
-  def schiera(engine, cost: nil, roll: nil, y: 1236, actor: "a")
+  def schiera(engine, cost: nil, roll: nil, y: 1260, actor: "a")
     action = { "t" => "move", "uid" => "rf", "x" => 30, "y" => y, "z" => 2 }
     action["cost"] = cost unless cost.nil?
     action["roll"] = roll unless roll.nil?
@@ -1732,7 +1732,7 @@ class EngineTest < Minitest::Test
   def test_gli_spostamenti_sulla_fila_sono_liberi
     engine = richiamo("FISSO", flux: 3)
     schiera(engine, cost: 3)
-    verdict = engine.judge({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1236, "z" => 4 })
+    verdict = engine.judge({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1260, "z" => 4 })
     refute verdict[:ruled], "già schierato: si sposta e basta"
     engine = richiamo("FISSO", flux: 0)
     refute engine.judge({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1756, "z" => 4 })[:ruled], "e in Richiamo pure"
@@ -1765,14 +1765,14 @@ class EngineTest < Minitest::Test
   # poi `entra` fa scendere una carta dalla mano.
   def campo(field, hand)
     engine = Rubyfront::Engine.new(cards: ASCOLTATORI)
-    cards = field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "field", "order" => i, "cardId" => id, "y" => 1236 } }
+    cards = field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "field", "order" => i, "cardId" => id, "y" => 1260 } }
     cards += hand.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "hand", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     engine
   end
 
   def entra(engine, uid, x: 1578)
-    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => 1236 })
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => 1260 })
   end
 
   def innesco(engine, source:, entering:, count: 1, seat: "a")
@@ -1854,7 +1854,7 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
     b = b_field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "field", "order" => i, "cardId" => id, "y" => 172 } }
     engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
-    engine.judge({ "t" => "toZone", "uid" => "arc", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine.judge({ "t" => "toZone", "uid" => "arc", "zone" => "field", "x" => 442, "y" => 1260 })
     engine
   end
 
@@ -1916,7 +1916,7 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
     b = b_field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "field", "order" => i, "cardId" => id, "y" => 172 } }
     engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
-    engine.judge({ "t" => "toZone", "uid" => "tir", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine.judge({ "t" => "toZone", "uid" => "tir", "zone" => "field", "x" => 442, "y" => 1260 })
     engine
   end
 
@@ -1986,17 +1986,17 @@ class EngineTest < Minitest::Test
   def riportante(ritiro, foe_ritiro: [], campo: 1)
     engine = Rubyfront::Engine.new(cards: EREDI)
     a = [{ "uid" => "riportante", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "RIPORTANTE" }]
-    a += (2..campo).map { |i| { "uid" => "f#{i}", "owner" => "a", "zone" => "field", "order" => i, "cardId" => "UMANO", "x" => Rubyfront::Engine::FRONT_SLOT_X[i - 1], "y" => 1236 } }
+    a += (2..campo).map { |i| { "uid" => "f#{i}", "owner" => "a", "zone" => "field", "order" => i, "cardId" => "UMANO", "x" => Rubyfront::Engine::FRONT_SLOT_X[i - 1], "y" => 1260 } }
     a += ritiro.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "ritiro", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
     b = foe_ritiro.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "ritiro", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
-    engine.judge({ "t" => "toZone", "uid" => "riportante", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine.judge({ "t" => "toZone", "uid" => "riportante", "zone" => "field", "x" => 442, "y" => 1260 })
     engine
   end
 
   def riporta(engine, uid)
-    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 2368, "y" => 1236,
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 2368, "y" => 1260,
                    "effect" => { "source" => "riportante", "event" => "on_enter_field", "entering" => "riportante" } })
   end
 
@@ -2056,7 +2056,7 @@ class EngineTest < Minitest::Test
     cards = [{ "uid" => "cerc", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "SGUARDO" }]
     cards += deck.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "deck", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
-    engine.judge({ "t" => "toZone", "uid" => "cerc", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine.judge({ "t" => "toZone", "uid" => "cerc", "zone" => "field", "x" => 442, "y" => 1260 })
     engine
   end
 
@@ -2103,7 +2103,7 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
     b = b_field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "field", "order" => i, "cardId" => id, "y" => 172 } }
     engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
-    engine.judge({ "t" => "toZone", "uid" => "rad", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine.judge({ "t" => "toZone", "uid" => "rad", "zone" => "field", "x" => 442, "y" => 1260 })
     engine
   end
 
@@ -2165,7 +2165,7 @@ class EngineTest < Minitest::Test
   def test_il_controllo_non_riapplica_l_effetto_d_ingresso
     engine = Rubyfront::Engine.new(cards: RADUNI.merge("MOSSA" => MOSSA))
     a = [{ "uid" => "rad", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "CONTROLLORE" },
-         { "uid" => "a1", "owner" => "a", "zone" => "field", "order" => 1, "cardId" => "PICCOLA", "y" => 1236 }]
+         { "uid" => "a1", "owner" => "a", "zone" => "field", "order" => 1, "cardId" => "PICCOLA", "y" => 1260 }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
     b = [{ "uid" => "b1", "owner" => "b", "zone" => "field", "order" => 0, "cardId" => "MOSSA", "y" => 172 },
          { "uid" => "b2", "owner" => "b", "zone" => "field", "order" => 1, "cardId" => "PICCOLA", "y" => 172 }]
@@ -2173,7 +2173,7 @@ class EngineTest < Minitest::Test
     # Le carte di B sono entrate al turno 1; il controllo arriva al turno 3.
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" }, actor: "b")
-    assert engine.judge({ "t" => "toZone", "uid" => "rad", "zone" => "field", "x" => 442, "y" => 1236 }, actor: "a")[:ok]
+    assert engine.judge({ "t" => "toZone", "uid" => "rad", "zone" => "field", "x" => 442, "y" => 1260 }, actor: "a")[:ok]
     assert prendi(engine, "b1")[:ok]
     table = engine.instance_variable_get(:@table)
     assert_equal 1, table.card("b1")[:entered], "il controllo non tocca il turno d'ingresso"
@@ -2208,7 +2208,7 @@ class EngineTest < Minitest::Test
     cards = [{ "uid" => "art", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "SCRUTATORE" }]
     cards += deck.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "deck", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
-    engine.judge({ "t" => "toZone", "uid" => "art", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine.judge({ "t" => "toZone", "uid" => "art", "zone" => "field", "x" => 442, "y" => 1260 })
     engine
   end
 
@@ -2237,7 +2237,7 @@ class EngineTest < Minitest::Test
     cards = [{ "uid" => "art", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "GUARDIA" }]
     cards += [["d1", "PIETRA"], ["d2", "FERRO"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "PIETRA"], ["d6", "PIETRA"]].map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "deck", "order" => i, "cardId" => id } }
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
-    engine.judge({ "t" => "toZone", "uid" => "art", "zone" => "field", "x" => 442, "y" => 1236 })
+    engine.judge({ "t" => "toZone", "uid" => "art", "zone" => "field", "x" => 442, "y" => 1260 })
     refute tira_e_guarda(engine, roll: 3, count: 4, reveal: "d2", retire: "d1")[:ok], "con un 3 si guardano 3 carte, non 4"
     verdict = tira_e_guarda(engine, roll: 3, count: 3, reveal: "d2", retire: "d1")
     assert verdict[:ok], verdict[:reason]
@@ -2264,7 +2264,7 @@ class EngineTest < Minitest::Test
   # A apre il Fronte e la fonte attacca.
   def rhen_in_carica
     engine = Rubyfront::Engine.new(cards: EREDI_ATTACCO)
-    cards = [{ "uid" => "riportante", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "RIPORTANTE", "y" => 1236 },
+    cards = [{ "uid" => "riportante", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "RIPORTANTE", "y" => 1260 },
              { "uid" => "p1", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "PERMANENTE" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
@@ -2273,7 +2273,7 @@ class EngineTest < Minitest::Test
   end
 
   def riporta_attaccando(engine)
-    engine.judge({ "t" => "toZone", "uid" => "p1", "zone" => "field", "x" => 2368, "y" => 1236,
+    engine.judge({ "t" => "toZone", "uid" => "p1", "zone" => "field", "x" => 2368, "y" => 1260,
                    "effect" => { "source" => "riportante", "event" => "on_attack", "entering" => "riportante" } })
   end
 
@@ -2309,7 +2309,7 @@ class EngineTest < Minitest::Test
   # carta in mano e una nel mazzo; al turno 3 A apre il Fronte e attacca.
   def esploratore(armato: true)
     engine = Rubyfront::Engine.new(cards: AVANSCOPERTA)
-    cards = [{ "uid" => "esp", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "PESCATORE", "y" => 1236 },
+    cards = [{ "uid" => "esp", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "PESCATORE", "y" => 1260 },
              { "uid" => "h1", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "UMANO" },
              { "uid" => "d1", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "UMANO" },
              { "uid" => "d2", "owner" => "a", "zone" => "deck", "order" => 1, "cardId" => "UMANO" }]
@@ -2398,7 +2398,7 @@ class EngineTest < Minitest::Test
   def test_la_pesca_all_attacco_di_una_carta_ignota_tace
     engine = Rubyfront::Engine.new(cards: AVANSCOPERTA)
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test",
-                   "cards" => [{ "uid" => "esp", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "IGNOTA", "y" => 1236 }] })
+                   "cards" => [{ "uid" => "esp", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "IGNOTA", "y" => 1260 }] })
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
     fronte!(engine)
@@ -2453,7 +2453,7 @@ class EngineTest < Minitest::Test
     engine = Rubyfront::Engine.new(cards: ARMATA)
     load = lambda do |seat, list|
       cards = list.map.with_index do |(uid, id, extra), i|
-        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1236 : 172 }.merge(extra || {})
+        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1260 : 172 }.merge(extra || {})
       end
       engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
     end
@@ -2539,7 +2539,7 @@ class EngineTest < Minitest::Test
     engine = scena([["q", "FURIERE"], ["u", "UMANO"], ["f", "FERRO", { "assignedTo" => "u" }], ["f2", "FERRO", { "zone" => "ritiro" }],
                     ["n", "AUROS"], ["f3", "FERRO", { "assignedTo" => "n" }], ["pescata", "UMANO", { "zone" => "deck" }], ["d1", "FERRO", { "zone" => "deck" }], ["d2", "UMANO", { "zone" => "deck" }]],
                    attacks: %w[u n])
-    riarmo = { "t" => "toZone", "uid" => "f2", "zone" => "field", "y" => 1236, "assignTo" => "u", "effect" => ref("q", "u") }
+    riarmo = { "t" => "toZone", "uid" => "f2", "zone" => "field", "y" => 1260, "assignTo" => "u", "effect" => ref("q", "u") }
     assert_match(/senza pagarne/, engine.judge(riarmo.merge("cost" => 2))[:reason])
     verdict = engine.judge(riarmo)
     assert verdict[:ok], verdict[:reason]
@@ -2554,7 +2554,7 @@ class EngineTest < Minitest::Test
 
   def test_il_furiere_non_serve_chi_attacca_disarmato
     engine = scena([["q", "FURIERE"], ["u", "UMANO"], ["f2", "FERRO", { "zone" => "ritiro" }]], attacks: ["u"])
-    verdict = engine.judge({ "t" => "toZone", "uid" => "f2", "zone" => "field", "y" => 1236, "assignTo" => "u", "effect" => ref("q", "u") })
+    verdict = engine.judge({ "t" => "toZone", "uid" => "f2", "zone" => "field", "y" => 1260, "assignTo" => "u", "effect" => ref("q", "u") })
     assert_match(/Entità con un Oggetto assegnato/, verdict[:reason])
   end
 
@@ -2577,7 +2577,7 @@ class EngineTest < Minitest::Test
   # Il ritorno: col dado un'Entità Umana dal Ritiro sul Fronte, che attacca insieme.
   def test_l_eco_riporta_un_umano_che_attacca_insieme
     engine = scena([["e", "ECO"], ["r", "UMANO", { "zone" => "ritiro" }], ["x", "AUROS", { "zone" => "ritiro" }]], attacks: ["e"])
-    ritorno = { "t" => "toZone", "uid" => "r", "zone" => "field", "x" => 2368, "y" => 1236, "roll" => 5, "effect" => ref("e") }
+    ritorno = { "t" => "toZone", "uid" => "r", "zone" => "field", "x" => 2368, "y" => 1260, "roll" => 5, "effect" => ref("e") }
     assert_match(/nessuno torna/, engine.judge(ritorno.merge("roll" => 4))[:reason])
     assert_match(/Entità Umana/, engine.judge(ritorno.merge("uid" => "x"))[:reason])
     ok = engine.judge(ritorno)
@@ -2611,7 +2611,7 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
     engine.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
-    assert engine.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1236, "cost" => 5 })[:ok], "la fonte scende in Preparazione"
+    assert engine.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1260, "cost" => 5 })[:ok], "la fonte scende in Preparazione"
     assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => true, "effect" => entra })[:reason])
     assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => false, "effect" => entra })[:reason])
     assert_match(/innesco d'ingresso/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => ref("c") })[:reason])
@@ -2624,7 +2624,7 @@ class EngineTest < Minitest::Test
     mancato.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     mancato.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
     mancato.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
-    assert mancato.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1236, "cost" => 5 })[:ok]
+    assert mancato.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1260, "cost" => 5 })[:ok]
     assert mancato.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => false, "effect" => entra })[:ok], "il tiro mancato passa e consuma l'innesco"
     assert copia(mancato).card("u")[:tapped], "col tiro mancato nessuno si stappa"
     assert_match(/già stato risolto/, mancato.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => entra })[:reason])
@@ -2644,10 +2644,10 @@ class EngineTest < Minitest::Test
   end
 
   # Il raduno: al terzo Umano, +2 PV una volta per turno; il Nexus poi pesca e scarta.
-  # Il Rubyfront è SCHIERATO (fila del Fronte, 1236): in Zona di Richiamo
+  # Il Rubyfront è SCHIERATO (fila del Fronte, 1260): in Zona di Richiamo
   # (1756) non avrebbe abilità (§3.1, test più sotto).
   def test_il_raduno_al_terzo_umano_una_volta_per_turno
-    engine = scena([["rf", "RADUNO", { "y" => 1236 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2])
+    engine = scena([["rf", "RADUNO", { "y" => 1260 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"]], attacks: %w[u1 u2])
     assert_match(/almeno 3 Entità Umane/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u2", once: true) })[:reason])
     engine.judge({ "t" => "declare", "declaration" => { "id" => "u3", "from" => "u3", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 3 } })
     verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
@@ -2657,7 +2657,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_nexus_dopo_la_cura_pesca_e_scarta
-    engine = scena([["rf", "RADUNO", { "y" => 1236, "face" => 1 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"],
+    engine = scena([["rf", "RADUNO", { "y" => 1260, "face" => 1 }], ["u1", "UMANO"], ["u2", "UMANO"], ["u3", "UMANO"],
                     ["h", "UMANO", { "zone" => "hand" }], ["d", "UMANO", { "zone" => "deck" }]], attacks: %w[u1 u2 u3])
     pesca = { "t" => "draw", "seat" => "a", "count" => 1, "effect" => ref("rf", "u3", once: true, follow: "draw") }
     assert_match(/prima i PV/, engine.judge(pesca)[:reason])
@@ -2679,8 +2679,8 @@ class EngineTest < Minitest::Test
     assert_match(/Zona di Richiamo non ha abilità.*§3\.1/, verdict[:reason])
     assert_match(/Recall Zone has no abilities.*§3\.1/, verdict[:reason_en])
     # Schierato — la fila del Fronte — la stessa cura passa.
-    engine.observe({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1236, "z" => 3, "cost" => 0 })
-    assert_equal 1236, copia(engine).card("rf")[:row]
+    engine.observe({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1260, "z" => 3, "cost" => 0 })
+    assert_equal 1260, copia(engine).card("rf")[:row]
     verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
     assert verdict[:ok], verdict[:reason]
   end
@@ -2791,11 +2791,11 @@ class EngineTest < Minitest::Test
     engine = Rubyfront::Engine.new(cards: EREDITA)
     load = lambda do |seat, list|
       cards = list.map.with_index do |(uid, id, extra), i|
-        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1236 : 172 }.merge(extra || {})
+        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1260 : 172 }.merge(extra || {})
       end
       engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
     end
-    load.call("a", a + [["rf-a", "RUBINO", { "y" => 1236 }]])
+    load.call("a", a + [["rf-a", "RUBINO", { "y" => 1260 }]])
     load.call("b", b + [["rf-b", "RUBINO", { "y" => 172 }]])
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
@@ -2933,7 +2933,7 @@ class EngineTest < Minitest::Test
 
   # Gioca dalla mano. Una Reattiva porta il segno della catena (§7.2), come
   # fa il client: la catena resta aperta finché l'avversario non `accetta!`.
-  def gioca_carta(engine, uid, cost:, actor: "a", x: 2368, y: 1236, extra: {})
+  def gioca_carta(engine, uid, cost:, actor: "a", x: 2368, y: 1260, extra: {})
     card = copia(engine).card(uid)
     known = card && EREDITA[card[:card_id]]
     extra = { "chain" => true }.merge(extra) if known && known[:behavior] == "reactive"
@@ -3047,7 +3047,7 @@ class EngineTest < Minitest::Test
     accetta!(engine, "b")
     cura = { "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 3, "effect" => res_ref("m") }
     pesca = { "t" => "draw", "seat" => "a", "count" => 1, "roll" => 3, "effect" => res_ref("m") }
-    scesa = { "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 821, "y" => 1236, "roll" => 3, "effect" => res_ref("m") }
+    scesa = { "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 821, "y" => 1260, "roll" => 3, "effect" => res_ref("m") }
     assert_match(/non si pesca/, engine.judge(pesca)[:reason])
     assert_match(/nessuno scende/, engine.judge(scesa)[:reason])
     assert_match(/tiro valido/, engine.judge(cura.merge("roll" => 21))[:reason])
@@ -3063,7 +3063,7 @@ class EngineTest < Minitest::Test
     accetta!(engine, "b")
     assert engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 20, "effect" => res_ref("m") })[:ok]
     assert engine.judge({ "t" => "draw", "seat" => "a", "count" => 1, "roll" => 20, "effect" => res_ref("m") })[:ok]
-    scesa = { "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 821, "y" => 1236, "roll" => 20, "effect" => res_ref("m") }
+    scesa = { "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 821, "y" => 1260, "roll" => 20, "effect" => res_ref("m") }
     assert_match(/2 o inferiore/, engine.judge(scesa.merge("uid" => "g"))[:reason])
     assert_match(/senza pagarne/, engine.judge(scesa.merge("cost" => 1))[:reason])
     verdict = engine.judge(scesa)
@@ -3083,7 +3083,7 @@ class EngineTest < Minitest::Test
   end
 
   def in_catena(engine, uid, actor:, chain: true)
-    gioca_carta(engine, uid, cost: 2, actor: actor, y: actor == "a" ? 1236 : 172, extra: { "chain" => chain })
+    gioca_carta(engine, uid, cost: 2, actor: actor, y: actor == "a" ? 1260 : 172, extra: { "chain" => chain })
   end
 
   def test_una_reattiva_apre_sempre_la_catena
@@ -3094,7 +3094,7 @@ class EngineTest < Minitest::Test
     assert_match(/always opens the response chain.*§7\.2/, senza[:reason_en])
     # Il segno su una carta che non è Reattiva: in Preparazione, dove l'Entità scenderebbe.
     preparazione = eredita([["e", "UMANO", { "zone" => "hand" }]])
-    falsa = preparazione.judge({ "t" => "toZone", "uid" => "e", "zone" => "field", "x" => 442, "y" => 1236, "chain" => true }, actor: "a")
+    falsa = preparazione.judge({ "t" => "toZone", "uid" => "e", "zone" => "field", "x" => 442, "y" => 1260, "chain" => true }, actor: "a")
     assert_match(/solo una Materia Reattiva.*§7\.2/, falsa[:reason])
     verdict = in_catena(engine, "r1", actor: "a")
     assert verdict[:ok], verdict[:reason]
@@ -3263,7 +3263,7 @@ class EngineTest < Minitest::Test
   def test_la_tassa_di_flusso_di_chi_entra_deve_tornare_e_si_paga_alla_ricarica
     engine = Rubyfront::Engine.new(cards: TASSE)
     load = lambda do |seat, list|
-      cards = list.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1236 : 172 } }
+      cards = list.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1260 : 172 } }
       engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
     end
     load.call("a", [["g1", "GABELLIERE"], ["g2", "GABELLIERE"], ["u", "UMANO"]])
@@ -3307,14 +3307,14 @@ class EngineTest < Minitest::Test
 
   # A ha il Rubyfront ARCANO schierato, due Umani e un Auros sul Fronte, un
   # Oggetto addosso all'Umano u1; in mano un Oggetto (FERRO) e un Umano.
-  def arcano(y: 1236, hand: [])
+  def arcano(y: 1260, hand: [])
     engine = Rubyfront::Engine.new(cards: ABILITA)
     a = [["u1", "UMANO"], ["u2", "UMANO"], ["x", "AUROS"], ["rf", "ARCANO", { "y" => y }],
          ["o1", "FERRO", { "assignedTo" => "u1" }], ["h1", "FERRO", { "zone" => "hand" }], ["h2", "CORRIDORE", { "zone" => "hand" }]] + hand
     b = [["b1", "AUROS"], ["rf-b", "RUBINO", { "y" => 172 }]]
     load = lambda do |seat, list|
       cards = list.map.with_index do |(uid, id, extra), i|
-        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1236 : 172 }.merge(extra || {})
+        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1260 : 172 }.merge(extra || {})
       end
       deck = { "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards }
       deck["hp"] = 21 if seat == "a"
@@ -3403,7 +3403,7 @@ class EngineTest < Minitest::Test
     engine = arcano
     assert abilita(engine, "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil })[:ok]
     gioca = lambda do |uid, cost, discount = nil|
-      action = { "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 632, "y" => 1236, "cost" => cost, "assignTo" => "u2" }
+      action = { "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 632, "y" => 1260, "cost" => cost, "assignTo" => "u2" }
       action["discount"] = discount if discount
       engine.judge(action, actor: "a")
     end
@@ -3417,14 +3417,14 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "a")
     engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" }, actor: "b")
     assert abilita(engine, "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil })[:ok]
-    assert_match(/nessuno sconto/, engine.judge({ "t" => "toZone", "uid" => "h2", "zone" => "field", "x" => 632, "y" => 1236, "cost" => 0, "discount" => 1 }, actor: "a")[:reason])
+    assert_match(/nessuno sconto/, engine.judge({ "t" => "toZone", "uid" => "h2", "zone" => "field", "x" => 632, "y" => 1260, "cost" => 0, "discount" => 1 }, actor: "a")[:reason])
     engine.judge({ "t" => "turn", "turn" => 6, "active" => "b" }, actor: "a")
     assert_empty copia(engine).discounts("a"), "gli sconti cadono col turno"
   end
 
   # --- §3.1: il Nexus — il flip e «quando flippa» -----------------------------
 
-  def nexus_pronto(humans: 4, hand: [["h", "AUROS", { "zone" => "hand" }]], y: 1236)
+  def nexus_pronto(humans: 4, hand: [["h", "AUROS", { "zone" => "hand" }]], y: 1260)
     mine = (1..humans).map { |i| ["u#{i}", "UMANO"] } + [["riportante", "RIPORTANTE"], ["rf", "RADUNO", { "y" => y }]] + hand + [["rip2", "RIPORTANTE", { "zone" => "hand" }]]
     eredita(mine)
   end
@@ -3473,7 +3473,7 @@ class EngineTest < Minitest::Test
     assert_match(/aggiunge RIPORTANTE/, engine.judge(sigillo.merge("patch" => { "sealed" => ["RIPORTANTE", "UMANO"] }))[:reason])
     assert engine.judge(sigillo)[:ok]
     assert copia(engine).sealed?("a", "RIPORTANTE")
-    assert_match(/non si può più giocare/, engine.judge({ "t" => "toZone", "uid" => "rip2", "zone" => "field", "x" => 442, "y" => 1236, "cost" => 6 })[:reason])
+    assert_match(/non si può più giocare/, engine.judge({ "t" => "toZone", "uid" => "rip2", "zone" => "field", "x" => 442, "y" => 1260, "cost" => 6 })[:reason])
     # Il turno dopo il flip è passato: l'innesco non si riscalda.
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
@@ -3481,8 +3481,231 @@ class EngineTest < Minitest::Test
   end
 
   def test_un_rubyfront_senza_requisito_certificato_flippa_a_mano
-    engine = eredita([["rf", "RUBINO", { "y" => 1236 }]])
+    engine = eredita([["rf", "RUBINO", { "y" => 1260 }]])
     refute engine.judge({ "t" => "flip", "uid" => "rf", "face" => 1 })[:ruled]
   end
 
+  # --- §8.2: il disarmo con riarmo all'ingresso e il ritorno vincolato -------
+  # Le forme certificate del 2026-09-10: «quando entra, ogni Oggetto
+  # assegnato a un'Entità avversaria nella Zona di Ritiro del proprietario,
+  # poi gli Oggetti del tuo Ritiro alle tue Entità, gratis» e «mandata
+  # nell'Abisso o in Ritiro senza Oggetti addosso, torna sul Fronte con un
+  # Oggetto entro il costo dal tuo Ritiro». Fixture a etichette di forma.
+
+  SCISSIONE = {
+    "OMBRA" => { type: "entity", keywords: [], race: "auros", power: 4, flux_cost: 4,
+                 enter_disarms: [{ to: "ritiro" }], enter_rearms: [{ any: true }] },
+    "VINCOLATA" => { type: "entity", keywords: [], race: "auros", power: 1, flux_cost: 1, leave_returns: [{ max_cost: 2 }] },
+    "UMANO" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 2 },
+    "SPINOSO" => { type: "entity", keywords: [], race: "human", power: 2, counterattack: 1, flux_cost: 3 },
+    "LAMA" => { type: "object", keywords: [], flux_cost: 2 },
+    "MAZZA" => { type: "object", keywords: [], flux_cost: 3 },
+    "RUBINO" => { type: "rubyfront", keywords: [], power: nil, counterattack: nil },
+  }.freeze
+
+  # Tavolo al turno 3 di A, con 10 Flusso: le liste sono [uid, id, extra].
+  def scissione(a, b: [])
+    engine = Rubyfront::Engine.new(cards: SCISSIONE)
+    load = lambda do |seat, list|
+      cards = list.map.with_index do |(uid, id, extra), i|
+        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1260 : 172 }.merge(extra || {})
+      end
+      engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
+    end
+    load.call("a", a + [["rf-a", "RUBINO", { "y" => 1260 }]])
+    load.call("b", b + [["rf-b", "RUBINO", { "y" => 172 }]])
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    engine
+  end
+
+  def entra_ombra(engine)
+    verdict = engine.judge({ "t" => "toZone", "uid" => "ombra", "zone" => "field", "x" => 821, "y" => 1260, "cost" => 4 })
+    raise "l'ingresso non passa: #{verdict[:reason]}" unless verdict[:ok]
+    engine
+  end
+
+  def disarma(engine, uid, zone: "ritiro")
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => zone,
+                   "effect" => { "source" => "ombra", "event" => "on_enter_field", "entering" => "ombra", "follow" => "disarm" } })
+  end
+
+  def riarma(engine, uid, to, extra = {})
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 472, "y" => 1266, "assignTo" => to,
+                   "effect" => { "source" => "ombra", "event" => "on_enter_field", "entering" => "ombra", "follow" => "rearm" } }.merge(extra))
+  end
+
+  def ombra_in_campo(hand_objects: [])
+    engine = scissione(
+      [["ombra", "OMBRA", { "zone" => "hand" }], ["mio", "UMANO", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }], ["mazza-a", "MAZZA", { "zone" => "ritiro" }]] + hand_objects,
+      b: [["suo", "UMANO", { "x" => 442 }], ["lama-b", "LAMA", { "x" => 472, "y" => 202, "assignedTo" => "suo" }], ["mazza-b", "MAZZA", { "zone" => "ritiro" }]]
+    )
+    entra_ombra(engine)
+  end
+
+  def test_il_disarmo_manda_in_ritiro_l_oggetto_assegnato_a_un_entita_avversaria
+    engine = ombra_in_campo
+    verdict = disarma(engine, "lama-b")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    card = engine.instance_variable_get(:@table).card("lama-b")
+    assert_equal "ritiro", card[:zone]
+    assert_nil card[:assigned_to]
+  end
+
+  def test_il_disarmo_non_tocca_gli_oggetti_propri_ne_quelli_sciolti_ne_le_entita
+    engine = ombra_in_campo
+    engine.judge({ "t" => "toZone", "uid" => "mazza-b", "zone" => "field", "x" => 821, "y" => 172 }, actor: "b")
+    refute disarma(engine, "mazza-b")[:ok], "un Oggetto avversario non assegnato non si disarma"
+    refute disarma(engine, "suo")[:ok], "un'Entità non è un Oggetto"
+    engine.judge({ "t" => "toZone", "uid" => "lama-a", "zone" => "field", "x" => 472, "y" => 1266, "assignTo" => "mio" })
+    refute disarma(engine, "lama-a")[:ok], "i propri Oggetti restano addosso"
+    refute disarma(engine, "lama-b", zone: "abisso")[:ok], "in Ritiro, non nell'Abisso"
+  end
+
+  def test_il_disarmo_vale_solo_nel_turno_d_ingresso
+    engine = ombra_in_campo
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
+    verdict = disarma(engine, "lama-b")
+    refute verdict[:ok]
+    assert_includes verdict[:reason], "§8.2"
+  end
+
+  def test_una_carta_senza_la_forma_non_disarma
+    engine = ombra_in_campo
+    verdict = engine.judge({ "t" => "toZone", "uid" => "lama-b", "zone" => "ritiro",
+                             "effect" => { "source" => "mio", "event" => "on_enter_field", "entering" => "mio", "follow" => "disarm" } })
+    refute verdict[:ok]
+  end
+
+  def test_il_riarmo_assegna_gratis_dal_proprio_ritiro_quanti_oggetti_si_vuole
+    engine = ombra_in_campo
+    disarma(engine, "lama-b")
+    flux = engine.instance_variable_get(:@table).flux("a")
+    verdict = riarma(engine, "lama-a", "mio")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    verdict = riarma(engine, "mazza-a", "ombra")
+    assert verdict[:ok], "quanti se ne vuole: #{verdict[:reason]}"
+    table = engine.instance_variable_get(:@table)
+    assert_equal "mio", table.card("lama-a")[:assigned_to]
+    assert_equal "ombra", table.card("mazza-a")[:assigned_to]
+    assert_equal flux, table.flux("a"), "senza pagarne il costo"
+  end
+
+  def test_il_riarmo_non_prende_dal_ritiro_altrui_ne_va_su_entita_altrui_o_coperte_e_non_si_paga
+    engine = ombra_in_campo
+    disarma(engine, "lama-b")
+    refute riarma(engine, "lama-b", "mio")[:ok], "l'Oggetto disarmato è nel Ritiro del suo proprietario, non nel mio"
+    refute riarma(engine, "lama-a", "suo")[:ok], "solo alle Entità che controllo"
+    refute riarma(engine, "lama-a", "mio", "cost" => 2)[:ok], "gratis, non pagando"
+    engine.judge({ "t" => "facedown", "uid" => "mio", "facedown" => true })
+    refute riarma(engine, "lama-a", "mio")[:ok], "un'Entità coperta è intoccabile (§3.1)"
+  end
+
+  def test_il_riarmo_di_un_oggetto_ignoto_tace
+    engine = ombra_in_campo(hand_objects: [["boh", "IGNOTA", { "zone" => "ritiro" }]])
+    refute riarma(engine, "boh", "mio")[:ruled]
+  end
+
+  # Il ritorno vincolato: la carta esce e torna nello stesso turno.
+  def vincolata_in_campo
+    scissione(
+      [["vinc", "VINCOLATA", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }], ["mazza-a", "MAZZA", { "zone" => "ritiro" }]],
+      b: [["suo", "UMANO", { "x" => 442 }], ["lama-b", "LAMA", { "zone" => "ritiro" }]]
+    )
+  end
+
+  def ritorna(engine, uid: "vinc", object: "lama-a", x: 821, y: 1260, actor: nil, ref: nil)
+    engine.judge({ "t" => "revive", "uid" => uid, "x" => x, "y" => y, "z" => 9, "object" => object,
+                   "effect" => ref || { "source" => uid, "event" => "on_leave_field", "entering" => uid } }, actor: actor)
+  end
+
+  def test_il_ritorno_vincolato_riporta_sul_fronte_chi_e_appena_uscita_con_un_oggetto_dal_ritiro
+    engine = vincolata_in_campo
+    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    verdict = ritorna(engine)
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    table = engine.instance_variable_get(:@table)
+    assert_equal "field", table.card("vinc")[:zone]
+    assert_equal "field", table.card("lama-a")[:zone]
+    assert_equal "vinc", table.card("lama-a")[:assigned_to]
+    assert_nil table.card("vinc")[:left]
+  end
+
+  def test_il_ritorno_vincolato_lo_decide_il_proprietario
+    engine = vincolata_in_campo
+    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    refute ritorna(engine, actor: "b")[:ok], "lo decide il proprietario"
+    assert ritorna(engine, actor: "a")[:ok]
+  end
+
+  def test_il_ritorno_vincolato_non_vale_se_e_uscita_armata_o_in_un_altro_turno
+    engine = scissione([["vinc", "VINCOLATA", { "x" => 442 }], ["mazza-a", "MAZZA", { "x" => 472, "y" => 1266, "assignedTo" => "vinc" }], ["lama-a", "LAMA", { "zone" => "ritiro" }]])
+    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    verdict = ritorna(engine)
+    refute verdict[:ok]
+    assert_includes verdict[:reason], "Oggetti addosso"
+
+    engine = vincolata_in_campo
+    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    refute ritorna(engine, actor: "a")[:ok], "l'innesco è passato col turno"
+  end
+
+  def test_il_ritorno_vincolato_vuole_un_oggetto_entro_il_costo_dal_proprio_ritiro_e_uno_slot_libero
+    engine = vincolata_in_campo
+    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    refute ritorna(engine, object: "mazza-a")[:ok], "costo 3 > 2"
+    refute ritorna(engine, object: "lama-b")[:ok], "dal PROPRIO Ritiro"
+    refute ritorna(engine, object: "suo")[:ok], "un Oggetto, non un'Entità"
+    refute ritorna(engine, y: 172)[:ok], "sul proprio Fronte"
+    refute ritorna(engine, x: 500)[:ok], "su uno slot"
+    assert ritorna(engine, x: 442)[:ok], "lo slot lasciato libero va bene"
+  end
+
+  def test_il_ritorno_vincolato_con_il_fronte_pieno_non_passa
+    engine = scissione(
+      [["vinc", "VINCOLATA", { "x" => 442 }], ["u1", "UMANO", { "x" => 821 }], ["u2", "UMANO", { "x" => 1199 }], ["u3", "UMANO", { "x" => 1578 }],
+       ["u4", "UMANO", { "x" => 1956 }], ["lama-a", "LAMA", { "zone" => "ritiro" }], ["u5", "UMANO", { "zone" => "hand" }]]
+    )
+    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    engine.judge({ "t" => "toZone", "uid" => "u5", "zone" => "field", "x" => 442, "y" => 1260, "cost" => 2 })
+    verdict = ritorna(engine)
+    refute verdict[:ok]
+    assert_includes verdict[:reason], "§6.2"
+  end
+
+  def test_il_ritorno_vincolato_senza_la_forma_o_ignoto_non_passa
+    engine = scissione([["mio", "UMANO", { "x" => 442 }], ["vinc", "VINCOLATA", { "x" => 821 }], ["lama-a", "LAMA", { "zone" => "ritiro" }]])
+    engine.judge({ "t" => "toZone", "uid" => "mio", "zone" => "ritiro" })
+    refute ritorna(engine, uid: "mio")[:ok], "senza la forma non si torna"
+    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    refute ritorna(engine, ref: { "source" => "vinc", "event" => "on_enter_field", "entering" => "vinc" })[:ok], "l'evento è l'uscita dal campo"
+    engine = scissione([["boh", "IGNOTA", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }]])
+    engine.judge({ "t" => "toZone", "uid" => "boh", "zone" => "ritiro" })
+    refute ritorna(engine, uid: "boh")[:ruled]
+  end
+
+  def test_la_morte_in_battaglia_lascia_l_annotazione_dell_uscita
+    engine = scissione(
+      [["vinc", "VINCOLATA", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }]],
+      b: [["suo", "SPINOSO", { "x" => 442 }]]
+    )
+    fronte!(engine)
+    engine.judge({ "t" => "declare", "declaration" => { "id" => "vinc", "from" => "vinc", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } })
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    engine.judge({ "t" => "declare", "declaration" => { "id" => "suo", "from" => "suo", "to" => "vinc", "kind" => "counter", "seat" => "b", "order" => 0 } }, actor: "b")
+    verdict = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [
+                               { "attacker" => "vinc", "blocker" => "suo", "kind" => "counter", "attackerDies" => true, "blockerDies" => false, "damage" => 0 },
+                             ] }, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    table = engine.instance_variable_get(:@table)
+    assert_equal "abisso", table.card("vinc")[:zone]
+    assert_equal({ turn: 3, armed: false }, table.card("vinc")[:left])
+    assert ritorna(engine, actor: "a")[:ok]
+  end
 end

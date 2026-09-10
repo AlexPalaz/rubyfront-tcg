@@ -226,8 +226,8 @@ class TableTest < Minitest::Test
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     assert_equal 0, @table.card("rf")[:face]
     assert_equal 1756, @table.card("rf")[:row], "in Zona di Richiamo, fila di servizio"
-    @table.apply({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1236, "z" => 2 })
-    assert_equal 1236, @table.card("rf")[:row], "schierato, fila del Fronte"
+    @table.apply({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1260, "z" => 2 })
+    assert_equal 1260, @table.card("rf")[:row], "schierato, fila del Fronte"
     @table.apply({ "t" => "flip", "uid" => "rf", "face" => 1 })
     assert_equal 1, @table.card("rf")[:face], "il Nexus"
     @table.apply({ "t" => "toZone", "uid" => "rf", "zone" => "hand" })
@@ -289,9 +289,9 @@ class TableTest < Minitest::Test
     @table.apply({ "t" => "player", "seat" => "a", "patch" => { "flux" => 5 } })
     cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1756 }]
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
-    @table.apply({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1236, "z" => 2, "cost" => 4, "roll" => 4 })
+    @table.apply({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1260, "z" => 2, "cost" => 4, "roll" => 4 })
     assert_equal 1, @table.flux("a")
-    assert_equal 1236, @table.card("rf")[:row]
+    assert_equal 1260, @table.card("rf")[:row]
   end
 
   # --- la scoperta a T+3 e gli Oggetti che seguono (§6.3, §6.2, §5) ---------
@@ -441,7 +441,7 @@ class TableAttackToolsTest < Minitest::Test
   end
 
   def test_to_zone_con_assign_to_rimette_un_oggetto_gia_assegnato
-    @table.apply({ "t" => "toZone", "uid" => "obj", "zone" => "field", "y" => 1236, "assignTo" => "a1" })
+    @table.apply({ "t" => "toZone", "uid" => "obj", "zone" => "field", "y" => 1260, "assignTo" => "a1" })
     assert_equal "a1", @table.card("obj")[:assigned_to]
   end
   # --- gli attrezzi degli effetti: Stasi, Contrattacco concesso, esilio, flip, sigillo ---
@@ -528,7 +528,7 @@ class TableAttackToolsTest < Minitest::Test
   end
 
   def test_il_flip_scarta_recupera_e_annota_il_turno
-    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "rf", "y" => 1236), campo("a", "h", "zone" => "hand")] })
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "rf", "y" => 1260), campo("a", "h", "zone" => "hand")] })
     @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 12 } })
     @table.apply({ "t" => "flip", "uid" => "rf", "face" => 1, "discard" => "h", "recover" => 5 })
     rf = @table.card("rf")
@@ -621,7 +621,7 @@ class TableBonusTest < Minitest::Test
   def setup
     @table = Rubyfront::Table.new
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "t", "cards" => [
-                   { "uid" => "u", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "U", "y" => 1236 }] })
+                   { "uid" => "u", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "U", "y" => 1260 }] })
     @table.apply({ "t" => "empower", "uid" => "u", "power" => 1, "counter" => 2, "grants" => ["revenge"], "restrict" => "block" })
   end
 
@@ -645,8 +645,8 @@ class TableBonusTest < Minitest::Test
   # --- le abilità speciali del Rubyfront (§3.1) e gli sconti ------------------
 
   def test_l_abilita_paga_i_pv_potenzia_i_bersagli_e_lascia_lo_sconto
-    cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1236 },
-             { "uid" => "u", "owner" => "a", "zone" => "field", "order" => 1, "y" => 1236 },
+    cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1260 },
+             { "uid" => "u", "owner" => "a", "zone" => "field", "order" => 1, "y" => 1260 },
              { "uid" => "o", "owner" => "a", "zone" => "hand", "order" => 2 }]
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 20, "flux" => 5 } })
@@ -661,7 +661,7 @@ class TableBonusTest < Minitest::Test
     refute @table.pending_ability?("rf", "sguardo")
     @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "sconto", "cost" => 3, "discount" => { "amount" => 1, "type" => "object", "race" => nil } })
     assert_equal [{ amount: 1, type: "object", race: nil }], @table.discounts("a")
-    @table.apply({ "t" => "toZone", "uid" => "o", "zone" => "field", "x" => 632, "y" => 1236, "cost" => 1, "discount" => 1, "assignTo" => "u" })
+    @table.apply({ "t" => "toZone", "uid" => "o", "zone" => "field", "x" => 632, "y" => 1260, "cost" => 1, "discount" => 1, "assignTo" => "u" })
     assert_equal 4, @table.flux("a")
     assert_empty @table.discounts("a"), "consumato giocando"
     @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "sconto", "cost" => 3, "discount" => { "amount" => 1, "type" => "object", "race" => nil } })
@@ -669,5 +669,26 @@ class TableBonusTest < Minitest::Test
     assert_empty @table.discounts("a"), "cadono col turno"
     refute @table.ability_used?("a"), "e l'uso è del turno passato"
     assert_nil @table.card("u")[:power_bonus]
+  end
+
+  # --- §8.2: l'uscita annotata e il ritorno vincolato (gemello: state.ts, revive)
+
+  def test_l_uscita_dal_campo_si_annota_col_turno_e_gli_oggetti_addosso
+    a = [
+      { "uid" => "e", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "X", "x" => 442, "y" => 1260 },
+      { "uid" => "o", "owner" => "a", "zone" => "field", "order" => 1, "cardId" => "Y", "x" => 472, "y" => 1266, "assignedTo" => "e" },
+      { "uid" => "p", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "Y" },
+    ]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    @table.apply({ "t" => "toZone", "uid" => "e", "zone" => "abisso" })
+    assert_equal({ turn: 2, armed: true }, @table.card("e")[:left])
+    @table.apply({ "t" => "revive", "uid" => "e", "x" => 821, "y" => 1260, "z" => 5, "object" => "p" })
+    assert_equal "field", @table.card("e")[:zone]
+    assert_nil @table.card("e")[:left], "rientrando, l'annotazione si cancella"
+    assert_equal "field", @table.card("p")[:zone]
+    assert_equal "e", @table.card("p")[:assigned_to]
+    @table.apply({ "t" => "toZone", "uid" => "e", "zone" => "hand" })
+    assert_nil @table.card("e")[:left], "in mano non è un'uscita che conta"
   end
 end

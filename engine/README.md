@@ -816,14 +816,35 @@ Regole collegate finora:
   una carta uscita prima non tassa, una entrata nel turno altrui sì.
   Engine 0.46.0.
 
-- **Effetti di Scissione Profonda ancora a mano** (foglio del designer del
-  2026-09-10): il **ritorno vincolato** («quando viene mandata nell'Abisso o
-  nella Zona di Ritiro … puoi rimetterla sul tuo Fronte assegnandole un
-  Oggetto dalla Zona di Ritiro»: l'engine non legge `on_leave_field`), e il
-  **disarmo con riarmo** all'ingresso (tutti gli Oggetti avversari in
-  Ritiro, poi gli Oggetti del proprio Ritiro alle proprie Entità, gratis).
-  Regola d'oro: risolti a mano, oggi le dogane fermerebbero i loro gesti;
-  si collegano una alla volta su decisione del designer.
+- **§8.2 «Quando entra, gli Oggetti avversari in Ritiro, poi riarma dal
+  tuo Ritiro»** — due forme certificate insieme (`enter_disarms`,
+  `enter_rearms` nell'anagrafe). Il disarmo: ogni Oggetto in campo
+  assegnato a un'Entità comandata dall'avversario va nella Zona di Ritiro
+  del suo proprietario, uno per azione `toZone` marcata `follow: "disarm"`,
+  nel turno d'ingresso della fonte; la dogana pretende un Oggetto addosso a
+  un'Entità avversaria, e la destinazione Ritiro. Il riarmo: gli Oggetti
+  della PROPRIA Zona di Ritiro alle PROPRIE Entità in campo (non coperte),
+  quanti se ne vuole, con `toZone … assignTo` marcato `follow: "rearm"`,
+  senza `cost`. Limiti dichiarati: l'ordine (prima il disarmo, poi il
+  riarmo) lo tiene il client, l'engine ammette i due passi nel turno
+  d'ingresso in qualunque ordine; «ogni Entità riceve un Oggetto solo se
+  può riceverlo» è oggi la sola regola della copertura (§3.1) — un vincolo
+  d'assegnazione stampato su un Oggetto resta a mano. Engine 0.47.0.
+
+- **§8.2 «Mandata nell'Abisso o in Ritiro senza Oggetti, torna sul Fronte
+  con un Oggetto dal Ritiro»** — il ritorno vincolato (`leave_returns`
+  nell'anagrafe, `on_leave_field` con `thenAssignObject`). La copia annota
+  ogni uscita dal campo verso Abisso o Ritiro (`left: {turn, armed}`,
+  gemello del confronto prima/dopo del client); l'azione calcolata
+  `revive {uid, x, y, z, object}` la riporta sullo slot e le mette addosso
+  l'Oggetto, e la dogana pretende: la forma, la carta nell'Abisso o in
+  Ritiro, uscita in QUESTO turno e senza Oggetti addosso, un Oggetto dal
+  Ritiro del proprietario entro il costo, il Fronte non pieno (§6.2), uno
+  slot del proprio Fronte (§5). La decide il proprietario, anche nel turno
+  altrui (muore spesso bloccando). Limiti dichiarati: l'annotazione
+  dell'uscita non viaggia nello snapshot d'allineamento; «ogni volta»
+  (decisione del designer) — nessun limite per turno oltre l'uscita
+  stessa. Engine 0.48.0, cinquantaquattro regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

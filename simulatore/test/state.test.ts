@@ -222,6 +222,19 @@ describe("apply turn", () => {
     expect(state.players.b.flux).toBe(0);
   });
 
+  it("il ritorno vincolato (§8.2) rimette l'Entità sullo slot e le mette addosso l'Oggetto dal Ritiro — gemello: table_test.rb", () => {
+    let state = apply(newGame(), deckFor("a", 2));
+    const [entity, object] = zoneCards(state, "a", "deck").map(card => card.uid);
+    state = apply(state, { t: "toZone", uid: entity, zone: "abisso" });
+    state = apply(state, { t: "toZone", uid: object, zone: "ritiro" });
+    state = apply(state, { t: "revive", uid: entity, x: 821, y: frontRowY("a"), z: 7, object, effect: { source: entity, event: "on_leave_field", entering: entity } });
+    expect(state.cards[entity]).toMatchObject({ zone: "field", x: 821, y: frontRowY("a"), z: 7, tapped: false });
+    expect(state.cards[object]).toMatchObject({ zone: "field", assignedTo: entity, x: 821 + STACK_STEP, y: frontRowY("a") + STACK_STEP, z: 6 });
+    // Senza l'Oggetto non si muove nulla.
+    const same = apply(state, { t: "revive", uid: entity, x: 442, y: frontRowY("a"), z: 9, object: "manca", effect: { source: entity, event: "on_leave_field", entering: entity } });
+    expect(same).toBe(state);
+  });
+
   it("chi entra pesca la carta del turno (§6.1), e a mazzo vuoto no", () => {
     let state = apply(newGame(), deckFor("b", 2));
     state = apply(state, { t: "turn", turn: 2, active: "b" });
@@ -333,9 +346,9 @@ describe("pay", () => {
     let state = apply(newGame(), deckFor("a", 1));
     state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 30, y: 1756, z: 1 });
     state.players.a.flux = 6;
-    state = apply(state, { t: "move", uid: "a-1", x: 30, y: 1236, z: 2, cost: 4, roll: 4 });
+    state = apply(state, { t: "move", uid: "a-1", x: 30, y: 1260, z: 2, cost: 4, roll: 4 });
     expect(state.players.a.flux).toBe(2);
-    expect(state.cards["a-1"].y).toBe(1236);
+    expect(state.cards["a-1"].y).toBe(1260);
   });
 });
 
@@ -344,7 +357,7 @@ describe("pay", () => {
 describe("scoperta a T+3", () => {
   it("coprire annota il turno e il cambio di turno scopre a T+3", () => {
     let state = apply(newGame(), deckFor("a", 1));
-    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1236, z: 1 });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1260, z: 1 });
     state = apply(state, { t: "turn", turn: 2, active: "b" }); // T: il turno avversario
     state = apply(state, { t: "facedown", uid: "a-1", facedown: true });
     expect(state.cards["a-1"].coveredTurn).toBe(2);
@@ -358,7 +371,7 @@ describe("scoperta a T+3", () => {
 
   it("una coperta senza data resta com'è, e scoprire a mano toglie la data", () => {
     let state = apply(newGame(), deckFor("a", 1));
-    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1236, z: 1 });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1260, z: 1 });
     state.cards["a-1"] = { ...state.cards["a-1"], facedown: true };
     state = apply(state, { t: "turn", turn: 2, active: "b" });
     state = apply(state, { t: "turn", turn: 3, active: "a" });
@@ -751,7 +764,7 @@ describe("i bonus fino a fine turno (§8.2)", () => {
 describe("apply ability / sconti", () => {
   it("paga i PV, potenzia i bersagli e tiene lo sconto finché non si gioca", () => {
     let state = apply(newGame("a"), { ...deckFor("a", 3), hp: 20 });
-    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1236, z: 1 });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1260, z: 1 });
     state = apply(state, { t: "ability", uid: "a-2", ability: "carica", cost: 5, roll: 3, fail: true, targets: ["a-1"], power: 1 });
     expect(state.players.a.hp).toBe(14);
     expect(state.players.a.abilityTurn).toBe(state.turn);
@@ -764,7 +777,7 @@ describe("apply ability / sconti", () => {
     expect(abilityDiscount(state, "a", { kind: "entity", race: "human" })).toBeNull();
     state = apply(state, { t: "toZone", uid: "a-3", zone: "hand" });
     state = apply(state, { t: "player", seat: "a", patch: { flux: 4 } });
-    state = apply(state, { t: "toZone", uid: "a-3", zone: "field", x: 632, y: 1236, z: 2, cost: 1, discount: 1 });
+    state = apply(state, { t: "toZone", uid: "a-3", zone: "field", x: 632, y: 1260, z: 2, cost: 1, discount: 1 });
     const flux = 4;
     expect(state.players.a.flux).toBe(flux - 1);
     expect(state.players.a.discounts).toEqual([]);
