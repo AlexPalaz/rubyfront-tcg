@@ -134,7 +134,7 @@ export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string
       const blockerFacts = facts(blocker.cardId);
       // Una Reattiva giocata come bloccante di un'Entità (§6.4): «non c'è
       // confronto di Potenza, l'attacco è comunque bloccato, la sorte
-      // dell'attaccante la stabilisce il testo» — RBF-040 non dice nulla —
+      // dell'attaccante la stabilisce il testo» — la Reattiva bloccante (forma `block`) non dice nulla —
       // e si consuma.
       if (blockerFacts.kind === "matter") {
         battles.push({ attacker: attack.from, blocker: block.from, kind: "block", attackerDies: false, blockerDies: false, damage: 0, blockerSpent: true });

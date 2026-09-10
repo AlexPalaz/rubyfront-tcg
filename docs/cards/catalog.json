@@ -3360,11 +3360,7 @@
                   },
                   "bladeChorus": {
                     "name": "Coro delle Lame",
-                    "text": "le Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
-                  },
-                  "greatRearm": {
-                    "name": "Grande Riarmo",
-                    "text": "assegna un qualsiasi numero di Oggetti dalla tua Zona di Ritiro ad altrettante Entità sul tuo Fronte, senza pagarne il costo di Flusso."
+                    "text": "le Entità con un Oggetto assegnato che controlli prendono +2 Potenza fino alla fine del turno."
                   }
                 },
                 "flavor": "La Scissione non è una ferita. È una porta."
@@ -3432,11 +3428,7 @@
                   },
                   "bladeChorus": {
                     "name": "Chorus of Blades",
-                    "text": "Entities with an Object assigned you control get +1 Power until end of turn."
-                  },
-                  "greatRearm": {
-                    "name": "Great Rearmament",
-                    "text": "assign any number of Objects from your Retire Zone to as many Entities on your Front, without paying their Flux cost."
+                    "text": "Entities with an Object assigned you control get +2 Power until end of turn."
                   }
                 },
                 "flavor": "The Schism is not a wound. It is a door."
@@ -3743,7 +3735,7 @@
                   "repeatable": false,
                   "checks": [],
                   "cost": {
-                    "health": 3
+                    "health": 5
                   },
                   "effect": {
                     "type": "modify_power",
@@ -3755,39 +3747,8 @@
                         "hasObjectAssigned": true
                       }
                     },
-                    "amount": 1,
+                    "amount": 2,
                     "duration": "until_end_of_turn"
-                  }
-                },
-                {
-                  "id": "great-rearm",
-                  "displayKey": "greatRearm",
-                  "timing": [
-                    "own_preparation"
-                  ],
-                  "repeatable": false,
-                  "checks": [],
-                  "cost": {
-                    "health": 7
-                  },
-                  "effect": {
-                    "type": "assign_object",
-                    "from": {
-                      "zone": "retire",
-                      "owner": "controller"
-                    },
-                    "target": {
-                      "cardType": "entity",
-                      "controller": "controller",
-                      "zone": "front",
-                      "owner": "controller",
-                      "quantity": "all"
-                    },
-                    "details": {
-                      "anyNumber": true,
-                      "noFluxCost": true,
-                      "oneObjectPerEntity": true
-                    }
                   }
                 }
               ],
@@ -3934,7 +3895,7 @@
             "it": {
               "name": "Guardiano del Campo",
               "typeLabel": "Entità: Auros",
-              "summary": "Premia la seconda pescata del turno: più carte scorrono, più colpisce forte.",
+              "summary": "Scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
               "ui": {
                 "face": "Entità"
               },
@@ -3950,9 +3911,9 @@
               },
               "face": {
                 "name": "Guardiano del Campo",
-                "tally": {
-                  "trigger": "Effetto",
-                  "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
+                "forage": {
+                  "trigger": "Quando entra sul Fronte",
+                  "text": "Lancia un d6 e guarda dalla cima del tuo mazzo tante carte quanto il risultato. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
                 },
                 "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
               }
@@ -3960,7 +3921,7 @@
             "en": {
               "name": "Camp Warden",
               "typeLabel": "Entity: Auros",
-              "summary": "Rewards the turn's second draw: the more cards flow, the harder it hits.",
+              "summary": "It digs through the deck by the die and fills the Retire Zone.",
               "ui": {
                 "face": "Entity"
               },
@@ -3976,9 +3937,9 @@
               },
               "face": {
                 "name": "Camp Warden",
-                "tally": {
-                  "trigger": "Effect",
-                  "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."
+                "forage": {
+                  "trigger": "When it enters the Front",
+                  "text": "Roll a d6 and look at as many cards from the top of your deck as the result. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
                 },
                 "flavor": "It counts cards like sentries: at the second, it sounds the alarm."
               }
@@ -3988,7 +3949,8 @@
             "entity",
             "auros",
             "equip",
-            "draw"
+            "die",
+            "retire"
           ],
           "rulesReference": "MANUALE.md §3.1, §8.2",
           "faces": [
@@ -4011,21 +3973,36 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "tally",
-                  "displayKey": "tally",
-                  "event": "on_draw_card",
-                  "details": {
-                    "onSecondDrawInTurn": true
-                  },
+                  "id": "forage",
+                  "displayKey": "forage",
+                  "event": "on_enter_field",
                   "effect": {
-                    "type": "modify_power",
-                    "target": {
-                      "scope": "self"
+                    "type": "look_and_optionally_move",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top"
                     },
-                    "amount": 1,
-                    "duration": "until_end_of_turn",
                     "details": {
-                      "perCardDrawnBeyondFirstThisTurn": true
+                      "die": "d6",
+                      "count": "result",
+                      "mayReveal": {
+                        "cardType": "object"
+                      },
+                      "revealTo": {
+                        "zone": "hand",
+                        "owner": "controller"
+                      },
+                      "thenMoveOneTo": {
+                        "zone": "retire",
+                        "owner": "controller"
+                      },
+                      "restTo": {
+                        "zone": "deck",
+                        "owner": "controller",
+                        "position": "bottom",
+                        "anyOrder": true
+                      }
                     }
                   }
                 }
@@ -4176,7 +4153,7 @@
             "it": {
               "name": "Artefice di Nova Kai",
               "typeLabel": "Entità: Auros",
-              "summary": "L'artefice che scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
+              "summary": "Un corpo solido di Nova Kai, senza altri effetti: abilita la Dimensionale di secondo grado.",
               "ui": {
                 "face": "Entità"
               },
@@ -4192,17 +4169,13 @@
               },
               "face": {
                 "name": "Artefice di Nova Kai",
-                "forage": {
-                  "trigger": "Quando entra sul Fronte",
-                  "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
-                },
                 "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
               }
             },
             "en": {
               "name": "Artificer of Nova Kai",
               "typeLabel": "Entity: Auros",
-              "summary": "The artificer who digs through the deck by the die and fills the Retire Zone.",
+              "summary": "A solid body from Nova Kai with no other effect: it enables second-grade Dimensional.",
               "ui": {
                 "face": "Entity"
               },
@@ -4218,10 +4191,6 @@
               },
               "face": {
                 "name": "Artificer of Nova Kai",
-                "forage": {
-                  "trigger": "When it enters the Front",
-                  "text": "Roll a d6 and look at a number of cards from the top of your deck equal to 2 plus half the result, rounded up. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
-                },
                 "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited."
               }
             }
@@ -4229,9 +4198,7 @@
           "tags": [
             "entity",
             "auros",
-            "equip",
-            "die",
-            "retire"
+            "equip"
           ],
           "rulesReference": "MANUALE.md §3.1, §8.2",
           "faces": [
@@ -4252,42 +4219,7 @@
               ],
               "keywords": [],
               "requirements": {},
-              "triggers": [
-                {
-                  "id": "forage",
-                  "displayKey": "forage",
-                  "event": "on_enter_field",
-                  "effect": {
-                    "type": "look_and_optionally_move",
-                    "from": {
-                      "zone": "deck",
-                      "owner": "controller",
-                      "position": "top"
-                    },
-                    "details": {
-                      "die": "d6",
-                      "count": "2 + ceil(result/2)",
-                      "mayReveal": {
-                        "cardType": "object"
-                      },
-                      "revealTo": {
-                        "zone": "hand",
-                        "owner": "controller"
-                      },
-                      "thenMoveOneTo": {
-                        "zone": "retire",
-                        "owner": "controller"
-                      },
-                      "restTo": {
-                        "zone": "deck",
-                        "owner": "controller",
-                        "position": "bottom",
-                        "anyOrder": true
-                      }
-                    }
-                  }
-                }
-              ],
+              "triggers": [],
               "actions": []
             }
           ],
@@ -4313,7 +4245,7 @@
             "it": {
               "name": "Sentinella di Nova Kai",
               "typeLabel": "Entità: Auros",
-              "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte e resta in guardia.",
+              "summary": "Un corpo con Contrattacco che costa 1 Flusso a ogni tuo turno finché resta sul Fronte.",
               "ui": {
                 "face": "Entità"
               },
@@ -4332,18 +4264,14 @@
                 "name": "Sentinella di Nova Kai",
                 "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
                 "effect": {
-                  "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
-                },
-                "vigil": {
-                  "trigger": "Effetto",
-                  "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, stappala dopo il combattimento."
+                  "text": "Finché questa Entità resta sul Fronte, all'inizio di ogni tuo turno hai 1 Flusso in meno disponibile per quel turno."
                 }
               }
             },
             "en": {
               "name": "Sentinel of Nova Kai",
               "typeLabel": "Entity: Auros",
-              "summary": "A sentinel whose answer hits far harder with the right Object, and who stays on guard.",
+              "summary": "A body with Counterattack that costs you 1 Flux each of your turns while it stays on the Front.",
               "ui": {
                 "face": "Entity"
               },
@@ -4362,11 +4290,7 @@
                 "name": "Sentinel of Nova Kai",
                 "flavor": "The answering blow is the only one it has always prepared.",
                 "effect": {
-                  "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
-                },
-                "vigil": {
-                  "trigger": "Effect",
-                  "text": "The first time each of your turns this Entity attacks while it has an Object assigned, untap it after combat."
+                  "text": "As long as this Entity remains on the Front, at the start of each of your turns you have 1 less Flux available for that turn."
                 }
               }
             }
@@ -4376,7 +4300,7 @@
             "auros",
             "equip",
             "counterattack",
-            "untap"
+            "flux"
           ],
           "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
           "faces": [
@@ -4400,35 +4324,18 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "temper",
+                  "id": "toll",
                   "displayKey": "effect",
                   "event": "while_in_play",
                   "effect": {
-                    "type": "modify_counterattack",
+                    "type": "modify_flux",
                     "target": {
-                      "scope": "self"
+                      "controller": "controller"
                     },
-                    "setTo": 2,
+                    "amount": -1,
                     "details": {
-                      "whileHasObjectAssigned": true
-                    }
-                  }
-                },
-                {
-                  "id": "vigil",
-                  "displayKey": "vigil",
-                  "event": "on_attack",
-                  "details": {
-                    "oncePerEachOfYourTurns": true,
-                    "whileHasObjectAssigned": true
-                  },
-                  "effect": {
-                    "type": "untap",
-                    "target": {
-                      "scope": "self"
-                    },
-                    "details": {
-                      "afterCombat": true
+                      "atStartOfEachOwnTurn": true,
+                      "whileOnFront": true
                     }
                   }
                 }
@@ -5558,137 +5465,6 @@
         },
         {
           "schemaVersion": 1,
-          "id": "RBF-037",
-          "setId": "rubyfront-core",
-          "collectorNumber": "037",
-          "slug": "intangible-cloud",
-          "type": "matter",
-          "layout": "single",
-          "status": "draft",
-          "deckLimit": 3,
-          "defaultLocale": "it",
-          "locales": {
-            "it": {
-              "name": "Nube Intangibile",
-              "typeLabel": "Materia Dimensionale I",
-              "summary": "Una nube permanente che fa fallire i blocchi a colpi di d6.",
-              "ui": {
-                "face": "Materia"
-              },
-              "card": {
-                "illustration": "Illustrazione",
-                "hp": "PV",
-                "flux": "Flussi",
-                "behaviors": {
-                  "reactive": "Reattiva",
-                  "permanent": "Permanente"
-                }
-              },
-              "face": {
-                "name": "Nube Intangibile",
-                "effect": {
-                  "name": "Effetto",
-                  "text": "Scegli una tua Entità. Finché questa carta e l'Entità scelta rimangono in campo, ogni volta che l'avversario dichiara un blocco contro quell'Entità lancia un d6: con 1–3 il blocco fallisce e l'attacco resta non bloccato; con 4–6 il blocco riesce normalmente."
-                },
-                "flavor": "Come trattenere la nebbia con le dita."
-              },
-              "matters": {
-                "dimensionalTitle": "Materia Dimensionale · 1° grado",
-                "dimensionalAria": "Dimensionale"
-              }
-            },
-            "en": {
-              "name": "Intangible Cloud",
-              "typeLabel": "Dimensional Matter I",
-              "summary": "A permanent cloud that makes blocks fail on a d6.",
-              "ui": {
-                "face": "Matter"
-              },
-              "card": {
-                "illustration": "Illustration",
-                "hp": "HP",
-                "flux": "Flux",
-                "behaviors": {
-                  "reactive": "Reactive",
-                  "permanent": "Permanent"
-                }
-              },
-              "face": {
-                "name": "Intangible Cloud",
-                "effect": {
-                  "name": "Effect",
-                  "text": "Choose an Entity you control. As long as this card and the chosen Entity remain on the field, whenever your opponent declares a block against that Entity, roll a d6: on 1–3 the block fails and the attack stays unblocked; on 4–6 the block succeeds normally."
-                },
-                "flavor": "Like holding fog with your fingers."
-              },
-              "matters": {
-                "dimensionalTitle": "Dimensional Matter · 1st grade",
-                "dimensionalAria": "Dimensional"
-              }
-            }
-          },
-          "tags": [
-            "matter",
-            "dimensional",
-            "grade-1",
-            "permanent",
-            "die",
-            "evasion"
-          ],
-          "rulesReference": "MANUALE.md §7.2",
-          "faces": [
-            {
-              "id": "matter",
-              "kind": "matter",
-              "displayKey": "face",
-              "matter": {
-                "type": "dimensional",
-                "grade": 1
-              },
-              "behavior": "permanent",
-              "stats": {
-                "fluxCost": 2
-              },
-              "enablesMatters": [],
-              "keywords": [],
-              "requirements": {},
-              "triggers": [
-                {
-                  "id": "veil",
-                  "displayKey": "effect",
-                  "event": "on_resolve",
-                  "effect": {
-                    "type": "protect",
-                    "target": {
-                      "cardType": "entity",
-                      "controller": "controller",
-                      "min": 1,
-                      "max": 1
-                    },
-                    "duration": "permanent",
-                    "details": {
-                      "whileSourceOnField": true,
-                      "onBlockDeclared": {
-                        "die": "d6",
-                        "blockFails": "1-3",
-                        "blockSucceeds": "4-6"
-                      }
-                    }
-                  }
-                }
-              ],
-              "actions": []
-            }
-          ],
-          "designNotes": "rbf-037.md",
-          "art": "rbf-037.jpg",
-          "source": {
-            "designNotes": "notes/rbf-037.md",
-            "art": "art/rbf-037.jpg"
-          }
-        },
-        {
-          "schemaVersion": 1,
           "id": "RBF-038",
           "setId": "rubyfront-core",
           "collectorNumber": "038",
@@ -5941,133 +5717,6 @@
           "source": {
             "designNotes": "notes/rbf-039.md",
             "art": "art/rbf-039.jpg"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "id": "RBF-040",
-          "setId": "rubyfront-core",
-          "collectorNumber": "040",
-          "slug": "reflected-shield",
-          "type": "matter",
-          "layout": "single",
-          "status": "draft",
-          "deckLimit": 3,
-          "defaultLocale": "it",
-          "locales": {
-            "it": {
-              "name": "Scudo Riflesso",
-              "typeLabel": "Materia Dimensionale I",
-              "summary": "Un blocco dal nulla che ripaga in PV chi tiene il Fronte armato.",
-              "ui": {
-                "face": "Materia"
-              },
-              "card": {
-                "illustration": "Illustrazione",
-                "hp": "PV",
-                "flux": "Flussi",
-                "behaviors": {
-                  "reactive": "Reattiva",
-                  "permanent": "Permanente"
-                }
-              },
-              "face": {
-                "name": "Scudo Riflesso",
-                "effect": {
-                  "name": "Effetto",
-                  "text": "Gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
-                },
-                "flavor": "Il muro che non c'era, finché non ci hai sbattuto contro."
-              },
-              "matters": {
-                "dimensionalTitle": "Materia Dimensionale · 1° grado",
-                "dimensionalAria": "Dimensionale"
-              }
-            },
-            "en": {
-              "name": "Reflected Shield",
-              "typeLabel": "Dimensional Matter I",
-              "summary": "A block out of nowhere that pays back in HP for keeping the Front armed.",
-              "ui": {
-                "face": "Matter"
-              },
-              "card": {
-                "illustration": "Illustration",
-                "hp": "HP",
-                "flux": "Flux",
-                "behaviors": {
-                  "reactive": "Reactive",
-                  "permanent": "Permanent"
-                }
-              },
-              "face": {
-                "name": "Reflected Shield",
-                "effect": {
-                  "name": "Effect",
-                  "text": "Play this card as a blocker of an attacking Entity: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
-                },
-                "flavor": "The wall that was not there, until you struck it."
-              },
-              "matters": {
-                "dimensionalTitle": "Dimensional Matter · 1st grade",
-                "dimensionalAria": "Dimensional"
-              }
-            }
-          },
-          "tags": [
-            "matter",
-            "dimensional",
-            "grade-1",
-            "reactive",
-            "block",
-            "equip",
-            "lifegain"
-          ],
-          "rulesReference": "MANUALE.md §7.2",
-          "faces": [
-            {
-              "id": "matter",
-              "kind": "matter",
-              "displayKey": "face",
-              "matter": {
-                "type": "dimensional",
-                "grade": 1
-              },
-              "behavior": "reactive",
-              "stats": {
-                "fluxCost": 2
-              },
-              "enablesMatters": [],
-              "keywords": [],
-              "requirements": {},
-              "triggers": [
-                {
-                  "id": "reflect",
-                  "displayKey": "effect",
-                  "event": "on_resolve",
-                  "effect": {
-                    "type": "block_attack",
-                    "target": {
-                      "cardType": "entity",
-                      "controller": "opponent",
-                      "min": 1,
-                      "max": 1
-                    },
-                    "details": {
-                      "ifControllerEntitiesWithObjectAtLeast": 2,
-                      "thenControllerGainsHealth": 3
-                    }
-                  }
-                }
-              ],
-              "actions": []
-            }
-          ],
-          "designNotes": "rbf-040.md",
-          "art": "rbf-040.jpg",
-          "source": {
-            "designNotes": "notes/rbf-040.md",
-            "art": "art/rbf-040.jpg"
           }
         },
         {
@@ -6590,6 +6239,304 @@
           "source": {
             "designNotes": "notes/rbf-044.md",
             "art": "art/rbf-044.jpg"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-045",
+          "setId": "rubyfront-core",
+          "collectorNumber": "045",
+          "slug": "bound-immortal",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Immortale Vincolato",
+              "typeLabel": "Entità: Auros",
+              "summary": "Torna dal nulla ogni volta che nella Zona di Ritiro c'è un Oggetto ad aspettarlo.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "flux": "Flussi"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Immortale Vincolato",
+                "boundReturn": {
+                  "trigger": "Quando lascia il campo",
+                  "text": "Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro, senza pagarne il costo. Se nella tua Zona di Ritiro non c'è un Oggetto così, non torna."
+                },
+                "flavor": "Non muore: aspetta l'arma che lo richiami."
+              }
+            },
+            "en": {
+              "name": "Bound Immortal",
+              "typeLabel": "Entity: Auros",
+              "summary": "It comes back from nothing whenever an Object is waiting for it in the Retire Zone.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "flux": "Flux"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "Bound Immortal",
+                "boundReturn": {
+                  "trigger": "When it leaves the field",
+                  "text": "If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object with Flux cost 2 or less from your Retire Zone, without paying its cost. If there is no such Object in your Retire Zone, it doesn't come back."
+                },
+                "flavor": "It doesn't die: it waits for the weapon that calls it back."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "auros",
+            "equip",
+            "retire",
+            "recursion"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §5, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "auros",
+              "stats": {
+                "power": 1,
+                "fluxCost": 1
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "bound-return",
+                  "displayKey": "boundReturn",
+                  "event": "on_leave_field",
+                  "details": {
+                    "requiresNoObjectAssignedWhenLeft": true
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "optional": true,
+                    "target": {
+                      "scope": "self"
+                    },
+                    "from": {
+                      "zone": [
+                        "abyss",
+                        "retire"
+                      ],
+                      "owner": "controller"
+                    },
+                    "destination": {
+                      "zone": "front",
+                      "owner": "controller"
+                    },
+                    "details": {
+                      "thenAssignObject": {
+                        "from": {
+                          "zone": "retire",
+                          "owner": "controller"
+                        },
+                        "filter": {
+                          "cardType": "object",
+                          "conditions": [
+                            {
+                              "stat": "flux_cost",
+                              "operator": "lte",
+                              "value": 2
+                            }
+                          ]
+                        },
+                        "noFluxCost": true,
+                        "required": true
+                      }
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-045.md",
+          "source": {
+            "designNotes": "notes/rbf-045.md"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-046",
+          "setId": "rubyfront-core",
+          "collectorNumber": "046",
+          "slug": "kyo-shin-shadow-of-nova-kai",
+          "type": "entity",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 1,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Kyo Shin, Ombra di Nova Kai",
+              "typeLabel": "Entità: Auros",
+              "summary": "Spoglia il Fronte avversario degli Oggetti e riarma il tuo dalla Zona di Ritiro.",
+              "ui": {
+                "face": "Entità"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "power": "Potenza",
+                "flux": "Flussi",
+                "unique": "Unica"
+              },
+              "matters": {
+                "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+                "dimensionalAria": "Dimensionale"
+              },
+              "face": {
+                "name": "Kyo Shin, Ombra di Nova Kai",
+                "disarm": {
+                  "trigger": "Quando entra sul Fronte",
+                  "text": "Metti nella Zona di Ritiro del suo proprietario ogni Oggetto assegnato a un'Entità avversaria. Poi puoi assegnare alle Entità che controlli, come preferisci e senza pagarne il costo di Flusso, gli Oggetti della tua Zona di Ritiro. Ogni Entità riceve un Oggetto solo se può riceverlo."
+                },
+                "flavor": "L'ombra di Nova Kai disarma prima di colpire."
+              }
+            },
+            "en": {
+              "name": "Kyo Shin, Shadow of Nova Kai",
+              "typeLabel": "Entity: Auros",
+              "summary": "Strips the opposing Front of its Objects and rearms yours from the Retire Zone.",
+              "ui": {
+                "face": "Entity"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "power": "Power",
+                "flux": "Flux",
+                "unique": "Unique"
+              },
+              "matters": {
+                "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+                "dimensionalAria": "Dimensional"
+              },
+              "face": {
+                "name": "Kyo Shin, Shadow of Nova Kai",
+                "disarm": {
+                  "trigger": "When it enters the Front",
+                  "text": "Put every Object assigned to an opposing Entity into its owner's Retire Zone. Then you may assign the Objects in your Retire Zone to Entities you control, as you like and without paying their Flux cost. Each Entity receives an Object only if it can receive it."
+                },
+                "flavor": "The shadow of Nova Kai disarms before it strikes."
+              }
+            }
+          },
+          "tags": [
+            "entity",
+            "auros",
+            "equip",
+            "legendary",
+            "retire",
+            "removal"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §8.2",
+          "faces": [
+            {
+              "id": "entity",
+              "kind": "entity",
+              "displayKey": "face",
+              "race": "auros",
+              "stats": {
+                "power": 4,
+                "fluxCost": 4
+              },
+              "enablesMatters": [
+                {
+                  "type": "dimensional",
+                  "maxGrade": 1
+                }
+              ],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "disarm",
+                  "displayKey": "disarm",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "object",
+                      "controller": "opponent",
+                      "zone": "front",
+                      "owner": "opponent",
+                      "quantity": "all",
+                      "details": {
+                        "assigned": true
+                      }
+                    },
+                    "destination": {
+                      "zone": "retire",
+                      "owner": "card_owner"
+                    }
+                  }
+                },
+                {
+                  "id": "rearm",
+                  "displayKey": "disarm",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "assign_object",
+                    "optional": true,
+                    "from": {
+                      "zone": "retire",
+                      "owner": "controller"
+                    },
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "controller",
+                      "quantity": "all"
+                    },
+                    "details": {
+                      "anyNumber": true,
+                      "noFluxCost": true,
+                      "respectAssignRestrictions": true,
+                      "afterTrigger": "disarm"
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-046.md",
+          "unique": true,
+          "source": {
+            "designNotes": "notes/rbf-046.md"
           }
         }
       ]
@@ -9926,11 +9873,7 @@
               },
               "bladeChorus": {
                 "name": "Coro delle Lame",
-                "text": "le Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
-              },
-              "greatRearm": {
-                "name": "Grande Riarmo",
-                "text": "assegna un qualsiasi numero di Oggetti dalla tua Zona di Ritiro ad altrettante Entità sul tuo Fronte, senza pagarne il costo di Flusso."
+                "text": "le Entità con un Oggetto assegnato che controlli prendono +2 Potenza fino alla fine del turno."
               }
             },
             "flavor": "La Scissione non è una ferita. È una porta."
@@ -9998,11 +9941,7 @@
               },
               "bladeChorus": {
                 "name": "Chorus of Blades",
-                "text": "Entities with an Object assigned you control get +1 Power until end of turn."
-              },
-              "greatRearm": {
-                "name": "Great Rearmament",
-                "text": "assign any number of Objects from your Retire Zone to as many Entities on your Front, without paying their Flux cost."
+                "text": "Entities with an Object assigned you control get +2 Power until end of turn."
               }
             },
             "flavor": "The Schism is not a wound. It is a door."
@@ -10309,7 +10248,7 @@
               "repeatable": false,
               "checks": [],
               "cost": {
-                "health": 3
+                "health": 5
               },
               "effect": {
                 "type": "modify_power",
@@ -10321,39 +10260,8 @@
                     "hasObjectAssigned": true
                   }
                 },
-                "amount": 1,
+                "amount": 2,
                 "duration": "until_end_of_turn"
-              }
-            },
-            {
-              "id": "great-rearm",
-              "displayKey": "greatRearm",
-              "timing": [
-                "own_preparation"
-              ],
-              "repeatable": false,
-              "checks": [],
-              "cost": {
-                "health": 7
-              },
-              "effect": {
-                "type": "assign_object",
-                "from": {
-                  "zone": "retire",
-                  "owner": "controller"
-                },
-                "target": {
-                  "cardType": "entity",
-                  "controller": "controller",
-                  "zone": "front",
-                  "owner": "controller",
-                  "quantity": "all"
-                },
-                "details": {
-                  "anyNumber": true,
-                  "noFluxCost": true,
-                  "oneObjectPerEntity": true
-                }
               }
             }
           ],
@@ -10500,7 +10408,7 @@
         "it": {
           "name": "Guardiano del Campo",
           "typeLabel": "Entità: Auros",
-          "summary": "Premia la seconda pescata del turno: più carte scorrono, più colpisce forte.",
+          "summary": "Scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
           "ui": {
             "face": "Entità"
           },
@@ -10516,9 +10424,9 @@
           },
           "face": {
             "name": "Guardiano del Campo",
-            "tally": {
-              "trigger": "Effetto",
-              "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
+            "forage": {
+              "trigger": "Quando entra sul Fronte",
+              "text": "Lancia un d6 e guarda dalla cima del tuo mazzo tante carte quanto il risultato. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
             },
             "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
           }
@@ -10526,7 +10434,7 @@
         "en": {
           "name": "Camp Warden",
           "typeLabel": "Entity: Auros",
-          "summary": "Rewards the turn's second draw: the more cards flow, the harder it hits.",
+          "summary": "It digs through the deck by the die and fills the Retire Zone.",
           "ui": {
             "face": "Entity"
           },
@@ -10542,9 +10450,9 @@
           },
           "face": {
             "name": "Camp Warden",
-            "tally": {
-              "trigger": "Effect",
-              "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."
+            "forage": {
+              "trigger": "When it enters the Front",
+              "text": "Roll a d6 and look at as many cards from the top of your deck as the result. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
             },
             "flavor": "It counts cards like sentries: at the second, it sounds the alarm."
           }
@@ -10554,7 +10462,8 @@
         "entity",
         "auros",
         "equip",
-        "draw"
+        "die",
+        "retire"
       ],
       "rulesReference": "MANUALE.md §3.1, §8.2",
       "faces": [
@@ -10577,21 +10486,36 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "tally",
-              "displayKey": "tally",
-              "event": "on_draw_card",
-              "details": {
-                "onSecondDrawInTurn": true
-              },
+              "id": "forage",
+              "displayKey": "forage",
+              "event": "on_enter_field",
               "effect": {
-                "type": "modify_power",
-                "target": {
-                  "scope": "self"
+                "type": "look_and_optionally_move",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top"
                 },
-                "amount": 1,
-                "duration": "until_end_of_turn",
                 "details": {
-                  "perCardDrawnBeyondFirstThisTurn": true
+                  "die": "d6",
+                  "count": "result",
+                  "mayReveal": {
+                    "cardType": "object"
+                  },
+                  "revealTo": {
+                    "zone": "hand",
+                    "owner": "controller"
+                  },
+                  "thenMoveOneTo": {
+                    "zone": "retire",
+                    "owner": "controller"
+                  },
+                  "restTo": {
+                    "zone": "deck",
+                    "owner": "controller",
+                    "position": "bottom",
+                    "anyOrder": true
+                  }
                 }
               }
             }
@@ -10742,7 +10666,7 @@
         "it": {
           "name": "Artefice di Nova Kai",
           "typeLabel": "Entità: Auros",
-          "summary": "L'artefice che scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
+          "summary": "Un corpo solido di Nova Kai, senza altri effetti: abilita la Dimensionale di secondo grado.",
           "ui": {
             "face": "Entità"
           },
@@ -10758,17 +10682,13 @@
           },
           "face": {
             "name": "Artefice di Nova Kai",
-            "forage": {
-              "trigger": "Quando entra sul Fronte",
-              "text": "Lancia un d6 e guarda un numero di carte dalla cima del tuo mazzo pari a 2 più la metà del risultato, arrotondata per eccesso. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
-            },
             "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
           }
         },
         "en": {
           "name": "Artificer of Nova Kai",
           "typeLabel": "Entity: Auros",
-          "summary": "The artificer who digs through the deck by the die and fills the Retire Zone.",
+          "summary": "A solid body from Nova Kai with no other effect: it enables second-grade Dimensional.",
           "ui": {
             "face": "Entity"
           },
@@ -10784,10 +10704,6 @@
           },
           "face": {
             "name": "Artificer of Nova Kai",
-            "forage": {
-              "trigger": "When it enters the Front",
-              "text": "Roll a d6 and look at a number of cards from the top of your deck equal to 2 plus half the result, rounded up. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
-            },
             "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited."
           }
         }
@@ -10795,9 +10711,7 @@
       "tags": [
         "entity",
         "auros",
-        "equip",
-        "die",
-        "retire"
+        "equip"
       ],
       "rulesReference": "MANUALE.md §3.1, §8.2",
       "faces": [
@@ -10818,42 +10732,7 @@
           ],
           "keywords": [],
           "requirements": {},
-          "triggers": [
-            {
-              "id": "forage",
-              "displayKey": "forage",
-              "event": "on_enter_field",
-              "effect": {
-                "type": "look_and_optionally_move",
-                "from": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "top"
-                },
-                "details": {
-                  "die": "d6",
-                  "count": "2 + ceil(result/2)",
-                  "mayReveal": {
-                    "cardType": "object"
-                  },
-                  "revealTo": {
-                    "zone": "hand",
-                    "owner": "controller"
-                  },
-                  "thenMoveOneTo": {
-                    "zone": "retire",
-                    "owner": "controller"
-                  },
-                  "restTo": {
-                    "zone": "deck",
-                    "owner": "controller",
-                    "position": "bottom",
-                    "anyOrder": true
-                  }
-                }
-              }
-            }
-          ],
+          "triggers": [],
           "actions": []
         }
       ],
@@ -10879,7 +10758,7 @@
         "it": {
           "name": "Sentinella di Nova Kai",
           "typeLabel": "Entità: Auros",
-          "summary": "Una sentinella che con l'Oggetto giusto risponde molto più forte e resta in guardia.",
+          "summary": "Un corpo con Contrattacco che costa 1 Flusso a ogni tuo turno finché resta sul Fronte.",
           "ui": {
             "face": "Entità"
           },
@@ -10898,18 +10777,14 @@
             "name": "Sentinella di Nova Kai",
             "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
             "effect": {
-              "text": "Se questa Entità ha un Oggetto assegnato, il suo Contrattacco diventa +2."
-            },
-            "vigil": {
-              "trigger": "Effetto",
-              "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, stappala dopo il combattimento."
+              "text": "Finché questa Entità resta sul Fronte, all'inizio di ogni tuo turno hai 1 Flusso in meno disponibile per quel turno."
             }
           }
         },
         "en": {
           "name": "Sentinel of Nova Kai",
           "typeLabel": "Entity: Auros",
-          "summary": "A sentinel whose answer hits far harder with the right Object, and who stays on guard.",
+          "summary": "A body with Counterattack that costs you 1 Flux each of your turns while it stays on the Front.",
           "ui": {
             "face": "Entity"
           },
@@ -10928,11 +10803,7 @@
             "name": "Sentinel of Nova Kai",
             "flavor": "The answering blow is the only one it has always prepared.",
             "effect": {
-              "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
-            },
-            "vigil": {
-              "trigger": "Effect",
-              "text": "The first time each of your turns this Entity attacks while it has an Object assigned, untap it after combat."
+              "text": "As long as this Entity remains on the Front, at the start of each of your turns you have 1 less Flux available for that turn."
             }
           }
         }
@@ -10942,7 +10813,7 @@
         "auros",
         "equip",
         "counterattack",
-        "untap"
+        "flux"
       ],
       "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
       "faces": [
@@ -10966,35 +10837,18 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "temper",
+              "id": "toll",
               "displayKey": "effect",
               "event": "while_in_play",
               "effect": {
-                "type": "modify_counterattack",
+                "type": "modify_flux",
                 "target": {
-                  "scope": "self"
+                  "controller": "controller"
                 },
-                "setTo": 2,
+                "amount": -1,
                 "details": {
-                  "whileHasObjectAssigned": true
-                }
-              }
-            },
-            {
-              "id": "vigil",
-              "displayKey": "vigil",
-              "event": "on_attack",
-              "details": {
-                "oncePerEachOfYourTurns": true,
-                "whileHasObjectAssigned": true
-              },
-              "effect": {
-                "type": "untap",
-                "target": {
-                  "scope": "self"
-                },
-                "details": {
-                  "afterCombat": true
+                  "atStartOfEachOwnTurn": true,
+                  "whileOnFront": true
                 }
               }
             }
@@ -12124,137 +11978,6 @@
     },
     {
       "schemaVersion": 1,
-      "id": "RBF-037",
-      "setId": "rubyfront-core",
-      "collectorNumber": "037",
-      "slug": "intangible-cloud",
-      "type": "matter",
-      "layout": "single",
-      "status": "draft",
-      "deckLimit": 3,
-      "defaultLocale": "it",
-      "locales": {
-        "it": {
-          "name": "Nube Intangibile",
-          "typeLabel": "Materia Dimensionale I",
-          "summary": "Una nube permanente che fa fallire i blocchi a colpi di d6.",
-          "ui": {
-            "face": "Materia"
-          },
-          "card": {
-            "illustration": "Illustrazione",
-            "hp": "PV",
-            "flux": "Flussi",
-            "behaviors": {
-              "reactive": "Reattiva",
-              "permanent": "Permanente"
-            }
-          },
-          "face": {
-            "name": "Nube Intangibile",
-            "effect": {
-              "name": "Effetto",
-              "text": "Scegli una tua Entità. Finché questa carta e l'Entità scelta rimangono in campo, ogni volta che l'avversario dichiara un blocco contro quell'Entità lancia un d6: con 1–3 il blocco fallisce e l'attacco resta non bloccato; con 4–6 il blocco riesce normalmente."
-            },
-            "flavor": "Come trattenere la nebbia con le dita."
-          },
-          "matters": {
-            "dimensionalTitle": "Materia Dimensionale · 1° grado",
-            "dimensionalAria": "Dimensionale"
-          }
-        },
-        "en": {
-          "name": "Intangible Cloud",
-          "typeLabel": "Dimensional Matter I",
-          "summary": "A permanent cloud that makes blocks fail on a d6.",
-          "ui": {
-            "face": "Matter"
-          },
-          "card": {
-            "illustration": "Illustration",
-            "hp": "HP",
-            "flux": "Flux",
-            "behaviors": {
-              "reactive": "Reactive",
-              "permanent": "Permanent"
-            }
-          },
-          "face": {
-            "name": "Intangible Cloud",
-            "effect": {
-              "name": "Effect",
-              "text": "Choose an Entity you control. As long as this card and the chosen Entity remain on the field, whenever your opponent declares a block against that Entity, roll a d6: on 1–3 the block fails and the attack stays unblocked; on 4–6 the block succeeds normally."
-            },
-            "flavor": "Like holding fog with your fingers."
-          },
-          "matters": {
-            "dimensionalTitle": "Dimensional Matter · 1st grade",
-            "dimensionalAria": "Dimensional"
-          }
-        }
-      },
-      "tags": [
-        "matter",
-        "dimensional",
-        "grade-1",
-        "permanent",
-        "die",
-        "evasion"
-      ],
-      "rulesReference": "MANUALE.md §7.2",
-      "faces": [
-        {
-          "id": "matter",
-          "kind": "matter",
-          "displayKey": "face",
-          "matter": {
-            "type": "dimensional",
-            "grade": 1
-          },
-          "behavior": "permanent",
-          "stats": {
-            "fluxCost": 2
-          },
-          "enablesMatters": [],
-          "keywords": [],
-          "requirements": {},
-          "triggers": [
-            {
-              "id": "veil",
-              "displayKey": "effect",
-              "event": "on_resolve",
-              "effect": {
-                "type": "protect",
-                "target": {
-                  "cardType": "entity",
-                  "controller": "controller",
-                  "min": 1,
-                  "max": 1
-                },
-                "duration": "permanent",
-                "details": {
-                  "whileSourceOnField": true,
-                  "onBlockDeclared": {
-                    "die": "d6",
-                    "blockFails": "1-3",
-                    "blockSucceeds": "4-6"
-                  }
-                }
-              }
-            }
-          ],
-          "actions": []
-        }
-      ],
-      "designNotes": "rbf-037.md",
-      "art": "rbf-037.jpg",
-      "source": {
-        "designNotes": "notes/rbf-037.md",
-        "art": "art/rbf-037.jpg"
-      }
-    },
-    {
-      "schemaVersion": 1,
       "id": "RBF-038",
       "setId": "rubyfront-core",
       "collectorNumber": "038",
@@ -12507,133 +12230,6 @@
       "source": {
         "designNotes": "notes/rbf-039.md",
         "art": "art/rbf-039.jpg"
-      }
-    },
-    {
-      "schemaVersion": 1,
-      "id": "RBF-040",
-      "setId": "rubyfront-core",
-      "collectorNumber": "040",
-      "slug": "reflected-shield",
-      "type": "matter",
-      "layout": "single",
-      "status": "draft",
-      "deckLimit": 3,
-      "defaultLocale": "it",
-      "locales": {
-        "it": {
-          "name": "Scudo Riflesso",
-          "typeLabel": "Materia Dimensionale I",
-          "summary": "Un blocco dal nulla che ripaga in PV chi tiene il Fronte armato.",
-          "ui": {
-            "face": "Materia"
-          },
-          "card": {
-            "illustration": "Illustrazione",
-            "hp": "PV",
-            "flux": "Flussi",
-            "behaviors": {
-              "reactive": "Reattiva",
-              "permanent": "Permanente"
-            }
-          },
-          "face": {
-            "name": "Scudo Riflesso",
-            "effect": {
-              "name": "Effetto",
-              "text": "Gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, guadagni 3 PV."
-            },
-            "flavor": "Il muro che non c'era, finché non ci hai sbattuto contro."
-          },
-          "matters": {
-            "dimensionalTitle": "Materia Dimensionale · 1° grado",
-            "dimensionalAria": "Dimensionale"
-          }
-        },
-        "en": {
-          "name": "Reflected Shield",
-          "typeLabel": "Dimensional Matter I",
-          "summary": "A block out of nowhere that pays back in HP for keeping the Front armed.",
-          "ui": {
-            "face": "Matter"
-          },
-          "card": {
-            "illustration": "Illustration",
-            "hp": "HP",
-            "flux": "Flux",
-            "behaviors": {
-              "reactive": "Reactive",
-              "permanent": "Permanent"
-            }
-          },
-          "face": {
-            "name": "Reflected Shield",
-            "effect": {
-              "name": "Effect",
-              "text": "Play this card as a blocker of an attacking Entity: that attack is blocked. If there are at least 2 Entities with an Object assigned on your Front, you gain 3 HP."
-            },
-            "flavor": "The wall that was not there, until you struck it."
-          },
-          "matters": {
-            "dimensionalTitle": "Dimensional Matter · 1st grade",
-            "dimensionalAria": "Dimensional"
-          }
-        }
-      },
-      "tags": [
-        "matter",
-        "dimensional",
-        "grade-1",
-        "reactive",
-        "block",
-        "equip",
-        "lifegain"
-      ],
-      "rulesReference": "MANUALE.md §7.2",
-      "faces": [
-        {
-          "id": "matter",
-          "kind": "matter",
-          "displayKey": "face",
-          "matter": {
-            "type": "dimensional",
-            "grade": 1
-          },
-          "behavior": "reactive",
-          "stats": {
-            "fluxCost": 2
-          },
-          "enablesMatters": [],
-          "keywords": [],
-          "requirements": {},
-          "triggers": [
-            {
-              "id": "reflect",
-              "displayKey": "effect",
-              "event": "on_resolve",
-              "effect": {
-                "type": "block_attack",
-                "target": {
-                  "cardType": "entity",
-                  "controller": "opponent",
-                  "min": 1,
-                  "max": 1
-                },
-                "details": {
-                  "ifControllerEntitiesWithObjectAtLeast": 2,
-                  "thenControllerGainsHealth": 3
-                }
-              }
-            }
-          ],
-          "actions": []
-        }
-      ],
-      "designNotes": "rbf-040.md",
-      "art": "rbf-040.jpg",
-      "source": {
-        "designNotes": "notes/rbf-040.md",
-        "art": "art/rbf-040.jpg"
       }
     },
     {
@@ -13157,6 +12753,304 @@
         "designNotes": "notes/rbf-044.md",
         "art": "art/rbf-044.jpg"
       }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-045",
+      "setId": "rubyfront-core",
+      "collectorNumber": "045",
+      "slug": "bound-immortal",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Immortale Vincolato",
+          "typeLabel": "Entità: Auros",
+          "summary": "Torna dal nulla ogni volta che nella Zona di Ritiro c'è un Oggetto ad aspettarlo.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "flux": "Flussi"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Immortale Vincolato",
+            "boundReturn": {
+              "trigger": "Quando lascia il campo",
+              "text": "Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro, senza pagarne il costo. Se nella tua Zona di Ritiro non c'è un Oggetto così, non torna."
+            },
+            "flavor": "Non muore: aspetta l'arma che lo richiami."
+          }
+        },
+        "en": {
+          "name": "Bound Immortal",
+          "typeLabel": "Entity: Auros",
+          "summary": "It comes back from nothing whenever an Object is waiting for it in the Retire Zone.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "flux": "Flux"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "Bound Immortal",
+            "boundReturn": {
+              "trigger": "When it leaves the field",
+              "text": "If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object with Flux cost 2 or less from your Retire Zone, without paying its cost. If there is no such Object in your Retire Zone, it doesn't come back."
+            },
+            "flavor": "It doesn't die: it waits for the weapon that calls it back."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "auros",
+        "equip",
+        "retire",
+        "recursion"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §5, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "auros",
+          "stats": {
+            "power": 1,
+            "fluxCost": 1
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "bound-return",
+              "displayKey": "boundReturn",
+              "event": "on_leave_field",
+              "details": {
+                "requiresNoObjectAssignedWhenLeft": true
+              },
+              "effect": {
+                "type": "move_card",
+                "optional": true,
+                "target": {
+                  "scope": "self"
+                },
+                "from": {
+                  "zone": [
+                    "abyss",
+                    "retire"
+                  ],
+                  "owner": "controller"
+                },
+                "destination": {
+                  "zone": "front",
+                  "owner": "controller"
+                },
+                "details": {
+                  "thenAssignObject": {
+                    "from": {
+                      "zone": "retire",
+                      "owner": "controller"
+                    },
+                    "filter": {
+                      "cardType": "object",
+                      "conditions": [
+                        {
+                          "stat": "flux_cost",
+                          "operator": "lte",
+                          "value": 2
+                        }
+                      ]
+                    },
+                    "noFluxCost": true,
+                    "required": true
+                  }
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-045.md",
+      "source": {
+        "designNotes": "notes/rbf-045.md"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-046",
+      "setId": "rubyfront-core",
+      "collectorNumber": "046",
+      "slug": "kyo-shin-shadow-of-nova-kai",
+      "type": "entity",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 1,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Kyo Shin, Ombra di Nova Kai",
+          "typeLabel": "Entità: Auros",
+          "summary": "Spoglia il Fronte avversario degli Oggetti e riarma il tuo dalla Zona di Ritiro.",
+          "ui": {
+            "face": "Entità"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "power": "Potenza",
+            "flux": "Flussi",
+            "unique": "Unica"
+          },
+          "matters": {
+            "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+            "dimensionalAria": "Dimensionale"
+          },
+          "face": {
+            "name": "Kyo Shin, Ombra di Nova Kai",
+            "disarm": {
+              "trigger": "Quando entra sul Fronte",
+              "text": "Metti nella Zona di Ritiro del suo proprietario ogni Oggetto assegnato a un'Entità avversaria. Poi puoi assegnare alle Entità che controlli, come preferisci e senza pagarne il costo di Flusso, gli Oggetti della tua Zona di Ritiro. Ogni Entità riceve un Oggetto solo se può riceverlo."
+            },
+            "flavor": "L'ombra di Nova Kai disarma prima di colpire."
+          }
+        },
+        "en": {
+          "name": "Kyo Shin, Shadow of Nova Kai",
+          "typeLabel": "Entity: Auros",
+          "summary": "Strips the opposing Front of its Objects and rearms yours from the Retire Zone.",
+          "ui": {
+            "face": "Entity"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "power": "Power",
+            "flux": "Flux",
+            "unique": "Unique"
+          },
+          "matters": {
+            "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+            "dimensionalAria": "Dimensional"
+          },
+          "face": {
+            "name": "Kyo Shin, Shadow of Nova Kai",
+            "disarm": {
+              "trigger": "When it enters the Front",
+              "text": "Put every Object assigned to an opposing Entity into its owner's Retire Zone. Then you may assign the Objects in your Retire Zone to Entities you control, as you like and without paying their Flux cost. Each Entity receives an Object only if it can receive it."
+            },
+            "flavor": "The shadow of Nova Kai disarms before it strikes."
+          }
+        }
+      },
+      "tags": [
+        "entity",
+        "auros",
+        "equip",
+        "legendary",
+        "retire",
+        "removal"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §8.2",
+      "faces": [
+        {
+          "id": "entity",
+          "kind": "entity",
+          "displayKey": "face",
+          "race": "auros",
+          "stats": {
+            "power": 4,
+            "fluxCost": 4
+          },
+          "enablesMatters": [
+            {
+              "type": "dimensional",
+              "maxGrade": 1
+            }
+          ],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "disarm",
+              "displayKey": "disarm",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "object",
+                  "controller": "opponent",
+                  "zone": "front",
+                  "owner": "opponent",
+                  "quantity": "all",
+                  "details": {
+                    "assigned": true
+                  }
+                },
+                "destination": {
+                  "zone": "retire",
+                  "owner": "card_owner"
+                }
+              }
+            },
+            {
+              "id": "rearm",
+              "displayKey": "disarm",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "assign_object",
+                "optional": true,
+                "from": {
+                  "zone": "retire",
+                  "owner": "controller"
+                },
+                "target": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "quantity": "all"
+                },
+                "details": {
+                  "anyNumber": true,
+                  "noFluxCost": true,
+                  "respectAssignRestrictions": true,
+                  "afterTrigger": "disarm"
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-046.md",
+      "unique": true,
+      "source": {
+        "designNotes": "notes/rbf-046.md"
+      }
     }
   ],
   "decks": [
@@ -13300,7 +13194,7 @@
         },
         {
           "card": "RBF-025",
-          "count": 3
+          "count": 2
         },
         {
           "card": "RBF-026",
@@ -13347,20 +13241,12 @@
           "count": 2
         },
         {
-          "card": "RBF-037",
-          "count": 1
-        },
-        {
           "card": "RBF-038",
           "count": 2
         },
         {
           "card": "RBF-039",
           "count": 2
-        },
-        {
-          "card": "RBF-040",
-          "count": 1
         },
         {
           "card": "RBF-041",
@@ -13377,6 +13263,14 @@
         {
           "card": "RBF-044",
           "count": 2
+        },
+        {
+          "card": "RBF-045",
+          "count": 2
+        },
+        {
+          "card": "RBF-046",
+          "count": 1
         }
       ],
       "theme": "t49",

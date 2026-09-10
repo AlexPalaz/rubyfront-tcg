@@ -843,8 +843,8 @@ describe("il flip del Nexus", () => {
   });
 });
 
-// RBF-040 — la Reattiva che ferma un attaccante e cura. Gemello: engine_test.rb, «lo scudo riflesso».
-describe("RBF-040, giocata come blocco", () => {
+// La Reattiva che ferma un attaccante e cura (forma `block`). Gemello: engine_test.rb, «lo scudo riflesso».
+describe("la Reattiva bloccante, giocata come blocco", () => {
   it("si gioca nella finestra dei blocchi, ferma un attaccante, e cura solo con due armati", () => {
     const state = newGame();
     const r = on(state, "r", "RIFLESSO", "b");

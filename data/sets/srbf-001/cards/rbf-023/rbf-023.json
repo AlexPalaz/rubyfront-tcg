@@ -313,7 +313,7 @@
           "repeatable": false,
           "checks": [],
           "cost": {
-            "health": 3
+            "health": 5
           },
           "effect": {
             "type": "modify_power",
@@ -325,39 +325,8 @@
                 "hasObjectAssigned": true
               }
             },
-            "amount": 1,
+            "amount": 2,
             "duration": "until_end_of_turn"
-          }
-        },
-        {
-          "id": "great-rearm",
-          "displayKey": "greatRearm",
-          "timing": [
-            "own_preparation"
-          ],
-          "repeatable": false,
-          "checks": [],
-          "cost": {
-            "health": 7
-          },
-          "effect": {
-            "type": "assign_object",
-            "from": {
-              "zone": "retire",
-              "owner": "controller"
-            },
-            "target": {
-              "cardType": "entity",
-              "controller": "controller",
-              "zone": "front",
-              "owner": "controller",
-              "quantity": "all"
-            },
-            "details": {
-              "anyNumber": true,
-              "noFluxCost": true,
-              "oneObjectPerEntity": true
-            }
           }
         }
       ]

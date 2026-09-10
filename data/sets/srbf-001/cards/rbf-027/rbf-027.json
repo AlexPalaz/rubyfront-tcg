@@ -16,9 +16,7 @@
   "tags": [
     "entity",
     "auros",
-    "equip",
-    "die",
-    "retire"
+    "equip"
   ],
   "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
@@ -39,42 +37,7 @@
       ],
       "keywords": [],
       "requirements": {},
-      "triggers": [
-        {
-          "id": "forage",
-          "displayKey": "forage",
-          "event": "on_enter_field",
-          "effect": {
-            "type": "look_and_optionally_move",
-            "from": {
-              "zone": "deck",
-              "owner": "controller",
-              "position": "top"
-            },
-            "details": {
-              "die": "d6",
-              "count": "2 + ceil(result/2)",
-              "mayReveal": {
-                "cardType": "object"
-              },
-              "revealTo": {
-                "zone": "hand",
-                "owner": "controller"
-              },
-              "thenMoveOneTo": {
-                "zone": "retire",
-                "owner": "controller"
-              },
-              "restTo": {
-                "zone": "deck",
-                "owner": "controller",
-                "position": "bottom",
-                "anyOrder": true
-              }
-            }
-          }
-        }
-      ],
+      "triggers": [],
       "actions": []
     }
   ],

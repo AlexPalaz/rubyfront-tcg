@@ -60,11 +60,7 @@
       },
       "bladeChorus": {
         "name": "Coro delle Lame",
-        "text": "le Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
-      },
-      "greatRearm": {
-        "name": "Grande Riarmo",
-        "text": "assegna un qualsiasi numero di Oggetti dalla tua Zona di Ritiro ad altrettante Entità sul tuo Fronte, senza pagarne il costo di Flusso."
+        "text": "le Entità con un Oggetto assegnato che controlli prendono +2 Potenza fino alla fine del turno."
       }
     },
     "flavor": "La Scissione non è una ferita. È una porta."

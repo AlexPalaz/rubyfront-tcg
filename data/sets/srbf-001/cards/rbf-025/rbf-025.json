@@ -17,7 +17,8 @@
     "entity",
     "auros",
     "equip",
-    "draw"
+    "die",
+    "retire"
   ],
   "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
@@ -40,21 +41,36 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "tally",
-          "displayKey": "tally",
-          "event": "on_draw_card",
-          "details": {
-            "onSecondDrawInTurn": true
-          },
+          "id": "forage",
+          "displayKey": "forage",
+          "event": "on_enter_field",
           "effect": {
-            "type": "modify_power",
-            "target": {
-              "scope": "self"
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top"
             },
-            "amount": 1,
-            "duration": "until_end_of_turn",
             "details": {
-              "perCardDrawnBeyondFirstThisTurn": true
+              "die": "d6",
+              "count": "result",
+              "mayReveal": {
+                "cardType": "object"
+              },
+              "revealTo": {
+                "zone": "hand",
+                "owner": "controller"
+              },
+              "thenMoveOneTo": {
+                "zone": "retire",
+                "owner": "controller"
+              },
+              "restTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom",
+                "anyOrder": true
+              }
             }
           }
         }

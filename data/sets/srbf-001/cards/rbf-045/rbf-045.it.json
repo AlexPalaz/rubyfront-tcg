@@ -1,0 +1,26 @@
+{
+  "name": "Immortale Vincolato",
+  "typeLabel": "Entità: Auros",
+  "summary": "Torna dal nulla ogni volta che nella Zona di Ritiro c'è un Oggetto ad aspettarlo.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+    "dimensionalAria": "Dimensionale"
+  },
+  "face": {
+    "name": "Immortale Vincolato",
+    "boundReturn": {
+      "trigger": "Quando lascia il campo",
+      "text": "Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro, senza pagarne il costo. Se nella tua Zona di Ritiro non c'è un Oggetto così, non torna."
+    },
+    "flavor": "Non muore: aspetta l'arma che lo richiami."
+  }
+}

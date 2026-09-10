@@ -1,7 +1,7 @@
 {
   "name": "Sentinel of Nova Kai",
   "typeLabel": "Entity: Auros",
-  "summary": "A sentinel whose answer hits far harder with the right Object, and who stays on guard.",
+  "summary": "A body with Counterattack that costs you 1 Flux each of your turns while it stays on the Front.",
   "ui": {
     "face": "Entity"
   },
@@ -20,11 +20,7 @@
     "name": "Sentinel of Nova Kai",
     "flavor": "The answering blow is the only one it has always prepared.",
     "effect": {
-      "text": "If this Entity has an Object assigned, its Counterattack becomes +2."
-    },
-    "vigil": {
-      "trigger": "Effect",
-      "text": "The first time each of your turns this Entity attacks while it has an Object assigned, untap it after combat."
+      "text": "As long as this Entity remains on the Front, at the start of each of your turns you have 1 less Flux available for that turn."
     }
   }
 }

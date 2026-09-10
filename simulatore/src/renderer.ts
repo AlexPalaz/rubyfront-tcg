@@ -792,7 +792,7 @@ function resolveUntap(effect: Loose): ResolveForm | null {
   return null;
 }
 
-/** RBF-040: «giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno N Entità con un Oggetto assegnato, guadagni M PV». Specchio di card_index.rb, resolve_block. */
+/** la Reattiva bloccante (forma `block`): «giocala come blocco a un attaccante: quell'attacco è bloccato. Se sul tuo Fronte ci sono almeno N Entità con un Oggetto assegnato, guadagni M PV». Specchio di card_index.rb, resolve_block. */
 function resolveBlock(effect: Loose): ResolveForm | null {
   if (effect.type !== "block_attack") return null;
   const target = effect.target as Loose | undefined;

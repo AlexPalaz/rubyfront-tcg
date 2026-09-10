@@ -2151,7 +2151,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   /**
    * §7.2 — la Reattiva giocata è in catena. Quella che ferma un attaccante
-   * (RBF-040, §6.4) lo sceglie subito: il blocco è la giocata; senza
+   * (la Reattiva bloccante (forma `block`), §6.4) lo sceglie subito: il blocco è la giocata; senza
    * attaccante si consuma a vuoto ed esce dalla catena. Poi si aspetta la
    * parola dell'avversario.
    */
@@ -2340,7 +2340,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           break;
         }
         case "block": {
-          // RBF-040 — il blocco è già avvenuto giocandola (§6.4); qui la
+          // la Reattiva bloccante (forma `block`) — il blocco è già avvenuto giocandola (§6.4); qui la
           // cura, se gli armati sul Fronte bastano (sennò step.blocked).
           hold(true);
           await wait(TRIGGER_LEAD_MS);

@@ -724,7 +724,7 @@ export function resolveSteps(state: GameState, source: CardInstance, facts: (car
       case "fortune":
         break;
       case "block": {
-        // RBF-040 — il blocco è la giocata stessa (§6.4, la Reattiva come
+        // la Reattiva bloccante (forma `block`) — il blocco è la giocata stessa (§6.4, la Reattiva come
         // bloccante); il passo è la cura, «se sul tuo Fronte ci sono
         // almeno N Entità con un Oggetto assegnato».
         if (armedCount(state, seat, facts) < form.requiresArmed) step.blocked = "log.no.armed";
@@ -786,7 +786,7 @@ export function discountedCost(state: GameState, cardId: string, target: CardIns
 
 /**
  * La Materia «si gioca come bloccante di un'Entità attaccante» (§6.4):
- * sostituisce il bloccante, in Reazione. Solo RBF-040. Una Reattiva che non
+ * sostituisce il bloccante, in Reazione. Solo la Reattiva bloccante (forma `block`). Una Reattiva che non
  * dice cosa blocca (RBF-020) non blocca nulla — decisione del designer,
  * 2026-09-05: si gioca in Reazione come ogni Reattiva del difensore, e il
  * suo effetto (stappa gli Umani, Contrattacco +1) è tutto quel che fa.
@@ -795,7 +795,7 @@ export function playsAsBlock(facts: CardFacts): boolean {
   return facts.resolveForms.some(form => "asBlock" in form && form.asBlock);
 }
 
-/** La Materia, giocata, ferma un attaccante — e quindi ne sceglie uno (§6.4): solo RBF-040. */
+/** La Materia, giocata, ferma un attaccante — e quindi ne sceglie uno (§6.4): solo la Reattiva bloccante (forma `block`). */
 export function blocksAttacker(facts: CardFacts): boolean {
   return facts.resolveForms.some(form => form.kind === "block");
 }

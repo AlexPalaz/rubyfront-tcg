@@ -8,14 +8,17 @@
 > Astra», che occupa 001–022: oggi Scissione Profonda è **023–044**, Rubyfront
 > in testa al blocco. **Aggiornata il 2026-08-28** al foglio v4: due progetti
 > nuovi (Prisma Dimensionale, Frattura della Scissione) e sei carte ritoccate
-> — vedi §5.
+> — vedi §5. **Riallineata il 2026-09-10** al foglio «Rubyfront - Mazzi
+> Precon»: due carte nuove (Immortale Vincolato, Kyo Shin), due tolte dal set
+> (Nube Intangibile, Scudo Riflesso), tre ritoccate e il Nexus con due
+> abilità — vedi §6.
 
 ## 1. Composizione
 
 | | |
 |---|---|
-| Totale | 40 carte più il Rubyfront (17 Entità · 10 Oggetti · 13 Materie) |
-| Progetti | 21, di cui 2 in tripla copia |
+| Totale | 40 carte più il Rubyfront (19 Entità · 10 Oggetti · 11 Materie) |
+| Progetti | 21, di cui 1 in tripla copia |
 | Razza | Auros al 100% |
 | Regola nuova | **Nessun limite di Oggetti per Entità** (MANUALE §3.1, 24 ago 2026) |
 
@@ -23,7 +26,7 @@
 
 | Costo | 1 | 2 | 3 | 4 | 5 | Rubyfront |
 |---|---|---|---|---|---|---|
-| Copie | 5 | 13 | 16 | 5 | 1 | 1 (fisso 3) |
+| Copie | 7 | 10 | 14 | 8 | 1 | 1 (fisso 3) |
 
 La v4 sposta il peso dal due al tre: sedici copie a 3 Flussi fra Oggetti,
 rimozione e tutori. Il piano resta armare presto, pescare con gli inneschi
@@ -43,19 +46,18 @@ Zona di Ritiro.
 | Materie | Dim II · Distr I | Dim II · Distr II |
 | Statico | 1ª assegnazione: guarda cima+fondo, puoi scambiarle, poi pesca/scarta | 1ª assegnazione: cima+fondo, una in mano e una in Ritiro |
 | Abilità | −3 PV Forgia Rapida: prossimo Oggetto −1 Flusso | −3 PV Forgia Profonda: prossimo Oggetto −2 Flussi |
-| Abilità | −3 PV Colpo Calibrato: un'armata +2 Potenza | −3 PV Coro delle Lame: tutte le armate +1 Potenza |
-| Abilità | — | −7 PV Grande Riarmo: tutti gli Oggetti dal Ritiro agli slot disarmati, gratis |
+| Abilità | −3 PV Colpo Calibrato: un'armata +2 Potenza | −5 PV Coro delle Lame: tutte le armate +2 Potenza |
 | Flip | requisito: 3 Entità armate; costo: un Auros dal Ritiro nell'Abisso | al flip: assorbe Avy Shin · pesca 1 · recupero +5 PV |
 
 ## 3. I motori del mazzo
 
 - **Vantaggio carte**: Portatore di Fronti (pesca a ogni assegnazione, e ora
   le assegnazioni su di lui costano 1 Flusso in meno), Esploratore (loot in
-  attacco, una volta per turno), Guardiano del Campo (cresce con le pescate).
-- **Zona di Ritiro come arsenale**: Artefice di Nova Kai, Catalizzatore Sigma,
-  Carica Latente e la nuova vista di Avy Shin la riempiono; Vestigio della
-  Scissione, il riarmo di Avy Shin e il Grande Riarmo la svuotano riassegnando
-  gratis.
+  attacco, una volta per turno).
+- **Zona di Ritiro come arsenale**: Guardiano del Campo (lo sguardo col
+  dado), Catalizzatore Sigma, Carica Latente e la vista di Avy Shin la
+  riempiono; Vestigio della Scissione, il riarmo di Avy Shin, Kyo Shin e
+  l'Immortale Vincolato la svuotano riassegnando gratis.
 - **Rimozione**: Eversione Distruttiva porta all'Abisso pagando PV; Frattura
   della Scissione toglie di mezzo un corpo **senza ucciderlo** (Zona di
   Ritiro); Prisma Dimensionale lo chiude nell'Abisso finché resta assegnato,
@@ -117,3 +119,43 @@ rimasto alla v3 e non corrispondeva alla propria lista: fa fede la lista.
 **Art**: Prisma Dimensionale e Frattura della Scissione sono state scelte dal
 designer il 2026-08-28 e montate (finestra 16:9, nessun artZoom). Il mazzo è
 completo di illustrazioni.
+
+## 6. Foglio del 2026-09-10 («Rubyfront - Mazzi Precon»)
+
+Confronto colonna per colonna con la scheda Scissione Profonda; le decisioni
+sui punti aperti sono del designer (2026-09-10).
+
+**Carte nuove**
+
+- **Immortale Vincolato** (RBF-045, Entità 1/1, Dim I, ×2): quando lascia il
+  campo senza Oggetti, torna sul Fronte se nella Zona di Ritiro c'è un
+  Oggetto da 2 o meno da assegnargli gratis — da Abisso e Ritiro, ogni volta.
+- **Kyo Shin, Ombra di Nova Kai** (RBF-046, Entità 4/4, **Unica**, Dim I,
+  ×1): all'ingresso manda in Ritiro gli Oggetti avversari e riarma le tue
+  Entità dal Ritiro, gratis. Il foglio dava anche «Distruttiva 1»: tolta,
+  la Distruttiva è del Rubyfront (§7.1).
+
+**Carte tolte dal set**
+
+- **Nube Intangibile** (RBF-037) e **Scudo Riflesso** (RBF-040): fuori dal
+  foglio, cancellate dal catalogo. La forma «Reattiva come bloccante» resta
+  certificata nell'engine, oggi senza carte.
+
+**Carte ritoccate**
+
+- **Guardiano del Campo**: da «cresce con le pescate» allo sguardo col dado
+  all'ingresso, «tante carte quanto il tiro»; copie da 3 a 2.
+- **Artefice di Nova Kai**: senza effetto (cella vuota nel foglio).
+- **Sentinella di Nova Kai**: via Contrattacco +2 e stappata; ora la tassa
+  di Flusso: 1 Flusso in meno a ogni tuo turno finché resta sul Fronte.
+- **Cuore della Scissione**: Coro delle Lame −5 PV e +2 Potenza; Grande
+  Riarmo tolto.
+
+**Conteggi**: 19 Entità · 10 Oggetti · 11 Materie = 40. Le intestazioni del
+foglio («Entità — 8 carte, 17 copie», «Materia — 8 carte, 13 copie») erano
+rimaste indietro: corrette sul foglio con la lista.
+
+**Engine**: i quattro effetti nuovi (sguardo «tante quante il tiro», tassa
+di Flusso, ritorno vincolato, disarmo e riarmo di Kyo Shin) non hanno forme
+certificate e restano a mano (README dell'engine); si collegano una alla
+volta su decisione del designer.

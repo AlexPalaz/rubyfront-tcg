@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-045",
+  "setId": "rubyfront-core",
+  "collectorNumber": "045",
+  "slug": "bound-immortal",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "equip",
+    "retire",
+    "recursion"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §5, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 1,
+        "fluxCost": 1
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "bound-return",
+          "displayKey": "boundReturn",
+          "event": "on_leave_field",
+          "details": {
+            "requiresNoObjectAssignedWhenLeft": true
+          },
+          "effect": {
+            "type": "move_card",
+            "optional": true,
+            "target": {
+              "scope": "self"
+            },
+            "from": {
+              "zone": [
+                "abyss",
+                "retire"
+              ],
+              "owner": "controller"
+            },
+            "destination": {
+              "zone": "front",
+              "owner": "controller"
+            },
+            "details": {
+              "thenAssignObject": {
+                "from": {
+                  "zone": "retire",
+                  "owner": "controller"
+                },
+                "filter": {
+                  "cardType": "object",
+                  "conditions": [
+                    {
+                      "stat": "flux_cost",
+                      "operator": "lte",
+                      "value": 2
+                    }
+                  ]
+                },
+                "noFluxCost": true,
+                "required": true
+              }
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-045.md"
+}

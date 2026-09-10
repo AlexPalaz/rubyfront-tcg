@@ -60,11 +60,7 @@
       },
       "bladeChorus": {
         "name": "Chorus of Blades",
-        "text": "Entities with an Object assigned you control get +1 Power until end of turn."
-      },
-      "greatRearm": {
-        "name": "Great Rearmament",
-        "text": "assign any number of Objects from your Retire Zone to as many Entities on your Front, without paying their Flux cost."
+        "text": "Entities with an Object assigned you control get +2 Power until end of turn."
       }
     },
     "flavor": "The Schism is not a wound. It is a door."

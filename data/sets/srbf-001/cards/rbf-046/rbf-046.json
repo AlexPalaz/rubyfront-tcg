@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-046",
+  "setId": "rubyfront-core",
+  "collectorNumber": "046",
+  "slug": "kyo-shin-shadow-of-nova-kai",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 1,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "equip",
+    "legendary",
+    "retire",
+    "removal"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 4,
+        "fluxCost": 4
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "disarm",
+          "displayKey": "disarm",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "object",
+              "controller": "opponent",
+              "zone": "front",
+              "owner": "opponent",
+              "quantity": "all",
+              "details": {
+                "assigned": true
+              }
+            },
+            "destination": {
+              "zone": "retire",
+              "owner": "card_owner"
+            }
+          }
+        },
+        {
+          "id": "rearm",
+          "displayKey": "disarm",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "assign_object",
+            "optional": true,
+            "from": {
+              "zone": "retire",
+              "owner": "controller"
+            },
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "quantity": "all"
+            },
+            "details": {
+              "anyNumber": true,
+              "noFluxCost": true,
+              "respectAssignRestrictions": true,
+              "afterTrigger": "disarm"
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-046.md",
+  "unique": true
+}

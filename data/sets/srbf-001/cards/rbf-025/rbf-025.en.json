@@ -1,7 +1,7 @@
 {
   "name": "Camp Warden",
   "typeLabel": "Entity: Auros",
-  "summary": "Rewards the turn's second draw: the more cards flow, the harder it hits.",
+  "summary": "It digs through the deck by the die and fills the Retire Zone.",
   "ui": {
     "face": "Entity"
   },
@@ -17,9 +17,9 @@
   },
   "face": {
     "name": "Camp Warden",
-    "tally": {
-      "trigger": "Effect",
-      "text": "When you draw your second card in a turn, this Entity gets +1 Power for each card drawn beyond the first, until end of turn."
+    "forage": {
+      "trigger": "When it enters the Front",
+      "text": "Roll a d6 and look at as many cards from the top of your deck as the result. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
     },
     "flavor": "It counts cards like sentries: at the second, it sounds the alarm."
   }

@@ -185,6 +185,10 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Presenza sul Fronte (nome/singola) | Se [Nome / un'altra Entità X] è sul tuo Fronte, … | If [Name / another X Entity] is on your Front, … |
 | Presenza sul Fronte (conteggio) | Se sul tuo Fronte ci sono almeno N …, … | If there are at least N … on your Front, … |
 | Non si tappa attaccando (statico) | Questa Entità non viene tappata dopo l'attacco. | This Entity is not tapped after attacking. |
+| Sguardo col dado (tante quante il tiro) | Lancia un d6 e guarda dalla cima del tuo mazzo tante carte quanto il risultato. … | Roll a d6 and look at as many cards from the top of your deck as the result. … |
+| Tassa di Flusso (statico) | Finché questa Entità resta sul Fronte, all'inizio di ogni tuo turno hai N Flusso in meno disponibile per quel turno. | As long as this Entity remains on the Front, at the start of each of your turns you have N less Flux available for that turn. |
+| Ritorno vincolato | Quando lascia il campo: Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto … dalla tua Zona di Ritiro, senza pagarne il costo. Se … non c'è un Oggetto così, non torna. | When it leaves the field: If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object … from your Retire Zone, without paying its cost. If there is no such Object …, it doesn't come back. |
+| Disarmo avversario | Metti nella Zona di Ritiro del suo proprietario ogni Oggetto assegnato a un'Entità avversaria. | Put every Object assigned to an opposing Entity into its owner's Retire Zone. |
 
 **Rimozione: quale zona.** Una rimozione che deve **tornare in gioco** usa
 l'«Esilio condizionato» sull'**Abisso** (RBF-018, RBF-043; nella variante
@@ -196,7 +200,7 @@ esiste: è il nome deprecato della Zona di Ritiro.
 
 **Blocco: si scrive sempre COSA si blocca.** La formula «Gioca questa carta
 come bloccante di …» è riservata ai **blocchi diretti**: una Materia che
-sostituisce il bloccante contro un'Entità attaccante (RBF-040, MANUALE §6.4)
+sostituisce il bloccante contro un'Entità attaccante (la forma `block`, MANUALE §6.4; dal 2026-09-10 nessuna carta la usa)
 o che blocca una Materia. Il testo dice sempre cosa blocca — un'Entità o una
 Materia — mai un «come blocco» generico. Una Reattiva che **non blocca**
 nulla (RBF-020: stappa gli Umani e concede Contrattacco) non porta la

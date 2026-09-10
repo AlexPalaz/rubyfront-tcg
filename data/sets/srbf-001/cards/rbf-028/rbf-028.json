@@ -18,7 +18,7 @@
     "auros",
     "equip",
     "counterattack",
-    "untap"
+    "flux"
   ],
   "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
   "faces": [
@@ -42,35 +42,18 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "temper",
+          "id": "toll",
           "displayKey": "effect",
           "event": "while_in_play",
           "effect": {
-            "type": "modify_counterattack",
+            "type": "modify_flux",
             "target": {
-              "scope": "self"
+              "controller": "controller"
             },
-            "setTo": 2,
+            "amount": -1,
             "details": {
-              "whileHasObjectAssigned": true
-            }
-          }
-        },
-        {
-          "id": "vigil",
-          "displayKey": "vigil",
-          "event": "on_attack",
-          "details": {
-            "oncePerEachOfYourTurns": true,
-            "whileHasObjectAssigned": true
-          },
-          "effect": {
-            "type": "untap",
-            "target": {
-              "scope": "self"
-            },
-            "details": {
-              "afterCombat": true
+              "atStartOfEachOwnTurn": true,
+              "whileOnFront": true
             }
           }
         }

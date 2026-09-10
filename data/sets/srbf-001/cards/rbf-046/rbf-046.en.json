@@ -1,0 +1,27 @@
+{
+  "name": "Kyo Shin, Shadow of Nova Kai",
+  "typeLabel": "Entity: Auros",
+  "summary": "Strips the opposing Front of its Objects and rearms yours from the Retire Zone.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux",
+    "unique": "Unique"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Kyo Shin, Shadow of Nova Kai",
+    "disarm": {
+      "trigger": "When it enters the Front",
+      "text": "Put every Object assigned to an opposing Entity into its owner's Retire Zone. Then you may assign the Objects in your Retire Zone to Entities you control, as you like and without paying their Flux cost. Each Entity receives an Object only if it can receive it."
+    },
+    "flavor": "The shadow of Nova Kai disarms before it strikes."
+  }
+}

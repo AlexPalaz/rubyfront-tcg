@@ -26,7 +26,7 @@
     },
     {
       "card": "RBF-025",
-      "count": 3
+      "count": 2
     },
     {
       "card": "RBF-026",
@@ -73,20 +73,12 @@
       "count": 2
     },
     {
-      "card": "RBF-037",
-      "count": 1
-    },
-    {
       "card": "RBF-038",
       "count": 2
     },
     {
       "card": "RBF-039",
       "count": 2
-    },
-    {
-      "card": "RBF-040",
-      "count": 1
     },
     {
       "card": "RBF-041",
@@ -103,6 +95,14 @@
     {
       "card": "RBF-044",
       "count": 2
+    },
+    {
+      "card": "RBF-045",
+      "count": 2
+    },
+    {
+      "card": "RBF-046",
+      "count": 1
     }
   ],
   "theme": "t49"

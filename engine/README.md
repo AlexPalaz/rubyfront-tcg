@@ -791,12 +791,25 @@ Regole collegate finora:
   dichiarati: un'abilità il cui effetto non ha forma certificata **non si
   attiva** con l'arbitro (l'engine non saprebbe verificarne l'effetto, e i
   PV non si pagano per niente): oggi «metti sul tuo Fronte un Umano dalla
-  mano senza costo…» e «il riarmo dalla Zona di Ritiro» restano a mano, e
-  la voce lo dice;
+  mano senza costo…» resta a mano, e la voce lo dice;
   la perdita della partita a PV zero dopo un'abilità la chiude la fine
   partita, non questa dogana; le attivazioni in sospeso e gli sconti non
   viaggiano nello snapshot d'allineamento (dopo un riallineamento a metà
   turno si perdono). Engine 0.45.0, cinquantadue regole.
+
+- **Effetti di Scissione Profonda ancora a mano** (foglio del designer del
+  2026-09-10): lo sguardo col dado «tante carte quanto il tiro» (l'anagrafe
+  certifica solo «2 + ceil(tiro/2)»), la **tassa di Flusso** («all'inizio
+  di ogni tuo turno hai 1 Flusso in meno disponibile» finché la fonte resta
+  sul Fronte: tocca la routine del cambio di turno nei gemelli), il
+  **ritorno vincolato** («quando lascia il campo … puoi rimetterla sul tuo
+  Fronte assegnandole un Oggetto dalla Zona di Ritiro»: l'engine non legge
+  `on_leave_field`), e il **disarmo con riarmo** all'ingresso (tutti gli
+  Oggetti avversari in Ritiro, poi gli Oggetti del proprio Ritiro alle
+  proprie Entità, gratis). Regola d'oro: risolti a mano, oggi le dogane
+  fermerebbero i loro gesti (un Oggetto dal Ritiro a un'Entità, una carta
+  dall'Abisso al Fronte); si collegano una alla volta su decisione del
+  designer.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

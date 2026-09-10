@@ -1,0 +1,26 @@
+{
+  "name": "Bound Immortal",
+  "typeLabel": "Entity: Auros",
+  "summary": "It comes back from nothing whenever an Object is waiting for it in the Retire Zone.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+    "dimensionalAria": "Dimensional"
+  },
+  "face": {
+    "name": "Bound Immortal",
+    "boundReturn": {
+      "trigger": "When it leaves the field",
+      "text": "If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object with Flux cost 2 or less from your Retire Zone, without paying its cost. If there is no such Object in your Retire Zone, it doesn't come back."
+    },
+    "flavor": "It doesn't die: it waits for the weapon that calls it back."
+  }
+}

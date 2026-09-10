@@ -1,7 +1,7 @@
 {
   "name": "Guardiano del Campo",
   "typeLabel": "Entità: Auros",
-  "summary": "Premia la seconda pescata del turno: più carte scorrono, più colpisce forte.",
+  "summary": "Scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
   "ui": {
     "face": "Entità"
   },
@@ -17,9 +17,9 @@
   },
   "face": {
     "name": "Guardiano del Campo",
-    "tally": {
-      "trigger": "Effetto",
-      "text": "Quando peschi la tua seconda carta in un turno, questa Entità prende +1 Potenza per ogni carta pescata oltre la prima, fino alla fine del turno."
+    "forage": {
+      "trigger": "Quando entra sul Fronte",
+      "text": "Lancia un d6 e guarda dalla cima del tuo mazzo tante carte quanto il risultato. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
     },
     "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
   }

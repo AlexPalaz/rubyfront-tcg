@@ -19,12 +19,15 @@ class CardIndexTest < Minitest::Test
   # vi compare, è una forma rotta o un dato cambiato di nascosto — e il test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBITO = [
+    "RBF-045 entity/bound-return",
+    "RBF-046 entity/disarm",
+    "RBF-046 entity/rearm",
     "RBF-023 rubyfront/schism-forge",
     "RBF-023 nexus/awakening",
     "RBF-023 nexus/deep-forge-sight",
     "RBF-024 entity/grip",
-    "RBF-025 entity/tally",
-    "RBF-028 entity/temper",
+    "RBF-025 entity/forage",
+    "RBF-028 entity/toll",
     "RBF-030 entity/outfit",
     "RBF-030 entity/carry",
     "RBF-031 entity/aura",
@@ -34,7 +37,6 @@ class CardIndexTest < Minitest::Test
     "RBF-035 object/relic",
     "RBF-035 object/remain",
     "RBF-036 matter/amplify",
-    "RBF-037 matter/veil",
     "RBF-038 matter/evert",
     "RBF-039 matter/refract",
     "RBF-041 matter/surge-search",
@@ -124,7 +126,7 @@ class CardIndexTest < Minitest::Test
 
   def test_le_forme_quando_attacca_delle_carte_vere
     forme = ->(id) { @index[id][:attack_forms].map { |form| [form[:kind], form[:who], form[:face]] } }
-    assert_equal [["untap", "self", 0]], forme.call("RBF-028")
+    assert_equal [], forme.call("RBF-028"), "dal 2026-09-10 la Sentinella ha solo la tassa di Flusso, a mano"
     assert_equal [["empower", "self", 0]], forme.call("RBF-029")
     assert_equal [["empower", "object", 0], ["look", "object", 0]], forme.call("RBF-034")
     assert_equal [["rearm", "ally", 0], ["look", "ally", 0]], forme.call("RBF-031")
@@ -159,12 +161,12 @@ class CardIndexTest < Minitest::Test
     assert_nil oblivhal[3][:form], "«metti sul tuo Fronte un Umano dalla mano senza costo…» non è una forma certificata"
     assert_equal({ 0 => 13 }, @index["RBF-001"][:fury_at], "la Furia solo sulla faccia del Rubyfront, a 13")
     rhazmora = @index["RBF-023"][:abilities]
-    assert_equal %w[swift-forge calibrated-strike deep-forge blade-chorus great-rearm], rhazmora.map { |a| a[:id] }
+    assert_equal %w[swift-forge calibrated-strike deep-forge blade-chorus], rhazmora.map { |a| a[:id] }, "dal 2026-09-10 senza il riarmo"
     assert_equal({ kind: "discount", amount: 1, type: "object", race: nil }, rhazmora[0][:form])
     assert_equal %w[preparazione], rhazmora[0][:timing]
     assert_equal({ kind: "power", amount: 2, targets: "one", race: nil, attacking: false, armed: true }, rhazmora[1][:form])
-    assert_equal({ kind: "power", amount: 1, targets: "all", race: nil, attacking: false, armed: true }, rhazmora[3][:form])
-    assert_nil rhazmora[4][:form], "il riarmo dalla Zona di Ritiro non è una forma certificata"
+    assert_equal({ kind: "power", amount: 2, targets: "all", race: nil, attacking: false, armed: true }, rhazmora[3][:form])
+    assert_equal 5, rhazmora[3][:cost], "Coro delle Lame: −5 PV, +2 dal 2026-09-10"
     assert_equal({ 0 => 12 }, @index["RBF-023"][:fury_at])
     assert_equal [], @index["RBF-002"][:abilities], "un'Entità non ha abilità speciali"
   end
@@ -189,7 +191,6 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "fortune", die: 20, gain: { on: [1, 6], amount: 4 }, deploy: { on: [7, 13], filter: { type: "entity", race: "human", max_cost: 2 } },
                     draw: { on: [14, 19], count: 1 }, all_on: [20, 20] }], forme.call("RBF-019")
     assert_equal [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, requires: { count: 3, race: "human" } }], forme.call("RBF-020"), "la stappata di gruppo: in Reazione, senza bloccare"
-    assert_equal [{ kind: "block", requires_armed: 2, heal: 3, as_block: true }], forme.call("RBF-040"), "bloccante di un'Entità attaccante, con 2 armati +3 PV"
     assert_equal [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" } }], forme.call("RBF-021")
     assert_equal [], forme.call("RBF-038"), "«poi perdi 2 PV» è un seguito ignoto: la forma non entra"
     assert_equal [], forme.call("RBF-022"), "la permanente si innesca all'attacco, non alla risoluzione"
@@ -214,8 +215,9 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ count: 4, die: nil, count_base: 0, reveal: { type: "entity", race: "human" }, then_retire: false }], @index["RBF-006"][:enter_looks]
   end
 
-  def test_l_artefice_tira_un_d6_e_ne_manda_una_in_ritiro
-    assert_equal [{ count: nil, die: 6, count_base: 2, reveal: { type: "object", race: nil }, then_retire: true }], @index["RBF-027"][:enter_looks]
+  def test_lo_sguardo_col_dado_di_scissione_profonda_non_e_piu_certificato
+    assert_equal [], @index["RBF-027"][:enter_looks], "dal 2026-09-10 l'Artefice non ha effetti"
+    assert_equal [], @index["RBF-025"][:enter_looks], "«tante carte quanto il tiro» non è la formula certificata («2 + ceil(tiro/2)»): resta a mano"
   end
 
   def test_il_radunatore_prende_il_controllo_fino_a_fine_turno
@@ -236,7 +238,7 @@ class CardIndexTest < Minitest::Test
   # --- Materie e abilitazioni (§7) ----------------------------------------
 
   def test_conosce_tipo_e_grado_delle_materie
-    assert_equal({ type: "dimensional", grade: 1 }, @index["RBF-040"][:matter])
+    assert_equal({ type: "dimensional", grade: 1 }, @index["RBF-036"][:matter])
     assert_nil @index["RBF-004"][:matter], "un'Entità non è una Materia"
   end
 
@@ -246,21 +248,21 @@ class CardIndexTest < Minitest::Test
     assert_equal 2, rubino.size, "Rubyfront e Nexus: una lista per faccia"
     assert_includes rubino[0], { type: "destructive", max_grade: 1 }
     assert_includes rubino[1], { type: "destructive", max_grade: 2 }, "il Nexus abilita di più (§3.1)"
-    assert_equal [[]], @index["RBF-040"][:enables], "una Materia non abilita nulla"
+    assert_equal [[]], @index["RBF-036"][:enables], "una Materia non abilita nulla"
   end
 
   # --- il costo di Flusso (§3.2) ------------------------------------------
 
   def test_conosce_il_costo_di_flusso
     assert_equal 2, @index["RBF-004"][:flux_cost]
-    assert_equal 2, @index["RBF-040"][:flux_cost], "anche le Materie si pagano"
+    assert_equal 2, @index["RBF-036"][:flux_cost], "anche le Materie si pagano"
     assert_nil @index["RBF-023"][:flux_cost], "il Rubyfront ha il costo di schieramento, non di Flusso"
   end
 
   # --- il comportamento delle Materie (§7.2) ------------------------------
 
   def test_conosce_le_materie_reattive
-    assert_equal "reactive", @index["RBF-040"][:behavior]
+    assert_equal "reactive", @index["RBF-036"][:behavior]
     assert_nil @index["RBF-004"][:behavior], "un'Entità non ha comportamento di Materia"
   end
 
