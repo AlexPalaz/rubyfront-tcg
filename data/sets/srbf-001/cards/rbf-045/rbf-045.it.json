@@ -18,7 +18,7 @@
   "face": {
     "name": "Immortale Vincolato",
     "boundReturn": {
-      "trigger": "Quando viene mandata nell'Abisso o nella Zona di Ritiro",
+      "trigger": "Quando viene mandata nell'Abisso o in Ritiro",
       "text": "Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro, senza pagarne il costo. Se nella tua Zona di Ritiro non c'è un Oggetto così, non torna."
     },
     "flavor": "Non muore: aspetta l'arma che lo richiami."

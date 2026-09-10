@@ -103,7 +103,7 @@ Trigger (campo `trigger`, iniziale maiuscola, senza punto finale):
 |---|---|
 | Quando entra sul Fronte | When it enters the Front |
 | Quando lascia il campo | When it leaves the field |
-| Quando viene mandata nell'Abisso o nella Zona di Ritiro | When it is sent to the Abyss or the Retire Zone |
+| Quando viene mandata nell'Abisso o in Ritiro *(la forma corta del trigger, decisione del designer 2026-09-11)* | When it is sent to the Abyss or to Retire |
 | Quando attacca | When it attacks |
 | Quando contrattacca | When it counterattacks |
 | Quando infligge danno al Rubyfront/Nexus avversario | When it deals damage to the opposing Rubyfront/Nexus |
@@ -188,7 +188,7 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Non si tappa attaccando (statico) | Questa Entità non viene tappata dopo l'attacco. | This Entity is not tapped after attacking. |
 | Sguardo col dado (tante quante il tiro) | Lancia un d6 e guarda dalla cima del tuo mazzo tante carte quanto il risultato. … | Roll a d6 and look at as many cards from the top of your deck as the result. … |
 | Tassa di Flusso (statico) | Finché questa Entità resta sul Fronte, all'inizio di ogni tuo turno hai N Flusso in meno disponibile per quel turno. | As long as this Entity remains on the Front, at the start of each of your turns you have N less Flux available for that turn. |
-| Ritorno vincolato | Quando viene mandata nell'Abisso o nella Zona di Ritiro: Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto … dalla tua Zona di Ritiro, senza pagarne il costo. Se … non c'è un Oggetto così, non torna. | When it is sent to the Abyss or the Retire Zone: If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object … from your Retire Zone, without paying its cost. If there is no such Object …, it doesn't come back. |
+| Ritorno vincolato | Quando viene mandata nell'Abisso o in Ritiro: Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto … dalla tua Zona di Ritiro, senza pagarne il costo. Se … non c'è un Oggetto così, non torna. | When it is sent to the Abyss or to Retire: If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object … from your Retire Zone, without paying its cost. If there is no such Object …, it doesn't come back. |
 | Disarmo avversario | Metti nella Zona di Ritiro del suo proprietario ogni Oggetto assegnato a un'Entità avversaria. | Put every Object assigned to an opposing Entity into its owner's Retire Zone. |
 | Riarmo di sé all'ingresso | Quando entra sul Fronte: Puoi assegnare a questa Entità un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso. | When it enters the Front: You may assign this Entity an Object from your Retire Zone without paying its Flux cost. |
 | Contrattacco per Oggetto (statico) | Il Contrattacco di questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità. | This Entity's Counterattack increases by 1 for each Object assigned to this Entity. |
