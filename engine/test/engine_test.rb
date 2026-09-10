@@ -2366,6 +2366,20 @@ class EngineTest < Minitest::Test
     refute pesca_attaccando(engine)[:ok], "una volta per attacco"
   end
 
+  def test_l_attacco_che_ha_pescato_non_si_annulla_piu
+    engine = esploratore
+    fronte!(engine)
+    assert engine.judge(attacco("esp"))[:ok]
+    refute engine.judge({ "t" => "undeclare", "from" => "esp" })[:ruled], "prima dell'innesco l'annullamento è libero"
+    assert engine.judge(attacco("esp"))[:ok]
+    assert pesca_attaccando(engine)[:ok]
+    verdict = engine.judge({ "t" => "undeclare", "from" => "esp" })
+    refute verdict[:ok]
+    assert_match(/già innescato i suoi effetti.*§8\.2/, verdict[:reason])
+    assert_match(/already triggered its effects.*§8\.2/, verdict[:reason_en])
+    assert copia(engine).attacking?("esp"), "la dichiarazione resta"
+  end
+
   def test_senza_oggetto_l_innesco_non_scatta
     engine = esploratore(armato: false)
     fronte!(engine)

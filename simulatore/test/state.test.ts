@@ -222,6 +222,15 @@ describe("apply turn", () => {
     expect(state.players.b.flux).toBe(0);
   });
 
+  it("un passo d'effetto ferma la dichiarazione che l'ha innescato (§8.2) — gemello: table_test.rb", () => {
+    let state = apply(newGame(), deckFor("a", 2));
+    const [attacker] = zoneCards(state, "a", "deck").map(card => card.uid);
+    state = apply(state, { t: "declare", declaration: { id: attacker, from: attacker, to: "rf-b", kind: "attack", seat: "a", order: 1 } });
+    expect(state.declarations[0].sealed).toBeUndefined();
+    state = apply(state, { t: "draw", seat: "a", count: 1, effect: { source: attacker, event: "on_attack", entering: attacker } });
+    expect(state.declarations[0].sealed).toBe(true);
+  });
+
   it("il ritorno vincolato (§8.2) rimette l'Entità sullo slot e le mette addosso l'Oggetto dal Ritiro — gemello: table_test.rb", () => {
     let state = apply(newGame(), deckFor("a", 2));
     const [entity, object] = zoneCards(state, "a", "deck").map(card => card.uid);

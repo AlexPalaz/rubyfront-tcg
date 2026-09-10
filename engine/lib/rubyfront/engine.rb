@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.52.0"
+    VERSION = "0.53.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -88,6 +88,7 @@ module Rubyfront
       "§8.2 Effetti certificati: «mandata nell'Abisso o in Ritiro senza Oggetti, torna sul Fronte con un Oggetto dal Ritiro»",
       "§8.2 Effetti certificati: «quando entra, puoi assegnarle un Oggetto dal tuo Ritiro, gratis»",
       "§6.3 Gli statici di Contrattacco contano: «+1 per ogni Oggetto assegnato», «Contrattacco +1» dall'Oggetto",
+      "§8.2 Innesco risolto, dichiarazione ferma: l'attacco (o il blocco) coi suoi effetti già risolti non si annulla",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -150,6 +151,7 @@ module Rubyfront
       "§8.2 Certified effects: “sent to the Abyss or Retire without Objects, it returns to the Front with an Object from Retire”",
       "§8.2 Certified effects: “when it enters, you may assign it an Object from your Retire Zone, for free”",
       "§6.3 Counterattack statics count: “+1 for each Object assigned”, “Counterattack +1” from the Object",
+      "§8.2 Trigger resolved, declaration stands: an attack (or block) whose effects already resolved can't be called off",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -214,6 +216,9 @@ module Rubyfront
       # passo che segue un innesco d'ingresso ha la sua tripla (`follow`);
       # le Materie alla risoluzione e il flip hanno una chiave per passo
       # (resolve_key), e il tiro del primo passo resta in memoria.
+      # §8.2 — il passo risolto ferma la dichiarazione della carta che l'ha
+      # innescata (l'attaccante): da qui non si annulla più.
+      @table.seal_declaration(ref["entering"])
       case ref["event"]
       when "on_attack"
         @table.fire(ref["source"], *attack_key(action, ref))
@@ -319,6 +324,7 @@ module Rubyfront
       when "turn" then judge_turn(action)
       when "phase" then judge_phase(action)
       when "declare" then judge_declare(action)
+      when "undeclare" then judge_undeclare(action)
       when "toZone" then judge_to_zone(action)
       when "assign" then judge_assign(action)
       when "resolve" then judge_resolve(action)
@@ -2644,6 +2650,16 @@ module Rubyfront
       end
 
       allow("revive")
+    end
+
+    # §8.2 — «Annulla»: una dichiarazione i cui effetti si sono già risolti
+    # è ferma (deciso 2026-09-10): l'attacco ha pescato, potenziato, fatto
+    # tirare il dado — indietro non si torna. Senza effetti risolti,
+    # l'annullamento resta libero (nessuna regola).
+    def judge_undeclare(action)
+      return no_rule("undeclare") unless action["from"].is_a?(String) && @table.declaration_sealed?(action["from"])
+
+      refuse("undeclare", "la dichiarazione ha già innescato i suoi effetti: non si annulla (§8.2)", "the declaration has already triggered its effects: it can't be called off (§8.2)")
     end
 
     def judge_flip(action)

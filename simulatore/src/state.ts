@@ -150,7 +150,14 @@ export function attackKey(action: Action): string | null {
 }
 
 export function apply(state: GameState, action: Action): GameState {
-  const next = reduce(state, action);
+  let next = reduce(state, action);
+  // §8.2 — un effetto risolto ferma la dichiarazione che l'ha innescato:
+  // attacco, blocco o contrattacco con un passo già passato non si annullano
+  // più (deciso 2026-09-10). Gemello: table.rb, seal_declaration.
+  const ref = "effect" in action ? action.effect : undefined;
+  if (ref && next.declarations.some(d => d.from === ref.entering && !d.sealed)) {
+    next = { ...next, declarations: next.declarations.map(d => (d.from === ref.entering ? { ...d, sealed: true as const } : d)) };
+  }
   // La memoria degli inneschi (vedi attackKey).
   const key = attackKey(action);
   const untaps = action.t === "resolve" ? (action.untap ?? []).map(uid => `${uid}|on_attack:untap|turn`) : [];

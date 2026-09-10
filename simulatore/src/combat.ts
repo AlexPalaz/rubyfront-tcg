@@ -285,6 +285,11 @@ export async function declareBlock(
  * può averla già stappata o scoperta a mano, e non c'è niente da disfare.
  */
 export async function undeclare(ctx: Ctx, card: CardInstance, declared: Declaration): Promise<void> {
+  // §8.2 — l'innesco risolto ferma la dichiarazione: niente da disfare.
+  if (declared.sealed) {
+    ctx.log(msg("log.undo.sealed", { seat: card.owner, card: card.cardId }), card.owner);
+    return;
+  }
   const passed = await ctx.dispatch({ t: "undeclare", from: card.uid });
   if (!passed) return;
   const live = ctx.state().cards[card.uid] ?? card;

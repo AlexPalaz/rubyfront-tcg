@@ -154,6 +154,10 @@ export interface Declaration {
    */
   to: string;
   kind: "attack" | "block" | "counter";
+  /** Un effetto innescato da questa dichiarazione si è già risolto (§8.2):
+      la dichiarazione è ferma, non si annulla più. Lo segna il riduttore
+      (apply) quando passa un'azione d'effetto con `entering` = questa carta. */
+  sealed?: true;
   /** Posto che ha dichiarato. */
   seat: Seat;
   /**

@@ -671,6 +671,19 @@ class TableBonusTest < Minitest::Test
     assert_nil @table.card("u")[:power_bonus]
   end
 
+  # --- §8.2: la dichiarazione ferma (gemello: state.ts, apply) ---------------
+
+  def test_la_dichiarazione_si_sigilla_e_lo_snapshot_la_ricorda
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "u", "to" => "rf", "kind" => "attack", "seat" => "a", "order" => 1 } })
+    refute @table.declaration_sealed?("u")
+    @table.seal_declaration("u")
+    assert @table.declaration_sealed?("u")
+    @table.apply({ "t" => "undeclare", "from" => "u" })
+    refute @table.declaration_sealed?("u"), "sciolta (a engine spento), il sigillo se ne va con lei"
+    @table.load({ "cards" => [], "declarations" => [{ "from" => "x", "to" => "rf", "kind" => "attack", "seat" => "a", "order" => 1, "sealed" => true }], "players" => {} })
+    assert @table.declaration_sealed?("x")
+  end
+
   # --- §8.2: l'uscita annotata e il ritorno vincolato (gemello: state.ts, revive)
 
   def test_l_uscita_dal_campo_si_annota_col_turno_e_gli_oggetti_addosso

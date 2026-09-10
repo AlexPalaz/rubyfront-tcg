@@ -870,6 +870,14 @@ Regole collegate finora:
   ma il portatore è chi entra e vale una volta per ingresso (la memoria
   degli inneschi). Engine 0.50.0.
 
+- **§8.2 Innesco risolto, dichiarazione ferma** — un attacco (o un blocco,
+  un contrattacco) i cui effetti si sono già risolti non si annulla più:
+  la copia annota `sealed` sulla dichiarazione appena passa un passo
+  d'effetto con quell'ingresso (`settle_effect`), e `judge_undeclare` lo
+  ferma; il riduttore fa lo stesso in `apply`, e il client toglie il tasto
+  «Annulla». Senza effetti risolti l'annullamento resta libero (nessuna
+  regola). Decisione del designer, 2026-09-10. Engine 0.53.0.
+
 - **§6.3 Gli statici di Contrattacco** — «il Contrattacco di questa Entità
   aumenta di 1 per ogni Oggetto assegnato a questa Entità» (`self_counter`
   per Oggetto) e «Contrattacco +1» al portatore dall'Oggetto

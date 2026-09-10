@@ -433,6 +433,7 @@ const M: Record<string, { it: string; en: string }> = {
   "log.attack": { it: "{seat} attacca ({n}).", en: "{seat} attacks ({n})." },
   "log.block": { it: "{seat} blocca.", en: "{seat} blocks." },
   "log.counter": { it: "{seat} contrattacca.", en: "{seat} counterattacks." },
+  "log.undo.sealed": { it: "{seat}: {card} ha già innescato i suoi effetti, la dichiarazione non si annulla (§8.2).", en: "{seat}: {card} has already triggered its effects, the declaration can't be called off (§8.2)." },
   "log.undo.attack": { it: "{seat} annulla l'attacco.", en: "{seat} calls off the attack." },
   "log.undo.block": { it: "{seat} annulla il blocco.", en: "{seat} calls off the block." },
   "log.undo.counter": { it: "{seat} annulla il contrattacco.", en: "{seat} calls off the counterattack." },

@@ -226,6 +226,16 @@ module Rubyfront
       @declarations.any? { |from, d| from == uid && d[:kind] == "attack" }
     end
 
+    # §8.2 — un effetto risolto ferma la dichiarazione che l'ha innescato
+    # (deciso 2026-09-10). Gemello: state.ts, apply.
+    def seal_declaration(uid)
+      @declarations[uid][:sealed] = true if @declarations[uid]
+    end
+
+    def declaration_sealed?(uid)
+      !!@declarations.dig(uid, :sealed)
+    end
+
     # §6.4: quella carta sta bloccando (o contrattaccando)?
     def blocking?(uid)
       @declarations.any? { |from, d| from == uid && %w[block counter].include?(d[:kind]) }
@@ -323,7 +333,7 @@ module Rubyfront
         next unless declaration.is_a?(Hash) && declaration["from"]
 
         @declarations[declaration["from"]] = { to: declaration["to"], kind: declaration["kind"],
-                                               order: declaration["order"].to_i }
+                                               order: declaration["order"].to_i, sealed: declaration["sealed"] == true }
       end
       cards = state["cards"]
       return unless cards.is_a?(Hash)

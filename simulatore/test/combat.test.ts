@@ -144,6 +144,13 @@ describe("undeclare", () => {
     expect(logs).toHaveLength(1);
   });
 
+  it("la dichiarazione ferma (effetti già risolti, §8.2) non si annulla: niente azione, una riga", async () => {
+    const { ctx, sent, logs } = fakeCtx(() => true);
+    await undeclare(ctx, cardOn("a-1", "a"), { ...declarationBy("a-1", "attack"), sealed: true });
+    expect(sent).toEqual([]);
+    expect(logs).toHaveLength(1);
+  });
+
   it("se l'attaccante era già stappato a mano, non c'è nulla da disfare", async () => {
     const { ctx, sent } = fakeCtx(() => true);
     await undeclare(ctx, cardOn("a-1", "a"), declarationBy("a-1", "attack"));

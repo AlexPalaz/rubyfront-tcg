@@ -1618,7 +1618,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // Una coperta non fa nulla (§6.3) — salvo ripensare il contrattacco che
     // l'ha coperta: quel tasto resta, in Reazione, a chi la governa.
     if (card.facedown) {
-      if (!targeting && state.phase === "reazione" && declared && declared.kind !== "attack" && ctx.controls(controller)) {
+      if (!targeting && state.phase === "reazione" && declared && declared.kind !== "attack" && !declared.sealed && ctx.controls(controller)) {
         return [{ label: t("tab.cancel"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
       }
       return [];
@@ -1639,7 +1639,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // Fase di Fronte, il proprio turno: si attacca (§6.3). Il Rubyfront non
     // attacca (§3.1), dichiarano le Entità; una tappata non può.
     if (state.phase === "fronte" && state.active === controller && ctx.controls(controller) && entity) {
-      if (declared?.kind === "attack") return [{ label: t("tab.cancel"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
+      // L'attacco che ha già innescato i suoi effetti è fermo (§8.2): niente Annulla.
+      if (declared?.kind === "attack") return declared.sealed ? [] : [{ label: t("tab.cancel"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
       if (!declared && !card.tapped) return [{ label: t("menu.attack"), kind: "attack", run: () => void declareAttack(card) }];
       return [];
     }
@@ -1656,7 +1657,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       ];
     }
     if (controller !== defender) return [];
-    if (declared) return [{ label: t("tab.cancel"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
+    if (declared) return declared.sealed ? [] : [{ label: t("tab.cancel"), kind: "cancel", run: () => void undeclare(ctx, card, declared) }];
     if (!entity || card.tapped || card.cannotBlock) return [];
     const attackers = state.declarations.some(d => d.kind === "attack" && controllerOf(state.cards[d.from]) === state.active);
     if (!attackers) return [];
