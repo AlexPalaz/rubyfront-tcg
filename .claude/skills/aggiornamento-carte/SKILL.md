@@ -95,10 +95,12 @@ giro; se un passo manca, si aggiunge qui nella stessa modifica.
   l'intestazione «RUBYFRONT — <MAZZO>» per isolare quella giusta.
 - Nel browser il foglio è un canvas: le celle non si leggono dalla pagina
   (`get_page_text` non le vede). Le coordinate dello screenshot sono
-  SCALATE rispetto ai click (un click «sulla riga 8» è finito su I6) e la
-  casella del nome non ha preso il testo: si naviga con le FRECCE da una
-  cella nota, e prima di scrivere si controlla la cella selezionata con
-  uno zoom sulla barra del nome/formula (in alto a sinistra). Scrivere su
+  SCALATE rispetto ai click (un click «sulla riga 8» è finito su I6). La
+  via che funziona (2026-09-10): la **casella del nome** raggiunta con
+  `find` («name box input») e cliccata per riferimento, o col tasto
+  **Cmd+J**, poi si scrive `I8` e Invio: la cella è selezionata; prima di
+  scrivere si controlla con uno zoom sulla barra del nome/formula (in alto
+  a sinistra), che mostra anche il contenuto attuale. Scrivere su
   una cella selezionata sostituisce il contenuto; Invio conferma e scende
   di una riga (comodo per celle consecutive, ma ogni Invio conta); una
   riga nuova dentro la cella è Cmd+Invio. Un errore di riga si annulla con
