@@ -86,7 +86,11 @@ export type StaticForm =
   /** «Il Contrattacco aumenta di 1 per ogni Oggetto assegnato a questa Entità» (dal 2026-09-10). */
   | { kind: "self_counter"; amount: number; perObject: true }
   /** «Contrattacco +1» al portatore, dall'Oggetto. */
-  | { kind: "bearer_counter"; amount: number };
+  | { kind: "bearer_counter"; amount: number }
+  /** «Gli Oggetti che assegni a questa Entità costano N Flusso in meno» (dal 2026-09-10). */
+  | { kind: "assign_discount"; amount: number }
+  /** «Le altre Entità con un Oggetto assegnato che controlli hanno +N Potenza» (dal 2026-09-10). */
+  | { kind: "others_armed_power"; amount: number };
 
 /**
  * Gli effetti certificati delle Materie alla risoluzione (§7.2), specchio
@@ -110,7 +114,9 @@ export type ResolveForm =
   /** RBF-019: il d20 a fasce — PV, un'Entità dalla mano, una pesca, o tutto. */
   | { kind: "fortune"; die: number; gain: { on: [number, number]; amount: number }; deploy: { on: [number, number]; filter: { kind: "entity"; race: string | null; maxCost: number | null } }; draw: { on: [number, number]; count: number }; allOn: [number, number] }
   /** RBF-021: distruggi un'Entità; contro una tappata costa N in meno. */
-  | { kind: "destroy"; target: { kind: "entity"; controller: "any" | "opponent" | "controller" }; to: "abisso"; discount: { amount: number; ifTarget: "tapped" } | null }
+  | { kind: "destroy"; target: { kind: "entity"; controller: "any" | "opponent" | "controller" }; to: "abisso"; discount: { amount: number; ifTarget: "tapped" } | null; thenLose: number | null }
+  /** Il prosciugamento (dal 2026-09-10): «il Rubyfront/Nexus avversario perde PV pari al numero di Oggetti assegnati alle Entità che controlli». */
+  | { kind: "drain"; amount: "objects" }
   /** la Reattiva bloccante (forma `block`): giocata come bloccante di un'Entità attaccante (l'attacco è bloccato, §6.4); con almeno N Entità armate sul Fronte, +M PV. */
   | { kind: "block"; requiresArmed: number; heal: number; asBlock: true };
 
@@ -119,12 +125,18 @@ export type ResolveForm =
  * §8.2), specchio di card_index.rb, assign_forms: l'esilio condizionato
  * tenuto dall'Oggetto (dal 2026-09-10).
  */
-export type AssignForm = { kind: "exile"; target: { kind: "entity"; controller: "opponent" }; to: "abisso"; hold: true };
+export type AssignForm =
+  /** Sull'Oggetto: «quando assegni questa carta a un'Entità, manda nell'Abisso un'Entità avversaria finché questa carta resta in gioco». */
+  | { kind: "exile"; target: { kind: "entity"; controller: "opponent" }; to: "abisso"; hold: true }
+  /** Sull'Entità: «quando assegni un Oggetto a questa Entità: pesca una carta». */
+  | { kind: "draw"; count: number; toSelf: true };
 
 /** «Quando flippa» (§3.1, RBF-001): la carta nominata nell'Abisso, e il sigillo. */
 export type FlipForm =
   | { kind: "move"; cardId: string; from: "field"; to: "abisso" }
-  | { kind: "seal"; cardId: string };
+  | { kind: "seal"; cardId: string }
+  /** «Poi pesca una carta» (dal 2026-09-10). */
+  | { kind: "draw"; count: number };
 
 /** Il requisito del flip verso il Nexus (§3.1), certificato: N Entità [di razza] e lo scarto di una carta [di tipo]; il recupero di PV. */
 /**

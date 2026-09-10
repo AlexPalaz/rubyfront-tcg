@@ -105,6 +105,8 @@ import {
   describeResolveStep,
   discountedCost,
   weakenAmount,
+  wornObjects,
+  objectCost,
   type AssignStep,
   flipRef,
   flipSteps,
@@ -2171,6 +2173,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       }
     }
     let cost = card.zone === "hand" && !isRubyfront(card.cardId) ? facts.fluxCost : null;
+    // L'Oggetto sul portatore che sconta («gli Oggetti che assegni a questa
+    // Entità costano N in meno»): il costo lo dice objectCost, come l'engine.
+    if (card.zone === "hand" && facts.kind === "object") cost = objectCost(ctx.state(), ctx.state().cards[card.uid] ?? card, ctx.card);
     // Una Materia che chiede il bersaglio già giocandola (RBF-021: «se
     // bersaglia un'Entità tappata, costa 3 in meno»): si mira prima, il
     // bersaglio viaggia nell'azione e lo sconto ne discende. Esc: nessun
@@ -2340,6 +2345,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (ctx.state().chain?.stack.includes(matter.uid)) await ctx.dispatch({ t: "settle", uid: matter.uid });
   }
 
+  /** «Poi perdi N PV»: il seguito della distruzione, di chi comanda la fonte. */
+  async function loseAfterDestroy(step: ResolveStep, ref: EffectRef, n: number): Promise<void> {
+    const by = controllerOf(step.source);
+    hold(true);
+    await wait(TRIGGER_LEAD_MS);
+    const hp = Math.max(0, ctx.state().players[by].hp - n);
+    const passed = await ctx.dispatch({ t: "player", seat: by, patch: { hp }, effect: ref });
+    if (passed) ctx.log(msg("log.effect.lose", { seat: by, sourceCard: step.source.cardId, n, hp }), by);
+    await wait(TRIGGER_TAIL_MS);
+  }
+
   /**
    * §7.2 — la catena si risolve «in ordine inverso: l'ultima Materia giocata
    * si risolve per prima». Chi comanda la carta in cima la risolve; risolta,
@@ -2461,9 +2477,25 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           }
           break;
         }
+        case "drain": {
+          hold(true);
+          await wait(TRIGGER_LEAD_MS);
+          const foe = otherSeat(by);
+          const n = wornObjects(ctx.state(), by);
+          const hp = Math.max(0, ctx.state().players[foe].hp - n);
+          const passed = await ctx.dispatch({ t: "player", seat: foe, patch: { hp }, effect: ref });
+          if (passed) ctx.log(msg("log.effect.drain", { seat: by, otherSeat: foe, sourceCard: step.source.cardId, n, hp }), by);
+          await wait(TRIGGER_TAIL_MS);
+          break;
+        }
         case "move":
         case "exile":
         case "destroy": {
+          // La distruzione già passata: resta solo il seguito «poi perdi N PV».
+          if (form.kind === "destroy" && form.thenLose !== null && step.candidates.length === 0) {
+            await loseAfterDestroy(step, ref, form.thenLose);
+            break;
+          }
           const hint = form.kind === "move" ? "target.impact" : form.kind === "exile" ? "target.repulse" : "target.judgment";
           const target = step.candidates.length === 1 && step.source.target ? step.candidates[0] : await pickTarget(step.source, step.candidates, t(hint));
           if (!target) break;
@@ -2491,6 +2523,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             const line = form.kind === "move" ? "log.effect.retire" : form.kind === "exile" ? "log.effect.exile" : "log.effect.destroy";
             ctx.log(msg(line, { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
             await wait(FLY_MS);
+            if (form.kind === "destroy" && form.thenLose !== null) await loseAfterDestroy(step, ref, form.thenLose);
           } else {
             fly?.cancel();
             render();
@@ -2619,6 +2652,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
               fly?.cancel();
             }
           }
+        } else if (step.form.kind === "draw") {
+          const passed = await ctx.dispatch({ t: "draw", seat: by, count: step.form.count, effect: flipRef(step.source) });
+          if (passed) ctx.log(msg("log.effect.trigger", { seat: by, card: step.source.cardId, n: step.form.count, cards: msg(step.form.count === 1 ? "cards.one" : "cards.many") }), by);
         } else {
           const sealed = [...new Set([...(ctx.state().players[by].sealed ?? []), step.form.cardId])];
           const passed = await ctx.dispatch({ t: "player", seat: by, patch: { sealed }, effect: flipRef(step.source) });
@@ -3433,8 +3469,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // che l'azione è passata: questa viene dopo, non sopra.
     await new Promise(resolve => setTimeout(resolve, 0));
     await sceneIdle();
-    const candidates = assignCandidates(ctx.state(), step, ctx.card);
-    if (candidates.length === 0) {
+    const candidates = step.form.kind === "exile" ? assignCandidates(ctx.state(), step, ctx.card) : [];
+    if (step.form.kind === "exile" && candidates.length === 0) {
       ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
       return;
     }
@@ -3443,7 +3479,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       face: step.source.face,
       theme: ctx.themeFor(step.source.owner),
       locale: ctx.locale(),
-      who: t("scene.assigns", { name: seatLabel(ctx.state(), by), card: `«${cardName(step.source.cardId, ctx.locale())}»`, toCard: `«${cardName(step.bearer.cardId, ctx.locale())}»` }),
+      who: t("scene.assigns", { name: seatLabel(ctx.state(), by), card: `«${cardName(step.object.cardId, ctx.locale())}»`, toCard: `«${cardName(step.bearer.cardId, ctx.locale())}»` }),
       effects: enterEffects(step.source.cardId, step.source.face, ctx.locale()),
       triggers: [describeAssignStep(step, ctx.card)],
       kicker: t("scene.resolve.matter"),
@@ -3451,6 +3487,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     });
     light(step.source.uid, true);
     try {
+      if (step.form.kind === "draw") {
+        hold(true);
+        await wait(TRIGGER_LEAD_MS);
+        const passed = await ctx.dispatch({ t: "draw", seat: by, count: step.form.count, effect: assignRef(step) });
+        if (passed) ctx.log(msg("log.effect.trigger", { seat: by, card: step.source.cardId, n: step.form.count, cards: msg(step.form.count === 1 ? "cards.one" : "cards.many") }), by);
+        await wait(TRIGGER_TAIL_MS);
+        return;
+      }
       const target = await pickTarget(step.source, candidates, t("target.confine"));
       if (!target) return;
       strike(target.uid, 60_000);

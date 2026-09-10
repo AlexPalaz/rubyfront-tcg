@@ -53,8 +53,12 @@ import {
   armedCount,
   blocksAttacker,
   assignSteps,
+  assignRef,
   assignCandidates,
+  describeAssignStep,
+  objectCost,
   weakenAmount,
+  wornObjects,
 } from "../src/effects.js";
 import { newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
@@ -65,6 +69,7 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   VINCOLATA: { kind: "entity", race: "auros", fluxCost: 1, leaveReturns: [{ maxCost: 2 }] },
   LAMA: { kind: "object", fluxCost: 2 },
   MAZZA: { kind: "object", fluxCost: 3 },
+  SPADA: { kind: "object", fluxCost: 1 },
   ESPLORATORE: { kind: "entity", race: "auros", attackDraws: [{ draw: 1, thenDiscard: 1, requiresObject: true }] },
   VIGILE: { kind: "entity", race: "human", attackForms: [{ kind: "untap", who: "self", once: true, requiresObject: true, face: 0 }] },
   COMANDO: { kind: "entity", race: "auros", attackForms: [{ kind: "empower", who: "self", requiresObject: true, targets: "others_armed", power: 1, face: 0 }] },
@@ -119,11 +124,14 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   RIFRAZIONE: { kind: "matter", behavior: "reactive", fluxCost: 2, resolveForms: [{ kind: "weaken", target: { kind: "entity", controller: "opponent", attacking: true }, amount: -1, perArmed: true }] },
   AMPLIFICA: { kind: "matter", behavior: "reactive", fluxCost: 2, resolveForms: [{ kind: "empower", targets: "own_armed", power: 1, upTo: 2, untap: true }] },
   PRISMA: { kind: "object", fluxCost: 3, assignForms: [{ kind: "exile", target: { kind: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
+  PORTATORE: { kind: "entity", race: "auros", fluxCost: 4, staticForms: [{ kind: "assign_discount", amount: 1 }], assignForms: [{ kind: "draw", count: 1, toSelf: true }] },
   CAMPO: { kind: "matter", behavior: "permanent", fluxCost: 3, resolveForms: [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }] },
   COORDINATO: { kind: "matter", behavior: "reactive", fluxCost: 4, resolveForms: [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, requires: { count: 3, race: "human" } }] },
-  GIUDIZIO: { kind: "matter", behavior: "reactive", fluxCost: 5, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, ifTarget: "tapped" } }] },
+  GIUDIZIO: { kind: "matter", behavior: "reactive", fluxCost: 5, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, ifTarget: "tapped" }, thenLose: null }] },
+  EVERSIONE: { kind: "matter", behavior: "normal", fluxCost: 3, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "opponent" }, to: "abisso", discount: null, thenLose: 2 }] },
+  ASSALTO: { kind: "matter", behavior: "normal", fluxCost: 4, resolveForms: [{ kind: "drain", amount: "objects" }] },
   BESTIA: { kind: "rubyfront", nexus: { face: 1, conditions: [{ count: 4, kind: "entity", race: "human" }], discard: { count: 1, kind: "entity" }, recovery: 5 },
-    flipForms: [{ kind: "move", cardId: "EREDE", from: "field", to: "abisso" }, { kind: "seal", cardId: "EREDE" }] },
+    flipForms: [{ kind: "move", cardId: "EREDE", from: "field", to: "abisso" }, { kind: "seal", cardId: "EREDE" }, { kind: "draw", count: 1 }] },
   EREDE: { kind: "entity", race: "human", fluxCost: 6 },
 };
 const facts = (cardId: string): CardFacts => ({
@@ -968,6 +976,31 @@ describe("resolveSteps", () => {
     expect(pendingResolve(state, m, facts)).toEqual([]);
   });
 
+  it("l'Assalto conta gli Oggetti addosso alle proprie Entità; l'Eversione distrugge e poi fa perdere PV", () => {
+    const state = newGame();
+    const m = on(state, "m", "ASSALTO");
+    on(state, "u1", "AUROS");
+    on(state, "b1", "AUROS", "b");
+    on(state, "free", "FERRO");
+    expect(resolveSteps(state, m, facts)[0].blocked).toBe("log.no.objects");
+    on(state, "o1", "FERRO").assignedTo = "u1";
+    on(state, "o2", "FERRO").assignedTo = "u1";
+    on(state, "bo", "FERRO", "b").assignedTo = "b1";
+    expect(wornObjects(state, "a")).toBe(2);
+    expect(wornObjects(state, "b")).toBe(1);
+    expect(resolveSteps(state, m, facts)[0].blocked).toBeNull();
+    state.fired = ["m|on_resolve:heal|m"];
+    expect(pendingResolve(state, m, facts)).toEqual([]);
+    const e = on(state, "e", "EVERSIONE");
+    const [step] = resolveSteps(state, e, facts);
+    expect(step.candidates.map(x => x.uid)).toEqual(["b1"]);
+    expect(describeResolveStep(step, facts)).toContain("2 PV");
+    state.fired = ["e|on_resolve:destroy|e"];
+    expect(pendingResolve(state, e, facts).length).toBe(1);
+    state.fired = ["e|on_resolve:destroy|e", "e|on_resolve:heal|e"];
+    expect(pendingResolve(state, e, facts)).toEqual([]);
+  });
+
   it("il Prisma innesca quando viene assegnato in campo, una volta per portatore", () => {
     const before = newGame();
     on(before, "u", "AUROS");
@@ -979,6 +1012,7 @@ describe("resolveSteps", () => {
     after.cards.p = { ...after.cards.p, zone: "field", assignedTo: "u" };
     const steps = assignSteps(before, after, facts);
     expect(steps.map(s => [s.source.uid, s.bearer.uid, s.form.kind])).toEqual([["p", "u", "exile"]]);
+    expect(assignRef(steps[0])).toEqual({ source: "p", event: "on_assign_object", entering: "u" });
     expect(assignCandidates(after, steps[0], facts).map(x => x.uid)).toEqual(["b1", "b2"]);
     // Già innescato per quel portatore: niente.
     after.fired = ["p|on_assign_object:exile|u"];
@@ -990,6 +1024,29 @@ describe("resolveSteps", () => {
     plain.fired = [];
     plain.cards.p = { ...plain.cards.p, cardId: "FERRO" };
     expect(assignSteps(before, plain, facts)).toEqual([]);
+  });
+
+  it("il Portatore pesca quando riceve un Oggetto, e glielo sconta", () => {
+    const before = newGame();
+    on(before, "p", "PORTATORE");
+    const s = on(before, "s", "LAMA");
+    s.zone = "hand";
+    expect(objectCost(before, s, facts)).toBe(2);
+    const after = structuredClone(before);
+    after.cards.s = { ...after.cards.s, assignedTo: "p" };
+    expect(objectCost(after, after.cards.s, facts)).toBe(1);
+    after.cards.s = { ...after.cards.s, zone: "field" };
+    const steps = assignSteps(before, after, facts);
+    expect(steps.map(x => [x.source.uid, x.object.uid, x.form.kind])).toEqual([["p", "s", "draw"]]);
+    expect(assignRef(steps[0])).toEqual({ source: "p", event: "on_assign_object", entering: "s" });
+    expect(describeAssignStep(steps[0], facts)).toContain("pesca 1");
+    after.fired = ["p|on_assign_object:draw|s"];
+    expect(assignSteps(before, after, facts)).toEqual([]);
+    // Lo sconto non scende sotto 1 (§3.2).
+    const cheap = on(after, "c", "SPADA");
+    cheap.zone = "hand";
+    cheap.assignedTo = "p";
+    expect(objectCost(after, cheap, facts)).toBe(1);
   });
 
   it("chi era tenuto nell'Abisso torna quando chi lo teneva lascia il gioco", async () => {
@@ -1041,9 +1098,10 @@ describe("il flip del Nexus", () => {
     on(state, "r", "EREDE");
     on(state, "r2", "EREDE", "b");
     const steps = flipSteps(state, rf, facts);
-    expect(steps.map(s => [s.form.kind, s.candidates.map(c => c.uid)])).toEqual([["move", ["r"]], ["seal", []]]);
+    expect(steps.map(s => [s.form.kind, s.candidates.map(c => c.uid)])).toEqual([["move", ["r"]], ["seal", []], ["draw", []]]);
     expect(describeFlipStep(steps[0], facts)).toContain("EREDE");
     expect(describeFlipStep(steps[1], facts)).toContain("resto della partita");
+    expect(describeFlipStep(steps[2], facts)).toContain("pesca 1");
   });
 });
 

@@ -88,17 +88,23 @@ module Rubyfront
     #   { kind: "empower", targets: "own_armed", power:, up_to:, untap: true } — fino a N proprie armate, +M e stappate
     #   { kind: "fortune", die:, gain: { on:, amount: }, deploy: { on:, filter: }, draw: { on:, count: }, all_on: }
     #   { kind: "empower", targets: "own_entities", race:, counter:, untap: true, requires: { count:, race: } } — la stappata di gruppo: in Reazione, senza bloccare
-    #   { kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount:, if_target: "tapped" } }
+    #   { kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount:, if_target: "tapped" }, then_lose: nil | N } — «poi perdi N PV»
+    #   { kind: "drain", amount: "objects" } — il Rubyfront/Nexus avversario perde PV pari ai propri Oggetti assegnati
     #   { kind: "block", requires_armed:, heal:, as_block: true } — giocata come bloccante di un'Entità attaccante (§6.4); con N armati sul Fronte, +M PV
     #
     # `assign_forms` sono gli effetti CERTIFICATI «quando assegni questa
     # carta a un'Entità» (§3.1, §8.2), evento `on_assign_object`:
     #
     #   { kind: "exile", target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true } — l'esilio condizionato, tenuto dall'Oggetto
+    #   { kind: "draw", count:, to_self: true } — sull'Entità: «quando assegni un Oggetto a questa Entità, pesca»
+    #
+    # Fra gli `static_forms` (sotto) stanno anche { kind: "assign_discount", amount: } — «gli Oggetti
+    # che assegni a questa Entità costano N in meno» — e { kind: "others_armed_power", amount: } —
+    # «le altre Entità con un Oggetto assegnato che controlli hanno +N Potenza».
     #
     # `flip_forms` sono gli effetti «quando flippa» CERTIFICATI del Nexus
     # (§3.1), evento `on_flip`: { kind: "move", card_id:, from:
-    # "field", to: "abisso" } e { kind: "seal", card_id: }.
+    # "field", to: "abisso" }, { kind: "seal", card_id: } e { kind: "draw", count: }.
     #
     # `nexus` è il requisito del flip (§3.1) com'è stampato sulla faccia del
     # Rubyfront, con il recupero di PV della faccia del Nexus: { face:,
@@ -276,10 +282,17 @@ module Rubyfront
     def self.assign_forms(faces)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
         next unless trigger.is_a?(Hash) && trigger["event"] == "on_assign_object"
-        next unless trigger["details"].is_a?(Hash) && trigger["details"] == { "selfAssigned" => true }
 
         effect = trigger["effect"]
-        next unless effect.is_a?(Hash) && effect["type"] == "move_card"
+        next unless effect.is_a?(Hash)
+        # L'Entità: «quando assegni un Oggetto a questa Entità: pesca una carta».
+        if trigger["details"] == { "toSelf" => true }
+          next unless effect["type"] == "draw_card" && effect["target"] == { "controller" => "controller" } && effect["count"].is_a?(Integer) && effect["count"].positive?
+
+          next { kind: "draw", count: effect["count"], to_self: true }.freeze
+        end
+        next unless trigger["details"].is_a?(Hash) && trigger["details"] == { "selfAssigned" => true }
+        next unless effect["type"] == "move_card"
 
         target = effect["target"]
         destination = effect["destination"]
@@ -648,6 +661,14 @@ module Rubyfront
 
           next { kind: "flux_toll", amount: -effect["amount"] }.freeze
         end
+        # Lo sconto d'assegnazione (dal 2026-09-10): «gli Oggetti che assegni
+        # a questa Entità costano N Flusso in meno».
+        if effect["type"] == "reduce_cost"
+          next unless trigger["event"] == "while_in_play" && effect["filter"] == { "cardType" => "object" }
+          next unless effect["amount"].is_a?(Integer) && effect["amount"].positive? && effect["details"] == { "assignedToSelf" => true }
+
+          next { kind: "assign_discount", amount: effect["amount"] }.freeze
+        end
         # «Questa Entità non si tappa mai»: uno statico senza numeri.
         if effect["type"] == "prevent_tap"
           next unless trigger["event"] == "while_in_play" && effect.dig("target", "scope") == "self" && effect["duration"] == "permanent"
@@ -673,6 +694,13 @@ module Rubyfront
 
         details = effect["details"].is_a?(Hash) ? effect["details"] : {}
         if trigger["event"] == "while_in_play"
+          # L'aura delle armate (dal 2026-09-10): «le altre Entità con un
+          # Oggetto assegnato che controlli hanno +N Potenza».
+          if effect["target"] == { "cardType" => "entity", "controller" => "controller", "quantity" => "all", "details" => { "hasObjectAssigned" => true, "excludeSelf" => true } }
+            next unless details.empty? && effect["duration"].nil?
+
+            next { kind: "others_armed_power", amount: effect["amount"] }.freeze
+          end
           next unless effect.dig("target", "scope") == "self"
 
           if details["whileAttacking"] == true
@@ -717,7 +745,7 @@ module Rubyfront
         next unless effect.is_a?(Hash)
 
         form = resolve_look(effect) || resolve_untap(effect) || resolve_move(effect) || resolve_fortune(effect) || resolve_destroy(effect) ||
-               resolve_block(effect) || resolve_weaken(effect) || resolve_amplify(effect)
+               resolve_block(effect) || resolve_weaken(effect) || resolve_amplify(effect) || resolve_drain(effect)
         form&.freeze
       end
     end
@@ -892,15 +920,32 @@ module Rubyfront
       extra = effect["details"]
       return nil unless target.is_a?(Hash) && target["cardType"] == "entity" && target["min"] == 1 && target["max"] == 1 && %w[any opponent controller].include?(target["controller"])
       return nil unless extra.is_a?(Hash) && extra.dig("toZone", "zone") == "abyss"
-      # Un seguito ignoto (es. «poi perdi 2 PV») rende la forma ignota.
-      return nil unless (extra.keys - %w[toZone fluxCostReduction]).empty?
+      # Un seguito ignoto rende la forma ignota; «poi perdi N PV» è
+      # certificato (dal 2026-09-10).
+      return nil unless (extra.keys - %w[toZone fluxCostReduction thenControllerLosesHealth]).empty?
 
       discount = extra["fluxCostReduction"]
       certified = discount.nil? || (discount.is_a?(Hash) && discount["amount"].is_a?(Integer) && discount["ifTargetState"] == "tapped")
       return nil unless certified
+      then_lose = extra["thenControllerLosesHealth"]
+      return nil unless then_lose.nil? || (then_lose.is_a?(Integer) && then_lose.positive?)
 
       { kind: "destroy", target: { type: "entity", controller: target["controller"] }.freeze, to: "abisso",
-        discount: discount && { amount: discount["amount"], if_target: "tapped" }.freeze }
+        discount: discount && { amount: discount["amount"], if_target: "tapped" }.freeze, then_lose: then_lose }
+    end
+
+    # Il prosciugamento (dal 2026-09-10): «il Rubyfront/Nexus avversario perde
+    # PV pari al numero di Oggetti assegnati alle Entità che controlli».
+    # Gemello: renderer.ts, resolveDrain.
+    def self.resolve_drain(effect)
+      return nil unless effect["type"] == "lose_health"
+
+      target = effect["target"]
+      extra = effect["details"]
+      return nil unless target.is_a?(Hash) && target == { "cardType" => "rubyfront", "controller" => "opponent" }
+      return nil unless extra.is_a?(Hash) && extra == { "amountEqualsObjectsAssignedToControllerEntities" => true }
+
+      { kind: "drain", amount: "objects" }
     end
 
     # «Quando flippa» (§3.1): la carta nominata dal
@@ -914,7 +959,14 @@ module Rubyfront
         next unless effect.is_a?(Hash)
 
         target = effect["target"]
-        next unless target.is_a?(Hash) && target["cardId"].is_a?(String) && target["controller"] == "controller"
+        next unless target.is_a?(Hash) && target["controller"] == "controller"
+        # «Poi pesca una carta» (dal 2026-09-10).
+        if effect["type"] == "draw_card"
+          next unless target == { "controller" => "controller" } && effect["count"].is_a?(Integer) && effect["count"].positive?
+
+          next { kind: "draw", count: effect["count"] }.freeze
+        end
+        next unless target["cardId"].is_a?(String)
 
         case effect["type"]
         when "move_card"

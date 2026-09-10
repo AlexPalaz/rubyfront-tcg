@@ -83,10 +83,22 @@ export function staticPower(state: GameState, card: CardInstance, facts: (cardId
       bonus += form.amount * countEntities(state, seat, form.perOther.race, facts, card.uid);
     }
   }
-  for (const object of wornBy(state, card.uid)) {
+  const worn = wornBy(state, card.uid);
+  for (const object of worn) {
     for (const form of facts(object.cardId).staticForms) {
       if (form.kind !== "bearer_power") continue;
       bonus += form.per ? form.amount * countEntities(state, seat, form.per.race, facts) : form.amount;
+    }
+  }
+  // L'aura delle armate: «le altre Entità con un Oggetto assegnato che
+  // controlli hanno +N» — da ogni ALTRA carta dello stesso posto che la
+  // porta, se questa è armata. Gemello: engine.rb, static_power.
+  if (worn.length > 0) {
+    for (const other of fieldCards(state)) {
+      if (other.uid === card.uid || controllerOf(other) !== seat) continue;
+      for (const form of facts(other.cardId).staticForms) {
+        if (form.kind === "others_armed_power") bonus += form.amount;
+      }
     }
   }
   return bonus;

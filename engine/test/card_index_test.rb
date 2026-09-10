@@ -20,15 +20,9 @@ class CardIndexTest < Minitest::Test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBITO = [
     "RBF-023 rubyfront/schism-forge",
-    "RBF-023 nexus/awakening",
     "RBF-023 nexus/deep-forge-sight",
-    "RBF-030 entity/outfit",
-    "RBF-030 entity/carry",
-    "RBF-031 entity/aura",
     "RBF-035 object/remain",
-    "RBF-038 matter/evert",
     "RBF-041 matter/surge-search",
-    "RBF-042 matter/assault",
   ].freeze
 
   def test_ogni_trigger_ha_una_forma_o_sta_nel_debito_dichiarato
@@ -167,7 +161,7 @@ class CardIndexTest < Minitest::Test
     assert_nil @index.values.find { |c| Array(c[:static_forms]).any? { |f| f[:kind] == "flux_toll" } }, "la tassa di Flusso resta certificata, oggi senza carte"
     assert_equal [{ kind: "never_taps" }], @index["RBF-011"][:static_forms], "«questa Entità non si tappa mai»"
     assert_equal [{ kind: "never_taps" }], @index["RBF-005"][:static_forms], "dal 2026-09-08 anche il 2 Flussi non si tappa attaccando"
-    assert_equal [], @index["RBF-031"][:static_forms], "«+1 alle altre armate» resta nel debito"
+    assert_equal [{ kind: "others_armed_power", amount: 1 }], @index["RBF-031"][:static_forms], "«+1 alle altre armate» certificato dal 2026-09-10"
     # Dal 2026-09-10: «se ha un Oggetto assegnato, +1» e gli Oggetti «mentre assegnato» senza durata esplicita.
     assert_equal [{ kind: "self_power", amount: 1, while_armed: true }], @index["RBF-024"][:static_forms]
     assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-032"][:static_forms]
@@ -208,8 +202,9 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "fortune", die: 20, gain: { on: [1, 6], amount: 4 }, deploy: { on: [7, 13], filter: { type: "entity", race: "human", max_cost: 2 } },
                     draw: { on: [14, 19], count: 1 }, all_on: [20, 20] }], forme.call("RBF-019")
     assert_equal [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, requires: { count: 3, race: "human" } }], forme.call("RBF-020"), "la stappata di gruppo: in Reazione, senza bloccare"
-    assert_equal [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" } }], forme.call("RBF-021")
-    assert_equal [], forme.call("RBF-038"), "«poi perdi 2 PV» è un seguito ignoto: la forma non entra"
+    assert_equal [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" }, then_lose: nil }], forme.call("RBF-021")
+    assert_equal [{ kind: "destroy", target: { type: "entity", controller: "opponent" }, to: "abisso", discount: nil, then_lose: 2 }], forme.call("RBF-038"), "«poi perdi 2 PV» è certificato dal 2026-09-10"
+    assert_equal [{ kind: "drain", amount: "objects" }], forme.call("RBF-042"), "il Rubyfront/Nexus avversario perde PV pari agli Oggetti assegnati"
   end
 
   def test_le_materie_di_scissione_profonda_alla_risoluzione
@@ -219,6 +214,9 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: nil }, to: "ritiro", discount: { amount: 1, if_armed_at_least: 2 } }], forme.call("RBF-044"), "in Ritiro, con 2 armate costa 1 in meno"
     assert_equal [{ kind: "exile", target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true }], @index["RBF-043"][:assign_forms], "«quando assegni»: l'esilio tenuto dall'Oggetto"
     assert_equal [], @index["RBF-018"][:assign_forms], "una Materia non ha inneschi d'assegnazione"
+    assert_equal [{ kind: "draw", count: 1, to_self: true }], @index["RBF-030"][:assign_forms], "«quando assegni un Oggetto a questa Entità: pesca»"
+    assert_equal [{ kind: "assign_discount", amount: 1 }], @index["RBF-030"][:static_forms], "«gli Oggetti che assegni a questa Entità costano 1 in meno»"
+    assert_equal [{ kind: "others_armed_power", amount: 1 }], @index["RBF-031"][:static_forms], "«le altre Entità con un Oggetto assegnato che controlli hanno +1»"
     # Un dettaglio in più rende la forma ignota, mai fraintesa.
     trigger = lambda do |id, trigger_id|
       card = JSON.parse(File.read(File.join(DATA_DIR, "sets", "srbf-001", "cards", id.downcase, "#{id.downcase}.json")))
@@ -240,7 +238,8 @@ class CardIndexTest < Minitest::Test
     assert_equal({ face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 5 }, @index["RBF-001"][:nexus])
     assert_equal [{ kind: "move", card_id: "RBF-012", from: "field", to: "abisso" }, { kind: "seal", card_id: "RBF-012" }], @index["RBF-001"][:flip_forms]
     assert_equal({ face: 1, conditions: [{ count: 3, type: "entity", race: nil, armed: true }], discard: { count: 1, type: nil }, recovery: 5 }, @index["RBF-023"][:nexus], "dal 2026-09-10: «con un Oggetto assegnato», scarta una carta")
-    assert_equal %w[move seal], @index["RBF-023"][:flip_forms].map { |form| form[:kind] }, "ma i suoi «quando flippa» hanno la stessa forma"
+    assert_equal %w[move seal draw], @index["RBF-023"][:flip_forms].map { |form| form[:kind] }, "ma i suoi «quando flippa» hanno la stessa forma, più la pesca"
+    assert_equal({ kind: "draw", count: 1 }, @index["RBF-023"][:flip_forms].last)
     assert_nil @index["RBF-004"][:nexus]
   end
 

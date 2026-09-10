@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.57.0"
+    VERSION = "0.59.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -93,6 +93,8 @@ module Rubyfront
       "§8.2 Effetti certificati: «fino a N Entità con un Oggetto che controlli prendono +M Potenza e vengono stappate»",
       "§8.2 Effetti certificati: «in Ritiro; con N Entità con un Oggetto sul tuo Fronte, costa M in meno»",
       "§8.2 Effetti certificati: «quando assegni questo Oggetto, un'Entità avversaria nell'Abisso finché resta in gioco»",
+      "§8.2 Effetti certificati: «il Rubyfront/Nexus avversario perde PV pari ai tuoi Oggetti assegnati», «distruggi, poi perdi N PV», «quando flippa, pesca»",
+      "§8.2 Effetti certificati: «quando assegni un Oggetto a questa Entità, pesca», «gli Oggetti che le assegni costano N in meno», «le altre armate hanno +N»",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -160,6 +162,8 @@ module Rubyfront
       "§8.2 Certified effects: “up to N Entities with an Object you control get +M Power and are untapped”",
       "§8.2 Certified effects: “to Retire; with N Entities with an Object on your Front, it costs M less”",
       "§8.2 Certified effects: “when you assign this Object, an opposing Entity to the Abyss as long as it stays in play”",
+      "§8.2 Certified effects: “the opposing Rubyfront/Nexus loses HP equal to your assigned Objects”, “destroy, then lose N HP”, “when it flips, draw”",
+      "§8.2 Certified effects: “when you assign an Object to this Entity, draw”, “Objects you assign it cost N less”, “the other armed ones have +N”",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -672,6 +676,10 @@ module Rubyfront
         # (`target`), e lo sconto vale solo se il bersaglio è davvero
         # tappato. L'effetto poi dovrà colpire lui.
         cost -= discount_for(card, known, action)
+        # §8.2 — «gli Oggetti che assegni a questa Entità costano N in meno»
+        # (lo sconto d'assegnazione, dal 2026-09-10): l'Oggetto giocato dalla
+        # mano già assegnato a un portatore con lo statico; mai sotto 1 (§3.2).
+        cost = [cost - assign_discount_for(card, known), 1].max if known[:type] == "object"
         # §3.1 — lo sconto di un'abilità («la prossima carta X che giochi in
         # questo turno costa N in meno»): l'azione lo dichiara, e deve
         # esserci nel conto del giocatore per una carta di quel tipo. Il
@@ -1155,6 +1163,18 @@ module Rubyfront
           bonus += form[:per] ? form[:amount] * count_entities(seat, form[:per][:race]) : form[:amount]
         end
       end
+      # L'aura delle armate: «le altre Entità con un Oggetto assegnato che
+      # controlli hanno +N» — da ogni ALTRA carta dello stesso posto che la
+      # porta, se questa è armata.
+      unless @table.worn_by(uid).empty?
+        @table.commanded_cards(seat).each do |other|
+          next if other.equal?(card) || other[:zone] != "field"
+
+          Array(@cards.dig(other[:card_id], :static_forms)).each do |form|
+            bonus += form[:amount] if form[:kind] == "others_armed_power"
+          end
+        end
+      end
       bonus
     end
 
@@ -1466,7 +1486,9 @@ module Rubyfront
       return recalled if recalled
 
       return judge_resolve_effect(action, ref) if ref["event"] == "on_resolve"
-      return judge_assign_exile(action, ref) if ref["event"] == "on_assign_object"
+      if ref["event"] == "on_assign_object"
+        return kind == "draw" ? judge_assign_draw(action, ref) : judge_assign_exile(action, ref)
+      end
       return judge_flip_effect(action, ref) if ref["event"] == "on_flip"
       return judge_ability_effect(action, ref) if ref["event"] == "on_ability"
       if ref["event"] == "on_attack"
@@ -2159,6 +2181,32 @@ module Rubyfront
       allow(kind)
     end
 
+    # §8.2 — «quando assegni un Oggetto a questa Entità: pesca una carta»: la
+    # fonte è l'Entità in campo, l'ingresso l'Oggetto che le è appena stato
+    # assegnato (in campo, addosso a lei), e vale una volta per Oggetto.
+    def judge_assign_draw(action, ref)
+      kind = action["t"]
+      source = @table.card(ref["source"])
+      return refuse(kind, "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+
+      known = @cards[source[:card_id]]
+      return no_rule(kind) unless known
+
+      form = Array(known[:assign_forms]).find { |candidate| candidate[:kind] == "draw" }
+      return refuse(kind, "l'Entità non ha un effetto certificato «quando le assegni un Oggetto» (§8.2)", "the Entity has no certified “when you assign it an Object” effect (§8.2)") unless form
+
+      object = @table.card(ref["entering"])
+      unless object && object[:zone] == "field" && object[:assigned_to] == ref["source"]
+        return refuse(kind, "l'ingresso dell'innesco è l'Oggetto assegnato a questa Entità: non lo è (§3.1)", "the trigger's entry is the Object assigned to this Entity: it isn't (§3.1)")
+      end
+      return refuse(kind, "questo innesco è già stato risolto per quell'assegnazione (§8.2)", "this trigger has already been resolved for that assignment (§8.2)") if resolve_fired?(action, ref)
+
+      seat = @table.controller_of(source)
+      return refuse(kind, "pesca chi comanda l'Entità, #{form[:count]} (§8.2)", "whoever commands the Entity draws, #{form[:count]} (§8.2)") unless action["seat"] == seat && action["count"] == form[:count]
+
+      allow(kind)
+    end
+
     def judge_release(action)
       card = @table.card(action["uid"])
       return no_rule("release") unless card
@@ -2195,6 +2243,17 @@ module Rubyfront
     # §8.2 — lo sconto dichiarato giocando una Materia: quanto
     # costa in meno, dato il bersaglio nell'azione. Zero se non c'è forma,
     # bersaglio, o il bersaglio non è nello stato chiesto.
+    # Lo sconto d'assegnazione del portatore (statico `assign_discount`),
+    # per l'Oggetto già assegnato a un'Entità in campo dello stesso posto.
+    def assign_discount_for(card, known)
+      return 0 unless known[:type] == "object" && card[:assigned_to]
+
+      bearer = @table.card(card[:assigned_to])
+      return 0 unless bearer && bearer[:zone] == "field"
+
+      Array(@cards.dig(bearer[:card_id], :static_forms)).sum { |form| form[:kind] == "assign_discount" ? form[:amount] : 0 }
+    end
+
     def discount_for(card, known, action)
       forms = Array(known[:resolve_forms])
       # «Se sul tuo Fronte ci sono almeno N Entità con un Oggetto assegnato,
@@ -2247,7 +2306,11 @@ module Rubyfront
         else judge_resolve_exile(action, ref, source, forms, seat)
         end
       when "player"
-        forms.any? { |form| form[:kind] == "block" } ? judge_resolve_block(action, ref, source, forms, seat) : judge_fortune_step(action, ref, source, forms, seat)
+        if forms.any? { |form| form[:kind] == "block" } then judge_resolve_block(action, ref, source, forms, seat)
+        elsif forms.any? { |form| form[:kind] == "drain" } then judge_resolve_drain(action, ref, source, forms, seat)
+        elsif forms.any? { |form| form[:kind] == "destroy" && form[:then_lose] } then judge_resolve_lose(action, ref, source, forms, seat)
+        else judge_fortune_step(action, ref, source, forms, seat)
+        end
       when "draw" then judge_fortune_step(action, ref, source, forms, seat)
       else refuse(kind, "una Materia certificata guarda, potenzia, sposta, distrugge, cura o pesca soltanto, per ora (§8.2)", "a certified Matter only looks, empowers, moves, destroys, heals or draws, for now (§8.2)")
       end
@@ -2275,6 +2338,46 @@ module Rubyfront
     # Le Entità di `seat` in campo con un Oggetto addosso (§3.1).
     def armed_entities(seat)
       @table.armed_uids(seat).count { |uid| entity_of_race?(uid, nil) }
+    end
+
+    # Gli Oggetti assegnati alle Entità che `seat` comanda, in campo (§3.1).
+    def worn_objects(seat)
+      @table.armed_uids(seat).sum { |uid| entity_of_race?(uid, nil) ? @table.worn_by(uid).size : 0 }
+    end
+
+    # Il prosciugamento: «il Rubyfront/Nexus avversario perde PV pari al
+    # numero di Oggetti assegnati alle Entità che controlli» — la patch è
+    # dell'avversario, esatta, e senza Oggetti non toglie nulla.
+    def judge_resolve_drain(action, ref, source, forms, seat)
+      foe = Table::SEATS.find { |other| other != seat }
+      return refuse("player", "perde PV il Rubyfront/Nexus avversario (§8.2)", "the opposing Rubyfront/Nexus loses HP (§8.2)") unless action["seat"] == foe
+
+      objects = worn_objects(seat)
+      return refuse("player", "senza Oggetti assegnati alle tue Entità l'effetto non toglie nulla (§8.2)", "with no Objects assigned to your Entities the effect takes nothing away (§8.2)") if objects.zero?
+
+      patch = action["patch"]
+      expected = [@table.hp(foe) - objects, 0].max
+      unless patch.is_a?(Hash) && patch.keys == ["hp"] && patch["hp"] == expected
+        return refuse("player", "l'effetto toglie #{objects} PV, uno per Oggetto assegnato alle tue Entità (§8.2)", "the effect takes #{objects} HP, one for each Object assigned to your Entities (§8.2)")
+      end
+
+      allow("player")
+    end
+
+    # «Poi perdi N PV»: il seguito della distruzione — dopo il passo che
+    # distrugge, chi comanda la fonte perde N PV, esatti.
+    def judge_resolve_lose(action, ref, source, forms, seat)
+      form = forms.find { |candidate| candidate[:kind] == "destroy" && candidate[:then_lose] }
+      return refuse("player", "perde PV chi comanda la fonte (§8.2)", "whoever commands the source loses HP (§8.2)") unless action["seat"] == seat
+      return refuse("player", "prima la distruzione, poi la perdita di PV (§8.2)", "first the destruction, then the HP loss (§8.2)") unless @table.fired?(ref["source"], "on_resolve:destroy", ref["source"])
+
+      patch = action["patch"]
+      expected = [@table.hp(seat) - form[:then_lose], 0].max
+      unless patch.is_a?(Hash) && patch.keys == ["hp"] && patch["hp"] == expected
+        return refuse("player", "poi perdi #{form[:then_lose]} PV, non altro (§8.2)", "then you lose #{form[:then_lose]} HP, nothing else (§8.2)")
+      end
+
+      allow("player")
     end
 
     # Lo sguardo alla risoluzione: guarda le prime N, mostra un'Entità Umana, in mano, le altre in fondo.
@@ -2833,8 +2936,12 @@ module Rubyfront
         unless patch.is_a?(Hash) && patch.keys == ["sealed"] && patch["sealed"] == expected
           return refuse(kind, "il sigillo aggiunge #{form[:card_id]} alle carte che non puoi più giocare, e basta (§8.2)", "the seal adds #{form[:card_id]} to the cards you can no longer play, nothing else (§8.2)")
         end
+      when "draw"
+        form = forms.find { |candidate| candidate[:kind] == "draw" }
+        return refuse(kind, "il Nexus non ha un effetto certificato che peschi quando flippa (§8.2)", "the Nexus has no certified effect that draws when it flips (§8.2)") unless form
+        return refuse(kind, "pesca chi comanda il Nexus, #{form[:count]} (§8.2)", "whoever commands the Nexus draws, #{form[:count]} (§8.2)") unless action["seat"] == seat && action["count"] == form[:count]
       else
-        return refuse(kind, "«quando flippa» sposta o sigilla soltanto (§8.2)", "“when it flips” only moves or seals (§8.2)")
+        return refuse(kind, "«quando flippa» sposta, sigilla o pesca soltanto (§8.2)", "“when it flips” only moves, seals or draws (§8.2)")
       end
 
       allow(kind)

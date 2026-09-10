@@ -318,6 +318,7 @@ describe("resolveWave con statici, Stasi e più bloccanti", () => {
     SCUDO: { kind: "object", staticForms: [{ kind: "bearer_power", amount: 1 }], grantsWhileAssigned: [{ keywords: ["stasis"], ifRace: "human" }] },
     CINTURA: { kind: "object", staticForms: [{ kind: "bearer_power", amount: 1, per: { kind: "entity", race: "human" }, multiBlock: true }] },
     RECLUTA: { kind: "entity", race: "auros", power: 1, staticForms: [{ kind: "self_power", amount: 1, whileArmed: true }] },
+    LAMA: { kind: "entity", race: "auros", power: 5, staticForms: [{ kind: "others_armed_power", amount: 1 }] },
     UMANO: { kind: "entity", race: "human", power: 2 },
     AUROS: { kind: "entity", race: "auros", power: 2 },
     GROSSO: { kind: "entity", race: "auros", power: 4 },
@@ -378,6 +379,19 @@ describe("resolveWave con statici, Stasi e più bloccanti", () => {
     // Scudo: 2 + 1. Cintura: 2 + 1 per ogni Umano sul Fronte (due, portatrice compresa).
     expect(resolveWave(state, "a", facts)!.map(b => b.damage)).toEqual([3, 4]);
     expect(powerOf(card("p", "a", "UMANO"), facts)).toBe(2);
+  });
+
+  it("l'aura dà +1 alle altre armate dello stesso posto, non a sé e non alle nude", () => {
+    const state = table([
+      card("l", "a", "LAMA"), card("lo", "a", "SCUDO", { assignedTo: "l" }),
+      card("r", "a", "AUROS"), card("ro", "a", "SCUDO", { assignedTo: "r" }),
+      card("n", "a", "AUROS"),
+      card("b", "b", "AUROS"), card("bo", "b", "SCUDO", { assignedTo: "b" }),
+    ], []);
+    expect(powerOf(state.cards.l, facts, state)).toBe(6);
+    expect(powerOf(state.cards.r, facts, state)).toBe(4);
+    expect(powerOf(state.cards.n, facts, state)).toBe(2);
+    expect(powerOf(state.cards.b, facts, state)).toBe(3);
   });
 
   it("la Stasi salva l'Umano che blocca, non l'Auros; e vale nel contrattacco", () => {

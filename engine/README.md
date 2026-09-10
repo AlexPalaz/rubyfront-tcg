@@ -921,6 +921,33 @@ Regole collegate finora:
   (la memoria degli inneschi è del turno); il bot indebolisce e potenzia
   scegliendo col suo selettore. Engine 0.57.0, sessantatré regole.
 
+- **§8.2 Il resto del secondo mazzo** (dal 2026-09-10, stessa decisione:
+  ogni carta senza forma si collega). Il **prosciugamento** (`drain`): «il
+  Rubyfront/Nexus avversario perde PV pari al numero di Oggetti assegnati
+  alle Entità che controlli» — una patch `player` sull'avversario, esatta,
+  contando gli Oggetti addosso alle Entità comandate (`worn_objects`);
+  senza Oggetti fermata. La **distruzione col seguito** (`destroy` con
+  `then_lose`): «distruggi un'Entità avversaria; poi perdi N PV» — prima il
+  `toZone` che distrugge, poi la patch di chi comanda la fonte, nell'ordine
+  (chiavi `destroy` e `heal` della stessa risoluzione). «**Poi pesca una
+  carta**» al flip (`flip_forms` `draw`): un `draw` con `effect {event:
+  on_flip}`, del posto che comanda il Nexus, nel turno del flip. La
+  **pesca all'assegnazione** (`assign_forms` `draw` sull'Entità): «quando
+  assegni un Oggetto a questa Entità: pesca una carta» — fonte l'Entità,
+  ingresso l'Oggetto appena assegnato (chiave
+  `entità|on_assign_object:draw|oggetto`: un Oggetto, una pesca). Lo
+  **sconto d'assegnazione** (statico `assign_discount`): «gli Oggetti che
+  assegni a questa Entità costano N in meno» — la dogana del costo lo
+  applica all'Oggetto giocato dalla mano già assegnato a quel portatore,
+  mai sotto 1 (§3.2, `assign_discount_for`; il client con `objectCost`).
+  L'**aura delle armate** (statico `others_armed_power`): «le altre
+  Entità con un Oggetto assegnato che controlli hanno +N» — la
+  risoluzione lo somma a ogni Entità armata dello stesso posto, mai alla
+  fonte (`static_power` / `staticPower`). Limiti dichiarati: lo sconto
+  d'assegnazione vale solo giocando dalla mano (dal Ritiro l'Oggetto è già
+  gratis, §3.1); l'aura non distingue Entità sotto controllo altrui oltre
+  a chi le comanda adesso. Engine 0.59.0, sessantacinque regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

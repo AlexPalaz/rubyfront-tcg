@@ -780,6 +780,13 @@ function staticFormsOf(faces: CardFace[]): StaticForm[] {
         }
         continue;
       }
+      // Lo sconto d'assegnazione: «gli Oggetti che assegni a questa Entità costano N in meno». Specchio di card_index.rb.
+      if (effect.type === "reduce_cost") {
+        if (trigger.event === "while_in_play" && sameShape(effect.filter, { cardType: "object" }) && Number.isInteger(effect.amount) && effect.amount > 0 && sameShape(effect.details, { assignedToSelf: true })) {
+          out.push({ kind: "assign_discount", amount: effect.amount });
+        }
+        continue;
+      }
       // «Questa Entità non si tappa mai» (RBF-011): uno statico senza numeri.
       if (effect.type === "prevent_tap") {
         if (trigger.event === "while_in_play" && effect.target?.scope === "self" && effect.duration === "permanent") out.push({ kind: "never_taps" });
@@ -799,6 +806,12 @@ function staticFormsOf(faces: CardFace[]): StaticForm[] {
       if (effect.type !== "modify_power" || !Number.isInteger(effect.amount)) continue;
       const details = (typeof effect.details === "object" && effect.details ? effect.details : {}) as Loose;
       if (trigger.event === "while_in_play") {
+        // L'aura delle armate: «le altre Entità con un Oggetto assegnato che controlli hanno +N». Specchio di card_index.rb.
+        const target = effect.target as Loose | undefined;
+        if (target && target.cardType === "entity" && target.controller === "controller" && target.quantity === "all" && sameShape(target.details, { hasObjectAssigned: true, excludeSelf: true }) && Object.keys(target).length === 4) {
+          if (Object.keys(details).length === 0 && effect.duration === undefined) out.push({ kind: "others_armed_power", amount: effect.amount });
+          continue;
+        }
         if (effect.target?.scope !== "self") continue;
         if (details.whileAttacking === true) {
           const other = raceFilter(details.requiresOtherControlled);
@@ -842,7 +855,7 @@ function resolveFormsOf(faces: CardFace[]): ResolveForm[] {
       if (trigger.event !== "on_resolve") continue;
       const effect = trigger.effect as Loose | undefined;
       if (!effect || typeof effect !== "object") continue;
-      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveDestroy(effect) ?? resolveBlock(effect) ?? resolveWeaken(effect) ?? resolveAmplify(effect);
+      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveDestroy(effect) ?? resolveBlock(effect) ?? resolveWeaken(effect) ?? resolveAmplify(effect) ?? resolveDrain(effect);
       if (form) out.push(form);
     }
   }
@@ -863,9 +876,15 @@ function assignFormsOf(faces: CardFace[]): AssignForm[] {
     for (const trigger of face.triggers ?? []) {
       if (trigger.event !== "on_assign_object") continue;
       const details = trigger.details as Loose | undefined;
-      if (!details || Object.keys(details).join() !== "selfAssigned" || details.selfAssigned !== true) continue;
       const effect = trigger.effect as Loose | undefined;
-      if (!effect || effect.type !== "move_card") continue;
+      if (!effect) continue;
+      // L'Entità: «quando assegni un Oggetto a questa Entità: pesca una carta».
+      if (sameShape(details, { toSelf: true })) {
+        if (effect.type === "draw_card" && sameShape(effect.target, { controller: "controller" }) && Number.isInteger(effect.count) && effect.count > 0) out.push({ kind: "draw", count: effect.count, toSelf: true });
+        continue;
+      }
+      if (!details || Object.keys(details).join() !== "selfAssigned" || details.selfAssigned !== true) continue;
+      if (effect.type !== "move_card") continue;
       const target = effect.target as Loose | undefined;
       const destination = effect.destination as Loose | undefined;
       const extra = effect.details as Loose | undefined;
@@ -1028,16 +1047,27 @@ function resolveDestroy(effect: Loose): ResolveForm | null {
   const extra = effect.details as Loose | undefined;
   if (!target || target.cardType !== "entity" || target.min !== 1 || target.max !== 1 || !["any", "opponent", "controller"].includes(target.controller)) return null;
   if (!extra || extra.toZone?.zone !== "abyss") return null;
-  // Un seguito ignoto (RBF-038: «poi perdi 2 PV») rende la forma ignota.
-  if (!Object.keys(extra).every(key => key === "toZone" || key === "fluxCostReduction")) return null;
+  // Un seguito ignoto rende la forma ignota; «poi perdi N PV» è certificato (dal 2026-09-10).
+  if (!Object.keys(extra).every(key => key === "toZone" || key === "fluxCostReduction" || key === "thenControllerLosesHealth")) return null;
   const discount = extra.fluxCostReduction as Loose | undefined;
   if (discount !== undefined && !(discount && Number.isInteger(discount.amount) && discount.ifTargetState === "tapped")) return null;
+  const thenLose = extra.thenControllerLosesHealth;
+  if (thenLose !== undefined && !(Number.isInteger(thenLose) && thenLose > 0)) return null;
   return {
     kind: "destroy",
     target: { kind: "entity", controller: target.controller },
     to: "abisso",
     discount: discount ? { amount: discount.amount, ifTarget: "tapped" } : null,
+    thenLose: thenLose ?? null,
   };
+}
+
+/** Il prosciugamento (dal 2026-09-10): «il Rubyfront/Nexus avversario perde PV pari al numero di Oggetti assegnati alle Entità che controlli». Specchio di card_index.rb, resolve_drain. */
+function resolveDrain(effect: Loose): ResolveForm | null {
+  if (effect.type !== "lose_health") return null;
+  if (!sameShape(effect.target, { cardType: "rubyfront", controller: "opponent" })) return null;
+  if (!sameShape(effect.details, { amountEqualsObjectsAssignedToControllerEntities: true })) return null;
+  return { kind: "drain", amount: "objects" };
 }
 
 /** Le concessioni «mentre assegnato» (RBF-013): evento `while_assigned`,
@@ -1065,7 +1095,13 @@ function flipFormsOf(faces: CardFace[]): FlipForm[] {
       if (trigger.event !== "on_flip") continue;
       const effect = trigger.effect as Loose | undefined;
       const target = effect?.target as Loose | undefined;
-      if (!effect || !target || typeof target.cardId !== "string" || target.controller !== "controller") continue;
+      if (!effect || !target || target.controller !== "controller") continue;
+      // «Poi pesca una carta» (dal 2026-09-10).
+      if (effect.type === "draw_card") {
+        if (sameShape(target, { controller: "controller" }) && Number.isInteger(effect.count) && effect.count > 0) out.push({ kind: "draw", count: effect.count });
+        continue;
+      }
+      if (typeof target.cardId !== "string") continue;
       if (effect.type === "move_card" && effect.from?.zone === "front" && effect.destination?.zone === "abyss") {
         out.push({ kind: "move", cardId: target.cardId, from: "field", to: "abisso" });
       } else if (effect.type === "restrict_action" && effect.restricts === "play" && effect.duration === "permanent" && effect.details?.followsCard === true) {

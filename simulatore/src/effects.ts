@@ -883,6 +883,12 @@ export function resolveSteps(state: GameState, source: CardInstance, facts: (car
       }
       case "fortune":
         break;
+      case "drain": {
+        // «Perde PV pari al numero di Oggetti assegnati alle Entità che
+        // controlli»: senza Oggetti addosso non toglie nulla.
+        if (wornObjects(state, seat) === 0) step.blocked = "log.no.objects";
+        break;
+      }
       case "block": {
         // la Reattiva bloccante (forma `block`) — il blocco è la giocata stessa (§6.4, la Reattiva come
         // bloccante); il passo è la cura, «se sul tuo Fronte ci sono
@@ -900,6 +906,12 @@ export function armedCount(state: GameState, seat: Seat, facts: (cardId: string)
   return fieldCards(state).filter(card => controllerOf(card) === seat && facts(card.cardId).kind === "entity" && armed(state, card.uid)).length;
 }
 
+/** Gli Oggetti assegnati alle Entità che `seat` comanda, in campo (§3.1). Gemello: engine.rb, worn_objects. */
+export function wornObjects(state: GameState, seat: Seat): number {
+  const field = fieldCards(state);
+  return field.filter(card => card.assignedTo && field.some(bearer => bearer.uid === card.assignedTo && controllerOf(bearer) === seat)).length;
+}
+
 /** Il primo passo non ancora risolto di quella Materia (o null). */
 export function pendingResolve(state: GameState, source: CardInstance, facts: (cardId: string) => CardFacts): ResolveStep[] {
   return resolveSteps(state, source, facts).filter(step => {
@@ -908,7 +920,8 @@ export function pendingResolve(state: GameState, source: CardInstance, facts: (c
       case "move": return !resolveFired(state, source, "move");
       case "exile": return !resolveFired(state, source, "exile");
       case "weaken": return !resolveFired(state, source, "empower:");
-      case "destroy": return !resolveFired(state, source, "destroy");
+      case "drain": return !resolveFired(state, source, "heal");
+      case "destroy": return !resolveFired(state, source, "destroy") || (step.form.thenLose !== null && !resolveFired(state, source, "heal"));
       case "fortune": return !resolveFired(state, source, "heal") && !resolveFired(state, source, "draw") && !resolveFired(state, source, "deploy");
       case "block": return !resolveFired(state, source, "heal");
       case "empower": return step.candidates.length > 0 || step.blocked !== "log.no.target";
@@ -932,7 +945,8 @@ export function describeResolveStep(step: ResolveStep, facts: (cardId: string) =
     case "exile": return t("trigger.repulse", { card });
     case "weaken": return t("trigger.refract", { card, n: -form.amount });
     case "fortune": return t("trigger.fortune", { card, die: form.die });
-    case "destroy": return t("trigger.judgment", { card });
+    case "destroy": return form.thenLose === null ? t("trigger.judgment", { card }) : t("trigger.evert", { card, n: form.thenLose });
+    case "drain": return t("trigger.assault", { card });
     case "block": return t("trigger.reflect", { card, n: form.requiresArmed, m: form.heal });
   }
 }
@@ -968,13 +982,26 @@ export function discountedCost(state: GameState, card: CardInstance, target: Car
 
 /** Un innesco «quando assegni questa carta a un'Entità» da risolvere (§3.1): l'Oggetto, il portatore, la forma. */
 export interface AssignStep {
+  /** Chi porta la forma: l'Oggetto (esilio) o l'Entità che lo riceve (pesca). */
   source: CardInstance;
+  object: CardInstance;
   bearer: CardInstance;
   form: AssignForm;
 }
 
+/** La tripla dell'innesco: fonte e ingresso sono l'uno l'altro — l'Oggetto con l'Entità, l'Entità con l'Oggetto. */
 export function assignRef(step: AssignStep): EffectRef {
-  return { source: step.source.uid, event: "on_assign_object", entering: step.bearer.uid };
+  return { source: step.source.uid, event: "on_assign_object", entering: step.form.kind === "exile" ? step.bearer.uid : step.object.uid };
+}
+
+/** Quanto costa giocare l'Oggetto dalla mano sul portatore già scelto: il costo stampato meno lo sconto d'assegnazione del portatore, mai sotto 1 (§3.2). Gemello: engine.rb, assign_discount_for. */
+export function objectCost(state: GameState, card: CardInstance, facts: (cardId: string) => CardFacts): number | null {
+  const printed = facts(card.cardId).fluxCost;
+  if (printed === null) return null;
+  const bearer = card.assignedTo ? state.cards[card.assignedTo] : undefined;
+  if (!bearer || bearer.zone !== "field") return printed;
+  const discount = facts(bearer.cardId).staticForms.reduce((sum, form) => sum + (form.kind === "assign_discount" ? form.amount : 0), 0);
+  return discount > 0 ? Math.max(1, printed - discount) : printed;
 }
 
 /**
@@ -986,16 +1013,22 @@ export function assignRef(step: AssignStep): EffectRef {
  */
 export function assignSteps(before: GameState, after: GameState, facts: (cardId: string) => CardFacts): AssignStep[] {
   const out: AssignStep[] = [];
+  const fired = (source: string, entering: string): boolean =>
+    (after.fired ?? []).some(key => key.startsWith(`${source}|on_assign_object:`) && key.endsWith(`|${entering}`));
   for (const card of Object.values(after.cards)) {
     if (card.zone !== "field" || !card.assignedTo) continue;
-    const forms = facts(card.cardId).assignForms;
-    if (forms.length === 0) continue;
     const bearer = after.cards[card.assignedTo];
     if (!bearer || bearer.zone !== "field") continue;
     const was = before.cards[card.uid];
     if (was && was.zone === "field" && was.assignedTo === card.assignedTo) continue;
-    if ((after.fired ?? []).some(key => key.startsWith(`${card.uid}|on_assign_object:`) && key.endsWith(`|${bearer.uid}`))) continue;
-    for (const form of forms) out.push({ source: card, bearer, form });
+    // Le forme dell'Oggetto (fonte l'Oggetto, ingresso il portatore)…
+    for (const form of facts(card.cardId).assignForms) {
+      if (form.kind === "exile" && !fired(card.uid, bearer.uid)) out.push({ source: card, object: card, bearer, form });
+    }
+    // …e quelle dell'Entità che lo riceve (fonte l'Entità, ingresso l'Oggetto).
+    for (const form of facts(bearer.cardId).assignForms) {
+      if (form.kind === "draw" && !fired(bearer.uid, card.uid)) out.push({ source: bearer, object: card, bearer, form });
+    }
   }
   return out;
 }
@@ -1007,7 +1040,8 @@ export function assignCandidates(state: GameState, step: AssignStep, facts: (car
 }
 
 export function describeAssignStep(step: AssignStep, facts: (cardId: string) => CardFacts): string {
-  return t("trigger.confine", { card: `«${facts(step.source.cardId).name}»` });
+  const card = `«${facts(step.source.cardId).name}»`;
+  return step.form.kind === "exile" ? t("trigger.confine", { card }) : t("trigger.carry", { card, n: step.form.count });
 }
 
 /**
@@ -1081,6 +1115,7 @@ export function flipSteps(state: GameState, source: CardInstance, facts: (cardId
 
 export function describeFlipStep(step: FlipStep, facts: (cardId: string) => CardFacts): string {
   const card = `«${facts(step.source.cardId).name}»`;
+  if (step.form.kind === "draw") return t("trigger.flip.draw", { card, n: step.form.count });
   const named = `«${facts(step.form.cardId).name}»`;
   return step.form.kind === "move" ? t("trigger.flip.absorb", { card, named }) : t("trigger.flip.seal", { card, named });
 }

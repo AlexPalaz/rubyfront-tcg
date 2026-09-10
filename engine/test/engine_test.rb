@@ -2809,7 +2809,7 @@ class EngineTest < Minitest::Test
     "RUBINO" => { type: "rubyfront", keywords: [] },
     "RADUNO" => { type: "rubyfront", keywords: ["fury"], enables: [[], []],
                     nexus: { face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 5 },
-                    flip_forms: [{ kind: "move", card_id: "RIPORTANTE", from: "field", to: "abisso" }, { kind: "seal", card_id: "RIPORTANTE" }] },
+                    flip_forms: [{ kind: "move", card_id: "RIPORTANTE", from: "field", to: "abisso" }, { kind: "seal", card_id: "RIPORTANTE" }, { kind: "draw", count: 1 }] },
     "FORGIA" => { type: "rubyfront", keywords: [], power: nil, counterattack: nil,
                   nexus: { face: 1, conditions: [{ count: 3, type: "entity", race: nil, armed: true }], discard: { count: 1, type: nil }, recovery: 5 } },
     "RIPORTANTE" => { type: "entity", keywords: [], race: "human", power: 6, flux_cost: 6 },
@@ -2839,6 +2839,13 @@ class EngineTest < Minitest::Test
                      resolve_forms: [{ kind: "empower", targets: "own_armed", power: 1, up_to: 2, untap: true }] },
     "PRISMA" => { type: "object", keywords: [], flux_cost: 3,
                   assign_forms: [{ kind: "exile", target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
+    "PORTATORE" => { type: "entity", keywords: [], race: "auros", power: 3, flux_cost: 4,
+                     static_forms: [{ kind: "assign_discount", amount: 1 }], assign_forms: [{ kind: "draw", count: 1, to_self: true }] },
+    "LAMA" => { type: "entity", keywords: [], race: "auros", power: 5, flux_cost: 5, static_forms: [{ kind: "others_armed_power", amount: 1 }] },
+    "ASSALTO" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 4, matter: { type: "destructive", grade: 2 },
+                   resolve_forms: [{ kind: "drain", amount: "objects" }] },
+    "EVERSIONE" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 3, matter: { type: "destructive", grade: 1 },
+                     resolve_forms: [{ kind: "destroy", target: { type: "entity", controller: "opponent" }, to: "abisso", discount: nil, then_lose: 2 }] },
   }.freeze
 
   # Un tavolo del secondo lotto: le carte di A e di B (con zona ed extra)
@@ -3441,6 +3448,75 @@ class EngineTest < Minitest::Test
     refute ignota.judge({ "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "z", "effect" => { "source" => "z", "event" => "on_assign_object", "entering" => "u" } })[:ruled]
   end
 
+  # Il prosciugamento: il Rubyfront/Nexus avversario perde PV pari ai propri Oggetti assegnati.
+  def test_il_prosciugamento_toglie_un_pv_per_oggetto_assegnato
+    engine = eredita([["u", "UMANO"], ["uo", "SCUDO", { "assignedTo" => "u" }], ["uo2", "SPINE", { "assignedTo" => "u" }], ["v", "UMANO"], ["vo", "SCUDO", { "assignedTo" => "v" }],
+                      ["free", "SCUDO"], ["m", "ASSALTO", { "zone" => "hand" }]])
+    assert gioca_carta(engine, "m", cost: 4)[:ok]
+    accetta!(engine, "b")
+    passo = { "t" => "player", "seat" => "b", "patch" => { "hp" => 17 }, "effect" => res_ref("m") }
+    assert_match(/avversario/, engine.judge(passo.merge("seat" => "a"))[:reason])
+    assert_match(/toglie 3 PV/, engine.judge(passo.merge("patch" => { "hp" => 18 }))[:reason], "tre Oggetti addosso: quello libero non conta")
+    verdict = engine.judge(passo)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 17, copia(engine).hp("b")
+    assert_match(/già stato risolto/, engine.judge(passo.merge("patch" => { "hp" => 14 }))[:reason])
+    nudo = eredita([["u", "UMANO"], ["m", "ASSALTO", { "zone" => "hand" }]])
+    assert gioca_carta(nudo, "m", cost: 4)[:ok]
+    accetta!(nudo, "b")
+    verdict = nudo.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 20 }, "effect" => res_ref("m") })
+    assert_match(/senza Oggetti/, verdict[:reason])
+    assert_includes verdict[:reason_en], "(§8.2)"
+  end
+
+  # «Distruggi un'Entità avversaria. Poi perdi 2 PV».
+  def test_la_distruzione_col_seguito_fa_perdere_pv_dopo
+    engine = eredita([["u", "UMANO"], ["m", "EVERSIONE", { "zone" => "hand" }]], b: [["b1", "AUROS"]])
+    assert gioca_carta(engine, "m", cost: 3)[:ok]
+    accetta!(engine, "b")
+    perdita = { "t" => "player", "seat" => "a", "patch" => { "hp" => 18 }, "effect" => res_ref("m") }
+    assert_match(/prima la distruzione/, engine.judge(perdita)[:reason])
+    assert engine.judge({ "t" => "toZone", "uid" => "b1", "zone" => "abisso", "effect" => res_ref("m") })[:ok]
+    assert_match(/chi comanda la fonte/, engine.judge(perdita.merge("seat" => "b", "patch" => { "hp" => 18 }))[:reason])
+    assert_match(/perdi 2 PV/, engine.judge(perdita.merge("patch" => { "hp" => 19 }))[:reason])
+    verdict = engine.judge(perdita)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 18, copia(engine).hp("a")
+    assert_match(/già stato risolto/, engine.judge(perdita.merge("patch" => { "hp" => 16 }))[:reason])
+  end
+
+  # Lo sconto d'assegnazione e la pesca «quando assegni un Oggetto a questa Entità».
+  def test_il_portatore_sconta_gli_oggetti_che_riceve_e_pesca
+    engine = eredita([["p", "PORTATORE"], ["u", "UMANO"], ["s", "SCUDO", { "zone" => "hand" }], ["s2", "SCUDO", { "zone" => "hand" }], ["d", "AUROS", { "zone" => "deck" }]])
+    assert engine.judge({ "t" => "assign", "uid" => "s", "to" => "p" })[:ok]
+    assert_match(/costa 1 di Flusso/, gioca_carta(engine, "s", cost: 2, x: 470, y: 1288)[:reason], "sul portatore lo Scudo costa 1")
+    assert gioca_carta(engine, "s", cost: 1, x: 470, y: 1288)[:ok]
+    assert engine.judge({ "t" => "assign", "uid" => "s2", "to" => "u" })[:ok]
+    assert_match(/costa 2 di Flusso/, gioca_carta(engine, "s2", cost: 1, x: 850, y: 1288)[:reason], "su un altro, prezzo pieno")
+    pesca = { "t" => "draw", "seat" => "a", "count" => 1, "effect" => { "source" => "p", "event" => "on_assign_object", "entering" => "s" } }
+    assert_match(/pesca chi comanda l'Entità, 1/, engine.judge(pesca.merge("count" => 2))[:reason])
+    assert_match(/Oggetto assegnato a questa Entità/, engine.judge(pesca.merge("effect" => pesca["effect"].merge("entering" => "s2")))[:reason])
+    verdict = engine.judge(pesca)
+    assert verdict[:ok], verdict[:reason]
+    assert_match(/già stato risolto/, engine.judge(pesca)[:reason])
+    assert_includes engine.judge(pesca)[:reason_en], "(§8.2)"
+    senza = eredita([["u", "UMANO"], ["s", "SCUDO", { "assignedTo" => "u" }]])
+    verdict = senza.judge({ "t" => "draw", "seat" => "a", "count" => 1, "effect" => { "source" => "u", "event" => "on_assign_object", "entering" => "s" } })
+    assert_match(/quando le assegni un Oggetto/, verdict[:reason])
+  end
+
+  # L'aura delle armate: «le altre Entità con un Oggetto assegnato che controlli hanno +1».
+  def test_l_aura_da_uno_in_piu_alle_altre_armate_non_a_se_e_non_alle_nude
+    # L'Auros armato: 2 + 1 dello Scudo + 1 dell'aura = 4. L'aura stessa, armata: 5 + 1 dello Scudo, senza aura su di sé.
+    engine = eredita([["l", "LAMA"], ["lo", "SCUDO", { "assignedTo" => "l" }], ["r", "AUROS"], ["ro", "SCUDO", { "assignedTo" => "r" }], ["n", "AUROS"]], attacks: %w[l r n])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert_match(/non torna/, risolvi(engine, [esito("l", damage: 7), esito("r", damage: 4), esito("n", damage: 2)])[:reason])
+    assert_match(/non torna/, risolvi(engine, [esito("l", damage: 6), esito("r", damage: 3), esito("n", damage: 2)])[:reason])
+    assert_match(/non torna/, risolvi(engine, [esito("l", damage: 6), esito("r", damage: 4), esito("n", damage: 3)])[:reason], "la nuda non prende l'aura")
+    verdict = risolvi(engine, [esito("l", damage: 6), esito("r", damage: 4), esito("n", damage: 2)])
+    assert verdict[:ok], verdict[:reason]
+  end
+
   # --- §3.2: la tassa di Flusso viaggia nel cambio di turno ---------------------
 
   TASSE = EREDITA.merge(
@@ -3661,6 +3737,13 @@ class EngineTest < Minitest::Test
     assert_match(/aggiunge RIPORTANTE/, engine.judge(sigillo.merge("patch" => { "sealed" => ["RIPORTANTE", "UMANO"] }))[:reason])
     assert engine.judge(sigillo)[:ok]
     assert copia(engine).sealed?("a", "RIPORTANTE")
+    # «Poi pesca una carta» (dal 2026-09-10).
+    pesca = { "t" => "draw", "seat" => "a", "count" => 1, "effect" => ref }
+    assert_match(/pesca chi comanda il Nexus, 1/, engine.judge(pesca.merge("count" => 2))[:reason])
+    assert_match(/pesca chi comanda il Nexus, 1/, engine.judge(pesca.merge("seat" => "b"))[:reason])
+    verdict = engine.judge(pesca)
+    assert verdict[:ok], verdict[:reason]
+    assert_match(/già stato risolto/, engine.judge(pesca)[:reason])
     assert_match(/non si può più giocare/, engine.judge({ "t" => "toZone", "uid" => "rip2", "zone" => "field", "x" => 442, "y" => 1260, "cost" => 6 })[:reason])
     # Il turno dopo il flip è passato: l'innesco non si riscalda.
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
