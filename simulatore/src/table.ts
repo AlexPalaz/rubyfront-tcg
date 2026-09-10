@@ -849,6 +849,37 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       void openAbilities(seat);
     });
     slot.append(abilities);
+    // Il flip pronto (§3.1): quando il requisito del Nexus è soddisfatto,
+    // nel proprio turno, un tasto dorato che respira compare sotto la
+    // carta — non si va a controllare a mano (deciso 2026-09-10). Un click
+    // e si flippa, con lo scarto dalla mano e la scena «Quando flippa».
+    const flipButton = document.createElement("button");
+    flipButton.type = "button";
+    flipButton.className = "flip-btn";
+    flipButton.textContent = t("recall.flip");
+    flipButton.title = t("recall.flip.tip");
+    flipButton.addEventListener("click", event => {
+      event.stopPropagation();
+      const card = deployedRubyfront(seat);
+      if (card && flipReady(card)) void flipToNexus(card);
+    });
+    slot.append(flipButton);
+  }
+
+  /**
+   * Il flip verso il Nexus passerebbe adesso? Con l'arbitro, per chi comanda
+   * il Rubyfront schierato con la faccia del Rubyfront in vista, nel proprio
+   * turno in Preparazione o Fronte, fuori da una catena, col requisito
+   * certificato soddisfatto (nexusCheck).
+   */
+  function flipReady(card: CardInstance): boolean {
+    if (!ctx.arbitrated() || !ctx.controls(card.owner)) return false;
+    const state = ctx.state();
+    const nexus = ctx.card(card.cardId).nexus;
+    if (!nexus || card.face === nexus.face) return false;
+    if (state.active !== card.owner || (state.phase !== "preparazione" && state.phase !== "fronte")) return false;
+    if (state.chain || state.over) return false;
+    return nexusCheck(state, card, ctx.card).ok;
   }
 
   /** Il Rubyfront/Nexus di `seat` schierato, in gioco. */
@@ -3975,6 +4006,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         slot.classList.toggle("can-abilities", deployed);
         abilitiesButton.disabled = deployed && state.active !== seat;
         abilitiesButton.title = abilitiesButton.disabled ? t("ability.hint.turn") : t("recall.abilities.tip");
+        const rubyfront = deployed ? deployedRubyfront(seat) : undefined;
+        slot.classList.toggle("can-flip", rubyfront !== undefined && flipReady(rubyfront));
       }
       // Il posto del Rubyfront non porta etichetta (tolta su richiesta,
       // 2026-09-10: la carta e il tasto Schiera dicono già tutto).

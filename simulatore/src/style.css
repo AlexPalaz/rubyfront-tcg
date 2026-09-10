@@ -1506,6 +1506,45 @@ body.view-recess .slot-rubyfront.can-deploy .deploy-btn { display: block; }
 .ability-btn:hover:not(:disabled) { filter: brightness(1.15); }
 .ability-btn:disabled { opacity: .45; cursor: default; filter: saturate(.5); }
 .slot-rubyfront.can-abilities .ability-btn { display: block; }
+/* Il tasto Flip (§3.1): dorato, respira, e compare solo quando il flip
+   passerebbe (flipReady in table.ts). Con lui in vista, «Abilità» si sposta
+   a sinistra e i due si affiancano sotto la carta. */
+.flip-btn {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: calc(-17px * var(--ui-inv));
+  transform: translateX(calc(4px * var(--ui-inv)));
+  z-index: 61;
+  padding: calc(9px * var(--ui-inv)) calc(18px * var(--ui-inv));
+  font-size: calc(1rem * var(--ui-inv));
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: #2a1a02;
+  background: linear-gradient(180deg, #ffd977, #d9a84e);
+  border: calc(1px * var(--ui-inv)) solid #fff0b8;
+  border-radius: 0;
+  box-shadow: 0 0 0 0 rgba(255, 214, 102, .7), 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(120, 80, 10, .5);
+  white-space: nowrap;
+  cursor: pointer;
+  animation: flip-btn-breathe 1.6s ease-in-out infinite;
+}
+.flip-btn:hover { filter: brightness(1.1); }
+.slot-rubyfront.can-abilities.can-flip .flip-btn { display: block; }
+.slot-rubyfront.can-abilities.can-flip .ability-btn { transform: translateX(calc(-100% - 4px * var(--ui-inv))); }
+@keyframes flip-btn-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 214, 102, .75), 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(120, 80, 10, .5); }
+  50% { box-shadow: 0 0 0 calc(7px * var(--ui-inv)) rgba(255, 214, 102, 0), 0 calc(4px * var(--ui-inv)) calc(22px * var(--ui-inv)) rgba(255, 200, 80, .75); }
+}
+@media (prefers-reduced-motion: reduce) { .flip-btn { animation: none; } }
+/* Il tema Notte veste ogni tasto di piastra scura (più sotto): il Flip resta
+   d'oro in tutti i temi. */
+body[data-ui-theme="notte"] .flip-btn, body[data-ui-theme="chiaro"] .flip-btn {
+  background: linear-gradient(180deg, #ffd977, #d9a84e);
+  color: #2a1a02;
+}
 /* Col tasto a cavallo del bordo basso (Schiera o Abilità) l'etichetta del
    posto scende sotto il tasto, invece di finirci dietro. */
 body.view-recess .slot-rubyfront.can-deploy::after, body.view-recess .slot-rubyfront.can-abilities::after {

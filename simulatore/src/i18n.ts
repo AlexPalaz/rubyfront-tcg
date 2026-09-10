@@ -512,6 +512,8 @@ const M: Record<string, { it: string; en: string }> = {
   "html.mic.default": { it: "Predefinito", en: "Default" },
   "html.view": { it: "Vista", en: "View" },
   "html.view.tip": { it: "Come si vede il tavolo", en: "How the table is shown" },
+  "recall.flip": { it: "Flip", en: "Flip" },
+  "recall.flip.tip": { it: "Il requisito del Nexus è soddisfatto: flippa (§3.1)", en: "The Nexus requirement is met: flip (§3.1)" },
   "recall.abilities": { it: "Abilità", en: "Abilities" },
   "recall.abilities.tip": { it: "Le abilità speciali del Rubyfront e il flip verso il Nexus (§3.1)", en: "The Rubyfront's special abilities and the flip to the Nexus (§3.1)" },
   "scene.abilities": { it: "Abilità speciali", en: "Special abilities" },
