@@ -1468,11 +1468,26 @@
      (carte Materia) sul fondo nero, in inchiostro chiaro; dentro il riquadro
      (Materie abilitate accanto a «Entità: …») sulla lastra, in inchiostro
      scuro. Il pannello chiaro della famiglia qui non si applica. */
-  /* I doppi fili del titolo: il «double» di 3px, ridimensionato al tavolo,
-     si impasta e il filo sembra chiaro (sul blu pareva bianco). Qui sono due
-     fili disegnati: uno pieno nella tinta e, a 2px, un gemello più tenue. */
-  .card.cathedral.t49 .name { border-top: 1px solid var(--title-line, var(--frame)); border-bottom: 1px solid var(--title-line, var(--frame));
-    box-shadow: 0 -3px 0 -1px rgba(var(--title-line-rgb, var(--hair-rgb)),.55), 0 3px 0 -1px rgba(var(--title-line-rgb, var(--hair-rgb)),.55); }
+  /* I fili del titolo (2026-09-10, su richiesta del designer): non più i
+     due fili pieni da orlo a orlo, ma due INCISIONI nella pietra — un filo
+     nella tinta della Materia che sfuma ai lati, come la filigrana della
+     lastra, e sotto il suo solco scuro. Niente bagliore (il neon sul titolo è
+     bocciato). Sulle facce a tutta illustrazione, dove non c'è la cuspide
+     della cornice, il filo inferiore porta al centro una gemma minuta nella
+     tinta — eco della gemma in cima alla finestra e del rombo del costo. */
+  .card.cathedral.t49 .name { position: relative; border-top: none; border-bottom: none; padding: .26em 0 .3em;
+    background-image:
+      linear-gradient(90deg, transparent, var(--title-line, var(--frame)) 20%, var(--title-line, var(--frame)) 80%, transparent),
+      linear-gradient(90deg, transparent, rgba(0,0,0,.75) 20%, rgba(0,0,0,.75) 80%, transparent),
+      linear-gradient(90deg, transparent, var(--title-line, var(--frame)) 20%, var(--title-line, var(--frame)) 80%, transparent),
+      linear-gradient(90deg, transparent, rgba(0,0,0,.75) 20%, rgba(0,0,0,.75) 80%, transparent);
+    background-repeat: no-repeat; background-size: 100% 1px;
+    background-position: 50% 0, 50% 1px, 50% calc(100% - 1px), 50% 100%; }
+  .card.cathedral.full-art.t49 .name { padding-bottom: .42em; }
+  .card.cathedral.full-art.t49 .name::after { content: ""; position: absolute; left: 50%; bottom: .1em;
+    width: .34em; height: .34em; transform: translate(-50%, 0) rotate(45deg);
+    background: linear-gradient(135deg, var(--gem-top), var(--gem-mid) 60%, var(--gem-low));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.25), 0 0 0 1px rgba(0,0,0,.75); }
   .card.cathedral.t49 .matter { background: none; border: none; box-shadow: none; color: #f3edf0; }
   .card.cathedral.t49 .matter b { color: #f3efe6; }
   .t49 .textbox { color: #1b1719; --muted: #6a6266; --accent: var(--slab-accent); --ruby-light: var(--slab-ruby);
