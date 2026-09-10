@@ -2756,7 +2756,7 @@ class EngineTest < Minitest::Test
                    static_forms: [{ kind: "bearer_power", amount: 1, per: { type: "entity", race: "human" }, multi_block: true }] },
     "UMANO" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 2, enables: [[{ type: "dynamic", max_grade: 2 }, { type: "destructive", max_grade: 2 }]] },
     "PICCOLO" => { type: "entity", keywords: [], race: "human", power: 1, flux_cost: 1 },
-    "RECLUTA" => { type: "entity", keywords: [], race: "auros", power: 1, flux_cost: 1, static_forms: [{ kind: "self_power", amount: 1, while_armed: true }] },
+    "PRESA" => { type: "entity", keywords: [], race: "auros", power: 1, flux_cost: 1, static_forms: [{ kind: "self_power", amount: 1, while_armed: true }] },
     "AUROS" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 2 },
     "GROSSO" => { type: "entity", keywords: [], race: "auros", power: 4, counterattack: nil, flux_cost: 4 },
     "SPINOSO" => { type: "entity", keywords: [], race: "human", power: 3, counterattack: 1, flux_cost: 3 },
@@ -2862,12 +2862,12 @@ class EngineTest < Minitest::Test
     assert risolvi(engine, [esito("u", damage: 3), esito("p", damage: 3)])[:ok]
   end
 
-  def test_la_recluta_vale_uno_in_piu_solo_con_un_oggetto_addosso
-    nuda = eredita([["r", "RECLUTA"]], attacks: ["r"])
+  def test_la_presa_vale_uno_in_piu_solo_con_un_oggetto_addosso
+    nuda = eredita([["r", "PRESA"]], attacks: ["r"])
     nuda.judge({ "t" => "phase", "phase" => "reazione" })
     assert_match(/non torna/, risolvi(nuda, [esito("r", damage: 2)])[:reason])
     assert risolvi(nuda, [esito("r", damage: 1)])[:ok]
-    armata = eredita([["r", "RECLUTA"], ["o", "SCUDO", { "assignedTo" => "r" }]], attacks: ["r"])
+    armata = eredita([["r", "PRESA"], ["o", "SCUDO", { "assignedTo" => "r" }]], attacks: ["r"])
     armata.judge({ "t" => "phase", "phase" => "reazione" })
     # 1 stampato, +1 «se ha un Oggetto assegnato», +1 dello Scudo.
     assert_match(/non torna/, risolvi(armata, [esito("r", damage: 2)])[:reason])
@@ -3505,10 +3505,10 @@ class EngineTest < Minitest::Test
   # nell'Abisso o in Ritiro senza Oggetti addosso, torna sul Fronte con un
   # Oggetto entro il costo dal tuo Ritiro». Fixture a etichette di forma.
 
-  SCISSIONE = {
-    "OMBRA" => { type: "entity", keywords: [], race: "auros", power: 4, flux_cost: 4,
+  DISARMI = {
+    "DISARMATORE" => { type: "entity", keywords: [], race: "auros", power: 4, flux_cost: 4,
                  enter_disarms: [{ to: "ritiro" }], enter_rearms: [{ any: true }] },
-    "VINCOLATA" => { type: "entity", keywords: [], race: "auros", power: 1, flux_cost: 1, leave_returns: [{ max_cost: 2 }] },
+    "REDIVIVA" => { type: "entity", keywords: [], race: "auros", power: 1, flux_cost: 1, leave_returns: [{ max_cost: 2 }] },
     "UMANO" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 2 },
     "SPINOSO" => { type: "entity", keywords: [], race: "human", power: 2, counterattack: 1, flux_cost: 3 },
     "LAMA" => { type: "object", keywords: [], flux_cost: 2 },
@@ -3517,8 +3517,8 @@ class EngineTest < Minitest::Test
   }.freeze
 
   # Tavolo al turno 3 di A, con 10 Flusso: le liste sono [uid, id, extra].
-  def scissione(a, b: [])
-    engine = Rubyfront::Engine.new(cards: SCISSIONE)
+  def disarmi(a, b: [])
+    engine = Rubyfront::Engine.new(cards: DISARMI)
     load = lambda do |seat, list|
       cards = list.map.with_index do |(uid, id, extra), i|
         { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1260 : 172 }.merge(extra || {})
@@ -3533,32 +3533,32 @@ class EngineTest < Minitest::Test
     engine
   end
 
-  def entra_ombra(engine)
-    verdict = engine.judge({ "t" => "toZone", "uid" => "ombra", "zone" => "field", "x" => 821, "y" => 1260, "cost" => 4 })
+  def entra_disarmatore(engine)
+    verdict = engine.judge({ "t" => "toZone", "uid" => "dis", "zone" => "field", "x" => 821, "y" => 1260, "cost" => 4 })
     raise "l'ingresso non passa: #{verdict[:reason]}" unless verdict[:ok]
     engine
   end
 
   def disarma(engine, uid, zone: "ritiro")
     engine.judge({ "t" => "toZone", "uid" => uid, "zone" => zone,
-                   "effect" => { "source" => "ombra", "event" => "on_enter_field", "entering" => "ombra", "follow" => "disarm" } })
+                   "effect" => { "source" => "dis", "event" => "on_enter_field", "entering" => "dis", "follow" => "disarm" } })
   end
 
   def riarma(engine, uid, to, extra = {})
     engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 472, "y" => 1266, "assignTo" => to,
-                   "effect" => { "source" => "ombra", "event" => "on_enter_field", "entering" => "ombra", "follow" => "rearm" } }.merge(extra))
+                   "effect" => { "source" => "dis", "event" => "on_enter_field", "entering" => "dis", "follow" => "rearm" } }.merge(extra))
   end
 
-  def ombra_in_campo(hand_objects: [])
-    engine = scissione(
-      [["ombra", "OMBRA", { "zone" => "hand" }], ["mio", "UMANO", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }], ["mazza-a", "MAZZA", { "zone" => "ritiro" }]] + hand_objects,
+  def disarmatore_in_campo(hand_objects: [])
+    engine = disarmi(
+      [["dis", "DISARMATORE", { "zone" => "hand" }], ["mio", "UMANO", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }], ["mazza-a", "MAZZA", { "zone" => "ritiro" }]] + hand_objects,
       b: [["suo", "UMANO", { "x" => 442 }], ["lama-b", "LAMA", { "x" => 472, "y" => 202, "assignedTo" => "suo" }], ["mazza-b", "MAZZA", { "zone" => "ritiro" }]]
     )
-    entra_ombra(engine)
+    entra_disarmatore(engine)
   end
 
   def test_il_disarmo_manda_in_ritiro_l_oggetto_assegnato_a_un_entita_avversaria
-    engine = ombra_in_campo
+    engine = disarmatore_in_campo
     verdict = disarma(engine, "lama-b")
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
@@ -3568,7 +3568,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_disarmo_non_tocca_gli_oggetti_propri_ne_quelli_sciolti_ne_le_entita
-    engine = ombra_in_campo
+    engine = disarmatore_in_campo
     engine.judge({ "t" => "toZone", "uid" => "mazza-b", "zone" => "field", "x" => 821, "y" => 172 }, actor: "b")
     refute disarma(engine, "mazza-b")[:ok], "un Oggetto avversario non assegnato non si disarma"
     refute disarma(engine, "suo")[:ok], "un'Entità non è un Oggetto"
@@ -3578,7 +3578,7 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_disarmo_vale_solo_nel_turno_d_ingresso
-    engine = ombra_in_campo
+    engine = disarmatore_in_campo
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
     verdict = disarma(engine, "lama-b")
@@ -3587,29 +3587,29 @@ class EngineTest < Minitest::Test
   end
 
   def test_una_carta_senza_la_forma_non_disarma
-    engine = ombra_in_campo
+    engine = disarmatore_in_campo
     verdict = engine.judge({ "t" => "toZone", "uid" => "lama-b", "zone" => "ritiro",
                              "effect" => { "source" => "mio", "event" => "on_enter_field", "entering" => "mio", "follow" => "disarm" } })
     refute verdict[:ok]
   end
 
   def test_il_riarmo_assegna_gratis_dal_proprio_ritiro_quanti_oggetti_si_vuole
-    engine = ombra_in_campo
+    engine = disarmatore_in_campo
     disarma(engine, "lama-b")
     flux = engine.instance_variable_get(:@table).flux("a")
     verdict = riarma(engine, "lama-a", "mio")
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
-    verdict = riarma(engine, "mazza-a", "ombra")
+    verdict = riarma(engine, "mazza-a", "dis")
     assert verdict[:ok], "quanti se ne vuole: #{verdict[:reason]}"
     table = engine.instance_variable_get(:@table)
     assert_equal "mio", table.card("lama-a")[:assigned_to]
-    assert_equal "ombra", table.card("mazza-a")[:assigned_to]
+    assert_equal "dis", table.card("mazza-a")[:assigned_to]
     assert_equal flux, table.flux("a"), "senza pagarne il costo"
   end
 
   def test_il_riarmo_non_prende_dal_ritiro_altrui_ne_va_su_entita_altrui_o_coperte_e_non_si_paga
-    engine = ombra_in_campo
+    engine = disarmatore_in_campo
     disarma(engine, "lama-b")
     refute riarma(engine, "lama-b", "mio")[:ok], "l'Oggetto disarmato è nel Ritiro del suo proprietario, non nel mio"
     refute riarma(engine, "lama-a", "suo")[:ok], "solo alle Entità che controllo"
@@ -3619,59 +3619,59 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_riarmo_di_un_oggetto_ignoto_tace
-    engine = ombra_in_campo(hand_objects: [["boh", "IGNOTA", { "zone" => "ritiro" }]])
+    engine = disarmatore_in_campo(hand_objects: [["boh", "IGNOTA", { "zone" => "ritiro" }]])
     refute riarma(engine, "boh", "mio")[:ruled]
   end
 
-  # Il ritorno vincolato: la carta esce e torna nello stesso turno.
-  def vincolata_in_campo
-    scissione(
-      [["vinc", "VINCOLATA", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }], ["mazza-a", "MAZZA", { "zone" => "ritiro" }]],
+  # Il ritorno vincolato: la carta esce e torna nello stesso turno (fixture REDIVIVA).
+  def rediviva_in_campo
+    disarmi(
+      [["red", "REDIVIVA", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }], ["mazza-a", "MAZZA", { "zone" => "ritiro" }]],
       b: [["suo", "UMANO", { "x" => 442 }], ["lama-b", "LAMA", { "zone" => "ritiro" }]]
     )
   end
 
-  def ritorna(engine, uid: "vinc", object: "lama-a", x: 821, y: 1260, actor: nil, ref: nil)
+  def ritorna(engine, uid: "red", object: "lama-a", x: 821, y: 1260, actor: nil, ref: nil)
     engine.judge({ "t" => "revive", "uid" => uid, "x" => x, "y" => y, "z" => 9, "object" => object,
                    "effect" => ref || { "source" => uid, "event" => "on_leave_field", "entering" => uid } }, actor: actor)
   end
 
   def test_il_ritorno_vincolato_riporta_sul_fronte_chi_e_appena_uscita_con_un_oggetto_dal_ritiro
-    engine = vincolata_in_campo
-    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    engine = rediviva_in_campo
+    engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
     verdict = ritorna(engine)
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
     table = engine.instance_variable_get(:@table)
-    assert_equal "field", table.card("vinc")[:zone]
+    assert_equal "field", table.card("red")[:zone]
     assert_equal "field", table.card("lama-a")[:zone]
-    assert_equal "vinc", table.card("lama-a")[:assigned_to]
-    assert_nil table.card("vinc")[:left]
+    assert_equal "red", table.card("lama-a")[:assigned_to]
+    assert_nil table.card("red")[:left]
   end
 
   def test_il_ritorno_vincolato_lo_decide_il_proprietario
-    engine = vincolata_in_campo
-    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    engine = rediviva_in_campo
+    engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
     refute ritorna(engine, actor: "b")[:ok], "lo decide il proprietario"
     assert ritorna(engine, actor: "a")[:ok]
   end
 
   def test_il_ritorno_vincolato_non_vale_se_e_uscita_armata_o_in_un_altro_turno
-    engine = scissione([["vinc", "VINCOLATA", { "x" => 442 }], ["mazza-a", "MAZZA", { "x" => 472, "y" => 1266, "assignedTo" => "vinc" }], ["lama-a", "LAMA", { "zone" => "ritiro" }]])
-    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    engine = disarmi([["red", "REDIVIVA", { "x" => 442 }], ["mazza-a", "MAZZA", { "x" => 472, "y" => 1266, "assignedTo" => "red" }], ["lama-a", "LAMA", { "zone" => "ritiro" }]])
+    engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
     verdict = ritorna(engine)
     refute verdict[:ok]
     assert_includes verdict[:reason], "Oggetti addosso"
 
-    engine = vincolata_in_campo
-    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    engine = rediviva_in_campo
+    engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     refute ritorna(engine, actor: "a")[:ok], "l'innesco è passato col turno"
   end
 
   def test_il_ritorno_vincolato_vuole_un_oggetto_entro_il_costo_dal_proprio_ritiro_e_uno_slot_libero
-    engine = vincolata_in_campo
-    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    engine = rediviva_in_campo
+    engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
     refute ritorna(engine, object: "mazza-a")[:ok], "costo 3 > 2"
     refute ritorna(engine, object: "lama-b")[:ok], "dal PROPRIO Ritiro"
     refute ritorna(engine, object: "suo")[:ok], "un Oggetto, non un'Entità"
@@ -3681,11 +3681,11 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_ritorno_vincolato_con_il_fronte_pieno_non_passa
-    engine = scissione(
-      [["vinc", "VINCOLATA", { "x" => 442 }], ["u1", "UMANO", { "x" => 821 }], ["u2", "UMANO", { "x" => 1199 }], ["u3", "UMANO", { "x" => 1578 }],
+    engine = disarmi(
+      [["red", "REDIVIVA", { "x" => 442 }], ["u1", "UMANO", { "x" => 821 }], ["u2", "UMANO", { "x" => 1199 }], ["u3", "UMANO", { "x" => 1578 }],
        ["u4", "UMANO", { "x" => 1956 }], ["lama-a", "LAMA", { "zone" => "ritiro" }], ["u5", "UMANO", { "zone" => "hand" }]]
     )
-    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
+    engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
     engine.judge({ "t" => "toZone", "uid" => "u5", "zone" => "field", "x" => 442, "y" => 1260, "cost" => 2 })
     verdict = ritorna(engine)
     refute verdict[:ok]
@@ -3693,32 +3693,32 @@ class EngineTest < Minitest::Test
   end
 
   def test_il_ritorno_vincolato_senza_la_forma_o_ignoto_non_passa
-    engine = scissione([["mio", "UMANO", { "x" => 442 }], ["vinc", "VINCOLATA", { "x" => 821 }], ["lama-a", "LAMA", { "zone" => "ritiro" }]])
+    engine = disarmi([["mio", "UMANO", { "x" => 442 }], ["red", "REDIVIVA", { "x" => 821 }], ["lama-a", "LAMA", { "zone" => "ritiro" }]])
     engine.judge({ "t" => "toZone", "uid" => "mio", "zone" => "ritiro" })
     refute ritorna(engine, uid: "mio")[:ok], "senza la forma non si torna"
-    engine.judge({ "t" => "toZone", "uid" => "vinc", "zone" => "ritiro" })
-    refute ritorna(engine, ref: { "source" => "vinc", "event" => "on_enter_field", "entering" => "vinc" })[:ok], "l'evento è l'uscita dal campo"
-    engine = scissione([["boh", "IGNOTA", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }]])
+    engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
+    refute ritorna(engine, ref: { "source" => "red", "event" => "on_enter_field", "entering" => "red" })[:ok], "l'evento è l'uscita dal campo"
+    engine = disarmi([["boh", "IGNOTA", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }]])
     engine.judge({ "t" => "toZone", "uid" => "boh", "zone" => "ritiro" })
     refute ritorna(engine, uid: "boh")[:ruled]
   end
 
   def test_la_morte_in_battaglia_lascia_l_annotazione_dell_uscita
-    engine = scissione(
-      [["vinc", "VINCOLATA", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }]],
+    engine = disarmi(
+      [["red", "REDIVIVA", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }]],
       b: [["suo", "SPINOSO", { "x" => 442 }]]
     )
     fronte!(engine)
-    engine.judge({ "t" => "declare", "declaration" => { "id" => "vinc", "from" => "vinc", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } })
+    engine.judge({ "t" => "declare", "declaration" => { "id" => "red", "from" => "red", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } })
     engine.judge({ "t" => "phase", "phase" => "reazione" })
-    engine.judge({ "t" => "declare", "declaration" => { "id" => "suo", "from" => "suo", "to" => "vinc", "kind" => "counter", "seat" => "b", "order" => 0 } }, actor: "b")
+    engine.judge({ "t" => "declare", "declaration" => { "id" => "suo", "from" => "suo", "to" => "red", "kind" => "counter", "seat" => "b", "order" => 0 } }, actor: "b")
     verdict = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [
-                               { "attacker" => "vinc", "blocker" => "suo", "kind" => "counter", "attackerDies" => true, "blockerDies" => false, "damage" => 0 },
+                               { "attacker" => "red", "blocker" => "suo", "kind" => "counter", "attackerDies" => true, "blockerDies" => false, "damage" => 0 },
                              ] }, actor: "b")
     assert verdict[:ok], verdict[:reason]
     table = engine.instance_variable_get(:@table)
-    assert_equal "abisso", table.card("vinc")[:zone]
-    assert_equal({ turn: 3, armed: false }, table.card("vinc")[:left])
+    assert_equal "abisso", table.card("red")[:zone]
+    assert_equal({ turn: 3, armed: false }, table.card("red")[:left])
     assert ritorna(engine, actor: "a")[:ok]
   end
 end
