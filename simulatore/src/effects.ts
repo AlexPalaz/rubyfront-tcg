@@ -9,7 +9,7 @@
 // ingresso. Tutto ciò che non ha una forma certificata resta a mano.
 
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
-import type { AttackForm, FlipForm, ResolveForm } from "./ctx.js";
+import type { AssignForm, AttackForm, FlipForm, ResolveForm } from "./ctx.js";
 import type { CardFacts, Ctx, EnterLook, EnterRefresh } from "./ctx.js";
 import { STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, zoneCards, freeFrontSlotOrNull } from "./state.js";
 import { countEntities } from "./combat.js";
@@ -829,9 +829,16 @@ export function resolveSteps(state: GameState, source: CardInstance, facts: (car
       case "empower": {
         step.candidates = foesAndMine.filter(card => {
           const f = facts(card.cardId);
-          return controllerOf(card) === seat && f.kind === "entity" && (form.race === null || f.race === form.race);
+          const race = "race" in form ? form.race : null;
+          return controllerOf(card) === seat && f.kind === "entity" && (race === null || f.race === race);
         });
         if (form.targets === "own_entity" && resolveFired(state, source, "empower:")) step.candidates = [];
+        if (form.targets === "own_armed") {
+          // «Fino a N Entità con un Oggetto assegnato che controlli»: le
+          // armate non ancora potenziate, finché i passi non sono N.
+          step.candidates = step.candidates.filter(card => armed(state, card.uid) && !resolveFired(state, source, `empower:${card.uid}`));
+          if (resolveFiredCount(state, source, "empower:") >= form.upTo) step.candidates = [];
+        }
         if (form.targets === "own_entities") {
           step.candidates = step.candidates.filter(card => !resolveFired(state, source, `empower:${card.uid}`));
           if (countEntities(state, seat, form.requires.race, facts) < form.requires.count) step.blocked = "log.no.humans";
@@ -851,6 +858,15 @@ export function resolveSteps(state: GameState, source: CardInstance, facts: (car
       case "exile": {
         step.candidates = foesAndMine.filter(card => controllerOf(card) !== seat && permanentOf(card, facts));
         if (step.candidates.length === 0) step.blocked = "log.no.target";
+        break;
+      }
+      case "weaken": {
+        // «Un'Entità avversaria attaccante prende −1 Potenza per ogni Entità
+        // con un Oggetto assegnato che controlli»: chi attacca adesso, e
+        // senza armate proprie l'effetto non toglie nulla.
+        step.candidates = foesAndMine.filter(card => controllerOf(card) !== seat && facts(card.cardId).kind === "entity" && state.declarations.some(d => d.from === card.uid && d.kind === "attack"));
+        if (armedCount(state, seat, facts) === 0) step.blocked = "log.no.armed.weaken";
+        else if (step.candidates.length === 0) step.blocked = "log.no.attacker";
         break;
       }
       case "destroy": {
@@ -891,6 +907,7 @@ export function pendingResolve(state: GameState, source: CardInstance, facts: (c
       case "look": return !resolveFired(state, source, "look");
       case "move": return !resolveFired(state, source, "move");
       case "exile": return !resolveFired(state, source, "exile");
+      case "weaken": return !resolveFired(state, source, "empower:");
       case "destroy": return !resolveFired(state, source, "destroy");
       case "fortune": return !resolveFired(state, source, "heal") && !resolveFired(state, source, "draw") && !resolveFired(state, source, "deploy");
       case "block": return !resolveFired(state, source, "heal");
@@ -908,24 +925,89 @@ export function describeResolveStep(step: ResolveStep, facts: (cardId: string) =
     case "empower":
       return form.targets === "own_entity"
         ? t("trigger.formation", { card, n: form.power })
-        : t("trigger.coordinate", { card, n: form.requires.count, m: form.counter });
-    case "move": return t("trigger.impact", { card, n: form.target.maxCost ?? 0 });
+        : form.targets === "own_armed"
+          ? t("trigger.amplify", { card, n: form.upTo, m: form.power })
+          : t("trigger.coordinate", { card, n: form.requires.count, m: form.counter });
+    case "move": return form.target.maxCost === null ? t("trigger.sunder", { card }) : t("trigger.impact", { card, n: form.target.maxCost });
     case "exile": return t("trigger.repulse", { card });
+    case "weaken": return t("trigger.refract", { card, n: -form.amount });
     case "fortune": return t("trigger.fortune", { card, die: form.die });
     case "destroy": return t("trigger.judgment", { card });
     case "block": return t("trigger.reflect", { card, n: form.requiresArmed, m: form.heal });
   }
 }
 
-/** Quanto costa giocare la Materia contro quel bersaglio (RBF-021): il costo stampato, meno lo sconto se il bersaglio è tappato. */
-export function discountedCost(state: GameState, cardId: string, target: CardInstance | null, facts: (cardId: string) => CardFacts): number | null {
-  const f = facts(cardId);
+/** La Potenza che l'indebolimento toglie adesso: −1 per ogni armata di `seat`. Gemello: engine.rb, judge_resolve_weaken. */
+export function weakenAmount(state: GameState, seat: Seat, form: Extract<ResolveForm, { kind: "weaken" }>, facts: (cardId: string) => CardFacts): number {
+  return form.amount * armedCount(state, seat, facts);
+}
+
+/** Quanti passi di quel prefisso la Materia ha già risolto («fino a N Entità»). */
+function resolveFiredCount(state: GameState, source: CardInstance, step: string): number {
+  return (state.fired ?? []).filter(fired => fired.startsWith(`${source.uid}|on_resolve:${step}`)).length;
+}
+
+/**
+ * Quanto costa giocare la Materia adesso: il costo stampato, meno lo sconto
+ * «se bersaglia un'Entità tappata» (RBF-021, col bersaglio dichiarato) o
+ * quello «se sul tuo Fronte ci sono almeno N Entità con un Oggetto» (lo
+ * spostamento scontato, guardando il Fronte di chi la gioca). Gemello:
+ * engine.rb, discount_for.
+ */
+export function discountedCost(state: GameState, card: CardInstance, target: CardInstance | null, facts: (cardId: string) => CardFacts): number | null {
+  const f = facts(card.cardId);
   if (f.fluxCost === null) return null;
+  const armedForm = f.resolveForms.find((candidate): candidate is Extract<ResolveForm, { kind: "move" }> => candidate.kind === "move" && candidate.discount !== null);
+  if (armedForm?.discount && armedCount(state, controllerOf(card), facts) >= armedForm.discount.ifArmedAtLeast) return Math.max(0, f.fluxCost - armedForm.discount.amount);
   const form = f.resolveForms.find((candidate): candidate is Extract<ResolveForm, { kind: "destroy" }> => candidate.kind === "destroy" && candidate.discount !== null);
   if (!form || !form.discount || !target) return f.fluxCost;
   const live = state.cards[target.uid];
   const tapped = !!live && live.zone === "field" && live.tapped && facts(live.cardId).kind === "entity";
   return tapped ? Math.max(0, f.fluxCost - form.discount.amount) : f.fluxCost;
+}
+
+/** Un innesco «quando assegni questa carta a un'Entità» da risolvere (§3.1): l'Oggetto, il portatore, la forma. */
+export interface AssignStep {
+  source: CardInstance;
+  bearer: CardInstance;
+  form: AssignForm;
+}
+
+export function assignRef(step: AssignStep): EffectRef {
+  return { source: step.source.uid, event: "on_assign_object", entering: step.bearer.uid };
+}
+
+/**
+ * Gli inneschi d'assegnazione appena avvenuti (§3.1, §8.2): fra `before` e
+ * `after`, ogni Oggetto con una forma certificata che ora è in campo
+ * assegnato a un'Entità in campo — e prima non lo era, o lo era a un'altra
+ * — innesca, se non l'ha già fatto per quel portatore. Li offre main.ts
+ * dopo ogni azione applicata, come per il ritorno vincolato.
+ */
+export function assignSteps(before: GameState, after: GameState, facts: (cardId: string) => CardFacts): AssignStep[] {
+  const out: AssignStep[] = [];
+  for (const card of Object.values(after.cards)) {
+    if (card.zone !== "field" || !card.assignedTo) continue;
+    const forms = facts(card.cardId).assignForms;
+    if (forms.length === 0) continue;
+    const bearer = after.cards[card.assignedTo];
+    if (!bearer || bearer.zone !== "field") continue;
+    const was = before.cards[card.uid];
+    if (was && was.zone === "field" && was.assignedTo === card.assignedTo) continue;
+    if ((after.fired ?? []).some(key => key.startsWith(`${card.uid}|on_assign_object:`) && key.endsWith(`|${bearer.uid}`))) continue;
+    for (const form of forms) out.push({ source: card, bearer, form });
+  }
+  return out;
+}
+
+/** I bersagli di un innesco d'assegnazione, letti dallo stato di adesso. */
+export function assignCandidates(state: GameState, step: AssignStep, facts: (cardId: string) => CardFacts): CardInstance[] {
+  const seat = controllerOf(step.source);
+  return fieldCards(state).filter(card => controllerOf(card) !== seat && facts(card.cardId).kind === "entity");
+}
+
+export function describeAssignStep(step: AssignStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.confine", { card: `«${facts(step.source.cardId).name}»` });
 }
 
 /**

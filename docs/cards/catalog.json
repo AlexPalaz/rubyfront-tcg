@@ -3545,7 +3545,7 @@
                   "checks": [
                     "fury"
                   ],
-                  "cost": {
+                  "gain": {
                     "health": 3
                   },
                   "effect": {
@@ -10099,7 +10099,7 @@
               "checks": [
                 "fury"
               ],
-              "cost": {
+              "gain": {
                 "health": 3
               },
               "effect": {

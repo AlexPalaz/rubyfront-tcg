@@ -56,6 +56,11 @@ export function showEnterEffect(root: HTMLElement, show: EnterEffectShow): Promi
   return enqueue(() => showEnterEffectNow(root, show));
 }
 
+/** Si risolve quando nessuna scena è in coda: per chi deve venire DOPO quelle già annunciate. */
+export function sceneIdle(): Promise<void> {
+  return queue;
+}
+
 function showEnterEffectNow(root: HTMLElement, show: EnterEffectShow): Promise<void> {
   const veil = document.createElement("div");
   veil.className = "effect-veil";

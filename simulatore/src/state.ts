@@ -121,7 +121,7 @@ function orderForBottom(state: GameState, seat: Seat, zone: ZoneId): number {
 export function attackKey(action: Action): string | null {
   const ref = "effect" in action ? action.effect : undefined;
   if (!ref) return null;
-  if (ref.event === "on_resolve" || ref.event === "on_flip") {
+  if (ref.event === "on_resolve" || ref.event === "on_flip" || ref.event === "on_assign_object") {
     const step = (() => {
       switch (action.t) {
         case "draw": return "draw";

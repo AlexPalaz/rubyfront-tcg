@@ -45,7 +45,7 @@ Zona di Ritiro.
 |---|---|---|
 | Materie | Dim II · Distr I | Dim II · Distr II |
 | Statico | 1ª assegnazione: guarda cima+fondo, puoi scambiarle, poi pesca/scarta | 1ª assegnazione: cima+fondo, una in mano e una in Ritiro |
-| Abilità | −3 PV Forgia Rapida: prossimo Oggetto −1 Flusso | −3 PV Forgia Profonda: prossimo Oggetto −2 Flussi |
+| Abilità | +3 PV Forgia Rapida: prossimo Oggetto −1 Flusso | −3 PV Forgia Profonda: prossimo Oggetto −2 Flussi |
 | Abilità | −3 PV Colpo Calibrato: un'armata +2 Potenza | −5 PV Coro delle Lame: tutte le armate +2 Potenza |
 | Flip | requisito: 3 Entità armate; costo: scarta una carta dalla mano (dal 2026-09-10; prima un Auros dal Ritiro nell'Abisso) | al flip: assorbe Avy Shin · pesca 1 · recupero +5 PV |
 

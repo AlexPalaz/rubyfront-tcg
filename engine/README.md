@@ -889,6 +889,38 @@ Regole collegate finora:
   Contrattacco che «diventa +N» (fissato) resta nel debito. Engine 0.50.0,
   cinquantasei regole.
 
+- **§8.2 Le Materie del secondo mazzo alla risoluzione** (dal 2026-09-10,
+  decisione del designer: «non si attivano», quindi si collegano) — quattro
+  forme nuove. L'**indebolimento** (`weaken`): «un'Entità avversaria
+  attaccante prende −1 Potenza per ogni Entità con un Oggetto assegnato che
+  controlli, fino alla fine del turno» — un `empower` con `power` negativo
+  (i gemelli lo sommano a `power_bonus`, e la Potenza non scende sotto
+  zero), un bersaglio solo che sta attaccando, il conto esatto delle
+  proprie armate di ADESSO (senza armate: fermata). Il **potenziamento
+  delle armate** (`empower`, `targets: own_armed`): «fino a N Entità con un
+  Oggetto assegnato che controlli prendono +M Potenza fino alla fine del
+  turno e vengono stappate» — un `empower {untap, power}` per bersaglio
+  armato, non più di N passi per risoluzione (`fired_count`). Lo
+  **spostamento scontato** (`move` con `discount`): «metti un'Entità
+  avversaria nella Zona di Ritiro del suo proprietario; se sul tuo Fronte
+  ci sono almeno N Entità con un Oggetto assegnato, questa carta costa M in
+  meno» — nessun limite di costo sul bersaglio, e lo sconto lo verifica la
+  dogana del costo guardando il Fronte di chi la gioca (`discount_for`).
+  L'**esilio all'assegnazione** (`assign_forms`, evento
+  `on_assign_object`): «quando assegni questa carta a un'Entità, manda
+  nell'Abisso un'Entità avversaria; finché questa carta resta in gioco,
+  resta nell'Abisso; quando lascia il gioco, torna» — lo stesso `toZone`
+  con `heldBy` dell'esilio condizionato, con fonte l'Oggetto in campo e
+  ingresso l'Entità a cui è assegnato (chiave
+  `oggetto|on_assign_object:exile|portatore`: un'assegnazione, un
+  innesco), e il ritorno col `release` quando l'Oggetto lascia il campo.
+  Nel client `assignSteps` confronta lo stato prima e dopo ogni azione
+  (come il ritorno vincolato) e apre la scena a chi comanda l'Oggetto.
+  Limiti dichiarati: l'esilio non innesca se l'Oggetto viene riassegnato
+  allo STESSO portatore dopo essere uscito e rientrato nello stesso turno
+  (la memoria degli inneschi è del turno); il bot indebolisce e potenzia
+  scegliendo col suo selettore. Engine 0.57.0, sessantatré regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

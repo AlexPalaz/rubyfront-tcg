@@ -52,6 +52,9 @@ import {
   wantsTargetOnPlay,
   armedCount,
   blocksAttacker,
+  assignSteps,
+  assignCandidates,
+  weakenAmount,
 } from "../src/effects.js";
 import { newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
@@ -111,7 +114,11 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   PIETRA: { kind: "matter", race: null },
   ATTRAZIONE: { kind: "matter", behavior: "normal", fluxCost: 2, resolveForms: [{ kind: "look", count: 4, reveal: { kind: "entity", race: "human" }, revealTo: "hand", restTo: "deck", showUpTo: 2 }] },
   FORMAZIONE: { kind: "matter", behavior: "reactive", fluxCost: 2, resolveForms: [{ kind: "empower", targets: "own_entity", race: "human", power: 1, untap: true }] },
-  IMPATTO: { kind: "matter", behavior: "normal", fluxCost: 1, resolveForms: [{ kind: "move", target: { kind: "entity", controller: "opponent", maxCost: 2 }, to: "ritiro" }] },
+  IMPATTO: { kind: "matter", behavior: "normal", fluxCost: 1, resolveForms: [{ kind: "move", target: { kind: "entity", controller: "opponent", maxCost: 2 }, to: "ritiro", discount: null }] },
+  FRATTURA: { kind: "matter", behavior: "normal", fluxCost: 3, resolveForms: [{ kind: "move", target: { kind: "entity", controller: "opponent", maxCost: null }, to: "ritiro", discount: { amount: 1, ifArmedAtLeast: 2 } }] },
+  RIFRAZIONE: { kind: "matter", behavior: "reactive", fluxCost: 2, resolveForms: [{ kind: "weaken", target: { kind: "entity", controller: "opponent", attacking: true }, amount: -1, perArmed: true }] },
+  AMPLIFICA: { kind: "matter", behavior: "reactive", fluxCost: 2, resolveForms: [{ kind: "empower", targets: "own_armed", power: 1, upTo: 2, untap: true }] },
+  PRISMA: { kind: "object", fluxCost: 3, assignForms: [{ kind: "exile", target: { kind: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
   CAMPO: { kind: "matter", behavior: "permanent", fluxCost: 3, resolveForms: [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }] },
   COORDINATO: { kind: "matter", behavior: "reactive", fluxCost: 4, resolveForms: [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, requires: { count: 3, race: "human" } }] },
   GIUDIZIO: { kind: "matter", behavior: "reactive", fluxCost: 5, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, ifTarget: "tapped" } }] },
@@ -143,6 +150,7 @@ const facts = (cardId: string): CardFacts => ({
   staticForms: [],
   resolveForms: [],
   flipForms: [],
+  assignForms: [],
   nexus: null,
   grantsWhileAssigned: [],
   ...FACTS[cardId],
@@ -894,12 +902,94 @@ describe("resolveSteps", () => {
     const tapped = on(state, "q", "GRANDE", "b");
     tapped.tapped = true;
     expect(wantsTargetOnPlay(facts("GIUDIZIO"))).toBe(true);
-    expect(discountedCost(state, "GIUDIZIO", null, facts)).toBe(5);
-    expect(discountedCost(state, "GIUDIZIO", state.cards.p, facts)).toBe(5);
-    expect(discountedCost(state, "GIUDIZIO", tapped, facts)).toBe(2);
+    expect(discountedCost(state, g, null, facts)).toBe(5);
+    expect(discountedCost(state, g, state.cards.p, facts)).toBe(5);
+    expect(discountedCost(state, g, tapped, facts)).toBe(2);
     expect(resolveSteps(state, g, facts)[0].candidates.map(x => x.uid)).toEqual(["p", "q"]);
     g.target = "q";
     expect(resolveSteps(state, g, facts)[0].candidates.map(x => x.uid)).toEqual(["q"]);
+  });
+
+  it("la Frattura sconta con due armate sul Fronte, e manda in Ritiro chiunque", () => {
+    const state = newGame();
+    const m = on(state, "m", "FRATTURA");
+    on(state, "g", "GRANDE", "b");
+    on(state, "u1", "AUROS");
+    const o1 = on(state, "o1", "FERRO");
+    o1.assignedTo = "u1";
+    expect(discountedCost(state, m, null, facts)).toBe(3);
+    on(state, "u2", "AUROS");
+    const o2 = on(state, "o2", "FERRO");
+    o2.assignedTo = "u2";
+    expect(discountedCost(state, m, null, facts)).toBe(2);
+    expect(wantsTargetOnPlay(facts("FRATTURA"))).toBe(false);
+    const [step] = resolveSteps(state, m, facts);
+    expect(step.candidates.map(x => x.uid)).toEqual(["g"]);
+    expect(describeResolveStep(step, facts)).toContain("Zona di Ritiro");
+  });
+
+  it("la Rifrazione indebolisce l'attaccante di uno per armata, e senza armate non fa nulla", () => {
+    const state = newGame();
+    const r = on(state, "r", "RIFRAZIONE", "b");
+    on(state, "u", "AUROS");
+    on(state, "v", "AUROS");
+    state.declarations = [{ id: "u", from: "u", to: "rf", kind: "attack", seat: "a", order: 1 }];
+    expect(resolveSteps(state, r, facts)[0].blocked).toBe("log.no.armed.weaken");
+    on(state, "b1", "AUROS", "b");
+    const o = on(state, "o", "FERRO", "b");
+    o.assignedTo = "b1";
+    on(state, "b2", "AUROS", "b");
+    const o2 = on(state, "o2", "FERRO", "b");
+    o2.assignedTo = "b2";
+    const [step] = resolveSteps(state, r, facts);
+    expect(step.blocked).toBeNull();
+    expect(step.candidates.map(x => x.uid)).toEqual(["u"]);
+    expect(weakenAmount(state, "b", step.form as never, facts)).toBe(-2);
+    state.fired = ["r|on_resolve:empower:u|r"];
+    expect(pendingResolve(state, r, facts)).toEqual([]);
+    state.fired = [];
+    state.declarations = [];
+    expect(resolveSteps(state, r, facts)[0].blocked).toBe("log.no.attacker");
+  });
+
+  it("l'Amplificazione propone le armate proprie, fino a due", () => {
+    const state = newGame();
+    const m = on(state, "m", "AMPLIFICA");
+    on(state, "u1", "AUROS");
+    on(state, "u2", "AUROS");
+    on(state, "u3", "AUROS");
+    on(state, "x", "AUROS");
+    for (const [uid, bearer] of [["o1", "u1"], ["o2", "u2"], ["o3", "u3"]]) on(state, uid, "FERRO").assignedTo = bearer;
+    expect(resolveSteps(state, m, facts)[0].candidates.map(x => x.uid)).toEqual(["u1", "u2", "u3"]);
+    state.fired = ["m|on_resolve:empower:u1|m"];
+    expect(resolveSteps(state, m, facts)[0].candidates.map(x => x.uid)).toEqual(["u2", "u3"]);
+    state.fired = ["m|on_resolve:empower:u1|m", "m|on_resolve:empower:u2|m"];
+    expect(resolveSteps(state, m, facts)[0].candidates).toEqual([]);
+    expect(pendingResolve(state, m, facts)).toEqual([]);
+  });
+
+  it("il Prisma innesca quando viene assegnato in campo, una volta per portatore", () => {
+    const before = newGame();
+    on(before, "u", "AUROS");
+    const inHand = on(before, "p", "PRISMA");
+    inHand.zone = "hand";
+    on(before, "b1", "AUROS", "b");
+    on(before, "b2", "AUROS", "b");
+    const after = structuredClone(before);
+    after.cards.p = { ...after.cards.p, zone: "field", assignedTo: "u" };
+    const steps = assignSteps(before, after, facts);
+    expect(steps.map(s => [s.source.uid, s.bearer.uid, s.form.kind])).toEqual([["p", "u", "exile"]]);
+    expect(assignCandidates(after, steps[0], facts).map(x => x.uid)).toEqual(["b1", "b2"]);
+    // Già innescato per quel portatore: niente.
+    after.fired = ["p|on_assign_object:exile|u"];
+    expect(assignSteps(before, after, facts)).toEqual([]);
+    // Stessa assegnazione di prima: niente.
+    expect(assignSteps(after, after, facts)).toEqual([]);
+    // Un Oggetto senza la forma: niente.
+    const plain = structuredClone(after);
+    plain.fired = [];
+    plain.cards.p = { ...plain.cards.p, cardId: "FERRO" };
+    expect(assignSteps(before, plain, facts)).toEqual([]);
   });
 
   it("chi era tenuto nell'Abisso torna quando chi lo teneva lascia il gioco", async () => {

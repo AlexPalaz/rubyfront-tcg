@@ -82,12 +82,19 @@ module Rubyfront
     #
     #   { kind: "look", count:, reveal: { type:, race: }, reveal_to: "hand", rest_to: "deck", show_up_to: }
     #   { kind: "empower", targets: "own_entity", race:, power:, untap: true }
-    #   { kind: "move", target: { type: "entity", controller: "opponent", max_cost: }, to: "ritiro" }
+    #   { kind: "move", target: { type: "entity", controller: "opponent", max_cost: }, to: "ritiro", discount: nil | { amount:, if_armed_at_least: } }
     #   { kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }
+    #   { kind: "weaken", target: { type: "entity", controller: "opponent", attacking: true }, amount: -1, per_armed: true } — l'attaccante avversario, −1 per ogni propria armata
+    #   { kind: "empower", targets: "own_armed", power:, up_to:, untap: true } — fino a N proprie armate, +M e stappate
     #   { kind: "fortune", die:, gain: { on:, amount: }, deploy: { on:, filter: }, draw: { on:, count: }, all_on: }
     #   { kind: "empower", targets: "own_entities", race:, counter:, untap: true, requires: { count:, race: } } — la stappata di gruppo: in Reazione, senza bloccare
     #   { kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount:, if_target: "tapped" } }
     #   { kind: "block", requires_armed:, heal:, as_block: true } — giocata come bloccante di un'Entità attaccante (§6.4); con N armati sul Fronte, +M PV
+    #
+    # `assign_forms` sono gli effetti CERTIFICATI «quando assegni questa
+    # carta a un'Entità» (§3.1, §8.2), evento `on_assign_object`:
+    #
+    #   { kind: "exile", target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true } — l'esilio condizionato, tenuto dall'Oggetto
     #
     # `flip_forms` sono gli effetti «quando flippa» CERTIFICATI del Nexus
     # (§3.1), evento `on_flip`: { kind: "move", card_id:, from:
@@ -148,6 +155,7 @@ module Rubyfront
           enter_disarms: enter_disarms(faces).freeze,
           enter_rearms: enter_rearms(faces).freeze,
           leave_returns: leave_returns(faces).freeze,
+          assign_forms: assign_forms(faces).freeze,
           abilities: abilities(faces).freeze,
           fury_at: fury_at(faces).freeze,
           behavior: faces.filter_map { |face| face["behavior"] if face["behavior"].is_a?(String) }.first,
@@ -162,7 +170,7 @@ module Rubyfront
     # Tutti i parser delle forme certificate: ogni trigger di ogni carta
     # deve trovarne uno che lo riconosca, o è un effetto che l'engine ignora.
     FORMS = %i[enter_listeners enter_moves enter_looks enter_controls enter_refreshes enter_disarms enter_rearms leave_returns
-               attack_draws attack_forms grants_while_assigned static_forms resolve_forms flip_forms].freeze
+               attack_draws attack_forms grants_while_assigned static_forms resolve_forms flip_forms assign_forms].freeze
     RETURN_EVENTS = %w[on_enter_field on_attack].freeze
 
     # Un trigger è riconosciuto se almeno una forma certificata lo legge.
@@ -255,6 +263,32 @@ module Rubyfront
               extra["whileSourceOnField"] == true && extra["returnsToPlayWhenSourceLeaves"] == true
           { target: { type: "entity", controller: "opponent" }.freeze, to: "abisso", hold: true }.freeze
         end
+      end
+    end
+
+    # Gli effetti certificati «quando assegni questa carta a un'Entità»
+    # (§3.1, §8.2; dal 2026-09-10): evento `on_assign_object` con
+    # `selfAssigned` (è questo Oggetto che viene assegnato), effetto
+    # `move_card` di UN'Entità avversaria nell'Abisso «finché questa carta
+    # resta in gioco; quando lascia il gioco, torna» — l'esilio condizionato,
+    # stessa meccanica della Materia e dell'Entità (held_by, release).
+    # Gemello: renderer.ts, assignFormsOf.
+    def self.assign_forms(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_assign_object"
+        next unless trigger["details"].is_a?(Hash) && trigger["details"] == { "selfAssigned" => true }
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "move_card"
+
+        target = effect["target"]
+        destination = effect["destination"]
+        extra = effect["details"]
+        next unless target.is_a?(Hash) && target["cardType"] == "entity" && target["controller"] == "opponent" && target["min"] == 1 && target["max"] == 1
+        next unless destination.is_a?(Hash) && destination["zone"] == "abyss"
+        next unless extra.is_a?(Hash) && extra["whileSourceOnField"] == true && extra["returnsToPlayWhenSourceLeaves"] == true
+
+        { kind: "exile", target: { type: "entity", controller: "opponent" }.freeze, to: "abisso", hold: true }.freeze
       end
     end
 
@@ -682,7 +716,8 @@ module Rubyfront
         effect = trigger["effect"]
         next unless effect.is_a?(Hash)
 
-        form = resolve_look(effect) || resolve_untap(effect) || resolve_move(effect) || resolve_fortune(effect) || resolve_destroy(effect) || resolve_block(effect)
+        form = resolve_look(effect) || resolve_untap(effect) || resolve_move(effect) || resolve_fortune(effect) || resolve_destroy(effect) ||
+               resolve_block(effect) || resolve_weaken(effect) || resolve_amplify(effect)
         form&.freeze
       end
     end
@@ -753,9 +788,24 @@ module Rubyfront
           max_cost = condition["value"] if ok
           ok
         end
-        return nil unless certified && effect["details"].nil?
+        return nil unless certified
 
-        return { kind: "move", target: { type: "entity", controller: "opponent", max_cost: max_cost }.freeze, to: "ritiro" }
+        # Lo sconto (dal 2026-09-10): «se sul tuo Fronte ci sono almeno N
+        # Entità con un Oggetto assegnato, questa carta costa M in meno».
+        # Nessun dettaglio: nessuno sconto. Un dettaglio diverso: forma ignota.
+        extra = effect["details"]
+        discount = nil
+        unless extra.nil?
+          return nil unless extra.is_a?(Hash) && extra.keys == ["fluxCostReduction"]
+
+          reduction = extra["fluxCostReduction"]
+          return nil unless reduction.is_a?(Hash) && reduction.keys.sort == %w[amount ifControllerEntitiesWithObjectAtLeast]
+          return nil unless reduction["amount"].is_a?(Integer) && reduction["ifControllerEntitiesWithObjectAtLeast"].is_a?(Integer)
+
+          discount = { amount: reduction["amount"], if_armed_at_least: reduction["ifControllerEntitiesWithObjectAtLeast"] }.freeze
+        end
+
+        return { kind: "move", target: { type: "entity", controller: "opponent", max_cost: max_cost }.freeze, to: "ritiro", discount: discount }
       end
       extra = effect["details"]
       if target.dig("details", "permanent") == true && destination["zone"] == "abyss" && extra.is_a?(Hash) &&
@@ -763,6 +813,38 @@ module Rubyfront
         return { kind: "exile", target: { permanent: true, controller: "opponent" }.freeze, to: "abisso", hold: true }
       end
       nil
+    end
+
+    # L'indebolimento dell'attaccante (dal 2026-09-10): «un'Entità avversaria
+    # attaccante prende −1 Potenza per ogni Entità con un Oggetto assegnato
+    # che controlli, fino alla fine del turno». Gemello: renderer.ts, resolveWeaken.
+    def self.resolve_weaken(effect)
+      return nil unless effect["type"] == "modify_power" && effect["duration"] == "until_end_of_turn"
+
+      target = effect["target"]
+      extra = effect["details"]
+      return nil unless target.is_a?(Hash) && target["cardType"] == "entity" && target["controller"] == "opponent" && target["min"] == 1 && target["max"] == 1
+      return nil unless target["details"].is_a?(Hash) && target["details"] == { "attacking" => true }
+      return nil unless effect["amount"].is_a?(Integer) && effect["amount"].negative?
+      return nil unless extra.is_a?(Hash) && extra == { "perControllerEntityWithObjectAssigned" => true }
+
+      { kind: "weaken", target: { type: "entity", controller: "opponent", attacking: true }.freeze, amount: effect["amount"], per_armed: true }
+    end
+
+    # Il potenziamento delle armate (dal 2026-09-10): «fino a N Entità con un
+    # Oggetto assegnato che controlli prendono +M Potenza fino alla fine del
+    # turno e vengono stappate». Gemello: renderer.ts, resolveAmplify.
+    def self.resolve_amplify(effect)
+      return nil unless effect["type"] == "modify_power" && effect["duration"] == "until_end_of_turn"
+
+      target = effect["target"]
+      extra = effect["details"]
+      return nil unless own_target?(target, "entity") && target["min"] == 0 && target["max"].is_a?(Integer) && target["max"].positive?
+      return nil unless target["details"].is_a?(Hash) && target["details"] == { "hasObjectAssigned" => true }
+      return nil unless effect["amount"].is_a?(Integer) && effect["amount"].positive?
+      return nil unless extra.is_a?(Hash) && extra == { "alsoUntap" => true }
+
+      { kind: "empower", targets: "own_armed", power: effect["amount"], up_to: target["max"], untap: true }
     end
 
     # Il d20 a fasce — PV, un'Entità dalla mano, una pesca, o tutto.

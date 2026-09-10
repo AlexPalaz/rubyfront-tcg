@@ -45,7 +45,7 @@ import {
   type Ctx,
 } from "./ctx.js";
 import { showRoll } from "./dice.js";
-import { confirmEffect, noticeEffect, showChoices, showEnterEffect } from "./effect.js";
+import { confirmEffect, noticeEffect, sceneIdle, showChoices, showEnterEffect } from "./effect.js";
 import {
   describeControl,
   describeRefresh,
@@ -97,9 +97,15 @@ import {
   type EnterRefreshStep,
   type EnterMoveStep,
   type EnterReturnStep,
+  assignCandidates,
+  assignRef,
+  assignSteps,
+  describeAssignStep,
   describeFlipStep,
   describeResolveStep,
   discountedCost,
+  weakenAmount,
+  type AssignStep,
   flipRef,
   flipSteps,
   nexusCheck,
@@ -237,6 +243,10 @@ export interface TableView {
       la forma appena uscita dal campo, offre il ritorno a chi la possiede
       (il giocatore, o il bot col suo selettore). */
   offerLeaveReturns(before: GameState, after: GameState, owners: Seat[]): void;
+  /** §3.1 — «quando assegni questa carta»: dopo ogni azione applicata, gli
+      Oggetti con la forma appena assegnati innescano per chi li comanda
+      (il giocatore, o il bot col suo selettore). */
+  offerAssignTriggers(before: GameState, after: GameState, owners: Seat[]): void;
   assignObject(card: CardInstance, bearer: CardInstance): Promise<boolean>;
   /** Vero se ha schierato (o tirato); falso se lo schieramento non passerebbe. */
   deployRubyfront(seat: Seat): Promise<boolean>;
@@ -1743,11 +1753,20 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // In mira, la carta scegliibile si sceglie anche cliccandola: il velo
       // aperto sta sopra la tessera, e il click sul suo fondo (non sul
       // tasto) vale come «Con questa» / «Ferma questo».
-      if (targeting && targeting.mode !== "effect" && pickable(card)) {
+      // E nella mira di un effetto la coricata scegliibile si sceglie
+      // cliccando il velo, che altrimenti mangiava il click (e la mira
+      // leggeva un click a vuoto: rinuncia).
+      if (targeting && pickable(card)) {
+        const mode = targeting.mode;
         group.addEventListener("click", event => {
           if ((event.target as HTMLElement).closest("button")) return;
           event.stopPropagation();
-          confirmBlock(card);
+          if (mode === "effect") {
+            const live = ctx.state().cards[card.uid];
+            if (live && targeting?.mode === "effect") targeting.pick(live);
+          } else {
+            confirmBlock(card);
+          }
         });
       }
       combatGroups.set(card.uid, group);
@@ -2162,8 +2181,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const foes = fieldCards(ctx.state()).filter(other => ctx.card(other.cardId).kind === "entity" && (!form || form.kind !== "destroy" || form.target.controller !== "opponent" || controllerOf(other) !== card.owner));
       const discount = form && form.kind === "destroy" ? form.discount?.amount ?? 0 : 0;
       if (foes.length) target = await pickTarget(card, foes, t("target.judgment.play", { n: discount }));
-      cost = discountedCost(ctx.state(), card.cardId, target, ctx.card);
     }
+    // Il costo di una Materia con uno sconto (contro la tappata dichiarata,
+    // o con le armate sul Fronte): lo dice discountedCost, come l'engine.
+    if (card.zone === "hand" && facts.kind === "matter") cost = discountedCost(ctx.state(), card, target, ctx.card);
     // §3.1 — lo sconto di un'abilità del Rubyfront («la prossima carta X
     // del turno costa N in meno»): si dichiara nell'azione, e il costo
     // scende — mai sotto 1. Lo consuma il riduttore.
@@ -2392,8 +2413,35 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           }
           break;
         }
+        case "weaken": {
+          const target = await pickTarget(step.source, step.candidates, t("target.refract"));
+          if (!target) break;
+          hold(true);
+          strike(target.uid, FLY_MS);
+          await wait(CONFIRMED_LEAD_MS);
+          const power = weakenAmount(ctx.state(), by, form, ctx.card);
+          const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power, effect: ref });
+          if (passed) ctx.log(msg("log.effect.weaken", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: -power }), by);
+          break;
+        }
         case "empower": {
-          if (form.targets === "own_entity") {
+          if (form.targets === "own_armed") {
+            // «Fino a N»: una scelta per volta, Chiudi per fermarsi prima.
+            let left = form.upTo;
+            let pool = step.candidates;
+            while (left > 0 && pool.length > 0) {
+              const target = await pickTarget(step.source, pool, t("target.amplify", { n: left }));
+              if (!target) break;
+              hold(true);
+              strike(target.uid, FLY_MS);
+              await wait(CONFIRMED_LEAD_MS);
+              const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: form.power, untap: true, effect: ref });
+              if (passed) ctx.log(msg("log.effect.untap", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.power }), by);
+              left -= 1;
+              pool = pool.filter(other => other.uid !== target.uid);
+              await wait(TRIGGER_TAIL_MS);
+            }
+          } else if (form.targets === "own_entity") {
             const target = await pickTarget(step.source, step.candidates, t("target.formation"));
             if (!target) break;
             hold(true);
@@ -3373,6 +3421,64 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
   }
 
+  /**
+   * §3.1/§8.2 — «quando assegni questa carta a un'Entità»: la scena
+   * dell'Oggetto appena assegnato, con l'esilio condizionato — si mira
+   * un'Entità avversaria, si conferma, e va nell'Abisso tenuta dall'Oggetto
+   * (heldBy: torna quando l'Oggetto lascia il gioco, come per la Materia).
+   */
+  async function playAssignStep(step: AssignStep): Promise<void> {
+    const by = controllerOf(step.source);
+    // La giocata dalla mano annuncia la sua scena («gioca …») subito dopo
+    // che l'azione è passata: questa viene dopo, non sopra.
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await sceneIdle();
+    const candidates = assignCandidates(ctx.state(), step, ctx.card);
+    if (candidates.length === 0) {
+      ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
+      return;
+    }
+    await showEnterEffect(root, {
+      cardId: step.source.cardId,
+      face: step.source.face,
+      theme: ctx.themeFor(step.source.owner),
+      locale: ctx.locale(),
+      who: t("scene.assigns", { name: seatLabel(ctx.state(), by), card: `«${cardName(step.source.cardId, ctx.locale())}»`, toCard: `«${cardName(step.bearer.cardId, ctx.locale())}»` }),
+      effects: enterEffects(step.source.cardId, step.source.face, ctx.locale()),
+      triggers: [describeAssignStep(step, ctx.card)],
+      kicker: t("scene.resolve.matter"),
+      onContinue: () => undefined,
+    });
+    light(step.source.uid, true);
+    try {
+      const target = await pickTarget(step.source, candidates, t("target.confine"));
+      if (!target) return;
+      strike(target.uid, 60_000);
+      const sure = await confirmFor(by, t("confirm.confine", { card: `«${ctx.card(target.cardId).name}»` }));
+      if (!sure) {
+        strike(target.uid, 0);
+        render();
+        return;
+      }
+      hold(true);
+      await wait(CONFIRMED_LEAD_MS);
+      const fly = liftForFlight(target.uid, "abisso");
+      const passed = await ctx.dispatch({ t: "toZone", uid: target.uid, zone: "abisso", heldBy: step.source.uid, effect: assignRef(step) });
+      strike(target.uid, 0);
+      if (passed) {
+        fly?.();
+        ctx.log(msg("log.effect.exile", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
+        await wait(FLY_MS);
+      } else {
+        fly?.cancel();
+        render();
+      }
+    } finally {
+      light(step.source.uid, false);
+      hold(false);
+    }
+  }
+
   async function playMove(step: EnterMoveStep): Promise<void> {
     if (step.candidates.length === 0) {
       ctx.log(msg("log.no.target", { seat: step.source.owner, card: step.source.cardId }), step.source.owner);
@@ -4318,6 +4424,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (steps.length === 0) return;
       void (async () => {
         for (const step of steps) await playLeaveReturn(step);
+      })();
+    },
+    offerAssignTriggers(before, after, owners) {
+      const steps = assignSteps(before, after, ctx.card).filter(step => owners.includes(controllerOf(step.source)));
+      if (steps.length === 0) return;
+      void (async () => {
+        for (const step of steps) await playAssignStep(step);
       })();
     },
     playFromHand(card, spot) {

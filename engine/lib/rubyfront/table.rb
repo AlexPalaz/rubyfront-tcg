@@ -111,6 +111,12 @@ module Rubyfront
       @fired.any? { |key| key.start_with?("#{source_uid}|#{prefix}") }
     end
 
+    # Quanti inneschi di quella fonte con quel prefisso sono già scattati
+    # («fino a N Entità»: un passo per bersaglio, non più di N).
+    def fired_count(source_uid, prefix)
+      @fired.count { |key| key.start_with?("#{source_uid}|#{prefix}") }
+    end
+
     # Il tiro di un effetto a più passi (il d20 a fasce): il primo passo lo fissa, i
     # seguenti devono portare lo stesso. Il cambio di turno lo dimentica.
     def remember_roll(source_uid, roll)

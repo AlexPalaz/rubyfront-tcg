@@ -292,6 +292,9 @@ function commit(action: Action): void {
   // §8.2 — il ritorno vincolato: chi è appena uscita dal campo senza
   // Oggetti può tornare, e lo decide il proprietario — io, o il bot.
   if (action.t !== "revive") table.offerLeaveReturns(before, state, botSeat ? [mySeat, botSeat] : [mySeat]);
+  // §3.1 — «quando assegni questa carta a un'Entità»: l'Oggetto appena
+  // assegnato innesca per chi lo comanda — io, o il bot.
+  table.offerAssignTriggers(before, state, botSeat ? [mySeat, botSeat] : [mySeat]);
   // §8.2 (RBF-018) — chi teneva un permanente nell'Abisso ha lasciato il
   // gioco: il permanente torna, e lo manda il tavolo che l'ha visto uscire.
   if (action.t !== "release" && Object.values(state.cards).some(card => card.heldBy && card.zone === "abisso" && state.cards[card.heldBy]?.zone !== "field")) {
@@ -506,6 +509,7 @@ const ctx: Ctx = {
       staticForms: stats.staticForms,
       resolveForms: stats.resolveForms,
       flipForms: stats.flipForms,
+      assignForms: stats.assignForms,
       nexus: stats.nexus,
       grantsWhileAssigned: stats.grantsWhileAssigned,
     };
@@ -1839,6 +1843,14 @@ async function botStep(bot: Seat): Promise<boolean> {
         await sleep(450);
       }
       return true;
+    }
+    // §6.4/§7.2 — in Reazione il difensore gioca le sue Reattive: una che
+    // agisce davvero (l'indebolimento dell'attaccante, la stappata), se la
+    // paga — una sola per turno, poi la risoluzione.
+    if (!botMemory.reacted) {
+      botMemory.reacted = true;
+      const answer = chooseResponse(s, bot, ctx.card);
+      if (answer?.kind === "matter" && (await table.playFromHand(answer.card, answer.spot))) return true;
     }
     // Un respiro perché chi attacca veda i blocchi, poi la risoluzione.
     await sleep(1200);

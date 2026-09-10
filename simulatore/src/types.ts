@@ -262,7 +262,7 @@ export interface EffectRef {
   source: string;
   /** L'evento che innesca: l'ingresso in campo, l'attacco dichiarato, la
       risoluzione di una Materia (§7.2), o il flip verso il Nexus (§3.1). */
-  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip" | "on_ability" | "on_leave_field";
+  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip" | "on_ability" | "on_leave_field" | "on_assign_object";
   entering: string;
   /** Il seguito di un'abilità speciale del Rubyfront (§3.1): l'id dell'abilità attivata. */
   ability?: string;

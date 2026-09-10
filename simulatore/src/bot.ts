@@ -32,10 +32,12 @@ export interface BotMemory {
   attacked: boolean;
   /** I blocchi di questa Reazione sono già stati decisi. */
   blocked: boolean;
+  /** Ha già giocato la sua Reattiva in Reazione, in questo turno. */
+  reacted: boolean;
 }
 
 export function freshMemory(turn: number): BotMemory {
-  return { turn, entered: new Set(), tried: new Set(), attacked: false, blocked: false };
+  return { turn, entered: new Set(), tried: new Set(), attacked: false, blocked: false, reacted: false };
 }
 
 /** Il peso di una parola chiave stampata o concessa, in punti di Potenza. */

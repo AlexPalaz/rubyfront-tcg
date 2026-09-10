@@ -56,6 +56,8 @@ export interface CardFacts {
   resolveForms: ResolveForm[];
   /** Gli effetti certificati «quando flippa» del Nexus (§3.1): vedi FlipForm. */
   flipForms: FlipForm[];
+  /** Gli effetti certificati «quando assegni questa carta» di un Oggetto (§3.1): vedi AssignForm. */
+  assignForms: AssignForm[];
   /** Il requisito del flip verso il Nexus (§3.1), col recupero di PV; null se non c'è o non è certificato. */
   nexus: NexusRequirement | null;
   /** Le abilità speciali del Rubyfront/Nexus (§3.1), per faccia: vedi Ability. */
@@ -97,8 +99,12 @@ export type ResolveForm =
   | { kind: "empower"; targets: "own_entity"; race: string | null; power: number; untap: true }
   /** RBF-020: in Reazione, senza bloccare (§6.4); con almeno N Umani: stappa gli Umani, Contrattacco +1. */
   | { kind: "empower"; targets: "own_entities"; race: string | null; counter: number; untap: true; requires: { count: number; race: string | null } }
-  /** RBF-017: un'Entità avversaria con costo N o inferiore nella Zona di Ritiro. */
-  | { kind: "move"; target: { kind: "entity"; controller: "opponent"; maxCost: number | null }; to: "ritiro" }
+  /** RBF-017: un'Entità avversaria con costo N o inferiore nella Zona di Ritiro; con lo sconto «se sul tuo Fronte ci sono almeno N Entità con un Oggetto, costa M in meno» (dal 2026-09-10). */
+  | { kind: "move"; target: { kind: "entity"; controller: "opponent"; maxCost: number | null }; to: "ritiro"; discount: { amount: number; ifArmedAtLeast: number } | null }
+  /** L'indebolimento (dal 2026-09-10): «un'Entità avversaria attaccante prende −1 Potenza per ogni Entità con un Oggetto assegnato che controlli». */
+  | { kind: "weaken"; target: { kind: "entity"; controller: "opponent"; attacking: true }; amount: number; perArmed: true }
+  /** Il potenziamento delle armate (dal 2026-09-10): «fino a N Entità con un Oggetto assegnato che controlli prendono +M Potenza e vengono stappate». */
+  | { kind: "empower"; targets: "own_armed"; power: number; upTo: number; untap: true }
   /** RBF-018: un permanente avversario nell'Abisso, finché questa carta resta in gioco. */
   | { kind: "exile"; target: { permanent: true; controller: "opponent" }; to: "abisso"; hold: true }
   /** RBF-019: il d20 a fasce — PV, un'Entità dalla mano, una pesca, o tutto. */
@@ -107,6 +113,13 @@ export type ResolveForm =
   | { kind: "destroy"; target: { kind: "entity"; controller: "any" | "opponent" | "controller" }; to: "abisso"; discount: { amount: number; ifTarget: "tapped" } | null }
   /** la Reattiva bloccante (forma `block`): giocata come bloccante di un'Entità attaccante (l'attacco è bloccato, §6.4); con almeno N Entità armate sul Fronte, +M PV. */
   | { kind: "block"; requiresArmed: number; heal: number; asBlock: true };
+
+/**
+ * Gli effetti certificati «quando assegni questa carta a un'Entità» (§3.1,
+ * §8.2), specchio di card_index.rb, assign_forms: l'esilio condizionato
+ * tenuto dall'Oggetto (dal 2026-09-10).
+ */
+export type AssignForm = { kind: "exile"; target: { kind: "entity"; controller: "opponent" }; to: "abisso"; hold: true };
 
 /** «Quando flippa» (§3.1, RBF-001): la carta nominata nell'Abisso, e il sigillo. */
 export type FlipForm =

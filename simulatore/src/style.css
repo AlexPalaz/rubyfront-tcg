@@ -126,6 +126,8 @@
   --tess-chip-shadow: rgba(0, 0, 0, .7);
   --tess-ruby: #e56a86;
   --tess-ruby-dim: #bb8e9a;
+  /* Il grigio neutro dei dettagli (lo scarto di Potenza). */
+  --tess-grey: #b9b4b7;
   --tess-hp-unit: #9aa79f;
   --tess-missing: #1a1418;
   /* Il filo attorno alla tessera e il velo sulla carta che non ci si può
@@ -1509,8 +1511,8 @@ body.view-compact .drag-ghost, body.view-recess .drag-ghost { --ui-inv: calc(1 /
 .tess-power svg { width: calc(14px * var(--ui-inv)); height: calc(14px * var(--ui-inv)); flex: none; color: var(--tess-ruby); }
 .tess-power b { position: relative; top: .04em; }
 /* La Potenza attuale (§8.2): rubino se sale, spenta se scende. */
-.tess-power.is-up b { color: var(--tess-ruby); }
-.tess-power.is-down b { color: var(--tess-ruby-dim); }
+/* Il totale resta in rubino anche in calo: è il numero che conta (deciso 2026-09-10). */
+.tess-power.is-up b, .tess-power.is-down b { color: var(--tess-ruby); }
 /* Le parole chiave stampate (§8.1), icone in colonna sotto il costo. */
 .tess-keys {
   position: absolute;
@@ -1594,14 +1596,14 @@ body.view-recess .slot-rubyfront.can-deploy .deploy-btn { display: block; }
 .ability-btn:disabled { opacity: .45; cursor: default; filter: saturate(.5); }
 .slot-rubyfront.can-abilities .ability-btn { display: block; }
 /* Il tasto Flip (§3.1): dorato, respira, e compare solo quando il flip
-   passerebbe (flipReady in table.ts). Con lui in vista, «Abilità» si sposta
-   a sinistra e i due si affiancano sotto la carta. */
+   passerebbe (flipReady in table.ts). Sta su una riga sua, sotto «Abilità»
+   (deciso 2026-09-10: a capo, non di fianco). */
 .flip-btn {
   display: none;
   position: absolute;
   left: 50%;
-  bottom: calc(-17px * var(--ui-inv));
-  transform: translateX(calc(4px * var(--ui-inv)));
+  bottom: calc(-58px * var(--ui-inv));
+  transform: translateX(-50%);
   z-index: 61;
   padding: calc(9px * var(--ui-inv)) calc(18px * var(--ui-inv));
   font-size: calc(1rem * var(--ui-inv));
@@ -1620,7 +1622,8 @@ body.view-recess .slot-rubyfront.can-deploy .deploy-btn { display: block; }
 }
 .flip-btn:hover { filter: brightness(1.1); }
 .slot-rubyfront.can-abilities.can-flip .flip-btn { display: block; }
-.slot-rubyfront.can-abilities.can-flip .ability-btn { transform: translateX(calc(-100% - 4px * var(--ui-inv))); }
+/* Col Flip sotto «Abilità», l'etichetta del posto scende di un'altra riga. */
+body.view-recess .slot-rubyfront.can-abilities.can-flip::after { top: calc(100% + 72px * var(--ui-inv)); }
 @keyframes flip-btn-breathe {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255, 214, 102, .75), 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(120, 80, 10, .5); }
   50% { box-shadow: 0 0 0 calc(7px * var(--ui-inv)) rgba(255, 214, 102, 0), 0 calc(4px * var(--ui-inv)) calc(22px * var(--ui-inv)) rgba(255, 200, 80, .75); }
@@ -2387,9 +2390,11 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
 .tile > .tile-marks b { position: relative; top: .04em; }
 /* La parola chiave è solo testo, come sulla carta: un filo più piccola. */
 .tile > .tile-marks > .grant-mark { padding: 0 8px; font-size: 13px; letter-spacing: .02em; }
-/* Una Potenza in calo si scrive con lo stesso pezzo, ma spento: il rubino
-   resta a ciò che sale. */
-.tile > .tile-marks > .power-delta.is-down { color: var(--tess-ruby-dim); border-color: color-mix(in srgb, var(--tess-ruby-dim) 45%, transparent); }
+/* Lo scarto di Potenza (+X o −X) è un dettaglio: si scrive spento, in
+   grigio, in su come in giù; il rubino resta al TOTALE, il numero grande
+   della tessera (deciso 2026-09-10). */
+.tile > .tile-marks > .power-delta { color: var(--tess-grey); border-color: color-mix(in srgb, var(--tess-grey) 45%, transparent); }
+.tile > .tile-marks > .power-delta svg { color: var(--tess-grey); }
 /* Sulla tessera compatta il fondo è del nome: i segni salgono sotto la
    Potenza, in alto a destra, e si contro-scalano come tutto il resto. */
 .tile.is-tess:not(.is-tapped) > .tile-marks, .tile.is-badged:not(.is-tapped) > .tile-marks {
@@ -3216,6 +3221,7 @@ body[data-ui-theme^="chiaro"] {
   --tess-chip-shadow: rgba(21, 24, 27, .25);
   --tess-ruby: #8c1a2a;
   --tess-ruby-dim: #7a6570;
+  --tess-grey: #8f888c;
   --tess-hp-unit: #5d666e;
   --tess-missing: #d6dbe0;
   --tile-ring: rgba(21, 24, 27, .28);

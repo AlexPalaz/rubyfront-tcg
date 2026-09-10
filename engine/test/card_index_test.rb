@@ -26,13 +26,9 @@ class CardIndexTest < Minitest::Test
     "RBF-030 entity/carry",
     "RBF-031 entity/aura",
     "RBF-035 object/remain",
-    "RBF-036 matter/amplify",
     "RBF-038 matter/evert",
-    "RBF-039 matter/refract",
     "RBF-041 matter/surge-search",
     "RBF-042 matter/assault",
-    "RBF-043 object/confine",
-    "RBF-044 matter/sunder",
   ].freeze
 
   def test_ogni_trigger_ha_una_forma_o_sta_nel_debito_dichiarato
@@ -154,6 +150,7 @@ class CardIndexTest < Minitest::Test
     assert_equal %w[swift-forge calibrated-strike deep-forge blade-chorus], rhazmora.map { |a| a[:id] }, "dal 2026-09-10 senza il riarmo"
     assert_equal({ kind: "discount", amount: 1, type: "object", race: nil }, rhazmora[0][:form])
     assert_equal %w[preparazione], rhazmora[0][:timing]
+    assert_equal [nil, 3], [rhazmora[0][:cost], rhazmora[0][:gain]], "Forgia Rapida: +3 PV dal 2026-09-10"
     assert_equal({ kind: "power", amount: 2, targets: "one", race: nil, attacking: false, armed: true }, rhazmora[1][:form])
     assert_equal({ kind: "power", amount: 2, targets: "all", race: nil, attacking: false, armed: true }, rhazmora[3][:form])
     assert_equal 5, rhazmora[3][:cost], "Coro delle Lame: −5 PV, +2 dal 2026-09-10"
@@ -206,13 +203,36 @@ class CardIndexTest < Minitest::Test
     forme = ->(id) { @index[id][:resolve_forms] }
     assert_equal [{ kind: "look", count: 4, reveal: { type: "entity", race: "human" }, reveal_to: "hand", rest_to: "deck", show_up_to: 2 }], forme.call("RBF-015")
     assert_equal [{ kind: "empower", targets: "own_entity", race: "human", power: 1, untap: true }], forme.call("RBF-016")
-    assert_equal [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: 2 }, to: "ritiro" }], forme.call("RBF-017")
+    assert_equal [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: 2 }, to: "ritiro", discount: nil }], forme.call("RBF-017")
     assert_equal [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }], forme.call("RBF-018")
     assert_equal [{ kind: "fortune", die: 20, gain: { on: [1, 6], amount: 4 }, deploy: { on: [7, 13], filter: { type: "entity", race: "human", max_cost: 2 } },
                     draw: { on: [14, 19], count: 1 }, all_on: [20, 20] }], forme.call("RBF-019")
     assert_equal [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, requires: { count: 3, race: "human" } }], forme.call("RBF-020"), "la stappata di gruppo: in Reazione, senza bloccare"
     assert_equal [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" } }], forme.call("RBF-021")
     assert_equal [], forme.call("RBF-038"), "«poi perdi 2 PV» è un seguito ignoto: la forma non entra"
+  end
+
+  def test_le_materie_di_scissione_profonda_alla_risoluzione
+    forme = ->(id) { @index[id][:resolve_forms] }
+    assert_equal [{ kind: "empower", targets: "own_armed", power: 1, up_to: 2, untap: true }], forme.call("RBF-036"), "fino a 2 armate, +1 e stappate"
+    assert_equal [{ kind: "weaken", target: { type: "entity", controller: "opponent", attacking: true }, amount: -1, per_armed: true }], forme.call("RBF-039"), "l'attaccante avversario, −1 per armata"
+    assert_equal [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: nil }, to: "ritiro", discount: { amount: 1, if_armed_at_least: 2 } }], forme.call("RBF-044"), "in Ritiro, con 2 armate costa 1 in meno"
+    assert_equal [{ kind: "exile", target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true }], @index["RBF-043"][:assign_forms], "«quando assegni»: l'esilio tenuto dall'Oggetto"
+    assert_equal [], @index["RBF-018"][:assign_forms], "una Materia non ha inneschi d'assegnazione"
+    # Un dettaglio in più rende la forma ignota, mai fraintesa.
+    trigger = lambda do |id, trigger_id|
+      card = JSON.parse(File.read(File.join(DATA_DIR, "sets", "srbf-001", "cards", id.downcase, "#{id.downcase}.json")))
+      Marshal.load(Marshal.dump(card["faces"].flat_map { |face| face["triggers"] }.find { |t| t["id"] == trigger_id }))
+    end
+    frattura = trigger.call("RBF-044", "sunder")
+    frattura["effect"]["details"]["fluxCostReduction"]["ifTargetState"] = "tapped"
+    refute Rubyfront::CardIndex.recognized?(frattura)
+    rifrazione = trigger.call("RBF-039", "refract")
+    rifrazione["effect"]["amount"] = 1
+    refute Rubyfront::CardIndex.recognized?(rifrazione), "un +1 non è l'indebolimento"
+    prisma = trigger.call("RBF-043", "confine")
+    prisma["details"] = {}
+    refute Rubyfront::CardIndex.recognized?(prisma), "senza «è questo Oggetto che viene assegnato» la forma non entra"
     assert_equal [], forme.call("RBF-022"), "la permanente si innesca all'attacco, non alla risoluzione"
   end
 

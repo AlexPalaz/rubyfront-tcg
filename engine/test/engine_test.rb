@@ -2831,6 +2831,14 @@ class EngineTest < Minitest::Test
                     resolve_forms: [{ kind: "block", requires_armed: 2, heal: 3, as_block: true }] },
     "GIUDIZIO" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 5, matter: { type: "destructive", grade: 2 },
                     resolve_forms: [{ kind: "destroy", target: { type: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, if_target: "tapped" } }] },
+    "FRATTURA" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 3, matter: { type: "dynamic", grade: 2 },
+                    resolve_forms: [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: nil }, to: "ritiro", discount: { amount: 1, if_armed_at_least: 2 } }] },
+    "RIFRAZIONE" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 2, matter: { type: "dynamic", grade: 1 },
+                      resolve_forms: [{ kind: "weaken", target: { type: "entity", controller: "opponent", attacking: true }, amount: -1, per_armed: true }] },
+    "AMPLIFICA" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 2, matter: { type: "dynamic", grade: 1 },
+                     resolve_forms: [{ kind: "empower", targets: "own_armed", power: 1, up_to: 2, untap: true }] },
+    "PRISMA" => { type: "object", keywords: [], flux_cost: 3,
+                  assign_forms: [{ kind: "exile", target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
   }.freeze
 
   # Un tavolo del secondo lotto: le carte di A e di B (con zona ed extra)
@@ -3329,6 +3337,108 @@ class EngineTest < Minitest::Test
     assert_match(/non è scesa in campo questo turno/, engine.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("m") })[:reason])
     ignota = eredita([["u", "UMANO"], ["z", "IGNOTA"]], b: [["b1", "AUROS"]])
     refute ignota.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("z") })[:ruled]
+  end
+
+  # L'indebolimento dell'attaccante: −1 per ogni propria Entità con un Oggetto, in Reazione.
+  def test_l_indebolimento_toglie_all_attaccante_una_potenza_per_armata
+    engine = eredita([["u", "UMANO"], ["u2", "UMANO"]],
+                     b: [["bu", "UMANO"], ["b1", "AUROS"], ["bo", "SCUDO", { "assignedTo" => "b1" }], ["b2", "AUROS"], ["bo2", "SPINE", { "assignedTo" => "b2" }], ["n", "RIFRAZIONE", { "zone" => "hand" }]],
+                     attacks: ["u"])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert gioca_carta(engine, "n", cost: 2, actor: "b", y: 172)[:ok]
+    accetta!(engine, "a")
+    passo = { "t" => "empower", "uid" => "u", "power" => -2, "effect" => res_ref("n") }
+    assert_match(/non attacca/, engine.judge(passo.merge("uid" => "u2"), actor: "b")[:reason])
+    assert_match(/avversaria/, engine.judge(passo.merge("uid" => "b1"), actor: "b")[:reason])
+    assert_match(/in meno è -2/, engine.judge(passo.merge("power" => -1), actor: "b")[:reason], "il conto è delle armate di adesso")
+    assert_match(/toglie Potenza soltanto/, engine.judge(passo.merge("untap" => true), actor: "b")[:reason])
+    verdict = engine.judge(passo, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal(-2, copia(engine).card("u")[:power_bonus])
+    assert_match(/già stato risolto/, engine.judge(passo, actor: "b")[:reason])
+    engine.observe({ "t" => "declare", "declaration" => { "id" => "u2", "from" => "u2", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 2 } })
+    assert_match(/UN'Entità/, engine.judge(passo.merge("uid" => "u2"), actor: "b")[:reason], "un bersaglio solo per risoluzione")
+  end
+
+  def test_l_indebolimento_senza_armate_non_toglie_nulla
+    engine = eredita([["u", "UMANO"]], b: [["bu", "UMANO"], ["n", "RIFRAZIONE", { "zone" => "hand" }]], attacks: ["u"])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert gioca_carta(engine, "n", cost: 2, actor: "b", y: 172)[:ok]
+    accetta!(engine, "a")
+    verdict = engine.judge({ "t" => "empower", "uid" => "u", "power" => -1, "effect" => res_ref("n") }, actor: "b")
+    assert_match(/senza Entità con un Oggetto/, verdict[:reason])
+    assert_includes verdict[:reason_en], "(§8.2)"
+  end
+
+  # Il potenziamento delle armate: fino a 2 proprie Entità con un Oggetto, +1 e stappate.
+  def test_il_potenziamento_delle_armate_ne_stappa_al_massimo_due
+    engine = eredita([["u", "UMANO"], ["uo", "SCUDO", { "assignedTo" => "u" }], ["v", "UMANO"], ["vo", "SPINE", { "assignedTo" => "v" }],
+                      ["w", "UMANO"], ["wo", "SCUDO", { "assignedTo" => "w" }], ["x", "UMANO"], ["m", "AMPLIFICA", { "zone" => "hand" }]])
+    engine.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
+    fronte!(engine)
+    assert gioca_carta(engine, "m", cost: 2)[:ok]
+    accetta!(engine, "b")
+    passo = { "t" => "empower", "uid" => "u", "power" => 1, "untap" => true, "effect" => res_ref("m") }
+    assert_match(/non ne ha/, engine.judge(passo.merge("uid" => "x"))[:reason], "senza Oggetto no")
+    assert_match(/Potenza in più è 1/, engine.judge(passo.merge("power" => 2))[:reason])
+    assert_match(/non lo dice/, engine.judge(passo.reject { |k, _| k == "untap" })[:reason])
+    verdict = engine.judge(passo)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 1, copia(engine).card("u")[:power_bonus]
+    refute copia(engine).card("u")[:tapped]
+    assert_match(/già stato risolto/, engine.judge(passo)[:reason])
+    assert engine.judge(passo.merge("uid" => "v"))[:ok]
+    terza = engine.judge(passo.merge("uid" => "w"))
+    assert_match(/fino a 2 Entità/, terza[:reason])
+    assert_includes terza[:reason_en], "(§8.2)"
+  end
+
+  # Lo spostamento scontato: in Ritiro; con 2 armate sul Fronte costa 1 in meno.
+  def test_lo_spostamento_scontato_costa_uno_in_meno_con_due_armate
+    engine = eredita([["u", "UMANO"], ["uo", "SCUDO", { "assignedTo" => "u" }], ["v", "UMANO"], ["vo", "SPINE", { "assignedTo" => "v" }], ["m", "FRATTURA", { "zone" => "hand" }]],
+                     b: [["b1", "GROSSO"]])
+    assert_match(/costa 2 di Flusso/, gioca_carta(engine, "m", cost: 3)[:reason])
+    assert gioca_carta(engine, "m", cost: 2)[:ok]
+    accetta!(engine, "b")
+    assert_equal 8, copia(engine).flux("a")
+    verdict = engine.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("m") })
+    assert verdict[:ok], "senza limite di costo, anche la grossa: #{verdict[:reason]}"
+    assert_equal "ritiro", copia(engine).card("b1")[:zone]
+    poche = eredita([["u", "UMANO"], ["uo", "SCUDO", { "assignedTo" => "u" }], ["m", "FRATTURA", { "zone" => "hand" }]], b: [["b1", "GROSSO"]])
+    assert_match(/costa 3 di Flusso/, gioca_carta(poche, "m", cost: 2)[:reason], "con una sola armata niente sconto")
+    assert gioca_carta(poche, "m", cost: 3)[:ok]
+  end
+
+  # L'esilio all'assegnazione: «quando assegni questa carta a un'Entità», un'Entità avversaria nell'Abisso finché l'Oggetto resta in gioco.
+  def test_l_esilio_all_assegnazione_tiene_un_entita_avversaria_finche_l_oggetto_resta
+    engine = eredita([["u", "UMANO"], ["p", "PRISMA", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["b2", "AUROS"]])
+    ref = { "source" => "p", "event" => "on_assign_object", "entering" => "u" }
+    passo = { "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "p", "effect" => ref }
+    assert_match(/non è in campo/, engine.judge(passo)[:reason], "dalla mano non innesca")
+    assert engine.judge({ "t" => "assign", "uid" => "p", "to" => "u" })[:ok]
+    assert gioca_carta(engine, "p", cost: 3, x: 470, y: 1288)[:ok]
+    assert_match(/a cui l'Oggetto è assegnato/, engine.judge(passo.merge("effect" => ref.merge("entering" => "b1")))[:reason])
+    assert_match(/tenuta da questo Oggetto/, engine.judge(passo.reject { |k, _| k == "heldBy" })[:reason])
+    assert_match(/avversario/, engine.judge(passo.merge("uid" => "u"))[:reason])
+    verdict = engine.judge(passo)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", copia(engine).card("b1")[:zone]
+    assert_equal "p", copia(engine).card("b1")[:held_by]
+    assert_match(/già stato risolto/, engine.judge(passo.merge("uid" => "b2"))[:reason], "un'assegnazione, un innesco")
+    assert_match(/resta nell'Abisso/, engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 })[:reason])
+    assert engine.judge({ "t" => "toZone", "uid" => "p", "zone" => "ritiro" })[:ok]
+    ritorno = engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 })
+    assert ritorno[:ok], ritorno[:reason]
+    assert_equal "field", copia(engine).card("b1")[:zone]
+  end
+
+  def test_l_esilio_all_assegnazione_e_dell_oggetto_certificato_soltanto
+    engine = eredita([["u", "UMANO"], ["s", "SCUDO", { "assignedTo" => "u" }]], b: [["b1", "AUROS"]])
+    verdict = engine.judge({ "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "s", "effect" => { "source" => "s", "event" => "on_assign_object", "entering" => "u" } })
+    assert_match(/quando assegni/, verdict[:reason])
+    assert_includes verdict[:reason_en], "(§8.2)"
+    ignota = eredita([["u", "UMANO"], ["z", "IGNOTA", { "assignedTo" => "u" }]], b: [["b1", "AUROS"]])
+    refute ignota.judge({ "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "z", "effect" => { "source" => "z", "event" => "on_assign_object", "entering" => "u" } })[:ruled]
   end
 
   # --- §3.2: la tassa di Flusso viaggia nel cambio di turno ---------------------

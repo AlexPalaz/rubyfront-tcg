@@ -19,7 +19,7 @@ export const TILE_H = 424;
 export const TILE_SCALE = TILE_W / CARD_W;
 
 import type { Phase } from "./types.js";
-import type { AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, StaticForm, Ability, AbilityForm } from "./ctx.js";
+import type { AssignForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, StaticForm, Ability, AbilityForm } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -842,11 +842,71 @@ function resolveFormsOf(faces: CardFace[]): ResolveForm[] {
       if (trigger.event !== "on_resolve") continue;
       const effect = trigger.effect as Loose | undefined;
       if (!effect || typeof effect !== "object") continue;
-      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveDestroy(effect) ?? resolveBlock(effect);
+      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveDestroy(effect) ?? resolveBlock(effect) ?? resolveWeaken(effect) ?? resolveAmplify(effect);
       if (form) out.push(form);
     }
   }
   return out;
+}
+
+/**
+ * Gli effetti certificati «quando assegni questa carta a un'Entità» (§3.1,
+ * §8.2): evento `on_assign_object` con `selfAssigned` (è questo Oggetto che
+ * viene assegnato), effetto `move_card` di UN'Entità avversaria nell'Abisso
+ * «finché questa carta resta in gioco; quando lascia il gioco, torna» —
+ * l'esilio condizionato, stessa meccanica della Materia e dell'Entità
+ * (heldBy, release). Specchio di card_index.rb, assign_forms.
+ */
+function assignFormsOf(faces: CardFace[]): AssignForm[] {
+  const out: AssignForm[] = [];
+  for (const face of faces) {
+    for (const trigger of face.triggers ?? []) {
+      if (trigger.event !== "on_assign_object") continue;
+      const details = trigger.details as Loose | undefined;
+      if (!details || Object.keys(details).join() !== "selfAssigned" || details.selfAssigned !== true) continue;
+      const effect = trigger.effect as Loose | undefined;
+      if (!effect || effect.type !== "move_card") continue;
+      const target = effect.target as Loose | undefined;
+      const destination = effect.destination as Loose | undefined;
+      const extra = effect.details as Loose | undefined;
+      if (!target || target.cardType !== "entity" || target.controller !== "opponent" || target.min !== 1 || target.max !== 1) continue;
+      if (!destination || destination.zone !== "abyss") continue;
+      if (!extra || extra.whileSourceOnField !== true || extra.returnsToPlayWhenSourceLeaves !== true) continue;
+      out.push({ kind: "exile", target: { kind: "entity", controller: "opponent" }, to: "abisso", hold: true });
+    }
+  }
+  return out;
+}
+
+/** L'indebolimento dell'attaccante (dal 2026-09-10): «un'Entità avversaria attaccante prende −1 Potenza per ogni Entità con un Oggetto assegnato che controlli, fino alla fine del turno». Specchio di card_index.rb, resolve_weaken. */
+function resolveWeaken(effect: Loose): ResolveForm | null {
+  if (effect.type !== "modify_power" || effect.duration !== "until_end_of_turn") return null;
+  const target = effect.target as Loose | undefined;
+  const extra = effect.details as Loose | undefined;
+  if (!target || target.cardType !== "entity" || target.controller !== "opponent" || target.min !== 1 || target.max !== 1) return null;
+  if (!sameShape(target.details, { attacking: true })) return null;
+  if (!Number.isInteger(effect.amount) || effect.amount >= 0) return null;
+  if (!sameShape(extra, { perControllerEntityWithObjectAssigned: true })) return null;
+  return { kind: "weaken", target: { kind: "entity", controller: "opponent", attacking: true }, amount: effect.amount, perArmed: true };
+}
+
+/** Il potenziamento delle armate (dal 2026-09-10): «fino a N Entità con un Oggetto assegnato che controlli prendono +M Potenza fino alla fine del turno e vengono stappate». Specchio di card_index.rb, resolve_amplify. */
+function resolveAmplify(effect: Loose): ResolveForm | null {
+  if (effect.type !== "modify_power" || effect.duration !== "until_end_of_turn") return null;
+  const target = effect.target as Loose | undefined;
+  const extra = effect.details as Loose | undefined;
+  if (!ownTarget(target, "entity") || target.min !== 0 || !Number.isInteger(target.max) || target.max <= 0) return null;
+  if (!sameShape(target.details, { hasObjectAssigned: true })) return null;
+  if (!Number.isInteger(effect.amount) || effect.amount <= 0) return null;
+  if (!sameShape(extra, { alsoUntap: true })) return null;
+  return { kind: "empower", targets: "own_armed", power: effect.amount, upTo: target.max, untap: true };
+}
+
+/** Un oggetto piatto identico a quello atteso: stesse chiavi, stessi valori. */
+function sameShape(value: unknown, expected: Record<string, unknown>): boolean {
+  if (!value || typeof value !== "object") return false;
+  const keys = Object.keys(value as object);
+  return keys.length === Object.keys(expected).length && keys.every(key => (value as Loose)[key] === expected[key]);
 }
 
 function resolveLook(effect: Loose): ResolveForm | null {
@@ -909,8 +969,20 @@ function resolveMove(effect: Loose): ResolveForm | null {
   if (!target || target.controller !== "opponent" || target.min !== 1 || target.max !== 1 || !destination) return null;
   if (target.cardType === "entity" && destination.zone === "retire") {
     const cost = costCondition(target.conditions);
-    if (!cost.ok || effect.details !== undefined) return null;
-    return { kind: "move", target: { kind: "entity", controller: "opponent", maxCost: cost.maxCost }, to: "ritiro" };
+    if (!cost.ok) return null;
+    // Lo sconto (dal 2026-09-10): «se sul tuo Fronte ci sono almeno N Entità
+    // con un Oggetto assegnato, questa carta costa M in meno». Nessun
+    // dettaglio: nessuno sconto. Un dettaglio diverso: forma ignota.
+    let discount: { amount: number; ifArmedAtLeast: number } | null = null;
+    if (effect.details !== undefined) {
+      const extra = effect.details as Loose | undefined;
+      if (!extra || Object.keys(extra).join() !== "fluxCostReduction") return null;
+      const reduction = extra.fluxCostReduction as Loose | undefined;
+      if (!reduction || Object.keys(reduction).sort().join() !== "amount,ifControllerEntitiesWithObjectAtLeast") return null;
+      if (!Number.isInteger(reduction.amount) || !Number.isInteger(reduction.ifControllerEntitiesWithObjectAtLeast)) return null;
+      discount = { amount: reduction.amount, ifArmedAtLeast: reduction.ifControllerEntitiesWithObjectAtLeast };
+    }
+    return { kind: "move", target: { kind: "entity", controller: "opponent", maxCost: cost.maxCost }, to: "ritiro", discount };
   }
   const extra = effect.details as Loose | undefined;
   if (target.details?.permanent === true && destination.zone === "abyss" && extra && extra.whileSourceOnField === true && extra.returnsToPlayWhenSourceLeaves === true) {
@@ -1159,6 +1231,7 @@ export function cardStats(cardId: string): {
   staticForms: StaticForm[];
   resolveForms: ResolveForm[];
   flipForms: FlipForm[];
+  assignForms: AssignForm[];
   nexus: NexusRequirement | null;
   abilities: Ability[];
   furyAt: Record<number, number>;
@@ -1184,6 +1257,7 @@ export function cardStats(cardId: string): {
     staticForms: staticFormsOf(card?.faces ?? []),
     resolveForms: resolveFormsOf(card?.faces ?? []),
     flipForms: flipFormsOf(card?.faces ?? []),
+    assignForms: assignFormsOf(card?.faces ?? []),
     nexus: nexusOf(card?.faces ?? []),
     abilities: abilitiesOf(card?.faces ?? []),
     furyAt: furyAtOf(card?.faces ?? []),
