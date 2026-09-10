@@ -785,12 +785,16 @@ function staticFormsOf(faces: CardFace[]): StaticForm[] {
         if (details.whileAttacking === true) {
           const other = raceFilter(details.requiresOtherControlled);
           if (other) out.push({ kind: "self_power", amount: effect.amount, whileAttacking: true, requiresOther: other });
+        } else if (details.whileHasObjectAssigned === true) {
+          // «Se questa Entità ha un Oggetto assegnato, ha +N Potenza». Specchio di card_index.rb.
+          if (Object.keys(details).length === 1) out.push({ kind: "self_power", amount: effect.amount, whileArmed: true });
         } else if (details.perOtherControlled) {
           const other = raceFilter(details.perOtherControlled, "front");
           if (other && Object.keys(details).length === 1) out.push({ kind: "self_power", amount: effect.amount, perOther: other });
         }
       } else {
-        if (effect.target?.scope !== "assigned" || effect.duration !== "permanent") continue;
+        // «Mentre assegnato» dura finché l'Oggetto è addosso: durata `permanent` o assente, stessa forma.
+        if (effect.target?.scope !== "assigned" || (effect.duration !== undefined && effect.duration !== "permanent")) continue;
         if (Object.keys(details).length === 0) out.push({ kind: "bearer_power", amount: effect.amount });
         else if (details.perControlled) {
           const per = raceFilter(details.perControlled, "front");

@@ -475,10 +475,13 @@ Regole collegate finora:
   fino a fine turno — mai sotto 0 (§8.2, «Modifiche alla Potenza»). Le
   forme: **su di sé, mentre attacca** — «+1 mentre attacca, se sul tuo Fronte
   c'è un'altra Entità Umana» (in difesa resta un 1: si guarda l'attacco
-  dichiarato); **su di sé, per conteggio** — «+1 per ogni altra Entità Umana
-  sul tuo Fronte»; **sul portatore** — «+1» a chi lo porta; **sul
-  portatore, per conteggio** — «+1 per ogni Entità Umana sul tuo Fronte»,
-  portatrice compresa. «Sul tuo Fronte» conta le Entità che il posto
+  dichiarato); **su di sé, se armata** — «se questa Entità ha un Oggetto
+  assegnato, ha +1 Potenza» (dal 2026-09-10, engine 0.49.0); **su di sé,
+  per conteggio** — «+1 per ogni altra Entità Umana sul tuo Fronte»; **sul
+  portatore** — «+1» a chi lo porta (la durata «mentre assegnato» può
+  essere esplicita o sottintesa nei dati: stessa forma); **sul portatore,
+  per conteggio** — «+1 per ogni Entità Umana sul tuo Fronte», portatrice
+  compresa. «Sul tuo Fronte» conta le Entità che il posto
   comanda (le sue e quelle che controlla, §8.2). Limiti dichiarati: gli
   statici del primo lotto («+1 alle altre armate»,
   «Contrattacco +2 se armata», i modificatori di altri Oggetti)

@@ -310,6 +310,7 @@ describe("resolveWave con statici, Stasi e più bloccanti", () => {
     SIMULACRO: { kind: "entity", race: "simulacrum", power: 3, staticForms: [{ kind: "self_power", amount: 1, perOther: { kind: "entity", race: "human" } }] },
     SCUDO: { kind: "object", staticForms: [{ kind: "bearer_power", amount: 1 }], grantsWhileAssigned: [{ keywords: ["stasis"], ifRace: "human" }] },
     CINTURA: { kind: "object", staticForms: [{ kind: "bearer_power", amount: 1, per: { kind: "entity", race: "human" }, multiBlock: true }] },
+    RECLUTA: { kind: "entity", race: "auros", power: 1, staticForms: [{ kind: "self_power", amount: 1, whileArmed: true }] },
     UMANO: { kind: "entity", race: "human", power: 2 },
     AUROS: { kind: "entity", race: "auros", power: 2 },
     GROSSO: { kind: "entity", race: "auros", power: 4 },
@@ -332,6 +333,13 @@ describe("resolveWave con statici, Stasi e più bloccanti", () => {
   }
   const attack = (from: string, order = 1): Declaration => ({ id: from, from, to: "rf-b", kind: "attack", seat: "a", order });
   const block = (from: string, to: string, kind: "block" | "counter" = "block"): Declaration => ({ id: from, from, to, kind, seat: "b", order: 0 });
+
+  it("la Recluta vale uno in più solo con un Oggetto addosso — gemello: engine_test.rb", () => {
+    const nuda = table([card("r", "a", "RECLUTA")], [attack("r")]);
+    expect(resolveWave(nuda, "a", facts)![0].damage).toBe(1);
+    const armata = table([card("r", "a", "RECLUTA"), card("o", "a", "SCUDO", { assignedTo: "r" })], [attack("r")]);
+    expect(resolveWave(armata, "a", facts)![0].damage).toBe(3);
+  });
 
   it("il Ragazzo vale 2 in attacco solo con un altro Umano, il Simulacro conta gli altri Umani", () => {
     const solo = table([card("r", "a", "RAGAZZO"), card("x", "a", "AUROS")], [attack("r")]);

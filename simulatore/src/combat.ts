@@ -77,6 +77,8 @@ export function staticPower(state: GameState, card: CardInstance, facts: (cardId
     if (form.whileAttacking) {
       const attacking = state.declarations.some(d => d.from === card.uid && d.kind === "attack");
       if (attacking && countEntities(state, seat, form.requiresOther?.race ?? null, facts, card.uid) >= 1) bonus += form.amount;
+    } else if (form.whileArmed) {
+      if (wornBy(state, card.uid).length > 0) bonus += form.amount;
     } else if (form.perOther) {
       bonus += form.amount * countEntities(state, seat, form.perOther.race, facts, card.uid);
     }

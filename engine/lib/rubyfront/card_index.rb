@@ -627,6 +627,11 @@ module Rubyfront
             next unless other
 
             { kind: "self_power", amount: effect["amount"], while_attacking: true, requires_other: other }.freeze
+          elsif details["whileHasObjectAssigned"] == true
+            # «Se questa Entità ha un Oggetto assegnato, ha +N Potenza» (dal 2026-09-10).
+            next unless details.keys == ["whileHasObjectAssigned"]
+
+            { kind: "self_power", amount: effect["amount"], while_armed: true }.freeze
           elsif details["perOtherControlled"]
             other = race_filter(details["perOtherControlled"], zone: "front")
             next unless other && details.keys == ["perOtherControlled"]
@@ -634,7 +639,9 @@ module Rubyfront
             { kind: "self_power", amount: effect["amount"], per_other: other }.freeze
           end
         else
-          next unless effect.dig("target", "scope") == "assigned" && effect["duration"] == "permanent"
+          # «Mentre assegnato» dura finché l'Oggetto è addosso: la durata
+          # esplicita (`permanent`) o assente dicono la stessa cosa.
+          next unless effect.dig("target", "scope") == "assigned" && [nil, "permanent"].include?(effect["duration"])
 
           if details.empty?
             { kind: "bearer_power", amount: effect["amount"] }.freeze

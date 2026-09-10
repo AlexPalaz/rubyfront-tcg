@@ -75,7 +75,7 @@ export interface CardFacts {
  * bloccata da più Entità», RBF-014).
  */
 export type StaticForm =
-  | { kind: "self_power"; amount: number; whileAttacking?: true; requiresOther?: { kind: "entity"; race: string | null }; perOther?: { kind: "entity"; race: string | null } }
+  | { kind: "self_power"; amount: number; whileAttacking?: true; requiresOther?: { kind: "entity"; race: string | null }; perOther?: { kind: "entity"; race: string | null }; whileArmed?: true }
   | { kind: "bearer_power"; amount: number; per?: { kind: "entity"; race: string | null }; multiBlock?: boolean }
   /** RBF-011: «questa Entità non si tappa mai». */
   | { kind: "never_taps" }

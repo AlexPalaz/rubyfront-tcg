@@ -2756,6 +2756,7 @@ class EngineTest < Minitest::Test
                    static_forms: [{ kind: "bearer_power", amount: 1, per: { type: "entity", race: "human" }, multi_block: true }] },
     "UMANO" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 2, enables: [[{ type: "dynamic", max_grade: 2 }, { type: "destructive", max_grade: 2 }]] },
     "PICCOLO" => { type: "entity", keywords: [], race: "human", power: 1, flux_cost: 1 },
+    "RECLUTA" => { type: "entity", keywords: [], race: "auros", power: 1, flux_cost: 1, static_forms: [{ kind: "self_power", amount: 1, while_armed: true }] },
     "AUROS" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 2 },
     "GROSSO" => { type: "entity", keywords: [], race: "auros", power: 4, counterattack: nil, flux_cost: 4 },
     "SPINOSO" => { type: "entity", keywords: [], race: "human", power: 3, counterattack: 1, flux_cost: 3 },
@@ -2859,6 +2860,18 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "phase", "phase" => "reazione" })
     # Scudo: 2 + 1. Cintura: 1 + 1 per ogni Umano sul Fronte (due, portatrice compresa).
     assert risolvi(engine, [esito("u", damage: 3), esito("p", damage: 3)])[:ok]
+  end
+
+  def test_la_recluta_vale_uno_in_piu_solo_con_un_oggetto_addosso
+    nuda = eredita([["r", "RECLUTA"]], attacks: ["r"])
+    nuda.judge({ "t" => "phase", "phase" => "reazione" })
+    assert_match(/non torna/, risolvi(nuda, [esito("r", damage: 2)])[:reason])
+    assert risolvi(nuda, [esito("r", damage: 1)])[:ok]
+    armata = eredita([["r", "RECLUTA"], ["o", "SCUDO", { "assignedTo" => "r" }]], attacks: ["r"])
+    armata.judge({ "t" => "phase", "phase" => "reazione" })
+    # 1 stampato, +1 «se ha un Oggetto assegnato», +1 dello Scudo.
+    assert_match(/non torna/, risolvi(armata, [esito("r", damage: 2)])[:reason])
+    assert risolvi(armata, [esito("r", damage: 3)])[:ok]
   end
 
   def test_la_potenza_non_scende_sotto_zero

@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.48.0"
+    VERSION = "0.49.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -1092,8 +1092,8 @@ module Rubyfront
     end
 
     # Gli statici (§8.2): «+1 mentre attacca, se sul tuo Fronte c'è un'altra
-    # Entità Umana», «+1 per ogni altra Entità Umana sul tuo
-    # Fronte», e quelli degli Oggetti addosso — «+1»,
+    # Entità Umana», «+1 se ha un Oggetto assegnato», «+1 per ogni altra
+    # Entità Umana sul tuo Fronte», e quelli degli Oggetti addosso — «+1»,
     # «+1 per ogni Entità Umana sul tuo Fronte» (portatrice
     # compresa). Gemello: combat.ts, staticPower.
     def static_power(uid, card)
@@ -1106,6 +1106,8 @@ module Rubyfront
           next unless @table.attacking?(uid) && count_entities(seat, form[:requires_other][:race], except: uid) >= 1
 
           bonus += form[:amount]
+        elsif form[:while_armed]
+          bonus += form[:amount] unless @table.worn_by(uid).empty?
         elsif form[:per_other]
           bonus += form[:amount] * count_entities(seat, form[:per_other][:race], except: uid)
         end

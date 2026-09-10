@@ -22,14 +22,10 @@ class CardIndexTest < Minitest::Test
     "RBF-023 rubyfront/schism-forge",
     "RBF-023 nexus/awakening",
     "RBF-023 nexus/deep-forge-sight",
-    "RBF-024 entity/grip",
     "RBF-030 entity/outfit",
     "RBF-030 entity/carry",
     "RBF-031 entity/aura",
-    "RBF-032 object/edge",
-    "RBF-033 object/brace",
     "RBF-033 object/spikes",
-    "RBF-035 object/relic",
     "RBF-035 object/remain",
     "RBF-036 matter/amplify",
     "RBF-038 matter/evert",
@@ -175,6 +171,11 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "never_taps" }], @index["RBF-011"][:static_forms], "«questa Entità non si tappa mai»"
     assert_equal [{ kind: "never_taps" }], @index["RBF-005"][:static_forms], "dal 2026-09-08 anche il 2 Flussi non si tappa attaccando"
     assert_equal [], @index["RBF-031"][:static_forms], "«+1 alle altre armate» resta nel debito"
+    # Dal 2026-09-10: «se ha un Oggetto assegnato, +1» e gli Oggetti «mentre assegnato» senza durata esplicita.
+    assert_equal [{ kind: "self_power", amount: 1, while_armed: true }], @index["RBF-024"][:static_forms]
+    assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-032"][:static_forms]
+    assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-033"][:static_forms], "il Contrattacco +1 resta nel debito"
+    assert_equal [{ kind: "bearer_power", amount: 2 }], @index["RBF-035"][:static_forms], "il ritorno in Ritiro resta nel debito"
   end
 
   # Dal 2026-09-10: il disarmo con riarmo all'ingresso e il ritorno vincolato.
