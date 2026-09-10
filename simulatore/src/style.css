@@ -1376,7 +1376,10 @@ body.view-recess .board { top: var(--toolbar-h); }
 .tile .face-label { display: none; }
 
 /* Tappata (§6.3): la carta si corica, come al tavolo. */
-.tile.is-tapped { transform: rotate(90deg); }
+/* La coricata vive su un livello suo (translateZ, will-change): ruotata a
+   scala frazionaria, altrimenti si ridisegnava a ogni respiro delle
+   vicine e tremava appena. */
+.tile.is-tapped { transform: rotate(90deg) translateZ(0); will-change: transform; backface-visibility: hidden; }
 /* La coricata sporge sulle vicine e ne copre i numeri: al passaggio sale
    sopra (l'ordine inline del disegno si scavalca solo qui). */
 .surface > .tile.is-tapped:hover { z-index: 900 !important; }
@@ -2432,15 +2435,24 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
    diventare un lampeggio. */
 .tile.is-attacking {
   box-shadow: 0 0 0 3px var(--ruby), 0 0 30px rgba(210, 74, 100, .75), 0 8px 22px rgba(0, 0, 0, .6);
-  animation: attacking 2.2s ease-in-out infinite;
 }
-@keyframes attacking {
-  50% {
-    box-shadow: 0 0 0 3px var(--ruby), 0 0 46px rgba(210, 74, 100, .95), 0 8px 22px rgba(0, 0, 0, .6);
-  }
+/* Il respiro non anima più l'ombra esterna (un ridisegno a ogni fotogramma,
+   che sulla carta coricata — ruotata, a scala frazionaria, sovrapposta alla
+   vicina — tremava appena ai bordi): respira un anello interno, in sola
+   opacità, che il compositore muove senza ridisegnare. Il ::after è
+   dell'anello dei tasti (has-actions), qui il ::before. */
+.tile.is-attacking::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 2px rgba(210, 74, 100, .9), inset 0 0 24px rgba(210, 74, 100, .7);
+  animation: has-actions-breathe 2.2s ease-in-out infinite;
+  will-change: opacity;
 }
 @media (prefers-reduced-motion: reduce) {
-  .tile.is-attacking { animation: none; }
+  .tile.is-attacking::before { animation: none; }
 }
 .tile.is-blocking { box-shadow: 0 0 0 2px var(--foe), 0 8px 22px rgba(0, 0, 0, .6); }
 .tile.is-countering { box-shadow: 0 0 0 2px var(--warn), 0 8px 22px rgba(0, 0, 0, .6); }
