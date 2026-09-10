@@ -31,7 +31,7 @@ import { setupPreview } from "./preview.js";
 import { mountMazzi } from "./mazzi.js";
 import { askConfirm } from "./ask.js";
 import { allDecks, artUrl, cardName, cardStats, deckTint, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer, type Tint } from "./renderer.js";
-import { apply, controllerOf, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, playSpot, seatLabel, shuffled, zoneCards } from "./state.js";
+import { apply, controllerOf, fieldCards, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, playSpot, seatLabel, shuffled, zoneCards } from "./state.js";
 import { releaseHeld } from "./effects.js";
 import { DRAW_STEP_MS, drawCascadeMs, mountTable } from "./table.js";
 import { verdictByHp } from "./turn.js";
@@ -653,8 +653,34 @@ function loadDeck(deckId: string, seat: Seat): void {
   // com'era attesa): a mazzo ricaricato o partita nuova, la fila si lascia
   // cadere. Il mazzo dell'avversario locale passa di qui subito dopo il
   // proprio: l'insegna riparte da capo, e non si vede.
+  if (introPending) return;
   banner.announce();
   scheduleOpening(seat, deckId);
+}
+
+/** L'ingresso dei Rubyfront a inizio partita col bot: finito, l'insegna di
+    Preparazione e l'apertura dei due posti ripartono come sempre. */
+let introPending = false;
+async function runIntro(): Promise<void> {
+  const foe = botSeat ?? otherSeat(mySeat);
+  try {
+    // I mazzi passano dall'arbitro: le carte arrivano con la sua risposta.
+    // Si aspetta che i due Rubyfront siano sul tavolo (al più 5 secondi).
+    const onTable = (seat: Seat): boolean => fieldCards(state).some(card => card.owner === seat && isRubyfront(card.cardId));
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline && !(onTable(mySeat) && onTable(foe))) {
+      await new Promise(resolve => window.setTimeout(resolve, 80));
+    }
+    await table.introRubyfronts([mySeat, foe]);
+  } finally {
+    introPending = false;
+    document.body.classList.remove("is-intro-wait");
+    banner.announce();
+    for (const seat of SEATS) {
+      const deckId = state.players[seat].deckId;
+      if (deckId) scheduleOpening(seat, deckId);
+    }
+  }
 }
 
 /** La mano iniziale e la carta del turno 1 (§4, §6.1), a tempo dopo l'insegna. */
@@ -1253,9 +1279,17 @@ document.querySelector("#ob-go")!.addEventListener("click", () => {
     // Col bot si passa dal sipario: il velo e la home spariscono al buio.
     const botDeck = obDeckB.value;
     const deckId = myDeckId;
+    // I Rubyfront e i loro riquadri non devono comparire prima del loro
+    // ingresso: nascosti fin da ORA, prima che il sipario si alzi sul tavolo
+    // (style.css, body.is-intro-wait); l'intro li scopre uno alla volta.
+    document.body.classList.add("is-intro-wait");
     curtainInto(() => {
+      // Prima l'ingresso dei Rubyfront (il tuo, poi il bot), poi l'insegna
+      // e l'apertura: loadDeck li tiene in sospeso finché introPending.
+      introPending = true;
       startBot(botDeck);
       if (deckId) loadDeck(deckId, mySeat);
+      void runIntro();
     });
     return;
   }
@@ -1594,6 +1628,7 @@ function tableQuiet(): boolean {
   return (
     // L'insegna di fase ferma tutti, bot compreso (banner.ts).
     !document.body.classList.contains("is-announcing") &&
+    !document.body.classList.contains("is-intro") &&
     !document.body.classList.contains("is-resolving") &&
     !document.body.classList.contains("is-targeting") &&
     !document.querySelector(".effect-veil, .effect-confirm, .dice-roll")

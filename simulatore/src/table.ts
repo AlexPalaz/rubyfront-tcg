@@ -114,6 +114,10 @@ import {
   type Deployment,
   abilityCopy,
   nexusRequirementCopy,
+  CARD_H,
+  CARD_W,
+  fitTexts,
+  renderFace,
 } from "./renderer.js";
 import {
   STACK_STEP,
@@ -233,6 +237,11 @@ export interface TableView {
   liftForFlight(uid: string, zone?: "ritiro" | "abisso"): Flight | null;
   /** Il volo da una pila al campo (chi riceve): dopo aver applicato l'azione. */
   flyFromPile(seat: Seat, zone: ZoneId, uid: string): void;
+  /** L'INGRESSO dei Rubyfront a inizio partita (col bot): uno alla volta,
+      nell'ordine dato, la carta arriva dal proprio lato, si mostra grande al
+      centro, si accende nella tinta del mazzo e si posa in Zona di Richiamo.
+      Il tavolo è fermo finché non finisce (body.is-intro). */
+  introRubyfronts(order: Seat[]): Promise<void>;
   /** Il volo da dove sta a dove starà (controllo, restituzione): prima
       dell'azione; ritorna il via, da dare dopo il disegno. */
   liftToFlight(uid: string): (() => void) | null;
@@ -1115,7 +1124,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       zoneEls.push(frontLabel);
 
       // Il Rubyfront schierato sta davanti al Fronte, senza occupare uno slot.
-      const rubySlot = markSlot(RUBYFRONT_X, front, t("zone.rubyfront"), "slot-rubyfront");
+      const rubySlot = markSlot(RUBYFRONT_X, front, "", "slot-rubyfront");
       if (isRecessView()) armRecallSlot(seat, rubySlot);
 
       // Le Materie in gioco, all'altra estremità della fila.
@@ -2735,6 +2744,103 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }, FLY_MS + 60);
   }
 
+  const pause = (ms: number): Promise<void> => new Promise(resolve => window.setTimeout(resolve, ms));
+
+  /** L'ingresso di un Rubyfront: arrivo dal lato, posa al centro, accensione,
+      volo al suo posto (style.css: .intro-card, .intro-veil). */
+  async function introOne(seat: Seat, card: CardInstance): Promise<void> {
+    const tile = tiles.get(card.uid);
+    if (!tile) return;
+    const mine = seat === ctx.seat();
+    const scale = Math.min(0.92, (window.innerHeight - 160) / CARD_H, (window.innerWidth - 200) / CARD_W);
+    const w = CARD_W * scale;
+    const h = CARD_H * scale;
+    const cx = (window.innerWidth - w) / 2;
+    const cy = (window.innerHeight - h) / 2;
+    const ghost = document.createElement("div");
+    ghost.className = "intro-card";
+    ghost.dataset.tint = ctx.tintFor(seat);
+    ghost.style.width = `${CARD_W}px`;
+    ghost.style.height = `${CARD_H}px`;
+    const holder = renderFace(card.cardId, 0, ctx.themeFor(seat), ctx.locale());
+    if (holder) {
+      holder.style.width = `${CARD_W}px`;
+      holder.style.height = `${CARD_H}px`;
+      ghost.append(holder);
+      // L'illustrazione arriva dalla rete: si aspetta che sia pronta (al più
+      // un secondo e mezzo), o la carta entrerebbe con la finestra vuota.
+      const images = [...holder.querySelectorAll("img")];
+      await Promise.race([
+        Promise.all(images.map(img => (img.complete ? Promise.resolve() : new Promise<void>(done => { img.onload = () => done(); img.onerror = () => done(); })))),
+        pause(1500),
+      ]);
+    }
+    // Il tuo arriva da sinistra, dal basso; l'avversario da destra, dall'alto.
+    const x0 = mine ? -w - 120 : window.innerWidth + 120;
+    const y0 = cy + (mine ? 220 : -220);
+    const rot = mine ? -16 : 16;
+    ghost.style.transform = `translate(${x0}px, ${y0}px) rotate(${rot}deg) scale(${scale})`;
+    ghost.style.opacity = "0";
+    document.body.append(ghost);
+    if (holder) fitTexts(holder);
+    void ghost.offsetWidth;
+    ghost.classList.add("is-arriving");
+    ghost.style.transform = `translate(${cx}px, ${cy}px) rotate(0deg) scale(${scale})`;
+    ghost.style.opacity = "1";
+    playSound("draw");
+    await pause(950);
+    // Si accende.
+    ghost.classList.add("is-lit");
+    playSound("play");
+    await pause(1250);
+    // Vola al suo posto in Zona di Richiamo e ci si posa.
+    const to = tile.getBoundingClientRect();
+    ghost.classList.remove("is-arriving");
+    ghost.classList.add("is-landing");
+    void ghost.offsetWidth;
+    ghost.style.transform = `translate(${to.left}px, ${to.top}px) rotate(0deg) scale(${to.width / CARD_W})`;
+    await pause(780);
+    tile.style.visibility = "";
+    tile.classList.add("intro-landed");
+    // Il riquadro del posto (mirino e tasto Schiera) si scopre con la carta.
+    rubySlots.get(seat)?.classList.add("is-landed");
+    window.setTimeout(() => tile.classList.remove("intro-landed"), 900);
+    ghost.remove();
+    playSound("tap");
+    await pause(350);
+  }
+
+  async function introRubyfronts(order: Seat[]): Promise<void> {
+    const entries = order
+      .map(seat => ({ seat, card: waitingRubyfront(seat) }))
+      .filter((entry): entry is { seat: Seat; card: CardInstance } => entry.card !== undefined);
+    if (entries.length === 0) return;
+    document.body.classList.add("is-intro");
+    const veil = document.createElement("div");
+    veil.className = "intro-veil";
+    document.body.append(veil);
+    // Le tessere vere aspettano nascoste: entrano col volo. Fin qui le ha
+    // tenute nascoste body.is-intro-wait (main.ts), da quando sono nate.
+    for (const entry of entries) {
+      const tile = tiles.get(entry.card.uid);
+      if (tile) tile.style.visibility = "hidden";
+    }
+    document.body.classList.remove("is-intro-wait");
+    try {
+      await pause(300);
+      for (const entry of entries) await introOne(entry.seat, entry.card);
+    } finally {
+      for (const entry of entries) {
+        const tile = tiles.get(entry.card.uid);
+        if (tile) tile.style.visibility = "";
+      }
+      veil.classList.add("is-leaving");
+      window.setTimeout(() => veil.remove(), 350);
+      document.body.classList.remove("is-intro");
+      for (const slot of rubySlots.values()) slot.classList.remove("is-landed");
+    }
+  }
+
   async function playReturn(step: EnterReturnStep): Promise<void> {
     const who = `«${cardName(step.source.cardId, ctx.locale())}»`;
     // §6.2, Fronte pieno: «anche la parte d'effetto che metterebbe in campo
@@ -3346,6 +3452,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // (I PV del giocatore stanno nel medaglione della targa, hud.ts.)
       badges: card.zone === "field" && isRecessView(),
     });
+    // I temi e l'ingresso a inizio partita (body.is-intro-wait) riconoscono
+    // il Rubyfront dalla classe.
+    tile.classList.toggle("is-rubyfront", isRubyfront(card.cardId));
     return tile;
   }
 
@@ -3702,11 +3811,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         abilitiesButton.disabled = deployed && state.active !== seat;
         abilitiesButton.title = abilitiesButton.disabled ? t("ability.hint.turn") : t("recall.abilities.tip");
       }
-      // Un posto solo, due stati, due nomi: «Zona di Richiamo» finché il
-      // Rubyfront aspetta, «Rubyfront» da schierato (deciso 2026-09-08). Il
-      // tasto a cavallo del bordo basso (Schiera, poi Abilità) spinge
-      // l'etichetta più giù (style.css), così non ci finisce dietro.
-      slot.dataset.label = waiting ? t("zone.richiamo") : t("zone.rubyfront");
+      // Il posto del Rubyfront non porta etichetta (tolta su richiesta,
+      // 2026-09-10: la carta e il tasto Schiera dicono già tutto).
+      delete slot.dataset.label;
     }
 
     // §7.2 — la barra della catena: cosa c'è in cima, e a chi tocca.
@@ -3917,6 +4024,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     strike: uid => strike(uid, TRIGGER_LEAD_MS + FLY_MS),
     liftForFlight,
     flyFromPile,
+    introRubyfronts,
     liftToFlight,
     refreshLayout() {
       applySurfaceSize();

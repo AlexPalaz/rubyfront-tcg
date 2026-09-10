@@ -393,7 +393,7 @@ export function setTightView(on: boolean): void {
 export function isTightView(): boolean {
   return tightView;
 }
-const TIGHT = { ROW_PAD: 44, ROW_GAP: 40, TOP_PAD: 24, BOTTOM_PAD: 24, HALF_GAP: 16 } as const;
+const TIGHT = { ROW_PAD: 44, ROW_GAP: 40, TOP_PAD: 24, BOTTOM_PAD: 24, HALF_GAP: 28 } as const;
 /**
  * Rincasso: quando comanda la larghezza, sotto e sopra il tavolo avanza
  * altezza. Invece di centrare il tavolo nel vuoto, quell'altezza (in unità
@@ -596,7 +596,10 @@ export const TOP_PAD = 128;
  * molto meno — e meno coda vuol dire meno scorrimento.
  */
 const BOTTOM_PAD = 240;
-const HALF_GAP = 32;
+// Il varco fra i due campi: allargato (era 32) perché i due campi si
+// leggevano attaccati, con la testata del tuo a ridosso dell'orlo avversario
+// (richiesta del designer, 2026-09-10).
+const HALF_GAP = 56;
 export const SURFACE_H = TOP_PAD + HALF_H * 2 + HALF_GAP + BOTTOM_PAD;
 
 /**
