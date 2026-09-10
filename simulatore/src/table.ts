@@ -1642,6 +1642,13 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   function paintCombatTabs(): void {
     combatLayer.replaceChildren();
     combatGroups.clear();
+    // Le tessere si riusano da una zona all'altra: chi ha lasciato il campo
+    // (il bloccante morto, nell'Abisso) perde l'anello e il velo, o
+    // arrivava sulla cima della pila ancora contornato di rubino.
+    for (const tile of tiles.values()) {
+      tile.classList.remove("has-actions");
+      tile.onpointerenter = null;
+    }
     for (const card of fieldCards(ctx.state())) {
       const tabs = combatTabsFor(card);
       const tile = tiles.get(card.uid);
@@ -2660,7 +2667,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const layoutH = tile.offsetHeight;
     const ghost = tile.cloneNode(true) as HTMLElement;
     ghost.classList.add("fly-ghost");
-    ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck");
+    ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
+    ghost.querySelector(".combat-badge")?.remove();
     ghost.style.position = "fixed";
     ghost.style.left = `${from.left}px`;
     ghost.style.top = `${from.top}px`;
@@ -2741,7 +2749,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const layoutH = tile.offsetHeight;
     const ghost = tile.cloneNode(true) as HTMLElement;
     ghost.classList.add("fly-ghost");
-    ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck");
+    ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
+    ghost.querySelector(".combat-badge")?.remove();
     ghost.style.position = "fixed";
     ghost.style.left = `${to.left}px`;
     ghost.style.top = `${to.top}px`;
@@ -2920,7 +2929,8 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const to = landed.getBoundingClientRect();
       const ghost = landed.cloneNode(true) as HTMLElement;
       ghost.classList.add("fly-ghost");
-      ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck");
+      ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
+    ghost.querySelector(".combat-badge")?.remove();
       ghost.style.position = "fixed";
       ghost.style.left = `${to.left}px`;
       ghost.style.top = `${to.top}px`;

@@ -235,14 +235,33 @@ function cueFor(action: Action): void {
   }
 }
 
+/**
+ * Chi muore nella risoluzione (§6.4): gli attaccanti e i bloccanti segnati
+ * morti, e la Reattiva che si consuma — quelli ancora in campo. Per i voli
+ * verso l'Abisso, presi prima che lo stato cambi.
+ */
+function fallenOf(action: Action): string[] {
+  if (action.t !== "resolve") return [];
+  const fallen: string[] = [];
+  for (const battle of action.battles) {
+    if (battle.attackerDies && state.cards[battle.attacker]?.zone === "field") fallen.push(battle.attacker);
+    if (battle.blocker && !battle.blockerStasis && (battle.blockerDies || battle.blockerSpent) && state.cards[battle.blocker]?.zone === "field") fallen.push(battle.blocker);
+  }
+  return [...new Set(fallen)];
+}
+
 /** Applica, ritrasmette, ridisegna: l'azione ormai è passata. */
 function commit(action: Action): void {
   cueFor(action);
   peekReveal(action);
+  // I morti della risoluzione volano nell'Abisso: il fantasma si prende
+  // prima, il volo parte dopo il disegno.
+  const flights = fallenOf(action).map(uid => table.liftForFlight(uid, "abisso"));
   const before = state;
   state = apply(state, action);
   net?.send({ t: "action", action, from: mySeat });
   paint();
+  flights.forEach(flight => flight?.());
   // §8.2 — il ritorno vincolato: chi è appena uscita dal campo senza
   // Oggetti può tornare, e lo decide il proprietario — io, o il bot.
   if (action.t !== "revive") table.offerLeaveReturns(before, state, botSeat ? [mySeat, botSeat] : [mySeat]);
@@ -344,6 +363,11 @@ function receive(action: Action, from: Seat): void {
   if (action.t === "move" && action.roll !== undefined) {
     const die = cardStats(state.cards[action.uid]?.cardId ?? "").deployment?.die ?? 6;
     void showRoll(document.querySelector<HTMLElement>("#table")!, die, action.roll, t("dice.deploy"));
+  }
+  // La risoluzione dell'avversario: i suoi morti (e i miei) volano nell'Abisso.
+  if (action.t === "resolve") {
+    const flights = fallenOf(action).map(uid => table.liftForFlight(uid, "abisso"));
+    fly = () => flights.forEach(flight => flight?.());
   }
   // Il ritorno vincolato dell'avversario (§8.2): la carta e l'Oggetto
   // volano dalle sue pile al suo Fronte, dopo il disegno.
