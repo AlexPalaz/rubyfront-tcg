@@ -817,7 +817,8 @@ Regole collegate finora:
   e copia ricaricano al massimo meno la tassa, mai sotto zero. Limite
   dichiarato: la tassa si legge dalle carte al momento del cambio di turno —
   una carta uscita prima non tassa, una entrata nel turno altrui sì.
-  Engine 0.46.0.
+  Engine 0.46.0. Dalla seconda revisione del foglio (2026-09-10) nessuna
+  carta porta la forma: resta certificata.
 
 - **§8.2 «Quando entra, gli Oggetti avversari in Ritiro, poi riarma dal
   tuo Ritiro»** — due forme certificate insieme (`enter_disarms`,
@@ -848,6 +849,23 @@ Regole collegate finora:
   dell'uscita non viaggia nello snapshot d'allineamento; «ogni volta»
   (decisione del designer) — nessun limite per turno oltre l'uscita
   stessa. Engine 0.48.0, cinquantaquattro regole.
+
+- **§8.2 «Quando entra, puoi assegnarle un Oggetto dal tuo Ritiro, gratis»**
+  — la variante su di sé del riarmo all'ingresso (`enter_rearms`, forma
+  `self`): la stessa azione `toZone … assignTo` marcata `follow: "rearm"`,
+  ma il portatore è chi entra e vale una volta per ingresso (la memoria
+  degli inneschi). Engine 0.50.0.
+
+- **§6.3 Gli statici di Contrattacco** — «il Contrattacco di questa Entità
+  aumenta di 1 per ogni Oggetto assegnato a questa Entità» (`self_counter`
+  per Oggetto) e «Contrattacco +1» al portatore dall'Oggetto
+  (`bearer_counter`): la risoluzione del contrattacco li somma alla
+  Potenza, al Contrattacco stampato e a quello concesso fino a fine turno,
+  nei due gemelli (`static_counter` / `staticCounter`). Un'Entità senza
+  Contrattacco stampato che lo riceve da un Oggetto contrattacca: la dogana
+  delle dichiarazioni non guarda il valore stampato. Limite dichiarato: il
+  Contrattacco che «diventa +N» (fissato) resta nel debito. Engine 0.50.0,
+  cinquantasei regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

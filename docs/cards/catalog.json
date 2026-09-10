@@ -4153,7 +4153,7 @@
             "it": {
               "name": "Artefice di Nova Kai",
               "typeLabel": "Entità: Auros",
-              "summary": "Un corpo solido di Nova Kai, senza altri effetti: abilita la Dimensionale di secondo grado.",
+              "summary": "Entra sul Fronte e si arma da solo con un Oggetto dalla Zona di Ritiro, senza pagarlo.",
               "ui": {
                 "face": "Entità"
               },
@@ -4169,13 +4169,17 @@
               },
               "face": {
                 "name": "Artefice di Nova Kai",
-                "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
+                "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta.",
+                "equip": {
+                  "trigger": "Quando entra sul Fronte",
+                  "text": "Puoi assegnare a questa Entità un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
+                }
               }
             },
             "en": {
               "name": "Artificer of Nova Kai",
               "typeLabel": "Entity: Auros",
-              "summary": "A solid body from Nova Kai with no other effect: it enables second-grade Dimensional.",
+              "summary": "It enters the Front and arms itself with an Object from the Retire Zone, at no cost.",
               "ui": {
                 "face": "Entity"
               },
@@ -4191,14 +4195,19 @@
               },
               "face": {
                 "name": "Artificer of Nova Kai",
-                "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited."
+                "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited.",
+                "equip": {
+                  "trigger": "When it enters the Front",
+                  "text": "You may assign this Entity an Object from your Retire Zone without paying its Flux cost."
+                }
               }
             }
           },
           "tags": [
             "entity",
             "auros",
-            "equip"
+            "equip",
+            "retire"
           ],
           "rulesReference": "MANUALE.md §3.1, §8.2",
           "faces": [
@@ -4219,7 +4228,27 @@
               ],
               "keywords": [],
               "requirements": {},
-              "triggers": [],
+              "triggers": [
+                {
+                  "id": "equip",
+                  "displayKey": "equip",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "assign_object",
+                    "optional": true,
+                    "from": {
+                      "zone": "retire",
+                      "owner": "controller"
+                    },
+                    "target": {
+                      "scope": "self"
+                    },
+                    "details": {
+                      "noFluxCost": true
+                    }
+                  }
+                }
+              ],
               "actions": []
             }
           ],
@@ -4245,7 +4274,7 @@
             "it": {
               "name": "Sentinella di Nova Kai",
               "typeLabel": "Entità: Auros",
-              "summary": "Un corpo con Contrattacco che costa 1 Flusso a ogni tuo turno finché resta sul Fronte.",
+              "summary": "Un corpo con Contrattacco che cresce con ogni Oggetto che porta.",
               "ui": {
                 "face": "Entità"
               },
@@ -4264,14 +4293,14 @@
                 "name": "Sentinella di Nova Kai",
                 "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
                 "effect": {
-                  "text": "Finché questa Entità resta sul Fronte, all'inizio di ogni tuo turno hai 1 Flusso in meno disponibile per quel turno."
+                  "text": "Il Contrattacco di questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità."
                 }
               }
             },
             "en": {
               "name": "Sentinel of Nova Kai",
               "typeLabel": "Entity: Auros",
-              "summary": "A body with Counterattack that costs you 1 Flux each of your turns while it stays on the Front.",
+              "summary": "A body with Counterattack that grows with every Object it wears.",
               "ui": {
                 "face": "Entity"
               },
@@ -4290,7 +4319,7 @@
                 "name": "Sentinel of Nova Kai",
                 "flavor": "The answering blow is the only one it has always prepared.",
                 "effect": {
-                  "text": "As long as this Entity remains on the Front, at the start of each of your turns you have 1 less Flux available for that turn."
+                  "text": "This Entity's Counterattack increases by 1 for each Object assigned to this Entity."
                 }
               }
             }
@@ -4299,8 +4328,7 @@
             "entity",
             "auros",
             "equip",
-            "counterattack",
-            "flux"
+            "counterattack"
           ],
           "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
           "faces": [
@@ -4324,18 +4352,17 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "toll",
+                  "id": "bulwark",
                   "displayKey": "effect",
                   "event": "while_in_play",
                   "effect": {
-                    "type": "modify_flux",
+                    "type": "modify_counterattack",
                     "target": {
-                      "controller": "controller"
+                      "scope": "self"
                     },
-                    "amount": -1,
+                    "amount": 1,
                     "details": {
-                      "atStartOfEachOwnTurn": true,
-                      "whileOnFront": true
+                      "perObjectAssigned": true
                     }
                   }
                 }
@@ -6415,7 +6442,7 @@
                 "unique": "Unica"
               },
               "matters": {
-                "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+                "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
                 "dimensionalAria": "Dimensionale"
               },
               "face": {
@@ -6442,7 +6469,7 @@
                 "unique": "Unique"
               },
               "matters": {
-                "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+                "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
                 "dimensionalAria": "Dimensional"
               },
               "face": {
@@ -6477,7 +6504,7 @@
               "enablesMatters": [
                 {
                   "type": "dimensional",
-                  "maxGrade": 1
+                  "maxGrade": 2
                 }
               ],
               "keywords": [],
@@ -10666,7 +10693,7 @@
         "it": {
           "name": "Artefice di Nova Kai",
           "typeLabel": "Entità: Auros",
-          "summary": "Un corpo solido di Nova Kai, senza altri effetti: abilita la Dimensionale di secondo grado.",
+          "summary": "Entra sul Fronte e si arma da solo con un Oggetto dalla Zona di Ritiro, senza pagarlo.",
           "ui": {
             "face": "Entità"
           },
@@ -10682,13 +10709,17 @@
           },
           "face": {
             "name": "Artefice di Nova Kai",
-            "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
+            "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta.",
+            "equip": {
+              "trigger": "Quando entra sul Fronte",
+              "text": "Puoi assegnare a questa Entità un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
+            }
           }
         },
         "en": {
           "name": "Artificer of Nova Kai",
           "typeLabel": "Entity: Auros",
-          "summary": "A solid body from Nova Kai with no other effect: it enables second-grade Dimensional.",
+          "summary": "It enters the Front and arms itself with an Object from the Retire Zone, at no cost.",
           "ui": {
             "face": "Entity"
           },
@@ -10704,14 +10735,19 @@
           },
           "face": {
             "name": "Artificer of Nova Kai",
-            "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited."
+            "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited.",
+            "equip": {
+              "trigger": "When it enters the Front",
+              "text": "You may assign this Entity an Object from your Retire Zone without paying its Flux cost."
+            }
           }
         }
       },
       "tags": [
         "entity",
         "auros",
-        "equip"
+        "equip",
+        "retire"
       ],
       "rulesReference": "MANUALE.md §3.1, §8.2",
       "faces": [
@@ -10732,7 +10768,27 @@
           ],
           "keywords": [],
           "requirements": {},
-          "triggers": [],
+          "triggers": [
+            {
+              "id": "equip",
+              "displayKey": "equip",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "assign_object",
+                "optional": true,
+                "from": {
+                  "zone": "retire",
+                  "owner": "controller"
+                },
+                "target": {
+                  "scope": "self"
+                },
+                "details": {
+                  "noFluxCost": true
+                }
+              }
+            }
+          ],
           "actions": []
         }
       ],
@@ -10758,7 +10814,7 @@
         "it": {
           "name": "Sentinella di Nova Kai",
           "typeLabel": "Entità: Auros",
-          "summary": "Un corpo con Contrattacco che costa 1 Flusso a ogni tuo turno finché resta sul Fronte.",
+          "summary": "Un corpo con Contrattacco che cresce con ogni Oggetto che porta.",
           "ui": {
             "face": "Entità"
           },
@@ -10777,14 +10833,14 @@
             "name": "Sentinella di Nova Kai",
             "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
             "effect": {
-              "text": "Finché questa Entità resta sul Fronte, all'inizio di ogni tuo turno hai 1 Flusso in meno disponibile per quel turno."
+              "text": "Il Contrattacco di questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità."
             }
           }
         },
         "en": {
           "name": "Sentinel of Nova Kai",
           "typeLabel": "Entity: Auros",
-          "summary": "A body with Counterattack that costs you 1 Flux each of your turns while it stays on the Front.",
+          "summary": "A body with Counterattack that grows with every Object it wears.",
           "ui": {
             "face": "Entity"
           },
@@ -10803,7 +10859,7 @@
             "name": "Sentinel of Nova Kai",
             "flavor": "The answering blow is the only one it has always prepared.",
             "effect": {
-              "text": "As long as this Entity remains on the Front, at the start of each of your turns you have 1 less Flux available for that turn."
+              "text": "This Entity's Counterattack increases by 1 for each Object assigned to this Entity."
             }
           }
         }
@@ -10812,8 +10868,7 @@
         "entity",
         "auros",
         "equip",
-        "counterattack",
-        "flux"
+        "counterattack"
       ],
       "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
       "faces": [
@@ -10837,18 +10892,17 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "toll",
+              "id": "bulwark",
               "displayKey": "effect",
               "event": "while_in_play",
               "effect": {
-                "type": "modify_flux",
+                "type": "modify_counterattack",
                 "target": {
-                  "controller": "controller"
+                  "scope": "self"
                 },
-                "amount": -1,
+                "amount": 1,
                 "details": {
-                  "atStartOfEachOwnTurn": true,
-                  "whileOnFront": true
+                  "perObjectAssigned": true
                 }
               }
             }
@@ -12928,7 +12982,7 @@
             "unique": "Unica"
           },
           "matters": {
-            "dimensionalTitle": "Materia Dimensionale · fino al 1° grado",
+            "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
             "dimensionalAria": "Dimensionale"
           },
           "face": {
@@ -12955,7 +13009,7 @@
             "unique": "Unique"
           },
           "matters": {
-            "dimensionalTitle": "Dimensional Matter · up to 1st grade",
+            "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
             "dimensionalAria": "Dimensional"
           },
           "face": {
@@ -12990,7 +13044,7 @@
           "enablesMatters": [
             {
               "type": "dimensional",
-              "maxGrade": 1
+              "maxGrade": 2
             }
           ],
           "keywords": [],

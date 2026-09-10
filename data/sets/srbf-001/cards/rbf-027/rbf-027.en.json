@@ -1,7 +1,7 @@
 {
   "name": "Artificer of Nova Kai",
   "typeLabel": "Entity: Auros",
-  "summary": "A solid body from Nova Kai with no other effect: it enables second-grade Dimensional.",
+  "summary": "It enters the Front and arms itself with an Object from the Retire Zone, at no cost.",
   "ui": {
     "face": "Entity"
   },
@@ -17,6 +17,10 @@
   },
   "face": {
     "name": "Artificer of Nova Kai",
-    "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited."
+    "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited.",
+    "equip": {
+      "trigger": "When it enters the Front",
+      "text": "You may assign this Entity an Object from your Retire Zone without paying its Flux cost."
+    }
   }
 }

@@ -93,6 +93,23 @@ export function staticPower(state: GameState, card: CardInstance, facts: (cardId
 }
 
 /**
+ * Gli statici di Contrattacco (§6.3, §8.2): «aumenta di 1 per ogni Oggetto
+ * assegnato» su di sé, «Contrattacco +1» dall'Oggetto addosso. Gemello:
+ * engine.rb, static_counter.
+ */
+export function staticCounter(state: GameState, card: CardInstance, facts: (cardId: string) => CardFacts): number {
+  const worn = wornBy(state, card.uid);
+  let bonus = 0;
+  for (const form of facts(card.cardId).staticForms) {
+    if (form.kind === "self_counter") bonus += form.perObject ? form.amount * worn.length : form.amount;
+  }
+  for (const object of worn) {
+    for (const form of facts(object.cardId).staticForms) if (form.kind === "bearer_counter") bonus += form.amount;
+  }
+  return bonus;
+}
+
+/**
  * Una parola chiave stampata, concessa fino a fine turno (§8.2), o data da
  * un Oggetto addosso «mentre assegnato» (RBF-013: la Stasi agli Umani).
  * Gemello: engine.rb, has_keyword?.
@@ -145,7 +162,7 @@ export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string
       const blockerPower = powerOf(blocker, facts, state);
       if (blockerPower === null) return null;
       const counter = block.kind === "counter";
-      const total = counter ? blockerPower + (blockerFacts.counterattack ?? 0) + (blocker.counterBonus ?? 0) : blockerPower;
+      const total = counter ? blockerPower + (blockerFacts.counterattack ?? 0) + (blocker.counterBonus ?? 0) + staticCounter(state, blocker, facts) : blockerPower;
       // Nel blocco normale l'attaccante muore SOLO nel pareggio — o quando il
       // bloccante ha Vendetta e lo supera (§8.1); nel contrattacco anche
       // quando il totale lo supera (§6.3).

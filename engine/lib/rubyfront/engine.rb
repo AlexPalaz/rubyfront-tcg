@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.49.0"
+    VERSION = "0.50.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -86,6 +86,8 @@ module Rubyfront
       "§3.2 La tassa di Flusso: «all'inizio di ogni tuo turno hai N Flusso in meno» viaggia nel cambio di turno",
       "§8.2 Effetti certificati: «quando entra, gli Oggetti avversari in Ritiro, poi riarma dal tuo Ritiro»",
       "§8.2 Effetti certificati: «mandata nell'Abisso o in Ritiro senza Oggetti, torna sul Fronte con un Oggetto dal Ritiro»",
+      "§8.2 Effetti certificati: «quando entra, puoi assegnarle un Oggetto dal tuo Ritiro, gratis»",
+      "§6.3 Gli statici di Contrattacco contano: «+1 per ogni Oggetto assegnato», «Contrattacco +1» dall'Oggetto",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -146,6 +148,8 @@ module Rubyfront
       "§3.2 The Flux toll: “at the start of each of your turns you have N less Flux” travels in the turn change",
       "§8.2 Certified effects: “when it enters, opposing Objects to Retire, then rearm from your Retire Zone”",
       "§8.2 Certified effects: “sent to the Abyss or Retire without Objects, it returns to the Front with an Object from Retire”",
+      "§8.2 Certified effects: “when it enters, you may assign it an Object from your Retire Zone, for free”",
+      "§6.3 Counterattack statics count: “+1 for each Object assigned”, “Counterattack +1” from the Object",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -1043,7 +1047,7 @@ module Rubyfront
       return nil if blocker_power.nil?
 
       counter = kind == "counter"
-      total = counter ? blocker_power + (stat(blocker, :counterattack) || 0) + (@table.card(blocker)[:counter_bonus] || 0) : blocker_power
+      total = counter ? blocker_power + (stat(blocker, :counterattack) || 0) + (@table.card(blocker)[:counter_bonus] || 0) + static_counter(blocker) : blocker_power
       # Nel blocco normale l'attaccante muore SOLO nel pareggio — o quando
       # il bloccante ha Vendetta e lo supera (§8.1); nel contrattacco anche
       # quando il totale lo supera (§6.3).
@@ -1118,6 +1122,23 @@ module Rubyfront
 
           bonus += form[:per] ? form[:amount] * count_entities(seat, form[:per][:race]) : form[:amount]
         end
+      end
+      bonus
+    end
+
+    # Gli statici di Contrattacco (§6.3, §8.2): «aumenta di 1 per ogni
+    # Oggetto assegnato» su di sé, «Contrattacco +1» dall'Oggetto addosso.
+    # Gemello: combat.ts, staticCounter.
+    def static_counter(uid)
+      worn = @table.worn_by(uid)
+      bonus = 0
+      Array(@cards.dig(@table.card(uid)[:card_id], :static_forms)).each do |form|
+        next unless form[:kind] == "self_counter"
+
+        bonus += form[:per_object] ? form[:amount] * worn.size : form[:amount]
+      end
+      worn.each do |object|
+        Array(@cards.dig(object[:card_id], :static_forms)).each { |form| bonus += form[:amount] if form[:kind] == "bearer_counter" }
       end
       bonus
     end
@@ -2561,6 +2582,12 @@ module Rubyfront
         return refuse("toZone", "l'Oggetto va addosso a un'Entità che controlli, in campo (§8.2)", "the Object goes on an Entity you control, on the field (§8.2)")
       end
       return refuse("toZone", "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if bearer[:facedown]
+
+      # La variante su di sé: l'Oggetto va addosso a chi entra, una volta.
+      unless known[:enter_rearms].any? { |form| form[:any] }
+        return refuse("toZone", "l'Oggetto va addosso a questa Entità, quella che entra (§8.2)", "the Object goes on this Entity, the one entering (§8.2)") unless action["assignTo"] == ref["source"]
+        return refuse("toZone", "questo innesco è già stato risolto per quell'ingresso (§8.2)", "this trigger has already been resolved for that entry (§8.2)") if @table.fired?(ref["source"], fired_event(ref), ref["entering"])
+      end
 
       allow("toZone")
     end

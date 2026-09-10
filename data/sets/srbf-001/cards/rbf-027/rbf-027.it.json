@@ -1,7 +1,7 @@
 {
   "name": "Artefice di Nova Kai",
   "typeLabel": "Entità: Auros",
-  "summary": "Un corpo solido di Nova Kai, senza altri effetti: abilita la Dimensionale di secondo grado.",
+  "summary": "Entra sul Fronte e si arma da solo con un Oggetto dalla Zona di Ritiro, senza pagarlo.",
   "ui": {
     "face": "Entità"
   },
@@ -17,6 +17,10 @@
   },
   "face": {
     "name": "Artefice di Nova Kai",
-    "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta."
+    "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta.",
+    "equip": {
+      "trigger": "Quando entra sul Fronte",
+      "text": "Puoi assegnare a questa Entità un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
+    }
   }
 }

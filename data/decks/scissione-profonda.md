@@ -156,6 +156,17 @@ foglio («Entità — 8 carte, 17 copie», «Materia — 8 carte, 13 copie») er
 rimaste indietro: corrette sul foglio con la lista.
 
 **Engine**: i quattro effetti nuovi (sguardo «tante quante il tiro», tassa
-di Flusso, ritorno vincolato, disarmo e riarmo di Kyo Shin) non hanno forme
-certificate e restano a mano (README dell'engine); si collegano una alla
-volta su decisione del designer.
+di Flusso, ritorno vincolato, disarmo e riarmo di Kyo Shin) sono stati
+collegati il 2026-09-10 (engine 0.46–0.48).
+
+## Seconda revisione del foglio, 2026-09-10
+
+- **Artefice di Nova Kai**: da vanilla a «Quando entra sul Fronte: Puoi
+  assegnare a questa Entità un Oggetto dalla tua Zona di Ritiro senza
+  pagarne il costo di Flusso.» Forma certificata (riarmo su di sé
+  all'ingresso).
+- **Sentinella di Nova Kai**: via la tassa di Flusso; «Il Contrattacco di
+  questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità.»
+  Forma certificata (Contrattacco statico per Oggetto), insieme al
+  Contrattacco +1 dello Scudo Dimensionale.
+- Eredità Perduta invariata. Conteggi invariati (19 · 10 · 11 = 40).

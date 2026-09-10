@@ -705,6 +705,12 @@ function enterRearmsOf(face: CardFace | undefined): EnterRearm[] {
     const effect = trigger.effect as { type?: unknown; optional?: unknown; from?: any; target?: any; details?: any } | undefined;
     if (!effect || effect.type !== "assign_object" || effect.optional !== true) continue;
     if (effect.from?.zone !== "retire" || effect.from?.owner !== "controller") continue;
+    // La variante su di sé: un Oggetto a chi entra, gratis. Specchio di card_index.rb.
+    if (effect.target?.scope === "self") {
+      const details = effect.details as Loose | undefined;
+      if (details && Object.keys(details).length === 1 && details.noFluxCost === true) out.push({ self: true });
+      continue;
+    }
     const target = effect.target;
     if (!target || target.cardType !== "entity" || target.controller !== "controller" || target.quantity !== "all") continue;
     if (effect.details?.anyNumber !== true || effect.details?.noFluxCost !== true) continue;
@@ -776,6 +782,17 @@ function staticFormsOf(faces: CardFace[]): StaticForm[] {
       // «Questa Entità non si tappa mai» (RBF-011): uno statico senza numeri.
       if (effect.type === "prevent_tap") {
         if (trigger.event === "while_in_play" && effect.target?.scope === "self" && effect.duration === "permanent") out.push({ kind: "never_taps" });
+        continue;
+      }
+      // Gli statici di Contrattacco: per Oggetto addosso su di sé, +N al portatore. Specchio di card_index.rb.
+      if (effect.type === "modify_counterattack") {
+        if (!Number.isInteger(effect.amount)) continue;
+        const details = (typeof effect.details === "object" && effect.details ? effect.details : {}) as Loose;
+        if (trigger.event === "while_in_play") {
+          if (effect.target?.scope === "self" && Object.keys(details).length === 1 && details.perObjectAssigned === true) out.push({ kind: "self_counter", amount: effect.amount, perObject: true });
+        } else if (effect.target?.scope === "assigned" && (effect.duration === undefined || effect.duration === "permanent") && Object.keys(details).length === 0) {
+          out.push({ kind: "bearer_counter", amount: effect.amount });
+        }
         continue;
       }
       if (effect.type !== "modify_power" || !Number.isInteger(effect.amount)) continue;

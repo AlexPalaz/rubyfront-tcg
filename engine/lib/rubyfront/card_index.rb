@@ -616,6 +616,21 @@ module Rubyfront
 
           next { kind: "never_taps" }.freeze
         end
+        # Gli statici di Contrattacco (dal 2026-09-10): «aumenta di 1 per ogni
+        # Oggetto assegnato a questa Entità» su di sé, «Contrattacco +1» al portatore.
+        if effect["type"] == "modify_counterattack"
+          next unless effect["amount"].is_a?(Integer)
+
+          details = effect["details"].is_a?(Hash) ? effect["details"] : {}
+          if trigger["event"] == "while_in_play"
+            next unless effect.dig("target", "scope") == "self" && details == { "perObjectAssigned" => true }
+
+            next { kind: "self_counter", amount: effect["amount"], per_object: true }.freeze
+          end
+          next unless effect.dig("target", "scope") == "assigned" && [nil, "permanent"].include?(effect["duration"]) && details.empty?
+
+          next { kind: "bearer_counter", amount: effect["amount"] }.freeze
+        end
         next unless effect["type"] == "modify_power" && effect["amount"].is_a?(Integer)
 
         details = effect["details"].is_a?(Hash) ? effect["details"] : {}
@@ -933,6 +948,13 @@ module Rubyfront
         effect = trigger["effect"]
         next unless effect.is_a?(Hash) && effect["type"] == "assign_object" && effect["optional"] == true
         next unless effect.dig("from", "zone") == "retire" && effect.dig("from", "owner") == "controller"
+        # La variante su di sé (dal 2026-09-10): «puoi assegnare a questa
+        # Entità un Oggetto dalla tua Zona di Ritiro senza pagarne il costo».
+        if effect.dig("target", "scope") == "self"
+          next unless effect["details"].is_a?(Hash) && effect["details"].keys == ["noFluxCost"] && effect["details"]["noFluxCost"] == true
+
+          next { self: true }.freeze
+        end
         next unless own_target?(effect["target"], "entity") && effect.dig("target", "quantity") == "all"
         next unless effect.dig("details", "anyNumber") == true && effect.dig("details", "noFluxCost") == true
 

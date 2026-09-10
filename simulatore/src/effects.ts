@@ -427,19 +427,21 @@ export async function resolveDisarm(ctx: Ctx, step: EnterDisarmStep, object: Car
 /** Un riarmo all'ingresso da risolvere (§8.2): la fonte; i candidati si rileggono a ogni giro. */
 export interface EnterRearmStep {
   source: CardInstance;
+  /** La variante su di sé: un Oggetto a chi entra, una volta. */
+  self: boolean;
 }
 
 /** I riarmi di chi entra (§8.2, dal 2026-09-10): uno per forma, a giri. */
 export function enterRearms(entering: CardInstance, facts: (cardId: string) => CardFacts): EnterRearmStep[] {
-  return facts(entering.cardId).enterRearms.map(() => ({ source: entering }));
+  return facts(entering.cardId).enterRearms.map(form => ({ source: entering, self: form.self === true && form.any !== true }));
 }
 
-/** Gli Oggetti nella propria Zona di Ritiro, e le proprie Entità in campo scoperte: fra cosa si sceglie a ogni giro del riarmo. */
-export function rearmChoices(state: GameState, source: CardInstance, facts: (cardId: string) => CardFacts): { objects: CardInstance[]; bearers: CardInstance[] } {
+/** Gli Oggetti nella propria Zona di Ritiro, e le proprie Entità in campo scoperte (solo chi entra, nella variante su di sé): fra cosa si sceglie a ogni giro del riarmo. */
+export function rearmChoices(state: GameState, source: CardInstance, facts: (cardId: string) => CardFacts, onlySelf = false): { objects: CardInstance[]; bearers: CardInstance[] } {
   const by = controllerOf(source);
   return {
     objects: zoneCards(state, by, "ritiro").filter(card => facts(card.cardId).kind === "object"),
-    bearers: fieldCards(state).filter(card => controllerOf(card) === by && facts(card.cardId).kind === "entity" && !card.facedown),
+    bearers: fieldCards(state).filter(card => controllerOf(card) === by && facts(card.cardId).kind === "entity" && !card.facedown && (!onlySelf || card.uid === source.uid)),
   };
 }
 

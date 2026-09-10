@@ -58,6 +58,7 @@ import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
 const FACTS: Record<string, Partial<CardFacts>> = {
   OMBRA: { kind: "entity", race: "auros", enterDisarms: [{ to: "ritiro" }], enterRearms: [{ any: true }] },
+  FABBRO: { kind: "entity", race: "auros", enterRearms: [{ self: true }] },
   VINCOLATA: { kind: "entity", race: "auros", fluxCost: 1, leaveReturns: [{ maxCost: 2 }] },
   LAMA: { kind: "object", fluxCost: 2 },
   MAZZA: { kind: "object", fluxCost: 3 },
@@ -459,7 +460,11 @@ describe("disarmo, riarmo e ritorno vincolato (§8.2, dal 2026-09-10)", () => {
     const { objects, bearers } = rearmChoices(state, ombra, facts);
     expect(objects.map(card => card.uid)).toEqual(["lama-a"]);
     expect(bearers.map(card => card.uid).sort()).toEqual(["mio", "ombra"]);
-    expect(enterRearms(ombra, facts)).toHaveLength(1);
+    expect(enterRearms(ombra, facts)).toEqual([{ source: ombra, self: false }]);
+    // La variante su di sé: l'unico portatore possibile è chi entra.
+    const fabbro = on(state, "fab", "FABBRO");
+    expect(enterRearms(fabbro, facts)).toEqual([{ source: fabbro, self: true }]);
+    expect(rearmChoices(state, fabbro, facts, true).bearers.map(card => card.uid)).toEqual(["fab"]);
   });
 
   it("leaveReturns vede chi è appena uscita senza Oggetti, coi candidati entro il costo", () => {

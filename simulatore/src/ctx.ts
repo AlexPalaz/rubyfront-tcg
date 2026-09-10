@@ -80,7 +80,11 @@ export type StaticForm =
   /** RBF-011: «questa Entità non si tappa mai». */
   | { kind: "never_taps" }
   /** La tassa di Flusso: «all'inizio di ogni tuo turno hai N Flusso in meno» finché resta sul Fronte. */
-  | { kind: "flux_toll"; amount: number };
+  | { kind: "flux_toll"; amount: number }
+  /** «Il Contrattacco aumenta di 1 per ogni Oggetto assegnato a questa Entità» (dal 2026-09-10). */
+  | { kind: "self_counter"; amount: number; perObject: true }
+  /** «Contrattacco +1» al portatore, dall'Oggetto. */
+  | { kind: "bearer_counter"; amount: number };
 
 /**
  * Gli effetti certificati delle Materie alla risoluzione (§7.2), specchio
@@ -215,7 +219,10 @@ export interface EnterDisarm {
  * card_index.rb, enter_rearms.
  */
 export interface EnterRearm {
-  any: true;
+  /** Kyo Shin: alle Entità che controlli, quanti si vuole. */
+  any?: true;
+  /** Artefice: un Oggetto a sé stessa, una volta. */
+  self?: true;
 }
 
 /**

@@ -1,7 +1,7 @@
 {
   "name": "Sentinel of Nova Kai",
   "typeLabel": "Entity: Auros",
-  "summary": "A body with Counterattack that costs you 1 Flux each of your turns while it stays on the Front.",
+  "summary": "A body with Counterattack that grows with every Object it wears.",
   "ui": {
     "face": "Entity"
   },
@@ -20,7 +20,7 @@
     "name": "Sentinel of Nova Kai",
     "flavor": "The answering blow is the only one it has always prepared.",
     "effect": {
-      "text": "As long as this Entity remains on the Front, at the start of each of your turns you have 1 less Flux available for that turn."
+      "text": "This Entity's Counterattack increases by 1 for each Object assigned to this Entity."
     }
   }
 }

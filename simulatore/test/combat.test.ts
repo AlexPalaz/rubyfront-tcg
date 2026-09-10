@@ -3,7 +3,7 @@
 // contrattaccante e la riga in chat non devono partire affatto.
 
 import { describe, expect, it } from "vitest";
-import { declareAttack, declareBlock, describeBattle, hasKeyword, multiBlock, powerOf, resolveWave, undeclare } from "../src/combat.js";
+import { declareAttack, declareBlock, describeBattle, hasKeyword, multiBlock, powerOf, resolveWave, undeclare, staticCounter } from "../src/combat.js";
 import { newGame } from "../src/state.js";
 import type { Ctx } from "../src/ctx.js";
 import { renderLog } from "../src/log.js";
@@ -315,6 +315,8 @@ describe("resolveWave con statici, Stasi e più bloccanti", () => {
     AUROS: { kind: "entity", race: "auros", power: 2 },
     GROSSO: { kind: "entity", race: "auros", power: 4 },
     SPINOSO: { kind: "entity", race: "human", power: 3, counterattack: 1 },
+    IRTA: { kind: "entity", race: "auros", power: 2, counterattack: 1, staticForms: [{ kind: "self_counter", amount: 1, perObject: true }] },
+    SPINE: { kind: "object", staticForms: [{ kind: "bearer_counter", amount: 1 }] },
     COORDINATO: { kind: "matter", behavior: "reactive" },
   };
   const facts = (cardId: string): CardFacts => ({
@@ -333,6 +335,14 @@ describe("resolveWave con statici, Stasi e più bloccanti", () => {
   }
   const attack = (from: string, order = 1): Declaration => ({ id: from, from, to: "rf-b", kind: "attack", seat: "a", order });
   const block = (from: string, to: string, kind: "block" | "counter" = "block"): Declaration => ({ id: from, from, to, kind, seat: "b", order: 0 });
+
+  it("il Contrattacco cresce con gli Oggetti addosso e con quello dell'Oggetto — gemello: engine_test.rb", () => {
+    const nuda = table([card("g", "a", "GROSSO"), card("i", "b", "IRTA")], [attack("g"), block("i", "g", "counter")]);
+    expect(resolveWave(nuda, "a", facts)![0]).toMatchObject({ attackerDies: false, blockerDies: true });
+    const armata = table([card("g", "a", "GROSSO"), card("i", "b", "IRTA"), card("s", "b", "SPINE", { assignedTo: "i" })], [attack("g"), block("i", "g", "counter")]);
+    expect(resolveWave(armata, "a", facts)![0]).toMatchObject({ attackerDies: true, blockerDies: false });
+    expect(staticCounter(armata, armata.cards.i, facts)).toBe(2);
+  });
 
   it("la Recluta vale uno in più solo con un Oggetto addosso — gemello: engine_test.rb", () => {
     const nuda = table([card("r", "a", "RECLUTA")], [attack("r")]);

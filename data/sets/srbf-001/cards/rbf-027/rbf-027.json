@@ -16,7 +16,8 @@
   "tags": [
     "entity",
     "auros",
-    "equip"
+    "equip",
+    "retire"
   ],
   "rulesReference": "MANUALE.md §3.1, §8.2",
   "faces": [
@@ -37,7 +38,27 @@
       ],
       "keywords": [],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "equip",
+          "displayKey": "equip",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "assign_object",
+            "optional": true,
+            "from": {
+              "zone": "retire",
+              "owner": "controller"
+            },
+            "target": {
+              "scope": "self"
+            },
+            "details": {
+              "noFluxCost": true
+            }
+          }
+        }
+      ],
       "actions": []
     }
   ],

@@ -190,6 +190,8 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Tassa di Flusso (statico) | Finché questa Entità resta sul Fronte, all'inizio di ogni tuo turno hai N Flusso in meno disponibile per quel turno. | As long as this Entity remains on the Front, at the start of each of your turns you have N less Flux available for that turn. |
 | Ritorno vincolato | Quando viene mandata nell'Abisso o nella Zona di Ritiro: Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto … dalla tua Zona di Ritiro, senza pagarne il costo. Se … non c'è un Oggetto così, non torna. | When it is sent to the Abyss or the Retire Zone: If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object … from your Retire Zone, without paying its cost. If there is no such Object …, it doesn't come back. |
 | Disarmo avversario | Metti nella Zona di Ritiro del suo proprietario ogni Oggetto assegnato a un'Entità avversaria. | Put every Object assigned to an opposing Entity into its owner's Retire Zone. |
+| Riarmo di sé all'ingresso | Quando entra sul Fronte: Puoi assegnare a questa Entità un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso. | When it enters the Front: You may assign this Entity an Object from your Retire Zone without paying its Flux cost. |
+| Contrattacco per Oggetto (statico) | Il Contrattacco di questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità. | This Entity's Counterattack increases by 1 for each Object assigned to this Entity. |
 
 **Rimozione: quale zona.** Una rimozione che deve **tornare in gioco** usa
 l'«Esilio condizionato» sull'**Abisso** (RBF-018, RBF-043; nella variante

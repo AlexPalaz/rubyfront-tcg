@@ -17,8 +17,7 @@
     "entity",
     "auros",
     "equip",
-    "counterattack",
-    "flux"
+    "counterattack"
   ],
   "rulesReference": "MANUALE.md §3.1, §6.3, §8.2",
   "faces": [
@@ -42,18 +41,17 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "toll",
+          "id": "bulwark",
           "displayKey": "effect",
           "event": "while_in_play",
           "effect": {
-            "type": "modify_flux",
+            "type": "modify_counterattack",
             "target": {
-              "controller": "controller"
+              "scope": "self"
             },
-            "amount": -1,
+            "amount": 1,
             "details": {
-              "atStartOfEachOwnTurn": true,
-              "whileOnFront": true
+              "perObjectAssigned": true
             }
           }
         }

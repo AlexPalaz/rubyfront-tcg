@@ -25,7 +25,6 @@ class CardIndexTest < Minitest::Test
     "RBF-030 entity/outfit",
     "RBF-030 entity/carry",
     "RBF-031 entity/aura",
-    "RBF-033 object/spikes",
     "RBF-035 object/remain",
     "RBF-036 matter/amplify",
     "RBF-038 matter/evert",
@@ -117,7 +116,7 @@ class CardIndexTest < Minitest::Test
 
   def test_le_forme_quando_attacca_delle_carte_vere
     forme = ->(id) { @index[id][:attack_forms].map { |form| [form[:kind], form[:who], form[:face]] } }
-    assert_equal [], forme.call("RBF-028"), "dal 2026-09-10 la Sentinella ha solo la tassa di Flusso, a mano"
+    assert_equal [], forme.call("RBF-028"), "dal 2026-09-10 la Sentinella non ha forme d'attacco"
     assert_equal [["empower", "self", 0]], forme.call("RBF-029")
     assert_equal [["empower", "object", 0], ["look", "object", 0]], forme.call("RBF-034")
     assert_equal [["rearm", "ally", 0], ["look", "ally", 0]], forme.call("RBF-031")
@@ -167,14 +166,15 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "self_power", amount: 1, per_other: { type: "entity", race: "human" } }], @index["RBF-010"][:static_forms]
     assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-013"][:static_forms], "il +1 dell'Oggetto; la Stasi sta nelle concessioni"
     assert_equal [{ kind: "bearer_power", amount: 1, per: { type: "entity", race: "human" }, multi_block: true }], @index["RBF-014"][:static_forms]
-    assert_equal [{ kind: "flux_toll", amount: 1 }], @index["RBF-028"][:static_forms], "dal 2026-09-10 la tassa di Flusso"
+    assert_equal [{ kind: "self_counter", amount: 1, per_object: true }], @index["RBF-028"][:static_forms], "dal 2026-09-10 il Contrattacco per Oggetto"
+    assert_nil @index.values.find { |c| Array(c[:static_forms]).any? { |f| f[:kind] == "flux_toll" } }, "la tassa di Flusso resta certificata, oggi senza carte"
     assert_equal [{ kind: "never_taps" }], @index["RBF-011"][:static_forms], "«questa Entità non si tappa mai»"
     assert_equal [{ kind: "never_taps" }], @index["RBF-005"][:static_forms], "dal 2026-09-08 anche il 2 Flussi non si tappa attaccando"
     assert_equal [], @index["RBF-031"][:static_forms], "«+1 alle altre armate» resta nel debito"
     # Dal 2026-09-10: «se ha un Oggetto assegnato, +1» e gli Oggetti «mentre assegnato» senza durata esplicita.
     assert_equal [{ kind: "self_power", amount: 1, while_armed: true }], @index["RBF-024"][:static_forms]
     assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-032"][:static_forms]
-    assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-033"][:static_forms], "il Contrattacco +1 resta nel debito"
+    assert_equal [{ kind: "bearer_power", amount: 1 }, { kind: "bearer_counter", amount: 1 }], @index["RBF-033"][:static_forms], "+1 Potenza e Contrattacco +1 al portatore"
     assert_equal [{ kind: "bearer_power", amount: 2 }], @index["RBF-035"][:static_forms], "il ritorno in Ritiro resta nel debito"
   end
 
@@ -236,7 +236,8 @@ class CardIndexTest < Minitest::Test
   end
 
   def test_lo_sguardo_col_dado_di_scissione_profonda_non_e_piu_certificato
-    assert_equal [], @index["RBF-027"][:enter_looks], "dal 2026-09-10 l'Artefice non ha effetti"
+    assert_equal [], @index["RBF-027"][:enter_looks], "dal 2026-09-10 lo sguardo col dado è del Guardiano"
+    assert_equal [{ self: true }], @index["RBF-027"][:enter_rearms], "dal 2026-09-10 il riarmo su di sé all'ingresso"
     assert_equal [{ count: nil, die: 6, count_base: 0, reveal: { type: "object", race: nil }, then_retire: true, formula: "result" }], @index["RBF-025"][:enter_looks], "dal 2026-09-10 «tante carte quanto il tiro»"
   end
 

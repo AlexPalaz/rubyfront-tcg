@@ -9,7 +9,7 @@ import { msg, t } from "./i18n.js";
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
 import { createCardEl, fitPending, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
 import { playSound } from "./sound.js";
-import { declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticPower, undeclare, wornBy } from "./combat.js";
+import { declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticCounter, staticPower, undeclare, wornBy } from "./combat.js";
 import { tapPreview } from "./preview.js";
 import {
   COMPACT_TILE_H,
@@ -2149,7 +2149,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           ...controls.map(step => describeControl(step, ctx.card)),
           ...refreshes.map(step => describeRefresh(step, ctx.card)),
           ...disarms.map(step => t("trigger.disarm", { card: `«${ctx.card(step.source.cardId).name}»` })),
-          ...rearms.map(step => t("trigger.rearm.any", { card: `«${ctx.card(step.source.cardId).name}»` })),
+          ...rearms.map(step => t(step.self ? "trigger.rearm.self" : "trigger.rearm.any", { card: `«${ctx.card(step.source.cardId).name}»` })),
           ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
         ],
         onContinue:
@@ -3191,11 +3191,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     light(step.source.uid, true);
     try {
       for (;;) {
-        const { objects, bearers } = rearmChoices(ctx.state(), step.source, ctx.card);
+        const { objects, bearers } = rearmChoices(ctx.state(), step.source, ctx.card, step.self);
         if (objects.length === 0 || bearers.length === 0) break;
-        const object = await pickFromPile(by, "ritiro", objects, t("pick.rearm.any"));
+        const object = await pickFromPile(by, "ritiro", objects, t(step.self ? "pick.rearm.self" : "pick.rearm.any"));
         if (!object) break;
-        const bearer = await pickTarget(step.source, bearers, t("target.rearm"));
+        // Su di sé non c'è da mirare: l'Oggetto va addosso a chi entra.
+        const bearer = step.self ? bearers[0] : await pickTarget(step.source, bearers, t("target.rearm"));
         if (!bearer) break;
         hold(true);
         try {
@@ -3207,6 +3208,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         } finally {
           hold(false);
         }
+        if (step.self) break;
         // Il bot riarma una volta per Entità e basta: il suo selettore non chiude mai la pila.
         if (isAuto(by) && rearmChoices(ctx.state(), step.source, ctx.card).bearers.every(entity => wornBy(ctx.state(), entity.uid).length > 0)) break;
       }
@@ -3740,8 +3742,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         const how = untilEnd.includes(keyword) ? "tile.grant.turn" : "tile.grant.assigned";
         marks.push({ key: `grant:${keyword}`, cls: "grant-mark", icon: "", text: what, title: t(how, { what }) });
       }
-      if (card.counterBonus) {
-        marks.push({ key: "counter", cls: "counter-mark", icon: COUNTER_SVG, text: `+${card.counterBonus}`, title: t("tile.counter.turn", { n: card.counterBonus }) });
+      // Il Contrattacco in più: concesso fino a fine turno, o statico dagli
+      // Oggetti addosso (§6.3, §8.2).
+      const counterExtra = (card.counterBonus ?? 0) + staticCounter(state, card, ctx.card);
+      if (counterExtra > 0) {
+        marks.push({ key: "counter", cls: "counter-mark", icon: COUNTER_SVG, text: `+${counterExtra}`, title: card.counterBonus ? t("tile.counter.turn", { n: card.counterBonus }) : t("tile.counter.objects", { n: counterExtra }) });
       }
       // «Non può bloccare in questo turno» (§8.2): il segno, e la carta
       // resta accesa fino a fine turno — così in Reazione il difensore vede

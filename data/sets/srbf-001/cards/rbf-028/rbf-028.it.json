@@ -1,7 +1,7 @@
 {
   "name": "Sentinella di Nova Kai",
   "typeLabel": "Entità: Auros",
-  "summary": "Un corpo con Contrattacco che costa 1 Flusso a ogni tuo turno finché resta sul Fronte.",
+  "summary": "Un corpo con Contrattacco che cresce con ogni Oggetto che porta.",
   "ui": {
     "face": "Entità"
   },
@@ -20,7 +20,7 @@
     "name": "Sentinella di Nova Kai",
     "flavor": "Il colpo di risposta è l'unico che prepara da sempre.",
     "effect": {
-      "text": "Finché questa Entità resta sul Fronte, all'inizio di ogni tuo turno hai 1 Flusso in meno disponibile per quel turno."
+      "text": "Il Contrattacco di questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità."
     }
   }
 }

@@ -2760,6 +2760,9 @@ class EngineTest < Minitest::Test
     "AUROS" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 2 },
     "GROSSO" => { type: "entity", keywords: [], race: "auros", power: 4, counterattack: nil, flux_cost: 4 },
     "SPINOSO" => { type: "entity", keywords: [], race: "human", power: 3, counterattack: 1, flux_cost: 3 },
+    "IRTA" => { type: "entity", keywords: [], race: "auros", power: 2, counterattack: 1, flux_cost: 3,
+                static_forms: [{ kind: "self_counter", amount: 1, per_object: true }] },
+    "SPINE" => { type: "object", keywords: [], flux_cost: 2, static_forms: [{ kind: "bearer_counter", amount: 1 }] },
     "RUBINO" => { type: "rubyfront", keywords: [] },
     "RADUNO" => { type: "rubyfront", keywords: ["fury"], enables: [[], []],
                     nexus: { face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 5 },
@@ -2872,6 +2875,23 @@ class EngineTest < Minitest::Test
     # 1 stampato, +1 «se ha un Oggetto assegnato», +1 dello Scudo.
     assert_match(/non torna/, risolvi(armata, [esito("r", damage: 2)])[:reason])
     assert risolvi(armata, [esito("r", damage: 3)])[:ok]
+  end
+
+  # --- §6.3: gli statici di Contrattacco -------------------------------------
+
+  def test_il_contrattacco_cresce_con_gli_oggetti_addosso_e_con_quello_dell_oggetto
+    # Nuda: 2 + 1 di Contrattacco = 3 < 4, muore. Armata con l'Oggetto a
+    # Contrattacco: 2 + 1 + 1 per l'Oggetto + 1 dell'Oggetto = 5 ≥ 4, vince.
+    nuda = eredita([["g", "GROSSO"]], b: [["i", "IRTA"]], attacks: ["g"])
+    nuda.judge({ "t" => "phase", "phase" => "reazione" })
+    assert blocco(nuda, "i", "g", "counter")[:ok]
+    assert_match(/non torna/, risolvi(nuda, [esito("g", blocker: "i", kind: "counter", attacker_dies: true)])[:reason])
+    assert risolvi(nuda, [esito("g", blocker: "i", kind: "counter", blocker_dies: true)])[:ok]
+    armata = eredita([["g", "GROSSO"]], b: [["i", "IRTA"], ["s", "SPINE", { "assignedTo" => "i" }]], attacks: ["g"])
+    armata.judge({ "t" => "phase", "phase" => "reazione" })
+    assert blocco(armata, "i", "g", "counter")[:ok]
+    verdict = risolvi(armata, [esito("g", blocker: "i", kind: "counter", attacker_dies: true)])
+    assert verdict[:ok], verdict[:reason]
   end
 
   def test_la_potenza_non_scende_sotto_zero
@@ -3508,6 +3528,7 @@ class EngineTest < Minitest::Test
   DISARMI = {
     "DISARMATORE" => { type: "entity", keywords: [], race: "auros", power: 4, flux_cost: 4,
                  enter_disarms: [{ to: "ritiro" }], enter_rearms: [{ any: true }] },
+    "FABBRO" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 3, enter_rearms: [{ self: true }] },
     "REDIVIVA" => { type: "entity", keywords: [], race: "auros", power: 1, flux_cost: 1, leave_returns: [{ max_cost: 2 }] },
     "UMANO" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 2 },
     "SPINOSO" => { type: "entity", keywords: [], race: "human", power: 2, counterattack: 1, flux_cost: 3 },
@@ -3616,6 +3637,20 @@ class EngineTest < Minitest::Test
     refute riarma(engine, "lama-a", "mio", "cost" => 2)[:ok], "gratis, non pagando"
     engine.judge({ "t" => "facedown", "uid" => "mio", "facedown" => true })
     refute riarma(engine, "lama-a", "mio")[:ok], "un'Entità coperta è intoccabile (§3.1)"
+  end
+
+  def test_il_riarmo_su_di_se_all_ingresso_va_addosso_a_chi_entra_una_volta_sola
+    engine = disarmi([["fab", "FABBRO", { "zone" => "hand" }], ["mio", "UMANO", { "x" => 442 }], ["lama-a", "LAMA", { "zone" => "ritiro" }], ["mazza-a", "MAZZA", { "zone" => "ritiro" }]])
+    assert engine.judge({ "t" => "toZone", "uid" => "fab", "zone" => "field", "x" => 821, "y" => 1260, "cost" => 3 })[:ok]
+    riarma_fab = lambda do |uid, to|
+      engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 851, "y" => 1290, "assignTo" => to,
+                     "effect" => { "source" => "fab", "event" => "on_enter_field", "entering" => "fab", "follow" => "rearm" } })
+    end
+    refute riarma_fab.call("lama-a", "mio")[:ok], "su di sé, non su un'altra Entità"
+    verdict = riarma_fab.call("lama-a", "fab")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "fab", engine.instance_variable_get(:@table).card("lama-a")[:assigned_to]
+    refute riarma_fab.call("mazza-a", "fab")[:ok], "una volta per ingresso"
   end
 
   def test_il_riarmo_di_un_oggetto_ignoto_tace
