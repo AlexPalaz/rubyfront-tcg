@@ -250,18 +250,44 @@ function fallenOf(action: Action): string[] {
   return [...new Set(fallen)];
 }
 
+/**
+ * I colpi di una risoluzione (§6.3) da mostrare dopo il disegno: la parata
+ * del bloccante che regge (`parry`), la risposta di chi contrattacca
+ * (`riposte`), e il Rubyfront che incassa i danni degli attacchi non
+ * bloccati (`strike`). Chi muore ha il suo taglio sul fantasma del volo.
+ */
+function clashesOf(action: Action): { uid: string; kind: "parry" | "riposte" | "strike" }[] {
+  if (action.t !== "resolve") return [];
+  const out: { uid: string; kind: "parry" | "riposte" | "strike" }[] = [];
+  for (const battle of action.battles) {
+    if (battle.blocker && state.cards[battle.blocker]?.zone === "field" && !battle.blockerDies && !battle.blockerSpent) {
+      out.push({ uid: battle.blocker, kind: battle.kind === "counter" ? "riposte" : "parry" });
+    }
+    if (battle.kind === "unblocked" && battle.damage > 0) {
+      const target = state.declarations.find(d => d.from === battle.attacker && d.kind === "attack")?.to;
+      if (target && state.cards[target]?.zone === "field") out.push({ uid: target, kind: "strike" });
+    }
+  }
+  return out;
+}
+
 /** Applica, ritrasmette, ridisegna: l'azione ormai è passata. */
 function commit(action: Action): void {
   cueFor(action);
   peekReveal(action);
   // I morti della risoluzione volano nell'Abisso: il fantasma si prende
-  // prima, il volo parte dopo il disegno.
-  const flights = fallenOf(action).map(uid => table.liftForFlight(uid, "abisso"));
+  // prima, il volo parte dopo il disegno — col taglio, prima di dissolversi.
+  const flights = fallenOf(action).map(uid => table.liftForFlight(uid, "abisso", { slain: true }));
+  const clashes = clashesOf(action);
   const before = state;
   state = apply(state, action);
   net?.send({ t: "action", action, from: mySeat });
   paint();
   flights.forEach(flight => flight?.());
+  for (const clash of clashes) {
+    if (clash.kind === "strike") table.strike(clash.uid);
+    else table.clash(clash.uid, clash.kind);
+  }
   // §8.2 — il ritorno vincolato: chi è appena uscita dal campo senza
   // Oggetti può tornare, e lo decide il proprietario — io, o il bot.
   if (action.t !== "revive") table.offerLeaveReturns(before, state, botSeat ? [mySeat, botSeat] : [mySeat]);
@@ -366,8 +392,15 @@ function receive(action: Action, from: Seat): void {
   }
   // La risoluzione dell'avversario: i suoi morti (e i miei) volano nell'Abisso.
   if (action.t === "resolve") {
-    const flights = fallenOf(action).map(uid => table.liftForFlight(uid, "abisso"));
-    fly = () => flights.forEach(flight => flight?.());
+    const flights = fallenOf(action).map(uid => table.liftForFlight(uid, "abisso", { slain: true }));
+    const clashes = clashesOf(action);
+    fly = () => {
+      flights.forEach(flight => flight?.());
+      for (const clash of clashes) {
+        if (clash.kind === "strike") table.strike(clash.uid);
+        else table.clash(clash.uid, clash.kind);
+      }
+    };
   }
   // Il ritorno vincolato dell'avversario (§8.2): la carta e l'Oggetto
   // volano dalle sue pile al suo Fronte, dopo il disegno.

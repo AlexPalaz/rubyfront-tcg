@@ -259,7 +259,10 @@ export interface TableView {
   strike(uid: string): void;
   /** Prende la tessera prima che voli in una pila (chi riceve): ritorna il
       via al volo, da dare dopo aver applicato l'azione. */
-  liftForFlight(uid: string, zone?: "ritiro" | "abisso"): Flight | null;
+  liftForFlight(uid: string, zone?: "ritiro" | "abisso", opts?: { slain?: boolean }): Flight | null;
+  /** Il colpo di una battaglia su chi resta in campo (§6.3): la parata del
+      bloccante, la risposta di chi contrattacca — un segno sulla tessera. */
+  clash(uid: string, kind: "parry" | "riposte"): void;
   /** Il volo da una pila al campo (chi riceve): dopo aver applicato l'azione. */
   flyFromPile(seat: Seat, zone: ZoneId, uid: string): void;
   /** L'INGRESSO dei Rubyfront a inizio partita (col bot): uno alla volta,
@@ -2701,7 +2704,27 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * lascia partire dopo. FLY_MS è la durata dell'insieme (i tempi stanno in
    * style.css: fly-dissolve, .fly-spark, pile-landing).
    */
-  function liftForFlight(uid: string, zone: "ritiro" | "abisso" = "ritiro"): Flight | null {
+  /** Quanto dura il taglio sulla carta che muore, prima che si dissolva (style.css, card-slash). */
+  const SLASH_MS = 620;
+
+  /**
+   * Il segno di un colpo su una tessera (o su un fantasma): una lama che
+   * attraversa la carta (`slash`, rubino; `riposte`, oro, in senso
+   * contrario) o la parata (`parry`, un anello che si allarga). Un figlio
+   * che si toglie da sé a fine corsa.
+   */
+  function slashMark(el: HTMLElement, kind: "slash" | "riposte" | "parry"): void {
+    const mark = document.createElement("span");
+    mark.className = `slash-mark is-${kind}`;
+    el.append(mark);
+    el.classList.add("is-hit");
+    window.setTimeout(() => {
+      mark.remove();
+      el.classList.remove("is-hit");
+    }, SLASH_MS + 80);
+  }
+
+  function liftForFlight(uid: string, zone: "ritiro" | "abisso" = "ritiro", opts: { slain?: boolean } = {}): Flight | null {
     const tile = tiles.get(uid);
     const live = ctx.state().cards[uid];
     if (!tile || !live || tile.offsetParent === null) return null;
@@ -2724,6 +2747,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     ghost.style.transform = `scale(${from.width / layoutW})`;
     ghost.style.setProperty("--fly-scale", String(from.width / layoutW));
     document.body.append(ghost);
+    // Chi muore in battaglia (§6.3) prima viene tagliata — la lama, il
+    // sussulto — e solo dopo si dissolve: la dissolvenza e la scintilla
+    // aspettano il taglio (deciso 2026-09-10: «non che sparisca così
+    // violentemente»).
+    const delay = opts.slain ? SLASH_MS : 0;
     const flight = (() => {
       const slot = pileSlots.get(`${live.owner}:${zone}`);
       let to = slot?.getBoundingClientRect();
@@ -2748,25 +2776,26 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       spark.style.left = `${from.left + from.width / 2}px`;
       spark.style.top = `${from.top + from.height / 2}px`;
       document.body.append(spark);
-      // Un frame dopo, così le transizioni partono dalla posizione di ora.
-      requestAnimationFrame(() => {
+      if (opts.slain) slashMark(ghost, "slash");
+      // Un frame dopo (o dopo il taglio), così le transizioni partono dalla posizione di ora.
+      window.setTimeout(() => requestAnimationFrame(() => {
         ghost.classList.add("is-dissolving");
         const dx = target.left + target.width / 2 - (from.left + from.width / 2);
         const dy = target.top + target.height / 2 - (from.top + from.height / 2);
         spark.style.transform = `translate(${dx}px, ${dy}px) rotate(45deg)`;
         spark.classList.add("is-flying");
-      });
+      }), delay);
       // All'arrivo la pila si accende (il riquadro vero, non la testata).
       if (!docked && slot) {
         window.setTimeout(() => {
           slot.classList.add("pile-landing");
           window.setTimeout(() => slot.classList.remove("pile-landing"), 700);
-        }, SPARK_ARRIVE_MS);
+        }, delay + SPARK_ARRIVE_MS);
       }
       window.setTimeout(() => {
         ghost.remove();
         spark.remove();
-      }, FLY_MS + 60);
+      }, delay + FLY_MS + 60);
     }) as Flight;
     // Il «no» dell'arbitro: la carta non parte, e il fantasma — che è
     // già sul tavolo, sopra la tessera vera — deve sparire, o resta lì
@@ -4220,6 +4249,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       return !already;
     },
     strike: uid => strike(uid, TRIGGER_LEAD_MS + FLY_MS),
+    clash(uid, kind) {
+      const tile = tiles.get(uid);
+      if (tile && tile.offsetParent !== null) slashMark(tile, kind);
+    },
     liftForFlight,
     flyFromPile,
     introRubyfronts,
