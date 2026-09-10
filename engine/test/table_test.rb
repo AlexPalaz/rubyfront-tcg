@@ -535,7 +535,7 @@ class TableAttackToolsTest < Minitest::Test
     assert_equal 1, rf[:face]
     assert_equal 1, rf[:flipped]
     assert_equal 17, @table.hp("a")
-    assert_equal "abisso", @table.card("h")[:zone]
+    assert_equal "ritiro", @table.card("h")[:zone], "lo scarto del flip va in Zona di Ritiro (§5, §6.5)"
   end
 
   def test_il_sigillo_e_il_bersaglio_dichiarato_viaggiano_anche_nello_snapshot

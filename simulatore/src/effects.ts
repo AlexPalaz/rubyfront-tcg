@@ -136,13 +136,13 @@ export async function resolveAttackDraw(ctx: Ctx, step: AttackDrawStep): Promise
   return passed;
 }
 
-/** «Poi scarta una carta»: la carta scelta va nell'Abisso, come seguito dell'innesco. */
+/** «Poi scarta una carta»: la carta scelta va in Zona di Ritiro (§5, §6.5), come seguito dell'innesco. */
 export async function resolveAttackDiscard(ctx: Ctx, step: AttackDrawStep, card: CardInstance): Promise<boolean> {
   const by = controllerOf(step.source);
   const passed = await ctx.dispatch({
     t: "toZone",
     uid: card.uid,
-    zone: "abisso",
+    zone: "ritiro",
     effect: { source: step.source.uid, event: "on_attack", entering: step.source.uid, follow: "discard" },
   });
   if (passed) ctx.log(msg("log.effect.discard", { seat: by, sourceCard: step.source.cardId, card: card.cardId }), by);

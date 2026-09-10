@@ -320,7 +320,7 @@ const M: Record<string, { it: string; en: string }> = {
   "log.chain.pass": { it: "{seat} accetta: la catena si risolve.", en: "{seat} accepts: the chain resolves." },
   "log.discard.needed": { it: "{seat}: {n} carte in mano, scarta fino a 7.", en: "{seat}: {n} cards in hand, discard down to 7." },
   "notice.front.full": { it: "Il Fronte è pieno: cinque Entità sono il massimo (§6.2). {card} non riporta niente sul Fronte — quella parte dell'effetto non si applica.", en: "The Front is full: five Entities are the maximum (§6.2). {card} brings nothing back to the Front — that part of the effect doesn't apply." },
-  "menu.discard": { it: "Scarta nell'Abisso (§6.5)", en: "Discard to the Abyss (§6.5)" },
+  "menu.discard": { it: "Scarta nella Zona di Ritiro (§6.5)", en: "Discard to the Retire Zone (§6.5)" },
   "log.discard": { it: "{seat} scarta {card}: in mano ne restano {n}.", en: "{seat} discards {card}: {n} left in hand." },
   "slot.discard": { it: "Scarta qui fino a 7", en: "Discard here down to 7" },
   "log.no.armed": { it: "{seat}: {card}: niente PV, troppo poche Entità con un Oggetto.", en: "{seat}: {card}: no HP, too few Entities with an Object." },

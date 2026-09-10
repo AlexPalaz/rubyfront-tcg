@@ -1761,7 +1761,7 @@ async function botStep(bot: Seat): Promise<boolean> {
       // §6.5 — sotto i 7 prima di chiudere: chi chiude a mano piena non chiude.
       const [discard] = chooseDiscards(s, bot, ctx.card);
       if (discard) {
-        await dispatch({ t: "toZone", uid: discard.uid, zone: "abisso" });
+        await dispatch({ t: "toZone", uid: discard.uid, zone: "ritiro" });
         ctx.log(msg("log.discard", { seat: bot, card: discard.cardId, n: zoneCards(state, bot, "hand").length }), bot);
         return true;
       }

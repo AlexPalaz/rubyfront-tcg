@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.51.0"
+    VERSION = "0.52.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -39,7 +39,7 @@ module Rubyfront
       "§3.1 I PV iniziali sono quelli stampati sul Rubyfront",
       "§3.1 Oggetti: assegnazione",
       "§6 Fasi: le dichiarazioni in Fase di Fronte",
-      "§6.2 Ritiro: gesto di Preparazione; nella fase, libero; in Zona di Ritiro solo dal Fronte",
+      "§6.2 Ritiro: gesto di Preparazione; nella fase, libero; in Zona di Ritiro dal Fronte, o scartando dalla mano",
       "§5 Materie: mai sugli slot del Fronte",
       "§6.3 Dichiarano solo le Entità (il Rubyfront mai)",
       "§6.3 Attacca chi è di turno, blocca chi difende",
@@ -71,7 +71,7 @@ module Rubyfront
       "§7.2 Le Materie si risolvono: sguardo, stappata, spostamento, esilio, d20 a fasce, distruzione",
       "§3.1 Il Nexus: il flip coi suoi requisiti, il recupero di PV, «quando flippa»",
       "§3.1 Il Rubyfront in Zona di Richiamo non ha abilità: schierarlo le sblocca",
-      "§5 L'Abisso: ci si va morendo, consumandosi o scartando per eccesso, e non si torna",
+      "§5 L'Abisso: ci si va morendo o consumandosi, e non si torna; §6.5 lo scarto va in Zona di Ritiro",
       "§5/§6.2 Dalla Zona di Ritiro si torna solo per effetto",
       "§8.2 L'Entità presa in controllo non si sposta fra le zone",
       "§5 Le Entità restano nello slot in cui sono scese",
@@ -101,7 +101,7 @@ module Rubyfront
       "§3.1 Starting Health Points are the ones printed on the Rubyfront",
       "§3.1 Objects: assignment",
       "§6 Phases: declarations in the Front Phase",
-      "§6.2 Retire: a Preparation move; within the phase, free; the Retire Zone only from the Front",
+      "§6.2 Retire: a Preparation move; within the phase, free; the Retire Zone from the Front, or by discarding from hand",
       "§5 Matters: never on the Front slots",
       "§6.3 Only Entities declare (the Rubyfront never)",
       "§6.3 The active player attacks, the defender blocks",
@@ -133,7 +133,7 @@ module Rubyfront
       "§7.2 Matters resolve: look, untap, move, exile, banded d20, destroy",
       "§3.1 The Nexus: the flip with its requirements, the HP recovery, “when it flips”",
       "§3.1 A Rubyfront in the Recall Zone has no abilities: deploying it unlocks them",
-      "§5 The Abyss: reached by dying, being spent or discarding down to 7, and there's no way back",
+      "§5 The Abyss: reached by dying or being spent, and there's no way back; §6.5 discards go to the Retire Zone",
       "§5/§6.2 Cards leave the Retire Zone only through an effect",
       "§8.2 An Entity you took control of doesn't move between zones",
       "§5 Entities stay in the slot they came down on",
@@ -414,11 +414,12 @@ module Rubyfront
 
       # §5 — l'Abisso è «la zona delle carte morte o consumate: Entità morte
       # o distrutte, Materie risolte, decadute o svanite, Oggetti che seguono
-      # un'Entità morta, carte scartate dalla mano». Ci si arriva morendo
-      # (la risoluzione, §6.4), consumandosi (la Materia, §7.2), scartando
-      # per eccesso (§6.5, «le carte in eccesso vanno scartate») o per un
-      # effetto — che passa di qui col suo riferimento, e non arriva a
-      # questa dogana. Trascinarci una carta a mano non è nessuna di queste.
+      # un'Entità morta». Ci si arriva morendo (la risoluzione, §6.4),
+      # consumandosi (la Materia, §7.2) o per un effetto — che passa di qui
+      # col suo riferimento, e non arriva a questa dogana. Lo scarto NON ci
+      # va (decisione del designer, 2026-09-10): le carte scartate dalla
+      # mano vanno in Zona di Ritiro (§5, §6.5). Trascinarci una carta a
+      # mano non è nessuna di queste.
       # E da lì non si torna: solo una carta riporta fuori dall'Abisso
       # (§5, l'esilio condizionato). Limiti dichiarati: un effetto
       # risolto a mano che scarti o riporti verrebbe fermato a torto (regola
@@ -443,10 +444,12 @@ module Rubyfront
         known = @cards[card[:card_id]]
         return no_rule("toZone") unless known
 
+        if card[:zone] == "hand"
+          return refuse("toZone", "le carte scartate dalla mano vanno in Zona di Ritiro, non nell'Abisso (§5, §6.5)", "cards discarded from hand go to the Retire Zone, not the Abyss (§5, §6.5)")
+        end
         spent = card[:zone] == "field" && known[:type] == "matter"
-        excess = card[:zone] == "hand" && @table.zone_count(card[:owner], "hand") > 7
-        unless spent || excess
-          return refuse("toZone", "nell'Abisso si va morendo, consumandosi o scartando per eccesso, non a mano (§5, §6.5)", "the Abyss is reached by dying, being spent or discarding down to 7, not by hand (§5, §6.5)")
+        unless spent
+          return refuse("toZone", "nell'Abisso si va morendo o consumandosi, non a mano (§5)", "the Abyss is reached by dying or being spent, not by hand (§5)")
         end
       end
 
@@ -709,12 +712,17 @@ module Rubyfront
     # — arriverà con la regola d'oro. Il Rubyfront invece non si ritira mai:
     # una volta schierato resta in campo (§3.1).
     def judge_retire(card)
-      # §6.2/§6.5 — in Zona di Ritiro si va dal Fronte, col Ritiro, o per
-      # effetto (che passa da judge_effect): dalla mano si scarta
-      # nell'Abisso, e dal mazzo o dall'Abisso non si esce a mano
-      # (decisione del designer, 2026-09-10).
-      if %w[hand deck abisso].include?(card[:zone])
-        return refuse("toZone", "nella Zona di Ritiro si va solo dal Fronte, col Ritiro: dalla mano si scarta nell'Abisso (§6.2, §6.5)", "the Retire Zone is reached only from the Front, by retiring: from the hand you discard into the Abyss (§6.2, §6.5)")
+      # §6.2/§6.5 — in Zona di Ritiro si va dal Fronte, col Ritiro, dalla
+      # mano scartando per eccesso (§6.5, «le carte in eccesso vanno
+      # scartate») o per effetto (che passa da judge_effect); dal mazzo o
+      # dall'Abisso non si esce a mano (decisione del designer, 2026-09-10).
+      if card[:zone] == "hand"
+        return allow("toZone") if @table.zone_count(card[:owner], "hand") > 7
+
+        return refuse("toZone", "dalla mano si scarta solo per eccesso, oltre le 7 a fine turno, o per un effetto (§6.5)", "from the hand you discard only for excess, above 7 at end of turn, or through an effect (§6.5)")
+      end
+      if %w[deck abisso].include?(card[:zone])
+        return refuse("toZone", "nella Zona di Ritiro si va dal Fronte, col Ritiro, o scartando dalla mano (§6.2, §6.5)", "the Retire Zone is reached from the Front, by retiring, or by discarding from hand (§6.2, §6.5)")
       end
       return no_rule("toZone") unless card[:zone] == "field"
 
@@ -1918,7 +1926,7 @@ module Rubyfront
     end
 
     # §8.2 — «poi scarta una carta»: il seguito della pesca. Un
-    # `toZone` dalla mano all'Abisso marcato con `follow: "discard"`, che
+    # `toZone` dalla mano alla Zona di Ritiro (§5, §6.5) marcato con `follow: "discard"`, che
     # passa se la fonte è in campo con una forma che fa scartare, la pesca
     # dell'attacco è già avvenuta e lo scarto dovuto non ancora, e la carta
     # sta nella mano di chi comanda la fonte.
@@ -1945,7 +1953,7 @@ module Rubyfront
     end
 
     def judge_effect_move(action, ref)
-      return judge_effect_discard(action, ref) if action["zone"] == "abisso" && ref["follow"] == "discard"
+      return judge_effect_discard(action, ref) if action["zone"] == "ritiro" && ref["follow"] == "discard"
       if ref["event"] == "on_attack"
         return judge_attack_recall(action, ref) if ref["follow"] == "recall"
         return judge_attack_rearm(action, ref) if action.key?("assignTo")

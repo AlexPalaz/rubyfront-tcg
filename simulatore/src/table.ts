@@ -1426,7 +1426,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
             if (hand.length === 0) break;
             let chosen: CardInstance | null = null;
             while (!chosen) chosen = await pickFromPile(by, "hand", hand, t("pick.discard"));
-            const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "abisso", effect: attackRef(step, "discard") });
+            const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "ritiro", effect: attackRef(step, "discard") });
             if (passed) ctx.log(msg("log.effect.discard", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
             else break;
           }
@@ -1719,9 +1719,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
 
   /**
    * §6.5 — «non si possono avere più di 7 carte in mano: alla fine del
-   * proprio turno, le carte in eccesso vanno scartate (nell'Abisso)». Con
-   * l'eccesso in mano lo scarto è l'unico modo di andare nell'Abisso a
-   * mano, e il gesto resta sempre possibile.
+   * proprio turno, le carte in eccesso vanno scartate» — in Zona di Ritiro
+   * (§5, dal 2026-09-10: lo scarto non è una morte). Con l'eccesso in mano
+   * lo scarto è l'unico modo di andare in Zona di Ritiro dalla mano, e il
+   * gesto resta sempre possibile.
    */
   function canDiscard(card: CardInstance): boolean {
     return card.zone === "hand" && ctx.controls(card.owner) && !handLocked(card.owner) && zoneCards(ctx.state(), card.owner, "hand").length > 7;
@@ -1745,7 +1746,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   }
 
   /**
-   * L'invito a scartare: l'Abisso acceso. Non si accende da sé alla settima
+   * L'invito a scartare: la Zona di Ritiro accesa. Non si accende da sé alla settima
    * carta — sarebbe un rimprovero per tutto il turno, e §6.5 è una regola di
    * CHIUSURA: pescare l'ottava a metà turno è legale. Si accende quando il
    * Fine turno viene fermato, e si spegne al primo scarto o al cambio di
@@ -1966,15 +1967,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const sealed = borrowed || (ctx.arbitrated() && (card.zone === "abisso" || card.zone === "ritiro"));
     const owned = ctx.controls(card.owner);
     if (owned && !sealed) items.push(send("hand", t("menu.to.hand")));
-    // §5/§6.5 — con l'arbitro nell'Abisso non si va a mano: ci si va morendo,
-    // consumandosi (una Materia in campo) o scartando per eccesso a fine
-    // turno. La voce libera resta solo dove l'arbitro la lascerebbe passare;
-    // lo scarto per eccesso ha la sua, che dice perché si può.
+    // §5/§6.5 — con l'arbitro nell'Abisso non si va a mano: ci si va morendo
+    // o consumandosi (una Materia in campo). Lo scarto per eccesso va in Zona
+    // di Ritiro e ha la sua voce, che dice perché si può. La voce libera
+    // resta solo dove l'arbitro la lascerebbe passare.
     if (canDiscard(card)) {
       items.push({
         label: t("menu.discard"),
         run: () =>
-          void ctx.dispatch({ t: "toZone", uid: card.uid, zone: "abisso" }).then(passed => {
+          void ctx.dispatch({ t: "toZone", uid: card.uid, zone: "ritiro" }).then(passed => {
             if (!passed) return;
             clearDiscardPrompt(card.owner);
             ctx.log(msg("log.discard", { seat: card.owner, card: card.cardId, n: zoneCards(ctx.state(), card.owner, "hand").length }), card.owner);
@@ -1984,10 +1985,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     } else if (!sealed && (!ctx.arbitrated() || (card.zone === "field" && ctx.card(card.cardId).kind === "matter"))) {
       items.push(send("abisso", t("menu.to.abisso")));
     }
-    // Il Ritiro è un gesto del Fronte (§6.2): con l'arbitro, dalla mano e
-    // dal mazzo non ci si va (dalla mano si scarta nell'Abisso, §6.5); a
+    // Il Ritiro è un gesto del Fronte (§6.2): con l'arbitro, dalla mano ci si
+    // va solo scartando per eccesso (la voce sopra) e dal mazzo mai; a
     // engine spento resta libero, da dove sia.
-    if (!sealed && (!ctx.arbitrated() || card.zone === "field")) items.push(send("ritiro", t("menu.to.ritiro")));
+    if (!sealed && !canDiscard(card) && (!ctx.arbitrated() || card.zone === "field")) items.push(send("ritiro", t("menu.to.ritiro")));
     if (owned && !sealed) {
       items.push(send("deck", t("menu.to.deck.top")));
       items.push({
@@ -3465,7 +3466,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // Fermata dall'arbitro (es. §5: dal campo non si torna in mano): i pixel
     // del trascinamento possono aver mosso la carta — torna da dove era.
     const origin = dragOrigin;
-    const discarding = drop.zone === "abisso" && canDiscard(card);
+    const discarding = drop.zone === "ritiro" && canDiscard(card);
     void ctx.dispatch({ t: "toZone", uid: card.uid, zone: drop.zone }).then(passed => {
       if (!passed && origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
       if (passed && discarding) {
@@ -3895,10 +3896,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       for (const pile of PILES) {
         const slot = pileSlots.get(`${seat}:${pile.zone}`)!;
         const cards = zoneCards(state, seat, pile.zone);
-        // §6.5 — la mano oltre le 7: l'Abisso di quel posto si accende e
-        // invita, perché scartare lì è l'ultimo gesto prima del Fine turno.
+        // §6.5 — la mano oltre le 7: la Zona di Ritiro di quel posto si accende
+        // e invita, perché scartare lì è l'ultimo gesto prima del Fine turno.
         const discard =
-          pile.zone === "abisso" &&
+          pile.zone === "ritiro" &&
           discardPrompt?.seat === seat &&
           discardPrompt.turn === state.turn &&
           ctx.controls(seat) &&

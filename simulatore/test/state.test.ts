@@ -543,7 +543,7 @@ describe("memoria degli inneschi e sguardo", () => {
     expect(attackKey({ t: "empower", uid: "u", power: 1, effect: ref })).toBe("s|on_attack:empower:u|a");
     expect(attackKey({ t: "look", seat: "a", count: 2, effect: { ...ref, once: true } })).toBe("s|on_attack:look|turn");
     expect(attackKey({ t: "toZone", uid: "o", zone: "field", assignTo: "a", effect: ref })).toBe("s|on_attack:rearm|a");
-    expect(attackKey({ t: "toZone", uid: "h", zone: "abisso", effect: { ...ref, follow: "discard" } })).toBe("s|on_attack:discard|a");
+    expect(attackKey({ t: "toZone", uid: "h", zone: "ritiro", effect: { ...ref, follow: "discard" } })).toBe("s|on_attack:discard|a");
     expect(attackKey({ t: "draw", seat: "a", count: 1, effect: { source: "s", event: "on_enter_field", entering: "a" } })).toBeNull();
   });
 
@@ -661,7 +661,7 @@ describe("apply — Eredità Perduta", () => {
     state = { ...state, players: { ...state.players, a: { ...state.players.a, hp: 12 } } };
     let next = apply(state, { t: "flip", uid: "rf", face: 1, discard: "h", recover: 5 });
     expect(next.cards.rf.face).toBe(1);
-    expect(next.cards.h.zone).toBe("abisso");
+    expect(next.cards.h.zone).toBe("ritiro");
     expect(next.players.a.hp).toBe(17);
     next = apply(next, { t: "player", seat: "a", patch: { sealed: ["RBF-012"] } });
     expect(next.players.a.sealed).toEqual(["RBF-012"]);

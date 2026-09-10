@@ -404,12 +404,13 @@ function reduce(state: GameState, action: Action): GameState {
 
     case "flip": {
       // §3.1 — il flip verso il Nexus: la faccia cambia, lo scarto del
+      // requisito va in Zona di Ritiro (§5, §6.5: lo scarto non è una morte), il
       // requisito va nell'Abisso, i PV recuperano quanto stampato.
       // Gemello: table.rb.
       const card = state.cards[action.uid];
       if (!card) return state;
       let next: GameState = { ...state, cards: { ...state.cards, [action.uid]: { ...card, face: action.face } } };
-      if (action.discard && next.cards[action.discard]) next = apply(next, { t: "toZone", uid: action.discard, zone: "abisso" });
+      if (action.discard && next.cards[action.discard]) next = apply(next, { t: "toZone", uid: action.discard, zone: "ritiro" });
       if (action.recover) {
         const player = next.players[card.owner];
         next = { ...next, players: { ...next.players, [card.owner]: { ...player, hp: player.hp + action.recover } } };

@@ -677,7 +677,7 @@ describe("attackDraws", () => {
     expect(await resolveAttackDiscard(ctx, step, h1)).toBe(true);
     expect(sent).toEqual([
       { t: "draw", seat: "a", count: 1, effect: { source: "esp", event: "on_attack", entering: "esp" } },
-      { t: "toZone", uid: "h1", zone: "abisso", effect: { source: "esp", event: "on_attack", entering: "esp", follow: "discard" } },
+      { t: "toZone", uid: "h1", zone: "ritiro", effect: { source: "esp", event: "on_attack", entering: "esp", follow: "discard" } },
     ]);
     expect(logs[1]).toMatch(/«ESPLORATORE» scarta «UMANO»/);
   });

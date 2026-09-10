@@ -153,7 +153,7 @@ class EngineTest < Minitest::Test
     @engine.judge(fine_turno)
     # Rifiutata: la copia del tavolo non deve averla applicata — scartata una
     # carta, lo stesso fine turno ripassa.
-    @engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
+    @engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "ritiro" })
     verdict = @engine.judge(fine_turno)
     assert verdict[:ok], "con 7 in mano il turno si chiude"
   end
@@ -661,17 +661,14 @@ class EngineTest < Minitest::Test
     assert_match(/Retire Zone to the Abyss by hand.*§5/, verdict[:reason_en])
   end
 
-  def test_nella_zona_di_ritiro_si_va_solo_dal_fronte
+  def test_nella_zona_di_ritiro_non_si_va_dal_mazzo
     engine = con_carte
-    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "LENTA" },
-             { "uid" => "a-2", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "LENTA" }]
+    cards = [{ "uid" => "a-2", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "LENTA" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
-    %w[a-1 a-2].each do |uid|
-      verdict = engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "ritiro" })
-      refute verdict[:ok], uid
-      assert_match(/solo dal Fronte.*§6\.2, §6\.5/, verdict[:reason])
-      assert_match(/only from the Front.*§6\.2, §6\.5/, verdict[:reason_en])
-    end
+    verdict = engine.judge({ "t" => "toZone", "uid" => "a-2", "zone" => "ritiro" })
+    refute verdict[:ok]
+    assert_match(/dal Fronte, col Ritiro, o scartando dalla mano.*§6\.2, §6\.5/, verdict[:reason])
+    assert_match(/from the Front, by retiring, or by discarding from hand.*§6\.2, §6\.5/, verdict[:reason_en])
   end
 
   def test_il_rubyfront_non_si_ritira
@@ -694,13 +691,13 @@ class EngineTest < Minitest::Test
   end
 
 
-  def test_dalla_mano_al_ritiro_si_ferma
-    # Dal 2026-09-10: in Zona di Ritiro si va solo dal Fronte; dalla mano si scarta nell'Abisso.
+  def test_dalla_mano_al_ritiro_solo_per_eccesso
+    # Dal 2026-09-10: dalla mano in Zona di Ritiro si va scartando per eccesso (§6.5), non a mano.
     engine = con_carte
     mano_e_campo(engine, %w[LENTA], cala: 0)
     verdict = engine.judge(ritira("a-1"))
     refute verdict[:ok]
-    assert_match(/solo dal Fronte/, verdict[:reason])
+    assert_match(/solo per eccesso/, verdict[:reason])
   end
 
   def test_dopo_uno_snapshot_il_ritiro_non_accusa
@@ -1510,13 +1507,19 @@ class EngineTest < Minitest::Test
     assert engine.judge({ "t" => "toZone", "uid" => "m-1", "zone" => "abisso" })[:ok]
   end
 
-  def test_lo_scarto_per_eccesso_passa_dalla_mano
-    # §6.5: «le carte in eccesso vanno scartate (nell'Abisso)» — solo oltre le 7.
+  def test_lo_scarto_per_eccesso_passa_dalla_mano_alla_zona_di_ritiro
+    # §6.5: «le carte in eccesso vanno scartate» — in Zona di Ritiro (dal
+    # 2026-09-10), solo oltre le 7; nell'Abisso dalla mano mai.
     engine = Rubyfront::Engine.new(cards: FINESTRA)
     cards = (1..8).map { |i| { "uid" => "a-#{i}", "owner" => "a", "zone" => "hand", "order" => i, "cardId" => "LENTA" } }
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
-    assert engine.judge({ "t" => "toZone", "uid" => "a-8", "zone" => "abisso" })[:ok], "otto in mano: l'ottava si scarta"
-    refute engine.judge({ "t" => "toZone", "uid" => "a-7", "zone" => "abisso" })[:ok], "a sette non si scarta più"
+    verdict = engine.judge({ "t" => "toZone", "uid" => "a-8", "zone" => "abisso" })
+    refute verdict[:ok]
+    assert_match(/vanno in Zona di Ritiro, non nell'Abisso.*§5, §6\.5/, verdict[:reason])
+    assert engine.judge({ "t" => "toZone", "uid" => "a-8", "zone" => "ritiro" })[:ok], "otto in mano: l'ottava si scarta"
+    verdict = engine.judge({ "t" => "toZone", "uid" => "a-7", "zone" => "ritiro" })
+    refute verdict[:ok], "a sette non si scarta più"
+    assert_match(/solo per eccesso.*§6\.5/, verdict[:reason])
   end
 
   def test_dall_abisso_non_si_torna
@@ -2349,7 +2352,7 @@ class EngineTest < Minitest::Test
   end
 
   def scarta_attaccando(engine, uid)
-    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "abisso",
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "ritiro",
                    "effect" => { "source" => "esp", "event" => "on_attack", "entering" => "esp", "follow" => "discard" } })
   end
 
@@ -2399,7 +2402,7 @@ class EngineTest < Minitest::Test
     assert pesca_attaccando(engine)[:ok]
     verdict = scarta_attaccando(engine, "h1")
     assert verdict[:ok], verdict[:reason]
-    assert_equal "abisso", engine.instance_variable_get(:@table).card("h1")[:zone]
+    assert_equal "ritiro", engine.instance_variable_get(:@table).card("h1")[:zone], "lo scarto va in Zona di Ritiro (§5, §6.5)"
     di_nuovo = scarta_attaccando(engine, "d1")
     refute di_nuovo[:ok]
     assert_match(/già stato fatto/, di_nuovo[:reason])
@@ -2685,9 +2688,9 @@ class EngineTest < Minitest::Test
     assert engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })[:ok]
     assert engine.judge(pesca)[:ok]
     assert_match(/già stato risolto/, engine.judge(pesca)[:reason])
-    scarto = engine.judge({ "t" => "toZone", "uid" => "h", "zone" => "abisso", "effect" => ref("rf", "u3", once: true, follow: "discard") })
+    scarto = engine.judge({ "t" => "toZone", "uid" => "h", "zone" => "ritiro", "effect" => ref("rf", "u3", once: true, follow: "discard") })
     assert scarto[:ok], scarto[:reason]
-    assert_equal "abisso", copia(engine).card("h")[:zone]
+    assert_equal "ritiro", copia(engine).card("h")[:zone]
   end
 
   # §3.1 — «abilità (principale e speciali) e Materie sono utilizzabili solo
@@ -3502,7 +3505,7 @@ class EngineTest < Minitest::Test
     tavolo = copia(engine)
     assert_equal 1, tavolo.card("rf")[:face]
     assert_equal 25, tavolo.hp("a")
-    assert_equal "abisso", tavolo.card("h")[:zone]
+    assert_equal "ritiro", tavolo.card("h")[:zone], "lo scarto del flip va in Zona di Ritiro (§5, §6.5)"
     assert_match(/non si torna al Rubyfront/, flip(engine, face: 0)[:reason])
   end
 
@@ -3546,7 +3549,7 @@ class EngineTest < Minitest::Test
     assert_match(/scartare una carta dalla mano/, flip(engine, discard: nil)[:reason])
     verdict = flip(engine, discard: "m")
     assert verdict[:ok], verdict[:reason]
-    assert_equal "abisso", engine.instance_variable_get(:@table).card("m")[:zone]
+    assert_equal "ritiro", engine.instance_variable_get(:@table).card("m")[:zone]
   end
 
   def test_un_rubyfront_senza_requisito_certificato_flippa_a_mano

@@ -15,6 +15,9 @@ Regole collegate finora:
 - **§6.5 Mano: massimo 7 a fine turno** — il cambio di turno non passa se chi
   chiude ha più di 7 carte in mano. È una regola di CHIUSURA: pescare
   all'ottava carta a metà turno resta legale, è il Fine turno che si ferma.
+  Lo scarto per eccesso va in **Zona di Ritiro** (§5, decisione del
+  designer del 2026-09-10: lo scarto non è una morte), dalla mano, solo
+  oltre le 7; nell'Abisso dalla mano non si va mai.
 - **§6.3 Dichiarazioni: tappate, coperte, sfide 1 contro 1** — la coperta non
   dichiara nulla, la tappata non attacca né blocca, e ogni attaccante ha al
   più un bloccante. Il tavolo dell'engine segue tap, coperture e
@@ -94,9 +97,10 @@ Regole collegate finora:
   proteggessero. Il vantaggio si prenderebbe al RITORNO, e quella strada è
   chiusa: dalla Zona di Ritiro si esce solo per effetto (voce più sotto).
   E in Zona di Ritiro si arriva **solo dal Fronte** (dal 2026-09-10,
-  decisione del designer): dalla mano si scarta nell'Abisso (§6.5), dal
-  mazzo e dall'Abisso non si esce a mano; dalla Zona di Ritiro non si va
-  nell'Abisso a mano (§5), e la dogana lo dice con la sua frase.
+  decisione del designer) o dalla mano scartando per eccesso (§6.5) o per
+  effetto; dal mazzo e dall'Abisso non si esce a mano; dalla Zona di
+  Ritiro non si va nell'Abisso a mano (§5), e la dogana lo dice con la sua
+  frase.
   Una carta di un ALTRO posto mandata in Ritiro non è un ritiro ma un
   effetto risolto a mano: silenzio, in ogni fase. Limite dichiarato: il
   manuale al §6.2 elenca ancora le altre condizioni. Gli **Oggetti
@@ -362,7 +366,7 @@ Regole collegate finora:
   con un attacco dichiarato in Fase di Fronte, un Oggetto in campo
   assegnato alla fonte, il conto della forma e la pesca di chi la comanda;
   «una volta per turno» lo dà il gioco (un'Entità attacca una volta sola).
-  Lo scarto è il **seguito**: un `toZone` dalla mano all'Abisso con
+  Lo scarto è il **seguito**: un `toZone` dalla mano alla Zona di Ritiro (§5, §6.5) con
   `follow: "discard"` nel riferimento, che passa solo dopo la pesca e una
   volta sola (gli inneschi consumati distinguono il seguito:
   `fonte|on_attack:discard|fonte`), dalla mano di chi comanda. Limite
@@ -586,7 +590,7 @@ Regole collegate finora:
   soddisfatti «al momento del flip» — l'anagrafe li legge in `nexus`
   («controlli almeno N Entità [di razza | con un Oggetto assegnato]»,
   «scarta una carta [di tipo] dalla tua mano»)
-  — e l'azione porta lo scarto (`discard`, dalla propria mano, nell'Abisso)
+  — e l'azione porta lo scarto (`discard`, dalla propria mano, in Zona di Ritiro)
   e il recupero di PV stampato (`recover`, +5), che riduttore e copia
   applicano nella stessa azione; indietro non si flippa («rimane in campo
   per tutta la partita»). Requisito con una forma ignota: silenzio, il flip
@@ -626,16 +630,18 @@ Regole collegate finora:
   Richiamo (regola d'oro, §3.1) la lettura vale da sé. Engine 0.35.0,
   trentasette regole.
 
-- **§5 L'Abisso: ci si va morendo, consumandosi o scartando, e non si
-  torna** — «la zona delle carte morte o consumate: Entità morte o
-  distrutte, Materie risolte, decadute o svanite, Oggetti che seguono
-  un'Entità morta, carte scartate dalla mano». Un `toZone` verso l'Abisso
-  senza riferimento d'effetto passa solo per una **Materia in campo** (la
-  risolta che si consuma, la permanente che decade: gesto a mano) e per lo
-  **scarto per eccesso** dalla mano (§6.5, oltre le 7 carte). Il resto —
-  un'Entità trascinata nell'Abisso, una carta dal mazzo o dal Ritiro — è
-  fermato: si muore con la risoluzione (§6.4), si scarta per effetto, e
-  l'effetto passa con il suo riferimento da `judge_effect`, non da qui. E
+- **§5 L'Abisso: ci si va morendo o consumandosi, e non si torna** —
+  «la zona delle carte morte o consumate: Entità morte o distrutte,
+  Materie risolte, decadute o svanite, Oggetti che seguono un'Entità
+  morta». Un `toZone` verso l'Abisso senza riferimento d'effetto passa
+  solo per una **Materia in campo** (la risolta che si consuma, la
+  permanente che decade: gesto a mano). Il resto — un'Entità trascinata
+  nell'Abisso, una carta dalla mano, dal mazzo o dal Ritiro — è fermato:
+  si muore con la risoluzione (§6.4), e un effetto passa con il suo
+  riferimento da `judge_effect`, non da qui. **Lo scarto non va
+  nell'Abisso** (decisione del designer, 2026-09-10): le carte scartate
+  dalla mano — per eccesso (§6.5) o per effetto — vanno in **Zona di
+  Ritiro**, e riduttore, copia e scene del client le mandano lì. E
   **dall'Abisso non si torna**: verso mano, mazzo, campo o Ritiro senza
   riferimento è fermato — «solo una carta può riportarne fuori» (l'esilio
   condizionato ha già il suo `release`). Carta ignota: silenzio.

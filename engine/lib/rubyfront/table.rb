@@ -395,13 +395,13 @@ module Rubyfront
         end
       when "flip"
         # §3.1 — il flip verso il Nexus: la faccia cambia, lo scarto del
-        # requisito va nell'Abisso, i PV recuperano quanto stampato — e la
+        # requisito va in Zona di Ritiro (§5, §6.5), i PV recuperano quanto stampato — e la
         # copia annota il turno del flip («quando flippa»). Gemello: state.ts.
         card = @cards[action["uid"]]
         if card
           card[:face] = action["face"].to_i
           card[:flipped] = @turn
-          to_zone({ "uid" => action["discard"], "zone" => "abisso" }) if action["discard"].is_a?(String) && @cards.key?(action["discard"])
+          to_zone({ "uid" => action["discard"], "zone" => "ritiro" }) if action["discard"].is_a?(String) && @cards.key?(action["discard"])
           player = @players[card[:owner]]
           player[:hp] += action["recover"] if player && action["recover"].is_a?(Integer)
         end

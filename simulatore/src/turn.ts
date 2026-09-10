@@ -159,7 +159,7 @@ export async function endTurn(ctx: Ctx): Promise<void> {
   // scollegato). Qui ci si ferma prima, con la riga in chat che dice cosa fare.
   const held = zoneCards(state, state.active, "hand").length;
   if (held > 7) {
-    // L'Abisso si accende (l'invito a scartare, giallo); la riga in chat
+    // La Zona di Ritiro si accende (l'invito a scartare, giallo); la riga in chat
     // una volta sola per turno, come quando a fermare è l'arbitro.
     const first = ctx.promptDiscard ? ctx.promptDiscard(state.active) : true;
     if (first) ctx.log(msg("log.discard.needed", { seat: state.active, n: held }), state.active);
