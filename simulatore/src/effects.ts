@@ -616,6 +616,12 @@ export function attackRef(step: AttackStep, follow?: EffectRef["follow"]): Effec
   };
 }
 
+/** Un potenziamento di `source` già scattato per quell'attaccante (o nel turno, se «una volta»)? */
+function empowerFired(state: GameState, source: CardInstance, entering: string, once: boolean): boolean {
+  const tail = `|${once ? "turn" : entering}`;
+  return (state.fired ?? []).some(key => key.startsWith(`${source.uid}|on_attack:empower:`) && key.endsWith(tail));
+}
+
 function firedKey(state: GameState, source: CardInstance, kind: string, entering: string, once: boolean): boolean {
   return (state.fired ?? []).includes(`${source.uid}|on_attack:${kind}|${once ? "turn" : entering}`);
 }
@@ -675,9 +681,11 @@ export function attackSteps(state: GameState, attacker: CardInstance, facts: (ca
       if (form.kind === "empower" && form.requiresPreviousAttackers && previousAttackers(state, seat, form.requiresPreviousAttackers.race, facts) < form.requiresPreviousAttackers.count) continue;
       // La Vendetta al PROSSIMO Umano si risolve quando quello attacca (pendingGrants), non ora.
       if (form.kind === "empower" && form.targets === "next_human_attacker") continue;
-      // Un potenziamento ha la chiave per bersaglio: si ripropone solo con
-      // un nuovo attacco, e basta. Gli altri passi hanno la loro chiave.
-      if (form.kind !== "empower" && firedKey(state, source, form.kind, attacker.uid, once)) continue;
+      // Un potenziamento ha la chiave per bersaglio (`empower:<uid>`): se
+      // per questa fonte e questo attaccante ne è già scattato uno, il passo
+      // è fatto — annullare l'attacco e ridichiararlo non lo ripropone
+      // (deciso 2026-09-10). Gli altri passi hanno la loro chiave.
+      if (form.kind === "empower" ? empowerFired(state, source, attacker.uid, once) : firedKey(state, source, form.kind, attacker.uid, once)) continue;
       out.push({ source, attacker, form });
     }
   };

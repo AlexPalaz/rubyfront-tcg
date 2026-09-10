@@ -1377,6 +1377,9 @@ body.view-recess .board { top: var(--toolbar-h); }
 
 /* Tappata (§6.3): la carta si corica, come al tavolo. */
 .tile.is-tapped { transform: rotate(90deg); }
+/* La coricata sporge sulle vicine e ne copre i numeri: al passaggio sale
+   sopra (l'ordine inline del disegno si scavalca solo qui). */
+.surface > .tile.is-tapped:hover { z-index: 900 !important; }
 
 .tile.is-dragging { opacity: .25; }
 
@@ -2243,6 +2246,27 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   box-shadow: 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(158, 15, 52, .5);
 }
 .combat-tab:hover { filter: brightness(1.15); }
+/* I numeri in testa al velo (Potenza, Contrattacco): la carta coricata li
+   nasconde sotto la vicina, il velo li rimette in chiaro. */
+.combat-stats {
+  display: flex;
+  justify-content: center;
+  gap: calc(10px * var(--ui-inv));
+  pointer-events: none;
+}
+.combat-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5px * var(--ui-inv));
+  padding: calc(6px * var(--ui-inv)) calc(11px * var(--ui-inv));
+  font-size: calc(1.15rem * var(--ui-inv));
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  background: rgba(0, 0, 0, .55);
+  border: calc(1px * var(--ui-inv)) solid rgba(255, 255, 255, .35);
+}
+.combat-stat > svg { width: calc(18px * var(--ui-inv)); height: calc(18px * var(--ui-inv)); }
 .combat-tab.is-counter { color: #1a1206; background: linear-gradient(180deg, #e8b85a, #c8922a); border-color: #f5d68a; box-shadow: 0 calc(4px * var(--ui-inv)) calc(12px * var(--ui-inv)) rgba(200, 146, 42, .45); }
 .combat-tab.is-cancel { color: #f3edf0; background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .35); box-shadow: none; }
 .combat-tab.is-cancel:hover { filter: none; background: rgba(255, 255, 255, .16); border-color: #ffffff; }

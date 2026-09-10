@@ -132,7 +132,7 @@ class CardIndexTest < Minitest::Test
     assert_equal({ once: true, count: 2, reveal_to: "ritiro", rest_to: "deck" }, @index["RBF-031"][:attack_forms][1].slice(:once, :count, :reveal_to, :rest_to))
     assert_equal({ amount: 2, die: 6, on_roll: [5, 6] }, @index["RBF-008"][:attack_forms][0].slice(:amount, :die, :on_roll))
     assert_equal [{ die: 20, on_roll: [15, 20] }], @index["RBF-011"][:enter_refreshes], "quando entra, col d20 stappa tutto"
-    assert_equal({ gain_on: [1, 6], drain_on: [15, 20] }, @index["RBF-022"][:attack_forms][0].slice(:gain_on, :drain_on))
+    assert_equal({ gain_on: [1, 6], drain_on: [15, 20], once: true }, @index["RBF-022"][:attack_forms][0].slice(:gain_on, :drain_on, :once), "una volta per turno, dal 2026-09-10")
     assert_equal({ requires_attackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block" }, @index["RBF-004"][:attack_forms][0].slice(:requires_attackers, :targets, :restrict), "conta gli attaccanti di questo turno, non del precedente")
     assert_equal [0, 1], @index["RBF-001"][:attack_forms].map { |form| form[:then_draw] }, "solo il Nexus pesca"
   end

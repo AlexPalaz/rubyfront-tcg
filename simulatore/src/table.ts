@@ -1683,6 +1683,16 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     openCombatUid = uid;
     for (const [other, group] of combatGroups) group.classList.toggle("is-open", other === uid);
   }
+  /** Una targhetta del velo: icona e numero, col nome al passaggio. */
+  function statChip(icon: string, text: string, title: string): HTMLElement {
+    const chip = document.createElement("span");
+    chip.className = "combat-stat";
+    chip.innerHTML = icon;
+    chip.append(document.createTextNode(text));
+    chip.title = title;
+    return chip;
+  }
+
   function paintCombatTabs(): void {
     combatLayer.replaceChildren();
     combatGroups.clear();
@@ -1696,14 +1706,30 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     for (const card of fieldCards(ctx.state())) {
       const tabs = combatTabsFor(card);
       const tile = tiles.get(card.uid);
+      // La carta coricata nasconde i suoi numeri sotto la vicina (deciso
+      // 2026-09-10): al passaggio apre il velo coi numeri, anche senza tasti.
+      const facts = ctx.card(card.cardId);
+      const entity = facts.kind === "entity" && !card.facedown;
+      const veiled = tabs.length > 0 || (entity && card.tapped);
       if (tile) {
         tile.classList.toggle("has-actions", tabs.length > 0);
-        tile.onpointerenter = tabs.length ? event => { if (event.pointerType !== "touch") openCombatGroup(card.uid); } : null;
+        tile.onpointerenter = veiled ? event => { if (event.pointerType !== "touch") openCombatGroup(card.uid); } : null;
       }
-      if (!tabs.length) continue;
+      if (!veiled) continue;
       const box = boxOf(card);
       const group = document.createElement("div");
       group.className = "combat-tabs";
+      // I numeri della carta in testa al velo: Potenza di adesso, Contrattacco
+      // (stampato, dagli Oggetti, concesso) se c'è.
+      if (entity) {
+        const stats = document.createElement("div");
+        stats.className = "combat-stats";
+        const power = powerOf(card, ctx.card, ctx.state());
+        if (power !== null) stats.append(statChip(SWORDS_SVG, String(power), t("stat.power")));
+        const counter = (facts.counterattack ?? 0) + (card.counterBonus ?? 0) + staticCounter(ctx.state(), card, ctx.card);
+        if (counter > 0) stats.append(statChip(COUNTER_SVG, `+${counter}`, t("stat.counter")));
+        group.append(stats);
+      }
       group.style.left = `${box.x + box.w / 2}px`;
       group.style.top = `${box.y + box.h / 2}px`;
       group.style.width = `${card.tapped ? box.h : box.w}px`;

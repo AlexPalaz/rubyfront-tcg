@@ -528,7 +528,8 @@ function attackHeal(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
     const gainOn = rollRange(gain);
     const drainOn = rollRange(drain);
     if (die === null || !gainOn || !drainOn) return null;
-    return { kind: "heal", who: "permanent", attackers: { kind: "entity", race: "human" }, die, onRoll: null, gainOn, drainOn, amount: "human_attackers" };
+    // Una volta per turno: l'ondata, non ciascun attaccante (deciso 2026-09-10). Specchio di card_index.rb.
+    return { kind: "heal", who: "permanent", attackers: { kind: "entity", race: "human" }, die, onRoll: null, gainOn, drainOn, amount: "human_attackers", once: true };
   }
   return null;
 }

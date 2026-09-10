@@ -137,6 +137,8 @@ const M: Record<string, { it: string; en: string }> = {
   "target.attacker.block": { it: "Scegli l'attaccante da bloccare — Esc annulla", en: "Choose the attacker to block — Esc cancels" },
   "target.attacker.counter": { it: "Scegli l'attaccante da contrattaccare — Esc annulla", en: "Choose the attacker to counterattack — Esc cancels" },
   // ---- i tasti di combattimento sotto le carte (table.ts, combatTabsFor)
+  "stat.power": { it: "Potenza", en: "Power" },
+  "stat.counter": { it: "Contrattacco", en: "Counterattack" },
   "tab.block": { it: "Blocca", en: "Block" },
   "tab.counter": { it: "Contrattacca", en: "Counterattack" },
   "tab.with": { it: "Con questa", en: "With this one" },

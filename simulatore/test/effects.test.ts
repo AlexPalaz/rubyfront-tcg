@@ -75,7 +75,7 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   ] },
   RIFLESSO: { kind: "matter", behavior: "reactive", resolveForms: [{ kind: "block", requiresArmed: 2, heal: 3, asBlock: true }] },
   SCUDETTO: { kind: "object", grantsWhileAssigned: [] },
-  EREDI: { kind: "matter", behavior: "permanent", attackForms: [{ kind: "heal", who: "permanent", attackers: { kind: "entity", race: "human" }, die: 20, onRoll: null, gainOn: [1, 6], drainOn: [15, 20], amount: "human_attackers", face: 0 }] },
+  EREDI: { kind: "matter", behavior: "permanent", attackForms: [{ kind: "heal", who: "permanent", attackers: { kind: "entity", race: "human" }, die: 20, onRoll: null, gainOn: [1, 6], drainOn: [15, 20], amount: "human_attackers", once: true, face: 0 }] },
   OBLIVHAL: { kind: "rubyfront", attackForms: [
     { kind: "heal", who: "rubyfront", once: true, requiresAttackers: { count: 3, race: "human" }, amount: 2, die: null, onRoll: null, thenDraw: 0, thenDiscard: 0, face: 0 },
     { kind: "heal", who: "rubyfront", once: true, requiresAttackers: { count: 3, race: "human" }, amount: 2, die: null, onRoll: null, thenDraw: 1, thenDiscard: 1, face: 1 },
@@ -755,6 +755,21 @@ describe("attackSteps", () => {
     const muster = attackSteps(nexus, u3, facts).find(s => s.source.uid === "rf")!;
     expect(muster.form).toMatchObject({ thenDraw: 1, face: 1 });
     expect(attackSteps({ ...state, fired: ["rf|on_attack:heal|turn"] }, u3, facts).map(s => s.source.uid)).toEqual(["m"]);
+    // La permanente si risolve una volta per turno: scattata con un Umano, non si ripropone col prossimo.
+    expect(attackSteps({ ...state, fired: ["m|on_attack:heal|turn"] }, u3, facts).map(s => s.source.uid)).toEqual(["rf"]);
+  });
+
+  it("annullare l'attacco e ridichiararlo non ripropone i potenziamenti già scattati", () => {
+    const state = newGame();
+    const c = on(state, "c", "COMANDO");
+    on(state, "o", "SCUDETTO").assignedTo = "c";
+    const ally = on(state, "a2", "COMANDO");
+    on(state, "o2", "SCUDETTO").assignedTo = "a2";
+    declare(state, "c", 1);
+    expect(attackSteps(state, c, facts).map(s => s.form.kind)).toEqual(["empower"]);
+    const fired = { ...state, fired: ["c|on_attack:empower:a2|c"] };
+    expect(attackSteps(fired, c, facts)).toEqual([]);
+    expect(ally.uid).toBe("a2");
   });
 
   it("il Rubyfront in Zona di Richiamo non innesca niente: schierarlo sblocca le abilità (§3.1)", () => {

@@ -2453,7 +2453,7 @@ class EngineTest < Minitest::Test
     "CARICA" => { type: "entity", keywords: [], race: "human", power: 5, counterattack: 1,
                   enter_refreshes: [{ die: 20, on_roll: [15, 20] }], static_forms: [{ kind: "never_taps" }] },
     "EREDI" => { type: "matter", keywords: [], behavior: "permanent",
-                 attack_forms: [{ kind: "heal", who: "permanent", attackers: { type: "entity", race: "human" }, die: 20, gain_on: [1, 6], drain_on: [15, 20], amount: "human_attackers", face: 0 }] },
+                 attack_forms: [{ kind: "heal", who: "permanent", attackers: { type: "entity", race: "human" }, die: 20, gain_on: [1, 6], drain_on: [15, 20], amount: "human_attackers", once: true, face: 0 }] },
     "RADUNO" => { type: "rubyfront", keywords: ["fury"],
                     attack_forms: [{ kind: "heal", who: "rubyfront", once: true, requires_attackers: { count: 3, race: "human" }, amount: 2, then_draw: 0, then_discard: 0, face: 0 },
                                    { kind: "heal", who: "rubyfront", once: true, requires_attackers: { count: 3, race: "human" }, amount: 2, then_draw: 1, then_discard: 1, face: 1 }] },
@@ -2655,14 +2655,19 @@ class EngineTest < Minitest::Test
   end
 
   # La Materia permanente: il d20 quando attaccano gli Umani.
-  def test_gli_eredi_col_d20_curano_o_prosciugano
+  def test_gli_eredi_col_d20_curano_o_prosciugano_una_volta_per_turno
     engine = scena([["m", "EREDI"], ["u1", "UMANO"], ["u2", "UMANO"], ["n", "AUROS"]], attacks: %w[u1 u2 n])
-    assert_match(/non succede nulla/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 10, "effect" => ref("m", "u1") })[:reason])
-    assert_match(/Entità Umane che controlli/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "n") })[:reason])
-    cura = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "u1") })
+    assert_match(/non succede nulla/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 10, "effect" => ref("m", "u1", once: true) })[:reason])
+    assert_match(/Entità Umane che controlli/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "n", once: true) })[:reason])
+    assert_match(/una volta per turno/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "u1") })[:reason], "il riferimento deve dire «una volta»")
+    cura = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "u1", once: true) })
     assert cura[:ok], cura[:reason]
-    assert_match(/perde 2 PV/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 18, "effect" => ref("m", "u2") })[:reason])
-    danno = engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 18 }, "roll" => 18, "effect" => ref("m", "u2") })
+    # L'ondata è una: col secondo Umano l'innesco è già scattato (deciso 2026-09-10).
+    assert_match(/già stato risolto/, engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 18 }, "roll" => 18, "effect" => ref("m", "u2", once: true) })[:reason])
+    # Il prosciugamento, su un tavolo nuovo.
+    engine = scena([["m", "EREDI"], ["u1", "UMANO"], ["u2", "UMANO"]], attacks: %w[u1 u2])
+    assert_match(/perde 2 PV/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 18, "effect" => ref("m", "u2", once: true) })[:reason])
+    danno = engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 18 }, "roll" => 18, "effect" => ref("m", "u2", once: true) })
     assert danno[:ok], danno[:reason]
     assert_equal 18, copia(engine).hp("b")
   end
