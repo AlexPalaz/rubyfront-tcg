@@ -3644,6 +3644,27 @@ class EngineTest < Minitest::Test
     assert_includes verdict[:reason_en], "(§8.2)"
   end
 
+  def test_l_oggetto_resta_anche_se_il_difensore_ha_gia_chiuso_il_turno
+    # La Reazione la chiude il difensore in un fiato: risoluzione e cambio di
+    # turno. La scena del proprietario arriva dopo, nella Preparazione del
+    # turno nuovo: l'innesco vale ancora — non oltre.
+    engine = eredita([["u", "UMANO"], ["v", "VESTIGIO", { "assignedTo" => "u" }]], b: [["g", "GROSSO"]], attacks: ["u"])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert blocco(engine, "g", "u")[:ok]
+    assert risolvi(engine, [esito("u", blocker: "g", kind: "block", attacker_dies: true, blocker_dies: true)])[:ok]
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    resta = { "t" => "remain", "uid" => "v", "effect" => { "source" => "v", "event" => "on_death", "entering" => "u" } }
+    verdict = engine.judge(resta)
+    assert verdict[:ok], verdict[:reason]
+    tardi = eredita([["u", "UMANO"], ["v", "VESTIGIO", { "assignedTo" => "u" }]], b: [["g", "GROSSO"]], attacks: ["u"])
+    tardi.judge({ "t" => "phase", "phase" => "reazione" })
+    assert blocco(tardi, "g", "u")[:ok]
+    assert risolvi(tardi, [esito("u", blocker: "g", kind: "block", attacker_dies: true, blocker_dies: true)])[:ok]
+    tardi.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    tardi.judge({ "t" => "phase", "phase" => "fronte" })
+    assert_match(/seguito questo turno/, tardi.judge(resta)[:reason], "in Fronte del turno dopo, l'innesco è passato")
+  end
+
   # --- §3.2: la tassa di Flusso viaggia nel cambio di turno ---------------------
 
   TASSE = EREDITA.merge(
@@ -4079,6 +4100,11 @@ class EngineTest < Minitest::Test
     engine = rediviva_in_campo
     engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    assert ritorna(engine, actor: "a")[:ok], "nella Preparazione del turno appena aperto l'innesco vale ancora (la Reazione si chiude in un fiato)"
+    engine = rediviva_in_campo
+    engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    engine.judge({ "t" => "phase", "phase" => "fronte" })
     refute ritorna(engine, actor: "a")[:ok], "l'innesco è passato col turno"
   end
 

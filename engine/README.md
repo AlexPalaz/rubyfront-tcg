@@ -979,9 +979,12 @@ Regole collegate finora:
   un `toZone … assignTo` con `follow: "rearm"` — un ALTRO Oggetto dal
   proprio Ritiro, su una propria Entità senza Oggetto, senza costo. Nel
   client `deathSteps` confronta lo stato prima e dopo ogni azione e apre la
-  scena al proprietario. Limiti dichiarati: `left.bearer` non viaggia nello
-  snapshot; il bot sceglie con il suo selettore. Engine 0.62.0,
-  sessantotto regole.
+  scena al proprietario. «Questo turno» (`just_left?`, anche per il
+  ritorno vincolato) comprende la Preparazione del turno appena aperto: la
+  Reazione la chiude il difensore con risoluzione e cambio di turno in un
+  fiato, e la scena di chi decide arriva un attimo dopo. Limiti dichiarati:
+  `left.bearer` non viaggia nello snapshot; il bot sceglie con il suo
+  selettore. Engine 0.62.0, sessantotto regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

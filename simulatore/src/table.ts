@@ -2494,7 +2494,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           const looked = live.looked;
           if (looked.length === 0) break;
           const { type, candidates } = searchCandidates(form, looked, roll, ctx.card);
-          const what = t(type === "matter" ? "pick.look.matter" : type === "object" ? "pick.look.object" : "pick.look.one");
+          const what = t(type === "matter" ? "pick.look.matter" : type === "object" ? "pick.look.object" : "pick.look.entity");
           const reveal = candidates.length
             ? await pickFromPile(by, "deck", candidates, t("pick.search.some", { roll, what }), looked)
             : await pickFromPile(by, "deck", [], t("pick.search.none", { roll, what }), looked);

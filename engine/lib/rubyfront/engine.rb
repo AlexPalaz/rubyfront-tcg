@@ -2341,6 +2341,18 @@ module Rubyfront
       allow(kind)
     end
 
+    # Un'uscita dal campo «di questo turno» (§8.2): annotata col turno in
+    # corso — o con quello appena chiuso, se il nuovo è ancora in
+    # Preparazione: la Reazione la chiude il difensore con risoluzione e
+    # cambio di turno in un fiato, e chi deve decidere il ritorno (il
+    # proprietario, o il suo tavolo con la scena) arriva un attimo dopo.
+    def just_left?(left)
+      return false unless left.is_a?(Hash) && left[:turn].is_a?(Integer)
+      return true if left[:turn] == @table.turn
+
+      left[:turn] == @table.turn - 1 && @table.phase == "preparazione"
+    end
+
     def death_context(kind, ref)
       source = @table.card(ref["source"])
       return [refuse(kind, "l'Oggetto dell'innesco non esiste (§8.2)", "the trigger's Object doesn't exist (§8.2)")] unless source
@@ -2351,7 +2363,7 @@ module Rubyfront
 
       left = source[:left]
       bearer = @table.card(ref["entering"])
-      unless left && left[:turn] == @table.turn && left[:bearer] == ref["entering"] && bearer && bearer[:zone] == "abisso" && bearer[:left] && bearer[:left][:turn] == @table.turn
+      unless just_left?(left) && left[:bearer] == ref["entering"] && bearer && bearer[:zone] == "abisso" && just_left?(bearer[:left])
         return [refuse(kind, "l'Oggetto deve aver seguito questo turno nell'Abisso l'Entità a cui era assegnato, morta (§8.2)", "the Object must have followed the Entity it was assigned to into the Abyss this turn, dead (§8.2)")]
       end
 
@@ -3018,7 +3030,7 @@ module Rubyfront
       return refuse("revive", "torna chi è stata mandata nell'Abisso o nella Zona di Ritiro (§8.2)", "only a card sent to the Abyss or the Retire Zone comes back (§8.2)") unless %w[abisso ritiro].include?(card[:zone])
 
       left = card[:left]
-      return refuse("revive", "non è uscita dal campo in questo turno: l'innesco è passato (§8.2)", "it didn't leave the field this turn: the trigger has passed (§8.2)") unless left && left[:turn] == @table.turn
+      return refuse("revive", "non è uscita dal campo in questo turno: l'innesco è passato (§8.2)", "it didn't leave the field this turn: the trigger has passed (§8.2)") unless just_left?(left)
       return refuse("revive", "è uscita con Oggetti addosso: non torna (§8.2)", "it left with Objects on it: it doesn't come back (§8.2)") if left[:armed]
 
       object = @table.card(action["object"])

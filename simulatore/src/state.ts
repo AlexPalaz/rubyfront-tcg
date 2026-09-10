@@ -255,7 +255,9 @@ function reduce(state: GameState, action: Action): GameState {
       // Un Oggetto che torna in campo già assegnato (§8.2, RBF-031): lo
       // spostamento com'è, poi l'assegnazione. Gemello: table.rb, to_zone.
       if (action.assignTo) {
-        const moved = apply(state, { ...action, assignTo: undefined });
+        // Senza il riferimento d'effetto: la chiave dell'innesco la segna
+        // l'azione esterna, una volta sola.
+        const moved = apply(state, { ...action, assignTo: undefined, effect: undefined });
         const worn = moved.cards[action.uid];
         if (!worn || worn.zone !== "field" || !moved.cards[action.assignTo]) return moved;
         return { ...moved, cards: { ...moved.cards, [action.uid]: { ...worn, assignedTo: action.assignTo } } };
