@@ -219,7 +219,7 @@ class CardIndexTest < Minitest::Test
   def test_il_nexus_di_oblivhal_e_il_suo_flip
     assert_equal({ face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 5 }, @index["RBF-001"][:nexus])
     assert_equal [{ kind: "move", card_id: "RBF-012", from: "field", to: "abisso" }, { kind: "seal", card_id: "RBF-012" }], @index["RBF-001"][:flip_forms]
-    assert_nil @index["RBF-023"][:nexus], "«con un Oggetto assegnato» e il costo dal Ritiro sono forme ignote: quel flip resta a mano"
+    assert_equal({ face: 1, conditions: [{ count: 3, type: "entity", race: nil, armed: true }], discard: { count: 1, type: nil }, recovery: 5 }, @index["RBF-023"][:nexus], "dal 2026-09-10: «con un Oggetto assegnato», scarta una carta")
     assert_equal %w[move seal], @index["RBF-023"][:flip_forms].map { |form| form[:kind] }, "ma i suoi «quando flippa» hanno la stessa forma"
     assert_nil @index["RBF-004"][:nexus]
   end

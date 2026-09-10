@@ -93,6 +93,10 @@ Regole collegate finora:
   legge ancora, e quelle condizioni bloccavano più gioco vero di quanto ne
   proteggessero. Il vantaggio si prenderebbe al RITORNO, e quella strada è
   chiusa: dalla Zona di Ritiro si esce solo per effetto (voce più sotto).
+  E in Zona di Ritiro si arriva **solo dal Fronte** (dal 2026-09-10,
+  decisione del designer): dalla mano si scarta nell'Abisso (§6.5), dal
+  mazzo e dall'Abisso non si esce a mano; dalla Zona di Ritiro non si va
+  nell'Abisso a mano (§5), e la dogana lo dice con la sua frase.
   Una carta di un ALTRO posto mandata in Ritiro non è un ritiro ma un
   effetto risolto a mano: silenzio, in ogni fase. Limite dichiarato: il
   manuale al §6.2 elenca ancora le altre condizioni. Gli **Oggetti
@@ -580,13 +584,14 @@ Regole collegate finora:
   del Nexus passa solo dal Rubyfront in campo (non dalla Zona di Richiamo),
   nel proprio turno in Preparazione o Fronte, con i requisiti stampati
   soddisfatti «al momento del flip» — l'anagrafe li legge in `nexus`
-  («controlli almeno N Entità [di razza]», «scarta una carta [di tipo]»)
+  («controlli almeno N Entità [di razza | con un Oggetto assegnato]»,
+  «scarta una carta [di tipo] dalla tua mano»)
   — e l'azione porta lo scarto (`discard`, dalla propria mano, nell'Abisso)
   e il recupero di PV stampato (`recover`, +5), che riduttore e copia
   applicano nella stessa azione; indietro non si flippa («rimane in campo
-  per tutta la partita»). Requisito con una forma ignota (es. «con un
-  Oggetto assegnato», e il costo dal Ritiro): silenzio, il flip resta a
-  mano. La copia annota il turno del flip, e i passi «quando flippa»
+  per tutta la partita»). Requisito con una forma ignota: silenzio, il flip
+  resta a mano (dal 2026-09-10 «con un Oggetto assegnato» è certificato,
+  e i due Rubyfront del catalogo flippano con l'arbitro; engine 0.51.0). La copia annota il turno del flip, e i passi «quando flippa»
   (`effect {event: "on_flip"}`, forme `flip_forms`) valgono solo per un
   Nexus flippato questo turno: il flip manda la carta nominata dal
   proprio Fronte nell'Abisso (un `toZone`) e la **sigilla** — una patch

@@ -224,7 +224,9 @@ che è ridondante *e* non aiuta a giocare la carta.
 
 Requisito Nexus (`nexusRequirement.text`): condizioni **all'indicativo**
 («Controlli almeno …», «In questo turno hai attaccato …»), poi il costo di flip
-**all'imperativo**, chiuso da «, poi flippa.» / ", then flip."
+**all'imperativo**, chiuso da «, poi flippa.» / ", then flip." Lo scarto dice
+sempre da dove: «Scarta una carta [Entità] dalla tua mano, poi flippa.» /
+"Discard a[n Entity] card from your hand, then flip." (deciso 2026-09-10).
 
 Abilità del Rubyfront/Nexus (`abilities.*.text`): iniziano **minuscole** (sulla
 carta seguono costo e nome), le altre `text` iniziano maiuscole.

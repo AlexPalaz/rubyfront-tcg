@@ -11,7 +11,7 @@
     "hp": "HP",
     "nexusRequirement": {
       "label": "Nexus requirement",
-      "text": "You control at least 3 Entities with an Object assigned. Put an Auros Entity from your Retire Zone into the Abyss, then flip."
+      "text": "You control at least 3 Entities with an Object assigned. Discard a card from your hand, then flip."
     }
   },
   "matters": {

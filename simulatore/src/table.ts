@@ -200,6 +200,14 @@ const DOCK_ROOM_PX = 30;
 /** Il volo di una carta verso una pila: si fa partire, o si annulla se l'azione non è passata. */
 export type Flight = (() => void) & { cancel(): void };
 
+/** Il suggerimento del flip per ogni «perché no» di nexusCheck (effects.ts). */
+const FLIP_HINTS: Record<string, string> = {
+  "log.nexus.few": "flip.hint.few",
+  "log.nexus.few.armed": "flip.hint.few.armed",
+  "log.nexus.nodiscard": "flip.hint.nodiscard",
+  "log.nexus.nocard": "flip.hint.nocard",
+};
+
 export interface AutoChooser {
   pickTarget(source: CardInstance, candidates: CardInstance[]): CardInstance | null;
   pickFromPile(zone: ZoneId, candidates: CardInstance[], visible?: CardInstance[]): CardInstance | null;
@@ -879,7 +887,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const check = nexusCheck(state, card, ctx.card);
       let hint: string | null = null;
       if (!own || (state.phase !== "preparazione" && state.phase !== "fronte")) hint = t("ability.hint.turn");
-      else if (!check.ok) hint = t(check.why === "log.nexus.few" ? "flip.hint.few" : "flip.hint.nodiscard", { n: check.n ?? 0 });
+      else if (!check.ok) hint = t(FLIP_HINTS[check.why] ?? "flip.hint.nodiscard", { n: check.n ?? 0 });
       options.push({
         id: "flip",
         label: t("menu.flip.nexus"),
@@ -1976,8 +1984,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     } else if (!sealed && (!ctx.arbitrated() || (card.zone === "field" && ctx.card(card.cardId).kind === "matter"))) {
       items.push(send("abisso", t("menu.to.abisso")));
     }
-    // Il Ritiro resta un gesto libero: ci si manda una carta da dove sia.
-    if (!sealed) items.push(send("ritiro", t("menu.to.ritiro")));
+    // Il Ritiro è un gesto del Fronte (§6.2): con l'arbitro, dalla mano e
+    // dal mazzo non ci si va (dalla mano si scarta nell'Abisso, §6.5); a
+    // engine spento resta libero, da dove sia.
+    if (!sealed && (!ctx.arbitrated() || card.zone === "field")) items.push(send("ritiro", t("menu.to.ritiro")));
     if (owned && !sealed) {
       items.push(send("deck", t("menu.to.deck.top")));
       items.push({
@@ -2449,7 +2459,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     let discard: CardInstance | null = null;
     if (nexus.discard) {
-      while (!discard) discard = await pickFromPile(by, "hand", check.discards, t("pick.nexus.discard"));
+      while (!discard) discard = await pickFromPile(by, "hand", check.discards, t(nexus.discard.kind === null ? "pick.nexus.discard.any" : "pick.nexus.discard"));
     }
     const passed = await ctx.dispatch({ t: "flip", uid: card.uid, face: nexus.face, ...(discard ? { discard: discard.uid } : {}), ...(nexus.recovery ? { recover: nexus.recovery } : {}) });
     if (!passed) return;

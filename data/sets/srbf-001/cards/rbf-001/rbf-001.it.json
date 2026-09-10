@@ -11,7 +11,7 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "Controlli almeno 4 Entità Umane. Scarta una carta Entità, poi flippa."
+      "text": "Controlli almeno 4 Entità Umane. Scarta una carta Entità dalla tua mano, poi flippa."
     },
     "die": "Dado di schieramento"
   },

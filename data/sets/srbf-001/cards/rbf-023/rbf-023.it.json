@@ -11,7 +11,7 @@
     "hp": "PV",
     "nexusRequirement": {
       "label": "Requisito Nexus",
-      "text": "Controlli almeno 3 Entità con un Oggetto assegnato. Metti un'Entità Auros dalla tua Zona di Ritiro nell'Abisso, poi flippa."
+      "text": "Controlli almeno 3 Entità con un Oggetto assegnato. Scarta una carta dalla tua mano, poi flippa."
     }
   },
   "matters": {

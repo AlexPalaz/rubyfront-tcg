@@ -114,7 +114,11 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       // si vedono scoperte, altrimenti "cerca" non cercherebbe niente.
       syncCardEl(tile, card, { back: false, theme: ctx.themeFor(card.owner), locale: ctx.locale() });
       wirePreview(tile, ctx.locale);
+      // Con l'arbitro al tavolo dall'Abisso non si torna e dalla Zona di
+      // Ritiro si esce solo per effetto (§5): i gesti a mano si ritirano.
+      const locked = ctx.arbitrated() && (currentZone === "abisso" || currentZone === "ritiro");
       tile.addEventListener("click", () => {
+        if (locked) return;
         ctx.dispatch({ t: "toZone", uid: card.uid, zone: "hand" });
         touched = true;
         ctx.log(msg("log.take", { seat: currentSeat, zone: msg(TITLES[currentZone] ?? currentZone) }), currentSeat);
@@ -124,10 +128,10 @@ export function mountOverlay(ctx: Ctx, afterChange: () => void): Overlay {
       tile.addEventListener("contextmenu", event => {
         event.preventDefault();
         openMenu(event.clientX, event.clientY, [
-          { label: t("menu.to.hand"), run: () => move(card.uid, "hand") },
-          { label: t("menu.to.field"), run: () => move(card.uid, "field") },
-          { label: t("menu.to.abisso"), run: () => move(card.uid, "abisso"), disabled: currentZone === "abisso" },
-          { label: t("menu.to.ritiro"), run: () => move(card.uid, "ritiro"), disabled: currentZone === "ritiro" },
+          { label: t("menu.to.hand"), run: () => move(card.uid, "hand"), disabled: locked },
+          { label: t("menu.to.field"), run: () => move(card.uid, "field"), disabled: locked },
+          { label: t("menu.to.abisso"), run: () => move(card.uid, "abisso"), disabled: locked || currentZone === "abisso" },
+          { label: t("menu.to.ritiro"), run: () => move(card.uid, "ritiro"), disabled: locked || currentZone === "ritiro" },
         ]);
       });
       wrapper.append(tile);

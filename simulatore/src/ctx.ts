@@ -142,7 +142,7 @@ export type AbilityForm =
 
 export interface NexusRequirement {
   face: number;
-  conditions: { count: number; kind: "entity"; race: string | null }[];
+  conditions: { count: number; kind: "entity"; race: string | null; armed?: true }[];
   discard: { count: 1; kind: string | null } | null;
   recovery: number | null;
 }

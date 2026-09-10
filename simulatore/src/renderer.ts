@@ -1106,9 +1106,12 @@ function nexusOf(faces: CardFace[]): NexusRequirement | null {
   for (const condition of (Array.isArray(requirement.conditions) ? requirement.conditions : []) as Loose[]) {
     if (condition?.type !== "controls_card" || condition.owner !== "controller" || !Number.isInteger(condition.min)) return null;
     const filter = condition.filter as Loose | undefined;
-    // Un vincolo in più (RBF-023: «con un Oggetto assegnato») è una forma ignota.
-    if (!filter || filter.cardType !== "entity" || !Object.keys(filter).every(key => key === "cardType" || key === "race")) return null;
-    conditions.push({ count: condition.min, kind: "entity", race: typeof filter.race === "string" ? filter.race : null });
+    if (!filter || filter.cardType !== "entity" || !Object.keys(filter).every(key => key === "cardType" || key === "race" || key === "details")) return null;
+    // «Con un Oggetto assegnato» (dal 2026-09-10): l'unico dettaglio certificato. Specchio di card_index.rb, nexus_of.
+    const details = filter.details as Loose | undefined;
+    const armed = details !== undefined && Object.keys(details).length === 1 && details.hasObjectAssigned === true;
+    if (details !== undefined && !armed) return null;
+    conditions.push({ count: condition.min, kind: "entity", race: typeof filter.race === "string" ? filter.race : null, ...(armed ? { armed: true as const } : {}) });
   }
   if (conditions.length === 0) return null;
   const costs = (Array.isArray(requirement.flipCost) ? requirement.flipCost : []) as Loose[];

@@ -648,11 +648,29 @@ class EngineTest < Minitest::Test
     engine = con_carte
     cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "LENTA" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
-    %w[field hand deck abisso].each do |zone|
+    %w[field hand deck].each do |zone|
       verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => zone, "x" => 442, "y" => 1260 })
       refute verdict[:ok], zone
       assert_match(/dalla Zona di Ritiro si esce solo per effetto.*§5, §6\.2/, verdict[:reason])
       assert_match(/leave the Retire Zone only through an effect.*§5, §6\.2/, verdict[:reason_en])
+    end
+    # Nemmeno nell'Abisso: ci resta quel che non è morto (§5), e lo dice.
+    verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
+    refute verdict[:ok]
+    assert_match(/non si va nell'Abisso a mano.*§5/, verdict[:reason])
+    assert_match(/Retire Zone to the Abyss by hand.*§5/, verdict[:reason_en])
+  end
+
+  def test_nella_zona_di_ritiro_si_va_solo_dal_fronte
+    engine = con_carte
+    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "LENTA" },
+             { "uid" => "a-2", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "LENTA" }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    %w[a-1 a-2].each do |uid|
+      verdict = engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "ritiro" })
+      refute verdict[:ok], uid
+      assert_match(/solo dal Fronte.*§6\.2, §6\.5/, verdict[:reason])
+      assert_match(/only from the Front.*§6\.2, §6\.5/, verdict[:reason_en])
     end
   end
 
@@ -676,10 +694,13 @@ class EngineTest < Minitest::Test
   end
 
 
-  def test_dalla_mano_al_ritiro_nessuna_regola
+  def test_dalla_mano_al_ritiro_si_ferma
+    # Dal 2026-09-10: in Zona di Ritiro si va solo dal Fronte; dalla mano si scarta nell'Abisso.
     engine = con_carte
     mano_e_campo(engine, %w[LENTA], cala: 0)
-    refute engine.judge(ritira("a-1"))[:ruled]
+    verdict = engine.judge(ritira("a-1"))
+    refute verdict[:ok]
+    assert_match(/solo dal Fronte/, verdict[:reason])
   end
 
   def test_dopo_uno_snapshot_il_ritiro_non_accusa
@@ -2767,6 +2788,8 @@ class EngineTest < Minitest::Test
     "RADUNO" => { type: "rubyfront", keywords: ["fury"], enables: [[], []],
                     nexus: { face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 5 },
                     flip_forms: [{ kind: "move", card_id: "RIPORTANTE", from: "field", to: "abisso" }, { kind: "seal", card_id: "RIPORTANTE" }] },
+    "FORGIA" => { type: "rubyfront", keywords: [], power: nil, counterattack: nil,
+                  nexus: { face: 1, conditions: [{ count: 3, type: "entity", race: nil, armed: true }], discard: { count: 1, type: nil }, recovery: 5 } },
     "RIPORTANTE" => { type: "entity", keywords: [], race: "human", power: 6, flux_cost: 6 },
     "PERMANENTE" => { type: "matter", keywords: [], behavior: "permanent", flux_cost: 2, matter: { type: "dynamic", grade: 1 } },
     "ATTRAZIONE" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 2, matter: { type: "dynamic", grade: 1 },
@@ -3511,6 +3534,19 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
     assert_match(/flippato questo turno/, engine.judge(via.merge("uid" => "u2"))[:reason])
+  end
+
+  def test_il_flip_armato_conta_le_entita_con_un_oggetto_e_scarta_una_carta_qualsiasi
+    forgia = lambda do |armed|
+      mine = (1..3).flat_map { |i| [["u#{i}", "UMANO"]] + (i <= armed ? [["s#{i}", "SCUDO", { "assignedTo" => "u#{i}" }]] : []) }
+      eredita(mine + [["rf", "FORGIA", { "y" => 1260 }], ["m", "PIETRA", { "zone" => "hand" }]])
+    end
+    assert_match(/almeno 3 Entità con un Oggetto assegnato.*ne hai 2/, flip(forgia.call(2), discard: "m")[:reason])
+    engine = forgia.call(3)
+    assert_match(/scartare una carta dalla mano/, flip(engine, discard: nil)[:reason])
+    verdict = flip(engine, discard: "m")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", engine.instance_variable_get(:@table).card("m")[:zone]
   end
 
   def test_un_rubyfront_senza_requisito_certificato_flippa_a_mano

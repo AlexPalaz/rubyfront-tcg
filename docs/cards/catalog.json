@@ -56,7 +56,7 @@
                 "hp": "PV",
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
-                  "text": "Controlli almeno 4 Entità Umane. Scarta una carta Entità, poi flippa."
+                  "text": "Controlli almeno 4 Entità Umane. Scarta una carta Entità dalla tua mano, poi flippa."
                 },
                 "die": "Dado di schieramento"
               },
@@ -125,7 +125,7 @@
                 "hp": "HP",
                 "nexusRequirement": {
                   "label": "Nexus requirement",
-                  "text": "You control at least 4 Human Entities. Discard an Entity card, then flip."
+                  "text": "You control at least 4 Human Entities. Discard an Entity card from your hand, then flip."
                 },
                 "die": "Deployment die"
               },
@@ -3311,7 +3311,7 @@
                 "hp": "PV",
                 "nexusRequirement": {
                   "label": "Requisito Nexus",
-                  "text": "Controlli almeno 3 Entità con un Oggetto assegnato. Metti un'Entità Auros dalla tua Zona di Ritiro nell'Abisso, poi flippa."
+                  "text": "Controlli almeno 3 Entità con un Oggetto assegnato. Scarta una carta dalla tua mano, poi flippa."
                 }
               },
               "matters": {
@@ -3379,7 +3379,7 @@
                 "hp": "HP",
                 "nexusRequirement": {
                   "label": "Nexus requirement",
-                  "text": "You control at least 3 Entities with an Object assigned. Put an Auros Entity from your Retire Zone into the Abyss, then flip."
+                  "text": "You control at least 3 Entities with an Object assigned. Discard a card from your hand, then flip."
                 }
               },
               "matters": {
@@ -3497,19 +3497,11 @@
                   ],
                   "flipCost": [
                     {
-                      "type": "move_card",
+                      "type": "discard_card",
                       "target": {
-                        "cardType": "entity",
-                        "race": "auros",
-                        "zone": "retire",
-                        "owner": "controller",
-                        "min": 1,
-                        "max": 1
+                        "controller": "controller"
                       },
-                      "destination": {
-                        "zone": "abyss",
-                        "owner": "card_owner"
-                      }
+                      "count": 1
                     }
                   ]
                 }
@@ -6609,7 +6601,7 @@
             "hp": "PV",
             "nexusRequirement": {
               "label": "Requisito Nexus",
-              "text": "Controlli almeno 4 Entità Umane. Scarta una carta Entità, poi flippa."
+              "text": "Controlli almeno 4 Entità Umane. Scarta una carta Entità dalla tua mano, poi flippa."
             },
             "die": "Dado di schieramento"
           },
@@ -6678,7 +6670,7 @@
             "hp": "HP",
             "nexusRequirement": {
               "label": "Nexus requirement",
-              "text": "You control at least 4 Human Entities. Discard an Entity card, then flip."
+              "text": "You control at least 4 Human Entities. Discard an Entity card from your hand, then flip."
             },
             "die": "Deployment die"
           },
@@ -9864,7 +9856,7 @@
             "hp": "PV",
             "nexusRequirement": {
               "label": "Requisito Nexus",
-              "text": "Controlli almeno 3 Entità con un Oggetto assegnato. Metti un'Entità Auros dalla tua Zona di Ritiro nell'Abisso, poi flippa."
+              "text": "Controlli almeno 3 Entità con un Oggetto assegnato. Scarta una carta dalla tua mano, poi flippa."
             }
           },
           "matters": {
@@ -9932,7 +9924,7 @@
             "hp": "HP",
             "nexusRequirement": {
               "label": "Nexus requirement",
-              "text": "You control at least 3 Entities with an Object assigned. Put an Auros Entity from your Retire Zone into the Abyss, then flip."
+              "text": "You control at least 3 Entities with an Object assigned. Discard a card from your hand, then flip."
             }
           },
           "matters": {
@@ -10050,19 +10042,11 @@
               ],
               "flipCost": [
                 {
-                  "type": "move_card",
+                  "type": "discard_card",
                   "target": {
-                    "cardType": "entity",
-                    "race": "auros",
-                    "zone": "retire",
-                    "owner": "controller",
-                    "min": 1,
-                    "max": 1
+                    "controller": "controller"
                   },
-                  "destination": {
-                    "zone": "abyss",
-                    "owner": "card_owner"
-                  }
+                  "count": 1
                 }
               ]
             }

@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.50.0"
+    VERSION = "0.51.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -39,7 +39,7 @@ module Rubyfront
       "§3.1 I PV iniziali sono quelli stampati sul Rubyfront",
       "§3.1 Oggetti: assegnazione",
       "§6 Fasi: le dichiarazioni in Fase di Fronte",
-      "§6.2 Ritiro: gesto di Preparazione; nella fase, libero",
+      "§6.2 Ritiro: gesto di Preparazione; nella fase, libero; in Zona di Ritiro solo dal Fronte",
       "§5 Materie: mai sugli slot del Fronte",
       "§6.3 Dichiarano solo le Entità (il Rubyfront mai)",
       "§6.3 Attacca chi è di turno, blocca chi difende",
@@ -101,7 +101,7 @@ module Rubyfront
       "§3.1 Starting Health Points are the ones printed on the Rubyfront",
       "§3.1 Objects: assignment",
       "§6 Phases: declarations in the Front Phase",
-      "§6.2 Retire: a Preparation move; within the phase, free",
+      "§6.2 Retire: a Preparation move; within the phase, free; the Retire Zone only from the Front",
       "§5 Matters: never on the Front slots",
       "§6.3 Only Entities declare (the Rubyfront never)",
       "§6.3 The active player attacks, the defender blocks",
@@ -433,6 +433,9 @@ module Rubyfront
       # Ritiro», «metti sul tuo Fronte una permanente dalla tua Zona di
       # Ritiro» — e un effetto passa da judge_effect col suo riferimento,
       # non da qui.
+      if card[:zone] == "ritiro" && action["zone"] == "abisso"
+        return refuse("toZone", "dalla Zona di Ritiro non si va nell'Abisso a mano: ci resta quel che non è morto, e solo un effetto la sposta (§5)", "no moving from the Retire Zone to the Abyss by hand: what never died stays there, and only an effect moves it (§5)")
+      end
       if card[:zone] == "ritiro"
         return refuse("toZone", "dalla Zona di Ritiro si esce solo per effetto: sul Fronte non si torna a mano (§5, §6.2)", "cards leave the Retire Zone only through an effect: no going back to the Front by hand (§5, §6.2)")
       end
@@ -706,6 +709,13 @@ module Rubyfront
     # — arriverà con la regola d'oro. Il Rubyfront invece non si ritira mai:
     # una volta schierato resta in campo (§3.1).
     def judge_retire(card)
+      # §6.2/§6.5 — in Zona di Ritiro si va dal Fronte, col Ritiro, o per
+      # effetto (che passa da judge_effect): dalla mano si scarta
+      # nell'Abisso, e dal mazzo o dall'Abisso non si esce a mano
+      # (decisione del designer, 2026-09-10).
+      if %w[hand deck abisso].include?(card[:zone])
+        return refuse("toZone", "nella Zona di Ritiro si va solo dal Fronte, col Ritiro: dalla mano si scarta nell'Abisso (§6.2, §6.5)", "the Retire Zone is reached only from the Front, by retiring: from the hand you discard into the Abyss (§6.2, §6.5)")
+      end
       return no_rule("toZone") unless card[:zone] == "field"
 
       kind = @cards.dig(card[:card_id], :type)
@@ -2651,16 +2661,20 @@ module Rubyfront
       end
 
       nexus[:conditions].each do |condition|
-        have = count_entities(card[:owner], condition[:race])
+        have = condition[:armed] ? armed_entities(card[:owner]) : count_entities(card[:owner], condition[:race])
         next if have >= condition[:count]
 
-        return refuse("flip", "il Nexus vuole almeno #{condition[:count]} Entità Umane che controlli: ne hai #{have} (§3.1)", "the Nexus takes at least #{condition[:count]} Human Entities you control: you have #{have} (§3.1)")
+        what = condition[:armed] ? "Entità con un Oggetto assegnato" : "Entità Umane"
+        what_en = condition[:armed] ? "Entities with an Object assigned" : "Human Entities"
+        return refuse("flip", "il Nexus vuole almeno #{condition[:count]} #{what} che controlli: ne hai #{have} (§3.1)", "the Nexus takes at least #{condition[:count]} #{what_en} you control: you have #{have} (§3.1)")
       end
       if nexus[:discard]
         discard = @table.card(action["discard"])
         entry = discard && @cards[discard[:card_id]]
+        what = nexus[:discard][:type] ? "una carta Entità" : "una carta"
+        what_en = nexus[:discard][:type] ? "an Entity card" : "a card"
         unless discard && discard[:zone] == "hand" && discard[:owner] == card[:owner]
-          return refuse("flip", "il flip chiede di scartare una carta Entità dalla mano (§3.1)", "the flip asks you to discard an Entity card from your hand (§3.1)")
+          return refuse("flip", "il flip chiede di scartare #{what} dalla mano (§3.1)", "the flip asks you to discard #{what_en} from your hand (§3.1)")
         end
         if entry && nexus[:discard][:type] && entry[:type] != nexus[:discard][:type]
           return refuse("flip", "si scarta una carta Entità, non questa (§3.1)", "an Entity card is discarded, not this one (§3.1)")

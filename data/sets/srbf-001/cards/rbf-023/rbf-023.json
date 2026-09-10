@@ -75,19 +75,11 @@
           ],
           "flipCost": [
             {
-              "type": "move_card",
+              "type": "discard_card",
               "target": {
-                "cardType": "entity",
-                "race": "auros",
-                "zone": "retire",
-                "owner": "controller",
-                "min": 1,
-                "max": 1
+                "controller": "controller"
               },
-              "destination": {
-                "zone": "abyss",
-                "owner": "card_owner"
-              }
+              "count": 1
             }
           ]
         }

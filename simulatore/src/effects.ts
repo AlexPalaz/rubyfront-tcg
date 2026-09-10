@@ -1005,11 +1005,11 @@ export function nexusCheck(state: GameState, rubyfront: CardInstance, facts: (ca
   if (!nexus) return { ok: true, discards: [] };
   const seat = controllerOf(rubyfront);
   for (const condition of nexus.conditions) {
-    const have = countEntities(state, seat, condition.race, facts);
-    if (have < condition.count) return { ok: false, why: "log.nexus.few", n: condition.count };
+    const have = condition.armed ? armedCount(state, seat, facts) : countEntities(state, seat, condition.race, facts);
+    if (have < condition.count) return { ok: false, why: condition.armed ? "log.nexus.few.armed" : "log.nexus.few", n: condition.count };
   }
   if (!nexus.discard) return { ok: true, discards: [] };
   const discards = zoneCards(state, seat, "hand").filter(card => nexus.discard!.kind === null || facts(card.cardId).kind === nexus.discard!.kind);
-  if (discards.length === 0) return { ok: false, why: "log.nexus.nodiscard" };
+  if (discards.length === 0) return { ok: false, why: nexus.discard.kind === null ? "log.nexus.nocard" : "log.nexus.nodiscard" };
   return { ok: true, discards };
 }

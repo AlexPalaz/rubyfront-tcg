@@ -11,7 +11,7 @@
     "hp": "HP",
     "nexusRequirement": {
       "label": "Nexus requirement",
-      "text": "You control at least 4 Human Entities. Discard an Entity card, then flip."
+      "text": "You control at least 4 Human Entities. Discard an Entity card from your hand, then flip."
     },
     "die": "Deployment die"
   },

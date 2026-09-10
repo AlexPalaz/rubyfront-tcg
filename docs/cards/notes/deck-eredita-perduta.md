@@ -41,7 +41,7 @@ in media costa 3,5 e il richiamo non fa mai salire il prezzo.
 | Recupero al flip | | **+5 PV** |
 
 **Requisito Nexus:** controllare almeno 4 Entità Umane e scartare una carta
-Entità (nell'Abisso; decisione del designer, 2026-08-28 — prima era una
+Entità dalla mano (nell'Abisso; decisione del designer, 2026-08-28 — prima era una
 Materia). È un requisito di **larghezza**, non di tempo: si apre quando il
 Fronte è pieno, cioè quando il mazzo sta già facendo quello che vuole fare.
 

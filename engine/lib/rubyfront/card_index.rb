@@ -999,10 +999,16 @@ module Rubyfront
         next nil unless condition.is_a?(Hash) && condition["type"] == "controls_card" && condition["owner"] == "controller" && condition["min"].is_a?(Integer)
 
         filter = condition["filter"]
-        # Un vincolo in più (es. «con un Oggetto assegnato») è una forma ignota.
-        next nil unless filter.is_a?(Hash) && filter["cardType"] == "entity" && (filter.keys - %w[cardType race]).empty?
+        next nil unless filter.is_a?(Hash) && filter["cardType"] == "entity" && (filter.keys - %w[cardType race details]).empty?
 
-        { count: condition["min"], type: "entity", race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze
+        # «Con un Oggetto assegnato» (dal 2026-09-10): l'unico dettaglio certificato.
+        details = filter["details"]
+        armed = details == { "hasObjectAssigned" => true }
+        next nil if details && !armed
+
+        entry = { count: condition["min"], type: "entity", race: filter["race"].is_a?(String) ? filter["race"] : nil }
+        entry[:armed] = true if armed
+        entry.freeze
       end
       return nil if conditions.empty? || conditions.any?(&:nil?)
 
