@@ -72,7 +72,9 @@ export type StaticForm =
   | { kind: "self_power"; amount: number; whileAttacking?: true; requiresOther?: { kind: "entity"; race: string | null }; perOther?: { kind: "entity"; race: string | null } }
   | { kind: "bearer_power"; amount: number; per?: { kind: "entity"; race: string | null }; multiBlock?: boolean }
   /** RBF-011: «questa Entità non si tappa mai». */
-  | { kind: "never_taps" };
+  | { kind: "never_taps" }
+  /** La tassa di Flusso: «all'inizio di ogni tuo turno hai N Flusso in meno» finché resta sul Fronte. */
+  | { kind: "flux_toll"; amount: number };
 
 /**
  * Gli effetti certificati delle Materie alla risoluzione (§7.2), specchio
@@ -202,8 +204,10 @@ export interface EnterLook {
   die: number | null;
   countBase: number;
   reveal: { kind: "entity" | "object"; race: string | null } | null;
-  /** «Metti una delle altre nella tua Zona di Ritiro» (RBF-027). */
+  /** «Metti una delle altre nella tua Zona di Ritiro». */
   thenRetire: boolean;
+  /** Col dado, «tante carte quanto il tiro» (dal 2026-09-10) invece di «countBase + ceil(tiro/2)». */
+  formula?: "result";
 }
 
 /**

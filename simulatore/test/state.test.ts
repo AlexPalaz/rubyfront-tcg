@@ -212,6 +212,16 @@ describe("apply turn", () => {
     state.cards[uid] = { ...deckFor(owner, 1).cards[0], uid, zone: "field", tapped: isTapped };
   }
 
+  it("la tassa di Flusso viaggia nell'azione: ricarica al massimo meno la tassa, mai sotto zero — gemello: table_test.rb", () => {
+    let state = apply(newGame(), deckFor("b", 2));
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    state = apply(state, { t: "turn", turn: 3, active: "a", toll: 1 });
+    expect(state.players.a.fluxMax).toBe(2);
+    expect(state.players.a.flux).toBe(1);
+    state = apply(state, { t: "turn", turn: 4, active: "b", toll: 9 });
+    expect(state.players.b.flux).toBe(0);
+  });
+
   it("chi entra pesca la carta del turno (§6.1), e a mazzo vuoto no", () => {
     let state = apply(newGame(), deckFor("b", 2));
     state = apply(state, { t: "turn", turn: 2, active: "b" });

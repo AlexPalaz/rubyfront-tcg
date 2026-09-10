@@ -191,6 +191,8 @@ export interface EnterLookStep {
 /** Quante carte si guardano, data la forma e il tiro (§8.2, RBF-027). */
 export function lookCount(look: EnterLook, roll: number | null): number {
   if (look.count !== null) return look.count;
+  // «Tante carte quanto il tiro», o «countBase + ceil(tiro/2)».
+  if (look.formula === "result") return roll ?? 0;
   return look.countBase + Math.ceil((roll ?? 0) / 2);
 }
 
@@ -226,7 +228,7 @@ export function lookAfterRoll(
 export function describeLook(step: EnterLookStep, facts: (cardId: string) => CardFacts): string {
   const card = `«${facts(step.source.cardId).name}»`;
   if (step.look.die !== null) {
-    return t("trigger.look.die", { card, die: step.look.die, base: step.look.countBase });
+    return t(step.look.formula === "result" ? "trigger.look.roll" : "trigger.look.die", { card, die: step.look.die, base: step.look.countBase });
   }
   return t("trigger.look", { card, n: step.count });
 }

@@ -510,20 +510,24 @@ module Rubyfront
         count = from["count"].is_a?(Integer) ? from["count"] : nil
         die = nil
         base = 0
+        # Le due formule certificate col dado: «2 + ceil(tiro/2)» e, dal
+        # 2026-09-10, «tante carte quanto il tiro» (details.count == "result").
+        by_roll = false
         unless count
           faces = details["die"].is_a?(String) && details["die"][/\Ad(\d+)\z/, 1]
           formula = details["count"].is_a?(String) && details["count"][/\A(\d+) \+ ceil\(result\/2\)\z/, 1]
-          next unless faces && formula
+          by_roll = details["count"] == "result"
+          next unless faces && (formula || by_roll)
 
           die = faces.to_i
-          base = formula.to_i
+          base = formula ? formula.to_i : 0
         end
         then_to = details["thenMoveOneTo"]
         next if then_to && (!then_to.is_a?(Hash) || then_to["zone"] != "retire")
 
         { count: count, die: die, count_base: base,
           reveal: { type: may["cardType"], race: may["race"].is_a?(String) ? may["race"] : nil }.freeze,
-          then_retire: !then_to.nil? }.freeze
+          then_retire: !then_to.nil?, **(by_roll ? { formula: "result" } : {}) }.freeze
       end
     end
 
@@ -594,6 +598,15 @@ module Rubyfront
 
         effect = trigger["effect"]
         next unless effect.is_a?(Hash)
+        # La tassa di Flusso (dal 2026-09-10): «finché questa Entità resta sul
+        # Fronte, all'inizio di ogni tuo turno hai N Flusso in meno».
+        if effect["type"] == "modify_flux"
+          toll = effect["details"].is_a?(Hash) ? effect["details"] : {}
+          next unless trigger["event"] == "while_in_play" && effect.dig("target", "controller") == "controller"
+          next unless effect["amount"].is_a?(Integer) && effect["amount"].negative? && toll["atStartOfEachOwnTurn"] == true && toll["whileOnFront"] == true
+
+          next { kind: "flux_toll", amount: -effect["amount"] }.freeze
+        end
         # «Questa Entità non si tappa mai»: uno statico senza numeri.
         if effect["type"] == "prevent_tap"
           next unless trigger["event"] == "while_in_play" && effect.dig("target", "scope") == "self" && effect["duration"] == "permanent"

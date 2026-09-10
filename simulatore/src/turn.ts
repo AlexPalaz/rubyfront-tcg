@@ -6,8 +6,8 @@ import { vigilUntaps } from "./effects.js";
 import { msg, t, type LogMsg } from "./i18n.js";
 import { describeBattle, resolveWave } from "./combat.js";
 import { releaseControlled } from "./effects.js";
-import type { Ctx } from "./ctx.js";
-import { freeFrontSlotOrNull, seatLabel, waveDeclared, zoneCards } from "./state.js";
+import type { CardFacts, Ctx } from "./ctx.js";
+import { controllerOf, fieldCards, freeFrontSlotOrNull, inPlay, seatLabel, waveDeclared, zoneCards } from "./state.js";
 import type { GameOver, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -168,9 +168,21 @@ export async function endTurn(ctx: Ctx): Promise<void> {
   // Il cambio di turno passa dal giudizio dell'engine (§6.5, di nuovo, sulla
   // sua copia): fermato, non succede nulla. Passato, il riduttore ha già
   // apparecchiato il turno di chi entra (Flusso, stappata, frecce).
-  if (!(await ctx.dispatch({ t: "turn", turn: state.turn + 1, active: next }))) return;
+  // §3.2 — la tassa di Flusso di chi entra (forma certificata «all'inizio di
+  // ogni tuo turno hai N Flusso in meno» finché la carta resta sul Fronte):
+  // la somma delle sue carte in gioco viaggia nell'azione, l'engine la rifà.
+  const toll = fluxToll(state, next, ctx.card);
+  if (!(await ctx.dispatch({ t: "turn", turn: state.turn + 1, active: next, ...(toll > 0 ? { toll } : {}) }))) return;
   const player = ctx.state().players[next];
   ctx.log(msg("log.turn", { turn: state.turn + 1, seat: next, flux: player.flux, max: player.fluxMax }), next);
+  if (toll > 0) ctx.log(msg("log.turn.toll", { seat: next, n: toll, flux: player.flux, max: player.fluxMax }), next);
   // §8.2 — le carte che chi chiude controllava tornano al proprietario.
   await releaseControlled(ctx, state.active, freeFrontSlotOrNull);
+}
+
+/** La tassa di Flusso di `seat` (§3.2): la somma delle sue carte in gioco con la forma `flux_toll`. Gemello: engine.rb, flux_toll. */
+export function fluxToll(state: GameState, seat: Seat, facts: (cardId: string) => CardFacts): number {
+  return fieldCards(state)
+    .filter(card => controllerOf(card) === seat && inPlay(card, facts(card.cardId).kind))
+    .reduce((sum, card) => sum + facts(card.cardId).staticForms.reduce((acc, form) => acc + (form.kind === "flux_toll" ? form.amount : 0), 0), 0);
 }

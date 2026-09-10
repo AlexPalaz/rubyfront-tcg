@@ -498,7 +498,8 @@ function reduce(state: GameState, action: Action): GameState {
       const opened: GameState = {
         ...withoutChain(state),
         cards,
-        players: { ...cleared, [next]: { ...cleared[next], fluxMax: grown, flux: grown } },
+        // La tassa di Flusso (§3.2) viaggia nell'azione. Gemello: table.rb.
+        players: { ...cleared, [next]: { ...cleared[next], fluxMax: grown, flux: Math.max(0, grown - (action.toll ?? 0)) } },
         turn: action.turn,
         active: next,
         phase: "preparazione",

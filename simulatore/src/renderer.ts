@@ -618,13 +618,15 @@ function enterLooksOf(face: CardFace | undefined): EnterLook[] {
     let count: number | null = null;
     let die: number | null = null;
     let countBase = 0;
+    let byRoll = false;
     if (Number.isInteger(from.count)) count = from.count as number;
     else {
       const faces = typeof d.die === "string" ? /^d(\d+)$/.exec(d.die) : null;
       const formula = typeof d.count === "string" ? /^(\d+) \+ ceil\(result\/2\)$/.exec(d.count) : null;
-      if (!faces || !formula) continue;
+      byRoll = d.count === "result";
+      if (!faces || (!formula && !byRoll)) continue;
       die = Number(faces[1]);
-      countBase = Number(formula[1]);
+      countBase = formula ? Number(formula[1]) : 0;
     }
     const then = d.thenMoveOneTo;
     if (then && then.zone !== "retire") continue;
@@ -634,6 +636,7 @@ function enterLooksOf(face: CardFace | undefined): EnterLook[] {
       countBase,
       reveal: { kind: may.cardType, race: typeof may.race === "string" ? may.race : null },
       thenRetire: Boolean(then),
+      ...(byRoll ? { formula: "result" as const } : {}),
     });
   }
   return out;
@@ -696,6 +699,15 @@ function staticFormsOf(faces: CardFace[]): StaticForm[] {
       if (trigger.event !== "while_in_play" && trigger.event !== "while_assigned") continue;
       const effect = trigger.effect as Loose | undefined;
       if (!effect) continue;
+      // La tassa di Flusso: «all'inizio di ogni tuo turno hai N Flusso in meno»
+      // finché resta sul Fronte. Specchio di card_index.rb, static_forms.
+      if (effect.type === "modify_flux") {
+        const toll = (typeof effect.details === "object" && effect.details ? effect.details : {}) as Loose;
+        if (trigger.event === "while_in_play" && effect.target?.controller === "controller" && Number.isInteger(effect.amount) && effect.amount < 0 && toll.atStartOfEachOwnTurn === true && toll.whileOnFront === true) {
+          out.push({ kind: "flux_toll", amount: -effect.amount });
+        }
+        continue;
+      }
       // «Questa Entità non si tappa mai» (RBF-011): uno statico senza numeri.
       if (effect.type === "prevent_tap") {
         if (trigger.event === "while_in_play" && effect.target?.scope === "self" && effect.duration === "permanent") out.push({ kind: "never_taps" });

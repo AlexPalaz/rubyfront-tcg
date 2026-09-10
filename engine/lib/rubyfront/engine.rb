@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.45.0"
+    VERSION = "0.46.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -82,6 +82,8 @@ module Rubyfront
       "§8.2 Il controllo non è un ingresso: gli effetti «quando entra» non si riapplicano",
       "§3.1 Le abilità speciali del Rubyfront: costano PV, in campo, nel proprio turno, nella loro finestra, una sola per turno",
       "§8.1 La Furia: un d20 prima dell'abilità, col fallimento −1 PV",
+      "§8.2 Effetti certificati: «quando entra, tira un d6 e guarda tante carte quanto il tiro»",
+      "§3.2 La tassa di Flusso: «all'inizio di ogni tuo turno hai N Flusso in meno» viaggia nel cambio di turno",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -138,6 +140,8 @@ module Rubyfront
       "§8.2 Taking control isn't an entry: “when it enters” effects don't apply again",
       "§3.1 The Rubyfront's special abilities: they cost HP, on the field, on your own turn, in their window, only one per turn",
       "§8.1 Fury: a d20 before the ability, −1 HP on a failure",
+      "§8.2 Certified effects: “when it enters, roll a d6 and look at as many cards as the roll”",
+      "§3.2 The Flux toll: “at the start of each of your turns you have N less Flux” travels in the turn change",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -795,9 +799,31 @@ module Rubyfront
 
       held = @table.hand_count(@table.active)
       if held > 7
-        refuse("turn", "chi chiude il turno ha #{held} carte in mano: prima scarta fino a 7 (§6.5)", "whoever ends the turn holds #{held} cards: discard down to 7 first (§6.5)")
-      else
-        allow("turn")
+        return refuse("turn", "chi chiude il turno ha #{held} carte in mano: prima scarta fino a 7 (§6.5)", "whoever ends the turn holds #{held} cards: discard down to 7 first (§6.5)")
+      end
+
+      # La tassa di Flusso (§3.2, forma certificata «all'inizio di ogni tuo
+      # turno hai N Flusso in meno» finché la carta resta sul Fronte): la
+      # ricarica di chi entra viaggia nel cambio di turno, calcolata dal
+      # client e rifatta qui sulle sue carte in campo.
+      expected = flux_toll(action["active"])
+      given = action["toll"].is_a?(Integer) ? action["toll"] : 0
+      unless given == expected
+        return refuse("turn", "la tassa di Flusso di chi entra è #{expected}, non #{given} (§3.2)", "the incoming player's Flux toll is #{expected}, not #{given} (§3.2)")
+      end
+
+      allow("turn")
+    end
+
+    # Quanto Flusso in meno ha `seat` all'inizio del suo turno: la somma
+    # delle tasse delle carte che comanda, in gioco. Anagrafe assente o
+    # carta ignota: zero, mai molesto.
+    def flux_toll(seat)
+      @table.commanded_uids(seat).sum do |uid|
+        card = @table.card(uid)
+        next 0 unless in_play?(card)
+
+        Array(@cards.dig(card[:card_id], :static_forms)).sum { |form| form[:kind] == "flux_toll" ? form[:amount] : 0 }
       end
     end
 
@@ -1954,7 +1980,8 @@ module Rubyfront
         roll = action["roll"]
         return refuse("look", "si tira un d#{look[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{look[:die]} is rolled: the action carries no valid roll (§8.2)") unless roll.is_a?(Integer) && roll.between?(1, look[:die])
 
-        count = look[:count_base] + (roll + 1) / 2
+        # «2 + ceil(tiro/2)», o «tante carte quanto il tiro».
+        count = look[:formula] == "result" ? roll : look[:count_base] + (roll + 1) / 2
       end
       return refuse("look", "si guardano le prime #{count} carte, non #{action["count"]} (§8.2)") unless action["count"] == count
 

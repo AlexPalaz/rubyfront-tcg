@@ -2042,6 +2042,8 @@ class EngineTest < Minitest::Test
                      enter_looks: [{ count: 4, die: nil, count_base: 0, reveal: { type: "entity", race: "human" }, then_retire: false }] },
     "SCRUTATORE" => { type: "entity", keywords: [], race: "auros",
                     enter_looks: [{ count: nil, die: 6, count_base: 2, reveal: { type: "object", race: nil }, then_retire: true }] },
+    "GUARDIA" => { type: "entity", keywords: [], race: "auros",
+                   enter_looks: [{ count: nil, die: 6, count_base: 0, reveal: { type: "object", race: nil }, then_retire: true, formula: "result" }] },
     "FERRO" => { type: "object", keywords: [] },
     "UMANO" => { type: "entity", keywords: [], race: "human" },
     "AUROS" => { type: "entity", keywords: [], race: "auros" },
@@ -2227,6 +2229,19 @@ class EngineTest < Minitest::Test
     assert_equal "hand", table.card("d2")[:zone]
     assert_equal "ritiro", table.card("d1")[:zone]
     assert_equal %w[d5 d6 d3 d4], table.top_of_deck("a", 4), "le altre in fondo"
+  end
+
+  # Dal 2026-09-10: «tira un d6 e guarda tante carte quanto il tiro».
+  def test_lo_sguardo_col_dado_puo_guardare_tante_carte_quanto_il_tiro
+    engine = Rubyfront::Engine.new(cards: CERCATORI)
+    cards = [{ "uid" => "art", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "GUARDIA" }]
+    cards += [["d1", "PIETRA"], ["d2", "FERRO"], ["d3", "PIETRA"], ["d4", "PIETRA"], ["d5", "PIETRA"], ["d6", "PIETRA"]].map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "a", "zone" => "deck", "order" => i, "cardId" => id } }
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    engine.judge({ "t" => "toZone", "uid" => "art", "zone" => "field", "x" => 442, "y" => 1236 })
+    refute tira_e_guarda(engine, roll: 3, count: 4, reveal: "d2", retire: "d1")[:ok], "con un 3 si guardano 3 carte, non 4"
+    verdict = tira_e_guarda(engine, roll: 3, count: 3, reveal: "d2", retire: "d1")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "hand", copia(engine).card("d2")[:zone]
   end
 
   def test_il_conto_segue_il_tiro_e_il_ritiro_e_obbligatorio
@@ -3236,6 +3251,37 @@ class EngineTest < Minitest::Test
     assert_match(/non è scesa in campo questo turno/, engine.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("m") })[:reason])
     ignota = eredita([["u", "UMANO"], ["z", "IGNOTA"]], b: [["b1", "AUROS"]])
     refute ignota.judge({ "t" => "toZone", "uid" => "b1", "zone" => "ritiro", "effect" => res_ref("z") })[:ruled]
+  end
+
+  # --- §3.2: la tassa di Flusso viaggia nel cambio di turno ---------------------
+
+  TASSE = EREDITA.merge(
+    "GABELLIERE" => { type: "entity", keywords: [], race: "auros", power: 3, flux_cost: 3,
+                      static_forms: [{ kind: "flux_toll", amount: 1 }] }
+  ).freeze
+
+  def test_la_tassa_di_flusso_di_chi_entra_deve_tornare_e_si_paga_alla_ricarica
+    engine = Rubyfront::Engine.new(cards: TASSE)
+    load = lambda do |seat, list|
+      cards = list.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1236 : 172 } }
+      engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
+    end
+    load.call("a", [["g1", "GABELLIERE"], ["g2", "GABELLIERE"], ["u", "UMANO"]])
+    load.call("b", [["x", "AUROS"]])
+    assert engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")[:ok], "B non ha tasse: senza toll"
+    assert_match(/tassa di Flusso di chi entra è 2, non 0/, engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" }, actor: "b")[:reason])
+    assert_match(/è 2, non 1/, engine.judge({ "t" => "turn", "turn" => 3, "active" => "a", "toll" => 1 }, actor: "b")[:reason])
+    verdict = engine.judge({ "t" => "turn", "turn" => 3, "active" => "a", "toll" => 2 }, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    table = copia(engine)
+    assert_equal 2, table.flux_max("a")
+    assert_equal 0, table.flux("a"), "2 di massimo meno 2 di tassa"
+    # In Ritiro non tassa più.
+    engine.judge({ "t" => "toZone", "uid" => "g1", "zone" => "ritiro" }, actor: "a")
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "a")
+    assert_match(/è 1, non 2/, engine.judge({ "t" => "turn", "turn" => 5, "active" => "a", "toll" => 2 }, actor: "b")[:reason])
+    assert engine.judge({ "t" => "turn", "turn" => 5, "active" => "a", "toll" => 1 }, actor: "b")[:ok]
+    assert_equal 2, copia(engine).flux("a"), "3 di massimo meno 1"
   end
 
   # --- §3.1: le abilità speciali del Rubyfront, con la Furia (§8.1) ------------

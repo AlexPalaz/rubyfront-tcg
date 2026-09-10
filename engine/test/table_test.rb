@@ -175,6 +175,12 @@ class TableTest < Minitest::Test
     assert_equal 2, @table.flux("a")
     @table.apply({ "t" => "turn", "turn" => 4, "active" => "b" })
     assert_equal 2, @table.flux("b")
+    # La tassa di Flusso (§3.2) viaggia nell'azione: si ricarica al massimo meno la tassa. Gemello: state.test.ts.
+    @table.apply({ "t" => "turn", "turn" => 5, "active" => "a", "toll" => 2 })
+    assert_equal 3, @table.flux_max("a")
+    assert_equal 1, @table.flux("a")
+    @table.apply({ "t" => "turn", "turn" => 6, "active" => "b", "toll" => 9 })
+    assert_equal 0, @table.flux("b"), "mai sotto zero"
   end
 
   def test_la_nuova_partita_dice_chi_inizia

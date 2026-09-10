@@ -308,7 +308,10 @@ export type Action =
   | { t: "tap"; uid: string; tapped: boolean }
   | { t: "facedown"; uid: string; facedown: boolean }
   | { t: "player"; seat: Seat; patch: Partial<PlayerState>; effect?: EffectRef; roll?: number }
-  | { t: "turn"; turn: number; active: Seat }
+  /** `toll`: la tassa di Flusso di chi entra (§3.2, forma certificata):
+      la calcola il client dalle carte in campo, l'engine la rifà, il
+      riduttore ricarica al massimo meno la tassa. */
+  | { t: "turn"; turn: number; active: Seat; toll?: number }
   /** Dichiara la fase (§6.3): oggi il solo passo avanti verso «fronte». */
   | { t: "phase"; phase: Phase }
   | { t: "declare"; declaration: Declaration; effect?: EffectRef }

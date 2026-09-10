@@ -26,8 +26,6 @@ class CardIndexTest < Minitest::Test
     "RBF-023 nexus/awakening",
     "RBF-023 nexus/deep-forge-sight",
     "RBF-024 entity/grip",
-    "RBF-025 entity/forage",
-    "RBF-028 entity/toll",
     "RBF-030 entity/outfit",
     "RBF-030 entity/carry",
     "RBF-031 entity/aura",
@@ -176,7 +174,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "self_power", amount: 1, per_other: { type: "entity", race: "human" } }], @index["RBF-010"][:static_forms]
     assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-013"][:static_forms], "il +1 dell'Oggetto; la Stasi sta nelle concessioni"
     assert_equal [{ kind: "bearer_power", amount: 1, per: { type: "entity", race: "human" }, multi_block: true }], @index["RBF-014"][:static_forms]
-    assert_equal [], @index["RBF-028"][:static_forms], "«Contrattacco +2 se armata» non è una forma certificata"
+    assert_equal [{ kind: "flux_toll", amount: 1 }], @index["RBF-028"][:static_forms], "dal 2026-09-10 la tassa di Flusso"
     assert_equal [{ kind: "never_taps" }], @index["RBF-011"][:static_forms], "«questa Entità non si tappa mai»"
     assert_equal [{ kind: "never_taps" }], @index["RBF-005"][:static_forms], "dal 2026-09-08 anche il 2 Flussi non si tappa attaccando"
     assert_equal [], @index["RBF-031"][:static_forms], "«+1 alle altre armate» resta nel debito"
@@ -217,7 +215,7 @@ class CardIndexTest < Minitest::Test
 
   def test_lo_sguardo_col_dado_di_scissione_profonda_non_e_piu_certificato
     assert_equal [], @index["RBF-027"][:enter_looks], "dal 2026-09-10 l'Artefice non ha effetti"
-    assert_equal [], @index["RBF-025"][:enter_looks], "«tante carte quanto il tiro» non è la formula certificata («2 + ceil(tiro/2)»): resta a mano"
+    assert_equal [{ count: nil, die: 6, count_base: 0, reveal: { type: "object", race: nil }, then_retire: true, formula: "result" }], @index["RBF-025"][:enter_looks], "dal 2026-09-10 «tante carte quanto il tiro»"
   end
 
   def test_il_radunatore_prende_il_controllo_fino_a_fine_turno

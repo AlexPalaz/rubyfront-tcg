@@ -89,6 +89,7 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   PERMANENTE: { kind: "matter", behavior: "permanent" },
   CERCATORE: { kind: "entity", race: "human", enterLooks: [{ count: 4, die: null, countBase: 0, reveal: { kind: "entity", race: "human" }, thenRetire: false }] },
   ARTEFICE: { kind: "entity", race: "auros", enterLooks: [{ count: null, die: 6, countBase: 2, reveal: { kind: "object", race: null }, thenRetire: true }] },
+  GUARDIA: { kind: "entity", race: "auros", enterLooks: [{ count: null, die: 6, countBase: 0, reveal: { kind: "object", race: null }, thenRetire: true, formula: "result" }] },
   FERRO: { kind: "object" },
   RADUNATORE: { kind: "entity", race: "human", enterControls: [{ target: { kind: "entity", controller: "opponent", maxCost: 3 }, grants: ["surge"] }] },
   PICCOLA: { kind: "entity", race: "auros", fluxCost: 2 },
@@ -471,9 +472,10 @@ describe("enterControls", () => {
 
 // Lo sguardo col dado (§8.2), la forma di RBF-027. Gemello: engine_test.rb.
 describe("lookAfterRoll", () => {
-  it("il conto è 2 più metà del tiro, arrotondata per eccesso", () => {
+  it("il conto è 2 più metà del tiro, arrotondata per eccesso — o tante carte quanto il tiro", () => {
     const look = facts("ARTEFICE").enterLooks[0];
     expect([1, 2, 3, 4, 5, 6].map(roll => lookCount(look, roll))).toEqual([3, 3, 4, 4, 5, 5]);
+    expect([1, 2, 3, 4, 5, 6].map(roll => lookCount(facts("GUARDIA").enterLooks[0], roll))).toEqual([1, 2, 3, 4, 5, 6]);
     const state = newGame();
     const art = on(state, "art", "ARTEFICE");
     for (let i = 1; i <= 6; i++) {

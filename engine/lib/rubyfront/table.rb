@@ -538,7 +538,10 @@ module Rubyfront
           # il primo di chi entra, resta com'è — e il disponibile si ricarica.
           player = @players[@active]
           player[:flux_max] = [FLUX_CAP, player[:flux_max] + 1].min unless @turn <= 2
-          player[:flux] = player[:flux_max]
+          # La tassa di Flusso (§3.2) viaggia nell'azione, verificata
+          # dall'engine: si ricarica al massimo meno la tassa. Gemello: state.ts.
+          toll = action["toll"].is_a?(Integer) ? action["toll"] : 0
+          player[:flux] = [player[:flux_max] - toll, 0].max
           # §6.1: la Pesca del turno, «non si salta mai» — come nel riduttore.
           draw({ "seat" => @active, "count" => 1 })
         end

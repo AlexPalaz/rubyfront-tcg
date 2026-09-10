@@ -232,6 +232,8 @@ const M: Record<string, { it: string; en: string }> = {
   "trigger.retire": { it: "{card} si innesca: metti un'Entità avversaria nella Zona di Ritiro", en: "{card} triggers: put an opposing Entity in the Retire Zone" },
   "trigger.return": { it: "{card} si innesca: metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro", en: "{card} triggers: put a permanent card from your Retire Zone onto your Front" },
   "trigger.look": { it: "{card} si innesca: guarda le prime {n} carte del mazzo", en: "{card} triggers: look at the top {n} cards of the deck" },
+  "trigger.look.roll": { it: "{card} si innesca: tira un d{die} e guarda tante carte del mazzo quanto il tiro", en: "{card} triggers: roll a d{die} and look at as many cards of the deck as the roll" },
+  "log.turn.toll": { it: "{seat}: tassa di Flusso, −{n} (Flusso {flux}/{max}).", en: "{seat}: Flux toll, −{n} (Flux {flux}/{max})." },
   "trigger.look.die": { it: "{card} si innesca: tira un d{die} e guarda {base} più metà del tiro carte del mazzo", en: "{card} triggers: roll a d{die} and look at {base} plus half the roll cards of the deck" },
   "trigger.control": { it: "{card} si innesca: prendi il controllo di un'Entità avversaria fino a fine turno", en: "{card} triggers: take control of an opposing Entity until end of turn" },
   "trigger.attackdraw": { it: "{card} si innesca: pesca {n} {cards}", en: "{card} triggers: draw {n} {cards}" },
