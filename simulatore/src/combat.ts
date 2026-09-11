@@ -6,7 +6,7 @@
 
 import { msg, type LogMsg } from "./i18n.js";
 import type { CardFacts, Ctx } from "./ctx.js";
-import { controllerOf, fieldCards, nextWaveOrder } from "./state.js";
+import { attackBonusFor, controllerOf, declarationOf, fieldCards, nextWaveOrder } from "./state.js";
 import type { Battle, CardInstance, Declaration, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -240,6 +240,10 @@ export async function declareAttack(
     return false;
   }
   const order = nextWaveOrder(ctx.state(), by);
+  // §3.1 — il bonus promesso «alle prossime Entità che attaccano in questo
+  // turno» (la chiamata sul Fronte del Nexus) viaggia nella dichiarazione;
+  // chi ridichiara tiene quello che aveva. L'engine lo pretende uguale.
+  const bonus = attackBonusOf(ctx, card);
   const passed = await ctx.dispatch({
     t: "declare",
     declaration: {
@@ -249,6 +253,7 @@ export async function declareAttack(
       kind: "attack",
       seat: by,
       order,
+      ...(bonus > 0 ? { bonus } : {}),
     },
   });
   // Fermata dal poliziotto (es. §6.2, attesa di evocazione): niente tap,
@@ -259,7 +264,19 @@ export async function declareAttack(
   // tappa mai» (RBF-011): il gesto non parte.
   if (!card.tapped && !neverTaps(ctx.card(card.cardId))) void ctx.dispatch({ t: "tap", uid: card.uid, tapped: true });
   ctx.log(msg("log.attack", { seat: by, n: order }), by);
+  if (bonus > 0) ctx.log(msg("log.attack.bonus", { seat: by, card: card.cardId, n: bonus }), by);
   return true;
+}
+
+/**
+ * §3.1 — il bonus che l'attacco di `card` porta con sé: quello della
+ * dichiarazione già in piedi (ridichiarare non lo cambia), o la promessa
+ * del posto per la sua razza (attackBonusFor).
+ */
+export function attackBonusOf(ctx: Ctx, card: CardInstance): number {
+  const previous = declarationOf(ctx.state(), card.uid);
+  if (previous?.kind === "attack") return previous.bonus ?? 0;
+  return attackBonusFor(ctx.state(), controllerOf(card), ctx.card(card.cardId));
 }
 
 /** Dichiara il blocco (o contrattacco) di `blocker` contro `attackerUid`. */

@@ -78,7 +78,7 @@ module Rubyfront
       # il Flusso (§3.2) e i PV (§2, la fine della partita).
       # I 20 PV sono un segnaposto: i PV veri li porta il mazzo (§3.1,
       # load_deck), stampati sul Rubyfront.
-      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20, token: false, sealed: [], discounts: [] }] }
+      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20, token: false, sealed: [], discounts: [], attack_bonuses: [] }] }
       # §3.2/§4: il Gettone va a chi non inizia — con l'active del reset.
       @players[SEATS.find { |seat| seat != @active }][:token] = true
       # Com'è finita (§2, §9): {winner:, reason:}, nil finché si gioca.
@@ -150,6 +150,24 @@ module Rubyfront
 
     def discounts(seat)
       Array(@players.dig(seat, :discounts))
+    end
+
+    # §3.1 — i bonus promessi «alle prossime Entità X che attaccano in
+    # questo turno» (la chiamata sul Fronte del Nexus): {amount:, race:}.
+    # Gemello: state.ts, attackBonuses.
+    def attack_bonuses(seat)
+      Array(@players.dig(seat, :attack_bonuses))
+    end
+
+    # Il bonus di Potenza di una carta spostato di `delta` (la
+    # dichiarazione d'attacco col bonus, e il suo ritiro): a zero sparisce.
+    # Gemello: state.ts, shiftPowerBonus.
+    def shift_power_bonus(uid, delta)
+      card = @cards[uid]
+      return unless card && delta != 0
+
+      total = (card[:power_bonus] || 0) + delta
+      card[:power_bonus] = total.zero? ? nil : total
     end
 
     def consume_discount(seat, amount)
@@ -240,6 +258,11 @@ module Rubyfront
 
     def declaration_sealed?(uid)
       !!@declarations.dig(uid, :sealed)
+    end
+
+    # La dichiarazione in piedi di quella carta ({to:, kind:, order:, bonus:}), o nil.
+    def declaration(uid)
+      @declarations[uid]
     end
 
     # §6.4: quella carta sta bloccando (o contrattaccando)?
@@ -340,6 +363,11 @@ module Rubyfront
 
           { amount: discount["amount"], type: discount["type"], race: discount["race"].is_a?(String) ? discount["race"] : nil }
         end
+        @players[seat][:attack_bonuses] = Array(player["attackBonuses"]).filter_map do |bonus|
+          next unless bonus.is_a?(Hash) && bonus["amount"].is_a?(Integer)
+
+          { amount: bonus["amount"], race: bonus["race"].is_a?(String) ? bonus["race"] : nil }
+        end
       end
       over = state["over"]
       @over = { winner: over["winner"], reason: over["reason"] } if over.is_a?(Hash)
@@ -347,7 +375,8 @@ module Rubyfront
         next unless declaration.is_a?(Hash) && declaration["from"]
 
         @declarations[declaration["from"]] = { to: declaration["to"], kind: declaration["kind"],
-                                               order: declaration["order"].to_i, sealed: declaration["sealed"] == true }
+                                               order: declaration["order"].to_i, sealed: declaration["sealed"] == true,
+                                               bonus: declaration["bonus"].to_i }
       end
       cards = state["cards"]
       return unless cards.is_a?(Hash)
@@ -449,12 +478,19 @@ module Rubyfront
         declaration = action["declaration"]
         if declaration.is_a?(Hash) && declaration["from"]
           # Una carta dichiara una cosa sola per volta: la nuova sostituisce
-          # la vecchia, come nel client.
+          # la vecchia, come nel client. §3.1 — il bonus «alle prossime
+          # Entità che attaccano» viaggia nella dichiarazione e va sulla
+          # carta fino a fine turno; chi ridichiara non lo prende due volte,
+          # chi ritira lo restituisce. Gemello: state.ts, declare.
+          previous = @declarations[declaration["from"]]
+          bonus = declaration["bonus"].to_i
           @declarations[declaration["from"]] = { to: declaration["to"], kind: declaration["kind"],
-                                                 order: declaration["order"].to_i }
+                                                 order: declaration["order"].to_i, bonus: bonus }
+          shift_power_bonus(declaration["from"], bonus - (previous ? previous[:bonus].to_i : 0))
         end
       when "undeclare"
-        @declarations.delete(action["from"])
+        previous = @declarations.delete(action["from"])
+        shift_power_bonus(action["from"], -previous[:bonus].to_i) if previous
       when "clearCombat"
         @declarations = {}
       when "resolve" then resolve(action)
@@ -546,8 +582,12 @@ module Rubyfront
           @fired = []
           @rolls = {}
           @ability_pending = Hash.new(0)
-          # Gli sconti delle abilità valgono «in questo turno» (§3.1).
-          @players.each_value { |player| player[:discounts] = [] }
+          # Gli sconti delle abilità e i bonus «alle prossime Entità che
+          # attaccano» valgono «in questo turno» (§3.1).
+          @players.each_value do |player|
+            player[:discounts] = []
+            player[:attack_bonuses] = []
+          end
           @chain = nil
           @cards.each_value do |card|
             # «Fino alla fine del turno» (§8.2): bonus, divieti e parole chiave
@@ -618,6 +658,13 @@ module Rubyfront
       discount = action["discount"]
       if discount.is_a?(Hash) && discount["amount"].is_a?(Integer)
         player[:discounts] << { amount: discount["amount"], type: discount["type"], race: discount["race"].is_a?(String) ? discount["race"] : nil }
+      end
+      # La chiamata sul Fronte: la promessa alle prossime attaccanti si
+      # annota sul posto; l'Entità dalla mano segue (to_zone marcato
+      # on_ability), e la sua attivazione resta in sospeso finché non scende.
+      bonus = action["bonus"]
+      if bonus.is_a?(Hash) && bonus["amount"].is_a?(Integer)
+        player[:attack_bonuses] << { amount: bonus["amount"], race: bonus["race"].is_a?(String) ? bonus["race"] : nil }
       end
       @ability_pending["#{action["uid"]}|#{action["ability"]}"] += 1 if action["ability"].is_a?(String) && !action.key?("targets") && !discount
       @ability_used[card[:owner]] = @turn
@@ -867,6 +914,14 @@ module Rubyfront
           stack = (@chain ? @chain[:stack] : []) + [action["uid"]]
           @chain = { stack: stack, turn: SEATS.find { |seat| seat != card[:owner] }, resolving: false }
         end
+        # Le parole chiave concesse dall'ingresso stesso (§3.1, la chiamata
+        # sul Fronte: «ottiene Slancio fino alla fine del turno»), e
+        # l'attivazione dell'abilità che si chiude con la discesa. Gemello:
+        # state.ts, toZone.
+        granted = Array(action["grants"]).select { |keyword| keyword.is_a?(String) }
+        card[:grants] = (Array(card[:grants]) + granted).uniq unless granted.empty?
+        ref = action["effect"]
+        close_ability(ref["source"], ref["ability"]) if ref.is_a?(Hash) && ref["event"] == "on_ability"
         return
       end
       # La carta della catena che lascia il campo (risolta, o svanita) esce

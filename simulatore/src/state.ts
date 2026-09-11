@@ -291,6 +291,10 @@ function reduce(state: GameState, action: Action): GameState {
         next.z = action.z ?? state.zTop;
         next.order = 0;
         if (action.target) next.target = action.target;
+        // Le parole chiave concesse dall'ingresso stesso (§3.1, la chiamata
+        // sul Fronte: «ottiene Slancio fino alla fine del turno»). Gemello:
+        // table.rb, to_zone.
+        if (action.grants?.length) next.grants = [...new Set([...(card.grants ?? []), ...action.grants])];
       } else {
         next.order = action.toBottom
           ? orderForBottom(state, card.owner, action.zone)
@@ -418,6 +422,11 @@ function reduce(state: GameState, action: Action): GameState {
       let hp = player.hp - (action.cost ?? 0) + (action.gain ?? 0) - (action.fail ? 1 : 0);
       if (hp < 0) hp = 0;
       const discounts = action.discount ? [...(player.discounts ?? []), action.discount] : player.discounts;
+      // «Le prossime Entità X che attaccano in questo turno prendono +N
+      // Potenza» (la chiamata sul Fronte del Nexus): la promessa si annota
+      // sul posto, e la riscuote ogni dichiarazione d'attacco che la porta
+      // (declare, `bonus`). Gemello: table.rb, use_ability.
+      const attackBonuses = action.bonus ? [...(player.attackBonuses ?? []), action.bonus] : player.attackBonuses;
       const cards = { ...state.cards };
       if (action.power !== undefined) {
         for (const uid of action.targets ?? []) {
@@ -425,7 +434,11 @@ function reduce(state: GameState, action: Action): GameState {
           if (target && target.zone === "field") cards[uid] = { ...target, powerBonus: (target.powerBonus ?? 0) + action.power };
         }
       }
-      return { ...state, cards, players: { ...state.players, [card.owner]: { ...player, hp, abilityTurn: state.turn, ...(discounts ? { discounts } : {}) } } };
+      return {
+        ...state,
+        cards,
+        players: { ...state.players, [card.owner]: { ...player, hp, abilityTurn: state.turn, ...(discounts ? { discounts } : {}), ...(attackBonuses ? { attackBonuses } : {}) } },
+      };
     }
 
     case "flip": {
@@ -534,10 +547,11 @@ function reduce(state: GameState, action: Action): GameState {
         }
         cards[uid] = fresh;
       }
-      // Gli sconti delle abilità valgono «in questo turno» (§3.1): cadono per tutti.
+      // Gli sconti delle abilità e i bonus «alle prossime Entità che
+      // attaccano» valgono «in questo turno» (§3.1): cadono per tutti.
       const cleared = Object.fromEntries(
         Object.entries(state.players).map(([seat, who]) => {
-          const { discounts: _spent, ...rest } = who;
+          const { discounts: _spent, attackBonuses: _promised, ...rest } = who;
           return [seat, rest];
         })
       ) as GameState["players"];
@@ -562,19 +576,29 @@ function reduce(state: GameState, action: Action): GameState {
     case "phase":
       return { ...state, phase: action.phase };
 
-    case "declare":
+    case "declare": {
       // Una carta dichiara una cosa sola per volta: la nuova sostituisce la
       // vecchia (ripensarci è normale, finché non si risolve).
+      // §3.1 — «le prossime Entità X che attaccano in questo turno prendono
+      // +N Potenza»: il bonus viaggia nella dichiarazione (attackBonusFor,
+      // l'engine lo pretende) e va sulla carta fino a fine turno; chi
+      // ridichiara non lo prende due volte, chi ritira la dichiarazione lo
+      // restituisce (undeclare). Gemello: table.rb, declare.
+      const { declaration } = action;
+      const previous = state.declarations.find(d => d.from === declaration.from);
+      const cards = shiftPowerBonus(state.cards, declaration.from, (declaration.bonus ?? 0) - (previous?.bonus ?? 0));
       return {
         ...state,
-        declarations: [
-          ...state.declarations.filter(d => d.from !== action.declaration.from),
-          action.declaration,
-        ],
+        cards,
+        declarations: [...state.declarations.filter(d => d.from !== declaration.from), declaration],
       };
+    }
 
-    case "undeclare":
-      return { ...state, declarations: state.declarations.filter(d => d.from !== action.from) };
+    case "undeclare": {
+      const previous = state.declarations.find(d => d.from === action.from);
+      const cards = shiftPowerBonus(state.cards, action.from, -(previous?.bonus ?? 0));
+      return { ...state, cards, declarations: state.declarations.filter(d => d.from !== action.from) };
+    }
 
     case "clearCombat":
       return { ...state, declarations: [] };
@@ -961,6 +985,31 @@ export { SEATS };
  * questo tipo e razza giocata ora da `seat`: il primo del conto, o null.
  * Gemello: engine.rb, ability_discount_stopped.
  */
+/** Il bonus di Potenza di una carta spostato di `delta` (§3.1, la dichiarazione d'attacco col bonus): a zero sparisce. */
+function shiftPowerBonus(cards: GameState["cards"], uid: string, delta: number): GameState["cards"] {
+  const card = cards[uid];
+  if (!card || delta === 0) return cards;
+  const total = (card.powerBonus ?? 0) + delta;
+  const shifted: CardInstance = { ...card };
+  if (total === 0) delete shifted.powerBonus;
+  else shifted.powerBonus = total;
+  return { ...cards, [uid]: shifted };
+}
+
+/**
+ * §3.1 — il bonus promesso «alle prossime Entità X che attaccano in questo
+ * turno» (la chiamata sul Fronte del Nexus), per un'Entità di quella razza:
+ * la somma delle promesse del posto. Va nella dichiarazione d'attacco
+ * (`Declaration.bonus`); l'engine rifà il conto. Gemello: engine.rb,
+ * attack_bonus_due.
+ */
+export function attackBonusFor(state: GameState, seat: Seat, facts: { kind: string | null; race: string | null }): number {
+  if (facts.kind !== "entity") return 0;
+  return (state.players[seat].attackBonuses ?? [])
+    .filter(bonus => bonus.race === null || bonus.race === facts.race)
+    .reduce((sum, bonus) => sum + bonus.amount, 0);
+}
+
 export function abilityDiscount(state: GameState, seat: Seat, facts: { kind: string | null; race: string | null }): Discount | null {
   for (const discount of state.players[seat].discounts ?? []) {
     if (discount.type !== facts.kind) continue;

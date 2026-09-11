@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { CONTROL_X, MATTER_X, frontRowY } from "../src/ctx.js";
-import { STACK_STEP, abilityDiscount, apply, attackKey, matterSpot, newGame, pay, playSpot, replay, zoneCards, chainTop } from "../src/state.js";
+import { STACK_STEP, abilityDiscount, apply, attackBonusFor, attackKey, matterSpot, newGame, pay, playSpot, replay, zoneCards, chainTop } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
 function deckFor(seat: Seat, count: number): { cards: CardInstance[] } & Extract<Parameters<typeof apply>[1], { t: "loadDeck" }> {
@@ -866,6 +866,41 @@ describe("apply ability / sconti", () => {
     let state = apply(newGame("a"), { ...deckFor("a", 1), hp: 3 });
     state = apply(state, { t: "ability", uid: "a-1", ability: "x", cost: 3, roll: 1, fail: true });
     expect(state.players.a.hp).toBe(0);
+  });
+
+  // §3.1 — la chiamata sul Fronte del Nexus: la promessa alle prossime
+  // attaccanti sul posto, l'Entità dalla mano con le parole chiave concesse,
+  // il bonus che viaggia nella dichiarazione d'attacco. Gemello: table_test.rb.
+  it("la chiamata sul Fronte: promessa, discesa con Slancio, bonus all'attacco", () => {
+    let state = apply(newGame("a"), { ...deckFor("a", 4), hp: 21 });
+    state = apply(state, { t: "toZone", uid: "a-2", zone: "hand" });
+    state = apply(state, { t: "toZone", uid: "a-3", zone: "hand" });
+    state = apply(state, { t: "ability", uid: "a-1", ability: "chiamata", cost: 7, bonus: { amount: 1, race: "human" } });
+    expect(state.players.a.hp).toBe(14);
+    expect(state.players.a.attackBonuses).toEqual([{ amount: 1, race: "human" }]);
+    expect(attackBonusFor(state, "a", { kind: "entity", race: "human" })).toBe(1);
+    expect(attackBonusFor(state, "a", { kind: "entity", race: "auros" })).toBe(0);
+    expect(attackBonusFor(state, "a", { kind: "object", race: null })).toBe(0);
+    // La discesa: gratis, con lo Slancio concesso dall'ingresso.
+    state = apply(state, { t: "player", seat: "a", patch: { flux: 3 } });
+    state = apply(state, { t: "toZone", uid: "a-2", zone: "field", x: 442, y: 1260, z: 1, grants: ["surge"], effect: { source: "a-1", event: "on_ability", entering: "a-1", ability: "chiamata" } });
+    expect(state.cards["a-2"].zone).toBe("field");
+    expect(state.cards["a-2"].grants).toEqual(["surge"]);
+    expect(state.players.a.flux).toBe(3);
+    // L'attacco porta il bonus, una volta sola; ritirarlo lo restituisce.
+    const attack = { id: "d1", from: "a-2", to: "b-1", kind: "attack" as const, seat: "a" as const, order: 1, bonus: 1 };
+    state = apply(state, { t: "declare", declaration: attack });
+    expect(state.cards["a-2"].powerBonus).toBe(1);
+    state = apply(state, { t: "declare", declaration: { ...attack, id: "d2" } });
+    expect(state.cards["a-2"].powerBonus).toBe(1);
+    state = apply(state, { t: "undeclare", from: "a-2" });
+    expect(state.cards["a-2"].powerBonus).toBeUndefined();
+    state = apply(state, { t: "declare", declaration: attack });
+    // Col turno cadono promessa, bonus e Slancio concesso.
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(state.players.a.attackBonuses).toBeUndefined();
+    expect(state.cards["a-2"].powerBonus).toBeUndefined();
+    expect(state.cards["a-2"].grants).toBeUndefined();
   });
 });
 

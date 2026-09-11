@@ -134,7 +134,9 @@ class CardIndexTest < Minitest::Test
     assert_equal 5, oblivhal[1][:cost]
     assert_equal({ kind: "discount", amount: 1, type: "entity", race: "human" }, oblivhal[2][:form])
     assert_equal [1, 1], oblivhal[2..3].map { |a| a[:face] }
-    assert_nil oblivhal[3][:form], "«metti sul tuo Fronte un Umano dalla mano senza costo…» non è una forma certificata"
+    assert_equal({ kind: "summon", race: "human", grants: ["surge"], bonus: { amount: 1, race: "human" } }, oblivhal[3][:form],
+                 "«metti sul tuo Fronte un Umano dalla mano senza costo, con Slancio; +1 alle prossime attaccanti» è la chiamata sul Fronte")
+    assert_equal 7, oblivhal[3][:cost]
     assert_equal({ 0 => 13 }, @index["RBF-001"][:fury_at], "la Furia solo sulla faccia del Rubyfront, a 13")
     rhazmora = @index["RBF-023"][:abilities]
     assert_equal %w[swift-forge calibrated-strike deep-forge blade-chorus], rhazmora.map { |a| a[:id] }, "dal 2026-09-10 senza il riarmo"

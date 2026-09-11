@@ -3755,6 +3755,8 @@ class EngineTest < Minitest::Test
                     { id: "ignota", face: 0, timing: %w[preparazione], cost: 7, gain: nil, fury: false, form: nil },
                     { id: "passo", face: 1, timing: %w[preparazione], cost: nil, gain: 3, fury: false,
                       form: { kind: "discount", amount: 1, type: "entity", race: "human" } },
+                    { id: "chiamata", face: 1, timing: %w[preparazione fronte], cost: 7, gain: nil, fury: false,
+                      form: { kind: "summon", race: "human", grants: ["surge"], bonus: { amount: 1, race: "human" } } },
                   ] },
     "FERRO" => { type: "object", keywords: [], flux_cost: 2 },
     "GEMMA" => { type: "object", keywords: [], flux_cost: 1 }
@@ -3762,9 +3764,9 @@ class EngineTest < Minitest::Test
 
   # A ha il Rubyfront ARCANO schierato, due Umani e un Auros sul Fronte, un
   # Oggetto addosso all'Umano u1; in mano un Oggetto (FERRO) e un Umano.
-  def arcano(y: 1260, hand: [])
+  def arcano(y: 1260, hand: [], face: 0)
     engine = Rubyfront::Engine.new(cards: ABILITA)
-    a = [["u1", "UMANO"], ["u2", "UMANO"], ["x", "AUROS"], ["rf", "ARCANO", { "y" => y }],
+    a = [["u1", "UMANO"], ["u2", "UMANO"], ["x", "AUROS"], ["rf", "ARCANO", { "y" => y, "face" => face }],
          ["o1", "FERRO", { "assignedTo" => "u1" }], ["h1", "FERRO", { "zone" => "hand" }], ["h2", "CORRIDORE", { "zone" => "hand" }]] + hand
     b = [["b1", "AUROS"], ["rf-b", "RUBINO", { "y" => 172 }]]
     load = lambda do |seat, list|
@@ -3783,8 +3785,9 @@ class EngineTest < Minitest::Test
     engine
   end
 
-  def abilita(engine, id, cost: nil, gain: nil, roll: nil, fail: nil, targets: nil, power: nil, discount: nil, actor: "a")
+  def abilita(engine, id, cost: nil, gain: nil, roll: nil, fail: nil, targets: nil, power: nil, discount: nil, bonus: nil, actor: "a")
     action = { "t" => "ability", "uid" => "rf", "ability" => id }
+    action["bonus"] = bonus unless bonus.nil?
     action["cost"] = cost unless cost.nil?
     action["gain"] = gain unless gain.nil?
     action["roll"] = roll unless roll.nil?
@@ -3887,6 +3890,98 @@ class EngineTest < Minitest::Test
     assert_match(/nessuno sconto/, engine.judge({ "t" => "toZone", "uid" => "h2", "zone" => "field", "x" => 632, "y" => 1260, "cost" => 0, "discount" => 1 }, actor: "a")[:reason])
     engine.judge({ "t" => "turn", "turn" => 6, "active" => "b" }, actor: "a")
     assert_empty copia(engine).discounts("a"), "gli sconti cadono col turno"
+  end
+
+  # --- §3.1: la chiamata sul Fronte del Nexus ---------------------------------
+  #
+  # «Puoi mettere sul tuo Fronte un'Entità Umana dalla tua mano senza
+  # pagarne il costo di Flusso. Quell'Entità ottiene Slancio fino alla fine
+  # del turno, e le prossime Entità Umane che attaccano in questo turno
+  # prendono +1 Potenza fino alla fine del turno» (forma `summon`).
+
+  BONUS = { "amount" => 1, "race" => "human" }.freeze
+
+  def chiamata_ref
+    { "source" => "rf", "event" => "on_ability", "entering" => "rf", "ability" => "chiamata" }
+  end
+
+  def discesa(uid, x: 1199, grants: ["surge"], extra: {})
+    { "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => 1260, "grants" => grants, "effect" => chiamata_ref }.merge(extra)
+  end
+
+  def test_la_chiamata_paga_i_pv_e_porta_la_promessa_stampata
+    engine = arcano(face: 1)
+    assert_match(/promette \+1 Potenza alle prossime Entità Umane.*§3\.1/, abilita(engine, "chiamata", cost: 7)[:reason], "senza la promessa")
+    assert_match(/promette \+1 Potenza/, abilita(engine, "chiamata", cost: 7, bonus: { "amount" => 2, "race" => "human" })[:reason])
+    assert_match(/scende dopo/, abilita(engine, "chiamata", cost: 7, bonus: BONUS, targets: ["u1"])[:reason])
+    assert_match(/non ha quell'abilità/, abilita(arcano, "chiamata", cost: 7, bonus: BONUS)[:reason], "è del Nexus, non del Rubyfront")
+    verdict = abilita(engine, "chiamata", cost: 7, bonus: BONUS)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 14, copia(engine).hp("a")
+    assert_equal [{ amount: 1, race: "human" }], copia(engine).attack_bonuses("a")
+    assert copia(engine).pending_ability?("rf", "chiamata"), "l'Entità dalla mano aspetta"
+  end
+
+  def test_la_discesa_della_chiamata_e_gratis_umana_dalla_mano_sul_fronte_e_una_sola
+    engine = arcano(face: 1, hand: [["h3", "UMANO", { "zone" => "hand" }], ["h4", "AUROS", { "zone" => "hand" }]])
+    assert_match(/non è stata attivata/, engine.judge(discesa("h2"))[:reason], "prima l'abilità")
+    assert abilita(engine, "chiamata", cost: 7, bonus: BONUS)[:ok]
+    assert_match(/senza pagarne il costo/, engine.judge(discesa("h2", extra: { "cost" => 1 }))[:reason])
+    assert_match(/senza pagarne il costo/, engine.judge(discesa("h2", extra: { "discount" => 1 }))[:reason])
+    assert_match(/un'Entità Umana dalla propria mano/, engine.judge(discesa("h4"))[:reason], "un Auros no")
+    assert_match(/un'Entità Umana dalla propria mano/, engine.judge(discesa("h1"))[:reason], "un Oggetto no")
+    assert_match(/un'Entità Umana dalla propria mano/, engine.judge(discesa("u1"))[:reason], "dal campo no")
+    assert_match(/ottiene Slancio fino alla fine del turno/, engine.judge(discesa("h2", grants: []))[:reason])
+    assert_match(/ottiene Slancio/, engine.judge(discesa("h2", grants: ["surge", "revenge"]))[:reason])
+    assert_match(/slot del Fronte/, engine.judge(discesa("h2", x: 2368))[:reason])
+    assert_match(/non altrove/, engine.judge(discesa("h2", extra: { "zone" => "ritiro" }))[:reason])
+    flux = copia(engine).flux("a")
+    verdict = engine.judge(discesa("h2"))
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "field", copia(engine).card("h2")[:zone]
+    assert_equal ["surge"], copia(engine).card("h2")[:grants]
+    assert_equal flux, copia(engine).flux("a"), "gratis"
+    assert_match(/già scesa/, engine.judge(discesa("h3"))[:reason], "una sola per attivazione")
+  end
+
+  def test_la_discesa_della_chiamata_rispetta_il_fronte_pieno_e_il_sigillo
+    engine = arcano(face: 1, hand: [["h3", "UMANO", { "zone" => "hand" }], ["h4", "UMANO", { "zone" => "hand" }]])
+    assert abilita(engine, "chiamata", cost: 7, bonus: BONUS)[:ok]
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["CORRIDORE"] } })
+    assert_match(/sigillata/, engine.judge(discesa("h2"))[:reason], "la carta sigillata dal flip non scende nemmeno gratis")
+    assert engine.judge(discesa("h3"))[:ok]
+    # Quattro Entità in campo più questa: la sesta non scende.
+    assert abilita(engine, "chiamata", cost: 7, bonus: BONUS)[:reason]
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
+    engine.judge({ "t" => "toZone", "uid" => "d1", "zone" => "field", "x" => 1578, "y" => 1260, "cost" => 2 }, actor: "a")
+    assert_equal 5, copia(engine).commanded_uids("a").count { |uid| %w[UMANO AUROS].include?(copia(engine).card(uid)[:card_id]) }
+    assert abilita(engine, "chiamata", cost: 7, bonus: BONUS)[:ok]
+    assert_match(/Fronte è pieno/, engine.judge(discesa("h4", x: 1956))[:reason])
+  end
+
+  def test_l_entita_chiamata_attacca_subito_e_le_umane_portano_il_bonus
+    engine = arcano(face: 1)
+    assert abilita(engine, "chiamata", cost: 7, bonus: BONUS)[:ok]
+    assert engine.judge(discesa("h2"))[:ok]
+    fronte!(engine)
+    attack = lambda { |uid, bonus| { "t" => "declare", "declaration" => { "id" => "x", "from" => uid, "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 }.merge(bonus.nil? ? {} : { "bonus" => bonus }) } }
+    assert_match(/deve portare il bonus.*§3\.1/, engine.judge(attack.call("h2", nil))[:reason], "l'Umana appena scesa attacca (Slancio) col bonus")
+    assert_match(/deve portare il bonus/, engine.judge(attack.call("h2", 2))[:reason])
+    verdict = engine.judge(attack.call("h2", 1))
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 1, copia(engine).card("h2")[:power_bonus]
+    assert engine.judge(attack.call("h2", 1))[:ok], "ridichiarare porta lo stesso bonus"
+    assert_equal 1, copia(engine).card("h2")[:power_bonus], "e non lo prende due volte"
+    assert_match(/nessun bonus è promesso/, engine.judge(attack.call("x", 1))[:reason], "un Auros no")
+    assert engine.judge(attack.call("x", nil))[:ok]
+    assert engine.judge(attack.call("u1", 1))[:ok], "ogni Umana che attacca dopo lo prende"
+    assert engine.judge({ "t" => "undeclare", "from" => "u1" })[:ok]
+    assert_nil copia(engine).card("u1")[:power_bonus], "ritirare l'attacco restituisce il bonus"
+    engine.judge({ "t" => "clearCombat" }, actor: "a")
+    passed = engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "a")
+    assert passed[:ok], passed[:reason]
+    assert_empty copia(engine).attack_bonuses("a"), "la promessa cade col turno"
   end
 
   # --- §3.1: il Nexus — il flip e «quando flippa» -----------------------------

@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.67.0"
+    VERSION = "0.68.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -101,6 +101,7 @@ module Rubyfront
       "§8.2 Effetti certificati: «guarda le prime N e tira un d20: mostra per fascia, o una in cima; poi una in Ritiro, le altre in fondo»",
       "§3.1 Il Rubyfront/Nexus «la prima volta in ogni tuo turno che assegni un Oggetto»: prima e ultima del mazzo, scambiate (poi pesca e scarta) o una in mano e l'altra in Ritiro",
       "§8.2 Effetti certificati: «quando quell'Entità muore, questo Oggetto in Ritiro invece che nell'Abisso; poi un altro Oggetto dal Ritiro a una disarmata, gratis»",
+      "§3.1 La chiamata sul Fronte del Nexus: un'Entità dalla mano senza costo, con Slancio, e +N alle prossime attaccanti del turno",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -176,6 +177,7 @@ module Rubyfront
       "§8.2 Certified effects: “look at the top N and roll a d20: reveal by band, or one on top; then one to Retire, the rest to the bottom”",
       "§3.1 The Rubyfront/Nexus “the first time each of your turns you assign an Object”: top and bottom of the deck, swapped (then draw and discard) or one to hand and the other to Retire",
       "§8.2 Certified effects: “when that Entity dies, this Object to Retire instead of the Abyss; then another Object from Retire onto an unarmed one, for free”",
+      "§3.1 The Nexus's call to the Front: an Entity from hand at no cost, with Surge, and +N to the next attackers this turn",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -990,6 +992,12 @@ module Rubyfront
       end
       if kind != "attack" && commander == @table.active
         return refuse("declare", "blocca chi difende: i blocchi si dichiarano nel turno dell'attaccante (§6.3)", "the defender blocks: blocks are declared on the attacker's turn (§6.3)")
+      end
+      # §3.1 — il bonus promesso «alle prossime Entità X che attaccano in
+      # questo turno»: la dichiarazione lo porta, né più né meno.
+      if kind == "attack"
+        stopped = attack_bonus_stopped(card, declaration)
+        return stopped if stopped
       end
 
       return refuse("declare", "la carta è coperta: finché è coperta non può fare nulla (§6.3)", "the card is covered: while covered it can't do anything (§6.3)") if card[:facedown]
@@ -2894,8 +2902,55 @@ module Rubyfront
         end
       when "look"
         return refuse("ability", "lo sguardo nel mazzo si risolve dopo, con l'azione di sguardo (§3.1)", "the look into the deck resolves afterwards, with the look action (§3.1)") if action.key?("targets") || action.key?("discount")
+      when "summon"
+        # La chiamata sul Fronte: l'azione porta la promessa alle prossime
+        # attaccanti così com'è stampata; l'Entità dalla mano scende dopo,
+        # con la sua azione marcata dall'abilità (judge_ability_summon).
+        promised = form[:bonus]
+        given = action["bonus"]
+        unless given.is_a?(Hash) && given["amount"] == promised[:amount] && given["race"] == promised[:race]
+          return refuse("ability", "l'abilità promette +#{promised[:amount]} Potenza alle prossime #{entity_label(promised[:race])} che attaccano in questo turno: l'azione dice altro (§3.1)", "the ability promises +#{promised[:amount]} Power to the next #{entity_label_en(promised[:race])} attacking this turn: the action says otherwise (§3.1)")
+        end
+        return refuse("ability", "l'Entità dalla mano scende dopo, con la sua azione marcata dall'abilità (§3.1)", "the Entity from hand comes down afterwards, with its own action marked by the ability (§3.1)") if action.key?("targets") || action.key?("discount")
       end
       allow("ability")
+    end
+
+    # «Entità Umane» / «Human Entities», o senza razza.
+    def entity_label(race)
+      race == "human" ? "Entità Umane" : "Entità"
+    end
+
+    def entity_label_en(race)
+      race == "human" ? "Human Entities" : "Entities"
+    end
+
+    KEYWORD_IT = { "surge" => "Slancio", "revenge" => "Vendetta", "stasis" => "Stasi", "fury" => "Furia" }.freeze
+    KEYWORD_EN = { "surge" => "Surge", "revenge" => "Revenge", "stasis" => "Stasis", "fury" => "Fury" }.freeze
+
+    # §3.1 — il bonus dovuto a un attacco: la somma delle promesse del posto
+    # che comanda la carta per la sua razza; zero per una carta ignota.
+    def attack_bonus_due(card)
+      entry = @cards[card[:card_id]]
+      return 0 unless entry && entry[:type] == "entity"
+
+      @table.attack_bonuses(@table.controller_of(card)).sum { |bonus| bonus[:race].nil? || bonus[:race] == entry[:race] ? bonus[:amount] : 0 }
+    end
+
+    # La dichiarazione d'attacco porta il bonus dovuto (la promessa della
+    # chiamata sul Fronte), né più né meno; chi ridichiara tiene quello che
+    # aveva (il riduttore e la copia non lo danno due volte).
+    def attack_bonus_stopped(card, declaration)
+      previous = @table.declaration(declaration["from"])
+      due = previous ? previous[:bonus].to_i : attack_bonus_due(card)
+      given = declaration["bonus"].nil? ? 0 : declaration["bonus"]
+      return nil if given == due
+
+      if due.positive?
+        refuse("declare", "l'abilità promette +#{due} Potenza a chi attacca adesso: la dichiarazione deve portare il bonus (§3.1)", "the ability promises +#{due} Power to whoever attacks now: the declaration must carry the bonus (§3.1)")
+      else
+        refuse("declare", "nessun bonus è promesso a questo attacco: la dichiarazione non ne porta (§3.1)", "no bonus is promised to this attack: the declaration carries none (§3.1)")
+      end
     end
 
     # I bersagli del potenziamento: le proprie Entità in campo del filtro
@@ -2944,7 +2999,7 @@ module Rubyfront
     # (`look` marcato `on_ability`), una volta per attivazione.
     def judge_ability_effect(action, ref)
       kind = action["t"]
-      return refuse(kind, "il seguito di un'abilità è lo sguardo nel mazzo, per ora (§3.1)", "an ability's follow-up is the look into the deck, for now (§3.1)") unless kind == "look"
+      return refuse(kind, "il seguito di un'abilità è lo sguardo nel mazzo o la discesa sul Fronte (§3.1)", "an ability's follow-up is the look into the deck or the entry onto the Front (§3.1)") unless %w[look toZone].include?(kind)
 
       source = @table.card(ref["source"])
       return refuse(kind, "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
@@ -2954,6 +3009,12 @@ module Rubyfront
 
       ability = Array(known[:abilities]).find { |candidate| candidate[:id] == ref["ability"] && candidate[:face] == (source[:face] || 0) }
       form = ability && ability[:form]
+      if kind == "toZone"
+        return refuse(kind, "quell'abilità non mette nessuno sul Fronte (§3.1)", "that ability puts nobody onto the Front (§3.1)") unless form && form[:kind] == "summon"
+        return refuse(kind, "quell'abilità non è stata attivata in questo turno, o la sua Entità è già scesa (§3.1)", "that ability wasn't activated this turn, or its Entity has already come down (§3.1)") unless @table.pending_ability?(ref["source"], ref["ability"])
+
+        return judge_ability_summon(action, source, form)
+      end
       return refuse(kind, "quell'abilità non guarda nel mazzo (§3.1)", "that ability doesn't look into the deck (§3.1)") unless form && form[:kind] == "look"
       return refuse(kind, "quell'abilità non è stata attivata in questo turno, o il suo sguardo è già stato fatto (§3.1)", "that ability wasn't activated this turn, or its look has already been done (§3.1)") unless @table.pending_ability?(ref["source"], ref["ability"])
       return refuse(kind, "si guarda nel proprio mazzo (§8.2)", "you look in your own deck (§8.2)") unless action["seat"] == source[:owner]
@@ -2973,6 +3034,38 @@ module Rubyfront
         unless entry[:type] == wanted[:type] && (wanted[:race].nil? || entry[:race] == wanted[:race])
           return refuse(kind, "si può mostrare solo #{wanted[:type] == "object" ? "un Oggetto" : "un'Entità"}#{wanted[:race] ? " di razza #{wanted[:race]}" : ""}: non questa (§8.2)", "only #{wanted[:type] == "object" ? "an Object" : "an Entity"}#{wanted[:race] ? " of race #{wanted[:race]}" : ""} can be revealed: not this one (§8.2)")
         end
+      end
+      allow(kind)
+    end
+
+    # §3.1 — la discesa della chiamata sul Fronte: un'Entità della razza
+    # chiesta dalla propria mano, senza costo né sconto, sul proprio Fronte
+    # (uno slot, non pieno, non sigillata), con le parole chiave concesse
+    # dalla forma dichiarate nell'azione — l'engine le pretende uguali.
+    def judge_ability_summon(action, source, form)
+      kind = "toZone"
+      return refuse(kind, "l'Entità arriva senza pagarne il costo di Flusso (§3.1)", "the Entity comes without paying its Flux cost (§3.1)") if action.key?("cost") || action.key?("discount")
+      return refuse(kind, "l'abilità mette l'Entità sul Fronte, non altrove (§3.1)", "the ability puts the Entity onto the Front, nowhere else (§3.1)") unless action["zone"] == "field"
+
+      seat = source[:owner]
+      card = @table.card(action["uid"])
+      entry = card && @cards[card[:card_id]]
+      return no_rule(kind) if card && entry.nil?
+
+      unless card && card[:zone] == "hand" && card[:owner] == seat && entry[:type] == "entity" && (form[:race].nil? || entry[:race] == form[:race])
+        return refuse(kind, "sul Fronte scende #{form[:race] == "human" ? "un'Entità Umana" : "un'Entità"} dalla propria mano (§3.1)", "#{form[:race] == "human" ? "a Human Entity" : "an Entity"} from your own hand comes onto the Front (§3.1)")
+      end
+      if @table.sealed?(seat, card[:card_id])
+        return refuse(kind, "quella carta non si può più giocare per il resto della partita: l'ha sigillata il flip del Nexus (§8.2)", "that card can no longer be played for the rest of the game: the Nexus flip sealed it (§8.2)")
+      end
+      return refuse(kind, "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)", "the Front is full: five Entities are the maximum (§6.2, Full Front)") if count_entities(seat, nil) >= 5
+      return refuse(kind, "le Entità stanno sugli slot del Fronte, nella propria fila (§5)", "Entities sit on the Front slots, in their own row (§5)") unless on_slot?(card, action)
+
+      granted = action["grants"]
+      unless granted.is_a?(Array) && granted.sort == form[:grants].sort
+        names = form[:grants].map { |keyword| KEYWORD_IT.fetch(keyword, keyword) }.join(", ")
+        names_en = form[:grants].map { |keyword| KEYWORD_EN.fetch(keyword, keyword) }.join(", ")
+        return refuse(kind, "l'Entità ottiene #{names} fino alla fine del turno: l'azione deve dirlo (§3.1)", "the Entity gains #{names_en} until end of turn: the action must say so (§3.1)")
       end
       allow(kind)
     end

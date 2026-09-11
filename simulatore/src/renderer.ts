@@ -1178,7 +1178,8 @@ function flipFormsOf(faces: CardFace[]): FlipForm[] {
 /**
  * Le abilità speciali del Rubyfront/Nexus (§3.1), specchio di
  * card_index.rb, abilities: dalle `actions` di ogni faccia, con la forma
- * certificata dell'effetto (sguardo, potenziamento, sconto) o null.
+ * certificata dell'effetto (sguardo, potenziamento, sconto, chiamata sul
+ * Fronte) o null.
  */
 function abilitiesOf(faces: CardFace[]): Ability[] {
   const out: Ability[] = [];
@@ -1235,6 +1236,22 @@ function abilityFormOf(effect: Loose | undefined): AbilityForm | null {
     const filter = (effect.target ?? effect.filter) as Loose | undefined;
     if (!filter || (filter.cardType !== "entity" && filter.cardType !== "object")) return null;
     return { kind: "discount", amount: effect.amount as number, type: filter.cardType, race: typeof filter.race === "string" ? filter.race : null };
+  }
+  if (effect.type === "move_card") {
+    // La chiamata sul Fronte (RBF-001, Nexus): un'Entità dalla mano senza
+    // costo, con parole chiave fino a fine turno, e +N alle prossime
+    // Entità Umane che attaccano nel turno. Specchio di card_index.rb.
+    const target = effect.target as Loose | undefined;
+    const d = effect.details as Loose | undefined;
+    if (!target || target.cardType !== "entity" || target.controller !== "controller" || target.min !== 0 || target.max !== 1) return null;
+    if (effect.from?.zone !== "hand" || effect.from?.owner !== "controller") return null;
+    if (effect.destination?.zone !== "front" || effect.destination?.owner !== "controller") return null;
+    if (!d || d.noFluxCost !== true) return null;
+    const grants = Array.isArray(d.grants) ? (d.grants as unknown[]) : [];
+    if (!grants.every(keyword => typeof keyword === "string")) return null;
+    const bonus = d.thenNextHumanAttackersThisTurn as Loose | undefined;
+    if (!bonus || !Number.isInteger(bonus.powerBonus) || bonus.duration !== "until_end_of_turn") return null;
+    return { kind: "summon", race: typeof target.race === "string" ? target.race : null, grants: grants as string[], bonus: { amount: bonus.powerBonus as number, race: "human" } };
   }
   return null;
 }

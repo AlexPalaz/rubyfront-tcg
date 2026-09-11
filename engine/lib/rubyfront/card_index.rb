@@ -1084,7 +1084,9 @@ module Rubyfront
     # Forme certificate: lo sguardo nel mazzo (le prime N, mostrane una del
     # tipo/razza in mano, le altre in fondo), il potenziamento di Potenza
     # fino a fine turno (a tutte le proprie Entità di un filtro, o a una), lo
-    # sconto sulla prossima carta di un tipo giocata nel turno.
+    # sconto sulla prossima carta di un tipo giocata nel turno, la chiamata
+    # sul Fronte (un'Entità dalla mano senza costo, con parole chiave fino a
+    # fine turno, e +N alle prossime attaccanti della razza nel turno).
     def self.abilities(faces)
       faces.each_with_index.flat_map do |face, index|
         Array(face["actions"]).filter_map do |action|
@@ -1136,6 +1138,27 @@ module Rubyfront
         return nil unless filter.is_a?(Hash) && %w[entity object].include?(filter["cardType"])
 
         { kind: "discount", amount: effect["amount"], type: filter["cardType"], race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze
+      when "move_card"
+        # «Puoi mettere sul tuo Fronte un'Entità [razza] dalla tua mano senza
+        # pagarne il costo di Flusso. Quell'Entità ottiene [parole chiave]
+        # fino alla fine del turno, e le prossime Entità Umane che attaccano
+        # in questo turno prendono +N Potenza»: la chiamata sul Fronte.
+        # Facoltativa (min 0, max 1), dalla propria mano al proprio Fronte.
+        target = effect["target"]
+        details = effect["details"]
+        return nil unless target.is_a?(Hash) && target["cardType"] == "entity" && target["controller"] == "controller" && target["min"] == 0 && target["max"] == 1
+        return nil unless effect.dig("from", "zone") == "hand" && effect.dig("from", "owner") == "controller"
+        return nil unless effect.dig("destination", "zone") == "front" && effect.dig("destination", "owner") == "controller"
+        return nil unless details.is_a?(Hash) && details["noFluxCost"] == true
+
+        grants = Array(details["grants"])
+        return nil unless grants.all? { |keyword| keyword.is_a?(String) }
+
+        bonus = details["thenNextHumanAttackersThisTurn"]
+        return nil unless bonus.is_a?(Hash) && bonus["powerBonus"].is_a?(Integer) && bonus["duration"] == "until_end_of_turn"
+
+        { kind: "summon", race: target["race"].is_a?(String) ? target["race"] : nil, grants: grants.freeze,
+          bonus: { amount: bonus["powerBonus"], race: "human" }.freeze }.freeze
       end
     end
 

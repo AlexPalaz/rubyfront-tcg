@@ -811,8 +811,8 @@ Regole collegate finora:
   mai sotto 1 di costo; il riduttore e la copia lo consumano. Limiti
   dichiarati: un'abilità il cui effetto non ha forma certificata **non si
   attiva** con l'arbitro (l'engine non saprebbe verificarne l'effetto, e i
-  PV non si pagano per niente): oggi «metti sul tuo Fronte un Umano dalla
-  mano senza costo…» resta a mano, e la voce lo dice;
+  PV non si pagano per niente): «metti sul tuo Fronte un Umano dalla mano
+  senza costo…» è restata a mano fino alla forma `summon` (engine 0.68.0);
   la perdita della partita a PV zero dopo un'abilità la chiude la fine
   partita, non questa dogana; le attivazioni in sospeso e gli sconti non
   viaggiano nello snapshot d'allineamento (dopo un riallineamento a metà
@@ -1032,6 +1032,30 @@ Regole collegate finora:
   di un Oggetto in campo. Limite dichiarato: un effetto che mandi in Ritiro
   un Oggetto, risolto a mano perché l'engine non lo legge, verrebbe fermato
   a torto (regola d'oro). Engine 0.67.0.
+
+- **§3.1 La chiamata sul Fronte del Nexus** — la quarta forma certificata
+  delle abilità speciali: «puoi mettere sul tuo Fronte un'Entità Umana dalla
+  tua mano senza pagarne il costo di Flusso; quell'Entità ottiene Slancio
+  fino alla fine del turno, e le prossime Entità Umane che attaccano in
+  questo turno prendono +1 Potenza fino alla fine del turno» (forma
+  `summon`: razza, parole chiave concesse, promessa alle attaccanti).
+  L'azione `ability` porta la promessa (`bonus {amount, race}`), che
+  l'engine pretende uguale alla forma e i gemelli annotano sul posto; la
+  discesa segue come `toZone` marcato `on_ability`, senza `cost`, con le
+  parole chiave in `grants`: un'Entità della razza dalla propria mano, non
+  sigillata, sul proprio Fronte (slot, non pieno), una sola per
+  attivazione — la copia chiude l'attivazione con la discesa e concede le
+  parole chiave fino a fine turno (lo Slancio concesso fa attaccare subito,
+  §6.2). La promessa si riscuote con la **dichiarazione d'attacco**: il
+  client vi mette `bonus` (la somma delle promesse del posto per la razza,
+  `attackBonusFor`), l'engine lo pretende né più né meno (chi ridichiara
+  tiene quello che aveva), i gemelli lo applicano alla carta fino a fine
+  turno e lo restituiscono col ritiro della dichiarazione. La chiamata è
+  facoltativa: senza Entità o a Fronte pieno l'abilità si usa lo stesso, per
+  la promessa. Limiti dichiarati: la promessa non viaggia nello snapshot
+  d'allineamento; un effetto che desse +N «alle prossime attaccanti» fuori
+  da questa abilità non esiste, e risolto a mano verrebbe fermato a torto
+  (regola d'oro). Engine 0.68.0.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore

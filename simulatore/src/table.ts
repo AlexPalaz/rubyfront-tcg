@@ -9,7 +9,7 @@ import { msg, t } from "./i18n.js";
 import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
 import { createCardEl, fitPending, keywordIcon, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
 import { playSound } from "./sound.js";
-import { declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticCounter, staticPower, undeclare, wornBy } from "./combat.js";
+import { attackBonusOf, declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticCounter, staticPower, undeclare, wornBy } from "./combat.js";
 import { armPreview, disarmPreview, tapPreview } from "./preview.js";
 import {
   COMPACT_TILE_H,
@@ -585,12 +585,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   });
   chainBar.append(chainText, chainAccept);
 
-  // §7.2 — con la catena aperta il tavolo va sotto un velo e non si tocca
+  // §7.2 — con la catena aperta il tavolo va in penombra e non si tocca
   // (deciso 2026-09-11): si risponde dalla mano, o si accetta dalla barra.
-  const chainVeil = document.createElement("div");
-  chainVeil.className = "chain-veil";
-  chainVeil.hidden = true;
-  root.append(board, chainVeil, oppHand, myHand, handDrop, handToggle, targetHint, chainBar);
+  // La penombra è tutta CSS (body.is-chain, style.css): le Reattive in
+  // catena (.is-chained) restano in luce.
+  root.append(board, oppHand, myHand, handDrop, handToggle, targetHint, chainBar);
 
   // La lavagna si vede sempre tutta in larghezza: quando la finestra è più
   // stretta dei 2700px canonici, la superficie si scala di conseguenza (e le
@@ -1530,9 +1529,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           const target = rubyfrontOf(otherSeat(by));
           if (target) {
             const order = nextWaveOrder(ctx.state(), by);
+            // §3.1 — anche chi torna e attacca insieme porta il bonus promesso alle prossime attaccanti.
+            const bonus = attackBonusOf(ctx, ctx.state().cards[chosen.uid] ?? chosen);
             const joined = await ctx.dispatch({
               t: "declare",
-              declaration: { id: crypto.randomUUID(), from: chosen.uid, to: target.uid, kind: "attack", seat: by, order },
+              declaration: { id: crypto.randomUUID(), from: chosen.uid, to: target.uid, kind: "attack", seat: by, order, ...(bonus > 0 ? { bonus } : {}) },
               effect: { source: step.source.uid, event: "on_attack", entering: chosen.uid, follow: "join" },
             });
             if (joined) {
@@ -2190,7 +2191,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * non paga di qui: il suo costo di schieramento può essere un dado, e si
    * regola a mano (§3.1). Dice se il gesto è passato.
    */
-  async function place(card: CardInstance, x: number, y: number, z: number): Promise<boolean> {
+  /**
+   * La discesa gratis di un'abilità (§3.1, la chiamata sul Fronte del
+   * Nexus): l'azione porta il riferimento all'abilità e le parole chiave
+   * concesse, e non paga Flusso — l'engine lo pretende così.
+   */
+  type FreeEntry = { effect: EffectRef; grants: string[] };
+
+  async function place(card: CardInstance, x: number, y: number, z: number, free: FreeEntry | null = null): Promise<boolean> {
     if (card.zone === "field") {
       // Con l'arbitro i pixel non si sono mossi durante il trascinamento:
       // riposare la carta dov'era non è uno spostamento, e la dogana degli
@@ -2212,10 +2220,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         }
       }
     }
-    let cost = card.zone === "hand" && !isRubyfront(card.cardId) ? facts.fluxCost : null;
+    let cost = card.zone === "hand" && !isRubyfront(card.cardId) && !free ? facts.fluxCost : null;
     // L'Oggetto sul portatore che sconta («gli Oggetti che assegni a questa
     // Entità costano N in meno»): il costo lo dice objectCost, come l'engine.
-    if (card.zone === "hand" && facts.kind === "object") cost = objectCost(ctx.state(), ctx.state().cards[card.uid] ?? card, ctx.card);
+    if (card.zone === "hand" && facts.kind === "object" && !free) cost = objectCost(ctx.state(), ctx.state().cards[card.uid] ?? card, ctx.card);
     // Una Materia che chiede il bersaglio già giocandola (RBF-021: «se
     // bersaglia un'Entità tappata, costa 3 in meno»): si mira prima, il
     // bersaglio viaggia nell'azione e lo sconto ne discende. Esc: nessun
@@ -2249,8 +2257,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       ...(abilityOff ? { discount: abilityOff.amount } : {}),
       ...(target ? { target: target.uid } : {}),
       ...(reactive ? { chain: true as const } : {}),
+      ...(free ? { effect: free.effect, grants: free.grants } : {}),
     });
     const effects = card.zone === "hand" ? enterEffects(card.cardId, card.face, ctx.locale()) : [];
+    if (passed && free) {
+      ctx.log(msg("log.ability.summon", { seat: card.owner, card: card.cardId, grants: free.grants.map(keyword => msg(`grant.${keyword}`)) }), card.owner);
+    }
     if (passed && cost !== null) {
       const player = ctx.state().players[card.owner];
       // In chat solo il gesto: il testo dell'effetto si legge sulla carta,
@@ -2418,6 +2430,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       render();
     });
   }
+
+  /** Lo z-index delle Reattive in catena: sopra frecce (99999), tasti
+      (99998) e coperchio del Controllo (100000). */
+  const CHAIN_Z = 200001;
 
   /** Il posto della carta in catena, nel varco fra i due campi, a scaletta: in coordinate di VISTA. */
   function chainSpot(index: number): { x: number; y: number } {
@@ -3438,6 +3454,30 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const form = ability.form;
     if (!form) return false;
     let targets: string[] | null = null;
+    // La chiamata sul Fronte: l'Entità dalla mano si sceglie PRIMA di
+    // pagare (chi rinuncia non paga); senza Entità o senza slot si può
+    // usare lo stesso, per il bonus alle attaccanti («puoi»).
+    let summon: { card: CardInstance; spot: { x: number; y: number } } | null = null;
+    if (form.kind === "summon") {
+      const sealed = ctx.state().players[by].sealed ?? [];
+      const candidates = zoneCards(ctx.state(), by, "hand").filter(other => {
+        const facts = ctx.card(other.cardId);
+        return facts.kind === "entity" && (form.race === null || facts.race === form.race) && !sealed.includes(other.cardId);
+      });
+      const spot = freeFrontSlotOrNull(ctx.state(), by);
+      let chosen: CardInstance | null = null;
+      if (candidates.length && spot) {
+        light(card.uid, true);
+        // Il bot sceglie la più forte (pickTarget), non «la meno cara da scartare».
+        chosen = auto && isAuto(by) ? auto.chooser.pickTarget(card, candidates) : await pickFromPile(by, "hand", candidates, t("pick.ability.summon"));
+        light(card.uid, false);
+      }
+      if (chosen && spot) summon = { card: chosen, spot };
+      else {
+        const go = await confirmFor(by, t("confirm.ability.nosummon", { name: copy.name, price }));
+        if (!go) return false;
+      }
+    }
     if (form.kind === "power") {
       const candidates = fieldCards(ctx.state()).filter(other => {
         if (controllerOf(other) !== by) return false;
@@ -3492,6 +3532,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         ...(fail ? { fail: true as const } : {}),
         ...(targets !== null ? { targets, power: form.kind === "power" ? form.amount : 0 } : {}),
         ...(discount ? { discount } : {}),
+        ...(form.kind === "summon" ? { bonus: form.bonus } : {}),
       });
       if (passed) {
         if (roll !== null) ctx.log(msg("log.ability.fury", { seat: by, roll, outcome: msg(fail ? "fury.fail" : "fury.ok") }), by);
@@ -3504,11 +3545,28 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           const what = msg(discount.type === "object" ? "what.object" : discount.race === "human" ? "what.entity.human" : "what.entity");
           ctx.log(msg("log.ability.discount", { seat: by, what, n: discount.amount }), by);
         }
+        if (form.kind === "summon") {
+          ctx.log(msg("log.ability.bonus", { seat: by, what: msg(form.bonus.race === "human" ? "what.entities.human" : "what.entities"), n: form.bonus.amount }), by);
+        }
         await wait(TRIGGER_TAIL_MS);
       }
     } finally {
       light(card.uid, false);
       hold(false);
+    }
+    // La discesa della chiamata sul Fronte: la stessa via di una carta
+    // giocata (scena d'ingresso, inneschi), gratis e marcata dall'abilità.
+    if (passed && form.kind === "summon") {
+      const live = ctx.state().cards[card.uid];
+      if (live && summon) {
+        const spot = freeFrontSlotOrNull(ctx.state(), by) ?? summon.spot;
+        await place(summon.card, spot.x, spot.y, ctx.state().zTop + 1, {
+          effect: { source: live.uid, event: "on_ability", entering: live.uid, ability: ability.id },
+          grants: form.grants,
+        });
+      }
+      render();
+      return true;
     }
     if (!passed || form.kind !== "look") {
       render();
@@ -4624,10 +4682,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
 
     // §7.2 — la barra della catena: cosa c'è in cima, e a chi tocca. Col
-    // velo sul tavolo, che resta inerte finché la catena non si è sciolta.
+    // tavolo in penombra, inerte finché la catena non si è sciolta.
     const chain = state.chain;
     const top = chainTop(state);
-    chainVeil.hidden = !chain;
     document.body.classList.toggle("is-chain", !!chain);
     if (chain && top) {
       const card = `«${cardName(top.cardId, ctx.locale())}»`;
@@ -4672,7 +4729,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       // la forma la decide syncCardEl (tileFor), qui solo la misura.
       tile.style.height = `${tileViewH()}px`;
       tile.classList.remove("is-unaffordable");
-      tile.style.zIndex = chainIndex >= 0 ? String(900 + chainIndex) : String(10 + card.z);
+      // Le Reattive in catena sopra il velo, accese (style.css, .is-chained).
+      tile.classList.toggle("is-chained", chainIndex >= 0);
+      tile.style.zIndex = chainIndex >= 0 ? String(CHAIN_Z + chainIndex) : String(10 + card.z);
     }
 
     // In rincasso la mano avversaria vive nel pannello: la fascia in cima

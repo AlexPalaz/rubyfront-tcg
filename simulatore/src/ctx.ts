@@ -178,7 +178,12 @@ export type AbilityForm =
   /** «+N Potenza fino alla fine del turno» a tutte le proprie Entità del filtro, o a una. */
   | { kind: "power"; amount: number; targets: "all" | "one"; race: string | null; attacking: boolean; armed: boolean }
   /** «La prossima carta X che giochi in questo turno costa N in meno.» */
-  | { kind: "discount"; amount: number; type: "entity" | "object"; race: string | null };
+  | { kind: "discount"; amount: number; type: "entity" | "object"; race: string | null }
+  /** «Puoi mettere sul tuo Fronte un'Entità [razza] dalla tua mano senza
+      pagarne il costo di Flusso. Ottiene [parole chiave] fino alla fine del
+      turno, e le prossime Entità Umane che attaccano in questo turno
+      prendono +N Potenza.» La chiamata sul Fronte: facoltativa. */
+  | { kind: "summon"; race: string | null; grants: string[]; bonus: { amount: number; race: string | null } };
 
 export interface NexusRequirement {
   face: number;

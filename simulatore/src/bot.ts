@@ -378,6 +378,19 @@ export function chooseAbility(state: GameState, seat: Seat, facts: Facts, memory
       const flux = player.flux + (player.token ? 1 : 0);
       const unlocks = costs.some(c => c > flux && c - form.amount <= flux);
       worth = costs.length === 0 ? 0 : unlocks ? 3 : 1;
+    } else if (form.kind === "summon") {
+      // La chiamata sul Fronte: in Preparazione, se in mano c'è un'Entità
+      // della razza da mettere giù e uno slot libero — vale il Flusso
+      // risparmiato, più lo Slancio e il bonus alle attaccanti.
+      if (state.phase !== "preparazione" || !freeFrontSlotOrNull(state, seat)) continue;
+      const costs = zoneCards(state, seat, "hand")
+        .filter(card => {
+          const f = facts(card.cardId);
+          return f.kind === "entity" && (form.race === null || f.race === form.race) && !(player.sealed ?? []).includes(card.cardId);
+        })
+        .map(card => facts(card.cardId).fluxCost ?? 0);
+      if (costs.length === 0) continue;
+      worth = Math.max(...costs) + form.grants.length + form.bonus.amount;
     } else {
       // Il potenziamento fino a fine turno: a ondata dichiarata (in Fronte),
       // sulle Entità che attaccano — le altre non ne fanno nulla.

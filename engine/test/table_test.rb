@@ -671,6 +671,41 @@ class TableBonusTest < Minitest::Test
     assert_nil @table.card("u")[:power_bonus]
   end
 
+  # §3.1 — la chiamata sul Fronte del Nexus: la promessa alle prossime
+  # attaccanti sul posto, l'Entità dalla mano con le parole chiave concesse
+  # (e l'attivazione che si chiude con la discesa), il bonus che viaggia
+  # nella dichiarazione d'attacco. Gemello: state.test.ts.
+  def test_la_chiamata_sul_fronte_promessa_discesa_con_slancio_e_bonus_all_attacco
+    cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1260, "face" => 1 },
+             { "uid" => "h", "owner" => "a", "zone" => "hand", "order" => 1 },
+             { "uid" => "k", "owner" => "a", "zone" => "hand", "order" => 2 }]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 21, "flux" => 3 } })
+    @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "chiamata", "cost" => 7, "bonus" => { "amount" => 1, "race" => "human" } })
+    assert_equal 14, @table.hp("a")
+    assert_equal [{ amount: 1, race: "human" }], @table.attack_bonuses("a")
+    assert @table.pending_ability?("rf", "chiamata"), "l'Entità dalla mano aspetta"
+    ref = { "source" => "rf", "event" => "on_ability", "entering" => "rf", "ability" => "chiamata" }
+    @table.apply({ "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 442, "y" => 1260, "grants" => ["surge"], "effect" => ref })
+    assert_equal "field", @table.card("h")[:zone]
+    assert_equal ["surge"], @table.card("h")[:grants]
+    assert_equal 3, @table.flux("a"), "gratis"
+    refute @table.pending_ability?("rf", "chiamata"), "la discesa chiude l'attivazione"
+    attack = { "id" => "d", "from" => "h", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1, "bonus" => 1 }
+    @table.apply({ "t" => "declare", "declaration" => attack })
+    assert_equal 1, @table.card("h")[:power_bonus]
+    assert_equal 1, @table.declaration("h")[:bonus]
+    @table.apply({ "t" => "declare", "declaration" => attack.merge("id" => "d2") })
+    assert_equal 1, @table.card("h")[:power_bonus], "ridichiarare non lo dà due volte"
+    @table.apply({ "t" => "undeclare", "from" => "h" })
+    assert_nil @table.card("h")[:power_bonus], "ritirare lo restituisce"
+    @table.apply({ "t" => "declare", "declaration" => attack })
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_empty @table.attack_bonuses("a"), "la promessa cade col turno"
+    assert_nil @table.card("h")[:power_bonus]
+    assert_nil @table.card("h")[:grants]
+  end
+
   # --- §8.2: la dichiarazione ferma (gemello: state.ts, apply) ---------------
 
   def test_la_dichiarazione_si_sigilla_e_lo_snapshot_la_ricorda

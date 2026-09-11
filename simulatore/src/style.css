@@ -2528,22 +2528,42 @@ body.is-targeting .tile.is-legal {
   box-shadow: 0 0 0 3px var(--ok), 0 0 26px rgba(111, 191, 139, .45);
 }
 
-/* §7.2 — con la catena aperta il tavolo sta sotto un velo scuro e non si
-   tocca (deciso 2026-09-11): sopra restano la tua mano (per rispondere con
-   una Reattiva), la barra della catena e le scene. Il velo è inerte al
-   puntatore: è la lavagna a non rispondere — salvo mentre trascini una
-   carta, che deve poter atterrare (i bersagli del rilascio stanno lì). */
-.chain-veil {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  pointer-events: none;
-  background: rgba(6, 4, 8, .5);
-  animation: overlay-in .2s ease-out both;
-}
-.chain-veil[hidden] { display: none; }
-body.is-chain .board { pointer-events: none; }
+/* §7.2 — con la catena aperta il tavolo sta in penombra e non si tocca
+   (deciso 2026-09-11): in luce restano la tua mano (per rispondere con una
+   Reattiva), la barra della catena, le scene — e le Reattive in catena.
+   Niente velo sopra la lavagna: la lavagna isola il suo impilamento, e un
+   velo lì sopra spegneva anche le carte in catena; uno dentro la superficie
+   lasciava chiari i margini. La penombra sono due mani della stessa tinta:
+   l'ombra interna scurisce lo sfondo della lavagna (sotto i figli, sopra lo
+   sfondo), il filtro scurisce i pezzi della superficie, tranne le carte in
+   catena. È la lavagna a non rispondere al puntatore — salvo mentre
+   trascini una carta, che deve poter atterrare. */
+body.is-chain .board { pointer-events: none; box-shadow: inset 0 0 0 100vmax rgba(6, 4, 8, .5); }
+body.is-chain .surface > :not(.is-chained):not(.slot-rubyfront) { filter: brightness(.5); }
+/* Il posto del Rubyfront no: il filtro gli darebbe un impilamento proprio,
+   e i suoi tasti (Abilità, Flip, Schiera: z-index 60) finirebbero sotto la
+   tessera del Rubyfront. Si scuriscono i suoi figli, uno per uno. */
+body.is-chain .surface > .slot-rubyfront > * { filter: brightness(.5); }
 body.is-chain.is-dragging-card .board { pointer-events: auto; }
+/* Le Reattive giocate, in catena: in luce, sopra frecce e tasti (CHAIN_Z,
+   table.ts), con un anello fermo rubino e oro — la luce della catena, non
+   il lampo di un innesco (chiesto 2026-09-11). */
+.surface > .tile.is-chained {
+  box-shadow: 0 0 0 2px #ffcf7a, 0 0 0 4px rgba(210, 74, 100, .9), 0 0 42px rgba(255, 176, 96, .75), 0 10px 26px rgba(0, 0, 0, .7);
+}
+/* La mira di un effetto mentre la catena si risolve (§7.2: «Scegli
+   l'Entità…»): il bersaglio sta sul tavolo, e la penombra si ritira — la
+   mira spegne da sé ciò che non si sceglie — e la lavagna torna sensibile
+   al dito (visto 2026-09-11: la mira non lasciava scegliere l'Entità da
+   stappare). */
+body.is-chain.is-targeting .board { pointer-events: auto; box-shadow: none; }
+body.is-chain.is-targeting .surface > *, body.is-chain.is-targeting .surface > .slot-rubyfront > * { filter: none; }
+/* E le Reattive in catena restano accese anche durante la mira. */
+body.is-targeting .surface > .tile.is-chained { opacity: 1; }
+/* E la mano, in catena, non si spegne mai: è da lì che si risponde con
+   un'altra Reattiva, e chi guarda il tavolo deve poterla leggere anche
+   mentre sceglie un bersaglio (chiesto 2026-09-11). */
+body.is-chain.is-targeting .hand-mine { opacity: 1; }
 /* §7.2 — la barra della catena di risposta: sotto l'insegna, sopra il tavolo.
    Chi ha la parola vede il tasto; l'altro legge e aspetta. */
 .chain-bar {

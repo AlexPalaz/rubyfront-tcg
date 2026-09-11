@@ -84,6 +84,14 @@ export interface Discount {
   race: string | null;
 }
 
+/** Il bonus promesso da un'abilità del Nexus (§3.1): «le prossime Entità
+    X che attaccano in questo turno prendono +N Potenza». Cade col cambio
+    di turno; viaggia nella dichiarazione d'attacco (`Declaration.bonus`). */
+export interface AttackBonus {
+  amount: number;
+  race: string | null;
+}
+
 export interface PlayerState {
   name: string;
   /** Punti Vita: si impostano e si correggono a mano, senza limiti imposti. */
@@ -104,6 +112,8 @@ export interface PlayerState {
   sealed?: string[];
   /** Gli sconti delle abilità del Rubyfront, validi in questo turno (§3.1). Gemello: table.rb, discounts. */
   discounts?: Discount[];
+  /** I bonus «alle prossime Entità che attaccano in questo turno» (§3.1). Gemello: table.rb, attack_bonuses. */
+  attackBonuses?: AttackBonus[];
   /** Il turno in cui il posto ha usato un'abilità speciale (§3.1: una sola per turno). Gemello: table.rb, ability_used?. */
   abilityTurn?: number;
 }
@@ -160,6 +170,11 @@ export interface Declaration {
   sealed?: true;
   /** Posto che ha dichiarato. */
   seat: Seat;
+  /** §3.1 — il bonus di Potenza che l'attacco porta con sé («le prossime
+      Entità X che attaccano in questo turno prendono +N»): lo calcola il
+      client (attackBonusFor), l'engine lo pretende, il riduttore lo
+      applica alla carta fino a fine turno. Solo per gli attacchi. */
+  bonus?: number;
   /**
    * Ordine dell'ondata (§6.3 punto 5: le battaglie si risolvono nell'ordine di
    * dichiarazione degli attaccanti). Vale solo per gli attacchi.
@@ -294,7 +309,7 @@ export type Action =
   /** `cost`: il Flusso pagato giocando DALLA MANO in campo (§3.2) — lo
       mette il client dal catalogo, l'engine lo verifica, il riduttore lo
       scala. Assente da altre zone e per il Rubyfront. */
-  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; discount?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string; chain?: true }
+  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; discount?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string; chain?: true; grants?: string[] }
   /** §7.2 — chi deve rispondere accetta: la catena si risolve. */
   | { t: "pass"; seat: Seat }
   /** §7.2 — la Reattiva in cima è risolta: esce dalla pila (anche se resta in campo a bloccare, §6.4). */
@@ -305,8 +320,11 @@ export type Action =
   /** L'abilità speciale del Rubyfront (§3.1): `cost` o `gain` in PV come
       stampato; con la Furia (§8.1) il tiro `roll` e l'esito `fail` (−1 PV
       in più); per un potenziamento i `targets` e il `power`; per uno sconto
-      lo sconto. Il client calcola, l'engine verifica sulla forma. */
-  | { t: "ability"; uid: string; ability: string; cost?: number; gain?: number; roll?: number; fail?: true; targets?: string[]; power?: number; discount?: Discount }
+      lo sconto; per la chiamata sul Fronte il `bonus` alle prossime
+      attaccanti (l'Entità dalla mano segue, con `toZone` marcato
+      `on_ability` e le parole chiave concesse in `grants`). Il client
+      calcola, l'engine verifica sulla forma. */
+  | { t: "ability"; uid: string; ability: string; cost?: number; gain?: number; roll?: number; fail?: true; targets?: string[]; power?: number; discount?: Discount; bonus?: AttackBonus }
   /** Il ritorno vincolato (§8.2): l'Entità `uid`, appena mandata
       nell'Abisso o nella Zona di Ritiro senza Oggetti addosso, torna sullo
       slot (x, y) del proprio Fronte e l'Oggetto `object` le va addosso dal
