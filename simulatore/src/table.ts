@@ -577,7 +577,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   });
   chainBar.append(chainText, chainAccept);
 
-  root.append(board, oppHand, myHand, handDrop, handToggle, targetHint, chainBar);
+  // §7.2 — con la catena aperta il tavolo va sotto un velo e non si tocca
+  // (deciso 2026-09-11): si risponde dalla mano, o si accetta dalla barra.
+  const chainVeil = document.createElement("div");
+  chainVeil.className = "chain-veil";
+  chainVeil.hidden = true;
+  root.append(board, chainVeil, oppHand, myHand, handDrop, handToggle, targetHint, chainBar);
 
   // La lavagna si vede sempre tutta in larghezza: quando la finestra è più
   // stretta dei 2700px canonici, la superficie si scala di conseguenza (e le
@@ -2861,6 +2866,23 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
   const SPARK_ARRIVE_MS = 1050;
 
   /**
+   * Dove e come si posa il fantasma di una tessera perché copra ESATTAMENTE
+   * la tessera vera. Il fantasma ha l'origine in alto a sinistra e porta il
+   * transform in linea, che CANCELLA la rotazione della classe
+   * (.tile.is-tapped): la coricata è ruotata di 90° attorno al centro e il
+   * suo rettangolo sullo schermo ha larghezza e altezza scambiate, quindi
+   * il fantasma si ancora all'angolo in alto a DESTRA del rettangolo, si
+   * scala sull'altezza di layout e ruota da lì. Senza, la carta coricata
+   * volava (o si dissolveva) in piedi e si ricoricava di colpo all'arrivo.
+   */
+  function ghostPose(tile: HTMLElement, rect: DOMRect): { x: number; y: number; scale: number; rotate: string } {
+    if (tile.classList.contains("is-tapped")) {
+      return { x: rect.left + rect.width, y: rect.top, scale: rect.width / tile.offsetHeight, rotate: " rotate(90deg)" };
+    }
+    return { x: rect.left, y: rect.top, scale: rect.width / tile.offsetWidth, rotate: "" };
+  }
+
+  /**
    * La carta va in una pila: un fantasma della tessera, preso PRIMA che lo
    * stato cambi (la tessera vera sparirà nella pila), che si solleva e si
    * DISSOLVE sul posto — luce, sfocatura, via — mentre una scintilla
@@ -2899,6 +2921,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // trasformazione — sennò mostrerebbe la carta a misura piena, tagliata.
     const layoutW = tile.offsetWidth;
     const layoutH = tile.offsetHeight;
+    const pose = ghostPose(tile, from);
     const ghost = tile.cloneNode(true) as HTMLElement;
     ghost.classList.add("fly-ghost");
     // Sotto le mani e i pannelli (z 30+), sopra la lavagna: il clone porta
@@ -2908,13 +2931,15 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
     ghost.querySelector(".combat-badge")?.remove();
     ghost.style.position = "fixed";
-    ghost.style.left = `${from.left}px`;
-    ghost.style.top = `${from.top}px`;
+    ghost.style.left = `${pose.x}px`;
+    ghost.style.top = `${pose.y}px`;
     ghost.style.width = `${layoutW}px`;
     ghost.style.height = `${layoutH}px`;
     ghost.style.margin = "0";
-    ghost.style.transform = `scale(${from.width / layoutW})`;
-    ghost.style.setProperty("--fly-scale", String(from.width / layoutW));
+    ghost.style.transform = `scale(${pose.scale})${pose.rotate}`;
+    // La dissolvenza (fly-dissolve) rifà il transform: scala e rotazione le legge da qui.
+    ghost.style.setProperty("--fly-scale", String(pose.scale));
+    ghost.style.setProperty("--fly-rot", pose.rotate ? "90deg" : "0deg");
     document.body.append(ghost);
     // Chi muore in battaglia (§6.3) prima viene tagliata — la lama, il
     // sussulto — e solo dopo si dissolve: la dissolvenza e la scintilla
@@ -2988,9 +3013,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     if (from.width < 4 && pileDock) from = pileDock.querySelector<HTMLElement>(".pile-dock-head")?.getBoundingClientRect() ?? from;
     if (from.width < 4) return;
     const to = tile.getBoundingClientRect();
-    // Come in liftForFlight: misura di layout, scala della lavagna.
+    // Come in liftForFlight: misura di layout, scala della lavagna (e la
+    // coricata arriva già coricata, ghostPose).
     const layoutW = tile.offsetWidth;
     const layoutH = tile.offsetHeight;
+    const pose = ghostPose(tile, to);
     const ghost = tile.cloneNode(true) as HTMLElement;
     ghost.classList.add("fly-ghost");
     // Sotto le mani e i pannelli (z 30+), sopra la lavagna: il clone porta
@@ -3000,20 +3027,20 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
     ghost.querySelector(".combat-badge")?.remove();
     ghost.style.position = "fixed";
-    ghost.style.left = `${to.left}px`;
-    ghost.style.top = `${to.top}px`;
+    ghost.style.left = `${pose.x}px`;
+    ghost.style.top = `${pose.y}px`;
     ghost.style.width = `${layoutW}px`;
     ghost.style.height = `${layoutH}px`;
     ghost.style.margin = "0";
     ghost.style.transition = "none";
-    ghost.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / layoutW})`;
+    ghost.style.transform = `translate(${from.left - pose.x}px, ${from.top - pose.y}px) scale(${from.width / layoutW})${pose.rotate}`;
     ghost.style.opacity = "0.4";
     document.body.append(ghost);
     // La tessera vera si nasconde finché il fantasma non è arrivato.
     tile.style.visibility = "hidden";
     requestAnimationFrame(() => {
       ghost.style.transition = "";
-      ghost.style.transform = `scale(${to.width / layoutW})`;
+      ghost.style.transform = `scale(${pose.scale})${pose.rotate}`;
       ghost.style.opacity = "1";
     });
     window.setTimeout(() => {
@@ -3177,14 +3204,16 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const starts = group.flatMap(member => {
       const tile = tiles.get(member);
       if (!tile || tile.offsetParent === null) return [];
-      return [{ member, from: tile.getBoundingClientRect(), layoutW: tile.offsetWidth, layoutH: tile.offsetHeight }];
+      const from = tile.getBoundingClientRect();
+      return [{ member, from: ghostPose(tile, from), layoutW: tile.offsetWidth, layoutH: tile.offsetHeight }];
     });
     if (!starts.some(start => start.member === uid)) return null;
     const flight = (() => {
       for (const { member, from, layoutW, layoutH } of starts) {
         const landed = tiles.get(member);
         if (!landed || landed.offsetParent === null) continue;
-        const to = landed.getBoundingClientRect();
+        // La coricata vola coricata: posa e rotazione dal fantasma (ghostPose).
+        const to = ghostPose(landed, landed.getBoundingClientRect());
         const ghost = landed.cloneNode(true) as HTMLElement;
         ghost.classList.add("fly-ghost");
     // Sotto le mani e i pannelli (z 30+), sopra la lavagna: il clone porta
@@ -3194,19 +3223,19 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
         ghost.querySelector(".combat-badge")?.remove();
         ghost.style.position = "fixed";
-        ghost.style.left = `${to.left}px`;
-        ghost.style.top = `${to.top}px`;
+        ghost.style.left = `${to.x}px`;
+        ghost.style.top = `${to.y}px`;
         ghost.style.width = `${layoutW}px`;
         ghost.style.height = `${layoutH}px`;
         ghost.style.margin = "0";
         ghost.style.visibility = "";
         ghost.style.transition = "none";
-        ghost.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / layoutW})`;
+        ghost.style.transform = `translate(${from.x - to.x}px, ${from.y - to.y}px) scale(${from.scale})${to.rotate}`;
         document.body.append(ghost);
         landed.style.visibility = "hidden";
         requestAnimationFrame(() => {
           ghost.style.transition = "";
-          ghost.style.transform = `scale(${to.width / layoutW})`;
+          ghost.style.transform = `scale(${to.scale})${to.rotate}`;
         });
         window.setTimeout(() => {
           ghost.remove();
@@ -3237,19 +3266,21 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const from = tile.getBoundingClientRect();
       if (member === uid) heart = from;
       const layoutW = tile.offsetWidth;
+      const pose = ghostPose(tile, from);
       const ghost = tile.cloneNode(true) as HTMLElement;
       ghost.classList.add("fly-ghost");
       ghost.style.zIndex = "25";
       ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
       ghost.querySelector(".combat-badge")?.remove();
       ghost.style.position = "fixed";
-      ghost.style.left = `${from.left}px`;
-      ghost.style.top = `${from.top}px`;
+      ghost.style.left = `${pose.x}px`;
+      ghost.style.top = `${pose.y}px`;
       ghost.style.width = `${layoutW}px`;
       ghost.style.height = `${tile.offsetHeight}px`;
       ghost.style.margin = "0";
-      ghost.style.transform = `scale(${from.width / layoutW})`;
-      ghost.style.setProperty("--fly-scale", String(from.width / layoutW));
+      ghost.style.transform = `scale(${pose.scale})${pose.rotate}`;
+      ghost.style.setProperty("--fly-scale", String(pose.scale));
+      ghost.style.setProperty("--fly-rot", pose.rotate ? "90deg" : "0deg");
       document.body.append(ghost);
       ghosts.push(ghost);
     }
@@ -4564,9 +4595,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       delete slot.dataset.label;
     }
 
-    // §7.2 — la barra della catena: cosa c'è in cima, e a chi tocca.
+    // §7.2 — la barra della catena: cosa c'è in cima, e a chi tocca. Col
+    // velo sul tavolo, che resta inerte finché la catena non si è sciolta.
     const chain = state.chain;
     const top = chainTop(state);
+    chainVeil.hidden = !chain;
+    document.body.classList.toggle("is-chain", !!chain);
     if (chain && top) {
       const card = `«${cardName(top.cardId, ctx.locale())}»`;
       const mine = !chain.resolving && ctx.controls(chain.turn);

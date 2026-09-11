@@ -788,16 +788,17 @@ body.is-intro-wait .slot-rubyfront, body.is-intro .slot-rubyfront:not(.is-landed
 }
 /* La carta che VA in una pila (Abisso, Ritiro): non scivola, si dissolve
    sul posto. Prima si solleva e si accende di rubino, poi sfuma in luce e
-   sfocatura fino a sparire. La scala della lavagna sta in --fly-scale. */
+   sfocatura fino a sparire. La scala della lavagna sta in --fly-scale, e
+   la coricata resta coricata (--fly-rot, table.ts ghostPose). */
 .fly-ghost.is-dissolving {
   transition: none;
   animation: fly-dissolve 1.1s cubic-bezier(.3, .5, .3, 1) forwards;
 }
 @keyframes fly-dissolve {
-  0% { transform: scale(var(--fly-scale, 1)); opacity: 1; filter: none; }
-  30% { transform: translateY(-10px) scale(calc(var(--fly-scale, 1) * 1.05)); opacity: 1; filter: brightness(1.2) drop-shadow(0 0 26px rgba(224, 49, 75, 1)); }
+  0% { transform: scale(var(--fly-scale, 1)) rotate(var(--fly-rot, 0deg)); opacity: 1; filter: none; }
+  30% { transform: translateY(-10px) scale(calc(var(--fly-scale, 1) * 1.05)) rotate(var(--fly-rot, 0deg)); opacity: 1; filter: brightness(1.2) drop-shadow(0 0 26px rgba(224, 49, 75, 1)); }
   60% { opacity: .85; filter: brightness(1.5) blur(4px) drop-shadow(0 0 30px rgba(224, 49, 75, .8)); }
-  100% { transform: translateY(-26px) scale(calc(var(--fly-scale, 1) * 1.12)); opacity: 0; filter: brightness(1.9) blur(12px) drop-shadow(0 0 30px rgba(224, 49, 75, 0)); }
+  100% { transform: translateY(-26px) scale(calc(var(--fly-scale, 1) * 1.12)) rotate(var(--fly-rot, 0deg)); opacity: 0; filter: brightness(1.9) blur(12px) drop-shadow(0 0 30px rgba(224, 49, 75, 0)); }
 }
 /* La scintilla: la gemma del marchio in piccolo, che parte dal cuore della
    carta con un attimo di ritardo, corre alla pila e si spegne arrivando. */
@@ -2516,6 +2517,22 @@ body.is-targeting .tile.is-legal {
   box-shadow: 0 0 0 3px var(--ok), 0 0 26px rgba(111, 191, 139, .45);
 }
 
+/* §7.2 — con la catena aperta il tavolo sta sotto un velo scuro e non si
+   tocca (deciso 2026-09-11): sopra restano la tua mano (per rispondere con
+   una Reattiva), la barra della catena e le scene. Il velo è inerte al
+   puntatore: è la lavagna a non rispondere — salvo mentre trascini una
+   carta, che deve poter atterrare (i bersagli del rilascio stanno lì). */
+.chain-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background: rgba(6, 4, 8, .5);
+  animation: overlay-in .2s ease-out both;
+}
+.chain-veil[hidden] { display: none; }
+body.is-chain .board { pointer-events: none; }
+body.is-chain.is-dragging-card .board { pointer-events: auto; }
 /* §7.2 — la barra della catena di risposta: sotto l'insegna, sopra il tavolo.
    Chi ha la parola vede il tasto; l'altro legge e aspetta. */
 .chain-bar {
