@@ -691,6 +691,22 @@ class EngineTest < Minitest::Test
   end
 
 
+  # §6.2 — «un Oggetto non si ritira da solo» (deciso 2026-09-11): a mano
+  # è fermato; segue la sua Entità quando è lei a ritirarsi.
+  def test_l_oggetto_non_si_ritira_da_solo_ma_segue_l_entita
+    engine = con_carte
+    tavolo_con_oggetto(engine)
+    assert engine.judge(assegna("a-2", "a-1"))[:ok]
+    verdict = engine.judge(ritira("a-2"))
+    assert verdict[:ruled]
+    refute verdict[:ok]
+    assert_match(/non si ritira da solo/, verdict[:reason])
+    assert_equal "field", copia(engine).card("a-2")[:zone]
+    assert engine.judge(ritira("a-1"))[:ok], "l'Entità si ritira"
+    assert_equal "ritiro", copia(engine).card("a-1")[:zone]
+    assert_equal "ritiro", copia(engine).card("a-2")[:zone], "l'Oggetto la segue nella stessa azione"
+  end
+
   def test_dalla_mano_al_ritiro_solo_per_eccesso
     # Dal 2026-09-10: dalla mano in Zona di Ritiro si va scartando per eccesso (§6.5), non a mano.
     engine = con_carte
@@ -3464,7 +3480,10 @@ class EngineTest < Minitest::Test
     assert_equal "p", copia(engine).card("b1")[:held_by]
     assert_match(/già stato risolto/, engine.judge(passo.merge("uid" => "b2"))[:reason], "un'assegnazione, un innesco")
     assert_match(/resta nell'Abisso/, engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 })[:reason])
-    assert engine.judge({ "t" => "toZone", "uid" => "p", "zone" => "ritiro" })[:ok]
+    # L'Oggetto esce dal campo seguendo la sua Entità (dal 2026-09-11 non si ritira da solo, §6.2).
+    assert_match(/non si ritira da solo/, engine.judge({ "t" => "toZone", "uid" => "p", "zone" => "ritiro" })[:reason])
+    assert engine.judge({ "t" => "toZone", "uid" => "u", "zone" => "ritiro" })[:ok]
+    assert_equal "ritiro", copia(engine).card("p")[:zone]
     ritorno = engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 })
     assert ritorno[:ok], ritorno[:reason]
     assert_equal "field", copia(engine).card("b1")[:zone]

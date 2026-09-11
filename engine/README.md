@@ -1021,6 +1021,18 @@ Regole collegate finora:
   Vendetta fra i bloccanti che uccidono e la usa come scambio. Engine
   0.66.0.
 
+- **§6.2 Gli Oggetti non si ritirano da soli** (deciso dal designer il
+  2026-09-11, scritto nel manuale nella stessa modifica: «un Oggetto non si
+  ritira da solo: in Zona di Ritiro ci va solo seguendo l'Entità a cui è
+  assegnato, o per effetto di una carta che lo disarmi»). Un `toZone
+  ritiro` a mano su un Oggetto in campo viene fermato; il ritiro
+  dell'Entità porta con sé i suoi Oggetti nella stessa azione (i gemelli lo
+  fanno già, `to_zone`), e un disarmo passa da judge_effect col suo
+  riferimento. Il tavolo, con l'arbitro, toglie la voce «Ritiro» dal menu
+  di un Oggetto in campo. Limite dichiarato: un effetto che mandi in Ritiro
+  un Oggetto, risolto a mano perché l'engine non lo legge, verrebbe fermato
+  a torto (regola d'oro). Engine 0.67.0.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.
@@ -1068,7 +1080,7 @@ col bot).
 
 | chi | messaggio | risposta |
 |---|---|---|
-| client | `{"t":"hello"}` | `{"t":"engine","version":"0.66.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","actions":[{"action":{…},"from":"a"},…]}` |
+| client | `{"t":"hello"}` | `{"t":"engine","version":"0.67.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","actions":[{"action":{…},"from":"a"},…]}` |
 | client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…","reason_en":"…"}` a chi chiede; se passa, `{"t":"action","action":{…},"from":"a"}` agli **altri** client della stanza |
 | client | `{"t":"rtc","payload":{…}}` | `{"t":"rtc","payload":{…},"from":"a"}` agli altri: la chat vocale, inoltrata senza leggerla |
 | client | `{"t":"snapshot","state":{…}}` | *(solo nella stanza «solo»: allinea la copia del tavolo; in stanza si ignora)* |

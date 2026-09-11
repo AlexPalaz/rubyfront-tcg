@@ -460,6 +460,28 @@ describe("apply control / release", () => {
     expect(state.cards["b-2"]).toMatchObject({ x: 821 + STACK_STEP, assignedTo: "b-1" });
   });
 
+  it("la pila al controllo e alla restituzione: Oggetti sotto, a scaletta, Entità in cima (2026-09-11)", () => {
+    // Prima il secondo Oggetto finiva alla stessa altezza dell'Entità e il
+    // terzo sopra: la coprivano.
+    let state = apply(newGame(), deckFor("b", 4));
+    state = apply(state, { t: "toZone", uid: "b-1", zone: "field", x: 442, y: 172, z: 1 });
+    for (const [uid, z] of [["b-2", 2], ["b-3", 3], ["b-4", 4]] as const) {
+      state = apply(state, { t: "toZone", uid, zone: "field", x: 472, y: 202, z });
+      state = apply(state, { t: "assign", uid, to: "b-1" });
+    }
+    state = apply(state, { t: "control", uid: "b-1", by: "a", grants: [], effect: { source: "x", event: "on_enter_field", entering: "x" } });
+    const entity = state.cards["b-1"];
+    const worn = ["b-2", "b-3", "b-4"].map(uid => state.cards[uid]);
+    for (const object of worn) expect(object.z).toBeLessThan(entity.z);
+    expect(worn.map(object => object.x)).toEqual([CONTROL_X + STACK_STEP, CONTROL_X + STACK_STEP * 2, CONTROL_X + STACK_STEP * 3]);
+    expect(worn.map(object => object.z)).toEqual([...worn.map(object => object.z)].sort((a, b) => a - b));
+    expect(state.zTop).toBeGreaterThan(entity.z);
+    state = apply(state, { t: "release", uid: "b-1", zone: "field", x: 821, y: 172 });
+    const back = state.cards["b-1"];
+    for (const uid of ["b-2", "b-3", "b-4"]) expect(state.cards[uid].z).toBeLessThan(back.z);
+    expect(state.cards["b-4"]).toMatchObject({ x: 821 + STACK_STEP * 3, assignedTo: "b-1" });
+  });
+
   it("a Fronte pieno la restituzione va nella Zona di Ritiro, con gli Oggetti", () => {
     let state = apply(newGame(), deckFor("b", 2));
     state = apply(state, { t: "toZone", uid: "b-1", zone: "field", x: 442, y: 172, z: 1 });

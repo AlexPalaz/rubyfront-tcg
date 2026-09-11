@@ -595,17 +595,18 @@ function reduce(state: GameState, action: Action): GameState {
       const card = state.cards[action.uid];
       if (!card || card.zone !== "field") return state;
       const cards = { ...state.cards };
-      let z = state.zTop + 1;
       const x = CONTROL_X;
       const y = backRowY(action.by);
-      cards[card.uid] = { ...card, controller: action.by, grants: [...action.grants], x, y, z };
-      let step = 1;
-      for (const [uid, other] of Object.entries(state.cards)) {
-        if (other.assignedTo !== card.uid || other.zone !== "field") continue;
+      // La pila: gli Oggetti SOTTO l'Entità, a scaletta, nell'ordine in cui
+      // stavano; l'Entità in cima. (Prima il secondo Oggetto finiva alla
+      // stessa altezza dell'Entità e il terzo sopra: la coprivano.)
+      const worn = Object.values(state.cards).filter(other => other.assignedTo === card.uid && other.zone === "field").sort((a, b) => a.z - b.z);
+      let z = state.zTop + 1;
+      worn.forEach((other, index) => {
+        cards[other.uid] = { ...other, x: x + STACK_STEP * (index + 1), y: y + STACK_STEP * (index + 1), z };
         z += 1;
-        cards[uid] = { ...other, x: x + STACK_STEP * step, y: y + STACK_STEP * step, z: z - 2 };
-        step += 1;
-      }
+      });
+      cards[card.uid] = { ...card, controller: action.by, grants: [...action.grants], x, y, z };
       return { ...state, cards, zTop: z + 1 };
     }
 
@@ -628,15 +629,15 @@ function reduce(state: GameState, action: Action): GameState {
       }
       const x = action.x ?? card.x;
       const y = action.y ?? card.y;
-      const cards = { ...next.cards, [card.uid]: { ...freed, x, y, z: next.zTop + 1 } };
-      let step = 1;
+      // Stessa pila del controllo: Oggetti sotto, Entità in cima.
+      const cards = { ...next.cards };
+      const worn = Object.values(next.cards).filter(other => other.assignedTo === card.uid && other.zone === "field").sort((a, b) => a.z - b.z);
       let z = next.zTop + 1;
-      for (const [uid, other] of Object.entries(next.cards)) {
-        if (other.assignedTo !== card.uid || other.zone !== "field") continue;
+      worn.forEach((other, index) => {
+        cards[other.uid] = { ...other, x: x + STACK_STEP * (index + 1), y: y + STACK_STEP * (index + 1), z };
         z += 1;
-        cards[uid] = { ...other, x: x + STACK_STEP * step, y: y + STACK_STEP * step, z: z - 2 };
-        step += 1;
-      }
+      });
+      cards[card.uid] = { ...freed, x, y, z };
       next = { ...next, cards, zTop: z + 1 };
       return next;
     }

@@ -2113,7 +2113,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     // Il Ritiro è un gesto del Fronte (§6.2): con l'arbitro, dalla mano ci si
     // va solo scartando per eccesso (la voce sopra) e dal mazzo mai; a
     // engine spento resta libero, da dove sia.
-    if (!sealed && !canDiscard(card) && (!ctx.arbitrated() || card.zone === "field")) items.push(send("ritiro", t("menu.to.ritiro")));
+    // §6.2 — e un Oggetto in campo non si ritira da solo: segue la sua
+    // Entità (deciso 2026-09-11). Con l'arbitro la voce si ritira.
+    const objectOnField = card.zone === "field" && ctx.card(card.cardId).kind === "object";
+    if (!sealed && !canDiscard(card) && (!ctx.arbitrated() || (card.zone === "field" && !objectOnField))) items.push(send("ritiro", t("menu.to.ritiro")));
     if (owned && !sealed) {
       items.push(send("deck", t("menu.to.deck.top")));
       items.push({

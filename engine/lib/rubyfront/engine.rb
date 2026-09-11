@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.66.0"
+    VERSION = "0.67.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -47,6 +47,7 @@ module Rubyfront
       "§6.3/§6.4 Risoluzione delle battaglie",
       "§6.3 Il bloccante più forte uccide l'attaccante",
       "§8.1 Vendetta: il bloccante più debole si porta dietro l'attaccante",
+      "§6.2 Gli Oggetti non si ritirano da soli: seguono la loro Entità",
       "§6.2 Le carte si giocano in Preparazione (salvo Reattive e Rubyfront)",
       "§6 Nel turno altrui non si agisce (salvo Reazione e Reattive)",
       "§3.2 Le carte si pagano: il costo di Flusso",
@@ -121,6 +122,7 @@ module Rubyfront
       "§6.3/§6.4 Battle resolution",
       "§6.3 The stronger blocker kills the attacker",
       "§8.1 Revenge: the weaker blocker takes the attacker with it",
+      "§6.2 Objects don't retire on their own: they follow their Entity",
       "§6.2 Cards are played in Preparation (except Reactives and the Rubyfront)",
       "§6 No acting on the opponent's turn (except Reaction and Reactives)",
       "§3.2 Cards are paid for: the Flux cost",
@@ -767,6 +769,14 @@ module Rubyfront
 
       kind = @cards.dig(card[:card_id], :type)
       return refuse("toZone", "il Rubyfront non si ritira: una volta schierato resta in campo (§3.1)", "the Rubyfront doesn't retire: once deployed it stays on the field (§3.1)") if kind == "rubyfront"
+      # §6.2 — «un Oggetto non si ritira da solo: in Zona di Ritiro ci va
+      # solo seguendo l'Entità a cui è assegnato» (deciso dal designer il
+      # 2026-09-11). Il ritiro dell'Entità porta con sé i suoi Oggetti nella
+      # stessa azione (gemelli, to_zone); un effetto che disarmi passa da
+      # judge_effect col suo riferimento, non da qui.
+      if kind == "object"
+        return refuse("toZone", "un Oggetto non si ritira da solo: va in Zona di Ritiro seguendo la sua Entità (§6.2, Ritiro)", "an Object doesn't retire on its own: it reaches the Retire Zone by following its Entity (§6.2, Retire)")
+      end
 
       # Una carta di un ALTRO posto mandata in Ritiro non è un ritiro: è la
       # risoluzione a mano di un effetto («metti un'Entità avversaria nella
