@@ -3057,12 +3057,11 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     ghost.classList.add("is-arriving");
     ghost.style.transform = `translate(${cx}px, ${cy}px) rotate(0deg) scale(${scale})`;
     ghost.style.opacity = "1";
-    // I suoi suoni, non quelli delle carte (deciso 2026-09-11).
-    playSound("rubyfront-arrive");
+    // L'ingresso del Rubyfront è muto (deciso 2026-09-11): né i suoni delle
+    // carte né suoni suoi.
     await pause(950);
     // Si accende.
     ghost.classList.add("is-lit");
-    playSound("rubyfront-ignite");
     await pause(1250);
     // Vola al suo posto in Zona di Richiamo e ci si posa.
     const to = tile.getBoundingClientRect();
@@ -3077,7 +3076,6 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     rubySlots.get(seat)?.classList.add("is-landed");
     window.setTimeout(() => tile.classList.remove("intro-landed"), 900);
     ghost.remove();
-    playSound("rubyfront-land");
     await pause(350);
   }
 

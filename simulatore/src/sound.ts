@@ -14,11 +14,8 @@
 //   block   — lo scudo: piastra, legno pesante sotto, fermaglio sopra
 //   counter — il taglio, il metallo pesante e il rintocco
 //   tap     — cuoio che si posa, soft e senza acuti: la carta che si corica
-//   rubyfront-arrive / -ignite / -land — l'ingresso del Rubyfront a inizio
-//             partita (dal 2026-09-11, suoni suoi e non quelli delle carte):
-//             la porta pesante che si apre col colpo grave che si avvicina;
-//             la campana grave e lunga col rubino che si accende; la lastra
-//             pesante che si assesta in Zona di Richiamo
+//   (l'ingresso del Rubyfront a inizio partita è MUTO: deciso 2026-09-11,
+//   dopo due prove — porta e campana, poi il vento — bocciate)
 //
 // Si suona con la Web Audio API (decodifica una volta, poi buffer in
 // memoria): il browser non suona prima di un gesto dell'utente, quindi il
@@ -26,7 +23,7 @@
 // browser decodifica. L'interruttore nelle impostazioni spegne
 // tutto; la scelta resta salvata (main.ts).
 
-export type Cue = "select" | "button" | "play" | "attack" | "block" | "counter" | "draw" | "phase" | "tap" | "rubyfront-arrive" | "rubyfront-ignite" | "rubyfront-land";
+export type Cue = "select" | "button" | "play" | "attack" | "block" | "counter" | "draw" | "phase" | "tap";
 
 /** Le varianti di ogni voce: i file in public/sounds, senza estensione. */
 const VARIANTS: Record<Cue, string[]> = {
@@ -41,16 +38,10 @@ const VARIANTS: Record<Cue, string[]> = {
   attack: ["attack-1", "attack-2", "attack-3"],
   block: ["block-1", "block-2"],
   counter: ["counter-1", "counter-2"],
-  "rubyfront-arrive": ["rubyfront-arrive-1", "rubyfront-arrive-2"],
-  "rubyfront-ignite": ["rubyfront-ignite-1", "rubyfront-ignite-2"],
-  "rubyfront-land": ["rubyfront-land-1", "rubyfront-land-2"],
 };
 
 /** Il volume di ogni voce: i colpi pesanti sotto, i tocchi leggeri più vicini. */
-const LEVEL: Record<Cue, number> = {
-  select: 0.7, button: 0.55, play: 0.9, draw: 0.6, attack: 0.8, block: 0.85, counter: 0.8, phase: 0.9, tap: 0.5,
-  "rubyfront-arrive": 0.9, "rubyfront-ignite": 0.95, "rubyfront-land": 0.9,
-};
+const LEVEL: Record<Cue, number> = { select: 0.7, button: 0.55, play: 0.9, draw: 0.6, attack: 0.8, block: 0.85, counter: 0.8, phase: 0.9, tap: 0.5 };
 
 let context: AudioContext | null = null;
 let master: GainNode | null = null;

@@ -109,16 +109,5 @@ build("tap-3", [("rpg", "dropLeather", 0, -9, "lowpass=f=1300,asetrate=44100*1.0
 # il contrattacco: il taglio, il metallo pesante, il rintocco
 build("counter-1", [("rpg", "knifeSlice", 0, -5, ""), ("impact", "impactMetal_heavy_001", 120, -6, ""), ("rpg", "metalPot1", 130, -10, "highpass=f=600"), ("impact", "impactSoft_heavy_000", 120, -10, "lowpass=f=300")])
 build("counter-2", [("rpg", "knifeSlice2", 0, -5, ""), ("impact", "impactMetal_heavy_003", 120, -6, ""), ("rpg", "metalPot2", 130, -10, "highpass=f=600"), ("impact", "impactSoft_heavy_002", 120, -10, "lowpass=f=300")])
-# il Rubyfront in ingresso (dal 2026-09-11, «suoni differenti e adatti»,
-# poi «tipo il vento»): tre momenti di vento sintetizzato — rumore
-# colorato con la spazzolata del taglio — e sotto, dove serve, un tocco.
-# — l'arrivo: la raffica che sale e passa (marrone, poi rosa sopra)
-build("rubyfront-arrive-1", [wind(1.8, "brown", 180, 1500, 0.45, 0.9, 0.8), ("lavfi", "anoisesrc=d=1.8:c=pink:r=44100:a=0.4", 150, -14, "highpass=f=700,lowpass=f=2600,afade=t=in:st=0:d=0.5,afade=t=out:st=0.7:d=0.7")])
-build("rubyfront-arrive-2", [wind(1.8, "brown", 220, 1200, 0.5, 0.95, 0.8), ("lavfi", "anoisesrc=d=1.8:c=pink:r=44100:a=0.4", 100, -15, "highpass=f=600,lowpass=f=2200,afade=t=in:st=0:d=0.45,afade=t=out:st=0.75:d=0.7")])
-# — l'accensione: la raffica corta e alta, e il rubino che si accende
-#   (la campana grave, lontana)
-build("rubyfront-ignite-1", [wind(1.4, "pink", 400, 3200, 0.12, 0.45, 0.8), ("impact", "impactBell_heavy_001", 60, -14, "asetrate=44100*0.55,aresample=44100,lowpass=f=2600"), ("impact", "impactGlass_light_001", 80, -20, "highpass=f=1800")])
-build("rubyfront-ignite-2", [wind(1.4, "pink", 350, 2800, 0.12, 0.45, 0.8), ("impact", "impactBell_heavy_003", 60, -14, "asetrate=44100*0.58,aresample=44100,lowpass=f=2600"), ("impact", "impactGlass_light_003", 80, -20, "highpass=f=1800")])
-# — la posa: il vento che cala e si spegne, col colpo sordo della lastra
-build("rubyfront-land-1", [wind(1.5, "brown", 1100, 120, 0.05, 0.5, 0.9), ("impact", "impactSoft_heavy_001", 40, -7, "lowpass=f=220"), ("impact", "impactPlate_heavy_001", 40, -16, "lowpass=f=900")])
-build("rubyfront-land-2", [wind(1.5, "brown", 900, 140, 0.05, 0.5, 0.9), ("impact", "impactSoft_heavy_003", 40, -7, "lowpass=f=220"), ("impact", "impactPlate_heavy_003", 40, -16, "lowpass=f=900")])
+# L'ingresso del Rubyfront è muto (deciso 2026-09-11): le due prove — porta
+# e campana, poi il vento sintetizzato — sono state bocciate e tolte.
