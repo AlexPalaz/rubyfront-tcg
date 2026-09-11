@@ -16,7 +16,7 @@
   "tags": [
     "matter",
     "dimensional",
-    "grade-2",
+    "grade-1",
     "die",
     "retire",
     "tutor"
@@ -29,7 +29,7 @@
       "displayKey": "face",
       "matter": {
         "type": "dimensional",
-        "grade": 2
+        "grade": 1
       },
       "behavior": "normal",
       "stats": {
