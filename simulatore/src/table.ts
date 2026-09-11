@@ -4253,20 +4253,39 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * transizione. A corsa finita si toglie tutto e si ridisegna una volta:
    * la scala letta a metà corsa (drag.ts, la mano) torna quella vera.
    */
+  /** Le tessere da far scivolare a fine disegno (finishMorph): dov'erano prima della ricostruzione. */
+  let morphTiles: Map<string, { left: number; top: number }> | null = null;
+
   function morphZones(rebuild: () => void): void {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
       rebuild();
       return;
     }
+    // Dov'era ciascun pezzo prima: riquadri (top, altezza), tessere
+    // (left, top) e la scala del tavolo.
     const before = new Map<string, { top: string; height: string }>();
     for (const el of surface.querySelectorAll<HTMLElement>(".half, .slot, .pile-dock")) {
       if (el.parentElement !== surface) continue;
       before.set(zoneKey(el), { top: el.style.top, height: el.style.height });
     }
-    document.documentElement.classList.add("is-morphing");
-    for (const tile of tiles.values()) tile.classList.add("is-morphing");
+    morphTiles = new Map();
+    for (const [uid, tile] of tiles) {
+      if (tile.parentElement !== surface) continue;
+      morphTiles.set(uid, { left: parseFloat(tile.style.left) || 0, top: parseFloat(tile.style.top) || 0 });
+    }
+    const scaleBefore = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--card-scale")) || 1;
     rebuild();
+    // La scala: salta al valore nuovo (fitScale, dentro rebuild) e la
+    // superficie parte da quella vecchia in linea, poi la transizione sul
+    // transform la porta a zero — sul compositore, senza rimpaginare.
+    surface.style.transform = `scale(${scaleBefore})`;
+    void surface.offsetWidth;
+    surface.classList.add("is-morphing");
+    surface.style.transform = "";
+    // I riquadri: al posto nuovo subito, spostati indietro dello scarto
+    // (--my), e la transizione li riporta a zero. L'altezza dei campi va in
+    // transizione da sé (due riquadri).
     for (const el of surface.querySelectorAll<HTMLElement>(".half, .slot, .pile-dock")) {
       if (el.parentElement !== surface) continue;
       const old = before.get(zoneKey(el));
@@ -4274,22 +4293,58 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         el.classList.add("is-arriving");
         continue;
       }
-      const next = { top: el.style.top, height: el.style.height };
-      el.style.top = old.top;
+      const oldTop = parseFloat(old.top);
+      const newTop = parseFloat(el.style.top);
+      const next = el.style.height;
+      if (Number.isFinite(oldTop) && Number.isFinite(newTop)) el.style.setProperty("--my", `${oldTop - newTop}px`);
       if (el.classList.contains("half")) el.style.height = old.height;
-      el.classList.add("is-morphing");
       void el.offsetHeight;
-      el.style.top = next.top;
-      if (el.classList.contains("half")) el.style.height = next.height;
+      el.classList.add("is-morphing");
+      el.style.setProperty("--my", "0px");
+      if (el.classList.contains("half")) el.style.height = next;
     }
     window.setTimeout(() => {
-      document.documentElement.classList.remove("is-morphing");
+      surface.classList.remove("is-morphing");
       for (const el of surface.querySelectorAll<HTMLElement>(".is-morphing, .is-arriving")) {
         el.classList.remove("is-morphing", "is-arriving");
+        el.style.removeProperty("--my");
       }
-      for (const tile of tiles.values()) tile.classList.remove("is-morphing");
+      for (const tile of tiles.values()) {
+        tile.classList.remove("is-morphing");
+        tile.style.removeProperty("--mx");
+        tile.style.removeProperty("--my");
+      }
       render();
     }, MORPH_MS + 40);
+  }
+
+  /**
+   * La coda del morph, a tessere già posate dal disegno (render): ognuna
+   * si sposta indietro di quanto è cambiata la sua posizione (--mx/--my) e
+   * la transizione sul transform la riporta al posto nuovo.
+   */
+  function finishMorph(): void {
+    if (!morphTiles) return;
+    const starts = morphTiles;
+    morphTiles = null;
+    const moved: HTMLElement[] = [];
+    for (const [uid, tile] of tiles) {
+      const old = starts.get(uid);
+      if (!old || tile.parentElement !== surface) continue;
+      const dx = old.left - (parseFloat(tile.style.left) || 0);
+      const dy = old.top - (parseFloat(tile.style.top) || 0);
+      if (!dx && !dy) continue;
+      tile.style.setProperty("--mx", `${dx}px`);
+      tile.style.setProperty("--my", `${dy}px`);
+      moved.push(tile);
+    }
+    if (moved.length === 0) return;
+    void surface.offsetWidth;
+    for (const tile of moved) {
+      tile.classList.add("is-morphing");
+      tile.style.setProperty("--mx", "0px");
+      tile.style.setProperty("--my", "0px");
+    }
   }
 
   function render(): void {
@@ -4592,6 +4647,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     paintArrows();
     paintCombatTabs();
     fitPending(document.body);
+    finishMorph();
     driveChain();
   }
 

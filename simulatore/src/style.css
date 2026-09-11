@@ -1125,23 +1125,32 @@ body.side-closed .side { border-left: 0; }
   transform: scale(var(--card-scale));
   transform-origin: 0 0;
 }
-/* La scala del tavolo è una proprietà REGISTRATA: così può andare in
-   transizione, e con lei tutto ciò che ne deriva (transform della
-   superficie, margini, --ui-inv). La transizione si accende solo mentre la
-   fila di servizio avversaria si apre o si chiude (html.is-morphing,
-   table.ts morphZones), non a ogni ridimensionamento. Chi non conosce
-   @property ignora la registrazione: nessuna animazione, nessun danno. */
+/* La scala del tavolo è una proprietà REGISTRATA (ereditata, numerica):
+   da lei discendono transform della superficie, margini e --ui-inv. NON va
+   più in transizione (tolta il 2026-09-11): animarla rifaceva stile,
+   impaginazione e disegno di tutto il tavolo a ogni fotogramma — --ui-inv
+   regge corpi dei testi, padding, misure e posizioni di centinaia di
+   elementi. Quando la fila di servizio avversaria si apre o si chiude
+   (table.ts morphZones) la scala salta al valore nuovo in un colpo e la
+   superficie scivola con una transizione sul solo `transform`, che il
+   compositore muove senza ridisegnare. */
 @property --card-scale {
   syntax: "<number>";
   inherits: true;
   initial-value: 1;
 }
 :root { --morph-ms: 380ms; }
-html.is-morphing { transition: --card-scale var(--morph-ms) ease; }
-/* I riquadri e i campi che scivolano dal posto vecchio al nuovo, e le
-   carte che li seguono. */
-.half.is-morphing, .slot.is-morphing, .pile-dock.is-morphing { transition: top var(--morph-ms) ease, height var(--morph-ms) ease; }
-.tile.is-morphing { transition: top var(--morph-ms) ease, left var(--morph-ms) ease; }
+.surface.is-morphing { transition: transform var(--morph-ms) ease; }
+/* I riquadri, i campi e le carte scivolano dal posto vecchio al nuovo con
+   una TRASLAZIONE (--mx/--my, tecnica FLIP: si posano subito al posto
+   nuovo, si spostano indietro dello scarto e la transizione sul transform
+   li riporta a zero), non animando top/left: il compositore li muove senza
+   rimpaginare. Solo l'altezza dei due campi va in transizione (due
+   riquadri vuoti: costa nulla). */
+.half, .slot, .pile-dock { transform: translateY(var(--my, 0px)); }
+.half.is-morphing, .slot.is-morphing, .pile-dock.is-morphing { transition: transform var(--morph-ms) ease, height var(--morph-ms) ease; }
+.tile { transform: translate(var(--mx, 0px), var(--my, 0px)); }
+.tile.is-morphing { transition: transform var(--morph-ms) ease; }
 /* I riquadri che prima non c'erano (le pile e la mano avversaria che
    scendono sulla lavagna) entrano con una dissolvenza. */
 .slot.is-arriving { animation: slot-arrive var(--morph-ms) ease-out both; }
@@ -1150,7 +1159,7 @@ html.is-morphing { transition: --card-scale var(--morph-ms) ease; }
   to { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  html.is-morphing { transition: none; }
+  .surface.is-morphing { transition: none; }
   .half.is-morphing, .slot.is-morphing, .pile-dock.is-morphing, .tile.is-morphing { transition: none; }
   .slot.is-arriving { animation: none; }
 }
@@ -1391,7 +1400,7 @@ body.view-recess .board { top: var(--toolbar-h); }
 /* La coricata vive su un livello suo (translateZ, will-change): ruotata a
    scala frazionaria, altrimenti si ridisegnava a ogni respiro delle
    vicine e tremava appena. */
-.tile.is-tapped { transform: rotate(90deg) translateZ(0); will-change: transform; backface-visibility: hidden; }
+.tile.is-tapped { transform: translate(var(--mx, 0px), var(--my, 0px)) rotate(90deg) translateZ(0); will-change: transform; backface-visibility: hidden; }
 /* La coricata sporge sulle vicine e ne copre i numeri: al passaggio sale
    sopra (l'ordine inline del disegno si scavalca solo qui). */
 .surface > .tile.is-tapped:hover { z-index: 900 !important; }
