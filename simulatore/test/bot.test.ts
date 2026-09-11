@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import type { CardFacts } from "../src/ctx.js";
 import { FRONT_SLOT_X, frontRowY } from "../src/ctx.js";
-import { cardValue, chooseAttackers, chooseBlocks, chooseDiscards, choosePlay, chooseResponse, freshMemory, pickBest } from "../src/bot.js";
+import { cardValue, chooseAbility, chooseAttackers, chooseBlocks, chooseDiscards, chooseFlip, choosePlay, chooseResponse, freshMemory, pickBest } from "../src/bot.js";
 import { newGame } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
@@ -22,6 +22,8 @@ const BASE: Omit<CardFacts, "name" | "kind" | "race" | "power" | "counterattack"
   resolveForms: [],
   flipForms: [], assignForms: [], deathForms: [],
   nexus: null,
+  abilities: [],
+  furyAt: {},
   grantsWhileAssigned: [],
 };
 const CARDS: Record<string, Partial<CardFacts>> = {
@@ -35,6 +37,21 @@ const CARDS: Record<string, Partial<CardFacts>> = {
   SCATTO: { kind: "matter", fluxCost: 2, behavior: "reactive", resolveForms: [{ kind: "empower", targets: "own_entity", race: null, power: 1, untap: true }] },
   RIPARO: { kind: "matter", fluxCost: 2, behavior: "reactive", resolveForms: [{ kind: "block", requiresArmed: 0, heal: 0, asBlock: true }] },
   RUBINO: { kind: "rubyfront", power: null },
+  // Un Rubyfront con le forme certificate delle abilità (§3.1): lo sguardo
+  // che recupera PV (con la Furia), la carica che costa PV a chi attacca,
+  // e sul Nexus lo sconto gratuito; il flip vuole 2 Umani e lo scarto di un'Entità.
+  CORONA: {
+    kind: "rubyfront",
+    power: null,
+    furyAt: { 0: 13 },
+    abilities: [
+      { id: "sguardo", displayKey: "sguardo", face: 0, timing: ["preparazione", "fronte"], cost: null, gain: 3, fury: true, form: { kind: "look", count: 3, reveal: { kind: "entity", race: "human" } } },
+      { id: "carica", displayKey: "carica", face: 0, timing: ["preparazione", "fronte"], cost: 5, gain: null, fury: true, form: { kind: "power", amount: 1, targets: "all", race: "human", attacking: true, armed: false } },
+      { id: "passo", displayKey: "passo", face: 1, timing: ["preparazione", "fronte"], cost: null, gain: 3, fury: false, form: { kind: "discount", amount: 1, type: "entity", race: "human" } },
+      { id: "amano", displayKey: "amano", face: 0, timing: ["preparazione"], cost: 7, gain: null, fury: false, form: null },
+    ],
+    nexus: { face: 1, conditions: [{ count: 2, kind: "entity", race: null }], discard: { count: 1, kind: "entity" }, recovery: 5 },
+  },
 };
 const facts = (cardId: string): CardFacts => ({
   ...BASE,
@@ -50,7 +67,7 @@ const facts = (cardId: string): CardFacts => ({
 });
 
 let serial = 0;
-function put(state: GameState, cardId: string, owner: Seat, zone: "field" | "hand", extra: Partial<CardInstance> = {}): CardInstance {
+function put(state: GameState, cardId: string, owner: Seat, zone: "field" | "hand" | "deck", extra: Partial<CardInstance> = {}): CardInstance {
   serial += 1;
   const card: CardInstance = {
     uid: `${owner}-${serial}`,
@@ -237,5 +254,136 @@ describe("chooseResponse (§7.2, la catena)", () => {
     empty.players.b.flux = 5;
     put(empty, "SCATTO", "b", "hand");
     expect(chooseResponse(empty, "b", facts)).toBeNull();
+  });
+});
+
+// Le abilità speciali del Rubyfront e il flip verso il Nexus (§3.1).
+describe("chooseAbility e chooseFlip (§3.1)", () => {
+  function corte(): { state: GameState; ruby: CardInstance } {
+    const state = newGame("b");
+    state.turn = 4;
+    state.phase = "preparazione";
+    state.players.b.hp = 20;
+    const ruby = put(state, "CORONA", "b", "field");
+    put(state, "MEDIA", "b", "deck");
+    return { state, ruby };
+  }
+
+  it("in Preparazione usa l'abilità gratuita che recupera PV, una sola per turno", () => {
+    const { state, ruby } = corte();
+    const memory = freshMemory(4);
+    const pick = chooseAbility(state, "b", facts, memory);
+    expect(pick?.card.uid).toBe(ruby.uid);
+    expect(pick?.ability.id).toBe("sguardo");
+    // Usata: il turno la segna, e il bot non ne cerca un'altra.
+    state.players.b.abilityTurn = 4;
+    expect(chooseAbility(state, "b", facts, memory)).toBeNull();
+    // Fermata dall'arbitro: annotata, non insiste — e l'altra gratuita non c'è su questa faccia.
+    delete state.players.b.abilityTurn;
+    memory.abilities.add("sguardo");
+    expect(chooseAbility(state, "b", facts, memory)).toBeNull();
+  });
+
+  it("senza il Rubyfront schierato, o nel turno altrui, non fa nulla", () => {
+    const { state, ruby } = corte();
+    // In Zona di Richiamo sta sulla lavagna (zone field) ma non sulla fila
+    // del Fronte: abilità e flip aspettano lo schieramento (§3.1).
+    const front = ruby.y;
+    ruby.y = 0;
+    expect(chooseAbility(state, "b", facts, freshMemory(4))).toBeNull();
+    put(state, "MEDIA", "b", "field");
+    put(state, "MEDIA", "b", "field");
+    put(state, "PICCOLA", "b", "hand");
+    expect(chooseFlip(state, "b", facts, freshMemory(4))).toBeNull();
+    ruby.y = front;
+    expect(chooseFlip(state, "b", facts, freshMemory(4))?.uid).toBe(ruby.uid);
+    state.active = "a";
+    expect(chooseAbility(state, "b", facts, freshMemory(4))).toBeNull();
+    expect(chooseFlip(state, "b", facts, freshMemory(4))).toBeNull();
+  });
+
+  it("paga il potenziamento a ondata dichiarata quando i punti comprati valgono il prezzo", () => {
+    const { state } = corte();
+    state.phase = "fronte";
+    const memory = freshMemory(4);
+    const foe = put(state, "RUBINO", "a", "field");
+    const attackers = [put(state, "MEDIA", "b", "field"), put(state, "MEDIA", "b", "field"), put(state, "MEDIA", "b", "field")];
+    // Prima dell'ondata no: il bonus andrebbe a chi non attacca.
+    expect(chooseAbility(state, "b", facts, memory)?.ability.id).not.toBe("carica");
+    attackers.forEach((card, i) => attack(state, card, foe, i + 1));
+    memory.attacked = true;
+    expect(chooseAbility(state, "b", facts, memory)?.ability.id).toBe("carica");
+    // Con due soli attaccanti 2 punti per 5 PV non valgono.
+    state.declarations = state.declarations.slice(0, 2);
+    expect(chooseAbility(state, "b", facts, memory)?.ability.id).not.toBe("carica");
+    // Coi PV bassi non si paga, anche se rende.
+    state.declarations = state.declarations.concat({ id: "d3", from: attackers[2].uid, to: foe.uid, kind: "attack", seat: "b", order: 3 });
+    state.players.b.hp = 9;
+    expect(chooseAbility(state, "b", facts, memory)?.ability.id).not.toBe("carica");
+  });
+
+  it("paga sempre il colpo letale", () => {
+    const { state } = corte();
+    state.phase = "fronte";
+    state.players.b.hp = 8;
+    state.players.a.hp = 3;
+    const foe = put(state, "RUBINO", "a", "field");
+    const one = put(state, "MEDIA", "b", "field");
+    attack(state, one, foe, 1);
+    const memory = freshMemory(4);
+    memory.attacked = true;
+    // 2 + 1 = 3 ≥ 3 PV, nessun bloccante pronto.
+    expect(chooseAbility(state, "b", facts, memory)?.ability.id).toBe("carica");
+    // Un bloccante pronto ferma l'unico attaccante: niente colpo, niente spesa.
+    put(state, "GRANDE", "a", "field");
+    expect(chooseAbility(state, "b", facts, memory)?.ability.id).not.toBe("carica");
+  });
+
+  it("le abilità senza forma restano a mano, e a 0 PV non si arriva", () => {
+    const { state } = corte();
+    const memory = freshMemory(4);
+    memory.abilities.add("sguardo");
+    expect(chooseAbility(state, "b", facts, memory)).toBeNull();
+    // Lo sguardo con la Furia: a 1 PV il fallimento porterebbe a 0.
+    memory.abilities.clear();
+    state.players.b.hp = 1;
+    expect(chooseAbility(state, "b", facts, memory)).toBeNull();
+  });
+
+  it("flippa verso il Nexus appena il requisito c'è, e sul Nexus usa lo sconto prima di giocare", () => {
+    const { state, ruby } = corte();
+    const memory = freshMemory(4);
+    put(state, "MEDIA", "b", "field");
+    put(state, "PICCOLA", "b", "hand");
+    expect(chooseFlip(state, "b", facts, memory)).toBeNull();
+    put(state, "MEDIA", "b", "field");
+    expect(chooseFlip(state, "b", facts, memory)?.uid).toBe(ruby.uid);
+    // Una prova per turno.
+    memory.flipped = true;
+    expect(chooseFlip(state, "b", facts, memory)).toBeNull();
+    // Flippato: la faccia del Nexus ha lo sconto gratuito, e con un Umano in mano vale.
+    ruby.face = 1;
+    expect(chooseFlip(state, "b", facts, freshMemory(4))).toBeNull();
+    expect(chooseAbility(state, "b", facts, freshMemory(4))?.ability.id).toBe("passo");
+  });
+
+  it("lo sconto di un'abilità conta nel Flusso: la carta scontata diventa giocabile", () => {
+    const state = newGame("b");
+    state.players.b.flux = 3;
+    state.players.b.token = false;
+    state.players.b.discounts = [{ amount: 1, type: "entity", race: "human" }];
+    const big = put(state, "GRANDE", "b", "hand");
+    expect(choosePlay(state, "b", facts, freshMemory(1))?.card.uid).toBe(big.uid);
+    delete state.players.b.discounts;
+    expect(choosePlay(state, "b", facts, freshMemory(1))).toBeNull();
+  });
+
+  it("fra le proprie carte la mira preferisce chi sta attaccando", () => {
+    const state = newGame("b");
+    const foe = put(state, "RUBINO", "a", "field");
+    const big = put(state, "GRANDE", "b", "field");
+    const small = put(state, "PICCOLA", "b", "field");
+    attack(state, small, foe, 1);
+    expect(pickBest(state, "b", [big, small], facts)?.uid).toBe(small.uid);
   });
 });

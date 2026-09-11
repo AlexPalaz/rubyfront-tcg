@@ -10,7 +10,7 @@ import { createArrowLayer, drawArrows, type Arrow } from "./arrows.js";
 import { createCardEl, fitPending, keywordIcon, setTessPower, syncCardEl, wirePreview } from "./cardview.js";
 import { playSound } from "./sound.js";
 import { declareAttack as declareAttackVia, declareBlock, neverTaps, powerOf, staticCounter, staticPower, undeclare, wornBy } from "./combat.js";
-import { tapPreview } from "./preview.js";
+import { armPreview, disarmPreview, tapPreview } from "./preview.js";
 import {
   COMPACT_TILE_H,
   fromViewPoint,
@@ -264,6 +264,13 @@ export interface TableView {
   /** Vero se ha schierato (o tirato); falso se lo schieramento non passerebbe. */
   deployRubyfront(seat: Seat): Promise<boolean>;
   attackWith(card: CardInstance): Promise<void>;
+  /** §3.1 — un'abilità speciale del Rubyfront, per il bot (main.ts): la
+      stessa via del menu, mira e conferme rispondono da sole (setAuto).
+      Vero se l'arbitro l'ha passata. */
+  useAbility(card: CardInstance, ability: Ability): Promise<boolean>;
+  /** §3.1 — il flip verso il Nexus, per il bot: requisito, scarto (dal
+      selettore) e recupero in un'azione sola. Vero se è passato. */
+  flipToNexus(card: CardInstance): Promise<boolean>;
   /** Callback per scegliere una carta da una pila (effetti): la fornisce main.ts. */
   onPick(
     handler: (seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string, visible?: CardInstance[]) => Promise<CardInstance | null>
@@ -1702,7 +1709,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * grande quanto la carta, coi tasti in colonna, larghi uguali (deciso
    * 2026-09-09: «un overlay con i bottoni, Blocca e Contrattacca a capo»).
    * Il velo si chiude quando il puntatore lo lascia. La carta coricata ruota
-   * attorno al suo centro: il velo prende la misura che si vede.
+   * attorno al suo centro: il velo prende la misura che si vede. I tasti
+   * sono a misura di schermo: se la carta è più piccola di loro, il velo
+   * cresce oltre i bordi della carta (style.css, min-width: max-content).
    */
   const combatGroups = new Map<string, HTMLElement>();
   /** La carta col velo aperto: sopravvive ai ridisegni (ogni render rifà i
@@ -1763,9 +1772,21 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       group.style.top = `${box.y + box.h / 2}px`;
       group.style.width = `${card.tapped ? box.h : box.w}px`;
       group.style.height = `${card.tapped ? box.w : box.h}px`;
+      // Il velo aperto sta sopra la tessera e le ruba il puntatore: la
+      // tessera vede un pointerleave e l'ingrandimento si chiude. È il velo
+      // a tenerlo armato (e a spegnerlo quando il puntatore lo lascia): la
+      // carta coricata si legge in grande come tutte le altre. Ancora è il
+      // velo stesso, che può essere più largo della carta: l'ingrandimento
+      // si affianca a lui e non copre mai i tasti.
+      group.addEventListener("pointerenter", event => {
+        if (event.pointerType === "touch" || !tile || tile.classList.contains("is-back")) return;
+        const live = ctx.state().cards[card.uid];
+        if (live) armPreview(group, live.cardId, live.face, ctx.themeFor(live.owner), ctx.locale());
+      });
       group.addEventListener("pointerleave", () => {
         group.classList.remove("is-open");
         if (openCombatUid === card.uid) openCombatUid = null;
+        disarmPreview();
       });
       if (openCombatUid === card.uid) group.classList.add("is-open");
       // In mira, la carta scegliibile si sceglie anche cliccandola: il velo
@@ -2647,32 +2668,31 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * di PV è quello stampato — tutto in un'azione sola, che l'engine
    * verifica. Poi la scena «Quando flippa» coi passi del Nexus.
    */
-  async function flipToNexus(card: CardInstance): Promise<void> {
+  async function flipToNexus(card: CardInstance): Promise<boolean> {
     const facts = ctx.card(card.cardId);
     const nexus = facts.nexus;
     if (!nexus) {
-      void ctx.dispatch({ t: "flip", uid: card.uid, face: (card.face + 1) % faceCount(card.cardId) });
-      return;
+      return ctx.dispatch({ t: "flip", uid: card.uid, face: (card.face + 1) % faceCount(card.cardId) });
     }
     const by = controllerOf(card);
     const check = nexusCheck(ctx.state(), card, ctx.card);
     if (!check.ok) {
       ctx.log(msg(check.why, { seat: by, n: check.n ?? 0 }), by);
-      return;
+      return false;
     }
     let discard: CardInstance | null = null;
     if (nexus.discard) {
       while (!discard) discard = await pickFromPile(by, "hand", check.discards, t(nexus.discard.kind === null ? "pick.nexus.discard.any" : "pick.nexus.discard"));
     }
     const passed = await ctx.dispatch({ t: "flip", uid: card.uid, face: nexus.face, ...(discard ? { discard: discard.uid } : {}), ...(nexus.recovery ? { recover: nexus.recovery } : {}) });
-    if (!passed) return;
+    if (!passed) return false;
     const hp = ctx.state().players[by].hp;
     ctx.log(msg("log.flip", { seat: by, card: card.cardId, recover: nexus.recovery ? msg("log.flip.recover", { n: nexus.recovery, hp }) : "" }), by);
     if (discard) ctx.log(msg("log.flip.discard", { seat: by, card: discard.cardId }), by);
     const live = ctx.state().cards[card.uid];
-    if (!live) return;
+    if (!live) return true;
     const steps = flipSteps(ctx.state(), live, ctx.card);
-    if (steps.length === 0) return;
+    if (steps.length === 0) return true;
     void showEnterEffect(root, {
       cardId: live.cardId,
       face: live.face,
@@ -2684,6 +2704,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       kicker: t("scene.flip"),
       onContinue: () => void playFlipSteps(steps),
     });
+    return true;
   }
 
   async function playFlipSteps(steps: FlipStep[]): Promise<void> {
@@ -3407,12 +3428,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * va all'engine in un colpo solo; lo sguardo nel mazzo si risolve dopo,
    * con la stessa vetrina degli ingressi, marcato `on_ability`.
    */
-  async function useAbility(card: CardInstance, ability: Ability): Promise<void> {
+  async function useAbility(card: CardInstance, ability: Ability): Promise<boolean> {
     const by = controllerOf(card);
     const copy = abilityCopy(card.cardId, ability.face, ability.displayKey, ctx.locale());
     const price = ability.cost !== null ? t("ability.cost", { n: ability.cost }) : t("ability.gain", { n: ability.gain ?? 0 });
     const form = ability.form;
-    if (!form) return;
+    if (!form) return false;
     let targets: string[] | null = null;
     if (form.kind === "power") {
       const candidates = fieldCards(ctx.state()).filter(other => {
@@ -3427,19 +3448,19 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (form.targets === "one") {
         if (candidates.length === 0) {
           const go = await confirmFor(by, t("confirm.ability.notargets", { name: copy.name, price }));
-          if (!go) return;
+          if (!go) return false;
           targets = [];
         } else {
           light(card.uid, true);
           const chosen = await pickTarget(card, candidates, t("target.ability.power", { n: form.amount }));
           light(card.uid, false);
-          if (!chosen) return;
+          if (!chosen) return false;
           targets = [chosen.uid];
         }
       } else {
         if (candidates.length === 0) {
           const go = await confirmFor(by, t("confirm.ability.notargets", { name: copy.name, price }));
-          if (!go) return;
+          if (!go) return false;
         }
         targets = candidates.map(other => other.uid);
       }
@@ -3488,13 +3509,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     }
     if (!passed || form.kind !== "look") {
       render();
-      return;
+      return passed;
     }
     // Lo sguardo nel mazzo: le prime N, con la vetrina degli ingressi.
     const live = ctx.state().cards[card.uid];
-    if (!live) return;
+    if (!live) return true;
     const step = lookAfterRoll(ctx.state(), live, { count: form.count, die: null, countBase: 0, reveal: form.reveal, thenRetire: false }, null, ctx.card);
     await playLook(step, { source: live.uid, event: "on_ability", entering: live.uid, ability: ability.id });
+    return true;
   }
 
   async function playLook(first: EnterLookStep, ref: EffectRef | null = null): Promise<void> {
@@ -4886,6 +4908,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     },
     attackWith(card) {
       return declareAttack(card);
+    },
+    useAbility(card, ability) {
+      return useAbility(card, ability);
+    },
+    flipToNexus(card) {
+      return flipToNexus(card);
     },
     onBrowse(handler) {
       browse = handler;

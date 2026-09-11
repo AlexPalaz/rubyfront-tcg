@@ -25,7 +25,7 @@ import { showEnterEffect, showEnterPeek } from "./effect.js";
 import { mountHud } from "./hud.js";
 import { musicState, playSound, setMusicEnabled, setSoundEnabled, startMusic, stopMusic, unlockSound } from "./sound.js";
 import { endPhase } from "./turn.js";
-import { chooseAttackers, chooseBlocks, chooseDiscards, chooseResponse, choosePlay, freshMemory, pickBest, type BotMemory } from "./bot.js";
+import { chooseAbility, chooseAttackers, chooseBlocks, chooseDiscards, chooseFlip, chooseResponse, choosePlay, freshMemory, pickBest, type BotMemory } from "./bot.js";
 import { declareBlock } from "./combat.js";
 import { setupPreview } from "./preview.js";
 import { mountMazzi } from "./mazzi.js";
@@ -168,7 +168,8 @@ function dispatch(action: Action): Promise<boolean> {
           // Il bot che sbatte contro l'arbitro non mostra il sigillo a
           // chi guarda: prende nota (bot.ts, tried) e cambia gesto. Vale
           // per ogni gesto del suo posto, anche gli effetti risolti dopo.
-          if (!(botSeat && actorFor(action) === botSeat)) engineStop(verdict);
+          if (botSeat && actorFor(action) === botSeat) console.debug("bot fermato", action.t, verdict.reason);
+          else engineStop(verdict);
           // Un gesto trascinato (una carta posata sul Fronte) può aver già
           // mosso i pixel: si ridisegna dallo stato — che non è cambiato —
           // e tutto torna al suo posto.
@@ -1778,8 +1779,28 @@ async function botStep(bot: Seat): Promise<boolean> {
     return false;
   }
   if (s.active === bot) {
+    // §3.1 — il Rubyfront: prima lo schieramento, poi un'abilità speciale
+    // (le gratuite in Preparazione prima delle carte, così lo sconto vale
+    // per la carta che segue; il potenziamento in Fronte a ondata
+    // dichiarata), poi il flip verso il Nexus appena il requisito c'è —
+    // che riapre la finestra dell'abilità (state.ts, flip). Un «no»
+    // dell'arbitro si annota e non si insiste.
+    const rubyfrontMove = async (): Promise<boolean> => {
+      const ability = chooseAbility(state, bot, ctx.card, botMemory);
+      if (ability) {
+        botMemory.abilities.add(ability.ability.id);
+        if (await table.useAbility(ability.card, ability.ability)) return true;
+      }
+      const flip = chooseFlip(state, bot, ctx.card, botMemory);
+      if (flip) {
+        botMemory.flipped = true;
+        if (await table.flipToNexus(flip)) return true;
+      }
+      return false;
+    };
     if (s.phase === "preparazione") {
       if (await table.deployRubyfront(bot)) return true;
+      if (await rubyfrontMove()) return true;
       const play = choosePlay(s, bot, ctx.card, botMemory);
       if (play) {
         if (play.useToken) {
@@ -1812,6 +1833,7 @@ async function botStep(bot: Seat): Promise<boolean> {
         }
         return true;
       }
+      if (await rubyfrontMove()) return true;
       await endPhase(ctx);
       return true;
     }

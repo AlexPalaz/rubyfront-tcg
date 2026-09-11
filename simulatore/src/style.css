@@ -2262,6 +2262,13 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   gap: calc(10px * var(--ui-inv));
   padding: calc(14px * var(--ui-inv));
   box-sizing: border-box;
+  /* I tasti sono a misura di schermo (--ui-inv), leggibili anche quando la
+     tavola si rimpicciolisce. Se la carta è più stretta o più bassa di
+     quanto i tasti chiedono, è il velo a crescere oltre i suoi bordi —
+     centrato sulla carta dal translate — invece di tagliare le etichette
+     (deciso 2026-09-11: «devono ridimensionarsi e non sforare mai»). */
+  min-width: max-content;
+  min-height: max-content;
   transform: translate(-50%, -50%);
   background: rgba(9, 7, 9, .8);
   border: calc(1px * var(--ui-inv)) solid rgba(224, 49, 75, .7);
@@ -2273,9 +2280,13 @@ body.is-dragging-card .hand-drop.is-drop-target .hand-drop-hint { color: var(--r
   transition: opacity .16s ease;
 }
 .combat-tabs.is-open { opacity: 1; pointer-events: auto; }
+/* Niente pointer-events sul tasto: eredita dal velo. Da chiuso il velo è
+   inerte e così i suoi tasti, invisibili — altrimenti un puntatore che
+   arriva dritto sulla carta (un tap, un salto del mouse) finiva su un tasto
+   che non si vede, la tessera non apriva il velo e il click lo premeva. */
 .combat-tab {
-  pointer-events: auto;
   width: 100%;
+  box-sizing: border-box;
   padding: calc(12px * var(--ui-inv)) calc(10px * var(--ui-inv));
   font-size: calc(1rem * var(--ui-inv));
   font-weight: 700;

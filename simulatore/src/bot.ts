@@ -10,12 +10,15 @@
 //
 // Difficoltà: MEDIA (la sola, per ora). Regole del pollice, non ricerca:
 // attacca con chi non muore, va all'assalto se il colpo è letale, blocca
-// per uccidere o per non morire, gioca la carta che rende di più per Flusso.
+// per uccidere o per non morire, gioca la carta che rende di più per Flusso,
+// usa le abilità del Rubyfront (§3.1) — quelle che recuperano PV sempre,
+// quelle che li costano quando l'ondata ci guadagna — e flippa verso il
+// Nexus appena il requisito è soddisfatto (dal 2026-09-11).
 
-import type { CardFacts } from "./ctx.js";
-import { hasKeyword, powerOf } from "./combat.js";
-import { resolveSteps } from "./effects.js";
-import { controllerOf, fieldCards, freeFrontSlotOrNull, matterSpot, zoneCards } from "./state.js";
+import type { Ability, CardFacts } from "./ctx.js";
+import { hasKeyword, powerOf, wornBy } from "./combat.js";
+import { nexusCheck, resolveSteps } from "./effects.js";
+import { abilityDiscount, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, inPlay, matterSpot, zoneCards } from "./state.js";
 import type { CardInstance, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -34,10 +37,14 @@ export interface BotMemory {
   blocked: boolean;
   /** Ha già giocato la sua Reattiva in Reazione, in questo turno. */
   reacted: boolean;
+  /** Le abilità speciali che ha provato in questo turno (id): usate o fermate, non insiste (§3.1). */
+  abilities: Set<string>;
+  /** Ha già provato il flip verso il Nexus in questo turno. */
+  flipped: boolean;
 }
 
 export function freshMemory(turn: number): BotMemory {
-  return { turn, entered: new Set(), tried: new Set(), attacked: false, blocked: false, reacted: false };
+  return { turn, entered: new Set(), tried: new Set(), attacked: false, blocked: false, reacted: false, abilities: new Set(), flipped: false };
 }
 
 /** Il peso di una parola chiave stampata o concessa, in punti di Potenza. */
@@ -217,7 +224,9 @@ export function choosePlay(state: GameState, seat: Seat, facts: Facts, memory: B
   const options: { play: BotPlay; score: number }[] = [];
   for (const card of hand) {
     const f = facts(card.cardId);
-    const cost = f.fluxCost;
+    // Lo sconto di un'abilità del Rubyfront (§3.1) lo applica il tavolo al
+    // gioco della carta: qui conta per decidere cosa si paga.
+    const cost = f.fluxCost === null ? null : Math.max(0, f.fluxCost - (abilityDiscount(state, seat, f)?.amount ?? 0));
     if (cost === null || f.kind === "rubyfront" || f.kind === "nexus") continue;
     const useToken = cost > player.flux;
     if (useToken && (!player.token || cost > player.flux + 1)) continue;
@@ -291,5 +300,131 @@ export function pickBest(state: GameState, seat: Seat, candidates: CardInstance[
   const sorted = [...candidates].sort((a, b) => cardValue(state, b, facts) - cardValue(state, a, facts));
   if (mode === "weakest") return sorted[sorted.length - 1];
   const foes = sorted.filter(card => controllerOf(card) !== seat);
-  return (foes.length ? foes : sorted)[0];
+  if (foes.length) return foes[0];
+  // Fra le proprie, prima chi sta attaccando: un potenziamento a ondata
+  // dichiarata (§3.1) va a chi lo porta in battaglia.
+  const attacking = sorted.filter(card => declarationOf(state, card.uid)?.kind === "attack");
+  return (attacking.length ? attacking : sorted)[0];
+}
+
+/**
+ * Il Rubyfront (o il Nexus) di `seat` SCHIERATO: sulla fila del Fronte, non
+ * in Zona di Richiamo, dove sta sulla lavagna ma «abilità e Materie sono
+ * utilizzabili solo quando è in campo» (§3.1; inPlay, state.ts). Null se
+ * manca o aspetta ancora lo schieramento.
+ */
+export function rubyfrontInPlay(state: GameState, seat: Seat, facts: Facts): CardInstance | null {
+  return (
+    fieldCards(state).find(card => {
+      if (card.owner !== seat) return false;
+      const kind = facts(card.cardId).kind;
+      return (kind === "rubyfront" || kind === "nexus") && inPlay(card, kind);
+    }) ?? null
+  );
+}
+
+export interface BotAbility {
+  card: CardInstance;
+  ability: Ability;
+}
+
+/**
+ * Sotto quanti PV il bot non paga più un'abilità: pagare fino a 0 è legale
+ * ma a 0 si perde (§3.1), e un attacco che passa dopo finisce la partita.
+ */
+const HP_FLOOR = 6;
+
+/**
+ * L'abilità speciale da usare adesso (§3.1): fra quelle della faccia in
+ * vista, nella finestra della fase, con una forma che l'arbitro sa leggere
+ * (le altre restano a mano), una sola per turno (il flip riapre la
+ * finestra: `abilityTurn` si azzera, state.ts). Quelle che RECUPERANO PV
+ * si usano sempre, in Preparazione, prima di giocare carte — così lo sconto
+ * vale per la carta che segue. Quelle che COSTANO PV si pagano quando
+ * rendono: il potenziamento a ondata dichiarata, se i punti di Potenza
+ * comprati valgono almeno metà dei PV spesi o se il colpo diventa letale;
+ * lo sconto in Preparazione, se rende giocabile una carta in mano. Mai
+ * sotto HP_FLOOR, salvo il colpo letale; la Furia (§8.1) costa un PV in
+ * più a rischio. Nessuna: null.
+ */
+export function chooseAbility(state: GameState, seat: Seat, facts: Facts, memory: BotMemory): BotAbility | null {
+  const ruby = rubyfrontInPlay(state, seat, facts);
+  if (!ruby || state.active !== seat) return null;
+  const player = state.players[seat];
+  if (player.abilityTurn === state.turn) return null;
+  const foe = otherSeat(seat);
+  const options: { pick: BotAbility; score: number }[] = [];
+  for (const ability of facts(ruby.cardId).abilities) {
+    if (ability.face !== ruby.face || !ability.form || !ability.timing.includes(state.phase) || memory.abilities.has(ability.id)) continue;
+    const cost = ability.cost ?? 0;
+    const gain = ability.gain ?? 0;
+    const risk = ability.fury ? 1 : 0;
+    // A 0 PV si perde e l'effetto non si risolve: il costo (e la Furia
+    // fallita) devono lasciare almeno 1 PV.
+    if (player.hp - cost - risk < 1) continue;
+    const form = ability.form;
+    let worth = 0;
+    let lethal = false;
+    if (form.kind === "look") {
+      // Lo sguardo nel mazzo vale una carta, se c'è da guardare.
+      if (state.phase !== "preparazione" || zoneCards(state, seat, "deck").length === 0) continue;
+      worth = 1;
+    } else if (form.kind === "discount") {
+      if (state.phase !== "preparazione") continue;
+      const costs = zoneCards(state, seat, "hand")
+        .map(card => facts(card.cardId))
+        .filter(f => f.kind === form.type && (form.race === null || f.race === form.race) && f.fluxCost !== null)
+        .map(f => f.fluxCost as number);
+      const flux = player.flux + (player.token ? 1 : 0);
+      const unlocks = costs.some(c => c > flux && c - form.amount <= flux);
+      worth = costs.length === 0 ? 0 : unlocks ? 3 : 1;
+    } else {
+      // Il potenziamento fino a fine turno: a ondata dichiarata (in Fronte),
+      // sulle Entità che attaccano — le altre non ne fanno nulla.
+      if (state.phase !== "fronte" || !memory.attacked) continue;
+      const targets = fieldCards(state).filter(card => {
+        if (controllerOf(card) !== seat || declarationOf(state, card.uid)?.kind !== "attack") return false;
+        const f = facts(card.cardId);
+        if (f.kind !== "entity") return false;
+        if (form.race !== null && f.race !== form.race) return false;
+        if (form.armed && wornBy(state, card.uid).length === 0) return false;
+        return true;
+      });
+      if (targets.length === 0) continue;
+      const count = form.targets === "all" ? targets.length : 1;
+      worth = count * form.amount;
+      // Il colpo letale: i bloccanti pronti fermano i più forti, il resto
+      // passa col bonus (lo stesso conto di chooseAttackers).
+      const blockers = readyEntities(state, foe, facts).filter(card => !card.cannotBlock).length;
+      const attacking = fieldCards(state)
+        .filter(card => controllerOf(card) === seat && declarationOf(state, card.uid)?.kind === "attack")
+        .map(card => (powerOf(card, facts, state) ?? 0) + (targets.some(target => target.uid === card.uid) ? form.amount : 0))
+        .sort((a, b) => b - a);
+      const passing = attacking.slice(blockers).reduce((sum, p) => sum + p, 0);
+      lethal = passing >= state.players[foe].hp;
+    }
+    if (cost > 0 && !lethal) {
+      if (player.hp - cost < HP_FLOOR) continue;
+      if (worth < cost / 2) continue;
+    }
+    if (cost === 0 && worth === 0 && gain === 0) continue;
+    options.push({ pick: { card: ruby, ability }, score: (lethal ? 100 : 0) + worth + gain - cost - risk * 0.4 });
+  }
+  options.sort((a, b) => b.score - a.score);
+  return options[0]?.pick ?? null;
+}
+
+/**
+ * Il flip verso il Nexus (§3.1): il Rubyfront in campo con la faccia del
+ * Rubyfront in vista e il requisito certificato soddisfatto (nexusCheck —
+ * lo scarto lo sceglie il selettore, la carta che vale meno). Il Nexus è
+ * più forte e recupera PV: si flippa appena si può, una prova per turno.
+ */
+export function chooseFlip(state: GameState, seat: Seat, facts: Facts, memory: BotMemory): CardInstance | null {
+  if (memory.flipped || state.active !== seat) return null;
+  const ruby = rubyfrontInPlay(state, seat, facts);
+  if (!ruby) return null;
+  const f = facts(ruby.cardId);
+  if (f.kind !== "rubyfront" || !f.nexus || ruby.face === f.nexus.face) return null;
+  return nexusCheck(state, ruby, facts).ok ? ruby : null;
 }
