@@ -4296,8 +4296,12 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       const next = el.style.height;
       if (Number.isFinite(oldTop) && Number.isFinite(newTop)) el.style.setProperty("--my", `${oldTop - newTop}px`);
       if (el.classList.contains("half")) el.style.height = old.height;
-      void el.offsetHeight;
+      // La classe porta il transform: si mette a transizione spenta, così
+      // parte dallo scarto e non da zero.
+      el.style.transition = "none";
       el.classList.add("is-morphing");
+      void el.offsetHeight;
+      el.style.transition = "";
       el.style.setProperty("--my", "0px");
       if (el.classList.contains("half")) el.style.height = next;
     }
@@ -4334,12 +4338,14 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       if (!dx && !dy) continue;
       tile.style.setProperty("--mx", `${dx}px`);
       tile.style.setProperty("--my", `${dy}px`);
+      tile.style.transition = "none";
+      tile.classList.add("is-morphing");
       moved.push(tile);
     }
     if (moved.length === 0) return;
     void surface.offsetWidth;
     for (const tile of moved) {
-      tile.classList.add("is-morphing");
+      tile.style.transition = "";
       tile.style.setProperty("--mx", "0px");
       tile.style.setProperty("--my", "0px");
     }

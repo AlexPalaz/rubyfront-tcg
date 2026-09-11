@@ -1147,10 +1147,12 @@ body.side-closed .side { border-left: 0; }
    li riporta a zero), non animando top/left: il compositore li muove senza
    rimpaginare. Solo l'altezza dei due campi va in transizione (due
    riquadri vuoti: costa nulla). */
-.half, .slot, .pile-dock { transform: translateY(var(--my, 0px)); }
-.half.is-morphing, .slot.is-morphing, .pile-dock.is-morphing { transition: transform var(--morph-ms) ease, height var(--morph-ms) ease; }
-.tile { transform: translate(var(--mx, 0px), var(--my, 0px)); }
-.tile.is-morphing { transition: transform var(--morph-ms) ease; }
+/* Il transform sta SOLO su chi scorre (is-morphing): fermo, un riquadro
+   con un transform diventa un contesto di sovrapposizione e i suoi tasti
+   («Schiera», «Abilità») finirebbero sotto le carte. table.ts mette la
+   classe con la transizione spenta, così l'attacco non anima da zero. */
+.half.is-morphing, .slot.is-morphing, .pile-dock.is-morphing { transform: translateY(var(--my, 0px)); transition: transform var(--morph-ms) ease, height var(--morph-ms) ease; }
+.tile.is-morphing { transform: translate(var(--mx, 0px), var(--my, 0px)); transition: transform var(--morph-ms) ease; }
 /* I riquadri che prima non c'erano (le pile e la mano avversaria che
    scendono sulla lavagna) entrano con una dissolvenza. */
 .slot.is-arriving { animation: slot-arrive var(--morph-ms) ease-out both; }
@@ -1400,7 +1402,8 @@ body.view-recess .board { top: var(--toolbar-h); }
 /* La coricata vive su un livello suo (translateZ, will-change): ruotata a
    scala frazionaria, altrimenti si ridisegnava a ogni respiro delle
    vicine e tremava appena. */
-.tile.is-tapped { transform: translate(var(--mx, 0px), var(--my, 0px)) rotate(90deg) translateZ(0); will-change: transform; backface-visibility: hidden; }
+.tile.is-tapped { transform: rotate(90deg) translateZ(0); will-change: transform; backface-visibility: hidden; }
+.tile.is-tapped.is-morphing { transform: translate(var(--mx, 0px), var(--my, 0px)) rotate(90deg) translateZ(0); }
 /* La coricata sporge sulle vicine e ne copre i numeri: al passaggio sale
    sopra (l'ordine inline del disegno si scavalca solo qui). */
 .surface > .tile.is-tapped:hover { z-index: 900 !important; }
