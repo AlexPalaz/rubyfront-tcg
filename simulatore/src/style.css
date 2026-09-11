@@ -774,7 +774,11 @@ body.is-intro-wait .slot-rubyfront, body.is-intro .slot-rubyfront:not(.is-landed
    campo, flyFromPile / liftToFlight). */
 .fly-ghost {
   position: fixed;
-  z-index: 9550;
+  /* Sopra la lavagna ma SOTTO le mani (z 30) e i pannelli: la carta che
+     vola verso la fila di servizio passa sotto il cassetto della mano come
+     la tessera che poi ci sta, senza affiorare per un attimo sopra
+     (deciso 2026-09-11). */
+  z-index: 25;
   pointer-events: none;
   transition: transform 1.6s cubic-bezier(.35, .6, .2, 1), opacity 1.6s ease;
   transform-origin: 0 0;
@@ -799,7 +803,7 @@ body.is-intro-wait .slot-rubyfront, body.is-intro .slot-rubyfront:not(.is-landed
    carta con un attimo di ritardo, corre alla pila e si spegne arrivando. */
 .fly-spark {
   position: fixed;
-  z-index: 9551;
+  z-index: 26;
   width: 14px;
   height: 14px;
   margin: -7px 0 0 -7px;

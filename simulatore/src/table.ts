@@ -2901,6 +2901,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const layoutH = tile.offsetHeight;
     const ghost = tile.cloneNode(true) as HTMLElement;
     ghost.classList.add("fly-ghost");
+    // Sotto le mani e i pannelli (z 30+), sopra la lavagna: il clone porta
+    // con sé lo z-index in linea della tessera, che con tante carte supera
+    // quello della mano e per un attimo la carta volava DAVANTI al cassetto.
+    ghost.style.zIndex = "25";
     ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
     ghost.querySelector(".combat-badge")?.remove();
     ghost.style.position = "fixed";
@@ -2989,6 +2993,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     const layoutH = tile.offsetHeight;
     const ghost = tile.cloneNode(true) as HTMLElement;
     ghost.classList.add("fly-ghost");
+    // Sotto le mani e i pannelli (z 30+), sopra la lavagna: il clone porta
+    // con sé lo z-index in linea della tessera, che con tante carte supera
+    // quello della mano e per un attimo la carta volava DAVANTI al cassetto.
+    ghost.style.zIndex = "25";
     ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
     ghost.querySelector(".combat-badge")?.remove();
     ghost.style.position = "fixed";
@@ -3179,6 +3187,10 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
         const to = landed.getBoundingClientRect();
         const ghost = landed.cloneNode(true) as HTMLElement;
         ghost.classList.add("fly-ghost");
+    // Sotto le mani e i pannelli (z 30+), sopra la lavagna: il clone porta
+    // con sé lo z-index in linea della tessera, che con tante carte supera
+    // quello della mano e per un attimo la carta volava DAVANTI al cassetto.
+    ghost.style.zIndex = "25";
         ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
         ghost.querySelector(".combat-badge")?.remove();
         ghost.style.position = "fixed";
