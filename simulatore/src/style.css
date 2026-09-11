@@ -907,6 +907,16 @@ body.is-intro-wait .slot-rubyfront, body.is-intro .slot-rubyfront:not(.is-landed
 
 /* La pila che riceve: un anello rubino che si allarga e sfuma. */
 .pile-landing { animation: pile-landing .7s ease-out; }
+/* La carta che RICOMPARE dove la scintilla è arrivata (il controllo che
+   apre la fila avversaria, table.ts liftToDissolve): sale dal nulla con un
+   lampo bianco e rubino, poi la sua ombra normale. Solo opacità e ombra:
+   niente transform, che sulla coricata è già preso dalla rotazione. */
+.tile.is-materializing { animation: card-materialize .8s ease-out both; }
+@keyframes card-materialize {
+  0% { opacity: 0; box-shadow: 0 0 0 3px rgba(255, 255, 255, .95), 0 0 46px rgba(224, 49, 75, .95); }
+  35% { opacity: 1; }
+  100% { box-shadow: 0 0 0 1px var(--tile-ring), 0 8px 22px rgba(0, 0, 0, .6); }
+}
 @keyframes pile-landing {
   0% { box-shadow: 0 0 0 0 rgba(224, 49, 75, .9), 0 0 24px rgba(224, 49, 75, .7); }
   100% { box-shadow: 0 0 0 14px rgba(224, 49, 75, 0), 0 0 0 rgba(224, 49, 75, 0); }
@@ -915,6 +925,7 @@ body.is-intro-wait .slot-rubyfront, body.is-intro .slot-rubyfront:not(.is-landed
   .fly-ghost.is-dissolving { animation-duration: .01s; }
   .fly-spark, .fly-spark.is-flying { transition: none; opacity: 0; }
   .pile-landing { animation: none; }
+  .tile.is-materializing { animation: none; }
 }
 
 /* Il tiro del dado: un velo scuro sul tavolo, il dado che rotola al

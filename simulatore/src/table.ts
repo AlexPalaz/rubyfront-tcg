@@ -3170,7 +3170,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
    * fantasma parte dal posto vecchio verso il nuovo. Gli Oggetti addosso
    * volano con lei (deciso 2026-09-11), sotto, a scaletta com'erano.
    */
-  function liftToFlight(uid: string): (() => void) | null {
+  function liftToFlight(uid: string): Flight | null {
     // Prima gli Oggetti, poi l'Entità: i fantasmi si appendono in quest'ordine
     // e l'Entità resta sopra la sua pila.
     const group = [...wornBy(ctx.state(), uid).map(object => object.uid), uid];
@@ -3180,7 +3180,7 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       return [{ member, from: tile.getBoundingClientRect(), layoutW: tile.offsetWidth, layoutH: tile.offsetHeight }];
     });
     if (!starts.some(start => start.member === uid)) return null;
-    return () => {
+    const flight = (() => {
       for (const { member, from, layoutW, layoutH } of starts) {
         const landed = tiles.get(member);
         if (!landed || landed.offsetParent === null) continue;
@@ -3213,7 +3213,90 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
           landed.style.visibility = "";
         }, FLY_MS + 60);
       }
-    };
+    }) as Flight;
+    // Niente da annullare: i fantasmi nascono solo al via.
+    flight.cancel = () => undefined;
+    return flight;
+  }
+
+  /**
+   * Il controllo che APRE la fila di servizio avversaria (rincasso, §8.2):
+   * niente volo attraverso il tavolo che si sta allargando — la carta (con
+   * gli Oggetti addosso) si DISSOLVE dov'è, come per l'Abisso, la fila si
+   * apre, e la scintilla rubino corre allo slot Controllo dove la carta
+   * ricompare accendendosi (deciso 2026-09-11). Si prende PRIMA che lo
+   * stato cambi; il via parte dopo, e aspetta la corsa della fila.
+   */
+  function liftToDissolve(uid: string): Flight | null {
+    const group = [...wornBy(ctx.state(), uid).map(object => object.uid), uid];
+    const ghosts: HTMLElement[] = [];
+    let heart: DOMRect | null = null;
+    for (const member of group) {
+      const tile = tiles.get(member);
+      if (!tile || tile.offsetParent === null) continue;
+      const from = tile.getBoundingClientRect();
+      if (member === uid) heart = from;
+      const layoutW = tile.offsetWidth;
+      const ghost = tile.cloneNode(true) as HTMLElement;
+      ghost.classList.add("fly-ghost");
+      ghost.style.zIndex = "25";
+      ghost.classList.remove("is-pickable", "is-legal", "is-triggering", "is-struck", "is-attacking", "is-blocking", "is-countering", "has-actions", "is-badged");
+      ghost.querySelector(".combat-badge")?.remove();
+      ghost.style.position = "fixed";
+      ghost.style.left = `${from.left}px`;
+      ghost.style.top = `${from.top}px`;
+      ghost.style.width = `${layoutW}px`;
+      ghost.style.height = `${tile.offsetHeight}px`;
+      ghost.style.margin = "0";
+      ghost.style.transform = `scale(${from.width / layoutW})`;
+      ghost.style.setProperty("--fly-scale", String(from.width / layoutW));
+      document.body.append(ghost);
+      ghosts.push(ghost);
+    }
+    if (!heart) {
+      ghosts.forEach(ghost => ghost.remove());
+      return null;
+    }
+    const from = heart;
+    const flight = (() => {
+      // Le tessere vere, appena posate nello slot, aspettano nascoste la scintilla.
+      for (const member of group) {
+        const tile = tiles.get(member);
+        if (tile) tile.style.visibility = "hidden";
+      }
+      const spark = document.createElement("span");
+      spark.className = "fly-spark";
+      spark.style.left = `${from.left + from.width / 2}px`;
+      spark.style.top = `${from.top + from.height / 2}px`;
+      document.body.append(spark);
+      requestAnimationFrame(() => ghosts.forEach(ghost => ghost.classList.add("is-dissolving")));
+      // La fila si è aperta (morphZones, MORPH_MS) e il tavolo è ridisegnato:
+      // solo ora si sa dove sta lo slot, e la scintilla ci corre.
+      window.setTimeout(() => {
+        const landed = tiles.get(uid);
+        const to = landed && landed.offsetParent !== null ? landed.getBoundingClientRect() : null;
+        if (to) {
+          requestAnimationFrame(() => {
+            spark.style.transform = `translate(${to.left + to.width / 2 - (from.left + from.width / 2)}px, ${to.top + to.height / 2 - (from.top + from.height / 2)}px) rotate(45deg)`;
+            spark.classList.add("is-flying");
+          });
+        }
+        // All'arrivo la carta ricompare, accendendosi.
+        window.setTimeout(() => {
+          for (const member of group) {
+            const tile = tiles.get(member);
+            if (!tile) continue;
+            tile.style.visibility = "";
+            tile.classList.add("is-materializing");
+            window.setTimeout(() => tile.classList.remove("is-materializing"), 900);
+          }
+          spark.remove();
+        }, to ? SPARK_ARRIVE_MS : 0);
+      }, MORPH_MS + 140);
+      window.setTimeout(() => ghosts.forEach(ghost => ghost.remove()), FLY_MS + 60);
+    }) as Flight;
+    flight.cancel = () => ghosts.forEach(ghost => ghost.remove());
+    return flight;
   }
 
   async function playControl(step: EnterControlStep): Promise<void> {
@@ -3240,13 +3323,17 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
     let passed = false;
     try {
       await wait(CONFIRMED_LEAD_MS);
-      const fly = liftToFlight(target.uid);
+      // Se il controllo apre la fila di servizio avversaria (rincasso),
+      // niente volo: dissolvenza, fila che si apre, scintilla e ricomparsa.
+      const opens = isRecessView() && by !== ctx.seat() && !hasFoeBackRow();
+      const fly = opens ? liftToDissolve(target.uid) : liftToFlight(target.uid);
       passed = await resolveControl(ctx, step, target);
       strike(target.uid, 0);
       if (passed) {
         fly?.();
-        await wait(FLY_MS);
+        await wait(opens ? MORPH_MS + 140 + SPARK_ARRIVE_MS + 300 : FLY_MS);
       } else {
+        fly?.cancel();
         render();
       }
     } finally {
