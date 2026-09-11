@@ -228,9 +228,11 @@ describe("resolveWave", () => {
     expect(resolveWave(state, "a", facts)![0]).toMatchObject({ attackerDies: true, blockerDies: true });
   });
 
-  it("bloccante superiore: non muore nessuno", () => {
+  // Dal 2026-09-11 (§6.3): «il bloccante più forte uccide l'attaccante».
+  // Gemello: engine_test.rb, test_bloccante_superiore_uccide_l_attaccante.
+  it("bloccante superiore: muore l'attaccante, il bloccante resta", () => {
     const state = table([field("a1", "a", "DEBOLE"), field("b1", "b", "FORTE")], [attack("a1", 1), block("b1", "a1", "block")]);
-    expect(resolveWave(state, "a", facts)![0]).toMatchObject({ attackerDies: false, blockerDies: false, damage: 0 });
+    expect(resolveWave(state, "a", facts)![0]).toMatchObject({ attackerDies: true, blockerDies: false, damage: 0 });
   });
 
   it("contrattacco: Potenza più N, e l'attaccante muore se superato", () => {
@@ -265,8 +267,9 @@ describe("resolveWave con bonus e Vendetta", () => {
   const stats: Record<string, { power: number; counterattack?: number; keywords?: string[] }> = {
     FORTE: { power: 4 },
     PARI: { power: 4 },
-    VENDICATIVO: { power: 5, keywords: ["revenge"] },
+    VENDICATIVO: { power: 2, keywords: ["revenge"] },
     GRANDE: { power: 5 },
+    DEBOLE: { power: 2 },
   };
   const facts = (cardId: string) => ({
     name: cardId,
@@ -295,16 +298,21 @@ describe("resolveWave con bonus e Vendetta", () => {
     expect(resolveWave(unblocked, "a", facts as never)![0].damage).toBe(6);
   });
 
-  it("chi blocca con Vendetta e supera l'attaccante lo uccide", () => {
+  // Dal 2026-09-11 la Vendetta è il colpo di chi muore: il bloccante più
+  // debole muore e si porta dietro l'attaccante. Gemello: engine_test.rb.
+  it("chi blocca con Vendetta ed è più debole muore, ma si porta dietro l'attaccante", () => {
     const state = table([card("a1", "a", "FORTE"), card("b1", "b", "VENDICATIVO")], [attack("a1"), block("b1", "a1")]);
-    expect(resolveWave(state, "a", facts as never)![0]).toMatchObject({ attackerDies: true, blockerDies: false });
-    const plain = table([card("a1", "a", "FORTE"), card("b1", "b", "GRANDE")], [attack("a1"), block("b1", "a1")]);
-    expect(resolveWave(plain, "a", facts as never)![0]).toMatchObject({ attackerDies: false, blockerDies: false });
+    expect(resolveWave(state, "a", facts as never)![0]).toMatchObject({ attackerDies: true, blockerDies: true });
+    const plain = table([card("a1", "a", "FORTE"), card("b1", "b", "DEBOLE")], [attack("a1"), block("b1", "a1")]);
+    expect(resolveWave(plain, "a", facts as never)![0]).toMatchObject({ attackerDies: false, blockerDies: true });
   });
 
-  it("la Vendetta concessa fino a fine turno vale come quella stampata", () => {
-    const state = table([card("a1", "a", "FORTE"), card("b1", "b", "GRANDE", { grants: ["revenge"] })], [attack("a1"), block("b1", "a1")]);
-    expect(resolveWave(state, "a", facts as never)![0].attackerDies).toBe(true);
+  it("la Vendetta concessa fino a fine turno vale come quella stampata, e non vale nel contrattacco", () => {
+    const state = table([card("a1", "a", "FORTE"), card("b1", "b", "DEBOLE", { grants: ["revenge"] })], [attack("a1"), block("b1", "a1")]);
+    expect(resolveWave(state, "a", facts as never)![0]).toMatchObject({ attackerDies: true, blockerDies: true });
+    const counter: Declaration = { id: "b1", from: "b1", to: "a1", kind: "counter", seat: "b", order: 0 };
+    const countered = table([card("a1", "a", "FORTE"), card("b1", "b", "DEBOLE", { grants: ["revenge"] })], [attack("a1"), counter]);
+    expect(resolveWave(countered, "a", facts as never)![0]).toMatchObject({ kind: "counter", attackerDies: false, blockerDies: true });
   });
 });
 

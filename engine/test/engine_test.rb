@@ -959,10 +959,21 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], verdict[:reason]
   end
 
-  def test_bloccante_superiore_non_muore_nessuno
+  # Dal 2026-09-11 (§6.3): «il bloccante più forte uccide l'attaccante» —
+  # l'esito di prima (nessun morto) non passa più.
+  def test_bloccante_superiore_uccide_l_attaccante
     engine = ondata([["a1", "DEBOLE"]], [["b1", "FORTE"]], ["a1"], [["b1", "a1", "block"]])
-    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block")])
+    refute risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block")])[:ok], "senza morti non torna più"
+    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", attacker_dies: true)])
     assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", engine.instance_variable_get(:@table).card("a1")[:zone], "col sì la copia manda l'attaccante nell'Abisso"
+    assert_equal "field", engine.instance_variable_get(:@table).card("b1")[:zone], "il bloccante resta in campo"
+  end
+
+  def test_l_attaccante_piu_forte_sopravvive_al_blocco
+    engine = ondata([["a1", "FORTE"]], [["b1", "DEBOLE"]], ["a1"], [["b1", "a1", "block"]])
+    refute risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", attacker_dies: true, blocker_dies: true)])[:ok]
+    assert risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", blocker_dies: true)])[:ok]
   end
 
   def test_contrattacco_superiore_uccide_l_attaccante
@@ -973,8 +984,10 @@ class EngineTest < Minitest::Test
   end
 
   # Gli attrezzi degli effetti d'attacco nella risoluzione (§8.1, §8.2): il
-  # bonus di Potenza fino a fine turno e la Vendetta, stampata o concessa.
-  POTENZE_VENDETTA = POTENZE.merge("VENDICATIVO" => { type: "entity", keywords: ["revenge"], power: 5, counterattack: nil }).freeze
+  # bonus di Potenza fino a fine turno e la Vendetta, stampata o concessa —
+  # dal 2026-09-11 il colpo di chi muore: il bloccante più debole muore e si
+  # porta dietro l'attaccante.
+  POTENZE_VENDETTA = POTENZE.merge("VENDICATIVO" => { type: "entity", keywords: ["revenge"], power: 2, counterattack: nil }).freeze
 
   def ondata_vendetta(*args)
     engine = ondata(*args)
@@ -989,17 +1002,28 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], verdict[:reason]
   end
 
-  def test_la_vendetta_uccide_l_attaccante_superato
+  def test_la_vendetta_piu_debole_muore_e_si_porta_dietro_l_attaccante
+    # 2 < 4: il bloccante muore, e con lui l'attaccante
     engine = ondata_vendetta([["a1", "FORTE"]], [["b1", "VENDICATIVO"]], ["a1"], [["b1", "a1", "block"]])
-    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", attacker_dies: true)])
+    refute risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", blocker_dies: true)])[:ok], "il solo bloccante morto non torna"
+    verdict = risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", attacker_dies: true, blocker_dies: true)])
     assert verdict[:ok], verdict[:reason]
   end
 
   def test_la_vendetta_concessa_vale_come_quella_stampata
-    engine = ondata([["a1", "DEBOLE"]], [["b1", "FORTE"]], ["a1"], [["b1", "a1", "block"]])
+    engine = ondata([["a1", "FORTE"]], [["b1", "DEBOLE"]], ["a1"], [["b1", "a1", "block"]])
     engine.observe({ "t" => "empower", "uid" => "b1", "grants" => ["revenge"], "effect" => { "source" => "b1", "event" => "on_attack", "entering" => "b1" } })
-    assert risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", attacker_dies: true)])[:ok]
-    refute risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block")])[:ok]
+    assert risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", attacker_dies: true, blocker_dies: true)])[:ok]
+    refute risolvi(engine, [battaglia("a1", blocker: "b1", kind: "block", blocker_dies: true)])[:ok]
+  end
+
+  def test_la_vendetta_non_vale_nel_contrattacco
+    # Vendetta è del blocco normale: nel contrattacco fallito muore solo il contrattaccante.
+    engine = ondata([["a1", "FORTE"]], [["b1", "SPINOSO"]], ["a1"], [["b1", "a1", "counter"]])
+    engine.observe({ "t" => "empower", "uid" => "a1", "power" => 2, "effect" => { "source" => "a1", "event" => "on_attack", "entering" => "a1" } })
+    engine.observe({ "t" => "empower", "uid" => "b1", "grants" => ["revenge"], "effect" => { "source" => "b1", "event" => "on_attack", "entering" => "b1" } })
+    # 3 + 2 = 5 < 6
+    assert risolvi(engine, [battaglia("a1", blocker: "b1", kind: "counter", blocker_dies: true)])[:ok]
   end
 
   def test_chi_non_puo_bloccare_viene_fermato

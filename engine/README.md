@@ -162,8 +162,9 @@ Regole collegate finora:
   stesso conto dalla copia del tavolo e dall'anagrafe e passa solo un esito
   identico, battaglia per battaglia, nell'ordine di dichiarazione. Le regole
   (§6.3): non bloccato, danni pari alla Potenza; bloccante inferiore muore,
-  pari muoiono entrambi, superiore nessuno — e l'attacco è comunque
-  bloccato; contrattacco a Potenza più N, con l'attaccante che muore se il
+  pari muoiono entrambi, superiore nessuno (fino al 2026-09-11: da allora
+  il bloccante più forte uccide l'attaccante, vedi in fondo) — e l'attacco
+  è comunque bloccato; contrattacco a Potenza più N, con l'attaccante che muore se il
   totale lo raggiunge. Col sì il riduttore e la copia mandano i morti
   nell'Abisso (come un toZone) e sgomberano le frecce; i danni scendono sui
   PV del difensore, mai sotto zero. Si risolve in Reazione, e risolve chi è
@@ -989,6 +990,37 @@ Regole collegate finora:
   `left.bearer` non viaggia nello snapshot; il bot sceglie con il suo
   selettore. Engine 0.62.0, sessantotto regole.
 
+- **§6.3 Il bloccante più forte uccide l'attaccante** (deciso dal designer
+  il 2026-09-11, scritto nel manuale nella stessa modifica: «se la Potenza
+  del bloccante è superiore → l'attacco è bloccato e l'attaccante muore; il
+  bloccante è in salvo», «l'attaccante, in un blocco normale, muore quando
+  il bloccante lo eguaglia o lo supera»). Fino ad allora nel blocco normale
+  l'attaccante moriva solo nel pareggio, e la Vendetta (§8.1) era
+  l'eccezione che lo uccideva da sopra. Il conto dei gemelli (`battle_of`,
+  `resolveWave`) diventa lo stesso per blocco e contrattacco: l'attaccante
+  muore se il totale del bloccante raggiunge la sua Potenza; la Stasi e la
+  Reattiva bloccante restano come prima. Un esito senza morti col bloccante
+  più forte non passa più («l'esito non torna con le Potenze in campo»). Il
+  bot tiene a casa chi verrebbe ucciso da un bloccante più forte. Engine
+  0.65.0.
+
+- **§8.1 Vendetta: il bloccante più debole si porta dietro l'attaccante**
+  (ridefinita dal designer il 2026-09-11, insieme alla regola sopra, che
+  l'avrebbe resa vuota: «quando un'Entità con Vendetta blocca ed è più
+  debole dell'attaccante, muore come in ogni blocco ma si porta dietro
+  l'attaccante: muore anche lui»; «chi viene bloccato da un'Entità con
+  Vendetta muore sempre»). Fino ad allora la Vendetta uccideva l'attaccante
+  da sopra, cosa che ora fa la regola del blocco. Nei gemelli è il colpo di
+  chi muore: nel blocco normale, col totale del bloccante sotto la Potenza
+  dell'attaccante, `attacker_dies` diventa vero — stampata o concessa fino
+  a fine turno (`grants`), la Stasi salva il bloccante ma non l'attaccante.
+  Limite dichiarato: vale nel **blocco normale**, non nel contrattacco
+  («segue per il resto le normali regole di blocco… non sta
+  contrattaccando», §8.1): un contrattacco fallito con Vendetta uccide il
+  solo contrattaccante, finché il designer non dice altro. Il bot conta la
+  Vendetta fra i bloccanti che uccidono e la usa come scambio. Engine
+  0.66.0.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.
@@ -1036,7 +1068,7 @@ col bot).
 
 | chi | messaggio | risposta |
 |---|---|---|
-| client | `{"t":"hello"}` | `{"t":"engine","version":"0.64.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","actions":[{"action":{…},"from":"a"},…]}` |
+| client | `{"t":"hello"}` | `{"t":"engine","version":"0.66.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","actions":[{"action":{…},"from":"a"},…]}` |
 | client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…","reason_en":"…"}` a chi chiede; se passa, `{"t":"action","action":{…},"from":"a"}` agli **altri** client della stanza |
 | client | `{"t":"rtc","payload":{…}}` | `{"t":"rtc","payload":{…},"from":"a"}` agli altri: la chat vocale, inoltrata senza leggerla |
 | client | `{"t":"snapshot","state":{…}}` | *(solo nella stanza «solo»: allinea la copia del tavolo; in stanza si ignora)* |

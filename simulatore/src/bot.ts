@@ -90,8 +90,9 @@ export function canAttackNow(state: GameState, card: CardInstance, facts: Facts,
 /**
  * Con chi attaccare (§6.3). I bloccanti possibili sono le Entità avversarie
  * stappate e scoperte che possono bloccare. Un attaccante è SICURO se nessun
- * bloccante lo uccide: in blocco muore solo a Potenza pari (o sotto una
- * Vendetta più forte), in contrattacco se il totale lo raggiunge. Si attacca
+ * bloccante lo uccide: in blocco muore se la Potenza del bloccante raggiunge
+ * la sua (§6.3) o se il bloccante ha Vendetta (§8.1: si porta dietro chi lo
+ * supera), in contrattacco se il totale la raggiunge. Si attacca
  * con i sicuri; con tutti se il colpo che passa è letale (i bloccanti
  * fermano al più uno ciascuno, i più forti); con chi almeno pareggia lo
  * scambio quando il Rubyfront avversario è già sotto la metà.
@@ -107,8 +108,8 @@ export function chooseAttackers(state: GameState, seat: Seat, facts: Facts, memo
     blockers.some(b => {
       const power = powerOf(b, facts, state) ?? 0;
       const mine = powerOf(attacker, facts, state) ?? 0;
-      if (power === mine) return true;
-      if (hasKeyword(b, "revenge", facts, state) && power > mine) return true;
+      if (power >= mine) return true;
+      if (hasKeyword(b, "revenge", facts, state)) return true;
       return counterTotal(state, b, facts) >= mine;
     });
   const maxBlock = blockers.reduce((max, b) => Math.max(max, powerOf(b, facts, state) ?? 0), 0);
@@ -178,9 +179,12 @@ export function chooseBlocks(state: GameState, seat: Seat, facts: Facts): BotBlo
       .filter(card => (powerOf(card, facts, state) ?? 0) > power || hasKeyword(card, "stasis", facts, state))
       .sort((a, b) => (powerOf(a, facts, state) ?? 0) - (powerOf(b, facts, state) ?? 0))[0];
     if (pick(wall, "block")) continue;
-    // Lo scambio alla pari, se conviene.
+    // Lo scambio, se conviene: alla pari, o con la Vendetta (§8.1), che
+    // muore ma si porta dietro l'attaccante.
     const trade = available.find(
-      card => (powerOf(card, facts, state) ?? 0) === power && cardValue(state, attacker, facts) >= cardValue(state, card, facts)
+      card =>
+        ((powerOf(card, facts, state) ?? 0) === power || hasKeyword(card, "revenge", facts, state)) &&
+        cardValue(state, attacker, facts) >= cardValue(state, card, facts)
     );
     if (pick(trade, "block")) continue;
     // Il sacrificio, solo se il colpo fa male davvero.

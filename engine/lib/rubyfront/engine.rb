@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.64.0"
+    VERSION = "0.66.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -45,6 +45,8 @@ module Rubyfront
       "§6.3 Attacca chi è di turno, blocca chi difende",
       "§6.4 Reazione: l'ondata passa al difensore, e la chiude lui",
       "§6.3/§6.4 Risoluzione delle battaglie",
+      "§6.3 Il bloccante più forte uccide l'attaccante",
+      "§8.1 Vendetta: il bloccante più debole si porta dietro l'attaccante",
       "§6.2 Le carte si giocano in Preparazione (salvo Reattive e Rubyfront)",
       "§6 Nel turno altrui non si agisce (salvo Reazione e Reattive)",
       "§3.2 Le carte si pagano: il costo di Flusso",
@@ -117,6 +119,8 @@ module Rubyfront
       "§6.3 The active player attacks, the defender blocks",
       "§6.4 Reaction: the wave passes to the defender, who closes it",
       "§6.3/§6.4 Battle resolution",
+      "§6.3 The stronger blocker kills the attacker",
+      "§8.1 Revenge: the weaker blocker takes the attacker with it",
       "§6.2 Cards are played in Preparation (except Reactives and the Rubyfront)",
       "§6 No acting on the opponent's turn (except Reaction and Reactives)",
       "§3.2 Cards are paid for: the Flux cost",
@@ -1101,16 +1105,20 @@ module Rubyfront
 
       counter = kind == "counter"
       total = counter ? blocker_power + (stat(blocker, :counterattack) || 0) + (@table.card(blocker)[:counter_bonus] || 0) + static_counter(blocker) : blocker_power
-      # Nel blocco normale l'attaccante muore SOLO nel pareggio — o quando
-      # il bloccante ha Vendetta e lo supera (§8.1); nel contrattacco anche
-      # quando il totale lo supera (§6.3).
-      revenge = !counter && has_keyword?(blocker, "revenge") && total > power
+      # Nel blocco normale l'attaccante muore se il bloccante lo eguaglia o
+      # lo supera (§6.3, dal 2026-09-11: «il bloccante più forte uccide
+      # l'attaccante»; prima moriva solo nel pareggio). Nel contrattacco,
+      # stesso conto sul totale (§6.3). La Vendetta (§8.1, ridefinita lo
+      # stesso giorno) è il colpo di chi muore: il bloccante più debole
+      # muore, ma si porta dietro l'attaccante — nel blocco normale, non nel
+      # contrattacco.
+      revenge = !counter && has_keyword?(blocker, "revenge") && total < power
       dies = total <= power
       # §8.1 — la Stasi: chi ce l'ha, bloccando o contrattaccando, invece di
       # morire resta tappata per sempre; l'altra muore comunque.
       stasis = dies && has_keyword?(blocker, "stasis")
       { attacker: attacker, blocker: blocker, kind: kind,
-        attacker_dies: counter ? total >= power : total == power || revenge,
+        attacker_dies: total >= power || revenge,
         blocker_dies: dies && !stasis, damage: 0, blocker_stasis: stasis, blocker_spent: false }
     end
 

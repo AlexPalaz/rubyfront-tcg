@@ -18,8 +18,10 @@ import { otherSeat } from "./types.js";
  *
  *   - nessuno → l'attacco passa: danni pari alla Potenza dell'attaccante;
  *   - un blocco → si confrontano le Potenze: bloccante inferiore muore,
- *     pari muoiono entrambi, superiore non muore nessuno — e l'attacco è
- *     comunque bloccato;
+ *     pari muoiono entrambi, superiore muore l'attaccante (dal 2026-09-11:
+ *     «il bloccante più forte uccide l'attaccante») — e l'attacco è
+ *     comunque bloccato; con la Vendetta (§8.1) il bloccante più debole
+ *     muore e si porta dietro l'attaccante;
  *   - un contrattacco → la Potenza del bloccante più il suo +N: totale
  *     superiore, muore l'attaccante; pari, entrambi; inferiore, il
  *     contrattaccante.
@@ -175,10 +177,14 @@ export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string
       if (blockerPower === null) return null;
       const counter = block.kind === "counter";
       const total = counter ? blockerPower + (blockerFacts.counterattack ?? 0) + (blocker.counterBonus ?? 0) + staticCounter(state, blocker, facts) : blockerPower;
-      // Nel blocco normale l'attaccante muore SOLO nel pareggio — o quando il
-      // bloccante ha Vendetta e lo supera (§8.1); nel contrattacco anche
-      // quando il totale lo supera (§6.3).
-      const revenge = !counter && hasKeyword(blocker, "revenge", facts, state) && total > attackerPower;
+      // Nel blocco normale l'attaccante muore se il bloccante lo eguaglia o lo
+      // supera (§6.3, dal 2026-09-11: «il bloccante più forte uccide
+      // l'attaccante»; prima moriva solo nel pareggio). Nel contrattacco,
+      // stesso conto sul totale (§6.3). La Vendetta (§8.1, ridefinita lo
+      // stesso giorno) è il colpo di chi muore: il bloccante più debole muore,
+      // ma si porta dietro l'attaccante — nel blocco normale, non nel
+      // contrattacco. Gemello: engine.rb, battle_of.
+      const revenge = !counter && hasKeyword(blocker, "revenge", facts, state) && total < attackerPower;
       const dies = total <= attackerPower;
       // §8.1 — la Stasi: chi ce l'ha, bloccando o contrattaccando, invece di
       // morire resta tappata per sempre; l'altra muore comunque.
@@ -187,7 +193,7 @@ export function resolveWave(state: GameState, seat: Seat, facts: (cardId: string
         attacker: attack.from,
         blocker: block.from,
         kind: counter ? "counter" : "block",
-        attackerDies: counter ? total >= attackerPower : total === attackerPower || revenge,
+        attackerDies: total >= attackerPower || revenge,
         blockerDies: dies && !stasis,
         damage: 0,
         ...(stasis ? { blockerStasis: true } : {}),

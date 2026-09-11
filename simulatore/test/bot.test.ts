@@ -79,8 +79,8 @@ describe("attacchi", () => {
     const state = newGame("b");
     const big = put(state, "GRANDE", "b", "field");
     const small = put(state, "PICCOLA", "b", "field");
-    // Un bloccante alla pari uccide (pareggio: muoiono entrambe, §6.3); uno
-    // più forte ferma e basta, e non è una ragione per restare a casa.
+    // Un bloccante alla pari uccide (pareggio: muoiono entrambe, §6.3), e
+    // dal 2026-09-11 uccide anche uno più forte: la piccola resta a casa.
     put(state, "PICCOLA", "a", "field");
     const chosen = chooseAttackers(state, "b", facts, freshMemory(1));
     expect(chosen.map(c => c.uid)).toEqual([big.uid]);
@@ -89,7 +89,9 @@ describe("attacchi", () => {
 
   it("va all'assalto quando il colpo che passa è letale", () => {
     const state = newGame("b");
-    state.players.a.hp = 3;
+    // Un bloccante ferma (e uccide) una delle due medie; l'altra passa per 2,
+    // e 2 PV bastano: si va con tutte e due.
+    state.players.a.hp = 2;
     put(state, "MEDIA", "b", "field");
     put(state, "MEDIA", "b", "field");
     put(state, "GRANDE", "a", "field");

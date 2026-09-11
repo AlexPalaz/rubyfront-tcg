@@ -263,10 +263,10 @@ The **Powers** are compared:
 
 - If the blocker's Power is **lower** than the attacker's → the blocker **dies** (goes to the Abyss), but **the attack is blocked anyway** (the Rubyfront takes no damage).
 - If the Powers are **equal** → **both Entities die**: attacker and blocker go to the Abyss, and the attack is blocked anyway. The only exception is **Stasis** (§8.1): the Entity that has it, if it is blocking, ends up **permanently tapped** instead of dying — the other one dies all the same.
-- If the blocker's Power is **higher** → the attack is blocked and **nobody dies** (barring **Revenge**, §8.1).
-- In a normal block the attacker dies **only on a tie**.
+- If the blocker's Power is **higher** → the attack is blocked and **the attacker dies** (goes to the Abyss); the blocker is safe.
+- In a normal block the attacker dies when the blocker **matches or exceeds** it: it survives only if it is **stronger** than the blocker.
 
-*Example: an Entity with Power 4 attacks; the defender blocks with an Entity of Power 3 → the blocker dies, the attack doesn't get through. With Power 4 (equal) both die. With Power 5 or more nobody dies.*
+*Example: an Entity with Power 4 attacks; the defender blocks with an Entity of Power 3 → the blocker dies, the attack doesn't get through. With Power 4 (equal) both die. With Power 5 or more the attacker dies, and the blocker stays on the field.*
 
 #### Leaving the field between declaration and resolution
 
@@ -446,11 +446,11 @@ On a **tie**, Stasis saves **only the Entity that has it**: the other Entity in 
 
 An Entity in stasis is for all purposes *tapped* (not covered), and like every tapped one **cannot be retired** (§6.2) but **keeps enabling its Matters**: the slot stays taken until the Entity is **untapped by an effect** (at which point it becomes a normal Entity again) or leaves the field some other way. Stasis is a rescue paid for in space.
 
-Stasis protects **only in defence** (block or counterattack): an Entity with Stasis that dies **attacking** — against a blocker with Revenge or on a tie (§6.3) — dies normally.
+Stasis protects **only in defence** (block or counterattack): an Entity with Stasis that dies **attacking** — against a stronger blocker or on a tie (§6.3) — dies normally.
 
 ##### Revenge
 
-When an Entity with **Revenge** blocks and its **Power exceeds** the attacker's, **the attacker dies** even without a counterattack. (In a normal block the attacker dies only on a tie — §6.3.)
+When an Entity with **Revenge** blocks and is **weaker** than the attacker (lower Power), it dies as in any block (§6.3) but **takes the attacker with it**: the attacker dies too. With equal or higher Power the normal block rule applies, which already kills the attacker: whoever is blocked by an Entity with Revenge, therefore, **always dies**.
 
 For the rest, the Entity with Revenge follows the normal blocking rules: it is tapped, and doesn't get covered (it isn't counterattacking).
 
@@ -548,7 +548,7 @@ A draw exists in only two cases:
 - **Fury** — ability exclusive to the Rubyfront/Nexus, tied to **special abilities**: before using one you need a d20 ≥12; with 11 or less you lose **1 HP** but the ability is used anyway. Matters (Destructive included), deployment and the flip require no roll (§8.1).
 - **Surge** — ability: the Entity may attack already on the turn it enters the Front (it ignores the summoning wait). It concerns the attack only: it doesn't allow being retired on the turn of entry.
 - **Stasis** — ability: if, blocking or counterattacking, it should die (comparison lost **or tied**, §6.3), it stays on the field permanently tapped instead. Like every tapped one **it cannot be retired** (§6.2) but keeps enabling its Matters: it takes up the slot until an effect untaps it or it leaves the field.
-- **Revenge** — ability: if it blocks with Power higher than the attacker's, the attacker dies even without a counterattack.
+- **Revenge** — ability: if it blocks and is weaker than the attacker, it dies but takes the attacker with it; whoever it blocks always dies.
 - **Summoning wait** — an Entity cannot attack on the turn it enters the Front.
 - **Retire** — voluntarily sending one of your own **untapped** Entities from the Front to the Retire Zone, in the Preparation Phase, for free and with no limit in number, to free slots or just to get it out of the way. You don't retire an Entity that entered the field on the same turn, nor a **tapped**, **in-stasis** or **covered** one (§6.2). **It is not a death** (§6.2).
 - **Dying / being destroyed** — going from the field to the Abyss, for a lost battle or a destruction effect. A **retired** Entity (§6.2) **does not die**: it leaves the field and goes to the Retire Zone without triggering death effects.

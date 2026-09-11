@@ -264,10 +264,10 @@ Si confrontano le **Potenze**:
 
 - Se la Potenza del bloccante è **inferiore** a quella dell'attaccante → il bloccante **muore** (va nell'Abisso), ma **l'attacco è comunque bloccato** (il Rubyfront non subisce danno).
 - Se le Potenze sono **pari** → **muoiono entrambe le Entità**: attaccante e bloccante vanno nell'Abisso, e l'attacco è comunque bloccato. Unica eccezione la **Stasi** (§8.1): l'Entità che ce l'ha, se sta bloccando, finisce **permanentemente tappata** anziché morire — l'altra muore comunque.
-- Se la Potenza del bloccante è **superiore** → l'attacco è bloccato e **non muore nessuno** (salvo **Vendetta**, §8.1).
-- L'attaccante, in un blocco normale, muore **solo nel pareggio**.
+- Se la Potenza del bloccante è **superiore** → l'attacco è bloccato e **l'attaccante muore** (va nell'Abisso); il bloccante è in salvo.
+- L'attaccante, in un blocco normale, muore quando il bloccante lo **eguaglia o lo supera**: sopravvive solo se è **più forte** del bloccante.
 
-*Esempio: un'Entità con Potenza 4 attacca; il difensore blocca con un'Entità di Potenza 3 → il bloccante muore, l'attacco non passa. Con Potenza 4 (pari) muoiono entrambe. Con Potenza 5 o più non muore nessuno.*
+*Esempio: un'Entità con Potenza 4 attacca; il difensore blocca con un'Entità di Potenza 3 → il bloccante muore, l'attacco non passa. Con Potenza 4 (pari) muoiono entrambe. Con Potenza 5 o più muore l'attaccante, e il bloccante resta in campo.*
 
 #### Uscite dal campo tra dichiarazione e risoluzione
 
@@ -447,11 +447,11 @@ Nel **pareggio**, Stasi salva **solo l'Entità che ce l'ha**: l'altra Entità de
 
 Un'Entità in stasi è a tutti gli effetti *tappata* (non coperta), e come ogni tappata **non può essere ritirata** (§6.2) ma **continua ad abilitare le sue Materie**: lo slot resta occupato finché l'Entità non viene **stappata da un effetto** (a quel punto torna un'Entità normale) o non lascia il campo in altro modo. La stasi è un salvataggio che si paga in spazio.
 
-Stasi protegge **solo in difesa** (blocco o contrattacco): un'Entità con Stasi che muore **attaccando** — contro un bloccante con Vendetta o in un pareggio (§6.3) — muore normalmente.
+Stasi protegge **solo in difesa** (blocco o contrattacco): un'Entità con Stasi che muore **attaccando** — contro un bloccante più forte o in un pareggio (§6.3) — muore normalmente.
 
 ##### Vendetta
 
-Quando un'Entità con **Vendetta** blocca e la sua **Potenza supera** quella dell'attaccante, **l'attaccante muore** anche senza contrattacco. (Nel blocco normale, l'attaccante muore solo nel pareggio — §6.3.)
+Quando un'Entità con **Vendetta** blocca ed è **più debole** dell'attaccante (Potenza inferiore), muore come in ogni blocco (§6.3) ma **si porta dietro l'attaccante**: muore anche lui. Con Potenza pari o superiore vale la regola normale del blocco, che uccide già l'attaccante: chi viene bloccato da un'Entità con Vendetta, quindi, **muore sempre**.
 
 L'Entità con Vendetta segue per il resto le normali regole di blocco: viene tappata, e non subisce la copertura (non sta contrattaccando).
 
@@ -549,7 +549,7 @@ Il pareggio esiste in due soli casi:
 - **Furia** — abilità esclusiva del Rubyfront/Nexus, legata alle **abilità speciali**: prima di usarne una serve un d20 ≥12; con 11 o meno si perde **1 PV** ma l'abilità si usa comunque. Le Materie (Distruttiva compresa), lo schieramento e il flip non richiedono il tiro (§8.1).
 - **Slancio** — abilità: l'Entità può attaccare già nel turno in cui entra sul Fronte (ignora l'attesa di evocazione). Riguarda solo l'attacco: non permette di essere ritirata nel turno d'ingresso.
 - **Stasi** — abilità: se bloccando o contrattaccando dovrebbe morire (confronto perso **o pari**, §6.3), resta invece sul campo permanentemente tappata. Come ogni tappata **non è ritirabile** (§6.2) ma continua ad abilitare le sue Materie: occupa lo slot finché un effetto non la stappa o non lascia il campo.
-- **Vendetta** — abilità: se blocca con Potenza superiore all'attaccante, l'attaccante muore anche senza contrattacco.
+- **Vendetta** — abilità: se blocca ed è più debole dell'attaccante, muore ma si porta dietro l'attaccante; chi è bloccato da lei muore sempre.
 - **Attesa di evocazione** — un'Entità non può attaccare nel turno in cui entra sul Fronte.
 - **Ritiro** — mandare volontariamente una propria Entità **stappata** dal Fronte alla Zona di Ritiro, in Fase di Preparazione, gratis e senza limite di numero, per liberare slot o solo per toglierla di mezzo. Non si ritira un'Entità entrata in campo nello stesso turno, né una **tappata**, **in stasi** o **coperta** (§6.2). **Non è una morte** (§6.2).
 - **Morire / essere distrutta** — andare nell'Abisso dal campo, per una battaglia persa o per un effetto di distruzione. L'Entità **ritirata** (§6.2) **non muore**: lascia il campo e va in Zona di Ritiro senza innescare effetti di morte.
