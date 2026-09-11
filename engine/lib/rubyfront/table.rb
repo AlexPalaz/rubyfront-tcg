@@ -425,6 +425,9 @@ module Rubyfront
         if card
           card[:face] = action["face"].to_i
           card[:flipped] = @turn
+          # Il flip riapre la finestra dell'abilità speciale (§3.1, deciso
+          # 2026-09-11): nel turno del flip vale anche un'abilità del Nexus.
+          @ability_used.delete(card[:owner])
           to_zone({ "uid" => action["discard"], "zone" => "ritiro" }) if action["discard"].is_a?(String) && @cards.key?(action["discard"])
           player = @players[card[:owner]]
           player[:hp] += action["recover"] if player && action["recover"].is_a?(Integer)

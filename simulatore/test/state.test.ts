@@ -819,6 +819,8 @@ describe("apply ability / sconti", () => {
     state = apply(state, { t: "ability", uid: "a-2", ability: "carica", cost: 5, roll: 3, fail: true, targets: ["a-1"], power: 1 });
     expect(state.players.a.hp).toBe(14);
     expect(state.players.a.abilityTurn).toBe(state.turn);
+    // Il flip riapre la finestra (§3.1, deciso 2026-09-11).
+    expect(apply(state, { t: "flip", uid: "a-2", face: 1 }).players.a.abilityTurn).toBeUndefined();
     expect(state.cards["a-1"].powerBonus).toBe(1);
     state = apply(state, { t: "ability", uid: "a-2", ability: "sguardo", gain: 3 });
     expect(state.players.a.hp).toBe(17);

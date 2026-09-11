@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.62.0"
+    VERSION = "0.63.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -80,7 +80,7 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando entra, col dado stappa tutte le Entità che controlli»",
       "§8.2 «Questa Entità non si tappa mai»: nessun gesto la tappa",
       "§8.2 Il controllo non è un ingresso: gli effetti «quando entra» non si riapplicano",
-      "§3.1 Le abilità speciali del Rubyfront: costano PV, in campo, nel proprio turno, nella loro finestra, una sola per turno",
+      "§3.1 Le abilità speciali del Rubyfront: costano PV, in campo, nel proprio turno, nella loro finestra, una sola per turno (il flip riapre la finestra)",
       "§8.1 La Furia: un d20 prima dell'abilità, col fallimento −1 PV",
       "§8.2 Effetti certificati: «quando entra, tira un d6 e guarda tante carte quanto il tiro»",
       "§3.2 La tassa di Flusso: «all'inizio di ogni tuo turno hai N Flusso in meno» viaggia nel cambio di turno",
@@ -152,7 +152,7 @@ module Rubyfront
       "§8.2 Certified effects: “when it enters, with the die untap all Entities you control”",
       "§8.2 “This Entity never taps”: no gesture taps it",
       "§8.2 Taking control isn't an entry: “when it enters” effects don't apply again",
-      "§3.1 The Rubyfront's special abilities: they cost HP, on the field, on your own turn, in their window, only one per turn",
+      "§3.1 The Rubyfront's special abilities: they cost HP, on the field, on your own turn, in their window, only one per turn (the flip reopens the window)",
       "§8.1 Fury: a d20 before the ability, −1 HP on a failure",
       "§8.2 Certified effects: “when it enters, roll a d6 and look at as many cards as the roll”",
       "§3.2 The Flux toll: “at the start of each of your turns you have N less Flux” travels in the turn change",
@@ -2805,7 +2805,10 @@ module Rubyfront
     # §3.1 — le abilità speciali del Rubyfront/Nexus: «per essere usate
     # costano PV», «attivabili liberamente, solo nel proprio turno, sia in
     # Fase di Preparazione che in Fase di Fronte», «una sola abilità
-    # speciale per turno» (decisione del designer, 2026-09-08), «solo se i PV coprono l'intero costo (PV ≥
+    # speciale per turno» (decisione del designer, 2026-09-08) — ma il flip
+    # verso il Nexus riapre la finestra: nel turno del flip vale anche
+    # un'abilità del Nexus (decisione del designer, 2026-09-11; la copia
+    # dimentica l'uso al flip) —, «solo se i PV coprono l'intero costo (PV ≥
     # costo)», «utilizzabili solo quando è in campo». §8.1 — la Furia:
     # «prima di usare un'abilità speciale il proprietario lancia un d20»,
     # sotto la soglia «perde 1 PV, ma l'abilità si usa comunque». L'azione

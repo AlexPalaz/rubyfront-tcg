@@ -3785,6 +3785,18 @@ class EngineTest < Minitest::Test
     assert_match(/resta a mano/, abilita(arcano, "ignota", cost: 7)[:reason])
   end
 
+  # Il flip riapre la finestra dell'abilità: usata quella del Rubyfront, dopo
+  # il flip vale anche una del Nexus — una, poi la finestra è chiusa.
+  def test_il_flip_riapre_la_finestra_dell_abilita_nel_turno
+    engine = arcano
+    assert abilita(engine, "sguardo", gain: 3, roll: 15, fail: false)[:ok]
+    assert_match(/una sola abilità speciale per turno/, abilita(engine, "sguardo", gain: 3, roll: 15, fail: false)[:reason])
+    assert flip(engine)[:ok]
+    verdict = abilita(engine, "passo", gain: 3, discount: { "amount" => 1, "type" => "entity", "race" => "human" })
+    assert verdict[:ok], verdict[:reason]
+    assert_match(/una sola abilità speciale per turno/, abilita(engine, "passo", gain: 3, discount: { "amount" => 1, "type" => "entity", "race" => "human" })[:reason])
+  end
+
   def test_il_potenziamento_dell_abilita_va_ai_bersagli_della_forma
     engine = arcano
     fronte!(engine)

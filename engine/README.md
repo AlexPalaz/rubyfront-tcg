@@ -782,7 +782,10 @@ Regole collegate finora:
 - **§3.1 Le abilità speciali del Rubyfront, con la Furia (§8.1)** — «per
   essere usate costano PV», «attivabili liberamente, solo nel proprio turno,
   sia in Fase di Preparazione che in Fase di Fronte», «una sola abilità
-  speciale per turno, qualunque sia» (scritto col designer il 2026-09-08),
+  speciale per turno, qualunque sia» (scritto col designer il 2026-09-08;
+  dal 2026-09-11 il flip verso il Nexus riapre la finestra: nel turno del
+  flip vale anche un'abilità del Nexus — la copia dimentica l'uso al flip,
+  engine 0.63.0),
   «solo se i PV coprono l'intero costo (PV ≥ costo)»,
   «utilizzabili solo quando è in campo»; e la Furia: «prima di usare
   un'abilità speciale il proprietario lancia un d20», sotto la soglia

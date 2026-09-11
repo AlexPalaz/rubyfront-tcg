@@ -5767,7 +5767,7 @@
           "locales": {
             "it": {
               "name": "Carica Latente",
-              "typeLabel": "Materia Dimensionale II",
+              "typeLabel": "Materia Dimensionale I",
               "summary": "Scava cinque carte e lascia decidere al d20 che cosa peschi.",
               "ui": {
                 "face": "Materia"
@@ -5790,13 +5790,13 @@
                 "flavor": "Il mazzo sa già. Il dado decide quando."
               },
               "matters": {
-                "dimensionalTitle": "Materia Dimensionale · 2° grado",
+                "dimensionalTitle": "Materia Dimensionale · 1° grado",
                 "dimensionalAria": "Dimensionale"
               }
             },
             "en": {
               "name": "Latent Charge",
-              "typeLabel": "Dimensional Matter II",
+              "typeLabel": "Dimensional Matter I",
               "summary": "Digs five cards and lets the d20 decide what you take.",
               "ui": {
                 "face": "Matter"
@@ -5819,7 +5819,7 @@
                 "flavor": "The deck already knows. The die decides when."
               },
               "matters": {
-                "dimensionalTitle": "Dimensional Matter · 2nd grade",
+                "dimensionalTitle": "Dimensional Matter · 1st grade",
                 "dimensionalAria": "Dimensional"
               }
             }
@@ -5827,7 +5827,7 @@
           "tags": [
             "matter",
             "dimensional",
-            "grade-2",
+            "grade-1",
             "die",
             "retire",
             "tutor"
@@ -5840,7 +5840,7 @@
               "displayKey": "face",
               "matter": {
                 "type": "dimensional",
-                "grade": 2
+                "grade": 1
               },
               "behavior": "normal",
               "stats": {
@@ -12321,7 +12321,7 @@
       "locales": {
         "it": {
           "name": "Carica Latente",
-          "typeLabel": "Materia Dimensionale II",
+          "typeLabel": "Materia Dimensionale I",
           "summary": "Scava cinque carte e lascia decidere al d20 che cosa peschi.",
           "ui": {
             "face": "Materia"
@@ -12344,13 +12344,13 @@
             "flavor": "Il mazzo sa già. Il dado decide quando."
           },
           "matters": {
-            "dimensionalTitle": "Materia Dimensionale · 2° grado",
+            "dimensionalTitle": "Materia Dimensionale · 1° grado",
             "dimensionalAria": "Dimensionale"
           }
         },
         "en": {
           "name": "Latent Charge",
-          "typeLabel": "Dimensional Matter II",
+          "typeLabel": "Dimensional Matter I",
           "summary": "Digs five cards and lets the d20 decide what you take.",
           "ui": {
             "face": "Matter"
@@ -12373,7 +12373,7 @@
             "flavor": "The deck already knows. The die decides when."
           },
           "matters": {
-            "dimensionalTitle": "Dimensional Matter · 2nd grade",
+            "dimensionalTitle": "Dimensional Matter · 1st grade",
             "dimensionalAria": "Dimensional"
           }
         }
@@ -12381,7 +12381,7 @@
       "tags": [
         "matter",
         "dimensional",
-        "grade-2",
+        "grade-1",
         "die",
         "retire",
         "tutor"
@@ -12394,7 +12394,7 @@
           "displayKey": "face",
           "matter": {
             "type": "dimensional",
-            "grade": 2
+            "grade": 1
           },
           "behavior": "normal",
           "stats": {

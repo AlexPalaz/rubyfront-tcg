@@ -172,3 +172,9 @@ collegati il 2026-09-10 (engine 0.46–0.48).
 - **Sentinella di Nova Kai** ha anche Slancio; **Kyo Shin** abilita la
   Dimensionale II e l'**Artefice** la Dimensionale I (decisioni del designer).
 - Eredità Perduta invariata. Conteggi invariati (19 · 10 · 11 = 40).
+
+## Terza revisione, 2026-09-11
+
+- **Carica Latente**: grado riportato da Dimensionale II a **Dimensionale I**
+  (decisione del designer). Aggiornati catalogo e cella Materia del foglio.
+  Testo dell'effetto invariato. Conteggi invariati (19 · 10 · 11 = 40).

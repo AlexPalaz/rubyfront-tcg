@@ -423,6 +423,14 @@ function reduce(state: GameState, action: Action): GameState {
       const card = state.cards[action.uid];
       if (!card) return state;
       let next: GameState = { ...state, cards: { ...state.cards, [action.uid]: { ...card, face: action.face } } };
+      // Il flip riapre la finestra dell'abilità speciale (§3.1, deciso
+      // 2026-09-11): nel turno del flip si può usare anche un'abilità del
+      // Nexus dopo quella già usata sul Rubyfront. Gemello: table.rb.
+      {
+        const player = { ...next.players[card.owner] };
+        delete player.abilityTurn;
+        next = { ...next, players: { ...next.players, [card.owner]: player } };
+      }
       if (action.discard && next.cards[action.discard]) next = apply(next, { t: "toZone", uid: action.discard, zone: "ritiro" });
       if (action.recover) {
         const player = next.players[card.owner];
