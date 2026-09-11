@@ -1195,13 +1195,25 @@ export function flipRef(source: CardInstance): EffectRef {
   return { source: source.uid, event: "on_flip", entering: source.uid };
 }
 
+/**
+ * Le carte che il passo «mettila nell'Abisso» prende adesso: la carta
+ * nominata sul Fronte di chi comanda il Nexus. Si legge dallo stato vivo
+ * al momento del passo, per contenuto della forma e non per riferimento:
+ * `ctx.card` ricostruisce le forme a ogni chiamata, quindi due letture
+ * della stessa forma non sono mai lo stesso oggetto.
+ */
+export function flipCandidates(state: GameState, source: CardInstance, form: FlipForm): CardInstance[] {
+  if (form.kind !== "move") return [];
+  const seat = controllerOf(source);
+  return fieldCards(state).filter(card => card.cardId === form.cardId && controllerOf(card) === seat);
+}
+
 /** I passi «quando flippa» del Nexus appena flippato: la carta nominata sul proprio Fronte, e il sigillo. */
 export function flipSteps(state: GameState, source: CardInstance, facts: (cardId: string) => CardFacts): FlipStep[] {
-  const seat = controllerOf(source);
   return facts(source.cardId).flipForms.map(form => ({
     source,
     form,
-    candidates: form.kind === "move" ? fieldCards(state).filter(card => card.cardId === form.cardId && controllerOf(card) === seat) : [],
+    candidates: flipCandidates(state, source, form),
   }));
 }
 

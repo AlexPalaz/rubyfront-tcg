@@ -1,13 +1,18 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# L'engine in ascolto per il simulatore: un client per connessione, un
-# Engine per client. Oggi l'Engine è vuoto (lib/rubyfront/engine.rb): il
-# server saluta, riceve azioni e risponde "nessuna regola" — ma il filo
-# fra simulatore ed engine è questo, e non cambierà quando le regole
-# verranno collegate.
+# Il tavolo in ascolto per il simulatore: un thread per client, UNA stanza
+# (e un Engine) per partita. L'engine è l'unico a scrivere lo stato
+# (deciso 2026-09-11): ogni azione arriva come richiesta di giudizio, e
+# solo se passa entra nel giornale della stanza e viene inoltrata all'altro
+# client. Il vecchio relay che ripeteva tutto senza leggere non c'è più.
 #
 #   ruby engine/bin/server [porta]      # default 8788
+#
+# Il client si collega a  ws://host:8788/engine?room=<stanza>&seat=<a|b>
+# Senza `room` (o con `room=`) è la stanza «solo»: partita locale o col bot,
+# un tavolo privato per quella connessione, che si comporta come prima
+# (lib/rubyfront/room.rb spiega la differenza).
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
@@ -16,8 +21,9 @@ $stdout.sync = true
 
 require "json"
 require "socket"
+require "uri"
 require "rubyfront/card_index"
-require "rubyfront/engine"
+require "rubyfront/room"
 require "rubyfront/websocket"
 
 PORT = Integer(ARGV[0] || ENV.fetch("PORT", 8788))
@@ -33,9 +39,36 @@ rescue StandardError => error
   {}.freeze
 end
 
+# Le stanze con nome restano in piedi per un po' anche vuote: chi ricarica
+# la pagina ritrova la partita. Passato il tempo, il tavolo si sparecchia.
+ROOM_GRACE_S = 10 * 60
+
+ROOMS = {}
+ROOMS_LOCK = Mutex.new
+
+def room_for(name)
+  ROOMS_LOCK.synchronize do
+    ROOMS[name] ||= begin
+      puts "+ stanza «#{name}»"
+      Rubyfront::Room.new(name, cards: CARDS)
+    end
+  end
+end
+
+def sweep_rooms
+  ROOMS_LOCK.synchronize do
+    ROOMS.delete_if do |name, room|
+      gone = room.empty? && room.emptied_at && Time.now - room.emptied_at > ROOM_GRACE_S
+      puts "- stanza «#{name}» sparecchiata" if gone
+      gone
+    end
+  end
+end
+
 # Legge l'header HTTP: se è un upgrade WebSocket completa l'handshake e
-# restituisce true; a una richiesta semplice risponde due righe di cortesia
-# (le stesse che farebbero da health check) e chiude.
+# restituisce stanza e posto chiesti nell'URL; a una richiesta semplice
+# risponde due righe di cortesia (le stesse che farebbero da health check)
+# e restituisce nil.
 def handshake(client)
   request = +""
   while (line = client.gets)
@@ -45,71 +78,98 @@ def handshake(client)
   end
   key = request[/^Sec-WebSocket-Key: *(.+?)\r?$/i, 1]
   unless key
-    body = "Engine Rubyfront attivo. Regole collegate: #{Rubyfront::Engine::RULES.size}\n"
+    open = ROOMS_LOCK.synchronize { ROOMS.count { |_, room| !room.empty? } }
+    body = "Tavolo Rubyfront attivo. Regole collegate: #{Rubyfront::Engine::RULES.size}. Stanze aperte: #{open}\n"
     client.write(
       "HTTP/1.1 200 OK\r\n" \
       "Content-Type: text/plain; charset=utf-8\r\n" \
       "Content-Length: #{body.bytesize}\r\n\r\n#{body}"
     )
-    return false
+    return nil
   end
   client.write(
     "HTTP/1.1 101 Switching Protocols\r\n" \
     "Upgrade: websocket\r\nConnection: Upgrade\r\n" \
     "Sec-WebSocket-Accept: #{Rubyfront::WebSocket.accept_key(key)}\r\n\r\n"
   )
-  true
+  target = request[/^GET (\S+)/, 1] || "/"
+  query = URI.parse(target).query rescue nil
+  params = query ? URI.decode_www_form(query).to_h : {}
+  { room: params["room"].to_s.strip, seat: params["seat"].to_s }
 end
 
-def reply_for(engine, text)
-  message = begin
-    JSON.parse(text)
-  rescue JSON::ParserError
-    nil
-  end
-  return nil unless message.is_a?(Hash)
-
-  case message["t"]
-  when "hello" then engine.hello
-  # `seq` è del trasporto, non del giudizio: il client se ne serve per
-  # riconoscere a quale azione risponde il verdetto.
-  # `actor` è il posto di chi ha compiuto il gesto (§6): un client vecchio
-  # non lo manda, e l'engine allora non giudica chi agisce.
-  when "judge" then engine.judge(message["action"], actor: message["actor"]).merge(seq: message["seq"])
-  when "consult" then engine.observe(message["action"], actor: message["actor"]).merge(seq: message["seq"])
-  # Lo stato intero del client: allinea la copia del tavolo, senza risposta.
-  when "snapshot" then engine.snapshot(message["state"])
-  end
+def parse(text)
+  message = JSON.parse(text)
+  message.is_a?(Hash) ? message : nil
+rescue JSON::ParserError
+  nil
 end
 
 def serve(client)
-  return client.close unless handshake(client)
+  wanted = handshake(client)
+  return client.close unless wanted
 
-  engine = Rubyfront::Engine.new(cards: CARDS)
+  write_lock = Mutex.new
+  out = lambda do |payload|
+    frame = Rubyfront::WebSocket.encode_text(JSON.generate(payload))
+    write_lock.synchronize { client.write(frame) }
+  end
+
+  solo = wanted[:room].empty?
+  room = solo ? Rubyfront::Room.new("", cards: CARDS, solo: true) : room_for(wanted[:room])
+  # In una stanza con nome il posto dev'essere uno dei due; nella «solo» il
+  # client è l'unico seduto e il posto non conta.
+  seat = Rubyfront::Room::SEATS.include?(wanted[:seat]) ? wanted[:seat] : "a"
+  unless room.join(seat, out)
+    out.call({ t: "seat_taken", seat: seat })
+    client.write(Rubyfront::WebSocket.encode_close)
+    # Si lascia al client il tempo di leggere l'avviso: chiudere subito, col
+    # suo saluto ancora non letto qui, farebbe partire un RST e l'avviso
+    # andrebbe perso. Si chiude in scrittura e si aspetta che chiuda lui.
+    client.close_write rescue nil
+    deadline = Time.now + 2
+    while Time.now < deadline && IO.select([client], nil, nil, 0.2)
+      break if client.read_nonblock(16_384, exception: false).nil?
+    end
+    return client.close
+  end
+
   decoder = Rubyfront::WebSocket::Decoder.new
-  loop do
-    chunk = client.readpartial(16_384)
-    decoder.feed(chunk).each do |event, payload|
-      case event
-      when :close
-        client.write(Rubyfront::WebSocket.encode_close)
-        return client.close
-      when :ping
-        client.write(Rubyfront::WebSocket.encode_pong(payload))
-      when :text
-        reply = reply_for(engine, payload)
-        client.write(Rubyfront::WebSocket.encode_text(JSON.generate(reply))) if reply
+  begin
+    loop do
+      chunk = client.readpartial(16_384)
+      decoder.feed(chunk).each do |event, payload|
+        case event
+        when :close
+          client.write(Rubyfront::WebSocket.encode_close)
+          return
+        when :ping
+          write_lock.synchronize { client.write(Rubyfront::WebSocket.encode_pong(payload)) }
+        when :text
+          message = parse(payload)
+          room.handle(seat, message) if message
+        end
       end
     end
+  ensure
+    room.leave(seat, out)
+    client.close rescue nil
   end
-rescue EOFError, Errno::ECONNRESET, Errno::EPIPE
+rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, IOError
   client.close rescue nil
 end
 
 server = TCPServer.new(PORT)
-puts "Engine Rubyfront su ws://localhost:#{PORT}"
+puts "Tavolo Rubyfront su ws://localhost:#{PORT}"
 puts "Regole collegate: #{Rubyfront::Engine::RULES.size} (#{Rubyfront::Engine::RULES.join("; ")})."
 puts "Carte conosciute: #{CARDS.size}. Ctrl+C per fermarlo."
+
+Thread.new do
+  loop do
+    sleep 60
+    sweep_rooms
+  end
+end
 
 loop do
   Thread.new(server.accept) { |client| serve(client) }

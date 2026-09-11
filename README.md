@@ -32,18 +32,18 @@ flowchart LR
     TB["table.ts · hud.ts<br/>il tavolo"]
     EF["effects.ts<br/>interprete degli effetti"]
     RN["renderer.ts<br/>cardStats: l'anagrafe del client"]
-    NET["net.ts"]
-    EL["engine.ts"]
+    EL["engine.ts<br/>il canale col tavolo"]
   end
 
   subgraph engine["engine/ (Ruby, senza dipendenze)"]
     CI["card_index.rb<br/>l'anagrafe"]
     EN["engine.rb<br/>il giudizio"]
     TR["table.rb<br/>la copia del tavolo"]
+    RM["room.rb<br/>la stanza e il giornale"]
     WS["bin/server"]
   end
 
-  RELAY["scripts/server.mjs<br/>su Render (free): /relay e /engine<br/>il relay ripete, non legge"]
+  RELAY["scripts/server.mjs<br/>su Render (free): /engine<br/>il tavolo: un Engine per stanza,<br/>l'unico a scrivere lo stato"]
   PEER["il simulatore<br/>dell'avversario"]
 
   MAN -. "una regola alla volta" .-> EN
@@ -57,10 +57,10 @@ flowchart LR
   EN <--> TR
   RN --> EF --> TB
   TB --> ST
-  ST <--> NET
-  NET <-- "wss, stanza" --> RELAY <--> PEER
   ST <--> EL
-  EL <-- "ws :8788, judge / verdict" --> WS --> EN
+  EL <-- "wss, stanza: judge / verdict / action / journal" --> RELAY
+  RELAY --> WS --> RM --> EN
+  RM <-- "action, solo dopo il verdetto" --> PEER
 ```
 
 Chi legge cosa:
@@ -91,11 +91,12 @@ sequenceDiagram
   participant T as Tavolo (table.ts)
   participant E as Engine (Ruby)
   participant S as Stato (state.ts)
-  participant R as Relay
+  participant R as Stanza (room.rb)
   participant P as Avversario
 
   G->>T: trascina, doppio click, «Attacca»…
-  T->>E: judge {action, actor}
+  T->>R: judge {action, actor}
+  R->>E: verdict_for(action, posto del client)
   alt ruled: false — nessuna regola
     E-->>T: passa
   else ruled: true, ok: true
@@ -105,9 +106,9 @@ sequenceDiagram
     T->>G: sigillo «Azione fermata», la carta torna da dov'era
   end
   T->>S: apply(action) — il riduttore
-  S->>R: action
-  R->>P: action
-  P->>P: apply(action) + consult all'engine suo:<br/>una violazione si annota in chat, non si ferma
+  R->>R: giornale << action
+  R->>P: action (solo se passata)
+  P->>P: apply(action): il tavolo l'ha già giudicata
 ```
 
 Tre forme di regola, dalla più piccola:
@@ -149,16 +150,17 @@ debito lo dice.
 | Pezzo | In locale | In produzione |
 |---|---|---|
 | Gioco e catalogo | `npm run all` → vite su `:5199` (`/simulatore/`, carte su `/cards`) | Vercel, build a ogni push (`vercel.json` → `scripts/build-site.mjs`): il **gioco alla radice** `/`, il **catalogo** sotto `/catalog`; esce `dist/`, non si committa |
-| Relay | `:8787` | Render, piano free, **un servizio solo** (`render.yaml` + `Dockerfile`, `scripts/server.mjs`): `wss://rubyfront.onrender.com/relay` |
-| Engine | `:8788` | lo stesso servizio, per proxy: `wss://rubyfront.onrender.com/engine` |
+| Tavolo (engine) | `:8788` | Render, piano free, **un servizio solo** (`render.yaml` + `Dockerfile`, `scripts/server.mjs`, l'engine Ruby per proxy): `wss://rubyfront.onrender.com/engine` |
 | CI | — | GitHub Actions: test Ruby, tsc, vitest e build a ogni push (`ci.yml`); `keepalive.yml` tocca Render (ma GitHub lo fa girare ogni 2-4 ore: il server si tocca da solo, `scripts/server.mjs`) |
 
-Tutto free (deciso 2026-09-07). Render free dà 750 ore al mese per
-account: relay ed engine stanno in un processo solo (`scripts/server.mjs`:
-smista per percorso, l'engine Ruby è un figlio raggiunto per proxy) perché
-due servizi sempre svegli ne consumerebbero 1440. Gli indirizzi di
-produzione sono i default di `net.ts` ed `engine.ts`; le variabili
-`VITE_RELAY_URL` e `VITE_ENGINE_URL` al build (Vercel) vincono su tutto.
+Tutto free (deciso 2026-09-07). Un processo solo su Render
+(`scripts/server.mjs`: l'engine Ruby è un figlio raggiunto per proxy sul
+percorso `/engine`). Dal 2026-09-11 **l'engine è l'unico a scrivere lo
+stato**: non c'è più un relay che ripete le azioni fra i client — ogni
+azione arriva al tavolo della stanza come richiesta di giudizio, e solo se
+passa entra nel giornale e viene inoltrata all'avversario. L'indirizzo di
+produzione è il default di `engine.ts`; la variabile `VITE_ENGINE_URL` al
+build (Vercel) vince su tutto.
 
 ## Cartelle
 
@@ -166,7 +168,7 @@ produzione sono i default di `net.ts` ed `engine.ts`; le variabili
 - `docs/` — il sito: manuale, lore, direzione artistica, catalogo, pagine, build del simulatore.
 - `simulatore/` — il client TypeScript (Vite, vitest).
 - `engine/` — l'arbitro in Ruby (minitest), col suo README che racconta ogni regola collegata e i suoi limiti.
-- `scripts/` — catalogo, validazioni, relay, pipeline di sviluppo, e il ponte col foglio dei mazzi.
+- `scripts/` — catalogo, validazioni, il server di produzione, pipeline di sviluppo, e il ponte col foglio dei mazzi.
 - `.claude/skills/` — i contratti di lavoro: `linguaggio-carte` per i testi, `regole-engine` per le regole.
 
 ## Il foglio dei mazzi
@@ -194,7 +196,7 @@ automatizza: `npm run mazzi -- --url <link del foglio>`.
 ## Comandi
 
 ```sh
-npm run all                          # pagina + relay + engine, un Ctrl+C spegne tutto
+npm run all                          # pagina + tavolo (engine), un Ctrl+C spegne tutto
 npm run mazzi                        # il foglio condiviso dei mazzi ↔ il catalogo
 node scripts/build-catalog.mjs       # data/ → docs/cards/catalog.json
 node scripts/validate-data.mjs       # i dati e il catalogo sono allineati?

@@ -115,6 +115,7 @@ import {
   rearmAfterDeath,
   type AssignStep,
   type DeathStep,
+  flipCandidates,
   flipRef,
   flipSteps,
   nexusCheck,
@@ -2693,7 +2694,9 @@ export function mountTable(root: HTMLElement, ctx: Ctx): TableView {
       try {
         await wait(TRIGGER_LEAD_MS);
         if (step.form.kind === "move") {
-          for (const target of flipSteps(ctx.state(), step.source, ctx.card).find(s => s.form === step.form)?.candidates ?? []) {
+          // I candidati si rileggono dallo stato vivo, per contenuto della
+          // forma: un confronto per riferimento non troverebbe mai nulla.
+          for (const target of flipCandidates(ctx.state(), step.source, step.form)) {
             strike(target.uid, FLY_MS);
             const fly = liftForFlight(target.uid, "abisso");
             const passed = await ctx.dispatch({ t: "toZone", uid: target.uid, zone: "abisso", effect: flipRef(step.source) });

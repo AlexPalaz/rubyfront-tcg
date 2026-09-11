@@ -8,7 +8,6 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "relay": "node ../scripts/relay.mjs",
     "engine": "ruby ../engine/bin/server",
     "all": "node ../scripts/dev.mjs"
   },

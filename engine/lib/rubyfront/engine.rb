@@ -14,18 +14,18 @@ module Rubyfront
   #   - `ruled: true, ok: false` — l'azione viola la regola: `reason` spiega
   #     perché. Il simulatore la FERMA (l'engine è poliziotto, non consigliere).
   #
-  # Due canali, per tenere la copia del tavolo allineata ai client:
-  #
-  #   - `judge`   — giudizio PREVENTIVO su un'azione locale: il client la
-  #     applica solo col sì, quindi anche la copia qui la applica solo col sì.
-  #   - `observe` — occhiata su un'azione GIÀ applicata altrove (quelle
-  #     dell'avversario): la copia la segue comunque, il verdetto serve solo
-  #     ad annotare la violazione.
+  # Un Engine per STANZA (room.rb), non per client: l'engine è l'unico a
+  # scrivere lo stato (deciso 2026-09-11). Ogni azione di chiunque passa da
+  # `judge`, giudizio PREVENTIVO: la copia del tavolo la applica solo col
+  # sì, e solo col sì la stanza la inoltra all'altro client. `observe`
+  # (applica comunque) e `snapshot` (sostituisce la copia) restano per i
+  # test, che apparecchiano il tavolo, e per la stanza «solo» senza
+  # avversario; il trasporto non li espone più a una stanza con nome.
   #
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.63.0"
+    VERSION = "0.64.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -216,6 +216,9 @@ module Rubyfront
       verdict
     end
 
+    # Applica comunque, e riferisce il verdetto: per i test che apparecchiano
+    # un tavolo senza conoscere le carte. In partita nessuno dice più al
+    # tavolo cos'è già successo (room.rb).
     def observe(action, actor: nil)
       verdict = verdict_for(action, actor)
       @table.apply(action)
@@ -308,9 +311,10 @@ module Rubyfront
       @table.fired?(ref["source"], *attack_key(action, ref))
     end
 
-    # Lo stato intero del client: sostituisce la copia del tavolo. Arriva
-    # quando l'engine si collega a partita in corso o quando il client si
-    # riallinea dalla rete.
+    # Lo stato intero del client: sostituisce la copia del tavolo. Solo
+    # nella stanza «solo» (partita locale o col bot, nessun avversario da
+    # proteggere) e nei test; in una stanza con nome la copia si costruisce
+    # dal giornale delle azioni approvate, e nessun client la sovrascrive.
     def snapshot(state)
       @table.load(state)
       nil

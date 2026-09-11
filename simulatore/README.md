@@ -1,14 +1,15 @@
 # Simulatore Rubyfront
 
-Una lavagna condivisa per giocare a Rubyfront in due, da browser. **Non c'è un
-engine**: il simulatore non conosce le regole, non controlla i costi, non
-impedisce niente. Sposta carte, conta turni e Flusso, tira dadi. Le regole le
-applicano i giocatori, come al tavolo vero — è un campo da gioco condiviso, non
-un arbitro.
+Una lavagna condivisa per giocare a Rubyfront in due, da browser, con
+l'arbitro al tavolo: l'engine in `engine/` (Ruby) giudica ogni azione prima
+che si applichi ed è **l'unico a scrivere lo stato** (deciso 2026-09-11) —
+in stanza l'avversario riceve solo le azioni che il tavolo ha approvato. Le
+regole entrano una alla volta (`engine/README.md`); per tutto il resto il
+tavolo resta una lavagna: sposta carte, conta turni e Flusso, tira dadi.
 
 ## Come si avvia
 
-Tutto insieme, con un comando solo (pagina + relay + engine, un Ctrl+C spegne
+Tutto insieme, con un comando solo (pagina + tavolo, un Ctrl+C spegne
 tutto):
 
 ```bash
@@ -24,7 +25,7 @@ npm run dev          # la pagina: http://localhost:5199/simulatore/
 ```
 
 ```bash
-node scripts/relay.mjs   # il ponte fra i due giocatori (porta 8787)
+ruby engine/bin/server   # il tavolo: arbitro e stanze (porta 8788)
 ```
 
 Poi, dalla home, carta **Multigiocatore**: uno **crea la stanza** (ed è il
@@ -33,38 +34,40 @@ il posto B). Il posto non si sceglie: lo decide la porta da cui si entra.
 Poi ciascuno mette nome e mazzo; la spia della rete in barra diventa verde
 quando la stanza è collegata, e il tavolo si apre quando ci sono entrambi.
 
-Per giocare fuori dalla propria macchina serve che il relay sia raggiungibile
+Per giocare fuori dalla propria macchina serve che il tavolo sia raggiungibile
 dall'avversario: in LAN basta `npm run dev -- --host` e aprire la pagina con
-`?relay=ws://192.168.x.x:8787` (il relay non ha più un campo nelle
-impostazioni: è quello di produzione, o quello del link). Per giocare via
-internet il relay va messo su un host pubblico — vedi "Giocare online", sotto.
+`?engine=ws://192.168.x.x:8788` (il tavolo non ha un campo nelle
+impostazioni: è quello di produzione, o quello del parametro). Per giocare
+via internet il tavolo va messo su un host pubblico — vedi "Giocare online",
+sotto.
 
 ## Giocare online
 
-La pagina pubblicata (GitHub Pages serve `docs/`, simulatore compreso) parla
-con un relay pubblico. Il flusso per chi gioca è due gesti:
+La pagina pubblicata parla con il tavolo pubblico su Render. Il flusso per
+chi gioca è due gesti:
 
 1. **Crea una stanza** (home → Multigiocatore): inventa un nome difficile
    da indovinare ed entra, al posto A;
 2. **Copia il link d'invito** (nell'attesa dell'altro): il link porta
-   stanza, posto opposto e relay — chi lo apre è dentro, seduto dall'altra
-   parte, senza toccare un'impostazione. Chi conosce il nome della stanza
-   può comunque entrare a mano, al posto B.
+   stanza e posto opposto — chi lo apre è dentro, seduto dall'altra parte,
+   senza toccare un'impostazione. Chi conosce il nome della stanza può
+   comunque entrare a mano, al posto B.
 
-Il relay pubblico si mette su con **Render**: dashboard → New + → Blueprint →
-questo repo. Il `render.yaml` alla radice fa tutto (`node scripts/relay.mjs`,
-piano free, health check sulla risposta HTTP del relay). L'URL che ne esce —
-`wss://rubyfront-relay.onrender.com` — è già il default di produzione in
-`src/net.ts` (`DEFAULT_RELAY`): se Render assegna un nome diverso, va
-aggiornato lì. Nota del piano free: il servizio dormirebbe dopo un quarto
+Il tavolo pubblico si mette su con **Render**: dashboard → New + → Blueprint →
+questo repo. Il `render.yaml` alla radice fa tutto (`scripts/server.mjs`
+col tavolo Ruby come figlio, piano free, health check sulla risposta HTTP).
+L'URL che ne esce — `wss://rubyfront.onrender.com/engine` — è già il default
+di produzione in `src/engine.ts` (`DEFAULT_ENGINE`): se Render assegna un
+nome diverso, va aggiornato lì. Nota del piano free: il servizio dormirebbe dopo un quarto
 d'ora senza traffico (la prima connessione lo sveglia in una trentina di
 secondi): per questo il server si tocca da solo ogni dieci minuti
 (`scripts/server.mjs`, con `RENDER_EXTERNAL_URL`), e l'health check dice
 quanti tocchi ha fatto.
 
-Il relay resta stupido: ripete i messaggi della stanza e non sa nulla del
-gioco. Niente account, niente lista stanze pubblica: si gioca con chi
-conosce il nome della stanza, come a un tavolo privato.
+Il tavolo tiene **una stanza per partita**, con il suo arbitro e il giornale
+delle azioni approvate; il posto occupato si rifiuta (chi entra su un posto
+già preso viene respinto). Niente account, niente lista stanze pubblica: si
+gioca con chi conosce il nome della stanza, come a un tavolo privato.
 
 ## La home
 
@@ -187,7 +190,7 @@ browser non li accetta — Safari — resta il cursore di sistema.
 Il tasto col **microfono** in header (accanto al fumetto) accende e spegne la
 voce: parte **sempre spento**, e spegnerlo ferma le tracce davvero — la spia
 del browser si spegne. L'audio viaggia **diretto fra i due browser** (WebRTC);
-il relay fa solo da postino per l'aggancio, come per tutto il resto. Nelle
+il tavolo fa solo da postino per l'aggancio, senza leggerlo. Nelle
 impostazioni si sceglie **quale microfono** usare (i nomi veri compaiono dopo
 il primo permesso).
 
@@ -491,35 +494,34 @@ bordo, una carta che sporgesse dal fondo della fascia si ribaltava fuori e non
 rientrava più. E la fascia ha lo stesso margine sopra e sotto proprio per questo:
 è la simmetria che rende il capovolgimento uno scambio esatto fra le due file.
 
-**La rete manda azioni, non stato.** Ogni client tiene la sua copia della
-partita e applica le stesse mutazioni (`src/state.ts`). Lo stato intero viaggia
-solo quando qualcuno entra nella stanza. Se le due lavagne si disallineano, il
-tasto **Sincronizza** rimanda la propria a chi è collegato.
+**Il tavolo manda azioni, non stato — e le manda lui.** Ogni client tiene
+la sua copia della partita e applica le stesse mutazioni (`src/state.ts`),
+ma un'azione si applica solo col verdetto del tavolo, e quelle
+dell'avversario arrivano dal tavolo già approvate. Chi entra in una stanza
+riceve il **giornale** delle azioni approvate (dal `newGame` in poi) e
+ricostruisce la lavagna da lì (`replay` in `src/state.ts`): lo stato è una
+funzione del giornale, e il giornale lo scrive solo il tavolo. Il tasto
+**Riallinea dal tavolo** chiede di nuovo il giornale.
 
-## Il relay
+## Il tavolo (l'engine)
 
-`scripts/relay.mjs` è un ponte di trenta righe: raggruppa le connessioni per
-stanza e ripete agli altri quello che riceve. Non tiene stato, non legge i
-messaggi, non sa cosa sia una carta.
-
-Per giocare via internet va rifatto su un host pubblico (Cloudflare Workers +
-Durable Object, Deno Deploy, o qualunque cosa parli WebSocket). Il client non
-cambia: basta il nuovo indirizzo in `DEFAULT_RELAY` (o `?relay=` per
-provarlo). Il confine è tutto in `src/net.ts`.
-
-## L'engine (sperimentale)
-
-L'arbitro esterno vive in `engine/` alla radice del repo, in Ruby. L'engine dà
-le regole, il poliziotto è il simulatore: ogni azione locale aspetta il
-verdetto prima di applicarsi, e un «no» la blocca con un avviso (le azioni
-senza regola collegata passano come sempre; engine assente = tavolo libero).
-È **sempre acceso** (deciso 2026-09-09: via interruttore e indirizzo dalle
-impostazioni; la spia quadrata in alto ne mostra lo stato; rossa = engine
-non raggiungibile, e il tavolo resta libero come sempre). L'indirizzo è
-`DEFAULT_ENGINE` in `src/engine.ts`, o `?engine=` per le prove. Per avviarlo:
-`npm run engine` (oppure `ruby engine/bin/server`, porta 8788). Il confine
-client è tutto in `src/engine.ts`; protocollo, regole collegate e piano di
-crescita sono nel `engine/README.md`.
+L'arbitro vive in `engine/` alla radice del repo, in Ruby, ed è **l'unico a
+scrivere lo stato** (deciso 2026-09-11): un `Engine` per stanza
+(`engine/lib/rubyfront/room.rb`), un canale solo dal client
+(`src/engine.ts`). Ogni azione aspetta il verdetto prima di applicarsi, e
+un «no» la blocca con un avviso; col sì il tavolo la inoltra all'avversario.
+In stanza l'attore di ogni gesto è il posto del client, non quello che il
+client dichiara: un client modificato non può agire per l'altro, né dire
+al tavolo cosa «è già successo» (il vecchio `consult` non esiste più).
+In stanza un tavolo scollegato o muto **ferma** (senza arbitro non si gioca
+contro qualcuno); nella partita locale o col bot (la stanza «solo», senza
+nome) il tavolo resta libero come sempre, e il client gli passa la lavagna
+al saluto. L'arbitro è **sempre acceso** (deciso 2026-09-09: via
+interruttore e indirizzo dalle impostazioni; la spia quadrata in alto ne
+mostra lo stato). L'indirizzo è `DEFAULT_ENGINE` in `src/engine.ts`, o
+`?engine=` per le prove. Per avviarlo: `npm run engine` (oppure
+`ruby engine/bin/server`, porta 8788). Protocollo, regole collegate e
+limiti dichiarati sono nel `engine/README.md`.
 
 ## Pubblicazione
 
@@ -528,8 +530,8 @@ scripts/build-site.mjs` (dalla radice) completa il sito: il **gioco alla
 radice** `/` e il **catalogo** delle carte sotto `/catalog` (è `docs/`
 copiata tale e quale), da cui il gioco carica la grafica delle carte
 (`./catalog/cards/ui/`, `VITE_CARDS_UI`). La build **non si committa**: la
-fa Vercel a ogni push (`vercel.json`), con un'anteprima per ogni ramo. Relay ed
-engine stanno su Render in un servizio solo (`scripts/server.mjs`,
+fa Vercel a ogni push (`vercel.json`), con un'anteprima per ogni ramo. Il
+tavolo sta su Render in un servizio solo (`scripts/server.mjs`,
 `Dockerfile`, `render.yaml`): in produzione il simulatore cerca
-`wss://rubyfront.onrender.com/relay` e `/engine`, salvo `VITE_RELAY_URL` e
-`VITE_ENGINE_URL` impostate al build. I test girano in CI a ogni push.
+`wss://rubyfront.onrender.com/engine`, salvo `VITE_ENGINE_URL` impostata al
+build. I test girano in CI a ogni push.

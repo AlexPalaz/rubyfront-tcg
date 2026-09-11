@@ -40,6 +40,7 @@ const M: Record<string, { it: string; en: string }> = {
   "net.online": { it: "Collegato · {n} nella stanza", en: "Connected · {n} in the room" },
   "net.connecting": { it: "Mi sto collegando…", en: "Connecting…" },
   "net.offline": { it: "Non collegato — si gioca in locale", en: "Not connected — playing locally" },
+  "net.solo": { it: "Partita locale: nessuna stanza", en: "Local game: no room" },
   "invite.prompt": { it: "Copia il link d'invito:", en: "Copy the invite link:" },
   "log.seatclash": { it: "Attenzione: nella stanza c'è già qualcuno al posto {seat}, le sue mosse vengono ignorate. Chi crea la stanza è A, chi entra è B: uno dei due esca e rientri dal link d'invito.", en: "Warning: someone in the room already sits at seat {seat}; their moves are ignored. Whoever creates the room is A, whoever joins is B: one of you should leave and come back through the invite link." },
 
@@ -460,6 +461,7 @@ const M: Record<string, { it: string; en: string }> = {
   "stop.ok": { it: "Va bene", en: "All right" },
   "stop.ref": { it: "Manuale · §{ref}", en: "Manual · §{ref}" },
   "stop.default": { it: "l'azione «{action}» viola una regola del manuale", en: "the action “{action}” breaks a rule of the manual" },
+  "stop.absent": { it: "il tavolo non risponde: in stanza si gioca solo con l'arbitro collegato, riprova fra un momento", en: "the table isn't answering: in a room you only play with the referee connected, try again in a moment" },
 
   // ---- engine e voce
   "engine.online": { it: "Engine collegato", en: "Engine connected" },
@@ -543,9 +545,8 @@ const M: Record<string, { it: string; en: string }> = {
   "log.newgame": { it: "Nuova partita: inizia {seat}.", en: "New game: {seat} starts." },
   "log.deck.empty.short": { it: "{seat}: mazzo vuoto.", en: "{seat}: empty deck." },
   "log.draw1": { it: "{seat} pesca 1 carta.", en: "{seat} draws 1 card." },
-  "log.sent": { it: "Lavagna inviata all'avversario.", en: "Board sent to the opponent." },
+  "log.resync": { it: "Lavagna riallineata dal tavolo.", en: "Board realigned from the table." },
   "log.engine.hello": { it: "Engine collegato (v{version}).", en: "Engine connected (v{version})." },
-  "log.engine.violation": { it: "Engine: l'azione avversaria «{action}» viola una regola{reason}.", en: "Engine: the opponent's action “{action}” breaks a rule{reason}." },
   "log.take": { it: "{seat} prende una carta da {zone}.", en: "{seat} takes a card from {zone}." },
   "log.spawn": { it: "{seat} evoca in mano «{id}» (prova).", en: "{seat} summons “{id}” into hand (test)." },
   "log.reshuffle": { it: "{seat} rimescola dopo la ricerca.", en: "{seat} reshuffles after the search." },
@@ -571,8 +572,8 @@ const M: Record<string, { it: string; en: string }> = {
   "html.room.ph": { it: "nome stanza", en: "room name" },
   "html.join": { it: "Entra", en: "Join" },
   "html.net": { it: "Rete", en: "Network" },
-  "html.sync": { it: "Sincronizza la lavagna", en: "Sync the board" },
-  "html.sync.tip": { it: "Rimanda il tuo tavolo all'avversario, se le due lavagne si sono disallineate", en: "Send your table to the opponent again, if the two boards drifted apart" },
+  "html.sync": { it: "Riallinea dal tavolo", en: "Realign from the table" },
+  "html.sync.tip": { it: "Richiede al tavolo il giornale della partita e ricostruisce la lavagna da lì", en: "Asks the table for the game's journal and rebuilds the board from it" },
   "html.sound": { it: "Suoni", en: "Sounds" },
   "html.sound.on": { it: "Suoni delle carte: accesi", en: "Card sounds: on" },
   "html.sound.off": { it: "Suoni delle carte: spenti", en: "Card sounds: off" },

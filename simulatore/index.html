@@ -35,13 +35,12 @@
 <!-- Il pannello delle impostazioni: si apre dall'ingranaggio, si chiude con
      un click fuori o con Esc. Solo preferenze: mazzo, posto e stanza si
      scelgono dalla home (il posto da sé: chi crea la stanza è A, chi entra
-     è B); relay ed engine non si toccano (l'engine è sempre acceso, gli
-     indirizzi sono quelli di produzione, o ?relay= / ?engine= per le
-     prove). -->
+     è B); il tavolo non si tocca (l'arbitro è sempre acceso, l'indirizzo
+     è quello di produzione, o ?engine= per le prove). -->
 <div class="settings" id="settings" hidden>
   <div class="set-row">
     <span class="set-label" data-i18n="html.net">Rete</span>
-    <button type="button" id="do-push" class="ghost" title="Rimanda il tuo tavolo all'avversario, se le due lavagne si sono disallineate" data-i18n-title="html.sync.tip" data-i18n="html.sync">Sincronizza la lavagna</button>
+    <button type="button" id="do-push" class="ghost" title="Richiede al tavolo il giornale della partita e ricostruisce la lavagna da lì" data-i18n-title="html.sync.tip" data-i18n="html.sync">Riallinea dal tavolo</button>
   </div>
   <div class="set-row">
     <span class="set-label" data-i18n="html.sound">Suoni</span>
@@ -185,7 +184,7 @@
     </div>
 
     <!-- L'attesa: in una stanza si va al tavolo solo quando c'è anche
-         l'altro giocatore. Finché il relay conta uno, si resta qui. -->
+         l'altro giocatore. Finché il tavolo conta uno, si resta qui. -->
     <div id="ob-step-wait" hidden>
       <p class="onboard-ask" id="ob-wait-note"></p>
       <p class="onboard-wait" id="ob-wait-status"><span class="onboard-wait-dot" aria-hidden="true"></span><span id="ob-wait-text"></span></p>

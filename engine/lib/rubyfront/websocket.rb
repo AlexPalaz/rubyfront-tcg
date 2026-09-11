@@ -3,9 +3,8 @@
 require "digest/sha1"
 
 module Rubyfront
-  # Il minimo di WebSocket che serve all'engine: handshake e frame di testo.
-  # È lo speculare in Ruby del relay Node (scripts/relay.mjs), con la stessa
-  # filosofia: nessuna dipendenza, solo lo standard che serve davvero.
+  # Il minimo di WebSocket che serve al tavolo: handshake e frame di testo.
+  # Nessuna dipendenza, solo lo standard che serve davvero.
   module WebSocket
     GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 

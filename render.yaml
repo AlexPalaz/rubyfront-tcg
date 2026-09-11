@@ -1,14 +1,12 @@
 # Il tavolo online su Render, piano free: UN servizio solo (Docker, vedi
-# Dockerfile) che tiene dentro relay ed engine — due servizi sempre svegli
-# supererebbero le 750 ore al mese del piano free. Dashboard → Blueprint su
-# questo repo; a ogni push su main Render ricostruisce (auto-deploy), o si
-# fa Manual sync.
+# Dockerfile) col tavolo Ruby dietro il proxy Node. Dashboard → Blueprint
+# su questo repo; a ogni push su main Render ricostruisce (auto-deploy), o
+# si fa Manual sync.
 #
 # L'URL pubblico esce come https://rubyfront.onrender.com:
-#   wss://rubyfront.onrender.com/relay   il relay (DEFAULT_RELAY, net.ts)
-#   wss://rubyfront.onrender.com/engine  l'engine (DEFAULT_ENGINE, engine.ts)
-# Se Render assegna un nome diverso, si aggiornano quei due default (o le
-# variabili VITE_RELAY_URL / VITE_ENGINE_URL al build della pagina).
+#   wss://rubyfront.onrender.com/engine  il tavolo (DEFAULT_ENGINE, engine.ts)
+# Se Render assegna un nome diverso, si aggiorna quel default (o la
+# variabile VITE_ENGINE_URL al build della pagina).
 #
 # Il piano free dorme dopo un quarto d'ora senza traffico: il server si
 # tocca da solo ogni dieci minuti (scripts/server.mjs, RENDER_EXTERNAL_URL);

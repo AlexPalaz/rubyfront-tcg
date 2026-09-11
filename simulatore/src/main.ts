@@ -1,9 +1,9 @@
-// Avvio del simulatore: mette insieme lavagna, pannello, chat e rete.
+// Avvio del simulatore: mette insieme lavagna, pannello, chat e tavolo.
 //
 // Lo stato vive qui, in una variabile sola. Ogni modifica passa da `dispatch`,
-// che fa tre cose nell'ordine: applica, ritrasmette, ridisegna. Non esiste
-// altro modo di cambiare la partita — nemmeno per la rete, che entra dallo
-// stesso imbuto.
+// che chiede il verdetto al tavolo, applica e ridisegna. Non esiste altro
+// modo di cambiare la partita — nemmeno per l'avversario, le cui azioni
+// arrivano dal tavolo già approvate ed entrano dallo stesso imbuto (receive).
 
 // Il carattere dell'interfaccia (le carte hanno il loro, da card.css):
 // Space Grotesk, self-hosted — un grottesco geometrico che fa da macchina
@@ -17,7 +17,6 @@ import { mountChat } from "./chat.js";
 import { SLOT_X, SURFACE_W, backRowY, isCompactView, isRecessView, setViewMode, viewBattleTop, viewMode, type Ctx, type ViewMode } from "./ctx.js";
 import { connectEngine, DEFAULT_ENGINE, type EngineLink, type EngineStatus, type EngineVerdict, verdictReason } from "./engine.js";
 import { mountLegend } from "./legend.js";
-import { connect, DEFAULT_RELAY, type Net, type NetStatus } from "./net.js";
 import { mountOverlay } from "./overlay.js";
 import { tapPreview } from "./preview.js";
 import { PHASE_BANNER_MS, mountPhaseBanner } from "./banner.js";
@@ -32,7 +31,7 @@ import { setupPreview } from "./preview.js";
 import { mountMazzi } from "./mazzi.js";
 import { askConfirm } from "./ask.js";
 import { allDecks, artUrl, cardName, cardStats, deckTint, defaultTheme, enterEffects, getDeck, isRubyfront, loadRenderer, type Tint } from "./renderer.js";
-import { apply, controllerOf, fieldCards, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, playSpot, seatLabel, shuffled, zoneCards } from "./state.js";
+import { apply, controllerOf, fieldCards, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, playSpot, replay, seatLabel, shuffled, zoneCards } from "./state.js";
 import { releaseHeld } from "./effects.js";
 import { DRAW_STEP_MS, drawCascadeMs, mountTable } from "./table.js";
 import { verdictByHp } from "./turn.js";
@@ -87,12 +86,13 @@ let locale = params.get("lang") ?? store.read("lang", "it");
 // prima di costruire qualunque vista, e la pagina la applica ai suoi testi.
 setLang(locale);
 applyHtmlLang();
-let net: Net | null = null;
-/** Quanti client il relay conta nella stanza (me compreso), 0 se scollegati. */
+/** La stanza in cui si è seduti; vuota = la stanza «solo» (partita locale o col bot). */
+let room = "";
+/** Quanti client il tavolo conta nella stanza (me compreso), 0 se scollegati o nella «solo». */
 let roomPeers = 0;
 /**
  * Il tavolo si apre solo quando c'è anche l'altro giocatore: chi crea o
- * entra in una stanza resta all'accoglienza finché il relay conta due. Il
+ * entra in una stanza resta all'accoglienza finché il tavolo conta due. Il
  * mazzo scelto si mette in tavola solo allora (deckDeferred), così
  * l'apertura — insegna, mano, carta del turno 1 — si vede insieme.
  */
@@ -127,15 +127,28 @@ const tints: Record<Seat, Tint> = { a: "dynamic", b: "dynamic" };
 // ------------------------------------------------------------------ ctx
 
 function dispatch(action: Action): Promise<boolean> {
-  // Il poliziotto: con l'engine collegato, l'azione parte solo col suo
-  // benestare — un «no» la ferma prima che tocchi lavagna e rete, e si
-  // mostra (engineStop). Engine spento o irraggiungibile: tavolo libero,
-  // come sempre. La promessa dice se l'azione è passata: serve a chi ne
-  // accoda altre che senza questa non hanno senso (endTurn).
+  // L'engine è l'unico a scrivere lo stato: l'azione parte solo col suo
+  // benestare — un «no» la ferma prima che tocchi la lavagna, e si mostra
+  // (engineStop); col sì il tavolo la inoltra lui all'avversario. In
+  // stanza un tavolo scollegato o muto FERMA (stop.absent): senza arbitro
+  // non si gioca contro qualcuno. Nella stanza «solo» (locale, bot) un
+  // arbitro assente lascia il tavolo libero, come sempre. La promessa dice
+  // se l'azione è passata: serve a chi ne accoda altre che senza questa
+  // non hanno senso (endTurn).
   const judge = engine;
+  const inRoom = room !== "";
+  const absent = (): Promise<boolean> => {
+    if (!(botSeat && actorFor(action) === botSeat)) engineStop({ t: "verdict", ok: false, ruled: true, reason: t("stop.absent"), reason_en: t("stop.absent") });
+    paint();
+    return Promise.resolve(false);
+  };
   if (judge && judge.status() === "online") {
     return new Promise(resolve => {
       judge.judge(action, actorFor(action), verdict => {
+        if (!verdict && inRoom) {
+          void absent().then(resolve);
+          return;
+        }
         if (verdict?.ruled && !verdict.ok) {
           // §6.5 — il Fine turno fermato dalla mano piena: l'Abisso di chi
           // chiude si accende e invita, così il sigillo dice anche DOVE si
@@ -168,6 +181,7 @@ function dispatch(action: Action): Promise<boolean> {
       });
     });
   }
+  if (inRoom) return absent();
   commit(action);
   return Promise.resolve(true);
 }
@@ -282,7 +296,6 @@ function commit(action: Action): void {
   const clashes = clashesOf(action);
   const before = state;
   state = apply(state, action);
-  net?.send({ t: "action", action, from: mySeat });
   paint();
   flights.forEach(flight => flight?.());
   for (const clash of clashes) {
@@ -341,8 +354,8 @@ function peekReveal(action: Action): void {
   });
 }
 
-/** Applica senza ritrasmettere: per le azioni che arrivano già dalla rete. */
-function receive(action: Action, from: Seat): void {
+/** Applica un'azione dell'avversario, già approvata dal tavolo (che l'ha giudicata con la sua copia: qui non si rigiudica). */
+function receive(action: Action): void {
   cueFor(action);
   peekReveal(action);
   // La giocata dell'avversario si vede anche qui, senza fermare nulla: la
@@ -423,9 +436,6 @@ function receive(action: Action, from: Seat): void {
   }
   const before = state;
   state = apply(state, action);
-  // Anche le azioni dell'avversario passano all'engine: l'arbitro guarda la
-  // partita intera, non una metà.
-  engine?.consult(action, from);
   paint();
   fly?.();
   // §8.2 — una mia carta uscita dal campo per mano dell'avversario (la sua
@@ -541,11 +551,7 @@ const ctx: Ctx = {
 
 const voice = createVoice({
   seat: () => mySeat,
-  send: payload => {
-    if (!net || net.status() !== "online") return false;
-    net.send({ t: "rtc", payload, from: mySeat });
-    return true;
-  },
+  send: payload => (room && engine?.status() === "online" ? engine.sendRtc(payload) : false),
   log: (text, seat) => ctx.log(text, seat ?? mySeat),
   micId: () => store.read("mic", ""),
   // Il VU meter sul tasto del microfono: un riempimento verde che segue la
@@ -814,11 +820,13 @@ function scheduleOpening(seat: Seat, deckId: string): void {
 
 // ----------------------------------------------------------------- rete
 
-function setStatus(status: NetStatus, peers: number): void {
+function setStatus(status: EngineStatus, peers: number): void {
   const dot = document.querySelector<HTMLElement>("#net-dot")!;
-  dot.dataset.status = status;
-  dot.title = status === "online" ? t("net.online", { n: peers }) : t(status === "connecting" ? "net.connecting" : "net.offline");
-  roomPeers = status === "online" ? peers : 0;
+  // Nella stanza «solo» la spia della stanza resta spenta: il filo c'è (è
+  // quello dell'arbitro, engine-dot), ma nessuno è seduto di fronte.
+  dot.dataset.status = room ? status : "offline";
+  dot.title = !room ? t("net.solo") : status === "online" ? t("net.online", { n: peers }) : t(status === "connecting" ? "net.connecting" : "net.offline");
+  roomPeers = room && status === "online" ? peers : 0;
   obWaitText.textContent = t(status === "online" ? "html.ob.wait.alone" : "html.ob.wait.connecting");
   if (awaitingPeer && roomPeers >= 2) seatTable();
 }
@@ -862,7 +870,7 @@ function seatTable(): void {
 
 /** Il mazzo va in tavola ora, oppure quando arriva l'altro giocatore. */
 function seatOrWait(): void {
-  if (net && roomPeers < 2) {
+  if (room && roomPeers < 2) {
     deckDeferred = true;
     waitForPeer();
     return;
@@ -878,90 +886,59 @@ function warnSeatClash(): void {
   ctx.log(t("log.seatclash", { seat: mySeat.toUpperCase() }));
 }
 
-function join(room: string, relay: string): void {
+/**
+ * Sedersi a un tavolo: la stanza con quel nome, o la «solo» (nome vuoto:
+ * partita locale o col bot). Un canale solo verso il tavolo (engine.ts),
+ * per l'arbitro e per l'avversario insieme: si chiude quello di prima e se
+ * ne apre uno nuovo, e la lavagna di una stanza con nome arriva dal
+ * giornale del tavolo (rebuildFromJournal), non da un client.
+ */
+function join(name: string): void {
   seatClashWarned = false;
   voice.shutdown();
   document.body.dataset.voice = "";
-  net?.close();
-  net = null;
-  if (!room.trim()) {
-    setStatus("offline", 0);
-    return;
-  }
+  room = name.trim();
   store.write("room", room);
-  store.write("relay", relay);
   // In una stanza vera l'altra metà del tavolo è di qualcuno: il bot si
-  // alza — via le sue carte e il suo nome, il posto torna «In attesa…» per
-  // chi arriva. (La rete qui è già chiusa: il congedo resta locale.)
-  if (botDeckId) {
+  // alza. Le sue carte spariscono con la lavagna, che in stanza si
+  // ricostruisce dal giornale del tavolo.
+  if (botDeckId && room) {
     botDeckId = null;
     botSeat = null;
     table.setAuto(null, botChooser);
-    const foe = otherSeat(mySeat);
-    void dispatch({ t: "loadDeck", seat: foe, deckId: "", cards: [] });
-    void dispatch({ t: "player", seat: foe, patch: { name: "" } });
   }
-  net = connect(relay || DEFAULT_RELAY, room.trim(), mySeat, {
-    onStatus: setStatus,
-    onMessage(message) {
-      // Un messaggio col MIO posto come mittente: nella stanza c'è un altro
-      // client seduto dove sono io. Applicarlo scombinerebbe la lavagna:
-      // meglio ignorarlo e dirlo forte.
-      if ("from" in message && message.from === mySeat) {
-        warnSeatClash();
-        return;
-      }
-      if (message.t === "rtc") {
-        if (message.from !== mySeat) voice.receive(message.payload as VoicePayload);
-        return;
-      }
-      if (message.t === "action") {
-        // "Nuova partita" azzera il tavolo di entrambi: ognuno rimette poi il
-        // proprio mazzo, perché il suo id è noto solo al suo client.
-        receive(message.action, message.from);
-        if (message.action.t === "newGame") {
-          if (myDeckId) loadDeck(myDeckId, mySeat);
-          reapplyName();
-        }
-        return;
-      }
-      if (message.t === "hello") {
-        // Chi è già nella stanza passa la lavagna a chi entra. Se non ho
-        // ancora niente in tavola non rispondo: non sono io la copia buona.
-        if (Object.keys(state.cards).length > 0) {
-          net?.send({ t: "state", state, from: mySeat });
-        }
-        return;
-      }
-      if (message.t === "state") {
-        // La lavagna di chi era già dentro sostituisce la mia — ma può non
-        // sapere niente di me, se il mio carico è partito mentre il relay
-        // ancora dormiva. Mazzo e nome si rimettono, e stavolta viaggiano.
-        const hadMine = Object.values(state.cards).some(card => card.owner === mySeat);
-        // Una lavagna arrivata da un client più vecchio può non sapere delle
-        // fasi (§6): senza il campo, si riparte dalla Preparazione.
-        state = { ...message.state, phase: message.state.phase ?? "preparazione" };
-        // La lavagna è appena stata sostituita in blocco: anche la copia
-        // dell'engine deve ripartire da qui, non dalle azioni che ha visto.
-        engine?.snapshot(state);
-        paint();
-        const incomingHasMine = Object.values(state.cards).some(card => card.owner === mySeat);
-        if (hadMine && !incomingHasMine && myDeckId) loadDeck(myDeckId, mySeat);
-        // La mano iniziale che manca (§4): la lavagna arrivata ha il mio
-        // mazzo ma non la mia mano — la pagina è stata ricaricata prima che
-        // la pesca d'apertura partisse, che è un tempo del client e non
-        // un'azione della lavagna. Al turno 1 in Preparazione, a mazzo
-        // intero, la pesca riparte da qui; altrimenti la mano vuota è vera.
-        else if (incomingHasMine && myDeckId && state.players[mySeat].deckId === myDeckId && handSize(mySeat) === 0 && state.turn === 1 && state.phase === "preparazione" && deckUntouched(mySeat)) {
-          scheduleOpening(mySeat, myDeckId);
-        }
-        const myName = store.read("name", "");
-        if (myName && state.players[mySeat].name !== myName) {
-          dispatch({ t: "player", seat: mySeat, patch: { name: myName } });
-        }
-      }
-    },
-  });
+  connectTable();
+}
+
+/**
+ * Il giornale della stanza (le azioni approvate dal tavolo, dal `newGame`
+ * in poi) sostituisce la lavagna: lo stato è una funzione del giornale.
+ * Arriva a ogni saluto — l'ingresso, la riconnessione, «Riallinea dal
+ * tavolo». Mazzo e nome che mancano si rimettono, e stavolta passano dal
+ * tavolo.
+ */
+function rebuildFromJournal(entries: Parameters<typeof replay>[0]): void {
+  const hadMine = Object.values(state.cards).some(card => card.owner === mySeat);
+  state = replay(entries);
+  paint();
+  const incomingHasMine = Object.values(state.cards).some(card => card.owner === mySeat);
+  // Il mio mazzo c'era e il tavolo non lo sa più (la stanza è stata
+  // sparecchiata e riapparecchiata): si rimette, se il tavolo è aperto.
+  if (hadMine && !incomingHasMine && myDeckId && !awaitingPeer && !deckDeferred && roomPeers >= 2) loadDeck(myDeckId, mySeat);
+  // La mano iniziale che manca (§4): il giornale ha il mio mazzo ma non la
+  // mia mano — la pagina è stata ricaricata prima che la pesca d'apertura
+  // partisse, che è un tempo del client e non un'azione della lavagna. Al
+  // turno 1 in Preparazione, a mazzo intero, la pesca riparte da qui;
+  // altrimenti la mano vuota è vera.
+  else if (incomingHasMine && myDeckId && state.players[mySeat].deckId === myDeckId && handSize(mySeat) === 0 && state.turn === 1 && state.phase === "preparazione" && deckUntouched(mySeat)) {
+    scheduleOpening(mySeat, myDeckId);
+  }
+  // Il nome viaggia da qui: chi entra con stanza e mazzo già noti non passa
+  // dall'accoglienza, e il giornale non lo sa ancora.
+  const myName = store.read("name", "");
+  if (myName && state.players[mySeat].name !== myName) {
+    dispatch({ t: "player", seat: mySeat, patch: { name: myName } });
+  }
 }
 
 // -------------------------------------------------------------- comandi
@@ -975,10 +952,8 @@ function deckName(deckId: string): string {
 // La stanza non ha più un campo nelle impostazioni: si sceglie dalla home.
 // Qui resta il suo valore corrente (link, memoria del browser, o vuoto).
 const roomInput = { value: params.get("room") ?? store.read("room", "") };
-// Il relay non ha un campo nelle impostazioni: è quello di produzione, o
-// arriva dal link d'invito (chi entra così non deve sapere nemmeno che
-// esiste), o da ?relay= per le prove.
-const relayInput = { value: params.get("relay") ?? store.read("relay", DEFAULT_RELAY) };
+// Il tavolo non ha un campo nelle impostazioni: è quello di produzione
+// (DEFAULT_ENGINE), o ?engine= per le prove.
 const langPick = document.querySelector<HTMLSelectElement>("#lang-pick")!;
 
 langPick.value = locale;
@@ -1020,14 +995,15 @@ function reapplyName(): void {
 }
 
 document.querySelector("#do-push")!.addEventListener("click", () => {
-  net?.send({ t: "state", state, from: mySeat });
-  ctx.log(msg("log.sent"));
+  // Il tavolo rimanda saluto e giornale: la lavagna si ricostruisce da lì.
+  engine?.hello();
+  if (room) ctx.log(msg("log.resync"));
 });
 
 // Una stanza è solo un nome: chi lo conosce entra. «Crea una stanza» (home)
 // ne inventa uno difficile da indovinare e ci entra subito, al posto A;
-// «Copia il link d'invito» impacchetta stanza, posto OPPOSTO e relay in un
-// URL — chi lo apre è dentro, seduto dall'altra parte, senza toccare
+// «Copia il link d'invito» impacchetta stanza e posto OPPOSTO in un URL —
+// chi lo apre è dentro, seduto dall'altra parte, senza toccare
 // un'impostazione.
 const GEMME = ["rubino", "ambra", "giada", "opale", "zaffiro", "onice", "perla", "agata", "topazio", "berillo"];
 
@@ -1041,13 +1017,12 @@ const GEMME = ["rubino", "ambra", "giada", "opale", "zaffiro", "onice", "perla",
 function enterRoomAs(room: string, seat: Seat): void {
   if (mySeat === seat) {
     roomInput.value = room;
-    join(room, relayInput.value);
+    join(room);
     obProfile();
     return;
   }
   store.write("seat", seat);
   store.write("room", room);
-  store.write("relay", relayInput.value);
   const next = new URL(location.href);
   next.search = "";
   next.searchParams.set("room", room);
@@ -1061,7 +1036,6 @@ async function copyInvite(button: HTMLButtonElement, resetKey: string): Promise<
   url.search = "";
   url.searchParams.set("room", room);
   url.searchParams.set("seat", otherSeat(mySeat));
-  if (relayInput.value && relayInput.value !== DEFAULT_RELAY) url.searchParams.set("relay", relayInput.value);
   try {
     await navigator.clipboard.writeText(url.href);
     button.textContent = t("copied");
@@ -1138,18 +1112,15 @@ function engineStop(verdict: EngineVerdict): void {
   okay.focus();
 }
 
-// L'engine: l'arbitro esterno, dietro un flag e ACCESO di default — chi
-// non l'ha mai toccato gioca arbitrato (chi l'ha spento apposta resta
-// spento). Senza un engine raggiungibile la spia va in rosso e il tavolo
-// resta libero, come sempre: un arbitro assente non ferma nessuno. Acceso,
-// giudica le azioni locali PRIMA che si applichino (vedi dispatch): l'engine
-// dà solo le regole, il poliziotto è il simulatore — trattiene l'azione,
-// e su un «no» la lascia cadere mostrando l'avviso. Le azioni avversarie
-// arrivano già applicate: a quelle va solo un'occhiata (receive).
-// L'arbitro è sempre acceso (deciso 2026-09-09: via l'interruttore e il
-// campo dell'indirizzo dalle impostazioni). L'indirizzo è quello di
-// produzione (DEFAULT_ENGINE), o ?engine= per le prove; un ws:// su una
-// pagina https non può funzionare (contenuto misto) e si ignora.
+// Il tavolo: l'arbitro esterno, sempre acceso (deciso 2026-09-09: via
+// l'interruttore e il campo dell'indirizzo dalle impostazioni) e dal
+// 2026-09-11 l'unico a scrivere lo stato. Giudica ogni azione PRIMA che si
+// applichi (vedi dispatch) e inoltra lui quelle approvate all'avversario,
+// che arrivano qui da `onAction` (receive). Senza un tavolo raggiungibile
+// la spia va in rosso: nella stanza «solo» il tavolo resta libero, in
+// stanza si aspetta. L'indirizzo è quello di produzione (DEFAULT_ENGINE),
+// o ?engine= per le prove; un ws:// su una pagina https non può
+// funzionare (contenuto misto) e si ignora.
 const engineDot = document.querySelector<HTMLElement>("#engine-dot")!;
 const engineParam = params.get("engine")?.trim() ?? "";
 const engineUrl = engineParam && !(location.protocol === "https:" && engineParam.startsWith("ws://")) ? engineParam : DEFAULT_ENGINE;
@@ -1162,19 +1133,23 @@ function setEngineStatus(status: EngineStatus): void {
   paint();
 }
 
-function engineApply(): void {
+/** Il saluto arriva a ogni riconnessione: in chat va una volta sola, salvo che l'engine sia cambiato nel frattempo (versione o regole). */
+let welcomed = "";
+
+function connectTable(): void {
   engine?.close();
   engine = null;
   engineDot.hidden = false;
-  // Il saluto arriva a ogni riconnessione: in chat va una volta sola, salvo
-  // che l'engine sia cambiato nel frattempo (versione o regole).
-  let welcomed = "";
-  engine = connectEngine(engineUrl, {
-    onStatus: setEngineStatus,
+  engine = connectEngine(engineUrl, room, mySeat, {
+    onStatus(status, peers) {
+      setEngineStatus(status);
+      setStatus(status, peers);
+    },
     onWelcome(version, rules) {
-      // Il saluto vuol dire connessione (o riconnessione) fresca: l'engine
-      // parte con la copia del tavolo vuota — gli si passa la lavagna com'è.
-      engine?.snapshot(state);
+      // Nella stanza «solo» il tavolo parte con la copia vuota e il client
+      // è la copia buona: gli si passa la lavagna com'è. In stanza no: la
+      // lavagna arriva dal giornale, subito dopo il saluto.
+      if (!room) engine?.snapshot(state);
       const signature = `${version}|${rules.join(",")}`;
       if (signature === welcomed) return;
       welcomed = signature;
@@ -1182,17 +1157,29 @@ function engineApply(): void {
       // protocollo, non nello storico della partita.
       ctx.log(msg("log.engine.hello", { version }));
     },
-    onVerdict(verdict) {
-      // Qui arrivano solo le occhiate sulle azioni AVVERSARIE (receive): già
-      // applicate dal client di là, non si possono fermare — una violazione
-      // si annota in chat e basta.
-      if (!verdict.ruled || verdict.ok) return;
-      const reason = verdictReason(verdict);
-      ctx.log(msg("log.engine.violation", { action: verdict.action ?? "?", reason: reason ? ` — ${reason}` : "" }));
+    onJournal: rebuildFromJournal,
+    onAction(action, from) {
+      // Un'azione col MIO posto come mittente non dovrebbe arrivare (il
+      // tavolo rifiuta il secondo client sullo stesso posto): nel dubbio
+      // si ignora e si dice forte.
+      if (from === mySeat) {
+        warnSeatClash();
+        return;
+      }
+      // "Nuova partita" azzera il tavolo di entrambi: ognuno rimette poi il
+      // proprio mazzo, perché il suo id è noto solo al suo client.
+      receive(action);
+      if (action.t === "newGame") {
+        if (myDeckId) loadDeck(myDeckId, mySeat);
+        reapplyName();
+      }
     },
+    onRtc(payload, from) {
+      if (from !== mySeat) voice.receive(payload as VoicePayload);
+    },
+    onSeatTaken: warnSeatClash,
   });
 }
-engineApply();
 
 // Vista compatta: tessere (illustrazione, nome, costo, Potenza) al posto
 // delle carte, tavolo tutto in vista senza scorrere. Il testo di regole
@@ -1300,7 +1287,7 @@ function frameBoard(): void {
 }
 frameBoard();
 
-if (roomInput.value) join(roomInput.value, relayInput.value);
+join(roomInput.value);
 
 // ------------------------------------------------------------ onboarding
 // Al primo arrivo (nessuna stanza nota) si parte dalla home: le quattro
@@ -1599,7 +1586,7 @@ function leaveTable(): void {
   botSeat = null;
   table.setAuto(null, botChooser);
   botDeckId = null;
-  join("", relayInput.value);
+  join("");
   store.write("room", "");
   roomInput.value = "";
   obRoom.value = "";

@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { CONTROL_X, MATTER_X, frontRowY } from "../src/ctx.js";
-import { STACK_STEP, abilityDiscount, apply, attackKey, matterSpot, newGame, pay, playSpot, zoneCards, chainTop } from "../src/state.js";
+import { STACK_STEP, abilityDiscount, apply, attackKey, matterSpot, newGame, pay, playSpot, replay, zoneCards, chainTop } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
 function deckFor(seat: Seat, count: number): { cards: CardInstance[] } & Extract<Parameters<typeof apply>[1], { t: "loadDeck" }> {
@@ -844,5 +844,30 @@ describe("apply ability / sconti", () => {
     let state = apply(newGame("a"), { ...deckFor("a", 1), hp: 3 });
     state = apply(state, { t: "ability", uid: "a-1", ability: "x", cost: 3, roll: 1, fail: true });
     expect(state.players.a.hp).toBe(0);
+  });
+});
+
+// Il giornale della stanza (engine/lib/rubyfront/room.rb): la lavagna è una
+// funzione delle azioni approvate dal tavolo, dal `newGame` in poi.
+describe("replay: la lavagna dal giornale del tavolo", () => {
+  it("ricostruisce la stessa lavagna che le azioni avrebbero prodotto una alla volta", () => {
+    const entries = [
+      { action: { t: "newGame", active: "b" } as const, from: null },
+      { action: deckFor("a", 8), from: "a" as const },
+      { action: { t: "draw", seat: "a", count: 6 } as const, from: "a" as const },
+      { action: { t: "player", seat: "a", patch: { name: "Ale" } } as const, from: "a" as const },
+    ];
+    const rebuilt = replay(entries);
+    let expected = newGame();
+    for (const entry of entries) expected = apply(expected, entry.action);
+    expect(rebuilt).toEqual(expected);
+    expect(rebuilt.active).toBe("b");
+    expect(rebuilt.players.a.token).toBe(true);
+    expect(handCount(rebuilt, "a")).toBe(6);
+    expect(rebuilt.players.a.name).toBe("Ale");
+  });
+
+  it("un giornale vuoto è una partita nuova", () => {
+    expect(replay([])).toEqual(newGame());
   });
 });

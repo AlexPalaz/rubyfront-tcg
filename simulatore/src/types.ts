@@ -364,11 +364,23 @@ export type Action =
       catalogo, per provare le regole in fretta. Non è un gesto di gioco. */
   | { t: "spawn"; card: CardInstance };
 
-/** Buste che viaggiano sul relay. */
+/** Una riga del giornale della stanza: l'azione approvata e chi l'ha compiuta (nessuno per il `newGame` tirato dal tavolo). */
+export interface JournalEntry {
+  action: Action;
+  from: Seat | null;
+}
+
+/**
+ * Le buste che il tavolo (engine/bin/server) manda al client. Nessuna
+ * viaggia da client a client: l'engine è l'unico a scrivere lo stato, e
+ * un'azione arriva qui solo dopo il suo verdetto.
+ */
 export type NetMessage =
   | { t: "action"; action: Action; from: Seat }
-  | { t: "hello"; from: Seat }
-  | { t: "state"; state: GameState; from: Seat }
-  /** Segnalazione WebRTC della chat vocale (voice.ts): il relay la ripete
-      come tutto il resto, il payload lo capisce solo l'altro client. */
-  | { t: "rtc"; payload: unknown; from: Seat };
+  /** Il giornale della stanza, al saluto: la lavagna si ricostruisce da qui (state.ts, replay). */
+  | { t: "journal"; actions: JournalEntry[] }
+  /** Segnalazione WebRTC della chat vocale (voice.ts): il tavolo la inoltra
+      com'è, il payload lo capisce solo l'altro client. */
+  | { t: "rtc"; payload: unknown; from: Seat }
+  | { t: "peers"; peers: number; seats: Seat[] }
+  | { t: "seat_taken"; seat: Seat };

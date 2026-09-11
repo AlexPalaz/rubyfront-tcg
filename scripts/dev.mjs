@@ -2,8 +2,8 @@
 //
 //   npm run all                 (dalla radice o da simulatore/)
 //
-// Accende i tre pezzi — la pagina (vite, :5199), il relay (:8787) e
-// l'engine (:8788) — con i log incolonnati per voce, e un solo Ctrl+C
+// Accende i due pezzi — la pagina (vite, :5199) e il tavolo (l'engine
+// Ruby, :8788) — con i log incolonnati per voce, e un solo Ctrl+C
 // spegne tutto. Se un pezzo muore (porta occupata, Ruby assente...),
 // si spegne il resto e si esce: meglio un fallimento chiaro che un
 // tavolo a metà.
@@ -16,7 +16,6 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 const VOICES = [
   { name: "pagina", command: "npm", args: ["run", "dev"], cwd: resolve(ROOT, "simulatore") },
-  { name: "relay ", command: "node", args: ["scripts/relay.mjs"], cwd: ROOT },
   { name: "engine", command: "ruby", args: ["engine/bin/server"], cwd: ROOT },
 ];
 
@@ -71,5 +70,5 @@ for (const voice of VOICES) {
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
-console.log("Tavolo in accensione: pagina http://localhost:5199/simulatore/ · relay :8787 · engine :8788");
+console.log("Tavolo in accensione: pagina http://localhost:5199/simulatore/ · engine :8788");
 console.log("Ctrl+C per spegnere tutto.");

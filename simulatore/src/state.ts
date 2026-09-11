@@ -169,6 +169,19 @@ export function apply(state: GameState, action: Action): GameState {
   return { ...next, fired: [...(next.fired ?? []), ...(key ? [key] : []), ...untaps] };
 }
 
+/**
+ * La lavagna ricostruita dal giornale della stanza: una partita nuova, poi
+ * le azioni approvate dal tavolo, una dopo l'altra. Lo stato è una funzione
+ * del giornale — è così che chi entra (o rientra) in stanza si allinea,
+ * senza che un client passi la sua lavagna all'altro. Gemello: room.rb, il
+ * giornale comincia sempre dal `newGame` tirato dal tavolo.
+ */
+export function replay(entries: readonly { action: Action }[]): GameState {
+  let state = newGame();
+  for (const entry of entries) state = apply(state, entry.action);
+  return state;
+}
+
 function reduce(state: GameState, action: Action): GameState {
   switch (action.t) {
     case "newGame":

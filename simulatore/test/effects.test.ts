@@ -42,6 +42,7 @@ import {
   describeFlipStep,
   describeResolveStep,
   discountedCost,
+  flipCandidates,
   flipSteps,
   heldBy,
   nexusCheck,
@@ -1190,6 +1191,19 @@ describe("il flip del Nexus", () => {
     expect(describeFlipStep(steps[0], facts)).toContain("EREDE");
     expect(describeFlipStep(steps[1], facts)).toContain("resto della partita");
     expect(describeFlipStep(steps[2], facts)).toContain("pesca 1");
+  });
+
+  it("flipCandidates: la carta nominata si ritrova per contenuto della forma, anche da una forma ricostruita", () => {
+    const state = newGame();
+    const rf = on(state, "rf", "BESTIA");
+    rf.face = 1;
+    on(state, "r", "EREDE");
+    on(state, "r2", "EREDE", "b");
+    // Una copia della forma, non lo stesso oggetto: come le forme che ctx.card rifà a ogni chiamata.
+    const form = JSON.parse(JSON.stringify(facts("BESTIA").flipForms[0]));
+    expect(flipCandidates(state, rf, form).map(c => c.uid)).toEqual(["r"]);
+    expect(flipCandidates(state, rf, { kind: "seal", cardId: "EREDE" })).toEqual([]);
+    expect(flipCandidates(state, rf, { kind: "draw", count: 1 })).toEqual([]);
   });
 });
 

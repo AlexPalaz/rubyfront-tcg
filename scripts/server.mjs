@@ -1,16 +1,20 @@
-// Il server unico di produzione: relay ed engine in un processo solo.
+// Il server unico di produzione: il tavolo Ruby dietro un processo Node.
 //
-// Render free dà 750 ore al mese per account: due servizi sempre svegli
-// ne consumerebbero 1440. Qui un solo processo Node ascolta su PORT e
-// smista per percorso:
+// Un solo processo ascolta su PORT (Render free: un servizio) e smista per
+// percorso:
 //
-//   GET /            → health check (chi c'è: stanze aperte, engine vivo)
-//   WS  /relay?room= → il relay (scripts/relay.mjs, agganciato qui)
-//   WS  /engine      → l'engine Ruby (engine/bin/server), avviato come
-//                      processo figlio su una porta interna e raggiunto
-//                      per proxy: l'upgrade WebSocket si inoltra tale e
-//                      quale, e i due socket si collegano in entrambi i
-//                      versi. Se il figlio muore, riparte.
+//   GET /            → health check (engine vivo, tocchi a se stesso)
+//   WS  /engine?room=&seat=
+//                    → il tavolo (engine/bin/server): un Engine per stanza,
+//                      l'unico a scrivere lo stato (deciso 2026-09-11).
+//                      Avviato come processo figlio su una porta interna e
+//                      raggiunto per proxy: l'upgrade WebSocket si inoltra
+//                      tale e quale, e i due socket si collegano in
+//                      entrambi i versi. Se il figlio muore, riparte.
+//
+// Il relay che ripeteva le azioni fra i client senza leggerle non c'è più:
+// in stanza le azioni passano dal tavolo, e il tavolo le inoltra solo dopo
+// il verdetto.
 //
 // Il Dockerfile alla radice mette insieme Node e Ruby; render.yaml lo usa.
 //
@@ -30,7 +34,6 @@ import { createServer } from "node:http";
 import { connect } from "node:net";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { attachRelay, openRooms } from "./relay.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = Number(process.env.PORT ?? 10000);
@@ -75,22 +78,15 @@ if (selfUrl) {
 const server = createServer((request, response) => {
   response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
   const awake = selfUrl ? ` Sveglio da sé: ${selfPings} tocchi${selfPingFailed ? ` (${selfPingFailed} falliti)` : ""}.` : "";
-  response.end(
-    `Rubyfront online. Relay: ${openRooms()} stanze aperte. Engine: ${engine ? "vivo" : "in riavvio"} (avvii: ${engineStarts}).${awake}\n`
-  );
+  response.end(`Rubyfront online. Tavolo: ${engine ? "vivo" : "in riavvio"} (avvii: ${engineStarts}).${awake}\n`);
 });
 
 const pathOf = request => new URL(request.url ?? "/", "http://localhost").pathname;
 
-// Il relay prende /relay (e la radice, per i client vecchi).
-attachRelay(server, request => {
-  const path = pathOf(request);
-  return path === "/relay" || path === "/";
-});
-
-// L'engine: proxy grezzo dell'upgrade verso il figlio Ruby.
+// Il tavolo: proxy grezzo dell'upgrade verso il figlio Ruby. Ogni altro
+// percorso (il vecchio /relay compreso) non ha più nessuno in ascolto.
 server.on("upgrade", (request, socket, head) => {
-  if (pathOf(request) !== "/engine") return;
+  if (pathOf(request) !== "/engine") return socket.destroy();
   const upstream = connect(ENGINE_PORT, "127.0.0.1");
   upstream.on("connect", () => {
     // Si rimanda la richiesta com'è arrivata: l'engine legge l'header e
@@ -113,5 +109,5 @@ server.on("upgrade", (request, socket, head) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Rubyfront online su :${PORT} — /relay e /engine (engine interno su :${ENGINE_PORT})`);
+  console.log(`Rubyfront online su :${PORT} — /engine (tavolo interno su :${ENGINE_PORT})`);
 });

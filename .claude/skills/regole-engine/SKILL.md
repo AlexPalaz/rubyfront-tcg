@@ -5,10 +5,11 @@ description: Come si collega una regola del MANUALE all'engine Ruby e al simulat
 
 # Regole engine ↔ simulatore
 
-L'engine (`engine/`, Ruby, nessuna dipendenza) **dà le regole**; il simulatore
-(`simulatore/`, TypeScript) **è il poliziotto**: trattiene ogni azione locale
-finché l'engine non risponde, e su un «no» la lascia cadere mostrando il
-sigillo. Le regole di `docs/MANUALE.md` si collegano **una alla volta**, su
+L'engine (`engine/`, Ruby, nessuna dipendenza) **dà le regole ed è l'unico a
+scrivere lo stato** (deciso 2026-09-11): il simulatore (`simulatore/`,
+TypeScript) trattiene ogni azione finché l'engine non risponde, su un «no»
+la lascia cadere mostrando il sigillo, e in stanza l'avversario riceve solo
+le azioni che il tavolo ha approvato. Le regole di `docs/MANUALE.md` si collegano **una alla volta**, su
 decisione del designer, ciascuna con i suoi test nei due mondi. Questa skill
 è il contratto di quel lavoro: se un passo manca qui, si aggiunge a questo
 file nella stessa modifica.
@@ -20,10 +21,11 @@ file nella stessa modifica.
 | Giudizio | `engine/lib/rubyfront/engine.rb` | `RULES`, `VERSION`, `verdict_for` → un `judge_*` per tipo d'azione. Puro: niente I/O, orologio, caso, thread, globali. |
 | Copia del tavolo | `engine/lib/rubyfront/table.rb` | Il gemello Ruby del riduttore: carte (zona, ordine, tap, copertura, faccia, fila, `entered`, `covered_turn`, `assigned_to`), dichiarazioni, turno/posto/fase, Flusso, Gettone, PV, `over`. Niente geometria oltre `row`. |
 | Anagrafe | `engine/lib/rubyfront/card_index.rb` | L'unico file che tocca il disco: legge `data/sets/*/cards/*/<id>.json` una volta e congela. Tipo, razza, parole chiave, concessioni certificate, Potenza, Contrattacco, costo di Flusso, costo di schieramento, etichetta e abilitazioni delle Materie, comportamento. |
-| Trasporto | `engine/bin/server`, `engine/lib/rubyfront/websocket.rb` | Un thread e un `Engine` per client. Passa `action` e `actor`. |
+| Stanza | `engine/lib/rubyfront/room.rb` | Un `Engine` per partita, i client seduti, il **giornale** delle azioni approvate, l'inoltro agli altri client solo dopo il verdetto. In stanza l'attore è il posto del client; la stanza «solo» (senza nome: locale, bot) si fida dell'attore dichiarato e accetta lo snapshot. |
+| Trasporto | `engine/bin/server`, `engine/lib/rubyfront/websocket.rb` | Un thread per client, una stanza per partita (`?room=&seat=`). |
 | Riduttore | `simulatore/src/state.ts` | `apply(state, action)`: la semantica condivisa. Ciò che cambia qui cambia in `table.rb`, e viceversa. |
 | Routine | `simulatore/src/turn.ts`, `combat.ts` | Fasi, fine turno, risoluzione, fine partita: puro TS, provabile con un `Ctx` finto. |
-| Canale | `simulatore/src/engine.ts`, `main.ts` (`dispatch`, `commit`, `receive`, `actorFor`) | `judge` per le azioni locali, `consult` per quelle avversarie, `snapshot` all'allineamento. |
+| Canale | `simulatore/src/engine.ts`, `main.ts` (`dispatch`, `commit`, `receive`, `rebuildFromJournal`, `actorFor`) | Un canale solo: `judge` per ogni azione, `onAction` per quelle avversarie approvate, `onJournal` all'ingresso (la lavagna si ricostruisce con `replay`, state.ts). `snapshot` solo nella «solo». |
 | Tavolo e HUD | `simulatore/src/table.ts`, `hud.ts`, `banner.ts`, `dice.ts` | Con `ctx.arbitrated()` i gesti manuali si ritirano e il tavolo si lega agli slot. |
 | Racconto | `engine/README.md` | Un paragrafo per regola collegata, coi limiti dichiarati. Fonte di verità di cosa fa l'engine. |
 
@@ -154,9 +156,10 @@ nei messaggi delle asserzioni non nomina le carte.
   un dato nuovo (una faccia, una fila, un turno di copertura), lo si annota
   sulla carta nel `load_deck`, nel `load` (snapshot) **e** nell'azione che
   lo cambia — tre posti, sempre.
-- Ogni azione avversaria arriva già applicata (`receive` → `consult`): il
-  suo engine l'ha giudicata; il nostro annota in chat una violazione, non
-  la ferma.
+- Ogni azione avversaria arriva dal tavolo già approvata (`onAction` →
+  `receive`): l'ha giudicata lo stesso `Engine` della stanza, e qui si
+  applica senza rigiudicare. In stanza un tavolo scollegato o muto ferma
+  il gesto (`stop.absent`); nella «solo» via libera come sempre.
 
 ## Trappole viste
 

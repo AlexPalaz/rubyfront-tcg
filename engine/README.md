@@ -993,8 +993,7 @@ Regole collegate finora:
 per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.
 
-Nessuna dipendenza: Ruby e la sua libreria standard, come il relay
-(`scripts/relay.mjs`) è Node e basta.
+Nessuna dipendenza: Ruby e la sua libreria standard.
 
 ## Come si avvia
 
@@ -1002,54 +1001,65 @@ Nessuna dipendenza: Ruby e la sua libreria standard, come il relay
 ruby engine/bin/server        # ascolta su ws://localhost:8788
 ```
 
-**Online** l'engine sta su Render, nello stesso servizio del relay
-(`render.yaml` e `Dockerfile` alla radice, `scripts/server.mjs`: l'engine è
-un processo figlio raggiunto per proxy sul percorso `/engine`): una pagina
-statica non può farlo girare, e senza quel servizio la pagina pubblica
-gioca senza arbitro. In produzione (https) il simulatore si collega a
-`wss://rubyfront.onrender.com/engine` (`DEFAULT_ENGINE` in
-`simulatore/src/engine.ts`, o `VITE_ENGINE_URL` al build). Il piano free
-dormirebbe dopo un quarto d'ora: un workflow lo tocca ogni dieci minuti.
-A ogni regola nuova Render ricostruisce dal push (auto-deploy) o con un
-manual sync del Blueprint.
+**Online** l'engine sta su Render (`render.yaml` e `Dockerfile` alla
+radice, `scripts/server.mjs`: l'engine è un processo figlio raggiunto per
+proxy sul percorso `/engine`): una pagina statica non può farlo girare, e
+senza quel servizio in stanza non si gioca. In produzione (https) il
+simulatore si collega a `wss://rubyfront.onrender.com/engine`
+(`DEFAULT_ENGINE` in `simulatore/src/engine.ts`, o `VITE_ENGINE_URL` al
+build). Il piano free dormirebbe dopo un quarto d'ora: il server si tocca
+da solo ogni dieci minuti. A ogni regola nuova Render ricostruisce dal push
+(auto-deploy) o con un manual sync del Blueprint.
 
-(oppure, da `simulatore/`: `npm run engine`). Nel simulatore:
-la spia quadrata in alto diventa verde e in chat compare il saluto
-dell'engine. Il flag (ingranaggio → **Engine** → **Acceso**) è **acceso di
-default**: chi non l'ha mai toccato gioca arbitrato, chi l'ha spento apposta
-resta spento. Engine non raggiungibile: spia rossa, tavolo libero come sempre.
+(oppure, da `simulatore/`: `npm run engine`). Nel simulatore: la spia
+quadrata in alto diventa verde e in chat compare il saluto dell'engine.
+L'arbitro è **sempre acceso**. Engine non raggiungibile: spia rossa; nella
+partita locale o col bot il tavolo resta libero, in stanza ogni gesto si
+ferma con l'avviso finché il tavolo non torna.
 
 ## Come si prova
 
 ```bash
 ruby engine/test/engine_test.rb
+ruby engine/test/room_test.rb
 ruby engine/test/websocket_test.rb
 ```
 
 ## Il protocollo
 
-WebSocket, messaggi JSON. Tre buste in croce:
+WebSocket, messaggi JSON, **un canale solo** per arbitro e avversario. Il
+client si collega a `/engine?room=<stanza>&seat=<a|b>`: la stanza ha **un
+Engine per tutti i client seduti** (`lib/rubyfront/room.rb`) e l'engine è
+**l'unico a scrivere lo stato** (deciso 2026-09-11). Senza `room` è la
+stanza «solo»: un tavolo privato per quella connessione (partita locale o
+col bot).
 
 | chi | messaggio | risposta |
 |---|---|---|
-| client | `{"t":"hello"}` | `{"t":"engine","version":"0.2.0","rules":[…]}` |
-| client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…","reason_en":"…"}` |
-| client | `{"t":"consult","seq":8,"action":{…},"actor":"b"}` | come `judge`, ma per un'azione **già applicata** altrove |
-| client | `{"t":"snapshot","state":{…}}` | *(nessuna: allinea la copia del tavolo)* |
+| client | `{"t":"hello"}` | `{"t":"engine","version":"0.64.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","actions":[{"action":{…},"from":"a"},…]}` |
+| client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…","reason_en":"…"}` a chi chiede; se passa, `{"t":"action","action":{…},"from":"a"}` agli **altri** client della stanza |
+| client | `{"t":"rtc","payload":{…}}` | `{"t":"rtc","payload":{…},"from":"a"}` agli altri: la chat vocale, inoltrata senza leggerla |
+| client | `{"t":"snapshot","state":{…}}` | *(solo nella stanza «solo»: allinea la copia del tavolo; in stanza si ignora)* |
+| tavolo | `{"t":"peers","peers":2,"seats":["a","b"]}` | a tutti, a ogni ingresso o uscita |
+| tavolo | `{"t":"seat_taken","seat":"a"}` | a chi chiede un posto già occupato, poi il tavolo chiude |
 
-`judge` è il giudizio preventivo sulle azioni locali: l'engine applica
-l'azione alla **sua copia del tavolo** (`lib/rubyfront/table.rb`) solo se il
-verdetto la lascia passare, perché anche il client la applicherà solo col sì.
-`consult` è l'occhiata sulle azioni dell'avversario, già applicate dal suo
-client: la copia le segue comunque, il verdetto serve solo ad annotare.
-`snapshot` sostituisce la copia in blocco: parte a ogni saluto (l'engine
-appena collegato non sa nulla) e quando il client riceve una lavagna intera
-dalla rete (ingresso in stanza, «Sincronizza la lavagna»).
+`judge` è il giudizio preventivo su **ogni** azione, di chiunque: l'engine
+applica l'azione alla **sua copia del tavolo** (`lib/rubyfront/table.rb`)
+solo se il verdetto la lascia passare, il client che l'ha chiesta la applica
+col sì, e solo col sì la stanza la scrive nel **giornale** e la inoltra
+all'altro client — che applica quella, mai ciò che l'avversario dice di
+aver fatto. Chi entra o rientra riceve il giornale intero (dal `newGame`
+che il tavolo stesso tira alla nascita della stanza, o dall'ultimo «Nuova
+partita») e ricostruisce la lavagna da lì: lo stato è una funzione del
+giornale. Il vecchio `consult` — l'occhiata su un'azione «già applicata»
+altrove — non esiste più: nessun client dice al tavolo cos'è successo.
 
-`actor` è il posto di chi ha compiuto il gesto (§6: nel turno altrui non si
-agisce); un client che non lo manda non viene giudicato su questo.
-`action` è un'azione della lavagna, identica a quelle che viaggiano sul relay
-(`simulatore/src/types.ts`, tipo `Action`). Il contratto dei verdetti:
+`actor` è il posto di chi compie il gesto (§6: nel turno altrui non si
+agisce). **In stanza la stanza lo ignora e usa il posto del client**: un
+client modificato non può agire per l'avversario. Nella «solo» vale quello
+dichiarato (col bot i gesti dei due posti partono dallo stesso client).
+`action` è un'azione della lavagna (`simulatore/src/types.ts`, tipo
+`Action`). Il contratto dei verdetti:
 
 - **`ruled: false`** — l'engine non ha una regola per questa azione: il
   simulatore la applica come sempre.
@@ -1059,13 +1069,21 @@ agisce); un client che non lo manda non viene giudicato su questo.
   client mostra quella della lingua del tavolo). Il simulatore la **ferma** — non tocca lavagna né rete — e mostra
   l'avviso. `rules` nel saluto elenca i § del MANUALE collegati (`rules_en` le stesse voci in inglese).
 
-Il giudizio vale per le azioni **locali**: quelle dell'avversario arrivano già
-applicate dal suo client (sarà il suo engine a fermarle), quindi una loro
-violazione si annota in chat e basta. E un arbitro assente non ferma il
-tavolo: engine scollegato o muto oltre il tempo massimo = via libera.
+Un arbitro assente: in stanza **ferma** (tavolo scollegato o muto oltre il
+tempo massimo = il gesto non si applica, con l'avviso), perché senza
+arbitro non si gioca contro qualcuno; nella «solo» = via libera, come al
+tavolo di prima. Le stanze con nome restano in piedi dieci minuti anche
+vuote, così una pagina ricaricata ritrova la partita; poi si sparecchiano.
+
+**Limiti dichiarati** di questo primo passo: il caso lo tira ancora il
+client (dadi, mescolata, il posto che apre la «Nuova partita») e l'engine
+ne verifica la forma, non la fortuna — solo chi apre la stanza lo decide
+il tavolo; e la lavagna intera, mano e mazzo dell'avversario compresi,
+viaggia nel giornale a ogni client: l'informazione nascosta non è ancora
+nascosta. Sono i due passi successivi verso il tavolo pubblico.
 
 Una richiesta HTTP semplice (senza upgrade) riceve una riga di stato: fa da
-health check, come per il relay.
+health check.
 
 ## Com'è fatto
 
@@ -1080,10 +1098,13 @@ health check, come per il relay.
   dato cambiato di nascosto fallisce forte.
 - `lib/rubyfront/table.rb` — la copia del tavolo, gemella del riduttore del
   simulatore: stessa semantica, test speculari.
+- `lib/rubyfront/room.rb` — la stanza: un `Engine` per partita, i client
+  seduti, il giornale delle azioni approvate, l'inoltro solo dopo il
+  verdetto. Senza socket: i test le parlano direttamente.
 - `lib/rubyfront/websocket.rb` — il minimo di WebSocket che serve: handshake
-  e frame di testo (con la lezione del relay: byte spezzati, incollati e
-  messaggi frammentati si riassemblano).
-- `bin/server` — il trasporto: un thread per client, un `Engine` per client.
+  e frame di testo (byte spezzati, incollati e messaggi frammentati si
+  riassemblano).
+- `bin/server` — il trasporto: un thread per client, una stanza per partita.
 - `test/` — minitest, si lanciano con `ruby` e basta.
 
 Il disegno dell'insieme — chi legge cosa, dove gira ogni pezzo, come viaggia

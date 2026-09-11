@@ -1,8 +1,8 @@
-// Chat vocale fra i due posti, sopra il relay.
+// Chat vocale fra i due posti, sopra il canale del tavolo.
 //
-// Il relay non sa nulla nemmeno di questa: ripete i messaggi di segnalazione
-// ("rtc") come tutto il resto, e l'audio viaggia poi DIRETTO fra i due
-// browser via WebRTC. Due connessioni indipendenti, una per microfono: chi
+// Il tavolo non sa nulla di questa: inoltra i messaggi di segnalazione
+// ("rtc") all'altro client senza leggerli, e l'audio viaggia poi DIRETTO fra
+// i due browser via WebRTC. Due connessioni indipendenti, una per microfono: chi
 // accende il proprio fa un'offerta, l'altro risponde e ascolta. Con due posti
 // non servono negoziazioni perfette né rinegoziazioni: acceso/spento sono
 // nascita e morte della connessione.
