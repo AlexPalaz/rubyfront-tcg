@@ -23,7 +23,7 @@ import { applyFont, drawText, textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
 import { NIGHT, SEAT_PALETTE, SANS, THEME, slotFrame, loadNight, lighten, paintPiece, grain, octagon, plate, dashedRect, rgba, type SeatPalette } from "./appearance";
 import { TableCard, type Ring, type Badges, type Mark, type CardLook } from "./card";
-import { bezier, tween, reducedMotion } from "./animation";
+import { bezier, easeInOut, tween, reducedMotion } from "./animation";
 import { layout, type TableLayout } from "./layout";
 
 /** Un gesto del puntatore su una carta del tavolo: chi ascolta decide cosa vuol dire (F4). */
@@ -40,6 +40,8 @@ export interface CardEvent {
 /** La pesca animata (card-drawn): corsa di una carta e passo della cascata (table.ts). */
 export const DRAW_RUN_MS = 380;
 export const DRAW_STEP_MS = 70;
+/** Più carte che si tappano o stappano insieme (la stappata del cambio turno): una ogni 70 ms, da sinistra. */
+const TAP_STAGGER_MS = 70;
 
 /** Quanto dura, in tutto, l'entrata in cascata di `count` carte (zero con prefers-reduced-motion). */
 export function drawCascadeMs(count: number): number {
@@ -77,6 +79,22 @@ const LABEL_SHADOWS = [
 ];
 /** Sopra il cassetto della mano, l'aria per le ombre e l'alone buttati all'insù. */
 const DRAWER_GAP = 60;
+/** La mano ripiegata lascia in vista l'orlo con la targhetta (translateY(hand-h − 22px)) e scivola in --morph-ms. */
+const HAND_PEEK = 22;
+const HAND_SLIDE_MS = 380;
+/** Il tasto della mano (.hand-toggle, 34×30 a 12 dall'orlo destro): le carte gli lasciano il posto. */
+const TOGGLE_W = 34;
+const TOGGLE_H = 30;
+const TOGGLE_MARGIN = 12;
+/**
+ * §6.5 — la mano oltre le 7: la tua Zona di Ritiro si accende d'oro (--warn,
+ * il colore degli avvisi del tavolo) e chiama, con la targhetta sopra
+ * (.slot.is-discard). L'alone respira in 2,2 s come slot-discard.
+ */
+const DISCARD_GOLD = 0xd9a84e;
+const DISCARD_PULSE_MS = 2200;
+const DISCARD_MARGIN = 60;
+const discardTag: Font = { size: 15, weight: 700, family: SANS, spacing: 15 * 0.04 };
 
 export class Table {
   readonly root = new Container({ label: "table" });
@@ -128,6 +146,20 @@ export class Table {
   private readonly hits = new Map<string, ReturnType<typeof setTimeout>>();
   private aimState: { candidates: Set<string>; legalOnes: Set<string> } | null = null;
   private assignTarget: string | null = null;
+  /** Il candidato della mira sotto il puntatore (aim.ts): si accende pieno. */
+  private aimHover: string | null = null;
+  /** La mano ripiegata (hand-mine.is-collapsed): il cassetto scende e ne resta in vista l'orlo con la targhetta. */
+  private handCollapsed = false;
+  private handSlide = 0;
+  private handSliding = false;
+  /** Il tasto che ripiega la mano (.hand-toggle), dentro l'orlo destro del cassetto. */
+  private readonly handToggle = new Container({ label: "hand-toggle" });
+  private readonly handToggleFace = new Sprite();
+  /** §6.5 — lo scarto possibile (gestures.ts, canDiscard): la Zona di Ritiro accesa, l'alone, la targhetta. */
+  private discardOn = false;
+  private readonly discardHalo = new Sprite();
+  private readonly discardFrame = new Graphics();
+  private readonly discardTag = new Sprite();
   /** L'ultima vista data a ogni carta: i momenti la ridipingono senza rifare il tavolo. */
   private readonly lastLooks = new Map<string, CardLook>();
   private readonly emptyListeners: (() => void)[] = [];
@@ -149,10 +181,25 @@ export class Table {
     this.panel.visible = false;
     this.flights.eventMode = "none";
     this.arrows.eventMode = "none";
-    this.root.addChild(this.background, this.pileHits, this.cards, this.arrows, this.dimmer, this.chain, this.flights, this.hand, this.overlay, this.panel, this.panelHits, this.panelCards, this.phaseButton);
+    this.discardHalo.eventMode = "none";
+    this.discardFrame.eventMode = "none";
+    this.discardTag.eventMode = "none";
+    this.discardHalo.visible = this.discardFrame.visible = this.discardTag.visible = false;
+    // L'alone e il filo sotto le carte (la carta in cima alla pila copre il velo, non l'alone); la targhetta sopra il cassetto.
+    this.root.addChild(this.background, this.discardHalo, this.discardFrame, this.pileHits, this.cards, this.arrows, this.dimmer, this.chain, this.flights, this.hand, this.discardTag, this.overlay, this.panel, this.panelHits, this.panelCards, this.phaseButton, this.handToggle);
     this.phaseButton.eventMode = "static";
     this.phaseButton.on("pointertap", () => {
       if (this.buttonActive) this.closePhase?.();
+    });
+    this.handToggle.addChild(this.handToggleFace);
+    this.handToggle.eventMode = "static";
+    this.handToggle.cursor = "pointer";
+    this.handToggle.on("pointertap", () => this.toggleHand());
+    const reduced = reducedMotion();
+    stage.app.ticker.add(() => {
+      if (!this.discardHalo.visible) return;
+      const phase = (performance.now() % DISCARD_PULSE_MS) / DISCARD_PULSE_MS;
+      this.discardHalo.alpha = reduced ? 1 : 0.6 + 0.4 * (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI));
     });
     // Il tasto destro è del gioco (il menu delle carte), non del browser.
     stage.app.canvas.addEventListener("contextmenu", event => event.preventDefault());
@@ -182,7 +229,7 @@ export class Table {
     const view = this.views.get(uid);
     if (!view || !this.last) return undefined;
     const { tileW, tileH } = this.last.L;
-    const tapped = Math.abs(view.rotation) > 0.1;
+    const tapped = view.isTapped;
     const w = tapped ? tileH : tileW;
     const h = tapped ? tileW : tileH;
     const a = view.parent!.toGlobal({ x: view.x - w / 2, y: view.y - h / 2 });
@@ -305,8 +352,32 @@ export class Table {
    */
   aim(status: { candidates: Iterable<string>; legalOnes?: Iterable<string> } | null): void {
     this.aimState = status ? { candidates: new Set(status.candidates), legalOnes: new Set(status.legalOnes ?? status.candidates) } : null;
+    if (!status) this.aimHover = null;
     this.restyle();
     this.updateDimmer();
+  }
+
+  /** §7.2 — il posto della Reattiva numero `index` in catena (al centro, a scaletta): la regia ci fa volare la carta prima che si giochi. */
+  chainSpot(index: number): { x: number; y: number; w: number; h: number } | null {
+    const L = this.last?.L;
+    if (!L) return null;
+    return { ...chainSpotOf(L, index), w: L.tileW, h: L.tileH };
+  }
+
+  /** Il candidato sotto il puntatore durante la mira: l'anello pieno (aimed); null lo spegne. */
+  hoverAim(uid: string | null): void {
+    if (this.aimHover === uid) return;
+    const before = this.aimHover;
+    this.aimHover = uid;
+    if (before) this.restyle(before);
+    if (uid) this.restyle(uid);
+  }
+
+  /** §6.5 — lo scarto possibile: la tua Zona di Ritiro si accende (gestures.ts lo decide con canDiscard). */
+  setDiscardHint(on: boolean): void {
+    if (this.discardOn === on) return;
+    this.discardOn = on;
+    if (this.last) this.paintDiscard(this.last.L, this.stage.visible().scale * this.stage.app.renderer.resolution);
   }
 
   /** I segni dei gesti (gesti.ts): l'anello rubino di chi ha un gesto, il velo di chi in mano non si può giocare. */
@@ -321,10 +392,12 @@ export class Table {
     const view = this.views.get(uid);
     if (!view || !this.last) return undefined;
     const { tileW, tileH } = this.last.L;
-    const tapped = Math.abs(view.rotation) > 0.1;
+    const tapped = view.isTapped;
     const w = tapped ? tileH : tileW;
     const h = tapped ? tileW : tileH;
-    return { x: view.x - w / 2, y: view.y - h / 2, w, h };
+    // Le carte della mano stanno nel cassetto, che ripiegato scende.
+    const lift = view.parent === this.hand ? this.hand.y : 0;
+    return { x: view.x - w / 2, y: view.y - h / 2 + lift, w, h };
   }
 
   /** L'impaginazione dell'ultimo disegno: dove stanno le file e i riquadri. */
@@ -358,6 +431,7 @@ export class Table {
     if (aim) {
       ring = null;
       if (aim.candidates.has(uid)) ring = aim.legalOnes.has(uid) ? "legal" : "pickable";
+      if (ring !== null && this.aimHover === uid) ring = "aimed";
       if (ring === "pickable") alpha = 0.6;
       else if (!ring) alpha = zone === "hand" ? 0.35 : 0.3;
     }
@@ -482,6 +556,11 @@ export class Table {
 
     // Le carte: in campo, in cima alle tue pile, nella tua mano.
     const alive = new Set<string>();
+    // Il tap e lo stap di più carte insieme girano in fila, da sinistra.
+    const turning = Object.values(state.cards)
+      .filter(card => card.zone === "field" && this.lastLooks.has(card.uid) && this.lastLooks.get(card.uid)!.tapped !== card.tapped)
+      .sort((p, q) => p.x - q.x);
+    const tapDelays = new Map(turning.map((card, index) => [card.uid, Math.min(index, 8) * TAP_STAGGER_MS]));
     const place = (card: CardInstance, layer: Container, x: number, y: number, look: Omit<CardLook, "w" | "h" | "locale" | "resolution">): void => {
       alive.add(card.uid);
       let view = this.views.get(card.uid);
@@ -518,7 +597,7 @@ export class Table {
       view.position.set(x + L.tileW / 2, y + L.tileH / 2);
       this.bases.set(card.uid, { x: x + L.tileW / 2, y: y + L.tileH / 2 });
       view.zIndex = card.zone === "field" ? card.z : 0;
-      const full: CardLook = { ...look, w: L.tileW, h: L.tileH, locale: this.locale, resolution };
+      const full: CardLook = { ...look, tapDelay: tapDelays.get(card.uid) ?? 0, w: L.tileW, h: L.tileH, locale: this.locale, resolution };
       this.lastLooks.set(card.uid, full);
       view.update({ ...full, ...this.moment(card.uid, card.zone) });
     };
@@ -534,13 +613,10 @@ export class Table {
     const stack = state.chain?.stack ?? [];
     this.inChain = new Set(stack);
     this.chainOpen = Boolean(state.chain);
-    const gapMid = (L.foe.bottom + L.mine.top) / 2;
     for (const card of Object.values(state.cards)) {
       if (card.zone !== "field") continue;
       const chainIndex = stack.indexOf(card.uid);
-      const spot = chainIndex >= 0
-        ? { x: L.left + (SURFACE_W * L.s) / 2 - L.tileW / 2 + chainIndex * 44 * L.s, y: gapMid - L.tileH / 2 + chainIndex * 26 * L.s }
-        : L.screenPos(card.x, card.y, this.me);
+      const spot = chainIndex >= 0 ? chainSpotOf(L, chainIndex) : L.screenPos(card.x, card.y, this.me);
       place(card, chainIndex >= 0 ? this.chain : this.cards, spot.x, spot.y, {
         cardId: card.cardId,
         face: card.face,
@@ -574,7 +650,7 @@ export class Table {
     // La mano: una fila da sinistra, 10 fra una carta e l'altra; se non ci
     // stanno si accavallano.
     const hand = zoneCards(state, this.me, "hand");
-    const room = L.hand.w - 32;
+    const room = L.hand.w - 32 - (TOGGLE_W + TOGGLE_MARGIN);
     const step = hand.length > 1 ? Math.min(L.tileW + 10, (room - L.tileW) / (hand.length - 1)) : 0;
     const handY = L.hand.y + L.hand.h - 14 - L.tileH;
     hand.forEach((card, index) => {
@@ -595,6 +671,10 @@ export class Table {
     // Il cassetto della mano, sotto le sue carte.
     replace(this.drawer, paintPiece(L.hand.w, L.hand.h + DRAWER_GAP, resolution, ctx => this.paintDrawer(ctx, state, L)));
     this.drawer.position.set(L.hand.x, L.hand.y - DRAWER_GAP);
+    this.paintDiscard(L, resolution);
+    // Ripiegata, la mano resta giù (se non sta già scivolando); il tasto si ridipinge col tavolo.
+    if (!this.handSliding) this.hand.y = this.handLift(L, hand.length);
+    this.paintHandToggle(L, resolution);
 
     // Sopra tutto: le targhe dei posti, il pannello delle pile avversarie, il gesto di fase.
     replace(this.overlay, paintPiece(visible.width, visible.height, resolution, ctx => {
@@ -685,6 +765,120 @@ export class Table {
         if (controlled) slot(CONTROL_X, field.back, null, "zone.control");
       }
     }
+  }
+
+  // ------------------------------------------------------------- lo scarto
+
+  /**
+   * La Zona di Ritiro che chiama (.slot.is-discard): il filo d'oro pieno e il
+   * velo sull'alloggio, l'alone che respira attorno, e la targhetta d'oro
+   * «Scarta qui fino a 7». La targhetta sta DENTRO l'alloggio, in cima: sopra
+   * non c'è posto (il Fronte e l'etichetta delle Materie, a filo), e più giù
+   * la coprirebbe il cassetto della mano. Spento, sparisce tutto.
+   */
+  private paintDiscard(L: TableLayout, resolution: number): void {
+    const back = L.mine.back;
+    const on = this.discardOn && back !== null;
+    this.discardHalo.visible = this.discardFrame.visible = this.discardTag.visible = on;
+    if (!on || back === null) return;
+    const x = L.x(SLOT_X.ritiro);
+    const y = back;
+    const w = L.tileW;
+    const h = L.tileH;
+    // L'alone: l'ombra d'oro di un riquadro che poi si toglie (resta solo fuori), come il box-shadow.
+    replace(this.discardHalo, paintPiece(w + 2 * DISCARD_MARGIN, h + 2 * DISCARD_MARGIN, resolution, ctx => {
+      const a = ctx.getTransform().a;
+      ctx.translate(DISCARD_MARGIN, DISCARD_MARGIN);
+      // Due aloni: largo e caldo, poi stretto e chiaro a filo dell'alloggio.
+      for (const [blur, color] of [[48, "rgba(217,168,78,.9)"], [16, "rgba(255,214,130,.95)"]] as const) {
+        ctx.save();
+        ctx.shadowColor = color;
+        ctx.shadowBlur = blur * a;
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, w, h);
+        ctx.restore();
+      }
+      ctx.clearRect(0, 0, w, h);
+    }));
+    this.discardHalo.position.set(x - DISCARD_MARGIN, y - DISCARD_MARGIN);
+    this.discardFrame.clear().rect(x, y, w, h).fill({ color: DISCARD_GOLD, alpha: 0.16 }).stroke({ color: DISCARD_GOLD, width: 2, alignment: 1 });
+    // La targhetta, in cima all'alloggio e centrata: si legge come una richiesta.
+    const label = t("slot.discard");
+    const tw = Math.ceil(textWidth(discardTag, label)) + 24;
+    const th = 26;
+    const pad = 16;
+    replace(this.discardTag, paintPiece(tw + 2 * pad, th + 2 * pad, resolution, ctx => {
+      ctx.translate(pad, pad);
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,.55)";
+      ctx.shadowBlur = 8 * ctx.getTransform().a;
+      ctx.shadowOffsetY = 2 * ctx.getTransform().a;
+      ctx.fillStyle = THEME.gold;
+      ctx.fillRect(0, 0, tw, th);
+      ctx.restore();
+      paintText(ctx, label, 12, 5, "#0b090b", discardTag);
+    }));
+    this.discardTag.position.set(x + (w - tw) / 2 - pad, y + 10 - pad);
+  }
+
+  // ------------------------------------------------------- la mano ripiegata
+
+  /** Quanto scende la mano: ripiegata, tutto meno l'orlo; vuota non si ripiega (hand-mine.is-empty.is-collapsed). */
+  private handLift(L: TableLayout, cards: number): number {
+    return this.handCollapsed && cards > 0 ? L.hand.h - HAND_PEEK : 0;
+  }
+
+  /** Il tasto della mano: ripiega o riapre il cassetto, che scivola (hand-mine, transform in --morph-ms). */
+  private toggleHand(): void {
+    const last = this.last;
+    if (!last) return;
+    this.handCollapsed = !this.handCollapsed;
+    const from = this.hand.y;
+    const to = this.handLift(last.L, zoneCards(last.state, this.me, "hand").length);
+    const slide = ++this.handSlide;
+    this.handSliding = true;
+    void tween(this.stage.app.ticker, HAND_SLIDE_MS, k => {
+      if (slide === this.handSlide) this.hand.y = from + (to - from) * k;
+    }, easeInOut).then(() => {
+      if (slide === this.handSlide) this.handSliding = false;
+    });
+    this.paintHandToggle(last.L, this.stage.visible().scale * this.stage.app.renderer.resolution);
+  }
+
+  /**
+   * Il tasto (.hand-toggle): piastra brunita dentro l'orlo destro del
+   * cassetto; la doppia freccia in giù ripiega la mano, in su (spenta,
+   * .is-off) la riapre. Resta fermo in fondo: la mano gli scivola sotto.
+   */
+  private paintHandToggle(L: TableLayout, resolution: number): void {
+    const w = TOGGLE_W;
+    const h = TOGGLE_H;
+    const x = L.hand.x + L.hand.w - TOGGLE_MARGIN - w;
+    const y = L.hand.y + L.hand.h - TOGGLE_MARGIN - h;
+    const up = this.handCollapsed;
+    const pad = 12;
+    replace(this.handToggleFace, paintPiece(w + 2 * pad, h + 2 * pad, resolution, ctx => {
+      ctx.translate(pad, pad);
+      plate(ctx, 0, 0, w, h, { shadow: true, edge: THEME.line, darkBackground: true });
+      // Le due frecce del simulatore (viewBox 24, a 16 px): polilinee a tratto tondo.
+      ctx.save();
+      ctx.translate(w / 2 - 8, h / 2 - 8);
+      ctx.scale(16 / 24, 16 / 24);
+      ctx.strokeStyle = up ? THEME.muted : THEME.ink;
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      for (const [edge, tip] of up ? [[11, 6], [18, 13]] : [[6, 11], [13, 18]]) {
+        ctx.beginPath();
+        ctx.moveTo(7, edge);
+        ctx.lineTo(12, tip);
+        ctx.lineTo(17, edge);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }));
+    this.handToggleFace.position.set(x - pad, y - pad);
+    this.handToggle.hitArea = new Rectangle(x, y, w, h);
   }
 
   // ----------------------------------------------------------- il cassetto
@@ -847,6 +1041,12 @@ function dockOf(L: TableLayout): Panel {
 }
 
 /** Cambia la texture di uno sprite distruggendo la vecchia — mai quella vuota condivisa di Pixi. */
+/** §7.2 — la catena: le Reattive stanno al centro, nel varco fra i due campi, a scaletta (44 e 26 canonici l'una dall'altra). */
+function chainSpotOf(L: TableLayout, index: number): { x: number; y: number } {
+  const gapMid = (L.foe.bottom + L.mine.top) / 2;
+  return { x: L.left + (SURFACE_W * L.s) / 2 - L.tileW / 2 + index * 44 * L.s, y: gapMid - L.tileH / 2 + index * 26 * L.s };
+}
+
 function replace(sprite: Sprite, texture: Texture): void {
   const old = sprite.texture;
   sprite.texture = texture;

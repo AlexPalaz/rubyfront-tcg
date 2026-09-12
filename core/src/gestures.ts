@@ -50,7 +50,8 @@ export interface SceneShow {
   effects: { tag: string; text: string }[];
   /** Gli inneschi che la scena annuncia: si elencano, e «Continua» li risolve. */
   triggers?: string[];
-  onContinue?: () => void;
+  /** «Continua» / «Risolvi»: può tornare la promessa dei passi che avvia — chi mostra la scena la aspetta, e il tavolo non è fermo finché agiscono (il bot aspetta). */
+  onContinue?: () => void | Promise<void>;
   /** La riga in alto: «Quando entra sul Fronte» di norma, «Quando attacca» all'attacco. */
   kicker?: string;
 }
@@ -100,6 +101,13 @@ export interface GestureView {
   choose(show: ChoiceShow): Promise<string | null>;
   /** La mira di un effetto (§8.2): il bersaglio fra i candidati, o null se si rinuncia. */
   pickTarget(source: CardInstance, candidates: CardInstance[], hint: string): Promise<CardInstance | null>;
+  /**
+   * §7.2 — la Reattiva giocata col bersaglio (RBF-021): prima di pagarla la
+   * carta va al centro, dove starà in catena, e si accende; poi la scena e la
+   * mira. `cancel` se si rinuncia (torna in mano). Facoltativa: senza, la
+   * scena e la mira arrivano lo stesso.
+   */
+  stageReactive?(card: CardInstance): { cancel(): void } | null;
   /** La scelta di una carta da una pila (o dalla mano): null se si chiude. */
   pickFromPile(seat: Seat, zone: ZoneId, candidates: CardInstance[], title: string, visible?: CardInstance[]): Promise<CardInstance | null>;
 }
@@ -308,7 +316,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             ...own.map(step => describeAttackStep(step, ctx.card)),
           ],
           kicker: t("scene.attack"),
-          onContinue: () => void playAttackTriggers(live, own),
+          onContinue: () => playAttackTriggers(live, own),
         });
       }
       const others = new Map<string, AttackStep[]>();
@@ -331,7 +339,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           // «Quando attacca» faceva pensare a un attacco suo — la riga sotto
           // dice già chi attacca e con che carta.
           kicker: t("scene.attack.other"),
-          onContinue: () => void playAttackSteps(group),
+          onContinue: () => playAttackSteps(group),
         });
       }
     })();
@@ -692,6 +700,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         }
       }
     }
+    // §7.2 — la Reattiva col bersaglio alla giocata (RBF-021): prima al centro, la scena e la mira; poi la giocata.
+    if (card.zone === "hand" && facts.kind === "matter" && facts.behavior === "reactive" && wantsTargetOnPlay(facts) && !free) return playReactiveWithTarget(card, x, y, z);
     let cost = card.zone === "hand" && !isRubyfront(card.cardId) && !free ? facts.fluxCost : null;
     // L'Oggetto sul portatore che sconta («gli Oggetti che assegni a questa
     // Entità costano N in meno»): il costo lo dice objectCost, come l'engine.
@@ -772,12 +782,17 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       const disarms = enterDisarms(ctx.state(), live, ctx.card);
       const rearms = enterRearms(live, ctx.card);
       const triggers = enterTriggers(ctx.state(), live, ctx.card);
+      // Un Oggetto non entra sul Fronte: si assegna, e la scena dice a chi (§3.1).
+      const bearer = facts.kind === "object" && live.assignedTo ? ctx.state().cards[live.assignedTo] : undefined;
       void view.scene({
         cardId: card.cardId,
         face: card.face,
         theme: ctx.themeFor(card.owner),
         locale: ctx.locale(),
-        who: t("scene.plays", { name: seatLabel(ctx.state(), card.owner), card: `«${cardName(card.cardId, ctx.locale())}»` }),
+        who: bearer
+          ? t("scene.assigns", { name: seatLabel(ctx.state(), card.owner), card: `«${cardName(card.cardId, ctx.locale())}»`, toCard: `«${cardName(bearer.cardId, ctx.locale())}»` })
+          : t("scene.plays", { name: seatLabel(ctx.state(), card.owner), card: `«${cardName(card.cardId, ctx.locale())}»` }),
+        ...(bearer ? { kicker: t("scene.assign") } : {}),
         effects,
         triggers: [
           ...moves.map(step => describeMove(step, ctx.card)),
@@ -791,7 +806,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         ],
         onContinue:
           moves.length || returns.length || looks.length || controls.length || refreshes.length || disarms.length || rearms.length || triggers.length
-            ? () => void playTriggers(live)
+            ? () => playTriggers(live)
             : undefined,
       });
     }
@@ -805,6 +820,69 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    */
   async function playMatter(matter: CardInstance, effects: { tag: string; text: string }[]): Promise<void> {
     await resolveMatter(matter, effects, false);
+  }
+
+  /**
+   * La Reattiva col bersaglio alla giocata (RBF-021, §7.2), nell'ordine del
+   * tavolo (deciso dal designer, 2026-09-12): la carta va al centro e si
+   * accende, la scena ne mostra il testo e «Risolvi», si sceglie il
+   * bersaglio — e solo allora si gioca: il costo scontato e il bersaglio
+   * viaggiano nell'azione (l'engine li rifà), e la catena passa
+   * all'avversario. Esc sulla mira: la giocata non si fa e non si paga
+   * nulla. Senza bersagli in campo si gioca a costo pieno.
+   */
+  async function playReactiveWithTarget(card: CardInstance, x: number, y: number, z: number): Promise<boolean> {
+    const facts = ctx.card(card.cardId);
+    const by = controllerOf(card);
+    const form = facts.resolveForms.find(candidate => candidate.kind === "destroy");
+    const foes = fieldCards(ctx.state()).filter(other => ctx.card(other.cardId).kind === "entity" && (!form || form.kind !== "destroy" || form.target.controller !== "opponent" || controllerOf(other) !== card.owner));
+    const discount = form && form.kind === "destroy" ? form.discount?.amount ?? 0 : 0;
+    const staged = view.stageReactive?.(card) ?? null;
+    await view.scene({
+      cardId: card.cardId,
+      face: card.face,
+      theme: ctx.themeFor(card.owner),
+      locale: ctx.locale(),
+      who: t("scene.plays", { name: seatLabel(ctx.state(), card.owner), card: `«${cardName(card.cardId, ctx.locale())}»` }),
+      effects: enterEffects(card.cardId, card.face, ctx.locale()),
+      kicker: t("scene.reactive"),
+      // Il bot sceglie da sé: per chi guarda la scena dice solo «Continua».
+      triggers: isAuto(by) ? [] : resolveSteps(ctx.state(), card, ctx.card).map(step => describeResolveStep(step, ctx.card)),
+      onContinue: () => undefined,
+    });
+    const target = foes.length ? await pickTarget(card, foes, t("target.judgment.play", { n: discount })) : null;
+    if (foes.length && !target) {
+      staged?.cancel();
+      view.render();
+      return false;
+    }
+    let cost = discountedCost(ctx.state(), card, target, ctx.card);
+    const abilityOff = cost !== null ? abilityDiscount(ctx.state(), card.owner, facts) : null;
+    if (abilityOff && cost !== null) cost = Math.max(1, cost - abilityOff.amount);
+    const passed = await ctx.dispatch({
+      t: "toZone",
+      uid: card.uid,
+      zone: "field",
+      x,
+      y,
+      z,
+      ...(cost !== null ? { cost } : {}),
+      ...(abilityOff ? { discount: abilityOff.amount } : {}),
+      ...(target ? { target: target.uid } : {}),
+      chain: true as const,
+    });
+    if (!passed) {
+      staged?.cancel();
+      view.render();
+      return false;
+    }
+    if (cost !== null) {
+      const player = ctx.state().players[card.owner];
+      ctx.log(msg("log.play", { seat: card.owner, card: card.cardId, cost, flux: player.flux, max: player.fluxMax }), card.owner);
+      if (abilityOff) ctx.log(msg("log.play.discount", { n: abilityOff.amount }), card.owner);
+    }
+    void openChain(ctx.state().cards[card.uid] ?? card);
+    return true;
   }
 
   /**
@@ -852,14 +930,18 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const facts = ctx.card(matter.cardId);
     const by = controllerOf(matter);
     const steps = pendingResolve(ctx.state(), matter, ctx.card);
+    // Il bersaglio scelto giocandola (RBF-021): la scena lo dice, e il tasto è «Continua» — la scelta è già fatta.
+    const chosen = matter.target ? ctx.state().cards[matter.target] : undefined;
     await view.scene({
       cardId: matter.cardId,
       face: matter.face,
       theme: ctx.themeFor(matter.owner),
       locale: ctx.locale(),
-      who: t("scene.resolves", { name: seatLabel(ctx.state(), by), card: `«${cardName(matter.cardId, ctx.locale())}»` }),
+      who: chosen
+        ? t("scene.resolves.on", { name: seatLabel(ctx.state(), by), card: `«${cardName(matter.cardId, ctx.locale())}»`, target: `«${cardName(chosen.cardId, ctx.locale())}»` })
+        : t("scene.resolves", { name: seatLabel(ctx.state(), by), card: `«${cardName(matter.cardId, ctx.locale())}»` }),
       effects,
-      triggers: steps.map(step => describeResolveStep(step, ctx.card)),
+      triggers: chosen ? [] : steps.map(step => describeResolveStep(step, ctx.card)),
       kicker: t("scene.resolve.matter"),
       // I passi seguono la scena, qui sotto: il tasto dice solo «Risolvi».
       onContinue: () => undefined,
@@ -1053,11 +1135,13 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             break;
           }
           const hint = form.kind === "move" ? "target.impact" : form.kind === "exile" ? "target.repulse" : "target.judgment";
-          const target = step.candidates.length === 1 && step.source.target ? step.candidates[0] : await pickTarget(step.source, step.candidates, t(hint));
+          // Il bersaglio scelto giocandola (RBF-021) non si richiede, né si riconferma: la scelta è stata fatta allora.
+          const chosenAtPlay = step.candidates.length === 1 && Boolean(step.source.target);
+          const target = chosenAtPlay ? step.candidates[0] : await pickTarget(step.source, step.candidates, t(hint));
           if (!target) break;
           view.strike(target.uid, 60_000);
           const question = form.kind === "move" ? "confirm.impact" : form.kind === "exile" ? "confirm.repulse" : "confirm.judgment";
-          const sure = await confirmFor(controllerOf(step.source), t(question, { card: `«${ctx.card(target.cardId).name}»` }));
+          const sure = chosenAtPlay || (await confirmFor(controllerOf(step.source), t(question, { card: `«${ctx.card(target.cardId).name}»` })));
           if (!sure) {
             view.strike(target.uid, 0);
             view.render();
@@ -1183,7 +1267,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       effects: [],
       triggers: steps.map(step => describeFlipStep(step, ctx.card)),
       kicker: t("scene.flip"),
-      onContinue: () => void playFlipSteps(steps),
+      onContinue: () => playFlipSteps(steps),
     });
     return true;
   }

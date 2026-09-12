@@ -143,6 +143,7 @@ const M: Record<string, { it: string; en: string }> = {
   "hud.search.tip": { it: "Cerca una carta nel mazzo", en: "Search the deck for a card" },
   "hud.die.tip": { it: "Tira il d{n}", en: "Roll the d{n}" },
   "hud.spawn": { it: "Evoca", en: "Summon" },
+  "hud.flux.more": { it: "+1 Flusso", en: "+1 Flux" },
   "hud.spawn.tip": { it: "Prova: evoca in mano una carta del catalogo", en: "Test: summon any catalogue card into your hand" },
 
   // ---- tavolo
@@ -374,6 +375,8 @@ const M: Record<string, { it: string; en: string }> = {
   "fate.spent": { it: "la Reattiva blocca e si consuma, nessuno muore", en: "the Reactive blocks and is spent, nobody dies" },
   "scene.resolves": { it: "{name} risolve {card}", en: "{name} resolves {card}" },
   "scene.resolve.matter": { it: "Si risolve", en: "Resolves" },
+  "scene.resolves.on": { it: "{name} risolve {card} su {target}", en: "{name} resolves {card} on {target}" },
+  "scene.reactive": { it: "Reattiva: si gioca in catena", en: "Reactive: played on the chain" },
   "scene.flip": { it: "Quando flippa", en: "When it flips" },
   "scene.flips": { it: "{name} flippa {card}", en: "{name} flips {card}" },
   "trigger.lure": { it: "{card}: guarda le prime {n} carte del mazzo, puoi mostrare un'Entità Umana e prenderla in mano", en: "{card}: look at the top {n} cards of the deck, you may reveal a Human Entity and take it in hand" },
@@ -411,6 +414,7 @@ const M: Record<string, { it: string; en: string }> = {
   "trigger.carry": { it: "{card}: pesca {n}", en: "{card}: draw {n}" },
   "trigger.confine": { it: "{card}: manda nell'Abisso un'Entità avversaria, finché questa carta resta in gioco", en: "{card}: send an opposing Entity to the Abyss, as long as this card remains in play" },
   "scene.assigns": { it: "{name} assegna {card} a {toCard}", en: "{name} assigns {card} to {toCard}" },
+  "scene.assign": { it: "Assegnato a un'Entità", en: "Assigned to an Entity" },
   "target.refract": { it: "Scegli l'Entità attaccante da indebolire", en: "Choose the attacking Entity to weaken" },
   "target.amplify": { it: "Scegli un'Entità con un Oggetto da potenziare e stappare (ancora {n})", en: "Choose an Entity with an Object to empower and untap ({n} left)" },
   "target.confine": { it: "Scegli l'Entità avversaria da mandare nell'Abisso", en: "Choose the opposing Entity to send to the Abyss" },
@@ -426,7 +430,7 @@ const M: Record<string, { it: string; en: string }> = {
   "target.impact": { it: "Scegli l'Entità avversaria da mandare nella Zona di Ritiro", en: "Choose the opposing Entity to send to the Retire Zone" },
   "target.repulse": { it: "Scegli il permanente avversario da mandare nell'Abisso", en: "Choose the opposing permanent to send to the Abyss" },
   "target.judgment": { it: "Scegli l'Entità da distruggere", en: "Choose the Entity to destroy" },
-  "target.judgment.play": { it: "Scegli il bersaglio: contro un'Entità tappata la carta costa {n} Flussi in meno — Esc per nessun bersaglio", en: "Choose the target: against a tapped Entity the card costs {n} less Flux — Esc for no target" },
+  "target.judgment.play": { it: "Scegli l'Entità da distruggere: contro un'Entità tappata la carta costa {n} Flussi in meno", en: "Choose the Entity to destroy: against a tapped Entity the card costs {n} less Flux" },
   "target.blockwith": { it: "Scegli l'attaccante da bloccare con la Reattiva", en: "Choose the attacker to block with the Reactive" },
   "confirm.impact": { it: "Mandare {card} nella Zona di Ritiro?", en: "Send {card} to the Retire Zone?" },
   "confirm.repulse": { it: "Mandare {card} nell'Abisso finché questa carta resta in gioco?", en: "Send {card} to the Abyss as long as this card remains in play?" },

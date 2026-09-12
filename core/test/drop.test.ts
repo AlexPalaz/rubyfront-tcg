@@ -161,10 +161,20 @@ describe("dropOnPile — il rilascio su una pila (§5, §6.5)", () => {
 
   it("lo scarto dell'eccesso: la carta va in Zona di Ritiro, e il gesto lo dice", async () => {
     const t = table();
+    // §6.5 — lo scarto si fa in Fronte (o in Reazione), non in Preparazione (dal 2026-09-12).
+    t.state().phase = "fronte";
     const hand = Array.from({ length: 8 }, (_, index) => t.put(`h${index}`, "HUMAN", "a", "hand"));
     expect(await t.gestures.dropOnPile(hand[0], "a", "ritiro", null)).toBe(true);
     expect(t.sent.map(entry => entry.action)).toEqual([{ t: "toZone", uid: "h0", zone: "ritiro" }]);
     expect(t.logs).toContain("log.discard");
+  });
+
+  it("in Preparazione il rilascio in Zona di Ritiro non è lo scarto dell'eccesso (§6.5, dal 2026-09-12)", async () => {
+    // Gemello: engine_test.rb, test_excess_discard_in_front_and_reaction_not_in_preparation.
+    const t = table();
+    const hand = Array.from({ length: 8 }, (_, index) => t.put(`h${index}`, "HUMAN", "a", "hand"));
+    expect(await t.gestures.dropOnPile(hand[0], "a", "ritiro", null)).toBe(false);
+    expect(t.logs).not.toContain("log.discard");
   });
 
   it("fermata dall'arbitro, la carta torna da dove era partita", async () => {

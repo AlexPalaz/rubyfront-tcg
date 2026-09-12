@@ -152,7 +152,8 @@ class EngineTest < Minitest::Test
     load_and_draw("a", 8)
     @engine.judge(end_turn)
     # Rifiutata: la copia del tavolo non deve averla applicata — scartata una
-    # carta, lo stesso fine turno ripassa.
+    # carta (in Fronte: in Preparazione non si scarta), lo stesso fine turno ripassa.
+    front!(@engine)
     @engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "ritiro" })
     verdict = @engine.judge(end_turn)
     assert verdict[:ok], "con 7 in mano il turno si chiude"
@@ -163,6 +164,24 @@ class EngineTest < Minitest::Test
     verdict = @engine.judge(end_turn)
     assert verdict[:ruled]
     assert verdict[:ok]
+  end
+
+  # Dal 2026-09-12 (decisione del designer): lo scarto per eccesso si fa in
+  # Fronte, o in Reazione quando il turno si chiude lì; in Preparazione no.
+  # Gemello: core/test/tabs.test.ts, canDiscard.
+  def test_excess_discard_in_front_and_reaction_not_in_preparation
+    load_and_draw("a", 9)
+    verdict = @engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "ritiro" })
+    refute verdict[:ok], "in Preparazione non si scarta"
+    assert_match(/Fase di Fronte.*§6\.5/, verdict[:reason])
+    assert_match(/Front Phase.*§6\.5/, verdict[:reason_en])
+    assert_equal "hand", @engine.instance_variable_get(:@table).card("a-1")[:zone]
+    front!(@engine)
+    assert @engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "ritiro" })[:ok], "in Fronte si scarta"
+    @engine.observe(declare_action("a-2", "rf-b", "attack"))
+    @engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert_equal "reazione", @engine.instance_variable_get(:@table).phase
+    assert @engine.judge({ "t" => "toZone", "uid" => "a-3", "zone" => "ritiro" })[:ok], "in Reazione, dove il turno si chiude, si scarta"
   end
 
   def test_counter_patch_is_not_end_turn
@@ -1553,6 +1572,7 @@ class EngineTest < Minitest::Test
     engine = Rubyfront::Engine.new(cards: WINDOW)
     cards = (1..8).map { |i| { "uid" => "a-#{i}", "owner" => "a", "zone" => "hand", "order" => i, "cardId" => "SLOW" } }
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    front!(engine)
     verdict = engine.judge({ "t" => "toZone", "uid" => "a-8", "zone" => "abisso" })
     refute verdict[:ok]
     assert_match(/vanno in Zona di Ritiro, non nell'Abisso.*§5, §6\.5/, verdict[:reason])

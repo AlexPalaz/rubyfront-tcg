@@ -11,9 +11,10 @@
 // con la stanza, e il cambio passa da una ricarica, come nel simulatore: il
 // posto è cucito in ogni vista.
 
-import { allDecks, getDeck } from "@rubyfront/core/cards";
-import { lang, t } from "@rubyfront/core/i18n";
-import type { Seat } from "@rubyfront/core/types";
+import { allCards, allDecks, getDeck, isRubyfront } from "@rubyfront/core/cards";
+import { lang, msg, t } from "@rubyfront/core/i18n";
+import { seatLabel } from "@rubyfront/core/state";
+import type { CardInstance, Seat } from "@rubyfront/core/types";
 import { createMatch, store, type Match } from "./match";
 import { Onboarding, type Mode, type Choice } from "./screens/onboarding";
 import { Toolbar } from "./screens/toolbar";
@@ -114,7 +115,31 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     leave: () => askLeave(),
     settings: () => settings.toggle(),
     chat: () => chat.toggle(),
+    spawn: () => void spawnCard(),
+    flux: () => addFlux(),
   });
+
+  /**
+   * STRUMENTO DI PROVA, temporaneo (simulatore: overlay.ts, openCatalog): il
+   * catalogo intero nella vetrina, la carta scelta arriva nella tua mano
+   * (`spawn`, che il tavolo lascia passare come strumento di prova).
+   */
+  async function spawnCard(): Promise<void> {
+    const state = session.state();
+    const ghosts: CardInstance[] = allCards()
+      .filter(entry => !isRubyfront(entry.id))
+      .map(entry => ({ uid: `catalog:${entry.id}`, cardId: entry.id, owner: mySeat, zone: "hand", face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 0 }));
+    const chosen = await match.pileViewer.choose(ghosts, t("overlay.catalog", { name: seatLabel(state, mySeat) }));
+    if (!chosen) return;
+    const card: CardInstance = { ...chosen, uid: crypto.randomUUID() };
+    if (await session.dispatch({ t: "spawn", card })) session.ctx.log(msg("log.spawn", { seat: mySeat, id: chosen.cardId }), mySeat);
+  }
+
+  /** STRUMENTO DI PROVA, temporaneo: un Flusso in più (il «+» del simulatore), mai oltre 20 (§3.2). */
+  function addFlux(): void {
+    const player = session.state().players[mySeat];
+    void session.dispatch({ t: "player", seat: mySeat, patch: { flux: Math.min(20, player.flux + 1) } });
+  }
   const settings = new Settings(stage, {
     resync: () => session.resync(),
     language: next => {

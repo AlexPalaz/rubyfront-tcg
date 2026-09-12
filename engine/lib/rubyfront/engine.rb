@@ -25,13 +25,13 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.68.0"
+    VERSION = "0.69.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
     RULES = [
       "§3.2 Flusso: limite 20",
-      "§6.5 Mano: massimo 7 a fine turno",
+      "§6.5 Mano: massimo 7 a fine turno; lo scarto in Fronte o in Reazione, non in Preparazione",
       "§6.2 Attesa di evocazione",
       "§6.3 Dichiarazioni: tappate, coperte, sfide 1 contro 1",
       "§6.2 Fronte: massimo 5 Entità",
@@ -107,7 +107,7 @@ module Rubyfront
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
     RULES_EN = [
       "§3.2 Flux: cap of 20",
-      "§6.5 Hand: at most 7 at end of turn",
+      "§6.5 Hand: at most 7 at end of turn; discard in the Front or Reaction, not in Preparation",
       "§6.2 Summoning wait",
       "§6.3 Declarations: tapped, covered, 1-on-1 challenges",
       "§6.2 Front: at most 5 Entities",
@@ -760,7 +760,15 @@ module Rubyfront
       # scartate») o per effetto (che passa da judge_effect); dal mazzo o
       # dall'Abisso non si esce a mano (decisione del designer, 2026-09-10).
       if card[:zone] == "hand"
-        return allow("toZone") if @table.zone_count(card[:owner], "hand") > 7
+        if @table.zone_count(card[:owner], "hand") > 7
+          # §6.5 — lo scarto per eccesso si fa in Fronte, o in Reazione quando
+          # il turno si chiude lì (§6.4); non in Preparazione (decisione del
+          # designer, 2026-09-12).
+          if @table.phase == "preparazione"
+            return refuse("toZone", "lo scarto per eccesso si fa nella Fase di Fronte, non in Preparazione (§6.5)", "the excess discard is made in the Front Phase, not in Preparation (§6.5)")
+          end
+          return allow("toZone")
+        end
 
         return refuse("toZone", "dalla mano si scarta solo per eccesso, oltre le 7 a fine turno, o per un effetto (§6.5)", "from the hand you discard only for excess, above 7 at end of turn, or through an effect (§6.5)")
       end

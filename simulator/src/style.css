@@ -1303,8 +1303,8 @@ body.view-recess .board { top: var(--toolbar-h); }
 /* Il posto del Rubyfront si distingue: è l'unico riquadro del Fronte che non
    è uno dei cinque slot. */
 .slot-rubyfront { border-color: rgba(210, 74, 100, .42); }
-/* §6.5 — la mano oltre le 7 carte: l'Abisso si accende e chiama, perché
-   scartare lì è l'ultimo gesto del turno. L'oro è il colore degli avvisi
+/* §6.5 — la mano oltre le 7 carte: la Zona di Ritiro si accende e chiama,
+   perché scartare lì è l'ultimo gesto del turno. L'oro è il colore degli avvisi
    del tavolo (il Contrattacco, i sigilli), non il rubino del combattimento. */
 .slot.is-discard {
   border-color: var(--warn);

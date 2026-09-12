@@ -158,6 +158,16 @@ describe("handLocked e canDiscard (§6, §6.5)", () => {
     expect(canDiscard(ctx, hand[0])).toBe(false);
   });
 
+  it("lo scarto per eccesso si fa in Fronte, non in Preparazione (§6.5, dal 2026-09-12)", () => {
+    // Gemello: engine_test.rb, test_excess_discard_in_front_and_reaction_not_in_preparation.
+    const state = at("preparazione", "a");
+    const ctx = table(state);
+    const hand = Array.from({ length: 8 }, (_, index) => card(state, `h${index}`, "a", { zone: "hand", order: index }));
+    expect(canDiscard(ctx, hand[0])).toBe(false);
+    state.phase = "fronte";
+    expect(canDiscard(ctx, hand[0])).toBe(true);
+  });
+
   it("a tavolo libero la mano non si chiude mai", () => {
     const state = at("fronte", "b");
     expect(handLocked({ ...table(state), arbitrated: () => false }, "a")).toBe(false);

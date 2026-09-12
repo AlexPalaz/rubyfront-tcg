@@ -320,6 +320,8 @@ You may not have **more than 7 cards in hand**: at the end of your own turn, the
 
 The discard for excess is **the last action of the turn**: first any "at end of turn" effects resolve, then the excess cards are discarded and the turn passes to the opponent.
 
+You may discard from hand for excess only in the **Front Phase**, not in the Preparation Phase — and, if the turn ends after the Reaction (§6.4), also in the **Reaction Phase**.
+
 ## 7. Matters
 
 **Matters** are the game's spell/event cards. They can't be played freely: a Matter card is playable **only if there is a card on the field that has that Matter type enabled**.

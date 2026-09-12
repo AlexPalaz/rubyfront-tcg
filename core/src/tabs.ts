@@ -164,10 +164,12 @@ export function handLocked(ctx: Ctx, seat: Seat): boolean {
  * §6.5 — «non si possono avere più di 7 carte in mano: alla fine del
  * proprio turno, le carte in eccesso vanno scartate» — in Zona di Ritiro
  * (§5: lo scarto non è una morte). Con l'eccesso in mano lo scarto è
- * l'unico modo di andare in Zona di Ritiro dalla mano.
+ * l'unico modo di andare in Zona di Ritiro dalla mano. Si scarta in Fronte,
+ * o in Reazione quando il turno si chiude lì (§6.4); in Preparazione no
+ * (decisione del designer, 2026-09-12). Gemello: engine.rb, judge_retire.
  */
 export function canDiscard(ctx: Ctx, card: CardInstance): boolean {
-  return card.zone === "hand" && ctx.controls(card.owner) && !handLocked(ctx, card.owner) && zoneCards(ctx.state(), card.owner, "hand").length > 7;
+  return card.zone === "hand" && ctx.controls(card.owner) && !handLocked(ctx, card.owner) && ctx.state().phase !== "preparazione" && zoneCards(ctx.state(), card.owner, "hand").length > 7;
 }
 
 /** Che cosa fa una voce del menu di una carta. */

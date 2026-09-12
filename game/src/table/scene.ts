@@ -219,14 +219,27 @@ function hitZone(x: number, y: number, w: number, h: number, run: () => void): C
   return hit;
 }
 
+/** Quanto una scena aspetta al più la giocata sul campo, e quanto il tavolo aspetta al più gli effetti di «Risolvi»: un'animazione persa non ferma la partita. */
+const GATE_MAX_MS = 3000;
+const RESOLVE_MAX_MS = 60_000;
+
 export class Scene {
   private queue: Promise<void> = Promise.resolve();
   /** Scene, scelte e pannelli aperti o in coda. */
   private openOnes = 0;
+  /** Gli effetti che «Risolvi» ha avviato e che stanno ancora agendo: il tavolo non è fermo finché non finiscono (il bot aspetta). */
+  private resolving = 0;
+  /** Ciò che una scena aspetta prima di aprirsi: la giocata che vola, si posa e si accende (effects/director.ts). */
+  private gate: () => Promise<void> = () => Promise.resolve();
   private readonly layer = new Container({ label: "scene" });
 
   constructor(private readonly stage: Stage) {
     stage.world.addChild(this.layer);
+  }
+
+  /** La scena si apre dopo la giocata sul campo: `gate` lo dice (partita.ts lo lega al regista). */
+  waitBefore(gate: () => Promise<void>): void {
+    this.gate = gate;
   }
 
   /** Si risolve quando nessuna scena è in coda. */
@@ -236,7 +249,7 @@ export class Scene {
 
   /** La scena di una carta: si risolve quando è chiusa (e dopo il suo onContinue). */
   show(show: SceneShow): Promise<void> {
-    return this.count(this.enqueue(() => this.open(show, () => undefined)));
+    return this.count(this.enqueue(() => this.afterGate(() => this.open(show, () => undefined))));
   }
 
   /**
@@ -245,13 +258,13 @@ export class Scene {
    * e poi via. Si mette in fila con le scene.
    */
   peek(show: SceneShow): Promise<void> {
-    return this.count(this.enqueue(() => this.open(show, () => undefined, true)));
+    return this.count(this.enqueue(() => this.afterGate(() => this.open(show, () => undefined, true))));
   }
 
   /** La scelta fra più voci: l'id scelto, o null se si chiude. */
   choose(show: ChoiceShow): Promise<string | null> {
     let chosen: string | null = null;
-    return this.count(this.enqueue(() => this.open(show, id => (chosen = id))).then(() => chosen));
+    return this.count(this.enqueue(() => this.afterGate(() => this.open(show, id => (chosen = id)))).then(() => chosen));
   }
 
   /** L'avviso: un pannello col suo «Va bene». */
@@ -273,7 +286,24 @@ export class Scene {
 
   /** Nessuna scena, scelta o pannello aperti o in coda: il tavolo è fermo (per il passo del bot). */
   isFree(): boolean {
-    return this.openOnes === 0;
+    return this.openOnes === 0 && this.resolving === 0;
+  }
+
+  /** Prima la giocata sul campo (al più GATE_MAX_MS), poi la scena. */
+  private async afterGate(run: () => Promise<void>): Promise<void> {
+    await Promise.race([this.gate().catch(() => undefined), new Promise<void>(resolve => setTimeout(resolve, GATE_MAX_MS))]);
+    await run();
+  }
+
+  /** «Risolvi»: finché gli effetti avviati agiscono il tavolo non è fermo (al più RESOLVE_MAX_MS). */
+  private follow(result: void | Promise<void> | undefined): void {
+    const running = result as Promise<void> | undefined;
+    if (!running || typeof running.then !== "function") return;
+    this.resolving += 1;
+    const cap = new Promise<void>(resolve => setTimeout(resolve, RESOLVE_MAX_MS));
+    void Promise.race([running.catch(() => undefined), cap]).finally(() => {
+      this.resolving -= 1;
+    });
   }
 
   private count<T>(run: Promise<T>): Promise<T> {
@@ -379,7 +409,7 @@ export class Scene {
           root.destroy({ children: true });
           for (const texture of painted) texture.destroy(true);
           if (isChoice) choice(value === "go" ? null : value);
-          else show.onContinue?.();
+          else this.follow(show.onContinue?.());
           resolve();
         });
       };

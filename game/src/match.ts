@@ -70,6 +70,10 @@ export interface Match {
   table: Table;
   gestures: Gestures;
   tableGestures: TableGestures;
+  /** La mira degli effetti (§8.2): per le prove da fuori. */
+  aim: Aim;
+  /** La vetrina delle pile (§5): anche il catalogo dello strumento «Evoca» (game.ts). */
+  pileViewer: PileViewer;
   scene: Scene;
   banner: Banner;
   seal: Seal;
@@ -151,7 +155,11 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     tableGestures?.update();
     arrows.update(state);
     // Durante l'ingresso dei Rubyfront l'insegna tace: l'apertura la annuncia la sessione, a ingresso finito.
-    if (!director?.entrancePending) banner.render(state);
+    // Aspetta anche le animazioni del regista (la risoluzione di un'ondata, una giocata): il turno nuovo si annuncia a tavolo fermo.
+    if (!director?.entrancePending) {
+      if (director?.isBusy()) void director.idle().then(() => banner.render(session.state()));
+      else banner.render(state);
+    }
     gestures.driveChain();
     director?.afterPaint(state);
     hooks.afterPaint?.();
@@ -321,6 +329,8 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     confirm: (question, labels) => scene.confirm(question, labels),
     choose: show => scene.choose(show),
     pickTarget: (source, candidates, hint) => aim.choose(candidates, hint, source.uid),
+    // §7.2 — la Reattiva col bersaglio: al centro, accesa, prima della scena e della mira (effects/director.ts).
+    stageReactive: card => director?.stageReactive(card) ?? null,
     pickFromPile: (_seat, _zone, candidates, title, visible) => pileViewer.choose(candidates, title, visible),
   };
 
@@ -353,14 +363,15 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     useAbility: (card, ability) => gestures.useAbility(card, ability),
     flipToNexus: card => gestures.flipToNexus(card),
     introRubyfronts: order => entrance.rubyfronts(order),
-    promptDiscard: () => false,
+    // §6.5 — il Fine turno fermato dalla mano piena: la Zona di Ritiro si accende (gestures.ts, l'invito a scartare).
+    promptDiscard: seat => playerGestures.promptDiscard(seat),
     offerLeaveReturns: (before, after, owners) => gestures.offerLeaveReturns(before, after, owners),
     offerAssignTriggers: (before, after, owners) => gestures.offerAssignTriggers(before, after, owners),
     offerDeathRemains: (before, after, owners) => gestures.offerDeathRemains(before, after, owners),
-    // Il tavolo è fermo: nessun sigillo, scena, dado, mira, scelta, effetto, insegna, ingresso.
+    // Il tavolo è fermo: nessun sigillo, scena (né effetti di «Risolvi» in corso), dado, mira, scelta, effetto, insegna, ingresso, giocata in volo.
     // Sfogliare una pila non ferma nessuno (nel simulatore l'overlay non trattiene il bot).
     quiet: () =>
-      !seal.isOpen() && scene.isFree() && dice.reducedMotion() && !aim.isOpen() && !pileViewer.isPicking() && !table.isBlocked() && !banner.isRunning() && !entrance.isRunning(),
+      !seal.isOpen() && scene.isFree() && dice.reducedMotion() && !aim.isOpen() && !pileViewer.isPicking() && !table.isBlocked() && !banner.isRunning() && !entrance.isRunning() && !director?.isBusy(),
   };
 
   const session = createSession({
@@ -395,11 +406,15 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   window.addEventListener("pointerdown", () => unlockSound(), { capture: true });
 
   stage.onLayout(() => paint());
+  // La scena grande si apre dopo la giocata sul campo: la carta vola, si posa, si accende (effects/director.ts).
+  scene.waitBefore(() => directorInstance.idle());
   return {
     session,
     table,
     gestures,
     tableGestures: playerGestures,
+    aim,
+    pileViewer,
     scene,
     banner,
     seal,

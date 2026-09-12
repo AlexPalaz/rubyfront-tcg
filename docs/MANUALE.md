@@ -321,6 +321,8 @@ Non si possono avere **più di 7 carte in mano**: alla fine del proprio turno, l
 
 Lo scarto per eccesso è **l'ultima azione del turno**: prima si risolvono gli eventuali effetti "a fine turno", poi si scartano le carte in eccesso e il turno passa all'avversario.
 
+Si può scartare dalla mano per eccesso solo nella **Fase di Fronte**, non in quella di Preparazione — e, se il turno si chiude dopo la Reazione (§6.4), anche nella **Fase di Reazione**.
+
 ## 7. Le Materie
 
 Le **Materie** sono le carte magia/evento del gioco. Non si possono giocare liberamente: una carta Materia è giocabile **solo se in campo c'è una carta che ha quel tipo di Materia abilitato**.

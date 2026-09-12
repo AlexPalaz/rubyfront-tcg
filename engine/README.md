@@ -17,7 +17,12 @@ Regole collegate finora:
   all'ottava carta a metà turno resta legale, è il Fine turno che si ferma.
   Lo scarto per eccesso va in **Zona di Ritiro** (§5, decisione del
   designer del 2026-09-10: lo scarto non è una morte), dalla mano, solo
-  oltre le 7; nell'Abisso dalla mano non si va mai.
+  oltre le 7; nell'Abisso dalla mano non si va mai. Si scarta in **Fronte**,
+  o in **Reazione** quando il turno si chiude lì (§6.4): in Preparazione
+  l'engine ferma lo scarto (decisione del designer del 2026-09-12). Limite
+  dichiarato, con la regola d'oro: uno scarto chiesto da un effetto di carta
+  che l'engine non legge ancora, risolto a mano in Preparazione, verrebbe
+  fermato a torto finché l'engine non legge gli effetti.
 - **§6.3 Dichiarazioni: tappate, coperte, sfide 1 contro 1** — la coperta non
   dichiara nulla, la tappata non attacca né blocca, e ogni attaccante ha al
   più un bloccante. Il tavolo dell'engine segue tap, coperture e

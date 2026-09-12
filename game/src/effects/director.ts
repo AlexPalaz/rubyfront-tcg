@@ -26,6 +26,7 @@ import { CARD_W } from "../card/theme";
 import type { Stage } from "../stage";
 import { wait, tween, easeOut, reducedMotion } from "../table/animation";
 import type { Table } from "../table/table";
+import { glowFilter } from "./filters";
 import { Card3D, Effects, FoilFilter } from "./index";
 
 type Box = { x: number; y: number; w: number; h: number };
@@ -61,7 +62,16 @@ interface Snapshot {
   texture: Promise<Texture | null>;
 }
 
+/** La carta appena posata resta accesa sul campo un attimo, prima della scena grande. */
+const LAND_GLOW_MS = 650;
+/** Fra una battaglia e l'altra della risoluzione: un respiro, poi il prossimo attaccante. */
+const BATTLE_GAP_MS = 180;
+
 export class Director {
+  /** Le giocate e i flip in corso: la scena grande aspetta che finiscano (scene.ts, waitBefore), il bot pure. */
+  private readonly running = new Set<Promise<void>>();
+  /** La Reattiva messa in scena prima di giocarla (stageReactive): la carta è già al centro, la giocata non la fa rivolare dalla mano. */
+  private staged: { uid: string; ready: Promise<void>; done(): void } | null = null;
   readonly effects: Effects;
   private readonly foil = new FoilFilter(0.6);
   private time = 0;
@@ -163,7 +173,12 @@ export class Director {
       this.table.view(card.uid)?.setSheen(this.foil);
     }
     const key = `${state.turn}|${state.active}|${state.phase}`;
-    if (this.phaseKey !== null && key !== this.phaseKey && !this.entrancePending && !state.over) void this.effects.lightBlade(TONES[state.phase] ?? 0xd24a64);
+    if (this.phaseKey !== null && key !== this.phaseKey && !this.entrancePending && !state.over) {
+      const tone = TONES[state.phase] ?? 0xd24a64;
+      // Come l'insegna: la lama della fase nuova passa a tavolo fermo, dopo la risoluzione o la giocata in corso.
+      if (this.isBusy()) void this.idle().then(() => void this.effects.lightBlade(tone));
+      else void this.effects.lightBlade(tone);
+    }
     this.phaseKey = key;
     if (state.over && !this.finished) {
       this.finished = true;
@@ -240,14 +255,102 @@ export class Director {
     return after.length ? () => after.forEach(f => f()) : null;
   }
 
+  /** Si risolve quando le giocate e i flip in corso sono finiti: la carta posata e accesa, poi la scena. */
+  idle(): Promise<void> {
+    return Promise.all([...this.running]).then(() => undefined);
+  }
+
+  /** Una giocata o un flip ancora in corso (la quiete del tavolo: il bot non gioca sopra). */
+  isBusy(): boolean {
+    return this.running.size > 0;
+  }
+
+  private track(run: Promise<void>): void {
+    this.running.add(run);
+    void run.catch(() => undefined).finally(() => this.running.delete(run));
+  }
+
+  /**
+   * §7.2 — la Reattiva col bersaglio (gestures.ts, stageReactive): lascia la
+   * mano e vola al centro, nel posto che avrà in catena, e si accende; la
+   * scena e la mira aspettano che sia arrivata (idle). Giocata, il tavolo la
+   * mette in catena lì dov'è (played); con `cancel` torna in mano.
+   */
+  stageReactive(card: CardInstance): { cancel(): void } | null {
+    const from = this.table.box(card.uid);
+    const spot = this.table.chainSpot((this.ctx.state().chain?.stack ?? []).length);
+    const view = this.table.view(card.uid);
+    if (!from || !spot || !view || reducedMotion()) return null;
+    let card3d: Card3D | null = null;
+    const done = (): void => {
+      card3d?.destroy({ children: true });
+      card3d = null;
+      if (!view.destroyed) view.visible = true;
+    };
+    const ready = (async () => {
+      const texture = await Promise.race([faceTexture(card.cardId, card.face, this.ctx.locale(), 0.6 * this.pixelRatio()), wait(300).then(() => null)]);
+      if (!texture || view.destroyed) return;
+      const start = center(from);
+      const to = center(spot);
+      card3d = new Card3D(texture, from.w, from.h);
+      card3d.position.set(start.x, start.y);
+      this.effects.overlay.addChild(card3d);
+      view.visible = false;
+      const grow = spot.w / from.w;
+      await tween(this.stage.app.ticker, 520, k => {
+        if (!card3d) return;
+        card3d.position.set(start.x + (to.x - start.x) * k, start.y + (to.y - start.y) * k - Math.sin(k * Math.PI) * 140);
+        card3d.scale.set((1 + (grow - 1) * k) * (1 + 0.2 * Math.sin(k * Math.PI)));
+      }, easeOut);
+      if (!card3d) return;
+      // Al centro si accende: l'alone d'oro della catena e la tinta della Materia.
+      card3d.filters = [glowFilter(0xffcf7a, 2.5)];
+      void this.effects.spells.aura(cardTint(card.cardId), to.x, to.y, spot.w, spot.h);
+      await wait(LAND_GLOW_MS);
+    })();
+    this.track(ready);
+    this.staged = { uid: card.uid, ready, done };
+    return {
+      cancel: () => {
+        if (this.staged?.uid === card.uid) this.staged = null;
+        void ready.then(async () => {
+          const back = this.table.box(card.uid);
+          const piece = card3d;
+          if (piece && back) {
+            const start = { x: piece.x, y: piece.y };
+            const to = center(back);
+            const scale = piece.scale.x;
+            piece.filters = [];
+            await tween(this.stage.app.ticker, 360, k => {
+              piece.position.set(start.x + (to.x - start.x) * k, start.y + (to.y - start.y) * k);
+              piece.scale.set(scale + (1 - scale) * k);
+            }, easeOut);
+          }
+          done();
+        });
+      },
+    };
+  }
+
   /** La giocata: dalla mano (o, per l'avversario, dall'alto) in arco fino allo slot, poi l'impatto. */
   private played(card: CardInstance): () => void {
+    // La Reattiva già al centro (stageReactive): niente arco; si toglie la sua copia e resta la carta in catena, con l'impatto.
+    const staged = this.staged?.uid === card.uid ? this.staged : null;
+    if (staged) {
+      this.staged = null;
+      return () =>
+        this.track(staged.ready.then(() => {
+          staged.done();
+          const box = this.table.box(card.uid);
+          if (box) void this.effects.hits.impact(box.x + box.w / 2, box.y + box.h / 2, box.w, box.h, 0.8);
+        }));
+    }
     const isMine = card.owner === this.ctx.seat();
     const release = this.release();
     const dragged = release !== null && release.uid === card.uid && Date.now() - release.at < 800;
     const from = isMine && !dragged ? (this.table.box(card.uid) ?? null) : null;
     const face = faceTexture(card.cardId, card.face, this.ctx.locale(), 0.6 * this.pixelRatio());
-    return () => void this.flyAndLand(card, from, !dragged, face);
+    return () => this.track(this.flyAndLand(card, from, !dragged, face));
   }
 
   private async flyAndLand(card: CardInstance, from: Box | null, withArc: boolean, face: Promise<Texture | null>): Promise<void> {
@@ -275,6 +378,10 @@ export class Director {
     void this.effects.hits.impact(arrival.x, arrival.y, box.w, box.h, cardStats(card.cardId).kind === "entity" ? 1 : 0.8);
     // Una Materia che scende accende la sua tinta.
     if (cardStats(card.cardId).kind === "matter") void this.effects.spells.aura(cardTint(card.cardId), arrival.x, arrival.y, box.w, box.h);
+    // Posata, la carta si accende sul campo; poi la scena grande (che aspetta idle()).
+    this.table.light(card.uid, true);
+    await wait(LAND_GLOW_MS);
+    this.table.light(card.uid, false);
   }
 
   /** Il Rubyfront che si posa (lo schieramento, l'atterraggio dell'ingresso): l'impatto grande e la sua tinta. */
@@ -293,7 +400,7 @@ export class Director {
     const before = faceTexture(card.cardId, card.face, this.ctx.locale(), res);
     const nextFace = faceTexture(card.cardId, face, this.ctx.locale(), res);
     return () =>
-      void (async () => {
+      this.track((async () => {
         const [a, b] = await Promise.all([before, nextFace]);
         const view = this.table.view(card.uid);
         const here = this.table.box(card.uid) ?? box;
@@ -314,7 +421,7 @@ export class Director {
         this.effects.spells.explode(c, [0xffe0a0, 0xffffff, 0xe56a86], 1.4);
         this.effects.camera.shake(0.45);
         void this.effects.spells.aura(cardTint(card.cardId), c.x, c.y, here.w, here.h);
-      })();
+      })());
   }
 
   /** L'effetto di una carta: dalla fonte al bersaglio nella sua tinta (senza bersaglio, l'aura sulla fonte). */
@@ -358,7 +465,8 @@ export class Director {
       return { b, attacker: this.photo(state, b.attacker), target: this.photo(state, target), targetUid: target ?? null };
     });
     const fallenSnapshots = new Map(fallen.map(uid => [uid, this.photo(state, uid)] as const));
-    return () => void this.playResolution(battles, fallenSnapshots, clashes).catch(error => console.warn("regia", error));
+    // Seguita come le giocate: finché gli attaccanti scattano, le scene aspettano e il bot pure (idle, isBusy).
+    return () => this.track(this.playResolution(battles, fallenSnapshots, clashes).catch(error => console.warn("regia", error)));
   }
 
   private async playResolution(
@@ -383,51 +491,56 @@ export class Director {
         .shatter({ texture: sprite.texture, x: sprite.x, y: sprite.y, w: L?.tileW ?? sprite.width, h: L?.tileH ?? sprite.height, ...(from ? { from } : {}) })
         .then(() => sprite.destroy());
     };
-    await Promise.all(
-      battles.map(async ({ b, attacker, target, targetUid }, i) => {
-        await wait(i * 280);
-        if (!attacker || !target) return;
-        const view = this.table.view(b.attacker);
-        // Chi scatta: la controfigura se l'attaccante muore, se no una copia della carta (l'originale si nasconde).
-        let body = standIns.get(b.attacker) ?? null;
-        const wasStandIn = body !== null;
-        if (body) standIns.delete(b.attacker);
-        else body = await this.standIn(attacker, L?.tileW ?? attacker.box.w, L?.tileH ?? attacker.box.h);
-        if (!body) return;
-        if (view && !view.destroyed) view.visible = false;
-        const targetCenter = center(target.box);
-        const copy = body;
-        await this.effects.hits.dash(
-          copy,
-          targetCenter,
-          () => {
-            const trail = new Sprite(copy.texture);
-            trail.anchor.set(0.5);
-            trail.width = copy.width;
-            trail.height = copy.height;
-            return trail;
-          },
-          () => {
-            for (const s of clashes) {
-              if (s.uid === b.blocker && s.kind !== "strike") this.hits.parry(s.uid, s.kind);
-              if (s.uid === targetUid && s.kind === "strike") this.hits.struckRubyfront(s.uid);
-            }
-            if (b.kind === "unblocked" && b.damage > 0) {
-              void this.effects.popNumber(targetCenter.x, target.box.y + target.box.h * 0.2, `−${b.damage}`, "damage", true);
-              this.effects.camera.shake(Math.min(0.7, 0.3 + b.damage * 0.05));
-            }
-            if (b.blocker && b.blockerDies) shatter(b.blocker, center(attacker.box));
+    // Una battaglia per volta (2026-09-12): tutte insieme — scatti, scie, urti,
+    // scosse, schegge — appesantivano il tavolo fino a farlo scattare. I
+    // caduti delle battaglie che vengono dopo restano in piedi (controfigure)
+    // finché non tocca a loro.
+    const playBattle = async ({ b, attacker, target, targetUid }: (typeof battles)[number]): Promise<void> => {
+      if (!attacker || !target) return;
+      const view = this.table.view(b.attacker);
+      // Chi scatta: la controfigura se l'attaccante muore, se no una copia della carta (l'originale si nasconde).
+      let body = standIns.get(b.attacker) ?? null;
+      const wasStandIn = body !== null;
+      if (body) standIns.delete(b.attacker);
+      else body = await this.standIn(attacker, L?.tileW ?? attacker.box.w, L?.tileH ?? attacker.box.h);
+      if (!body) return;
+      if (view && !view.destroyed) view.visible = false;
+      const targetCenter = center(target.box);
+      const copy = body;
+      await this.effects.hits.dash(
+        copy,
+        targetCenter,
+        () => {
+          const trail = new Sprite(copy.texture);
+          trail.anchor.set(0.5);
+          trail.width = copy.width;
+          trail.height = copy.height;
+          return trail;
+        },
+        () => {
+          for (const s of clashes) {
+            if (s.uid === b.blocker && s.kind !== "strike") this.hits.parry(s.uid, s.kind);
+            if (s.uid === targetUid && s.kind === "strike") this.hits.struckRubyfront(s.uid);
           }
-        );
-        // Il ritorno (420 ms), poi l'attaccante torna al suo posto — o si sbriciola, se muore.
-        await wait(440);
-        if (wasStandIn || b.attackerDies) {
-          standIns.set(b.attacker, copy);
-          shatter(b.attacker, targetCenter);
-        } else copy.destroy();
-        if (view && !view.destroyed) view.visible = true;
-      })
-    );
+          if (b.kind === "unblocked" && b.damage > 0) {
+            void this.effects.popNumber(targetCenter.x, target.box.y + target.box.h * 0.2, `−${b.damage}`, "damage", true);
+            this.effects.camera.shake(Math.min(0.7, 0.3 + b.damage * 0.05));
+          }
+          if (b.blocker && b.blockerDies) shatter(b.blocker, center(attacker.box));
+        }
+      );
+      // Il ritorno (420 ms), poi l'attaccante torna al suo posto — o si sbriciola, se muore.
+      await wait(440);
+      if (wasStandIn || b.attackerDies) {
+        standIns.set(b.attacker, copy);
+        shatter(b.attacker, targetCenter);
+      } else copy.destroy();
+      if (view && !view.destroyed) view.visible = true;
+    };
+    for (const [index, battle] of battles.entries()) {
+      if (index > 0) await wait(BATTLE_GAP_MS);
+      await playBattle(battle);
+    }
     // Chi è caduto senza battaglia (un effetto a metà), si sbriciola lo stesso.
     for (const uid of [...standIns.keys()]) shatter(uid);
   }

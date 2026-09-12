@@ -225,8 +225,8 @@ export function createSession(options: SessionOptions): Session {
             return;
           }
           if (verdict?.ruled && !verdict.ok) {
-            // §6.5 — il Fine turno fermato dalla mano piena: l'Abisso di chi
-            // chiude si accende e invita, così il sigillo dice anche DOVE si
+            // §6.5 — il Fine turno fermato dalla mano piena: la Zona di Ritiro di
+            // chi chiude si accende e invita, così il sigillo dice anche DOVE si
             // scarta. Nessuna frase da leggere: il posto è quello che chiude
             // e ha più di 7 carte.
             if (action.t === "turn") {
@@ -839,13 +839,7 @@ export function createSession(options: SessionOptions): Session {
           else if (play.kind === "entity") botMemory.entered.add(play.card.uid);
           return true;
         }
-        // §6.5 — sotto i 7 prima di chiudere: chi chiude a mano piena non chiude.
-        const [discard] = chooseDiscards(s, bot, ctx.card);
-        if (discard) {
-          await dispatch({ t: "toZone", uid: discard.uid, zone: "ritiro" });
-          ctx.log(msg("log.discard", { seat: bot, card: discard.cardId, n: zoneCards(state, bot, "hand").length }), bot);
-          return true;
-        }
+        // §6.5 — l'eccesso non si scarta in Preparazione (2026-09-12): lo scarta in Fronte, prima di chiudere.
         await endPhase(ctx);
         return true;
       }
@@ -854,12 +848,20 @@ export function createSession(options: SessionOptions): Session {
           botMemory.attacked = true;
           for (const attacker of chooseAttackers(s, bot, ctx.card, botMemory)) {
             await view.attackWith(attacker);
-            await awaitQuiet();
+            // Un attacco per volta: la dichiarazione, la tappata e l'eventuale scena finiscono prima del prossimo (2026-09-12).
+            await awaitQuiet(60_000);
             await sleep(350);
           }
           return true;
         }
         if (await rubyfrontMove()) return true;
+        // §6.5 — sotto i 7 prima di chiudere: chi chiude a mano piena non chiude. Si scarta qui, in Fronte.
+        const [discard] = chooseDiscards(s, bot, ctx.card);
+        if (discard) {
+          await dispatch({ t: "toZone", uid: discard.uid, zone: "ritiro" });
+          ctx.log(msg("log.discard", { seat: bot, card: discard.cardId, n: zoneCards(state, bot, "hand").length }), bot);
+          return true;
+        }
         await endPhase(ctx);
         return true;
       }

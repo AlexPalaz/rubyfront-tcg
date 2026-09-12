@@ -5,6 +5,9 @@
 // rinunciano. Mentre un effetto si risolve il tavolo è fermo (blocca), ma la
 // mira È il gesto del giocatore: la presa si molla, e si riprende scelto il
 // bersaglio — o rinunciando. La freccia dalla fonte al dito arriva con F5.
+// Il candidato sotto il puntatore si accende pieno (l'anello «aimed»): un
+// tocco solo lo sceglie. Chi apre veli sopra le carte (gestures.ts) ascolta
+// onOpen e li chiude: un velo sopra il bersaglio si prenderebbe il tocco.
 
 import { t } from "@rubyfront/core/i18n";
 import type { CardInstance } from "@rubyfront/core/types";
@@ -24,6 +27,7 @@ export class Aim {
   private armed: { candidates: Map<string, CardInstance>; endAt: (card: CardInstance | null) => void } | null = null;
   /** Le frecce: dalla fonte dell'effetto al dito (partita.ts le presta). */
   arrows: Arrows | null = null;
+  private readonly openListeners: (() => void)[] = [];
 
   constructor(
     private readonly stage: Stage,
@@ -34,9 +38,11 @@ export class Aim {
     this.sprite.label = "aim";
     stage.world.addChild(this.sprite);
     table.onCard(cardEvent => {
-      if (cardEvent.type !== "tap" || !this.armed) return;
+      if (!this.armed) return;
       const card = this.armed.candidates.get(cardEvent.uid);
-      if (card) this.close(card);
+      if (cardEvent.type === "over") this.table.hoverAim(card ? card.uid : null);
+      else if (cardEvent.type === "out") this.table.hoverAim(null);
+      else if (cardEvent.type === "tap" && card) this.close(card);
     });
     table.onEmpty(() => this.close(null));
     window.addEventListener("keydown", event => {
@@ -46,6 +52,11 @@ export class Aim {
 
   isOpen(): boolean {
     return this.armed !== null;
+  }
+
+  /** Chi ascolta l'apertura della mira (i veli sopra le carte si chiudono). */
+  onOpen(listener: () => void): void {
+    this.openListeners.push(listener);
   }
 
   /** Il bersaglio fra i candidati, o null se si rinuncia. */
@@ -63,6 +74,7 @@ export class Aim {
         },
       };
       this.table.aim({ candidates: candidates.map(card => card.uid) });
+      for (const listener of this.openListeners) listener();
       if (source) this.arrows?.follow({ kind: "effect", from: source });
       this.nameplate(t("target.esc", { hint }));
     });

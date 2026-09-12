@@ -11,6 +11,7 @@ import { ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, Texture, Tic
 import { faceTexture } from "../card/cache";
 import { SERIF } from "../card/theme";
 import { applyFont, drawText, textWidth, type Font } from "../card/text";
+import { bezier, reducedMotion, tween } from "./animation";
 import { THEME, paintPiece, withShadow } from "./appearance";
 
 /** Un segno di ciò che la carta ha in più rispetto allo stampato (§8.2): la colonna sotto la Potenza. */
@@ -39,6 +40,8 @@ export interface CardLook {
   /** Il dorso al posto della faccia (coperta, o il mazzo). */
   back: boolean;
   tapped: boolean;
+  /** Il ritardo della rotazione quando più carte si tappano o stappano insieme (la stappata del cambio turno): girano in fila. */
+  tapDelay?: number;
   w: number;
   h: number;
   locale: string;
@@ -63,9 +66,16 @@ export interface CardLook {
  * l'Oggetto trascinato (is-assign-target), la carta con un gesto disponibile
  * (has-actions: nel simulatore respira, qui è fermo fino a F5), la Reattiva
  * in catena (.is-chained: oro dentro, rubino fuori, la luce della catena).
+ * Nella mira il bersaglio valido respira di verde e quello sotto il
+ * puntatore (aimed) si accende pieno: si vede cosa si può scegliere, e cosa
+ * si sta per scegliere.
  * Colori del tema notte (il rubino dei posti è #ff4d6d, il verde --ok #6fbf8b).
  */
-export type Ring = "trigger" | "struck" | "legal" | "pickable" | "assign" | "gestures" | "chain";
+export type Ring = "trigger" | "struck" | "legal" | "aimed" | "pickable" | "assign" | "gestures" | "chain";
+
+/** Il tap e lo stap (§6.3): la carta si alza appena, gira con un filo di slancio e si posa. */
+const TAP_MS = 340;
+const TAP_CURVE = bezier(0.34, 1.4, 0.64, 1);
 
 export class TableCard extends Container {
   private readonly shadow = new Sprite();
@@ -73,6 +83,9 @@ export class TableCard extends Container {
   /** Il respiro dell'anello dei gesti (has-actions::after): un velo interno che va e viene. */
   private readonly breath = new Graphics();
   private prevRing: Ring | null = null;
+  /** Tappata secondo l'ultimo aspetto (null prima del primo disegno): la rotazione può essere ancora a metà corsa. */
+  private tappedNow: boolean | null = null;
+  private tapRun = 0;
   private readonly face = new Sprite();
   /** Un filtro di luce sulla sola faccia (il foil delle Uniche, effects/director.ts), accanto alla velatura. */
   private sheen: Filter | null = null;
@@ -98,9 +111,15 @@ export class TableCard extends Container {
     this.on("destroyed", () => breathers.delete(this));
   }
 
-  /** Il respiro dell'anello dei gesti, dall'orologio comune. */
+  /** Tappata o no, anche mentre sta ancora girando. */
+  get isTapped(): boolean {
+    return this.tappedNow === true;
+  }
+
+  /** Il respiro dell'anello dei gesti e del bersaglio della mira, dall'orologio comune: col bersaglio respira anche l'alone. */
   breathe(alpha: number): void {
     this.breath.alpha = alpha;
+    if (this.prevRing === "legal") this.glow.alpha = 0.55 + 0.45 * alpha;
   }
 
   /** Il lampo d'ingresso di un anello: l'alone sale e si posa. */
@@ -127,6 +146,40 @@ export class TableCard extends Container {
     Ticker.shared.add(tick);
   }
 
+  /**
+   * La rotazione della tappata: al primo disegno di colpo (una carta che
+   * compare già coricata non gira), poi con la corsa — si alza del 6%, gira
+   * oltre il segno e ci torna, si posa. Un nuovo tap a metà corsa riparte
+   * da dove la carta è arrivata.
+   */
+  private turnTo(tapped: boolean, delay: number): void {
+    if (this.tappedNow === tapped) return;
+    const first = this.tappedNow === null;
+    this.tappedNow = tapped;
+    const run = ++this.tapRun;
+    const target = tapped ? Math.PI / 2 : 0;
+    if (first || reducedMotion()) {
+      this.rotation = target;
+      this.scale.set(1);
+      return;
+    }
+    const start = (): void => {
+      if (run !== this.tapRun || this.destroyed) return;
+      const from = this.rotation;
+      void tween(Ticker.shared, TAP_MS, k => {
+        if (run !== this.tapRun || this.destroyed) return;
+        this.rotation = from + (target - from) * TAP_CURVE(k);
+        this.scale.set(1 + 0.06 * Math.sin(Math.PI * Math.min(1, k * 1.2)));
+      }).then(() => {
+        if (run !== this.tapRun || this.destroyed) return;
+        this.rotation = target;
+        this.scale.set(1);
+      });
+    };
+    if (delay > 0) setTimeout(start, delay);
+    else start();
+  }
+
   /** La luce sulla faccia (il foil): la stessa istanza per tutte le Uniche, che scorre col tempo. */
   setSheen(filter: Filter | null): void {
     if (this.sheen === filter) return;
@@ -140,7 +193,7 @@ export class TableCard extends Container {
 
   update(look: CardLook): void {
     const { w, h } = look;
-    this.rotation = look.tapped ? Math.PI / 2 : 0;
+    this.turnTo(look.tapped, look.tapDelay ?? 0);
     // Si tocca la carta, non la sua ombra: l'area è la carta sola (ruota con lei).
     this.eventMode = "static";
     this.hitArea = new Rectangle(-w / 2, -h / 2, w, h);
@@ -166,14 +219,17 @@ export class TableCard extends Container {
       }
     }
     this.alpha = look.alpha ?? 1;
-    // Il respiro: solo sull'anello dei gesti, a tempo con tutte le altre (un orologio solo).
-    const breathes = ring === "gestures";
+    // Il respiro: sull'anello dei gesti (rubino) e sul bersaglio della mira
+    // (verde), a tempo con tutte le altre (un orologio solo).
+    const breathes = ring === "gestures" || ring === "legal";
     this.breath.visible = breathes;
+    if (ring !== "legal") this.glow.alpha = 1;
     if (breathes) {
+      const color = ring === "legal" ? 0x6fbf8b : 0xe0314b;
       this.breath.clear()
-        .rect(-w / 2 + 1, -h / 2 + 1, w - 2, h - 2).stroke({ color: 0xe0314b, width: 2, alpha: 1 })
-        .rect(-w / 2 + 4, -h / 2 + 4, w - 8, h - 8).stroke({ color: 0xe0314b, width: 6, alpha: 0.28 })
-        .rect(-w / 2 + 9, -h / 2 + 9, w - 18, h - 18).stroke({ color: 0xe0314b, width: 6, alpha: 0.1 });
+        .rect(-w / 2 + 1, -h / 2 + 1, w - 2, h - 2).stroke({ color, width: 2, alpha: 1 })
+        .rect(-w / 2 + 4, -h / 2 + 4, w - 8, h - 8).stroke({ color, width: 6, alpha: 0.28 })
+        .rect(-w / 2 + 9, -h / 2 + 9, w - 18, h - 18).stroke({ color, width: 6, alpha: 0.1 });
       breathers.add(this);
       startBreathing();
     } else breathers.delete(this);
@@ -300,7 +356,23 @@ const glowCache = new Map<string, Texture>();
 const RINGS: Record<Ring, { spread: number; ring: string; inner?: { spread: number; color: string }; glows: { x: number; y: number; blur: number; color: string }[] }> = {
   trigger: { spread: 2, ring: "#ff8ea6", glows: [{ x: 0, y: 0, blur: 46, color: "rgba(210,74,100,1)" }] },
   struck: { spread: 3, ring: "#a62640", glows: [{ x: 0, y: 0, blur: 46, color: "rgba(166,38,64,.95)" }] },
-  legal: { spread: 3, ring: "#6fbf8b", glows: [{ x: 0, y: 0, blur: 26, color: "rgba(111,191,139,.45)" }] },
+  legal: {
+    spread: 3,
+    ring: "#8fe0a8",
+    glows: [
+      { x: 0, y: 0, blur: 14, color: "rgba(170,240,195,.7)" },
+      { x: 0, y: 0, blur: 44, color: "rgba(111,191,139,.85)" },
+    ],
+  },
+  aimed: {
+    spread: 4,
+    ring: "#d6ffe2",
+    inner: { spread: 2, color: "#6fbf8b" },
+    glows: [
+      { x: 0, y: 0, blur: 20, color: "rgba(200,255,220,.9)" },
+      { x: 0, y: 0, blur: 60, color: "rgba(120,230,160,1)" },
+    ],
+  },
   pickable: { spread: 2, ring: "rgba(153,141,144,.55)", glows: [{ x: 0, y: 8, blur: 22, color: "rgba(0,0,0,.6)" }] },
   gestures: { spread: 2, ring: "rgba(224,49,75,.9)", glows: [{ x: 0, y: 8, blur: 22, color: "rgba(0,0,0,.6)" }] },
   chain: {

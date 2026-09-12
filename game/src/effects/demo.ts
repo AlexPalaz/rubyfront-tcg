@@ -3,7 +3,7 @@
 // vederli e per fotografarli da fuori (window.__effetti).
 //
 //   1 giocata · 2 tilt al passaggio · 3 foil · 4 attacco · 5 morte
-//   6 braci · 7 fase · 8 fuoco · 9 fulmine · 0 portale · F flip · N numeri
+//   6 braci · 7 fase · 8 fascio distruttivo · 9 fascio dinamico · 0 fascio dimensionale · F flip · N numeri
 
 import "@fontsource-variable/space-grotesk";
 import { allDecks, getCard, isRubyfront, useCatalog, type CatalogCard, type CatalogDeck } from "@rubyfront/core/cards";

@@ -132,6 +132,10 @@ export class TableGestures {
     // Sopra le carte, sotto scene, dadi e vetrine (che si portano in cima da sé).
     stage.world.addChildAt(this.layer, stage.world.getChildIndex(table.root) + 1);
     table.onCard(cardEvent => this.overCard(cardEvent));
+    // La mira di un effetto: il velo coi numeri starebbe sopra il bersaglio e
+    // si prenderebbe il tocco (serviva il doppio clic); si chiude, e finché
+    // si mira non si riapre.
+    this.aim.onOpen(() => this.closeVeil());
     table.onPile((seat, zone) => this.browse(seat, zone));
     table.onEmpty(() => {
       if (this.blockAim) this.cancelAim();
@@ -142,6 +146,28 @@ export class TableGestures {
     window.addEventListener("pointermove", event => this.move(event));
     window.addEventListener("pointerup", event => this.release(event));
     window.addEventListener("pointercancel", () => this.cancelGrab());
+  }
+
+  /**
+   * L'invito a scartare (§6.5): non si accende da sé all'ottava carta —
+   * pescarla a metà turno è legale, e sarebbe un rimprovero per tutto il
+   * turno. Si accende quando il Fine turno viene fermato (session.ts,
+   * turn.ts: promptDiscard), si spegne al primo scarto o al cambio di turno:
+   * il turno se lo porta scritto. Come il simulatore (table.ts, discardPrompt).
+   */
+  private discardPrompt: { seat: Seat; turn: number } | null = null;
+
+  /** Il Fine turno fermato dalla mano piena di `seat`: l'invito si accende; vero la prima volta nel turno (la riga in chat). */
+  promptDiscard(seat: Seat): boolean {
+    const turn = this.ctx.state().turn;
+    const already = this.discardPrompt?.seat === seat && this.discardPrompt.turn === turn;
+    this.discardPrompt = { seat, turn };
+    this.redraw();
+    return !already;
+  }
+
+  private clearDiscardPrompt(seat: Seat): void {
+    if (this.discardPrompt?.seat === seat) this.discardPrompt = null;
   }
 
   /** Le carte che ora offrono un gesto (per le prove da fuori). */
@@ -164,6 +190,11 @@ export class TableGestures {
     }
     const veiled = zoneCards(state, this.me, "hand").filter(card => this.gestures.unaffordable(card)).map(card => card.uid);
     this.table.marks({ tableGestures, veiled });
+    // §6.5 — l'invito a scartare (simulatore, discardPrompt): la tua Zona di
+    // Ritiro si accende quando il Fine turno è stato fermato dalla mano piena,
+    // in quel turno e finché le carte sono più di 7.
+    const prompt = this.discardPrompt;
+    this.table.setDiscardHint(prompt?.seat === this.me && prompt.turn === state.turn && this.ctx.controls(this.me) && zoneCards(state, this.me, "hand").length > 7);
     if (this.blockAim) this.table.aim(this.candidates(this.blockAim));
     // Il velo aperto segue la carta: si rifà coi tasti nuovi, o si chiude.
     if (this.veil) {
@@ -179,7 +210,7 @@ export class TableGestures {
     if (this.table.isBlocked()) return;
     const card = this.ctx.state().cards[cardEvent.uid];
     if (!card) return;
-    if (cardEvent.type === "over" && cardEvent.zone === "field" && this.veiled.has(card.uid)) {
+    if (cardEvent.type === "over" && cardEvent.zone === "field" && this.veiled.has(card.uid) && !this.aim.isOpen()) {
       // Mentre si trascina, il passaggio sopra una carta non apre il suo velo.
       if (!this.held?.ghost) this.openVeil(card.uid);
     }
@@ -238,7 +269,10 @@ export class TableGestures {
         void this.ctx.dispatch({ t: "toZone", uid, zone: action.zone, toBottom: action.toBottom });
         return;
       case "discard":
-        void this.gestures.discard(card).then(() => this.redraw());
+        void this.gestures.discard(card).then(passed => {
+          if (passed) this.clearDiscardPrompt(card.owner);
+          this.redraw();
+        });
         return;
     }
   }
@@ -353,13 +387,20 @@ export class TableGestures {
     const back = L.mine.back;
     const pile = back === null ? undefined : piles.find(entry => inside(L.x(entry.x), back, L.tileW, L.tileH));
     if (pile) {
-      void this.gestures.dropOnPile(live, this.me, pile.zone, held.origin).then(() => this.redraw());
+      void this.gestures.dropOnPile(live, this.me, pile.zone, held.origin).then(dropped => {
+        if (dropped) this.clearDiscardPrompt(live.owner);
+        this.redraw();
+      });
       return;
     }
     // Il cassetto della mano.
     if (inside(L.hand.x, L.hand.y, L.hand.w, L.hand.h)) {
       if (live.zone === "hand") this.redraw();
-      else void this.gestures.dropOnPile(live, this.me, "hand", held.origin).then(() => this.redraw());
+      else
+        void this.gestures.dropOnPile(live, this.me, "hand", held.origin).then(dropped => {
+          if (dropped) this.clearDiscardPrompt(live.owner);
+          this.redraw();
+        });
       return;
     }
     // Il campo: agganciata a un riquadro della tua fila del Fronte, o a mano libera.
