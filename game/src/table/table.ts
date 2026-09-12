@@ -2,9 +2,9 @@
 // del core, disegnata in Pixi — i due campi con i riquadri e le etichette,
 // le targhe dei posti (PV, Gettone, Flusso) e i nomi, le carte in campo, le
 // tue pile, il pannello delle pile avversarie, il cassetto della mano, il
-// gesto di fase. Si ridisegna con `mostra(state)`: le carte si riallineano
+// gesto di fase. Si ridisegna con `show(state)`: le carte si riallineano
 // per uid (nessuna si ricrea se c'era già), il resto — riquadri e scritte —
-// si ridipinge, che costa poco.
+// si ridipinge solo nei pezzi dove qualcosa è cambiato (paintKeyed).
 //
 // Il tema è «Notte» (2026-09-12, aspetto.ts): la valle sotto un velo scuro,
 // i campi come castoni al neon nella tinta del mazzo di ciascun posto, gli
@@ -13,14 +13,14 @@
 import { cardFacts, cardStats, deckTint, getCard, isRubyfront, type Tint } from "@rubyfront/core/cards";
 import { hasKeyword, powerOf, staticCounter } from "@rubyfront/core/combat";
 import { CONTROL_X, FRONT_SLOT_X, FRONT_W, FRONT_X, MATTER_X, RUBYFRONT_X, SLOT_X, SURFACE_W } from "@rubyfront/core/geometry";
-import { t } from "@rubyfront/core/i18n";
+import { lang, t } from "@rubyfront/core/i18n";
 import { phaseCloser, seatLabel, waveDeclared, zoneCards } from "@rubyfront/core/state";
 import type { CardInstance, GameState, Phase, Seat, ZoneId } from "@rubyfront/core/types";
 import { otherSeat } from "@rubyfront/core/types";
 import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import { fillLinear } from "../card/css";
 import { applyFont, drawText, textWidth, type Font } from "../card/text";
-import type { Stage } from "../stage";
+import type { Stage, Visible } from "../stage";
 import { CrispSprite, NIGHT, SEAT_PALETTE, SANS, THEME, slotFrame, loadNight, lighten, paintPiece, grain, octagon, plate, dashedRect, rgba, type SeatPalette } from "./appearance";
 import { TableCard, type Ring, type Badges, type Mark, type CardLook } from "./card";
 import { bezier, easeInOut, tween, reducedMotion } from "./animation";
@@ -107,7 +107,17 @@ export class Table {
   /** La valle e la grana si caricano una volta: arrivate, il tavolo si ridisegna. */
   private nightReady = false;
   private last: { state: GameState; L: TableLayout } | null = null;
-  private readonly overlay = new CrispSprite();
+  /** Sopra tutto, in pezzi piccoli: le due testate dei posti, il pannello ripiegato, il gesto di fase. */
+  private readonly overlay = new Container({ label: "overlay" });
+  private readonly seatHeads = { a: new CrispSprite(), b: new CrispSprite() };
+  private readonly dockHead = new CrispSprite();
+  private readonly phaseFace = new CrispSprite();
+  /** Le scritte delle tue pile col loro conto: cambiano a ogni pesca, il fondo no. */
+  private readonly pileLabels = new CrispSprite();
+  /** La targhetta «La tua mano · n»: cambia a ogni carta, il cassetto no. */
+  private readonly handTag = new CrispSprite();
+  /** Ciò che ogni pezzo dipinto mostra (paintKeyed): uguale, non si ridipinge. */
+  private readonly painted = new WeakMap<Sprite, string>();
   /** §7.2 — le Reattive in catena, al centro in luce; sotto di loro la penombra del tavolo. */
   private readonly chain = new Container({ label: "chain" });
   /** I fantasmi dei voli (voli.ts): sopra le carte, sotto il cassetto della mano (fly-ghost, z 25). */
@@ -174,7 +184,9 @@ export class Table {
   ) {
     this.cards.sortableChildren = true;
     // Il cassetto del tema notte non ha vetro sfocato: il velo scuro basta (e non costa un fotogramma).
-    this.hand.addChild(this.drawer);
+    this.hand.addChild(this.drawer, this.handTag);
+    this.overlay.addChild(this.seatHeads.a, this.seatHeads.b, this.dockHead, this.phaseFace);
+    this.pileLabels.eventMode = "none";
     this.dimmer.eventMode = "none";
     // Il pannello aperto copre il campo avversario: sotto di lui non si tocca nulla.
     this.panel.eventMode = "static";
@@ -186,7 +198,7 @@ export class Table {
     this.discardTag.eventMode = "none";
     this.discardHalo.visible = this.discardFrame.visible = this.discardTag.visible = false;
     // L'alone e il filo sotto le carte (la carta in cima alla pila copre il velo, non l'alone); la targhetta sopra il cassetto.
-    this.root.addChild(this.background, this.discardHalo, this.discardFrame, this.pileHits, this.cards, this.arrows, this.dimmer, this.chain, this.flights, this.hand, this.discardTag, this.overlay, this.panel, this.panelHits, this.panelCards, this.phaseButton, this.handToggle);
+    this.root.addChild(this.background, this.pileLabels, this.discardHalo, this.discardFrame, this.pileHits, this.cards, this.arrows, this.dimmer, this.chain, this.flights, this.hand, this.discardTag, this.overlay, this.panel, this.panelHits, this.panelCards, this.phaseButton, this.handToggle);
     this.phaseButton.eventMode = "static";
     this.phaseButton.on("pointertap", () => {
       if (this.buttonActive) this.closePhase?.();
@@ -547,12 +559,16 @@ export class Table {
       });
     }
 
-    // Il fondo: i due campi, i riquadri, le etichette. Un pezzo solo.
-    replace(this.background, paintPiece(visible.width, visible.height, resolution, ctx => {
+    // Il fondo: i due campi, i riquadri, le etichette. Un pezzo solo, che
+    // cambia con la finestra, le tinte e il Controllo; le scritte delle pile
+    // col loro conto stanno in un pezzo a parte, sopra.
+    const controlled = Object.values(state.cards).some(card => card.zone === "field" && card.controller === this.me);
+    this.paintKeyed(this.background, `${visible.x}|${visible.y}|${this.tints.a}|${this.tints.b}|${controlled}|${Boolean(NIGHT.valley)}|${Boolean(NIGHT.stone)}`, visible.width, visible.height, resolution, ctx => {
       ctx.translate(-visible.x, -visible.y);
-      this.paintBackground(ctx, state, L, visible);
-    }));
+      this.paintBackground(ctx, controlled, L, visible);
+    });
     this.background.position.set(visible.x, visible.y);
+    this.paintPileLabels(state, L, visible, resolution);
 
     // Le carte: in campo, in cima alle tue pile, nella tua mano.
     const alive = new Set<string>();
@@ -669,27 +685,25 @@ export class Table {
     }
 
     // Il cassetto della mano, sotto le sue carte.
-    replace(this.drawer, paintPiece(L.hand.w, L.hand.h + DRAWER_GAP, resolution, ctx => this.paintDrawer(ctx, state, L)));
+    this.paintKeyed(this.drawer, this.tints[this.me], L.hand.w, L.hand.h + DRAWER_GAP, resolution, ctx => this.paintDrawer(ctx, L));
     this.drawer.position.set(L.hand.x, L.hand.y - DRAWER_GAP);
+    this.paintHandTag(hand.length, L, resolution);
     this.paintDiscard(L, resolution);
     // Ripiegata, la mano resta giù (se non sta già scivolando); il tasto si ridipinge col tavolo.
     if (!this.handSliding) this.hand.y = this.handLift(L, hand.length);
     this.paintHandToggle(L, resolution);
 
-    // Sopra tutto: le targhe dei posti, il pannello delle pile avversarie, il gesto di fase.
-    replace(this.overlay, paintPiece(visible.width, visible.height, resolution, ctx => {
-      ctx.translate(-visible.x, -visible.y);
-      this.paintOverlay(ctx, state, L);
-    }));
-    this.overlay.position.set(visible.x, visible.y);
+    // Sopra tutto: le targhe dei posti, il pannello delle pile avversarie, il gesto di fase — ognuno nel suo pezzo.
+    this.paintOverlay(state, L, visible, resolution);
 
     // Il pannello aperto, sopra la testata; e le zone che si toccano.
     this.panel.visible = this.panelOpen;
     if (this.panelOpen) {
-      replace(this.panel, paintPiece(dock.w + 2 * PANEL_DROP_SHADOW, dock.h + 2 * PANEL_DROP_SHADOW, resolution, ctx => {
+      const panelKey = `${this.tints[foe]}|${(["abisso", "ritiro", "deck", "hand"] as const).map(zone => zoneCards(state, foe, zone).length).join(",")}`;
+      this.paintKeyed(this.panel, panelKey, dock.w + 2 * PANEL_DROP_SHADOW, dock.h + 2 * PANEL_DROP_SHADOW, resolution, ctx => {
         ctx.translate(PANEL_DROP_SHADOW, PANEL_DROP_SHADOW);
         this.paintPanel(ctx, state, L, dock);
-      }));
+      });
       this.panel.position.set(dock.x - PANEL_DROP_SHADOW, dock.y - PANEL_DROP_SHADOW);
       this.panel.hitArea = new Rectangle(PANEL_DROP_SHADOW, PANEL_DROP_SHADOW, dock.w, dock.h);
     }
@@ -700,9 +714,52 @@ export class Table {
     void this.ready();
   }
 
+  // ------------------------------------------------------ i pezzi dipinti
+
+  /**
+   * Dipinge un pezzo solo se ciò che mostra è cambiato (2026-09-13, «quando
+   * ci sono più animazioni il gioco inizia a laggare»): a ogni stato nuovo il
+   * tavolo rifaceva il fondo e il sopra a tutto schermo — la grana, i
+   * castoni, due fogli da milioni di pixel da ricaricare sulla scheda video —
+   * e i fotogrammi si fermavano fino a 300 ms proprio mentre le animazioni
+   * correvano. `key` dice tutto ciò che `draw` legge oltre alla misura, alla
+   * risoluzione e alla lingua: se `draw` legge altro, va nella chiave.
+   */
+  private paintKeyed(sprite: Sprite, key: string, w: number, h: number, resolution: number, draw: (ctx: CanvasRenderingContext2D) => void): void {
+    const full = `${key}|${w}|${h}|${resolution}|${lang()}`;
+    if (this.painted.get(sprite) === full) return;
+    this.painted.set(sprite, full);
+    replace(sprite, paintPiece(w, h, resolution, draw));
+  }
+
+  /** Un pezzo dipinto in coordinate del tavolo dentro il suo riquadro (`snapped`), e posato lì. */
+  private paintRegion(sprite: Sprite, key: string, box: PieceBox, resolution: number, draw: (ctx: CanvasRenderingContext2D) => void): void {
+    this.paintKeyed(sprite, `${key}|${box.x}|${box.y}`, box.w, box.h, resolution, ctx => {
+      ctx.translate(-box.x, -box.y);
+      draw(ctx);
+    });
+    sprite.position.set(box.x, box.y);
+  }
+
+  /** Le scritte delle tue pile col loro conto, sotto gli alloggi della fila di servizio. */
+  private paintPileLabels(state: GameState, L: TableLayout, visible: Visible, resolution: number): void {
+    const back = L.mine.back;
+    this.pileLabels.visible = back !== null;
+    if (back === null) return;
+    const labels = PILE.map(pile => ({ x: L.x(pile.x) + 4, text: `${t(pile.label)} · ${zoneCards(state, this.me, pile.zone).length}` }));
+    const left = Math.min(...labels.map(label => label.x));
+    const right = Math.max(...labels.map(label => label.x + textWidth(rowLabel, label.text)));
+    const top = back + L.tileH + 10;
+    const box = snapped(visible, resolution, left - PIECE_MARGIN, top - PIECE_MARGIN, right - left + 2 * PIECE_MARGIN, rowLabel.size + 2 * PIECE_MARGIN);
+    this.paintRegion(this.pileLabels, labels.map(label => label.text).join("|"), box, resolution, ctx => {
+      for (const label of labels) paintText(ctx, label.text, label.x, top, THEME.lettering, rowLabel, LABEL_SHADOWS);
+    });
+  }
+
   // ------------------------------------------------------------- il fondo
 
-  private paintBackground(ctx: CanvasRenderingContext2D, state: GameState, L: TableLayout, visible: { x: number; y: number; width: number; height: number }): void {
+  /** Legge solo ciò che sta nella sua chiave (show): la finestra, le tinte, il Controllo, la notte caricata. */
+  private paintBackground(ctx: CanvasRenderingContext2D, controlled: boolean, L: TableLayout, visible: { x: number; y: number; width: number; height: number }): void {
     const { x: vx, y: vy, width: vw, height: vh } = visible;
     // La stanza (.board del tema notte), dal fondo in su: il vuoto, la valle
     // già sfocata a coprire, un velo scuro, la grana di grafite, il bagliore
@@ -754,14 +811,10 @@ export class Table {
       const front = t("zone.front");
       paintText(ctx, front, L.x(FRONT_X) + (FRONT_W * L.s - textWidth(line, front)) / 2, field.front + L.tileH + 13, THEME.lettering, line, LABEL_SHADOWS);
 
-      // La tua fila di servizio: le pile col loro conto, e il Controllo se occupato.
+      // La tua fila di servizio: gli alloggi delle pile (il conto lo scrive
+      // paintPileLabels), e il Controllo se occupato.
       if (mine && field.back !== null) {
-        for (const pile of PILE) {
-          const n = zoneCards(state, seat, pile.zone).length;
-          slot(pile.x, field.back, null, null);
-          paintText(ctx, `${t(pile.label)} · ${n}`, L.x(pile.x) + 4, field.back + L.tileH + 10, THEME.lettering, rowLabel, LABEL_SHADOWS);
-        }
-        const controlled = Object.values(state.cards).some(card => card.zone === "field" && card.controller === seat);
+        for (const pile of PILE) slot(pile.x, field.back, null, null);
         if (controlled) slot(CONTROL_X, field.back, null, "zone.control");
       }
     }
@@ -786,7 +839,7 @@ export class Table {
     const w = L.tileW;
     const h = L.tileH;
     // L'alone: l'ombra d'oro di un riquadro che poi si toglie (resta solo fuori), come il box-shadow.
-    replace(this.discardHalo, paintPiece(w + 2 * DISCARD_MARGIN, h + 2 * DISCARD_MARGIN, resolution, ctx => {
+    this.paintKeyed(this.discardHalo, "halo", w + 2 * DISCARD_MARGIN, h + 2 * DISCARD_MARGIN, resolution, ctx => {
       const a = ctx.getTransform().a;
       ctx.translate(DISCARD_MARGIN, DISCARD_MARGIN);
       // Due aloni: largo e caldo, poi stretto e chiaro a filo dell'alloggio.
@@ -799,7 +852,7 @@ export class Table {
         ctx.restore();
       }
       ctx.clearRect(0, 0, w, h);
-    }));
+    });
     this.discardHalo.position.set(x - DISCARD_MARGIN, y - DISCARD_MARGIN);
     this.discardFrame.clear().rect(x, y, w, h).fill({ color: DISCARD_GOLD, alpha: 0.16 }).stroke({ color: DISCARD_GOLD, width: 2, alignment: 1 });
     // La targhetta, in cima all'alloggio e centrata: si legge come una richiesta.
@@ -807,7 +860,7 @@ export class Table {
     const tw = Math.ceil(textWidth(discardTag, label)) + 24;
     const th = 26;
     const pad = 16;
-    replace(this.discardTag, paintPiece(tw + 2 * pad, th + 2 * pad, resolution, ctx => {
+    this.paintKeyed(this.discardTag, label, tw + 2 * pad, th + 2 * pad, resolution, ctx => {
       ctx.translate(pad, pad);
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,.55)";
@@ -817,7 +870,7 @@ export class Table {
       ctx.fillRect(0, 0, tw, th);
       ctx.restore();
       paintText(ctx, label, 12, 5, "#0b090b", discardTag);
-    }));
+    });
     this.discardTag.position.set(x + (w - tw) / 2 - pad, y + 10 - pad);
   }
 
@@ -857,7 +910,7 @@ export class Table {
     const y = L.hand.y + L.hand.h - TOGGLE_MARGIN - h;
     const up = this.handCollapsed;
     const pad = 12;
-    replace(this.handToggleFace, paintPiece(w + 2 * pad, h + 2 * pad, resolution, ctx => {
+    this.paintKeyed(this.handToggleFace, String(up), w + 2 * pad, h + 2 * pad, resolution, ctx => {
       ctx.translate(pad, pad);
       plate(ctx, 0, 0, w, h, { shadow: true, edge: THEME.line, darkBackground: true });
       // Le due frecce del simulatore (viewBox 24, a 16 px): polilinee a tratto tondo.
@@ -876,14 +929,14 @@ export class Table {
         ctx.stroke();
       }
       ctx.restore();
-    }));
+    });
     this.handToggleFace.position.set(x - pad, y - pad);
     this.handToggle.hitArea = new Rectangle(x, y, w, h);
   }
 
   // ----------------------------------------------------------- il cassetto
 
-  private paintDrawer(ctx: CanvasRenderingContext2D, state: GameState, L: TableLayout): void {
+  private paintDrawer(ctx: CanvasRenderingContext2D, L: TableLayout): void {
     const top = DRAWER_GAP;
     const a = ctx.getTransform().a;
     const { w, h } = L.hand;
@@ -927,54 +980,81 @@ export class Table {
     ctx.fillStyle = "rgba(255,255,255,.28)";
     ctx.fillRect(w / 2 - 36, top + 10, 72, 4);
     ctx.restore();
-    // La targhetta «La tua mano · n», appoggiata sull'orlo: piastra scura col filo nella tua tinta.
-    const n = zoneCards(state, this.me, "hand").length;
+  }
+
+  /**
+   * La targhetta «La tua mano · n», appoggiata sull'orlo del cassetto: piastra
+   * scura col filo nella tua tinta, rubino oltre le 7. Nel cassetto stava a 24
+   * dall'orlo sinistro e 11 sopra il filo: il pezzo si aggancia alla griglia
+   * dei pixel del cassetto, così cade dove cadeva.
+   */
+  private paintHandTag(n: number, L: TableLayout, resolution: number): void {
+    const tint = SEAT_PALETTE[this.tints[this.me]].hand;
+    const hi = lighten(tint, 0.35);
     const excess = n > 7;
     const font: Font = { ...tag, weight: 700 };
     const label = t("hand.mine", { n });
     const tw = textWidth(font, label) + 24;
-    const tx = 24;
-    const ty = top - 11;
-    const edge = excess ? THEME.ruby : hi;
-    ctx.save();
-    ctx.shadowColor = rgba(tint, 0.35);
-    ctx.shadowBlur = 10 * a;
-    ctx.fillStyle = "rgba(6,5,10,.94)";
-    ctx.fillRect(tx, ty, tw, 26);
-    ctx.restore();
-    ctx.save();
-    ctx.shadowColor = "rgba(0,0,0,.55)";
-    ctx.shadowBlur = 8 * a;
-    ctx.shadowOffsetY = 2 * a;
-    ctx.fillStyle = "rgba(6,5,10,.94)";
-    ctx.fillRect(tx, ty, tw, 26);
-    ctx.restore();
-    ctx.strokeStyle = edge;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(tx + 0.5, ty + 0.5, tw - 1, 25);
-    paintText(ctx, label, tx + 12, ty + 5, excess ? "#ffb3c2" : "#f4f1f3", font);
+    const tx = L.hand.x + 24;
+    const ty = L.hand.y - 11;
+    const box = snapped({ x: L.hand.x, y: L.hand.y - DRAWER_GAP }, resolution, tx - PIECE_MARGIN, ty - PIECE_MARGIN, tw + 2 * PIECE_MARGIN, 26 + 2 * PIECE_MARGIN);
+    this.paintRegion(this.handTag, `${label}|${excess}|${tint}`, box, resolution, ctx => {
+      const a = ctx.getTransform().a;
+      const edge = excess ? THEME.ruby : hi;
+      ctx.save();
+      ctx.shadowColor = rgba(tint, 0.35);
+      ctx.shadowBlur = 10 * a;
+      ctx.fillStyle = "rgba(6,5,10,.94)";
+      ctx.fillRect(tx, ty, tw, 26);
+      ctx.restore();
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,.55)";
+      ctx.shadowBlur = 8 * a;
+      ctx.shadowOffsetY = 2 * a;
+      ctx.fillStyle = "rgba(6,5,10,.94)";
+      ctx.fillRect(tx, ty, tw, 26);
+      ctx.restore();
+      ctx.strokeStyle = edge;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(tx + 0.5, ty + 0.5, tw - 1, 25);
+      paintText(ctx, label, tx + 12, ty + 5, excess ? "#ffb3c2" : "#f4f1f3", font);
+    });
   }
 
   // ---------------------------------------------------------------- sopra
 
-  private paintOverlay(ctx: CanvasRenderingContext2D, state: GameState, L: TableLayout): void {
+  /**
+   * Sopra tutto, in quattro pezzi piccoli al posto di un foglio a tutto
+   * schermo: le due testate dei posti, il pannello ripiegato, il gesto di
+   * fase. Ognuno si ridipinge solo quando cambia ciò che mostra (PV, Flusso,
+   * Gettone, conti, fase) e cade pixel su pixel dove cadeva il foglio.
+   */
+  private paintOverlay(state: GameState, L: TableLayout, visible: Visible, resolution: number): void {
     const foe = otherSeat(this.me);
     for (const [seat, field] of [[foe, L.foe], [this.me, L.mine]] as const) {
       const mine = seat === this.me;
       const palette = SEAT_PALETTE[this.tints[seat]];
+      const player = state.players[seat];
       // La testata, a cavallo dell'orlo in alto a sinistra: PV, Gettone e Flusso sul filo, poi la targhetta del nome.
       const headX = L.halfX + 24;
-      const width = seatPlate(ctx, state, seat, headX, field.top);
       const name = `${seatLabel(state, seat, this.me)}${mine ? t("label.you") : ""}`;
-      nameplate(ctx, name, headX + width + 12, field.top - 13, palette);
+      const width = Math.max(HEAD_W, HEAD_W / 2 + textWidth(tag, name));
+      const box = snapped(visible, resolution, headX - PIECE_MARGIN, field.top - HEAD_H / 2 - PIECE_MARGIN, width + 2 * PIECE_MARGIN, HEAD_H + 2 * PIECE_MARGIN);
+      this.paintRegion(this.seatHeads[seat], `${player.hp}|${player.token}|${player.flux}|${name}|${this.tints[seat]}`, box, resolution, ctx => {
+        const plateW = seatPlate(ctx, state, seat, headX, field.top);
+        nameplate(ctx, name, headX + plateW + 12, field.top - 13, palette);
+      });
     }
 
     // Il pannello delle pile avversarie, ripiegato: la piastra coi conti, in alto a destra.
     const counts = PILE.map(pile => `${t(pile.label)} · ${zoneCards(state, foe, pile.zone).length}`).join("   ");
     const { w: dockW, x: dockX, y: dockY } = dockOf(L);
-    plate(ctx, dockX, dockY, dockW, DOCK_HEAD_H, { shadow: true, edge: THEME.line, darkBackground: true });
-    paintText(ctx, "▸", dockX + 14, dockY + 7, THEME.ink, header);
-    paintText(ctx, counts, dockX + 36, dockY + 7, THEME.muted, header);
+    const dockBox = snapped(visible, resolution, dockX - PIECE_MARGIN, dockY - PIECE_MARGIN, dockW + 2 * PIECE_MARGIN, DOCK_HEAD_H + 2 * PIECE_MARGIN);
+    this.paintRegion(this.dockHead, counts, dockBox, resolution, ctx => {
+      plate(ctx, dockX, dockY, dockW, DOCK_HEAD_H, { shadow: true, edge: THEME.line, darkBackground: true });
+      paintText(ctx, "▸", dockX + 14, dockY + 7, THEME.ink, header);
+      paintText(ctx, counts, dockX + 36, dockY + 7, THEME.muted, header);
+    });
 
     // Il gesto di fase, in basso a destra: dice quale fase chiude, e ne ha il colore.
     const endsTurn = state.phase === "fronte" && !waveDeclared(state);
@@ -997,25 +1077,54 @@ export class Table {
     this.phaseButton.hitArea = new Rectangle(x, y, w, h);
     this.phaseButton.cursor = mine ? "pointer" : "default";
     this.buttonActive = mine;
-    ctx.save();
-    if (!mine) ctx.filter = "saturate(.4) brightness(.75)";
-    ctx.save();
-    ctx.shadowColor = state.phase === "reazione" ? "rgba(86,68,128,.45)" : state.phase === "fronte" ? "rgba(107,8,34,.45)" : "rgba(158,15,52,.4)";
-    ctx.shadowBlur = 10 * ctx.getTransform().a;
-    ctx.shadowOffsetY = 4 * ctx.getTransform().a;
-    fillLinear(ctx, { x, y, w, h }, 180, [[hi, 0], [lo, 1]]);
-    ctx.restore();
-    fillLinear(ctx, { x, y, w, h }, 180, [[hi, 0], [lo, 1]]);
-    ctx.strokeStyle = edge;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-    applyFont(ctx, font);
-    drawText(ctx, { kind: "text", text: label, font, color: state.phase === "reazione" ? "#f1ecfa" : "#fdeef1" }, x + 18, y + h / 2 + 5.5);
-    ctx.restore();
+    const phaseBox = snapped(visible, resolution, x - PIECE_MARGIN, y - PIECE_MARGIN, w + 2 * PIECE_MARGIN, h + 2 * PIECE_MARGIN);
+    this.paintRegion(this.phaseFace, `${state.phase}|${label}|${mine}`, phaseBox, resolution, ctx => {
+      ctx.save();
+      if (!mine) ctx.filter = "saturate(.4) brightness(.75)";
+      ctx.save();
+      ctx.shadowColor = state.phase === "reazione" ? "rgba(86,68,128,.45)" : state.phase === "fronte" ? "rgba(107,8,34,.45)" : "rgba(158,15,52,.4)";
+      ctx.shadowBlur = 10 * ctx.getTransform().a;
+      ctx.shadowOffsetY = 4 * ctx.getTransform().a;
+      fillLinear(ctx, { x, y, w, h }, 180, [[hi, 0], [lo, 1]]);
+      ctx.restore();
+      fillLinear(ctx, { x, y, w, h }, 180, [[hi, 0], [lo, 1]]);
+      ctx.strokeStyle = edge;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+      applyFont(ctx, font);
+      drawText(ctx, { kind: "text", text: label, font, color: state.phase === "reazione" ? "#f1ecfa" : "#fdeef1" }, x + 18, y + h / 2 + 5.5);
+      ctx.restore();
+    });
   }
 }
 
 // ------------------------------------------------------------ gli attrezzi
+
+/** Un pezzo piccolo del tavolo: il suo riquadro in unità di progetto. */
+interface PieceBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** L'aria attorno ai pezzi piccoli per ombre e aloni (il più largo: 12 di sfocatura, 4 di scarto). */
+const PIECE_MARGIN = 32;
+/** La testata di un posto: la gemma dei PV è alta 54; largo quanto basta a targa e nome (se il nome è lungo, di più). */
+const HEAD_W = 900;
+const HEAD_H = 54;
+
+/**
+ * Il riquadro (x, y, w, h) agganciato alla griglia dei pixel di `origin`
+ * (l'angolo del foglio in cui il disegno cadeva prima): l'angolo arretra fino
+ * a un pixel intero, così ogni tratto cade sullo stesso pixel di prima e i
+ * pezzi (CrispSprite) non si spostano di mezzo pixel.
+ */
+function snapped(origin: { x: number; y: number }, resolution: number, x: number, y: number, w: number, h: number): PieceBox {
+  const bx = origin.x + Math.floor((x - origin.x) * resolution) / resolution;
+  const by = origin.y + Math.floor((y - origin.y) * resolution) / resolution;
+  return { x: bx, y: by, w: w + (x - bx), h: h + (y - by) };
+}
 
 /** La testata del pannello delle pile avversarie, e il margine per l'ombra del pannello aperto. */
 const DOCK_HEAD_H = 30;
