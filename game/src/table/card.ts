@@ -7,7 +7,7 @@
 // Il contenitore ha l'origine al centro della carta: la rotazione della
 // tappata gira attorno a lì, come nel simulatore.
 
-import { ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, Texture, Ticker, type Filter } from "pixi.js";
+import { ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, Texture, Ticker, type Filter, type Renderer } from "pixi.js";
 import { faceTexture } from "../card/cache";
 import { SERIF } from "../card/theme";
 import { applyFont, drawText, textWidth, type Font } from "../card/text";
@@ -86,6 +86,10 @@ export class TableCard extends Container {
   /** Tappata secondo l'ultimo aspetto (null prima del primo disegno): la rotazione può essere ancora a metà corsa. */
   private tappedNow: boolean | null = null;
   private tapRun = 0;
+  /** L'opacità chiesta dall'ultimo aspetto (la mira spegne le carte che non si scelgono). */
+  private lookAlpha = 1;
+  /** Nascosta sotto la sua copia sollevata (effects/hover.ts): trasparente ma sensibile — tocco, presa e menu restano suoi. */
+  private ghost = false;
   private readonly face = new Sprite();
   /** Un filtro di luce sulla sola faccia (il foil delle Uniche, effects/director.ts), accanto alla velatura. */
   private sheen: Filter | null = null;
@@ -109,6 +113,32 @@ export class TableCard extends Container {
     this.breath.eventMode = "none";
     this.addChild(this.shadow, this.glow, this.face, this.veil, this.breath, this.overlay);
     this.on("destroyed", () => breathers.delete(this));
+  }
+
+  /**
+   * La carta com'è ora, senza la sua ombra, in una texture centrata sulla sua
+   * origine (il tilt al passaggio, effects/hover.ts: la copia in prospettiva e
+   * la maschera del riflesso girano attorno allo stesso centro). La
+   * rotazione della tappata non c'è: la aggiunge chi la usa.
+   */
+  snapshot(renderer: Renderer, resolution: number): { texture: Texture; w: number; h: number } {
+    const shadowShown = this.shadow.visible;
+    const alpha = this.alpha;
+    this.shadow.visible = false;
+    this.alpha = this.lookAlpha;
+    const bounds = this.getLocalBounds();
+    const halfW = Math.ceil(Math.max(-bounds.x, bounds.x + bounds.width));
+    const halfH = Math.ceil(Math.max(-bounds.y, bounds.y + bounds.height));
+    const texture = renderer.generateTexture({ target: this, frame: new Rectangle(-halfW, -halfH, halfW * 2, halfH * 2), resolution });
+    this.shadow.visible = shadowShown;
+    this.alpha = alpha;
+    return { texture, w: halfW * 2, h: halfH * 2 };
+  }
+
+  /** Sotto la copia sollevata del passaggio: invisibile, ma il puntatore la trova ancora (renderable=false la toglierebbe dal tocco). */
+  setGhost(on: boolean): void {
+    this.ghost = on;
+    this.alpha = on ? 0 : this.lookAlpha;
   }
 
   /** Tappata o no, anche mentre sta ancora girando. */
@@ -218,7 +248,8 @@ export class TableCard extends Container {
         this.glow.position.set(-w / 2 - GLOW_MARGIN, -h / 2 - GLOW_MARGIN);
       }
     }
-    this.alpha = look.alpha ?? 1;
+    this.lookAlpha = look.alpha ?? 1;
+    this.alpha = this.ghost ? 0 : this.lookAlpha;
     // Il respiro: sull'anello dei gesti (rubino) e sul bersaglio della mira
     // (verde), a tempo con tutte le altre (un orologio solo).
     const breathes = ring === "gestures" || ring === "legal";

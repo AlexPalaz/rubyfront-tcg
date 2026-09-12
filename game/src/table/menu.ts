@@ -6,10 +6,10 @@
 // di una velatura rubino: il rubino cupo pieno del simulatore, sul chiaro,
 // lascerebbe il testo scuro su fondo scuro.
 
-import { Container, Graphics, Point, Rectangle, Sprite, type Texture } from "pixi.js";
+import { Container, Graphics, Point, Rectangle, type Texture } from "pixi.js";
 import { drawText, fontMetrics, textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
-import { SANS, paintPiece, withShadow } from "./appearance";
+import { CrispSprite, SANS, paintPiece, withShadow } from "./appearance";
 import { NIGHT, plate } from "./night";
 
 export interface MenuItem {
@@ -101,11 +101,11 @@ export class Menu {
     });
 
     const root = new Container({ label: "open-menu" });
-    const sprite = new Sprite(background);
+    const sprite = new CrispSprite(background);
     sprite.position.set(left - MARGIN, top - MARGIN);
     const light = new Graphics();
     light.eventMode = "none";
-    const text = new Sprite(labels);
+    const text = new CrispSprite(labels);
     text.position.set(left, top);
     text.eventMode = "none";
     root.addChild(sprite, light, text);

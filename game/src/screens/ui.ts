@@ -15,7 +15,7 @@ import { ColorMatrixFilter, Container, Graphics, NineSliceSprite, Point, Rectang
 import { totalHeight, drawLines, drawText, fontMetrics, layout, textWidth, type Font, type TextShadow } from "../card/text";
 import type { Stage, Visible } from "../stage";
 import { playSound } from "../sound";
-import { SANS, paintPiece, linearGradient, withShadow } from "../table/appearance";
+import { CrispSprite, SANS, paintPiece, linearGradient, withShadow } from "../table/appearance";
 
 /** La tavolozza del tema scuro «Notte» (style.css del simulatore, l'ultimo blocco body[data-ui-theme="notte"]). */
 export const BG = "#0b090d";
@@ -68,7 +68,7 @@ export const FONT_BASE: Font = { size: 16, weight: 400, family: SANS };
 
 /** Un tasto dipinto: la sua scritta, il suo vestito, il passaggio che lo schiarisce o gli accende il filo, lo spento a .38. */
 export class Button extends Container {
-  private readonly sprite = new Sprite();
+  private readonly sprite = new CrispSprite();
   private readonly light = new ColorMatrixFilter();
   private readonly edge = new Graphics();
   private texture: Texture | null = null;
@@ -233,7 +233,7 @@ export function paintText(
       drawLines(ctx, [line], margin + dx, margin);
     }
   });
-  const sprite = new Sprite(texture);
+  const sprite = new CrispSprite(texture);
   sprite.pivot.set(margin, margin);
   sprite.eventMode = "none";
   sprite.on("destroyed", () => texture.destroy(true));

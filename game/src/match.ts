@@ -191,10 +191,8 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
       if (Date.now() - lastDeclareAt >= 600) playSound("tap");
       return;
     }
-    if (action.t === "toZone" && action.zone === "field") {
-      if (state.cards[action.uid]?.zone === "hand") playSound("play");
-      return;
-    }
+    // La giocata non suona qui: l'incastonamento parte all'urto sul tavolo (effects/director.ts, playSocket), a volo finito.
+    if (action.t === "toZone" && action.zone === "field") return;
     // La pesca: un suono per carta, col ritmo con cui entrano in mano — solo la propria.
     if (action.t === "draw" && action.seat === me) {
       const count = Math.min(action.count, zoneCards(state, me, "deck").length);
@@ -394,7 +392,8 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     struckRubyfront: uid => table.strike(uid, TRIGGER_LEAD_MS + FLY_MS),
   });
   director = directorInstance;
-  entrance.onLanding = uid => directorInstance.landing(uid);
+  // L'ingresso dei Rubyfront: l'atterraggio senza il suono della giocata (scelta del designer, 2026-09-12).
+  entrance.onLanding = uid => directorInstance.landing(uid, 1.5, false);
   // La carta del turno aspetta che l'insegna se ne vada.
   table.entryDelay = () => banner.remaining();
 

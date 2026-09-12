@@ -11,10 +11,10 @@
 
 import { t } from "@rubyfront/core/i18n";
 import type { CardInstance } from "@rubyfront/core/types";
-import { Sprite, Texture } from "pixi.js";
+import { Texture } from "pixi.js";
 import { totalHeight, drawLines, layout, type Font } from "../card/text";
 import type { Stage } from "../stage";
-import { SANS, paintPiece, withShadow } from "./appearance";
+import { CrispSprite, SANS, paintPiece, withShadow } from "./appearance";
 import type { Arrows } from "./arrows";
 import type { Table } from "./table";
 
@@ -23,7 +23,7 @@ const HINT: Font = { size: 16, weight: 400, family: SANS, spacing: 16 * 0.06 };
 const MARGIN = 50;
 
 export class Aim {
-  private readonly sprite = new Sprite();
+  private readonly sprite = new CrispSprite();
   private armed: { candidates: Map<string, CardInstance>; endAt: (card: CardInstance | null) => void } | null = null;
   /** Le frecce: dalla fonte dell'effetto al dito (partita.ts le presta). */
   arrows: Arrows | null = null;

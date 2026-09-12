@@ -10,10 +10,10 @@
 // anteprima è stata chiusa col pointerdown non la riapre finché il mouse non
 // ne esce.
 
-import { Sprite } from "pixi.js";
 import { faceTexture } from "../card/cache";
 import { CARD_H, CARD_W } from "../card/theme";
 import type { Stage } from "../stage";
+import { CrispSprite } from "./appearance";
 
 /**
  * Da dove vengono le carte da ingrandire: il tavolo (tavolo.ts) o la vista
@@ -29,7 +29,7 @@ const OPEN_DELAY = 130;
 const MARGIN = 12;
 
 export class Preview {
-  private readonly sprite = new Sprite();
+  private readonly sprite = new CrispSprite();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private suppressed: string | null = null;
   private shown: string | null = null;

@@ -9,7 +9,7 @@
 // attrezzi per dipingere i pezzi d'interfaccia col canvas, come le carte.
 
 import type { Tint } from "@rubyfront/core/cards";
-import { Texture } from "pixi.js";
+import { Sprite, Texture, type SpriteOptions } from "pixi.js";
 import stoneUrl from "./night-stone.png";
 
 export const SANS = '"Space Grotesk Variable", ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
@@ -241,6 +241,20 @@ export function grain(ctx: CanvasRenderingContext2D, x: number, y: number, w: nu
   ctx.fillStyle = pattern;
   ctx.fillRect(x, y, w, h);
   ctx.restore();
+}
+
+/**
+ * Uno Sprite d'interfaccia agganciato ai pixel del dispositivo (2026-09-13:
+ * «le scritte dei tasti non sono in alta qualità»): a una scala qualunque —
+ * 0,7875 su un MacBook — i tasti cadevano a mezzo pixel e la scheda video,
+ * ricampionandoli, li sfumava. Solo l'interfaccia: le carte in prospettiva,
+ * i voli e il dado che gira no, lì l'aggancio farebbe tremare i contorni.
+ */
+export class CrispSprite extends Sprite {
+  constructor(options?: SpriteOptions | Texture) {
+    super(options);
+    this.roundPixels = true;
+  }
 }
 
 /**

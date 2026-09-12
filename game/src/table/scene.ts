@@ -12,13 +12,13 @@
 
 import type { ChoiceShow, SceneShow } from "@rubyfront/core/gestures";
 import { t } from "@rubyfront/core/i18n";
-import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
+import { Container, Graphics, Rectangle, Texture } from "pixi.js";
 import { faceTexture } from "../card/cache";
 import { CARD_H, CARD_W } from "../card/theme";
 import { totalHeight, drawLines, drawText, fontMetrics, layout, textWidth, type Font, type TextShadow, type TextLine } from "../card/text";
 import type { Stage, Visible } from "../stage";
 import { key, tween, easeIn, easeOut } from "./animation";
-import { SANS, paintPiece, withShadow } from "./appearance";
+import { CrispSprite, SANS, paintPiece, withShadow } from "./appearance";
 import { FIXED } from "./layout";
 import { NIGHT, LIGHT_VEIL, MOMENT_VEIL, plate, setBlurred, below } from "./night";
 
@@ -354,7 +354,7 @@ export class Scene {
     veil.eventMode = peek ? "none" : "static";
     const cardX = sx + PAD;
     const cardY = sy + PAD + (contentH - ch) / 2;
-    const shadow = new Sprite(paint(cw + 2 * SHADOW, ch + 2 * SHADOW, ctx => {
+    const shadow = new CrispSprite(paint(cw + 2 * SHADOW, ch + 2 * SHADOW, ctx => {
       const rect = (): void => {
         ctx.fillStyle = "#000";
         ctx.fillRect(SHADOW, SHADOW, cw, ch);
@@ -364,7 +364,7 @@ export class Scene {
       withShadow(ctx, res, { x: 0, y: 30, blur: 80, color: "rgba(0,0,0,.7)" }, rect);
     }));
     shadow.position.set(cardX - SHADOW, cardY - SHADOW);
-    const card = new Sprite(face ?? Texture.WHITE);
+    const card = new CrispSprite(face ?? Texture.WHITE);
     // Il perno al centro: la carta si accende ingrandendosi appena (effect-lit).
     card.anchor.set(0.5);
     card.position.set(cardX + cw / 2, cardY + ch / 2);
@@ -372,7 +372,7 @@ export class Scene {
     card.height = ch;
     const cardScale = card.scale.x;
     // Il bagliore rubino che sale e si posa (effect-lit: da 0 a 90px, poi i 40px dell'ombra).
-    const glowFilter = new Sprite(paint(cw + 2 * SHADOW, ch + 2 * SHADOW, ctx => {
+    const glowFilter = new CrispSprite(paint(cw + 2 * SHADOW, ch + 2 * SHADOW, ctx => {
       withShadow(ctx, res, { x: 0, y: 0, blur: 90, color: "rgba(210,74,100,1)" }, () => {
         ctx.fillStyle = "#000";
         ctx.fillRect(SHADOW, SHADOW, cw, ch);
@@ -382,7 +382,7 @@ export class Scene {
     glowFilter.alpha = 0;
     const sideX = cardX + cw + COL_GAP;
     const sideY = sy + PAD + (contentH - side.h) / 2;
-    const column = new Sprite(paint(SIDE_W + 2 * COL_M, side.h + 2 * COL_M, ctx => {
+    const column = new CrispSprite(paint(SIDE_W + 2 * COL_M, side.h + 2 * COL_M, ctx => {
       ctx.translate(COL_M, COL_M);
       side.draw(ctx);
     }));
@@ -468,7 +468,7 @@ export class Scene {
       blocks.forEach((block, index) => block.draw(ctx, seats[index], rowY));
     });
     const root = new Container({ label: "panel" });
-    const sprite = new Sprite(texture);
+    const sprite = new CrispSprite(texture);
     sprite.position.set(px - PANEL_SHADOW, py - PANEL_SHADOW);
     // Il pannello si prende i suoi click; il tavolo attorno resta com'è.
     const background = hitZone(px, py, PANEL_W, h, () => undefined);

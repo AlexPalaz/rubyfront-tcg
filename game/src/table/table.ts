@@ -21,7 +21,7 @@ import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
 import { fillLinear } from "../card/css";
 import { applyFont, drawText, textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
-import { NIGHT, SEAT_PALETTE, SANS, THEME, slotFrame, loadNight, lighten, paintPiece, grain, octagon, plate, dashedRect, rgba, type SeatPalette } from "./appearance";
+import { CrispSprite, NIGHT, SEAT_PALETTE, SANS, THEME, slotFrame, loadNight, lighten, paintPiece, grain, octagon, plate, dashedRect, rgba, type SeatPalette } from "./appearance";
 import { TableCard, type Ring, type Badges, type Mark, type CardLook } from "./card";
 import { bezier, easeInOut, tween, reducedMotion } from "./animation";
 import { layout, type TableLayout } from "./layout";
@@ -98,16 +98,16 @@ const discardTag: Font = { size: 15, weight: 700, family: SANS, spacing: 15 * 0.
 
 export class Table {
   readonly root = new Container({ label: "table" });
-  private readonly background = new Sprite();
+  private readonly background = new CrispSprite();
   private readonly cards = new Container({ label: "cards" });
   private readonly hand = new Container({ label: "hand" });
-  private readonly drawer = new Sprite();
+  private readonly drawer = new CrispSprite();
   /** La tinta di ogni posto (il suo mazzo, core/cards deckTint): orli, lastre, alloggi, targhe, cassetto. */
   private readonly tints: Record<Seat, Tint> = { a: "dynamic", b: "dynamic" };
   /** La valle e la grana si caricano una volta: arrivate, il tavolo si ridisegna. */
   private nightReady = false;
   private last: { state: GameState; L: TableLayout } | null = null;
-  private readonly overlay = new Sprite();
+  private readonly overlay = new CrispSprite();
   /** §7.2 — le Reattive in catena, al centro in luce; sotto di loro la penombra del tavolo. */
   private readonly chain = new Container({ label: "chain" });
   /** I fantasmi dei voli (voli.ts): sopra le carte, sotto il cassetto della mano (fly-ghost, z 25). */
@@ -125,7 +125,7 @@ export class Table {
   private chainOpen = false;
   /** Le pile che si toccano: le tue Abisso e Ritiro (sotto le carte), il pannello avversario (sopra tutto). */
   private readonly pileHits = new Container({ label: "pile-hits" });
-  private readonly panel = new Sprite();
+  private readonly panel = new CrispSprite();
   private readonly panelHits = new Container({ label: "panel-hits" });
   private readonly panelCards = new Container({ label: "panel-cards" });
   /** Il pannello delle pile avversarie aperto (rincasso: parte ripiegato sulla testata coi conti). */
@@ -154,12 +154,12 @@ export class Table {
   private handSliding = false;
   /** Il tasto che ripiega la mano (.hand-toggle), dentro l'orlo destro del cassetto. */
   private readonly handToggle = new Container({ label: "hand-toggle" });
-  private readonly handToggleFace = new Sprite();
+  private readonly handToggleFace = new CrispSprite();
   /** §6.5 — lo scarto possibile (gestures.ts, canDiscard): la Zona di Ritiro accesa, l'alone, la targhetta. */
   private discardOn = false;
-  private readonly discardHalo = new Sprite();
+  private readonly discardHalo = new CrispSprite();
   private readonly discardFrame = new Graphics();
-  private readonly discardTag = new Sprite();
+  private readonly discardTag = new CrispSprite();
   /** L'ultima vista data a ogni carta: i momenti la ridipingono senza rifare il tavolo. */
   private readonly lastLooks = new Map<string, CardLook>();
   private readonly emptyListeners: (() => void)[] = [];

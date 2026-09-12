@@ -23,7 +23,7 @@ import { faceTexture } from "../card/cache";
 import { CARD_W } from "../card/theme";
 import { drawText, fontMetrics, textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
-import { SANS, THEME, paintPiece, linearGradient, withShadow } from "./appearance";
+import { CrispSprite, SANS, THEME, paintPiece, linearGradient, withShadow } from "./appearance";
 import { arrow, swords } from "./card";
 import type { Arrows } from "./arrows";
 import type { Menu } from "./menu";
@@ -333,7 +333,7 @@ export class TableGestures {
     const live = this.ctx.state().cards[uid];
     const L = this.table.layout();
     if (!live || !L) return null;
-    const ghost = new Sprite(Texture.WHITE);
+    const ghost = new CrispSprite(Texture.WHITE);
     ghost.width = L.tileW;
     ghost.height = L.tileH;
     ghost.alpha = 0.92;
@@ -474,7 +474,7 @@ export class TableGestures {
       });
     });
     const root = new Container({ label: "veil" });
-    const sprite = new Sprite(texture);
+    const sprite = new CrispSprite(texture);
     sprite.position.set(x - VEIL_MARGIN, y - VEIL_MARGIN);
     root.addChild(sprite);
     root.eventMode = "static";
@@ -628,7 +628,7 @@ export class TableGestures {
       const y = bottom + (entry.line === 0 ? 17 : 58) - RF_H;
       const texture = paintPiece(w + 2 * margin, RF_H + 2 * margin, res, ctx => button(ctx, res, margin, margin, w, RF_H, entry.label, TAB, entry.tint));
       this.paintedCount.rubyfront.push(texture);
-      const sprite = new Sprite(texture);
+      const sprite = new CrispSprite(texture);
       sprite.position.set(x - margin, y - margin);
       sprite.alpha = entry.dimmed ? 0.45 : 1;
       // Il flip pronto respira (flip-btn-breathe, 1.6s): un anello dorato che si allarga e sfuma.
@@ -723,7 +723,7 @@ export class TableGestures {
       }
     });
     this.paintedCount.barra.push(texture);
-    const sprite = new Sprite(texture);
+    const sprite = new CrispSprite(texture);
     sprite.position.set(x - margin, y - margin);
     this.toolbar.addChild(sprite);
     if (mine) {

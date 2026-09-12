@@ -73,6 +73,32 @@ export async function createStage(host: HTMLElement): Promise<Stage> {
   app.renderer.on("resize", layout);
   layout();
 
+  // La densità dei pixel cambia a gioco aperto (la finestra passa dal monitor
+  // esterno allo schermo Retina, lo zoom del browser): il renderer la segue e
+  // tutto si ridipinge alla nuova risoluzione (layout → onLayout). Fissata
+  // una volta sola all'avvio, restava quella vecchia e le scritte si
+  // sgranavano «come un monitor VGA» (2026-09-13).
+  // Il cambio non sempre arriva come evento (spostare la finestra fra i
+  // monitor, certi zoom): si guarda anche a ogni ridimensionamento e una
+  // volta al secondo — un confronto fra due numeri.
+  const syncDensity = (): void => {
+    const wanted = Math.min(window.devicePixelRatio || 1, 2);
+    if (wanted !== app.renderer.resolution) app.renderer.resize(window.innerWidth, window.innerHeight, wanted);
+  };
+  const followDensity = (): void => {
+    window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`).addEventListener(
+      "change",
+      () => {
+        syncDensity();
+        followDensity();
+      },
+      { once: true }
+    );
+  };
+  followDensity();
+  window.addEventListener("resize", syncDensity);
+  setInterval(syncDensity, 1000);
+
   return {
     app,
     world,

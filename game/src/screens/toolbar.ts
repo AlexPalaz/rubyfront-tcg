@@ -8,12 +8,12 @@
 // sotto la barra (.toolbar::after).
 
 import { t } from "@rubyfront/core/i18n";
-import { Container, FillGradient, Graphics, Rectangle, Sprite, Texture, TilingSprite } from "pixi.js";
+import { Container, FillGradient, Graphics, Rectangle, Texture, TilingSprite } from "pixi.js";
 import { loadImage } from "../card/resources";
 import { drawText, fontMetrics, textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
 import { playSound } from "../sound";
-import { SANS, paintPiece, linearGradient } from "../table/appearance";
+import { CrispSprite, SANS, paintPiece, linearGradient } from "../table/appearance";
 import { tween, ease } from "../table/animation";
 import { STONE } from "./stone";
 import { TOOLBAR_H, FONT_BASE, INK, MUTED, RUBY, Button, hex } from "./ui";
@@ -39,15 +39,15 @@ export class Toolbar {
   readonly root = new Container({ label: "toolbar" });
   private readonly background = new Graphics();
   private readonly stone = new TilingSprite({ texture: Texture.EMPTY, width: 1, height: 1 });
-  private readonly light = new Sprite();
+  private readonly light = new CrispSprite();
   private lightTexture: Texture | null = null;
-  private readonly glow = new Sprite();
+  private readonly glow = new CrispSprite();
   private glowTex: Texture | null = null;
   private readonly brand = new Container({ label: "logo" });
-  private readonly brandSprite = new Sprite();
+  private readonly brandSprite = new CrispSprite();
   private brandTextures: { base: Texture; light: Texture } | null = null;
   private readonly gear = new Container({ label: "gear" });
-  private readonly rotateTo = new Sprite();
+  private readonly rotateTo = new CrispSprite();
   private gearTexture: Texture | null = null;
   private readonly statusDot = new Graphics();
   private readonly leave: Button;

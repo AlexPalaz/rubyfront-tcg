@@ -17,7 +17,7 @@ import { loadImage } from "../card/resources";
 import { drawText, fontMetrics, textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
 import { HOME_MUSIC, playSound, startMusic, unlockSound } from "../sound";
-import { SANS, paintPiece, linearGradient } from "../table/appearance";
+import { CrispSprite, SANS, paintPiece, linearGradient } from "../table/appearance";
 import { bezier, reducedMotion } from "../table/animation";
 import { cssFilter } from "./filters";
 import { TextField, FONT_BASE, PAPER, Button, fitTitle, areaBelow, slabShadow, placeShadow, paintText } from "./ui";
@@ -161,11 +161,11 @@ export interface HomeActions {
 
 export class Home {
   readonly root = new Container({ label: "home" });
-  private readonly background = new Sprite();
-  private readonly landscape = new Sprite();
-  private readonly veil = new Sprite();
+  private readonly background = new CrispSprite();
+  private readonly landscape = new CrispSprite();
+  private readonly veil = new CrispSprite();
   private readonly greeting = new Container({ label: "greeting" });
-  private readonly gemGlow = new Sprite();
+  private readonly gemGlow = new CrispSprite();
   private readonly row = new Container({ label: "cards" });
   private readonly cards: HomeCard[] = [];
   private readonly field: TextField;
@@ -303,14 +303,14 @@ export class Home {
     );
     openShadow.alpha = 0;
     const slab = new Graphics();
-    const art = new Sprite();
+    const art = new CrispSprite();
     const artMask = new Graphics();
     art.mask = artMask;
     // Le carte in grigio sono spente (grayscale, brightness .42); le altre si abbassano un poco quando se ne apre una.
     const dimmed = off ? cssFilter([["grayscale", 1], ["brightness", 0.42]]) : cssFilter([["brightness", 0.62], ["saturate", 0.85]]);
     dimmed.alpha = off ? 1 : 0;
     art.filters = [dimmed];
-    const veil = new Sprite(veilTexture());
+    const veil = new CrispSprite(veilTexture());
     veil.eventMode = "none";
     const text = new Container();
     const textMask = new Graphics();
@@ -506,7 +506,7 @@ export class Home {
     text.sprite.position.set(-text.w / 2, textY);
     // La gemma: quadrato ruotato, gradiente rubino, filo rosa; la sua luce respira a parte.
     const m = 40;
-    const gemSprite = new Sprite(
+    const gemSprite = new CrispSprite(
       paintPiece(gem * 2 + 2 * m, gem * 2 + 2 * m, res, ctx => {
         ctx.translate(gem + m, gem + m);
         ctx.rotate(Math.PI / 4);
@@ -540,7 +540,7 @@ export class Home {
     this.gemGlow.anchor.set(0.5);
     this.gemGlow.position.set(0, gem / 2);
     const edge = (direction: 1 | -1): Sprite => {
-      const sprite = new Sprite(
+      const sprite = new CrispSprite(
         paintPiece(lineW + 20, 21, res, ctx => {
           ctx.shadowColor = "rgba(255,255,255,.6)";
           ctx.shadowBlur = 8 * res;
@@ -584,7 +584,7 @@ export class Home {
       const { ascent, descent } = fontMetrics(TAG_OFF);
       drawText(ctx, { kind: "text", text, font: TAG_OFF, color: "rgba(243,237,240,.6)" }, 9, (h + ascent - descent) / 2);
     });
-    const sprite = new Sprite(texture);
+    const sprite = new CrispSprite(texture);
     sprite.on("destroyed", () => texture.destroy(true));
     return { sprite, w, h };
   }

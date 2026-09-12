@@ -12,7 +12,7 @@ import { Container, FillGradient, Graphics, Rectangle, Sprite, type FederatedPoi
 import { drawText, fontMetrics, textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
 import { playSound } from "../sound";
-import { SANS, paintPiece } from "../table/appearance";
+import { CrispSprite, SANS, paintPiece } from "../table/appearance";
 import { reducedMotion } from "../table/animation";
 import { TOOLBAR_H, TextField, ACTION_EDGE, FONT_BASE, INK, LINE, MUTED, PANEL, PANEL_2, ACTION_LABEL, Button, hex, slabShadow, placeShadow, paintText } from "./ui";
 
@@ -359,7 +359,7 @@ export class Onboarding {
       x += tw + gap;
       drawText(ctx, { kind: "text", text: gem, font: BRAND, color: "#e0314b" }, x, baseline);
     });
-    const sprite = new Sprite(texture);
+    const sprite = new CrispSprite(texture);
     sprite.on("destroyed", () => texture.destroy(true));
     return { sprite, h };
   }

@@ -9,11 +9,11 @@
 
 import { allDecks, cardStats, faceCount, isRubyfront, type CatalogDeck } from "@rubyfront/core/cards";
 import { t } from "@rubyfront/core/i18n";
-import { Container, Graphics, Sprite, type FederatedWheelEvent } from "pixi.js";
+import { Container, Graphics, type FederatedWheelEvent } from "pixi.js";
 import { drawText, fontMetrics, textWidth, type Font } from "../card/text";
 import { CARD_H, CARD_W } from "../card/theme";
 import type { Stage } from "../stage";
-import { SANS, paintPiece } from "../table/appearance";
+import { CrispSprite, SANS, paintPiece } from "../table/appearance";
 import { TableCard } from "../table/card";
 import type { PreviewSource } from "../table/preview";
 import { BG, ACTION_EDGE, FONT_BASE, INK, LINE, LINE_SOFT, MUTED, PANEL, ACTION_LABEL, Button, areaBelow, hex, slabShadow, placeShadow, paintText } from "./ui";
@@ -244,7 +244,7 @@ export class DeckBrowser implements PreviewSource {
       const { ascent, descent } = fontMetrics(COPIES);
       drawText(ctx, { kind: "text", text, font: COPIES, color: "#fdeef1" }, 9, (bh + ascent - descent) / 2);
     });
-    const badge = new Sprite(texture);
+    const badge = new CrispSprite(texture);
     badge.eventMode = "none";
     badge.on("destroyed", () => texture.destroy(true));
     badge.position.set(x + w - 10 - bw, y + h - 10 - bh);

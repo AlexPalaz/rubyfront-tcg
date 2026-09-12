@@ -5,10 +5,10 @@
 // piastra del tema: il ripensamento a sinistra, col filo della linea; il gesto
 // a destra, col filo e la scritta del rubino. Esc e il click fuori valgono «no».
 
-import { Container, Graphics, Sprite } from "pixi.js";
+import { Container, Graphics } from "pixi.js";
 import { drawLines, drawText, fontMetrics, layout, textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
-import { SANS, paintPiece, linearGradient, withShadow } from "../table/appearance";
+import { CrispSprite, SANS, paintPiece, linearGradient, withShadow } from "../table/appearance";
 import { ACTION_EDGE, GLASS_HEAVY, INK, LINE, OVERLAY_VEIL, RUBY, ACTION_LABEL } from "./ui";
 
 /** .ask-card: 460 di larghezza; .engine-stop-card: padding 26 28 22, gap 12. */
@@ -105,7 +105,7 @@ export function askQuestion(stage: Stage, ask: AskOptions): Promise<boolean> {
   const root = new Container({ label: "question" });
   const veil = new Graphics().rect(0, 0, screen.width, screen.height).fill({ color: 0x080608, alpha: 0.82 });
   veil.eventMode = "static";
-  const card = new Sprite(texture);
+  const card = new CrispSprite(texture);
   card.width = (W + 2 * margin) * scale;
   card.height = (h + 2 * margin) * scale;
   const cardX = (screen.width - W * scale) / 2;

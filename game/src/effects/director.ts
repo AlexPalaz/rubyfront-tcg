@@ -22,11 +22,13 @@ import { clashesOf, fallenOf } from "@rubyfront/core/clashes";
 import type { Action, Battle, CardInstance, GameState, Seat } from "@rubyfront/core/types";
 import { Sprite, type Texture } from "pixi.js";
 import { faceTexture } from "../card/cache";
+import { playSocket, playWhoosh } from "../sound";
 import { CARD_W } from "../card/theme";
 import type { Stage } from "../stage";
 import { wait, tween, easeOut, reducedMotion } from "../table/animation";
 import type { Table } from "../table/table";
 import { glowFilter } from "./filters";
+import { HoverTilt } from "./hover";
 import { Card3D, Effects, FoilFilter } from "./index";
 
 type Box = { x: number; y: number; w: number; h: number };
@@ -75,9 +77,8 @@ export class Director {
   readonly effects: Effects;
   private readonly foil = new FoilFilter(0.6);
   private time = 0;
-  private below: string | null = null;
-  private readonly returning = new Set<string>();
-  private pointer: XY = { x: -1e6, y: -1e6 };
+  /** Il passaggio sopra le carte: la copia in prospettiva che s'inclina (effects/hover.ts). */
+  private readonly hover: HoverTilt;
   private phaseKey: string | null = null;
   private finished = false;
   private readonly lastSpell = new Map<string, number>();
@@ -98,27 +99,16 @@ export class Director {
     stage.app.ticker.add(ticker => {
       this.time += ticker.deltaMS / 1000;
       this.foil.time = this.time;
-      this.tilt();
+      this.hover.update(ticker.deltaMS / 1000);
     });
+    // Il passaggio: la carta in prospettiva che s'inclina verso il puntatore (effects/hover.ts); il foil segue la stessa luce.
+    this.hover = new HoverTilt(stage, table);
+    this.hover.onLight = (dx, dy) => this.foil.light(dx, dy);
     table.onCard(cardEvent => {
-      if (cardEvent.type === "over") {
-        if (this.below && this.below !== cardEvent.uid) this.returning.add(this.below);
-        this.below = cardEvent.uid;
-        this.returning.delete(cardEvent.uid);
-      } else if ((cardEvent.type === "out" || cardEvent.type === "grab") && this.below === cardEvent.uid) {
-        this.returning.add(cardEvent.uid);
-        this.below = null;
-      }
+      if (cardEvent.type === "over") this.hover.over(cardEvent.uid);
+      else if (cardEvent.type === "out") this.hover.out(cardEvent.uid);
+      else if (cardEvent.type === "grab") this.hover.drop(cardEvent.uid);
     });
-    window.addEventListener(
-      "pointermove",
-      event => {
-        const rect = stage.app.canvas.getBoundingClientRect();
-        const p = stage.world.toLocal({ x: event.clientX - rect.left, y: event.clientY - rect.top });
-        this.pointer = { x: p.x, y: p.y };
-      },
-      { passive: true }
-    );
     stage.onLayout(v => this.effects.startEmbers({ x: v.x, y: v.y, w: v.width, h: v.height }));
   }
 
@@ -137,34 +127,6 @@ export class Director {
   }
 
   // ------------------------------------------------------------ sempre
-
-  /** La carta sotto il puntatore s'inclina verso di lui; lasciata, torna dritta. Il foil segue la stessa luce. */
-  private tilt(): void {
-    const maximum = reducedMotion() ? 0 : 0.045;
-    const step = (uid: string, kx: number, ky: number): boolean => {
-      const view = this.table.view(uid);
-      if (!view || view.destroyed) return false;
-      view.skew.x += (kx - view.skew.x) * 0.2;
-      view.skew.y += (ky - view.skew.y) * 0.2;
-      return Math.abs(view.skew.x - kx) > 0.0005 || Math.abs(view.skew.y - ky) > 0.0005;
-    };
-    if (this.below) {
-      const box = this.table.box(this.below);
-      if (box) {
-        const c = center(box);
-        const dx = Math.max(-1, Math.min(1, (this.pointer.x - c.x) / (box.w / 2)));
-        const dy = Math.max(-1, Math.min(1, (this.pointer.y - c.y) / (box.h / 2)));
-        step(this.below, dy * maximum, -dx * maximum);
-        this.foil.light(dx, dy);
-      }
-    }
-    for (const uid of [...this.returning]) {
-      if (step(uid, 0, 0)) continue;
-      const view = this.table.view(uid);
-      if (view && !view.destroyed) view.skew.set(0, 0);
-      this.returning.delete(uid);
-    }
-  }
 
   /** Dopo ogni ridisegno: il foil delle Uniche, la lama di una fase nuova, lo scoppio della fine. */
   afterPaint(state: GameState): void {
@@ -297,12 +259,14 @@ export class Director {
       this.effects.overlay.addChild(card3d);
       view.visible = false;
       const grow = spot.w / from.w;
+      playWhoosh(520);
       await tween(this.stage.app.ticker, 520, k => {
         if (!card3d) return;
         card3d.position.set(start.x + (to.x - start.x) * k, start.y + (to.y - start.y) * k - Math.sin(k * Math.PI) * 140);
         card3d.scale.set((1 + (grow - 1) * k) * (1 + 0.2 * Math.sin(k * Math.PI)));
       }, easeOut);
       if (!card3d) return;
+      playSocket(cardTint(card.cardId), 0.85);
       // Al centro si accende: l'alone d'oro della catena e la tinta della Materia.
       card3d.filters = [glowFilter(0xffcf7a, 2.5)];
       void this.effects.spells.aura(cardTint(card.cardId), to.x, to.y, spot.w, spot.h);
@@ -367,6 +331,7 @@ export class Director {
       view.visible = false;
       const direction = arrival.x >= departure.x ? 1 : -1;
       const rise = Math.min(260, Math.hypot(arrival.x - departure.x, arrival.y - departure.y) * 0.45);
+      playWhoosh(480);
       await tween(this.stage.app.ticker, 480, k => {
         card3d.position.set(departure.x + (arrival.x - departure.x) * k, departure.y + (arrival.y - departure.y) * k - Math.sin(k * Math.PI) * rise);
         card3d.scale.set(1 + 0.35 * Math.sin(k * Math.PI));
@@ -375,6 +340,8 @@ export class Director {
       card3d.destroy({ children: true });
       if (!view.destroyed) view.visible = true;
     }
+    // L'incastonamento suona all'urto, non alla giocata: la carta è appena arrivata.
+    playSocket(cardTint(card.cardId), cardStats(card.cardId).kind === "entity" ? 1 : 0.85);
     void this.effects.hits.impact(arrival.x, arrival.y, box.w, box.h, cardStats(card.cardId).kind === "entity" ? 1 : 0.8);
     // Una Materia che scende accende la sua tinta.
     if (cardStats(card.cardId).kind === "matter") void this.effects.spells.aura(cardTint(card.cardId), arrival.x, arrival.y, box.w, box.h);
@@ -385,11 +352,13 @@ export class Director {
   }
 
   /** Il Rubyfront che si posa (lo schieramento, l'atterraggio dell'ingresso): l'impatto grande e la sua tinta. */
-  landing(uid: string, strength = 1.5): void {
+  landing(uid: string, strength = 1.5, sound = true): void {
     const card = this.ctx.state().cards[uid];
     const box = this.table.box(uid);
     if (!card || !box) return;
     const c = center(box);
+    // L'ingresso dei due Rubyfront a inizio partita si posa in silenzio (scelta del designer, 2026-09-12); lo schieramento suona.
+    if (sound) playSocket(cardTint(card.cardId), 1.3);
     void this.effects.hits.impact(c.x, c.y, box.w, box.h, strength);
     void this.effects.spells.aura(cardTint(card.cardId), c.x, c.y, box.w, box.h);
   }

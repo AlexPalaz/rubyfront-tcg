@@ -10,10 +10,10 @@
 
 import { t } from "@rubyfront/core/i18n";
 import type { CardInstance } from "@rubyfront/core/types";
-import { Container, Graphics, Rectangle, Sprite } from "pixi.js";
+import { Container, Graphics, Rectangle } from "pixi.js";
 import { totalHeight, drawLines, drawText, fontMetrics, layout, textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
-import { SANS, paintPiece } from "./appearance";
+import { CrispSprite, SANS, paintPiece } from "./appearance";
 import { TableCard } from "./card";
 import { NIGHT, VEIL_OVERLAY, plate } from "./night";
 
@@ -105,7 +105,7 @@ export class PileViewer {
     const root = new Container({ label: "pile-viewer" });
     const veil = new Graphics().rect(v.x, v.y, v.width, v.height).fill(VEIL_OVERLAY);
     veil.eventMode = "static";
-    const panelSprite = new Sprite(panel);
+    const panelSprite = new CrispSprite(panel);
     panelSprite.position.set(px, py);
     // Il pannello si prende i suoi click: solo il velo fuori rinuncia.
     panelSprite.eventMode = "static";

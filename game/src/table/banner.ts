@@ -12,11 +12,11 @@ import { seatLabel } from "@rubyfront/core/state";
 import { describeGameOver } from "@rubyfront/core/turn";
 import type { GameState, Phase, Seat } from "@rubyfront/core/types";
 import { otherSeat } from "@rubyfront/core/types";
-import { Container, Graphics, Rectangle, Sprite, type Texture } from "pixi.js";
+import { Container, Graphics, Rectangle, type Texture } from "pixi.js";
 import { drawText, fontMetrics, textWidth, type Font, type TextShadow } from "../card/text";
 import type { Stage } from "../stage";
 import { key, tween, easeOut, reducedMotion } from "./animation";
-import { SANS, paintPiece, linearGradient } from "./appearance";
+import { CrispSprite, SANS, paintPiece, linearGradient } from "./appearance";
 import { FIXED } from "./layout";
 import { NIGHT, withAlpha, plate, setBlurred, below } from "./night";
 
@@ -133,7 +133,7 @@ export class Banner {
     const res = v.scale * this.stage.app.renderer.resolution;
     const bandH = 150;
     const cy = v.y + FIXED.bar + (v.height - FIXED.bar) / 2;
-    const band = new Sprite(paintPiece(v.width, bandH, res, ctx => paintBand(ctx, v.width, bandH)));
+    const band = new CrispSprite(paintPiece(v.width, bandH, res, ctx => paintBand(ctx, v.width, bandH)));
     band.position.set(v.x, cy - bandH / 2);
     // Le tre righe: turno (20), titolo (46), sotto (20), 6 fra l'una e l'altra.
     const textW = Math.min(v.width, 1600);
@@ -152,9 +152,9 @@ export class Banner {
       const subM = fontMetrics(SUB);
       line(ctx, sub, SUB, MUTED, textW / 2, textH - 20 + (20 + subM.ascent - subM.descent) / 2);
     });
-    const lines = new Sprite(linesTexture);
+    const lines = new CrispSprite(linesTexture);
     lines.position.set(v.x + (v.width - textW) / 2, cy - textH / 2);
-    const titleSprite = new Sprite(titleTexture);
+    const titleSprite = new CrispSprite(titleTexture);
     titleSprite.anchor.set(0.5);
     titleSprite.position.set(v.x + v.width / 2, cy - textH / 2 + 26 + 23);
     const root = new Container({ label: "phase-banner" });
@@ -224,7 +224,7 @@ export class Banner {
     // color-mix(in srgb, var(--bg) 74%, transparent) sul Notte, e sotto il tavolo sfocato.
     const veil = new Graphics().rect(v.x, v.y, v.width, v.height).fill({ color: 0x0b090d, alpha: 0.74 });
     veil.eventMode = "static";
-    const band = new Sprite(paintPiece(v.width, bandH, res, ctx => paintBand(ctx, v.width, bandH)));
+    const band = new CrispSprite(paintPiece(v.width, bandH, res, ctx => paintBand(ctx, v.width, bandH)));
     band.position.set(v.x, cy - bandH / 2);
     const textW = Math.min(v.width, 1600);
     const label = t("over.newgame");
@@ -242,7 +242,7 @@ export class Banner {
       const m = fontMetrics(BUTTON);
       line(ctx, label, BUTTON, NIGHT.goInk, textW / 2, by + (buttonH + m.ascent - m.descent) / 2);
     });
-    const content = new Sprite(texture);
+    const content = new CrispSprite(texture);
     const top = cy - contentH / 2;
     content.position.set(v.x + (v.width - textW) / 2, top - GLOW);
     const button = new Container({ label: "new-game" });

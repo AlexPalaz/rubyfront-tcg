@@ -6,10 +6,10 @@
 
 import { verdictReason, type EngineVerdict } from "@rubyfront/core/engine";
 import { t } from "@rubyfront/core/i18n";
-import { Container, Graphics, Rectangle, Sprite } from "pixi.js";
+import { Container, Graphics, Rectangle } from "pixi.js";
 import { applyFont, drawLines, drawText, layout, textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
-import { SANS, paintPiece } from "./appearance";
+import { CrispSprite, SANS, paintPiece } from "./appearance";
 import { NIGHT, VEIL_OVERLAY, plate, setBlurred } from "./night";
 
 const W = 460;
@@ -17,7 +17,7 @@ const W = 460;
 export class Seal {
   private readonly root = new Container({ label: "seal" });
   private readonly veil = new Graphics();
-  private readonly card = new Sprite();
+  private readonly card = new CrispSprite();
   private readonly button = new Container({ label: "seal-ok" });
   private isVisible = false;
   /** Il tavolo e le schermate sfocati sotto il velo (backdrop-filter: blur(6px)). */

@@ -12,10 +12,10 @@ import type { Ctx } from "@rubyfront/core/ctx";
 import { t } from "@rubyfront/core/i18n";
 import { seatLabel } from "@rubyfront/core/state";
 import type { Seat } from "@rubyfront/core/types";
-import { Container, Graphics, Rectangle, Sprite, type FederatedWheelEvent } from "pixi.js";
+import { Container, Graphics, Rectangle, type FederatedWheelEvent } from "pixi.js";
 import { totalHeight, drawLines, layout, type Font } from "../card/text";
 import type { Stage } from "../stage";
-import { SANS, paintPiece } from "../table/appearance";
+import { CrispSprite, SANS, paintPiece } from "../table/appearance";
 import { TOOLBAR_H, TextField, FONT_BASE, INK, LINE, LINE_SOFT, MUTED, SURFACE, Button, hex, slabShadow, placeShadow, paintText } from "./ui";
 
 const W = 340;
@@ -159,7 +159,7 @@ export class Chat {
         c.fillRect(0, 0, 3, lh);
         drawLines(c, lines, 11, 3);
       });
-      const row = new Sprite(texture);
+      const row = new CrispSprite(texture);
       row.on("destroyed", () => texture.destroy(true));
       row.position.set(x + PAD, top + ry);
       this.lines.addChild(row);
