@@ -1,10 +1,29 @@
 # macOS metadata
 .DS_Store
 
-# dipendenze del simulatore (npm install le rimette)
+# dipendenze del workspace (npm install dalla radice le rimette)
 node_modules/
 
 
 # la build del sito la fa la CI (Vercel): non si committa più
 docs/simulatore/
 dist/
+
+# il rapporto del confronto delle carte (game/scripts/compare-cards.mjs)
+game/compare/report*/
+
+# le foto delle prove del gioco (game/scripts: test-screens, crossplay, table-side-by-side, test-effects, test-match, test-gestures)
+game/compare/screens/
+game/compare/crossplay/
+game/compare/table/
+game/compare/effects/
+game/test-match/
+game/test-gestures/
+
+# il desktop (desktop/): la build del gioco e i pacchetti si rifanno da capo
+desktop/app/
+desktop/release/
+desktop/steam/output/
+
+# le foto della resa (scripts/resolution-photos.mjs, cartella predefinita)
+game/resolution-photos/

@@ -2625,7 +2625,7 @@ module Rubyfront
         shown = @table.card(reveal)
         entry = shown && @cards[shown[:card_id]]
         return no_rule("look") unless entry
-        return refuse("look", "con #{roll} si può mostrare solo #{tipo_it(wanted)}: non questa (§8.2)", "with #{roll} only #{tipo_en(wanted)} can be revealed: not this one (§8.2)") unless entry[:type] == wanted
+        return refuse("look", "con #{roll} si può mostrare solo #{type_it(wanted)}: non questa (§8.2)", "with #{roll} only #{type_en(wanted)} can be revealed: not this one (§8.2)") unless entry[:type] == wanted
         return refuse("look", "mostrata una carta, nessuna torna in cima (§8.2)", "with a card revealed, none goes back on top (§8.2)") if top
       else
         return refuse("look", "senza mostrarne una, una delle guardate va in cima al mazzo (§8.2)", "without revealing one, one of the cards looked at goes on top of the deck (§8.2)") unless top && looked.include?(top)
@@ -2640,11 +2640,11 @@ module Rubyfront
       allow("look")
     end
 
-    def tipo_it(type)
+    def type_it(type)
       { "matter" => "una Materia", "object" => "un Oggetto", "entity" => "un'Entità" }[type] || "nulla"
     end
 
-    def tipo_en(type)
+    def type_en(type)
       { "matter" => "a Matter", "object" => "an Object", "entity" => "an Entity" }[type] || "nothing"
     end
 

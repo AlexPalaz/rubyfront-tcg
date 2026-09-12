@@ -1,12 +1,12 @@
 ---
 name: regole-engine
-description: Come si collega una regola del MANUALE all'engine Ruby e al simulatore, e come si tocca il canale fra i due. Da usare SEMPRE prima di lavorare su engine/ (regole, anagrafe, copia del tavolo, protocollo), sul riduttore o sulle routine del simulatore (state.ts, turn.ts, combat.ts, engine.ts) o sul comportamento «con l'arbitro al tavolo» — quando l'utente chiede la prossima regola, segnala che l'engine ferma o lascia passare qualcosa a torto, o vuole un automatismo del tavolo.
+description: Come si collega una regola del MANUALE all'engine Ruby e al simulatore, e come si tocca il canale fra i due. Da usare SEMPRE prima di lavorare su engine/ (regole, anagrafe, copia del tavolo, protocollo), sul riduttore o sulle routine dei client (core/: state.ts, turn.ts, combat.ts, effects.ts, engine.ts, session.ts) o sul comportamento «con l'arbitro al tavolo» — quando l'utente chiede la prossima regola, segnala che l'engine ferma o lascia passare qualcosa a torto, o vuole un automatismo del tavolo.
 ---
 
 # Regole engine ↔ simulatore
 
 L'engine (`engine/`, Ruby, nessuna dipendenza) **dà le regole ed è l'unico a
-scrivere lo stato** (deciso 2026-09-11): il simulatore (`simulatore/`,
+scrivere lo stato** (deciso 2026-09-11): il simulatore (`simulator/`,
 TypeScript) trattiene ogni azione finché l'engine non risponde, su un «no»
 la lascia cadere mostrando il sigillo, e in stanza l'avversario riceve solo
 le azioni che il tavolo ha approvato. Le regole di `docs/MANUALE.md` si collegano **una alla volta**, su
@@ -23,10 +23,12 @@ file nella stessa modifica.
 | Anagrafe | `engine/lib/rubyfront/card_index.rb` | L'unico file che tocca il disco: legge `data/sets/*/cards/*/<id>.json` una volta e congela. Tipo, razza, parole chiave, concessioni certificate, Potenza, Contrattacco, costo di Flusso, costo di schieramento, etichetta e abilitazioni delle Materie, comportamento. |
 | Stanza | `engine/lib/rubyfront/room.rb` | Un `Engine` per partita, i client seduti, il **giornale** delle azioni approvate, l'inoltro agli altri client solo dopo il verdetto. In stanza l'attore è il posto del client; la stanza «solo» (senza nome: locale, bot) si fida dell'attore dichiarato e accetta lo snapshot. |
 | Trasporto | `engine/bin/server`, `engine/lib/rubyfront/websocket.rb` | Un thread per client, una stanza per partita (`?room=&seat=`). |
-| Riduttore | `simulatore/src/state.ts` | `apply(state, action)`: la semantica condivisa. Ciò che cambia qui cambia in `table.rb`, e viceversa. |
-| Routine | `simulatore/src/turn.ts`, `combat.ts` | Fasi, fine turno, risoluzione, fine partita: puro TS, provabile con un `Ctx` finto. |
-| Canale | `simulatore/src/engine.ts`, `main.ts` (`dispatch`, `commit`, `receive`, `rebuildFromJournal`, `actorFor`) | Un canale solo: `judge` per ogni azione, `onAction` per quelle avversarie approvate, `onJournal` all'ingresso (la lavagna si ricostruisce con `replay`, state.ts). `snapshot` solo nella «solo». |
-| Tavolo e HUD | `simulatore/src/table.ts`, `hud.ts`, `banner.ts`, `dice.ts` | Con `ctx.arbitrated()` i gesti manuali si ritirano e il tavolo si lega agli slot. |
+| Riduttore | `core/src/state.ts` | `apply(state, action)`: la semantica condivisa dei client (simulatore e gioco). Ciò che cambia qui cambia in `table.rb`, e viceversa. |
+| Routine | `core/src/turn.ts`, `combat.ts`, `effects.ts` | Fasi, fine turno, risoluzione, fine partita, effetti: puro TS, provabile con un `Ctx` finto. |
+| Canale | `core/src/engine.ts`, `core/src/session.ts` (`dispatch`, `commit`, `receive`, `rebuildFromJournal`, `actorFor`) | Un canale solo: `judge` per ogni azione, `onAction` per quelle avversarie approvate, `onJournal` all'ingresso (la lavagna si ricostruisce con `replay`, state.ts). `snapshot` solo nella «solo». La sessione non ha DOM: ciò che si vede lo chiede alla vista (`SessionView`). |
+| Anagrafe del client | `core/src/cards.ts` (`cardStats`) | Lo specchio di `card_index.rb`: stessi campi, stesse forme certificate. Il catalogo lo consegna il client (`useCatalog`). |
+| Gesti | `core/src/gestures.ts`, `core/src/tabs.ts` | I gesti e gli inneschi (§3.1, §7.2, §8.2) come sequenza di azioni, attese e scelte, e i tasti che una carta offre: condivisi dai due client. Un effetto nuovo si risolve qui, non in `table.ts`; la vista dà solo luci, voli, scene, dado, mira, finestre (`GestureView`). La prova che un ritocco non cambia il comportamento è `game/scripts/record-match.mjs` (una partita col bot a seme fisso, prima e dopo). |
+| Tavolo e HUD | `simulator/src/table.ts`, `hud.ts`, `banner.ts`, `dice.ts` (e, dalla migrazione, le viste Pixi in `game/`) | Con `ctx.arbitrated()` i gesti manuali si ritirano e il tavolo si lega agli slot. |
 | Racconto | `engine/README.md` | Un paragrafo per regola collegata, coi limiti dichiarati. Fonte di verità di cosa fa l'engine. |
 
 Il contratto dei verdetti: `ruled: false` = nessuna regola, il simulatore
@@ -62,7 +64,7 @@ protocollo del README.
 
 Ogni richiesta di giudizio porta `actor`: in rete il posto del client, in
 partita locale il proprietario della carta o del contatore toccato, chi è di
-turno per fase e turno (`actorFor` in `main.ts`). La dogana del turno
+turno per fase e turno (`actorFor` in `core/src/session.ts`). La dogana del turno
 (`judge_actor`) viene **prima** di tutte le altre. Le sue eccezioni sono un
 elenco da tenere aggiornato, perché ogni gesto legittimo nel turno altrui o
 prima del primo turno deve passare di lì: apparecchiatura (`loadDeck`,
@@ -83,10 +85,10 @@ con `cost` non è un pixel: è lo schieramento.
    le carte, l'anagrafe impara il campo (con `integer_stat`/forme certificate:
    forma ignota → nil, mai fraintesa) e `card_index_test.rb` lo prova sulle
    carte vere. Il client legge lo stesso campo da `cardStats` in
-   `renderer.ts`, mai da altrove.
+   `core/src/cards.ts`, mai da altrove.
 3. **Scegliere la forma** (sopra) e scrivere prima i gemelli se cambia la
    semantica condivisa: `state.ts` e `table.rb`, con i test in
-   `simulatore/test/state.test.ts` e `engine/test/table_test.rb`, uno lo
+   `core/test/state.test.ts` e `engine/test/table_test.rb`, uno lo
    specchio dell'altro (dirlo nel commento: «Gemello: …»).
 4. **La dogana** in `engine.rb`: un `judge_*` o un blocco dentro quello
    esistente, nell'ordine delle dogane già lì (attore → partita finita →
@@ -94,7 +96,7 @@ con `cost` non è un pixel: è lo schieramento.
    dice, in poche parole»), `VERSION` +0.1.0. Ogni `refuse` con una frase
    che un giocatore capisce e il § in coda — **in due lingue**:
    `refuse(kind, italiano, inglese)`, stessa targhetta «(§x.y, …)» in
-   entrambe (il test `nessun_rifiuto_resta_senza_inglese` lo pretende); le
+   entrambe (il test `test_no_refusal_left_without_english` lo pretende); le
    parole interpolate hanno la gemella `_en`.
 5. **Il client**: solo se serve un gesto nuovo o un dato nell'azione. Con
    l'arbitro i gesti manuali che la regola rende inutili si ritirano
@@ -103,19 +105,19 @@ con `cost` non è un pixel: è lo schieramento.
    `turn.ts`/`combat.ts` restano prive di DOM.
 6. **I test**: sezione «# --- §x.y: …» in `engine_test.rb` con i casi sì, no,
    confine, carta ignota (silenzio), turno altrui; vitest per riduttore e
-   routine. Attenzione agli helper: `in_mano` **ricarica il mazzo** del
-   posto (un carico solo per più carte), `scendi_in_campo` senza coordinate
-   non ha forma, `ondata`/`tavolo`/`richiamo` apparecchiano tavoli interi.
+   routine. Attenzione agli helper: `in_hand` **ricarica il mazzo** del
+   posto (un carico solo per più carte), `put_on_field` senza coordinate
+   non ha forma, `wave`/`table_setup`/`recall_setup` apparecchiano tavoli interi.
 7. **Il README dell'engine**: un paragrafo nella lista delle regole, con i
    **limiti dichiarati** — sempre, e sempre col promemoria della regola d'oro:
    un effetto di carta che oggi non esiste, risolto a mano, verrebbe fermato
    a torto finché l'engine non legge gli effetti. Aggiornare anche i
    paragrafi che davano la cosa come debito.
 8. **Verificare e consegnare**, nell'ordine:
-   `ruby engine/test/*_test.rb` (tutti e quattro), `npx tsc --noEmit -p .` e
-   `npx vitest run` da `simulatore/`, `npm run build` (la build in
-   `docs/simulatore` si committa a parte come «Build del simulatore per
-   Pages»), riavvio della pipeline (`node scripts/dev.mjs`: il server Ruby
+   `ruby engine/test/*_test.rb` (tutti), `npx tsc --noEmit` e
+   `npx vitest run` da `core/` e da `simulator/` (e `npx tsc --noEmit` da
+   `game/`), `node scripts/build-site.mjs` (la build pubblicata la fa
+   Vercel a ogni push: `dist/` non si committa), riavvio della pipeline (`node scripts/dev.mjs`: il server Ruby
    **non ricarica il codice da solo**), commit con messaggio in italiano
    nello stile del repo (titolo con la regola e il §, corpo che racconta
    perché, i limiti, i conteggi dei test), push solo su richiesta.
@@ -129,7 +131,7 @@ nomi di carta («Ajmal», «Contrattacco Coordinato») né identificativi
 manuale (§x.y)** e di **forme certificate**, descritte per quello che fanno:
 «la stappata all'ingresso col dado», «lo statico "non si tappa mai"», «la
 Reattiva con la forma `block`». Le fixture dei test portano etichette di
-forma (`RADUNO`, `SPOSTATORE`, `SGUARDO`), non nomi di carta. La mappa
+forma (`RALLY`, `MOVER`, `GLANCE`), non nomi di carta. La mappa
 carta → forma vive **fuori** dall'engine: nel `.md` della carta e nelle
 note del mazzo. Unica eccezione: `card_index_test.rb` legge i dati veri e
 li indirizza per id, perché prova l'anagrafe sulle carte esistenti — ma
@@ -138,18 +140,22 @@ nei messaggi delle asserzioni non nomina le carte.
 ## Convenzioni
 
 - Il simulatore è bilingue (inglese prima): ogni scritta passa da `t("chiave")`
-  in `simulatore/src/i18n.ts`, le righe di chat viaggiano come chiave e
+  in `core/src/i18n.ts`, le righe di chat viaggiano come chiave e
   parametri (`ctx.log(msg("log.x", { seat, card: cardId }))`, resa in
   `log.ts` nella lingua di chi legge: `seat`/`otherSeat` → nome del posto,
   `card`/`*Card` → nome dal catalogo), i motivi dell'engine hanno
   `reason_en`. Mai una frase italiana nuda nel codice del client.
-- Italiano ovunque nel codice e nei commenti, nomi del manuale (Entità, Fronte, Zona di Ritiro, Zona di
-  Richiamo, Abisso, Materia, Flusso, Gettone, Rubyfront, Nexus). Commenti che
-  spiegano il perché e citano il §.
+- **Nomi in inglese** (decisione del designer, 2026-09-12): cartelle, file,
+  classi, funzioni, metodi, variabili, flag e parametri — coi nomi
+  dell'edizione inglese del manuale (Entity, Front, Retire Zone, Recall Zone,
+  Abyss, Matter, Flux, Token, Rubyfront, Nexus). I **commenti restano in
+  italiano**, coi nomi del manuale italiano, e spiegano il perché citando il
+  §. I valori di dominio condivisi con l'engine e coi dati (zone, fasi,
+  chiavi JSON del protocollo) non cambiano.
 - Il posto attivo è `active`; le fasi `preparazione | fronte | reazione`;
   le file canoniche del Fronte sono `FRONT_ROW_Y = [172, 1260]` (B, A), gli
-  slot `FRONT_SLOT_X`, specchio di `ctx.ts`: se cambia la geometria, cambia
-  in due posti.
+  slot `FRONT_SLOT_X`, specchio di `core/src/geometry.ts`: se cambia la
+  geometria, cambia in due posti.
 - Il Flusso si paga con `pay` (barra, poi Gettone) nei due gemelli; i costi
   viaggiano nelle azioni (`cost`), l'engine li verifica contro l'anagrafe.
 - La copia Ruby non ha la fortuna e non ha il DOM; se una regola le chiede
@@ -181,11 +187,11 @@ nei messaggi delle asserzioni non nomina le carte.
 
 - [ ] Il § letto per intero; il manuale aggiornato se la decisione lo cambia.
 - [ ] Anagrafe e `cardStats` leggono lo stesso campo, con test sulle carte vere.
-- [ ] Forma nuova: la carta esce dal `DEBITO` in `card_index_test.rb` (il test lo pretende).
+- [ ] Forma nuova: la carta esce dal `DEBT` in `card_index_test.rb` (il test lo pretende).
 - [ ] Riduttore e copia contano allo stesso modo, test speculari nei due mondi.
 - [ ] `RULES`, `VERSION`, `refuse` con § in coda **e la frase inglese**, silenzio sull'ignoto.
 - [ ] Niente nomi né id di carta in `engine/`: solo § e forme (vedi «L'engine non conosce le carte»).
 - [ ] Nessuna scritta nuda nel client: chiavi in `i18n.ts` (it + en), chat a chiavi.
 - [ ] Dogana del turno: la regola passa dalle sue eccezioni se serve.
 - [ ] README: paragrafo con limiti dichiarati e regola d'oro; debiti vecchi aggiornati.
-- [ ] Ruby, tsc, vitest, build verdi; pipeline riavviata; commit + build a parte.
+- [ ] Ruby, tsc, vitest (core e simulatore), build verdi; pipeline riavviata; commit.

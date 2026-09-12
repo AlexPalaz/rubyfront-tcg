@@ -114,7 +114,7 @@ Regole collegate finora:
   uno slot viene fermata: si posa nello spazio delle Materie, dietro. È la
   prima regola che legge le COORDINATE dell'azione — la copia del tavolo
   continua a non tracciare geometria: le costanti degli slot (specchio di
-  ctx.ts, coordinate canoniche condivise) servono solo a riconoscere la
+  core/src/geometry.ts, coordinate canoniche condivise) servono solo a riconoscere la
   forma del rilascio agganciato. Limiti dichiarati: il rilascio a mano
   libera vicino a uno slot non si vede (solo l'aggancio porta le coordinate
   esatte), e una Materia già in campo si sposta liberamente — il divieto è
@@ -244,7 +244,7 @@ Regole collegate finora:
   primo libero, e a Fronte pieno il gesto cade. Le Materie vanno nella loro
   fila e si spostano liberamente; il Rubyfront ha due posti soli (il suo
   davanti al Fronte e la Zona di Richiamo) e ci arriva solo agganciato; un
-  Oggetto si posa solo addosso a un'Entità (`table.ts`, `boundSpot`).
+  Oggetto si posa solo addosso a un'Entità (`core/src/gestures.ts`, `boundSpot`).
   Coordinate assenti: niente da giudicare.
 - **§5/§6.2 Dal campo non si torna in mano né nel mazzo** — dal campo si
   esce con il Ritiro, con l'Abisso o con un effetto; il Rubyfront
@@ -1058,7 +1058,7 @@ Regole collegate finora:
   (regola d'oro). Engine 0.68.0.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
-per §) — e il gemello client sta in `simulatore/test/` (vitest): il riduttore
+per §) — e il gemello client sta in `core/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.
 
 Nessuna dipendenza: Ruby e la sua libreria standard.
@@ -1074,12 +1074,12 @@ radice, `scripts/server.mjs`: l'engine è un processo figlio raggiunto per
 proxy sul percorso `/engine`): una pagina statica non può farlo girare, e
 senza quel servizio in stanza non si gioca. In produzione (https) il
 simulatore si collega a `wss://rubyfront.onrender.com/engine`
-(`DEFAULT_ENGINE` in `simulatore/src/engine.ts`, o `VITE_ENGINE_URL` al
+(`defaultEngineUrl` in `core/src/engine.ts`, o `VITE_ENGINE_URL` al
 build). Il piano free dormirebbe dopo un quarto d'ora: il server si tocca
 da solo ogni dieci minuti. A ogni regola nuova Render ricostruisce dal push
 (auto-deploy) o con un manual sync del Blueprint.
 
-(oppure, da `simulatore/`: `npm run engine`). Nel simulatore: la spia
+(oppure, da `simulator/`: `npm run engine`). Nel simulatore: la spia
 quadrata in alto diventa verde e in chat compare il saluto dell'engine.
 L'arbitro è **sempre acceso**. Engine non raggiungibile: spia rossa; nella
 partita locale o col bot il tavolo resta libero, in stanza ogni gesto si
@@ -1126,7 +1126,7 @@ altrove — non esiste più: nessun client dice al tavolo cos'è successo.
 agisce). **In stanza la stanza lo ignora e usa il posto del client**: un
 client modificato non può agire per l'avversario. Nella «solo» vale quello
 dichiarato (col bot i gesti dei due posti partono dallo stesso client).
-`action` è un'azione della lavagna (`simulatore/src/types.ts`, tipo
+`action` è un'azione della lavagna (`core/src/types.ts`, tipo
 `Action`). Il contratto dei verdetti:
 
 - **`ruled: false`** — l'engine non ha una regola per questa azione: il

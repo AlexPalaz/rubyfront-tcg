@@ -51,13 +51,13 @@ giro; se un passo manca, si aggiunge qui nella stessa modifica.
    aggiornati (una carta che perde una forma esce dagli `attack_forms`,
    una che ne prende una entra negli `static_forms`, ecc.). Se il foglio
    introduce un effetto senza forma certificata: la carta finisce nel
-   `DEBITO` del test, il README lo dichiara, e si chiede al designer se
+   `DEBT` del test, il README lo dichiara, e si chiede al designer se
    vuole collegarlo (è una regola nuova, col suo giro). **Mai** nomi o id
    di carta in `engine/`, salvo `card_index_test.rb`.
 5. **Verificare**: `node scripts/validate-data.mjs`, `node
    scripts/build-catalog.mjs` (il catalogo generato in `docs/cards/` si
    committa), `ruby engine/test/*_test.rb`, `npx tsc --noEmit -p .` e `npx
-   vitest run` da `simulatore/`.
+   vitest run` da `core/` e da `simulator/`.
 6. **Commit e push** in italiano nello stile del repo: titolo con il mazzo e
    le carte cambiate, corpo che elenca le differenze foglio → catalogo.
 7. **Riportare il testo normalizzato sul foglio**, nel browser del designer

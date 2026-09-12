@@ -27,12 +27,12 @@ flowchart LR
     SIM["docs/simulatore/<br/>build Vite del simulatore"]
   end
 
-  subgraph client["simulatore/ (TypeScript, nel browser)"]
-    ST["state.ts<br/>il riduttore"]
-    TB["table.ts · hud.ts<br/>il tavolo"]
-    EF["effects.ts<br/>interprete degli effetti"]
-    RN["renderer.ts<br/>cardStats: l'anagrafe del client"]
-    EL["engine.ts<br/>il canale col tavolo"]
+  subgraph client["core/ + simulator/ (TypeScript, nel browser)"]
+    ST["core: state.ts<br/>il riduttore"]
+    TB["simulator: table.ts · hud.ts<br/>il tavolo"]
+    EF["core: effects.ts<br/>interprete degli effetti"]
+    RN["core: cards.ts<br/>cardStats: l'anagrafe del client"]
+    EL["core: engine.ts · session.ts<br/>il canale col tavolo"]
   end
 
   subgraph engine["engine/ (Ruby, senza dipendenze)"]
@@ -73,7 +73,7 @@ Chi legge cosa:
 | Engine | `docs/MANUALE.md` | mai da solo: ogni § entra a mano, con i suoi test |
 
 Le due **anagrafi** — `card_index.rb` nell'engine, `cardStats` in
-`renderer.ts` nel client — leggono gli stessi campi con gli stessi criteri:
+`core/src/cards.ts` nel client — leggono gli stessi campi con gli stessi criteri:
 tipo, razza, statistiche, abilitazioni e le **forme certificate** degli
 effetti. Una forma che non combacia esattamente non entra: l'engine preferisce
 ignorare un effetto piuttosto che fraintenderlo, e il test dell'anagrafe tiene
@@ -129,12 +129,12 @@ Tre forme di regola, dalla più piccola:
 flowchart TB
   J[("RBF-026.json<br/>faces[].triggers[]")]
   J --> P1["card_index.rb<br/>attack_draws(faces)"]
-  J --> P2["renderer.ts<br/>attackDrawsOf(face)"]
+  J --> P2["cards.ts<br/>attackDrawsOf(face)"]
   P1 -- "{draw: 1, then_discard: 1,<br/>requires_object: true}" --> JE["engine.rb<br/>judge_effect_attack_draw"]
   P2 -- "{draw: 1, thenDiscard: 1,<br/>requiresObject: true}" --> EF["effects.ts<br/>attackDraws · resolveAttackDraw"]
   EF --> SC["la scena «Quando attacca»<br/>Risolvi → pesca → scarto"]
   SC -- "draw {effect: {source, event, entering}}" --> JE
-  J -. "forma che non combacia" .-> X["ignorata da entrambi:<br/>nel DEBITO del test"]
+  J -. "forma che non combacia" .-> X["ignorata da entrambi:<br/>nel DEBT del test"]
 ```
 
 Ogni effetto certificato ha la stessa vita: un parser per mondo che legge la
@@ -149,8 +149,9 @@ debito lo dice.
 
 | Pezzo | In locale | In produzione |
 |---|---|---|
-| Gioco e catalogo | `npm run all` → vite su `:5199` (`/simulatore/`, carte su `/cards`) | Vercel, build a ogni push (`vercel.json` → `scripts/build-site.mjs`): il **gioco alla radice** `/`, il **catalogo** sotto `/catalog`; esce `dist/`, non si committa |
+| Gioco e catalogo | `npm run all` → vite su `:5199` (`/simulator/`, carte su `/cards`) e il gioco PixiJS su `:5200` | Vercel, build a ogni push (`vercel.json` → `scripts/build-site.mjs`): il **gioco alla radice** `/`, il **gioco PixiJS** sotto `/next`, il **catalogo** sotto `/catalog`; esce `dist/`, non si committa |
 | Tavolo (engine) | `:8788` | Render, piano free, **un servizio solo** (`render.yaml` + `Dockerfile`, `scripts/server.mjs`, l'engine Ruby per proxy): `wss://rubyfront.onrender.com/engine` |
+| Desktop (Steam) | `desktop/` (fuori dai workspace): `npm install`, `npm run prepare-app`, `npm start` — Electron col gioco PixiJS e le carte a bordo | eseguibili per Steam con `npm run pack:*`; cosa serve per pubblicare in `desktop/STEAM.md` |
 | CI | — | GitHub Actions: test Ruby, tsc, vitest e build a ogni push (`ci.yml`); `keepalive.yml` tocca Render (ma GitHub lo fa girare ogni 2-4 ore: il server si tocca da solo, `scripts/server.mjs`) |
 
 Tutto free (deciso 2026-09-07). Un processo solo su Render
@@ -166,7 +167,9 @@ build (Vercel) vince su tutto.
 
 - `data/` — i dati madre: un file per carta, più i testi in due lingue; i mazzi.
 - `docs/` — il sito: manuale, lore, direzione artistica, catalogo, pagine, build del simulatore.
-- `simulatore/` — il client TypeScript (Vite, vitest).
+- `simulator/` — il client TypeScript (Vite, vitest), DOM: resta come termine di confronto.
+- `game/` — il client nuovo in PixiJS (migrazione del 2026-09-11, verso Steam), col suo README.
+- `core/` — la logica del client senza DOM, condivisa dai due client (workspace npm: `npm install` dalla radice).
 - `engine/` — l'arbitro in Ruby (minitest), col suo README che racconta ogni regola collegata e i suoi limiti.
 - `scripts/` — catalogo, validazioni, il server di produzione, pipeline di sviluppo, e il ponte col foglio dei mazzi.
 - `.claude/skills/` — i contratti di lavoro: `linguaggio-carte` per i testi, `regole-engine` per le regole.
@@ -174,13 +177,13 @@ build (Vercel) vince su tutto.
 ## Il foglio dei mazzi
 
 I mazzi si disegnano su un foglio condiviso (Google Fogli), un sottofoglio per
-mazzo. `npm run mazzi` è il ponte fra quel foglio e il catalogo: legge il
+mazzo. `npm run decks` è il ponte fra quel foglio e il catalogo: legge il
 foglio, elenca i mazzi dicendo quali sono già in catalogo, e per quello scelto
 mostra le differenze — copie, costo, Potenza, razza, Materia, parole chiave,
 testo dell'effetto, e il blocco Rubyfront/Nexus in fondo. Col tuo sì apre una
 sessione Claude che applica le modifiche seguendo le skill `linguaggio-carte`
 e `regole-engine`, e poi riscrive il foglio dal catalogo — così il linguaggio
-normalizzato torna anche lì. `npm run mazzi -- --esporta` fa solo quest'ultimo
+normalizzato torna anche lì. `npm run decks -- --export` fa solo quest'ultimo
 passo.
 
 Il foglio è privato, quindi due passaggi restano a mano, ed è voluto: nessun
@@ -191,16 +194,17 @@ programma entra nel tuo Drive.
    lavoro»**, così il documento resta lo stesso e il link condiviso non cambia.
 
 Rendendo il foglio leggibile da chi ha il link, il primo passaggio si
-automatizza: `npm run mazzi -- --url <link del foglio>`.
+automatizza: `npm run decks -- --url <link del foglio>`.
 
 ## Comandi
 
 ```sh
-npm run all                          # pagina + tavolo (engine), un Ctrl+C spegne tutto
-npm run mazzi                        # il foglio condiviso dei mazzi ↔ il catalogo
+npm run all                          # simulatore + gioco + tavolo (engine), un Ctrl+C spegne tutto
+npm run decks                        # il foglio condiviso dei mazzi ↔ il catalogo
 node scripts/build-catalog.mjs       # data/ → docs/cards/catalog.json
 node scripts/validate-data.mjs       # i dati e il catalogo sono allineati?
 ruby engine/test/engine_test.rb      # e table_test, card_index_test, websocket_test
-cd simulatore && npx vitest run      # i gemelli lato client
-cd simulatore && npm run build       # docs/simulatore, da committare a parte
+cd core && npx vitest run            # i gemelli lato client (riduttore, routine, sessione)
+cd simulator && npx vitest run       # la geometria di vista del simulatore
+node scripts/build-site.mjs          # dist/: gioco, gioco PixiJS (/next) e catalogo
 ```

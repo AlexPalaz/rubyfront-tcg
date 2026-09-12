@@ -18,7 +18,7 @@ class TableTest < Minitest::Test
 
   # §3.1 — il mazzo porta i PV stampati sul Rubyfront: la copia parte da lì.
   # Gemello: state.test.ts, «loadDeck porta i PV del Rubyfront».
-  def test_il_mazzo_porta_i_pv_iniziali
+  def test_deck_carries_starting_hp
     action = deck_for("a", 3)
     @table.apply(action.merge("hp" => 21))
     assert_equal 21, @table.hp("a")
@@ -27,7 +27,7 @@ class TableTest < Minitest::Test
     assert_equal 20, @table.hp("b"), "senza hp la copia non tocca i PV"
   end
 
-  def test_carico_e_pesca
+  def test_load_and_draw
     @table.apply(deck_for("a", 10))
     assert_equal 0, @table.hand_count("a")
     @table.apply({ "t" => "draw", "seat" => "a", "count" => 3 })
@@ -35,7 +35,7 @@ class TableTest < Minitest::Test
     assert_equal 7, @table.zone_count("a", "deck")
   end
 
-  def test_ricaricare_il_mazzo_azzera_solo_quel_posto
+  def test_reloading_deck_resets_only_that_seat
     @table.apply(deck_for("a", 5))
     @table.apply(deck_for("b", 5))
     @table.apply({ "t" => "draw", "seat" => "a", "count" => 2 })
@@ -45,7 +45,7 @@ class TableTest < Minitest::Test
     assert_equal 5, @table.zone_count("b", "deck"), "l'altro posto non si tocca"
   end
 
-  def test_to_zone_sposta_fra_le_zone
+  def test_to_zone_moves_between_zones
     @table.apply(deck_for("a", 3))
     @table.apply({ "t" => "draw", "seat" => "a", "count" => 2 })
     @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
@@ -55,20 +55,20 @@ class TableTest < Minitest::Test
     assert_equal 0, @table.hand_count("a")
   end
 
-  def test_pescare_da_mazzo_vuoto_non_fa_nulla
+  def test_drawing_from_empty_deck_does_nothing
     @table.apply(deck_for("a", 1))
     @table.apply({ "t" => "draw", "seat" => "a", "count" => 3 })
     assert_equal 1, @table.hand_count("a"), "si pesca solo ciò che c'è"
   end
 
-  def test_turno_e_posto_attivo
+  def test_turn_and_active_seat
     assert_equal "a", @table.active
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
     assert_equal "b", @table.active
     assert_equal 2, @table.turn
   end
 
-  def test_snapshot_sostituisce_tutto
+  def test_snapshot_replaces_everything
     @table.apply(deck_for("a", 5))
     @table.load({
       "turn" => 4,
@@ -83,7 +83,7 @@ class TableTest < Minitest::Test
     assert_equal "b", @table.active
   end
 
-  def test_new_game_azzera
+  def test_new_game_resets
     @table.apply(deck_for("a", 5))
     @table.apply({ "t" => "turn", "turn" => 3, "active" => "b" })
     @table.apply({ "t" => "newGame" })
@@ -103,7 +103,7 @@ class TableTest < Minitest::Test
     @table.apply({ "t" => "declare", "declaration" => { "from" => "b-1", "to" => "a-1", "kind" => "block", "seat" => "b", "order" => 0 } })
   end
 
-  def test_resolve_manda_i_morti_nell_abisso_e_sgombera_le_frecce
+  def test_resolve_sends_dead_to_abyss_and_clears_arrows
     battlefield
     @table.apply({ "t" => "resolve", "seat" => "a", "battles" => [
                    { "attacker" => "a-1", "blocker" => "b-1", "kind" => "block",
@@ -116,7 +116,7 @@ class TableTest < Minitest::Test
     assert_empty @table.attackers_in_order
   end
 
-  def test_l_ondata_si_legge_nell_ordine_di_dichiarazione
+  def test_wave_is_read_in_declaration_order
     battlefield
     @table.apply({ "t" => "declare", "declaration" => { "from" => "a-2", "to" => "rf", "kind" => "attack", "seat" => "a", "order" => 0 } })
     assert_equal %w[a-2 a-1], @table.attackers_in_order
@@ -124,7 +124,7 @@ class TableTest < Minitest::Test
     assert_nil @table.blocker_of("a-2")
   end
 
-  def test_chi_esce_dal_campo_non_e_piu_nell_ondata
+  def test_leaving_field_drops_out_of_wave
     battlefield
     @table.apply({ "t" => "toZone", "uid" => "b-1", "zone" => "hand" })
     assert_nil @table.blocker_of("a-1"), "il bloccante uscito lascia l'attacco non bloccato (§6.3)"
@@ -132,7 +132,7 @@ class TableTest < Minitest::Test
 
   # --- il cambio di turno apparecchia chi entra ----------------------------
 
-  def test_il_cambio_di_turno_stappa_chi_entra_e_sgombera_le_frecce
+  def test_turn_change_untaps_incoming_and_clears_arrows
     battlefield
     @table.apply({ "t" => "tap", "uid" => "b-1", "tapped" => true })
     @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true })
@@ -144,7 +144,7 @@ class TableTest < Minitest::Test
     assert_equal "preparazione", @table.phase
   end
 
-  def test_il_cambio_di_turno_pesca_la_carta_del_turno
+  def test_turn_change_draws_turn_card
     @table.apply(deck_for("b", 2))
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
     assert_equal 1, @table.hand_count("b"), "la Pesca non si salta mai (§6.1)"
@@ -153,7 +153,7 @@ class TableTest < Minitest::Test
     assert_equal 0, @table.hand_count("a"), "a mazzo vuoto non si pesca"
   end
 
-  def test_il_contatore_ritoccato_non_apparecchia_nulla
+  def test_counter_patch_sets_nothing_up
     battlefield
     @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true })
     @table.apply({ "t" => "turn", "turn" => 7, "active" => "a" })
@@ -164,7 +164,7 @@ class TableTest < Minitest::Test
 
   # --- il Flusso (§3.2), come lo conta il client -----------------------------
 
-  def test_il_flusso_parte_da_1_e_cresce_dal_secondo_turno
+  def test_flux_starts_at_1_and_grows_from_second_turn
     assert_equal 1, @table.flux("a")
     assert_equal 1, @table.flux_max("b")
     @table.apply({ "t" => "player", "seat" => "b", "patch" => { "flux" => 0 } })
@@ -183,21 +183,21 @@ class TableTest < Minitest::Test
     assert_equal 0, @table.flux("b"), "mai sotto zero"
   end
 
-  def test_la_nuova_partita_dice_chi_inizia
+  def test_new_game_says_who_starts
     @table.apply({ "t" => "turn", "turn" => 5, "active" => "a" })
     @table.apply({ "t" => "newGame", "active" => "b" })
     assert_equal "b", @table.active
     assert_equal 1, @table.turn
   end
 
-  def test_il_flusso_massimo_non_supera_20
+  def test_max_flux_does_not_exceed_20
     @table.apply({ "t" => "player", "seat" => "b", "patch" => { "fluxMax" => 20, "flux" => 3 } })
     @table.apply({ "t" => "turn", "turn" => 4, "active" => "b" })
     assert_equal 20, @table.flux_max("b")
     assert_equal 20, @table.flux("b")
   end
 
-  def test_la_patch_dei_contatori_e_lo_snapshot_allineano_il_flusso
+  def test_counter_patch_and_snapshot_align_flux
     @table.apply({ "t" => "player", "seat" => "a", "patch" => { "flux" => 5 } })
     assert_equal 5, @table.flux("a")
     @table.load({ "active" => "a", "turn" => 4, "players" => { "a" => { "flux" => 7, "fluxMax" => 9 }, "b" => { "flux" => 2 } } })
@@ -206,7 +206,7 @@ class TableTest < Minitest::Test
     assert_equal 2, @table.flux("b")
   end
 
-  def test_giocare_dalla_mano_scala_il_costo
+  def test_playing_from_hand_deducts_cost
     @table.apply(deck_for("a", 2))
     @table.apply({ "t" => "draw", "seat" => "a", "count" => 2 })
     @table.apply({ "t" => "player", "seat" => "a", "patch" => { "flux" => 3 } })
@@ -221,7 +221,7 @@ class TableTest < Minitest::Test
 
   # --- faccia e fila (§3.1, §7) ---------------------------------------------
 
-  def test_la_copia_segue_la_faccia_e_la_fila
+  def test_copy_follows_face_and_row
     cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "face" => 0, "y" => 1756 }]
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     assert_equal 0, @table.card("rf")[:face]
@@ -234,7 +234,7 @@ class TableTest < Minitest::Test
     assert_nil @table.card("rf")[:row], "fuori dal campo la fila non dice niente"
   end
 
-  def test_lo_snapshot_porta_faccia_e_fila
+  def test_snapshot_carries_face_and_row
     @table.load({ "cards" => { "rf" => { "owner" => "b", "zone" => "field", "face" => 1, "y" => 172, "cardId" => "X" } } })
     assert_equal 1, @table.card("rf")[:face]
     assert_equal 172, @table.card("rf")[:row]
@@ -242,7 +242,7 @@ class TableTest < Minitest::Test
 
   # --- i PV e la fine (§2, §9) ----------------------------------------------
 
-  def test_i_pv_scendono_con_la_risoluzione_e_con_le_patch
+  def test_hp_drop_with_resolution_and_patches
     assert_equal 20, @table.hp("b")
     @table.apply({ "t" => "resolve", "seat" => "a", "battles" => [
                    { "attacker" => "x", "kind" => "unblocked", "attackerDies" => false, "blockerDies" => false, "damage" => 4 },
@@ -257,7 +257,7 @@ class TableTest < Minitest::Test
     assert_equal 0, @table.hp("b"), "mai sotto zero"
   end
 
-  def test_la_fine_si_annota_e_la_nuova_partita_la_toglie
+  def test_end_is_recorded_and_new_game_clears_it
     refute @table.over?
     @table.apply({ "t" => "gameOver", "winner" => "a", "reason" => "hp" })
     assert @table.over?
@@ -271,7 +271,7 @@ class TableTest < Minitest::Test
 
   # --- il Gettone e il pagamento (§3.2) --------------------------------------
 
-  def test_il_gettone_va_a_chi_non_inizia_e_paga_quando_la_barra_non_basta
+  def test_token_goes_to_second_player_and_pays_when_bar_short
     refute @table.token?("a")
     assert @table.token?("b")
     assert_equal 2, @table.available("b")
@@ -285,7 +285,7 @@ class TableTest < Minitest::Test
     refute @table.token?("a"), "il Gettone è speso"
   end
 
-  def test_lo_schieramento_si_paga_col_move
+  def test_deployment_is_paid_with_move
     @table.apply({ "t" => "player", "seat" => "a", "patch" => { "flux" => 5 } })
     cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1756 }]
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
@@ -296,7 +296,7 @@ class TableTest < Minitest::Test
 
   # --- la scoperta a T+3 e gli Oggetti che seguono (§6.3, §6.2, §5) ---------
 
-  def test_coprire_annota_il_turno_e_il_cambio_di_turno_scopre_a_t3
+  def test_covering_records_turn_and_turn_change_uncovers_at_t3
     cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "field", "order" => 0 }]
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
@@ -310,7 +310,7 @@ class TableTest < Minitest::Test
     assert_nil @table.card("a-1")[:covered_turn]
   end
 
-  def test_una_coperta_senza_data_resta_coperta
+  def test_covered_without_date_stays_covered
     @table.load({ "active" => "b", "turn" => 2, "cards" => { "a-1" => { "owner" => "a", "zone" => "field", "facedown" => true } } })
     @table.apply({ "t" => "turn", "turn" => 3, "active" => "a" })
     @table.apply({ "t" => "turn", "turn" => 4, "active" => "b" })
@@ -318,7 +318,7 @@ class TableTest < Minitest::Test
     assert @table.card("a-1")[:facedown]
   end
 
-  def test_gli_oggetti_seguono_l_entita_in_ritiro_e_abisso_non_in_mano
+  def test_items_follow_entity_to_retire_and_abyss_not_hand
     cards = %w[a-1 a-2 a-3].map { |uid| { "uid" => uid, "owner" => "a", "zone" => "field", "order" => 0 } }
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     @table.apply({ "t" => "assign", "uid" => "a-2", "to" => "a-1" })
@@ -338,7 +338,7 @@ class TableTest < Minitest::Test
 
   # --- gli inneschi consumati (§8.2) -----------------------------------------
 
-  def test_un_innesco_si_consuma_una_volta_e_il_turno_lo_azzera
+  def test_trigger_consumed_once_and_turn_resets_it
     refute @table.fired?("g", "on_enter_field", "e")
     @table.fire("g", "on_enter_field", "e")
     assert @table.fired?("g", "on_enter_field", "e")
@@ -350,7 +350,7 @@ class TableTest < Minitest::Test
 
   # --- lo sguardo nel mazzo (§8.2) ---------------------------------------------
 
-  def test_look_mostra_una_carta_e_mette_le_altre_in_fondo
+  def test_look_shows_card_and_puts_rest_at_bottom
     @table.apply(deck_for("a", 6))
     assert_equal %w[a-1 a-2 a-3 a-4], @table.top_of_deck("a", 4)
     @table.apply({ "t" => "look", "seat" => "a", "count" => 4, "reveal" => "a-2",
@@ -360,7 +360,7 @@ class TableTest < Minitest::Test
     assert_equal %w[a-5 a-6 a-1 a-3 a-4], @table.top_of_deck("a", 5), "le altre in fondo, nell'ordine in cui stavano"
   end
 
-  def test_look_senza_rivelata_mette_tutto_in_fondo
+  def test_look_without_reveal_puts_all_at_bottom
     @table.apply(deck_for("a", 5))
     @table.apply({ "t" => "look", "seat" => "a", "count" => 2, "effect" => { "source" => "x", "event" => "on_enter_field", "entering" => "x" } })
     assert_equal 0, @table.hand_count("a")
@@ -369,7 +369,7 @@ class TableTest < Minitest::Test
 
   # --- il controllo e la restituzione (§8.2) ----------------------------------
 
-  def test_il_controllo_cambia_chi_comanda_non_il_proprietario
+  def test_control_changes_commander_not_owner
     cards = [{ "uid" => "b-1", "owner" => "b", "zone" => "field", "order" => 0, "y" => 172 }]
     @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards })
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
@@ -388,7 +388,7 @@ class TableTest < Minitest::Test
     assert_equal "ritiro", @table.card("b-1")[:zone], "a Fronte pieno, in Zona di Ritiro"
   end
 
-  def test_look_manda_una_carta_in_ritiro
+  def test_look_sends_card_to_retire
     @table.apply(deck_for("a", 5))
     @table.apply({ "t" => "look", "seat" => "a", "count" => 4, "reveal" => "a-2", "retire" => "a-3",
                    "effect" => { "source" => "x", "event" => "on_enter_field", "entering" => "x" } })
@@ -411,7 +411,7 @@ class TableAttackToolsTest < Minitest::Test
                    { "uid" => "e", "owner" => "b", "zone" => "field", "order" => 0, "cardId" => "X", "tapped" => true }] })
   end
 
-  def test_empower_somma_concede_vieta_e_il_turno_cancella
+  def test_empower_adds_grants_forbids_and_turn_clears
     @table.apply({ "t" => "empower", "uid" => "e", "power" => 1 })
     @table.apply({ "t" => "empower", "uid" => "e", "power" => 1, "grants" => ["revenge"], "restrict" => "block" })
     assert_equal 2, @table.card("e")[:power_bonus]
@@ -423,7 +423,7 @@ class TableAttackToolsTest < Minitest::Test
     assert_nil @table.card("e")[:grants]
   end
 
-  def test_refresh_stappa_chi_comanda_solo_col_tiro
+  def test_refresh_untaps_commander_only_with_roll
     @table.apply({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => false })
     assert @table.card("a1")[:tapped], "col tiro mancato nessuno si stappa"
     @table.apply({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true })
@@ -431,7 +431,7 @@ class TableAttackToolsTest < Minitest::Test
     assert @table.card("e")[:tapped]
   end
 
-  def test_resolve_stappa_chi_lo_chiede_e_ricorda_l_ondata
+  def test_resolve_untaps_requested_and_remembers_wave
     @table.apply({ "t" => "declare", "declaration" => { "from" => "a2", "to" => "rf", "kind" => "attack", "order" => 2 } })
     @table.apply({ "t" => "declare", "declaration" => { "from" => "a1", "to" => "rf", "kind" => "attack", "order" => 1 } })
     @table.apply({ "t" => "resolve", "seat" => "a", "battles" => [], "untap" => ["a1"] })
@@ -440,18 +440,18 @@ class TableAttackToolsTest < Minitest::Test
     assert_equal %w[a1 a2], @table.last_wave("a")
   end
 
-  def test_to_zone_con_assign_to_rimette_un_oggetto_gia_assegnato
+  def test_to_zone_with_assign_to_reattaches_assigned_item
     @table.apply({ "t" => "toZone", "uid" => "obj", "zone" => "field", "y" => 1260, "assignTo" => "a1" })
     assert_equal "a1", @table.card("obj")[:assigned_to]
   end
   # --- gli attrezzi degli effetti: Stasi, Contrattacco concesso, esilio, flip, sigillo ---
 
-  def campo(seat, uid, extra = {})
+  def field_setup(seat, uid, extra = {})
     { "uid" => uid, "owner" => seat, "zone" => "field", "order" => 0, "cardId" => "X" }.merge(extra)
   end
 
-  def test_empower_stappa_anche_dalla_stasi_e_concede_contrattacco
-    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "a1", "tapped" => true)] })
+  def test_empower_untaps_even_from_stasis_and_grants_counter
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [field_setup("a", "a1", "tapped" => true)] })
     @table.card("a1")[:stasis] = true
     ref = { "source" => "m", "event" => "on_resolve", "entering" => "m" }
     @table.apply({ "t" => "empower", "uid" => "a1", "counter" => 1, "untap" => true, "effect" => ref })
@@ -463,9 +463,9 @@ class TableAttackToolsTest < Minitest::Test
     assert_nil card[:counter_bonus], "«fino alla fine del turno»"
   end
 
-  def test_la_stasi_alla_risoluzione_e_il_turno_non_la_stappa
-    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "a1"), campo("a", "a2")] })
-    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [campo("b", "b1", "facedown" => true), campo("b", "m1")] })
+  def test_stasis_at_resolution_and_turn_does_not_untap
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [field_setup("a", "a1"), field_setup("a", "a2")] })
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [field_setup("b", "b1", "facedown" => true), field_setup("b", "m1")] })
     @table.apply({ "t" => "declare", "declaration" => { "from" => "a1", "to" => "rf-b", "kind" => "attack", "order" => 1 } })
     @table.apply({ "t" => "declare", "declaration" => { "from" => "a2", "to" => "rf-b", "kind" => "attack", "order" => 2 } })
     @table.apply({ "t" => "declare", "declaration" => { "from" => "b1", "to" => "a1", "kind" => "counter", "order" => 0 } })
@@ -487,9 +487,9 @@ class TableAttackToolsTest < Minitest::Test
     assert_nil @table.card("b1")[:stasis]
   end
 
-  def test_con_piu_bloccanti_l_attaccante_muore_una_volta_sola
-    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "a1")] })
-    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [campo("b", "b1"), campo("b", "b2")] })
+  def test_with_several_blockers_attacker_dies_once
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [field_setup("a", "a1")] })
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [field_setup("b", "b1"), field_setup("b", "b2")] })
     @table.apply({ "t" => "declare", "declaration" => { "from" => "a1", "to" => "rf-b", "kind" => "attack", "order" => 1 } })
     @table.apply({ "t" => "declare", "declaration" => { "from" => "b1", "to" => "a1", "kind" => "block", "order" => 0 } })
     @table.apply({ "t" => "declare", "declaration" => { "from" => "b2", "to" => "a1", "kind" => "block", "order" => 0 } })
@@ -504,9 +504,9 @@ class TableAttackToolsTest < Minitest::Test
     assert_equal "field", @table.card("b2")[:zone]
   end
 
-  def test_l_esilio_tiene_la_carta_e_la_restituzione_la_riporta_in_gioco
-    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "m")] })
-    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [campo("b", "b1", "y" => 172)] })
+  def test_exile_holds_card_and_release_brings_it_back
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [field_setup("a", "m")] })
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [field_setup("b", "b1", "y" => 172)] })
     @table.apply({ "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "m" })
     assert_equal "m", @table.card("b1")[:held_by]
     assert_equal "abisso", @table.card("b1")[:zone]
@@ -527,8 +527,8 @@ class TableAttackToolsTest < Minitest::Test
     assert_nil @table.card("b1")[:held_by]
   end
 
-  def test_il_flip_scarta_recupera_e_annota_il_turno
-    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "rf", "y" => 1260), campo("a", "h", "zone" => "hand")] })
+  def test_flip_discards_recovers_and_records_turn
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [field_setup("a", "rf", "y" => 1260), field_setup("a", "h", "zone" => "hand")] })
     @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 12 } })
     @table.apply({ "t" => "flip", "uid" => "rf", "face" => 1, "discard" => "h", "recover" => 5 })
     rf = @table.card("rf")
@@ -538,8 +538,8 @@ class TableAttackToolsTest < Minitest::Test
     assert_equal "ritiro", @table.card("h")[:zone], "lo scarto del flip va in Zona di Ritiro (§5, §6.5)"
   end
 
-  def test_il_sigillo_e_il_bersaglio_dichiarato_viaggiano_anche_nello_snapshot
-    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [campo("a", "m", "zone" => "hand")] })
+  def test_seal_and_declared_target_travel_in_snapshot
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [field_setup("a", "m", "zone" => "hand")] })
     @table.apply({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["CARTA-1"] } })
     assert @table.sealed?("a", "CARTA-1")
     refute @table.sealed?("b", "CARTA-1")
@@ -574,14 +574,14 @@ class TableChainTest < Minitest::Test
     @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "t", "cards" => [{ "uid" => "r2", "owner" => "b", "zone" => "hand", "order" => 0, "cardId" => "R" }] })
   end
 
-  def gioca(uid, chain: true)
+  def play(uid, chain: true)
     @table.apply({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 10, "y" => 10, "z" => 2 }.merge(chain ? { "chain" => true } : {}))
   end
 
-  def test_la_reattiva_apre_la_risposta_allunga_e_l_accettazione_risolve_al_contrario
-    gioca("r1")
+  def test_reactive_opens_response_extends_and_accept_resolves_reversed
+    play("r1")
     assert_equal({ stack: ["r1"], turn: "b", resolving: false }, @table.chain)
-    gioca("r2")
+    play("r2")
     assert_equal({ stack: %w[r1 r2], turn: "a", resolving: false }, @table.chain)
     @table.apply({ "t" => "pass", "seat" => "a" })
     assert_equal({ stack: %w[r1 r2], turn: "a", resolving: true }, @table.chain)
@@ -594,13 +594,13 @@ class TableChainTest < Minitest::Test
     assert_nil @table.chain_top
   end
 
-  def test_senza_il_segno_non_si_apre_il_turno_chiude_e_accettare_senza_catena_non_fa_nulla
-    gioca("r1", chain: false)
+  def test_without_mark_no_opening_turn_closes_and_accept_without_chain_does_nothing
+    play("r1", chain: false)
     assert_nil @table.chain
     @table.apply({ "t" => "pass", "seat" => "b" })
     assert_nil @table.chain
     @table.apply({ "t" => "toZone", "uid" => "r1", "zone" => "hand" })
-    gioca("r1")
+    play("r1")
     assert_equal ["r1"], @table.chain[:stack]
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
     assert_nil @table.chain
@@ -625,7 +625,7 @@ class TableBonusTest < Minitest::Test
     @table.apply({ "t" => "empower", "uid" => "u", "power" => 1, "counter" => 2, "grants" => ["revenge"], "restrict" => "block" })
   end
 
-  def test_il_cambio_di_turno_azzera_i_bonus
+  def test_turn_change_clears_bonuses
     assert_equal 1, @table.card("u")[:power_bonus]
     @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
     assert_nil @table.card("u")[:power_bonus]
@@ -634,7 +634,7 @@ class TableBonusTest < Minitest::Test
     assert_nil @table.card("u")[:grants]
   end
 
-  def test_chi_lascia_il_campo_lascia_i_bonus
+  def test_leaving_field_drops_bonuses
     @table.apply({ "t" => "toZone", "uid" => "u", "zone" => "abisso" })
     assert_nil @table.card("u")[:power_bonus], "il ritorno in campo è sempre quello stampato (§3.1, §8.2)"
     assert_nil @table.card("u")[:counter_bonus]
@@ -644,7 +644,7 @@ class TableBonusTest < Minitest::Test
 
   # --- le abilità speciali del Rubyfront (§3.1) e gli sconti ------------------
 
-  def test_l_abilita_paga_i_pv_potenzia_i_bersagli_e_lascia_lo_sconto
+  def test_ability_pays_hp_empowers_targets_and_leaves_discount
     cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1260 },
              { "uid" => "u", "owner" => "a", "zone" => "field", "order" => 1, "y" => 1260 },
              { "uid" => "o", "owner" => "a", "zone" => "hand", "order" => 2 }]
@@ -675,7 +675,7 @@ class TableBonusTest < Minitest::Test
   # attaccanti sul posto, l'Entità dalla mano con le parole chiave concesse
   # (e l'attivazione che si chiude con la discesa), il bonus che viaggia
   # nella dichiarazione d'attacco. Gemello: state.test.ts.
-  def test_la_chiamata_sul_fronte_promessa_discesa_con_slancio_e_bonus_all_attacco
+  def test_front_summon_promises_descent_with_surge_and_attack_bonus
     cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1260, "face" => 1 },
              { "uid" => "h", "owner" => "a", "zone" => "hand", "order" => 1 },
              { "uid" => "k", "owner" => "a", "zone" => "hand", "order" => 2 }]
@@ -708,7 +708,7 @@ class TableBonusTest < Minitest::Test
 
   # --- §8.2: la dichiarazione ferma (gemello: state.ts, apply) ---------------
 
-  def test_la_dichiarazione_si_sigilla_e_lo_snapshot_la_ricorda
+  def test_declaration_is_sealed_and_snapshot_remembers
     @table.apply({ "t" => "declare", "declaration" => { "from" => "u", "to" => "rf", "kind" => "attack", "seat" => "a", "order" => 1 } })
     refute @table.declaration_sealed?("u")
     @table.seal_declaration("u")
@@ -721,7 +721,7 @@ class TableBonusTest < Minitest::Test
 
   # --- §8.2: l'uscita annotata e il ritorno vincolato (gemello: state.ts, revive)
 
-  def test_l_uscita_dal_campo_si_annota_col_turno_e_gli_oggetti_addosso
+  def test_leaving_field_records_turn_and_worn_items
     a = [
       { "uid" => "e", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "X", "x" => 442, "y" => 1260 },
       { "uid" => "o", "owner" => "a", "zone" => "field", "order" => 1, "cardId" => "Y", "x" => 472, "y" => 1266, "assignedTo" => "e" },

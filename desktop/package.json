@@ -1,0 +1,48 @@
+{
+  "name": "rubyfront-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Rubyfront per desktop e Steam (Electron): il gioco PixiJS con carte, suoni e musica a bordo; online solo il tavolo.",
+  "main": "main.cjs",
+  "scripts": {
+    "prepare-app": "node scripts/prepare-app.mjs",
+    "start": "electron .",
+    "smoke": "electron . --smoke",
+    "pack": "npm run prepare-app && electron-builder --dir",
+    "pack:win": "npm run prepare-app && electron-builder --win --dir",
+    "pack:mac": "npm run prepare-app && electron-builder --mac --dir",
+    "pack:linux": "npm run prepare-app && electron-builder --linux --dir"
+  },
+  "build": {
+    "appId": "com.rubyfront.game",
+    "productName": "Rubyfront",
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "steam.cjs",
+      "app/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/steamworks.js/**"
+    ],
+    "win": {
+      "target": "dir"
+    },
+    "mac": {
+      "target": "dir",
+      "category": "public.app-category.card-games"
+    },
+    "linux": {
+      "target": "dir",
+      "category": "Game"
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3"
+  }
+}

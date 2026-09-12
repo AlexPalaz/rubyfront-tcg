@@ -16,8 +16,8 @@ const SETS = path.join(ROOT, "data", "sets");
 const STATIC_EVENTS = new Set(["while_in_play", "while_assigned"]);
 const INLINE_KINDS = new Set(["entity", "matter", "object"]);
 
-const problemi = [];
-let facce = 0;
+const problems = [];
+let faces = 0;
 
 for (const setDir of fs.readdirSync(SETS)) {
   const cardsDir = path.join(SETS, setDir, "cards");
@@ -28,47 +28,47 @@ for (const setDir of fs.readdirSync(SETS)) {
     for (const locale of card.locales ?? [card.defaultLocale]) {
       const copy = JSON.parse(fs.readFileSync(path.join(cardsDir, id, `${id}.${locale}.json`), "utf8"));
       for (const face of card.faces ?? []) {
-        facce++;
-        const fc = copy[face.displayKey];
-        const dove = `${card.id} ${face.id} [${locale}]`;
-        if (!fc) { problemi.push(`${dove}: manca il blocco di testo "${face.displayKey}"`); continue; }
+        faces++;
+        const faceCopy = copy[face.displayKey];
+        const where = `${card.id} ${face.id} [${locale}]`;
+        if (!faceCopy) { problems.push(`${where}: manca il blocco di testo "${face.displayKey}"`); continue; }
 
         // Materie e Oggetti hanno una textbox a testo semplice: il renderer
         // stampa esclusivamente effect.text.
         if (face.kind === "matter" || face.kind === "object") {
           for (const t of face.triggers ?? []) {
             if (t.displayKey !== "effect") {
-              problemi.push(`${dove}: l'innesco "${t.id}" usa displayKey "${t.displayKey}", ma su ${face.kind} il renderer stampa solo "effect" — il testo sarebbe invisibile`);
+              problems.push(`${where}: l'innesco "${t.id}" usa displayKey "${t.displayKey}", ma su ${face.kind} il renderer stampa solo "effect" — il testo sarebbe invisibile`);
             }
           }
-          if ((face.triggers ?? []).length && !fc.effect?.text) {
-            problemi.push(`${dove}: ha inneschi ma nessun effect.text`);
+          if ((face.triggers ?? []).length && !faceCopy.effect?.text) {
+            problems.push(`${where}: ha inneschi ma nessun effect.text`);
           }
           continue;
         }
 
         for (const t of face.triggers ?? []) {
-          const inline = INLINE_KINDS.has(face.kind) && STATIC_EVENTS.has(t.event) && fc.effect?.text;
-          const testo = fc.triggers?.[t.displayKey]?.text ?? fc[t.displayKey]?.text;
-          if (!testo && !inline) problemi.push(`${dove}: l'innesco "${t.id}" non ha testo`);
+          const inline = INLINE_KINDS.has(face.kind) && STATIC_EVENTS.has(t.event) && faceCopy.effect?.text;
+          const text = faceCopy.triggers?.[t.displayKey]?.text ?? faceCopy[t.displayKey]?.text;
+          if (!text && !inline) problems.push(`${where}: l'innesco "${t.id}" non ha testo`);
         }
         for (const a of face.actions ?? []) {
-          if (!fc.abilities?.[a.displayKey]?.text) problemi.push(`${dove}: l'abilita "${a.id}" non ha testo`);
+          if (!faceCopy.abilities?.[a.displayKey]?.text) problems.push(`${where}: l'abilita "${a.id}" non ha testo`);
         }
         for (const k of face.keywords ?? []) {
-          const kc = fc.keywords?.[k.displayKey ?? k.id] ?? (face.keywords.length === 1 ? fc.keyword : undefined);
-          if (!kc) problemi.push(`${dove}: la parola chiave "${k.id}" non ha testo`);
+          const keywordCopy = faceCopy.keywords?.[k.displayKey ?? k.id] ?? (face.keywords.length === 1 ? faceCopy.keyword : undefined);
+          if (!keywordCopy) problems.push(`${where}: la parola chiave "${k.id}" non ha testo`);
         }
         if (face.requirements?.nexus && !copy.card?.nexusRequirement?.text) {
-          problemi.push(`${dove}: requisito Nexus senza testo`);
+          problems.push(`${where}: requisito Nexus senza testo`);
         }
       }
     }
   }
 }
 
-if (problemi.length) {
-  console.error(`✗ ${problemi.length} problema/i di testo:\n` + problemi.map(p => `  - ${p}`).join("\n"));
+if (problems.length) {
+  console.error(`✗ ${problems.length} problema/i di testo:\n` + problems.map(p => `  - ${p}`).join("\n"));
   process.exit(1);
 }
-console.log(`✓ Testi completi: ogni meccanica ha la sua voce sulla carta (${facce} facce)`);
+console.log(`✓ Testi completi: ogni meccanica ha la sua voce sulla carta (${faces} facce)`);

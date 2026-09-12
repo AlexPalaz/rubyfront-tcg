@@ -2,8 +2,13 @@
   "name": "rubyfront",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "core",
+    "simulator",
+    "game"
+  ],
   "scripts": {
     "all": "node scripts/dev.mjs",
-    "mazzi": "node scripts/mazzi.mjs"
+    "decks": "node scripts/decks.mjs"
   }
 }

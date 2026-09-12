@@ -62,13 +62,13 @@ const script = [
 ].join("\n\n");
 
 // ---- assemblaggio ---------------------------------------------------------
-const titolo = `${deck.locales.it.name} · Rubyfront`;
+const title = `${deck.locales.it.name} · Rubyfront`;
 const html = `<!doctype html>
 <html lang="it">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta charset="utf-8">
-<title>${titolo}</title>
+<title>${title}</title>
 <style>
 ${read(path.join(TPL, "page.css")).trimEnd()}
 ${read(path.join(UI, "card.css")).trimEnd()}
@@ -83,8 +83,8 @@ ${script}
 `;
 
 if (checkOnly) {
-  const attuale = fs.existsSync(OUT) ? read(OUT) : "";
-  if (attuale !== html) {
+  const current = fs.existsSync(OUT) ? read(OUT) : "";
+  if (current !== html) {
     console.error(`✗ ${path.relative(ROOT, OUT)} disallineato: rieseguire build-public-deck.mjs`);
     process.exit(1);
   }

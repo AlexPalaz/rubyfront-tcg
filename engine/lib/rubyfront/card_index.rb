@@ -269,7 +269,7 @@ module Rubyfront
         # e l'Abisso «finché questa Entità resta in campo; quando lascia il
         # campo, quell'Entità torna in gioco» — l'esilio condizionato,
         # stessa meccanica della Materia (held_by, release). Gemello:
-        # renderer.ts, enterMovesOf.
+        # core/src/cards.ts, enterMovesOf.
         extra = effect["details"]
         if destination["zone"] == "retire" && extra.nil?
           { target: { type: "entity", controller: "opponent" }.freeze, to: "ritiro" }.freeze
@@ -286,7 +286,7 @@ module Rubyfront
     # `move_card` di UN'Entità avversaria nell'Abisso «finché questa carta
     # resta in gioco; quando lascia il gioco, torna» — l'esilio condizionato,
     # stessa meccanica della Materia e dell'Entità (held_by, release).
-    # Gemello: renderer.ts, assignFormsOf.
+    # Gemello: core/src/cards.ts, assignFormsOf.
     def self.assign_forms(faces)
       faces.each_with_index.flat_map { |face, index| Array(face["triggers"]).map { |trigger| [trigger, index] } }.filter_map do |trigger, index|
         next unless trigger.is_a?(Hash) && trigger["event"] == "on_assign_object"
@@ -341,7 +341,7 @@ module Rubyfront
     # effetto `move_card` di sé nella propria Zona di Ritiro «invece che
     # nell'Abisso», poi «puoi assegnare un altro Oggetto dalla tua Zona di
     # Ritiro, senza pagarne il costo, a un'Entità senza Oggetto che
-    # controlli». Gemello: renderer.ts, deathFormsOf.
+    # controlli». Gemello: core/src/cards.ts, deathFormsOf.
     def self.death_forms(faces)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
         next unless trigger.is_a?(Hash) && trigger["event"] == "on_death" && trigger["details"] == { "ofAssignedEntity" => true }
@@ -384,7 +384,7 @@ module Rubyfront
 
         # «una carta permanente» (§10): quel che resta in campo — un'Entità
         # o una Materia permanente, mai il Rubyfront, mai un Oggetto. Stessa
-        # lettura dell'esilio condizionato. Gemello: renderer.ts, enterReturnsOf.
+        # lettura dell'esilio condizionato. Gemello: core/src/cards.ts, enterReturnsOf.
         { from: "ritiro", filter: { permanent: true }.freeze, to: "field" }.freeze
       end
     end
@@ -645,7 +645,7 @@ module Rubyfront
     end
 
     # La stappata all'ingresso: «quando entra sul Fronte, lancia un d20: con
-    # 15–20 stappa tutte le Entità che controlli». Gemello: renderer.ts, enterRefreshesOf.
+    # 15–20 stappa tutte le Entità che controlli». Gemello: core/src/cards.ts, enterRefreshesOf.
     def self.enter_refreshes(faces)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
         next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
@@ -847,7 +847,7 @@ module Rubyfront
     end
 
     # La forma `block`: «gioca questa carta come bloccante di un'Entità attaccante: quell'attacco è bloccato. Se sul tuo
-    # Fronte ci sono almeno N Entità con un Oggetto assegnato, guadagni M PV». Gemello: renderer.ts, resolveBlock.
+    # Fronte ci sono almeno N Entità con un Oggetto assegnato, guadagni M PV». Gemello: core/src/cards.ts, resolveBlock.
     def self.resolve_block(effect)
       return nil unless effect["type"] == "block_attack"
 
@@ -904,7 +904,7 @@ module Rubyfront
 
     # L'indebolimento dell'attaccante (dal 2026-09-10): «un'Entità avversaria
     # attaccante prende −1 Potenza per ogni Entità con un Oggetto assegnato
-    # che controlli, fino alla fine del turno». Gemello: renderer.ts, resolveWeaken.
+    # che controlli, fino alla fine del turno». Gemello: core/src/cards.ts, resolveWeaken.
     def self.resolve_weaken(effect)
       return nil unless effect["type"] == "modify_power" && effect["duration"] == "until_end_of_turn"
 
@@ -920,7 +920,7 @@ module Rubyfront
 
     # Il potenziamento delle armate (dal 2026-09-10): «fino a N Entità con un
     # Oggetto assegnato che controlli prendono +M Potenza fino alla fine del
-    # turno e vengono stappate». Gemello: renderer.ts, resolveAmplify.
+    # turno e vengono stappate». Gemello: core/src/cards.ts, resolveAmplify.
     def self.resolve_amplify(effect)
       return nil unless effect["type"] == "modify_power" && effect["duration"] == "until_end_of_turn"
 
@@ -998,7 +998,7 @@ module Rubyfront
     # un'Entità. Aggiungi la mostrata alla mano; se non ne mostri una, metti
     # una delle guardate in cima al mazzo. Poi una delle altre nella Zona di
     # Ritiro e le restanti in fondo in qualsiasi ordine». Gemello:
-    # renderer.ts, resolveSearch.
+    # core/src/cards.ts, resolveSearch.
     def self.resolve_search(effect)
       return nil unless effect["type"] == "look_and_optionally_move"
 
@@ -1029,7 +1029,7 @@ module Rubyfront
 
     # Il prosciugamento (dal 2026-09-10): «il Rubyfront/Nexus avversario perde
     # PV pari al numero di Oggetti assegnati alle Entità che controlli».
-    # Gemello: renderer.ts, resolveDrain.
+    # Gemello: core/src/cards.ts, resolveDrain.
     def self.resolve_drain(effect)
       return nil unless effect["type"] == "lose_health"
 

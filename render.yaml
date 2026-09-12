@@ -4,7 +4,7 @@
 # si fa Manual sync.
 #
 # L'URL pubblico esce come https://rubyfront.onrender.com:
-#   wss://rubyfront.onrender.com/engine  il tavolo (DEFAULT_ENGINE, engine.ts)
+#   wss://rubyfront.onrender.com/engine  il tavolo (PRODUCTION_ENGINE, core/src/engine.ts)
 # Se Render assegna un nome diverso, si aggiorna quel default (o la
 # variabile VITE_ENGINE_URL al build della pagina).
 #

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Confronto · la carta originale</title>
+<!-- Il banco di prova, lato originale: la carta come la disegna il sito
+     (card-render.js + card.css), nella stessa misura del simulatore — 520px
+     di larghezza, corpo 20px, box-sizing border-box come nelle pagine che la
+     ospitano. Lo guida scripts/compare-cards.mjs: renderCard() disegna,
+     misura (riquadri e righe di testo) e dice quando ha finito. -->
+<link rel="stylesheet" href="/cards/ui/card.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #000; }
+  #holder { width: 520px; container-type: inline-size; }
+  .face-label { display: none; }
+</style>
+</head>
+<body>
+<div id="holder"></div>
+<script type="module" src="./original.ts"></script>
+</body>
+</html>

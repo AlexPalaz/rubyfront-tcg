@@ -1,0 +1,13 @@
+"AppBuild"
+{
+	"AppID"	"APP_ID"
+	"Desc"	"Rubyfront BUILD_DESC"
+	"ContentRoot"	"../release/"
+	"BuildOutput"	"./output/"
+	"Depots"
+	{
+		"DEPOT_ID_WINDOWS"	"depot_windows.vdf"
+		"DEPOT_ID_MAC"	"depot_mac.vdf"
+		"DEPOT_ID_LINUX"	"depot_linux.vdf"
+	}
+}

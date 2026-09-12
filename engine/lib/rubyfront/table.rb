@@ -5,7 +5,7 @@ module Rubyfront
   # giudicare — chi possiede quale carta, in che zona sta, l'ordine nelle
   # pile, il turno e il posto attivo. Niente geometria, niente grafica.
   #
-  # La semantica ricalca il riduttore dei client (simulatore/src/state.ts,
+  # La semantica ricalca il riduttore dei client (core/src/state.ts,
   # `apply`): due copie che partono uguali e mangiano le stesse azioni devono
   # restare uguali. Le azioni che non toccano zone o turno (move, tap, say...)
   # qui sono rumore e si ignorano.

@@ -1,0 +1,24 @@
+{
+  // Il core gira nel browser (e in Electron): la libreria DOM serve per i
+  // tipi di WebSocket e crypto. Che il DOM non si USI lo guarda il test
+  // test/no-dom.test.ts.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": false,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  // Come nel simulatore: i test li controlla vitest, non tsc.
+  "include": ["src"]
+}
