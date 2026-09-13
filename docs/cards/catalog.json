@@ -296,7 +296,7 @@
                     "fury"
                   ],
                   "gain": {
-                    "health": 2
+                    "health": 1
                   },
                   "effect": {
                     "type": "look_and_optionally_move",
@@ -3546,7 +3546,7 @@
                     "fury"
                   ],
                   "gain": {
-                    "health": 2
+                    "health": 1
                   },
                   "effect": {
                     "type": "reduce_cost",
@@ -3704,8 +3704,8 @@
                   ],
                   "repeatable": false,
                   "checks": [],
-                  "cost": {
-                    "health": 3
+                  "gain": {
+                    "health": 2
                   },
                   "effect": {
                     "type": "reduce_cost",
@@ -6838,7 +6838,7 @@
                 "fury"
               ],
               "gain": {
-                "health": 2
+                "health": 1
               },
               "effect": {
                 "type": "look_and_optionally_move",
@@ -10088,7 +10088,7 @@
                 "fury"
               ],
               "gain": {
-                "health": 2
+                "health": 1
               },
               "effect": {
                 "type": "reduce_cost",
@@ -10246,8 +10246,8 @@
               ],
               "repeatable": false,
               "checks": [],
-              "cost": {
-                "health": 3
+              "gain": {
+                "health": 2
               },
               "effect": {
                 "type": "reduce_cost",

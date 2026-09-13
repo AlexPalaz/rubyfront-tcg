@@ -128,7 +128,7 @@ class CardIndexTest < Minitest::Test
   def test_special_abilities_of_real_rubyfronts
     human_rf = @index["RBF-001"][:abilities]
     assert_equal %w[glade-call charge-order heir-step return-to-front], human_rf.map { |a| a[:id] }, "dal 2026-09-08 il Nexus ha due abilità"
-    assert_equal({ id: "glade-call", face: 0, timing: %w[preparazione fronte], cost: nil, gain: 2, fury: true,
+    assert_equal({ id: "glade-call", face: 0, timing: %w[preparazione fronte], cost: nil, gain: 1, fury: true,
                    form: { kind: "look", count: 3, reveal: { type: "entity", race: "human" } } }, human_rf[0])
     assert_equal({ kind: "power", amount: 1, targets: "all", race: "human", attacking: true, armed: false }, human_rf[1][:form])
     assert_equal 5, human_rf[1][:cost]
@@ -143,7 +143,8 @@ class CardIndexTest < Minitest::Test
     assert_equal %w[swift-forge calibrated-strike deep-forge blade-chorus], object_rf.map { |a| a[:id] }, "dal 2026-09-10 senza il riarmo"
     assert_equal({ kind: "discount", amount: 1, type: "object", race: nil }, object_rf[0][:form])
     assert_equal %w[preparazione], object_rf[0][:timing]
-    assert_equal [nil, 2], [object_rf[0][:cost], object_rf[0][:gain]], "lo sconto sugli Oggetti dà 2 PV (dal 2026-09-13; 3 dal 2026-09-10)"
+    assert_equal [nil, 1], [object_rf[0][:cost], object_rf[0][:gain]], "sul Rubyfront lo sconto sugli Oggetti dà 1 PV (dal 2026-09-14)"
+    assert_equal [nil, 2], [object_rf[2][:cost], object_rf[2][:gain]], "sul Nexus la forgia dà 2 PV (dal 2026-09-14; prima costava 3)"
     assert_equal({ kind: "power", amount: 2, targets: "one", race: nil, attacking: false, armed: true }, object_rf[1][:form])
     assert_equal({ kind: "power", amount: 2, targets: "all", race: nil, attacking: false, armed: true }, object_rf[3][:form])
     assert_equal 5, object_rf[3][:cost], "Coro delle Lame: −5 PV, +2 dal 2026-09-10"

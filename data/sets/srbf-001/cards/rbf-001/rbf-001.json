@@ -127,7 +127,7 @@
             "fury"
           ],
           "gain": {
-            "health": 2
+            "health": 1
           },
           "effect": {
             "type": "look_and_optionally_move",
