@@ -4254,6 +4254,25 @@ class EngineTest < Minitest::Test
     assert_nil table.card("red")[:left]
   end
 
+  # §6.2 — il ritorno vincolato dopo il cambio di turno (2026-09-13): la
+  # carta del difensore muore nella Reazione, il difensore la chiude e il
+  # turno passa a lui in un fiato; torna nella sua Preparazione e attacca
+  # già in questo turno: conta il turno in cui è uscita.
+  def test_bound_return_after_turn_change_attacks_in_the_new_turn
+    engine = revived_on_field
+    table = engine.instance_variable_get(:@table)
+    turn = table.turn
+    table.apply({ "t" => "turn", "turn" => turn + 1, "active" => "b" })
+    table.apply({ "t" => "toZone", "uid" => "red", "zone" => "abisso" })
+    table.apply({ "t" => "turn", "turn" => turn + 2, "active" => "a" })
+    verdict = come_back(engine)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal turn + 1, table.card("red")[:entered]
+    engine.judge({ "t" => "phase", "phase" => "fronte" })
+    verdict = engine.judge(attack_decl("red"))
+    assert verdict[:ok], verdict[:reason]
+  end
+
   def test_bound_return_decided_by_owner
     engine = revived_on_field
     engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })

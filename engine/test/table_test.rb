@@ -751,4 +751,22 @@ class TableBonusTest < Minitest::Test
     @table.apply({ "t" => "toZone", "uid" => "e", "zone" => "hand" })
     assert_nil @table.card("e")[:left], "in mano non è un'uscita che conta"
   end
+
+  # Il ritorno vincolato dopo il cambio di turno (§6.2, 2026-09-13): conta il
+  # turno in cui la carta è uscita, non quello in cui torna.
+  def test_revive_after_turn_change_counts_the_turn_it_left
+    a = [
+      { "uid" => "e", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "X", "x" => 442, "y" => 1260 },
+      { "uid" => "p", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "Y" },
+    ]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    @table.apply({ "t" => "toZone", "uid" => "e", "zone" => "abisso" })
+    @table.apply({ "t" => "turn", "turn" => 3, "active" => "a" })
+    @table.apply({ "t" => "revive", "uid" => "e", "x" => 821, "y" => 1260, "z" => 5, "object" => "p" })
+    assert_equal 2, @table.card("e")[:entered], "tornata nella Preparazione del turno dopo: conta il turno in cui è uscita"
+    @table.apply({ "t" => "toZone", "uid" => "e", "zone" => "abisso" })
+    @table.apply({ "t" => "revive", "uid" => "e", "x" => 821, "y" => 1260, "z" => 5, "object" => "p" })
+    assert_equal 3, @table.card("e")[:entered], "uscita e tornata nello stesso turno: entra adesso"
+  end
 end

@@ -510,8 +510,16 @@ module Rubyfront
         # §8.2 — il ritorno vincolato: la carta torna sul Fronte e l'Oggetto
         # le va addosso, dal Ritiro. Gemello: state.ts, revive.
         if @cards[action["uid"]] && @cards[action["object"]]
+          left = @cards[action["uid"]][:left]
           to_zone({ "uid" => action["uid"], "zone" => "field", "y" => action["y"] })
           to_zone({ "uid" => action["object"], "zone" => "field", "y" => action["y"], "assignTo" => action["uid"] })
+          # Il rientro conta nel turno in cui è uscita (§6.2, decisione del
+          # designer 2026-09-13): la Reazione la chiude il difensore con
+          # risoluzione e cambio di turno in un fiato, e la carta del
+          # difensore torna nella Preparazione del turno nuovo — il suo —:
+          # non aspetta un altro turno per attaccare. Solo la copia conosce
+          # `entered`: nessun gemello nel riduttore.
+          @cards[action["uid"]][:entered] = left[:turn] if left.is_a?(Hash) && left[:turn].is_a?(Integer) && left[:turn] < @turn
         end
       when "look" then look(action)
       when "ends" then ends(action)
