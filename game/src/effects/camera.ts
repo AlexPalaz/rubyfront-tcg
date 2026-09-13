@@ -38,7 +38,9 @@ export class Camera {
   /**
    * Lo zoom verso un punto del mondo (il flip del Nexus, 2026-09-14): il
    * mondo si ingrandisce di `zoom` attorno ad `at` (unità di progetto) e lo
-   * porta al centro dello schermo; `k` va da 0 (com'era) a 1 (tutto dentro).
+   * porta esattamente al centro dello schermo («la carta dev'essere al
+   * centro»); `k` va da 0 (com'era) a 1 (tutto dentro). Oltre il tavolo
+   * dipinto resta il fondo: chi zooma lo copre col suo velo.
    * Si rifà da ciò che la scena dice adesso (stage.visible) a ogni passo: una
    * finestra che cambia misura a metà non lascia il mondo storto. Solo il
    * mondo: header e schermate restano ferme.
@@ -54,14 +56,8 @@ export class Camera {
     const fromY = baseY + v.scale * at.y;
     const toX = fromX + (screen.width / 2 - fromX) * k;
     const toY = fromY + (screen.height / 2 - fromY) * k;
-    // Il tavolo dipinto (il rettangolo visibile) deve coprire sempre lo
-    // schermo: una carta vicina all'orlo non si centra del tutto, ma oltre
-    // il fondo non si vede il nero.
-    const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
-    const x = clamp(toX - scale * at.x, screen.width - scale * (v.x + v.width), -scale * v.x);
-    const y = clamp(toY - scale * at.y, screen.height - scale * (v.y + v.height), -scale * v.y);
     world.scale.set(scale);
-    world.position.set(x, y);
+    world.position.set(toX - scale * at.x, toY - scale * at.y);
   }
 
   /** Il lampo a tutto schermo, del colore dato. */
