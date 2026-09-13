@@ -30,6 +30,7 @@ import type { Menu } from "./menu";
 import type { Aim } from "./aim";
 import type { PileViewer } from "./pile-viewer";
 import type { CardEvent, Table } from "./table";
+import { holdCursor } from "../cursors";
 
 const TAB: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.12, upper: true };
 const STAT: Font = { size: 18.4, weight: 800, family: SANS };
@@ -313,6 +314,7 @@ export class TableGestures {
     if (!held.ghost) {
       if (Math.hypot(point.x - held.start.x, point.y - held.start.y) < 6) return;
       held.ghost = this.ghost(held.uid);
+      if (held.ghost) holdCursor(this.stage.app, true);
       if (!held.ghost) {
         this.held = null;
         return;
@@ -333,10 +335,11 @@ export class TableGestures {
     const live = this.ctx.state().cards[uid];
     const L = this.table.layout();
     if (!live || !L) return null;
-    const ghost = new CrispSprite(Texture.WHITE);
+    // Trasparente finché la faccia non è pronta: prima era un bianco pieno, un lampo appena presa la carta.
+    const ghost = new CrispSprite(Texture.EMPTY);
     ghost.width = L.tileW;
     ghost.height = L.tileH;
-    ghost.alpha = 0.92;
+    ghost.alpha = 0;
     ghost.eventMode = "none";
     this.layer.addChild(ghost);
     const res = this.stage.visible().scale * this.stage.app.renderer.resolution;
@@ -345,6 +348,7 @@ export class TableGestures {
       ghost.texture = texture;
       ghost.width = L.tileW;
       ghost.height = L.tileH;
+      ghost.alpha = 0.92;
     });
     const view = this.table.view(uid);
     if (view) view.alpha = 0.35;
@@ -356,6 +360,7 @@ export class TableGestures {
     this.held = null;
     if (!held?.ghost) return;
     held.ghost.destroy();
+    holdCursor(this.stage.app, false);
     this.table.markAssign(null);
     this.redraw();
   }
@@ -371,6 +376,7 @@ export class TableGestures {
     // Dove la carta è stata lasciata (il centro del fantasma): l'Oggetto assegnato si dissolve da lì al suo posto (effects/director.ts).
     this.lastRelease = { uid: held.uid, at: Date.now(), x: topLeft.x + held.ghost.width / 2, y: topLeft.y + held.ghost.height / 2 };
     held.ghost.destroy();
+    holdCursor(this.stage.app, false);
     this.table.markAssign(null);
     const live = this.ctx.state().cards[held.uid];
     const L = this.table.layout();

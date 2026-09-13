@@ -12,6 +12,7 @@
 // che si porta in cima (l'insegna, la scena) passa sopra la home.
 
 import { Application, Container } from "pixi.js";
+import { installCursors } from "./cursors";
 
 export const DESIGN_W = 1920;
 export const DESIGN_H = 1080;
@@ -49,6 +50,8 @@ export async function createStage(host: HTMLElement): Promise<Stage> {
     background: "#131013",
   });
   host.append(app.canvas);
+  // Le punte rubino del simulatore, sul tavolo e sulle schermate.
+  installCursors(app);
 
   const world = new Container({ label: "world" });
   const screens = new Container({ label: "screens" });

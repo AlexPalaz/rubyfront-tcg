@@ -78,6 +78,9 @@ export interface CardLook {
  */
 export type Ring = "trigger" | "struck" | "legal" | "aimed" | "pickable" | "assign" | "gestures" | "chain";
 
+/** Gli anelli della mira: la carta si sceglie, e la punta è il mirino. */
+const AIM_RINGS: ReadonlySet<Ring> = new Set<Ring>(["legal", "aimed", "pickable"]);
+
 /** Il tap e lo stap (§6.3): la carta si alza appena, gira con un filo di slancio e si posa. */
 const TAP_MS = 340;
 const TAP_CURVE = bezier(0.34, 1.4, 0.64, 1);
@@ -243,6 +246,8 @@ export class TableCard extends Container {
     this.turnTo(look.tapped, look.tapDelay ?? 0);
     // Si tocca la carta, non la sua ombra: l'area è la carta sola (ruota con lei).
     this.eventMode = "static";
+    // La punta: vuota per prendere la carta, il mirino se la mira la può scegliere (come nel simulatore).
+    this.cursor = look.ring && AIM_RINGS.has(look.ring) ? "aim" : "grab";
     this.hitArea = new Rectangle(-w / 2, -h / 2, w, h);
 
     // L'ombra e il filo, dietro la carta (box-shadow del .tile).
