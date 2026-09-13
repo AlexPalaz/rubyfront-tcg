@@ -9,7 +9,10 @@
 
 import { ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, Texture, Ticker, type Filter, type Renderer } from "pixi.js";
 import { faceTexture } from "../card/cache";
-import { SERIF } from "../card/theme";
+import { getCard } from "@rubyfront/core/cards";
+import { faceModel } from "../card/model";
+import { costGemOf } from "../card/painter";
+import { CARD_W, SERIF } from "../card/theme";
 import { applyFont, drawText, textWidth, type Font } from "../card/text";
 import { bezier, reducedMotion, tween } from "./animation";
 import { THEME, paintPiece, withShadow } from "./appearance";
@@ -57,6 +60,8 @@ export interface CardLook {
   alpha?: number;
   /** Velata (.is-unaffordable): la carta in mano che non ti puoi permettere, o quella che una scelta non prende. */
   veiled?: boolean;
+  /** Il costo di Flusso sceso per un effetto (uno sconto): stampato e di adesso. Solo in mano. */
+  cost?: { printed: number; now: number } | null;
 }
 
 /**
@@ -316,7 +321,7 @@ export class TableCard extends Container {
     }
 
     // I distintivi e i segni del combattimento, in uno strato dipinto sopra.
-    const nextOverlayKey = JSON.stringify([nextShadowKey, look.badges, look.combat]);
+    const nextOverlayKey = JSON.stringify([nextShadowKey, look.badges, look.combat, look.cost ?? null]);
     if (nextOverlayKey !== this.overlayKey) {
       this.overlayKey = nextOverlayKey;
       const margin = SHADOW_MARGIN;
@@ -542,6 +547,13 @@ const KEY_ICON: Record<string, string[]> = {
 };
 
 /** Lo strato sopra la carta: distintivi, anello, numero d'ondata (style.css, .tess-*, .combat-badge, .is-attacking). */
+/** Dove sta il rombo del costo sulla faccia di questa carta (card/painter.ts, costGemOf). */
+function costGemFor(look: CardLook): { x: number; y: number; size: number } | null {
+  const faceId = getCard(look.cardId)?.faces[look.face]?.id;
+  const model = faceId ? faceModel(look.cardId, faceId, look.locale) : null;
+  return model ? costGemOf(model) : null;
+}
+
 function aboveOf(look: CardLook, margin: number): Texture {
   const { w, h } = look;
   return paintPiece(w + 2 * margin, h + 2 * margin, look.resolution, ctx => {
@@ -568,6 +580,36 @@ function aboveOf(look: CardLook, margin: number): Texture {
       ctx.strokeStyle = combat.kind === "block" ? THEME.foe : THEME.gold;
       ctx.lineWidth = 2;
       ctx.strokeRect(-1, -1, w + 2, h + 2);
+    }
+
+    // Il costo sceso (2026-09-13, «mostrare quando il costo di una carta
+    // diminuisce per via di un effetto»): sopra il rombo stampato, un rombo
+    // verde acceso — il verde dei PV — col costo di adesso.
+    const cost = look.cost;
+    const gem = cost && cost.now < cost.printed ? costGemFor(look) : null;
+    if (cost && gem) {
+      const s = w / CARD_W;
+      const side = gem.size * s * 1.08;
+      ctx.save();
+      ctx.translate(gem.x * s, gem.y * s);
+      ctx.rotate(Math.PI / 4);
+      ctx.shadowColor = "rgba(80,220,150,.95)";
+      ctx.shadowBlur = 10 * look.resolution;
+      const fill = ctx.createLinearGradient(-side / 2, -side / 2, side / 2, side / 2);
+      fill.addColorStop(0, "#7fe6a4");
+      fill.addColorStop(0.46, "#2f9f60");
+      fill.addColorStop(1, "#135a36");
+      ctx.fillStyle = fill;
+      ctx.fillRect(-side / 2, -side / 2, side, side);
+      ctx.shadowColor = "transparent";
+      ctx.strokeStyle = "rgba(235,255,242,.9)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-side / 2 + 0.5, -side / 2 + 0.5, side - 1, side - 1);
+      ctx.restore();
+      const font: Font = { size: Math.max(8, side * 0.66), weight: 700, family: SERIF };
+      const text = String(cost.now);
+      applyFont(ctx, font);
+      drawText(ctx, { kind: "text", text, font, color: "#ffffff", shadows: [{ x: 0, y: 1, blur: 2, color: "rgba(0,0,0,.85)" }] }, gem.x * s - textWidth(font, text) / 2, gem.y * s + font.size * 0.36);
     }
 
     const badges = look.badges;

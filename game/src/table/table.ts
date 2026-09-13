@@ -116,6 +116,8 @@ export class Table {
   private readonly pileLabels = new CrispSprite();
   /** La targhetta «La tua mano · n»: cambia a ogni carta, il cassetto no. */
   private readonly handTag = new CrispSprite();
+  /** Il costo di adesso di una carta in mano, se uno sconto lo ha fatto scendere (match.ts lo presta). */
+  costOf: ((card: CardInstance) => { printed: number; now: number } | null) | null = null;
   /** Ciò che ogni pezzo dipinto mostra (paintKeyed): uguale, non si ridipinge. */
   private readonly painted = new WeakMap<Sprite, string>();
   /** I PV sulle testate: quelli mostrati scalano verso il bersaglio un punto alla volta (stepHp). */
@@ -678,7 +680,7 @@ export class Table {
     const step = hand.length > 1 ? Math.min(L.tileW + 10, (room - L.tileW) / (hand.length - 1)) : 0;
     const handY = L.hand.y + L.hand.h - 14 - L.tileH;
     hand.forEach((card, index) => {
-      place(card, this.hand, L.hand.x + 16 + index * step, handY, { cardId: card.cardId, face: card.face, back: false, tapped: false, badges: null, combat: null });
+      place(card, this.hand, L.hand.x + 16 + index * step, handY, { cardId: card.cardId, face: card.face, back: false, tapped: false, badges: null, combat: null, cost: this.costOf?.(card) ?? null });
     });
     this.handEntries(hand.map(card => card.uid));
 

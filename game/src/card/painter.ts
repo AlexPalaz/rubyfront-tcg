@@ -358,6 +358,17 @@ function paintStar(ctx: CanvasRenderingContext2D, x: number, y: number, size: nu
 }
 
 /** Il rombo (o il dado) del costo, in pietra chiara con la cifra scura (.card.cathedral.t49 .cost). */
+/**
+ * Il centro del rombo del costo, in unità della faccia (520×728), e il suo
+ * lato: lo stesso conto di paintCost dentro la barra del titolo. Il tavolo ci
+ * posa sopra il costo scontato (table/card.ts). Null senza costo o col Nexus.
+ */
+export function costGemOf(face: FaceModel): { x: number; y: number; size: number } | null {
+  if (!face.cost || face.cost.kind === "nexus") return null;
+  const title = titleBlock(face, PALETTE[face.tint]);
+  return { x: CONTENT_X + COST / 2, y: CONTENT_TOP + title.h / 2 - 0.34 * EM, size: COST };
+}
+
 function paintCost(ctx: CanvasRenderingContext2D, face: FaceModel, p: Palette, cy: number, placedLines: PlacedLine[]): void {
   const cost = face.cost;
   if (!cost) return;

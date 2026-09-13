@@ -17,12 +17,13 @@
 // ascolta la sessione dai ganci (l'attesa in stanza, il tavolo che si apre,
 // la partita col bot finita).
 
-import { cardName, cardStats, enterEffects } from "@rubyfront/core/cards";
+import { cardName, cardStats, enterEffects, isRubyfront } from "@rubyfront/core/cards";
+import { discountedCost } from "@rubyfront/core/effects";
 import { defaultEngineUrl } from "@rubyfront/core/engine";
 import { TRIGGER_LEAD_MS, TRIGGER_TAIL_MS, createGestures, type GestureView, type Gestures } from "@rubyfront/core/gestures";
 import { t } from "@rubyfront/core/i18n";
 import { createSession, type Session, type SessionStore, type SessionView } from "@rubyfront/core/session";
-import { seatLabel, zoneCards } from "@rubyfront/core/state";
+import { abilityDiscount, seatLabel, zoneCards } from "@rubyfront/core/state";
 import { endPhase } from "@rubyfront/core/turn";
 import type { Action, Seat } from "@rubyfront/core/types";
 import { Director } from "./effects/director";
@@ -396,6 +397,20 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   entrance.onLanding = uid => directorInstance.landing(uid, 1.5, false);
   // La carta del turno aspetta che l'insegna se ne vada.
   table.entryDelay = () => banner.remaining();
+  // Il costo di adesso delle carte in mano (2026-09-13): lo sconto di
+  // un'abilità del Rubyfront, quello di una Materia con le armate sul Fronte
+  // — lo stesso conto della giocata (core/gestures.ts), senza il bersaglio:
+  // quello si sa solo mirando.
+  table.costOf = card => {
+    if (card.zone !== "hand" || isRubyfront(card.cardId)) return null;
+    const facts = session.ctx.card(card.cardId);
+    if (facts.fluxCost === null) return null;
+    const state = session.state();
+    let now = facts.kind === "matter" ? (discountedCost(state, card, null, session.ctx.card) ?? facts.fluxCost) : facts.fluxCost;
+    const off = abilityDiscount(state, card.owner, facts);
+    if (off) now = Math.max(1, now - off.amount);
+    return now < facts.fluxCost ? { printed: facts.fluxCost, now } : null;
+  };
 
   // Il gesto di fase: chiude la fase in corso (turn.ts, endPhase), passando
   // dall'arbitro come ogni altra azione.
