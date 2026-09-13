@@ -16,8 +16,8 @@
     "die": "Dado di schieramento"
   },
   "matters": {
-    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
-    "dimensionalAria": "Dimensionale",
+    "dynamicTitle": "Materia Dinamica · fino al 2° grado",
+    "dynamicAria": "Dinamica",
     "destructiveTitle": "Materia Distruttiva · fino al 1° grado",
     "destructiveAria": "Distruttiva"
   },

@@ -61,8 +61,8 @@
                 "die": "Dado di schieramento"
               },
               "matters": {
-                "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
-                "dimensionalAria": "Dimensionale",
+                "dynamicTitle": "Materia Dinamica · fino al 2° grado",
+                "dynamicAria": "Dinamica",
                 "destructiveTitle": "Materia Distruttiva · fino al 1° grado",
                 "destructiveAria": "Distruttiva"
               },
@@ -130,8 +130,8 @@
                 "die": "Deployment die"
               },
               "matters": {
-                "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
-                "dimensionalAria": "Dimensional",
+                "dynamicTitle": "Dynamic Matter · up to 2nd grade",
+                "dynamicAria": "Dynamic",
                 "destructiveTitle": "Destructive Matter · up to 1st grade",
                 "destructiveAria": "Destructive"
               },
@@ -187,7 +187,7 @@
             "nexus",
             "human",
             "aggro",
-            "dimensional",
+            "dynamic",
             "destructive"
           ],
           "rulesReference": "MANUALE.md §3.1, §7, §8.1",
@@ -204,7 +204,7 @@
               },
               "enablesMatters": [
                 {
-                  "type": "dimensional",
+                  "type": "dynamic",
                   "maxGrade": 2,
                   "upTo": true
                 },
@@ -364,7 +364,7 @@
               },
               "enablesMatters": [
                 {
-                  "type": "dimensional",
+                  "type": "dynamic",
                   "maxGrade": 2,
                   "upTo": true
                 },
@@ -6615,8 +6615,8 @@
             "die": "Dado di schieramento"
           },
           "matters": {
-            "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
-            "dimensionalAria": "Dimensionale",
+            "dynamicTitle": "Materia Dinamica · fino al 2° grado",
+            "dynamicAria": "Dinamica",
             "destructiveTitle": "Materia Distruttiva · fino al 1° grado",
             "destructiveAria": "Distruttiva"
           },
@@ -6684,8 +6684,8 @@
             "die": "Deployment die"
           },
           "matters": {
-            "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
-            "dimensionalAria": "Dimensional",
+            "dynamicTitle": "Dynamic Matter · up to 2nd grade",
+            "dynamicAria": "Dynamic",
             "destructiveTitle": "Destructive Matter · up to 1st grade",
             "destructiveAria": "Destructive"
           },
@@ -6741,7 +6741,7 @@
         "nexus",
         "human",
         "aggro",
-        "dimensional",
+        "dynamic",
         "destructive"
       ],
       "rulesReference": "MANUALE.md §3.1, §7, §8.1",
@@ -6758,7 +6758,7 @@
           },
           "enablesMatters": [
             {
-              "type": "dimensional",
+              "type": "dynamic",
               "maxGrade": 2,
               "upTo": true
             },
@@ -6918,7 +6918,7 @@
           },
           "enablesMatters": [
             {
-              "type": "dimensional",
+              "type": "dynamic",
               "maxGrade": 2,
               "upTo": true
             },

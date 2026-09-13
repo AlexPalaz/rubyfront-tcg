@@ -290,6 +290,11 @@ class CardIndexTest < Minitest::Test
     assert_equal 2, ruby_rf.size, "Rubyfront e Nexus: una lista per faccia"
     assert_includes ruby_rf[0], { type: "destructive", max_grade: 1 }
     assert_includes ruby_rf[1], { type: "destructive", max_grade: 2 }, "il Nexus abilita di più (§3.1)"
+    human_rf = @index["RBF-001"][:enables]
+    assert_equal [{ type: "dynamic", max_grade: 2 }, { type: "destructive", max_grade: 1 }], human_rf[0],
+                 "dal 2026-09-13 il Rubyfront abilita la Dinamica, non la Dimensionale"
+    assert_equal [{ type: "dynamic", max_grade: 2 }, { type: "destructive", max_grade: 2 }], human_rf[1],
+                 "e il Nexus pure: il flip non toglie la Dinamica al mazzo"
     assert_equal [[]], @index["RBF-036"][:enables], "una Materia non abilita nulla"
   end
 

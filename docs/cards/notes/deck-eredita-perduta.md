@@ -36,7 +36,7 @@ in media costa 3,5 e il richiamo non fa mai salire il prezzo.
 | Abilità | **+3 PV** Richiamo della Radura: guarda 3, prendi un Umano | **+3 PV** Passo dell'Erede: il prossimo Umano costa 1 Flusso in meno |
 | Abilità | **−5 PV** Ordine di Carica: Umani attaccanti +1 Potenza | — |
 | Abilità | — | **−7 PV** Ritorno al Fronte: un Umano gratis dalla mano, con Slancio |
-| Materie | Dimensionale fino al 2° · Distruttiva fino al 1° | Dimensionale fino al 2° · Distruttiva fino al **2°** |
+| Materie | Dinamica fino al 2° · Distruttiva fino al 1° | Dinamica fino al 2° · Distruttiva fino al **2°** |
 | Furia | d20 ≥ 13 | d20 ≥ 13 |
 | Recupero al flip | | **+5 PV** |
 
@@ -74,23 +74,21 @@ numero di attaccanti del turno. Chi attacca a caso perde metà del mazzo.
 | Tipo | Chi lo abilita | Carte |
 |---|---|---|
 | Dinamica I | 6 Entità (14 copie) | Attrazione Argentata, Formazione Infrangibile, Impatto Esiliante |
-| Dinamica II | 4 Entità (5 copie) | Forza della Radura, Contrattacco Coordinato, Per Vhal Astra! |
+| Dinamica II | 4 Entità (5 copie), **Oblivhal e il Nexus** | Forza della Radura, Contrattacco Coordinato, Per Vhal Astra! |
 | Distruttiva I | **solo Oblivhal** | Campo Repulsivo |
 | Distruttiva II | **solo il Nexus** | Giudizio Cremisi |
-| Dimensionale II | Oblivhal e Nexus | *nessuna carta nel mazzo* |
 
-Due conseguenze da confermare col designer:
+Una conseguenza da confermare col designer:
 
 1. **Giudizio Cremisi è giocabile solo dopo il flip.** La faccia A abilita la
    Distruttiva fino al 1° grado, la carta è di 2°. Due copie di rimozione
    dormono in mano per metà partita.
-2. **La Dimensionale II non serve a niente in questo mazzo**: nessuna Materia
-   Dimensionale è in lista. O manca una carta, o l'abilitazione andrebbe
-   spostata sulla Dinamica.
-
-Terzo punto minore: la Dinamica II arriva solo da 4 Entità per 5 copie totali,
-tre delle quali costano 4 o più. Le tre Materie di 2° grado possono restare
-bloccate in mano nei turni in cui servirebbero.
+**Deciso dal designer (2026-09-13):** Oblivhal e il Nexus abilitano la
+**Dinamica** fino al 2° grado al posto della Dimensionale, che nel mazzo non
+serviva a niente (nessuna Materia Dimensionale in lista). La Dinamica II non
+dipende più dalle sole 4 Entità (5 copie, tre delle quali costano 4 o più):
+la abilita il Rubyfront appena schierato, e il flip — che manda Rhen
+nell'Abisso — non la toglie più.
 
 ## 5. Punti di rottura
 
