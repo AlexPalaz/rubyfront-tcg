@@ -191,7 +191,7 @@
       "kind": "nexus",
       "displayKey": "faceB",
       "stats": {
-        "healthRecovery": 5
+        "healthRecovery": 3
       },
       "enablesMatters": [
         {

@@ -38,7 +38,7 @@ in media costa 3,5 e il richiamo non fa mai salire il prezzo.
 | Abilità | — | **−7 PV** Ritorno al Fronte: un Umano gratis dalla mano, con Slancio |
 | Materie | Dinamica fino al 2° · Distruttiva fino al 1° | Dinamica fino al 2° · Distruttiva fino al **2°** |
 | Furia | d20 ≥ 13 | d20 ≥ 13 |
-| Recupero al flip | | **+5 PV** |
+| Recupero al flip | | **+3 PV** |
 
 **Requisito Nexus:** controllare almeno 4 Entità Umane e scartare una carta
 Entità dalla mano (nell'Abisso; decisione del designer, 2026-08-28 — prima era una

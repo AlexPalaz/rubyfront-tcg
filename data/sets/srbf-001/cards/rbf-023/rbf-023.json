@@ -176,7 +176,7 @@
       "artZoom": "72%",
       "artDim": 0.14,
       "stats": {
-        "healthRecovery": 5
+        "healthRecovery": 3
       },
       "enablesMatters": [
         {

@@ -238,9 +238,9 @@ class CardIndexTest < Minitest::Test
   end
 
   def test_human_rubyfront_nexus_and_its_flip
-    assert_equal({ face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 5 }, @index["RBF-001"][:nexus])
+    assert_equal({ face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 3 }, @index["RBF-001"][:nexus], "recupero al flip +3 PV dal 2026-09-13")
     assert_equal [{ kind: "move", card_id: "RBF-012", from: "field", to: "abisso" }, { kind: "seal", card_id: "RBF-012" }], @index["RBF-001"][:flip_forms]
-    assert_equal({ face: 1, conditions: [{ count: 3, type: "entity", race: nil, armed: true }], discard: { count: 1, type: nil }, recovery: 5 }, @index["RBF-023"][:nexus], "dal 2026-09-10: «con un Oggetto assegnato», scarta una carta")
+    assert_equal({ face: 1, conditions: [{ count: 3, type: "entity", race: nil, armed: true }], discard: { count: 1, type: nil }, recovery: 3 }, @index["RBF-023"][:nexus], "dal 2026-09-10: «con un Oggetto assegnato», scarta una carta")
     assert_equal %w[move seal draw], @index["RBF-023"][:flip_forms].map { |form| form[:kind] }, "ma i suoi «quando flippa» hanno la stessa forma, più la pesca"
     assert_equal({ kind: "draw", count: 1 }, @index["RBF-023"][:flip_forms].last)
     assert_nil @index["RBF-004"][:nexus]
