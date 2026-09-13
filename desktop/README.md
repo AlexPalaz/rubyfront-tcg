@@ -7,7 +7,7 @@ arriva allo schermo.
 - **Carte, suoni, musica a bordo.** `scripts/prepare-app.mjs` costruisce il
   gioco in `app/` (build di `game/` con `VITE_CARDS=./cards/`) e ci copia
   `docs/cards` (catalogo, illustrazioni, grafica: ~7 MB) accanto a suoni,
-  musica e immagini della home (`simulator/public`, ~11 MB). Online resta
+  musica e immagini della home (`game/public`, ~11 MB). Online resta
   solo il **tavolo Ruby** (`wss://rubyfront.onrender.com/engine`, o
   `VITE_ENGINE_URL`): sempre online, anche contro il bot (deciso
   2026-09-11).
@@ -44,7 +44,7 @@ npm run pack:linux          # … Linux / SteamOS
 ```
 
 Variabili di `prepare-app`: `RUBYFRONT_SITE=https://<dominio>/` (il link
-d'invito porta al gioco sul sito, `<dominio>/next/`: dal desktop l'indirizzo
+d'invito porta al gioco sul sito, `<dominio>/`: dal desktop l'indirizzo
 della finestra a un amico non serve — senza, si entra comunque col nome
 della stanza); `VITE_ENGINE_URL=ws://localhost:8788` per provare contro il
 tavolo locale.

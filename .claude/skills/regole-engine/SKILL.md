@@ -1,13 +1,13 @@
 ---
 name: regole-engine
-description: Come si collega una regola del MANUALE all'engine Ruby e al simulatore, e come si tocca il canale fra i due. Da usare SEMPRE prima di lavorare su engine/ (regole, anagrafe, copia del tavolo, protocollo), sul riduttore o sulle routine dei client (core/: state.ts, turn.ts, combat.ts, effects.ts, engine.ts, session.ts) o sul comportamento «con l'arbitro al tavolo» — quando l'utente chiede la prossima regola, segnala che l'engine ferma o lascia passare qualcosa a torto, o vuole un automatismo del tavolo.
+description: Come si collega una regola del MANUALE all'engine Ruby e al client (core/ + game/), e come si tocca il canale fra i due. Da usare SEMPRE prima di lavorare su engine/ (regole, anagrafe, copia del tavolo, protocollo), sul riduttore o sulle routine dei client (core/: state.ts, turn.ts, combat.ts, effects.ts, engine.ts, session.ts) o sul comportamento «con l'arbitro al tavolo» — quando l'utente chiede la prossima regola, segnala che l'engine ferma o lascia passare qualcosa a torto, o vuole un automatismo del tavolo.
 ---
 
-# Regole engine ↔ simulatore
+# Regole engine ↔ client
 
 L'engine (`engine/`, Ruby, nessuna dipendenza) **dà le regole ed è l'unico a
-scrivere lo stato** (deciso 2026-09-11): il simulatore (`simulator/`,
-TypeScript) trattiene ogni azione finché l'engine non risponde, su un «no»
+scrivere lo stato** (deciso 2026-09-11): il client (`core/` + `game/`,
+TypeScript; il simulatore DOM è stato tolto il 2026-09-13) trattiene ogni azione finché l'engine non risponde, su un «no»
 la lascia cadere mostrando il sigillo, e in stanza l'avversario riceve solo
 le azioni che il tavolo ha approvato. Le regole di `docs/MANUALE.md` si collegano **una alla volta**, su
 decisione del designer, ciascuna con i suoi test nei due mondi. Questa skill
@@ -23,15 +23,15 @@ file nella stessa modifica.
 | Anagrafe | `engine/lib/rubyfront/card_index.rb` | L'unico file che tocca il disco: legge `data/sets/*/cards/*/<id>.json` una volta e congela. Tipo, razza, parole chiave, concessioni certificate, Potenza, Contrattacco, costo di Flusso, costo di schieramento, etichetta e abilitazioni delle Materie, comportamento. |
 | Stanza | `engine/lib/rubyfront/room.rb` | Un `Engine` per partita, i client seduti, il **giornale** delle azioni approvate, l'inoltro agli altri client solo dopo il verdetto. In stanza l'attore è il posto del client; la stanza «solo» (senza nome: locale, bot) si fida dell'attore dichiarato e accetta lo snapshot. |
 | Trasporto | `engine/bin/server`, `engine/lib/rubyfront/websocket.rb` | Un thread per client, una stanza per partita (`?room=&seat=`). |
-| Riduttore | `core/src/state.ts` | `apply(state, action)`: la semantica condivisa dei client (simulatore e gioco). Ciò che cambia qui cambia in `table.rb`, e viceversa. |
+| Riduttore | `core/src/state.ts` | `apply(state, action)`: la semantica del client. Ciò che cambia qui cambia in `table.rb`, e viceversa. |
 | Routine | `core/src/turn.ts`, `combat.ts`, `effects.ts` | Fasi, fine turno, risoluzione, fine partita, effetti: puro TS, provabile con un `Ctx` finto. |
 | Canale | `core/src/engine.ts`, `core/src/session.ts` (`dispatch`, `commit`, `receive`, `rebuildFromJournal`, `actorFor`) | Un canale solo: `judge` per ogni azione, `onAction` per quelle avversarie approvate, `onJournal` all'ingresso (la lavagna si ricostruisce con `replay`, state.ts). `snapshot` solo nella «solo». La sessione non ha DOM: ciò che si vede lo chiede alla vista (`SessionView`). |
 | Anagrafe del client | `core/src/cards.ts` (`cardStats`) | Lo specchio di `card_index.rb`: stessi campi, stesse forme certificate. Il catalogo lo consegna il client (`useCatalog`). |
-| Gesti | `core/src/gestures.ts`, `core/src/tabs.ts` | I gesti e gli inneschi (§3.1, §7.2, §8.2) come sequenza di azioni, attese e scelte, e i tasti che una carta offre: condivisi dai due client. Un effetto nuovo si risolve qui, non in `table.ts`; la vista dà solo luci, voli, scene, dado, mira, finestre (`GestureView`). La prova che un ritocco non cambia il comportamento è `game/scripts/record-match.mjs` (una partita col bot a seme fisso, prima e dopo). |
-| Tavolo e HUD | `simulator/src/table.ts`, `hud.ts`, `banner.ts`, `dice.ts` (e, dalla migrazione, le viste Pixi in `game/`) | Con `ctx.arbitrated()` i gesti manuali si ritirano e il tavolo si lega agli slot. |
+| Gesti | `core/src/gestures.ts`, `core/src/tabs.ts` | I gesti e gli inneschi (§3.1, §7.2, §8.2) come sequenza di azioni, attese e scelte, e i tasti che una carta offre: del client, senza vista. Un effetto nuovo si risolve qui, non in `table.ts`; la vista dà solo luci, voli, scene, dado, mira, finestre (`GestureView`). La prova è la partita col bot al tavolo vero (`game/scripts/test-match.mjs`, `test-gestures.mjs`). |
+| Tavolo e HUD | `game/src/table/` (`table.ts`, `gestures.ts`, `scene.ts`, `banner.ts`, `dice.ts`): le viste Pixi | Con `ctx.arbitrated()` i gesti manuali si ritirano e il tavolo si lega agli slot. |
 | Racconto | `engine/README.md` | Un paragrafo per regola collegata, coi limiti dichiarati. Fonte di verità di cosa fa l'engine. |
 
-Il contratto dei verdetti: `ruled: false` = nessuna regola, il simulatore
+Il contratto dei verdetti: `ruled: false` = nessuna regola, il client
 applica; `ruled: true, ok: true` = passa; `ruled: true, ok: false` = fermata,
 `reason` spiega, col riferimento «(§x.y)» in coda che il sigillo trasforma in
 targhetta. **Mai molesto**: carta ignota all'anagrafe, coordinata assente,
@@ -115,8 +115,7 @@ con `cost` non è un pixel: è lo schieramento.
    paragrafi che davano la cosa come debito.
 8. **Verificare e consegnare**, nell'ordine:
    `ruby engine/test/*_test.rb` (tutti), `npx tsc --noEmit` e
-   `npx vitest run` da `core/` e da `simulator/` (e `npx tsc --noEmit` da
-   `game/`), `node scripts/build-site.mjs` (la build pubblicata la fa
+   `npx vitest run` da `core/` e da `game/`, `node scripts/build-site.mjs` (la build pubblicata la fa
    Vercel a ogni push: `dist/` non si committa), riavvio della pipeline (`node scripts/dev.mjs`: il server Ruby
    **non ricarica il codice da solo**), commit con messaggio in italiano
    nello stile del repo (titolo con la regola e il §, corpo che racconta
@@ -139,7 +138,7 @@ nei messaggi delle asserzioni non nomina le carte.
 
 ## Convenzioni
 
-- Il simulatore è bilingue (inglese prima): ogni scritta passa da `t("chiave")`
+- Il client è bilingue (inglese prima): ogni scritta passa da `t("chiave")`
   in `core/src/i18n.ts`, le righe di chat viaggiano come chiave e
   parametri (`ctx.log(msg("log.x", { seat, card: cardId }))`, resa in
   `log.ts` nella lingua di chi legge: `seat`/`otherSeat` → nome del posto,
@@ -194,4 +193,4 @@ nei messaggi delle asserzioni non nomina le carte.
 - [ ] Nessuna scritta nuda nel client: chiavi in `i18n.ts` (it + en), chat a chiavi.
 - [ ] Dogana del turno: la regola passa dalle sue eccezioni se serve.
 - [ ] README: paragrafo con limiti dichiarati e regola d'oro; debiti vecchi aggiornati.
-- [ ] Ruby, tsc, vitest (core e simulatore), build verdi; pipeline riavviata; commit.
+- [ ] Ruby, tsc, vitest (core e gioco), build verdi; pipeline riavviata; commit.

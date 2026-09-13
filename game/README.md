@@ -3,15 +3,15 @@
 Il client nuovo, in PixiJS v8 su WebGL, pensato anche per un'uscita desktop
 su Steam (Electron). Nasce dalla migrazione decisa il 2026-09-11: si rifà
 **solo il client**; manuale, engine Ruby, dati e catalogo restano quelli.
-Il simulatore (`simulator/`) resta in piedi come termine di confronto, e
-parla lo stesso protocollo col tavolo: le partite incrociate vecchio ↔ nuovo
-sono il banco di prova della parità.
+Dal 2026-09-13 è il solo client: il simulatore DOM (`simulator/`), tenuto
+fino ad allora come termine di confronto, è stato tolto — resta nella storia
+di git (l'ultimo commit che lo contiene è `db3327c`).
 
 ## Come si avvia
 
 ```bash
 npm install          # dalla radice del repo: un workspace solo
-npm run all          # pagina del simulatore, gioco e tavolo insieme
+npm run all          # gioco e tavolo insieme
 ```
 
 Da solo: `npm run dev -w game` → http://localhost:5200/ (con `?debug`:
@@ -82,14 +82,8 @@ pannello), la mano in un cassetto di vetro sopra il tavolo.
 | `sample-game.ts` | la partita di prova: una lista di azioni che passa dal riduttore vero |
 
 `http://localhost:5200/?table=sample` mostra la partita di prova (`&seat=b`
-dall'altra parte). Il confronto col simulatore sulla stessa partita:
-
-```bash
-cd game
-node scripts/table-side-by-side.mjs             # dal posto A
-node scripts/table-side-by-side.mjs --seat b    # dal posto B
-open compare/table/index-a-night.html   # index-<posto>[-chain|-panel|-browse|-block]-<tema>.html
-```
+dall'altra parte). Il confronto col simulatore sulla stessa partita
+(`scripts/table-side-by-side.mjs`) è uscito col simulatore, il 2026-09-13.
 
 Differenze volute: niente header in alto (le schermate sono di F6) e un
 solo gesto di fase, perché il gioco gioca sempre con l'arbitro. Rimandati:
@@ -132,12 +126,11 @@ Nel gioco, in `src/table/`:
 `http://localhost:5200/?match=bot` gioca contro il bot al tavolo Ruby
 (la stanza «solo»).
 
-**Il banco di registrazione** (`scripts/record-match.mjs`): una partita
-del simulatore contro il bot col caso a seme fisso e il tavolo Ruby vero; il
-posto A chiude le sue fasi e scarta l'eccesso, e le azioni giudicate si
-registrano in ordine. Prima e dopo lo spostamento nel core dei gesti, dei
-tasti, del rilascio e del menu le sequenze coincidono (seme 7: 81 azioni;
-seme 11: 86).
+**Il banco di registrazione** (`scripts/record-match.mjs`, uscito col
+simulatore il 2026-09-13) registrava una partita del simulatore contro il bot
+col caso a seme fisso e il tavolo Ruby vero: prima e dopo lo spostamento nel
+core dei gesti, dei tasti, del rilascio e del menu le sequenze coincidevano
+(seme 7: 81 azioni; seme 11: 86).
 
 **Le prove nel gioco**, su una partita vera contro il bot al tavolo Ruby:
 `test-match.mjs` (il bot gioca, le scene e i dadi si fotografano) e
@@ -147,8 +140,6 @@ dichiarazione giudicata).
 
 ```bash
 cd game
-node scripts/record-match.mjs --seed 7 --turns 20 --out prima.json
-node scripts/record-match.mjs --compare prima.json dopo.json
 node scripts/test-match.mjs --out prova        # la partita col bot nel gioco, con le foto
 node scripts/test-gestures.mjs --out prova     # i gesti del giocatore
 ```
@@ -207,6 +198,11 @@ fotografa.
 
 ## La parità (F7)
 
+Chiusa il 2026-09-12. Il 2026-09-13 il simulatore è stato tolto, e con lui gli
+script che confrontavano i due client (`crossplay.mjs`,
+`table-side-by-side.mjs`, `record-match.mjs`): quello che segue resta come
+storia di com'è stata provata.
+
 `scripts/crossplay.mjs`: il simulatore al posto A e il gioco al posto B nella
 stessa stanza del tavolo Ruby. Il gioco gioca e attacca (i gesti del bot,
 `window.__rubyfront.testHooks`, solo in sviluppo), il simulatore passa e
@@ -248,5 +244,5 @@ automatico) ✓ · F3 il tavolo fermo ✓ · F4 l'interazione ✓ · F5 la resa 
 F6 le schermate ✓ · F7 la parità ✓ · F8 Electron e Steam ✓ (pronto; per
 pubblicare servono i dati di Steamworks, `desktop/STEAM.md`).
 
-Nel sito pubblicato il gioco esce sotto `/next` finché non raggiunge il
-simulatore.
+Nel sito pubblicato il gioco sta alla radice (dal 2026-09-13; prima sotto
+`/next`, che ora rimanda lì).

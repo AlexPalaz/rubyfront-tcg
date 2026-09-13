@@ -1095,14 +1095,14 @@ ruby engine/bin/server        # ascolta su ws://localhost:8788
 radice, `scripts/server.mjs`: l'engine è un processo figlio raggiunto per
 proxy sul percorso `/engine`): una pagina statica non può farlo girare, e
 senza quel servizio in stanza non si gioca. In produzione (https) il
-simulatore si collega a `wss://rubyfront.onrender.com/engine`
+gioco si collega a `wss://rubyfront.onrender.com/engine`
 (`defaultEngineUrl` in `core/src/engine.ts`, o `VITE_ENGINE_URL` al
 build). Il piano free dormirebbe dopo un quarto d'ora: il server si tocca
 da solo ogni dieci minuti. A ogni regola nuova Render ricostruisce dal push
 (auto-deploy) o con un manual sync del Blueprint.
 
-(oppure, da `simulator/`: `npm run engine`). Nel simulatore: la spia
-quadrata in alto diventa verde e in chat compare il saluto dell'engine.
+(oppure `npm run all` dalla radice, insieme al gioco). Nel gioco: la spia
+dell'header diventa verde e in chat compare il saluto dell'engine.
 L'arbitro è **sempre acceso**. Engine non raggiungibile: spia rossa; nella
 partita locale o col bot il tavolo resta libero, in stanza ogni gesto si
 ferma con l'avviso finché il tavolo non torna.

@@ -1,4 +1,4 @@
-// Prepara app/: la build del gioco (gioco/) per il desktop. Rispetto al sito
+// Prepara app/: la build del gioco (game/) per il desktop. Rispetto al sito
 // cambiano tre cose: le carte (dati e illustrazioni, docs/cards) viaggiano
 // a bordo, in app/cards (VITE_CARDS=./cards/); il tavolo è quello di
 // produzione (VITE_ENGINE_URL), perché una pagina app:// non è https e da
@@ -30,8 +30,8 @@ execSync(`npm run build -- --outDir "${APP}" --emptyOutDir`, {
     ...process.env,
     VITE_CARDS: "./cards/",
     VITE_ENGINE_URL: process.env.VITE_ENGINE_URL ?? PRODUCTION_ENGINE,
-    // Il gioco PixiJS sul sito sta sotto /next finché non prende il posto del simulatore.
-    VITE_INVITE_BASE: site ? new URL("next/", site).href : "",
+    // Il gioco sul sito sta alla radice (dal 2026-09-13, tolto il simulatore).
+    VITE_INVITE_BASE: site ? new URL("./", site).href : "",
   },
 });
 if (!existsSync(resolve(APP, "index.html"))) throw new Error("la build del gioco non è in desktop/app");

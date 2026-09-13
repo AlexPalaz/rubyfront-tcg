@@ -1,9 +1,9 @@
 # Core di Rubyfront
 
-La logica del client, senza DOM e senza grafica: la usano tutti e due i
-client — il simulatore (`simulator/`, DOM, il termine di confronto) e il
-gioco (`game/`, PixiJS). Deciso 2026-09-11: un core solo, perché con due
-copie le regole divergerebbero al primo ritocco.
+La logica del client, senza DOM e senza grafica: la usa il gioco (`game/`,
+PixiJS). Deciso 2026-09-11: un core solo, condiviso col simulatore DOM
+finché è esistito (tolto il 2026-09-13), perché con due copie le regole
+divergerebbero al primo ritocco.
 
 Qui vivono (dalla fase F1 della migrazione; gesti e tasti dalla F4):
 

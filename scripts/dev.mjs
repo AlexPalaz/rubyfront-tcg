@@ -1,9 +1,9 @@
 // Tutto il tavolo con un comando solo:
 //
-//   npm run all                 (dalla radice o da simulator/)
+//   npm run all                 (dalla radice)
 //
-// Accende i tre pezzi — la pagina del simulatore (vite, :5199), il gioco
-// in PixiJS (vite, :5200) e il tavolo (l'engine Ruby, :8788) — con i log incolonnati per voce, e un solo Ctrl+C
+// Accende i due pezzi — il gioco in PixiJS (vite, :5200) e il tavolo
+// (l'engine Ruby, :8788) — con i log incolonnati per voce, e un solo Ctrl+C
 // spegne tutto. Se un pezzo muore (porta occupata, Ruby assente...),
 // si spegne il resto e si esce: meglio un fallimento chiaro che un
 // tavolo a metà.
@@ -15,7 +15,6 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 const VOICES = [
-  { name: "page", command: "npm", args: ["run", "dev"], cwd: resolve(ROOT, "simulator") },
   { name: "game", command: "npm", args: ["run", "dev"], cwd: resolve(ROOT, "game") },
   { name: "engine", command: "ruby", args: ["engine/bin/server"], cwd: ROOT },
 ];
@@ -71,5 +70,5 @@ for (const voice of VOICES) {
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
-console.log("Tavolo in accensione: pagina http://localhost:5199/simulator/ · gioco http://localhost:5200/ · engine :8788");
+console.log("Tavolo in accensione: gioco http://localhost:5200/ · engine :8788");
 console.log("Ctrl+C per spegnere tutto.");

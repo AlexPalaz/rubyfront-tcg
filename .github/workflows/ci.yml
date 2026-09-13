@@ -1,5 +1,5 @@
 # I test a ogni push e a ogni PR: l'engine (Ruby, i quattro file di test),
-# il core, il simulatore e il gioco (tsc, vitest) e la build del sito.
+# il core e il gioco (tsc, vitest) e la build del sito.
 name: CI
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
           ruby-version: "3.2"
       - run: for t in engine/test/*_test.rb; do ruby -Iengine/lib "$t"; done
   client:
-    name: Core, simulatore e gioco (tsc, vitest, build)
+    name: Core e gioco (tsc, vitest, build)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,16 +23,12 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-      # Un workspace solo (core, simulatore, gioco): un lockfile alla radice.
+      # Un workspace solo (core, gioco): un lockfile alla radice.
       - run: npm ci
       - run: npx tsc --noEmit
         working-directory: core
       - run: npx vitest run
         working-directory: core
-      - run: npx tsc --noEmit
-        working-directory: simulator
-      - run: npx vitest run
-        working-directory: simulator
       - run: npx tsc --noEmit
         working-directory: game
       - run: npx vitest run

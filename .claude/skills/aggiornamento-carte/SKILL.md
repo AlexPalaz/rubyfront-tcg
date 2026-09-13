@@ -57,7 +57,7 @@ giro; se un passo manca, si aggiunge qui nella stessa modifica.
 5. **Verificare**: `node scripts/validate-data.mjs`, `node
    scripts/build-catalog.mjs` (il catalogo generato in `docs/cards/` si
    committa), `ruby engine/test/*_test.rb`, `npx tsc --noEmit -p .` e `npx
-   vitest run` da `core/` e da `simulator/`.
+   vitest run` da `core/` e da `game/`.
 6. **Commit e push** in italiano nello stile del repo: titolo con il mazzo e
    le carte cambiate, corpo che elenca le differenze foglio → catalogo.
 7. **Riportare il testo normalizzato sul foglio**, nel browser del designer
