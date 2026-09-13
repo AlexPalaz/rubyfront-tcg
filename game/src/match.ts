@@ -348,6 +348,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     },
     introDone: () => {
       if (director) director.entrancePending = false;
+      entrance.release();
       hooks.introDone?.();
     },
     botGameOver: won => hooks.botGameOver?.(won),
@@ -433,7 +434,10 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     banner,
     seal,
     director: directorInstance,
-    expectEntrance: () => (directorInstance.entrancePending = true),
+    expectEntrance: () => {
+      directorInstance.entrancePending = true;
+      entrance.prepare();
+    },
     closePhase,
     isQuiet: () => view.quiet(),
     redraw: paint,

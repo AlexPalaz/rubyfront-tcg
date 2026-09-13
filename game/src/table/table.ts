@@ -116,6 +116,8 @@ export class Table {
   private readonly pileLabels = new CrispSprite();
   /** La targhetta «La tua mano · n»: cambia a ogni carta, il cassetto no. */
   private readonly handTag = new CrispSprite();
+  /** Le carte che nascono nascoste (i Rubyfront prima del loro ingresso, table/entrance.ts). */
+  hideOnCreate: ((card: CardInstance) => boolean) | null = null;
   /** Il costo di adesso di una carta in mano, se uno sconto lo ha fatto scendere (match.ts lo presta). */
   costOf: ((card: CardInstance) => { printed: number; now: number } | null) | null = null;
   /** Ciò che ogni pezzo dipinto mostra (paintKeyed): uguale, non si ridipinge. */
@@ -546,6 +548,14 @@ export class Table {
     this.closePhase = listener;
   }
 
+  /** I Rubyfront nascosti per l'ingresso tornano in vista (l'ingresso non c'è stato). */
+  revealRubyfronts(): void {
+    for (const [uid, view] of this.views) {
+      const info = this.info.get(uid);
+      if (info && isRubyfront(info.cardId) && !view.destroyed) view.visible = true;
+    }
+  }
+
   /** Aspetta che tutte le facce in vista siano dipinte. */
   async ready(): Promise<void> {
     await Promise.all([...this.views.values()].map(view => view.ready));
@@ -615,6 +625,7 @@ export class Table {
           this.emit(isDouble ? "double" : "tap", uid, event.global);
         });
         view = created;
+        if (this.hideOnCreate?.(card)) created.visible = false;
         this.views.set(card.uid, view);
       }
       this.zone.set(card.uid, card.zone);

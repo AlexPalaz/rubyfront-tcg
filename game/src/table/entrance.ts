@@ -9,6 +9,7 @@
 
 import type { Ctx } from "@rubyfront/core/ctx";
 import type { Gestures } from "@rubyfront/core/gestures";
+import { isRubyfront } from "@rubyfront/core/cards";
 import type { CardInstance, Seat } from "@rubyfront/core/types";
 import { ColorMatrixFilter, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { faceTexture } from "../card/cache";
@@ -26,6 +27,8 @@ export class Entrance {
   onLanding: ((uid: string) => void) | null = null;
   private readonly layer = new Container({ label: "entrance" });
   private enabled = false;
+  /** Il velo messo in anticipo (prepare), che l'ingresso trova già giù. */
+  private veil: Graphics | null = null;
 
   constructor(
     private readonly stage: Stage,
@@ -40,17 +43,52 @@ export class Entrance {
     return this.enabled;
   }
 
+  /**
+   * L'ingresso è in arrivo (col bot, dietro il sipario): il velo scende
+   * subito, pieno, e i Rubyfront che il tavolo apparecchia nascono nascosti.
+   * Prima il sipario si alzava su un tavolo in piena luce, poi il velo lo
+   * spegneva e i Rubyfront sparivano: un lampo prima dell'ingresso
+   * (2026-09-14, «vedo ancora un leggerissimo flicker»).
+   */
+  prepare(): void {
+    if (this.veil || reducedMotion()) return;
+    const v = this.stage.visible();
+    this.veil = new Graphics().rect(v.x, v.y, v.width, v.height).fill({ color: 0x05040a, alpha: 0.66 });
+    this.veil.eventMode = "static";
+    this.layer.addChild(this.veil);
+    this.layer.parent?.addChild(this.layer);
+    this.table.hideOnCreate = card => isRubyfront(card.cardId);
+  }
+
+  /** L'ingresso non c'è stato (o è finito): via il velo messo in anticipo, e i Rubyfront nascosti ricompaiono. */
+  release(): void {
+    if (this.enabled) return;
+    this.table.hideOnCreate = null;
+    this.table.revealRubyfronts();
+    this.veil?.destroy();
+    this.veil = null;
+  }
+
   /** L'ingresso dei Rubyfront in Zona di Richiamo, nell'ordine dato. */
   async rubyfronts(order: Seat[]): Promise<void> {
     const entries = order
       .map(seat => ({ seat, card: this.gestures.waitingRubyfront(seat) }))
       .filter((entry): entry is { seat: Seat; card: CardInstance } => entry.card !== undefined);
-    if (entries.length === 0 || reducedMotion()) return;
+    if (entries.length === 0 || reducedMotion()) {
+      this.release();
+      return;
+    }
     this.enabled = true;
     const v = this.stage.visible();
-    const veil = new Graphics().rect(v.x, v.y, v.width, v.height).fill({ color: 0x05040a, alpha: 0.66 });
-    veil.eventMode = "static";
-    this.layer.addChild(veil);
+    // Il velo messo in anticipo (prepare) è già giù; se no, nasce trasparente e sale.
+    const prepared = this.veil;
+    const veil = prepared ?? new Graphics().rect(v.x, v.y, v.width, v.height).fill({ color: 0x05040a, alpha: 0.66 });
+    this.veil = null;
+    if (!prepared) {
+      veil.alpha = 0;
+      veil.eventMode = "static";
+      this.layer.addChild(veil);
+    }
     this.layer.parent?.addChild(this.layer);
     // Le carte vere aspettano nascoste: entrano col volo.
     for (const entry of entries) {
@@ -58,15 +96,16 @@ export class Entrance {
       if (view) view.visible = false;
     }
     const ticker = this.stage.app.ticker;
-    void tween(ticker, 300, k => (veil.alpha = k), easeOut);
+    if (!prepared) void tween(ticker, 300, k => (veil.alpha = k), easeOut);
     try {
-      await wait(300);
+      await wait(prepared ? 150 : 300);
       for (const entry of entries) await this.pick(entry.seat, entry.card);
     } finally {
       for (const entry of entries) {
         const view = this.table.view(entry.card.uid);
         if (view && !view.destroyed) view.visible = true;
       }
+      this.table.hideOnCreate = null;
       await tween(ticker, 350, k => (veil.alpha = 1 - k), easeIn);
       veil.destroy();
       this.enabled = false;
