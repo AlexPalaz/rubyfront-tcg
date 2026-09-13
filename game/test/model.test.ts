@@ -26,7 +26,7 @@ describe("il modello della faccia", () => {
     // L'ordine del sito: il requisito, gli inneschi, le abilità.
     expect(face.blocks.map(block => block.kind)).toEqual(["requirement", "fx", "ability", "ability"]);
     const [, , gain, cost] = face.blocks;
-    expect(gain).toMatchObject({ kind: "ability", cost: { kind: "gain", value: "+3 PV" } });
+    expect(gain).toMatchObject({ kind: "ability", cost: { kind: "gain", value: "+2 PV" } });
     expect(cost).toMatchObject({ kind: "ability", cost: { kind: "hp", value: "−5 PV" } });
     expect(face.art?.src).toBe("http://localhost/cards/art/rbf-001.jpg");
     expect(face.art?.zoom).toBe("48%");

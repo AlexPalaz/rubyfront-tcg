@@ -33,7 +33,7 @@ in media costa 3,5 e il richiamo non fa mai salire il prezzo.
 | | Faccia A — Oblivhal | Faccia B — Ritorno dell'Erede |
 |---|---|---|
 | Principale | 3+ Umani hanno attaccato → **+2 PV**, una volta per turno | idem, **+2 PV, pesca 1, scarta 1** |
-| Abilità | **+3 PV** Richiamo della Radura: guarda 3, prendi un Umano | **+3 PV** Passo dell'Erede: il prossimo Umano costa 1 Flusso in meno |
+| Abilità | **+2 PV** Richiamo della Radura: guarda 3, prendi un Umano | **+2 PV** Passo dell'Erede: il prossimo Umano costa 1 Flusso in meno |
 | Abilità | **−5 PV** Ordine di Carica: Umani attaccanti +1 Potenza | — |
 | Abilità | — | **−7 PV** Ritorno al Fronte: un Umano gratis dalla mano, con Slancio |
 | Materie | Dinamica fino al 2° · Distruttiva fino al 1° | Dinamica fino al 2° · Distruttiva fino al **2°** |

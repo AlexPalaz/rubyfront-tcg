@@ -124,7 +124,7 @@
             "fury"
           ],
           "gain": {
-            "health": 3
+            "health": 2
           },
           "effect": {
             "type": "reduce_cost",
