@@ -337,28 +337,25 @@ module Rubyfront
     end
 
     # Gli effetti certificati «quando quell'Entità muore» di un Oggetto (§5,
-    # §8.2; dal 2026-09-10): evento `on_death` dell'Entità a cui è assegnato,
-    # effetto `move_card` di sé nella propria Zona di Ritiro «invece che
-    # nell'Abisso», poi «puoi assegnare un altro Oggetto dalla tua Zona di
-    # Ritiro, senza pagarne il costo, a un'Entità senza Oggetto che
-    # controlli». Gemello: core/src/cards.ts, deathFormsOf.
+    # §8.2; dal 2026-09-10, riscritta il 2026-09-13): evento `on_death`
+    # dell'Entità a cui è assegnato, effetto `assign_object` — «puoi
+    # assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il
+    # costo di Flusso, a un'Entità senza Oggetto che controlli». L'Oggetto di
+    # un'Entità morta va da sé in Zona di Ritiro (§3.1): la forma non dice più
+    # «invece che nell'Abisso», e il tavolo la apre ancora con `remain`.
+    # Gemello: core/src/cards.ts, deathFormsOf.
+    DEATH_REARM = {
+      "type" => "assign_object", "optional" => true,
+      "from" => { "zone" => "retire", "owner" => "controller" },
+      "filter" => { "cardType" => "object", "details" => { "other" => true } },
+      "target" => { "cardType" => "entity", "controller" => "controller", "details" => { "hasObjectAssigned" => false } },
+      "details" => { "noFluxCost" => true }
+    }.freeze
+
     def self.death_forms(faces)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
         next unless trigger.is_a?(Hash) && trigger["event"] == "on_death" && trigger["details"] == { "ofAssignedEntity" => true }
-
-        effect = trigger["effect"]
-        next unless effect.is_a?(Hash) && effect["type"] == "move_card" && effect["target"] == { "scope" => "self" }
-        next unless effect["destination"] == { "zone" => "retire", "owner" => "controller" }
-
-        extra = effect["details"]
-        next unless extra.is_a?(Hash) && extra.keys.sort == %w[insteadOfZone thenMayAssignObject]
-        next unless extra["insteadOfZone"] == { "zone" => "abyss", "owner" => "controller" }
-
-        rearm = extra["thenMayAssignObject"]
-        next unless rearm == { "from" => { "zone" => "retire", "owner" => "controller" },
-                               "filter" => { "cardType" => "object", "details" => { "other" => true } },
-                               "target" => { "cardType" => "entity", "controller" => "controller", "details" => { "hasObjectAssigned" => false } },
-                               "noFluxCost" => true }
+        next unless trigger["effect"] == DEATH_REARM
 
         { kind: "remain", to: "ritiro", then_rearm: { other: true, to: "unarmed", free: true }.freeze }.freeze
       end

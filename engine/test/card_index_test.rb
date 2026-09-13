@@ -206,7 +206,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "drain", amount: "objects" }], forms_of.call("RBF-042"), "il Rubyfront/Nexus avversario perde PV pari agli Oggetti assegnati"
     assert_equal [{ kind: "search", count: 5, die: 20, bands: { "matter" => [1, 7], "object" => [8, 14], "entity" => [15, 20] }, reveal_to: "hand", if_no_reveal_top: true, then_retire: true, rest_to: "deck" }], forms_of.call("RBF-041"), "la ricerca col dado"
     assert_equal [{ kind: "ends", face: 0, swap: true, then_draw: 1, then_discard: 1, once: true }, { kind: "ends", face: 1, to_hand: true, other_to_retire: true, once: true }], @index["RBF-023"][:assign_forms], "gli estremi del mazzo, per faccia"
-    assert_equal [{ kind: "remain", to: "ritiro", then_rearm: { other: true, to: "unarmed", free: true } }], @index["RBF-035"][:death_forms], "«quando quell'Entità muore»: in Ritiro, poi il riarmo"
+    assert_equal [{ kind: "remain", to: "ritiro", then_rearm: { other: true, to: "unarmed", free: true } }], @index["RBF-035"][:death_forms], "«quando quell'Entità muore»: il riarmo dal Ritiro (la forma `assign_object` dal 2026-09-13)"
     assert_equal [], @index["RBF-043"][:death_forms]
   end
 

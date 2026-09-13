@@ -810,24 +810,37 @@ function assignFormsOf(faces: CardFace[]): AssignForm[] {
 
 /**
  * Gli effetti certificati «quando quell'Entità muore» di un Oggetto (§5,
- * §8.2): in Ritiro invece che nell'Abisso, poi «puoi assegnare un altro
- * Oggetto dalla tua Zona di Ritiro, senza pagarne il costo, a un'Entità
- * senza Oggetto che controlli». Specchio di card_index.rb, death_forms.
+ * §8.2; riscritta il 2026-09-13): «puoi assegnare un altro Oggetto dalla tua
+ * Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza
+ * Oggetto che controlli» (effetto `assign_object`). L'Oggetto di un'Entità
+ * morta va da sé in Zona di Ritiro (§3.1): la forma non dice più «invece che
+ * nell'Abisso», e il tavolo la apre ancora con `remain`. Specchio di
+ * card_index.rb, death_forms.
  */
+const DEATH_REARM = {
+  type: "assign_object",
+  optional: true,
+  from: { zone: "retire", owner: "controller" },
+  filter: { cardType: "object", details: { other: true } },
+  target: { cardType: "entity", controller: "controller", details: { hasObjectAssigned: false } },
+  details: { noFluxCost: true },
+};
+
+/** Due alberi di dati uguali, chiave per chiave e in qualsiasi ordine. */
+function sameTree(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null || Array.isArray(a) !== Array.isArray(b)) return false;
+  const keysA = Object.keys(a as object);
+  const keysB = Object.keys(b as object);
+  return keysA.length === keysB.length && keysA.every(key => sameTree((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]));
+}
+
 function deathFormsOf(faces: CardFace[]): DeathForm[] {
   const out: DeathForm[] = [];
   for (const face of faces) {
     for (const trigger of face.triggers ?? []) {
       if (trigger.event !== "on_death" || !sameShape(trigger.details, { ofAssignedEntity: true })) continue;
-      const effect = trigger.effect as Loose | undefined;
-      if (!effect || effect.type !== "move_card" || !sameShape(effect.target, { scope: "self" }) || !sameShape(effect.destination, { zone: "retire", owner: "controller" })) continue;
-      const extra = effect.details as Loose | undefined;
-      if (!extra || Object.keys(extra).sort().join() !== "insteadOfZone,thenMayAssignObject" || !sameShape(extra.insteadOfZone, { zone: "abyss", owner: "controller" })) continue;
-      const rearm = extra.thenMayAssignObject as Loose | undefined;
-      if (!rearm || rearm.noFluxCost !== true || Object.keys(rearm).length !== 4) continue;
-      if (!sameShape(rearm.from, { zone: "retire", owner: "controller" })) continue;
-      if (!rearm.filter || rearm.filter.cardType !== "object" || !sameShape(rearm.filter.details, { other: true }) || Object.keys(rearm.filter).length !== 2) continue;
-      if (!rearm.target || rearm.target.cardType !== "entity" || rearm.target.controller !== "controller" || !sameShape(rearm.target.details, { hasObjectAssigned: false }) || Object.keys(rearm.target).length !== 3) continue;
+      if (!sameTree(trigger.effect, DEATH_REARM)) continue;
       out.push({ kind: "remain", to: "ritiro", thenRearm: { other: true, to: "unarmed", free: true } });
     }
   }

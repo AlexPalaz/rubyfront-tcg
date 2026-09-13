@@ -978,14 +978,14 @@ Regole collegate finora:
   l'Oggetto appena assegnato a un'Entità che comanda, nel proprio turno;
   i seguiti `draw` e `toZone ritiro` portano `follow: "draw" |
   "discard"`, nell'ordine. L'**Oggetto che resta** (`death_forms`
-  `remain`): «quando quell'Entità muore, metti questo Oggetto nella tua
-  Zona di Ritiro invece che nell'Abisso; poi puoi assegnare un altro
-  Oggetto dalla tua Zona di Ritiro, senza pagarne il costo, a un'Entità
-  senza Oggetto che controlli» — l'Oggetto segue l'Entità nell'Abisso come
-  sempre (la copia annota su di lui `left {turn, armed, bearer}`: il
-  portatore a cui era addosso), poi l'azione nuova `remain {uid}` marcata
-  `on_death` (fonte l'Oggetto, ingresso l'Entità morta: entrambi usciti
-  questo turno, lei nell'Abisso) lo porta in cima al Ritiro, e il riarmo è
+  `remain`; dal 2026-09-13 la forma `assign_object`): «quando quell'Entità
+  muore, puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza
+  pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli» —
+  l'Oggetto esce con l'Entità e va in Zona di Ritiro come ogni Oggetto (la
+  copia annota su di lui `left {turn, armed, bearer}`: il portatore a cui
+  era addosso), poi l'azione `remain {uid}` marcata `on_death` (fonte
+  l'Oggetto, ingresso l'Entità morta: entrambi usciti questo turno, lei
+  nell'Abisso) apre l'innesco, e il riarmo è
   un `toZone … assignTo` con `follow: "rearm"` — un ALTRO Oggetto dal
   proprio Ritiro, su una propria Entità senza Oggetto, senza costo. Nel
   client `deathSteps` confronta lo stato prima e dopo ogni azione e apre la
@@ -1070,10 +1070,11 @@ Regole collegate finora:
   campo verso l'Abisso o la Zona di Ritiro — morta in battaglia, distrutta,
   esiliata, ritirata — i suoi Oggetti, sciolti, vanno in cima alla **Zona di
   Ritiro** del proprietario, mai nell'Abisso (`to_zone` in table.rb,
-  `toZone` in state.ts). L'Oggetto «quando quell'Entità muore, metti questo
-  Oggetto nella tua Zona di Ritiro invece che nell'Abisso» ci si trova già:
-  `remain` lo passa se l'Oggetto è in Zona di Ritiro, uscito questo turno
-  col suo portatore morto, e apre il riarmo come prima. Limite dichiarato:
+  `toZone` in state.ts). L'Oggetto che «quando quell'Entità muore» riarma dal
+  Ritiro ci si trova già: `remain` lo passa se l'Oggetto è in Zona di
+  Ritiro, uscito questo turno col suo portatore morto, e apre il riarmo
+  come prima (la sua forma, dal 2026-09-13, non dice più «invece che
+  nell'Abisso»). Limite dichiarato:
   un effetto che mandi nell'Abisso un Oggetto insieme alla sua Entità non
   esiste oggi; risolto a mano verrebbe fermato a torto (regola d'oro).
   Engine 0.70.0.

@@ -2337,10 +2337,9 @@ module Rubyfront
       [nil, source, form, seat]
     end
 
-    # §5/§8.2 — «quando quell'Entità muore, metti questo Oggetto nella tua
-    # Zona di Ritiro invece che nell'Abisso»: dal 2026-09-13 gli Oggetti di
-    # un'Entità morta vanno già in Zona di Ritiro (§3.1), e l'Oggetto ci
-    # resta. L'azione apre l'innesco (e il riarmo che segue): l'Oggetto è
+    # §5/§8.2 — «quando quell'Entità muore, puoi assegnare un altro Oggetto
+    # dalla tua Zona di Ritiro…»: dal 2026-09-13 gli Oggetti di un'Entità
+    # morta vanno già in Zona di Ritiro (§3.1), e l'Oggetto ci resta. L'azione apre l'innesco (e il riarmo che segue): l'Oggetto è
     # appena uscito dal campo (questo turno) con l'Entità a cui era
     # assegnato — che è morta, cioè è nell'Abisso, uscita questo turno.
     def judge_remain(action, ref)

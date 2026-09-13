@@ -5248,7 +5248,7 @@
                 "name": "Vestigio della Scissione",
                 "effect": {
                   "name": "Effetto",
-                  "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
+                  "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
                 },
                 "flavor": "Ciò che resta della Scissione non smette di servire."
               }
@@ -5269,7 +5269,7 @@
                 "name": "Vestige of the Schism",
                 "effect": {
                   "name": "Effect",
-                  "text": "The Entity it is assigned to has +2 Power. When that Entity dies, put this Object into your Retire Zone instead of the Abyss. Then you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
+                  "text": "The Entity it is assigned to has +2 Power. When that Entity dies, you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
                 },
                 "flavor": "What remains of the Schism does not stop serving."
               }
@@ -5315,39 +5315,27 @@
                     "ofAssignedEntity": true
                   },
                   "effect": {
-                    "type": "move_card",
-                    "target": {
-                      "scope": "self"
-                    },
-                    "destination": {
+                    "type": "assign_object",
+                    "optional": true,
+                    "from": {
                       "zone": "retire",
                       "owner": "controller"
                     },
-                    "details": {
-                      "insteadOfZone": {
-                        "zone": "abyss",
-                        "owner": "controller"
-                      },
-                      "thenMayAssignObject": {
-                        "from": {
-                          "zone": "retire",
-                          "owner": "controller"
-                        },
-                        "filter": {
-                          "cardType": "object",
-                          "details": {
-                            "other": true
-                          }
-                        },
-                        "target": {
-                          "cardType": "entity",
-                          "controller": "controller",
-                          "details": {
-                            "hasObjectAssigned": false
-                          }
-                        },
-                        "noFluxCost": true
+                    "filter": {
+                      "cardType": "object",
+                      "details": {
+                        "other": true
                       }
+                    },
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "controller",
+                      "details": {
+                        "hasObjectAssigned": false
+                      }
+                    },
+                    "details": {
+                      "noFluxCost": true
                     }
                   }
                 }
@@ -11802,7 +11790,7 @@
             "name": "Vestigio della Scissione",
             "effect": {
               "name": "Effetto",
-              "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso. Poi puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
+              "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
             },
             "flavor": "Ciò che resta della Scissione non smette di servire."
           }
@@ -11823,7 +11811,7 @@
             "name": "Vestige of the Schism",
             "effect": {
               "name": "Effect",
-              "text": "The Entity it is assigned to has +2 Power. When that Entity dies, put this Object into your Retire Zone instead of the Abyss. Then you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
+              "text": "The Entity it is assigned to has +2 Power. When that Entity dies, you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
             },
             "flavor": "What remains of the Schism does not stop serving."
           }
@@ -11869,39 +11857,27 @@
                 "ofAssignedEntity": true
               },
               "effect": {
-                "type": "move_card",
-                "target": {
-                  "scope": "self"
-                },
-                "destination": {
+                "type": "assign_object",
+                "optional": true,
+                "from": {
                   "zone": "retire",
                   "owner": "controller"
                 },
-                "details": {
-                  "insteadOfZone": {
-                    "zone": "abyss",
-                    "owner": "controller"
-                  },
-                  "thenMayAssignObject": {
-                    "from": {
-                      "zone": "retire",
-                      "owner": "controller"
-                    },
-                    "filter": {
-                      "cardType": "object",
-                      "details": {
-                        "other": true
-                      }
-                    },
-                    "target": {
-                      "cardType": "entity",
-                      "controller": "controller",
-                      "details": {
-                        "hasObjectAssigned": false
-                      }
-                    },
-                    "noFluxCost": true
+                "filter": {
+                  "cardType": "object",
+                  "details": {
+                    "other": true
                   }
+                },
+                "target": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "details": {
+                    "hasObjectAssigned": false
+                  }
+                },
+                "details": {
+                  "noFluxCost": true
                 }
               }
             }
