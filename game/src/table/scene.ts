@@ -220,7 +220,8 @@ function hitZone(x: number, y: number, w: number, h: number, run: () => void): C
 }
 
 /** Quanto una scena aspetta al più la giocata sul campo, e quanto il tavolo aspetta al più gli effetti di «Risolvi»: un'animazione persa non ferma la partita. */
-const GATE_MAX_MS = 3000;
+/** Al più quanto aspetta la scena che la regia finisca (il flip del Nexus dura ~3 s). */
+const GATE_MAX_MS = 4500;
 const RESOLVE_MAX_MS = 60_000;
 
 export class Scene {

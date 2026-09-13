@@ -20,16 +20,17 @@ import { cardStats, cardTint, getCard, isRubyfront } from "@rubyfront/core/cards
 import type { Ctx } from "@rubyfront/core/ctx";
 import { clashesOf, fallenOf } from "@rubyfront/core/clashes";
 import type { Action, Battle, CardInstance, GameState, Seat } from "@rubyfront/core/types";
-import { Sprite, type Texture } from "pixi.js";
+import { BlurFilter, Graphics, Sprite, type Texture } from "pixi.js";
 import { faceTexture } from "../card/cache";
 import { playSocket, playWhoosh } from "../sound";
 import { CARD_W } from "../card/theme";
 import type { Stage } from "../stage";
-import { wait, tween, easeOut, reducedMotion } from "../table/animation";
+import { wait, tween, easeInOut, easeOut, linear, reducedMotion } from "../table/animation";
 import type { Table } from "../table/table";
 import { glowFilter } from "./filters";
 import { HoverTilt } from "./hover";
 import { Card3D, Effects, FoilFilter } from "./index";
+import { TINT_COLORS } from "./tints";
 
 type Box = { x: number; y: number; w: number; h: number };
 type XY = { x: number; y: number };
@@ -68,6 +69,13 @@ interface Snapshot {
 const LAND_GLOW_MS = 650;
 /** L'Oggetto assegnato che va dietro la sua Entità: la copia si dissolve (2026-09-13). */
 const TUCK_MS = 320;
+/** Il flip del Nexus: lo zoom massimo e i tempi dei cinque passi (dentro, carica, giro, luce, fuori). */
+const NEXUS_ZOOM_MAX = 2.6;
+const NEXUS_IN_MS = 650;
+const NEXUS_CHARGE_MS = 320;
+const NEXUS_TURN_MS = 720;
+const NEXUS_GLOW_MS = 700;
+const NEXUS_OUT_MS = 600;
 /** Fra una battaglia e l'altra della risoluzione: un respiro, poi il prossimo attaccante. */
 const BATTLE_GAP_MS = 180;
 
@@ -382,8 +390,19 @@ export class Director {
   }
 
   /** Il flip: la carta gira in 3D, a metà giro la faccia nuova, poi il lampo d'oro. */
+  /**
+   * Il flip verso il Nexus (§3.1), cinematico (2026-09-14, «parte
+   * un'animazione figa: zoom sulla carta Rubyfront, flip, illumina, zoom out
+   * e poi mostra la carta con Continua / Risolvi»). Il tavolo si spegne e la
+   * camera va sulla carta, che si solleva e si carica di luce; gira — a metà
+   * giro la faccia del Nexus, il lampo nella tinta, lo scoppio, il colpo —;
+   * dietro si aprono i raggi, attorno l'aura e le scintille; la camera torna
+   * indietro e la carta si posa. La scena grande del flip aspetta la fine
+   * (scene.waitBefore → idle).
+   */
   private flip(card: CardInstance, face: number, box: Box): () => void {
-    const res = (box.w / CARD_W) * this.pixelRatio();
+    // Le facce si dipingono alla misura dello zoom: da vicino restano nitide.
+    const res = (box.w / CARD_W) * this.pixelRatio() * NEXUS_ZOOM_MAX;
     const before = faceTexture(card.cardId, card.face, this.ctx.locale(), res);
     const nextFace = faceTexture(card.cardId, face, this.ctx.locale(), res);
     return () =>
@@ -393,21 +412,80 @@ export class Director {
         const here = this.table.box(card.uid) ?? box;
         if (!a || !b || !view || view.destroyed || reducedMotion()) return;
         const c = center(here);
+        const v = this.stage.visible();
+        const zoom = Math.max(1.4, Math.min(NEXUS_ZOOM_MAX, (v.height * 0.52) / here.h));
+        const tint = cardTint(card.cardId);
+        const colors = TINT_COLORS[tint];
+        const camera = this.effects.camera;
+        const ticker = this.stage.app.ticker;
+        // Il velo sul resto del tavolo, i raggi dietro la carta, la carta.
+        const veil = new Graphics().rect(v.x, v.y, v.width, v.height).fill({ color: 0x05040a, alpha: 0.62 });
+        veil.alpha = 0;
+        const rays = raysOf(colors, here.h * 1.5);
+        rays.position.set(c.x, c.y);
+        rays.alpha = 0;
         const card3d = new Card3D(a, here.w, here.h, 900);
         card3d.setBack(b);
         card3d.position.set(c.x, c.y);
-        this.effects.overlay.addChild(card3d);
+        const glow = glowFilter(colors[0] ?? 0xffe0a0, 0);
+        card3d.filters = [glow];
+        this.effects.overlay.addChild(veil, rays, card3d);
+        // Sopra tutto il tavolo, anche i tasti dei gesti (Schiera, il velo coi tasti): li copre il velo.
+        this.effects.toTop();
         view.visible = false;
-        this.effects.camera.flash(0xffe0a0, 0.3, 420);
-        await tween(this.stage.app.ticker, 820, k => {
-          card3d.rotateTo(0, Math.PI * easeOut(k));
-          card3d.scale.set(1 + 0.25 * Math.sin(k * Math.PI));
-        });
-        card3d.destroy({ children: true });
-        if (!view.destroyed) view.visible = true;
-        this.effects.spells.explode(c, [0xffe0a0, 0xffffff, 0xe56a86], 1.4);
-        this.effects.camera.shake(0.45);
-        void this.effects.spells.aura(cardTint(card.cardId), c.x, c.y, here.w, here.h);
+        try {
+          // 1. La camera va sulla carta, che si solleva appena.
+          playWhoosh(650);
+          await tween(ticker, NEXUS_IN_MS, k => {
+            camera.focus(c, zoom, k);
+            veil.alpha = k;
+            card3d.scale.set(1 + 0.06 * k);
+            card3d.rotateTo(-0.08 * k, 0);
+          }, easeInOut);
+          // 2. Il respiro: la carta si carica di luce e si inclina, pronta a girare.
+          await tween(ticker, NEXUS_CHARGE_MS, k => {
+            glow.outerStrength = 3 * k;
+            card3d.rotateTo(-0.08, -0.14 * k);
+          }, easeOut);
+          // 3. Il giro: a metà la faccia del Nexus, il lampo, lo scoppio, il colpo.
+          let turned = false;
+          await tween(ticker, NEXUS_TURN_MS, k => {
+            const e = easeInOut(k);
+            card3d.rotateTo(-0.08 * (1 - e), -0.14 + (Math.PI + 0.14) * e);
+            card3d.scale.set(1.06 + 0.16 * Math.sin(k * Math.PI));
+            if (!turned && k >= 0.5) {
+              turned = true;
+              camera.flash(colors[1] ?? 0xffffff, 0.5, 440);
+              camera.shake(0.35);
+              this.effects.spells.explode(c, [...colors, 0xffe0a0], 1.6);
+              playSocket(tint, 1.5);
+            }
+          });
+          // 4. La luce: i raggi che si aprono e girano, l'aura, le scintille che salgono.
+          void this.effects.spells.aura(tint, c.x, c.y, here.w * 1.06, here.h * 1.06);
+          this.effects.particles.burst({ x: c.x, y: c.y, n: 56, shape: "dot", colors, velocity: [40, 150], angle: [-Math.PI, 0], life: [600, 1300], scale: [0.18, 0.5], gravity: -40, scatter: here.w * 0.45, sway: 16 });
+          await tween(ticker, NEXUS_GLOW_MS, k => {
+            rays.alpha = Math.sin(k * Math.PI) * 0.9;
+            rays.rotation = 0.5 * k;
+            rays.scale.set(0.75 + 0.5 * k);
+            glow.outerStrength = 3 + 2.5 * Math.sin(k * Math.PI);
+          }, linear);
+          // 5. La camera torna indietro, la carta si posa.
+          await tween(ticker, NEXUS_OUT_MS, k => {
+            camera.focus(c, zoom, 1 - k);
+            veil.alpha = 1 - k;
+            card3d.scale.set(1.06 - 0.06 * k);
+            glow.outerStrength = 3 * (1 - k);
+          }, easeInOut);
+        } finally {
+          camera.focus(c, 1, 0);
+          veil.destroy();
+          rays.destroy();
+          card3d.destroy({ children: true });
+          if (!view.destroyed) view.visible = true;
+        }
+        void this.effects.hits.impact(c.x, c.y, here.w, here.h, 0.9);
+        playSocket(tint, 0.8);
       })());
   }
 
@@ -552,4 +630,24 @@ export class Director {
     this.effects.overlay.addChild(sprite);
     return sprite;
   }
+}
+
+/** I raggi dietro la carta che flippa: spicchi di luce nella tinta, sfocati e additivi. */
+function raysOf(colors: readonly number[], radius: number): Graphics {
+  const rays = new Graphics();
+  const count = 14;
+  for (let index = 0; index < count; index += 1) {
+    const angle = (index / count) * Math.PI * 2;
+    const half = 0.06 + (index % 3) * 0.025;
+    rays
+      .moveTo(0, 0)
+      .lineTo(Math.cos(angle - half) * radius, Math.sin(angle - half) * radius)
+      .lineTo(Math.cos(angle + half) * radius, Math.sin(angle + half) * radius)
+      .closePath()
+      .fill({ color: colors[index % colors.length] ?? 0xffffff, alpha: index % 2 ? 0.3 : 0.55 });
+  }
+  rays.blendMode = "add";
+  rays.filters = [new BlurFilter({ strength: 8, quality: 2 })];
+  rays.eventMode = "none";
+  return rays;
 }
