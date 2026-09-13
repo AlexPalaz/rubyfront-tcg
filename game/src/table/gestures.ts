@@ -99,7 +99,7 @@ export class TableGestures {
   /** La mira di un blocco (§6.3): dall'attaccante o dalla propria Entità. */
   private blockAim: TargetingMode | null = null;
   /** L'ultima carta lasciata dopo un trascinamento, e quando (effects/director.ts: la giocata trascinata non vola in arco). */
-  lastRelease: { uid: string; at: number } | null = null;
+  lastRelease: { uid: string; at: number; x?: number; y?: number } | null = null;
   /** Il trascinamento: la carta presa, dove, da dove era partita; il fantasma quando il dito si è mosso davvero. */
   private held: {
     uid: string;
@@ -366,9 +366,10 @@ export class TableGestures {
     this.held = null;
     // Senza movimento era un tocco: lo tiene il tavolo.
     if (!held?.ghost) return;
-    this.lastRelease = { uid: held.uid, at: Date.now() };
     const point = this.worldPoint(event);
     const topLeft = { x: held.ghost.x, y: held.ghost.y };
+    // Dove la carta è stata lasciata (il centro del fantasma): l'Oggetto assegnato si dissolve da lì al suo posto (effects/director.ts).
+    this.lastRelease = { uid: held.uid, at: Date.now(), x: topLeft.x + held.ghost.width / 2, y: topLeft.y + held.ghost.height / 2 };
     held.ghost.destroy();
     this.table.markAssign(null);
     const live = this.ctx.state().cards[held.uid];

@@ -87,6 +87,9 @@ function bladeTexture(kind: "slash" | "riposte", w: number, h: number, res: numb
   return texture;
 }
 
+/** L'Oggetto assegnato che va dietro la sua Entità: il fantasma si dissolve (come in effects/director.ts). */
+const TUCK_MS = 320;
+
 export class Flights {
   constructor(
     private readonly stage: Stage,
@@ -221,9 +224,11 @@ export class Flights {
       ghost.position.set(from.x + from.w / 2 + (to.x - from.x - from.w / 2) * k, from.y + from.h / 2 + (to.y - from.y - from.h / 2) * k);
       ghost.scale.set(startScale + (endScale - startScale) * k);
       ghost.alpha = 0.4 + 0.6 * k;
-    }, bezier(0.35, 0.6, 0.2, 1)).then(() => {
-      ghost.destroy({ children: true });
+    }, bezier(0.35, 0.6, 0.2, 1)).then(async () => {
       if (!view.destroyed) view.visible = true;
+      // L'Oggetto assegnato va dietro la sua Entità: il fantasma si dissolve lì sopra (2026-09-13).
+      if (this.ctx.state().cards[uid]?.assignedTo && !reducedMotion()) await tween(this.ticker, TUCK_MS, k => (ghost.alpha = 1 - k), easeOut);
+      ghost.destroy({ children: true });
     });
   }
 

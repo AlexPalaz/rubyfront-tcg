@@ -66,6 +66,8 @@ interface Snapshot {
 
 /** La carta appena posata resta accesa sul campo un attimo, prima della scena grande. */
 const LAND_GLOW_MS = 650;
+/** L'Oggetto assegnato che va dietro la sua Entità: la copia si dissolve (2026-09-13). */
+const TUCK_MS = 320;
 /** Fra una battaglia e l'altra della risoluzione: un respiro, poi il prossimo attaccante. */
 const BATTLE_GAP_MS = 180;
 
@@ -89,7 +91,7 @@ export class Director {
     private readonly stage: Stage,
     private readonly table: Table,
     private readonly ctx: Ctx,
-    private readonly release: () => { uid: string; at: number } | null,
+    private readonly release: () => { uid: string; at: number; x?: number; y?: number } | null,
     private readonly hits: TableHits
   ) {
     this.effects = new Effects(stage);
@@ -314,29 +316,45 @@ export class Director {
     const dragged = release !== null && release.uid === card.uid && Date.now() - release.at < 800;
     const from = isMine && !dragged ? (this.table.box(card.uid) ?? null) : null;
     const face = faceTexture(card.cardId, card.face, this.ctx.locale(), 0.6 * this.pixelRatio());
-    return () => this.track(this.flyAndLand(card, from, !dragged, face));
+    const dropAt = dragged && release?.x !== undefined && release.y !== undefined ? { x: release.x, y: release.y } : null;
+    return () => this.track(this.flyAndLand(card, from, !dragged, face, dropAt));
   }
 
-  private async flyAndLand(card: CardInstance, from: Box | null, withArc: boolean, face: Promise<Texture | null>): Promise<void> {
+  private async flyAndLand(card: CardInstance, from: Box | null, withArc: boolean, face: Promise<Texture | null>, dropAt: XY | null = null): Promise<void> {
     const box = this.table.box(card.uid);
     if (!box) return;
     const arrival = center(box);
     const view = this.table.view(card.uid);
-    const texture = withArc && !reducedMotion() ? await Promise.race([face, wait(250).then(() => null)]) : null;
+    // L'Oggetto assegnato (§3.1) va dietro la sua Entità: la copia che vola
+    // — o quella lasciata col trascinamento — si dissolve sopra di lei, e
+    // sotto resta lui, al suo posto (2026-09-13: prima spariva di colpo).
+    const tucked = cardStats(card.cardId).kind === "object" && !!this.ctx.state().cards[card.uid]?.assignedTo;
+    const flies = withArc || (tucked && dropAt !== null);
+    const texture = flies && !reducedMotion() ? await Promise.race([face, wait(250).then(() => null)]) : null;
     if (texture && view && !view.destroyed) {
-      const departure = from ? center(from) : { x: arrival.x, y: arrival.y - 380 };
+      const departure = withArc ? (from ? center(from) : { x: arrival.x, y: arrival.y - 380 }) : dropAt ?? arrival;
       const card3d = new Card3D(texture, box.w, box.h);
       card3d.position.set(departure.x, departure.y);
       this.effects.overlay.addChild(card3d);
       view.visible = false;
       const direction = arrival.x >= departure.x ? 1 : -1;
       const rise = Math.min(260, Math.hypot(arrival.x - departure.x, arrival.y - departure.y) * 0.45);
-      playWhoosh(480);
-      await tween(this.stage.app.ticker, 480, k => {
-        card3d.position.set(departure.x + (arrival.x - departure.x) * k, departure.y + (arrival.y - departure.y) * k - Math.sin(k * Math.PI) * rise);
-        card3d.scale.set(1 + 0.35 * Math.sin(k * Math.PI));
-        card3d.rotateTo(-0.55 * (1 - k), 0.7 * direction * (1 - k), -0.15 * direction * (1 - k));
-      });
+      if (withArc) {
+        playWhoosh(480);
+        await tween(this.stage.app.ticker, 480, k => {
+          card3d.position.set(departure.x + (arrival.x - departure.x) * k, departure.y + (arrival.y - departure.y) * k - Math.sin(k * Math.PI) * rise);
+          card3d.scale.set(1 + 0.35 * Math.sin(k * Math.PI));
+          card3d.rotateTo(-0.55 * (1 - k), 0.7 * direction * (1 - k), -0.15 * direction * (1 - k));
+        });
+      }
+      if (tucked) {
+        if (!view.destroyed) view.visible = true;
+        const start = { x: card3d.x, y: card3d.y };
+        await tween(this.stage.app.ticker, TUCK_MS, k => {
+          card3d.alpha = 1 - k;
+          card3d.position.set(start.x + (arrival.x - start.x) * k, start.y + (arrival.y - start.y) * k);
+        }, easeOut);
+      }
       card3d.destroy({ children: true });
       if (!view.destroyed) view.visible = true;
     }
