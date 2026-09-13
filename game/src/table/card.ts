@@ -103,6 +103,13 @@ export class TableCard extends Container {
   private request = 0;
   /** La faccia è pronta (per chi aspetta il tavolo intero). */
   ready: Promise<void> = Promise.resolve();
+  /**
+   * La prima faccia non è ancora dipinta: la carta resta trasparente (ma
+   * sensibile al tocco, come col passaggio) finché non arriva. Prima al suo
+   * posto c'era un bianco pieno, e per un fotogramma o due si vedeva un
+   * lampo bianco dove la carta si posava (2026-09-13).
+   */
+  private loading = false;
 
   /** L'uid della carta (CardInstance.uid): `uid` è già di Pixi, un numero suo. */
   constructor(readonly cardUid: string) {
@@ -138,7 +145,12 @@ export class TableCard extends Container {
   /** Sotto la copia sollevata del passaggio: invisibile, ma il puntatore la trova ancora (renderable=false la toglierebbe dal tocco). */
   setGhost(on: boolean): void {
     this.ghost = on;
-    this.alpha = on ? 0 : this.lookAlpha;
+    this.alpha = on || this.loading ? 0 : this.lookAlpha;
+  }
+
+  private setLoading(on: boolean): void {
+    this.loading = on;
+    if (!this.destroyed) this.alpha = this.ghost || on ? 0 : this.lookAlpha;
   }
 
   /** Tappata o no, anche mentre sta ancora girando. */
@@ -249,7 +261,7 @@ export class TableCard extends Container {
       }
     }
     this.lookAlpha = look.alpha ?? 1;
-    this.alpha = this.ghost ? 0 : this.lookAlpha;
+    this.alpha = this.ghost || this.loading ? 0 : this.lookAlpha;
     // Il respiro: sull'anello dei gesti (rubino) e sul bersaglio della mira
     // (verde), a tempo con tutte le altre (un orologio solo).
     const breathes = ring === "gestures" || ring === "legal";
@@ -286,14 +298,19 @@ export class TableCard extends Container {
         this.ready = Promise.resolve();
       } else {
         const ticket = ++this.request;
-        this.face.texture = Texture.WHITE;
+        // Mentre la faccia nuova si dipinge resta quella di prima (un altro
+        // lato, un'altra misura, il dorso); se non c'era nulla, la carta
+        // aspetta trasparente.
+        if (this.face.texture === Texture.EMPTY || this.face.texture === Texture.WHITE) this.setLoading(true);
         this.face.width = w;
         this.face.height = h;
         this.ready = faceTexture(look.cardId, look.face, look.locale, (w / 520) * look.resolution).then(texture => {
-          if (ticket !== this.request || !texture) return;
-          this.face.texture = texture;
+          if (ticket !== this.request) return;
+          // Una faccia che non arriva: il bianco di una volta, piuttosto che una carta che non c'è.
+          this.face.texture = texture ?? Texture.WHITE;
           this.face.width = w;
           this.face.height = h;
+          this.setLoading(false);
         });
       }
     }
