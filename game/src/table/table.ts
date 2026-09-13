@@ -118,6 +118,13 @@ export class Table {
   private readonly handTag = new CrispSprite();
   /** Ciò che ogni pezzo dipinto mostra (paintKeyed): uguale, non si ridipinge. */
   private readonly painted = new WeakMap<Sprite, string>();
+  /** I PV sulle testate: quelli mostrati scalano verso il bersaglio un punto alla volta (stepHp). */
+  private readonly hpShown: Record<Seat, number | null> = { a: null, b: null };
+  private readonly hpTarget: Record<Seat, number> = { a: 0, b: 0 };
+  /** Le prese sui PV (la risoluzione): finché ce n'è una, lo stato non muove il bersaglio — lo muove chi tiene, colpo per colpo (countHp). */
+  private readonly hpHolds = new Set<number>();
+  private hpHoldSeq = 0;
+  private hpNextStep = 0;
   /** §7.2 — le Reattive in catena, al centro in luce; sotto di loro la penombra del tavolo. */
   private readonly chain = new Container({ label: "chain" });
   /** I fantasmi dei voli (voli.ts): sopra le carte, sotto il cassetto della mano (fly-ghost, z 25). */
@@ -213,6 +220,7 @@ export class Table {
       const phase = (performance.now() % DISCARD_PULSE_MS) / DISCARD_PULSE_MS;
       this.discardHalo.alpha = reduced ? 1 : 0.6 + 0.4 * (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI));
     });
+    stage.app.ticker.add(() => this.stepHp());
     // Il tasto destro è del gioco (il menu delle carte), non del browser.
     stage.app.canvas.addEventListener("contextmenu", event => event.preventDefault());
     // Il tocco sul vuoto (il fondo del tavolo): chi mira rinuncia.
@@ -694,6 +702,7 @@ export class Table {
     this.paintHandToggle(L, resolution);
 
     // Sopra tutto: le targhe dei posti, il pannello delle pile avversarie, il gesto di fase — ognuno nel suo pezzo.
+    this.syncHp(state);
     this.paintOverlay(state, L, visible, resolution);
 
     // Il pannello aperto, sopra la testata; e le zone che si toccano.
@@ -1023,6 +1032,85 @@ export class Table {
 
   // ---------------------------------------------------------------- sopra
 
+  // --------------------------------------------------- i PV che scalano
+
+  /**
+   * I PV delle testate non saltano al numero nuovo: scalano un punto alla
+   * volta (2026-09-13, «far scalare i punti progressivamente ogni volta che
+   * si riceve un attacco»). Senza prese il bersaglio è lo stato; la prima
+   * volta si parte già lì.
+   */
+  private syncHp(state: GameState): void {
+    for (const seat of ["a", "b"] as const) {
+      const hp = state.players[seat].hp;
+      if (this.hpShown[seat] === null) this.hpShown[seat] = this.hpTarget[seat] = hp;
+      else if (this.hpHolds.size === 0) this.hpTarget[seat] = hp;
+    }
+  }
+
+  /**
+   * La risoluzione tiene i PV delle testate dove sono: scaleranno a ogni
+   * colpo che arriva (countHp) e, lasciati, fino allo stato. Torna chi
+   * lascia; una presa dimenticata si lascia da sola dopo HP_HOLD_MAX_MS.
+   */
+  holdHp(): () => void {
+    const id = ++this.hpHoldSeq;
+    this.hpHolds.add(id);
+    for (const seat of ["a", "b"] as const) {
+      const shown = this.hpShown[seat];
+      if (shown !== null) this.hpTarget[seat] = shown;
+    }
+    const release = (): void => {
+      clearTimeout(timer);
+      if (!this.hpHolds.delete(id)) return;
+      if (this.hpHolds.size === 0 && this.last) this.syncHp(this.last.state);
+    };
+    const timer = setTimeout(release, HP_HOLD_MAX_MS);
+    return release;
+  }
+
+  /** Un colpo che arriva durante la presa: i PV mostrati del posto scalano di `delta` (negativo il danno). */
+  countHp(seat: Seat, delta: number): void {
+    if (this.hpHolds.size === 0 || this.hpShown[seat] === null) return;
+    this.hpTarget[seat] += delta;
+  }
+
+  /** Un punto per passo verso il bersaglio: tanti punti da scalare, passo svelto; gli ultimi si contano. */
+  private stepHp(): void {
+    const now = performance.now();
+    const last = this.last;
+    if (now < this.hpNextStep || !last) return;
+    let left = -1;
+    for (const seat of ["a", "b"] as const) {
+      const shown = this.hpShown[seat];
+      const target = this.hpTarget[seat];
+      if (shown === null || shown === target) continue;
+      const next = reducedMotion() ? target : shown + Math.sign(target - shown);
+      this.hpShown[seat] = next;
+      left = Math.max(left, Math.abs(target - next));
+      const visible = this.stage.visible();
+      this.paintSeatHead(seat, last.state, last.L, visible, visible.scale * this.stage.app.renderer.resolution);
+    }
+    if (left >= 0) this.hpNextStep = now + Math.max(HP_STEP_MIN_MS, Math.min(HP_STEP_MAX_MS, HP_RUN_MS / (left + 1)));
+  }
+
+  /** La testata di un posto, a cavallo dell'orlo in alto a sinistra: i PV mostrati, Gettone e Flusso sul filo, poi la targhetta del nome. */
+  private paintSeatHead(seat: Seat, state: GameState, L: TableLayout, visible: Visible, resolution: number): void {
+    const mine = seat === this.me;
+    const field = mine ? L.mine : L.foe;
+    const palette = SEAT_PALETTE[this.tints[seat]];
+    const player = state.players[seat];
+    const hp = this.hpShown[seat] ?? player.hp;
+    const headX = L.halfX + 24;
+    const name = `${seatLabel(state, seat, this.me)}${mine ? t("label.you") : ""}`;
+    const width = Math.max(HEAD_W, HEAD_W / 2 + textWidth(tag, name));
+    const box = snapped(visible, resolution, headX - PIECE_MARGIN, field.top - HEAD_H / 2 - PIECE_MARGIN, width + 2 * PIECE_MARGIN, HEAD_H + 2 * PIECE_MARGIN);
+    this.paintRegion(this.seatHeads[seat], `${hp}|${player.token}|${player.flux}|${name}|${this.tints[seat]}`, box, resolution, ctx => {
+      const plateW = seatPlate(ctx, state, seat, headX, field.top, hp);
+      nameplate(ctx, name, headX + plateW + 12, field.top - 13, palette);
+    });
+  }
+
   /**
    * Sopra tutto, in quattro pezzi piccoli al posto di un foglio a tutto
    * schermo: le due testate dei posti, il pannello ripiegato, il gesto di
@@ -1031,20 +1119,7 @@ export class Table {
    */
   private paintOverlay(state: GameState, L: TableLayout, visible: Visible, resolution: number): void {
     const foe = otherSeat(this.me);
-    for (const [seat, field] of [[foe, L.foe], [this.me, L.mine]] as const) {
-      const mine = seat === this.me;
-      const palette = SEAT_PALETTE[this.tints[seat]];
-      const player = state.players[seat];
-      // La testata, a cavallo dell'orlo in alto a sinistra: PV, Gettone e Flusso sul filo, poi la targhetta del nome.
-      const headX = L.halfX + 24;
-      const name = `${seatLabel(state, seat, this.me)}${mine ? t("label.you") : ""}`;
-      const width = Math.max(HEAD_W, HEAD_W / 2 + textWidth(tag, name));
-      const box = snapped(visible, resolution, headX - PIECE_MARGIN, field.top - HEAD_H / 2 - PIECE_MARGIN, width + 2 * PIECE_MARGIN, HEAD_H + 2 * PIECE_MARGIN);
-      this.paintRegion(this.seatHeads[seat], `${player.hp}|${player.token}|${player.flux}|${name}|${this.tints[seat]}`, box, resolution, ctx => {
-        const plateW = seatPlate(ctx, state, seat, headX, field.top);
-        nameplate(ctx, name, headX + plateW + 12, field.top - 13, palette);
-      });
-    }
+    for (const seat of [foe, this.me]) this.paintSeatHead(seat, state, L, visible, resolution);
 
     // Il pannello delle pile avversarie, ripiegato: la piastra coi conti, in alto a destra.
     const counts = PILE.map(pile => `${t(pile.label)} · ${zoneCards(state, foe, pile.zone).length}`).join("   ");
@@ -1113,6 +1188,14 @@ const PIECE_MARGIN = 32;
 /** La testata di un posto: la gemma dei PV è alta 54; largo quanto basta a targa e nome (se il nome è lungo, di più). */
 const HEAD_W = 900;
 const HEAD_H = 54;
+/**
+ * I PV che scalano: un punto per passo, fra 40 e 110 ms — un colpo grosso
+ * corre, uno piccolo si conta —; una presa non dura oltre 20 s.
+ */
+const HP_STEP_MIN_MS = 40;
+const HP_STEP_MAX_MS = 110;
+const HP_RUN_MS = 800;
+const HP_HOLD_MAX_MS = 20_000;
 
 /**
  * Il riquadro (x, y, w, h) agganciato alla griglia dei pixel di `origin`
@@ -1286,9 +1369,10 @@ const STAR = new Path2D("M12 0 C13 8 16 11 24 12 C16 13 13 16 12 24 C11 16 8 13 
  * pezzi poggiano sull'orlo del campo (`edge`) — il medaglione verde dei PV
  * (rubino sotto i 6) col numero grande e «PV» in bianco, il Gettone (il disco
  * scuro con la stella d'oro, vuota o piena e accesa), il rombo rubino del
- * Flusso. Torna la sua larghezza.
+ * Flusso. `hp` sono i PV mostrati, che scalano verso quelli dello stato
+ * (stepHp). Torna la sua larghezza.
  */
-function seatPlate(ctx: CanvasRenderingContext2D, state: GameState, seat: Seat, x: number, edge: number): number {
+function seatPlate(ctx: CanvasRenderingContext2D, state: GameState, seat: Seat, x: number, edge: number, hp: number): number {
   const player = state.players[seat];
   const a = ctx.getTransform().a;
   let cx = x + 4 + 1;
@@ -1296,7 +1380,7 @@ function seatPlate(ctx: CanvasRenderingContext2D, state: GameState, seat: Seat, 
   // I PV.
   const gem = 54;
   const gy = edge - gem / 2;
-  const low = player.hp <= 5;
+  const low = hp <= 5;
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(cx + gem / 2, gy);
@@ -1308,12 +1392,12 @@ function seatPlate(ctx: CanvasRenderingContext2D, state: GameState, seat: Seat, 
   fillLinear(ctx, { x: cx, y: gy, w: gem, h: gem }, 160, low ? [["#ff6f8f", 0], ["#c21c45", "46%"], ["#7d0a2a", "100%"]] : [["#7fe6a4", 0], ["#2f9f60", "46%"], ["#135a36", "100%"]]);
   ctx.restore();
   const hpFont: Font = { size: 21, weight: 800, family: SANS, spacing: -0.42 };
-  const hp = String(player.hp);
+  const hpText = String(hp);
   applyFont(ctx, hpFont);
   drawText(
     ctx,
-    { kind: "text", text: hp, font: hpFont, color: "#ffffff", shadows: [{ x: 0, y: 1, blur: 2, color: "rgba(0,0,0,.8)" }, { x: 0, y: 0, blur: 6, color: "rgba(0,0,0,.6)" }] },
-    cx + gem / 2 - textWidth(hpFont, hp) / 2,
+    { kind: "text", text: hpText, font: hpFont, color: "#ffffff", shadows: [{ x: 0, y: 1, blur: 2, color: "rgba(0,0,0,.8)" }, { x: 0, y: 0, blur: 6, color: "rgba(0,0,0,.6)" }] },
+    cx + gem / 2 - textWidth(hpFont, hpText) / 2,
     edge + 7.5
   );
   cx += gem + 3;

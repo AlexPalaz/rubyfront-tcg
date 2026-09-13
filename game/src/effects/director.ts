@@ -435,7 +435,11 @@ export class Director {
     });
     const fallenSnapshots = new Map(fallen.map(uid => [uid, this.photo(state, uid)] as const));
     // Seguita come le giocate: finché gli attaccanti scattano, le scene aspettano e il bot pure (idle, isBusy).
-    return () => this.track(this.playResolution(battles, fallenSnapshots, clashes).catch(error => console.warn("regia", error)));
+    return () => {
+      // I PV delle testate restano dove sono e scalano a ogni colpo che arriva (countHp); finita la risoluzione, fino allo stato.
+      const release = this.table.holdHp();
+      this.track(this.playResolution(battles, fallenSnapshots, clashes).catch(error => console.warn("regia", error)).finally(release));
+    };
   }
 
   private async playResolution(
@@ -493,6 +497,8 @@ export class Director {
           }
           if (b.kind === "unblocked" && b.damage > 0) {
             void this.effects.popNumber(targetCenter.x, target.box.y + target.box.h * 0.2, `−${b.damage}`, "damage", true);
+            const defender = targetUid ? this.ctx.state().cards[targetUid]?.owner : undefined;
+            if (defender) this.table.countHp(defender, -b.damage);
             this.effects.camera.shake(Math.min(0.7, 0.3 + b.damage * 0.05));
           }
           if (b.blocker && b.blockerDies) shatter(b.blocker, center(attacker.box));
