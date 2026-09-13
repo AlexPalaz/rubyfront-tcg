@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.69.0"
+    VERSION = "0.70.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -48,6 +48,7 @@ module Rubyfront
       "§6.3 Il bloccante più forte uccide l'attaccante",
       "§8.1 Vendetta: il bloccante più debole si porta dietro l'attaccante",
       "§6.2 Gli Oggetti non si ritirano da soli: seguono la loro Entità",
+      "§3.1 Gli Oggetti di un'Entità morta vanno in Zona di Ritiro",
       "§6.2 Le carte si giocano in Preparazione (salvo Reattive e Rubyfront)",
       "§6 Nel turno altrui non si agisce (salvo Reazione e Reattive)",
       "§3.2 Le carte si pagano: il costo di Flusso",
@@ -124,6 +125,7 @@ module Rubyfront
       "§6.3 The stronger blocker kills the attacker",
       "§8.1 Revenge: the weaker blocker takes the attacker with it",
       "§6.2 Objects don't retire on their own: they follow their Entity",
+      "§3.1 The Objects of a dead Entity go to the Retire Zone",
       "§6.2 Cards are played in Preparation (except Reactives and the Rubyfront)",
       "§6 No acting on the opponent's turn (except Reaction and Reactives)",
       "§3.2 Cards are paid for: the Flux cost",
@@ -452,8 +454,8 @@ module Rubyfront
       end
 
       # §5 — l'Abisso è «la zona delle carte morte o consumate: Entità morte
-      # o distrutte, Materie risolte, decadute o svanite, Oggetti che seguono
-      # un'Entità morta». Ci si arriva morendo (la risoluzione, §6.4),
+      # o distrutte, Materie risolte, decadute o svanite» (gli Oggetti di
+      # un'Entità morta no: vanno in Zona di Ritiro, §3.1). Ci si arriva morendo (la risoluzione, §6.4),
       # consumandosi (la Materia, §7.2) o per un effetto — che passa di qui
       # col suo riferimento, e non arriva a questa dogana. Lo scarto NON ci
       # va (decisione del designer, 2026-09-10): le carte scartate dalla
@@ -2336,9 +2338,11 @@ module Rubyfront
     end
 
     # §5/§8.2 — «quando quell'Entità muore, metti questo Oggetto nella tua
-    # Zona di Ritiro invece che nell'Abisso»: l'Oggetto è appena finito
-    # nell'Abisso (questo turno) seguendo l'Entità a cui era assegnato — che
-    # è morta, cioè è nell'Abisso, uscita questo turno — e passa in Ritiro.
+    # Zona di Ritiro invece che nell'Abisso»: dal 2026-09-13 gli Oggetti di
+    # un'Entità morta vanno già in Zona di Ritiro (§3.1), e l'Oggetto ci
+    # resta. L'azione apre l'innesco (e il riarmo che segue): l'Oggetto è
+    # appena uscito dal campo (questo turno) con l'Entità a cui era
+    # assegnato — che è morta, cioè è nell'Abisso, uscita questo turno.
     def judge_remain(action, ref)
       kind = action["t"]
       return refuse(kind, "l'Oggetto resta in Ritiro con l'azione `remain` (§8.2)", "the Object stays in Retire with the `remain` action (§8.2)") unless kind == "remain" && action["uid"] == ref["source"]
@@ -2346,7 +2350,7 @@ module Rubyfront
       stopped, source, seat = death_context(kind, ref)
       return stopped if stopped
       return refuse(kind, "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if @table.fired?(ref["source"], "on_death", ref["entering"])
-      return refuse(kind, "l'Oggetto dev'essere nell'Abisso, appena finito lì (§8.2)", "the Object must be in the Abyss, just ended up there (§8.2)") unless source[:zone] == "abisso"
+      return refuse(kind, "l'Oggetto dev'essere in Zona di Ritiro, appena finito lì (§3.1, §8.2)", "the Object must be in the Retire Zone, just ended up there (§3.1, §8.2)") unless source[:zone] == "ritiro"
 
       allow(kind)
     end
@@ -2402,7 +2406,7 @@ module Rubyfront
       left = source[:left]
       bearer = @table.card(ref["entering"])
       unless just_left?(left) && left[:bearer] == ref["entering"] && bearer && bearer[:zone] == "abisso" && just_left?(bearer[:left])
-        return [refuse(kind, "l'Oggetto deve aver seguito questo turno nell'Abisso l'Entità a cui era assegnato, morta (§8.2)", "the Object must have followed the Entity it was assigned to into the Abyss this turn, dead (§8.2)")]
+        return [refuse(kind, "l'Oggetto deve aver seguito questo turno fuori dal campo l'Entità a cui era assegnato, morta (§8.2)", "the Object must have followed the Entity it was assigned to off the field this turn, dead (§8.2)")]
       end
 
       [nil, source, source[:owner]]

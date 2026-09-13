@@ -109,9 +109,10 @@ Regole collegate finora:
   Una carta di un ALTRO posto mandata in Ritiro non è un ritiro ma un
   effetto risolto a mano: silenzio, in ogni fase. Limite dichiarato: il
   manuale al §6.2 elenca ancora le altre condizioni. Gli **Oggetti
-  seguono** la loro Entità in
-  Zona di Ritiro (§6.2) e nell'Abisso (§5): sciolti dall'assegnazione,
-  vanno nella stessa pila — nel riduttore e nella copia; in mano o nel
+  seguono** la loro Entità
+  fuori dal campo, sciolti dall'assegnazione, e vanno sempre in Zona di
+  Ritiro (§3.1, §5) — anche quando l'Entità muore (voce più sotto) — nel
+  riduttore e nella copia; in mano o nel
   mazzo no, lì degli Oggetti decide la carta che ha mosso l'Entità.
 
 - **§5 Materie: mai sugli slot del Fronte** — gli slot sono delle Entità, e
@@ -393,7 +394,7 @@ Regole collegate finora:
   solo allora. Dogane: la destinazione della forma, l'Abisso; `heldBy`
   uguale alla fonte; il bersaglio un'Entità avversaria in campo; una volta
   per ingresso, nel turno d'ingresso. Limiti dichiarati: torna «in gioco»
-  disarmata (§3.1, gli Oggetti restano nell'Abisso) e nello slot che il
+  disarmata (§3.1, gli Oggetti restano in Zona di Ritiro) e nello slot che il
   tavolo le dà; la regola d'oro vale come sempre. Engine 0.43.0.
 - **§8.2 Le altre forme «quando attacca»** — undici inneschi su nove carte,
   letti dall'anagrafe in `attack_forms` (con la faccia che li porta) e
@@ -568,7 +569,7 @@ Regole collegate finora:
   controllo), sul Fronte del proprietario o nella sua Zona di Ritiro se è
   pieno, e l'engine lo passa solo a chi tiene fuori dal campo — «permanente»
   qui è un'Entità o una Materia permanente (mai il Rubyfront; gli Oggetti
-  seguono la loro Entità nell'Abisso e restano lì, §3.1); il **d20 a
+  seguono la loro Entità fuori dal campo e restano in Zona di Ritiro, §3.1); il **d20 a
   fasce** — con 1–6 +4 PV (`player`), con
   7–13 un'Entità Umana con costo 2 o inferiore dalla mano sul Fronte
   (`toZone` senza costo), con 14–19 una pesca, con 20 tutte e tre; ogni
@@ -641,8 +642,8 @@ Regole collegate finora:
 
 - **§5 L'Abisso: ci si va morendo o consumandosi, e non si torna** —
   «la zona delle carte morte o consumate: Entità morte o distrutte,
-  Materie risolte, decadute o svanite, Oggetti che seguono un'Entità
-  morta». Un `toZone` verso l'Abisso senza riferimento d'effetto passa
+  Materie risolte, decadute o svanite» — non gli Oggetti di un'Entità
+  morta, che vanno in Zona di Ritiro (§3.1, dal 2026-09-13). Un `toZone` verso l'Abisso senza riferimento d'effetto passa
   solo per una **Materia in campo** (la risolta che si consuma, la
   permanente che decade: gesto a mano). Il resto — un'Entità trascinata
   nell'Abisso, una carta dalla mano, dal mazzo o dal Ritiro — è fermato:
@@ -1061,6 +1062,21 @@ Regole collegate finora:
   d'allineamento; un effetto che desse +N «alle prossime attaccanti» fuori
   da questa abilità non esiste, e risolto a mano verrebbe fermato a torto
   (regola d'oro). Engine 0.68.0.
+
+- **§3.1 Gli Oggetti di un'Entità morta vanno in Zona di Ritiro** (deciso
+  dal designer il 2026-09-13, scritto nel manuale nella stessa modifica:
+  «le Entità vanno nell'Abisso quando muoiono, ma gli Oggetti vanno nella
+  Zona di Ritiro»). Automatismo dei gemelli: quando un'Entità esce dal
+  campo verso l'Abisso o la Zona di Ritiro — morta in battaglia, distrutta,
+  esiliata, ritirata — i suoi Oggetti, sciolti, vanno in cima alla **Zona di
+  Ritiro** del proprietario, mai nell'Abisso (`to_zone` in table.rb,
+  `toZone` in state.ts). L'Oggetto «quando quell'Entità muore, metti questo
+  Oggetto nella tua Zona di Ritiro invece che nell'Abisso» ci si trova già:
+  `remain` lo passa se l'Oggetto è in Zona di Ritiro, uscito questo turno
+  col suo portatore morto, e apre il riarmo come prima. Limite dichiarato:
+  un effetto che mandi nell'Abisso un Oggetto insieme alla sua Entità non
+  esiste oggi; risolto a mano verrebbe fermato a torto (regola d'oro).
+  Engine 0.70.0.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `core/test/` (vitest): il riduttore

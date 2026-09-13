@@ -953,8 +953,9 @@ module Rubyfront
       card[:assigned_to] = nil
       uid = action["uid"]
       @declarations.reject! { |from, d| from == uid || d[:to] == uid }
-      # Gli Oggetti addosso a chi esce: sciolti, e — verso Ritiro o Abisso
-      # — la seguono (§6.2, §5), come nel riduttore. In mano o nel mazzo no.
+      # Gli Oggetti addosso a chi esce: sciolti, e — se esce verso Ritiro o
+      # Abisso — vanno in Zona di Ritiro (§3.1, §5: dal 2026-09-13 anche
+      # quando l'Entità muore), come nel riduttore. In mano o nel mazzo no.
       worn = @cards.select { |_, other| other[:assigned_to] == uid && other[:zone] == "field" }.keys
       # L'uscita dal campo si annota (§8.2, il ritorno vincolato): in quale
       # turno, e se aveva Oggetti addosso.
@@ -972,7 +973,7 @@ module Rubyfront
 
       return unless %w[ritiro abisso].include?(zone)
 
-      worn.each { |object_uid| to_zone({ "uid" => object_uid, "zone" => zone, "bearer" => uid }) }
+      worn.each { |object_uid| to_zone({ "uid" => object_uid, "zone" => "ritiro", "bearer" => uid }) }
     end
   end
 end

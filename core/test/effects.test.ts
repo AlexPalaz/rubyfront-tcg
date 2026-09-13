@@ -1114,7 +1114,7 @@ describe("resolveSteps", () => {
     on(before, "w", "IRON").zone = "ritiro";
     const after = structuredClone(before);
     after.cards.u = { ...after.cards.u, zone: "abisso" };
-    after.cards.v = { ...after.cards.v, zone: "abisso", assignedTo: undefined };
+    after.cards.v = { ...after.cards.v, zone: "ritiro", assignedTo: undefined };
     const steps = deathSteps(before, after, facts);
     expect(steps.map(x => [x.object.uid, x.bearer.uid, x.form.kind])).toEqual([["v", "u", "remain"]]);
     expect(deathRef(steps[0])).toEqual({ source: "v", event: "on_death", entering: "u" });
@@ -1129,11 +1129,11 @@ describe("resolveSteps", () => {
     // Un Oggetto senza la forma, o un'Entità che va in Ritiro (non muore): niente.
     const plain = structuredClone(after);
     plain.fired = [];
-    plain.cards.v = { ...plain.cards.v, zone: "abisso", cardId: "IRON" };
+    plain.cards.v = { ...plain.cards.v, zone: "ritiro", cardId: "IRON" };
     expect(deathSteps(before, plain, facts)).toEqual([]);
     const retired = structuredClone(after);
     retired.fired = [];
-    retired.cards.v = { ...retired.cards.v, zone: "abisso" };
+    retired.cards.v = { ...retired.cards.v, zone: "ritiro" };
     retired.cards.u = { ...retired.cards.u, zone: "ritiro" };
     expect(deathSteps(before, retired, facts)).toEqual([]);
   });

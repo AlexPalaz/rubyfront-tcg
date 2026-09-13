@@ -360,14 +360,16 @@ function reduce(state: GameState, action: Action): GameState {
         declarations,
         zTop: Math.max(state.zTop, next.z + 1),
       };
-      // Gli Oggetti seguono la loro Entità in Zona di Ritiro (§6.2) e
-      // nell'Abisso (§5, «Oggetti che seguono un'Entità morta»): sciolti
-      // dall'assegnazione — il ritorno in campo è sempre disarmato — vanno
-      // nella stessa pila. In mano o nel mazzo no: lì un'Entità ci va per
-      // effetto, e degli Oggetti decide la carta.
+      // Gli Oggetti escono dal campo con la loro Entità, sciolti
+      // dall'assegnazione (il ritorno in campo è sempre disarmato), e vanno
+      // sempre in Zona di Ritiro (§3.1, §5) — anche quando l'Entità muore e
+      // va nell'Abisso (deciso dal designer il 2026-09-13: «le Entità vanno
+      // nell'Abisso quando muoiono, ma gli Oggetti vanno nella Zona di
+      // Ritiro»). In mano o nel mazzo no: lì un'Entità ci va per effetto, e
+      // degli Oggetti decide la carta. Gemello: table.rb, to_zone.
       if (next.zone === "ritiro" || next.zone === "abisso") {
         const worn = Object.values(state.cards).filter(other => other.assignedTo === action.uid && other.zone === "field");
-        for (const object of worn) moved = apply(moved, { t: "toZone", uid: object.uid, zone: next.zone });
+        for (const object of worn) moved = apply(moved, { t: "toZone", uid: object.uid, zone: "ritiro" });
       }
       // §7.2 — la catena di risposta: la Reattiva giocata (`chain`, lo dice
       // il client che la gioca e l'engine lo pretende) apre la catena o la

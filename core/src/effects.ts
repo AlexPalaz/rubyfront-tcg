@@ -1087,15 +1087,16 @@ export function deathRef(step: DeathStep, follow?: "rearm"): EffectRef {
 }
 
 /**
- * Gli Oggetti con la forma «quando quell'Entità muore» appena finiti
- * nell'Abisso seguendo la loro Entità (fra `before` e `after`: l'Oggetto
- * era in campo addosso a lei, ora sono entrambi nell'Abisso). Li offre
- * main.ts dopo ogni azione applicata, come il ritorno vincolato.
+ * Gli Oggetti con la forma «quando quell'Entità muore» appena usciti dal
+ * campo con la loro Entità morta (fra `before` e `after`: l'Oggetto era in
+ * campo addosso a lei; ora lei è nell'Abisso e l'Oggetto in Zona di Ritiro,
+ * dove gli Oggetti vanno sempre dal 2026-09-13, §3.1). Li offre la sessione
+ * dopo ogni azione applicata, come il ritorno vincolato.
  */
 export function deathSteps(before: GameState, after: GameState, facts: (cardId: string) => CardFacts): DeathStep[] {
   const out: DeathStep[] = [];
   for (const object of Object.values(after.cards)) {
-    if (object.zone !== "abisso") continue;
+    if (object.zone !== "ritiro") continue;
     const was = before.cards[object.uid];
     if (!was || was.zone !== "field" || !was.assignedTo) continue;
     const form = facts(object.cardId).deathForms.find(candidate => candidate.kind === "remain");

@@ -3190,14 +3190,14 @@ class EngineTest < Minitest::Test
     verdict = engine.judge(step_action)
     assert verdict[:ok], verdict[:reason]
     assert_equal "abisso", table_copy(engine).card("b1")[:zone]
-    assert_equal "abisso", table_copy(engine).card("bo")[:zone], "l'Oggetto la segue"
+    assert_equal "ritiro", table_copy(engine).card("bo")[:zone], "l'Oggetto esce con lei, ma va in Zona di Ritiro (§3.1)"
     assert_match(/già stato risolto/, engine.judge(step_action.merge("uid" => "bm"))[:reason])
     assert_match(/resta nell'Abisso/, engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 })[:reason])
     assert engine.judge({ "t" => "toZone", "uid" => "m", "zone" => "abisso" })[:ok]
     comeback = engine.judge({ "t" => "release", "uid" => "b1", "zone" => "field", "x" => 442, "y" => 172 })
     assert comeback[:ok], comeback[:reason]
     assert_equal "field", table_copy(engine).card("b1")[:zone]
-    assert_equal "abisso", table_copy(engine).card("bo")[:zone], "torna disarmata (§3.1)"
+    assert_equal "ritiro", table_copy(engine).card("bo")[:zone], "torna disarmata: l'Oggetto resta in Zona di Ritiro (§3.1)"
   end
 
   # Il d20 a fasce.
@@ -3685,7 +3685,8 @@ class EngineTest < Minitest::Test
     # UMANO 2 + 2 del Vestigio = 4 contro GROSSO 4: muoiono entrambi.
     verdict = resolve_with(engine, [outcome("u", blocker: "g", kind: "block", attacker_dies: true, blocker_dies: true)])
     assert verdict[:ok], verdict[:reason]
-    assert_equal "abisso", table_copy(engine).card("v")[:zone]
+    assert_equal "abisso", table_copy(engine).card("u")[:zone]
+    assert_equal "ritiro", table_copy(engine).card("v")[:zone], "l'Oggetto dell'Entità morta è già in Zona di Ritiro (§3.1)"
     assert_match(/seguito questo turno/, engine.judge(stays.merge("effect" => ref.merge("entering" => "g")))[:reason])
     assert_match(/azione `remain`/, engine.judge(stays.merge("uid" => "u"))[:reason])
     verdict = engine.judge(stays)

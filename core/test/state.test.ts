@@ -400,13 +400,15 @@ describe("gli Oggetti seguono l'Entità", () => {
     return state;
   }
 
-  it("in Zona di Ritiro e nell'Abisso, sciolti", () => {
+  it("in Zona di Ritiro, sciolti — anche quando l'Entità muore e va nell'Abisso (§3.1, 2026-09-13)", () => {
     let state = apply(worn(), { t: "toZone", uid: "a-1", zone: "ritiro" });
     expect(state.cards["a-2"].zone).toBe("ritiro");
     expect(state.cards["a-3"].zone).toBe("ritiro");
     expect(state.cards["a-2"].assignedTo).toBeUndefined();
     state = apply(worn(), { t: "toZone", uid: "a-1", zone: "abisso" });
-    expect(zoneCards(state, "a", "abisso").map(card => card.uid).sort()).toEqual(["a-1", "a-2", "a-3"]);
+    expect(zoneCards(state, "a", "abisso").map(card => card.uid)).toEqual(["a-1"]);
+    expect(zoneCards(state, "a", "ritiro").map(card => card.uid).sort()).toEqual(["a-2", "a-3"]);
+    expect(state.cards["a-3"].assignedTo).toBeUndefined();
   });
 
   it("in mano no: restano in campo, sciolti", () => {

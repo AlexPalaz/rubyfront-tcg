@@ -329,6 +329,17 @@ class TableTest < Minitest::Test
     assert_nil @table.card("a-2")[:assigned_to]
     assert_equal 3, @table.zone_count("a", "ritiro")
 
+    # L'Entità muore e va nell'Abisso: i suoi Oggetti no, vanno in Zona di
+    # Ritiro (§3.1, dal 2026-09-13). Gemello: state.test.ts.
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    @table.apply({ "t" => "assign", "uid" => "a-2", "to" => "a-1" })
+    @table.apply({ "t" => "assign", "uid" => "a-3", "to" => "a-1" })
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
+    assert_equal "abisso", @table.card("a-1")[:zone]
+    assert_equal %w[ritiro ritiro], [@table.card("a-2")[:zone], @table.card("a-3")[:zone]], "gli Oggetti non vanno nell'Abisso"
+    assert_nil @table.card("a-2")[:assigned_to]
+    assert_equal 1, @table.zone_count("a", "abisso")
+
     @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     @table.apply({ "t" => "assign", "uid" => "a-2", "to" => "a-1" })
     @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "hand" })
