@@ -183,8 +183,48 @@ describe("createGestures — la giocata dalla mano e l'innesco d'ingresso (§3.2
     await settle(gestures.playFromHand(archer, { x: FRONT_SLOT_X[1], y: frontRowY("a") }));
 
     expect(sent).toHaveLength(1);
-    expect(view.confirm).not.toHaveBeenCalled();
+    // Prima di non fare nulla si chiede (2026-09-13): qui il sì della vista finta.
+    expect(view.confirm).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(view.confirm).mock.calls[0][0]).toBe(t("confirm.skip"));
     expect(calls.filter(call => call.startsWith("light arc"))).toEqual(["light arc true", "light arc false"]);
+  });
+
+  it("Esc, poi «Torna alla scelta»: la mira si riapre, e col bersaglio l'effetto va", async () => {
+    const { ctx, sent, setState } = table();
+    const state = ctx.state();
+    const archer = card(state, "arc", "ARCHER", "a", "hand");
+    card(state, "u", "HUMAN", "b", "field");
+    setState(state);
+    const pickTarget = vi.fn((_source: CardInstance, candidates: CardInstance[]) => Promise.resolve(pickTarget.mock.calls.length > 1 ? candidates[0] : null));
+    // La rinuncia: no; poi la conferma del bersaglio: sì.
+    const confirm = vi.fn((question: string) => Promise.resolve(question !== t("confirm.skip")));
+    const { view } = fakeView({ pickTarget, confirm });
+    const gestures = createGestures(ctx, view);
+
+    await settle(gestures.playFromHand(archer, { x: FRONT_SLOT_X[1], y: frontRowY("a") }));
+
+    expect(pickTarget).toHaveBeenCalledTimes(2);
+    expect(confirm.mock.calls.map(call => call[0] === t("confirm.skip"))).toEqual([true, false]);
+    expect(sent.map(action => action.t)).toEqual(["toZone", "toZone"]);
+  });
+
+  it("«Annulla» sul bersaglio chiede se non fare nulla; «Torna alla scelta» rimira", async () => {
+    const { ctx, sent, setState } = table();
+    const state = ctx.state();
+    const archer = card(state, "arc", "ARCHER", "a", "hand");
+    card(state, "u", "HUMAN", "b", "field");
+    setState(state);
+    // Il bersaglio: annulla; la rinuncia: no; il bersaglio di nuovo: sì.
+    const answers = [false, false, true];
+    const confirm = vi.fn(() => Promise.resolve(answers.shift() ?? true));
+    const { view } = fakeView({ confirm });
+    const gestures = createGestures(ctx, view);
+
+    await settle(gestures.playFromHand(archer, { x: FRONT_SLOT_X[1], y: frontRowY("a") }));
+
+    expect(view.pickTarget).toHaveBeenCalledTimes(2);
+    expect(confirm.mock.calls.map(call => call[0] === t("confirm.skip"))).toEqual([false, true, false]);
+    expect(sent.map(action => action.t)).toEqual(["toZone", "toZone"]);
   });
 });
 

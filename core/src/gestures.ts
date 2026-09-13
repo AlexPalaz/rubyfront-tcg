@@ -121,19 +121,38 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       dell'altro posto restano del giocatore. */
   let auto: { seat: Seat; chooser: AutoChooser } | null = null;
   const isAuto = (seat: Seat): boolean => auto !== null && auto.seat === seat;
-  const pickFromPile = (
+  /**
+   * Una carta da una pila. Chiuderla senza sceglierne una, quando si poteva,
+   * non chiude l'effetto di colpo: prima si chiede se davvero non si fa
+   * nulla (confirmSkip), e se no la pila si riapre. `required`: la scelta è
+   * obbligata e chi chiama la ripropone da sé.
+   */
+  const pickFromPile = async (
     seat: Seat,
     zone: ZoneId,
     candidates: CardInstance[],
     title: string,
-    visible?: CardInstance[]
+    visible?: CardInstance[],
+    required = false
   ): Promise<CardInstance | null> => {
-    if (auto && isAuto(seat)) return Promise.resolve(auto.chooser.pickFromPile(zone, candidates, visible));
-    return view.pickFromPile(seat, zone, candidates, title, visible);
+    if (auto && isAuto(seat)) return auto.chooser.pickFromPile(zone, candidates, visible);
+    for (;;) {
+      const chosen = await view.pickFromPile(seat, zone, candidates, title, visible);
+      if (chosen || required || candidates.length === 0) return chosen;
+      if (await confirmSkip(seat)) return null;
+    }
   };
   /** La conferma di un effetto: per il bot è un sì, per il giocatore la finestra. */
   const confirmFor = (seat: Seat, question: string, labels?: { yes: string; no: string }): Promise<boolean> =>
     isAuto(seat) ? Promise.resolve(true) : view.confirm(question, labels);
+  /**
+   * Rinunciare a un effetto — Esc o il vuoto sulla mira, la pila chiusa
+   * senza scelta, «Annulla» sul bersaglio — non si fa di colpo (2026-09-13,
+   * «mi devi prima chiedere conferma se voglio non compiere alcuna azione»):
+   * sì, l'effetto si chiude senza fare nulla; no, si torna a scegliere.
+   */
+  const confirmSkip = (seat: Seat): Promise<boolean> =>
+    isAuto(seat) ? Promise.resolve(true) : view.confirm(t("confirm.skip"), { yes: t("confirm.skip.yes"), no: t("confirm.skip.no") });
   const wait = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
   /**
@@ -141,13 +160,37 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    * accende un attimo, così chi guarda vede cosa è stato scelto, e la mira
    * non si apre.
    */
-  function pickTarget(source: CardInstance, candidates: CardInstance[], hint: string): Promise<CardInstance | null> {
+  async function pickTarget(source: CardInstance, candidates: CardInstance[], hint: string, askSkip = true): Promise<CardInstance | null> {
     if (auto && isAuto(controllerOf(source))) {
       const chosen = auto.chooser.pickTarget(source, candidates);
       if (chosen) view.strike(chosen.uid, 900);
       return wait(450).then(() => chosen);
     }
-    return view.pickTarget(source, candidates, hint);
+    // Esc o il vuoto: si chiede prima se davvero non si fa nulla (confirmSkip).
+    // `askSkip` falso dove rinunciare al bersaglio non è rinunciare
+    // all'effetto (il bersaglio alla giocata: costo pieno, e si sceglierà dopo).
+    for (;;) {
+      const chosen = await view.pickTarget(source, candidates, hint);
+      if (chosen || !askSkip || candidates.length === 0) return chosen;
+      if (await confirmSkip(controllerOf(source))) return null;
+    }
+  }
+
+  /**
+   * Il bersaglio di un effetto con la sua conferma («Mandare X nell'Abisso…?»):
+   * «Annulla» non chiude l'effetto — si chiede se davvero non si fa nulla, e
+   * se no si torna a scegliere. Il bersaglio confermato resta acceso (strike).
+   */
+  async function pickSure(seat: Seat, pick: () => Promise<CardInstance | null>, question: (target: CardInstance) => string, light = true): Promise<CardInstance | null> {
+    for (;;) {
+      const target = await pick();
+      if (!target) return null;
+      if (light) view.strike(target.uid, 60_000);
+      if (await confirmFor(seat, question(target))) return target;
+      if (light) view.strike(target.uid, 0);
+      view.render();
+      if (await confirmSkip(seat)) return null;
+    }
   }
 
   /**
@@ -400,14 +443,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
               ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
               break;
             }
-            const target = await pickTarget(step.source, foes, t("target.raid"));
+            const target = await pickSure(by, () => pickTarget(step.source, foes, t("target.raid")), chosen => t("confirm.raid", { card: `«${ctx.card(chosen.cardId).name}»` }));
             if (!target) break;
-            view.strike(target.uid, 60_000);
-            const sure = await confirmFor(by, t("confirm.raid", { card: `«${ctx.card(target.cardId).name}»` }));
-            if (!sure) {
-              view.strike(target.uid, 0);
-              break;
-            }
             const passed = await ctx.dispatch({ t: "empower", uid: target.uid, restrict: "block", effect: attackRef(step) });
             if (passed) ctx.log(msg("log.effect.restrict", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
             await wait(TRIGGER_TAIL_MS);
@@ -497,7 +534,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
               break;
             }
             let chosen: CardInstance | null = null;
-            while (!chosen) chosen = await pickFromPile(by, "ritiro", candidates, t("pick.recall.hand"));
+            while (!chosen) chosen = await pickFromPile(by, "ritiro", candidates, t("pick.recall.hand"), undefined, true);
             const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "hand", roll, effect: attackRef(step, "recall") });
             if (passed) ctx.log(msg("log.effect.recall.hand", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
           }
@@ -510,7 +547,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             const hand = zoneCards(ctx.state(), by, "hand");
             if (hand.length === 0) break;
             let chosen: CardInstance | null = null;
-            while (!chosen) chosen = await pickFromPile(by, "hand", hand, t("pick.discard"));
+            while (!chosen) chosen = await pickFromPile(by, "hand", hand, t("pick.discard"), undefined, true);
             const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "ritiro", effect: attackRef(step, "discard") });
             if (passed) ctx.log(msg("log.effect.discard", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
             else break;
@@ -538,7 +575,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             break;
           }
           let chosen: CardInstance | null = null;
-          while (!chosen) chosen = await pickFromPile(by, "ritiro", candidates, t("pick.recall.front"));
+          while (!chosen) chosen = await pickFromPile(by, "ritiro", candidates, t("pick.recall.front"), undefined, true);
           const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...spot, z: ctx.state().zTop + 1, roll, effect: attackRef(step) });
           if (!passed) break;
           view.flyFromPile(by, "ritiro", chosen.uid);
@@ -615,7 +652,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         const hand = zoneCards(ctx.state(), by, "hand");
         if (hand.length === 0) break;
         let chosen: CardInstance | null = null;
-        while (!chosen) chosen = await pickFromPile(by, "hand", hand, t("pick.discard"));
+        while (!chosen) chosen = await pickFromPile(by, "hand", hand, t("pick.discard"), undefined, true);
         if (!(await resolveAttackDiscard(ctx, step, chosen))) break;
       }
     } finally {
@@ -715,7 +752,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       const form = facts.resolveForms.find(candidate => candidate.kind === "destroy");
       const foes = fieldCards(ctx.state()).filter(other => ctx.card(other.cardId).kind === "entity" && (!form || form.kind !== "destroy" || form.target.controller !== "opponent" || controllerOf(other) !== card.owner));
       const discount = form && form.kind === "destroy" ? form.discount?.amount ?? 0 : 0;
-      if (foes.length) target = await pickTarget(card, foes, t("target.judgment.play", { n: discount }));
+      if (foes.length) target = await pickTarget(card, foes, t("target.judgment.play", { n: discount }), false);
     }
     // Il costo di una Materia con uno sconto (contro la tappata dichiarata,
     // o con le armate sul Fronte): lo dice discountedCost, come l'engine.
@@ -850,7 +887,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       triggers: isAuto(by) ? [] : resolveSteps(ctx.state(), card, ctx.card).map(step => describeResolveStep(step, ctx.card)),
       onContinue: () => undefined,
     });
-    const target = foes.length ? await pickTarget(card, foes, t("target.judgment.play", { n: discount })) : null;
+    const target = foes.length ? await pickTarget(card, foes, t("target.judgment.play", { n: discount }), false) : null;
     if (foes.length && !target) {
       staged?.cancel();
       view.render();
@@ -909,7 +946,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
   async function declareMatterBlock(matter: CardInstance): Promise<boolean> {
     const by = controllerOf(matter);
     const attackers = attackersOf(ctx.state(), otherSeat(by), null, ctx.card).filter(card => !ctx.state().declarations.some(d => d.to === card.uid && d.kind !== "attack"));
-    const attacker = attackers.length ? await pickTarget(matter, attackers, t("target.blockwith")) : null;
+    const attacker = attackers.length ? await pickTarget(matter, attackers, t("target.blockwith"), false) : null;
     if (!attacker) return false;
     const passed = await ctx.dispatch({
       t: "declare",
@@ -1090,11 +1127,11 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             : await pickFromPile(by, "deck", [], t("pick.search.none", { roll, what }), looked);
           // Senza mostrata, una delle guardate torna in cima: obbligatoria.
           let top: CardInstance | null = null;
-          while (!reveal && !top) top = await pickFromPile(by, "deck", looked, t("pick.search.top"), looked);
+          while (!reveal && !top) top = await pickFromPile(by, "deck", looked, t("pick.search.top"), looked, true);
           // Poi una delle altre nella Zona di Ritiro: obbligatoria, se restano carte.
           const others = looked.filter(card => card.uid !== reveal?.uid && card.uid !== top?.uid);
           let retire: CardInstance | null = null;
-          while (others.length && !retire) retire = await pickFromPile(by, "deck", others, t("pick.retire"), others);
+          while (others.length && !retire) retire = await pickFromPile(by, "deck", others, t("pick.retire"), others, true);
           view.hold(true);
           await wait(CONFIRMED_LEAD_MS);
           const passed = await ctx.dispatch({
@@ -1137,16 +1174,12 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           const hint = form.kind === "move" ? "target.impact" : form.kind === "exile" ? "target.repulse" : "target.judgment";
           // Il bersaglio scelto giocandola (RBF-021) non si richiede, né si riconferma: la scelta è stata fatta allora.
           const chosenAtPlay = step.candidates.length === 1 && Boolean(step.source.target);
-          const target = chosenAtPlay ? step.candidates[0] : await pickTarget(step.source, step.candidates, t(hint));
+          const question = form.kind === "move" ? "confirm.impact" : form.kind === "exile" ? "confirm.repulse" : "confirm.judgment";
+          const target = chosenAtPlay
+            ? step.candidates[0]
+            : await pickSure(controllerOf(step.source), () => pickTarget(step.source, step.candidates, t(hint)), chosen => t(question, { card: `«${ctx.card(chosen.cardId).name}»` }));
           if (!target) break;
           view.strike(target.uid, 60_000);
-          const question = form.kind === "move" ? "confirm.impact" : form.kind === "exile" ? "confirm.repulse" : "confirm.judgment";
-          const sure = chosenAtPlay || (await confirmFor(controllerOf(step.source), t(question, { card: `«${ctx.card(target.cardId).name}»` })));
-          if (!sure) {
-            view.strike(target.uid, 0);
-            view.render();
-            break;
-          }
           view.hold(true);
           await wait(CONFIRMED_LEAD_MS);
           const fly = view.liftForFlight(target.uid, form.kind === "move" ? "ritiro" : "abisso");
@@ -1247,7 +1280,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     }
     let discard: CardInstance | null = null;
     if (nexus.discard) {
-      while (!discard) discard = await pickFromPile(by, "hand", check.discards, t(nexus.discard.kind === null ? "pick.nexus.discard.any" : "pick.nexus.discard"));
+      while (!discard) discard = await pickFromPile(by, "hand", check.discards, t(nexus.discard.kind === null ? "pick.nexus.discard.any" : "pick.nexus.discard"), undefined, true);
     }
     const passed = await ctx.dispatch({ t: "flip", uid: card.uid, face: nexus.face, ...(discard ? { discard: discard.uid } : {}), ...(nexus.recovery ? { recover: nexus.recovery } : {}) });
     if (!passed) return false;
@@ -1426,13 +1459,13 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       return;
     }
     view.light(step.source.uid, true);
-    const card = await pickFromPile(step.source.owner, step.from, step.candidates, t("pick.return"));
+    const card = await pickSure(
+      controllerOf(step.source),
+      () => pickFromPile(step.source.owner, step.from, step.candidates, t("pick.return")),
+      chosen => t("confirm.return", { card: `«${ctx.card(chosen.cardId).name}»` }),
+      false
+    );
     if (!card) {
-      view.light(step.source.uid, false);
-      return;
-    }
-    const sure = await confirmFor(controllerOf(step.source), t("confirm.return", { card: `«${ctx.card(card.cardId).name}»` }));
-    if (!sure) {
       view.light(step.source.uid, false);
       return;
     }
@@ -1459,15 +1492,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       return;
     }
     view.light(step.source.uid, true);
-    const target = await pickTarget(step.source, step.candidates, t("target.control"));
+    const target = await pickSure(by, () => pickTarget(step.source, step.candidates, t("target.control")), chosen => t("confirm.control", { card: `«${ctx.card(chosen.cardId).name}»` }));
     if (!target) {
-      view.light(step.source.uid, false);
-      return;
-    }
-    view.strike(target.uid, 60_000);
-    const sure = await confirmFor(by, t("confirm.control", { card: `«${ctx.card(target.cardId).name}»` }));
-    if (!sure) {
-      view.strike(target.uid, 0);
       view.light(step.source.uid, false);
       view.render();
       return;
@@ -1687,7 +1713,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     if (step.look.thenRetire) {
       const others = step.looked.filter(card => card.uid !== reveal?.uid);
       while (others.length && !retire) {
-        retire = await pickFromPile(by, "deck", others, t("pick.retire"), others);
+        retire = await pickFromPile(by, "deck", others, t("pick.retire"), others, true);
       }
     }
     view.hold(true);
@@ -1853,15 +1879,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         await playEnds(step, step.form);
         return;
       }
-      const target = await pickTarget(step.source, candidates, t("target.confine"));
+      const target = await pickSure(by, () => pickTarget(step.source, candidates, t("target.confine")), chosen => t("confirm.confine", { card: `«${ctx.card(chosen.cardId).name}»` }));
       if (!target) return;
-      view.strike(target.uid, 60_000);
-      const sure = await confirmFor(by, t("confirm.confine", { card: `«${ctx.card(target.cardId).name}»` }));
-      if (!sure) {
-        view.strike(target.uid, 0);
-        view.render();
-        return;
-      }
       view.hold(true);
       await wait(CONFIRMED_LEAD_MS);
       const fly = view.liftForFlight(target.uid, "abisso");
@@ -1916,7 +1935,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         const hand = zoneCards(ctx.state(), by, "hand");
         if (hand.length === 0) break;
         let chosen: CardInstance | null = null;
-        while (!chosen) chosen = await pickFromPile(by, "hand", hand, t("pick.discard"));
+        while (!chosen) chosen = await pickFromPile(by, "hand", hand, t("pick.discard"), undefined, true);
         const fly = view.liftForFlight(chosen.uid, "ritiro");
         const discarded = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "ritiro", effect: { ...ref, follow: "discard" } });
         if (discarded) {
@@ -1931,7 +1950,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     }
     // Il Nexus: una in mano, l'altra in Ritiro — la scelta è obbligatoria.
     let chosen: CardInstance | null = null;
-    while (!chosen) chosen = await pickFromPile(by, "deck", pair, t("pick.ends.hand"), pair);
+    while (!chosen) chosen = await pickFromPile(by, "deck", pair, t("pick.ends.hand"), pair, true);
     const other = pair.find(card => card.uid !== chosen?.uid);
     view.hold(true);
     await wait(CONFIRMED_LEAD_MS);
@@ -1999,16 +2018,13 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       return;
     }
     view.light(step.source.uid, true);
-    const target = await pickTarget(step.source, step.candidates, t(step.hold ? "target.loose" : "target.retire"));
+    // Scelto il bersaglio, si chiede conferma — con la carta accesa (pickSure).
+    const target = await pickSure(
+      controllerOf(step.source),
+      () => pickTarget(step.source, step.candidates, t(step.hold ? "target.loose" : "target.retire")),
+      chosen => t(step.hold ? "confirm.loose" : "confirm.retire", { card: `«${ctx.card(chosen.cardId).name}»` })
+    );
     if (!target) {
-      view.light(step.source.uid, false);
-      return;
-    }
-    // Scelto il bersaglio, si chiede conferma — con la carta accesa.
-    view.strike(target.uid, 60_000);
-    const sure = await confirmFor(controllerOf(step.source), t(step.hold ? "confirm.loose" : "confirm.retire", { card: `«${ctx.card(target.cardId).name}»` }));
-    if (!sure) {
-      view.strike(target.uid, 0);
       view.light(step.source.uid, false);
       view.render();
       return;
