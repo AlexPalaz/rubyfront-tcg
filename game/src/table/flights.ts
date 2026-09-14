@@ -29,6 +29,11 @@ const SLASH_MS = 620;
 /** Quando la scintilla tocca la pila (ritardo + corsa). */
 const SPARK_ARRIVE_MS = 1050;
 const DISSOLVE_MS = 1100;
+/** Chi torna da una pila: una ogni tanto, e accesa per tanto all'arrivo. */
+const RETURN_STEP_MS = 320;
+/** Prima di mettersi in fila, chi torna aspetta che i voli della stessa mossa siano partiti. */
+const RETURN_SETTLE_MS = 80;
+const RETURN_LIGHT_MS = 900;
 
 type StrikeKind = "slash" | "riposte" | "parry";
 
@@ -91,6 +96,13 @@ function bladeTexture(kind: "slash" | "riposte", w: number, h: number, res: numb
 const TUCK_MS = 320;
 
 export class Flights {
+  /**
+   * Fin quando le carte che vanno nelle pile stanno ancora volando: chi torna
+   * da una pila (fromPile) parte dopo, e una dopo l'altra (2026-09-14,
+   * «l'animazione non è chiara quando tornano le mie carte dall'Abisso»).
+   */
+  private busyUntil = 0;
+
   constructor(
     private readonly stage: Stage,
     private readonly table: Table,
@@ -146,6 +158,8 @@ export class Flights {
       }
       const delay = opts.slain ? SLASH_MS : 0;
       if (opts.slain) this.mark(ghost, "slash");
+      // La scintilla tocca la pila a SPARK_ARRIVE_MS: fin lì chi torna aspetta.
+      this.busyUntil = Math.max(this.busyUntil, performance.now() + delay + SPARK_ARRIVE_MS);
       setTimeout(() => this.dissolve(ghost, target, owner, zone), delay);
     }) as Flight;
     flight.cancel = () => ghost.destroy({ children: true });
@@ -202,6 +216,15 @@ export class Flights {
     }, easeOut).then(() => ring.destroy());
   }
 
+  /**
+   * I voli verso le pile che stanno per partire (gli Oggetti che escono in
+   * fila, uno ogni tanto): chi torna da una pila aspetta anche loro, fino
+   * all'arrivo dell'ultimo — prenotati adesso, anche se partono dopo.
+   */
+  holdReturns(startsWithin: number): void {
+    this.busyUntil = Math.max(this.busyUntil, performance.now() + startsWithin + SPARK_ARRIVE_MS);
+  }
+
   /** La carta torna da una pila al campo: il fantasma parte dal riquadro della pila e arriva dove la carta è comparsa. */
   fromPile(seat: Seat, zone: ZoneId, uid: string): void {
     const view = this.table.view(uid);
@@ -218,14 +241,37 @@ export class Flights {
     ghost.position.set(from.x + from.w / 2, from.y + from.h / 2);
     ghost.scale.set(startScale);
     ghost.alpha = 0.4;
-    ghost.visible = true;
     view.visible = false;
+    // In fila: dopo le carte che stanno andando nelle pile, e una dopo
+    // l'altra. Un attimo di respiro prima di contare: i voli verso le pile
+    // della stessa mossa partono dopo il ridisegno, a volte dopo il ritorno.
+    setTimeout(() => {
+      const now = performance.now();
+      const startAt = Math.max(now, this.busyUntil);
+      this.busyUntil = startAt + RETURN_STEP_MS;
+      setTimeout(() => this.returnFlight(ghost, view, from, to, startScale, endScale, uid), startAt - now);
+    }, RETURN_SETTLE_MS);
+  }
+
+  /** Il volo di ritorno dalla pila, partito il suo turno; arrivata, la carta si accende. */
+  private returnFlight(ghost: TableCard, view: TableCard, from: { x: number; y: number; w: number; h: number }, to: { x: number; y: number }, startScale: number, endScale: number, uid: string): void {
+    if (ghost.destroyed || view.destroyed) {
+      ghost.destroy({ children: true });
+      if (!view.destroyed) view.visible = true;
+      return;
+    }
+    ghost.visible = true;
     void tween(this.ticker, FLY_MS, k => {
       ghost.position.set(from.x + from.w / 2 + (to.x - from.x - from.w / 2) * k, from.y + from.h / 2 + (to.y - from.y - from.h / 2) * k);
       ghost.scale.set(startScale + (endScale - startScale) * k);
       ghost.alpha = 0.4 + 0.6 * k;
     }, bezier(0.35, 0.6, 0.2, 1)).then(async () => {
       if (!view.destroyed) view.visible = true;
+      // Tornata: si accende un attimo, così si vede quale carta è rientrata.
+      if (!view.destroyed && !this.ctx.state().cards[uid]?.assignedTo) {
+        this.table.light(uid, true);
+        setTimeout(() => this.table.light(uid, false), RETURN_LIGHT_MS);
+      }
       // L'Oggetto assegnato va dietro la sua Entità: il fantasma si dissolve lì sopra (2026-09-13).
       if (this.ctx.state().cards[uid]?.assignedTo && !reducedMotion()) await tween(this.ticker, TUCK_MS, k => (ghost.alpha = 1 - k), easeOut);
       ghost.destroy({ children: true });

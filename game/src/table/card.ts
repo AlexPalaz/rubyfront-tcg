@@ -331,7 +331,8 @@ export class TableCard extends Container {
         this.face.width = w;
         this.face.height = h;
         this.ready = faceTexture(look.cardId, look.face, look.locale, (w / 520) * look.resolution).then(texture => {
-          if (ticket !== this.request) return;
+          // La carta può essere stata tolta mentre la faccia si dipingeva (un volo, un esilio): niente da vestire.
+          if (ticket !== this.request || this.destroyed || this.face.destroyed) return;
           // Una faccia che non arriva: il bianco di una volta, piuttosto che una carta che non c'è.
           this.face.texture = texture ?? Texture.WHITE;
           this.face.width = w;

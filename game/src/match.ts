@@ -18,6 +18,7 @@
 // la partita col bot finita).
 
 import { cardName, cardStats, enterEffects, isRubyfront } from "@rubyfront/core/cards";
+import { wornBy } from "@rubyfront/core/combat";
 import { discountedCost } from "@rubyfront/core/effects";
 import { defaultEngineUrl } from "@rubyfront/core/engine";
 import { TRIGGER_LEAD_MS, TRIGGER_TAIL_MS, createGestures, type GestureView, type Gestures } from "@rubyfront/core/gestures";
@@ -49,6 +50,9 @@ const CARD_THEME = "t49";
 const OPENING_DRAW_PAUSE_MS = 250;
 
 /** La memoria del gioco nel browser: con un prefisso suo, separata da quella del simulatore. */
+/** Gli Oggetti che escono con la loro Entità partono uno dopo l'altro. */
+const WORN_STEP_MS = 180;
+
 export const store: SessionStore = {
   read(key, fallback) {
     try {
@@ -230,7 +234,32 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   const beforeCommit = (action: Action): (() => void) | undefined => {
     cue(action);
     reveal(action);
-    return together(resolution(action), director?.before(action));
+    return together(resolution(action), director?.before(action), followFlights(action));
+  };
+
+  /**
+   * I voli che seguono un'azione, propria o dell'avversario (2026-09-14,
+   * «l'animazione non è chiara quando tornano le mie carte dall'Abisso»):
+   * gli Oggetti che escono dal campo con la loro Entità vanno nella Zona di
+   * Ritiro del proprietario, uno dopo l'altro (§3.1); la carta tenuta
+   * nell'Abisso che torna sul Fronte (§8.2) vola dalla pila, dopo che le
+   * altre sono arrivate (flights.ts, la fila dei ritorni).
+   */
+  const followFlights = (action: Action): (() => void) | null => {
+    const state = session.state();
+    if (action.t === "toZone" && (action.zone === "abisso" || action.zone === "ritiro") && state.cards[action.uid]?.zone === "field") {
+      const worn = wornBy(state, action.uid).map(object => flights.toPile(object.uid, "ritiro"));
+      if (worn.length === 0) return null;
+      return () => {
+        flights.holdReturns(WORN_STEP_MS * worn.length);
+        worn.forEach((flight, index) => setTimeout(() => flight?.(), WORN_STEP_MS * (index + 1)));
+      };
+    }
+    if (action.t === "release") {
+      const back = state.cards[action.uid];
+      if (back?.zone === "abisso" && action.zone === "field") return () => flights.fromPile(back.owner, "abisso", action.uid);
+    }
+    return null;
   };
 
   /** Un'azione dell'avversario, già approvata dal tavolo: la si vede anche qui — la giocata, gli effetti, i dadi, i voli. */
@@ -263,7 +292,8 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
       flash(action.effect.source, 1600);
       fly = flights.slide(action.uid);
     }
-    if (action.t === "release") fly = flights.slide(action.uid);
+    // Il controllo che torna scivola; dall'Abisso al Fronte vola dalla pila (followFlights).
+    if (action.t === "release" && state.cards[action.uid]?.zone === "field") fly = flights.slide(action.uid);
     if (action.t === "toZone" && action.effect) {
       const moving = state.cards[action.uid];
       flash(action.effect.source, 1600);
@@ -295,7 +325,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
         };
       }
     }
-    return together(fly, effects);
+    return together(fly, effects, followFlights(action));
   };
 
   // Ciò che i gesti chiedono alla vista.
