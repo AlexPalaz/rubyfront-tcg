@@ -104,6 +104,31 @@ export function unlockSound(): void {
   for (const names of Object.values(VARIANTS)) for (const name of names) void load(ctx, `sounds/${name}`);
 }
 
+/**
+ * Dove comincia davvero un suono: il primo campione sopra il 10% del picco,
+ * meno 5 ms. I file della pesca hanno 70–125 ms di silenzio in testa, e il
+ * suono arrivava dopo la carta (2026-09-14, «il suono di carta pescata
+ * arriva in ritardo»): si parte da lì, per tutti i suoni.
+ */
+const onsets = new WeakMap<AudioBuffer, number>();
+function onsetOf(buffer: AudioBuffer): number {
+  const known = onsets.get(buffer);
+  if (known !== undefined) return known;
+  const data = buffer.getChannelData(0);
+  let peak = 0;
+  for (let i = 0; i < data.length; i += 1) peak = Math.max(peak, Math.abs(data[i]!));
+  let first = 0;
+  for (let i = 0; i < data.length; i += 1) {
+    if (Math.abs(data[i]!) > peak * 0.1) {
+      first = i;
+      break;
+    }
+  }
+  const onset = Math.max(0, first / buffer.sampleRate - 0.005);
+  onsets.set(buffer, onset);
+  return onset;
+}
+
 export function playSound(cue: Cue): void {
   if (!enabled) return;
   const ctx = ensure();
@@ -122,7 +147,7 @@ export function playSound(cue: Cue): void {
     gain.gain.value = LEVEL[cue];
     source.connect(gain);
     gain.connect(out);
-    source.start();
+    source.start(0, onsetOf(buffer));
   });
 }
 

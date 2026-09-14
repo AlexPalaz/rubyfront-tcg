@@ -23,7 +23,7 @@ import { defaultEngineUrl } from "@rubyfront/core/engine";
 import { TRIGGER_LEAD_MS, TRIGGER_TAIL_MS, createGestures, type GestureView, type Gestures } from "@rubyfront/core/gestures";
 import { t } from "@rubyfront/core/i18n";
 import { createSession, type Session, type SessionStore, type SessionView } from "@rubyfront/core/session";
-import { abilityDiscount, seatLabel, zoneCards } from "@rubyfront/core/state";
+import { abilityDiscount, seatLabel } from "@rubyfront/core/state";
 import { endPhase } from "@rubyfront/core/turn";
 import type { Action, Seat } from "@rubyfront/core/types";
 import { Director } from "./effects/director";
@@ -39,7 +39,7 @@ import { Menu } from "./table/menu";
 import { Aim } from "./table/aim";
 import { Scene } from "./table/scene";
 import { Seal } from "./table/seal";
-import { DRAW_STEP_MS, Table, drawCascadeMs } from "./table/table";
+import { Table, drawCascadeMs } from "./table/table";
 import { PileViewer } from "./table/pile-viewer";
 import { FLY_MS, Flights } from "./table/flights";
 
@@ -175,7 +175,6 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   // --- i suoni (main.ts del simulatore, cueFor): le fasi non suonano, i gesti sì.
   let lastDeclareAt = 0;
   const cue = (action: Action): void => {
-    const state = session.state();
     if (action.t === "loadDeck" && action.seat === me) startMusic(TABLE_MUSIC);
     if (action.t === "newGame") startMusic(TABLE_MUSIC, true);
     if (action.t === "declare") {
@@ -194,16 +193,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     }
     // La giocata non suona qui: l'incastonamento parte all'urto sul tavolo (effects/director.ts, playSocket), a volo finito.
     if (action.t === "toZone" && action.zone === "field") return;
-    // La pesca: un suono per carta, col ritmo con cui entrano in mano — solo la propria.
-    if (action.t === "draw" && action.seat === me) {
-      const count = Math.min(action.count, zoneCards(state, me, "deck").length);
-      for (let i = 0; i < count; i += 1) setTimeout(() => playSound("draw"), i * DRAW_STEP_MS);
-      return;
-    }
-    // La carta del turno entra quando l'insegna se n'è andata: il suono la aspetta.
-    if (action.t === "turn" && action.active === me && zoneCards(state, me, "deck").length > 0) {
-      setTimeout(() => playSound("draw"), PHASE_BANNER_MS + 80);
-    }
+    // La pesca non suona qui: suona la carta quando compare in mano (table.onHandEntry), a tempo con lei.
   };
 
   /** «Mostrala all'avversario»: la carta che l'altro rivela da uno sguardo nel mazzo si vede anche qui. */
@@ -398,6 +388,8 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   entrance.onLanding = uid => directorInstance.landing(uid, 1.5, false);
   // La carta del turno aspetta che l'insegna se ne vada.
   table.entryDelay = () => banner.remaining();
+  // La pesca suona quando la carta compare in mano, non a tempo fisso dall'azione (2026-09-14).
+  table.onHandEntry = () => playSound("draw");
   // Il costo di adesso delle carte in mano (2026-09-13): lo sconto di
   // un'abilità del Rubyfront, quello di una Materia con le armate sul Fronte
   // — lo stesso conto della giocata (core/gestures.ts), senza il bersaglio:

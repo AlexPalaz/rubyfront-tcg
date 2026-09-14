@@ -141,6 +141,8 @@ export class Table {
   private handBefore: Set<string> | null = null;
   /** Quanto manca perché l'insegna di fase se ne vada: la carta del turno la aspetta (partita.ts). */
   entryDelay: () => number = () => 0;
+  /** Una carta compare nella tua mano (la pesca): chi ascolta ci mette il suono, a tempo con lei. */
+  onHandEntry: (() => void) | null = null;
   private readonly dimmer = new Graphics();
   private inChain = new Set<string>();
   private chainOpen = false;
@@ -281,7 +283,8 @@ export class Table {
   private handEntries(uids: string[]): void {
     const before = this.handBefore;
     this.handBefore = new Set(uids);
-    if (!before || reducedMotion()) return;
+    if (!before) return;
+    const reduced = reducedMotion();
     const showWaiting = this.entryDelay();
     const hold = showWaiting > 0 ? showWaiting + 80 : 0;
     let entrance = 0;
@@ -291,10 +294,16 @@ export class Table {
       if (!view) continue;
       const delay = hold + entrance * DRAW_STEP_MS;
       entrance += 1;
-      // `backwards`: invisibile nell'attesa, poi sale di 90 e si accende.
+      // Senza movimento la carta è già lì: resta solo il suono, col suo passo.
+      if (reduced) {
+        setTimeout(() => this.onHandEntry?.(), delay);
+        continue;
+      }
+      // `backwards`: invisibile nell'attesa, poi sale di 90 e si accende — e il suono con lei.
       view.visible = false;
       setTimeout(() => {
         if (view.destroyed) return;
+        this.onHandEntry?.();
         view.visible = true;
         void tween(this.stage.app.ticker, DRAW_RUN_MS, k => {
           if (view.destroyed) throw new Error("carta sparita");
