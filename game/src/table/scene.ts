@@ -440,31 +440,34 @@ export class Scene {
     const v = this.stage.visible();
     const res = v.scale * this.stage.app.renderer.resolution;
     const area = areaOf(v);
-    const body = paragraph(text, BODY, NIGHT.ink, PANEL_W - 40 - 2, 16 * 1.5);
     const blocks = buttons.map(entry => button(entry.label, entry.type, res));
-    const h = 1 + 18 + body.h + 14 + 44 + 18 + 1;
-    const px = area.x + (area.w - PANEL_W) / 2;
-    const py = area.y + (area.h - h) / 2;
     // I tasti in fila, nell'ordine dato, allineati a destra, 10 fra l'uno e l'altro.
     const rowW = blocks.reduce((sum, block) => sum + block.w, 0) + 10 * (blocks.length - 1);
-    let left = PANEL_W - 21 - rowW;
+    // Largo 380, o quanto serve ai tasti (2026-09-14: «Torna alla scelta» e
+    // «Nessuna azione» uscivano dal pannello a sinistra).
+    const W = Math.max(PANEL_W, rowW + 2 * 21);
+    const body = paragraph(text, BODY, NIGHT.ink, W - 40 - 2, 16 * 1.5);
+    const h = 1 + 18 + body.h + 14 + 44 + 18 + 1;
+    const px = area.x + (area.w - W) / 2;
+    const py = area.y + (area.h - h) / 2;
+    let left = W - 21 - rowW;
     const seats = blocks.map(block => {
       const x = left;
       left += block.w + 10;
       return x;
     });
     const rowY = 1 + 18 + body.h + 14;
-    const texture = paintPiece(PANEL_W + 2 * PANEL_SHADOW, h + 2 * PANEL_SHADOW, res, ctx => {
+    const texture = paintPiece(W + 2 * PANEL_SHADOW, h + 2 * PANEL_SHADOW, res, ctx => {
       ctx.translate(PANEL_SHADOW, PANEL_SHADOW);
       withShadow(ctx, res, { x: 0, y: 24, blur: 60, color: "rgba(0,0,0,.6)" }, () => {
         ctx.fillStyle = NIGHT.glassHeavy;
-        ctx.fillRect(0, 0, PANEL_W, h);
+        ctx.fillRect(0, 0, W, h);
       });
       ctx.fillStyle = NIGHT.glassHeavy;
-      ctx.fillRect(0, 0, PANEL_W, h);
+      ctx.fillRect(0, 0, W, h);
       ctx.strokeStyle = CONFIRM_LINE;
       ctx.lineWidth = 1;
-      ctx.strokeRect(0.5, 0.5, PANEL_W - 1, h - 1);
+      ctx.strokeRect(0.5, 0.5, W - 1, h - 1);
       body.draw(ctx, 21, 19);
       blocks.forEach((block, index) => block.draw(ctx, seats[index], rowY));
     });
@@ -472,7 +475,7 @@ export class Scene {
     const sprite = new CrispSprite(texture);
     sprite.position.set(px - PANEL_SHADOW, py - PANEL_SHADOW);
     // Il pannello si prende i suoi click; il tavolo attorno resta com'è.
-    const background = hitZone(px, py, PANEL_W, h, () => undefined);
+    const background = hitZone(px, py, W, h, () => undefined);
     background.cursor = "default";
     root.addChild(sprite, background);
 
