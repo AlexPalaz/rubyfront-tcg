@@ -428,10 +428,12 @@ Regole collegate finora:
   dall'engine con lei; la **permanente col d20** —
   la Materia permanente: quando attacca un Umano che controlli, «un d20:
   1–6 guadagni PV pari agli Umani che hanno attaccato, 15–20 li perde il
-  Rubyfront/Nexus avversario, 7–14 nulla» — **una volta per turno**
-  (l'ondata, non ciascun attaccante: decisione del designer del
-  2026-09-10, come per ogni innesco d'attacco: annullare l'attacco e
-  ridichiararlo non lo ripropone, la memoria degli inneschi resta); il **raduno del Rubyfront** — «la
+  Rubyfront/Nexus avversario, 7–14 nulla» — **a ogni Umano che
+  attacca** (decisione del designer del 2026-09-14, che supera quella del
+  2026-09-10 «una volta per turno»: ogni attaccante il suo d20, e ogni tiro
+  conta gli Umani che hanno attaccato fin lì; annullare l'attacco e
+  ridichiararlo non lo ripropone, la memoria degli inneschi resta; engine
+  0.71.0); il **raduno del Rubyfront** — «la
   prima volta in ogni tuo turno che almeno 3 Umani che controlli hanno
   attaccato, +2 PV», e il Nexus «pesca una carta, poi scarta» (i seguiti
   `draw` e `discard`); la **Vendetta al prossimo Umano**, com'era fino al 2026-09-04

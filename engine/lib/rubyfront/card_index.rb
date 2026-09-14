@@ -547,12 +547,12 @@ module Rubyfront
         drain = by.find { |_, v| v.is_a?(Hash) && v["opponentLosesHealthEqualsHumanAttackersThisTurn"] == true }&.first
         return nil unless die && roll_range(gain) && roll_range(drain)
 
-        # «Ogni volta che le Entità Umane che controlli attaccano»: l'ondata,
-        # non ciascun attaccante — una volta per turno (decisione del
-        # designer, 2026-09-10: «l'effetto di una permanente si risolve una
-        # singola volta»).
+        # «Ogni volta che le Entità Umane che controlli attaccano»: a ogni
+        # Umano che attacca, un d20 (decisione del designer, 2026-09-14, che
+        # supera quella del 2026-09-10 «una volta per turno»). Ogni tiro conta
+        # gli Umani che hanno attaccato fin lì nel turno.
         return { kind: "heal", who: "permanent", attackers: { type: "entity", race: "human" }.freeze, die: die,
-                 gain_on: roll_range(gain), drain_on: roll_range(drain), amount: "human_attackers", once: true }
+                 gain_on: roll_range(gain), drain_on: roll_range(drain), amount: "human_attackers", once: false }
       end
       nil
     end

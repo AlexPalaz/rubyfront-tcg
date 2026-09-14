@@ -425,8 +425,8 @@ function attackHeal(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
     const gainOn = rollRange(gain);
     const drainOn = rollRange(drain);
     if (die === null || !gainOn || !drainOn) return null;
-    // Una volta per turno: l'ondata, non ciascun attaccante (deciso 2026-09-10). Specchio di card_index.rb.
-    return { kind: "heal", who: "permanent", attackers: { kind: "entity", race: "human" }, die, onRoll: null, gainOn, drainOn, amount: "human_attackers", once: true };
+    // A ogni Umano che attacca, un d20 (deciso 2026-09-14; prima una volta per turno). Specchio di card_index.rb.
+    return { kind: "heal", who: "permanent", attackers: { kind: "entity", race: "human" }, die, onRoll: null, gainOn, drainOn, amount: "human_attackers" };
   }
   return null;
 }
