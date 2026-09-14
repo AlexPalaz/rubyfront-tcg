@@ -172,6 +172,12 @@ export class HoverTilt {
     const shadow = new Sprite(this.shadowTexture(look.w, look.h));
     shadow.anchor.set(0.5);
     const card = new Card3D(texture, w, h, PERSPECTIVE);
+    // Il foil delle Uniche dal vivo sulla copia che s'inclina: la foto è senza
+    // (card.ts, snapshot), così scorre e segue la luce a ogni fotogramma — prima
+    // era fermo nella foto e avanzava a scatti ogni 300 ms (2026-09-14, «sopra
+    // una carta foil tipo Ajmal l'animazione lagga molto»).
+    const sheen = view.sheenFilter;
+    if (sheen) card.mesh.filters = [sheen];
     const mask = new Card3D(Texture.WHITE, look.w, look.h, PERSPECTIVE);
     const glare = new Sprite(this.glare());
     glare.anchor.set(0.5);

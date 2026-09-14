@@ -101,6 +101,8 @@ export class TableCard extends Container {
   private readonly face = new Sprite();
   /** Un filtro di luce sulla sola faccia (il foil delle Uniche, effects/director.ts), accanto alla velatura. */
   private sheen: Filter | null = null;
+  /** Durante la foto (snapshot) la faccia è senza foil: lo mette dal vivo chi usa la foto. */
+  private capturing = false;
   private readonly veil = new Graphics();
   private readonly overlay = new Sprite();
   private faceKey = "";
@@ -141,12 +143,18 @@ export class TableCard extends Container {
     const alpha = this.alpha;
     this.shadow.visible = false;
     this.alpha = this.lookAlpha;
+    // Senza il foil: una foto lo fermerebbe, e sulla copia che s'inclina
+    // scorrerebbe a scatti, tre volte al secondo (sheenFilter, hover.ts).
+    this.capturing = true;
+    this.applyFaceFilters();
     const bounds = this.getLocalBounds();
     const halfW = Math.ceil(Math.max(-bounds.x, bounds.x + bounds.width));
     const halfH = Math.ceil(Math.max(-bounds.y, bounds.y + bounds.height));
     const texture = renderer.generateTexture({ target: this, frame: new Rectangle(-halfW, -halfH, halfW * 2, halfH * 2), resolution });
     this.shadow.visible = shadowShown;
     this.alpha = alpha;
+    this.capturing = false;
+    this.applyFaceFilters();
     return { texture, w: halfW * 2, h: halfH * 2 };
   }
 
@@ -154,6 +162,8 @@ export class TableCard extends Container {
   setGhost(on: boolean): void {
     this.ghost = on;
     this.alpha = on || this.loading ? 0 : this.lookAlpha;
+    // Invisibile, la faccia non paga il foil: lo dipinge la copia sollevata.
+    this.applyFaceFilters();
   }
 
   private setLoading(on: boolean): void {
@@ -238,7 +248,13 @@ export class TableCard extends Container {
   }
 
   private applyFaceFilters(): void {
-    this.face.filters = [...(this.veil.visible ? [veilFilter()] : []), ...(this.sheen ? [this.sheen] : [])];
+    const sheen = this.sheen && !this.ghost && !this.capturing ? [this.sheen] : [];
+    this.face.filters = [...(this.veil.visible ? [veilFilter()] : []), ...sheen];
+  }
+
+  /** Il foil della faccia (le Uniche), per chi ne mostra una copia: la copia sollevata del passaggio lo porta dal vivo. */
+  get sheenFilter(): Filter | null {
+    return this.sheen;
   }
 
   update(look: CardLook): void {
