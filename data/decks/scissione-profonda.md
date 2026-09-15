@@ -178,3 +178,7 @@ collegati il 2026-09-10 (engine 0.46–0.48).
 - **Carica Latente**: grado riportato da Dimensionale II a **Dimensionale I**
   (decisione del designer). Aggiornati catalogo e cella Materia del foglio.
   Testo dell'effetto invariato. Conteggi invariati (19 · 10 · 11 = 40).
+
+**2026-09-15 — allineamento incrociato col foglio:** l'Artefice segue il foglio
+(Oggetto con costo di Flusso 2 o inferiore); per Rhazmora (Nexus +3, Forgia
+Rapida +1, Forgia Profonda +2) e il Vestigio il foglio segue il gioco.

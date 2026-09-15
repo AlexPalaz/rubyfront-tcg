@@ -108,7 +108,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [["rearm", "ally", 0], ["look", "ally", 0]], forms_of.call("RBF-031")
     assert_equal [["heal", "self", 0]], forms_of.call("RBF-008")
     assert_equal [["return", "self", 0]], forms_of.call("RBF-010")
-    assert_equal [], forms_of.call("RBF-011"), "dal 2026-09-05 la stappata si innesca entrando, non attaccando"
+    assert_equal [["untap", "self", 0]], forms_of.call("RBF-011"), "dal 2026-09-15 la stappata di tutte torna all'attacco, col d20"
     assert_equal [["heal", "permanent", 0]], forms_of.call("RBF-022")
     assert_equal [["heal", "rubyfront", 0], ["heal", "rubyfront", 1]], forms_of.call("RBF-001")
     assert_equal [["empower", "self", 0]], forms_of.call("RBF-004"), "dal 2026-09-09 «se almeno 2 Umani attaccano» è il divieto di blocco di questo turno"
@@ -117,7 +117,8 @@ class CardIndexTest < Minitest::Test
     assert_equal({ die: 6, on_roll: [5, 6], count: 4, reveal_to: "hand", rest_to: "ritiro" }, @index["RBF-034"][:attack_forms][1].slice(:die, :on_roll, :count, :reveal_to, :rest_to))
     assert_equal({ once: true, count: 2, reveal_to: "ritiro", rest_to: "deck" }, @index["RBF-031"][:attack_forms][1].slice(:once, :count, :reveal_to, :rest_to))
     assert_equal({ amount: 2, die: 6, on_roll: [5, 6] }, @index["RBF-008"][:attack_forms][0].slice(:amount, :die, :on_roll))
-    assert_equal [{ die: 20, on_roll: [15, 20] }], @index["RBF-011"][:enter_refreshes], "quando entra, col d20 stappa tutto"
+    assert_equal [], @index["RBF-011"][:enter_refreshes], "dal 2026-09-15 nessuna stappata all'ingresso"
+    assert_equal({ targets: "all", die: 20, on_roll: [15, 20] }, @index["RBF-011"][:attack_forms][0].slice(:targets, :die, :on_roll), "quando attacca, col d20 stappa tutte dopo la Fase di Fronte")
     assert_equal({ gain_on: [1, 6], drain_on: [15, 20], once: false }, @index["RBF-022"][:attack_forms][0].slice(:gain_on, :drain_on, :once), "a ogni Umano che attacca, dal 2026-09-14 (prima una volta per turno)")
     assert_equal({ requires_attackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block" }, @index["RBF-004"][:attack_forms][0].slice(:requires_attackers, :targets, :restrict), "conta gli attaccanti di questo turno, non del precedente")
     assert_equal [0, 1], @index["RBF-001"][:attack_forms].map { |form| form[:then_draw] }, "solo il Nexus pesca"
@@ -260,7 +261,7 @@ class CardIndexTest < Minitest::Test
 
   def test_second_deck_die_glance_no_longer_certified
     assert_equal [], @index["RBF-027"][:enter_looks], "dal 2026-09-10 lo sguardo col dado è del Guardiano"
-    assert_equal [{ self: true }], @index["RBF-027"][:enter_rearms], "dal 2026-09-10 il riarmo su di sé all'ingresso"
+    assert_equal [{ self: true, max_cost: 2 }], @index["RBF-027"][:enter_rearms], "dal 2026-09-10 il riarmo su di sé all'ingresso; dal 2026-09-15 entro il costo 2"
     assert_equal [{ count: nil, die: 6, count_base: 0, reveal: { type: "object", race: nil }, then_retire: true, formula: "result" }], @index["RBF-025"][:enter_looks], "dal 2026-09-10 «tante carte quanto il tiro»"
   end
 

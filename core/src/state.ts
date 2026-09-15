@@ -792,10 +792,12 @@ function reduce(state: GameState, action: Action): GameState {
         .map(d => d.from);
       const foe = otherSeat(action.seat);
       const player = next.players[foe];
+      // La stappata di tutte dopo la Fase di Fronte è arrivata: il posto non la aspetta più.
+      const { untapAfter: _done, ...settled } = next.players[action.seat];
       return {
         ...next,
         cards,
-        players: { ...next.players, [foe]: { ...player, hp: Math.max(0, player.hp - damage) } },
+        players: { ...next.players, [foe]: { ...player, hp: Math.max(0, player.hp - damage) }, [action.seat]: settled },
         declarations: [],
         lastWave: { ...state.lastWave, [action.seat]: wave },
       };
@@ -823,9 +825,15 @@ function reduce(state: GameState, action: Action): GameState {
     }
 
     case "refresh": {
-      // §8.2 (RBF-011) — col tiro giusto (`untap`) tutte le Entità che `seat`
-      // comanda si stappano; col tiro mancato non succede nulla. Gemello: table.rb.
+      // §8.2 — col tiro giusto (`untap`) tutte le Entità che `seat`
+      // comanda si stappano; col tiro mancato non succede nulla. Con `after`
+      // (la stappata all'attacco, dal 2026-09-15) non adesso: il posto si
+      // annota, e la risoluzione stappa (`resolve.untap`). Gemello: table.rb.
       if (!action.untap) return state;
+      if (action.after) {
+        const player = state.players[action.seat];
+        return { ...state, players: { ...state.players, [action.seat]: { ...player, untapAfter: state.turn } } };
+      }
       const cards = { ...state.cards };
       for (const [uid, card] of Object.entries(cards)) {
         if (card.zone !== "field" || !card.tapped || controllerOf(card) !== action.seat) continue;

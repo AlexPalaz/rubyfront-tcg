@@ -44,7 +44,7 @@ function cardsOf(deckId: string, seat: Seat): CardInstance[] {
   return cards;
 }
 
-export function sampleGame(options: { chain?: boolean; block?: boolean } = {}): Action[] {
+export function sampleGame(options: { chain?: boolean; block?: boolean; control?: boolean } = {}): Action[] {
   const actions: Action[] = [];
   let state: GameState = newGame("a");
   const push = (action: Action): void => {
@@ -96,6 +96,14 @@ export function sampleGame(options: { chain?: boolean; block?: boolean } = {}): 
   const object = first("b", "hand", c => kind(c) === "object") ?? first("b", "deck", c => kind(c) === "object");
   if (bearer && object) {
     push({ t: "toZone", uid: object.uid, zone: "field", x: bearer.x + STACK_STEP, y: bearer.y + STACK_STEP, z: bearer.z - 1, assignTo: bearer.uid });
+  }
+
+  // §8.2 — a richiesta, B prende il controllo di un'Entità di A: la sua
+  // Zona di Controllo si apre sopra il suo Fronte (layout.ts, foeBack).
+  if (options.control) {
+    const taken = onField("a", "entity")[1];
+    const taker = onField("b", "entity")[0];
+    if (taken && taker) push({ t: "control", uid: taken.uid, by: "b", grants: ["surge"], effect: { source: taker.uid, event: "on_enter_field", entering: taker.uid } });
   }
 
   // Una carta tappata (B) e una coperta (A).

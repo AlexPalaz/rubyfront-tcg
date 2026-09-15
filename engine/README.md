@@ -816,7 +816,7 @@ Regole collegate finora:
   sospeso, che cade col turno). Lo sconto vale nel turno: giocando la carta
   l'azione lo dichiara (`toZone … discount`), la dogana del costo lo
   ammette solo se è nel conto del giocatore e vale per quel tipo (e razza),
-  mai sotto 1 di costo; il riduttore e la copia lo consumano. Limiti
+  fino a 0 di costo (dal 2026-09-15, vedi in fondo); il riduttore e la copia lo consumano. Limiti
   dichiarati: un'abilità il cui effetto non ha forma certificata **non si
   attiva** con l'arbitro (l'engine non saprebbe verificarne l'effetto, e i
   PV non si pagano per niente): «metti sul tuo Fronte un Umano dalla mano
@@ -951,7 +951,7 @@ Regole collegate finora:
   **sconto d'assegnazione** (statico `assign_discount`): «gli Oggetti che
   assegni a questa Entità costano N in meno» — la dogana del costo lo
   applica all'Oggetto giocato dalla mano già assegnato a quel portatore,
-  mai sotto 1 (§3.2, `assign_discount_for`; il client con `objectCost`).
+  fino a 0 (§3.2, dal 2026-09-15; `assign_discount_for`, il client con `objectCost`).
   L'**aura delle armate** (statico `others_armed_power`): «le altre
   Entità con un Oggetto assegnato che controlli hanno +N» — la
   risoluzione lo somma a ogni Entità armata dello stesso posto, mai alla
@@ -1081,6 +1081,38 @@ Regole collegate finora:
   esiste oggi; risolto a mano verrebbe fermato a torto (regola d'oro).
   Engine 0.70.0.
 
+- **§3.2 Uno sconto può azzerare il costo: la carta è gratis** (deciso dal
+  designer il 2026-09-15, «il costo minimo di una carta è un Flusso, ma se
+  una carta te lo azzera puoi prenderla», scritto nel manuale: il minimo
+  vale per il costo stampato, non per quello scontato). Fino ad allora la
+  dogana del costo e i gemelli fermavano gli sconti a 1: la Spada da 1 sul
+  Portatore che sconta costava ancora 1, e a Flusso zero non si assegnava.
+  Ora lo sconto d'assegnazione (`assign_discount_for`, `objectCost`) e
+  quello di un'abilità del Rubyfront scendono fino a 0; un'azione `toZone`
+  con `cost: 0` passa la dogana e i gemelli non pagano nulla. Il gioco
+  mostra sulla carta Oggetto in mano il costo del miglior portatore in
+  campo (`bestObjectCost`, la gemma verde del costo sceso) e con lo stesso
+  conto decide se la carta è pagabile. Engine 0.72.0.
+
+- **§8.2 «Quando attacca, lancia un d20: con 15–20 stappa tutte le Entità
+  che controlli dopo la Fase di Fronte» e il riarmo di sé entro il costo**
+  (2026-09-15, l'allineamento incrociato col foglio del designer: per queste
+  due carte è giusto il foglio). La stappata di tutte torna un innesco
+  d'**attacco** (era d'ingresso dal 2026-09-05): forma `attack_forms`
+  `untap` con `targets: "all"`, `die`, `on_roll`. Il client tira il d20 alla
+  dichiarazione e manda `refresh {seat, roll, untap, after: true}` con il
+  riferimento `on_attack`; la dogana (`judge_attack_refresh`) verifica
+  attacco dichiarato, fonte, tiro e fascia, e pretende `after`; la copia non
+  stappa adesso ma annota il posto (`untap_after`, col turno; nello
+  snapshot `untapAfter`); alla risoluzione `resolve.untap` porta tutte le
+  Entità del posto e `untap_stopped` le lascia passare (`vigilUntaps` nel
+  client le elenca). Col tiro mancato l'azione passa e non annota nulla.
+  La stappata all'ingresso (`enter_refreshes`) resta certificata ma nessuna
+  carta la usa. Il riarmo di sé all'ingresso porta il vincolo «con costo di
+  Flusso N o inferiore» (`enter_rearms` `{ self:, max_cost: }`, un filtro
+  sull'Oggetto come nel ritorno vincolato): la dogana rifiuta l'Oggetto più
+  caro, la pila del client non lo propone. Engine 0.73.0.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `core/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.
@@ -1128,7 +1160,7 @@ col bot).
 
 | chi | messaggio | risposta |
 |---|---|---|
-| client | `{"t":"hello"}` | `{"t":"engine","version":"0.67.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","actions":[{"action":{…},"from":"a"},…]}` |
+| client | `{"t":"hello"}` | `{"t":"engine","version":"0.73.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","actions":[{"action":{…},"from":"a"},…]}` |
 | client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…","reason_en":"…"}` a chi chiede; se passa, `{"t":"action","action":{…},"from":"a"}` agli **altri** client della stanza |
 | client | `{"t":"rtc","payload":{…}}` | `{"t":"rtc","payload":{…},"from":"a"}` agli altri: la chat vocale, inoltrata senza leggerla |
 | client | `{"t":"snapshot","state":{…}}` | *(solo nella stanza «solo»: allinea la copia del tavolo; in stanza si ignora)* |

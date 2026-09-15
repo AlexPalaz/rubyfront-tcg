@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.71.0"
+    VERSION = "0.73.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -52,6 +52,8 @@ module Rubyfront
       "§6.2 Le carte si giocano in Preparazione (salvo Reattive e Rubyfront)",
       "§6 Nel turno altrui non si agisce (salvo Reazione e Reattive)",
       "§3.2 Le carte si pagano: il costo di Flusso",
+      "§3.2 Uno sconto può azzerare il costo: la carta è gratis",
+      "§8.2 Effetti certificati: «quando attacca, col d20 stappa tutte le Entità dopo la Fase di Fronte»; il riarmo di sé entro il costo",
       "§5 Le Entità stanno sugli slot del Fronte",
       "§5/§6.2 Dal campo non si torna in mano né nel mazzo",
       "§7 Le Materie si giocano solo se abilitate",
@@ -129,6 +131,8 @@ module Rubyfront
       "§6.2 Cards are played in Preparation (except Reactives and the Rubyfront)",
       "§6 No acting on the opponent's turn (except Reaction and Reactives)",
       "§3.2 Cards are paid for: the Flux cost",
+      "§3.2 A discount can bring the cost to zero: the card is free",
+      "§8.2 Certified effects: “when it attacks, with the d20 untap all Entities after the Front Phase”; self rearm within the cost",
       "§5 Entities sit on the Front slots",
       "§5/§6.2 No going back from the field to hand or deck",
       "§7 Matters are played only when enabled",
@@ -701,17 +705,19 @@ module Rubyfront
         cost -= discount_for(card, known, action)
         # §8.2 — «gli Oggetti che assegni a questa Entità costano N in meno»
         # (lo sconto d'assegnazione, dal 2026-09-10): l'Oggetto giocato dalla
-        # mano già assegnato a un portatore con lo statico; mai sotto 1 (§3.2).
-        cost = [cost - assign_discount_for(card, known), 1].max if known[:type] == "object"
+        # mano già assegnato a un portatore con lo statico. Lo sconto conta
+        # fino a zero: «se una carta te lo azzera, la prendi» (§3.2, deciso
+        # dal designer il 2026-09-15; prima mai sotto 1).
+        cost = [cost - assign_discount_for(card, known), 0].max if known[:type] == "object"
         # §3.1 — lo sconto di un'abilità («la prossima carta X che giochi in
         # questo turno costa N in meno»): l'azione lo dichiara, e deve
         # esserci nel conto del giocatore per una carta di quel tipo. Il
-        # costo non scende sotto 1 (§3.1, Oggetti; stessa lettura per tutte).
+        # costo può scendere fino a 0: la carta è gratis (§3.2, dal 2026-09-15).
         if action.key?("discount")
           stopped = ability_discount_stopped(card, known, action)
           return stopped if stopped
 
-          cost = [cost - action["discount"], 1].max
+          cost = [cost - action["discount"], 0].max
         end
         paid = action["cost"]
         unless paid == cost
@@ -1553,6 +1559,7 @@ module Rubyfront
         when "declare" then return judge_declare(action)
         end
       end
+      return judge_attack_refresh(action, ref) if kind == "refresh" && ref["event"] == "on_attack"
       return judge_enter_refresh(action, ref) if kind == "refresh"
       if kind == "toZone" && ref["event"] == "on_enter_field"
         return judge_enter_disarm(action, ref) if ref["follow"] == "disarm"
@@ -1886,6 +1893,31 @@ module Rubyfront
       allow("refresh")
     end
 
+    # §8.2 — «quando attacca, lancia un d20: con 15–20 stappa tutte le
+    # Entità che controlli dopo la Fase di Fronte» (dal 2026-09-15): il tiro
+    # si fa all'attacco (`refresh` con `after`), la copia annota il posto che
+    # si stapperà, e la stappata arriva con la risoluzione (`resolve.untap`),
+    # dove untap_stopped la lascia passare per ogni Entità del posto.
+    def judge_attack_refresh(action, ref)
+      stopped, source, attacker, forms = attack_context("refresh", action, ref)
+      return stopped if stopped
+
+      form = forms.find { |candidate| candidate[:kind] == "untap" && candidate[:targets] == "all" }
+      return refuse("refresh", "la carta non ha un effetto certificato che stappi tutte le Entità quando attacca (§8.2)", "the card has no certified effect that untaps all Entities when it attacks (§8.2)") unless form
+
+      stopped = attack_relation_stopped("refresh", form, ref, source, attacker)
+      return stopped if stopped
+      return refuse("refresh", "si stappano le Entità di chi comanda la fonte (§8.2)", "the Entities of whoever commands the source untap (§8.2)") unless action["seat"] == @table.controller_of(source)
+      return refuse("refresh", "la stappata arriva dopo la Fase di Fronte: l'azione deve dirlo (`after`) (§8.2)", "the untap comes after the Front Phase: the action must say so (`after`) (§8.2)") unless action["after"] == true
+
+      roll = action["roll"]
+      return refuse("refresh", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      hit = in_range?(roll, form[:on_roll])
+      return refuse("refresh", "la stappata c'è solo con #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)", "the untap comes only with #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)") unless (action["untap"] == true) == hit
+
+      allow("refresh")
+    end
+
     # Il riarmo: un Oggetto dalla propria Zona di Ritiro addosso a chi attacca, gratis.
     def judge_attack_rearm(action, ref)
       stopped, source, attacker, forms = attack_context("toZone", action, ref)
@@ -1955,6 +1987,9 @@ module Rubyfront
     def untap_stopped(action)
       Array(action["untap"]).each do |uid|
         card = @table.card(uid)
+        # Il posto che si stappa tutto dopo la Fase di Fronte (il d20 riuscito
+        # all'attacco, judge_attack_refresh): ogni sua Entità in campo passa.
+        next if card && card[:zone] == "field" && @table.untap_after?(@table.controller_of(card))
         return refuse("resolve", "si stappa dopo il combattimento chi ha attaccato (§8.2)", "whoever attacked untaps after combat (§8.2)") unless card && @table.attackers_in_order.include?(uid)
 
         known = @cards[card[:card_id]]
@@ -3133,9 +3168,14 @@ module Rubyfront
       end
       return refuse("toZone", "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if bearer[:facedown]
 
-      # La variante su di sé: l'Oggetto va addosso a chi entra, una volta.
+      # La variante su di sé: l'Oggetto va addosso a chi entra, una volta —
+      # entro il costo, se la forma lo dice (dal 2026-09-15).
       unless known[:enter_rearms].any? { |form| form[:any] }
         return refuse("toZone", "l'Oggetto va addosso a questa Entità, quella che entra (§8.2)", "the Object goes on this Entity, the one entering (§8.2)") unless action["assignTo"] == ref["source"]
+        max_cost = known[:enter_rearms].find { |form| form[:self] }&.dig(:max_cost)
+        if max_cost && (entry[:flux_cost].nil? || entry[:flux_cost] > max_cost)
+          return refuse("toZone", "si assegna un Oggetto con costo di Flusso #{max_cost} o inferiore (§8.2)", "an Object with Flux cost #{max_cost} or less is assigned (§8.2)")
+        end
         return refuse("toZone", "questo innesco è già stato risolto per quell'ingresso (§8.2)", "this trigger has already been resolved for that entry (§8.2)") if @table.fired?(ref["source"], fired_event(ref), ref["entering"])
       end
 

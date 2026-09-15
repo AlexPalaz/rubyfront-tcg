@@ -159,6 +159,12 @@ module Rubyfront
       Array(@players.dig(seat, :attack_bonuses))
     end
 
+    # §8.2 — il posto che si stappa tutto alla risoluzione di questo turno
+    # (il d20 riuscito all'attacco, dal 2026-09-15). Gemello: state.ts, untapAfter.
+    def untap_after?(seat)
+      @players.dig(seat, :untap_after) == @turn
+    end
+
     # Il bonus di Potenza di una carta spostato di `delta` (la
     # dichiarazione d'attacco col bonus, e il suo ritiro): a zero sparisce.
     # Gemello: state.ts, shiftPowerBonus.
@@ -363,6 +369,7 @@ module Rubyfront
 
           { amount: discount["amount"], type: discount["type"], race: discount["race"].is_a?(String) ? discount["race"] : nil }
         end
+        @players[seat][:untap_after] = player["untapAfter"] if player["untapAfter"].is_a?(Integer)
         @players[seat][:attack_bonuses] = Array(player["attackBonuses"]).filter_map do |bonus|
           next unless bonus.is_a?(Hash) && bonus["amount"].is_a?(Integer)
 
@@ -569,8 +576,12 @@ module Rubyfront
         end
       when "refresh"
         # §8.2 (la stappata all'ingresso) — col tiro giusto (`untap`), stappa tutte le Entità
-        # che `seat` comanda; col tiro mancato non succede nulla. Gemello: state.ts.
-        if action["untap"] == true
+        # che `seat` comanda; col tiro mancato non succede nulla. Con `after`
+        # (la stappata all'attacco, dal 2026-09-15) non si stappa adesso: il
+        # posto si annota, e la risoluzione stappa (`resolve.untap`). Gemello: state.ts.
+        if action["untap"] == true && action["after"] == true
+          @players[action["seat"]][:untap_after] = @turn if SEATS.include?(action["seat"])
+        elsif action["untap"] == true
           @cards.each_value do |card|
             untap!(card) if card[:zone] == "field" && controller_of(card) == action["seat"]
           end
@@ -780,6 +791,8 @@ module Rubyfront
         card = @cards[uid]
         card[:tapped] = false if card && card[:zone] == "field"
       end
+      # La stappata di tutte dopo la Fase di Fronte è arrivata: il posto non la aspetta più.
+      @players[action["seat"]].delete(:untap_after) if SEATS.include?(action["seat"])
       @declarations = {}
       # I danni degli attacchi non bloccati scendono sui PV del difensore,
       # mai sotto zero — come nel riduttore.

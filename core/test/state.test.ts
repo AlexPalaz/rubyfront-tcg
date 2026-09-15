@@ -537,6 +537,14 @@ describe("attrezzi degli effetti d'attacco", () => {
     expect(next.cards.b1.tapped).toBe(true);
     const flat = apply(state, { t: "refresh", seat: "a", roll: 3, untap: false, effect: entering });
     expect(flat.cards.a1.tapped).toBe(true);
+    // Con `after` (la stappata all'attacco, 2026-09-15): niente adesso, il posto si annota — gemello: table.rb.
+    const later = apply(state, { t: "refresh", seat: "a", roll: 17, untap: true, after: true, effect: { source: "a1", event: "on_attack", entering: "a1" } });
+    expect(later.cards.a1.tapped).toBe(true);
+    expect(later.players.a.untapAfter).toBe(state.turn);
+    const settled = apply(later, { t: "resolve", seat: "a", battles: [], untap: ["a1", "c1"] });
+    expect(settled.cards.a1.tapped).toBe(false);
+    expect(settled.cards.c1.tapped).toBe(false);
+    expect(settled.players.a.untapAfter).toBeUndefined();
   });
 
   it("resolve stappa chi lo chiede e ricorda l'ondata", () => {

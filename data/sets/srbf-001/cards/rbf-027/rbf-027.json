@@ -55,6 +55,16 @@
             },
             "details": {
               "noFluxCost": true
+            },
+            "filter": {
+              "cardType": "object",
+              "conditions": [
+                {
+                  "stat": "flux_cost",
+                  "operator": "lte",
+                  "value": 2
+                }
+              ]
             }
           }
         }

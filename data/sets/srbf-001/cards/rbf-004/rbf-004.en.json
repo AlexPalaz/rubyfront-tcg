@@ -15,7 +15,7 @@
     "name": "Avenger of the Forgotten",
     "keyword": {
       "name": "Revenge",
-      "rules": "blocking, it kills a lower-Power attacker"
+      "rules": "blocking, it takes the attacker with it"
     },
     "avenge": {
       "trigger": "When it attacks",

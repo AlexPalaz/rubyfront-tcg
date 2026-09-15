@@ -190,7 +190,8 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Tassa di Flusso (statico) | Finché questa Entità resta sul Fronte, all'inizio di ogni tuo turno hai N Flusso in meno disponibile per quel turno. | As long as this Entity remains on the Front, at the start of each of your turns you have N less Flux available for that turn. |
 | Ritorno vincolato | Quando viene mandata nell'Abisso o in Ritiro: Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto … dalla tua Zona di Ritiro, senza pagarne il costo. Se … non c'è un Oggetto così, non torna. | When it is sent to the Abyss or to Retire: If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object … from your Retire Zone, without paying its cost. If there is no such Object …, it doesn't come back. |
 | Disarmo avversario | Metti nella Zona di Ritiro del suo proprietario ogni Oggetto assegnato a un'Entità avversaria. | Put every Object assigned to an opposing Entity into its owner's Retire Zone. |
-| Riarmo di sé all'ingresso | Quando entra sul Fronte: Puoi assegnare a questa Entità un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso. | When it enters the Front: You may assign this Entity an Object from your Retire Zone without paying its Flux cost. |
+| Riarmo di sé all'ingresso *(col vincolo di costo, se c'è, dopo «un Oggetto»)* | Quando entra sul Fronte: Puoi assegnare a questa Entità un Oggetto [con costo di Flusso N o inferiore] dalla tua Zona di Ritiro senza pagarne il costo di Flusso. | When it enters the Front: You may assign this Entity an Object [with Flux cost N or less] from your Retire Zone without paying its Flux cost. |
+| Stappata di tutte dopo il combattimento (col dado) | Quando attacca: Lancia un d20: con 15–20 stappa tutte le Entità che controlli dopo la Fase di Fronte. | When it attacks: Roll a d20: on 15–20 untap all Entities you control after the Front Phase. |
 | Contrattacco per Oggetto (statico) | Il Contrattacco di questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità. | This Entity's Counterattack increases by 1 for each Object assigned to this Entity. |
 
 **Rimozione: quale zona.** Una rimozione che deve **tornare in gioco** usa
@@ -249,7 +250,7 @@ tre fasce esplicite (1–6, 7–14, 15–20).
 | Furia / Fury | d20 ≥ N prima di ogni azione · fallimento −1 PV | d20 ≥ N before every action · failure −1 HP |
 | Slancio / Surge | può attaccare nel turno in cui entra sul Fronte | may attack the turn it enters the Front |
 | Stasi / Stasis | bloccando non muore: resta tappata per sempre | won't die blocking: stays permanently tapped |
-| Vendetta / Revenge | bloccando, uccide chi ha Potenza inferiore | blocking, it kills a lower-Power attacker |
+| Vendetta / Revenge *(dal 2026-09-11: il bloccante più debole si porta dietro l'attaccante)* | bloccando, si porta dietro l'attaccante | blocking, it takes the attacker with it |
 
 ## Tipografia e stile
 

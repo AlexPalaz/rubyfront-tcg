@@ -64,7 +64,7 @@ Le **Materie** sono le carte magia/evento del gioco (vedi §7).
 
 Gli **Oggetti** sono carte che si **assegnano a un'Entità**:
 
-- **hanno un costo di Flusso**, come Entità e Materie: si paga **ogni volta che lo si assegna dalla mano** (§6.2), e come ogni altra carta non scende sotto **1** (§3.2);
+- **hanno un costo di Flusso**, come Entità e Materie: si paga **ogni volta che lo si assegna dalla mano** (§6.2); il costo stampato è almeno **1**, ma uno sconto di una carta può azzerarlo (§3.2);
 - **dalla mano si ripaga sempre:** un Oggetto che **torna in mano** è una carta come le altre — per rimetterlo in campo lo si **rigioca ripagandone il costo per intero**. Averlo già pagato una volta non conta;
 - **il rientro diretto da una zona è un'altra cosa:** se un effetto riporta un Oggetto **dall'Abisso o dalla Zona di Ritiro direttamente in campo**, assegnandolo a un'Entità, l'Oggetto rientra **senza ripagare il costo di Flusso** — a metterlo in gioco è l'effetto, non un'assegnazione normale. Se la carta chiede comunque un costo o pone condizioni, vale quello che dice la carta (§1.1);
 - **non c'è limite** al numero di Oggetti assegnabili alla stessa Entità: il solo vincolo è il Flusso, salvo restrizioni indicate sulle carte (es. «a un'Entità senza Oggetto»);
@@ -159,7 +159,7 @@ Il **Flusso** è la risorsa con cui si pagano le carte, al posto del classico ma
 - nel **turno avversario** si ha a disposizione il Flusso **non speso** rimasto dal proprio turno (es. per giocare Materie Reattive in difesa): tenersi Flusso da parte è una scelta strategica;
 - **limite assoluto: 20 Flussi.** Il Flusso non può mai superare 20 in nessun modo. Unica cosa che vive fuori dalla barra: il **Gettone Flusso** (vedi sotto).
 
-**Costo minimo: 1 Flusso.** Nessuna carta del gioco — Entità, Materia od Oggetto — costa meno di **1**: non esistono carte gratuite. Giocare qualsiasi cosa consuma sempre almeno un punto della barra, e questo è ciò che rende il Flusso un vero ritmo di partita: il primo turno concede **una** giocata, non un numero libero di carte a costo zero.
+**Costo minimo: 1 Flusso.** Nessuna carta del gioco — Entità, Materia od Oggetto — è stampata con un costo inferiore a **1**: non esistono carte gratuite di per sé. Giocare qualsiasi cosa consuma di norma almeno un punto della barra, e questo è ciò che rende il Flusso un vero ritmo di partita: il primo turno concede **una** giocata, non un numero libero di carte a costo zero. **Gli sconti però contano fino in fondo:** se una carta o un'abilità riduce il costo di una carta e lo porta a **0**, quella carta si gioca **gratis** (regola d'oro, §1.1) — il minimo vale per il costo stampato, non per il costo scontato.
 
 **Costi di Flusso definiti dalle carte:** oltre a pagare la giocata delle carte, il Flusso può comparire come **costo di abilità o effetti**, quando una carta lo prevede espressamente (regola d'oro, §1.1). Si paga dalla propria barra, alle stesse condizioni di ogni altra spesa di Flusso, e nelle finestre indicate dalla carta.
 
@@ -526,7 +526,7 @@ Il pareggio esiste in due soli casi:
 - Massimo **5 Entità sul Fronte** (i 5 slot; Rubyfront e Materie permanenti non contano, §6.2).
 - Massimo **3 copie** della stessa carta nel mazzo — **una sola** se la carta è **Unica** (§3.1).
 - Massimo **20 Flussi** (§3.2). Il Gettone Flusso è fuori dal limite: è un punto a parte.
-- Costo **minimo 1 Flusso** per qualsiasi carta (§3.2): non esistono carte gratuite.
+- Costo **minimo 1 Flusso** stampato per qualsiasi carta (§3.2): non esistono carte gratuite di per sé, ma uno sconto che porta il costo a 0 la rende gratis.
 - Costo di schieramento a **dado**: si tira solo con Flusso disponibile **almeno pari alle facce del dado**; il dado non supera il **d20** (§3.1).
 
 ## 10. Glossario

@@ -346,7 +346,19 @@ function attackFormsOf(faces: CardFace[]): AttackForm[] {
 type Unfaced<F> = F extends AttackForm ? Omit<F, "face"> : never;
 
 function attackUntap(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
-  if (effect.type !== "untap" || effect.target?.scope !== "self" || effect.details?.afterCombat !== true) return null;
+  if (effect.type !== "untap" || effect.details?.afterCombat !== true) return null;
+  // «Lancia un d20: con 15–20 stappa tutte le Entità che controlli dopo la
+  // Fase di Fronte» (dal 2026-09-15): il tiro all'attacco, la stappata alla
+  // risoluzione. Specchio di card_index.rb, attack_untap.
+  if (ownTarget(effect.target, "entity") && effect.target?.quantity === "all") {
+    const extra = effect.details as Loose;
+    if (Object.keys(extra).sort().join() !== "afterCombat,die,onRoll") return null;
+    const die = dieFaces(extra.die);
+    const onRoll = rollRange(extra.onRoll);
+    if (die === null || onRoll === null) return null;
+    return { kind: "untap", who: "self", targets: "all", die, onRoll };
+  }
+  if (effect.target?.scope !== "self") return null;
   if (details.oncePerEachOfYourTurns !== true || details.whileHasObjectAssigned !== true) return null;
   return { kind: "untap", who: "self", once: true, requiresObject: true };
 }
@@ -600,13 +612,23 @@ function enterRearmsOf(face: CardFace | undefined): EnterRearm[] {
   const out: EnterRearm[] = [];
   for (const trigger of face?.triggers ?? []) {
     if (trigger.event !== "on_enter_field") continue;
-    const effect = trigger.effect as { type?: unknown; optional?: unknown; from?: any; target?: any; details?: any } | undefined;
+    const effect = trigger.effect as { type?: unknown; optional?: unknown; from?: any; target?: any; details?: any; filter?: any } | undefined;
     if (!effect || effect.type !== "assign_object" || effect.optional !== true) continue;
     if (effect.from?.zone !== "retire" || effect.from?.owner !== "controller") continue;
     // La variante su di sé: un Oggetto a chi entra, gratis. Specchio di card_index.rb.
     if (effect.target?.scope === "self") {
       const details = effect.details as Loose | undefined;
-      if (details && Object.keys(details).length === 1 && details.noFluxCost === true) out.push({ self: true });
+      if (!details || Object.keys(details).length !== 1 || details.noFluxCost !== true) continue;
+      // Col vincolo di costo (dal 2026-09-15): un filtro sull'Oggetto, come nel ritorno vincolato.
+      const filter = effect.filter as Loose | undefined;
+      if (filter === undefined) {
+        out.push({ self: true });
+        continue;
+      }
+      const conditions: any[] = Array.isArray(filter?.conditions) ? filter.conditions : [];
+      const cost = conditions[0];
+      if (filter?.cardType !== "object" || conditions.length !== 1 || cost?.stat !== "flux_cost" || cost.operator !== "lte" || !Number.isInteger(cost.value)) continue;
+      out.push({ self: true, maxCost: cost.value });
       continue;
     }
     const target = effect.target;

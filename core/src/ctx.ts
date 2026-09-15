@@ -200,6 +200,8 @@ export interface NexusRequirement {
 export type AttackForm =
   /** RBF-028: stappala dopo il combattimento. */
   | { kind: "untap"; who: "self"; once: true; requiresObject: true; face: number }
+  /** Dal 2026-09-15: «quando attacca, lancia un d20: con 15–20 stappa tutte le Entità che controlli dopo la Fase di Fronte». */
+  | { kind: "untap"; who: "self"; targets: "all"; die: number; onRoll: [number, number]; face: number }
   /** RBF-029 (+1 alle altre armate), RBF-034 (+1 al portatore), RBF-004
       (Vendetta al prossimo Umano), RBF-005 (un'avversaria non blocca). */
   | { kind: "empower"; who: "self" | "object"; targets: "others_armed" | "bearer" | "next_human_attacker" | "opposing_entity"; power?: number; grants?: string[]; restrict?: "block"; once?: true; requiresObject?: true; requiresAttackers?: { count: number; race: string }; requiresPreviousAttackers?: { count: number; race: string }; face: number }
@@ -266,6 +268,8 @@ export interface EnterRearm {
   any?: true;
   /** Artefice: un Oggetto a sé stessa, una volta. */
   self?: true;
+  /** Nella variante su di sé: «con costo di Flusso N o inferiore» (dal 2026-09-15). */
+  maxCost?: number;
 }
 
 /**

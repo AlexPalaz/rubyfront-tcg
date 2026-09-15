@@ -20,7 +20,7 @@
     "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta.",
     "equip": {
       "trigger": "Quando entra sul Fronte",
-      "text": "Puoi assegnare a questa Entità un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
+      "text": "Puoi assegnare a questa Entità un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
     }
   }
 }

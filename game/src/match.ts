@@ -19,7 +19,7 @@
 
 import { cardName, cardStats, enterEffects, isRubyfront } from "@rubyfront/core/cards";
 import { wornBy } from "@rubyfront/core/combat";
-import { discountedCost } from "@rubyfront/core/effects";
+import { bestObjectCost, discountedCost } from "@rubyfront/core/effects";
 import { defaultEngineUrl } from "@rubyfront/core/engine";
 import { TRIGGER_LEAD_MS, TRIGGER_TAIL_MS, createGestures, type GestureView, type Gestures } from "@rubyfront/core/gestures";
 import { t } from "@rubyfront/core/i18n";
@@ -421,17 +421,20 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   // La pesca suona quando la carta compare in mano, non a tempo fisso dall'azione (2026-09-14).
   table.onHandEntry = () => playSound("draw");
   // Il costo di adesso delle carte in mano (2026-09-13): lo sconto di
-  // un'abilità del Rubyfront, quello di una Materia con le armate sul Fronte
-  // — lo stesso conto della giocata (core/gestures.ts), senza il bersaglio:
-  // quello si sa solo mirando.
+  // un'abilità del Rubyfront, quello di una Materia con le armate sul Fronte,
+  // e per un Oggetto quello del miglior portatore in campo («gli Oggetti
+  // che assegni a questa Entità costano N in meno», 2026-09-15) — lo stesso
+  // conto della giocata (core/gestures.ts), senza il bersaglio: quello si
+  // sa solo mirando, e il costo vero lo dice il portatore su cui si posa.
   table.costOf = card => {
     if (card.zone !== "hand" || isRubyfront(card.cardId)) return null;
     const facts = session.ctx.card(card.cardId);
     if (facts.fluxCost === null) return null;
     const state = session.state();
     let now = facts.kind === "matter" ? (discountedCost(state, card, null, session.ctx.card) ?? facts.fluxCost) : facts.fluxCost;
+    if (facts.kind === "object") now = bestObjectCost(state, card, session.ctx.card) ?? facts.fluxCost;
     const off = abilityDiscount(state, card.owner, facts);
-    if (off) now = Math.max(1, now - off.amount);
+    if (off) now = Math.max(0, now - off.amount);
     return now < facts.fluxCost ? { printed: facts.fluxCost, now } : null;
   };
 

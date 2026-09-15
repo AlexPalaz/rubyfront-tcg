@@ -54,6 +54,21 @@ describe("l'impaginazione del tavolo", () => {
     expect(L.screenPos(CONTROL_X, backRowY("a"), "a").y).toBeCloseTo(L.mine.back!, 6);
   });
 
+  it("con la Zona di Controllo avversaria il suo campo si estende di una fila sopra il Fronte (2026-09-15)", () => {
+    const wide = layout(HD, { foeBack: true });
+    expect(wide.foe.back).toBe(wide.foe.top + FIXED.head);
+    expect(wide.foe.front).toBeCloseTo(wide.foe.back! + wide.tileH + FIXED.label, 6);
+    expect(wide.foe.bottom).toBeCloseTo(wide.foe.front + wide.tileH + FIXED.label, 6);
+    expect(wide.s).toBeLessThan(L.s);
+    expect(wide.mine.bottom).toBeLessThanOrEqual(1080 - FIXED.bottom + 1e-6);
+    // La carta presa dall'avversario sta nella sua Zona di Controllo, non schiacciata sul suo Fronte.
+    expect(wide.screenPos(CONTROL_X, backRowY("b"), "a").y).toBeCloseTo(wide.foe.back!, 6);
+    expect(L.screenPos(CONTROL_X, backRowY("b"), "a").y).toBeCloseTo(L.foe.front, 6);
+    // Un Oggetto impilato dietro resta dietro, e il Fronte avversario non si muove rispetto alla sua fila.
+    expect(wide.screenPos(CONTROL_X + STACK_STEP, backRowY("b") + STACK_STEP, "a").y).toBeCloseTo(wide.foe.back!, 6);
+    expect(wide.screenPos(FRONT_SLOT_X[0], frontRowY("b"), "a").y).toBeCloseTo(wide.foe.front, 6);
+  });
+
   it("su uno schermo 16:10 le carte crescono, e il tavolo sta ancora dentro", () => {
     const tall = layout({ x: 0, y: -60, width: 1920, height: 1200, scale: 1 });
     expect(tall.s).toBeGreaterThan(L.s);

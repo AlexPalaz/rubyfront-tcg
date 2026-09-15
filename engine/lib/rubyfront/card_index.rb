@@ -417,6 +417,7 @@ module Rubyfront
     # schierato). `face` è la faccia che porta la forma (il Nexus ha le sue).
     #
     #   { kind: "untap",   who: "self", once:, requires_object: }        stappa dopo il combattimento
+    #   { kind: "untap",   who: "self", targets: "all", die:, on_roll: }  col d20, stappa tutte dopo la Fase di Fronte
     #   { kind: "empower", who: "self", targets: "others_armed", power: } +1 alle altre armate
     #   { kind: "empower", who: "object", targets: "bearer", power: }    +1 al portatore
     #   { kind: "look", who: "object", die:, on_roll:, count:, reveal:, reveal_to:, rest_to: }
@@ -459,9 +460,23 @@ module Rubyfront
       target.is_a?(Hash) && target["cardType"] == type && target["controller"] == "controller" && (race.nil? || target["race"] == race)
     end
 
-    # «Stappala dopo il combattimento».
+    # «Stappala dopo il combattimento» — e, dal 2026-09-15, «lancia un d20:
+    # con 15–20 stappa tutte le Entità che controlli dopo la Fase di Fronte»:
+    # il tiro all'attacco, la stappata alla risoluzione.
     def self.attack_untap(details, effect)
-      return nil unless effect["type"] == "untap" && effect.dig("target", "scope") == "self" && effect.dig("details", "afterCombat") == true
+      return nil unless effect["type"] == "untap" && effect.dig("details", "afterCombat") == true
+
+      if own_target?(effect["target"], "entity") && effect.dig("target", "quantity") == "all"
+        extra = effect["details"]
+        return nil unless extra.keys.sort == %w[afterCombat die onRoll]
+
+        die = die_faces(extra["die"])
+        on_roll = roll_range(extra["onRoll"])
+        return nil unless die && on_roll
+
+        return { kind: "untap", who: "self", targets: "all", die: die, on_roll: on_roll }
+      end
+      return nil unless effect.dig("target", "scope") == "self"
       return nil unless details["oncePerEachOfYourTurns"] == true && details["whileHasObjectAssigned"] == true
 
       { kind: "untap", who: "self", once: true, requires_object: true }
@@ -1204,7 +1219,18 @@ module Rubyfront
         if effect.dig("target", "scope") == "self"
           next unless effect["details"].is_a?(Hash) && effect["details"].keys == ["noFluxCost"] && effect["details"]["noFluxCost"] == true
 
-          next { self: true }.freeze
+          # Col vincolo di costo (dal 2026-09-15): «un Oggetto con costo di
+          # Flusso N o inferiore» — un filtro sull'Oggetto, come nel ritorno
+          # vincolato; un filtro d'altra forma non è certificato.
+          filter = effect["filter"]
+          next { self: true }.freeze if filter.nil?
+          next unless filter.is_a?(Hash) && filter["cardType"] == "object"
+
+          conditions = Array(filter["conditions"])
+          cost = conditions.first
+          next unless conditions.size == 1 && cost.is_a?(Hash) && cost["stat"] == "flux_cost" && cost["operator"] == "lte" && cost["value"].is_a?(Integer)
+
+          next { self: true, max_cost: cost["value"] }.freeze
         end
         next unless own_target?(effect["target"], "entity") && effect.dig("target", "quantity") == "all"
         next unless effect.dig("details", "anyNumber") == true && effect.dig("details", "noFluxCost") == true

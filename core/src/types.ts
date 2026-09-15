@@ -116,6 +116,8 @@ export interface PlayerState {
   attackBonuses?: AttackBonus[];
   /** Il turno in cui il posto ha usato un'abilità speciale (§3.1: una sola per turno). Gemello: table.rb, ability_used?. */
   abilityTurn?: number;
+  /** Il turno in cui il posto si stappa tutto alla risoluzione (§8.2: il d20 riuscito all'attacco, dal 2026-09-15). Gemello: table.rb, untap_after?. */
+  untapAfter?: number;
 }
 
 /** I parametri di una riga di log: numeri, testi, posti (`seat`, `otherSeat`),
@@ -354,7 +356,7 @@ export type Action =
       controlli» (§8.2, RBF-011): col tiro giusto (`untap`) stappa tutte le
       Entità di `seat`, col tiro mancato non fa nulla e consuma l'innesco.
       Il client tira, l'engine verifica. */
-  | { t: "refresh"; seat: Seat; roll: number; untap: boolean; effect: EffectRef }
+  | { t: "refresh"; seat: Seat; roll: number; untap: boolean; after?: true; effect: EffectRef }
   /** Lo sguardo nel mazzo (§8.2, le forme di RBF-006 e RBF-027): le prime
       `count` carte del mazzo di `seat` — col dado, `roll` è il tiro e il
       conto ne discende; `reveal`, se c'è, va in mano; `retire`, se c'è, in

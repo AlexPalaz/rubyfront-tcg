@@ -30,7 +30,7 @@
       "stats": {
         "power": 5,
         "fluxCost": 5,
-          "counterattack": 1
+        "counterattack": 1
       },
       "enablesMatters": [
         {
@@ -44,7 +44,7 @@
         {
           "id": "rally",
           "displayKey": "rally",
-          "event": "on_enter_field",
+          "event": "on_attack",
           "effect": {
             "type": "untap",
             "target": {
@@ -54,7 +54,8 @@
             },
             "details": {
               "die": "d20",
-              "onRoll": "15-20"
+              "onRoll": "15-20",
+              "afterCombat": true
             }
           }
         },

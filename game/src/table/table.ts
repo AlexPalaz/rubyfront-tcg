@@ -572,7 +572,10 @@ export class Table {
 
   show(state: GameState): void {
     const visible = this.stage.visible();
-    const L = layout(visible);
+    // §8.2 — se l'avversario controlla una carta, il suo campo si estende
+    // con la Zona di Controllo (layout.ts, foeBack).
+    const foeControls = Object.values(state.cards).some(card => card.zone === "field" && card.controller === otherSeat(this.me));
+    const L = layout(visible, { foeBack: foeControls });
     const resolution = visible.scale * this.stage.app.renderer.resolution;
     const facts = (cardId: string) => cardFacts(cardId, this.locale);
     this.last = { state, L };
@@ -592,7 +595,7 @@ export class Table {
     // cambia con la finestra, le tinte e il Controllo; le scritte delle pile
     // col loro conto stanno in un pezzo a parte, sopra.
     const controlled = Object.values(state.cards).some(card => card.zone === "field" && card.controller === this.me);
-    this.paintKeyed(this.background, `${visible.x}|${visible.y}|${this.tints.a}|${this.tints.b}|${controlled}|${Boolean(NIGHT.valley)}|${Boolean(NIGHT.stone)}`, visible.width, visible.height, resolution, ctx => {
+    this.paintKeyed(this.background, `${visible.x}|${visible.y}|${this.tints.a}|${this.tints.b}|${controlled}|${foeControls}|${Boolean(NIGHT.valley)}|${Boolean(NIGHT.stone)}`, visible.width, visible.height, resolution, ctx => {
       ctx.translate(-visible.x, -visible.y);
       this.paintBackground(ctx, controlled, L, visible);
     });
@@ -848,6 +851,8 @@ export class Table {
         for (const pile of PILE) slot(pile.x, field.back, null, null);
         if (controlled) slot(CONTROL_X, field.back, null, "zone.control");
       }
+      // La fila di servizio avversaria esiste solo per la sua Zona di Controllo (layout.ts, foeBack).
+      if (!mine && field.back !== null) slot(CONTROL_X, field.back, null, "zone.control");
     }
   }
 

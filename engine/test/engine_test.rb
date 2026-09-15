@@ -2510,6 +2510,8 @@ class EngineTest < Minitest::Test
   # prova sui file): qui si prova la dogana, scenario per scenario.
 
   ARMED_SET = {
+    "KING" => { type: "entity", keywords: [], race: "human", power: 5, counterattack: 1, flux_cost: 5,
+                attack_forms: [{ kind: "untap", who: "self", targets: "all", die: 20, on_roll: [15, 20], face: 0 }] },
     "WARDEN" => { type: "entity", keywords: [], race: "human", power: 3, counterattack: 1,
                   attack_forms: [{ kind: "untap", who: "self", once: true, requires_object: true, face: 0 }] },
     "COMMAND" => { type: "entity", keywords: ["surge"], race: "auros", power: 3,
@@ -2591,6 +2593,34 @@ class EngineTest < Minitest::Test
     assert_match(/senza Oggetto/, disarmed[:reason])
     halted = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [battle_entry("v", damage: 3)], "untap" => ["u"] })
     assert_match(/chi ha attaccato/, halted[:reason])
+  end
+
+  # «Quando attacca, lancia un d20: con 15–20 stappa tutte le Entità che
+  # controlli dopo la Fase di Fronte» (dal 2026-09-15): il tiro all'attacco,
+  # la stappata di tutte alla risoluzione.
+  def test_king_rolls_on_attack_and_untaps_all_after_combat
+    engine = setup_scene([["k", "KING"], ["u", "HUMAN"], ["v", "WARDEN"]], attacks: ["k"])
+    engine.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
+    refresh = ->(extra) { engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "after" => true, "effect" => ref("k") }.merge(extra)) }
+    assert_match(/solo con 15–20/, refresh.call("roll" => 3)[:reason])
+    assert_match(/solo con 15–20/, refresh.call("untap" => false)[:reason])
+    assert_match(/after/, refresh.call("after" => nil)[:reason], "la stappata arriva dopo, e l'azione lo dice")
+    assert_match(/chi comanda la fonte/, refresh.call("seat" => "b")[:reason])
+    verdict = refresh.call({})
+    assert verdict[:ok], verdict[:reason]
+    assert table_copy(engine).card("u")[:tapped], "non si stappa adesso"
+    assert_match(/già stato risolto/, refresh.call({})[:reason])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    verdict = engine.judge({ "t" => "resolve", "seat" => "a", "battles" => [battle_entry("k", damage: 5)], "untap" => %w[k u v] })
+    assert verdict[:ok], verdict[:reason]
+    refute table_copy(engine).card("u")[:tapped], "alla risoluzione si stappano tutte"
+    refute table_copy(engine).card("k")[:tapped]
+    # Col tiro mancato niente stappata: la lista alla risoluzione resta quella di chi ha attaccato con la forma.
+    missed = setup_scene([["k", "KING"], ["u", "HUMAN"]], attacks: ["k"])
+    missed.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
+    assert missed.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => false, "after" => true, "effect" => ref("k") })[:ok]
+    missed.judge({ "t" => "phase", "phase" => "reazione" })
+    assert_match(/chi ha attaccato/, missed.judge({ "t" => "resolve", "seat" => "a", "battles" => [battle_entry("k", damage: 5)], "untap" => ["u"] })[:reason])
   end
 
   # «Le altre Entità con un Oggetto assegnato che controlli prendono +1».
@@ -2712,7 +2742,7 @@ class EngineTest < Minitest::Test
     assert engine.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1260, "cost" => 5 })[:ok], "la fonte scende in Preparazione"
     assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => true, "effect" => step_in })[:reason])
     assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => false, "effect" => step_in })[:reason])
-    assert_match(/innesco d'ingresso/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => ref("c") })[:reason])
+    assert_match(/attacco dichiarato/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => ref("c") })[:reason], "con l'evento d'attacco è un'altra dogana")
     assert_match(/chi comanda la fonte/, engine.judge({ "t" => "refresh", "seat" => "b", "roll" => 17, "untap" => true, "effect" => step_in })[:reason])
     verdict = engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => step_in })
     assert verdict[:ok], verdict[:reason]
@@ -2906,6 +2936,7 @@ class EngineTest < Minitest::Test
                      resolve_forms: [{ kind: "empower", targets: "own_armed", power: 1, up_to: 2, untap: true }] },
     "PRISM" => { type: "object", keywords: [], flux_cost: 3,
                   assign_forms: [{ kind: "exile", target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
+    "SWORD" => { type: "object", keywords: [], flux_cost: 1 },
     "BEARER" => { type: "entity", keywords: [], race: "auros", power: 3, flux_cost: 4,
                      static_forms: [{ kind: "assign_discount", amount: 1 }], assign_forms: [{ kind: "draw", count: 1, to_self: true }] },
     "BLADE" => { type: "entity", keywords: [], race: "auros", power: 5, flux_cost: 5, static_forms: [{ kind: "others_armed_power", amount: 1 }] },
@@ -3575,6 +3606,21 @@ class EngineTest < Minitest::Test
     assert_match(/quando le assegni un Oggetto/, verdict[:reason])
   end
 
+  # §3.2 — «se una carta te lo azzera, la prendi» (deciso 2026-09-15): lo
+  # sconto d'assegnazione porta la Spada da 1 a 0, e a Flusso zero si assegna.
+  def test_a_discount_can_bring_the_cost_to_zero_and_the_card_is_free
+    engine = legacy_scene([["p", "BEARER"], ["u", "HUMAN"], ["s", "SWORD", { "zone" => "hand" }], ["s2", "SWORD", { "zone" => "hand" }]])
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 0, "token" => false } })
+    assert engine.judge({ "t" => "assign", "uid" => "s", "to" => "p" })[:ok]
+    assert_match(/costa 0 di Flusso/, play_card(engine, "s", cost: 1, x: 470, y: 1288)[:reason], "sul portatore la Spada costa 0")
+    verdict = play_card(engine, "s", cost: 0, x: 470, y: 1288)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "field", engine.instance_variable_get(:@table).card("s")[:zone]
+    assert_equal 0, engine.instance_variable_get(:@table).flux("a"), "gratis: la barra resta a zero"
+    assert engine.judge({ "t" => "assign", "uid" => "s2", "to" => "u" })[:ok]
+    assert_match(/Flusso insufficiente/, play_card(engine, "s2", cost: 1, x: 850, y: 1288)[:reason], "su un altro costa 1, e la barra è vuota")
+  end
+
   # L'aura delle armate: «le altre Entità con un Oggetto assegnato che controlli hanno +1».
   def test_aura_gives_one_to_other_armed_not_self_nor_bare
     # L'Auros armato: 2 + 1 dello Scudo + 1 dell'aura = 4. L'aura stessa, armata: 5 + 1 dello Scudo, senza aura su di sé.
@@ -4099,6 +4145,7 @@ class EngineTest < Minitest::Test
     "DISARMER" => { type: "entity", keywords: [], race: "auros", power: 4, flux_cost: 4,
                  enter_disarms: [{ to: "ritiro" }], enter_rearms: [{ any: true }] },
     "SMITH" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 3, enter_rearms: [{ self: true }] },
+    "ARTISAN" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 3, enter_rearms: [{ self: true, max_cost: 2 }] },
     "REVIVED" => { type: "entity", keywords: [], race: "auros", power: 1, flux_cost: 1, leave_returns: [{ max_cost: 2 }] },
     "HUMAN" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 2 },
     "THORNY" => { type: "entity", keywords: [], race: "human", power: 2, counterattack: 1, flux_cost: 3 },
@@ -4221,6 +4268,20 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], verdict[:reason]
     assert_equal "fab", engine.instance_variable_get(:@table).card("lama-a")[:assigned_to]
     refute smith_rearm.call("mazza-a", "fab")[:ok], "una volta per ingresso"
+  end
+
+  # Su di sé entro il costo (dal 2026-09-15): «un Oggetto con costo di Flusso 2 o inferiore».
+  def test_self_rearm_within_cost_refuses_the_expensive_item
+    engine = disarm_scene([["art", "ARTISAN", { "zone" => "hand" }], ["lama-a", "BLADE", { "zone" => "ritiro" }], ["mazza-a", "MACE", { "zone" => "ritiro" }]])
+    assert engine.judge({ "t" => "toZone", "uid" => "art", "zone" => "field", "x" => 821, "y" => 1260, "cost" => 3 })[:ok]
+    rearm = lambda do |uid|
+      engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 851, "y" => 1290, "assignTo" => "art",
+                     "effect" => { "source" => "art", "event" => "on_enter_field", "entering" => "art", "follow" => "rearm" } })
+    end
+    assert_match(/costo di Flusso 2 o inferiore/, rearm.call("mazza-a")[:reason], "la Mazza da 3 resta in Ritiro")
+    verdict = rearm.call("lama-a")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "art", engine.instance_variable_get(:@table).card("lama-a")[:assigned_to]
   end
 
   def test_rearm_of_unknown_item_is_silent

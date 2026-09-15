@@ -15,7 +15,7 @@
     "name": "Vendicatore dei Dimenticati",
     "keyword": {
       "name": "Vendetta",
-      "rules": "bloccando, uccide chi ha Potenza inferiore"
+      "rules": "bloccando, si porta dietro l'attaccante"
     },
     "avenge": {
       "trigger": "Quando attacca",

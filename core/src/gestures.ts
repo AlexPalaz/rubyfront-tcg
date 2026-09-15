@@ -13,7 +13,7 @@
 import { declareAttack as declareAttackVia, attackBonusOf, neverTaps, wornBy } from "./combat.js";
 import { abilityCopy, attackEffects, cardName, cardStats, enterEffects, faceCount, faceKind, isRubyfront, nexusRequirementCopy, type Deployment } from "./cards.js";
 import type { Ability, AssignForm, Ctx } from "./ctx.js";
-import { describeControl, describeRefresh, describeLook, describeMove, describeReturn, enterDisarms, enterRearms, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type LeaveReturnStep, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
+import { bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, enterDisarms, enterRearms, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type LeaveReturnStep, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
 import { FRONT_SLOT_X, RUBYFRONT_X, SLOT_X, SURFACE_H, SURFACE_W, TILE_H, TILE_W, backRowY, frontRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import type { AutoChooser } from "./session.js";
@@ -614,8 +614,21 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           }
           break;
         }
-        case "untap":
+        case "untap": {
+          // «Lancia un d20: con 15–20 stappa tutte le Entità che controlli
+          // dopo la Fase di Fronte» (dal 2026-09-15): il dado gira al centro,
+          // l'esito va all'engine adesso (`refresh` con `after`), la stappata
+          // arriva con la risoluzione (vigilUntaps). Senza dado non è un
+          // passo dell'attacco.
+          if (!("die" in form)) break;
+          const roll = rollDie(form.die);
+          await view.roll(form.die, roll, t("dice.step", { name, what: t("dice.rally", { lo: form.onRoll[0], hi: form.onRoll[1] }) }));
+          const hit = inRange(roll, form.onRoll);
+          const passed = await ctx.dispatch({ t: "refresh", seat: by, roll, untap: hit, after: true, effect: attackRef(step) });
+          if (passed && hit) ctx.log(msg("log.effect.refresh.after", { seat: by, sourceCard: step.source.cardId }), by);
+          else if (passed) ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die, roll, what: msg("roll.nothing") }), by);
           break;
+        }
       }
       await wait(TRIGGER_TAIL_MS);
     } finally {
@@ -759,9 +772,9 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     if (card.zone === "hand" && facts.kind === "matter") cost = discountedCost(ctx.state(), card, target, ctx.card);
     // §3.1 — lo sconto di un'abilità del Rubyfront («la prossima carta X
     // del turno costa N in meno»): si dichiara nell'azione, e il costo
-    // scende — mai sotto 1. Lo consuma il riduttore.
+    // scende — fino a 0: la carta è gratis (§3.2, dal 2026-09-15). Lo consuma il riduttore.
     const abilityOff = card.zone === "hand" && cost !== null ? abilityDiscount(ctx.state(), card.owner, facts) : null;
-    if (abilityOff && cost !== null) cost = Math.max(1, cost - abilityOff.amount);
+    if (abilityOff && cost !== null) cost = Math.max(0, cost - abilityOff.amount);
     // §7.2 — la Reattiva giocata apre (o allunga) la catena di risposta: il
     // segno viaggia nell'azione, e l'engine lo pretende.
     const reactive = card.zone === "hand" && facts.kind === "matter" && facts.behavior === "reactive";
@@ -895,7 +908,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     }
     let cost = discountedCost(ctx.state(), card, target, ctx.card);
     const abilityOff = cost !== null ? abilityDiscount(ctx.state(), card.owner, facts) : null;
-    if (abilityOff && cost !== null) cost = Math.max(1, cost - abilityOff.amount);
+    if (abilityOff && cost !== null) cost = Math.max(0, cost - abilityOff.amount);
     const passed = await ctx.dispatch({
       t: "toZone",
       uid: card.uid,
@@ -1438,8 +1451,10 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const stats = cardStats(card.cardId);
     let cost = stats.fluxCost;
     if (cost === null) return false;
+    // Un Oggetto costa quanto dice il miglior portatore in campo (2026-09-15).
+    if (stats.kind === "object") cost = bestObjectCost(ctx.state(), card, ctx.card) ?? cost;
     const off = abilityDiscount(ctx.state(), card.owner, stats);
-    if (off) cost = Math.max(1, cost - off.amount);
+    if (off) cost = Math.max(0, cost - off.amount);
     const player = ctx.state().players[card.owner];
     return cost > player.flux + (player.token ? 1 : 0);
   }
@@ -1773,7 +1788,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     view.light(step.source.uid, true);
     try {
       for (;;) {
-        const { objects, bearers } = rearmChoices(ctx.state(), step.source, ctx.card, step.self);
+        const { objects, bearers } = rearmChoices(ctx.state(), step.source, ctx.card, step.self, step.maxCost);
         if (objects.length === 0 || bearers.length === 0) break;
         const object = await pickFromPile(by, "ritiro", objects, t(step.self ? "pick.rearm.self" : "pick.rearm.any"));
         if (!object) break;
@@ -1806,6 +1821,21 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    * la lascia dov'è. Il Fronte pieno e la pila senza Oggetti adatti si
    * dicono in chat.
    */
+  /**
+   * Gli inneschi offerti dopo un'azione (ritorno vincolato, «quando quell'Entità
+   * muore», «quando assegni») si mettono in FILA, uno solo alla volta, anche
+   * quando nascono da azioni diverse: il passo che segue parte quando il
+   * precedente ha finito, animazioni comprese. Prima ognuno partiva per conto
+   * suo, e la scena di un innesco si apriva sopra la scelta o i voli dell'altro
+   * (2026-09-15: «le animazioni devono prima concludersi tutte»).
+   */
+  let offered: Promise<void> = Promise.resolve();
+  function offer(run: () => Promise<void>): void {
+    offered = offered.then(run, run).catch(error => {
+      console.warn("innesco", error);
+    });
+  }
+
   async function playLeaveReturn(step: LeaveReturnStep): Promise<void> {
     const seat = step.card.owner;
     if (step.frontFull) {
@@ -2246,26 +2276,17 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     /** §8.2 — il ritorno vincolato, per chi possiede la carta appena uscita dal campo. */
     offerLeaveReturns(before: GameState, after: GameState, owners: Seat[]): void {
       const steps = leaveReturns(before, after, ctx.card).filter(step => owners.includes(step.card.owner));
-      if (steps.length === 0) return;
-      void (async () => {
-        for (const step of steps) await playLeaveReturn(step);
-      })();
+      for (const step of steps) offer(() => playLeaveReturn(step));
     },
     /** §8.2 — «quando quell'Entità muore»: l'Oggetto resta in Ritiro. */
     offerDeathRemains(before: GameState, after: GameState, owners: Seat[]): void {
       const steps = deathSteps(before, after, ctx.card).filter(step => owners.includes(step.object.owner));
-      if (steps.length === 0) return;
-      void (async () => {
-        for (const step of steps) await playRemainStep(step);
-      })();
+      for (const step of steps) offer(() => playRemainStep(step));
     },
     /** §3.1 — «quando assegni questa carta»: per chi comanda l'Oggetto. */
     offerAssignTriggers(before: GameState, after: GameState, owners: Seat[]): void {
       const steps = assignSteps(before, after, ctx.card).filter(step => owners.includes(controllerOf(step.source)));
-      if (steps.length === 0) return;
-      void (async () => {
-        for (const step of steps) await playAssignStep(step);
-      })();
+      for (const step of steps) offer(() => playAssignStep(step));
     },
     // I gesti del bot (session.ts): le stesse vie del giocatore.
     playFromHand(card: CardInstance, spot: { x: number; y: number }): Promise<boolean> {

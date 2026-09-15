@@ -38,7 +38,9 @@ export interface FieldArea {
   bottom: number;
   /** La cima della fila del Fronte. */
   front: number;
-  /** La cima della fila di servizio (solo il tuo campo: l'avversario non ce l'ha). */
+  /** La cima della fila di servizio: la tua sempre; quella avversaria solo
+      quando gli serve la Zona di Controllo (§5, §8.2) — sta SOPRA il suo
+      Fronte, capovolta come il resto della sua metà. */
   back: number | null;
 }
 
@@ -72,11 +74,19 @@ export interface TableLayout {
   canonical(px: number, py: number, viewer: Seat): { x: number; y: number };
 }
 
-export function layout(visible: Visible): TableLayout {
+/**
+ * `foeBack`: l'avversario controlla una carta (§8.2, Radunatore) e il suo
+ * campo si estende di una fila — la Zona di Controllo, sopra il suo Fronte
+ * — così la carta presa non si schiaccia sul suo Fronte (2026-09-15). Le
+ * file diventano quattro e la scala scende di conseguenza.
+ */
+export function layout(visible: Visible, opts: { foeBack?: boolean } = {}): TableLayout {
+  const foeBack = opts.foeBack === true;
+  const rows = foeBack ? 4 : 3;
   const top = visible.y + FIXED.bar;
   const bottom = visible.y + visible.height - FIXED.bottom;
-  const fixed = FIXED.top + 2 * FIXED.head + 3 * FIXED.label + FIXED.gap;
-  const byHeight = (bottom - top - fixed) / (3 * TILE_H);
+  const fixed = FIXED.top + 2 * FIXED.head + rows * FIXED.label + FIXED.gap;
+  const byHeight = (bottom - top - fixed) / (rows * TILE_H);
   const byWidth = (visible.width - 2 * FIXED.side) / SURFACE_W;
   const s = Math.min(byHeight, byWidth);
   const tileW = TILE_W * s;
@@ -84,7 +94,9 @@ export function layout(visible: Visible): TableLayout {
   const left = visible.x + (visible.width - SURFACE_W * s) / 2;
 
   const foeTop = top + FIXED.top;
-  const foe: FieldArea = { top: foeTop, front: foeTop + FIXED.head, back: null, bottom: foeTop + FIXED.head + tileH + FIXED.label };
+  const foeBackY = foeBack ? foeTop + FIXED.head : null;
+  const foeFront = foeBackY === null ? foeTop + FIXED.head : foeBackY + tileH + FIXED.label;
+  const foe: FieldArea = { top: foeTop, front: foeFront, back: foeBackY, bottom: foeFront + tileH + FIXED.label };
   const mineTop = foe.bottom + FIXED.gap;
   const mineFront = mineTop + FIXED.head;
   const mineBack = mineFront + tileH + FIXED.label;
@@ -115,6 +127,9 @@ export function layout(visible: Visible): TableLayout {
     // fila di servizio non c'è (rincasso), e ciò che salirebbe oltre il
     // Fronte si schiaccia sul suo orlo — un Oggetto assegnato resta dietro la
     // sua Entità invece di sbucare sopra.
+    // Con la Zona di Controllo aperta, la sua fila di servizio c'è: sopra il
+    // Fronte, e ciò che vi si impila resta dietro la carta.
+    if (foe.back !== null && local >= BACK_TOP) return foe.back + Math.max(0, BACK_TOP - local) * s;
     const flippedTop = HALF_H - local - TILE_H;
     return foe.front + Math.max(0, flippedTop - BACK_TOP) * s;
   };

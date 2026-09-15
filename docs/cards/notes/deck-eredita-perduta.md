@@ -121,3 +121,8 @@ più difendibile e lo dicono nella propria nota di design:
 | Attrazione Argentata | mostra 2, ne prendi 1 | riportata alla lettera |
 | Campo Repulsivo | citava «Condanna del Comandante» | «questa carta» |
 | Per Vhal Astra! | fasce con un buco | 1–6 · 7–14 niente · 15–20 |
+
+**2026-09-15 — allineamento incrociato col foglio:** Ajmal segue il foglio
+(innesco «Quando attacca», d20 15–20 stappa tutte dopo la Fase di Fronte);
+per Oblivhal (Materie Dinamica, Nexus +3, Richiamo +1, Passo +2) e Rhen (nessun
+limite di costo) il foglio segue il gioco.

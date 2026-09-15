@@ -63,7 +63,7 @@ Every card shows:
 
 **Objects** are cards that are **assigned to an Entity**:
 
-- **they have a Flux cost**, like Entities and Matters: it is paid **every time the Object is assigned from the hand** (§6.2), and like every other card it never goes below **1** (§3.2);
+- **they have a Flux cost**, like Entities and Matters: it is paid **every time the Object is assigned from the hand** (§6.2); the printed cost is at least **1**, but a card's discount can bring it to zero (§3.2);
 - **from the hand you always pay again:** an Object that **returns to hand** is a card like any other — to put it back on the field you **play it again, paying its full cost**. Having paid it once before doesn't count;
 - **direct re-entry from a zone is a different matter:** if an effect brings an Object **from the Abyss or the Retire Zone directly onto the field**, assigning it to an Entity, the Object comes back **without paying its Flux cost again** — it's the effect putting it into play, not a normal assignment. If the card nevertheless asks for a cost or sets conditions, the card's text applies (§1.1);
 - **there is no limit** to the number of Objects that can be assigned to the same Entity: the only constraint is Flux, barring restrictions stated on the cards (e.g. "to an Entity without an Object");
@@ -158,7 +158,7 @@ The Rubyfront card has **two faces**: one is the **Rubyfront**, the other is its
 - on the **opponent's turn** you have available the **unspent** Flux left over from your own turn (e.g. to play Reactive Matters in defence): keeping Flux aside is a strategic choice;
 - **absolute cap: 20 Flux.** Flux can never exceed 20 in any way. The only thing that lives outside the bar: the **Flux Token** (see below).
 
-**Minimum cost: 1 Flux.** No card in the game — Entity, Matter or Object — costs less than **1**: there are no free cards. Playing anything always consumes at least one point of the bar, and this is what makes Flux a true rhythm of the game: the first turn grants **one** play, not a free number of zero-cost cards.
+**Minimum cost: 1 Flux.** No card in the game — Entity, Matter or Object — is printed with a cost below **1**: there are no free cards as such. Playing anything normally consumes at least one point of the bar, and this is what makes Flux a true rhythm of play: the first turn grants **one** play, not a free number of zero-cost cards. **Discounts count all the way, though:** if a card or an ability reduces a card's cost and brings it to **0**, that card is played **for free** (golden rule, §1.1) — the minimum applies to the printed cost, not to the discounted one.
 
 **Flux costs defined by cards:** besides paying for playing cards, Flux can appear as **the cost of an ability or effect**, when a card expressly provides for it (golden rule, §1.1). It is paid from your own bar, under the same conditions as any other Flux expense, and in the windows the card states.
 
@@ -525,7 +525,7 @@ A draw exists in only two cases:
 - At most **5 Entities on the Front** (the 5 slots; the Rubyfront and permanent Matters don't count, §6.2).
 - At most **3 copies** of the same card in the deck — **only one** if the card is **Unique** (§3.1).
 - At most **20 Flux** (§3.2). The Flux Token is outside the cap: it is a separate point.
-- **Minimum cost 1 Flux** for any card (§3.2): there are no free cards.
+- **Minimum printed cost 1 Flux** for any card (§3.2): there are no free cards as such, but a discount that brings the cost to 0 makes it free.
 - **Die** deployment cost: you roll only with available Flux **at least equal to the faces of the die**; the die doesn't exceed a **d20** (§3.1).
 
 ## 10. Glossary

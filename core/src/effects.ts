@@ -438,18 +438,23 @@ export interface EnterRearmStep {
   source: CardInstance;
   /** La variante su di sé: un Oggetto a chi entra, una volta. */
   self: boolean;
+  /** Su di sé, «con costo di Flusso N o inferiore» (dal 2026-09-15); null senza vincolo. */
+  maxCost: number | null;
 }
 
 /** I riarmi di chi entra (§8.2, dal 2026-09-10): uno per forma, a giri. */
 export function enterRearms(entering: CardInstance, facts: (cardId: string) => CardFacts): EnterRearmStep[] {
-  return facts(entering.cardId).enterRearms.map(form => ({ source: entering, self: form.self === true && form.any !== true }));
+  return facts(entering.cardId).enterRearms.map(form => ({ source: entering, self: form.self === true && form.any !== true, maxCost: form.self === true && form.any !== true ? form.maxCost ?? null : null }));
 }
 
-/** Gli Oggetti nella propria Zona di Ritiro, e le proprie Entità in campo scoperte (solo chi entra, nella variante su di sé): fra cosa si sceglie a ogni giro del riarmo. */
-export function rearmChoices(state: GameState, source: CardInstance, facts: (cardId: string) => CardFacts, onlySelf = false): { objects: CardInstance[]; bearers: CardInstance[] } {
+/** Gli Oggetti nella propria Zona di Ritiro (entro il costo, se c'è), e le proprie Entità in campo scoperte (solo chi entra, nella variante su di sé): fra cosa si sceglie a ogni giro del riarmo. */
+export function rearmChoices(state: GameState, source: CardInstance, facts: (cardId: string) => CardFacts, onlySelf = false, maxCost: number | null = null): { objects: CardInstance[]; bearers: CardInstance[] } {
   const by = controllerOf(source);
   return {
-    objects: zoneCards(state, by, "ritiro").filter(card => facts(card.cardId).kind === "object"),
+    objects: zoneCards(state, by, "ritiro").filter(card => {
+      const f = facts(card.cardId);
+      return f.kind === "object" && (maxCost === null || (f.fluxCost !== null && f.fluxCost <= maxCost));
+    }),
     bearers: fieldCards(state).filter(card => controllerOf(card) === by && facts(card.cardId).kind === "entity" && !card.facedown && (!onlySelf || card.uid === source.uid)),
   };
 }
@@ -667,7 +672,9 @@ export function attackSteps(state: GameState, attacker: CardInstance, facts: (ca
     if (!inPlay(source, facts(source.cardId).kind)) return;
     for (const form of facts(source.cardId).attackForms) {
       if (form.face !== source.face) continue;
-      if (form.kind === "untap") continue;
+      // «Stappala dopo il combattimento» è un passo della risoluzione
+      // (vigilUntaps); quella col d20 (dal 2026-09-15) tira all'attacco.
+      if (form.kind === "untap" && !("die" in form)) continue;
       const once = "once" in form && form.once === true;
       if (form.who === "self" && source.uid !== attacker.uid) continue;
       if (form.who === "object" && source.assignedTo !== attacker.uid) continue;
@@ -685,7 +692,7 @@ export function attackSteps(state: GameState, attacker: CardInstance, facts: (ca
       // per questa fonte e questo attaccante ne è già scattato uno, il passo
       // è fatto — annullare l'attacco e ridichiararlo non lo ripropone
       // (deciso 2026-09-10). Gli altri passi hanno la loro chiave.
-      if (form.kind === "empower" ? empowerFired(state, source, attacker.uid, once) : firedKey(state, source, form.kind, attacker.uid, once)) continue;
+      if (form.kind === "empower" ? empowerFired(state, source, attacker.uid, once) : firedKey(state, source, form.kind === "untap" ? "refresh" : form.kind, attacker.uid, once)) continue;
       out.push({ source, attacker, form });
     }
   };
@@ -729,10 +736,19 @@ export function pendingGrants(state: GameState, attacker: CardInstance, facts: (
   return out;
 }
 
-/** RBF-028: fra gli attaccanti di `seat`, chi si stappa dopo il combattimento. */
+/**
+ * Chi si stappa dopo il combattimento, per `seat`: gli attaccanti con la forma
+ * «stappala dopo il combattimento»; e, se il d20 all'attacco è riuscito
+ * (`untapAfter`, dal 2026-09-15), tutte le sue Entità in campo.
+ */
 export function vigilUntaps(state: GameState, seat: Seat, facts: (cardId: string) => CardFacts): string[] {
+  if (state.players[seat].untapAfter === state.turn) {
+    return fieldCards(state)
+      .filter(card => controllerOf(card) === seat && facts(card.cardId).kind === "entity" && card.tapped)
+      .map(card => card.uid);
+  }
   return attackersOf(state, seat, null, facts)
-    .filter(card => facts(card.cardId).attackForms.some(form => form.kind === "untap" && form.face === card.face && (!form.requiresObject || armed(state, card.uid))))
+    .filter(card => facts(card.cardId).attackForms.some(form => form.kind === "untap" && form.face === card.face && !("die" in form) && (!form.requiresObject || armed(state, card.uid))))
     .filter(card => !(state.fired ?? []).includes(`${card.uid}|on_attack:untap|turn`))
     .map(card => card.uid);
 }
@@ -747,7 +763,7 @@ export function describeAttackStep(step: AttackStep, facts: (cardId: string) => 
   const card = `«${facts(step.source.cardId).name}»`;
   const form = step.form;
   switch (form.kind) {
-    case "untap": return t("trigger.vigil", { card });
+    case "untap": return "die" in form ? t("trigger.rally", { card, die: form.die, lo: form.onRoll[0], hi: form.onRoll[1] }) : t("trigger.vigil", { card });
     case "empower":
       if (form.targets === "others_armed") return t("trigger.command", { card, n: form.power ?? 0 });
       if (form.targets === "bearer") return t("trigger.charge", { card, n: form.power ?? 0 });
@@ -1014,14 +1030,38 @@ export function assignRef(step: AssignStep): EffectRef {
   return { source: step.source.uid, event: "on_assign_object", entering, ...(step.form.kind === "ends" ? { once: true as const } : {}) };
 }
 
-/** Quanto costa giocare l'Oggetto dalla mano sul portatore già scelto: il costo stampato meno lo sconto d'assegnazione del portatore, mai sotto 1 (§3.2). Gemello: engine.rb, assign_discount_for. */
+/** Lo sconto d'assegnazione di un portatore («gli Oggetti che assegni a questa Entità costano N in meno», statico `assign_discount`). */
+export function assignDiscountOf(bearer: CardInstance, facts: (cardId: string) => CardFacts): number {
+  return facts(bearer.cardId).staticForms.reduce((sum, form) => sum + (form.kind === "assign_discount" ? form.amount : 0), 0);
+}
+
+/** Quanto costa giocare l'Oggetto dalla mano sul portatore già scelto: il costo stampato meno lo sconto d'assegnazione del portatore, fino a 0 (§3.2: «se una carta te lo azzera, la prendi», dal 2026-09-15). Gemello: engine.rb, assign_discount_for. */
 export function objectCost(state: GameState, card: CardInstance, facts: (cardId: string) => CardFacts): number | null {
   const printed = facts(card.cardId).fluxCost;
   if (printed === null) return null;
   const bearer = card.assignedTo ? state.cards[card.assignedTo] : undefined;
   if (!bearer || bearer.zone !== "field") return printed;
-  const discount = facts(bearer.cardId).staticForms.reduce((sum, form) => sum + (form.kind === "assign_discount" ? form.amount : 0), 0);
-  return discount > 0 ? Math.max(1, printed - discount) : printed;
+  const discount = assignDiscountOf(bearer, facts);
+  return discount > 0 ? Math.max(0, printed - discount) : printed;
+}
+
+/**
+ * Il costo MIGLIORE di un Oggetto in mano, prima di scegliere il portatore
+ * (2026-09-15, «non c'è nessuna indicazione sulla carta Oggetto»): il
+ * costo stampato meno lo sconto più alto fra le Entità in campo che
+ * comanda chi lo possiede, fino a 0 (§3.2). È ciò che la carta in mano
+ * mostra e ciò che decide se è pagabile; il costo vero lo dice objectCost
+ * sul portatore scelto.
+ */
+export function bestObjectCost(state: GameState, card: CardInstance, facts: (cardId: string) => CardFacts): number | null {
+  const printed = facts(card.cardId).fluxCost;
+  if (printed === null) return null;
+  let best = 0;
+  for (const other of fieldCards(state)) {
+    if (controllerOf(other) !== card.owner || facts(other.cardId).kind !== "entity") continue;
+    best = Math.max(best, assignDiscountOf(other, facts));
+  }
+  return best > 0 ? Math.max(0, printed - best) : printed;
 }
 
 /**

@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
 import { FRONT_SLOT_X, backRowY, frontRowY } from "../src/geometry.js";
 import {
+  bestObjectCost,
   enterDisarms,
   enterRearms,
   leaveReturns,
@@ -73,6 +74,8 @@ import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 const FACTS: Record<string, Partial<CardFacts>> = {
   SHADOW: { kind: "entity", race: "auros", enterDisarms: [{ to: "ritiro" }], enterRearms: [{ any: true }] },
   SMITH: { kind: "entity", race: "auros", enterRearms: [{ self: true }] },
+  ARTISAN: { kind: "entity", race: "auros", enterRearms: [{ self: true, maxCost: 2 }] },
+  KING: { kind: "entity", race: "human", power: 5, attackForms: [{ kind: "untap", who: "self", targets: "all", die: 20, onRoll: [15, 20], face: 0 }] },
   BOUND: { kind: "entity", race: "auros", fluxCost: 1, leaveReturns: [{ maxCost: 2 }] },
   BLADE: { kind: "object", fluxCost: 2 },
   MACE: { kind: "object", fluxCost: 3 },
@@ -486,11 +489,17 @@ describe("disarmo, riarmo e ritorno vincolato (§8.2, dal 2026-09-10)", () => {
     const { objects, bearers } = rearmChoices(state, shadow, facts);
     expect(objects.map(card => card.uid)).toEqual(["blade-a"]);
     expect(bearers.map(card => card.uid).sort()).toEqual(["mine", "shadow"]);
-    expect(enterRearms(shadow, facts)).toEqual([{ source: shadow, self: false }]);
+    expect(enterRearms(shadow, facts)).toEqual([{ source: shadow, self: false, maxCost: null }]);
     // La variante su di sé: l'unico portatore possibile è chi entra.
     const smith = on(state, "smith", "SMITH");
-    expect(enterRearms(smith, facts)).toEqual([{ source: smith, self: true }]);
+    expect(enterRearms(smith, facts)).toEqual([{ source: smith, self: true, maxCost: null }]);
     expect(rearmChoices(state, smith, facts, true).bearers.map(card => card.uid)).toEqual(["smith"]);
+    // Entro il costo (dal 2026-09-15): la Mazza da 3 resta in Ritiro.
+    on(state, "mace-a", "MACE").zone = "ritiro";
+    const artisan = on(state, "artisan", "ARTISAN");
+    expect(enterRearms(artisan, facts)).toEqual([{ source: artisan, self: true, maxCost: 2 }]);
+    expect(rearmChoices(state, artisan, facts, true, 2).objects.map(card => card.uid)).toEqual(["blade-a"]);
+    expect(rearmChoices(state, artisan, facts, true).objects.map(card => card.uid).sort()).toEqual(["blade-a", "mace-a"]);
   });
 
   it("leaveReturns vede chi è appena uscita senza Oggetti, coi candidati entro il costo", () => {
@@ -737,6 +746,25 @@ describe("attackSteps", () => {
     expect(steps.map(s => [s.source.uid, s.form.kind])).toEqual([["c", "empower"]]);
     expect(describeAttackStep(steps[0], facts)).toMatch(/«COMMAND» si innesca: le altre Entità con un Oggetto assegnato prendono \+1/);
     expect(attackRef(steps[0])).toEqual({ source: "c", event: "on_attack", entering: "c" });
+  });
+
+  it("il d20 all'attacco: un passo di chi attacca; poi, col tiro riuscito, alla risoluzione si stappano tutte (2026-09-15)", () => {
+    const state = newGame();
+    const k = on(state, "k", "KING");
+    const u = on(state, "u", "HUMAN");
+    u.tapped = true;
+    declare(state, "k", 1);
+    const steps = attackSteps(state, k, facts);
+    expect(steps.map(s => [s.source.uid, s.form.kind])).toEqual([["k", "untap"]]);
+    expect(describeAttackStep(steps[0], facts)).toMatch(/d20, con 15–20 stappa tutte le tue Entità/);
+    // Risolto (la chiave `refresh`), non si ripropone.
+    state.fired = ["k|on_attack:refresh|k"];
+    expect(attackSteps(state, k, facts)).toEqual([]);
+    // Senza il tiro riuscito, alla risoluzione nessuno si stappa; col tiro, tutte le proprie tappate.
+    expect(vigilUntaps(state, "a", facts)).toEqual([]);
+    state.players.a.untapAfter = state.turn;
+    k.tapped = true;
+    expect(vigilUntaps(state, "a", facts).sort()).toEqual(["k", "u"]);
   });
 
   it("l'Oggetto addosso a chi attacca si innesca, in due passi, dopo quelli di chi attacca", () => {
@@ -1052,11 +1080,33 @@ describe("resolveSteps", () => {
     expect(describeAssignStep(steps[0], facts)).toContain("pesca 1");
     after.fired = ["p|on_assign_object:draw|s"];
     expect(assignSteps(before, after, facts)).toEqual([]);
-    // Lo sconto non scende sotto 1 (§3.2).
+    // Lo sconto conta fino a 0: la carta è gratis (§3.2, dal 2026-09-15).
     const cheap = on(after, "c", "SWORD");
     cheap.zone = "hand";
     cheap.assignedTo = "p";
-    expect(objectCost(after, cheap, facts)).toBe(1);
+    expect(objectCost(after, cheap, facts)).toBe(0);
+  });
+
+  it("in mano l'Oggetto mostra il costo del miglior portatore in campo (2026-09-15)", () => {
+    const state = newGame();
+    const s = on(state, "s", "BLADE");
+    s.zone = "hand";
+    // Senza portatori che scontano: il costo stampato.
+    on(state, "e", "ENTITY");
+    expect(bestObjectCost(state, s, facts)).toBe(2);
+    // Col Portatore sul Fronte: uno in meno — prima ancora di posarlo.
+    on(state, "p", "BEARER");
+    expect(bestObjectCost(state, s, facts)).toBe(1);
+    // Il Portatore avversario non conta.
+    const foe = newGame();
+    const t2 = on(foe, "s", "BLADE");
+    t2.zone = "hand";
+    on(foe, "p", "BEARER", "b");
+    expect(bestObjectCost(foe, t2, facts)).toBe(2);
+    // Fino a 0: la carta è gratis (§3.2).
+    const cheap = on(state, "c", "SWORD");
+    cheap.zone = "hand";
+    expect(bestObjectCost(state, cheap, facts)).toBe(0);
   });
 
   it("la ricerca col dado propone le guardate del tipo della fascia", () => {

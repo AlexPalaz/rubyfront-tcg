@@ -61,7 +61,8 @@ async function boot(): Promise<void> {
     // confronto col simulatore (scripts/table-side-by-side.mjs) usa.
     await loadCatalog();
     // &catena: la catena di risposta aperta; &pannello: le pile avversarie aperte; &sfoglia: la tua Abisso nella vetrina.
-    const actions = sampleGame({ chain: params.has("chain"), block: params.has("block") });
+    // &control: B controlla un'Entità di A (la sua Zona di Controllo si apre).
+    const actions = sampleGame({ chain: params.has("chain"), block: params.has("block"), control: params.has("control") });
     const seat = params.get("seat") === "b" ? "b" : "a";
     const table = new Table(stage, seat, locale);
     new Preview(stage, table, locale);

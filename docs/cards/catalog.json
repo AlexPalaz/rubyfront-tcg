@@ -793,7 +793,7 @@
                 "name": "Vendicatore dei Dimenticati",
                 "keyword": {
                   "name": "Vendetta",
-                  "rules": "bloccando, uccide chi ha Potenza inferiore"
+                  "rules": "bloccando, si porta dietro l'attaccante"
                 },
                 "avenge": {
                   "trigger": "Quando attacca",
@@ -823,7 +823,7 @@
                 "name": "Avenger of the Forgotten",
                 "keyword": {
                   "name": "Revenge",
-                  "rules": "blocking, it kills a lower-Power attacker"
+                  "rules": "blocking, it takes the attacker with it"
                 },
                 "avenge": {
                   "trigger": "When it attacks",
@@ -1739,8 +1739,8 @@
               "face": {
                 "name": "Ajmal, Re delle Terre Infrante",
                 "rally": {
-                  "trigger": "Quando entra sul Fronte",
-                  "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli."
+                  "trigger": "Quando attacca",
+                  "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli dopo la Fase di Fronte."
                 },
                 "effect": {
                   "text": "Questa Entità non viene tappata dopo l'attacco."
@@ -1769,8 +1769,8 @@
               "face": {
                 "name": "Ajmal, King of the Broken Lands",
                 "rally": {
-                  "trigger": "When it enters the Front",
-                  "text": "Roll a d20: on 15–20 untap all Entities you control."
+                  "trigger": "When it attacks",
+                  "text": "Roll a d20: on 15–20 untap all Entities you control after the Front Phase."
                 },
                 "effect": {
                   "text": "This Entity is not tapped after attacking."
@@ -1814,7 +1814,7 @@
                 {
                   "id": "rally",
                   "displayKey": "rally",
-                  "event": "on_enter_field",
+                  "event": "on_attack",
                   "effect": {
                     "type": "untap",
                     "target": {
@@ -1824,7 +1824,8 @@
                     },
                     "details": {
                       "die": "d20",
-                      "onRoll": "15-20"
+                      "onRoll": "15-20",
+                      "afterCombat": true
                     }
                   }
                 },
@@ -4166,7 +4167,7 @@
                 "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta.",
                 "equip": {
                   "trigger": "Quando entra sul Fronte",
-                  "text": "Puoi assegnare a questa Entità un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
+                  "text": "Puoi assegnare a questa Entità un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
                 }
               }
             },
@@ -4192,7 +4193,7 @@
                 "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited.",
                 "equip": {
                   "trigger": "When it enters the Front",
-                  "text": "You may assign this Entity an Object from your Retire Zone without paying its Flux cost."
+                  "text": "You may assign this Entity an Object with Flux cost 2 or less from your Retire Zone without paying its Flux cost."
                 }
               }
             }
@@ -4239,6 +4240,16 @@
                     },
                     "details": {
                       "noFluxCost": true
+                    },
+                    "filter": {
+                      "cardType": "object",
+                      "conditions": [
+                        {
+                          "stat": "flux_cost",
+                          "operator": "lte",
+                          "value": 2
+                        }
+                      ]
                     }
                   }
                 }
@@ -7335,7 +7346,7 @@
             "name": "Vendicatore dei Dimenticati",
             "keyword": {
               "name": "Vendetta",
-              "rules": "bloccando, uccide chi ha Potenza inferiore"
+              "rules": "bloccando, si porta dietro l'attaccante"
             },
             "avenge": {
               "trigger": "Quando attacca",
@@ -7365,7 +7376,7 @@
             "name": "Avenger of the Forgotten",
             "keyword": {
               "name": "Revenge",
-              "rules": "blocking, it kills a lower-Power attacker"
+              "rules": "blocking, it takes the attacker with it"
             },
             "avenge": {
               "trigger": "When it attacks",
@@ -8281,8 +8292,8 @@
           "face": {
             "name": "Ajmal, Re delle Terre Infrante",
             "rally": {
-              "trigger": "Quando entra sul Fronte",
-              "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli."
+              "trigger": "Quando attacca",
+              "text": "Lancia un d20: con 15–20 stappa tutte le Entità che controlli dopo la Fase di Fronte."
             },
             "effect": {
               "text": "Questa Entità non viene tappata dopo l'attacco."
@@ -8311,8 +8322,8 @@
           "face": {
             "name": "Ajmal, King of the Broken Lands",
             "rally": {
-              "trigger": "When it enters the Front",
-              "text": "Roll a d20: on 15–20 untap all Entities you control."
+              "trigger": "When it attacks",
+              "text": "Roll a d20: on 15–20 untap all Entities you control after the Front Phase."
             },
             "effect": {
               "text": "This Entity is not tapped after attacking."
@@ -8356,7 +8367,7 @@
             {
               "id": "rally",
               "displayKey": "rally",
-              "event": "on_enter_field",
+              "event": "on_attack",
               "effect": {
                 "type": "untap",
                 "target": {
@@ -8366,7 +8377,8 @@
                 },
                 "details": {
                   "die": "d20",
-                  "onRoll": "15-20"
+                  "onRoll": "15-20",
+                  "afterCombat": true
                 }
               }
             },
@@ -10708,7 +10720,7 @@
             "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta.",
             "equip": {
               "trigger": "Quando entra sul Fronte",
-              "text": "Puoi assegnare a questa Entità un Oggetto dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
+              "text": "Puoi assegnare a questa Entità un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
             }
           }
         },
@@ -10734,7 +10746,7 @@
             "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited.",
             "equip": {
               "trigger": "When it enters the Front",
-              "text": "You may assign this Entity an Object from your Retire Zone without paying its Flux cost."
+              "text": "You may assign this Entity an Object with Flux cost 2 or less from your Retire Zone without paying its Flux cost."
             }
           }
         }
@@ -10781,6 +10793,16 @@
                 },
                 "details": {
                   "noFluxCost": true
+                },
+                "filter": {
+                  "cardType": "object",
+                  "conditions": [
+                    {
+                      "stat": "flux_cost",
+                      "operator": "lte",
+                      "value": 2
+                    }
+                  ]
                 }
               }
             }
