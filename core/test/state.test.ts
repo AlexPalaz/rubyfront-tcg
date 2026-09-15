@@ -317,6 +317,21 @@ describe("apply toZone con costo", () => {
     state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 0, y: 0, z: 1 });
     expect(state.players.a.flux).toBe(4);
   });
+
+  // §6.2 — l'Oggetto che si mette in Ritiro «pagandone il costo» (dal
+  // 2026-09-15). Gemello: table_test.rb, test_retiring_from_field_with_cost_pays.
+  it("dal campo in Ritiro col costo si paga; il Ritiro senza costo no", () => {
+    let state = apply(newGame(), deckFor("a", 2));
+    state = apply(state, { t: "draw", seat: "a", count: 2 });
+    state.players.a.flux = 3;
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 0, y: 0, z: 1 });
+    state = apply(state, { t: "toZone", uid: "a-2", zone: "field", x: 0, y: 0, z: 1 });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "ritiro", cost: 1 });
+    expect(state.players.a.flux).toBe(2);
+    expect(state.cards["a-1"].zone).toBe("ritiro");
+    state = apply(state, { t: "toZone", uid: "a-2", zone: "ritiro" });
+    expect(state.players.a.flux).toBe(2);
+  });
 });
 
 // Chi inizia lo dice l'azione (§4), e l'altro riceve il Gettone (§3.2).

@@ -42,6 +42,10 @@ export interface CardFacts {
   enterDisarms: EnterDisarm[];
   /** I riarmi certificati «quando QUESTA entra: gli Oggetti dal tuo Ritiro alle tue Entità, gratis» (§8.2). */
   enterRearms: EnterRearm[];
+  /** Gli scarti d'Oggetto certificati «quando QUESTA entra: un Oggetto dalla mano in Ritiro, poi pesca» (§8.2). */
+  enterStashes: EnterStash[];
+  /** «Puoi mettere questo Oggetto in Ritiro pagandone il costo» (§6.2): vedi SelfRetire. */
+  selfRetires: SelfRetire[];
   /** I ritorni vincolati certificati «mandata nell'Abisso o in Ritiro senza Oggetti, torna con un Oggetto» (§8.2). */
   leaveReturns: LeaveReturn[];
   /** Le pesche certificate «quando QUESTA attacca con un Oggetto» (§8.2, RBF-026). */
@@ -213,7 +217,9 @@ export type AttackForm =
   /** RBF-010: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme. */
   | { kind: "return"; who: "self"; die: number; onRoll: [number, number]; filter: { kind: "entity"; race: string }; joins: true; face: number }
   /** RBF-031: un Oggetto dal Ritiro addosso a chi attacca, gratis. */
-  | { kind: "rearm"; who: "ally"; attackerArmed: true; face: number };
+  | { kind: "rearm"; who: "ally"; attackerArmed: true; face: number }
+  /** Dal 2026-09-15: «lancia un d6: con 4–6 puoi mettere un altro Oggetto che controlli in Ritiro. Se lo fai, pesca una carta». */
+  | { kind: "stash"; who: "object"; die: number; onRoll: [number, number]; other: true; thenDraw: number; face: number };
 
 /**
  * La forma certificata di una pesca all'attacco: «la prima volta in ogni
@@ -270,6 +276,31 @@ export interface EnterRearm {
   self?: true;
   /** Nella variante su di sé: «con costo di Flusso N o inferiore» (dal 2026-09-15). */
   maxCost?: number;
+}
+
+/**
+ * La forma certificata dello scarto d'Oggetto all'ingresso (dal 2026-09-15):
+ * «quando entra sul Fronte, puoi mettere un Oggetto dalla tua mano nella tua
+ * Zona di Ritiro. Se lo fai, pesca una carta». Specchio di card_index.rb,
+ * enter_stashes.
+ */
+export interface EnterStash {
+  from: "hand";
+  kind: "object";
+  to: "ritiro";
+  thenDraw: number;
+}
+
+/**
+ * La forma certificata del ritiro a pagamento di un Oggetto (dal
+ * 2026-09-15): «puoi mettere questo Oggetto nella tua Zona di Ritiro
+ * pagandone il costo di Flusso» — un'azione al costo stampato, nelle
+ * finestre dichiarate (oggi solo la Preparazione propria). Specchio di
+ * card_index.rb, self_retires.
+ */
+export interface SelfRetire {
+  cost: "printed";
+  timing: Phase[];
 }
 
 /**

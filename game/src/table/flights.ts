@@ -19,6 +19,7 @@ import { BlurFilter, ColorMatrixFilter, Container, Graphics, Sprite, type Textur
 import type { Stage } from "../stage";
 import { bezier, key, tween, easeOut, reducedMotion, linear } from "./animation";
 import { paintPiece, withShadow } from "./appearance";
+import { playRetire } from "../sound";
 import { TableCard } from "./card";
 import type { Table } from "./table";
 
@@ -29,6 +30,8 @@ const SLASH_MS = 620;
 /** Quando la scintilla tocca la pila (ritardo + corsa). */
 const SPARK_ARRIVE_MS = 1050;
 const DISSOLVE_MS = 1100;
+/** Il Ritiro voluto: la carta scivola intera nella pila (flights.retire). */
+const RETIRE_MS = 900;
 /** Chi torna da una pila: una ogni tanto, e accesa per tanto all'arrivo. */
 const RETURN_STEP_MS = 320;
 /** Prima di mettersi in fila, chi torna aspetta che i voli della stessa mossa siano partiti. */
@@ -166,6 +169,52 @@ export class Flights {
     return flight;
   }
 
+  /**
+   * §6.2 — il Ritiro voluto: la carta si stacca dal Fronte, si inclina un
+   * poco e scivola nella Zona di Ritiro rimpicciolendo fino alla pila, che
+   * si accende d'argento (non del rubino della morte). Niente taglio, niente
+   * dissolvenza, niente scintilla: se ne va intera, con un fruscio e il
+   * tocco della carta che si posa (playRetire). 2026-09-15.
+   */
+  retire(uid: string): Flight | null {
+    const owner = this.ctx.state().cards[uid]?.owner;
+    const ghost = owner ? this.ghost(uid) : null;
+    if (!ghost || !owner) return null;
+    const flight = (() => {
+      const target = this.table.pileBox(owner, "ritiro");
+      const look = this.table.lookOf(uid);
+      if (!target || !look || ghost.destroyed) {
+        ghost.destroy({ children: true });
+        return;
+      }
+      ghost.visible = true;
+      playRetire();
+      if (reducedMotion()) {
+        setTimeout(() => ghost.destroy({ children: true }), 120);
+        return;
+      }
+      this.busyUntil = Math.max(this.busyUntil, performance.now() + RETIRE_MS);
+      const from = { x: ghost.x, y: ghost.y, rotation: ghost.rotation, scale: ghost.scale.x };
+      const to = { x: target.x + target.w / 2, y: target.y + target.h / 2 };
+      const endScale = (target.w / look.w) * from.scale;
+      // L'arco: sale un poco staccandosi, poi scende verso la pila.
+      const lift = -Math.max(60, Math.abs(to.y - from.y) * 0.18);
+      void tween(this.ticker, RETIRE_MS, k => {
+        if (ghost.destroyed) throw new Error("fantasma distrutto");
+        const arc = key(k, [[0, 0], [0.35, lift], [1, 0]]);
+        ghost.position.set(from.x + (to.x - from.x) * k, from.y + (to.y - from.y) * k + arc);
+        ghost.rotation = from.rotation + key(k, [[0, 0], [0.4, -0.12], [1, 0.05]]);
+        ghost.scale.set(from.scale + (endScale - from.scale) * key(k, [[0, 0], [0.5, 0.35], [1, 1]]));
+        ghost.alpha = key(k, [[0, 1], [0.85, 1], [1, 0.25]]);
+      }, bezier(0.4, 0.05, 0.25, 1)).then(() => {
+        ghost.destroy({ children: true });
+        this.landing(owner, "ritiro", 0x9fb6d9);
+      });
+    }) as Flight;
+    flight.cancel = () => ghost.destroy({ children: true });
+    return flight;
+  }
+
   /** La dissolvenza (fly-dissolve), la scintilla che corre (fly-spark), la pila che si accende (pile-landing). */
   private dissolve(ghost: TableCard, target: { x: number; y: number; w: number; h: number }, owner: Seat, zone: ZoneId): void {
     if (ghost.destroyed) return;
@@ -202,8 +251,8 @@ export class Flights {
     }, SPARK_ARRIVE_MS + 100);
   }
 
-  /** La pila che riceve: un anello rubino che si allarga e sfuma (pile-landing). */
-  private landing(owner: Seat, zone: ZoneId): void {
+  /** La pila che riceve: un anello che si allarga e sfuma (pile-landing) — rubino per chi muore, argento per chi si ritira. */
+  private landing(owner: Seat, zone: ZoneId, color = 0xe0314b): void {
     const target = this.table.pileBox(owner, zone);
     if (!target) return;
     const ring = new Graphics();
@@ -212,7 +261,7 @@ export class Flights {
       const spread = 14 * k;
       ring.clear()
         .rect(target.x - spread, target.y - spread, target.w + 2 * spread, target.h + 2 * spread)
-        .stroke({ color: 0xe0314b, alpha: 0.9 * (1 - k), width: 3 });
+        .stroke({ color, alpha: 0.9 * (1 - k), width: 3 });
     }, easeOut).then(() => ring.destroy());
   }
 

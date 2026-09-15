@@ -287,7 +287,7 @@ export interface EffectRef {
       (RBF-026), il ritorno in mano dopo la cura (RBF-008), la pesca dopo la
       cura (RBF-001 Nexus), l'attacco di chi torna (RBF-010), lo sguardo dopo
       il potenziamento (RBF-034). */
-  follow?: "discard" | "recall" | "draw" | "join" | "look" | "disarm" | "rearm";
+  follow?: "discard" | "recall" | "draw" | "join" | "look" | "disarm" | "rearm" | "stash" | "sheathe";
   /** «Una volta per turno»: la tripla vale per ogni attacco del turno. */
   once?: true;
 }

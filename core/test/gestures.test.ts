@@ -36,6 +36,8 @@ const facts = (cardId: string): CardFacts =>
     enterRefreshes: [],
     enterDisarms: [],
     enterRearms: [],
+    enterStashes: [],
+    selfRetires: [],
     leaveReturns: [],
     attackReturns: [],
     attackDraws: [],
@@ -325,5 +327,95 @@ describe("la Reattiva col bersaglio alla giocata (RBF-021, §7.2): prima la scen
     expect(view.pickTarget).not.toHaveBeenCalled();
     expect(view.confirm).not.toHaveBeenCalled();
     expect(sent).toContainEqual(expect.objectContaining({ t: "toZone", uid: "foe", zone: "abisso" }));
+  });
+});
+
+// La mano accende solo ciò che l'arbitro lascerebbe passare adesso (2026-09-15).
+describe("unplayable — la mano vela ciò che l'arbitro fermerebbe", () => {
+  it("fasi, finestre delle Reattive, Fronte pieno, Oggetto senza portatore, Flusso", () => {
+    const { ctx, setState } = table();
+    const { view } = fakeView();
+    const gestures = createGestures(ctx, view);
+    let state = newGame("a");
+    state.players.a.flux = 5;
+    const human = card(state, "h", "HUMAN", "a", "hand");
+    const gear = card(state, "g", "GEAR", "a", "hand");
+    const judgment = card(state, "j", "JUDGMENT", "a", "hand");
+    setState(state);
+    // Preparazione, mio turno: l'Entità sì, l'Oggetto no (nessuna Entità da armare), la Reattiva no (fuori finestra).
+    expect(gestures.unplayable(human)).toBe(false);
+    expect(gestures.unplayable(gear)).toBe(true);
+    expect(gestures.unplayable(judgment)).toBe(true);
+    const first = card(state, "e", "HUMAN", "a", "field");
+    first.x = FRONT_SLOT_X[0];
+    first.y = frontRowY("a");
+    expect(gestures.unplayable(gear)).toBe(false);
+    // Fronte pieno: l'Entità si vela.
+    ["e2", "e3", "e4", "e5"].forEach((uid, index) => {
+      const other = card(state, uid, "HUMAN", "a", "field");
+      other.x = FRONT_SLOT_X[index + 1];
+      other.y = frontRowY("a");
+    });
+    expect(gestures.unplayable(human)).toBe(true);
+    // Fronte, mio turno, prima dell'ondata: solo la Reattiva; dopo l'ondata nemmeno lei.
+    state = { ...state, phase: "fronte" };
+    setState(state);
+    expect(gestures.unplayable(judgment)).toBe(false);
+    expect(gestures.unplayable(gear)).toBe(true);
+    state = { ...state, declarations: [{ id: "x", from: "e", to: "rf-b", kind: "attack", seat: "a", order: 1 }] };
+    setState(state);
+    expect(gestures.unplayable(judgment)).toBe(true);
+    // Reazione: la Reattiva è del difensore, non di chi attacca.
+    state = { ...state, phase: "reazione" };
+    setState(state);
+    expect(gestures.unplayable(judgment)).toBe(true);
+    state = { ...state, active: "b" };
+    setState(state);
+    expect(gestures.unplayable(judgment)).toBe(false);
+    // Senza Flusso nemmeno il difensore.
+    state = { ...state, players: { ...state.players, a: { ...state.players.a, flux: 1, token: false } } };
+    setState(state);
+    expect(gestures.unplayable(judgment)).toBe(true);
+    // Turno altrui in Preparazione: niente si gioca.
+    state = { ...state, phase: "preparazione", declarations: [], players: { ...state.players, a: { ...state.players.a, flux: 5 } } };
+    setState(state);
+    expect(gestures.unplayable(gear)).toBe(true);
+  });
+});
+
+// §6.2 — il Ritiro voluto dal giocatore ha il suo volo (2026-09-15).
+describe("il Ritiro dal Fronte: il volo suo, solo dal campo e solo verso il Ritiro", () => {
+  it("dropOnPile e il menu prendono la carta con liftToRetire, e la lasciano andare ad azione passata", async () => {
+    const { ctx, sent, setState } = table();
+    const lifted: string[] = [];
+    const flown: string[] = [];
+    const { view } = fakeView({
+      liftToRetire: uid => {
+        lifted.push(uid);
+        const flight = (() => void flown.push(uid)) as (() => void) & { cancel(): void };
+        flight.cancel = () => undefined;
+        return flight;
+      },
+    });
+    const gestures = createGestures(ctx, view);
+    const state = newGame("a");
+    const entity = card(state, "e", "HUMAN", "a", "field");
+    const inHand = card(state, "h", "HUMAN", "a", "hand");
+    setState(state);
+    await settle(gestures.dropOnPile(entity, "a", "ritiro", null));
+    expect(lifted).toEqual(["e"]);
+    expect(flown).toEqual(["e"]);
+    expect(sent.at(-1)).toMatchObject({ t: "toZone", uid: "e", zone: "ritiro" });
+    // Dalla mano non è un Ritiro; verso l'Abisso nemmeno.
+    await settle(gestures.dropOnPile(inHand, "a", "ritiro", null));
+    const other = card(ctx.state(), "f", "HUMAN", "a", "field");
+    setState(ctx.state());
+    await settle(gestures.sendToZone(other, "abisso"));
+    expect(lifted).toEqual(["e"]);
+    // Dal menu, verso il Ritiro: sì.
+    const third = card(ctx.state(), "g", "HUMAN", "a", "field");
+    setState(ctx.state());
+    await settle(gestures.sendToZone(third, "ritiro"));
+    expect(lifted).toEqual(["e", "g"]);
   });
 });

@@ -261,6 +261,34 @@ export function playSocket(tint: SocketTint, strength = 1): void {
   renderSocket(ctx, master, tint, strength);
 }
 
+/**
+ * §6.2 — il Ritiro voluto (2026-09-15): la carta che scivola via dal Fronte.
+ * Un fruscio di carta che si allontana (aria in un passa-banda che scende),
+ * poi il tocco leggero con cui si posa sulla pila: niente colpo, niente
+ * rubino — è un'uscita, non una morte.
+ */
+export function playRetire(): void {
+  if (!enabled) return;
+  const ctx = ensure();
+  if (!ctx || !master) return;
+  if (ctx.state === "suspended") void ctx.resume();
+  const out = ctx.createGain();
+  out.gain.value = 0.55;
+  out.connect(master);
+  const t0 = ctx.currentTime + 0.005;
+  // Il fruscio: parte chiaro e si allontana scendendo, per mezzo secondo.
+  burst(ctx, out, t0, 0.5, 0.06, 0.42, filter => {
+    filter.type = "bandpass";
+    filter.Q.value = 0.9;
+    filter.frequency.setValueAtTime(2200, t0);
+    filter.frequency.exponentialRampToValueAtTime(380, t0 + 0.5);
+  });
+  // Il tocco sulla pila, in fondo al volo: un colpetto sordo e un fruscio breve, come una carta che si posa sulle altre.
+  const land = t0 + 0.78;
+  sweep(ctx, out, "sine", 160, 70, 0.05, land, 0.35, 0.002, 0.09);
+  burst(ctx, out, land, 0.25, 0.002, 0.06, filter => ((filter.type = "highpass"), (filter.frequency.value = 1800)));
+}
+
 /** Lo sfrecciare: aria che accelera e sale (un passa-banda in corsa), da sinistra a destra, e sotto una sega che sale — la linea di velocità. */
 export function renderWhoosh(ctx: BaseAudioContext, out: AudioNode, ms: number, at = 0): void {
   const t0 = ctx.currentTime + 0.005 + at;

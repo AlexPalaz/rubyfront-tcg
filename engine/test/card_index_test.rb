@@ -104,7 +104,7 @@ class CardIndexTest < Minitest::Test
     forms_of = ->(id) { @index[id][:attack_forms].map { |form| [form[:kind], form[:who], form[:face]] } }
     assert_equal [], forms_of.call("RBF-028"), "dal 2026-09-10 la Sentinella non ha forme d'attacco"
     assert_equal [["empower", "self", 0]], forms_of.call("RBF-029")
-    assert_equal [["empower", "object", 0], ["look", "object", 0]], forms_of.call("RBF-034")
+    assert_equal [["empower", "object", 0], ["stash", "object", 0]], forms_of.call("RBF-034"), "dal 2026-09-15 lo sguardo lascia il posto a «un altro Oggetto in Ritiro, poi pesca»"
     assert_equal [["rearm", "ally", 0], ["look", "ally", 0]], forms_of.call("RBF-031")
     assert_equal [["heal", "self", 0]], forms_of.call("RBF-008")
     assert_equal [["return", "self", 0]], forms_of.call("RBF-010")
@@ -114,7 +114,8 @@ class CardIndexTest < Minitest::Test
     assert_equal [["empower", "self", 0]], forms_of.call("RBF-004"), "dal 2026-09-09 «se almeno 2 Umani attaccano» è il divieto di blocco di questo turno"
     assert_equal [], forms_of.call("RBF-005"), "dal 2026-09-08 non ha più inneschi d'attacco: è uno statico"
     # I dettagli che contano: dadi, soglie, destinazioni, seguiti.
-    assert_equal({ die: 6, on_roll: [5, 6], count: 4, reveal_to: "hand", rest_to: "ritiro" }, @index["RBF-034"][:attack_forms][1].slice(:die, :on_roll, :count, :reveal_to, :rest_to))
+    assert_equal({ die: 6, on_roll: [4, 6], other: true, then_draw: 1 }, @index["RBF-034"][:attack_forms][1].slice(:die, :on_roll, :other, :then_draw))
+    assert_equal 2, @index["RBF-034"][:flux_cost], "dal 2026-09-15 costa 2"
     assert_equal({ once: true, count: 2, reveal_to: "ritiro", rest_to: "deck" }, @index["RBF-031"][:attack_forms][1].slice(:once, :count, :reveal_to, :rest_to))
     assert_equal({ amount: 2, die: 6, on_roll: [5, 6] }, @index["RBF-008"][:attack_forms][0].slice(:amount, :die, :on_roll))
     assert_equal [], @index["RBF-011"][:enter_refreshes], "dal 2026-09-15 nessuna stappata all'ingresso"
@@ -164,10 +165,19 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "never_taps" }], @index["RBF-005"][:static_forms], "dal 2026-09-08 anche il 2 Flussi non si tappa attaccando"
     assert_equal [{ kind: "others_armed_power", amount: 1 }], @index["RBF-031"][:static_forms], "«+1 alle altre armate» certificato dal 2026-09-10"
     # Dal 2026-09-10: «se ha un Oggetto assegnato, +1» e gli Oggetti «mentre assegnato» senza durata esplicita.
-    assert_equal [{ kind: "self_power", amount: 1, while_armed: true }], @index["RBF-024"][:static_forms]
+    assert_equal [], @index["RBF-024"][:static_forms], "dal 2026-09-15 niente statico: l'Oggetto dalla mano in Ritiro all'ingresso"
     assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-032"][:static_forms]
     assert_equal [{ kind: "bearer_power", amount: 1 }, { kind: "bearer_counter", amount: 1 }], @index["RBF-033"][:static_forms], "+1 Potenza e Contrattacco +1 al portatore"
     assert_equal [{ kind: "bearer_power", amount: 2 }], @index["RBF-035"][:static_forms], "il ritorno in Ritiro resta nel debito"
+  end
+
+  # Dal 2026-09-15: lo scarto d'Oggetto all'ingresso e all'attacco, il ritiro a pagamento.
+  def test_object_stash_and_paid_retire
+    assert_equal [{ from: "hand", type: "object", to: "ritiro", then_draw: 1 }], @index["RBF-024"][:enter_stashes]
+    assert_equal [{ cost: "printed", timing: ["preparazione"] }], @index["RBF-032"][:self_retires]
+    assert_equal [], @index["RBF-032"][:abilities], "l'azione di un Oggetto non è un'abilità del Rubyfront"
+    assert_equal [], @index["RBF-034"][:enter_stashes]
+    assert_equal [], @index["RBF-033"][:self_retires], "solo chi lo stampa si mette in Ritiro pagando"
   end
 
   # Dal 2026-09-10: il disarmo con riarmo all'ingresso e il ritorno vincolato.

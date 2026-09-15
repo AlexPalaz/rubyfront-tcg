@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.73.0"
+    VERSION = "0.74.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -105,6 +105,8 @@ module Rubyfront
       "§3.1 Il Rubyfront/Nexus «la prima volta in ogni tuo turno che assegni un Oggetto»: prima e ultima del mazzo, scambiate (poi pesca e scarta) o una in mano e l'altra in Ritiro",
       "§8.2 Effetti certificati: «quando quell'Entità muore, questo Oggetto in Ritiro invece che nell'Abisso; poi un altro Oggetto dal Ritiro a una disarmata, gratis»",
       "§3.1 La chiamata sul Fronte del Nexus: un'Entità dalla mano senza costo, con Slancio, e +N alle prossime attaccanti del turno",
+      "§8.2 Effetti certificati: «quando entra sul Fronte, puoi mettere un Oggetto dalla mano in Ritiro: se lo fai, pesca»; «quando attacca l'Entità che lo porta, col d6 un altro Oggetto in Ritiro: se lo fai, pesca»",
+      "§6.2 Un Oggetto che dice «puoi mettermi in Zona di Ritiro pagandone il costo»: in Preparazione propria, al costo stampato",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -184,6 +186,8 @@ module Rubyfront
       "§3.1 The Rubyfront/Nexus “the first time each of your turns you assign an Object”: top and bottom of the deck, swapped (then draw and discard) or one to hand and the other to Retire",
       "§8.2 Certified effects: “when that Entity dies, this Object to Retire instead of the Abyss; then another Object from Retire onto an unarmed one, for free”",
       "§3.1 The Nexus's call to the Front: an Entity from hand at no cost, with Surge, and +N to the next attackers this turn",
+      "§8.2 Certified effects: “when it enters the Front, you may put an Object from hand into Retire: if you do, draw”; “when its bearer attacks, with the d6 another Object into Retire: if you do, draw”",
+      "§6.2 An Object that says “you may put me into the Retire Zone by paying its cost”: in your own Preparation, at the printed cost",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -1550,6 +1554,7 @@ module Rubyfront
         return ref["follow"] == "rearm" ? judge_death_rearm(action, ref) : judge_remain(action, ref)
       end
       return judge_flip_effect(action, ref) if ref["event"] == "on_flip"
+      return judge_sheathe(action, ref) if ref["event"] == "on_ability" && ref["follow"] == "sheathe"
       return judge_ability_effect(action, ref) if ref["event"] == "on_ability"
       if ref["event"] == "on_attack"
         case kind
@@ -1564,7 +1569,9 @@ module Rubyfront
       if kind == "toZone" && ref["event"] == "on_enter_field"
         return judge_enter_disarm(action, ref) if ref["follow"] == "disarm"
         return judge_enter_rearm(action, ref) if ref["follow"] == "rearm"
+        return judge_enter_stash(action, ref) if ref["follow"] == "stash"
       end
+      return judge_enter_stash_draw(action, ref) if kind == "draw" && ref["event"] == "on_enter_field" && ref["follow"] == "draw"
       return judge_effect_move(action, ref) if kind == "toZone"
       return judge_effect_look(action, ref) if kind == "look"
       return judge_effect_control(action, ref) if kind == "control"
@@ -2033,7 +2040,9 @@ module Rubyfront
       allow("draw")
     end
 
-    # Il Nexus, il seguito della cura: «pesca una carta, poi scarta».
+    # Il seguito «se lo fai, pesca»: la cura del Nexus («pesca una carta, poi
+    # scarta») o lo scarto d'Oggetto all'attacco (dal 2026-09-15): la pesca
+    # passa solo dopo il passo che la promette, una volta per attacco.
     def judge_attack_heal_draw(action, ref)
       source = @table.card(ref["source"])
       return refuse("draw", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
@@ -2041,9 +2050,14 @@ module Rubyfront
       known = @cards[source[:card_id]]
       return no_rule("draw") unless known
 
-      form = Array(known[:attack_forms]).find { |candidate| candidate[:kind] == "heal" && candidate[:face] == (source[:face] || 0) && candidate[:then_draw].to_i.positive? }
-      return refuse("draw", "la carta non ha un effetto certificato che peschi dopo la cura (§8.2)", "the card has no certified effect that draws after the heal (§8.2)") unless form
-      return refuse("draw", "prima i PV, poi la pesca (§8.2)", "HP first, then the draw (§8.2)") unless @table.fired?(ref["source"], "on_attack:heal", "turn")
+      forms = Array(known[:attack_forms]).select { |candidate| candidate[:face] == (source[:face] || 0) && candidate[:then_draw].to_i.positive? }
+      form = forms.find { |candidate| candidate[:kind] == "heal" } || forms.find { |candidate| candidate[:kind] == "stash" }
+      return refuse("draw", "la carta non ha un effetto certificato che peschi come seguito (§8.2)", "the card has no certified effect that draws as a follow-up (§8.2)") unless form
+      if form[:kind] == "stash"
+        return refuse("draw", "prima l'Oggetto in Ritiro, poi la pesca: «se lo fai» (§8.2)", "the Object to Retire first, then the draw: “if you do” (§8.2)") unless @table.fired?(ref["source"], "on_attack:stash", ref["entering"])
+      else
+        return refuse("draw", "prima i PV, poi la pesca (§8.2)", "HP first, then the draw (§8.2)") unless @table.fired?(ref["source"], "on_attack:heal", "turn")
+      end
       return refuse("draw", "questo seguito è già stato risolto (§8.2)", "this follow-up has already been resolved (§8.2)") if attack_fired?(action, ref)
       return refuse("draw", "si pesca #{form[:then_draw]} (§8.2)", "you draw #{form[:then_draw]} (§8.2)") unless action["count"] == form[:then_draw]
       return refuse("draw", "pesca chi comanda la fonte, dal proprio mazzo (§8.2)", "whoever commands the source draws, from their own deck (§8.2)") unless action["seat"] == @table.controller_of(source)
@@ -2082,6 +2096,7 @@ module Rubyfront
       return judge_effect_discard(action, ref) if action["zone"] == "ritiro" && ref["follow"] == "discard"
       if ref["event"] == "on_attack"
         return judge_attack_recall(action, ref) if ref["follow"] == "recall"
+        return judge_attack_stash(action, ref) if ref["follow"] == "stash"
         return judge_attack_rearm(action, ref) if action.key?("assignTo")
         return judge_attack_return(action, ref) if action["zone"] == "field" && action.key?("roll")
       end
@@ -3180,6 +3195,125 @@ module Rubyfront
       end
 
       allow("toZone")
+    end
+
+    # §8.2 — lo scarto d'Oggetto all'ingresso (dal 2026-09-15): «quando entra
+    # sul Fronte, puoi mettere un Oggetto dalla tua mano nella tua Zona di
+    # Ritiro»: la fonte è entrata questo turno e ha la forma, l'Oggetto sta
+    # nella mano di chi la comanda, la destinazione è il Ritiro, una volta
+    # per ingresso. Il «se lo fai, pesca» è il seguito (judge_enter_stash_draw).
+    def judge_enter_stash(action, ref)
+      source = @table.card(ref["source"])
+      return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+      return refuse("toZone", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless ref["entering"] == ref["source"] && source[:entered] == @table.turn
+
+      known = @cards[source[:card_id]]
+      return no_rule("toZone") unless known
+      form = Array(known[:enter_stashes]).first
+      return refuse("toZone", "la carta non ha un effetto certificato che metta un Oggetto dalla mano in Ritiro all'ingresso (§8.2)", "the card has no certified effect that puts an Object from hand into Retire on entry (§8.2)") unless form
+      return refuse("toZone", "l'Oggetto va nella propria Zona di Ritiro (§8.2)", "the Object goes into your own Retire Zone (§8.2)") unless action["zone"] == form[:to]
+      return refuse("toZone", "questo innesco è già stato risolto per quell'ingresso (§8.2)", "this trigger has already been resolved for that entry (§8.2)") if @table.fired?(ref["source"], fired_event(ref), ref["entering"])
+
+      seat = @table.controller_of(source)
+      object = @table.card(action["uid"])
+      entry = object && @cards[object[:card_id]]
+      return refuse("toZone", "il bersaglio dell'effetto non esiste (§8.2)", "the effect's target doesn't exist (§8.2)") unless object
+      return no_rule("toZone") unless entry
+      unless entry[:type] == form[:type] && object[:zone] == form[:from] && object[:owner] == seat
+        return refuse("toZone", "si mette in Ritiro un Oggetto dalla PROPRIA mano (§8.2)", "you put into Retire an Object from your OWN hand (§8.2)")
+      end
+
+      allow("toZone")
+    end
+
+    # §8.2 — «se lo fai, pesca una carta»: il seguito dello scarto d'Oggetto
+    # all'ingresso, dopo il passo che lo promette, una volta, tante carte
+    # quante dice la forma, a chi comanda la fonte.
+    def judge_enter_stash_draw(action, ref)
+      source = @table.card(ref["source"])
+      return refuse("draw", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+      return refuse("draw", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless ref["entering"] == ref["source"] && source[:entered] == @table.turn
+
+      known = @cards[source[:card_id]]
+      return no_rule("draw") unless known
+      form = Array(known[:enter_stashes]).find { |candidate| candidate[:then_draw].to_i.positive? }
+      return refuse("draw", "la carta non ha un effetto certificato che peschi come seguito (§8.2)", "the card has no certified effect that draws as a follow-up (§8.2)") unless form
+      return refuse("draw", "prima l'Oggetto in Ritiro, poi la pesca: «se lo fai» (§8.2)", "the Object to Retire first, then the draw: “if you do” (§8.2)") unless @table.fired?(ref["source"], "on_enter_field:stash", ref["entering"])
+      return refuse("draw", "questo seguito è già stato risolto (§8.2)", "this follow-up has already been resolved (§8.2)") if @table.fired?(ref["source"], fired_event(ref), ref["entering"])
+      return refuse("draw", "si pesca #{form[:then_draw]} (§8.2)", "you draw #{form[:then_draw]} (§8.2)") unless action["count"] == form[:then_draw]
+      return refuse("draw", "pesca chi comanda la fonte, dal proprio mazzo (§8.2)", "whoever commands the source draws, from their own deck (§8.2)") unless action["seat"] == @table.controller_of(source)
+
+      allow("draw")
+    end
+
+    # §8.2 — lo scarto d'Oggetto all'attacco (dal 2026-09-15): «quando
+    # l'Entità a cui è assegnato attacca, lancia un d6: con 4–6 puoi mettere
+    # un altro Oggetto che controlli nella tua Zona di Ritiro»: il contesto
+    # d'attacco, l'Oggetto addosso a chi attacca, il tiro nell'azione dentro
+    # la fascia, il bersaglio un ALTRO Oggetto in campo comandato dallo
+    # stesso posto, la destinazione il Ritiro. La pesca segue (heal_draw).
+    def judge_attack_stash(action, ref)
+      stopped, source, attacker, forms = attack_context("toZone", action, ref)
+      return stopped if stopped
+
+      form = forms.find { |candidate| candidate[:kind] == "stash" }
+      return refuse("toZone", "la carta non ha un effetto certificato che metta un Oggetto in Ritiro quando attacca (§8.2)", "the card has no certified effect that puts an Object into Retire when it attacks (§8.2)") unless form
+
+      stopped = attack_relation_stopped("toZone", form, ref, source, attacker)
+      return stopped if stopped
+
+      return refuse("toZone", "l'Oggetto va nella propria Zona di Ritiro (§8.2)", "the Object goes into your own Retire Zone (§8.2)") unless action["zone"] == "ritiro"
+      roll = action["roll"]
+      return refuse("toZone", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      return refuse("toZone", "con #{roll} nessun Oggetto va in Ritiro (§8.2)", "with #{roll} no Object goes to Retire (§8.2)") unless in_range?(roll, form[:on_roll])
+
+      seat = @table.controller_of(source)
+      object = @table.card(action["uid"])
+      entry = object && @cards[object[:card_id]]
+      return refuse("toZone", "il bersaglio dell'effetto non esiste (§8.2)", "the effect's target doesn't exist (§8.2)") unless object
+      return no_rule("toZone") unless entry
+      return refuse("toZone", "«un altro Oggetto»: non questo (§8.2)", "“another Object”: not this one (§8.2)") if form[:other] && action["uid"] == ref["source"]
+      unless entry[:type] == "object" && object[:zone] == "field" && @table.controller_of(object) == seat
+        return refuse("toZone", "si mette in Ritiro un Oggetto che controlli, in campo (§8.2)", "you put into Retire an Object you control, on the field (§8.2)")
+      end
+
+      allow("toZone")
+    end
+
+    # §6.2/§3.2 — l'Oggetto che dice «puoi mettermi nella tua Zona di Ritiro
+    # pagandone il costo di Flusso» (dal 2026-09-15): un `toZone` in Ritiro
+    # marcato `on_ability` + `follow: "sheathe"`, con `cost` pari al costo
+    # stampato e il Flusso che lo copre, nella finestra della forma — la
+    # Preparazione propria, come il Ritiro (§6.2). Fonte e bersaglio sono la
+    # carta stessa, in campo. Carta ignota all'anagrafe: silenzio.
+    def judge_sheathe(action, ref)
+      kind = action["t"]
+      return refuse(kind, "l'Oggetto si mette nella propria Zona di Ritiro (§6.2)", "the Object goes into your own Retire Zone (§6.2)") unless kind == "toZone" && action["zone"] == "ritiro"
+      return refuse(kind, "l'effetto ha per fonte la carta stessa (§8.2)", "the effect's source is the card itself (§8.2)") unless ref["source"] == action["uid"] && ref["entering"] == action["uid"]
+
+      card = @table.card(action["uid"])
+      return no_rule(kind) unless card
+
+      known = @cards[card[:card_id]]
+      return no_rule(kind) unless known
+      form = Array(known[:self_retires]).first
+      return refuse(kind, "la carta non ha un effetto certificato che la metta in Zona di Ritiro pagandone il costo (§6.2)", "the card has no certified effect that puts it into the Retire Zone by paying its cost (§6.2)") unless form
+      return refuse(kind, "l'Oggetto dev'essere in campo (§6.2)", "the Object must be on the field (§6.2)") unless card[:zone] == "field"
+
+      seat = card[:owner]
+      return refuse(kind, "un Oggetto preso in controllo con la sua Entità non è tuo da mettere in Ritiro (§8.2)", "an Object taken in control with its Entity isn't yours to put into Retire (§8.2)") unless @table.controller_of(card) == seat
+      unless @table.active == seat && form[:timing].include?(@table.phase)
+        return refuse(kind, "l'Oggetto si mette in Ritiro nella propria Preparazione, come il Ritiro (§6.2)", "the Object goes into Retire in your own Preparation, like retiring (§6.2)")
+      end
+
+      cost = known[:flux_cost]
+      return no_rule(kind) unless cost
+      paid = action["cost"]
+      return refuse(kind, "si paga il costo stampato: #{cost} di Flusso, l'azione ne paga #{paid.is_a?(Integer) ? paid : 0} (§3.2)", "the printed cost is paid: #{cost} Flux, the action pays #{paid.is_a?(Integer) ? paid : 0} (§3.2)") unless paid == cost
+      available = @table.available(seat)
+      return refuse(kind, "Flusso insufficiente: ne hai #{available}, metterlo in Ritiro costa #{cost} (§3.2)", "not enough Flux: you have #{available}, putting it into Retire costs #{cost} (§3.2)") if available < cost
+
+      allow(kind)
     end
 
     # §8.2 — il ritorno vincolato: la carta ha la forma, è appena uscita

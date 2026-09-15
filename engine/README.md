@@ -1113,6 +1113,39 @@ Regole collegate finora:
   sull'Oggetto come nel ritorno vincolato): la dogana rifiuta l'Oggetto più
   caro, la pila del client non lo propone. Engine 0.73.0.
 
+- **§8.2 «Quando entra sul Fronte, puoi mettere un Oggetto dalla mano in
+  Ritiro: se lo fai, pesca», «quando attacca l'Entità che lo porta, col d6
+  un altro Oggetto in Ritiro: se lo fai, pesca», e §6.2 l'Oggetto che «si
+  mette in Ritiro pagandone il costo»** (2026-09-15, il foglio del designer
+  torna fonte di verità: tre carte del mazzo equip cambiano). Tre forme
+  certificate. Lo scarto d'Oggetto all'ingresso (`enter_stashes`: `move_card`
+  facoltativo di un Oggetto dalla propria mano al proprio Ritiro, con
+  `thenDrawCards` solo a 1): un `toZone` in Ritiro marcato `follow: "stash"`
+  nel turno d'ingresso della fonte, una volta per ingresso, con l'Oggetto
+  nella mano di chi la comanda (`judge_enter_stash`); poi la pesca marcata
+  `follow: "draw"` (`judge_enter_stash_draw`), che passa solo dopo lo scarto
+  («se lo fai»), una volta, di una carta, a chi comanda la fonte. Lo scarto
+  d'Oggetto all'attacco (`attack_forms` `{ kind: "stash", who: "object",
+  die:, on_roll:, other: true, then_draw: }`): nel contesto d'attacco, con
+  l'Oggetto addosso a chi attacca, il `toZone` in Ritiro porta il tiro
+  (`roll`, verificato nella forma e nella fascia, non nella fortuna) e
+  bersaglia un **altro** Oggetto in campo comandato dallo stesso posto
+  (`judge_attack_stash`); la pesca che segue passa per lo stesso seguito
+  della cura del Nexus (`judge_attack_heal_draw`, che ora accetta anche la
+  forma `stash` e pretende il passo prima). Il ritiro a pagamento
+  (`self_retires`: un'azione con `move_card` di sé verso il proprio Ritiro
+  e `cost: { flux: "printed" }`, finestra `own_preparation`): un `toZone` in
+  Ritiro marcato `on_ability` + `follow: "sheathe"` con `cost` pari al costo
+  stampato, giudicato da `judge_sheathe` — Oggetto in campo, proprio e non
+  preso in controllo, nella propria Preparazione (come il Ritiro, §6.2), col
+  Flusso che lo copre — e pagato nei due gemelli (`to_zone`/`toZone`: dal
+  campo alla Zona di Ritiro col costo nell'azione). Limiti dichiarati: la
+  finestra del ritiro a pagamento è la sola Preparazione propria (la carta
+  non dice quando: scelta come per il Ritiro, da confermare col designer);
+  l'ordine dei passi (l'Oggetto, poi la pesca) lo tiene il client, la dogana
+  pretende solo che la pesca venga dopo; un Oggetto senza queste forme che
+  finisse in Ritiro da solo resta fermato dal §6.2. Engine 0.74.0.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `core/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.

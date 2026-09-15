@@ -10,7 +10,7 @@
 
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
 import type { AssignForm, AttackForm, DeathForm, FlipForm, ResolveForm } from "./ctx.js";
-import type { CardFacts, Ctx, EnterLook, EnterRefresh } from "./ctx.js";
+import type { CardFacts, Ctx, EnterLook, EnterRefresh, EnterStash } from "./ctx.js";
 import { STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, zoneCards, freeFrontSlotOrNull } from "./state.js";
 import { countEntities } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
@@ -424,6 +424,46 @@ export async function resolveDisarm(ctx: Ctx, step: EnterDisarmStep, object: Car
   return passed;
 }
 
+/** Uno scarto d'Oggetto all'ingresso da risolvere (§8.2): la fonte e gli Oggetti nella mano di chi la comanda. */
+export interface EnterStashStep {
+  source: CardInstance;
+  to: EnterStash["to"];
+  thenDraw: number;
+  candidates: CardInstance[];
+}
+
+/**
+ * Gli scarti d'Oggetto di chi entra (§8.2, dal 2026-09-15): «puoi mettere
+ * un Oggetto dalla tua mano nella tua Zona di Ritiro. Se lo fai, pesca una
+ * carta». I candidati sono gli Oggetti nella mano di chi comanda la fonte.
+ */
+export function enterStashes(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterStashStep[] {
+  const by = controllerOf(entering);
+  return facts(entering.cardId).enterStashes.map(form => ({
+    source: entering,
+    to: form.to,
+    thenDraw: form.thenDraw,
+    candidates: zoneCards(state, by, form.from).filter(card => facts(card.cardId).kind === form.kind),
+  }));
+}
+
+/** Il riferimento dello scarto d'Oggetto all'ingresso: lo scarto stesso, o la pesca che lo segue. */
+export function stashRef(step: EnterStashStep, follow: "stash" | "draw"): EffectRef {
+  return { source: step.source.uid, event: "on_enter_field", entering: step.source.uid, follow };
+}
+
+/** L'Oggetto scelto va dalla mano nella propria Zona di Ritiro, marcato come effetto. */
+export async function resolveStash(ctx: Ctx, step: EnterStashStep, object: CardInstance): Promise<boolean> {
+  const passed = await ctx.dispatch({ t: "toZone", uid: object.uid, zone: step.to, effect: stashRef(step, "stash") });
+  if (passed) ctx.log(msg("log.effect.stash", { seat: controllerOf(step.source), sourceCard: step.source.cardId, card: object.cardId }), controllerOf(step.source));
+  return passed;
+}
+
+/** La riga che annuncia lo scarto d'Oggetto all'ingresso, per la scena. */
+export function describeStash(step: EnterStashStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.stash", { card: `«${facts(step.source.cardId).name}»` });
+}
+
 /**
  * Lo z di un Oggetto che va addosso a un'Entità: sotto di lei e sotto gli
  * Oggetti che già porta, a scaletta (come il rilascio a mano, dropZ in
@@ -779,6 +819,7 @@ export function describeAttackStep(step: AttackStep, facts: (cardId: string) => 
       return t("trigger.mend", { card, n: form.amount, die: form.die ?? 0, lo: form.onRoll?.[0] ?? 0, hi: form.onRoll?.[1] ?? 0 });
     case "return": return t("trigger.recall", { card, die: form.die, lo: form.onRoll[0], hi: form.onRoll[1] });
     case "rearm": return t("trigger.rearm", { card });
+    case "stash": return t("trigger.purge", { card, die: form.die, lo: form.onRoll[0], hi: form.onRoll[1] });
   }
 }
 

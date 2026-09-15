@@ -3775,7 +3775,7 @@
             "it": {
               "name": "Recluta del Campo",
               "typeLabel": "Entità: Auros",
-              "summary": "Un corpo da un Flusso che cresce appena gli metti in mano qualcosa.",
+              "summary": "Un corpo da un Flusso che mette un Oggetto in Ritiro e pesca.",
               "ui": {
                 "face": "Entità"
               },
@@ -3791,16 +3791,17 @@
               },
               "face": {
                 "name": "Recluta del Campo",
-                "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
-                "effect": {
-                  "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
-                }
+                "stash": {
+                  "trigger": "Quando entra sul Fronte",
+                  "text": "Puoi mettere un Oggetto dalla tua mano nella tua Zona di Ritiro. Se lo fai, pesca una carta."
+                },
+                "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
               }
             },
             "en": {
               "name": "Camp Recruit",
               "typeLabel": "Entity: Auros",
-              "summary": "A one-Flux body that grows the moment you put something in its hands.",
+              "summary": "A one-Flux body that puts an Object into Retire and draws.",
               "ui": {
                 "face": "Entity"
               },
@@ -3816,10 +3817,11 @@
               },
               "face": {
                 "name": "Camp Recruit",
-                "flavor": "The first weapon was patience. The Camp handed over the second.",
-                "effect": {
-                  "text": "If this Entity has an Object assigned, it has +1 Power."
-                }
+                "stash": {
+                  "trigger": "When it enters the Front",
+                  "text": "You may put an Object from your hand into your Retire Zone. If you do, draw a card."
+                },
+                "flavor": "The first weapon was patience. The Camp handed over the second."
               }
             }
           },
@@ -3827,9 +3829,11 @@
             "entity",
             "auros",
             "equip",
-            "aggro"
+            "aggro",
+            "draw",
+            "retire"
           ],
-          "rulesReference": "MANUALE.md §3.1, §8.2",
+          "rulesReference": "MANUALE.md §3.1, §5, §8.2",
           "faces": [
             {
               "id": "entity",
@@ -3850,17 +3854,30 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "grip",
-                  "displayKey": "effect",
-                  "event": "while_in_play",
+                  "id": "stash",
+                  "displayKey": "stash",
+                  "event": "on_enter_field",
                   "effect": {
-                    "type": "modify_power",
+                    "type": "move_card",
+                    "optional": true,
                     "target": {
-                      "scope": "self"
+                      "cardType": "object",
+                      "controller": "controller",
+                      "zone": "hand",
+                      "min": 1,
+                      "max": 1,
+                      "owner": "controller"
                     },
-                    "amount": 1,
+                    "from": {
+                      "zone": "hand",
+                      "owner": "controller"
+                    },
+                    "destination": {
+                      "zone": "retire",
+                      "owner": "controller"
+                    },
                     "details": {
-                      "whileHasObjectAssigned": true
+                      "thenDrawCards": 1
                     }
                   }
                 }
@@ -4894,7 +4911,7 @@
             "it": {
               "name": "Spada Dimensionale",
               "typeLabel": "Oggetto",
-              "summary": "L'equipaggiamento base: un Flusso, una Potenza.",
+              "summary": "L'equipaggiamento base: un Flusso, una Potenza — e si mette in Ritiro pagandolo.",
               "ui": {
                 "face": "Oggetto"
               },
@@ -4907,7 +4924,7 @@
                 "name": "Spada Dimensionale",
                 "effect": {
                   "name": "Effetto",
-                  "text": "L'Entità a cui è assegnata ha +1 Potenza."
+                  "text": "L'Entità a cui è assegnata ha +1 Potenza. Puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo di Flusso."
                 },
                 "flavor": "Taglia dove il mondo è già sottile."
               }
@@ -4915,7 +4932,7 @@
             "en": {
               "name": "Dimensional Sword",
               "typeLabel": "Object",
-              "summary": "The basic equipment: one Flux, one Power.",
+              "summary": "The basic equipment: one Flux, one Power — and it goes to Retire by paying for it.",
               "ui": {
                 "face": "Object"
               },
@@ -4928,7 +4945,7 @@
                 "name": "Dimensional Sword",
                 "effect": {
                   "name": "Effect",
-                  "text": "The Entity it is assigned to has +1 Power."
+                  "text": "The Entity it is assigned to has +1 Power. You may put this Object into your Retire Zone by paying its Flux cost."
                 },
                 "flavor": "It cuts where the world is already thin."
               }
@@ -4938,9 +4955,10 @@
             "object",
             "auros",
             "equip",
-            "pump"
+            "pump",
+            "retire"
           ],
-          "rulesReference": "MANUALE.md §3.1, §6.2",
+          "rulesReference": "MANUALE.md §3.1, §3.2, §6.2",
           "faces": [
             {
               "id": "object",
@@ -4966,7 +4984,29 @@
                   }
                 }
               ],
-              "actions": [],
+              "actions": [
+                {
+                  "id": "sheathe",
+                  "displayKey": "effect",
+                  "timing": [
+                    "own_preparation"
+                  ],
+                  "repeatable": false,
+                  "cost": {
+                    "flux": "printed"
+                  },
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "scope": "self"
+                    },
+                    "destination": {
+                      "zone": "retire",
+                      "owner": "controller"
+                    }
+                  }
+                }
+              ],
               "assignRestriction": {
                 "cardType": "entity",
                 "controller": "controller"
@@ -5108,7 +5148,7 @@
             "it": {
               "name": "Catalizzatore Sigma",
               "typeLabel": "Oggetto",
-              "summary": "Un Oggetto che spinge l'attacco e pesca Materie dal mazzo.",
+              "summary": "Un Oggetto che spinge l'attacco e converte un altro Oggetto in una carta.",
               "ui": {
                 "face": "Oggetto"
               },
@@ -5121,7 +5161,7 @@
                 "name": "Catalizzatore Sigma",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 5–6 guarda le prime 4 carte del tuo mazzo, puoi mostrare una Materia tra esse e aggiungerla alla tua mano, e metti le altre nella tua Zona di Ritiro."
+                  "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 4–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta."
                 },
                 "flavor": "Brucia piano. Rivela in fretta."
               }
@@ -5129,7 +5169,7 @@
             "en": {
               "name": "Sigma Catalyst",
               "typeLabel": "Object",
-              "summary": "An Object that fuels the attack and digs Matters from the deck.",
+              "summary": "An Object that fuels the attack and turns another Object into a card.",
               "ui": {
                 "face": "Object"
               },
@@ -5142,7 +5182,7 @@
                 "name": "Sigma Catalyst",
                 "effect": {
                   "name": "Effect",
-                  "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 5–6 look at the top 4 cards of your deck, you may reveal a Matter among them and add it to your hand, and put the others into your Retire Zone."
+                  "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 4–6 you may put another Object you control into your Retire Zone. If you do, draw a card."
                 },
                 "flavor": "Burns slowly. Reveals quickly."
               }
@@ -5153,7 +5193,8 @@
             "auros",
             "equip",
             "die",
-            "retire"
+            "retire",
+            "draw"
           ],
           "rulesReference": "MANUALE.md §3.1, §6.2",
           "faces": [
@@ -5162,7 +5203,7 @@
               "kind": "object",
               "displayKey": "face",
               "stats": {
-                "fluxCost": 3
+                "fluxCost": 2
               },
               "enablesMatters": [],
               "keywords": [],
@@ -5185,34 +5226,34 @@
                   }
                 },
                 {
-                  "id": "sift",
+                  "id": "purge",
                   "displayKey": "effect",
                   "event": "on_attack",
                   "details": {
                     "whenAssignedAttacks": true
                   },
                   "effect": {
-                    "type": "look_and_optionally_move",
-                    "from": {
-                      "zone": "deck",
-                      "owner": "controller",
-                      "position": "top",
-                      "count": 4
+                    "type": "move_card",
+                    "optional": true,
+                    "target": {
+                      "cardType": "object",
+                      "controller": "controller",
+                      "zone": "front",
+                      "min": 1,
+                      "max": 1,
+                      "details": {
+                        "other": true
+                      },
+                      "owner": "controller"
+                    },
+                    "destination": {
+                      "zone": "retire",
+                      "owner": "controller"
                     },
                     "details": {
                       "die": "d6",
-                      "onlyOnRoll": "5-6",
-                      "mayReveal": {
-                        "cardType": "matter"
-                      },
-                      "revealTo": {
-                        "zone": "hand",
-                        "owner": "controller"
-                      },
-                      "restTo": {
-                        "zone": "retire",
-                        "owner": "controller"
-                      }
+                      "onlyOnRoll": "4-6",
+                      "thenDrawCards": 1
                     }
                   }
                 }
@@ -10328,7 +10369,7 @@
         "it": {
           "name": "Recluta del Campo",
           "typeLabel": "Entità: Auros",
-          "summary": "Un corpo da un Flusso che cresce appena gli metti in mano qualcosa.",
+          "summary": "Un corpo da un Flusso che mette un Oggetto in Ritiro e pesca.",
           "ui": {
             "face": "Entità"
           },
@@ -10344,16 +10385,17 @@
           },
           "face": {
             "name": "Recluta del Campo",
-            "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
-            "effect": {
-              "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
-            }
+            "stash": {
+              "trigger": "Quando entra sul Fronte",
+              "text": "Puoi mettere un Oggetto dalla tua mano nella tua Zona di Ritiro. Se lo fai, pesca una carta."
+            },
+            "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
           }
         },
         "en": {
           "name": "Camp Recruit",
           "typeLabel": "Entity: Auros",
-          "summary": "A one-Flux body that grows the moment you put something in its hands.",
+          "summary": "A one-Flux body that puts an Object into Retire and draws.",
           "ui": {
             "face": "Entity"
           },
@@ -10369,10 +10411,11 @@
           },
           "face": {
             "name": "Camp Recruit",
-            "flavor": "The first weapon was patience. The Camp handed over the second.",
-            "effect": {
-              "text": "If this Entity has an Object assigned, it has +1 Power."
-            }
+            "stash": {
+              "trigger": "When it enters the Front",
+              "text": "You may put an Object from your hand into your Retire Zone. If you do, draw a card."
+            },
+            "flavor": "The first weapon was patience. The Camp handed over the second."
           }
         }
       },
@@ -10380,9 +10423,11 @@
         "entity",
         "auros",
         "equip",
-        "aggro"
+        "aggro",
+        "draw",
+        "retire"
       ],
-      "rulesReference": "MANUALE.md §3.1, §8.2",
+      "rulesReference": "MANUALE.md §3.1, §5, §8.2",
       "faces": [
         {
           "id": "entity",
@@ -10403,17 +10448,30 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "grip",
-              "displayKey": "effect",
-              "event": "while_in_play",
+              "id": "stash",
+              "displayKey": "stash",
+              "event": "on_enter_field",
               "effect": {
-                "type": "modify_power",
+                "type": "move_card",
+                "optional": true,
                 "target": {
-                  "scope": "self"
+                  "cardType": "object",
+                  "controller": "controller",
+                  "zone": "hand",
+                  "min": 1,
+                  "max": 1,
+                  "owner": "controller"
                 },
-                "amount": 1,
+                "from": {
+                  "zone": "hand",
+                  "owner": "controller"
+                },
+                "destination": {
+                  "zone": "retire",
+                  "owner": "controller"
+                },
                 "details": {
-                  "whileHasObjectAssigned": true
+                  "thenDrawCards": 1
                 }
               }
             }
@@ -11447,7 +11505,7 @@
         "it": {
           "name": "Spada Dimensionale",
           "typeLabel": "Oggetto",
-          "summary": "L'equipaggiamento base: un Flusso, una Potenza.",
+          "summary": "L'equipaggiamento base: un Flusso, una Potenza — e si mette in Ritiro pagandolo.",
           "ui": {
             "face": "Oggetto"
           },
@@ -11460,7 +11518,7 @@
             "name": "Spada Dimensionale",
             "effect": {
               "name": "Effetto",
-              "text": "L'Entità a cui è assegnata ha +1 Potenza."
+              "text": "L'Entità a cui è assegnata ha +1 Potenza. Puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo di Flusso."
             },
             "flavor": "Taglia dove il mondo è già sottile."
           }
@@ -11468,7 +11526,7 @@
         "en": {
           "name": "Dimensional Sword",
           "typeLabel": "Object",
-          "summary": "The basic equipment: one Flux, one Power.",
+          "summary": "The basic equipment: one Flux, one Power — and it goes to Retire by paying for it.",
           "ui": {
             "face": "Object"
           },
@@ -11481,7 +11539,7 @@
             "name": "Dimensional Sword",
             "effect": {
               "name": "Effect",
-              "text": "The Entity it is assigned to has +1 Power."
+              "text": "The Entity it is assigned to has +1 Power. You may put this Object into your Retire Zone by paying its Flux cost."
             },
             "flavor": "It cuts where the world is already thin."
           }
@@ -11491,9 +11549,10 @@
         "object",
         "auros",
         "equip",
-        "pump"
+        "pump",
+        "retire"
       ],
-      "rulesReference": "MANUALE.md §3.1, §6.2",
+      "rulesReference": "MANUALE.md §3.1, §3.2, §6.2",
       "faces": [
         {
           "id": "object",
@@ -11519,7 +11578,29 @@
               }
             }
           ],
-          "actions": [],
+          "actions": [
+            {
+              "id": "sheathe",
+              "displayKey": "effect",
+              "timing": [
+                "own_preparation"
+              ],
+              "repeatable": false,
+              "cost": {
+                "flux": "printed"
+              },
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "scope": "self"
+                },
+                "destination": {
+                  "zone": "retire",
+                  "owner": "controller"
+                }
+              }
+            }
+          ],
           "assignRestriction": {
             "cardType": "entity",
             "controller": "controller"
@@ -11661,7 +11742,7 @@
         "it": {
           "name": "Catalizzatore Sigma",
           "typeLabel": "Oggetto",
-          "summary": "Un Oggetto che spinge l'attacco e pesca Materie dal mazzo.",
+          "summary": "Un Oggetto che spinge l'attacco e converte un altro Oggetto in una carta.",
           "ui": {
             "face": "Oggetto"
           },
@@ -11674,7 +11755,7 @@
             "name": "Catalizzatore Sigma",
             "effect": {
               "name": "Effetto",
-              "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 5–6 guarda le prime 4 carte del tuo mazzo, puoi mostrare una Materia tra esse e aggiungerla alla tua mano, e metti le altre nella tua Zona di Ritiro."
+              "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 4–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta."
             },
             "flavor": "Brucia piano. Rivela in fretta."
           }
@@ -11682,7 +11763,7 @@
         "en": {
           "name": "Sigma Catalyst",
           "typeLabel": "Object",
-          "summary": "An Object that fuels the attack and digs Matters from the deck.",
+          "summary": "An Object that fuels the attack and turns another Object into a card.",
           "ui": {
             "face": "Object"
           },
@@ -11695,7 +11776,7 @@
             "name": "Sigma Catalyst",
             "effect": {
               "name": "Effect",
-              "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 5–6 look at the top 4 cards of your deck, you may reveal a Matter among them and add it to your hand, and put the others into your Retire Zone."
+              "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 4–6 you may put another Object you control into your Retire Zone. If you do, draw a card."
             },
             "flavor": "Burns slowly. Reveals quickly."
           }
@@ -11706,7 +11787,8 @@
         "auros",
         "equip",
         "die",
-        "retire"
+        "retire",
+        "draw"
       ],
       "rulesReference": "MANUALE.md §3.1, §6.2",
       "faces": [
@@ -11715,7 +11797,7 @@
           "kind": "object",
           "displayKey": "face",
           "stats": {
-            "fluxCost": 3
+            "fluxCost": 2
           },
           "enablesMatters": [],
           "keywords": [],
@@ -11738,34 +11820,34 @@
               }
             },
             {
-              "id": "sift",
+              "id": "purge",
               "displayKey": "effect",
               "event": "on_attack",
               "details": {
                 "whenAssignedAttacks": true
               },
               "effect": {
-                "type": "look_and_optionally_move",
-                "from": {
-                  "zone": "deck",
-                  "owner": "controller",
-                  "position": "top",
-                  "count": 4
+                "type": "move_card",
+                "optional": true,
+                "target": {
+                  "cardType": "object",
+                  "controller": "controller",
+                  "zone": "front",
+                  "min": 1,
+                  "max": 1,
+                  "details": {
+                    "other": true
+                  },
+                  "owner": "controller"
+                },
+                "destination": {
+                  "zone": "retire",
+                  "owner": "controller"
                 },
                 "details": {
                   "die": "d6",
-                  "onlyOnRoll": "5-6",
-                  "mayReveal": {
-                    "cardType": "matter"
-                  },
-                  "revealTo": {
-                    "zone": "hand",
-                    "owner": "controller"
-                  },
-                  "restTo": {
-                    "zone": "retire",
-                    "owner": "controller"
-                  }
+                  "onlyOnRoll": "4-6",
+                  "thenDrawCards": 1
                 }
               }
             }

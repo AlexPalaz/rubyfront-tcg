@@ -168,6 +168,8 @@ module Rubyfront
           enter_disarms: enter_disarms(faces).freeze,
           enter_rearms: enter_rearms(faces).freeze,
           leave_returns: leave_returns(faces).freeze,
+          enter_stashes: enter_stashes(faces).freeze,
+          self_retires: self_retires(faces).freeze,
           assign_forms: assign_forms(faces).freeze,
           death_forms: death_forms(faces).freeze,
           abilities: abilities(faces).freeze,
@@ -183,7 +185,7 @@ module Rubyfront
 
     # Tutti i parser delle forme certificate: ogni trigger di ogni carta
     # deve trovarne uno che lo riconosca, o è un effetto che l'engine ignora.
-    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls enter_refreshes enter_disarms enter_rearms leave_returns
+    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls enter_refreshes enter_disarms enter_rearms enter_stashes leave_returns
                attack_draws attack_forms grants_while_assigned static_forms resolve_forms flip_forms assign_forms death_forms].freeze
     RETURN_EVENTS = %w[on_enter_field on_attack].freeze
 
@@ -429,6 +431,7 @@ module Rubyfront
     #   { kind: "heal", who: "rubyfront", once:, requires_attackers:, amount:, then_draw:, then_discard: }
     #   { kind: "empower", who: "self", once:, targets: "next_human_attacker", grants: }
     #   { kind: "empower", who: "self", requires_previous_attackers:, targets: "opposing_entity", restrict: }
+    #   { kind: "stash", who: "object", die:, on_roll:, other: true, then_draw: } col dado, un altro Oggetto in Ritiro, poi pesca
     def self.attack_forms(faces)
       faces.each_with_index.flat_map do |face, index|
         Array(face["triggers"]).filter_map do |trigger|
@@ -440,7 +443,7 @@ module Rubyfront
 
           form = attack_untap(details, effect) || attack_empower(details, effect) || attack_look(details, effect) ||
                  attack_heal(details, effect) || attack_recall(details, effect) ||
-                 attack_rearm(details, effect) || attack_restrict(details, effect)
+                 attack_rearm(details, effect) || attack_restrict(details, effect) || attack_stash(details, effect)
           form && form.merge(face: index).freeze
         end
       end
@@ -594,6 +597,28 @@ module Rubyfront
       return nil unless own_target?(attacker, "entity") && attacker.dig("details", "hasObjectAssigned") == true
 
       { kind: "rearm", who: "ally", attacker_armed: true }
+    end
+
+    # Lo scarto d'Oggetto all'attacco (dal 2026-09-15): «quando l'Entità a
+    # cui è assegnato attacca, lancia un d6: con 4–6 puoi mettere un ALTRO
+    # Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una
+    # carta». Un `move_card` facoltativo di un Oggetto proprio in campo
+    # (`other: true`), verso il proprio Ritiro, col dado e la pesca a seguire.
+    def self.attack_stash(details, effect)
+      return nil unless details["whenAssignedAttacks"] == true && effect["type"] == "move_card" && effect["optional"] == true
+
+      target = effect["target"]
+      return nil unless own_target?(target, "object") && target["zone"] == "front" && target["min"] == 1 && target["max"] == 1
+      return nil unless target.dig("details", "other") == true
+      return nil unless effect.dig("destination", "zone") == "retire" && effect.dig("destination", "owner") == "controller"
+
+      extra = effect["details"].is_a?(Hash) ? effect["details"] : {}
+      die = die_faces(extra["die"])
+      on_roll = roll_range(extra["onlyOnRoll"])
+      then_draw = extra["thenDrawCards"]
+      return nil unless die && on_roll && [nil, 1].include?(then_draw)
+
+      { kind: "stash", who: "object", die: die, on_roll: on_roll, other: true, then_draw: then_draw || 0 }
     end
 
     # Il divieto di blocco: se almeno N Umani che controlli attaccano, un'Entità avversaria non blocca in questo turno.
@@ -1236,6 +1261,52 @@ module Rubyfront
         next unless effect.dig("details", "anyNumber") == true && effect.dig("details", "noFluxCost") == true
 
         { any: true }.freeze
+      end
+    end
+
+    # Lo scarto d'Oggetto all'ingresso (§8.2, dal 2026-09-15): «quando entra
+    # sul Fronte, puoi mettere un Oggetto dalla tua mano nella tua Zona di
+    # Ritiro. Se lo fai, pesca una carta». Un `move_card` facoltativo di un
+    # Oggetto dalla propria mano al proprio Ritiro, con la pesca a seguire
+    # (`thenDrawCards`, certificata solo a 1). Ogni voce: { from: "hand",
+    # type: "object", to: "ritiro", then_draw: }.
+    def self.enter_stashes(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "move_card" && effect["optional"] == true
+
+        target = effect["target"]
+        next unless own_target?(target, "object") && target["zone"] == "hand" && target["min"] == 1 && target["max"] == 1
+        next unless effect.dig("from", "zone") == "hand" && effect.dig("from", "owner") == "controller"
+        next unless effect.dig("destination", "zone") == "retire" && effect.dig("destination", "owner") == "controller"
+
+        then_draw = effect.dig("details", "thenDrawCards")
+        next unless then_draw.nil? || then_draw == 1
+
+        { from: "hand", type: "object", to: "ritiro", then_draw: then_draw || 0 }.freeze
+      end
+    end
+
+    # Il ritiro a pagamento di un Oggetto (§6.2, §3.2, dal 2026-09-15): «puoi
+    # mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo di
+    # Flusso». Un'azione (`actions`) con `move_card` di sé stesso verso il
+    # proprio Ritiro, costo `flux: "printed"` (quello stampato), nelle
+    # finestre dichiarate — certificata solo in Preparazione propria. Ogni
+    # voce: { cost: "printed", timing: ["preparazione"] }.
+    def self.self_retires(faces)
+      faces.flat_map { |face| Array(face["actions"]) }.filter_map do |action|
+        next unless action.is_a?(Hash) && action.dig("cost", "flux") == "printed"
+
+        effect = action["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "move_card" && effect.dig("target", "scope") == "self"
+        next unless effect.dig("destination", "zone") == "retire" && effect.dig("destination", "owner") == "controller"
+
+        timing = Array(action["timing"])
+        next unless timing == ["own_preparation"]
+
+        { cost: "printed", timing: ["preparazione"].freeze }.freeze
       end
     end
 

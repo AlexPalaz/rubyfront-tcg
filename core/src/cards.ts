@@ -8,7 +8,7 @@
 // grafica delle carte non sta qui: è di ciascun client.
 
 import type { Phase } from "./types.js";
-import type { AssignForm, CardFacts, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, StaticForm, Ability, AbilityForm } from "./ctx.js";
+import type { AssignForm, CardFacts, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, EnterStash, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, SelfRetire, StaticForm, Ability, AbilityForm } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -336,7 +336,7 @@ function attackFormsOf(faces: CardFace[]): AttackForm[] {
       if (!effect || typeof effect !== "object") continue;
       const form =
         attackUntap(details, effect) ?? attackEmpower(details, effect) ?? attackLook(details, effect) ?? attackHeal(details, effect) ??
-        attackRecall(details, effect) ?? attackRearm(details, effect) ?? attackRestrict(details, effect);
+        attackRecall(details, effect) ?? attackRearm(details, effect) ?? attackRestrict(details, effect) ?? attackStash(details, effect);
       if (form) out.push({ ...form, face: index } as AttackForm);
     }
   });
@@ -476,6 +476,26 @@ function attackRecall(details: Loose, effect: Loose): Unfaced<AttackForm> | null
   return die !== null && onRoll ? { kind: "return", who: "self", die, onRoll, filter: { kind: "entity", race: "human" }, joins: true } : null;
 }
 
+/**
+ * Lo scarto d'Oggetto all'attacco (dal 2026-09-15): «quando l'Entità a cui è
+ * assegnato attacca, lancia un d6: con 4–6 puoi mettere un altro Oggetto che
+ * controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta». Specchio
+ * di card_index.rb, attack_stash.
+ */
+function attackStash(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
+  if (details.whenAssignedAttacks !== true || effect.type !== "move_card" || effect.optional !== true) return null;
+  const target = effect.target as Loose | undefined;
+  if (!ownTarget(target, "object") || target.zone !== "front" || target.min !== 1 || target.max !== 1) return null;
+  if (target.details?.other !== true) return null;
+  if (effect.destination?.zone !== "retire" || effect.destination?.owner !== "controller") return null;
+  const extra = (effect.details ?? {}) as Loose;
+  const die = dieFaces(extra.die);
+  const onRoll = rollRange(extra.onlyOnRoll);
+  const thenDraw = extra.thenDrawCards;
+  if (die === null || onRoll === null || !(thenDraw === undefined || thenDraw === 1)) return null;
+  return { kind: "stash", who: "object", die, onRoll, other: true, thenDraw: thenDraw ?? 0 };
+}
+
 function attackRearm(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
   const attacker = details.attacker as Loose | undefined;
   if (effect.type !== "assign_object" || effect.optional !== true) return null;
@@ -579,6 +599,49 @@ function enterControlsOf(face: CardFace | undefined): EnterControl[] {
     if (!certified) continue;
     const grants = Array.isArray(effect.details?.grants) ? effect.details.grants.filter((g: unknown) => typeof g === "string") : [];
     out.push({ target: { kind: "entity", controller: "opponent", maxCost }, grants });
+  }
+  return out;
+}
+
+/**
+ * Gli scarti d'Oggetto all'ingresso certificati (§8.2, dal 2026-09-15):
+ * `move_card` facoltativo di un Oggetto dalla propria mano al proprio
+ * Ritiro, con la pesca a seguire (`thenDrawCards`, certificata solo a 1).
+ * Specchio di card_index.rb, enter_stashes.
+ */
+function enterStashesOf(face: CardFace | undefined): EnterStash[] {
+  const out: EnterStash[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const effect = trigger.effect as Loose | undefined;
+    if (!effect || effect.type !== "move_card" || effect.optional !== true) continue;
+    const target = effect.target as Loose | undefined;
+    if (!ownTarget(target, "object") || target.zone !== "hand" || target.min !== 1 || target.max !== 1) continue;
+    if (effect.from?.zone !== "hand" || effect.from?.owner !== "controller") continue;
+    if (effect.destination?.zone !== "retire" || effect.destination?.owner !== "controller") continue;
+    const thenDraw = effect.details?.thenDrawCards;
+    if (!(thenDraw === undefined || thenDraw === 1)) continue;
+    out.push({ from: "hand", kind: "object", to: "ritiro", thenDraw: thenDraw ?? 0 });
+  }
+  return out;
+}
+
+/**
+ * Il ritiro a pagamento certificato (§6.2, dal 2026-09-15): un'azione
+ * (`actions`) con `move_card` di sé stessa verso il proprio Ritiro, costo
+ * `flux: "printed"`, nella sola Preparazione propria. Specchio di
+ * card_index.rb, self_retires.
+ */
+function selfRetiresOf(face: CardFace | undefined): SelfRetire[] {
+  const out: SelfRetire[] = [];
+  for (const action of ((face as { actions?: unknown[] } | undefined)?.actions ?? []) as Loose[]) {
+    if (!action || action.cost?.flux !== "printed") continue;
+    const effect = action.effect as Loose | undefined;
+    if (!effect || effect.type !== "move_card" || effect.target?.scope !== "self") continue;
+    if (effect.destination?.zone !== "retire" || effect.destination?.owner !== "controller") continue;
+    const timing: unknown[] = Array.isArray(action.timing) ? action.timing : [];
+    if (timing.length !== 1 || timing[0] !== "own_preparation") continue;
+    out.push({ cost: "printed", timing: ["preparazione"] });
   }
   return out;
 }
@@ -1272,6 +1335,8 @@ export function cardStats(cardId: string): {
   enterRefreshes: EnterRefresh[];
   enterDisarms: EnterDisarm[];
   enterRearms: EnterRearm[];
+  enterStashes: EnterStash[];
+  selfRetires: SelfRetire[];
   leaveReturns: LeaveReturn[];
   attackReturns: EnterReturn[];
   attackDraws: AttackDraw[];
@@ -1317,6 +1382,8 @@ export function cardStats(cardId: string): {
     enterRefreshes: enterRefreshesOf(face),
     enterDisarms: enterDisarmsOf(face),
     enterRearms: enterRearmsOf(face),
+    enterStashes: enterStashesOf(face),
+    selfRetires: selfRetiresOf(face),
     leaveReturns: leaveReturnsOf(face),
     power: integer(face?.stats?.power),
     counterattack: integer(face?.stats?.counterattack),
@@ -1373,6 +1440,8 @@ export function cardFacts(cardId: string, locale: string): CardFacts {
     enterControls: stats.enterControls,
     enterDisarms: stats.enterDisarms,
     enterRearms: stats.enterRearms,
+    enterStashes: stats.enterStashes,
+    selfRetires: stats.selfRetires,
     leaveReturns: stats.leaveReturns,
     enterRefreshes: stats.enterRefreshes,
     attackReturns: stats.attackReturns,

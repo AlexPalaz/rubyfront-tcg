@@ -189,7 +189,8 @@ export class TableGestures {
       if (tabs.length) tableGestures.push(card.uid);
       if (tabs.length || (entity && card.tapped)) this.veiled.set(card.uid, tabs);
     }
-    const veiled = zoneCards(state, this.me, "hand").filter(card => this.gestures.unaffordable(card)).map(card => card.uid);
+    // Si accendono solo le carte giocabili adesso (2026-09-15): le altre velate, senza sigilli a ogni gesto.
+    const veiled = zoneCards(state, this.me, "hand").filter(card => this.gestures.unplayable(card)).map(card => card.uid);
     this.table.marks({ tableGestures, veiled });
     // §6.5 — l'invito a scartare (simulatore, discardPrompt): la tua Zona di
     // Ritiro si accende quando il Fine turno è stato fermato dalla mano piena,
@@ -267,7 +268,10 @@ export class TableGestures {
         void this.ctx.dispatch({ t: "flip", uid, face: action.face });
         return;
       case "toZone":
-        void this.ctx.dispatch({ t: "toZone", uid, zone: action.zone, toBottom: action.toBottom });
+        void this.gestures.sendToZone(card, action.zone, action.toBottom);
+        return;
+      case "sheathe":
+        void this.gestures.sheathe(card);
         return;
       case "discard":
         void this.gestures.discard(card).then(passed => {
@@ -578,7 +582,7 @@ export class TableGestures {
   /** Il doppio tocco gioca: Entità sul primo slot libero del Fronte, Materie nella loro fila (§5). */
   private playFromHand(card: CardInstance): void {
     if (card.zone !== "hand" || !this.ctx.controls(card.owner)) return;
-    if (this.gestures.unaffordable(card) || handLocked(this.ctx, card.owner)) return;
+    if (this.gestures.unplayable(card) || handLocked(this.ctx, card.owner)) return;
     const state = this.ctx.state();
     const spot = playSpot(state, card.owner, faceKind(card.cardId, card.face));
     void this.gestures.place(card, spot.x, spot.y, state.zTop + 1);

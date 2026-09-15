@@ -219,6 +219,22 @@ class TableTest < Minitest::Test
     assert_equal 0, @table.flux("a"), "senza costo nell'azione non si paga"
   end
 
+  # §6.2 — l'Oggetto che si mette in Ritiro «pagandone il costo» (dal
+  # 2026-09-15): dal campo alla Zona di Ritiro col costo nell'azione si paga;
+  # il Ritiro senza costo no. Gemello: state.test.ts.
+  def test_retiring_from_field_with_cost_pays
+    @table.apply(deck_for("a", 2))
+    @table.apply({ "t" => "draw", "seat" => "a", "count" => 2 })
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "flux" => 3 } })
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "field" })
+    @table.apply({ "t" => "toZone", "uid" => "a-2", "zone" => "field" })
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "ritiro", "cost" => 1 })
+    assert_equal 2, @table.flux("a"), "in Ritiro col costo si paga"
+    assert_equal "ritiro", @table.card("a-1")[:zone]
+    @table.apply({ "t" => "toZone", "uid" => "a-2", "zone" => "ritiro" })
+    assert_equal 2, @table.flux("a"), "il Ritiro senza costo non paga"
+  end
+
   # --- faccia e fila (§3.1, §7) ---------------------------------------------
 
   def test_copy_follows_face_and_row

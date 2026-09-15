@@ -181,7 +181,9 @@ export type MenuAction =
   | { do: "flip"; face: number }
   | { do: "toZone"; zone: ZoneId; toBottom: boolean }
   /** §6.5 — lo scarto dell'eccesso, in Zona di Ritiro. */
-  | { do: "discard" };
+  | { do: "discard" }
+  /** §6.2 — l'Oggetto che dice «puoi mettermi in Zona di Ritiro pagandone il costo» (dal 2026-09-15). */
+  | { do: "sheathe"; cost: number };
 
 export type MenuEntry = { rule: true } | { label: string; disabled?: boolean; action: MenuAction };
 
@@ -239,6 +241,22 @@ export function cardMenu(ctx: Ctx, card: CardInstance): MenuEntry[] {
   // da solo, segue la sua Entità (deciso 2026-09-11).
   const objectOnField = card.zone === "field" && ctx.card(card.cardId).kind === "object";
   if (!sealed && !discard && (!ctx.arbitrated() || (card.zone === "field" && !objectOnField))) items.push(send("ritiro", t("menu.to.ritiro")));
+  // §6.2 — l'Oggetto che dice «puoi mettermi nella tua Zona di Ritiro
+  // pagandone il costo di Flusso» (dal 2026-09-15): la sua voce, col costo
+  // stampato, per chi lo possiede e lo comanda; accesa solo nella finestra
+  // della forma (la propria Preparazione) e col Flusso che la copre.
+  if (objectOnField && owned && !borrowed && ctx.arbitrated()) {
+    const facts = ctx.card(card.cardId);
+    const form = (facts.selfRetires ?? [])[0];
+    const cost = facts.fluxCost;
+    if (form && cost !== null) {
+      const state = ctx.state();
+      const player = state.players[card.owner];
+      const open = state.active === card.owner && form.timing.includes(state.phase);
+      const affordable = player.flux + (player.token ? 1 : 0) >= cost;
+      items.push({ label: t("menu.sheathe", { n: cost }), disabled: !open || !affordable, action: { do: "sheathe", cost } });
+    }
+  }
   if (owned && !sealed) {
     items.push(send("deck", t("menu.to.deck.top")));
     items.push({ label: t("menu.to.deck.bottom"), action: { do: "toZone", zone: "deck", toBottom: true } });

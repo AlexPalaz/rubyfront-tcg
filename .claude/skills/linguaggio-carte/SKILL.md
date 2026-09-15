@@ -193,6 +193,9 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Riarmo di sé all'ingresso *(col vincolo di costo, se c'è, dopo «un Oggetto»)* | Quando entra sul Fronte: Puoi assegnare a questa Entità un Oggetto [con costo di Flusso N o inferiore] dalla tua Zona di Ritiro senza pagarne il costo di Flusso. | When it enters the Front: You may assign this Entity an Object [with Flux cost N or less] from your Retire Zone without paying its Flux cost. |
 | Stappata di tutte dopo il combattimento (col dado) | Quando attacca: Lancia un d20: con 15–20 stappa tutte le Entità che controlli dopo la Fase di Fronte. | When it attacks: Roll a d20: on 15–20 untap all Entities you control after the Front Phase. |
 | Contrattacco per Oggetto (statico) | Il Contrattacco di questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità. | This Entity's Counterattack increases by 1 for each Object assigned to this Entity. |
+| Oggetto dalla mano in Ritiro, poi pesca | Puoi mettere un Oggetto dalla tua mano nella tua Zona di Ritiro. Se lo fai, pesca una carta. | You may put an Object from your hand into your Retire Zone. If you do, draw a card. |
+| Un altro Oggetto in Ritiro col dado, poi pesca | Poi lancia un d6: con 4–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta. | Then roll a d6: on 4–6 you may put another Object you control into your Retire Zone. If you do, draw a card. |
+| L'Oggetto che si mette in Ritiro pagando | Puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo di Flusso. | You may put this Object into your Retire Zone by paying its Flux cost. |
 
 **Rimozione: quale zona.** Una rimozione che deve **tornare in gioco** usa
 l'«Esilio condizionato» sull'**Abisso** (RBF-018, RBF-043; nella variante

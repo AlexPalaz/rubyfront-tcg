@@ -16,7 +16,8 @@ arriva allo schermo.
   mazzo e le statistiche restano fra un avvio e l'altro, i fetch relativi
   vanno come sul sito, `fuori da app/` non si esce.
 - **La finestra**: 1600×900 (minimo 1280×720), fondo del gioco, niente
-  menu; F11 e Alt+Invio per lo schermo intero; sullo Steam Deck
+  menu; parte a **schermo intero puro** (dal 2026-09-15; `--windowed` per la
+  finestra), F11 e Alt+Invio per passare dall'uno all'altra; sullo Steam Deck
   (`SteamDeck=1`) parte a schermo intero. I link web si aprono nel browser.
 - **Il ponte** (`preload.cjs`): il gioco sa di stare sul desktop
   (`window.rubyfront.desktop`) e mostra «Esci dal gioco» nelle

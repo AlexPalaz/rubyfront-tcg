@@ -11,13 +11,13 @@
 // rispondono da sole: la vista non apre finestre per lui.
 
 import { declareAttack as declareAttackVia, attackBonusOf, neverTaps, wornBy } from "./combat.js";
-import { abilityCopy, attackEffects, cardName, cardStats, enterEffects, faceCount, faceKind, isRubyfront, nexusRequirementCopy, type Deployment } from "./cards.js";
+import { abilityCopy, attackEffects, cardName, cardStats, enterEffects, faceCount, faceKind, getCard, isRubyfront, nexusRequirementCopy, type Deployment } from "./cards.js";
 import type { Ability, AssignForm, Ctx } from "./ctx.js";
-import { bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, enterDisarms, enterRearms, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type LeaveReturnStep, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
+import { bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, describeStash, enterDisarms, enterRearms, enterStashes, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveStash, stashRef, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type EnterStashStep, type LeaveReturnStep, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
 import { FRONT_SLOT_X, RUBYFRONT_X, SLOT_X, SURFACE_H, SURFACE_W, TILE_H, TILE_W, backRowY, frontRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import type { AutoChooser } from "./session.js";
-import { STACK_STEP, abilityDiscount, chainTop, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, inPlay, matterSpot, nextWaveOrder, seatLabel, stackAt, zoneCards } from "./state.js";
+import { STACK_STEP, abilityDiscount, chainTop, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, inPlay, matterSpot, nextWaveOrder, seatLabel, stackAt, waveDeclared, zoneCards } from "./state.js";
 import { canDiscard } from "./tabs.js";
 import { type CardInstance, type Discount, type EffectRef, type GameState, type Seat, type ZoneId, otherSeat } from "./types.js";
 
@@ -80,6 +80,8 @@ export interface GestureView {
   strike(uid: string, ms: number): void;
   /** Prende la carta prima che voli in una pila: il via si dà ad azione passata. */
   liftForFlight(uid: string, zone?: "ritiro" | "abisso"): Flight | null;
+  /** §6.2 — il Ritiro voluto dal giocatore, dal Fronte alla Zona di Ritiro: un volo suo, col suo suono (2026-09-15). */
+  liftToRetire?(uid: string): Flight | null;
   /** Prende la carta (con gli Oggetti addosso) prima che cambi posto sul campo (controllo, §8.2). */
   liftToFlight(uid: string): Flight | null;
   /** Come liftToFlight, ma la carta si dissolve e ricompare: quando il controllo apre la fila avversaria. */
@@ -359,7 +361,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             ...own.map(step => describeAttackStep(step, ctx.card)),
           ],
           kicker: t("scene.attack"),
-          onContinue: () => playAttackTriggers(live, own),
+          onContinue: () => track(() => playAttackTriggers(live, own)),
         });
       }
       const others = new Map<string, AttackStep[]>();
@@ -382,7 +384,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           // «Quando attacca» faceva pensare a un attacco suo — la riga sotto
           // dice già chi attacca e con che carta.
           kicker: t("scene.attack.other"),
-          onContinue: () => playAttackSteps(group),
+          onContinue: () => track(() => playAttackSteps(group)),
         });
       }
     })();
@@ -551,6 +553,41 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "ritiro", effect: attackRef(step, "discard") });
             if (passed) ctx.log(msg("log.effect.discard", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
             else break;
+          }
+          break;
+        }
+        case "stash": {
+          // Dal 2026-09-15: «lancia un d6: con 4–6 puoi mettere un altro
+          // Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca».
+          const roll = rollDie(form.die);
+          await view.roll(form.die, roll, t("dice.step", { name, what: t("dice.purge", { lo: form.onRoll[0], hi: form.onRoll[1] }) }));
+          if (!inRange(roll, form.onRoll)) {
+            ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die, roll, what: msg("roll.nothing") }), by);
+            break;
+          }
+          const others = fieldCards(ctx.state()).filter(card => card.uid !== step.source.uid && controllerOf(card) === by && ctx.card(card.cardId).kind === "object");
+          if (others.length === 0) {
+            ctx.log(msg("log.no.object.field", { seat: by, card: step.source.cardId }), by);
+            break;
+          }
+          const target = await pickTarget(step.source, others, t("target.purge"));
+          if (!target) break;
+          view.strike(target.uid, 60_000);
+          const fly = view.liftForFlight(target.uid, "ritiro");
+          const passed = await ctx.dispatch({ t: "toZone", uid: target.uid, zone: "ritiro", roll, effect: attackRef(step, "stash") });
+          view.strike(target.uid, 0);
+          if (!passed) {
+            fly?.cancel();
+            view.render();
+            break;
+          }
+          fly?.();
+          ctx.log(msg("log.effect.stash", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
+          await wait(view.timing.fly);
+          if (form.thenDraw) {
+            const drawn = await ctx.dispatch({ t: "draw", seat: by, count: form.thenDraw, effect: attackRef(step, "draw") });
+            if (drawn) ctx.log(msg("log.effect.trigger", { seat: by, card: step.source.cardId, n: form.thenDraw, cards: msg(form.thenDraw === 1 ? "cards.one" : "cards.many") }), by);
+            await wait(TRIGGER_TAIL_MS);
           }
           break;
         }
@@ -831,6 +868,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       const refreshes = enterRefreshes(live, ctx.card);
       const disarms = enterDisarms(ctx.state(), live, ctx.card);
       const rearms = enterRearms(live, ctx.card);
+      const stashes = enterStashes(ctx.state(), live, ctx.card);
       const triggers = enterTriggers(ctx.state(), live, ctx.card);
       // Un Oggetto non entra sul Fronte: si assegna, e la scena dice a chi (§3.1).
       const bearer = facts.kind === "object" && live.assignedTo ? ctx.state().cards[live.assignedTo] : undefined;
@@ -852,11 +890,12 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           ...refreshes.map(step => describeRefresh(step, ctx.card)),
           ...disarms.map(step => t("trigger.disarm", { card: `«${ctx.card(step.source.cardId).name}»` })),
           ...rearms.map(step => t(step.self ? "trigger.rearm.self" : "trigger.rearm.any", { card: `«${ctx.card(step.source.cardId).name}»` })),
+          ...stashes.map(step => describeStash(step, ctx.card)),
           ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
         ],
         onContinue:
-          moves.length || returns.length || looks.length || controls.length || refreshes.length || disarms.length || rearms.length || triggers.length
-            ? () => playTriggers(live)
+          moves.length || returns.length || looks.length || controls.length || refreshes.length || disarms.length || rearms.length || stashes.length || triggers.length
+            ? () => track(() => playTriggers(live))
             : undefined,
       });
     }
@@ -1313,7 +1352,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       effects: [],
       triggers: steps.map(step => describeFlipStep(step, ctx.card)),
       kicker: t("scene.flip"),
-      onContinue: () => playFlipSteps(steps),
+      onContinue: () => track(() => playFlipSteps(steps)),
     });
     return true;
   }
@@ -1448,7 +1487,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    */
   function unaffordable(card: CardInstance): boolean {
     if (!ctx.arbitrated() || card.zone !== "hand" || !ctx.controls(card.owner) || isRubyfront(card.cardId)) return false;
-    const stats = cardStats(card.cardId);
+    // L'anagrafe del contesto (ctx.card), come ogni altro conto del tavolo.
+    const stats = ctx.card(card.cardId);
     let cost = stats.fluxCost;
     if (cost === null) return false;
     // Un Oggetto costa quanto dice il miglior portatore in campo (2026-09-15).
@@ -1457,6 +1497,59 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     if (off) cost = Math.max(0, cost - off.amount);
     const player = ctx.state().players[card.owner];
     return cost > player.flux + (player.token ? 1 : 0);
+  }
+
+  /**
+   * §7 — «una carta Materia è giocabile solo se in campo c'è una carta che
+   * ha quel tipo di Materia abilitato», al grado richiesto (§7.1): una
+   * propria carta in campo, scoperta, con la faccia che mostra; il
+   * Rubyfront solo schierato. Specchio di engine.rb, enabled?. Etichetta o
+   * catalogo ignoti: nel dubbio, giocabile.
+   */
+  function matterEnabled(card: CardInstance): boolean {
+    const face = getCard(card.cardId)?.faces[card.face] as { matter?: { type?: string; grade?: number } } | undefined;
+    const label = face?.matter;
+    if (!label?.type) return true;
+    const state = ctx.state();
+    return fieldCards(state).some(other => {
+      if (controllerOf(other) !== card.owner || other.facedown) return false;
+      if (!inPlay(other, ctx.card(other.cardId).kind)) return false;
+      const shown = getCard(other.cardId)?.faces[other.face] as { enablesMatters?: { type?: string; maxGrade?: number }[] } | undefined;
+      return (shown?.enablesMatters ?? []).some(grant => grant.type === label.type && (label.grade === undefined || grant.maxGrade === undefined || grant.maxGrade >= label.grade));
+    });
+  }
+
+  /**
+   * La carta in mano che l'arbitro fermerebbe ADESSO — e che quindi la mano
+   * vela, invece di lasciar partire il gesto e mostrare il sigillo ogni
+   * volta (2026-09-15: «illumina solo le carte effettivamente giocabili in
+   * quel momento»). Le stesse dogane dell'ingresso dalla mano (engine.rb,
+   * judge_enter_field), in ordine: la catena aperta (§7.2: risponde chi ne
+   * ha la parola, solo con Reattive); la fase (§6.2: si gioca in
+   * Preparazione, nel proprio turno; §7.2: le Reattive nel Fronte prima
+   * dell'ondata per chi è di turno, in Reazione per il difensore); il
+   * sigillo del flip (§8.2); la Materia non abilitata (§7); il Fronte pieno
+   * per un'Entità (§6.2); nessuna Entità da armare per un Oggetto (§3.1);
+   * il Flusso (§3.2). È un aiuto, non una regola: la regola resta
+   * dell'engine.
+   */
+  function unplayable(card: CardInstance): boolean {
+    if (!ctx.arbitrated() || card.zone !== "hand" || !ctx.controls(card.owner) || isRubyfront(card.cardId)) return false;
+    const state = ctx.state();
+    const facts = ctx.card(card.cardId);
+    const reactive = facts.kind === "matter" && facts.behavior === "reactive";
+    if (state.chain) {
+      if (state.chain.resolving || !reactive || state.chain.turn !== card.owner) return true;
+    } else if (state.phase === "preparazione") {
+      if (reactive || state.active !== card.owner) return true;
+    } else if (state.phase === "fronte") {
+      if (!reactive || state.active !== card.owner || waveDeclared(state)) return true;
+    } else if (!reactive || state.active === card.owner) return true;
+    if ((state.players[card.owner].sealed ?? []).includes(card.cardId)) return true;
+    if (facts.kind === "matter" && !matterEnabled(card)) return true;
+    if (facts.kind === "entity" && freeFrontSlotOrNull(state, card.owner) === null) return true;
+    if (facts.kind === "object" && !fieldCards(state).some(other => controllerOf(other) === card.owner && !other.facedown && ctx.card(other.cardId).kind === "entity")) return true;
+    return unaffordable(card);
   }
 
   async function playReturn(step: EnterReturnStep): Promise<void> {
@@ -1815,6 +1908,46 @@ export function createGestures(ctx: Ctx, view: GestureView) {
   }
 
   /**
+   * Lo scarto d'Oggetto all'ingresso (§8.2, dal 2026-09-15): «puoi mettere
+   * un Oggetto dalla tua mano nella tua Zona di Ritiro. Se lo fai, pesca una
+   * carta». Si sceglie dalla mano (o si chiude la pila per nessuno); l'Oggetto
+   * vola in Ritiro e, passato, arriva la pesca.
+   */
+  async function playStash(step: EnterStashStep): Promise<void> {
+    const by = controllerOf(step.source);
+    if (step.candidates.length === 0) {
+      ctx.log(msg("log.no.object.hand", { seat: by, card: step.source.cardId }), by);
+      return;
+    }
+    view.light(step.source.uid, true);
+    try {
+      const object = await pickFromPile(by, "hand", step.candidates, t("pick.stash"));
+      if (!object) return;
+      view.hold(true);
+      try {
+        const fly = view.liftForFlight(object.uid, step.to);
+        const passed = await resolveStash(ctx, step, object);
+        if (!passed) {
+          fly?.cancel();
+          view.render();
+          return;
+        }
+        fly?.();
+        await wait(view.timing.fly);
+        if (step.thenDraw > 0) {
+          const drawn = await ctx.dispatch({ t: "draw", seat: by, count: step.thenDraw, effect: stashRef(step, "draw") });
+          if (drawn) ctx.log(msg("log.effect.trigger", { seat: by, card: step.source.cardId, n: step.thenDraw, cards: msg(step.thenDraw === 1 ? "cards.one" : "cards.many") }), by);
+          await wait(TRIGGER_TAIL_MS);
+        }
+      } finally {
+        view.hold(false);
+      }
+    } finally {
+      view.light(step.source.uid, false);
+    }
+  }
+
+  /**
    * Il ritorno vincolato (§8.2, dal 2026-09-10): la carta è appena finita
    * nell'Abisso o in Ritiro senza Oggetti addosso; il proprietario sceglie
    * dalla sua Zona di Ritiro l'Oggetto da assegnarle — o chiude la pila e
@@ -1830,10 +1963,28 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    * (2026-09-15: «le animazioni devono prima concludersi tutte»).
    */
   let offered: Promise<void> = Promise.resolve();
-  function offer(run: () => Promise<void>): void {
-    offered = offered.then(run, run).catch(error => {
-      console.warn("innesco", error);
+  /**
+   * I passi che «Risolvi» ha avviato e stanno ancora agendo (gli effetti
+   * d'ingresso, dell'attacco, del flip): un innesco offerto nel frattempo —
+   * il riarmo dell'Artefice assegna un Oggetto e sveglia il «quando assegni»
+   * del Rubyfront — aspetta che finiscano, animazioni comprese (2026-09-15:
+   * «non ha finito l'animazione che è comparso l'overlay di Rhazmora»).
+   */
+  let busy: Promise<void> = Promise.resolve();
+  function track(run: () => void | Promise<void>): Promise<void> {
+    const done = Promise.resolve(run()).then(() => undefined, error => {
+      console.warn("passi", error);
     });
+    busy = Promise.all([busy, done]).then(() => undefined);
+    return done;
+  }
+  function offer(run: () => Promise<void>): void {
+    offered = offered
+      .then(() => busy)
+      .then(run, run)
+      .catch(error => {
+        console.warn("innesco", error);
+      });
   }
 
   async function playLeaveReturn(step: LeaveReturnStep): Promise<void> {
@@ -1946,13 +2097,17 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     }
     const pair = ends.top.uid === ends.bottom.uid ? [ends.top] : [ends.top, ends.bottom];
     if ("swap" in form) {
-      // Scegliere una delle due vale «scambiale»; Chiudi le lascia.
+      // La carta che si tocca è quella che resta IN CIMA — e la si pesca
+      // subito dopo: toccare l'ultima vale «scambiale», toccare la prima o
+      // Chiudi le lascia (2026-09-15: prima ogni tocco scambiava, e chi
+      // toccava la prima per pescarla pescava l'altra).
       const chosen = pair.length === 2 ? await pickFromPile(by, "deck", pair, t("pick.ends.swap"), pair) : null;
+      const swap = chosen !== null && chosen.uid === ends.bottom.uid;
       view.hold(true);
       await wait(CONFIRMED_LEAD_MS);
-      const passed = await ctx.dispatch({ t: "ends", seat: by, ...(chosen ? { swap: true as const } : {}), effect: ref });
+      const passed = await ctx.dispatch({ t: "ends", seat: by, ...(swap ? { swap: true as const } : {}), effect: ref });
       if (!passed) return;
-      ctx.log(msg(chosen ? "log.effect.ends.swap" : "log.effect.ends.kept", { seat: by, sourceCard: step.source.cardId }), by);
+      ctx.log(msg(swap ? "log.effect.ends.swap" : "log.effect.ends.kept", { seat: by, sourceCard: step.source.cardId }), by);
       await wait(TRIGGER_TAIL_MS);
       // «Poi pesca una carta e scarta una carta».
       if (form.thenDraw > 0) {
@@ -2107,6 +2262,9 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     for (const step of enterRearms(entering, ctx.card)) {
       await playRearm(step);
     }
+    for (const step of enterStashes(ctx.state(), entering, ctx.card)) {
+      await playStash(step);
+    }
     view.hold(true);
     try {
       for (const trigger of enterTriggers(ctx.state(), entering, ctx.card)) {
@@ -2236,11 +2394,57 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       return Promise.resolve(false);
     }
     const discarding = zone === "ritiro" && canDiscard(ctx, card);
+    const fly = retireFlight(card, zone);
     return ctx.dispatch({ t: "toZone", uid: card.uid, zone }).then(passed => {
+      if (passed) fly?.();
+      else fly?.cancel();
       if (!passed && origin) void ctx.dispatch({ t: "move", uid: card.uid, x: origin.x, y: origin.y, z: origin.z });
       if (!passed || !discarding) return false;
       ctx.log(msg("log.discard", { seat: card.owner, card: card.cardId, n: zoneCards(ctx.state(), card.owner, "hand").length }), card.owner);
       return true;
+    });
+  }
+
+  /**
+   * §6.2 — il Ritiro voluto dal giocatore: la carta lascia il Fronte per la
+   * Zona di Ritiro col suo volo e il suo suono, diversi dalla morte (il
+   * taglio e la dissolvenza) e dagli effetti (2026-09-15: «quando una carta
+   * passa volontariamente da Fronte a Ritiro dev'esserci un'animazione
+   * diversa e un suono diverso»). Solo dal campo, solo verso il Ritiro, e
+   * non per lo scarto dalla mano; il via si dà ad azione passata.
+   */
+  function retireFlight(card: CardInstance, zone: ZoneId): Flight | null {
+    if (card.zone !== "field" || zone !== "ritiro" || !view.liftToRetire) return null;
+    return view.liftToRetire(card.uid);
+  }
+
+  /**
+   * «Puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo
+   * di Flusso» (§6.2, dal 2026-09-15): la voce del menu lo chiede; il costo
+   * stampato viaggia nell'azione col riferimento `on_ability` + `sheathe`,
+   * l'engine lo verifica e i gemelli lo pagano; il volo è quello del Ritiro.
+   */
+  async function sheathe(card: CardInstance): Promise<boolean> {
+    const cost = ctx.card(card.cardId).fluxCost ?? 0;
+    const fly = retireFlight(card, "ritiro");
+    const passed = await ctx.dispatch({ t: "toZone", uid: card.uid, zone: "ritiro", cost, effect: { source: card.uid, event: "on_ability", entering: card.uid, follow: "sheathe" } });
+    if (passed) {
+      fly?.();
+      const player = ctx.state().players[card.owner];
+      ctx.log(msg("log.effect.sheathe", { seat: card.owner, card: card.cardId, n: cost, flux: player.flux, max: player.fluxMax }), card.owner);
+    } else {
+      fly?.cancel();
+    }
+    return passed;
+  }
+
+  /** Il menu «Ritiro» (e le altre voci che mandano in una zona): come il rilascio sulla pila, col volo del Ritiro quando è lui. */
+  function sendToZone(card: CardInstance, zone: ZoneId, toBottom = false): Promise<boolean> {
+    const fly = retireFlight(card, zone);
+    return ctx.dispatch({ t: "toZone", uid: card.uid, zone, toBottom }).then(passed => {
+      if (passed) fly?.();
+      else fly?.cancel();
+      return passed;
     });
   }
 
@@ -2253,6 +2457,9 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     rubyfrontOf,
     looksPlayable,
     unaffordable,
+    unplayable,
+    sendToZone,
+    sheathe,
     boundSpot,
     touchedAt,
     entityUnder,

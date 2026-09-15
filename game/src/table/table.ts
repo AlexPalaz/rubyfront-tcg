@@ -42,6 +42,8 @@ export const DRAW_RUN_MS = 380;
 export const DRAW_STEP_MS = 70;
 /** Più carte che si tappano o stappano insieme (la stappata del cambio turno): una ogni 70 ms, da sinistra. */
 const TAP_STAGGER_MS = 70;
+/** Quanto salgono i candidati della mira sopra il resto del tavolo. */
+const AIM_LIFT = 10_000;
 
 /** Quanto dura, in tutto, l'entrata in cascata di `count` carte (zero con prefers-reduced-motion). */
 export function drawCascadeMs(count: number): number {
@@ -171,6 +173,8 @@ export class Table {
   private assignTarget: string | null = null;
   /** Il candidato della mira sotto il puntatore (aim.ts): si accende pieno. */
   private aimHover: string | null = null;
+  /** Lo z di ogni carta secondo la lavagna (senza il sollevamento della mira). */
+  private readonly baseZ = new Map<string, number>();
   /** La mano ripiegata (hand-mine.is-collapsed): il cassetto scende e ne resta in vista l'orlo con la targhetta. */
   private handCollapsed = false;
   private handSlide = 0;
@@ -386,8 +390,17 @@ export class Table {
   aim(status: { candidates: Iterable<string>; legalOnes?: Iterable<string> } | null): void {
     this.aimState = status ? { candidates: new Set(status.candidates), legalOnes: new Set(status.legalOnes ?? status.candidates) } : null;
     if (!status) this.aimHover = null;
+    // I candidati salgono sopra tutto finché dura la mira: un Oggetto sotto
+    // la sua Entità tappata (chi attacca col Catalizzatore, 2026-09-15) non
+    // si toccherebbe mai, coperto da lei.
+    for (const [uid, view] of this.views) view.zIndex = this.liftedZ(uid);
     this.restyle();
     this.updateDimmer();
+  }
+
+  /** L'ordine di una carta: il suo z, più il sollevamento dei candidati in mira. */
+  private liftedZ(uid: string): number {
+    return (this.baseZ.get(uid) ?? 0) + (this.aimState?.candidates.has(uid) ? AIM_LIFT : 0);
   }
 
   /** §7.2 — il posto della Reattiva numero `index` in catena (al centro, a scaletta): la regia ci fa volare la carta prima che si giochi. */
@@ -645,7 +658,8 @@ export class Table {
       if (view.parent !== layer) layer.addChild(view);
       view.position.set(x + L.tileW / 2, y + L.tileH / 2);
       this.bases.set(card.uid, { x: x + L.tileW / 2, y: y + L.tileH / 2 });
-      view.zIndex = card.zone === "field" ? card.z : 0;
+      this.baseZ.set(card.uid, card.zone === "field" ? card.z : 0);
+      view.zIndex = this.liftedZ(card.uid);
       const full: CardLook = { ...look, tapDelay: tapDelays.get(card.uid) ?? 0, w: L.tileW, h: L.tileH, locale: this.locale, resolution };
       this.lastLooks.set(card.uid, full);
       view.update({ ...full, ...this.moment(card.uid, card.zone) });

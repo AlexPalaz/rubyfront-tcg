@@ -326,7 +326,10 @@ function reduce(state: GameState, action: Action): GameState {
       // Giocare dalla mano costa (§3.2): il costo viaggia nell'azione e si
       // scala dal Flusso, mai sotto zero — a engine spento il tavolo resta
       // libero, con l'arbitro il «Flusso insufficiente» ferma prima.
-      const paying = action.zone === "field" && card.zone === "hand" && (action.cost ?? 0) > 0;
+      // L'Oggetto che si mette in Ritiro «pagandone il costo» (§6.2, dal
+      // 2026-09-15): dal campo alla Zona di Ritiro col costo nell'azione.
+      // Gemello: table.rb, to_zone.
+      const paying = ((action.zone === "field" && card.zone === "hand") || (action.zone === "ritiro" && card.zone === "field")) && (action.cost ?? 0) > 0;
       let players = paying
         ? { ...state.players, [card.owner]: pay(state.players[card.owner], action.cost!) }
         : state.players;

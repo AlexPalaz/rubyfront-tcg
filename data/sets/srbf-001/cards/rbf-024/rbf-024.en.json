@@ -1,7 +1,7 @@
 {
   "name": "Camp Recruit",
   "typeLabel": "Entity: Auros",
-  "summary": "A one-Flux body that grows the moment you put something in its hands.",
+  "summary": "A one-Flux body that puts an Object into Retire and draws.",
   "ui": {
     "face": "Entity"
   },
@@ -17,9 +17,10 @@
   },
   "face": {
     "name": "Camp Recruit",
-    "flavor": "The first weapon was patience. The Camp handed over the second.",
-    "effect": {
-      "text": "If this Entity has an Object assigned, it has +1 Power."
-    }
+    "stash": {
+      "trigger": "When it enters the Front",
+      "text": "You may put an Object from your hand into your Retire Zone. If you do, draw a card."
+    },
+    "flavor": "The first weapon was patience. The Camp handed over the second."
   }
 }

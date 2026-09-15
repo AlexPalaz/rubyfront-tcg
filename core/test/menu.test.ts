@@ -10,7 +10,9 @@ import { newGame } from "../src/state.js";
 import { cardMenu, type MenuEntry } from "../src/tabs.js";
 import type { CardInstance, GameState, Seat, ZoneId } from "../src/types.js";
 
-const KINDS: Record<string, CardFacts["kind"]> = { HUMAN: "entity", STONE: "matter", BLADE: "object" };
+const KINDS: Record<string, CardFacts["kind"]> = { HUMAN: "entity", STONE: "matter", BLADE: "object", SWORD: "object" };
+// La Spada: «puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo» (dal 2026-09-15).
+const EXTRA: Record<string, Partial<CardFacts>> = { SWORD: { fluxCost: 1, selfRetires: [{ cost: "printed", timing: ["preparazione"] }] } };
 
 function table(state: GameState, arbitrated = true): Ctx {
   return {
@@ -22,7 +24,7 @@ function table(state: GameState, arbitrated = true): Ctx {
     themeFor: () => "t49",
     tintFor: () => "dynamic",
     locale: () => "it",
-    card: cardId => ({ kind: KINDS[cardId] ?? null, nexus: null }) as CardFacts,
+    card: cardId => ({ kind: KINDS[cardId] ?? null, nexus: null, ...EXTRA[cardId] }) as CardFacts,
     log: () => undefined,
   };
 }
@@ -56,6 +58,32 @@ describe("cardMenu con l'arbitro", () => {
     const state = frontState();
     expect(entryKeys(cardMenu(table(state), card(state, "m", "STONE", "a", "field")))).toContain("toZone:abisso");
     expect(entryKeys(cardMenu(table(state), card(state, "o", "BLADE", "a", "field")))).not.toContain("toZone:ritiro");
+  });
+
+  it("l'Oggetto che si mette in Ritiro pagando ha la sua voce: accesa nella propria Preparazione col Flusso, spenta altrimenti (§6.2)", () => {
+    const state = frontState();
+    state.phase = "preparazione";
+    state.players.a.flux = 1;
+    const entries = (c: CardInstance): MenuEntry[] => cardMenu(table(state), c);
+    const sheathe = (list: MenuEntry[]) => list.find(entry => !("rule" in entry) && entry.action.do === "sheathe") as { disabled?: boolean } | undefined;
+    const sword = card(state, "sw", "SWORD", "a", "field", { assignedTo: "u" });
+    expect(entryKeys(entries(sword))).toContain("sheathe");
+    expect(entryKeys(entries(sword))).not.toContain("toZone:ritiro");
+    expect(sheathe(entries(sword))?.disabled).toBe(false);
+    state.players.a.flux = 0;
+    state.players.a.token = false;
+    expect(sheathe(entries(sword))?.disabled).toBe(true);
+    state.players.a.token = true;
+    expect(sheathe(entries(sword))?.disabled).toBe(false);
+    state.phase = "fronte";
+    expect(sheathe(entries(sword))?.disabled).toBe(true);
+    state.phase = "preparazione";
+    state.active = "b";
+    expect(sheathe(entries(sword))?.disabled).toBe(true);
+    // Un Oggetto senza la forma non ce l'ha; quella presa in controllo con la sua Entità nemmeno; a tavolo libero nemmeno.
+    expect(entryKeys(entries(card(state, "o", "BLADE", "a", "field")))).not.toContain("sheathe");
+    expect(entryKeys(entries(card(state, "sw-b", "SWORD", "b", "field", { controller: "a" })))).not.toContain("sheathe");
+    expect(entryKeys(cardMenu(table(state, false), sword))).not.toContain("sheathe");
   });
 
   it("dall'Abisso e dalla Zona di Ritiro non si torna (§5)", () => {

@@ -917,6 +917,10 @@ module Rubyfront
         pay(card[:owner], action["cost"])
         consume_discount(card[:owner], action["discount"]) if action["discount"].is_a?(Integer)
       end
+      # L'Oggetto che si mette in Ritiro «pagandone il costo» (§6.2, dal
+      # 2026-09-15): dal campo alla Zona di Ritiro col costo nell'azione.
+      # Gemello: state.ts, toZone.
+      pay(card[:owner], action["cost"]) if zone == "ritiro" && card[:zone] == "field"
       card[:zone] = zone
       # Chi lo tiene fermo nell'Abisso (l'esilio condizionato): lo dice lo spostamento che
       # ce lo manda; ogni altro spostamento lo scioglie. Gemello: state.ts.

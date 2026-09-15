@@ -8,7 +8,7 @@
 //
 //   npm run prepara && npm start        il gioco in finestra
 //   npm run prova                       avvio, attesa della home, una foto, fuori (le verifiche)
-//   --fullscreen                        a schermo intero (sullo Steam Deck lo è da sé)
+//   --windowed                          in finestra (di default il gioco parte a schermo intero, senza barre: deciso 2026-09-15)
 
 const { app, BrowserWindow, Menu, ipcMain, net, protocol, shell } = require("electron");
 const { writeFileSync } = require("node:fs");
@@ -43,7 +43,11 @@ function pane() {
     backgroundColor: "#131013",
     title: "Rubyfront",
     autoHideMenuBar: true,
-    fullscreen: process.argv.includes("--fullscreen") || steam.deck(),
+    // Schermo intero puro, senza la barra del titolo né quella di sistema
+    // (deciso 2026-09-15: «senza la barra del Mac con scritto Rubyfront»);
+    // `--windowed` per la finestra, F11 e Alt+Invio per passare dall'uno
+    // all'altra.
+    fullscreen: !process.argv.includes("--windowed") || steam.deck(),
     webPreferences: {
       // Un gioco online: in secondo piano i timer e la rete non si fermano (la partita va avanti, il bot e l'avversario pure).
       backgroundThrottling: false,

@@ -2786,7 +2786,7 @@ class EngineTest < Minitest::Test
     verdict = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("rf", "u3", once: true) })
     assert verdict[:ok], verdict[:reason]
     assert_match(/già stato risolto/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "effect" => ref("rf", "u1", once: true) })[:reason])
-    assert_match(/peschi dopo la cura/, engine.judge({ "t" => "draw", "seat" => "a", "count" => 1, "effect" => ref("rf", "u3", once: true, follow: "draw") })[:reason], "la faccia del Rubyfront non pesca")
+    assert_match(/peschi come seguito/, engine.judge({ "t" => "draw", "seat" => "a", "count" => 1, "effect" => ref("rf", "u3", once: true, follow: "draw") })[:reason], "la faccia del Rubyfront non pesca")
   end
 
   def test_nexus_after_heal_draws_and_discards
@@ -4410,5 +4410,210 @@ class EngineTest < Minitest::Test
     assert_equal "abisso", table.card("red")[:zone]
     assert_equal({ turn: 3, armed: false, bearer: nil }, table.card("red")[:left])
     assert come_back(engine, actor: "a")[:ok]
+  end
+
+  # --- §8.2/§6.2: lo scarto d'Oggetto (ingresso e attacco) e il ritiro a pagamento (dal 2026-09-15) --
+  #
+  # Le forme come le legge l'anagrafe: «quando entra sul Fronte, puoi mettere
+  # un Oggetto dalla tua mano in Ritiro: se lo fai, pesca»; «quando l'Entità
+  # che lo porta attacca, col d6 un altro Oggetto che controlli in Ritiro: se
+  # lo fai, pesca»; «puoi mettere questo Oggetto in Ritiro pagandone il costo».
+
+  STASH_SET = {
+    "RECRUIT" => { type: "entity", keywords: [], race: "auros", power: 1, flux_cost: 1,
+                   enter_stashes: [{ from: "hand", type: "object", to: "ritiro", then_draw: 1 }] },
+    "CATALYST" => { type: "object", keywords: [], flux_cost: 2,
+                    attack_forms: [{ kind: "empower", who: "object", targets: "bearer", power: 1, face: 0 },
+                                   { kind: "stash", who: "object", die: 6, on_roll: [4, 6], other: true, then_draw: 1, face: 0 }] },
+    "SWORD" => { type: "object", keywords: [], flux_cost: 1, self_retires: [{ cost: "printed", timing: ["preparazione"] }] },
+    "HUMAN" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 2 },
+    "IRON" => { type: "object", keywords: [], flux_cost: 1 },
+    "RUBY" => { type: "rubyfront", keywords: [], power: nil, counterattack: nil },
+  }.freeze
+
+  # Turno 3 di A in Preparazione, 10 Flusso: le liste sono [uid, id, extra].
+  def stash_scene(a, b: [], attacks: [])
+    engine = Rubyfront::Engine.new(cards: STASH_SET)
+    load = lambda do |seat, list|
+      cards = list.map.with_index do |(uid, id, extra), i|
+        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1260 : 172 }.merge(extra || {})
+      end
+      engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
+    end
+    load.call("a", a + [["rf-a", "RUBY", { "y" => 1260 }]])
+    load.call("b", b + [["rf-b", "RUBY", { "y" => 172 }]])
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    unless attacks.empty?
+      front!(engine)
+      attacks.each_with_index do |uid, i|
+        verdict = engine.judge({ "t" => "declare", "declaration" => { "id" => uid, "from" => uid, "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => i + 1 } })
+        raise "attacco rifiutato: #{verdict[:reason]}" unless verdict[:ok]
+      end
+    end
+    engine
+  end
+
+  def recruit_on_field
+    engine = stash_scene([["rec", "RECRUIT", { "zone" => "hand" }], ["sw", "SWORD", { "zone" => "hand" }], ["mio", "HUMAN", { "zone" => "hand" }],
+                          ["d1", "HUMAN", { "zone" => "deck" }], ["d2", "IRON", { "zone" => "deck" }]],
+                         b: [["suo", "HUMAN", { "x" => 442 }], ["fe", "IRON", { "zone" => "hand" }]])
+    verdict = engine.judge({ "t" => "toZone", "uid" => "rec", "zone" => "field", "x" => 442, "y" => 1260, "cost" => 1 })
+    raise "l'ingresso non passa: #{verdict[:reason]}" unless verdict[:ok]
+    engine
+  end
+
+  def enter_ref(source, follow)
+    { "source" => source, "event" => "on_enter_field", "entering" => source, "follow" => follow }
+  end
+
+  def stash_action(engine, uid, source: "rec", zone: "ritiro")
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => zone, "effect" => enter_ref(source, "stash") })
+  end
+
+  def stash_draw(engine, count: 1, seat: "a", source: "rec")
+    engine.judge({ "t" => "draw", "seat" => seat, "count" => count, "effect" => enter_ref(source, "draw") })
+  end
+
+  def test_enter_stash_puts_own_object_from_hand_to_retire_then_draws
+    engine = recruit_on_field
+    refute stash_draw(engine)[:ok], "«se lo fai»: prima l'Oggetto in Ritiro, poi la pesca"
+    verdict = stash_action(engine, "sw")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "ritiro", table_copy(engine).card("sw")[:zone]
+    refute stash_draw(engine, count: 2)[:ok], "si pesca una carta, non due"
+    refute stash_draw(engine, seat: "b")[:ok], "pesca chi comanda la fonte"
+    verdict = stash_draw(engine)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "hand", table_copy(engine).card("d2")[:zone], "la cima del mazzo in mano"
+    refute stash_draw(engine)[:ok], "la pesca è una sola"
+    refute stash_action(engine, "mio")[:ok], "l'innesco è già stato risolto per quell'ingresso"
+  end
+
+  def test_enter_stash_wants_an_object_from_your_own_hand_into_retire
+    engine = recruit_on_field
+    refute stash_action(engine, "mio")[:ok], "un'Entità non è un Oggetto"
+    refute stash_action(engine, "fe")[:ok], "dalla PROPRIA mano, non da quella avversaria"
+    refute stash_action(engine, "d2")[:ok], "dalla mano, non dal mazzo"
+    refute stash_action(engine, "sw", zone: "abisso")[:ok], "in Ritiro, non nell'Abisso"
+    verdict = stash_action(engine, "sw", source: "suo")
+    refute verdict[:ok], "una carta senza la forma non scarta"
+    assert_includes verdict[:reason], "§8.2"
+    refute verdict[:reason_en].to_s.empty?
+  end
+
+  def test_enter_stash_only_in_entry_turn
+    engine = recruit_on_field
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
+    verdict = stash_action(engine, "sw")
+    refute verdict[:ok]
+    assert_match(/non è entrata sul Fronte questo turno.*§8\.2/, verdict[:reason])
+  end
+
+  def catalyst_attacking(roll_extra = {})
+    stash_scene([["v", "HUMAN", { "x" => 442 }], ["cat", "CATALYST", { "x" => 472, "y" => 1266, "assignedTo" => "v" }],
+                 ["u", "HUMAN", { "x" => 821 }], ["fe", "IRON", { "x" => 851, "y" => 1266, "assignedTo" => "u" }],
+                 ["d1", "HUMAN", { "zone" => "deck" }]],
+                b: [["suo", "HUMAN", { "x" => 442 }], ["fe-b", "IRON", { "x" => 472, "y" => 202, "assignedTo" => "suo" }]],
+                attacks: ["v"])
+  end
+
+  def purge_action(engine, uid, roll: 5, source: "cat", attacker: "v", zone: "ritiro")
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => zone, "roll" => roll, "effect" => ref(source, attacker, follow: "stash") })
+  end
+
+  def purge_draw(engine, count: 1, seat: "a")
+    engine.judge({ "t" => "draw", "seat" => seat, "count" => count, "effect" => ref("cat", "v", follow: "draw") })
+  end
+
+  def test_attack_stash_retires_another_own_object_with_the_die_then_draws
+    engine = catalyst_attacking
+    refute purge_draw(engine)[:ok], "«se lo fai»: prima l'Oggetto in Ritiro, poi la pesca"
+    refute purge_action(engine, "fe", roll: 3)[:ok], "con 3 nessun Oggetto va in Ritiro"
+    refute purge_action(engine, "fe", roll: 7)[:ok], "un d6 non fa 7"
+    refute purge_action(engine, "fe", roll: nil)[:ok], "senza tiro"
+    verdict = purge_action(engine, "fe", roll: 4)
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    card = table_copy(engine).card("fe")
+    assert_equal "ritiro", card[:zone]
+    assert_nil card[:assigned_to]
+    refute purge_draw(engine, count: 2)[:ok], "si pesca una carta"
+    refute purge_draw(engine, seat: "b")[:ok], "pesca chi comanda la fonte"
+    verdict = purge_draw(engine)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "hand", table_copy(engine).card("d1")[:zone]
+    refute purge_draw(engine)[:ok], "la pesca è una sola"
+    refute purge_action(engine, "cat")[:ok], "il passo è già stato risolto per questo attacco"
+  end
+
+  def test_attack_stash_wants_another_object_you_control_on_the_field
+    engine = catalyst_attacking
+    refute purge_action(engine, "cat")[:ok], "«un altro Oggetto»: non sé stesso"
+    refute purge_action(engine, "fe-b")[:ok], "un Oggetto avversario no"
+    refute purge_action(engine, "u")[:ok], "un'Entità non è un Oggetto"
+    refute purge_action(engine, "fe", zone: "abisso")[:ok], "in Ritiro, non nell'Abisso"
+    verdict = purge_action(engine, "fe", source: "fe", attacker: "u")
+    refute verdict[:ok], "un Oggetto senza la forma, su chi non attacca"
+    assert_includes verdict[:reason], "§8.2"
+  end
+
+  def test_attack_stash_only_from_the_object_on_the_attacker
+    engine = stash_scene([["v", "HUMAN", { "x" => 442 }], ["u", "HUMAN", { "x" => 821 }],
+                          ["cat", "CATALYST", { "x" => 851, "y" => 1266, "assignedTo" => "u" }], ["fe", "IRON", { "x" => 472, "y" => 1266, "assignedTo" => "v" }]],
+                         attacks: ["v"])
+    verdict = purge_action(engine, "fe")
+    refute verdict[:ok], "il Catalizzatore non è addosso a chi attacca"
+    assert_match(/addosso a chi attacca.*§8\.2/, verdict[:reason])
+  end
+
+  def sword_scene(flux: 10)
+    engine = stash_scene([["v", "HUMAN", { "x" => 442 }], ["sw", "SWORD", { "x" => 472, "y" => 1266, "assignedTo" => "v" }],
+                          ["fe", "IRON", { "x" => 502, "y" => 1272, "assignedTo" => "v" }]])
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => flux } })
+    engine
+  end
+
+  def sheathe_action(engine, uid = "sw", cost: 1, actor: "a")
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "ritiro", "cost" => cost,
+                   "effect" => { "source" => uid, "event" => "on_ability", "entering" => uid, "follow" => "sheathe" } }, actor: actor)
+  end
+
+  def test_object_goes_to_retire_by_paying_its_printed_cost
+    engine = sword_scene
+    verdict = sheathe_action(engine)
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    table = table_copy(engine)
+    assert_equal "ritiro", table.card("sw")[:zone]
+    assert_nil table.card("sw")[:assigned_to]
+    assert_equal 9, table.flux("a"), "il costo stampato si paga"
+    assert_equal "field", table.card("fe")[:zone], "l'altro Oggetto resta addosso"
+  end
+
+  def test_object_retire_wants_the_printed_cost_and_the_flux_to_pay_it
+    engine = sword_scene
+    refute sheathe_action(engine, cost: 0)[:ok], "gratis no: si paga il costo stampato"
+    refute sheathe_action(engine, cost: 2)[:ok], "né di più"
+    refute sheathe_action(engine, "fe")[:ok], "un Oggetto senza la forma non si mette in Ritiro da solo"
+    refute engine.judge({ "t" => "toZone", "uid" => "sw", "zone" => "ritiro" })[:ok], "senza il riferimento è un ritiro d'Oggetto: fermato (§6.2)"
+    verdict = sheathe_action(sword_scene(flux: 0))
+    refute verdict[:ok]
+    assert_match(/Flusso insufficiente.*§3\.2/, verdict[:reason])
+    assert_match(/not enough Flux.*§3\.2/, verdict[:reason_en])
+  end
+
+  def test_object_retire_only_in_own_preparation
+    engine = sword_scene
+    front!(engine)
+    verdict = sheathe_action(engine)
+    refute verdict[:ok], "a Fronte dichiarato no"
+    assert_match(/Preparazione.*§6\.2/, verdict[:reason])
+    engine = sword_scene
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    refute sheathe_action(engine)[:ok], "nel turno avversario no"
   end
 end

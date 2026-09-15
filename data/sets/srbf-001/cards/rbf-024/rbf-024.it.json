@@ -1,7 +1,7 @@
 {
   "name": "Recluta del Campo",
   "typeLabel": "Entità: Auros",
-  "summary": "Un corpo da un Flusso che cresce appena gli metti in mano qualcosa.",
+  "summary": "Un corpo da un Flusso che mette un Oggetto in Ritiro e pesca.",
   "ui": {
     "face": "Entità"
   },
@@ -17,9 +17,10 @@
   },
   "face": {
     "name": "Recluta del Campo",
-    "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
-    "effect": {
-      "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
-    }
+    "stash": {
+      "trigger": "Quando entra sul Fronte",
+      "text": "Puoi mettere un Oggetto dalla tua mano nella tua Zona di Ritiro. Se lo fai, pesca una carta."
+    },
+    "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
   }
 }

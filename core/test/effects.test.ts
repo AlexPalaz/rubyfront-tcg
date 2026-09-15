@@ -7,6 +7,10 @@ import type { CardFacts, Ctx } from "../src/ctx.js";
 import { FRONT_SLOT_X, backRowY, frontRowY } from "../src/geometry.js";
 import {
   bestObjectCost,
+  describeStash,
+  enterStashes,
+  resolveStash,
+  stashRef,
   enterDisarms,
   enterRearms,
   leaveReturns,
@@ -80,6 +84,11 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   BLADE: { kind: "object", fluxCost: 2 },
   MACE: { kind: "object", fluxCost: 3 },
   SWORD: { kind: "object", fluxCost: 1 },
+  RECRUIT: { kind: "entity", race: "auros", fluxCost: 1, enterStashes: [{ from: "hand", kind: "object", to: "ritiro", thenDraw: 1 }] },
+  CATALYST: { kind: "object", fluxCost: 2, attackForms: [
+    { kind: "empower", who: "object", targets: "bearer", power: 1, face: 0 },
+    { kind: "stash", who: "object", die: 6, onRoll: [4, 6], other: true, thenDraw: 1, face: 0 },
+  ] },
   EXPLORER: { kind: "entity", race: "auros", attackDraws: [{ draw: 1, thenDiscard: 1, requiresObject: true }] },
   WATCHMAN: { kind: "entity", race: "human", attackForms: [{ kind: "untap", who: "self", once: true, requiresObject: true, face: 0 }] },
   COMMAND: { kind: "entity", race: "auros", attackForms: [{ kind: "empower", who: "self", requiresObject: true, targets: "others_armed", power: 1, face: 0 }] },
@@ -164,6 +173,8 @@ const facts = (cardId: string): CardFacts => ({
   enterRefreshes: [],
   enterDisarms: [],
   enterRearms: [],
+  enterStashes: [],
+  selfRetires: [],
   leaveReturns: [],
   attackReturns: [],
   attackDraws: [],
@@ -1274,5 +1285,74 @@ describe("la Reattiva bloccante, giocata come blocco", () => {
     on(state, "o2", "BUCKLER", "b").assignedTo = "v2";
     expect(armedCount(state, "b", facts)).toBe(2);
     expect(resolveSteps(state, r, facts)[0].blocked).toBeNull();
+  });
+});
+
+// Gemello: engine_test.rb, sezione «lo scarto d'Oggetto (ingresso e attacco)».
+describe("lo scarto d'Oggetto all'ingresso e all'attacco (§8.2, dal 2026-09-15)", () => {
+  function fake(state: GameState): { ctx: Ctx; sent: Action[] } {
+    const sent: Action[] = [];
+    const ctx: Ctx = {
+      state: () => state,
+      dispatch(action) {
+        sent.push(action);
+        return Promise.resolve(true);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "night",
+      tintFor: () => "dynamic",
+      locale: () => "it",
+      card: facts,
+      log() {},
+    };
+    return { ctx, sent };
+  }
+
+  function inHand(state: GameState, uid: string, cardId: string, owner: Seat = "a"): CardInstance {
+    const card = on(state, uid, cardId, owner);
+    card.zone = "hand";
+    return card;
+  }
+
+  it("enterStashes propone gli Oggetti della PROPRIA mano, con la pesca a seguire", () => {
+    const state = newGame();
+    const recruit = on(state, "rec", "RECRUIT");
+    inHand(state, "sw", "SWORD");
+    inHand(state, "mio", "HUMAN");
+    inHand(state, "fe", "BLADE", "b");
+    on(state, "worn", "BLADE").assignedTo = "rec";
+    const steps = enterStashes(state, recruit, facts);
+    expect(steps).toHaveLength(1);
+    expect(steps[0].candidates.map(card => card.uid)).toEqual(["sw"]);
+    expect(steps[0]).toMatchObject({ to: "ritiro", thenDraw: 1 });
+    expect(enterStashes(state, state.cards.mio, facts)).toEqual([]);
+    expect(describeStash(steps[0], facts)).toContain("«RECRUIT»");
+  });
+
+  it("resolveStash manda il toZone in Ritiro marcato «stash», e la pesca porta il seguito «draw»", async () => {
+    const state = newGame();
+    const recruit = on(state, "rec", "RECRUIT");
+    const sword = inHand(state, "sw", "SWORD");
+    const { ctx, sent } = fake(state);
+    const [step] = enterStashes(state, recruit, facts);
+    expect(await resolveStash(ctx, step, sword)).toBe(true);
+    expect(sent).toEqual([{ t: "toZone", uid: "sw", zone: "ritiro", effect: { source: "rec", event: "on_enter_field", entering: "rec", follow: "stash" } }]);
+    expect(stashRef(step, "draw")).toEqual({ source: "rec", event: "on_enter_field", entering: "rec", follow: "draw" });
+  });
+
+  it("il Catalizzatore addosso a chi attacca: il +1 al portatore, poi il passo «stash» col d6", () => {
+    const state = newGame();
+    const u = on(state, "u", "HUMAN");
+    on(state, "cat", "CATALYST").assignedTo = "u";
+    state.declarations.push({ id: "u", from: "u", to: "rf-b", kind: "attack", seat: "a", order: 1 });
+    const steps = attackSteps(state, u, facts);
+    expect(steps.map(s => [s.source.uid, s.form.kind])).toEqual([["cat", "empower"], ["cat", "stash"]]);
+    expect(describeAttackStep(steps[1], facts)).toContain("d6");
+    expect(describeAttackStep(steps[1], facts)).toContain("4–6");
+    // Il passo risolto per questo attacco non si ripropone.
+    state.fired = ["cat|on_attack:stash|u"];
+    expect(attackSteps(state, u, facts).map(s => s.form.kind)).toEqual(["empower"]);
   });
 });

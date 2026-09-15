@@ -335,6 +335,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     hold: on => table.setBlocked(on),
     strike: (uid, ms) => table.strike(uid, ms),
     liftForFlight: (uid, zone) => flights.toPile(uid, zone ?? "ritiro"),
+    liftToRetire: uid => flights.retire(uid),
     liftToFlight: uid => flights.slide(uid),
     // Il gioco non ha la fila di servizio avversaria da aprire: il controllo scivola e basta.
     liftToDissolve: () => null,

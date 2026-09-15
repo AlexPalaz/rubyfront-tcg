@@ -1,7 +1,7 @@
 {
   "name": "Sigma Catalyst",
   "typeLabel": "Object",
-  "summary": "An Object that fuels the attack and digs Matters from the deck.",
+  "summary": "An Object that fuels the attack and turns another Object into a card.",
   "ui": {
     "face": "Object"
   },
@@ -14,7 +14,7 @@
     "name": "Sigma Catalyst",
     "effect": {
       "name": "Effect",
-      "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 5–6 look at the top 4 cards of your deck, you may reveal a Matter among them and add it to your hand, and put the others into your Retire Zone."
+      "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 4–6 you may put another Object you control into your Retire Zone. If you do, draw a card."
     },
     "flavor": "Burns slowly. Reveals quickly."
   }

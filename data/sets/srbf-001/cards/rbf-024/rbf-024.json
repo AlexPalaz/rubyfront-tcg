@@ -17,9 +17,11 @@
     "entity",
     "auros",
     "equip",
-    "aggro"
+    "aggro",
+    "draw",
+    "retire"
   ],
-  "rulesReference": "MANUALE.md §3.1, §8.2",
+  "rulesReference": "MANUALE.md §3.1, §5, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -40,17 +42,30 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "grip",
-          "displayKey": "effect",
-          "event": "while_in_play",
+          "id": "stash",
+          "displayKey": "stash",
+          "event": "on_enter_field",
           "effect": {
-            "type": "modify_power",
+            "type": "move_card",
+            "optional": true,
             "target": {
-              "scope": "self"
+              "cardType": "object",
+              "controller": "controller",
+              "zone": "hand",
+              "min": 1,
+              "max": 1,
+              "owner": "controller"
             },
-            "amount": 1,
+            "from": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "destination": {
+              "zone": "retire",
+              "owner": "controller"
+            },
             "details": {
-              "whileHasObjectAssigned": true
+              "thenDrawCards": 1
             }
           }
         }
