@@ -17,16 +17,16 @@
 // ascolta la sessione dai ganci (l'attesa in stanza, il tavolo che si apre,
 // la partita col bot finita).
 
-import { cardName, cardStats, enterEffects, isRubyfront } from "@rubyfront/core/cards";
+import { cardName, cardStats, isRubyfront } from "@rubyfront/core/cards";
 import { wornBy } from "@rubyfront/core/combat";
 import { bestObjectCost, discountedCost } from "@rubyfront/core/effects";
 import { defaultEngineUrl } from "@rubyfront/core/engine";
-import { TRIGGER_LEAD_MS, TRIGGER_TAIL_MS, createGestures, type GestureView, type Gestures } from "@rubyfront/core/gestures";
+import { TRIGGER_LEAD_MS, TRIGGER_TAIL_MS, createGestures, sceneKey, type GestureView, type Gestures } from "@rubyfront/core/gestures";
 import { t } from "@rubyfront/core/i18n";
 import { createSession, type Session, type SessionStore, type SessionView } from "@rubyfront/core/session";
 import { abilityDiscount, seatLabel } from "@rubyfront/core/state";
 import { endPhase } from "@rubyfront/core/turn";
-import type { Action, Seat } from "@rubyfront/core/types";
+import type { Action, SceneRef, Seat } from "@rubyfront/core/types";
 import { Director } from "./effects/director";
 import type { Stage } from "./stage.js";
 import { TABLE_MUSIC, playSound, startMusic, unlockSound } from "./sound";
@@ -38,6 +38,9 @@ import { Entrance } from "./table/entrance";
 import { Banner, PHASE_BANNER_MS } from "./table/banner";
 import { Menu } from "./table/menu";
 import { Aim } from "./table/aim";
+import { Toast } from "./table/toast";
+import { withoutSeat } from "./screens/chronicle";
+import { isNotice, renderLog } from "@rubyfront/core/log";
 import { Scene } from "./table/scene";
 import { Seal } from "./table/seal";
 import { Table, drawCascadeMs } from "./table/table";
@@ -80,6 +83,8 @@ export interface Match {
   /** La vetrina delle pile (§5): anche il catalogo dello strumento «Evoca» (game.ts). */
   pileViewer: PileViewer;
   scene: Scene;
+  /** Gli avvisi in cima al tavolo (toast.ts): game.ts dice quando tacere. */
+  toast: Toast;
   banner: Banner;
   seal: Seal;
   /** Gli effetti del tavolo e la loro regia (animazioni, 2026-09-12). */
@@ -137,6 +142,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   const table = new Table(stage, me, locale);
   const arrows = new Arrows(stage, table);
   const scene = new Scene(stage);
+  const toast = new Toast(stage);
   const dice = new Dice(stage);
   const aim = new Aim(stage, table);
   aim.arrows = arrows;
@@ -231,9 +237,41 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   };
 
   /** Un'azione propria (o del bot) sta per applicarsi: il suono, la carta rivelata, la risoluzione, gli effetti. */
+  /**
+   * L'avviso in cima al tavolo (toast.ts, dal 2026-09-15): le righe di chat
+   * che raccontano un effetto — la pesca di un innesco, la carta tornata in
+   * mano, l'Oggetto in Ritiro, il tiro a vuoto, il Fronte pieno — si vedono
+   * anche senza aprire la chat, su entrambi i client.
+   */
+  const notify = (action: Action): void => {
+    if (action.t !== "say" || action.entry.kind !== "log" || !action.entry.key || !isNotice(action.entry.key)) return;
+    const state = session.state();
+    const text = renderLog({ key: action.entry.key, ...(action.entry.params ? { params: action.entry.params } : {}) }, state, id => cardName(id, locale));
+    const who = action.entry.seat ? seatLabel(state, action.entry.seat, me) : null;
+    toast.show(who ? withoutSeat(text, who) : text, who ?? t("notice.kicker"));
+  };
+
+  /**
+   * La mira dell'avversario (dal 2026-09-15, «sarebbe ottimo che anche
+   * l'avversario veda cosa sto bersagliando»): viaggia sul canale rtc, senza
+   * giudizio né giornale — la carta sotto il suo dito si accende qui, quella
+   * scelta resta accesa un attimo.
+   */
+  let foeAim: string | null = null;
+  const showFoeAim = (payload: unknown): void => {
+    const message = payload as { kind?: unknown; uid?: unknown; chosen?: unknown } | null;
+    if (!message || message.kind !== "aim") return;
+    const uid = typeof message.uid === "string" ? message.uid : null;
+    if (foeAim && foeAim !== uid) table.strike(foeAim, 0);
+    foeAim = uid;
+    if (uid) table.strike(uid, message.chosen === true ? 1600 : 60_000);
+    if (message.chosen === true) foeAim = null;
+  };
+
   const beforeCommit = (action: Action): (() => void) | undefined => {
     cue(action);
     reveal(action);
+    notify(action);
     return together(resolution(action), director?.before(action), followFlights(action));
   };
 
@@ -266,18 +304,27 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   const beforeReceive = (action: Action): (() => void) | undefined => {
     cue(action);
     reveal(action);
+    notify(action);
     const state = session.state();
-    if (action.t === "toZone" && action.zone === "field") {
-      const card = state.cards[action.uid];
-      if (card && card.zone === "hand") {
-        void scene.peek({
-          cardId: card.cardId,
-          face: card.face,
-          theme: CARD_THEME,
-          locale,
-          who: t("scene.plays", { name: seatLabel(state, card.owner, me), card: `«${cardName(card.cardId, locale)}»` }),
-          effects: enterEffects(card.cardId, card.face, locale),
-        });
+    // La giocata dell'avversario si vede anche qui, con «Continua»: entrambi
+    // premono, e i suoi inneschi partono solo dopo (la stretta di mano,
+    // 2026-09-15). La scena si legge dalla lavagna DOPO l'azione (afterEntry).
+    // Vale anche per chi RIENTRA sul Fronte dal Ritiro o dall'Abisso (§8.2,
+    // dal 2026-09-15): il ritorno per effetto, il ritorno vincolato, la fine
+    // dell'esilio — un'Entità, con la sua scena d'ingresso.
+    let afterEntry: (() => void) | null = null;
+    const entering =
+      action.t === "toZone" && action.zone === "field" ? action.uid
+      : action.t === "revive" ? action.uid
+      : action.t === "release" && action.zone === "field" ? action.uid
+      : null;
+    if (entering) {
+      const card = state.cards[entering];
+      const fromHand = card?.zone === "hand";
+      const returning = card !== undefined && card.zone !== "field" && !fromHand && cardStats(card.cardId).kind === "entity";
+      if (card && (fromHand || returning)) {
+        const key = sceneKey({ kind: "enter", uid: entering }, state.turn);
+        afterEntry = () => openTheirScene(key, { kind: "enter", uid: entering });
       }
     }
     if ((action.t === "draw" || action.t === "look") && action.effect) flash(action.effect.source);
@@ -325,7 +372,19 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
         };
       }
     }
-    return together(fly, effects, followFlights(action));
+    return together(fly, effects, followFlights(action), afterEntry);
+  };
+
+  // La stretta di mano delle scene (2026-09-15): le scene dell'avversario
+  // aperte qui, per chiave — la giocata all'ingresso, le altre quando arriva
+  // il suo «pronto» —, e il «pronto» che parte da qui premendo «Continua».
+  const theirScenes = new Set<string>();
+  const openTheirScene = (key: string, ref: SceneRef): void => {
+    if (theirScenes.has(key)) return;
+    const show = gestures.sceneFor(ref);
+    if (!show) return;
+    theirScenes.add(key);
+    void scene.show({ ...show, onContinue: () => session.ctx.acknowledge?.(key) });
   };
 
   // Ciò che i gesti chiedono alla vista.
@@ -333,6 +392,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     render: () => paint(),
     light: (uid, on) => table.light(uid, on),
     hold: on => table.setBlocked(on),
+    waiting: on => aim.nameplate(on ? t("sync.waiting") : null),
     strike: (uid, ms) => table.strike(uid, ms),
     liftForFlight: (uid, zone) => flights.toPile(uid, zone ?? "ritiro"),
     liftToRetire: uid => flights.retire(uid),
@@ -374,7 +434,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     },
     botGameOver: won => hooks.botGameOver?.(won),
     joining: () => undefined,
-    rtc: () => undefined,
+    rtc: payload => showFoeAim(payload),
     // I gesti del bot: le stesse vie del giocatore, con le loro scene.
     setAuto: (seat, chooser) => gestures.setAuto(seat, chooser),
     playFromHand: (card, spot) => gestures.playFromHand(card, spot),
@@ -389,6 +449,11 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     offerLeaveReturns: (before, after, owners) => gestures.offerLeaveReturns(before, after, owners),
     offerAssignTriggers: (before, after, owners) => gestures.offerAssignTriggers(before, after, owners),
     offerDeathRemains: (before, after, owners) => gestures.offerDeathRemains(before, after, owners),
+    resolveAttacks: () => gestures.resolveAttacks(),
+    offerReturned: (before, after, owners) => gestures.offerReturned(before, after, owners),
+    ready: action => {
+      if (action.scene) openTheirScene(action.key, action.scene);
+    },
     // Il tavolo è fermo: nessun sigillo, scena (né effetti di «Risolvi» in corso), dado, mira, scelta, effetto, insegna, ingresso, giocata in volo.
     // Sfogliare una pila non ferma nessuno (nel simulatore l'overlay non trattiene il bot).
     quiet: () =>
@@ -405,6 +470,8 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     opening: { hand: PHASE_BANNER_MS + 80, turnDraw: drawCascadeMs(6) + OPENING_DRAW_PAUSE_MS },
     view,
   });
+  // La mia mira si vede anche di là (la carta sotto il dito, quella scelta).
+  aim.onAim = (uid, chosen) => void session.sendRtc({ kind: "aim", uid, chosen });
   gestures = createGestures(session.ctx, gestureView);
   flights = new Flights(stage, table, session.ctx);
   entrance = new Entrance(stage, table, session.ctx, gestures);
@@ -440,8 +507,25 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   };
 
   // Il gesto di fase: chiude la fase in corso (turn.ts, endPhase), passando
-  // dall'arbitro come ogni altra azione.
-  const closePhase = (): void => void endPhase(session.ctx);
+  // dall'arbitro come ogni altra azione. Prima aspetta che il tavolo sia
+  // fermo — le scene chiuse (dissolvenza compresa), i passi di «Risolvi»
+  // finiti, la carta giocata posata — così l'insegna della fase nuova non
+  // cade sopra la carta della scena (2026-09-15); e una chiusura alla volta.
+  let closing = false;
+  const closePhase = (): void => {
+    if (closing) return;
+    closing = true;
+    void (async () => {
+      try {
+        await scene.idle();
+        await gestures.settled();
+        await directorInstance.idle();
+        await endPhase(session.ctx);
+      } finally {
+        closing = false;
+      }
+    })();
+  };
   table.onEndPhase(closePhase);
   // Il browser non suona prima di un gesto: il contesto audio nasce al primo tocco.
   window.addEventListener("pointerdown", () => unlockSound(), { capture: true });
@@ -465,6 +549,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
       entrance.prepare();
     },
     closePhase,
+    toast,
     isQuiet: () => view.quiet(),
     redraw: paint,
   };

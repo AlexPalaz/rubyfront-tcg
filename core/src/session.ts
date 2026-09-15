@@ -24,7 +24,7 @@ import { msg, t } from "./i18n.js";
 import { renderLog } from "./log.js";
 import { apply, controllerOf, fieldCards, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, replay, shuffled, zoneCards } from "./state.js";
 import { endPhase, gameOverMsg, verdictByHp } from "./turn.js";
-import type { Action, CardInstance, ChatEntry, GameState, Seat, ZoneId } from "./types.js";
+import type { Action, CardInstance, ChatEntry, GameState, Seat, ZoneId, SceneRef } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
 
 /** La memoria del client (nel browser: localStorage): nome, mazzo, stanza. */
@@ -90,6 +90,12 @@ export interface SessionView {
   offerLeaveReturns(before: GameState, after: GameState, owners: Seat[]): void;
   offerAssignTriggers(before: GameState, after: GameState, owners: Seat[]): void;
   offerDeathRemains(before: GameState, after: GameState, owners: Seat[]): void;
+  /** §8.2 — chi è rientrata sul Fronte dal Ritiro o dall'Abisso fra i due stati (la fine di un esilio): la sua scena d'ingresso (dal 2026-09-15). */
+  offerReturned(before: GameState, after: GameState, owners: Seat[]): void;
+  /** §6.3 — alla chiusura del Fronte: i «quando attacca» dell'ondata, con le loro scene (2026-09-15). */
+  resolveAttacks(): Promise<void>;
+  /** L'avversario ha premuto «Risolvi» sulla sua scena (la stretta di mano, 2026-09-15): se qui quella scena non c'è ancora, si apre. */
+  ready(action: Extract<Action, { t: "ready" }>): void;
   /** Il tavolo è fermo: nessuna scena, nessun dado, nessuna mira, nessun effetto in corso. */
   quiet(): boolean;
 }
@@ -281,8 +287,13 @@ export function createSession(options: SessionOptions): Session {
     // §8.2 (RBF-018) — chi teneva un permanente nell'Abisso ha lasciato il
     // gioco: il permanente torna, e lo manda il tavolo che l'ha visto uscire.
     if (action.t !== "release" && Object.values(state.cards).some(card => card.heldBy && card.zone === "abisso" && state.cards[card.heldBy]?.zone !== "field")) {
-      void releaseHeld(ctx, freeFrontSlotOrNull, matterSpot);
+      // §8.2 — chi torna in gioco dall'Abisso è entrata sul Fronte: i suoi inneschi, per chi la comanda qui (dal 2026-09-15).
+      void releaseHeld(ctx, freeFrontSlotOrNull, matterSpot).then(() => view.offerReturned(before, state, deciders));
     }
+    // La restituzione fatta da qui (a fine turno, l'Entità controllata torna
+    // al proprietario): non è un ingresso — ma il permanente esiliato che
+    // torna sì.
+    if (action.t === "release" && action.zone === "field") view.offerReturned(before, state, deciders);
     // §2 — la fine per PV si guarda dopo ogni azione applicata in locale
     // (la risoluzione, un contatore a mano): la dichiara il client che l'ha
     // vista arrivare, e l'engine la verifica sulla sua copia. Una volta sola.
@@ -300,6 +311,14 @@ export function createSession(options: SessionOptions): Session {
 
   /** Applica un'azione dell'avversario, già approvata dal tavolo (che l'ha giudicata con la sua copia: qui non si rigiudica). */
   function receive(action: Action): void {
+    // La stretta di mano delle scene (2026-09-15): l'avversario ha premuto
+    // «Risolvi» — chi aspettava quella chiave riparte, e la sua scena si
+    // apre qui se non c'è ancora. La lavagna non cambia.
+    if (action.t === "ready") {
+      noteReady(action.key);
+      view.ready(action);
+      return;
+    }
     const afterPaint = view.beforeReceive(action);
     const before = state;
     state = apply(state, action);
@@ -309,6 +328,42 @@ export function createSession(options: SessionOptions): Session {
     // risoluzione, un suo effetto): il ritorno vincolato lo offro io.
     if (action.t !== "revive") view.offerLeaveReturns(before, state, [mySeat]);
     if (action.t !== "remain") view.offerDeathRemains(before, state, [mySeat]);
+    // §8.2 — una MIA carta tornata in gioco dall'Abisso per mano dell'avversario (la fine dell'esilio): i suoi inneschi li gioco io.
+    if (action.t === "release" && action.zone === "field") view.offerReturned(before, state, [mySeat]);
+  }
+
+  // ---- La stretta di mano delle scene (2026-09-15) ---------------------
+  //
+  // In stanza «Continua»/«Risolvi» vale quando l'hanno premuto entrambi:
+  // chi risolve manda `ready` con la chiave della scena e aspetta il `ready`
+  // dell'avversario per la stessa chiave (che può essere già arrivato);
+  // l'avversario, premendo sulla sua copia della scena, manda il suo senza
+  // aspettare nessuno. Le chiavi portano il turno: non si confondono.
+  const readies = new Set<string>();
+  const waitingFor = new Map<string, () => void>();
+  function noteReady(key: string): void {
+    readies.add(key);
+    const wake = waitingFor.get(key);
+    if (wake) {
+      waitingFor.delete(key);
+      wake();
+    }
+  }
+  /** Senza l'altro seduto non c'è nessuno da aspettare: chi aspettava riparte. */
+  function wakeAllWaiting(): void {
+    for (const wake of waitingFor.values()) wake();
+    waitingFor.clear();
+  }
+  const handshakeNeeded = (): boolean => room !== "" && roomPeers >= 2;
+  async function sync(key: string, scene: SceneRef): Promise<void> {
+    if (!handshakeNeeded()) return;
+    if (!(await dispatch({ t: "ready", key, seat: mySeat, scene }))) return;
+    if (readies.has(key)) return;
+    await new Promise<void>(resolve => waitingFor.set(key, resolve));
+  }
+  function acknowledge(key: string): void {
+    if (!handshakeNeeded()) return;
+    void dispatch({ t: "ready", key, seat: mySeat });
   }
 
   /**
@@ -363,6 +418,9 @@ export function createSession(options: SessionOptions): Session {
     tintFor: seat => tints[seat],
     locale: () => locale,
     promptDiscard: seat => view.promptDiscard(seat),
+    sync,
+    acknowledge,
+    resolveAttacks: () => view.resolveAttacks(),
     card: factsOf,
     log(text, seat) {
       // Una chiave viaggia come tale (chi legge la rende nella sua lingua);
@@ -553,6 +611,7 @@ export function createSession(options: SessionOptions): Session {
     paint();
     view.netStatus(status, peers);
     roomPeers = room && status === "online" ? peers : 0;
+    if (roomPeers < 2) wakeAllWaiting();
     if (awaitingPeer && roomPeers >= 2) seatTable();
   }
 

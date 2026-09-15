@@ -334,6 +334,32 @@ describe("apply toZone con costo", () => {
   });
 });
 
+// §6.2 — la sostituzione a Fronte pieno (dal 2026-09-15). Gemello: table_test.rb,
+// test_replace_sends_the_replaced_entity_and_its_objects_to_retire.
+describe("apply toZone con replace", () => {
+  it("manda la sostituita in Ritiro coi suoi Oggetti, poi fa scendere l'altra", () => {
+    let state = apply(newGame(), deckFor("a", 3));
+    state.cards["a-1"] = { ...state.cards["a-1"], zone: "field", x: 442, y: 1260 };
+    state.cards["a-2"] = { ...state.cards["a-2"], zone: "field", x: 472, y: 1266, assignedTo: "a-1" };
+    state.cards["a-3"] = { ...state.cards["a-3"], zone: "ritiro" };
+    state = apply(state, { t: "toZone", uid: "a-3", zone: "field", x: 442, y: 1260, z: 5, replace: "a-1" });
+    expect(state.cards["a-3"].zone).toBe("field");
+    expect(state.cards["a-1"].zone).toBe("ritiro");
+    expect(state.cards["a-2"].zone).toBe("ritiro");
+    expect(state.cards["a-2"].assignedTo).toBeUndefined();
+  });
+});
+
+// La stretta di mano delle scene (2026-09-15): viaggia nel giornale, la lavagna non cambia.
+// Gemello: table.rb, apply (nessun ramo per `ready`).
+describe("apply ready", () => {
+  it("non tocca la lavagna", () => {
+    const state = apply(newGame(), deckFor("a", 1));
+    const after = apply(state, { t: "ready", key: "enter|a-1|||1", seat: "a", scene: { kind: "enter", uid: "a-1" } });
+    expect(after).toEqual(state);
+  });
+});
+
 // Chi inizia lo dice l'azione (§4), e l'altro riceve il Gettone (§3.2).
 describe("newGame", () => {
   it("chi non inizia ha il Gettone", () => {

@@ -13,13 +13,13 @@
 import { declareAttack as declareAttackVia, attackBonusOf, neverTaps, wornBy } from "./combat.js";
 import { abilityCopy, attackEffects, cardName, cardStats, enterEffects, faceCount, faceKind, getCard, isRubyfront, nexusRequirementCopy, type Deployment } from "./cards.js";
 import type { Ability, AssignForm, Ctx } from "./ctx.js";
-import { bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, describeStash, enterDisarms, enterRearms, enterStashes, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveStash, stashRef, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type EnterStashStep, type LeaveReturnStep, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
+import { bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, describeStash, enterDisarms, enterRearms, enterStashes, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveStash, stashRef, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type EnterStashStep, type LeaveReturnStep, type Placement, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
 import { FRONT_SLOT_X, RUBYFRONT_X, SLOT_X, SURFACE_H, SURFACE_W, TILE_H, TILE_W, backRowY, frontRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import type { AutoChooser } from "./session.js";
 import { STACK_STEP, abilityDiscount, chainTop, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, inPlay, matterSpot, nextWaveOrder, seatLabel, stackAt, waveDeclared, zoneCards } from "./state.js";
 import { canDiscard } from "./tabs.js";
-import { type CardInstance, type Discount, type EffectRef, type GameState, type Seat, type ZoneId, otherSeat } from "./types.js";
+import { type CardInstance, type Discount, type EffectRef, type GameState, type SceneRef, type Seat, type ZoneId, otherSeat } from "./types.js";
 
 /** Il via a un volo preso PRIMA dell'azione: si dà dopo il ridisegno, o si annulla. */
 export type Flight = (() => void) & { cancel(): void };
@@ -56,6 +56,11 @@ export interface SceneShow {
   kicker?: string;
 }
 
+/** La chiave di una scena per la stretta di mano (2026-09-15): genere, carte e turno — uguale sui due client. */
+export function sceneKey(ref: SceneRef, turn: number): string {
+  return [ref.kind, ref.uid, ref.attacker ?? "", ref.object ?? "", ref.bearer ?? "", turn].join("|");
+}
+
 /** Una scelta fra più voci, con la carta di fianco: le abilità del Rubyfront e il flip (§3.1). */
 export interface ChoiceShow {
   cardId: string;
@@ -76,6 +81,8 @@ export interface GestureView {
   light(uid: string, on: boolean): void;
   /** Mentre un effetto agisce il tavolo è fermo: niente gesti finché la fonte non si spegne. */
   hold(on: boolean): void;
+  /** La stretta di mano in corso (2026-09-15): la targhetta «in attesa dell'avversario», o via. */
+  waiting?(on: boolean): void;
   /** Il lampo sulla carta colpita da un effetto; `ms` a zero lo spegne. */
   strike(uid: string, ms: number): void;
   /** Prende la carta prima che voli in una pila: il via si dà ad azione passata. */
@@ -327,51 +334,57 @@ export function createGestures(ctx: Ctx, view: GestureView) {
 
   // Dichiarazioni e loro conseguenze stanno in combat.ts: passano dal
   // giudizio dell'engine, e il tavolo si limita a fornire il bersaglio.
-  function declareAttack(card: CardInstance): Promise<void> {
-    return (async () => {
-      const passed = await declareAttackVia(ctx, card, rubyfrontOf(otherSeat(controllerOf(card))));
-      if (!passed) return;
-      // §8.2 — «quando attacca»: gli effetti certificati dell'attaccante, con
-      // la stessa scena dell'ingresso ma la riga «Quando attacca».
-      const live = ctx.state().cards[card.uid];
-      if (!live) return;
-      // RBF-004: la Vendetta promessa «al prossimo Umano che attacca» si
-      // dà adesso, se è lui — senza scena: il segno resta sulla carta.
-      for (const grant of pendingGrants(ctx.state(), live, ctx.card)) await playGrant(grant, live);
-      const returns = returnsFor(ctx.state(), live, ctx.card, "on_attack");
-      const draws = attackDraws(ctx.state(), live, ctx.card);
-      const steps = attackSteps(ctx.state(), live, ctx.card);
-      const who = t("scene.attacks", { name: seatLabel(ctx.state(), controllerOf(live)), card: `«${cardName(live.cardId, ctx.locale())}»` });
-      // Una scena per fonte: prima chi attacca (i suoi ritorni, le sue
-      // pesche, le sue forme), poi ogni altra carta che si innesca — gli
-      // Oggetti addosso, le alleate, le Materie permanenti, il Rubyfront.
-      // Le scene si accodano; «Risolvi» esegue i passi di quella fonte.
-      const own = steps.filter(step => step.source.uid === live.uid);
-      if (returns.length || draws.length || own.length) {
-        void view.scene({
-          cardId: live.cardId,
-          face: live.face,
-          theme: ctx.themeFor(live.owner),
-          locale: ctx.locale(),
-          who,
-          effects: attackEffects(live.cardId, live.face, ctx.locale()),
-          triggers: [
-            ...returns.map(step => describeReturn(step, ctx.card)),
-            ...draws.map(step => describeAttackDraw(step, ctx.card)),
-            ...own.map(step => describeAttackStep(step, ctx.card)),
-          ],
-          kicker: t("scene.attack"),
-          onContinue: () => track(() => playAttackTriggers(live, own)),
-        });
-      }
-      const others = new Map<string, AttackStep[]>();
-      for (const step of steps) {
-        if (step.source.uid === live.uid) continue;
-        others.set(step.source.uid, [...(others.get(step.source.uid) ?? []), step]);
-      }
-      for (const group of others.values()) {
-        const source = group[0].source;
-        void view.scene({
+  // §6.3 (dal 2026-09-15) — la dichiarazione è solo la dichiarazione: i
+  // «quando attacca» si risolvono alla chiusura del Fronte (resolveAttacks).
+  async function declareAttack(card: CardInstance): Promise<void> {
+    await declareAttackVia(ctx, card, rubyfrontOf(otherSeat(controllerOf(card))));
+  }
+
+  /**
+   * Le scene dei «quando attacca» di `attacker` (§8.2): una per fonte —
+   * prima chi attacca (i suoi ritorni, le sue pesche, le sue forme), poi
+   * ogni altra carta che si innesca: gli Oggetti addosso, le alleate, le
+   * Materie permanenti, il Rubyfront. Senza «Risolvi»: lo mette chi le apre.
+   * Le legge anche l'avversario per la sua copia (sceneFor).
+   */
+  function attackScenes(attacker: CardInstance): { own: { show: SceneShow; steps: AttackStep[] } | null; others: { source: CardInstance; show: SceneShow; steps: AttackStep[] }[] } {
+    const state = ctx.state();
+    const returns = returnsFor(state, attacker, ctx.card, "on_attack");
+    const draws = attackDraws(state, attacker, ctx.card);
+    const steps = attackSteps(state, attacker, ctx.card);
+    const who = t("scene.attacks", { name: seatLabel(state, controllerOf(attacker)), card: `«${cardName(attacker.cardId, ctx.locale())}»` });
+    const ownSteps = steps.filter(step => step.source.uid === attacker.uid);
+    const own =
+      returns.length || draws.length || ownSteps.length
+        ? {
+            steps: ownSteps,
+            show: {
+              cardId: attacker.cardId,
+              face: attacker.face,
+              theme: ctx.themeFor(attacker.owner),
+              locale: ctx.locale(),
+              who,
+              effects: attackEffects(attacker.cardId, attacker.face, ctx.locale()),
+              triggers: [
+                ...returns.map(step => describeReturn(step, ctx.card)),
+                ...draws.map(step => describeAttackDraw(step, ctx.card)),
+                ...ownSteps.map(step => describeAttackStep(step, ctx.card)),
+              ],
+              kicker: t("scene.attack"),
+            },
+          }
+        : null;
+    const groups = new Map<string, AttackStep[]>();
+    for (const step of steps) {
+      if (step.source.uid === attacker.uid) continue;
+      groups.set(step.source.uid, [...(groups.get(step.source.uid) ?? []), step]);
+    }
+    const others = [...groups.values()].map(group => {
+      const source = group[0].source;
+      return {
+        source,
+        steps: group,
+        show: {
           cardId: source.cardId,
           face: source.face,
           theme: ctx.themeFor(source.owner),
@@ -384,10 +397,297 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           // «Quando attacca» faceva pensare a un attacco suo — la riga sotto
           // dice già chi attacca e con che carta.
           kicker: t("scene.attack.other"),
-          onContinue: () => track(() => playAttackSteps(group)),
+        },
+      };
+    });
+    return { own, others };
+  }
+
+  /**
+   * §6.3 (deciso dal designer, 2026-09-15) — i «quando attacca» si
+   * risolvono alla chiusura del Fronte, prima della Reazione: per ogni
+   * attaccante dell'ondata, nell'ordine di dichiarazione, la Vendetta
+   * promessa «al prossimo Umano» (senza scena: il segno resta sulla carta),
+   * poi la scena di chi attacca e quelle delle altre fonti, una dopo
+   * l'altra — «Risolvi» esegue i passi, la successiva aspetta che finiscano.
+   */
+  async function resolveAttacks(): Promise<void> {
+    const seat = ctx.state().active;
+    const done = new Set<string>();
+    // L'ondata si rilegge a ogni giro: chi torna e «attacca insieme»
+    // (il ritorno col dado) entra nella fila e ha i suoi passi.
+    for (;;) {
+      const uid = ctx.state().declarations
+        .filter(declaration => declaration.kind === "attack" && declaration.seat === seat && !done.has(declaration.from))
+        .sort((left, right) => left.order - right.order)
+        .map(declaration => declaration.from)[0];
+      if (!uid) break;
+      done.add(uid);
+      const live = ctx.state().cards[uid];
+      if (!live || live.zone !== "field") continue;
+      for (const grant of pendingGrants(ctx.state(), live, ctx.card)) await playGrant(grant, live);
+      const scenes = attackScenes(live);
+      if (scenes.own) {
+        const { show, steps } = scenes.own;
+        let run: Promise<void> = Promise.resolve();
+        await view.scene({
+          ...show,
+          onContinue: () =>
+            (run = track(async () => {
+              await handshake({ kind: "attack", uid: live.uid });
+              await playAttackTriggers(live, steps);
+            })),
         });
+        await run;
       }
-    })();
+      for (const group of scenes.others) {
+        let run: Promise<void> = Promise.resolve();
+        await view.scene({
+          ...group.show,
+          onContinue: () =>
+            (run = track(async () => {
+              await handshake({ kind: "attack.other", uid: group.source.uid, attacker: live.uid });
+              await playAttackSteps(group.steps);
+            })),
+        });
+        await run;
+      }
+    }
+  }
+
+  /**
+   * La stretta di mano prima dei passi (2026-09-15): in stanza «Risolvi»
+   * vale quando l'hanno premuto entrambi i giocatori — nel frattempo il
+   * tavolo è fermo e la targhetta dice che si aspetta. Nella «solo» torna
+   * subito (ctx.sync).
+   */
+  async function handshake(ref: SceneRef): Promise<void> {
+    if (!ctx.sync) return;
+    view.hold(true);
+    view.waiting?.(true);
+    try {
+      await ctx.sync(sceneKey(ref, ctx.state().turn), ref);
+    } finally {
+      view.waiting?.(false);
+      view.hold(false);
+    }
+  }
+
+  /**
+   * §6.2 (deciso dal designer, 2026-09-15) — dove scende chi rientra sul
+   * Fronte dal Ritiro o dall'Abisso: uno slot libero; a Fronte pieno si
+   * chiede se sostituire un'Entità propria, si mira quella (va in Zona di
+   * Ritiro coi suoi Oggetti) e la carta che rientra prende il suo slot.
+   * null = non si fa. Il bot non sostituisce.
+   */
+  async function slotOrReplacement(seat: Seat, returning: CardInstance, from: CardInstance): Promise<Placement | null> {
+    const spot = freeFrontSlotOrNull(ctx.state(), seat);
+    if (spot) return { spot };
+    if (isAuto(seat)) return null;
+    const own = fieldCards(ctx.state()).filter(card => card.owner === seat && controllerOf(card) === seat && ctx.card(card.cardId).kind === "entity" && card.uid !== returning.uid);
+    if (own.length === 0) return null;
+    const name = `«${ctx.card(returning.cardId).name}»`;
+    if (!(await view.confirm(t("confirm.replace", { card: name }), { yes: t("confirm.replace.yes"), no: t("confirm.replace.no") }))) return null;
+    const target = await pickTarget(from, own, t("target.replace"));
+    if (!target) return null;
+    return { spot: { x: target.x, y: target.y }, replace: target.uid };
+  }
+
+  /**
+   * §8.2 (deciso dal designer, 2026-09-15) — chi rientra sul Fronte dal
+   * Ritiro o dall'Abisso È entrata sul Fronte: la sua scena d'ingresso e i
+   * suoi inneschi, come dalla mano. Solo le Entità; senza inneschi, niente.
+   */
+  async function announceEntry(uid: string): Promise<void> {
+    const live = ctx.state().cards[uid];
+    if (!live || live.zone !== "field" || ctx.card(live.cardId).kind !== "entity") return;
+    const { show, triggered } = enterScene(live);
+    if (!triggered) return;
+    let run: Promise<void> = Promise.resolve();
+    await view.scene({
+      ...show,
+      onContinue: () =>
+        (run = track(async () => {
+          await handshake({ kind: "enter", uid: live.uid });
+          await playTriggers(live);
+        })),
+    });
+    await run;
+  }
+
+  /**
+   * I rientri sul Fronte avvenuti fra due stati (la fine di un esilio, una
+   * restituzione) delle carte comandate da `owners`: ognuno ha la sua scena
+   * d'ingresso (announceEntry). La sessione lo chiama dopo l'azione.
+   */
+  function offerReturned(before: GameState, after: GameState, owners: Seat[]): void {
+    for (const card of Object.values(after.cards)) {
+      if (card.zone !== "field" || !owners.includes(controllerOf(card))) continue;
+      const was = before.cards[card.uid];
+      if (!was || (was.zone !== "ritiro" && was.zone !== "abisso")) continue;
+      offer(() => announceEntry(card.uid));
+    }
+  }
+
+  /**
+   * La scena dell'ingresso di `live` — chi la gioca (o a chi la assegna), i
+   * suoi effetti, gli inneschi elencati — e se ha inneschi da risolvere.
+   * Senza «Risolvi»: lo mette chi la apre. La legge anche l'avversario (sceneFor).
+   */
+  function enterScene(live: CardInstance): { show: SceneShow; triggered: boolean } {
+    const state = ctx.state();
+    const facts = ctx.card(live.cardId);
+    const moves = enterMoves(state, live, ctx.card);
+    const returns = enterReturns(state, live, ctx.card);
+    const looks = enterLooks(state, live, ctx.card);
+    const controls = enterControls(state, live, ctx.card);
+    const refreshes = enterRefreshes(live, ctx.card);
+    const disarms = enterDisarms(state, live, ctx.card);
+    const rearms = enterRearms(live, ctx.card);
+    const stashes = enterStashes(state, live, ctx.card);
+    const triggers = enterTriggers(state, live, ctx.card);
+    // Un Oggetto non entra sul Fronte: si assegna, e la scena dice a chi (§3.1).
+    const bearer = facts.kind === "object" && live.assignedTo ? state.cards[live.assignedTo] : undefined;
+    return {
+      triggered: (moves.length || returns.length || looks.length || controls.length || refreshes.length || disarms.length || rearms.length || stashes.length || triggers.length) > 0,
+      show: {
+        cardId: live.cardId,
+        face: live.face,
+        theme: ctx.themeFor(live.owner),
+        locale: ctx.locale(),
+        who: bearer
+          ? t("scene.assigns", { name: seatLabel(state, live.owner), card: `«${cardName(live.cardId, ctx.locale())}»`, toCard: `«${cardName(bearer.cardId, ctx.locale())}»` })
+          : t("scene.plays", { name: seatLabel(state, live.owner), card: `«${cardName(live.cardId, ctx.locale())}»` }),
+        ...(bearer ? { kicker: t("scene.assign") } : {}),
+        effects: enterEffects(live.cardId, live.face, ctx.locale()),
+        triggers: [
+          ...moves.map(step => describeMove(step, ctx.card)),
+          ...returns.map(step => describeReturn(step, ctx.card)),
+          ...looks.map(step => describeLook(step, ctx.card)),
+          ...controls.map(step => describeControl(step, ctx.card)),
+          ...refreshes.map(step => describeRefresh(step, ctx.card)),
+          ...disarms.map(step => t("trigger.disarm", { card: `«${ctx.card(step.source.cardId).name}»` })),
+          ...rearms.map(step => t(step.self ? "trigger.rearm.self" : "trigger.rearm.any", { card: `«${ctx.card(step.source.cardId).name}»` })),
+          ...stashes.map(step => describeStash(step, ctx.card)),
+          ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
+        ],
+      },
+    };
+  }
+
+  /** La scena della Reattiva alla giocata (§7.2): il testo e i passi — per il bot solo «Continua». */
+  function reactiveScene(card: CardInstance): SceneShow {
+    return {
+      cardId: card.cardId,
+      face: card.face,
+      theme: ctx.themeFor(card.owner),
+      locale: ctx.locale(),
+      who: t("scene.plays", { name: seatLabel(ctx.state(), card.owner), card: `«${cardName(card.cardId, ctx.locale())}»` }),
+      effects: enterEffects(card.cardId, card.face, ctx.locale()),
+      kicker: t("scene.reactive"),
+      // Il bot sceglie da sé: per chi guarda la scena dice solo «Continua».
+      triggers: isAuto(controllerOf(card)) ? [] : resolveSteps(ctx.state(), card, ctx.card).map(step => describeResolveStep(step, ctx.card)),
+    };
+  }
+
+  /** La scena della Materia che si risolve (§7.2): coi passi, o col bersaglio già scelto giocandola. */
+  function matterScene(matter: CardInstance, effects: { tag: string; text: string }[], steps: ResolveStep[]): SceneShow {
+    const by = controllerOf(matter);
+    const chosen = matter.target ? ctx.state().cards[matter.target] : undefined;
+    return {
+      cardId: matter.cardId,
+      face: matter.face,
+      theme: ctx.themeFor(matter.owner),
+      locale: ctx.locale(),
+      who: chosen
+        ? t("scene.resolves.on", { name: seatLabel(ctx.state(), by), card: `«${cardName(matter.cardId, ctx.locale())}»`, target: `«${cardName(chosen.cardId, ctx.locale())}»` })
+        : t("scene.resolves", { name: seatLabel(ctx.state(), by), card: `«${cardName(matter.cardId, ctx.locale())}»` }),
+      effects,
+      triggers: chosen ? [] : steps.map(step => describeResolveStep(step, ctx.card)),
+      kicker: t("scene.resolve.matter"),
+    };
+  }
+
+  /** La scena del flip verso il Nexus (§3.1) coi suoi passi. */
+  function flipScene(live: CardInstance, steps: FlipStep[]): SceneShow {
+    return {
+      cardId: live.cardId,
+      face: live.face,
+      theme: ctx.themeFor(live.owner),
+      locale: ctx.locale(),
+      who: t("scene.flips", { name: seatLabel(ctx.state(), controllerOf(live)), card: `«${cardName(live.cardId, ctx.locale())}»` }),
+      effects: [],
+      triggers: steps.map(step => describeFlipStep(step, ctx.card)),
+      kicker: t("scene.flip"),
+    };
+  }
+
+  /** La scena del «quando assegni questa carta» (§3.1/§8.2). */
+  function assignScene(step: AssignStep): SceneShow {
+    const by = controllerOf(step.source);
+    return {
+      cardId: step.source.cardId,
+      face: step.source.face,
+      theme: ctx.themeFor(step.source.owner),
+      locale: ctx.locale(),
+      who: t("scene.assigns", { name: seatLabel(ctx.state(), by), card: `«${cardName(step.object.cardId, ctx.locale())}»`, toCard: `«${cardName(step.bearer.cardId, ctx.locale())}»` }),
+      effects: enterEffects(step.source.cardId, step.source.face, ctx.locale()),
+      triggers: [describeAssignStep(step, ctx.card)],
+      kicker: t("scene.resolve.matter"),
+    };
+  }
+
+  /** La scena del «quando quell'Entità muore» dell'Oggetto (§8.2). */
+  function deathScene(step: DeathStep): SceneShow {
+    const by = step.object.owner;
+    return {
+      cardId: step.object.cardId,
+      face: step.object.face,
+      theme: ctx.themeFor(step.object.owner),
+      locale: ctx.locale(),
+      who: t("scene.dies", { name: seatLabel(ctx.state(), by), card: `«${cardName(step.bearer.cardId, ctx.locale())}»`, object: `«${cardName(step.object.cardId, ctx.locale())}»` }),
+      effects: enterEffects(step.object.cardId, step.object.face, ctx.locale()),
+      triggers: [describeDeathStep(step, ctx.card)],
+      kicker: t("scene.resolve.matter"),
+    };
+  }
+
+  /**
+   * La scena dell'avversario, ricostruita qui dal suo riferimento (la
+   * stretta di mano, 2026-09-15): stessa lavagna, stesse forme, la lingua
+   * di chi guarda. null se la carta non c'è più o la scena non ha senso.
+   */
+  function sceneFor(ref: SceneRef): SceneShow | null {
+    const state = ctx.state();
+    const card = state.cards[ref.uid];
+    if (!card) return null;
+    switch (ref.kind) {
+      case "enter":
+        return enterScene(card).show;
+      case "attack":
+        return attackScenes(card).own?.show ?? null;
+      case "attack.other": {
+        const attacker = ref.attacker ? state.cards[ref.attacker] : undefined;
+        return attacker ? attackScenes(attacker).others.find(group => group.source.uid === ref.uid)?.show ?? null : null;
+      }
+      case "flip":
+        return flipScene(card, flipSteps(state, card, ctx.card));
+      case "matter":
+        return matterScene(card, enterEffects(card.cardId, card.face, ctx.locale()), pendingResolve(state, card, ctx.card));
+      case "reactive":
+        return reactiveScene(card);
+      case "assign": {
+        const object = ref.object ? state.cards[ref.object] : undefined;
+        const bearer = ref.bearer ? state.cards[ref.bearer] : undefined;
+        const form = ctx.card(card.cardId).assignForms[0];
+        return object && bearer && form ? assignScene({ source: card, object, bearer, form }) : null;
+      }
+      case "death": {
+        const bearer = ref.bearer ? state.cards[ref.bearer] : undefined;
+        const form = ctx.card(card.cardId).deathForms[0];
+        return bearer && form ? deathScene({ object: card, bearer, form }) : null;
+      }
+    }
   }
 
   async function playAttackSteps(steps: AttackStep[]): Promise<void> {
@@ -606,19 +906,30 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             ctx.log(msg("log.no.permanent", { seat: by, card: step.source.cardId }), by);
             break;
           }
-          const spot = freeFrontSlotOrNull(ctx.state(), by);
-          if (!spot) {
+          let chosen: CardInstance | null = null;
+          while (!chosen) chosen = await pickFromPile(by, "ritiro", candidates, t("pick.recall.front"), undefined, true);
+          const place = await slotOrReplacement(by, chosen, step.source);
+          if (!place) {
             ctx.log(msg("log.front.full", { seat: by, card: step.source.cardId }), by);
             break;
           }
-          let chosen: CardInstance | null = null;
-          while (!chosen) chosen = await pickFromPile(by, "ritiro", candidates, t("pick.recall.front"), undefined, true);
-          const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...spot, z: ctx.state().zTop + 1, roll, effect: attackRef(step) });
-          if (!passed) break;
+          const replaced = place.replace ? ctx.state().cards[place.replace] : undefined;
+          const leaving = place.replace ? view.liftForFlight(place.replace, "ritiro") : null;
+          const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...place.spot, z: ctx.state().zTop + 1, roll, ...(place.replace ? { replace: place.replace } : {}), effect: attackRef(step) });
+          if (!passed) {
+            leaving?.cancel();
+            view.render();
+            break;
+          }
+          leaving?.();
+          if (replaced) ctx.log(msg("log.effect.replace", { seat: by, card: chosen.cardId, otherCard: replaced.cardId }), by);
           view.flyFromPile(by, "ritiro", chosen.uid);
           await wait(view.timing.fly);
           const target = rubyfrontOf(otherSeat(by));
-          if (target) {
+          // «Attacca insieme»: si chiede prima (deciso dal designer,
+          // 2026-09-15, «non attaccare automaticamente»); il bot attacca.
+          const joins = target ? await confirmFor(by, t("confirm.join", { card: `«${ctx.card(chosen.cardId).name}»`, source: `«${ctx.card(step.source.cardId).name}»` }), { yes: t("confirm.join.yes"), no: t("confirm.join.no") }) : false;
+          if (target && joins) {
             const order = nextWaveOrder(ctx.state(), by);
             // §3.1 — anche chi torna e attacca insieme porta il bonus promesso alle prossime attaccanti.
             const bonus = attackBonusOf(ctx, ctx.state().cards[chosen.uid] ?? chosen);
@@ -632,6 +943,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
               ctx.log(msg("log.effect.recall.front", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
             }
           }
+          // §8.2 — chi rientra sul Fronte è entrata sul Fronte: i suoi inneschi (dal 2026-09-15).
+          await announceEntry(chosen.uid);
           break;
         }
         case "rearm": {
@@ -763,7 +1076,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    * Nexus): l'azione porta il riferimento all'abilità e le parole chiave
    * concesse, e non paga Flusso — l'engine lo pretende così.
    */
-  type FreeEntry = { effect: EffectRef; grants: string[] };
+  /** La discesa gratis di un effetto: il riferimento, le parole chiave concesse, e — a Fronte pieno — chi lascia il posto (§6.2). */
+  type FreeEntry = { effect: EffectRef; grants: string[]; replace?: string };
 
   async function place(card: CardInstance, x: number, y: number, z: number, free: FreeEntry | null = null): Promise<boolean> {
     if (card.zone === "field") {
@@ -827,6 +1141,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       ...(target ? { target: target.uid } : {}),
       ...(reactive ? { chain: true as const } : {}),
       ...(free ? { effect: free.effect, grants: free.grants } : {}),
+      ...(free?.replace ? { replace: free.replace } : {}),
     });
     const effects = card.zone === "hand" ? enterEffects(card.cardId, card.face, ctx.locale()) : [];
     if (passed && free) {
@@ -859,44 +1174,19 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     // (effect.ts).
     if (passed && card.zone === "hand") {
       // Gli inneschi delle carte già in campo (effects.ts): la scena li
-      // elenca, e «Risolvi» li esegue — con un bagliore sulla fonte.
+      // elenca, e «Risolvi» li esegue — con un bagliore sulla fonte, dopo
+      // la stretta di mano con l'avversario (in stanza).
       const live = ctx.state().cards[card.uid] ?? card;
-      const moves = enterMoves(ctx.state(), live, ctx.card);
-      const returns = enterReturns(ctx.state(), live, ctx.card);
-      const looks = enterLooks(ctx.state(), live, ctx.card);
-      const controls = enterControls(ctx.state(), live, ctx.card);
-      const refreshes = enterRefreshes(live, ctx.card);
-      const disarms = enterDisarms(ctx.state(), live, ctx.card);
-      const rearms = enterRearms(live, ctx.card);
-      const stashes = enterStashes(ctx.state(), live, ctx.card);
-      const triggers = enterTriggers(ctx.state(), live, ctx.card);
-      // Un Oggetto non entra sul Fronte: si assegna, e la scena dice a chi (§3.1).
-      const bearer = facts.kind === "object" && live.assignedTo ? ctx.state().cards[live.assignedTo] : undefined;
+      const { show, triggered } = enterScene(live);
       void view.scene({
-        cardId: card.cardId,
-        face: card.face,
-        theme: ctx.themeFor(card.owner),
-        locale: ctx.locale(),
-        who: bearer
-          ? t("scene.assigns", { name: seatLabel(ctx.state(), card.owner), card: `«${cardName(card.cardId, ctx.locale())}»`, toCard: `«${cardName(bearer.cardId, ctx.locale())}»` })
-          : t("scene.plays", { name: seatLabel(ctx.state(), card.owner), card: `«${cardName(card.cardId, ctx.locale())}»` }),
-        ...(bearer ? { kicker: t("scene.assign") } : {}),
-        effects,
-        triggers: [
-          ...moves.map(step => describeMove(step, ctx.card)),
-          ...returns.map(step => describeReturn(step, ctx.card)),
-          ...looks.map(step => describeLook(step, ctx.card)),
-          ...controls.map(step => describeControl(step, ctx.card)),
-          ...refreshes.map(step => describeRefresh(step, ctx.card)),
-          ...disarms.map(step => t("trigger.disarm", { card: `«${ctx.card(step.source.cardId).name}»` })),
-          ...rearms.map(step => t(step.self ? "trigger.rearm.self" : "trigger.rearm.any", { card: `«${ctx.card(step.source.cardId).name}»` })),
-          ...stashes.map(step => describeStash(step, ctx.card)),
-          ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
-        ],
-        onContinue:
-          moves.length || returns.length || looks.length || controls.length || refreshes.length || disarms.length || rearms.length || stashes.length || triggers.length
-            ? () => track(() => playTriggers(live))
-            : undefined,
+        ...show,
+        onContinue: triggered
+          ? () =>
+              track(async () => {
+                await handshake({ kind: "enter", uid: live.uid });
+                await playTriggers(live);
+              })
+          : undefined,
       });
     }
     return passed;
@@ -922,23 +1212,12 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    */
   async function playReactiveWithTarget(card: CardInstance, x: number, y: number, z: number): Promise<boolean> {
     const facts = ctx.card(card.cardId);
-    const by = controllerOf(card);
     const form = facts.resolveForms.find(candidate => candidate.kind === "destroy");
     const foes = fieldCards(ctx.state()).filter(other => ctx.card(other.cardId).kind === "entity" && (!form || form.kind !== "destroy" || form.target.controller !== "opponent" || controllerOf(other) !== card.owner));
     const discount = form && form.kind === "destroy" ? form.discount?.amount ?? 0 : 0;
     const staged = view.stageReactive?.(card) ?? null;
-    await view.scene({
-      cardId: card.cardId,
-      face: card.face,
-      theme: ctx.themeFor(card.owner),
-      locale: ctx.locale(),
-      who: t("scene.plays", { name: seatLabel(ctx.state(), card.owner), card: `«${cardName(card.cardId, ctx.locale())}»` }),
-      effects: enterEffects(card.cardId, card.face, ctx.locale()),
-      kicker: t("scene.reactive"),
-      // Il bot sceglie da sé: per chi guarda la scena dice solo «Continua».
-      triggers: isAuto(by) ? [] : resolveSteps(ctx.state(), card, ctx.card).map(step => describeResolveStep(step, ctx.card)),
-      onContinue: () => undefined,
-    });
+    await view.scene({ ...reactiveScene(card), onContinue: () => undefined });
+    await handshake({ kind: "reactive", uid: card.uid });
     const target = foes.length ? await pickTarget(card, foes, t("target.judgment.play", { n: discount }), false) : null;
     if (foes.length && !target) {
       staged?.cancel();
@@ -1017,24 +1296,11 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    */
   async function resolveMatter(matter: CardInstance, effects: { tag: string; text: string }[], blocking: boolean): Promise<void> {
     const facts = ctx.card(matter.cardId);
-    const by = controllerOf(matter);
     const steps = pendingResolve(ctx.state(), matter, ctx.card);
     // Il bersaglio scelto giocandola (RBF-021): la scena lo dice, e il tasto è «Continua» — la scelta è già fatta.
-    const chosen = matter.target ? ctx.state().cards[matter.target] : undefined;
-    await view.scene({
-      cardId: matter.cardId,
-      face: matter.face,
-      theme: ctx.themeFor(matter.owner),
-      locale: ctx.locale(),
-      who: chosen
-        ? t("scene.resolves.on", { name: seatLabel(ctx.state(), by), card: `«${cardName(matter.cardId, ctx.locale())}»`, target: `«${cardName(chosen.cardId, ctx.locale())}»` })
-        : t("scene.resolves", { name: seatLabel(ctx.state(), by), card: `«${cardName(matter.cardId, ctx.locale())}»` }),
-      effects,
-      triggers: chosen ? [] : steps.map(step => describeResolveStep(step, ctx.card)),
-      kicker: t("scene.resolve.matter"),
-      // I passi seguono la scena, qui sotto: il tasto dice solo «Risolvi».
-      onContinue: () => undefined,
-    });
+    // I passi seguono la scena, qui sotto: il tasto dice solo «Risolvi».
+    await view.scene({ ...matterScene(matter, effects, steps), onContinue: () => undefined });
+    await handshake({ kind: "matter", uid: matter.uid });
     for (const step of steps) await playResolveStep(step);
     if (facts.behavior !== "permanent" && !blocking) await spendMatter(matter);
     if (ctx.state().chain?.stack.includes(matter.uid)) await ctx.dispatch({ t: "settle", uid: matter.uid });
@@ -1283,14 +1549,21 @@ export function createGestures(ctx: Ctx, view: GestureView) {
               const f = ctx.card(card.cardId);
               return f.kind === filter.kind && (filter.race === null || f.race === filter.race) && (filter.maxCost === null || (f.fluxCost !== null && f.fluxCost <= filter.maxCost));
             });
-            const spot = freeFrontSlotOrNull(ctx.state(), by);
             if (candidates.length === 0) ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
-            else if (!spot) ctx.log(msg("log.front.full", { seat: by, card: step.source.cardId }), by);
             else {
               const chosen = await pickFromPile(by, "hand", candidates, t("pick.fortune.deploy", { n: filter.maxCost ?? 0 }));
-              if (chosen) {
-                const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...spot, z: ctx.state().zTop + 1, roll, effect: ref });
-                if (passed) ctx.log(msg("log.effect.deploy", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
+              // §6.2 — a Fronte pieno si chiede se sostituire un'Entità propria (dal 2026-09-15).
+              const placeAt = chosen ? await slotOrReplacement(by, chosen, step.source) : null;
+              if (chosen && !placeAt) ctx.log(msg("log.front.full", { seat: by, card: step.source.cardId }), by);
+              if (chosen && placeAt) {
+                const leaving = placeAt.replace ? view.liftForFlight(placeAt.replace, "ritiro") : null;
+                const replaced = placeAt.replace ? ctx.state().cards[placeAt.replace] : undefined;
+                const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...placeAt.spot, z: ctx.state().zTop + 1, roll, ...(placeAt.replace ? { replace: placeAt.replace } : {}), effect: ref });
+                if (passed) {
+                  leaving?.();
+                  ctx.log(msg("log.effect.deploy", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
+                  if (replaced) ctx.log(msg("log.effect.replace", { seat: by, card: chosen.cardId, otherCard: replaced.cardId }), by);
+                } else leaving?.cancel();
                 await wait(TRIGGER_TAIL_MS);
               }
             }
@@ -1344,15 +1617,12 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const steps = flipSteps(ctx.state(), live, ctx.card);
     if (steps.length === 0) return true;
     void view.scene({
-      cardId: live.cardId,
-      face: live.face,
-      theme: ctx.themeFor(live.owner),
-      locale: ctx.locale(),
-      who: t("scene.flips", { name: seatLabel(ctx.state(), by), card: `«${cardName(live.cardId, ctx.locale())}»` }),
-      effects: [],
-      triggers: steps.map(step => describeFlipStep(step, ctx.card)),
-      kicker: t("scene.flip"),
-      onContinue: () => track(() => playFlipSteps(steps)),
+      ...flipScene(live, steps),
+      onContinue: () =>
+        track(async () => {
+          await handshake({ kind: "flip", uid: live.uid });
+          await playFlipSteps(steps);
+        }),
     });
     return true;
   }
@@ -1577,11 +1847,24 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       view.light(step.source.uid, false);
       return;
     }
+    // §6.2 — un'Entità a Fronte pieno: si chiede se sostituirne una propria (dal 2026-09-15).
+    let place: Placement | undefined;
+    if (ctx.card(card.cardId).kind === "entity") {
+      const chosenPlace = await slotOrReplacement(controllerOf(step.source), card, step.source);
+      if (!chosenPlace) {
+        ctx.log(msg("log.front.full", { seat: step.source.owner, card: step.source.cardId }), step.source.owner);
+        view.light(step.source.uid, false);
+        return;
+      }
+      place = chosenPlace;
+    }
     view.hold(true);
     try {
       await wait(CONFIRMED_LEAD_MS);
-      const passed = await resolveReturn(ctx, step, card);
+      const leaving = place?.replace ? view.liftForFlight(place.replace, "ritiro") : null;
+      const passed = await resolveReturn(ctx, step, card, place);
       if (passed) {
+        leaving?.();
         view.flyFromPile(card.owner, step.from, card.uid);
         // La fonte si spegne appena la Materia è arrivata: il volo è
         // l'effetto, non c'è altro da aspettare.
@@ -1591,6 +1874,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       view.light(step.source.uid, false);
       view.hold(false);
     }
+    // §8.2 — chi rientra sul Fronte è entrata sul Fronte: i suoi inneschi (dal 2026-09-15).
+    await announceEntry(card.uid);
   }
 
   async function playControl(step: EnterControlStep): Promise<void> {
@@ -1670,25 +1955,30 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     // La chiamata sul Fronte: l'Entità dalla mano si sceglie PRIMA di
     // pagare (chi rinuncia non paga); senza Entità o senza slot si può
     // usare lo stesso, per il bonus alle attaccanti («puoi»).
-    let summon: { card: CardInstance; spot: { x: number; y: number } } | null = null;
+    let summon: { card: CardInstance; place: Placement } | null = null;
     if (form.kind === "summon") {
       const sealed = ctx.state().players[by].sealed ?? [];
       const candidates = zoneCards(ctx.state(), by, "hand").filter(other => {
         const facts = ctx.card(other.cardId);
         return facts.kind === "entity" && (form.race === null || facts.race === form.race) && !sealed.includes(other.cardId);
       });
-      const spot = freeFrontSlotOrNull(ctx.state(), by);
-      let chosen: CardInstance | null = null;
-      if (candidates.length && spot) {
+      // Senza un'Entità adatta in mano si dice QUELLO; a Fronte pieno si
+      // sceglie la carta e poi chi le lascia il posto (§6.2, dal 2026-09-15:
+      // «se confermo, mi fa sostituire prima una carta dal Fronte»).
+      if (candidates.length === 0) {
+        const go = await confirmFor(by, t("confirm.ability.nohuman", { name: copy.name, price }));
+        if (!go) return false;
+      } else {
         view.light(card.uid, true);
         // Il bot sceglie la più forte (pickTarget), non «la meno cara da scartare».
-        chosen = auto && isAuto(by) ? auto.chooser.pickTarget(card, candidates) : await pickFromPile(by, "hand", candidates, t("pick.ability.summon"));
+        const chosen = auto && isAuto(by) ? auto.chooser.pickTarget(card, candidates) : await pickFromPile(by, "hand", candidates, t("pick.ability.summon"));
+        const place = chosen ? await slotOrReplacement(by, chosen, card) : null;
         view.light(card.uid, false);
-      }
-      if (chosen && spot) summon = { card: chosen, spot };
-      else {
-        const go = await confirmFor(by, t("confirm.ability.nosummon", { name: copy.name, price }));
-        if (!go) return false;
+        if (chosen && place) summon = { card: chosen, place };
+        else {
+          const go = await confirmFor(by, t("confirm.ability.nosummon", { name: copy.name, price }));
+          if (!go) return false;
+        }
       }
     }
     if (form.kind === "power") {
@@ -1772,11 +2062,18 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     if (passed && form.kind === "summon") {
       const live = ctx.state().cards[card.uid];
       if (live && summon) {
-        const spot = freeFrontSlotOrNull(ctx.state(), by) ?? summon.spot;
-        await place(summon.card, spot.x, spot.y, ctx.state().zTop + 1, {
+        const spot = summon.place.replace ? summon.place.spot : freeFrontSlotOrNull(ctx.state(), by) ?? summon.place.spot;
+        const leaving = summon.place.replace ? view.liftForFlight(summon.place.replace, "ritiro") : null;
+        const replaced = summon.place.replace ? ctx.state().cards[summon.place.replace] : undefined;
+        const landed = await place(summon.card, spot.x, spot.y, ctx.state().zTop + 1, {
           effect: { source: live.uid, event: "on_ability", entering: live.uid, ability: ability.id },
           grants: form.grants,
+          ...(summon.place.replace ? { replace: summon.place.replace } : {}),
         });
+        if (landed) {
+          leaving?.();
+          if (replaced) ctx.log(msg("log.effect.replace", { seat: by, card: summon.card.cardId, otherCard: replaced.cardId }), by);
+        } else leaving?.cancel();
       }
       view.render();
       return true;
@@ -1978,9 +2275,19 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     busy = Promise.all([busy, done]).then(() => undefined);
     return done;
   }
+  /**
+   * Le sequenze si rispettano (2026-09-15, «prima fammi vedere l'oggetto con
+   * calma, faccio continua, viene assegnato e poi parte l'effetto»): un
+   * innesco offerto da un'azione parte solo DOPO la scena della carta che
+   * quell'azione ha giocato — un giro di macrotask perché la giocata la
+   * metta in coda, poi i passi in corso, poi la coda delle scene vuota.
+   * Vale per tutti gli inneschi offerti, senza eccezioni per carta.
+   */
   function offer(run: () => Promise<void>): void {
     offered = offered
+      .then(() => new Promise<void>(resolve => setTimeout(resolve, 0)))
       .then(() => busy)
+      .then(() => view.sceneIdle())
       .then(run, run)
       .catch(error => {
         console.warn("innesco", error);
@@ -1989,33 +2296,36 @@ export function createGestures(ctx: Ctx, view: GestureView) {
 
   async function playLeaveReturn(step: LeaveReturnStep): Promise<void> {
     const seat = step.card.owner;
-    if (step.frontFull) {
-      ctx.log(msg("log.revive.frontfull", { seat, card: step.card.cardId }), seat);
-      return;
-    }
     if (step.candidates.length === 0) {
       ctx.log(msg("log.revive.noobject", { seat, card: step.card.cardId }), seat);
       return;
     }
     const object = await pickFromPile(seat, "ritiro", step.candidates, t("pick.revive", { card: `«${ctx.card(step.card.cardId).name}»` }));
     if (!object) return;
-    const spot = freeFrontSlotOrNull(ctx.state(), seat);
-    if (!spot) {
+    // §6.2 — a Fronte pieno si chiede se sostituire un'Entità propria (dal 2026-09-15).
+    const place = await slotOrReplacement(seat, step.card, step.card);
+    if (!place) {
       ctx.log(msg("log.revive.frontfull", { seat, card: step.card.cardId }), seat);
       return;
     }
     view.hold(true);
     try {
       await wait(CONFIRMED_LEAD_MS);
-      const passed = await resolveLeaveReturn(ctx, step, object, spot);
+      const leaving = place.replace ? view.liftForFlight(place.replace, "ritiro") : null;
+      const passed = await resolveLeaveReturn(ctx, step, object, place);
       if (passed) {
+        leaving?.();
         view.flyFromPile(seat, step.card.zone, step.card.uid);
         view.flyFromPile(seat, "ritiro", object.uid);
         await wait(view.timing.fly + TRIGGER_TAIL_MS);
+      } else {
+        leaving?.cancel();
+        view.render();
       }
     } finally {
       view.hold(false);
     }
+    await announceEntry(step.card.uid);
   }
 
   /**
@@ -2035,17 +2345,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
       return;
     }
-    await view.scene({
-      cardId: step.source.cardId,
-      face: step.source.face,
-      theme: ctx.themeFor(step.source.owner),
-      locale: ctx.locale(),
-      who: t("scene.assigns", { name: seatLabel(ctx.state(), by), card: `«${cardName(step.object.cardId, ctx.locale())}»`, toCard: `«${cardName(step.bearer.cardId, ctx.locale())}»` }),
-      effects: enterEffects(step.source.cardId, step.source.face, ctx.locale()),
-      triggers: [describeAssignStep(step, ctx.card)],
-      kicker: t("scene.resolve.matter"),
-      onContinue: () => undefined,
-    });
+    await view.scene({ ...assignScene(step), onContinue: () => undefined });
+    await handshake({ kind: "assign", uid: step.source.uid, object: step.object.uid, bearer: step.bearer.uid });
     view.light(step.source.uid, true);
     try {
       if (step.form.kind === "draw") {
@@ -2155,17 +2456,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const by = step.object.owner;
     await new Promise(resolve => setTimeout(resolve, 0));
     await view.sceneIdle();
-    await view.scene({
-      cardId: step.object.cardId,
-      face: step.object.face,
-      theme: ctx.themeFor(step.object.owner),
-      locale: ctx.locale(),
-      who: t("scene.dies", { name: seatLabel(ctx.state(), by), card: `«${cardName(step.bearer.cardId, ctx.locale())}»`, object: `«${cardName(step.object.cardId, ctx.locale())}»` }),
-      effects: enterEffects(step.object.cardId, step.object.face, ctx.locale()),
-      triggers: [describeDeathStep(step, ctx.card)],
-      kicker: t("scene.resolve.matter"),
-      onContinue: () => undefined,
-    });
+    await view.scene({ ...deathScene(step), onContinue: () => undefined });
+    await handshake({ kind: "death", uid: step.object.uid, bearer: step.bearer.uid });
     view.hold(true);
     try {
       await wait(CONFIRMED_LEAD_MS);
@@ -2460,6 +2752,11 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     unplayable,
     sendToZone,
     sheathe,
+    resolveAttacks,
+    sceneFor,
+    offerReturned,
+    // I passi che «Risolvi» ha avviato e stanno ancora agendo: chi chiude la fase li aspetta (match.ts).
+    settled: (): Promise<void> => busy,
     boundSpot,
     touchedAt,
     entityUnder,

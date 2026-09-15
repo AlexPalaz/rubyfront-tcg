@@ -7,6 +7,17 @@ import { t } from "./i18n.js";
 import { seatLabel } from "./state.js";
 import type { GameState, LogMsg, LogParam, Seat } from "./types.js";
 
+/**
+ * Le righe di log che sono AVVISI del tavolo (2026-09-15, «devi sempre far
+ * sapere al giocatore l'azione che è stata fatta»): gli effetti risolti —
+ * pesche, carte in mano dal Ritiro, Oggetti in Ritiro, tiri a vuoto, il
+ * Fronte pieno, chi rientra o non torna. Le mostra la targhetta in cima al
+ * tavolo e le raccoglie la cronaca (toast.ts, chronicle.ts).
+ */
+export function isNotice(key: string): boolean {
+  return /^log\.(effect\.|look\.|no\.|revive\.|held\.|release\.|front\.full|vigil)/.test(key);
+}
+
 export function renderLog(message: LogMsg, state: GameState, cardName: (cardId: string) => string): string {
   const params: Record<string, string | number> = {};
   for (const [name, value] of Object.entries(message.params ?? {})) {

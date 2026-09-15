@@ -311,7 +311,7 @@ export type Action =
   /** `cost`: il Flusso pagato giocando DALLA MANO in campo (§3.2) — lo
       mette il client dal catalogo, l'engine lo verifica, il riduttore lo
       scala. Assente da altre zone e per il Rubyfront. */
-  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; discount?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string; chain?: true; grants?: string[] }
+  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; discount?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string; chain?: true; grants?: string[]; replace?: string }
   /** §7.2 — chi deve rispondere accetta: la catena si risolve. */
   | { t: "pass"; seat: Seat }
   /** §7.2 — la Reattiva in cima è risolta: esce dalla pila (anche se resta in campo a bloccare, §6.4). */
@@ -331,7 +331,7 @@ export type Action =
       nell'Abisso o nella Zona di Ritiro senza Oggetti addosso, torna sullo
       slot (x, y) del proprio Fronte e l'Oggetto `object` le va addosso dal
       Ritiro, gratis. Il client calcola, l'engine verifica sulla forma. */
-  | { t: "revive"; uid: string; x: number; y: number; z: number; object: string; effect: EffectRef }
+  | { t: "revive"; uid: string; x: number; y: number; z: number; object: string; effect: EffectRef; /** §6.2 — a Fronte pieno, l'Entità propria che lascia il posto (in Ritiro coi suoi Oggetti), dal 2026-09-15. */ replace?: string }
   /** Assegna l'Oggetto `uid` all'Entità `to` (§3.1); `to: null` lo scioglie. */
   | { t: "assign"; uid: string; to: string | null }
   | { t: "tap"; uid: string; tapped: boolean }
@@ -380,9 +380,29 @@ export type Action =
       arrivare, l'engine lo verifica contro PV e mazzi della sua copia. */
   | { t: "gameOver"; winner: Seat | null; reason: GameOver["reason"] }
   | { t: "say"; entry: ChatEntry }
+  /** La stretta di mano delle scene in stanza (2026-09-15): «Continua»/«Risolvi»
+      premuto da questo posto per la scena `key`; `scene` dice all'altro client
+      quale scena aprire se non l'ha già. Senza regola e senza turno: la lavagna non cambia. */
+  | { t: "ready"; key: string; seat: Seat; scene?: SceneRef }
   /** STRUMENTO DI PROVA, temporaneo: evoca in mano una carta qualunque del
       catalogo, per provare le regole in fretta. Non è un gesto di gioco. */
   | { t: "spawn"; card: CardInstance };
+
+/**
+ * La scena che i due client in stanza devono chiudere entrambi (2026-09-15):
+ * il genere e le carte, da cui ognuno la ricostruisce nella sua lingua
+ * (gestures.ts, sceneFor). `uid` è la carta della scena (chi entra, chi
+ * attacca, la fonte che si innesca, la Materia, l'Oggetto); `attacker` per
+ * la fonte che si innesca perché un'altra attacca; `object`/`bearer` per
+ * «quando assegni» e «quando muore».
+ */
+export interface SceneRef {
+  kind: "enter" | "attack" | "attack.other" | "flip" | "matter" | "reactive" | "assign" | "death";
+  uid: string;
+  attacker?: string;
+  object?: string;
+  bearer?: string;
+}
 
 /** Una riga del giornale della stanza: l'azione approvata e chi l'ha compiuta (nessuno per il `newGame` tirato dal tavolo). */
 export interface JournalEntry {

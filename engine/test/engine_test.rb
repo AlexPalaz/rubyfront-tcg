@@ -499,6 +499,15 @@ class EngineTest < Minitest::Test
     refute engine.judge(assign_action("a-2", "a-3"))[:ok], "a-3 è una Materia"
   end
 
+  def test_not_to_an_entity_out_of_the_field
+    engine = with_cards
+    hand_and_field(engine, %w[SLOW IRON STONE SLOW RUBY SLOW], drop: 5)
+    verdict = engine.judge(assign_action("a-2", "a-6"))
+    refute verdict[:ok], "a-6 è in mano"
+    assert_match(/in campo.*§3\.1/, verdict[:reason])
+    assert_match(/on the field.*§3\.1/, verdict[:reason_en])
+  end
+
   def test_not_to_opposing_entity
     engine = with_cards
     table_with_item(engine)
@@ -2079,9 +2088,37 @@ class EngineTest < Minitest::Test
     engine
   end
 
-  def bring_back(engine, uid)
+  def bring_back(engine, uid, extra = {})
     engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => 2368, "y" => 1260,
-                   "effect" => { "source" => "riportante", "event" => "on_enter_field", "entering" => "riportante" } })
+                   "effect" => { "source" => "riportante", "event" => "on_enter_field", "entering" => "riportante" } }.merge(extra))
+  end
+
+  # §6.2 — la sostituzione a Fronte pieno (dal 2026-09-15): chi rientra per
+  # effetto prende il posto di un'Entità propria, che va in Ritiro coi suoi
+  # Oggetti; senza Fronte pieno la sostituzione non ha senso, e si
+  # sostituisce solo una propria Entità in campo.
+  def test_with_full_front_entity_returns_by_replacing_own_entity
+    engine = returner([["u1", "HUMAN"]], field_setup: 5)
+    verdict = bring_back(engine, "u1", "x" => Rubyfront::Engine::FRONT_SLOT_X[1], "replace" => "f2")
+    assert verdict[:ruled]
+    assert verdict[:ok], verdict[:reason]
+    table = table_copy(engine)
+    assert_equal "field", table.card("u1")[:zone]
+    assert_equal "ritiro", table.card("f2")[:zone], "la sostituita va in Zona di Ritiro"
+  end
+
+  def test_replacement_wants_a_full_front_and_an_own_entity_on_the_field
+    engine = returner([["u1", "HUMAN"], ["u2", "HUMAN"]], field_setup: 5)
+    refute bring_back(engine, "u1", "replace" => "u2")[:ok], "una carta in Ritiro non si sostituisce"
+    refute bring_back(engine, "u1", "replace" => "riportante-no")[:ok], "una carta che non c'è"
+    verdict = bring_back(engine, "u1", "replace" => "u1")
+    refute verdict[:ok], "non sé stessa"
+    assert_match(/propria Entità.*§6\.2/, verdict[:reason])
+    assert_match(/own Entities.*§6\.2/, verdict[:reason_en])
+    engine = returner([["u1", "HUMAN"]], field_setup: 3)
+    verdict = bring_back(engine, "u1", "replace" => "f2")
+    refute verdict[:ok], "a Fronte non pieno non si sostituisce"
+    assert_match(/solo a Fronte pieno.*§6\.2/, verdict[:reason])
   end
 
   def test_return_brings_permanent_back_to_front
@@ -4025,6 +4062,12 @@ class EngineTest < Minitest::Test
     assert_equal 5, table_copy(engine).commanded_uids("a").count { |uid| %w[HUMAN AUROS].include?(table_copy(engine).card(uid)[:card_id]) }
     assert ability_action(engine, "chiamata", cost: 7, bonus: BONUS)[:ok]
     assert_match(/Fronte è pieno/, engine.judge(descent("h4", x: 1956))[:reason])
+    # §6.2 — ma con la sostituzione scende al posto di un'Entità propria (dal 2026-09-15).
+    verdict = engine.judge(descent("h4", x: 442, extra: { "replace" => "u1" }))
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "field", table_copy(engine).card("h4")[:zone]
+    assert_equal "ritiro", table_copy(engine).card("u1")[:zone]
+    assert_equal "ritiro", table_copy(engine).card("o1")[:zone], "l'Oggetto segue la sostituita"
   end
 
   def test_summoned_entity_attacks_at_once_and_humans_carry_bonus
@@ -4382,6 +4425,23 @@ class EngineTest < Minitest::Test
     assert_includes verdict[:reason], "§6.2"
   end
 
+  # §6.2 — e a Fronte pieno il ritorno vincolato può sostituire un'Entità propria (dal 2026-09-15).
+  def test_bound_return_with_full_front_replaces_own_entity
+    engine = disarm_scene(
+      [["red", "REVIVED", { "x" => 442 }], ["u1", "HUMAN", { "x" => 821 }], ["u2", "HUMAN", { "x" => 1199 }], ["u3", "HUMAN", { "x" => 1578 }],
+       ["u4", "HUMAN", { "x" => 1956 }], ["lama-a", "BLADE", { "zone" => "ritiro" }], ["u5", "HUMAN", { "zone" => "hand" }]]
+    )
+    engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
+    engine.judge({ "t" => "toZone", "uid" => "u5", "zone" => "field", "x" => 442, "y" => 1260, "cost" => 2 })
+    verdict = engine.judge({ "t" => "revive", "uid" => "red", "x" => 821, "y" => 1260, "z" => 9, "object" => "lama-a", "replace" => "u1",
+                             "effect" => { "source" => "red", "event" => "on_leave_field", "entering" => "red" } })
+    assert verdict[:ok], verdict[:reason]
+    table = table_copy(engine)
+    assert_equal "field", table.card("red")[:zone]
+    assert_equal "ritiro", table.card("u1")[:zone]
+    assert_equal "red", table.card("lama-a")[:assigned_to]
+  end
+
   def test_bound_return_without_form_or_unknown_fails
     engine = disarm_scene([["mio", "HUMAN", { "x" => 442 }], ["red", "REVIVED", { "x" => 821 }], ["lama-a", "BLADE", { "zone" => "ritiro" }]])
     engine.judge({ "t" => "toZone", "uid" => "mio", "zone" => "ritiro" })
@@ -4615,5 +4675,20 @@ class EngineTest < Minitest::Test
     engine = sword_scene
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     refute sheathe_action(engine)[:ok], "nel turno avversario no"
+  end
+
+  # --- Il «pronto» delle scene (ready, dal 2026-09-15): senza regola, senza turno --
+
+  def test_ready_passes_for_anyone_in_any_phase_and_leaves_the_table_alone
+    engine = stash_scene([["v", "HUMAN", { "x" => 442 }]])
+    ready = { "t" => "ready", "key" => "enter|v|||3", "seat" => "b", "scene" => { "kind" => "enter", "uid" => "v" } }
+    verdict = engine.judge(ready, actor: "b")
+    refute verdict[:ruled], "nessuna regola: passa com'è"
+    assert verdict[:ok]
+    assert_equal "field", table_copy(engine).card("v")[:zone]
+    assert_equal 10, table_copy(engine).flux("a"), "la lavagna non cambia"
+    front!(engine)
+    assert engine.judge(ready.merge("seat" => "a"), actor: "a")[:ok], "in Fase di Fronte, per chi è di turno"
+    assert engine.judge(ready, actor: "b")[:ok], "e per l'avversario"
   end
 end

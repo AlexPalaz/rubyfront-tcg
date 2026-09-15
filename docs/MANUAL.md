@@ -211,7 +211,7 @@ Declared by the player at the end of the Draw. In this phase you start playing c
 
 On the Front you may have **at most 5 Entities at the same time** — the **5 slots** of the Front (§5). **Only Entities** count towards the limit: the **Rubyfront** takes no slot (deployed, it stands in front of the slots), **permanent Matters** stand behind the slots and **have no limit in number** (the only constraint is enabling, §7), **Objects** are assigned to Entities and take no slot.
 
-**With a full Front** (5 slots taken) no more Entities can be played. If an **effect** would put a card onto the field with a full Front, that part of the effect **does not apply** (the card doesn't enter) and the rest of the effect resolves normally.
+**With a full Front** (5 slots taken) no more Entities can be played. If an **effect** would put a card onto the field with a full Front, that part of the effect **does not apply** (the card doesn't enter) and the rest of the effect resolves normally — with one exception: if the effect **puts a card onto the Front** — from hand (a call, a die-driven descent), from the Retire Zone or from the Abyss —, its controller may instead **replace** one of their own Entities on the Front: that one goes to the **Retire Zone** with its Objects and the returning card takes its slot. Replacing is a choice, not an obligation.
 
 #### Retire
 
@@ -248,6 +248,7 @@ Once the wave is declared, the word passes to the defender: you enter the **Reac
 - An Entity that entered the Front that turn **cannot attack** (summoning wait, §6.2).
 - **You always attack the opposing Rubyfront**, never the other Entities directly.
 - An **unblocked attack** deals the Rubyfront damage equal to the **attacker's Power** (its HP go down by that much).
+- **"When it attacks"** effects resolve **when the Front Phase closes**: once the whole wave is declared, the active player closes the Front and the attackers' effects resolve one after the other, **in declaration order** — then the Reaction begins. While the Front is open a declaration can still be withdrawn; once its effects have resolved, the attack stands.
 
 #### Blocking
 
@@ -488,7 +489,7 @@ For the purposes of this order what always counts is **the latest entry onto the
 Some effects let you **take control** of an opposing Entity, usually **until the end of the turn**. Control doesn't change ownership: the card remains its owner's, and only who commands it changes.
 
 - **Where it stands:** the controlled Entity moves to the controller's field, into their **Control Zone** (§5): an extra slot that doesn't take up one of the 5 Front slots and doesn't count towards their limit. The **Objects** assigned to it follow it.
-- **What it does:** it attacks for its controller (if an effect grants it Surge, at once); its **"when it attacks" effects apply** for its controller. Its **"when it enters the Front" effects don't apply again**: taken under control, the card goes to the Control Zone, not onto its controller's Front; it already entered the Front once, and only who commands it changes. It keeps enabling its Matters for its controller.
+- **What it does:** it attacks for its controller (if an effect grants it Surge, at once); its **"when it attacks" effects apply** for its controller. Its **"when it enters the Front" effects don't apply again**: taken under control, the card goes to the Control Zone, not onto its controller's Front; it already entered the Front once, and only who commands it changes. (Conversely, **every entry onto the Front** is an entry: "when it enters the Front" also fires when a card **comes back** from the Retire Zone or the Abyss through an effect — a return, the end of an exile.) It keeps enabling its Matters for its controller.
 - **End of control:** at the **turn change** it goes back to its owner's Front, in a free slot, as it is — and untaps like each of their Entities at the start of their turn (§6.3). If the owner's Front is **full**, it goes to their **Retire Zone**. The Objects go back with it.
 - **If it dies or leaves the field** while controlled, it goes to the Abyss or to the **owner's** zone, as always.
 

@@ -121,6 +121,24 @@ class RoomTest < Minitest::Test
     refute_nil room.emptied_at
   end
 
+  # Il «pronto» delle scene (dal 2026-09-15): un'azione senza regola, che la
+  # stanza scrive nel giornale e inoltra all'altro — anche nel turno altrui.
+  def test_ready_is_journaled_and_forwarded_in_anyones_turn
+    room = new_room(starter: "a")
+    a = seated(room, "a")
+    b = seated(room, "b")
+    a.clear
+    b.clear
+    ready = { "t" => "ready", "key" => "enter|a-1|||1", "seat" => "b", "scene" => { "kind" => "enter", "uid" => "a-1" } }
+    room.handle("b", { "t" => "judge", "seq" => 3, "action" => ready })
+    verdict = b.last
+    assert_equal "verdict", verdict[:t]
+    assert verdict[:ok]
+    refute verdict[:ruled]
+    assert_equal [{ t: "action", action: ready, from: "b" }], a
+    assert_equal "ready", room.journal.last[:action]["t"]
+  end
+
   def test_voice_is_forwarded_as_is
     room = new_room
     a = seated(room, "a")

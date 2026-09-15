@@ -70,18 +70,18 @@ export function returnsFor(
   // §6.2, Fronte pieno: «anche la parte d'effetto che metterebbe in campo
   // non si applica». Riguarda le sole Entità — una Materia permanente sta
   // dietro il Fronte e non occupa uno slot (§5).
+  // Dal 2026-09-15 a Fronte pieno l'Entità può prendere il posto di una
+  // propria (§6.2, la sostituzione): resta fra i candidati, e `frontFull`
+  // dice al tavolo di chiederlo.
   const full = freeFrontSlotOrNull(state, seat) === null;
   return forms.map(ret => {
-    const permanents = zoneCards(state, seat, ret.from).filter(card => permanentOf(card, facts));
-    const candidates = full ? permanents.filter(card => facts(card.cardId).kind !== "entity") : permanents;
+    const candidates = zoneCards(state, seat, ret.from).filter(card => permanentOf(card, facts));
     return {
       source,
       event,
       from: ret.from,
       candidates,
-      // Il Fronte pieno ha tolto qualcosa: il tavolo lo dice, invece di
-      // aprire un pannello vuoto o di tacere.
-      frontFull: full && candidates.length < permanents.length,
+      frontFull: full && candidates.some(card => facts(card.cardId).kind === "entity"),
     };
   });
 }
@@ -159,21 +159,34 @@ export function describeReturn(step: EnterReturnStep, facts: (cardId: string) =>
  * suo posto (le Materie nella loro fila), con un toZone marcato come
  * effetto — fonte e ingresso coincidono.
  */
-export async function resolveReturn(ctx: Ctx, step: EnterReturnStep, card: CardInstance): Promise<boolean> {
-  const spot = playSpot(ctx.state(), card.owner, ctx.card(card.cardId).kind);
+export async function resolveReturn(ctx: Ctx, step: EnterReturnStep, card: CardInstance, place?: Placement): Promise<boolean> {
+  const spot = place?.spot ?? playSpot(ctx.state(), card.owner, ctx.card(card.cardId).kind);
   const by = controllerOf(step.source);
+  const replaced = place?.replace ? ctx.state().cards[place.replace] : undefined;
   const passed = await ctx.dispatch({
     t: "toZone",
     uid: card.uid,
     zone: "field",
     ...spot,
     z: ctx.state().zTop + 1,
+    ...(place?.replace ? { replace: place.replace } : {}),
     effect: { source: step.source.uid, event: step.event, entering: step.source.uid },
   });
   if (passed) {
     ctx.log(msg("log.effect.return", { seat: by, sourceCard: step.source.cardId, card: card.cardId }), by);
+    if (replaced) ctx.log(msg("log.effect.replace", { seat: by, card: card.cardId, otherCard: replaced.cardId }), by);
   }
   return passed;
+}
+
+/**
+ * Dove scende chi rientra sul Fronte: uno slot libero, o — a Fronte pieno
+ * (§6.2, dal 2026-09-15) — lo slot dell'Entità propria che lascia il posto
+ * (`replace`: va in Zona di Ritiro coi suoi Oggetti, nella stessa azione).
+ */
+export interface Placement {
+  spot: { x: number; y: number };
+  replace?: string;
 }
 
 /** Uno sguardo nel mazzo da risolvere: chi entra, la forma, e — dopo il
@@ -553,16 +566,21 @@ export function leaveReturns(before: GameState, after: GameState, facts: (cardId
 }
 
 /** Il ritorno vincolato, eseguito: un'azione sola, calcolata qui e verificata dall'engine. */
-export async function resolveLeaveReturn(ctx: Ctx, step: LeaveReturnStep, object: CardInstance, spot: { x: number; y: number }): Promise<boolean> {
+export async function resolveLeaveReturn(ctx: Ctx, step: LeaveReturnStep, object: CardInstance, place: Placement): Promise<boolean> {
+  const replaced = place.replace ? ctx.state().cards[place.replace] : undefined;
   const passed = await ctx.dispatch({
     t: "revive",
     uid: step.card.uid,
-    ...spot,
+    ...place.spot,
     z: ctx.state().zTop,
     object: object.uid,
+    ...(place.replace ? { replace: place.replace } : {}),
     effect: { source: step.card.uid, event: "on_leave_field", entering: step.card.uid },
   });
-  if (passed) ctx.log(msg("log.effect.revive", { seat: step.card.owner, card: step.card.cardId, objectCard: object.cardId }), step.card.owner);
+  if (passed) {
+    ctx.log(msg("log.effect.revive", { seat: step.card.owner, card: step.card.cardId, objectCard: object.cardId }), step.card.owner);
+    if (replaced) ctx.log(msg("log.effect.replace", { seat: step.card.owner, card: step.card.cardId, otherCard: replaced.cardId }), step.card.owner);
+  }
   return passed;
 }
 

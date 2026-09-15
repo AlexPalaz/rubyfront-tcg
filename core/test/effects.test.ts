@@ -375,7 +375,7 @@ describe("enterReturns", () => {
     expect(describeReturn(step, facts)).toMatch(/«RHEN» si innesca/);
   });
 
-  it("a Fronte pieno le Entità non tornano, le Materie permanenti sì (§6.2)", () => {
+  it("a Fronte pieno le Entità restano candidate — si sostituisce una propria (§6.2, dal 2026-09-15) — e il passo lo dice", () => {
     const state = newGame();
     const rhen = on(state, "rhen", "RHEN");
     // Cinque Entità sulla fila del Fronte: gli slot sono tutti presi.
@@ -384,14 +384,42 @@ describe("enterReturns", () => {
       card.x = x;
       card.y = frontRowY("a");
     });
+    inRetire(state, "p1", "PERMANENT");
+    const [matterOnly] = enterReturns(state, rhen, facts);
+    expect(matterOnly.candidates.map(card => card.uid)).toEqual(["p1"]);
+    expect(matterOnly.frontFull).toBe(false);
     inRetire(state, "u1", "HUMAN");
     const [full] = enterReturns(state, rhen, facts);
-    expect(full.candidates).toEqual([]);
+    expect(full.candidates.map(card => card.uid).sort()).toEqual(["p1", "u1"]);
     expect(full.frontFull).toBe(true);
-    inRetire(state, "p1", "PERMANENT");
-    const [withMatter] = enterReturns(state, rhen, facts);
-    expect(withMatter.candidates.map(card => card.uid)).toEqual(["p1"]);
-    expect(withMatter.frontFull).toBe(true), "l'Entità resta fuori";
+  });
+
+  it("resolveReturn con la sostituzione manda il toZone con replace, e racconta chi lascia il posto", async () => {
+    const state = newGame();
+    const rhen = on(state, "rhen", "RHEN");
+    const f0 = on(state, "f0", "HUMAN");
+    inRetire(state, "u1", "HUMAN");
+    const sent: Action[] = [];
+    const logs: string[] = [];
+    const ctx: Ctx = {
+      state: () => state,
+      dispatch(action) {
+        sent.push(action);
+        return Promise.resolve(true);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "night",
+      tintFor: () => "dynamic",
+      locale: () => "it",
+      card: facts,
+      log: text => void logs.push(typeof text === "string" ? text : text.key),
+    };
+    const [step] = enterReturns(state, rhen, facts);
+    expect(await resolveReturn(ctx, step, state.cards.u1, { spot: { x: f0.x, y: f0.y }, replace: "f0" })).toBe(true);
+    expect(sent[0]).toMatchObject({ t: "toZone", uid: "u1", zone: "field", replace: "f0", x: f0.x, y: f0.y });
+    expect(logs).toEqual(["log.effect.return", "log.effect.replace"]);
   });
 
   it("resolveReturn manda il toZone verso il campo marcato come effetto", async () => {
@@ -558,7 +586,7 @@ describe("disarmo, riarmo e ritorno vincolato (§8.2, dal 2026-09-10)", () => {
       log() {},
     };
     const step = leaveReturns(before, after, facts)[0];
-    expect(await resolveLeaveReturn(ctx, step, blade, { x: FRONT_SLOT_X[1], y: frontRowY("a") })).toBe(true);
+    expect(await resolveLeaveReturn(ctx, step, blade, { spot: { x: FRONT_SLOT_X[1], y: frontRowY("a") } })).toBe(true);
     expect(sent).toEqual([{ t: "revive", uid: "bound", x: FRONT_SLOT_X[1], y: frontRowY("a"), z: after.zTop, object: "blade-a", effect: { source: "bound", event: "on_leave_field", entering: "bound" } }]);
   });
 });

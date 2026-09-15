@@ -7,7 +7,7 @@
 
 import type { Tint } from "./cards.js";
 import type { LogMsg } from "./i18n.js";
-import type { Action, GameState, Seat, Phase } from "./types.js";
+import type { Action, GameState, Seat, Phase, SceneRef } from "./types.js";
 
 export interface CardFacts {
   name: string;
@@ -410,6 +410,21 @@ export interface Ctx {
   /** Riga di servizio in chat (dadi, mescola, pesca). Il posto di chi agisce
       colora la riga: si deve vedere a colpo d'occhio chi fa cosa. */
   log(text: string | LogMsg, seat?: Seat | null): void;
+  /**
+   * La stretta di mano delle scene in stanza (2026-09-15): «Risolvi»
+   * premuto qui manda `ready` per la scena e aspetta quello dell'avversario
+   * per la stessa chiave — l'effetto parte quando l'hanno premuto entrambi.
+   * Nella «solo» (locale, bot), o in stanza senza l'altro seduto, torna subito.
+   */
+  sync?(key: string, scene: SceneRef): Promise<void>;
+  /** L'avversario ha premuto sulla sua copia della scena: il suo `ready`, senza aspettare nessuno. */
+  acknowledge?(key: string): void;
+  /**
+   * §6.3 (deciso 2026-09-15) — alla chiusura del Fronte, prima della
+   * Reazione: i «quando attacca» dell'ondata, con le loro scene, nell'ordine
+   * di dichiarazione. Li compie la vista (gestures.ts, resolveAttacks).
+   */
+  resolveAttacks?(): Promise<void>;
   /** §6.5 — l'invito a scartare: l'Abisso di `seat` si accende. Torna true
       la prima volta nel turno (quando vale la pena dirlo anche in chat).
       Facoltativo: un Ctx senza tavolo (i test) non ce l'ha. */

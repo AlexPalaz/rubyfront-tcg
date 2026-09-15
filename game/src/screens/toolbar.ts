@@ -30,6 +30,8 @@ export interface ToolbarActions {
   leave(): void;
   settings(): void;
   chat(): void;
+  /** La cronaca degli avvisi del tavolo (chronicle.ts, dal 2026-09-15). */
+  chronicle(): void;
   /** STRUMENTI DI PROVA, temporanei (simulatore: Evoca e il «+» del Flusso): una carta del catalogo in mano, un Flusso in più. */
   spawn?(): void;
   flux?(): void;
@@ -52,11 +54,13 @@ export class Toolbar {
   private readonly statusDot = new Graphics();
   private readonly leave: Button;
   private readonly chat: Button;
+  private readonly chronicle: Button;
   /** STRUMENTI DI PROVA, temporanei: al tavolo, prima di «Esci» e della chat. */
   private readonly spawn: Button;
   private readonly flux: Button;
   private room = false;
   private unread = 0;
+  private unreadNotices = 0;
 
   constructor(
     private readonly stage: Stage,
@@ -64,6 +68,8 @@ export class Toolbar {
   ) {
     this.leave = new Button(stage, { label: t("html.leave"), style: "metal", h: 34, onTap: () => actions.leave() });
     this.chat = new Button(stage, { label: t("html.chat"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.chat() });
+    this.chronicle = new Button(stage, { label: t("html.chronicle"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.chronicle() });
+    this.chronicle.visible = false;
     this.spawn = new Button(stage, { label: t("hud.spawn"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.spawn?.() });
     this.flux = new Button(stage, { label: t("hud.flux.more"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.flux?.() });
     this.spawn.visible = false;
@@ -114,7 +120,7 @@ export class Toolbar {
       actions.settings();
     });
     this.glow.eventMode = "none";
-    this.root.addChild(this.background, this.stone, this.light, this.glow, this.brand, this.statusDot, this.chat, this.leave, this.flux, this.spawn, this.gear);
+    this.root.addChild(this.background, this.stone, this.light, this.glow, this.brand, this.statusDot, this.chat, this.chronicle, this.leave, this.flux, this.spawn, this.gear);
     stage.screens.addChild(this.root);
     stage.onLayout(() => this.layout());
   }
@@ -123,6 +129,7 @@ export class Toolbar {
   toTable(table: boolean, room: boolean): void {
     this.leave.visible = table;
     this.chat.visible = table && room;
+    this.chronicle.visible = table;
     this.spawn.visible = table;
     this.flux.visible = table;
     this.room = room;
@@ -136,6 +143,14 @@ export class Toolbar {
   }
 
   /** I messaggi dell'avversario non ancora letti: «Chat · 2». */
+  /** Gli avvisi arrivati a cronaca chiusa: il conto sul tasto. */
+  setUnreadNotices(n: number): void {
+    if (n === this.unreadNotices) return;
+    this.unreadNotices = n;
+    this.chronicle.paintText(n > 0 ? `${t("html.chronicle")} · ${n}` : t("html.chronicle"));
+    this.layout();
+  }
+
   setUnread(n: number): void {
     if (n === this.unread) return;
     this.unread = n;
@@ -189,7 +204,7 @@ export class Toolbar {
     let right = v.width - 14;
     this.gear.position.set(right - 16, TOOLBAR_H / 2);
     right -= 32 + 14;
-    for (const button of [this.leave, this.chat, this.flux, this.spawn]) {
+    for (const button of [this.leave, this.chronicle, this.chat, this.flux, this.spawn]) {
       if (!button.visible) continue;
       button.position.set(right - button.w, (TOOLBAR_H - button.h) / 2);
       right -= button.w + 14;

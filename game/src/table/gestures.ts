@@ -490,10 +490,24 @@ export class TableGestures {
     root.addChild(sprite);
     root.eventMode = "static";
     root.hitArea = new Rectangle(x, y, w, h);
-    root.on("pointerleave", () => this.closeVeil());
-    // In mira, il fondo del velo vale come la carta: sceglie.
-    root.on("pointertap", () => {
+    // Il velo copre la carta e le ruberebbe il puntatore: l'«over» e l'«out»
+    // si rimandano al tavolo, così l'anteprima grande resta (la carta
+    // tappata non si leggeva, 2026-09-15).
+    root.on("pointerenter", event => this.table.relay("over", uid, event.global));
+    root.on("pointerleave", event => {
+      this.table.relay("out", uid, event.global);
+      this.closeVeil();
+    });
+    // In mira, il fondo del velo vale come la carta: sceglie — nella mira dei
+    // blocchi qui, in quella di un effetto (aim.ts) rimandando il tocco alla
+    // carta (2026-09-15: sotto il velo coi tasti «Attacca» il bersaglio
+    // proprio non si sceglieva).
+    root.on("pointertap", event => {
       const live = this.ctx.state().cards[uid];
+      if (this.aim.isOpen()) {
+        this.table.relay("tap", uid, event.global);
+        return;
+      }
       if (live && this.blockAim && pickable(this.ctx, live, this.blockAim)) this.confirm(live);
     });
     tabs.forEach((tab, index) => {

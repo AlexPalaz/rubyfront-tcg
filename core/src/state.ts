@@ -265,6 +265,13 @@ function reduce(state: GameState, action: Action): GameState {
     }
 
     case "toZone": {
+      // §6.2 — la sostituzione a Fronte pieno (dal 2026-09-15): l'Entità
+      // indicata va in Zona di Ritiro coi suoi Oggetti, poi l'altra scende
+      // al suo posto. Gemello: table.rb, to_zone/revive.
+      if (action.zone === "field" && action.replace && state.cards[action.replace]) {
+        const freed = reduce(state, { t: "toZone", uid: action.replace, zone: "ritiro" });
+        return reduce(freed, { ...action, replace: undefined });
+      }
       // Un Oggetto che torna in campo già assegnato (§8.2, RBF-031): lo
       // spostamento com'è, poi l'assegnazione. Gemello: table.rb, to_zone.
       if (action.assignTo) {
@@ -412,7 +419,9 @@ function reduce(state: GameState, action: Action): GameState {
       const card = state.cards[action.uid];
       const object = state.cards[action.object];
       if (!card || !object) return state;
-      const back = reduce(state, { t: "toZone", uid: action.uid, zone: "field", x: action.x, y: action.y, z: action.z });
+      // La sostituzione a Fronte pieno (§6.2, dal 2026-09-15), come nel toZone.
+      const room = action.replace && state.cards[action.replace] ? reduce(state, { t: "toZone", uid: action.replace, zone: "ritiro" }) : state;
+      const back = reduce(room, { t: "toZone", uid: action.uid, zone: "field", x: action.x, y: action.y, z: action.z });
       return reduce(back, { t: "toZone", uid: action.object, zone: "field", x: action.x + STACK_STEP, y: action.y + STACK_STEP, z: action.z - 1, assignTo: action.uid });
     }
 
@@ -847,6 +856,12 @@ function reduce(state: GameState, action: Action): GameState {
       }
       return { ...state, cards };
     }
+
+    // La stretta di mano delle scene (2026-09-15): viaggia nel giornale
+    // perché l'altro client la riceva, ma la lavagna non cambia. Gemello:
+    // table.rb, apply (nessun ramo).
+    case "ready":
+      return state;
 
     case "say":
       // La chat non cresce all'infinito: le ultime 200 righe bastano, e a

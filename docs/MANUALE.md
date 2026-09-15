@@ -212,7 +212,7 @@ Dichiarata dal giocatore al termine della Pesca. In questa fase si inizia a gioc
 
 Sul Fronte si possono avere **al massimo 5 Entità contemporaneamente** — i **5 slot** del Fronte (§5). Nel limite contano **solo le Entità**: il **Rubyfront** non occupa slot (schierato, sta davanti agli slot), le **Materie permanenti** stanno dietro gli slot e **non hanno limite di numero** (il solo vincolo è l'abilitazione, §7), gli **Oggetti** sono assegnati alle Entità e non occupano slot.
 
-**A Fronte pieno** (5 slot occupati) non si possono giocare altre Entità. Se un **effetto** metterebbe in campo una carta a Fronte pieno, quella parte dell'effetto **non si applica** (la carta non entra) e il resto dell'effetto si risolve normalmente.
+**A Fronte pieno** (5 slot occupati) non si possono giocare altre Entità. Se un **effetto** metterebbe in campo una carta a Fronte pieno, quella parte dell'effetto **non si applica** (la carta non entra) e il resto dell'effetto si risolve normalmente — con un'eccezione: se l'effetto **mette sul Fronte una carta** — dalla mano (una chiamata, una discesa col dado), dalla Zona di Ritiro o dall'Abisso —, chi la controlla può invece **sostituire** una propria Entità sul Fronte: quella va in **Zona di Ritiro** con i suoi Oggetti e la carta che rientra prende il suo slot. La sostituzione è una scelta, non un obbligo.
 
 #### Ritiro
 
@@ -249,6 +249,7 @@ Dichiarata l'ondata, la parola passa al difensore: si entra in **Fase di Reazion
 - Un'Entità entrata sul Fronte in quel turno **non può attaccare** (attesa di evocazione, §6.2).
 - **Si attacca sempre il Rubyfront avversario**, mai le altre Entità direttamente.
 - Un **attacco non bloccato** infligge al Rubyfront danni pari alla **Potenza dell'attaccante** (i suoi PV scendono di altrettanto).
+- Gli effetti **«Quando attacca»** si risolvono **alla chiusura della Fase di Fronte**: dichiarata tutta l'ondata, il giocatore di turno chiude il Fronte e gli effetti degli attaccanti si risolvono uno dopo l'altro, **nell'ordine di dichiarazione** — poi si entra in Reazione. Finché il Fronte è aperto una dichiarazione si può ancora ritirare; risolti i suoi effetti, l'attacco è fermo.
 
 #### Blocco
 
@@ -489,7 +490,7 @@ Ai fini di questo ordine conta sempre **l'ultimo ingresso in campo**: il Rubyfro
 Alcuni effetti fanno **prendere il controllo** di un'Entità avversaria, di norma **fino alla fine del turno**. Il controllo non cambia la proprietà: la carta resta del suo proprietario, e cambia solo chi la comanda.
 
 - **Dove sta:** l'Entità controllata passa sul campo di chi la controlla, nella sua **Zona di Controllo** (§5): uno slot extra, che non occupa uno dei 5 slot del Fronte e non conta nel loro limite. Gli **Oggetti** che le sono assegnati la seguono.
-- **Cosa fa:** attacca per chi la controlla (se un effetto le concede Slancio, subito); i suoi eventuali effetti **«quando attacca» valgono** per chi la controlla. I suoi effetti **«quando entra sul Fronte» non si riapplicano**: passando sotto il controllo la carta va nella Zona di Controllo, non sul Fronte di chi la controlla; è già entrata sul Fronte una volta, e cambia solo chi la comanda. Continua ad abilitare le sue Materie a chi la controlla.
+- **Cosa fa:** attacca per chi la controlla (se un effetto le concede Slancio, subito); i suoi eventuali effetti **«quando attacca» valgono** per chi la controlla. I suoi effetti **«quando entra sul Fronte» non si riapplicano**: passando sotto il controllo la carta va nella Zona di Controllo, non sul Fronte di chi la controlla; è già entrata sul Fronte una volta, e cambia solo chi la comanda. (Per contro, **ogni ingresso sul Fronte** è un ingresso: «quando entra sul Fronte» scatta anche quando una carta **rientra** dalla Zona di Ritiro o dall'Abisso per un effetto — un ritorno, la fine di un esilio.) Continua ad abilitare le sue Materie a chi la controlla.
 - **Fine del controllo:** al **cambio di turno** torna sul Fronte del proprietario, in uno slot libero, com'è — e si stappa come ogni sua Entità all'inizio del suo turno (§6.3). Se il Fronte del proprietario è **pieno**, va nella sua **Zona di Ritiro**. Gli Oggetti tornano con lei.
 - **Se muore o lascia il campo** mentre è controllata, va nell'Abisso o nella zona del **proprietario**, come sempre.
 

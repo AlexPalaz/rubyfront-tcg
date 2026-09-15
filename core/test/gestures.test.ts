@@ -4,6 +4,7 @@
 // timer sono finti, così le attese del ritmo (luci, voli) non rallentano.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useCatalog, type CatalogCard } from "../src/cards.js";
 import type { CardFacts, Ctx } from "../src/ctx.js";
 import { FRONT_SLOT_X, frontRowY } from "../src/geometry.js";
 import { createGestures, type GestureView, type SceneShow } from "../src/gestures.js";
@@ -15,6 +16,9 @@ import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 const FACTS: Record<string, Partial<CardFacts>> = {
   ARCHER: { kind: "entity", race: "human", fluxCost: 2, enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
   HUMAN: { kind: "entity", race: "human" },
+  RUBY: { kind: "rubyfront" },
+  // «Quando attacca: le altre armate +1» — una forma d'attacco di chi attacca.
+  COMMAND: { kind: "entity", race: "auros", attackForms: [{ kind: "empower", who: "self", targets: "others_armed", power: 1, face: 0 }] },
   GEAR: { kind: "object", fluxCost: 1 },
   JUDGMENT: { kind: "matter", behavior: "reactive", fluxCost: 5, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, ifTarget: "tapped" }, thenLose: null }] } as Partial<CardFacts>,
 };
@@ -125,6 +129,105 @@ async function settle<T>(run: Promise<T>): Promise<T> {
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
+
+// §6.3 (deciso 2026-09-15): la dichiarazione è solo la dichiarazione; i
+// «quando attacca» si risolvono alla chiusura del Fronte, con le loro scene.
+describe("createGestures — l'attacco e i suoi inneschi alla chiusura del Fronte (§6.3)", () => {
+  // Il bersaglio dell'attacco è il Rubyfront avversario, che i gesti riconoscono dal catalogo.
+  const ruby: CatalogCard = { id: "RUBY", faces: [{ id: "RUBY-0", kind: "rubyfront", displayKey: "RUBY" }], locales: { it: { name: "RUBY" } }, defaultLocale: "it" };
+  beforeEach(() => useCatalog({ cards: [ruby] }));
+  afterEach(() => useCatalog({ cards: [] }));
+
+  function frontState(): { ctx: Ctx; sent: Action[]; state: GameState } {
+    const { ctx, sent, setState } = table();
+    const state = ctx.state();
+    state.turn = 3;
+    state.active = "a";
+    state.phase = "fronte";
+    card(state, "c", "COMMAND", "a", "field");
+    card(state, "rf-b", "RUBY", "b", "field");
+    setState(state);
+    return { ctx, sent, state };
+  }
+
+  it("attackWith dichiara e basta: nessuna scena, nessun passo", async () => {
+    const { ctx, sent } = frontState();
+    const { view, scenes } = fakeView();
+    const gestures = createGestures(ctx, view);
+    await settle(gestures.attackWith(ctx.state().cards.c));
+    // La dichiarazione e la tappata (§6.3), e basta.
+    expect(sent.map(action => action.t)).toEqual(["declare", "tap"]);
+    expect(scenes).toHaveLength(0);
+  });
+
+  it("resolveAttacks apre la scena «Quando attacca» di chi ha attaccato e ne esegue i passi dopo la stretta di mano", async () => {
+    const { ctx, sent } = frontState();
+    const synced: string[] = [];
+    ctx.sync = (key, scene) => {
+      synced.push(`${scene.kind}:${scene.uid}:${key.split("|").at(-1)}`);
+      return Promise.resolve();
+    };
+    const { view, scenes, calls } = fakeView();
+    const gestures = createGestures(ctx, view);
+    await settle(gestures.attackWith(ctx.state().cards.c));
+    await settle(gestures.resolveAttacks());
+    expect(scenes).toHaveLength(1);
+    expect(scenes[0].kicker).toBe(t("scene.attack"));
+    expect(scenes[0].cardId).toBe("COMMAND");
+    // Prima il «pronto» dei due client (in stanza), poi il passo; il tavolo fermo e la targhetta nel frattempo.
+    expect(synced).toEqual(["attack:c:3"]);
+    expect(calls).toContain("hold true");
+    // Senza altre armate il potenziamento non ha bersagli: la scena c'è, l'azione no — ma il passo è stato compiuto dopo la scena.
+    expect(sent.map(action => action.t)).toEqual(["declare", "tap"]);
+  });
+
+  it("l'avversario ricostruisce la scena dal riferimento, nella sua lingua", async () => {
+    const { ctx } = frontState();
+    const { view } = fakeView();
+    const gestures = createGestures(ctx, view);
+    await settle(gestures.attackWith(ctx.state().cards.c));
+    const show = gestures.sceneFor({ kind: "attack", uid: "c" });
+    expect(show?.kicker).toBe(t("scene.attack"));
+    expect(show?.triggers?.length).toBe(1);
+    expect(gestures.sceneFor({ kind: "attack", uid: "nessuno" })).toBeNull();
+    expect(gestures.sceneFor({ kind: "enter", uid: "c" })?.who).toContain("COMMAND");
+  });
+});
+
+// §8.2 (deciso 2026-09-15): chi rientra sul Fronte dal Ritiro o dall'Abisso è
+// entrata sul Fronte — la sua scena d'ingresso e i suoi inneschi.
+describe("createGestures — il rientro sul Fronte innesca «quando entra» (§8.2)", () => {
+  it("offerReturned apre la scena di chi è tornata dal Ritiro e ne esegue gli inneschi", async () => {
+    const { ctx, sent, setState } = table();
+    const before = ctx.state();
+    const archer = card(before, "arc", "ARCHER", "a", "field");
+    archer.zone = "ritiro";
+    card(before, "b1", "HUMAN", "b", "field");
+    const after = apply(before, { t: "toZone", uid: "arc", zone: "field", x: FRONT_SLOT_X[0], y: frontRowY("a"), z: 2 });
+    setState(after);
+    const { view, scenes } = fakeView();
+    const gestures = createGestures(ctx, view);
+    gestures.setAuto("a", { pickTarget: (_s, candidates) => candidates[0] ?? null, pickFromPile: () => null });
+    gestures.offerReturned(before, after, ["a"]);
+    await settle(Promise.resolve());
+    expect(scenes).toHaveLength(1);
+    expect(scenes[0].cardId).toBe("ARCHER");
+    expect(sent.map(action => [action.t, "uid" in action ? action.uid : null])).toEqual([["toZone", "b1"]]);
+  });
+
+  it("chi non ha inneschi, o non è tornata da una pila, non apre nulla", async () => {
+    const { ctx, setState } = table();
+    const before = ctx.state();
+    card(before, "u", "HUMAN", "a", "field").zone = "ritiro";
+    card(before, "h", "ARCHER", "a", "hand");
+    const after = apply(apply(before, { t: "toZone", uid: "u", zone: "field", x: FRONT_SLOT_X[0], y: frontRowY("a"), z: 2 }), { t: "toZone", uid: "h", zone: "field", x: FRONT_SLOT_X[1], y: frontRowY("a"), z: 3 });
+    setState(after);
+    const { view, scenes } = fakeView();
+    createGestures(ctx, view).offerReturned(before, after, ["a"]);
+    await settle(Promise.resolve());
+    expect(scenes).toHaveLength(0);
+  });
+});
 
 describe("createGestures — la giocata dalla mano e l'innesco d'ingresso (§3.2, §8.2)", () => {
   it("il bot mira e conferma da sé: nessuna finestra, il bersaglio si accende", async () => {

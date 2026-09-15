@@ -41,7 +41,7 @@ Regole collegate finora:
   effetti delle carte che tappano/coprono a mano non sono concessi (la
   Stasi, §8.1, e le stappate per effetto sono arrivate dopo, col secondo
   lotto di forme).
-- **§3.1 Oggetti: assegnazione** — l'assegnazione è un'azione del protocollo
+- **§3.1 Oggetti: assegnazione** — (dal 2026-09-15 il portatore dev'essere **in campo**: a una carta in mano o in una pila non si assegna nulla) l'assegnazione è un'azione del protocollo
   (`assign {uid, to}`, generata dal rilascio di un Oggetto sopra un'Entità):
   solo alle proprie Entità, mai al Rubyfront/Nexus, mai a una coperta, e una
   volta assegnato l'Oggetto non si sposta su un'altra Entità. Si scioglie da
@@ -1146,6 +1146,42 @@ Regole collegate finora:
   pretende solo che la pesca venga dopo; un Oggetto senza queste forme che
   finisse in Ritiro da solo resta fermato dal §6.2. Engine 0.74.0.
 
+- **§6.3 I «quando attacca» si risolvono alla chiusura del Fronte, prima
+  della Reazione** (deciso dal designer, 2026-09-15). Il client li risolveva
+  alla dichiarazione; ora la dichiarazione è solo la dichiarazione, e a
+  «Fine Fronte» il client risolve i passi di ogni attaccante nell'ordine di
+  dichiarazione — con le scene e «Risolvi» — e solo poi manda `phase:
+  reazione` (`turn.ts`, endPhase → `resolveAttacks`). Per l'engine non cambia
+  nulla: le dogane dei passi d'attacco pretendono la Fase di Fronte con
+  l'attacco dichiarato, vero in entrambi i momenti; una dichiarazione con
+  passi già risolti resta ferma (§8.2), e ora lo diventa solo alla chiusura.
+  Nella stessa modifica il «pronto» delle scene (`ready`, vedi il
+  protocollo): un gesto senza regola e senza turno, che passa dalle eccezioni
+  della dogana del turno e della catena. Engine 0.75.0.
+
+- **§6.2 A Fronte pieno chi rientra per effetto può sostituire un'Entità
+  propria** e **§8.2 «quando entra sul Fronte» vale a ogni ingresso**
+  (decisioni del designer, 2026-09-15). La sostituzione: le azioni che
+  riportano sul Fronte dal Ritiro o dall'Abisso (`toZone` in campo con
+  riferimento d'effetto, `revive`) portano `replace` — l'uid di un'Entità
+  propria in campo, comandata da sé, non la carta che rientra — e i gemelli
+  (`to_zone`/`revive` nella copia, `toZone`/`revive` nel riduttore) la
+  mandano in Zona di Ritiro coi suoi Oggetti prima di far scendere l'altra
+  al suo posto; la dogana (`full_front_stopped`) pretende il Fronte pieno
+  con `replace`, e senza `replace` ferma come sempre — vale anche per la
+  chiamata sul Fronte del Nexus e per la discesa col d20 dalla mano (dal
+  2026-09-15 sera: «se confermo, mi fa sostituire prima una carta dal
+  Fronte»). Il rientro: la copia
+  annota già ogni ingresso in campo col turno (`entered`), quindi i passi
+  «quando entra» di chi rientra passano dalle stesse dogane della giocata;
+  è il client a farli partire (announceEntry, dopo il ritorno, il ritorno
+  vincolato, la fine dell'esilio). Limiti dichiarati: il ritorno d'attacco
+  col dado (`judge_attack_return`) non conta il Fronte pieno né legge
+  `replace` (la copia lo applica comunque); il ritorno vincolato annota
+  l'ingresso col turno dell'uscita, quindi i suoi «quando entra» nel turno
+  altrui verrebbero fermati — oggi nessuna carta con quella forma ne ha.
+  Engine 0.76.0.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `core/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.
@@ -1196,6 +1232,7 @@ col bot).
 | client | `{"t":"hello"}` | `{"t":"engine","version":"0.73.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","actions":[{"action":{…},"from":"a"},…]}` |
 | client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…","reason_en":"…"}` a chi chiede; se passa, `{"t":"action","action":{…},"from":"a"}` agli **altri** client della stanza |
 | client | `{"t":"rtc","payload":{…}}` | `{"t":"rtc","payload":{…},"from":"a"}` agli altri: la chat vocale, inoltrata senza leggerla |
+| client | `{"t":"judge","action":{"t":"ready","key":"enter\|u-7\|\|\|3","seat":"a","scene":{…}}}` | come ogni azione: senza regola (`ruled: false`), passa a chiunque in ogni fase e turno, va nel giornale e agli altri. È la **stretta di mano delle scene** (2026-09-15): «Risolvi» premuto da un client; chi risolve aspetta il `ready` dell'avversario con la stessa `key` prima di far partire i passi, e `scene` dice all'altro quale scena aprire se non l'ha già. La lavagna non cambia (`state.ts`/`table.rb`: nessun ramo). |
 | client | `{"t":"snapshot","state":{…}}` | *(solo nella stanza «solo»: allinea la copia del tavolo; in stanza si ignora)* |
 | tavolo | `{"t":"peers","peers":2,"seats":["a","b"]}` | a tutti, a ogni ingresso o uscita |
 | tavolo | `{"t":"seat_taken","seat":"a"}` | a chi chiede un posto già occupato, poi il tavolo chiude |

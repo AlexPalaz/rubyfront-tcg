@@ -26,6 +26,8 @@ export interface PreviewSource {
 }
 
 const OPEN_DELAY = 130;
+/** Quanto resta l'anteprima dopo un «out»: se subito dopo torna l'«over» della stessa carta (il velo che la copre), non lampeggia. */
+const LINGER = 60;
 const MARGIN = 12;
 
 export class Preview {
@@ -60,15 +62,19 @@ export class Preview {
   private arm(uid: string): void {
     if (this.suppressed === uid || this.pressed) return;
     clearTimeout(this.timer);
+    // La stessa carta, ancora in vista: resta com'è.
+    if (this.shown === uid && this.sprite.visible) return;
     this.timer = setTimeout(() => void this.show(uid), OPEN_DELAY);
   }
 
   private disarm(): void {
     clearTimeout(this.timer);
     this.suppressed = null;
-    this.sprite.visible = false;
-    this.shown = null;
-    this.request += 1;
+    this.timer = setTimeout(() => {
+      this.sprite.visible = false;
+      this.shown = null;
+      this.request += 1;
+    }, LINGER);
   }
 
   private hide(suppress: boolean): void {

@@ -100,7 +100,15 @@ export async function declareReaction(ctx: Ctx): Promise<void> {
 export async function endPhase(ctx: Ctx): Promise<void> {
   const state = ctx.state();
   if (state.phase === "preparazione") return declareFront(ctx);
-  if (state.phase === "fronte" && waveDeclared(state)) return declareReaction(ctx);
+  if (state.phase === "fronte" && waveDeclared(state)) {
+    // §6.3 (deciso dal designer, 2026-09-15) — i «quando attacca» si
+    // risolvono ALLA CHIUSURA del Fronte, dichiarata tutta l'ondata, e solo
+    // poi si entra in Reazione. Prima scattavano alla dichiarazione.
+    await ctx.resolveAttacks?.();
+    const after = ctx.state();
+    if (after.phase !== "fronte" || after.over) return;
+    return declareReaction(ctx);
+  }
   if (state.phase === "reazione" && waveDeclared(state) && !(await resolveCombat(ctx))) return;
   return endTurn(ctx);
 }

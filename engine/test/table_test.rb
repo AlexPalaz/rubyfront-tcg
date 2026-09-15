@@ -222,6 +222,23 @@ class TableTest < Minitest::Test
   # §6.2 — l'Oggetto che si mette in Ritiro «pagandone il costo» (dal
   # 2026-09-15): dal campo alla Zona di Ritiro col costo nell'azione si paga;
   # il Ritiro senza costo no. Gemello: state.test.ts.
+  # §6.2 — la sostituzione a Fronte pieno (dal 2026-09-15): `replace` manda in
+  # Zona di Ritiro l'Entità indicata coi suoi Oggetti, poi l'altra scende.
+  # Gemello: state.test.ts, «toZone con replace».
+  def test_replace_sends_the_replaced_entity_and_its_objects_to_retire
+    a = [
+      { "uid" => "e", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "X", "x" => 442, "y" => 1260 },
+      { "uid" => "o", "owner" => "a", "zone" => "field", "order" => 1, "cardId" => "Y", "x" => 472, "y" => 1266, "assignedTo" => "e" },
+      { "uid" => "r", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "X" },
+    ]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    @table.apply({ "t" => "toZone", "uid" => "r", "zone" => "field", "x" => 442, "y" => 1260, "replace" => "e" })
+    assert_equal "field", @table.card("r")[:zone]
+    assert_equal "ritiro", @table.card("e")[:zone]
+    assert_equal "ritiro", @table.card("o")[:zone], "l'Oggetto segue la sostituita"
+    assert_nil @table.card("o")[:assigned_to]
+  end
+
   def test_retiring_from_field_with_cost_pays
     @table.apply(deck_for("a", 2))
     @table.apply({ "t" => "draw", "seat" => "a", "count" => 2 })

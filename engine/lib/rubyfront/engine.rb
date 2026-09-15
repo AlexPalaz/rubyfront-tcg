@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.74.0"
+    VERSION = "0.76.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -107,6 +107,9 @@ module Rubyfront
       "§3.1 La chiamata sul Fronte del Nexus: un'Entità dalla mano senza costo, con Slancio, e +N alle prossime attaccanti del turno",
       "§8.2 Effetti certificati: «quando entra sul Fronte, puoi mettere un Oggetto dalla mano in Ritiro: se lo fai, pesca»; «quando attacca l'Entità che lo porta, col d6 un altro Oggetto in Ritiro: se lo fai, pesca»",
       "§6.2 Un Oggetto che dice «puoi mettermi in Zona di Ritiro pagandone il costo»: in Preparazione propria, al costo stampato",
+      "§6.3 I «quando attacca» si risolvono alla chiusura del Fronte, prima della Reazione; il «pronto» delle scene (ready) passa a chiunque, in ogni fase",
+      "§6.2 A Fronte pieno chi scende per effetto (dalla mano, dal Ritiro o dall'Abisso) può prendere il posto di un'Entità propria, che va in Zona di Ritiro coi suoi Oggetti",
+      "§8.2 «Quando entra sul Fronte» vale a ogni ingresso sul Fronte: dalla mano, dal Ritiro, dall'Abisso",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -188,6 +191,9 @@ module Rubyfront
       "§3.1 The Nexus's call to the Front: an Entity from hand at no cost, with Surge, and +N to the next attackers this turn",
       "§8.2 Certified effects: “when it enters the Front, you may put an Object from hand into Retire: if you do, draw”; “when its bearer attacks, with the d6 another Object into Retire: if you do, draw”",
       "§6.2 An Object that says “you may put me into the Retire Zone by paying its cost”: in your own Preparation, at the printed cost",
+      "§6.3 “When it attacks” resolves when the Front closes, before the Reaction; the scenes' “ready” passes for anyone, in any phase",
+      "§6.2 With a full Front, a card coming down through an effect (from hand, Retire or the Abyss) may take the place of one of your Entities, which goes to the Retire Zone with its Objects",
+      "§8.2 “When it enters the Front” applies to every entry onto the Front: from hand, from Retire, from the Abyss",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -422,6 +428,9 @@ module Rubyfront
 
       return refuse("assign", "gli Oggetti non si assegnano al Rubyfront né al Nexus (§3.1, Oggetti)", "Objects can't be assigned to the Rubyfront or the Nexus (§3.1, Objects)") if target_kind == "rubyfront"
       return refuse("assign", "un Oggetto si assegna a un'Entità (§3.1, Oggetti)", "an Object is assigned to an Entity (§3.1, Objects)") unless target_kind == "entity"
+      # In campo: un'Entità in mano o in una pila non porta niente (visto il
+      # 2026-09-15 in una prova in stanza: l'assegnazione a una carta in mano passava).
+      return refuse("assign", "l'Oggetto va addosso a un'Entità in campo (§3.1, Oggetti)", "an Object goes on an Entity on the field (§3.1, Objects)") unless target[:zone] == "field"
       return refuse("assign", "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if target[:facedown]
       return refuse("assign", "gli Oggetti si assegnano solo alle proprie Entità (§3.1, Oggetti)", "Objects are assigned only to your own Entities (§3.1, Objects)") if target[:owner] != object[:owner]
       if object[:assigned_to] && object[:assigned_to] != to
@@ -1310,7 +1319,9 @@ module Rubyfront
       # Un `move` è pixel — salvo lo schieramento del Rubyfront, che porta
       # un costo ed è un gesto di gioco (§3.1: nel proprio turno).
       # `spawn` è lo strumento di prova del client (evoca dal catalogo).
-      return nil if %w[loadDeck newGame say spawn release].include?(kind) || (kind == "move" && !action.key?("cost"))
+      # Il «pronto» delle scene (`ready`, dal 2026-09-15): la stretta di mano
+      # dei due client — l'avversario lo preme nel turno di chi gioca.
+      return nil if %w[loadDeck newGame say spawn release ready].include?(kind) || (kind == "move" && !action.key?("cost"))
       # §7.2 — accettare e chiudere un passo della catena sono gesti di chi
       # ne ha la parola, di chiunque sia il turno: li giudica judge_chain.
       return nil if %w[pass settle].include?(kind)
@@ -1396,7 +1407,7 @@ module Rubyfront
       return nil unless chain
 
       # Liberi anche in catena: chat, pixel, apparecchiatura, e il Gettone.
-      return nil if %w[say loadDeck newGame spawn].include?(kind) || (kind == "move" && !action.key?("cost"))
+      return nil if %w[say loadDeck newGame spawn ready].include?(kind) || (kind == "move" && !action.key?("cost"))
       return nil if kind == "player" && action.dig("patch", "token") == false
 
       top = @table.chain_top
@@ -2123,10 +2134,12 @@ module Rubyfront
           return refuse("toZone", "si riporta una carta permanente, non questa (§8.2)", "a permanent card is brought back, not this one (§8.2)")
         end
         # §6.2, Fronte pieno: «anche la parte d'effetto che metterebbe in
-        # campo non si applica». Riguarda le sole Entità — una Materia
-        # permanente sta dietro il Fronte e non occupa uno slot (§5).
-        if entry[:type] == "entity" && count_entities(@table.controller_of(source), nil) >= 5
-          return refuse("toZone", "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)", "the Front is full: five Entities are the maximum (§6.2, Full Front)")
+        # campo non si applica» — salvo la sostituzione (dal 2026-09-15).
+        # Riguarda le sole Entità — una Materia permanente sta dietro il
+        # Fronte e non occupa uno slot (§5).
+        if entry[:type] == "entity"
+          stopped = full_front_stopped("toZone", action, @table.controller_of(source))
+          return stopped if stopped
         end
 
         return allow("toZone")
@@ -2875,7 +2888,9 @@ module Rubyfront
                (filter[:max_cost].nil? || (entry[:flux_cost] && entry[:flux_cost] <= filter[:max_cost]))
           return refuse(kind, "si mette sul Fronte un'Entità Umana con costo di Flusso #{filter[:max_cost]} o inferiore dalla propria mano (§8.2)", "a Human Entity with Flux cost #{filter[:max_cost]} or lower comes onto the Front from your own hand (§8.2)")
         end
-        return refuse(kind, "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)", "the Front is full: five Entities are the maximum (§6.2, Full Front)") if count_entities(seat, nil) >= 5
+        # §6.2 — a Fronte pieno la discesa col dado può sostituire un'Entità propria (dal 2026-09-15).
+        stopped = full_front_stopped(kind, action, seat)
+        return stopped if stopped
         return refuse(kind, "le Entità stanno sugli slot del Fronte, nella propria fila (§5)", "Entities sit on the Front slots, in their own row (§5)") unless on_slot?(card, action)
       end
 
@@ -3119,7 +3134,9 @@ module Rubyfront
       if @table.sealed?(seat, card[:card_id])
         return refuse(kind, "quella carta non si può più giocare per il resto della partita: l'ha sigillata il flip del Nexus (§8.2)", "that card can no longer be played for the rest of the game: the Nexus flip sealed it (§8.2)")
       end
-      return refuse(kind, "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)", "the Front is full: five Entities are the maximum (§6.2, Full Front)") if count_entities(seat, nil) >= 5
+      # §6.2 — a Fronte pieno la chiamata può sostituire un'Entità propria (dal 2026-09-15).
+      stopped = full_front_stopped(kind, action, seat)
+      return stopped if stopped
       return refuse(kind, "le Entità stanno sugli slot del Fronte, nella propria fila (§5)", "Entities sit on the Front slots, in their own row (§5)") unless on_slot?(card, action)
 
       granted = action["grants"]
@@ -3316,6 +3333,33 @@ module Rubyfront
       allow(kind)
     end
 
+    # §6.2 — a Fronte pieno chi rientra per effetto dal Ritiro o dall'Abisso
+    # può SOSTITUIRE un'Entità propria (deciso dal designer, 2026-09-15):
+    # l'azione porta `replace`, e quella va in Zona di Ritiro coi suoi
+    # Oggetti prima che l'altra scenda (gemelli, to_zone/revive). Senza
+    # `replace` il Fronte pieno ferma come sempre; con `replace` a Fronte
+    # non pieno non ha senso. La sostituita: propria, comandata da sé, in
+    # campo, un'Entità, non la carta che rientra. Ignota all'anagrafe: silenzio.
+    def full_front_stopped(kind, action, seat)
+      full = count_entities(seat, nil) >= 5
+      replace = action["replace"]
+      unless replace.is_a?(String)
+        return refuse(kind, "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)", "the Front is full: five Entities are the maximum (§6.2, Full Front)") if full
+
+        return nil
+      end
+      return refuse(kind, "si sostituisce un'Entità solo a Fronte pieno (§6.2, Fronte pieno)", "an Entity is replaced only with a full Front (§6.2, Full Front)") unless full
+
+      other = @table.card(replace)
+      entry = other && @cards[other[:card_id]]
+      return no_rule(kind) if other && entry.nil?
+      unless other && other[:zone] == "field" && entry[:type] == "entity" && other[:owner] == seat && @table.controller_of(other) == seat && replace != action["uid"]
+        return refuse(kind, "si sostituisce una propria Entità sul Fronte, che va in Zona di Ritiro coi suoi Oggetti (§6.2, Fronte pieno)", "you replace one of your own Entities on the Front, which goes to the Retire Zone with its Objects (§6.2, Full Front)")
+      end
+
+      nil
+    end
+
     # §8.2 — il ritorno vincolato: la carta ha la forma, è appena uscita
     # (questo turno) nell'Abisso o in Ritiro senza Oggetti addosso, torna sul
     # proprio Fronte — non pieno, su uno slot — con un Oggetto dalla propria
@@ -3343,7 +3387,8 @@ module Rubyfront
       unless entry[:type] == "object" && entry[:flux_cost] && entry[:flux_cost] <= form[:max_cost]
         return refuse("revive", "l'Oggetto dev'essere un Oggetto con costo di Flusso #{form[:max_cost]} o inferiore (§8.2)", "the Object must be an Object with Flux cost #{form[:max_cost]} or less (§8.2)")
       end
-      return refuse("revive", "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)", "the Front is full: five Entities are the maximum (§6.2, Full Front)") if count_entities(card[:owner], nil) >= 5
+      stopped = full_front_stopped("revive", action, card[:owner])
+      return stopped if stopped
       front = FRONT_ROW_Y[Table::SEATS.index(card[:owner]) == 0 ? 1 : 0]
       unless FRONT_SLOT_X.include?(action["x"]) && action["y"] == front
         return refuse("revive", "torna su uno slot del proprio Fronte (§5)", "it comes back on a slot of your own Front (§5)")

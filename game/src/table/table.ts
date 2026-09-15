@@ -272,6 +272,11 @@ export class Table {
     return this.views.get(uid);
   }
 
+  /** Un «over»/«out» rimandato da chi copre la carta (il velo coi numeri e i tasti, gestures.ts): l'anteprima segue la carta anche sotto il velo (2026-09-15). */
+  relay(type: "over" | "out" | "tap", uid: string, global: { x: number; y: number }): void {
+    this.emit(type, uid, global);
+  }
+
   private emit(type: CardEvent["type"], uid: string, global: { x: number; y: number }): void {
     const local = this.root.toLocal(global);
     const cardEvent: CardEvent = { type, uid, zone: this.zone.get(uid) ?? "field", x: local.x, y: local.y };

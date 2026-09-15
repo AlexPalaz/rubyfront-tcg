@@ -518,6 +518,7 @@ module Rubyfront
         # le va addosso, dal Ritiro. Gemello: state.ts, revive.
         if @cards[action["uid"]] && @cards[action["object"]]
           left = @cards[action["uid"]][:left]
+          to_zone({ "uid" => action["replace"], "zone" => "ritiro" }) if action["replace"].is_a?(String) && @cards[action["replace"]]
           to_zone({ "uid" => action["uid"], "zone" => "field", "y" => action["y"] })
           to_zone({ "uid" => action["object"], "zone" => "field", "y" => action["y"], "assignTo" => action["uid"] })
           # Il rientro conta nel turno in cui è uscita (§6.2, decisione del
@@ -905,6 +906,10 @@ module Rubyfront
       return unless card
 
       zone = action["zone"]
+      # §6.2 — la sostituzione a Fronte pieno (dal 2026-09-15): l'Entità
+      # indicata va in Zona di Ritiro coi suoi Oggetti, poi l'altra scende
+      # al suo posto. Gemello: state.ts, toZone/revive.
+      to_zone({ "uid" => action["replace"], "zone" => "ritiro" }) if zone == "field" && action["replace"].is_a?(String) && @cards[action["replace"]]
       # L'ingresso in campo si annota col turno in corso (§6.2, attesa di
       # evocazione): conta solo il passaggio da fuori a dentro — un toZone
       # che resta sul campo non è un nuovo ingresso.

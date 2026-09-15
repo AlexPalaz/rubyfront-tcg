@@ -27,6 +27,8 @@ export class Aim {
   private armed: { candidates: Map<string, CardInstance>; endAt: (card: CardInstance | null) => void } | null = null;
   /** Le frecce: dalla fonte dell'effetto al dito (partita.ts le presta). */
   arrows: Arrows | null = null;
+  /** Chi ascolta la mira per farla vedere all'avversario (match.ts, dal 2026-09-15): la carta sotto il dito, quella scelta, o niente. */
+  onAim: ((uid: string | null, chosen: boolean) => void) | null = null;
   private readonly openListeners: (() => void)[] = [];
 
   constructor(
@@ -40,9 +42,13 @@ export class Aim {
     table.onCard(cardEvent => {
       if (!this.armed) return;
       const card = this.armed.candidates.get(cardEvent.uid);
-      if (cardEvent.type === "over") this.table.hoverAim(card ? card.uid : null);
-      else if (cardEvent.type === "out") this.table.hoverAim(null);
-      else if (cardEvent.type === "tap" && card) this.close(card);
+      if (cardEvent.type === "over") {
+        this.table.hoverAim(card ? card.uid : null);
+        this.onAim?.(card ? card.uid : null, false);
+      } else if (cardEvent.type === "out") {
+        this.table.hoverAim(null);
+        this.onAim?.(null, false);
+      } else if (cardEvent.type === "tap" && card) this.close(card);
     });
     table.onEmpty(() => this.close(null));
     window.addEventListener("keydown", event => {
@@ -87,6 +93,7 @@ export class Aim {
     this.table.aim(null);
     this.nameplate(null);
     this.arrows?.follow(null);
+    this.onAim?.(card ? card.uid : null, true);
     armed.endAt(card);
   }
 

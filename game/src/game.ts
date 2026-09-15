@@ -19,6 +19,7 @@ import { createMatch, store, type Match } from "./match";
 import { Onboarding, type Mode, type Choice } from "./screens/onboarding";
 import { Toolbar } from "./screens/toolbar";
 import { Chat } from "./screens/chat";
+import { Chronicle } from "./screens/chronicle";
 import { askQuestion } from "./screens/question";
 import { Home } from "./screens/home";
 import { Settings } from "./screens/settings";
@@ -37,6 +38,7 @@ export interface Screens {
   decks: DeckBrowser;
   toolbar: Toolbar;
   chat: Chat;
+  chronicle: Chronicle;
   settings: Settings;
   /** La stanza in cui si è (vuota: la «solo»). */
   room(): string;
@@ -54,6 +56,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   let decks!: DeckBrowser;
   let toolbar!: Toolbar;
   let chat!: Chat;
+  let chronicle!: Chronicle;
 
   const match = createMatch(stage, {
     seat: mySeat,
@@ -71,7 +74,10 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
         update();
       },
       botGameOver: won => recordBotGame(won),
-      afterPaint: () => chat?.update(),
+      afterPaint: () => {
+        chat?.update();
+        chronicle?.update();
+      },
     },
   });
   const { session } = match;
@@ -110,11 +116,21 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     backdrop: isOpen => home.setBlurred(isOpen),
   });
   chat = new Chat(stage, session.ctx, mySeat, n => toolbar.setUnread(n));
+  chronicle = new Chronicle(stage, session.ctx, mySeat, locale, n => toolbar.setUnreadNotices(n));
+  // Le targhette tacciono quando il loro angolo è preso dalla cronaca (che le mostra già) o dalla chat.
+  match.toast.hiddenBy(() => chronicle.isOpen() || chat.isOpen());
   toolbar = new Toolbar(stage, {
     home: () => goHome(),
     leave: () => askLeave(),
     settings: () => settings.toggle(),
-    chat: () => chat.toggle(),
+    chat: () => {
+      chronicle.close();
+      chat.toggle();
+    },
+    chronicle: () => {
+      chat.close();
+      chronicle.toggle();
+    },
     spawn: () => void spawnCard(),
     flux: () => addFlux(),
   });
@@ -156,7 +172,10 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     const covers = home.isVisible() || decks.isOpen();
     stage.world.visible = !covers;
     toolbar.toTable(!covers, room !== "");
-    if (covers) chat.close();
+    if (covers) {
+      chat.close();
+      chronicle.close();
+    }
   }
 
   function showHome(): void {
@@ -257,6 +276,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     decks.close();
     settings.close();
     chat.close();
+    chronicle.close();
     showHome();
     session.paint();
   }
@@ -352,6 +372,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
       return;
     }
     chat.close();
+    chronicle.close();
     void askQuestion(stage, { title: t("ask.home.title"), text: t("html.brand.confirm"), yes: t("ask.home.yes"), no: t("ask.stay") }).then(yes => {
       if (yes) toHome();
     });
@@ -360,6 +381,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   function askLeave(): void {
     settings.close();
     chat.close();
+    chronicle.close();
     void askQuestion(stage, { title: t("ask.leave.title"), text: t("html.leave.confirm"), yes: t("ask.leave.yes"), no: t("ask.stay") }).then(yes => {
       if (yes) toHome();
     });
@@ -380,5 +402,5 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   }
   session.paint();
 
-  return { match, screens: { home, onboarding, decks, toolbar, chat, settings, room: () => room } };
+  return { match, screens: { home, onboarding, decks, toolbar, chat, chronicle, settings, room: () => room } };
 }
