@@ -1,6 +1,5 @@
 // Gli attrezzi delle schermate (F6, tema scuro «Notte» dal 2026-09-12): la
-// tavolozza del tema (style.css del simulatore: :root, poi i due blocchi
-// body[data-ui-theme="notte"], vince l'ultimo), i tasti — metallo (il rubino
+// tavolozza del tema «Notte», i tasti — metallo (il rubino
 // sfaccettato dei tasti primari della home e dell'header), piastra (tutti gli
 // altri: nel Notte la regola di select, input e button pesa più delle loro
 // classi, e ognuno tiene solo il suo filo e la sua scritta), secondario (il
@@ -17,7 +16,7 @@ import type { Stage, Visible } from "../stage";
 import { playSound } from "../sound";
 import { CrispSprite, SANS, paintPiece, linearGradient, withShadow } from "../table/appearance";
 
-/** La tavolozza del tema scuro «Notte» (style.css del simulatore, l'ultimo blocco body[data-ui-theme="notte"]). */
+/** La tavolozza del tema scuro «Notte». */
 export const BG = "#0b090d";
 export const SURFACE = "#100d12";
 export const PANEL = "#151117";

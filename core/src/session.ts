@@ -9,9 +9,8 @@
 //
 // Tutto ciò che si vede lo fa la vista (`SessionView`): il ridisegno, il
 // sigillo dell'arbitro, i voli e i suoni attorno a un'azione, i gesti del
-// tavolo che il bot compie con le stesse scene di un giocatore. È uscita da
-// main.ts del simulatore nella migrazione a PixiJS (F1, 2026-09-11): la
-// usano tutti e due i client, con lo stesso ordine di sempre.
+// tavolo che il bot compie con le stesse scene di un giocatore. Estratta
+// nella migrazione a PixiJS (F1, 2026-09-11), così il gioco non la ripete.
 
 import { chooseAbility, chooseAttackers, chooseBlocks, chooseDiscards, chooseFlip, choosePlay, chooseResponse, freshMemory, pickBest, type BotMemory } from "./bot.js";
 import { cardFacts, cardName, cardStats, deckTint, getDeck, isRubyfront, type Tint } from "./cards.js";
@@ -287,12 +286,16 @@ export function createSession(options: SessionOptions): Session {
     // §8.2 (RBF-018) — chi teneva un permanente nell'Abisso ha lasciato il
     // gioco: il permanente torna, e lo manda il tavolo che l'ha visto uscire.
     if (action.t !== "release" && Object.values(state.cards).some(card => card.heldBy && card.zone === "abisso" && state.cards[card.heldBy]?.zone !== "field")) {
-      // §8.2 — chi torna in gioco dall'Abisso è entrata sul Fronte: i suoi inneschi, per chi la comanda qui (dal 2026-09-15).
-      void releaseHeld(ctx, freeFrontSlotOrNull, matterSpot).then(() => view.offerReturned(before, state, deciders));
+      // Il `release` passa da qui (commit) come ogni azione: è quel commit a
+      // offrire la scena di chi rientra, una volta sola (2026-09-16: prima
+      // la si offriva anche al ritorno di releaseHeld, e l'innesco «quando
+      // entra» si risolveva due volte).
+      void releaseHeld(ctx, freeFrontSlotOrNull, matterSpot);
     }
-    // La restituzione fatta da qui (a fine turno, l'Entità controllata torna
-    // al proprietario): non è un ingresso — ma il permanente esiliato che
-    // torna sì.
+    // §8.2 — chi torna in gioco dall'Abisso (la fine dell'esilio) o dal
+    // Ritiro è entrata sul Fronte: i suoi inneschi, per chi la comanda qui
+    // (dal 2026-09-15). La restituzione dell'Entità controllata a fine turno
+    // non è un ingresso: offerReturned guarda da dove viene.
     if (action.t === "release" && action.zone === "field") view.offerReturned(before, state, deciders);
     // §2 — la fine per PV si guarda dopo ogni azione applicata in locale
     // (la risoluzione, un contatore a mano): la dichiara il client che l'ha

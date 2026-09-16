@@ -1,6 +1,6 @@
-// La tavolozza dei momenti del tavolo col tema notte (simulatore/src/style.css:
-// :root e body[data-ui-theme="notte"]), e i due pezzi che tutti i momenti
-// hanno in comune: la piastra dei tasti e la sfocatura sotto i veli.
+// La tavolozza dei momenti del tavolo col tema notte, e i due pezzi che
+// tutti i momenti hanno in comune: la piastra dei tasti e la sfocatura
+// sotto i veli.
 //
 // Due famiglie di colori, come nel foglio. Le variabili --banda-* stanno su
 // :root e si risolvono lì, coi valori di base (l'inchiostro #ede6e0, il
@@ -89,8 +89,8 @@ export function below(parent: Container, overlay: Container): Container[] {
 }
 
 /**
- * Il backdrop-filter: blur(Npx) dei veli del simulatore: i livelli dati si
- * sfocano finché il momento è aperto. Torna la funzione che toglie la
+ * La sfocatura sotto i veli (come un backdrop-filter: blur(Npx)): i livelli
+ * dati si sfocano finché il momento è aperto. Torna la funzione che toglie la
  * sfocatura (e solo la propria: i filtri che i livelli avevano restano).
  */
 export function setBlurred(stage: Stage, levels: Container[], cssPx: number): () => void {

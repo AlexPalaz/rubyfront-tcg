@@ -1,5 +1,5 @@
-// Le frecce del combattimento (simulatore/src/arrows.ts, table.ts
-// paintArrows): dal bloccante all'attaccante che ferma (§6.3), blu d'acciaio
+// Le frecce del combattimento: dal bloccante all'attaccante che ferma
+// (§6.3), blu d'acciaio
 // il blocco, oro il contrattacco. L'attacco non ha freccia: si attacca sempre
 // il Rubyfront avversario, e l'attaccante si illumina e basta. In mira la
 // freccia tratteggiata segue il dito: dal puntatore all'attaccante da
@@ -89,7 +89,7 @@ export class Arrows {
     const L = this.table.layout();
     const state = this.state;
     if (!L || !state) return;
-    // La lavagna del simulatore è in scala: le frecce ci stanno dentro, e la seguono.
+    // La lavagna è in scala: le frecce ci stanno dentro, e la seguono.
     const s = L.s;
     this.blur.strength = 5 * s + 2;
     const arrows: { kind: ArrowKind; from: Box; to: Box; pending?: boolean }[] = [];

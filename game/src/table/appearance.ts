@@ -1,7 +1,5 @@
-// L'aspetto del tavolo: il tema «Notte» del simulatore (scelta del designer,
-// 2026-09-12: tutto il gioco scuro) — le variabili di :root di
-// simulatore/src/style.css e il blocco body[data-ui-theme="notte"]
-// trascritti per il gioco. La stanza è la valle di ghiaccio sfocata sotto un
+// L'aspetto del tavolo: il tema «Notte» (scelta del designer, 2026-09-12:
+// tutto il gioco scuro). La stanza è la valle di ghiaccio sfocata sotto un
 // velo scuro e la grana di grafite; i campi sono castoni al neon nella TINTA
 // del mazzo del posto (rubino le Distruttive, blu le Dimensionali, argento
 // le Dinamiche: core/cards deckTint), con la lastra di pietra fumé; gli slot

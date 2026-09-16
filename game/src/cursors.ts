@@ -1,5 +1,5 @@
-// I cursori del tavolo, gli stessi del simulatore (simulator/src/style.css,
-// «il cursore del tavolo», deciso 2026-09-07): una PUNTA rubino con
+// I cursori del tavolo («il cursore del tavolo», deciso 2026-09-07): una
+// PUNTA rubino con
 // l'intaglio in basso e un alone morbido, inclinata come un puntatore. Sui
 // tasti si schiarisce con un alone bianco (point); per prendere una carta la
 // punta si svuota (grab), tenendola si fa granata (grabbing); il mirino per
@@ -26,16 +26,15 @@ const STYLES: Record<string, string> = {
   aim: CURSORS.aim,
 };
 
-/** La pagina e il canvas prendono le punte del simulatore. */
+/** La pagina e il canvas prendono le punte rubino. */
 export function installCursors(app: Application): void {
   Object.assign(app.renderer.events.cursorStyles, STYLES);
   document.documentElement.style.cursor = CURSORS.arrow;
 }
 
 /**
- * Tenendo una carta la punta è granata dappertutto (body.is-dragging-card
- * del simulatore): finché dura, ogni nome dà «grabbing»; lasciata, tornano
- * quelle di prima.
+ * Tenendo una carta la punta è granata dappertutto: finché dura, ogni nome
+ * dà «grabbing»; lasciata, tornano quelle di prima.
  */
 export function holdCursor(app: Application, on: boolean): void {
   const styles = app.renderer.events.cursorStyles;

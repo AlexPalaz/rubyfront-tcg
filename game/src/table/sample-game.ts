@@ -5,8 +5,8 @@
 // mani, un attacco dichiarato — e, a richiesta, la catena di risposta aperta
 // (§7.2: B risponde in Reazione con una Reattiva, A rilancia con un'altra).
 // Passa tutta dal riduttore vero (core/state),
-// con i mazzi in ordine fisso (niente mescolata): la stessa lista si dà al
-// gioco e al simulatore (`__rbf.dispatch`), e le due lavagne vengono uguali.
+// con i mazzi in ordine fisso (niente mescolata): la stessa lista dà sempre
+// la stessa lavagna.
 
 import { cardStats, getDeck, isRubyfront } from "@rubyfront/core/cards";
 import { RUBYFRONT_X, SLOT_X, backRowY, frontRowY } from "@rubyfront/core/geometry";

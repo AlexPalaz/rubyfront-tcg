@@ -1,4 +1,4 @@
-// Le scene del tavolo (simulatore/src/effect.ts): il momento in cui una carta
+// Le scene del tavolo: il momento in cui una carta
 // entra, attacca, si risolve o flippa — la carta grande sul velo scuro del
 // tema notte (sfocato sotto, come il backdrop-filter) e, di fianco, la riga in alto, chi la gioca, i testi degli
 // effetti e degli inneschi, e «Continua» o «Risolvi». Le scene si mettono in
@@ -221,7 +221,7 @@ function hitZone(x: number, y: number, w: number, h: number, run: () => void): C
 
 /** Quanto una scena aspetta al più la giocata sul campo, e quanto il tavolo aspetta al più gli effetti di «Risolvi»: un'animazione persa non ferma la partita. */
 /** Al più quanto aspetta la scena che la regia finisca (il flip del Nexus dura ~3 s). */
-const GATE_MAX_MS = 4500;
+const GATE_MAX_MS = 8000;
 const RESOLVE_MAX_MS = 60_000;
 
 export class Scene {
@@ -230,7 +230,7 @@ export class Scene {
   private openOnes = 0;
   /** Gli effetti che «Risolvi» ha avviato e che stanno ancora agendo: il tavolo non è fermo finché non finiscono (il bot aspetta). */
   private resolving = 0;
-  /** Ciò che una scena aspetta prima di aprirsi: la giocata che vola, si posa e si accende (effects/director.ts). */
+  /** Ciò che una scena aspetta prima di aprirsi: il tavolo fermo — la giocata che vola e si posa (effects/director.ts), i voli, il dado, l'insegna (match.ts, stillTable). */
   private gate: () => Promise<void> = () => Promise.resolve();
   private readonly layer = new Container({ label: "scene" });
 
@@ -238,7 +238,7 @@ export class Scene {
     stage.world.addChild(this.layer);
   }
 
-  /** La scena si apre dopo la giocata sul campo: `gate` lo dice (partita.ts lo lega al regista). */
+  /** La scena si apre a tavolo fermo: `gate` lo dice (match.ts lo lega al regista, ai voli, al dado, all'insegna). */
   waitBefore(gate: () => Promise<void>): void {
     this.gate = gate;
   }
@@ -290,7 +290,7 @@ export class Scene {
     return this.openOnes === 0 && this.resolving === 0;
   }
 
-  /** Prima la giocata sul campo (al più GATE_MAX_MS), poi la scena. */
+  /** Prima il tavolo fermo (al più GATE_MAX_MS: una coda di voli lunga non blocca la partita), poi la scena. */
   private async afterGate(run: () => Promise<void>): Promise<void> {
     await Promise.race([this.gate().catch(() => undefined), new Promise<void>(resolve => setTimeout(resolve, GATE_MAX_MS))]);
     await run();

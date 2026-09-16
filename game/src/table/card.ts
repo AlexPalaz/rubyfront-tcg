@@ -1,11 +1,11 @@
 // Una carta sul tavolo: la faccia dipinta (src/card/, dalla cache) o il
 // dorso, coricata se tappata, col filo e l'ombra, e — sul campo — i
-// distintivi a corpo fisso del simulatore (costo, Potenza ATTUALE,
+// distintivi a corpo fisso (costo, Potenza ATTUALE,
 // Contrattacco, parole chiave), l'anello e il numero d'ondata di chi
 // attacca, l'anello di chi blocca o contrattacca.
 //
 // Il contenitore ha l'origine al centro della carta: la rotazione della
-// tappata gira attorno a lì, come nel simulatore.
+// tappata gira attorno a lì.
 
 import { ColorMatrixFilter, Container, Graphics, Rectangle, Sprite, Texture, Ticker, type Filter, type Renderer } from "pixi.js";
 import { faceTexture } from "../card/cache";
@@ -69,7 +69,7 @@ export interface CardLook {
  * la carta colpita (is-struck), il bersaglio valido della mira (is-legal) e
  * quello sceglibile ma sconsigliato (is-pickable), l'Entità che riceverebbe
  * l'Oggetto trascinato (is-assign-target), la carta con un gesto disponibile
- * (has-actions: nel simulatore respira, qui è fermo fino a F5), la Reattiva
+ * (has-actions: fermo), la Reattiva
  * in catena (.is-chained: oro dentro, rubino fuori, la luce della catena).
  * Nella mira il bersaglio valido respira di verde e quello sotto il
  * puntatore (aimed) si accende pieno: si vede cosa si può scegliere, e cosa
@@ -262,7 +262,7 @@ export class TableCard extends Container {
     this.turnTo(look.tapped, look.tapDelay ?? 0);
     // Si tocca la carta, non la sua ombra: l'area è la carta sola (ruota con lei).
     this.eventMode = "static";
-    // La punta: vuota per prendere la carta, il mirino se la mira la può scegliere (come nel simulatore).
+    // La punta: vuota per prendere la carta, il mirino se la mira la può scegliere.
     this.cursor = look.ring && AIM_RINGS.has(look.ring) ? "aim" : "grab";
     this.hitArea = new Rectangle(-w / 2, -h / 2, w, h);
 
@@ -592,7 +592,7 @@ function aboveOf(look: CardLook, margin: number): Texture {
       ctx.lineWidth = 3;
       ctx.strokeRect(-1.5, -1.5, w + 3, h + 3);
       ctx.restore();
-      // L'anello interno (respira nel simulatore: qui fermo).
+      // L'anello interno, fermo.
       ctx.save();
       ctx.strokeStyle = "rgba(210,74,100,.9)";
       ctx.lineWidth = 2;

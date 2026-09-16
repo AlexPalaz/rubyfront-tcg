@@ -30,7 +30,7 @@ execSync(`npm run build -- --outDir "${APP}" --emptyOutDir`, {
     ...process.env,
     VITE_CARDS: "./cards/",
     VITE_ENGINE_URL: process.env.VITE_ENGINE_URL ?? PRODUCTION_ENGINE,
-    // Il gioco sul sito sta alla radice (dal 2026-09-13, tolto il simulatore).
+    // Il gioco sul sito sta alla radice.
     VITE_INVITE_BASE: site ? new URL("./", site).href : "",
   },
 });

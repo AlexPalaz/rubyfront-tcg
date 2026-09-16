@@ -1,4 +1,4 @@
-// Il sipario (main.ts del simulatore, curtainPass): il nero che cala su una
+// Il sipario (curtainPass): il nero che cala su una
 // schermata, resta giù mentre sotto si cambia scena, e si alza — dalla home
 // alla partita col bot, e dalla partita alla home. Finché c'è, assorbe i click.
 

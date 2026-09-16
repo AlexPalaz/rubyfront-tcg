@@ -1,6 +1,6 @@
-// I gesti del tavolo senza DOM (gestures.ts, F4): la stessa sequenza di
-// azioni e di scelte che stava nel tavolo del simulatore, con una vista finta
-// che registra ciò che le si chiede. Il riduttore vero applica le azioni; i
+// I gesti del tavolo senza DOM (gestures.ts, F4): la sequenza di azioni e
+// di scelte del tavolo, con una vista finta che registra ciò che le si
+// chiede. Il riduttore vero applica le azioni; i
 // timer sono finti, così le attese del ritmo (luci, voli) non rallentano.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -16,6 +16,8 @@ import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 const FACTS: Record<string, Partial<CardFacts>> = {
   ARCHER: { kind: "entity", race: "human", fluxCost: 2, enterMoves: [{ target: { kind: "entity", controller: "opponent", maxCost: null }, to: "ritiro" }] },
   HUMAN: { kind: "entity", race: "human" },
+  // «Quando attacca: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme» (la forma `return`).
+  SIMULACRUM: { kind: "entity", race: "simulacrum", attackForms: [{ kind: "return", who: "self", die: 6, onRoll: [5, 6], filter: { kind: "entity", race: "human" }, joins: true, face: 0 }] },
   RUBY: { kind: "rubyfront" },
   // «Quando attacca: le altre armate +1» — una forma d'attacco di chi attacca.
   COMMAND: { kind: "entity", race: "auros", attackForms: [{ kind: "empower", who: "self", targets: "others_armed", power: 1, face: 0 }] },
@@ -179,6 +181,47 @@ describe("createGestures — l'attacco e i suoi inneschi alla chiusura del Front
     expect(calls).toContain("hold true");
     // Senza altre armate il potenziamento non ha bersagli: la scena c'è, l'azione no — ma il passo è stato compiuto dopo la scena.
     expect(sent.map(action => action.t)).toEqual(["declare", "tap"]);
+  });
+
+  // «Quell'Entità attacca insieme a questa Entità»: l'attacco è dovuto, non
+  // si chiede (deciso dal designer 2026-09-16). La domanda resta per una
+  // forma «può attaccare insieme» (`asks`) che oggi nessuna carta porta.
+  it("chi torna dal Ritiro con la forma «return» attacca insieme senza domanda; con `asks` si chiede prima", async () => {
+    const run = async (asks: boolean, answer: boolean) => {
+      const { ctx, sent, setState } = table();
+      const state = ctx.state();
+      state.turn = 3;
+      state.active = "a";
+      state.phase = "fronte";
+      card(state, "sim", "SIMULACRUM", "a", "field");
+      card(state, "h", "HUMAN", "a", "hand").zone = "ritiro";
+      card(state, "rf-b", "RUBY", "b", "field");
+      setState(state);
+      const form = facts("SIMULACRUM").attackForms[0]!;
+      const attackForms = asks ? [{ ...form, asks: true as const }] : [form];
+      ctx.card = id => (id === "SIMULACRUM" ? { ...facts(id), attackForms } : facts(id));
+      const confirm = vi.fn(() => Promise.resolve(answer));
+      const { view } = fakeView({ confirm, pickFromPile: vi.fn((_seat, _zone, candidates: CardInstance[]) => Promise.resolve(candidates[0] ?? null)) });
+      const random = vi.spyOn(Math, "random").mockReturnValue(0.99);
+      try {
+        const gestures = createGestures(ctx, view);
+        await settle(gestures.attackWith(ctx.state().cards.sim));
+        await settle(gestures.resolveAttacks());
+      } finally {
+        random.mockRestore();
+      }
+      const declared = sent.filter(action => action.t === "declare").map(action => (action as { declaration: { from: string } }).declaration.from);
+      return { confirm, declared, zone: ctx.state().cards.h?.zone };
+    };
+    const must = await run(false, false);
+    expect(must.zone).toBe("field");
+    expect(must.confirm).not.toHaveBeenCalled();
+    expect(must.declared).toEqual(["sim", "h"]);
+    const mayNot = await run(true, false);
+    expect(mayNot.confirm).toHaveBeenCalledTimes(1);
+    expect(mayNot.declared).toEqual(["sim"]);
+    const may = await run(true, true);
+    expect(may.declared).toEqual(["sim", "h"]);
   });
 
   it("l'avversario ricostruisce la scena dal riferimento, nella sua lingua", async () => {

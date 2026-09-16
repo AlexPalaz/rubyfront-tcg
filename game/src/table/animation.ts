@@ -2,7 +2,7 @@
 // di riserva — una scheda in secondo piano non fa girare il ticker, e le
 // promesse di cui la partita ha bisogno (il bot aspetta la quiete, le scene
 // si mettono in fila) non devono restare appese. Con prefers-reduced-motion
-// le corse saltano subito alla fine, come il simulatore spegne le sue.
+// le corse saltano subito alla fine.
 
 import type { Ticker } from "pixi.js";
 
@@ -117,4 +117,45 @@ export function key(k: number, stops: [number, number][]): number {
     }
   }
   return stops[stops.length - 1][1];
+}
+
+/**
+ * Il conto delle animazioni in corso di un pezzo del tavolo (i voli, la
+ * cascata della pesca): `hold()` ne apre una e torna il modo di chiuderla
+ * (una volta sola), `idle()` si risolve quando non ne resta nessuna. Le
+ * scene aspettano il tavolo fermo (scene.ts, waitBefore), il bot pure.
+ */
+export class Stillness {
+  private active = 0;
+  private waiters: (() => void)[] = [];
+
+  hold(): () => void {
+    this.active += 1;
+    let open = true;
+    return () => {
+      if (!open) return;
+      open = false;
+      this.active -= 1;
+      if (this.active === 0) {
+        const waiters = this.waiters;
+        this.waiters = [];
+        for (const wake of waiters) wake();
+      }
+    };
+  }
+
+  /** Tiene finché `run` non si chiude, comunque si chiuda. */
+  track<T>(run: Promise<T>): Promise<T> {
+    const done = this.hold();
+    return run.finally(done);
+  }
+
+  isStill(): boolean {
+    return this.active === 0;
+  }
+
+  idle(): Promise<void> {
+    if (this.active === 0) return Promise.resolve();
+    return new Promise(resolve => this.waiters.push(resolve));
+  }
 }

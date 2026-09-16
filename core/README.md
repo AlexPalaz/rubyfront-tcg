@@ -1,9 +1,8 @@
 # Core di Rubyfront
 
 La logica del client, senza DOM e senza grafica: la usa il gioco (`game/`,
-PixiJS). Deciso 2026-09-11: un core solo, condiviso col simulatore DOM
-finché è esistito (tolto il 2026-09-13), perché con due copie le regole
-divergerebbero al primo ritocco.
+PixiJS). Deciso 2026-09-11: un core solo, separato dalla vista, perché con
+le regole dentro la grafica ogni ritocco le sposterebbe.
 
 Qui vivono (dalla fase F1 della migrazione; gesti e tasti dalla F4):
 

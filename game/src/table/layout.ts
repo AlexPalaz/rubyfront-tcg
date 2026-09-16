@@ -1,22 +1,21 @@
 // L'impaginazione del tavolo (F3): dove sta ogni cosa, in unità di progetto
-// (1920×1080, stage.ts). È la vista «rincasso» del simulatore rifatta per lo
-// schermo del gioco: la tua metà in basso con due file (Fronte e fila di
+// (1920×1080, stage.ts): la tua metà in basso con due file (Fronte e fila di
 // servizio), l'avversaria in alto capovolta e ridotta al Fronte (le sue pile
 // stanno nel pannello), la mano in un cassetto sopra il tavolo.
 //
 // La scala viene da sé: dall'altezza, tolti gli spazi fissi (la barra in
 // alto, le targhe, le etichette a 16px, l'angolo del gesto di fase), restano
-// tre file di carte. A 1920×1080 viene 0,524, la stessa del simulatore; su uno
-// schermo 16:10 le carte crescono. Le coordinate delle carte nello stato sono
+// tre file di carte. A 1920×1080 viene 0,524; su uno schermo 16:10 le carte
+// crescono. Le coordinate delle carte nello stato sono
 // canoniche (core/geometry): qui si traducono in posti sullo schermo.
 
 import { BAND_TOP, HALF_H, HALF_TILE, ROW_GAP, ROW_PAD, SLOT_X, SURFACE_W, TILE_H, TILE_W, backRowY, bandOfCenter, frontRowY } from "@rubyfront/core/geometry";
 import type { Seat } from "@rubyfront/core/types";
 import type { Visible } from "../stage";
 
-/** Gli spazi fissi, in unità di progetto (= px a 1920×1080): quelli del simulatore. */
+/** Gli spazi fissi, in unità di progetto (= px a 1920×1080). */
 export const FIXED = {
-  /** La barra in alto (l'header del simulatore). */
+  /** La barra in alto (l'header). */
   bar: 54,
   /** Dalla barra all'orlo del campo avversario: la sua targa sporge sopra. */
   top: 41,
@@ -105,7 +104,7 @@ export function layout(visible: Visible, opts: { foeBack?: boolean } = {}): Tabl
   const handH = tileH + 48;
   const x = (canonX: number): number => left + canonX * s;
 
-  // Da canonico a schermo come ctx.ts del simulatore (compress): la fascia si
+  // Da canonico a schermo (compress): la fascia si
   // sceglie dal CENTRO della carta, poi si traduce la sua CIMA con punti fermi
   // sugli orli delle file — dentro una fila si scala di s (una pila sfalsata
   // di 30 scende di 30·s), il varco fra le file si stringe da sé.
@@ -124,7 +123,7 @@ export function layout(visible: Visible, opts: { foeBack?: boolean } = {}): Tabl
     }
     // L'avversario, capovolto dentro la sua fascia (core/geometry, flipInBand,
     // sul centro): il suo Fronte guarda il tuo attraverso il varco. La sua
-    // fila di servizio non c'è (rincasso), e ciò che salirebbe oltre il
+    // fila di servizio non c'è, e ciò che salirebbe oltre il
     // Fronte si schiaccia sul suo orlo — un Oggetto assegnato resta dietro la
     // sua Entità invece di sbucare sopra.
     // Con la Zona di Controllo aperta, la sua fila di servizio c'è: sopra il
@@ -147,7 +146,7 @@ export function layout(visible: Visible, opts: { foeBack?: boolean } = {}): Tabl
     corner: { right: visible.x + visible.width - 16, bottom: visible.y + visible.height - 12 },
     x,
     screenPos(canonX, canonY, viewer) {
-      // La Zona di Richiamo non ha un riquadro suo (rincasso): il Rubyfront
+      // La Zona di Richiamo non ha un riquadro suo: il Rubyfront
       // in attesa si disegna nel riquadro del Rubyfront, sulla fila del Fronte.
       const band = bandOfCenter(canonY + HALF_TILE);
       if (band && Math.abs(canonX - SLOT_X.richiamo) < 160 && Math.abs(canonY - backRowY(band)) < TILE_H / 2) {

@@ -3,9 +3,8 @@
 // schermi e nella copia del tavolo (engine/, table.rb: FRONT_ROW_Y e gli
 // slot sono lo specchio di queste) — se cambiano qui, cambiano anche là.
 //
-// Qui non c'è la VISTA: come ciascun client disegna la lavagna (la propria
-// fascia in basso, le viste compatta e rincasso del simulatore, la scala
-// del gioco) è affar suo. Le trasformate canoniche della prospettiva
+// Qui non c'è la VISTA: come il client disegna la lavagna (la propria
+// fascia in basso, la scala del gioco) è affar suo. Le trasformate canoniche della prospettiva
 // (fasce scambiate, fascia avversaria capovolta) stanno in fondo, perché
 // ogni vista parte da lì.
 

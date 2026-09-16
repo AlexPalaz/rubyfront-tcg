@@ -1,5 +1,4 @@
-// Il gioco (F6): le schermate attorno al tavolo, come nel simulatore
-// (main.ts): l'header, la home con le sue carte, l'accoglienza (nome e
+// Il gioco (F6): le schermate attorno al tavolo: l'header, la home con le sue carte, l'accoglienza (nome e
 // mazzo, l'attesa in stanza), i mazzi, le impostazioni, il sipario, la
 // domanda prima di lasciare il tavolo — e la chat in stanza. Una sessione
 // sola, creata all'avvio col posto di questo client (partita.ts): la home
@@ -8,8 +7,8 @@
 //
 // Il posto non si sceglie: chi crea la stanza è A, chi entra (a mano o dal
 // link d'invito, che porta `seat`) è B; contro il bot si è A. Resta salvato
-// con la stanza, e il cambio passa da una ricarica, come nel simulatore: il
-// posto è cucito in ogni vista.
+// con la stanza, e il cambio passa da una ricarica: il posto è cucito in
+// ogni vista.
 
 import { allCards, allDecks, getDeck, isRubyfront } from "@rubyfront/core/cards";
 import { lang, msg, t } from "@rubyfront/core/i18n";
@@ -136,8 +135,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   });
 
   /**
-   * STRUMENTO DI PROVA, temporaneo (simulatore: overlay.ts, openCatalog): il
-   * catalogo intero nella vetrina, la carta scelta arriva nella tua mano
+   * STRUMENTO DI PROVA, temporaneo: il catalogo intero nella vetrina, la carta scelta arriva nella tua mano
    * (`spawn`, che il tavolo lascia passare come strumento di prova).
    */
   async function spawnCard(): Promise<void> {
@@ -151,7 +149,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     if (await session.dispatch({ t: "spawn", card })) session.ctx.log(msg("log.spawn", { seat: mySeat, id: chosen.cardId }), mySeat);
   }
 
-  /** STRUMENTO DI PROVA, temporaneo: un Flusso in più (il «+» del simulatore), mai oltre 20 (§3.2). */
+  /** STRUMENTO DI PROVA, temporaneo: un Flusso in più, mai oltre 20 (§3.2). */
   function addFlux(): void {
     const player = session.state().players[mySeat];
     void session.dispatch({ t: "player", seat: mySeat, patch: { flux: Math.min(20, player.flux + 1) } });

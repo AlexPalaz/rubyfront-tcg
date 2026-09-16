@@ -1,5 +1,5 @@
-// La home del gioco (simulatore: index.html #home, style.css «home», tema
-// scuro «Notte»): il paesaggio di fondo sotto un velo scuro, l'insegna del
+// La home del gioco (tema scuro «Notte»): il paesaggio di fondo sotto un
+// velo scuro, l'insegna del
 // saluto (la gemma che respira, il nome, le partite contro il bot) e le
 // cinque carte d'ingresso in fila — lastre nere con l'illustrazione a tutta
 // carta, un poco ingrandita, e i testi chiari sopra, dal basso, sul velo che

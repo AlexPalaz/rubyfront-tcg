@@ -3,9 +3,8 @@
 // (`cardStats`). Specchio di engine/lib/rubyfront/card_index.rb: stesso
 // campo, stessa forma, e una forma ignota resta ignota, mai fraintesa.
 //
-// Niente DOM: il catalogo lo consegna chi lo carica (`useCatalog`) — il
-// simulatore dal sito (docs/cards/catalog.js), il gioco a modo suo. La
-// grafica delle carte non sta qui: è di ciascun client.
+// Niente DOM: il catalogo lo consegna chi lo carica (`useCatalog`), il
+// gioco a modo suo. La grafica delle carte non sta qui: è del client.
 
 import type { Phase } from "./types.js";
 import type { AssignForm, CardFacts, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, EnterStash, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, SelfRetire, StaticForm, Ability, AbilityForm } from "./ctx.js";

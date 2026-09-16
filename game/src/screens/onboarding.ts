@@ -1,5 +1,4 @@
-// L'accoglienza (simulatore: index.html #onboard, main.ts obProfile,
-// waitForPeer): il velo sulla home e la carta di vetro chiaro coi suoi due
+// L'accoglienza: il velo sulla home e la carta di vetro chiaro coi suoi due
 // passi — il profilo (il nome al tavolo, il tuo mazzo e, contro il bot,
 // anche il suo; «Al tavolo») e l'attesa in stanza (la nota, lo stato col
 // punto che respira, il link d'invito, «Esci dalla stanza»). Il velo copre

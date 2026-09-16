@@ -1,5 +1,5 @@
-// Il core non tocca il DOM (migrazione a PixiJS, F1, 2026-09-11): lo usano
-// il simulatore, il gioco e un domani Electron, e ognuno ha la sua vista.
+// Il core non tocca il DOM (migrazione a PixiJS, F1, 2026-09-11): lo usa
+// il gioco, nel browser e su Electron, e la vista è sua.
 // La libreria DOM resta nel tsconfig per i tipi di WebSocket e crypto; che
 // non si usi il resto lo guarda questo test, riga per riga (i commenti
 // possono parlarne).

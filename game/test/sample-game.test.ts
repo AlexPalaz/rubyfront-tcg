@@ -1,6 +1,6 @@
 // La partita di prova del tavolo (src/table/sample-game.ts): passa tutta dal
 // riduttore vero e arriva dove promette — è il banco su cui si guarda il
-// tavolo, e su cui gioco e simulatore si confrontano.
+// tavolo.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { isRubyfront, useCatalog, type CatalogCard, type CatalogDeck } from "@rubyfront/core/cards";

@@ -1,5 +1,5 @@
-// I mazzi, per chi gioca (simulatore: src/mazzi.ts, style.css «mazzi»): la
-// vista che si apre dalla carta «Mazzi» della home. I mazzi pronti, uno per
+// I mazzi, per chi gioca: la vista che si apre dalla carta «Mazzi» della
+// home. I mazzi pronti, uno per
 // stampa — il Rubyfront in copertina (72% della carta vera), il nome, la
 // composizione — con due gesti: giocarci subito contro il bot, o sfogliarne
 // le carte, a tessera (302×424, come al tavolo), con l'ingrandimento al

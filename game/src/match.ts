@@ -1,7 +1,7 @@
 // La partita del gioco: la sessione del core (core/src/session.ts) col suo
 // tavolo Pixi. La sessione tiene lo stato, chiede il verdetto al tavolo Ruby
 // per ogni azione e guida il bot; i gesti e gli effetti che scatenano stanno
-// nel core (core/src/gestures.ts), gli stessi del simulatore. Qui la vista:
+// nel core (core/src/gestures.ts). Qui la vista:
 // il ridisegno, il sigillo dell'arbitro, le scene, il dado, la mira, la
 // vetrina delle pile (F4) — e la resa (F5): l'insegna di fase, i voli delle
 // carte, i colpi, le frecce, l'ingresso dei Rubyfront, i suoni e la musica,
@@ -9,7 +9,7 @@
 //
 // Sempre online (deciso 2026-09-11): anche la partita col bot passa dal
 // tavolo Ruby (la stanza «solo»). Senza tavolo raggiungibile la «solo»
-// resta libera, come nel simulatore.
+// resta libera.
 //
 // La partita nasce una volta, all'avvio, col posto di questo client
 // (creaPartita); chi la guida — le schermate del gioco (gioco.ts, F6) o le
@@ -49,10 +49,9 @@ import { FLY_MS, Flights } from "./table/flights";
 
 /** Il tema delle carte del gioco: «Cattedrale Rubino», l'unico (deciso 2026-09-11). */
 const CARD_THEME = "t49";
-/** Fra la mano iniziale e la carta del turno 1, un respiro (main.ts del simulatore). */
+/** Fra la mano iniziale e la carta del turno 1, un respiro. */
 const OPENING_DRAW_PAUSE_MS = 250;
 
-/** La memoria del gioco nel browser: con un prefisso suo, separata da quella del simulatore. */
 /** Gli Oggetti che escono con la loro Entità partono uno dopo l'altro. */
 const WORN_STEP_MS = 180;
 
@@ -182,7 +181,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     setTimeout(() => table.light(uid, false), ms);
   };
 
-  // --- i suoni (main.ts del simulatore, cueFor): le fasi non suonano, i gesti sì.
+  // --- i suoni (cueFor): le fasi non suonano, i gesti sì.
   let lastDeclareAt = 0;
   const cue = (action: Action): void => {
     if (action.t === "loadDeck" && action.seat === me) startMusic(TABLE_MUSIC);
@@ -454,10 +453,10 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     ready: action => {
       if (action.scene) openTheirScene(action.key, action.scene);
     },
-    // Il tavolo è fermo: nessun sigillo, scena (né effetti di «Risolvi» in corso), dado, mira, scelta, effetto, insegna, ingresso, giocata in volo.
-    // Sfogliare una pila non ferma nessuno (nel simulatore l'overlay non trattiene il bot).
+    // Il tavolo è fermo: nessun sigillo, scena (né effetti di «Risolvi» in corso), dado, mira, scelta, effetto, insegna, ingresso, giocata in volo, volo di carte, cascata della pesca.
+    // Sfogliare una pila non ferma nessuno: la vetrina non trattiene il bot.
     quiet: () =>
-      !seal.isOpen() && scene.isFree() && dice.reducedMotion() && !aim.isOpen() && !pileViewer.isPicking() && !table.isBlocked() && !banner.isRunning() && !entrance.isRunning() && !director?.isBusy(),
+      !seal.isOpen() && scene.isFree() && dice.reducedMotion() && !aim.isOpen() && !pileViewer.isPicking() && !table.isBlocked() && !banner.isRunning() && !entrance.isRunning() && !director?.isBusy() && flights.isStill() && table.isStill(),
   };
 
   const session = createSession({
@@ -519,7 +518,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
       try {
         await scene.idle();
         await gestures.settled();
-        await directorInstance.idle();
+        await stillTable();
         await endPhase(session.ctx);
       } finally {
         closing = false;
@@ -531,8 +530,29 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   window.addEventListener("pointerdown", () => unlockSound(), { capture: true });
 
   stage.onLayout(() => paint());
-  // La scena grande si apre dopo la giocata sul campo: la carta vola, si posa, si accende (effects/director.ts).
-  scene.waitBefore(() => directorInstance.idle());
+  /**
+   * Il tavolo fermo (2026-09-16, «quando compare una scena non devono
+   * esserci animazioni dietro»): la giocata che vola e si posa
+   * (effects/director.ts), i voli delle carte, la cascata della pesca, il
+   * dado, l'insegna di fase e l'ingresso dei Rubyfront — tutto finito,
+   * e per un fotogramma intero, prima di andare avanti. Ogni pezzo può
+   * accenderne un altro (il volo che atterra accende la pila): si torna a
+   * guardare finché non tace tutto insieme.
+   */
+  const stillTable = async (): Promise<void> => {
+    const moving = (): boolean => directorInstance.isBusy() || !flights.isStill() || !table.isStill() || !dice.reducedMotion() || banner.isRunning() || entrance.isRunning();
+    for (;;) {
+      await Promise.all([directorInstance.idle(), flights.idle(), table.idle()]);
+      if (!moving()) {
+        await nextFrame();
+        if (!moving()) return;
+      }
+      await nextFrame();
+    }
+  };
+  const nextFrame = (): Promise<void> => new Promise(resolve => stage.app.ticker.addOnce(() => resolve()));
+  // La scena grande si apre a tavolo fermo.
+  scene.waitBefore(stillTable);
   return {
     session,
     table,

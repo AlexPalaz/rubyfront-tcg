@@ -1,5 +1,5 @@
 // Il sigillo dell'arbitro: una regola ha fermato il gesto. Non un avviso di
-// sistema ma un pezzo del gioco, come nel simulatore (main.ts, engineStop):
+// sistema ma un pezzo del gioco (engineStop):
 // la gemma del marchio, il titolo, il motivo in prosa, il riferimento al
 // manuale su una targhetta, e il tasto per chiudere — o un click sul velo,
 // o Esc. Il gesto non è avvenuto, e lo si deve sapere subito: sta sopra tutto.

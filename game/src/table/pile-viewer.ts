@@ -1,12 +1,12 @@
-// La vetrina (simulatore/src/overlay.ts): la scelta di una carta da una pila,
+// La vetrina: la scelta di una carta da una pila,
 // o dalla mano, per un effetto (§8.2) — e lo sfogliare una pila pubblica
 // (§5: l'Abisso e la Zona di Ritiro si consultano in ogni momento), dove le
 // carte si guardano e basta. Le carte in vista
 // in griglia, a misura di tessera (302×424); quelle che non si possono
 // scegliere restano velate, come la carta che non ci si può permettere. Un
 // tocco sceglie; Chiudi, Esc o il velo fuori dal pannello rinunciano (null).
-// La ricerca per nome del simulatore qui non c'è: le carte di una scelta sono
-// poche. Se non ci stanno, la rotella scorre la griglia.
+// Niente ricerca per nome: le carte di una scelta sono poche. Se non ci
+// stanno, la rotella scorre la griglia.
 
 import { t } from "@rubyfront/core/i18n";
 import type { CardInstance } from "@rubyfront/core/types";
@@ -125,7 +125,7 @@ export class PileViewer {
     // La griglia sotto la testata, con la sua maschera.
     const gridTop = py + headH;
     const gridH = ph - headH - 1;
-    // Come la griglia del simulatore (auto-fill, centrata): le colonne ci sono tutte, le carte partono dalla prima.
+    // La griglia (auto-fill, centrata): le colonne ci sono tutte, le carte partono dalla prima.
     const rowW = cols * (TILE_W + GAP_X) - GAP_X;
     const left = px + (pw - rowW) / 2;
     const grid = new Container({ label: "grid" });

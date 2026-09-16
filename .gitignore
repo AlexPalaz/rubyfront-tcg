@@ -5,17 +5,14 @@
 node_modules/
 
 
-# la build del sito la fa la CI (Vercel): non si committa più
-docs/simulatore/
+# la build del sito la fa la CI (Vercel): non si committa
 dist/
 
 # il rapporto del confronto delle carte (game/scripts/compare-cards.mjs)
 game/compare/report*/
 
-# le foto delle prove del gioco (game/scripts: test-screens, crossplay, table-side-by-side, test-effects, test-match, test-gestures)
+# le foto delle prove del gioco (game/scripts: test-screens, test-effects, test-match, test-gestures)
 game/compare/screens/
-game/compare/crossplay/
-game/compare/table/
 game/compare/effects/
 game/test-match/
 game/test-gestures/

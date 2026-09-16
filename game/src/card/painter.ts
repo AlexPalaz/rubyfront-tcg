@@ -710,7 +710,7 @@ function paintBox(ctx: CanvasRenderingContext2D, layoutBox: Box, box: Box, face:
   stonePattern = resources.stone;
   const nexus = face.kind === "nexus";
 
-  // Il fit tipografico (fitTextBoxes) e la seconda passata del simulatore:
+  // Il fit tipografico (fitTextBoxes) e la seconda passata del gioco:
   // almeno 14px d'aria sotto l'ultima riga.
   const measure = (f: number) => {
     const padTop = 0.55 * f + 9;

@@ -1,6 +1,6 @@
-// L'impaginazione del tavolo (src/table/layout.ts): la scala e le
-// file del «rincasso» del simulatore a 1920×1080, e la prospettiva — la tua
-// metà in basso, l'avversaria capovolta e ridotta al Fronte.
+// L'impaginazione del tavolo (src/table/layout.ts): la scala e le file a
+// 1920×1080, e la prospettiva — la tua metà in basso, l'avversaria
+// capovolta e ridotta al Fronte.
 import { CONTROL_X, FRONT_SLOT_X, ROW_GAP, RUBYFRONT_X, SLOT_X, SURFACE_W, TILE_H, backRowY, frontRowY } from "@rubyfront/core/geometry";
 import { STACK_STEP } from "@rubyfront/core/state";
 import { describe, expect, it } from "vitest";
@@ -10,13 +10,13 @@ const HD = { x: 0, y: 0, width: 1920, height: 1080, scale: 1 };
 const L = layout(HD);
 
 describe("l'impaginazione del tavolo", () => {
-  it("a 1920×1080 la scala è quella del simulatore, e la superficie sta al centro", () => {
+  it("a 1920×1080 la scala è 0,524, e la superficie sta al centro", () => {
     expect(L.s).toBeCloseTo((1080 - FIXED.bar - FIXED.bottom - (FIXED.top + 2 * FIXED.head + 3 * FIXED.label + FIXED.gap)) / (3 * TILE_H), 6);
     expect(L.s).toBeCloseTo(0.524, 3);
     expect(L.left + (SURFACE_W * L.s) / 2).toBeCloseTo(960, 6);
   });
 
-  it("le file stanno dove le mette il simulatore: il Fronte avversario, il tuo Fronte, la tua fila di servizio", () => {
+  it("le file stanno al loro posto: il Fronte avversario, il tuo Fronte, la tua fila di servizio", () => {
     expect(L.foe.top).toBe(95);
     expect(L.foe.front).toBe(132);
     expect(L.mine.front).toBeCloseTo(464.3, 1);

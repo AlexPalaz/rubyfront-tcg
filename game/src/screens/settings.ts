@@ -1,8 +1,8 @@
-// Le impostazioni (simulatore: index.html #settings): un cassetto sotto
+// Le impostazioni: un cassetto sotto
 // l'ingranaggio, una riga per preferenza — Rete (riallinea dal tavolo),
 // Suoni, Musica, Schermo (intero: nuovo nel gioco, per il desktop e lo
-// Steam Deck), Lingua. Mic, vista e tema del simulatore qui non ci sono: il
-// gioco ha un tavolo solo e il tema chiaro. Si chiude con un click fuori o
+// Steam Deck), Lingua. Niente microfono, vista o tema da scegliere: il
+// gioco ha un tavolo solo e un tema solo. Si chiude con un click fuori o
 // con Esc; le scelte restano salvate. Tema «Notte»: il pannello, il filo
 // della linea, i tasti sulla piastra (anche i ghost: la regola del tema pesa
 // più della loro classe), quelli accesi in inchiostro e gli spenti muti.

@@ -1,5 +1,4 @@
-// L'ingresso dei Rubyfront a inizio partita col bot (simulatore/src/
-// table.ts, introRubyfronts; style.css, .intro-*): un velo sul tavolo, e uno
+// L'ingresso dei Rubyfront a inizio partita col bot: un velo sul tavolo, e uno
 // alla volta — il tuo, poi l'avversario — la carta grande arriva dal proprio
 // lato (il tuo da sinistra, dal basso; l'altro da destra, dall'alto), si
 // ferma al centro, si ACCENDE nella tinta del mazzo (un anello di luce che

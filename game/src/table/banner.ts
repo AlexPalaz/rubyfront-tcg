@@ -1,4 +1,4 @@
-// L'insegna di fase (simulatore/src/banner.ts): a ogni cambio di fase, o di
+// L'insegna di fase: a ogni cambio di fase, o di
 // turno, una scritta compare al centro del tavolo sulla banda scura,
 // resta un attimo e svanisce — il turno sopra, piccolo; il titolo della fase
 // fra due rombi, nel suo colore; sotto, a chi tocca. È l'unico posto in cui

@@ -2,10 +2,9 @@
 // tasti di combattimento sotto le carte (§6.3, §6.4) — non il click sulla
 // carta, non il tasto destro, non il trascinamento (deciso 2026-09-09) —,
 // chi si può scegliere nella mira di un blocco, quando la mano è chiusa a
-// chiave (§6) e quando si scarta l'eccesso (§6.5). Stavano in
-// simulatore/src/table.ts: il simulatore e il gioco offrono gli stessi
-// tasti, e ciascuno li disegna a modo suo. Un tasto non esegue nulla: dice
-// l'azione, e la vista la compie (dichiarare, aprire o chiudere la mira).
+// chiave (§6) e quando si scarta l'eccesso (§6.5). I tasti li dice il core,
+// il gioco li disegna. Un tasto non esegue nulla: dice l'azione, e la
+// vista la compie (dichiarare, aprire o chiudere la mira).
 
 import { faceCount, faceKind } from "./cards.js";
 import type { Ctx } from "./ctx.js";

@@ -34,7 +34,7 @@ describe("t", () => {
 
   it("ogni chiave ha entrambe le lingue e le stesse graffe", () => {
     // Il dizionario è privato: lo si legge attraverso t, in tutte e due le lingue.
-    const keys = ["log.play", "log.battle.block", "trigger.look.die", "hud.phase.tip.reazione.wave", "html.ob.room.note"];
+    const keys = ["log.play", "log.battle.block", "trigger.look.die", "phase.title.reazione", "html.ob.room.note"];
     for (const key of keys) {
       setLang("it");
       const it = t(key);

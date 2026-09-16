@@ -7,8 +7,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { isRubyfront, useCatalog, type CatalogCard, type CatalogDeck } from "../src/cards.js";
-import { SLOT_X, backRowY } from "../src/geometry.js";
+import { cardStats, isRubyfront, useCatalog, type CatalogCard, type CatalogDeck } from "../src/cards.js";
+import { FRONT_SLOT_X, SLOT_X, backRowY, frontRowY } from "../src/geometry.js";
 import { createSession, type Session, type SessionView } from "../src/session.js";
 import { zoneCards } from "../src/state.js";
 import type { Action, GameState } from "../src/types.js";
@@ -64,6 +64,7 @@ function fakeView(): SessionView & { calls: string[]; seen: GameState[] } {
     offerLeaveReturns: note("offerLeaveReturns"),
     offerAssignTriggers: note("offerAssignTriggers"),
     offerDeathRemains: note("offerDeathRemains"),
+    offerReturned: note("offerReturned"),
     quiet: () => true,
   };
 }
@@ -223,5 +224,33 @@ describe("il bot", () => {
     expect(actions).toContain("gameOver");
     expect(session.state().over).toBeTruthy();
     expect(view.calls).toContain("botGameOver:true");
+  });
+});
+
+// §8.2 — l'esilio condizionato: chi teneva un permanente nell'Abisso lascia il
+// campo, e il permanente torna in gioco col `release` mandato dal tavolo che
+// l'ha visto uscire. Il suo rientro è un ingresso: la scena, con gli inneschi
+// «quando entra», si offre UNA volta (2026-09-16: si offriva due volte, al
+// commit del release e al ritorno di releaseHeld, e l'innesco si risolveva due volte).
+describe("la fine dell'esilio (§8.2)", () => {
+  it("chi torna dall'Abisso rientra sul Fronte, e la sua scena d'ingresso si offre una volta sola", async () => {
+    const { session, view } = open();
+    await session.dispatch({ t: "newGame", active: "a" });
+    session.loadDeck(DECK.id, "a");
+    session.loadDeck(OTHER.id, "b");
+    const entity = (owner: "a" | "b") => Object.values(session.state().cards).find(card => card.owner === owner && !isRubyfront(card.cardId) && cardStats(card.cardId).kind === "entity")!;
+    const holder = entity("a");
+    const held = entity("b");
+    await session.dispatch({ t: "toZone", uid: holder.uid, zone: "field", x: FRONT_SLOT_X[0], y: frontRowY("a"), z: 1 });
+    await session.dispatch({ t: "toZone", uid: held.uid, zone: "field", x: FRONT_SLOT_X[0], y: frontRowY("b"), z: 2 });
+    await session.dispatch({ t: "toZone", uid: held.uid, zone: "abisso", heldBy: holder.uid });
+    expect(session.state().cards[held.uid]).toMatchObject({ zone: "abisso", heldBy: holder.uid });
+    view.calls.length = 0;
+    await session.dispatch({ t: "toZone", uid: holder.uid, zone: "ritiro" });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(session.state().cards[held.uid]).toMatchObject({ zone: "field", y: frontRowY("b") });
+    expect(session.state().cards[held.uid]?.heldBy).toBeUndefined();
+    expect(view.calls.filter(call => call === "offerReturned")).toHaveLength(1);
+    expect(view.calls.filter(call => call === "before:release")).toHaveLength(1);
   });
 });

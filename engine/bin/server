@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Il tavolo in ascolto per il simulatore: un thread per client, UNA stanza
+# Il tavolo in ascolto per il gioco: un thread per client, UNA stanza
 # (e un Engine) per partita. L'engine è l'unico a scrivere lo stato
 # (deciso 2026-09-11): ogni azione arriva come richiesta di giudizio, e
 # solo se passa entra nel giornale della stanza e viene inoltrata all'altro

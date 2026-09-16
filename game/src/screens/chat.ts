@@ -1,9 +1,9 @@
-// La chat in stanza (simulatore: chat.ts): solo conversazione — le righe
+// La chat in stanza: solo conversazione — le righe
 // dei giocatori (kind "chat"), non la cronaca del tavolo, che racconta da
 // sé. Un pannello chiaro sotto l'header, a destra, che si apre dal tasto
 // «Chat» dell'header; i messaggi dell'avversario arrivati a pannello chiuso
 // si contano sul tasto. Si scrive in un <input> vero (ui.ts, Campo). Tema
-// «Notte»: la superficie della colonna del simulatore, le righe in banda — la
+// «Notte»: la superficie della colonna, le righe in banda — la
 // tua rubino (--mine-band), i messaggi dell'avversario azzurri (is-chat). Le
 // righe vivono nello stato condiviso: arrivano a entrambi e spariscono a
 // nuova partita.

@@ -1,6 +1,6 @@
 // Modello dati della lavagna. Nessuna regola di gioco vive qui: lo stato dice
 // soltanto quale carta sta dove, girata come e con quali contatori. Chi gioca
-// decide cosa è legale — il simulatore non lo verifica mai.
+// decide cosa è legale — il riduttore non lo verifica mai.
 
 /** I due posti al tavolo. Non "giocatore 1/2": chi inizia lo si decide a mano. */
 export type Seat = "a" | "b";
@@ -134,7 +134,7 @@ export interface LogMsg {
 export interface ChatEntry {
   id: string;
   seat: Seat | null;
-  /** `log` = evento generato dal simulatore (dadi, mescola); `chat` = testo scritto. */
+  /** `log` = evento generato dal tavolo (dadi, mescola); `chat` = testo scritto. */
   kind: "chat" | "log";
   /** Il testo così com'è stato scritto (chat), o la resa nella lingua di
       chi ha compiuto il gesto (log): il ripiego per chi non ha la chiave. */

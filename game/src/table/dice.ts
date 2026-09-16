@@ -1,4 +1,4 @@
-// Il dado al centro del tavolo (simulatore/src/dice.ts): un tiro non è un
+// Il dado al centro del tavolo: un tiro non è un
 // numero in chat, è un momento. Su un velo chiaro il dado lampeggia le sue
 // facce, poi si ferma sul risultato e resta acceso due secondi; sotto, il
 // numero e il rigo «d20 · Furia». Il dado cade dall'alto e rimbalza

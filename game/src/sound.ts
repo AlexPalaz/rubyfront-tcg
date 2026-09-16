@@ -1,6 +1,5 @@
-// I suoni e la musica del gioco: gli stessi del simulatore (simulatore/src/
-// sound.ts), coi file in simulatore/public (sounds/, music/) che il gioco
-// serve dalla stessa cartella (vite.config.ts, publicDir). Suoni disegnati
+// I suoni e la musica del gioco, coi file in game/public (sounds/, music/),
+// la cartella public di Vite (vite.config.ts). Suoni disegnati
 // a strati con materie prime CC0 di Kenney, due o tre varianti per voce,
 // un filo di variazione d'intonazione; la musica in loop sotto ai suoni.
 // Web Audio API: il contesto nasce al primo gesto (unlockSound).

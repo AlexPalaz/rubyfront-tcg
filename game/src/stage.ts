@@ -50,7 +50,7 @@ export async function createStage(host: HTMLElement): Promise<Stage> {
     background: "#131013",
   });
   host.append(app.canvas);
-  // Le punte rubino del simulatore, sul tavolo e sulle schermate.
+  // Le punte rubino, sul tavolo e sulle schermate.
   installCursors(app);
 
   const world = new Container({ label: "world" });

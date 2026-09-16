@@ -1,11 +1,9 @@
 # Il gioco di Rubyfront (PixiJS)
 
-Il client nuovo, in PixiJS v8 su WebGL, pensato anche per un'uscita desktop
-su Steam (Electron). Nasce dalla migrazione decisa il 2026-09-11: si rifà
-**solo il client**; manuale, engine Ruby, dati e catalogo restano quelli.
-Dal 2026-09-13 è il solo client: il simulatore DOM (`simulator/`), tenuto
-fino ad allora come termine di confronto, è stato tolto — resta nella storia
-di git (l'ultimo commit che lo contiene è `db3327c`).
+Il client del gioco, in PixiJS v8 su WebGL, pensato anche per un'uscita
+desktop su Steam (Electron). Nasce dalla migrazione decisa il 2026-09-11: si
+rifà **solo il client**; manuale, engine Ruby, dati e catalogo restano quelli.
+Dal 2026-09-13 è l'unico client.
 
 ## Come si avvia
 
@@ -22,8 +20,7 @@ area sicura, fotogrammi al secondo, dimensioni).
 - **Unità di progetto 1920×1080** (`src/stage.ts`): tutto si disegna lì, il
   mondo si scala alla finestra e il lato che avanza (16:10, Steam Deck) si
   vede invece di diventare una banda nera.
-- **La logica viene da `core/`** (`@rubyfront/core/…`), la stessa del
-  simulatore: qui c'è solo la vista.
+- **La logica viene da `core/`** (`@rubyfront/core/…`): qui c'è solo la vista.
 - **Occhi dall'esterno** (`src/debug.ts`): il canvas non ha DOM da leggere,
   quindi `window.__rubyfront.dump()` descrive la scena con etichette e
   riquadri in unità di progetto — per Playwright e per il QC degli screenshot.
@@ -68,42 +65,33 @@ ingrandisce e si ridisegna alla nuova misura; `?lang=en` per l'inglese.
 ## Il tavolo (F3)
 
 Il tavolo fermo, in `src/table/`: la partita com'è nello stato del core,
-disegnata in Pixi. È la vista «rincasso» del simulatore rifatta per lo
-schermo del gioco — la tua metà in basso con Fronte e fila di servizio,
+disegnata in Pixi — la tua metà in basso con Fronte e fila di servizio,
 l'avversaria in alto capovolta e ridotta al Fronte (le sue pile nel
 pannello), la mano in un cassetto di vetro sopra il tavolo.
 
 | File | Cosa fa |
 |---|---|
-| `layout.ts` | la scala e le file (a 1920×1080 viene 0,524, la scala del simulatore; su 16:10 le carte crescono), e da coordinate canoniche a posti sullo schermo, con la prospettiva di chi guarda |
+| `layout.ts` | la scala e le file (a 1920×1080 viene 0,524; su 16:10 le carte crescono), e da coordinate canoniche a posti sullo schermo, con la prospettiva di chi guarda |
 | `card.ts` | una carta sul tavolo: faccia (dalla cache) o dorso, tappata, filo e ombra; sul campo i distintivi a corpo fisso (costo, Potenza attuale, Contrattacco, parole chiave) e i segni di ciò che ha in più; l'anello e il numero d'ondata |
 | `table.ts` | campi, riquadri, etichette, targhe dei posti (PV, Gettone, Flusso), pile, pannello delle pile avversarie, cassetto, gesto di fase; `show(state)` riallinea le carte per uid |
-| `appearance.ts` | il tema chiaro del simulatore, e l'attrezzo per dipingere i pezzi d'interfaccia col canvas |
+| `appearance.ts` | il tema «Notte», e l'attrezzo per dipingere i pezzi d'interfaccia col canvas |
 | `sample-game.ts` | la partita di prova: una lista di azioni che passa dal riduttore vero |
 
 `http://localhost:5200/?table=sample` mostra la partita di prova (`&seat=b`
-dall'altra parte). Il confronto col simulatore sulla stessa partita
-(`scripts/table-side-by-side.mjs`) è uscito col simulatore, il 2026-09-13.
+dall'altra parte).
 
-Differenze volute: niente header in alto (le schermate sono di F6) e un
-solo gesto di fase, perché il gioco gioca sempre con l'arbitro. Rimandati:
-il pannello delle pile avversarie aperto, la fila di servizio avversaria che
-si riapre col Controllo, gli anelli delle carte giocabili (F4), le frecce dei
-blocchi, l'insegna di fase e le animazioni (F5), la catena, la Stasi, la fine
-partita.
+Un solo gesto di fase, perché il gioco gioca sempre con l'arbitro.
 
 ## L'interazione (F4)
 
-I gesti e gli effetti non stanno nel gioco: stanno nel core, gli stessi del
-simulatore.
+I gesti e gli effetti non stanno nel gioco: stanno nel core.
 
 - `core/src/gestures.ts` — giocare dalla mano, schierare il Rubyfront,
   attaccare, le abilità e il flip verso il Nexus, la catena delle Reattive e
   gli inneschi (ingresso, attacco, risoluzione, assegnazione, morte,
-  ritorno), con la stessa sequenza di azioni, attese e scelte che stava in
-  `simulator/src/table.ts`. La vista dà solo ciò che si vede
-  (`GestureView`: luci, voli, scene, dado, mira, finestre); per il posto
-  del bot mira, pile e conferme rispondono da sole.
+  ritorno), con la sequenza di azioni, attese e scelte. La vista dà solo ciò
+  che si vede (`GestureView`: luci, voli, scene, dado, mira, finestre); per
+  il posto del bot mira, pile e conferme rispondono da sole.
 - `core/src/tabs.ts` — quali tasti offre una carta (attacca, blocca,
   contrattacca, annulla), la mira dei blocchi, la mano chiusa a chiave nel
   turno altrui, lo scarto dell'eccesso, il menu di una carta.
@@ -126,12 +114,6 @@ Nel gioco, in `src/table/`:
 `http://localhost:5200/?match=bot` gioca contro il bot al tavolo Ruby
 (la stanza «solo»).
 
-**Il banco di registrazione** (`scripts/record-match.mjs`, uscito col
-simulatore il 2026-09-13) registrava una partita del simulatore contro il bot
-col caso a seme fisso e il tavolo Ruby vero: prima e dopo lo spostamento nel
-core dei gesti, dei tasti, del rilascio e del menu le sequenze coincidevano
-(seme 7: 81 azioni; seme 11: 86).
-
 **Le prove nel gioco**, su una partita vera contro il bot al tavolo Ruby:
 `test-match.mjs` (il bot gioca, le scene e i dadi si fotografano) e
 `test-gestures.mjs` («Schiera», il doppio tocco dalla mano, un Oggetto
@@ -150,10 +132,9 @@ avversarie aperto, la penombra del tavolo con la catena aperta.
 
 ## La resa (F5)
 
-Il tavolo si muove come quello del simulatore: gli stessi tempi e le stesse
-curve (CSS `cubic-bezier` risolte in `table/animation.ts`, `tween` sul
-`Ticker` di Pixi con un `setTimeout` di riserva, `reducedMotion()` per chi chiede
-meno movimento).
+Il tavolo si muove: tempi e curve (`cubic-bezier` risolte in
+`table/animation.ts`, `tween` sul `Ticker` di Pixi con un `setTimeout` di
+riserva, `reducedMotion()` per chi chiede meno movimento).
 
 | File | Cosa fa |
 |---|---|
@@ -162,7 +143,7 @@ meno movimento).
 | `table/arrows.ts` | le frecce del blocco e del contrattacco, e quella tratteggiata della mira che segue il puntatore |
 | `table/entrance.ts` | l'ingresso dei Rubyfront a inizio partita col bot (arrivo, accensione nella tinta del mazzo, atterraggio) |
 | `table/scene.ts`, `dice.ts` | le scene con la carta in luce e lo «sguardo» sulle mosse dell'avversario; il dado che rotola |
-| `sound.ts` | suoni e musica (Web Audio), gli stessi file del simulatore |
+| `sound.ts` | suoni e musica (Web Audio), coi file in `public/` |
 
 La cascata della pesca, i respiri degli anelli (`Ticker.shared`), i lampi,
 lo scossone di chi è colpito. `scripts/resolution-photos.mjs` fotografa frecce,
@@ -175,18 +156,18 @@ strato `screens` sopra il mondo (`stage.ts`): nessun momento del tavolo che
 si porta in cima passa sopra la home. Il regista è `game.ts`: una sessione
 sola, creata all'avvio col posto di questo client (`match.ts`,
 `createMatch`), che la home porta verso la partita col bot o verso una
-stanza — la stessa logica di `main.ts` del simulatore (il posto A a chi crea
-la stanza, B a chi entra, la ricarica quando il posto cambia, la stanza
-salvata e ripresa all'avvio).
+stanza (il posto A a chi crea la stanza, B a chi entra, la ricarica quando
+il posto cambia, la stanza salvata e ripresa all'avvio).
 
 | File (`src/screens/`) | Cosa fa |
 |---|---|
-| `toolbar.ts` | l'header: il marchio (torna alla home; al tavolo chiede), la spia e la chat in stanza, «Esci dalla partita», l'ingranaggio |
-| `home.ts` | la home del tema chiaro: il paesaggio, l'insegna del saluto con le partite contro il bot, le cinque stampe che si allargano al passaggio (Riprendi / Nuova partita, Crea una stanza / Entra, Evento e Torneo in arrivo, Mazzi) |
+| `toolbar.ts` | l'header: il marchio (torna alla home; al tavolo chiede), la spia, la chat e la Cronaca in stanza, «Esci dalla partita», l'ingranaggio |
+| `home.ts` | la home: il paesaggio, l'insegna del saluto con le partite contro il bot, le cinque stampe che si allargano al passaggio (Riprendi / Nuova partita, Crea una stanza / Entra, Evento e Torneo in arrivo, Mazzi) |
 | `onboarding.ts` | il velo e la carta di vetro: nome, mazzo e mazzo del bot (tendine), «Al tavolo»; l'attesa in stanza col link d'invito |
 | `decks.ts` | i mazzi: copertina, composizione, «Gioca con questo mazzo», le carte a tessera con l'ingrandimento (è una fonte di `preview.ts`) |
 | `settings.ts` | Rete, Suoni, Musica, Schermo intero, Lingua (e «Esci dal gioco» sul desktop) |
 | `chat.ts` | la chat in stanza, solo conversazione; i messaggi arrivati a pannello chiuso si contano sul tasto |
+| `chronicle.ts` | la Cronaca: gli avvisi del tavolo, in fila, nella lingua di chi legge |
 | `curtain.ts`, `question.ts` | il nero fra home e tavolo; «Uscire dalla partita?» |
 | `ui.ts`, `filters.ts` | tasti, scritte, ombre a nove fette, il campo di testo (un `<input>` vero posato sul canvas), i filtri CSS come matrici |
 
@@ -196,36 +177,19 @@ L'indirizzo nudo apre il gioco; `?match=bot` la partita col bot subito
 sipario, partita, domanda, mazzi, impostazioni, stanza, invito) e lo
 fotografa.
 
-## La parità (F7)
-
-Chiusa il 2026-09-12. Il 2026-09-13 il simulatore è stato tolto, e con lui gli
-script che confrontavano i due client (`crossplay.mjs`,
-`table-side-by-side.mjs`, `record-match.mjs`): quello che segue resta come
-storia di com'è stata provata.
-
-`scripts/crossplay.mjs`: il simulatore al posto A e il gioco al posto B nella
-stessa stanza del tavolo Ruby. Il gioco gioca e attacca (i gesti del bot,
-`window.__rubyfront.testHooks`, solo in sviluppo), il simulatore passa e
-risolve da difensore; a ogni turno lo stato dei due si confronta, intero.
-Prima corsa buona (2026-09-12): 9 turni, 11 confronti, nessuna divergenza,
-3 Entità giocate e 5 attacchi dal gioco, la chat nei due sensi (col conto
-sul tasto), nessun errore nelle due pagine.
-
-La lista della parità, e con cosa è provata:
+## Le prove
 
 | Cosa | Com'è provato |
 |---|---|
 | Le carte (tema t49) | `compare-cards.mjs`: pixel contro `card-render.js` (F2) |
-| Il tavolo fermo | `table-side-by-side.mjs`: le due viste della stessa partita, affiancate (F3) |
-| I gesti e le regole | nel core (`gestures.ts`, `tabs.ts`): gli stessi del simulatore; `record-match.mjs` prova che lo spostamento non ha cambiato niente (F4) |
+| I gesti e le regole | nel core (`gestures.ts`, `tabs.ts`), coi test vitest di `core/test` |
 | La partita col bot | `test-match.mjs`, `test-gestures.mjs`: verdetti passati, rifiuti, zero errori |
 | La resa | `resolution-photos.mjs` e il QC delle foto (F5) |
 | Le schermate | `test-screens.mjs` e il QC delle foto (F6) |
-| La rete e la chat | `crossplay.mjs`: un client per parte, lo stato che coincide (F7) |
+| Gli effetti | `test-effects.mjs` (`effects.html`) |
 
-Differenze volute: un tema solo (chiaro) e una vista sola (il rincasso);
-niente microfono né chat vocale; la chat è un pannello che si apre
-dall'header invece della colonna; la schermata intera nelle impostazioni.
+In sviluppo `window.__rubyfront` espone `match`, `screens` e i `testHooks`
+(i gesti del bot per il proprio posto) per le prove da fuori.
 
 ## Il desktop (F8)
 
@@ -244,5 +208,4 @@ automatico) ✓ · F3 il tavolo fermo ✓ · F4 l'interazione ✓ · F5 la resa 
 F6 le schermate ✓ · F7 la parità ✓ · F8 Electron e Steam ✓ (pronto; per
 pubblicare servono i dati di Steamworks, `desktop/STEAM.md`).
 
-Nel sito pubblicato il gioco sta alla radice (dal 2026-09-13; prima sotto
-`/next`, che ora rimanda lì).
+Nel sito pubblicato il gioco sta alla radice (`scripts/build-site.mjs`).

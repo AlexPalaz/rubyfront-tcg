@@ -45,7 +45,7 @@ declare global {
     __rubyfront?: {
       stage: Stage;
       dump(): SceneNode;
-      /** La partita di prova del tavolo (?table=sample): le sue azioni, per il confronto col simulatore. */
+      /** La partita di prova del tavolo (?table=sample): le sue azioni, per le prove da fuori. */
       actions?: unknown[];
       /** Il tavolo di prova è disegnato. */
       tableReady?: boolean;

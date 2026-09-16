@@ -8,11 +8,11 @@ module Rubyfront
   #
   # Il contratto dei verdetti:
   #
-  #   - `ruled: false` — "non ho una regola per questa azione": il simulatore
+  #   - `ruled: false` — "non ho una regola per questa azione": il client
   #     la applica come sempre.
   #   - `ruled: true, ok: true`  — la regola c'è e l'azione la rispetta.
   #   - `ruled: true, ok: false` — l'azione viola la regola: `reason` spiega
-  #     perché. Il simulatore la FERMA (l'engine è poliziotto, non consigliere).
+  #     perché. Il client la FERMA (l'engine è poliziotto, non consigliere).
   #
   # Un Engine per STANZA (room.rb), non per client: l'engine è l'unico a
   # scrivere lo stato (deciso 2026-09-11). Ogni azione di chiunque passa da
@@ -610,7 +610,7 @@ module Rubyfront
     # dell'effetto non si applica»). Contano solo le Entità del proprietario:
     # Rubyfront, Materie permanenti e Oggetti non occupano slot, e a dirlo è
     # l'anagrafe — carta ignota o anagrafe assente, silenzio. Il campo del
-    # simulatore è una superficie unica, ma le Entità in campo SONO il Fronte:
+    # client è una superficie unica, ma le Entità in campo SONO il Fronte:
     # non hanno altro posto dove stare.
     def judge_enter_field(card, action)
       # Un toZone che resta sul campo è uno spostamento, non un ingresso.

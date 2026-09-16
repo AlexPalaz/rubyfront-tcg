@@ -1,11 +1,11 @@
-// Il gioco di Rubyfront in PixiJS (migrazione del 2026-09-11): il client
-// nuovo accanto al simulatore, che resta come termine di confronto. Regole,
-// engine e dati non si toccano; la logica del client arriva da core/.
+// Il gioco di Rubyfront in PixiJS (migrazione del 2026-09-11): l'unico
+// client. Regole, engine e dati non si toccano; la logica del client arriva
+// da core/.
 //
 // L'indirizzo decide cosa si apre: niente, il gioco con le sue schermate
 // (F6: la home, la partita col bot, le stanze); ?match=bot, la partita
-// col bot subito (i banchi di prova); ?table=sample, il tavolo di prova del
-// confronto col simulatore (F3); ?gallery, le carte dipinte (F2).
+// col bot subito (i banchi di prova); ?table=sample, il tavolo di prova
+// (F3); ?gallery, le carte dipinte (F2).
 
 import "@fontsource-variable/space-grotesk";
 import { cardStats, useCatalog, type CatalogCard, type CatalogDeck } from "@rubyfront/core/cards";
@@ -57,8 +57,8 @@ async function boot(): Promise<void> {
   }
 
   if (params.get("table") === "sample") {
-    // Il tavolo sulla partita di prova (F3): la lista di azioni che il
-    // confronto col simulatore (scripts/table-side-by-side.mjs) usa.
+    // Il tavolo sulla partita di prova (F3): una lista fissa di azioni
+    // (table/sample-game.ts).
     await loadCatalog();
     // &catena: la catena di risposta aperta; &pannello: le pile avversarie aperte; &sfoglia: la tua Abisso nella vetrina.
     // &control: B controlla un'Entità di A (la sua Zona di Controllo si apre).
@@ -126,8 +126,8 @@ async function boot(): Promise<void> {
     if (window.__rubyfront) {
       window.__rubyfront.match = game.match;
       window.__rubyfront.screens = game.screens;
-      // In sviluppo, per le prove da fuori (la partita incrociata col simulatore, F7):
-      // i gesti del bot per questo posto, come __rbf.table nel simulatore. In produzione non esiste.
+      // In sviluppo, per le prove da fuori (Playwright, game/scripts): i gesti
+      // del bot per questo posto. In produzione non esiste.
       if (import.meta.env.DEV) window.__rubyfront.testHooks = createTestHooks(game.match);
     }
   }

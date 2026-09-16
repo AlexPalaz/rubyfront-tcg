@@ -1,4 +1,4 @@
-// L'ingrandimento al passaggio (simulatore/src/preview.ts, «intoccabile»):
+// L'ingrandimento al passaggio («intoccabile»):
 // sul tavolo le carte sono piccole; per leggerle ci si passa sopra e compare
 // la stessa carta a grandezza piena, 520×728 — ridotta solo se supererebbe
 // l'80% dell'altezza della finestra o metà della sua larghezza. Si affianca
@@ -90,7 +90,7 @@ export class Preview {
     // Una carta coperta non si legge; una carta sparita nel frattempo nemmeno.
     if (!info || info.back) return;
     const screen = this.stage.app.screen;
-    // La misura si decide sullo schermo, come nel simulatore.
+    // La misura si decide sullo schermo.
     const zoom = Math.min(1, (screen.height * 0.8) / CARD_H, (screen.width * 0.5) / CARD_W);
     const width = CARD_W * zoom;
     const height = CARD_H * zoom;

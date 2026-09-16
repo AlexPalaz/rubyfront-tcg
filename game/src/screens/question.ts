@@ -1,5 +1,5 @@
-// La domanda del gioco (simulatore/src/ask.ts, lo stesso sigillo del fermo
-// dell'arbitro): «Uscire dalla partita?». Non un confirm del browser ma il
+// La domanda del gioco (lo stesso sigillo del fermo dell'arbitro): «Uscire
+// dalla partita?». Non un confirm del browser ma il
 // sigillo del gioco, tema «Notte» — il vetro pesante col filo di rubino, la
 // gemma del marchio, il titolo rubino acceso, la frase, due tasti in riga sulla
 // piastra del tema: il ripensamento a sinistra, col filo della linea; il gesto

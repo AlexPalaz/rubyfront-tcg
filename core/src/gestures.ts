@@ -2,9 +2,8 @@
 // migrazione PixiJS): giocare dalla mano, schierare il Rubyfront, attaccare,
 // le abilità e il flip verso il Nexus (§3.1), la catena delle Reattive
 // (§7.2) e gli inneschi — ingresso, attacco, risoluzione, assegnazione,
-// morte, ritorno (§8.2). Stavano in simulatore/src/table.ts: qui la stessa
-// sequenza di azioni, di attese e di scelte, e la vista (il DOM del
-// simulatore, il Pixi del gioco) fornisce solo ciò che si vede — le luci,
+// morte, ritorno (§8.2). Qui la sequenza di azioni, di attese e di scelte,
+// e la vista (il Pixi del gioco) fornisce solo ciò che si vede — le luci,
 // i voli, le scene, il dado, la mira, le finestre (GestureView).
 //
 // Per il posto del bot (setAuto, session.ts) mira, pile e conferme
@@ -95,7 +94,7 @@ export interface GestureView {
   liftToDissolve(uid: string): Flight | null;
   /** Il volo da una pila al campo, ad azione passata. */
   flyFromPile(seat: Seat, zone: ZoneId, uid: string): void;
-  /** Il controllo di `by` aprirebbe la fila di servizio avversaria (la vista a rincasso del simulatore)? */
+  /** Il controllo di `by` aprirebbe la fila di servizio avversaria? */
   opensFoeRow(by: Seat): boolean;
   /** Quanto aspettare un volo, e la dissolvenza con la fila che si apre. */
   readonly timing: { fly: number; dissolve: number };
@@ -324,7 +323,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    * §6.3: un'Entità tappata non può attaccare né bloccare, una coperta non può
    * fare nulla, e il Rubyfront non è un'Entità. Qui la regola serve solo a
    * smorzare: la carta resta scegliibile lo stesso. L'arbitro non è il
-   * simulatore.
+   * client.
    */
   function looksPlayable(card: CardInstance): boolean {
     if (card.tapped || card.facedown) return false;
@@ -926,9 +925,11 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           view.flyFromPile(by, "ritiro", chosen.uid);
           await wait(view.timing.fly);
           const target = rubyfrontOf(otherSeat(by));
-          // «Attacca insieme»: si chiede prima (deciso dal designer,
-          // 2026-09-15, «non attaccare automaticamente»); il bot attacca.
-          const joins = target ? await confirmFor(by, t("confirm.join", { card: `«${ctx.card(chosen.cardId).name}»`, source: `«${ctx.card(step.source.cardId).name}»` }), { yes: t("confirm.join.yes"), no: t("confirm.join.no") }) : false;
+          // «Quell'Entità attacca insieme»: l'attacco è dovuto, non si chiede
+          // (deciso dal designer, 2026-09-16: «DEVO attaccare, lo fa per
+          // forza»). La domanda resta per una forma futura «può attaccare
+          // insieme» (`asks`), che oggi nessuna carta porta; il bot attacca.
+          const joins = target ? (form.asks ? await confirmFor(by, t("confirm.join", { card: `«${ctx.card(chosen.cardId).name}»`, source: `«${ctx.card(step.source.cardId).name}»` }), { yes: t("confirm.join.yes"), no: t("confirm.join.no") }) : true) : false;
           if (target && joins) {
             const order = nextWaveOrder(ctx.state(), by);
             // §3.1 — anche chi torna e attacca insieme porta il bonus promesso alle prossime attaccanti.
@@ -1895,7 +1896,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     let passed = false;
     try {
       await wait(CONFIRMED_LEAD_MS);
-      // Se il controllo apre la fila di servizio avversaria (rincasso),
+      // Se il controllo apre la fila di servizio avversaria,
       // niente volo: dissolvenza, fila che si apre, scintilla e ricomparsa.
       const opens = view.opensFoeRow(by);
       const fly = opens ? view.liftToDissolve(target.uid) : view.liftToFlight(target.uid);

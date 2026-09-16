@@ -3,13 +3,12 @@ import { extname, join, normalize, resolve } from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { themeT49 } from "./vite-theme.js";
 
-// Il gioco (PixiJS): dal 2026-09-13 il solo client — il simulatore DOM è
-// stato tolto. In sviluppo e nel sito pubblicato sta alla radice
-// (scripts/build-site.mjs).
+// Il gioco (PixiJS): l'unico client. In sviluppo e nel sito pubblicato sta
+// alla radice (scripts/build-site.mjs).
 //
 // Le carte le disegna Pixi (src/card/), ma i loro dati e le illustrazioni
-// stanno nel sito, docs/cards: in sviluppo si montano su /cards come fa il
-// simulatore di una volta; nel sito pubblicato stanno in ./catalog/cards (VITE_CARDS).
+// stanno nel sito, docs/cards: in sviluppo si montano su /cards; nel sito
+// pubblicato stanno in ./catalog/cards (VITE_CARDS).
 // Su /cards vive anche il renderer vero (card-render.js, card.css): lo usa
 // il banco di prova (compare/), che mette le due carte fianco a fianco.
 const SITE_CARDS = resolve(import.meta.dirname, "../docs/cards");
@@ -65,7 +64,7 @@ export default defineConfig(({ command }) => ({
     emptyOutDir: true,
     target: "esnext",
   },
-  // I suoni, la musica e le immagini della home: game/public (ereditati dal
-  // simulatore il 2026-09-13), la cartella public di Vite.
+  // I suoni, la musica e le immagini della home: game/public, la cartella
+  // public di Vite.
   plugins: [serveSiteCards(), themeT49()],
 }));

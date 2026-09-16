@@ -19,6 +19,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  // Come nel simulatore: i test li controlla vitest, non tsc.
+  // I test li controlla vitest, non tsc.
   "include": ["src"]
 }

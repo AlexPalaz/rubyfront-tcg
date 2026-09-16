@@ -1,5 +1,4 @@
-// I voli delle carte (simulatore/src/table.ts, liftForFlight, flyFromPile,
-// liftToFlight; style.css, fly-*): la carta che va in una pila non scivola,
+// I voli delle carte: la carta che va in una pila non scivola,
 // si DISSOLVE sul posto — si solleva, si accende di rubino, sfuma in luce e
 // sfocatura — mentre una scintilla rubino corre fino alla pila del
 // proprietario, che si accende al suo arrivo. Chi muore in battaglia prima
@@ -17,7 +16,7 @@ import type { Flight } from "@rubyfront/core/gestures";
 import type { Seat, ZoneId } from "@rubyfront/core/types";
 import { BlurFilter, ColorMatrixFilter, Container, Graphics, Sprite, type Texture } from "pixi.js";
 import type { Stage } from "../stage";
-import { bezier, key, tween, easeOut, reducedMotion, linear } from "./animation";
+import { Stillness, bezier, key, tween, easeOut, reducedMotion, linear } from "./animation";
 import { paintPiece, withShadow } from "./appearance";
 import { playRetire } from "../sound";
 import { TableCard } from "./card";
@@ -37,6 +36,8 @@ const RETURN_STEP_MS = 320;
 /** Prima di mettersi in fila, chi torna aspetta che i voli della stessa mossa siano partiti. */
 const RETURN_SETTLE_MS = 80;
 const RETURN_LIGHT_MS = 900;
+/** L'anello della pila che riceve (landing). */
+const LANDING_MS = 700;
 
 type StrikeKind = "slash" | "riposte" | "parry";
 
@@ -105,6 +106,8 @@ export class Flights {
    * «l'animazione non è chiara quando tornano le mie carte dall'Abisso»).
    */
   private busyUntil = 0;
+  /** I voli in corso: le scene aspettano che finiscano (match.ts, stillTable), il bot pure. */
+  private readonly still = new Stillness();
 
   constructor(
     private readonly stage: Stage,
@@ -114,6 +117,16 @@ export class Flights {
 
   private get layer(): Container {
     return this.table.flights;
+  }
+
+  /** Nessun volo in corso, né prenotato. */
+  isStill(): boolean {
+    return this.still.isStill();
+  }
+
+  /** Si risolve quando non c'è più nessun volo in corso. */
+  idle(): Promise<void> {
+    return this.still.idle();
   }
 
   private get ticker() {
@@ -154,16 +167,20 @@ export class Flights {
         ghost.destroy({ children: true });
         return;
       }
+      const done = this.still.hold();
       ghost.visible = true;
       if (reducedMotion()) {
-        setTimeout(() => ghost.destroy({ children: true }), 120);
+        setTimeout(() => {
+          ghost.destroy({ children: true });
+          done();
+        }, 120);
         return;
       }
       const delay = opts.slain ? SLASH_MS : 0;
       if (opts.slain) this.mark(ghost, "slash");
       // La scintilla tocca la pila a SPARK_ARRIVE_MS: fin lì chi torna aspetta.
       this.busyUntil = Math.max(this.busyUntil, performance.now() + delay + SPARK_ARRIVE_MS);
-      setTimeout(() => this.dissolve(ghost, target, owner, zone), delay);
+      setTimeout(() => this.dissolve(ghost, target, owner, zone).then(done), delay);
     }) as Flight;
     flight.cancel = () => ghost.destroy({ children: true });
     return flight;
@@ -187,10 +204,14 @@ export class Flights {
         ghost.destroy({ children: true });
         return;
       }
+      const done = this.still.hold();
       ghost.visible = true;
       playRetire();
       if (reducedMotion()) {
-        setTimeout(() => ghost.destroy({ children: true }), 120);
+        setTimeout(() => {
+          ghost.destroy({ children: true });
+          done();
+        }, 120);
         return;
       }
       this.busyUntil = Math.max(this.busyUntil, performance.now() + RETIRE_MS);
@@ -206,18 +227,21 @@ export class Flights {
         ghost.rotation = from.rotation + key(k, [[0, 0], [0.4, -0.12], [1, 0.05]]);
         ghost.scale.set(from.scale + (endScale - from.scale) * key(k, [[0, 0], [0.5, 0.35], [1, 1]]));
         ghost.alpha = key(k, [[0, 1], [0.85, 1], [1, 0.25]]);
-      }, bezier(0.4, 0.05, 0.25, 1)).then(() => {
-        ghost.destroy({ children: true });
-        this.landing(owner, "ritiro", 0x9fb6d9);
-      });
+      }, bezier(0.4, 0.05, 0.25, 1)).then(
+        () => {
+          ghost.destroy({ children: true });
+          this.landing(owner, "ritiro", 0x9fb6d9).then(done);
+        },
+        () => done()
+      );
     }) as Flight;
     flight.cancel = () => ghost.destroy({ children: true });
     return flight;
   }
 
-  /** La dissolvenza (fly-dissolve), la scintilla che corre (fly-spark), la pila che si accende (pile-landing). */
-  private dissolve(ghost: TableCard, target: { x: number; y: number; w: number; h: number }, owner: Seat, zone: ZoneId): void {
-    if (ghost.destroyed) return;
+  /** La dissolvenza (fly-dissolve), la scintilla che corre (fly-spark), la pila che si accende (pile-landing). Si risolve a pila spenta. */
+  private dissolve(ghost: TableCard, target: { x: number; y: number; w: number; h: number }, owner: Seat, zone: ZoneId): Promise<void> {
+    if (ghost.destroyed) return Promise.resolve();
     const from = { x: ghost.x, y: ghost.y };
     const scale = ghost.scale.x;
     const light = new ColorMatrixFilter();
@@ -245,24 +269,26 @@ export class Flights {
     setTimeout(() => {
       void tween(this.ticker, 750, k => spark.position.set(from.x + (to.x - from.x) * k, from.y + (to.y - from.y) * k), bezier(0.4, 0.1, 0.2, 1));
     }, 300);
-    setTimeout(() => {
-      spark.destroy();
-      this.landing(owner, zone);
-    }, SPARK_ARRIVE_MS + 100);
+    return new Promise(resolve => {
+      setTimeout(() => {
+        spark.destroy();
+        this.landing(owner, zone).then(resolve);
+      }, SPARK_ARRIVE_MS + 100);
+    });
   }
 
   /** La pila che riceve: un anello che si allarga e sfuma (pile-landing) — rubino per chi muore, argento per chi si ritira. */
-  private landing(owner: Seat, zone: ZoneId, color = 0xe0314b): void {
+  private landing(owner: Seat, zone: ZoneId, color = 0xe0314b): Promise<void> {
     const target = this.table.pileBox(owner, zone);
-    if (!target) return;
+    if (!target) return Promise.resolve();
     const ring = new Graphics();
     this.layer.addChild(ring);
-    void tween(this.ticker, 700, k => {
+    return tween(this.ticker, LANDING_MS, k => {
       const spread = 14 * k;
       ring.clear()
         .rect(target.x - spread, target.y - spread, target.w + 2 * spread, target.h + 2 * spread)
         .stroke({ color, alpha: 0.9 * (1 - k), width: 3 });
-    }, easeOut).then(() => ring.destroy());
+    }, easeOut).then(() => ring.destroy(), () => ring.destroy());
   }
 
   /**
@@ -291,6 +317,8 @@ export class Flights {
     ghost.scale.set(startScale);
     ghost.alpha = 0.4;
     view.visible = false;
+    // Prenotato adesso: chi aspetta il tavolo fermo aspetta anche l'attesa in fila.
+    const done = this.still.hold();
     // In fila: dopo le carte che stanno andando nelle pile, e una dopo
     // l'altra. Un attimo di respiro prima di contare: i voli verso le pile
     // della stessa mossa partono dopo il ridisegno, a volte dopo il ritorno.
@@ -298,19 +326,19 @@ export class Flights {
       const now = performance.now();
       const startAt = Math.max(now, this.busyUntil);
       this.busyUntil = startAt + RETURN_STEP_MS;
-      setTimeout(() => this.returnFlight(ghost, view, from, to, startScale, endScale, uid), startAt - now);
+      setTimeout(() => this.returnFlight(ghost, view, from, to, startScale, endScale, uid).finally(done), startAt - now);
     }, RETURN_SETTLE_MS);
   }
 
   /** Il volo di ritorno dalla pila, partito il suo turno; arrivata, la carta si accende. */
-  private returnFlight(ghost: TableCard, view: TableCard, from: { x: number; y: number; w: number; h: number }, to: { x: number; y: number }, startScale: number, endScale: number, uid: string): void {
+  private returnFlight(ghost: TableCard, view: TableCard, from: { x: number; y: number; w: number; h: number }, to: { x: number; y: number }, startScale: number, endScale: number, uid: string): Promise<void> {
     if (ghost.destroyed || view.destroyed) {
       ghost.destroy({ children: true });
       if (!view.destroyed) view.visible = true;
-      return;
+      return Promise.resolve();
     }
     ghost.visible = true;
-    void tween(this.ticker, FLY_MS, k => {
+    return tween(this.ticker, FLY_MS, k => {
       ghost.position.set(from.x + from.w / 2 + (to.x - from.x - from.w / 2) * k, from.y + from.h / 2 + (to.y - from.y - from.h / 2) * k);
       ghost.scale.set(startScale + (endScale - startScale) * k);
       ghost.alpha = 0.4 + 0.6 * k;
@@ -324,6 +352,10 @@ export class Flights {
       // L'Oggetto assegnato va dietro la sua Entità: il fantasma si dissolve lì sopra (2026-09-13).
       if (this.ctx.state().cards[uid]?.assignedTo && !reducedMotion()) await tween(this.ticker, TUCK_MS, k => (ghost.alpha = 1 - k), easeOut);
       ghost.destroy({ children: true });
+    }).catch(() => {
+      // Il fantasma è sparito a metà volo (un ridisegno l'ha distrutto): la carta vera torna in vista.
+      if (!ghost.destroyed) ghost.destroy({ children: true });
+      if (!view.destroyed) view.visible = true;
     });
   }
 
@@ -340,6 +372,7 @@ export class Flights {
     });
     if (!starts.some(start => start.member === uid)) return null;
     const flight = (() => {
+      const runs: Promise<void>[] = [];
       for (const start of starts) {
         const landed = this.table.view(start.member);
         const ghost = this.ghost(start.member);
@@ -352,14 +385,17 @@ export class Flights {
         ghost.rotation = start.rotation;
         ghost.visible = true;
         landed.visible = false;
-        void tween(this.ticker, FLY_MS, k => {
-          ghost.position.set(start.x + (to.x - start.x) * k, start.y + (to.y - start.y) * k);
-          ghost.rotation = start.rotation + (to.rotation - start.rotation) * k;
-        }, bezier(0.35, 0.6, 0.2, 1)).then(() => {
-          ghost.destroy({ children: true });
-          if (!landed.destroyed) landed.visible = true;
-        });
+        runs.push(
+          tween(this.ticker, FLY_MS, k => {
+            ghost.position.set(start.x + (to.x - start.x) * k, start.y + (to.y - start.y) * k);
+            ghost.rotation = start.rotation + (to.rotation - start.rotation) * k;
+          }, bezier(0.35, 0.6, 0.2, 1)).then(() => {
+            ghost.destroy({ children: true });
+            if (!landed.destroyed) landed.visible = true;
+          })
+        );
       }
+      void this.still.track(Promise.allSettled(runs));
     }) as Flight;
     flight.cancel = () => undefined;
     return flight;
@@ -381,6 +417,7 @@ export class Flights {
     if (reducedMotion()) return;
     const look = this.table.lookOf(card.cardUid.replace(/~volo$/, ""));
     if (!look) return;
+    setTimeout(this.still.hold(), 720);
     const { w, h } = look;
     const mark = new Container({ label: "mark" });
     const mask = new Graphics().rect(-w / 2, -h / 2, w, h).fill(0xffffff);

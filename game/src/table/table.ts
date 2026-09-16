@@ -23,7 +23,7 @@ import { applyFont, drawText, textWidth, type Font } from "../card/text";
 import type { Stage, Visible } from "../stage";
 import { CrispSprite, NIGHT, SEAT_PALETTE, SANS, THEME, slotFrame, loadNight, lighten, paintPiece, grain, octagon, plate, dashedRect, rgba, type SeatPalette } from "./appearance";
 import { TableCard, type Ring, type Badges, type Mark, type CardLook } from "./card";
-import { bezier, easeInOut, tween, reducedMotion } from "./animation";
+import { Stillness, bezier, easeInOut, tween, reducedMotion } from "./animation";
 import { layout, type TableLayout } from "./layout";
 
 /** Un gesto del puntatore su una carta del tavolo: chi ascolta decide cosa vuol dire (F4). */
@@ -68,7 +68,7 @@ const PHASE_END: Record<Phase, string> = {
   reazione: "phase.end.reazione",
 };
 
-/** Le scritte della lavagna nel tema notte: 16px, 700, maiuscole spaziate .2em (.slot::after); la riga del Fronte .12em (.row-label del rincasso). */
+/** Le scritte della lavagna nel tema notte: 16px, 700, maiuscole spaziate .2em; la riga del Fronte .12em. */
 const rowLabel: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.2, upper: true };
 const line: Font = { ...rowLabel, spacing: 16 * 0.12 };
 /** La testata del pannello delle pile (.pile-dock-head): 16px, .12em. */
@@ -141,6 +141,8 @@ export class Table {
   private readonly bases = new Map<string, { x: number; y: number }>();
   /** La tua mano all'ultimo disegno: le carte nuove entrano in cascata. */
   private handBefore: Set<string> | null = null;
+  /** La cascata della pesca in corso: le scene aspettano che finisca (match.ts, stillTable). */
+  private readonly still = new Stillness();
   /** Quanto manca perché l'insegna di fase se ne vada: la carta del turno la aspetta (partita.ts). */
   entryDelay: () => number = () => 0;
   /** Una carta compare nella tua mano (la pesca): chi ascolta ci mette il suono, a tempo con lei. */
@@ -153,7 +155,7 @@ export class Table {
   private readonly panel = new CrispSprite();
   private readonly panelHits = new Container({ label: "panel-hits" });
   private readonly panelCards = new Container({ label: "panel-cards" });
-  /** Il pannello delle pile avversarie aperto (rincasso: parte ripiegato sulla testata coi conti). */
+  /** Il pannello delle pile avversarie aperto (parte ripiegato sulla testata coi conti). */
   private panelOpen = false;
   private readonly pileListeners: ((seat: Seat, zone: ZoneId) => void)[] = [];
   private readonly views = new Map<string, TableCard>();
@@ -310,16 +312,20 @@ export class Table {
       }
       // `backwards`: invisibile nell'attesa, poi sale di 90 e si accende — e il suono con lei.
       view.visible = false;
+      const done = this.still.hold();
       setTimeout(() => {
-        if (view.destroyed) return;
+        if (view.destroyed) {
+          done();
+          return;
+        }
         this.onHandEntry?.();
         view.visible = true;
-        void tween(this.stage.app.ticker, DRAW_RUN_MS, k => {
+        tween(this.stage.app.ticker, DRAW_RUN_MS, k => {
           if (view.destroyed) throw new Error("carta sparita");
           const base = this.bases.get(uid);
           if (base) view.y = base.y + 90 * (1 - k);
           view.alpha = k;
-        }, bezier(0.2, 0.8, 0.3, 1));
+        }, bezier(0.2, 0.8, 0.3, 1)).then(done, done);
       }, delay);
     }
   }
@@ -472,6 +478,16 @@ export class Table {
 
   isBlocked(): boolean {
     return this.root.eventMode === "none";
+  }
+
+  /** Nessuna carta sta entrando in mano. */
+  isStill(): boolean {
+    return this.still.isStill();
+  }
+
+  /** Si risolve quando la cascata della pesca è finita. */
+  idle(): Promise<void> {
+    return this.still.idle();
   }
 
   /** Il momento di una carta: l'anello (il colpo vince sulla luce, la luce sulla mira, la mira sui gesti), l'opacità della mira, il velo. */
@@ -968,7 +984,7 @@ export class Table {
     this.paintKeyed(this.handToggleFace, String(up), w + 2 * pad, h + 2 * pad, resolution, ctx => {
       ctx.translate(pad, pad);
       plate(ctx, 0, 0, w, h, { shadow: true, edge: THEME.line, darkBackground: true });
-      // Le due frecce del simulatore (viewBox 24, a 16 px): polilinee a tratto tondo.
+      // Le due frecce (viewBox 24, a 16 px): polilinee a tratto tondo.
       ctx.save();
       ctx.translate(w / 2 - 8, h / 2 - 8);
       ctx.scale(16 / 24, 16 / 24);
@@ -1274,7 +1290,7 @@ function dockOf(L: TableLayout): Panel {
   const w = 4 * L.tileW + 3 * 16 + 24;
   const x = L.halfX + L.halfW - w;
   const y = L.foe.top - 15;
-  // Sotto i riquadri le etichette e l'aria del simulatore (.pile-dock-row: padding-bottom 44px): da aperto copre il campo avversario fino alle sue etichette.
+  // Sotto i riquadri le etichette e 44 d'aria: da aperto copre il campo avversario fino alle sue etichette.
   return { x, y, w, h: DOCK_HEAD_H + 8 + L.tileH + 44, slotY: y + DOCK_HEAD_H + 8, slotX: index => x + 12 + index * (L.tileW + 16) };
 }
 

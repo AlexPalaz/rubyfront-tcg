@@ -3,7 +3,7 @@
 // fila come nella proprietà `filter` — il primo si applica per primo. Il
 // ColorMatrixFilter di Pixi ha le sue scale per saturazione e contrasto:
 // qui si scrivono le matrici a mano, così la carta spenta della home è
-// quella del simulatore.
+// quella voluta dal tema.
 
 import { ColorMatrixFilter } from "pixi.js";
 

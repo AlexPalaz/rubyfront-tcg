@@ -7,7 +7,7 @@ description: Come si collega una regola del MANUALE all'engine Ruby e al client 
 
 L'engine (`engine/`, Ruby, nessuna dipendenza) **dà le regole ed è l'unico a
 scrivere lo stato** (deciso 2026-09-11): il client (`core/` + `game/`,
-TypeScript; il simulatore DOM è stato tolto il 2026-09-13) trattiene ogni azione finché l'engine non risponde, su un «no»
+TypeScript) trattiene ogni azione finché l'engine non risponde, su un «no»
 la lascia cadere mostrando il sigillo, e in stanza l'avversario riceve solo
 le azioni che il tavolo ha approvato. Le regole di `docs/MANUALE.md` si collegano **una alla volta**, su
 decisione del designer, ciascuna con i suoi test nei due mondi. Questa skill

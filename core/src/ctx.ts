@@ -214,8 +214,10 @@ export type AttackForm =
   /** RBF-008 (+N, poi col dado un'Entità in mano), RBF-022 (il d20 sugli
       Umani), RBF-001 (il raduno, una volta per turno). */
   | { kind: "heal"; who: "self" | "permanent" | "rubyfront"; amount: number | "human_attackers"; die: number | null; onRoll: [number, number] | null; thenRecall?: { kind: "entity" }; attackers?: { kind: "entity"; race: string }; gainOn?: [number, number]; drainOn?: [number, number]; once?: true; requiresAttackers?: { count: number; race: string }; thenDraw?: number; thenDiscard?: number; face: number }
-  /** RBF-010: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme. */
-  | { kind: "return"; who: "self"; die: number; onRoll: [number, number]; filter: { kind: "entity"; race: string }; joins: true; face: number }
+  /** RBF-010: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme.
+      `joins` = «quell'Entità attacca»: l'attacco è dovuto. `asks` (nessuna
+      carta oggi) sarebbe «può attaccare insieme»: si chiede prima. */
+  | { kind: "return"; who: "self"; die: number; onRoll: [number, number]; filter: { kind: "entity"; race: string }; joins: true; asks?: true; face: number }
   /** RBF-031: un Oggetto dal Ritiro addosso a chi attacca, gratis. */
   | { kind: "rearm"; who: "ally"; attackerArmed: true; face: number }
   /** Dal 2026-09-15: «lancia un d6: con 4–6 puoi mettere un altro Oggetto che controlli in Ritiro. Se lo fai, pesca una carta». */

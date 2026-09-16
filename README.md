@@ -166,7 +166,7 @@ build (Vercel) vince su tutto.
 
 - `data/` — i dati madre: un file per carta, più i testi in due lingue; i mazzi.
 - `docs/` — il sito: manuale, lore, direzione artistica, catalogo, pagine.
-- `game/` — il client in PixiJS (migrazione del 2026-09-11, verso Steam; dal 2026-09-13 l'unico: il simulatore DOM è stato tolto), col suo README.
+- `game/` — il client in PixiJS (migrazione del 2026-09-11, verso Steam), col suo README.
 - `core/` — la logica del client senza DOM (workspace npm: `npm install` dalla radice).
 - `engine/` — l'arbitro in Ruby (minitest), col suo README che racconta ogni regola collegata e i suoi limiti.
 - `scripts/` — catalogo, validazioni, il server di produzione, pipeline di sviluppo, e il ponte col foglio dei mazzi.

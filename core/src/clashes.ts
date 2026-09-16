@@ -2,7 +2,7 @@
 // cade — e vola nell'Abisso col suo taglio — e chi incassa il colpo e regge
 // (la parata del bloccante, la risposta di chi contrattacca, il Rubyfront
 // che prende i danni di un attacco non bloccato). Puro: lo stato di PRIMA
-// dell'azione, e l'azione. Lo usano il simulatore e il gioco.
+// dell'azione, e l'azione. Lo usa il gioco.
 
 import type { Action, GameState } from "./types.js";
 

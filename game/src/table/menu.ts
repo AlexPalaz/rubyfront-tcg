@@ -1,10 +1,10 @@
-// Il menu di una carta (simulatore/src/menu.ts): ciò che si fa a una carta
+// Il menu di una carta: ciò che si fa a una carta
 // senza trascinarla — tasto destro, o pressione lunga. Le voci le dà il core
 // (tabs.ts, cardMenu); qui un pannello del tema chiaro che resta dentro la
 // finestra, sceglie al tocco e si chiude al primo tocco fuori (che vale
 // comunque per ciò che sta sotto) o con Esc. Il passaggio accende la voce
-// di una velatura rubino: il rubino cupo pieno del simulatore, sul chiaro,
-// lascerebbe il testo scuro su fondo scuro.
+// di una velatura rubino: il rubino cupo pieno, sul chiaro, lascerebbe il
+// testo scuro su fondo scuro.
 
 import { Container, Graphics, Point, Rectangle, type Texture } from "pixi.js";
 import { drawText, fontMetrics, textWidth, type Font } from "../card/text";

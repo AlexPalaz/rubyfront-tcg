@@ -1,9 +1,9 @@
 # Engine Rubyfront
 
-L'arbitro del gioco, in Ruby. Si collega al simulatore e **giudica le azioni
-prima che si applichino**: l'engine dà solo le regole — il poliziotto è il
-simulatore, che trattiene l'azione fino al verdetto e su un «no» la blocca
-mostrando l'avviso. Le regole di `docs/MANUALE.md` si collegano **una alla
+L'arbitro del gioco, in Ruby. Si collega al client (`core/` + `game/`) e
+**giudica le azioni prima che si applichino**: l'engine dà solo le regole —
+il poliziotto è il client, che trattiene l'azione fino al verdetto e su un
+«no» la blocca mostrando l'avviso. Le regole di `docs/MANUALE.md` si collegano **una alla
 volta**, su decisione del designer; per tutto ciò che non è ancora collegato
 l'engine risponde «non ho una regola» e non si mette in mezzo.
 
@@ -27,7 +27,7 @@ Regole collegate finora:
   dichiara nulla, la tappata non attacca né blocca, e ogni attaccante ha al
   più un bloccante. Il tavolo dell'engine segue tap, coperture e
   dichiarazioni (con le stesse pulizie del client: chi esce dal campo si
-  raddrizza e libera le sue frecce). Con l'arbitro collegato il simulatore
+  raddrizza e libera le sue frecce). Con l'arbitro collegato il client
   nasconde anche i gesti manuali Tappa/Stappa/Copri (`ctx.arbitrated()`):
   quegli stati discendono dalle dichiarazioni — il tap dall'attacco, la
   copertura dal contrattacco, la stappata dal cambio di turno (che porta con
@@ -68,7 +68,7 @@ Regole collegate finora:
   qualunque via arrivi (§6.2: a Fronte pieno anche la parte d'effetto che
   metterebbe in campo «non si applica»). Contano solo le Entità del
   proprietario — Rubyfront, Materie e Oggetti non occupano slot, lo dice
-  l'anagrafe. Il campo del simulatore è una superficie unica, ma le Entità
+  l'anagrafe. Il campo del client è una superficie unica, ma le Entità
   in campo SONO il Fronte: non hanno altro posto dove stare.
 - **§6.2 Attesa di evocazione** — un'Entità entrata sul Fronte questo turno non
   dichiara attacchi, salvo Slancio (`surge`). È la prima regola che LEGGE LE
@@ -1261,11 +1261,11 @@ dichiarato (col bot i gesti dei due posti partono dallo stesso client).
 `Action`). Il contratto dei verdetti:
 
 - **`ruled: false`** — l'engine non ha una regola per questa azione: il
-  simulatore la applica come sempre.
+  client la applica come sempre.
 - **`ruled: true, ok: true`** — la regola c'è e l'azione la rispetta.
 - **`ruled: true, ok: false`** — l'azione viola la regola: `reason` spiega
   in italiano e `reason_en` in inglese (stessa frase, stessa targhetta; il
-  client mostra quella della lingua del tavolo). Il simulatore la **ferma** — non tocca lavagna né rete — e mostra
+  client mostra quella della lingua del tavolo). Il client la **ferma** — non tocca lavagna né rete — e mostra
   l'avviso. `rules` nel saluto elenca i § del MANUALE collegati (`rules_en` le stesse voci in inglese).
 
 Un arbitro assente: in stanza **ferma** (tavolo scollegato o muto oltre il
@@ -1296,7 +1296,7 @@ health check.
   dell'anagrafe li tiene come debito dichiarato, così una forma rotta o un
   dato cambiato di nascosto fallisce forte.
 - `lib/rubyfront/table.rb` — la copia del tavolo, gemella del riduttore del
-  simulatore: stessa semantica, test speculari.
+  client (`core/src/state.ts`): stessa semantica, test speculari.
 - `lib/rubyfront/room.rb` — la stanza: un `Engine` per partita, i client
   seduti, il giornale delle azioni approvate, l'inoltro solo dopo il
   verdetto. Senza socket: i test le parlano direttamente.

@@ -1,5 +1,5 @@
-// I gesti del giocatore al tavolo del gioco (F4), come nel simulatore
-// (table.ts): i tasti di combattimento sotto le carte (core/tabs.ts, §6.3,
+// I gesti del giocatore al tavolo del gioco (F4): i tasti di combattimento
+// sotto le carte (core/tabs.ts, §6.3,
 // §6.4) in un velo scuro che si apre al passaggio, coi numeri della carta in
 // testa; la mira dei blocchi; i tasti del Rubyfront («Schiera», «Abilità»,
 // il flip dorato, §3.1); il doppio tocco che gioca dalla mano (§3.2); la
@@ -154,7 +154,7 @@ export class TableGestures {
    * pescarla a metà turno è legale, e sarebbe un rimprovero per tutto il
    * turno. Si accende quando il Fine turno viene fermato (session.ts,
    * turn.ts: promptDiscard), si spegne al primo scarto o al cambio di turno:
-   * il turno se lo porta scritto. Come il simulatore (table.ts, discardPrompt).
+   * il turno se lo porta scritto.
    */
   private discardPrompt: { seat: Seat; turn: number } | null = null;
 
@@ -192,7 +192,7 @@ export class TableGestures {
     // Si accendono solo le carte giocabili adesso (2026-09-15): le altre velate, senza sigilli a ogni gesto.
     const veiled = zoneCards(state, this.me, "hand").filter(card => this.gestures.unplayable(card)).map(card => card.uid);
     this.table.marks({ tableGestures, veiled });
-    // §6.5 — l'invito a scartare (simulatore, discardPrompt): la tua Zona di
+    // §6.5 — l'invito a scartare (discardPrompt): la tua Zona di
     // Ritiro si accende quando il Fine turno è stato fermato dalla mano piena,
     // in quel turno e finché le carte sono più di 7.
     const prompt = this.discardPrompt;
@@ -285,7 +285,7 @@ export class TableGestures {
   // ------------------------------------------------------ il trascinamento
 
   /**
-   * La presa (drag.ts nel simulatore): parte davvero solo quando il dito si
+   * La presa: parte davvero solo quando il dito si
    * muove, così il tocco e il doppio tocco restano del tavolo. La mano
    * avversaria e la tua quando è chiusa a chiave (§6) non si prendono; in
    * mira nemmeno.

@@ -1,4 +1,4 @@
-// L'header del gioco (simulatore: index.html .toolbar): il marchio, che
+// L'header del gioco: il marchio, che
 // riporta alla home (al tavolo chiede prima); a destra, al tavolo, la spia
 // della stanza, la chat (in stanza) e «Esci dalla partita»; in fondo
 // l'ingranaggio delle impostazioni. Vetro chiaro alto 54, come la barra che
@@ -19,7 +19,7 @@ import { STONE } from "./stone";
 import { TOOLBAR_H, FONT_BASE, INK, MUTED, RUBY, Button, hex } from "./ui";
 
 const BRAND: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.12, upper: true };
-/** L'ingranaggio del simulatore (index.html, #settings-toggle), 24×24. */
+/** L'ingranaggio delle impostazioni, 24×24. */
 const GEAR =
   "M19.4 13c.04-.32.06-.65.06-1s-.02-.68-.07-1l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.3 7.3 0 0 0-1.73-1l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.63.26-1.21.6-1.74 1l-2.39-.96a.5.5 0 0 0-.6.22L2.68 8.78a.5.5 0 0 0 .12.64L4.83 11c-.05.32-.08.66-.08 1s.03.68.08 1l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.23.4.32.6.22l2.4-.96c.52.4 1.1.74 1.73 1l.36 2.54c.04.24.25.42.5.42h3.84c.25 0 .46-.18.5-.42l.36-2.54a7.3 7.3 0 0 0 1.73-1l2.4.96c.23.09.48 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z";
 /** I colori della spia della stanza: collegata, in collegamento, giù. */
@@ -32,7 +32,7 @@ export interface ToolbarActions {
   chat(): void;
   /** La cronaca degli avvisi del tavolo (chronicle.ts, dal 2026-09-15). */
   chronicle(): void;
-  /** STRUMENTI DI PROVA, temporanei (simulatore: Evoca e il «+» del Flusso): una carta del catalogo in mano, un Flusso in più. */
+  /** STRUMENTI DI PROVA, temporanei (Evoca e il «+» del Flusso): una carta del catalogo in mano, un Flusso in più. */
   spawn?(): void;
   flux?(): void;
 }

@@ -1,5 +1,5 @@
-// La mira di un effetto (§8.2) nel gioco, come nel simulatore (table.ts,
-// pickTargetUi): si sceglie il bersaglio fra i candidati — accesi di verde,
+// La mira di un effetto (§8.2) nel gioco: si sceglie il bersaglio fra i
+// candidati — accesi di verde,
 // il resto del tavolo spento — con la targhetta in alto che dice cosa si
 // cerca. Un tocco su un candidato sceglie; il tocco sul vuoto o Esc
 // rinunciano. Mentre un effetto si risolve il tavolo è fermo (blocca), ma la

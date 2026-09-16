@@ -1458,7 +1458,7 @@
      tagliati e li fa sembrare in rilievo (bocciato). Niente alone sulla
      gemma (tolto su richiesta, 2026-09-09). */
   /* Niente filtri (drop-shadow, blur) sul tema: ogni carta al tavolo li
-     ricalcolava a ogni ridisegno e il simulatore rallentava (2026-09-09).
+     ricalcolava a ogni ridisegno e il tavolo rallentava (2026-09-09).
      Il bagliore delle crepe è un PNG già sfocato (un solo colore, tavolozza
      = alfa, 2×), i nuclei restano SVG nitidi; la grana è un PNG periodico
      (senza cuciture: la versione precedente aveva un gradiente d'alfa e
