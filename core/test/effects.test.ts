@@ -112,8 +112,11 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   // Il divieto di blocco «se almeno 2 Umani che controlli attaccano» (questo turno, la fonte compresa).
   CHARGE: { kind: "entity", race: "human", attackForms: [{ kind: "empower", who: "self", requiresAttackers: { count: 2, race: "human" }, targets: "opposing_entity", restrict: "block", face: 0 }] },
   IRON: { kind: "object" },
-  ARCHER: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
-  MARKSMAN: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
+  ARCHER: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent", maxCost: null }, to: "ritiro" }] },
+  MARKSMAN: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent", maxCost: null }, to: "abisso", hold: true }] },
+  PICKY: { kind: "entity", race: "human", enterMoves: [{ target: { kind: "entity", controller: "opponent", maxCost: 3 }, to: "abisso", hold: true }] },
+  COSTLY: { kind: "entity", race: "human", fluxCost: 4 },
+  FAIR: { kind: "entity", race: "human", fluxCost: 3 },
   // La carta vera ha il solo innesco d'attacco (decisione del designer,
   // 2026-09-04); qui restano entrambi perché servono a provare che
   // `returnsFor` distingue i due eventi.
@@ -317,6 +320,21 @@ describe("enterMoves", () => {
     const [step] = enterMoves(state, arc, facts);
     expect(await resolveMove(ctx, step, b1)).toBe(true);
     expect(sent).toEqual([{ t: "toZone", uid: "b1", zone: "ritiro", effect: { source: "arc", event: "on_enter_field", entering: "arc" } }]);
+  });
+
+  // Il vincolo di costo del bersaglio («con costo di Flusso 3 o inferiore»,
+  // dal 2026-09-16): chi costa di più o ha costo ignoto non è un bersaglio.
+  // Gemello: engine_test.rb, test_enter_exile_respects_target_cost_limit.
+  it("l'esilio col vincolo di costo tiene solo le Entità nel costo", () => {
+    const state = newGame();
+    const picky = on(state, "picky", "PICKY");
+    on(state, "b1", "FAIR", "b");
+    on(state, "b2", "COSTLY", "b");
+    on(state, "b3", "HUMAN", "b");
+    const [step] = enterMoves(state, picky, facts);
+    expect(step.maxCost).toBe(3);
+    expect(step.candidates.map(card => card.uid)).toEqual(["b1"]);
+    expect(describeMove(step, facts)).toMatch(/costo di Flusso 3 o inferiore/);
   });
 
   // L'esilio condizionato all'ingresso (§8.2): nell'Abisso, tenuta da chi

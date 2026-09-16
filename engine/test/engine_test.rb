@@ -1999,13 +1999,17 @@ class EngineTest < Minitest::Test
   EXILERS = {
     "SHOOTER" => { type: "entity", keywords: [], race: "human",
                     enter_moves: [{ target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
+    "PICKY" => { type: "entity", keywords: [], race: "human",
+                  enter_moves: [{ target: { type: "entity", controller: "opponent", max_cost: 3 }, to: "abisso", hold: true }] },
     "HUMAN" => { type: "entity", keywords: [], race: "human" },
+    "COSTLY" => { type: "entity", keywords: [], race: "human", flux_cost: 4 },
+    "FAIR" => { type: "entity", keywords: [], race: "human", flux_cost: 3 },
     "STONE" => { type: "matter", keywords: [], behavior: "normal" },
   }.freeze
 
-  def shooter(b_field)
+  def shooter(b_field, id = "SHOOTER")
     engine = Rubyfront::Engine.new(cards: EXILERS)
-    a = [{ "uid" => "tir", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "SHOOTER" }]
+    a = [{ "uid" => "tir", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => id }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
     b = b_field.map.with_index { |(uid, id), i| { "uid" => uid, "owner" => "b", "zone" => "field", "order" => i, "cardId" => id, "y" => 172 } }
     engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
@@ -2028,6 +2032,23 @@ class EngineTest < Minitest::Test
     card = engine.instance_variable_get(:@table).card("b1")
     assert_equal "abisso", card[:zone]
     assert_equal "tir", card[:held_by]
+  end
+
+  # Il vincolo di costo del bersaglio (dal 2026-09-16): dentro il costo
+  # passa, sopra si ferma, costo ignoto all'anagrafe si ferma; senza vincolo
+  # nella forma il costo non conta. Gemello: effects.test.ts.
+  def test_enter_exile_respects_target_cost_limit
+    engine = shooter([["b1", "FAIR"], ["b2", "COSTLY"], ["b3", "HUMAN"]], "PICKY")
+    verdict = exile(engine, "b2")
+    refute verdict[:ok]
+    assert_match(/costo di Flusso 3 o inferiore/, verdict[:reason])
+    assert_includes verdict[:reason_en], "(§8.2)"
+    refute exile(engine, "b3")[:ok], "costo ignoto: fuori vincolo"
+    verdict = exile(engine, "b1")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", engine.instance_variable_get(:@table).card("b1")[:zone]
+    plain = shooter([["b2", "COSTLY"]])
+    assert exile(plain, "b2")[:ok], "senza vincolo nella forma il costo non conta"
   end
 
   def test_enter_exile_needs_entering_card_as_holder

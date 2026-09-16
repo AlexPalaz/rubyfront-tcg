@@ -3,8 +3,9 @@
 // che sono avvisi del tavolo (core/log.ts, isNotice) — gli effetti risolti,
 // le carte tornate in mano, gli Oggetti in Ritiro, i tiri a vuoto — raccolte
 // in un pannello sotto l'header, a destra, come la chat: si apre dal tasto
-// «Cronaca», la più nuova in fondo, e gli avvisi arrivati a pannello chiuso
-// si contano sul tasto. Ogni riga nella lingua di chi legge (renderLog), con
+// «Cronaca», la più nuova in fondo; il tasto non conta gli avvisi non letti
+// (2026-09-16: «non serve avere il numero affianco Cronaca» — le targhette
+// li mostrano già). Ogni riga nella lingua di chi legge (renderLog), con
 // l'ora e il nome del posto; i nomi delle carte in grassetto. Le righe
 // vivono nello stato condiviso: uguali per entrambi, via a nuova partita.
 
@@ -55,7 +56,6 @@ export class Chronicle {
   private readonly lines = new Container({ label: "chronicle-lines" });
   private readonly mask = new Graphics();
   private paintedCount = -1;
-  private readCount = 0;
   private scroll = 0;
   private rise = 0;
   private logH = 0;
@@ -64,8 +64,7 @@ export class Chronicle {
     private readonly stage: Stage,
     private readonly ctx: Ctx,
     private readonly me: Seat,
-    private readonly locale: string,
-    private readonly onUnread: (n: number) => void
+    private readonly locale: string
   ) {
     this.root.visible = false;
     this.lines.mask = this.mask;
@@ -91,8 +90,6 @@ export class Chronicle {
   open(): void {
     this.root.visible = true;
     this.scroll = 0;
-    this.readCount = this.notices().length;
-    this.onUnread(0);
     this.build();
   }
 
@@ -100,17 +97,11 @@ export class Chronicle {
     this.root.visible = false;
   }
 
-  /** Dopo ogni ridisegno del tavolo: le righe nuove, o il conto sul tasto a pannello chiuso. */
+  /** Dopo ogni ridisegno del tavolo: le righe nuove, a pannello aperto. */
   update(): void {
+    if (!this.root.visible) return;
     const count = this.notices().length;
-    // A nuova partita la cronaca si svuota: il conto riparte.
-    if (count < this.readCount) this.readCount = count;
-    if (this.root.visible) {
-      this.readCount = count;
-      if (count !== this.paintedCount) this.build();
-    } else {
-      this.onUnread(count - this.readCount);
-    }
+    if (count !== this.paintedCount) this.build();
   }
 
   private notices(): ChatEntry[] {

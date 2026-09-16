@@ -60,7 +60,6 @@ export class Toolbar {
   private readonly flux: Button;
   private room = false;
   private unread = 0;
-  private unreadNotices = 0;
 
   constructor(
     private readonly stage: Stage,
@@ -142,15 +141,7 @@ export class Toolbar {
     this.statusDot.clear().circle(0, 0, 5).fill(STATUS_COLORS[status] ?? STATUS_COLORS.offline!);
   }
 
-  /** I messaggi dell'avversario non ancora letti: «Chat · 2». */
-  /** Gli avvisi arrivati a cronaca chiusa: il conto sul tasto. */
-  setUnreadNotices(n: number): void {
-    if (n === this.unreadNotices) return;
-    this.unreadNotices = n;
-    this.chronicle.paintText(n > 0 ? `${t("html.chronicle")} · ${n}` : t("html.chronicle"));
-    this.layout();
-  }
-
+  /** I messaggi dell'avversario non ancora letti: «Chat · 2». La Cronaca non conta nulla (2026-09-16: «non serve avere il numero affianco Cronaca»). */
   setUnread(n: number): void {
     if (n === this.unread) return;
     this.unread = n;

@@ -391,7 +391,12 @@ Regole collegate finora:
   riduttore annotano chi la tiene; quando chi la tiene lascia il campo, il
   tavolo che l'ha visto uscire manda il `release` (sul Fronte del
   proprietario, o nella sua Zona di Ritiro se è pieno), e l'engine lo passa
-  solo allora. Dogane: la destinazione della forma, l'Abisso; `heldBy`
+  solo allora. Dal 2026-09-16 (engine 0.77.0) la forma legge anche il
+  **vincolo di costo** sul bersaglio («con costo di Flusso N o inferiore»,
+  la condizione `flux_cost lte N`, l'unica certificata: un'altra condizione
+  rende l'effetto ignoto): la dogana ferma l'esilio — e lo spostamento in
+  Ritiro — di un'Entità più cara o dal costo ignoto all'anagrafe, e il
+  client non la offre fra i bersagli. Dogane: la destinazione della forma, l'Abisso; `heldBy`
   uguale alla fonte; il bersaglio un'Entità avversaria in campo; una volta
   per ingresso, nel turno d'ingresso. Limiti dichiarati: torna «in gioco»
   disarmata (§3.1, gli Oggetti restano in Zona di Ritiro) e nello slot che il

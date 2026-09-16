@@ -287,6 +287,8 @@ const M: Record<string, { it: string; en: string }> = {
   "scene.continue": { it: "Continua", en: "Continue" },
   "trigger.draw": { it: "{card} si innesca: pesca {n} {cards}", en: "{card} triggers: draw {n} {cards}" },
   "trigger.loose": { it: "{card} si innesca: manda nell'Abisso un'Entità avversaria, finché questa resta in campo", en: "{card} triggers: send an opposing Entity to the Abyss, as long as this one remains on the field" },
+  "trigger.loose.cost": { it: "{card} si innesca: manda nell'Abisso un'Entità avversaria con costo di Flusso {n} o inferiore, finché questa resta in campo", en: "{card} triggers: send an opposing Entity with Flux cost {n} or less to the Abyss, as long as this one remains on the field" },
+  "trigger.retire.cost": { it: "{card} si innesca: metti un'Entità avversaria con costo di Flusso {n} o inferiore nella Zona di Ritiro", en: "{card} triggers: put an opposing Entity with Flux cost {n} or less in the Retire Zone" },
   "trigger.retire": { it: "{card} si innesca: metti un'Entità avversaria nella Zona di Ritiro", en: "{card} triggers: put an opposing Entity in the Retire Zone" },
   "trigger.return": { it: "{card} si innesca: metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro", en: "{card} triggers: put a permanent card from your Retire Zone onto your Front" },
   "trigger.look": { it: "{card} si innesca: guarda le prime {n} carte del mazzo", en: "{card} triggers: look at the top {n} cards of the deck" },

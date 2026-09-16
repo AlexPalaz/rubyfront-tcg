@@ -1,7 +1,7 @@
 {
   "name": "Archer of the Silver Glade",
   "typeLabel": "Entity: Human",
-  "summary": "It arrives and takes an enemy body away for as long as it stands.",
+  "summary": "It arrives and takes an enemy body of 3 Flux or less away for as long as it stands.",
   "ui": {
     "face": "Entity"
   },
@@ -15,7 +15,7 @@
     "name": "Archer of the Silver Glade",
     "loose": {
       "trigger": "When it enters the Front",
-      "text": "Send an opposing Entity to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
+      "text": "Send an opposing Entity with Flux cost 3 or less to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
     },
     "flavor": "It looses one arrow. A second is never needed."
   },

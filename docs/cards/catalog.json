@@ -1168,7 +1168,7 @@
             "it": {
               "name": "Arciere della Radura Argentata",
               "typeLabel": "Entità: Umano",
-              "summary": "Entra e porta via un corpo avversario, finché resta in piedi.",
+              "summary": "Entra e porta via un corpo avversario da 3 Flussi o meno, finché resta in piedi.",
               "ui": {
                 "face": "Entità"
               },
@@ -1182,7 +1182,7 @@
                 "name": "Arciere della Radura Argentata",
                 "loose": {
                   "trigger": "Quando entra sul Fronte",
-                  "text": "Manda nell'Abisso un'Entità avversaria. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
+                  "text": "Manda nell'Abisso un'Entità avversaria con costo di Flusso 3 o inferiore. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
                 },
                 "flavor": "Tira una volta sola. Non serve la seconda."
               },
@@ -1194,7 +1194,7 @@
             "en": {
               "name": "Archer of the Silver Glade",
               "typeLabel": "Entity: Human",
-              "summary": "It arrives and takes an enemy body away for as long as it stands.",
+              "summary": "It arrives and takes an enemy body of 3 Flux or less away for as long as it stands.",
               "ui": {
                 "face": "Entity"
               },
@@ -1208,7 +1208,7 @@
                 "name": "Archer of the Silver Glade",
                 "loose": {
                   "trigger": "When it enters the Front",
-                  "text": "Send an opposing Entity to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
+                  "text": "Send an opposing Entity with Flux cost 3 or less to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
                 },
                 "flavor": "It looses one arrow. A second is never needed."
               },
@@ -1224,7 +1224,7 @@
             "dynamic",
             "removal"
           ],
-          "rulesReference": "MANUALE.md §5, §6.2",
+          "rulesReference": "MANUALE.md §5, §6.2, §8.2",
           "faces": [
             {
               "id": "entity",
@@ -1256,7 +1256,14 @@
                       "zone": "front",
                       "owner": "opponent",
                       "min": 1,
-                      "max": 1
+                      "max": 1,
+                      "conditions": [
+                        {
+                          "stat": "flux_cost",
+                          "operator": "lte",
+                          "value": 3
+                        }
+                      ]
                     },
                     "destination": {
                       "zone": "abyss",
@@ -7762,7 +7769,7 @@
         "it": {
           "name": "Arciere della Radura Argentata",
           "typeLabel": "Entità: Umano",
-          "summary": "Entra e porta via un corpo avversario, finché resta in piedi.",
+          "summary": "Entra e porta via un corpo avversario da 3 Flussi o meno, finché resta in piedi.",
           "ui": {
             "face": "Entità"
           },
@@ -7776,7 +7783,7 @@
             "name": "Arciere della Radura Argentata",
             "loose": {
               "trigger": "Quando entra sul Fronte",
-              "text": "Manda nell'Abisso un'Entità avversaria. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
+              "text": "Manda nell'Abisso un'Entità avversaria con costo di Flusso 3 o inferiore. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
             },
             "flavor": "Tira una volta sola. Non serve la seconda."
           },
@@ -7788,7 +7795,7 @@
         "en": {
           "name": "Archer of the Silver Glade",
           "typeLabel": "Entity: Human",
-          "summary": "It arrives and takes an enemy body away for as long as it stands.",
+          "summary": "It arrives and takes an enemy body of 3 Flux or less away for as long as it stands.",
           "ui": {
             "face": "Entity"
           },
@@ -7802,7 +7809,7 @@
             "name": "Archer of the Silver Glade",
             "loose": {
               "trigger": "When it enters the Front",
-              "text": "Send an opposing Entity to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
+              "text": "Send an opposing Entity with Flux cost 3 or less to the Abyss. As long as this Entity remains on the field, that Entity stays in the Abyss. When this Entity leaves the field, that Entity returns to play."
             },
             "flavor": "It looses one arrow. A second is never needed."
           },
@@ -7818,7 +7825,7 @@
         "dynamic",
         "removal"
       ],
-      "rulesReference": "MANUALE.md §5, §6.2",
+      "rulesReference": "MANUALE.md §5, §6.2, §8.2",
       "faces": [
         {
           "id": "entity",
@@ -7850,7 +7857,14 @@
                   "zone": "front",
                   "owner": "opponent",
                   "min": 1,
-                  "max": 1
+                  "max": 1,
+                  "conditions": [
+                    {
+                      "stat": "flux_cost",
+                      "operator": "lte",
+                      "value": 3
+                    }
+                  ]
                 },
                 "destination": {
                   "zone": "abyss",

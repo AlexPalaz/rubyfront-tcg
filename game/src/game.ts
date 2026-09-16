@@ -116,7 +116,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     backdrop: isOpen => home.setBlurred(isOpen),
   });
   chat = new Chat(stage, session.ctx, mySeat, n => toolbar.setUnread(n));
-  chronicle = new Chronicle(stage, session.ctx, mySeat, locale, n => toolbar.setUnreadNotices(n));
+  chronicle = new Chronicle(stage, session.ctx, mySeat, locale);
   // Le targhette tacciono quando il loro angolo è preso dalla cronaca (che le mostra già) o dalla chat.
   match.toast.hiddenBy(() => chronicle.isOpen() || chat.isOpen());
   toolbar = new Toolbar(stage, {

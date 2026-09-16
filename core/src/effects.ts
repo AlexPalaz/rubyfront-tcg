@@ -26,6 +26,8 @@ export interface EnterMoveStep {
   to: "ritiro" | "abisso";
   /** L'esilio condizionato: la carta va nell'Abisso tenuta da chi entra (heldBy). */
   hold: boolean;
+  /** Il vincolo «con costo di Flusso N o inferiore» sul bersaglio (null = nessuno). */
+  maxCost: number | null;
   candidates: CardInstance[];
 }
 
@@ -39,7 +41,15 @@ export function enterMoves(state: GameState, entering: CardInstance, facts: (car
     source: entering,
     to: move.to,
     hold: move.hold === true,
-    candidates: fieldCards(state).filter(card => controllerOf(card) !== controllerOf(entering) && facts(card.cardId).kind === move.target.kind),
+    maxCost: move.target.maxCost,
+    // Il vincolo di costo («con costo di Flusso N o inferiore»): chi costa
+    // di più, o ha costo ignoto, non è un bersaglio — come l'engine.
+    candidates: fieldCards(state).filter(card => {
+      if (controllerOf(card) === controllerOf(entering)) return false;
+      const f = facts(card.cardId);
+      if (f.kind !== move.target.kind) return false;
+      return move.target.maxCost === null || (f.fluxCost !== null && f.fluxCost <= move.target.maxCost);
+    }),
   }));
 }
 
@@ -283,7 +293,9 @@ export async function resolveLook(
 
 /** La riga che annuncia uno spostamento all'ingresso. */
 export function describeMove(step: EnterMoveStep, facts: (cardId: string) => CardFacts): string {
-  return t(step.hold ? "trigger.loose" : "trigger.retire", { card: `«${facts(step.source.cardId).name}»` });
+  const card = `«${facts(step.source.cardId).name}»`;
+  if (step.maxCost !== null) return t(step.hold ? "trigger.loose.cost" : "trigger.retire.cost", { card, n: step.maxCost });
+  return t(step.hold ? "trigger.loose" : "trigger.retire", { card });
 }
 
 /**

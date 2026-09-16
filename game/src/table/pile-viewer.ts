@@ -70,10 +70,8 @@ export class PileViewer {
     const v = this.stage.visible();
     const res = v.scale * this.stage.app.renderer.resolution;
 
-    const pw = Math.min(1500, v.width * 0.94);
-    const ph = Math.min(v.height * 0.92, 1100);
+    const pw = Math.min(1400, v.width * 0.9);
     const px = v.x + (v.width - pw) / 2;
-    const py = v.y + (v.height - ph) / 2;
 
     // La testata: il titolo a sinistra, Chiudi a destra.
     const closeLabel = t("overlay.close");
@@ -81,6 +79,16 @@ export class PileViewer {
     const closeH = 32;
     const titleLines = layout([{ kind: "text", text: title, font: TITLE, color: INK }], pw - 32 - closeW - 12, { font: TITLE, lineHeight: 20 });
     const headH = 12 + Math.max(totalHeight(titleLines), closeH) + 12 + 1;
+
+    // La griglia detta l'altezza: colonne di tessere centrate, e il
+    // pannello alto quanto le sue file — mai più dell'86% dello schermo
+    // (2026-09-16, «esce troppo alta»: prima era il 92%, anche per una
+    // fila sola); oltre, si scorre.
+    const cols = Math.max(1, Math.floor((pw - 2 * PAD + GAP_X) / (TILE_W + GAP_X)));
+    const rows = Math.ceil(cards.length / cols);
+    const contentH = Math.max(rows, 1) * (TILE_H + GAP_Y) - GAP_Y + 2 * PAD;
+    const ph = Math.min(v.height * 0.86, 1000, headH + contentH + 1);
+    const py = v.y + (v.height - ph) / 2;
     const { ascent, descent } = fontMetrics(BUTTON);
     const panel = paintPiece(pw, ph, res, ctx => {
       ctx.fillStyle = NIGHT.panel;
@@ -114,15 +122,12 @@ export class PileViewer {
     closeButton.cursor = "pointer";
     closeButton.hitArea = new Rectangle(px + pw - 16 - closeW, py + (headH - 1 - closeH) / 2, closeW, closeH);
 
-    // La griglia: colonne di tessere centrate, sotto la testata, con la sua maschera.
+    // La griglia sotto la testata, con la sua maschera.
     const gridTop = py + headH;
     const gridH = ph - headH - 1;
-    const cols = Math.max(1, Math.floor((pw - 2 * PAD + GAP_X) / (TILE_W + GAP_X)));
     // Come la griglia del simulatore (auto-fill, centrata): le colonne ci sono tutte, le carte partono dalla prima.
     const rowW = cols * (TILE_W + GAP_X) - GAP_X;
     const left = px + (pw - rowW) / 2;
-    const rows = Math.ceil(cards.length / cols);
-    const contentH = rows * (TILE_H + GAP_Y) - GAP_Y + 2 * PAD;
     const grid = new Container({ label: "grid" });
     const mask = new Graphics().rect(px, gridTop, pw, gridH).fill(0xffffff);
     grid.mask = mask;

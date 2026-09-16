@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.76.0"
+    VERSION = "0.77.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -60,7 +60,7 @@ module Rubyfront
       "§2/§9 Fine della partita: PV a zero, mazzo esaurito, pareggio",
       "§8.2 Effetti certificati: «quando un'altra Entità entra, pesca»",
       "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (forma senza carte dal 2026-09-04)",
-      "§8.2 Effetti certificati: «quando entra, un'Entità avversaria nell'Abisso finché questa resta in campo»",
+      "§8.2 Effetti certificati: «quando entra, un'Entità avversaria (anche con costo di Flusso N o inferiore) nell'Abisso finché questa resta in campo»",
       "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte»",
       "§8.2 Effetti certificati: «quando attacca», lo stesso ritorno dalla Zona di Ritiro",
       "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una»",
@@ -2162,6 +2162,15 @@ module Rubyfront
       entry = @cards[target[:card_id]]
       return no_rule("toZone") unless entry
       return refuse("toZone", "il bersaglio dev'essere un'Entità (§8.2)", "the target must be an Entity (§8.2)") unless entry[:type] == move[:target][:type]
+      # Il vincolo di costo della forma («con costo di Flusso N o inferiore»,
+      # dal 2026-09-16): il bersaglio deve stare nel costo stampato; costo
+      # ignoto all'anagrafe = fuori vincolo, la carta non è un bersaglio.
+      max_cost = move[:target][:max_cost]
+      if max_cost && !(entry[:flux_cost] && entry[:flux_cost] <= max_cost)
+        where = move[:to] == "abisso" ? "nell'Abisso" : "in Ritiro"
+        where_en = move[:to] == "abisso" ? "to the Abyss" : "to Retire"
+        return refuse("toZone", "si manda #{where} un'Entità con costo di Flusso #{max_cost} o inferiore (§8.2)", "an Entity with Flux cost #{max_cost} or lower goes #{where_en} (§8.2)")
+      end
 
       allow("toZone")
     end

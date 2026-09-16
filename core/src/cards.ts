@@ -245,15 +245,20 @@ function enterMovesOf(face: CardFace | undefined): EnterMove[] {
     if (!target || target.cardType !== "entity" || target.controller !== "opponent" || target.zone !== "front") continue;
     if (target.min !== 1 || target.max !== 1) continue;
     if (!destination) continue;
+    // Il vincolo di costo sul bersaglio («con costo di Flusso N o
+    // inferiore», dal 2026-09-16): l'unica condizione certificata.
+    const cost = costCondition(target.conditions);
+    if (!cost.ok) continue;
+    const who = { kind: "entity" as const, controller: "opponent" as const, maxCost: cost.maxCost };
     // Due destinazioni certificate: il Ritiro (senza dettagli) e l'Abisso
     // «finché questa Entità resta in campo; quando lascia il campo, torna
     // in gioco» — l'esilio condizionato (heldBy, release). Specchio di
     // card_index.rb, enter_moves.
     const extra = (trigger.effect as { details?: unknown }).details as Loose | undefined;
     if (destination.zone === "retire" && extra === undefined) {
-      out.push({ target: { kind: "entity", controller: "opponent" }, to: "ritiro" });
+      out.push({ target: who, to: "ritiro" });
     } else if (destination.zone === "abyss" && extra && extra.whileSourceOnField === true && extra.returnsToPlayWhenSourceLeaves === true) {
-      out.push({ target: { kind: "entity", controller: "opponent" }, to: "abisso", hold: true });
+      out.push({ target: who, to: "abisso", hold: true });
     }
   }
   return out;

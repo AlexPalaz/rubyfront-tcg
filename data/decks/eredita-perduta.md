@@ -96,9 +96,11 @@ nell'Abisso — non la toglie più.
   che *mettono in campo* Entità (Simulacro, Forza della Radura, Chiamata dei
   Sette, Ritorno al Fronte): con il Fronte pieno vanno sprecati.
 - **Arciere della Radura Argentata**: 3 Flussi, entra e manda nell'Abisso
-  un'Entità avversaria qualsiasi. Dal 2026-09-04 l'esilio dura finché
-  l'Arciere resta in campo: la risposta del foglio di playtest a «removal
-  troppo economiche» è che ora basta ucciderlo per riavere l'Entità.
+  un'Entità avversaria con costo di Flusso 3 o inferiore (il vincolo di
+  costo è del 2026-09-16: prima era «qualsiasi»). Dal 2026-09-04 l'esilio
+  dura finché l'Arciere resta in campo: la risposta del foglio di playtest
+  a «removal troppo economiche» è che ora basta ucciderlo per riavere
+  l'Entità.
 - **Rhen a 6 Flussi** è l'unica carta oltre il quinto turno: se la partita
   arriva lì, il mazzo ha già perso il suo tempo migliore.
 

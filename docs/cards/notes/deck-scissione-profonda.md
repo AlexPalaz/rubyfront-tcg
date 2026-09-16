@@ -182,3 +182,26 @@ collegati il 2026-09-10 (engine 0.46–0.48).
 **2026-09-15 — allineamento incrociato col foglio:** l'Artefice segue il foglio
 (Oggetto con costo di Flusso 2 o inferiore); per Rhazmora (Nexus +3, Forgia
 Rapida +1, Forgia Profonda +2) e il Vestigio il foglio segue il gioco.
+
+## Quarta revisione, 2026-09-15 («il file è la fonte di verità»)
+
+Tre carte cambiano, tutte lette dal foglio (colonna Effetto) e riportate lì
+normalizzate:
+
+- **Recluta del Campo** (RBF-024): via lo statico «se ha un Oggetto
+  assegnato, +1 Potenza»; ora «Quando entra sul Fronte: Puoi mettere un
+  Oggetto dalla tua mano nella tua Zona di Ritiro. Se lo fai, pesca una
+  carta.» (forma `enter_stashes`).
+- **Spada Dimensionale** (RBF-032): «L'Entità a cui è assegnata ha +1 Potenza.
+  Puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo di
+  Flusso.» (forma `self_retires`; finestra assunta: la Preparazione propria,
+  come il Ritiro — da confermare).
+- **Catalizzatore Sigma** (RBF-034): costo 3 → **2**; «…Poi lancia un d6: con
+  4–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro.
+  Se lo fai, pesca una carta.» (forma `attack_forms` `stash`; via lo sguardo
+  col dado del 2026-08-28).
+
+Il motore «Zona di Ritiro come arsenale» ora si alimenta anche da questi tre:
+la Recluta e il Catalizzatore ci mettono Oggetti pescando, la Spada ci va da
+sola per un Flusso. Copie e conteggi invariati (19 · 10 · 11 = 40). Eredità
+Perduta invariata.

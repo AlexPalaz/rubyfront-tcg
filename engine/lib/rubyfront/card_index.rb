@@ -272,12 +272,24 @@ module Rubyfront
         # campo, quell'Entità torna in gioco» — l'esilio condizionato,
         # stessa meccanica della Materia (held_by, release). Gemello:
         # core/src/cards.ts, enterMovesOf.
+        # Il vincolo di costo sul bersaglio («con costo di Flusso N o
+        # inferiore», dal 2026-09-16): l'unica condizione certificata; una
+        # condizione d'altra forma rende l'effetto ignoto.
+        max_cost = nil
+        certified = Array(target["conditions"]).all? do |condition|
+          ok = condition.is_a?(Hash) && condition["stat"] == "flux_cost" && condition["operator"] == "lte" && condition["value"].is_a?(Integer)
+          max_cost = condition["value"] if ok
+          ok
+        end
+        next unless certified
+
+        who = { type: "entity", controller: "opponent", max_cost: max_cost }.freeze
         extra = effect["details"]
         if destination["zone"] == "retire" && extra.nil?
-          { target: { type: "entity", controller: "opponent" }.freeze, to: "ritiro" }.freeze
+          { target: who, to: "ritiro" }.freeze
         elsif destination["zone"] == "abyss" && extra.is_a?(Hash) &&
               extra["whileSourceOnField"] == true && extra["returnsToPlayWhenSourceLeaves"] == true
-          { target: { type: "entity", controller: "opponent" }.freeze, to: "abisso", hold: true }.freeze
+          { target: who, to: "abisso", hold: true }.freeze
         end
       end
     end

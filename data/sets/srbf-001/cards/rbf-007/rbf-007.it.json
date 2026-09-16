@@ -1,7 +1,7 @@
 {
   "name": "Arciere della Radura Argentata",
   "typeLabel": "Entità: Umano",
-  "summary": "Entra e porta via un corpo avversario, finché resta in piedi.",
+  "summary": "Entra e porta via un corpo avversario da 3 Flussi o meno, finché resta in piedi.",
   "ui": {
     "face": "Entità"
   },
@@ -15,7 +15,7 @@
     "name": "Arciere della Radura Argentata",
     "loose": {
       "trigger": "Quando entra sul Fronte",
-      "text": "Manda nell'Abisso un'Entità avversaria. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
+      "text": "Manda nell'Abisso un'Entità avversaria con costo di Flusso 3 o inferiore. Finché questa Entità resta in campo, quell'Entità resta nell'Abisso. Quando questa Entità lascia il campo, quell'Entità torna in gioco."
     },
     "flavor": "Tira una volta sola. Non serve la seconda."
   },

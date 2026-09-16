@@ -352,7 +352,8 @@ export interface EnterReturn {
  * del suo proprietario». È la forma di RBF-007.
  */
 export interface EnterMove {
-  target: { kind: "entity"; controller: "opponent" };
+  /** `maxCost`: il vincolo «con costo di Flusso N o inferiore» sul bersaglio (null = nessuno). */
+  target: { kind: "entity"; controller: "opponent"; maxCost: number | null };
   to: "ritiro" | "abisso";
   /** L'esilio condizionato: nell'Abisso «finché questa resta in campo», tenuta da chi entra (heldBy). */
   hold?: true;

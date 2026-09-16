@@ -83,10 +83,14 @@ class CardIndexTest < Minitest::Test
     # Dal 2026-09-04 l'Arciere esilia nell'Abisso «finché resta in campo»
     # (revisione del foglio del designer): dal 2026-09-06 è la forma
     # certificata dell'esilio condizionato all'ingresso.
-    assert_equal [{ target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true }], @index["RBF-007"][:enter_moves]
+    # Dal 2026-09-16 il bersaglio ha il vincolo di costo («con costo di Flusso 3 o inferiore»).
+    assert_equal [{ target: { type: "entity", controller: "opponent", max_cost: 3 }, to: "abisso", hold: true }], @index["RBF-007"][:enter_moves]
     form_hash = { "target" => { "cardType" => "entity", "controller" => "opponent", "zone" => "front", "owner" => "opponent", "min" => 1, "max" => 1 },
               "destination" => { "zone" => "retire" } }
-    refute_nil Rubyfront::CardIndex.enter_moves([{ "triggers" => [{ "event" => "on_enter_field", "effect" => form_hash.merge("type" => "move_card") }] }]).first, "la forma resta leggibile, anche senza una carta che la porti"
+    plain = Rubyfront::CardIndex.enter_moves([{ "triggers" => [{ "event" => "on_enter_field", "effect" => form_hash.merge("type" => "move_card") }] }]).first
+    assert_equal({ target: { type: "entity", controller: "opponent", max_cost: nil }, to: "ritiro" }, plain, "la forma resta leggibile, anche senza una carta che la porti")
+    odd = form_hash.merge("target" => form_hash["target"].merge("conditions" => [{ "stat" => "power", "operator" => "lte", "value" => 2 }]))
+    assert_equal [], Rubyfront::CardIndex.enter_moves([{ "triggers" => [{ "event" => "on_enter_field", "effect" => odd.merge("type" => "move_card") }] }]), "una condizione che non è il costo rende la forma ignota"
     assert_equal [], @index["RBF-003"][:enter_moves], "un ascoltatore non è uno spostamento di chi entra"
     assert_equal [], @index["RBF-012"][:enter_moves], "dalla propria Zona di Ritiro al Fronte è un'altra forma"
   end

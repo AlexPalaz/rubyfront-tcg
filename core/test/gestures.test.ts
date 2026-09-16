@@ -14,7 +14,7 @@ import { apply, newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
 const FACTS: Record<string, Partial<CardFacts>> = {
-  ARCHER: { kind: "entity", race: "human", fluxCost: 2, enterMoves: [{ target: { kind: "entity", controller: "opponent" }, to: "ritiro" }] },
+  ARCHER: { kind: "entity", race: "human", fluxCost: 2, enterMoves: [{ target: { kind: "entity", controller: "opponent", maxCost: null }, to: "ritiro" }] },
   HUMAN: { kind: "entity", race: "human" },
   RUBY: { kind: "rubyfront" },
   // «Quando attacca: le altre armate +1» — una forma d'attacco di chi attacca.
