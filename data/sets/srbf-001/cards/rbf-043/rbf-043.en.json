@@ -14,7 +14,7 @@
     "name": "Dimensional Prism",
     "effect": {
       "name": "Effect",
-      "text": "When you assign this card to an Entity, send an opposing Entity to the Abyss. As long as this card remains in play, that Entity stays in the Abyss. When this card leaves play, that Entity returns to play."
+      "text": "The Entity it is assigned to has +1 Power. When you assign this card to an Entity, send an opposing Entity to the Abyss. As long as this card remains in play, that Entity stays in the Abyss. When this card leaves play, that Entity returns to play."
     },
     "flavor": "It does not kill it. It puts it somewhere else."
   }

@@ -1,7 +1,7 @@
 {
   "name": "Scout",
   "typeLabel": "Entity: Auros",
-  "summary": "The equipped vanguard: attack with an Object and filter your hand.",
+  "summary": "The vanguard: if the Front is unarmed, it finds the first Object in the deck.",
   "ui": {
     "face": "Entity"
   },
@@ -17,10 +17,10 @@
   },
   "face": {
     "name": "Scout",
-    "scouting": {
-      "trigger": "Effect",
-      "text": "The first time each of your turns this Entity attacks while it has an Object assigned, draw a card, then discard a card."
-    },
-    "flavor": "It scouts with the eyes. It decides with the blade."
+    "flavor": "It scouts with the eyes. It decides with the blade.",
+    "requisition": {
+      "trigger": "At the start of each of your turns",
+      "text": "If there are no Objects on your Front, search your deck for an Object, reveal it to your opponent and add it to your hand, then shuffle your deck."
+    }
   }
 }

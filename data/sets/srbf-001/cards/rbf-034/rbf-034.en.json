@@ -14,7 +14,7 @@
     "name": "Sigma Catalyst",
     "effect": {
       "name": "Effect",
-      "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 4–6 you may put another Object you control into your Retire Zone. If you do, draw a card."
+      "text": "When the Entity it is assigned to attacks, that Entity gets +2 Power until end of turn. Then roll a d6: on 3–6 you may put another Object you control into your Retire Zone. If you do, draw a card."
     },
     "flavor": "Burns slowly. Reveals quickly."
   }

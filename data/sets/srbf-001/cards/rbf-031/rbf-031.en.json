@@ -28,7 +28,7 @@
     },
     "foresight": {
       "trigger": "Effect",
-      "text": "The first time each of your turns an Entity with an Object assigned you control attacks, look at the top 2 cards of your deck. You may reveal an Object among them and put it into your Retire Zone. Put the rest on the bottom of your deck."
+      "text": "The first time each of your turns an Entity with an Object assigned you control attacks, look at the top 3 cards of your deck. You may reveal an Object among them and put it into your Retire Zone. Put the rest on the bottom of your deck."
     }
   }
 }

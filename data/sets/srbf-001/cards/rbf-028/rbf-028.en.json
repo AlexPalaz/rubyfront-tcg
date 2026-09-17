@@ -1,7 +1,7 @@
 {
   "name": "Sentinel of Nova Kai",
   "typeLabel": "Entity: Auros",
-  "summary": "A body with Surge and Counterattack that grows with every Object it wears.",
+  "summary": "Surge, Counterattack that grows with its Objects, and once armed it stands guard again after attacking.",
   "ui": {
     "face": "Entity"
   },
@@ -25,6 +25,10 @@
     "keyword": {
       "name": "Surge",
       "rules": "may attack the turn it enters the Front"
+    },
+    "vigil": {
+      "trigger": "Effect",
+      "text": "The first time each of your turns this Entity attacks while it has an Object assigned, untap it after combat."
     }
   }
 }

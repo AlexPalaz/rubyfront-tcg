@@ -8,6 +8,9 @@ import { FRONT_SLOT_X, backRowY, frontRowY } from "../src/geometry.js";
 import {
   bestObjectCost,
   describeStash,
+  describeTurnStartSearch,
+  resolveTurnStartSearch,
+  turnStartSearches,
   enterStashes,
   resolveStash,
   stashRef,
@@ -72,7 +75,7 @@ import {
   weakenAmount,
   wornObjects,
 } from "../src/effects.js";
-import { newGame } from "../src/state.js";
+import { apply, newGame } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
 const FACTS: Record<string, Partial<CardFacts>> = {
@@ -90,6 +93,8 @@ const FACTS: Record<string, Partial<CardFacts>> = {
     { kind: "stash", who: "object", die: 6, onRoll: [4, 6], other: true, thenDraw: 1, face: 0 },
   ] },
   EXPLORER: { kind: "entity", race: "auros", attackDraws: [{ draw: 1, thenDiscard: 1, requiresObject: true }] },
+  // «All'inizio di ogni tuo turno, se non ci sono Oggetti sul tuo Fronte, cerca nel tuo mazzo un Oggetto…» (dal 2026-09-17).
+  SCOUT: { kind: "entity", race: "auros", turnStartSearches: [{ requires: "no_object_on_own_front", kind: "object", from: "deck", to: "hand", shuffle: true }] },
   WATCHMAN: { kind: "entity", race: "human", attackForms: [{ kind: "untap", who: "self", once: true, requiresObject: true, face: 0 }] },
   COMMAND: { kind: "entity", race: "auros", attackForms: [{ kind: "empower", who: "self", requiresObject: true, targets: "others_armed", power: 1, face: 0 }] },
   SIGMA: { kind: "object", attackForms: [
@@ -1400,5 +1405,54 @@ describe("lo scarto d'Oggetto all'ingresso e all'attacco (§8.2, dal 2026-09-15)
     // Il passo risolto per questo attacco non si ripropone.
     state.fired = ["cat|on_attack:stash|u"];
     expect(attackSteps(state, u, facts).map(s => s.form.kind)).toEqual(["empower"]);
+  });
+});
+
+// §8.2 — la ricerca a inizio turno (dal 2026-09-17). Gemello: engine_test.rb,
+// SEARCH_SET e i test «turn_start_search».
+describe("turnStartSearches", () => {
+  it("un passo per ogni fonte in campo, coi soli Oggetti del mazzo; niente passi con un Oggetto già in campo", () => {
+    const state = newGame();
+    on(state, "sco", "SCOUT");
+    const d1 = on(state, "d1", "IRON"); d1.zone = "deck";
+    const d2 = on(state, "d2", "HUMAN"); d2.zone = "deck";
+    const steps = turnStartSearches(state, "a", facts);
+    expect(steps).toHaveLength(1);
+    expect(steps[0].candidates.map(card => card.uid)).toEqual(["d1"]);
+    expect(turnStartSearches(state, "b", facts)).toEqual([]);
+    on(state, "fe", "IRON").assignedTo = "sco";
+    expect(turnStartSearches(state, "a", facts)).toEqual([]);
+  });
+
+  it("la carta cercata va in mano col riferimento del turno, poi il mazzo si rimescola", async () => {
+    const state = newGame();
+    state.turn = 3;
+    on(state, "sco", "SCOUT");
+    for (const uid of ["d1", "d2", "d3"]) on(state, uid, uid === "d2" ? "HUMAN" : "IRON").zone = "deck";
+    // Un Ctx che applica davvero: la mescolata legge il mazzo DOPO la carta uscita.
+    let live = state;
+    const sent: Action[] = [];
+    const ctx: Ctx = {
+      state: () => live,
+      dispatch(action) {
+        sent.push(action);
+        live = apply(live, action);
+        return Promise.resolve(true);
+      },
+      seat: () => "a",
+      controls: seat => seat === "a",
+      arbitrated: () => true,
+      themeFor: () => "night",
+      tintFor: () => "dynamic",
+      locale: () => "it",
+      card: facts,
+      log: () => undefined,
+    };
+    const [step] = turnStartSearches(state, "a", facts);
+    expect(describeTurnStartSearch(step, facts)).toMatch(/cerca nel mazzo/);
+    expect(await resolveTurnStartSearch(ctx, step, step.candidates[0]!)).toBe(true);
+    expect(sent[0]).toEqual({ t: "toZone", uid: "d1", zone: "hand", effect: { source: "sco", event: "on_turn_start", entering: "turn:3" } });
+    expect(sent[1]?.t).toBe("shuffle");
+    expect([...((sent[1] as { order: string[] }).order)].sort()).toEqual(["d2", "d3"]);
   });
 });

@@ -64,6 +64,7 @@ function fakeView(): SessionView & { calls: string[]; seen: GameState[] } {
     offerLeaveReturns: note("offerLeaveReturns"),
     offerAssignTriggers: note("offerAssignTriggers"),
     offerDeathRemains: note("offerDeathRemains"),
+    offerTurnStart: note("offerTurnStart"),
     offerReturned: note("offerReturned"),
     quiet: () => true,
   };

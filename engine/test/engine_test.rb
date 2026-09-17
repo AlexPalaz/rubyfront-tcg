@@ -283,6 +283,18 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], "Slancio ignora l'attesa di evocazione (§8.1)"
   end
 
+  # §8.1 — lo Slancio concesso da un Oggetto indossato vale come quello
+  # stampato (2026-09-17: la Spada che dà Slancio non lo dava).
+  def test_surge_granted_by_worn_object_skips_the_wait
+    engine = Rubyfront::Engine.new(cards: REGISTRY.merge("SPUR" => { type: "object", keywords: [], grants_while_assigned: [{ keywords: ["surge"], if_race: nil }] }))
+    hand_and_field(engine, %w[SLOW SPUR], drop: 1)
+    assert engine.judge(assign_action("a-2", "a-1"))[:ok]
+    assert engine.judge({ "t" => "toZone", "uid" => "a-2", "zone" => "field" })[:ok]
+    front!(engine)
+    verdict = engine.judge(attack_decl("a-1"))
+    assert verdict[:ok], verdict[:reason]
+  end
+
   def test_non_entity_skips_wait
     engine = with_cards
     put_down(engine, "a-1", "STONE")
@@ -490,6 +502,26 @@ class EngineTest < Minitest::Test
     verdict = engine.judge(assign_action("a-2", "a-1"))
     assert verdict[:ruled]
     assert verdict[:ok]
+  end
+
+  # §3.1 — un Oggetto non sta sul Fronte da solo (2026-09-17: col doppio
+  # tocco un Oggetto scendeva disassegnato, e la dogana non c'era). Entra
+  # assegnato prima (l'ordine del rilascio) o con `assignTo` verso una propria
+  # Entità in campo; un'avversaria, o una carta che non è un'Entità, non vale.
+  def test_object_enters_the_field_only_assigned
+    engine = with_cards
+    hand_and_field(engine, %w[SLOW IRON IRON STONE], drop: 1)
+    hand_and_field(engine, %w[SLOW], drop: 1, seat: "b")
+    verdict = engine.judge({ "t" => "toZone", "uid" => "a-2", "zone" => "field" })
+    refute verdict[:ok]
+    assert_match(/assegnandolo.*§3\.1/, verdict[:reason])
+    assert_match(/assigning.*§3\.1/, verdict[:reason_en])
+    assert_equal "hand", engine.instance_variable_get(:@table).card("a-2")[:zone], "fermata: resta in mano"
+    refute engine.judge({ "t" => "toZone", "uid" => "a-2", "zone" => "field", "assignTo" => "b-1" })[:ok], "non a un'Entità avversaria"
+    refute engine.judge({ "t" => "toZone", "uid" => "a-2", "zone" => "field", "assignTo" => "a-4" })[:ok], "non a una Materia"
+    assert engine.judge(assign_action("a-2", "a-1"))[:ok]
+    assert engine.judge({ "t" => "toZone", "uid" => "a-2", "zone" => "field" })[:ok], "assegnato prima, scende"
+    assert engine.judge({ "t" => "toZone", "uid" => "a-3", "zone" => "field", "assignTo" => "a-1" })[:ok], "con assignTo verso la propria Entità, scende"
   end
 
   def test_not_to_rubyfront_or_matter
@@ -725,6 +757,8 @@ class EngineTest < Minitest::Test
     engine = with_cards
     table_with_item(engine)
     assert engine.judge(assign_action("a-2", "a-1"))[:ok]
+    # Dal 2026-09-17 l'Oggetto scende solo assegnato: prima l'assegnazione, poi la giocata.
+    assert engine.judge({ "t" => "toZone", "uid" => "a-2", "zone" => "field" })[:ok]
     verdict = engine.judge(retire_action("a-2"))
     assert verdict[:ruled]
     refute verdict[:ok]
@@ -1977,6 +2011,21 @@ class EngineTest < Minitest::Test
     refute send_to_zone(engine, "b1")[:ok], "una Materia no"
     engine = mover([])
     refute send_to_zone(engine, "arc")[:ok], "una propria carta no"
+  end
+
+  # §6/§8.2 — gli inneschi di una propria carta si risolvono anche nel turno
+  # altrui (2026-09-17): «quando entra» vale a ogni ingresso, e si rientra
+  # spesso nel turno avversario. Un gesto qualunque, invece, resta fermato.
+  def test_own_trigger_resolves_in_opponents_turn
+    engine = Rubyfront::Engine.new(cards: EXILERS)
+    engine.judge({ "t" => "newGame", "active" => "b" })
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [{ "uid" => "tir", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "SHOOTER", "x" => 442, "y" => 1260 }] })
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [{ "uid" => "b1", "owner" => "b", "zone" => "field", "order" => 0, "cardId" => "HUMAN", "x" => 442, "y" => 172 }] })
+    verdict = engine.judge({ "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "tir", "effect" => { "source" => "tir", "event" => "on_enter_field", "entering" => "tir" } }, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    plain = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 5 } }, actor: "a")
+    refute plain[:ok]
+    assert_match(/non tocca a te/, plain[:reason])
   end
 
   def test_trigger_only_in_entry_turn
@@ -4534,6 +4583,68 @@ class EngineTest < Minitest::Test
       end
     end
     engine
+  end
+
+  # §8.2 — la ricerca a inizio turno (dal 2026-09-17): nella Preparazione del
+  # proprio turno, senza Oggetti in campo, un Oggetto dal proprio mazzo alla
+  # mano, una volta per turno. Gemello: effects.test.ts, «turnStartSearches».
+  SEARCH_SET = {
+    "SCOUT" => { type: "entity", keywords: [], turn_start_searches: [{ requires: "no_object_on_own_front", type: "object", from: "deck", to: "hand", shuffle: true }] },
+    "HUMAN" => { type: "entity", keywords: [] },
+    "IRON" => { type: "object", keywords: [] },
+  }.freeze
+
+  def search_scene(armed: false)
+    engine = Rubyfront::Engine.new(cards: SEARCH_SET)
+    a = [{ "uid" => "sco", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "SCOUT", "x" => 442, "y" => 1260 },
+         # La pesca del turno prende la prima (d2): nel mazzo restano l'Oggetto d1 e l'Oggetto d3.
+         { "uid" => "d2", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "HUMAN" },
+         { "uid" => "d1", "owner" => "a", "zone" => "deck", "order" => 1, "cardId" => "IRON" },
+         { "uid" => "d3", "owner" => "a", "zone" => "deck", "order" => 2, "cardId" => "IRON" }]
+    a << { "uid" => "fe", "owner" => "a", "zone" => "field", "order" => 3, "cardId" => "IRON", "x" => 472, "y" => 1290, "assignedTo" => "sco" } if armed
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => [{ "uid" => "suo", "owner" => "b", "zone" => "field", "order" => 0, "cardId" => "HUMAN", "x" => 442, "y" => 172 }] })
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    engine
+  end
+
+  def search_action(uid, turn: 3)
+    { "t" => "toZone", "uid" => uid, "zone" => "hand", "effect" => { "source" => "sco", "event" => "on_turn_start", "entering" => "turn:#{turn}" } }
+  end
+
+  def test_turn_start_search_takes_an_object_from_own_deck_once_per_turn
+    engine = search_scene
+    verdict = engine.judge(search_action("d1"), actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "hand", table_copy(engine).card("d1")[:zone]
+    assert engine.judge({ "t" => "shuffle", "seat" => "a", "order" => ["d3"] }, actor: "a")[:ok], "la mescolata che segue passa"
+    again = engine.judge(search_action("d3"), actor: "a")
+    refute again[:ok]
+    assert_match(/già stato risolto/, again[:reason])
+  end
+
+  def test_turn_start_search_wants_an_object_of_own_deck_and_the_right_turn
+    engine = search_scene
+    verdict = engine.judge(search_action("d2"), actor: "a")
+    refute verdict[:ok], "un'Entità (e per giunta già pescata in mano) no"
+    assert_match(/Oggetto nel PROPRIO mazzo/, verdict[:reason])
+    assert_match(/OWN deck/, verdict[:reason_en])
+    refute engine.judge(search_action("d1", turn: 2), actor: "a")[:ok], "la chiave porta il turno corrente"
+  end
+
+  def test_turn_start_search_only_without_objects_and_in_own_preparation
+    refute engine_armed = search_scene(armed: true).judge(search_action("d1"), actor: "a")[:ok], "con un Oggetto in campo la ricerca non vale"
+    engine = search_scene
+    front!(engine)
+    late = engine.judge(search_action("d1"), actor: "a")
+    refute late[:ok]
+    assert_match(/inizio del proprio turno/, late[:reason])
+    engine = search_scene
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    theirs = engine.judge(search_action("d1", turn: 4), actor: "a")
+    refute theirs[:ok], "nel turno altrui no (la dogana del turno lascia passare l'innesco, la forma lo ferma)"
+    assert_match(/inizio del proprio turno/, theirs[:reason])
   end
 
   def recruit_on_field

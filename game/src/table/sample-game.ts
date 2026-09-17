@@ -44,7 +44,7 @@ function cardsOf(deckId: string, seat: Seat): CardInstance[] {
   return cards;
 }
 
-export function sampleGame(options: { chain?: boolean; block?: boolean; control?: boolean } = {}): Action[] {
+export function sampleGame(options: { chain?: boolean; block?: boolean; control?: boolean; recall?: boolean } = {}): Action[] {
   const actions: Action[] = [];
   let state: GameState = newGame("a");
   const push = (action: Action): void => {
@@ -72,6 +72,8 @@ export function sampleGame(options: { chain?: boolean; block?: boolean; control?
 
   // I Rubyfront schierati sulla fila del Fronte (§3.1).
   for (const seat of ["a", "b"] as const) {
+    // &recall: il tuo resta in Zona di Richiamo, col suo «Schiera».
+    if (options.recall && seat === "a") continue;
     const rubyfront = Object.values(state.cards).find(card => card.owner === seat && isRubyfront(card.cardId));
     if (rubyfront) push({ t: "move", uid: rubyfront.uid, x: RUBYFRONT_X, y: frontRowY(seat), z: state.zTop + 1 });
   }

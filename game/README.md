@@ -66,14 +66,15 @@ ingrandisce e si ridisegna alla nuova misura; `?lang=en` per l'inglese.
 
 Il tavolo fermo, in `src/table/`: la partita com'è nello stato del core,
 disegnata in Pixi — la tua metà in basso con Fronte e fila di servizio,
-l'avversaria in alto capovolta e ridotta al Fronte (le sue pile nel
-pannello), la mano in un cassetto di vetro sopra il tavolo.
+l'avversaria in alto capovolta e ridotta al Fronte (la sua fila di servizio,
+con mano e pile, si apre dal tasto in alto a destra), la mano in un cassetto
+di vetro sopra il tavolo.
 
 | File | Cosa fa |
 |---|---|
-| `layout.ts` | la scala e le file (a 1920×1080 viene 0,524; su 16:10 le carte crescono), e da coordinate canoniche a posti sullo schermo, con la prospettiva di chi guarda |
+| `layout.ts` | la scala e le file (a 1920×1080 viene 0,524; su 16:10 le carte crescono; con la fila avversaria aperta, quattro file e la scala `ui` delle scritte e dei distintivi), e da coordinate canoniche a posti sullo schermo, con la prospettiva di chi guarda |
 | `card.ts` | una carta sul tavolo: faccia (dalla cache) o dorso, tappata, filo e ombra; sul campo i distintivi a corpo fisso (costo, Potenza attuale, Contrattacco, parole chiave) e i segni di ciò che ha in più; l'anello e il numero d'ondata |
-| `table.ts` | campi, riquadri, etichette, targhe dei posti (PV, Gettone, Flusso), pile, pannello delle pile avversarie, cassetto, gesto di fase; `show(state)` riallinea le carte per uid |
+| `table.ts` | campi, riquadri, etichette, targhe dei posti (PV, Gettone, Flusso), pile, il tasto che apre la fila di servizio avversaria (con l'apertura animata: il fondo si dissolve, le carte scivolano), cassetto, gesto di fase; `show(state)` riallinea le carte per uid |
 | `appearance.ts` | il tema «Notte», e l'attrezzo per dipingere i pezzi d'interfaccia col canvas |
 | `sample-game.ts` | la partita di prova: una lista di azioni che passa dal riduttore vero |
 
@@ -127,8 +128,8 @@ node scripts/test-gestures.mjs --out prova     # i gesti del giocatore
 ```
 
 Chiusi dopo F4: sfogliare l'Abisso e la Zona di Ritiro (pubblici, §5: un
-tocco sulla pila apre la vetrina, `pileViewer.browse`), il pannello delle pile
-avversarie aperto, la penombra del tavolo con la catena aperta.
+tocco sulla pila apre la vetrina, `pileViewer.browse`), la fila di servizio
+avversaria aperta dal tasto, la penombra del tavolo con la catena aperta.
 
 ## La resa (F5)
 

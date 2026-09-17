@@ -46,7 +46,7 @@
             "target": {
               "scope": "assigned"
             },
-            "amount": 1,
+            "amount": 2,
             "duration": "until_end_of_turn"
           }
         },
@@ -77,7 +77,7 @@
             },
             "details": {
               "die": "d6",
-              "onlyOnRoll": "4-6",
+              "onlyOnRoll": "3-6",
               "thenDrawCards": 1
             }
           }

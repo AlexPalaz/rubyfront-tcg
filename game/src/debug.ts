@@ -52,7 +52,7 @@ declare global {
       /** La partita in corso (?match=bot): sessione e tavolo, per le prove da console. */
       match?: unknown;
       /** La resa sul tavolo di prova (?table=sample&resolution): un volo col taglio, una parata, un colpo. */
-      resolution?: { fly(): void };
+      resolution?: { fly(): void; control(): void };
       /** Le schermate del gioco (F6): home, accoglienza, mazzi, header, chat, impostazioni. */
       screens?: unknown;
       /** Solo in sviluppo: i gesti per le prove da fuori (main.ts, createTestHooks). */

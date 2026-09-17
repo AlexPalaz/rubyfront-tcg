@@ -19,7 +19,7 @@
     "equip",
     "draw"
   ],
-  "rulesReference": "MANUALE.md §3.1, §8.2",
+  "rulesReference": "MANUALE.md §3.1, §5, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -40,21 +40,25 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "scouting",
-          "displayKey": "scouting",
-          "event": "on_attack",
+          "id": "requisition",
+          "displayKey": "requisition",
+          "event": "on_turn_start",
           "details": {
-            "oncePerEachOfYourTurns": true,
-            "requiresObjectAssigned": true
+            "requiresNoObjectOnOwnFront": true
           },
           "effect": {
-            "type": "draw_card",
-            "target": {
-              "controller": "controller"
+            "type": "search_card",
+            "from": {
+              "zone": "deck",
+              "owner": "controller"
             },
-            "count": 1,
+            "filter": {
+              "cardType": "object"
+            },
             "details": {
-              "thenDiscardCards": 1
+              "revealToOpponent": true,
+              "addToHand": true,
+              "thenShuffle": true
             }
           }
         }

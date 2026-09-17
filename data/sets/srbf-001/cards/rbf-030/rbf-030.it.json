@@ -23,7 +23,7 @@
     },
     "flavor": "Non chiede che cosa porta. Chiede solo per chi.",
     "effect": {
-      "text": "Gli Oggetti che assegni a questa Entità costano 1 Flusso in meno."
+      "text": "Gli Oggetti che assegni a questa Entità costano 2 Flussi in meno."
     }
   }
 }

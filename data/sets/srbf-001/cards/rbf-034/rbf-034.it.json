@@ -14,7 +14,7 @@
     "name": "Catalizzatore Sigma",
     "effect": {
       "name": "Effetto",
-      "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 4–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta."
+      "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +2 Potenza fino alla fine del turno. Poi lancia un d6: con 3–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta."
     },
     "flavor": "Brucia piano. Rivela in fretta."
   }

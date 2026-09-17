@@ -1,7 +1,7 @@
 {
   "name": "Esploratore",
   "typeLabel": "Entità: Auros",
-  "summary": "L'avanscoperta equipaggiata: attacca con un Oggetto e filtra la mano.",
+  "summary": "L'avanscoperta: se il Fronte è disarmato, trova il primo Oggetto nel mazzo.",
   "ui": {
     "face": "Entità"
   },
@@ -17,10 +17,10 @@
   },
   "face": {
     "name": "Esploratore",
-    "scouting": {
-      "trigger": "Effetto",
-      "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
-    },
-    "flavor": "Esplora con gli occhi. Decide con la lama."
+    "flavor": "Esplora con gli occhi. Decide con la lama.",
+    "requisition": {
+      "trigger": "All'inizio di ogni tuo turno",
+      "text": "Se non ci sono Oggetti sul tuo Fronte, cerca nel tuo mazzo un Oggetto, mostralo all'avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
+    }
   }
 }

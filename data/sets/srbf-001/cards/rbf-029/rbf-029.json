@@ -20,7 +20,7 @@
     "surge",
     "pump"
   ],
-  "rulesReference": "MANUALE.md §3.1, §8.1, §8.2",
+  "rulesReference": "MANUALE.md §3.1, §5, §8.1, §8.2",
   "faces": [
     {
       "id": "entity",
@@ -45,6 +45,33 @@
       "requirements": {},
       "triggers": [
         {
+          "id": "breach",
+          "displayKey": "breach",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "zone": "front",
+              "owner": "opponent",
+              "min": 1,
+              "max": 1,
+              "conditions": [
+                {
+                  "stat": "flux_cost",
+                  "operator": "lte",
+                  "value": 2
+                }
+              ]
+            },
+            "destination": {
+              "zone": "retire",
+              "owner": "card_owner"
+            }
+          }
+        },
+        {
           "id": "command",
           "displayKey": "command",
           "event": "on_attack",
@@ -62,7 +89,7 @@
                 "excludeSelf": true
               }
             },
-            "amount": 1,
+            "amount": 2,
             "duration": "until_end_of_turn"
           }
         }

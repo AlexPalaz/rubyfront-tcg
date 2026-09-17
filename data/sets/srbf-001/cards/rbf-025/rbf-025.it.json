@@ -1,7 +1,7 @@
 {
   "name": "Guardiano del Campo",
   "typeLabel": "Entità: Auros",
-  "summary": "Scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
+  "summary": "Scava quattro carte, prende un Oggetto e riempie la Zona di Ritiro.",
   "ui": {
     "face": "Entità"
   },
@@ -19,7 +19,7 @@
     "name": "Guardiano del Campo",
     "forage": {
       "trigger": "Quando entra sul Fronte",
-      "text": "Lancia un d6 e guarda dalla cima del tuo mazzo tante carte quanto il risultato. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
+      "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
     },
     "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
   }

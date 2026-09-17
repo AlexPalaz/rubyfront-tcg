@@ -1,7 +1,7 @@
 {
   "name": "Eversione Distruttiva",
   "typeLabel": "Materia Distruttiva I",
-  "summary": "Rimozione secca nell'Abisso, pagata in PV.",
+  "summary": "Rimozione secca nell'Abisso, a sconto contro chi ha appena attaccato.",
   "ui": {
     "face": "Materia"
   },
@@ -18,7 +18,7 @@
     "name": "Eversione Distruttiva",
     "effect": {
       "name": "Effetto",
-      "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Poi perdi 2 PV."
+      "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Se questa carta bersaglia un'Entità tappata, costa 1 Flusso in meno."
     },
     "flavor": "Rovescia il dentro in fuori. Paga anche chi la pronuncia."
   },

@@ -49,18 +49,18 @@
               "zone": "deck",
               "owner": "controller",
               "position": "top",
-              "count": 5
+              "count": 6
             },
             "details": {
               "die": "d20",
               "mayRevealByRoll": {
-                "1-7": {
+                "1-5": {
                   "cardType": "matter"
                 },
-                "8-14": {
+                "6-13": {
                   "cardType": "object"
                 },
-                "15-20": {
+                "14-20": {
                   "cardType": "entity"
                 }
               },

@@ -1,7 +1,7 @@
 {
   "name": "Underblade of Nova Kai",
   "typeLabel": "Entity: Auros",
-  "summary": "Surge and command: when it attacks equipped, the whole armed front pushes.",
+  "summary": "It enters and sweeps a light body away; when it attacks armed, the whole armed front pushes by 2.",
   "ui": {
     "face": "Entity"
   },
@@ -23,8 +23,12 @@
     },
     "command": {
       "trigger": "When this Entity attacks while it has an Object assigned",
-      "text": "Other Entities with an Object assigned you control get +1 Power until end of turn."
+      "text": "Other Entities with an Object assigned you control get +2 Power until end of turn."
     },
-    "flavor": "When the underblade strikes, the other blades listen."
+    "flavor": "When the underblade strikes, the other blades listen.",
+    "breach": {
+      "trigger": "When it enters the Front",
+      "text": "Put an opposing Entity with Flux cost 2 or less into its owner's Retire Zone."
+    }
   }
 }

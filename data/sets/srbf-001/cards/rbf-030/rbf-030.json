@@ -49,7 +49,7 @@
             "filter": {
               "cardType": "object"
             },
-            "amount": 1,
+            "amount": 2,
             "details": {
               "assignedToSelf": true
             }

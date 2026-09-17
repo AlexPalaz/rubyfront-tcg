@@ -49,11 +49,10 @@
             "from": {
               "zone": "deck",
               "owner": "controller",
-              "position": "top"
+              "position": "top",
+              "count": 4
             },
             "details": {
-              "die": "d6",
-              "count": "result",
               "mayReveal": {
                 "cardType": "object"
               },

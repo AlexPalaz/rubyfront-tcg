@@ -48,6 +48,30 @@ Regole collegate finora:
   sé quando una delle due carte lascia il campo (il ritorno in campo è
   sempre disarmato). È il prerequisito delle licenze (la Stasi concessa da un Oggetto
   vive «mentre assegnato»).
+- **§8.2 Effetti certificati: la ricerca a inizio turno** (engine 0.80.0,
+  2026-09-17) — «all'inizio di ogni tuo turno, se non ci sono Oggetti sul
+  tuo Fronte, cerca nel tuo mazzo un Oggetto, mostralo all'avversario e
+  aggiungilo alla tua mano, poi rimescola il mazzo»: la forma
+  `turn_start_searches` (evento `on_turn_start`, condizione «nessun Oggetto
+  sul proprio Fronte», effetto `search_card` dal proprio mazzo alla mano con
+  mostra e mescolata). Il client apre la scena al cambio di turno per chi
+  comanda il posto nuovo, sceglie dal mazzo fra i soli Oggetti e manda un
+  `toZone` in mano col riferimento `on_turn_start` e la chiave del turno
+  («turn:N»), poi lo `shuffle`. Dogane: fonte in campo con la forma; la
+  Preparazione del proprio turno; nessun Oggetto comandato in campo; un
+  Oggetto del proprio mazzo verso la mano; una volta per turno. Limiti
+  dichiarati: la mostra all'avversario è la riga di chat che nomina la
+  carta; lo `shuffle` che segue è il gesto di chi è di turno e passa da sé.
+- **§3.1 Un Oggetto non sta sul Fronte da solo** (engine 0.78.0, 2026-09-17:
+  col doppio tocco un Oggetto scendeva disassegnato, e passava) — un Oggetto
+  entra sul campo solo **già assegnato** (l'`assign` del rilascio viene prima
+  della giocata) o con `assignTo` nell'azione verso una propria Entità in
+  campo; verso un'avversaria, una Materia o il Rubyfront è fermato. Gli
+  effetti che riportano un Oggetto in campo (riarmo, ritorno vincolato,
+  Vestigio) passano da `judge_effect` col loro riferimento e non toccano
+  questa dogana. Limite dichiarato: un effetto risolto a mano che mettesse un
+  Oggetto in campo senza portatore verrebbe fermato — ed è giusto così, il
+  manuale non lo prevede.
 - **§3.1/§3.2 Contatori: mai sotto zero** — i PV si fermano a 0 (a 0 la
   partita è persa, sotto non si va) e Flusso e barra non scendono in
   negativo. Come per il tetto dei 20, i bottoni dell'HUD non hanno più
@@ -71,7 +95,9 @@ Regole collegate finora:
   l'anagrafe. Il campo del client è una superficie unica, ma le Entità
   in campo SONO il Fronte: non hanno altro posto dove stare.
 - **§6.2 Attesa di evocazione** — un'Entità entrata sul Fronte questo turno non
-  dichiara attacchi, salvo Slancio (`surge`). È la prima regola che LEGGE LE
+  dichiara attacchi, salvo Slancio (`surge`) — stampato, concesso fino a fine
+  turno, o concesso da un Oggetto indossato «mentre assegnato» (dal
+  2026-09-17, engine 0.79.0). È la prima regola che LEGGE LE
   CARTE: all'avvio il server carica l'anagrafe (id → tipo, parole chiave,
   Potenza e Contrattacco) dai dati del sito (`lib/rubyfront/card_index.rb`; il percorso si cambia con
   `RUBYFRONT_DATA`) e il tavolo annota il turno d'ingresso di ogni carta.
@@ -211,7 +237,11 @@ Regole collegate finora:
   coprire e scoprire una propria Entità in campo, in Reazione, è un gesto suo
   —, le Materie Reattive nel turno altrui (in Reazione, §6.4, §7.2, e in
   catena), i propri contatori in Fronte e Reazione perché le Reattive si
-  pagano. I gesti di apparecchiatura non hanno turno: caricare
+  pagano; e **gli inneschi delle proprie carte**, in ogni turno (dal
+  2026-09-17, engine 0.79.0: ogni evento, non più solo risoluzione,
+  assegnazione e morte — «quando entra» vale a ogni ingresso, e si rientra
+  spesso nel turno avversario: la fine di un esilio, il ritorno vincolato).
+  I gesti di apparecchiatura non hanno turno: caricare
   il proprio mazzo (all'ingresso in stanza), «Nuova partita», il proprio
   nome, la chat. E prima del primo turno c'è la preparazione della
   partita (§4): al turno 1 in Preparazione anche l'altro posto apparecchia
@@ -1294,7 +1324,10 @@ health check.
   forma che non combacia esattamente non entra (ignorare, mai fraintendere).
   `unknown_triggers` elenca gli effetti che nessuna forma legge: il test
   dell'anagrafe li tiene come debito dichiarato, così una forma rotta o un
-  dato cambiato di nascosto fallisce forte.
+  dato cambiato di nascosto fallisce forte. Il debito dei trigger oggi
+  (2026-09-17) è vuoto. Fuori dal conto dei trigger, ma da collegare:
+  l'Oggetto che «si riassegna dalla Zona di Ritiro pagandone il costo»
+  (un'azione `assign_object` dal Ritiro al costo stampato).
 - `lib/rubyfront/table.rb` — la copia del tavolo, gemella del riduttore del
   client (`core/src/state.ts`): stessa semantica, test speculari.
 - `lib/rubyfront/room.rb` — la stanza: un `Engine` per partita, i client

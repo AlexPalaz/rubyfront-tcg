@@ -28,7 +28,7 @@
     },
     "foresight": {
       "trigger": "Effetto",
-      "text": "La prima volta in ogni tuo turno che un'Entità con un Oggetto assegnato che controlli attacca, guarda le prime 2 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo."
+      "text": "La prima volta in ogni tuo turno che un'Entità con un Oggetto assegnato che controlli attacca, guarda le prime 3 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo."
     }
   }
 }

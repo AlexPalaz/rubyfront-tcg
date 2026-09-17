@@ -34,6 +34,18 @@
       "requirements": {},
       "triggers": [
         {
+          "id": "facet",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "scope": "assigned"
+            },
+            "amount": 1
+          }
+        },
+        {
           "id": "confine",
           "displayKey": "effect",
           "event": "on_assign_object",

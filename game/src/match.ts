@@ -403,7 +403,15 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     timing: { fly: FLY_MS, dissolve: FLY_MS },
     roll: (faces, result, label) => dice.roll(faces, result, label),
     scene: show => scene.show(show),
-    sceneIdle: () => scene.idle(),
+    // Gli inneschi di risoluzione (il ritorno vincolato, il Vestigio, gli
+    // Oggetti in Ritiro) aspettano anche il tavolo fermo: prima le animazioni
+    // di battaglia, poi le finestre di scelta (2026-09-17, «contro Immortale
+    // Vincolato è comparso subito il popup»).
+    sceneIdle: async () => {
+      await scene.idle();
+      await stillTable();
+      await scene.idle();
+    },
     notice: message => scene.notice(message),
     confirm: (question, labels) => scene.confirm(question, labels),
     choose: show => scene.choose(show),
@@ -445,6 +453,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     introRubyfronts: order => entrance.rubyfronts(order),
     // §6.5 — il Fine turno fermato dalla mano piena: la Zona di Ritiro si accende (gestures.ts, l'invito a scartare).
     promptDiscard: seat => playerGestures.promptDiscard(seat),
+    offerTurnStart: (after, owners) => gestures.offerTurnStart(after, owners),
     offerLeaveReturns: (before, after, owners) => gestures.offerLeaveReturns(before, after, owners),
     offerAssignTriggers: (before, after, owners) => gestures.offerAssignTriggers(before, after, owners),
     offerDeathRemains: (before, after, owners) => gestures.offerDeathRemains(before, after, owners),
@@ -526,6 +535,8 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     })();
   };
   table.onEndPhase(closePhase);
+  // Il tasto della fila avversaria cambia l'impaginazione: si ridisegna tutto, gesti e frecce compresi («Schiera» resta sulla carta).
+  table.onRelayout(() => paint());
   // Il browser non suona prima di un gesto: il contesto audio nasce al primo tocco.
   window.addEventListener("pointerdown", () => unlockSound(), { capture: true });
 

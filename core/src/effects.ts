@@ -11,7 +11,7 @@
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
 import type { AssignForm, AttackForm, DeathForm, FlipForm, ResolveForm } from "./ctx.js";
 import type { CardFacts, Ctx, EnterLook, EnterRefresh, EnterStash } from "./ctx.js";
-import { STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, zoneCards, freeFrontSlotOrNull } from "./state.js";
+import { shuffled, STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, zoneCards, freeFrontSlotOrNull } from "./state.js";
 import { countEntities } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
@@ -470,6 +470,56 @@ export function enterStashes(state: GameState, entering: CardInstance, facts: (c
     thenDraw: form.thenDraw,
     candidates: zoneCards(state, by, form.from).filter(card => facts(card.cardId).kind === form.kind),
   }));
+}
+
+export interface TurnStartSearchStep {
+  source: CardInstance;
+  /** Gli Oggetti nel mazzo di chi comanda la fonte. */
+  candidates: CardInstance[];
+}
+
+/**
+ * Le ricerche a inizio turno (§8.2, dal 2026-09-17): «all'inizio di ogni
+ * tuo turno, se non ci sono Oggetti sul tuo Fronte, cerca nel tuo mazzo un
+ * Oggetto…». Per ogni carta in campo comandata da `seat` che porta la forma,
+ * se `seat` non ha Oggetti in campo: un passo coi candidati del suo mazzo.
+ */
+export function turnStartSearches(state: GameState, seat: Seat, facts: (cardId: string) => CardFacts): TurnStartSearchStep[] {
+  const mine = fieldCards(state).filter(card => controllerOf(card) === seat);
+  if (mine.some(card => facts(card.cardId).kind === "object")) return [];
+  const out: TurnStartSearchStep[] = [];
+  for (const source of mine) {
+    if (source.facedown) continue;
+    for (const form of facts(source.cardId).turnStartSearches) {
+      out.push({ source, candidates: zoneCards(state, seat, form.from).filter(card => facts(card.cardId).kind === form.kind) });
+    }
+  }
+  return out;
+}
+
+/** Il riferimento della ricerca a inizio turno: una volta per turno, la chiave porta il turno. */
+export function searchRef(step: TurnStartSearchStep, turn: number): EffectRef {
+  return { source: step.source.uid, event: "on_turn_start", entering: `turn:${turn}` };
+}
+
+/**
+ * La carta cercata va dal mazzo alla mano (mostrata all'avversario: la chat
+ * la nomina), poi il mazzo si rimescola — un `shuffle` di chi cerca, col
+ * caso tirato qui come per il mulligan (§4).
+ */
+export async function resolveTurnStartSearch(ctx: Ctx, step: TurnStartSearchStep, card: CardInstance): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const passed = await ctx.dispatch({ t: "toZone", uid: card.uid, zone: "hand", effect: searchRef(step, ctx.state().turn) });
+  if (!passed) return false;
+  ctx.log(msg("log.effect.search", { seat: by, sourceCard: step.source.cardId, card: card.cardId }), by);
+  const order = shuffled(zoneCards(ctx.state(), by, "deck").map(entry => entry.uid));
+  if (order.length > 1) await ctx.dispatch({ t: "shuffle", seat: by, order });
+  return true;
+}
+
+/** La riga che annuncia la ricerca a inizio turno, per la scena. */
+export function describeTurnStartSearch(step: TurnStartSearchStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.requisition", { card: `«${facts(step.source.cardId).name}»` });
 }
 
 /** Il riferimento dello scarto d'Oggetto all'ingresso: lo scarto stesso, o la pesca che lo segue. */

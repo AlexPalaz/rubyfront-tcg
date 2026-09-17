@@ -16,6 +16,9 @@ import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 const FACTS: Record<string, Partial<CardFacts>> = {
   ARCHER: { kind: "entity", race: "human", fluxCost: 2, enterMoves: [{ target: { kind: "entity", controller: "opponent", maxCost: null }, to: "ritiro" }] },
   HUMAN: { kind: "entity", race: "human" },
+  IRONBIT: { kind: "object" },
+  // «All'inizio di ogni tuo turno, se non ci sono Oggetti sul tuo Fronte, cerca nel tuo mazzo un Oggetto…» (dal 2026-09-17).
+  SCOUT: { kind: "entity", race: "auros", turnStartSearches: [{ requires: "no_object_on_own_front", kind: "object", from: "deck", to: "hand", shuffle: true }] },
   // «Quando attacca: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme» (la forma `return`).
   SIMULACRUM: { kind: "entity", race: "simulacrum", attackForms: [{ kind: "return", who: "self", die: 6, onRoll: [5, 6], filter: { kind: "entity", race: "human" }, joins: true, face: 0 }] },
   RUBY: { kind: "rubyfront" },
@@ -565,3 +568,49 @@ describe("il Ritiro dal Fronte: il volo suo, solo dal campo e solo verso il Riti
     expect(lifted).toEqual(["e", "g"]);
   });
 });
+
+// §8.2 — la ricerca a inizio turno (dal 2026-09-17): la scena con «Risolvi»,
+// la scelta dal mazzo (per il bot da sé), la carta in mano e la mescolata.
+describe("createGestures — la ricerca a inizio turno (§8.2)", () => {
+  it("offerTurnStart apre la scena di chi cerca e, risolta, manda in mano l'Oggetto e rimescola", async () => {
+    const { ctx, sent, setState } = table();
+    const state = ctx.state();
+    state.turn = 3;
+    state.active = "a";
+    card(state, "sco", "SCOUT", "a", "field");
+    card(state, "d1", "IRONBIT", "a", "hand").zone = "deck";
+    card(state, "d2", "HUMAN", "a", "hand").zone = "deck";
+    card(state, "d3", "HUMAN", "a", "hand").zone = "deck";
+    setState(state);
+    const { view, scenes } = fakeView();
+    const gestures = createGestures(ctx, view);
+    gestures.setAuto("a", { pickTarget: (_s, candidates) => candidates[0] ?? null, pickFromPile: (_zone, candidates) => candidates[0] ?? null });
+    gestures.offerTurnStart(ctx.state(), ["a"]);
+    await settle(Promise.resolve());
+    expect(scenes).toHaveLength(1);
+    expect(scenes[0].cardId).toBe("SCOUT");
+    expect(scenes[0].kicker).toBe(t("scene.turn.start"));
+    expect(sent.map(action => action.t)).toEqual(["toZone", "shuffle"]);
+    expect(sent[0]).toMatchObject({ uid: "d1", zone: "hand", effect: { event: "on_turn_start", entering: "turn:3" } });
+    expect(ctx.state().cards.d1?.zone).toBe("hand");
+  });
+
+  it("non offre nulla a chi non è di turno, né con un Oggetto già in campo", async () => {
+    const { ctx, setState } = table();
+    const state = ctx.state();
+    state.active = "a";
+    card(state, "sco", "SCOUT", "a", "field");
+    card(state, "d1", "IRONBIT", "a", "hand").zone = "deck";
+    setState(state);
+    const { view, scenes } = fakeView();
+    const gestures = createGestures(ctx, view);
+    gestures.offerTurnStart(ctx.state(), ["b"]);
+    await settle(Promise.resolve());
+    expect(scenes).toHaveLength(0);
+    card(ctx.state(), "fe", "IRONBIT", "a", "field").assignedTo = "sco";
+    gestures.offerTurnStart(ctx.state(), ["a"]);
+    await settle(Promise.resolve());
+    expect(scenes).toHaveLength(0);
+  });
+});
+

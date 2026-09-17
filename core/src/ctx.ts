@@ -44,6 +44,8 @@ export interface CardFacts {
   enterRearms: EnterRearm[];
   /** Gli scarti d'Oggetto certificati «quando QUESTA entra: un Oggetto dalla mano in Ritiro, poi pesca» (§8.2). */
   enterStashes: EnterStash[];
+  /** Le ricerche certificate «all'inizio di ogni tuo turno, se non ci sono Oggetti sul tuo Fronte, cerca un Oggetto nel mazzo» (§8.2, dal 2026-09-17). */
+  turnStartSearches: TurnStartSearch[];
   /** «Puoi mettere questo Oggetto in Ritiro pagandone il costo» (§6.2): vedi SelfRetire. */
   selfRetires: SelfRetire[];
   /** I ritorni vincolati certificati «mandata nell'Abisso o in Ritiro senza Oggetti, torna con un Oggetto» (§8.2). */
@@ -278,6 +280,21 @@ export interface EnterRearm {
   self?: true;
   /** Nella variante su di sé: «con costo di Flusso N o inferiore» (dal 2026-09-15). */
   maxCost?: number;
+}
+
+/**
+ * La forma certificata della ricerca a inizio turno (dal 2026-09-17):
+ * «all'inizio di ogni tuo turno, se non ci sono Oggetti sul tuo Fronte,
+ * cerca nel tuo mazzo un Oggetto, mostralo all'avversario e aggiungilo alla
+ * tua mano, poi rimescola il mazzo». Specchio di card_index.rb,
+ * turn_start_searches.
+ */
+export interface TurnStartSearch {
+  requires: "no_object_on_own_front";
+  kind: "object";
+  from: "deck";
+  to: "hand";
+  shuffle: true;
 }
 
 /**

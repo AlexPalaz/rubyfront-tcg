@@ -169,6 +169,7 @@ module Rubyfront
           enter_rearms: enter_rearms(faces).freeze,
           leave_returns: leave_returns(faces).freeze,
           enter_stashes: enter_stashes(faces).freeze,
+          turn_start_searches: turn_start_searches(faces).freeze,
           self_retires: self_retires(faces).freeze,
           assign_forms: assign_forms(faces).freeze,
           death_forms: death_forms(faces).freeze,
@@ -185,7 +186,7 @@ module Rubyfront
 
     # Tutti i parser delle forme certificate: ogni trigger di ogni carta
     # deve trovarne uno che lo riconosca, o è un effetto che l'engine ignora.
-    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls enter_refreshes enter_disarms enter_rearms enter_stashes leave_returns
+    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls enter_refreshes enter_disarms enter_rearms enter_stashes turn_start_searches leave_returns
                attack_draws attack_forms grants_while_assigned static_forms resolve_forms flip_forms assign_forms death_forms].freeze
     RETURN_EVENTS = %w[on_enter_field on_attack].freeze
 
@@ -1282,6 +1283,28 @@ module Rubyfront
     # Oggetto dalla propria mano al proprio Ritiro, con la pesca a seguire
     # (`thenDrawCards`, certificata solo a 1). Ogni voce: { from: "hand",
     # type: "object", to: "ritiro", then_draw: }.
+    # La ricerca a inizio turno (§8.2, dal 2026-09-17): «all'inizio di ogni
+    # tuo turno, se non ci sono Oggetti sul tuo Fronte, cerca nel tuo mazzo
+    # un Oggetto, mostralo all'avversario e aggiungilo alla tua mano, poi
+    # rimescola il mazzo». Evento `on_turn_start` con la condizione
+    # `requiresNoObjectOnOwnFront`, effetto `search_card` dal proprio mazzo
+    # di un Oggetto verso la mano, con la mostra, l'aggiunta e la mescolata.
+    # Specchio di core/src/cards.ts, turnStartSearchesOf.
+    def self.turn_start_searches(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_turn_start"
+        next unless trigger["details"] == { "requiresNoObjectOnOwnFront" => true }
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "search_card"
+        next unless effect["from"] == { "zone" => "deck", "owner" => "controller" }
+        next unless effect["filter"] == { "cardType" => "object" }
+        next unless effect["details"] == { "revealToOpponent" => true, "addToHand" => true, "thenShuffle" => true }
+
+        { requires: "no_object_on_own_front", type: "object", from: "deck", to: "hand", shuffle: true }.freeze
+      end
+    end
+
     def self.enter_stashes(faces)
       faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
         next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"

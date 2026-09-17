@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.77.0"
+    VERSION = "0.80.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -38,6 +38,7 @@ module Rubyfront
       "§3.1/§3.2 Contatori: mai sotto zero",
       "§3.1 I PV iniziali sono quelli stampati sul Rubyfront",
       "§3.1 Oggetti: assegnazione",
+      "§3.1 Un Oggetto non sta sul Fronte da solo: entra assegnato a una tua Entità",
       "§6 Fasi: le dichiarazioni in Fase di Fronte",
       "§6.2 Ritiro: gesto di Preparazione; nella fase, libero; in Zona di Ritiro dal Fronte, o scartando dalla mano",
       "§5 Materie: mai sugli slot del Fronte",
@@ -50,7 +51,7 @@ module Rubyfront
       "§6.2 Gli Oggetti non si ritirano da soli: seguono la loro Entità",
       "§3.1 Gli Oggetti di un'Entità morta vanno in Zona di Ritiro",
       "§6.2 Le carte si giocano in Preparazione (salvo Reattive e Rubyfront)",
-      "§6 Nel turno altrui non si agisce (salvo Reazione e Reattive)",
+      "§6 Nel turno altrui non si agisce (salvo Reazione, Reattive e gli inneschi delle proprie carte)",
       "§3.2 Le carte si pagano: il costo di Flusso",
       "§3.2 Uno sconto può azzerare il costo: la carta è gratis",
       "§8.2 Effetti certificati: «quando attacca, col d20 stappa tutte le Entità dopo la Fase di Fronte»; il riarmo di sé entro il costo",
@@ -106,6 +107,7 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando quell'Entità muore, questo Oggetto in Ritiro invece che nell'Abisso; poi un altro Oggetto dal Ritiro a una disarmata, gratis»",
       "§3.1 La chiamata sul Fronte del Nexus: un'Entità dalla mano senza costo, con Slancio, e +N alle prossime attaccanti del turno",
       "§8.2 Effetti certificati: «quando entra sul Fronte, puoi mettere un Oggetto dalla mano in Ritiro: se lo fai, pesca»; «quando attacca l'Entità che lo porta, col d6 un altro Oggetto in Ritiro: se lo fai, pesca»",
+      "§8.2 Effetti certificati: «all'inizio di ogni tuo turno, se non ci sono Oggetti sul tuo Fronte, cerca un Oggetto nel mazzo e aggiungilo alla mano, poi rimescola»",
       "§6.2 Un Oggetto che dice «puoi mettermi in Zona di Ritiro pagandone il costo»: in Preparazione propria, al costo stampato",
       "§6.3 I «quando attacca» si risolvono alla chiusura del Fronte, prima della Reazione; il «pronto» delle scene (ready) passa a chiunque, in ogni fase",
       "§6.2 A Fronte pieno chi scende per effetto (dalla mano, dal Ritiro o dall'Abisso) può prendere il posto di un'Entità propria, che va in Zona di Ritiro coi suoi Oggetti",
@@ -122,6 +124,7 @@ module Rubyfront
       "§3.1/§3.2 Counters: never below zero",
       "§3.1 Starting Health Points are the ones printed on the Rubyfront",
       "§3.1 Objects: assignment",
+      "§3.1 An Object doesn't stand on the Front on its own: it enters assigned to one of your Entities",
       "§6 Phases: declarations in the Front Phase",
       "§6.2 Retire: a Preparation move; within the phase, free; the Retire Zone from the Front, or by discarding from hand",
       "§5 Matters: never on the Front slots",
@@ -134,7 +137,7 @@ module Rubyfront
       "§6.2 Objects don't retire on their own: they follow their Entity",
       "§3.1 The Objects of a dead Entity go to the Retire Zone",
       "§6.2 Cards are played in Preparation (except Reactives and the Rubyfront)",
-      "§6 No acting on the opponent's turn (except Reaction and Reactives)",
+      "§6 No acting on the opponent's turn (except Reaction, Reactives and your own cards' triggers)",
       "§3.2 Cards are paid for: the Flux cost",
       "§3.2 A discount can bring the cost to zero: the card is free",
       "§8.2 Certified effects: “when it attacks, with the d20 untap all Entities after the Front Phase”; self rearm within the cost",
@@ -189,6 +192,7 @@ module Rubyfront
       "§3.1 The Rubyfront/Nexus “the first time each of your turns you assign an Object”: top and bottom of the deck, swapped (then draw and discard) or one to hand and the other to Retire",
       "§8.2 Certified effects: “when that Entity dies, this Object to Retire instead of the Abyss; then another Object from Retire onto an unarmed one, for free”",
       "§3.1 The Nexus's call to the Front: an Entity from hand at no cost, with Surge, and +N to the next attackers this turn",
+      "§8.2 Certified effects: “at the start of each of your turns, if there are no Objects on your Front, search your deck for an Object and add it to your hand, then shuffle”",
       "§8.2 Certified effects: “when it enters the Front, you may put an Object from hand into Retire: if you do, draw”; “when its bearer attacks, with the d6 another Object into Retire: if you do, draw”",
       "§6.2 An Object that says “you may put me into the Retire Zone by paying its cost”: in your own Preparation, at the printed cost",
       "§6.3 “When it attacks” resolves when the Front closes, before the Reaction; the scenes' “ready” passes for anyone, in any phase",
@@ -618,6 +622,20 @@ module Rubyfront
 
       known = @cards[card[:card_id]]
       return no_rule("toZone") unless known
+
+      # §3.1 — «un Oggetto si gioca assegnandolo a un'Entità»: sul Fronte un
+      # Oggetto non sta da solo (2026-09-17: col doppio tocco scendeva
+      # disassegnato, e passava). Entra già assegnato — l'`assign` del
+      # rilascio viene prima della giocata — o con `assignTo` nell'azione,
+      # verso una PROPRIA Entità in campo. Un effetto che lo riporti in campo
+      # passa da judge_effect col suo riferimento, non da qui.
+      if known[:type] == "object" && !card[:assigned_to]
+        bearer = action["assignTo"] && @table.card(action["assignTo"])
+        wearable = bearer && bearer[:zone] == "field" && bearer[:owner] == card[:owner] && @cards.dig(bearer[:card_id], :type) == "entity"
+        unless wearable
+          return refuse("toZone", "un Oggetto non sta sul Fronte da solo: si gioca assegnandolo a una tua Entità (§3.1, Oggetti)", "an Object doesn't stand on the Front on its own: it is played by assigning it to one of your Entities (§3.1, Objects)")
+        end
+      end
 
       # §6.2 — le carte si GIOCANO in Preparazione: «in questa fase si inizia
       # a giocare con le carte e si prepara il Fronte». Nel Fronte si
@@ -1067,8 +1085,10 @@ module Rubyfront
 
       known = @cards[card[:card_id]]
       return allow("declare") unless known && known[:type] == "entity"
-      # Lo Slancio stampato, o concesso fino a fine turno (§8.2).
-      return allow("declare") if known[:keywords].include?("surge") || Array(card[:grants]).include?("surge")
+      # Lo Slancio stampato, concesso fino a fine turno (§8.2) o concesso da
+      # un Oggetto indossato «mentre assegnato» (2026-09-17: la Spada che dà
+      # Slancio non lo dava, la dogana leggeva solo le parole chiave stampate).
+      return allow("declare") if has_keyword?(declaration["from"], "surge")
 
       if card[:entered] == @table.turn
         refuse("declare", "l'Entità è entrata sul Fronte questo turno: senza Slancio attacca dal prossimo (§6.2, attesa di evocazione)", "the Entity entered the Front this turn: without Surge it attacks from the next one (§6.2, summoning wait)")
@@ -1352,12 +1372,18 @@ module Rubyfront
           return nil if card && card[:owner] == actor && between.include?(card[:zone]) && between.include?(action["zone"])
         end
       end
-      # §7.2 — la Reattiva del difensore si risolve nel turno altrui: i
-      # passi del suo effetto sono del difensore che l'ha giocata.
+      # §7.2/§8.2 — i passi di un effetto sono di chi comanda la FONTE, in
+      # ogni turno: la Reattiva del difensore si risolve nel turno altrui, e
+      # dal 2026-09-17 anche gli inneschi d'ingresso, d'uscita e del resto —
+      # «quando entra sul Fronte» vale a ogni ingresso (§8.2), e si rientra
+      # spesso nel turno avversario (la fine di un esilio, il ritorno
+      # vincolato). Prima passavano solo risoluzione, assegnazione e morte:
+      # il riarmo all'ingresso e l'esilio del Prisma nel turno del bot
+      # venivano fermati con «non tocca a te».
       ref = action["effect"]
-      if ref.is_a?(Hash) && %w[on_resolve on_assign_object on_death].include?(ref["event"])
+      if ref.is_a?(Hash)
         source = @table.card(ref["source"])
-        return nil if source && source[:owner] == actor
+        return nil if source && @table.controller_of(source) == actor
       end
       case kind
       when "declare"
@@ -1583,6 +1609,7 @@ module Rubyfront
         return judge_enter_stash(action, ref) if ref["follow"] == "stash"
       end
       return judge_enter_stash_draw(action, ref) if kind == "draw" && ref["event"] == "on_enter_field" && ref["follow"] == "draw"
+      return judge_turn_start_search(action, ref) if kind == "toZone" && ref["event"] == "on_turn_start"
       return judge_effect_move(action, ref) if kind == "toZone"
       return judge_effect_look(action, ref) if kind == "look"
       return judge_effect_control(action, ref) if kind == "control"
@@ -3248,6 +3275,46 @@ module Rubyfront
       unless entry[:type] == form[:type] && object[:zone] == form[:from] && object[:owner] == seat
         return refuse("toZone", "si mette in Ritiro un Oggetto dalla PROPRIA mano (§8.2)", "you put into Retire an Object from your OWN hand (§8.2)")
       end
+
+      allow("toZone")
+    end
+
+    # §8.2 — la ricerca a inizio turno (dal 2026-09-17): «all'inizio di ogni
+    # tuo turno, se non ci sono Oggetti sul tuo Fronte, cerca nel tuo mazzo
+    # un Oggetto, mostralo all'avversario e aggiungilo alla tua mano, poi
+    # rimescola il mazzo». La fonte è in campo e ha la forma; è la
+    # Preparazione del turno di chi la comanda; nessun Oggetto suo in campo;
+    # il bersaglio è un Oggetto del suo mazzo, che va in mano; una volta per
+    # turno (la chiave porta il turno: `entering` = «turn:N»). La mescolata
+    # che segue è un `shuffle` di chi è di turno, e passa da sé. Limite
+    # dichiarato: che la carta sia mostrata all'avversario lo dice la chat.
+    def judge_turn_start_search(action, ref)
+      source = @table.card(ref["source"])
+      return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+
+      known = @cards[source[:card_id]]
+      return no_rule("toZone") unless known
+      form = Array(known[:turn_start_searches]).first
+      return refuse("toZone", "la carta non ha un effetto certificato che cerchi nel mazzo a inizio turno (§8.2)", "the card has no certified effect that searches the deck at the start of the turn (§8.2)") unless form
+
+      seat = @table.controller_of(source)
+      unless @table.active == seat && @table.phase == "preparazione"
+        return refuse("toZone", "la ricerca è all'inizio del proprio turno, in Preparazione (§8.2)", "the search happens at the start of your own turn, in Preparation (§8.2)")
+      end
+      return refuse("toZone", "questo innesco è già stato risolto in questo turno (§8.2)", "this trigger has already been resolved this turn (§8.2)") unless ref["entering"] == "turn:#{@table.turn}"
+      return refuse("toZone", "questo innesco è già stato risolto in questo turno (§8.2)", "this trigger has already been resolved this turn (§8.2)") if @table.fired?(ref["source"], fired_event(ref), ref["entering"])
+
+      armed = @table.commanded_cards(seat).any? { |card| @cards.dig(card[:card_id], :type) == "object" }
+      return refuse("toZone", "la ricerca vale solo se non ci sono Oggetti sul tuo Fronte (§8.2)", "the search only applies if there are no Objects on your Front (§8.2)") if armed
+
+      target = @table.card(action["uid"])
+      entry = target && @cards[target[:card_id]]
+      return refuse("toZone", "il bersaglio dell'effetto non esiste (§8.2)", "the effect's target doesn't exist (§8.2)") unless target
+      return no_rule("toZone") unless entry
+      unless entry[:type] == form[:type] && target[:zone] == form[:from] && target[:owner] == seat
+        return refuse("toZone", "si cerca un Oggetto nel PROPRIO mazzo (§8.2)", "you search for an Object in your OWN deck (§8.2)")
+      end
+      return refuse("toZone", "la carta cercata va in mano (§8.2)", "the searched card goes to hand (§8.2)") unless action["zone"] == form[:to]
 
       allow("toZone")
     end

@@ -7,7 +7,7 @@
 // gioco a modo suo. La grafica delle carte non sta qui: è del client.
 
 import type { Phase } from "./types.js";
-import type { AssignForm, CardFacts, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, EnterStash, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, SelfRetire, StaticForm, Ability, AbilityForm } from "./ctx.js";
+import type { AssignForm, CardFacts, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, EnterStash, TurnStartSearch, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, SelfRetire, StaticForm, Ability, AbilityForm } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -613,6 +613,26 @@ function enterControlsOf(face: CardFace | undefined): EnterControl[] {
  * Ritiro, con la pesca a seguire (`thenDrawCards`, certificata solo a 1).
  * Specchio di card_index.rb, enter_stashes.
  */
+/**
+ * Le ricerche a inizio turno certificate (§8.2, dal 2026-09-17): evento
+ * `on_turn_start` con la sola condizione `requiresNoObjectOnOwnFront`,
+ * effetto `search_card` dal proprio mazzo di un Oggetto, con la mostra,
+ * l'aggiunta alla mano e la mescolata. Specchio di card_index.rb.
+ */
+function turnStartSearchesOf(face: CardFace | undefined): TurnStartSearch[] {
+  const out: TurnStartSearch[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_turn_start") continue;
+    if (!sameShape(trigger.details, { requiresNoObjectOnOwnFront: true })) continue;
+    const effect = trigger.effect as Loose | undefined;
+    if (!effect || effect.type !== "search_card") continue;
+    if (!sameShape(effect.from, { zone: "deck", owner: "controller" }) || !sameShape(effect.filter, { cardType: "object" })) continue;
+    if (!sameShape(effect.details, { revealToOpponent: true, addToHand: true, thenShuffle: true })) continue;
+    out.push({ requires: "no_object_on_own_front", kind: "object", from: "deck", to: "hand", shuffle: true });
+  }
+  return out;
+}
+
 function enterStashesOf(face: CardFace | undefined): EnterStash[] {
   const out: EnterStash[] = [];
   for (const trigger of face?.triggers ?? []) {
@@ -1340,6 +1360,7 @@ export function cardStats(cardId: string): {
   enterDisarms: EnterDisarm[];
   enterRearms: EnterRearm[];
   enterStashes: EnterStash[];
+  turnStartSearches: TurnStartSearch[];
   selfRetires: SelfRetire[];
   leaveReturns: LeaveReturn[];
   attackReturns: EnterReturn[];
@@ -1387,6 +1408,7 @@ export function cardStats(cardId: string): {
     enterDisarms: enterDisarmsOf(face),
     enterRearms: enterRearmsOf(face),
     enterStashes: enterStashesOf(face),
+    turnStartSearches: turnStartSearchesOf(face),
     selfRetires: selfRetiresOf(face),
     leaveReturns: leaveReturnsOf(face),
     power: integer(face?.stats?.power),
@@ -1445,6 +1467,7 @@ export function cardFacts(cardId: string, locale: string): CardFacts {
     enterDisarms: stats.enterDisarms,
     enterRearms: stats.enterRearms,
     enterStashes: stats.enterStashes,
+    turnStartSearches: stats.turnStartSearches,
     selfRetires: stats.selfRetires,
     leaveReturns: stats.leaveReturns,
     enterRefreshes: stats.enterRefreshes,

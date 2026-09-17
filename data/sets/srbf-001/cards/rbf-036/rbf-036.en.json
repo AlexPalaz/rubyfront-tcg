@@ -1,7 +1,7 @@
 {
   "name": "Synaptic Amplification",
   "typeLabel": "Dimensional Matter I",
-  "summary": "A double untap and a double push for armed Entities.",
+  "summary": "A triple untap and a triple push for armed Entities.",
   "ui": {
     "face": "Matter"
   },
@@ -18,7 +18,7 @@
     "name": "Synaptic Amplification",
     "effect": {
       "name": "Effect",
-      "text": "Up to 2 Entities with an Object assigned you control get +1 Power until end of turn and are untapped."
+      "text": "Up to 3 Entities with an Object assigned you control get +1 Power until end of turn and are untapped."
     },
     "flavor": "One thought, many hands."
   },

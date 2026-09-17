@@ -3782,7 +3782,7 @@
             "it": {
               "name": "Recluta del Campo",
               "typeLabel": "Entità: Auros",
-              "summary": "Un corpo da un Flusso che mette un Oggetto in Ritiro e pesca.",
+              "summary": "Un corpo da un Flusso che mette un Oggetto in Ritiro, pesca, e armato picchia per 2.",
               "ui": {
                 "face": "Entità"
               },
@@ -3802,13 +3802,16 @@
                   "trigger": "Quando entra sul Fronte",
                   "text": "Puoi mettere un Oggetto dalla tua mano nella tua Zona di Ritiro. Se lo fai, pesca una carta."
                 },
-                "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
+                "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
+                "effect": {
+                  "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
+                }
               }
             },
             "en": {
               "name": "Camp Recruit",
               "typeLabel": "Entity: Auros",
-              "summary": "A one-Flux body that puts an Object into Retire and draws.",
+              "summary": "A one-Flux body that puts an Object into Retire, draws, and hits for 2 once armed.",
               "ui": {
                 "face": "Entity"
               },
@@ -3828,7 +3831,10 @@
                   "trigger": "When it enters the Front",
                   "text": "You may put an Object from your hand into your Retire Zone. If you do, draw a card."
                 },
-                "flavor": "The first weapon was patience. The Camp handed over the second."
+                "flavor": "The first weapon was patience. The Camp handed over the second.",
+                "effect": {
+                  "text": "If this Entity has an Object assigned, it has +1 Power."
+                }
               }
             }
           },
@@ -3887,6 +3893,21 @@
                       "thenDrawCards": 1
                     }
                   }
+                },
+                {
+                  "id": "grip",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
+                  "effect": {
+                    "type": "modify_power",
+                    "target": {
+                      "scope": "self"
+                    },
+                    "amount": 1,
+                    "details": {
+                      "whileHasObjectAssigned": true
+                    }
+                  }
                 }
               ],
               "actions": []
@@ -3914,7 +3935,7 @@
             "it": {
               "name": "Guardiano del Campo",
               "typeLabel": "Entità: Auros",
-              "summary": "Scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
+              "summary": "Scava quattro carte, prende un Oggetto e riempie la Zona di Ritiro.",
               "ui": {
                 "face": "Entità"
               },
@@ -3932,7 +3953,7 @@
                 "name": "Guardiano del Campo",
                 "forage": {
                   "trigger": "Quando entra sul Fronte",
-                  "text": "Lancia un d6 e guarda dalla cima del tuo mazzo tante carte quanto il risultato. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
+                  "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
                 },
                 "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
               }
@@ -3940,7 +3961,7 @@
             "en": {
               "name": "Camp Warden",
               "typeLabel": "Entity: Auros",
-              "summary": "It digs through the deck by the die and fills the Retire Zone.",
+              "summary": "It digs four cards, takes an Object and fills the Retire Zone.",
               "ui": {
                 "face": "Entity"
               },
@@ -3958,7 +3979,7 @@
                 "name": "Camp Warden",
                 "forage": {
                   "trigger": "When it enters the Front",
-                  "text": "Roll a d6 and look at as many cards from the top of your deck as the result. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
+                  "text": "Look at the top 4 cards of your deck. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
                 },
                 "flavor": "It counts cards like sentries: at the second, it sounds the alarm."
               }
@@ -4000,11 +4021,10 @@
                     "from": {
                       "zone": "deck",
                       "owner": "controller",
-                      "position": "top"
+                      "position": "top",
+                      "count": 4
                     },
                     "details": {
-                      "die": "d6",
-                      "count": "result",
                       "mayReveal": {
                         "cardType": "object"
                       },
@@ -4051,7 +4071,7 @@
             "it": {
               "name": "Esploratore",
               "typeLabel": "Entità: Auros",
-              "summary": "L'avanscoperta equipaggiata: attacca con un Oggetto e filtra la mano.",
+              "summary": "L'avanscoperta: se il Fronte è disarmato, trova il primo Oggetto nel mazzo.",
               "ui": {
                 "face": "Entità"
               },
@@ -4067,17 +4087,17 @@
               },
               "face": {
                 "name": "Esploratore",
-                "scouting": {
-                  "trigger": "Effetto",
-                  "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
-                },
-                "flavor": "Esplora con gli occhi. Decide con la lama."
+                "flavor": "Esplora con gli occhi. Decide con la lama.",
+                "requisition": {
+                  "trigger": "All'inizio di ogni tuo turno",
+                  "text": "Se non ci sono Oggetti sul tuo Fronte, cerca nel tuo mazzo un Oggetto, mostralo all'avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
+                }
               }
             },
             "en": {
               "name": "Scout",
               "typeLabel": "Entity: Auros",
-              "summary": "The equipped vanguard: attack with an Object and filter your hand.",
+              "summary": "The vanguard: if the Front is unarmed, it finds the first Object in the deck.",
               "ui": {
                 "face": "Entity"
               },
@@ -4093,11 +4113,11 @@
               },
               "face": {
                 "name": "Scout",
-                "scouting": {
-                  "trigger": "Effect",
-                  "text": "The first time each of your turns this Entity attacks while it has an Object assigned, draw a card, then discard a card."
-                },
-                "flavor": "It scouts with the eyes. It decides with the blade."
+                "flavor": "It scouts with the eyes. It decides with the blade.",
+                "requisition": {
+                  "trigger": "At the start of each of your turns",
+                  "text": "If there are no Objects on your Front, search your deck for an Object, reveal it to your opponent and add it to your hand, then shuffle your deck."
+                }
               }
             }
           },
@@ -4107,7 +4127,7 @@
             "equip",
             "draw"
           ],
-          "rulesReference": "MANUALE.md §3.1, §8.2",
+          "rulesReference": "MANUALE.md §3.1, §5, §8.2",
           "faces": [
             {
               "id": "entity",
@@ -4128,21 +4148,25 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "scouting",
-                  "displayKey": "scouting",
-                  "event": "on_attack",
+                  "id": "requisition",
+                  "displayKey": "requisition",
+                  "event": "on_turn_start",
                   "details": {
-                    "oncePerEachOfYourTurns": true,
-                    "requiresObjectAssigned": true
+                    "requiresNoObjectOnOwnFront": true
                   },
                   "effect": {
-                    "type": "draw_card",
-                    "target": {
-                      "controller": "controller"
+                    "type": "search_card",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller"
                     },
-                    "count": 1,
+                    "filter": {
+                      "cardType": "object"
+                    },
                     "details": {
-                      "thenDiscardCards": 1
+                      "revealToOpponent": true,
+                      "addToHand": true,
+                      "thenShuffle": true
                     }
                   }
                 }
@@ -4191,7 +4215,7 @@
                 "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta.",
                 "equip": {
                   "trigger": "Quando entra sul Fronte",
-                  "text": "Puoi assegnare a questa Entità un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
+                  "text": "Puoi assegnare a questa Entità un Oggetto con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
                 }
               }
             },
@@ -4217,7 +4241,7 @@
                 "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited.",
                 "equip": {
                   "trigger": "When it enters the Front",
-                  "text": "You may assign this Entity an Object with Flux cost 2 or less from your Retire Zone without paying its Flux cost."
+                  "text": "You may assign this Entity an Object with Flux cost 3 or less from your Retire Zone without paying its Flux cost."
                 }
               }
             }
@@ -4271,7 +4295,7 @@
                         {
                           "stat": "flux_cost",
                           "operator": "lte",
-                          "value": 2
+                          "value": 3
                         }
                       ]
                     }
@@ -4303,7 +4327,7 @@
             "it": {
               "name": "Sentinella di Nova Kai",
               "typeLabel": "Entità: Auros",
-              "summary": "Un corpo con Slancio e Contrattacco che cresce con ogni Oggetto che porta.",
+              "summary": "Slancio, Contrattacco che cresce con gli Oggetti, e armata torna in guardia dopo l'attacco.",
               "ui": {
                 "face": "Entità"
               },
@@ -4327,13 +4351,17 @@
                 "keyword": {
                   "name": "Slancio",
                   "rules": "può attaccare nel turno in cui entra sul Fronte"
+                },
+                "vigil": {
+                  "trigger": "Effetto",
+                  "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, stappala dopo il combattimento."
                 }
               }
             },
             "en": {
               "name": "Sentinel of Nova Kai",
               "typeLabel": "Entity: Auros",
-              "summary": "A body with Surge and Counterattack that grows with every Object it wears.",
+              "summary": "Surge, Counterattack that grows with its Objects, and once armed it stands guard again after attacking.",
               "ui": {
                 "face": "Entity"
               },
@@ -4357,6 +4385,10 @@
                 "keyword": {
                   "name": "Surge",
                   "rules": "may attack the turn it enters the Front"
+                },
+                "vigil": {
+                  "trigger": "Effect",
+                  "text": "The first time each of your turns this Entity attacks while it has an Object assigned, untap it after combat."
                 }
               }
             }
@@ -4407,6 +4439,24 @@
                       "perObjectAssigned": true
                     }
                   }
+                },
+                {
+                  "id": "vigil",
+                  "displayKey": "vigil",
+                  "event": "on_attack",
+                  "details": {
+                    "oncePerEachOfYourTurns": true,
+                    "whileHasObjectAssigned": true
+                  },
+                  "effect": {
+                    "type": "untap",
+                    "target": {
+                      "scope": "self"
+                    },
+                    "details": {
+                      "afterCombat": true
+                    }
+                  }
                 }
               ],
               "actions": []
@@ -4434,7 +4484,7 @@
             "it": {
               "name": "Sottolama di Nova Kai",
               "typeLabel": "Entità: Auros",
-              "summary": "Slancio e comando: quando attacca equipaggiato, tutto il fronte armato spinge.",
+              "summary": "Entra e spazza via un corpo leggero; quando attacca armato, tutto il fronte armato spinge di 2.",
               "ui": {
                 "face": "Entità"
               },
@@ -4456,15 +4506,19 @@
                 },
                 "command": {
                   "trigger": "Quando questa Entità attacca mentre ha un Oggetto assegnato",
-                  "text": "Le altre Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
+                  "text": "Le altre Entità con un Oggetto assegnato che controlli prendono +2 Potenza fino alla fine del turno."
                 },
-                "flavor": "Quando la sottolama scatta, le altre lame ascoltano."
+                "flavor": "Quando la sottolama scatta, le altre lame ascoltano.",
+                "breach": {
+                  "trigger": "Quando entra sul Fronte",
+                  "text": "Metti un'Entità avversaria con costo di Flusso 2 o inferiore nella Zona di Ritiro del suo proprietario."
+                }
               }
             },
             "en": {
               "name": "Underblade of Nova Kai",
               "typeLabel": "Entity: Auros",
-              "summary": "Surge and command: when it attacks equipped, the whole armed front pushes.",
+              "summary": "It enters and sweeps a light body away; when it attacks armed, the whole armed front pushes by 2.",
               "ui": {
                 "face": "Entity"
               },
@@ -4486,9 +4540,13 @@
                 },
                 "command": {
                   "trigger": "When this Entity attacks while it has an Object assigned",
-                  "text": "Other Entities with an Object assigned you control get +1 Power until end of turn."
+                  "text": "Other Entities with an Object assigned you control get +2 Power until end of turn."
                 },
-                "flavor": "When the underblade strikes, the other blades listen."
+                "flavor": "When the underblade strikes, the other blades listen.",
+                "breach": {
+                  "trigger": "When it enters the Front",
+                  "text": "Put an opposing Entity with Flux cost 2 or less into its owner's Retire Zone."
+                }
               }
             }
           },
@@ -4499,7 +4557,7 @@
             "surge",
             "pump"
           ],
-          "rulesReference": "MANUALE.md §3.1, §8.1, §8.2",
+          "rulesReference": "MANUALE.md §3.1, §5, §8.1, §8.2",
           "faces": [
             {
               "id": "entity",
@@ -4524,6 +4582,33 @@
               "requirements": {},
               "triggers": [
                 {
+                  "id": "breach",
+                  "displayKey": "breach",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "zone": "front",
+                      "owner": "opponent",
+                      "min": 1,
+                      "max": 1,
+                      "conditions": [
+                        {
+                          "stat": "flux_cost",
+                          "operator": "lte",
+                          "value": 2
+                        }
+                      ]
+                    },
+                    "destination": {
+                      "zone": "retire",
+                      "owner": "card_owner"
+                    }
+                  }
+                },
+                {
                   "id": "command",
                   "displayKey": "command",
                   "event": "on_attack",
@@ -4541,7 +4626,7 @@
                         "excludeSelf": true
                       }
                     },
-                    "amount": 1,
+                    "amount": 2,
                     "duration": "until_end_of_turn"
                   }
                 }
@@ -4593,7 +4678,7 @@
                 },
                 "flavor": "Non chiede che cosa porta. Chiede solo per chi.",
                 "effect": {
-                  "text": "Gli Oggetti che assegni a questa Entità costano 1 Flusso in meno."
+                  "text": "Gli Oggetti che assegni a questa Entità costano 2 Flussi in meno."
                 }
               }
             },
@@ -4622,7 +4707,7 @@
                 },
                 "flavor": "It never asks what it carries. Only for whom.",
                 "effect": {
-                  "text": "Objects you assign to this Entity cost 1 less Flux."
+                  "text": "Objects you assign to this Entity cost 2 less Flux."
                 }
               }
             }
@@ -4663,7 +4748,7 @@
                     "filter": {
                       "cardType": "object"
                     },
-                    "amount": 1,
+                    "amount": 2,
                     "details": {
                       "assignedToSelf": true
                     }
@@ -4737,7 +4822,7 @@
                 },
                 "foresight": {
                   "trigger": "Effetto",
-                  "text": "La prima volta in ogni tuo turno che un'Entità con un Oggetto assegnato che controlli attacca, guarda le prime 2 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo."
+                  "text": "La prima volta in ogni tuo turno che un'Entità con un Oggetto assegnato che controlli attacca, guarda le prime 3 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo."
                 }
               }
             },
@@ -4771,7 +4856,7 @@
                 },
                 "foresight": {
                   "trigger": "Effect",
-                  "text": "The first time each of your turns an Entity with an Object assigned you control attacks, look at the top 2 cards of your deck. You may reveal an Object among them and put it into your Retire Zone. Put the rest on the bottom of your deck."
+                  "text": "The first time each of your turns an Entity with an Object assigned you control attacks, look at the top 3 cards of your deck. You may reveal an Object among them and put it into your Retire Zone. Put the rest on the bottom of your deck."
                 }
               }
             }
@@ -4871,7 +4956,7 @@
                       "zone": "deck",
                       "owner": "controller",
                       "position": "top",
-                      "count": 2
+                      "count": 3
                     },
                     "details": {
                       "mayReveal": {
@@ -4918,7 +5003,7 @@
             "it": {
               "name": "Spada Dimensionale",
               "typeLabel": "Oggetto",
-              "summary": "L'equipaggiamento base: un Flusso, una Potenza — e si mette in Ritiro pagandolo.",
+              "summary": "L'equipaggiamento base: un Flusso, una Potenza e lo Slancio — e dal Ritiro torna in campo pagandolo.",
               "ui": {
                 "face": "Oggetto"
               },
@@ -4931,7 +5016,7 @@
                 "name": "Spada Dimensionale",
                 "effect": {
                   "name": "Effetto",
-                  "text": "L'Entità a cui è assegnata ha +1 Potenza. Puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo di Flusso."
+                  "text": "L'Entità a cui è assegnata ha +1 Potenza e Slancio. Puoi assegnare questo Oggetto dalla tua Zona di Ritiro pagandone il costo di Flusso."
                 },
                 "flavor": "Taglia dove il mondo è già sottile."
               }
@@ -4939,7 +5024,7 @@
             "en": {
               "name": "Dimensional Sword",
               "typeLabel": "Object",
-              "summary": "The basic equipment: one Flux, one Power — and it goes to Retire by paying for it.",
+              "summary": "The basic equipment: one Flux, one Power and Surge — and from Retire it comes back by paying for it.",
               "ui": {
                 "face": "Object"
               },
@@ -4952,7 +5037,7 @@
                 "name": "Dimensional Sword",
                 "effect": {
                   "name": "Effect",
-                  "text": "The Entity it is assigned to has +1 Power. You may put this Object into your Retire Zone by paying its Flux cost."
+                  "text": "The Entity it is assigned to has +1 Power and Surge. You may assign this Object from your Retire Zone by paying its Flux cost."
                 },
                 "flavor": "It cuts where the world is already thin."
               }
@@ -4965,7 +5050,7 @@
             "pump",
             "retire"
           ],
-          "rulesReference": "MANUALE.md §3.1, §3.2, §6.2",
+          "rulesReference": "MANUALE.md §3.1, §3.2, §8.1",
           "faces": [
             {
               "id": "object",
@@ -4989,11 +5074,26 @@
                     },
                     "amount": 1
                   }
+                },
+                {
+                  "id": "rush",
+                  "displayKey": "effect",
+                  "event": "while_assigned",
+                  "effect": {
+                    "type": "empower",
+                    "target": {
+                      "scope": "assigned"
+                    },
+                    "grants": [
+                      "surge"
+                    ],
+                    "duration": "permanent"
+                  }
                 }
               ],
               "actions": [
                 {
-                  "id": "sheathe",
+                  "id": "recall",
                   "displayKey": "effect",
                   "timing": [
                     "own_preparation"
@@ -5003,13 +5103,13 @@
                     "flux": "printed"
                   },
                   "effect": {
-                    "type": "move_card",
-                    "target": {
-                      "scope": "self"
-                    },
-                    "destination": {
+                    "type": "assign_object",
+                    "from": {
                       "zone": "retire",
                       "owner": "controller"
+                    },
+                    "target": {
+                      "scope": "self"
                     }
                   }
                 }
@@ -5042,7 +5142,7 @@
             "it": {
               "name": "Scudo Dimensionale",
               "typeLabel": "Oggetto",
-              "summary": "Potenza e Contrattacco in un pezzo solo.",
+              "summary": "Potenza, Contrattacco e Stasi in un pezzo solo: il muro che non muore bloccando.",
               "ui": {
                 "face": "Oggetto"
               },
@@ -5055,7 +5155,7 @@
                 "name": "Scudo Dimensionale",
                 "effect": {
                   "name": "Effetto",
-                  "text": "L'Entità a cui è assegnato ha +1 Potenza e Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
+                  "text": "L'Entità a cui è assegnato ha +1 Potenza e Stasi, e ha Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
                 },
                 "flavor": "Regge il colpo, e lo restituisce con gli interessi."
               }
@@ -5063,7 +5163,7 @@
             "en": {
               "name": "Dimensional Shield",
               "typeLabel": "Object",
-              "summary": "Power and Counterattack in a single piece.",
+              "summary": "Power, Counterattack and Stasis in a single piece: the wall that won't die blocking.",
               "ui": {
                 "face": "Object"
               },
@@ -5076,7 +5176,7 @@
                 "name": "Dimensional Shield",
                 "effect": {
                   "name": "Effect",
-                  "text": "The Entity it is assigned to has +1 Power and Counterattack +1. If it already has Counterattack, that value increases by 1."
+                  "text": "The Entity it is assigned to has +1 Power and Stasis, and has Counterattack +1. If it already has Counterattack, that value increases by 1."
                 },
                 "flavor": "It takes the blow, and returns it with interest."
               }
@@ -5088,7 +5188,7 @@
             "equip",
             "counterattack"
           ],
-          "rulesReference": "MANUALE.md §3.1, §6.2, §6.3",
+          "rulesReference": "MANUALE.md §3.1, §6.2, §6.3, §8.1",
           "faces": [
             {
               "id": "object",
@@ -5123,6 +5223,21 @@
                       "scope": "assigned"
                     },
                     "amount": 1
+                  }
+                },
+                {
+                  "id": "bulwark",
+                  "displayKey": "effect",
+                  "event": "while_assigned",
+                  "effect": {
+                    "type": "empower",
+                    "target": {
+                      "scope": "assigned"
+                    },
+                    "grants": [
+                      "stasis"
+                    ],
+                    "duration": "permanent"
                   }
                 }
               ],
@@ -5168,7 +5283,7 @@
                 "name": "Catalizzatore Sigma",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 4–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta."
+                  "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +2 Potenza fino alla fine del turno. Poi lancia un d6: con 3–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta."
                 },
                 "flavor": "Brucia piano. Rivela in fretta."
               }
@@ -5189,7 +5304,7 @@
                 "name": "Sigma Catalyst",
                 "effect": {
                   "name": "Effect",
-                  "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 4–6 you may put another Object you control into your Retire Zone. If you do, draw a card."
+                  "text": "When the Entity it is assigned to attacks, that Entity gets +2 Power until end of turn. Then roll a d6: on 3–6 you may put another Object you control into your Retire Zone. If you do, draw a card."
                 },
                 "flavor": "Burns slowly. Reveals quickly."
               }
@@ -5228,7 +5343,7 @@
                     "target": {
                       "scope": "assigned"
                     },
-                    "amount": 1,
+                    "amount": 2,
                     "duration": "until_end_of_turn"
                   }
                 },
@@ -5259,7 +5374,7 @@
                     },
                     "details": {
                       "die": "d6",
-                      "onlyOnRoll": "4-6",
+                      "onlyOnRoll": "3-6",
                       "thenDrawCards": 1
                     }
                   }
@@ -5307,7 +5422,7 @@
                 "name": "Vestigio della Scissione",
                 "effect": {
                   "name": "Effetto",
-                  "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
+                  "text": "L'Entità a cui è assegnato ha +2 Potenza e Vendetta. Quando quell'Entità muore, puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
                 },
                 "flavor": "Ciò che resta della Scissione non smette di servire."
               }
@@ -5328,7 +5443,7 @@
                 "name": "Vestige of the Schism",
                 "effect": {
                   "name": "Effect",
-                  "text": "The Entity it is assigned to has +2 Power. When that Entity dies, you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
+                  "text": "The Entity it is assigned to has +2 Power and Revenge. When that Entity dies, you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
                 },
                 "flavor": "What remains of the Schism does not stop serving."
               }
@@ -5341,7 +5456,7 @@
             "retire",
             "recursion"
           ],
-          "rulesReference": "MANUALE.md §3.1, §6.2",
+          "rulesReference": "MANUALE.md §3.1, §6.2, §8.1",
           "faces": [
             {
               "id": "object",
@@ -5364,6 +5479,21 @@
                       "scope": "assigned"
                     },
                     "amount": 2
+                  }
+                },
+                {
+                  "id": "grudge",
+                  "displayKey": "effect",
+                  "event": "while_assigned",
+                  "effect": {
+                    "type": "empower",
+                    "target": {
+                      "scope": "assigned"
+                    },
+                    "grants": [
+                      "revenge"
+                    ],
+                    "duration": "permanent"
                   }
                 },
                 {
@@ -5428,7 +5558,7 @@
             "it": {
               "name": "Amplificazione Sinaptica",
               "typeLabel": "Materia Dimensionale I",
-              "summary": "Doppio stap e doppia spinta per le Entità armate.",
+              "summary": "Tripla stappata e tripla spinta per le Entità armate.",
               "ui": {
                 "face": "Materia"
               },
@@ -5445,7 +5575,7 @@
                 "name": "Amplificazione Sinaptica",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Fino a 2 Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno e vengono stappate."
+                  "text": "Fino a 3 Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno e vengono stappate."
                 },
                 "flavor": "Un pensiero solo, molte mani."
               },
@@ -5457,7 +5587,7 @@
             "en": {
               "name": "Synaptic Amplification",
               "typeLabel": "Dimensional Matter I",
-              "summary": "A double untap and a double push for armed Entities.",
+              "summary": "A triple untap and a triple push for armed Entities.",
               "ui": {
                 "face": "Matter"
               },
@@ -5474,7 +5604,7 @@
                 "name": "Synaptic Amplification",
                 "effect": {
                   "name": "Effect",
-                  "text": "Up to 2 Entities with an Object assigned you control get +1 Power until end of turn and are untapped."
+                  "text": "Up to 3 Entities with an Object assigned you control get +1 Power until end of turn and are untapped."
                 },
                 "flavor": "One thought, many hands."
               },
@@ -5521,7 +5651,7 @@
                       "cardType": "entity",
                       "controller": "controller",
                       "min": 0,
-                      "max": 2,
+                      "max": 3,
                       "details": {
                         "hasObjectAssigned": true
                       }
@@ -5559,7 +5689,7 @@
             "it": {
               "name": "Eversione Distruttiva",
               "typeLabel": "Materia Distruttiva I",
-              "summary": "Rimozione secca nell'Abisso, pagata in PV.",
+              "summary": "Rimozione secca nell'Abisso, a sconto contro chi ha appena attaccato.",
               "ui": {
                 "face": "Materia"
               },
@@ -5576,7 +5706,7 @@
                 "name": "Eversione Distruttiva",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Poi perdi 2 PV."
+                  "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Se questa carta bersaglia un'Entità tappata, costa 1 Flusso in meno."
                 },
                 "flavor": "Rovescia il dentro in fuori. Paga anche chi la pronuncia."
               },
@@ -5588,7 +5718,7 @@
             "en": {
               "name": "Destructive Eversion",
               "typeLabel": "Destructive Matter I",
-              "summary": "Clean removal into the Abyss, paid in HP.",
+              "summary": "Clean removal into the Abyss, discounted against whoever just attacked.",
               "ui": {
                 "face": "Matter"
               },
@@ -5605,7 +5735,7 @@
                 "name": "Destructive Eversion",
                 "effect": {
                   "name": "Effect",
-                  "text": "Destroy an opposing Entity and put it into the Abyss. Then you lose 2 HP."
+                  "text": "Destroy an opposing Entity and put it into the Abyss. If this card targets a tapped Entity, it costs 1 less Flux."
                 },
                 "flavor": "It turns the inside out. Even the one who speaks it pays."
               },
@@ -5656,7 +5786,10 @@
                         "zone": "abyss",
                         "owner": "card_owner"
                       },
-                      "thenControllerLosesHealth": 2
+                      "fluxCostReduction": {
+                        "amount": 1,
+                        "ifTargetState": "tapped"
+                      }
                     }
                   }
                 }
@@ -5815,7 +5948,7 @@
             "it": {
               "name": "Carica Latente",
               "typeLabel": "Materia Dimensionale I",
-              "summary": "Scava cinque carte e lascia decidere al d20 che cosa peschi.",
+              "summary": "Scava sei carte e lascia decidere al d20 che cosa peschi.",
               "ui": {
                 "face": "Materia"
               },
@@ -5832,7 +5965,7 @@
                 "name": "Carica Latente",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Guarda le prime 5 carte del tuo mazzo e lancia un d20: con 1–7 puoi mostrare una Materia tra esse; con 8–14 un Oggetto; con 15–20 un'Entità. Aggiungi la carta mostrata alla tua mano; se non ne mostri una, metti una delle carte guardate in cima al mazzo. Poi metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
+                  "text": "Guarda le prime 6 carte del tuo mazzo e lancia un d20: con 1–5 puoi mostrare una Materia tra esse; con 6–13 un Oggetto; con 14–20 un'Entità. Aggiungi la carta mostrata alla tua mano; se non ne mostri una, metti una delle carte guardate in cima al mazzo. Poi metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
                 },
                 "flavor": "Il mazzo sa già. Il dado decide quando."
               },
@@ -5844,7 +5977,7 @@
             "en": {
               "name": "Latent Charge",
               "typeLabel": "Dimensional Matter I",
-              "summary": "Digs five cards and lets the d20 decide what you take.",
+              "summary": "Digs six cards and lets the d20 decide what you take.",
               "ui": {
                 "face": "Matter"
               },
@@ -5861,7 +5994,7 @@
                 "name": "Latent Charge",
                 "effect": {
                   "name": "Effect",
-                  "text": "Look at the top 5 cards of your deck and roll a d20: on 1–7 you may reveal a Matter among them; on 8–14 an Object; on 15–20 an Entity. Add the revealed card to your hand; if you do not reveal one, put one of the looked-at cards on top of your deck. Then put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
+                  "text": "Look at the top 6 cards of your deck and roll a d20: on 1–5 you may reveal a Matter among them; on 6–13 an Object; on 14–20 an Entity. Add the revealed card to your hand; if you do not reveal one, put one of the looked-at cards on top of your deck. Then put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
                 },
                 "flavor": "The deck already knows. The die decides when."
               },
@@ -5907,18 +6040,18 @@
                       "zone": "deck",
                       "owner": "controller",
                       "position": "top",
-                      "count": 5
+                      "count": 6
                     },
                     "details": {
                       "die": "d20",
                       "mayRevealByRoll": {
-                        "1-7": {
+                        "1-5": {
                           "cardType": "matter"
                         },
-                        "8-14": {
+                        "6-13": {
                           "cardType": "object"
                         },
-                        "15-20": {
+                        "14-20": {
                           "cardType": "entity"
                         }
                       },
@@ -6103,7 +6236,7 @@
                 "name": "Prisma Dimensionale",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Quando assegni questa carta a un'Entità, manda nell'Abisso un'Entità avversaria. Finché questa carta resta in gioco, quell'Entità resta nell'Abisso. Quando questa carta lascia il gioco, quell'Entità torna in gioco."
+                  "text": "L'Entità a cui è assegnato ha +1 Potenza. Quando assegni questa carta a un'Entità, manda nell'Abisso un'Entità avversaria. Finché questa carta resta in gioco, quell'Entità resta nell'Abisso. Quando questa carta lascia il gioco, quell'Entità torna in gioco."
                 },
                 "flavor": "Non la uccide. La mette da un'altra parte."
               }
@@ -6124,7 +6257,7 @@
                 "name": "Dimensional Prism",
                 "effect": {
                   "name": "Effect",
-                  "text": "When you assign this card to an Entity, send an opposing Entity to the Abyss. As long as this card remains in play, that Entity stays in the Abyss. When this card leaves play, that Entity returns to play."
+                  "text": "The Entity it is assigned to has +1 Power. When you assign this card to an Entity, send an opposing Entity to the Abyss. As long as this card remains in play, that Entity stays in the Abyss. When this card leaves play, that Entity returns to play."
                 },
                 "flavor": "It does not kill it. It puts it somewhere else."
               }
@@ -6150,6 +6283,18 @@
               "keywords": [],
               "requirements": {},
               "triggers": [
+                {
+                  "id": "facet",
+                  "displayKey": "effect",
+                  "event": "while_assigned",
+                  "effect": {
+                    "type": "modify_power",
+                    "target": {
+                      "scope": "assigned"
+                    },
+                    "amount": 1
+                  }
+                },
                 {
                   "id": "confine",
                   "displayKey": "effect",
@@ -6222,7 +6367,7 @@
                 "name": "Frattura della Scissione",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, questa carta costa 1 Flusso in meno."
+                  "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, questa carta costa 2 Flussi in meno."
                 },
                 "flavor": "La crepa non taglia: separa."
               },
@@ -6251,7 +6396,7 @@
                 "name": "Fracture of the Schism",
                 "effect": {
                   "name": "Effect",
-                  "text": "Put an opposing Entity into its owner's Retire Zone. If there are at least 2 Entities with an Object assigned on your Front, this card costs 1 less Flux."
+                  "text": "Put an opposing Entity into its owner's Retire Zone. If there are at least 2 Entities with an Object assigned on your Front, this card costs 2 less Flux."
                 },
                 "flavor": "The crack does not cut: it separates."
               },
@@ -6305,7 +6450,7 @@
                     },
                     "details": {
                       "fluxCostReduction": {
-                        "amount": 1,
+                        "amount": 2,
                         "ifControllerEntitiesWithObjectAtLeast": 2
                       }
                     }
@@ -6355,9 +6500,12 @@
                 "name": "Immortale Vincolato",
                 "boundReturn": {
                   "trigger": "Quando viene mandata nell'Abisso o in Ritiro",
-                  "text": "Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro, senza pagarne il costo. Se nella tua Zona di Ritiro non c'è un Oggetto così, non torna."
+                  "text": "Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro, senza pagarne il costo. Se nella tua Zona di Ritiro non c'è un Oggetto così, non torna."
                 },
-                "flavor": "Non muore: aspetta l'arma che lo richiami."
+                "flavor": "Non muore: aspetta l'arma che lo richiami.",
+                "effect": {
+                  "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
+                }
               }
             },
             "en": {
@@ -6381,9 +6529,12 @@
                 "name": "Bound Immortal",
                 "boundReturn": {
                   "trigger": "When it is sent to the Abyss or to Retire",
-                  "text": "If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object with Flux cost 2 or less from your Retire Zone, without paying its cost. If there is no such Object in your Retire Zone, it doesn't come back."
+                  "text": "If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object with Flux cost 3 or less from your Retire Zone, without paying its cost. If there is no such Object in your Retire Zone, it doesn't come back."
                 },
-                "flavor": "It doesn't die: it waits for the weapon that calls it back."
+                "flavor": "It doesn't die: it waits for the weapon that calls it back.",
+                "effect": {
+                  "text": "If this Entity has an Object assigned, it has +1 Power."
+                }
               }
             }
           },
@@ -6450,13 +6601,28 @@
                             {
                               "stat": "flux_cost",
                               "operator": "lte",
-                              "value": 2
+                              "value": 3
                             }
                           ]
                         },
                         "noFluxCost": true,
                         "required": true
                       }
+                    }
+                  }
+                },
+                {
+                  "id": "grip",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
+                  "effect": {
+                    "type": "modify_power",
+                    "target": {
+                      "scope": "self"
+                    },
+                    "amount": 1,
+                    "details": {
+                      "whileHasObjectAssigned": true
                     }
                   }
                 }
@@ -10383,7 +10549,7 @@
         "it": {
           "name": "Recluta del Campo",
           "typeLabel": "Entità: Auros",
-          "summary": "Un corpo da un Flusso che mette un Oggetto in Ritiro e pesca.",
+          "summary": "Un corpo da un Flusso che mette un Oggetto in Ritiro, pesca, e armato picchia per 2.",
           "ui": {
             "face": "Entità"
           },
@@ -10403,13 +10569,16 @@
               "trigger": "Quando entra sul Fronte",
               "text": "Puoi mettere un Oggetto dalla tua mano nella tua Zona di Ritiro. Se lo fai, pesca una carta."
             },
-            "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo."
+            "flavor": "La prima arma fu la pazienza. La seconda gliel'ha data il Campo.",
+            "effect": {
+              "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
+            }
           }
         },
         "en": {
           "name": "Camp Recruit",
           "typeLabel": "Entity: Auros",
-          "summary": "A one-Flux body that puts an Object into Retire and draws.",
+          "summary": "A one-Flux body that puts an Object into Retire, draws, and hits for 2 once armed.",
           "ui": {
             "face": "Entity"
           },
@@ -10429,7 +10598,10 @@
               "trigger": "When it enters the Front",
               "text": "You may put an Object from your hand into your Retire Zone. If you do, draw a card."
             },
-            "flavor": "The first weapon was patience. The Camp handed over the second."
+            "flavor": "The first weapon was patience. The Camp handed over the second.",
+            "effect": {
+              "text": "If this Entity has an Object assigned, it has +1 Power."
+            }
           }
         }
       },
@@ -10488,6 +10660,21 @@
                   "thenDrawCards": 1
                 }
               }
+            },
+            {
+              "id": "grip",
+              "displayKey": "effect",
+              "event": "while_in_play",
+              "effect": {
+                "type": "modify_power",
+                "target": {
+                  "scope": "self"
+                },
+                "amount": 1,
+                "details": {
+                  "whileHasObjectAssigned": true
+                }
+              }
             }
           ],
           "actions": []
@@ -10515,7 +10702,7 @@
         "it": {
           "name": "Guardiano del Campo",
           "typeLabel": "Entità: Auros",
-          "summary": "Scava nel mazzo a colpi di dado e riempie la Zona di Ritiro.",
+          "summary": "Scava quattro carte, prende un Oggetto e riempie la Zona di Ritiro.",
           "ui": {
             "face": "Entità"
           },
@@ -10533,7 +10720,7 @@
             "name": "Guardiano del Campo",
             "forage": {
               "trigger": "Quando entra sul Fronte",
-              "text": "Lancia un d6 e guarda dalla cima del tuo mazzo tante carte quanto il risultato. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
+              "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
             },
             "flavor": "Conta i fogli come sentinelle: al secondo, dà l'allarme."
           }
@@ -10541,7 +10728,7 @@
         "en": {
           "name": "Camp Warden",
           "typeLabel": "Entity: Auros",
-          "summary": "It digs through the deck by the die and fills the Retire Zone.",
+          "summary": "It digs four cards, takes an Object and fills the Retire Zone.",
           "ui": {
             "face": "Entity"
           },
@@ -10559,7 +10746,7 @@
             "name": "Camp Warden",
             "forage": {
               "trigger": "When it enters the Front",
-              "text": "Roll a d6 and look at as many cards from the top of your deck as the result. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
+              "text": "Look at the top 4 cards of your deck. You may reveal an Object among them and add it to your hand. Put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
             },
             "flavor": "It counts cards like sentries: at the second, it sounds the alarm."
           }
@@ -10601,11 +10788,10 @@
                 "from": {
                   "zone": "deck",
                   "owner": "controller",
-                  "position": "top"
+                  "position": "top",
+                  "count": 4
                 },
                 "details": {
-                  "die": "d6",
-                  "count": "result",
                   "mayReveal": {
                     "cardType": "object"
                   },
@@ -10652,7 +10838,7 @@
         "it": {
           "name": "Esploratore",
           "typeLabel": "Entità: Auros",
-          "summary": "L'avanscoperta equipaggiata: attacca con un Oggetto e filtra la mano.",
+          "summary": "L'avanscoperta: se il Fronte è disarmato, trova il primo Oggetto nel mazzo.",
           "ui": {
             "face": "Entità"
           },
@@ -10668,17 +10854,17 @@
           },
           "face": {
             "name": "Esploratore",
-            "scouting": {
-              "trigger": "Effetto",
-              "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, pesca una carta, poi scarta una carta."
-            },
-            "flavor": "Esplora con gli occhi. Decide con la lama."
+            "flavor": "Esplora con gli occhi. Decide con la lama.",
+            "requisition": {
+              "trigger": "All'inizio di ogni tuo turno",
+              "text": "Se non ci sono Oggetti sul tuo Fronte, cerca nel tuo mazzo un Oggetto, mostralo all'avversario e aggiungilo alla tua mano, poi rimescola il mazzo."
+            }
           }
         },
         "en": {
           "name": "Scout",
           "typeLabel": "Entity: Auros",
-          "summary": "The equipped vanguard: attack with an Object and filter your hand.",
+          "summary": "The vanguard: if the Front is unarmed, it finds the first Object in the deck.",
           "ui": {
             "face": "Entity"
           },
@@ -10694,11 +10880,11 @@
           },
           "face": {
             "name": "Scout",
-            "scouting": {
-              "trigger": "Effect",
-              "text": "The first time each of your turns this Entity attacks while it has an Object assigned, draw a card, then discard a card."
-            },
-            "flavor": "It scouts with the eyes. It decides with the blade."
+            "flavor": "It scouts with the eyes. It decides with the blade.",
+            "requisition": {
+              "trigger": "At the start of each of your turns",
+              "text": "If there are no Objects on your Front, search your deck for an Object, reveal it to your opponent and add it to your hand, then shuffle your deck."
+            }
           }
         }
       },
@@ -10708,7 +10894,7 @@
         "equip",
         "draw"
       ],
-      "rulesReference": "MANUALE.md §3.1, §8.2",
+      "rulesReference": "MANUALE.md §3.1, §5, §8.2",
       "faces": [
         {
           "id": "entity",
@@ -10729,21 +10915,25 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "scouting",
-              "displayKey": "scouting",
-              "event": "on_attack",
+              "id": "requisition",
+              "displayKey": "requisition",
+              "event": "on_turn_start",
               "details": {
-                "oncePerEachOfYourTurns": true,
-                "requiresObjectAssigned": true
+                "requiresNoObjectOnOwnFront": true
               },
               "effect": {
-                "type": "draw_card",
-                "target": {
-                  "controller": "controller"
+                "type": "search_card",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller"
                 },
-                "count": 1,
+                "filter": {
+                  "cardType": "object"
+                },
                 "details": {
-                  "thenDiscardCards": 1
+                  "revealToOpponent": true,
+                  "addToHand": true,
+                  "thenShuffle": true
                 }
               }
             }
@@ -10792,7 +10982,7 @@
             "flavor": "A Nova Kai niente si forgia due volte: si trova, o si aspetta.",
             "equip": {
               "trigger": "Quando entra sul Fronte",
-              "text": "Puoi assegnare a questa Entità un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
+              "text": "Puoi assegnare a questa Entità un Oggetto con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro senza pagarne il costo di Flusso."
             }
           }
         },
@@ -10818,7 +11008,7 @@
             "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited.",
             "equip": {
               "trigger": "When it enters the Front",
-              "text": "You may assign this Entity an Object with Flux cost 2 or less from your Retire Zone without paying its Flux cost."
+              "text": "You may assign this Entity an Object with Flux cost 3 or less from your Retire Zone without paying its Flux cost."
             }
           }
         }
@@ -10872,7 +11062,7 @@
                     {
                       "stat": "flux_cost",
                       "operator": "lte",
-                      "value": 2
+                      "value": 3
                     }
                   ]
                 }
@@ -10904,7 +11094,7 @@
         "it": {
           "name": "Sentinella di Nova Kai",
           "typeLabel": "Entità: Auros",
-          "summary": "Un corpo con Slancio e Contrattacco che cresce con ogni Oggetto che porta.",
+          "summary": "Slancio, Contrattacco che cresce con gli Oggetti, e armata torna in guardia dopo l'attacco.",
           "ui": {
             "face": "Entità"
           },
@@ -10928,13 +11118,17 @@
             "keyword": {
               "name": "Slancio",
               "rules": "può attaccare nel turno in cui entra sul Fronte"
+            },
+            "vigil": {
+              "trigger": "Effetto",
+              "text": "La prima volta in ogni tuo turno che questa Entità attacca mentre ha un Oggetto assegnato, stappala dopo il combattimento."
             }
           }
         },
         "en": {
           "name": "Sentinel of Nova Kai",
           "typeLabel": "Entity: Auros",
-          "summary": "A body with Surge and Counterattack that grows with every Object it wears.",
+          "summary": "Surge, Counterattack that grows with its Objects, and once armed it stands guard again after attacking.",
           "ui": {
             "face": "Entity"
           },
@@ -10958,6 +11152,10 @@
             "keyword": {
               "name": "Surge",
               "rules": "may attack the turn it enters the Front"
+            },
+            "vigil": {
+              "trigger": "Effect",
+              "text": "The first time each of your turns this Entity attacks while it has an Object assigned, untap it after combat."
             }
           }
         }
@@ -11008,6 +11206,24 @@
                   "perObjectAssigned": true
                 }
               }
+            },
+            {
+              "id": "vigil",
+              "displayKey": "vigil",
+              "event": "on_attack",
+              "details": {
+                "oncePerEachOfYourTurns": true,
+                "whileHasObjectAssigned": true
+              },
+              "effect": {
+                "type": "untap",
+                "target": {
+                  "scope": "self"
+                },
+                "details": {
+                  "afterCombat": true
+                }
+              }
             }
           ],
           "actions": []
@@ -11035,7 +11251,7 @@
         "it": {
           "name": "Sottolama di Nova Kai",
           "typeLabel": "Entità: Auros",
-          "summary": "Slancio e comando: quando attacca equipaggiato, tutto il fronte armato spinge.",
+          "summary": "Entra e spazza via un corpo leggero; quando attacca armato, tutto il fronte armato spinge di 2.",
           "ui": {
             "face": "Entità"
           },
@@ -11057,15 +11273,19 @@
             },
             "command": {
               "trigger": "Quando questa Entità attacca mentre ha un Oggetto assegnato",
-              "text": "Le altre Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
+              "text": "Le altre Entità con un Oggetto assegnato che controlli prendono +2 Potenza fino alla fine del turno."
             },
-            "flavor": "Quando la sottolama scatta, le altre lame ascoltano."
+            "flavor": "Quando la sottolama scatta, le altre lame ascoltano.",
+            "breach": {
+              "trigger": "Quando entra sul Fronte",
+              "text": "Metti un'Entità avversaria con costo di Flusso 2 o inferiore nella Zona di Ritiro del suo proprietario."
+            }
           }
         },
         "en": {
           "name": "Underblade of Nova Kai",
           "typeLabel": "Entity: Auros",
-          "summary": "Surge and command: when it attacks equipped, the whole armed front pushes.",
+          "summary": "It enters and sweeps a light body away; when it attacks armed, the whole armed front pushes by 2.",
           "ui": {
             "face": "Entity"
           },
@@ -11087,9 +11307,13 @@
             },
             "command": {
               "trigger": "When this Entity attacks while it has an Object assigned",
-              "text": "Other Entities with an Object assigned you control get +1 Power until end of turn."
+              "text": "Other Entities with an Object assigned you control get +2 Power until end of turn."
             },
-            "flavor": "When the underblade strikes, the other blades listen."
+            "flavor": "When the underblade strikes, the other blades listen.",
+            "breach": {
+              "trigger": "When it enters the Front",
+              "text": "Put an opposing Entity with Flux cost 2 or less into its owner's Retire Zone."
+            }
           }
         }
       },
@@ -11100,7 +11324,7 @@
         "surge",
         "pump"
       ],
-      "rulesReference": "MANUALE.md §3.1, §8.1, §8.2",
+      "rulesReference": "MANUALE.md §3.1, §5, §8.1, §8.2",
       "faces": [
         {
           "id": "entity",
@@ -11125,6 +11349,33 @@
           "requirements": {},
           "triggers": [
             {
+              "id": "breach",
+              "displayKey": "breach",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "zone": "front",
+                  "owner": "opponent",
+                  "min": 1,
+                  "max": 1,
+                  "conditions": [
+                    {
+                      "stat": "flux_cost",
+                      "operator": "lte",
+                      "value": 2
+                    }
+                  ]
+                },
+                "destination": {
+                  "zone": "retire",
+                  "owner": "card_owner"
+                }
+              }
+            },
+            {
               "id": "command",
               "displayKey": "command",
               "event": "on_attack",
@@ -11142,7 +11393,7 @@
                     "excludeSelf": true
                   }
                 },
-                "amount": 1,
+                "amount": 2,
                 "duration": "until_end_of_turn"
               }
             }
@@ -11194,7 +11445,7 @@
             },
             "flavor": "Non chiede che cosa porta. Chiede solo per chi.",
             "effect": {
-              "text": "Gli Oggetti che assegni a questa Entità costano 1 Flusso in meno."
+              "text": "Gli Oggetti che assegni a questa Entità costano 2 Flussi in meno."
             }
           }
         },
@@ -11223,7 +11474,7 @@
             },
             "flavor": "It never asks what it carries. Only for whom.",
             "effect": {
-              "text": "Objects you assign to this Entity cost 1 less Flux."
+              "text": "Objects you assign to this Entity cost 2 less Flux."
             }
           }
         }
@@ -11264,7 +11515,7 @@
                 "filter": {
                   "cardType": "object"
                 },
-                "amount": 1,
+                "amount": 2,
                 "details": {
                   "assignedToSelf": true
                 }
@@ -11338,7 +11589,7 @@
             },
             "foresight": {
               "trigger": "Effetto",
-              "text": "La prima volta in ogni tuo turno che un'Entità con un Oggetto assegnato che controlli attacca, guarda le prime 2 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo."
+              "text": "La prima volta in ogni tuo turno che un'Entità con un Oggetto assegnato che controlli attacca, guarda le prime 3 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e metterlo nella tua Zona di Ritiro. Metti le altre in fondo al mazzo."
             }
           }
         },
@@ -11372,7 +11623,7 @@
             },
             "foresight": {
               "trigger": "Effect",
-              "text": "The first time each of your turns an Entity with an Object assigned you control attacks, look at the top 2 cards of your deck. You may reveal an Object among them and put it into your Retire Zone. Put the rest on the bottom of your deck."
+              "text": "The first time each of your turns an Entity with an Object assigned you control attacks, look at the top 3 cards of your deck. You may reveal an Object among them and put it into your Retire Zone. Put the rest on the bottom of your deck."
             }
           }
         }
@@ -11472,7 +11723,7 @@
                   "zone": "deck",
                   "owner": "controller",
                   "position": "top",
-                  "count": 2
+                  "count": 3
                 },
                 "details": {
                   "mayReveal": {
@@ -11519,7 +11770,7 @@
         "it": {
           "name": "Spada Dimensionale",
           "typeLabel": "Oggetto",
-          "summary": "L'equipaggiamento base: un Flusso, una Potenza — e si mette in Ritiro pagandolo.",
+          "summary": "L'equipaggiamento base: un Flusso, una Potenza e lo Slancio — e dal Ritiro torna in campo pagandolo.",
           "ui": {
             "face": "Oggetto"
           },
@@ -11532,7 +11783,7 @@
             "name": "Spada Dimensionale",
             "effect": {
               "name": "Effetto",
-              "text": "L'Entità a cui è assegnata ha +1 Potenza. Puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo di Flusso."
+              "text": "L'Entità a cui è assegnata ha +1 Potenza e Slancio. Puoi assegnare questo Oggetto dalla tua Zona di Ritiro pagandone il costo di Flusso."
             },
             "flavor": "Taglia dove il mondo è già sottile."
           }
@@ -11540,7 +11791,7 @@
         "en": {
           "name": "Dimensional Sword",
           "typeLabel": "Object",
-          "summary": "The basic equipment: one Flux, one Power — and it goes to Retire by paying for it.",
+          "summary": "The basic equipment: one Flux, one Power and Surge — and from Retire it comes back by paying for it.",
           "ui": {
             "face": "Object"
           },
@@ -11553,7 +11804,7 @@
             "name": "Dimensional Sword",
             "effect": {
               "name": "Effect",
-              "text": "The Entity it is assigned to has +1 Power. You may put this Object into your Retire Zone by paying its Flux cost."
+              "text": "The Entity it is assigned to has +1 Power and Surge. You may assign this Object from your Retire Zone by paying its Flux cost."
             },
             "flavor": "It cuts where the world is already thin."
           }
@@ -11566,7 +11817,7 @@
         "pump",
         "retire"
       ],
-      "rulesReference": "MANUALE.md §3.1, §3.2, §6.2",
+      "rulesReference": "MANUALE.md §3.1, §3.2, §8.1",
       "faces": [
         {
           "id": "object",
@@ -11590,11 +11841,26 @@
                 },
                 "amount": 1
               }
+            },
+            {
+              "id": "rush",
+              "displayKey": "effect",
+              "event": "while_assigned",
+              "effect": {
+                "type": "empower",
+                "target": {
+                  "scope": "assigned"
+                },
+                "grants": [
+                  "surge"
+                ],
+                "duration": "permanent"
+              }
             }
           ],
           "actions": [
             {
-              "id": "sheathe",
+              "id": "recall",
               "displayKey": "effect",
               "timing": [
                 "own_preparation"
@@ -11604,13 +11870,13 @@
                 "flux": "printed"
               },
               "effect": {
-                "type": "move_card",
-                "target": {
-                  "scope": "self"
-                },
-                "destination": {
+                "type": "assign_object",
+                "from": {
                   "zone": "retire",
                   "owner": "controller"
+                },
+                "target": {
+                  "scope": "self"
                 }
               }
             }
@@ -11643,7 +11909,7 @@
         "it": {
           "name": "Scudo Dimensionale",
           "typeLabel": "Oggetto",
-          "summary": "Potenza e Contrattacco in un pezzo solo.",
+          "summary": "Potenza, Contrattacco e Stasi in un pezzo solo: il muro che non muore bloccando.",
           "ui": {
             "face": "Oggetto"
           },
@@ -11656,7 +11922,7 @@
             "name": "Scudo Dimensionale",
             "effect": {
               "name": "Effetto",
-              "text": "L'Entità a cui è assegnato ha +1 Potenza e Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
+              "text": "L'Entità a cui è assegnato ha +1 Potenza e Stasi, e ha Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
             },
             "flavor": "Regge il colpo, e lo restituisce con gli interessi."
           }
@@ -11664,7 +11930,7 @@
         "en": {
           "name": "Dimensional Shield",
           "typeLabel": "Object",
-          "summary": "Power and Counterattack in a single piece.",
+          "summary": "Power, Counterattack and Stasis in a single piece: the wall that won't die blocking.",
           "ui": {
             "face": "Object"
           },
@@ -11677,7 +11943,7 @@
             "name": "Dimensional Shield",
             "effect": {
               "name": "Effect",
-              "text": "The Entity it is assigned to has +1 Power and Counterattack +1. If it already has Counterattack, that value increases by 1."
+              "text": "The Entity it is assigned to has +1 Power and Stasis, and has Counterattack +1. If it already has Counterattack, that value increases by 1."
             },
             "flavor": "It takes the blow, and returns it with interest."
           }
@@ -11689,7 +11955,7 @@
         "equip",
         "counterattack"
       ],
-      "rulesReference": "MANUALE.md §3.1, §6.2, §6.3",
+      "rulesReference": "MANUALE.md §3.1, §6.2, §6.3, §8.1",
       "faces": [
         {
           "id": "object",
@@ -11724,6 +11990,21 @@
                   "scope": "assigned"
                 },
                 "amount": 1
+              }
+            },
+            {
+              "id": "bulwark",
+              "displayKey": "effect",
+              "event": "while_assigned",
+              "effect": {
+                "type": "empower",
+                "target": {
+                  "scope": "assigned"
+                },
+                "grants": [
+                  "stasis"
+                ],
+                "duration": "permanent"
               }
             }
           ],
@@ -11769,7 +12050,7 @@
             "name": "Catalizzatore Sigma",
             "effect": {
               "name": "Effetto",
-              "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +1 Potenza fino alla fine del turno. Poi lancia un d6: con 4–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta."
+              "text": "Quando l'Entità a cui è assegnato attacca, quell'Entità prende +2 Potenza fino alla fine del turno. Poi lancia un d6: con 3–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta."
             },
             "flavor": "Brucia piano. Rivela in fretta."
           }
@@ -11790,7 +12071,7 @@
             "name": "Sigma Catalyst",
             "effect": {
               "name": "Effect",
-              "text": "When the Entity it is assigned to attacks, that Entity gets +1 Power until end of turn. Then roll a d6: on 4–6 you may put another Object you control into your Retire Zone. If you do, draw a card."
+              "text": "When the Entity it is assigned to attacks, that Entity gets +2 Power until end of turn. Then roll a d6: on 3–6 you may put another Object you control into your Retire Zone. If you do, draw a card."
             },
             "flavor": "Burns slowly. Reveals quickly."
           }
@@ -11829,7 +12110,7 @@
                 "target": {
                   "scope": "assigned"
                 },
-                "amount": 1,
+                "amount": 2,
                 "duration": "until_end_of_turn"
               }
             },
@@ -11860,7 +12141,7 @@
                 },
                 "details": {
                   "die": "d6",
-                  "onlyOnRoll": "4-6",
+                  "onlyOnRoll": "3-6",
                   "thenDrawCards": 1
                 }
               }
@@ -11908,7 +12189,7 @@
             "name": "Vestigio della Scissione",
             "effect": {
               "name": "Effetto",
-              "text": "L'Entità a cui è assegnato ha +2 Potenza. Quando quell'Entità muore, puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
+              "text": "L'Entità a cui è assegnato ha +2 Potenza e Vendetta. Quando quell'Entità muore, puoi assegnare un altro Oggetto dalla tua Zona di Ritiro, senza pagarne il costo di Flusso, a un'Entità senza Oggetto che controlli."
             },
             "flavor": "Ciò che resta della Scissione non smette di servire."
           }
@@ -11929,7 +12210,7 @@
             "name": "Vestige of the Schism",
             "effect": {
               "name": "Effect",
-              "text": "The Entity it is assigned to has +2 Power. When that Entity dies, you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
+              "text": "The Entity it is assigned to has +2 Power and Revenge. When that Entity dies, you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
             },
             "flavor": "What remains of the Schism does not stop serving."
           }
@@ -11942,7 +12223,7 @@
         "retire",
         "recursion"
       ],
-      "rulesReference": "MANUALE.md §3.1, §6.2",
+      "rulesReference": "MANUALE.md §3.1, §6.2, §8.1",
       "faces": [
         {
           "id": "object",
@@ -11965,6 +12246,21 @@
                   "scope": "assigned"
                 },
                 "amount": 2
+              }
+            },
+            {
+              "id": "grudge",
+              "displayKey": "effect",
+              "event": "while_assigned",
+              "effect": {
+                "type": "empower",
+                "target": {
+                  "scope": "assigned"
+                },
+                "grants": [
+                  "revenge"
+                ],
+                "duration": "permanent"
               }
             },
             {
@@ -12029,7 +12325,7 @@
         "it": {
           "name": "Amplificazione Sinaptica",
           "typeLabel": "Materia Dimensionale I",
-          "summary": "Doppio stap e doppia spinta per le Entità armate.",
+          "summary": "Tripla stappata e tripla spinta per le Entità armate.",
           "ui": {
             "face": "Materia"
           },
@@ -12046,7 +12342,7 @@
             "name": "Amplificazione Sinaptica",
             "effect": {
               "name": "Effetto",
-              "text": "Fino a 2 Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno e vengono stappate."
+              "text": "Fino a 3 Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno e vengono stappate."
             },
             "flavor": "Un pensiero solo, molte mani."
           },
@@ -12058,7 +12354,7 @@
         "en": {
           "name": "Synaptic Amplification",
           "typeLabel": "Dimensional Matter I",
-          "summary": "A double untap and a double push for armed Entities.",
+          "summary": "A triple untap and a triple push for armed Entities.",
           "ui": {
             "face": "Matter"
           },
@@ -12075,7 +12371,7 @@
             "name": "Synaptic Amplification",
             "effect": {
               "name": "Effect",
-              "text": "Up to 2 Entities with an Object assigned you control get +1 Power until end of turn and are untapped."
+              "text": "Up to 3 Entities with an Object assigned you control get +1 Power until end of turn and are untapped."
             },
             "flavor": "One thought, many hands."
           },
@@ -12122,7 +12418,7 @@
                   "cardType": "entity",
                   "controller": "controller",
                   "min": 0,
-                  "max": 2,
+                  "max": 3,
                   "details": {
                     "hasObjectAssigned": true
                   }
@@ -12160,7 +12456,7 @@
         "it": {
           "name": "Eversione Distruttiva",
           "typeLabel": "Materia Distruttiva I",
-          "summary": "Rimozione secca nell'Abisso, pagata in PV.",
+          "summary": "Rimozione secca nell'Abisso, a sconto contro chi ha appena attaccato.",
           "ui": {
             "face": "Materia"
           },
@@ -12177,7 +12473,7 @@
             "name": "Eversione Distruttiva",
             "effect": {
               "name": "Effetto",
-              "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Poi perdi 2 PV."
+              "text": "Distruggi un'Entità avversaria e mettila nell'Abisso. Se questa carta bersaglia un'Entità tappata, costa 1 Flusso in meno."
             },
             "flavor": "Rovescia il dentro in fuori. Paga anche chi la pronuncia."
           },
@@ -12189,7 +12485,7 @@
         "en": {
           "name": "Destructive Eversion",
           "typeLabel": "Destructive Matter I",
-          "summary": "Clean removal into the Abyss, paid in HP.",
+          "summary": "Clean removal into the Abyss, discounted against whoever just attacked.",
           "ui": {
             "face": "Matter"
           },
@@ -12206,7 +12502,7 @@
             "name": "Destructive Eversion",
             "effect": {
               "name": "Effect",
-              "text": "Destroy an opposing Entity and put it into the Abyss. Then you lose 2 HP."
+              "text": "Destroy an opposing Entity and put it into the Abyss. If this card targets a tapped Entity, it costs 1 less Flux."
             },
             "flavor": "It turns the inside out. Even the one who speaks it pays."
           },
@@ -12257,7 +12553,10 @@
                     "zone": "abyss",
                     "owner": "card_owner"
                   },
-                  "thenControllerLosesHealth": 2
+                  "fluxCostReduction": {
+                    "amount": 1,
+                    "ifTargetState": "tapped"
+                  }
                 }
               }
             }
@@ -12416,7 +12715,7 @@
         "it": {
           "name": "Carica Latente",
           "typeLabel": "Materia Dimensionale I",
-          "summary": "Scava cinque carte e lascia decidere al d20 che cosa peschi.",
+          "summary": "Scava sei carte e lascia decidere al d20 che cosa peschi.",
           "ui": {
             "face": "Materia"
           },
@@ -12433,7 +12732,7 @@
             "name": "Carica Latente",
             "effect": {
               "name": "Effetto",
-              "text": "Guarda le prime 5 carte del tuo mazzo e lancia un d20: con 1–7 puoi mostrare una Materia tra esse; con 8–14 un Oggetto; con 15–20 un'Entità. Aggiungi la carta mostrata alla tua mano; se non ne mostri una, metti una delle carte guardate in cima al mazzo. Poi metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
+              "text": "Guarda le prime 6 carte del tuo mazzo e lancia un d20: con 1–5 puoi mostrare una Materia tra esse; con 6–13 un Oggetto; con 14–20 un'Entità. Aggiungi la carta mostrata alla tua mano; se non ne mostri una, metti una delle carte guardate in cima al mazzo. Poi metti una delle altre nella tua Zona di Ritiro e le restanti in fondo al mazzo in qualsiasi ordine."
             },
             "flavor": "Il mazzo sa già. Il dado decide quando."
           },
@@ -12445,7 +12744,7 @@
         "en": {
           "name": "Latent Charge",
           "typeLabel": "Dimensional Matter I",
-          "summary": "Digs five cards and lets the d20 decide what you take.",
+          "summary": "Digs six cards and lets the d20 decide what you take.",
           "ui": {
             "face": "Matter"
           },
@@ -12462,7 +12761,7 @@
             "name": "Latent Charge",
             "effect": {
               "name": "Effect",
-              "text": "Look at the top 5 cards of your deck and roll a d20: on 1–7 you may reveal a Matter among them; on 8–14 an Object; on 15–20 an Entity. Add the revealed card to your hand; if you do not reveal one, put one of the looked-at cards on top of your deck. Then put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
+              "text": "Look at the top 6 cards of your deck and roll a d20: on 1–5 you may reveal a Matter among them; on 6–13 an Object; on 14–20 an Entity. Add the revealed card to your hand; if you do not reveal one, put one of the looked-at cards on top of your deck. Then put one of the others into your Retire Zone and the rest on the bottom of your deck in any order."
             },
             "flavor": "The deck already knows. The die decides when."
           },
@@ -12508,18 +12807,18 @@
                   "zone": "deck",
                   "owner": "controller",
                   "position": "top",
-                  "count": 5
+                  "count": 6
                 },
                 "details": {
                   "die": "d20",
                   "mayRevealByRoll": {
-                    "1-7": {
+                    "1-5": {
                       "cardType": "matter"
                     },
-                    "8-14": {
+                    "6-13": {
                       "cardType": "object"
                     },
-                    "15-20": {
+                    "14-20": {
                       "cardType": "entity"
                     }
                   },
@@ -12704,7 +13003,7 @@
             "name": "Prisma Dimensionale",
             "effect": {
               "name": "Effetto",
-              "text": "Quando assegni questa carta a un'Entità, manda nell'Abisso un'Entità avversaria. Finché questa carta resta in gioco, quell'Entità resta nell'Abisso. Quando questa carta lascia il gioco, quell'Entità torna in gioco."
+              "text": "L'Entità a cui è assegnato ha +1 Potenza. Quando assegni questa carta a un'Entità, manda nell'Abisso un'Entità avversaria. Finché questa carta resta in gioco, quell'Entità resta nell'Abisso. Quando questa carta lascia il gioco, quell'Entità torna in gioco."
             },
             "flavor": "Non la uccide. La mette da un'altra parte."
           }
@@ -12725,7 +13024,7 @@
             "name": "Dimensional Prism",
             "effect": {
               "name": "Effect",
-              "text": "When you assign this card to an Entity, send an opposing Entity to the Abyss. As long as this card remains in play, that Entity stays in the Abyss. When this card leaves play, that Entity returns to play."
+              "text": "The Entity it is assigned to has +1 Power. When you assign this card to an Entity, send an opposing Entity to the Abyss. As long as this card remains in play, that Entity stays in the Abyss. When this card leaves play, that Entity returns to play."
             },
             "flavor": "It does not kill it. It puts it somewhere else."
           }
@@ -12751,6 +13050,18 @@
           "keywords": [],
           "requirements": {},
           "triggers": [
+            {
+              "id": "facet",
+              "displayKey": "effect",
+              "event": "while_assigned",
+              "effect": {
+                "type": "modify_power",
+                "target": {
+                  "scope": "assigned"
+                },
+                "amount": 1
+              }
+            },
             {
               "id": "confine",
               "displayKey": "effect",
@@ -12823,7 +13134,7 @@
             "name": "Frattura della Scissione",
             "effect": {
               "name": "Effetto",
-              "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, questa carta costa 1 Flusso in meno."
+              "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, questa carta costa 2 Flussi in meno."
             },
             "flavor": "La crepa non taglia: separa."
           },
@@ -12852,7 +13163,7 @@
             "name": "Fracture of the Schism",
             "effect": {
               "name": "Effect",
-              "text": "Put an opposing Entity into its owner's Retire Zone. If there are at least 2 Entities with an Object assigned on your Front, this card costs 1 less Flux."
+              "text": "Put an opposing Entity into its owner's Retire Zone. If there are at least 2 Entities with an Object assigned on your Front, this card costs 2 less Flux."
             },
             "flavor": "The crack does not cut: it separates."
           },
@@ -12906,7 +13217,7 @@
                 },
                 "details": {
                   "fluxCostReduction": {
-                    "amount": 1,
+                    "amount": 2,
                     "ifControllerEntitiesWithObjectAtLeast": 2
                   }
                 }
@@ -12956,9 +13267,12 @@
             "name": "Immortale Vincolato",
             "boundReturn": {
               "trigger": "Quando viene mandata nell'Abisso o in Ritiro",
-              "text": "Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto con costo di Flusso 2 o inferiore dalla tua Zona di Ritiro, senza pagarne il costo. Se nella tua Zona di Ritiro non c'è un Oggetto così, non torna."
+              "text": "Se questa Entità non aveva Oggetti assegnati, puoi rimetterla sul tuo Fronte assegnandole un Oggetto con costo di Flusso 3 o inferiore dalla tua Zona di Ritiro, senza pagarne il costo. Se nella tua Zona di Ritiro non c'è un Oggetto così, non torna."
             },
-            "flavor": "Non muore: aspetta l'arma che lo richiami."
+            "flavor": "Non muore: aspetta l'arma che lo richiami.",
+            "effect": {
+              "text": "Se questa Entità ha un Oggetto assegnato, ha +1 Potenza."
+            }
           }
         },
         "en": {
@@ -12982,9 +13296,12 @@
             "name": "Bound Immortal",
             "boundReturn": {
               "trigger": "When it is sent to the Abyss or to Retire",
-              "text": "If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object with Flux cost 2 or less from your Retire Zone, without paying its cost. If there is no such Object in your Retire Zone, it doesn't come back."
+              "text": "If this Entity had no Objects assigned, you may put it back onto your Front by assigning it an Object with Flux cost 3 or less from your Retire Zone, without paying its cost. If there is no such Object in your Retire Zone, it doesn't come back."
             },
-            "flavor": "It doesn't die: it waits for the weapon that calls it back."
+            "flavor": "It doesn't die: it waits for the weapon that calls it back.",
+            "effect": {
+              "text": "If this Entity has an Object assigned, it has +1 Power."
+            }
           }
         }
       },
@@ -13051,13 +13368,28 @@
                         {
                           "stat": "flux_cost",
                           "operator": "lte",
-                          "value": 2
+                          "value": 3
                         }
                       ]
                     },
                     "noFluxCost": true,
                     "required": true
                   }
+                }
+              }
+            },
+            {
+              "id": "grip",
+              "displayKey": "effect",
+              "event": "while_in_play",
+              "effect": {
+                "type": "modify_power",
+                "target": {
+                  "scope": "self"
+                },
+                "amount": 1,
+                "details": {
+                  "whileHasObjectAssigned": true
                 }
               }
             }

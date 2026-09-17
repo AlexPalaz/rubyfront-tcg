@@ -62,6 +62,8 @@ export interface CardLook {
   veiled?: boolean;
   /** Il costo di Flusso sceso per un effetto (uno sconto): stampato e di adesso. Solo in mano. */
   cost?: { printed: number; now: number } | null;
+  /** La scala dei distintivi (layout.ts, ui): 1 a tre file, meno con la fila avversaria aperta. */
+  ui?: number;
 }
 
 /**
@@ -343,7 +345,7 @@ export class TableCard extends Container {
     }
 
     // I distintivi e i segni del combattimento, in uno strato dipinto sopra.
-    const nextOverlayKey = JSON.stringify([nextShadowKey, look.badges, look.combat, look.cost ?? null]);
+    const nextOverlayKey = JSON.stringify([nextShadowKey, look.badges, look.combat, look.cost ?? null, look.ui ?? 1]);
     if (nextOverlayKey !== this.overlayKey) {
       this.overlayKey = nextOverlayKey;
       const margin = SHADOW_MARGIN;
@@ -634,6 +636,12 @@ function aboveOf(look: CardLook, margin: number): Texture {
       drawText(ctx, { kind: "text", text, font, color: "#ffffff", shadows: [{ x: 0, y: 1, blur: 2, color: "rgba(0,0,0,.85)" }] }, gem.x * s - textWidth(font, text) / 2, gem.y * s + font.size * 0.36);
     }
 
+    // I distintivi e il numero d'ondata a corpo fisso, nella scala dell'interfaccia (look.ui): la carta più piccola li rimpicciolisce con sé.
+    const ui = look.ui ?? 1;
+    ctx.save();
+    ctx.scale(ui, ui);
+    const bw = w / ui;
+    const bh = h / ui;
     const badges = look.badges;
     if (badges) {
       const chip = (x: number, y: number, width: number, fill: string, frame: string, dashed = false): void => {
@@ -667,7 +675,7 @@ function aboveOf(look: CardLook, margin: number): Texture {
       if (badges.power !== null) {
         const text = String(badges.power);
         const width = 16 + 14 + 4 + textWidth(chipFont(17), text);
-        const x = w - 6 - width;
+        const x = bw - 6 - width;
         chip(x, 6, width, THEME.badge.background, THEME.badge.frame);
         swords(ctx, x + 8, 6 + (CHIP_H - 14) / 2, 14, THEME.badge.ruby);
         number(text, x + 8 + 14 + 4, 6, THEME.badge.ink);
@@ -676,7 +684,7 @@ function aboveOf(look: CardLook, margin: number): Texture {
       if (badges.counter !== null) {
         const text = `+${badges.counter}`;
         const width = 16 + 15 + 4 + textWidth(chipFont(17), text);
-        const x = w - 6 - width;
+        const x = bw - 6 - width;
         chip(x, 42, width, THEME.badge.background, THEME.badge.frame);
         arrow(ctx, x + 8, 42 + (CHIP_H - 15) / 2, 15, THEME.gold);
         number(text, x + 8 + 15 + 4, 42, THEME.gold);
@@ -688,7 +696,7 @@ function aboveOf(look: CardLook, margin: number): Texture {
         if (mark.kind === "power") {
           const text = mark.delta > 0 ? `+${mark.delta}` : `−${-mark.delta}`;
           const width = 16 + 14 + 4 + textWidth(chipFont(17), text);
-          const x = w - 6 - width;
+          const x = bw - 6 - width;
           // Lo scarto di Potenza: spento, in grigio (.power-delta, --tess-grey).
           chip(x, markY, width, THEME.badge.background, "rgba(185,180,183,.45)");
           swords(ctx, x + 8, markY + (CHIP_H - 14) / 2, 14, THEME.badge.grey);
@@ -696,20 +704,20 @@ function aboveOf(look: CardLook, margin: number): Texture {
         } else if (mark.kind === "counter") {
           const text = `+${mark.extra}`;
           const width = 16 + 15 + 4 + textWidth(chipFont(17), text);
-          const x = w - 6 - width;
+          const x = bw - 6 - width;
           chip(x, markY, width, THEME.badge.background, THEME.badge.frame);
           arrow(ctx, x + 8, markY + (CHIP_H - 15) / 2, 15, THEME.gold);
           number(text, x + 8 + 15 + 4, markY, THEME.gold);
         } else if (mark.kind === "grant") {
           const paths = KEY_ICON[mark.keyword];
           if (!paths) continue;
-          const x = w - 6 - CHIP_H;
+          const x = bw - 6 - CHIP_H;
           chip(x, markY, CHIP_H, THEME.badge.background, THEME.badge.frame);
           icon(ctx, paths, x + 7, markY + 7, 16, mark.keyword === "stasis" ? THEME.badge.ink : THEME.badge.ruby);
         } else {
           const font: Font = { size: 12, weight: 800, family: '"Space Grotesk Variable", ui-sans-serif, sans-serif', spacing: 1.2, upper: true };
           const width = 16 + textWidth(font, mark.text);
-          const x = w - 6 - width;
+          const x = bw - 6 - width;
           // «Non blocca» (.noblock-mark): rubino cupo col filo rosa.
           chip(x, markY, width, THEME.rubyDeep, "#e56a86");
           applyFont(ctx, font);
@@ -742,8 +750,8 @@ function aboveOf(look: CardLook, margin: number): Texture {
       const text = String(combat.order);
       const font: Font = { size: 16, weight: 800, family: '"Space Grotesk Variable", ui-sans-serif, sans-serif' };
       const width = Math.max(CHIP_H, 16 + textWidth(font, text));
-      const x = w / 2 - width / 2;
-      const y = look.tapped ? h - 6 - CHIP_H : 6;
+      const x = bw / 2 - width / 2;
+      const y = look.tapped ? bh - 6 - CHIP_H : 6;
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,.7)";
       ctx.shadowBlur = 10 * look.resolution;
@@ -754,6 +762,7 @@ function aboveOf(look: CardLook, margin: number): Texture {
       applyFont(ctx, font);
       drawText(ctx, { kind: "text", text, font, color: "#ffffff" }, x + (width - textWidth(font, text)) / 2, y + CHIP_H / 2 + 5.5);
     }
+    ctx.restore();
   });
 }
 

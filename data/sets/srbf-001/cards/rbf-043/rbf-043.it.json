@@ -14,7 +14,7 @@
     "name": "Prisma Dimensionale",
     "effect": {
       "name": "Effetto",
-      "text": "Quando assegni questa carta a un'Entità, manda nell'Abisso un'Entità avversaria. Finché questa carta resta in gioco, quell'Entità resta nell'Abisso. Quando questa carta lascia il gioco, quell'Entità torna in gioco."
+      "text": "L'Entità a cui è assegnato ha +1 Potenza. Quando assegni questa carta a un'Entità, manda nell'Abisso un'Entità avversaria. Finché questa carta resta in gioco, quell'Entità resta nell'Abisso. Quando questa carta lascia il gioco, quell'Entità torna in gioco."
     },
     "flavor": "Non la uccide. La mette da un'altra parte."
   }

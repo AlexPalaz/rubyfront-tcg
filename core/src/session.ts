@@ -86,6 +86,8 @@ export interface SessionView {
   flipToNexus(card: CardInstance): Promise<boolean>;
   introRubyfronts(order: Seat[]): Promise<void>;
   promptDiscard(seat: Seat): boolean;
+  /** §8.2 — all'inizio del turno di chi comanda qui: le ricerche a inizio turno (dal 2026-09-17). */
+  offerTurnStart(after: GameState, owners: Seat[]): void;
   offerLeaveReturns(before: GameState, after: GameState, owners: Seat[]): void;
   offerAssignTriggers(before: GameState, after: GameState, owners: Seat[]): void;
   offerDeathRemains(before: GameState, after: GameState, owners: Seat[]): void;
@@ -278,6 +280,8 @@ export function createSession(options: SessionOptions): Session {
     // §8.2 — il ritorno vincolato: chi è appena uscita dal campo senza
     // Oggetti può tornare, e lo decide il proprietario — io, o il bot.
     if (action.t !== "revive") view.offerLeaveReturns(before, state, deciders);
+    // §8.2 — «all'inizio di ogni tuo turno»: il cambio di turno è passato, chi comanda il posto nuovo risolve le sue ricerche.
+    if (action.t === "turn") view.offerTurnStart(state, deciders);
     // §3.1 — «quando assegni questa carta a un'Entità»: l'Oggetto appena
     // assegnato innesca per chi lo comanda — io, o il bot.
     view.offerAssignTriggers(before, state, deciders);
@@ -330,6 +334,8 @@ export function createSession(options: SessionOptions): Session {
     // §8.2 — una mia carta uscita dal campo per mano dell'avversario (la sua
     // risoluzione, un suo effetto): il ritorno vincolato lo offro io.
     if (action.t !== "revive") view.offerLeaveReturns(before, state, [mySeat]);
+    // §8.2 — l'avversario ha chiuso il suo turno: se il turno nuovo è mio, le mie ricerche a inizio turno.
+    if (action.t === "turn") view.offerTurnStart(state, [mySeat]);
     if (action.t !== "remain") view.offerDeathRemains(before, state, [mySeat]);
     // §8.2 — una MIA carta tornata in gioco dall'Abisso per mano dell'avversario (la fine dell'esilio): i suoi inneschi li gioco io.
     if (action.t === "release" && action.zone === "field") view.offerReturned(before, state, [mySeat]);

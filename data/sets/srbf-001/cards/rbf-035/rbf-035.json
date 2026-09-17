@@ -20,7 +20,7 @@
     "retire",
     "recursion"
   ],
-  "rulesReference": "MANUALE.md §3.1, §6.2",
+  "rulesReference": "MANUALE.md §3.1, §6.2, §8.1",
   "faces": [
     {
       "id": "object",
@@ -43,6 +43,21 @@
               "scope": "assigned"
             },
             "amount": 2
+          }
+        },
+        {
+          "id": "grudge",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "empower",
+            "target": {
+              "scope": "assigned"
+            },
+            "grants": [
+              "revenge"
+            ],
+            "duration": "permanent"
           }
         },
         {

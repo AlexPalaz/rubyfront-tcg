@@ -19,7 +19,7 @@
     "equip",
     "counterattack"
   ],
-  "rulesReference": "MANUALE.md §3.1, §6.2, §6.3",
+  "rulesReference": "MANUALE.md §3.1, §6.2, §6.3, §8.1",
   "faces": [
     {
       "id": "object",
@@ -54,6 +54,21 @@
               "scope": "assigned"
             },
             "amount": 1
+          }
+        },
+        {
+          "id": "bulwark",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "empower",
+            "target": {
+              "scope": "assigned"
+            },
+            "grants": [
+              "stasis"
+            ],
+            "duration": "permanent"
           }
         }
       ],

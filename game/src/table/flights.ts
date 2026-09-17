@@ -309,7 +309,9 @@ export class Flights {
       ghost?.destroy({ children: true });
       return;
     }
-    const to = { x: view.x, y: view.y };
+    // L'arrivo è la base della carta (table.baseOf), non la vista: l'apertura della fila avversaria la può tenere ancora al posto di prima.
+    const base = this.table.baseOf(uid);
+    const to = base ? { x: base.x, y: base.y } : { x: view.x, y: view.y };
     const endScale = ghost.scale.x;
     const look = this.table.lookOf(uid);
     const startScale = look ? (from.w / look.w) * endScale : endScale;
@@ -380,7 +382,9 @@ export class Flights {
           ghost?.destroy({ children: true });
           continue;
         }
-        const to = { x: landed.x, y: landed.y, rotation: landed.rotation };
+        // L'arrivo è la base della carta (table.baseOf), non la vista: l'apertura della fila avversaria (il controllo la apre da sé) la sta ancora muovendo.
+        const base = this.table.baseOf(start.member);
+        const to = { x: base?.x ?? landed.x, y: base?.y ?? landed.y, rotation: landed.rotation };
         ghost.position.set(start.x, start.y);
         ghost.rotation = start.rotation;
         ghost.visible = true;

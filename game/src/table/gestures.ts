@@ -15,7 +15,7 @@ import type { Ctx } from "@rubyfront/core/ctx";
 import { FRONT_SLOT_X, MATTER_X, RUBYFRONT_X, SLOT_X, frontRowY } from "@rubyfront/core/geometry";
 import type { Gestures } from "@rubyfront/core/gestures";
 import { msg, t } from "@rubyfront/core/i18n";
-import { chainTop, fieldCards, playSpot, seatLabel, zoneCards } from "@rubyfront/core/state";
+import { chainTop, controllerOf, fieldCards, playSpot, seatLabel, zoneCards } from "@rubyfront/core/state";
 import { cardMenu, combatTabs, handLocked, pickable, type CombatTab, type MenuAction, type TabAction, type TargetingMode } from "@rubyfront/core/tabs";
 import type { CardInstance, GameState, Seat, ZoneId } from "@rubyfront/core/types";
 import { Container, Graphics, Point, Rectangle, Sprite, Texture, Ticker, type FederatedPointerEvent } from "pixi.js";
@@ -444,17 +444,21 @@ export class TableGestures {
     const statsW = stats.reduce((sum, stat) => sum + chipW(stat.text), 0) + TAB_GAP * Math.max(0, stats.length - 1);
     const tabsW = tabs.reduce((max, tab) => Math.max(max, textWidth(TAB, tab.label) + 20 + 2), 0);
     const contentH = (stats.length ? STAT_H : 0) + (stats.length && tabs.length ? TAB_GAP : 0) + tabs.length * TAB_H + TAB_GAP * Math.max(0, tabs.length - 1);
-    // Il velo è grande quanto la carta; se i tasti chiedono di più, cresce oltre i suoi bordi.
-    const w = Math.max(box.w, Math.max(statsW, tabsW) + 2 * VEIL_PAD);
-    const h = Math.max(box.h, contentH + 2 * VEIL_PAD);
-    const x = box.x + box.w / 2 - w / 2;
-    const y = box.y + box.h / 2 - h / 2;
+    // Il velo è grande quanto la carta; se i tasti chiedono di più, cresce
+    // oltre i suoi bordi. Tutto nella scala dell'interfaccia (layout.ts, ui):
+    // con la fila avversaria aperta i tasti si rimpiccioliscono con la carta.
+    const u = this.table.layout()?.ui ?? 1;
+    const w = Math.max(box.w / u, Math.max(statsW, tabsW) + 2 * VEIL_PAD);
+    const h = Math.max(box.h / u, contentH + 2 * VEIL_PAD);
+    const x = box.x + box.w / 2 - (w * u) / 2;
+    const y = box.y + box.h / 2 - (h * u) / 2;
     const top = (h - contentH) / 2;
     const tabsTop = top + (stats.length ? STAT_H + (tabs.length ? TAB_GAP : 0) : 0);
     const v = this.stage.visible();
     const res = v.scale * this.stage.app.renderer.resolution;
 
-    const texture = paintPiece(w + 2 * VEIL_MARGIN, h + 2 * VEIL_MARGIN, res, ctx => {
+    const texture = paintPiece((w + 2 * VEIL_MARGIN) * u, (h + 2 * VEIL_MARGIN) * u, res, ctx => {
+      ctx.scale(u, u);
       ctx.translate(VEIL_MARGIN, VEIL_MARGIN);
       // L'alone rubino a 2px e l'ombra sotto; poi il vetro scuro e il filo.
       withShadow(ctx, res, { x: 0, y: 10, blur: 30, color: "rgba(0,0,0,.5)" }, () => {
@@ -486,10 +490,10 @@ export class TableGestures {
     });
     const root = new Container({ label: "veil" });
     const sprite = new CrispSprite(texture);
-    sprite.position.set(x - VEIL_MARGIN, y - VEIL_MARGIN);
+    sprite.position.set(x - VEIL_MARGIN * u, y - VEIL_MARGIN * u);
     root.addChild(sprite);
     root.eventMode = "static";
-    root.hitArea = new Rectangle(x, y, w, h);
+    root.hitArea = new Rectangle(x, y, w * u, h * u);
     // Il velo copre la carta e le ruberebbe il puntatore: l'«over» e l'«out»
     // si rimandano al tavolo, così l'anteprima grande resta (la carta
     // tappata non si leggeva, 2026-09-15).
@@ -511,7 +515,7 @@ export class TableGestures {
       if (live && this.blockAim && pickable(this.ctx, live, this.blockAim)) this.confirm(live);
     });
     tabs.forEach((tab, index) => {
-      root.addChild(tapZone(x + VEIL_PAD, y + tabsTop + index * (TAB_H + TAB_GAP), w - 2 * VEIL_PAD, TAB_H, () => this.press(uid, tab.action)));
+      root.addChild(tapZone(x + VEIL_PAD * u, y + (tabsTop + index * (TAB_H + TAB_GAP)) * u, (w - 2 * VEIL_PAD) * u, TAB_H * u, () => this.press(uid, tab.action)));
     });
     this.layer.addChildAt(root, 0);
     this.veil = { uid, root, texture };
@@ -593,11 +597,23 @@ export class TableGestures {
 
   // ------------------------------------------------------------- la mano
 
-  /** Il doppio tocco gioca: Entità sul primo slot libero del Fronte, Materie nella loro fila (§5). */
+  /** Il doppio tocco gioca: Entità sul primo slot libero del Fronte, Materie nella loro fila (§5); un Oggetto chiede a chi assegnarlo (§3.1). */
   private playFromHand(card: CardInstance): void {
     if (card.zone !== "hand" || !this.ctx.controls(card.owner)) return;
     if (this.gestures.unplayable(card) || handLocked(this.ctx, card.owner)) return;
     const state = this.ctx.state();
+    // §3.1 — un Oggetto non sta sul Fronte da solo (2026-09-17: col doppio
+    // tocco scendeva disassegnato): la mira sceglie la portatrice fra le
+    // proprie Entità scoperte in campo, poi assegnazione e giocata come nel
+    // rilascio sopra un'Entità.
+    if (faceKind(card.cardId, card.face) === "object") {
+      const bearers = fieldCards(state).filter(other => controllerOf(other) === card.owner && !other.facedown && faceKind(other.cardId, other.face) === "entity");
+      if (bearers.length === 0) return;
+      void this.aim.choose(bearers, t("pick.wear", { card: `«${cardName(card.cardId, this.ctx.locale())}»` }), card.uid).then(bearer => {
+        if (bearer) void this.gestures.assignObject(card, bearer);
+      });
+      return;
+    }
     const spot = playSpot(state, card.owner, faceKind(card.cardId, card.face));
     void this.gestures.place(card, spot.x, spot.y, state.zTop + 1);
   }
@@ -639,19 +655,26 @@ export class TableGestures {
     const v = this.stage.visible();
     const boxX = L.x(RUBYFRONT_X);
     const bottom = L.mine.front + L.tileH;
-    const key = JSON.stringify([boxX, bottom, L.tileW, v.scale, buttons.map(firstButton => [firstButton.label, firstButton.dimmed, firstButton.line])]);
+    const key = JSON.stringify([boxX, bottom, L.tileW, L.ui, v.scale, buttons.map(firstButton => [firstButton.label, firstButton.dimmed, firstButton.line])]);
     if (key === this.rubyfrontKey) return;
     this.rubyfrontKey = key;
     for (const texture of this.paintedCount.rubyfront.splice(0)) texture.destroy(true);
     for (const child of this.rubyfrontButtons.removeChildren()) child.destroy({ children: true });
     const res = v.scale * this.stage.app.renderer.resolution;
     const margin = 24;
+    // Nella scala dell'interfaccia (layout.ts, ui): a fila avversaria aperta il tasto si stringe con la carta.
+    const u = L.ui;
     for (const entry of buttons) {
-      const w = Math.ceil(textWidth(TAB, entry.label)) + 36 + 2;
+      const w = (Math.ceil(textWidth(TAB, entry.label)) + 36 + 2) * u;
+      const h = RF_H * u;
       // A cavallo del bordo basso della carta (bottom: -17px); il flip una riga sotto (-58px).
       const x = boxX + L.tileW / 2 - w / 2;
-      const y = bottom + (entry.line === 0 ? 17 : 58) - RF_H;
-      const texture = paintPiece(w + 2 * margin, RF_H + 2 * margin, res, ctx => button(ctx, res, margin, margin, w, RF_H, entry.label, TAB, entry.tint));
+      const y = bottom + (entry.line === 0 ? 17 : 58) * u - h;
+      const texture = paintPiece(w + 2 * margin, h + 2 * margin, res, ctx => {
+        ctx.translate(margin, margin);
+        ctx.scale(u, u);
+        button(ctx, res, 0, 0, w / u, RF_H, entry.label, TAB, entry.tint);
+      });
       this.paintedCount.rubyfront.push(texture);
       const sprite = new CrispSprite(texture);
       sprite.position.set(x - margin, y - margin);
@@ -668,14 +691,14 @@ export class TableGestures {
           const k = (performance.now() % 1600) / 1600;
           const up = k < 0.5 ? k * 2 : 2 - k * 2;
           const spread = 7 * up;
-          ring.clear().rect(x - spread, y - spread, w + 2 * spread, RF_H + 2 * spread).stroke({ color: 0xffd666, width: 2, alpha: 0.75 * (1 - up) });
+          ring.clear().rect(x - spread, y - spread, w + 2 * spread, h + 2 * spread).stroke({ color: 0xffd666, width: 2, alpha: 0.75 * (1 - up) });
         };
         Ticker.shared.add(tick);
         this.rubyfrontButtons.addChild(ring);
       }
       this.rubyfrontButtons.addChild(sprite);
       if (!entry.dimmed) {
-        this.rubyfrontButtons.addChild(tapZone(x, y, w, RF_H, () => {
+        this.rubyfrontButtons.addChild(tapZone(x, y, w, h, () => {
           if (!this.table.isBlocked()) entry.run();
         }));
       }

@@ -1,7 +1,7 @@
 {
   "name": "Destructive Eversion",
   "typeLabel": "Destructive Matter I",
-  "summary": "Clean removal into the Abyss, paid in HP.",
+  "summary": "Clean removal into the Abyss, discounted against whoever just attacked.",
   "ui": {
     "face": "Matter"
   },
@@ -18,7 +18,7 @@
     "name": "Destructive Eversion",
     "effect": {
       "name": "Effect",
-      "text": "Destroy an opposing Entity and put it into the Abyss. Then you lose 2 HP."
+      "text": "Destroy an opposing Entity and put it into the Abyss. If this card targets a tapped Entity, it costs 1 less Flux."
     },
     "flavor": "It turns the inside out. Even the one who speaks it pays."
   },

@@ -23,7 +23,7 @@ import { applyFont, drawText, textWidth, type Font } from "../card/text";
 import type { Stage, Visible } from "../stage";
 import { CrispSprite, NIGHT, SEAT_PALETTE, SANS, THEME, slotFrame, loadNight, lighten, paintPiece, grain, octagon, plate, dashedRect, rgba, type SeatPalette } from "./appearance";
 import { TableCard, type Ring, type Badges, type Mark, type CardLook } from "./card";
-import { Stillness, bezier, easeInOut, tween, reducedMotion } from "./animation";
+import { Stillness, bezier, easeInOut, easeOut, tween, reducedMotion } from "./animation";
 import { layout, type TableLayout } from "./layout";
 
 /** Un gesto del puntatore su una carta del tavolo: chi ascolta decide cosa vuol dire (F4). */
@@ -62,6 +62,21 @@ const PILE: { zone: ZoneId; x: number; label: string }[] = [
   { zone: "deck", x: SLOT_X.deck, label: "zone.deck" },
 ];
 
+/**
+ * La fila di servizio avversaria, aperta dal tasto: le sue tre pile dove
+ * stanno le tue, e la sua mano (un dorso col conto) nel posto della Zona di
+ * Richiamo, che nella sua fila non si disegna (il Rubyfront in attesa sta nel
+ * riquadro del Rubyfront, sul Fronte).
+ */
+const FOE_PILES: { zone: ZoneId; x: number; label: string; back: boolean }[] = [
+  { zone: "hand", x: SLOT_X.richiamo, label: "zone.hand", back: true },
+  ...PILE.map(pile => ({ ...pile, back: pile.zone === "deck" })),
+];
+
+function foePileX(zone: ZoneId): number | null {
+  return FOE_PILES.find(entry => entry.zone === zone)?.x ?? null;
+}
+
 const PHASE_END: Record<Phase, string> = {
   preparazione: "phase.end.preparazione",
   fronte: "phase.end.fronte",
@@ -71,8 +86,9 @@ const PHASE_END: Record<Phase, string> = {
 /** Le scritte della lavagna nel tema notte: 16px, 700, maiuscole spaziate .2em; la riga del Fronte .12em. */
 const rowLabel: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.2, upper: true };
 const line: Font = { ...rowLabel, spacing: 16 * 0.12 };
-/** La testata del pannello delle pile (.pile-dock-head): 16px, .12em. */
+/** Le scritte del tasto della fila avversaria: il nome (16px, .12em) e il conto, in grassetto. */
 const header: Font = { size: 16, weight: 400, family: SANS, spacing: 16 * 0.12, upper: true };
+const headerNum: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.04 };
 const tag: Font = { size: 16, weight: 600, family: SANS, spacing: 16 * 0.18, upper: true };
 /** Le scritte sulla valle: avorio con l'ombra nera (0 1px 2px, 0 0 8px). */
 const LABEL_SHADOWS = [
@@ -109,13 +125,23 @@ export class Table {
   /** La valle e la grana si caricano una volta: arrivate, il tavolo si ridisegna. */
   private nightReady = false;
   private last: { state: GameState; L: TableLayout } | null = null;
-  /** Sopra tutto, in pezzi piccoli: le due testate dei posti, il pannello ripiegato, il gesto di fase. */
+  /** Sopra tutto, in pezzi piccoli: le due testate dei posti, il tasto della fila avversaria, il gesto di fase. */
   private readonly overlay = new Container({ label: "overlay" });
   private readonly seatHeads = { a: new CrispSprite(), b: new CrispSprite() };
-  private readonly dockHead = new CrispSprite();
+  private readonly foeToggle = new CrispSprite();
+  /** Il puntatore sul tasto della fila avversaria: la piastra si accende. */
+  private foeToggleHover = false;
+  /** L'ultimo disegno (finestra e risoluzione): per ridipingere un pezzo da solo, come il tasto al passaggio. */
+  private lastPaint: { visible: Visible; resolution: number } | null = null;
+  /** La foto del fondo e delle targhe di prima, che si dissolve sul nuovo quando la fila avversaria si apre o si chiude (beginMorph, endMorph). */
+  private readonly transition = new Sprite();
+  /** Chi ridisegna tutto — i gesti compresi — quando il tavolo cambia impaginazione dal tasto (match.ts, paint). */
+  private relayout: (() => void) | null = null;
   private readonly phaseFace = new CrispSprite();
   /** Le scritte delle tue pile col loro conto: cambiano a ogni pesca, il fondo no. */
   private readonly pileLabels = new CrispSprite();
+  /** Le scritte delle pile avversarie (e della sua mano), quando la sua fila di servizio è aperta. */
+  private readonly foePileLabels = new CrispSprite();
   /** La targhetta «La tua mano · n»: cambia a ogni carta, il cassetto no. */
   private readonly handTag = new CrispSprite();
   /** Le carte che nascono nascoste (i Rubyfront prima del loro ingresso, table/entrance.ts). */
@@ -150,13 +176,17 @@ export class Table {
   private readonly dimmer = new Graphics();
   private inChain = new Set<string>();
   private chainOpen = false;
-  /** Le pile che si toccano: le tue Abisso e Ritiro (sotto le carte), il pannello avversario (sopra tutto). */
+  /** Le pile che si toccano: le tue Abisso e Ritiro e, a fila aperta, quelle avversarie (sotto le carte). */
   private readonly pileHits = new Container({ label: "pile-hits" });
-  private readonly panel = new CrispSprite();
-  private readonly panelHits = new Container({ label: "panel-hits" });
-  private readonly panelCards = new Container({ label: "panel-cards" });
-  /** Il pannello delle pile avversarie aperto (parte ripiegato sulla testata coi conti). */
-  private panelOpen = false;
+  /** Il tasto che apre e chiude la fila di servizio avversaria (sopra tutto). */
+  private readonly foeRowHits = new Container({ label: "foe-row-hits" });
+  /**
+   * La fila di servizio avversaria aperta dal tasto (2026-09-16, «un tasto
+   * che espande il campo avversario»): Abisso, Ritiro, Mazzo e Mano sopra il
+   * suo Fronte, capovolti come il resto della sua metà; il tavolo passa a
+   * quattro file. La Zona di Controllo la apre da sé (layout.ts, foeBack).
+   */
+  private foeRowOpen = false;
   private readonly pileListeners: ((seat: Seat, zone: ZoneId) => void)[] = [];
   private readonly views = new Map<string, TableCard>();
   /** Il gesto di fase: la sua area e chi ascolta. */
@@ -204,12 +234,12 @@ export class Table {
     this.cards.sortableChildren = true;
     // Il cassetto del tema notte non ha vetro sfocato: il velo scuro basta (e non costa un fotogramma).
     this.hand.addChild(this.drawer, this.handTag);
-    this.overlay.addChild(this.seatHeads.a, this.seatHeads.b, this.dockHead, this.phaseFace);
+    this.overlay.addChild(this.seatHeads.a, this.seatHeads.b, this.foeToggle, this.phaseFace);
     this.pileLabels.eventMode = "none";
+    this.foePileLabels.eventMode = "none";
+    this.transition.eventMode = "none";
+    this.transition.visible = false;
     this.dimmer.eventMode = "none";
-    // Il pannello aperto copre il campo avversario: sotto di lui non si tocca nulla.
-    this.panel.eventMode = "static";
-    this.panel.visible = false;
     this.flights.eventMode = "none";
     this.arrows.eventMode = "none";
     this.discardHalo.eventMode = "none";
@@ -217,7 +247,7 @@ export class Table {
     this.discardTag.eventMode = "none";
     this.discardHalo.visible = this.discardFrame.visible = this.discardTag.visible = false;
     // L'alone e il filo sotto le carte (la carta in cima alla pila copre il velo, non l'alone); la targhetta sopra il cassetto.
-    this.root.addChild(this.background, this.pileLabels, this.discardHalo, this.discardFrame, this.pileHits, this.cards, this.arrows, this.dimmer, this.chain, this.flights, this.hand, this.discardTag, this.overlay, this.panel, this.panelHits, this.panelCards, this.phaseButton, this.handToggle);
+    this.root.addChild(this.background, this.pileLabels, this.foePileLabels, this.discardHalo, this.discardFrame, this.pileHits, this.cards, this.arrows, this.dimmer, this.chain, this.flights, this.hand, this.discardTag, this.overlay, this.transition, this.foeRowHits, this.phaseButton, this.handToggle);
     this.phaseButton.eventMode = "static";
     this.phaseButton.on("pointertap", () => {
       if (this.buttonActive) this.closePhase?.();
@@ -348,16 +378,47 @@ export class Table {
       if (!pile || L.mine.back === null) return null;
       return { x: L.x(pile.x), y: L.mine.back, w: L.tileW, h: L.tileH };
     }
-    const dock = dockOf(L);
-    if (!this.panelOpen) return { x: dock.x, y: dock.y, w: dock.w, h: DOCK_HEAD_H };
-    const index = (["abisso", "ritiro", "deck", "hand"] as ZoneId[]).indexOf(zone);
-    return index < 0 ? null : { x: dock.slotX(index), y: dock.slotY, w: L.tileW, h: L.tileH };
+    // La fila avversaria chiusa: i voli vanno a spegnersi sul tasto che la apre.
+    if (L.foe.back === null) {
+      const toggle = this.foeToggleBox(L);
+      return { x: toggle.x, y: toggle.y, w: toggle.w, h: toggle.h };
+    }
+    const x = foePileX(zone);
+    return x === null ? null : { x: L.x(x), y: L.foe.back, w: L.tileW, h: L.tileH };
   }
 
-  /** Apre o ripiega il pannello delle pile avversarie (lo fa il tocco sulla testata; qui per le prove). */
-  openPanel(isOpen: boolean): void {
-    this.panelOpen = isOpen;
-    if (this.last) this.show(this.last.state);
+  /**
+   * Il centro di una carta sul tavolo, dov'è (o dove sta andando): i voli
+   * puntano qui, non alla vista, che un'animazione in corso (l'apertura della
+   * fila avversaria, endMorph) può tenere ancora al posto di prima.
+   */
+  baseOf(uid: string): { x: number; y: number } | null {
+    return this.bases.get(uid) ?? null;
+  }
+
+  /** Apre o chiude la fila di servizio avversaria (lo fa il tasto; qui per le prove). */
+  openFoeRow(isOpen: boolean): void {
+    if (this.foeRowOpen === isOpen) return;
+    this.foeRowOpen = isOpen;
+    this.redraw();
+  }
+
+  /** Chi ridisegna tutto quando il tavolo cambia impaginazione da sé (il tasto della fila avversaria): i gesti e le frecce seguono. */
+  onRelayout(listener: () => void): void {
+    this.relayout = listener;
+  }
+
+  /** Il tavolo si ridisegna sull'ultimo stato: da fuori se qualcuno ascolta (così «Schiera» e i tasti si riallineano), altrimenti da solo. */
+  private redraw(): void {
+    if (this.relayout) this.relayout();
+    else if (this.last) this.show(this.last.state);
+  }
+
+  /** Il passaggio del puntatore sul tasto della fila avversaria: solo quel pezzo si ridipinge. */
+  private hoverFoeToggle(on: boolean): void {
+    if (this.foeToggleHover === on) return;
+    this.foeToggleHover = on;
+    if (this.last && this.lastPaint) this.paintFoeToggle(this.last.state, this.last.L, this.lastPaint.visible, this.lastPaint.resolution);
   }
 
   /** Chi ascolta il tocco su una pila pubblica (§5): l'Abisso e la Zona di Ritiro, tue o avversarie. */
@@ -530,10 +591,10 @@ export class Table {
     this.pileHits.eventMode = dark ? "none" : "passive";
   }
 
-  /** Le zone delle pile pubbliche e la testata del pannello: si rifanno a ogni disegno. */
-  private updateHits(L: TableLayout, dock: Panel): void {
+  /** Le zone delle pile pubbliche e il tasto della fila avversaria: si rifanno a ogni disegno. */
+  private updateHits(L: TableLayout): void {
     for (const child of this.pileHits.removeChildren()) child.destroy();
-    for (const child of this.panelHits.removeChildren()) child.destroy();
+    for (const child of this.foeRowHits.removeChildren()) child.destroy();
     const tapZone = (layer: Container, x: number, y: number, w: number, h: number, run: () => void): void => {
       const hit = new Container({ label: "pile" });
       hit.eventMode = "static";
@@ -550,30 +611,107 @@ export class Table {
       }
     }
     const foe = otherSeat(this.me);
-    tapZone(this.panelHits, dock.x, dock.y, dock.w, DOCK_HEAD_H, () => {
-      this.panelOpen = !this.panelOpen;
-      if (this.last) this.show(this.last.state);
-    });
-    if (this.panelOpen) {
-      (["abisso", "ritiro"] as const).forEach((zone, index) => tapZone(this.panelHits, dock.slotX(index), dock.slotY, L.tileW, L.tileH, () => this.pile(foe, zone)));
+    // Il tasto tace quando la Zona di Controllo tiene la fila aperta da sé: non c'è nulla da ridurre.
+    const toggle = this.foeToggleBox(L);
+    if (!this.last || !this.foeControls(this.last.state)) {
+      const hit = new Container({ label: "foe-row-toggle" });
+      hit.eventMode = "static";
+      hit.cursor = "pointer";
+      hit.hitArea = new Rectangle(toggle.x, toggle.y, toggle.w, toggle.h);
+      hit.on("pointertap", () => {
+        this.foeRowOpen = !this.foeRowOpen;
+        this.hoverFoeToggle(false);
+        this.redraw();
+      });
+      hit.on("pointerover", () => this.hoverFoeToggle(true));
+      hit.on("pointerout", () => this.hoverFoeToggle(false));
+      this.foeRowHits.addChild(hit);
+    } else {
+      this.foeToggleHover = false;
+    }
+    if (L.foe.back !== null) {
+      for (const zone of ["abisso", "ritiro"] as const) tapZone(this.pileHits, L.x(foePileX(zone)!), L.foe.back, L.tileW, L.tileH, () => this.pile(foe, zone));
     }
   }
 
-  /** Il pannello aperto (style.css, .pile-dock): la piastra brunita, la testata «▾ Pile», poi gli alloggi nella tinta avversaria con le etichette. */
-  private paintPanel(ctx: CanvasRenderingContext2D, state: GameState, L: TableLayout, dock: Panel): void {
+  /** §8.2 — l'avversario controlla una carta: la sua fila di servizio resta aperta da sé (layout.ts, foeBack). */
+  private foeControls(state: GameState): boolean {
+    return Object.values(state.cards).some(card => card.zone === "field" && card.controller === otherSeat(this.me));
+  }
+
+  /** Le voci del tasto della fila avversaria: chiuso, i conti (Mano 4 · Abisso 2 · Ritiro 5 · Mazzo 26); aperto, «Riduci». */
+  private foeToggleTokens(state: GameState, L: TableLayout): { open: boolean; tokens: ToggleToken[] } {
     const foe = otherSeat(this.me);
-    const palette = SEAT_PALETTE[this.tints[foe]];
-    plate(ctx, 0, 0, dock.w, dock.h, { shadow: true, edge: THEME.line, darkBackground: true });
-    paintText(ctx, "▾", 14, 7, THEME.ink, header);
-    paintText(ctx, t("recess.piles"), 36, 7, THEME.muted, header);
-    const zones: ZoneId[] = ["abisso", "ritiro", "deck", "hand"];
-    zones.forEach((zone, index) => {
-      const x = dock.slotX(index) - dock.x;
-      const y = dock.slotY - dock.y;
-      slotFrame(ctx, x, y, L.tileW, L.tileH, palette);
-      const n = zoneCards(state, foe, zone).length;
-      const label = zone === "hand" ? t("recess.hand", { n }) : `${t(PILE.find(pile => pile.zone === zone)!.label)} · ${n}`;
-      paintText(ctx, label, x + 4, y + L.tileH + 10, THEME.lettering, rowLabel, LABEL_SHADOWS);
+    if (L.foe.back !== null) return { open: true, tokens: [{ label: t("foe.row.close"), n: null }] };
+    return { open: false, tokens: FOE_PILES.map(entry => ({ label: t(entry.label), n: String(zoneCards(state, foe, entry.zone).length) })) };
+  }
+
+  /** Il tasto della fila avversaria: in alto a destra, a cavallo dell'orlo del campo avversario, largo quanto le sue voci. */
+  private foeToggleBox(L: TableLayout): { x: number; y: number; w: number; h: number } {
+    const tokens = this.last ? this.foeToggleTokens(this.last.state, L).tokens : [];
+    const inner = tokens.reduce((sum, token, index) => sum + textWidth(header, token.label) + (token.n === null ? 0 : TOKEN_GAP + textWidth(headerNum, token.n)) + (index > 0 ? TOKEN_SEP : 0), 0);
+    const w = Math.max(120, TOGGLE_PAD + CHEVRON + TOGGLE_INNER + inner + TOGGLE_PAD);
+    return { x: L.halfX + L.halfW - w, y: L.foe.top - FOE_TOGGLE_H / 2, w, h: FOE_TOGGLE_H };
+  }
+
+  /**
+   * Il tasto della fila avversaria (2026-09-16): la piastra brunita col filo
+   * nella tinta del posto avversario, le due frecce — giù per aprire, su per
+   * ridurre — e le voci: il nome smorzato, il conto acceso, un punto di tinta
+   * fra l'una e l'altra. Al passaggio si accende (filo pieno, alone, scritte
+   * chiare). Tace quando la Zona di Controllo tiene la fila aperta da sé.
+   */
+  private paintFoeToggle(state: GameState, L: TableLayout, visible: Visible, resolution: number): void {
+    this.foeToggle.visible = !this.foeControls(state);
+    if (!this.foeToggle.visible) return;
+    const tint = this.tints[otherSeat(this.me)];
+    const palette = SEAT_PALETTE[tint];
+    const { open, tokens } = this.foeToggleTokens(state, L);
+    const box = this.foeToggleBox(L);
+    const hover = this.foeToggleHover;
+    const key = JSON.stringify([open, tokens, box.x, box.w, hover, tint]);
+    const area = snapped(visible, resolution, box.x - PIECE_MARGIN, box.y - PIECE_MARGIN, box.w + 2 * PIECE_MARGIN, box.h + 2 * PIECE_MARGIN);
+    this.paintRegion(this.foeToggle, key, area, resolution, ctx => {
+      const rim = [palette.rim[0], palette.rim[1], palette.rim[2]] as [number, number, number];
+      plate(ctx, box.x, box.y, box.w, box.h, { shadow: true, edge: rgba(rim, hover ? 0.95 : 0.5), ...(hover ? { glow: rgba(rim, 0.55) } : {}), darkBackground: true });
+      // Il filo di tinta in cima, al posto di quello bianco.
+      ctx.fillStyle = rgba(rim, hover ? 0.9 : 0.5);
+      ctx.fillRect(box.x + 1, box.y + 1, box.w - 2, 1);
+      // Le due frecce (viewBox 24, a 16 px, come il tasto della mano).
+      const cy = box.y + box.h / 2;
+      ctx.save();
+      ctx.translate(box.x + TOGGLE_PAD + CHEVRON / 2 - 8, cy - 8);
+      ctx.scale(16 / 24, 16 / 24);
+      ctx.strokeStyle = hover ? "#ffffff" : palette.name;
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      for (const [edge, tip] of open ? [[11, 6], [18, 13]] : [[6, 11], [13, 18]]) {
+        ctx.beginPath();
+        ctx.moveTo(7, edge);
+        ctx.lineTo(12, tip);
+        ctx.lineTo(17, edge);
+        ctx.stroke();
+      }
+      ctx.restore();
+      let x = box.x + TOGGLE_PAD + CHEVRON + TOGGLE_INNER;
+      const textY = box.y + (box.h - header.size) / 2 - 1;
+      tokens.forEach((token, index) => {
+        if (index > 0) {
+          ctx.fillStyle = rgba(rim, 0.85);
+          ctx.beginPath();
+          ctx.arc(x + TOKEN_SEP / 2, cy, 1.7, 0, Math.PI * 2);
+          ctx.fill();
+          x += TOKEN_SEP;
+        }
+        paintText(ctx, token.label, x, textY, hover ? THEME.ink : THEME.muted, header);
+        x += textWidth(header, token.label);
+        if (token.n !== null) {
+          x += TOKEN_GAP;
+          paintText(ctx, token.n, x, textY, hover ? "#ffffff" : THEME.ink, headerNum);
+          x += textWidth(headerNum, token.n);
+        }
+      });
     });
   }
 
@@ -607,11 +745,16 @@ export class Table {
   show(state: GameState): void {
     const visible = this.stage.visible();
     // §8.2 — se l'avversario controlla una carta, il suo campo si estende
-    // con la Zona di Controllo (layout.ts, foeBack).
-    const foeControls = Object.values(state.cards).some(card => card.zone === "field" && card.controller === otherSeat(this.me));
-    const L = layout(visible, { foeBack: foeControls });
+    // con la Zona di Controllo (layout.ts, foeBack); e si estende anche dal
+    // tasto, per vedere le sue pile e la sua mano.
+    const foeControls = this.foeControls(state);
+    const foeBack = foeControls || this.foeRowOpen;
+    const L = layout(visible, { foeBack });
     const resolution = visible.scale * this.stage.app.renderer.resolution;
     const facts = (cardId: string) => cardFacts(cardId, this.locale);
+    this.lastPaint = { visible, resolution };
+    // La fila avversaria che si apre o si chiude: la foto e i posti di prima, per l'animazione (endMorph, in fondo).
+    const morph = this.last && this.last.L.foe.back !== null !== foeBack && !reducedMotion() ? this.beginMorph(visible, resolution) : null;
     this.last = { state, L };
     for (const seat of ["a", "b"] as const) {
       const deckId = state.players[seat].deckId;
@@ -629,12 +772,13 @@ export class Table {
     // cambia con la finestra, le tinte e il Controllo; le scritte delle pile
     // col loro conto stanno in un pezzo a parte, sopra.
     const controlled = Object.values(state.cards).some(card => card.zone === "field" && card.controller === this.me);
-    this.paintKeyed(this.background, `${visible.x}|${visible.y}|${this.tints.a}|${this.tints.b}|${controlled}|${foeControls}|${Boolean(NIGHT.valley)}|${Boolean(NIGHT.stone)}`, visible.width, visible.height, resolution, ctx => {
+    this.paintKeyed(this.background, `${visible.x}|${visible.y}|${this.tints.a}|${this.tints.b}|${controlled}|${foeControls}|${foeBack}|${Boolean(NIGHT.valley)}|${Boolean(NIGHT.stone)}`, visible.width, visible.height, resolution, ctx => {
       ctx.translate(-visible.x, -visible.y);
-      this.paintBackground(ctx, controlled, L, visible);
+      this.paintBackground(ctx, controlled, foeControls, L, visible);
     });
     this.background.position.set(visible.x, visible.y);
     this.paintPileLabels(state, L, visible, resolution);
+    this.paintFoePileLabels(state, L, visible, resolution);
 
     // Le carte: in campo, in cima alle tue pile, nella tua mano.
     const alive = new Set<string>();
@@ -681,7 +825,7 @@ export class Table {
       this.bases.set(card.uid, { x: x + L.tileW / 2, y: y + L.tileH / 2 });
       this.baseZ.set(card.uid, card.zone === "field" ? card.z : 0);
       view.zIndex = this.liftedZ(card.uid);
-      const full: CardLook = { ...look, tapDelay: tapDelays.get(card.uid) ?? 0, w: L.tileW, h: L.tileH, locale: this.locale, resolution };
+      const full: CardLook = { ...look, tapDelay: tapDelays.get(card.uid) ?? 0, w: L.tileW, h: L.tileH, ui: L.ui, locale: this.locale, resolution };
       this.lastLooks.set(card.uid, full);
       view.update({ ...full, ...this.moment(card.uid, card.zone) });
     };
@@ -718,17 +862,15 @@ export class Table {
       place(top, this.cards, L.x(pile.x), L.mine.back!, { cardId: top.cardId, face: top.face, back: pile.zone === "deck", tapped: false, badges: null, combat: null });
     }
 
-    // Il pannello delle pile avversarie aperto: le cime delle tre pile e un
-    // dorso per la mano (table.ts, pile-dock). Ripiegato, lo dipinge `sopra`.
+    // La fila di servizio avversaria aperta: le cime delle sue tre pile e un
+    // dorso per la sua mano, sopra il suo Fronte.
     const foe = otherSeat(this.me);
-    const dock = dockOf(L);
-    if (this.panelOpen) {
-      const piles: { zone: ZoneId; back: boolean }[] = [{ zone: "abisso", back: false }, { zone: "ritiro", back: false }, { zone: "deck", back: true }, { zone: "hand", back: true }];
-      piles.forEach((entry, index) => {
+    if (L.foe.back !== null) {
+      for (const entry of FOE_PILES) {
         const top = zoneCards(state, foe, entry.zone)[0];
-        if (!top) return;
-        place(top, this.panelCards, dock.slotX(index), dock.slotY, { cardId: top.cardId, face: top.face, back: entry.back, tapped: false, badges: null, combat: null });
-      });
+        if (!top) continue;
+        place(top, this.cards, L.x(entry.x), L.foe.back, { cardId: top.cardId, face: top.face, back: entry.back, tapped: false, badges: null, combat: null });
+      }
     }
 
     // La mano: una fila da sinistra, 10 fra una carta e l'altra; se non ci
@@ -761,26 +903,127 @@ export class Table {
     if (!this.handSliding) this.hand.y = this.handLift(L, hand.length);
     this.paintHandToggle(L, resolution);
 
-    // Sopra tutto: le targhe dei posti, il pannello delle pile avversarie, il gesto di fase — ognuno nel suo pezzo.
+    // Sopra tutto: le targhe dei posti, il tasto della fila avversaria, il gesto di fase — ognuno nel suo pezzo.
     this.syncHp(state);
     this.paintOverlay(state, L, visible, resolution);
 
-    // Il pannello aperto, sopra la testata; e le zone che si toccano.
-    this.panel.visible = this.panelOpen;
-    if (this.panelOpen) {
-      const panelKey = `${this.tints[foe]}|${(["abisso", "ritiro", "deck", "hand"] as const).map(zone => zoneCards(state, foe, zone).length).join(",")}`;
-      this.paintKeyed(this.panel, panelKey, dock.w + 2 * PANEL_DROP_SHADOW, dock.h + 2 * PANEL_DROP_SHADOW, resolution, ctx => {
-        ctx.translate(PANEL_DROP_SHADOW, PANEL_DROP_SHADOW);
-        this.paintPanel(ctx, state, L, dock);
-      });
-      this.panel.position.set(dock.x - PANEL_DROP_SHADOW, dock.y - PANEL_DROP_SHADOW);
-      this.panel.hitArea = new Rectangle(PANEL_DROP_SHADOW, PANEL_DROP_SHADOW, dock.w, dock.h);
-    }
-    this.updateHits(L, dock);
+    // Le zone che si toccano.
+    this.updateHits(L);
     this.updateDimmer();
+
+    // La fila avversaria che si apre o si chiude: il fondo di prima si dissolve, le carte scivolano al posto nuovo.
+    if (morph) this.endMorph(morph, L, visible);
 
     // Il vetro del cassetto si rifà quando le facce in vista sono pronte.
     void this.ready();
+  }
+
+  // ------------------------------------------- la fila avversaria che si apre
+
+  /**
+   * Prima del ridisegno: i centri delle carte com'erano, e una foto del fondo
+   * e delle targhe (senza carte né voli) da dissolvere sul nuovo.
+   */
+  private beginMorph(visible: Visible, resolution: number): Morph {
+    const bases = new Map<string, { x: number; y: number }>();
+    for (const [uid, base] of this.bases) bases.set(uid, { x: base.x, y: base.y });
+    const layers = [this.cards, this.hand, this.flights, this.arrows, this.chain, this.dimmer, this.discardHalo, this.discardFrame, this.discardTag, this.transition, this.handToggle, this.foeRowHits, this.pileHits];
+    const shown = layers.map(layer => layer.visible);
+    for (const layer of layers) layer.visible = false;
+    let texture: Texture | null = null;
+    try {
+      texture = this.stage.app.renderer.generateTexture({ target: this.root, frame: new Rectangle(visible.x, visible.y, visible.width, visible.height), resolution: Math.min(resolution, 1.5) });
+    } catch {
+      texture = null;
+    }
+    layers.forEach((layer, index) => (layer.visible = shown[index] ?? true));
+    return { bases, tileW: this.last?.L.tileW ?? 0, texture };
+  }
+
+  /**
+   * Dopo il ridisegno (2026-09-16, «un'animazione all'apertura»): la foto di
+   * prima si dissolve in MORPH_MS; ogni carta parte dal centro e dalla
+   * misura di prima e scivola al posto nuovo; le carte nuove (la fila
+   * avversaria appena aperta) scendono dall'orlo accendendosi. Le scene
+   * aspettano che finisca (Stillness).
+   */
+  private endMorph(morph: Morph, L: TableLayout, visible: Visible): void {
+    const ticker = this.stage.app.ticker;
+    const done = this.still.hold();
+    const runs: Promise<void>[] = [];
+    if (morph.texture) {
+      const texture = morph.texture;
+      this.transition.texture = texture;
+      this.transition.position.set(visible.x, visible.y);
+      this.transition.width = visible.width;
+      this.transition.height = visible.height;
+      this.transition.alpha = 1;
+      this.transition.visible = true;
+      // La foto se ne va prima che le carte arrivino: meno doppia esposizione.
+      runs.push(
+        tween(ticker, MORPH_MS * 0.7, k => (this.transition.alpha = 1 - k), easeOut).finally(() => {
+          if (this.transition.texture === texture) {
+            this.transition.visible = false;
+            this.transition.texture = Texture.EMPTY;
+          }
+          texture.destroy(true);
+        })
+      );
+    }
+    const ratio = morph.tileW > 0 ? morph.tileW / L.tileW : 1;
+    for (const [uid, view] of this.views) {
+      if (view.destroyed || (view.parent !== this.cards && view.parent !== this.hand)) continue;
+      const to = this.bases.get(uid);
+      if (!to) continue;
+      const from = morph.bases.get(uid);
+      // Il posto d'arrivo si rilegge a ogni passo: un ridisegno nel frattempo lo può spostare.
+      const target = (): { x: number; y: number } => this.bases.get(uid) ?? to;
+      if (from) {
+        if (Math.abs(from.x - to.x) < 0.5 && Math.abs(from.y - to.y) < 0.5 && Math.abs(ratio - 1) < 0.001) continue;
+        view.position.set(from.x, from.y);
+        view.scale.set(ratio);
+        runs.push(
+          tween(ticker, MORPH_MS, k => {
+            if (view.destroyed) throw new Error("carta sparita");
+            const at = target();
+            view.position.set(from.x + (at.x - from.x) * k, from.y + (at.y - from.y) * k);
+            view.scale.set(ratio + (1 - ratio) * k);
+          }, easeInOut).then(
+            () => {
+              if (view.destroyed) return;
+              const at = target();
+              view.position.set(at.x, at.y);
+              view.scale.set(1);
+            },
+            () => undefined
+          )
+        );
+      } else {
+        // La carta nuova può non avere ancora la faccia (alpha 0 finché non è
+        // pronta): il traguardo è l'opacità del suo momento, non quella di adesso.
+        const alpha = this.lastLooks.get(uid)?.alpha ?? 1;
+        const lift = L.tileH * 0.4;
+        view.alpha = 0;
+        view.position.set(to.x, to.y - lift);
+        runs.push(
+          tween(ticker, MORPH_MS, k => {
+            if (view.destroyed) throw new Error("carta sparita");
+            const at = target();
+            view.position.set(at.x, at.y - lift * (1 - k));
+            view.alpha = alpha * k;
+          }, easeOut).then(
+            () => {
+              if (view.destroyed) return;
+              const at = target();
+              view.position.set(at.x, at.y);
+              view.alpha = alpha;
+            },
+            () => undefined
+          )
+        );
+      }
+    }
+    void Promise.allSettled(runs).then(done);
   }
 
   // ------------------------------------------------------ i pezzi dipinti
@@ -815,20 +1058,38 @@ export class Table {
     const back = L.mine.back;
     this.pileLabels.visible = back !== null;
     if (back === null) return;
+    const font = scaled(rowLabel, L.ui);
     const labels = PILE.map(pile => ({ x: L.x(pile.x) + 4, text: `${t(pile.label)} · ${zoneCards(state, this.me, pile.zone).length}` }));
     const left = Math.min(...labels.map(label => label.x));
-    const right = Math.max(...labels.map(label => label.x + textWidth(rowLabel, label.text)));
+    const right = Math.max(...labels.map(label => label.x + textWidth(font, label.text)));
     const top = back + L.tileH + 10;
-    const box = snapped(visible, resolution, left - PIECE_MARGIN, top - PIECE_MARGIN, right - left + 2 * PIECE_MARGIN, rowLabel.size + 2 * PIECE_MARGIN);
-    this.paintRegion(this.pileLabels, labels.map(label => label.text).join("|"), box, resolution, ctx => {
-      for (const label of labels) paintText(ctx, label.text, label.x, top, THEME.lettering, rowLabel, LABEL_SHADOWS);
+    const box = snapped(visible, resolution, left - PIECE_MARGIN, top - PIECE_MARGIN, right - left + 2 * PIECE_MARGIN, font.size + 2 * PIECE_MARGIN);
+    this.paintRegion(this.pileLabels, `${labels.map(label => label.text).join("|")}|${L.ui}`, box, resolution, ctx => {
+      for (const label of labels) paintText(ctx, label.text, label.x, top, THEME.lettering, font, LABEL_SHADOWS);
+    });
+  }
+
+  /** Le scritte delle pile avversarie e della sua mano col loro conto, sotto la sua fila di servizio (aperta). */
+  private paintFoePileLabels(state: GameState, L: TableLayout, visible: Visible, resolution: number): void {
+    const back = L.foe.back;
+    this.foePileLabels.visible = back !== null;
+    if (back === null) return;
+    const foe = otherSeat(this.me);
+    const font = scaled(rowLabel, L.ui);
+    const labels = FOE_PILES.map(entry => ({ x: L.x(entry.x) + 4, text: `${t(entry.label)} · ${zoneCards(state, foe, entry.zone).length}` }));
+    const left = Math.min(...labels.map(label => label.x));
+    const right = Math.max(...labels.map(label => label.x + textWidth(font, label.text)));
+    const top = back + L.tileH + 10;
+    const box = snapped(visible, resolution, left - PIECE_MARGIN, top - PIECE_MARGIN, right - left + 2 * PIECE_MARGIN, font.size + 2 * PIECE_MARGIN);
+    this.paintRegion(this.foePileLabels, `${labels.map(label => label.text).join("|")}|${L.ui}`, box, resolution, ctx => {
+      for (const label of labels) paintText(ctx, label.text, label.x, top, THEME.lettering, font, LABEL_SHADOWS);
     });
   }
 
   // ------------------------------------------------------------- il fondo
 
   /** Legge solo ciò che sta nella sua chiave (show): la finestra, le tinte, il Controllo, la notte caricata. */
-  private paintBackground(ctx: CanvasRenderingContext2D, controlled: boolean, L: TableLayout, visible: { x: number; y: number; width: number; height: number }): void {
+  private paintBackground(ctx: CanvasRenderingContext2D, controlled: boolean, foeControls: boolean, L: TableLayout, visible: { x: number; y: number; width: number; height: number }): void {
     const { x: vx, y: vy, width: vw, height: vh } = visible;
     // La stanza (.board del tema notte), dal fondo in su: il vuoto, la valle
     // già sfocata a coprire, un velo scuro, la grana di grafite, il bagliore
@@ -871,14 +1132,14 @@ export class Table {
         const x = L.x(canonX);
         slotFrame(ctx, x, y, L.tileW, L.tileH, palette);
         if (edge) dashedRect(ctx, x, y, L.tileW, L.tileH, edge);
-        if (label) paintText(ctx, t(label), x + 4, y + L.tileH + 10, THEME.lettering, rowLabel, LABEL_SHADOWS);
+        if (label) paintText(ctx, t(label), x + 4, y + L.tileH + 10, THEME.lettering, scaled(rowLabel, L.ui), LABEL_SHADOWS);
       };
       slot(RUBYFRONT_X, field.front, "rgba(210,74,100,.42)", null);
       for (const x of FRONT_SLOT_X) slot(x, field.front, null, null);
       slot(MATTER_X, field.front, "rgba(143,176,255,.42)", "zone.matters");
       // Un'etichetta sola per i cinque slot, centrata sotto.
       const front = t("zone.front");
-      paintText(ctx, front, L.x(FRONT_X) + (FRONT_W * L.s - textWidth(line, front)) / 2, field.front + L.tileH + 13, THEME.lettering, line, LABEL_SHADOWS);
+      paintText(ctx, front, L.x(FRONT_X) + (FRONT_W * L.s - textWidth(scaled(line, L.ui), front)) / 2, field.front + L.tileH + 13, THEME.lettering, scaled(line, L.ui), LABEL_SHADOWS);
 
       // La tua fila di servizio: gli alloggi delle pile (il conto lo scrive
       // paintPileLabels), e il Controllo se occupato.
@@ -886,8 +1147,13 @@ export class Table {
         for (const pile of PILE) slot(pile.x, field.back, null, null);
         if (controlled) slot(CONTROL_X, field.back, null, "zone.control");
       }
-      // La fila di servizio avversaria esiste solo per la sua Zona di Controllo (layout.ts, foeBack).
-      if (!mine && field.back !== null) slot(CONTROL_X, field.back, null, "zone.control");
+      // La fila di servizio avversaria (dal tasto, o per la sua Zona di
+      // Controllo): le sue pile e la sua mano (il conto lo scrive
+      // paintFoePileLabels), e il Controllo se occupato.
+      if (!mine && field.back !== null) {
+        for (const entry of FOE_PILES) slot(entry.x, field.back, null, null);
+        if (foeControls) slot(CONTROL_X, field.back, null, "zone.control");
+      }
     }
   }
 
@@ -1183,15 +1449,8 @@ export class Table {
     const foe = otherSeat(this.me);
     for (const seat of [foe, this.me]) this.paintSeatHead(seat, state, L, visible, resolution);
 
-    // Il pannello delle pile avversarie, ripiegato: la piastra coi conti, in alto a destra.
-    const counts = PILE.map(pile => `${t(pile.label)} · ${zoneCards(state, foe, pile.zone).length}`).join("   ");
-    const { w: dockW, x: dockX, y: dockY } = dockOf(L);
-    const dockBox = snapped(visible, resolution, dockX - PIECE_MARGIN, dockY - PIECE_MARGIN, dockW + 2 * PIECE_MARGIN, DOCK_HEAD_H + 2 * PIECE_MARGIN);
-    this.paintRegion(this.dockHead, counts, dockBox, resolution, ctx => {
-      plate(ctx, dockX, dockY, dockW, DOCK_HEAD_H, { shadow: true, edge: THEME.line, darkBackground: true });
-      paintText(ctx, "▸", dockX + 14, dockY + 7, THEME.ink, header);
-      paintText(ctx, counts, dockX + 36, dockY + 7, THEME.muted, header);
-    });
+    // Il tasto della fila avversaria, in alto a destra.
+    this.paintFoeToggle(state, L, visible, resolution);
 
     // Il gesto di fase, in basso a destra: dice quale fase chiude, e ne ha il colore.
     const endsTurn = state.phase === "fronte" && !waveDeclared(state);
@@ -1271,27 +1530,29 @@ function snapped(origin: { x: number; y: number }, resolution: number, x: number
   return { x: bx, y: by, w: w + (x - bx), h: h + (y - by) };
 }
 
-/** La testata del pannello delle pile avversarie, e il margine per l'ombra del pannello aperto. */
-const DOCK_HEAD_H = 30;
-const PANEL_DROP_SHADOW = 40;
-
-interface Panel {
-  x: number;
-  y: number;
-  w: number;
-  /** Alto da aperto: testata, riquadri, etichette. */
-  h: number;
-  slotY: number;
-  slotX(index: number): number;
+/** Il tasto della fila avversaria: l'altezza, i margini, le frecce, l'aria fra nome e conto e fra una voce e l'altra. */
+const FOE_TOGGLE_H = 32;
+const TOGGLE_PAD = 14;
+const TOGGLE_INNER = 10;
+const CHEVRON = 16;
+const TOKEN_GAP = 6;
+const TOKEN_SEP = 22;
+interface ToggleToken {
+  label: string;
+  n: string | null;
 }
 
-/** Il pannello delle pile avversarie: in alto a destra, a cavallo dell'orlo del campo avversario. */
-function dockOf(L: TableLayout): Panel {
-  const w = 4 * L.tileW + 3 * 16 + 24;
-  const x = L.halfX + L.halfW - w;
-  const y = L.foe.top - 15;
-  // Sotto i riquadri le etichette e 44 d'aria: da aperto copre il campo avversario fino alle sue etichette.
-  return { x, y, w, h: DOCK_HEAD_H + 8 + L.tileH + 44, slotY: y + DOCK_HEAD_H + 8, slotX: index => x + 12 + index * (L.tileW + 16) };
+/** L'apertura o la chiusura della fila avversaria: quanto dura, e ciò che si porta dietro dal disegno di prima (beginMorph). */
+const MORPH_MS = 420;
+interface Morph {
+  bases: Map<string, { x: number; y: number }>;
+  tileW: number;
+  texture: Texture | null;
+}
+
+/** Un carattere nella scala dell'interfaccia (layout.ts, ui): corpo e spaziatura scendono insieme. */
+function scaled(font: Font, ui: number): Font {
+  return ui === 1 ? font : { ...font, size: font.size * ui, spacing: (font.spacing ?? 0) * ui };
 }
 
 /** Cambia la texture di uno sprite distruggendo la vecchia — mai quella vuota condivisa di Pixi. */

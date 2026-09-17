@@ -1,7 +1,8 @@
 // L'impaginazione del tavolo (F3): dove sta ogni cosa, in unità di progetto
 // (1920×1080, stage.ts): la tua metà in basso con due file (Fronte e fila di
-// servizio), l'avversaria in alto capovolta e ridotta al Fronte (le sue pile
-// stanno nel pannello), la mano in un cassetto sopra il tavolo.
+// servizio), l'avversaria in alto capovolta e ridotta al Fronte — la sua
+// fila di servizio (mano e pile) si apre dal tasto, o da sé con la Zona di
+// Controllo (foeBack) —, la mano in un cassetto sopra il tavolo.
 //
 // La scala viene da sé: dall'altezza, tolti gli spazi fissi (la barra in
 // alto, le targhe, le etichette a 16px, l'angolo del gesto di fase), restano
@@ -46,6 +47,13 @@ export interface FieldArea {
 export interface TableLayout {
   /** Da unità canoniche a unità di progetto. */
   s: number;
+  /**
+   * La scala delle scritte e dei distintivi: 1 col tavolo a tre file; con
+   * la fila avversaria aperta (quattro file) scende con le carte, così le
+   * etichette e i distintivi restano proporzionati (2026-09-16, «quando
+   * clicco dovresti ridurre i font»).
+   */
+  ui: number;
   /** La x di progetto dello zero canonico. */
   left: number;
   tileW: number;
@@ -74,10 +82,11 @@ export interface TableLayout {
 }
 
 /**
- * `foeBack`: l'avversario controlla una carta (§8.2, Radunatore) e il suo
- * campo si estende di una fila — la Zona di Controllo, sopra il suo Fronte
- * — così la carta presa non si schiaccia sul suo Fronte (2026-09-15). Le
- * file diventano quattro e la scala scende di conseguenza.
+ * `foeBack`: la fila di servizio avversaria, sopra il suo Fronte — aperta
+ * dal tasto (2026-09-16: la sua mano e le sue pile in vista) o da sé quando
+ * l'avversario controlla una carta (§8.2, la Zona di Controllo: la carta
+ * presa non si schiaccia sul suo Fronte, 2026-09-15). Le file diventano
+ * quattro e la scala scende di conseguenza.
  */
 export function layout(visible: Visible, opts: { foeBack?: boolean } = {}): TableLayout {
   const foeBack = opts.foeBack === true;
@@ -88,6 +97,8 @@ export function layout(visible: Visible, opts: { foeBack?: boolean } = {}): Tabl
   const byHeight = (bottom - top - fixed) / (rows * TILE_H);
   const byWidth = (visible.width - 2 * FIXED.side) / SURFACE_W;
   const s = Math.min(byHeight, byWidth);
+  const threeRows = Math.min((bottom - top - (FIXED.top + 2 * FIXED.head + 3 * FIXED.label + FIXED.gap)) / (3 * TILE_H), byWidth);
+  const ui = Math.min(1, s / threeRows);
   const tileW = TILE_W * s;
   const tileH = TILE_H * s;
   const left = visible.x + (visible.width - SURFACE_W * s) / 2;
@@ -135,6 +146,7 @@ export function layout(visible: Visible, opts: { foeBack?: boolean } = {}): Tabl
 
   return {
     s,
+    ui,
     left,
     tileW,
     tileH,

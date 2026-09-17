@@ -205,3 +205,60 @@ Il motore «Zona di Ritiro come arsenale» ora si alimenta anche da questi tre:
 la Recluta e il Catalizzatore ci mettono Oggetti pescando, la Spada ci va da
 sola per un Flusso. Copie e conteggi invariati (19 · 10 · 11 = 40). Eredità
 Perduta invariata.
+
+## 7. Revisione competitiva (foglio del 2026-09-16, nel catalogo il 2026-09-17)
+
+Il designer ha chiesto «un mazzo molto competitivo contro Eredità Perduta,
+che gira sempre con gli Oggetti e innesca effetti importanti»: la revisione
+è stata scritta **sul foglio** il 2026-09-16 (con una copia di sicurezza del
+foglio intero) e portata qui il giorno dopo. **Cambiano solo gli effetti**:
+non il Rubyfront/Nexus, non le copie, non i costi. La curva resta
+7 · 10 · 14 · 8 · 1.
+
+Il piano contro Eredità Perduta (Umani in massa a 1–3 Flussi, rimozioni con
+vincolo di costo, Vigorcintura, Ajmal e Rhen a chiudere):
+
+- **Armati si regge il muro.** Recluta e Immortale hanno «Se questa Entità
+  ha un Oggetto assegnato, ha +1 Potenza». Lo Scudo dà **Stasi**, il Vestigio
+  **Vendetta**, la Spada **Slancio**.
+- **Gli Oggetti non finiscono mai.** Esploratore cerca il primo Oggetto nel
+  mazzo; Guardiano guarda 4 carte fisse e ne mette una in Ritiro; Artefice e
+  Immortale riprendono dal Ritiro Oggetti fino a 3 Flussi (Prisma compreso);
+  Avy Shin guarda 3 carte; Catalizzatore riesce con 3–6; il Portatore sconta
+  di 2; la Spada torna dal Ritiro pagandola.
+- **Rimozione che non paga.** Eversione distrugge senza perdere PV e costa 2
+  contro una tappata; Frattura a 1 Flusso con due armate; Sottolama
+  all'ingresso manda in Ritiro un'avversaria da 2 o meno e attaccando armata
+  dà +2 alle altre.
+- **Chiusura.** Amplificazione stappa e spinge fino a 3 armate; Sentinella
+  armata si stappa dopo il combattimento; Assalto Ferale e Avy Shin come prima.
+
+| Carta | Prima | Ora |
+|---|---|---|
+| Recluta del Campo | Oggetto dalla mano in Ritiro, pesca | + «armata +1 Potenza» |
+| Guardiano del Campo | sguardo col d6 | sguardo fisso di 4, un Oggetto in mano, una in Ritiro |
+| Esploratore | pesca 1, scarta 1 (armato) | a inizio turno senza Oggetti sul Fronte cerca un Oggetto nel mazzo (via la pesca) |
+| Artefice di Nova Kai | riarmo ≤2 | riarmo ≤3 |
+| Sentinella di Nova Kai | Contrattacco per Oggetto | + si stappa dopo il combattimento (armata, una volta a turno) |
+| Sottolama di Nova Kai | +1 alle altre armate | + all'ingresso un'avversaria ≤2 in Ritiro; +2 alle altre armate |
+| Portatore di Fronti | sconto 1, pesca | sconto 2, pesca |
+| Avy Shin | sguardo di 2 | sguardo di 3 |
+| Immortale Vincolato | torna con un Oggetto ≤2 | torna con un Oggetto ≤3 + «armata +1 Potenza» |
+| Spada Dimensionale | +1; in Ritiro pagandola | +1 e Slancio; dal Ritiro si riassegna pagandola |
+| Scudo Dimensionale | +1, Contrattacco +1 | +1, Contrattacco +1 e Stasi |
+| Catalizzatore Sigma | +1, d6 con 4–6 | +2, d6 con 3–6 |
+| Vestigio della Scissione | +2, riarmo alla morte | +2 e Vendetta, riarmo alla morte |
+| Prisma Dimensionale | esilio | +1 al portatore ed esilio |
+| Amplificazione Sinaptica | fino a 2 armate | fino a 3 armate |
+| Eversione Distruttiva | distruggi, perdi 2 PV | distruggi; contro una tappata costa 1 in meno |
+| Carica Latente | 5 carte, 1–7/8–14/15–20 | 6 carte, 1–5/6–13/14–20 |
+| Frattura della Scissione | sconto 1 con 2 armate | sconto 2 con 2 armate |
+
+Invariate: Rifrazione della Memoria, Assalto Ferale, Kyo Shin.
+
+**Al tavolo.** Tutto gira da sé con l'arbitro, tranne due cose che l'engine
+non legge ancora: la ricerca dell'Esploratore a inizio turno (evento
+`on_turn_start`, effetto `search_card`: nel DEBT dell'anagrafe) e la Spada
+che si riassegna dal Ritiro pagandola (azione `assign_object` dal Ritiro).
+Sono i prossimi due collegamenti.
+

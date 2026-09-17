@@ -111,6 +111,7 @@ Trigger (campo `trigger`, iniziale maiuscola, senza punto finale):
 | Quando assegni un Oggetto a questa Entità | When you assign an Object to this Entity |
 | Quando flippa *(solo faccia Nexus)* | When it flips |
 | Effetto *(statiche e «la prima volta in ogni turno»)* | Effect |
+| All'inizio di ogni tuo turno *(dal 2026-09-17)* | At the start of each of your turns |
 
 **«Sul Fronte», non «in campo», per l'ingresso di un'Entità** (decisione del
 designer, 2026-09-08): il trigger d'ingresso e il promemoria dello Slancio
@@ -196,6 +197,8 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Oggetto dalla mano in Ritiro, poi pesca | Puoi mettere un Oggetto dalla tua mano nella tua Zona di Ritiro. Se lo fai, pesca una carta. | You may put an Object from your hand into your Retire Zone. If you do, draw a card. |
 | Un altro Oggetto in Ritiro col dado, poi pesca | Poi lancia un d6: con 4–6 puoi mettere un altro Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca una carta. | Then roll a d6: on 4–6 you may put another Object you control into your Retire Zone. If you do, draw a card. |
 | L'Oggetto che si mette in Ritiro pagando | Puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo di Flusso. | You may put this Object into your Retire Zone by paying its Flux cost. |
+| L'Oggetto che si riassegna dal Ritiro pagando *(dal 2026-09-17)* | Puoi assegnare questo Oggetto dalla tua Zona di Ritiro pagandone il costo di Flusso. | You may assign this Object from your Retire Zone by paying its Flux cost. |
+| Ricerca di un Oggetto | cerca nel tuo mazzo un Oggetto, mostralo all'avversario e aggiungilo alla tua mano, poi rimescola il mazzo | search your deck for an Object, reveal it to your opponent and add it to your hand, then shuffle your deck |
 
 **Rimozione: quale zona.** Una rimozione che deve **tornare in gioco** usa
 l'«Esilio condizionato» sull'**Abisso** (RBF-018, RBF-043; nella variante

@@ -12,7 +12,7 @@
 import { declareAttack as declareAttackVia, attackBonusOf, neverTaps, wornBy } from "./combat.js";
 import { abilityCopy, attackEffects, cardName, cardStats, enterEffects, faceCount, faceKind, getCard, isRubyfront, nexusRequirementCopy, type Deployment } from "./cards.js";
 import type { Ability, AssignForm, Ctx } from "./ctx.js";
-import { bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, describeStash, enterDisarms, enterRearms, enterStashes, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveStash, stashRef, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type EnterStashStep, type LeaveReturnStep, type Placement, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
+import { turnStartSearches, resolveTurnStartSearch, describeTurnStartSearch, type TurnStartSearchStep, bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, describeStash, enterDisarms, enterRearms, enterStashes, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveStash, stashRef, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type EnterStashStep, type LeaveReturnStep, type Placement, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
 import { FRONT_SLOT_X, RUBYFRONT_X, SLOT_X, SURFACE_H, SURFACE_W, TILE_H, TILE_W, backRowY, frontRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import type { AutoChooser } from "./session.js";
@@ -103,6 +103,7 @@ export interface GestureView {
   /** Le scene si mettono in fila: si risolve quando questa è chiusa. */
   scene(show: SceneShow): Promise<void>;
   /** Si risolve quando nessuna scena è in coda. */
+  /** Si risolve quando nessuna scena è in coda E il tavolo è fermo (voli, colpi, dado, insegna): gli inneschi vengono dopo le animazioni. */
   sceneIdle(): Promise<void>;
   notice(message: string): Promise<void>;
   confirm(question: string, labels?: { yes: string; no: string }): Promise<boolean>;
@@ -2211,6 +2212,51 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    * carta». Si sceglie dalla mano (o si chiude la pila per nessuno); l'Oggetto
    * vola in Ritiro e, passato, arriva la pesca.
    */
+  /**
+   * La ricerca a inizio turno (§8.2, dal 2026-09-17): la scena della carta
+   * con «Risolvi», poi la vetrina del mazzo coi soli Oggetti — Chiudi per
+   * nessuno —, la carta in mano (la chat la mostra all'avversario) e la
+   * mescolata. Per il bot la scelta risponde da sé.
+   */
+  async function playTurnStartSearch(step: TurnStartSearchStep): Promise<void> {
+    const by = controllerOf(step.source);
+    const live = ctx.state().cards[step.source.uid];
+    if (!live || live.zone !== "field") return;
+    let run: Promise<void> = Promise.resolve();
+    await view.scene({
+      cardId: live.cardId,
+      face: live.face,
+      theme: ctx.themeFor(live.owner),
+      locale: ctx.locale(),
+      who: t("scene.turn.of", { name: seatLabel(ctx.state(), by) }),
+      kicker: t("scene.turn.start"),
+      effects: [],
+      triggers: [describeTurnStartSearch(step, ctx.card)],
+      onContinue: () =>
+        (run = track(async () => {
+          if (step.candidates.length === 0) {
+            ctx.log(msg("log.no.object.deck", { seat: by, card: step.source.cardId }), by);
+            return;
+          }
+          view.light(step.source.uid, true);
+          try {
+            const card = await pickFromPile(by, "deck", step.candidates, t("pick.search"));
+            if (!card) return;
+            view.hold(true);
+            try {
+              await resolveTurnStartSearch(ctx, step, card);
+              await wait(TRIGGER_TAIL_MS);
+            } finally {
+              view.hold(false);
+            }
+          } finally {
+            view.light(step.source.uid, false);
+          }
+        })),
+    });
+    await run;
+  }
+
   async function playStash(step: EnterStashStep): Promise<void> {
     const by = controllerOf(step.source);
     if (step.candidates.length === 0) {
@@ -2779,6 +2825,12 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       auto = seat ? { seat, chooser } : null;
     },
     /** §8.2 — il ritorno vincolato, per chi possiede la carta appena uscita dal campo. */
+    /** §8.2 — «all'inizio di ogni tuo turno»: le ricerche di chi è di turno, se comanda il posto (io, o il bot). */
+    offerTurnStart(after: GameState, owners: Seat[]): void {
+      const seat = after.active;
+      if (!owners.includes(seat)) return;
+      for (const step of turnStartSearches(after, seat, ctx.card)) offer(() => playTurnStartSearch(step));
+    },
     offerLeaveReturns(before: GameState, after: GameState, owners: Seat[]): void {
       const steps = leaveReturns(before, after, ctx.card).filter(step => owners.includes(step.card.owner));
       for (const step of steps) offer(() => playLeaveReturn(step));

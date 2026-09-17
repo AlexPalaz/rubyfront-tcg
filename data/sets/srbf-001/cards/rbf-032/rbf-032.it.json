@@ -1,7 +1,7 @@
 {
   "name": "Spada Dimensionale",
   "typeLabel": "Oggetto",
-  "summary": "L'equipaggiamento base: un Flusso, una Potenza — e si mette in Ritiro pagandolo.",
+  "summary": "L'equipaggiamento base: un Flusso, una Potenza e lo Slancio — e dal Ritiro torna in campo pagandolo.",
   "ui": {
     "face": "Oggetto"
   },
@@ -14,7 +14,7 @@
     "name": "Spada Dimensionale",
     "effect": {
       "name": "Effetto",
-      "text": "L'Entità a cui è assegnata ha +1 Potenza. Puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo di Flusso."
+      "text": "L'Entità a cui è assegnata ha +1 Potenza e Slancio. Puoi assegnare questo Oggetto dalla tua Zona di Ritiro pagandone il costo di Flusso."
     },
     "flavor": "Taglia dove il mondo è già sottile."
   }

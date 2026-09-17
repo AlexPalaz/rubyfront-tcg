@@ -54,7 +54,10 @@
                 "zone": "abyss",
                 "owner": "card_owner"
               },
-              "thenControllerLosesHealth": 2
+              "fluxCostReduction": {
+                "amount": 1,
+                "ifTargetState": "tapped"
+              }
             }
           }
         }

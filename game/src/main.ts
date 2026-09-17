@@ -60,14 +60,14 @@ async function boot(): Promise<void> {
     // Il tavolo sulla partita di prova (F3): una lista fissa di azioni
     // (table/sample-game.ts).
     await loadCatalog();
-    // &catena: la catena di risposta aperta; &pannello: le pile avversarie aperte; &sfoglia: la tua Abisso nella vetrina.
+    // &chain: la catena di risposta aperta; &foe: la fila di servizio avversaria aperta; &browse: la tua Abisso nella vetrina.
     // &control: B controlla un'Entità di A (la sua Zona di Controllo si apre).
-    const actions = sampleGame({ chain: params.has("chain"), block: params.has("block"), control: params.has("control") });
+    const actions = sampleGame({ chain: params.has("chain"), block: params.has("block"), control: params.has("control"), recall: params.has("recall") });
     const seat = params.get("seat") === "b" ? "b" : "a";
     const table = new Table(stage, seat, locale);
     new Preview(stage, table, locale);
-    const state = replay(actions.map(action => ({ action })));
-    if (params.has("panel")) table.openPanel(true);
+    let state = replay(actions.map(action => ({ action })));
+    if (params.has("foe")) table.openFoeRow(true);
     table.show(state);
     // Le frecce del combattimento, e (con &resa) i voli e i colpi da provocare dalla console.
     const arrows = new Arrows(stage, table);
@@ -88,6 +88,17 @@ async function boot(): Promise<void> {
           if (attack) flights.toPile(attack.from, "abisso", { slain: true })?.();
           if (block) flights.clash(block.from, "parry");
           if (attack) table.strike(attack.to, 1600);
+        },
+        // §8.2 — il controllo preso adesso, come lo vede la partita (match.ts): la fila avversaria si apre e la carta scivola nella Zona di Controllo.
+        control() {
+          const control = sampleGame({ control: true }).find(action => action.t === "control");
+          if (!control || control.t !== "control") return;
+          const flight = flights.slide(control.uid);
+          state = replay([...actions, control].map(action => ({ action })));
+          table.strike(control.uid, 1600);
+          table.show(state);
+          arrows.update(state);
+          flight?.();
         },
       };
     }
