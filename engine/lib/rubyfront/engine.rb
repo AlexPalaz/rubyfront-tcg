@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.80.0"
+    VERSION = "0.82.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -36,6 +36,7 @@ module Rubyfront
       "§6.3 Dichiarazioni: tappate, coperte, sfide 1 contro 1",
       "§6.2 Fronte: massimo 5 Entità",
       "§3.1/§3.2 Contatori: mai sotto zero",
+      "§3.1 I PV non superano quelli stampati sul Rubyfront (regola sperimentale, 2026-09-17)",
       "§3.1 I PV iniziali sono quelli stampati sul Rubyfront",
       "§3.1 Oggetti: assegnazione",
       "§3.1 Un Oggetto non sta sul Fronte da solo: entra assegnato a una tua Entità",
@@ -67,7 +68,7 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una»",
       "§8.2 Effetti certificati: «tira un d6, guarda 2 più metà, un Oggetto in mano, una in Ritiro»",
       "§8.2 Effetti certificati: «quando entra, prendi il controllo di un'Entità avversaria»",
-      "§8.2 Controllo: attacca e blocca chi comanda, e a fine turno si restituisce",
+      "§8.2 Controllo: attacca e blocca chi comanda, e alla fine del turno in cui è stato preso si restituisce, chiunque comandi",
       "§3.1 Il Rubyfront si schiera pagando: costo fisso o a dado",
       "§3.1 Il Rubyfront schierato non torna in Zona di Richiamo",
       "§8.2 Effetti certificati: «quando attacca con un Oggetto, pesca, poi scarta»",
@@ -122,6 +123,7 @@ module Rubyfront
       "§6.3 Declarations: tapped, covered, 1-on-1 challenges",
       "§6.2 Front: at most 5 Entities",
       "§3.1/§3.2 Counters: never below zero",
+      "§3.1 HP never exceeds the value printed on the Rubyfront (experimental rule, 2026-09-17)",
       "§3.1 Starting Health Points are the ones printed on the Rubyfront",
       "§3.1 Objects: assignment",
       "§3.1 An Object doesn't stand on the Front on its own: it enters assigned to one of your Entities",
@@ -153,7 +155,7 @@ module Rubyfront
       "§8.2 Certified effects: “when it enters, look at the top N and reveal one”",
       "§8.2 Certified effects: “roll a d6, look at 2 plus half, an Object to hand, one to Retire”",
       "§8.2 Certified effects: “when it enters, take control of an opposing Entity”",
-      "§8.2 Control: whoever commands attacks and blocks, and returns it at end of turn",
+      "§8.2 Control: whoever commands attacks and blocks, and at the end of the turn it was taken in it is returned, whoever commands",
       "§3.1 The Rubyfront is deployed by paying: fixed cost or a die",
       "§3.1 A deployed Rubyfront doesn't go back to the Recall Zone",
       "§8.2 Certified effects: “when it attacks with an Object, draw, then discard”",
@@ -2526,7 +2528,15 @@ module Rubyfront
         return allow("release")
       end
       return refuse("release", "la carta non è sotto controllo (§8.2)", "the card isn't under control (§8.2)") unless card[:controller]
-      return refuse("release", "si restituisce a fine turno, non prima (§8.2)", "it's returned at end of turn, not before (§8.2)") if card[:controller] == @table.active
+      # «Fino alla fine del turno» è il turno in cui il controllo è stato
+      # preso (`control_turn`), chiunque comandi: il difensore che lo prende
+      # in Reazione lo restituisce a questo cambio di turno (dal 2026-09-17;
+      # prima si guardava chi era di turno, e il controllo preso in Reazione
+      # durava un turno di più). Senza il turno annotato (copie vecchie),
+      # vale il vecchio criterio.
+      taken = card[:control_turn]
+      still_that_turn = taken.is_a?(Integer) ? taken == @table.turn : card[:controller] == @table.active
+      return refuse("release", "si restituisce a fine turno, non prima (§8.2)", "it's returned at end of turn, not before (§8.2)") if still_that_turn
       return refuse("release", "si restituisce sul Fronte o nella Zona di Ritiro (§8.2)", "it's returned to the Front or to the Retire Zone (§8.2)") unless %w[field ritiro].include?(action["zone"])
 
       allow("release")

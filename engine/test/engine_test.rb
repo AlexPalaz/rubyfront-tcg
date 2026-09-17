@@ -2392,6 +2392,27 @@ class EngineTest < Minitest::Test
     assert_equal "b", table.controller_of(table.card("b1"))
   end
 
+  # 2026-09-17 — il controllo preso dal difensore in Reazione (nel turno
+  # avversario) si restituisce a QUEL cambio di turno, non uno dopo: conta il
+  # turno del controllo, non chi è di turno. Gemello: effects.test.ts.
+  def test_release_at_turn_change_whoever_commands
+    engine = commander_setup([["b1", "LITTLE"]])
+    table = engine.instance_variable_get(:@table)
+    # Il difensore B ha preso il controllo di «rad» (di A) nel turno 1, in Reazione.
+    table.card("rad")[:controller] = "b"
+    table.card("rad")[:control_turn] = 1
+    refute engine.judge({ "t" => "release", "uid" => "rad", "zone" => "field", "x" => 442, "y" => 1260 }, actor: "a")[:ok], "nel turno del controllo no"
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")
+    verdict = engine.judge({ "t" => "release", "uid" => "rad", "zone" => "field", "x" => 442, "y" => 1260 }, actor: "a")
+    assert verdict[:ok], "#{verdict[:reason]} — chi comanda è di turno, ma il turno del controllo è finito"
+    assert_equal "a", table.controller_of(table.card("rad"))
+    assert_nil table.card("rad")[:control_turn]
+    # E il controllo annota il turno da sé (nel turno d'ingresso della fonte).
+    fresh = commander_setup([["b1", "LITTLE"]])
+    take_control(fresh, "b1")
+    assert_equal 1, fresh.instance_variable_get(:@table).card("b1")[:control_turn]
+  end
+
   # --- §8.2: lo sguardo col dado all'ingresso ---------------------------------
 
   def watcher(deck)

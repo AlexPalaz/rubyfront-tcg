@@ -58,6 +58,8 @@ export interface CardInstance {
    * controllo»): fino alla fine del turno. Assente = il proprietario.
    */
   controller?: Seat;
+  /** Il turno in cui il controllo è stato preso: si restituisce alla fine di QUEL turno, chiunque comandi (§8.2, dal 2026-09-17). */
+  controlTurn?: number;
   /** Parole chiave concesse fino alla fine del turno (es. Slancio). */
   grants?: string[];
   /** Potenza in più fino alla fine del turno (§8.2, effetti d'attacco). */
@@ -94,8 +96,10 @@ export interface AttackBonus {
 
 export interface PlayerState {
   name: string;
-  /** Punti Vita: si impostano e si correggono a mano, senza limiti imposti. */
+  /** Punti Vita: si impostano e si correggono a mano; mai sotto zero, e — regola sperimentale dal 2026-09-17 — mai sopra `hpMax`. */
   hp: number;
+  /** I PV stampati sul Rubyfront (li porta il mazzo, §3.1): il tetto delle cure (regola sperimentale, 2026-09-17). Assente finché il mazzo non è caricato. */
+  hpMax?: number;
   /** Flusso disponibile (§3.2). */
   flux: number;
   /** Flusso massimo del turno: cresce di 1 per turno, tetto 20. */

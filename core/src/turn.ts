@@ -184,8 +184,8 @@ export async function endTurn(ctx: Ctx): Promise<void> {
   const player = ctx.state().players[next];
   ctx.log(msg("log.turn", { turn: state.turn + 1, seat: next, flux: player.flux, max: player.fluxMax }), next);
   if (toll > 0) ctx.log(msg("log.turn.toll", { seat: next, n: toll, flux: player.flux, max: player.fluxMax }), next);
-  // §8.2 — le carte che chi chiude controllava tornano al proprietario.
-  await releaseControlled(ctx, state.active, freeFrontSlotOrNull);
+  // §8.2 — le carte sotto controllo tornano al proprietario: tutte, chiunque le comandasse (il controllo dura fino alla fine di questo turno).
+  await releaseControlled(ctx, freeFrontSlotOrNull);
 }
 
 /** La tassa di Flusso di `seat` (§3.2): la somma delle sue carte in gioco con la forma `flux_toll`. Gemello: engine.rb, flux_toll. */

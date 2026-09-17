@@ -22,7 +22,7 @@
 
 **Se la carta non specifica, vale per tutto ciò che potrebbe potenzialmente esserlo.** Quando il testo di una carta non delimita bersagli, condizioni o casi (non dice "solo...", "avversaria", "in campo"...), l'effetto si applica nella sua estensione più ampia: tutto ciò che potrebbe potenzialmente rientrare nel testo, vi rientra.
 
-*Esempio: un effetto di recupero PV senza un massimo indicato può portare i PV anche oltre il valore stampato sulla carta; un effetto che nomina "un'Entità" senza aggettivi può bersagliare qualsiasi Entità, propria o avversaria.*
+*Esempio: un effetto che nomina "un'Entità" senza aggettivi può bersagliare qualsiasi Entità, propria o avversaria.*
 
 ## 2. Obiettivo del gioco
 
@@ -83,7 +83,7 @@ Ogni Rubyfront è una carta con **valori propri**: non esistono valori standard 
 
 La carta del Rubyfront riporta:
 
-- **PV (Punti Vita)** — la sua **unica statistica**, e sono i PV del giocatore: la partita inizia con il valore stampato sulla carta. Gli attacchi subiti fanno scendere i PV; a zero, il proprietario perde (§2).
+- **PV (Punti Vita)** — la sua **unica statistica**, e sono i PV del giocatore: la partita inizia con il valore stampato sulla carta. Gli attacchi subiti fanno scendere i PV; a zero, il proprietario perde (§2). **Regola sperimentale (dal 2026-09-17):** i PV **non possono superare il valore stampato** sulla carta Rubyfront: una cura o un recupero che li porterebbe più in alto si ferma al valore stampato, e il resto va perso.
 - **Costo di schieramento** — il costo in Flusso per schierarlo in campo: un **numero fisso** (es. `2`) oppure un **dado** (es. un dado da `6`) da tirare. Vedi sotto.
 - **Materie disponibili** — i tipi di Materia che il Rubyfront può usare, **con il grado massimo** per i tipi che hanno gradi (come le Entità, §7.1).
 - **Abilità principale** — nasce quando il Rubyfront entra in campo e da quel momento è **sempre attiva**.

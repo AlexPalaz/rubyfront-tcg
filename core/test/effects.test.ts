@@ -657,10 +657,29 @@ describe("enterControls", () => {
     expect(await resolveControl(ctx, step, b1)).toBe(true);
     expect(sent[0]).toEqual({ t: "control", uid: "b1", by: "a", grants: ["surge"], effect: { source: "rad", event: "on_enter_field", entering: "rad" } });
     b1.controller = "a";
-    await releaseControlled(ctx, "a", () => ({ x: 442, y: 172 }));
+    await releaseControlled(ctx, () => ({ x: 442, y: 172 }));
     expect(sent[1]).toEqual({ t: "release", uid: "b1", zone: "field", x: 442, y: 172 });
-    await releaseControlled(ctx, "a", () => null);
+    await releaseControlled(ctx, () => null);
     expect(sent[2]).toEqual({ t: "release", uid: "b1", zone: "ritiro" });
+  });
+
+  // 2026-09-17: il controllo preso dal difensore in Reazione si restituisce
+  // allo stesso cambio di turno — chiunque comandi. Gemello: engine_test.rb,
+  // «test_release_at_turn_change_whoever_commands».
+  it("releaseControlled restituisce le carte di ogni comandante, e il riduttore annota il turno del controllo", async () => {
+    let state = newGame("a");
+    on(state, "rad", "RALLIER");
+    on(state, "b1", "SMALL", "b");
+    on(state, "a1", "SMALL", "a");
+    state = apply(state, { t: "control", uid: "a1", by: "b", grants: [] });
+    expect(state.cards.a1?.controlTurn).toBe(state.turn);
+    state.cards.b1!.controller = "a";
+    const { ctx, sent } = fake(state);
+    await releaseControlled(ctx, () => ({ x: 442, y: 172 }));
+    expect(sent.map(action => action.t)).toEqual(["release", "release"]);
+    expect(sent.map(action => (action as { uid: string }).uid).sort()).toEqual(["a1", "b1"]);
+    const freed = apply(state, { t: "release", uid: "a1", zone: "field", x: 442, y: 1260 });
+    expect(freed.cards.a1?.controlTurn).toBeUndefined();
   });
 });
 

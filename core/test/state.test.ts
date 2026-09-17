@@ -486,6 +486,19 @@ describe("apply control / release", () => {
     expect(state.players.b.hp).toBe(20);
   });
 
+  // Regola sperimentale (2026-09-17): i PV non superano quelli stampati. Gemello: table_test.rb, «test_hp_never_exceeds_printed».
+  it("i PV non superano quelli stampati sul Rubyfront: patch, abilità e recupero del Nexus si fermano al tetto", () => {
+    let state = apply(newGame(), { ...deckFor("a", 3), hp: 21 });
+    expect(state.players.a.hpMax).toBe(21);
+    state = apply(state, { t: "player", seat: "a", patch: { hp: 25 } });
+    expect(state.players.a.hp).toBe(21);
+    state = apply(state, { t: "player", seat: "a", patch: { hp: 18 } });
+    expect(state.players.a.hp).toBe(18);
+    // Senza mazzo caricato non c'è tetto (i banchi di prova).
+    state = apply(state, { t: "player", seat: "b", patch: { hp: 30 } });
+    expect(state.players.b.hp).toBe(30);
+  });
+
   it("la carta passa nello slot extra con gli Oggetti, e torna com'è", () => {
     let state = apply(newGame(), deckFor("b", 2));
     state = apply(state, { t: "toZone", uid: "b-1", zone: "field", x: 442, y: 172, z: 1 });

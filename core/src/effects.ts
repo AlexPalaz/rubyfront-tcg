@@ -705,12 +705,16 @@ export async function resolveControl(ctx: Ctx, step: EnterControlStep, target: C
 }
 
 /**
- * La restituzione a fine turno (§8.2): ogni carta che `seat` controllava
- * torna al proprietario — sul suo Fronte se c'è uno slot libero, se no
- * nella sua Zona di Ritiro. La manda il tavolo di chi ha chiuso il turno.
+ * La restituzione a fine turno (§8.2): ogni carta sotto controllo torna al
+ * proprietario — sul suo Fronte se c'è uno slot libero, se no nella sua
+ * Zona di Ritiro. «Fino alla fine del turno» è il turno in cui il controllo
+ * è stato preso, chiunque comandi: anche il difensore che ha preso il
+ * controllo in Reazione lo restituisce a questo cambio di turno (2026-09-17:
+ * prima si restituivano solo le carte comandate da chi chiudeva, e il bot se
+ * la teneva un turno intero). La manda il tavolo di chi ha chiuso il turno.
  */
-export async function releaseControlled(ctx: Ctx, seat: Seat, freeSlot: (state: GameState, owner: Seat) => { x: number; y: number } | null): Promise<void> {
-  const held = Object.values(ctx.state().cards).filter(card => card.controller === seat && card.zone === "field");
+export async function releaseControlled(ctx: Ctx, freeSlot: (state: GameState, owner: Seat) => { x: number; y: number } | null): Promise<void> {
+  const held = Object.values(ctx.state().cards).filter(card => card.controller !== undefined && card.zone === "field");
   for (const card of held) {
     const spot = freeSlot(ctx.state(), card.owner);
     const passed = await ctx.dispatch(spot ? { t: "release", uid: card.uid, zone: "field", ...spot } : { t: "release", uid: card.uid, zone: "ritiro" });

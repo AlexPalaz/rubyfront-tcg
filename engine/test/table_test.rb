@@ -27,6 +27,18 @@ class TableTest < Minitest::Test
     assert_equal 20, @table.hp("b"), "senza hp la copia non tocca i PV"
   end
 
+  # Regola sperimentale (2026-09-17): i PV non superano quelli stampati.
+  # Gemello: state.test.ts, «i PV non superano quelli stampati sul Rubyfront».
+  def test_hp_never_exceeds_printed
+    @table.apply(deck_for("a", 3).merge("hp" => 21))
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 25 } })
+    assert_equal 21, @table.hp("a"), "la patch si ferma al tetto"
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 18 } })
+    assert_equal 18, @table.hp("a")
+    @table.apply({ "t" => "player", "seat" => "b", "patch" => { "hp" => 30 } })
+    assert_equal 30, @table.hp("b"), "senza mazzo caricato non c'è tetto"
+  end
+
   def test_load_and_draw
     @table.apply(deck_for("a", 10))
     assert_equal 0, @table.hand_count("a")

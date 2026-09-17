@@ -40,6 +40,13 @@ module Rubyfront
       @players.fetch(seat)[:hp]
     end
 
+    # Regola sperimentale (2026-09-17): i PV non superano quelli stampati sul
+    # Rubyfront (`hp_max`, portato dal mazzo); senza mazzo caricato non c'è
+    # tetto. Gemello: state.ts, cappedHp.
+    def capped_hp(player, hp)
+      player[:hp_max].is_a?(Integer) && hp > player[:hp_max] ? player[:hp_max] : hp
+    end
+
     # Il Gettone Flusso (§3.2), ancora da spendere?
     def token?(seat)
       @players.fetch(seat)[:token]
@@ -362,6 +369,7 @@ module Rubyfront
         @players[seat][:flux] = player["flux"] if player["flux"].is_a?(Integer)
         @players[seat][:flux_max] = player["fluxMax"] if player["fluxMax"].is_a?(Integer)
         @players[seat][:hp] = player["hp"] if player["hp"].is_a?(Integer)
+        @players[seat][:hp_max] = player["hpMax"] if player["hpMax"].is_a?(Integer)
         @players[seat][:token] = player["token"] == true if player.key?("token")
         @players[seat][:sealed] = Array(player["sealed"]).select { |id| id.is_a?(String) }
         @players[seat][:discounts] = Array(player["discounts"]).filter_map do |discount|
@@ -399,6 +407,7 @@ module Rubyfront
                         assigned_to: card["assignedTo"].is_a?(String) ? card["assignedTo"] : nil,
                         covered_turn: card["coveredTurn"].is_a?(Integer) ? card["coveredTurn"] : nil,
                         controller: SEATS.include?(card["controller"]) ? card["controller"] : nil,
+                        control_turn: card["controlTurn"].is_a?(Integer) ? card["controlTurn"] : nil,
                         grants: Array(card["grants"]).select { |keyword| keyword.is_a?(String) },
                         stasis: card["stasis"] == true,
                         held_by: card["heldBy"].is_a?(String) ? card["heldBy"] : nil,
@@ -436,7 +445,7 @@ module Rubyfront
         if player && patch.is_a?(Hash)
           player[:flux] = patch["flux"] if patch["flux"].is_a?(Integer)
           player[:flux_max] = patch["fluxMax"] if patch["fluxMax"].is_a?(Integer)
-          player[:hp] = patch["hp"] if patch["hp"].is_a?(Integer)
+          player[:hp] = capped_hp(player, patch["hp"]) if patch["hp"].is_a?(Integer)
           player[:token] = patch["token"] == true if patch.key?("token")
           player[:sealed] = Array(patch["sealed"]).select { |id| id.is_a?(String) } if patch.key?("sealed")
         end
@@ -466,7 +475,7 @@ module Rubyfront
           @ability_used.delete(card[:owner])
           to_zone({ "uid" => action["discard"], "zone" => "ritiro" }) if action["discard"].is_a?(String) && @cards.key?(action["discard"])
           player = @players[card[:owner]]
-          player[:hp] += action["recover"] if player && action["recover"].is_a?(Integer)
+          player[:hp] = capped_hp(player, player[:hp] + action["recover"]) if player && action["recover"].is_a?(Integer)
         end
       when "move"
         card = @cards[action["uid"]]
@@ -541,6 +550,8 @@ module Rubyfront
         card = @cards[action["uid"]]
         if card && card[:zone] == "field" && SEATS.include?(action["by"])
           card[:controller] = action["by"]
+          # Il turno del controllo: si restituisce alla fine di QUESTO turno, chiunque comandi (§8.2). Gemello: state.ts.
+          card[:control_turn] = @turn
           card[:grants] = Array(action["grants"]).select { |keyword| keyword.is_a?(String) }
         end
       when "release"
@@ -551,6 +562,7 @@ module Rubyfront
         card = @cards[action["uid"]]
         if card
           card[:controller] = nil
+          card[:control_turn] = nil
           card[:grants] = nil
           card[:held_by] = nil
           if action["zone"] == "ritiro"
@@ -669,6 +681,7 @@ module Rubyfront
       player[:hp] += action["gain"] if action["gain"].is_a?(Integer)
       player[:hp] -= 1 if action["fail"] == true
       player[:hp] = 0 if player[:hp].negative?
+      player[:hp] = capped_hp(player, player[:hp])
       if action["power"].is_a?(Integer)
         Array(action["targets"]).each do |uid|
           target = @cards[uid]
@@ -718,7 +731,11 @@ module Rubyfront
       # §3.1 — i PV del giocatore sono quelli stampati sul suo Rubyfront: il
       # mazzo li porta (`hp`, verificato dall'engine contro l'anagrafe), e
       # la partita comincia da lì. Gemello: state.ts, «loadDeck».
-      @players[seat][:hp] = action["hp"] if @players.key?(seat) && action["hp"].is_a?(Integer)
+      if @players.key?(seat) && action["hp"].is_a?(Integer)
+        @players[seat][:hp] = action["hp"]
+        # Regola sperimentale (2026-09-17): i PV stampati sono anche il tetto delle cure. Gemello: state.ts, loadDeck.
+        @players[seat][:hp_max] = action["hp"]
+      end
       @cards.reject! { |_, card| card[:owner] == seat }
       Array(action["cards"]).each do |card|
         next unless card.is_a?(Hash) && card["uid"]

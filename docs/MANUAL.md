@@ -21,7 +21,7 @@
 
 **If the card doesn't specify, it applies to everything it could possibly apply to.** When a card's text doesn't narrow its targets, conditions or cases (it doesn't say "only…", "opposing", "on the field"…), the effect applies in its widest extension: everything that could possibly fall under the text does.
 
-*Example: an HP-recovery effect with no stated maximum can take HP even above the value printed on the card; an effect naming "an Entity" without adjectives can target any Entity, your own or the opponent's.*
+*Example: an effect naming "an Entity" without adjectives can target any Entity, your own or the opponent's.*
 
 ## 2. Object of the game
 
@@ -82,7 +82,7 @@ Every Rubyfront is a card with **values of its own**: there are no standard valu
 
 The Rubyfront card shows:
 
-- **HP (Health Points)** — its **only statistic**, and they are the player's HP: the game starts at the value printed on the card. Attacks taken lower its HP; at zero, the owner loses (§2).
+- **HP (Health Points)** — its **only statistic**, and they are the player's HP: the game starts at the value printed on the card. Attacks taken lower its HP; at zero, the owner loses (§2). **Experimental rule (from 2026-09-17):** HP **cannot exceed the value printed** on the Rubyfront card: a heal or a recovery that would take it higher stops at the printed value, and the rest is lost.
 - **Deployment cost** — the Flux cost to deploy it onto the field: a **fixed number** (e.g. `2`) or a **die** (e.g. a `6`-sided die) to roll. See below.
 - **Available Matters** — the Matter types the Rubyfront can use, **with the maximum grade** for the types that have grades (like Entities, §7.1).
 - **Main ability** — it is born when the Rubyfront enters the field and from then on it is **always active**.

@@ -48,6 +48,15 @@ Regole collegate finora:
   sé quando una delle due carte lascia il campo (il ritorno in campo è
   sempre disarmato). È il prerequisito delle licenze (la Stasi concessa da un Oggetto
   vive «mentre assegnato»).
+- **§8.2 Il controllo dura fino alla fine del turno in cui è stato preso**
+  (engine 0.82.0, 2026-09-17: il bot, tornato in campo nella Reazione del
+  turno avversario, prendeva il controllo e se lo teneva anche nel turno
+  dopo) — i gemelli annotano il turno del controllo (`controlTurn` /
+  `control_turn`: nel `control`, nello snapshot, azzerato dal `release`), e
+  la restituzione è legittima quando quel turno è finito, chiunque comandi;
+  il client la manda al cambio di turno per tutte le carte sotto controllo,
+  non solo per quelle di chi chiude. Le copie senza il turno annotato
+  ricadono sul vecchio criterio (chi comanda non è di turno).
 - **§8.2 Effetti certificati: la ricerca a inizio turno** (engine 0.80.0,
   2026-09-17) — «all'inizio di ogni tuo turno, se non ci sono Oggetti sul
   tuo Fronte, cerca nel tuo mazzo un Oggetto, mostralo all'avversario e
@@ -72,6 +81,16 @@ Regole collegate finora:
   questa dogana. Limite dichiarato: un effetto risolto a mano che mettesse un
   Oggetto in campo senza portatore verrebbe fermato — ed è giusto così, il
   manuale non lo prevede.
+- **§3.1 I PV non superano quelli stampati** (regola sperimentale, deciso dal
+  designer il 2026-09-17 «vediamo come gira»; engine 0.81.0) — automatismo
+  dei gemelli, come il «mai sotto zero»: il mazzo porta i PV stampati
+  (`hp`), che diventano il tetto (`hpMax` / `hp_max`, nel `loadDeck`, nello
+  snapshot e in ogni scrittura dei PV); una cura, un recupero del Nexus o
+  un'abilità che li porterebbe sopra si ferma lì, e il resto va perso.
+  Nessuna dogana: il passo passa e le due copie lo troncano allo stesso
+  modo (il client manda il valore pieno, l'engine lo verifica com'è sempre
+  stato, l'applicazione lo tronca). Senza mazzo caricato (i banchi di
+  prova) non c'è tetto.
 - **§3.1/§3.2 Contatori: mai sotto zero** — i PV si fermano a 0 (a 0 la
   partita è persa, sotto non si va) e Flusso e barra non scendono in
   negativo. Come per il tetto dei 20, i bottoni dell'HUD non hanno più

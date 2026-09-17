@@ -217,7 +217,7 @@ function reduce(state: GameState, action: Action): GameState {
           [action.seat]: {
             ...state.players[action.seat],
             deckId: action.deckId,
-            ...(Number.isInteger(action.hp) ? { hp: action.hp as number } : {}),
+            ...(Number.isInteger(action.hp) ? { hp: action.hp as number, hpMax: action.hp as number } : {}),
           },
         },
       };
@@ -435,6 +435,7 @@ function reduce(state: GameState, action: Action): GameState {
       const player = state.players[card.owner];
       let hp = player.hp - (action.cost ?? 0) + (action.gain ?? 0) - (action.fail ? 1 : 0);
       if (hp < 0) hp = 0;
+      if (player.hpMax !== undefined && hp > player.hpMax) hp = player.hpMax;
       const discounts = action.discount ? [...(player.discounts ?? []), action.discount] : player.discounts;
       // «Le prossime Entità X che attaccano in questo turno prendono +N
       // Potenza» (la chiamata sul Fronte del Nexus): la promessa si annota
@@ -474,7 +475,7 @@ function reduce(state: GameState, action: Action): GameState {
       if (action.discard && next.cards[action.discard]) next = apply(next, { t: "toZone", uid: action.discard, zone: "ritiro" });
       if (action.recover) {
         const player = next.players[card.owner];
-        next = { ...next, players: { ...next.players, [card.owner]: { ...player, hp: player.hp + action.recover } } };
+        next = { ...next, players: { ...next.players, [card.owner]: cappedHp({ ...player, hp: player.hp + action.recover }) } };
       }
       return next;
     }
@@ -509,7 +510,7 @@ function reduce(state: GameState, action: Action): GameState {
         ...state,
         players: {
           ...state.players,
-          [action.seat]: { ...state.players[action.seat], ...action.patch },
+          [action.seat]: cappedHp({ ...state.players[action.seat], ...action.patch }),
         },
       };
 
@@ -644,7 +645,7 @@ function reduce(state: GameState, action: Action): GameState {
         cards[other.uid] = { ...other, x: x + STACK_STEP * (index + 1), y: y + STACK_STEP * (index + 1), z };
         z += 1;
       });
-      cards[card.uid] = { ...card, controller: action.by, grants: [...action.grants], x, y, z };
+      cards[card.uid] = { ...card, controller: action.by, controlTurn: state.turn, grants: [...action.grants], x, y, z };
       return { ...state, cards, zTop: z + 1 };
     }
 
@@ -656,6 +657,7 @@ function reduce(state: GameState, action: Action): GameState {
       if (!card) return state;
       const freed: CardInstance = { ...card };
       delete freed.controller;
+      delete freed.controlTurn;
       delete freed.grants;
       delete freed.heldBy;
       let next: GameState = { ...state, cards: { ...state.cards, [card.uid]: freed } };
@@ -940,6 +942,16 @@ export function playSpot(state: GameState, seat: Seat, kind: string | null): { x
 }
 
 /** Mescola una copia dell'array (Fisher-Yates). */
+/**
+ * Regola sperimentale (2026-09-17, «vediamo come gira»): i PV non superano
+ * quelli stampati sul Rubyfront (`hpMax`, portato dal mazzo). Una cura oltre
+ * il tetto va persa. Senza mazzo caricato non c'è tetto. Gemello: table.rb,
+ * capped_hp.
+ */
+function cappedHp<P extends { hp: number; hpMax?: number }>(player: P): P {
+  return player.hpMax !== undefined && player.hp > player.hpMax ? { ...player, hp: player.hpMax } : player;
+}
+
 export function shuffled<T>(items: readonly T[]): T[] {
   const result = [...items];
   for (let index = result.length - 1; index > 0; index -= 1) {
