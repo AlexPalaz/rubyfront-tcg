@@ -68,7 +68,7 @@ turno per fase e turno (`actorFor` in `core/src/session.ts`). La dogana del turn
 (`judge_actor`) viene **prima** di tutte le altre. Le sue eccezioni sono un
 elenco da tenere aggiornato, perché ogni gesto legittimo nel turno altrui o
 prima del primo turno deve passare di lì: apparecchiatura (`loadDeck`,
-`newGame`, nome, chat, pixel), la finestra del §4 al turno 1 in Preparazione
+`newGame`, nome, chat, pixel), la finestra del §4 al turno 1 in Preparazione (pesca, mescola, mano↔mazzo, `mulligan`, `keep` — dal 2026-09-17 l'apertura è un imbuto, `opening_stopped`, che ferma tutto il resto finché entrambi non hanno tenuto)
 (pesca, mescola, mano↔mazzo), blocchi e contrattacchi in Reazione, Reattive
 nel Fronte altrui, i propri contatori in Fronte e Reazione — e in Reazione
 è il **difensore** a risolvere e a chiudere il turno (§6.4), non chi
@@ -192,5 +192,6 @@ nei messaggi delle asserzioni non nomina le carte.
 - [ ] Niente nomi né id di carta in `engine/`: solo § e forme (vedi «L'engine non conosce le carte»).
 - [ ] Nessuna scritta nuda nel client: chiavi in `i18n.ts` (it + en), chat a chiavi.
 - [ ] Dogana del turno: la regola passa dalle sue eccezioni se serve.
+- [ ] Regola trasversale (vale per più forme: chi entra in campo, l'Oggetto sul portatore, l'innesco «quando entra»…) → un **imbuto** in `verdict_for` prima dello smistamento (`entry_stopped`, `bearer_stopped`, `enter_trigger_stopped`), MAI un controllo copiato nel giudizio della forma; nel client un predicato unico in `state.ts` (es. `sealedForPlay`). Decisione del designer, 2026-09-17.
 - [ ] README: paragrafo con limiti dichiarati e regola d'oro; debiti vecchi aggiornati.
 - [ ] Ruby, tsc, vitest (core e gioco), build verdi; pipeline riavviata; commit.

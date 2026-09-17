@@ -16,7 +16,7 @@ import { turnStartSearches, resolveTurnStartSearch, describeTurnStartSearch, typ
 import { FRONT_SLOT_X, RUBYFRONT_X, SLOT_X, SURFACE_H, SURFACE_W, TILE_H, TILE_W, backRowY, frontRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import type { AutoChooser } from "./session.js";
-import { STACK_STEP, abilityDiscount, chainTop, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, inPlay, matterSpot, nextWaveOrder, seatLabel, stackAt, waveDeclared, zoneCards } from "./state.js";
+import { STACK_STEP, abilityDiscount, chainTop, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, inPlay, matterSpot, nextWaveOrder, sealedForPlay, seatLabel, stackAt, waveDeclared, zoneCards } from "./state.js";
 import { canDiscard } from "./tabs.js";
 import { type CardInstance, type Discount, type EffectRef, type GameState, type SceneRef, type Seat, type ZoneId, otherSeat } from "./types.js";
 
@@ -739,6 +739,19 @@ export function createGestures(ctx: Ctx, view: GestureView) {
               if (passed) ctx.log(msg("log.effect.empower", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.power ?? 0 }), by);
               await wait(TRIGGER_TAIL_MS);
             }
+          } else if (form.targets === "one_armed") {
+            // «Un'Entità con un Oggetto assegnato che controlli» (dal 2026-09-17): una sola, con la mira; anche chi attacca.
+            const armed = fieldCards(ctx.state()).filter(card => controllerOf(card) === by && ctx.card(card.cardId).kind === "entity" && wornBy(ctx.state(), card.uid).length > 0);
+            if (armed.length === 0) {
+              ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
+              break;
+            }
+            const target = await pickTarget(step.source, armed, t("target.command"));
+            if (!target) break;
+            view.strike(target.uid, view.timing.fly);
+            const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: form.power, effect: attackRef(step) });
+            if (passed) ctx.log(msg("log.effect.empower", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.power ?? 0 }), by);
+            await wait(TRIGGER_TAIL_MS);
           } else if (form.targets === "opposing_entity") {
             const foes = fieldCards(ctx.state()).filter(card => controllerOf(card) !== by && ctx.card(card.cardId).kind === "entity");
             if (foes.length === 0) {
@@ -900,7 +913,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           }
           const candidates = zoneCards(ctx.state(), by, "ritiro").filter(card => {
             const f = ctx.card(card.cardId);
-            return f.kind === form.filter.kind && f.race === form.filter.race;
+            return f.kind === form.filter.kind && f.race === form.filter.race && !sealedForPlay(ctx.state(), card);
           });
           if (candidates.length === 0) {
             ctx.log(msg("log.no.permanent", { seat: by, card: step.source.cardId }), by);
@@ -1549,7 +1562,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             const filter = form.deploy.filter;
             const candidates = zoneCards(ctx.state(), by, "hand").filter(card => {
               const f = ctx.card(card.cardId);
-              return f.kind === filter.kind && (filter.race === null || f.race === filter.race) && (filter.maxCost === null || (f.fluxCost !== null && f.fluxCost <= filter.maxCost));
+              return f.kind === filter.kind && (filter.race === null || f.race === filter.race) && (filter.maxCost === null || (f.fluxCost !== null && f.fluxCost <= filter.maxCost)) && !sealedForPlay(ctx.state(), card);
             });
             if (candidates.length === 0) ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
             else {
@@ -1817,7 +1830,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     } else if (state.phase === "fronte") {
       if (!reactive || state.active !== card.owner || waveDeclared(state)) return true;
     } else if (!reactive || state.active === card.owner) return true;
-    if ((state.players[card.owner].sealed ?? []).includes(card.cardId)) return true;
+    if (sealedForPlay(state, card)) return true;
     if (facts.kind === "matter" && !matterEnabled(card)) return true;
     if (facts.kind === "entity" && freeFrontSlotOrNull(state, card.owner) === null) return true;
     if (facts.kind === "object" && !fieldCards(state).some(other => controllerOf(other) === card.owner && !other.facedown && ctx.card(other.cardId).kind === "entity")) return true;
@@ -1959,10 +1972,9 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     // usare lo stesso, per il bonus alle attaccanti («puoi»).
     let summon: { card: CardInstance; place: Placement } | null = null;
     if (form.kind === "summon") {
-      const sealed = ctx.state().players[by].sealed ?? [];
       const candidates = zoneCards(ctx.state(), by, "hand").filter(other => {
         const facts = ctx.card(other.cardId);
-        return facts.kind === "entity" && (form.race === null || facts.race === form.race) && !sealed.includes(other.cardId);
+        return facts.kind === "entity" && (form.race === null || facts.race === form.race) && !sealedForPlay(ctx.state(), other);
       });
       // Senza un'Entità adatta in mano si dice QUELLO; a Fronte pieno si
       // sceglie la carta e poi chi le lascia il posto (§6.2, dal 2026-09-15:

@@ -57,7 +57,7 @@
             },
             "details": {
               "fluxCostReduction": {
-                "amount": 2,
+                "amount": 1,
                 "ifControllerEntitiesWithObjectAtLeast": 2
               }
             }

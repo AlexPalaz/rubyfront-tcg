@@ -14,7 +14,7 @@ import { cardFacts, cardStats, deckTint, getCard, isRubyfront, type Tint } from 
 import { hasKeyword, powerOf, staticCounter } from "@rubyfront/core/combat";
 import { CONTROL_X, FRONT_SLOT_X, FRONT_W, FRONT_X, MATTER_X, RUBYFRONT_X, SLOT_X, SURFACE_W } from "@rubyfront/core/geometry";
 import { lang, t } from "@rubyfront/core/i18n";
-import { phaseCloser, seatLabel, waveDeclared, zoneCards } from "@rubyfront/core/state";
+import { MULLIGANS_MAX, mayKeep, mayMulligan, mustKeep, openingPending, phaseCloser, seatLabel, waveDeclared, zoneCards } from "@rubyfront/core/state";
 import type { CardInstance, GameState, Phase, Seat, ZoneId } from "@rubyfront/core/types";
 import { otherSeat } from "@rubyfront/core/types";
 import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
@@ -138,6 +138,8 @@ export class Table {
   /** Chi ridisegna tutto — i gesti compresi — quando il tavolo cambia impaginazione dal tasto (match.ts, paint). */
   private relayout: (() => void) | null = null;
   private readonly phaseFace = new CrispSprite();
+  /** §4 — il tasto «Mulligan n/3», a sinistra del gesto di fase, solo nell'apertura. */
+  private readonly mulliganFace = new CrispSprite();
   /** Le scritte delle tue pile col loro conto: cambiano a ogni pesca, il fondo no. */
   private readonly pileLabels = new CrispSprite();
   /** Le scritte delle pile avversarie (e della sua mano), quando la sua fila di servizio è aperta. */
@@ -191,7 +193,10 @@ export class Table {
   private readonly views = new Map<string, TableCard>();
   /** Il gesto di fase: la sua area e chi ascolta. */
   private readonly phaseButton = new Container({ label: "end-phase" });
+  private readonly mulliganButton = new Container({ label: "mulligan" });
   private closePhase: (() => void) | null = null;
+  private doMulligan: (() => void) | null = null;
+  private mulliganActive = false;
   private readonly listeners: ((cardEvent: CardEvent) => void)[] = [];
   private lastTap = { uid: "", at: 0 };
   /** La zona di ogni carta in vista, per gli eventi. */
@@ -234,7 +239,7 @@ export class Table {
     this.cards.sortableChildren = true;
     // Il cassetto del tema notte non ha vetro sfocato: il velo scuro basta (e non costa un fotogramma).
     this.hand.addChild(this.drawer, this.handTag);
-    this.overlay.addChild(this.seatHeads.a, this.seatHeads.b, this.foeToggle, this.phaseFace);
+    this.overlay.addChild(this.seatHeads.a, this.seatHeads.b, this.foeToggle, this.phaseFace, this.mulliganFace);
     this.pileLabels.eventMode = "none";
     this.foePileLabels.eventMode = "none";
     this.transition.eventMode = "none";
@@ -247,10 +252,14 @@ export class Table {
     this.discardTag.eventMode = "none";
     this.discardHalo.visible = this.discardFrame.visible = this.discardTag.visible = false;
     // L'alone e il filo sotto le carte (la carta in cima alla pila copre il velo, non l'alone); la targhetta sopra il cassetto.
-    this.root.addChild(this.background, this.pileLabels, this.foePileLabels, this.discardHalo, this.discardFrame, this.pileHits, this.cards, this.arrows, this.dimmer, this.chain, this.flights, this.hand, this.discardTag, this.overlay, this.transition, this.foeRowHits, this.phaseButton, this.handToggle);
+    this.root.addChild(this.background, this.pileLabels, this.foePileLabels, this.discardHalo, this.discardFrame, this.pileHits, this.cards, this.arrows, this.dimmer, this.chain, this.flights, this.hand, this.discardTag, this.overlay, this.transition, this.foeRowHits, this.phaseButton, this.mulliganButton, this.handToggle);
     this.phaseButton.eventMode = "static";
     this.phaseButton.on("pointertap", () => {
       if (this.buttonActive) this.closePhase?.();
+    });
+    this.mulliganButton.eventMode = "static";
+    this.mulliganButton.on("pointertap", () => {
+      if (this.mulliganActive) this.doMulligan?.();
     });
     this.handToggle.addChild(this.handToggleFace);
     this.handToggle.eventMode = "static";
@@ -724,9 +733,14 @@ export class Table {
     }
   }
 
-  /** Chi chiude la fase quando si preme il gesto di fase (F4). */
+  /** Chi chiude la fase quando si preme il gesto di fase (F4). Nell'apertura (§4) il gesto è «Tieni la mano». */
   onEndPhase(listener: () => void): void {
     this.closePhase = listener;
+  }
+
+  /** §4 — chi fa il mulligan quando si preme il tasto «Mulligan». */
+  onMulligan(listener: () => void): void {
+    this.doMulligan = listener;
   }
 
   /** I Rubyfront nascosti per l'ingresso tornano in vista (l'ingresso non c'è stato). */
@@ -1453,8 +1467,11 @@ export class Table {
     this.paintFoeToggle(state, L, visible, resolution);
 
     // Il gesto di fase, in basso a destra: dice quale fase chiude, e ne ha il colore.
+    // §4 — nell'apertura è «Tieni la mano» (o «Aspetta l'avversario» a mano tenuta), col «Mulligan n/3» accanto.
+    const opening = openingPending(state);
+    const keepMine = opening && mustKeep(state, this.me);
     const endsTurn = state.phase === "fronte" && !waveDeclared(state);
-    const label = t(endsTurn ? "hud.endturn" : PHASE_END[state.phase]);
+    const label = t(opening ? (keepMine ? "hud.keep" : "hud.keep.waiting") : endsTurn ? "hud.endturn" : PHASE_END[state.phase]);
     const font: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.12, upper: true };
     const w = textWidth(font, label) + 36;
     const h = 38;
@@ -1468,7 +1485,8 @@ export class Table {
     const [hi, lo, edge] = colors[state.phase];
     // La fase la chiude chi è di turno (in Reazione il difensore, §6.4): se
     // non sei tu, il tasto c'è ma è spento (filter: saturate(.4) brightness(.75)).
-    const mine = phaseCloser(state) === this.me && !state.over;
+    const mine = opening ? keepMine && mayKeep(state, this.me) : phaseCloser(state) === this.me && !state.over;
+    this.paintMulliganButton(state, keepMine, x - 12, y, h, visible, resolution);
     // L'area del tasto, per il click: accesa solo se la fase la chiudi tu.
     this.phaseButton.hitArea = new Rectangle(x, y, w, h);
     this.phaseButton.cursor = mine ? "pointer" : "default";
@@ -1489,6 +1507,48 @@ export class Table {
       ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
       applyFont(ctx, font);
       drawText(ctx, { kind: "text", text: label, font, color: state.phase === "reazione" ? "#f1ecfa" : "#fdeef1" }, x + 18, y + h / 2 + 5.5);
+      ctx.restore();
+    });
+  }
+
+  /**
+   * §4 — «Mulligan n/3», a sinistra di «Tieni la mano», solo finché il posto
+   * deve ancora tenere; spento dopo il terzo (la mano si tiene da sé). Viola
+   * come la Reazione, per distinguerlo dal gesto di fase.
+   */
+  private paintMulliganButton(state: GameState, show: boolean, right: number, y: number, h: number, visible: Visible, resolution: number): void {
+    if (!show) {
+      this.mulliganFace.visible = false;
+      this.mulliganButton.hitArea = new Rectangle(0, 0, 0, 0);
+      this.mulliganActive = false;
+      return;
+    }
+    const done = state.players[this.me].opening?.mulligans ?? 0;
+    const label = t("hud.mulligan", { n: done, max: MULLIGANS_MAX });
+    const font: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.12, upper: true };
+    const w = textWidth(font, label) + 36;
+    const x = right - w;
+    const active = mayMulligan(state, this.me);
+    this.mulliganFace.visible = true;
+    this.mulliganButton.hitArea = new Rectangle(x, y, w, h);
+    this.mulliganButton.cursor = active ? "pointer" : "default";
+    this.mulliganActive = active;
+    const box = snapped(visible, resolution, x - PIECE_MARGIN, y - PIECE_MARGIN, w + 2 * PIECE_MARGIN, h + 2 * PIECE_MARGIN);
+    this.paintRegion(this.mulliganFace, `mulligan|${label}|${active}`, box, resolution, ctx => {
+      ctx.save();
+      if (!active) ctx.filter = "saturate(.4) brightness(.75)";
+      ctx.save();
+      ctx.shadowColor = "rgba(86,68,128,.45)";
+      ctx.shadowBlur = 10 * ctx.getTransform().a;
+      ctx.shadowOffsetY = 4 * ctx.getTransform().a;
+      fillLinear(ctx, { x, y, w, h }, 180, [["#6a57a3", 0], ["#564480", 1]]);
+      ctx.restore();
+      fillLinear(ctx, { x, y, w, h }, 180, [["#6a57a3", 0], ["#564480", 1]]);
+      ctx.strokeStyle = "#a494cf";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+      applyFont(ctx, font);
+      drawText(ctx, { kind: "text", text: label, font, color: "#f1ecfa" }, x + 18, y + h / 2 + 5.5);
       ctx.restore();
     });
   }

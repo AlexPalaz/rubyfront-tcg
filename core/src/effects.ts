@@ -11,7 +11,7 @@
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
 import type { AssignForm, AttackForm, DeathForm, FlipForm, ResolveForm } from "./ctx.js";
 import type { CardFacts, Ctx, EnterLook, EnterRefresh, EnterStash } from "./ctx.js";
-import { shuffled, STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, zoneCards, freeFrontSlotOrNull } from "./state.js";
+import { shuffled, STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, sealedForPlay, zoneCards, freeFrontSlotOrNull } from "./state.js";
 import { countEntities } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
@@ -85,7 +85,7 @@ export function returnsFor(
   // dice al tavolo di chiederlo.
   const full = freeFrontSlotOrNull(state, seat) === null;
   return forms.map(ret => {
-    const candidates = zoneCards(state, seat, ret.from).filter(card => permanentOf(card, facts));
+    const candidates = zoneCards(state, seat, ret.from).filter(card => permanentOf(card, facts) && !sealedForPlay(state, card));
     return {
       source,
       event,
@@ -617,6 +617,7 @@ export function leaveReturns(before: GameState, after: GameState, facts: (cardId
     if (!was || was.zone !== "field") continue;
     const form = facts(card.cardId).leaveReturns[0];
     if (!form) continue;
+    if (sealedForPlay(after, card)) continue;
     if (Object.values(before.cards).some(other => other.assignedTo === card.uid && other.zone === "field")) continue;
     const candidates = zoneCards(after, card.owner, "ritiro").filter(object => {
       const f = facts(object.cardId);
@@ -890,6 +891,7 @@ export function describeAttackStep(step: AttackStep, facts: (cardId: string) => 
     case "untap": return "die" in form ? t("trigger.rally", { card, die: form.die, lo: form.onRoll[0], hi: form.onRoll[1] }) : t("trigger.vigil", { card });
     case "empower":
       if (form.targets === "others_armed") return t("trigger.command", { card, n: form.power ?? 0 });
+      if (form.targets === "one_armed") return t("trigger.command.one", { card, n: form.power ?? 0 });
       if (form.targets === "bearer") return t("trigger.charge", { card, n: form.power ?? 0 });
       if (form.targets === "next_human_attacker") return t("trigger.avenge", { card });
       return t("trigger.raid", { card });

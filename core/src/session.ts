@@ -12,7 +12,7 @@
 // tavolo che il bot compie con le stesse scene di un giocatore. Estratta
 // nella migrazione a PixiJS (F1, 2026-09-11), così il gioco non la ripete.
 
-import { chooseAbility, chooseAttackers, chooseBlocks, chooseDiscards, chooseFlip, choosePlay, chooseResponse, freshMemory, pickBest, type BotMemory } from "./bot.js";
+import { chooseAbility, chooseAttackers, chooseBlocks, chooseDiscards, chooseFlip, choosePlay, chooseResponse, freshMemory, pickBest, wantsMulligan, type BotMemory } from "./bot.js";
 import { cardFacts, cardName, cardStats, deckTint, getDeck, isRubyfront, type Tint } from "./cards.js";
 import { declareBlock } from "./combat.js";
 import type { Ability, CardFacts, Ctx } from "./ctx.js";
@@ -21,7 +21,7 @@ import { connectEngine, type EngineLink, type EngineStatus, type EngineVerdict }
 import { SLOT_X, backRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import { renderLog } from "./log.js";
-import { apply, controllerOf, fieldCards, freeFrontSlotOrNull, matterSpot, newGame, phaseCloser, replay, shuffled, zoneCards } from "./state.js";
+import { apply, controllerOf, fieldCards, freeFrontSlotOrNull, matterSpot, mayKeep, mayMulligan, mustKeep, newGame, openingPending as openingOpen, phaseCloser, replay, shuffled, zoneCards } from "./state.js";
 import { endPhase, gameOverMsg, verdictByHp } from "./turn.js";
 import type { Action, CardInstance, ChatEntry, GameState, Seat, ZoneId, SceneRef } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
@@ -99,6 +99,8 @@ export interface SessionView {
   ready(action: Extract<Action, { t: "ready" }>): void;
   /** Il tavolo è fermo: nessuna scena, nessun dado, nessuna mira, nessun effetto in corso. */
   quiet(): boolean;
+  /** Che cosa tiene il tavolo non fermo, per nome (facoltativo: la diagnosi quando il bot aspetta troppo). */
+  busyReasons?(): string[];
 }
 
 export interface SessionOptions {
@@ -142,6 +144,10 @@ export interface Session {
   sendRtc(payload: unknown): boolean;
   shuffle(): void;
   draw(): void;
+  /** §4 — il mulligan del proprio posto (o del bot, dato il posto): tutta la mano nel mazzo, 6 nuove. */
+  mulligan(seat?: Seat): void;
+  /** §4 — «dichiara di essere pronto»: la mano è quella. */
+  keep(seat?: Seat): void;
   /** La partita nuova, dall'insegna finale. */
   newGame(): void;
   /** La nuova partita azzera anche i nomi: il proprio si rimette da sé. */
@@ -250,7 +256,10 @@ export function createSession(options: SessionOptions): Session {
             // Il bot che sbatte contro l'arbitro non mostra il sigillo a
             // chi guarda: prende nota (bot.ts, tried) e cambia gesto. Vale
             // per ogni gesto del suo posto, anche gli effetti risolti dopo.
-            if (botSeat && actorFor(action) === botSeat) console.debug("bot fermato", action.t, verdict.reason);
+            // Dopo l'uscita dal tavolo i gesti del bot ancora in volo cadono
+            // sul tavolo azzerato: niente sigillo per qualche secondo
+            // (2026-09-17: «Esci dalla partita» mostrava «non tocca a te»).
+            if ((botSeat && actorFor(action) === botSeat) || Date.now() < muteSealsUntil) console.debug("bot fermato", action.t, verdict.reason);
             else view.stop(verdict);
             // Un gesto trascinato (una carta posata sul Fronte) può aver già
             // mosso i pixel: si ridisegna dallo stato — che non è cambiato —
@@ -277,6 +286,8 @@ export function createSession(options: SessionOptions): Session {
     paint();
     afterPaint?.();
     const deciders = botSeat ? [mySeat, botSeat] : [mySeat];
+    // §4 — l'ultima tenuta: la partita comincia.
+    if ((action.t === "keep" || action.t === "mulligan") && openingOpen(before) && !openingOpen(state)) openingOver();
     // §8.2 — il ritorno vincolato: chi è appena uscita dal campo senza
     // Oggetti può tornare, e lo decide il proprietario — io, o il bot.
     if (action.t !== "revive") view.offerLeaveReturns(before, state, deciders);
@@ -331,6 +342,8 @@ export function createSession(options: SessionOptions): Session {
     state = apply(state, action);
     paint();
     afterPaint?.();
+    // §4 — l'avversario ha tenuto per ultimo: la partita comincia.
+    if ((action.t === "keep" || action.t === "mulligan") && openingOpen(before) && !openingOpen(state)) openingOver();
     // §8.2 — una mia carta uscita dal campo per mano dell'avversario (la sua
     // risoluzione, un suo effetto): il ritorno vincolato lo offro io.
     if (action.t !== "revive") view.offerLeaveReturns(before, state, [mySeat]);
@@ -592,23 +605,33 @@ export function createSession(options: SessionOptions): Session {
       // §4, mano iniziale: «prima che inizi il primo turno, entrambi i
       // giocatori pescano 6 carte». Il mazzo esce da buildDeck già mescolato,
       // quindi la pesca parte da sola — a ogni via d'inizio (bot,
-      // stanza, Nuova partita), perché tutte passano di qui. Il mulligan (§4,
-      // punto 5) resta un gesto manuale: «Mescola» e poi «Pesca 6» dal mazzo.
+      // stanza, Nuova partita), perché tutte passano di qui. Poi il mulligan
+      // (§4, dal 2026-09-17): «Mulligan» o «Tieni la mano» dal tasto di fase,
+      // e la carta del turno 1 arriva solo quando entrambi hanno tenuto
+      // (vedi openingOver).
       void dispatch({ t: "draw", seat, count: 6 });
-      // §6.1 — «la pesca non si salta mai», nemmeno al primo turno di chi
-      // inizia: il posto di turno pesca anche la carta del turno 1. In rete
-      // ci pensa il client che governa quel posto: ognuno carica il proprio
-      // mazzo, e solo chi apre passa di qui con `active` suo.
-      const opening = seat === state.active;
       ctx.log(msg("log.opening", { seat }), seat);
-      if (!opening) return;
-      openingPending[seat] = true;
-      openingTimer[seat] = setTimeout(() => {
-        openingPending[seat] = false;
-        const untouched = state.players[seat].deckId === deckId && state.active === seat && handSize(seat) === 6;
-        if (untouched) void dispatch({ t: "draw", seat, count: 1 });
-      }, options.opening.turnDraw);
     }, options.opening.hand);
+  }
+
+  /**
+   * §4 — «quando entrambi hanno dichiarato, la partita comincia»: l'ultima
+   * tenuta è passata. L'insegna di Preparazione si annuncia, e chi governa il
+   * posto di turno pesca la carta del turno 1 (§6.1, «la pesca non si salta
+   * mai»), a tempo, dopo la cascata. In rete ognuno governa il proprio posto.
+   */
+  function openingOver(): void {
+    view.announce();
+    const seat = state.active;
+    if (seat !== mySeat && seat !== botSeat) return;
+    const deckId = state.players[seat].deckId;
+    clearTimeout(openingTimer[seat]);
+    openingPending[seat] = true;
+    openingTimer[seat] = setTimeout(() => {
+      openingPending[seat] = false;
+      const untouched = state.players[seat].deckId === deckId && state.active === seat && state.turn === 1 && state.phase === "preparazione" && !openingOpen(state);
+      if (untouched) void dispatch({ t: "draw", seat, count: 1 });
+    }, options.opening.turnDraw);
   }
 
   // ------------------------------------------------------------------- rete
@@ -757,6 +780,29 @@ export function createSession(options: SessionOptions): Session {
     ctx.log(msg("log.shuffle", { seat: mySeat, n: order.length }), mySeat);
   }
 
+  /** §4 — un gesto d'apertura per posto alla volta: il doppio click sul tasto non manda due volte (visto al banco il 2026-09-17: il secondo «keep» arrivava a fase cambiata e veniva fermato). */
+  const openingInFlight = new Set<Seat>();
+
+  function mulligan(seat: Seat = mySeat): void {
+    if (openingInFlight.has(seat) || !mayMulligan(state, seat)) return;
+    const mine = [...zoneCards(state, seat, "hand"), ...zoneCards(state, seat, "deck")].map(card => card.uid);
+    const order = shuffled(mine);
+    openingInFlight.add(seat);
+    void dispatch({ t: "mulligan", seat, order }).then(passed => {
+      openingInFlight.delete(seat);
+      if (passed) ctx.log(msg("log.mulligan", { seat, n: state.players[seat].opening?.mulligans ?? 1 }), seat);
+    });
+  }
+
+  function keep(seat: Seat = mySeat): void {
+    if (openingInFlight.has(seat) || !mayKeep(state, seat)) return;
+    openingInFlight.add(seat);
+    void dispatch({ t: "keep", seat }).then(passed => {
+      openingInFlight.delete(seat);
+      if (passed) ctx.log(msg("log.keep", { seat }), seat);
+    });
+  }
+
   function draw(): void {
     if (zoneCards(state, mySeat, "deck").length === 0) {
       ctx.log(msg("log.deck.empty.short", { seat: mySeat }), mySeat);
@@ -819,6 +865,9 @@ export function createSession(options: SessionOptions): Session {
 
   const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
+  /** Fino a quando i rifiuti dell'arbitro non fanno sigillo: dopo l'uscita dal tavolo. */
+  let muteSealsUntil = 0;
+
   async function awaitQuiet(limit = 15_000): Promise<void> {
     const start = Date.now();
     while (!view.quiet() && Date.now() - start < limit) await sleep(120);
@@ -830,14 +879,29 @@ export function createSession(options: SessionOptions): Session {
       botSeat ? pickBest(state, botSeat, candidates, ctx.card, zone === "hand" ? "weakest" : "auto") : null,
   };
 
+  /** Da quando il bot aspetta il tavolo fermo, e se l'ha già detto (una riga per attesa). */
+  let botWaitingSince = 0;
+  let botWaitingTold = false;
+
   async function botTick(): Promise<void> {
     if (!botSeat || botBusy || state.over) return;
     // Le aperture (§4) prima di tutto: senza, il bot chiudeva il primo turno
     // a mano vuota e la sua pesca iniziale arrivava nel turno altrui.
     if (!view.quiet() || openingPending.a || openingPending.b) {
+      // Diagnosi (2026-09-17, «si è impallata la partita col bot»): dopo dieci
+      // secondi di attesa la Cronaca dice che cosa tiene il tavolo non fermo.
+      if (!botWaitingSince) botWaitingSince = Date.now();
+      else if (!botWaitingTold && Date.now() - botWaitingSince > 10_000) {
+        botWaitingTold = true;
+        const what = view.busyReasons?.().join(", ") || "opening";
+        console.warn("bot in attesa del tavolo fermo:", what);
+        ctx.log(msg("log.bot.waiting", { what }), botSeat);
+      }
       scheduleBot(500);
       return;
     }
+    botWaitingSince = 0;
+    botWaitingTold = false;
     if (state.turn !== botMemory.turn) botMemory = freshMemory(state.turn);
     botBusy = true;
     let again = false;
@@ -855,6 +919,17 @@ export function createSession(options: SessionOptions): Session {
   /** Un gesto del bot. Torna vero se ha fatto qualcosa e potrebbe farne altro. */
   async function botStep(bot: Seat): Promise<boolean> {
     const s = state;
+    // §4 — l'apertura: il bot guarda la mano e decide, mulligan o tenuta;
+    // poi aspetta che anche l'altro abbia tenuto.
+    if (mustKeep(s, bot)) {
+      if (!mayKeep(s, bot)) return false; // la mano iniziale non è ancora arrivata
+      await sleep(900);
+      if (!mayKeep(state, bot)) return true;
+      if (mayMulligan(state, bot) && wantsMulligan(state, bot, ctx.card)) mulligan(bot);
+      else keep(bot);
+      return true;
+    }
+    if (openingOpen(s)) return false;
     // §7.2 — la catena: quando la parola è sua, il bot ci pensa un attimo
     // (così chi guarda vede la barra «può rispondere»), poi risponde con una
     // Reattiva che agisce, se ce l'ha e la paga — o accetta. Mentre la
@@ -992,6 +1067,8 @@ export function createSession(options: SessionOptions): Session {
     sendRtc: payload => (room && engine?.status() === "online" ? engine.sendRtc(payload) : false),
     shuffle,
     draw,
+    mulligan,
+    keep,
     newGame: startNewGame,
     reapplyName,
     seatOrWait,
@@ -1007,6 +1084,7 @@ export function createSession(options: SessionOptions): Session {
     },
     botSeat: () => botSeat,
     leaveRoom() {
+      muteSealsUntil = Date.now() + 4000;
       clearTimeout(botTimer);
       awaitingPeer = false;
       deckDeferred = false;

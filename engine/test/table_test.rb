@@ -39,6 +39,33 @@ class TableTest < Minitest::Test
     assert_equal 30, @table.hp("b"), "senza mazzo caricato non c'è tetto"
   end
 
+  # §4 — il mulligan, gemello di state.test.ts.
+  def test_mulligan_puts_hand_back_draws_six_and_keeps_at_third
+    @table.apply(deck_for("a", 10))
+    assert_equal({ mulligans: 0, kept: false }, @table.opening("a"), "col mazzo comincia l'apertura")
+    @table.apply({ "t" => "draw", "seat" => "a", "count" => 6 })
+    order = (1..10).map { |n| "a-#{n}" }.reverse
+    @table.apply({ "t" => "mulligan", "seat" => "a", "order" => order })
+    assert_equal 6, @table.hand_count("a")
+    assert_equal 4, @table.zone_count("a", "deck")
+    assert_equal %w[a-10 a-9 a-8 a-7 a-6 a-5], @table.zone_uids("a", "hand")
+    assert_equal({ mulligans: 1, kept: false }, @table.opening("a"))
+    2.times { @table.apply({ "t" => "mulligan", "seat" => "a", "order" => order }) }
+    assert_equal({ mulligans: 3, kept: true }, @table.opening("a"), "al terzo si tiene da sé")
+  end
+
+  def test_keep_and_opening_pending
+    @table.apply(deck_for("a", 10))
+    @table.apply(deck_for("b", 10))
+    assert @table.opening_pending?
+    @table.apply({ "t" => "keep", "seat" => "a" })
+    assert @table.opening_pending?, "manca B"
+    @table.apply({ "t" => "keep", "seat" => "b" })
+    refute @table.opening_pending?
+    @table.apply({ "t" => "newGame" })
+    assert_nil @table.opening("a"), "Nuova partita azzera l'apertura"
+  end
+
   def test_load_and_draw
     @table.apply(deck_for("a", 10))
     assert_equal 0, @table.hand_count("a")

@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { CONTROL_X, MATTER_X, frontRowY } from "../src/geometry.js";
-import { STACK_STEP, abilityDiscount, apply, attackBonusFor, attackKey, matterSpot, newGame, pay, playSpot, replay, zoneCards, chainTop } from "../src/state.js";
+import { STACK_STEP, abilityDiscount, apply, attackBonusFor, attackKey, matterSpot, newGame, pay, playSpot, replay, zoneCards, chainTop, openingPending, mayMulligan, mustKeep } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
 function deckFor(seat: Seat, count: number): { cards: CardInstance[] } & Extract<Parameters<typeof apply>[1], { t: "loadDeck" }> {
@@ -29,6 +29,37 @@ function handCount(state: GameState, seat: Seat): number {
 }
 
 describe("apply", () => {
+  // §4 — il mulligan, gemello di table_test.rb.
+  it("il mulligan rimette la mano nel mazzo, pesca 6 e al terzo tiene da sé", () => {
+    let state = apply(newGame(), deckFor("a", 10));
+    expect(state.players.a.opening).toEqual({ mulligans: 0, kept: false });
+    expect(openingPending(state)).toBe(true);
+    state = apply(state, { t: "draw", seat: "a", count: 6 });
+    const order = Array.from({ length: 10 }, (_, i) => `a-${10 - i}`);
+    state = apply(state, { t: "mulligan", seat: "a", order });
+    expect(handCount(state, "a")).toBe(6);
+    expect(zoneCards(state, "a", "deck")).toHaveLength(4);
+    expect(zoneCards(state, "a", "hand").map(card => card.uid)).toEqual(["a-10", "a-9", "a-8", "a-7", "a-6", "a-5"]);
+    expect(state.players.a.opening).toEqual({ mulligans: 1, kept: false });
+    expect(mayMulligan(state, "a")).toBe(true);
+    state = apply(state, { t: "mulligan", seat: "a", order });
+    state = apply(state, { t: "mulligan", seat: "a", order });
+    expect(state.players.a.opening).toEqual({ mulligans: 3, kept: true });
+    expect(mayMulligan(state, "a")).toBe(false);
+    expect(openingPending(state)).toBe(false);
+  });
+
+  it("la partita aspetta la tenuta di ogni posto col mazzo", () => {
+    let state = apply(newGame(), deckFor("a", 5));
+    state = apply(state, deckFor("b", 5));
+    expect(mustKeep(state, "a")).toBe(true);
+    state = apply(state, { t: "keep", seat: "a" });
+    expect(mustKeep(state, "a")).toBe(false);
+    expect(openingPending(state)).toBe(true);
+    state = apply(state, { t: "keep", seat: "b" });
+    expect(openingPending(state)).toBe(false);
+  });
+
   it("carica il mazzo e pesca dalla cima", () => {
     let state = apply(newGame(), deckFor("a", 10));
     state = apply(state, { t: "draw", seat: "a", count: 3 });

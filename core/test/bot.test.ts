@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import type { CardFacts } from "../src/ctx.js";
 import { FRONT_SLOT_X, frontRowY } from "../src/geometry.js";
-import { cardValue, chooseAbility, chooseAttackers, chooseBlocks, chooseDiscards, chooseFlip, choosePlay, chooseResponse, freshMemory, pickBest } from "../src/bot.js";
+import { cardValue, chooseAbility, chooseAttackers, chooseBlocks, chooseDiscards, chooseFlip, choosePlay, chooseResponse, freshMemory, pickBest, wantsMulligan } from "../src/bot.js";
 import { newGame } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
@@ -176,6 +176,21 @@ describe("blocchi", () => {
     const rock = put(state, "ROCK", "b", "field");
     const blocks = chooseBlocks(state, "b", facts);
     expect(blocks[0]?.blocker.uid).toBe(rock.uid);
+  });
+});
+
+describe("il mulligan (§4)", () => {
+  it("rifà la mano senza due Entità economiche, la tiene con due", () => {
+    let state = newGame();
+    put(state, "BIG", "a", "hand");
+    put(state, "IRON", "a", "hand");
+    put(state, "SMALL", "a", "hand");
+    expect(wantsMulligan(state, "a", facts)).toBe(true);
+    state = newGame();
+    put(state, "SMALL", "a", "hand");
+    put(state, "MEDIUM", "a", "hand");
+    put(state, "BIG", "a", "hand");
+    expect(wantsMulligan(state, "a", facts)).toBe(false);
   });
 });
 

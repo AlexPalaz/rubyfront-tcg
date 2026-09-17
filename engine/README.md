@@ -48,6 +48,59 @@ Regole collegate finora:
   sé quando una delle due carte lascia il campo (il ritorno in campo è
   sempre disarmato). È il prerequisito delle licenze (la Stasi concessa da un Oggetto
   vive «mentre assegnato»).
+- **§4 Il mulligan** (engine 0.86.0, 2026-09-17) — «ciascun giocatore può
+  fare mulligan fino a 3 volte: rimescola tutta la mano nel mazzo e pesca 6
+  nuove carte; dopo il terzo è costretto ad accettare; quando un giocatore
+  è soddisfatto dichiara di essere pronto; quando entrambi hanno
+  dichiarato, la partita comincia». Due azioni nuove, gemelle in
+  `state.ts` e `table.rb`: `mulligan {seat, order}` (tutta la mano nel
+  mazzo, il mazzo nell'ordine dato — il caso lo tira il client, l'engine
+  verifica che sia una permutazione di mano e mazzo di quel posto — poi 6
+  carte; al terzo la mano si tiene da sé) e `keep {seat}` («pronto»). Il
+  tavolo non ha un tempo «prima del turno 1»: l'apertura vive nel turno 1
+  in Preparazione, annotata sul posto (`opening {mulligans, kept}`, nata col
+  mazzo **intero** caricato — tutte le carte nel mazzo, il Rubyfront in
+  Zona di Richiamo), e finché un posto col mazzo non ha tenuto la partita
+  aspetta: l'imbuto `opening_stopped`, prima di ogni altra dogana, lascia
+  passare solo apparecchiatura, pesca, mescola, mano↔mazzo, mulligan e
+  tenuta. Mulligan e tenuta sono del posto, nel turno di chiunque (la
+  finestra del §4 in `judge_actor`). Nel client: il gesto di fase diventa
+  «Tieni la mano» con «Mulligan n/3» accanto, l'insegna dice «Mulligan», e
+  la carta del turno 1 (§6.1) arriva quando entrambi hanno tenuto; il bot
+  rifà la mano senza due Entità da 3 o meno. Limiti dichiarati: un tavolo
+  apparecchiato con carte già fuori dal mazzo (snapshot, prova) non ha
+  apertura e non aspetta nessuno; «chi inizia» resta a caso e i mulligan
+  «simultanei» sono in realtà in qualunque ordine, ciascuno del suo posto.
+- **Tre imbuti prima di ogni forma** (engine 0.85.0, 2026-09-17, richiesta
+  del designer: «dobbiamo essere modulari, niente robe specifiche per
+  carta») — le regole che valgono per più forme si leggono una volta
+  sola in `verdict_for`, sull'esito dell'azione, prima dello smistamento:
+  `entry_stopped` per chi entra in campo (ogni `toZone` verso il campo e
+  ogni `revive`: il sigillo del flip §8.2, il Fronte pieno e la
+  sostituzione §6.2), `bearer_stopped` per l'Oggetto che finisce addosso
+  a un'Entità (`assign`, o `toZone` con `assignTo`: portatore in campo,
+  un'Entità e mai il Rubyfront/Nexus, non coperta, §3.1), e
+  `enter_trigger_stopped` per ogni innesco «quando entra» (fonte in
+  campo, ingresso in campo ed entrato questo turno, §8.2). Le copie di
+  questi controlli nei singoli giudizi sono sparite: il rientro col dado,
+  che non chiedeva il Fronte pieno, ora lo chiede senza saperlo. Resta
+  alla forma ciò che è suo: di chi sia il portatore, l'evento consumato,
+  il costo, il dado. Limite dichiarato: il ritorno dall'Abisso di
+  un'esiliata («torna in gioco», `revive`) passa dagli stessi imbuti; se
+  il designer vorrà esentarlo dal sigillo o dal Fronte pieno, si esenta lì.
+- **§8.2 Il sigillo del flip è un imbuto unico** (engine 0.84.0, 2026-09-17:
+  un rientro col dado dal Ritiro riportava sul Fronte la carta che il Nexus
+  aveva sigillato) — la dogana `sealed_entry_stopped` sta in `verdict_for`,
+  prima di ogni forma: qualunque `toZone` verso il campo e qualunque `revive`
+  di una carta sigillata dal suo posto è fermato, dalla mano, dal Ritiro,
+  dall'Abisso, con o senza riferimento d'effetto. I controlli sparsi nelle
+  singole forme sono spariti: una forma nuova che porti carte in campo è
+  coperta senza saperlo. Nel client il gemello è `sealedForPlay` (state.ts),
+  l'unico predicato che ogni via d'ingresso — giocata, chiamata, rientri per
+  effetto, bot — interroga. Limite dichiarato: il ritorno dall'Abisso di
+  un'esiliata (`revive` dell'esilio condizionato, «torna in gioco») è
+  un'entrata e viene fermato anche lui; se il designer lo vorrà libero, si
+  esenta lì.
 - **§8.2 Il controllo dura fino alla fine del turno in cui è stato preso**
   (engine 0.82.0, 2026-09-17: il bot, tornato in campo nella Reazione del
   turno avversario, prendeva il controllo e se lo teneva anche nel turno
@@ -462,7 +515,12 @@ Regole collegate finora:
   Le forme: la **stappata dopo il combattimento** — armato, «stappala dopo il
   combattimento»: viaggia nella risoluzione (`resolve.untap`), una volta
   per turno; il **comando** — armato, «+1 Potenza alle altre
-  Entità armate che controlli» (`empower`, un passo per bersaglio);
+  Entità armate che controlli» (`empower`, un passo per bersaglio), e la
+  sua variante **con la mira** (dal 2026-09-17, engine 0.83.0): «un'Entità
+  con un Oggetto assegnato che controlli prende +N» — un solo `empower`
+  per attacco, su una propria armata, anche chi attacca (`targets:
+  one_armed`; le due varianti hanno la stessa azione, le distingue la
+  forma che la carta porta, e una carta ne porta una sola);
   l'**Oggetto che potenzia e guarda** — dà +1 a chi lo porta,
   «poi tira un d6: con 5–6 guarda le prime 4, una Materia in mano, le
   altre in Zona di Ritiro» (`look` con `revealTo`/`restTo`); il

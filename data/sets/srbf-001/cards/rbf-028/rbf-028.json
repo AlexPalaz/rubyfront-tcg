@@ -59,24 +59,6 @@
               "perObjectAssigned": true
             }
           }
-        },
-        {
-          "id": "vigil",
-          "displayKey": "vigil",
-          "event": "on_attack",
-          "details": {
-            "oncePerEachOfYourTurns": true,
-            "whileHasObjectAssigned": true
-          },
-          "effect": {
-            "type": "untap",
-            "target": {
-              "scope": "self"
-            },
-            "details": {
-              "afterCombat": true
-            }
-          }
         }
       ],
       "actions": []

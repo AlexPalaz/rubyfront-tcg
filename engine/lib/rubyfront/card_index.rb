@@ -509,6 +509,11 @@ module Rubyfront
            target.dig("details", "hasObjectAssigned") == true && target.dig("details", "excludeSelf") == true
           return { kind: "empower", who: "self", requires_object: true, targets: "others_armed", power: effect["amount"] }
         end
+        # «Un'Entità con un Oggetto assegnato che controlli prende +N» (dal 2026-09-17): una sola, anche sé stessa.
+        if details["requiresObjectAssigned"] == true && own_target?(target, "entity") && target["min"] == 1 && target["max"] == 1 &&
+           target["details"] == { "hasObjectAssigned" => true }
+          return { kind: "empower", who: "self", requires_object: true, targets: "one_armed", power: effect["amount"] }
+        end
       end
       if effect["type"] == "empower" && effect["duration"] == "until_end_of_turn" && details["oncePerEachOfYourTurns"] == true &&
          own_target?(target, "entity", "human") && target["min"] == 1 && target["max"] == 1 && target.dig("details", "nextAttackerThisTurn") == true

@@ -1,7 +1,7 @@
 {
   "name": "Scudo Dimensionale",
   "typeLabel": "Oggetto",
-  "summary": "Potenza, Contrattacco e Stasi in un pezzo solo: il muro che non muore bloccando.",
+  "summary": "Potenza e Stasi in un pezzo solo: il muro che non muore bloccando.",
   "ui": {
     "face": "Oggetto"
   },
@@ -14,7 +14,7 @@
     "name": "Scudo Dimensionale",
     "effect": {
       "name": "Effetto",
-      "text": "L'Entità a cui è assegnato ha +1 Potenza e Stasi, e ha Contrattacco +1. Se ha già Contrattacco, quel valore aumenta di 1."
+      "text": "L'Entità a cui è assegnato ha +1 Potenza e Stasi."
     },
     "flavor": "Regge il colpo, e lo restituisce con gli interessi."
   }

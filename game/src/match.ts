@@ -24,7 +24,7 @@ import { defaultEngineUrl } from "@rubyfront/core/engine";
 import { TRIGGER_LEAD_MS, TRIGGER_TAIL_MS, createGestures, sceneKey, type GestureView, type Gestures } from "@rubyfront/core/gestures";
 import { t } from "@rubyfront/core/i18n";
 import { createSession, type Session, type SessionStore, type SessionView } from "@rubyfront/core/session";
-import { abilityDiscount, seatLabel } from "@rubyfront/core/state";
+import { abilityDiscount, openingPending, seatLabel } from "@rubyfront/core/state";
 import { endPhase } from "@rubyfront/core/turn";
 import type { Action, SceneRef, Seat } from "@rubyfront/core/types";
 import { Director } from "./effects/director";
@@ -464,9 +464,27 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     },
     // Il tavolo è fermo: nessun sigillo, scena (né effetti di «Risolvi» in corso), dado, mira, scelta, effetto, insegna, ingresso, giocata in volo, volo di carte, cascata della pesca.
     // Sfogliare una pila non ferma nessuno: la vetrina non trattiene il bot.
-    quiet: () =>
-      !seal.isOpen() && scene.isFree() && dice.reducedMotion() && !aim.isOpen() && !pileViewer.isPicking() && !table.isBlocked() && !banner.isRunning() && !entrance.isRunning() && !director?.isBusy() && flights.isStill() && table.isStill(),
+    quiet: () => busyReasons().length === 0,
+    busyReasons: () => busyReasons(),
   };
+
+  /** Che cosa tiene il tavolo non fermo, per nome: la quiete del bot e la diagnosi in Cronaca quando il bot aspetta troppo (2026-09-17). */
+  function busyReasons(): string[] {
+    const checks: [string, boolean][] = [
+      ["seal", seal.isOpen()],
+      ["scene", !scene.isFree()],
+      ["dice", !dice.reducedMotion()],
+      ["aim", aim.isOpen()],
+      ["pile-viewer", pileViewer.isPicking()],
+      ["table-blocked", table.isBlocked()],
+      ["banner", banner.isRunning()],
+      ["entrance", entrance.isRunning()],
+      ["director", Boolean(director?.isBusy())],
+      ["flights", !flights.isStill()],
+      ["draw-cascade", !table.isStill()],
+    ];
+    return checks.filter(([, busy]) => busy).map(([name]) => name);
+  }
 
   const session = createSession({
     seat: me,
@@ -522,6 +540,11 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   let closing = false;
   const closePhase = (): void => {
     if (closing) return;
+    // §4 — nell'apertura il gesto di fase è «Tieni la mano»: la fase si chiude dopo, quando la partita è cominciata.
+    if (openingPending(session.state())) {
+      session.keep(); // a mano non ancora pescata non manda niente (mayKeep)
+      return;
+    }
     closing = true;
     void (async () => {
       try {
@@ -535,6 +558,8 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     })();
   };
   table.onEndPhase(closePhase);
+  // §4 — «Mulligan n/3»: tutta la mano nel mazzo, 6 carte nuove.
+  table.onMulligan(() => session.mulligan());
   // Il tasto della fila avversaria cambia l'impaginazione: si ridisegna tutto, gesti e frecce compresi («Schiera» resta sulla carta).
   table.onRelayout(() => paint());
   // Il browser non suona prima di un gesto: il contesto audio nasce al primo tocco.

@@ -20,7 +20,7 @@
     "flavor": "In Nova Kai nothing is forged twice: it is found, or awaited.",
     "equip": {
       "trigger": "When it enters the Front",
-      "text": "You may assign this Entity an Object with Flux cost 3 or less from your Retire Zone without paying its Flux cost."
+      "text": "You may assign this Entity an Object with Flux cost 2 or less from your Retire Zone without paying its Flux cost."
     }
   }
 }

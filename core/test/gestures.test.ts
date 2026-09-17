@@ -24,6 +24,8 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   RUBY: { kind: "rubyfront" },
   // «Quando attacca: le altre armate +1» — una forma d'attacco di chi attacca.
   COMMAND: { kind: "entity", race: "auros", attackForms: [{ kind: "empower", who: "self", targets: "others_armed", power: 1, face: 0 }] },
+  // «Quando attacca armata: un'Entità con un Oggetto assegnato che controlli prende +1» — una sola, con la mira (dal 2026-09-17).
+  PICK: { kind: "entity", race: "auros", attackForms: [{ kind: "empower", who: "self", requiresObject: true, targets: "one_armed", power: 1, face: 0 }] },
   GEAR: { kind: "object", fluxCost: 1 },
   JUDGMENT: { kind: "matter", behavior: "reactive", fluxCost: 5, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, ifTarget: "tapped" }, thenLose: null }] } as Partial<CardFacts>,
 };
@@ -186,6 +188,32 @@ describe("createGestures — l'attacco e i suoi inneschi alla chiusura del Front
     expect(sent.map(action => action.t)).toEqual(["declare", "tap"]);
   });
 
+  it("la forma «one_armed» chiede la mira tra le proprie armate (anche chi attacca) e manda un solo empower", async () => {
+    const { ctx, sent, setState } = table();
+    const state = ctx.state();
+    state.turn = 3;
+    state.active = "a";
+    state.phase = "fronte";
+    card(state, "p", "PICK", "a", "field");
+    card(state, "g1", "GEAR", "a", "field").assignedTo = "p";
+    card(state, "u", "HUMAN", "a", "field");
+    card(state, "g2", "GEAR", "a", "field").assignedTo = "u";
+    card(state, "n", "HUMAN", "a", "field");
+    card(state, "rf-b", "RUBY", "b", "field");
+    setState(state);
+    const pickTarget = vi.fn((_source: CardInstance, candidates: CardInstance[]) => Promise.resolve(candidates.find(candidate => candidate.uid === "u") ?? null));
+    const { view } = fakeView({ pickTarget });
+    const gestures = createGestures(ctx, view);
+    await settle(gestures.attackWith(ctx.state().cards.p));
+    await settle(gestures.resolveAttacks());
+    expect(pickTarget).toHaveBeenCalledTimes(1);
+    // Solo le armate del posto: chi attacca compresa, la disarmata no.
+    expect(pickTarget.mock.calls[0][1].map(candidate => candidate.uid).sort()).toEqual(["p", "u"]);
+    const empowers = sent.filter(action => action.t === "empower");
+    expect(empowers).toHaveLength(1);
+    expect(empowers[0]).toMatchObject({ t: "empower", uid: "u", power: 1 });
+  });
+
   // «Quell'Entità attacca insieme a questa Entità»: l'attacco è dovuto, non
   // si chiede (deciso dal designer 2026-09-16). La domanda resta per una
   // forma «può attaccare insieme» (`asks`) che oggi nessuna carta porta.
@@ -225,6 +253,34 @@ describe("createGestures — l'attacco e i suoi inneschi alla chiusura del Front
     expect(mayNot.declared).toEqual(["sim"]);
     const may = await run(true, true);
     expect(may.declared).toEqual(["sim", "h"]);
+  });
+
+  // §8.2 — il sigillo del flip è un predicato solo (`sealedForPlay`), e il
+  // rientro col dado lo interroga come ogni altra via d'ingresso (dal 2026-09-17).
+  it("la carta sigillata dal flip non è tra le candidate del rientro col dado", async () => {
+    const { ctx, sent, setState } = table();
+    const state = ctx.state();
+    state.turn = 3;
+    state.active = "a";
+    state.phase = "fronte";
+    state.players.a.sealed = ["HUMAN"];
+    card(state, "sim", "SIMULACRUM", "a", "field");
+    card(state, "h", "HUMAN", "a", "hand").zone = "ritiro";
+    card(state, "rf-b", "RUBY", "b", "field");
+    setState(state);
+    const pickFromPile = vi.fn((_seat: Seat, _zone: string, candidates: CardInstance[]) => Promise.resolve(candidates[0] ?? null));
+    const { view } = fakeView({ pickFromPile });
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.99);
+    try {
+      const gestures = createGestures(ctx, view);
+      await settle(gestures.attackWith(ctx.state().cards.sim));
+      await settle(gestures.resolveAttacks());
+    } finally {
+      random.mockRestore();
+    }
+    expect(pickFromPile).not.toHaveBeenCalled();
+    expect(ctx.state().cards.h?.zone).toBe("ritiro");
+    expect(sent.filter(action => action.t === "toZone")).toHaveLength(0);
   });
 
   it("l'avversario ricostruisce la scena dal riferimento, nella sua lingua", async () => {

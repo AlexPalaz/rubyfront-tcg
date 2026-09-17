@@ -107,8 +107,9 @@ class CardIndexTest < Minitest::Test
 
   def test_on_attack_forms_of_real_cards
     forms_of = ->(id) { @index[id][:attack_forms].map { |form| [form[:kind], form[:who], form[:face]] } }
-    assert_equal [["untap", "self", 0]], forms_of.call("RBF-028"), "dal 2026-09-17 (revisione competitiva) la Sentinella armata si stappa dopo il combattimento"
+    assert_equal [], forms_of.call("RBF-028"), "dal 2026-09-17 (bilanciamento) niente stappata dopo il combattimento"
     assert_equal [["empower", "self", 0]], forms_of.call("RBF-029")
+    assert_equal "one_armed", @index["RBF-029"][:attack_forms][0][:targets], "una sola armata, con la mira (dal 2026-09-17)"
     assert_equal [["empower", "object", 0], ["stash", "object", 0]], forms_of.call("RBF-034"), "dal 2026-09-15 lo sguardo lascia il posto a «un altro Oggetto in Ritiro, poi pesca»"
     assert_equal [["rearm", "ally", 0], ["look", "ally", 0]], forms_of.call("RBF-031")
     assert_equal [["heal", "self", 0]], forms_of.call("RBF-008")
@@ -172,7 +173,7 @@ class CardIndexTest < Minitest::Test
     # Dal 2026-09-10: «se ha un Oggetto assegnato, +1» e gli Oggetti «mentre assegnato» senza durata esplicita.
     assert_equal [{ kind: "self_power", amount: 1, while_armed: true }], @index["RBF-024"][:static_forms], "dal 2026-09-17 «armata +1» accanto allo scarto d'Oggetto all'ingresso"
     assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-032"][:static_forms]
-    assert_equal [{ kind: "bearer_power", amount: 1 }, { kind: "bearer_counter", amount: 1 }], @index["RBF-033"][:static_forms], "+1 Potenza e Contrattacco +1 al portatore"
+    assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-033"][:static_forms], "+1 Potenza al portatore (via il Contrattacco dal 2026-09-17)"
     assert_equal [{ kind: "bearer_power", amount: 2 }], @index["RBF-035"][:static_forms], "il ritorno in Ritiro resta nel debito"
   end
 
@@ -192,7 +193,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [], @index["RBF-046"][:enter_moves], "gli Oggetti avversari in Ritiro non sono lo spostamento di un'Entità"
     assert_equal [], @index["RBF-025"][:enter_disarms]
     assert_equal [], @index["RBF-012"][:enter_rearms], "dal Ritiro al Fronte è un'altra forma"
-    assert_equal [{ max_cost: 3 }], @index["RBF-045"][:leave_returns], "dal 2026-09-17 torna con un Oggetto fino al costo 3"
+    assert_equal [{ max_cost: 2 }], @index["RBF-045"][:leave_returns], "dal 2026-09-17 (bilanciamento) torna con un Oggetto fino al costo 2"
     assert_equal [], @index["RBF-007"][:leave_returns], "il ritorno di chi è stato esiliato non è il ritorno vincolato"
 
     # Il riarmo che costa, o su un'Entità sola, esce dalla forma: ignoto.
@@ -223,19 +224,19 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "drain", amount: "objects" }], forms_of.call("RBF-042"), "il Rubyfront/Nexus avversario perde PV pari agli Oggetti assegnati"
     assert_equal [{ kind: "search", count: 6, die: 20, bands: { "matter" => [1, 5], "object" => [6, 13], "entity" => [14, 20] }, reveal_to: "hand", if_no_reveal_top: true, then_retire: true, rest_to: "deck" }], forms_of.call("RBF-041"), "la ricerca col dado"
     assert_equal [{ kind: "ends", face: 0, swap: true, then_draw: 1, then_discard: 1, once: true }, { kind: "ends", face: 1, to_hand: true, other_to_retire: true, once: true }], @index["RBF-023"][:assign_forms], "gli estremi del mazzo, per faccia"
-    assert_equal [{ kind: "remain", to: "ritiro", then_rearm: { other: true, to: "unarmed", free: true } }], @index["RBF-035"][:death_forms], "«quando quell'Entità muore»: il riarmo dal Ritiro (la forma `assign_object` dal 2026-09-13)"
+    assert_equal [], @index["RBF-035"][:death_forms], "dal 2026-09-17 (bilanciamento) niente riarmo alla morte"
     assert_equal [], @index["RBF-043"][:death_forms]
   end
 
   def test_second_deck_matters_at_resolution
     forms_of = ->(id) { @index[id][:resolve_forms] }
-    assert_equal [{ kind: "empower", targets: "own_armed", power: 1, up_to: 3, untap: true }], forms_of.call("RBF-036"), "fino a 3 armate (dal 2026-09-17), +1 e stappate"
+    assert_equal [{ kind: "empower", targets: "own_armed", power: 1, up_to: 2, untap: true }], forms_of.call("RBF-036"), "fino a 2 armate (dal 2026-09-17, bilanciamento), +1 e stappate"
     assert_equal [{ kind: "weaken", target: { type: "entity", controller: "opponent", attacking: true }, amount: -1, per_armed: true }], forms_of.call("RBF-039"), "l'attaccante avversario, −1 per armata"
-    assert_equal [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: nil }, to: "ritiro", discount: { amount: 2, if_armed_at_least: 2 } }], forms_of.call("RBF-044"), "in Ritiro, con 2 armate costa 2 in meno (dal 2026-09-17)"
+    assert_equal [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: nil }, to: "ritiro", discount: { amount: 1, if_armed_at_least: 2 } }], forms_of.call("RBF-044"), "in Ritiro, con 2 armate costa 1 in meno (dal 2026-09-17, bilanciamento)"
     assert_equal [{ kind: "exile", target: { type: "entity", controller: "opponent" }, to: "abisso", hold: true }], @index["RBF-043"][:assign_forms], "«quando assegni»: l'esilio tenuto dall'Oggetto"
     assert_equal [], @index["RBF-018"][:assign_forms], "una Materia non ha inneschi d'assegnazione"
     assert_equal [{ kind: "draw", count: 1, to_self: true }], @index["RBF-030"][:assign_forms], "«quando assegni un Oggetto a questa Entità: pesca»"
-    assert_equal [{ kind: "assign_discount", amount: 2 }], @index["RBF-030"][:static_forms], "«gli Oggetti che assegni a questa Entità costano 1 in meno»"
+    assert_equal [{ kind: "assign_discount", amount: 1 }], @index["RBF-030"][:static_forms], "«gli Oggetti che assegni a questa Entità costano 1 in meno»"
     assert_equal [{ kind: "others_armed_power", amount: 1 }], @index["RBF-031"][:static_forms], "«le altre Entità con un Oggetto assegnato che controlli hanno +1»"
     # Un dettaglio in più rende la forma ignota, mai fraintesa.
     trigger = lambda do |id, trigger_id|
@@ -278,7 +279,7 @@ class CardIndexTest < Minitest::Test
 
   def test_second_deck_die_glance_no_longer_certified
     assert_equal [], @index["RBF-027"][:enter_looks], "dal 2026-09-10 lo sguardo col dado è del Guardiano"
-    assert_equal [{ self: true, max_cost: 3 }], @index["RBF-027"][:enter_rearms], "dal 2026-09-10 il riarmo su di sé all'ingresso; dal 2026-09-17 entro il costo 3"
+    assert_equal [{ self: true, max_cost: 2 }], @index["RBF-027"][:enter_rearms], "dal 2026-09-10 il riarmo su di sé all'ingresso; dal 2026-09-17 (bilanciamento) entro il costo 2"
     assert_equal [{ count: 4, die: nil, count_base: 0, reveal: { type: "object", race: nil }, then_retire: true }], @index["RBF-025"][:enter_looks], "dal 2026-09-17 le prime 4, senza dado"
   end
 

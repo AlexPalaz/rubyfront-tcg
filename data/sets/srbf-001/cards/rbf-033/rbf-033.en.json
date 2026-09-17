@@ -1,7 +1,7 @@
 {
   "name": "Dimensional Shield",
   "typeLabel": "Object",
-  "summary": "Power, Counterattack and Stasis in a single piece: the wall that won't die blocking.",
+  "summary": "Power and Stasis in a single piece: the wall that won't die blocking.",
   "ui": {
     "face": "Object"
   },
@@ -14,7 +14,7 @@
     "name": "Dimensional Shield",
     "effect": {
       "name": "Effect",
-      "text": "The Entity it is assigned to has +1 Power and Stasis, and has Counterattack +1. If it already has Counterattack, that value increases by 1."
+      "text": "The Entity it is assigned to has +1 Power and Stasis."
     },
     "flavor": "It takes the blow, and returns it with interest."
   }

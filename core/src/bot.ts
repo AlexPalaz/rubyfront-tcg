@@ -18,7 +18,7 @@
 import type { Ability, CardFacts } from "./ctx.js";
 import { hasKeyword, powerOf, wornBy } from "./combat.js";
 import { nexusCheck, resolveSteps } from "./effects.js";
-import { abilityDiscount, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, inPlay, matterSpot, zoneCards } from "./state.js";
+import { abilityDiscount, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, inPlay, matterSpot, sealedForPlay, zoneCards } from "./state.js";
 import type { CardInstance, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -55,6 +55,19 @@ const KEYWORD_WORTH: Record<string, number> = { surge: 1, revenge: 1, stasis: 1.
  * attuale più le parole chiave; un Oggetto un punto e mezzo; una Materia
  * due; il Rubyfront moltissimo (non si scarta, non si sacrifica).
  */
+/**
+ * §4 — il mulligan del bot: rifà la mano se non ha almeno due Entità che
+ * scendano presto (costo di Flusso 3 o meno). Una mano con due corpi
+ * economici si tiene, qualunque sia il resto: il mazzo gira sui primi turni.
+ */
+export function wantsMulligan(state: GameState, seat: Seat, facts: Facts): boolean {
+  const cheap = zoneCards(state, seat, "hand").filter(card => {
+    const f = facts(card.cardId);
+    return f.kind === "entity" && f.fluxCost !== null && f.fluxCost <= 3;
+  });
+  return cheap.length < 2;
+}
+
 export function cardValue(state: GameState, card: CardInstance, facts: Facts): number {
   const f = facts(card.cardId);
   if (f.kind === "rubyfront" || f.kind === "nexus") return 100;
@@ -386,7 +399,7 @@ export function chooseAbility(state: GameState, seat: Seat, facts: Facts, memory
       const costs = zoneCards(state, seat, "hand")
         .filter(card => {
           const f = facts(card.cardId);
-          return f.kind === "entity" && (form.race === null || f.race === form.race) && !(player.sealed ?? []).includes(card.cardId);
+          return f.kind === "entity" && (form.race === null || f.race === form.race) && !sealedForPlay(state, card);
         })
         .map(card => facts(card.cardId).fluxCost ?? 0);
       if (costs.length === 0) continue;

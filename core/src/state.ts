@@ -218,6 +218,11 @@ function reduce(state: GameState, action: Action): GameState {
             ...state.players[action.seat],
             deckId: action.deckId,
             ...(Number.isInteger(action.hp) ? { hp: action.hp as number, hpMax: action.hp as number } : {}),
+            // §4 — col mazzo INTERO (tutte le carte nel mazzo, il Rubyfront in
+            // Zona di Richiamo) comincia l'apertura: nessun mulligan, mano non
+            // tenuta. Un tavolo apparecchiato con carte già fuori (snapshot,
+            // prova) non è un inizio di partita e non ha mulligan. Gemello: table.rb, load_deck.
+            opening: wholeDeck(action.seat, action.cards) ? { mulligans: 0, kept: false } : undefined,
           },
         },
       };
@@ -234,6 +239,32 @@ function reduce(state: GameState, action: Action): GameState {
         }
       });
       return { ...state, cards };
+    }
+
+    case "mulligan": {
+      // §4 — «rimescola tutta la mano nel mazzo e pesca 6 nuove carte»: la
+      // mano torna nel mazzo, l'ordine nuovo (mano e mazzo insieme) arriva già
+      // mescolato da chi lo fa, poi le 6. «Dopo il terzo mulligan è costretto
+      // ad accettare la mano»: al terzo la mano si tiene da sé. Gemello: table.rb, mulligan.
+      const cards = { ...state.cards };
+      action.order.forEach((uid, index) => {
+        const card = cards[uid];
+        if (card && card.owner === action.seat && (card.zone === "deck" || card.zone === "hand")) {
+          cards[uid] = { ...card, zone: "deck", order: index, facedown: false };
+        }
+      });
+      const drawn = apply({ ...state, cards }, { t: "draw", seat: action.seat, count: 6 });
+      const mulligans = (state.players[action.seat].opening?.mulligans ?? 0) + 1;
+      return {
+        ...drawn,
+        players: { ...drawn.players, [action.seat]: { ...drawn.players[action.seat], opening: { mulligans, kept: mulligans >= MULLIGANS_MAX } } },
+      };
+    }
+
+    case "keep": {
+      // §4 — «quando un giocatore è soddisfatto della mano, dichiara di essere pronto». Gemello: table.rb, keep.
+      const opening = state.players[action.seat].opening ?? { mulligans: 0, kept: false };
+      return { ...state, players: { ...state.players, [action.seat]: { ...state.players[action.seat], opening: { ...opening, kept: true } } } };
     }
 
     case "draw": {
@@ -975,12 +1006,62 @@ export function phaseCloser(state: GameState): Seat {
   return state.phase === "reazione" ? otherSeat(state.active) : state.active;
 }
 
+/**
+ * §4 — un mazzo intero: carte tutte nel mazzo, e in campo solo la Zona di
+ * Richiamo (il Rubyfront, sulla fila di servizio, mai su una fila del
+ * Fronte). È l'inizio di una partita, e apre il mulligan. Gemello: table.rb, whole_deck?.
+ */
+function wholeDeck(seat: Seat, cards: readonly CardInstance[]): boolean {
+  if (!cards.some(card => card.zone === "deck")) return false;
+  return cards.every(card => card.zone === "deck" || (card.zone === "field" && card.y === backRowY(seat)));
+}
+
+/** §4 — «fino a 3 volte». Gemello: table.rb, MULLIGANS_MAX. */
+export const MULLIGANS_MAX = 3;
+
+/**
+ * §4 — l'apertura è in corso finché un posto col mazzo caricato non ha
+ * tenuto la mano: il tavolo non ha un tempo «prima del turno 1», è il turno 1
+ * in Preparazione con la partita che aspetta. Gemello: table.rb, opening_pending?.
+ */
+export function openingPending(state: GameState): boolean {
+  if (state.turn !== 1 || state.phase !== "preparazione") return false;
+  return SEATS.some(seat => state.players[seat].deckId !== null && state.players[seat].opening !== undefined && !state.players[seat].opening.kept);
+}
+
+/** §4 — quel posto deve ancora tenere la mano (e la partita lo aspetta). */
+export function mustKeep(state: GameState, seat: Seat): boolean {
+  return openingPending(state) && state.players[seat].deckId !== null && state.players[seat].opening?.kept === false;
+}
+
+/** §4 — quel posto può tenere ADESSO: deve ancora farlo, e la mano iniziale è arrivata (prima delle 6 carte non c'è niente da tenere). */
+export function mayKeep(state: GameState, seat: Seat): boolean {
+  return mustKeep(state, seat) && zoneCards(state, seat, "hand").length > 0;
+}
+
+/** §4 — quel posto può ancora fare mulligan: mano in mano, meno di tre fatti, non ha tenuto. */
+export function mayMulligan(state: GameState, seat: Seat): boolean {
+  return mustKeep(state, seat) && (state.players[seat].opening?.mulligans ?? 0) < MULLIGANS_MAX && zoneCards(state, seat, "hand").length > 0;
+}
+
 /** Chi comanda la carta: chi la controlla, o il proprietario (§8.2). */
 export function controllerOf(card: CardInstance): Seat {
   return card.controller ?? card.owner;
 }
 
 /** Il primo slot libero del Fronte di `seat`, o null se è pieno. */
+/**
+ * §8.2 — «Non puoi più giocare … per il resto della partita»: il sigillo del
+ * flip segue la carta in ogni zona. Ogni via che porta una carta in campo —
+ * la giocata dalla mano, la chiamata, i rientri dal Ritiro e dall'Abisso per
+ * effetto — chiede QUI se la carta è sigillata (dal 2026-09-17: prima ogni
+ * forma lo chiedeva per conto suo, e il rientro col dado se lo dimenticava).
+ * Gemello: engine.rb, sealed_entry_stopped.
+ */
+export function sealedForPlay(state: GameState, card: CardInstance): boolean {
+  return (state.players[card.owner]?.sealed ?? []).includes(card.cardId);
+}
+
 export function freeFrontSlotOrNull(state: GameState, seat: Seat): { x: number; y: number } | null {
   const y = frontRowY(seat);
   const busy = fieldCards(state).filter(card => Math.abs(card.y - y) < 40);

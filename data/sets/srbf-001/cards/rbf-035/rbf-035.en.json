@@ -1,7 +1,7 @@
 {
   "name": "Vestige of the Schism",
   "typeLabel": "Object",
-  "summary": "The Object that never dies: it returns to the Retire Zone and rearms the Front.",
+  "summary": "Two Power and Revenge: whoever blocks with it takes the attacker along.",
   "ui": {
     "face": "Object"
   },
@@ -14,7 +14,7 @@
     "name": "Vestige of the Schism",
     "effect": {
       "name": "Effect",
-      "text": "The Entity it is assigned to has +2 Power and Revenge. When that Entity dies, you may assign another Object from your Retire Zone, without paying its Flux cost, to an Entity without an Object you control."
+      "text": "The Entity it is assigned to has +2 Power and Revenge."
     },
     "flavor": "What remains of the Schism does not stop serving."
   }

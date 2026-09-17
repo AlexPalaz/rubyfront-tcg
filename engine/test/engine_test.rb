@@ -133,6 +133,18 @@ class EngineTest < Minitest::Test
     end
     @engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
     @engine.judge({ "t" => "draw", "seat" => seat, "count" => count })
+    keep_hands(@engine)
+  end
+
+  # §4 — un mazzo intero apre il mulligan: i tavoli di prova che partono da
+  # lì tengono la mano subito, per giocare.
+  def keep_hands(engine)
+    %w[a b].each do |seat|
+      next unless table_copy(engine).opening(seat)
+
+      engine.judge({ "t" => "draw", "seat" => seat, "count" => 1 }, actor: seat) if table_copy(engine).hand_count(seat).zero?
+      engine.judge({ "t" => "keep", "seat" => seat }, actor: seat)
+    end
   end
 
   def end_turn(turn: 2, active: "b")
@@ -723,8 +735,10 @@ class EngineTest < Minitest::Test
 
   def test_retire_zone_not_from_deck
     engine = with_cards
-    cards = [{ "uid" => "a-2", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "SLOW" }]
+    # La carta di scorta in cima (order -1) è la mano iniziale che si tiene (§4); a-2 resta nel mazzo.
+    cards = [{ "uid" => "a-pad", "owner" => "a", "zone" => "deck", "order" => -1, "cardId" => "SLOW" }, { "uid" => "a-2", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "SLOW" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    keep_hands(engine)
     verdict = engine.judge({ "t" => "toZone", "uid" => "a-2", "zone" => "ritiro" })
     refute verdict[:ok]
     assert_match(/dal Fronte, col Ritiro, o scartando dalla mano.*§6\.2, §6\.5/, verdict[:reason])
@@ -1347,6 +1361,72 @@ class EngineTest < Minitest::Test
     assert engine.judge({ "t" => "newGame" }, actor: "b")[:ok], "Nuova partita è di entrambi"
   end
 
+  # --- §4: il mulligan (dal 2026-09-17). Due mazzi di 10, la mano iniziale
+  # di 6 per ciascuno; A apre.
+  def opening_table
+    engine = foreign
+    %w[a b].each do |seat|
+      cards = (1..10).map { |n| { "uid" => "#{seat}-#{n}", "owner" => seat, "zone" => "deck", "order" => n, "cardId" => "SLOW" } }
+      engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards }, actor: seat)
+      assert engine.judge({ "t" => "draw", "seat" => seat, "count" => 6 }, actor: seat)[:ok]
+    end
+    engine
+  end
+
+  def mulligan_of(engine, seat, order: nil)
+    order ||= (1..10).map { |n| "#{seat}-#{n}" }.reverse
+    engine.judge({ "t" => "mulligan", "seat" => seat, "order" => order }, actor: seat)
+  end
+
+  def test_mulligan_reshuffles_hand_and_draws_six_up_to_three_times
+    engine = opening_table
+    verdict = mulligan_of(engine, "b")
+    assert verdict[:ok], verdict[:reason]
+    table = table_copy(engine)
+    assert_equal 6, table.hand_count("b")
+    assert_equal 4, table.zone_count("b", "deck")
+    assert_equal({ mulligans: 1, kept: false }, table.opening("b"))
+    # L'ordine nuovo era rovesciato: in mano le ultime del mazzo.
+    assert_equal %w[b-10 b-9 b-8 b-7 b-6 b-5], table.zone_uids("b", "hand")
+    assert mulligan_of(engine, "b")[:ok]
+    assert mulligan_of(engine, "b")[:ok], "il terzo"
+    assert_equal({ mulligans: 3, kept: true }, table_copy(engine).opening("b"), "dopo il terzo la mano si tiene da sé")
+    assert_match(/già tenuta/, mulligan_of(engine, "b")[:reason])
+  end
+
+  def test_mulligan_wants_the_whole_hand_and_deck_in_the_order
+    engine = opening_table
+    assert_match(/mano e mazzo/, mulligan_of(engine, "a", order: %w[a-1 a-2])[:reason])
+    assert_match(/mano e mazzo/, mulligan_of(engine, "a", order: (1..10).map { |n| "b-#{n}" })[:reason], "non quelle dell'altro")
+  end
+
+  def test_keep_ends_mulligans_and_game_waits_for_both
+    engine = opening_table
+    # Finché entrambi non hanno tenuto, la partita aspetta: niente giocate, niente chiusure.
+    assert_match(/§4/, engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "field", "x" => 442, "y" => 1260 }, actor: "a")[:reason])
+    assert_match(/§4/, engine.judge({ "t" => "phase", "phase" => "fronte" }, actor: "a")[:reason])
+    assert engine.judge({ "t" => "keep", "seat" => "a" }, actor: "a")[:ok]
+    assert_match(/già tenuta/, engine.judge({ "t" => "keep", "seat" => "a" }, actor: "a")[:reason])
+    assert_match(/già tenuta/, mulligan_of(engine, "a")[:reason])
+    assert_match(/§4/, engine.judge({ "t" => "phase", "phase" => "fronte" }, actor: "a")[:reason], "B non ha ancora tenuto")
+    assert engine.judge({ "t" => "keep", "seat" => "b" }, actor: "b")[:ok], "B tiene nel turno di A: l'apertura è di entrambi"
+    refute table_copy(engine).opening_pending?
+    verdict = engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "field", "x" => 442, "y" => 1260 }, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    assert engine.judge({ "t" => "phase", "phase" => "fronte" }, actor: "a")[:ok]
+    refute engine.judge({ "t" => "keep", "seat" => "b" }, actor: "b")[:ok], "fuori dall'apertura non si tiene più"
+    assert_match(/apertura/, engine.judge({ "t" => "keep", "seat" => "a" }, actor: "a")[:reason], "nemmeno chi è di turno")
+  end
+
+  def test_opening_waits_only_for_seats_with_a_deck
+    engine = foreign
+    cards = (1..10).map { |n| { "uid" => "a-#{n}", "owner" => "a", "zone" => "deck", "order" => n, "cardId" => "SLOW" } }
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards }, actor: "a")
+    engine.judge({ "t" => "draw", "seat" => "a", "count" => 6 }, actor: "a")
+    assert engine.judge({ "t" => "keep", "seat" => "a" }, actor: "a")[:ok]
+    refute table_copy(engine).opening_pending?, "senza il mazzo dell'altro, basta la mia tenuta"
+  end
+
   def test_before_first_turn_other_sets_up_deck_too
     # §4: mano iniziale e mulligan di chi NON apre, al turno 1 in Preparazione.
     engine = foreign
@@ -1510,8 +1590,9 @@ class EngineTest < Minitest::Test
 
   def test_from_outside_hand_no_payment
     engine = with_costs(0)
-    cards = [{ "uid" => "a-1", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "COSTLY" }]
+    cards = [{ "uid" => "a-pad", "owner" => "a", "zone" => "deck", "order" => -1, "cardId" => "COSTLY" }, { "uid" => "a-1", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "COSTLY" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    keep_hands(engine)
     assert pay_for(engine, "a-1", nil)[:ok], "dal mazzo una carta scende per effetto: nessun costo"
   end
 
@@ -1765,8 +1846,9 @@ class EngineTest < Minitest::Test
 
   def test_empty_deck_checked_on_copy
     engine = Rubyfront::Engine.new
-    cards = [{ "uid" => "b-1", "owner" => "b", "zone" => "deck", "order" => 0 }]
+    cards = [{ "uid" => "b-pad", "owner" => "b", "zone" => "deck", "order" => -1 }, { "uid" => "b-1", "owner" => "b", "zone" => "deck", "order" => 0 }]
     engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards })
+    keep_hands(engine)
     verdict = finish(engine, "a", "deck")
     refute verdict[:ok]
     assert_match(/mazzo di B non è vuoto.*§9\.1/, verdict[:reason])
@@ -2197,6 +2279,17 @@ class EngineTest < Minitest::Test
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
     assert_equal "field", engine.instance_variable_get(:@table).card("p1")[:zone]
+  end
+
+  # §8.2 — il sigillo del flip è un imbuto unico (dal 2026-09-17): la carta
+  # sigillata non rientra per NESSUN effetto, nemmeno dal Ritiro.
+  def test_sealed_card_does_not_return_by_any_effect
+    engine = returner([["u1", "HUMAN"]])
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["HUMAN"] } })
+    verdict = bring_back(engine, "u1")
+    refute verdict[:ok]
+    assert_match(/sigillata/, verdict[:reason])
+    assert_equal "ritiro", table_copy(engine).card("u1")[:zone]
   end
 
   def test_permanent_is_entity_or_permanent_matter
@@ -2644,6 +2737,8 @@ class EngineTest < Minitest::Test
                   attack_forms: [{ kind: "untap", who: "self", once: true, requires_object: true, face: 0 }] },
     "COMMAND" => { type: "entity", keywords: ["surge"], race: "auros", power: 3,
                    attack_forms: [{ kind: "empower", who: "self", requires_object: true, targets: "others_armed", power: 1, face: 0 }] },
+    "PICK" => { type: "entity", keywords: ["surge"], race: "auros", power: 3,
+                attack_forms: [{ kind: "empower", who: "self", requires_object: true, targets: "one_armed", power: 1, face: 0 }] },
     "REAGENT" => { type: "object", keywords: [],
                  attack_forms: [{ kind: "empower", who: "object", targets: "bearer", power: 1, face: 0 },
                                 { kind: "look", count: 4, reveal: { type: "matter", race: nil }, reveal_to: "hand", rest_to: "ritiro", who: "object", die: 6, on_roll: [5, 6], face: 0 }] },
@@ -2767,6 +2862,37 @@ class EngineTest < Minitest::Test
     assert_match(/senza Oggetto/, engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("c") })[:reason])
   end
 
+  # «Un'Entità con un Oggetto assegnato che controlli prende +1» (dal 2026-09-17): una sola, anche chi attacca.
+  def test_pick_empowers_one_armed_entity_even_itself
+    engine = setup_scene([["c", "PICK"], ["f1", "IRON", { "assignedTo" => "c" }], ["u", "HUMAN"], ["f2", "IRON", { "assignedTo" => "u" }], ["n", "AUROS"]], attacks: ["c"])
+    assert_match(/un'Entità con un Oggetto/, engine.judge({ "t" => "empower", "uid" => "n", "power" => 1, "effect" => ref("c") })[:reason], "senza Oggetto")
+    assert_match(/Potenza in più è 1/, engine.judge({ "t" => "empower", "uid" => "u", "power" => 2, "effect" => ref("c") })[:reason])
+    verdict = engine.judge({ "t" => "empower", "uid" => "c", "power" => 1, "effect" => ref("c") })
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 1, table_copy(engine).card("c")[:power_bonus]
+    # Una sola per attacco: la seconda, anche su un'altra armata, è di troppo.
+    assert_match(/un'Entità sola per attacco/, engine.judge({ "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("c") })[:reason])
+  end
+
+  # §6.2 — il Fronte pieno è nell'imbuto di chi entra (dal 2026-09-17): anche il
+  # rientro col dado, che prima non lo chiedeva, si ferma alla sesta Entità.
+  def test_attack_return_respects_full_front_through_the_funnel
+    engine = setup_scene([["e", "ECO", { "x" => 442 }], ["u1", "HUMAN", { "x" => 821 }], ["u2", "HUMAN", { "x" => 1199 }], ["u3", "HUMAN", { "x" => 1578 }],
+                          ["u4", "HUMAN", { "x" => 1956 }], ["r", "HUMAN", { "zone" => "ritiro" }]], attacks: ["e"])
+    comeback = { "t" => "toZone", "uid" => "r", "zone" => "field", "x" => 1956, "y" => 1260, "roll" => 5, "effect" => ref("e") }
+    verdict = engine.judge(comeback)
+    refute verdict[:ok]
+    assert_match(/Fronte è pieno/, verdict[:reason])
+    replaced = engine.judge(comeback.merge("replace" => "u4"))
+    assert replaced[:ok], replaced[:reason]
+    assert_equal "ritiro", table_copy(engine).card("u4")[:zone]
+  end
+
+  def test_pick_refuses_opposing_armed_entity
+    engine = setup_scene([["c", "PICK"], ["f1", "IRON", { "assignedTo" => "c" }]], b: [["e", "HUMAN"], ["f2", "IRON", { "assignedTo" => "e" }]], attacks: ["c"])
+    assert_match(/che controlli/, engine.judge({ "t" => "empower", "uid" => "e", "power" => 1, "effect" => ref("c") })[:reason])
+  end
+
   # L'Oggetto che potenzia chi lo porta, poi lo sguardo col dado.
   def test_catalyst_empowers_bearer_then_looks_with_die
     engine = setup_scene([["u", "HUMAN"], ["s", "REAGENT", { "assignedTo" => "u" }], ["pescata", "HUMAN", { "zone" => "deck" }], ["d1", "MATTER", { "zone" => "deck" }], ["d2", "HUMAN", { "zone" => "deck" }],
@@ -2835,6 +2961,10 @@ class EngineTest < Minitest::Test
     engine = setup_scene([["e", "ECO"], ["r", "HUMAN", { "zone" => "ritiro" }], ["x", "AUROS", { "zone" => "ritiro" }]], attacks: ["e"])
     comeback = { "t" => "toZone", "uid" => "r", "zone" => "field", "x" => 2368, "y" => 1260, "roll" => 5, "effect" => ref("e") }
     assert_match(/nessuno torna/, engine.judge(comeback.merge("roll" => 4))[:reason])
+    # §8.2 — la sigillata dal flip non torna nemmeno col dado (l'imbuto unico, dal 2026-09-17).
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["HUMAN"] } })
+    assert_match(/sigillata/, engine.judge(comeback)[:reason])
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => [] } })
     assert_match(/Entità Umana/, engine.judge(comeback.merge("uid" => "x"))[:reason])
     ok = engine.judge(comeback)
     assert ok[:ok], ok[:reason]
@@ -4502,6 +4632,16 @@ class EngineTest < Minitest::Test
     refute come_back(engine, y: 172)[:ok], "sul proprio Fronte"
     refute come_back(engine, x: 500)[:ok], "su uno slot"
     assert come_back(engine, x: 442)[:ok], "lo slot lasciato libero va bene"
+  end
+
+  # §8.2 — il ritorno vincolato passa dall'imbuto del sigillo come ogni entrata (dal 2026-09-17).
+  def test_bound_return_of_sealed_card_is_stopped
+    engine = revived_on_field
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["REVIVED"] } })
+    engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
+    verdict = come_back(engine)
+    refute verdict[:ok]
+    assert_match(/sigillata/, verdict[:reason])
   end
 
   def test_bound_return_with_full_front_fails

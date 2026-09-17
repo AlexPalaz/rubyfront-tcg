@@ -114,6 +114,13 @@ export interface PlayerState {
   /** Le carte (id di catalogo) che questo posto non può più giocare per il
       resto della partita (§8.2, RBF-001: il flip sigilla Rhen). */
   sealed?: string[];
+  /**
+   * §4 — l'apertura: quanti mulligan ha fatto e se ha «dichiarato di essere
+   * pronto» (tenuto la mano). Nasce col mazzo caricato, e finché un posto
+   * col mazzo non ha tenuto la partita non comincia (`openingPending`).
+   * Gemello: table.rb, opening.
+   */
+  opening?: { mulligans: number; kept: boolean };
   /** Gli sconti delle abilità del Rubyfront, validi in questo turno (§3.1). Gemello: table.rb, discounts. */
   discounts?: Discount[];
   /** I bonus «alle prossime Entità che attaccano in questo turno» (§3.1). Gemello: table.rb, attack_bonuses. */
@@ -305,6 +312,10 @@ export type Action =
       giocatore inizia; l'engine li confronta con l'anagrafe. */
   | { t: "loadDeck"; seat: Seat; deckId: string; cards: CardInstance[]; hp?: number }
   | { t: "shuffle"; seat: Seat; order: string[] }
+  /** §4 — il mulligan: tutta la mano nel mazzo, il mazzo nell'ordine dato (già mescolato da chi lo fa), 6 carte nuove. Fino a 3 volte: dal terzo la mano si tiene da sé. */
+  | { t: "mulligan"; seat: Seat; order: string[] }
+  /** §4 — «dichiara di essere pronto»: la mano è quella. Quando tutti i posti col mazzo hanno tenuto, la partita comincia. */
+  | { t: "keep"; seat: Seat }
   /** `effect`: la pesca è un passo di un effetto innescato (§8.2), non un
       gesto — la fonte e l'ingresso che l'ha innescata; l'engine verifica. */
   | { t: "draw"; seat: Seat; count: number; effect?: EffectRef; roll?: number }

@@ -377,6 +377,11 @@ function attackEmpower(details: Loose, effect: Loose): Unfaced<AttackForm> | nul
         target.details?.hasObjectAssigned === true && target.details?.excludeSelf === true) {
       return { kind: "empower", who: "self", requiresObject: true, targets: "others_armed", power: effect.amount };
     }
+    // «Un'Entità con un Oggetto assegnato che controlli prende +N» (dal 2026-09-17): una sola, con la mira, anche sé stessa.
+    if (details.requiresObjectAssigned === true && ownTarget(target, "entity") && target.min === 1 && target.max === 1 &&
+        sameShape(target.details, { hasObjectAssigned: true })) {
+      return { kind: "empower", who: "self", requiresObject: true, targets: "one_armed", power: effect.amount };
+    }
   }
   if (effect.type === "empower" && effect.duration === "until_end_of_turn" && details.oncePerEachOfYourTurns === true &&
       ownTarget(target, "entity", "human") && target.min === 1 && target.max === 1 && target.details?.nextAttackerThisTurn === true) {

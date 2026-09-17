@@ -18,7 +18,7 @@
     "name": "Frattura della Scissione",
     "effect": {
       "name": "Effetto",
-      "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, questa carta costa 2 Flussi in meno."
+      "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario. Se sul tuo Fronte ci sono almeno 2 Entità con un Oggetto assegnato, questa carta costa 1 Flusso in meno."
     },
     "flavor": "La crepa non taglia: separa."
   },

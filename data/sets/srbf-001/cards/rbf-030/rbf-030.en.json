@@ -23,7 +23,7 @@
     },
     "flavor": "It never asks what it carries. Only for whom.",
     "effect": {
-      "text": "Objects you assign to this Entity cost 2 less Flux."
+      "text": "Objects you assign to this Entity cost 1 less Flux."
     }
   }
 }

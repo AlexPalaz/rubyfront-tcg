@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.82.0"
+    VERSION = "0.86.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -109,6 +109,10 @@ module Rubyfront
       "§3.1 La chiamata sul Fronte del Nexus: un'Entità dalla mano senza costo, con Slancio, e +N alle prossime attaccanti del turno",
       "§8.2 Effetti certificati: «quando entra sul Fronte, puoi mettere un Oggetto dalla mano in Ritiro: se lo fai, pesca»; «quando attacca l'Entità che lo porta, col d6 un altro Oggetto in Ritiro: se lo fai, pesca»",
       "§8.2 Effetti certificati: «all'inizio di ogni tuo turno, se non ci sono Oggetti sul tuo Fronte, cerca un Oggetto nel mazzo e aggiungilo alla mano, poi rimescola»",
+      "§8.2 Effetti certificati: «quando attacca con un Oggetto, un'Entità con un Oggetto assegnato che controlli prende +N Potenza» (una sola, con la mira)",
+      "§8.2 Il sigillo del flip («non puoi più giocare … per il resto della partita») ferma OGNI entrata in campo della carta sigillata: dalla mano, dal Ritiro, dall'Abisso, per gesto o per qualunque effetto",
+      "§4 Il mulligan: fino a 3 volte tutta la mano nel mazzo e 6 carte nuove, poi si tiene la mano; finché un posto col mazzo non ha tenuto, la partita aspetta (solo apparecchiatura, pesca, mescola, mulligan e tenuta)",
+      "§8.2 Tre imbuti prima di ogni forma (§6.2, §3.1, §8.2): chi entra in campo (sigillo, Fronte pieno e sostituzione), l'Oggetto che finisce addosso a un'Entità (in campo, un'Entità, non coperta), l'innesco «quando entra» (fonte in campo, ingresso in campo ed entrato questo turno)",
       "§6.2 Un Oggetto che dice «puoi mettermi in Zona di Ritiro pagandone il costo»: in Preparazione propria, al costo stampato",
       "§6.3 I «quando attacca» si risolvono alla chiusura del Fronte, prima della Reazione; il «pronto» delle scene (ready) passa a chiunque, in ogni fase",
       "§6.2 A Fronte pieno chi scende per effetto (dalla mano, dal Ritiro o dall'Abisso) può prendere il posto di un'Entità propria, che va in Zona di Ritiro coi suoi Oggetti",
@@ -194,8 +198,12 @@ module Rubyfront
       "§3.1 The Rubyfront/Nexus “the first time each of your turns you assign an Object”: top and bottom of the deck, swapped (then draw and discard) or one to hand and the other to Retire",
       "§8.2 Certified effects: “when that Entity dies, this Object to Retire instead of the Abyss; then another Object from Retire onto an unarmed one, for free”",
       "§3.1 The Nexus's call to the Front: an Entity from hand at no cost, with Surge, and +N to the next attackers this turn",
-      "§8.2 Certified effects: “at the start of each of your turns, if there are no Objects on your Front, search your deck for an Object and add it to your hand, then shuffle”",
       "§8.2 Certified effects: “when it enters the Front, you may put an Object from hand into Retire: if you do, draw”; “when its bearer attacks, with the d6 another Object into Retire: if you do, draw”",
+      "§8.2 Certified effects: “at the start of each of your turns, if there are no Objects on your Front, search your deck for an Object and add it to your hand, then shuffle”",
+      "§8.2 Certified effects: “when it attacks with an Object, an Entity with an Object assigned you control gets +N Power” (one, with the aim)",
+      "§8.2 The flip seal (“you can no longer play … for the rest of the game”) stops EVERY entry of the sealed card onto the field: from hand, Retire or Abyss, by gesture or by any effect",
+      "§4 The mulligan: up to 3 times the whole hand into the deck and 6 new cards, then the hand is kept; as long as a seat with a deck hasn't kept, the game waits (only setup, draw, shuffle, mulligan and keep)",
+      "§8.2 Three funnels before any form (§6.2, §3.1, §8.2): whatever enters the field (seal, full Front and replacement), an Object landing on an Entity (on the field, an Entity, not covered), the “when it enters” trigger (source on the field, entry on the field and entered this turn)",
       "§6.2 An Object that says “you may put me into the Retire Zone by paying its cost”: in your own Preparation, at the printed cost",
       "§6.3 “When it attacks” resolves when the Front closes, before the Reaction; the scenes' “ready” passes for anyone, in any phase",
       "§6.2 With a full Front, a card coming down through an effect (from hand, Retire or the Abyss) may take the place of one of your Entities, which goes to the Retire Zone with its Objects",
@@ -208,7 +216,7 @@ module Rubyfront
     # dell'AZIONE — la copia del tavolo continua a non tracciare geometria.
     FRONT_SLOT_X = [442, 821, 1199, 1578, 1956].freeze
     # [fila del posto B (in alto), fila del posto A (in basso)] — canonico.
-    FRONT_ROW_Y = [172, 1260].freeze
+    FRONT_ROW_Y = Table::FRONT_ROW_Y
 
     # I nomi delle Materie (§7.1), per i sigilli.
     MATTER_NAMES = {
@@ -368,6 +376,14 @@ module Rubyfront
       stopped = judge_chain(action, actor)
       return stopped if stopped
 
+      # Le regole trasversali sono imbuti, prima di ogni forma (dal
+      # 2026-09-17: il sigillo del flip era ripetuto forma per forma, e il
+      # rientro col dado se lo dimenticava). Chi entra in campo, l'Oggetto
+      # che finisce addosso a un'Entità, l'innesco «quando entra»: una forma
+      # nuova passa di qui senza saperlo.
+      stopped = opening_stopped(action) || entry_stopped(action) || bearer_stopped(action) || enter_trigger_stopped(action)
+      return stopped if stopped
+
       # §8.2 / §1.1 — un passo d'effetto: la carta vince sulle regole, se la
       # forma è quella certificata. Verificato, passa come effetto; se no
       # è fermato — un effetto finto non è un gesto qualunque.
@@ -375,6 +391,8 @@ module Rubyfront
 
       case action["t"]
       when "loadDeck" then judge_load_deck(action)
+      when "mulligan" then judge_mulligan(action)
+      when "keep" then judge_keep(action)
       when "player" then judge_player(action)
       when "turn" then judge_turn(action)
       when "phase" then judge_phase(action)
@@ -432,12 +450,7 @@ module Rubyfront
       target_kind = @cards.dig(target[:card_id], :type)
       return no_rule("assign") unless object_kind == "object" && target_kind
 
-      return refuse("assign", "gli Oggetti non si assegnano al Rubyfront né al Nexus (§3.1, Oggetti)", "Objects can't be assigned to the Rubyfront or the Nexus (§3.1, Objects)") if target_kind == "rubyfront"
-      return refuse("assign", "un Oggetto si assegna a un'Entità (§3.1, Oggetti)", "an Object is assigned to an Entity (§3.1, Objects)") unless target_kind == "entity"
-      # In campo: un'Entità in mano o in una pila non porta niente (visto il
-      # 2026-09-15 in una prova in stanza: l'assegnazione a una carta in mano passava).
-      return refuse("assign", "l'Oggetto va addosso a un'Entità in campo (§3.1, Oggetti)", "an Object goes on an Entity on the field (§3.1, Objects)") unless target[:zone] == "field"
-      return refuse("assign", "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if target[:facedown]
+      # Entità, in campo, non coperta: l'imbuto bearer_stopped.
       return refuse("assign", "gli Oggetti si assegnano solo alle proprie Entità (§3.1, Oggetti)", "Objects are assigned only to your own Entities (§3.1, Objects)") if target[:owner] != object[:owner]
       if object[:assigned_to] && object[:assigned_to] != to
         return refuse("assign", "una volta assegnato, l'Oggetto non si sposta su un'altra Entità (§3.1, Oggetti)", "once assigned, an Object doesn't move to another Entity (§3.1, Objects)")
@@ -449,6 +462,147 @@ module Rubyfront
     # I movimenti fra zone con una regola: l'INGRESSO in campo (§6.2, Fronte
     # pieno) e il RITIRO (§6.2, Ritiro). Tutto il resto — mano, pile, mazzo —
     # resta senza regola, come sempre.
+    # ------------------------------------------------------------------
+    # Gli imbuti (dal 2026-09-17): le regole che valgono per più forme si
+    # leggono UNA volta, sull'esito dell'azione, prima dello smistamento.
+    # Ognuno ritorna un rifiuto, o nil. Carta ignota all'anagrafe: silenzio
+    # sulle parti che la richiedono, mai un'accusa.
+    # ------------------------------------------------------------------
+
+    # §4 — l'apertura: finché un posto col mazzo non ha tenuto la mano, la
+    # partita aspetta. Passano solo l'apparecchiatura (mazzi, Nuova partita,
+    # nome, chat, pixel, prova), la pesca e la mescola, il mulligan e la
+    # tenuta, la mano che torna nel mazzo. Tutto il resto — giocare,
+    # schierare, dichiarare, chiudere fasi e turni — aspetta che entrambi
+    # abbiano «dichiarato di essere pronti».
+    OPENING_ALLOWED = %w[loadDeck newGame say spawn ready release player draw shuffle mulligan keep].freeze
+
+    def opening_stopped(action)
+      return nil unless @table.opening_pending?
+
+      kind = action["t"]
+      return nil if OPENING_ALLOWED.include?(kind)
+      return nil if kind == "move" && !action.key?("cost")
+      if kind == "toZone"
+        card = @table.card(action["uid"])
+        return nil if card && %w[hand deck].include?(card[:zone]) && %w[hand deck].include?(action["zone"])
+      end
+
+      refuse(kind, "prima si tiene la mano: il mulligan è aperto e la partita comincia quando entrambi sono pronti (§4)", "keep your hand first: the mulligan is open and the game begins when both are ready (§4)")
+    end
+
+    # §4 — il mulligan: nel turno 1 in Preparazione, per un posto col mazzo
+    # che non ha ancora tenuto, con la mano in mano, meno di tre fatti;
+    # l'ordine nuovo è una permutazione di mano e mazzo di quel posto (il
+    # caso lo tira il client, l'engine verifica la forma). Ritorna il verdetto.
+    def judge_mulligan(action)
+      seat = action["seat"]
+      return no_rule("mulligan") unless Table::SEATS.include?(seat)
+
+      opening = @table.opening(seat)
+      return refuse("mulligan", "il mulligan si fa nell'apertura, al turno 1 prima di cominciare (§4)", "the mulligan is done in the opening, on turn 1 before starting (§4)") unless @table.turn == 1 && @table.phase == "preparazione" && opening
+      return refuse("mulligan", "la mano è già tenuta: niente più mulligan (§4)", "the hand is already kept: no more mulligans (§4)") if opening[:kept]
+      return refuse("mulligan", "dopo il terzo mulligan la mano si tiene (§4)", "after the third mulligan the hand is kept (§4)") if opening[:mulligans] >= Table::MULLIGANS_MAX
+
+      hand = @table.zone_uids(seat, "hand")
+      deck = @table.zone_uids(seat, "deck")
+      return refuse("mulligan", "prima la mano iniziale, poi il mulligan (§4)", "first the opening hand, then the mulligan (§4)") if hand.empty?
+
+      order = action["order"]
+      unless order.is_a?(Array) && order.sort == (hand + deck).sort
+        return refuse("mulligan", "il mulligan rimescola tutta la mano nel mazzo: l'ordine non è quello di mano e mazzo (§4)", "the mulligan shuffles the whole hand into the deck: the order isn't that of hand and deck (§4)")
+      end
+
+      allow("mulligan")
+    end
+
+    # §4 — «dichiara di essere pronto»: una volta, nell'apertura, per un posto col mazzo.
+    def judge_keep(action)
+      seat = action["seat"]
+      return no_rule("keep") unless Table::SEATS.include?(seat)
+
+      opening = @table.opening(seat)
+      return refuse("keep", "la mano si tiene nell'apertura, al turno 1 prima di cominciare (§4)", "the hand is kept in the opening, on turn 1 before starting (§4)") unless @table.turn == 1 && @table.phase == "preparazione" && opening
+      return refuse("keep", "la mano è già tenuta (§4)", "the hand is already kept (§4)") if opening[:kept]
+      return refuse("keep", "prima la mano iniziale, poi la si tiene (§4)", "first the opening hand, then you keep it (§4)") if @table.zone_uids(seat, "hand").empty?
+
+      allow("keep")
+    end
+
+    # Chi entra in campo — un `toZone` verso il campo (dalla mano, dal
+    # Ritiro, dall'Abisso, con o senza riferimento d'effetto) o un `revive`:
+    # §8.2 il sigillo del flip («non puoi più giocare … per il resto della
+    # partita») ferma qualunque carta sigillata dal suo posto; §6.2 la sesta
+    # Entità non scende, salvo sostituzione (`replace`) di una propria.
+    def entry_stopped(action)
+      kind = action["t"]
+      entering = (kind == "toZone" && action["zone"] == "field") || kind == "revive"
+      return nil unless entering
+
+      card = @table.card(action["uid"])
+      return nil unless card
+      return nil if card[:zone] == "field" && kind == "toZone" # un pixel, non un'entrata (judge_move e la lavagna)
+
+      if @table.sealed?(card[:owner], card[:card_id])
+        return refuse(kind, "quella carta non si può più giocare per il resto della partita: l'ha sigillata il flip del Nexus (§8.2)", "that card can no longer be played for the rest of the game: the Nexus flip sealed it (§8.2)")
+      end
+
+      entry = @cards[card[:card_id]]
+      return nil unless entry && entry[:type] == "entity"
+
+      full_front_stopped(kind, action, card[:owner])
+    end
+
+    # L'Oggetto che finisce addosso a un'Entità — un `assign {uid, to}` o
+    # un `toZone` verso il campo con `assignTo` (§3.1, Oggetti): il
+    # portatore esiste, è in campo, è un'Entità (mai il Rubyfront/Nexus) e
+    # non è coperta. Di chi sia (propria, o comandata) lo dice la forma.
+    def bearer_stopped(action)
+      kind = action["t"]
+      to = if kind == "assign" then action["to"]
+           elsif kind == "toZone" && action["zone"] == "field" then action["assignTo"]
+           end
+      return nil unless to.is_a?(String)
+
+      object = @table.card(action["uid"])
+      bearer = @table.card(to)
+      return nil unless object && bearer
+      return nil unless @cards.dig(object[:card_id], :type) == "object"
+
+      bearer_kind = @cards.dig(bearer[:card_id], :type)
+      return refuse(kind, "gli Oggetti non si assegnano al Rubyfront né al Nexus (§3.1, Oggetti)", "Objects can't be assigned to the Rubyfront or the Nexus (§3.1, Objects)") if bearer_kind == "rubyfront"
+      return refuse(kind, "un Oggetto si assegna a un'Entità (§3.1, Oggetti)", "an Object is assigned to an Entity (§3.1, Objects)") if bearer_kind && bearer_kind != "entity"
+      return refuse(kind, "l'Oggetto va addosso a un'Entità in campo (§3.1, Oggetti)", "an Object goes on an Entity on the field (§3.1, Objects)") unless bearer[:zone] == "field"
+      return refuse(kind, "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if bearer[:facedown]
+
+      nil
+    end
+
+    # L'innesco «quando entra» (§8.2) — ogni azione col riferimento
+    # `event: on_enter_field`: la fonte è in campo, l'ingresso è in campo
+    # ed è entrato QUESTO turno (la fonte stessa, o un'altra carta per «quando
+    # un'altra Entità entra»). Il resto — l'evento consumato, il posto, la
+    # forma — lo dice il giudizio della forma.
+    def enter_trigger_stopped(action)
+      ref = action["effect"]
+      return nil unless ref.is_a?(Hash) && ref["event"] == "on_enter_field"
+
+      kind = action["t"]
+      source = @table.card(ref["source"])
+      return refuse(kind, "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
+
+      entering = ref["entering"] == ref["source"] ? source : @table.card(ref["entering"])
+      return refuse(kind, "l'ingresso che innesca dev'essere in campo (§8.2)", "the triggering entry must be on the field (§8.2)") unless entering && entering[:zone] == "field"
+
+      if entering[:entered] != @table.turn
+        return refuse(kind, "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") if ref["entering"] == ref["source"]
+
+        return refuse(kind, "quella carta non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "that card didn't enter the Front this turn: the trigger has passed (§8.2)")
+      end
+
+      nil
+    end
+
     def judge_to_zone(action)
       card = @table.card(action["uid"])
       return no_rule("toZone") unless card
@@ -723,11 +877,7 @@ module Rubyfront
       # la regola del tiro pagabile (§3.1) arriverà a parte. Limiti
       # dichiarati: sconti da effetto e carte messe in campo gratis da un
       # effetto verrebbero fermati a torto (regola d'oro).
-      # §8.2 — «Non puoi più giocare … per il resto della partita» (il sigillo del flip,
-      # il sigillo del flip): la carta non scende, da nessuna zona.
-      if @table.sealed?(card[:owner], card[:card_id])
-        return refuse("toZone", "quella carta non si può più giocare per il resto della partita: l'ha sigillata il flip del Nexus (§8.2)", "that card can no longer be played for the rest of the game: the Nexus flip sealed it (§8.2)")
-      end
+      # §8.2 — il sigillo del flip è già stato letto dall'imbuto (sealed_entry_stopped).
 
       cost = known[:flux_cost]
       if card[:zone] == "hand" && cost
@@ -774,11 +924,7 @@ module Rubyfront
 
       return no_rule("toZone") unless known[:type] == "entity"
 
-      on_front = @table.field_cards(card[:owner]).count do |other|
-        entry = @cards[other[:card_id]]
-        entry && entry[:type] == "entity"
-      end
-      return refuse("toZone", "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)", "the Front is full: five Entities are the maximum (§6.2, Full Front)") if on_front >= 5
+      # §6.2 — Fronte pieno: lo legge l'imbuto entry_stopped.
       # §5 — e scende su uno slot della propria fila (vedi judge_move).
       return refuse("toZone", "le Entità stanno sugli slot del Fronte, nella propria fila (§5)", "Entities sit on the Front slots, in their own row (§5)") unless on_slot?(card, action)
 
@@ -1366,7 +1512,7 @@ module Rubyfront
       # solo fra mano e mazzo.
       if @table.turn == 1 && @table.phase == "preparazione"
         case kind
-        when "draw", "shuffle"
+        when "draw", "shuffle", "mulligan", "keep"
           return nil if action["seat"] == actor
         when "toZone"
           card = @table.card(action["uid"])
@@ -1620,11 +1766,10 @@ module Rubyfront
 
       source = @table.card(ref["source"])
       entering = @table.card(ref["entering"])
-      return refuse(kind, "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
-      unless entering && entering[:zone] == "field" && @table.controller_of(entering) == @table.controller_of(source) && ref["entering"] != ref["source"]
+      # Fonte e ingresso in campo, ingresso entrato questo turno: l'imbuto enter_trigger_stopped.
+      unless entering && @table.controller_of(entering) == @table.controller_of(source) && ref["entering"] != ref["source"]
         return refuse(kind, "l'ingresso che innesca dev'essere un'altra carta dello stesso posto, in campo (§8.2)", "the triggering entry must be another card of the same seat, on the field (§8.2)")
       end
-      return refuse(kind, "quella carta non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "that card didn't enter the Front this turn: the trigger has passed (§8.2)") unless entering[:entered] == @table.turn
       return refuse(kind, "questo innesco è già stato risolto per quell'ingresso (§8.2)", "this trigger has already been resolved for that entry (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
 
       arrived = @cards[entering[:card_id]]
@@ -1658,7 +1803,7 @@ module Rubyfront
 
       case ref["event"]
       when "on_enter_field"
-        return refuse(kind, "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless source[:entered] == @table.turn
+        nil # in campo ed entrata questo turno: l'imbuto enter_trigger_stopped
       when "on_attack"
         return refuse(kind, "«quando attacca» vuole un attacco dichiarato, in Fase di Fronte (§8.2)", "“when it attacks” needs a declared attack, in the Front Phase (§8.2)") unless @table.phase == "fronte" && @table.attacking?(ref["source"])
         return refuse(kind, "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if action && attack_fired?(action, ref)
@@ -1766,12 +1911,15 @@ module Rubyfront
       stopped, source, attacker, forms = attack_context("empower", action, ref)
       return stopped if stopped
 
+      # «Alle altre armate» e «a una armata» hanno la stessa azione: le
+      # distingue la forma che la carta porta (una carta ne ha una sola).
       targets = if action["restrict"] then "opposing_entity"
                 elsif action["grants"] then "next_human_attacker"
-                elsif ref["source"] == ref["entering"] then "others_armed"
+                elsif ref["source"] == ref["entering"] then %w[others_armed one_armed]
                 else "bearer"
                 end
-      form = forms.find { |candidate| candidate[:kind] == "empower" && candidate[:targets] == targets }
+      form = forms.find { |candidate| candidate[:kind] == "empower" && Array(targets).include?(candidate[:targets]) }
+      targets = form[:targets] if form && targets.is_a?(Array)
       return refuse("empower", "la carta non ha un effetto certificato che potenzi così quando attacca (§8.2)", "the card has no certified effect that empowers this way when it attacks (§8.2)") unless form
 
       stopped = attack_relation_stopped("empower", form, ref, source, attacker)
@@ -1790,6 +1938,15 @@ module Rubyfront
           return refuse("empower", "il +1 va alle ALTRE Entità con un Oggetto assegnato che controlli (§8.2)", "the +1 goes to the OTHER Entities with an Object assigned that you control (§8.2)")
         end
         return refuse("empower", "la Potenza in più è #{form[:power]} (§8.2)", "the extra Power is #{form[:power]} (§8.2)") unless action["power"] == form[:power]
+      when "one_armed"
+        # §8.2 — «un'Entità con un Oggetto assegnato che controlli» (dal 2026-09-17): una sola per attacco, anche l'attaccante.
+        unless @table.controller_of(target) == seat && @table.armed?(action["uid"]) && entity_of_race?(action["uid"], nil)
+          return refuse("empower", "il +#{form[:power]} va a un'Entità con un Oggetto assegnato che controlli (§8.2)", "the +#{form[:power]} goes to an Entity with an Object assigned that you control (§8.2)")
+        end
+        return refuse("empower", "la Potenza in più è #{form[:power]} (§8.2)", "the extra Power is #{form[:power]} (§8.2)") unless action["power"] == form[:power]
+        if @table.fired_prefix?(ref["source"], "on_attack:empower:")
+          return refuse("empower", "un'Entità sola per attacco (§8.2)", "one Entity per attack (§8.2)")
+        end
       when "next_human_attacker"
         return refuse("empower", "le parole chiave concesse non sono quelle della carta (§8.2)", "the granted keywords aren't the card's (§8.2)") unless Array(action["grants"]) == form[:grants]
         order = @table.attack_order(ref["source"])
@@ -1984,8 +2141,6 @@ module Rubyfront
       unless object && object[:zone] == "ritiro" && object[:owner] == @table.controller_of(source) && entry[:type] == "object"
         return refuse("toZone", "si assegna un Oggetto dalla PROPRIA Zona di Ritiro (§8.2)", "an Object is assigned from your OWN Retire Zone (§8.2)")
       end
-      return refuse("toZone", "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if attacker[:facedown]
-
       allow("toZone")
     end
 
@@ -2166,10 +2321,7 @@ module Rubyfront
         # campo non si applica» — salvo la sostituzione (dal 2026-09-15).
         # Riguarda le sole Entità — una Materia permanente sta dietro il
         # Fronte e non occupa uno slot (§5).
-        if entry[:type] == "entity"
-          stopped = full_front_stopped("toZone", action, @table.controller_of(source))
-          return stopped if stopped
-        end
+        # §6.2, Fronte pieno: lo legge l'imbuto entry_stopped.
 
         return allow("toZone")
       end
@@ -2212,9 +2364,7 @@ module Rubyfront
     def judge_effect_look(action, ref)
       return refuse("look", "l'effetto di chi entra ha per ingresso se stessa (§8.2)", "the entering card's effect has itself as the entry (§8.2)") unless ref["source"] == ref["entering"]
 
-      source = @table.card(ref["source"])
-      return refuse("look", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
-      return refuse("look", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless source[:entered] == @table.turn
+      source = @table.card(ref["source"]) # in campo ed entrata questo turno: l'imbuto enter_trigger_stopped
       return refuse("look", "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
       return refuse("look", "si guarda nel proprio mazzo (§8.2)", "you look in your own deck (§8.2)") unless action["seat"] == @table.controller_of(source)
 
@@ -2273,9 +2423,7 @@ module Rubyfront
     def judge_effect_control(action, ref)
       return refuse("control", "l'effetto di chi entra ha per ingresso se stessa (§8.2)", "the entering card's effect has itself as the entry (§8.2)") unless ref["source"] == ref["entering"]
 
-      source = @table.card(ref["source"])
-      return refuse("control", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
-      return refuse("control", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless source[:entered] == @table.turn
+      source = @table.card(ref["source"]) # in campo ed entrata questo turno: l'imbuto enter_trigger_stopped
       return refuse("control", "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
 
       by = @table.controller_of(source)
@@ -2477,7 +2625,6 @@ module Rubyfront
       unless bearer && bearer[:zone] == "field" && @table.controller_of(bearer) == seat && (bearer_entry.nil? || bearer_entry[:type] == "entity")
         return refuse(kind, "l'Oggetto va addosso a un'Entità che controlli, in campo (§8.2)", "the Object goes on an Entity you control, on the field (§8.2)")
       end
-      return refuse(kind, "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if bearer[:facedown]
       return refuse(kind, "a un'Entità SENZA Oggetto (§8.2)", "onto an Entity WITHOUT an Object (§8.2)") if @table.armed?(action["assignTo"])
 
       allow(kind)
@@ -2934,9 +3081,7 @@ module Rubyfront
                (filter[:max_cost].nil? || (entry[:flux_cost] && entry[:flux_cost] <= filter[:max_cost]))
           return refuse(kind, "si mette sul Fronte un'Entità Umana con costo di Flusso #{filter[:max_cost]} o inferiore dalla propria mano (§8.2)", "a Human Entity with Flux cost #{filter[:max_cost]} or lower comes onto the Front from your own hand (§8.2)")
         end
-        # §6.2 — a Fronte pieno la discesa col dado può sostituire un'Entità propria (dal 2026-09-15).
-        stopped = full_front_stopped(kind, action, seat)
-        return stopped if stopped
+        # §6.2 — Fronte pieno e sostituzione: l'imbuto entry_stopped.
         return refuse(kind, "le Entità stanno sugli slot del Fronte, nella propria fila (§5)", "Entities sit on the Front slots, in their own row (§5)") unless on_slot?(card, action)
       end
 
@@ -3177,12 +3322,7 @@ module Rubyfront
       unless card && card[:zone] == "hand" && card[:owner] == seat && entry[:type] == "entity" && (form[:race].nil? || entry[:race] == form[:race])
         return refuse(kind, "sul Fronte scende #{form[:race] == "human" ? "un'Entità Umana" : "un'Entità"} dalla propria mano (§3.1)", "#{form[:race] == "human" ? "a Human Entity" : "an Entity"} from your own hand comes onto the Front (§3.1)")
       end
-      if @table.sealed?(seat, card[:card_id])
-        return refuse(kind, "quella carta non si può più giocare per il resto della partita: l'ha sigillata il flip del Nexus (§8.2)", "that card can no longer be played for the rest of the game: the Nexus flip sealed it (§8.2)")
-      end
-      # §6.2 — a Fronte pieno la chiamata può sostituire un'Entità propria (dal 2026-09-15).
-      stopped = full_front_stopped(kind, action, seat)
-      return stopped if stopped
+      # §6.2 — Fronte pieno e sostituzione: l'imbuto entry_stopped.
       return refuse(kind, "le Entità stanno sugli slot del Fronte, nella propria fila (§5)", "Entities sit on the Front slots, in their own row (§5)") unless on_slot?(card, action)
 
       granted = action["grants"]
@@ -3199,8 +3339,7 @@ module Rubyfront
     # nella Zona di Ritiro del proprietario, uno per azione, tutti.
     def judge_enter_disarm(action, ref)
       source = @table.card(ref["source"])
-      return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
-      return refuse("toZone", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless ref["entering"] == ref["source"] && source[:entered] == @table.turn
+      return refuse("toZone", "l'effetto di chi entra ha per ingresso se stessa (§8.2)", "the entering card's effect has itself as the entry (§8.2)") unless ref["entering"] == ref["source"] # in campo ed entrata questo turno: l'imbuto enter_trigger_stopped
 
       known = @cards[source[:card_id]]
       return no_rule("toZone") unless known
@@ -3223,8 +3362,7 @@ module Rubyfront
     # propria Zona di Ritiro alle proprie Entità, quanti si vuole, gratis.
     def judge_enter_rearm(action, ref)
       source = @table.card(ref["source"])
-      return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
-      return refuse("toZone", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless ref["entering"] == ref["source"] && source[:entered] == @table.turn
+      return refuse("toZone", "l'effetto di chi entra ha per ingresso se stessa (§8.2)", "the entering card's effect has itself as the entry (§8.2)") unless ref["entering"] == ref["source"] # in campo ed entrata questo turno: l'imbuto enter_trigger_stopped
 
       known = @cards[source[:card_id]]
       return no_rule("toZone") unless known
@@ -3244,8 +3382,6 @@ module Rubyfront
       unless bearer && bearer[:zone] == "field" && @table.controller_of(bearer) == seat && (bearer_entry.nil? || bearer_entry[:type] == "entity")
         return refuse("toZone", "l'Oggetto va addosso a un'Entità che controlli, in campo (§8.2)", "the Object goes on an Entity you control, on the field (§8.2)")
       end
-      return refuse("toZone", "l'Entità coperta è intoccabile: niente Oggetti finché non si scopre (§3.1, Oggetti)", "a covered Entity is untouchable: no Objects until it's uncovered (§3.1, Objects)") if bearer[:facedown]
-
       # La variante su di sé: l'Oggetto va addosso a chi entra, una volta —
       # entro il costo, se la forma lo dice (dal 2026-09-15).
       unless known[:enter_rearms].any? { |form| form[:any] }
@@ -3267,8 +3403,7 @@ module Rubyfront
     # per ingresso. Il «se lo fai, pesca» è il seguito (judge_enter_stash_draw).
     def judge_enter_stash(action, ref)
       source = @table.card(ref["source"])
-      return refuse("toZone", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
-      return refuse("toZone", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless ref["entering"] == ref["source"] && source[:entered] == @table.turn
+      return refuse("toZone", "l'effetto di chi entra ha per ingresso se stessa (§8.2)", "the entering card's effect has itself as the entry (§8.2)") unless ref["entering"] == ref["source"] # in campo ed entrata questo turno: l'imbuto enter_trigger_stopped
 
       known = @cards[source[:card_id]]
       return no_rule("toZone") unless known
@@ -3334,8 +3469,7 @@ module Rubyfront
     # quante dice la forma, a chi comanda la fonte.
     def judge_enter_stash_draw(action, ref)
       source = @table.card(ref["source"])
-      return refuse("draw", "la fonte dell'effetto non è in campo (§8.2)", "the effect's source isn't on the field (§8.2)") unless source && source[:zone] == "field"
-      return refuse("draw", "la fonte non è entrata sul Fronte questo turno: l'innesco è passato (§8.2)", "the source didn't enter the Front this turn: the trigger has passed (§8.2)") unless ref["entering"] == ref["source"] && source[:entered] == @table.turn
+      return refuse("draw", "l'effetto di chi entra ha per ingresso se stessa (§8.2)", "the entering card's effect has itself as the entry (§8.2)") unless ref["entering"] == ref["source"] # in campo ed entrata questo turno: l'imbuto enter_trigger_stopped
 
       known = @cards[source[:card_id]]
       return no_rule("draw") unless known
@@ -3473,8 +3607,7 @@ module Rubyfront
       unless entry[:type] == "object" && entry[:flux_cost] && entry[:flux_cost] <= form[:max_cost]
         return refuse("revive", "l'Oggetto dev'essere un Oggetto con costo di Flusso #{form[:max_cost]} o inferiore (§8.2)", "the Object must be an Object with Flux cost #{form[:max_cost]} or less (§8.2)")
       end
-      stopped = full_front_stopped("revive", action, card[:owner])
-      return stopped if stopped
+      # §6.2 — Fronte pieno e sostituzione: l'imbuto entry_stopped.
       front = FRONT_ROW_Y[Table::SEATS.index(card[:owner]) == 0 ? 1 : 0]
       unless FRONT_SLOT_X.include?(action["x"]) && action["y"] == front
         return refuse("revive", "torna su uno slot del proprio Fronte (§5)", "it comes back on a slot of your own Front (§5)")

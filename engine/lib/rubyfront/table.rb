@@ -85,7 +85,7 @@ module Rubyfront
       # il Flusso (§3.2) e i PV (§2, la fine della partita).
       # I 20 PV sono un segnaposto: i PV veri li porta il mazzo (§3.1,
       # load_deck), stampati sul Rubyfront.
-      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20, token: false, sealed: [], discounts: [], attack_bonuses: [] }] }
+      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20, token: false, sealed: [], discounts: [], attack_bonuses: [], deck_id: nil, opening: nil }] }
       # §3.2/§4: il Gettone va a chi non inizia — con l'active del reset.
       @players[SEATS.find { |seat| seat != @active }][:token] = true
       # Com'è finita (§2, §9): {winner:, reason:}, nil finché si gioca.
@@ -372,6 +372,9 @@ module Rubyfront
         @players[seat][:hp_max] = player["hpMax"] if player["hpMax"].is_a?(Integer)
         @players[seat][:token] = player["token"] == true if player.key?("token")
         @players[seat][:sealed] = Array(player["sealed"]).select { |id| id.is_a?(String) }
+        @players[seat][:deck_id] = player["deckId"].is_a?(String) ? player["deckId"] : nil
+        opening = player["opening"]
+        @players[seat][:opening] = opening.is_a?(Hash) ? { mulligans: opening["mulligans"].to_i, kept: opening["kept"] == true } : nil
         @players[seat][:discounts] = Array(player["discounts"]).filter_map do |discount|
           next unless discount.is_a?(Hash) && discount["amount"].is_a?(Integer) && discount["type"].is_a?(String)
 
@@ -437,6 +440,8 @@ module Rubyfront
                                   face: card["face"].to_i, row: nil }
         end
       when "shuffle" then shuffle(action)
+      when "mulligan" then mulligan(action)
+      when "keep" then keep(action)
       when "draw" then draw(action)
       when "toZone" then to_zone(action)
       when "player"
@@ -656,6 +661,37 @@ module Rubyfront
       end
     end
 
+    # Le file del Fronte (B, A), specchio di geometry.ts: l'engine le usa
+    # per gli slot, qui servono a riconoscere la Zona di Richiamo.
+    FRONT_ROW_Y = [172, 1260].freeze
+
+    # §4 — un mazzo intero: carte tutte nel mazzo, e in campo solo la Zona di
+    # Richiamo (il Rubyfront, su una fila che non è del Fronte). È l'inizio
+    # di una partita, e apre il mulligan. Gemello: state.ts, wholeDeck.
+    def whole_deck?(cards)
+      return false unless cards.any? { |card| card["zone"] == "deck" }
+
+      cards.all? { |card| card["zone"] == "deck" || (card["zone"] == "field" && card["y"].is_a?(Numeric) && !FRONT_ROW_Y.include?(card["y"])) }
+    end
+
+    # Gli uid di una pila del posto, nell'ordine (§4: mano e mazzo per il mulligan).
+    def zone_uids(seat, zone)
+      pile(seat, zone).map { |card| @cards.key(card) }
+    end
+
+    # §4 — l'apertura di un posto: {mulligans:, kept:}, o nil senza mazzo.
+    def opening(seat)
+      @players.fetch(seat)[:opening]
+    end
+
+    # §4 — la partita aspetta finché un posto col mazzo non ha tenuto la
+    # mano: turno 1 in Preparazione. Gemello: state.ts, openingPending.
+    def opening_pending?
+      return false unless @turn == 1 && @phase == "preparazione"
+
+      SEATS.any? { |seat| @players[seat][:deck_id] && @players[seat][:opening] && !@players[seat][:opening][:kept] }
+    end
+
     private
 
     # Stappata da un effetto: anche la Stasi cade (§8.1). Gemello: state.ts.
@@ -736,6 +772,16 @@ module Rubyfront
         # Regola sperimentale (2026-09-17): i PV stampati sono anche il tetto delle cure. Gemello: state.ts, loadDeck.
         @players[seat][:hp_max] = action["hp"]
       end
+      if @players.key?(seat)
+        # §4 — col mazzo INTERO (tutte le carte nel mazzo, il Rubyfront in
+        # Zona di Richiamo) comincia l'apertura: nessun mulligan, mano non
+        # tenuta. Un tavolo apparecchiato con carte già fuori (snapshot,
+        # prova) non è un inizio di partita e non ha mulligan. Gemello: state.ts, loadDeck.
+        cards = Array(action["cards"]).select { |card| card.is_a?(Hash) }
+        whole = whole_deck?(cards)
+        @players[seat][:deck_id] = action["deckId"].is_a?(String) ? action["deckId"] : "deck"
+        @players[seat][:opening] = whole ? { mulligans: 0, kept: false } : nil
+      end
       @cards.reject! { |_, card| card[:owner] == seat }
       Array(action["cards"]).each do |card|
         next unless card.is_a?(Hash) && card["uid"]
@@ -760,6 +806,39 @@ module Rubyfront
         card = @cards[uid]
         card[:order] = index if card && card[:owner] == action["seat"] && card[:zone] == "deck"
       end
+    end
+
+    # §4 — «fino a 3 volte». Gemello: state.ts, MULLIGANS_MAX.
+    MULLIGANS_MAX = 3
+
+    # §4 — il mulligan: tutta la mano nel mazzo, il mazzo nell'ordine dato
+    # (già mescolato da chi lo fa), 6 carte nuove; al terzo la mano si tiene
+    # da sé. Gemello: state.ts, «mulligan».
+    def mulligan(action)
+      seat = action["seat"]
+      Array(action["order"]).each_with_index do |uid, index|
+        card = @cards[uid]
+        next unless card && card[:owner] == seat && %w[deck hand].include?(card[:zone])
+
+        card[:zone] = "deck"
+        card[:order] = index
+        card[:facedown] = false
+      end
+      draw({ "seat" => seat, "count" => 6 })
+      player = @players[seat]
+      return unless player
+
+      mulligans = (player[:opening] ? player[:opening][:mulligans] : 0) + 1
+      player[:opening] = { mulligans: mulligans, kept: mulligans >= MULLIGANS_MAX }
+    end
+
+    # §4 — «dichiara di essere pronto». Gemello: state.ts, «keep».
+    def keep(action)
+      player = @players[action["seat"]]
+      return unless player
+
+      opening = player[:opening] || { mulligans: 0, kept: false }
+      player[:opening] = opening.merge(kept: true)
     end
 
     def draw(action)

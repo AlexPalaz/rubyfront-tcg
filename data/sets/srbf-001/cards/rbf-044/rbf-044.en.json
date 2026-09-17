@@ -18,7 +18,7 @@
     "name": "Fracture of the Schism",
     "effect": {
       "name": "Effect",
-      "text": "Put an opposing Entity into its owner's Retire Zone. If there are at least 2 Entities with an Object assigned on your Front, this card costs 2 less Flux."
+      "text": "Put an opposing Entity into its owner's Retire Zone. If there are at least 2 Entities with an Object assigned on your Front, this card costs 1 less Flux."
     },
     "flavor": "The crack does not cut: it separates."
   },

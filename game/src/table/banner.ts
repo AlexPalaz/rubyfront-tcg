@@ -8,7 +8,7 @@
 // rimasto, la partita nuova.
 
 import { t } from "@rubyfront/core/i18n";
-import { seatLabel } from "@rubyfront/core/state";
+import { mustKeep, openingPending, seatLabel } from "@rubyfront/core/state";
 import { describeGameOver } from "@rubyfront/core/turn";
 import type { GameState, Phase, Seat } from "@rubyfront/core/types";
 import { otherSeat } from "@rubyfront/core/types";
@@ -42,6 +42,12 @@ const SUB: Font = { size: 16, weight: 400, family: SANS, spacing: 16 * 0.16, upp
 const BUTTON: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.16, upper: true };
 
 /** Il rigo sotto: a chi tocca — in Reazione la parola è del difensore. */
+/** §4 — sotto «Mulligan»: cosa fare, o chi si aspetta. */
+function openingSubtitle(state: GameState, me: Seat): string {
+  if (mustKeep(state, me)) return t("banner.opening");
+  return t("banner.opening.waiting", { name: seatLabel(state, otherSeat(me), me) });
+}
+
 function subtitle(state: GameState, me: Seat): string {
   const who = state.phase === "reazione" ? otherSeat(state.active) : state.active;
   const mine = who === me;
@@ -124,7 +130,7 @@ export class Banner {
   }
 
   private key(state: GameState): string {
-    return `${state.turn}|${state.active}|${state.phase}`;
+    return `${state.turn}|${state.active}|${state.phase}|${openingPending(state) ? "opening" : "play"}`;
   }
 
   private show(state: GameState): void {
@@ -139,8 +145,10 @@ export class Banner {
     const textW = Math.min(v.width, 1600);
     const textH = 20 + 6 + 46 + 6 + 20;
     const turn = t("hud.turn", { turn: state.turn });
-    const title = t(TITLES[state.phase]);
-    const sub = subtitle(state, this.me);
+    // §4 — nell'apertura l'insegna dice «Mulligan», non la fase: la Preparazione si annuncia quando entrambi hanno tenuto.
+    const opening = openingPending(state);
+    const title = t(opening ? "phase.title.opening" : TITLES[state.phase]);
+    const sub = opening ? openingSubtitle(state, this.me) : subtitle(state, this.me);
     const tone = TONES[state.phase];
     const titleTexture = paintPiece(textW, 46 + 2 * GLOW, res, ctx => {
       ctx.translate(0, GLOW);

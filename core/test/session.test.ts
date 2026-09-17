@@ -152,7 +152,7 @@ describe("il mazzo in tavola", () => {
     expect(store.values.deck).toBeUndefined();
   });
 
-  it("l'apertura: insegna, poi 6 carte (§4), poi la carta del turno 1 per chi apre (§6.1)", async () => {
+  it("l'apertura: insegna, poi 6 carte (§4), poi — tenuta la mano — la carta del turno 1 per chi apre (§6.1)", async () => {
     const { session, view } = open();
     await session.dispatch({ t: "newGame", active: "a" });
     session.loadDeck(DECK.id, "a");
@@ -160,6 +160,18 @@ describe("il mazzo in tavola", () => {
     expect(zoneCards(session.state(), "a", "hand")).toHaveLength(0);
     await vi.advanceTimersByTimeAsync(HAND_MS);
     expect(zoneCards(session.state(), "a", "hand")).toHaveLength(6);
+    // §4 (dal 2026-09-17) — la carta del turno aspetta la tenuta: mulligan aperto.
+    await vi.advanceTimersByTimeAsync(TURN_DRAW_MS);
+    expect(zoneCards(session.state(), "a", "hand")).toHaveLength(6);
+    session.mulligan();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(zoneCards(session.state(), "a", "hand")).toHaveLength(6);
+    expect(session.state().players.a.opening).toEqual({ mulligans: 1, kept: false });
+    session.keep();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(session.state().players.a.opening?.kept).toBe(true);
+    const announced = view.calls.filter(call => call === "announce").length;
+    expect(announced).toBeGreaterThanOrEqual(2);
     await vi.advanceTimersByTimeAsync(TURN_DRAW_MS);
     expect(zoneCards(session.state(), "a", "hand")).toHaveLength(7);
   });

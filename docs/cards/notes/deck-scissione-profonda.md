@@ -167,8 +167,8 @@ collegati il 2026-09-10 (engine 0.46–0.48).
   all'ingresso).
 - **Sentinella di Nova Kai**: via la tassa di Flusso; «Il Contrattacco di
   questa Entità aumenta di 1 per ogni Oggetto assegnato a questa Entità.»
-  Forma certificata (Contrattacco statico per Oggetto), insieme al
-  Contrattacco +1 dello Scudo Dimensionale.
+  Forma certificata (Contrattacco statico per Oggetto). Lo Scudo
+  Dimensionale ha perso il suo Contrattacco +1 il 2026-09-17.
 - **Sentinella di Nova Kai** ha anche Slancio; **Kyo Shin** abilita la
   Dimensionale II e l'**Artefice** la Dimensionale I (decisioni del designer).
 - Eredità Perduta invariata. Conteggi invariati (19 · 10 · 11 = 40).
@@ -229,7 +229,7 @@ vincolo di costo, Vigorcintura, Ajmal e Rhen a chiudere):
 - **Rimozione che non paga.** Eversione distrugge senza perdere PV e costa 2
   contro una tappata; Frattura a 1 Flusso con due armate; Sottolama
   all'ingresso manda in Ritiro un'avversaria da 2 o meno e attaccando armata
-  dà +2 alle altre.
+  dà +1 a una armata a scelta (dal 2026-09-17; prima +2 alle altre).
 - **Chiusura.** Amplificazione stappa e spinge fino a 3 armate; Sentinella
   armata si stappa dopo il combattimento; Assalto Ferale e Avy Shin come prima.
 
@@ -240,12 +240,12 @@ vincolo di costo, Vigorcintura, Ajmal e Rhen a chiudere):
 | Esploratore | pesca 1, scarta 1 (armato) | a inizio turno senza Oggetti sul Fronte cerca un Oggetto nel mazzo (via la pesca) |
 | Artefice di Nova Kai | riarmo ≤2 | riarmo ≤3 |
 | Sentinella di Nova Kai | Contrattacco per Oggetto | + si stappa dopo il combattimento (armata, una volta a turno) |
-| Sottolama di Nova Kai | +1 alle altre armate | + all'ingresso un'avversaria ≤2 in Ritiro; +2 alle altre armate |
+| Sottolama di Nova Kai | +1 alle altre armate | +1 a **una** armata a scelta (dal 2026-09-17; l'ingresso aggiunto e tolto lo stesso giorno, §8) |
 | Portatore di Fronti | sconto 1, pesca | sconto 2, pesca |
 | Avy Shin | sguardo di 2 | sguardo di 3 |
 | Immortale Vincolato | torna con un Oggetto ≤2 | torna con un Oggetto ≤3 + «armata +1 Potenza» |
 | Spada Dimensionale | +1; in Ritiro pagandola | +1 e Slancio; dal Ritiro si riassegna pagandola |
-| Scudo Dimensionale | +1, Contrattacco +1 | +1, Contrattacco +1 e Stasi |
+| Scudo Dimensionale | +1, Contrattacco +1 | +1 e Stasi (dal 2026-09-17 via il Contrattacco) |
 | Catalizzatore Sigma | +1, d6 con 4–6 | +2, d6 con 3–6 |
 | Vestigio della Scissione | +2, riarmo alla morte | +2 e Vendetta, riarmo alla morte |
 | Prisma Dimensionale | esilio | +1 al portatore ed esilio |
@@ -256,9 +256,32 @@ vincolo di costo, Vigorcintura, Ajmal e Rhen a chiudere):
 
 Invariate: Rifrazione della Memoria, Assalto Ferale, Kyo Shin.
 
-**Al tavolo.** Tutto gira da sé con l'arbitro, tranne due cose che l'engine
-non legge ancora: la ricerca dell'Esploratore a inizio turno (evento
-`on_turn_start`, effetto `search_card`: nel DEBT dell'anagrafe) e la Spada
-che si riassegna dal Ritiro pagandola (azione `assign_object` dal Ritiro).
-Sono i prossimi due collegamenti.
+**Al tavolo.** Tutto gira da sé con l'arbitro (la ricerca dell'Esploratore a
+inizio turno è collegata dal 2026-09-17, engine 0.80.0), tranne la Spada che
+si riassegna dal Ritiro pagandola (azione `assign_object` dal Ritiro): è il
+prossimo collegamento.
 
+## 8. Bilanciamento del 2026-09-17 (contro Eredità Perduta)
+
+Dopo la revisione del 16 il mazzo batteva Eredità Perduta troppo spesso: la
+Zona di Ritiro era una seconda mano (Prisma e Vestigio tornavano gratis con
+Immortale e Artefice), nove rimozioni contro un mazzo che vive di tre o
+quattro Umani sul Fronte, e le Reattive spezzavano l'attacco largo. Otto
+ritocchi, solo effetti, nessun costo cambiato (decisione del designer,
+2026-09-17; prima sul foglio, poi qui):
+
+| Carta | Prima | Ora |
+|---|---|---|
+| Sottolama di Nova Kai | all'ingresso un'avversaria ≤2 in Ritiro; +1 a una armata | solo il +1 a una armata quando attacca armata |
+| Immortale Vincolato | torna con un Oggetto ≤3 | torna con un Oggetto ≤2 |
+| Artefice di Nova Kai | riarmo ≤3 | riarmo ≤2 |
+| Portatore di Fronti | sconto 2, pesca | sconto 1, pesca |
+| Sentinella di Nova Kai | Contrattacco per Oggetto + stappata dopo il combattimento | solo Contrattacco per Oggetto |
+| Vestigio della Scissione | +2 e Vendetta, riarmo alla morte | +2 e Vendetta |
+| Amplificazione Sinaptica | fino a 3 armate | fino a 2 armate |
+| Frattura della Scissione | costa 2 in meno con 2 armate | costa 1 in meno |
+
+Prisma resta a 3 e intero: senza i riarmi gratuiti torna dal Ritiro solo con
+Kyo Shin. Fermi anche Scudo, Catalizzatore, Rifrazione, Eversione e il
+Rubyfront. Prossimi candidati, se il mazzo resta sopra: Kyo Shin (riarmo
+limitato a due Oggetti) e Rifrazione (−2 fisso).

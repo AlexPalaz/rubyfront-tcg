@@ -62,7 +62,7 @@
                 {
                   "stat": "flux_cost",
                   "operator": "lte",
-                  "value": 3
+                  "value": 2
                 }
               ]
             }

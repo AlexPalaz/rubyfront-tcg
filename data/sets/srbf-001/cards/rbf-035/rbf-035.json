@@ -59,38 +59,6 @@
             ],
             "duration": "permanent"
           }
-        },
-        {
-          "id": "remain",
-          "displayKey": "effect",
-          "event": "on_death",
-          "details": {
-            "ofAssignedEntity": true
-          },
-          "effect": {
-            "type": "assign_object",
-            "optional": true,
-            "from": {
-              "zone": "retire",
-              "owner": "controller"
-            },
-            "filter": {
-              "cardType": "object",
-              "details": {
-                "other": true
-              }
-            },
-            "target": {
-              "cardType": "entity",
-              "controller": "controller",
-              "details": {
-                "hasObjectAssigned": false
-              }
-            },
-            "details": {
-              "noFluxCost": true
-            }
-          }
         }
       ],
       "actions": [],
