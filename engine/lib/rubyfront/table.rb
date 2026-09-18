@@ -562,7 +562,7 @@ module Rubyfront
       when "release"
         # §8.2 — la restituzione: controllo e concessioni cadono; in Zona di
         # Ritiro, o sul Fronte del proprietario com'è. Vale anche per il
-        # permanente esiliato «finché questa carta resta in gioco»:
+        # carta statica esiliata «finché questa carta resta in gioco»:
         # dall'Abisso torna in gioco. Gemello: state.ts.
         card = @cards[action["uid"]]
         if card
@@ -635,7 +635,7 @@ module Rubyfront
             card[:grants] = nil unless card[:controller]
             next unless card[:owner] == @active && card[:zone] == "field"
 
-            # La Stasi è una tappata permanente (§8.1): il turno non la stappa.
+            # La Stasi è una tappata static carde (§8.1): il turno non la stappa.
             card[:tapped] = false unless card[:stasis]
             # La copertura «dura un giro completo» (§6.3): coperta al turno
             # T, si scopre al proprio turno dopo il successivo, T+3. Senza

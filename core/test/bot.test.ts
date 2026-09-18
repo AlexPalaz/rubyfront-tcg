@@ -33,7 +33,7 @@ const CARDS: Record<string, Partial<CardFacts>> = {
   SPEAR: { kind: "entity", race: "human", power: 1, fluxCost: 2, counterattack: 3 },
   ROCK: { kind: "entity", race: "human", power: 1, fluxCost: 2, keywords: ["stasis"] },
   IRON: { kind: "object", fluxCost: 1 },
-  STONE: { kind: "matter", fluxCost: 1, behavior: "permanent" },
+  STONE: { kind: "matter", fluxCost: 1, behavior: "static" },
   BURST: { kind: "matter", fluxCost: 2, behavior: "reactive", resolveForms: [{ kind: "empower", targets: "own_entity", race: null, power: 1, untap: true }] },
   SHELTER: { kind: "matter", fluxCost: 2, behavior: "reactive", resolveForms: [{ kind: "block", requiresArmed: 0, heal: 0, asBlock: true }] },
   RUBY: { kind: "rubyfront", power: null },

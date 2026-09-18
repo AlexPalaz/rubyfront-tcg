@@ -225,7 +225,7 @@ export type BotPlay =
  * il Flusso copre — barra, e Gettone se serve un solo Flusso in più — la
  * più conveniente: Entità con uno slot libero (Potenza e parole chiave),
  * Oggetti se c'è un'Entità da armare (la più forte, disarmata), Materie
- * normali o permanenti con un passo che agisce davvero. Le Reattive
+ * normali o Statiche con un passo che agisce davvero. Le Reattive
  * aspettano una difficoltà più alta. Nessuna carta: null.
  */
 export function choosePlay(state: GameState, seat: Seat, facts: Facts, memory: BotMemory): BotPlay | null {
@@ -256,7 +256,7 @@ export function choosePlay(state: GameState, seat: Seat, facts: Facts, memory: B
     } else if (f.kind === "matter") {
       if (f.behavior === "reactive") continue;
       const steps = resolveSteps(state, card, facts);
-      const acts = steps.length === 0 ? f.behavior === "permanent" : steps.some(step => step.blocked === null && step.form.kind !== "block");
+      const acts = steps.length === 0 ? f.behavior === "static" : steps.some(step => step.blocked === null && step.form.kind !== "block");
       if (!acts) continue;
       options.push({ play: { kind: "matter", card, spot: matterSpot(state, seat), useToken }, score: 2 + steps.length + bonus });
     }

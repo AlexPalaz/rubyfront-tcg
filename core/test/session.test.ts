@@ -240,8 +240,8 @@ describe("il bot", () => {
   });
 });
 
-// §8.2 — l'esilio condizionato: chi teneva un permanente nell'Abisso lascia il
-// campo, e il permanente torna in gioco col `release` mandato dal tavolo che
+// §8.2 — l'esilio condizionato: chi teneva una carta statica nell'Abisso lascia il
+// campo, e la carta statica torna in gioco col `release` mandato dal tavolo che
 // l'ha visto uscire. Il suo rientro è un ingresso: la scena, con gli inneschi
 // «quando entra», si offre UNA volta (2026-09-16: si offriva due volte, al
 // commit del release e al ritorno di releaseHeld, e l'innesco si risolveva due volte).

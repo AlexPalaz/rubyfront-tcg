@@ -17,7 +17,7 @@
     "matter",
     "dynamic",
     "grade-2",
-    "permanent",
+    "static",
     "dice"
   ],
   "rulesReference": "MANUALE.md §7.2, §8.2",
@@ -30,7 +30,7 @@
         "type": "dynamic",
         "grade": 2
       },
-      "behavior": "permanent",
+      "behavior": "static",
       "stats": {
         "fluxCost": 5
       },

@@ -17,7 +17,7 @@ export const CATEGORY = { entity: "Entità", object: "Oggetto", matter: "Materia
 export const RACE = { human: "Umano", auros: "Auros", simulacrum: "Simulacro" };
 export const MATTER = { dynamic: "Dinamica", dimensional: "Dimensionale", destructive: "Distruttiva", zero: "Zero", dominant: "Dominante" };
 export const GRADE = { 1: "I", 2: "II", 3: "III" };
-export const BEHAVIOR = { normal: "Normale", permanent: "Permanente", reactive: "Reattiva" };
+export const BEHAVIOR = { normal: "Normale", static: "Statica", reactive: "Reattiva" };
 export const KEYWORD = { fury: "Furia", surge: "Slancio", stasis: "Stasi", revenge: "Vendetta" };
 
 export const HEADER = ["Copie", "Nome", "Categoria", "Costo", "Potenza", "Razza", "Materia", "Tipo / Keyword", "Effetto"];

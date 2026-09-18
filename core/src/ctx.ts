@@ -25,7 +25,7 @@ export interface CardFacts {
   /** Gli effetti certificati «quando QUESTA entra sul Fronte: metti una carta
       avversaria in una zona» (§8.2): vedi renderer.ts, enterMoves. */
   enterMoves: EnterMove[];
-  /** Il comportamento di una Materia (§7.2): normal, permanent, reactive; null altrove. */
+  /** Il comportamento di una Materia (§7.2): normal, static, reactive; null altrove. */
   behavior: string | null;
   /** Gli effetti certificati «quando QUESTA entra sul Fronte: metti sul tuo
       Fronte una carta dalla tua Zona di Ritiro» (§8.2): vedi enterReturns. */
@@ -115,8 +115,8 @@ export type ResolveForm =
   | { kind: "weaken"; target: { kind: "entity"; controller: "opponent"; attacking: true }; amount: number; perArmed: true }
   /** Il potenziamento delle armate (dal 2026-09-10): «fino a N Entità con un Oggetto assegnato che controlli prendono +M Potenza e vengono stappate». */
   | { kind: "empower"; targets: "own_armed"; power: number; upTo: number; untap: true }
-  /** RBF-018: un permanente avversario nell'Abisso, finché questa carta resta in gioco. */
-  | { kind: "exile"; target: { permanent: true; controller: "opponent" }; to: "abisso"; hold: true }
+  /** RBF-018: una carta statica avversaria nell'Abisso, finché questa carta resta in gioco. */
+  | { kind: "exile"; target: { static: true; controller: "opponent" }; to: "abisso"; hold: true }
   /** RBF-019: il d20 a fasce — PV, un'Entità dalla mano, una pesca, o tutto. */
   | { kind: "fortune"; die: number; gain: { on: [number, number]; amount: number }; deploy: { on: [number, number]; filter: { kind: "entity"; race: string | null; maxCost: number | null } }; draw: { on: [number, number]; count: number }; allOn: [number, number] }
   /** RBF-021: distruggi un'Entità; contro una tappata costa N in meno. */
@@ -200,7 +200,7 @@ export interface NexusRequirement {
  * Le altre forme certificate «quando attacca» (§8.2), specchio di
  * card_index.rb, attack_forms: `kind` è l'azione del tavolo, `who` chi è
  * la fonte rispetto all'attaccante (chi attacca, un Oggetto addosso, una
- * carta alleata, una Materia permanente, il Rubyfront), `face` la faccia
+ * carta alleata, una Materia Statica, il Rubyfront), `face` la faccia
  * che porta la forma.
  */
 export type AttackForm =
@@ -215,7 +215,7 @@ export type AttackForm =
   | { kind: "look"; who: "object" | "ally"; count: number; reveal: { kind: "matter" | "object" | "entity"; race: string | null }; revealTo: "hand" | "ritiro"; restTo: "deck" | "ritiro"; die: number | null; onRoll: [number, number] | null; once?: true; attackerArmed?: true; face: number }
   /** RBF-008 (+N, poi col dado un'Entità in mano), RBF-022 (il d20 sugli
       Umani), RBF-001 (il raduno, una volta per turno). */
-  | { kind: "heal"; who: "self" | "permanent" | "rubyfront"; amount: number | "human_attackers"; die: number | null; onRoll: [number, number] | null; thenRecall?: { kind: "entity" }; attackers?: { kind: "entity"; race: string }; gainOn?: [number, number]; drainOn?: [number, number]; once?: true; requiresAttackers?: { count: number; race: string }; thenDraw?: number; thenDiscard?: number; face: number }
+  | { kind: "heal"; who: "self" | "static" | "rubyfront"; amount: number | "human_attackers"; die: number | null; onRoll: [number, number] | null; thenRecall?: { kind: "entity" }; attackers?: { kind: "entity"; race: string }; gainOn?: [number, number]; drainOn?: [number, number]; once?: true; requiresAttackers?: { count: number; race: string }; thenDraw?: number; thenDiscard?: number; face: number }
   /** RBF-010: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme.
       `joins` = «quell'Entità attacca»: l'attacco è dovuto. `asks` (nessuna
       carta oggi) sarebbe «può attaccare insieme»: si chiede prima. */
@@ -353,15 +353,15 @@ export interface EnterLook {
 
 /**
  * La forma certificata di un ritorno all'ingresso: «quando questa Entità
- * entra sul Fronte, metti sul tuo Fronte una carta permanente dalla tua Zona
+ * entra sul Fronte, metti sul tuo Fronte una carta statica dalla tua Zona
  * di Ritiro». È la forma di RBF-012.
  */
 export interface EnterReturn {
   from: "ritiro";
-  /** «una carta permanente» (§10): quel che resta in campo — un'Entità o
-      una Materia permanente, mai il Rubyfront, mai un Oggetto. Stessa
-      lettura dell'esilio di RBF-018 (effects.ts, permanentOf). */
-  filter: { permanent: true };
+  /** «una carta statica» (§10): quel che resta in campo — un'Entità o
+      una Materia Statica, mai il Rubyfront, mai un Oggetto. Stessa
+      lettura dell'esilio di RBF-018 (effects.ts, staticCardOf). */
+  filter: { static: true };
   to: "field";
 }
 

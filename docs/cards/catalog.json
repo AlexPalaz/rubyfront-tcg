@@ -1889,7 +1889,7 @@
                 "name": "Rhen, Erede di Vhal Astra",
                 "heirReturn": {
                   "trigger": "Quando attacca",
-                  "text": "Metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro."
+                  "text": "Metti sul tuo Fronte una carta statica dalla tua Zona di Ritiro."
                 },
                 "flavor": "Il nome non si eredita. Si riprende."
               },
@@ -1915,7 +1915,7 @@
                 "name": "Rhen, Heir of Vhal Astra",
                 "heirReturn": {
                   "trigger": "When it attacks",
-                  "text": "Put a permanent card from your Retire Zone onto your Front."
+                  "text": "Put a static card from your Retire Zone onto your Front."
                 },
                 "flavor": "A name is not inherited. It is taken back."
               },
@@ -1963,7 +1963,7 @@
                       "min": 1,
                       "max": 1,
                       "details": {
-                        "permanent": true
+                        "static": true
                       }
                     },
                     "from": {
@@ -2236,7 +2236,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -2265,7 +2265,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -2374,7 +2374,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -2403,7 +2403,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -2500,7 +2500,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -2529,7 +2529,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -2621,7 +2621,7 @@
             "it": {
               "name": "Campo Repulsivo",
               "typeLabel": "Materia Distruttiva I",
-              "summary": "Tiene un permanente avversario fuori dal campo finché regge.",
+              "summary": "Tiene una carta statica avversaria fuori dal campo finché regge.",
               "ui": {
                 "face": "Materia"
               },
@@ -2631,14 +2631,14 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
                 "name": "Campo Repulsivo",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Manda nell'Abisso un permanente avversario. Finché questa carta resta in gioco, quel permanente resta nell'Abisso. Quando questa carta lascia il gioco, quel permanente torna in gioco."
+                  "text": "Manda nell'Abisso una carta statica avversaria. Finché questa carta resta in gioco, quella carta statica resta nell'Abisso. Quando questa carta lascia il gioco, quella carta statica torna in gioco."
                 },
                 "flavor": "Lo spazio si rifiuta di contenerlo. Per ora."
               },
@@ -2650,7 +2650,7 @@
             "en": {
               "name": "Repulsion Field",
               "typeLabel": "Destructive Matter I",
-              "summary": "It keeps an opposing permanent off the field for as long as it holds.",
+              "summary": "It keeps an opposing static card off the field for as long as it holds.",
               "ui": {
                 "face": "Matter"
               },
@@ -2660,14 +2660,14 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
                 "name": "Repulsion Field",
                 "effect": {
                   "name": "Effect",
-                  "text": "Send an opposing permanent to the Abyss. As long as this card remains in play, that permanent stays in the Abyss. When this card leaves play, that permanent returns to play."
+                  "text": "Send an opposing static card to the Abyss. As long as this card remains in play, that static card stays in the Abyss. When this card leaves play, that static card returns to play."
                 },
                 "flavor": "Space refuses to hold it. For now."
               },
@@ -2681,7 +2681,7 @@
             "matter",
             "destructive",
             "grade-1",
-            "permanent",
+            "static",
             "removal"
           ],
           "rulesReference": "MANUALE.md §5, §7.2",
@@ -2694,7 +2694,7 @@
                 "type": "destructive",
                 "grade": 1
               },
-              "behavior": "permanent",
+              "behavior": "static",
               "stats": {
                 "fluxCost": 3
               },
@@ -2713,7 +2713,7 @@
                       "min": 1,
                       "max": 1,
                       "details": {
-                        "permanent": true
+                        "static": true
                       }
                     },
                     "destination": {
@@ -2762,7 +2762,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -2791,7 +2791,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -2916,7 +2916,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -2945,7 +2945,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -3049,7 +3049,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -3078,7 +3078,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -3180,7 +3180,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -3209,7 +3209,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -3230,7 +3230,7 @@
             "matter",
             "dynamic",
             "grade-2",
-            "permanent",
+            "static",
             "dice"
           ],
           "rulesReference": "MANUALE.md §7.2, §8.2",
@@ -3243,7 +3243,7 @@
                 "type": "dynamic",
                 "grade": 2
               },
-              "behavior": "permanent",
+              "behavior": "static",
               "stats": {
                 "fluxCost": 5
               },
@@ -5463,7 +5463,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -5492,7 +5492,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -5594,7 +5594,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -5623,7 +5623,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -5724,7 +5724,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -5753,7 +5753,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -5853,7 +5853,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -5882,7 +5882,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -6006,7 +6006,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -6035,7 +6035,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -6255,7 +6255,7 @@
                 "flux": "Flussi",
                 "behaviors": {
                   "reactive": "Reattiva",
-                  "permanent": "Permanente"
+                  "static": "Statica"
                 }
               },
               "face": {
@@ -6284,7 +6284,7 @@
                 "flux": "Flux",
                 "behaviors": {
                   "reactive": "Reactive",
-                  "permanent": "Permanent"
+                  "static": "Static"
                 }
               },
               "face": {
@@ -8551,7 +8551,7 @@
             "name": "Rhen, Erede di Vhal Astra",
             "heirReturn": {
               "trigger": "Quando attacca",
-              "text": "Metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro."
+              "text": "Metti sul tuo Fronte una carta statica dalla tua Zona di Ritiro."
             },
             "flavor": "Il nome non si eredita. Si riprende."
           },
@@ -8577,7 +8577,7 @@
             "name": "Rhen, Heir of Vhal Astra",
             "heirReturn": {
               "trigger": "When it attacks",
-              "text": "Put a permanent card from your Retire Zone onto your Front."
+              "text": "Put a static card from your Retire Zone onto your Front."
             },
             "flavor": "A name is not inherited. It is taken back."
           },
@@ -8625,7 +8625,7 @@
                   "min": 1,
                   "max": 1,
                   "details": {
-                    "permanent": true
+                    "static": true
                   }
                 },
                 "from": {
@@ -8898,7 +8898,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -8927,7 +8927,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -9036,7 +9036,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -9065,7 +9065,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -9162,7 +9162,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -9191,7 +9191,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -9283,7 +9283,7 @@
         "it": {
           "name": "Campo Repulsivo",
           "typeLabel": "Materia Distruttiva I",
-          "summary": "Tiene un permanente avversario fuori dal campo finché regge.",
+          "summary": "Tiene una carta statica avversaria fuori dal campo finché regge.",
           "ui": {
             "face": "Materia"
           },
@@ -9293,14 +9293,14 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
             "name": "Campo Repulsivo",
             "effect": {
               "name": "Effetto",
-              "text": "Manda nell'Abisso un permanente avversario. Finché questa carta resta in gioco, quel permanente resta nell'Abisso. Quando questa carta lascia il gioco, quel permanente torna in gioco."
+              "text": "Manda nell'Abisso una carta statica avversaria. Finché questa carta resta in gioco, quella carta statica resta nell'Abisso. Quando questa carta lascia il gioco, quella carta statica torna in gioco."
             },
             "flavor": "Lo spazio si rifiuta di contenerlo. Per ora."
           },
@@ -9312,7 +9312,7 @@
         "en": {
           "name": "Repulsion Field",
           "typeLabel": "Destructive Matter I",
-          "summary": "It keeps an opposing permanent off the field for as long as it holds.",
+          "summary": "It keeps an opposing static card off the field for as long as it holds.",
           "ui": {
             "face": "Matter"
           },
@@ -9322,14 +9322,14 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
             "name": "Repulsion Field",
             "effect": {
               "name": "Effect",
-              "text": "Send an opposing permanent to the Abyss. As long as this card remains in play, that permanent stays in the Abyss. When this card leaves play, that permanent returns to play."
+              "text": "Send an opposing static card to the Abyss. As long as this card remains in play, that static card stays in the Abyss. When this card leaves play, that static card returns to play."
             },
             "flavor": "Space refuses to hold it. For now."
           },
@@ -9343,7 +9343,7 @@
         "matter",
         "destructive",
         "grade-1",
-        "permanent",
+        "static",
         "removal"
       ],
       "rulesReference": "MANUALE.md §5, §7.2",
@@ -9356,7 +9356,7 @@
             "type": "destructive",
             "grade": 1
           },
-          "behavior": "permanent",
+          "behavior": "static",
           "stats": {
             "fluxCost": 3
           },
@@ -9375,7 +9375,7 @@
                   "min": 1,
                   "max": 1,
                   "details": {
-                    "permanent": true
+                    "static": true
                   }
                 },
                 "destination": {
@@ -9424,7 +9424,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -9453,7 +9453,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -9578,7 +9578,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -9607,7 +9607,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -9711,7 +9711,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -9740,7 +9740,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -9842,7 +9842,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -9871,7 +9871,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -9892,7 +9892,7 @@
         "matter",
         "dynamic",
         "grade-2",
-        "permanent",
+        "static",
         "dice"
       ],
       "rulesReference": "MANUALE.md §7.2, §8.2",
@@ -9905,7 +9905,7 @@
             "type": "dynamic",
             "grade": 2
           },
-          "behavior": "permanent",
+          "behavior": "static",
           "stats": {
             "fluxCost": 5
           },
@@ -12125,7 +12125,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -12154,7 +12154,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -12256,7 +12256,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -12285,7 +12285,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -12386,7 +12386,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -12415,7 +12415,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -12515,7 +12515,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -12544,7 +12544,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -12668,7 +12668,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -12697,7 +12697,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {
@@ -12917,7 +12917,7 @@
             "flux": "Flussi",
             "behaviors": {
               "reactive": "Reattiva",
-              "permanent": "Permanente"
+              "static": "Statica"
             }
           },
           "face": {
@@ -12946,7 +12946,7 @@
             "flux": "Flux",
             "behaviors": {
               "reactive": "Reactive",
-              "permanent": "Permanent"
+              "static": "Static"
             }
           },
           "face": {

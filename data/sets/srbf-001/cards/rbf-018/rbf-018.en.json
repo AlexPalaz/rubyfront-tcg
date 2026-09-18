@@ -1,7 +1,7 @@
 {
   "name": "Repulsion Field",
   "typeLabel": "Destructive Matter I",
-  "summary": "It keeps an opposing permanent off the field for as long as it holds.",
+  "summary": "It keeps an opposing static card off the field for as long as it holds.",
   "ui": {
     "face": "Matter"
   },
@@ -11,14 +11,14 @@
     "flux": "Flux",
     "behaviors": {
       "reactive": "Reactive",
-      "permanent": "Permanent"
+      "static": "Static"
     }
   },
   "face": {
     "name": "Repulsion Field",
     "effect": {
       "name": "Effect",
-      "text": "Send an opposing permanent to the Abyss. As long as this card remains in play, that permanent stays in the Abyss. When this card leaves play, that permanent returns to play."
+      "text": "Send an opposing static card to the Abyss. As long as this card remains in play, that static card stays in the Abyss. When this card leaves play, that static card returns to play."
     },
     "flavor": "Space refuses to hold it. For now."
   },

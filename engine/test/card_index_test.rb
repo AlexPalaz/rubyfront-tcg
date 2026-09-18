@@ -96,10 +96,10 @@ class CardIndexTest < Minitest::Test
     assert_equal [], @index["RBF-012"][:enter_moves], "dalla propria Zona di Ritiro al Fronte è un'altra forma"
   end
 
-  def test_returner_brings_permanent_back_from_retire_zone
+  def test_returner_brings_static_card_back_from_retire_zone
     # Solo «quando attacca» (decisione del designer, 2026-09-04): l'innesco
     # d'ingresso è stato tolto dalla carta.
-    form_hash = [{ from: "ritiro", filter: { permanent: true }, to: "field" }]
+    form_hash = [{ from: "ritiro", filter: { static: true }, to: "field" }]
     assert_equal form_hash, @index["RBF-012"][:attack_returns]
     assert_equal [], @index["RBF-012"][:enter_returns], "non più all'ingresso"
     assert_equal [], @index["RBF-012"][:attack_draws], "il ritorno riporta, non pesca"
@@ -115,7 +115,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [["heal", "self", 0]], forms_of.call("RBF-008")
     assert_equal [["return", "self", 0]], forms_of.call("RBF-010")
     assert_equal [["untap", "self", 0]], forms_of.call("RBF-011"), "dal 2026-09-15 la stappata di tutte torna all'attacco, col d20"
-    assert_equal [["heal", "permanent", 0]], forms_of.call("RBF-022")
+    assert_equal [["heal", "static", 0]], forms_of.call("RBF-022")
     assert_equal [["heal", "rubyfront", 0], ["heal", "rubyfront", 1]], forms_of.call("RBF-001")
     assert_equal [["empower", "self", 0]], forms_of.call("RBF-004"), "dal 2026-09-09 «se almeno 2 Umani attaccano» è il divieto di blocco di questo turno"
     assert_equal [], forms_of.call("RBF-005"), "dal 2026-09-08 non ha più inneschi d'attacco: è uno statico"
@@ -215,7 +215,7 @@ class CardIndexTest < Minitest::Test
     assert_equal [{ kind: "look", count: 4, reveal: { type: "entity", race: "human" }, reveal_to: "hand", rest_to: "deck", show_up_to: 2 }], forms_of.call("RBF-015")
     assert_equal [{ kind: "empower", targets: "own_entity", race: "human", power: 1, untap: true }], forms_of.call("RBF-016")
     assert_equal [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: 2 }, to: "ritiro", discount: nil }], forms_of.call("RBF-017")
-    assert_equal [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }], forms_of.call("RBF-018")
+    assert_equal [{ kind: "exile", target: { static: true, controller: "opponent" }, to: "abisso", hold: true }], forms_of.call("RBF-018")
     assert_equal [{ kind: "fortune", die: 20, gain: { on: [1, 6], amount: 4 }, deploy: { on: [7, 13], filter: { type: "entity", race: "human", max_cost: 2 } },
                     draw: { on: [14, 19], count: 1 }, all_on: [20, 20] }], forms_of.call("RBF-019")
     assert_equal [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, requires: { count: 3, race: "human" } }], forms_of.call("RBF-020"), "la stappata di gruppo: in Reazione, senza bloccare"
@@ -252,7 +252,7 @@ class CardIndexTest < Minitest::Test
     prism = trigger.call("RBF-043", "confine")
     prism["details"] = {}
     refute Rubyfront::CardIndex.recognized?(prism), "senza «è questo Oggetto che viene assegnato» la forma non entra"
-    assert_equal [], forms_of.call("RBF-022"), "la permanente si innesca all'attacco, non alla risoluzione"
+    assert_equal [], forms_of.call("RBF-022"), "la Statica si innesca all'attacco, non alla risoluzione"
   end
 
   def test_human_rubyfront_nexus_and_its_flip

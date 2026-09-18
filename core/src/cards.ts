@@ -267,7 +267,7 @@ function enterMovesOf(face: CardFace | undefined): EnterMove[] {
  * I ritorni all'ingresso certificati di una faccia (§8.2): evento
  * `on_enter_field` senza `enteringCard`, effetto `move_card` da
  * `{zone: retire, owner: controller}` di UNA carta del controllore con
- * `details.permanent`, destinazione `{zone: front}`. Specchio di
+ * `details.static`, destinazione `{zone: front}`. Specchio di
  * card_index.rb, enter_returns.
  */
 function enterReturnsOf(face: CardFace | undefined, event: "on_enter_field" | "on_attack"): EnterReturn[] {
@@ -279,10 +279,10 @@ function enterReturnsOf(face: CardFace | undefined, event: "on_enter_field" | "o
     const effect = trigger.effect as { type?: unknown; target?: any; from?: any; destination?: any } | undefined;
     if (!effect || effect.type !== "move_card") continue;
     const target = effect.target;
-    if (!target || target.controller !== "controller" || target.min !== 1 || target.max !== 1 || target.details?.permanent !== true) continue;
+    if (!target || target.controller !== "controller" || target.min !== 1 || target.max !== 1 || target.details?.static !== true) continue;
     if (effect.from?.zone !== "retire" || effect.from?.owner !== "controller") continue;
     if (effect.destination?.zone !== "front") continue;
-    out.push({ from: "ritiro", filter: { permanent: true }, to: "field" });
+    out.push({ from: "ritiro", filter: { static: true }, to: "field" });
   }
   return out;
 }
@@ -447,7 +447,7 @@ function attackHeal(details: Loose, effect: Loose): Unfaced<AttackForm> | null {
     const drainOn = rollRange(drain);
     if (die === null || !gainOn || !drainOn) return null;
     // A ogni Umano che attacca, un d20 (deciso 2026-09-14; prima una volta per turno). Specchio di card_index.rb.
-    return { kind: "heal", who: "permanent", attackers: { kind: "entity", race: "human" }, die, onRoll: null, gainOn, drainOn, amount: "human_attackers" };
+    return { kind: "heal", who: "static", attackers: { kind: "entity", race: "human" }, die, onRoll: null, gainOn, drainOn, amount: "human_attackers" };
   }
   return null;
 }
@@ -1068,8 +1068,8 @@ function resolveMove(effect: Loose): ResolveForm | null {
     return { kind: "move", target: { kind: "entity", controller: "opponent", maxCost: cost.maxCost }, to: "ritiro", discount };
   }
   const extra = effect.details as Loose | undefined;
-  if (target.details?.permanent === true && destination.zone === "abyss" && extra && extra.whileSourceOnField === true && extra.returnsToPlayWhenSourceLeaves === true) {
-    return { kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true };
+  if (target.details?.static === true && destination.zone === "abyss" && extra && extra.whileSourceOnField === true && extra.returnsToPlayWhenSourceLeaves === true) {
+    return { kind: "exile", target: { static: true, controller: "opponent" }, to: "abisso", hold: true };
   }
   return null;
 }

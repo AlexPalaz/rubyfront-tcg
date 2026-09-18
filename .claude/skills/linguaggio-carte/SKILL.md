@@ -60,7 +60,8 @@ stessa modifica (il file è il contratto: aggiornarlo fa parte del lavoro).
 | coperta | covered | `covered` |
 | catena di risposta | chain | `response_chain` |
 | Fase di Fronte | Front Phase | — |
-| permanente (carta che resta in campo) | permanent | — |
+| Statica (Materia che resta in campo, §7.2; ex «Permanente», rinominata dal designer il 2026-09-18) | Static | `static` |
+| carta statica (ciò che resta in campo: un'Entità o una Materia Statica; mai il Rubyfront, mai un Oggetto) | static card | `details.static` |
 | Unica | Unique | — |
 
 **Nel testo di un effetto il bersaglio si scrive sempre «Rubyfront/Nexus»**, mai
@@ -71,7 +72,7 @@ opposing Rubyfront/Nexus"). «Rubyfront» resta da solo quando indica la **razza
 o il **nome** di una carta («un'Entità Rubyfront», «il Rubifronte del Patto»),
 non il bersaglio da colpire.
 
-Mai: «creatura», «giocatore avversario» nei testi carta, «Requiem» (nome
+Mai: «creatura», «giocatore avversario» nei testi carta, «Permanente»/«permanent» (dal 2026-09-18 si dice **Statica** / **Static**, e «carta statica» per ciò che resta in campo), «Requiem» (nome
 storico della Zona di Ritiro, deprecato il 2026-08-24), «Zona di Riposo» (non
 esiste: è la Zona di Ritiro), «Zona del Fronte» (si dice **Fronte**), «fase di
 combattimento» (si dice **Fase di Fronte**, MANUALE §6.3), «Se controlli …» /
@@ -183,7 +184,7 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | Stappa dopo il combattimento | stappala dopo il combattimento | untap it after combat |
 | Contrattacco concesso | ottengono Contrattacco +1 fino alla fine del turno | they gain Counterattack +1 until end of turn |
 | Guadagno variabile | guadagni PV pari a … | you gain HP equal to … |
-| Divieto di gioco permanente | Non puoi più giocare [Nome] per il resto della partita. | You can no longer play [Name] for the rest of the game. |
+| Divieto di gioco per il resto della partita | Non puoi più giocare [Nome] per il resto della partita. | You can no longer play [Name] for the rest of the game. |
 | Presenza sul Fronte (nome/singola) | Se [Nome / un'altra Entità X] è sul tuo Fronte, … | If [Name / another X Entity] is on your Front, … |
 | Presenza sul Fronte (conteggio) | Se sul tuo Fronte ci sono almeno N …, … | If there are at least N … on your Front, … |
 | Non si tappa attaccando (statico) | Questa Entità non viene tappata dopo l'attacco. | This Entity is not tapped after attacking. |

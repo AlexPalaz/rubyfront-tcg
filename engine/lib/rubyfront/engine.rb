@@ -63,7 +63,7 @@ module Rubyfront
       "§8.2 Effetti certificati: «quando un'altra Entità entra, pesca»",
       "§8.2 Effetti certificati: «quando entra, un'Entità avversaria in Ritiro» (forma senza carte dal 2026-09-04)",
       "§8.2 Effetti certificati: «quando entra, un'Entità avversaria (anche con costo di Flusso N o inferiore) nell'Abisso finché questa resta in campo»",
-      "§8.2 Effetti certificati: «quando entra, una permanente dalla Zona di Ritiro al Fronte»",
+      "§8.2 Effetti certificati: «quando entra, una Statica dalla Zona di Ritiro al Fronte»",
       "§8.2 Effetti certificati: «quando attacca», lo stesso ritorno dalla Zona di Ritiro",
       "§8.2 Effetti certificati: «quando entra, guarda le prime N e mostrane una»",
       "§8.2 Effetti certificati: «tira un d6, guarda 2 più metà, un Oggetto in mano, una in Ritiro»",
@@ -154,7 +154,7 @@ module Rubyfront
       "§8.2 Certified effects: “when another Entity enters, draw”",
       "§8.2 Certified effects: “when it enters, an opposing Entity to Retire” (a form with no card since 2026-09-04)",
       "§8.2 Certified effects: “when it enters, an opposing Entity to the Abyss as long as this one remains on the field”",
-      "§8.2 Certified effects: “when it enters, a permanent from the Retire Zone to the Front”",
+      "§8.2 Certified effects: “when it enters, a static card from the Retire Zone to the Front”",
       "§8.2 Certified effects: “when it attacks”, the same return from the Retire Zone",
       "§8.2 Certified effects: “when it enters, look at the top N and reveal one”",
       "§8.2 Certified effects: “roll a d6, look at 2 plus half, an Object to hand, one to Retire”",
@@ -641,7 +641,7 @@ module Rubyfront
       # E da lì non si torna: solo una carta riporta fuori dall'Abisso
       # (§5, l'esilio condizionato). Limiti dichiarati: un effetto
       # risolto a mano che scarti o riporti verrebbe fermato a torto (regola
-      # d'oro); il decadere di una permanente (§7.2) resta un gesto a mano,
+      # d'oro); il decadere di una Statica (§7.2) resta un gesto a mano,
       # e passa perché una Materia in campo può sempre andare nell'Abisso.
       if card[:zone] == "abisso"
         return refuse("toZone", "dall'Abisso non si torna: solo una carta può riportarne fuori (§5)", "there's no way back from the Abyss: only a card can bring something out of it (§5)")
@@ -649,7 +649,7 @@ module Rubyfront
       # §5/§6.2 — la Zona di Ritiro «funziona esattamente come l'Abisso»: ci
       # si mette liberamente (il Ritiro è un gesto, e resta libero), ma se ne
       # esce solo per effetto — «riporta in mano un'Entità dalla tua Zona di
-      # Ritiro», «metti sul tuo Fronte una permanente dalla tua Zona di
+      # Ritiro», «metti sul tuo Fronte una Statica dalla tua Zona di
       # Ritiro» — e un effetto passa da judge_effect col suo riferimento,
       # non da qui.
       if card[:zone] == "ritiro" && action["zone"] == "abisso"
@@ -768,7 +768,7 @@ module Rubyfront
     # §6.2 — «Sul Fronte si possono avere al massimo 5 Entità»: la sesta non
     # scende, da qualunque via arrivi (giocata o effetto — «quella parte
     # dell'effetto non si applica»). Contano solo le Entità del proprietario:
-    # Rubyfront, Materie permanenti e Oggetti non occupano slot, e a dirlo è
+    # Rubyfront, Materie Statiche e Oggetti non occupano slot, e a dirlo è
     # l'anagrafe — carta ignota o anagrafe assente, silenzio. Il campo del
     # client è una superficie unica, ma le Entità in campo SONO il Fronte:
     # non hanno altro posto dove stare.
@@ -856,7 +856,7 @@ module Rubyfront
       # è la sola ragione per cui la copia del tavolo annota la fila. Vale
       # giocando dalla mano; Materia senza etichetta o fila ignota: nel
       # dubbio non si accusa. Limiti dichiarati: l'attribuzione (§7, quale
-      # abilitante) non si sceglie, e il decadere delle permanenti (§7.2)
+      # abilitante) non si sceglie, e il decadere delle Statiche (§7.2)
       # arriverà a parte.
       if card[:zone] == "hand" && known[:type] == "matter" && known[:matter] && !enabled?(card[:owner], known[:matter])
         label = known[:matter]
@@ -1621,11 +1621,11 @@ module Rubyfront
       refuse(kind, "la catena di risposta è atomica: si risponde con una Reattiva o si accetta, il resto aspetta (§7.2)", "the response chain is atomic: answer with a Reactive or accept, everything else waits (§7.2)")
     end
 
-    # «Una carta permanente» (§10): quel che resta in campo — un'Entità o una
-    # Materia permanente, mai il Rubyfront, mai un Oggetto. Gemello:
-    # effects.ts, permanentOf.
-    def permanent_card?(entry)
-      entry[:type] == "entity" || (entry[:type] == "matter" && entry[:behavior] == "permanent")
+    # «Una carta statica» (§10): quel che resta in campo — un'Entità o una
+    # Materia Statica, mai il Rubyfront, mai un Oggetto. Gemello:
+    # effects.ts, staticCardOf.
+    def static_card?(entry)
+      entry[:type] == "entity" || (entry[:type] == "matter" && entry[:behavior] == "static")
     end
 
     # §3.1 — la carta è IN GIOCO, cioè i suoi effetti contano?
@@ -2304,7 +2304,7 @@ module Rubyfront
       target = @table.card(action["uid"])
       return refuse("toZone", "il bersaglio dell'effetto non esiste (§8.2)", "the effect's target doesn't exist (§8.2)") unless target
 
-      # Il ritorno (una permanente): dalla propria Zona di Ritiro al Fronte,
+      # Il ritorno (una Statica): dalla propria Zona di Ritiro al Fronte,
       # una carta del tipo e del comportamento chiesti.
       if action["zone"] == "field"
         forms = ref["event"] == "on_attack" ? :attack_returns : :enter_returns
@@ -2314,12 +2314,12 @@ module Rubyfront
 
         entry = @cards[target[:card_id]]
         return no_rule("toZone") unless entry
-        unless permanent_card?(entry)
-          return refuse("toZone", "si riporta una carta permanente, non questa (§8.2)", "a permanent card is brought back, not this one (§8.2)")
+        unless static_card?(entry)
+          return refuse("toZone", "si riporta una carta statica, non questa (§8.2)", "a static card is brought back, not this one (§8.2)")
         end
         # §6.2, Fronte pieno: «anche la parte d'effetto che metterebbe in
         # campo non si applica» — salvo la sostituzione (dal 2026-09-15).
-        # Riguarda le sole Entità — una Materia permanente sta dietro il
+        # Riguarda le sole Entità — una Materia Statica sta dietro il
         # Fronte e non occupa uno slot (§5).
         # §6.2, Fronte pieno: lo legge l'imbuto entry_stopped.
 
@@ -2664,12 +2664,12 @@ module Rubyfront
       return no_rule("release") unless card
       return refuse("release", "si restituisce sul Fronte o nella Zona di Ritiro (§8.2)", "it's returned to the Front or to the Retire Zone (§8.2)") unless %w[field ritiro].include?(action["zone"])
 
-      # §8.2 — il permanente esiliato: «quando questa carta lascia
-      # il gioco, quel permanente torna in gioco» — e non prima.
+      # §8.2 — il carta statica esiliata: «quando questa carta lascia
+      # il gioco, quella carta statica torna in gioco» — e non prima.
       if card[:held_by]
         holder = @table.card(card[:held_by])
         if holder && holder[:zone] == "field"
-          return refuse("release", "quel permanente resta nell'Abisso finché la carta che lo tiene è in gioco (§8.2)", "that permanent stays in the Abyss as long as the card holding it is in play (§8.2)")
+          return refuse("release", "quella carta statica resta nell'Abisso finché la carta che lo tiene è in gioco (§8.2)", "that static card stays in the Abyss as long as the card holding it is in play (§8.2)")
         end
 
         return allow("release")
@@ -3001,11 +3001,11 @@ module Rubyfront
       allow("toZone")
     end
 
-    # L'esilio condizionato: un permanente avversario nell'Abisso, tenuto fermo finché questa carta resta in gioco.
+    # L'esilio condizionato: una carta statica avversaria nell'Abisso, tenuto fermo finché questa carta resta in gioco.
     def judge_resolve_exile(action, ref, source, forms, seat)
       form = forms.find { |candidate| candidate[:kind] == "exile" }
       return refuse("toZone", "la Materia non ha un effetto certificato che esili (§8.2)", "the Matter has no certified effect that exiles (§8.2)") unless form
-      return refuse("toZone", "il permanente va nell'Abisso, tenuto da questa carta (§8.2)", "the permanent goes to the Abyss, held by this card (§8.2)") unless action["zone"] == "abisso" && action["heldBy"] == ref["source"]
+      return refuse("toZone", "la carta statica va nell'Abisso, tenuto da questa carta (§8.2)", "the static card goes to the Abyss, held by this card (§8.2)") unless action["zone"] == "abisso" && action["heldBy"] == ref["source"]
 
       target = @table.card(action["uid"])
       return refuse("toZone", "il bersaglio dev'essere in campo (§8.2)", "the target must be on the field (§8.2)") unless target && target[:zone] == "field"
@@ -3013,8 +3013,8 @@ module Rubyfront
 
       entry = @cards[target[:card_id]]
       return no_rule("toZone") unless entry
-      permanent = entry[:type] == "entity" || (entry[:type] == "matter" && entry[:behavior] == "permanent")
-      return refuse("toZone", "un permanente avversario: un'Entità o una Materia permanente (§8.2)", "an opposing permanent: an Entity or a permanent Matter (§8.2)") unless permanent
+      static_card = entry[:type] == "entity" || (entry[:type] == "matter" && entry[:behavior] == "static")
+      return refuse("toZone", "una carta statica avversaria: un'Entità o una Materia Statica (§8.2)", "an opposing static card: an Entity or a Static Matter (§8.2)") unless static_card
 
       allow("toZone")
     end

@@ -351,7 +351,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    * Le scene dei «quando attacca» di `attacker` (§8.2): una per fonte —
    * prima chi attacca (i suoi ritorni, le sue pesche, le sue forme), poi
    * ogni altra carta che si innesca: gli Oggetti addosso, le alleate, le
-   * Materie permanenti, il Rubyfront. Senza «Risolvi»: lo mette chi le apre.
+   * Materie Statiche, il Rubyfront. Senza «Risolvi»: lo mette chi le apre.
    * Le legge anche l'avversario per la sua copia (sceneFor).
    */
   function attackScenes(attacker: CardInstance): { own: { show: SceneShow; steps: AttackStep[] } | null; others: { source: CardInstance; show: SceneShow; steps: AttackStep[] }[] } {
@@ -827,7 +827,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         }
         case "heal": {
           const foe = otherSeat(by);
-          if (form.who === "permanent") {
+          if (form.who === "static") {
             const roll = rollDie(form.die ?? 20);
             await view.roll(form.die ?? 20, roll, t("dice.step", { name, what: t("dice.heirs") }));
             const count = attackersOf(ctx.state(), by, form.attackers?.race ?? "human", ctx.card).length;
@@ -859,7 +859,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             }
             const candidates = zoneCards(ctx.state(), by, "ritiro").filter(card => ctx.card(card.cardId).kind === "entity");
             if (candidates.length === 0) {
-              ctx.log(msg("log.no.permanent", { seat: by, card: step.source.cardId }), by);
+              ctx.log(msg("log.no.static", { seat: by, card: step.source.cardId }), by);
               break;
             }
             let chosen: CardInstance | null = null;
@@ -930,7 +930,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             return f.kind === form.filter.kind && f.race === form.filter.race && !sealedForPlay(ctx.state(), card);
           });
           if (candidates.length === 0) {
-            ctx.log(msg("log.no.permanent", { seat: by, card: step.source.cardId }), by);
+            ctx.log(msg("log.no.static", { seat: by, card: step.source.cardId }), by);
             break;
           }
           let chosen: CardInstance | null = null;
@@ -1184,7 +1184,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       if (abilityOff) ctx.log(msg("log.play.discount", { n: abilityOff.amount }), card.owner);
     }
     // Una Materia con un effetto certificato (§7.2): la scena elenca i
-    // passi, «Risolvi» li esegue, e la carta — se non è permanente — va
+    // passi, «Risolvi» li esegue, e la carta — se non è Statica — va
     // nell'Abisso. Quella che «si gioca come blocco» (RBF-020) prima
     // sceglie l'attaccante da fermare.
     if (passed && reactive) {
@@ -1222,7 +1222,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
   }
 
   /**
-   * Una Materia normale o permanente giocata (§7.2): la scena coi passi e
+   * Una Materia normale o Statica giocata (§7.2): la scena coi passi e
    * «Risolvi», e la normale va nell'Abisso. Le Reattive non passano di qui:
    * aprono la catena (openChain) e si risolvono quando l'avversario accetta.
    */
@@ -1319,7 +1319,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
   /**
    * La risoluzione di una Materia (§7.2): la scena coi passi e «Risolvi»;
    * risolta, la normale o Reattiva va nell'Abisso — la Reattiva che blocca
-   * resta finché l'ondata si risolve (§6.4), la permanente resta in gioco.
+   * resta finché l'ondata si risolve (§6.4), la Statica resta in gioco.
    * Se era in catena, chiuso il passo esce dalla pila (`settle`), e la
    * catena passa alla carta sotto.
    */
@@ -1331,7 +1331,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     await showScene({ ...matterScene(matter, effects, steps), onContinue: () => undefined });
     await handshake({ kind: "matter", uid: matter.uid });
     for (const step of steps) await playResolveStep(step);
-    if (facts.behavior !== "permanent" && !blocking) await spendMatter(matter);
+    if (facts.behavior !== "static" && !blocking) await spendMatter(matter);
     if (ctx.state().chain?.stack.includes(matter.uid)) await ctx.dispatch({ t: "settle", uid: matter.uid });
   }
 
@@ -1862,7 +1862,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       return;
     }
     if (step.candidates.length === 0) {
-      ctx.log(msg("log.no.permanent", { seat: step.source.owner, card: step.source.cardId }), step.source.owner);
+      ctx.log(msg("log.no.static", { seat: step.source.owner, card: step.source.cardId }), step.source.owner);
       return;
     }
     view.light(step.source.uid, true);

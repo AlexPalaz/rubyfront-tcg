@@ -389,7 +389,7 @@ export type Action =
   /** Restituisce una carta controllata al proprietario, a fine turno: sul
       suo Fronte (x, y di uno slot libero) o nella sua Zona di Ritiro se è
       pieno. La manda il tavolo di chi ha chiuso il turno. Vale anche per il
-      permanente esiliato (RBF-018) quando chi lo teneva lascia il gioco. */
+      carta statica esiliata (RBF-018) quando chi lo teneva lascia il gioco. */
   | { t: "release"; uid: string; zone: "field" | "ritiro"; x?: number; y?: number }
   /** Fine della partita (§2, §9): lo dichiara il client che l'ha vista
       arrivare, l'engine lo verifica contro PV e mazzi della sua copia. */

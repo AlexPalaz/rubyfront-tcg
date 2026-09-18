@@ -15,7 +15,7 @@
     "name": "Rhen, Heir of Vhal Astra",
     "heirReturn": {
       "trigger": "When it attacks",
-      "text": "Put a permanent card from your Retire Zone onto your Front."
+      "text": "Put a static card from your Retire Zone onto your Front."
     },
     "flavor": "A name is not inherited. It is taken back."
   },

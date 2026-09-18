@@ -585,7 +585,7 @@ function reduce(state: GameState, action: Action): GameState {
         // lavagna che non lo sapeva): resta com'è, nel dubbio.
         const uncover = card.facedown && card.coveredTurn !== undefined && action.turn - card.coveredTurn >= 3;
         if (!card.tapped && !uncover) continue;
-        // La Stasi è una tappata permanente (§8.1): il turno non la stappa.
+        // La Stasi è una tappata static carde (§8.1): il turno non la stappa.
         const fresh: CardInstance = { ...cards[uid], tapped: card.stasis === true };
         if (uncover) {
           fresh.facedown = false;
@@ -693,7 +693,7 @@ function reduce(state: GameState, action: Action): GameState {
       delete freed.heldBy;
       let next: GameState = { ...state, cards: { ...state.cards, [card.uid]: freed } };
       if (action.zone === "ritiro") return apply(next, { t: "toZone", uid: card.uid, zone: "ritiro" });
-      // Il permanente esiliato (RBF-018) «torna in gioco»: dall'Abisso al
+      // Il carta statica esiliata (RBF-018) «torna in gioco»: dall'Abisso al
       // campo, come un ingresso. Gemello: table.rb.
       if (freed.zone !== "field") {
         return apply(next, { t: "toZone", uid: card.uid, zone: "field", x: action.x ?? card.x, y: action.y ?? card.y, z: next.zTop + 1 });
@@ -927,7 +927,7 @@ export function stackAt(
   const others = fieldCards(state).filter(card => card.uid !== exclude);
   // Contro il bordo destro la scaletta non ha dove andare e verrebbe schiacciata
   // dal clamp: lì si scende e basta, in colonna. §5 lo prevede esplicitamente
-  // per le Materie permanenti — «una dietro l'altra (o una sotto l'altra)».
+  // per le Materie Statiche — «una dietro l'altra (o una sotto l'altra)».
   const room = x + STEPS * STACK_STEP <= SURFACE_W - TILE_W;
   const stepX = room ? STACK_STEP : 0;
   for (let step = 0; step < STEPS; step += 1) {

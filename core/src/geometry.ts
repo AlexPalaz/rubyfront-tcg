@@ -24,7 +24,7 @@ export const EDGE = 30;
 export const ROW_PAD = 44;
 /**
  * Distanza fra il Fronte e la fila di servizio. È larga: lì sotto, dietro il
- * Fronte, ci vanno le Materie permanenti (§5), che stanno in campo senza uno
+ * Fronte, ci vanno le Materie Statiche (§5), che stanno in campo senza uno
  * slot proprio.
  */
 export const ROW_GAP = 96;
@@ -92,7 +92,7 @@ export const RUBYFRONT_X = EDGE;
 export const CONTROL_X = FRONT_SLOT_X[2];
 
 /**
- * Il posto delle Materie in gioco, all'altra estremità. Le permanenti si
+ * Il posto delle Materie in gioco, all'altra estremità. Le Statiche si
  * dispongono una dietro l'altra nell'ordine in cui sono scese in campo, e la
  * fila tiene traccia della loro età (§5) — cosa che serve per l'ordine di
  * risoluzione (§8.2). L'impilamento a scaletta di `stackAt` disegna

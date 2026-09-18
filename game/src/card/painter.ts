@@ -1055,7 +1055,7 @@ function paragraph(pieces: Piece[], width: number, strut: { font: Font; lineHeig
   };
 }
 
-function paintBehavior(ctx: CanvasRenderingContext2D, behavior: "reactive" | "permanent", x: number, y: number, size: number, slabStyle: Slab): void {
+function paintBehavior(ctx: CanvasRenderingContext2D, behavior: "reactive" | "static", x: number, y: number, size: number, slabStyle: Slab): void {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(size / 20, size / 20);

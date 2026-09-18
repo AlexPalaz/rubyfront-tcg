@@ -2215,12 +2215,12 @@ class EngineTest < Minitest::Test
     assert_nil card[:held_by]
   end
 
-  # --- §8.2: il ritorno riporta una permanente dalla Zona di Ritiro ----------
+  # --- §8.2: il ritorno riporta una Statica dalla Zona di Ritiro ----------
 
   HEIRS = {
     "RETURNER" => { type: "entity", keywords: [], race: "human",
-                enter_returns: [{ from: "ritiro", filter: { permanent: true }, to: "field" }] },
-    "PERMANENT" => { type: "matter", keywords: [], behavior: "permanent" },
+                enter_returns: [{ from: "ritiro", filter: { static: true }, to: "field" }] },
+    "STATIC" => { type: "matter", keywords: [], behavior: "static" },
     "NORMAL" => { type: "matter", keywords: [], behavior: "normal" },
     "HUMAN" => { type: "entity", keywords: [], race: "human" },
   }.freeze
@@ -2273,8 +2273,8 @@ class EngineTest < Minitest::Test
     assert_match(/solo a Fronte pieno.*§6\.2/, verdict[:reason])
   end
 
-  def test_return_brings_permanent_back_to_front
-    engine = returner([["p1", "PERMANENT"]])
+  def test_return_brings_static_card_back_to_front
+    engine = returner([["p1", "STATIC"]])
     verdict = bring_back(engine, "p1")
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
@@ -2292,10 +2292,10 @@ class EngineTest < Minitest::Test
     assert_equal "ritiro", table_copy(engine).card("u1")[:zone]
   end
 
-  def test_permanent_is_entity_or_permanent_matter
-    # «Una carta permanente» (§10) è quel che resta in campo: l'Entità e la
-    # Materia permanente. Non la Materia normale, non le carte altrui.
-    engine = returner([["n1", "NORMAL"], ["u1", "HUMAN"]], foe_retired: [["bp", "PERMANENT"]])
+  def test_static_card_is_entity_or_static_matter
+    # «Una carta statica» (§10) è quel che resta in campo: l'Entità e la
+    # Materia Statica. Non la Materia normale, non le carte altrui.
+    engine = returner([["n1", "NORMAL"], ["u1", "HUMAN"]], foe_retired: [["bp", "STATIC"]])
     refute bring_back(engine, "n1")[:ok], "una Materia normale no"
     verdict = bring_back(engine, "u1")
     assert verdict[:ok], "un'Entità sì: #{verdict[:reason]}"
@@ -2303,18 +2303,18 @@ class EngineTest < Minitest::Test
   end
 
   # §6.2, Fronte pieno: «anche la parte d'effetto che metterebbe in campo non
-  # si applica» — per le Entità; una Materia permanente non occupa slot (§5).
+  # si applica» — per le Entità; una Materia Statica non occupa slot (§5).
   def test_with_full_front_entity_does_not_return_matter_does
-    engine = returner([["u1", "HUMAN"], ["p1", "PERMANENT"]], field_setup: 5)
+    engine = returner([["u1", "HUMAN"], ["p1", "STATIC"]], field_setup: 5)
     verdict = bring_back(engine, "u1")
     refute verdict[:ok]
     assert_match(/Fronte è pieno.*§6\.2/, verdict[:reason])
     assert_match(/Front is full.*§6\.2/, verdict[:reason_en])
-    assert bring_back(engine, "p1")[:ok], "la Materia permanente sta dietro il Fronte"
+    assert bring_back(engine, "p1")[:ok], "la Materia Statica sta dietro il Fronte"
   end
 
   def test_return_is_consumed_once
-    engine = returner([["p1", "PERMANENT"], ["p2", "PERMANENT"]])
+    engine = returner([["p1", "STATIC"], ["p2", "STATIC"]])
     assert bring_back(engine, "p1")[:ok]
     refute bring_back(engine, "p2")[:ok]
   end
@@ -2565,12 +2565,12 @@ class EngineTest < Minitest::Test
     "RETURNER" => HEIRS["RETURNER"].merge(attack_returns: HEIRS["RETURNER"][:enter_returns])
   ).freeze
 
-  # La fonte in campo dal turno 1, una permanente in Zona di Ritiro; al turno 3
+  # La fonte in campo dal turno 1, una Statica in Zona di Ritiro; al turno 3
   # A apre il Fronte e la fonte attacca.
   def charging_returner
     engine = Rubyfront::Engine.new(cards: HEIRS_ON_ATTACK)
     cards = [{ "uid" => "riportante", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "RETURNER", "y" => 1260 },
-             { "uid" => "p1", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "PERMANENT" }]
+             { "uid" => "p1", "owner" => "a", "zone" => "ritiro", "order" => 0, "cardId" => "STATIC" }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
@@ -2582,7 +2582,7 @@ class EngineTest < Minitest::Test
                    "effect" => { "source" => "riportante", "event" => "on_attack", "entering" => "riportante" } })
   end
 
-  def test_when_source_attacks_brings_back_permanent
+  def test_when_source_attacks_brings_back_static_card
     engine = charging_returner
     front!(engine)
     assert engine.judge(attack_decl("riportante"))[:ok]
@@ -2751,8 +2751,8 @@ class EngineTest < Minitest::Test
                attack_forms: [{ kind: "return", who: "self", die: 6, on_roll: [5, 6], filter: { type: "entity", race: "human" }, joins: true, face: 0 }] },
     "CHARGE" => { type: "entity", keywords: [], race: "human", power: 5, counterattack: 1,
                   enter_refreshes: [{ die: 20, on_roll: [15, 20] }], static_forms: [{ kind: "never_taps" }] },
-    "HEIRS" => { type: "matter", keywords: [], behavior: "permanent",
-                 attack_forms: [{ kind: "heal", who: "permanent", attackers: { type: "entity", race: "human" }, die: 20, gain_on: [1, 6], drain_on: [15, 20], amount: "human_attackers", once: true, face: 0 }] },
+    "HEIRS" => { type: "matter", keywords: [], behavior: "static",
+                 attack_forms: [{ kind: "heal", who: "static", attackers: { type: "entity", race: "human" }, die: 20, gain_on: [1, 6], drain_on: [15, 20], amount: "human_attackers", once: true, face: 0 }] },
     "RALLY" => { type: "rubyfront", keywords: ["fury"],
                     attack_forms: [{ kind: "heal", who: "rubyfront", once: true, requires_attackers: { count: 3, race: "human" }, amount: 2, then_draw: 0, then_discard: 0, face: 0 },
                                    { kind: "heal", who: "rubyfront", once: true, requires_attackers: { count: 3, race: "human" }, amount: 2, then_draw: 1, then_discard: 1, face: 1 }] },
@@ -3016,7 +3016,7 @@ class EngineTest < Minitest::Test
     assert_match(/già stato risolto/, missed.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => step_in })[:reason])
   end
 
-  # La Materia permanente: il d20 quando attaccano gli Umani.
+  # La Materia Statica: il d20 quando attaccano gli Umani.
   def test_heirs_with_d20_heal_or_drain_once_per_turn
     engine = setup_scene([["m", "HEIRS"], ["u1", "HUMAN"], ["u2", "HUMAN"], ["n", "AUROS"]], attacks: %w[u1 u2 n])
     assert_match(/non succede nulla/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 10, "effect" => ref("m", "u1", once: true) })[:reason])
@@ -3168,15 +3168,15 @@ class EngineTest < Minitest::Test
     "VESTIGE" => { type: "object", keywords: [], flux_cost: 3, static_forms: [{ kind: "bearer_power", amount: 2 }],
                     death_forms: [{ kind: "remain", to: "ritiro", then_rearm: { other: true, to: "unarmed", free: true } }] },
     "RETURNER" => { type: "entity", keywords: [], race: "human", power: 6, flux_cost: 6 },
-    "PERMANENT" => { type: "matter", keywords: [], behavior: "permanent", flux_cost: 2, matter: { type: "dynamic", grade: 1 } },
+    "STATIC" => { type: "matter", keywords: [], behavior: "static", flux_cost: 2, matter: { type: "dynamic", grade: 1 } },
     "ATTRACTION" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 2, matter: { type: "dynamic", grade: 1 },
                       resolve_forms: [{ kind: "look", count: 4, reveal: { type: "entity", race: "human" }, reveal_to: "hand", rest_to: "deck", show_up_to: 2 }] },
     "FORMATION" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 2, matter: { type: "dynamic", grade: 1 },
                       resolve_forms: [{ kind: "empower", targets: "own_entity", race: "human", power: 1, untap: true }] },
     "IMPACT" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 1, matter: { type: "dynamic", grade: 1 },
                    resolve_forms: [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: 2 }, to: "ritiro" }] },
-    "FIELD" => { type: "matter", keywords: [], behavior: "permanent", flux_cost: 3, matter: { type: "destructive", grade: 1 },
-                 resolve_forms: [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }] },
+    "FIELD" => { type: "matter", keywords: [], behavior: "static", flux_cost: 3, matter: { type: "destructive", grade: 1 },
+                 resolve_forms: [{ kind: "exile", target: { static: true, controller: "opponent" }, to: "abisso", hold: true }] },
     "FORCE" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 3, matter: { type: "dynamic", grade: 2 },
                  resolve_forms: [{ kind: "fortune", die: 20, gain: { on: [1, 6], amount: 4 }, deploy: { on: [7, 13], filter: { type: "entity", race: "human", max_cost: 2 } },
                                    draw: { on: [14, 19], count: 1 }, all_on: [20, 20] }] },
@@ -3342,7 +3342,7 @@ class EngineTest < Minitest::Test
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "b")
     assert table_copy(engine).card("u")[:tapped], "tappata per sempre"
     # Il Ritiro è un gesto libero (§6.2, decisione del designer): la Stasi
-    # non lo ferma. Quel che la Stasi tiene è la tappata permanente.
+    # non lo ferma. Quel che la Stasi tiene è la tappata static carde.
     assert engine.judge({ "t" => "toZone", "uid" => "u", "zone" => "ritiro" }, actor: "b")[:ok]
     engine.observe({ "t" => "refresh", "seat" => "b", "roll" => 17, "untap" => true, "effect" => { "source" => "u", "event" => "on_enter_field", "entering" => "u" } })
     refute table_copy(engine).card("u")[:tapped], "un effetto la stappa"
@@ -3467,14 +3467,14 @@ class EngineTest < Minitest::Test
     assert_equal "ritiro", table_copy(engine).card("b1")[:zone]
   end
 
-  # L'esilio condizionato: un permanente avversario nell'Abisso, finché questa carta resta in gioco.
+  # L'esilio condizionato: una carta statica avversaria nell'Abisso, finché questa carta resta in gioco.
   def test_conditional_exile_exiles_and_returns_when_leaving_play
-    engine = legacy_scene([["u", "HUMAN"], ["m", "FIELD", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["bm", "PERMANENT"], ["bo", "SHIELD", { "assignedTo" => "b1" }]])
+    engine = legacy_scene([["u", "HUMAN"], ["m", "FIELD", { "zone" => "hand" }]], b: [["b1", "AUROS"], ["bm", "STATIC"], ["bo", "SHIELD", { "assignedTo" => "b1" }]])
     assert play_card(engine, "m", cost: 3)[:ok]
     accept!(engine, "b")
     step_action = { "t" => "toZone", "uid" => "b1", "zone" => "abisso", "heldBy" => "m", "effect" => res_ref("m") }
-    assert_match(/Entità o una Materia permanente/, engine.judge(step_action.merge("uid" => "bo"))[:reason])
-    assert_match(/Entità o una Materia permanente/, engine.judge(step_action.merge("uid" => "rf-b"))[:reason])
+    assert_match(/Entità o una Materia Statica/, engine.judge(step_action.merge("uid" => "bo"))[:reason])
+    assert_match(/Entità o una Materia Statica/, engine.judge(step_action.merge("uid" => "rf-b"))[:reason])
     assert_match(/tenuto da questa carta/, engine.judge(step_action.reject { |k, _| k == "heldBy" })[:reason])
     verdict = engine.judge(step_action)
     assert verdict[:ok], verdict[:reason]
@@ -3893,7 +3893,7 @@ class EngineTest < Minitest::Test
 
   # La ricerca col dado: guarda le prime 5, mostra per fascia o una in cima, poi una in Ritiro.
   def test_die_search_shows_by_band_or_puts_one_on_top
-    sample_deck = [["d0", "AUROS"], ["d1", "AUROS"], ["d2", "SHIELD"], ["d3", "PERMANENT"], ["d4", "HUMAN"], ["d5", "AUROS"], ["d6", "HUMAN"]]
+    sample_deck = [["d0", "AUROS"], ["d1", "AUROS"], ["d2", "SHIELD"], ["d3", "STATIC"], ["d4", "HUMAN"], ["d5", "AUROS"], ["d6", "HUMAN"]]
     deck = sample_deck.map.with_index { |(uid, id), i| [uid, id, { "zone" => "deck", "order" => i }] }
     # La Pesca del turno 3 prende «d0»: guardate d1…d5, sotto resta d6.
     engine = legacy_scene([["u", "HUMAN"], ["m", "CHARGE", { "zone" => "hand" }]] + deck)

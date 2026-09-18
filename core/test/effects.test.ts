@@ -107,7 +107,7 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   ] },
   REFLEX: { kind: "matter", behavior: "reactive", resolveForms: [{ kind: "block", requiresArmed: 2, heal: 3, asBlock: true }] },
   BUCKLER: { kind: "object", grantsWhileAssigned: [] },
-  HEIRS: { kind: "matter", behavior: "permanent", attackForms: [{ kind: "heal", who: "permanent", attackers: { kind: "entity", race: "human" }, die: 20, onRoll: null, gainOn: [1, 6], drainOn: [15, 20], amount: "human_attackers", once: true, face: 0 }] },
+  HEIRS: { kind: "matter", behavior: "static", attackForms: [{ kind: "heal", who: "static", attackers: { kind: "entity", race: "human" }, die: 20, onRoll: null, gainOn: [1, 6], drainOn: [15, 20], amount: "human_attackers", once: true, face: 0 }] },
   OBLIVHAL: { kind: "rubyfront", attackForms: [
     { kind: "heal", who: "rubyfront", once: true, requiresAttackers: { count: 3, race: "human" }, amount: 2, die: null, onRoll: null, thenDraw: 0, thenDiscard: 0, face: 0 },
     { kind: "heal", who: "rubyfront", once: true, requiresAttackers: { count: 3, race: "human" }, amount: 2, die: null, onRoll: null, thenDraw: 1, thenDiscard: 1, face: 1 },
@@ -128,10 +128,10 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   RHEN: {
     kind: "entity",
     race: "human",
-    enterReturns: [{ from: "ritiro", filter: { permanent: true }, to: "field" }],
-    attackReturns: [{ from: "ritiro", filter: { permanent: true }, to: "field" }],
+    enterReturns: [{ from: "ritiro", filter: { static: true }, to: "field" }],
+    attackReturns: [{ from: "ritiro", filter: { static: true }, to: "field" }],
   },
-  PERMANENT: { kind: "matter", behavior: "permanent" },
+  STATIC: { kind: "matter", behavior: "static" },
   SEEKER: { kind: "entity", race: "human", enterLooks: [{ count: 4, die: null, countBase: 0, reveal: { kind: "entity", race: "human" }, thenRetire: false }] },
   ARTIFICER: { kind: "entity", race: "auros", enterLooks: [{ count: null, die: 6, countBase: 2, reveal: { kind: "object", race: null }, thenRetire: true }] },
   GUARD: { kind: "entity", race: "auros", enterLooks: [{ count: null, die: 6, countBase: 0, reveal: { kind: "object", race: null }, thenRetire: true, formula: "result" }] },
@@ -152,7 +152,7 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   AMPLIFY: { kind: "matter", behavior: "reactive", fluxCost: 2, resolveForms: [{ kind: "empower", targets: "own_armed", power: 1, upTo: 2, untap: true }] },
   PRISM: { kind: "object", fluxCost: 3, assignForms: [{ kind: "exile", target: { kind: "entity", controller: "opponent" }, to: "abisso", hold: true }] },
   BEARER: { kind: "entity", race: "auros", fluxCost: 4, staticForms: [{ kind: "assign_discount", amount: 1 }], assignForms: [{ kind: "draw", count: 1, toSelf: true }] },
-  FIELD: { kind: "matter", behavior: "permanent", fluxCost: 3, resolveForms: [{ kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }] },
+  FIELD: { kind: "matter", behavior: "static", fluxCost: 3, resolveForms: [{ kind: "exile", target: { static: true, controller: "opponent" }, to: "abisso", hold: true }] },
   COORDINATED: { kind: "matter", behavior: "reactive", fluxCost: 4, resolveForms: [{ kind: "empower", targets: "own_entities", race: "human", counter: 1, untap: true, requires: { count: 3, race: "human" } }] },
   JUDGMENT: { kind: "matter", behavior: "reactive", fluxCost: 5, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, ifTarget: "tapped" }, thenLose: null }] },
   SUBVERSION: { kind: "matter", behavior: "normal", fluxCost: 3, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "opponent" }, to: "abisso", discount: null, thenLose: 2 }] },
@@ -382,17 +382,17 @@ describe("enterReturns", () => {
     return card;
   }
 
-  it("i candidati sono le permanenti nella propria Zona di Ritiro: Entità e Materie permanenti", () => {
+  it("i candidati sono le Statiche nella propria Zona di Ritiro: Entità e Materie Statiche", () => {
     const state = newGame();
     const rhen = on(state, "rhen", "RHEN");
-    inRetire(state, "p1", "PERMANENT");
+    inRetire(state, "p1", "STATIC");
     inRetire(state, "n1", "NORMAL");
     inRetire(state, "u1", "HUMAN");
-    inRetire(state, "bp", "PERMANENT", "b");
+    inRetire(state, "bp", "STATIC", "b");
     const [step] = enterReturns(state, rhen, facts);
     expect(step.from).toBe("ritiro");
-    // «Permanente» (§10) è quel che resta in campo: l'Entità e la Materia
-    // permanente. Non la Materia normale, non le carte dell'avversario.
+    // «Carta statica» (§10) è quel che resta in campo: l'Entità e la Materia
+    // Statica. Non la Materia normale, non le carte dell'avversario.
     expect(step.candidates.map(card => card.uid)).toEqual(["p1", "u1"]);
     expect(step.frontFull).toBe(false);
     expect(describeReturn(step, facts)).toMatch(/«RHEN» si innesca/);
@@ -407,7 +407,7 @@ describe("enterReturns", () => {
       card.x = x;
       card.y = frontRowY("a");
     });
-    inRetire(state, "p1", "PERMANENT");
+    inRetire(state, "p1", "STATIC");
     const [matterOnly] = enterReturns(state, rhen, facts);
     expect(matterOnly.candidates.map(card => card.uid)).toEqual(["p1"]);
     expect(matterOnly.frontFull).toBe(false);
@@ -448,7 +448,7 @@ describe("enterReturns", () => {
   it("resolveReturn manda il toZone verso il campo marcato come effetto", async () => {
     const state = newGame();
     const rhen = on(state, "rhen", "RHEN");
-    const p1 = inRetire(state, "p1", "PERMANENT");
+    const p1 = inRetire(state, "p1", "STATIC");
     const sent: Action[] = [];
     const ctx: Ctx = {
       state: () => state,
@@ -709,7 +709,7 @@ describe("returnsFor on_attack", () => {
   it("il passo porta l'evento dell'attacco", async () => {
     const state = newGame();
     const rhen = on(state, "rhen", "RHEN");
-    const p1 = on(state, "p1", "PERMANENT");
+    const p1 = on(state, "p1", "STATIC");
     p1.zone = "ritiro";
     const [step] = returnsFor(state, rhen, facts, "on_attack");
     expect(step.event).toBe("on_attack");
@@ -870,7 +870,7 @@ describe("attackSteps", () => {
     expect(attackRef(attackSteps(state, u, facts)[1])).toEqual({ source: "q", event: "on_attack", entering: "u", once: true });
   });
 
-  it("la Materia permanente ascolta solo gli Umani; il Rubyfront il terzo Umano, una volta", () => {
+  it("la Materia Statica ascolta solo gli Umani; il Rubyfront il terzo Umano, una volta", () => {
     const state = newGame();
     on(state, "m", "HEIRS");
     deploy(state, "rf", "OBLIVHAL");
@@ -890,7 +890,7 @@ describe("attackSteps", () => {
     const muster = attackSteps(nexus, u3, facts).find(s => s.source.uid === "rf")!;
     expect(muster.form).toMatchObject({ thenDraw: 1, face: 1 });
     expect(attackSteps({ ...state, fired: ["rf|on_attack:heal|turn"] }, u3, facts).map(s => s.source.uid)).toEqual(["m"]);
-    // La permanente si risolve una volta per turno: scattata con un Umano, non si ripropone col prossimo.
+    // La Statica si risolve una volta per turno: scattata con un Umano, non si ripropone col prossimo.
     expect(attackSteps({ ...state, fired: ["m|on_attack:heal|turn"] }, u3, facts).map(s => s.source.uid)).toEqual(["rf"]);
   });
 
@@ -1009,13 +1009,13 @@ describe("resolveSteps", () => {
     expect(playsAsBlock(facts("FORMATION"))).toBe(false);
   });
 
-  it("l'Impatto sceglie fra le avversarie economiche, il Campo fra Entità e permanenti avversari", () => {
+  it("l'Impatto sceglie fra le avversarie economiche, il Campo fra Entità e carte statiche avversarie", () => {
     const state = newGame();
     const i = on(state, "i", "IMPACT");
     const c = on(state, "c", "FIELD");
     on(state, "p", "SMALL", "b");
     on(state, "g", "BIG", "b");
-    on(state, "pm", "PERMANENT", "b");
+    on(state, "pm", "STATIC", "b");
     on(state, "f", "IRON", "b");
     on(state, "mine", "SMALL");
     expect(resolveSteps(state, i, facts)[0].candidates.map(x => x.uid)).toEqual(["p"]);

@@ -644,7 +644,7 @@ class TableAttackToolsTest < Minitest::Test
     assert_equal "a1", @table.card("b1")[:held_by]
     @table.apply({ "t" => "turn", "turn" => 5, "active" => "b" })
     @table.apply({ "t" => "turn", "turn" => 6, "active" => "a" })
-    assert @table.card("a1")[:tapped], "dallo snapshot la Stasi resta una tappata permanente"
+    assert @table.card("a1")[:tapped], "dallo snapshot la Stasi resta una tappata static carde"
   end
 
 end

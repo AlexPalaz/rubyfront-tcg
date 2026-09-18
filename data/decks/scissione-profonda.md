@@ -70,7 +70,7 @@ Zona di Ritiro.
 - Nessun limite di Oggetti per Entità: cambio di regolamento del 24 ago 2026,
   scritto in MANUALE §3.1 — sblocca Avy Shin e il Portatore di Fronti.
 - Garwin: «la prima volta che attacca» → **una volta per ogni tuo turno**.
-- Nube Intangibile: dal foglio «Normale» → **Permanente** (l'effetto vive
+- Nube Intangibile: dal foglio «Normale» → **Statica** (l'effetto vive
   finché la carta resta in campo).
 - Catalizzatore Sigma: «più di 4» → «con 5–6»; «zona di requiem» → Zona di
   Ritiro (le carte non prese vanno tutte lì).

@@ -298,8 +298,8 @@ export function createSession(options: SessionOptions): Session {
     view.offerAssignTriggers(before, state, deciders);
     // §8.2 — «quando quell'Entità muore»: l'Oggetto che resta, per il proprietario — io, o il bot.
     if (action.t !== "remain") view.offerDeathRemains(before, state, deciders);
-    // §8.2 (RBF-018) — chi teneva un permanente nell'Abisso ha lasciato il
-    // gioco: il permanente torna, e lo manda il tavolo che l'ha visto uscire.
+    // §8.2 (RBF-018) — chi teneva una carta statica nell'Abisso ha lasciato il
+    // gioco: la carta statica torna, e lo manda il tavolo che l'ha visto uscire.
     if (action.t !== "release" && Object.values(state.cards).some(card => card.heldBy && card.zone === "abisso" && state.cards[card.heldBy]?.zone !== "field")) {
       // Il `release` passa da qui (commit) come ogni azione: è quel commit a
       // offrire la scena di chi rientra, una volta sola (2026-09-16: prima

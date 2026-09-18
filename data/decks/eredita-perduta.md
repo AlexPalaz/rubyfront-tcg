@@ -115,7 +115,7 @@ più difendibile e lo dicono nella propria nota di design:
 | Vendicatore dei Dimenticati | «Zona del Fronte avversaria», attaccanti di quale turno | un'Entità avversaria; questo turno, quando attacca |
 | Arciere della Radura Argentata | esilio «fintanto che resta sul campo», senza il dopo | torna in gioco quando l'Arciere lascia il campo |
 | Simulacro di Vhal Astra | «Zona di Riposo» | Zona di Ritiro |
-| Rhen, Erede di Vhal Astra | «un permanente» dal Ritiro | Entità o Oggetto |
+| Rhen, Erede di Vhal Astra | «una carta statica» dal Ritiro | Entità o Oggetto |
 | Ajmal | la Fase di Fronte in più è condizionata? | tolta il 2026-09-05: quando entra, con 15–20 stappa tutte le Entità |
 | Formazione Infrangibile | frase interrotta nel foglio | stappo **più** +1 Potenza |
 | Forza della Radura | da dove arriva l'Entità | dalla mano |

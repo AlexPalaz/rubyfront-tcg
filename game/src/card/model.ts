@@ -25,7 +25,7 @@ export interface CounterStat {
 
 export type TextBlock =
   | { kind: "requirement"; text: string }
-  | { kind: "effect"; text: string; behavior: { id: "reactive" | "permanent"; label: string } | null }
+  | { kind: "effect"; text: string; behavior: { id: "reactive" | "static"; label: string } | null }
   | { kind: "fx"; tag: string; bodies: { name: string | null; text: string }[] }
   | { kind: "ability"; cost: { kind: "hp" | "gain" | "flux" | "none"; value: string }; name: string; text: string };
 
@@ -58,8 +58,8 @@ const FACE_KIND: Record<string, Record<string, string>> = {
   en: { rubyfront: "Rubyfront", nexus: "Nexus" },
 };
 const BEHAVIOR_NAMES: Record<string, Record<string, string>> = {
-  it: { reactive: "Reattiva", permanent: "Permanente" },
-  en: { reactive: "Reactive", permanent: "Permanent" },
+  it: { reactive: "Reattiva", static: "Statica" },
+  en: { reactive: "Reactive", static: "Static" },
 };
 
 const TRAILING_EVENTS = new Set(["on_leave_field", "on_death", "on_retire"]);
@@ -212,7 +212,7 @@ export function faceModel(cardId: string, faceId: string, locale: string): FaceM
     if (faceCopy.effect?.text) {
       const behavior =
         face.behavior && face.behavior !== "normal"
-          ? { id: face.behavior as "reactive" | "permanent", label: (BEHAVIOR_NAMES[locale] ?? BEHAVIOR_NAMES.en)[face.behavior] ?? cardCopy.card?.behaviors?.[face.behavior] ?? face.behavior }
+          ? { id: face.behavior as "reactive" | "static", label: (BEHAVIOR_NAMES[locale] ?? BEHAVIOR_NAMES.en)[face.behavior] ?? cardCopy.card?.behaviors?.[face.behavior] ?? face.behavior }
           : null;
       blocks.push({ kind: "effect", text: faceCopy.effect.text, behavior });
     }

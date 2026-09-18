@@ -64,9 +64,9 @@ export interface EnterReturnStep {
 }
 
 /**
- * Gli effetti «metti sul tuo Fronte una carta permanente dalla tua Zona di
+ * Gli effetti «metti sul tuo Fronte una carta statica dalla tua Zona di
  * Ritiro» (§8.2, la forma di RBF-012), all'ingresso o all'attacco: per
- * ciascuno, i candidati — le Materie permanenti nella propria Zona di
+ * ciascuno, i candidati — le Materie Statiche nella propria Zona di
  * Ritiro.
  */
 export function returnsFor(
@@ -78,14 +78,14 @@ export function returnsFor(
   const forms = event === "on_attack" ? facts(source.cardId).attackReturns : facts(source.cardId).enterReturns;
   const seat = controllerOf(source);
   // §6.2, Fronte pieno: «anche la parte d'effetto che metterebbe in campo
-  // non si applica». Riguarda le sole Entità — una Materia permanente sta
+  // non si applica». Riguarda le sole Entità — una Materia Statica sta
   // dietro il Fronte e non occupa uno slot (§5).
   // Dal 2026-09-15 a Fronte pieno l'Entità può prendere il posto di una
   // propria (§6.2, la sostituzione): resta fra i candidati, e `frontFull`
   // dice al tavolo di chiederlo.
   const full = freeFrontSlotOrNull(state, seat) === null;
   return forms.map(ret => {
-    const candidates = zoneCards(state, seat, ret.from).filter(card => permanentOf(card, facts) && !sealedForPlay(state, card));
+    const candidates = zoneCards(state, seat, ret.from).filter(card => staticCardOf(card, facts) && !sealedForPlay(state, card));
     return {
       source,
       event,
@@ -782,7 +782,7 @@ export function previousAttackers(state: GameState, seat: Seat, race: string | n
  * I passi che l'attacco di `attacker` innesca, nell'ordine in cui il tavolo
  * li risolve: le forme di chi attacca, poi quelle degli Oggetti addosso,
  * poi quelle delle altre carte dello stesso posto (alleate, Materie
- * permanenti, il Rubyfront). Le condizioni si valutano qui come nella
+ * Statiche, il Rubyfront). Le condizioni si valutano qui come nella
  * dogana; ciò che è già stato risolto nel turno (una volta per turno) non
  * si ripropone. La stappata dopo il combattimento (RBF-028) è un passo
  * della risoluzione, non dell'attacco: sta a parte (vigilUntaps).
@@ -900,7 +900,7 @@ export function describeAttackStep(step: AttackStep, facts: (cardId: string) => 
         ? t("trigger.sift", { card, die: form.die, lo: form.onRoll?.[0] ?? 0, hi: form.onRoll?.[1] ?? 0, n: form.count })
         : t("trigger.foresight", { card, n: form.count });
     case "heal":
-      if (form.who === "permanent") return t("trigger.heirs", { card, die: form.die ?? 0 });
+      if (form.who === "static") return t("trigger.heirs", { card, die: form.die ?? 0 });
       if (form.who === "rubyfront") return t(form.thenDraw ? "trigger.muster.nexus" : "trigger.muster", { card, n: form.amount });
       return t("trigger.mend", { card, n: form.amount, die: form.die ?? 0, lo: form.onRoll?.[0] ?? 0, hi: form.onRoll?.[1] ?? 0 });
     case "return": return t("trigger.recall", { card, die: form.die, lo: form.onRoll[0], hi: form.onRoll[1] });
@@ -943,10 +943,10 @@ function resolveFired(state: GameState, source: CardInstance, step: string): boo
   return (state.fired ?? []).some(fired => step.endsWith(":") ? fired.startsWith(key) : fired === `${key}|${source.uid}`);
 }
 
-/** Una carta «permanente» (§10): quel che resta in campo — un'Entità o una Materia permanente, mai il Rubyfront, mai un Oggetto. */
-export function permanentOf(card: CardInstance, facts: (cardId: string) => CardFacts): boolean {
+/** Una carta «statica» (§10): quel che resta in campo — un'Entità o una Materia Statica, mai il Rubyfront, mai un Oggetto. */
+export function staticCardOf(card: CardInstance, facts: (cardId: string) => CardFacts): boolean {
   const f = facts(card.cardId);
-  return f.kind === "entity" || (f.kind === "matter" && f.behavior === "permanent");
+  return f.kind === "entity" || (f.kind === "matter" && f.behavior === "static");
 }
 
 /**
@@ -999,7 +999,7 @@ export function resolveSteps(state: GameState, source: CardInstance, facts: (car
         break;
       }
       case "exile": {
-        step.candidates = foesAndMine.filter(card => controllerOf(card) !== seat && permanentOf(card, facts));
+        step.candidates = foesAndMine.filter(card => controllerOf(card) !== seat && staticCardOf(card, facts));
         if (step.candidates.length === 0) step.blocked = "log.no.target";
         break;
       }
@@ -1332,7 +1332,7 @@ export function heldBy(state: GameState, holderUid: string): CardInstance[] {
 
 /**
  * Le carte tenute nell'Abisso da chi non è più in gioco (RBF-018: «quando
- * questa carta lascia il gioco, quel permanente torna in gioco»): tornano
+ * questa carta lascia il gioco, quella carta statica torna in gioco»): tornano
  * al proprietario — sul suo Fronte in uno slot libero (le Materie nella
  * loro fila), o nella sua Zona di Ritiro se è pieno. La manda il tavolo
  * che ha visto uscire chi le teneva.

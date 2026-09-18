@@ -91,7 +91,7 @@ export const COPY = {
       dominant: "Dominante"
     },
     faceKind: { rubyfront: "Rubifronte", nexus: "Nexus" },
-    behaviorNames: { reactive: "Reattiva", permanent: "Permanente" }
+    behaviorNames: { reactive: "Reattiva", static: "Statica" }
   },
   en: {
     catalog: "Catalog",
@@ -181,7 +181,7 @@ export const COPY = {
       dominant: "Dominant"
     },
     faceKind: { rubyfront: "Rubyfront", nexus: "Nexus" },
-    behaviorNames: { reactive: "Reactive", permanent: "Permanent" }
+    behaviorNames: { reactive: "Reactive", static: "Static" }
   }
 };
 

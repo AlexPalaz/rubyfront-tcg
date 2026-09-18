@@ -283,7 +283,7 @@ Regole collegate finora:
 - **§6.2 Le carte si giocano in Preparazione** — «in questa fase si inizia a
   giocare con le carte e si prepara il Fronte»: nel Fronte si dichiara,
   nella Reazione si difende, e un ingresso in campo da fuori (Entità,
-  Materie normali e permanenti, Oggetti) fuori dalla Preparazione viene
+  Materie normali e Statiche, Oggetti) fuori dalla Preparazione viene
   fermato — per entrambi i posti, perché nel turno altrui non è
   Preparazione di nessuno. Due eccezioni del manuale: le **Materie
   Reattive**, che «si giocano solo in Fase di Fronte» (§7.2; l'anagrafe
@@ -374,7 +374,7 @@ Regole collegate finora:
   giocando dalla mano; Materia senza etichetta o fila ignota: nel dubbio
   non si accusa. Il sigillo: «nessuna carta in campo abilita la Materia
   Dinamica di grado 2». Limiti dichiarati: l'attribuzione (quale
-  abilitante, §7) non si sceglie, e il decadere delle permanenti quando
+  abilitante, §7) non si sceglie, e il decadere delle Statiche quando
   l'abilitazione si perde (§7.2) arriverà a parte. Engine 0.19.0, venti
   regole.
 
@@ -450,14 +450,14 @@ Regole collegate finora:
   freccia dalla fonte al dito; poi la fonte si accende, la freccia va al
   bersaglio e la carta parte — anche per chi guarda. La terza forma è
   il **ritorno**: «quando questa Entità entra sul Fronte, metti
-  sul tuo Fronte una carta permanente dalla tua Zona di Ritiro» — un
+  sul tuo Fronte una carta statica dalla tua Zona di Ritiro» — un
   `toZone` verso il campo marcato con `effect`, che passa se la carta
-  scelta è una **permanente** nella PROPRIA Zona di Ritiro — «una carta
-  permanente» (§10) è quel che resta in campo: un'**Entità** o una Materia
-  permanente, mai il Rubyfront, mai un Oggetto, la stessa lettura
-  dell'esilio condizionato (`permanent_card?` / `permanentOf`). A **Fronte
+  scelta è una **carta statica** nella PROPRIA Zona di Ritiro — «una carta
+  statica» (§10) è quel che resta in campo: un'**Entità** o una Materia
+  Statica, mai il Rubyfront, mai un Oggetto, la stessa lettura
+  dell'esilio condizionato (`static_card?` / `staticCardOf`). A **Fronte
   pieno** un'Entità non torna, «anche la parte d'effetto che metterebbe in
-  campo non si applica» (§6.2); una Materia permanente sì, perché sta
+  campo non si applica» (§6.2); una Materia Statica sì, perché sta
   dietro il Fronte e non occupa uno slot (§5). Nel client si sceglie dalla
   pila (la finestra della ricerca, ristretta ai candidati), si conferma, e
   la carta vola dalla pila al suo posto; se il Fronte pieno ha tolto tutti
@@ -509,7 +509,7 @@ Regole collegate finora:
   attacca, in campo con un attacco dichiarato in Fase di Fronte; la fonte
   è in campo ed è, secondo la forma, chi attacca, un Oggetto addosso a chi
   attacca, una carta dello stesso posto (un'alleata, una Materia
-  permanente, il Rubyfront/Nexus schierato); ogni passo ha la sua tripla
+  Statica, il Rubyfront/Nexus schierato); ogni passo ha la sua tripla
   (`fonte|on_attack:passo|attaccante`, o `turn` al posto dell'attaccante
   per «una volta per turno», che il riferimento dichiara con `once`).
   Le forme: la **stappata dopo il combattimento** — armato, «stappala dopo il
@@ -537,8 +537,8 @@ Regole collegate finora:
   tue Entità e c'è una Fase di Fronte addizionale» — è stata riscritta dal
   designer come innesco d'ingresso senza la fase in più (vedi sotto, §8.2
   «quando entra, un d20»), e la Fase di Fronte addizionale è uscita
-  dall'engine con lei; la **permanente col d20** —
-  la Materia permanente: quando attacca un Umano che controlli, «un d20:
+  dall'engine con lei; la **Statica col d20** —
+  la Materia Statica: quando attacca un Umano che controlli, «un d20:
   1–6 guadagni PV pari agli Umani che hanno attaccato, 15–20 li perde il
   Rubyfront/Nexus avversario, 7–14 nulla» — **a ogni Umano che
   attacca** (decisione del designer del 2026-09-14, che supera quella del
@@ -674,15 +674,15 @@ Regole collegate finora:
   Potenza» — `empower {untap: true, power: 1}`, un bersaglio solo per
   risoluzione; lo **spostamento in Ritiro**: «un'Entità avversaria con costo 2 o
   inferiore nella Zona di Ritiro» — un `toZone` verso il Ritiro; l'**esilio
-  condizionato** (permanente): «manda nell'Abisso un permanente
+  condizionato** (Statica): «manda nell'Abisso una carta statica
   avversario; finché questa carta resta in gioco resta nell'Abisso; quando
   lascia il gioco torna in gioco» — un `toZone` con `heldBy`, che la copia
   e il riduttore annotano sulla carta esiliata (`heldBy`, anche nello
   snapshot); quando chi la teneva lascia il campo, il tavolo che l'ha
   visto uscire manda un `release` (lo stesso della restituzione del
   controllo), sul Fronte del proprietario o nella sua Zona di Ritiro se è
-  pieno, e l'engine lo passa solo a chi tiene fuori dal campo — «permanente»
-  qui è un'Entità o una Materia permanente (mai il Rubyfront; gli Oggetti
+  pieno, e l'engine lo passa solo a chi tiene fuori dal campo — «carta statica»
+  qui è un'Entità o una Materia Statica (mai il Rubyfront; gli Oggetti
   seguono la loro Entità fuori dal campo e restano in Zona di Ritiro, §3.1); il **d20 a
   fasce** — con 1–6 +4 PV (`player`), con
   7–13 un'Entità Umana con costo 2 o inferiore dalla mano sul Fronte
@@ -700,12 +700,12 @@ Regole collegate finora:
   vale solo se quel bersaglio è tappato, e il passo che distrugge deve
   colpire lui (senza bersaglio dichiarato: costo pieno, e poi si sceglie).
   Nel client la scena elenca i passi e «Risolvi» li esegue; la Materia
-  normale o Reattiva vola poi nell'Abisso da sé, la permanente resta —
-  e chi teneva un permanente nell'Abisso lo restituisce appena esce
+  normale o Reattiva vola poi nell'Abisso da sé, la Statica resta —
+  e chi teneva una carta statica nell'Abisso lo restituisce appena esce
   (`releaseHeld`). Limiti dichiarati: l'engine non PRETENDE che la
   Materia risolta vada nell'Abisso (è il tavolo a mandarcela); l'ordine di
   risoluzione degli effetti simultanei (§8.2) e il decadere delle
-  permanenti con l'abilitazione (§7.2) non sono collegati; il tiro del
+  Statiche con l'abilitazione (§7.2) non sono collegati; il tiro del
   d20 lo fa il client; la Materia col seguito ignoto («poi perdi 2 PV») e le
   altre del primo lotto restano nel debito.
 - **§3.1 Il Nexus** — il flip è un'azione con una regola: verso la faccia
@@ -729,7 +729,7 @@ Regole collegate finora:
   client «Flip → Nexus» con l'arbitro legge il requisito, chiede lo scarto
   dalla mano e apre la scena «Quando flippa». Limiti dichiarati: le
   abilità speciali a costo PV (§3.1) e la Furia (§8.1) non sono collegate;
-  le Materie permanenti dei tipi che il Nexus non abilita più non decadono
+  le Materie Statiche dei tipi che il Nexus non abilita più non decadono
   da sole (§3.1, §7.2). Engine 0.34.0, trentasei regole.
 
 - **§3.1 Il Rubyfront in Zona di Richiamo non ha abilità** — «è
@@ -759,7 +759,7 @@ Regole collegate finora:
   Materie risolte, decadute o svanite» — non gli Oggetti di un'Entità
   morta, che vanno in Zona di Ritiro (§3.1, dal 2026-09-13). Un `toZone` verso l'Abisso senza riferimento d'effetto passa
   solo per una **Materia in campo** (la risolta che si consuma, la
-  permanente che decade: gesto a mano). Il resto — un'Entità trascinata
+  Statica che decade: gesto a mano). Il resto — un'Entità trascinata
   nell'Abisso, una carta dalla mano, dal mazzo o dal Ritiro — è fermato:
   si muore con la risoluzione (§6.4), e un effetto passa con il suo
   riferimento da `judge_effect`, non da qui. **Lo scarto non va
@@ -781,7 +781,7 @@ Regole collegate finora:
   `toZone` che ne porti FUORI una carta — verso il Fronte, la mano, il
   mazzo, l'Abisso — senza riferimento d'effetto è fermato. Le carte tornano
   con gli effetti che le nominano («riporta in mano un'Entità dalla tua Zona
-  di Ritiro», «metti sul tuo Fronte una permanente dalla tua Zona di
+  di Ritiro», «metti sul tuo Fronte una Statica dalla tua Zona di
   Ritiro»), e un effetto passa da `judge_effect` col suo riferimento, non da
   questa dogana. Nel client, con l'arbitro al tavolo, una carta nell'Abisso
   o in Zona di Ritiro non offre più destinazioni nel menu. Limite
@@ -883,7 +883,7 @@ Regole collegate finora:
   non si vede, la Reattiva si risolve comunque; e la proprietà delle
   carte in catena non si guarda oltre la parola. Engine 0.37.0,
   quarantuno regole. Col Ritiro alla sola fase e la Zona di Ritiro chiusa
-  in uscita: engine 0.38.1, quarantaquattro regole. Con «permanente» letta
+  in uscita: engine 0.38.1, quarantaquattro regole. Con «carta statica» letta
   come nel §10 e il Fronte pieno nel ritorno: engine 0.38.2. Con la
   controllata ferma nelle zone: engine 0.39.0, quarantacinque regole.
 

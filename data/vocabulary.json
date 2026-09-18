@@ -130,7 +130,7 @@
     "_note": "How a Matter card behaves when played (MANUALE.md §7.2). Field 'behavior' on matter faces; 'normal' carries no label on the printed card",
     "values": [
       "normal",
-      "permanent",
+      "static",
       "reactive"
     ]
   },

@@ -17,7 +17,7 @@
     "matter",
     "destructive",
     "grade-1",
-    "permanent",
+    "static",
     "removal"
   ],
   "rulesReference": "MANUALE.md §5, §7.2",
@@ -30,7 +30,7 @@
         "type": "destructive",
         "grade": 1
       },
-      "behavior": "permanent",
+      "behavior": "static",
       "stats": {
         "fluxCost": 3
       },
@@ -49,7 +49,7 @@
               "min": 1,
               "max": 1,
               "details": {
-                "permanent": true
+                "static": true
               }
             },
             "destination": {

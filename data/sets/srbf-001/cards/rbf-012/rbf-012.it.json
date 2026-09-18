@@ -15,7 +15,7 @@
     "name": "Rhen, Erede di Vhal Astra",
     "heirReturn": {
       "trigger": "Quando attacca",
-      "text": "Metti sul tuo Fronte una carta permanente dalla tua Zona di Ritiro."
+      "text": "Metti sul tuo Fronte una carta statica dalla tua Zona di Ritiro."
     },
     "flavor": "Il nome non si eredita. Si riprende."
   },

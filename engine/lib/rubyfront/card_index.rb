@@ -44,7 +44,7 @@ module Rubyfront
     # controller: }, to: }.
     #
     # `enter_returns` sono i ritorni all'ingresso CERTIFICATI (§8.2): «quando
-    # questa Entità entra sul Fronte, metti sul tuo Fronte una carta permanente
+    # questa Entità entra sul Fronte, metti sul tuo Fronte una carta statica
     # dalla tua Zona di Ritiro». Ogni voce: { from:,
     # filter: { type:, behavior: }, to: }.
     #
@@ -60,7 +60,7 @@ module Rubyfront
     # grants: [...] }.
     #
     # `behavior` è il comportamento di una Materia (§7.2): "normal",
-    # "permanent" o "reactive" — nil per chi non è una Materia. Serve alla
+    # "static" o "reactive" — nil per chi non è una Materia. Serve alla
     # finestra di gioco: le Reattive sono le sole carte che scendono in Fase
     # di Fronte.
     #
@@ -83,7 +83,7 @@ module Rubyfront
     #   { kind: "look", count:, reveal: { type:, race: }, reveal_to: "hand", rest_to: "deck", show_up_to: }
     #   { kind: "empower", targets: "own_entity", race:, power:, untap: true }
     #   { kind: "move", target: { type: "entity", controller: "opponent", max_cost: }, to: "ritiro", discount: nil | { amount:, if_armed_at_least: } }
-    #   { kind: "exile", target: { permanent: true, controller: "opponent" }, to: "abisso", hold: true }
+    #   { kind: "exile", target: { static: true, controller: "opponent" }, to: "abisso", hold: true }
     #   { kind: "weaken", target: { type: "entity", controller: "opponent", attacking: true }, amount: -1, per_armed: true } — l'attaccante avversario, −1 per ogni propria armata
     #   { kind: "empower", targets: "own_armed", power:, up_to:, untap: true } — fino a N proprie armate, +M e stappate
     #   { kind: "fortune", die:, gain: { on:, amount: }, deploy: { on:, filter: }, draw: { on:, count: }, all_on: }
@@ -390,14 +390,14 @@ module Rubyfront
         from = effect["from"]
         destination = effect["destination"]
         next unless target.is_a?(Hash) && target["controller"] == "controller" && target["min"] == 1 && target["max"] == 1
-        next unless target["details"].is_a?(Hash) && target["details"]["permanent"] == true
+        next unless target["details"].is_a?(Hash) && target["details"]["static"] == true
         next unless from.is_a?(Hash) && from["zone"] == "retire" && from["owner"] == "controller"
         next unless destination.is_a?(Hash) && destination["zone"] == "front"
 
-        # «una carta permanente» (§10): quel che resta in campo — un'Entità
-        # o una Materia permanente, mai il Rubyfront, mai un Oggetto. Stessa
+        # «una carta statica» (§10): quel che resta in campo — un'Entità
+        # o una Materia Statica, mai il Rubyfront, mai un Oggetto. Stessa
         # lettura dell'esilio condizionato. Gemello: core/src/cards.ts, enterReturnsOf.
-        { from: "ritiro", filter: { permanent: true }.freeze, to: "field" }.freeze
+        { from: "ritiro", filter: { static: true }.freeze, to: "field" }.freeze
       end
     end
 
@@ -428,7 +428,7 @@ module Rubyfront
     # `who` chi è la fonte rispetto all'attaccante: "self" (chi attacca),
     # "object" (un Oggetto addosso all'attaccante), "ally" (un'altra carta
     # dello stesso posto, quando attacca un'Entità che soddisfa il filtro),
-    # "permanent" (una Materia permanente), "rubyfront" (il Rubyfront/Nexus
+    # "static" (una Materia Statica), "rubyfront" (il Rubyfront/Nexus
     # schierato). `face` è la faccia che porta la forma (il Nexus ha le sue).
     #
     #   { kind: "untap",   who: "self", once:, requires_object: }        stappa dopo il combattimento
@@ -440,7 +440,7 @@ module Rubyfront
     #   { kind: "rearm", who: "ally", attacker_armed: }                  un Oggetto dal Ritiro, gratis
     #   { kind: "heal", who: "self", amount:, die:, on_roll:, then_recall: } +2 PV, poi col dado un'Entità in mano
     #   { kind: "return", who: "self", die:, on_roll:, filter:, joins: }  un'Entità dal Ritiro, che attacca
-    #   { kind: "heal", who: "permanent", attackers:, die:, gain_on:, drain_on: } PV pari agli Umani attaccanti
+    #   { kind: "heal", who: "static", attackers:, die:, gain_on:, drain_on: } PV pari agli Umani attaccanti
     #   { kind: "heal", who: "rubyfront", once:, requires_attackers:, amount:, then_draw:, then_discard: }
     #   { kind: "empower", who: "self", once:, targets: "next_human_attacker", grants: }
     #   { kind: "empower", who: "self", requires_previous_attackers:, targets: "opposing_entity", restrict: }
@@ -587,7 +587,7 @@ module Rubyfront
         # Umano che attacca, un d20 (decisione del designer, 2026-09-14, che
         # supera quella del 2026-09-10 «una volta per turno»). Ogni tiro conta
         # gli Umani che hanno attaccato fin lì nel turno.
-        return { kind: "heal", who: "permanent", attackers: { type: "entity", race: "human" }.freeze, die: die,
+        return { kind: "heal", who: "static", attackers: { type: "entity", race: "human" }.freeze, die: die,
                  gain_on: roll_range(gain), drain_on: roll_range(drain), amount: "human_attackers", once: false }
       end
       nil
@@ -835,7 +835,7 @@ module Rubyfront
           end
         else
           # «Mentre assegnato» dura finché l'Oggetto è addosso: la durata
-          # esplicita (`permanent`) o assente dicono la stessa cosa.
+          # esplicita (`static`) o assente dicono la stessa cosa.
           next unless effect.dig("target", "scope") == "assigned" && [nil, "permanent"].include?(effect["duration"])
 
           if details.empty?
@@ -915,7 +915,7 @@ module Rubyfront
       { kind: "block", requires_armed: extra["ifControllerEntitiesWithObjectAtLeast"], heal: extra["thenControllerGainsHealth"], as_block: true }
     end
 
-    # Gli spostamenti alla risoluzione: un'Entità avversaria economica in Ritiro; un permanente avversario nell'Abisso, finché questa carta resta.
+    # Gli spostamenti alla risoluzione: un'Entità avversaria economica in Ritiro; una carta statica avversaria nell'Abisso, finché questa carta resta.
     def self.resolve_move(effect)
       return nil unless effect["type"] == "move_card"
 
@@ -950,9 +950,9 @@ module Rubyfront
         return { kind: "move", target: { type: "entity", controller: "opponent", max_cost: max_cost }.freeze, to: "ritiro", discount: discount }
       end
       extra = effect["details"]
-      if target.dig("details", "permanent") == true && destination["zone"] == "abyss" && extra.is_a?(Hash) &&
+      if target.dig("details", "static") == true && destination["zone"] == "abyss" && extra.is_a?(Hash) &&
          extra["whileSourceOnField"] == true && extra["returnsToPlayWhenSourceLeaves"] == true
-        return { kind: "exile", target: { permanent: true, controller: "opponent" }.freeze, to: "abisso", hold: true }
+        return { kind: "exile", target: { static: true, controller: "opponent" }.freeze, to: "abisso", hold: true }
       end
       nil
     end

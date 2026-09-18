@@ -53,13 +53,13 @@ describe("il modello della faccia", () => {
     expect(face.right).toMatchObject({ kind: "matter", matter: { type: face.tint } });
   });
 
-  it("le Reattive e le Permanenti dichiarano il comportamento, nella lingua della carta", () => {
+  it("le Reattive e le Statiche dichiarano il comportamento, nella lingua della carta", () => {
     for (const card of catalog.cards) {
       for (const f of card.faces as { id: string; kind: string; behavior?: string }[]) {
         if (f.kind !== "matter" || !f.behavior || f.behavior === "normal") continue;
         const it = faceModel(card.id, f.id, "it")!;
         const en = faceModel(card.id, f.id, "en")!;
-        const labels = { reactive: ["Reattiva", "Reactive"], permanent: ["Permanente", "Permanent"] }[f.behavior as "reactive" | "permanent"];
+        const labels = { reactive: ["Reattiva", "Reactive"], static: ["Statica", "Static"] }[f.behavior as "reactive" | "static"];
         expect(it.blocks[0]).toMatchObject({ kind: "effect", behavior: { id: f.behavior, label: labels[0] } });
         expect(en.blocks[0]).toMatchObject({ kind: "effect", behavior: { id: f.behavior, label: labels[1] } });
       }

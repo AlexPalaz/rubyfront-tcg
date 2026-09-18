@@ -206,7 +206,7 @@ function createTitleBar(card, face, faceCopy, cardCopy) {
 }
 
 // Simboli dei comportamenti delle Materie (§7.2): la Reattiva è un fulmine
-// (scatta nel turno altrui), la Permanente sarà un anello (ciò che resta).
+// (scatta nel turno altrui), la Statica sarà un anello (ciò che resta).
 // Il nome della dicitura sopravvive solo come tooltip/aria-label.
 function createBehaviorIcon(behavior, label) {
   const svg = svgElement("svg", { viewBox: "0 0 20 20", "aria-label": label, class: "behavior-icon" });
@@ -440,7 +440,7 @@ function createTextBox(face, faceCopy, cardCopy, localeId) {
   if (face.kind === "matter" || face.kind === "object") {
     if (faceCopy.effect?.text) {
       const body = element("p", "matter-effect");
-      // Permanenti e Reattive dichiarano il comportamento (§7.2) con il proprio
+      // Statiche e Reattive dichiarano il comportamento (§7.2) con il proprio
       // simbolo e la parola in grassetto in testa al testo; il comportamento
       // normale non si stampa.
       if (face.behavior && face.behavior !== "normal") {
