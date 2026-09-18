@@ -14,7 +14,7 @@ import { cardFacts, cardStats, deckTint, getCard, isRubyfront, type Tint } from 
 import { hasKeyword, powerOf, staticCounter } from "@rubyfront/core/combat";
 import { CONTROL_X, FRONT_SLOT_X, FRONT_W, FRONT_X, MATTER_X, RUBYFRONT_X, SLOT_X, SURFACE_W } from "@rubyfront/core/geometry";
 import { lang, t } from "@rubyfront/core/i18n";
-import { MULLIGANS_MAX, mayKeep, mayMulligan, mustKeep, openingPending, phaseCloser, seatLabel, waveDeclared, zoneCards } from "@rubyfront/core/state";
+import { MULLIGANS_MAX, mayKeep, mayMulligan, mustDiscard, mustKeep, openingPending, phaseCloser, seatLabel, waveDeclared, whoActs, zoneCards } from "@rubyfront/core/state";
 import type { CardInstance, GameState, Phase, Seat, ZoneId } from "@rubyfront/core/types";
 import { otherSeat } from "@rubyfront/core/types";
 import { Container, Graphics, Rectangle, Sprite, Texture } from "pixi.js";
@@ -1445,11 +1445,16 @@ export class Table {
     const hp = this.hpShown[seat] ?? player.hp;
     const headX = L.halfX + 24;
     const name = `${seatLabel(state, seat, this.me)}${mine ? t("label.you") : ""}`;
-    const width = Math.max(HEAD_W, HEAD_W / 2 + textWidth(tag, name));
+    // L'indicatore fisso di chi agisce (2026-09-18): la targhetta accesa sulla
+    // testata di chi deve muovere — tocca a te / sta giocando, difendi,
+    // rispondi, scegli la mano, scarta — nel colore della fase.
+    const acts = actsLabel(state, seat, this.me);
+    const width = Math.max(HEAD_W, HEAD_W / 2 + textWidth(tag, name) + (acts ? textWidth(tag, acts) + 40 : 0));
     const box = snapped(visible, resolution, headX - PIECE_MARGIN, field.top - HEAD_H / 2 - PIECE_MARGIN, width + 2 * PIECE_MARGIN, HEAD_H + 2 * PIECE_MARGIN);
-    this.paintRegion(this.seatHeads[seat], `${hp}|${player.token}|${player.flux}|${name}|${this.tints[seat]}`, box, resolution, ctx => {
+    this.paintRegion(this.seatHeads[seat], `${hp}|${player.token}|${player.flux}|${name}|${this.tints[seat]}|${acts ?? ""}|${state.phase}`, box, resolution, ctx => {
       const plateW = seatPlate(ctx, state, seat, headX, field.top, hp);
-      nameplate(ctx, name, headX + plateW + 12, field.top - 13, palette);
+      const nameW = nameplate(ctx, name, headX + plateW + 12, field.top - 13, palette);
+      if (acts) actsPill(ctx, acts, headX + plateW + 12 + nameW + 10, field.top - 13, state.phase);
     });
   }
 
@@ -1471,7 +1476,15 @@ export class Table {
     const opening = openingPending(state);
     const keepMine = opening && mustKeep(state, this.me);
     const endsTurn = state.phase === "fronte" && !waveDeclared(state);
-    const label = t(opening ? (keepMine ? "hud.keep" : "hud.keep.waiting") : endsTurn ? "hud.endturn" : PHASE_END[state.phase]);
+    // §6.5 — a mano piena il tasto dice perché: «Scarta fino a 7» a chi deve, «X deve scartare» a chi aspetta (2026-09-18).
+    const discarding = [this.me, otherSeat(this.me)].find(seat => mustDiscard(state, seat)) ?? null;
+    const label = t(
+      opening ? (keepMine ? "hud.keep" : "hud.keep.waiting")
+        : discarding === this.me ? "hud.discard.mine"
+          : discarding ? "hud.discard.theirs"
+            : endsTurn ? "hud.endturn" : PHASE_END[state.phase],
+      discarding && discarding !== this.me ? { name: seatLabel(state, discarding, this.me) } : undefined,
+    );
     const font: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.12, upper: true };
     const w = textWidth(font, label) + 36;
     const h = 38;
@@ -1485,7 +1498,7 @@ export class Table {
     const [hi, lo, edge] = colors[state.phase];
     // La fase la chiude chi è di turno (in Reazione il difensore, §6.4): se
     // non sei tu, il tasto c'è ma è spento (filter: saturate(.4) brightness(.75)).
-    const mine = opening ? keepMine && mayKeep(state, this.me) : phaseCloser(state) === this.me && !state.over;
+    const mine = opening ? keepMine && mayKeep(state, this.me) : phaseCloser(state) === this.me && !state.over && (!discarding || discarding === this.me);
     this.paintMulliganButton(state, keepMine, x - 12, y, h, visible, resolution);
     // L'area del tasto, per il click: accesa solo se la fase la chiudi tu.
     this.phaseButton.hitArea = new Rectangle(x, y, w, h);
@@ -1742,6 +1755,39 @@ function nameplate(ctx: CanvasRenderingContext2D, text: string, x: number, y: nu
   plate(ctx, x, y, w, h, { shadow: true, glow: rgba(palette.rim, 0.3), edge: rgba(palette.rim) });
   paintText(ctx, text, x + 12, y + 5, palette.name, tag);
   return w;
+}
+
+/** La scritta dell'indicatore di chi agisce sulla testata di `seat`, o null se non tocca a lui. */
+function actsLabel(state: GameState, seat: Seat, me: Seat): string | null {
+  if (!whoActs(state).includes(seat)) return null;
+  const you = seat === me;
+  if (openingPending(state)) return t(you ? "head.keeps.you" : "head.keeps.them");
+  if (mustDiscard(state, seat)) return t(you ? "head.discards.you" : "head.discards.them");
+  if (state.chain && !state.chain.resolving) return t(you ? "head.responds.you" : "head.responds.them");
+  if (state.phase === "reazione") return t(you ? "head.defends.you" : "head.defends.them");
+  return t(you ? "head.acts.you" : "head.acts.them");
+}
+
+/** La pillola accesa di chi agisce: il colore della fase, il testo in maiuscole spaziate, il bagliore. */
+function actsPill(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, phase: Phase): void {
+  const colors: Record<Phase, [string, string, string]> = {
+    preparazione: ["#b81a41", "#e56a86", "rgba(229,106,134,.55)"],
+    fronte: ["#8e0c2f", "#d24a64", "rgba(210,74,100,.55)"],
+    reazione: ["#6a57a3", "#a494cf", "rgba(164,148,207,.55)"],
+  };
+  const [fill, edge, glow] = colors[phase];
+  const w = textWidth(tag, text) + 24;
+  const h = 26;
+  ctx.save();
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = 14 * ctx.getTransform().a;
+  ctx.fillStyle = fill;
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
+  ctx.strokeStyle = edge;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+  paintText(ctx, text, x + 12, y + 5, "#fdeef1", tag);
 }
 
 /** La stella a quattro punte del Gettone, coi lati che curvano (viewBox 24). */

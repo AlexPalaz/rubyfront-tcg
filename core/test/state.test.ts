@@ -604,6 +604,18 @@ describe("attrezzi degli effetti d'attacco", () => {
     expect(after.cards.e.grants).toBeUndefined();
   });
 
+  // «… prendono +1 Potenza fino alla fine del turno e vengono stappate»: la
+  // stappata è subito, con l'azione; il +1 cade al cambio di turno, la carta resta stappata.
+  it("empower con untap stappa subito; al cambio di turno cade il +1, non la stappata", () => {
+    const state = newGame("a");
+    field(state, "e", "a", { tapped: true });
+    const next = apply(state, { t: "empower", uid: "e", power: 1, untap: true, effect: { source: "m", event: "on_resolve", entering: "m" } });
+    expect(next.cards.e).toMatchObject({ tapped: false, powerBonus: 1 });
+    const after = apply(next, { t: "turn", turn: 2, active: "b" });
+    expect(after.cards.e.tapped).toBe(false);
+    expect(after.cards.e.powerBonus).toBeUndefined();
+  });
+
   it("empower non tocca una carta fuori dal campo", () => {
     const state = newGame("a");
     field(state, "h", "a", { zone: "hand" });

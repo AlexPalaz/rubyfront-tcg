@@ -15,7 +15,7 @@ import type { Ctx } from "@rubyfront/core/ctx";
 import { FRONT_SLOT_X, MATTER_X, RUBYFRONT_X, SLOT_X, frontRowY } from "@rubyfront/core/geometry";
 import type { Gestures } from "@rubyfront/core/gestures";
 import { msg, t } from "@rubyfront/core/i18n";
-import { chainTop, controllerOf, fieldCards, playSpot, seatLabel, zoneCards } from "@rubyfront/core/state";
+import { chainTop, controllerOf, fieldCards, mustDiscard, playSpot, seatLabel, zoneCards } from "@rubyfront/core/state";
 import { cardMenu, combatTabs, handLocked, pickable, type CombatTab, type MenuAction, type TabAction, type TargetingMode } from "@rubyfront/core/tabs";
 import type { CardInstance, GameState, Seat, ZoneId } from "@rubyfront/core/types";
 import { Container, Graphics, Point, Rectangle, Sprite, Texture, Ticker, type FederatedPointerEvent } from "pixi.js";
@@ -195,8 +195,9 @@ export class TableGestures {
     // §6.5 — l'invito a scartare (discardPrompt): la tua Zona di
     // Ritiro si accende quando il Fine turno è stato fermato dalla mano piena,
     // in quel turno e finché le carte sono più di 7.
-    const prompt = this.discardPrompt;
-    this.table.setDiscardHint(prompt?.seat === this.me && prompt.turn === state.turn && this.ctx.controls(this.me) && zoneCards(state, this.me, "hand").length > 7);
+    // Dal 2026-09-18 l'invito lo dice lo stato (mustDiscard), senza aspettare
+    // che qualcuno prema: chi deve scartare lo vede appena la fase lo permette.
+    this.table.setDiscardHint(this.ctx.controls(this.me) && (mustDiscard(state, this.me) || (this.discardPrompt?.seat === this.me && this.discardPrompt.turn === state.turn && zoneCards(state, this.me, "hand").length > 7)));
     if (this.blockAim) this.table.aim(this.candidates(this.blockAim));
     // Il velo aperto segue la carta: si rifà coi tasti nuovi, o si chiude.
     if (this.veil) {

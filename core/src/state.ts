@@ -1016,6 +1016,29 @@ function wholeDeck(seat: Seat, cards: readonly CardInstance[]): boolean {
   return cards.every(card => card.zone === "deck" || (card.zone === "field" && card.y === backRowY(seat)));
 }
 
+/**
+ * §6.5 — quel posto deve scartare prima che il suo turno si chiuda: è di
+ * turno, ha più di 7 carte, e la fase lo permette (in Preparazione non si
+ * scarta). Lo leggono i due tavoli dallo stato, non da un avviso spedito:
+ * chi deve scartare vede l'invito, chi chiude vede perché aspetta (2026-09-18).
+ */
+export function mustDiscard(state: GameState, seat: Seat): boolean {
+  return state.active === seat && state.phase !== "preparazione" && !state.over && zoneCards(state, seat, "hand").length > 7;
+}
+
+/**
+ * A chi tocca, adesso: chi deve tenere la mano nell'apertura, chi risponde
+ * nella catena, il difensore in Reazione, altrimenti chi è di turno. Per
+ * l'indicatore fisso sulle testate (2026-09-18) — può essere di entrambi
+ * (l'apertura), o di nessuno a partita finita.
+ */
+export function whoActs(state: GameState): Seat[] {
+  if (state.over) return [];
+  if (openingPending(state)) return SEATS.filter(seat => mustKeep(state, seat));
+  if (state.chain && !state.chain.resolving) return [state.chain.turn];
+  return [phaseCloser(state)];
+}
+
 /** §4 — «fino a 3 volte». Gemello: table.rb, MULLIGANS_MAX. */
 export const MULLIGANS_MAX = 3;
 

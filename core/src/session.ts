@@ -440,6 +440,21 @@ export function createSession(options: SessionOptions): Session {
     tintFor: seat => tints[seat],
     locale: () => locale,
     promptDiscard: seat => view.promptDiscard(seat),
+    // §6.5 — l'eccesso del bot lo scarta il bot, anche quando a chiudere è
+    // l'altro (la Reazione del suo turno, §6.4): una carta alla volta, le
+    // meno preziose (bot.ts, chooseDiscards).
+    discardExcess: async seat => {
+      if (seat !== botSeat) return false;
+      let discarded = false;
+      for (;;) {
+        const [excess] = chooseDiscards(state, seat, ctx.card);
+        if (!excess) break;
+        if (!(await dispatch({ t: "toZone", uid: excess.uid, zone: "ritiro" }))) break;
+        ctx.log(msg("log.discard", { seat, card: excess.cardId, n: zoneCards(state, seat, "hand").length }), seat);
+        discarded = true;
+      }
+      return discarded && zoneCards(state, seat, "hand").length <= 7;
+    },
     sync,
     acknowledge,
     resolveAttacks: () => view.resolveAttacks(),

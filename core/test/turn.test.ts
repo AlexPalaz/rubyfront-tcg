@@ -116,6 +116,31 @@ describe("endTurn", () => {
     expect(sent).toEqual([{ t: "turn", turn: 2, active: "b" }]);
   });
 
+  // §6.5 — chi è di turno risponde da sé (il bot): l'eccesso lo scarta lui,
+  // anche quando a chiudere è il difensore in Reazione, e il turno si chiude
+  // di seguito (2026-09-18: «all'avversario con 8 carte non viene chiesto di scartare»).
+  it("con il gancio discardExcess chi è di turno scarta da sé e il turno si chiude", async () => {
+    const state = newGame("a");
+    for (let i = 0; i < 8; i += 1) {
+      state.cards[`h${i}`] = { uid: `h${i}`, cardId: "X", owner: "a", zone: "hand", face: 0, x: 0, y: 0, z: 0, order: i, tapped: false, facedown: false };
+    }
+    for (const seat of ["a", "b"] as const) {
+      state.cards[`d${seat}`] = { uid: `d${seat}`, cardId: "X", owner: seat, zone: "deck", face: 0, x: 0, y: 0, z: 0, order: 0, tapped: false, facedown: false };
+    }
+    const { ctx, sent, logs } = fakeCtx(() => true, state);
+    const asked: string[] = [];
+    ctx.discardExcess = async seat => {
+      asked.push(seat);
+      delete state.cards.h7;
+      return true;
+    };
+    await endTurn(ctx);
+    expect(asked).toEqual(["a"]);
+    // Nessun invito a scartare: solo la riga del turno nuovo.
+    expect(logs.some(line => line.includes("scarta"))).toBe(false);
+    expect(sent).toEqual([{ t: "turn", turn: 2, active: "b" }]);
+  });
+
 });
 
 // «Fine fase» (HUD con l'arbitro): un gesto solo che chiude la fase in

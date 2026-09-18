@@ -428,6 +428,9 @@ export class Scene {
       for (const tap of side.hits) {
         root.addChild(hitZone(sideX + tap.x, sideY + tap.y, tap.w, tap.h, () => close(tap.value)));
       }
+      // La scena del bot prosegue da sola (gestures.ts, BOT_SCENE_MS): chi
+      // guarda legge, e se vuole preme prima.
+      if (!isChoice && "auto" in show && typeof show.auto === "number") setTimeout(() => close("go"), show.auto);
       window.addEventListener("keydown", onKey);
       this.layer.addChild(root);
       this.toTop();

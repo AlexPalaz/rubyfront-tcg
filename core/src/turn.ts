@@ -167,6 +167,11 @@ export async function endTurn(ctx: Ctx): Promise<void> {
   // scollegato). Qui ci si ferma prima, con la riga in chat che dice cosa fare.
   const held = zoneCards(state, state.active, "hand").length;
   if (held > 7) {
+    // Se chi è di turno risponde da sé (il bot: 2026-09-18, «all'avversario
+    // con 8 carte in Reazione non viene chiesto di scartare» — a chiudere è
+    // il difensore, e il bot non aveva un suo momento per scartare), scarta
+    // qui e il turno si chiude subito dopo.
+    if (ctx.discardExcess && (await ctx.discardExcess(state.active))) return endTurn(ctx);
     // La Zona di Ritiro si accende (l'invito a scartare, giallo); la riga in chat
     // una volta sola per turno, come quando a fermare è l'arbitro.
     const first = ctx.promptDiscard ? ctx.promptDiscard(state.active) : true;

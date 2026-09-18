@@ -53,7 +53,14 @@ export interface SceneShow {
   onContinue?: () => void | Promise<void>;
   /** La riga in alto: «Quando entra sul Fronte» di norma, «Quando attacca» all'attacco. */
   kicker?: string;
+  /** Di chi è la scena: il posto che gioca o comanda la carta. Per le scene del bot il tasto scatta da sé (`auto`). */
+  by?: Seat;
+  /** Dopo tanti millisecondi «Continua»/«Risolvi» scatta da solo (le scene del bot, dal 2026-09-18): chi guarda legge, non preme. */
+  auto?: number;
 }
+
+/** Quanto resta in vista una scena del bot prima di proseguire da sola. */
+export const BOT_SCENE_MS = 1800;
 
 /** La chiave di una scena per la stretta di mano (2026-09-15): genere, carte e turno — uguale sui due client. */
 export function sceneKey(ref: SceneRef, turn: number): string {
@@ -364,6 +371,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
               theme: ctx.themeFor(attacker.owner),
               locale: ctx.locale(),
               who,
+              by: controllerOf(attacker),
               effects: attackEffects(attacker.cardId, attacker.face, ctx.locale()),
               triggers: [
                 ...returns.map(step => describeReturn(step, ctx.card)),
@@ -430,7 +438,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       if (scenes.own) {
         const { show, steps } = scenes.own;
         let run: Promise<void> = Promise.resolve();
-        await view.scene({
+        await showScene({
           ...show,
           onContinue: () =>
             (run = track(async () => {
@@ -442,7 +450,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       }
       for (const group of scenes.others) {
         let run: Promise<void> = Promise.resolve();
-        await view.scene({
+        await showScene({
           ...group.show,
           onContinue: () =>
             (run = track(async () => {
@@ -504,7 +512,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const { show, triggered } = enterScene(live);
     if (!triggered) return;
     let run: Promise<void> = Promise.resolve();
-    await view.scene({
+    await showScene({
       ...show,
       onContinue: () =>
         (run = track(async () => {
@@ -554,6 +562,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         cardId: live.cardId,
         face: live.face,
         theme: ctx.themeFor(live.owner),
+        by: controllerOf(live),
         locale: ctx.locale(),
         who: bearer
           ? t("scene.assigns", { name: seatLabel(state, live.owner), card: `«${cardName(live.cardId, ctx.locale())}»`, toCard: `«${cardName(bearer.cardId, ctx.locale())}»` })
@@ -583,6 +592,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       theme: ctx.themeFor(card.owner),
       locale: ctx.locale(),
       who: t("scene.plays", { name: seatLabel(ctx.state(), card.owner), card: `«${cardName(card.cardId, ctx.locale())}»` }),
+      by: card.owner,
       effects: enterEffects(card.cardId, card.face, ctx.locale()),
       kicker: t("scene.reactive"),
       // Il bot sceglie da sé: per chi guarda la scena dice solo «Continua».
@@ -598,6 +608,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       cardId: matter.cardId,
       face: matter.face,
       theme: ctx.themeFor(matter.owner),
+      by,
       locale: ctx.locale(),
       who: chosen
         ? t("scene.resolves.on", { name: seatLabel(ctx.state(), by), card: `«${cardName(matter.cardId, ctx.locale())}»`, target: `«${cardName(chosen.cardId, ctx.locale())}»` })
@@ -616,6 +627,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       theme: ctx.themeFor(live.owner),
       locale: ctx.locale(),
       who: t("scene.flips", { name: seatLabel(ctx.state(), controllerOf(live)), card: `«${cardName(live.cardId, ctx.locale())}»` }),
+      by: controllerOf(live),
       effects: [],
       triggers: steps.map(step => describeFlipStep(step, ctx.card)),
       kicker: t("scene.flip"),
@@ -631,6 +643,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       theme: ctx.themeFor(step.source.owner),
       locale: ctx.locale(),
       who: t("scene.assigns", { name: seatLabel(ctx.state(), by), card: `«${cardName(step.object.cardId, ctx.locale())}»`, toCard: `«${cardName(step.bearer.cardId, ctx.locale())}»` }),
+      by,
       effects: enterEffects(step.source.cardId, step.source.face, ctx.locale()),
       triggers: [describeAssignStep(step, ctx.card)],
       kicker: t("scene.resolve.matter"),
@@ -646,6 +659,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       theme: ctx.themeFor(step.object.owner),
       locale: ctx.locale(),
       who: t("scene.dies", { name: seatLabel(ctx.state(), by), card: `«${cardName(step.bearer.cardId, ctx.locale())}»`, object: `«${cardName(step.object.cardId, ctx.locale())}»` }),
+      by,
       effects: enterEffects(step.object.cardId, step.object.face, ctx.locale()),
       triggers: [describeDeathStep(step, ctx.card)],
       kicker: t("scene.resolve.matter"),
@@ -1193,7 +1207,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       // la stretta di mano con l'avversario (in stanza).
       const live = ctx.state().cards[card.uid] ?? card;
       const { show, triggered } = enterScene(live);
-      void view.scene({
+      void showScene({
         ...show,
         onContinue: triggered
           ? () =>
@@ -1231,7 +1245,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const foes = fieldCards(ctx.state()).filter(other => ctx.card(other.cardId).kind === "entity" && (!form || form.kind !== "destroy" || form.target.controller !== "opponent" || controllerOf(other) !== card.owner));
     const discount = form && form.kind === "destroy" ? form.discount?.amount ?? 0 : 0;
     const staged = view.stageReactive?.(card) ?? null;
-    await view.scene({ ...reactiveScene(card), onContinue: () => undefined });
+    await showScene({ ...reactiveScene(card), onContinue: () => undefined });
     await handshake({ kind: "reactive", uid: card.uid });
     const target = foes.length ? await pickTarget(card, foes, t("target.judgment.play", { n: discount }), false) : null;
     if (foes.length && !target) {
@@ -1314,7 +1328,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const steps = pendingResolve(ctx.state(), matter, ctx.card);
     // Il bersaglio scelto giocandola (RBF-021): la scena lo dice, e il tasto è «Continua» — la scelta è già fatta.
     // I passi seguono la scena, qui sotto: il tasto dice solo «Risolvi».
-    await view.scene({ ...matterScene(matter, effects, steps), onContinue: () => undefined });
+    await showScene({ ...matterScene(matter, effects, steps), onContinue: () => undefined });
     await handshake({ kind: "matter", uid: matter.uid });
     for (const step of steps) await playResolveStep(step);
     if (facts.behavior !== "permanent" && !blocking) await spendMatter(matter);
@@ -1631,7 +1645,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     if (!live) return true;
     const steps = flipSteps(ctx.state(), live, ctx.card);
     if (steps.length === 0) return true;
-    void view.scene({
+    void showScene({
       ...flipScene(live, steps),
       onContinue: () =>
         track(async () => {
@@ -2235,12 +2249,13 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const live = ctx.state().cards[step.source.uid];
     if (!live || live.zone !== "field") return;
     let run: Promise<void> = Promise.resolve();
-    await view.scene({
+    await showScene({
       cardId: live.cardId,
       face: live.face,
       theme: ctx.themeFor(live.owner),
       locale: ctx.locale(),
       who: t("scene.turn.of", { name: seatLabel(ctx.state(), by) }),
+      by,
       kicker: t("scene.turn.start"),
       effects: [],
       triggers: [describeTurnStartSearch(step, ctx.card)],
@@ -2342,6 +2357,11 @@ export function createGestures(ctx: Ctx, view: GestureView) {
    * metta in coda, poi i passi in corso, poi la coda delle scene vuota.
    * Vale per tutti gli inneschi offerti, senza eccezioni per carta.
    */
+  /** Una scena: quella del posto che risponde da sé (il bot) prosegue da sola dopo BOT_SCENE_MS. */
+  function showScene(show: SceneShow): Promise<void> {
+    return view.scene(auto && show.by === auto.seat ? { ...show, auto: BOT_SCENE_MS } : show);
+  }
+
   function offer(run: () => Promise<void>): void {
     offered = offered
       .then(() => new Promise<void>(resolve => setTimeout(resolve, 0)))
@@ -2399,12 +2419,17 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     // che l'azione è passata: questa viene dopo, non sopra.
     await new Promise(resolve => setTimeout(resolve, 0));
     await view.sceneIdle();
+    // «La prima volta in ogni tuo turno che assegni un Oggetto»: più Oggetti
+    // assegnati in fila (Kyo Shin) offrivano una scena per ciascuno, e dalla
+    // seconda l'arbitro rispondeva «già risolto» (2026-09-18). Si guarda la
+    // lavagna com'è ORA: innesco già consumato nel turno, niente scena.
+    if (step.form.kind === "ends" && (ctx.state().fired ?? []).some(key => key.startsWith(`${step.source.uid}|on_assign_object:ends|`))) return;
     const candidates = step.form.kind === "exile" ? assignCandidates(ctx.state(), step, ctx.card) : [];
     if (step.form.kind === "exile" && candidates.length === 0) {
       ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
       return;
     }
-    await view.scene({ ...assignScene(step), onContinue: () => undefined });
+    await showScene({ ...assignScene(step), onContinue: () => undefined });
     await handshake({ kind: "assign", uid: step.source.uid, object: step.object.uid, bearer: step.bearer.uid });
     view.light(step.source.uid, true);
     try {
@@ -2515,7 +2540,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const by = step.object.owner;
     await new Promise(resolve => setTimeout(resolve, 0));
     await view.sceneIdle();
-    await view.scene({ ...deathScene(step), onContinue: () => undefined });
+    await showScene({ ...deathScene(step), onContinue: () => undefined });
     await handshake({ kind: "death", uid: step.object.uid, bearer: step.bearer.uid });
     view.hold(true);
     try {

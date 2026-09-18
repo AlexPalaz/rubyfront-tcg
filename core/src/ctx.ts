@@ -449,4 +449,6 @@ export interface Ctx {
       la prima volta nel turno (quando vale la pena dirlo anche in chat).
       Facoltativo: un Ctx senza tavolo (i test) non ce l'ha. */
   promptDiscard?(seat: Seat): boolean;
+  /** §6.5 — l'eccesso di chi è di turno, quando quel posto risponde da sé (il bot): scarta fino a 7 e torna true. Facoltativo: senza, resta l'invito. */
+  discardExcess?(seat: Seat): Promise<boolean>;
 }
