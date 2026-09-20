@@ -14,7 +14,7 @@ import { store } from "../match";
 import type { Stage } from "../stage";
 import { setMusicEnabled, setSoundEnabled } from "../sound";
 import { SANS } from "../table/appearance";
-import { TOOLBAR_H, FONT_BASE, INK, LINE, MUTED, PANEL, Button, hex, slabShadow, placeShadow, paintText } from "./ui";
+import { TOOLBAR_H, FONT_BASE, INK, LINE, MUTED, PANEL, Button, TextField, hex, slabShadow, placeShadow, paintText } from "./ui";
 
 const W = 400;
 const PAD = 14;
@@ -27,6 +27,10 @@ const SHADOW_M = 60;
 export interface SettingsActions {
   resync(): void;
   language(locale: "it" | "en"): void;
+  /** L'utenza nella memoria del tavolo (2026-09-20): chi sono, l'accesso di sviluppo con la chiave, l'uscita. */
+  account(): { name: string; provider: string } | null;
+  loginDev(token: string): void;
+  logout(): void;
 }
 
 /** Suoni e musica come li ha lasciati il giocatore (store: "sound", "music"). */
@@ -74,7 +78,18 @@ export class Settings {
 
   close(): void {
     this.root.visible = false;
+    this.tokenField?.dispose();
+    this.tokenField = null;
     for (const child of this.panel.removeChildren()) child.destroy({ children: true });
+  }
+
+  /** Il campo della chiave di sviluppo, quando la riga Account lo mostra. */
+  private tokenField: TextField | null = null;
+
+  private submitToken(): void {
+    const token = this.tokenField?.value.trim() ?? "";
+    if (!token) return;
+    this.actions.loginDev(token);
   }
 
   private build(): void {
@@ -120,7 +135,23 @@ export class Settings {
           },
         })
     );
+    // L'utenza (2026-09-20): col nome e «Esci» se si è dentro; se no il campo della chiave di sviluppo e «Accedi».
+    const who = this.actions.account();
+    this.tokenField?.dispose();
+    this.tokenField = null;
+    const loginW = 90;
+    let accountRow: Button[];
+    if (who) {
+      accountRow = [
+        new Button(this.stage, { label: t("html.account.as", { name: who.name }), style: "plate", font: FONT_BASE, w: controlW - 70 - 6, h: ROW_H, onTap: () => undefined }),
+        new Button(this.stage, { label: t("html.account.logout"), style: "plate", font: FONT_BASE, color: MUTED, w: 70, h: ROW_H, onTap: () => this.actions.logout() }),
+      ];
+    } else {
+      this.tokenField = new TextField(this.stage, { placeholder: t("html.account.token.ph"), maxLength: 80, onEnter: () => this.submitToken() });
+      accountRow = [new Button(this.stage, { label: t("html.account.login"), style: "plate", font: FONT_BASE, w: loginW, h: ROW_H, onTap: () => this.submitToken() })];
+    }
     const lines: [string, Button[]][] = [
+      [t("html.account"), accountRow],
       [t("html.net"), [new Button(this.stage, { label: t("html.sync"), style: "plate", font: FONT_BASE, w: controlW, h: ROW_H, onTap: () => this.actions.resync() })]],
       [t("html.sound"), toggleButton("sound", "html.sound.on", "html.sound.off", setSoundEnabled)],
       [t("html.music"), toggleButton("music", "html.music.on", "html.music.off", setMusicEnabled)],
@@ -159,6 +190,13 @@ export class Settings {
       written.sprite.position.set(x + PAD, ry + (ROW_H - written.h) / 2);
       this.panel.addChild(written.sprite);
       let cx = x + PAD + LABEL_W + 8;
+      // Il campo della chiave sta nella riga Account (la prima), prima di «Accedi».
+      if (index === 0 && this.tokenField) {
+        const fieldW = controlW - loginW - 6;
+        this.tokenField.place(cx, ry, fieldW, ROW_H);
+        this.tokenField.show(true);
+        cx += fieldW + 6;
+      }
       for (const button of buttons) {
         button.position.set(cx, ry);
         cx += button.w + 6;

@@ -24,3 +24,5 @@ desktop/steam/output/
 
 # le foto della resa (scripts/resolution-photos.mjs, cartella predefinita)
 game/resolution-photos/
+.neon
+.env.local

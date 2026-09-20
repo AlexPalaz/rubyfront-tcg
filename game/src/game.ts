@@ -10,8 +10,8 @@
 // con la stanza, e il cambio passa da una ricarica: il posto è cucito in
 // ogni vista.
 
-import { allCards, allDecks, getDeck, isRubyfront } from "@rubyfront/core/cards";
-import { lang, msg, t } from "@rubyfront/core/i18n";
+import { allCards, allDecks, isRubyfront } from "@rubyfront/core/cards";
+import { msg, t } from "@rubyfront/core/i18n";
 import { seatLabel } from "@rubyfront/core/state";
 import type { CardInstance, Seat } from "@rubyfront/core/types";
 import { createMatch, store, type Match } from "./match";
@@ -72,7 +72,6 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
         decks.close();
         update();
       },
-      botGameOver: won => recordBotGame(won),
       afterPaint: () => {
         chat?.update();
         chronicle?.update();
@@ -83,8 +82,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
 
   const curtain = new Curtain(stage);
   home = new Home(stage, locale, {
-    solo: () => (ready() ? resume() : profile("bot")),
-    resume: () => resume(),
+    solo: () => profile("bot"),
     newGame: () => profile("bot"),
     createRoom: () => joinAs(`${GEMS[Math.floor(Math.random() * GEMS.length)]}-${Math.floor(1000 + Math.random() * 9000)}`, "a"),
     enter: name => (name ? joinAs(name, "b") : home.focusRoom()),
@@ -101,7 +99,6 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
       // «Gioca con questo mazzo»: lo sceglie e passa dal nome (poi il bot).
       decks.close();
       session.chooseDeck(deckId);
-      updateResume();
       update();
       profile("bot", deckId);
     },
@@ -156,6 +153,9 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   }
   const settings = new Settings(stage, {
     resync: () => session.resync(),
+    account: () => session.account(),
+    loginDev: token => session.loginDev(token),
+    logout: () => session.logout(),
     language: next => {
       // La lingua veste ogni scritta, molte dipinte una volta sola: la pagina riparte, e rientra da sé nella stanza salvata.
       store.write("lang", next);
@@ -181,10 +181,6 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     update();
   }
 
-  function deckName(id: string): string {
-    const deck = getDeck(id);
-    return deck?.locales[lang()]?.name ?? deck?.locales[deck.defaultLocale]?.name ?? id;
-  }
 
   /** Il profilo: la nota dice la stanza, o che si gioca col bot. */
   function profile(mode: Mode, deck?: string): void {
@@ -207,7 +203,6 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     }
     if (choice.deck) session.chooseDeck(choice.deck);
     greet();
-    updateResume();
     if (choice.mode === "bot") {
       const deckId = session.myDeck();
       const botDeck = choice.botDeck ?? deckId;
@@ -315,49 +310,15 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     }
   }
 
-  // Il saluto in home: il nome salvato e il conto delle partite contro il bot (`stats`).
-  function readStats(): { games: number; wins: number } {
-    try {
-      const parsed = JSON.parse(store.read("stats", "")) as { games?: number; wins?: number };
-      return { games: parsed.games ?? 0, wins: parsed.wins ?? 0 };
-    } catch {
-      return { games: 0, wins: 0 };
-    }
-  }
-  function recordBotGame(won: boolean): void {
-    const stats = readStats();
-    stats.games += 1;
-    if (won) stats.wins += 1;
-    store.write("stats", JSON.stringify(stats));
-    greet();
-  }
+  // Il saluto in home: il nome salvato. Il conto delle partite non si tiene
+  // più nel browser (tolto il 2026-09-20): i dati del giocatore andranno
+  // nella memoria del tavolo (session.save/load), quando il designer dirà quali.
   function greet(): void {
     const name = store.read("name", "");
-    const stats = readStats();
-    const hello = name ? t("html.home.hello", { name }) : t("html.home.hello.new");
-    const record = stats.games === 0 ? "" : t(stats.games === 1 ? "html.home.record.one" : "html.home.record", { games: stats.games, wins: stats.wins });
-    home.greet(record ? `${hello} · ${record}` : hello);
+    home.greet(name ? t("html.home.hello", { name }) : t("html.home.hello.new"));
   }
 
-  // «Riprendi con …»: nome e mazzo già salvati, si va al tavolo con un click, il bot col mazzo diverso dal tuo.
-  function ready(): boolean {
-    const id = session.myDeck();
-    return Boolean(store.read("name", "") && id && getDeck(id));
-  }
-  function updateResume(): void {
-    const id = session.myDeck();
-    home.resume(ready() && id ? t("html.home.resume", { deck: deckName(id) }) : null);
-  }
-  function resume(): void {
-    const id = session.myDeck();
-    if (!id) return;
-    const bot = allDecks().find(deck => deck.id !== id) ?? getDeck(id);
-    if (!bot) return;
-    intoTable(() => {
-      session.startBot(bot.id);
-      session.loadDeck(id, mySeat);
-    });
-  }
+  // Niente «Riprendi con …» (tolto il 2026-09-20): ogni partita è nuova, si passa sempre da nome e mazzo.
 
   /** Il marchio riporta alla home: dai mazzi o dal velo si torna e basta; al tavolo si chiede, perché la partita si chiude. */
   function goHome(): void {
@@ -389,7 +350,6 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   // stanza manca il mazzo, o l'attesa dell'altro se c'è già tutto.
   session.join(room);
   greet();
-  updateResume();
   if (!room) showHome();
   else if (!session.myDeck()) {
     showHome();

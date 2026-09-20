@@ -109,6 +109,7 @@ export interface MatchOptions {
 /** Ciò che la sessione dice a chi guida la partita (SessionView): la rete, l'attesa, il tavolo che si apre, la fine col bot. */
 export interface MatchHooks {
   engineStatus?: SessionView["engineStatus"];
+  accountChanged?: SessionView["accountChanged"];
   netStatus?: SessionView["netStatus"];
   waitForPeer?: SessionView["waitForPeer"];
   seated?: SessionView["seated"];
@@ -427,6 +428,7 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     beforeCommit: action => beforeCommit(action),
     beforeReceive: action => beforeReceive(action),
     engineStatus: status => hooks.engineStatus?.(status),
+    accountChanged: player => hooks.accountChanged?.(player),
     netStatus: (status, peers) => hooks.netStatus?.(status, peers),
     waitForPeer: () => hooks.waitForPeer?.(),
     seated: () => hooks.seated?.(),

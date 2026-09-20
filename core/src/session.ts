@@ -17,7 +17,7 @@ import { cardFacts, cardName, cardStats, deckTint, getDeck, isRubyfront, type Ti
 import { declareBlock } from "./combat.js";
 import type { Ability, CardFacts, Ctx } from "./ctx.js";
 import { releaseHeld } from "./effects.js";
-import { connectEngine, type EngineLink, type EngineStatus, type EngineVerdict } from "./engine.js";
+import { connectEngine, type EngineLink, type EngineStatus, type EngineVerdict, type Player } from "./engine.js";
 import { SLOT_X, backRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import { renderLog } from "./log.js";
@@ -57,6 +57,8 @@ export interface SessionView {
   beforeReceive(action: Action): (() => void) | void;
   /** Il filo verso il tavolo: com'è. */
   engineStatus(status: EngineStatus): void;
+  /** L'utenza (2026-09-20): chi sono per la memoria del tavolo è cambiato (accesso, uscita, rifiuto). Facoltativo. */
+  accountChanged?(player: Player | null): void;
   /** La stanza: com'è il filo e quanti sono seduti (la «solo» non ha spia). */
   netStatus(status: EngineStatus, peers: number): void;
   /** In stanza senza l'altro giocatore: si resta all'accoglienza ad aspettarlo. */
@@ -163,6 +165,15 @@ export interface Session {
   leaveRoom(): void;
   /** Il tavolo azzerato fuori dalla stanza: partita nuova, e il nome dell'altro posto si cancella. */
   resetTable(): void;
+  /** L'utenza nella memoria del tavolo (2026-09-20): chi sono, o null. */
+  account(): Player | null;
+  /** L'accesso di sviluppo: la chiave vive solo in memoria finché il gioco è aperto (niente nel browser, deciso 2026-09-20); si rientra da soli se il filo cade e torna. */
+  loginDev(token: string): void;
+  logout(): void;
+  /** Un dato mio nella memoria del tavolo: vero se salvato (serve l'accesso e il filo). */
+  save(key: string, value: unknown): Promise<boolean>;
+  /** Un dato mio dalla memoria del tavolo, o null. */
+  load(key: string): Promise<unknown>;
 }
 
 /** Il passo del bot: un gesto ogni tanto, per farsi seguire. */
@@ -192,6 +203,10 @@ export function createSession(options: SessionOptions): Session {
   let deckDeferred = false;
   /** L'arbitro esterno (engine/). */
   let engine: EngineLink | null = null;
+  /** L'utenza nella memoria del tavolo (2026-09-20), null senza accesso. */
+  let account: Player | null = null;
+  /** La chiave di sviluppo, solo in memoria: a gioco chiuso si dimentica. */
+  let devToken = "";
   /**
    * Il mazzo scelto resta noto al client anche dopo "nuova partita": a tavola
    * pulita ciascuno rimette in tavola il proprio, senza rifare la scelta.
@@ -755,6 +770,8 @@ export function createSession(options: SessionOptions): Session {
         // è la copia buona: gli si passa la lavagna com'è. In stanza no: la
         // lavagna arriva dal giornale, subito dopo il saluto.
         if (!room) engine?.snapshot(state);
+        // L'utenza di sviluppo rientra da sé se il filo cade e torna, finché il gioco è aperto.
+        if (devToken) engine?.login("dev", devToken);
         const signature = `${version}|${rules.join(",")}`;
         if (signature === welcomed) return;
         welcomed = signature;
@@ -783,6 +800,17 @@ export function createSession(options: SessionOptions): Session {
         if (from !== mySeat) view.rtc(payload);
       },
       onSeatTaken: warnSeatClash,
+      onMe(player, reason) {
+        const was = account;
+        account = player;
+        if (player) ctx.log(msg("log.account.in", { name: player.name }));
+        else if (reason) {
+          // La chiave non vale: si dimentica, così non si insiste a ogni collegamento.
+          devToken = "";
+          ctx.log(msg("log.account.fail", { reason }));
+        } else if (was) ctx.log(msg("log.account.out"));
+        view.accountChanged?.(player);
+      },
     });
   }
 
@@ -825,6 +853,15 @@ export function createSession(options: SessionOptions): Session {
     }
     dispatch({ t: "draw", seat: mySeat, count: 1 });
     ctx.log(msg("log.draw1", { seat: mySeat }), mySeat);
+  }
+
+  /** Il tavolo azzerato: partita nuova con chi apre a caso, e il nome dell'altro posto cancellato. L'unico posto che azzera. */
+  function freshTable(): void {
+    void dispatch({ t: "newGame", active: randomSeat() });
+    // Il nome dell'altro posto si cancella IN LOCALE (commit, non dispatch):
+    // è una scritta, non un gesto di gioco, e l'arbitro fermerebbe un'azione
+    // dell'altro posto fuori dal suo turno — col sigillo sopra la home.
+    commit({ t: "player", seat: otherSeat(mySeat), patch: { name: "" } });
   }
 
   function startNewGame(): void {
@@ -1084,12 +1121,29 @@ export function createSession(options: SessionOptions): Session {
     draw,
     mulligan,
     keep,
+    account: () => account,
+    loginDev(token) {
+      devToken = token.trim();
+      if (!engine?.login("dev", devToken)) ctx.log(msg("log.account.fail", { reason: t("stop.absent") }));
+    },
+    logout() {
+      devToken = "";
+      if (!engine?.logout()) {
+        account = null;
+        view.accountChanged?.(null);
+      }
+    },
+    save: (key, value) => engine?.save(key, value) ?? Promise.resolve(false),
+    load: key => engine?.load(key) ?? Promise.resolve(null),
     newGame: startNewGame,
     reapplyName,
     seatOrWait,
     awaitingPeer: () => awaitingPeer,
     startBot,
     startBotWithIntro(botDeck, deckId) {
+      // Ogni partita col bot è una partita nuova (deciso 2026-09-20): il
+      // tavolo si azzera qui, sempre, prima di apparecchiare — niente riprese.
+      freshTable();
       // Prima l'ingresso dei Rubyfront (il tuo, poi il bot), poi l'insegna
       // e l'apertura: loadDeck li tiene in sospeso finché introPending.
       introPending = true;
@@ -1109,12 +1163,6 @@ export function createSession(options: SessionOptions): Session {
       join("");
       store.write("room", "");
     },
-    resetTable() {
-      void dispatch({ t: "newGame", active: randomSeat() });
-      // Il nome dell'altro posto si cancella IN LOCALE (commit, non dispatch):
-      // è una scritta, non un gesto di gioco, e l'arbitro fermerebbe un'azione
-      // dell'altro posto fuori dal suo turno — col sigillo sopra la home.
-      commit({ t: "player", seat: otherSeat(mySeat), patch: { name: "" } });
-    },
+    resetTable: freshTable,
   };
 }

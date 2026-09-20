@@ -150,9 +150,8 @@ function veilTexture(): Texture {
 }
 
 export interface HomeActions {
-  /** La carta «Contro il computer»: Riprendi se c'è, se no Nuova partita. */
+  /** La carta «Contro il computer»: sempre una partita nuova (niente «Riprendi», dal 2026-09-20). */
   solo(): void;
-  resume(): void;
   newGame(): void;
   createRoom(): void;
   enter(room: string): void;
@@ -172,7 +171,6 @@ export class Home {
   private readonly blurFilter = new BlurFilter({ strength: 10, quality: 3 });
   private blurred = false;
   private greetingText = "";
-  private resumeLabel: string | null = null;
   private overlay: HomeCardId | null = null;
   private tappedCard: HomeCardId | null = null;
   private roomFocused = false;
@@ -263,12 +261,6 @@ export class Home {
   /** L'insegna del saluto: il nome salvato e le partite contro il bot. */
   greet(text: string): void {
     this.greetingText = text;
-    if (this.root.visible) this.layout();
-  }
-
-  /** «Riprendi con …» sopra «Nuova partita», se nome e mazzo ci sono (null: solo Nuova partita). */
-  resume(label: string | null): void {
-    this.resumeLabel = label;
     if (this.root.visible) this.layout();
   }
 
@@ -565,9 +557,15 @@ export class Home {
     const off = c.def.off === true;
     c.tag = off ? this.tag(t(c.def.tag)) : paintText(this.stage, t(c.def.tag), TAG, "#e56a86", { maxW, shadows: TAG_SHADOW });
     const title = fitTitle(t(c.def.title), TITLE, maxW);
+    // Il titolo sta su UNA riga, sempre (2026-09-20: a carta stretta, aprendo o
+    // chiudendo, «Contro il computer» andava a capo): se non ci entra, il
+    // corpo scende quanto basta — spaziatura in proporzione — e non si spezza.
+    const fit = Math.min(1, maxW / Math.max(1, textWidth(TITLE, title)));
+    const font: Font = fit < 1 ? { ...TITLE, size: TITLE.size * fit, spacing: (TITLE.spacing ?? 0) * fit } : TITLE;
+    const oneLine = { maxW: Number.MAX_SAFE_INTEGER, lineHeight: font.size * 1.1 };
     c.title = off
-      ? paintText(this.stage, title, TITLE, "rgba(243,237,240,.55)", { maxW, lineHeight: 24 * 1.1 })
-      : paintText(this.stage, title, TITLE, PAPER, { maxW, lineHeight: 24 * 1.1, shadows: TITLE_SHADOW });
+      ? paintText(this.stage, title, font, "rgba(243,237,240,.55)", oneLine)
+      : paintText(this.stage, title, font, PAPER, { ...oneLine, shadows: TITLE_SHADOW });
     c.text.addChild(c.tag.sprite, c.title.sprite);
     c.textWidthUsed = w;
   }
@@ -606,10 +604,7 @@ export class Home {
       y += button.h + MORE_GAP;
     };
     if (c.def.id === "solo") {
-      // Chi ha già nome e mazzo riparte con un click; il tasto sotto passa comunque da nome e mazzo.
-      const ready = this.resumeLabel;
-      if (ready) button(ready, "metal", () => this.actions.resume());
-      button(t("html.newgame"), ready ? "secondary" : "metal", () => this.actions.newGame());
+      button(t("html.newgame"), "metal", () => this.actions.newGame());
     } else if (c.def.id === "multi") {
       button(t("html.ob.create"), "metal", () => this.actions.createRoom());
       const or = paintText(this.stage, t("html.ob.or"), FONT_BASE, "rgba(243,237,240,.7)", { maxW: w, align: "center" });

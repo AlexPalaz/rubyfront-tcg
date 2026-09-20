@@ -9,5 +9,9 @@
   "scripts": {
     "all": "node scripts/dev.mjs",
     "decks": "node scripts/decks.mjs"
+  },
+  "dependencies": {
+    "@neon/config": "^1.7.2",
+    "@neon/env": "^1.4.3"
   }
 }

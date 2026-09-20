@@ -50,6 +50,15 @@ export interface EngineHandlers {
   onRtc(payload: unknown, from: Seat): void;
   /** Il posto chiesto è già occupato nella stanza: il tavolo ha chiuso. */
   onSeatTaken(): void;
+  /** L'utenza (2026-09-20): chi sono per il tavolo dopo un `login`/`logout`, o null col motivo del rifiuto. */
+  onMe(player: Player | null, reason?: string): void;
+}
+
+/** Un giocatore per il tavolo: l'id nella memoria, il nome, da quale accesso (oggi «dev», domani «steam»). */
+export interface Player {
+  id: number;
+  name: string;
+  provider: string;
 }
 
 export interface EngineLink {
@@ -66,6 +75,13 @@ export interface EngineLink {
   hello(): void;
   /** La chat vocale: `false` se il filo non c'è. */
   sendRtc(payload: unknown): boolean;
+  /** L'accesso alla memoria del tavolo: la risposta arriva in `onMe`. `false` se il filo non c'è. */
+  login(provider: string, token: string): boolean;
+  logout(): boolean;
+  /** Un dato del giocatore nella memoria del tavolo: vero se salvato. */
+  save(key: string, value: unknown): Promise<boolean>;
+  /** Un dato del giocatore, o null se non c'è (o senza accesso, o filo assente). */
+  load(key: string): Promise<unknown>;
   close(): void;
   status(): EngineStatus;
 }
@@ -152,8 +168,29 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
         return;
       }
       if (!payload || typeof payload !== "object") return;
-      const message = payload as NetMessage | EngineVerdict | { t: "engine"; version?: string; rules?: string[]; rules_en?: string[] };
+      const message = payload as
+        | NetMessage
+        | EngineVerdict
+        | { t: "engine"; version?: string; rules?: string[]; rules_en?: string[] }
+        | { t: "me"; player: Player | null; reason?: string; reason_en?: string }
+        | { t: "saved"; seq?: number; key: string; ok: boolean }
+        | { t: "data"; seq?: number; key: string; value: unknown };
       switch (message.t) {
+        case "me":
+          handlers.onMe(message.player ?? null, lang() === "en" ? (message.reason_en ?? message.reason) : message.reason);
+          return;
+        case "saved": {
+          const waiting = message.seq !== undefined ? stored.get(message.seq) : undefined;
+          if (message.seq !== undefined) stored.delete(message.seq);
+          waiting?.(message.ok === true);
+          return;
+        }
+        case "data": {
+          const waiting = message.seq !== undefined ? loaded.get(message.seq) : undefined;
+          if (message.seq !== undefined) loaded.delete(message.seq);
+          waiting?.(message.value ?? null);
+          return;
+        }
         case "engine": {
           // Le regole nella lingua del tavolo (l'italiano è il ripiego).
           const rules = lang() === "en" ? (message.rules_en ?? message.rules) : message.rules;
@@ -213,7 +250,40 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
 
   open();
 
+  /** Le risposte attese ai salvataggi e alle letture, per numero. */
+  const stored = new Map<number, (ok: boolean) => void>();
+  const loaded = new Map<number, (value: unknown) => void>();
+  let dataSeq = 0;
+
   return {
+    login(provider, token) {
+      return send({ t: "login", provider, token });
+    },
+    logout() {
+      return send({ t: "logout" });
+    },
+    save(key, value) {
+      dataSeq += 1;
+      const id = dataSeq;
+      if (!send({ t: "save", seq: id, key, value })) return Promise.resolve(false);
+      return new Promise(resolve => {
+        stored.set(id, resolve);
+        setTimeout(() => {
+          if (stored.delete(id)) resolve(false);
+        }, JUDGE_TIMEOUT_MS);
+      });
+    },
+    load(key) {
+      dataSeq += 1;
+      const id = dataSeq;
+      if (!send({ t: "load", seq: id, key })) return Promise.resolve(null);
+      return new Promise(resolve => {
+        loaded.set(id, resolve);
+        setTimeout(() => {
+          if (loaded.delete(id)) resolve(null);
+        }, JUDGE_TIMEOUT_MS);
+      });
+    },
     judge(action, actor, verdict) {
       seq += 1;
       const id = seq;

@@ -24,7 +24,23 @@ require "socket"
 require "uri"
 require "rubyfront/card_index"
 require "rubyfront/room"
+require "rubyfront/store"
 require "rubyfront/websocket"
+
+# In locale le variabili del database stanno in .env.local (le scrive
+# `neon link`, il repo le ignora): si leggono qui, senza sovrascrivere
+# l'ambiente vero — su Render le mette il servizio. Valori con o senza virgolette.
+ENV_LOCAL = File.expand_path("../../.env.local", __dir__)
+if File.exist?(ENV_LOCAL)
+  File.readlines(ENV_LOCAL, chomp: true).each do |line|
+    next if line.strip.empty? || line.start_with?("#")
+
+    key, value = line.split("=", 2)
+    next if key.nil? || value.nil? || ENV.key?(key)
+
+    ENV[key] = value.strip.delete_prefix('"').delete_suffix('"').delete_prefix("'").delete_suffix("'")
+  end
+end
 
 PORT = Integer(ARGV[0] || ENV.fetch("PORT", 8788))
 
@@ -37,6 +53,21 @@ CARDS = begin
 rescue StandardError => error
   warn "Anagrafe carte non caricata (#{error.message}): le regole che leggono le carte resteranno mute."
   {}.freeze
+end
+
+# La memoria (Neon, lib/rubyfront/store.rb): con DATABASE_URL il tavolo
+# ricorda i giocatori e i loro dati; senza, gioca come sempre e l'accesso
+# risponde che non c'è memoria. Le tabelle si creano all'avvio, se mancano.
+STORE = begin
+  store = Rubyfront::Store.from_env
+  if store
+    store.ensure_schema!
+    puts "Memoria collegata (Neon)#{store.dev_token.empty? ? ", senza utenza di prova (RUBYFRONT_DEV_TOKEN assente)" : ""}."
+  end
+  store
+rescue StandardError => error
+  warn "Memoria non collegata (#{error.message}): il tavolo gioca senza salvare."
+  nil
 end
 
 # Le stanze con nome restano in piedi per un po' anche vuote: chi ricarica
@@ -98,6 +129,72 @@ def handshake(client)
   { room: params["room"].to_s.strip, seat: params["seat"].to_s }
 end
 
+# L'utenza di una connessione: chi si è presentato e i suoi dati. Messaggi:
+#   {t:"login", provider:"dev", token}  → {t:"me", player:{id,name,provider}} o {t:"me", player:null, reason, reason_en}
+#   {t:"logout"}                         → {t:"me", player:null}
+#   {t:"save", seq, key, value}          → {t:"saved", seq, key, ok, reason?, reason_en?}
+#   {t:"load", seq, key}                 → {t:"data", seq, key, value}   (null se non c'è)
+# Torna true se il messaggio era suo. Steam arriverà come altro `provider`.
+class Account
+  def initialize(store, out)
+    @store = store
+    @out = out
+    @player = nil
+  end
+
+  def handle(message)
+    case message["t"]
+    when "login" then login(message)
+    when "logout"
+      @player = nil
+      @out.call({ t: "me", player: nil })
+    when "save" then save(message)
+    when "load" then load(message)
+    else return false
+    end
+    true
+  end
+
+  private
+
+  def login(message)
+    unless @store
+      return @out.call({ t: "me", player: nil, reason: "il tavolo non ha una memoria collegata", reason_en: "the table has no memory attached" })
+    end
+    player = message["provider"] == "dev" ? @store.dev_player(message["token"]) : nil
+    @player = player
+    if player
+      @out.call({ t: "me", player: player })
+    else
+      @out.call({ t: "me", player: nil, reason: "accesso rifiutato", reason_en: "access refused" })
+    end
+  rescue StandardError => error
+    warn "login: #{error.message}"
+    @out.call({ t: "me", player: nil, reason: "la memoria non risponde", reason_en: "the memory isn't answering" })
+  end
+
+  def save(message)
+    key = message["key"].to_s
+    unless @player && @store && !key.empty?
+      return @out.call({ t: "saved", seq: message["seq"], key: key, ok: false, reason: "prima l'accesso", reason_en: "log in first" })
+    end
+    @store.set(@player[:id], key, message["value"])
+    @out.call({ t: "saved", seq: message["seq"], key: key, ok: true })
+  rescue StandardError => error
+    warn "save: #{error.message}"
+    @out.call({ t: "saved", seq: message["seq"], key: key, ok: false, reason: "la memoria non risponde", reason_en: "the memory isn't answering" })
+  end
+
+  def load(message)
+    key = message["key"].to_s
+    value = @player && @store && !key.empty? ? @store.get(@player[:id], key) : nil
+    @out.call({ t: "data", seq: message["seq"], key: key, value: value })
+  rescue StandardError => error
+    warn "load: #{error.message}"
+    @out.call({ t: "data", seq: message["seq"], key: key, value: nil })
+  end
+end
+
 def parse(text)
   message = JSON.parse(text)
   message.is_a?(Hash) ? message : nil
@@ -134,6 +231,7 @@ def serve(client)
     return client.close
   end
 
+  account = Account.new(STORE, out)
   decoder = Rubyfront::WebSocket::Decoder.new
   begin
     loop do
@@ -147,7 +245,10 @@ def serve(client)
           write_lock.synchronize { client.write(Rubyfront::WebSocket.encode_pong(payload)) }
         when :text
           message = parse(payload)
-          room.handle(seat, message) if message
+          next unless message
+
+          # L'utenza (login, save, load) è della connessione, non della stanza.
+          account.handle(message) || room.handle(seat, message)
         end
       end
     end

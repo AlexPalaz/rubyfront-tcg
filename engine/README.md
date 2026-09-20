@@ -1347,6 +1347,9 @@ col bot).
 | client | `{"t":"judge","action":{"t":"ready","key":"enter\|u-7\|\|\|3","seat":"a","scene":{…}}}` | come ogni azione: senza regola (`ruled: false`), passa a chiunque in ogni fase e turno, va nel giornale e agli altri. È la **stretta di mano delle scene** (2026-09-15): «Risolvi» premuto da un client; chi risolve aspetta il `ready` dell'avversario con la stessa `key` prima di far partire i passi, e `scene` dice all'altro quale scena aprire se non l'ha già. La lavagna non cambia (`state.ts`/`table.rb`: nessun ramo). |
 | client | `{"t":"snapshot","state":{…}}` | *(solo nella stanza «solo»: allinea la copia del tavolo; in stanza si ignora)* |
 | tavolo | `{"t":"peers","peers":2,"seats":["a","b"]}` | a tutti, a ogni ingresso o uscita |
+| client | `{"t":"login","provider":"dev","token":"…"}` | `{"t":"me","player":{"id":1,"name":"Tester","provider":"dev"}}`, o `{"t":"me","player":null,"reason":"…","reason_en":"…"}`. L'**utenza** (2026-09-20) è della connessione, non della stanza: `dev` è l'utenza di prova, che entra col segreto `RUBYFRONT_DEV_TOKEN` del tavolo; Steam arriverà come altro `provider`. `{"t":"logout"}` risponde `{"t":"me","player":null}` |
+| client | `{"t":"save","seq":3,"key":"prefs","value":{…}}` | `{"t":"saved","seq":3,"key":"prefs","ok":true}` (o `ok:false` con `reason`): il dato JSON del giocatore, una riga per chiave nella memoria (Neon) |
+| client | `{"t":"load","seq":4,"key":"prefs"}` | `{"t":"data","seq":4,"key":"prefs","value":{…}}`, `null` se non c'è o senza accesso |
 | tavolo | `{"t":"seat_taken","seat":"a"}` | a chi chiede un posto già occupato, poi il tavolo chiude |
 
 `judge` è il giudizio preventivo su **ogni** azione, di chiunque: l'engine
@@ -1390,6 +1393,21 @@ nascosta. Sono i due passi successivi verso il tavolo pubblico.
 
 Una richiesta HTTP semplice (senza upgrade) riceve una riga di stato: fa da
 health check.
+
+**La memoria** (`lib/rubyfront/store.rb`, dal 2026-09-20): con `DATABASE_URL`
+il tavolo parla con Postgres su Neon per HTTPS (il punto `/sql` del ramo,
+la stringa di connessione nell'intestazione: niente gemme, niente
+connessioni da tenere vive), crea all'avvio le tabelle `players` (chi sono,
+da quale accesso) e `player_data` (una riga per chiave, valore JSON) se
+mancano, e risponde a `login`/`save`/`load`. Senza `DATABASE_URL` gioca
+come sempre e l'accesso risponde che non c'è memoria. In locale le
+variabili stanno in `.env.local` (le scrive `neon link`, il repo le
+ignora); su Render nelle variabili del servizio: `DATABASE_URL` e
+`RUBYFRONT_DEV_TOKEN`. L'utenza di prova è una sola, `dev/test`
+(«Tester»): serve a tutti gli sviluppi finché non c'è Steam. Nel client la chiave
+vive solo in memoria finché il gioco è aperto (niente nel browser, deciso
+2026-09-20): si incolla nelle impostazioni a ogni avvio. Cosa salvare lo
+dirà il designer. Il giudizio (`engine.rb`) non sa che la memoria esiste.
 
 ## Com'è fatto
 
