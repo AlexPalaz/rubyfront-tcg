@@ -1,0 +1,22 @@
+{
+  "name": "Colosso Forgiato",
+  "typeLabel": "Entità: Umano",
+  "summary": "Il corpo più grande del mazzo, senza trucchi.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Colosso Forgiato",
+    "flavor": "Forgiato per esserci. Non serve altro."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

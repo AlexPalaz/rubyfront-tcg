@@ -9,7 +9,8 @@
 #
 #   ruby engine/bin/server [porta]      # default 8788
 #
-# Il client si collega a  ws://host:8788/engine?room=<stanza>&seat=<a|b>
+# Il client si collega a  ws://host:8788/engine?room=<stanza>[&seat=<a|b>]
+# (`seat` è una preferenza: il posto lo assegna il tavolo, dal 2026-09-23)
 # Senza `room` (o con `room=`) è la stanza «solo»: partita locale o col bot,
 # un tavolo privato per quella connessione, che si comporta come prima
 # (lib/rubyfront/room.rb spiega la differenza).
@@ -24,6 +25,10 @@ require "socket"
 require "uri"
 require "rubyfront/card_index"
 require "rubyfront/room"
+require "rubyfront/lobby"
+require "rubyfront/progression"
+require "rubyfront/account"
+require "rubyfront/auth"
 require "rubyfront/store"
 require "rubyfront/websocket"
 
@@ -62,13 +67,77 @@ STORE = begin
   store = Rubyfront::Store.from_env
   if store
     store.ensure_schema!
-    puts "Memoria collegata (Neon)#{store.dev_token.empty? ? ", senza utenza di prova (RUBYFRONT_DEV_TOKEN assente)" : ""}."
+    puts "Memoria collegata (Neon)."
   end
   store
 rescue StandardError => error
   warn "Memoria non collegata (#{error.message}): il tavolo gioca senza salvare."
   nil
 end
+
+# I mazzi gratuiti (`access: "free"` in data/decks/*.json): si assegnano a
+# ogni giocatore al suo accesso. Gli altri arriveranno con l'acquisto.
+FREE_DECKS = Dir[File.join(DATA_DIR, "decks", "*.json")].filter_map do |file|
+  deck = JSON.parse(File.read(file))
+  deck["id"] if deck.is_a?(Hash) && deck["access"] == "free"
+rescue JSON::ParserError
+  nil
+end.sort.freeze
+puts "Mazzi gratuiti: #{FREE_DECKS.join(", ")}." unless FREE_DECKS.empty?
+
+# La progressione dei Rubyfront (2026-09-23): un modulo a parte, fuori dal
+# giudizio. Le regole e i livelli da data/progression; il Rubyfront di ogni
+# mazzo per assegnare l'esperienza a fine partita a chi lo ha giocato.
+PROGRESSION = begin
+  Rubyfront::Progression.load(DATA_DIR)
+rescue StandardError => error
+  puts "Progressione non caricata (#{error.message})."
+  nil
+end
+DECK_RUBYFRONT = Dir[File.join(DATA_DIR, "decks", "*.json")].filter_map do |file|
+  deck = JSON.parse(File.read(file))
+  next unless deck.is_a?(Hash) && deck["id"].is_a?(String)
+
+  rubyfront = Array(deck["cards"]).map { |entry| entry["card"] }.find { |id| CARDS.dig(id, :type) == "rubyfront" }
+  [deck["id"], rubyfront] if rubyfront
+rescue JSON::ParserError
+  nil
+end.to_h.freeze
+puts "Progressione: #{PROGRESSION.card_ids.size} Rubyfront, #{PROGRESSION.rules["thresholds"].size} livelli." if PROGRESSION
+
+# Il gancio della fine partita: per ogni posto con un giocatore entrato e un
+# mazzo noto, i punti dell'esito al Rubyfront di quel mazzo, e a quel client
+# la progressione aggiornata (`progress`, con `gained` e `outcome`). Nella
+# stanza «solo» l'unico posto attaccato è l'umano: il bot non cresce. Gli
+# errori di memoria restano a log: la partita è finita comunque.
+ON_OVER = lambda do |room, action|
+  next unless STORE && PROGRESSION
+
+  Rubyfront::Room::SEATS.each do |seat|
+    player_id = room.player_of(seat)
+    card = DECK_RUBYFRONT[room.deck_of(seat).to_s]
+    next unless player_id && card && PROGRESSION.known?(card)
+
+    outcome = if action["winner"].nil? then "draw"
+              elsif action["winner"] == seat then "win"
+              else "loss"
+              end
+    gained = PROGRESSION.points_for(outcome)
+    begin
+      row = STORE.add_xp(player_id, card, gained)
+      room.reply(seat, { t: "progress", gained: gained, outcome: outcome }.merge(PROGRESSION.progress_of(card, row)))
+    rescue StandardError => error
+      warn "esperienza non salvata (#{seat}, #{card}): #{error.message}"
+    end
+  end
+end
+
+# L'accesso (2026-09-22): Google col suo client id (GOOGLE_CLIENT_ID), la
+# posta di conferma con Resend (RESEND_API_KEY, MAIL_FROM) e il sito per i
+# link (RUBYFRONT_SITE). Senza, Google non è offerto e la posta va sul log.
+GOOGLE = Rubyfront::Auth::Google.new(ENV["GOOGLE_CLIENT_ID"].to_s)
+MAILER = Rubyfront::Auth::Mailer.new(api_key: ENV["RESEND_API_KEY"].to_s, from: ENV["MAIL_FROM"].to_s, site: ENV["RUBYFRONT_SITE"].to_s)
+puts "Accesso: password#{GOOGLE.configured? ? ", Google" : ""}#{MAILER.configured? ? ", posta di conferma attiva" : " (posta di conferma sul log)"}." if STORE
 
 # Le stanze con nome restano in piedi per un po' anche vuote: chi ricarica
 # la pagina ritrova la partita. Passato il tempo, il tavolo si sparecchia.
@@ -81,10 +150,24 @@ def room_for(name)
   ROOMS_LOCK.synchronize do
     ROOMS[name] ||= begin
       puts "+ stanza «#{name}»"
-      Rubyfront::Room.new(name, cards: CARDS)
+      Rubyfront::Room.new(name, cards: CARDS, on_over: ON_OVER)
     end
   end
 end
+
+# L'atrio della partita casuale (2026-09-23): chi aspetta un avversario
+# qualunque si mette in fila dalla connessione «solo»; in due, il tavolo
+# apre loro una stanza con un nome libero.
+LOBBY = Rubyfront::Lobby.new(
+  namer: lambda do
+    ROOMS_LOCK.synchronize do
+      loop do
+        name = Rubyfront::Lobby.random_name
+        break name unless ROOMS.key?(name)
+      end
+    end
+  end
+)
 
 def sweep_rooms
   ROOMS_LOCK.synchronize do
@@ -129,72 +212,6 @@ def handshake(client)
   { room: params["room"].to_s.strip, seat: params["seat"].to_s }
 end
 
-# L'utenza di una connessione: chi si è presentato e i suoi dati. Messaggi:
-#   {t:"login", provider:"dev", token}  → {t:"me", player:{id,name,provider}} o {t:"me", player:null, reason, reason_en}
-#   {t:"logout"}                         → {t:"me", player:null}
-#   {t:"save", seq, key, value}          → {t:"saved", seq, key, ok, reason?, reason_en?}
-#   {t:"load", seq, key}                 → {t:"data", seq, key, value}   (null se non c'è)
-# Torna true se il messaggio era suo. Steam arriverà come altro `provider`.
-class Account
-  def initialize(store, out)
-    @store = store
-    @out = out
-    @player = nil
-  end
-
-  def handle(message)
-    case message["t"]
-    when "login" then login(message)
-    when "logout"
-      @player = nil
-      @out.call({ t: "me", player: nil })
-    when "save" then save(message)
-    when "load" then load(message)
-    else return false
-    end
-    true
-  end
-
-  private
-
-  def login(message)
-    unless @store
-      return @out.call({ t: "me", player: nil, reason: "il tavolo non ha una memoria collegata", reason_en: "the table has no memory attached" })
-    end
-    player = message["provider"] == "dev" ? @store.dev_player(message["token"]) : nil
-    @player = player
-    if player
-      @out.call({ t: "me", player: player })
-    else
-      @out.call({ t: "me", player: nil, reason: "accesso rifiutato", reason_en: "access refused" })
-    end
-  rescue StandardError => error
-    warn "login: #{error.message}"
-    @out.call({ t: "me", player: nil, reason: "la memoria non risponde", reason_en: "the memory isn't answering" })
-  end
-
-  def save(message)
-    key = message["key"].to_s
-    unless @player && @store && !key.empty?
-      return @out.call({ t: "saved", seq: message["seq"], key: key, ok: false, reason: "prima l'accesso", reason_en: "log in first" })
-    end
-    @store.set(@player[:id], key, message["value"])
-    @out.call({ t: "saved", seq: message["seq"], key: key, ok: true })
-  rescue StandardError => error
-    warn "save: #{error.message}"
-    @out.call({ t: "saved", seq: message["seq"], key: key, ok: false, reason: "la memoria non risponde", reason_en: "the memory isn't answering" })
-  end
-
-  def load(message)
-    key = message["key"].to_s
-    value = @player && @store && !key.empty? ? @store.get(@player[:id], key) : nil
-    @out.call({ t: "data", seq: message["seq"], key: key, value: value })
-  rescue StandardError => error
-    warn "load: #{error.message}"
-    @out.call({ t: "data", seq: message["seq"], key: key, value: nil })
-  end
-end
-
 def parse(text)
   message = JSON.parse(text)
   message.is_a?(Hash) ? message : nil
@@ -213,12 +230,13 @@ def serve(client)
   end
 
   solo = wanted[:room].empty?
-  room = solo ? Rubyfront::Room.new("", cards: CARDS, solo: true) : room_for(wanted[:room])
-  # In una stanza con nome il posto dev'essere uno dei due; nella «solo» il
-  # client è l'unico seduto e il posto non conta.
-  seat = Rubyfront::Room::SEATS.include?(wanted[:seat]) ? wanted[:seat] : "a"
-  unless room.join(seat, out)
-    out.call({ t: "seat_taken", seat: seat })
+  room = solo ? Rubyfront::Room.new("", cards: CARDS, solo: true, on_over: ON_OVER) : room_for(wanted[:room])
+  # Il posto lo assegna il tavolo (2026-09-23): quello chiesto se è libero,
+  # se no l'altro; nella «solo» il client è l'unico seduto e il posto non
+  # conta. A stanza piena si avvisa e si chiude.
+  seat = room.join(wanted[:seat], out)
+  unless seat
+    out.call({ t: "room_full", room: wanted[:room] })
     client.write(Rubyfront::WebSocket.encode_close)
     # Si lascia al client il tempo di leggere l'avviso: chiudere subito, col
     # suo saluto ancora non letto qui, farebbe partire un RST e l'avviso
@@ -231,7 +249,9 @@ def serve(client)
     return client.close
   end
 
-  account = Account.new(STORE, out)
+  account = Rubyfront::Account.new(STORE, out, free_decks: FREE_DECKS, google: GOOGLE, mailer: MAILER, progression: PROGRESSION)
+  # Chi siede qui, per il gancio della fine partita: una lambda, così vale anche se l'accesso arriva dopo.
+  room.attach(seat, who: -> { account.player&.dig(:id) })
   decoder = Rubyfront::WebSocket::Decoder.new
   begin
     loop do
@@ -247,12 +267,14 @@ def serve(client)
           message = parse(payload)
           next unless message
 
-          # L'utenza (login, save, load) è della connessione, non della stanza.
-          account.handle(message) || room.handle(seat, message)
+          # L'atrio (la fila della partita casuale) si usa dalla «solo»; l'utenza
+          # (login, save, load) è della connessione, non della stanza.
+          (solo && LOBBY.handle(message, out)) || account.handle(message) || room.handle(seat, message)
         end
       end
     end
   ensure
+    LOBBY.cancel(out)
     room.leave(seat, out)
     client.close rescue nil
   end

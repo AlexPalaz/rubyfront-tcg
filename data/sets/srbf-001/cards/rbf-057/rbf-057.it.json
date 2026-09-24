@@ -1,0 +1,29 @@
+{
+  "name": "Forza di Volontà",
+  "typeLabel": "Materia Dinamica I",
+  "summary": "Un Flusso in Reazione: un difensore torna in piedi e risponde.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "static": "Statica"
+    }
+  },
+  "face": {
+    "name": "Forza di Volontà",
+    "effect": {
+      "name": "Effetto",
+      "text": "Stappa un'Entità che controlli: ottiene Contrattacco +1 fino alla fine del turno."
+    },
+    "flavor": "Non è la forza. È il rifiuto di cadere."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

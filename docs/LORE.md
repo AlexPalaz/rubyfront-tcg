@@ -20,12 +20,19 @@
   percorso da **linee d'energia luminose sottopelle** (neon vivo, non
   tecnologia applicata): niente innesti meccanici, parti robotiche o
   corazze metalliche.
+  - **Senza zampe** (precisazione del designer, 2026-09-22): un Rubyfront
+    è un **flusso di energia con la forma di un drago** — testa, corna,
+    collo e corpo serpentino che si allunga e si scioglie in energia,
+    eventualmente le ali; mai zampe, artigli o piedi posati a terra. Sta in
+    aria, o si leva dal suolo come una fiamma.
   - In fronte, **sempre e obbligatoriamente**, la **gemma di rubino
     incastonata**: è il tratto identitario della razza, e resta rossa
     qualunque sia la palette della scena o la coppia di colori della
     singola bestia.
   - Ogni Rubyfront ha una propria **coppia di colori**: **Rhazmora è
-    bianca e rossa** (corpo bianco porcellana, gemma e luce rubino).
+    bianca e rossa** (corpo bianco porcellana, gemma e luce rubino);
+    **Oblivhal cremisi e bianco**; **Arden nero e fuoco** (corpo nero
+    carbone, saette arancio-oro lungo il corpo; deciso 2026-09-22).
 
 ## Le Materie
 

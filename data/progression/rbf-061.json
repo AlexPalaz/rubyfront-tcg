@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "card": "RBF-061",
+  "status": "draft",
+  "_note": "Abilità FITTIZIE (2026-09-23): segnaposto a tema, senza effetto in partita; i testi veri e le forme arriveranno col designer.",
+  "levels": [
+    {
+      "level": 1,
+      "rubyfront": {
+        "id": "arden-r1",
+        "locales": {
+          "it": {
+            "name": "Scintilla Ribelle",
+            "text": "Un'Entità Umana che controlli prende +1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Rebel Spark",
+            "text": "A Human Entity you control gets +1 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "arden-n1",
+        "locales": {
+          "it": {
+            "name": "Brace",
+            "text": "Guadagni 1 PV."
+          },
+          "en": {
+            "name": "Ember",
+            "text": "You gain 1 HP."
+          }
+        }
+      }
+    },
+    {
+      "level": 2,
+      "rubyfront": {
+        "id": "arden-r2",
+        "locales": {
+          "it": {
+            "name": "Passo di Fuoco",
+            "text": "La prossima Entità Umana che giochi in questo turno costa 1 Flusso in meno."
+          },
+          "en": {
+            "name": "Fire Step",
+            "text": "The next Human Entity you play this turn costs 1 less Flux."
+          }
+        }
+      },
+      "nexus": {
+        "id": "arden-n2",
+        "locales": {
+          "it": {
+            "name": "Vampa",
+            "text": "Un'Entità avversaria prende −1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Flare",
+            "text": "An opposing Entity gets −1 Power until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 3,
+      "rubyfront": {
+        "id": "arden-r3",
+        "locales": {
+          "it": {
+            "name": "Fiamma Tenace",
+            "text": "Un'Entità Umana che controlli ottiene Contrattacco +1 fino alla fine del turno."
+          },
+          "en": {
+            "name": "Steadfast Flame",
+            "text": "A Human Entity you control gains Counterattack +1 until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "arden-n3",
+        "locales": {
+          "it": {
+            "name": "Marcia Ardente",
+            "text": "Un'Entità Umana che controlli ottiene Slancio fino alla fine del turno."
+          },
+          "en": {
+            "name": "Burning March",
+            "text": "A Human Entity you control gains Surge until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 4,
+      "rubyfront": {
+        "id": "arden-r4",
+        "locales": {
+          "it": {
+            "name": "Occhi nel Fumo",
+            "text": "Guarda le prime 2 carte del tuo mazzo. Puoi mostrare un'Entità Umana tra esse e aggiungerla alla tua mano."
+          },
+          "en": {
+            "name": "Eyes in the Smoke",
+            "text": "Look at the top 2 cards of your deck. You may reveal a Human Entity among them and add it to your hand."
+          }
+        }
+      },
+      "nexus": {
+        "id": "arden-n4",
+        "locales": {
+          "it": {
+            "name": "Rivolta",
+            "text": "Le Entità Umane attaccanti che controlli prendono +1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Uprising",
+            "text": "The attacking Human Entities you control get +1 Power until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 5,
+      "rubyfront": {
+        "id": "arden-r5",
+        "locales": {
+          "it": {
+            "name": "Muro di Fiamme",
+            "text": "Un'Entità avversaria prende −2 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Wall of Flames",
+            "text": "An opposing Entity gets −2 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "arden-n5",
+        "locales": {
+          "it": {
+            "name": "Tizzone",
+            "text": "Riporta in mano un'Entità Umana dalla tua Zona di Ritiro."
+          },
+          "en": {
+            "name": "Firebrand",
+            "text": "Return a Human Entity from your Retire Zone to your hand."
+          }
+        }
+      }
+    },
+    {
+      "level": 6,
+      "rubyfront": {
+        "id": "arden-r6",
+        "locales": {
+          "it": {
+            "name": "Carica Incendiaria",
+            "text": "Stappa un'Entità Umana che controlli: può attaccare una seconda volta in questo turno."
+          },
+          "en": {
+            "name": "Incendiary Charge",
+            "text": "Untap a Human Entity you control: it may attack a second time this turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "arden-n6",
+        "locales": {
+          "it": {
+            "name": "Fiamma Libera",
+            "text": "Metti sul tuo Fronte un'Entità Umana con costo di Flusso 2 o inferiore dalla tua mano senza pagarne il costo."
+          },
+          "en": {
+            "name": "Free Flame",
+            "text": "Put a Human Entity with Flux cost 2 or less from your hand onto your Front without paying its cost."
+          }
+        }
+      }
+    },
+    {
+      "level": 7,
+      "rubyfront": {
+        "id": "arden-r7",
+        "locales": {
+          "it": {
+            "name": "Cuore di Brace",
+            "text": "Guadagni PV pari al numero di Entità Umane sul tuo Fronte."
+          },
+          "en": {
+            "name": "Ember Heart",
+            "text": "You gain HP equal to the number of Human Entities on your Front."
+          }
+        }
+      },
+      "nexus": {
+        "id": "arden-n7",
+        "locales": {
+          "it": {
+            "name": "Fumo Nero",
+            "text": "Un'Entità Umana che controlli non può essere bloccata in questo turno."
+          },
+          "en": {
+            "name": "Black Smoke",
+            "text": "A Human Entity you control cannot be blocked this turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 8,
+      "rubyfront": {
+        "id": "arden-r8",
+        "locales": {
+          "it": {
+            "name": "Rogo",
+            "text": "Il Rubyfront/Nexus avversario perde 2 PV."
+          },
+          "en": {
+            "name": "Pyre",
+            "text": "The opposing Rubyfront/Nexus loses 2 HP."
+          }
+        }
+      },
+      "nexus": {
+        "id": "arden-n8",
+        "locales": {
+          "it": {
+            "name": "Ceneri Fertili",
+            "text": "Metti sul tuo Fronte un'Entità Umana dalla tua Zona di Ritiro."
+          },
+          "en": {
+            "name": "Fertile Ashes",
+            "text": "Put a Human Entity from your Retire Zone onto your Front."
+          }
+        }
+      }
+    },
+    {
+      "level": 9,
+      "rubyfront": {
+        "id": "arden-r9",
+        "locales": {
+          "it": {
+            "name": "Saette",
+            "text": "Le Entità Umane che controlli prendono +2 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Lightning",
+            "text": "The Human Entities you control get +2 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "arden-n9",
+        "locales": {
+          "it": {
+            "name": "Incendio Vasto",
+            "text": "Ogni Entità avversaria prende −1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Vast Blaze",
+            "text": "Every opposing Entity gets −1 Power until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 10,
+      "rubyfront": {
+        "id": "arden-r10",
+        "locales": {
+          "it": {
+            "name": "Fiamma Eterna",
+            "text": "Le Entità Umane che controlli prendono +2 Potenza e ottengono Slancio fino alla fine del turno."
+          },
+          "en": {
+            "name": "Eternal Flame",
+            "text": "The Human Entities you control get +2 Power and gain Surge until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "arden-n10",
+        "locales": {
+          "it": {
+            "name": "Rinascita dal Fuoco",
+            "text": "Dopo questa Fase di Fronte c'è una Fase di Fronte addizionale."
+          },
+          "en": {
+            "name": "Rebirth from Fire",
+            "text": "After this Front Phase, there is an additional Front Phase."
+          }
+        }
+      }
+    }
+  ]
+}

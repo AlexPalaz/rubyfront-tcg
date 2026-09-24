@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-068",
+  "setId": "rubyfront-core",
+  "collectorNumber": "068",
+  "slug": "auros-champion",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "vanilla",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 5,
+        "fluxCost": 5
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-068.md"
+}

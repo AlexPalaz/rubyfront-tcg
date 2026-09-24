@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "card": "RBF-074",
+  "status": "draft",
+  "_note": "Abilità FITTIZIE (2026-09-23): segnaposto a tema, senza effetto in partita; i testi veri e le forme arriveranno col designer.",
+  "levels": [
+    {
+      "level": 1,
+      "rubyfront": {
+        "id": "seyra-r1",
+        "locales": {
+          "it": {
+            "name": "Presa Lieve",
+            "text": "Un'Entità che controlli ottiene Stasi fino alla fine del turno."
+          },
+          "en": {
+            "name": "Light Hold",
+            "text": "An Entity you control gains Stasis until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "seyra-n1",
+        "locales": {
+          "it": {
+            "name": "Veglia",
+            "text": "Guadagni 1 PV."
+          },
+          "en": {
+            "name": "Vigil",
+            "text": "You gain 1 HP."
+          }
+        }
+      }
+    },
+    {
+      "level": 2,
+      "rubyfront": {
+        "id": "seyra-r2",
+        "locales": {
+          "it": {
+            "name": "Sussurro Dimensionale",
+            "text": "Un'Entità avversaria prende −1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Dimensional Whisper",
+            "text": "An opposing Entity gets −1 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "seyra-n2",
+        "locales": {
+          "it": {
+            "name": "Risveglio Lieve",
+            "text": "Stappa un'Entità che controlli."
+          },
+          "en": {
+            "name": "Light Waking",
+            "text": "Untap an Entity you control."
+          }
+        }
+      }
+    },
+    {
+      "level": 3,
+      "rubyfront": {
+        "id": "seyra-r3",
+        "locales": {
+          "it": {
+            "name": "Custodia",
+            "text": "Un'Entità Auros che controlli prende +1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Custody",
+            "text": "An Auros Entity you control gets +1 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "seyra-n3",
+        "locales": {
+          "it": {
+            "name": "Sguardo Fermo",
+            "text": "Guarda le prime 2 carte del tuo mazzo. Puoi mostrare un'Entità Auros tra esse e aggiungerla alla tua mano."
+          },
+          "en": {
+            "name": "Steady Gaze",
+            "text": "Look at the top 2 cards of your deck. You may reveal an Auros Entity among them and add it to your hand."
+          }
+        }
+      }
+    },
+    {
+      "level": 4,
+      "rubyfront": {
+        "id": "seyra-r4",
+        "locales": {
+          "it": {
+            "name": "Stasi Imposta",
+            "text": "Metti un'Entità avversaria con costo di Flusso 2 o inferiore in Stasi."
+          },
+          "en": {
+            "name": "Imposed Stasis",
+            "text": "Put an opposing Entity with Flux cost 2 or less into Stasis."
+          }
+        }
+      },
+      "nexus": {
+        "id": "seyra-n4",
+        "locales": {
+          "it": {
+            "name": "Sigillo Breve",
+            "text": "Un'Entità avversaria non può bloccare in questo turno."
+          },
+          "en": {
+            "name": "Brief Seal",
+            "text": "An opposing Entity cannot block this turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 5,
+      "rubyfront": {
+        "id": "seyra-r5",
+        "locales": {
+          "it": {
+            "name": "Cristallo",
+            "text": "Togli dalla Stasi un'Entità che controlli: prende +1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Crystal",
+            "text": "Remove an Entity you control from Stasis: it gets +1 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "seyra-n5",
+        "locales": {
+          "it": {
+            "name": "Barriera",
+            "text": "Un'Entità che controlli prende +2 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Barrier",
+            "text": "An Entity you control gets +2 Power until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 6,
+      "rubyfront": {
+        "id": "seyra-r6",
+        "locales": {
+          "it": {
+            "name": "Impulso",
+            "text": "Metti un'Entità avversaria in Stasi."
+          },
+          "en": {
+            "name": "Impulse",
+            "text": "Put an opposing Entity into Stasis."
+          }
+        }
+      },
+      "nexus": {
+        "id": "seyra-n6",
+        "locales": {
+          "it": {
+            "name": "Ricerca Dimensionale",
+            "text": "Cerca nel tuo mazzo un'Entità Auros, mostrala e aggiungila alla tua mano, poi rimescola."
+          },
+          "en": {
+            "name": "Dimensional Search",
+            "text": "Search your deck for an Auros Entity, reveal it and add it to your hand, then shuffle."
+          }
+        }
+      }
+    },
+    {
+      "level": 7,
+      "rubyfront": {
+        "id": "seyra-r7",
+        "locales": {
+          "it": {
+            "name": "Doppia Veglia",
+            "text": "Fino a 2 Entità che controlli ottengono Stasi fino al tuo prossimo turno."
+          },
+          "en": {
+            "name": "Double Vigil",
+            "text": "Up to 2 Entities you control gain Stasis until your next turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "seyra-n7",
+        "locales": {
+          "it": {
+            "name": "Risveglio Armato",
+            "text": "Stappa un'Entità Auros che controlli: prende +2 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Armed Waking",
+            "text": "Untap an Auros Entity you control: it gets +2 Power until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 8,
+      "rubyfront": {
+        "id": "seyra-r8",
+        "locales": {
+          "it": {
+            "name": "Cuore Dimensionale",
+            "text": "Guadagni PV pari al numero di Entità in Stasi."
+          },
+          "en": {
+            "name": "Dimensional Heart",
+            "text": "You gain HP equal to the number of Entities in Stasis."
+          }
+        }
+      },
+      "nexus": {
+        "id": "seyra-n8",
+        "locales": {
+          "it": {
+            "name": "Frattura Dimensionale",
+            "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario."
+          },
+          "en": {
+            "name": "Dimensional Fracture",
+            "text": "Put an opposing Entity into its owner's Retire Zone."
+          }
+        }
+      }
+    },
+    {
+      "level": 9,
+      "rubyfront": {
+        "id": "seyra-r9",
+        "locales": {
+          "it": {
+            "name": "Silenzio di Nova Kai",
+            "text": "Le Entità avversarie in Stasi prendono −2 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Silence of Nova Kai",
+            "text": "The opposing Entities in Stasis get −2 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "seyra-n9",
+        "locales": {
+          "it": {
+            "name": "Guardia Eterna",
+            "text": "Le Entità Auros che controlli prendono +2 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Eternal Guard",
+            "text": "The Auros Entities you control get +2 Power until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 10,
+      "rubyfront": {
+        "id": "seyra-r10",
+        "locales": {
+          "it": {
+            "name": "Grande Sigillo",
+            "text": "Metti fino a 2 Entità avversarie in Stasi."
+          },
+          "en": {
+            "name": "Great Seal",
+            "text": "Put up to 2 opposing Entities into Stasis."
+          }
+        }
+      },
+      "nexus": {
+        "id": "seyra-n10",
+        "locales": {
+          "it": {
+            "name": "Marea Inversa",
+            "text": "Stappa tutte le Entità che controlli dopo la Fase di Fronte."
+          },
+          "en": {
+            "name": "Reverse Tide",
+            "text": "Untap all Entities you control after the Front Phase."
+          }
+        }
+      }
+    }
+  ]
+}

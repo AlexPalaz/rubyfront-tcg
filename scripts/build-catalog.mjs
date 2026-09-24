@@ -120,12 +120,27 @@ const decks = fs.existsSync(decksDir)
     })
   : [];
 
+// La progressione dei Rubyfront (2026-09-23): le regole e un file per
+// Rubyfront, così com'è in data/progression (il client li legge dal bundle).
+const progressionDir = path.join(DATA, "progression");
+const progression = fs.existsSync(progressionDir)
+  ? {
+      rules: readJson(path.join("progression", "rules.json")),
+      cards: fs
+        .readdirSync(progressionDir)
+        .filter(name => name.endsWith(".json") && name !== "rules.json")
+        .sort()
+        .map(name => readJson(path.join("progression", name)))
+    }
+  : null;
+
 const bundle = {
   ...catalog,
   _generated: "Generato da scripts/build-catalog.mjs — non modificare a mano. Fonte: data/",
   sets,
   cards: sets.flatMap(set => set.cards),
-  decks
+  decks,
+  progression
 };
 
 const output = JSON.stringify(bundle, null, 2) + "\n";

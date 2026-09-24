@@ -1,0 +1,21 @@
+{
+  "name": "Spada Comune",
+  "typeLabel": "Oggetto",
+  "summary": "L'Oggetto più semplice: un Flusso, una Potenza.",
+  "ui": {
+    "face": "Oggetto"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Spada Comune",
+    "effect": {
+      "name": "Effetto",
+      "text": "L'Entità a cui è assegnata ha +1 Potenza."
+    },
+    "flavor": "Non è la lama a contare. È la mano che la stringe."
+  }
+}

@@ -239,6 +239,7 @@ export function choosePlay(state: GameState, seat: Seat, facts: Facts, memory: B
     const f = facts(card.cardId);
     // Lo sconto di un'abilità del Rubyfront (§3.1) lo applica il tavolo al
     // gioco della carta: qui conta per decidere cosa si paga.
+    if (f.fluxDie) continue; // il costo a dado non è ancora collegato (2026-09-22)
     const cost = f.fluxCost === null ? null : Math.max(0, f.fluxCost - (abilityDiscount(state, seat, f)?.amount ?? 0));
     if (cost === null || f.kind === "rubyfront" || f.kind === "nexus") continue;
     const useToken = cost > player.flux;

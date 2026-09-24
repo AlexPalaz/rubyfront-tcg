@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-049",
+  "setId": "rubyfront-core",
+  "collectorNumber": "049",
+  "slug": "impetuous-subversive",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "dynamic",
+    "surge",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §8.1",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 1,
+        "fluxCost": 2
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [
+        {
+          "id": "surge"
+        }
+      ],
+      "requirements": {},
+      "triggers": [],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-049.md"
+}

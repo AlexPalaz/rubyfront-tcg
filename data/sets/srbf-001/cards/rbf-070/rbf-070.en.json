@@ -1,0 +1,21 @@
+{
+  "name": "Crystal of Awakening",
+  "typeLabel": "Object",
+  "summary": "Two Power, and it wakes whoever was frozen in Stasis.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Crystal of Awakening",
+    "effect": {
+      "name": "Effect",
+      "text": "The Entity it is assigned to has +2 Power. If the Entity you assign this Object to was in Stasis, release it from Stasis."
+    },
+    "flavor": "A light inside the stone. The stone remembers it is alive."
+  }
+}

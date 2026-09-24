@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-071",
+  "setId": "rubyfront-core",
+  "collectorNumber": "071",
+  "slug": "dimensional-impulse",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dimensional",
+    "grade-1",
+    "stasis",
+    "control",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §7.2, §8.1",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dimensional",
+        "grade": 1
+      },
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "impulse",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "set_state",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "state": "stasis"
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-071.md"
+}

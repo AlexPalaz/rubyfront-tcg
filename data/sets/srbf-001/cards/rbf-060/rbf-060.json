@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-060",
+  "setId": "rubyfront-core",
+  "collectorNumber": "060",
+  "slug": "blazing-call",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dynamic",
+    "grade-1",
+    "static",
+    "draw",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §7.2, §8.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dynamic",
+        "grade": 1
+      },
+      "behavior": "static",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "muster-look",
+          "displayKey": "effect",
+          "event": "on_enter_field",
+          "details": {
+            "enteringCard": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller"
+            }
+          },
+          "effect": {
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 1
+            },
+            "details": {
+              "mayMoveTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom"
+              }
+            }
+          }
+        },
+        {
+          "id": "muster-draw",
+          "displayKey": "effect",
+          "event": "on_enter_field",
+          "details": {
+            "enteringCard": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller"
+            },
+            "requiresEnteredThisTurnAtLeast": {
+              "count": 2,
+              "filter": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              }
+            }
+          },
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-060.md"
+}

@@ -171,6 +171,7 @@ const facts = (cardId: string): CardFacts => ({
   power: null,
   counterattack: null,
   fluxCost: null,
+  fluxDie: null,
   keywords: [],
   enterListeners: [],
   enterMoves: [],

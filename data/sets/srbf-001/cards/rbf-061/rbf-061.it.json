@@ -1,0 +1,72 @@
+{
+  "name": "Arden, Rubifronte del Fuoco",
+  "typeLabel": "Rubyfront bifronte",
+  "summary": "Il Rubyfront del tutorial Umani: paga PV per spingere gli attacchi, e la Fiamma Eterna li ripaga.",
+  "ui": {
+    "faceA": "Faccia A — Rubyfront",
+    "faceB": "Faccia B — Nexus"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "nexusRequirement": {
+      "label": "Requisito Nexus",
+      "text": "In questo turno hai attaccato con almeno 3 Entità Umane. Metti un'Entità Umana dalla tua mano nella tua Zona di Ritiro, poi flippa."
+    }
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · fino al 2° grado",
+    "dynamicAria": "Dinamica",
+    "destructiveTitle": "Materia Distruttiva · fino al 1° grado",
+    "destructiveAria": "Distruttiva"
+  },
+  "faceA": {
+    "name": "Arden, Rubifronte del Fuoco",
+    "keyword": {
+      "name": "Furia",
+      "rules": "d20 ≥ 13 prima di ogni azione · fallimento −1 PV"
+    },
+    "effect": {
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che un'Entità Umana che controlli attacca, puoi pagare 1 PV. Se lo fai, quell'Entità prende +1 Potenza fino alla fine del turno."
+    },
+    "abilities": {
+      "pactWord": {
+        "name": "Scintilla",
+        "text": "un'Entità Umana che controlli prende +1 Potenza fino alla fine del turno."
+      },
+      "pactCall": {
+        "name": "Richiamo alla Fiamma",
+        "text": "la prossima Entità Umana che giochi in questo turno costa 1 Flusso in meno."
+      }
+    },
+    "flavor": "Non ha giurato a nessuno. Il fuoco basta."
+  },
+  "faceB": {
+    "name": "Fiamma Eterna",
+    "nexusAria": "Nexus",
+    "flipEffect": {
+      "trigger": "Quando flippa",
+      "text": "Pesca una carta."
+    },
+    "effect": {
+      "trigger": "Effetto",
+      "text": "La prima volta in ogni tuo turno che attacchi con almeno 2 Entità Umane, guadagni 2 PV."
+    },
+    "abilities": {
+      "oathWord": {
+        "name": "Vampata",
+        "text": "un'Entità Umana che controlli prende +2 Potenza fino alla fine del turno."
+      },
+      "oathCall": {
+        "name": "Chiamata Ardente",
+        "text": "puoi mettere sul tuo Fronte un'Entità Umana con costo di Flusso 2 o inferiore dalla tua mano senza pagarne il costo di Flusso."
+      },
+      "oathCharge": {
+        "name": "Incendio",
+        "text": "le Entità Umane che controlli prendono +1 Potenza e ottengono Slancio fino alla fine del turno."
+      }
+    },
+    "flavor": "Una fiamma vale quanto chi la tiene accesa."
+  }
+}

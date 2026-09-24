@@ -149,6 +149,8 @@ module Rubyfront
           # giocatore inizia la partita. nil per chi non ne ha.
           health: integer_stat(stats["health"]),
           flux_cost: integer_stat(stats["fluxCost"]),
+          # Il costo di Flusso a dado di una Materia (dal 2026-09-22): "d6", o nil.
+          flux_die: stats["fluxCost"].is_a?(Hash) && stats["fluxCost"]["die"].is_a?(String) ? stats["fluxCost"]["die"] : nil,
           deployment: deployment_of(stats["deploymentCost"]),
           matter: matter_of(faces),
           enables: faces.map { |face| enables_of(face) }.freeze,

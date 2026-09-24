@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-053",
+  "setId": "rubyfront-core",
+  "collectorNumber": "053",
+  "slug": "forged-colossus",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "dynamic",
+    "vanilla",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 5,
+        "fluxCost": 5
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 2
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-053.md"
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-048",
+  "setId": "rubyfront-core",
+  "collectorNumber": "048",
+  "slug": "pensive-intellectual",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "dynamic",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §6.3, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 2,
+        "fluxCost": 1
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "weary",
+          "displayKey": "weary",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "set_state",
+            "target": {
+              "scope": "self"
+            },
+            "state": "tapped"
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-048.md"
+}

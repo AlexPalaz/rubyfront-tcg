@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-054",
+  "setId": "rubyfront-core",
+  "collectorNumber": "054",
+  "slug": "axel-free-flame",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 1,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "dynamic",
+    "surge",
+    "unique",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §6.3, §8.1, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 6,
+        "fluxCost": 6
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 2
+        }
+      ],
+      "keywords": [
+        {
+          "id": "surge"
+        }
+      ],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "charge",
+          "displayKey": "charge",
+          "event": "on_attack",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "quantity": "all",
+              "details": {
+                "attacking": true
+              }
+            },
+            "amount": 1,
+            "duration": "until_end_of_turn"
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-054.md",
+  "unique": true
+}

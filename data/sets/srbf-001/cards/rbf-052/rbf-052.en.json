@@ -1,0 +1,22 @@
+{
+  "name": "Tempered Guardian",
+  "typeLabel": "Entity: Human",
+  "summary": "Four Flux, four Power: the mid-game wall.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Tempered Guardian",
+    "flavor": "Tempered by fire: it stands where it is put, and the world goes around it."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicAria": "Dynamic"
+  }
+}

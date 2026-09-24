@@ -1,0 +1,21 @@
+{
+  "name": "Common Sword",
+  "typeLabel": "Object",
+  "summary": "The simplest Object: one Flux, one Power.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Common Sword",
+    "effect": {
+      "name": "Effect",
+      "text": "The Entity it is assigned to has +1 Power."
+    },
+    "flavor": "It isn't the blade that counts. It's the hand that holds it."
+  }
+}

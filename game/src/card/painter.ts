@@ -49,8 +49,20 @@ const BOX_LINE = 1.34;
 const FIT_STEPS = [1, 0.96, 0.92, 0.88, 0.84, 0.8, 0.76, 0.72, 0.68, 0.64, 0.6];
 const NAME_FIT_STEPS = [1.05, 0.98, 0.92, 0.86, 0.8, 0.75];
 
+/** Un blocco della lastra posato (2026-09-24): dove sta sulla carta, per chi vuole toccarlo (la sferografia monta le abilità sui blocchi stampati). */
+export interface PlacedBlock {
+  kind: TextBlock["kind"];
+  /** Il nome dell'abilità (solo per i blocchi «ability»). */
+  name: string | null;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 export interface Painted {
   lines: PlacedLine[];
+  blocks: PlacedBlock[];
 }
 
 export function paint(ctx: CanvasRenderingContext2D, face: FaceModel, resources: Resources, artImage: ImageElement | null): Painted {
@@ -113,10 +125,11 @@ export function paint(ctx: CanvasRenderingContext2D, face: FaceModel, resources:
   if (dividerTop !== null) paintDivider(ctx, dividerTop, p, placedLines);
 
   // ---- il riquadro del testo
-  paintBox(ctx, textbox, textboxPaint, face, p, slabStyle, resources, placedLines);
+  const placedBlocks: PlacedBlock[] = [];
+  paintBox(ctx, textbox, textboxPaint, face, p, slabStyle, resources, placedLines, placedBlocks);
 
   ctx.restore();
-  return { lines: placedLines };
+  return { lines: placedLines, blocks: placedBlocks };
 }
 
 // ================================================================ lo sfondo
@@ -703,10 +716,12 @@ interface Child {
   h: number;
   /** Il margine sotto (la riga del tipo ha .1em). */
   after: number;
+  /** Il blocco di testo da cui nasce (la riga del tipo non ne ha). */
+  block?: TextBlock;
   draw(ctx: CanvasRenderingContext2D, x: number, y: number, placedLines: PlacedLine[]): void;
 }
 
-function paintBox(ctx: CanvasRenderingContext2D, layoutBox: Box, box: Box, face: FaceModel, p: Palette, slabStyle: Slab, resources: Resources, placedLines: PlacedLine[]): void {
+function paintBox(ctx: CanvasRenderingContext2D, layoutBox: Box, box: Box, face: FaceModel, p: Palette, slabStyle: Slab, resources: Resources, placedLines: PlacedLine[], placedBlocks: PlacedBlock[] = []): void {
   stonePattern = resources.stone;
   const nexus = face.kind === "nexus";
 
@@ -784,6 +799,7 @@ function paintBox(ctx: CanvasRenderingContext2D, layoutBox: Box, box: Box, face:
   layout.children.forEach((child, index) => {
     if (index) y += 0.34 * f;
     child.draw(ctx, layoutBox.x + layout.padX, y, placedLines);
+    if (child.block) placedBlocks.push({ kind: child.block.kind, name: child.block.kind === "ability" ? child.block.name : null, x: layoutBox.x + layout.padX, y, w: layoutBox.w - 2 * layout.padX, h: child.h });
     y += child.h + child.after;
   });
 
@@ -801,7 +817,7 @@ function paintBox(ctx: CanvasRenderingContext2D, layoutBox: Box, box: Box, face:
 function childNodes(face: FaceModel, f: number, width: number, p: Palette, slabStyle: Slab): Child[] {
   const out: Child[] = [];
   if (face.textline) out.push(typeRow(face.textline, f, width, p, slabStyle));
-  for (const block of face.blocks) out.push(blockOf(block, f, width, p, slabStyle));
+  for (const block of face.blocks) out.push({ ...blockOf(block, f, width, p, slabStyle), block });
   return out;
 }
 

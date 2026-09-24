@@ -1,0 +1,29 @@
+{
+  "name": "Barriera Dimensionale",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "Due Potenza in Reazione: un blocco che regge, o un attacco che passa.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "static": "Statica"
+    }
+  },
+  "face": {
+    "name": "Barriera Dimensionale",
+    "effect": {
+      "name": "Effetto",
+      "text": "Un'Entità che controlli prende +2 Potenza fino alla fine del turno."
+    },
+    "flavor": "Il mondo si piega intorno a chi lo tiene."
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  }
+}

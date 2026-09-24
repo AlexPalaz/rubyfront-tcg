@@ -1,0 +1,26 @@
+{
+  "name": "Sovversivo Impetuoso",
+  "typeLabel": "Entità: Umano",
+  "summary": "Slancio a 2 Flussi: insegna che si può attaccare nel turno in cui si entra.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Sovversivo Impetuoso",
+    "keyword": {
+      "name": "Slancio",
+      "rules": "può attaccare nel turno in cui entra sul Fronte"
+    },
+    "flavor": "Non aspetta l'ordine. Aspetta solo di vedere il nemico."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

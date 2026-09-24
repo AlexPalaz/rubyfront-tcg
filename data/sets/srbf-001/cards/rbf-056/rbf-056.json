@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-056",
+  "setId": "rubyfront-core",
+  "collectorNumber": "056",
+  "slug": "common-shield",
+  "type": "object",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "object",
+    "counterattack",
+    "surge",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §6.3, §8.1",
+  "faces": [
+    {
+      "id": "object",
+      "kind": "object",
+      "displayKey": "face",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "guard",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "modify_counterattack",
+            "target": {
+              "scope": "assigned"
+            },
+            "amount": 1
+          }
+        },
+        {
+          "id": "rush",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "empower",
+            "target": {
+              "scope": "assigned"
+            },
+            "grants": [
+              "surge"
+            ],
+            "duration": "permanent"
+          }
+        }
+      ],
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "controller": "controller"
+      }
+    }
+  ],
+  "designNotes": "rbf-056.md"
+}

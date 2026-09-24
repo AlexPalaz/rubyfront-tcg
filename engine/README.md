@@ -48,6 +48,18 @@ Regole collegate finora:
   sé quando una delle due carte lascia il campo (il ritorno in campo è
   sempre disarmato). È il prerequisito delle licenze (la Stasi concessa da un Oggetto
   vive «mentre assegnato»).
+- **Gli starter del tutorial** (2026-09-22): i due mazzi del tutorial (uno
+  per razza) entrano nel catalogo con ventotto carte nuove. Le forme che portano e che nessuna regola legge
+  ancora — entra tappata, il buff all'ingresso su un'altra, la carica di chi
+  attacca, il Contrattacco in Reazione, l'indebolimento con la messa in
+  Ritiro, la Statica che guarda e pesca, l'attacco a pagamento di PV, la
+  Stasi imposta o tolta, il buff secco in Reazione, i PV a ogni Stasi — sono
+  nel **debito dichiarato** (`card_index_test.rb`, DEBT): si vedono sulle
+  carte e si giocano a mano finché non sono certificate (regola d'oro). Il
+  **costo a dado di una Materia** (`stats.fluxCost: {die}`)
+  è letto dall'anagrafe (`flux_die`) e la dogana **ferma la giocata** finché
+  la regola del tiro pagabile (§3.1) non è collegata alle Materie: il
+  client la mostra non giocabile e il bot non la prova.
 - **§4 Il mulligan** (engine 0.86.0, 2026-09-17) — «ciascun giocatore può
   fare mulligan fino a 3 volte: rimescola tutta la mano nel mazzo e pesca 6
   nuove carte; dopo il terzo è costretto ad accettare; quando un giocatore
@@ -1333,11 +1345,14 @@ ruby engine/test/websocket_test.rb
 ## Il protocollo
 
 WebSocket, messaggi JSON, **un canale solo** per arbitro e avversario. Il
-client si collega a `/engine?room=<stanza>&seat=<a|b>`: la stanza ha **un
+client si collega a `/engine?room=<stanza>[&seat=<a|b>]`: la stanza ha **un
 Engine per tutti i client seduti** (`lib/rubyfront/room.rb`) e l'engine è
-**l'unico a scrivere lo stato** (deciso 2026-09-11). Senza `room` è la
-stanza «solo»: un tavolo privato per quella connessione (partita locale o
-col bot).
+**l'unico a scrivere lo stato** (deciso 2026-09-11). **Il posto lo assegna
+il tavolo** (2026-09-23): `seat` è una preferenza — se è libero si ha quello,
+se no l'altro, e a stanza piena si resta fuori; il link d'invito porta solo
+la stanza. Senza `room` è la stanza «solo»: un tavolo privato per quella
+connessione (partita locale o col bot), da cui si entra anche nell'**atrio**
+(`lib/rubyfront/lobby.rb`) per una partita casuale.
 
 | chi | messaggio | risposta |
 |---|---|---|
@@ -1347,10 +1362,15 @@ col bot).
 | client | `{"t":"judge","action":{"t":"ready","key":"enter\|u-7\|\|\|3","seat":"a","scene":{…}}}` | come ogni azione: senza regola (`ruled: false`), passa a chiunque in ogni fase e turno, va nel giornale e agli altri. È la **stretta di mano delle scene** (2026-09-15): «Risolvi» premuto da un client; chi risolve aspetta il `ready` dell'avversario con la stessa `key` prima di far partire i passi, e `scene` dice all'altro quale scena aprire se non l'ha già. La lavagna non cambia (`state.ts`/`table.rb`: nessun ramo). |
 | client | `{"t":"snapshot","state":{…}}` | *(solo nella stanza «solo»: allinea la copia del tavolo; in stanza si ignora)* |
 | tavolo | `{"t":"peers","peers":2,"seats":["a","b"]}` | a tutti, a ogni ingresso o uscita |
-| client | `{"t":"login","provider":"dev","token":"…"}` | `{"t":"me","player":{"id":1,"name":"Tester","provider":"dev"}}`, o `{"t":"me","player":null,"reason":"…","reason_en":"…"}`. L'**utenza** (2026-09-20) è della connessione, non della stanza: `dev` è l'utenza di prova, che entra col segreto `RUBYFRONT_DEV_TOKEN` del tavolo; Steam arriverà come altro `provider`. `{"t":"logout"}` risponde `{"t":"me","player":null}` |
+| client | `{"t":"register","username":"…","email":"…","password":"…","name":"…"}` | `{"t":"me","player":{…},"token":"…"}` (2026-09-22): l'account con **nome utente unico** (3–20, minuscole, cifre e `_`), email, password (almeno 8) e **nome pubblico**; il token è la sessione da conservare (90 giorni; nella memoria solo l'impronta); parte la posta di conferma (Resend, o sul log del tavolo senza `RESEND_API_KEY`) con `?verify=` sul sito |
+| client | `{"t":"login","provider":"password","login":"…","password":"…"}` / `{"t":"login","provider":"google","idToken":"…"}` | `{"t":"me","player":{"id":1,"username":"…","name":"…","email":"…","verified":true,"providers":["google"],"decks":[…]},"token":"…"}`, o `{"t":"me","player":null,"reason":"…","reason_en":"…"}`. L'**utenza** è della connessione, non della stanza. `password` accetta nome utente o email; `google` è il biglietto (ID token) del bottone di Google, che il tavolo fa leggere a Google e accetta solo per il suo `GOOGLE_CLIENT_ID` con la mail verificata (stessa mail già registrata → si collega, se no un account nuovo). L'utenza di prova a chiave (`dev`) è stata tolta il 2026-09-23: si entra solo come tutti. Le **identità** (google, domani steam) sono più accessi allo stesso giocatore |
+| client | `{"t":"resume","token":"…"}` / `{"t":"logout"}` / `{"t":"verify","token":"…"}` / `{"t":"profile","name":"…"}` | `me` (la sessione ripresa; cancellata, `player:null`; la mail confermata — o `{"t":"verified","username":"…"}` se chi apre il link non è seduto come quel giocatore; il nome pubblico cambiato). `player.decks` sono i **mazzi assegnati** all'account (2026-09-20): all'accesso si assegnano i gratuiti (`access: "free"` in `data/decks`) che ancora mancano, gli altri arriveranno con l'acquisto; chi è entrato gioca solo coi suoi (un `loadDeck` con un mazzo non suo è fermato dall'utenza prima del tavolo, con un verdetto), senza accesso i mazzi restano tutti liberi |
+| client | `{"t":"loadout","card":"RBF-001","loadout":{"rubyfront":["…"],"nexus":["…"]}}` | `{"t":"progress","card":"RBF-001","xp":250,"level":3,"loadout":{…}}` (2026-09-23): le abilità montate su un Rubyfront, convalidate col livello attuale (id sbloccati, niente doppioni, al più gli slot per faccia di `data/progression/rules.json`), o `{"t":"progress","card":"…","ok":false,"reason":"…","reason_en":"…"}`. `me.player.rubyfronts` porta la progressione di ogni Rubyfront (card, xp, level, loadout). A fine partita il tavolo manda da sé a chi era seduto `{"t":"progress",…,"gained":100,"outcome":"win"}` |
 | client | `{"t":"save","seq":3,"key":"prefs","value":{…}}` | `{"t":"saved","seq":3,"key":"prefs","ok":true}` (o `ok:false` con `reason`): il dato JSON del giocatore, una riga per chiave nella memoria (Neon) |
 | client | `{"t":"load","seq":4,"key":"prefs"}` | `{"t":"data","seq":4,"key":"prefs","value":{…}}`, `null` se non c'è o senza accesso |
-| tavolo | `{"t":"seat_taken","seat":"a"}` | a chi chiede un posto già occupato, poi il tavolo chiude |
+| tavolo | `{"t":"seat","seat":"b"}` | a chi si siede, subito, prima di `peers`: il posto assegnato (2026-09-23), che può non essere quello chiesto |
+| tavolo | `{"t":"room_full","room":"…"}` | a chi entra in una stanza con già due giocatori, poi il tavolo chiude |
+| client | `{"t":"match"}` / `{"t":"match_cancel"}` | dalla stanza «solo» (2026-09-23): in fila nell'atrio per un avversario qualunque, o fuori dalla fila (anche chiudendo il filo). In due, a ciascuno `{"t":"matched","room":"giada-4821","seat":"a"}` — il primo arrivato ad A, il secondo a B — e i due si collegano a quella stanza come da un link d'invito |
 
 `judge` è il giudizio preventivo su **ogni** azione, di chiunque: l'engine
 applica l'azione alla **sua copia del tavolo** (`lib/rubyfront/table.rb`)
@@ -1397,17 +1417,31 @@ health check.
 **La memoria** (`lib/rubyfront/store.rb`, dal 2026-09-20): con `DATABASE_URL`
 il tavolo parla con Postgres su Neon per HTTPS (il punto `/sql` del ramo,
 la stringa di connessione nell'intestazione: niente gemme, niente
-connessioni da tenere vive), crea all'avvio le tabelle `players` (chi sono,
-da quale accesso) e `player_data` (una riga per chiave, valore JSON) se
+connessioni da tenere vive), crea all'avvio le tabelle `players` (nome utente,
+nome pubblico, email, impronta della password), `player_identities` (gli
+accessi collegati: dev, google, domani steam), `sessions` (l'impronta dei
+token, con scadenza), `player_decks` (i mazzi assegnati, e da quale via:
+gratuiti o acquistati) e `player_data` (una riga per chiave, valore JSON) se
 mancano, e risponde a `login`/`save`/`load`. Senza `DATABASE_URL` gioca
 come sempre e l'accesso risponde che non c'è memoria. In locale le
 variabili stanno in `.env.local` (le scrive `neon link`, il repo le
-ignora); su Render nelle variabili del servizio: `DATABASE_URL` e
-`RUBYFRONT_DEV_TOKEN`. L'utenza di prova è una sola, `dev/test`
-(«Tester»): serve a tutti gli sviluppi finché non c'è Steam. Nel client la chiave
-vive solo in memoria finché il gioco è aperto (niente nel browser, deciso
-2026-09-20): si incolla nelle impostazioni a ogni avvio. Cosa salvare lo
-dirà il designer. Il giudizio (`engine.rb`) non sa che la memoria esiste.
+ignora); su Render nelle variabili del servizio: `DATABASE_URL`. Per gli
+sviluppi si usa un account come tutti (`tester`, a password: in locale
+`RUBYFRONT_TEST_USER` e `RUBYFRONT_TEST_PASSWORD` in `.env.local`, che il
+giro delle schermate legge); l'utenza di prova a chiave in memoria è stata
+tolta il 2026-09-23. L'**accesso**
+(2026-09-22, `lib/rubyfront/auth.rb` e `account.rb`): password con
+PBKDF2-HMAC-SHA256 dalla libreria standard (niente gemme), sessioni a
+token casuale di cui la memoria tiene solo l'impronta, Google col client id
+in `GOOGLE_CLIENT_ID`, posta di conferma con `RESEND_API_KEY`, `MAIL_FROM`
+e `RUBYFRONT_SITE` (senza, il link va sul log). Nel client la schermata
+d'accesso sta davanti alla home; la sessione resta nel browser e rientra
+da sé; il nome pubblico si cambia dalle impostazioni (mai al tavolo).
+Limiti dichiarati: niente recupero della password e niente limite ai
+tentativi (da fare); Google solo sul web (Electron non è un browser per
+Google: sul desktop arriverà Steam); la conferma della mail non è
+richiesta per giocare finché la posta non parte. Cosa salvare lo dirà il
+designer. Il giudizio (`engine.rb`) non sa che la memoria esiste.
 
 ## Com'è fatto
 
@@ -1425,6 +1459,28 @@ dirà il designer. Il giudizio (`engine.rb`) non sa che la memoria esiste.
   (un'azione `assign_object` dal Ritiro al costo stampato).
 - `lib/rubyfront/table.rb` — la copia del tavolo, gemella del riduttore del
   client (`core/src/state.ts`): stessa semantica, test speculari.
+- `lib/rubyfront/progression.rb` — la progressione dei Rubyfront (2026-09-23):
+  un modulo a parte, fuori dal giudizio. Legge `data/progression/` (le
+  regole: soglie di livello, punti per esito, slot per faccia; e per ogni
+  Rubyfront i dieci livelli, ciascuno con un'abilità Rubyfront e una Nexus,
+  oggi **segnaposto**), dà il livello dall'esperienza, le abilità sbloccate
+  e il verdetto su una configurazione. La memoria ha la tabella
+  `player_rubyfronts` (esperienza e configurazione per giocatore e
+  Rubyfront: il livello è derivato, una sola verità). L'esperienza la
+  assegna il **trasporto** a fine partita: la stanza ha un gancio `on_over`
+  che parte una volta per partita quando un `gameOver` passa il giudizio
+  (verificato dall'engine in stanza; nella «solo» fidato quanto il client,
+  che è la copia buona), e il trasporto — che conosce sia la stanza sia gli
+  account (`Room#attach`, una lambda per posto) — legge chi era seduto e
+  con quale mazzo (dal giornale, l'ultimo `loadDeck`), somma i punti al
+  Rubyfront di quel mazzo e manda `progress` a quel client. **Regola
+  d'oro:** l'engine non legge ancora le abilità montate: quando lo farà,
+  sarà nei tre punti già noti — `judge_ability` (la ricerca dell'abilità
+  sulla faccia), la lista offerta al giocatore (`core/src/gestures.ts`,
+  `openAbilities`) e il bot (`core/src/bot.ts`, `chooseAbility`) — con
+  la configurazione che viaggerà nel `loadDeck`.
+- `lib/rubyfront/lobby.rb` — l'atrio (2026-09-23): la fila della partita
+  casuale, che in due apre una stanza con un nome libero e assegna i posti.
 - `lib/rubyfront/room.rb` — la stanza: un `Engine` per partita, i client
   seduti, il giornale delle azioni approvate, l'inoltro solo dopo il
   verdetto. Senza socket: i test le parlano direttamente.

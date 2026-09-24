@@ -20,7 +20,7 @@
     ]
   },
   "event": {
-    "_note": "Moments that fire a trigger on_deal_damage: la carta (Entità) infligge danno in combattimento a un Rubyfront; details.toRubyfront limita al bersaglio Rubyfront. on_assign_object: il controllore assegna un Oggetto (details.toSelf limita alla carta stessa). on_draw_card: il controllore pesca una carta.",
+    "_note": "Moments that fire a trigger on_deal_damage: la carta (Entità) infligge danno in combattimento a un Rubyfront; details.toRubyfront limita al bersaglio Rubyfront. on_assign_object: il controllore assegna un Oggetto (details.toSelf limita alla carta stessa). on_draw_card: il controllore pesca una carta. on_enter_stasis: un'Entità entra in Stasi (details.anyEntity: di chiunque), 2026-09-22.",
     "values": [
       "on_deploy_from_recall",
       "on_flip",
@@ -39,7 +39,8 @@
       "on_untap",
       "on_deal_damage",
       "on_assign_object",
-      "on_draw_card"
+      "on_draw_card",
+      "on_enter_stasis"
     ]
   },
   "effect": {
@@ -181,7 +182,7 @@
     ]
   },
   "condition": {
-    "_note": "Checkable conditions (Nexus requirements, target filters)",
+    "_note": "Checkable conditions (Nexus requirements, target filters) stasis_inflicted_at_least: quante Entità (del filtro) il controllore ha messo in Stasi in questa partita (requisito Nexus dello starter Auros, 2026-09-22).",
     "values": [
       "hand_size",
       "reveal_card",
@@ -190,7 +191,8 @@
       "health_at_least",
       "health_lost_at_least",
       "untapped_from_stasis_this_turn",
-      "attacked_this_turn_at_least"
+      "attacked_this_turn_at_least",
+      "stasis_inflicted_at_least"
     ]
   },
   "stat": {

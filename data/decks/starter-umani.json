@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": "starter-umani",
+  "setId": "rubyfront-core",
+  "status": "draft",
+  "access": "free",
+  "defaultLocale": "it",
+  "locales": {
+    "it": {
+      "name": "Fiamma Ribelle",
+      "description": "Starter Umani, il mazzo del tutorial: corpi semplici a ogni costo, Slancio e Vendetta da imparare, e Arden che paga PV per spingere gli attacchi."
+    },
+    "en": {
+      "name": "Rebel Flame",
+      "description": "The Human starter, the tutorial deck: simple bodies at every cost, Surge and Revenge to learn, and Arden paying HP to push the attacks."
+    }
+  },
+  "designNotes": "starter-umani.md",
+  "cards": [
+    {
+      "card": "RBF-047",
+      "count": 3
+    },
+    {
+      "card": "RBF-048",
+      "count": 3
+    },
+    {
+      "card": "RBF-049",
+      "count": 3
+    },
+    {
+      "card": "RBF-050",
+      "count": 3
+    },
+    {
+      "card": "RBF-051",
+      "count": 3
+    },
+    {
+      "card": "RBF-052",
+      "count": 3
+    },
+    {
+      "card": "RBF-053",
+      "count": 3
+    },
+    {
+      "card": "RBF-054",
+      "count": 1
+    },
+    {
+      "card": "RBF-055",
+      "count": 3
+    },
+    {
+      "card": "RBF-056",
+      "count": 3
+    },
+    {
+      "card": "RBF-057",
+      "count": 3
+    },
+    {
+      "card": "RBF-058",
+      "count": 3
+    },
+    {
+      "card": "RBF-059",
+      "count": 3
+    },
+    {
+      "card": "RBF-060",
+      "count": 3
+    },
+    {
+      "card": "RBF-061",
+      "count": 1
+    }
+  ],
+  "theme": "t49"
+}

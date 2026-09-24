@@ -5,8 +5,8 @@
 // ingrandita — sempre nitida.
 
 import { Texture } from "pixi.js";
-import { faceModel, setCardsBase, type FaceModel } from "./model";
-import { paint, type PlacedLine } from "./painter";
+import { faceModel, setCardsBase, type FaceModel, type FaceOverrides } from "./model";
+import { paint, type PlacedBlock, type PlacedLine } from "./painter";
 import { CARDS_BASE, loadImage, themeResources } from "./resources";
 import { CARD_H, CARD_W } from "./theme";
 
@@ -19,11 +19,13 @@ export interface PaintedCard {
   face: FaceModel;
   canvas: HTMLCanvasElement;
   lines: PlacedLine[];
+  /** I blocchi della lastra posati (2026-09-24): dove stanno le abilità, per toccarle. */
+  blocks: PlacedBlock[];
 }
 
 /** Dipinge una faccia su un canvas nuovo, `resolution` pixel per px della carta. */
-export async function paintCard(cardId: string, faceId: string, locale: string, resolution = 2): Promise<PaintedCard | null> {
-  const face = faceModel(cardId, faceId, locale);
+export async function paintCard(cardId: string, faceId: string, locale: string, resolution = 2, overrides: FaceOverrides = {}): Promise<PaintedCard | null> {
+  const face = faceModel(cardId, faceId, locale, overrides);
   if (!face) return null;
   const [resources, art] = await Promise.all([themeResources(), face.art ? loadImage(face.art.src).catch(() => null) : Promise.resolve(null)]);
   // I caratteri di sistema (Iowan Old Style, il mono dei codici) vanno caricati prima di misurare.
@@ -33,8 +35,8 @@ export async function paintCard(cardId: string, faceId: string, locale: string, 
   canvas.height = Math.round(CARD_H * resolution);
   const ctx = canvas.getContext("2d")!;
   ctx.scale(resolution, resolution);
-  const { lines } = paint(ctx, face, resources, art);
-  return { face, canvas, lines };
+  const { lines, blocks } = paint(ctx, face, resources, art);
+  return { face, canvas, lines, blocks };
 }
 
 /** La texture Pixi di una faccia. */

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-067",
+  "setId": "rubyfront-core",
+  "collectorNumber": "067",
+  "slug": "defender-of-nova-kai",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "vanilla",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 4,
+        "fluxCost": 4
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-067.md"
+}

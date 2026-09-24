@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "card": "RBF-001",
+  "status": "draft",
+  "_note": "Abilità FITTIZIE (2026-09-23): segnaposto a tema, senza effetto in partita; i testi veri e le forme arriveranno col designer.",
+  "levels": [
+    {
+      "level": 1,
+      "rubyfront": {
+        "id": "oblivhal-r1",
+        "locales": {
+          "it": {
+            "name": "Grido della Radura",
+            "text": "Un'Entità Umana che controlli prende +1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Cry of the Glade",
+            "text": "A Human Entity you control gets +1 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "oblivhal-n1",
+        "locales": {
+          "it": {
+            "name": "Eco dell'Erede",
+            "text": "La prima volta in ogni tuo turno che un'Entità Umana entra sul tuo Fronte, guadagni 1 PV."
+          },
+          "en": {
+            "name": "Echo of the Heir",
+            "text": "The first time each of your turns a Human Entity enters your Front, you gain 1 HP."
+          }
+        }
+      }
+    },
+    {
+      "level": 2,
+      "rubyfront": {
+        "id": "oblivhal-r2",
+        "locales": {
+          "it": {
+            "name": "Passo Leggero",
+            "text": "La prossima Entità Umana che giochi in questo turno costa 1 Flusso in meno."
+          },
+          "en": {
+            "name": "Light Step",
+            "text": "The next Human Entity you play this turn costs 1 less Flux."
+          }
+        }
+      },
+      "nexus": {
+        "id": "oblivhal-n2",
+        "locales": {
+          "it": {
+            "name": "Memoria della Radura",
+            "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo."
+          },
+          "en": {
+            "name": "Memory of the Glade",
+            "text": "Look at the top card of your deck: you may put it on the bottom."
+          }
+        }
+      }
+    },
+    {
+      "level": 3,
+      "rubyfront": {
+        "id": "oblivhal-r3",
+        "locales": {
+          "it": {
+            "name": "Fiato dei Caduti",
+            "text": "Guadagni 2 PV."
+          },
+          "en": {
+            "name": "Breath of the Fallen",
+            "text": "You gain 2 HP."
+          }
+        }
+      },
+      "nexus": {
+        "id": "oblivhal-n3",
+        "locales": {
+          "it": {
+            "name": "Radunata",
+            "text": "Le Entità Umane che controlli prendono +1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Muster",
+            "text": "The Human Entities you control get +1 Power until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 4,
+      "rubyfront": {
+        "id": "oblivhal-r4",
+        "locales": {
+          "it": {
+            "name": "Scudo di Cenere",
+            "text": "Un'Entità Umana che controlli ottiene Contrattacco +1 fino alla fine del turno."
+          },
+          "en": {
+            "name": "Ash Shield",
+            "text": "A Human Entity you control gains Counterattack +1 until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "oblivhal-n4",
+        "locales": {
+          "it": {
+            "name": "Ali della Radura",
+            "text": "Un'Entità Umana che controlli ottiene Slancio fino alla fine del turno."
+          },
+          "en": {
+            "name": "Wings of the Glade",
+            "text": "A Human Entity you control gains Surge until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 5,
+      "rubyfront": {
+        "id": "oblivhal-r5",
+        "locales": {
+          "it": {
+            "name": "Sguardo dall'Alto",
+            "text": "Guarda le prime 2 carte del tuo mazzo. Puoi mostrare un'Entità Umana tra esse e aggiungerla alla tua mano."
+          },
+          "en": {
+            "name": "View from Above",
+            "text": "Look at the top 2 cards of your deck. You may reveal a Human Entity among them and add it to your hand."
+          }
+        }
+      },
+      "nexus": {
+        "id": "oblivhal-n5",
+        "locales": {
+          "it": {
+            "name": "Richiamo dei Dimenticati",
+            "text": "Riporta in mano un'Entità Umana dalla tua Zona di Ritiro."
+          },
+          "en": {
+            "name": "Call of the Forgotten",
+            "text": "Return a Human Entity from your Retire Zone to your hand."
+          }
+        }
+      }
+    },
+    {
+      "level": 6,
+      "rubyfront": {
+        "id": "oblivhal-r6",
+        "locales": {
+          "it": {
+            "name": "Ondata",
+            "text": "Le Entità Umane attaccanti che controlli prendono +1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Wave",
+            "text": "The attacking Human Entities you control get +1 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "oblivhal-n6",
+        "locales": {
+          "it": {
+            "name": "Terra Bruciata",
+            "text": "Un'Entità avversaria prende −2 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Scorched Earth",
+            "text": "An opposing Entity gets −2 Power until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 7,
+      "rubyfront": {
+        "id": "oblivhal-r7",
+        "locales": {
+          "it": {
+            "name": "Seconda Carica",
+            "text": "Stappa un'Entità Umana che controlli: può attaccare una seconda volta in questo turno."
+          },
+          "en": {
+            "name": "Second Charge",
+            "text": "Untap a Human Entity you control: it may attack a second time this turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "oblivhal-n7",
+        "locales": {
+          "it": {
+            "name": "Marcia Silenziosa",
+            "text": "Un'Entità Umana che controlli non può essere bloccata in questo turno."
+          },
+          "en": {
+            "name": "Silent March",
+            "text": "A Human Entity you control cannot be blocked this turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 8,
+      "rubyfront": {
+        "id": "oblivhal-r8",
+        "locales": {
+          "it": {
+            "name": "Cuore della Radura",
+            "text": "Guadagni PV pari al numero di Entità Umane sul tuo Fronte."
+          },
+          "en": {
+            "name": "Heart of the Glade",
+            "text": "You gain HP equal to the number of Human Entities on your Front."
+          }
+        }
+      },
+      "nexus": {
+        "id": "oblivhal-n8",
+        "locales": {
+          "it": {
+            "name": "Erede in Armi",
+            "text": "Metti sul tuo Fronte un'Entità Umana con costo di Flusso 2 o inferiore dalla tua mano senza pagarne il costo."
+          },
+          "en": {
+            "name": "Heir in Arms",
+            "text": "Put a Human Entity with Flux cost 2 or less from your hand onto your Front without paying its cost."
+          }
+        }
+      }
+    },
+    {
+      "level": 9,
+      "rubyfront": {
+        "id": "oblivhal-r9",
+        "locales": {
+          "it": {
+            "name": "Fuoco delle Guglie",
+            "text": "Il Rubyfront/Nexus avversario perde 2 PV."
+          },
+          "en": {
+            "name": "Fire of the Spires",
+            "text": "The opposing Rubyfront/Nexus loses 2 HP."
+          }
+        }
+      },
+      "nexus": {
+        "id": "oblivhal-n9",
+        "locales": {
+          "it": {
+            "name": "Ritorno dal Ritiro",
+            "text": "Metti sul tuo Fronte un'Entità Umana dalla tua Zona di Ritiro."
+          },
+          "en": {
+            "name": "Return from Retire",
+            "text": "Put a Human Entity from your Retire Zone onto your Front."
+          }
+        }
+      }
+    },
+    {
+      "level": 10,
+      "rubyfront": {
+        "id": "oblivhal-r10",
+        "locales": {
+          "it": {
+            "name": "Ali Spiegate",
+            "text": "Le Entità Umane che controlli prendono +2 Potenza e ottengono Slancio fino alla fine del turno."
+          },
+          "en": {
+            "name": "Wings Spread",
+            "text": "The Human Entities you control get +2 Power and gain Surge until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "oblivhal-n10",
+        "locales": {
+          "it": {
+            "name": "Eredità Ritrovata",
+            "text": "Dopo questa Fase di Fronte c'è una Fase di Fronte addizionale."
+          },
+          "en": {
+            "name": "Legacy Regained",
+            "text": "After this Front Phase, there is an additional Front Phase."
+          }
+        }
+      }
+    }
+  ]
+}

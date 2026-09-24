@@ -31,11 +31,19 @@ module Rubyfront
 
     # `starter` decide chi apre la partita (§4): il tavolo lo tira, non il
     # client — in una stanza con nome il giornale comincia da quel `newGame`.
-    def initialize(name, cards: {}, solo: false, starter: nil)
+    # `on_over` (2026-09-23) è il gancio della fine partita: `->(room, action)`,
+    # chiamato UNA volta per partita quando un `gameOver` passa il giudizio.
+    # La stanza non sa chi sono i seduti: il trasporto glielo dice con
+    # `attach` (una lambda per posto), e nel gancio legge `player_of` e
+    # `deck_of` per assegnare l'esperienza. Niente memoria qui.
+    def initialize(name, cards: {}, solo: false, starter: nil, on_over: nil)
       @name = name
       @solo = solo
       @engine = Engine.new(cards: cards)
       @clients = {}
+      @whos = {}
+      @on_over = on_over
+      @over_told = false
       @journal = []
       @mutex = Mutex.new
       @emptied_at = Time.now
@@ -58,17 +66,49 @@ module Rubyfront
       @mutex.synchronize { @clients.keys.sort }
     end
 
-    # Un client si siede. `false` se il posto è occupato: il trasporto lo
-    # dice al client e chiude.
-    def join(seat, out)
+    # Un client si siede: al posto che preferisce se è libero, se no al
+    # primo libero (dal 2026-09-23 il posto lo assegna il tavolo, non il
+    # link). Torna il posto assegnato, o `nil` a stanza piena: il trasporto
+    # lo dice al client e chiude. Chi si siede lo sa subito (`seat`), prima
+    # del conto dei seduti.
+    def join(wanted, out)
       @mutex.synchronize do
-        return false if @clients.key?(seat)
+        free = SEATS.reject { |candidate| @clients.key?(candidate) }
+        seat = free.include?(wanted) ? wanted : free.first
+        return nil unless seat
 
         @clients[seat] = out
         @emptied_at = nil
+        send_to(seat, { t: "seat", seat: seat })
         announce
-        true
+        seat
       end
+    end
+
+    # Chi è seduto a quel posto, come lambda (`-> { id o nil }`): vale anche se
+    # l'accesso arriva dopo. Il trasporto la registra dopo il `join`.
+    def attach(seat, who:)
+      @mutex.synchronize { @whos[seat] = who }
+    end
+
+    def player_of(seat)
+      who = @whos[seat]
+      who&.call
+    rescue StandardError
+      nil
+    end
+
+    # Il mazzo caricato a quel posto, dal giornale (l'ultimo `loadDeck` passato):
+    # la stanza non apre l'engine per questo.
+    def deck_of(seat)
+      entry = @journal.reverse.find { |item| item[:action].is_a?(Hash) && item[:action]["t"] == "loadDeck" && item[:action]["seat"] == seat }
+      entry && entry[:action]["deckId"].is_a?(String) ? entry[:action]["deckId"] : nil
+    end
+
+    # Un messaggio a un posto dal gancio della fine partita, che gira già
+    # dentro il lucchetto della stanza.
+    def reply(seat, payload)
+      send_to(seat, payload)
     end
 
     def leave(seat, out)
@@ -76,6 +116,7 @@ module Rubyfront
         return unless @clients[seat].equal?(out)
 
         @clients.delete(seat)
+        @whos.delete(seat)
         @emptied_at = Time.now if @clients.empty?
         announce
       end
@@ -84,6 +125,7 @@ module Rubyfront
     # Un messaggio del client seduto a `seat`. Le buste:
     #
     #   hello           → il saluto dell'engine, poi il giornale (stanze con nome)
+  #   (all'ingresso il tavolo manda da sé `seat`, il posto assegnato, e `peers`)
     #   judge           → il verdetto a chi chiede; se passa, `action` agli altri
     #   rtc             → inoltrata agli altri com'è (la chat vocale)
     #   snapshot        → solo nella stanza «solo»: allinea la copia del tavolo
@@ -117,6 +159,22 @@ module Rubyfront
 
       record(action, seat)
       broadcast({ t: "action", action: action, from: seat }, except: seat)
+      tell_over(action)
+    end
+
+    # La fine partita passata al giudizio, al gancio, una volta sola: il
+    # `newGame` riapre. Si è dentro il lucchetto della stanza: il gancio
+    # risponde ai posti con `reply`, non con `notify` (che lo riprenderebbe).
+    def tell_over(action)
+      return unless action.is_a?(Hash)
+
+      @over_told = false if action["t"] == "newGame"
+      return unless action["t"] == "gameOver" && @on_over && !@over_told
+
+      @over_told = true
+      @on_over.call(self, action)
+    rescue StandardError => error
+      warn "fine partita, gancio: #{error.message}"
     end
 
     # Il giornale ricomincia a ogni partita nuova: chi entra dopo non ha

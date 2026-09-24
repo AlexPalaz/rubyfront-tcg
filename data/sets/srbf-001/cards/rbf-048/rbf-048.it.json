@@ -1,0 +1,26 @@
+{
+  "name": "Intellettuale Pensieroso",
+  "typeLabel": "Entità: Umano",
+  "summary": "Due Potenza per un Flusso, ma il primo turno lo passa a riprendere fiato.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Intellettuale Pensieroso",
+    "weary": {
+      "trigger": "Quando entra sul Fronte",
+      "text": "Questa Entità entra tappata."
+    },
+    "flavor": "Pensa prima di alzarsi. Poi non si siede più."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

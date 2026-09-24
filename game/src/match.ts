@@ -110,8 +110,15 @@ export interface MatchOptions {
 export interface MatchHooks {
   engineStatus?: SessionView["engineStatus"];
   accountChanged?: SessionView["accountChanged"];
+  accountRefused?: SessionView["accountRefused"];
+  progressChanged?: SessionView["progressChanged"];
+  progressRefused?: SessionView["progressRefused"];
   netStatus?: SessionView["netStatus"];
   waitForPeer?: SessionView["waitForPeer"];
+  reseat?: SessionView["reseat"];
+  roomFull?: SessionView["roomFull"];
+  searching?: SessionView["searching"];
+  matched?: SessionView["matched"];
   seated?: SessionView["seated"];
   introDone?: SessionView["introDone"];
   botGameOver?: SessionView["botGameOver"];
@@ -429,8 +436,15 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     beforeReceive: action => beforeReceive(action),
     engineStatus: status => hooks.engineStatus?.(status),
     accountChanged: player => hooks.accountChanged?.(player),
+    accountRefused: reason => hooks.accountRefused?.(reason),
+    progressChanged: update => hooks.progressChanged?.(update),
+    progressRefused: (card, reason) => hooks.progressRefused?.(card, reason),
     netStatus: (status, peers) => hooks.netStatus?.(status, peers),
     waitForPeer: () => hooks.waitForPeer?.(),
+    reseat: (room, seat) => hooks.reseat?.(room, seat),
+    roomFull: room => hooks.roomFull?.(room),
+    searching: () => hooks.searching?.(),
+    matched: (room, seat) => hooks.matched?.(room, seat),
     seated: () => hooks.seated?.(),
     announce: () => {
       banner.announce(session.state());
@@ -494,6 +508,8 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     store,
     engineUrl: options.engineUrl ?? tableUrl(),
     defaultTheme: CARD_THEME,
+    // La conferma della mail dal link (?verify=), da consegnare al tavolo (2026-09-22).
+    verifyToken: new URLSearchParams(location.search).get("verify") ?? undefined,
     // I tempi dell'apertura (§4): la mano dopo l'insegna, la carta del turno dopo la cascata della mano.
     opening: { hand: PHASE_BANNER_MS + 80, turnDraw: drawCascadeMs(6) + OPENING_DRAW_PAUSE_MS },
     view,

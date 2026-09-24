@@ -1,0 +1,26 @@
+{
+  "name": "Impetuous Subversive",
+  "typeLabel": "Entity: Human",
+  "summary": "Surge at 2 Flux: it teaches that you can attack the turn you enter.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Impetuous Subversive",
+    "keyword": {
+      "name": "Surge",
+      "rules": "may attack the turn it enters the Front"
+    },
+    "flavor": "It doesn't wait for the order. Only to see the enemy."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
+  }
+}

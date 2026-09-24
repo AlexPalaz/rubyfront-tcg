@@ -1,0 +1,21 @@
+{
+  "name": "Common Shield",
+  "typeLabel": "Object",
+  "summary": "Counterattack and Surge in a 2-cost Object.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Common Shield",
+    "effect": {
+      "name": "Effect",
+      "text": "The Entity it is assigned to has Counterattack +1 and Surge."
+    },
+    "flavor": "Light enough to run with, wide enough to answer."
+  }
+}

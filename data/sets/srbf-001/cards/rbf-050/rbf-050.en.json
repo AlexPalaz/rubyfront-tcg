@@ -1,0 +1,26 @@
+{
+  "name": "Flame Instigator",
+  "typeLabel": "Entity: Human",
+  "summary": "It enters and gives the order: a companion hits harder for a turn.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Flame Instigator",
+    "order": {
+      "trigger": "When it enters the Front",
+      "text": "Another Entity you control gets +1 Power until end of turn."
+    },
+    "flavor": "One spark, and the line catches fire."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
+  }
+}

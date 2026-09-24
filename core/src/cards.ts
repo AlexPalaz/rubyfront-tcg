@@ -6,6 +6,7 @@
 // Niente DOM: il catalogo lo consegna chi lo carica (`useCatalog`), il
 // gioco a modo suo. La grafica delle carte non sta qui: è del client.
 
+import { useProgression, type ProgressionCatalog } from "./progression.js";
 import type { Phase } from "./types.js";
 import type { AssignForm, CardFacts, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, EnterStash, TurnStartSearch, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, SelfRetire, StaticForm, Ability, AbilityForm } from "./ctx.js";
 
@@ -38,6 +39,8 @@ export interface CatalogCard {
 
 export interface CatalogDeck {
   id: string;
+  /** Come si ottiene (2026-09-20): «free» si assegna a ogni giocatore al suo accesso, «paid» con l'acquisto. */
+  access?: "free" | "paid";
   theme?: string;
   locales: Record<string, { name: string; description?: string }>;
   defaultLocale: string;
@@ -52,9 +55,11 @@ let cardIndex = new Map<string, CatalogCard>();
 let deckIndex = new Map<string, CatalogDeck>();
 
 /** Il catalogo del set (docs/cards/catalog.json): va consegnato prima di tutto il resto. */
-export function useCatalog(catalog: { cards: CatalogCard[]; decks?: CatalogDeck[] }): void {
+export function useCatalog(catalog: { cards: CatalogCard[]; decks?: CatalogDeck[]; progression?: ProgressionCatalog | null }): void {
   cards = catalog.cards;
   decks = catalog.decks ?? [];
+  // La progressione dei Rubyfront (2026-09-23) viaggia nel bundle come i mazzi: modulo a parte (progression.ts).
+  useProgression(catalog.progression ?? null);
   cardIndex = new Map(cards.map(card => [card.id, card]));
   deckIndex = new Map(decks.map(deck => [deck.id, deck]));
 }
@@ -74,6 +79,20 @@ export function allDecks(): CatalogDeck[] {
 
 export function getDeck(deckId: string): CatalogDeck | undefined {
   return deckIndex.get(deckId);
+}
+
+/** I mazzi del giocatore (2026-09-20): gli id assegnati al suo account, o null senza accesso (tutti liberi, finché non c'è Steam). */
+let ownedDeckIds: string[] | null = null;
+
+export function setOwnedDecks(ids: string[] | null): void {
+  ownedDeckIds = ids ? [...ids] : null;
+}
+
+/** I mazzi con cui si può giocare: quelli assegnati all'account, o tutti senza accesso. L'UNICO elenco da cui scegliere. */
+export function availableDecks(): CatalogDeck[] {
+  if (ownedDeckIds === null) return decks;
+  const owned = new Set(ownedDeckIds);
+  return decks.filter(deck => owned.has(deck.id));
 }
 
 /** La TINTA di una carta secondo la sua Materia (stessa regola del renderer,
@@ -1353,6 +1372,8 @@ export function cardStats(cardId: string): {
   /** I PV stampati sul Rubyfront (§3.1): i PV con cui il giocatore inizia. Specchio di card_index.rb, health. */
   health: number | null;
   fluxCost: number | null;
+  /** Il costo di Flusso a dado di una Materia (dal 2026-09-22, «Colpo Decisivo»: d6): finché la regola non è collegata, la carta non si gioca. */
+  fluxDie: string | null;
   keywords: string[];
   deployment: Deployment | null;
   enterListeners: EnterListener[];
@@ -1422,6 +1443,7 @@ export function cardStats(cardId: string): {
     // Il costo di Flusso stampato (§3.2); il Rubyfront ha il costo di
     // schieramento, un'altra cosa, e qui resta null.
     fluxCost: integer(face?.stats?.fluxCost),
+    fluxDie: typeof (face?.stats?.fluxCost as { die?: unknown } | undefined)?.die === "string" ? ((face?.stats?.fluxCost as { die: string }).die) : null,
     deployment: deploymentOf(face?.stats?.deploymentCost),
   };
 }
@@ -1462,6 +1484,7 @@ export function cardFacts(cardId: string, locale: string): CardFacts {
     power: stats.power,
     counterattack: stats.counterattack,
     fluxCost: stats.fluxCost,
+    fluxDie: stats.fluxDie,
     keywords: stats.keywords,
     enterListeners: stats.enterListeners,
     enterMoves: stats.enterMoves,

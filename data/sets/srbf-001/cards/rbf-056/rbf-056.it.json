@@ -1,0 +1,21 @@
+{
+  "name": "Scudo Comune",
+  "typeLabel": "Oggetto",
+  "summary": "Contrattacco e Slancio in un Oggetto da 2.",
+  "ui": {
+    "face": "Oggetto"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Scudo Comune",
+    "effect": {
+      "name": "Effetto",
+      "text": "L'Entità a cui è assegnato ha Contrattacco +1 e Slancio."
+    },
+    "flavor": "Leggero abbastanza da correre, largo abbastanza da rispondere."
+  }
+}

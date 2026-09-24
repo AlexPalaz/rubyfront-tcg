@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-063",
+  "setId": "rubyfront-core",
+  "collectorNumber": "063",
+  "slug": "auros-guardian",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "vanilla",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 2,
+        "fluxCost": 2
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-063.md"
+}

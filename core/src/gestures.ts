@@ -1845,6 +1845,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       if (!reactive || state.active !== card.owner || waveDeclared(state)) return true;
     } else if (!reactive || state.active === card.owner) return true;
     if (sealedForPlay(state, card)) return true;
+    // Il costo a dado di una Materia (dal 2026-09-22): la regola del tiro pagabile (§3.1) non è ancora collegata per le Materie.
+    if (facts.fluxDie) return true;
     if (facts.kind === "matter" && !matterEnabled(card)) return true;
     if (facts.kind === "entity" && freeFrontSlotOrNull(state, card.owner) === null) return true;
     if (facts.kind === "object" && !fieldCards(state).some(other => controllerOf(other) === card.owner && !other.facedown && ctx.card(other.cardId).kind === "entity")) return true;

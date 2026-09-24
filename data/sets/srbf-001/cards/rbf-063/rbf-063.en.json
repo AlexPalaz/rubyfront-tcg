@@ -1,0 +1,22 @@
+{
+  "name": "Auros Guardian",
+  "typeLabel": "Entity: Auros",
+  "summary": "Two and two, no tricks.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Auros Guardian",
+    "flavor": "It watches the gate. The gate watches it."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

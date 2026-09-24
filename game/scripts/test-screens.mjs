@@ -9,7 +9,7 @@
 //   node scripts/test-screens.mjs [cartella]
 
 import { spawn } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
@@ -80,11 +80,27 @@ async function hover(label, dy = 0) {
 }
 
 const pause = ms => page.waitForTimeout(ms);
+// L'account di prova, da .env.local (RUBYFRONT_TEST_USER e RUBYFRONT_TEST_PASSWORD): un account
+// come tutti, a password (l'utenza a chiave è stata tolta il 2026-09-23). Senza, la porta resta chiusa.
+const TEST_ACCOUNT = (() => {
+  try {
+    const env = readFileSync(resolve(ROOT, ".env.local"), "utf8");
+    const read = key => env.match(new RegExp(`${key}=(.*)`))?.[1].replace(/"/g, "").trim() ?? "";
+    return { user: read("RUBYFRONT_TEST_USER"), password: read("RUBYFRONT_TEST_PASSWORD") };
+  } catch {
+    return { user: "", password: "" };
+  }
+})();
 
 try {
   await page.goto(base);
   await page.waitForFunction(() => Boolean(window.__rubyfront?.screens), null, { timeout: 60_000 });
   await pause(1800);
+  // La porta (2026-09-22): la schermata d'accesso prima della home. Si entra con l'account di prova.
+  await photo("00-auth");
+  await page.evaluate(({ user, password }) => window.__rubyfront.match.session.loginPassword(user, password), TEST_ACCOUNT);
+  await page.waitForFunction(() => Boolean(window.__rubyfront?.match?.session.account()), null, { timeout: 15_000 });
+  await pause(900);
   await photo("01-home");
 
   // Le carte al passaggio: Multigiocatore, poi Contro il computer.
@@ -95,7 +111,17 @@ try {
   await pause(900);
   await photo("03-home-solo");
 
-  // «Nuova partita»: il profilo col mazzo del bot, e una tendina aperta.
+  // «Nuova partita» senza un mazzo scelto porta alla collezione (2026-09-20):
+  // si sceglie giocando, e il mazzo si legge poi nell'header. Il profilo
+  // chiede il nome e il mazzo del bot, con una tendina aperta.
+  await click("button:Nuova partita");
+  await pause(700);
+  await photo("04-collection-first");
+  await click("button:Scegli questo mazzo");
+  await pause(700);
+  await photo("04-home-deck-chosen");
+  await hover("home-card:solo", -200);
+  await pause(900);
   await click("button:Nuova partita");
   await pause(700);
   await photo("04-profile-bot");
@@ -114,7 +140,6 @@ try {
   });
   results.decks = items;
   await click(items[items.length - 1]);
-  await page.locator('input[maxlength="24"]').fill("Prova");
   await pause(200);
   await photo("06-profile-chosen");
 
@@ -168,13 +193,53 @@ try {
   await page.keyboard.press("Escape");
   await pause(300);
 
-  // Una stanza nuova: il profilo in stanza, poi l'attesa e il link d'invito.
+  // La progressione dei Rubyfront (2026-09-23): la scelta, la sferografia, il dettaglio, il montaggio.
+  await click("button:Rubyfront");
+  await pause(1500);
+  await photo("15b-progression-pick");
+  await click("rubyfront:RBF-001");
+  await pause(300);
+  await photo("15c-progression-enter");
+  await pause(2200);
+  await photo("15d-progression-grid");
+  await click("node:1");
+  await pause(700);
+  await photo("15e-progression-node");
+  const mountLabel = (await find("button:Monta")) ? "button:Monta" : "button:Smonta";
+  const before = await page.evaluate(() => { const p = window.__rubyfront.match.session.progress("RBF-001"); return p.loadout.rubyfront.length + p.loadout.nexus.length; });
+  await click(mountLabel);
+  await pause(300);
+  await photo("15f-progression-zoom");
+  await pause(1500);
+  await photo("15g-progression-sockets");
+  await click("socket:1");
+  await pause(900);
+  await photo("15h-progression-socket-hit");
+  await pause(2200);
+  await photo("15i-progression-after");
+  results.progression = await page.evaluate(before => {
+    const s = window.__rubyfront.match.session;
+    const p = s.progress("RBF-001");
+    return { level: p.level, xp: p.xp, before, mounted: p.loadout.rubyfront.length + p.loadout.nexus.length, open: window.__rubyfront.screens.progression.isOpen() };
+  }, before);
+  await click("button:← Rubyfront");
+  await pause(700);
+  await click("button:← Home");
+  await pause(500);
+
+  // La partita casuale (2026-09-23): in fila nell'atrio, poi «Annulla la ricerca».
+  await hover("home-card:multi", -200);
+  await pause(900);
+  await click("button:Partita casuale");
+  await pause(800);
+  await photo("16-searching");
+  results.searching = Boolean(await find("button:Annulla la ricerca"));
+  await click("button:Annulla la ricerca");
+  await pause(500);
+  // Una stanza nuova: dritti all'attesa (il posto lo dà il tavolo), col link d'invito senza posto.
   await hover("home-card:multi", -200);
   await pause(900);
   await click("button:Crea una stanza");
-  await pause(800);
-  await photo("16-profile-room");
-  await click("button:Al tavolo");
   await pause(1500);
   await photo("17-waiting");
   await click("button:Copia il link d'invito");

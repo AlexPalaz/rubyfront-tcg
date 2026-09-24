@@ -10,7 +10,7 @@
 // con la stanza, e il cambio passa da una ricarica: il posto è cucito in
 // ogni vista.
 
-import { allCards, allDecks, isRubyfront } from "@rubyfront/core/cards";
+import { allCards, availableDecks, cardName, getCard, isRubyfront } from "@rubyfront/core/cards";
 import { msg, t } from "@rubyfront/core/i18n";
 import { seatLabel } from "@rubyfront/core/state";
 import type { CardInstance, Seat } from "@rubyfront/core/types";
@@ -23,10 +23,13 @@ import { askQuestion } from "./screens/question";
 import { Home } from "./screens/home";
 import { Settings } from "./screens/settings";
 import { DeckBrowser } from "./screens/decks";
+import { ProgressionScreen } from "./screens/progression/index";
 import { Curtain } from "./screens/curtain";
+import { Auth } from "./screens/auth";
 import type { Stage } from "./stage.js";
 import { stopMusic } from "./sound";
 import { Preview } from "./table/preview";
+import { faceModel } from "./card/model";
 
 /** Le stanze nuove: una gemma e quattro cifre, un nome difficile da indovinare. */
 const GEMS = ["rubino", "ambra", "giada", "opale", "zaffiro", "onice", "perla", "agata", "topazio", "berillo"];
@@ -39,6 +42,8 @@ export interface Screens {
   chat: Chat;
   chronicle: Chronicle;
   settings: Settings;
+  /** La sferografia dei Rubyfront (2026-09-23). */
+  progression: ProgressionScreen;
   /** La stanza in cui si è (vuota: la «solo»). */
   room(): string;
 }
@@ -46,13 +51,13 @@ export interface Screens {
 export function startGame(stage: Stage, locale: string): { match: Match; screens: Screens } {
   const params = new URLSearchParams(location.search);
   const mySeat: Seat = (params.get("seat") ?? store.read("seat", "a")) === "b" ? "b" : "a";
-  const otherSeat: Seat = mySeat === "a" ? "b" : "a";
   let room = (params.get("room") ?? store.read("room", "")).trim();
 
   // Le schermate nascono dopo la partita (stanno sopra il suo mondo), ma i ganci le chiamano.
   let home!: Home;
   let onboarding!: Onboarding;
   let decks!: DeckBrowser;
+  let progression!: ProgressionScreen;
   let toolbar!: Toolbar;
   let chat!: Chat;
   let chronicle!: Chronicle;
@@ -65,11 +70,51 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
         onboarding?.status(t(status === "online" ? "html.ob.wait.alone" : "html.ob.wait.connecting"));
         toolbar?.network(status);
       },
+      engineStatus: status => auth?.offline(status !== "online"),
       waitForPeer: () => onboarding.showWaiting(t("html.ob.wait.note", { room })),
+      // Il posto lo assegna il tavolo (2026-09-23): se non è il mio, la pagina riparte con stanza e posto.
+      reseat: (name, seat) => restartAs(name, seat),
+      roomFull: name => {
+        room = "";
+        home.room("");
+        onboarding.close();
+        showHome();
+        void askQuestion(stage, { title: t("html.ob.full.title"), text: t("html.ob.full.text", { room: name }), yes: t("html.store.soon.ok") });
+      },
+      searching: () => onboarding.showSearching(t("html.ob.search.note")),
+      matched: (name, seat) => joinAs(name, seat),
+      // L'utenza è cambiata: i mazzi disponibili con lei (il tasto nell'header, il pannello se è aperto);
+      // con un account la porta si apre (o si chiude, all'uscita): la schermata d'accesso sta davanti alla home (2026-09-22).
+      accountChanged: player => {
+        updateDeckChip();
+        greet();
+        if (settings?.isOpen()) settings.open();
+        if (player) {
+          if (auth?.isOpen()) {
+            auth.close();
+            enter();
+          }
+        } else if (!room && !auth?.isOpen()) {
+          settings?.close();
+          decks.close();
+          progression.close();
+          onboarding.close();
+          showHome();
+          auth?.open(false);
+        }
+      },
+      accountRefused: reason => auth?.refused(reason),
+      // La progressione (2026-09-23): il pannello si ridisegna; a fine partita l'avviso in cima e la riga in cronaca (la scrive la sessione).
+      progressChanged: update => {
+        progression?.refresh();
+        if (update.gained) match.toast.show(t("progression.toast", { n: update.gained, card: cardName(update.card, locale), level: update.level }), null);
+      },
+      progressRefused: (_card, reason) => progression?.refused(reason),
       seated: () => {
         onboarding.close();
         home.hide();
         decks.close();
+        progression.close();
         update();
       },
       afterPaint: () => {
@@ -84,8 +129,12 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   home = new Home(stage, locale, {
     solo: () => profile("bot"),
     newGame: () => profile("bot"),
-    createRoom: () => joinAs(`${GEMS[Math.floor(Math.random() * GEMS.length)]}-${Math.floor(1000 + Math.random() * 9000)}`, "a"),
-    enter: name => (name ? joinAs(name, "b") : home.focusRoom()),
+    random: () => {
+      if (!session.findMatch()) void askQuestion(stage, { title: t("html.ob.search.fail.title"), text: t("html.ob.search.fail.text"), yes: t("html.store.soon.ok") });
+    },
+    createRoom: () => joinAs(`${GEMS[Math.floor(Math.random() * GEMS.length)]}-${Math.floor(1000 + Math.random() * 9000)}`, mySeat),
+    // Il posto lo decide il tavolo: si entra col proprio, e se è preso la pagina riparte con l'altro (reseat).
+    enter: name => (name ? joinAs(name, mySeat) : home.focusRoom()),
     decks: () => {
       home.closeCards();
       decks.open();
@@ -96,19 +145,33 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     stage,
     locale,
     deckId => {
-      // «Gioca con questo mazzo»: lo sceglie e passa dal nome (poi il bot).
-      decks.close();
+      // «Scegli questo mazzo» (2026-09-20): scelto e basta — il nome sale nell'header, si torna in home.
       session.chooseDeck(deckId);
+      updateDeckChip();
+      decks.close();
+      progression.close();
       update();
-      profile("bot", deckId);
+      // In stanza senza mazzo si era passati di qui: scelto, si aspetta l'altro (o ci si siede).
+      if (room && !session.awaitingPeer()) session.seatOrWait();
     },
+    () => session.myDeck(),
     () => update()
   );
   new Preview(stage, decks, locale);
+  progression = new ProgressionScreen(stage, locale, {
+    progress: card => session.progress(card),
+    setLoadout: (card, loadout) => session.setLoadout(card, loadout),
+    onClose: () => update(),
+  });
+  new Preview(stage, progression, locale);
   onboarding = new Onboarding(stage, locale, {
     toTable: choice => toTable(choice),
     invite: () => copyInvite(),
     leave: () => leaveTable(),
+    cancelSearch: () => {
+      session.cancelMatch();
+      onboarding.close();
+    },
     backdrop: isOpen => home.setBlurred(isOpen),
   });
   chat = new Chat(stage, session.ctx, mySeat, n => toolbar.setUnread(n));
@@ -123,10 +186,25 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
       chronicle.close();
       chat.toggle();
     },
+    deck: () => {
+      home.closeCards();
+      onboarding.close();
+      decks.open();
+      update();
+    },
     chronicle: () => {
       chat.close();
       chronicle.toggle();
     },
+    progression: () => {
+      home.closeCards();
+      onboarding.close();
+      decks.close();
+      progression.open();
+      update();
+    },
+    // Il negozio non è ancora aperto: l'avviso col sigillo del gioco.
+    store: () => void askQuestion(stage, { title: t("html.store.soon.title"), text: t("html.store.soon.text"), yes: t("html.store.soon.ok") }),
     spawn: () => void spawnCard(),
     flux: () => addFlux(),
   });
@@ -151,10 +229,23 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     const player = session.state().players[mySeat];
     void session.dispatch({ t: "player", seat: mySeat, patch: { flux: Math.min(20, player.flux + 1) } });
   }
+  const auth = new Auth(
+    stage,
+    {
+      login: (login, password) => session.loginPassword(login, password),
+      register: (username, email, password, name) => session.register(username, email, password, name),
+      google: idToken => session.loginGoogle(idToken),
+    },
+    (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined) ?? ""
+  );
   const settings = new Settings(stage, {
     resync: () => session.resync(),
     account: () => session.account(),
-    loginDev: token => session.loginDev(token),
+    login: () => {
+      settings.close();
+      auth.open(false);
+    },
+    setDisplayName: name => session.setDisplayName(name),
     logout: () => session.logout(),
     language: next => {
       // La lingua veste ogni scritta, molte dipinte una volta sola: la pagina riparte, e rientra da sé nella stanza salvata.
@@ -167,7 +258,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
 
   /** Chi copre il tavolo: la home e i mazzi lo nascondono; al tavolo l'header offre «Esci dalla partita». */
   function update(): void {
-    const covers = home.isVisible() || decks.isOpen();
+    const covers = home.isVisible() || decks.isOpen() || progression.isOpen();
     stage.world.visible = !covers;
     toolbar.toTable(!covers, room !== "");
     if (covers) {
@@ -183,13 +274,31 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
 
 
   /** Il profilo: la nota dice la stanza, o che si gioca col bot. */
+  /** Il tasto del mazzo nell'header (2026-09-20): il nome del mazzo scelto, o l'invito a sceglierlo. */
+  function updateDeckChip(): void {
+    const id = session.myDeck();
+    const deck = id ? availableDecks().find(candidate => candidate.id === id) : undefined;
+    // La copertina è il Rubyfront del mazzo: la sua illustrazione, se c'è.
+    const cover = deck?.cards.find(entry => isRubyfront(entry.card))?.card;
+    const face = cover ? getCard(cover)?.faces[0]?.id : undefined;
+    const art = cover && face ? faceModel(cover, face, locale)?.art?.src ?? null : null;
+    toolbar?.setDeck(deck ? { name: deck.locales[locale]?.name ?? deck.locales[deck.defaultLocale]?.name ?? deck.id, art } : null, Boolean(session.account()));
+    toolbar?.setGems(session.account()?.gems ?? 0);
+  }
+
   function profile(mode: Mode, deck?: string): void {
-    const isMine = deck ?? session.myDeck() ?? allDecks()[0]?.id ?? null;
-    const wasStandIn = allDecks().find(deck => deck.id !== isMine)?.id ?? isMine;
+    const isMine = deck ?? session.myDeck() ?? null;
+    // Senza un mazzo scelto non si chiede: si va alla collezione, dove si sceglie giocando.
+    if (!isMine) {
+      home.closeCards();
+      decks.open();
+      update();
+      return;
+    }
+    const wasStandIn = availableDecks().find(deck => deck.id !== isMine)?.id ?? isMine;
     onboarding.profile({
       mode,
       note: room ? t("html.ob.room.note", { room }) : mode === "bot" ? t("html.ob.bot.note") : "",
-      name: store.read("name", ""),
       deck: isMine,
       botDeck: wasStandIn,
     });
@@ -197,12 +306,9 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
 
   /** «Al tavolo»: il nome e il mazzo si ricordano; col bot si passa dal sipario, in stanza si aspetta l'altro. */
   function toTable(choice: Choice): void {
-    if (choice.name) {
-      store.write("name", choice.name);
-      void session.dispatch({ t: "player", seat: mySeat, patch: { name: choice.name } });
-    }
     if (choice.deck) session.chooseDeck(choice.deck);
     greet();
+    updateDeckChip();
     if (choice.mode === "bot") {
       const deckId = session.myDeck();
       const botDeck = choice.botDeck ?? deckId;
@@ -232,6 +338,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
         home.hide();
         onboarding.close();
         decks.close();
+        progression.close();
         update();
         session.paint();
       },
@@ -267,6 +374,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     onboarding.close();
     home.closeCards();
     decks.close();
+    progression.close();
     settings.close();
     chat.close();
     chronicle.close();
@@ -274,15 +382,37 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     session.paint();
   }
 
-  /** Entrare in una stanza al posto dovuto: A chi la crea, B chi entra. Se il posto cambia, la pagina riparte con stanza e posto nell'indirizzo. */
+  /**
+   * Entrare in una stanza (2026-09-23): il posto lo assegna il tavolo. Si
+   * entra col proprio e, se il tavolo ne dà un altro (o l'atrio lo ha già
+   * deciso), la pagina riparte con stanza e posto nell'indirizzo — il posto è
+   * cucito nella sessione e cambia solo così. Niente passo «Al tavolo»: col
+   * mazzo scelto si aspetta l'altro, senza si passa dalla collezione.
+   */
   function joinAs(name: string, seat: Seat): void {
-    if (mySeat === seat) {
-      room = name;
-      session.join(name);
-      update();
-      profile("net");
+    if (mySeat !== seat) {
+      restartAs(name, seat);
       return;
     }
+    room = name;
+    session.join(name);
+    sitInRoom();
+  }
+
+  function sitInRoom(): void {
+    onboarding.close();
+    showHome();
+    if (!session.myDeck()) {
+      home.closeCards();
+      decks.open();
+      update();
+      return;
+    }
+    session.seatOrWait();
+  }
+
+  /** La pagina riparte in quella stanza a quel posto. */
+  function restartAs(name: string, seat: Seat): void {
     store.write("seat", seat);
     store.write("room", name);
     const next = new URL(location.href);
@@ -292,14 +422,13 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     location.href = next.href;
   }
 
-  /** Il link d'invito: stanza e posto opposto. Dal desktop porta al gioco sul sito (VITE_INVITE_BASE), non alla pagina locale. */
+  /** Il link d'invito: la stanza e basta — il posto lo assegna il tavolo (2026-09-23). Dal desktop porta al gioco sul sito (VITE_INVITE_BASE), non alla pagina locale. */
   async function copyInvite(): Promise<boolean> {
     if (!room) return false;
     const base = (import.meta.env.VITE_INVITE_BASE as string | undefined) || location.href;
     const url = new URL(base);
     url.search = "";
     url.searchParams.set("room", room);
-    url.searchParams.set("seat", otherSeat);
     try {
       await navigator.clipboard.writeText(url.href);
       return true;
@@ -314,7 +443,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   // più nel browser (tolto il 2026-09-20): i dati del giocatore andranno
   // nella memoria del tavolo (session.save/load), quando il designer dirà quali.
   function greet(): void {
-    const name = store.read("name", "");
+    const name = session.account()?.name ?? store.read("name", "");
     home.greet(name ? t("html.home.hello", { name }) : t("html.home.hello.new"));
   }
 
@@ -325,6 +454,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     settings.close();
     if (home.isVisible()) {
       decks.close();
+      progression.close();
       onboarding.close();
       update();
       if (session.awaitingPeer() || room) leaveTable();
@@ -346,19 +476,23 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     });
   }
 
-  // L'avvio: la stanza salvata (o del link), poi la home — col profilo se in
-  // stanza manca il mazzo, o l'attesa dell'altro se c'è già tutto.
+  // L'ingresso, a account presente: la stanza salvata (o del link), poi la
+  // home — la collezione se in stanza manca il mazzo, o l'attesa dell'altro
+  // se c'è già tutto.
+  function enter(): void {
+    if (!room) showHome();
+    else sitInRoom();
+  }
+
+  // L'avvio: il tavolo, poi la porta (2026-09-22) — la schermata d'accesso
+  // finché non c'è un account; una sessione salvata rientra da sé al saluto.
   session.join(room);
   greet();
-  if (!room) showHome();
-  else if (!session.myDeck()) {
-    showHome();
-    profile("net");
-  } else {
-    showHome();
-    session.seatOrWait();
-  }
+  updateDeckChip();
+  // La home sta dietro la porta, sfocata dal velo; si entra solo con l'account.
+  showHome();
+  auth.open(session.hasSavedSession());
   session.paint();
 
-  return { match, screens: { home, onboarding, decks, toolbar, chat, chronicle, settings, room: () => room } };
+  return { match, screens: { home, onboarding, decks, progression, toolbar, chat, chronicle, settings, room: () => room } };
 }

@@ -1,0 +1,29 @@
+{
+  "name": "Dimensional Barrier",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "Two Power in Reaction: a block that holds, or an attack that gets through.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "static": "Static"
+    }
+  },
+  "face": {
+    "name": "Dimensional Barrier",
+    "effect": {
+      "name": "Effect",
+      "text": "An Entity you control gets +2 Power until end of turn."
+    },
+    "flavor": "The world bends around whoever holds it."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

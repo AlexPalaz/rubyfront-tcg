@@ -99,7 +99,7 @@ export function cardRow(card, copies) {
   for (const k of face.keywords ?? []) type.push(KEYWORD[k.id ?? k] ?? String(k.id ?? k));
   if (stats.counterattack) type.push(`Contrattacco +${stats.counterattack}`);
   if (d.unique) type.push("Unica");
-  return [copies, it.name, CATEGORY[d.type] ?? d.type, stats.fluxCost ?? "", stats.power ?? "",
+  return [copies, it.name, CATEGORY[d.type] ?? d.type, (stats.fluxCost && typeof stats.fluxCost === "object" ? String(stats.fluxCost.die).toUpperCase() : stats.fluxCost ?? ""), stats.power ?? "",
           RACE[face.race] ?? "", matter, type.filter(Boolean).join(" · "), text(it.face ?? it)];
 }
 

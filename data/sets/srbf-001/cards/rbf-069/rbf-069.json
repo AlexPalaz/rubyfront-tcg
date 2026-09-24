@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-069",
+  "setId": "rubyfront-core",
+  "collectorNumber": "069",
+  "slug": "sealer-of-nova-kai",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "stasis",
+    "control",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §8.1, §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 6,
+        "fluxCost": 6
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "seal",
+          "displayKey": "seal",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "set_state",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 2,
+              "max": 2,
+              "conditions": [
+                {
+                  "stat": "flux_cost",
+                  "operator": "lte",
+                  "value": 3
+                }
+              ]
+            },
+            "state": "stasis"
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-069.md"
+}

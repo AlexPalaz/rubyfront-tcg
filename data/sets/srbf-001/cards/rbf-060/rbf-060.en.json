@@ -1,0 +1,29 @@
+{
+  "name": "Blazing Call",
+  "typeLabel": "Dynamic Matter I",
+  "summary": "The tutorial's Static: every arrival tidies the top of the deck, two arrivals draw.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "static": "Static"
+    }
+  },
+  "face": {
+    "name": "Blazing Call",
+    "effect": {
+      "name": "Effect",
+      "text": "Each time a Human Entity enters your Front, look at the top card of your deck: you may put it on the bottom of your deck. If instead at least 2 Human Entities entered your Front this turn, draw a card."
+    },
+    "flavor": "The more they are, the higher it burns."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
+  }
+}

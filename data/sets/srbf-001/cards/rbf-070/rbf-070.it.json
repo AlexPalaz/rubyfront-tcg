@@ -1,0 +1,21 @@
+{
+  "name": "Cristallo del Risveglio",
+  "typeLabel": "Oggetto",
+  "summary": "Due Potenza, e risveglia chi era fermo in Stasi.",
+  "ui": {
+    "face": "Oggetto"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Cristallo del Risveglio",
+    "effect": {
+      "name": "Effetto",
+      "text": "L'Entità a cui è assegnato ha +2 Potenza. Se l'Entità a cui assegni questo Oggetto era in Stasi, toglila dalla Stasi."
+    },
+    "flavor": "Una luce dentro la pietra. La pietra ricorda di essere viva."
+  }
+}

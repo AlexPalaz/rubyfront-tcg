@@ -1,0 +1,29 @@
+{
+  "name": "Decisive Blow",
+  "typeLabel": "Destructive Matter II",
+  "summary": "It costs a d6: the removal you pay for with a die.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "static": "Static"
+    }
+  },
+  "face": {
+    "name": "Decisive Blow",
+    "effect": {
+      "name": "Effect",
+      "text": "Put an opposing Entity into the Abyss."
+    },
+    "flavor": "A single blow. The die sets the price."
+  },
+  "matters": {
+    "destructiveTitle": "Destructive Matter · 2nd grade",
+    "destructiveAria": "Destructive"
+  }
+}

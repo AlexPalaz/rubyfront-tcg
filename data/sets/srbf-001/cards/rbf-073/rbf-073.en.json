@@ -1,0 +1,29 @@
+{
+  "name": "Dimensional Search",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "It digs four cards and pulls out an Object.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "static": "Static"
+    }
+  },
+  "face": {
+    "name": "Dimensional Search",
+    "effect": {
+      "name": "Effect",
+      "text": "Look at the top 4 cards of your deck. You may reveal an Object among them and add it to your hand. Put the rest on the bottom of your deck."
+    },
+    "flavor": "Everything lost is only misplaced."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

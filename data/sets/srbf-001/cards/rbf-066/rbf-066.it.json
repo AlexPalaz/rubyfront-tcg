@@ -1,0 +1,26 @@
+{
+  "name": "Guerriero della Scissione",
+  "typeLabel": "Entità: Auros",
+  "summary": "Tre e tre, e libera un compagno rimasto in Stasi.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Guerriero della Scissione",
+    "release": {
+      "trigger": "Quando entra sul Fronte",
+      "text": "Puoi togliere dalla Stasi un'Entità che controlli."
+    },
+    "flavor": "La Scissione ha aperto una porta. Lui la tiene aperta."
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  }
+}

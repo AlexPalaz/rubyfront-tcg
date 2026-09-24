@@ -1,0 +1,29 @@
+{
+  "name": "Willpower",
+  "typeLabel": "Dynamic Matter I",
+  "summary": "One Flux in Reaction: a defender gets back up and answers.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "static": "Static"
+    }
+  },
+  "face": {
+    "name": "Willpower",
+    "effect": {
+      "name": "Effect",
+      "text": "Untap an Entity you control: it gains Counterattack +1 until end of turn."
+    },
+    "flavor": "It isn't strength. It's the refusal to fall."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
+  }
+}

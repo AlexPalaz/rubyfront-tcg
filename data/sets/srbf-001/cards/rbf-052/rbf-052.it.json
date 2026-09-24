@@ -1,0 +1,22 @@
+{
+  "name": "Guardiano Temprato",
+  "typeLabel": "Entità: Umano",
+  "summary": "Quattro Flussi, quattro Potenza: il muro di metà partita.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Guardiano Temprato",
+    "flavor": "Temprato dal fuoco: sta dove lo mettono, e il mondo gli gira intorno."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

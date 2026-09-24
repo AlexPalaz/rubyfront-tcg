@@ -1,0 +1,22 @@
+{
+  "name": "Recruit of Nova Kai",
+  "typeLabel": "Entity: Auros",
+  "summary": "One Flux, one body: the first Auros you learn to play.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Recruit of Nova Kai",
+    "flavor": "In Nova Kai you start at the gate."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Auros Champion",
+  "typeLabel": "Entity: Auros",
+  "summary": "The biggest body in the deck, no tricks.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Auros Champion",
+    "flavor": "It doesn't speak of the Schism. It crossed it."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 2nd grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

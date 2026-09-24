@@ -1,0 +1,26 @@
+{
+  "name": "Vedetta di Nova Kai",
+  "typeLabel": "Entità: Auros",
+  "summary": "Entra e ferma un'avversaria: tappata per sempre, finché qualcosa non la stappa.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Vedetta di Nova Kai",
+    "freeze": {
+      "trigger": "Quando entra sul Fronte",
+      "text": "Metti un'Entità avversaria in Stasi."
+    },
+    "flavor": "Chi la vede, si ferma. Chi non la vede, si ferma lo stesso."
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  }
+}

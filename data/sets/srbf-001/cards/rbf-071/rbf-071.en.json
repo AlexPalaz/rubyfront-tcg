@@ -1,0 +1,29 @@
+{
+  "name": "Dimensional Impulse",
+  "typeLabel": "Dimensional Matter I",
+  "summary": "Two Flux and an opponent stops for good.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "static": "Static"
+    }
+  },
+  "face": {
+    "name": "Dimensional Impulse",
+    "effect": {
+      "name": "Effect",
+      "text": "Put an opposing Entity into Stasis."
+    },
+    "flavor": "An instant that does not end."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

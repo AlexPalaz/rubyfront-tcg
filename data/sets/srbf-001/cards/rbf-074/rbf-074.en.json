@@ -1,0 +1,72 @@
+{
+  "name": "Seyra, Rubyfront of Nova Kai",
+  "typeLabel": "Double-faced Rubyfront",
+  "summary": "The Auros tutorial's Rubyfront: it gains HP every time something stops in Stasis.",
+  "ui": {
+    "faceA": "Face A — Rubyfront",
+    "faceB": "Face B — Nexus"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "nexusRequirement": {
+      "label": "Nexus requirement",
+      "text": "This game you put at least 2 opposing Entities into Stasis. Put an Object you control into your Retire Zone, then flip."
+    }
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · up to 2nd grade",
+    "dimensionalAria": "Dimensional",
+    "destructiveTitle": "Destructive Matter · up to 1st grade",
+    "destructiveAria": "Destructive"
+  },
+  "faceA": {
+    "name": "Seyra, Rubyfront of Nova Kai",
+    "keyword": {
+      "name": "Fury",
+      "rules": "d20 ≥ 13 before every action · failure −1 HP"
+    },
+    "effect": {
+      "trigger": "Effect",
+      "text": "Each time an Entity enters Stasis, you gain 1 HP."
+    },
+    "abilities": {
+      "hold": {
+        "name": "Grip of the Vigil",
+        "text": "an Entity you control gains Stasis until your next turn."
+      },
+      "wake": {
+        "name": "Awakening",
+        "text": "untap an Entity you control."
+      }
+    },
+    "flavor": "Nova Kai does not sleep. She counts the hours for everyone."
+  },
+  "faceB": {
+    "name": "Vigil of Nova Kai",
+    "nexusAria": "Nexus",
+    "flipEffect": {
+      "trigger": "When it flips",
+      "text": "Draw a card."
+    },
+    "effect": {
+      "trigger": "Effect",
+      "text": "Each time an Entity enters Stasis, you gain 2 HP."
+    },
+    "abilities": {
+      "vigilHold": {
+        "name": "Perennial Grip",
+        "text": "an Entity you control gains Stasis."
+      },
+      "vigilWake": {
+        "name": "Armed Awakening",
+        "text": "untap an Auros Entity you control: it gets +2 Power until end of turn."
+      },
+      "vigilSeal": {
+        "name": "Seal of the Vigil",
+        "text": "put up to 2 opposing Entities into Stasis."
+      }
+    },
+    "flavor": "When the vigil ends, only what stopped remains."
+  }
+}

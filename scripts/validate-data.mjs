@@ -254,6 +254,53 @@ if (fs.existsSync(decksDir)) {
   console.log(`  mazzi: ${deckFiles.length}`);
 }
 
+// La progressione dei Rubyfront (2026-09-23): le regole (soglie, punti, slot)
+// e un file per Rubyfront con 10 livelli, ciascuno con un'abilità Rubyfront e
+// una Nexus, testi it/en inline come nei mazzi. Modulo a parte: non tocca le
+// carte, e l'engine dei giudizi non lo legge.
+const progressionDir = path.join(DATA, "progression");
+if (fs.existsSync(progressionDir)) {
+  const rulesPath = path.join(progressionDir, "rules.json");
+  if (!fs.existsSync(rulesPath)) fail("progression/rules.json", "manca il file delle regole");
+  else {
+    const rules = JSON.parse(fs.readFileSync(rulesPath, "utf8"));
+    const where = "progression/rules.json";
+    const thresholds = rules.thresholds;
+    if (!Array.isArray(thresholds) || thresholds.length !== 10) fail(where, "thresholds deve avere 10 soglie (livelli 1..10)");
+    else {
+      if (thresholds[0] !== 0) fail(where, "la prima soglia (livello 1) dev'essere 0");
+      for (let i = 1; i < thresholds.length; i += 1) if (!(Number.isInteger(thresholds[i]) && thresholds[i] > thresholds[i - 1])) fail(where, `le soglie devono crescere: soglia ${i + 1}`);
+    }
+    for (const outcome of ["win", "loss", "draw"]) if (!Number.isInteger(rules.points?.[outcome]) || rules.points[outcome] < 0) fail(where, `points.${outcome} dev'essere un intero non negativo`);
+    for (const face of ["rubyfront", "nexus"]) if (!Number.isInteger(rules.slots?.[face]) || rules.slots[face] < 1) fail(where, `slots.${face} dev'essere un intero positivo`);
+  }
+  const files = fs.readdirSync(progressionDir).filter(name => name.endsWith(".json") && name !== "rules.json");
+  for (const name of files) {
+    const relative = path.join("progression", name);
+    const doc = JSON.parse(fs.readFileSync(path.join(progressionDir, name), "utf8"));
+    const known = cardIndex.get(doc.card);
+    if (!known) fail(relative, `card ${doc.card} non registrata nel catalogo`);
+    else if (known.type !== "rubyfront") fail(relative, `card ${doc.card} non è un Rubyfront`);
+    if (name !== `${String(doc.card).toLowerCase()}.json`) fail(relative, `il file deve chiamarsi ${String(doc.card).toLowerCase()}.json`);
+    const levels = Array.isArray(doc.levels) ? doc.levels : [];
+    if (levels.length !== 10) fail(relative, `servono 10 livelli, trovati ${levels.length}`);
+    const ids = new Set();
+    levels.forEach((level, index) => {
+      const at = `${relative}.levels[${index}]`;
+      if (level.level !== index + 1) fail(at, `level dev'essere ${index + 1}`);
+      for (const face of ["rubyfront", "nexus"]) {
+        const ability = level[face];
+        if (!ability || typeof ability !== "object") { fail(at, `manca l'abilità ${face}`); continue; }
+        if (typeof ability.id !== "string" || !ability.id) fail(at, `${face}.id dev'essere una stringa`);
+        else if (ids.has(ability.id)) fail(at, `${face}.id «${ability.id}» duplicato nel file`);
+        ids.add(ability.id);
+        requireLocales(ability.locales, `${at}.${face}`, ["name", "text"]);
+      }
+    });
+  }
+  console.log(`  progressioni: ${files.length}`);
+}
+
 if (errors.length) {
   console.error(`✗ ${errors.length} problema/i nei dati:\n` + errors.map(e => `  - ${e}`).join("\n"));
   process.exit(1);

@@ -1,0 +1,22 @@
+{
+  "name": "Guardiano Auros",
+  "typeLabel": "Entità: Auros",
+  "summary": "Due e due, senza trucchi.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Guardiano Auros",
+    "flavor": "Guarda la porta. La porta guarda lui."
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  }
+}

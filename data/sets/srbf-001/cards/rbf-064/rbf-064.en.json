@@ -1,0 +1,26 @@
+{
+  "name": "Dimensional Keeper",
+  "typeLabel": "Entity: Auros",
+  "summary": "Stasis at 2 Flux: blocking, it never dies.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Dimensional Keeper",
+    "keyword": {
+      "name": "Stasis",
+      "rules": "won't die blocking: stays permanently tapped"
+    },
+    "flavor": "It doesn't fall. It stays."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

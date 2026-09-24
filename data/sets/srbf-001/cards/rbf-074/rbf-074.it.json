@@ -1,0 +1,72 @@
+{
+  "name": "Seyra, Rubifronte di Nova Kai",
+  "typeLabel": "Rubyfront bifronte",
+  "summary": "Il Rubyfront del tutorial Auros: guadagna PV ogni volta che qualcosa si ferma in Stasi.",
+  "ui": {
+    "faceA": "Faccia A — Rubyfront",
+    "faceB": "Faccia B — Nexus"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "nexusRequirement": {
+      "label": "Requisito Nexus",
+      "text": "In questa partita hai messo in Stasi almeno 2 Entità avversarie. Metti un Oggetto che controlli nella tua Zona di Ritiro, poi flippa."
+    }
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · fino al 2° grado",
+    "dimensionalAria": "Dimensionale",
+    "destructiveTitle": "Materia Distruttiva · fino al 1° grado",
+    "destructiveAria": "Distruttiva"
+  },
+  "faceA": {
+    "name": "Seyra, Rubifronte di Nova Kai",
+    "keyword": {
+      "name": "Furia",
+      "rules": "d20 ≥ 13 prima di ogni azione · fallimento −1 PV"
+    },
+    "effect": {
+      "trigger": "Effetto",
+      "text": "Ogni volta che un'Entità entra in Stasi, guadagni 1 PV."
+    },
+    "abilities": {
+      "hold": {
+        "name": "Presa della Veglia",
+        "text": "un'Entità che controlli ottiene Stasi fino al tuo prossimo turno."
+      },
+      "wake": {
+        "name": "Risveglio",
+        "text": "stappa un'Entità che controlli."
+      }
+    },
+    "flavor": "Nova Kai non dorme. Lei conta le ore per tutti."
+  },
+  "faceB": {
+    "name": "Veglia di Nova Kai",
+    "nexusAria": "Nexus",
+    "flipEffect": {
+      "trigger": "Quando flippa",
+      "text": "Pesca una carta."
+    },
+    "effect": {
+      "trigger": "Effetto",
+      "text": "Ogni volta che un'Entità entra in Stasi, guadagni 2 PV."
+    },
+    "abilities": {
+      "vigilHold": {
+        "name": "Presa Perenne",
+        "text": "un'Entità che controlli ottiene Stasi."
+      },
+      "vigilWake": {
+        "name": "Risveglio Armato",
+        "text": "stappa un'Entità Auros che controlli: prende +2 Potenza fino alla fine del turno."
+      },
+      "vigilSeal": {
+        "name": "Sigillo della Veglia",
+        "text": "metti fino a 2 Entità avversarie in Stasi."
+      }
+    },
+    "flavor": "Quando la veglia finisce, resta solo ciò che si è fermato."
+  }
+}

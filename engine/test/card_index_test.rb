@@ -19,6 +19,19 @@ class CardIndexTest < Minitest::Test
   # vi compare, è una forma rotta o un dato cambiato di nascosto — e il test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBT = [
+    # Gli starter del tutorial (2026-09-22): le forme nuove che nessuna regola
+    # legge ancora — entra tappata, il buff all'ingresso su un'altra, la carica
+    # di chi attacca, il Contrattacco in Reazione, l'indebolimento con la messa
+    # in Ritiro, la rimozione a costo di dado, la Statica che guarda e pesca,
+    # l'attacco a pagamento di PV, la Stasi imposta o tolta, il buff secco in
+    # Reazione, i PV a ogni Stasi.
+    "RBF-048 entity/weary", "RBF-050 entity/order", "RBF-054 entity/charge",
+    "RBF-057 matter/resolve", "RBF-058 matter/falter", "RBF-059 matter/blow",
+    "RBF-060 matter/muster-look", "RBF-060 matter/muster-draw",
+    "RBF-061 rubyfront/pact-price",
+    "RBF-065 entity/freeze", "RBF-066 entity/release", "RBF-069 entity/seal",
+    "RBF-070 object/wake", "RBF-071 matter/impulse", "RBF-072 matter/barrier",
+    "RBF-074 rubyfront/stillness", "RBF-074 nexus/vigil-stillness",
   ].freeze
 
   def test_every_trigger_has_form_or_is_declared_debt

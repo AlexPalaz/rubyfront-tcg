@@ -298,6 +298,8 @@ export function placeShadow(shadow: NineSliceSprite, margin: number, x: number, 
 export interface TextFieldOptions {
   placeholder: string;
   maxLength?: number;
+  /** Un campo password: i caratteri coperti. */
+  password?: boolean;
   onEnter?: () => void;
   onInput?: () => void;
   /** Il vestito: fondo, filo, scritta, segnaposto, filo in fuoco (di norma la piastra del Notte). */
@@ -338,8 +340,8 @@ export class TextField {
     mountFieldStyles();
     this.el = document.createElement("input");
     this.el.className = "rbf-field";
-    this.el.type = "text";
-    this.el.autocomplete = "off";
+    this.el.type = opts.password ? "password" : "text";
+    this.el.autocomplete = opts.password ? "current-password" : "off";
     this.el.spellcheck = false;
     this.el.placeholder = opts.placeholder;
     if (opts.maxLength) this.el.maxLength = opts.maxLength;

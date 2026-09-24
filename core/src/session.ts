@@ -12,8 +12,10 @@
 // tavolo che il bot compie con le stesse scene di un giocatore. Estratta
 // nella migrazione a PixiJS (F1, 2026-09-11), così il gioco non la ripete.
 
+import { freshProgress, type Loadout, type PlayerProgress } from "./progression.js";
+import type { ProgressUpdate } from "./engine.js";
 import { chooseAbility, chooseAttackers, chooseBlocks, chooseDiscards, chooseFlip, choosePlay, chooseResponse, freshMemory, pickBest, wantsMulligan, type BotMemory } from "./bot.js";
-import { cardFacts, cardName, cardStats, deckTint, getDeck, isRubyfront, type Tint } from "./cards.js";
+import { cardFacts, cardName, cardStats, deckTint, getDeck, isRubyfront, type Tint, setOwnedDecks, availableDecks } from "./cards.js";
 import { declareBlock } from "./combat.js";
 import type { Ability, CardFacts, Ctx } from "./ctx.js";
 import { releaseHeld } from "./effects.js";
@@ -59,10 +61,24 @@ export interface SessionView {
   engineStatus(status: EngineStatus): void;
   /** L'utenza (2026-09-20): chi sono per la memoria del tavolo è cambiato (accesso, uscita, rifiuto). Facoltativo. */
   accountChanged?(player: Player | null): void;
+  /** Un accesso o una registrazione rifiutati (2026-09-22): il motivo, nella lingua del tavolo. Facoltativo. */
+  accountRefused?(reason: string): void;
+  /** La progressione di un Rubyfront aggiornata (2026-09-23): dopo una configurazione o a fine partita (`gained`). Facoltativo. */
+  progressChanged?(update: ProgressUpdate): void;
+  /** Una configurazione rifiutata dal tavolo: il motivo, nella lingua del tavolo. Facoltativo. */
+  progressRefused?(card: string, reason: string): void;
   /** La stanza: com'è il filo e quanti sono seduti (la «solo» non ha spia). */
   netStatus(status: EngineStatus, peers: number): void;
   /** In stanza senza l'altro giocatore: si resta all'accoglienza ad aspettarlo. */
   waitForPeer(): void;
+  /** Il tavolo ha dato un posto diverso da quello di questo client (2026-09-23): la pagina riparte con stanza e posto. */
+  reseat(room: string, seat: Seat): void;
+  /** La stanza ha già due giocatori: si resta fuori, con l'avviso. */
+  roomFull(room: string): void;
+  /** In fila nell'atrio per una partita casuale (2026-09-23). */
+  searching(): void;
+  /** L'atrio ha trovato l'avversario: la stanza e il posto in cui sedersi. */
+  matched(room: string, seat: Seat): void;
   /** Si va al tavolo: via home e accoglienza. */
   seated(): void;
   /** L'insegna della fase che si apre (Preparazione, a partita nuova). */
@@ -106,6 +122,8 @@ export interface SessionView {
 }
 
 export interface SessionOptions {
+  /** Il token di conferma della mail arrivato nell'indirizzo (?verify=), da mandare al tavolo (2026-09-22). */
+  verifyToken?: string;
   /** Il posto di questo client: decide quale metà è «tua» e cosa puoi toccare. */
   seat: Seat;
   locale: string;
@@ -157,6 +175,9 @@ export interface Session {
   /** Il mazzo va in tavola ora, oppure quando arriva l'altro giocatore. */
   seatOrWait(): void;
   awaitingPeer(): boolean;
+  /** La partita casuale (2026-09-23): in fila nell'atrio del tavolo; `false` senza filo o già in stanza. */
+  findMatch(): boolean;
+  cancelMatch(): void;
   startBot(deckId: string): void;
   /** La partita col bot che comincia con l'ingresso dei Rubyfront. */
   startBotWithIntro(botDeckId: string, deckId: string | null): void;
@@ -167,8 +188,20 @@ export interface Session {
   resetTable(): void;
   /** L'utenza nella memoria del tavolo (2026-09-20): chi sono, o null. */
   account(): Player | null;
-  /** L'accesso di sviluppo: la chiave vive solo in memoria finché il gioco è aperto (niente nel browser, deciso 2026-09-20); si rientra da soli se il filo cade e torna. */
-  loginDev(token: string): void;
+  /** L'accesso classico (2026-09-22): nome utente o email, e password. La sessione resta nel browser (store «session»). */
+  loginPassword(login: string, password: string): void;
+  /** L'accesso con Google: il biglietto (ID token) del bottone di Google. */
+  loginGoogle(idToken: string): void;
+  /** La registrazione: nome utente unico, email, password, nome pubblico. */
+  register(username: string, email: string, password: string, name: string): void;
+  /** Il nome pubblico nuovo, dalle impostazioni. */
+  setDisplayName(name: string): void;
+  /** La progressione dell'account su un Rubyfront (2026-09-23): livello 1 e niente montato se il tavolo non ne sa. */
+  progress(card: string): PlayerProgress;
+  /** Le abilità montate su un Rubyfront: al tavolo, che convalida e risponde in `progressChanged` (o `progressRefused`). */
+  setLoadout(card: string, loadout: Loadout): void;
+  /** C'è una sessione salvata da riprendere (o in corso di ripresa)? Per la schermata d'accesso: aspetta invece di chiedere. */
+  hasSavedSession(): boolean;
   logout(): void;
   /** Un dato mio nella memoria del tavolo: vero se salvato (serve l'accesso e il filo). */
   save(key: string, value: unknown): Promise<boolean>;
@@ -205,8 +238,8 @@ export function createSession(options: SessionOptions): Session {
   let engine: EngineLink | null = null;
   /** L'utenza nella memoria del tavolo (2026-09-20), null senza accesso. */
   let account: Player | null = null;
-  /** La chiave di sviluppo, solo in memoria: a gioco chiuso si dimentica. */
-  let devToken = "";
+  /** La conferma della mail arrivata dal link (?verify=): si manda al primo saluto del tavolo. */
+  let pendingVerify = options.verifyToken ?? "";
   /**
    * Il mazzo scelto resta noto al client anche dopo "nuova partita": a tavola
    * pulita ciascuno rimette in tavola il proprio, senza rifare la scelta.
@@ -696,6 +729,9 @@ export function createSession(options: SessionOptions): Session {
     if (myDeckId) loadDeck(myDeckId, mySeat);
   }
 
+  /** In fila nell'atrio (2026-09-23). */
+  let searching = false;
+
   let seatClashWarned = false;
   function warnSeatClash(): void {
     if (seatClashWarned) return;
@@ -770,8 +806,14 @@ export function createSession(options: SessionOptions): Session {
         // è la copia buona: gli si passa la lavagna com'è. In stanza no: la
         // lavagna arriva dal giornale, subito dopo il saluto.
         if (!room) engine?.snapshot(state);
-        // L'utenza di sviluppo rientra da sé se il filo cade e torna, finché il gioco è aperto.
-        if (devToken) engine?.login("dev", devToken);
+        // L'utenza rientra da sé a ogni saluto con la sessione salvata nel
+        // browser (2026-09-22; l'utenza di prova a chiave è stata tolta il
+        // 2026-09-23). E la conferma della mail arrivata dal link, una volta.
+        if (store.read("session", "")) engine?.resume(store.read("session", ""));
+        if (pendingVerify) {
+          engine?.verify(pendingVerify);
+          pendingVerify = "";
+        }
         const signature = `${version}|${rules.join(",")}`;
         if (signature === welcomed) return;
         welcomed = signature;
@@ -799,16 +841,58 @@ export function createSession(options: SessionOptions): Session {
       onRtc(payload, from) {
         if (from !== mySeat) view.rtc(payload);
       },
-      onSeatTaken: warnSeatClash,
-      onMe(player, reason) {
+      onSeat(seat) {
+        // Il tavolo assegna il posto (2026-09-23): se non è il mio, la pagina riparte
+        // con quello — il posto è cucito nella sessione (game.ts) e cambia solo così.
+        if (room && seat !== mySeat) view.reseat(room, seat);
+      },
+      onRoomFull(name) {
+        // Fuori dalla stanza piena: si torna alla «solo», e la vista avvisa.
+        awaitingPeer = false;
+        deckDeferred = false;
+        join("");
+        store.write("room", "");
+        view.roomFull(name);
+      },
+      onMatched(name, seat) {
+        searching = false;
+        view.matched(name, seat);
+      },
+      onVerified(username) {
+        ctx.log(msg("log.account.verified", { name: username }));
+      },
+      onProgress(update) {
+        // La voce dell'account si sostituisce, così il pannello e i chip leggono sempre l'ultima.
+        if (account) {
+          const rest = (account.rubyfronts ?? []).filter(entry => entry.card !== update.card);
+          account = { ...account, rubyfronts: [...rest, { card: update.card, xp: update.xp, level: update.level, loadout: update.loadout }] };
+        }
+        if (update.gained !== undefined) ctx.log(msg("log.progress", { card: update.card, n: update.gained, level: update.level }));
+        view.progressChanged?.(update);
+      },
+      onProgressRefused(card, reason) {
+        view.progressRefused?.(card, reason);
+      },
+      onMe(player, reason, token) {
         const was = account;
         account = player;
-        if (player) ctx.log(msg("log.account.in", { name: player.name }));
-        else if (reason) {
-          // La chiave non vale: si dimentica, così non si insiste a ogni collegamento.
-          devToken = "";
+        // La sessione nuova si conserva; a un rifiuto quella salvata si butta (scaduta o cancellata).
+        if (token) store.write("session", token);
+        if (!player && reason) store.write("session", "");
+        // Il nome al tavolo è il nome pubblico dell'account.
+        if (player) store.write("name", player.name);
+        // I mazzi con cui si gioca sono quelli dell'account: il catalogo li filtra, e il mazzo ricordato che non è suo si dimentica.
+        setOwnedDecks(player ? player.decks : null);
+        if (myDeckId && !availableDecks().some(deck => deck.id === myDeckId)) {
+          myDeckId = null;
+          store.write("deck", "");
+        }
+        if (player && (!was || was.id !== player.id)) ctx.log(msg("log.account.in", { name: player.name }));
+        else if (!player && reason) {
           ctx.log(msg("log.account.fail", { reason }));
-        } else if (was) ctx.log(msg("log.account.out"));
+          view.accountRefused?.(reason);
+        } else if (!player && was) ctx.log(msg("log.account.out"));
+        if (player) reapplyName();
         view.accountChanged?.(player);
       },
     });
@@ -862,6 +946,8 @@ export function createSession(options: SessionOptions): Session {
     // è una scritta, non un gesto di gioco, e l'arbitro fermerebbe un'azione
     // dell'altro posto fuori dal suo turno — col sigillo sopra la home.
     commit({ t: "player", seat: otherSeat(mySeat), patch: { name: "" } });
+    // Il tavolo nuovo nasce senza nomi: il mio si rimette (2026-09-22: la partita col bot partiva col posto senza nome).
+    reapplyName();
   }
 
   function startNewGame(): void {
@@ -1106,6 +1192,8 @@ export function createSession(options: SessionOptions): Session {
     paint,
     myDeck: () => myDeckId,
     chooseDeck(deckId) {
+      // Solo un mazzo con cui si può giocare (dell'account, o qualunque senza accesso).
+      if (!availableDecks().some(deck => deck.id === deckId)) return;
       myDeckId = deckId;
       store.write("deck", deckId);
     },
@@ -1122,12 +1210,25 @@ export function createSession(options: SessionOptions): Session {
     mulligan,
     keep,
     account: () => account,
-    loginDev(token) {
-      devToken = token.trim();
-      if (!engine?.login("dev", devToken)) ctx.log(msg("log.account.fail", { reason: t("stop.absent") }));
+    loginPassword(login, password) {
+      if (!engine?.login({ provider: "password", login: login.trim(), password })) view.accountRefused?.(t("stop.absent"));
     },
+    loginGoogle(idToken) {
+      if (!engine?.login({ provider: "google", idToken })) view.accountRefused?.(t("stop.absent"));
+    },
+    register(username, email, password, name) {
+      if (!engine?.register(username.trim(), email.trim(), password, name.trim())) view.accountRefused?.(t("stop.absent"));
+    },
+    setDisplayName(name) {
+      if (!engine?.setProfile(name.trim())) view.accountRefused?.(t("stop.absent"));
+    },
+    progress: card => account?.rubyfronts?.find(entry => entry.card === card) ?? freshProgress(card),
+    setLoadout(card, loadout) {
+      if (!engine?.setLoadout(card, loadout)) view.progressRefused?.(card, t("stop.absent"));
+    },
+    hasSavedSession: () => Boolean(store.read("session", "")),
     logout() {
-      devToken = "";
+      store.write("session", "");
       if (!engine?.logout()) {
         account = null;
         view.accountChanged?.(null);
@@ -1139,6 +1240,17 @@ export function createSession(options: SessionOptions): Session {
     reapplyName,
     seatOrWait,
     awaitingPeer: () => awaitingPeer,
+    findMatch() {
+      if (room || !engine?.match()) return false;
+      searching = true;
+      view.searching();
+      return true;
+    },
+    cancelMatch() {
+      if (!searching) return;
+      searching = false;
+      engine?.matchCancel();
+    },
     startBot,
     startBotWithIntro(botDeck, deckId) {
       // Ogni partita col bot è una partita nuova (deciso 2026-09-20): il

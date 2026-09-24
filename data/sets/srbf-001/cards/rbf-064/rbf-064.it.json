@@ -1,0 +1,26 @@
+{
+  "name": "Custode Dimensionale",
+  "typeLabel": "Entità: Auros",
+  "summary": "Stasi a 2 Flussi: bloccando non muore mai.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Custode Dimensionale",
+    "keyword": {
+      "name": "Stasi",
+      "rules": "bloccando non muore: resta tappata per sempre"
+    },
+    "flavor": "Non cade. Resta."
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  }
+}

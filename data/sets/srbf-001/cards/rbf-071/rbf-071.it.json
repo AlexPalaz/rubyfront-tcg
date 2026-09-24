@@ -1,0 +1,29 @@
+{
+  "name": "Impulso Dimensionale",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "Due Flussi e un'avversaria si ferma per sempre.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "static": "Statica"
+    }
+  },
+  "face": {
+    "name": "Impulso Dimensionale",
+    "effect": {
+      "name": "Effetto",
+      "text": "Metti un'Entità avversaria in Stasi."
+    },
+    "flavor": "Un istante che non finisce."
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  }
+}

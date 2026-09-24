@@ -1,0 +1,22 @@
+{
+  "name": "Forged Colossus",
+  "typeLabel": "Entity: Human",
+  "summary": "The biggest body in the deck, no tricks.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Forged Colossus",
+    "flavor": "Forged to be there. Nothing else is needed."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicAria": "Dynamic"
+  }
+}

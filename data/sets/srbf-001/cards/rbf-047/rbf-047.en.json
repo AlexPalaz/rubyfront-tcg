@@ -1,0 +1,22 @@
+{
+  "name": "Young Rebel",
+  "typeLabel": "Entity: Human",
+  "summary": "One Flux, one body: the first card you learn to play.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Young Rebel",
+    "flavor": "No cause yet. Already a fire."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
+  }
+}

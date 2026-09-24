@@ -15,6 +15,7 @@
 // risponde `null` subito — e cosa vale un arbitro muto lo decide chi chiama
 // (main.ts, dispatch: via libera nella «solo», fermata in stanza).
 
+import type { Loadout, Outcome, PlayerProgress } from "./progression.js";
 import { lang } from "./i18n.js";
 import type { Action, GameState, JournalEntry, NetMessage, Seat } from "./types.js";
 
@@ -48,18 +49,51 @@ export interface EngineHandlers {
   onAction(action: Action, from: Seat): void;
   /** La segnalazione WebRTC della chat vocale (voice.ts). */
   onRtc(payload: unknown, from: Seat): void;
-  /** Il posto chiesto è già occupato nella stanza: il tavolo ha chiuso. */
-  onSeatTaken(): void;
-  /** L'utenza (2026-09-20): chi sono per il tavolo dopo un `login`/`logout`, o null col motivo del rifiuto. */
-  onMe(player: Player | null, reason?: string): void;
+  /** Il posto assegnato dal tavolo all'ingresso (2026-09-23): può non essere quello chiesto. */
+  onSeat(seat: Seat): void;
+  /** La stanza ha già due giocatori: il tavolo ha chiuso. */
+  onRoomFull(room: string): void;
+  /** L'atrio ha trovato l'avversario (2026-09-23): ci si sposta in quella stanza, a quel posto. */
+  onMatched(room: string, seat: Seat): void;
+  /** L'utenza (2026-09-20): chi sono per il tavolo dopo un accesso, o null col motivo del rifiuto; `token` è la sessione da conservare (2026-09-22). */
+  onMe(player: Player | null, reason?: string, token?: string): void;
+  /** Una mail confermata da un link aperto senza essere seduti come quel giocatore (2026-09-22). */
+  onVerified?(username: string): void;
+  /** La progressione di un Rubyfront aggiornata (2026-09-23), o rifiutata col motivo. */
+  onProgress?(update: ProgressUpdate): void;
+  onProgressRefused?(card: string, reason: string): void;
 }
 
-/** Un giocatore per il tavolo: l'id nella memoria, il nome, da quale accesso (oggi «dev», domani «steam»). */
+/** Un giocatore per il tavolo (2026-09-22): l'account con nome utente unico e nome pubblico, gli accessi collegati, i mazzi. */
 export interface Player {
   id: number;
+  /** Il nome utente, unico e immutabile (minuscolo). */
+  username: string;
+  /** Il nome pubblico, che si cambia dalle impostazioni. */
   name: string;
-  provider: string;
+  email: string | null;
+  /** La mail è confermata. */
+  verified: boolean;
+  /** Gli accessi collegati: «dev», «google», domani «steam». */
+  providers: string[];
+  /** I mazzi assegnati all'account (2026-09-20): gli id del catalogo. */
+  decks: string[];
+  /** Le gemme rubino (2026-09-22), la moneta del negozio: il tavolo non le manda ancora, vale zero. */
+  gems?: number;
+  /** La progressione per Rubyfront (2026-09-23): esperienza, livello, abilità montate. */
+  rubyfronts?: PlayerProgress[];
 }
+
+/** L'aggiornamento di una progressione dal tavolo (2026-09-23): dopo un `loadout` o a fine partita (con `gained`). */
+export interface ProgressUpdate extends PlayerProgress {
+  gained?: number;
+  outcome?: Outcome;
+}
+
+/** Le credenziali di un accesso (2026-09-22). */
+export type Credentials =
+  | { provider: "password"; login: string; password: string }
+  | { provider: "google"; idToken: string };
 
 export interface EngineLink {
   /**
@@ -75,8 +109,21 @@ export interface EngineLink {
   hello(): void;
   /** La chat vocale: `false` se il filo non c'è. */
   sendRtc(payload: unknown): boolean;
+  /** L'atrio (2026-09-23): in fila per un avversario qualunque; la risposta arriva in `onMatched`. Solo dalla stanza «solo». */
+  match(): boolean;
+  matchCancel(): boolean;
   /** L'accesso alla memoria del tavolo: la risposta arriva in `onMe`. `false` se il filo non c'è. */
-  login(provider: string, token: string): boolean;
+  login(credentials: Credentials): boolean;
+  /** La registrazione con nome utente, email e password (2026-09-22): la risposta in `onMe`, con la sessione. */
+  register(username: string, email: string, password: string, name: string): boolean;
+  /** La sessione salvata: si riprende senza credenziali. */
+  resume(token: string): boolean;
+  /** La conferma della mail dal link. */
+  verify(token: string): boolean;
+  /** Il nome pubblico nuovo. */
+  setProfile(name: string): boolean;
+  /** Le abilità montate su un Rubyfront (2026-09-23): la risposta in `onProgress`. */
+  setLoadout(card: string, loadout: Loadout): boolean;
   logout(): boolean;
   /** Un dato del giocatore nella memoria del tavolo: vero se salvato. */
   save(key: string, value: unknown): Promise<boolean>;
@@ -172,12 +219,21 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
         | NetMessage
         | EngineVerdict
         | { t: "engine"; version?: string; rules?: string[]; rules_en?: string[] }
-        | { t: "me"; player: Player | null; reason?: string; reason_en?: string }
+        | { t: "me"; player: Player | null; reason?: string; reason_en?: string; token?: string }
+        | { t: "verified"; username: string }
+        | { t: "progress"; card: string; ok?: boolean; reason?: string; reason_en?: string; xp?: number; level?: number; loadout?: Loadout; gained?: number; outcome?: Outcome }
         | { t: "saved"; seq?: number; key: string; ok: boolean }
         | { t: "data"; seq?: number; key: string; value: unknown };
       switch (message.t) {
         case "me":
-          handlers.onMe(message.player ?? null, lang() === "en" ? (message.reason_en ?? message.reason) : message.reason);
+          handlers.onMe(message.player ?? null, lang() === "en" ? (message.reason_en ?? message.reason) : message.reason, message.token);
+          return;
+        case "verified":
+          handlers.onVerified?.(message.username);
+          return;
+        case "progress":
+          if (message.ok === false) handlers.onProgressRefused?.(message.card, (lang() === "en" ? message.reason_en : message.reason) ?? message.reason ?? "");
+          else handlers.onProgress?.({ card: message.card, xp: message.xp ?? 0, level: message.level ?? 1, loadout: message.loadout ?? { rubyfront: [], nexus: [] }, ...(message.gained !== undefined ? { gained: message.gained } : {}), ...(message.outcome ? { outcome: message.outcome } : {}) });
           return;
         case "saved": {
           const waiting = message.seq !== undefined ? stored.get(message.seq) : undefined;
@@ -214,10 +270,16 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
           peers = message.peers ?? 0;
           handlers.onStatus(status, peers);
           return;
-        case "seat_taken":
-          // Il tavolo chiude subito dopo: non si riprova, il posto è di un altro.
+        case "seat":
+          handlers.onSeat(message.seat);
+          return;
+        case "room_full":
+          // Il tavolo chiude subito dopo: non si riprova, la stanza è di altri due.
           closed = true;
-          handlers.onSeatTaken();
+          handlers.onRoomFull(message.room ?? room);
+          return;
+        case "matched":
+          handlers.onMatched(message.room, message.seat);
           return;
         default:
           return;
@@ -256,8 +318,23 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
   let dataSeq = 0;
 
   return {
-    login(provider, token) {
-      return send({ t: "login", provider, token });
+    login(credentials) {
+      return send({ t: "login", ...credentials });
+    },
+    register(username, email, password, name) {
+      return send({ t: "register", username, email, password, name });
+    },
+    resume(token) {
+      return send({ t: "resume", token });
+    },
+    verify(token) {
+      return send({ t: "verify", token });
+    },
+    setProfile(name) {
+      return send({ t: "profile", name });
+    },
+    setLoadout(card, loadout) {
+      return send({ t: "loadout", card, loadout });
     },
     logout() {
       return send({ t: "logout" });
@@ -301,6 +378,12 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
     },
     hello() {
       send({ t: "hello" });
+    },
+    match() {
+      return send({ t: "match" });
+    },
+    matchCancel() {
+      return send({ t: "match_cancel" });
     },
     sendRtc(payload) {
       return send({ t: "rtc", payload });

@@ -153,6 +153,8 @@ export interface HomeActions {
   /** La carta «Contro il computer»: sempre una partita nuova (niente «Riprendi», dal 2026-09-20). */
   solo(): void;
   newGame(): void;
+  /** «Partita casuale» (2026-09-23): in fila nell'atrio del tavolo. */
+  random(): void;
   createRoom(): void;
   enter(room: string): void;
   decks(): void;
@@ -606,7 +608,8 @@ export class Home {
     if (c.def.id === "solo") {
       button(t("html.newgame"), "metal", () => this.actions.newGame());
     } else if (c.def.id === "multi") {
-      button(t("html.ob.create"), "metal", () => this.actions.createRoom());
+      button(t("html.ob.random"), "metal", () => this.actions.random());
+      button(t("html.ob.create"), "secondary", () => this.actions.createRoom());
       const or = paintText(this.stage, t("html.ob.or"), FONT_BASE, "rgba(243,237,240,.7)", { maxW: w, align: "center" });
       or.sprite.position.set((w - or.w) / 2, y);
       c.more.addChild(or.sprite);

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-073",
+  "setId": "rubyfront-core",
+  "collectorNumber": "073",
+  "slug": "dimensional-search",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dimensional",
+    "grade-1",
+    "dig",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §7.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dimensional",
+        "grade": 1
+      },
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "search",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 4
+            },
+            "details": {
+              "mayReveal": {
+                "cardType": "object"
+              },
+              "revealTo": {
+                "zone": "hand",
+                "owner": "controller"
+              },
+              "restTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom",
+                "anyOrder": true
+              }
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-073.md"
+}

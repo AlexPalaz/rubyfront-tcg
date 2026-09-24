@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "id": "starter-auros",
+  "setId": "rubyfront-core",
+  "status": "draft",
+  "access": "free",
+  "defaultLocale": "it",
+  "locales": {
+    "it": {
+      "name": "Marea Inversa",
+      "description": "Starter Auros, il mazzo del tutorial: corpi semplici, la Stasi come arma — sulle proprie Entità per non morire, sulle avversarie per fermarle — e Seyra che guadagna PV a ogni Stasi."
+    },
+    "en": {
+      "name": "Reverse Tide",
+      "description": "The Auros starter, the tutorial deck: simple bodies, Stasis as a weapon — on your own Entities so they don't die, on the opponent's to stop them — and Seyra gaining HP with every Stasis."
+    }
+  },
+  "designNotes": "starter-auros.md",
+  "cards": [
+    {
+      "card": "RBF-062",
+      "count": 3
+    },
+    {
+      "card": "RBF-063",
+      "count": 3
+    },
+    {
+      "card": "RBF-064",
+      "count": 3
+    },
+    {
+      "card": "RBF-065",
+      "count": 3
+    },
+    {
+      "card": "RBF-066",
+      "count": 3
+    },
+    {
+      "card": "RBF-067",
+      "count": 2
+    },
+    {
+      "card": "RBF-068",
+      "count": 2
+    },
+    {
+      "card": "RBF-069",
+      "count": 1
+    },
+    {
+      "card": "RBF-055",
+      "count": 3
+    },
+    {
+      "card": "RBF-033",
+      "count": 3
+    },
+    {
+      "card": "RBF-070",
+      "count": 2
+    },
+    {
+      "card": "RBF-071",
+      "count": 3
+    },
+    {
+      "card": "RBF-072",
+      "count": 3
+    },
+    {
+      "card": "RBF-059",
+      "count": 3
+    },
+    {
+      "card": "RBF-073",
+      "count": 3
+    },
+    {
+      "card": "RBF-074",
+      "count": 1
+    }
+  ],
+  "theme": "t49"
+}

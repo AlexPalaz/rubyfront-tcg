@@ -1,0 +1,22 @@
+{
+  "name": "Defender of Nova Kai",
+  "typeLabel": "Entity: Auros",
+  "summary": "Four and four: the wall of Nova Kai.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Defender of Nova Kai",
+    "flavor": "The walls are stone. It is the stone."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 2nd grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

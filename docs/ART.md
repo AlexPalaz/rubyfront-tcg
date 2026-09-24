@@ -26,7 +26,13 @@ Regole che definiscono la firma:
    composizione leggibile.
 4. **Colore**: palette pop vivace con accenti saturi decisi; il colore
    dell'effetto-Materia della carta è l'accento-eroe della scena (blu
-   dimensionale per Avy Shin, rosso rubino di default).
+   dimensionale per Avy Shin, rosso rubino di default). **La Materia
+   Dinamica è sempre BIANCA** (precisato dal designer 2026-09-22: il colore
+   segue la Materia, non la razza — bianco Dinamica, blu Dimensionale,
+   rosso rubino Distruttiva; i fulmini di Rhen e il neon di Oblivhal sono
+   Dinamica): l'ambiente prende la tinta del mazzo (rosso e fuoco per
+   Fiamma Ribelle), e si bandisce `red energy, red lightning, fire in hand`
+   perché la scena calda non colori la scintilla.
 5. **Volti**: stilizzati ma credibili (`stylized yet grounded`), occhi
    definiti ed espressivi — né moe anime né cartoon western.
 
@@ -110,7 +116,14 @@ se il costume è chiuso; `muscular, heroic armor` per personaggi gracili;
   vene di luce alla Arcane, non come tecnologia applicata. Il neon è
   ammesso SOLO sul corpo dei Rubyfront: gli ambienti restano ferraglia
   rétro, e il contrasto è voluto — la bestia è l'unica cosa «avanzata»
-  della scena. Per le bestie il triangolo stilistico **pende verso
+  della scena. **Niente zampe** (deciso dal designer 2026-09-22): il
+  Rubyfront è un flusso di energia a forma di drago — testa, corna, collo
+  e corpo serpentino che si allunga e si scioglie in energia, le ali se
+  servono — sospeso in aria o levato dal suolo come una fiamma. Dichiararlo
+  in positivo (`a serpentine dragon-shaped flow of energy, its long body
+  tapering and dissolving into streams of light, hovering in the air`) e
+  bandire `legs, claws, paws, feet, standing on the ground, quadruped`.
+  Per le bestie il triangolo stilistico **pende verso
   Arcane** (deciso 2026-08-26): nel nucleo del prompt Arcane si dichiara
   per primo e rinforzato (`in the painterly style of Arcane... strongly
   leaning Arcane`) — unica riformulazione del nucleo ammessa, solo per i
@@ -134,7 +147,10 @@ se il costume è chiuso; `muscular, heroic armor` per personaggi gracili;
   attacca, si monta in Editor: gomma sulla fronte + mini-prompt
   `a faceted ruby red gemstone embedded in the forehead, clean and
   clearly resolved`. Coppia di colori propria per ogni Rubyfront
-  (Rhazmora: porcellana bianca + rubino). Descrivere SEMPRE in positivo
+  (Rhazmora: porcellana bianca + rubino; Oblivhal: cremisi + neon bianco;
+  Arden: nero carbone + saette di fuoco arancio-oro, 2026-09-22 — su una
+  bestia nera serve una luce esterna in scena, la piana di lava, e il rim
+  light sui bordi, o non si legge). Descrivere SEMPRE in positivo
   pezzo per pezzo — mai per negazione. Scala — `low angle, tiny human
   silhouettes for scale`; bandire `bird, beak, feathers, open mouth,
   roaring, oversized gem`. Le scene notturne sono ammesse per i

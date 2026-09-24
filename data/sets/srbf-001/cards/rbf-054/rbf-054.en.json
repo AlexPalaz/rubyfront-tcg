@@ -1,0 +1,31 @@
+{
+  "name": "Axel, Free Flame",
+  "typeLabel": "Entity: Human",
+  "summary": "The deck's Unique: six Power with Surge, and the whole charge pushes along with him.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux",
+    "unique": "Unique"
+  },
+  "face": {
+    "name": "Axel, Free Flame",
+    "keyword": {
+      "name": "Surge",
+      "rules": "may attack the turn it enters the Front"
+    },
+    "charge": {
+      "trigger": "When it attacks",
+      "text": "The attacking Entities you control get +1 Power until end of turn."
+    },
+    "flavor": "No one ever commanded him. Everyone followed."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 2nd grade",
+    "dynamicAria": "Dynamic"
+  }
+}

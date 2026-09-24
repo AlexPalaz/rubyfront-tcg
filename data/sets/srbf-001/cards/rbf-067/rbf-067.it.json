@@ -1,0 +1,22 @@
+{
+  "name": "Difensore di Nova Kai",
+  "typeLabel": "Entità: Auros",
+  "summary": "Quattro e quattro: il muro di Nova Kai.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Difensore di Nova Kai",
+    "flavor": "Le mura sono di pietra. Lui è la pietra."
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 2° grado",
+    "dimensionalAria": "Dimensionale"
+  }
+}

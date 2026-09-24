@@ -1,0 +1,29 @@
+{
+  "name": "Richiamo Divampante",
+  "typeLabel": "Materia Dinamica I",
+  "summary": "La Statica del tutorial: ogni arrivo sistema la cima del mazzo, due arrivi pescano.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "static": "Statica"
+    }
+  },
+  "face": {
+    "name": "Richiamo Divampante",
+    "effect": {
+      "name": "Effetto",
+      "text": "Ogni volta che un'Entità Umana entra sul tuo Fronte, guarda la prima carta del tuo mazzo: puoi metterla in fondo al mazzo. Se invece in questo turno sono entrate sul tuo Fronte almeno 2 Entità Umane, pesca una carta."
+    },
+    "flavor": "Più sono, più alto brucia."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

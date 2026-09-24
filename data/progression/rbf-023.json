@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "card": "RBF-023",
+  "status": "draft",
+  "_note": "Abilità FITTIZIE (2026-09-23): segnaposto a tema, senza effetto in partita; i testi veri e le forme arriveranno col designer.",
+  "levels": [
+    {
+      "level": 1,
+      "rubyfront": {
+        "id": "rhazmora-r1",
+        "locales": {
+          "it": {
+            "name": "Scintilla della Forgia",
+            "text": "La prossima carta Oggetto che giochi in questo turno costa 1 Flusso in meno."
+          },
+          "en": {
+            "name": "Spark of the Forge",
+            "text": "The next Object card you play this turn costs 1 less Flux."
+          }
+        }
+      },
+      "nexus": {
+        "id": "rhazmora-n1",
+        "locales": {
+          "it": {
+            "name": "Frammento",
+            "text": "Guarda la prima carta del tuo mazzo: puoi metterla nella tua Zona di Ritiro."
+          },
+          "en": {
+            "name": "Shard",
+            "text": "Look at the top card of your deck: you may put it into your Retire Zone."
+          }
+        }
+      }
+    },
+    {
+      "level": 2,
+      "rubyfront": {
+        "id": "rhazmora-r2",
+        "locales": {
+          "it": {
+            "name": "Lama Affilata",
+            "text": "Un'Entità con un Oggetto assegnato che controlli prende +1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Sharpened Blade",
+            "text": "An Entity with an Object assigned you control gets +1 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "rhazmora-n2",
+        "locales": {
+          "it": {
+            "name": "Eco della Scissione",
+            "text": "Pesca una carta, poi scarta una carta."
+          },
+          "en": {
+            "name": "Echo of the Rift",
+            "text": "Draw a card, then discard a card."
+          }
+        }
+      }
+    },
+    {
+      "level": 3,
+      "rubyfront": {
+        "id": "rhazmora-r3",
+        "locales": {
+          "it": {
+            "name": "Riarmo Rapido",
+            "text": "Assegna un Oggetto dalla tua Zona di Ritiro a un'Entità che controlli senza pagarne il costo di Flusso."
+          },
+          "en": {
+            "name": "Quick Rearm",
+            "text": "Assign an Object from your Retire Zone to an Entity you control without paying its Flux cost."
+          }
+        }
+      },
+      "nexus": {
+        "id": "rhazmora-n3",
+        "locales": {
+          "it": {
+            "name": "Coro Sommesso",
+            "text": "Le Entità con un Oggetto assegnato che controlli prendono +1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Hushed Chorus",
+            "text": "The Entities with an Object assigned you control get +1 Power until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 4,
+      "rubyfront": {
+        "id": "rhazmora-r4",
+        "locales": {
+          "it": {
+            "name": "Specchio di Nova Kai",
+            "text": "Un'Entità avversaria attaccante prende −1 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Mirror of Nova Kai",
+            "text": "An attacking opposing Entity gets −1 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "rhazmora-n4",
+        "locales": {
+          "it": {
+            "name": "Fenditura",
+            "text": "Metti un'Entità avversaria con costo di Flusso 2 o inferiore nella Zona di Ritiro del suo proprietario."
+          },
+          "en": {
+            "name": "Fissure",
+            "text": "Put an opposing Entity with Flux cost 2 or less into its owner's Retire Zone."
+          }
+        }
+      }
+    },
+    {
+      "level": 5,
+      "rubyfront": {
+        "id": "rhazmora-r5",
+        "locales": {
+          "it": {
+            "name": "Ricerca nella Forgia",
+            "text": "Guarda le prime 3 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano."
+          },
+          "en": {
+            "name": "Search in the Forge",
+            "text": "Look at the top 3 cards of your deck. You may reveal an Object among them and add it to your hand."
+          }
+        }
+      },
+      "nexus": {
+        "id": "rhazmora-n5",
+        "locales": {
+          "it": {
+            "name": "Vestigio",
+            "text": "Un'Entità con un Oggetto assegnato che controlli ottiene Vendetta fino alla fine del turno."
+          },
+          "en": {
+            "name": "Vestige",
+            "text": "An Entity with an Object assigned you control gains Revenge until end of turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 6,
+      "rubyfront": {
+        "id": "rhazmora-r6",
+        "locales": {
+          "it": {
+            "name": "Prisma",
+            "text": "Manda nell'Abisso un'Entità avversaria con costo di Flusso 2 o inferiore fino alla fine del turno."
+          },
+          "en": {
+            "name": "Prism",
+            "text": "Send an opposing Entity with Flux cost 2 or less to the Abyss until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "rhazmora-n6",
+        "locales": {
+          "it": {
+            "name": "Doppio Taglio",
+            "text": "Stappa un'Entità con un Oggetto assegnato che controlli: può attaccare una seconda volta in questo turno."
+          },
+          "en": {
+            "name": "Double Cut",
+            "text": "Untap an Entity with an Object assigned you control: it may attack a second time this turn."
+          }
+        }
+      }
+    },
+    {
+      "level": 7,
+      "rubyfront": {
+        "id": "rhazmora-r7",
+        "locales": {
+          "it": {
+            "name": "Forgia Ardente",
+            "text": "Gli Oggetti che assegni in questo turno costano 2 Flussi in meno."
+          },
+          "en": {
+            "name": "Burning Forge",
+            "text": "Objects you assign this turn cost 2 less Flux."
+          }
+        }
+      },
+      "nexus": {
+        "id": "rhazmora-n7",
+        "locales": {
+          "it": {
+            "name": "Frattura",
+            "text": "Metti un'Entità avversaria nella Zona di Ritiro del suo proprietario."
+          },
+          "en": {
+            "name": "Fracture",
+            "text": "Put an opposing Entity into its owner's Retire Zone."
+          }
+        }
+      }
+    },
+    {
+      "level": 8,
+      "rubyfront": {
+        "id": "rhazmora-r8",
+        "locales": {
+          "it": {
+            "name": "Lame Gemelle",
+            "text": "Due Entità con un Oggetto assegnato che controlli prendono +2 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Twin Blades",
+            "text": "Two Entities with an Object assigned you control get +2 Power until end of turn."
+          }
+        }
+      },
+      "nexus": {
+        "id": "rhazmora-n8",
+        "locales": {
+          "it": {
+            "name": "Memoria Rifratta",
+            "text": "Riporta in mano un Oggetto dalla tua Zona di Ritiro."
+          },
+          "en": {
+            "name": "Refracted Memory",
+            "text": "Return an Object from your Retire Zone to your hand."
+          }
+        }
+      }
+    },
+    {
+      "level": 9,
+      "rubyfront": {
+        "id": "rhazmora-r9",
+        "locales": {
+          "it": {
+            "name": "Assalto della Scissione",
+            "text": "Il Rubyfront/Nexus avversario perde PV pari al numero di Oggetti assegnati alle Entità che controlli."
+          },
+          "en": {
+            "name": "Rift Assault",
+            "text": "The opposing Rubyfront/Nexus loses HP equal to the number of Objects assigned to the Entities you control."
+          }
+        }
+      },
+      "nexus": {
+        "id": "rhazmora-n9",
+        "locales": {
+          "it": {
+            "name": "Cuore di Cristallo",
+            "text": "Guadagni PV pari al numero di Oggetti assegnati alle Entità che controlli."
+          },
+          "en": {
+            "name": "Crystal Heart",
+            "text": "You gain HP equal to the number of Objects assigned to the Entities you control."
+          }
+        }
+      }
+    },
+    {
+      "level": 10,
+      "rubyfront": {
+        "id": "rhazmora-r10",
+        "locales": {
+          "it": {
+            "name": "Ombra di Nova Kai",
+            "text": "Metti nella Zona di Ritiro del suo proprietario ogni Oggetto assegnato a un'Entità avversaria."
+          },
+          "en": {
+            "name": "Shadow of Nova Kai",
+            "text": "Put every Object assigned to an opposing Entity into its owner's Retire Zone."
+          }
+        }
+      },
+      "nexus": {
+        "id": "rhazmora-n10",
+        "locales": {
+          "it": {
+            "name": "Coro delle Lame Eterne",
+            "text": "Le Entità con un Oggetto assegnato che controlli prendono +3 Potenza fino alla fine del turno."
+          },
+          "en": {
+            "name": "Chorus of the Eternal Blades",
+            "text": "The Entities with an Object assigned you control get +3 Power until end of turn."
+          }
+        }
+      }
+    }
+  ]
+}

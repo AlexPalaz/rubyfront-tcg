@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-064",
+  "setId": "rubyfront-core",
+  "collectorNumber": "064",
+  "slug": "dimensional-keeper",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "stasis",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §8.1",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 1,
+        "fluxCost": 2
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [
+        {
+          "id": "stasis"
+        }
+      ],
+      "requirements": {},
+      "triggers": [],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-064.md"
+}

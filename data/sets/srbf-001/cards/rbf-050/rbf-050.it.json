@@ -1,0 +1,26 @@
+{
+  "name": "Istigatore di Fiamme",
+  "typeLabel": "Entità: Umano",
+  "summary": "Entra e dà l'ordine: un compagno colpisce più forte per un turno.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Istigatore di Fiamme",
+    "order": {
+      "trigger": "Quando entra sul Fronte",
+      "text": "Un'altra Entità che controlli prende +1 Potenza fino alla fine del turno."
+    },
+    "flavor": "Una scintilla sola, e la linea prende fuoco."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

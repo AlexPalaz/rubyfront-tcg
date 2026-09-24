@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-057",
+  "setId": "rubyfront-core",
+  "collectorNumber": "057",
+  "slug": "willpower",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "dynamic",
+    "grade-1",
+    "reactive",
+    "counterattack",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §6.4, §7.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "dynamic",
+        "grade": 1
+      },
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 1
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "resolve",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "untap",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
+            },
+            "details": {
+              "thenCounterattackBonus": 1,
+              "duration": "until_end_of_turn"
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-057.md"
+}

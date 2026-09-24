@@ -1,6 +1,7 @@
 // L'header del gioco: il marchio, che
 // riporta alla home (al tavolo chiede prima); a destra, al tavolo, la spia
-// della stanza, la chat (in stanza) e «Esci dalla partita»; in fondo
+// della stanza, la chat (in stanza) e «Esci dalla partita»; in home il mazzo
+// scelto e il negozio col saldo di gemme rubino (store.ts); in fondo
 // l'ingranaggio delle impostazioni. Vetro chiaro alto 54, come la barra che
 // il tavolo lascia libera in cima (impaginazione.ts, FISSI.barra). Tema
 // «Notte»: la grana di pietra su un gradiente scuro, la luce in cima, il filo
@@ -16,6 +17,8 @@ import { playSound } from "../sound";
 import { CrispSprite, SANS, paintPiece, linearGradient } from "../table/appearance";
 import { tween, ease } from "../table/animation";
 import { STONE } from "./stone";
+import { StoreChip } from "./store";
+import { DeckChip, type DeckChipDeck } from "./deckchip";
 import { TOOLBAR_H, FONT_BASE, INK, MUTED, RUBY, Button, hex } from "./ui";
 
 const BRAND: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.12, upper: true };
@@ -32,6 +35,12 @@ export interface ToolbarActions {
   chat(): void;
   /** La cronaca degli avvisi del tavolo (chronicle.ts, dal 2026-09-15). */
   chronicle(): void;
+  /** Il mazzo scelto (2026-09-20): in home, accanto all'ingranaggio; porta alla collezione. */
+  deck(): void;
+  /** Il negozio (2026-09-22): in home, col saldo di gemme rubino; oggi dice che non è ancora disponibile. */
+  store(): void;
+  /** La progressione dei Rubyfront (2026-09-23): in home, la sferografia. */
+  progression(): void;
   /** STRUMENTI DI PROVA, temporanei (Evoca e il «+» del Flusso): una carta del catalogo in mano, un Flusso in più. */
   spawn?(): void;
   flux?(): void;
@@ -55,6 +64,9 @@ export class Toolbar {
   private readonly leave: Button;
   private readonly chat: Button;
   private readonly chronicle: Button;
+  private readonly deck: DeckChip;
+  private readonly store: StoreChip;
+  private readonly progression: Button;
   /** STRUMENTI DI PROVA, temporanei: al tavolo, prima di «Esci» e della chat. */
   private readonly spawn: Button;
   private readonly flux: Button;
@@ -67,7 +79,12 @@ export class Toolbar {
   ) {
     this.leave = new Button(stage, { label: t("html.leave"), style: "metal", h: 34, onTap: () => actions.leave() });
     this.chat = new Button(stage, { label: t("html.chat"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.chat() });
+    this.deck = new DeckChip(stage, () => actions.deck());
     this.chronicle = new Button(stage, { label: t("html.chronicle"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.chronicle() });
+    this.store = new StoreChip(stage, () => actions.store());
+    this.store.visible = false;
+    this.progression = new Button(stage, { label: t("html.progression"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.progression() });
+    this.progression.visible = false;
     this.chronicle.visible = false;
     this.spawn = new Button(stage, { label: t("hud.spawn"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.spawn?.() });
     this.flux = new Button(stage, { label: t("hud.flux.more"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.flux?.() });
@@ -119,7 +136,7 @@ export class Toolbar {
       actions.settings();
     });
     this.glow.eventMode = "none";
-    this.root.addChild(this.background, this.stone, this.light, this.glow, this.brand, this.statusDot, this.chat, this.chronicle, this.leave, this.flux, this.spawn, this.gear);
+    this.root.addChild(this.background, this.stone, this.light, this.glow, this.brand, this.statusDot, this.chat, this.chronicle, this.deck, this.store, this.progression, this.leave, this.flux, this.spawn, this.gear);
     stage.screens.addChild(this.root);
     stage.onLayout(() => this.layout());
   }
@@ -127,6 +144,10 @@ export class Toolbar {
   /** Al tavolo (non in home né nei mazzi): «Esci dalla partita»; in stanza anche la chat e la spia. */
   toTable(table: boolean, room: boolean): void {
     this.leave.visible = table;
+    this.table = table;
+    this.deck.visible = !table && this.deckShown;
+    this.store.visible = !table && this.deckShown;
+    this.progression.visible = !table && this.deckShown;
     this.chat.visible = table && room;
     this.chronicle.visible = table;
     this.spawn.visible = table;
@@ -135,6 +156,24 @@ export class Toolbar {
     this.statusDot.visible = table && room;
     this.layout();
   }
+
+  /** Il mazzo scelto sulla targa (nome e copertina, 2026-09-23), o «Scegli il mazzo» senza; nascosto senza account (la porta, 2026-09-22). */
+  setDeck(deck: DeckChipDeck | null, shown = true): void {
+    this.deckShown = shown;
+    this.deck.set(deck);
+    this.deck.visible = !this.table && shown;
+    this.store.visible = !this.table && shown;
+    this.progression.visible = !this.table && shown;
+    this.layout();
+  }
+
+  /** Il saldo di gemme rubino sul tasto del negozio (2026-09-22). */
+  setGems(n: number): void {
+    this.store.setGems(n);
+    this.layout();
+  }
+  private deckShown = true;
+  private table = false;
 
   /** La spia della stanza: com'è il filo verso il tavolo. */
   network(status: string): void {
@@ -195,7 +234,7 @@ export class Toolbar {
     let right = v.width - 14;
     this.gear.position.set(right - 16, TOOLBAR_H / 2);
     right -= 32 + 14;
-    for (const button of [this.leave, this.chronicle, this.chat, this.flux, this.spawn]) {
+    for (const button of [this.leave, this.chronicle, this.chat, this.flux, this.spawn, this.store, this.deck, this.progression]) {
       if (!button.visible) continue;
       button.position.set(right - button.w, (TOOLBAR_H - button.h) / 2);
       right -= button.w + 14;

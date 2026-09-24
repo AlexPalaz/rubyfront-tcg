@@ -3,6 +3,7 @@
   "id": "scissione-profonda",
   "setId": "rubyfront-core",
   "status": "draft",
+  "access": "free",
   "defaultLocale": "it",
   "locales": {
     "it": {

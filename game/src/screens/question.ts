@@ -4,6 +4,8 @@
 // gemma del marchio, il titolo rubino acceso, la frase, due tasti in riga sulla
 // piastra del tema: il ripensamento a sinistra, col filo della linea; il gesto
 // a destra, col filo e la scritta del rubino. Esc e il click fuori valgono «no».
+// Senza «no» è un avviso (il negozio non ancora aperto): un tasto solo, a tutta
+// larghezza, e la promessa si chiude con `true` comunque.
 
 import { Container, Graphics } from "pixi.js";
 import { drawLines, drawText, fontMetrics, layout, textWidth, type Font } from "../card/text";
@@ -24,7 +26,8 @@ export interface AskOptions {
   title: string;
   text: string;
   yes: string;
-  no: string;
+  /** Il ripensamento; senza, la carta è un avviso con un tasto solo. */
+  no?: string;
 }
 
 export function askQuestion(stage: Stage, ask: AskOptions): Promise<boolean> {
@@ -47,7 +50,8 @@ export function askQuestion(stage: Stage, ask: AskOptions): Promise<boolean> {
   const textY = titleY + titleH + GAP;
   const buttonsY = textY + textH + GAP + 6;
   const h = buttonsY + buttonH + PAD_BOTTOM;
-  const buttonW = (W - 2 * PAD_X - 10) / 2;
+  const notice = ask.no === undefined;
+  const buttonW = notice ? W - 2 * PAD_X : (W - 2 * PAD_X - 10) / 2;
   const margin = 70;
   const texture = paintPiece(W + 2 * margin, h + 2 * margin, res, ctx => {
     ctx.translate(margin, margin);
@@ -94,11 +98,13 @@ export function askQuestion(stage: Stage, ask: AskOptions): Promise<boolean> {
       ctx.strokeStyle = edge;
       ctx.strokeRect(x + 0.5, buttonsY + 0.5, buttonW - 1, buttonH - 1);
     };
-    plate(PAD_X, LINE);
     const { ascent, descent } = fontMetrics(noFont);
     const baseline = buttonsY + (buttonH + ascent - descent) / 2;
-    drawText(ctx, { kind: "text", text: ask.no, font: noFont, color: INK }, PAD_X + (buttonW - textWidth(noFont, ask.no)) / 2, baseline);
-    const yx = PAD_X + buttonW + 10;
+    if (ask.no !== undefined) {
+      plate(PAD_X, LINE);
+      drawText(ctx, { kind: "text", text: ask.no, font: noFont, color: INK }, PAD_X + (buttonW - textWidth(noFont, ask.no)) / 2, baseline);
+    }
+    const yx = notice ? PAD_X : PAD_X + buttonW + 10;
     plate(yx, ACTION_EDGE);
     drawText(ctx, { kind: "text", text: ask.yes, font: yesFont, color: ACTION_LABEL }, yx + (buttonW - textWidth(yesFont, ask.yes)) / 2, baseline);
   });
@@ -121,9 +127,9 @@ export function askQuestion(stage: Stage, ask: AskOptions): Promise<boolean> {
     hit.cursor = "pointer";
     return hit;
   };
-  const no = zone(PAD_X, "question-no");
-  const yes = zone(PAD_X + buttonW + 10, "question-yes");
-  root.addChild(veil, card, slab, no, yes);
+  const no = notice ? null : zone(PAD_X, "question-no");
+  const yes = zone(notice ? PAD_X : PAD_X + buttonW + 10, "question-yes");
+  root.addChild(veil, card, slab, ...(no ? [no] : []), yes);
   stage.app.stage.addChild(root);
   return new Promise(resolve => {
     const close = (answer: boolean): void => {
@@ -133,10 +139,10 @@ export function askQuestion(stage: Stage, ask: AskOptions): Promise<boolean> {
       resolve(answer);
     };
     const onKey = (event: KeyboardEvent): void => {
-      if (event.key === "Escape") close(false);
+      if (event.key === "Escape") close(notice);
     };
-    veil.on("pointertap", () => close(false));
-    no.on("pointertap", () => close(false));
+    veil.on("pointertap", () => close(!notice ? false : true));
+    no?.on("pointertap", () => close(false));
     yes.on("pointertap", () => close(true));
     window.addEventListener("keydown", onKey);
   });

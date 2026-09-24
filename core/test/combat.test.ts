@@ -53,6 +53,7 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       power: facts[cardId]?.power ?? null,
       counterattack: facts[cardId]?.counterattack ?? null,
       fluxCost: null,
+      fluxDie: null,
   keywords: [],
       enterListeners: [],
       enterMoves: [],

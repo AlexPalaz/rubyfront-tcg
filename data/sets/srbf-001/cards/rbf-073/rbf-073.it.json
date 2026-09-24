@@ -1,0 +1,29 @@
+{
+  "name": "Ricerca Dimensionale",
+  "typeLabel": "Materia Dimensionale I",
+  "summary": "Scava quattro carte e tira fuori un Oggetto.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "static": "Statica"
+    }
+  },
+  "face": {
+    "name": "Ricerca Dimensionale",
+    "effect": {
+      "name": "Effetto",
+      "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti le altre in fondo al mazzo."
+    },
+    "flavor": "Ogni cosa perduta è solo mal riposta."
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  }
+}

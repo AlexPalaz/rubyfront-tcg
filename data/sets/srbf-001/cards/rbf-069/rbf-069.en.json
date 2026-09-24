@@ -1,0 +1,26 @@
+{
+  "name": "Sealer of Nova Kai",
+  "typeLabel": "Entity: Auros",
+  "summary": "Six Power, and on entry it freezes two light bodies.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Sealer of Nova Kai",
+    "seal": {
+      "trigger": "When it enters the Front",
+      "text": "Put 2 opposing Entities with Flux cost 3 or less into Stasis."
+    },
+    "flavor": "Where its gaze rests, time stops."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 2nd grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

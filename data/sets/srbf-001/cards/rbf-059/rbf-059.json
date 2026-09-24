@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-059",
+  "setId": "rubyfront-core",
+  "collectorNumber": "059",
+  "slug": "decisive-blow",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "destructive",
+    "grade-2",
+    "removal",
+    "dice",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §5, §7.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "destructive",
+        "grade": 2
+      },
+      "behavior": "normal",
+      "stats": {
+        "fluxCost": {
+          "die": "d6"
+        }
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "blow",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "move_card",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "destination": {
+              "zone": "abyss",
+              "owner": "card_owner"
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-059.md"
+}

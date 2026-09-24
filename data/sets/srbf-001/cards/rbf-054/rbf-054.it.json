@@ -1,0 +1,31 @@
+{
+  "name": "Axel, Fiamma Libera",
+  "typeLabel": "Entità: Umano",
+  "summary": "L'Unico del mazzo: sei Potenza con Slancio, e tutta la carica spinge insieme a lui.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi",
+    "unique": "Unica"
+  },
+  "face": {
+    "name": "Axel, Fiamma Libera",
+    "keyword": {
+      "name": "Slancio",
+      "rules": "può attaccare nel turno in cui entra sul Fronte"
+    },
+    "charge": {
+      "trigger": "Quando attacca",
+      "text": "Le Entità attaccanti che controlli prendono +1 Potenza fino alla fine del turno."
+    },
+    "flavor": "Nessuno l'ha mai comandato. Tutti l'hanno seguito."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 2° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

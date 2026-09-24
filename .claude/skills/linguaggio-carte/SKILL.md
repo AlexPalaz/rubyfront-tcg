@@ -200,6 +200,18 @@ Corpo degli effetti (campo `text`, frasi complete, punto finale):
 | L'Oggetto che si mette in Ritiro pagando | Puoi mettere questo Oggetto nella tua Zona di Ritiro pagandone il costo di Flusso. | You may put this Object into your Retire Zone by paying its Flux cost. |
 | L'Oggetto che si riassegna dal Ritiro pagando *(dal 2026-09-17)* | Puoi assegnare questo Oggetto dalla tua Zona di Ritiro pagandone il costo di Flusso. | You may assign this Object from your Retire Zone by paying its Flux cost. |
 | Ricerca di un Oggetto | cerca nel tuo mazzo un Oggetto, mostralo all'avversario e aggiungilo alla tua mano, poi rimescola il mazzo | search your deck for an Object, reveal it to your opponent and add it to your hand, then shuffle your deck |
+| Entra tappata *(dal 2026-09-22, gli starter)* | Questa Entità entra tappata. | This Entity enters tapped. |
+| Stasi imposta (§8.1: tappata per sempre, finché un effetto non la stappa) | Metti un'Entità avversaria in Stasi. / metti fino a N Entità avversarie in Stasi | Put an opposing Entity into Stasis. / put up to N opposing Entities into Stasis |
+| Stasi tolta (= stappare chi è in Stasi) | Puoi togliere dalla Stasi un'Entità che controlli. | You may release an Entity you control from Stasis. |
+| Stasi concessa a tempo | ottiene Stasi fino al tuo prossimo turno | gains Stasis until your next turn |
+| Pagamento facoltativo di PV | puoi pagare N PV. Se lo fai, … | you may pay N HP. If you do, … |
+| Potenza a zero → Ritiro | Se la sua Potenza scende a 0 o meno, mettila nella Zona di Ritiro del suo proprietario. | If its Power drops to 0 or less, put it into its owner's Retire Zone. |
+| Un'altra che controlli | un'altra Entità che controlli | another Entity you control |
+| Le attaccanti che controlli | le Entità attaccanti che controlli | the attacking Entities you control |
+| Statica che ascolta gli ingressi | Ogni volta che un'Entità Umana entra sul tuo Fronte, … | Each time a Human Entity enters your Front, … |
+| Costo a dado di una Materia *(dati: `stats.fluxCost: {"die": "d6"}`; sulla carta il dado al posto del numero, come lo schieramento)* | — | — |
+
+**Requisito Nexus con «puoi»**: il foglio degli starter scrive «puoi mettere un Umano dalla tua mano nella Zona di Ritiro. Se lo fai, trasforma… e recupera 5 PV»; sulla carta resta la formula del requisito (indicativo, poi il costo all'imperativo, «, poi flippa.») e il recupero va nel campo dedicato (`healthRecovery`): «Metti un'Entità Umana dalla tua mano nella tua Zona di Ritiro, poi flippa.» Il flip è sempre una scelta (§3.1), il «puoi» è implicito.
 
 **Rimozione: quale zona.** Una rimozione che deve **tornare in gioco** usa
 l'«Esilio condizionato» sull'**Abisso** (RBF-018, RBF-043; nella variante

@@ -158,7 +158,12 @@ function CARDS_BASE_URL(): string {
   return new URL(cardsBase, typeof document === "undefined" ? "http://localhost/" : document.baseURI).href;
 }
 
-export function faceModel(cardId: string, faceId: string, locale: string): FaceModel | null {
+/** Le abilità montate dalla progressione (2026-09-24), per posizione: sostituiscono i blocchi delle abilità stampate; `null` lascia lo stampato. */
+export interface FaceOverrides {
+  abilities?: ({ name: string; text: string } | null)[];
+}
+
+export function faceModel(cardId: string, faceId: string, locale: string, overrides: FaceOverrides = {}): FaceModel | null {
   const card = getCard(cardId) as (CatalogCard & Loose) | undefined;
   const face = card?.faces.find(entry => entry.id === faceId) as Loose | undefined;
   if (!card || !face) return null;
@@ -176,7 +181,9 @@ export function faceModel(cardId: string, faceId: string, locale: string): FaceM
     const value = deployment.increment ? `${base}+${deployment.increment}` : base;
     cost = rolled ? { kind: "die", value } : { kind: "flux", value };
   } else if (face.stats?.fluxCost !== undefined) {
-    cost = { kind: "flux", value: String(face.stats.fluxCost) };
+    // Il costo a dado di una Materia (dal 2026-09-22): {die: "d6"} si disegna come lo schieramento a dado.
+    const flux = face.stats.fluxCost as number | { die: string };
+    cost = typeof flux === "object" ? { kind: "die", value: String(flux.die).replace(/^d/, "") } : { kind: "flux", value: String(flux) };
   } else if (face.kind === "nexus") {
     cost = { kind: "nexus" };
   }
@@ -226,7 +233,11 @@ export function faceModel(cardId: string, faceId: string, locale: string): FaceM
     }
     const triggers: Loose[] = face.triggers ?? [];
     blocks.push(...triggerBlocks(triggers.filter(entry => !TRAILING_EVENTS.has(entry.event) && !STATIC_EVENTS.has(entry.event)), faceCopy));
-    for (const action of face.actions ?? []) blocks.push(abilityBlock(action, faceCopy, cardCopy));
+    (face.actions ?? []).forEach((action: Loose, index: number) => {
+      // La carta «aggiornata»: l'abilità montata prende il posto di quella stampata, senza costo in PV.
+      const mounted = overrides.abilities?.[index] ?? null;
+      blocks.push(mounted ? { kind: "ability", cost: { kind: "none", value: "—" }, name: mounted.name, text: mounted.text } : abilityBlock(action, faceCopy, cardCopy));
+    });
     blocks.push(...triggerBlocks(triggers.filter(entry => TRAILING_EVENTS.has(entry.event)), faceCopy));
   }
 

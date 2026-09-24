@@ -1,0 +1,26 @@
+{
+  "name": "Lookout of Nova Kai",
+  "typeLabel": "Entity: Auros",
+  "summary": "It enters and freezes an opponent: tapped for good, until something untaps it.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Lookout of Nova Kai",
+    "freeze": {
+      "trigger": "When it enters the Front",
+      "text": "Put an opposing Entity into Stasis."
+    },
+    "flavor": "Those who see it stop. Those who don't, stop all the same."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

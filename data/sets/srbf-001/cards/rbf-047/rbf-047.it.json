@@ -1,0 +1,22 @@
+{
+  "name": "Giovane Ribelle",
+  "typeLabel": "Entità: Umano",
+  "summary": "Un Flusso, un corpo: la prima carta che si impara a giocare.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Giovane Ribelle",
+    "flavor": "Non ha ancora una causa. Ha già un fuoco."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

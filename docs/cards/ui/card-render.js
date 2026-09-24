@@ -173,8 +173,10 @@ function createTitleBar(card, face, faceCopy, cardCopy) {
     cost.append(element("i", "", value));
     bar.append(cost);
   } else if (face.stats.fluxCost !== undefined) {
-    const cost = element("div", "cost");
-    cost.append(element("i", "", String(face.stats.fluxCost)));
+    // Il costo a dado di una Materia (dal 2026-09-22): {die: "d6"} si disegna come lo schieramento a dado.
+    const rolled = typeof face.stats.fluxCost === "object" && face.stats.fluxCost.die;
+    const cost = element("div", rolled ? "cost die" : "cost");
+    cost.append(element("i", "", rolled ? String(face.stats.fluxCost.die).replace(/^d/, "") : String(face.stats.fluxCost)));
     bar.append(cost);
   } else if (face.kind === "nexus") {
     bar.append(createNexusMark(faceCopy.nexusAria ?? "Nexus"));

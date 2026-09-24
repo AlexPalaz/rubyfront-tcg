@@ -17,6 +17,8 @@ export interface CardFacts {
   counterattack: number | null;
   /** Il costo di Flusso stampato (§3.2), null dove non c'è. */
   fluxCost: number | null;
+  /** Il costo di Flusso a dado di una Materia (dal 2026-09-22): «d6», o null. Finché la regola non è collegata, la carta non si gioca. */
+  fluxDie: string | null;
   /** Le parole chiave stampate (§8.1): surge, revenge, stasis, fury… */
   keywords: string[];
   /** Gli ascoltatori certificati «quando un'Entità entra sul tuo Fronte»

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-050",
+  "setId": "rubyfront-core",
+  "collectorNumber": "050",
+  "slug": "flame-instigator",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "dynamic",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §8.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 2,
+        "fluxCost": 3
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "order",
+          "displayKey": "order",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 1,
+              "max": 1,
+              "details": {
+                "excludeSelf": true
+              }
+            },
+            "amount": 1,
+            "duration": "until_end_of_turn"
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-050.md"
+}

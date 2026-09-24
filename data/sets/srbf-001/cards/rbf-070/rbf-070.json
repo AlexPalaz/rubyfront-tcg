@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-070",
+  "setId": "rubyfront-core",
+  "collectorNumber": "070",
+  "slug": "crystal-of-awakening",
+  "type": "object",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "object",
+    "stasis",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §8.1",
+  "faces": [
+    {
+      "id": "object",
+      "kind": "object",
+      "displayKey": "face",
+      "stats": {
+        "fluxCost": 3
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "vigor",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "scope": "assigned"
+            },
+            "amount": 2
+          }
+        },
+        {
+          "id": "wake",
+          "displayKey": "effect",
+          "event": "on_assign_object",
+          "details": {
+            "toSelf": true
+          },
+          "effect": {
+            "type": "untap",
+            "target": {
+              "scope": "assigned"
+            },
+            "details": {
+              "ifInState": "stasis"
+            }
+          }
+        }
+      ],
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "controller": "controller"
+      }
+    }
+  ],
+  "designNotes": "rbf-070.md"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Recluta di Nova Kai",
+  "typeLabel": "Entità: Auros",
+  "summary": "Un Flusso, un corpo: la prima Auros che si impara a giocare.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Recluta di Nova Kai",
+    "flavor": "A Nova Kai si comincia dal cancello."
+  },
+  "matters": {
+    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalAria": "Dimensionale"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Wall of Fire",
+  "typeLabel": "Destructive Matter I",
+  "summary": "It slows an attacker, and small bodies it removes altogether.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "static": "Static"
+    }
+  },
+  "face": {
+    "name": "Wall of Fire",
+    "effect": {
+      "name": "Effect",
+      "text": "An opposing Entity gets −2 Power until end of turn. If its Power drops to 0 or less, put it into its owner's Retire Zone."
+    },
+    "flavor": "A wall of flame raised at the last instant."
+  },
+  "matters": {
+    "destructiveTitle": "Destructive Matter · 1st grade",
+    "destructiveAria": "Destructive"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Muro di Fuoco",
+  "typeLabel": "Materia Distruttiva I",
+  "summary": "Frena un attaccante, e i corpi piccoli li toglie proprio di mezzo.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "static": "Statica"
+    }
+  },
+  "face": {
+    "name": "Muro di Fuoco",
+    "effect": {
+      "name": "Effetto",
+      "text": "Un'Entità avversaria prende −2 Potenza fino alla fine del turno. Se la sua Potenza scende a 0 o meno, mettila nella Zona di Ritiro del suo proprietario."
+    },
+    "flavor": "Un muro di fiamme alzato all'ultimo istante."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 1° grado",
+    "destructiveAria": "Distruttiva"
+  }
+}

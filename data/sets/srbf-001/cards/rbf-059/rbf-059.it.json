@@ -1,0 +1,29 @@
+{
+  "name": "Colpo Decisivo",
+  "typeLabel": "Materia Distruttiva II",
+  "summary": "Costa un d6: la rimozione che si paga a dado.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "static": "Statica"
+    }
+  },
+  "face": {
+    "name": "Colpo Decisivo",
+    "effect": {
+      "name": "Effetto",
+      "text": "Metti un'Entità avversaria nell'Abisso."
+    },
+    "flavor": "Un colpo solo. Il prezzo lo decide il dado."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 2° grado",
+    "destructiveAria": "Distruttiva"
+  }
+}

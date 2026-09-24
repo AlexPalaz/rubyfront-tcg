@@ -5,7 +5,7 @@
 // la home ma non l'header: il marchio riporta indietro. Tema scuro: il velo
 // d'overlay, il vetro pesante col filo tenue, i campi del tema.
 
-import { allDecks, getDeck } from "@rubyfront/core/cards";
+import { availableDecks, getDeck } from "@rubyfront/core/cards";
 import { t } from "@rubyfront/core/i18n";
 import { Container, FillGradient, Graphics, Rectangle, Sprite, type FederatedPointerEvent } from "pixi.js";
 import { drawText, fontMetrics, textWidth, type Font } from "../card/text";
@@ -13,7 +13,7 @@ import type { Stage } from "../stage";
 import { playSound } from "../sound";
 import { CrispSprite, SANS, paintPiece } from "../table/appearance";
 import { reducedMotion } from "../table/animation";
-import { TOOLBAR_H, TextField, ACTION_EDGE, FONT_BASE, INK, LINE, MUTED, PANEL, PANEL_2, ACTION_LABEL, Button, hex, slabShadow, placeShadow, paintText } from "./ui";
+import { TOOLBAR_H, ACTION_EDGE, FONT_BASE, INK, LINE, MUTED, PANEL, PANEL_2, ACTION_LABEL, Button, hex, slabShadow, placeShadow, paintText } from "./ui";
 
 const W = 440;
 const PAD_X = 32;
@@ -33,14 +33,12 @@ export interface Profile {
   mode: Mode;
   /** La riga sopra il nome: la stanza in cui sei, o la nota della partita col bot. */
   note: string;
-  name: string;
   deck: string | null;
   botDeck: string | null;
 }
 
 export interface Choice {
   mode: Mode;
-  name: string;
   deck: string | null;
   botDeck: string | null;
 }
@@ -50,6 +48,8 @@ export interface OnboardingActions {
   /** Copia il link d'invito: vero se è finito negli appunti. */
   invite(): Promise<boolean>;
   leave(): void;
+  /** «Annulla la ricerca» (2026-09-23): fuori dalla fila dell'atrio. */
+  cancelSearch(): void;
   /** Il velo si alza o si abbassa: la home dietro si sfoca. */
   backdrop(isOpen: boolean): void;
 }
@@ -145,13 +145,11 @@ export class Onboarding {
   private readonly veil = new Graphics();
   private readonly card = new Container({ label: "onboarding-card" });
   private readonly dropdowns = new Container({ label: "dropdowns" });
-  private readonly name: TextField;
-  private step: { type: "profile"; profile: Profile } | { type: "waiting"; note: string } | null = null;
+  private step: { type: "profile"; profile: Profile } | { type: "waiting"; note: string } | { type: "searching"; note: string } | null = null;
   private deck: string | null = null;
   private botDeck: string | null = null;
   private statusText = "";
   private dot: Graphics | null = null;
-  private fieldsVisible = true;
   private readonly tick = (): void => this.breathe();
 
   constructor(
@@ -162,7 +160,6 @@ export class Onboarding {
     this.root.visible = false;
     // Il velo prende i click: la home dietro aspetta.
     this.veil.eventMode = "static";
-    this.name = new TextField(stage, { placeholder: t("html.ob.name.ph"), maxLength: 24, onEnter: () => this.go() });
     this.root.addChild(this.veil, this.card, this.dropdowns);
     stage.screens.addChild(this.root);
     stage.onLayout(() => this.root.visible && this.build());
@@ -177,9 +174,7 @@ export class Onboarding {
     this.step = { type: "profile", profile };
     this.deck = profile.deck;
     this.botDeck = profile.botDeck;
-    this.name.value = profile.name;
     this.open();
-    this.name.focus();
   }
 
   /** Il passo dell'attesa: in stanza si va al tavolo solo quando c'è anche l'altro. */
@@ -188,26 +183,30 @@ export class Onboarding {
     this.open();
   }
 
+  /** Il passo della ricerca (2026-09-23): in fila nell'atrio per una partita casuale, con «Annulla». */
+  showSearching(note: string): void {
+    this.step = { type: "searching", note };
+    this.open();
+  }
+
   /** Lo stato dell'attesa: «Mi sto collegando…», «In attesa dell'altro giocatore…». */
   status(text: string): void {
     this.statusText = text;
-    if (this.root.visible && this.step?.type === "waiting") this.build();
+    if (this.root.visible && (this.step?.type === "waiting" || this.step?.type === "searching")) this.build();
   }
 
   close(): void {
     if (!this.root.visible) return;
     this.root.visible = false;
     this.step = null;
-    this.name.show(false);
     this.stage.app.ticker.remove(this.tick);
     this.clearAll();
     this.actions.backdrop(false);
   }
 
-  /** Il campo del nome è un <input> sopra il canvas: sotto il sipario non deve restare a galla. */
-  showFields(visibleOnes: boolean): void {
-    this.fieldsVisible = visibleOnes;
-    this.name.show(visibleOnes && this.root.visible && this.step?.type === "profile");
+  /** I campi <input> sopra il canvas non devono restare a galla sotto il sipario: oggi il profilo non ne ha (il nome è dell'account, 2026-09-22). */
+  showFields(_visibleOnes: boolean): void {
+    // Niente da nascondere.
   }
 
   private open(): void {
@@ -216,14 +215,13 @@ export class Onboarding {
       this.stage.app.ticker.add(this.tick);
       this.actions.backdrop(true);
     }
-    this.fieldsVisible = true;
     this.build();
   }
 
   private go(): void {
     const step = this.step;
     if (step?.type !== "profile") return;
-    this.actions.toTable({ mode: step.profile.mode, name: this.name.value.trim(), deck: this.deck, botDeck: this.botDeck });
+    this.actions.toTable({ mode: step.profile.mode, deck: this.deck, botDeck: this.botDeck });
   }
 
   private clearAll(): void {
@@ -273,13 +271,9 @@ export class Onboarding {
         add(written.sprite, PAD_X, y);
         y += written.h - 6 + STEP_GAP;
       };
-      rowLabel(t("html.ob.name"));
-      fieldY = y;
-      y += FIELD_H + STEP_GAP;
-      const items = allDecks().map(deck => ({ id: deck.id, label: deckName(deck.id, this.locale) }));
-      rowLabel(t("html.ob.deck"));
-      add(new Dropdown(this.stage, items, this.deck, this.dropdowns, id => (this.deck = id)).root, PAD_X, y);
-      y += FIELD_H + STEP_GAP;
+      // Il proprio mazzo non si chiede qui (2026-09-20): si sceglie dalla
+      // collezione e si legge nell'header. Contro il bot resta il suo.
+      const items = availableDecks().map(deck => ({ id: deck.id, label: deckName(deck.id, this.locale) }));
       if (step.profile.mode === "bot") {
         rowLabel(t("html.ob.deck.bot"));
         add(new Dropdown(this.stage, items, this.botDeck, this.dropdowns, id => (this.botDeck = id)).root, PAD_X, y);
@@ -289,6 +283,19 @@ export class Onboarding {
       // .onboard-primary nel Notte: la piastra, col filo e la scritta del rubino.
       add(new Button(this.stage, { label: t("html.ob.go"), style: "plate", edge: ACTION_EDGE, color: ACTION_LABEL, w: INNER, h: 48, onTap: () => this.go() }), PAD_X, y);
       y += 48;
+    } else if (step.type === "searching") {
+      // La fila dell'atrio: la nota, il punto che respira, «Annulla la ricerca».
+      note(step.note);
+      const status = paintText(this.stage, this.statusText, FONT_BASE, INK, { maxW: INNER - 20 });
+      status.sprite.alpha = 0.8;
+      const rowH = Math.max(status.h, 12);
+      const dot = new Graphics().circle(0, 0, 9).fill({ color: 0xe0314b, alpha: 0.25 }).circle(0, 0, 5).fill(0xe0314b);
+      add(dot, PAD_X + 5, y + rowH / 2);
+      this.dot = dot;
+      add(status.sprite, PAD_X + 20, y + (rowH - status.h) / 2);
+      y += rowH + STEP_GAP + 6;
+      add(new Button(this.stage, { label: t("html.ob.search.cancel"), style: "thin", w: INNER, h: 24, onTap: () => this.actions.cancelSearch() }), PAD_X, y);
+      y += 24;
     } else {
       note(step.note);
       const status = paintText(this.stage, this.statusText, FONT_BASE, INK, { maxW: INNER - 20 });
@@ -330,12 +337,7 @@ export class Onboarding {
     slab.eventMode = "static";
     this.card.addChildAt(slab, 0);
     this.card.addChildAt(shadow, 0);
-    if (fieldY !== null) {
-      this.name.place(cx + PAD_X, cy + fieldY, INNER, FIELD_H);
-      this.name.show(this.fieldsVisible);
-    } else {
-      this.name.show(false);
-    }
+    void fieldY;
   }
 
   /** «◆ Rubyfront ◆»: il marchio in cima alla carta, fra le due gemme del rubino. */

@@ -438,4 +438,9 @@ export type NetMessage =
       com'è, il payload lo capisce solo l'altro client. */
   | { t: "rtc"; payload: unknown; from: Seat }
   | { t: "peers"; peers: number; seats: Seat[] }
-  | { t: "seat_taken"; seat: Seat };
+  /** Il posto assegnato dal tavolo all'ingresso (2026-09-23): quello chiesto se libero, se no l'altro. */
+  | { t: "seat"; seat: Seat }
+  /** La stanza ha già due giocatori: il tavolo chiude. */
+  | { t: "room_full"; room: string }
+  /** L'atrio ha trovato l'avversario (2026-09-23): la stanza nuova e il posto. */
+  | { t: "matched"; room: string; seat: Seat };

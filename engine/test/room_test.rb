@@ -14,7 +14,7 @@ class RoomTest < Minitest::Test
   # Una cassetta della posta per posto: quello che il tavolo gli manda.
   def seated(room, seat)
     box = []
-    assert room.join(seat, ->(payload) { box << payload }), "il posto #{seat} era libero"
+    assert_equal seat, room.join(seat, ->(payload) { box << payload }), "il posto #{seat} era libero"
     box
   end
 
@@ -38,9 +38,10 @@ class RoomTest < Minitest::Test
     room = new_room
     a = seated(room, "a")
     room.handle("a", { "t" => "hello" })
-    assert_equal %w[peers engine journal], a.map { |m| m[:t] }
-    assert_equal Rubyfront::Engine::VERSION, a[1][:version]
-    assert_equal "newGame", a[2][:actions].first[:action]["t"]
+    assert_equal %w[seat peers engine journal], a.map { |m| m[:t] }
+    assert_equal "a", a[0][:seat]
+    assert_equal Rubyfront::Engine::VERSION, a[2][:version]
+    assert_equal "newGame", a[3][:actions].first[:action]["t"]
   end
 
   def test_passing_action_goes_to_journal_and_others
@@ -100,17 +101,36 @@ class RoomTest < Minitest::Test
     assert_equal "a", room.journal.first[:from]
   end
 
-  def test_taken_seat_is_refused
+  # Il posto lo assegna il tavolo (2026-09-23): chi chiede un posto occupato
+  # prende l'altro, e lo sa subito; a stanza piena, nessun posto.
+  def test_taken_seat_gives_the_other_one
     room = new_room
     seated(room, "a")
-    refute room.join("a", ->(_) {})
-    assert_equal %w[a], room.seats
+    box = []
+    assert_equal "b", room.join("a", ->(payload) { box << payload })
+    assert_equal({ t: "seat", seat: "b" }, box.first)
+    assert_equal %w[a b], room.seats
+  end
+
+  def test_full_room_refuses
+    room = new_room
+    seated(room, "a")
+    seated(room, "b")
+    assert_nil room.join("a", ->(_) {})
+    assert_nil room.join("zz", ->(_) {})
+    assert_equal %w[a b], room.seats
+  end
+
+  def test_unknown_seat_gets_the_first_free_one
+    room = new_room
+    assert_equal "a", room.join("", ->(_) {})
+    assert_equal "b", room.join("", ->(_) {})
   end
 
   def test_leaving_client_frees_seat_and_others_know
     room = new_room
     out = ->(_) {}
-    assert room.join("a", out)
+    assert_equal "a", room.join("a", out)
     b = seated(room, "b")
     b.clear
     room.leave("a", out)
@@ -119,6 +139,29 @@ class RoomTest < Minitest::Test
     room.leave("b", room.instance_variable_get(:@clients)["b"])
     assert room.empty?
     refute_nil room.emptied_at
+  end
+
+  # Il gancio della fine partita (2026-09-23): una volta per partita, con la
+  # stanza (chi è seduto, con quale mazzo) e l'azione; non parte su un
+  # gameOver fermato; il newGame lo riapre.
+  def test_game_over_hook_fires_once_with_seats_and_decks
+    calls = []
+    room = new_room(starter: "a", on_over: ->(r, action) { calls << [r.player_of("a"), r.player_of("b"), r.deck_of("a"), r.deck_of("b"), action["winner"]]; r.reply("a", { t: "progress", card: "X" }) })
+    a = seated(room, "a")
+    seated(room, "b")
+    room.attach("a", who: -> { 7 })
+    room.handle("a", { "t" => "judge", "seq" => 1, "action" => sample_deck("a"), "actor" => "a" })
+    room.handle("b", { "t" => "judge", "seq" => 2, "action" => sample_deck("b"), "actor" => "b" })
+    room.handle("a", { "t" => "judge", "seq" => 3, "action" => { "t" => "gameOver", "winner" => "a", "reason" => "hp" }, "actor" => "a" })
+    assert_empty calls, "senza PV a zero il gameOver è fermato: niente gancio"
+    room.handle("a", { "t" => "judge", "seq" => 4, "action" => { "t" => "player", "seat" => "b", "patch" => { "hp" => 0 } }, "actor" => "a" })
+    room.handle("a", { "t" => "judge", "seq" => 5, "action" => { "t" => "gameOver", "winner" => "a", "reason" => "hp" }, "actor" => "a" })
+    assert_equal [[7, nil, "test", "test", "a"]], calls
+    assert_equal({ t: "progress", card: "X" }, a.last)
+    room.handle("a", { "t" => "judge", "seq" => 6, "action" => { "t" => "gameOver", "winner" => "a", "reason" => "hp" }, "actor" => "a" })
+    assert_equal 1, calls.size, "una volta sola per partita"
+    room.handle("a", { "t" => "judge", "seq" => 7, "action" => { "t" => "newGame", "active" => "a" }, "actor" => "a" })
+    assert_nil room.deck_of("a"), "il giornale riparte col newGame"
   end
 
   # Il «pronto» delle scene (dal 2026-09-15): un'azione senza regola, che la
@@ -168,7 +211,7 @@ class RoomTest < Minitest::Test
     assert_empty room.journal
     a = seated(room, "a")
     room.handle("a", { "t" => "hello" })
-    assert_equal %w[peers engine], a.map { |m| m[:t] }
+    assert_equal %w[seat peers engine], a.map { |m| m[:t] }
     # Lo snapshot del client si accetta, e l'attore dichiarato vale: col bot
     # al tavolo i gesti di B partono dallo stesso client.
     room.handle("a", { "t" => "snapshot", "state" => { "turn" => 3, "active" => "b" } })

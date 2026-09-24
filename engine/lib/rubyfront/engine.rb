@@ -879,6 +879,13 @@ module Rubyfront
       # effetto verrebbero fermati a torto (regola d'oro).
       # §8.2 — il sigillo del flip è già stato letto dall'imbuto (sealed_entry_stopped).
 
+      # §3.1/§3.2 — una Materia col costo a dado (dal 2026-09-22): la regola del
+      # tiro pagabile vale oggi solo per lo schieramento del Rubyfront; finché
+      # non è collegata alle Materie, la giocata è ferma (limite dichiarato).
+      if card[:zone] == "hand" && known[:flux_die]
+        return refuse("toZone", "il costo a dado di questa carta (#{known[:flux_die]}) non è ancora collegato: non si gioca (§3.1)", "this card's die cost (#{known[:flux_die]}) isn't linked yet: it can't be played (§3.1)")
+      end
+
       cost = known[:flux_cost]
       if card[:zone] == "hand" && cost
         # §8.2 — «Se questa carta bersaglia un'Entità tappata, costa N

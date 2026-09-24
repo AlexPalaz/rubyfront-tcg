@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-062",
+  "setId": "rubyfront-core",
+  "collectorNumber": "062",
+  "slug": "recruit-of-nova-kai",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "auros",
+    "dimensional",
+    "vanilla",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.2",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "auros",
+      "stats": {
+        "power": 1,
+        "fluxCost": 1
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-062.md"
+}

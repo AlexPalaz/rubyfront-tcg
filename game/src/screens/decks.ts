@@ -7,7 +7,7 @@
 // la rotella: quaranta tessere non stanno in una schermata. Tema scuro: il
 // fondo della pagina, le stampe sul pannello col filo della linea.
 
-import { allDecks, cardStats, faceCount, isRubyfront, type CatalogDeck } from "@rubyfront/core/cards";
+import { availableDecks, cardStats, faceCount, isRubyfront, type CatalogDeck } from "@rubyfront/core/cards";
 import { t } from "@rubyfront/core/i18n";
 import { Container, Graphics, type FederatedWheelEvent } from "pixi.js";
 import { drawText, fontMetrics, textWidth, type Font } from "../card/text";
@@ -51,7 +51,10 @@ export class DeckBrowser implements PreviewSource {
   constructor(
     private readonly stage: Stage,
     private readonly locale: string,
-    private readonly onPlay: (deckId: string) => void,
+    /** «Scegli questo mazzo» (2026-09-20): lo sceglie e basta, niente partita. */
+    private readonly onChoose: (deckId: string) => void,
+    /** Il mazzo scelto adesso, per metterlo in evidenza. */
+    private readonly chosen: () => string | null,
     private readonly onClose: () => void
   ) {
     this.root.visible = false;
@@ -142,7 +145,7 @@ export class DeckBrowser implements PreviewSource {
     lead.sprite.position.set(x0 + back.w + 22, y + title.h + 4);
     this.content.addChild(back, title.sprite, lead.sprite);
     y += Math.max(back.h, title.h + 4 + lead.h) + 22;
-    for (const deck of allDecks()) y = this.deckPrint(deck, x0, y, width, res) + 22;
+    for (const deck of availableDecks()) y = this.deckPrint(deck, x0, y, width, res) + 22;
     this.rise = y - 22 + 40 - area.y;
     this.scroll = Math.min(this.scroll, Math.max(0, this.rise - this.areaH));
     this.content.y = -this.scroll;
@@ -169,7 +172,12 @@ export class DeckBrowser implements PreviewSource {
     by += facts.h + 12 + 6;
     const isOpen = this.expanded.has(deck.id);
     // .mazzi-play nel Notte: la piastra, col filo e la scritta del rubino.
-    const play = new Button(this.stage, { label: t("decks.play"), style: "plate", edge: ACTION_EDGE, color: ACTION_LABEL, h: 44, onTap: () => this.onPlay(deck.id) });
+    // Il mazzo scelto è in rubino pieno («Mazzo scelto»); gli altri offrono la scelta.
+    const isChosen = this.chosen() === deck.id;
+    // La scelta è in rubino pieno, il tasto che salta all'occhio; il mazzo già scelto lo dice e basta.
+    const play = isChosen
+      ? new Button(this.stage, { label: t("decks.chosen"), style: "plate", edge: ACTION_EDGE, color: ACTION_LABEL, h: 44, onTap: () => undefined })
+      : new Button(this.stage, { label: t("decks.choose"), style: "metal", h: 44, onTap: () => this.onChoose(deck.id) });
     const browse = new Button(this.stage, {
       label: t(isOpen ? "decks.browse.close" : "decks.browse"),
       style: "plate",

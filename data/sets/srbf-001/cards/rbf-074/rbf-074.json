@@ -1,0 +1,303 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-074",
+  "setId": "rubyfront-core",
+  "collectorNumber": "074",
+  "slug": "seyra-rubyfront-of-nova-kai",
+  "type": "rubyfront",
+  "layout": "double-faced",
+  "status": "draft",
+  "deckLimit": 1,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "rubyfront",
+    "nexus",
+    "auros",
+    "stasis",
+    "control",
+    "dimensional",
+    "destructive",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §7, §8.1",
+  "faces": [
+    {
+      "id": "rubyfront",
+      "kind": "rubyfront",
+      "displayKey": "faceA",
+      "stats": {
+        "health": 20,
+        "deploymentCost": {
+          "base": 5
+        }
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2,
+          "upTo": true
+        },
+        {
+          "type": "destructive",
+          "maxGrade": 1,
+          "upTo": true
+        }
+      ],
+      "keywords": [
+        {
+          "id": "fury",
+          "check": {
+            "die": "d20",
+            "successAtLeast": 13
+          },
+          "failure": {
+            "loseHealth": 1
+          }
+        }
+      ],
+      "requirements": {
+        "nexus": {
+          "match": "all",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "conditions": [
+            {
+              "type": "stasis_inflicted_at_least",
+              "owner": "controller",
+              "min": 2,
+              "filter": {
+                "cardType": "entity",
+                "controller": "opponent"
+              }
+            }
+          ],
+          "flipCost": [
+            {
+              "type": "move_card",
+              "target": {
+                "cardType": "object",
+                "controller": "controller"
+              },
+              "count": 1,
+              "from": {
+                "zone": "front",
+                "owner": "controller"
+              },
+              "destination": {
+                "zone": "retire",
+                "owner": "controller"
+              }
+            }
+          ]
+        }
+      },
+      "triggers": [
+        {
+          "id": "stillness",
+          "displayKey": "effect",
+          "event": "on_enter_stasis",
+          "details": {
+            "anyEntity": true
+          },
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "controller": "controller"
+            },
+            "amount": 1
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "hold",
+          "displayKey": "hold",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": false,
+          "checks": [
+            "fury"
+          ],
+          "gain": {
+            "health": 2
+          },
+          "effect": {
+            "type": "empower",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
+            },
+            "grants": [
+              "stasis"
+            ],
+            "duration": "until_controller_next_turn"
+          }
+        },
+        {
+          "id": "wake",
+          "displayKey": "wake",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": false,
+          "checks": [
+            "fury"
+          ],
+          "cost": {
+            "health": 4
+          },
+          "effect": {
+            "type": "untap",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "nexus",
+      "kind": "nexus",
+      "displayKey": "faceB",
+      "stats": {
+        "healthRecovery": 5
+      },
+      "enablesMatters": [
+        {
+          "type": "dimensional",
+          "maxGrade": 2,
+          "upTo": true
+        },
+        {
+          "type": "destructive",
+          "maxGrade": 2,
+          "upTo": true
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "vigil-drawn",
+          "displayKey": "flipEffect",
+          "event": "on_flip",
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1
+          }
+        },
+        {
+          "id": "vigil-stillness",
+          "displayKey": "effect",
+          "event": "on_enter_stasis",
+          "details": {
+            "anyEntity": true
+          },
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "controller": "controller"
+            },
+            "amount": 2
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "vigil-hold",
+          "displayKey": "vigilHold",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": false,
+          "checks": [],
+          "gain": {
+            "health": 2
+          },
+          "effect": {
+            "type": "empower",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 1,
+              "max": 1
+            },
+            "grants": [
+              "stasis"
+            ],
+            "duration": "permanent"
+          }
+        },
+        {
+          "id": "vigil-wake",
+          "displayKey": "vigilWake",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": false,
+          "checks": [],
+          "cost": {
+            "health": 5
+          },
+          "effect": {
+            "type": "untap",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 1,
+              "max": 1,
+              "race": "auros"
+            },
+            "details": {
+              "thenPowerBonus": 2,
+              "duration": "until_end_of_turn"
+            }
+          }
+        },
+        {
+          "id": "vigil-seal",
+          "displayKey": "vigilSeal",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": false,
+          "checks": [],
+          "cost": {
+            "health": 7
+          },
+          "effect": {
+            "type": "set_state",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 0,
+              "max": 2
+            },
+            "state": "stasis"
+          }
+        }
+      ]
+    }
+  ],
+  "designNotes": "rbf-074.md"
+}

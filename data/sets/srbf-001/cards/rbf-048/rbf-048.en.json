@@ -1,0 +1,26 @@
+{
+  "name": "Pensive Intellectual",
+  "typeLabel": "Entity: Human",
+  "summary": "Two Power for one Flux, but it spends its first turn catching its breath.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Pensive Intellectual",
+    "weary": {
+      "trigger": "When it enters the Front",
+      "text": "This Entity enters tapped."
+    },
+    "flavor": "It thinks before it rises. Then it never sits again."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
+  }
+}

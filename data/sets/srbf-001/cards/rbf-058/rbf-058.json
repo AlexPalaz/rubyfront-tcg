@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-058",
+  "setId": "rubyfront-core",
+  "collectorNumber": "058",
+  "slug": "wall-of-fire",
+  "type": "matter",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "matter",
+    "destructive",
+    "grade-1",
+    "reactive",
+    "removal",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §5, §7.2",
+  "faces": [
+    {
+      "id": "matter",
+      "kind": "matter",
+      "displayKey": "face",
+      "matter": {
+        "type": "destructive",
+        "grade": 1
+      },
+      "behavior": "reactive",
+      "stats": {
+        "fluxCost": 2
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "falter",
+          "displayKey": "effect",
+          "event": "on_resolve",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "controller": "opponent",
+              "min": 1,
+              "max": 1
+            },
+            "amount": -2,
+            "duration": "until_end_of_turn",
+            "details": {
+              "thenIfPowerAtMost": {
+                "value": 0,
+                "moveTo": {
+                  "zone": "retire",
+                  "owner": "card_owner"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-058.md"
+}

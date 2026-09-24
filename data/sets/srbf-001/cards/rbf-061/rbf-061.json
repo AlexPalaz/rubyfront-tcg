@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-061",
+  "setId": "rubyfront-core",
+  "collectorNumber": "061",
+  "slug": "arden-rubyfront-of-fire",
+  "type": "rubyfront",
+  "layout": "double-faced",
+  "status": "draft",
+  "deckLimit": 1,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "rubyfront",
+    "nexus",
+    "human",
+    "aggro",
+    "dynamic",
+    "destructive",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.1, §7, §8.1",
+  "faces": [
+    {
+      "id": "rubyfront",
+      "kind": "rubyfront",
+      "displayKey": "faceA",
+      "stats": {
+        "health": 20,
+        "deploymentCost": {
+          "base": 4
+        }
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 2,
+          "upTo": true
+        },
+        {
+          "type": "destructive",
+          "maxGrade": 1,
+          "upTo": true
+        }
+      ],
+      "keywords": [
+        {
+          "id": "fury",
+          "check": {
+            "die": "d20",
+            "successAtLeast": 13
+          },
+          "failure": {
+            "loseHealth": 1
+          }
+        }
+      ],
+      "requirements": {
+        "nexus": {
+          "match": "all",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "conditions": [
+            {
+              "type": "attacked_this_turn_at_least",
+              "owner": "controller",
+              "min": 3,
+              "filter": {
+                "cardType": "entity",
+                "race": "human"
+              }
+            }
+          ],
+          "flipCost": [
+            {
+              "type": "discard_card",
+              "target": {
+                "controller": "controller"
+              },
+              "count": 1,
+              "filter": {
+                "cardType": "entity",
+                "race": "human"
+              },
+              "details": {
+                "toZone": {
+                  "zone": "retire",
+                  "owner": "controller"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "triggers": [
+        {
+          "id": "pact-price",
+          "displayKey": "effect",
+          "event": "on_attack",
+          "details": {
+            "oncePerEachOfYourTurns": true,
+            "attacker": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller"
+            }
+          },
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "scope": "attacker"
+            },
+            "amount": 1,
+            "duration": "until_end_of_turn",
+            "details": {
+              "optionalCost": {
+                "health": 1
+              }
+            }
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "pact-word",
+          "displayKey": "pactWord",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": false,
+          "checks": [
+            "fury"
+          ],
+          "gain": {
+            "health": 2
+          },
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 1,
+              "max": 1,
+              "race": "human"
+            },
+            "amount": 1,
+            "duration": "until_end_of_turn"
+          }
+        },
+        {
+          "id": "pact-call",
+          "displayKey": "pactCall",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": false,
+          "checks": [
+            "fury"
+          ],
+          "cost": {
+            "health": 3
+          },
+          "effect": {
+            "type": "reduce_cost",
+            "target": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller"
+            },
+            "amount": 1,
+            "details": {
+              "nextPlayedThisTurn": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "nexus",
+      "kind": "nexus",
+      "displayKey": "faceB",
+      "stats": {
+        "healthRecovery": 5
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 2,
+          "upTo": true
+        },
+        {
+          "type": "destructive",
+          "maxGrade": 2,
+          "upTo": true
+        }
+      ],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "oath-drawn",
+          "displayKey": "flipEffect",
+          "event": "on_flip",
+          "effect": {
+            "type": "draw_card",
+            "target": {
+              "controller": "controller"
+            },
+            "count": 1
+          }
+        },
+        {
+          "id": "oath-muster",
+          "displayKey": "effect",
+          "event": "on_attack",
+          "details": {
+            "oncePerEachOfYourTurns": true,
+            "requiresAttackersThisTurnAtLeast": {
+              "count": 2,
+              "filter": {
+                "cardType": "entity",
+                "race": "human",
+                "controller": "controller"
+              }
+            }
+          },
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "controller": "controller"
+            },
+            "amount": 2
+          }
+        }
+      ],
+      "actions": [
+        {
+          "id": "oath-word",
+          "displayKey": "oathWord",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": false,
+          "checks": [],
+          "gain": {
+            "health": 2
+          },
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "min": 1,
+              "max": 1,
+              "race": "human"
+            },
+            "amount": 2,
+            "duration": "until_end_of_turn"
+          }
+        },
+        {
+          "id": "oath-call",
+          "displayKey": "oathCall",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": false,
+          "checks": [],
+          "cost": {
+            "health": 3
+          },
+          "effect": {
+            "type": "move_card",
+            "optional": true,
+            "target": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
+              "min": 0,
+              "max": 1,
+              "conditions": [
+                {
+                  "stat": "flux_cost",
+                  "operator": "lte",
+                  "value": 2
+                }
+              ]
+            },
+            "from": {
+              "zone": "hand",
+              "owner": "controller"
+            },
+            "destination": {
+              "zone": "front",
+              "owner": "controller"
+            },
+            "details": {
+              "noFluxCost": true
+            }
+          }
+        },
+        {
+          "id": "oath-charge",
+          "displayKey": "oathCharge",
+          "timing": [
+            "own_preparation",
+            "own_front"
+          ],
+          "repeatable": false,
+          "checks": [],
+          "cost": {
+            "health": 6
+          },
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "cardType": "entity",
+              "race": "human",
+              "controller": "controller",
+              "quantity": "all"
+            },
+            "amount": 1,
+            "duration": "until_end_of_turn",
+            "details": {
+              "grants": [
+                "surge"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "designNotes": "rbf-061.md",
+  "art": "rbf-061.jpg",
+  "artZoom": "48%"
+}

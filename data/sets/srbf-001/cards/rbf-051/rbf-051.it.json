@@ -1,0 +1,26 @@
+{
+  "name": "Vendicatore Ardente",
+  "typeLabel": "Entità: Umano",
+  "summary": "Tre e tre con Vendetta: chi lo blocca, o chi ci sbatte contro, paga.",
+  "ui": {
+    "face": "Entità"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "power": "Potenza",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Vendicatore Ardente",
+    "keyword": {
+      "name": "Vendetta",
+      "rules": "bloccando, si porta dietro l'attaccante"
+    },
+    "flavor": "Il fuoco non dimentica un'offesa. La restituisce subito."
+  },
+  "matters": {
+    "dynamicTitle": "Materia Dinamica · 1° grado",
+    "dynamicAria": "Dinamica"
+  }
+}

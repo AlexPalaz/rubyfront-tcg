@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-051",
+  "setId": "rubyfront-core",
+  "collectorNumber": "051",
+  "slug": "ardent-avenger",
+  "type": "entity",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "entity",
+    "human",
+    "dynamic",
+    "revenge",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §8.1",
+  "faces": [
+    {
+      "id": "entity",
+      "kind": "entity",
+      "displayKey": "face",
+      "race": "human",
+      "stats": {
+        "power": 3,
+        "fluxCost": 3
+      },
+      "enablesMatters": [
+        {
+          "type": "dynamic",
+          "maxGrade": 1
+        }
+      ],
+      "keywords": [
+        {
+          "id": "revenge"
+        }
+      ],
+      "requirements": {},
+      "triggers": [],
+      "actions": []
+    }
+  ],
+  "designNotes": "rbf-051.md"
+}

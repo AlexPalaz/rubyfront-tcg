@@ -1,0 +1,26 @@
+{
+  "name": "Warrior of the Schism",
+  "typeLabel": "Entity: Auros",
+  "summary": "Three and three, and it frees a companion left in Stasis.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Warrior of the Schism",
+    "release": {
+      "trigger": "When it enters the Front",
+      "text": "You may release an Entity you control from Stasis."
+    },
+    "flavor": "The Schism opened a door. It keeps it open."
+  },
+  "matters": {
+    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalAria": "Dimensional"
+  }
+}

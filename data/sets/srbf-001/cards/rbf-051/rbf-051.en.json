@@ -1,0 +1,26 @@
+{
+  "name": "Ardent Avenger",
+  "typeLabel": "Entity: Human",
+  "summary": "Three and three with Revenge: whoever blocks it, or runs into it, pays.",
+  "ui": {
+    "face": "Entity"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "power": "Power",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Ardent Avenger",
+    "keyword": {
+      "name": "Revenge",
+      "rules": "blocking, it takes the attacker with it"
+    },
+    "flavor": "Fire does not forget an offense. It returns it at once."
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · 1st grade",
+    "dynamicAria": "Dynamic"
+  }
+}

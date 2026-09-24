@@ -1,0 +1,72 @@
+{
+  "name": "Arden, Rubyfront of Fire",
+  "typeLabel": "Double-faced Rubyfront",
+  "summary": "The Human tutorial's Rubyfront: it pays HP to push the attacks, and the Eternal Flame pays them back.",
+  "ui": {
+    "faceA": "Face A — Rubyfront",
+    "faceB": "Face B — Nexus"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "nexusRequirement": {
+      "label": "Nexus requirement",
+      "text": "This turn you attacked with at least 3 Human Entities. Put a Human Entity from your hand into your Retire Zone, then flip."
+    }
+  },
+  "matters": {
+    "dynamicTitle": "Dynamic Matter · up to 2nd grade",
+    "dynamicAria": "Dynamic",
+    "destructiveTitle": "Destructive Matter · up to 1st grade",
+    "destructiveAria": "Destructive"
+  },
+  "faceA": {
+    "name": "Arden, Rubyfront of Fire",
+    "keyword": {
+      "name": "Fury",
+      "rules": "d20 ≥ 13 before every action · failure −1 HP"
+    },
+    "effect": {
+      "trigger": "Effect",
+      "text": "The first time each of your turns a Human Entity you control attacks, you may pay 1 HP. If you do, that Entity gets +1 Power until end of turn."
+    },
+    "abilities": {
+      "pactWord": {
+        "name": "Spark",
+        "text": "a Human Entity you control gets +1 Power until end of turn."
+      },
+      "pactCall": {
+        "name": "Call to the Flame",
+        "text": "the next Human Entity you play this turn costs 1 less Flux."
+      }
+    },
+    "flavor": "He swore to no one. The fire is enough."
+  },
+  "faceB": {
+    "name": "Eternal Flame",
+    "nexusAria": "Nexus",
+    "flipEffect": {
+      "trigger": "When it flips",
+      "text": "Draw a card."
+    },
+    "effect": {
+      "trigger": "Effect",
+      "text": "The first time each of your turns you attack with at least 2 Human Entities, you gain 2 HP."
+    },
+    "abilities": {
+      "oathWord": {
+        "name": "Flare",
+        "text": "a Human Entity you control gets +2 Power until end of turn."
+      },
+      "oathCall": {
+        "name": "Ardent Call",
+        "text": "you may put a Human Entity with Flux cost 2 or less from your hand onto your Front without paying its Flux cost."
+      },
+      "oathCharge": {
+        "name": "Wildfire",
+        "text": "the Human Entities you control get +1 Power and gain Surge until end of turn."
+      }
+    },
+    "flavor": "A flame is worth as much as those who keep it burning."
+  }
+}
