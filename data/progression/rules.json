@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "_note": "La progressione dei Rubyfront (2026-09-23, ritarata il 2026-09-24): thresholds[i] è l'esperienza cumulata per essere al livello i+1 — tarate perché un giocatore da 3 partite al giorno, vincendone metà, arrivi al livello 10 in 8-9 giorni; points per esito di una partita finita col Rubyfront (la sconfitta vale metà della vittoria; una partita abbandonata non dà nulla); slots per faccia della configurazione.",
+  "_note": "La progressione dei Rubyfront (2026-09-23, ritarata il 2026-09-24 e poi rallentata lo stesso giorno su richiesta del designer): thresholds[i] è l'esperienza cumulata per essere al livello i+1 — ogni livello costa più vittorie del precedente (2, 5, 9, 14, 20, 27, 34, 42, 50 … il 10 a 70 vittorie), così i primi due arrivano in serata e la curva poi si apre; points per esito di una partita finita col Rubyfront (la sconfitta vale metà della vittoria; una partita abbandonata non dà nulla); slots per faccia della configurazione.",
   "thresholds": [
     0,
-    80,
-    200,
-    340,
-    500,
+    300,
     700,
-    920,
-    1180,
-    1470,
-    1800
+    1200,
+    1800,
+    2600,
+    3500,
+    4600,
+    5800,
+    7000
   ],
   "points": {
     "win": 100,
