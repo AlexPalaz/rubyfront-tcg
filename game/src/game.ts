@@ -10,7 +10,7 @@
 // con la stanza, e il cambio passa da una ricarica: il posto è cucito in
 // ogni vista.
 
-import { allCards, availableDecks, cardName, getCard, isRubyfront } from "@rubyfront/core/cards";
+import { allCards, availableDecks, getCard, isRubyfront } from "@rubyfront/core/cards";
 import { msg, t } from "@rubyfront/core/i18n";
 import { seatLabel } from "@rubyfront/core/state";
 import type { CardInstance, Seat } from "@rubyfront/core/types";
@@ -24,6 +24,7 @@ import { Home } from "./screens/home";
 import { Settings } from "./screens/settings";
 import { DeckBrowser } from "./screens/decks";
 import { ProgressionScreen } from "./screens/progression/index";
+import { RewardOverlay, type RewardShow } from "./screens/progression/reward";
 import { Curtain } from "./screens/curtain";
 import { Auth } from "./screens/auth";
 import type { Stage } from "./stage.js";
@@ -44,6 +45,8 @@ export interface Screens {
   settings: Settings;
   /** La sferografia dei Rubyfront (2026-09-23). */
   progression: ProgressionScreen;
+  /** La ricompensa a fine partita (2026-09-24), da fuori per le prove. */
+  reward(show: RewardShow): Promise<void>;
   /** La stanza in cui si è (vuota: la «solo»). */
   room(): string;
 }
@@ -107,7 +110,12 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
       // La progressione (2026-09-23): il pannello si ridisegna; a fine partita l'avviso in cima e la riga in cronaca (la scrive la sessione).
       progressChanged: update => {
         progression?.refresh();
-        if (update.gained) match.toast.show(t("progression.toast", { n: update.gained, card: cardName(update.card, locale), level: update.level }), null);
+        updateDeckChip();
+        // A fine partita: la ricompensa animata, dopo che l'insegna finale si è vista (2026-09-24).
+        if (update.gained) {
+          const show: RewardShow = { card: update.card, gained: update.gained, outcome: update.outcome ?? "draw", after: { card: update.card, xp: update.xp, level: update.level, loadout: update.loadout }, locale };
+          setTimeout(() => void showReward(show), 1500);
+        }
       },
       progressRefused: (_card, reason) => progression?.refused(reason),
       seated: () => {
@@ -173,6 +181,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
       onboarding.close();
     },
     backdrop: isOpen => home.setBlurred(isOpen),
+    dismiss: () => goHome(),
   });
   chat = new Chat(stage, session.ctx, mySeat, n => toolbar.setUnread(n));
   chronicle = new Chronicle(stage, session.ctx, mySeat, locale);
@@ -207,7 +216,15 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     store: () => void askQuestion(stage, { title: t("html.store.soon.title"), text: t("html.store.soon.text"), yes: t("html.store.soon.ok") }),
     spawn: () => void spawnCard(),
     flux: () => addFlux(),
+    win: () => endNow(true),
+    lose: () => endNow(false),
   });
+
+  /** STRUMENTO DI PROVA (solo account di prova, 2026-09-24): la partita finisce subito, vinta o persa — i PV di chi perde a zero, e la fine la giudica il tavolo come sempre. */
+  function endNow(won: boolean): void {
+    const loser: Seat = won ? (mySeat === "a" ? "b" : "a") : mySeat;
+    void session.dispatch({ t: "player", seat: loser, patch: { hp: 0 }, test: true });
+  }
 
   /**
    * STRUMENTO DI PROVA, temporaneo: il catalogo intero nella vetrina, la carta scelta arriva nella tua mano
@@ -227,7 +244,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   /** STRUMENTO DI PROVA, temporaneo: un Flusso in più, mai oltre 20 (§3.2). */
   function addFlux(): void {
     const player = session.state().players[mySeat];
-    void session.dispatch({ t: "player", seat: mySeat, patch: { flux: Math.min(20, player.flux + 1) } });
+    void session.dispatch({ t: "player", seat: mySeat, patch: { flux: Math.min(20, player.flux + 1) }, test: true });
   }
   const auth = new Auth(
     stage,
@@ -274,6 +291,15 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
 
 
   /** Il profilo: la nota dice la stanza, o che si gioca col bot. */
+  /** La ricompensa a fine partita (2026-09-24): un overlay alla volta. */
+  let reward: RewardOverlay | null = null;
+  async function showReward(show: RewardShow): Promise<void> {
+    if (reward) return;
+    reward = new RewardOverlay(stage, show);
+    await reward.open();
+    reward = null;
+  }
+
   /** Il tasto del mazzo nell'header (2026-09-20): il nome del mazzo scelto, o l'invito a sceglierlo. */
   function updateDeckChip(): void {
     const id = session.myDeck();
@@ -284,6 +310,9 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     const art = cover && face ? faceModel(cover, face, locale)?.art?.src ?? null : null;
     toolbar?.setDeck(deck ? { name: deck.locales[locale]?.name ?? deck.locales[deck.defaultLocale]?.name ?? deck.id, art } : null, Boolean(session.account()));
     toolbar?.setGems(session.account()?.gems ?? 0);
+    // Gli strumenti di prova (Evoca, +1 Flusso, Vinci, Perdi) solo con un account di prova: lo dice il tavolo (2026-09-24).
+    toolbar?.setDev(session.account()?.tester === true);
+    toolbar?.setLevel(cover && session.account() ? session.progress(cover).level : null);
   }
 
   function profile(mode: Mode, deck?: string): void {
@@ -494,5 +523,5 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   auth.open(session.hasSavedSession());
   session.paint();
 
-  return { match, screens: { home, onboarding, decks, progression, toolbar, chat, chronicle, settings, room: () => room } };
+  return { match, screens: { home, onboarding, decks, progression, toolbar, chat, chronicle, settings, reward: show => showReward(show), room: () => room } };
 }

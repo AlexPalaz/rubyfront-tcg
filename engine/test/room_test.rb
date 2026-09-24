@@ -44,6 +44,22 @@ class RoomTest < Minitest::Test
     assert_equal "newGame", a[3][:actions].first[:action]["t"]
   end
 
+  # Gli strumenti di prova (evoca, patch `test`) li usa solo l'account di prova.
+  def test_test_tools_only_from_the_test_account
+    room = new_room
+    a = seated(room, "a")
+    spawn = { "t" => "spawn", "card" => { "uid" => "x", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "SLOW" } }
+    a.clear
+    room.handle("a", { "t" => "judge", "seq" => 1, "action" => spawn, "actor" => "a" })
+    refute a.last[:ok]
+    assert_match(/account di prova/, a.last[:reason])
+    room.attach("a", who: -> { 1 }, tester: -> { true })
+    a.clear
+    room.handle("a", { "t" => "judge", "seq" => 2, "action" => spawn, "actor" => "a" })
+    assert a.last[:ok], a.last[:reason]
+    assert_equal 2, a.last[:seq]
+  end
+
   def test_passing_action_goes_to_journal_and_others
     room = new_room
     a = seated(room, "a")

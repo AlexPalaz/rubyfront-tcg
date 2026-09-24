@@ -30,8 +30,15 @@ module Rubyfront
   class Account
     attr_reader :player
 
-    def initialize(store, out, free_decks: [], google: nil, mailer: nil, progression: nil)
+    def tester?
+      @player&.dig(:tester) == true
+    end
+
+    # `testers`: i nomi utente degli account di prova (2026-09-24), i soli
+    # con gli strumenti di prova al tavolo; la busta `me` lo dice al client.
+    def initialize(store, out, free_decks: [], google: nil, mailer: nil, progression: nil, testers: [])
       @progression = progression
+      @testers = testers
       @store = store
       @out = out
       @free_decks = free_decks
@@ -197,7 +204,8 @@ module Rubyfront
       @player = {
         id: id, username: player[:username], name: player[:name], email: player[:email], verified: player[:verified] == true,
         providers: @store.identities_of(id), decks: @store.decks_of(id),
-        rubyfronts: rubyfronts_of(id)
+        rubyfronts: rubyfronts_of(id),
+        tester: @testers.include?(player[:username])
       }
       payload = { t: "me", player: @player }
       payload[:token] = token if token

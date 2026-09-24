@@ -78,15 +78,27 @@ class AccountTest < Minitest::Test
     Rubyfront::Progression.new(rules, { "X-1" => { "card" => "X-1", "levels" => levels } })
   end
 
-  def opened(free: %w[alfa beta], store: FakeStore.new, google_fetch: nil, mail: [])
+  def opened(free: %w[alfa beta], store: FakeStore.new, google_fetch: nil, mail: [], testers: [])
     box = []
     google = A::Google.new(google_fetch ? "nostro" : "", fetch: google_fetch)
     mailer = A::Mailer.new(site: "https://gioco.example/", deliver: ->(_from, to, _subject, html) { mail << [to, html] })
-    [Rubyfront::Account.new(store, ->(payload) { box << payload }, free_decks: free, google: google, mailer: mailer, progression: progression), box, store]
+    [Rubyfront::Account.new(store, ->(payload) { box << payload }, free_decks: free, google: google, mailer: mailer, progression: progression, testers: testers), box, store]
   end
 
   def register(account, **over)
     account.handle({ "t" => "register", "username" => "Mario", "email" => "Mario@Example.it", "password" => "segreto123", "name" => "Mario Rossi" }.merge(over.transform_keys(&:to_s)))
+  end
+
+  # Gli account di prova (2026-09-24): la busta `me` dice `tester` solo ai nomi della lista.
+  def test_me_says_who_is_a_tester
+    account, box = opened(testers: %w[mario])
+    assert register(account)
+    assert_equal true, box.last[:player][:tester]
+    assert account.tester?
+    other, box2 = opened
+    assert register(other)
+    assert_equal false, box2.last[:player][:tester]
+    refute other.tester?
   end
 
   def test_register_creates_the_player_opens_a_session_grants_free_decks_and_mails_the_link
@@ -95,7 +107,7 @@ class AccountTest < Minitest::Test
     assert register(account)
     me = box.last
     assert_equal "me", me[:t]
-    assert_equal({ id: 1, username: "mario", name: "Mario Rossi", email: "mario@example.it", verified: false, providers: [], decks: %w[alfa beta], rubyfronts: [{ card: "X-1", xp: 0, level: 1, loadout: { "rubyfront" => [], "nexus" => [] } }] }, me[:player])
+    assert_equal({ id: 1, username: "mario", name: "Mario Rossi", email: "mario@example.it", verified: false, providers: [], decks: %w[alfa beta], rubyfronts: [{ card: "X-1", xp: 0, level: 1, loadout: { "rubyfront" => [], "nexus" => [] } }], tester: false }, me[:player])
     assert_match(/\A\h{64}\z/, me[:token], "la sessione al client")
     assert_equal me[:player][:id], store.sessions[A.token_hash(me[:token])], "nella memoria solo l'impronta"
     assert_equal "mario@example.it", mail[0][0]

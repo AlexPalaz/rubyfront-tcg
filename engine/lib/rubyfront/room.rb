@@ -42,6 +42,7 @@ module Rubyfront
       @engine = Engine.new(cards: cards)
       @clients = {}
       @whos = {}
+      @testers = {}
       @on_over = on_over
       @over_told = false
       @journal = []
@@ -87,8 +88,20 @@ module Rubyfront
 
     # Chi è seduto a quel posto, come lambda (`-> { id o nil }`): vale anche se
     # l'accesso arriva dopo. Il trasporto la registra dopo il `join`.
-    def attach(seat, who:)
-      @mutex.synchronize { @whos[seat] = who }
+    # `tester:` dice se chi siede è l'account di prova (`-> { true/false }`):
+    # solo lui usa gli strumenti di prova (Engine.test_tool?).
+    def attach(seat, who:, tester: nil)
+      @mutex.synchronize do
+        @whos[seat] = who
+        @testers[seat] = tester
+      end
+    end
+
+    def tester?(seat)
+      tester = @testers[seat]
+      tester ? tester.call == true : false
+    rescue StandardError
+      false
     end
 
     def player_of(seat)
@@ -117,6 +130,7 @@ module Rubyfront
 
         @clients.delete(seat)
         @whos.delete(seat)
+        @testers.delete(seat)
         @emptied_at = Time.now if @clients.empty?
         announce
       end
@@ -153,7 +167,13 @@ module Rubyfront
     def judge(seat, message)
       action = message["action"]
       actor = @solo ? message["actor"] : seat
-      verdict = @engine.judge(action, actor: actor).merge(seq: message["seq"])
+      verdict =
+        if Engine.test_tool?(action) && !tester?(seat)
+          { t: "verdict", action: action["t"], ok: false, ruled: true,
+            reason: "gli strumenti di prova sono dell'account di prova", reason_en: "the test tools belong to the test account", seq: message["seq"] }
+        else
+          @engine.judge(action, actor: actor).merge(seq: message["seq"])
+        end
       send_to(seat, verdict)
       return unless verdict[:ok]
 

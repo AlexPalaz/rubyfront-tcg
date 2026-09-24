@@ -177,7 +177,11 @@ Regole collegate finora:
   metterebbe in campo «non si applica»). Contano solo le Entità del
   proprietario — Rubyfront, Materie e Oggetti non occupano slot, lo dice
   l'anagrafe. Il campo del client è una superficie unica, ma le Entità
-  in campo SONO il Fronte: non hanno altro posto dove stare.
+  in campo SONO il Fronte: non hanno altro posto dove stare. L'Entità
+  presa in controllo (§8.2) sta nella Zona di Controllo, lo slot extra:
+  non occupa il Fronte di chi la comanda (engine 0.87.0, 2026-09-24 —
+  prima contava, e con quattro proprie e una controllata il tavolo
+  diceva «Fronte pieno»).
 - **§6.2 Attesa di evocazione** — un'Entità entrata sul Fronte questo turno non
   dichiara attacchi, salvo Slancio (`surge`) — stampato, concesso fino a fine
   turno, o concesso da un Oggetto indossato «mentre assegnato» (dal
@@ -390,9 +394,19 @@ Regole collegate finora:
   l'abilitazione si perde (§7.2) arriverà a parte. Engine 0.19.0, venti
   regole.
 
+- **Gli strumenti di prova** (2026-09-24) — evocare una carta dal catalogo
+  (`spawn`) e una patch dei contatori marcata `test: true` (un Flusso in
+  più, i PV a zero per finire subito: `Engine.test_tool?`). Non hanno turno
+  né catena, e la stanza (`Room#judge`) li accetta **solo dal posto
+  degli account di prova** (`attach(seat, tester:)`; la lista dei nomi
+  utente è `RUBYFRONT_TEST_USERS`, di base «tester,alexpalaz», e la busta
+  `me` porta `tester: true` a chi c'è dentro); a chiunque altro
+  risponde un rifiuto. La fine per PV che ne segue passa dal solito
+  `gameOver`, verificato sui PV della copia.
 - **§2/§9 Fine della partita** — la dichiara il client che l'ha vista
   arrivare, con un'azione `gameOver {winner, reason}`, e l'engine la
-  verifica sulla copia del tavolo, che per questo ha imparato a tenere
+  verifica sulla copia del tavolo (anche nell'apertura del §4, dove i
+  contatori si toccano: engine 0.87.0, 2026-09-24), che per questo ha imparato a tenere
   anche i **PV** (patch dei contatori, danni della risoluzione,
   snapshot): per PV, chi perde deve essere a 0 (§2), nel pareggio
   entrambi (§9.2); per mazzo esaurito, chi perde deve avere il mazzo vuoto

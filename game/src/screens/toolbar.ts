@@ -17,8 +17,9 @@ import { playSound } from "../sound";
 import { CrispSprite, SANS, paintPiece, linearGradient } from "../table/appearance";
 import { tween, ease } from "../table/animation";
 import { STONE } from "./stone";
-import { StoreChip } from "./store";
-import { DeckChip, type DeckChipDeck } from "./deckchip";
+import { StoreChip } from "./header/store";
+import { DeckChip, type DeckChipDeck } from "./header/deck";
+import { ProgressionChip } from "./header/progression";
 import { TOOLBAR_H, FONT_BASE, INK, MUTED, RUBY, Button, hex } from "./ui";
 
 const BRAND: Font = { size: 16, weight: 700, family: SANS, spacing: 16 * 0.12, upper: true };
@@ -41,9 +42,11 @@ export interface ToolbarActions {
   store(): void;
   /** La progressione dei Rubyfront (2026-09-23): in home, la sferografia. */
   progression(): void;
-  /** STRUMENTI DI PROVA, temporanei (Evoca e il «+» del Flusso): una carta del catalogo in mano, un Flusso in più. */
+  /** STRUMENTI DI PROVA (solo per l'account di prova, 2026-09-24): una carta del catalogo in mano, un Flusso in più, la partita vinta o persa all'istante. */
   spawn?(): void;
   flux?(): void;
+  win?(): void;
+  lose?(): void;
 }
 
 export class Toolbar {
@@ -66,10 +69,14 @@ export class Toolbar {
   private readonly chronicle: Button;
   private readonly deck: DeckChip;
   private readonly store: StoreChip;
-  private readonly progression: Button;
+  private readonly progression: ProgressionChip;
   /** STRUMENTI DI PROVA, temporanei: al tavolo, prima di «Esci» e della chat. */
   private readonly spawn: Button;
   private readonly flux: Button;
+  private readonly win: Button;
+  private readonly lose: Button;
+  /** Gli strumenti di prova si vedono solo con l'account di prova. */
+  private dev = false;
   private room = false;
   private unread = 0;
 
@@ -83,13 +90,17 @@ export class Toolbar {
     this.chronicle = new Button(stage, { label: t("html.chronicle"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.chronicle() });
     this.store = new StoreChip(stage, () => actions.store());
     this.store.visible = false;
-    this.progression = new Button(stage, { label: t("html.progression"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.progression() });
+    this.progression = new ProgressionChip(stage, () => actions.progression());
     this.progression.visible = false;
     this.chronicle.visible = false;
     this.spawn = new Button(stage, { label: t("hud.spawn"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.spawn?.() });
     this.flux = new Button(stage, { label: t("hud.flux.more"), style: "plate", font: FONT_BASE, h: 34, onTap: () => actions.flux?.() });
+    this.win = new Button(stage, { label: t("hud.win"), style: "plate", font: FONT_BASE, color: MUTED, h: 34, onTap: () => actions.win?.() });
+    this.lose = new Button(stage, { label: t("hud.lose"), style: "plate", font: FONT_BASE, color: MUTED, h: 34, onTap: () => actions.lose?.() });
     this.spawn.visible = false;
     this.flux.visible = false;
+    this.win.visible = false;
+    this.lose.visible = false;
     this.stone.eventMode = "none";
     this.light.eventMode = "none";
     void loadImage(STONE).then(image => {
@@ -136,7 +147,7 @@ export class Toolbar {
       actions.settings();
     });
     this.glow.eventMode = "none";
-    this.root.addChild(this.background, this.stone, this.light, this.glow, this.brand, this.statusDot, this.chat, this.chronicle, this.deck, this.store, this.progression, this.leave, this.flux, this.spawn, this.gear);
+    this.root.addChild(this.background, this.stone, this.light, this.glow, this.brand, this.statusDot, this.chat, this.chronicle, this.deck, this.store, this.progression, this.leave, this.flux, this.spawn, this.win, this.lose, this.gear);
     stage.screens.addChild(this.root);
     stage.onLayout(() => this.layout());
   }
@@ -150,8 +161,10 @@ export class Toolbar {
     this.progression.visible = !table && this.deckShown;
     this.chat.visible = table && room;
     this.chronicle.visible = table;
-    this.spawn.visible = table;
-    this.flux.visible = table;
+    this.spawn.visible = table && this.dev;
+    this.flux.visible = table && this.dev;
+    this.win.visible = table && this.dev;
+    this.lose.visible = table && this.dev;
     this.room = room;
     this.statusDot.visible = table && room;
     this.layout();
@@ -170,6 +183,18 @@ export class Toolbar {
   /** Il saldo di gemme rubino sul tasto del negozio (2026-09-22). */
   setGems(n: number): void {
     this.store.setGems(n);
+    this.layout();
+  }
+
+  /** Gli strumenti di prova (2026-09-24): solo con l'account di prova; al tavolo compaiono, altrove no. */
+  setDev(dev: boolean): void {
+    this.dev = dev;
+    this.toTable(this.table, this.room);
+  }
+
+  /** Il livello del Rubyfront del mazzo scelto, sul chip della sferografia (2026-09-24). */
+  setLevel(level: number | null): void {
+    this.progression.setLevel(level);
     this.layout();
   }
   private deckShown = true;
@@ -234,7 +259,7 @@ export class Toolbar {
     let right = v.width - 14;
     this.gear.position.set(right - 16, TOOLBAR_H / 2);
     right -= 32 + 14;
-    for (const button of [this.leave, this.chronicle, this.chat, this.flux, this.spawn, this.store, this.deck, this.progression]) {
+    for (const button of [this.leave, this.chronicle, this.chat, this.lose, this.win, this.flux, this.spawn, this.store, this.deck, this.progression]) {
       if (!button.visible) continue;
       button.position.set(right - button.w, (TOOLBAR_H - button.h) / 2);
       right -= button.w + 14;

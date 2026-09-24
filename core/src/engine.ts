@@ -82,6 +82,8 @@ export interface Player {
   gems?: number;
   /** La progressione per Rubyfront (2026-09-23): esperienza, livello, abilità montate. */
   rubyfronts?: PlayerProgress[];
+  /** Account di prova (2026-09-24): al tavolo ha gli strumenti di prova. Lo dice il tavolo. */
+  tester?: boolean;
 }
 
 /** L'aggiornamento di una progressione dal tavolo (2026-09-23): dopo un `loadout` o a fine partita (con `gained`). */

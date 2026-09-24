@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.86.0"
+    VERSION = "0.87.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -244,6 +244,16 @@ module Rubyfront
     # `actor` è il posto di chi ha compiuto il gesto — lo dice il trasporto
     # (in rete il posto del client, in partita locale il proprietario della
     # carta o del contatore toccato). Senza attore la dogana del turno tace.
+    # Gli STRUMENTI DI PROVA del client (2026-09-24): evocare una carta dal
+    # catalogo (`spawn`) e una patch dei contatori marcata `test` (un Flusso
+    # in più, i PV a zero per finire subito). Non hanno turno né catena; la
+    # stanza li accetta solo dal posto dell'account di prova (Room#judge).
+    def self.test_tool?(action)
+      return false unless action.is_a?(Hash)
+
+      action["t"] == "spawn" || (action["t"] == "player" && action["test"] == true)
+    end
+
     def judge(action, actor: nil)
       verdict = verdict_for(action, actor)
       return verdict if verdict[:ruled] && !verdict[:ok]
@@ -475,7 +485,10 @@ module Rubyfront
     # tenuta, la mano che torna nel mazzo. Tutto il resto — giocare,
     # schierare, dichiarare, chiudere fasi e turni — aspetta che entrambi
     # abbiano «dichiarato di essere pronti».
-    OPENING_ALLOWED = %w[loadDeck newGame say spawn ready release player draw shuffle mulligan keep].freeze
+    # La fine per PV (§2) passa anche nell'apertura: i contatori si toccano
+    # lì (`player`), e a 0 PV la partita è finita in qualunque momento; la
+    # verifica resta quella di judge_game_over (2026-09-24).
+    OPENING_ALLOWED = %w[loadDeck newGame say spawn ready release player draw shuffle mulligan keep gameOver].freeze
 
     def opening_stopped(action)
       return nil unless @table.opening_pending?
@@ -1493,10 +1506,10 @@ module Rubyfront
       # contatori non è un'azione di gioco.
       # Un `move` è pixel — salvo lo schieramento del Rubyfront, che porta
       # un costo ed è un gesto di gioco (§3.1: nel proprio turno).
-      # `spawn` è lo strumento di prova del client (evoca dal catalogo).
+      # Gli strumenti di prova (`spawn`, la patch `test`) non hanno turno.
       # Il «pronto» delle scene (`ready`, dal 2026-09-15): la stretta di mano
       # dei due client — l'avversario lo preme nel turno di chi gioca.
-      return nil if %w[loadDeck newGame say spawn release ready].include?(kind) || (kind == "move" && !action.key?("cost"))
+      return nil if %w[loadDeck newGame say release ready].include?(kind) || self.class.test_tool?(action) || (kind == "move" && !action.key?("cost"))
       # §7.2 — accettare e chiudere un passo della catena sono gesti di chi
       # ne ha la parola, di chiunque sia il turno: li giudica judge_chain.
       return nil if %w[pass settle].include?(kind)
@@ -1587,8 +1600,8 @@ module Rubyfront
       chain = @table.chain
       return nil unless chain
 
-      # Liberi anche in catena: chat, pixel, apparecchiatura, e il Gettone.
-      return nil if %w[say loadDeck newGame spawn ready].include?(kind) || (kind == "move" && !action.key?("cost"))
+      # Liberi anche in catena: chat, pixel, apparecchiatura, gli strumenti di prova, e il Gettone.
+      return nil if %w[say loadDeck newGame ready].include?(kind) || self.class.test_tool?(action) || (kind == "move" && !action.key?("cost"))
       return nil if kind == "player" && action.dig("patch", "token") == false
 
       top = @table.chain_top
@@ -2698,6 +2711,20 @@ module Rubyfront
 
     # Le Entità (di `race`) che `seat` comanda in campo — le sue e quelle
     # che controlla (§8.2) — tranne `except`.
+    # §6.2/§8.2 — le Entità che occupano gli slot del Fronte di un posto: le
+    # sue, comandate da lui. Un'Entità presa in controllo sta nella Zona di
+    # Controllo, lo slot extra (§8.2): non toglie posto al Fronte di chi la
+    # comanda (2026-09-24: con quattro Entità e una controllata il tavolo
+    # diceva «Fronte pieno»).
+    def front_entities(seat)
+      @table.commanded_cards(seat).count do |card|
+        next false if card[:controller] && card[:controller] != card[:owner]
+
+        entry = @cards[card[:card_id]]
+        entry && entry[:type] == "entity"
+      end
+    end
+
     def count_entities(seat, race, except: nil)
       @table.commanded_cards(seat).count do |card|
         next false if except && @table.card(except).equal?(card)
@@ -3568,7 +3595,7 @@ module Rubyfront
     # non pieno non ha senso. La sostituita: propria, comandata da sé, in
     # campo, un'Entità, non la carta che rientra. Ignota all'anagrafe: silenzio.
     def full_front_stopped(kind, action, seat)
-      full = count_entities(seat, nil) >= 5
+      full = front_entities(seat) >= 5
       replace = action["replace"]
       unless replace.is_a?(String)
         return refuse(kind, "il Fronte è pieno: cinque Entità sono il massimo (§6.2, Fronte pieno)", "the Front is full: five Entities are the maximum (§6.2, Full Front)") if full

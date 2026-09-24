@@ -183,8 +183,6 @@ module Rubyfront
       row && player(row["id"].to_i)
     end
 
-    # L'utenza di prova: col segreto giusto torna il giocatore «tester»
-    # (creato alla prima volta), altrimenti nil senza toccare il database.
     # ------------------------------------------------------------ le sessioni
 
     def create_session(player_id, token_hash, days:)

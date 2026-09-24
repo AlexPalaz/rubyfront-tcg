@@ -459,6 +459,18 @@ class EngineTest < Minitest::Test
     refute engine.judge({ "t" => "toZone", "uid" => "a-6", "zone" => "field" })[:ok]
   end
 
+  # §8.2 — l'Entità presa in controllo sta nella Zona di Controllo, non sul
+  # Fronte: con quattro proprie e una controllata la quinta propria scende.
+  def test_controlled_entity_takes_no_front_slot
+    engine = commander_setup([["b1", "LITTLE"]])
+    take_control(engine, "b1")
+    cards = (2..5).map { |i| { "uid" => "own#{i}", "owner" => "a", "zone" => "hand", "order" => i, "cardId" => "CONTROLLER" } }
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [{ "uid" => "rad", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "CONTROLLER", "x" => 442, "y" => 1260 }] + cards })
+    (2..4).each { |i| assert engine.judge({ "t" => "toZone", "uid" => "own#{i}", "zone" => "field", "x" => Rubyfront::Engine::FRONT_SLOT_X[i - 1], "y" => 1260 })[:ok], "la #{i}ª scende" }
+    verdict = engine.judge({ "t" => "toZone", "uid" => "own5", "zone" => "field", "x" => Rubyfront::Engine::FRONT_SLOT_X[4], "y" => 1260 })
+    assert verdict[:ok], "quattro sul Fronte più una controllata: la quinta propria scende (#{verdict[:reason]})"
+  end
+
   def test_matters_and_rubyfront_take_no_slot
     engine = with_cards
     hand_and_field(engine, ["SLOW"] * 5 + ["STONE", "RUBY"], drop: 5)
@@ -1813,6 +1825,26 @@ class EngineTest < Minitest::Test
 
   def finish(engine, winner, reason)
     engine.judge({ "t" => "gameOver", "winner" => winner, "reason" => reason })
+  end
+
+  # §2 — a 0 PV la partita è finita anche nell'apertura (§4): il contatore
+  # si tocca lì, e la fine lo segue.
+  def test_at_zero_hp_victory_passes_during_the_opening
+    engine = opening_table
+    assert engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 0 }, "test" => true }, actor: "b")[:ok]
+    verdict = engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "hp" }, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    refute engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 }, actor: "a")[:ok]
+  end
+
+  # Gli strumenti di prova: la patch dei contatori marcata `test` non ha
+  # turno (come `spawn`); senza il marchio la dogana del turno resta.
+  def test_test_patch_has_no_turn_gate
+    engine = opening_table
+    refute engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 0 } }, actor: "b")[:ok], "il contatore altrui nel turno di A: fermato"
+    assert engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 0 }, "test" => true }, actor: "b")[:ok]
+    assert Rubyfront::Engine.test_tool?({ "t" => "spawn" })
+    refute Rubyfront::Engine.test_tool?({ "t" => "player", "patch" => { "hp" => 0 } })
   end
 
   def test_at_zero_hp_victory_passes_and_table_stops

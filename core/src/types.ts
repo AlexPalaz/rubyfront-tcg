@@ -351,7 +351,8 @@ export type Action =
   | { t: "assign"; uid: string; to: string | null }
   | { t: "tap"; uid: string; tapped: boolean }
   | { t: "facedown"; uid: string; facedown: boolean }
-  | { t: "player"; seat: Seat; patch: Partial<PlayerState>; effect?: EffectRef; roll?: number }
+  /** `test`: la patch è uno strumento di prova (Flusso in più, PV a zero): senza turno, e solo dall'account di prova (2026-09-24). */
+  | { t: "player"; seat: Seat; patch: Partial<PlayerState>; effect?: EffectRef; roll?: number; test?: boolean }
   /** `toll`: la tassa di Flusso di chi entra (§3.2, forma certificata):
       la calcola il client dalle carte in campo, l'engine la rifà, il
       riduttore ricarica al massimo meno la tassa. */

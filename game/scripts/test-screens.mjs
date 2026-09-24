@@ -125,6 +125,14 @@ try {
   await click("button:Nuova partita");
   await pause(700);
   await photo("04-profile-bot");
+  // La X (2026-09-24) chiude la popup e riporta alla home; poi si riapre.
+  await click("button:×");
+  await pause(500);
+  results.dismissed = await page.evaluate(() => !window.__rubyfront.dumpAll().children.some(n => n.label === "onboarding" && n.visible));
+  await hover("home-card:solo", -200);
+  await pause(900);
+  await click("button:Nuova partita");
+  await pause(700);
   await click("dropdown", true);
   await pause(300);
   await photo("05-dropdown");
@@ -155,6 +163,31 @@ try {
     const s = window.__rubyfront.match.session.state();
     return { turn: s.turn, phase: s.phase, cards: Object.keys(s.cards).length, names: [s.players.a.name, s.players.b.name] };
   });
+
+  // Gli strumenti di prova (solo con l'account di prova): «Vinci» chiude la partita
+  // all'istante, poi l'overlay del premio con l'anello che si riempie.
+  results.devTools = await page.evaluate(() => {
+    const out = [];
+    const visit = node => {
+      if (!node.visible) return;
+      if (["Evoca", "+1 Flusso", "Vinci", "Perdi"].some(l => (node.label ?? "").endsWith(l))) out.push(node.label);
+      for (const child of node.children ?? []) visit(child);
+    };
+    visit(window.__rubyfront.dumpAll());
+    return out;
+  });
+  await click("button:Vinci");
+  await pause(2600);
+  await photo("09b-reward");
+  await pause(3000);
+  await photo("09c-reward-filled");
+  results.win = await page.evaluate(() => {
+    const s = window.__rubyfront.match.session.state();
+    return { over: s.over ?? null, hp: [s.players.a.hp, s.players.b.hp] };
+  });
+  await click("button:Continua");
+  await pause(600);
+  await photo("09d-after-reward");
 
   // «Esci dalla partita»: la domanda, poi sì — il sipario e la home.
   await click("button:Esci dalla partita");
@@ -194,7 +227,7 @@ try {
   await pause(300);
 
   // La progressione dei Rubyfront (2026-09-23): la scelta, la sferografia, il dettaglio, il montaggio.
-  await click("button:Rubyfront");
+  await click("button:Ascesa");
   await pause(1500);
   await photo("15b-progression-pick");
   await click("rubyfront:RBF-001");

@@ -52,6 +52,8 @@ export interface OnboardingActions {
   cancelSearch(): void;
   /** Il velo si alza o si abbassa: la home dietro si sfoca. */
   backdrop(isOpen: boolean): void;
+  /** La X (o Esc, o il velo) sul passo del profilo (2026-09-24): si torna alla home, come col marchio. */
+  dismiss(): void;
 }
 
 function deckName(id: string, locale: string): string {
@@ -158,8 +160,14 @@ export class Onboarding {
     private readonly actions: OnboardingActions
   ) {
     this.root.visible = false;
-    // Il velo prende i click: la home dietro aspetta.
+    // Il velo prende i click: la home dietro aspetta. Sul passo del profilo un
+    // tocco sul velo chiude, come la X e Esc (2026-09-24); nell'attesa e
+    // nella ricerca no: uscire dalla stanza è un gesto da premere.
     this.veil.eventMode = "static";
+    this.veil.on("pointertap", () => this.step?.type === "profile" && this.dismiss());
+    window.addEventListener("keydown", event => {
+      if (event.key === "Escape" && this.root.visible) this.dismiss();
+    });
     this.root.addChild(this.veil, this.card, this.dropdowns);
     stage.screens.addChild(this.root);
     stage.onLayout(() => this.root.visible && this.build());
@@ -218,6 +226,15 @@ export class Onboarding {
     this.build();
   }
 
+  /** La X: sul profilo si torna alla home; nell'attesa si esce dalla stanza; nella ricerca si annulla. */
+  private dismiss(): void {
+    const step = this.step;
+    if (!step) return;
+    if (step.type === "profile") this.actions.dismiss();
+    else if (step.type === "searching") this.actions.cancelSearch();
+    else this.actions.leave();
+  }
+
   private go(): void {
     const step = this.step;
     if (step?.type !== "profile") return;
@@ -252,6 +269,9 @@ export class Onboarding {
     let y = PAD_TOP;
     const brand = this.brand();
     add(brand.sprite, PAD_X, y);
+    // La X in alto a destra (2026-09-24), sulla riga del marchio.
+    const close = new Button(this.stage, { label: "×", style: "thin", font: { ...FONT_BASE, size: 22 }, color: MUTED, w: 28, h: 28, onTap: () => this.dismiss() });
+    add(close, W - 16 - 28, y + (brand.h - 28) / 2);
     y += brand.h + 14;
     add(new Graphics().rect(0, 0, INNER, 1).fill(0x29222a), PAD_X, y);
     y += 1 + 2 + GAP;
