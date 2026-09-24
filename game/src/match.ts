@@ -29,7 +29,7 @@ import { endPhase } from "@rubyfront/core/turn";
 import type { Action, SceneRef, Seat } from "@rubyfront/core/types";
 import { Director } from "./effects/director";
 import type { Stage } from "./stage.js";
-import { TABLE_MUSIC, playSound, startMusic, unlockSound } from "./sound";
+import { OUTCOME_MUSIC, TABLE_MUSIC, playSound, startMusic, stopMusic, unlockSound } from "./sound";
 import { Preview } from "./table/preview";
 import { Dice } from "./table/dice";
 import { Arrows } from "./table/arrows";
@@ -194,6 +194,11 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
   const cue = (action: Action): void => {
     if (action.t === "loadDeck" && action.seat === me) startMusic(TABLE_MUSIC);
     if (action.t === "newGame") startMusic(TABLE_MUSIC, true);
+    // La fine (2026-09-24): il brano del tavolo tace e gira il tema della vittoria o della sconfitta; alla patta solo silenzio.
+    if (action.t === "gameOver") {
+      if (action.winner === null) stopMusic();
+      else startMusic(action.winner === me ? OUTCOME_MUSIC.won : OUTCOME_MUSIC.lost);
+    }
     if (action.t === "declare") {
       lastDeclareAt = Date.now();
       playSound(action.declaration.kind === "attack" ? "attack" : action.declaration.kind === "block" ? "block" : "counter");

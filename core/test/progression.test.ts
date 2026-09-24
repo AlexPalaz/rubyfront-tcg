@@ -78,6 +78,17 @@ describe("le abilità sbloccate e la configurazione", () => {
 });
 
 describe("i dati veri", () => {
+  // 2026-09-24: le soglie cambiate in data/ senza rifare il catalogo — il
+  // tavolo diceva livello 2, il client «650 / 200». Il bundle deve essere
+  // la copia dei dati: chi tocca data/progression rifà build-catalog.
+  it("il catalogo del repo porta le stesse regole di data/progression (rifare build-catalog dopo ogni ritocco)", () => {
+    const bundle = JSON.parse(readFileSync(resolve(__dirname, "../../docs/cards/catalog.json"), "utf8"));
+    const data = JSON.parse(readFileSync(resolve(__dirname, "../../data/progression/rules.json"), "utf8"));
+    expect(bundle.progression.rules.thresholds).toEqual(data.thresholds);
+    expect(bundle.progression.rules.points).toEqual(data.points);
+    expect(bundle.progression.rules.slots).toEqual(data.slots);
+  });
+
   it("il catalogo del repo ha quattro Rubyfront con dieci livelli e id unici", () => {
     const bundle = JSON.parse(readFileSync(resolve(__dirname, "../../docs/cards/catalog.json"), "utf8"));
     useProgression(bundle.progression);

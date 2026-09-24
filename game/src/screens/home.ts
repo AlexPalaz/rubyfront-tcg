@@ -14,13 +14,14 @@ import { t } from "@rubyfront/core/i18n";
 import { BlurFilter, Container, Graphics, Rectangle, Sprite, Texture, type ColorMatrixFilter, type NineSliceSprite } from "pixi.js";
 import { faceModel } from "../card/model";
 import { loadImage } from "../card/resources";
-import { drawText, fontMetrics, textWidth, type Font } from "../card/text";
+import { textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
 import { HOME_MUSIC, playSound, startMusic, unlockSound } from "../sound";
 import { CrispSprite, SANS, paintPiece, linearGradient } from "../table/appearance";
 import { bezier, reducedMotion } from "../table/animation";
 import { cssFilter } from "./filters";
-import { TextField, FONT_BASE, PAPER, Button, fitTitle, areaBelow, slabShadow, placeShadow, paintText } from "./ui";
+import { TextField, FONT_BASE, PAPER, Button, fitTitle, areaBelow, slabShadow, paintText } from "./ui";
+import { BITE, CardFrame, type Magma } from "./home-fx";
 
 /** .home: padding 22px 40px 30px, gap 18px; .home-deck: al più 1560×960, carte a 16px. */
 const PAD_TOP = 22;
@@ -33,8 +34,9 @@ const CARD_GAP = 16;
 const GROW_OPEN = 2.2;
 const GROW_OFF = 0.72;
 /** .home-text: in fondo alla carta, padding 22 20 24, gap 8; dentro il contenuto che si scopre, gap 12. */
-const TEXT_PAD_X = 20;
-const TEXT_PAD_BOTTOM = 24;
+/** I testi stanno dentro la sagoma spezzata: più in là del morso più profondo (home-fx.ts). */
+const TEXT_PAD_X = BITE + 10;
+const TEXT_PAD_BOTTOM = BITE + 12;
 const TEXT_GAP = 8;
 const MORE_GAP = 12;
 const GROW_MS = 550;
@@ -43,6 +45,16 @@ const DIM_MS = 500;
 /** .home-art: scale(1.04) a carta chiusa, a misura aperta (.8s). */
 const ZOOM = 1.04;
 const ZOOM_MS = 800;
+/** La lastra viva (2026-09-24): la pressione che schiaccia, il sollevamento della carta aperta, l'entrata a scalare, il parallasse dell'illustrazione. */
+const PRESS_MS = 90;
+const RELEASE_MS = 240;
+const LIFT = 6;
+const ENTER_MS = 640;
+const ENTER_STAGGER_MS = 70;
+const ENTER_RISE = 44;
+const PARALLAX_X = 14;
+const PARALLAX_Y = 9;
+const DRIFT = 5;
 /** Il testo chiaro sopra le illustrazioni, con le sue ombre (text-shadow). */
 const TAG_SHADOW = [{ x: 0, y: 1, blur: 6, color: "rgba(0,0,0,.8)" }];
 const TITLE_SHADOW = [{ x: 0, y: 2, blur: 10, color: "rgba(0,0,0,.8)" }];
@@ -50,7 +62,6 @@ const SHADOW_M = 70;
 const curve = bezier(0.2, 0.8, 0.2, 1);
 
 const TAG: Font = { size: 16, weight: 600, family: SANS, spacing: 16 * 0.22, upper: true };
-const TAG_OFF: Font = { ...TAG, spacing: 16 * 0.08 };
 const TITLE: Font = { size: 24, weight: 700, family: SANS, spacing: 24 * 0.06, upper: true };
 const HELLO: Font = { size: 30, weight: 700, family: SANS, spacing: 30 * 0.16, upper: true };
 
@@ -67,14 +78,16 @@ interface Def {
   art?: string;
   /** Dove cade il ritaglio (background-position). */
   pos?: [number, number];
+  /** Il colore del magma sotto la lastra (home-fx.ts). */
+  magma?: Magma;
 }
 
 const DEFS: Def[] = [
-  { id: "solo", tag: "html.home.solo.tag", title: "html.home.solo.title", lead: "html.home.solo.text", bg: "home/oblivhal" },
-  { id: "multi", tag: "html.home.multi.tag", title: "html.home.multi.title", lead: "html.home.multi.text", bg: "home/duel", pos: [0.55, 0.5] },
+  { id: "solo", tag: "html.home.solo.tag", title: "html.home.solo.title", lead: "html.home.solo.text", bg: "home/oblivhal", magma: "ruby" },
+  { id: "multi", tag: "html.home.multi.tag", title: "html.home.multi.title", lead: "html.home.multi.text", bg: "home/duel", pos: [0.55, 0.5], magma: "white" },
   { id: "event", tag: "html.home.soon", title: "html.home.event.title", off: true, bg: "home/rhen", pos: [0.38, 0.5] },
   { id: "tourney", tag: "html.home.soon", title: "html.home.tourney.title", off: true, art: "RBF-023" },
-  { id: "decks", tag: "html.home.decks.tag", title: "html.home.decks.title", lead: "html.home.decks.text", bg: "home/decks" },
+  { id: "decks", tag: "html.home.decks.tag", title: "html.home.decks.title", lead: "html.home.decks.text", bg: "home/decks", magma: "blue" },
 ];
 
 interface Anim {
@@ -95,11 +108,6 @@ function start(a: Anim, target: number, ms: number, now: number): void {
   a.ms = reducedMotion() ? 1 : ms;
 }
 
-function mixColor(a: number, b: number, k: number): number {
-  const ch = (shift: number): number => Math.round((((a >> shift) & 255) * (1 - k)) + (((b >> shift) & 255) * k));
-  return (ch(16) << 16) | (ch(8) << 8) | ch(0);
-}
-
 interface PaintedText {
   sprite: Sprite;
   w: number;
@@ -109,6 +117,10 @@ interface PaintedText {
 interface HomeCard {
   def: Def;
   root: Container;
+  /** Il corpo, che si schiaccia alla pressione e si solleva aperto; dentro, `inner` è il ritaglio nella sagoma. */
+  body: Container;
+  inner: Container;
+  frame: CardFrame;
   shadow: NineSliceSprite;
   openShadow: NineSliceSprite;
   slab: Graphics;
@@ -130,6 +142,14 @@ interface HomeCard {
   k: Anim;
   dim: Anim;
   zoom: Anim;
+  press: Anim;
+  enter: Anim;
+  /** Il parallasse: dove sta il puntatore sulla carta (−0.5..0.5) e dove l'illustrazione è arrivata. */
+  pointer: { x: number; y: number };
+  parallax: { x: number; y: number };
+  /** Dove l'illustrazione starebbe ferma: da qui si sposta di parallasse e deriva. */
+  artBase: { x: number; y: number };
+  phase: number;
   x: number;
   w: number;
 }
@@ -167,6 +187,8 @@ export class Home {
   private readonly veil = new CrispSprite();
   private readonly greeting = new Container({ label: "greeting" });
   private readonly gemGlow = new CrispSprite();
+  /** Il magma sotto le carte (home-fx.ts): stessa quota della fila, sotto di lei. */
+  private readonly ground = new Container({ label: "ground" });
   private readonly row = new Container({ label: "cards" });
   private readonly cards: HomeCard[] = [];
   private readonly field: TextField;
@@ -210,7 +232,8 @@ export class Home {
     this.background.eventMode = "static";
     this.landscape.eventMode = "none";
     this.veil.eventMode = "none";
-    this.root.addChild(this.background, this.landscape, this.veil, this.greeting, this.row);
+    this.ground.eventMode = "none";
+    this.root.addChild(this.background, this.landscape, this.veil, this.greeting, this.ground, this.row);
     // La densità delle immagini si sceglie una volta: 2x sugli schermi fitti.
     this.density = stage.visible().scale * stage.app.renderer.resolution > 1.1 ? "@2x" : "";
     for (const def of DEFS) this.cards.push(this.createCard(def));
@@ -232,6 +255,14 @@ export class Home {
     if (!this.root.visible) {
       this.root.visible = true;
       this.stage.app.ticker.add(this.tick);
+      // L'entrata: le carte salgono una dopo l'altra, schiarendo.
+      const now = performance.now();
+      this.cards.forEach((c, index) => {
+        c.enter.v = c.enter.from = 0;
+        c.enter.a = 1;
+        c.enter.t0 = now + index * ENTER_STAGGER_MS;
+        c.enter.ms = reducedMotion() ? 1 : ENTER_MS;
+      });
     }
     this.layout();
     startMusic(HOME_MUSIC);
@@ -298,8 +329,11 @@ export class Home {
     openShadow.alpha = 0;
     const slab = new Graphics();
     const art = new CrispSprite();
-    const artMask = new Graphics();
-    art.mask = artMask;
+    // La sagoma spezzata (home-fx.ts): la maschera del ritaglio è la sua.
+    const frame = new CardFrame(this.stage, off, t("html.home.soon"), def.magma);
+    const artMask = frame.mask;
+    const inner = new Container({ label: "inner" });
+    inner.mask = artMask;
     // Le carte in grigio sono spente (grayscale, brightness .42); le altre si abbassano un poco quando se ne apre una.
     const dimmed = off ? cssFilter([["grayscale", 1], ["brightness", 0.42]]) : cssFilter([["brightness", 0.62], ["saturate", 0.85]]);
     dimmed.alpha = off ? 1 : 0;
@@ -313,12 +347,22 @@ export class Home {
     const moreMask = new Graphics();
     more.mask = moreMask;
     more.eventMode = "none";
-    root.addChild(shadow, openShadow, slab, art, artMask, veil, text, textMask, more, moreMask);
+    inner.addChild(art, veil, frame.inside);
+    const body = new Container({ label: "body" });
+    // Niente ombre rettangolari dietro la lastra spezzata (2026-09-24): l'alone lo fa il magma lungo la sagoma (home-fx.ts).
+    shadow.visible = false;
+    openShadow.visible = false;
+    body.addChild(slab, inner, artMask, frame.frame, text, textMask, more, moreMask);
+    root.addChild(body);
+    this.ground.addChild(frame.ground);
     root.eventMode = "static";
     root.cursor = off ? "default" : "pointer";
     const card: HomeCard = {
       def,
       root,
+      body,
+      inner,
+      frame,
       shadow,
       openShadow,
       slab,
@@ -339,19 +383,40 @@ export class Home {
       k: anim(0),
       dim: anim(0),
       zoom: anim(ZOOM),
+      press: anim(0),
+      enter: anim(1),
+      pointer: { x: 0, y: 0 },
+      parallax: { x: 0, y: 0 },
+      artBase: { x: 0, y: 0 },
+      phase: Math.random() * Math.PI * 2,
       x: 0,
       w: 0,
     };
     root.on("pointerenter", () => {
       if (off || this.blurred) return;
       this.overlay = def.id;
+      card.frame.shine();
       this.retarget();
     });
     root.on("pointerleave", () => {
+      card.pointer.x = 0;
+      card.pointer.y = 0;
+      start(card.press, 0, RELEASE_MS, performance.now());
       if (this.overlay !== def.id) return;
       this.overlay = null;
       this.retarget();
     });
+    // Il parallasse: l'illustrazione segue il puntatore, piano.
+    root.on("pointermove", event => {
+      if (off || this.blurred) return;
+      const local = root.toLocal(event.global);
+      const h = this.geometry.h || 1;
+      card.pointer.x = Math.max(-0.5, Math.min(0.5, local.x / Math.max(1, card.w) - 0.5));
+      card.pointer.y = Math.max(-0.5, Math.min(0.5, local.y / h - 0.5));
+    });
+    root.on("pointerdown", () => !off && start(card.press, 1, PRESS_MS, performance.now()));
+    root.on("pointerup", () => start(card.press, 0, RELEASE_MS, performance.now()));
+    root.on("pointerupoutside", () => start(card.press, 0, RELEASE_MS, performance.now()));
     root.on("pointertap", () => this.tap(def));
     this.row.addChild(root);
     const src = def.bg ? new URL(`${def.bg}${this.density}.jpg`, document.baseURI).href : def.art ? this.cardArt(def.art) : null;
@@ -397,7 +462,7 @@ export class Home {
       start(c.k, c.def.id === open ? 1 : 0, MORE_MS, now);
       start(c.dim, !off && open !== null && c.def.id !== open ? 1 : 0, DIM_MS, now);
       start(c.zoom, !off && c.def.id === open ? 1 : ZOOM, ZOOM_MS, now);
-      if (immediate) for (const a of [c.grow, c.k, c.dim, c.zoom]) a.v = a.from = a.a;
+      if (immediate) for (const a of [c.grow, c.k, c.dim, c.zoom, c.press]) a.v = a.from = a.a;
     }
   }
 
@@ -405,8 +470,8 @@ export class Home {
     const now = performance.now();
     let moving = false;
     for (const c of this.cards) {
-      for (const a of [c.grow, c.k, c.dim, c.zoom]) {
-        const p = Math.min(1, (now - a.t0) / a.ms);
+      for (const a of [c.grow, c.k, c.dim, c.zoom, c.press, c.enter]) {
+        const p = Math.max(0, Math.min(1, (now - a.t0) / a.ms));
         const v = p >= 1 ? a.a : a.from + (a.a - a.from) * curve(p);
         if (v !== a.v) {
           a.v = v;
@@ -415,6 +480,19 @@ export class Home {
       }
     }
     if (moving) this.placeCards();
+    // Per frame, senza rifare la geometria: il parallasse e la deriva dell'illustrazione, il magma e le crepe della lastra.
+    const still = reducedMotion();
+    for (const c of this.cards) {
+      const k = c.k.v;
+      c.frame.tick(now, k);
+      if (c.def.off) continue;
+      const ease = 1 - Math.pow(0.001, 16 / 1000);
+      c.parallax.x += (c.pointer.x * k - c.parallax.x) * ease * 0.35;
+      c.parallax.y += (c.pointer.y * k - c.parallax.y) * ease * 0.35;
+      const driftX = still ? 0 : Math.sin(now / 6200 + c.phase) * DRIFT;
+      const driftY = still ? 0 : Math.cos(now / 7600 + c.phase) * DRIFT * 0.6;
+      c.art.position.set(c.artBase.x - c.parallax.x * PARALLAX_X + driftX, c.artBase.y - c.parallax.y * PARALLAX_Y + driftY);
+    }
     // La gemma del saluto respira (home-gem-breathe, 3.2s).
     this.gemGlow.alpha = reducedMotion() ? 0.75 : 0.5 + 0.5 * (0.5 - 0.5 * Math.cos((now / 3200) * Math.PI * 2));
   }
@@ -557,7 +635,8 @@ export class Home {
     c.title?.sprite.destroy();
     const maxW = Math.max(40, w - 2 * TEXT_PAD_X);
     const off = c.def.off === true;
-    c.tag = off ? this.tag(t(c.def.tag)) : paintText(this.stage, t(c.def.tag), TAG, "#e56a86", { maxW, shadows: TAG_SHADOW });
+    // In grigio la targhetta in basso non c'è più: «In arrivo» sta sul nastro all'angolo (home-fx.ts).
+    c.tag = off ? null : paintText(this.stage, t(c.def.tag), TAG, "#e56a86", { maxW, shadows: TAG_SHADOW });
     const title = fitTitle(t(c.def.title), TITLE, maxW);
     // Il titolo sta su UNA riga, sempre (2026-09-20: a carta stretta, aprendo o
     // chiudendo, «Contro il computer» andava a capo): se non ci entra, il
@@ -568,25 +647,9 @@ export class Home {
     c.title = off
       ? paintText(this.stage, title, font, "rgba(243,237,240,.55)", oneLine)
       : paintText(this.stage, title, font, PAPER, { ...oneLine, shadows: TITLE_SHADOW });
-    c.text.addChild(c.tag.sprite, c.title.sprite);
+    if (c.tag) c.text.addChild(c.tag.sprite);
+    c.text.addChild(c.title.sprite);
     c.textWidthUsed = w;
-  }
-
-  /** «In arrivo» sulle carte in grigio: una targhetta col filo chiaro, senza fondo. */
-  private tag(text: string): PaintedText {
-    const res = this.stage.visible().scale * this.stage.app.renderer.resolution;
-    const w = Math.ceil(textWidth(TAG_OFF, text)) + 16 + 2;
-    const h = Math.ceil(16 * 1.3) + 6 + 2;
-    const texture = paintPiece(w, h, res, ctx => {
-      ctx.strokeStyle = "rgba(255,255,255,.22)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
-      const { ascent, descent } = fontMetrics(TAG_OFF);
-      drawText(ctx, { kind: "text", text, font: TAG_OFF, color: "rgba(243,237,240,.6)" }, 9, (h + ascent - descent) / 2);
-    });
-    const sprite = new CrispSprite(texture);
-    sprite.on("destroyed", () => texture.destroy(true));
-    return { sprite, w, h };
   }
 
   /** Il contenuto che la carta scopre aprendosi: la frase e i suoi gesti. */
@@ -630,6 +693,7 @@ export class Home {
     const sum = this.cards.reduce((total, c) => total + c.grow.v, 0);
     const avail = w - CARD_GAP * (this.cards.length - 1);
     this.row.position.set(0, y);
+    this.ground.position.set(0, y);
     let cx = x;
     for (const c of this.cards) {
       const cw = (avail * c.grow.v) / sum;
@@ -643,35 +707,38 @@ export class Home {
     c.x = x;
     c.w = w;
     c.root.position.set(x, 0);
+    c.frame.ground.position.set(x, 0);
     c.root.hitArea = new Rectangle(0, 0, w, h);
     const off = c.def.off === true;
     const k = c.k.v;
     const o = off ? 0 : Math.max(0, Math.min(1, (c.grow.v - 1) / (GROW_OPEN - 1)));
-    placeShadow(c.shadow, SHADOW_M, 0, 0, w, h);
-    placeShadow(c.openShadow, SHADOW_M, 0, 0, w, h);
-    c.shadow.alpha = 1 - o;
-    c.openShadow.alpha = o;
-    // La lastra nera col suo filo: chiaro a .14, rosa a .7 aperta; in grigio a .08.
-    const border = off ? 0xffffff : mixColor(0xffffff, 0xe56a86, o);
-    const alpha = off ? 0.08 : 0.14 + (0.7 - 0.14) * o;
-    c.slab.clear().rect(0, 0, w, h).fill(0x0b090c).rect(0.5, 0.5, w - 1, h - 1).stroke({ color: border, alpha, width: 1 });
+    // Il corpo: si schiaccia appena alla pressione, si solleva aperto, entra salendo e schiarendo.
+    const enter = c.enter.v;
+    c.body.pivot.set(w / 2, h / 2);
+    c.body.position.set(w / 2, h / 2 - LIFT * o + ENTER_RISE * (1 - enter));
+    c.body.scale.set(1 - 0.018 * c.press.v);
+    c.body.alpha = enter;
+    c.frame.ground.alpha = enter;
+    // La sagoma spezzata: maschera, bordo, magma e crepe (home-fx.ts); la lastra nera dentro la sagoma.
+    c.frame.place(w, h, o, k);
+    c.frame.fillSlab(c.slab);
     // L'illustrazione a tutta carta, a coprire col suo ritaglio, ingrandita attorno al centro.
-    const aw = w - 2;
-    const ah = h - 2;
-    c.artMask.clear().rect(1, 1, aw, ah).fill(0xffffff);
+    const aw = w;
+    const ah = h;
     const texture = c.art.texture;
     if (texture !== Texture.EMPTY && texture.width > 0) {
       const s = Math.max(aw / texture.width, ah / texture.height);
       const [px, py] = c.def.pos ?? [0.5, 0.5];
-      const bx = 1 + (aw - texture.width * s) * px;
-      const by = 1 + (ah - texture.height * s) * py;
+      const bx = (aw - texture.width * s) * px;
+      const by = (ah - texture.height * s) * py;
       const z = c.zoom.v;
-      const cx = 1 + aw / 2;
-      const cy = 1 + ah / 2;
+      const cx = aw / 2;
+      const cy = ah / 2;
       c.art.scale.set(s * z);
-      c.art.position.set(cx + (bx - cx) * z, cy + (by - cy) * z);
+      c.artBase = { x: cx + (bx - cx) * z, y: cy + (by - cy) * z };
+      c.art.position.set(c.artBase.x - c.parallax.x * PARALLAX_X, c.artBase.y - c.parallax.y * PARALLAX_Y);
     }
-    c.veil.position.set(1, 1);
+    c.veil.position.set(0, 0);
     c.veil.width = aw;
     c.veil.height = ah;
     if (!off) c.dimmed.alpha = c.dim.v;
@@ -690,6 +757,8 @@ export class Home {
     const titleTop = c.moreTop - TEXT_GAP - titleHeight;
     c.title?.sprite.position.set(TEXT_PAD_X, titleTop);
     c.tag?.sprite.position.set(TEXT_PAD_X, titleTop - TEXT_GAP - tagH);
+    // Il filo di rubino sotto il titolo si disegna con l'apertura.
+    c.frame.underlineAt(TEXT_PAD_X, titleTop + titleHeight + 3, k);
     c.textMask.clear().rect(0, 0, w, h).fill(0xffffff);
   }
 

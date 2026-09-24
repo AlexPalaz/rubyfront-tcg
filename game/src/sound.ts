@@ -27,6 +27,11 @@ const LEVEL: Record<Cue, number> = { select: 0.7, button: 0.55, play: 0.9, draw:
 /** I brani: la home e il tavolo. */
 export const HOME_MUSIC = "strategic-dawn";
 export const TABLE_MUSIC = "neon-medieval-arena";
+/** I temi della fine partita (2026-09-24): sintetizzati in outcome-music.ts, non file; girano in loop al posto del brano del tavolo. */
+export const OUTCOME_MUSIC: Record<Outcome, string> = { won: "outcome-won", lost: "outcome-lost" };
+const OUTCOME_OF: Record<string, Outcome> = { "outcome-won": "won", "outcome-lost": "lost" };
+/** Il tema della fine partita entra svelto: il brano del tavolo sfuma in mezzo secondo, senza la pausa fra i brani. */
+const OUTCOME_FADE_S = 0.5;
 
 const MASTER_GAIN = 0.6;
 const MUSIC_GAIN = 0.2;
@@ -37,6 +42,8 @@ const MUSIC_GAP_MS = 2000;
 /** La fine del loop 50 ms prima dell'ultimo campione: Chrome sennò ammutolisce al primo giro. */
 const LOOP_TAIL_S = 0.05;
 const EXTENSION = "m4a";
+
+import { renderOutcomeLoop, type Outcome } from "./outcome-music";
 
 let context: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -61,6 +68,12 @@ function ensure(): AudioContext | null {
 function load(ctx: AudioContext, path: string): Promise<AudioBuffer | null> {
   const known = buffers.get(path);
   if (known) return known;
+  const outcome = OUTCOME_OF[path.replace(/^music\//, "")];
+  if (outcome) {
+    const rendered = renderOutcomeLoop(ctx.sampleRate, outcome).catch(() => null);
+    buffers.set(path, rendered);
+    return rendered;
+  }
   const url = new URL(`${path}.${EXTENSION}`, document.baseURI).href;
   const pending = fetch(url)
     .then(response => (response.ok ? response.arrayBuffer() : Promise.reject(new Error(response.statusText))))
@@ -385,14 +398,20 @@ export function renderSocket(ctx: BaseAudioContext, out: AudioNode, tint: Socket
   }
 }
 
+/** Il brano che gira adesso (o che partirà): per le prove. */
+export function musicPlaying(): string | null {
+  return musicWanted;
+}
+
 /** Il brano parte in dissolvenza e gira in loop finché non lo si ferma; `restart` lo riprende da capo. */
 export function startMusic(name: string, restart = false): void {
   if (restart && music) stopMusic(true);
   musicWanted = name;
   if (!musicEnabled) return;
   if (music?.name === name) return;
+  const swift = name in OUTCOME_OF;
   if (music) {
-    fadeOut(music, MUSIC_FADE_OUT_S);
+    fadeOut(music, swift ? OUTCOME_FADE_S : MUSIC_FADE_OUT_S);
     music = null;
     musicStoppedAt = performance.now();
   }
@@ -400,7 +419,7 @@ export function startMusic(name: string, restart = false): void {
   if (!ctx || !master) return;
   if (ctx.state === "suspended") void ctx.resume();
   const out = master;
-  const gap = musicStoppedAt ? Math.max(0, MUSIC_GAP_MS - (performance.now() - musicStoppedAt)) : 0;
+  const gap = swift ? OUTCOME_FADE_S * 1000 : musicStoppedAt ? Math.max(0, MUSIC_GAP_MS - (performance.now() - musicStoppedAt)) : 0;
   void load(ctx, `music/${name}`).then(buffer => {
     if (!buffer || musicWanted !== name || music?.name === name) return;
     const attack = (): void => {

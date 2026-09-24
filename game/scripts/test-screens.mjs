@@ -183,7 +183,7 @@ try {
   await photo("09c-reward-filled");
   results.win = await page.evaluate(() => {
     const s = window.__rubyfront.match.session.state();
-    return { over: s.over ?? null, hp: [s.players.a.hp, s.players.b.hp] };
+    return { over: s.over ?? null, hp: [s.players.a.hp, s.players.b.hp], music: window.__rubyfront.music() };
   });
   await click("button:Continua");
   await pause(600);

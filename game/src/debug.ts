@@ -5,6 +5,7 @@
 // anche l'area sicura 1920×1080 e i fotogrammi al secondo.
 
 import { Container, Graphics, Text } from "pixi.js";
+import { musicPlaying } from "./sound";
 import { DESIGN_H, DESIGN_W, type Stage } from "./stage.js";
 
 export interface SceneNode {
@@ -61,12 +62,14 @@ declare global {
       dumpScreens(): SceneNode;
       /** Tutta la scena: mondo, schermate e ciò che sta sopra (sigillo, domanda, sipario, anteprime). */
       dumpAll(): SceneNode;
+      /** Il brano che gira (per le prove: il tema della fine partita). */
+      music(): string | null;
     };
   }
 }
 
 export function mountDebug(stage: Stage): void {
-  window.__rubyfront = { stage, dump: () => describe(stage.world, stage), dumpScreens: () => describe(stage.screens, stage), dumpAll: () => describe(stage.app.stage, stage) };
+  window.__rubyfront = { stage, dump: () => describe(stage.world, stage), dumpScreens: () => describe(stage.screens, stage), dumpAll: () => describe(stage.app.stage, stage), music: musicPlaying };
   if (!new URLSearchParams(location.search).has("debug")) return;
 
   const layer = new Container({ label: "debug" });
