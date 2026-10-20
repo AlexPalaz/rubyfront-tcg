@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.87.0"
+    VERSION = "0.88.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -90,6 +90,7 @@ module Rubyfront
       "§8.2 Il controllo non è un ingresso: gli effetti «quando entra» non si riapplicano",
       "§3.1 Le abilità speciali del Rubyfront: costano PV, in campo, nel proprio turno, nella loro finestra, una sola per turno (il flip riapre la finestra)",
       "§8.1 La Furia: un d20 prima dell'abilità, col fallimento −1 PV",
+      "§3.3 L'Ascesa: viaggia col mazzo — PV iniziali = stampati + quelli dell'Ascesa, la soglia della Furia abbassata (mai sotto 2)",
       "§8.2 Effetti certificati: «quando entra, tira un d6 e guarda tante carte quanto il tiro»",
       "§3.2 La tassa di Flusso: «all'inizio di ogni tuo turno hai N Flusso in meno» viaggia nel cambio di turno",
       "§8.2 Effetti certificati: «quando entra, gli Oggetti avversari in Ritiro, poi riarma dal tuo Ritiro»",
@@ -181,6 +182,7 @@ module Rubyfront
       "§8.2 Taking control isn't an entry: “when it enters” effects don't apply again",
       "§3.1 The Rubyfront's special abilities: they cost HP, on the field, on your own turn, in their window, only one per turn (the flip reopens the window)",
       "§8.1 Fury: a d20 before the ability, −1 HP on a failure",
+      "§3.3 The Ascent: it travels with the deck — starting HP = printed + the Ascent's, the Fury threshold lowered (never below 2)",
       "§8.2 Certified effects: “when it enters, roll a d6 and look at as many cards as the roll”",
       "§3.2 The Flux toll: “at the start of each of your turns you have N less Flux” travels in the turn change",
       "§8.2 Certified effects: “when it enters, opposing Objects to Retire, then rearm from your Retire Zone”",
@@ -1029,7 +1031,16 @@ module Rubyfront
     # l'anagrafe, sul Rubyfront che il mazzo contiene. Un mazzo senza
     # Rubyfront, o con un Rubyfront ignoto (o senza PV in anagrafe), non ha
     # regola: silenzio. Niente numeri fidati in rete.
+    # §3.3 — l'Ascesa (2026-09-26) viaggia nel mazzo (`ascent`: `hp`,
+    # `fury`, interi non negativi): i PV iniziali sono gli stampati più
+    # quelli dell'Ascesa. Qui se ne verifica la forma e il conto; che sia
+    # davvero quella del giocatore lo verifica la stanza, che sa chi siede.
     def judge_load_deck(action)
+      ascent = action["ascent"]
+      unless ascent.nil? || self.class.ascent_shape?(ascent)
+        return refuse("loadDeck", "l'Ascesa è un oggetto con hp e fury, interi da 0 a #{ASCENT_MAX} (§3.3)", "the Ascent is an object with hp and fury, integers from 0 to #{ASCENT_MAX} (§3.3)")
+      end
+
       rubyfront = Array(action["cards"]).find do |card|
         card.is_a?(Hash) && @cards.dig(card["cardId"], :type) == "rubyfront"
       end
@@ -1037,10 +1048,27 @@ module Rubyfront
 
       printed = @cards.dig(rubyfront["cardId"], :health)
       return no_rule("loadDeck") unless printed.is_a?(Integer)
-      return allow("loadDeck") if action["hp"] == printed
+
+      bonus = ascent ? ascent["hp"].to_i : 0
+      return allow("loadDeck") if action["hp"] == printed + bonus
 
       given = action["hp"].inspect
+      if bonus.positive?
+        return refuse("loadDeck", "i Punti Vita iniziali sono quelli stampati sul Rubyfront più quelli dell'Ascesa: #{printed} + #{bonus}, non #{given} (§3.1, §3.3)", "starting Health Points are the ones printed on the Rubyfront plus the Ascent's: #{printed} + #{bonus}, not #{given} (§3.1, §3.3)")
+      end
+
       refuse("loadDeck", "i Punti Vita iniziali sono quelli stampati sul Rubyfront: #{printed}, non #{given} (§3.1)", "starting Health Points are the ones printed on the Rubyfront: #{printed}, not #{given} (§3.1)")
+    end
+
+    # §3.3 — il tetto di ciascun numero dell'Ascesa: un percorso intero non
+    # ci arriva; oltre è una forma che il tavolo non conosce.
+    ASCENT_MAX = 20
+
+    # La forma dell'Ascesa nel `loadDeck`: un oggetto con al più `hp` e
+    # `fury`, interi fra 0 e il tetto. La usa anche la stanza.
+    def self.ascent_shape?(ascent)
+      ascent.is_a?(Hash) && (ascent.keys - %w[hp fury]).empty? &&
+        ascent.values.all? { |value| value.is_a?(Integer) && value.between?(0, ASCENT_MAX) }
     end
 
     def judge_player(action)
@@ -3185,7 +3213,10 @@ module Rubyfront
         roll = action["roll"]
         return refuse("ability", "la Furia vuole un d20 prima dell'abilità: l'azione non porta un tiro valido (§8.1)", "Fury takes a d20 before the ability: the action carries no valid roll (§8.1)") unless roll.is_a?(Integer) && roll.between?(1, 20)
 
+        # §3.3 — i nodi Furia dell'Ascesa abbassano la soglia, mai sotto 2.
         threshold = known[:fury_at][face] || 12
+        relief = @table.fury_relief(card[:owner])
+        threshold = [threshold - relief, 2].max if relief.positive?
         expected = roll < threshold
         return refuse("ability", "la Furia fallisce sotto #{threshold}: col #{roll} l'esito dev'essere #{expected ? "il fallimento" : "il successo"} (§8.1)", "Fury fails below #{threshold}: with a #{roll} the outcome must be #{expected ? "a failure" : "a success"} (§8.1)") unless (action["fail"] == true) == expected
       elsif action.key?("roll") || action.key?("fail")

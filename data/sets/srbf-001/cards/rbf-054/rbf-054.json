@@ -68,5 +68,9 @@
     }
   ],
   "designNotes": "rbf-054.md",
-  "unique": true
+  "art": "rbf-054.jpg",
+  "unique": true,
+  "fullArt": true,
+  "artZoom": "50%",
+  "artFocusX": "35%"
 }

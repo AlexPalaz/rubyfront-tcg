@@ -1232,6 +1232,59 @@ class EngineTest < Minitest::Test
     refute verdict[:ruled]
   end
 
+  # --- §3.3: l'Ascesa viaggia col mazzo ---------------------------------------
+
+  def test_ascent_adds_its_hp_to_the_printed_and_raises_the_cap
+    engine = Rubyfront::Engine.new(cards: LIFE)
+    cards = [{ "uid" => "a-rf", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "RUBY", "y" => 1580 }]
+    verdict = engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards, "hp" => 24, "ascent" => { "hp" => 3, "fury" => 1 } })
+    assert verdict[:ok], verdict[:reason]
+    table = engine.instance_variable_get(:@table)
+    assert_equal 24, table.hp("a")
+    assert_equal 1, table.fury_relief("a")
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 30 } })
+    assert_equal 24, table.hp("a"), "il tetto delle cure sale con l'Ascesa"
+  end
+
+  def test_ascent_hp_must_add_up_and_the_shape_is_checked_in_two_languages
+    engine = Rubyfront::Engine.new(cards: LIFE)
+    cards = [{ "uid" => "a-rf", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "RUBY", "y" => 1580 }]
+    load = ->(extra) { engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards }.merge(extra)) }
+    verdict = load.call("hp" => 21, "ascent" => { "hp" => 3, "fury" => 0 })
+    refute verdict[:ok]
+    assert_includes verdict[:reason], "21 + 3"
+    assert_includes verdict[:reason], "(§3.1, §3.3)"
+    assert_includes verdict[:reason_en], "(§3.1, §3.3)"
+    refute load.call("hp" => 24)[:ok], "i PV dell'Ascesa senza l'Ascesa"
+    assert load.call("hp" => 21, "ascent" => { "hp" => 0, "fury" => 2 })[:ok]
+    assert load.call("hp" => 21, "ascent" => {})[:ok]
+    %w[tre].each do |bad|
+      shape = load.call("hp" => 21, "ascent" => { "hp" => bad })
+      refute shape[:ok]
+      assert_includes shape[:reason], "(§3.3)"
+      assert_includes shape[:reason_en], "(§3.3)"
+    end
+    refute load.call("hp" => 21, "ascent" => { "hp" => -1 })[:ok]
+    refute load.call("hp" => 21, "ascent" => { "hp" => 0, "power" => 1 })[:ok], "una chiave che l'Ascesa non ha"
+    refute load.call("hp" => 21, "ascent" => [3])[:ok]
+    refute load.call("hp" => 41, "ascent" => { "hp" => 20 + 1 })[:ok], "oltre il tetto"
+  end
+
+  # Senza Rubyfront noto la forma si verifica lo stesso; il conto no (silenzio).
+  def test_ascent_shape_is_checked_even_without_a_known_rubyfront
+    engine = Rubyfront::Engine.new(cards: LIFE)
+    refute engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [], "ascent" => "tanta" })[:ok]
+    refute engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => [], "ascent" => { "hp" => 2 } })[:ruled]
+  end
+
+  def test_reloading_without_ascent_clears_it
+    engine = Rubyfront::Engine.new(cards: LIFE)
+    cards = [{ "uid" => "a-rf", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "RUBY", "y" => 1580 }]
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards, "hp" => 21, "ascent" => { "hp" => 0, "fury" => 2 } })
+    engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards, "hp" => 21 })
+    assert_equal 0, engine.instance_variable_get(:@table).fury_relief("a")
+  end
+
   WINDOW = {
     "SLOW" => { type: "entity", keywords: [] },
     "STONE" => { type: "matter", keywords: [], behavior: "normal" },
@@ -4170,6 +4223,29 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], verdict[:reason]
     assert_equal 18, table_copy(engine).hp("a"), "il recupero, al turno dopo"
     assert_match(/non tira la Furia/, ability_action(arcane, "sconto", cost: 3, roll: 20, fail: false, discount: { "amount" => 1, "type" => "object", "race" => nil })[:reason])
+  end
+
+  # §3.3 — i nodi Furia dell'Ascesa abbassano la soglia (13 → 11 con 2), mai sotto 2.
+  def test_ascent_lowers_the_fury_threshold_but_never_below_two
+    # La copia del tavolo con l'Ascesa messa a mano: il carico vero è nel test dopo.
+    engine = arcane
+    table_copy(engine).instance_variable_get(:@players)["a"][:ascent] = { hp: 0, fury: 2 }
+    assert_match(/fallisce sotto 11/, ability_action(engine, "carica", cost: 5, roll: 11, fail: true, targets: [], power: 1)[:reason])
+    verdict = ability_action(engine, "carica", cost: 5, roll: 11, fail: false, targets: [], power: 1)
+    assert verdict[:ok], verdict[:reason]
+    engine = arcane
+    table_copy(engine).instance_variable_get(:@players)["a"][:ascent] = { hp: 0, fury: 20 }
+    assert_match(/fallisce sotto 2/, ability_action(engine, "carica", cost: 5, roll: 1, fail: false, targets: [], power: 1)[:reason])
+    assert ability_action(engine, "carica", cost: 5, roll: 1, fail: true, targets: [], power: 1)[:ok], "con l'1 la Furia si ritorce sempre"
+  end
+
+  # Il mazzo porta l'Ascesa nel `loadDeck` vero: la soglia scende da lì.
+  def test_the_deck_ascent_reaches_the_fury_roll
+    engine = Rubyfront::Engine.new(cards: ABILITIES)
+    cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "ARCANE", "y" => 1260 }]
+    assert engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards, "hp" => 21, "ascent" => { "hp" => 0, "fury" => 1 } })[:ok]
+    assert_equal 1, table_copy(engine).fury_relief("a")
+    assert_equal 0, table_copy(engine).fury_relief("b")
   end
 
   def test_ability_needs_enough_hp_field_turn_and_window

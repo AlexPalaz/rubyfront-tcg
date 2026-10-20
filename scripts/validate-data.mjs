@@ -254,13 +254,16 @@ if (fs.existsSync(decksDir)) {
   console.log(`  mazzi: ${deckFiles.length}`);
 }
 
-// La progressione dei Rubyfront (2026-09-23): le regole (soglie, punti, slot)
-// e un file per Rubyfront con 10 livelli, ciascuno con un'abilità Rubyfront e
-// una Nexus, testi it/en inline come nei mazzi. Modulo a parte: non tocca le
-// carte, e l'engine dei giudizi non lo legge.
+// La progressione dei Rubyfront (2026-09-23, a percorso dal 2026-09-26): le
+// regole (soglie, punti, blocchi sostituibili, nodi per percorso) e un file
+// per Rubyfront con il percorso — nodi collegati, la carta al centro
+// (`card`), tutti raggiungibili; abilità con la faccia e i testi it/en
+// inline come nei mazzi, PV e Furia con un `amount`. Modulo a parte: non
+// tocca le carte; il giudizio legge solo l'Ascesa che viaggia col mazzo.
 const progressionDir = path.join(DATA, "progression");
 if (fs.existsSync(progressionDir)) {
   const rulesPath = path.join(progressionDir, "rules.json");
+  let pathNodes = 20;
   if (!fs.existsSync(rulesPath)) fail("progression/rules.json", "manca il file delle regole");
   else {
     const rules = JSON.parse(fs.readFileSync(rulesPath, "utf8"));
@@ -273,6 +276,8 @@ if (fs.existsSync(progressionDir)) {
     }
     for (const outcome of ["win", "loss", "draw"]) if (!Number.isInteger(rules.points?.[outcome]) || rules.points[outcome] < 0) fail(where, `points.${outcome} dev'essere un intero non negativo`);
     for (const face of ["rubyfront", "nexus"]) if (!Number.isInteger(rules.slots?.[face]) || rules.slots[face] < 1) fail(where, `slots.${face} dev'essere un intero positivo`);
+    if (!Number.isInteger(rules.pathNodes) || rules.pathNodes < 10) fail(where, "pathNodes dev'essere un intero, almeno 10 (un nodo per livello)");
+    else pathNodes = rules.pathNodes;
   }
   const files = fs.readdirSync(progressionDir).filter(name => name.endsWith(".json") && name !== "rules.json");
   for (const name of files) {
@@ -282,21 +287,37 @@ if (fs.existsSync(progressionDir)) {
     if (!known) fail(relative, `card ${doc.card} non registrata nel catalogo`);
     else if (known.type !== "rubyfront") fail(relative, `card ${doc.card} non è un Rubyfront`);
     if (name !== `${String(doc.card).toLowerCase()}.json`) fail(relative, `il file deve chiamarsi ${String(doc.card).toLowerCase()}.json`);
-    const levels = Array.isArray(doc.levels) ? doc.levels : [];
-    if (levels.length !== 10) fail(relative, `servono 10 livelli, trovati ${levels.length}`);
+    if (doc.schemaVersion !== 2) fail(relative, "schemaVersion dev'essere 2 (il percorso)");
+    const nodes = Array.isArray(doc.nodes) ? doc.nodes : [];
+    if (nodes.length !== pathNodes) fail(relative, `servono ${pathNodes} nodi, trovati ${nodes.length}`);
     const ids = new Set();
-    levels.forEach((level, index) => {
-      const at = `${relative}.levels[${index}]`;
-      if (level.level !== index + 1) fail(at, `level dev'essere ${index + 1}`);
-      for (const face of ["rubyfront", "nexus"]) {
-        const ability = level[face];
-        if (!ability || typeof ability !== "object") { fail(at, `manca l'abilità ${face}`); continue; }
-        if (typeof ability.id !== "string" || !ability.id) fail(at, `${face}.id dev'essere una stringa`);
-        else if (ids.has(ability.id)) fail(at, `${face}.id «${ability.id}» duplicato nel file`);
-        ids.add(ability.id);
-        requireLocales(ability.locales, `${at}.${face}`, ["name", "text"]);
+    for (const node of nodes) {
+      if (typeof node.id !== "string" || !node.id || node.id === "card") fail(relative, "ogni nodo ha un id stringa (non «card»)");
+      else if (ids.has(node.id)) fail(relative, `id «${node.id}» duplicato nel file`);
+      ids.add(node.id);
+    }
+    const links = new Map([["card", new Set()]]);
+    for (const id of ids) links.set(id, new Set());
+    nodes.forEach((node, index) => {
+      const at = `${relative}.nodes[${index}]`;
+      if (!["ability", "hp", "fury"].includes(node.kind)) fail(at, `kind «${node.kind}» sconosciuto (ability, hp, fury)`);
+      if (node.kind === "ability") {
+        if (!["rubyfront", "nexus"].includes(node.face)) fail(at, "un'abilità ha la faccia (rubyfront o nexus)");
+        requireLocales(node.locales, at, ["name", "text"]);
+      } else if (!Number.isInteger(node.amount) || node.amount < 1) fail(at, "PV e Furia hanno un amount intero positivo");
+      if (!Array.isArray(node.at) || node.at.length !== 2 || !node.at.every(Number.isFinite)) fail(at, "at dev'essere [x, y]");
+      if (!Array.isArray(node.links) || !node.links.length) fail(at, "links: almeno un collegamento");
+      for (const other of node.links ?? []) {
+        if (!links.has(other)) { fail(at, `collegamento a «${other}», che non c'è`); continue; }
+        links.get(other).add(node.id);
+        links.get(node.id)?.add(other);
       }
     });
+    // Tutti raggiungibili dalla carta.
+    const seen = new Set(["card"]);
+    const frontier = ["card"];
+    while (frontier.length) for (const next of links.get(frontier.shift()) ?? []) if (!seen.has(next)) { seen.add(next); frontier.push(next); }
+    for (const id of ids) if (!seen.has(id)) fail(relative, `il nodo «${id}» non si raggiunge dalla carta`);
   }
   console.log(`  progressioni: ${files.length}`);
 }

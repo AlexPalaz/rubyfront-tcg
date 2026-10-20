@@ -136,6 +136,18 @@ ON_OVER = lambda do |room, action|
   end
 end
 
+# L'Ascesa (2026-09-26, §3.3): quella che spetta a un giocatore col mazzo
+# dato — il percorso del Rubyfront del mazzo, dalla memoria, accorciato al
+# livello di oggi. Senza giocatore, senza memoria o con un mazzo senza
+# progressione: nessuna. La stanza la confronta con quella del `loadDeck`.
+ASCENT_FOR = lambda do |player_id, deck_id|
+  card = DECK_RUBYFRONT[deck_id.to_s]
+  next Rubyfront::Room::ASCENT_ZERO unless player_id && STORE && PROGRESSION && card && PROGRESSION.known?(card)
+
+  row = STORE.rubyfronts_of(player_id).find { |entry| entry[:card] == card }
+  PROGRESSION.ascent(card, PROGRESSION.progress_of(card, row)[:path])
+end
+
 # L'accesso (2026-09-22): Google col suo client id (GOOGLE_CLIENT_ID), la
 # posta di conferma con Resend (RESEND_API_KEY, MAIL_FROM) e il sito per i
 # link (RUBYFRONT_SITE). Senza, Google non è offerto e la posta va sul log.
@@ -255,7 +267,8 @@ def serve(client)
 
   account = Rubyfront::Account.new(STORE, out, free_decks: FREE_DECKS, google: GOOGLE, mailer: MAILER, progression: PROGRESSION, testers: TEST_USERS)
   # Chi siede qui, per il gancio della fine partita: una lambda, così vale anche se l'accesso arriva dopo.
-  room.attach(seat, who: -> { account.player&.dig(:id) }, tester: -> { account.tester? })
+  room.attach(seat, who: -> { account.player&.dig(:id) }, tester: -> { account.tester? },
+                    ascent: ->(deck_id) { ASCENT_FOR.call(account.player&.dig(:id), deck_id) })
   decoder = Rubyfront::WebSocket::Decoder.new
   begin
     loop do

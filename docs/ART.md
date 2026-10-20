@@ -100,6 +100,19 @@ cables and antennas, glowing mechanical lanterns`. Ferraglia rétro, MAI
 neon/ologrammi/grattacieli: aggiungere alle esclusioni extra
 `neon signs, holograms, skyscrapers, modern city`.
 
+**Fuori dal villaggio** (RBF-047, 2026-10-20): le `mechanical lanterns`
+richiamano il borgo da sole, e il `--no` da solo non lo toglie. Serve un
+luogo alternativo detto in positivo (`an open windswept field of dry golden
+grass…`) più `village, town, houses, buildings, rooftops, street, lanterns`
+nelle esclusioni.
+
+**Personaggio senza volto** (RBF-059, 2026-10-20): `--cref` rimette il viso
+contro qualsiasi `--no` e qualsiasi inquadratura di spalle, e abbassare
+`--cw` peggiora (a valori bassi copia solo il viso). Senza volto si lavora
+con `--sref` o senza riferimento. Di spalle pieno Niji sposta la gemma del
+petto sulla schiena: vista di lato e un po' da dietro, viso girato
+nell'ombra, `gem on the back` nelle esclusioni.
+
 ### Esclusioni extra per carta
 
 Si accodano al `--no` base senza toccarlo: es. `open jacket, bare chest`

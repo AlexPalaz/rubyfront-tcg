@@ -11,7 +11,7 @@
 // stesso trasporto, ma in uno strato loro, così nessun momento del tavolo
 // che si porta in cima (l'insegna, la scena) passa sopra la home.
 
-import { Application, Container } from "pixi.js";
+import { Application, Container, Filter } from "pixi.js";
 import { installCursors } from "./cursors";
 
 export const DESIGN_W = 1920;
@@ -39,6 +39,12 @@ export interface Stage {
 }
 
 export async function createStage(host: HTMLElement): Promise<Stage> {
+  // I filtri di Pixi v8 disegnano a risoluzione 1 di serie: su Retina (o con
+  // lo zoom del browser) tutto ciò che passa da un filtro — il tasto rosso
+  // acceso al passaggio, la carta velata, l'illustrazione spenta — si
+  // ricampionava a densità dimezzata e le scritte si sgranavano (2026-09-25).
+  // Un imbuto solo: ogni filtro segue la risoluzione del renderer.
+  Filter.defaultOptions.resolution = "inherit";
   const app = new Application();
   await app.init({
     preference: "webgl",

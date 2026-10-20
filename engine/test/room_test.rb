@@ -60,6 +60,41 @@ class RoomTest < Minitest::Test
     assert_equal 2, a.last[:seq]
   end
 
+  # §3.3 — l'Ascesa del `loadDeck` non va oltre quella che la memoria dà al
+  # posto caricato: chi non ha account (o il bot nella «solo») non ne ha.
+  def test_the_deck_ascent_must_be_the_seat_s_own
+    room = new_room
+    a = seated(room, "a")
+    b = seated(room, "b")
+    asked = []
+    room.attach("a", who: -> { 7 }, ascent: ->(deck) { asked << deck; { "hp" => 2, "fury" => 1 } })
+    room.handle("a", { "t" => "judge", "seq" => 1, "action" => sample_deck("a").merge("ascent" => { "hp" => 5, "fury" => 1 }) })
+    refute a.last[:ok]
+    assert_match(/\(§3\.3\)/, a.last[:reason])
+    assert_match(/\(§3\.3\)/, a.last[:reason_en])
+    room.handle("a", { "t" => "judge", "seq" => 2, "action" => sample_deck("a").merge("ascent" => { "hp" => 2, "fury" => 2 }) })
+    refute a.last[:ok], "più Furia del percorso"
+    room.handle("a", { "t" => "judge", "seq" => 3, "action" => sample_deck("a").merge("ascent" => { "hp" => 2, "fury" => 1 }) })
+    assert a.last[:ok], a.last[:reason]
+    assert_equal %w[test test test], asked
+    room.handle("a", { "t" => "judge", "seq" => 6, "action" => sample_deck("a") })
+    assert a.last[:ok], "meno del dovuto (il mazzo caricato prima dell'accesso) non si ferma"
+    room.handle("b", { "t" => "judge", "seq" => 4, "action" => sample_deck("b").merge("ascent" => { "hp" => 0, "fury" => 3 }) })
+    refute b.last[:ok], "senza account niente Ascesa"
+    room.handle("b", { "t" => "judge", "seq" => 5, "action" => sample_deck("b").merge("ascent" => { "hp" => 0, "fury" => 0 }) })
+    assert b.last[:ok], "l'Ascesa a zero è come nessuna"
+  end
+
+  # La memoria che non risponde non ferma la partita.
+  def test_an_unreadable_ascent_lets_the_deck_through
+    room = new_room
+    a = seated(room, "a")
+    room.attach("a", who: -> { 7 }, ascent: ->(_deck) { raise "giù" })
+    _, err = capture_io { room.handle("a", { "t" => "judge", "seq" => 1, "action" => sample_deck("a").merge("ascent" => { "hp" => 0, "fury" => 1 }) }) }
+    assert a.last[:ok], a.last[:reason]
+    assert_match(/non verificata/, err)
+  end
+
   def test_passing_action_goes_to_journal_and_others
     room = new_room
     a = seated(room, "a")

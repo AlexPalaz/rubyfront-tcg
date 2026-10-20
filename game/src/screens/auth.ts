@@ -120,7 +120,8 @@ export class Auth {
   private build(): void {
     this.clear();
     const v = this.stage.visible();
-    this.veil.clear().rect(v.x, v.y, v.width, v.height).fill({ color: 0x000000, alpha: 0.55 });
+    // Il velo leggero: dietro c'è solo il paesaggio della home (2026-09-24), che deve restare visibile.
+    this.veil.clear().rect(v.x, v.y, v.width, v.height).fill({ color: 0x000000, alpha: 0.3 });
     const add = (node: Container, x: number, y: number): void => {
       node.position.set(x, y);
       this.card.addChild(node);

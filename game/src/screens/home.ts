@@ -16,7 +16,7 @@ import { faceModel } from "../card/model";
 import { loadImage } from "../card/resources";
 import { textWidth, type Font } from "../card/text";
 import type { Stage } from "../stage";
-import { HOME_MUSIC, playSound, startMusic, unlockSound } from "../sound";
+import { HOME_MUSIC, playSound, startMusic, stopMusic, unlockSound } from "../sound";
 import { CrispSprite, SANS, paintPiece, linearGradient } from "../table/appearance";
 import { bezier, reducedMotion } from "../table/animation";
 import { cssFilter } from "./filters";
@@ -31,11 +31,12 @@ const GAP = 18;
 const ROW_MAX_W = 1560;
 const ROW_MAX_H = 960;
 const CARD_GAP = 16;
-const GROW_OPEN = 2.2;
-const GROW_OFF = 0.72;
+/** Le larghezze (2026-09-24, ritarate perché il titolo stia su una riga a misura fissa anche a carta chiusa): aperta 1.7, in grigio 0.55. */
+const GROW_OPEN = 1.7;
+const GROW_OFF = 0.55;
 /** .home-text: in fondo alla carta, padding 22 20 24, gap 8; dentro il contenuto che si scopre, gap 12. */
 /** I testi stanno dentro la sagoma spezzata: più in là del morso più profondo (home-fx.ts). */
-const TEXT_PAD_X = BITE + 10;
+const TEXT_PAD_X = BITE + 6;
 const TEXT_PAD_BOTTOM = BITE + 12;
 const TEXT_GAP = 8;
 const MORE_GAP = 12;
@@ -43,7 +44,8 @@ const GROW_MS = 550;
 const MORE_MS = 500;
 const DIM_MS = 500;
 /** .home-art: scale(1.04) a carta chiusa, a misura aperta (.8s). */
-const ZOOM = 1.04;
+/** Niente zoom dell'illustrazione al passaggio (2026-09-24: «brutto che la card fa zoom in e zoom out»). */
+const ZOOM = 1;
 const ZOOM_MS = 800;
 /** La lastra viva (2026-09-24): la pressione che schiaccia, il sollevamento della carta aperta, l'entrata a scalare, il parallasse dell'illustrazione. */
 const PRESS_MS = 90;
@@ -62,7 +64,8 @@ const SHADOW_M = 70;
 const curve = bezier(0.2, 0.8, 0.2, 1);
 
 const TAG: Font = { size: 16, weight: 600, family: SANS, spacing: 16 * 0.22, upper: true };
-const TITLE: Font = { size: 24, weight: 700, family: SANS, spacing: 24 * 0.06, upper: true };
+/** Il titolo: una misura sola, su una riga, in ogni stato della carta (2026-09-24). */
+const TITLE: Font = { size: 20, weight: 700, family: SANS, spacing: 20 * 0.05, upper: true };
 const HELLO: Font = { size: 30, weight: 700, family: SANS, spacing: 30 * 0.16, upper: true };
 
 type HomeCardId = "solo" | "multi" | "event" | "tourney" | "decks";
@@ -194,6 +197,8 @@ export class Home {
   private readonly field: TextField;
   private readonly blurFilter = new BlurFilter({ strength: 10, quality: 3 });
   private blurred = false;
+  /** Dietro la porta (la schermata d'accesso): solo il paesaggio. */
+  private gated = false;
   private greetingText = "";
   private overlay: HomeCardId | null = null;
   private tappedCard: HomeCardId | null = null;
@@ -255,19 +260,50 @@ export class Home {
     if (!this.root.visible) {
       this.root.visible = true;
       this.stage.app.ticker.add(this.tick);
-      // L'entrata: le carte salgono una dopo l'altra, schiarendo.
-      const now = performance.now();
-      this.cards.forEach((c, index) => {
-        c.enter.v = c.enter.from = 0;
-        c.enter.a = 1;
-        c.enter.t0 = now + index * ENTER_STAGGER_MS;
-        c.enter.ms = reducedMotion() ? 1 : ENTER_MS;
-      });
+      if (!this.gated) this.entrance();
     }
     this.layout();
-    startMusic(HOME_MUSIC);
+    if (!this.gated) startMusic(HOME_MUSIC);
     // I campioni dei tasti si caricano subito: anche il primo click in home scatta.
     unlockSound();
+  }
+
+  /**
+   * La porta (2026-09-24): davanti alla schermata d'accesso la home mostra
+   * solo il paesaggio — niente saluto, niente carte, niente musica. Quando
+   * l'account entra, la porta si apre: le carte fanno la loro entrata e la
+   * musica parte.
+   */
+  gate(on: boolean): void {
+    if (on === this.gated) return;
+    this.gated = on;
+    this.greeting.visible = !on;
+    this.ground.visible = !on;
+    this.row.visible = !on;
+    if (on) {
+      this.overlay = null;
+      this.tappedCard = null;
+      this.field.show(false);
+      this.retarget(true);
+      // Dietro la porta niente musica: si spegne anche se stava già suonando.
+      stopMusic();
+      return;
+    }
+    if (!this.root.visible) return;
+    this.entrance();
+    this.layout();
+    startMusic(HOME_MUSIC);
+  }
+
+  /** L'entrata: le carte salgono una dopo l'altra, schiarendo. */
+  private entrance(): void {
+    const now = performance.now();
+    this.cards.forEach((c, index) => {
+      c.enter.v = c.enter.from = 0;
+      c.enter.a = 1;
+      c.enter.t0 = now + index * ENTER_STAGGER_MS;
+      c.enter.ms = reducedMotion() ? 1 : ENTER_MS;
+    });
   }
 
   hide(): void {
@@ -757,8 +793,6 @@ export class Home {
     const titleTop = c.moreTop - TEXT_GAP - titleHeight;
     c.title?.sprite.position.set(TEXT_PAD_X, titleTop);
     c.tag?.sprite.position.set(TEXT_PAD_X, titleTop - TEXT_GAP - tagH);
-    // Il filo di rubino sotto il titolo si disegna con l'apertura.
-    c.frame.underlineAt(TEXT_PAD_X, titleTop + titleHeight + 3, k);
     c.textMask.clear().rect(0, 0, w, h).fill(0xffffff);
   }
 

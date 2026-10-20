@@ -43,6 +43,7 @@ module Rubyfront
       @clients = {}
       @whos = {}
       @testers = {}
+      @ascents = {}
       @on_over = on_over
       @over_told = false
       @journal = []
@@ -90,10 +91,14 @@ module Rubyfront
     # l'accesso arriva dopo. Il trasporto la registra dopo il `join`.
     # `tester:` dice se chi siede è l'account di prova (`-> { true/false }`):
     # solo lui usa gli strumenti di prova (Engine.test_tool?).
-    def attach(seat, who:, tester: nil)
+    # `ascent:` (2026-09-26) dice l'Ascesa che spetta a chi siede con quel
+    # mazzo (`->(deck_id) { {"hp" => n, "fury" => n} }`, letta dalla memoria):
+    # il `loadDeck` di quel posto non può portarne di più (§3.3).
+    def attach(seat, who:, tester: nil, ascent: nil)
       @mutex.synchronize do
         @whos[seat] = who
         @testers[seat] = tester
+        @ascents[seat] = ascent
       end
     end
 
@@ -131,6 +136,7 @@ module Rubyfront
         @clients.delete(seat)
         @whos.delete(seat)
         @testers.delete(seat)
+        @ascents.delete(seat)
         @emptied_at = Time.now if @clients.empty?
         announce
       end
@@ -171,6 +177,9 @@ module Rubyfront
         if Engine.test_tool?(action) && !tester?(seat)
           { t: "verdict", action: action["t"], ok: false, ruled: true,
             reason: "gli strumenti di prova sono dell'account di prova", reason_en: "the test tools belong to the test account", seq: message["seq"] }
+        elsif ascent_stopped?(action)
+          { t: "verdict", action: "loadDeck", ok: false, ruled: true,
+            reason: "l'Ascesa del mazzo va oltre quella del tuo Rubyfront (§3.3)", reason_en: "the deck's Ascent goes beyond your Rubyfront's (§3.3)", seq: message["seq"] }
         else
           @engine.judge(action, actor: actor).merge(seq: message["seq"])
         end
@@ -180,6 +189,31 @@ module Rubyfront
       record(action, seat)
       broadcast({ t: "action", action: action, from: seat }, except: seat)
       tell_over(action)
+    end
+
+    ASCENT_ZERO = { "hp" => 0, "fury" => 0 }.freeze
+
+    # §3.3 — l'Ascesa di un `loadDeck` va oltre quella che spetta al posto
+    # caricato? Chi siede senza account (o il bot, o un posto vuoto) non ne
+    # ha; chi ha un account ha quella del suo percorso per il Rubyfront del
+    # mazzo. Si ferma solo il di più: portarne meno (il mazzo caricato prima
+    # che l'accesso arrivi) svantaggia solo chi lo fa, e non deve fermare il
+    # carico. Se la memoria non risponde, non si ferma la partita: si lascia
+    # al giudizio (la forma e il conto dei PV li verifica comunque l'engine).
+    def ascent_stopped?(action)
+      return false unless action.is_a?(Hash) && action["t"] == "loadDeck"
+
+      given = action["ascent"]
+      return false unless given.nil? || Engine.ascent_shape?(given)
+
+      source = @ascents[action["seat"]]
+      expected = source ? source.call(action["deckId"]) : ASCENT_ZERO
+      given = ASCENT_ZERO.merge(given || {})
+      expected = ASCENT_ZERO.merge(expected || {})
+      ASCENT_ZERO.keys.any? { |key| given[key] > expected[key].to_i }
+    rescue StandardError => error
+      warn "Ascesa non verificata (#{action["seat"]}): #{error.message}"
+      false
     end
 
     # La fine partita passata al giudizio, al gancio, una volta sola: il

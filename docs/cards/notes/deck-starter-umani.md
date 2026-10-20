@@ -19,7 +19,7 @@
 
 ## 2. Il piano
 
-È il mazzo del tutorial: una curva piena di corpi vanilla (1/1, 4/4, 5/5), una parola chiave alla volta (Slancio sul Sovversivo, Vendetta sul Vendicatore), un'Entità che entra tappata per spiegare la stappata, un Istigatore che mostra il buff all'ingresso e Axel, l'Unico, che mostra l'innesco d'attacco. Le Materie insegnano le tre famiglie: la Reattiva (Forza di Volontà, Muro di Fuoco), la normale col costo a dado (Colpo Decisivo) e la Statica (Richiamo Divampante).
+È il mazzo del tutorial: una curva piena di corpi vanilla (1/1, 4/4, 5/5), una parola chiave alla volta (Slancio sulla Sovversiva, Vendetta sul Vendicatore), un'Entità che entra tappata per spiegare la stappata, un Istigatore che mostra il buff all'ingresso e Axel, l'Unico, che mostra l'innesco d'attacco. Le Materie insegnano le tre famiglie: la Reattiva (Forza di Volontà, Muro di Fuoco), la normale col costo a dado (Colpo Decisivo) e la Statica (Richiamo Divampante).
 
 ## 3. Note dal foglio
 

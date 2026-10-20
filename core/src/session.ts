@@ -12,7 +12,7 @@
 // tavolo che il bot compie con le stesse scene di un giocatore. Estratta
 // nella migrazione a PixiJS (F1, 2026-09-11), così il gioco non la ripete.
 
-import { freshProgress, type Loadout, type PlayerProgress } from "./progression.js";
+import { ascentOf, freshProgress, progressionOf, type Loadout, type PlayerProgress } from "./progression.js";
 import type { ProgressUpdate } from "./engine.js";
 import { chooseAbility, chooseAttackers, chooseBlocks, chooseDiscards, chooseFlip, choosePlay, chooseResponse, freshMemory, pickBest, wantsMulligan, type BotMemory } from "./bot.js";
 import { cardFacts, cardName, cardStats, deckTint, getDeck, isRubyfront, type Tint, setOwnedDecks, availableDecks } from "./cards.js";
@@ -200,6 +200,8 @@ export interface Session {
   progress(card: string): PlayerProgress;
   /** Le abilità montate su un Rubyfront: al tavolo, che convalida e risponde in `progressChanged` (o `progressRefused`). */
   setLoadout(card: string, loadout: Loadout): void;
+  /** Il percorso d'Ascesa di un Rubyfront (2026-09-26): al tavolo, come la configurazione. */
+  setPath(card: string, path: string[]): void;
   /** C'è una sessione salvata da riprendere (o in corso di ripresa)? Per la schermata d'accesso: aspetta invece di chiedere. */
   hasSavedSession(): boolean;
   logout(): void;
@@ -615,9 +617,16 @@ export function createSession(options: SessionOptions): Session {
     }
     // §3.1 — i PV con cui si inizia sono quelli stampati sul Rubyfront del
     // mazzo: viaggiano nell'azione, e l'engine li confronta con l'anagrafe.
+    // §3.3 — l'Ascesa: il percorso del Rubyfront di chi siede qui (mai
+    // del bot, mai di un posto locale altrui) si porta al tavolo col mazzo;
+    // i suoi PV si sommano agli stampati. La stanza la confronta con la memoria.
     const rubyfront = cards.find(card => isRubyfront(card.cardId));
-    const hp = rubyfront ? cardStats(rubyfront.cardId).health : null;
-    dispatch({ t: "loadDeck", seat, deckId, cards, ...(hp === null ? {} : { hp }) });
+    const printed = rubyfront ? cardStats(rubyfront.cardId).health : null;
+    const mine = seat === mySeat && account && rubyfront ? account.rubyfronts?.find(entry => entry.card === rubyfront.cardId) : undefined;
+    const ascent = mine ? ascentOf(progressionOf(mine.card), mine.path ?? []) : null;
+    const lifted = ascent && (ascent.hp > 0 || ascent.fury > 0) ? ascent : null;
+    const hp = printed === null ? null : printed + (lifted?.hp ?? 0);
+    dispatch({ t: "loadDeck", seat, deckId, cards, ...(hp === null ? {} : { hp }), ...(lifted ? { ascent: lifted } : {}) });
     const deck = getDeck(deckId);
     const name = deck?.locales[locale]?.name ?? deck?.locales[deck.defaultLocale]?.name ?? deckId;
     ctx.log(msg("log.loaded", { seat, name, n: cards.length }), seat);
@@ -865,7 +874,7 @@ export function createSession(options: SessionOptions): Session {
         // La voce dell'account si sostituisce, così il pannello e i chip leggono sempre l'ultima.
         if (account) {
           const rest = (account.rubyfronts ?? []).filter(entry => entry.card !== update.card);
-          account = { ...account, rubyfronts: [...rest, { card: update.card, xp: update.xp, level: update.level, loadout: update.loadout }] };
+          account = { ...account, rubyfronts: [...rest, { card: update.card, xp: update.xp, level: update.level, path: update.path, loadout: update.loadout }] };
         }
         if (update.gained !== undefined) ctx.log(msg("log.progress", { card: update.card, n: update.gained, level: update.level }));
         view.progressChanged?.(update);
@@ -1225,6 +1234,9 @@ export function createSession(options: SessionOptions): Session {
     progress: card => account?.rubyfronts?.find(entry => entry.card === card) ?? freshProgress(card),
     setLoadout(card, loadout) {
       if (!engine?.setLoadout(card, loadout)) view.progressRefused?.(card, t("stop.absent"));
+    },
+    setPath(card, path) {
+      if (!engine?.setPath(card, path)) view.progressRefused?.(card, t("stop.absent"));
     },
     hasSavedSession: () => Boolean(store.read("session", "")),
     logout() {

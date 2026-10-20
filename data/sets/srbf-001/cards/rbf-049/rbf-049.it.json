@@ -1,5 +1,5 @@
 {
-  "name": "Sovversivo Impetuoso",
+  "name": "Sovversiva Impetuosa",
   "typeLabel": "Entità: Umano",
   "summary": "Slancio a 2 Flussi: insegna che si può attaccare nel turno in cui si entra.",
   "ui": {
@@ -12,7 +12,7 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Sovversivo Impetuoso",
+    "name": "Sovversiva Impetuosa",
     "keyword": {
       "name": "Slancio",
       "rules": "può attaccare nel turno in cui entra sul Fronte"

@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { CONTROL_X, MATTER_X, frontRowY } from "../src/geometry.js";
-import { STACK_STEP, abilityDiscount, apply, attackBonusFor, attackKey, matterSpot, newGame, pay, playSpot, replay, zoneCards, chainTop, openingPending, mayMulligan, mustKeep } from "../src/state.js";
+import { STACK_STEP, abilityDiscount, apply, furyThreshold, attackBonusFor, attackKey, matterSpot, newGame, pay, playSpot, replay, zoneCards, chainTop, openingPending, mayMulligan, mustKeep } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 
 function deckFor(seat: Seat, count: number): { cards: CardInstance[] } & Extract<Parameters<typeof apply>[1], { t: "loadDeck" }> {
@@ -515,6 +515,25 @@ describe("apply control / release", () => {
     expect(state.players.b.hp).toBe(20);
     state = apply(state, deckFor("b", 3));
     expect(state.players.b.hp).toBe(20);
+  });
+
+  // §3.3 — l'Ascesa del mazzo (2026-09-26). Gemello: table_test.rb, «test_deck_carries_the_ascent».
+  it("loadDeck porta l'Ascesa: i PV (già in hp) alzano il tetto, la Furia resta sul posto, ogni carico la riscrive", () => {
+    let state = apply(newGame(), { ...deckFor("a", 3), hp: 24, ascent: { hp: 3, fury: 2 } });
+    expect(state.players.a.ascent).toEqual({ hp: 3, fury: 2 });
+    expect(state.players.b.ascent).toBeUndefined();
+    state = apply(state, { t: "player", seat: "a", patch: { hp: 30 } });
+    expect(state.players.a.hp).toBe(24);
+    expect(furyThreshold(state, "a", 13)).toBe(11);
+    expect(furyThreshold(state, "b", 13)).toBe(13);
+    state = apply(state, { ...deckFor("a", 3), hp: 21 });
+    expect(state.players.a.ascent).toEqual({ hp: 0, fury: 0 });
+  });
+
+  // §3.3 — la soglia della Furia non scende mai sotto 2. Gemello: engine_test.rb, «test_ascent_lowers_the_fury_threshold_but_never_below_two».
+  it("la soglia della Furia scende con l'Ascesa, mai sotto 2", () => {
+    const state = apply(newGame(), { ...deckFor("a", 3), hp: 21, ascent: { hp: 0, fury: 20 } });
+    expect(furyThreshold(state, "a", 13)).toBe(2);
   });
 
   // Regola sperimentale (2026-09-17): i PV non superano quelli stampati. Gemello: table_test.rb, «test_hp_never_exceeds_printed».

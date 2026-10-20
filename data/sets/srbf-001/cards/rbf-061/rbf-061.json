@@ -337,7 +337,10 @@
             }
           }
         }
-      ]
+      ],
+      "art": "rbf-061-nexus.jpg",
+      "artZoom": "48%",
+      "artShift": "2%"
     }
   ],
   "designNotes": "rbf-061.md",

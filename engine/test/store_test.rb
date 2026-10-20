@@ -23,27 +23,38 @@ class StoreTest < Minitest::Test
   def test_ensure_schema_creates_the_two_tables
     store, calls = fake_store
     store.ensure_schema!
-    assert_equal 6, calls.size
+    assert_equal 7, calls.size
     assert_match(/CREATE TABLE IF NOT EXISTS players/, calls[0][0])
     assert_match(/CREATE TABLE IF NOT EXISTS player_identities/, calls[1][0])
     assert_match(/CREATE TABLE IF NOT EXISTS sessions/, calls[2][0])
     assert_match(/CREATE TABLE IF NOT EXISTS player_decks/, calls[3][0])
     assert_match(/CREATE TABLE IF NOT EXISTS player_data/, calls[4][0])
     assert_match(/CREATE TABLE IF NOT EXISTS player_rubyfronts/, calls[5][0])
+    assert_match(/ADD COLUMN IF NOT EXISTS path JSONB/, calls[6][0])
   end
 
   # La progressione (2026-09-23): l'esperienza si somma nella riga, la
   # configurazione si riscrive, e le righe tornano con il jsonb già letto.
   def test_rubyfront_progress_rows_add_xp_and_rewrite_the_loadout
-    row = { "card_id" => "X-1", "xp" => "140", "loadout" => "{\"rubyfront\":[\"a\"]}" }
-    store, calls = fake_store([[row], [row], [row]])
-    assert_equal({ card: "X-1", xp: 140, loadout: { "rubyfront" => ["a"] } }, store.add_xp(7, "X-1", 40))
+    row = { "card_id" => "X-1", "xp" => "140", "loadout" => "{\"rubyfront\":[\"a\"]}", "path" => "[\"a\",\"b\"]" }
+    store, calls = fake_store([[row], [row], [row], [row]])
+    assert_equal({ card: "X-1", xp: 140, path: %w[a b], loadout: { "rubyfront" => ["a"] } }, store.add_xp(7, "X-1", 40))
     assert_match(/INSERT INTO player_rubyfronts/, calls[0][0])
     assert_equal [7, "X-1", 40], calls[0][1]
     assert_equal 140, store.set_loadout(7, "X-1", { "rubyfront" => ["a"] })[:xp]
     assert_equal [7, "X-1", "{\"rubyfront\":[\"a\"]}"], calls[1][1]
     assert_equal ["X-1"], store.rubyfronts_of(7).map { |r| r[:card] }
     assert_match(/SELECT card_id, xp/, calls[2][0])
+    # Il percorso (2026-09-26): si riscrive insieme alla configurazione.
+    assert_equal %w[a b], store.set_path(7, "X-1", %w[a b], { "rubyfront" => ["a"] })[:path]
+    assert_equal [7, "X-1", "[\"a\",\"b\"]", "{\"rubyfront\":[\"a\"]}"], calls[3][1]
+    assert_match(/INSERT INTO player_rubyfronts \(player_id, card_id, path, loadout\)/, calls[3][0])
+  end
+
+  # Una riga di prima del percorso (senza la colonna): percorso vuoto.
+  def test_a_row_without_the_path_reads_as_an_empty_path
+    store, = fake_store([[{ "card_id" => "X-1", "xp" => "5", "loadout" => "{}" }]])
+    assert_equal [], store.rubyfronts_of(7).first[:path]
   end
 
   def test_sessions_and_public_shape_never_carry_the_password_hash

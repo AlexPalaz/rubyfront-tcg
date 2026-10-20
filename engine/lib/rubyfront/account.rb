@@ -14,12 +14,13 @@ module Rubyfront
   #   {t:"logout"}                                        → me con player null (la sessione cancellata)
   #   {t:"verify", token}                                 → me (la mail confermata) o verified:false
   #   {t:"profile", name}                                 → me (il nome pubblico cambiato)
-  #   {t:"loadout", card, loadout:{rubyfront:[…], nexus:[…]}} → {t:"progress", card, xp, level, loadout} (o ok:false, reason) — la progressione (2026-09-23)
+  #   {t:"loadout", card, loadout:{rubyfront:[…], nexus:[…]}} → {t:"progress", card, xp, level, path, loadout} (o ok:false, reason) — la progressione (2026-09-23)
+  #   {t:"path", card, path:[…]}                          → {t:"progress", …} (o ok:false, reason) — il percorso d'Ascesa (2026-09-26)
   #   {t:"save", seq, key, value}                         → {t:"saved", seq, key, ok, reason?, reason_en?}
   #   {t:"load", seq, key}                                → {t:"data", seq, key, value}   (null se non c'è)
   #
   # `me` è {t:"me", player:{id, username, name, email, verified, providers, decks, rubyfronts}, token?}
-  # (`rubyfronts`: la progressione per Rubyfront — card, xp, level, loadout — dal 2026-09-23)
+  # (`rubyfronts`: la progressione per Rubyfront — card, xp, level, path, loadout — dal 2026-09-23, il percorso dal 2026-09-26)
   # o {t:"me", player:null, reason, reason_en} su un rifiuto.
   #
   # I mazzi (2026-09-20) sono del giocatore: all'accesso gli si assegnano i
@@ -59,6 +60,7 @@ module Rubyfront
       when "save" then save(message)
       when "load" then load(message)
       when "loadout" then loadout(message)
+      when "path" then path(message)
       when "judge" then return deck_stopped(message)
       else return false
       end
@@ -234,24 +236,51 @@ module Rubyfront
       @progression.card_ids.map { |card| @progression.progress_of(card, rows[card]) }
     end
 
-    # La configurazione delle abilità montate: convalidata contro il livello
-    # attuale, poi scritta; la risposta è la progressione aggiornata.
+    # La configurazione delle abilità montate: convalidata contro il percorso
+    # attuale (quello della forma pubblica: accorciato al livello), poi
+    # scritta; la risposta è la progressione aggiornata.
     def loadout(message)
+      progress_write(message) do |card, current|
+        ok, reason, reason_en = @progression.loadout_ok?(card, current[:path], message["loadout"])
+        next [reason, reason_en] unless ok
+
+        @store.set_loadout(@player[:id], card, message["loadout"])
+      end
+    end
+
+    # Il percorso d'Ascesa (2026-09-26): convalidato contro il livello
+    # attuale, poi scritto nell'ordine dalla carta, con la configurazione
+    # ristretta a lui (un'abilità montata il cui nodo è stato smontato
+    # lascia libero il suo blocco).
+    def path(message)
+      progress_write(message) do |card, current|
+        level = current[:level]
+        ok, reason, reason_en = @progression.path_ok?(card, level, message["path"])
+        next [reason, reason_en] unless ok
+
+        path = @progression.normal_path(card, message["path"])
+        @store.set_path(@player[:id], card, path, @progression.loadout_within(card, path, current[:loadout]))
+      end
+    end
+
+    # Lo scheletro comune delle scritture della progressione: accesso,
+    # memoria, la forma pubblica di oggi al blocco; il blocco torna la riga
+    # scritta, o `[motivo, motivo_en]` per un rifiuto.
+    def progress_write(message)
       card = message["card"].to_s
       return progress_refused(card, "serve l'accesso", "you need to be logged in") unless @player
       return progress_refused(card, "non c'è una memoria collegata", "no memory is connected") unless @store && @progression
+      return progress_refused(card, "Rubyfront sconosciuto alla progressione", "Rubyfront unknown to the progression") unless @progression.known?(card)
 
-      current = @store.rubyfronts_of(@player[:id]).find { |row| row[:card] == card }
-      level = @progression.level_for(current ? current[:xp] : 0)
-      ok, reason, reason_en = @progression.loadout_ok?(card, level, message["loadout"])
-      return progress_refused(card, reason, reason_en) unless ok
+      row = @store.rubyfronts_of(@player[:id]).find { |entry| entry[:card] == card }
+      written = yield(card, @progression.progress_of(card, row))
+      return progress_refused(card, *written) if written.is_a?(Array)
 
-      row = @store.set_loadout(@player[:id], card, message["loadout"])
-      progress = @progression.progress_of(card, row)
+      progress = @progression.progress_of(card, written)
       @player[:rubyfronts] = rubyfronts_of(@player[:id])
       @out.call({ t: "progress" }.merge(progress))
     rescue StandardError => error
-      warn "loadout: #{error.message}"
+      warn "progressione: #{error.message}"
       progress_refused(card, "la memoria non risponde", "the memory isn't answering")
     end
 

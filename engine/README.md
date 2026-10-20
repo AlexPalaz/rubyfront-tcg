@@ -1319,6 +1319,31 @@ Regole collegate finora:
   l'ingresso col turno dell'uscita, quindi i suoi «quando entra» nel turno
   altrui verrebbero fermati — oggi nessuna carta con quella forma ne ha.
   Engine 0.76.0.
+- **§3.3 L'Ascesa viaggia col mazzo** (regola sperimentale del
+  2026-09-26) — «la partita comincia con i PV stampati più quelli
+  dell'Ascesa, e il tetto delle cure sale allo stesso valore»; «la soglia
+  del d20 della Furia scende di N […] non scende mai sotto 2». Il percorso
+  del Rubyfront (i nodi attivi, `progression.rb`) si riassume in due
+  numeri, `ascent {hp, fury}`, che il client mette nel `loadDeck` accanto a
+  `hp` (stampati + Ascesa). L'engine verifica la forma (solo `hp` e `fury`,
+  interi da 0 a 20) e il conto dei PV; la copia annota l'Ascesa sul posto
+  (riscritta a ogni carico, portata dallo snapshot) e il giudizio
+  dell'abilità abbassa la soglia della Furia di `fury`, mai sotto 2. Che
+  l'Ascesa sia davvero quella del giocatore lo verifica la **stanza**, che
+  sa chi siede: `Room#attach(…, ascent:)` riceve dal trasporto una lambda
+  che legge dalla memoria il percorso del Rubyfront del mazzo (accorciato
+  al livello di oggi) e ne fa la somma; un `loadDeck` con un'Ascesa più
+  alta è fermato («va oltre quella del tuo Rubyfront (§3.3)»), chi siede
+  senza account (e il bot) non ne ha. Una più bassa passa: svantaggia solo
+  chi la porta, e succede quando il mazzo si carica prima che l'accesso
+  arrivi (limite: quella partita si gioca senza Ascesa). Limiti dichiarati:
+  se la memoria non risponde la stanza lascia passare (lo scrive a log) e
+  resta il solo controllo di forma e conto; nella «solo» vale lo stesso controllo, ma il
+  resto della partita è fidato quanto il client; i nodi abilità del
+  percorso non hanno ancora effetto in partita (vedi `progression.rb`
+  sotto). Regola d'oro: un effetto di carta che oggi non esiste e toccasse
+  la soglia della Furia o i PV iniziali verrebbe fermato a torto finché
+  l'engine non legge gli effetti. Engine 0.88.0.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `core/test/` (vitest): il riduttore
@@ -1379,7 +1404,8 @@ connessione (partita locale o col bot), da cui si entra anche nell'**atrio**
 | client | `{"t":"register","username":"…","email":"…","password":"…","name":"…"}` | `{"t":"me","player":{…},"token":"…"}` (2026-09-22): l'account con **nome utente unico** (3–20, minuscole, cifre e `_`), email, password (almeno 8) e **nome pubblico**; il token è la sessione da conservare (90 giorni; nella memoria solo l'impronta); parte la posta di conferma (Resend, o sul log del tavolo senza `RESEND_API_KEY`) con `?verify=` sul sito |
 | client | `{"t":"login","provider":"password","login":"…","password":"…"}` / `{"t":"login","provider":"google","idToken":"…"}` | `{"t":"me","player":{"id":1,"username":"…","name":"…","email":"…","verified":true,"providers":["google"],"decks":[…]},"token":"…"}`, o `{"t":"me","player":null,"reason":"…","reason_en":"…"}`. L'**utenza** è della connessione, non della stanza. `password` accetta nome utente o email; `google` è il biglietto (ID token) del bottone di Google, che il tavolo fa leggere a Google e accetta solo per il suo `GOOGLE_CLIENT_ID` con la mail verificata (stessa mail già registrata → si collega, se no un account nuovo). L'utenza di prova a chiave (`dev`) è stata tolta il 2026-09-23: si entra solo come tutti. Le **identità** (google, domani steam) sono più accessi allo stesso giocatore |
 | client | `{"t":"resume","token":"…"}` / `{"t":"logout"}` / `{"t":"verify","token":"…"}` / `{"t":"profile","name":"…"}` | `me` (la sessione ripresa; cancellata, `player:null`; la mail confermata — o `{"t":"verified","username":"…"}` se chi apre il link non è seduto come quel giocatore; il nome pubblico cambiato). `player.decks` sono i **mazzi assegnati** all'account (2026-09-20): all'accesso si assegnano i gratuiti (`access: "free"` in `data/decks`) che ancora mancano, gli altri arriveranno con l'acquisto; chi è entrato gioca solo coi suoi (un `loadDeck` con un mazzo non suo è fermato dall'utenza prima del tavolo, con un verdetto), senza accesso i mazzi restano tutti liberi |
-| client | `{"t":"loadout","card":"RBF-001","loadout":{"rubyfront":["…"],"nexus":["…"]}}` | `{"t":"progress","card":"RBF-001","xp":250,"level":3,"loadout":{…}}` (2026-09-23): le abilità montate su un Rubyfront, convalidate col livello attuale (id sbloccati, niente doppioni, al più gli slot per faccia di `data/progression/rules.json`), o `{"t":"progress","card":"…","ok":false,"reason":"…","reason_en":"…"}`. `me.player.rubyfronts` porta la progressione di ogni Rubyfront (card, xp, level, loadout). A fine partita il tavolo manda da sé a chi era seduto `{"t":"progress",…,"gained":100,"outcome":"win"}` |
+| client | `{"t":"loadout","card":"RBF-001","loadout":{"rubyfront":["…"],"nexus":["…"]}}` | `{"t":"progress","card":"RBF-001","xp":250,"level":3,"path":["…"],"loadout":{…}}` (2026-09-23): le abilità montate su un Rubyfront, convalidate col percorso attuale (abilità del percorso e della faccia, niente doppioni, al più gli slot per faccia di `data/progression/rules.json`), o `{"t":"progress","card":"…","ok":false,"reason":"…","reason_en":"…"}`. `me.player.rubyfronts` porta la progressione di ogni Rubyfront (card, xp, level, path, loadout). A fine partita il tavolo manda da sé a chi era seduto `{"t":"progress",…,"gained":100,"outcome":"win"}` |
+| client | `{"t":"path","card":"RBF-001","path":["…","…"]}` | `{"t":"progress",…}` (2026-09-26): il percorso d'Ascesa, convalidato col livello attuale (al più N nodi, tutti collegati alla carta) e scritto nell'ordine dalla carta, con la configurazione ristretta a lui; o il rifiuto come sopra |
 | client | `{"t":"save","seq":3,"key":"prefs","value":{…}}` | `{"t":"saved","seq":3,"key":"prefs","ok":true}` (o `ok:false` con `reason`): il dato JSON del giocatore, una riga per chiave nella memoria (Neon) |
 | client | `{"t":"load","seq":4,"key":"prefs"}` | `{"t":"data","seq":4,"key":"prefs","value":{…}}`, `null` se non c'è o senza accesso |
 | tavolo | `{"t":"seat","seat":"b"}` | a chi si siede, subito, prima di `peers`: il posto assegnato (2026-09-23), che può non essere quello chiesto |
@@ -1473,26 +1499,33 @@ designer. Il giudizio (`engine.rb`) non sa che la memoria esiste.
   (un'azione `assign_object` dal Ritiro al costo stampato).
 - `lib/rubyfront/table.rb` — la copia del tavolo, gemella del riduttore del
   client (`core/src/state.ts`): stessa semantica, test speculari.
-- `lib/rubyfront/progression.rb` — la progressione dei Rubyfront (2026-09-23):
-  un modulo a parte, fuori dal giudizio. Legge `data/progression/` (le
-  regole: soglie di livello, punti per esito, slot per faccia; e per ogni
-  Rubyfront i dieci livelli, ciascuno con un'abilità Rubyfront e una Nexus,
-  oggi **segnaposto**), dà il livello dall'esperienza, le abilità sbloccate
-  e il verdetto su una configurazione. La memoria ha la tabella
-  `player_rubyfronts` (esperienza e configurazione per giocatore e
-  Rubyfront: il livello è derivato, una sola verità). L'esperienza la
+- `lib/rubyfront/progression.rb` — la progressione dei Rubyfront (2026-09-23,
+  a percorso dal 2026-09-26): un modulo a parte, fuori dal giudizio. Legge
+  `data/progression/` (le regole: soglie di livello, punti per esito,
+  blocchi sostituibili per faccia; e per ogni Rubyfront il **percorso**,
+  venti nodi collegati con la carta al centro — abilità, oggi
+  **segnaposto**, PV e Furia), dà il livello dall'esperienza (al livello N
+  si attivano al più N nodi) e i verdetti sul percorso (nodi noti, niente
+  doppioni, tutti collegati alla carta attraverso nodi attivi) e sulla
+  configurazione (abilità del percorso, della faccia giusta, al più i
+  blocchi). Il percorso si tiene nell'ordine dalla carta, così accorciarlo
+  dalla coda — il livello sceso con le soglie ritarate — lo lascia
+  collegato; smontarne un nodo smonta anche la sua abilità. La memoria ha
+  la tabella `player_rubyfronts` (esperienza, percorso e configurazione per
+  giocatore e Rubyfront: il livello è derivato, una sola verità). L'esperienza la
   assegna il **trasporto** a fine partita: la stanza ha un gancio `on_over`
   che parte una volta per partita quando un `gameOver` passa il giudizio
   (verificato dall'engine in stanza; nella «solo» fidato quanto il client,
   che è la copia buona), e il trasporto — che conosce sia la stanza sia gli
   account (`Room#attach`, una lambda per posto) — legge chi era seduto e
   con quale mazzo (dal giornale, l'ultimo `loadDeck`), somma i punti al
-  Rubyfront di quel mazzo e manda `progress` a quel client. **Regola
+  Rubyfront di quel mazzo e manda `progress` a quel client. I nodi PV e
+  Furia arrivano in partita come Ascesa (§3.3, sopra). **Regola
   d'oro:** l'engine non legge ancora le abilità montate: quando lo farà,
   sarà nei tre punti già noti — `judge_ability` (la ricerca dell'abilità
   sulla faccia), la lista offerta al giocatore (`core/src/gestures.ts`,
   `openAbilities`) e il bot (`core/src/bot.ts`, `chooseAbility`) — con
-  la configurazione che viaggerà nel `loadDeck`.
+  la configurazione che viaggerà nel `loadDeck`, come l'Ascesa.
 - `lib/rubyfront/lobby.rb` — l'atrio (2026-09-23): la fila della partita
   casuale, che in due apre una stanza con un nome libero e assegna i posti.
 - `lib/rubyfront/room.rb` — la stanza: un `Engine` per partita, i client

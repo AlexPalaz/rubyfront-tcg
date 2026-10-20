@@ -40,6 +40,19 @@ module Rubyfront
       @players.fetch(seat)[:hp]
     end
 
+    # §3.3 — di quanto l'Ascesa del posto abbassa la soglia della Furia
+    # (portata dal mazzo; 0 senza).
+    def fury_relief(seat)
+      @players.fetch(seat).dig(:ascent, :fury) || 0
+    end
+
+    # §3.3 — l'Ascesa del mazzo, normalizzata: sempre `hp` e `fury`, interi
+    # non negativi (la forma l'ha già verificata l'engine). Gemello: state.ts, ascentOf.
+    def self.ascent_of(ascent)
+      ascent = {} unless ascent.is_a?(Hash)
+      { hp: [ascent["hp"].is_a?(Integer) ? ascent["hp"] : 0, 0].max, fury: [ascent["fury"].is_a?(Integer) ? ascent["fury"] : 0, 0].max }
+    end
+
     # Regola sperimentale (2026-09-17): i PV non superano quelli stampati sul
     # Rubyfront (`hp_max`, portato dal mazzo); senza mazzo caricato non c'è
     # tetto. Gemello: state.ts, cappedHp.
@@ -370,6 +383,7 @@ module Rubyfront
         @players[seat][:flux_max] = player["fluxMax"] if player["fluxMax"].is_a?(Integer)
         @players[seat][:hp] = player["hp"] if player["hp"].is_a?(Integer)
         @players[seat][:hp_max] = player["hpMax"] if player["hpMax"].is_a?(Integer)
+        @players[seat][:ascent] = Table.ascent_of(player["ascent"])
         @players[seat][:token] = player["token"] == true if player.key?("token")
         @players[seat][:sealed] = Array(player["sealed"]).select { |id| id.is_a?(String) }
         @players[seat][:deck_id] = player["deckId"].is_a?(String) ? player["deckId"] : nil
@@ -769,9 +783,12 @@ module Rubyfront
       # la partita comincia da lì. Gemello: state.ts, «loadDeck».
       if @players.key?(seat) && action["hp"].is_a?(Integer)
         @players[seat][:hp] = action["hp"]
-        # Regola sperimentale (2026-09-17): i PV stampati sono anche il tetto delle cure. Gemello: state.ts, loadDeck.
+        # Regola sperimentale (2026-09-17): i PV stampati sono anche il tetto
+        # delle cure — con quelli dell'Ascesa, già dentro `hp` (§3.3). Gemello: state.ts, loadDeck.
         @players[seat][:hp_max] = action["hp"]
       end
+      # §3.3 — l'Ascesa del mazzo: ogni carico la riscrive (senza, è zero). Gemello: state.ts, loadDeck.
+      @players[seat][:ascent] = Table.ascent_of(action["ascent"]) if @players.key?(seat)
       if @players.key?(seat)
         # §4 — col mazzo INTERO (tutte le carte nel mazzo, il Rubyfront in
         # Zona di Richiamo) comincia l'apertura: nessun mulligan, mano non

@@ -39,6 +39,22 @@ class TableTest < Minitest::Test
     assert_equal 30, @table.hp("b"), "senza mazzo caricato non c'è tetto"
   end
 
+  # §3.3 — l'Ascesa del mazzo: i PV (già dentro `hp`) alzano anche il tetto,
+  # la Furia resta sul posto; ogni carico la riscrive, e lo snapshot la porta.
+  # Gemello: state.test.ts, «loadDeck porta l'Ascesa».
+  def test_deck_carries_the_ascent
+    @table.apply(deck_for("a", 3).merge("hp" => 24, "ascent" => { "hp" => 3, "fury" => 2 }))
+    assert_equal 2, @table.fury_relief("a")
+    assert_equal 0, @table.fury_relief("b")
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 30 } })
+    assert_equal 24, @table.hp("a")
+    @table.apply(deck_for("a", 3).merge("hp" => 21))
+    assert_equal 0, @table.fury_relief("a"), "il carico senza Ascesa la azzera"
+    @table.load({ "players" => { "a" => { "hp" => 20, "ascent" => { "hp" => 0, "fury" => 1 } }, "b" => { "hp" => 20 } } })
+    assert_equal 1, @table.fury_relief("a")
+    assert_equal 0, @table.fury_relief("b")
+  end
+
   # §4 — il mulligan, gemello di state.test.ts.
   def test_mulligan_puts_hand_back_draws_six_and_keeps_at_third
     @table.apply(deck_for("a", 10))

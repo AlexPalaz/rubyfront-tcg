@@ -98,9 +98,12 @@ try {
   await pause(1800);
   // La porta (2026-09-22): la schermata d'accesso prima della home. Si entra con l'account di prova.
   await photo("00-auth");
+  // Dietro la porta niente musica (2026-09-24); con l'account entra quella della home.
+  results.music = { gate: await page.evaluate(() => window.__rubyfront.music()) };
   await page.evaluate(({ user, password }) => window.__rubyfront.match.session.loginPassword(user, password), TEST_ACCOUNT);
   await page.waitForFunction(() => Boolean(window.__rubyfront?.match?.session.account()), null, { timeout: 15_000 });
   await pause(900);
+  results.music.home = await page.evaluate(() => window.__rubyfront.music());
   await photo("01-home");
 
   // Le carte al passaggio: Multigiocatore, poi Contro il computer.
@@ -235,9 +238,15 @@ try {
   await photo("15c-progression-enter");
   await pause(2200);
   await photo("15d-progression-grid");
-  await click("node:1");
+  // Il percorso (2026-09-26): il primo nodo abilità attaccato alla carta; se è spento si attiva (un punto dal livello 1).
+  await click("node:oblivhal-r1");
   await pause(700);
   await photo("15e-progression-node");
+  if (await find("button:Attiva")) {
+    await click("button:Attiva");
+    await pause(1600);
+    await photo("15e2-progression-activated");
+  }
   const mountLabel = (await find("button:Monta")) ? "button:Monta" : "button:Smonta";
   const before = await page.evaluate(() => { const p = window.__rubyfront.match.session.progress("RBF-001"); return p.loadout.rubyfront.length + p.loadout.nexus.length; });
   await click(mountLabel);
@@ -253,7 +262,7 @@ try {
   results.progression = await page.evaluate(before => {
     const s = window.__rubyfront.match.session;
     const p = s.progress("RBF-001");
-    return { level: p.level, xp: p.xp, before, mounted: p.loadout.rubyfront.length + p.loadout.nexus.length, open: window.__rubyfront.screens.progression.isOpen() };
+    return { level: p.level, xp: p.xp, path: p.path, before, mounted: p.loadout.rubyfront.length + p.loadout.nexus.length, open: window.__rubyfront.screens.progression.isOpen() };
   }, before);
   await click("button:← Rubyfront");
   await pause(700);

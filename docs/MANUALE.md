@@ -83,7 +83,7 @@ Ogni Rubyfront è una carta con **valori propri**: non esistono valori standard 
 
 La carta del Rubyfront riporta:
 
-- **PV (Punti Vita)** — la sua **unica statistica**, e sono i PV del giocatore: la partita inizia con il valore stampato sulla carta. Gli attacchi subiti fanno scendere i PV; a zero, il proprietario perde (§2). **Regola sperimentale (dal 2026-09-17):** i PV **non possono superare il valore stampato** sulla carta Rubyfront: una cura o un recupero che li porterebbe più in alto si ferma al valore stampato, e il resto va perso.
+- **PV (Punti Vita)** — la sua **unica statistica**, e sono i PV del giocatore: la partita inizia con il valore stampato sulla carta. Gli attacchi subiti fanno scendere i PV; a zero, il proprietario perde (§2). **Regola sperimentale (dal 2026-09-17):** i PV **non possono superare il valore stampato** sulla carta Rubyfront: una cura o un recupero che li porterebbe più in alto si ferma al valore stampato, e il resto va perso. I PV dell'Ascesa (§3.3) si sommano a quelli stampati, per l'inizio e per il tetto.
 - **Costo di schieramento** — il costo in Flusso per schierarlo in campo: un **numero fisso** (es. `2`) oppure un **dado** (es. un dado da `6`) da tirare. Vedi sotto.
 - **Materie disponibili** — i tipi di Materia che il Rubyfront può usare, **con il grado massimo** per i tipi che hanno gradi (come le Entità, §7.1).
 - **Abilità principale** — nasce quando il Rubyfront entra in campo e da quel momento è **sempre attiva**.
@@ -168,6 +168,18 @@ Il **Flusso** è la risorsa con cui si pagano le carte, al posto del classico ma
 Il giocatore che **non** inizia la partita riceve un **Gettone Flusso**: rappresenta **1 punto di Flusso extra**, è **monouso** e può essere utilizzato **in qualsiasi momento della partita** — anche nel turno avversario o nel mezzo di una catena di risposta (compensa lo svantaggio di giocare per secondo).
 
 Il Gettone è **fuori dal limite dei 20 Flussi**: non fa parte della barra del Flusso, è un punto a parte, sempre utilizzabile. Anche a 20 Flussi lo si può spendere — l'unico caso in cui, in sostanza, si arriva a 21.
+
+### 3.3 L'Ascesa del Rubyfront
+
+**Regola sperimentale (dal 2026-09-26).** Fuori dalla partita ogni Rubyfront cresce con le partite giocate: sale di **livello** (da 1 a 10) e a ogni livello guadagna un **punto d'Ascesa** — al livello N ne ha N. I punti si spendono sul **percorso** del Rubyfront: una griglia di nodi collegati, con la carta al centro. Si attiva un nodo alla volta, e ogni nodo attivo dev'essere **attaccato alla carta o a un altro nodo attivo**. Fra una partita e l'altra il percorso si può **smontare**, un nodo alla volta e senza costo, purché ciò che resta rimanga collegato alla carta, e ripercorrere in un'altra direzione.
+
+I nodi sono di tre tipi:
+
+- **Abilità** — un'abilità speciale del Rubyfront o del Nexus: attivarla la **sblocca**, e da lì si può montare **al posto di un'abilità speciale stampata** su quella faccia. *(Le abilità del percorso non sono ancora collegate alla partita.)*
+- **PV** — +N ai **PV stampati** sul Rubyfront: la partita comincia con i PV stampati più quelli dell'Ascesa, e il tetto delle cure (§3.1) sale allo stesso valore.
+- **Furia** — la soglia del d20 della Furia (§8.1) scende di N: con la soglia a 12 e un nodo Furia da 1, il tiro riesce con **11 o più**. La soglia non scende mai sotto **2**: con l'1 la Furia si ritorce sempre.
+
+L'Ascesa si porta al tavolo **col mazzo**: vale quella del Rubyfront del mazzo quando il mazzo si carica, e l'avversario la vede.
 
 ## 4. Preparazione della partita
 
@@ -424,6 +436,8 @@ Una carta con **Furia** è instabile: il suo potere non risponde del tutto al pr
 - con **12 o più**, l'abilità si usa **senza conseguenze**;
 - con **11 o meno**, la Furia si ritorce contro il proprietario: il Rubyfront (o il Nexus) **perde 1 PV**, ma **l'abilità si usa comunque** e si risolve normalmente.
 
+I nodi Furia dell'Ascesa (§3.3) abbassano la soglia del tiro, mai sotto 2.
+
 Il fallimento del tiro **non annulla più nulla**: è un sovrapprezzo — 1 PV in aggiunta al normale costo in PV dell'abilità. Attenzione al limite dei PV (§3.1): se la perdita del fallimento porta i PV a **0**, si perde **immediatamente** la partita e l'abilità non si risolve.
 
 **Le Materie non sono soggette alla Furia:** usare una Materia attribuita alla carta con Furia — **compresa la Materia Distruttiva**, esclusiva del Rubyfront (§7.1) — **non richiede alcun tiro**. Il d20 riguarda **solo le abilità speciali**.
@@ -526,6 +540,7 @@ Il pareggio esiste in due soli casi:
 - Massimo **7 carte in mano** (l'eccesso si scarta a fine turno, §6.5).
 - Massimo **5 Entità sul Fronte** (i 5 slot; Rubyfront e Materie Statiche non contano, §6.2).
 - Massimo **3 copie** della stessa carta nel mazzo — **una sola** se la carta è **Unica** (§3.1).
+- Punti d'Ascesa pari al **livello** del Rubyfront, da 1 a 10; la soglia della Furia non scende sotto **2** (§3.3).
 - Massimo **20 Flussi** (§3.2). Il Gettone Flusso è fuori dal limite: è un punto a parte.
 - Costo **minimo 1 Flusso** stampato per qualsiasi carta (§3.2): non esistono carte gratuite di per sé, ma uno sconto che porta il costo a 0 la rende gratis.
 - Costo di schieramento a **dado**: si tira solo con Flusso disponibile **almeno pari alle facce del dado**; il dado non supera il **d20** (§3.1).

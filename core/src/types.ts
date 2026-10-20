@@ -100,6 +100,8 @@ export interface PlayerState {
   hp: number;
   /** I PV stampati sul Rubyfront (li porta il mazzo, §3.1): il tetto delle cure (regola sperimentale, 2026-09-17). Assente finché il mazzo non è caricato. */
   hpMax?: number;
+  /** L'Ascesa del Rubyfront (§3.3, 2026-09-26), portata dal mazzo: i PV sono già dentro `hp`/`hpMax`, `fury` abbassa la soglia della Furia. Assente = nessuna. */
+  ascent?: { hp: number; fury: number };
   /** Flusso disponibile (§3.2). */
   flux: number;
   /** Flusso massimo del turno: cresce di 1 per turno, tetto 20. */
@@ -310,7 +312,7 @@ export type Action =
   | { t: "newGame"; active?: Seat }
   /** `hp`: i PV stampati sul Rubyfront del mazzo (§3.1) — i PV con cui il
       giocatore inizia; l'engine li confronta con l'anagrafe. */
-  | { t: "loadDeck"; seat: Seat; deckId: string; cards: CardInstance[]; hp?: number }
+  | { t: "loadDeck"; seat: Seat; deckId: string; cards: CardInstance[]; hp?: number; ascent?: { hp: number; fury: number } }
   | { t: "shuffle"; seat: Seat; order: string[] }
   /** §4 — il mulligan: tutta la mano nel mazzo, il mazzo nell'ordine dato (già mescolato da chi lo fa), 6 carte nuove. Fino a 3 volte: dal terzo la mano si tiene da sé. */
   | { t: "mulligan"; seat: Seat; order: string[] }

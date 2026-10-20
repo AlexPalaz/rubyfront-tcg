@@ -23,17 +23,22 @@ class AccountTest < Minitest::Test
       @next = 0
     end
 
-    def rubyfronts_of(id) = @rubyfronts.select { |(pid, _), _| pid == id }.map { |(_, card), row| { card: card, xp: row[:xp], loadout: row[:loadout] } }
+    def rubyfronts_of(id) = @rubyfronts.select { |(pid, _), _| pid == id }.map { |(_, card), row| { card: card }.merge(row) }
+    def row(id, card) = (@rubyfronts[[id, card]] ||= { xp: 0, path: [], loadout: {} })
+
     def add_xp(id, card, amount)
-      row = (@rubyfronts[[id, card]] ||= { xp: 0, loadout: {} })
-      row[:xp] += amount
-      { card: card, xp: row[:xp], loadout: row[:loadout] }
+      row(id, card)[:xp] += amount
+      { card: card }.merge(row(id, card))
     end
 
     def set_loadout(id, card, loadout)
-      row = (@rubyfronts[[id, card]] ||= { xp: 0, loadout: {} })
-      row[:loadout] = loadout
-      { card: card, xp: row[:xp], loadout: row[:loadout] }
+      row(id, card)[:loadout] = loadout
+      { card: card }.merge(row(id, card))
+    end
+
+    def set_path(id, card, path, loadout)
+      row(id, card).merge!(path: path, loadout: loadout)
+      { card: card }.merge(row(id, card))
     end
 
     def player(id) = @players[id]&.reject { |k, _| k == :password_hash }
@@ -71,11 +76,17 @@ class AccountTest < Minitest::Test
     def get(id, key) = @data[[id, key]]
   end
 
-  # Una progressione sintetica: un Rubyfront «X-1», soglie di 10, slot 1 e 2.
+  # Una progressione sintetica: un Rubyfront «X-1», soglie di 10, slot 1 e 2,
+  # e un percorso: carta ─ r1 ─ n1 ─ hp (+2), carta ─ n2.
   def progression
     rules = { "thresholds" => [0, 10, 20, 30, 40, 50, 60, 70, 80, 90], "points" => { "win" => 5, "loss" => 2, "draw" => 3 }, "slots" => { "rubyfront" => 1, "nexus" => 2 } }
-    levels = (1..10).map { |n| { "level" => n, "rubyfront" => { "id" => "r#{n}" }, "nexus" => { "id" => "n#{n}" } } }
-    Rubyfront::Progression.new(rules, { "X-1" => { "card" => "X-1", "levels" => levels } })
+    nodes = [
+      { "id" => "r1", "kind" => "ability", "face" => "rubyfront", "links" => ["card"] },
+      { "id" => "n1", "kind" => "ability", "face" => "nexus", "links" => ["r1"] },
+      { "id" => "hp", "kind" => "hp", "amount" => 2, "links" => ["n1"] },
+      { "id" => "n2", "kind" => "ability", "face" => "nexus", "links" => ["card"] }
+    ]
+    Rubyfront::Progression.new(rules, { "X-1" => { "card" => "X-1", "nodes" => nodes } })
   end
 
   def opened(free: %w[alfa beta], store: FakeStore.new, google_fetch: nil, mail: [], testers: [])
@@ -107,7 +118,7 @@ class AccountTest < Minitest::Test
     assert register(account)
     me = box.last
     assert_equal "me", me[:t]
-    assert_equal({ id: 1, username: "mario", name: "Mario Rossi", email: "mario@example.it", verified: false, providers: [], decks: %w[alfa beta], rubyfronts: [{ card: "X-1", xp: 0, level: 1, loadout: { "rubyfront" => [], "nexus" => [] } }], tester: false }, me[:player])
+    assert_equal({ id: 1, username: "mario", name: "Mario Rossi", email: "mario@example.it", verified: false, providers: [], decks: %w[alfa beta], rubyfronts: [{ card: "X-1", xp: 0, level: 1, path: [], loadout: { "rubyfront" => [], "nexus" => [] } }], tester: false }, me[:player])
     assert_match(/\A\h{64}\z/, me[:token], "la sessione al client")
     assert_equal me[:player][:id], store.sessions[A.token_hash(me[:token])], "nella memoria solo l'impronta"
     assert_equal "mario@example.it", mail[0][0]
@@ -227,16 +238,41 @@ class AccountTest < Minitest::Test
   def test_me_carries_the_progression_and_loadout_is_validated_and_saved
     account, box, store = opened
     register(account)
-    assert_equal [{ card: "X-1", xp: 0, level: 1, loadout: { "rubyfront" => [], "nexus" => [] } }], box.last[:player][:rubyfronts]
+    assert_equal [{ card: "X-1", xp: 0, level: 1, path: [], loadout: { "rubyfront" => [], "nexus" => [] } }], box.last[:player][:rubyfronts]
     id = box.last[:player][:id]
     store.add_xp(id, "X-1", 25)
-    assert account.handle({ "t" => "loadout", "card" => "X-1", "loadout" => { "rubyfront" => ["r2"], "nexus" => %w[n1 n3] } })
-    assert_equal({ t: "progress", card: "X-1", xp: 25, level: 3, loadout: { "rubyfront" => ["r2"], "nexus" => %w[n1 n3] } }, box.last)
-    account.handle({ "t" => "loadout", "card" => "X-1", "loadout" => { "rubyfront" => ["r4"], "nexus" => [] } })
+    assert account.handle({ "t" => "path", "card" => "X-1", "path" => %w[r1 n1 n2] })
+    assert_equal({ t: "progress", card: "X-1", xp: 25, level: 3, path: %w[r1 n2 n1], loadout: { "rubyfront" => [], "nexus" => [] } }, box.last)
+    assert account.handle({ "t" => "loadout", "card" => "X-1", "loadout" => { "rubyfront" => ["r1"], "nexus" => %w[n1 n2] } })
+    assert_equal({ t: "progress", card: "X-1", xp: 25, level: 3, path: %w[r1 n2 n1], loadout: { "rubyfront" => ["r1"], "nexus" => %w[n1 n2] } }, box.last)
+    account.handle({ "t" => "loadout", "card" => "X-1", "loadout" => { "rubyfront" => ["n1"], "nexus" => [] } })
     assert_equal false, box.last[:ok]
-    assert_match(/non sbloccata/, box.last[:reason])
-    assert_match(/locked/, box.last[:reason_en])
-    assert_equal({ "rubyfront" => ["r2"], "nexus" => %w[n1 n3] }, store.rubyfronts[[id, "X-1"]][:loadout], "il rifiuto non scrive")
+    assert_match(/fuori dal percorso/, box.last[:reason])
+    assert_match(/off the path/, box.last[:reason_en])
+    assert_equal({ "rubyfront" => ["r1"], "nexus" => %w[n1 n2] }, store.rubyfronts[[id, "X-1"]][:loadout], "il rifiuto non scrive")
+  end
+
+  # Il percorso (2026-09-26): oltre i punti del livello o staccato dalla
+  # carta si rifiuta; smontare un nodo smonta anche la sua abilità.
+  def test_path_is_validated_against_the_level_and_unmounting_frees_the_block
+    account, box, store = opened
+    register(account)
+    id = box.last[:player][:id]
+    account.handle({ "t" => "path", "card" => "X-1", "path" => %w[r1 n1] })
+    assert_equal false, box.last[:ok]
+    assert_match(/al più 1/, box.last[:reason])
+    account.handle({ "t" => "path", "card" => "X-1", "path" => %w[n1] })
+    assert_equal false, box.last[:ok]
+    assert_match(/cut off/, box.last[:reason_en])
+    store.add_xp(id, "X-1", 25)
+    account.handle({ "t" => "path", "card" => "X-1", "path" => %w[r1 n1 n2] })
+    account.handle({ "t" => "loadout", "card" => "X-1", "loadout" => { "rubyfront" => [], "nexus" => %w[n1 n2] } })
+    account.handle({ "t" => "path", "card" => "X-1", "path" => %w[r1 n2] })
+    assert_equal %w[r1 n2], box.last[:path]
+    assert_equal({ "rubyfront" => [], "nexus" => [nil, "n2"] }, box.last[:loadout])
+    assert_equal %w[r1 n2], store.rubyfronts[[id, "X-1"]][:path]
+    account.handle({ "t" => "path", "card" => "Y-9", "path" => [] })
+    assert_equal false, box.last[:ok]
   end
 
   def test_loadout_needs_the_login

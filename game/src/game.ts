@@ -95,6 +95,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
         if (player) {
           if (auth?.isOpen()) {
             auth.close();
+            home.gate(false);
             enter();
           }
         } else if (!room && !auth?.isOpen()) {
@@ -102,6 +103,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
           decks.close();
           progression.close();
           onboarding.close();
+          home.gate(true);
           showHome();
           auth?.open(false);
         }
@@ -113,7 +115,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
         updateDeckChip();
         // A fine partita: la ricompensa animata, dopo che l'insegna finale si è vista (2026-09-24).
         if (update.gained) {
-          const show: RewardShow = { card: update.card, gained: update.gained, outcome: update.outcome ?? "draw", after: { card: update.card, xp: update.xp, level: update.level, loadout: update.loadout }, locale };
+          const show: RewardShow = { card: update.card, gained: update.gained, outcome: update.outcome ?? "draw", after: { card: update.card, xp: update.xp, level: update.level, path: update.path, loadout: update.loadout }, locale };
           setTimeout(() => void showReward(show), 1500);
         }
       },
@@ -169,6 +171,7 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   progression = new ProgressionScreen(stage, locale, {
     progress: card => session.progress(card),
     setLoadout: (card, loadout) => session.setLoadout(card, loadout),
+    setPath: (card, path) => session.setPath(card, path),
     onClose: () => update(),
   });
   new Preview(stage, progression, locale);
@@ -256,10 +259,10 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
     (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined) ?? ""
   );
   const settings = new Settings(stage, {
-    resync: () => session.resync(),
     account: () => session.account(),
     login: () => {
       settings.close();
+      home.gate(true);
       auth.open(false);
     },
     setDisplayName: name => session.setDisplayName(name),
@@ -518,7 +521,8 @@ export function startGame(stage: Stage, locale: string): { match: Match; screens
   session.join(room);
   greet();
   updateDeckChip();
-  // La home sta dietro la porta, sfocata dal velo; si entra solo con l'account.
+  // La home sta dietro la porta: solo il paesaggio, senza carte né musica, finché non c'è l'account (2026-09-24).
+  home.gate(true);
   showHome();
   auth.open(session.hasSavedSession());
   session.paint();

@@ -218,6 +218,9 @@ function reduce(state: GameState, action: Action): GameState {
             ...state.players[action.seat],
             deckId: action.deckId,
             ...(Number.isInteger(action.hp) ? { hp: action.hp as number, hpMax: action.hp as number } : {}),
+            // §3.3 — l'Ascesa del mazzo: ogni carico la riscrive (senza, è
+            // zero). I suoi PV sono già in `hp`. Gemello: table.rb, load_deck.
+            ascent: ascentOf(action.ascent),
             // §4 — col mazzo INTERO (tutte le carte nel mazzo, il Rubyfront in
             // Zona di Richiamo) comincia l'apertura: nessun mulligan, mano non
             // tenuta. Un tavolo apparecchiato con carte già fuori (snapshot,
@@ -972,7 +975,18 @@ export function playSpot(state: GameState, seat: Seat, kind: string | null): { x
   return kind === "matter" ? matterSpot(state, seat) : freeFrontSlot(state, seat);
 }
 
-/** Mescola una copia dell'array (Fisher-Yates). */
+/** §3.3 — l'Ascesa normalizzata: sempre `hp` e `fury`, interi non negativi. Gemello: Table.ascent_of. */
+export function ascentOf(ascent: { hp?: unknown; fury?: unknown } | undefined | null): { hp: number; fury: number } {
+  const whole = (value: unknown): number => (Number.isInteger(value) && (value as number) > 0 ? (value as number) : 0);
+  return { hp: whole(ascent?.hp), fury: whole(ascent?.fury) };
+}
+
+/** §3.3 — la soglia della Furia di chi possiede la carta: la stampata, meno l'Ascesa, mai sotto 2. Gemello: engine.rb, judge_ability. */
+export function furyThreshold(state: GameState, seat: Seat, printed: number): number {
+  const relief = state.players[seat]?.ascent?.fury ?? 0;
+  return relief > 0 ? Math.max(printed - relief, 2) : printed;
+}
+
 /**
  * Regola sperimentale (2026-09-17, «vediamo come gira»): i PV non superano
  * quelli stampati sul Rubyfront (`hpMax`, portato dal mazzo). Una cura oltre
@@ -983,6 +997,7 @@ function cappedHp<P extends { hp: number; hpMax?: number }>(player: P): P {
   return player.hpMax !== undefined && player.hp > player.hpMax ? { ...player, hp: player.hpMax } : player;
 }
 
+/** Mescola una copia dell'array (Fisher-Yates). */
 export function shuffled<T>(items: readonly T[]): T[] {
   const result = [...items];
   for (let index = result.length - 1; index > 0; index -= 1) {

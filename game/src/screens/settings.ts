@@ -1,6 +1,6 @@
 // Le impostazioni: un cassetto sotto
-// l'ingranaggio, una riga per preferenza — Rete (riallinea dal tavolo),
-// Suoni, Musica, Schermo (intero: nuovo nel gioco, per il desktop e lo
+// l'ingranaggio, una riga per preferenza — Account, Suoni, Musica, Schermo
+// (intero: nuovo nel gioco, per il desktop e lo
 // Steam Deck), Lingua. Niente microfono, vista o tema da scegliere: il
 // gioco ha un tavolo solo e un tema solo. Si chiude con un click fuori o
 // con Esc; le scelte restano salvate. Tema «Notte»: il pannello, il filo
@@ -25,7 +25,6 @@ const LABEL: Font = { size: 16, weight: 700, family: SANS, spacing: 1.6, upper: 
 const SHADOW_M = 60;
 
 export interface SettingsActions {
-  resync(): void;
   language(locale: "it" | "en"): void;
   /** L'utenza nella memoria del tavolo (2026-09-20): chi sono, l'uscita; senza account, «Accedi» apre la schermata d'accesso (2026-09-23). */
   account(): { name: string; username: string; providers: string[]; verified: boolean } | null;
@@ -157,7 +156,6 @@ export class Settings {
     const lines: [string, Button[]][] = [
       [t("html.account"), accountRow],
       ...(who ? [[t("html.account.public"), [new Button(this.stage, { label: t("html.account.save"), style: "plate", font: FONT_BASE, w: loginW, h: ROW_H, onTap: () => this.submitName() })]] as [string, Button[]]] : []),
-      [t("html.net"), [new Button(this.stage, { label: t("html.sync"), style: "plate", font: FONT_BASE, w: controlW, h: ROW_H, onTap: () => this.actions.resync() })]],
       [t("html.sound"), toggleButton("sound", "html.sound.on", "html.sound.off", setSoundEnabled)],
       [t("html.music"), toggleButton("music", "html.music.on", "html.music.off", setMusicEnabled)],
       [

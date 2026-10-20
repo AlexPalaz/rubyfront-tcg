@@ -54,7 +54,8 @@ export class Anim {
   }
 }
 
-export type GemState = "locked" | "reached" | "current";
+/** Spenta, accesa (attiva), o aperta (si può attivare: scura col filo acceso). */
+export type GemState = "locked" | "reached" | "current" | "open";
 
 const gems = new Map<string, Texture>();
 const halos = new Map<string, Texture>();
@@ -75,6 +76,12 @@ export function gemTexture(side: number, state: GemState, res: number): Texture 
       ctx.fillStyle = "#1c171e";
       ctx.fillRect(-side / 2, -side / 2, side, side);
       ctx.strokeStyle = "#3a3037";
+    } else if (state === "open") {
+      withShadow(ctx, res, { x: 0, y: 0, blur: 12, color: "rgba(210,74,100,.55)" }, () => {
+        ctx.fillStyle = "#2a1820";
+        ctx.fillRect(-side / 2, -side / 2, side, side);
+      });
+      ctx.strokeStyle = "#e56a86";
     } else {
       withShadow(ctx, res, { x: 0, y: 0, blur: state === "current" ? 16 : 10, color: "rgba(210,74,100,.7)" }, () => {
         ctx.fillStyle = linearGradient(ctx, 135, -side / 2, -side / 2, side, side, [

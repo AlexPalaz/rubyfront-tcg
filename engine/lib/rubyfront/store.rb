@@ -85,6 +85,8 @@ module Rubyfront
           PRIMARY KEY (player_id, card_id)
         )
       SQL
+      # Il percorso d'Ascesa (2026-09-26): i nodi attivi, in ordine dalla carta.
+      "ALTER TABLE player_rubyfronts ADD COLUMN IF NOT EXISTS path JSONB NOT NULL DEFAULT '[]'::jsonb"
     ].freeze
 
     PLAYER_COLUMNS = "p.id, p.username, p.display_name, p.email, p.password_hash, p.email_verified_at"
@@ -217,10 +219,12 @@ module Rubyfront
 
     # -------------------------------------------- la progressione dei Rubyfront
 
-    # Le righe di progressione del giocatore (2026-09-23): esperienza e
-    # configurazione per Rubyfront. Il livello lo deriva `Progression`.
+    ROW_COLUMNS = "card_id, xp, loadout::text AS loadout, path::text AS path"
+
+    # Le righe di progressione del giocatore (2026-09-23): esperienza,
+    # percorso e configurazione per Rubyfront. Il livello lo deriva `Progression`.
     def rubyfronts_of(player_id)
-      query("SELECT card_id, xp, loadout::text AS loadout FROM player_rubyfronts WHERE player_id = $1 ORDER BY card_id", [player_id]).map { |row| rubyfront_row(row) }
+      query("SELECT #{ROW_COLUMNS} FROM player_rubyfronts WHERE player_id = $1 ORDER BY card_id", [player_id]).map { |row| rubyfront_row(row) }
     end
 
     # Aggiunge esperienza a un Rubyfront del giocatore (la riga nasce se manca); torna la riga aggiornata.
@@ -228,7 +232,7 @@ module Rubyfront
       row = query(<<~SQL, [player_id, card_id, amount.to_i]).first
         INSERT INTO player_rubyfronts (player_id, card_id, xp) VALUES ($1, $2, $3)
         ON CONFLICT (player_id, card_id) DO UPDATE SET xp = player_rubyfronts.xp + EXCLUDED.xp, updated_at = now()
-        RETURNING card_id, xp, loadout::text AS loadout
+        RETURNING #{ROW_COLUMNS}
       SQL
       row && rubyfront_row(row)
     end
@@ -238,7 +242,18 @@ module Rubyfront
       row = query(<<~SQL, [player_id, card_id, JSON.generate(loadout)]).first
         INSERT INTO player_rubyfronts (player_id, card_id, loadout) VALUES ($1, $2, $3::jsonb)
         ON CONFLICT (player_id, card_id) DO UPDATE SET loadout = EXCLUDED.loadout, updated_at = now()
-        RETURNING card_id, xp, loadout::text AS loadout
+        RETURNING #{ROW_COLUMNS}
+      SQL
+      row && rubyfront_row(row)
+    end
+
+    # Scrive il percorso (i nodi attivi) e, con lui, la configurazione
+    # ristretta al percorso nuovo; torna la riga.
+    def set_path(player_id, card_id, path, loadout)
+      row = query(<<~SQL, [player_id, card_id, JSON.generate(path), JSON.generate(loadout)]).first
+        INSERT INTO player_rubyfronts (player_id, card_id, path, loadout) VALUES ($1, $2, $3::jsonb, $4::jsonb)
+        ON CONFLICT (player_id, card_id) DO UPDATE SET path = EXCLUDED.path, loadout = EXCLUDED.loadout, updated_at = now()
+        RETURNING #{ROW_COLUMNS}
       SQL
       row && rubyfront_row(row)
     end
@@ -270,7 +285,8 @@ module Rubyfront
 
     def rubyfront_row(row)
       loadout = row["loadout"].is_a?(String) ? JSON.parse(row["loadout"]) : (row["loadout"] || {})
-      { card: row["card_id"], xp: row["xp"].to_i, loadout: loadout.is_a?(Hash) ? loadout : {} }
+      path = row["path"].is_a?(String) ? JSON.parse(row["path"]) : (row["path"] || [])
+      { card: row["card_id"], xp: row["xp"].to_i, path: path.is_a?(Array) ? path : [], loadout: loadout.is_a?(Hash) ? loadout : {} }
     end
 
     # La forma pubblica: quella che va al client (mai l'impronta della password).

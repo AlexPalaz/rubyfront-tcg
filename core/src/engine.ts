@@ -80,7 +80,7 @@ export interface Player {
   decks: string[];
   /** Le gemme rubino (2026-09-22), la moneta del negozio: il tavolo non le manda ancora, vale zero. */
   gems?: number;
-  /** La progressione per Rubyfront (2026-09-23): esperienza, livello, abilità montate. */
+  /** La progressione per Rubyfront (2026-09-23): esperienza, livello, percorso d'Ascesa, abilità montate. */
   rubyfronts?: PlayerProgress[];
   /** Account di prova (2026-09-24): al tavolo ha gli strumenti di prova. Lo dice il tavolo. */
   tester?: boolean;
@@ -126,6 +126,8 @@ export interface EngineLink {
   setProfile(name: string): boolean;
   /** Le abilità montate su un Rubyfront (2026-09-23): la risposta in `onProgress`. */
   setLoadout(card: string, loadout: Loadout): boolean;
+  /** Il percorso d'Ascesa di un Rubyfront (2026-09-26): la risposta in `onProgress`. */
+  setPath(card: string, path: string[]): boolean;
   logout(): boolean;
   /** Un dato del giocatore nella memoria del tavolo: vero se salvato. */
   save(key: string, value: unknown): Promise<boolean>;
@@ -223,7 +225,7 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
         | { t: "engine"; version?: string; rules?: string[]; rules_en?: string[] }
         | { t: "me"; player: Player | null; reason?: string; reason_en?: string; token?: string }
         | { t: "verified"; username: string }
-        | { t: "progress"; card: string; ok?: boolean; reason?: string; reason_en?: string; xp?: number; level?: number; loadout?: Loadout; gained?: number; outcome?: Outcome }
+        | { t: "progress"; card: string; ok?: boolean; reason?: string; reason_en?: string; xp?: number; level?: number; path?: string[]; loadout?: Loadout; gained?: number; outcome?: Outcome }
         | { t: "saved"; seq?: number; key: string; ok: boolean }
         | { t: "data"; seq?: number; key: string; value: unknown };
       switch (message.t) {
@@ -235,7 +237,7 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
           return;
         case "progress":
           if (message.ok === false) handlers.onProgressRefused?.(message.card, (lang() === "en" ? message.reason_en : message.reason) ?? message.reason ?? "");
-          else handlers.onProgress?.({ card: message.card, xp: message.xp ?? 0, level: message.level ?? 1, loadout: message.loadout ?? { rubyfront: [], nexus: [] }, ...(message.gained !== undefined ? { gained: message.gained } : {}), ...(message.outcome ? { outcome: message.outcome } : {}) });
+          else handlers.onProgress?.({ card: message.card, xp: message.xp ?? 0, level: message.level ?? 1, path: message.path ?? [], loadout: message.loadout ?? { rubyfront: [], nexus: [] }, ...(message.gained !== undefined ? { gained: message.gained } : {}), ...(message.outcome ? { outcome: message.outcome } : {}) });
           return;
         case "saved": {
           const waiting = message.seq !== undefined ? stored.get(message.seq) : undefined;
@@ -337,6 +339,9 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
     },
     setLoadout(card, loadout) {
       return send({ t: "loadout", card, loadout });
+    },
+    setPath(card, path) {
+      return send({ t: "path", card, path });
     },
     logout() {
       return send({ t: "logout" });

@@ -82,7 +82,7 @@ Every Rubyfront is a card with **values of its own**: there are no standard valu
 
 The Rubyfront card shows:
 
-- **HP (Health Points)** — its **only statistic**, and they are the player's HP: the game starts at the value printed on the card. Attacks taken lower its HP; at zero, the owner loses (§2). **Experimental rule (from 2026-09-17):** HP **cannot exceed the value printed** on the Rubyfront card: a heal or a recovery that would take it higher stops at the printed value, and the rest is lost.
+- **HP (Health Points)** — its **only statistic**, and they are the player's HP: the game starts at the value printed on the card. Attacks taken lower its HP; at zero, the owner loses (§2). **Experimental rule (from 2026-09-17):** HP **cannot exceed the value printed** on the Rubyfront card: a heal or a recovery that would take it higher stops at the printed value, and the rest is lost. Ascent HP (§3.3) add to the printed HP, both for the start and for the cap.
 - **Deployment cost** — the Flux cost to deploy it onto the field: a **fixed number** (e.g. `2`) or a **die** (e.g. a `6`-sided die) to roll. See below.
 - **Available Matters** — the Matter types the Rubyfront can use, **with the maximum grade** for the types that have grades (like Entities, §7.1).
 - **Main ability** — it is born when the Rubyfront enters the field and from then on it is **always active**.
@@ -167,6 +167,18 @@ The Rubyfront card has **two faces**: one is the **Rubyfront**, the other is its
 The player who does **not** start the game receives a **Flux Token**: it represents **1 extra point of Flux**, it is **single-use** and can be used **at any moment of the game** — even on the opponent's turn or in the middle of a response chain (it makes up for the disadvantage of going second).
 
 The Token is **outside the 20-Flux cap**: it is not part of the Flux bar, it is a separate point, always usable. Even at 20 Flux it can be spent — the only case in which, in effect, you reach 21.
+
+### 3.3 The Rubyfront's Ascent
+
+**Experimental rule (from 2026-09-26).** Outside the game each Rubyfront grows with the games it plays: it goes up in **level** (from 1 to 10) and each level earns it an **Ascent point** — at level N it has N. Points are spent on the Rubyfront's **path**: a grid of linked nodes, with the card at the centre. You activate one node at a time, and every active node must **touch the card or another active node**. Between games the path can be **taken apart**, one node at a time and at no cost, as long as what remains stays linked to the card, and walked again in another direction.
+
+Nodes come in three kinds:
+
+- **Ability** — a special ability of the Rubyfront or of the Nexus: activating it **unlocks** it, and from there it can be mounted **in place of a printed special ability** on that face. *(Path abilities aren't connected to the game yet.)*
+- **HP** — +N to the Rubyfront's **printed HP**: the game starts with the printed HP plus the Ascent's, and the healing cap (§3.1) rises to the same value.
+- **Fury** — the Fury d20 threshold (§8.1) drops by N: with the threshold at 12 and a Fury node of 1, the roll succeeds on **11 or more**. The threshold never drops below **2**: on a 1 Fury always backfires.
+
+The Ascent comes to the table **with the deck**: it's the Ascent of the deck's Rubyfront when the deck is loaded, and the opponent sees it.
 
 ## 4. Setting up the game
 
@@ -423,6 +435,8 @@ A card with **Fury** is unstable: its power doesn't fully answer to its owner. *
 - with **12 or more**, the ability is used **with no consequences**;
 - with **11 or less**, Fury turns against the owner: the Rubyfront (or the Nexus) **loses 1 HP**, but **the ability is used anyway** and resolves normally.
 
+The Ascent's Fury nodes (§3.3) lower the roll's threshold, never below 2.
+
 A failed roll **no longer cancels anything**: it is a surcharge — 1 HP on top of the ability's normal HP cost. Mind the HP limit (§3.1): if the failure's loss brings HP to **0**, you lose the game **immediately** and the ability doesn't resolve.
 
 **Matters are not subject to Fury:** using a Matter attributed to the card with Fury — **including Destructive Matter**, exclusive to the Rubyfront (§7.1) — **requires no roll**. The d20 concerns **special abilities only**.
@@ -525,6 +539,7 @@ A draw exists in only two cases:
 - At most **7 cards in hand** (the excess is discarded at end of turn, §6.5).
 - At most **5 Entities on the Front** (the 5 slots; the Rubyfront and Static Matters don't count, §6.2).
 - At most **3 copies** of the same card in the deck — **only one** if the card is **Unique** (§3.1).
+- Ascent points equal to the Rubyfront's **level**, from 1 to 10; the Fury threshold never drops below **2** (§3.3).
 - At most **20 Flux** (§3.2). The Flux Token is outside the cap: it is a separate point.
 - **Minimum printed cost 1 Flux** for any card (§3.2): there are no free cards as such, but a discount that brings the cost to 0 makes it free.
 - **Die** deployment cost: you roll only with available Flux **at least equal to the faces of the die**; the die doesn't exceed a **d20** (§3.1).

@@ -16,7 +16,7 @@ import { turnStartSearches, resolveTurnStartSearch, describeTurnStartSearch, typ
 import { FRONT_SLOT_X, RUBYFRONT_X, SLOT_X, SURFACE_H, SURFACE_W, TILE_H, TILE_W, backRowY, frontRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import type { AutoChooser } from "./session.js";
-import { STACK_STEP, abilityDiscount, chainTop, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, inPlay, matterSpot, nextWaveOrder, sealedForPlay, seatLabel, stackAt, waveDeclared, zoneCards } from "./state.js";
+import { STACK_STEP, abilityDiscount, chainTop, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, furyThreshold, inPlay, matterSpot, nextWaveOrder, sealedForPlay, seatLabel, stackAt, waveDeclared, zoneCards } from "./state.js";
 import { canDiscard } from "./tabs.js";
 import { type CardInstance, type Discount, type EffectRef, type GameState, type SceneRef, type Seat, type ZoneId, otherSeat } from "./types.js";
 
@@ -2045,7 +2045,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     let roll: number | null = null;
     let fail = false;
     if (ability.fury) {
-      const threshold = ctx.card(card.cardId).furyAt[card.face] ?? 12;
+      // §3.3 — l'Ascesa del proprietario abbassa la soglia, mai sotto 2.
+      const threshold = furyThreshold(ctx.state(), card.owner, ctx.card(card.cardId).furyAt[card.face] ?? 12);
       roll = 1 + Math.floor(Math.random() * 20);
       await view.roll(20, roll, t("dice.fury", { name: copy.name, n: threshold }));
       fail = roll < threshold;

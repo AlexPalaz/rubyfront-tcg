@@ -1,29 +1,39 @@
-// La progressione dei Rubyfront (2026-09-23): la vista che si apre dal tasto
-// «Rubyfront» dell'header. Prima la scelta — i quattro Rubyfront a tessera,
-// che ondeggiano piano, col livello e la barra dell'esperienza che si
-// riempie — poi la sferografia di uno (constellation.ts): la carta al
-// centro, i dieci nodi in orbita, i fili e l'energia; a destra, su vetro, il
-// dettaglio del livello scelto con le due abilità (Rubyfront e Nexus) e i
-// tasti «Monta»/«Smonta», che aprono lo zoom sulla carta con la scelta della
-// presa (mount.ts). La convalida è quella del modulo core/progression.ts
-// (gemello del tavolo); un rifiuto si spiega col sigillo. Le abilità sono
-// segnaposto: si leggono, non si giocano ancora.
+// La progressione dei Rubyfront (2026-09-23, a percorso dal 2026-09-26): la
+// vista che si apre dal tasto «Ascesa» dell'header. Prima la scelta — i
+// quattro Rubyfront a tessera, che ondeggiano piano, col livello e la barra
+// dell'esperienza che si riempie — poi la sferografia di uno
+// (constellation.ts): la carta al centro, i venti nodi del percorso, i fili
+// e l'energia; a destra, su vetro, il dettaglio del nodo scelto con
+// «Attiva» / «Togli dal percorso» (un punto per livello, ogni nodo attaccato
+// alla carta o a un nodo attivo) e, per le abilità attive, «Monta» /
+// «Smonta», che aprono lo zoom sulla carta con la scelta del blocco
+// (mount.ts); sotto, i punti, l'Ascesa in partita e le abilità montate. La
+// convalida è quella del modulo core/progression.ts (gemello del tavolo); un
+// rifiuto si spiega col sigillo. Le abilità sono segnaposto: si leggono, non
+// si giocano ancora; PV e Furia sì (§3.3).
 
 import { cardName, getCard } from "@rubyfront/core/cards";
 import { t } from "@rubyfront/core/i18n";
 import {
   PROGRESSION_FACES,
   abilityWords,
+  ascentOf,
+  nodeOf,
+  pathPoints,
   progressionCards,
   progressionOf,
   progressionRules,
+  reachable,
+  removable,
   validateLoadout,
+  validatePath,
   mountedIds,
   slotOf,
   withAbility,
   withoutSlot,
   xpSpan,
   type Loadout,
+  type PathNode,
   type PlayerProgress,
   type ProgressionCard,
   type ProgressionFace,
@@ -61,6 +71,8 @@ export interface ProgressionActions {
   progress(card: string): PlayerProgress;
   /** Le abilità montate, al tavolo: la risposta arriva con `refresh()` (o `refused()`). */
   setLoadout(card: string, loadout: Loadout): void;
+  /** Il percorso d'Ascesa, al tavolo: la risposta arriva con `refresh()` (o `refused()`). */
+  setPath(card: string, path: string[]): void;
   onClose(): void;
 }
 
@@ -79,7 +91,9 @@ export class ProgressionScreen implements PreviewSource {
   private readonly listeners: ((cardEvent: { type: string; uid: string }) => void)[] = [];
   private readonly info = new Map<string, { cardId: string; face: number; back: boolean }>();
   private readonly tiles = new Map<string, Container>();
-  private step: { type: "pick" } | { type: "grid"; card: string; node: number } = { type: "pick" };
+  private step: { type: "pick" } | { type: "grid"; card: string; node: string | null } = { type: "pick" };
+  /** Il percorso che la costellazione mostra: al ritorno dal tavolo si accendono i nodi nuovi e si spengono i tolti. */
+  private shownPath: string[] = [];
   private readonly particleLayer = new Container({ label: "progression-particles" });
   private readonly particles: Particles;
   private constellation: Constellation | null = null;
@@ -114,7 +128,7 @@ export class ProgressionScreen implements PreviewSource {
   open(card?: string): void {
     this.root.visible = true;
     this.enterFrom = null;
-    this.step = card && progressionOf(card) ? { type: "grid", card, node: this.actions.progress(card).level } : { type: "pick" };
+    this.step = card && progressionOf(card) ? { type: "grid", card, node: null } : { type: "pick" };
     this.stage.app.ticker.add(this.tick);
     this.build();
   }
@@ -143,7 +157,11 @@ export class ProgressionScreen implements PreviewSource {
     }
     const progress = this.actions.progress(step.card);
     this.headerText(step.card, progress);
-    this.constellation?.setProgress(progress.level, step.node);
+    const before = this.shownPath;
+    this.shownPath = [...progress.path];
+    this.constellation?.setPath(progress.path, progress.level, step.node);
+    for (const id of progress.path) if (!before.includes(id)) void this.constellation?.lightUp(id);
+    for (const id of before) if (!progress.path.includes(id)) void this.constellation?.dim(id);
     void this.constellation?.setAbilities(this.overridesFor(progressionOf(step.card), progress, "rubyfront"));
     this.swapDetail(step, progress, true);
     void this.revealFresh(step.card, progress);
@@ -302,10 +320,10 @@ export class ProgressionScreen implements PreviewSource {
       xp.sprite.position.set((slabW - xp.w) / 2, by);
       items.push(xp.sprite);
       by += xp.h + PAD;
-      return { entry, print, items, h: by, bar, progress };
+      return { entry, print, items, h: by, bar };
     });
     const rowH = Math.max(...prints.map(print => print.h), 0);
-    prints.forEach(({ entry, print, items, bar, progress }, index) => {
+    prints.forEach(({ entry, print, items, bar }, index) => {
       const col = index % cols;
       const row = Math.floor(index / cols);
       const x = x0 + col * (slabW + gap);
@@ -331,7 +349,7 @@ export class ProgressionScreen implements PreviewSource {
         playSound("button");
         const tile = this.tiles.get(`${entry.card}|pick`);
         this.enterFrom = tile ? this.screenBox(`${entry.card}|pick`) ?? null : null;
-        this.step = { type: "grid", card: entry.card, node: progress.level };
+        this.step = { type: "grid", card: entry.card, node: null };
         this.build();
       });
       print.addChild(hit, edge);
@@ -350,7 +368,7 @@ export class ProgressionScreen implements PreviewSource {
   }
 
   /** La sferografia: la costellazione a sinistra, il dettaglio su vetro a destra. */
-  private buildGrid(step: { type: "grid"; card: string; node: number }, progress: PlayerProgress, x0: number, y: number, width: number, height: number, rules: ProgressionRules): void {
+  private buildGrid(step: { type: "grid"; card: string; node: string | null }, progress: PlayerProgress, x0: number, y: number, width: number, height: number, rules: ProgressionRules): void {
     const gap = 22;
     const detailW = Math.max(380, Math.min(470, width * 0.3));
     const leftW = width - detailW - gap;
@@ -363,7 +381,7 @@ export class ProgressionScreen implements PreviewSource {
       particles: this.particles,
       particleLayer: this.particleLayer,
       overrides: this.overridesFor(progressionOf(step.card), progress, "rubyfront"),
-      onPick: level => this.pickNode(level),
+      onPick: id => this.pickNode(id),
     });
     constellation.position.set(x0, y);
     this.content.addChild(constellation);
@@ -371,7 +389,8 @@ export class ProgressionScreen implements PreviewSource {
     this.detailBox = { x: x0 + leftW + gap, y, w: detailW, h };
     const from = this.enterFrom;
     this.enterFrom = null;
-    void constellation.enter(from, progress.level, step.node).then(() => {
+    this.shownPath = [...progress.path];
+    void constellation.enter(from, progress.path, progress.level, step.node).then(() => {
       if (this.constellation !== constellation) return;
       void this.revealFresh(step.card, progress);
     });
@@ -379,13 +398,14 @@ export class ProgressionScreen implements PreviewSource {
     void rules;
   }
 
-  private pickNode(level: number): void {
+  private pickNode(id: string): void {
     const step = this.step;
     if (step.type !== "grid") return;
-    if (step.node === level) return;
+    // Il nodo già scelto, toccato di nuovo, si lascia: si torna al riepilogo.
+    const next = step.node === id ? null : id;
     playSound("select");
-    this.step = { ...step, node: level };
-    this.constellation?.choose(level);
+    this.step = { ...step, node: next };
+    this.constellation?.choose(next);
     this.swapDetail(this.step, this.actions.progress(step.card), true);
   }
 
@@ -398,20 +418,18 @@ export class ProgressionScreen implements PreviewSource {
     this.build();
   }
 
-  /** I livelli raggiunti dall'ultima volta che si è guardato: la rivelazione. */
+  /** I livelli (cioè i punti) arrivati dall'ultima volta che si è guardato: la rivelazione. */
   private async revealFresh(card: string, progress: PlayerProgress): Promise<void> {
     const seenKey = `seen:${card}`;
     const seen = Number(store.read(seenKey, "1")) || 1;
-    const fresh: number[] = [];
-    for (let level = seen + 1; level <= progress.level; level += 1) fresh.push(level);
-    if (!fresh.length || !this.constellation) return;
+    if (progress.level <= seen || !this.constellation) return;
     store.write(seenKey, String(progress.level));
-    await this.constellation.reveal(fresh);
+    await this.constellation.reveal();
   }
 
   // ------------------------------------------------------------ dettaglio
-  /** Il pannello del livello scelto: le due abilità coi tasti. Il vecchio esce a sinistra, il nuovo entra da destra. */
-  private swapDetail(step: { type: "grid"; card: string; node: number }, progress: PlayerProgress, animated: boolean): void {
+  /** Il pannello del nodo scelto (o il riepilogo, senza nodo). Il vecchio esce a sinistra, il nuovo entra da destra. */
+  private swapDetail(step: { type: "grid"; card: string; node: string | null }, progress: PlayerProgress, animated: boolean): void {
     const rules = progressionRules();
     if (!rules) return;
     const old = this.detail;
@@ -419,43 +437,39 @@ export class ProgressionScreen implements PreviewSource {
     const res = v.scale * this.stage.app.renderer.resolution;
     const { x, y, w, h } = this.detailBox;
     const card = progressionOf(step.card);
-    const panel = new Container({ label: `progression-level:${step.node}` });
+    const node = step.node ? nodeOf(card, step.node) : null;
+    const panel = new Container({ label: `progression-node:${step.node ?? "none"}` });
     const glass = new CrispSprite(glassPanel(w, h, res));
     glass.position.set(-GLASS_MARGIN, -GLASS_MARGIN);
     panel.addChild(glass);
     let dy = PAD + 4;
-    const heading = paintText(this.stage, t("progression.level", { n: step.node }), NAME, INK);
-    heading.sprite.position.set(PAD, dy);
-    panel.addChild(heading.sprite);
-    dy += heading.h + 4;
-    const slotsText = t("progression.slots", { r: mountedIds(progress.loadout, "rubyfront").length, rs: rules.slots.rubyfront, n: mountedIds(progress.loadout, "nexus").length, ns: rules.slots.nexus });
-    const slots = paintText(this.stage, slotsText, { ...FONT_BASE, size: 14 }, MUTED, { maxW: w - 2 * PAD });
-    slots.sprite.position.set(PAD, dy);
-    panel.addChild(slots.sprite);
-    dy += slots.h + 14;
-    const entry = card?.levels.find(level => level.level === step.node);
-    const locked = step.node > progress.level;
-    for (const face of PROGRESSION_FACES) {
-      const ability = entry?.[face];
-      if (!ability) continue;
-      const words = abilityWords(ability, this.locale);
-      const mounted = slotOf(progress.loadout, face, ability.id) >= 0;
-      const plate = this.abilityPlate(face, words, w - 2 * PAD, locked, mounted, step.node);
-      plate.root.position.set(PAD, dy);
-      panel.addChild(plate.root);
-      dy += plate.h + 10;
-      if (locked) continue;
-      const button = new Button(this.stage, {
-        label: t(mounted ? "progression.unmount" : "progression.mount"),
-        style: mounted ? "plate" : "metal",
-        font: BUTTON,
-        w: w - 2 * PAD,
-        h: 40,
-        onTap: () => void this.mount(step.card, face, { id: ability.id, ...words }, mounted, card, rules),
-      });
-      button.position.set(PAD, dy);
-      panel.addChild(button);
-      dy += 40 + 16;
+    const used = progress.path.length;
+    const points = pathPoints(progress.level);
+    if (node) dy = this.nodeDetail(panel, step.card, card, node, progress, rules, dy, w);
+    else {
+      const heading = paintText(this.stage, t("progression.path.title"), NAME, INK);
+      heading.sprite.position.set(PAD, dy);
+      panel.addChild(heading.sprite);
+      dy += heading.h + 8;
+      const hint = paintText(this.stage, t(used < points ? "progression.path.hint" : "progression.path.full"), { ...FONT_BASE, size: 15 }, MUTED, { maxW: w - 2 * PAD, lineHeight: 21 });
+      hint.sprite.position.set(PAD, dy);
+      panel.addChild(hint.sprite);
+      dy += hint.h + 18;
+    }
+    // Il riepilogo: i punti, l'Ascesa in partita, le abilità montate.
+    const summary: [string, string][] = [
+      [t("progression.points.title"), t("progression.points", { used, n: points })],
+      [t("progression.ascent.title"), this.ascentWords(ascentOf(card, progress.path))],
+    ];
+    for (const [caption, words] of summary) {
+      const head = paintText(this.stage, caption, CAPTION, MUTED);
+      head.sprite.position.set(PAD, dy);
+      panel.addChild(head.sprite);
+      dy += head.h + 4;
+      const line = paintText(this.stage, words, { ...FONT_BASE, size: 15 }, INK, { maxW: w - 2 * PAD, lineHeight: 21 });
+      line.sprite.position.set(PAD, dy);
+      panel.addChild(line.sprite);
+      dy += line.h + 12;
     }
     const mountedTitle = paintText(this.stage, t("progression.mounted"), CAPTION, MUTED);
     mountedTitle.sprite.position.set(PAD, dy);
@@ -463,7 +477,7 @@ export class ProgressionScreen implements PreviewSource {
     dy += mountedTitle.h + 4;
     for (const face of PROGRESSION_FACES) {
       const names = mountedIds(progress.loadout, face).map(id => this.abilityName(card, id));
-      const line = paintText(this.stage, `${t(`progression.face.${face}`)}: ${names.length ? names.join(" · ") : t("progression.none")}`, { ...FONT_BASE, size: 14 }, INK, { maxW: w - 2 * PAD, lineHeight: 20 });
+      const line = paintText(this.stage, `${t(`progression.face.${face}`)} (${names.length}/${rules.slots[face]}): ${names.length ? names.join(" · ") : t("progression.none")}`, { ...FONT_BASE, size: 15 }, INK, { maxW: w - 2 * PAD, lineHeight: 21 });
       line.sprite.position.set(PAD, dy);
       panel.addChild(line.sprite);
       dy += line.h + 4;
@@ -489,6 +503,85 @@ export class ProgressionScreen implements PreviewSource {
     }
   }
 
+  /** L'Ascesa in parole: «+3 PV · Furia −1», o «nessuna». */
+  private ascentWords(ascent: { hp: number; fury: number }): string {
+    const parts: string[] = [];
+    if (ascent.hp) parts.push(t("progression.node.hp.name", { n: ascent.hp }));
+    if (ascent.fury) parts.push(t("progression.node.fury.name", { n: ascent.fury }));
+    return parts.length ? parts.join(" · ") : t("progression.none.ascent");
+  }
+
+  /** Il dettaglio di un nodo: la piastra, lo stato, i tasti del percorso e del montaggio. Torna la quota sotto. */
+  private nodeDetail(panel: Container, cardId: string, card: ProgressionCard | null, node: PathNode, progress: PlayerProgress, rules: ProgressionRules, top: number, w: number): number {
+    let dy = top;
+    const active = progress.path.includes(node.id);
+    const free = pathPoints(progress.level) - progress.path.length;
+    const open = reachable(card, progress.path).includes(node.id);
+    const words = this.nodeWords(node);
+    const face = node.kind === "ability" ? node.face ?? "rubyfront" : null;
+    const mounted = face ? slotOf(progress.loadout, face, node.id) >= 0 : false;
+    const caption = face ? `${t(`progression.face.${face}`)}${mounted ? ` · ${t("progression.mounted.one")}` : ""}` : t(`progression.kind.${node.kind}`);
+    const plate = this.abilityPlate(caption, words, w - 2 * PAD, !active, mounted);
+    plate.root.position.set(PAD, dy);
+    panel.addChild(plate.root);
+    dy += plate.h + 10;
+    // Quando non si può fare nulla, il perché.
+    const why = active
+      ? removable(card, progress.path, node.id) ? null : "progression.state.stuck"
+      : !open ? "progression.state.closed" : free <= 0 ? "progression.state.nopoints" : null;
+    if (why) {
+      const note = paintText(this.stage, t(why), { ...FONT_BASE, size: 15 }, MUTED, { maxW: w - 2 * PAD, lineHeight: 21 });
+      note.sprite.position.set(PAD, dy);
+      panel.addChild(note.sprite);
+      dy += note.h + 10;
+    } else {
+      const button = new Button(this.stage, {
+        label: t(active ? "progression.remove" : "progression.activate"),
+        style: active ? "plate" : "metal",
+        font: BUTTON,
+        w: w - 2 * PAD,
+        h: 40,
+        onTap: () => this.walk(cardId, node.id, active ? "remove" : "add"),
+      });
+      button.position.set(PAD, dy);
+      panel.addChild(button);
+      dy += 40 + 10;
+    }
+    if (active && face) {
+      const button = new Button(this.stage, {
+        label: t(mounted ? "progression.unmount" : "progression.mount"),
+        style: mounted ? "plate" : "metal",
+        font: BUTTON,
+        w: w - 2 * PAD,
+        h: 40,
+        onTap: () => void this.mount(cardId, face, { id: node.id, ...words }, mounted, card, rules),
+      });
+      button.position.set(PAD, dy);
+      panel.addChild(button);
+      dy += 40 + 10;
+    }
+    return dy + 12;
+  }
+
+  /** Il nome e il testo di un nodo: l'abilità nella lingua, o PV e Furia dalle chiavi. */
+  private nodeWords(node: PathNode): { name: string; text: string } {
+    if (node.kind === "ability") return abilityWords({ id: node.id, locales: node.locales ?? {} }, this.locale);
+    return { name: t(`progression.node.${node.kind}.name`, { n: node.amount ?? 0 }), text: t(`progression.node.${node.kind}.text`, { n: node.amount ?? 0 }) };
+  }
+
+  /** Attiva o toglie un nodo: la convalida gemella, poi il tavolo (la risposta accende o spegne). */
+  private walk(cardId: string, id: string, how: "add" | "remove"): void {
+    const progress = this.actions.progress(cardId);
+    const next = how === "add" ? [...progress.path, id] : progress.path.filter(other => other !== id);
+    const refusedBy = validatePath(progressionOf(cardId), progress.level, next);
+    if (refusedBy) {
+      this.refused(t(refusedBy.key, refusedBy.params ?? {}));
+      return;
+    }
+    playSound("button");
+    this.actions.setPath(cardId, next);
+  }
+
   private abilityName(card: ProgressionCard | null, id: string): string {
     return this.abilityWordsOf(card, id).name;
   }
@@ -499,24 +592,24 @@ export class ProgressionScreen implements PreviewSource {
   }
 
   private abilityWordsOf(card: ProgressionCard | null, id: string): { name: string; text: string } {
-    for (const level of card?.levels ?? []) for (const face of PROGRESSION_FACES) if (level[face].id === id) return abilityWords(level[face], this.locale);
-    return { name: id, text: "" };
+    const node = nodeOf(card, id);
+    return node ? this.nodeWords(node) : { name: id, text: "" };
   }
 
-  /** La piastra di un'abilità: la faccia in piccolo, il nome, il testo; spenta se il livello è da raggiungere. */
-  private abilityPlate(face: ProgressionFace, words: { name: string; text: string }, w: number, locked: boolean, mounted: boolean, level: number): { root: Container; h: number } {
-    const root = new Container({ label: `ability:${face}` });
+  /** La piastra di un nodo: la didascalia (faccia o tipo), il nome, il testo; spenta finché il nodo non è attivo. */
+  private abilityPlate(captionText: string, words: { name: string; text: string }, w: number, dimmed: boolean, mounted: boolean): { root: Container; h: number } {
+    const root = new Container({ label: "node-plate" });
     const inner = w - 2 * 14;
-    const caption = paintText(this.stage, `${t(`progression.face.${face}`)}${mounted ? ` · ${t("progression.mounted.one")}` : ""}`, CAPTION, mounted ? ACTION_EDGE : MUTED, { maxW: inner });
-    const name = paintText(this.stage, words.name, ABILITY, locked ? MUTED : INK, { maxW: inner });
-    const text = paintText(this.stage, locked ? t("progression.locked", { n: level }) : words.text, { ...FONT_BASE, size: 15 }, locked ? MUTED : INK, { maxW: inner, lineHeight: 21 });
+    const caption = paintText(this.stage, captionText, CAPTION, mounted ? ACTION_EDGE : MUTED, { maxW: inner });
+    const name = paintText(this.stage, words.name, ABILITY, dimmed ? MUTED : INK, { maxW: inner });
+    const text = paintText(this.stage, words.text, { ...FONT_BASE, size: 15 }, dimmed ? MUTED : INK, { maxW: inner, lineHeight: 21 });
     const h = 12 + caption.h + 4 + name.h + 6 + text.h + 12;
-    const back = new Graphics().rect(0, 0, w, h).fill(hex(locked ? PANEL : PANEL_2)).stroke({ color: mounted ? hex(ACTION_EDGE) : hex(LINE_SOFT), width: 1, alignment: 1 });
+    const back = new Graphics().rect(0, 0, w, h).fill(hex(dimmed ? PANEL : PANEL_2)).stroke({ color: mounted ? hex(ACTION_EDGE) : hex(LINE_SOFT), width: 1, alignment: 1 });
     caption.sprite.position.set(14, 12);
     name.sprite.position.set(14, 12 + caption.h + 4);
     text.sprite.position.set(14, 12 + caption.h + 4 + name.h + 6);
     root.addChild(back, caption.sprite, name.sprite, text.sprite);
-    if (locked) root.alpha = 0.7;
+    if (dimmed) root.alpha = 0.85;
     return { root, h };
   }
 
@@ -545,7 +638,7 @@ export class ProgressionScreen implements PreviewSource {
       return;
     }
     const next: Loadout = mounted ? withoutSlot(progress.loadout, face, result.slot) : withAbility(progress.loadout, face, ability.id, result.slot);
-    const refusedBy = validateLoadout(card, progress.level, next, rules);
+    const refusedBy = validateLoadout(card, progress.path, next, rules);
     if (refusedBy) {
       const params = { ...(refusedBy.params ?? {}) };
       if (typeof params.face === "string") params.face = t(`progression.face.${params.face}`);

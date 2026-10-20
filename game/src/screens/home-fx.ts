@@ -9,8 +9,7 @@
 // rubino, e da lì partono le CREPE che entrano nell'illustrazione. Al
 // passaggio la lastra si accende dal di dentro — le rotture brillano, il
 // taglio si fa rosa, le crepe si allungano col cuore incandescente, le
-// schegge di pietra saltano via dai punti rotti e le braci salgono —, il
-// riflesso attraversa l'illustrazione e il filo sotto il titolo si disegna.
+// scintille saltano via dai punti rotti e le braci salgono.
 // Le carte «in arrivo» hanno la lastra spenta e il nastro diagonale.
 //
 // La sagoma è geometria (un caso a seme per carta: vertici come frazioni
@@ -18,18 +17,17 @@
 // la carta cambia misura: segue l'apertura a fisarmonica senza deformarsi.
 // Col movimento ridotto restano solo le cose ferme.
 
-import { BlurFilter, Container, Graphics, Sprite } from "pixi.js";
+import { BlurFilter, Container, Graphics } from "pixi.js";
 import { drawText, fontMetrics, textWidth, type Font } from "../card/text";
 import { Particles, type Emitter } from "../effects/particles";
 import type { Stage } from "../stage";
-import { CrispSprite, SANS, linearGradient, paintPiece } from "../table/appearance";
+import { CrispSprite, SANS, paintPiece } from "../table/appearance";
 import { bezier, reducedMotion } from "../table/animation";
 
 /** La rottura più profonda che il contorno può fare: i testi stanno più dentro di così. */
 export const BITE = 24;
 const GROWTH_IDLE = 0.4;
 const GROWTH_MS = 620;
-const SWEEP_MS = 760;
 const RIBBON_FONT: Font = { size: 12, weight: 700, family: SANS, spacing: 12 * 0.24, upper: true };
 const RUBY = 0xe0314b;
 
@@ -231,7 +229,7 @@ export class CardFrame {
   readonly mask = new Graphics();
   /** Il magma: nel fondo della home, SOTTO le carte, alla posizione della carta. La lastra è incassata: niente ombra portata. */
   readonly ground = new Container({ label: "magma" });
-  /** Il riflesso, il nastro, il filo del titolo: sopra il velo, sotto i testi (nel ritaglio). */
+  /** Il nastro «In arrivo»: sopra il velo, sotto i testi (nel ritaglio). */
   readonly inside = new Container({ label: "inside" });
   /** Il bordo di pietra, le crepe, le schegge e le braci: sopra tutto, sulla carta. */
   readonly frame = new Container({ label: "rim" });
@@ -242,10 +240,7 @@ export class CardFrame {
   private readonly fissures = new Graphics();
   private readonly core = new Graphics();
   private readonly fx = new Container({ label: "fx" });
-  private readonly sweep: Sprite;
-  private sweepAt = -1;
   private readonly ribbon: CrispSprite | null = null;
-  private readonly underline = new Graphics();
   private readonly particles: Particles | null;
   private readonly emberArea = { x: 0, y: 0, w: 0, h: 0 };
   private emberId: number | null = null;
@@ -272,7 +267,7 @@ export class CardFrame {
     const rng = seeded(1000 + seedCounter++ * 7919);
     this.vertices = outline(rng);
     this.lines = cracks(rng, this.vertices);
-    for (const g of [this.mask, this.glow, this.rim, this.fissures, this.core, this.underline]) g.eventMode = "none";
+    for (const g of [this.mask, this.glow, this.rim, this.fissures, this.core]) g.eventMode = "none";
     this.glow.blendMode = "add";
     // Il magma sfuma con una sfocatura vera (2026-09-24: «il glow va sfumato meglio»), non a strati di tratti.
     if (!off) {
@@ -288,22 +283,6 @@ export class CardFrame {
     this.fx.eventMode = "none";
     this.ground.addChild(this.glow);
     this.frame.addChild(this.rim, this.fissures, this.core, this.fx);
-    // Il riflesso che attraversa l'illustrazione: una banda obliqua di luce.
-    this.sweep = new Sprite(
-      paintPiece(240, 8, 0.5, ctx => {
-        ctx.fillStyle = linearGradient(ctx, 90, 0, 0, 240, 8, [
-          [0, "rgba(255,255,255,0)"],
-          [0.5, "rgba(255,236,240,.5)"],
-          [1, "rgba(255,255,255,0)"],
-        ]);
-        ctx.fillRect(0, 0, 240, 8);
-      })
-    );
-    this.sweep.blendMode = "add";
-    this.sweep.visible = false;
-    this.sweep.skew.x = -0.42;
-    this.sweep.eventMode = "none";
-    this.inside.addChild(this.sweep, this.underline);
     if (off) {
       // Il nastro diagonale «In arrivo» all'angolo in alto a destra.
       const ribbonW = 320;
@@ -355,7 +334,6 @@ export class CardFrame {
     }
     this.redraw(performance.now());
     if (this.ribbon) this.ribbon.position.set(w - 62, 62);
-    this.sweep.height = h * 1.6;
     // Le braci salgono dalle rotture in basso, davanti alla carta.
     this.emberArea.x = 8;
     this.emberArea.y = h - BITE;
@@ -376,19 +354,9 @@ export class CardFrame {
     slab.clear().poly(polygon(this.vertices, this.w, this.h)).fill(0x0b090c);
   }
 
-  /** Il filo sotto il titolo, che si disegna con l'apertura: da (x, y) verso destra. */
-  underlineAt(x: number, y: number, k: number): void {
-    this.underline.clear();
-    if (this.off || k <= 0.01) return;
-    const length = 54 * k;
-    this.underline.rect(x, y, length, 2).fill({ color: this.palette.deep, alpha: 0.95 });
-    this.underline.rect(x + length, y, 26, 1).fill({ color: this.palette.deep, alpha: 0.35 * k });
-  }
-
-  /** All'apertura: il riflesso attraversa l'illustrazione e le schegge di pietra saltano via dalle rotture, con le scintille. */
+  /** All'apertura: le scintille saltano via dalle rotture (le schegge scure sono state tolte il 2026-09-25: sembravano ombre che si muovevano). */
   shine(): void {
     if (reducedMotion()) return;
-    this.sweepAt = performance.now();
     const particles = this.particles;
     if (!particles) return;
     for (const v of this.vertices) {
@@ -396,24 +364,13 @@ export class CardFrame {
       const [x, y] = locate(v.edge, v.f, v.d, 0, this.w, this.h);
       // Verso fuori dal lato: la normale del lato.
       const normal = v.edge === "top" ? -Math.PI / 2 : v.edge === "bottom" ? Math.PI / 2 : v.edge === "left" ? Math.PI : 0;
-      particles.burst({ x, y, n: 4, shape: "ash", colors: [0x1a1418, 0x2b2429, 0x3a3037], velocity: [40, 120], angle: [normal - 0.9, normal + 0.9], life: [500, 900], scale: [0.08, 0.18], gravity: 260, friction: 0.4, spin: [-6, 6], light: false });
       particles.burst({ x, y, n: 5, shape: "spark", colors: [this.palette.deep, this.palette.light, this.palette.hot], velocity: [60, 180], angle: [normal - 0.7, normal + 0.7], life: [300, 600], scale: [0.1, 0.22], gravity: 120, align: true, light: true });
     }
   }
 
-  /** Un frame: le crepe che crescono, il magma che pulsa, il riflesso in viaggio. */
+  /** Un frame: le crepe che crescono, il magma che pulsa. */
   tick(now: number, _k: number): void {
     this.redraw(now);
-    if (this.off || this.sweepAt < 0) return;
-    const p = (now - this.sweepAt) / SWEEP_MS;
-    if (p >= 1) {
-      this.sweep.visible = false;
-      this.sweepAt = -1;
-    } else {
-      this.sweep.visible = true;
-      this.sweep.position.set(-240 + (this.w + 480) * p, -this.h * 0.3);
-      this.sweep.alpha = 0.9 * Math.sin(p * Math.PI);
-    }
   }
 
   /** Ridisegna bordo, magma e crepe solo quando qualcosa è cambiato: la crescita, la luce, la misura. */
