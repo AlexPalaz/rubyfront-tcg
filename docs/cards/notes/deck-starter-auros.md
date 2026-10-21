@@ -9,7 +9,7 @@
 | Totale | 40 carte più il Rubyfront (20 Entità · 12 Materie · 8 Oggetti) |
 | Progetti | 15 |
 | Razza | Auros |
-| Rubyfront | Seyra, Rubifronte di Nova Kai (20 PV, costo 5, Furia ≥ 13) |
+| Rubyfront | Seyra (20 PV, costo 5, Furia ≥ 13) |
 
 **Copie per costo di Flusso:**
 

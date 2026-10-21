@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.88.0"
+    VERSION = "0.89.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -118,6 +118,13 @@ module Rubyfront
       "§6.3 I «quando attacca» si risolvono alla chiusura del Fronte, prima della Reazione; il «pronto» delle scene (ready) passa a chiunque, in ogni fase",
       "§6.2 A Fronte pieno chi scende per effetto (dalla mano, dal Ritiro o dall'Abisso) può prendere il posto di un'Entità propria, che va in Zona di Ritiro coi suoi Oggetti",
       "§8.2 «Quando entra sul Fronte» vale a ogni ingresso sul Fronte: dalla mano, dal Ritiro, dall'Abisso",
+      "§8.2 Effetti certificati: «questa Entità entra tappata»; «quando entra, un'altra Entità che controlli prende +N Potenza»",
+      "§8.2 Effetti certificati: «quando attacca, le Entità attaccanti che controlli prendono +N Potenza»",
+      "§3.1 Il Rubyfront «la prima volta in ogni tuo turno che un'Entità Umana attacca, puoi pagare N PV: +M Potenza»: sul primo attaccante della razza",
+      "§7.2 Le Materie si risolvono: stappa UN'Entità con Contrattacco +N; −N Potenza a un'avversaria, a zero in Ritiro; un'avversaria nell'Abisso",
+      "§3.2 Il costo a dado di una Materia: si tira solo con Flusso disponibile pari alle facce, si paga il numero uscito (come lo schieramento, §3.1)",
+      "§8.2 La Statica che ascolta gli ingressi: a ogni Umano che entra guarda la prima carta (in fondo, se vuoi); con N entrati nel turno, pesca",
+      "§3.1 Il Nexus: il requisito «in questo turno hai attaccato con N Umani», lo scarto di un'Entità della razza; le abilità che concedono parole chiave, la chiamata entro il costo",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -210,6 +217,13 @@ module Rubyfront
       "§6.3 “When it attacks” resolves when the Front closes, before the Reaction; the scenes' “ready” passes for anyone, in any phase",
       "§6.2 With a full Front, a card coming down through an effect (from hand, Retire or the Abyss) may take the place of one of your Entities, which goes to the Retire Zone with its Objects",
       "§8.2 “When it enters the Front” applies to every entry onto the Front: from hand, from Retire, from the Abyss",
+      "§8.2 Certified effects: “this Entity enters tapped”; “when it enters, another Entity you control gets +N Power”",
+      "§8.2 Certified effects: “when it attacks, the attacking Entities you control get +N Power”",
+      "§3.1 The Rubyfront “the first time each of your turns a Human Entity attacks, you may pay N HP: +M Power”: on the first attacker of the race",
+      "§7.2 Matters resolve: untap ONE Entity with Counterattack +N; −N Power to an opposing one, at zero to Retire; an opposing one to the Abyss",
+      "§3.2 A Matter's die cost: rolled only with available Flux equal to the faces, you pay the number rolled (like deployment, §3.1)",
+      "§8.2 The Static that listens to entries: at each Human entering look at the top card (to the bottom, if you wish); with N entered this turn, draw",
+      "§3.1 The Nexus: the requirement “this turn you attacked with N Humans”, the discard of an Entity of the race; abilities granting keywords, the call within the cost",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -894,11 +908,27 @@ module Rubyfront
       # effetto verrebbero fermati a torto (regola d'oro).
       # §8.2 — il sigillo del flip è già stato letto dall'imbuto (sealed_entry_stopped).
 
-      # §3.1/§3.2 — una Materia col costo a dado (dal 2026-09-22): la regola del
-      # tiro pagabile vale oggi solo per lo schieramento del Rubyfront; finché
-      # non è collegata alle Materie, la giocata è ferma (limite dichiarato).
+      # §3.2 — una Materia col costo a dado (dal 2026-09-22; collegata il
+      # 2026-10-20, regola sperimentale): la stessa regola del tiro pagabile
+      # dello schieramento (§3.1) — «si può lanciare solo se il Flusso
+      # disponibile copre le facce del dado», Gettone compreso, e si paga il
+      # numero uscito. Il tiro e il costo viaggiano nell'azione: qui la
+      # forma, non la fortuna. Niente sconti sul tiro (limite dichiarato).
       if card[:zone] == "hand" && known[:flux_die]
-        return refuse("toZone", "il costo a dado di questa carta (#{known[:flux_die]}) non è ancora collegato: non si gioca (§3.1)", "this card's die cost (#{known[:flux_die]}) isn't linked yet: it can't be played (§3.1)")
+        faces = known[:flux_die].is_a?(String) ? known[:flux_die][/\Ad(\d+)\z/, 1]&.to_i : nil
+        return no_rule("toZone") unless faces
+
+        available = @table.available(card[:owner])
+        if available < faces
+          return refuse("toZone", "il d#{faces} non si tira: servono #{faces} Flussi disponibili per coprire ogni faccia, ne hai #{available} (§3.2)", "the d#{faces} can't be rolled: it takes #{faces} available Flux to cover every face, you have #{available} (§3.2)")
+        end
+        roll = action["roll"]
+        unless roll.is_a?(Integer) && roll.between?(1, faces)
+          return refuse("toZone", "la carta si gioca tirando il d#{faces}: l'azione non porta un tiro valido (§3.2)", "the card is played by rolling the d#{faces}: the action carries no valid roll (§3.2)")
+        end
+        paid = action["cost"]
+        return refuse("toZone", "si paga il numero uscito: #{roll}, non #{paid.is_a?(Integer) ? paid : 0} (§3.2)", "you pay the number rolled: #{roll}, not #{paid.is_a?(Integer) ? paid : 0} (§3.2)") unless paid == roll
+        return refuse("toZone", "il costo a dado non si sconta (§3.2)", "a die cost isn't discounted (§3.2)") if action.key?("discount")
       end
 
       cost = known[:flux_cost]
@@ -1799,6 +1829,11 @@ module Rubyfront
       end
       return judge_attack_refresh(action, ref) if kind == "refresh" && ref["event"] == "on_attack"
       return judge_enter_refresh(action, ref) if kind == "refresh"
+      if ref["event"] == "on_enter_field"
+        return judge_enter_tap(action, ref) if kind == "tap"
+        return judge_enter_empower(action, ref) if kind == "empower"
+        return judge_enter_peek(action, ref) if kind == "look" && ref["follow"] == "peek"
+      end
       if kind == "toZone" && ref["event"] == "on_enter_field"
         return judge_enter_disarm(action, ref) if ref["follow"] == "disarm"
         return judge_enter_rearm(action, ref) if ref["follow"] == "rearm"
@@ -1828,12 +1863,96 @@ module Rubyfront
       matched = listeners.any? do |listener|
         arrived[:type] == "entity" &&
           (listener[:entering_race].nil? || arrived[:race] == listener[:entering_race]) &&
-          count_entities(owner, listener[:requires][:race]) >= listener[:requires][:count] &&
+          (listener[:requires].nil? || count_entities(owner, listener[:requires][:race]) >= listener[:requires][:count]) &&
+          # «Se in questo turno sono entrate sul tuo Fronte almeno N» (dal 2026-10-20): chi è entrato, l'ingresso compreso.
+          (listener[:requires_entered].nil? || entered_this_turn(owner, listener[:requires_entered][:race]) >= listener[:requires_entered][:count]) &&
           listener[:draw] == action["count"] && action["seat"] == owner
       end
       return refuse(kind, "la carta non ha un effetto certificato che si innesca così (§8.2)", "the card has no certified effect that triggers this way (§8.2)") unless matched
 
       allow(kind)
+    end
+
+    # Le Entità di `race` che `seat` comanda, entrate sul Fronte in questo turno (§8.2).
+    def entered_this_turn(seat, race)
+      @table.commanded_cards(seat).count do |card|
+        entry = @cards[card[:card_id]]
+        card[:entered] == @table.turn && entry && entry[:type] == "entity" && (race.nil? || entry[:race] == race)
+      end
+    end
+
+    # §8.2 — «questa Entità entra tappata» (dal 2026-10-20): l'innesco
+    # proprio dell'ingresso — fonte e ingresso coincidono, in campo, entrata
+    # questo turno (l'imbuto) — che tappa la carta stessa, una volta.
+    def judge_enter_tap(action, ref)
+      stopped = own_trigger_stopped("tap", ref)
+      return stopped if stopped
+
+      source = @table.card(ref["source"])
+      known = @cards[source[:card_id]]
+      return no_rule("tap") unless known
+      return refuse("tap", "la carta non ha un effetto certificato che la tappi quando entra (§8.2)", "the card has no certified effect that taps it when it enters (§8.2)") if Array(known[:enter_taps]).empty?
+      return refuse("tap", "«entra tappata»: si tappa la carta che entra, e basta (§8.2)", "“enters tapped”: the entering card is tapped, nothing else (§8.2)") unless action["uid"] == ref["source"] && action["tapped"] == true
+      return refuse("tap", "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
+
+      allow("tap")
+    end
+
+    # §8.2 — «quando entra sul Fronte, un'altra Entità che controlli prende
+    # +N Potenza fino alla fine del turno» (dal 2026-10-20): la fonte è chi
+    # entra; il bersaglio UN'altra Entità del posto, in campo; N esatto; una volta.
+    def judge_enter_empower(action, ref)
+      stopped = own_trigger_stopped("empower", ref)
+      return stopped if stopped
+
+      source = @table.card(ref["source"])
+      known = @cards[source[:card_id]]
+      return no_rule("empower") unless known
+
+      form = Array(known[:enter_empowers]).first
+      return refuse("empower", "la carta non ha un effetto certificato che potenzi quando entra (§8.2)", "the card has no certified effect that empowers when it enters (§8.2)") unless form
+      return refuse("empower", "questo innesco è già stato risolto (§8.2)", "this trigger has already been resolved (§8.2)") if @table.fired?(ref["source"], ref["event"], ref["entering"])
+
+      target = @table.card(action["uid"])
+      return refuse("empower", "il bersaglio dev'essere in campo (§8.2)", "the target must be on the field (§8.2)") unless target && target[:zone] == "field"
+      unless action["uid"] != ref["source"] && @table.controller_of(target) == @table.controller_of(source) && entity_of_race?(action["uid"], form[:race])
+        return refuse("empower", "il +#{form[:power]} va a un'ALTRA Entità che controlli (§8.2)", "the +#{form[:power]} goes to ANOTHER Entity you control (§8.2)")
+      end
+      return refuse("empower", "la Potenza in più è #{form[:power]} (§8.2)", "the extra Power is #{form[:power]} (§8.2)") unless action["power"] == form[:power]
+      return refuse("empower", "l'effetto dà Potenza soltanto (§8.2)", "the effect only gives Power (§8.2)") if action["untap"] || action["counter"] || action["grants"] || action["restrict"] || action["pay"]
+
+      allow("empower")
+    end
+
+    # §8.2 — lo sguardo in cima della Statica che ascolta gli ingressi (dal
+    # 2026-10-20): «ogni volta che un'Entità Umana entra sul tuo Fronte,
+    # guarda la prima carta del tuo mazzo: puoi metterla in fondo». La
+    # fonte è un'altra carta del posto (in campo), l'ingresso un'Entità della
+    # razza entrata questo turno (l'imbuto); si guarda UNA carta, e resta in
+    # cima (`top`) o va in fondo; una volta per ingresso.
+    def judge_enter_peek(action, ref)
+      source = @table.card(ref["source"])
+      entering = @table.card(ref["entering"])
+      unless entering && ref["entering"] != ref["source"] && @table.controller_of(entering) == @table.controller_of(source)
+        return refuse("look", "l'ingresso che innesca dev'essere un'altra carta dello stesso posto, in campo (§8.2)", "the triggering entry must be another card of the same seat, on the field (§8.2)")
+      end
+      return refuse("look", "questo innesco è già stato risolto per quell'ingresso (§8.2)", "this trigger has already been resolved for that entry (§8.2)") if @table.fired?(ref["source"], fired_event(ref), ref["entering"])
+
+      known = @cards[source[:card_id]]
+      arrived = @cards[entering[:card_id]]
+      return no_rule("look") unless known && arrived
+
+      seat = @table.controller_of(source)
+      peek = Array(known[:enter_peeks]).find { |form| arrived[:type] == "entity" && (form[:entering_race].nil? || arrived[:race] == form[:entering_race]) }
+      return refuse("look", "la carta non ha un effetto certificato che guardi in cima a quell'ingresso (§8.2)", "the card has no certified effect that looks at the top on that entry (§8.2)") unless peek
+      return refuse("look", "si guarda nel proprio mazzo (§8.2)", "you look in your own deck (§8.2)") unless action["seat"] == seat
+      return refuse("look", "si guarda la prima carta soltanto (§8.2)", "only the top card is looked at (§8.2)") unless action["count"] == peek[:count]
+      return refuse("look", "la carta guardata resta in cima o va in fondo al mazzo: nient'altro (§8.2)", "the card looked at stays on top or goes to the bottom of the deck: nothing else (§8.2)") if action["reveal"] || action["retire"] || action["revealTo"] || (action["restTo"] && action["restTo"] != "deck")
+
+      top = @table.top_of_deck(seat, peek[:count])
+      return refuse("look", "la carta da lasciare in cima dev'essere quella guardata (§8.2)", "the card to leave on top must be the one looked at (§8.2)") if action["top"] && !top.include?(action["top"])
+
+      allow("look")
     end
 
     # §8.2 — lo spostamento all'ingresso (un'Entità avversaria in Ritiro): la fonte è
@@ -1963,7 +2082,8 @@ module Rubyfront
       # distingue la forma che la carta porta (una carta ne ha una sola).
       targets = if action["restrict"] then "opposing_entity"
                 elsif action["grants"] then "next_human_attacker"
-                elsif ref["source"] == ref["entering"] then %w[others_armed one_armed]
+                elsif action.key?("pay") then "attacker"
+                elsif ref["source"] == ref["entering"] then %w[others_armed one_armed all_attackers]
                 else "bearer"
                 end
       form = forms.find { |candidate| candidate[:kind] == "empower" && Array(targets).include?(candidate[:targets]) }
@@ -2005,6 +2125,27 @@ module Rubyfront
       when "opposing_entity"
         return refuse("empower", "il divieto di blocco va a un'Entità avversaria in campo (§8.2)", "the block ban goes to an opposing Entity on the field (§8.2)") unless @table.controller_of(target) != seat && entity_of_race?(action["uid"], nil)
         return refuse("empower", "l'effetto vieta di bloccare, non altro (§8.2)", "the effect forbids blocking, nothing else (§8.2)") unless action["restrict"] == "block" && action["power"].nil?
+      when "all_attackers"
+        # §8.2 — «le Entità attaccanti che controlli prendono +N» (dal 2026-10-20): una per passo, tutte quelle che attaccano adesso, sé compresa.
+        unless @table.controller_of(target) == seat && entity_of_race?(action["uid"], nil) && @table.attacking?(action["uid"])
+          return refuse("empower", "il +#{form[:power]} va alle Entità che attaccano con lei (§8.2)", "the +#{form[:power]} goes to the Entities attacking alongside it (§8.2)")
+        end
+        return refuse("empower", "la Potenza in più è #{form[:power]} (§8.2)", "the extra Power is #{form[:power]} (§8.2)") unless action["power"] == form[:power] && action["untap"].nil? && action["counter"].nil?
+      when "attacker"
+        # §3.1 — «la prima volta in ogni tuo turno che un'Entità Umana che
+        # controlli attacca, puoi pagare N PV. Se lo fai, quell'Entità
+        # prende +M» (dal 2026-10-20): il bersaglio è chi attacca, il PRIMO
+        # della razza nell'ondata (è la prima volta del turno, non un'altra);
+        # i PV si pagano nell'azione, esatti, e devono esserci.
+        return refuse("empower", "il +#{form[:power]} va a chi attacca (§3.1)", "the +#{form[:power]} goes to the attacker (§3.1)") unless action["uid"] == ref["entering"]
+        first = @table.attackers_in_order.find { |uid| @table.controller_of(@table.card(uid)) == seat && entity_of_race?(uid, form[:attackers][:race]) }
+        one = form[:attackers][:race] == "human" ? "Entità Umana" : "Entità"
+        one_en = form[:attackers][:race] == "human" ? "Human Entity" : "Entity"
+        return refuse("empower", "«la prima volta in ogni tuo turno»: vale per la prima #{one} che attacca, non per questa (§3.1)", "“the first time each of your turns”: it applies to the first #{one_en} attacking, not this one (§3.1)") unless first == ref["entering"]
+        return refuse("empower", "la Potenza in più è #{form[:power]} (§3.1)", "the extra Power is #{form[:power]} (§3.1)") unless action["power"] == form[:power] && action["untap"].nil? && action["counter"].nil?
+        return refuse("empower", "l'abilità costa #{form[:pay_health]} PV: l'azione dice altro (§3.1)", "the ability costs #{form[:pay_health]} HP: the action says otherwise (§3.1)") unless action["pay"] == form[:pay_health]
+        hp = @table.hp(seat)
+        return refuse("empower", "i PV non coprono il costo: servono #{form[:pay_health]} PV, ne hai #{hp} (§3.1)", "HP doesn't cover the cost: it takes #{form[:pay_health]} HP, you have #{hp} (§3.1)") if hp < form[:pay_health]
       end
 
       allow("empower")
@@ -2823,8 +2964,10 @@ module Rubyfront
       when "empower" then judge_resolve_empower(action, ref, source, forms, seat)
       when "toZone"
         if action["zone"] == "field" then judge_fortune_step(action, ref, source, forms, seat)
+        elsif ref["follow"] == "sink" then judge_resolve_sink(action, ref, source, forms, seat)
         elsif action["zone"] == "ritiro" then judge_resolve_move(action, ref, source, forms, seat)
         elsif forms.any? { |form| form[:kind] == "destroy" } then judge_resolve_destroy(action, ref, source, forms, seat)
+        elsif forms.any? { |form| form[:kind] == "move" && form[:to] == "abisso" } then judge_resolve_move(action, ref, source, forms, seat, to: "abisso")
         else judge_resolve_exile(action, ref, source, forms, seat)
         end
       when "player"
@@ -3002,7 +3145,12 @@ module Rubyfront
           return refuse("empower", "l'effetto potenzia fino a #{form[:up_to]} Entità: sono già state potenziate (§8.2)", "the effect empowers up to #{form[:up_to]} Entities: they have already been empowered (§8.2)")
         end
       elsif form[:targets] == "own_entity"
-        return refuse("empower", "la Potenza in più è #{form[:power]} (§8.2)", "the extra Power is #{form[:power]} (§8.2)") unless action["power"] == form[:power] && action["counter"].nil?
+        # «Stappa UN'Entità: +N Potenza» o, dal 2026-10-20, «Contrattacco +N»: l'uno o l'altro, come la forma.
+        if form[:counter]
+          return refuse("empower", "il Contrattacco in più è #{form[:counter]} (§8.2)", "the extra Counterattack is #{form[:counter]} (§8.2)") unless action["counter"] == form[:counter] && action["power"].nil?
+        else
+          return refuse("empower", "la Potenza in più è #{form[:power]} (§8.2)", "the extra Power is #{form[:power]} (§8.2)") unless action["power"] == form[:power] && action["counter"].nil?
+        end
         return refuse("empower", "si stappa UN'Entità: questo passo è già stato risolto (§8.2)", "you untap ONE Entity: this step has already been resolved (§8.2)") if @table.fired_prefix?(ref["source"], "on_resolve:empower:")
       else
         return refuse("empower", "il Contrattacco in più è #{form[:counter]} (§8.2)", "the extra Counterattack is #{form[:counter]} (§8.2)") unless action["counter"] == form[:counter] && action["power"].nil?
@@ -3027,25 +3175,56 @@ module Rubyfront
       target = @table.card(action["uid"])
       return refuse("empower", "il bersaglio dev'essere in campo (§8.2)", "the target must be on the field (§8.2)") unless target && target[:zone] == "field"
       return refuse("empower", "il bersaglio dev'essere un'Entità avversaria (§8.2)", "the target must be an opposing Entity (§8.2)") if @table.controller_of(target) == seat || !entity_of_race?(action["uid"], nil)
-      return refuse("empower", "l'effetto colpisce un'Entità attaccante: questa non attacca (§8.2)", "the effect hits an attacking Entity: this one isn't attacking (§8.2)") unless @table.attacking?(action["uid"])
-      return refuse("empower", "l'effetto toglie Potenza soltanto (§8.2)", "the effect only takes Power away (§8.2)") if action["untap"] || action["counter"] || action["grants"] || action["restrict"]
+      if form[:target][:attacking]
+        return refuse("empower", "l'effetto colpisce un'Entità attaccante: questa non attacca (§8.2)", "the effect hits an attacking Entity: this one isn't attacking (§8.2)") unless @table.attacking?(action["uid"])
+      end
+      return refuse("empower", "l'effetto toglie Potenza soltanto (§8.2)", "the effect only takes Power away (§8.2)") if action["untap"] || action["counter"] || action["grants"] || action["restrict"] || action["pay"]
 
-      armed = armed_entities(seat)
-      return refuse("empower", "senza Entità con un Oggetto assegnato sul tuo Fronte l'effetto non toglie nulla (§8.2)", "without Entities with an Object assigned on your Front the effect takes nothing away (§8.2)") if armed.zero?
+      if form[:per_armed]
+        armed = armed_entities(seat)
+        return refuse("empower", "senza Entità con un Oggetto assegnato sul tuo Fronte l'effetto non toglie nulla (§8.2)", "without Entities with an Object assigned on your Front the effect takes nothing away (§8.2)") if armed.zero?
 
-      expected = form[:amount] * armed
-      unless action["power"] == expected
-        return refuse("empower", "la Potenza in meno è #{expected}: #{form[:amount]} per ognuna delle tue #{armed} Entità con un Oggetto (§8.2)", "the Power taken away is #{expected}: #{form[:amount]} for each of your #{armed} Entities with an Object (§8.2)")
+        expected = form[:amount] * armed
+        unless action["power"] == expected
+          return refuse("empower", "la Potenza in meno è #{expected}: #{form[:amount]} per ognuna delle tue #{armed} Entità con un Oggetto (§8.2)", "the Power taken away is #{expected}: #{form[:amount]} for each of your #{armed} Entities with an Object (§8.2)")
+        end
+      else
+        # L'indebolimento secco (dal 2026-10-20): −N, com'è stampato.
+        return refuse("empower", "la Potenza in meno è #{-form[:amount]} (§8.2)", "the Power taken away is #{-form[:amount]} (§8.2)") unless action["power"] == form[:amount]
       end
       return refuse("empower", "l'effetto colpisce UN'Entità: questo passo è già stato risolto (§8.2)", "the effect hits ONE Entity: this step has already been resolved (§8.2)") if @table.fired_prefix?(ref["source"], "on_resolve:empower:")
 
       allow("empower")
     end
 
+    # Il seguito dell'indebolimento (dal 2026-10-20): «se la sua Potenza
+    # scende a 0 o meno, mettila nella Zona di Ritiro del suo proprietario»
+    # — la stessa Entità colpita dal passo di Potenza, con la Potenza di
+    # ADESSO (stampata, bonus e statici) entro la soglia, una volta.
+    def judge_resolve_sink(action, ref, source, forms, seat)
+      form = forms.find { |candidate| candidate[:kind] == "weaken" && candidate[:then_retire_at_most] }
+      return refuse("toZone", "la Materia non ha un effetto certificato che mandi in Ritiro chi scende a zero (§8.2)", "the Matter has no certified effect that sends to Retire whoever drops to zero (§8.2)") unless form
+      return refuse("toZone", "chi scende a zero va nella Zona di Ritiro del suo proprietario (§8.2)", "whoever drops to zero goes to its owner's Retire Zone (§8.2)") unless action["zone"] == "ritiro"
+
+      target = @table.card(action["uid"])
+      return refuse("toZone", "il bersaglio dev'essere in campo (§8.2)", "the target must be on the field (§8.2)") unless target && target[:zone] == "field"
+      unless @table.fired?(ref["source"], "on_resolve:empower:#{action["uid"]}", ref["entering"])
+        return refuse("toZone", "in Ritiro va l'Entità colpita dall'indebolimento, dopo il passo di Potenza (§8.2)", "the Entity hit by the weakening goes to Retire, after the Power step (§8.2)")
+      end
+
+      power = power_of(action["uid"])
+      return no_rule("toZone") if power.nil?
+      return refuse("toZone", "l'Entità va in Ritiro solo se la sua Potenza è scesa a #{form[:then_retire_at_most]} o meno: è #{power} (§8.2)", "the Entity goes to Retire only if its Power dropped to #{form[:then_retire_at_most]} or less: it is #{power} (§8.2)") if power > form[:then_retire_at_most]
+
+      allow("toZone")
+    end
+
     # Lo spostamento in Ritiro: un'Entità avversaria con costo di Flusso N o inferiore nella Zona di Ritiro.
-    def judge_resolve_move(action, ref, source, forms, seat)
-      form = forms.find { |candidate| candidate[:kind] == "move" && candidate[:to] == "ritiro" }
+    def judge_resolve_move(action, ref, source, forms, seat, to: "ritiro")
+      form = forms.find { |candidate| candidate[:kind] == "move" && candidate[:to] == to }
+      # …e, dal 2026-10-20, «metti un'Entità avversaria nell'Abisso»: stessa dogana, altra zona.
       return refuse("toZone", "la Materia non ha un effetto certificato che mandi in Zona di Ritiro (§8.2)", "the Matter has no certified effect that sends to the Retire Zone (§8.2)") unless form
+      return refuse("toZone", "l'Entità va nell'Abisso, senza che nessuno la tenga (§8.2)", "the Entity goes to the Abyss, held by no one (§8.2)") if to == "abisso" && (action["zone"] != "abisso" || action["heldBy"])
 
       target = @table.card(action["uid"])
       return refuse("toZone", "il bersaglio dev'essere in campo (§8.2)", "the target must be on the field (§8.2)") unless target && target[:zone] == "field"
@@ -3236,11 +3415,14 @@ module Rubyfront
         return refuse("ability", "lo sguardo nel mazzo si risolve dopo, con l'azione di sguardo (§3.1)", "the look into the deck resolves afterwards, with the look action (§3.1)") if action.key?("targets") || action.key?("discount")
       when "summon"
         # La chiamata sul Fronte: l'azione porta la promessa alle prossime
-        # attaccanti così com'è stampata; l'Entità dalla mano scende dopo,
-        # con la sua azione marcata dall'abilità (judge_ability_summon).
+        # attaccanti così com'è stampata (se c'è: dal 2026-10-20 la chiamata
+        # può non promettere nulla); l'Entità dalla mano scende dopo, con la
+        # sua azione marcata dall'abilità (judge_ability_summon).
         promised = form[:bonus]
         given = action["bonus"]
-        unless given.is_a?(Hash) && given["amount"] == promised[:amount] && given["race"] == promised[:race]
+        if promised.nil?
+          return refuse("ability", "questa chiamata non promette nulla alle prossime attaccanti: l'azione non deve portare un bonus (§3.1)", "this call promises nothing to the next attackers: the action must carry no bonus (§3.1)") if given
+        elsif !(given.is_a?(Hash) && given["amount"] == promised[:amount] && given["race"] == promised[:race])
           return refuse("ability", "l'abilità promette +#{promised[:amount]} Potenza alle prossime #{entity_label(promised[:race])} che attaccano in questo turno: l'azione dice altro (§3.1)", "the ability promises +#{promised[:amount]} Power to the next #{entity_label_en(promised[:race])} attacking this turn: the action says otherwise (§3.1)")
         end
         return refuse("ability", "l'Entità dalla mano scende dopo, con la sua azione marcata dall'abilità (§3.1)", "the Entity from hand comes down afterwards, with its own action marked by the ability (§3.1)") if action.key?("targets") || action.key?("discount")
@@ -3309,6 +3491,17 @@ module Rubyfront
         return refuse("ability", "il potenziamento va a UNA Entità che controlli del tipo chiesto (§3.1)", "the empowerment goes to ONE Entity you control of the kind asked (§3.1)") unless targets.size == 1 && legal.include?(targets.first)
       else
         return refuse("ability", "il potenziamento va a TUTTE le Entità che controlli del tipo chiesto, e solo a loro (§3.1)", "the empowerment goes to ALL the Entities you control of the kind asked, and only to them (§3.1)") unless targets.sort == legal.sort
+      end
+      # «…e ottengono [parole chiave] fino alla fine del turno» (dal 2026-10-20): le concessioni stampate, né più né meno.
+      granted = action["grants"]
+      if form[:grants]
+        unless granted.is_a?(Array) && granted.sort == form[:grants].sort
+          names = form[:grants].map { |keyword| KEYWORD_IT.fetch(keyword, keyword) }.join(", ")
+          names_en = form[:grants].map { |keyword| KEYWORD_EN.fetch(keyword, keyword) }.join(", ")
+          return refuse("ability", "i bersagli ottengono #{names} fino alla fine del turno: l'azione deve dirlo (§3.1)", "the targets gain #{names_en} until end of turn: the action must say so (§3.1)")
+        end
+      elsif granted
+        return refuse("ability", "questa abilità non concede parole chiave (§3.1)", "this ability grants no keywords (§3.1)")
       end
       nil
     end
@@ -3386,6 +3579,10 @@ module Rubyfront
 
       unless card && card[:zone] == "hand" && card[:owner] == seat && entry[:type] == "entity" && (form[:race].nil? || entry[:race] == form[:race])
         return refuse(kind, "sul Fronte scende #{form[:race] == "human" ? "un'Entità Umana" : "un'Entità"} dalla propria mano (§3.1)", "#{form[:race] == "human" ? "a Human Entity" : "an Entity"} from your own hand comes onto the Front (§3.1)")
+      end
+      # «Con costo di Flusso N o inferiore» (dal 2026-10-20): il vincolo della chiamata; costo ignoto in anagrafe, non si accusa.
+      if form[:max_cost] && entry[:flux_cost] && entry[:flux_cost] > form[:max_cost]
+        return refuse(kind, "la chiamata mette sul Fronte un'Entità con costo di Flusso #{form[:max_cost]} o inferiore (§3.1)", "the call puts onto the Front an Entity with Flux cost #{form[:max_cost]} or lower (§3.1)")
       end
       # §6.2 — Fronte pieno e sostituzione: l'imbuto entry_stopped.
       return refuse(kind, "le Entità stanno sugli slot del Fronte, nella propria fila (§5)", "Entities sit on the Front slots, in their own row (§5)") unless on_slot?(card, action)
@@ -3714,11 +3911,19 @@ module Rubyfront
       end
 
       nexus[:conditions].each do |condition|
-        have = condition[:armed] ? armed_entities(card[:owner]) : count_entities(card[:owner], condition[:race])
+        # «Controlli almeno N», oppure (dal 2026-10-20) «in questo turno hai
+        # attaccato con almeno N»: gli attaccanti dichiarati adesso, del posto.
+        have = if condition[:armed] then armed_entities(card[:owner])
+               elsif condition[:attacked] then attackers_of(card[:owner], condition[:race])
+               else count_entities(card[:owner], condition[:race])
+               end
         next if have >= condition[:count]
 
-        what = condition[:armed] ? "Entità con un Oggetto assegnato" : "Entità Umane"
-        what_en = condition[:armed] ? "Entities with an Object assigned" : "Human Entities"
+        what = condition[:armed] ? "Entità con un Oggetto assegnato" : entity_label(condition[:race])
+        what_en = condition[:armed] ? "Entities with an Object assigned" : entity_label_en(condition[:race])
+        if condition[:attacked]
+          return refuse("flip", "il Nexus vuole che in questo turno tu abbia attaccato con almeno #{condition[:count]} #{what}: ne attaccano #{have} (§3.1)", "the Nexus takes at least #{condition[:count]} #{what_en} attacking this turn: #{have} are attacking (§3.1)")
+        end
         return refuse("flip", "il Nexus vuole almeno #{condition[:count]} #{what} che controlli: ne hai #{have} (§3.1)", "the Nexus takes at least #{condition[:count]} #{what_en} you control: you have #{have} (§3.1)")
       end
       if nexus[:discard]
@@ -3731,6 +3936,10 @@ module Rubyfront
         end
         if entry && nexus[:discard][:type] && entry[:type] != nexus[:discard][:type]
           return refuse("flip", "si scarta una carta Entità, non questa (§3.1)", "an Entity card is discarded, not this one (§3.1)")
+        end
+        # «Un'Entità Umana dalla tua mano» (dal 2026-10-20): anche la razza.
+        if entry && nexus[:discard][:race] && entry[:race] != nexus[:discard][:race]
+          return refuse("flip", "si scarta un'Entità #{nexus[:discard][:race] == "human" ? "Umana" : nexus[:discard][:race]}, non questa (§3.1)", "a#{nexus[:discard][:race] == "human" ? " Human" : " #{nexus[:discard][:race]}"} Entity is discarded, not this one (§3.1)")
         end
       end
       recover = action["recover"]

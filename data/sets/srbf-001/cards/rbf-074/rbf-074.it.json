@@ -1,5 +1,5 @@
 {
-  "name": "Seyra, Rubifronte di Nova Kai",
+  "name": "Seyra",
   "typeLabel": "Rubyfront bifronte",
   "summary": "Il Rubyfront del tutorial Auros: guadagna PV ogni volta che qualcosa si ferma in Stasi.",
   "ui": {
@@ -21,7 +21,7 @@
     "destructiveAria": "Distruttiva"
   },
   "faceA": {
-    "name": "Seyra, Rubifronte di Nova Kai",
+    "name": "Seyra",
     "keyword": {
       "name": "Furia",
       "rules": "d20 ≥ 13 prima di ogni azione · fallimento −1 PV"

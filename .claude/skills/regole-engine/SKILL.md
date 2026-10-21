@@ -172,6 +172,14 @@ nei messaggi delle asserzioni non nomina le carte.
 
 - Un'azione «per conto» dell'altro (Flusso di chi entra, stappata) viene
   fermata dalla dogana del turno: metterla dentro l'azione che la causa.
+- Gli helper di `engine_test.rb` sono metodi della stessa classe: un nome
+  già usato (`enter_ref`, `ref`) ridefinito in una sezione nuova cambia
+  anche le sezioni vecchie. Un prefisso per sezione (`entry_ref`,
+  `starter_scene`). E un Rubyfront con `health` in fixture vuole `hp` nel
+  `loadDeck`, o il mazzo non si carica (§3.1).
+- Un campo nuovo in `CardFacts` rompe le fixture dei test vitest che la
+  costruiscono a mano (`enterRefreshes: [], …` in bot, combat, drop,
+  gestures, effects): aggiungerlo lì nella stessa modifica.
 - L'apertura (§4) e il carico del mazzo avvengono nel turno di chiunque.
 - Le patch dei contatori non dicono chi le compie: si giudica il posto del
   contatore, e per il difensore solo in Fronte/Reazione.

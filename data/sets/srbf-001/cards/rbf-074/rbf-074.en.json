@@ -1,5 +1,5 @@
 {
-  "name": "Seyra, Rubyfront of Nova Kai",
+  "name": "Seyra",
   "typeLabel": "Double-faced Rubyfront",
   "summary": "The Auros tutorial's Rubyfront: it gains HP every time something stops in Stasis.",
   "ui": {
@@ -21,7 +21,7 @@
     "destructiveAria": "Destructive"
   },
   "faceA": {
-    "name": "Seyra, Rubyfront of Nova Kai",
+    "name": "Seyra",
     "keyword": {
       "name": "Fury",
       "rules": "d20 ≥ 13 before every action · failure −1 HP"

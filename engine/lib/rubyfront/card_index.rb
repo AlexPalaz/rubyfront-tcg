@@ -155,6 +155,9 @@ module Rubyfront
           matter: matter_of(faces),
           enables: faces.map { |face| enables_of(face) }.freeze,
           enter_listeners: enter_listeners(faces).freeze,
+          enter_peeks: enter_peeks(faces).freeze,
+          enter_taps: enter_taps(faces).freeze,
+          enter_empowers: enter_empowers(faces).freeze,
           enter_moves: enter_moves(faces).freeze,
           enter_returns: enter_returns(faces, "on_enter_field").freeze,
           attack_returns: enter_returns(faces, "on_attack").freeze,
@@ -188,8 +191,8 @@ module Rubyfront
 
     # Tutti i parser delle forme certificate: ogni trigger di ogni carta
     # deve trovarne uno che lo riconosca, o è un effetto che l'engine ignora.
-    FORMS = %i[enter_listeners enter_moves enter_looks enter_controls enter_refreshes enter_disarms enter_rearms enter_stashes turn_start_searches leave_returns
-               attack_draws attack_forms grants_while_assigned static_forms resolve_forms flip_forms assign_forms death_forms].freeze
+    FORMS = %i[enter_listeners enter_peeks enter_taps enter_empowers enter_moves enter_looks enter_controls enter_refreshes enter_disarms enter_rearms enter_stashes
+               turn_start_searches leave_returns attack_draws attack_forms grants_while_assigned static_forms resolve_forms flip_forms assign_forms death_forms].freeze
     RETURN_EVENTS = %w[on_enter_field on_attack].freeze
 
     # Un trigger è riconosciuto se almeno una forma certificata lo legge.
@@ -243,16 +246,78 @@ module Rubyfront
         next unless effect["type"] == "draw_card" && effect["count"].is_a?(Integer) && effect.dig("target", "controller") == "controller"
 
         entering = details["enteringCard"]
+        # L'ascoltatore d'ingresso: «quando un'altra Entità [di razza] entra
+        # sul tuo Fronte» — su un'Entità (`excludeSelf`) o su una Materia
+        # Statica (dal 2026-10-20: una Materia non entra come Entità, e non
+        # lo dice). La condizione è una sola: «se controlli almeno N» o «se
+        # in questo turno sono entrate almeno N» (`requires_entered`).
         requires = details["requiresControlledAtLeast"]
-        next unless entering.is_a?(Hash) && entering["cardType"] == "entity" && entering["controller"] == "controller" && entering["excludeSelf"] == true
-        next unless requires.is_a?(Hash) && requires["count"].is_a?(Integer)
+        entered = details["requiresEnteredThisTurnAtLeast"]
+        next unless entering.is_a?(Hash) && entering["cardType"] == "entity" && entering["controller"] == "controller" && [true, nil].include?(entering["excludeSelf"])
+        next unless (details.keys - %w[enteringCard requiresControlledAtLeast requiresEnteredThisTurnAtLeast]).empty?
+        next unless requires.nil? ^ entered.nil?
 
-        filter = requires["filter"]
+        condition = requires || entered
+        next unless condition.is_a?(Hash) && condition["count"].is_a?(Integer)
+
+        filter = condition["filter"]
         next unless filter.is_a?(Hash) && filter["cardType"] == "entity" && filter["controller"] == "controller"
 
-        { entering_race: entering["race"].is_a?(String) ? entering["race"] : nil,
-          requires: { count: requires["count"], race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze,
-          draw: effect["count"] }.freeze
+        needed = { count: condition["count"], race: filter["race"].is_a?(String) ? filter["race"] : nil }.freeze
+        listener = { entering_race: entering["race"].is_a?(String) ? entering["race"] : nil, requires: requires ? needed : nil, draw: effect["count"] }
+        listener[:requires_entered] = needed if entered
+        listener.freeze
+      end
+    end
+
+    # Lo sguardo in cima della Statica che ascolta gli ingressi (dal
+    # 2026-10-20): «ogni volta che un'Entità [di razza] entra sul tuo Fronte,
+    # guarda la prima carta del tuo mazzo: puoi metterla in fondo al mazzo».
+    # Gemello: core/src/cards.ts, enterPeeksOf.
+    def self.enter_peeks(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field"
+
+        details = trigger["details"]
+        effect = trigger["effect"]
+        next unless details.is_a?(Hash) && effect.is_a?(Hash) && details.keys == ["enteringCard"]
+
+        entering = details["enteringCard"]
+        next unless entering.is_a?(Hash) && entering["cardType"] == "entity" && entering["controller"] == "controller" && [true, nil].include?(entering["excludeSelf"])
+        next unless effect["type"] == "look_and_optionally_move"
+        next unless effect["from"] == { "zone" => "deck", "owner" => "controller", "position" => "top", "count" => 1 }
+        next unless effect["details"] == { "mayMoveTo" => { "zone" => "deck", "owner" => "controller", "position" => "bottom" } }
+
+        { entering_race: entering["race"].is_a?(String) ? entering["race"] : nil, count: 1, may_bottom: true }.freeze
+      end
+    end
+
+    # «Questa Entità entra tappata» (dal 2026-10-20): l'innesco d'ingresso
+    # su di sé che la tappa. Gemello: core/src/cards.ts, enterTapsOf.
+    def self.enter_taps(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field" && trigger["details"].nil?
+        next unless trigger["effect"] == { "type" => "set_state", "target" => { "scope" => "self" }, "state" => "tapped" }
+
+        { kind: "self_tap" }.freeze
+      end
+    end
+
+    # Il potenziamento all'ingresso (dal 2026-10-20): «quando entra sul
+    # Fronte, un'altra Entità che controlli prende +N Potenza fino alla fine
+    # del turno». Gemello: core/src/cards.ts, enterEmpowersOf.
+    def self.enter_empowers(faces)
+      faces.flat_map { |face| Array(face["triggers"]) }.filter_map do |trigger|
+        next unless trigger.is_a?(Hash) && trigger["event"] == "on_enter_field" && trigger["details"].nil?
+
+        effect = trigger["effect"]
+        next unless effect.is_a?(Hash) && effect["type"] == "modify_power" && effect["amount"].is_a?(Integer) && effect["duration"] == "until_end_of_turn"
+
+        target = effect["target"]
+        next unless own_target?(target, "entity") && target["min"] == 1 && target["max"] == 1 && target["details"] == { "excludeSelf" => true }
+        next unless (effect.keys - %w[type target amount duration]).empty?
+
+        { targets: "other_own_entity", race: target["race"].is_a?(String) ? target["race"] : nil, power: effect["amount"] }.freeze
       end
     end
 
@@ -515,6 +580,22 @@ module Rubyfront
         if details["requiresObjectAssigned"] == true && own_target?(target, "entity") && target["min"] == 1 && target["max"] == 1 &&
            target["details"] == { "hasObjectAssigned" => true }
           return { kind: "empower", who: "self", requires_object: true, targets: "one_armed", power: effect["amount"] }
+        end
+        # «Quando attacca, le Entità attaccanti che controlli prendono +N»
+        # (dal 2026-10-20): la carica di chi attacca, su tutti gli attaccanti del turno, sé compresa.
+        if details.empty? && own_target?(target, "entity") && target["quantity"] == "all" && target["details"] == { "attacking" => true } && effect["details"].nil?
+          return { kind: "empower", who: "self", targets: "all_attackers", power: effect["amount"] }
+        end
+        # «La prima volta in ogni tuo turno che un'Entità Umana che controlli
+        # attacca, puoi pagare N PV. Se lo fai, quell'Entità prende +M» (dal
+        # 2026-10-20): l'attacco a pagamento di PV del Rubyfront, sul primo
+        # attaccante della razza nel turno.
+        pay = effect.dig("details", "optionalCost", "health")
+        if details["oncePerEachOfYourTurns"] == true && own_target?(details["attacker"], "entity") && target == { "scope" => "attacker" } &&
+           pay.is_a?(Integer) && pay.positive? && effect["details"] == { "optionalCost" => { "health" => pay } } && details.keys.sort == %w[attacker oncePerEachOfYourTurns]
+          attacker = details["attacker"]
+          return { kind: "empower", who: "rubyfront", once: true, attackers: { type: "entity", race: attacker["race"].is_a?(String) ? attacker["race"] : nil }.freeze,
+                   targets: "attacker", power: effect["amount"], pay_health: pay }
         end
       end
       if effect["type"] == "empower" && effect["duration"] == "until_end_of_turn" && details["oncePerEachOfYourTurns"] == true &&
@@ -893,6 +974,10 @@ module Rubyfront
       if target["min"] == 1 && target["max"] == 1 && extra["thenPowerBonus"].is_a?(Integer) && extra.keys.sort == %w[duration thenPowerBonus]
         return { kind: "empower", targets: "own_entity", race: race, power: extra["thenPowerBonus"], untap: true }
       end
+      # «Stappa un'Entità che controlli: ottiene Contrattacco +N fino alla fine del turno» (dal 2026-10-20): una sola, in Reazione.
+      if target["min"] == 1 && target["max"] == 1 && extra["thenCounterattackBonus"].is_a?(Integer) && extra.keys.sort == %w[duration thenCounterattackBonus]
+        return { kind: "empower", targets: "own_entity", race: race, counter: extra["thenCounterattackBonus"], untap: true }
+      end
       if target["quantity"] == "all" && extra["thenCounterattackBonus"].is_a?(Integer)
         requires = extra["requiresControlledAtLeast"]
         return nil unless requires.is_a?(Hash) && requires["count"].is_a?(Integer) && own_target?(requires["filter"], "entity")
@@ -951,6 +1036,13 @@ module Rubyfront
 
         return { kind: "move", target: { type: "entity", controller: "opponent", max_cost: max_cost }.freeze, to: "ritiro", discount: discount }
       end
+      # «Metti un'Entità avversaria nell'Abisso» (dal 2026-10-20): la
+      # rimozione secca, senza condizioni né seguito — non è una morte
+      # (niente «distruggi»), ma da lì non si torna (§5).
+      if target["cardType"] == "entity" && destination == { "zone" => "abyss", "owner" => "card_owner" } && target["conditions"].nil? &&
+         target["details"].nil? && effect["details"].nil?
+        return { kind: "move", target: { type: "entity", controller: "opponent", max_cost: nil }.freeze, to: "abisso", discount: nil }
+      end
       extra = effect["details"]
       if target.dig("details", "static") == true && destination["zone"] == "abyss" && extra.is_a?(Hash) &&
          extra["whileSourceOnField"] == true && extra["returnsToPlayWhenSourceLeaves"] == true
@@ -968,11 +1060,21 @@ module Rubyfront
       target = effect["target"]
       extra = effect["details"]
       return nil unless target.is_a?(Hash) && target["cardType"] == "entity" && target["controller"] == "opponent" && target["min"] == 1 && target["max"] == 1
-      return nil unless target["details"].is_a?(Hash) && target["details"] == { "attacking" => true }
       return nil unless effect["amount"].is_a?(Integer) && effect["amount"].negative?
-      return nil unless extra.is_a?(Hash) && extra == { "perControllerEntityWithObjectAssigned" => true }
 
-      { kind: "weaken", target: { type: "entity", controller: "opponent", attacking: true }.freeze, amount: effect["amount"], per_armed: true }
+      if target["details"] == { "attacking" => true } && extra == { "perControllerEntityWithObjectAssigned" => true }
+        return { kind: "weaken", target: { type: "entity", controller: "opponent", attacking: true }.freeze, amount: effect["amount"], per_armed: true }
+      end
+      # «Un'Entità avversaria prende −N Potenza fino alla fine del turno. Se
+      # la sua Potenza scende a 0 o meno, mettila nella Zona di Ritiro del
+      # suo proprietario» (dal 2026-10-20): l'indebolimento secco, con la
+      # messa in Ritiro come seguito.
+      sink = extra.is_a?(Hash) ? extra["thenIfPowerAtMost"] : nil
+      return nil unless target["details"].nil? && extra.is_a?(Hash) && extra.keys == ["thenIfPowerAtMost"]
+      return nil unless sink.is_a?(Hash) && sink["value"].is_a?(Integer) && sink["moveTo"] == { "zone" => "retire", "owner" => "card_owner" }
+
+      { kind: "weaken", target: { type: "entity", controller: "opponent", attacking: false }.freeze, amount: effect["amount"], per_armed: false,
+        then_retire_at_most: sink["value"] }
     end
 
     # Il potenziamento delle armate (dal 2026-09-10): «fino a N Entità con un
@@ -1186,8 +1288,15 @@ module Rubyfront
         return nil unless all || one
 
         details = target["details"].is_a?(Hash) ? target["details"] : {}
-        { kind: "power", amount: effect["amount"], targets: all ? "all" : "one", race: target["race"].is_a?(String) ? target["race"] : nil,
-          attacking: details["attacking"] == true, armed: details["hasObjectAssigned"] == true }.freeze
+        form = { kind: "power", amount: effect["amount"], targets: all ? "all" : "one", race: target["race"].is_a?(String) ? target["race"] : nil,
+                 attacking: details["attacking"] == true, armed: details["hasObjectAssigned"] == true }
+        # «…e ottengono [parole chiave] fino alla fine del turno» (dal
+        # 2026-10-20): le concessioni viaggiano con la Potenza.
+        granted = effect.dig("details", "grants")
+        return nil unless granted.nil? || (granted.is_a?(Array) && !granted.empty? && granted.all? { |keyword| keyword.is_a?(String) } && effect["details"].keys == ["grants"])
+
+        form[:grants] = granted.freeze if granted
+        form.freeze
       when "reduce_cost"
         return nil unless effect["amount"].is_a?(Integer) && effect.dig("details", "nextPlayedThisTurn") == true
 
@@ -1210,12 +1319,24 @@ module Rubyfront
 
         grants = Array(details["grants"])
         return nil unless grants.all? { |keyword| keyword.is_a?(String) }
+        return nil unless (details.keys - %w[noFluxCost grants thenNextHumanAttackersThisTurn]).empty?
 
+        # La promessa alle prossime attaccanti è facoltativa (dal 2026-10-20:
+        # la chiamata senza promessa); il vincolo di costo sulla chiamata
+        # («con costo di Flusso N o inferiore») è l'unica condizione letta.
         bonus = details["thenNextHumanAttackersThisTurn"]
-        return nil unless bonus.is_a?(Hash) && bonus["powerBonus"].is_a?(Integer) && bonus["duration"] == "until_end_of_turn"
+        return nil unless bonus.nil? || (bonus.is_a?(Hash) && bonus["powerBonus"].is_a?(Integer) && bonus["duration"] == "until_end_of_turn")
+
+        max_cost = nil
+        certified = Array(target["conditions"]).all? do |condition|
+          ok = condition.is_a?(Hash) && condition["stat"] == "flux_cost" && condition["operator"] == "lte" && condition["value"].is_a?(Integer)
+          max_cost = condition["value"] if ok
+          ok
+        end
+        return nil unless certified
 
         { kind: "summon", race: target["race"].is_a?(String) ? target["race"] : nil, grants: grants.freeze,
-          bonus: { amount: bonus["powerBonus"], race: "human" }.freeze }.freeze
+          bonus: bonus && { amount: bonus["powerBonus"], race: "human" }.freeze, max_cost: max_cost }.freeze
       end
     end
 
@@ -1386,7 +1507,10 @@ module Rubyfront
       return nil unless requirement.is_a?(Hash) && requirement["match"] == "all"
 
       conditions = Array(requirement["conditions"]).map do |condition|
-        next nil unless condition.is_a?(Hash) && condition["type"] == "controls_card" && condition["owner"] == "controller" && condition["min"].is_a?(Integer)
+        # «Controlli almeno N Entità [di razza]» — e, dal 2026-10-20, «in
+        # questo turno hai attaccato con almeno N Entità [di razza]» (`attacked`).
+        next nil unless condition.is_a?(Hash) && %w[controls_card attacked_this_turn_at_least].include?(condition["type"]) &&
+                        condition["owner"] == "controller" && condition["min"].is_a?(Integer)
 
         filter = condition["filter"]
         next nil unless filter.is_a?(Hash) && filter["cardType"] == "entity" && (filter.keys - %w[cardType race details]).empty?
@@ -1398,14 +1522,21 @@ module Rubyfront
 
         entry = { count: condition["min"], type: "entity", race: filter["race"].is_a?(String) ? filter["race"] : nil }
         entry[:armed] = true if armed
+        entry[:attacked] = true if condition["type"] == "attacked_this_turn_at_least"
         entry.freeze
       end
       return nil if conditions.empty? || conditions.any?(&:nil?)
 
       costs = Array(requirement["flipCost"]).map do |cost|
         next nil unless cost.is_a?(Hash) && cost["type"] == "discard_card" && cost["count"] == 1 && cost.dig("target", "controller") == "controller"
+        # Lo scarto va in Zona di Ritiro comunque (§5, §6.5): un dettaglio che lo dice non cambia la forma; un altro la rende ignota.
+        next nil unless cost["details"].nil? || cost["details"] == { "toZone" => { "zone" => "retire", "owner" => "controller" } }
 
-        { count: 1, type: cost.dig("filter", "cardType").is_a?(String) ? cost["filter"]["cardType"] : nil }.freeze
+        filter = cost["filter"].is_a?(Hash) ? cost["filter"] : {}
+        discard = { count: 1, type: filter["cardType"].is_a?(String) ? filter["cardType"] : nil }
+        # «Un'Entità Umana dalla tua mano» (dal 2026-10-20): la razza dello scarto.
+        discard[:race] = filter["race"] if filter["race"].is_a?(String)
+        discard.freeze
       end
       return nil if costs.any?(&:nil?) || costs.size > 1
 

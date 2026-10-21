@@ -5092,4 +5092,296 @@ class EngineTest < Minitest::Test
     assert engine.judge(ready.merge("seat" => "a"), actor: "a")[:ok], "in Fase di Fronte, per chi è di turno"
     assert engine.judge(ready, actor: "b")[:ok], "e per l'avversario"
   end
+  # --- Le forme dello starter Umani (dal 2026-10-20) -------------------------
+  #
+  # Entra tappata, il buff all'ingresso su un'altra, la carica di chi attacca,
+  # l'attacco a pagamento di PV del Rubyfront, il Contrattacco in Reazione,
+  # l'indebolimento con la messa in Ritiro, la rimozione a costo di dado, la
+  # Statica che guarda e pesca, il Nexus «hai attaccato con N» e le sue abilità.
+
+  STARTER = LEGACY.merge(
+    "WEARY" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 1, enter_taps: [{ kind: "self_tap" }] },
+    "ORDER" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 3, enter_empowers: [{ targets: "other_own_entity", race: nil, power: 1 }] },
+    "LEADER" => { type: "entity", keywords: ["surge"], race: "human", power: 6, flux_cost: 6,
+                  attack_forms: [{ kind: "empower", who: "self", targets: "all_attackers", power: 1, face: 0 }] },
+    "WILL" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 1, matter: { type: "dynamic", grade: 1 },
+                resolve_forms: [{ kind: "empower", targets: "own_entity", race: nil, counter: 1, untap: true }] },
+    "WALL" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 2, matter: { type: "destructive", grade: 1 },
+                resolve_forms: [{ kind: "weaken", target: { type: "entity", controller: "opponent", attacking: false }, amount: -2, per_armed: false, then_retire_at_most: 0 }] },
+    "BLOW" => { type: "matter", keywords: [], behavior: "normal", flux_cost: nil, flux_die: "d6", matter: { type: "destructive", grade: 2 },
+                resolve_forms: [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: nil }, to: "abisso", discount: nil }] },
+    "MUSTER" => { type: "matter", keywords: [], behavior: "static", flux_cost: 2, matter: { type: "dynamic", grade: 1 },
+                  enter_peeks: [{ entering_race: "human", count: 1, may_bottom: true }],
+                  enter_listeners: [{ entering_race: "human", requires: nil, draw: 1, requires_entered: { count: 2, race: "human" } }] },
+    "FLAME" => { type: "rubyfront", keywords: ["fury"], health: 20, fury_at: { 0 => 13 }, enables: [[{ type: "dynamic", max_grade: 2 }, { type: "destructive", max_grade: 1 }], [{ type: "dynamic", max_grade: 2 }, { type: "destructive", max_grade: 2 }]],
+                 nexus: { face: 1, conditions: [{ count: 3, type: "entity", race: "human", attacked: true }], discard: { count: 1, type: "entity", race: "human" }, recovery: 5 },
+                 attack_forms: [{ kind: "empower", who: "rubyfront", once: true, attackers: { type: "entity", race: "human" }, targets: "attacker", power: 1, pay_health: 1, face: 0 }],
+                 abilities: [
+                   { id: "incendio", face: 1, timing: %w[preparazione fronte], cost: 6, gain: nil, fury: false,
+                     form: { kind: "power", amount: 1, targets: "all", race: "human", attacking: false, armed: false, grants: ["surge"] } },
+                   { id: "chiamata", face: 1, timing: %w[preparazione fronte], cost: 3, gain: nil, fury: false,
+                     form: { kind: "summon", race: "human", grants: [], bonus: nil, max_cost: 2 } },
+                 ] }
+  ).freeze
+
+  # Un tavolo dello starter: come legacy_scene, col Rubyfront FLAME per A.
+  def starter_scene(a, b: [], attacks: nil, face: 0)
+    engine = Rubyfront::Engine.new(cards: STARTER)
+    load = lambda do |seat, list|
+      cards = list.map.with_index do |(uid, id, extra), i|
+        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1260 : 172 }.merge(extra || {})
+      end
+      deck = { "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards }
+      deck["hp"] = 20 if seat == "a" # §3.1: i PV stampati sul Rubyfront
+      verdict = engine.judge(deck)
+      raise "mazzo rifiutato: #{verdict[:reason]}" unless verdict[:ok]
+    end
+    load.call("a", a + [["rf-a", "FLAME", { "y" => 1260, "face" => face }]])
+    load.call("b", b + [["rf-b", "RUBY", { "y" => 172 }]])
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    if attacks
+      front!(engine)
+      attacks.each_with_index do |uid, i|
+        verdict = engine.judge({ "t" => "declare", "declaration" => { "id" => uid, "from" => uid, "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => i + 1 } })
+        raise "attacco rifiutato: #{verdict[:reason]}" unless verdict[:ok]
+      end
+    end
+    engine
+  end
+
+  def starter_play(engine, uid, cost:, actor: "a", x: 2368, y: 1260, extra: {})
+    card = table_copy(engine).card(uid)
+    known = card && STARTER[card[:card_id]]
+    extra = { "chain" => true }.merge(extra) if known && known[:behavior] == "reactive"
+    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y, "cost" => cost }.merge(extra), actor: actor)
+  end
+
+  def entry_ref(source, entering = source, **extra)
+    { "source" => source, "event" => "on_enter_field", "entering" => entering }.merge(extra.transform_keys(&:to_s))
+  end
+
+  # Il seguito dell'indebolimento: la messa in Ritiro di chi è sceso a zero.
+  def sink_ref(source)
+    res_ref(source).merge("follow" => "sink")
+  end
+
+  # «Questa Entità entra tappata»: l'innesco proprio dell'ingresso, una volta.
+  def test_weary_enters_tapped
+    engine = starter_scene([["u", "HUMAN"], ["w", "WEARY", { "zone" => "hand" }], ["x", "AUROS", { "zone" => "hand" }]])
+    assert starter_play(engine, "w", cost: 1, x: 1199)[:ok]
+    assert starter_play(engine, "x", cost: 2, x: 821)[:ok]
+    tap = { "t" => "tap", "uid" => "w", "tapped" => true, "effect" => entry_ref("w") }
+    assert_match(/si tappa la carta che entra/, engine.judge(tap.merge("uid" => "u"))[:reason])
+    assert_match(/si tappa la carta che entra/, engine.judge(tap.merge("tapped" => false))[:reason])
+    assert_match(/non ha un effetto certificato/, engine.judge(tap.merge("uid" => "x", "effect" => entry_ref("x")))[:reason], "una vanilla non entra tappata")
+    verdict = engine.judge(tap)
+    assert verdict[:ok], verdict[:reason]
+    assert table_copy(engine).card("w")[:tapped]
+    assert_match(/già stato risolto/, engine.judge(tap)[:reason])
+    engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
+    assert_match(/non è entrata sul Fronte questo turno/, engine.judge(tap, actor: "a")[:reason])
+  end
+
+  # «Quando entra, un'altra Entità che controlli prende +1 Potenza».
+  def test_order_empowers_another_own_entity_on_entry
+    engine = starter_scene([["u", "HUMAN"], ["x", "AUROS"], ["o", "ORDER", { "zone" => "hand" }], ["y", "AUROS", { "zone" => "hand" }]], b: [["v", "HUMAN"]])
+    assert starter_play(engine, "o", cost: 3, x: 1199)[:ok]
+    assert starter_play(engine, "y", cost: 2, x: 821)[:ok]
+    step = { "t" => "empower", "uid" => "u", "power" => 1, "effect" => entry_ref("o") }
+    assert_match(/ALTRA Entità che controlli/, engine.judge(step.merge("uid" => "o"))[:reason], "non sé stessa")
+    assert_match(/ALTRA Entità che controlli/, engine.judge(step.merge("uid" => "v"))[:reason], "non un'avversaria")
+    assert_match(/ALTRA Entità che controlli/, engine.judge(step.merge("uid" => "rf-a"))[:reason], "non il Rubyfront")
+    assert_match(/Potenza in più è 1/, engine.judge(step.merge("power" => 2))[:reason])
+    assert_match(/Potenza soltanto/, engine.judge(step.merge("untap" => true))[:reason])
+    verdict = engine.judge(step.merge("uid" => "x"))
+    assert verdict[:ok], "anche un Auros, la forma non ha razza: #{verdict[:reason]}"
+    assert_equal 1, table_copy(engine).card("x")[:power_bonus]
+    assert_match(/già stato risolto/, engine.judge(step)[:reason], "una sola")
+    assert_match(/non ha un effetto certificato/, engine.judge(step.merge("effect" => entry_ref("y")))[:reason], "una vanilla non potenzia")
+  end
+
+  # «Quando attacca, le Entità attaccanti che controlli prendono +1»: tutte quelle che attaccano, sé compresa.
+  def test_leader_charge_empowers_every_attacker
+    engine = starter_scene([["l", "LEADER"], ["u", "HUMAN"], ["s", "SMALL"]], b: [["v", "HUMAN"]], attacks: %w[u l])
+    step = { "t" => "empower", "uid" => "u", "power" => 1, "effect" => ref("l") }
+    assert_match(/attaccano con lei/, engine.judge(step.merge("uid" => "s"))[:reason], "chi non attacca non prende nulla")
+    assert_match(/attaccano con lei/, engine.judge(step.merge("uid" => "v"))[:reason])
+    assert_match(/Potenza in più è 1/, engine.judge(step.merge("power" => 2))[:reason])
+    %w[u l].each do |uid|
+      verdict = engine.judge(step.merge("uid" => uid))
+      assert verdict[:ok], verdict[:reason]
+      assert_equal 1, table_copy(engine).card(uid)[:power_bonus]
+    end
+    assert_match(/già stato risolto/, engine.judge(step)[:reason], "una volta per bersaglio")
+    assert_match(/non ha un effetto certificato/, engine.judge(step.merge("effect" => ref("u")))[:reason], "una vanilla non carica")
+  end
+
+  # Il Rubyfront: «la prima volta in ogni tuo turno che un'Entità Umana attacca, puoi pagare 1 PV: +1 Potenza».
+  def test_rubyfront_paid_attack_goes_to_first_human_attacker_once_per_turn
+    engine = starter_scene([["x", "AUROS"], ["u1", "HUMAN"], ["u2", "HUMAN"]], attacks: %w[x u1 u2])
+    step = { "t" => "empower", "uid" => "u1", "power" => 1, "pay" => 1, "effect" => ref("rf-a", "u1", once: true) }
+    assert_match(/prima Entità Umana che attacca/, engine.judge(step.merge("uid" => "u2", "effect" => ref("rf-a", "u2", once: true)))[:reason], "u2 non è la prima")
+    assert_match(/vale quando attaccano le Entità Umane/, engine.judge(step.merge("uid" => "x", "effect" => ref("rf-a", "x", once: true)))[:reason], "un Auros no")
+    assert_match(/va a chi attacca/, engine.judge(step.merge("uid" => "u2"))[:reason])
+    assert_match(/costa 1 PV/, engine.judge(step.merge("pay" => 2))[:reason])
+    assert_match(/Potenza in più è 1/, engine.judge(step.merge("power" => 2))[:reason])
+    assert_match(/una volta per turno/, engine.judge(step.merge("effect" => ref("rf-a", "u1")))[:reason])
+    verdict = engine.judge(step)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 1, table_copy(engine).card("u1")[:power_bonus]
+    assert_equal 19, table_copy(engine).hp("a"), "il PV pagato"
+    assert_match(/già stato risolto/, engine.judge(step)[:reason], "una volta per turno")
+  end
+
+  def test_rubyfront_paid_attack_needs_the_hp_and_the_deployed_rubyfront
+    engine = starter_scene([["u1", "HUMAN"]], attacks: %w[u1])
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 0 } })
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 1 } })
+    step = { "t" => "empower", "uid" => "u1", "power" => 1, "pay" => 1, "effect" => ref("rf-a", "u1", once: true) }
+    assert engine.judge(step)[:ok]
+    recalled = starter_scene([["u1", "HUMAN"]], attacks: %w[u1])
+    table_copy(recalled).card("rf-a")[:row] = 1420
+    assert_match(/Zona di Richiamo non ha abilità/, recalled.judge(step)[:reason])
+  end
+
+  # «Stappa un'Entità che controlli: ottiene Contrattacco +1»: una sola, in Reazione.
+  def test_will_untaps_one_entity_with_counterattack
+    engine = starter_scene([["g", "BIG"]], b: [["v1", "HUMAN", { "tapped" => true }], ["v2", "AUROS", { "tapped" => true }], ["w", "WILL", { "zone" => "hand" }]], attacks: %w[g])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert starter_play(engine, "w", cost: 1, actor: "b", y: 172)[:ok]
+    accept!(engine, "a")
+    step = { "t" => "empower", "uid" => "v2", "counter" => 1, "untap" => true, "effect" => res_ref("w") }
+    assert_match(/Contrattacco in più è 1/, engine.judge(step.merge("counter" => 2), actor: "b")[:reason])
+    assert_match(/non ha un effetto certificato che potenzi così/, engine.judge(step.merge("counter" => nil, "power" => 1), actor: "b")[:reason], "Potenza no: la forma dà Contrattacco")
+    assert_match(/non lo dice/, engine.judge(step.reject { |k, _| k == "untap" }, actor: "b")[:reason])
+    verdict = engine.judge(step, actor: "b")
+    assert verdict[:ok], "anche un Auros, la forma non ha razza: #{verdict[:reason]}"
+    v2 = table_copy(engine).card("v2")
+    refute v2[:tapped]
+    assert_equal 1, v2[:counter_bonus]
+    assert_match(/UN'Entità/, engine.judge(step.merge("uid" => "v1"), actor: "b")[:reason])
+  end
+
+  # «Un'Entità avversaria prende −2 Potenza. Se scende a 0 o meno, nella Zona di Ritiro del proprietario».
+  def test_wall_weakens_any_opposing_entity_and_sinks_it_at_zero
+    engine = starter_scene([["s", "SMALL"], ["g", "BIG"]], b: [["v", "HUMAN"], ["w", "WALL", { "zone" => "hand" }], ["w2", "WALL", { "zone" => "hand" }]], attacks: %w[g])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert starter_play(engine, "w", cost: 2, actor: "b", y: 172)[:ok]
+    accept!(engine, "a")
+    weaken = { "t" => "empower", "uid" => "s", "power" => -2, "effect" => res_ref("w") }
+    sink = { "t" => "toZone", "uid" => "s", "zone" => "ritiro", "effect" => sink_ref("w") }
+    assert_match(/Potenza in meno è 2/, engine.judge(weaken.merge("power" => -1), actor: "b")[:reason])
+    assert_match(/dopo il passo di Potenza/, engine.judge(sink, actor: "b")[:reason], "prima si toglie Potenza")
+    verdict = engine.judge(weaken, actor: "b")
+    assert verdict[:ok], "non attacca, ma la forma non lo pretende: #{verdict[:reason]}"
+    assert_equal(-2, table_copy(engine).card("s")[:power_bonus])
+    assert_match(/UN'Entità/, engine.judge(weaken.merge("uid" => "g"), actor: "b")[:reason])
+    assert_match(/Zona di Ritiro del suo proprietario/, engine.judge(sink.merge("zone" => "abisso"), actor: "b")[:reason])
+    verdict = engine.judge(sink, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "ritiro", table_copy(engine).card("s")[:zone]
+    assert_match(/già stato risolto/, engine.judge(sink, actor: "b")[:reason])
+    # Il secondo muro contro il grosso: 4 − 2 = 2, resta in campo.
+    assert engine.judge({ "t" => "toZone", "uid" => "w", "zone" => "abisso" }, actor: "b")[:ok]
+    assert starter_play(engine, "w2", cost: 2, actor: "b", y: 172)[:ok]
+    accept!(engine, "a")
+    assert engine.judge(weaken.merge("uid" => "g", "effect" => res_ref("w2")), actor: "b")[:ok]
+    assert_match(/scesa a 0 o meno: è 2/, engine.judge(sink.merge("uid" => "g", "effect" => sink_ref("w2")), actor: "b")[:reason])
+  end
+
+  # Il costo a dado di una Materia (§3.2): si tira con Flusso pari alle facce, si paga il tiro; poi la rimozione nell'Abisso.
+  def test_blow_is_paid_by_the_die_and_sends_an_opposing_entity_to_the_abyss
+    engine = starter_scene([["u", "HUMAN"], ["m", "BLOW", { "zone" => "hand" }]], b: [["v", "HUMAN"], ["o", "SHIELD", { "assignedTo" => "v" }]])
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 5 } })
+    assert_match(/d6 non si tira.*ne hai 5/, starter_play(engine, "m", cost: 3, extra: { "roll" => 3 })[:reason])
+    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 6 } })
+    assert_match(/tiro valido/, starter_play(engine, "m", cost: 3)[:reason])
+    assert_match(/tiro valido/, starter_play(engine, "m", cost: 7, extra: { "roll" => 7 })[:reason])
+    assert_match(/numero uscito: 3, non 2/, starter_play(engine, "m", cost: 2, extra: { "roll" => 3 })[:reason])
+    assert_match(/non si sconta/, starter_play(engine, "m", cost: 3, extra: { "roll" => 3, "discount" => 1 })[:reason])
+    verdict = starter_play(engine, "m", cost: 3, extra: { "roll" => 3 })
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 3, table_copy(engine).flux("a"), "pagato il tiro"
+    step = { "t" => "toZone", "uid" => "v", "zone" => "abisso", "effect" => res_ref("m") }
+    assert_match(/avversario/, engine.judge(step.merge("uid" => "u"))[:reason])
+    assert_match(/senza che nessuno la tenga/, engine.judge(step.merge("heldBy" => "m"))[:reason])
+    verdict = engine.judge(step)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", table_copy(engine).card("v")[:zone]
+    assert_equal "ritiro", table_copy(engine).card("o")[:zone], "l'Oggetto va in Zona di Ritiro (§3.1)"
+    assert_match(/già stato risolto/, engine.judge(step.merge("uid" => "rf-b"))[:reason])
+  end
+
+  # La Statica che ascolta gli ingressi: lo sguardo in cima a ogni Umano, la pesca col secondo Umano del turno.
+  def test_muster_peeks_on_each_human_entry_and_draws_on_the_second
+    engine = starter_scene([["st", "MUSTER"], ["h1", "HUMAN", { "zone" => "hand" }], ["h2", "SMALL", { "zone" => "hand" }], ["x", "AUROS", { "zone" => "hand" }],
+                           ["d0", "AUROS", { "zone" => "deck", "order" => 0 }], ["d1", "AUROS", { "zone" => "deck", "order" => 1 }], ["d2", "HUMAN", { "zone" => "deck", "order" => 2 }]])
+    # La pesca del turno 3 ha preso «d0»: in cima restano d1, d2.
+    assert_equal %w[d1 d2], table_copy(engine).top_of_deck("a", 2)
+    assert starter_play(engine, "x", cost: 2, x: 1199)[:ok]
+    peek = { "t" => "look", "seat" => "a", "count" => 1, "restTo" => "deck", "effect" => entry_ref("st", "x", follow: "peek") }
+    assert_match(/guardi in cima a quell'ingresso/, engine.judge(peek)[:reason], "un Auros non innesca")
+    assert starter_play(engine, "h1", cost: 2, x: 821)[:ok]
+    peek = { "t" => "look", "seat" => "a", "count" => 1, "restTo" => "deck", "effect" => entry_ref("st", "h1", follow: "peek") }
+    assert_match(/prima carta soltanto/, engine.judge(peek.merge("count" => 2))[:reason])
+    assert_match(/resta in cima o va in fondo/, engine.judge(peek.merge("reveal" => "d1"))[:reason])
+    assert_match(/proprio mazzo/, engine.judge(peek.merge("seat" => "b"))[:reason])
+    assert_match(/quella guardata/, engine.judge(peek.merge("top" => "d2"))[:reason])
+    verdict = engine.judge(peek)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal %w[d2 d1], table_copy(engine).top_of_deck("a", 2), "d1 è andata in fondo"
+    assert_match(/già stato risolto/, engine.judge(peek)[:reason])
+    draw = { "t" => "draw", "seat" => "a", "count" => 1, "effect" => entry_ref("st", "h1") }
+    assert_match(/non ha un effetto certificato che si innesca così/, engine.judge(draw)[:reason], "un Umano solo nel turno: niente pesca")
+    verdict = starter_play(engine, "h2", cost: 1, x: 1578)
+    assert verdict[:ok], verdict[:reason]
+    peek2 = peek.merge("top" => "d2", "effect" => entry_ref("st", "h2", follow: "peek"))
+    verdict = engine.judge(peek2)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal %w[d2 d1], table_copy(engine).top_of_deck("a", 2), "lasciata in cima"
+    draw2 = draw.merge("effect" => entry_ref("st", "h2"))
+    verdict = engine.judge(draw2)
+    assert verdict[:ok], "col secondo Umano del turno si pesca: #{verdict[:reason]}"
+    assert_equal "hand", table_copy(engine).card("d2")[:zone]
+    assert_match(/già stato risolto/, engine.judge(draw2)[:reason])
+  end
+
+  # Il Nexus dello starter: «in questo turno hai attaccato con almeno 3 Umane», lo scarto di un'Umana.
+  def test_starter_nexus_wants_three_human_attackers_and_a_human_discard
+    engine = starter_scene([["u1", "HUMAN"], ["u2", "HUMAN"], ["x", "AUROS"], ["h", "HUMAN", { "zone" => "hand" }], ["ha", "AUROS", { "zone" => "hand" }]], attacks: %w[u1 u2 x])
+    flip = { "t" => "flip", "uid" => "rf-a", "face" => 1, "discard" => "h", "recover" => 5 }
+    assert_match(/attaccato con almeno 3 Entità Umane: ne attaccano 2/, engine.judge(flip)[:reason])
+    engine = starter_scene([["u1", "HUMAN"], ["u2", "HUMAN"], ["u3", "SMALL"], ["h", "HUMAN", { "zone" => "hand" }], ["ha", "AUROS", { "zone" => "hand" }]], attacks: %w[u1 u2 u3])
+    assert_match(/si scarta un'Entità Umana, non questa/, engine.judge(flip.merge("discard" => "ha"))[:reason])
+    verdict = engine.judge(flip)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 1, table_copy(engine).card("rf-a")[:face]
+    assert_equal "ritiro", table_copy(engine).card("h")[:zone]
+    assert_match(/ne attaccano 0/, starter_scene([["u1", "HUMAN"], ["h", "HUMAN", { "zone" => "hand" }]]).judge(flip)[:reason], "in Preparazione nessuno attacca ancora")
+  end
+
+  # Le abilità del Nexus: «+1 Potenza e Slancio a tutti gli Umani», e la chiamata entro il costo 2 senza promessa.
+  def test_starter_nexus_abilities_grant_surge_and_call_within_cost
+    engine = starter_scene([["u1", "HUMAN"], ["x", "AUROS"], ["h", "SMALL", { "zone" => "hand" }], ["g", "HUMAN", { "zone" => "hand" }]], face: 1)
+    fire = { "t" => "ability", "uid" => "rf-a", "ability" => "incendio", "cost" => 6, "targets" => ["u1"], "power" => 1, "grants" => ["surge"] }
+    assert_match(/ottengono Slancio fino alla fine del turno/, engine.judge(fire.reject { |k, _| k == "grants" })[:reason])
+    assert_match(/ottengono Slancio/, engine.judge(fire.merge("grants" => ["revenge"]))[:reason])
+    verdict = engine.judge(fire)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal ["surge"], table_copy(engine).card("u1")[:grants]
+    assert_equal 1, table_copy(engine).card("u1")[:power_bonus]
+    assert_nil table_copy(engine).card("x")[:grants], "solo gli Umani"
+    engine = starter_scene([["u1", "HUMAN"], ["h", "SMALL", { "zone" => "hand" }], ["g", "THORNY", { "zone" => "hand" }]], face: 1)
+    call = { "t" => "ability", "uid" => "rf-a", "ability" => "chiamata", "cost" => 3 }
+    assert_match(/non promette nulla/, engine.judge(call.merge("bonus" => { "amount" => 1, "race" => "human" }))[:reason])
+    verdict = engine.judge(call)
+    assert verdict[:ok], verdict[:reason]
+    descend = { "t" => "toZone", "uid" => "g", "zone" => "field", "x" => 1199, "y" => 1260, "grants" => [], "effect" => { "source" => "rf-a", "event" => "on_ability", "entering" => "rf-a", "ability" => "chiamata" } }
+    assert_match(/costo di Flusso 2 o inferiore/, engine.judge(descend)[:reason], "un Umano da 3 Flussi non scende")
+    verdict = engine.judge(descend.merge("uid" => "h"))
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "field", table_copy(engine).card("h")[:zone]
+  end
 end

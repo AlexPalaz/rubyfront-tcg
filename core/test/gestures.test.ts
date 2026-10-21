@@ -45,7 +45,7 @@ const facts = (cardId: string): CardFacts =>
     enterReturns: [],
     enterLooks: [],
     enterControls: [],
-    enterRefreshes: [],
+    enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [],
     enterDisarms: [],
     enterRearms: [],
     enterStashes: [],

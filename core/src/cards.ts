@@ -8,7 +8,7 @@
 
 import { useProgression, type ProgressionCatalog } from "./progression.js";
 import type { Phase } from "./types.js";
-import type { AssignForm, CardFacts, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterListener, EnterLook, EnterRearm, EnterRefresh, EnterMove, EnterReturn, EnterStash, TurnStartSearch, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, SelfRetire, StaticForm, Ability, AbilityForm } from "./ctx.js";
+import type { AssignForm, CardFacts, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterEmpower, EnterListener, EnterLook, EnterPeek, EnterRearm, EnterRefresh, EnterMove, EnterReturn, EnterStash, EnterTap, TurnStartSearch, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, SelfRetire, StaticForm, Ability, AbilityForm } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -230,16 +230,74 @@ function enterListenersOf(face: CardFace | undefined): EnterListener[] {
     const details = trigger.details as { enteringCard?: any; requiresControlledAtLeast?: any } | undefined;
     const effect = trigger.effect as { type?: unknown; count?: unknown; target?: { controller?: unknown } } | undefined;
     const entering = details?.enteringCard;
+    // Su un'Entità (`excludeSelf`) o su una Materia Statica (dal 2026-10-20,
+    // senza: una Materia non entra come Entità). La condizione è una sola:
+    // «se controlli almeno N» o «se in questo turno sono entrate almeno N».
     const requires = details?.requiresControlledAtLeast;
-    if (!entering || !requires || !effect) continue;
+    const entered = (details as Loose | undefined)?.requiresEnteredThisTurnAtLeast;
+    if (!entering || !effect || !details) continue;
+    if (!Object.keys(details).every(key => key === "enteringCard" || key === "requiresControlledAtLeast" || key === "requiresEnteredThisTurnAtLeast")) continue;
+    if ((requires === undefined) === (entered === undefined)) continue;
     if (effect.type !== "draw_card" || !Number.isInteger(effect.count) || effect.target?.controller !== "controller") continue;
-    if (entering.cardType !== "entity" || entering.controller !== "controller" || entering.excludeSelf !== true) continue;
-    if (!Number.isInteger(requires.count) || requires.filter?.cardType !== "entity" || requires.filter?.controller !== "controller") continue;
+    if (entering.cardType !== "entity" || entering.controller !== "controller" || (entering.excludeSelf !== true && entering.excludeSelf !== undefined)) continue;
+    const condition = requires ?? entered;
+    if (!Number.isInteger(condition.count) || condition.filter?.cardType !== "entity" || condition.filter?.controller !== "controller") continue;
+    const needed = { count: condition.count as number, race: typeof condition.filter.race === "string" ? condition.filter.race : null };
     out.push({
       enteringRace: typeof entering.race === "string" ? entering.race : null,
-      requires: { count: requires.count as number, race: typeof requires.filter.race === "string" ? requires.filter.race : null },
+      requires: requires ? needed : null,
+      ...(entered ? { requiresEntered: needed } : {}),
       draw: effect.count as number,
     });
+  }
+  return out;
+}
+
+/**
+ * Lo sguardo in cima della Statica che ascolta gli ingressi (dal
+ * 2026-10-20): «ogni volta che un'Entità [di razza] entra sul tuo Fronte,
+ * guarda la prima carta del tuo mazzo: puoi metterla in fondo». Specchio di
+ * card_index.rb, enter_peeks.
+ */
+function enterPeeksOf(face: CardFace | undefined): EnterPeek[] {
+  const out: EnterPeek[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field") continue;
+    const details = trigger.details as Loose | undefined;
+    const effect = trigger.effect as Loose | undefined;
+    if (!details || !effect || Object.keys(details).join() !== "enteringCard") continue;
+    const entering = details.enteringCard as Loose | undefined;
+    if (!entering || entering.cardType !== "entity" || entering.controller !== "controller" || (entering.excludeSelf !== true && entering.excludeSelf !== undefined)) continue;
+    if (effect.type !== "look_and_optionally_move") continue;
+    if (!sameShape(effect.from, { zone: "deck", owner: "controller", position: "top", count: 1 })) continue;
+    if (!sameTree(effect.details, { mayMoveTo: { zone: "deck", owner: "controller", position: "bottom" } })) continue;
+    out.push({ enteringRace: typeof entering.race === "string" ? entering.race : null, count: 1, mayBottom: true });
+  }
+  return out;
+}
+
+/** «Questa Entità entra tappata» (dal 2026-10-20). Specchio di card_index.rb, enter_taps. */
+function enterTapsOf(face: CardFace | undefined): EnterTap[] {
+  const out: EnterTap[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field" || trigger.details !== undefined) continue;
+    if (!sameTree(trigger.effect, { type: "set_state", target: { scope: "self" }, state: "tapped" })) continue;
+    out.push({ kind: "self_tap" });
+  }
+  return out;
+}
+
+/** «Quando entra sul Fronte, un'altra Entità che controlli prende +N Potenza fino alla fine del turno» (dal 2026-10-20). Specchio di card_index.rb, enter_empowers. */
+function enterEmpowersOf(face: CardFace | undefined): EnterEmpower[] {
+  const out: EnterEmpower[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field" || trigger.details !== undefined) continue;
+    const effect = trigger.effect as Loose | undefined;
+    if (!effect || effect.type !== "modify_power" || !Number.isInteger(effect.amount) || effect.duration !== "until_end_of_turn") continue;
+    const target = effect.target as Loose | undefined;
+    if (!ownTarget(target, "entity") || target.min !== 1 || target.max !== 1 || !sameShape(target.details, { excludeSelf: true })) continue;
+    if (!Object.keys(effect).every(key => ["type", "target", "amount", "duration"].includes(key))) continue;
+    out.push({ targets: "other_own_entity", race: typeof target.race === "string" ? target.race : null, power: effect.amount as number });
   }
   return out;
 }
@@ -400,6 +458,20 @@ function attackEmpower(details: Loose, effect: Loose): Unfaced<AttackForm> | nul
     if (details.requiresObjectAssigned === true && ownTarget(target, "entity") && target.min === 1 && target.max === 1 &&
         sameShape(target.details, { hasObjectAssigned: true })) {
       return { kind: "empower", who: "self", requiresObject: true, targets: "one_armed", power: effect.amount };
+    }
+    // «Quando attacca, le Entità attaccanti che controlli prendono +N» (dal 2026-10-20): la carica, su tutti gli attaccanti del turno, sé compresa.
+    if (Object.keys(details).length === 0 && ownTarget(target, "entity") && target.quantity === "all" && sameShape(target.details, { attacking: true }) && effect.details === undefined) {
+      return { kind: "empower", who: "self", targets: "all_attackers", power: effect.amount };
+    }
+    // «La prima volta in ogni tuo turno che un'Entità Umana che controlli
+    // attacca, puoi pagare N PV. Se lo fai, quell'Entità prende +M» (dal
+    // 2026-10-20): l'attacco a pagamento di PV del Rubyfront, sul primo
+    // attaccante della razza nel turno.
+    const pay = (effect.details as Loose | undefined)?.optionalCost?.health;
+    const attacker = details.attacker as Loose | undefined;
+    if (details.oncePerEachOfYourTurns === true && ownTarget(attacker, "entity") && sameShape(target, { scope: "attacker" }) &&
+        Number.isInteger(pay) && pay > 0 && sameTree(effect.details, { optionalCost: { health: pay } }) && Object.keys(details).sort().join() === "attacker,oncePerEachOfYourTurns") {
+      return { kind: "empower", who: "rubyfront", once: true, attackers: { kind: "entity", race: typeof attacker.race === "string" ? attacker.race : null }, targets: "attacker", power: effect.amount, payHealth: pay };
     }
   }
   if (effect.type === "empower" && effect.duration === "until_end_of_turn" && details.oncePerEachOfYourTurns === true &&
@@ -986,10 +1058,17 @@ function resolveWeaken(effect: Loose): ResolveForm | null {
   const target = effect.target as Loose | undefined;
   const extra = effect.details as Loose | undefined;
   if (!target || target.cardType !== "entity" || target.controller !== "opponent" || target.min !== 1 || target.max !== 1) return null;
-  if (!sameShape(target.details, { attacking: true })) return null;
   if (!Number.isInteger(effect.amount) || effect.amount >= 0) return null;
-  if (!sameShape(extra, { perControllerEntityWithObjectAssigned: true })) return null;
-  return { kind: "weaken", target: { kind: "entity", controller: "opponent", attacking: true }, amount: effect.amount, perArmed: true };
+  if (sameShape(target.details, { attacking: true }) && sameShape(extra, { perControllerEntityWithObjectAssigned: true })) {
+    return { kind: "weaken", target: { kind: "entity", controller: "opponent", attacking: true }, amount: effect.amount, perArmed: true };
+  }
+  // «Un'Entità avversaria prende −N Potenza. Se la sua Potenza scende a 0 o
+  // meno, mettila nella Zona di Ritiro del suo proprietario» (dal
+  // 2026-10-20): l'indebolimento secco, con la messa in Ritiro come seguito.
+  const sink = extra?.thenIfPowerAtMost as Loose | undefined;
+  if (target.details !== undefined || !extra || Object.keys(extra).join() !== "thenIfPowerAtMost") return null;
+  if (!sink || !Number.isInteger(sink.value) || !sameShape(sink.moveTo, { zone: "retire", owner: "card_owner" })) return null;
+  return { kind: "weaken", target: { kind: "entity", controller: "opponent", attacking: false }, amount: effect.amount, perArmed: false, thenRetireAtMost: sink.value as number };
 }
 
 /** Il potenziamento delle armate (dal 2026-09-10): «fino a N Entità con un Oggetto assegnato che controlli prendono +M Potenza fino alla fine del turno e vengono stappate». Specchio di card_index.rb, resolve_amplify. */
@@ -1038,6 +1117,10 @@ function resolveUntap(effect: Loose): ResolveForm | null {
   if (target.min === 1 && target.max === 1 && Number.isInteger(extra.thenPowerBonus) && Object.keys(extra).sort().join() === "duration,thenPowerBonus") {
     return { kind: "empower", targets: "own_entity", race, power: extra.thenPowerBonus, untap: true };
   }
+  // «Stappa un'Entità che controlli: ottiene Contrattacco +N fino alla fine del turno» (dal 2026-10-20): una sola, in Reazione.
+  if (target.min === 1 && target.max === 1 && Number.isInteger(extra.thenCounterattackBonus) && Object.keys(extra).sort().join() === "duration,thenCounterattackBonus") {
+    return { kind: "empower", targets: "own_entity", race, counter: extra.thenCounterattackBonus, untap: true };
+  }
   if (target.quantity === "all" && Number.isInteger(extra.thenCounterattackBonus)) {
     const requires = extra.requiresControlledAtLeast as Loose | undefined;
     if (!requires || !Number.isInteger(requires.count) || !ownTarget(requires.filter, "entity")) return null;
@@ -1085,6 +1168,11 @@ function resolveMove(effect: Loose): ResolveForm | null {
       discount = { amount: reduction.amount, ifArmedAtLeast: reduction.ifControllerEntitiesWithObjectAtLeast };
     }
     return { kind: "move", target: { kind: "entity", controller: "opponent", maxCost: cost.maxCost }, to: "ritiro", discount };
+  }
+  // «Metti un'Entità avversaria nell'Abisso» (dal 2026-10-20): la rimozione
+  // secca, senza condizioni né seguito. Specchio di card_index.rb, resolve_move.
+  if (target.cardType === "entity" && sameShape(destination, { zone: "abyss", owner: "card_owner" }) && target.conditions === undefined && target.details === undefined && effect.details === undefined) {
+    return { kind: "move", target: { kind: "entity", controller: "opponent", maxCost: null }, to: "abisso", discount: null };
   }
   const extra = effect.details as Loose | undefined;
   if (target.details?.static === true && destination.zone === "abyss" && extra && extra.whileSourceOnField === true && extra.returnsToPlayWhenSourceLeaves === true) {
@@ -1272,7 +1360,11 @@ function abilityFormOf(effect: Loose | undefined): AbilityForm | null {
     const one = target.min === 1 && target.max === 1;
     if (!all && !one) return null;
     const details = (target.details ?? {}) as Loose;
-    return { kind: "power", amount: effect.amount as number, targets: all ? "all" : "one", race: typeof target.race === "string" ? target.race : null, attacking: details.attacking === true, armed: details.hasObjectAssigned === true };
+    // «…e ottengono [parole chiave] fino alla fine del turno» (dal 2026-10-20): le concessioni viaggiano con la Potenza.
+    const extra = effect.details as Loose | undefined;
+    const granted = extra?.grants;
+    if (extra !== undefined && (Object.keys(extra).join() !== "grants" || !Array.isArray(granted) || granted.length === 0 || !granted.every((keyword: unknown) => typeof keyword === "string"))) return null;
+    return { kind: "power", amount: effect.amount as number, targets: all ? "all" : "one", race: typeof target.race === "string" ? target.race : null, attacking: details.attacking === true, armed: details.hasObjectAssigned === true, ...(granted ? { grants: granted as string[] } : {}) };
   }
   if (effect.type === "reduce_cost") {
     if (!Number.isInteger(effect.amount) || effect.details?.nextPlayedThisTurn !== true) return null;
@@ -1292,9 +1384,14 @@ function abilityFormOf(effect: Loose | undefined): AbilityForm | null {
     if (!d || d.noFluxCost !== true) return null;
     const grants = Array.isArray(d.grants) ? (d.grants as unknown[]) : [];
     if (!grants.every(keyword => typeof keyword === "string")) return null;
+    if (!Object.keys(d).every(key => ["noFluxCost", "grants", "thenNextHumanAttackersThisTurn"].includes(key))) return null;
+    // La promessa alle prossime attaccanti è facoltativa (dal 2026-10-20); il
+    // vincolo di costo sulla chiamata è l'unica condizione letta.
     const bonus = d.thenNextHumanAttackersThisTurn as Loose | undefined;
-    if (!bonus || !Number.isInteger(bonus.powerBonus) || bonus.duration !== "until_end_of_turn") return null;
-    return { kind: "summon", race: typeof target.race === "string" ? target.race : null, grants: grants as string[], bonus: { amount: bonus.powerBonus as number, race: "human" } };
+    if (bonus !== undefined && (!bonus || !Number.isInteger(bonus.powerBonus) || bonus.duration !== "until_end_of_turn")) return null;
+    const cost = costCondition(target.conditions);
+    if (!cost.ok) return null;
+    return { kind: "summon", race: typeof target.race === "string" ? target.race : null, grants: grants as string[], bonus: bonus ? { amount: bonus.powerBonus as number, race: "human" } : null, maxCost: cost.maxCost };
   }
   return null;
 }
@@ -1336,14 +1433,15 @@ function nexusOf(faces: CardFace[]): NexusRequirement | null {
   if (!requirement || requirement.match !== "all") return null;
   const conditions: NexusRequirement["conditions"] = [];
   for (const condition of (Array.isArray(requirement.conditions) ? requirement.conditions : []) as Loose[]) {
-    if (condition?.type !== "controls_card" || condition.owner !== "controller" || !Number.isInteger(condition.min)) return null;
+    // «Controlli almeno N» — e, dal 2026-10-20, «in questo turno hai attaccato con almeno N» (`attacked`).
+    if ((condition?.type !== "controls_card" && condition?.type !== "attacked_this_turn_at_least") || condition.owner !== "controller" || !Number.isInteger(condition.min)) return null;
     const filter = condition.filter as Loose | undefined;
     if (!filter || filter.cardType !== "entity" || !Object.keys(filter).every(key => key === "cardType" || key === "race" || key === "details")) return null;
     // «Con un Oggetto assegnato» (dal 2026-09-10): l'unico dettaglio certificato. Specchio di card_index.rb, nexus_of.
     const details = filter.details as Loose | undefined;
     const armed = details !== undefined && Object.keys(details).length === 1 && details.hasObjectAssigned === true;
     if (details !== undefined && !armed) return null;
-    conditions.push({ count: condition.min, kind: "entity", race: typeof filter.race === "string" ? filter.race : null, ...(armed ? { armed: true as const } : {}) });
+    conditions.push({ count: condition.min, kind: "entity", race: typeof filter.race === "string" ? filter.race : null, ...(armed ? { armed: true as const } : {}), ...(condition.type === "attacked_this_turn_at_least" ? { attacked: true as const } : {}) });
   }
   if (conditions.length === 0) return null;
   const costs = (Array.isArray(requirement.flipCost) ? requirement.flipCost : []) as Loose[];
@@ -1352,7 +1450,9 @@ function nexusOf(faces: CardFace[]): NexusRequirement | null {
   if (costs.length === 1) {
     const cost = costs[0];
     if (cost?.type !== "discard_card" || cost.count !== 1 || cost.target?.controller !== "controller") return null;
-    discard = { count: 1, kind: typeof cost.filter?.cardType === "string" ? cost.filter.cardType : null };
+    // Lo scarto va in Zona di Ritiro comunque (§5, §6.5): un dettaglio che lo dice non cambia la forma; un altro la rende ignota.
+    if (cost.details !== undefined && !sameTree(cost.details, { toZone: { zone: "retire", owner: "controller" } })) return null;
+    discard = { count: 1, kind: typeof cost.filter?.cardType === "string" ? cost.filter.cardType : null, ...(typeof cost.filter?.race === "string" ? { race: cost.filter.race as string } : {}) };
   }
   const recovery = faces[nexusIndex].stats?.healthRecovery;
   return { face: nexusIndex, conditions, discard, recovery: Number.isInteger(recovery) ? (recovery as number) : null };
@@ -1377,6 +1477,9 @@ export function cardStats(cardId: string): {
   keywords: string[];
   deployment: Deployment | null;
   enterListeners: EnterListener[];
+  enterPeeks: EnterPeek[];
+  enterTaps: EnterTap[];
+  enterEmpowers: EnterEmpower[];
   enterMoves: EnterMove[];
   behavior: string | null;
   enterReturns: EnterReturn[];
@@ -1413,6 +1516,9 @@ export function cardStats(cardId: string): {
       typeof keyword === "object" && keyword !== null && typeof (keyword as { id?: unknown }).id === "string" ? [(keyword as { id: string }).id] : []
     ),
     enterListeners: enterListenersOf(face),
+    enterPeeks: enterPeeksOf(face),
+    enterTaps: enterTapsOf(face),
+    enterEmpowers: enterEmpowersOf(face),
     enterMoves: enterMovesOf(face),
     behavior: typeof face?.behavior === "string" ? face.behavior : null,
     enterReturns: enterReturnsOf(face, "on_enter_field"),
@@ -1487,6 +1593,9 @@ export function cardFacts(cardId: string, locale: string): CardFacts {
     fluxDie: stats.fluxDie,
     keywords: stats.keywords,
     enterListeners: stats.enterListeners,
+    enterPeeks: stats.enterPeeks,
+    enterTaps: stats.enterTaps,
+    enterEmpowers: stats.enterEmpowers,
     enterMoves: stats.enterMoves,
     behavior: stats.behavior,
     enterReturns: stats.enterReturns,

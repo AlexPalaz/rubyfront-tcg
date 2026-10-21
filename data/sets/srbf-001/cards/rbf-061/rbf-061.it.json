@@ -1,5 +1,5 @@
 {
-  "name": "Arden, Rubifronte del Fuoco",
+  "name": "Arden",
   "typeLabel": "Rubyfront bifronte",
   "summary": "Il Rubyfront del tutorial Umani: paga PV per spingere gli attacchi, e la Fiamma Eterna li ripaga.",
   "ui": {
@@ -21,7 +21,7 @@
     "destructiveAria": "Distruttiva"
   },
   "faceA": {
-    "name": "Arden, Rubifronte del Fuoco",
+    "name": "Arden",
     "keyword": {
       "name": "Furia",
       "rules": "d20 ≥ 13 prima di ogni azione · fallimento −1 PV"

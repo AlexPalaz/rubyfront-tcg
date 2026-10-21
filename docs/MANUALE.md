@@ -163,6 +163,8 @@ Il **Flusso** è la risorsa con cui si pagano le carte, al posto del classico ma
 
 **Costi di Flusso definiti dalle carte:** oltre a pagare la giocata delle carte, il Flusso può comparire come **costo di abilità o effetti**, quando una carta lo prevede espressamente (regola d'oro, §1.1). Si paga dalla propria barra, alle stesse condizioni di ogni altra spesa di Flusso, e nelle finestre indicate dalla carta.
 
+**Il costo a dado di una carta (regola sperimentale, dal 2026-10-20):** una carta può stampare al posto del costo di Flusso **un dado** (es. una Materia da `d6`). Vale la stessa regola del costo a dado dello schieramento (§3.1): si può lanciare **solo se il Flusso disponibile copre le facce del dado**, Gettone compreso; si tira **a ogni giocata** e si paga in Flusso **il numero uscito**. Il tiro del costo **non si sconta**.
+
 #### Gettone Flusso
 
 Il giocatore che **non** inizia la partita riceve un **Gettone Flusso**: rappresenta **1 punto di Flusso extra**, è **monouso** e può essere utilizzato **in qualsiasi momento della partita** — anche nel turno avversario o nel mezzo di una catena di risposta (compensa lo svantaggio di giocare per secondo).
@@ -543,7 +545,7 @@ Il pareggio esiste in due soli casi:
 - Punti d'Ascesa pari al **livello** del Rubyfront, da 1 a 10; la soglia della Furia non scende sotto **2** (§3.3).
 - Massimo **20 Flussi** (§3.2). Il Gettone Flusso è fuori dal limite: è un punto a parte.
 - Costo **minimo 1 Flusso** stampato per qualsiasi carta (§3.2): non esistono carte gratuite di per sé, ma uno sconto che porta il costo a 0 la rende gratis.
-- Costo di schieramento a **dado**: si tira solo con Flusso disponibile **almeno pari alle facce del dado**; il dado non supera il **d20** (§3.1).
+- Costo di schieramento a **dado**: si tira solo con Flusso disponibile **almeno pari alle facce del dado**; il dado non supera il **d20** (§3.1). Lo stesso vale per una carta col **costo a dado** (§3.2).
 
 ## 10. Glossario
 

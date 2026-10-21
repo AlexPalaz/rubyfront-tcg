@@ -15,12 +15,12 @@ beforeAll(() => {
 });
 
 describe("il modello della faccia", () => {
-  it("Rubyfront: a tutta illustrazione, dado di schieramento, PV, la qualifica nella riga del tipo", () => {
+  it("Rubyfront: a tutta illustrazione, dado di schieramento, PV, «Rubyfront» nella riga del tipo", () => {
     const face = faceModel("RBF-001", "rubyfront", "it")!;
     expect(face.fullArt).toBe(true);
     expect(face.cost).toEqual({ kind: "die", value: "6" });
     expect(face.right).toEqual({ kind: "hp", value: "21", label: "PV" });
-    expect(face.textline?.type).toBe("Rubifronte");
+    expect(face.textline?.type).toBe("Rubyfront");
     expect(face.textline?.idents.map(ident => (ident.kind === "matter" ? `${ident.type}${ident.grade}` : "counter"))).toEqual(["dynamic2", "destructive1"]);
     expect(face.keywords).toEqual([{ name: "Furia:", rules: "d20 ≥ 13 prima di ogni azione · fallimento −1 PV" }]);
     // L'ordine del sito: il requisito, gli inneschi, le abilità.

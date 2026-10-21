@@ -239,8 +239,10 @@ export function choosePlay(state: GameState, seat: Seat, facts: Facts, memory: B
     const f = facts(card.cardId);
     // Lo sconto di un'abilità del Rubyfront (§3.1) lo applica il tavolo al
     // gioco della carta: qui conta per decidere cosa si paga.
-    if (f.fluxDie) continue; // il costo a dado non è ancora collegato (2026-09-22)
-    const cost = f.fluxCost === null ? null : Math.max(0, f.fluxCost - (abilityDiscount(state, seat, f)?.amount ?? 0));
+    // Il costo a dado (§3.2, dal 2026-10-20): si tira solo col Flusso pari
+    // alle facce, e il bot mette in conto il caso peggiore.
+    const faces = f.fluxDie ? Number(/^d(\d+)$/.exec(f.fluxDie)?.[1] ?? 0) : 0;
+    const cost = faces > 0 ? faces : f.fluxCost === null ? null : Math.max(0, f.fluxCost - (abilityDiscount(state, seat, f)?.amount ?? 0));
     if (cost === null || f.kind === "rubyfront" || f.kind === "nexus") continue;
     const useToken = cost > player.flux;
     if (useToken && (!player.token || cost > player.flux + 1)) continue;
@@ -400,11 +402,12 @@ export function chooseAbility(state: GameState, seat: Seat, facts: Facts, memory
       const costs = zoneCards(state, seat, "hand")
         .filter(card => {
           const f = facts(card.cardId);
-          return f.kind === "entity" && (form.race === null || f.race === form.race) && !sealedForPlay(state, card);
+          // «Con costo di Flusso N o inferiore» (dal 2026-10-20): il vincolo della chiamata.
+          return f.kind === "entity" && (form.race === null || f.race === form.race) && !sealedForPlay(state, card) && (form.maxCost === null || (f.fluxCost !== null && f.fluxCost <= form.maxCost));
         })
         .map(card => facts(card.cardId).fluxCost ?? 0);
       if (costs.length === 0) continue;
-      worth = Math.max(...costs) + form.grants.length + form.bonus.amount;
+      worth = Math.max(...costs) + form.grants.length + (form.bonus?.amount ?? 0);
     } else {
       // Il potenziamento fino a fine turno: a ondata dichiarata (in Fronte),
       // sulle Entità che attaccano — le altre non ne fanno nulla.

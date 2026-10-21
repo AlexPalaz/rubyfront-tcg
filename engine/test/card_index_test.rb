@@ -25,10 +25,10 @@ class CardIndexTest < Minitest::Test
     # in Ritiro, la rimozione a costo di dado, la Statica che guarda e pesca,
     # l'attacco a pagamento di PV, la Stasi imposta o tolta, il buff secco in
     # Reazione, i PV a ogni Stasi.
-    "RBF-048 entity/weary", "RBF-050 entity/order", "RBF-054 entity/charge",
-    "RBF-057 matter/resolve", "RBF-058 matter/falter", "RBF-059 matter/blow",
-    "RBF-060 matter/muster-look", "RBF-060 matter/muster-draw",
-    "RBF-061 rubyfront/pact-price",
+    # (Le forme dello starter Umani — entra tappata, il buff all'ingresso, la
+    # carica, il Contrattacco in Reazione, l'indebolimento con la messa in
+    # Ritiro, la rimozione a costo di dado, la Statica che guarda e pesca,
+    # l'attacco a pagamento di PV — sono certificate dal 2026-10-20.)
     "RBF-065 entity/freeze", "RBF-066 entity/release", "RBF-069 entity/seal",
     "RBF-070 object/wake", "RBF-071 matter/impulse", "RBF-072 matter/barrier",
     "RBF-074 rubyfront/stillness", "RBF-074 nexus/vigil-stillness",
@@ -156,7 +156,7 @@ class CardIndexTest < Minitest::Test
     assert_equal({ kind: "discount", amount: 1, type: "entity", race: "human" }, human_rf[2][:form])
     assert_equal 2, human_rf[2][:gain], "dal 2026-09-13 le abilità che danno PV ne danno 2"
     assert_equal [1, 1], human_rf[2..3].map { |a| a[:face] }
-    assert_equal({ kind: "summon", race: "human", grants: ["surge"], bonus: { amount: 1, race: "human" } }, human_rf[3][:form],
+    assert_equal({ kind: "summon", race: "human", grants: ["surge"], bonus: { amount: 1, race: "human" }, max_cost: nil }, human_rf[3][:form],
                  "«metti sul tuo Fronte un Umano dalla mano senza costo, con Slancio; +1 alle prossime attaccanti» è la chiamata sul Fronte")
     assert_equal 7, human_rf[3][:cost]
     assert_equal({ 0 => 13 }, @index["RBF-001"][:fury_at], "la Furia solo sulla faccia del Rubyfront, a 13")
@@ -275,6 +275,45 @@ class CardIndexTest < Minitest::Test
     assert_equal %w[move seal draw], @index["RBF-023"][:flip_forms].map { |form| form[:kind] }, "ma i suoi «quando flippa» hanno la stessa forma, più la pesca"
     assert_equal({ kind: "draw", count: 1 }, @index["RBF-023"][:flip_forms].last)
     assert_nil @index["RBF-004"][:nexus]
+  end
+
+  # --- Le forme dello starter Umani (dal 2026-10-20) ---------------------
+
+  def test_starter_entry_forms_enter_tapped_and_empower_another
+    assert_equal [{ kind: "self_tap" }], @index["RBF-048"][:enter_taps]
+    assert_equal [], @index["RBF-047"][:enter_taps], "una vanilla non entra tappata"
+    assert_equal [{ targets: "other_own_entity", race: nil, power: 1 }], @index["RBF-050"][:enter_empowers]
+    assert_equal [], @index["RBF-048"][:enter_empowers]
+  end
+
+  def test_starter_attack_forms_charge_and_paid_attack
+    assert_equal [{ kind: "empower", who: "self", targets: "all_attackers", power: 1, face: 0 }], @index["RBF-054"][:attack_forms]
+    paid = @index["RBF-061"][:attack_forms].find { |form| form[:targets] == "attacker" }
+    assert_equal({ kind: "empower", who: "rubyfront", once: true, attackers: { type: "entity", race: "human" }, targets: "attacker", power: 1, pay_health: 1, face: 0 }, paid)
+    muster = @index["RBF-061"][:attack_forms].find { |form| form[:kind] == "heal" }
+    assert_equal [1, 2], [muster[:face], muster[:requires_attackers][:count]], "sul Nexus il raduno vuole 2 Umani all'attacco"
+  end
+
+  def test_starter_matters_resolve_forms
+    assert_equal [{ kind: "empower", targets: "own_entity", race: nil, counter: 1, untap: true }], @index["RBF-057"][:resolve_forms]
+    assert_equal [{ kind: "weaken", target: { type: "entity", controller: "opponent", attacking: false }, amount: -2, per_armed: false, then_retire_at_most: 0 }], @index["RBF-058"][:resolve_forms]
+    assert_equal [{ kind: "move", target: { type: "entity", controller: "opponent", max_cost: nil }, to: "abisso", discount: nil }], @index["RBF-059"][:resolve_forms]
+    assert_equal "d6", @index["RBF-059"][:flux_die]
+    assert_nil @index["RBF-059"][:flux_cost]
+  end
+
+  def test_starter_static_listens_to_human_entries
+    assert_equal [{ entering_race: "human", count: 1, may_bottom: true }], @index["RBF-060"][:enter_peeks]
+    assert_equal [{ entering_race: "human", requires: nil, draw: 1, requires_entered: { count: 2, race: "human" } }], @index["RBF-060"][:enter_listeners]
+    assert_equal [], @index["RBF-003"][:enter_peeks], "l'ascoltatore che pesca non guarda in cima"
+  end
+
+  def test_starter_rubyfront_nexus_and_abilities
+    assert_equal({ face: 1, conditions: [{ count: 3, type: "entity", race: "human", attacked: true }], discard: { count: 1, type: "entity", race: "human" }, recovery: 5 }, @index["RBF-061"][:nexus])
+    forms = @index["RBF-061"][:abilities].to_h { |ability| [ability[:id], ability[:form]] }
+    assert_equal({ kind: "summon", race: "human", grants: [], bonus: nil, max_cost: 2 }, forms["oath-call"], "la chiamata entro il costo 2, senza promessa")
+    assert_equal({ kind: "power", amount: 1, targets: "all", race: "human", attacking: false, armed: false, grants: ["surge"] }, forms["oath-charge"], "+1 e Slancio a tutti gli Umani")
+    assert_equal({ kind: "power", amount: 1, targets: "one", race: "human", attacking: false, armed: false }, forms["pact-word"])
   end
 
   def test_attack_drawer_draws_when_attacking_armed

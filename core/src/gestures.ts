@@ -12,7 +12,7 @@
 import { declareAttack as declareAttackVia, attackBonusOf, neverTaps, wornBy } from "./combat.js";
 import { abilityCopy, attackEffects, cardName, cardStats, enterEffects, faceCount, faceKind, getCard, isRubyfront, nexusRequirementCopy, type Deployment } from "./cards.js";
 import type { Ability, AssignForm, Ctx } from "./ctx.js";
-import { turnStartSearches, resolveTurnStartSearch, describeTurnStartSearch, type TurnStartSearchStep, bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, describeStash, enterDisarms, enterRearms, enterStashes, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveStash, stashRef, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type EnterStashStep, type LeaveReturnStep, type Placement, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
+import { turnStartSearches, resolveTurnStartSearch, describeTurnStartSearch, type TurnStartSearchStep, bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, describeStash, enterDisarms, enterRearms, enterStashes, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveStash, stashRef, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type EnterStashStep, type LeaveReturnStep, type Placement, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, enterTaps, enterEmpowers, enterPeeks, describeTap, describeEnterEmpower, describePeek, resolveTap, resolveEnterEmpower, resolvePeek, sinks, type EnterTapStep, type EnterEmpowerStep, type EnterPeekStep, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
 import { FRONT_SLOT_X, RUBYFRONT_X, SLOT_X, SURFACE_H, SURFACE_W, TILE_H, TILE_W, backRowY, frontRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import type { AutoChooser } from "./session.js";
@@ -34,6 +34,7 @@ export const TRIGGER_TAIL_MS = 350;
 const FLIP_HINTS: Record<string, string> = {
   "log.nexus.few": "flip.hint.few",
   "log.nexus.few.armed": "flip.hint.few.armed",
+  "log.nexus.few.attacking": "flip.hint.few.attacking",
   "log.nexus.nodiscard": "flip.hint.nodiscard",
   "log.nexus.nocard": "flip.hint.nocard",
 };
@@ -553,11 +554,14 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const disarms = enterDisarms(state, live, ctx.card);
     const rearms = enterRearms(live, ctx.card);
     const stashes = enterStashes(state, live, ctx.card);
+    const taps = enterTaps(live, ctx.card);
+    const empowers = enterEmpowers(state, live, ctx.card);
+    const peeks = enterPeeks(state, live, ctx.card);
     const triggers = enterTriggers(state, live, ctx.card);
     // Un Oggetto non entra sul Fronte: si assegna, e la scena dice a chi (§3.1).
     const bearer = facts.kind === "object" && live.assignedTo ? state.cards[live.assignedTo] : undefined;
     return {
-      triggered: (moves.length || returns.length || looks.length || controls.length || refreshes.length || disarms.length || rearms.length || stashes.length || triggers.length) > 0,
+      triggered: (moves.length || returns.length || looks.length || controls.length || refreshes.length || disarms.length || rearms.length || stashes.length || taps.length || empowers.length || peeks.length || triggers.length) > 0,
       show: {
         cardId: live.cardId,
         face: live.face,
@@ -570,6 +574,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         ...(bearer ? { kicker: t("scene.assign") } : {}),
         effects: enterEffects(live.cardId, live.face, ctx.locale()),
         triggers: [
+          ...taps.map(step => describeTap(step, ctx.card)),
+          ...empowers.map(step => describeEnterEmpower(step, ctx.card)),
           ...moves.map(step => describeMove(step, ctx.card)),
           ...returns.map(step => describeReturn(step, ctx.card)),
           ...looks.map(step => describeLook(step, ctx.card)),
@@ -578,6 +584,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           ...disarms.map(step => t("trigger.disarm", { card: `«${ctx.card(step.source.cardId).name}»` })),
           ...rearms.map(step => t(step.self ? "trigger.rearm.self" : "trigger.rearm.any", { card: `«${ctx.card(step.source.cardId).name}»` })),
           ...stashes.map(step => describeStash(step, ctx.card)),
+          ...peeks.map(step => describePeek(step, ctx.card)),
           ...triggers.map(trigger => describeTrigger(trigger, ctx.card)),
         ],
       },
@@ -765,6 +772,30 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             view.strike(target.uid, view.timing.fly);
             const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: form.power, effect: attackRef(step) });
             if (passed) ctx.log(msg("log.effect.empower", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.power ?? 0 }), by);
+            await wait(TRIGGER_TAIL_MS);
+          } else if (form.targets === "all_attackers") {
+            // «Le Entità attaccanti che controlli prendono +N» (dal 2026-10-20): tutte quelle che attaccano adesso, sé compresa, una per azione.
+            for (const target of attackersOf(ctx.state(), by, null, ctx.card)) {
+              view.strike(target.uid, view.timing.fly);
+              const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: form.power, effect: attackRef(step) });
+              if (passed) ctx.log(msg("log.effect.empower", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.power ?? 0 }), by);
+              await wait(TRIGGER_TAIL_MS);
+            }
+          } else if (form.targets === "attacker") {
+            // «Puoi pagare N PV. Se lo fai, quell'Entità prende +M» (§3.1, dal
+            // 2026-10-20): la scelta prima di pagare; chi rinuncia non paga, e
+            // la prima volta del turno è passata. I PV devono bastare.
+            const pay = form.payHealth ?? 0;
+            const hp = ctx.state().players[by].hp;
+            if (hp < pay) {
+              ctx.log(msg("log.no.hp", { seat: by, card: step.source.cardId, n: pay }), by);
+              break;
+            }
+            const go = await confirmFor(by, t("confirm.price", { name: `«${name}»`, pay, card: `«${ctx.card(step.attacker.cardId).name}»`, n: form.power ?? 0 }));
+            if (!go) break;
+            view.strike(step.attacker.uid, view.timing.fly);
+            const passed = await ctx.dispatch({ t: "empower", uid: step.attacker.uid, power: form.power, pay, effect: attackRef(step) });
+            if (passed) ctx.log(msg("log.effect.price", { seat: by, sourceCard: step.source.cardId, card: step.attacker.cardId, pay, n: form.power ?? 0, hp: ctx.state().players[by].hp }), by);
             await wait(TRIGGER_TAIL_MS);
           } else if (form.targets === "opposing_entity") {
             const foes = fieldCards(ctx.state()).filter(card => controllerOf(card) !== by && ctx.card(card.cardId).kind === "entity");
@@ -1133,6 +1164,23 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     // §7.2 — la Reattiva col bersaglio alla giocata (RBF-021): prima al centro, la scena e la mira; poi la giocata.
     if (card.zone === "hand" && facts.kind === "matter" && facts.behavior === "reactive" && wantsTargetOnPlay(facts) && !free) return playReactiveWithTarget(card, x, y, z);
     let cost = card.zone === "hand" && !isRubyfront(card.cardId) && !free ? facts.fluxCost : null;
+    // §3.2 — il costo a dado di una Materia (dal 2026-10-20): come lo
+    // schieramento, si tira solo se il Flusso disponibile copre le facce,
+    // e si paga il numero uscito. Il tiro viaggia nell'azione.
+    let roll: number | undefined;
+    const faces = card.zone === "hand" && !free && facts.fluxDie ? Number(/^d(\d+)$/.exec(facts.fluxDie)?.[1] ?? 0) : 0;
+    if (faces > 0) {
+      const player = ctx.state().players[card.owner];
+      const available = player.flux + (player.token ? 1 : 0);
+      if (available < faces) {
+        ctx.log(msg("log.play.nodie", { seat: card.owner, die: faces, available }), card.owner);
+        view.render();
+        return false;
+      }
+      roll = rollDie(faces);
+      await view.roll(faces, roll, t("dice.cost", { name: `«${cardName(card.cardId, ctx.locale())}»` }));
+      cost = roll;
+    }
     // L'Oggetto sul portatore che sconta («gli Oggetti che assegni a questa
     // Entità costano N in meno»): il costo lo dice objectCost, come l'engine.
     if (card.zone === "hand" && facts.kind === "object" && !free) cost = objectCost(ctx.state(), ctx.state().cards[card.uid] ?? card, ctx.card);
@@ -1149,11 +1197,11 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     }
     // Il costo di una Materia con uno sconto (contro la tappata dichiarata,
     // o con le armate sul Fronte): lo dice discountedCost, come l'engine.
-    if (card.zone === "hand" && facts.kind === "matter") cost = discountedCost(ctx.state(), card, target, ctx.card);
+    if (card.zone === "hand" && facts.kind === "matter" && roll === undefined) cost = discountedCost(ctx.state(), card, target, ctx.card);
     // §3.1 — lo sconto di un'abilità del Rubyfront («la prossima carta X
     // del turno costa N in meno»): si dichiara nell'azione, e il costo
     // scende — fino a 0: la carta è gratis (§3.2, dal 2026-09-15). Lo consuma il riduttore.
-    const abilityOff = card.zone === "hand" && cost !== null ? abilityDiscount(ctx.state(), card.owner, facts) : null;
+    const abilityOff = card.zone === "hand" && cost !== null && roll === undefined ? abilityDiscount(ctx.state(), card.owner, facts) : null;
     if (abilityOff && cost !== null) cost = Math.max(0, cost - abilityOff.amount);
     // §7.2 — la Reattiva giocata apre (o allunga) la catena di risposta: il
     // segno viaggia nell'azione, e l'engine lo pretende.
@@ -1166,6 +1214,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       y,
       z,
       ...(cost !== null ? { cost } : {}),
+      ...(roll !== undefined ? { roll } : {}),
       ...(abilityOff ? { discount: abilityOff.amount } : {}),
       ...(target ? { target: target.uid } : {}),
       ...(reactive ? { chain: true as const } : {}),
@@ -1180,7 +1229,9 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       const player = ctx.state().players[card.owner];
       // In chat solo il gesto: il testo dell'effetto si legge sulla carta,
       // lo storico resta pulito.
-      ctx.log(msg("log.play", { seat: card.owner, card: card.cardId, cost, flux: player.flux, max: player.fluxMax }), card.owner);
+      ctx.log(roll !== undefined
+        ? msg("log.play.roll", { seat: card.owner, card: card.cardId, die: faces, roll, cost, flux: player.flux, max: player.fluxMax })
+        : msg("log.play", { seat: card.owner, card: card.cardId, cost, flux: player.flux, max: player.fluxMax }), card.owner);
       if (abilityOff) ctx.log(msg("log.play.discount", { n: abilityOff.amount }), card.owner);
     }
     // Una Materia con un effetto certificato (§7.2): la scena elenca i
@@ -1414,7 +1465,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           break;
         }
         case "weaken": {
-          const target = await pickTarget(step.source, step.candidates, t("target.refract"));
+          const target = await pickTarget(step.source, step.candidates, t(form.perArmed ? "target.refract" : "target.falter", { n: -form.amount }));
           if (!target) break;
           view.hold(true);
           view.strike(target.uid, view.timing.fly);
@@ -1422,6 +1473,21 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           const power = weakenAmount(ctx.state(), by, form, ctx.card);
           const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power, effect: ref });
           if (passed) ctx.log(msg("log.effect.weaken", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: -power }), by);
+          // «Se la sua Potenza scende a 0 o meno, mettila nella Zona di Ritiro
+          // del suo proprietario» (dal 2026-10-20): il seguito, con la Potenza di adesso.
+          if (passed && sinks(ctx.state(), target, form, ctx.card)) {
+            await wait(TRIGGER_TAIL_MS);
+            const fly = view.liftForFlight(target.uid, "ritiro");
+            const sunk = await ctx.dispatch({ t: "toZone", uid: target.uid, zone: "ritiro", effect: { ...ref, follow: "sink" } });
+            if (sunk) {
+              fly?.();
+              ctx.log(msg("log.effect.sink", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
+              await wait(view.timing.fly);
+            } else {
+              fly?.cancel();
+              view.render();
+            }
+          }
           break;
         }
         case "empower": {
@@ -1442,13 +1508,17 @@ export function createGestures(ctx: Ctx, view: GestureView) {
               await wait(TRIGGER_TAIL_MS);
             }
           } else if (form.targets === "own_entity") {
-            const target = await pickTarget(step.source, step.candidates, t("target.formation"));
+            // «Stappa un'Entità: +N Potenza», o (dal 2026-10-20) «Contrattacco +N».
+            const counter = "counter" in form;
+            const target = await pickTarget(step.source, step.candidates, t(counter ? "target.will" : "target.formation"));
             if (!target) break;
             view.hold(true);
             view.strike(target.uid, view.timing.fly);
             await wait(CONFIRMED_LEAD_MS);
-            const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: form.power, untap: true, effect: ref });
-            if (passed) ctx.log(msg("log.effect.untap", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.power }), by);
+            const passed = await ctx.dispatch(counter
+              ? { t: "empower", uid: target.uid, counter: form.counter, untap: true, effect: ref }
+              : { t: "empower", uid: target.uid, power: form.power, untap: true, effect: ref });
+            if (passed) ctx.log(msg(counter ? "log.effect.counter" : "log.effect.untap", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: counter ? form.counter : form.power }), by);
           } else {
             view.hold(true);
             await wait(TRIGGER_LEAD_MS);
@@ -1518,10 +1588,11 @@ export function createGestures(ctx: Ctx, view: GestureView) {
             await loseAfterDestroy(step, ref, form.thenLose);
             break;
           }
-          const hint = form.kind === "move" ? "target.impact" : form.kind === "exile" ? "target.repulse" : "target.judgment";
+          const abyss = form.kind === "move" && form.to === "abisso";
+          const hint = abyss ? "target.blow" : form.kind === "move" ? "target.impact" : form.kind === "exile" ? "target.repulse" : "target.judgment";
           // Il bersaglio scelto giocandola (RBF-021) non si richiede, né si riconferma: la scelta è stata fatta allora.
           const chosenAtPlay = step.candidates.length === 1 && Boolean(step.source.target);
-          const question = form.kind === "move" ? "confirm.impact" : form.kind === "exile" ? "confirm.repulse" : "confirm.judgment";
+          const question = abyss ? "confirm.blow" : form.kind === "move" ? "confirm.impact" : form.kind === "exile" ? "confirm.repulse" : "confirm.judgment";
           const target = chosenAtPlay
             ? step.candidates[0]
             : await pickSure(controllerOf(step.source), () => pickTarget(step.source, step.candidates, t(hint)), chosen => t(question, { card: `«${ctx.card(chosen.cardId).name}»` }));
@@ -1529,10 +1600,10 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           view.strike(target.uid, 60_000);
           view.hold(true);
           await wait(CONFIRMED_LEAD_MS);
-          const fly = view.liftForFlight(target.uid, form.kind === "move" ? "ritiro" : "abisso");
+          const fly = view.liftForFlight(target.uid, form.kind === "move" && !abyss ? "ritiro" : "abisso");
           const passed = await ctx.dispatch(
             form.kind === "move"
-              ? { t: "toZone", uid: target.uid, zone: "ritiro", effect: ref }
+              ? { t: "toZone", uid: target.uid, zone: abyss ? "abisso" : "ritiro", effect: ref }
               : form.kind === "exile"
                 ? { t: "toZone", uid: target.uid, zone: "abisso", heldBy: step.source.uid, effect: ref }
                 : { t: "toZone", uid: target.uid, zone: "abisso", effect: ref }
@@ -1540,7 +1611,7 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           view.strike(target.uid, 0);
           if (passed) {
             fly?.();
-            const line = form.kind === "move" ? "log.effect.retire" : form.kind === "exile" ? "log.effect.exile" : "log.effect.destroy";
+            const line = abyss ? "log.effect.abyss" : form.kind === "move" ? "log.effect.retire" : form.kind === "exile" ? "log.effect.exile" : "log.effect.destroy";
             ctx.log(msg(line, { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
             await wait(view.timing.fly);
             if (form.kind === "destroy" && form.thenLose !== null) await loseAfterDestroy(step, ref, form.thenLose);
@@ -1845,8 +1916,12 @@ export function createGestures(ctx: Ctx, view: GestureView) {
       if (!reactive || state.active !== card.owner || waveDeclared(state)) return true;
     } else if (!reactive || state.active === card.owner) return true;
     if (sealedForPlay(state, card)) return true;
-    // Il costo a dado di una Materia (dal 2026-09-22): la regola del tiro pagabile (§3.1) non è ancora collegata per le Materie.
-    if (facts.fluxDie) return true;
+    // Il costo a dado di una Materia (§3.2, dal 2026-10-20): si tira solo col Flusso disponibile pari alle facce.
+    if (facts.fluxDie) {
+      const faces = Number(/^d(\d+)$/.exec(facts.fluxDie)?.[1] ?? 0);
+      const player = state.players[card.owner];
+      if (player.flux + (player.token ? 1 : 0) < faces) return true;
+    }
     if (facts.kind === "matter" && !matterEnabled(card)) return true;
     if (facts.kind === "entity" && freeFrontSlotOrNull(state, card.owner) === null) return true;
     if (facts.kind === "object" && !fieldCards(state).some(other => controllerOf(other) === card.owner && !other.facedown && ctx.card(other.cardId).kind === "entity")) return true;
@@ -1990,7 +2065,9 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     if (form.kind === "summon") {
       const candidates = zoneCards(ctx.state(), by, "hand").filter(other => {
         const facts = ctx.card(other.cardId);
-        return facts.kind === "entity" && (form.race === null || facts.race === form.race) && !sealedForPlay(ctx.state(), other);
+        // «Con costo di Flusso N o inferiore» (dal 2026-10-20): il vincolo della chiamata.
+        const affordable = form.maxCost === null || (facts.fluxCost !== null && facts.fluxCost <= form.maxCost);
+        return facts.kind === "entity" && (form.race === null || facts.race === form.race) && affordable && !sealedForPlay(ctx.state(), other);
       });
       // Senza un'Entità adatta in mano si dice QUELLO; a Fronte pieno si
       // sceglie la carta e poi chi le lascia il posto (§6.2, dal 2026-09-15:
@@ -2065,21 +2142,23 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         ...(roll !== null ? { roll } : {}),
         ...(fail ? { fail: true as const } : {}),
         ...(targets !== null ? { targets, power: form.kind === "power" ? form.amount : 0 } : {}),
+        ...(form.kind === "power" && form.grants ? { grants: form.grants } : {}),
         ...(discount ? { discount } : {}),
-        ...(form.kind === "summon" ? { bonus: form.bonus } : {}),
+        ...(form.kind === "summon" && form.bonus ? { bonus: form.bonus } : {}),
       });
       if (passed) {
         if (roll !== null) ctx.log(msg("log.ability.fury", { seat: by, roll, outcome: msg(fail ? "fury.fail" : "fury.ok") }), by);
         ctx.log(msg("log.ability", { seat: by, name: copy.name, price, hp: ctx.state().players[by].hp }), by);
         if (form.kind === "power" && targets && targets.length) {
           ctx.log(msg("log.ability.power", { seat: by, n: form.amount, cards: targets.map(uid => cardName(ctx.state().cards[uid]?.cardId ?? uid, ctx.locale())).join(", ") }), by);
+          if (form.grants) ctx.log(msg("log.ability.grants", { seat: by, grants: form.grants.map(keyword => msg(`grant.${keyword}`)) }), by);
           for (const uid of targets) view.strike(uid, 900);
         }
         if (discount) {
           const what = msg(discount.type === "object" ? "what.object" : discount.race === "human" ? "what.entity.human" : "what.entity");
           ctx.log(msg("log.ability.discount", { seat: by, what, n: discount.amount }), by);
         }
-        if (form.kind === "summon") {
+        if (form.kind === "summon" && form.bonus) {
           ctx.log(msg("log.ability.bonus", { seat: by, what: msg(form.bonus.race === "human" ? "what.entities.human" : "what.entities"), n: form.bonus.amount }), by);
         }
         await wait(TRIGGER_TAIL_MS);
@@ -2620,6 +2699,13 @@ export function createGestures(ctx: Ctx, view: GestureView) {
   async function playTriggers(entering: CardInstance): Promise<void> {
     // Prima gli effetti di chi entra (§8.2, la forma di RBF-007): si mira,
     // poi la fonte si accende, la freccia va al bersaglio, la carta parte.
+    // «Entra tappata» (dal 2026-10-20) viene prima di tutto: è lo stato con cui arriva.
+    for (const step of enterTaps(entering, ctx.card)) {
+      await playTap(step);
+    }
+    for (const step of enterEmpowers(ctx.state(), entering, ctx.card)) {
+      await playEnterEmpower(step);
+    }
     for (const step of enterMoves(ctx.state(), entering, ctx.card)) {
       await playMove(step);
     }
@@ -2644,6 +2730,10 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     for (const step of enterStashes(ctx.state(), entering, ctx.card)) {
       await playStash(step);
     }
+    // Poi le altre carte del posto che ascoltano l'ingresso: lo sguardo in cima (dal 2026-10-20), e la pesca.
+    for (const step of enterPeeks(ctx.state(), entering, ctx.card)) {
+      await playPeek(step);
+    }
     view.hold(true);
     try {
       for (const trigger of enterTriggers(ctx.state(), entering, ctx.card)) {
@@ -2654,6 +2744,70 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         view.light(trigger.source.uid, false);
       }
     } finally {
+      view.hold(false);
+    }
+  }
+
+  /** «Questa Entità entra tappata» (§8.2, dal 2026-10-20): la fonte si accende e si tappa da sé. */
+  async function playTap(step: EnterTapStep): Promise<void> {
+    view.light(step.source.uid, true);
+    view.hold(true);
+    try {
+      await wait(TRIGGER_LEAD_MS);
+      const passed = await resolveTap(ctx, step);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      view.light(step.source.uid, false);
+      view.hold(false);
+    }
+  }
+
+  /** «Quando entra, un'altra Entità che controlli prende +N Potenza» (§8.2, dal 2026-10-20): si mira, poi il +N vola. */
+  async function playEnterEmpower(step: EnterEmpowerStep): Promise<void> {
+    const by = controllerOf(step.source);
+    if (step.candidates.length === 0) {
+      ctx.log(msg("log.no.target", { seat: by, card: step.source.cardId }), by);
+      return;
+    }
+    view.light(step.source.uid, true);
+    const target = await pickTarget(step.source, step.candidates, t("target.order", { n: step.form.power }));
+    if (!target) {
+      view.light(step.source.uid, false);
+      view.render();
+      return;
+    }
+    view.hold(true);
+    try {
+      view.strike(target.uid, view.timing.fly);
+      await wait(CONFIRMED_LEAD_MS);
+      const passed = await resolveEnterEmpower(ctx, step, target);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      view.light(step.source.uid, false);
+      view.hold(false);
+    }
+  }
+
+  /**
+   * Lo sguardo in cima della Statica che ascolta gli ingressi (§8.2, dal
+   * 2026-10-20): la prima carta del mazzo in vetrina; scegliendola va in
+   * fondo, chiudendo resta in cima. Il bot la guarda e la lascia dov'è.
+   */
+  async function playPeek(step: EnterPeekStep): Promise<void> {
+    const by = controllerOf(step.source);
+    if (!step.top) {
+      ctx.log(msg("log.look.empty", { seat: by, card: step.source.cardId }), by);
+      return;
+    }
+    view.light(step.source.uid, true);
+    const bottom = auto && isAuto(by) ? null : await pickFromPile(by, "deck", [step.top], t("pick.peek"), [step.top]);
+    view.hold(true);
+    try {
+      await wait(CONFIRMED_LEAD_MS);
+      const passed = await resolvePeek(ctx, step, bottom === null);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      view.light(step.source.uid, false);
       view.hold(false);
     }
   }

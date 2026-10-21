@@ -770,6 +770,32 @@ class TableBonusTest < Minitest::Test
     assert_nil @table.card("u")[:power_bonus]
   end
 
+  # «…e ottengono Slancio fino alla fine del turno» (dal 2026-10-20). Gemello: state.test.ts, «il potenziamento con le parole chiave».
+  def test_ability_with_grants_gives_keywords_until_end_of_turn
+    cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1260 },
+             { "uid" => "u", "owner" => "a", "zone" => "field", "order" => 1, "y" => 1260 }]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    @table.apply({ "t" => "ability", "uid" => "rf", "ability" => "incendio", "cost" => 6, "targets" => ["u"], "power" => 1, "grants" => ["surge"] })
+    assert_equal 14, @table.hp("a")
+    assert_equal 1, @table.card("u")[:power_bonus]
+    assert_equal ["surge"], @table.card("u")[:grants]
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_nil @table.card("u")[:grants]
+  end
+
+  # «Puoi pagare N PV. Se lo fai, quell'Entità prende +M» (§3.1, dal 2026-10-20): i PV li paga chi comanda la fonte. Gemello: state.test.ts, «empower con pay».
+  def test_empower_with_pay_takes_hp_from_whoever_commands_the_source
+    cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "y" => 1260 },
+             { "uid" => "u", "owner" => "a", "zone" => "field", "order" => 1, "y" => 1260 }]
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
+    @table.apply({ "t" => "empower", "uid" => "u", "power" => 1, "pay" => 1, "effect" => { "source" => "rf", "event" => "on_attack", "entering" => "u", "once" => true } })
+    assert_equal 1, @table.card("u")[:power_bonus]
+    assert_equal 19, @table.hp("a")
+    @table.apply({ "t" => "player", "seat" => "a", "patch" => { "hp" => 0 } })
+    @table.apply({ "t" => "empower", "uid" => "u", "power" => 1, "pay" => 1, "effect" => { "source" => "rf", "event" => "on_attack", "entering" => "u" } })
+    assert_equal 0, @table.hp("a"), "mai sotto zero"
+  end
+
   # §3.1 — la chiamata sul Fronte del Nexus: la promessa alle prossime
   # attaccanti sul posto, l'Entità dalla mano con le parole chiave concesse
   # (e l'attivazione che si chiude con la discesa), il bonus che viaggia

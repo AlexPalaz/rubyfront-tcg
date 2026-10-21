@@ -33,7 +33,7 @@ const facts = (cardId: string): CardFacts =>
   ({
     name: cardId, kind: null, race: null, power: null, counterattack: null, fluxCost: null, keywords: [],
     enterListeners: [], enterMoves: [], behavior: null, enterReturns: [], enterLooks: [], enterControls: [],
-    enterRefreshes: [], enterDisarms: [], enterRearms: [], enterStashes: [], selfRetires: [], leaveReturns: [], attackReturns: [], attackDraws: [],
+    enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [], enterDisarms: [], enterRearms: [], enterStashes: [], selfRetires: [], leaveReturns: [], attackReturns: [], attackDraws: [],
     attackForms: [], staticForms: [], resolveForms: [], flipForms: [], assignForms: [], deathForms: [],
     nexus: null, grantsWhileAssigned: [], abilities: [], furyAt: [],
     ...FACTS[cardId],

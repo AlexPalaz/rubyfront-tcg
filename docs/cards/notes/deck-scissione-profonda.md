@@ -33,7 +33,7 @@ rimozione e tutori. Il piano resta armare presto, pescare con gli inneschi
 «con un Oggetto assegnato» e chiudere con Avy Shin o Assalto Ferale, ma il
 turno 3 ora ha molte più scelte.
 
-## 2. Rhazmora, Rubifronte della Scissione
+## 2. Rhazmora
 
 Costo **fisso 3**, PV 22, Furia solo sulla faccia A: il Nexus non la richiede
 (decisione del 24 agosto 2026). La statica lavora sulla

@@ -90,7 +90,7 @@ export const COPY = {
       zero: "Zero",
       dominant: "Dominante"
     },
-    faceKind: { rubyfront: "Rubifronte", nexus: "Nexus" },
+    faceKind: { rubyfront: "Rubyfront", nexus: "Nexus" },
     behaviorNames: { reactive: "Reattiva", static: "Statica" }
   },
   en: {

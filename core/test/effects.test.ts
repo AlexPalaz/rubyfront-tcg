@@ -74,8 +74,20 @@ import {
   rearmAfterDeath,
   weakenAmount,
   wornObjects,
+  enterTaps,
+  enterEmpowers,
+  enterPeeks,
+  enteredThisTurn,
+  firstAttackerOf,
+  sinks,
+  describeTap,
+  describeEnterEmpower,
+  describePeek,
+  resolvePeek,
+  resolveTap,
+  resolveEnterEmpower,
 } from "../src/effects.js";
-import { apply, newGame } from "../src/state.js";
+import { apply, newGame, zoneCards } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
 const FACTS: Record<string, Partial<CardFacts>> = {
@@ -163,6 +175,18 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   BEAST: { kind: "rubyfront", nexus: { face: 1, conditions: [{ count: 4, kind: "entity", race: "human" }], discard: { count: 1, kind: "entity" }, recovery: 5 },
     flipForms: [{ kind: "move", cardId: "HEIR", from: "field", to: "abisso" }, { kind: "seal", cardId: "HEIR" }, { kind: "draw", count: 1 }] },
   HEIR: { kind: "entity", race: "human", fluxCost: 6 },
+  // Le forme dello starter Umani (dal 2026-10-20).
+  WEARY: { kind: "entity", race: "human", power: 2, fluxCost: 1, enterTaps: [{ kind: "self_tap" }] },
+  ORDER: { kind: "entity", race: "human", power: 2, fluxCost: 3, enterEmpowers: [{ targets: "other_own_entity", race: null, power: 1 }] },
+  LEADER: { kind: "entity", race: "human", power: 6, attackForms: [{ kind: "empower", who: "self", targets: "all_attackers", power: 1, face: 0 }] },
+  FLAME: { kind: "rubyfront", attackForms: [{ kind: "empower", who: "rubyfront", once: true, attackers: { kind: "entity", race: "human" }, targets: "attacker", power: 1, payHealth: 1, face: 0 }],
+    nexus: { face: 1, conditions: [{ count: 3, kind: "entity", race: "human", attacked: true }], discard: { count: 1, kind: "entity", race: "human" }, recovery: 5 } },
+  WILL: { kind: "matter", behavior: "reactive", fluxCost: 1, resolveForms: [{ kind: "empower", targets: "own_entity", race: null, counter: 1, untap: true }] },
+  WALL: { kind: "matter", behavior: "reactive", fluxCost: 2, resolveForms: [{ kind: "weaken", target: { kind: "entity", controller: "opponent", attacking: false }, amount: -2, perArmed: false, thenRetireAtMost: 0 }] },
+  BLOW: { kind: "matter", behavior: "normal", fluxDie: "d6", resolveForms: [{ kind: "move", target: { kind: "entity", controller: "opponent", maxCost: null }, to: "abisso", discount: null }] },
+  MUSTER: { kind: "matter", behavior: "static", fluxCost: 2, enterPeeks: [{ enteringRace: "human", count: 1, mayBottom: true }],
+    enterListeners: [{ enteringRace: "human", requires: null, requiresEntered: { count: 2, race: "human" }, draw: 1 }] },
+  WEAKLING: { kind: "entity", race: "auros", power: 1, fluxCost: 1 },
 };
 const facts = (cardId: string): CardFacts => ({
   name: cardId,
@@ -179,7 +203,7 @@ const facts = (cardId: string): CardFacts => ({
   enterReturns: [],
   enterLooks: [],
   enterControls: [],
-  enterRefreshes: [],
+  enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [],
   enterDisarms: [],
   enterRearms: [],
   enterStashes: [],
@@ -1474,5 +1498,164 @@ describe("turnStartSearches", () => {
     expect(sent[0]).toEqual({ t: "toZone", uid: "d1", zone: "hand", effect: { source: "sco", event: "on_turn_start", entering: "turn:3" } });
     expect(sent[1]?.t).toBe("shuffle");
     expect([...((sent[1] as { order: string[] }).order)].sort()).toEqual(["d2", "d3"]);
+  });
+});
+
+// Le forme dello starter Umani (dal 2026-10-20). Gemello: engine_test.rb, sezione «Le forme dello starter Umani».
+describe("le forme dello starter Umani", () => {
+  it("entra tappata: l'innesco proprio dell'ingresso, un tap marcato come effetto", async () => {
+    const state = newGame();
+    const w = on(state, "w", "WEARY");
+    const [step] = enterTaps(w, facts);
+    expect(step.source.uid).toBe("w");
+    expect(describeTap(step, facts)).toContain("entra tappata");
+    expect(enterTaps(on(state, "u", "HUMAN"), facts)).toEqual([]);
+    const sent: Action[] = [];
+    const ctx = { state: () => state, dispatch: async (action: Action) => { sent.push(action); return true; }, log: () => undefined, card: facts } as unknown as Ctx;
+    expect(await resolveTap(ctx, step)).toBe(true);
+    expect(sent).toEqual([{ t: "tap", uid: "w", tapped: true, effect: { source: "w", event: "on_enter_field", entering: "w" } }]);
+  });
+
+  it("il buff all'ingresso: un'ALTRA propria Entità, mai sé stessa né un'avversaria", async () => {
+    const state = newGame();
+    const o = on(state, "o", "ORDER");
+    on(state, "u", "HUMAN");
+    on(state, "x", "AUROS");
+    on(state, "v", "HUMAN", "b");
+    const [step] = enterEmpowers(state, o, facts);
+    expect(step.candidates.map(c => c.uid)).toEqual(["u", "x"]);
+    expect(describeEnterEmpower(step, facts)).toContain("+1");
+    const sent: Action[] = [];
+    const ctx = { state: () => state, dispatch: async (action: Action) => { sent.push(action); return true; }, log: () => undefined, card: facts } as unknown as Ctx;
+    await resolveEnterEmpower(ctx, step, state.cards.x);
+    expect(sent).toEqual([{ t: "empower", uid: "x", power: 1, effect: { source: "o", event: "on_enter_field", entering: "o" } }]);
+  });
+
+  it("la carica: tutti gli attaccanti del turno, sé compresa; l'attacco a pagamento: solo il primo Umano dell'ondata", () => {
+    const state = newGame();
+    const l = on(state, "l", "LEADER");
+    const u = on(state, "u", "HUMAN");
+    on(state, "x", "AUROS");
+    deploy(state, "rf", "FLAME");
+    state.declarations = [
+      { id: "x", from: "x", to: "rf-b", kind: "attack", seat: "a", order: 1 },
+      { id: "u", from: "u", to: "rf-b", kind: "attack", seat: "a", order: 2 },
+      { id: "l", from: "l", to: "rf-b", kind: "attack", seat: "a", order: 3 },
+    ];
+    expect(firstAttackerOf(state, "a", "human", facts)?.uid).toBe("u");
+    expect(firstAttackerOf(state, "a", null, facts)?.uid).toBe("x");
+    // Chi attacca con la carica: il suo passo; il Rubyfront propone il pagamento solo al primo Umano.
+    expect(attackSteps(state, l, facts).map(s => [s.source.uid, s.form.kind, (s.form as { targets?: string }).targets])).toEqual([["l", "empower", "all_attackers"]]);
+    expect(attackSteps(state, u, facts).map(s => [s.source.uid, (s.form as { targets?: string }).targets])).toEqual([["rf", "attacker"]]);
+    expect(attackSteps(state, state.cards.x, facts)).toEqual([], "un Auros non innesca il pagamento");
+    expect(describeAttackStep(attackSteps(state, l, facts)[0], facts)).toContain("attaccanti");
+    expect(describeAttackStep(attackSteps(state, u, facts)[0], facts)).toContain("pagare 1 PV");
+    expect(attackRef(attackSteps(state, u, facts)[0])).toEqual({ source: "rf", event: "on_attack", entering: "u", once: true });
+    // Già pagato nel turno (la chiave «turn»): non si ripropone.
+    state.fired = ["rf|on_attack:empower:u|turn"];
+    expect(attackSteps(state, u, facts)).toEqual([]);
+  });
+
+  it("il Contrattacco in Reazione: stappa UN'Entità qualunque; il Muro toglie 2 a un'avversaria qualunque e la affonda a zero", () => {
+    const state = newGame();
+    const will = on(state, "w", "WILL", "b");
+    on(state, "v1", "HUMAN", "b").tapped = true;
+    on(state, "v2", "AUROS", "b");
+    on(state, "s", "WEAKLING");
+    on(state, "g", "BIG");
+    const [step] = resolveSteps(state, will, facts);
+    expect(step.candidates.map(c => c.uid)).toEqual(["v1", "v2"]);
+    expect(describeResolveStep(step, facts)).toContain("Contrattacco +1");
+    const wall = on(state, "m", "WALL", "b");
+    const [hit] = resolveSteps(state, wall, facts);
+    expect(hit.blocked).toBeNull();
+    expect(hit.candidates.map(c => c.uid)).toEqual(["s", "g"], "non serve che attacchino, né armate proprie");
+    expect(describeResolveStep(hit, facts)).toContain("−2");
+    expect(weakenAmount(state, "b", hit.form as never, facts)).toBe(-2);
+    expect(sinks(state, state.cards.s, hit.form as never, facts)).toBe(false);
+    state.cards.s.powerBonus = -2;
+    expect(sinks(state, state.cards.s, hit.form as never, facts)).toBe(true);
+    state.cards.g.powerBonus = -2;
+    expect(sinks(state, state.cards.g, hit.form as never, facts)).toBe(false);
+  });
+
+  it("il Colpo Decisivo: un'avversaria nell'Abisso, e il costo a dado nella scheda", () => {
+    const state = newGame();
+    const m = on(state, "m", "BLOW");
+    on(state, "v", "HUMAN", "b");
+    on(state, "u", "HUMAN");
+    expect(facts("BLOW").fluxDie).toBe("d6");
+    const [step] = resolveSteps(state, m, facts);
+    expect(step.candidates.map(c => c.uid)).toEqual(["v"]);
+    expect(describeResolveStep(step, facts)).toContain("Abisso");
+    expect(pendingResolve(state, m, facts)).toHaveLength(1);
+    state.fired = ["m|on_resolve:destroy|m"];
+    expect(pendingResolve(state, m, facts)).toEqual([]);
+  });
+
+  it("la Statica che ascolta: lo sguardo in cima a ogni Umano, la pesca col secondo entrato nel turno", async () => {
+    let state = newGame();
+    on(state, "st", "MUSTER");
+    const d1 = on(state, "d1", "AUROS");
+    d1.zone = "deck";
+    d1.order = 0;
+    const d2 = on(state, "d2", "HUMAN");
+    d2.zone = "deck";
+    d2.order = 1;
+    const h1 = on(state, "h1", "HUMAN");
+    h1.zone = "hand";
+    const h2 = on(state, "h2", "HUMAN");
+    h2.zone = "hand";
+    const x = on(state, "x", "AUROS");
+    x.zone = "hand";
+    state = apply(state, { t: "toZone", uid: "x", zone: "field", x: 442, y: frontRowY("a"), z: 1 });
+    expect(enterPeeks(state, state.cards.x, facts)).toEqual([], "un Auros non innesca");
+    state = apply(state, { t: "toZone", uid: "h1", zone: "field", x: 821, y: frontRowY("a"), z: 1 });
+    expect(state.cards.h1.enteredTurn).toBe(state.turn);
+    expect(enteredThisTurn(state, "a", "human", facts)).toBe(1);
+    const [peek] = enterPeeks(state, state.cards.h1, facts);
+    expect(peek.source.uid).toBe("st");
+    expect(peek.top?.uid).toBe("d1");
+    expect(describePeek(peek, facts)).toContain("prima carta");
+    expect(enterTriggers(state, state.cards.h1, facts)).toEqual([], "un Umano solo: niente pesca");
+    const sent: Action[] = [];
+    const ctx = { state: () => state, dispatch: async (action: Action) => { sent.push(action); state = apply(state, action); return true; }, log: () => undefined, card: facts } as unknown as Ctx;
+    await resolvePeek(ctx, peek, false);
+    expect(sent[0]).toEqual({ t: "look", seat: "a", count: 1, restTo: "deck", effect: { source: "st", event: "on_enter_field", entering: "h1", follow: "peek" } });
+    expect(zoneCards(state, "a", "deck").map(c => c.uid)).toEqual(["d2", "d1"], "in fondo");
+    state = apply(state, { t: "toZone", uid: "h2", zone: "field", x: 1199, y: frontRowY("a"), z: 1 });
+    expect(enteredThisTurn(state, "a", "human", facts)).toBe(2);
+    expect(enterTriggers(state, state.cards.h2, facts).map(tr => [tr.source.uid, tr.draw])).toEqual([["st", 1]]);
+    const [keep] = enterPeeks(state, state.cards.h2, facts);
+    await resolvePeek(ctx, keep, true);
+    expect(sent[1]).toMatchObject({ t: "look", top: "d2" });
+    expect(zoneCards(state, "a", "deck").map(c => c.uid)).toEqual(["d2", "d1"], "lasciata in cima");
+    // Il turno nuovo azzera il conto.
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(enteredThisTurn(state, "a", "human", facts)).toBe(0);
+  });
+
+  it("il Nexus dello starter: tre Umani all'attacco in questo turno, e lo scarto di un'Umana", () => {
+    const state = newGame();
+    const rf = deploy(state, "rf", "FLAME");
+    on(state, "u1", "HUMAN");
+    on(state, "u2", "HUMAN");
+    on(state, "x", "AUROS");
+    state.declarations = [
+      { id: "u1", from: "u1", to: "rf-b", kind: "attack", seat: "a", order: 1 },
+      { id: "u2", from: "u2", to: "rf-b", kind: "attack", seat: "a", order: 2 },
+      { id: "x", from: "x", to: "rf-b", kind: "attack", seat: "a", order: 3 },
+    ];
+    expect(nexusCheck(state, rf, facts)).toEqual({ ok: false, why: "log.nexus.few.attacking", n: 3 });
+    on(state, "u3", "HUMAN");
+    state.declarations.push({ id: "u3", from: "u3", to: "rf-b", kind: "attack", seat: "a", order: 4 });
+    expect(nexusCheck(state, rf, facts)).toEqual({ ok: false, why: "log.nexus.nodiscard" });
+    const ha = on(state, "ha", "AUROS");
+    ha.zone = "hand";
+    expect(nexusCheck(state, rf, facts)).toEqual({ ok: false, why: "log.nexus.nodiscard" });
+    const h = on(state, "h", "HUMAN");
+    h.zone = "hand";
+    const check = nexusCheck(state, rf, facts);
+    expect(check.ok && check.discards.map(c => c.uid)).toEqual(["h"]);
   });
 });

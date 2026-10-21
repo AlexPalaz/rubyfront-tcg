@@ -54,7 +54,7 @@ export interface FaceModel {
 
 // Le parole d'interfaccia della carta (docs/cards/ui/shell.js, copyFor).
 const FACE_KIND: Record<string, Record<string, string>> = {
-  it: { rubyfront: "Rubifronte", nexus: "Nexus" },
+  it: { rubyfront: "Rubyfront", nexus: "Nexus" },
   en: { rubyfront: "Rubyfront", nexus: "Nexus" },
 };
 const BEHAVIOR_NAMES: Record<string, Record<string, string>> = {

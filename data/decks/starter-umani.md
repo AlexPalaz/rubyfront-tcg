@@ -9,7 +9,7 @@
 | Totale | 40 carte più il Rubyfront (22 Entità · 12 Materie · 6 Oggetti) |
 | Progetti | 14, quasi tutti **in tripla copia** |
 | Razza | Umani |
-| Rubyfront | Arden, Rubifronte del Fuoco / Nexus Fiamma Eterna (20 PV, costo 4, Furia ≥ 13) |
+| Rubyfront | Arden / Nexus Fiamma Eterna (20 PV, costo 4, Furia ≥ 13) |
 
 **Copie per costo di Flusso:**
 
@@ -25,7 +25,7 @@
 
 - Il foglio conta «Oggetto — 2 carte, 8 copie» ma le righe sono 3 + 3 = 6, e il totale torna a 40 con 6: fa fede la lista.
 - **Spada Comune** (nella scheda Auros ancora «Spada del patto») e **Colpo Decisivo** sono condivise con lo starter Auros. Lo **Scudo Comune** dà Contrattacco +1 e Slancio (nella prima versione era +1 Potenza).
-- **Colpo Decisivo** costa un **d6**: il costo a dado di una Materia è una regola nuova; finché non è collegata all'engine, la carta si vede ma non si gioca.
+- **Colpo Decisivo** costa un **d6**: il costo a dado di una Materia è una regola nuova, scritta nel MANUALE §3.2 (sperimentale, 2026-10-20) e collegata all'engine come lo schieramento a dado: si tira con almeno 6 Flussi e si paga il tiro.
 - **Arden**: «recupera 5 PV» nel requisito contro «Recupero Nexus 3 PV»: qui 5; «più 2» letto come +2 PV; l'intestazione della scheda dice ancora «Aldren, Rubifronte del Primo Patto», la faccia A «Arden, Rubifronte del Fuoco»: vale la faccia. I nomi delle abilità sono provvisori.
 - **Il nome del mazzo** è «Fiamma Ribelle» (deciso dal designer il 2026-09-22; la riga «Tutorial:» del foglio è vuota). **Axel, Fiamma Libera** ha nome proprio, quindi è Unica (regola dei nomi).
-- Le forme nuove (entra tappata, buff all'ingresso, carica di Axel, Contrattacco in Reazione, Muro di Fuoco, Richiamo Divampante, le abilità di Arden) sono nel debito dichiarato dell'engine (`engine/test/card_index_test.rb`): si vedono sulle carte, si giocano a mano finché non sono certificate.
+- Le forme nuove (entra tappata, buff all'ingresso, carica di Axel, Contrattacco in Reazione, Muro di Fuoco, Richiamo Divampante, le abilità e il Nexus di Arden) erano nel debito dichiarato dell'engine (`engine/test/card_index_test.rb`); **dal 2026-10-20 sono tutte certificate** (engine 0.89.0, vedi `engine/README.md`, «Le forme dello starter Umani»): il tavolo le risolve da sé. Ascesa a parte, rimandata.

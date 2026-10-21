@@ -10,9 +10,9 @@
 
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
 import type { AssignForm, AttackForm, DeathForm, FlipForm, ResolveForm } from "./ctx.js";
-import type { CardFacts, Ctx, EnterLook, EnterRefresh, EnterStash } from "./ctx.js";
+import type { CardFacts, Ctx, EnterEmpower, EnterLook, EnterPeek, EnterRefresh, EnterStash, EnterTap } from "./ctx.js";
 import { shuffled, STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, sealedForPlay, zoneCards, freeFrontSlotOrNull } from "./state.js";
-import { countEntities } from "./combat.js";
+import { countEntities, powerOf } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
 export interface EnterTrigger {
@@ -338,11 +338,123 @@ export function enterTriggers(state: GameState, entering: CardInstance, facts: (
     if (source.uid === entering.uid) continue;
     for (const listener of facts(source.cardId).enterListeners) {
       if (listener.enteringRace !== null && arrived.race !== listener.enteringRace) continue;
-      if (count(listener.requires.race) < listener.requires.count) continue;
+      if (listener.requires && count(listener.requires.race) < listener.requires.count) continue;
+      // «Se in questo turno sono entrate sul tuo Fronte almeno N» (dal 2026-10-20): chi è entrato, l'ingresso compreso.
+      if (listener.requiresEntered && enteredThisTurn(state, controllerOf(entering), listener.requiresEntered.race, facts) < listener.requiresEntered.count) continue;
       out.push({ source, draw: listener.draw });
     }
   }
   return out;
+}
+
+/** Le Entità di `race` che `seat` comanda, entrate sul Fronte in questo turno (§8.2). Gemello: engine.rb, entered_this_turn. */
+export function enteredThisTurn(state: GameState, seat: Seat, race: string | null, facts: (cardId: string) => CardFacts): number {
+  return fieldCards(state).filter(card => {
+    if (controllerOf(card) !== seat || card.enteredTurn !== state.turn) return false;
+    const f = facts(card.cardId);
+    return f.kind === "entity" && (race === null || f.race === race);
+  }).length;
+}
+
+/** «Questa Entità entra tappata» (§8.2, dal 2026-10-20): l'innesco proprio dell'ingresso. */
+export interface EnterTapStep {
+  source: CardInstance;
+  tap: EnterTap;
+}
+
+export function enterTaps(entering: CardInstance, facts: (cardId: string) => CardFacts): EnterTapStep[] {
+  return facts(entering.cardId).enterTaps.map(tap => ({ source: entering, tap }));
+}
+
+export function describeTap(step: EnterTapStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.weary", { card: `«${facts(step.source.cardId).name}»` });
+}
+
+/** Esegue la tappata di chi entra: un `tap` marcato come effetto. */
+export async function resolveTap(ctx: Ctx, step: EnterTapStep): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const passed = await ctx.dispatch({ t: "tap", uid: step.source.uid, tapped: true, effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid } });
+  if (passed) ctx.log(msg("log.effect.tapped", { seat: by, card: step.source.cardId }), by);
+  return passed;
+}
+
+/** «Quando entra, un'altra Entità che controlli prende +N Potenza» (§8.2, dal 2026-10-20): chi entra, la forma, fra chi si sceglie. */
+export interface EnterEmpowerStep {
+  source: CardInstance;
+  form: EnterEmpower;
+  candidates: CardInstance[];
+}
+
+export function enterEmpowers(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterEmpowerStep[] {
+  const seat = controllerOf(entering);
+  return facts(entering.cardId).enterEmpowers.map(form => ({
+    source: entering,
+    form,
+    candidates: fieldCards(state).filter(card => {
+      if (card.uid === entering.uid || controllerOf(card) !== seat) return false;
+      const f = facts(card.cardId);
+      return f.kind === "entity" && (form.race === null || f.race === form.race);
+    }),
+  }));
+}
+
+export function describeEnterEmpower(step: EnterEmpowerStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.order", { card: `«${facts(step.source.cardId).name}»`, n: step.form.power });
+}
+
+/** Esegue il potenziamento all'ingresso sul bersaglio scelto: un `empower` marcato come effetto d'ingresso. */
+export async function resolveEnterEmpower(ctx: Ctx, step: EnterEmpowerStep, target: CardInstance): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: step.form.power, effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid } });
+  if (passed) ctx.log(msg("log.effect.empower", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: step.form.power }), by);
+  return passed;
+}
+
+/**
+ * Lo sguardo in cima della Statica che ascolta gli ingressi (§8.2, dal
+ * 2026-10-20): «ogni volta che un'Entità [di razza] entra sul tuo Fronte,
+ * guarda la prima carta del tuo mazzo: puoi metterla in fondo». La fonte è
+ * un'altra carta del posto in gioco; `top` è la carta da guardare, null a
+ * mazzo vuoto.
+ */
+export interface EnterPeekStep {
+  source: CardInstance;
+  entering: CardInstance;
+  peek: EnterPeek;
+  top: CardInstance | null;
+}
+
+export function enterPeeks(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterPeekStep[] {
+  const arrived = facts(entering.cardId);
+  if (arrived.kind !== "entity") return [];
+  const seat = controllerOf(entering);
+  const out: EnterPeekStep[] = [];
+  for (const source of fieldCards(state)) {
+    if (source.uid === entering.uid || controllerOf(source) !== seat || !inPlay(source, facts(source.cardId).kind)) continue;
+    for (const peek of facts(source.cardId).enterPeeks) {
+      if (peek.enteringRace !== null && arrived.race !== peek.enteringRace) continue;
+      out.push({ source, entering, peek, top: zoneCards(state, seat, "deck")[0] ?? null });
+    }
+  }
+  return out;
+}
+
+export function describePeek(step: EnterPeekStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.peek", { card: `«${facts(step.source.cardId).name}»` });
+}
+
+/** Il riferimento dello sguardo in cima: la Statica, l'ingresso, e il seguito `peek` che lo distingue dalla pesca. */
+export function peekRef(step: EnterPeekStep): EffectRef {
+  return { source: step.source.uid, event: "on_enter_field", entering: step.entering.uid, follow: "peek" };
+}
+
+/** Esegue lo sguardo: la carta resta in cima (`keep`) o va in fondo. Un `look` di una carta, marcato col seguito `peek`. */
+export async function resolvePeek(ctx: Ctx, step: EnterPeekStep, keep: boolean): Promise<boolean> {
+  const by = controllerOf(step.source);
+  if (!step.top) return false;
+  const passed = await ctx.dispatch({ t: "look", seat: by, count: 1, restTo: "deck", ...(keep ? { top: step.top.uid } : {}), effect: peekRef(step) });
+  if (passed) ctx.log(msg("log.effect.peek", { seat: by, sourceCard: step.source.cardId, what: msg(keep ? "look.kept" : "look.bottomed") }), by);
+  return passed;
 }
 
 /** La riga che annuncia un innesco, per la scena e per la chat. */
@@ -756,6 +868,13 @@ function firedKey(state: GameState, source: CardInstance, kind: string, entering
   return (state.fired ?? []).includes(`${source.uid}|on_attack:${kind}|${once ? "turn" : entering}`);
 }
 
+/** Il primo attaccante di `race` di `seat` nell'ordine di dichiarazione (§6.4), o null. Gemello: engine.rb, judge_attack_empower («attacker»). */
+export function firstAttackerOf(state: GameState, seat: Seat, race: string | null, facts: (cardId: string) => CardFacts): CardInstance | null {
+  const mine = attackersOf(state, seat, race, facts);
+  const orderOf = (uid: string): number => state.declarations.find(d => d.from === uid && d.kind === "attack")?.order ?? 0;
+  return [...mine].sort((a, b) => orderOf(a.uid) - orderOf(b.uid))[0] ?? null;
+}
+
 /** Le Entità di `race` che attaccano adesso per `seat`. */
 export function attackersOf(state: GameState, seat: Seat, race: string | null, facts: (cardId: string) => CardFacts): CardInstance[] {
   return state.declarations
@@ -806,7 +925,9 @@ export function attackSteps(state: GameState, attacker: CardInstance, facts: (ca
       if (form.who !== "self" && form.who !== "object" && controllerOf(source) !== seat) continue;
       if ("requiresObject" in form && form.requiresObject && !armed(state, source.uid)) continue;
       if ("attackerArmed" in form && form.attackerArmed && !armed(state, attacker.uid)) continue;
-      if (form.kind === "heal" && form.attackers && !(attackerFacts.kind === form.attackers.kind && attackerFacts.race === form.attackers.race)) continue;
+      if ("attackers" in form && form.attackers && !(attackerFacts.kind === form.attackers.kind && (form.attackers.race === null || attackerFacts.race === form.attackers.race))) continue;
+      // «La prima volta in ogni tuo turno che un'Entità Umana attacca» (dal 2026-10-20): il PRIMO attaccante della razza nell'ondata, non un altro.
+      if (form.kind === "empower" && form.targets === "attacker" && firstAttackerOf(state, seat, form.attackers?.race ?? null, facts)?.uid !== attacker.uid) continue;
       if (form.kind === "heal" && form.requiresAttackers && attackersOf(state, seat, form.requiresAttackers.race, facts).length < form.requiresAttackers.count) continue;
       // «Se almeno N Umani che controlli attaccano»: gli attaccanti dichiarati in questo turno, la fonte compresa.
       if (form.kind === "empower" && form.requiresAttackers && attackersOf(state, seat, form.requiresAttackers.race, facts).length < form.requiresAttackers.count) continue;
@@ -894,6 +1015,8 @@ export function describeAttackStep(step: AttackStep, facts: (cardId: string) => 
       if (form.targets === "one_armed") return t("trigger.command.one", { card, n: form.power ?? 0 });
       if (form.targets === "bearer") return t("trigger.charge", { card, n: form.power ?? 0 });
       if (form.targets === "next_human_attacker") return t("trigger.avenge", { card });
+      if (form.targets === "all_attackers") return t("trigger.charge.all", { card, n: form.power ?? 0 });
+      if (form.targets === "attacker") return t("trigger.price", { card, n: form.power ?? 0, pay: form.payHealth ?? 0 });
       return t("trigger.raid", { card });
     case "look":
       return form.die !== null
@@ -1006,10 +1129,11 @@ export function resolveSteps(state: GameState, source: CardInstance, facts: (car
       case "weaken": {
         // «Un'Entità avversaria attaccante prende −1 Potenza per ogni Entità
         // con un Oggetto assegnato che controlli»: chi attacca adesso, e
-        // senza armate proprie l'effetto non toglie nulla.
-        step.candidates = foesAndMine.filter(card => controllerOf(card) !== seat && facts(card.cardId).kind === "entity" && state.declarations.some(d => d.from === card.uid && d.kind === "attack"));
-        if (armedCount(state, seat, facts) === 0) step.blocked = "log.no.armed.weaken";
-        else if (step.candidates.length === 0) step.blocked = "log.no.attacker";
+        // senza armate proprie l'effetto non toglie nulla. L'indebolimento
+        // secco (dal 2026-10-20) colpisce un'avversaria qualunque.
+        step.candidates = foesAndMine.filter(card => controllerOf(card) !== seat && facts(card.cardId).kind === "entity" && (!form.target.attacking || state.declarations.some(d => d.from === card.uid && d.kind === "attack")));
+        if (form.perArmed && armedCount(state, seat, facts) === 0) step.blocked = "log.no.armed.weaken";
+        else if (step.candidates.length === 0) step.blocked = form.target.attacking ? "log.no.attacker" : "log.no.target";
         break;
       }
       case "destroy": {
@@ -1068,7 +1192,8 @@ export function pendingResolve(state: GameState, source: CardInstance, facts: (c
   return resolveSteps(state, source, facts).filter(step => {
     switch (step.form.kind) {
       case "look": return !resolveFired(state, source, "look");
-      case "move": return !resolveFired(state, source, "move");
+      // Lo spostamento in Ritiro ha la chiave «move»; quello nell'Abisso (dal 2026-10-20) la stessa della distruzione («destroy»): è la zona a dirlo (attackKey).
+      case "move": return !resolveFired(state, source, step.form.to === "abisso" ? "destroy" : "move");
       case "exile": return !resolveFired(state, source, "exile");
       case "weaken": return !resolveFired(state, source, "empower:");
       case "drain": return !resolveFired(state, source, "heal");
@@ -1089,13 +1214,15 @@ export function describeResolveStep(step: ResolveStep, facts: (cardId: string) =
     case "look": return t("trigger.lure", { card, n: form.count });
     case "empower":
       return form.targets === "own_entity"
-        ? t("trigger.formation", { card, n: form.power })
+        ? "counter" in form
+          ? t("trigger.will", { card, n: form.counter })
+          : t("trigger.formation", { card, n: form.power })
         : form.targets === "own_armed"
           ? t("trigger.amplify", { card, n: form.upTo, m: form.power })
           : t("trigger.coordinate", { card, n: form.requires.count, m: form.counter });
-    case "move": return form.target.maxCost === null ? t("trigger.sunder", { card }) : t("trigger.impact", { card, n: form.target.maxCost });
+    case "move": return form.to === "abisso" ? t("trigger.blow", { card }) : form.target.maxCost === null ? t("trigger.sunder", { card }) : t("trigger.impact", { card, n: form.target.maxCost });
     case "exile": return t("trigger.repulse", { card });
-    case "weaken": return t("trigger.refract", { card, n: -form.amount });
+    case "weaken": return form.perArmed ? t("trigger.refract", { card, n: -form.amount }) : t("trigger.falter", { card, n: -form.amount });
     case "fortune": return t("trigger.fortune", { card, die: form.die });
     case "destroy": return form.thenLose === null ? t("trigger.judgment", { card }) : t("trigger.evert", { card, n: form.thenLose });
     case "drain": return t("trigger.assault", { card });
@@ -1115,7 +1242,16 @@ export function searchCandidates(form: Extract<ResolveForm, { kind: "search" }>,
 
 /** La Potenza che l'indebolimento toglie adesso: −1 per ogni armata di `seat`. Gemello: engine.rb, judge_resolve_weaken. */
 export function weakenAmount(state: GameState, seat: Seat, form: Extract<ResolveForm, { kind: "weaken" }>, facts: (cardId: string) => CardFacts): number {
-  return form.amount * armedCount(state, seat, facts);
+  return form.perArmed ? form.amount * armedCount(state, seat, facts) : form.amount;
+}
+
+/** Dopo l'indebolimento secco: l'Entità colpita va in Ritiro se la sua Potenza di adesso è entro la soglia (dal 2026-10-20). Gemello: engine.rb, judge_resolve_sink. */
+export function sinks(state: GameState, target: CardInstance, form: Extract<ResolveForm, { kind: "weaken" }>, facts: (cardId: string) => CardFacts): boolean {
+  if (form.perArmed) return false;
+  const live = state.cards[target.uid];
+  if (!live || live.zone !== "field") return false;
+  const power = powerOf(live, facts, state);
+  return power !== null && power <= form.thenRetireAtMost;
 }
 
 /** Quanti passi di quel prefisso la Materia ha già risolto («fino a N Entità»). */
@@ -1402,11 +1538,15 @@ export function nexusCheck(state: GameState, rubyfront: CardInstance, facts: (ca
   if (!nexus) return { ok: true, discards: [] };
   const seat = controllerOf(rubyfront);
   for (const condition of nexus.conditions) {
-    const have = condition.armed ? armedCount(state, seat, facts) : countEntities(state, seat, condition.race, facts);
-    if (have < condition.count) return { ok: false, why: condition.armed ? "log.nexus.few.armed" : "log.nexus.few", n: condition.count };
+    // «Controlli almeno N», o (dal 2026-10-20) «in questo turno hai attaccato con almeno N»: gli attaccanti dichiarati adesso.
+    const have = condition.armed ? armedCount(state, seat, facts) : condition.attacked ? attackersOf(state, seat, condition.race, facts).length : countEntities(state, seat, condition.race, facts);
+    if (have < condition.count) return { ok: false, why: condition.armed ? "log.nexus.few.armed" : condition.attacked ? "log.nexus.few.attacking" : "log.nexus.few", n: condition.count };
   }
   if (!nexus.discard) return { ok: true, discards: [] };
-  const discards = zoneCards(state, seat, "hand").filter(card => nexus.discard!.kind === null || facts(card.cardId).kind === nexus.discard!.kind);
+  const discards = zoneCards(state, seat, "hand").filter(card => {
+    const f = facts(card.cardId);
+    return (nexus.discard!.kind === null || f.kind === nexus.discard!.kind) && (!nexus.discard!.race || f.race === nexus.discard!.race);
+  });
   if (discards.length === 0) return { ok: false, why: nexus.discard.kind === null ? "log.nexus.nocard" : "log.nexus.nodiscard" };
   return { ok: true, discards };
 }

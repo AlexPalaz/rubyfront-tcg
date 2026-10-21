@@ -24,6 +24,12 @@ export interface CardFacts {
   /** Gli ascoltatori certificati «quando un'Entità entra sul tuo Fronte»
       (§8.2): vedi renderer.ts, enterListeners. */
   enterListeners: EnterListener[];
+  /** Gli sguardi in cima certificati «ogni volta che un'Entità [di razza] entra sul tuo Fronte, guarda la prima carta» (§8.2, dal 2026-10-20). */
+  enterPeeks: EnterPeek[];
+  /** «Questa Entità entra tappata» (§8.2, dal 2026-10-20). */
+  enterTaps: EnterTap[];
+  /** «Quando entra sul Fronte, un'altra Entità che controlli prende +N Potenza» (§8.2, dal 2026-10-20). */
+  enterEmpowers: EnterEmpower[];
   /** Gli effetti certificati «quando QUESTA entra sul Fronte: metti una carta
       avversaria in una zona» (§8.2): vedi renderer.ts, enterMoves. */
   enterMoves: EnterMove[];
@@ -109,12 +115,18 @@ export type ResolveForm =
   | { kind: "look"; count: number; reveal: { kind: "entity" | "object" | "matter"; race: string | null }; revealTo: "hand"; restTo: "deck"; showUpTo: number }
   /** RBF-016: stappa un'Entità Umana che controlli, +1 Potenza. */
   | { kind: "empower"; targets: "own_entity"; race: string | null; power: number; untap: true }
+  /** «Stappa un'Entità che controlli: ottiene Contrattacco +N fino alla fine del turno» (dal 2026-10-20): una sola, in Reazione. */
+  | { kind: "empower"; targets: "own_entity"; race: string | null; counter: number; untap: true }
   /** RBF-020: in Reazione, senza bloccare (§6.4); con almeno N Umani: stappa gli Umani, Contrattacco +1. */
   | { kind: "empower"; targets: "own_entities"; race: string | null; counter: number; untap: true; requires: { count: number; race: string | null } }
   /** RBF-017: un'Entità avversaria con costo N o inferiore nella Zona di Ritiro; con lo sconto «se sul tuo Fronte ci sono almeno N Entità con un Oggetto, costa M in meno» (dal 2026-09-10). */
   | { kind: "move"; target: { kind: "entity"; controller: "opponent"; maxCost: number | null }; to: "ritiro"; discount: { amount: number; ifArmedAtLeast: number } | null }
   /** L'indebolimento (dal 2026-09-10): «un'Entità avversaria attaccante prende −1 Potenza per ogni Entità con un Oggetto assegnato che controlli». */
   | { kind: "weaken"; target: { kind: "entity"; controller: "opponent"; attacking: true }; amount: number; perArmed: true }
+  /** L'indebolimento secco (dal 2026-10-20): «un'Entità avversaria prende −N Potenza; se scende a 0 o meno, nella Zona di Ritiro del proprietario». */
+  | { kind: "weaken"; target: { kind: "entity"; controller: "opponent"; attacking: false }; amount: number; perArmed: false; thenRetireAtMost: number }
+  /** «Metti un'Entità avversaria nell'Abisso» (dal 2026-10-20): la rimozione secca, da cui non si torna (§5). */
+  | { kind: "move"; target: { kind: "entity"; controller: "opponent"; maxCost: null }; to: "abisso"; discount: null }
   /** Il potenziamento delle armate (dal 2026-09-10): «fino a N Entità con un Oggetto assegnato che controlli prendono +M Potenza e vengono stappate». */
   | { kind: "empower"; targets: "own_armed"; power: number; upTo: number; untap: true }
   /** RBF-018: una carta statica avversaria nell'Abisso, finché questa carta resta in gioco. */
@@ -181,20 +193,24 @@ export interface Ability {
 export type AbilityForm =
   /** «Guarda le prime N carte del tuo mazzo. Puoi mostrare … e aggiungerla alla tua mano. Metti le altre in fondo.» */
   | { kind: "look"; count: number; reveal: { kind: "entity" | "object"; race: string | null } }
-  /** «+N Potenza fino alla fine del turno» a tutte le proprie Entità del filtro, o a una. */
-  | { kind: "power"; amount: number; targets: "all" | "one"; race: string | null; attacking: boolean; armed: boolean }
+  /** «+N Potenza fino alla fine del turno» a tutte le proprie Entità del filtro, o a una — «e ottengono [parole chiave]» (`grants`, dal 2026-10-20). */
+  | { kind: "power"; amount: number; targets: "all" | "one"; race: string | null; attacking: boolean; armed: boolean; grants?: string[] }
   /** «La prossima carta X che giochi in questo turno costa N in meno.» */
   | { kind: "discount"; amount: number; type: "entity" | "object"; race: string | null }
   /** «Puoi mettere sul tuo Fronte un'Entità [razza] dalla tua mano senza
       pagarne il costo di Flusso. Ottiene [parole chiave] fino alla fine del
       turno, e le prossime Entità Umane che attaccano in questo turno
-      prendono +N Potenza.» La chiamata sul Fronte: facoltativa. */
-  | { kind: "summon"; race: string | null; grants: string[]; bonus: { amount: number; race: string | null } };
+      prendono +N Potenza.» La chiamata sul Fronte: facoltativa. La
+      promessa può mancare (dal 2026-10-20), e la chiamata può avere un
+      vincolo di costo («con costo di Flusso N o inferiore», `maxCost`). */
+  | { kind: "summon"; race: string | null; grants: string[]; bonus: { amount: number; race: string | null } | null; maxCost: number | null };
 
 export interface NexusRequirement {
   face: number;
-  conditions: { count: number; kind: "entity"; race: string | null; armed?: true }[];
-  discard: { count: 1; kind: string | null } | null;
+  /** «Controlli almeno N» — o, con `attacked` (dal 2026-10-20), «in questo turno hai attaccato con almeno N». */
+  conditions: { count: number; kind: "entity"; race: string | null; armed?: true; attacked?: true }[];
+  /** Lo scarto: una carta [di tipo, di razza (dal 2026-10-20)]. */
+  discard: { count: 1; kind: string | null; race?: string | null } | null;
   recovery: number | null;
 }
 
@@ -211,8 +227,12 @@ export type AttackForm =
   /** Dal 2026-09-15: «quando attacca, lancia un d20: con 15–20 stappa tutte le Entità che controlli dopo la Fase di Fronte». */
   | { kind: "untap"; who: "self"; targets: "all"; die: number; onRoll: [number, number]; face: number }
   /** RBF-029 (+1 alle altre armate), RBF-034 (+1 al portatore), RBF-004
-      (Vendetta al prossimo Umano), RBF-005 (un'avversaria non blocca). */
-  | { kind: "empower"; who: "self" | "object"; targets: "others_armed" | "one_armed" | "bearer" | "next_human_attacker" | "opposing_entity"; power?: number; grants?: string[]; restrict?: "block"; once?: true; requiresObject?: true; requiresAttackers?: { count: number; race: string }; requiresPreviousAttackers?: { count: number; race: string }; face: number }
+      (Vendetta al prossimo Umano), RBF-005 (un'avversaria non blocca);
+      dal 2026-10-20 la carica («le Entità attaccanti che controlli prendono
+      +N», `all_attackers`) e l'attacco a pagamento di PV del Rubyfront
+      («la prima volta in ogni tuo turno che un'Entità Umana attacca, puoi
+      pagare N PV: +M», `attacker`, con `attackers` e `payHealth`). */
+  | { kind: "empower"; who: "self" | "object" | "rubyfront"; targets: "others_armed" | "one_armed" | "bearer" | "next_human_attacker" | "opposing_entity" | "all_attackers" | "attacker"; power?: number; grants?: string[]; restrict?: "block"; once?: true; requiresObject?: true; requiresAttackers?: { count: number; race: string }; requiresPreviousAttackers?: { count: number; race: string }; attackers?: { kind: "entity"; race: string | null }; payHealth?: number; face: number }
   /** RBF-034 (col dado) e RBF-031 (una volta per turno): uno sguardo nel mazzo. */
   | { kind: "look"; who: "object" | "ally"; count: number; reveal: { kind: "matter" | "object" | "entity"; race: string | null }; revealTo: "hand" | "ritiro"; restTo: "deck" | "ritiro"; die: number | null; onRoll: [number, number] | null; once?: true; attackerArmed?: true; face: number }
   /** RBF-008 (+N, poi col dado un'Entità in mano), RBF-022 (il d20 sugli
@@ -388,8 +408,30 @@ export interface EnterMove {
  */
 export interface EnterListener {
   enteringRace: string | null;
-  requires: { count: number; race: string | null };
+  /** «Se controlli almeno N Entità [di razza]» — o null, quando la condizione è sugli ingressi del turno. */
+  requires: { count: number; race: string | null } | null;
+  /** «Se in questo turno sono entrate sul tuo Fronte almeno N Entità [di razza]» (dal 2026-10-20), l'ingresso compreso. */
+  requiresEntered?: { count: number; race: string | null };
   draw: number;
+}
+
+/** «Ogni volta che un'Entità [di razza] entra sul tuo Fronte, guarda la prima carta del tuo mazzo: puoi metterla in fondo» (dal 2026-10-20). Specchio di card_index.rb, enter_peeks. */
+export interface EnterPeek {
+  enteringRace: string | null;
+  count: 1;
+  mayBottom: true;
+}
+
+/** «Questa Entità entra tappata» (dal 2026-10-20). Specchio di card_index.rb, enter_taps. */
+export interface EnterTap {
+  kind: "self_tap";
+}
+
+/** «Quando entra sul Fronte, un'altra Entità che controlli prende +N Potenza fino alla fine del turno» (dal 2026-10-20). Specchio di card_index.rb, enter_empowers. */
+export interface EnterEmpower {
+  targets: "other_own_entity";
+  race: string | null;
+  power: number;
 }
 
 export interface Ctx {

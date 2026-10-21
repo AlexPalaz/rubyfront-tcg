@@ -605,6 +605,9 @@ module Rubyfront
           # «Stappa un'Entità»: stappata da un effetto,
           # anche dalla Stasi (§8.1: «torna un'Entità normale»).
           untap!(card) if action["untap"] == true
+          # «Puoi pagare N PV. Se lo fai, …» (§3.1, dal 2026-10-20): i PV li
+          # paga chi comanda la fonte dell'effetto. Gemello: state.ts.
+          pay_health(action.dig("effect", "source"), action["pay"])
         end
       when "refresh"
         # §8.2 (la stappata all'ingresso) — col tiro giusto (`untap`), stappa tutte le Entità
@@ -733,9 +736,14 @@ module Rubyfront
       player[:hp] = 0 if player[:hp].negative?
       player[:hp] = capped_hp(player, player[:hp])
       if action["power"].is_a?(Integer)
+        granted = Array(action["grants"]).select { |keyword| keyword.is_a?(String) }
         Array(action["targets"]).each do |uid|
           target = @cards[uid]
-          target[:power_bonus] = (target[:power_bonus] || 0) + action["power"] if target && target[:zone] == "field"
+          next unless target && target[:zone] == "field"
+
+          target[:power_bonus] = (target[:power_bonus] || 0) + action["power"]
+          # «…e ottengono [parole chiave] fino alla fine del turno» (dal 2026-10-20). Gemello: state.ts, ability.
+          target[:grants] = (Array(target[:grants]) + granted).uniq unless granted.empty?
         end
       end
       discount = action["discount"]
@@ -751,6 +759,18 @@ module Rubyfront
       end
       @ability_pending["#{action["uid"]}|#{action["ability"]}"] += 1 if action["ability"].is_a?(String) && !action.key?("targets") && !discount
       @ability_used[card[:owner]] = @turn
+    end
+
+    # I PV pagati per un effetto («puoi pagare N PV», §3.1): di chi comanda
+    # la fonte, mai sotto zero. Gemello: state.ts, empower.
+    def pay_health(source_uid, amount)
+      return unless amount.is_a?(Integer) && amount.positive?
+
+      source = source_uid.is_a?(String) ? @cards[source_uid] : nil
+      player = source && @players[controller_of(source)]
+      return unless player
+
+      player[:hp] = [player[:hp] - amount, 0].max
     end
 
     def pay(seat, cost)

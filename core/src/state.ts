@@ -331,6 +331,10 @@ function reduce(state: GameState, action: Action): GameState {
         next.y = action.y ?? card.y;
         next.z = action.z ?? state.zTop;
         next.order = 0;
+        // L'ingresso in campo si annota col turno (dal 2026-10-20: «se in
+        // questo turno sono entrate almeno N», §8.2): conta solo il passaggio
+        // da fuori a dentro. Gemello: table.rb, to_zone (`entered`).
+        if (card.zone !== "field") next.enteredTurn = state.turn;
         if (action.target) next.target = action.target;
         // Le parole chiave concesse dall'ingresso stesso (§3.1, la chiamata
         // sul Fronte: «ottiene Slancio fino alla fine del turno»). Gemello:
@@ -480,7 +484,10 @@ function reduce(state: GameState, action: Action): GameState {
       if (action.power !== undefined) {
         for (const uid of action.targets ?? []) {
           const target = cards[uid];
-          if (target && target.zone === "field") cards[uid] = { ...target, powerBonus: (target.powerBonus ?? 0) + action.power };
+          if (!target || target.zone !== "field") continue;
+          // «…e ottengono [parole chiave] fino alla fine del turno» (dal 2026-10-20). Gemello: table.rb, use_ability.
+          const grants = action.grants?.length ? [...new Set([...(target.grants ?? []), ...action.grants])] : target.grants;
+          cards[uid] = { ...target, powerBonus: (target.powerBonus ?? 0) + action.power, ...(grants ? { grants } : {}) };
         }
       }
       return {
@@ -869,7 +876,15 @@ function reduce(state: GameState, action: Action): GameState {
         fresh.tapped = false;
         delete fresh.stasis;
       }
-      return { ...state, cards: { ...state.cards, [action.uid]: fresh } };
+      const cards = { ...state.cards, [action.uid]: fresh };
+      // «Puoi pagare N PV. Se lo fai, …» (§3.1, dal 2026-10-20): i PV li
+      // paga chi comanda la fonte dell'effetto, mai sotto zero. Gemello:
+      // table.rb, pay_health.
+      const source = action.pay ? state.cards[action.effect.source] : undefined;
+      if (!source || !action.pay) return { ...state, cards };
+      const payer = controllerOf(source);
+      const player = state.players[payer];
+      return { ...state, cards, players: { ...state.players, [payer]: { ...player, hp: Math.max(0, player.hp - action.pay) } } };
     }
 
     case "refresh": {

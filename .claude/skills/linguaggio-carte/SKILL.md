@@ -69,7 +69,7 @@ stessa modifica (il file è il contratto: aggiornarlo fa parte del lavoro).
 l'effetto vale su entrambe, quindi la doppia forma è obbligatoria in IT e in EN
 («infligge 2 danni al Rubyfront/Nexus avversario» / "deals 2 damage to the
 opposing Rubyfront/Nexus"). «Rubyfront» resta da solo quando indica la **razza**
-o il **nome** di una carta («un'Entità Rubyfront», «il Rubifronte del Patto»),
+o il **nome** di una carta («un'Entità Rubyfront»),
 non il bersaglio da colpire.
 
 Mai: «creatura», «giocatore avversario» nei testi carta, «Permanente»/«permanent» (dal 2026-09-18 si dice **Statica** / **Static**, e «carta statica» per ciò che resta in campo), «Requiem» (nome
@@ -80,12 +80,13 @@ combattimento» (si dice **Fase di Fronte**, MANUALE §6.3), «Se controlli …�
 condizione di presenza si scrive sul **Fronte** — vedi le formule «Presenza
 sul Fronte»), «Gioca questa carta come blocco» senza dire **cosa** blocca
 (decisione del designer, 2026-09-05: vedi «Blocco diretto», più sotto). I **nomi propri** di
-carta si traducono (es. «Rubifronte del Patto» → "Rubyfront of the Pact"), il
-termine generico resta «Rubyfront» in entrambe le lingue. I nomi dei Rubyfront
-si scrivono **sempre per esteso** nei dati («Rhazmora, Rubifronte della
-Scissione»): quando c'è la virgola, la UI mostra da sola il nome personale
-nella barra del titolo e la qualifica nella riga del tipo (vedi
-`splitFaceName` in docs/cards/ui/card-render.js). Niente abbreviazioni tipo
+carta si traducono (es. «Recluta del Campo» → "Camp Recruit"), il
+termine generico resta «Rubyfront» in entrambe le lingue. **I Rubyfront si
+chiamano solo col nome personale** (decisione del designer, 2026-10-20):
+«Rhazmora», «Arden», «Seyra» — mai «Rubifronte di …» / "Rubyfront of …"
+dopo la virgola; «Rubifronte» è deprecato ovunque, anche come parola
+generica (sulla riga del tipo la carta dice «Rubyfront»). Il Nexus ha il
+suo nome di luogo o di stato («Fiamma Eterna»). Niente abbreviazioni tipo
 «RBF» nei nomi o nei testi.
 
 **Nomi propri solo alle carte Uniche e ai Rubyfront** (decisione del designer,
@@ -285,8 +286,8 @@ tre fasce esplicite (1–6, 7–14, 15–20).
   «questa Entità» / "this Entity"; Oggetti e Materie «questa carta» / "this
   card" (o «questo Oggetto» / "this Object" quando conta il tipo, es. un
   Oggetto che si sposta di zona). Il nome proprio vive solo nel titolo, nel
-  flavor e quando un'ALTRA carta lo cita («Se il Rubifronte del Patto è sul
-  tuo Fronte…»). Mai «questa creatura».
+  flavor e quando un'ALTRA carta lo cita («Se Rhazmora è sul tuo
+  Fronte…»). Mai «questa creatura».
 - Pronomi EN: le Entità sono "it"; se la frase diventa ambigua si ristruttura
   ("the wearer", "that Entity"). Pronomi di genere solo per personaggi con nome
   proprio, e solo se il flavor li caratterizza.

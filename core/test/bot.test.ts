@@ -14,7 +14,7 @@ const BASE: Omit<CardFacts, "name" | "kind" | "race" | "power" | "counterattack"
   enterReturns: [],
   enterLooks: [],
   enterControls: [],
-  enterRefreshes: [],
+  enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [],
   attackReturns: [],
   attackDraws: [],
   attackForms: [],

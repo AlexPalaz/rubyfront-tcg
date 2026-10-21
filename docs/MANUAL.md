@@ -162,6 +162,8 @@ The Rubyfront card has **two faces**: one is the **Rubyfront**, the other is its
 
 **Flux costs defined by cards:** besides paying for playing cards, Flux can appear as **the cost of an ability or effect**, when a card expressly provides for it (golden rule, §1.1). It is paid from your own bar, under the same conditions as any other Flux expense, and in the windows the card states.
 
+**A card's die cost (experimental rule, from 2026-10-20):** a card may print **a die** in place of its Flux cost (e.g. a `d6` Matter). The same rule as the deployment die cost applies (§3.1): you may roll **only if your available Flux covers the faces of the die**, Token included; you roll **on every play** and pay in Flux **the number rolled**. The cost roll **is not discounted**.
+
 #### Flux Token
 
 The player who does **not** start the game receives a **Flux Token**: it represents **1 extra point of Flux**, it is **single-use** and can be used **at any moment of the game** — even on the opponent's turn or in the middle of a response chain (it makes up for the disadvantage of going second).
@@ -542,7 +544,7 @@ A draw exists in only two cases:
 - Ascent points equal to the Rubyfront's **level**, from 1 to 10; the Fury threshold never drops below **2** (§3.3).
 - At most **20 Flux** (§3.2). The Flux Token is outside the cap: it is a separate point.
 - **Minimum printed cost 1 Flux** for any card (§3.2): there are no free cards as such, but a discount that brings the cost to 0 makes it free.
-- **Die** deployment cost: you roll only with available Flux **at least equal to the faces of the die**; the die doesn't exceed a **d20** (§3.1).
+- **Die** deployment cost: you roll only with available Flux **at least equal to the faces of the die**; the die doesn't exceed a **d20** (§3.1). The same applies to a card with a **die cost** (§3.2).
 
 ## 10. Glossary
 

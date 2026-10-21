@@ -140,10 +140,10 @@ function createUniqueStar(label) {
   return holder;
 }
 
-// Nome con qualifica ("Rhazmora, Rubifronte della Scissione"): sulle facce
+// Nome con qualifica ("Nome, qualifica"): sulle facce
 // Rubyfront/Nexus la barra del titolo mostra solo il nome personale e la
 // qualifica scende nella riga del tipo, al posto dell'etichetta generica
-// "Rubifronte"/"Nexus". Così il nome sta su una riga a corpo pieno senza
+// "Rubyfront"/"Nexus". Così il nome sta su una riga a corpo pieno senza
 // abbreviazioni, e la qualifica vive dove già si legge il tipo della carta.
 // Le altre facce (Entità comprese) mantengono il nome intero nella barra.
 function splitFaceName(face, faceCopy) {
@@ -400,8 +400,8 @@ function createTextBox(face, faceCopy, cardCopy, localeId) {
   // riga sopra il testo di regole (sostituisce la vecchia typeline e la
   // bottombar), così l'illustrazione ha più spazio.
   // Etichetta a sinistra: il tipo per Entità/Materia/Oggetto; per Rubyfront e
-  // Nexus la qualifica del nome ("Rubifronte della Scissione", vedi
-  // splitFaceName) oppure, senza qualifica, la parola generica "Rubifronte" /
+  // Nexus la qualifica del nome (vedi splitFaceName) oppure, senza
+  // qualifica, la parola generica "Rubyfront" /
   // "Nexus" (invece di lasciare vuoto).
   const kindLabels = copyFor(localeId).faceKind ?? {};
   const typeText = ((face.kind === "entity" || face.kind === "matter" || face.kind === "object") && cardCopy.typeLabel)

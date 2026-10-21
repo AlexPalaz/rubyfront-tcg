@@ -3307,7 +3307,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Rhazmora, Rubifronte della Scissione",
+              "name": "Rhazmora",
               "typeLabel": "Rubyfront bifronte",
               "summary": "La bestia della Scissione: ogni Oggetto assegnato scava nel mazzo, e il Nexus riarma il Fronte dal Ritiro.",
               "ui": {
@@ -3329,7 +3329,7 @@
                 "destructiveAria": "Distruttiva"
               },
               "faceA": {
-                "name": "Rhazmora, Rubifronte della Scissione",
+                "name": "Rhazmora",
                 "keyword": {
                   "name": "Furia",
                   "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
@@ -3375,7 +3375,7 @@
               }
             },
             "en": {
-              "name": "Rhazmora, Rubyfront of the Schism",
+              "name": "Rhazmora",
               "typeLabel": "Double-faced Rubyfront",
               "summary": "The beast of the Schism: every assigned Object digs through the deck, and the Nexus rearms the Front from the Retire Zone.",
               "ui": {
@@ -3397,7 +3397,7 @@
                 "destructiveAria": "Destructive"
               },
               "faceA": {
-                "name": "Rhazmora, Rubyfront of the Schism",
+                "name": "Rhazmora",
                 "keyword": {
                   "name": "Fury",
                   "rules": "d20 ≥ 12 before every action · failure −1 HP"
@@ -8335,7 +8335,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Arden, Rubifronte del Fuoco",
+              "name": "Arden",
               "typeLabel": "Rubyfront bifronte",
               "summary": "Il Rubyfront del tutorial Umani: paga PV per spingere gli attacchi, e la Fiamma Eterna li ripaga.",
               "ui": {
@@ -8357,7 +8357,7 @@
                 "destructiveAria": "Distruttiva"
               },
               "faceA": {
-                "name": "Arden, Rubifronte del Fuoco",
+                "name": "Arden",
                 "keyword": {
                   "name": "Furia",
                   "rules": "d20 ≥ 13 prima di ogni azione · fallimento −1 PV"
@@ -8407,7 +8407,7 @@
               }
             },
             "en": {
-              "name": "Arden, Rubyfront of Fire",
+              "name": "Arden",
               "typeLabel": "Double-faced Rubyfront",
               "summary": "The Human tutorial's Rubyfront: it pays HP to push the attacks, and the Eternal Flame pays them back.",
               "ui": {
@@ -8429,7 +8429,7 @@
                 "destructiveAria": "Destructive"
               },
               "faceA": {
-                "name": "Arden, Rubyfront of Fire",
+                "name": "Arden",
                 "keyword": {
                   "name": "Fury",
                   "rules": "d20 ≥ 13 before every action · failure −1 HP"
@@ -10156,7 +10156,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Seyra, Rubifronte di Nova Kai",
+              "name": "Seyra",
               "typeLabel": "Rubyfront bifronte",
               "summary": "Il Rubyfront del tutorial Auros: guadagna PV ogni volta che qualcosa si ferma in Stasi.",
               "ui": {
@@ -10178,7 +10178,7 @@
                 "destructiveAria": "Distruttiva"
               },
               "faceA": {
-                "name": "Seyra, Rubifronte di Nova Kai",
+                "name": "Seyra",
                 "keyword": {
                   "name": "Furia",
                   "rules": "d20 ≥ 13 prima di ogni azione · fallimento −1 PV"
@@ -10228,7 +10228,7 @@
               }
             },
             "en": {
-              "name": "Seyra, Rubyfront of Nova Kai",
+              "name": "Seyra",
               "typeLabel": "Double-faced Rubyfront",
               "summary": "The Auros tutorial's Rubyfront: it gains HP every time something stops in Stasis.",
               "ui": {
@@ -10250,7 +10250,7 @@
                 "destructiveAria": "Destructive"
               },
               "faceA": {
-                "name": "Seyra, Rubyfront of Nova Kai",
+                "name": "Seyra",
                 "keyword": {
                   "name": "Fury",
                   "rules": "d20 ≥ 13 before every action · failure −1 HP"
@@ -13872,7 +13872,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Rhazmora, Rubifronte della Scissione",
+          "name": "Rhazmora",
           "typeLabel": "Rubyfront bifronte",
           "summary": "La bestia della Scissione: ogni Oggetto assegnato scava nel mazzo, e il Nexus riarma il Fronte dal Ritiro.",
           "ui": {
@@ -13894,7 +13894,7 @@
             "destructiveAria": "Distruttiva"
           },
           "faceA": {
-            "name": "Rhazmora, Rubifronte della Scissione",
+            "name": "Rhazmora",
             "keyword": {
               "name": "Furia",
               "rules": "d20 ≥ 12 prima di ogni azione · fallimento −1 PV"
@@ -13940,7 +13940,7 @@
           }
         },
         "en": {
-          "name": "Rhazmora, Rubyfront of the Schism",
+          "name": "Rhazmora",
           "typeLabel": "Double-faced Rubyfront",
           "summary": "The beast of the Schism: every assigned Object digs through the deck, and the Nexus rearms the Front from the Retire Zone.",
           "ui": {
@@ -13962,7 +13962,7 @@
             "destructiveAria": "Destructive"
           },
           "faceA": {
-            "name": "Rhazmora, Rubyfront of the Schism",
+            "name": "Rhazmora",
             "keyword": {
               "name": "Fury",
               "rules": "d20 ≥ 12 before every action · failure −1 HP"
@@ -18900,7 +18900,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Arden, Rubifronte del Fuoco",
+          "name": "Arden",
           "typeLabel": "Rubyfront bifronte",
           "summary": "Il Rubyfront del tutorial Umani: paga PV per spingere gli attacchi, e la Fiamma Eterna li ripaga.",
           "ui": {
@@ -18922,7 +18922,7 @@
             "destructiveAria": "Distruttiva"
           },
           "faceA": {
-            "name": "Arden, Rubifronte del Fuoco",
+            "name": "Arden",
             "keyword": {
               "name": "Furia",
               "rules": "d20 ≥ 13 prima di ogni azione · fallimento −1 PV"
@@ -18972,7 +18972,7 @@
           }
         },
         "en": {
-          "name": "Arden, Rubyfront of Fire",
+          "name": "Arden",
           "typeLabel": "Double-faced Rubyfront",
           "summary": "The Human tutorial's Rubyfront: it pays HP to push the attacks, and the Eternal Flame pays them back.",
           "ui": {
@@ -18994,7 +18994,7 @@
             "destructiveAria": "Destructive"
           },
           "faceA": {
-            "name": "Arden, Rubyfront of Fire",
+            "name": "Arden",
             "keyword": {
               "name": "Fury",
               "rules": "d20 ≥ 13 before every action · failure −1 HP"
@@ -20721,7 +20721,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Seyra, Rubifronte di Nova Kai",
+          "name": "Seyra",
           "typeLabel": "Rubyfront bifronte",
           "summary": "Il Rubyfront del tutorial Auros: guadagna PV ogni volta che qualcosa si ferma in Stasi.",
           "ui": {
@@ -20743,7 +20743,7 @@
             "destructiveAria": "Distruttiva"
           },
           "faceA": {
-            "name": "Seyra, Rubifronte di Nova Kai",
+            "name": "Seyra",
             "keyword": {
               "name": "Furia",
               "rules": "d20 ≥ 13 prima di ogni azione · fallimento −1 PV"
@@ -20793,7 +20793,7 @@
           }
         },
         "en": {
-          "name": "Seyra, Rubyfront of Nova Kai",
+          "name": "Seyra",
           "typeLabel": "Double-faced Rubyfront",
           "summary": "The Auros tutorial's Rubyfront: it gains HP every time something stops in Stasis.",
           "ui": {
@@ -20815,7 +20815,7 @@
             "destructiveAria": "Destructive"
           },
           "faceA": {
-            "name": "Seyra, Rubyfront of Nova Kai",
+            "name": "Seyra",
             "keyword": {
               "name": "Fury",
               "rules": "d20 ≥ 13 before every action · failure −1 HP"

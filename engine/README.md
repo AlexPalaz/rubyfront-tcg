@@ -50,16 +50,12 @@ Regole collegate finora:
   vive «mentre assegnato»).
 - **Gli starter del tutorial** (2026-09-22): i due mazzi del tutorial (uno
   per razza) entrano nel catalogo con ventotto carte nuove. Le forme che portano e che nessuna regola legge
-  ancora — entra tappata, il buff all'ingresso su un'altra, la carica di chi
-  attacca, il Contrattacco in Reazione, l'indebolimento con la messa in
-  Ritiro, la Statica che guarda e pesca, l'attacco a pagamento di PV, la
-  Stasi imposta o tolta, il buff secco in Reazione, i PV a ogni Stasi — sono
+  ancora — dal 2026-10-20 solo quelle dello starter Auros: la Stasi imposta o
+  tolta, il buff secco in Reazione, i PV a ogni Stasi — sono
   nel **debito dichiarato** (`card_index_test.rb`, DEBT): si vedono sulle
-  carte e si giocano a mano finché non sono certificate (regola d'oro). Il
-  **costo a dado di una Materia** (`stats.fluxCost: {die}`)
-  è letto dall'anagrafe (`flux_die`) e la dogana **ferma la giocata** finché
-  la regola del tiro pagabile (§3.1) non è collegata alle Materie: il
-  client la mostra non giocabile e il bot non la prova.
+  carte e si giocano a mano finché non sono certificate (regola d'oro). Le
+  forme dello starter Umani sono collegate (vedi «Le forme dello starter
+  Umani», engine 0.89.0), compreso il **costo a dado di una Materia**.
 - **§4 Il mulligan** (engine 0.86.0, 2026-09-17) — «ciascun giocatore può
   fare mulligan fino a 3 volte: rimescola tutta la mano nel mazzo e pesca 6
   nuove carte; dopo il terzo è costretto ad accettare; quando un giocatore
@@ -1345,6 +1341,94 @@ Regole collegate finora:
   la soglia della Furia o i PV iniziali verrebbe fermato a torto finché
   l'engine non legge gli effetti. Engine 0.88.0.
 
+- **Le forme dello starter Umani** (engine 0.89.0, 2026-10-20) — le nove
+  forme a debito del primo starter, più ciò che le sue abilità e il suo
+  Nexus chiedevano, collegate in un lotto solo. Tutte seguono le forme già
+  certificate, senza nomi di carta:
+  - **«Questa Entità entra tappata»** (§8.2, `enter_taps`): l'innesco
+    proprio dell'ingresso è un `tap {uid, tapped: true}` col riferimento
+    `on_enter_field` su sé stessa — fonte in campo ed entrata questo turno
+    (l'imbuto), la carta stessa, una volta. Il client lo risolve per primo,
+    prima di ogni altro innesco: è lo stato con cui la carta arriva.
+  - **«Quando entra, un'altra Entità che controlli prende +N Potenza»**
+    (§8.2, `enter_empowers`): un `empower {uid, power}` marcato
+    `on_enter_field`, su UN'altra Entità dello stesso posto in campo (mai sé
+    stessa, mai un'avversaria, mai il Rubyfront), N esatto, una volta.
+  - **«Quando attacca, le Entità attaccanti che controlli prendono +N»**
+    (§8.2, forma d'attacco `all_attackers`): un `empower` per attaccante del
+    turno, la fonte compresa, con la chiave per bersaglio delle altre forme
+    `empower`; chi non attacca non prende nulla.
+  - **«La prima volta in ogni tuo turno che un'Entità Umana che controlli
+    attacca, puoi pagare N PV. Se lo fai, quell'Entità prende +M»** (§3.1,
+    forma d'attacco `attacker` del Rubyfront, con `pay_health`): il
+    bersaglio è chi attacca, e dev'essere il **primo** attaccante della razza
+    nell'ondata (è «la prima volta», non un'altra); l'azione porta `pay`,
+    esatto, e i PV devono bastare; una volta per turno (chiave «turn»). I
+    gemelli tolgono i PV a chi comanda la fonte (`pay_health` / il riduttore
+    di `empower`), mai sotto zero. Il client propone la scelta prima di
+    pagare: chi rinuncia non paga, e la prima volta del turno è passata.
+    Limite dichiarato: il Rubyfront in Zona di Richiamo non innesca
+    (`recall_zone_stopped`); un'Umana presa in controllo che attacca per il
+    posto conta come sua.
+  - **«Stappa un'Entità che controlli: ottiene Contrattacco +N»** (§7.2,
+    risoluzione `empower`, `targets: own_entity` con `counter`): la stappata
+    singola delle Reattive, col Contrattacco al posto della Potenza — una
+    sola, di qualunque razza se la forma non ne ha, in Reazione come le altre.
+  - **«Un'Entità avversaria prende −N Potenza fino alla fine del turno. Se la
+    sua Potenza scende a 0 o meno, mettila nella Zona di Ritiro del suo
+    proprietario»** (§7.2, risoluzione `weaken` senza `per_armed`, con
+    `then_retire_at_most`): il primo passo è un `empower` con `power: −N`
+    su un'avversaria qualunque (non deve attaccare, non servono armate
+    proprie); il seguito è un `toZone {zone: ritiro}` col riferimento
+    `follow: "sink"`, passato solo per l'Entità già colpita e solo se la sua
+    Potenza di ADESSO — stampata, bonus e statici, come nella risoluzione
+    (`power_of`) — è entro la soglia. Il client lo manda da sé dopo il
+    primo passo (`sinks`).
+  - **«Metti un'Entità avversaria nell'Abisso»** (§7.2, risoluzione `move`
+    con `to: abisso`): la rimozione secca, senza condizioni né seguito;
+    stessa dogana dello spostamento in Ritiro, altra zona, senza che nessuno
+    la tenga (`heldBy`); la chiave del passo è quella della distruzione
+    («destroy», lo dice la zona). Non è una morte (niente «distruggi»), ma da
+    lì non si torna (§5).
+  - **Il costo a dado di una Materia** (§3.2, regola sperimentale dal
+    2026-10-20, `flux_die`): la stessa regola del tiro pagabile dello
+    schieramento (§3.1) — «si può lanciare solo se il Flusso disponibile
+    copre le facce del dado», Gettone compreso, e si paga il numero uscito.
+    Il tiro e il costo viaggiano nel `toZone` (`roll`, `cost == roll`): qui
+    la forma, non la fortuna; niente sconti sul tiro (limite dichiarato: uno
+    sconto d'abilità su una carta a dado verrebbe fermato). Il client tira
+    al rilascio (`place`), la mano vela la carta se il Flusso non copre le
+    facce, e il bot la mette in conto col caso peggiore.
+  - **La Statica che ascolta gli ingressi** (§8.2, `enter_peeks` e
+    `enter_listeners` con `requires_entered`): «ogni volta che un'Entità
+    Umana entra sul tuo Fronte, guarda la prima carta del tuo mazzo: puoi
+    metterla in fondo» è un `look {count: 1, restTo: deck, top?}` col
+    riferimento `on_enter_field` e il seguito `follow: "peek"` (fonte
+    un'altra carta del posto, ingresso un'Entità della razza entrata questo
+    turno, una volta per ingresso): con `top` la carta resta in cima, senza
+    va in fondo. «Se invece in questo turno sono entrate sul tuo Fronte
+    almeno 2 Entità Umane, pesca una carta» è l'ascoltatore d'ingresso di
+    sempre con la condizione sugli **ingressi del turno**
+    (`requires_entered`, l'ingresso compreso) al posto di quella sul
+    Fronte: la copia conta le Entità del posto con `entered` uguale al
+    turno, e il riduttore ha imparato lo stesso dato (`enteredTurn`, scritto
+    a ogni passaggio da fuori a dentro il campo). Un ascoltatore su una
+    Materia non chiede `excludeSelf`: una Materia non entra come Entità.
+  - **Il Nexus dello starter** (§3.1): il requisito «in questo turno hai
+    attaccato con almeno N Entità Umane» (`attacked`, contati gli
+    attaccanti dichiarati adesso del posto: in Preparazione nessuno, nel
+    Fronte quelli dell'ondata), lo scarto «un'Entità Umana dalla tua mano»
+    (la razza dello scarto, `race`); le abilità **«+N Potenza e ottengono
+    Slancio»** (forma `power` con `grants`: l'azione `ability` porta le
+    concessioni esatte, i gemelli le danno ai bersagli fino a fine turno) e
+    la **chiamata entro il costo** («un'Entità Umana con costo di Flusso 2
+    o inferiore dalla tua mano, senza pagarne il costo»: forma `summon` con
+    `max_cost` e senza promessa alle prossime attaccanti — un'azione col
+    `bonus` è fermata, la discesa di un'Entità più cara pure).
+  Regola d'oro: un effetto di carta che oggi non esiste e toccasse questi
+  stessi passi a mano verrebbe fermato a torto finché l'engine non lo
+  legge. Engine 0.89.0, novantacinque regole.
+
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `core/test/` (vitest): il riduttore
 dei client e la copia del tavolo qui sotto devono contare allo stesso modo.
@@ -1494,7 +1578,7 @@ designer. Il giudizio (`engine.rb`) non sa che la memoria esiste.
   `unknown_triggers` elenca gli effetti che nessuna forma legge: il test
   dell'anagrafe li tiene come debito dichiarato, così una forma rotta o un
   dato cambiato di nascosto fallisce forte. Il debito dei trigger oggi
-  (2026-09-17) è vuoto. Fuori dal conto dei trigger, ma da collegare:
+  (2026-10-20) è il solo starter Auros (otto trigger). Fuori dal conto dei trigger, ma da collegare:
   l'Oggetto che «si riassegna dalla Zona di Ritiro pagandone il costo»
   (un'azione `assign_object` dal Ritiro al costo stampato).
 - `lib/rubyfront/table.rb` — la copia del tavolo, gemella del riduttore del

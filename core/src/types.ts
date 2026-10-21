@@ -64,6 +64,8 @@ export interface CardInstance {
   grants?: string[];
   /** Potenza in più fino alla fine del turno (§8.2, effetti d'attacco). */
   powerBonus?: number;
+  /** Il turno in cui è entrata in campo (§6.2, §8.2: «se in questo turno sono entrate almeno N»). Gemello: table.rb, `entered`. */
+  enteredTurn?: number;
   /** «Non può bloccare in questo turno» (§8.2, RBF-004). */
   cannotBlock?: boolean;
   /** Contrattacco in più fino alla fine del turno (§8.2, RBF-020). */
@@ -300,7 +302,7 @@ export interface EffectRef {
       (RBF-026), il ritorno in mano dopo la cura (RBF-008), la pesca dopo la
       cura (RBF-001 Nexus), l'attacco di chi torna (RBF-010), lo sguardo dopo
       il potenziamento (RBF-034). */
-  follow?: "discard" | "recall" | "draw" | "join" | "look" | "disarm" | "rearm" | "stash" | "sheathe";
+  follow?: "discard" | "recall" | "draw" | "join" | "look" | "disarm" | "rearm" | "stash" | "sheathe" | "peek" | "sink";
   /** «Una volta per turno»: la tripla vale per ogni attacco del turno. */
   once?: true;
 }
@@ -343,7 +345,7 @@ export type Action =
       attaccanti (l'Entità dalla mano segue, con `toZone` marcato
       `on_ability` e le parole chiave concesse in `grants`). Il client
       calcola, l'engine verifica sulla forma. */
-  | { t: "ability"; uid: string; ability: string; cost?: number; gain?: number; roll?: number; fail?: true; targets?: string[]; power?: number; discount?: Discount; bonus?: AttackBonus }
+  | { t: "ability"; uid: string; ability: string; cost?: number; gain?: number; roll?: number; fail?: true; targets?: string[]; power?: number; /** «…e ottengono [parole chiave] fino alla fine del turno» (§3.1). */ grants?: string[]; discount?: Discount; bonus?: AttackBonus }
   /** Il ritorno vincolato (§8.2): l'Entità `uid`, appena mandata
       nell'Abisso o nella Zona di Ritiro senza Oggetti addosso, torna sullo
       slot (x, y) del proprio Fronte e l'Oggetto `object` le va addosso dal
@@ -351,7 +353,8 @@ export type Action =
   | { t: "revive"; uid: string; x: number; y: number; z: number; object: string; effect: EffectRef; /** §6.2 — a Fronte pieno, l'Entità propria che lascia il posto (in Ritiro coi suoi Oggetti), dal 2026-09-15. */ replace?: string }
   /** Assegna l'Oggetto `uid` all'Entità `to` (§3.1); `to: null` lo scioglie. */
   | { t: "assign"; uid: string; to: string | null }
-  | { t: "tap"; uid: string; tapped: boolean }
+  /** «Questa Entità entra tappata» (§8.2): col riferimento, è l'innesco proprio dell'ingresso. */
+  | { t: "tap"; uid: string; tapped: boolean; effect?: EffectRef }
   | { t: "facedown"; uid: string; facedown: boolean }
   /** `test`: la patch è uno strumento di prova (Flusso in più, PV a zero): senza turno, e solo dall'account di prova (2026-09-24). */
   | { t: "player"; seat: Seat; patch: Partial<PlayerState>; effect?: EffectRef; roll?: number; test?: boolean }
@@ -369,7 +372,7 @@ export type Action =
   | { t: "resolve"; seat: Seat; battles: Battle[]; untap?: string[] }
   /** Un potenziamento fino alla fine del turno (§8.2): Potenza in più,
       parole chiave concesse, o il divieto di bloccare. Sempre un passo d'effetto. */
-  | { t: "empower"; uid: string; power?: number; grants?: string[]; restrict?: "block"; counter?: number; untap?: true; effect: EffectRef }
+  | { t: "empower"; uid: string; power?: number; grants?: string[]; restrict?: "block"; counter?: number; untap?: true; /** «Puoi pagare N PV. Se lo fai…» (§3.1): i PV pagati da chi comanda la fonte. */ pay?: number; effect: EffectRef }
   /** «Quando entra sul Fronte, un d20: con 15–20 stappa tutte le Entità che
       controlli» (§8.2, RBF-011): col tiro giusto (`untap`) stappa tutte le
       Entità di `seat`, col tiro mancato non fa nulla e consuma l'innesco.

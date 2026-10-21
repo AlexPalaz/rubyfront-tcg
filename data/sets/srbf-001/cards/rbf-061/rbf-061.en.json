@@ -1,5 +1,5 @@
 {
-  "name": "Arden, Rubyfront of Fire",
+  "name": "Arden",
   "typeLabel": "Double-faced Rubyfront",
   "summary": "The Human tutorial's Rubyfront: it pays HP to push the attacks, and the Eternal Flame pays them back.",
   "ui": {
@@ -21,7 +21,7 @@
     "destructiveAria": "Destructive"
   },
   "faceA": {
-    "name": "Arden, Rubyfront of Fire",
+    "name": "Arden",
     "keyword": {
       "name": "Fury",
       "rules": "d20 ≥ 13 before every action · failure −1 HP"

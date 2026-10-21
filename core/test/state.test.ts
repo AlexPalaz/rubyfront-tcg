@@ -994,6 +994,44 @@ describe("apply ability / sconti", () => {
     expect(state.players.a.hp).toBe(0);
   });
 
+  // «…e ottengono Slancio fino alla fine del turno» (dal 2026-10-20). Gemello: table_test.rb.
+  it("il potenziamento con le parole chiave le concede ai bersagli, fino a fine turno", () => {
+    let state = apply(newGame("a"), { ...deckFor("a", 3), hp: 20 });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1260, z: 1 });
+    state = apply(state, { t: "ability", uid: "a-2", ability: "fire", cost: 6, targets: ["a-1"], power: 1, grants: ["surge"] });
+    expect(state.cards["a-1"]).toMatchObject({ powerBonus: 1, grants: ["surge"] });
+    expect(state.players.a.hp).toBe(14);
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(state.cards["a-1"].grants).toBeUndefined();
+  });
+
+  // «Puoi pagare N PV. Se lo fai, quell'Entità prende +M» (§3.1, dal 2026-10-20): i PV li paga chi comanda la fonte. Gemello: table_test.rb.
+  it("empower con `pay` toglie i PV a chi comanda la fonte, mai sotto zero", () => {
+    let state = apply(newGame("a"), { ...deckFor("a", 2), hp: 20 });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1260, z: 1 });
+    state = apply(state, { t: "toZone", uid: "a-2", zone: "field", x: 821, y: 1260, z: 1 });
+    state = apply(state, { t: "empower", uid: "a-1", power: 1, pay: 1, effect: { source: "a-2", event: "on_attack", entering: "a-1", once: true } });
+    expect(state.cards["a-1"].powerBonus).toBe(1);
+    expect(state.players.a.hp).toBe(19);
+    expect(state.fired).toContain("a-2|on_attack:empower:a-1|turn");
+    state = apply(state, { t: "player", seat: "a", patch: { hp: 0 } });
+    state = apply(state, { t: "empower", uid: "a-1", power: 1, pay: 1, effect: { source: "a-2", event: "on_attack", entering: "a-1" } });
+    expect(state.players.a.hp).toBe(0);
+  });
+
+  // L'ingresso in campo si annota col turno (dal 2026-10-20). Gemello: table.rb, `entered`.
+  it("toZone sul campo annota il turno d'ingresso; un pixel sul campo no", () => {
+    let state = apply(newGame("a"), deckFor("a", 1));
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 442, y: 1260, z: 1 });
+    expect(state.cards["a-1"].enteredTurn).toBe(1);
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 821, y: 1260, z: 1 });
+    expect(state.cards["a-1"].enteredTurn).toBe(1);
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "ritiro" });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "field", x: 821, y: 1260, z: 1 });
+    expect(state.cards["a-1"].enteredTurn).toBe(2);
+  });
+
   // §3.1 — la chiamata sul Fronte del Nexus: la promessa alle prossime
   // attaccanti sul posto, l'Entità dalla mano con le parole chiave concesse,
   // il bonus che viaggia nella dichiarazione d'attacco. Gemello: table_test.rb.
