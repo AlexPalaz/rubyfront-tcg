@@ -7,8 +7,8 @@
 
 import { t } from "./i18n.js";
 import { CONTROL_X, FRONT_SLOT_X, MATTER_X, SURFACE_W, TILE_W, backRowY, frontRowY } from "./geometry.js";
-import type { Action, CardInstance, Declaration, GameState, PlayerState, Seat, ZoneId, Discount } from "./types.js";
-import { SEATS, otherSeat } from "./types.js";
+import type { Action, CardInstance, Declaration, EffectRef, GameState, PlayerState, Seat, ZoneId, Discount } from "./types.js";
+import { HIDDEN_CARD, SEATS, isHidden, otherSeat } from "./types.js";
 
 /** Il tetto del Flusso (§3.2): la barra non supera mai 20. */
 export const FLUX_CAP = 20;
@@ -154,7 +154,11 @@ export function attackKey(action: Action): string | null {
 }
 
 export function apply(state: GameState, action: Action): GameState {
-  let next = reduce(state, action);
+  // Le identità rivelate da una vista proiettata (uid → cardId, room.rb
+  // project): una carta che esce da una zona nascosta si fa conoscere prima
+  // che l'azione si applichi. Gemello: table.rb, apply.
+  const known = action.identities ? revealIdentities(state, action.identities) : state;
+  let next = reduce(known, action);
   // §8.2 — un effetto risolto ferma la dichiarazione che l'ha innescato:
   // attacco, blocco o contrattacco con un passo già passato non si annullano
   // più (deciso 2026-09-10). Gemello: table.rb, seal_declaration.
@@ -182,10 +186,47 @@ export function replay(entries: readonly { action: Action }[]): GameState {
   return state;
 }
 
+/** Le identità delle carte nascoste, dal tavolo: sulla carta che le aspetta. */
+export function revealIdentities(state: GameState, identities: Record<string, string>): GameState {
+  const cards = { ...state.cards };
+  let changed = false;
+  for (const [uid, cardId] of Object.entries(identities)) {
+    const card = cards[uid];
+    if (!card || !isHidden(card) || typeof cardId !== "string") continue;
+    cards[uid] = { ...card, cardId };
+    changed = true;
+  }
+  return changed ? { ...state, cards } : state;
+}
+
+/**
+ * La chiave del tiro di un'azione (§8.2): un passo d'effetto ha la sua
+ * tripla (col seguito), lo schieramento, il costo a dado e la Furia hanno la
+ * carta. Lo stesso passo nello stesso turno ha lo stesso tiro: non si
+ * ripesca un dado. Gemello: engine.rb, Engine.roll_key.
+ */
+export function rollKey(step: { effect: EffectRef } | { deploy: string } | { cost: string } | { fury: string }): string {
+  if ("effect" in step) return `effect|${step.effect.source}|${step.effect.event}|${step.effect.entering}|${step.effect.follow ?? ""}`;
+  if ("deploy" in step) return `deploy|${step.deploy}`;
+  if ("cost" in step) return `cost|${step.cost}`;
+  return `fury|${step.fury}`;
+}
+
+/** Il tiro del tavolo per una chiave, se c'è. */
+export function rollFor(state: GameState, key: string): number | undefined {
+  return state.rolls?.[key]?.value;
+}
+
 function reduce(state: GameState, action: Action): GameState {
   switch (action.t) {
     case "newGame":
       return newGame(action.active ?? "a");
+
+    case "roll": {
+      // §8.2 — il tiro del tavolo, ricordato per chiave finché dura il turno. Gemello: table.rb, remember_roll.
+      if (!Number.isInteger(action.value)) return state;
+      return { ...state, rolls: { ...(state.rolls ?? {}), [action.for]: { die: action.die, value: action.value as number } } };
+    }
 
     case "loadDeck": {
       // Il mazzo sostituisce tutto ciò che quel giocatore aveva in tavola:
@@ -194,7 +235,9 @@ function reduce(state: GameState, action: Action): GameState {
       for (const card of Object.values(cards)) {
         if (card.owner === action.seat) delete cards[card.uid];
       }
-      for (const card of action.cards) cards[card.uid] = { ...card };
+      // Una vista proiettata (room.rb) porta le carte nascoste dell'altro
+      // senza identità né ordine: HIDDEN_CARD, in fondo. Gemello: table.rb, load_deck.
+      for (const card of action.cards) cards[card.uid] = { ...card, cardId: card.cardId ?? HIDDEN_CARD, order: card.order ?? 0 };
       // Le assegnazioni verso carte appena sparite non vogliono più dire niente.
       for (const [uid, card] of Object.entries(cards)) {
         if (card.assignedTo && !cards[card.assignedTo]) {
@@ -232,8 +275,10 @@ function reduce(state: GameState, action: Action): GameState {
     }
 
     case "shuffle": {
-      // L'ordine arriva già mescolato da chi ha premuto il tasto: il caso si
-      // tira una volta sola, altrimenti i due client divergerebbero.
+      // L'ordine arriva già mescolato dal tavolo (dal 2026-10-21): il caso si
+      // tira una volta sola, altrimenti i due client divergerebbero. La vista
+      // del mazzo altrui (senza ordine) non muove nulla. Gemello: table.rb, shuffle.
+      if (!action.order) return state;
       const cards = { ...state.cards };
       action.order.forEach((uid, index) => {
         const card = cards[uid];
@@ -250,13 +295,23 @@ function reduce(state: GameState, action: Action): GameState {
       // mescolato da chi lo fa, poi le 6. «Dopo il terzo mulligan è costretto
       // ad accettare la mano»: al terzo la mano si tiene da sé. Gemello: table.rb, mulligan.
       const cards = { ...state.cards };
-      action.order.forEach((uid, index) => {
-        const card = cards[uid];
-        if (card && card.owner === action.seat && (card.zone === "deck" || card.zone === "hand")) {
-          cards[uid] = { ...card, zone: "deck", order: index, facedown: false };
+      if (action.order) {
+        action.order.forEach((uid, index) => {
+          const card = cards[uid];
+          if (card && card.owner === action.seat && (card.zone === "deck" || card.zone === "hand")) {
+            cards[uid] = { ...card, zone: "deck", order: index, facedown: false };
+          }
+        });
+      } else {
+        // La vista del mazzo altrui (senza ordine): la mano torna nel mazzo,
+        // in fondo, e le pescate sono quelle nominate (`drawn`). Gemello: table.rb, mulligan.
+        let bottom = orderForBottom(state, action.seat, "deck");
+        for (const card of zoneCards(state, action.seat, "hand")) {
+          cards[card.uid] = { ...card, zone: "deck", order: bottom, facedown: false };
+          bottom += 1;
         }
-      });
-      const drawn = apply({ ...state, cards }, { t: "draw", seat: action.seat, count: 6 });
+      }
+      const drawn = apply({ ...state, cards }, { t: "draw", seat: action.seat, count: 6, ...(action.drawn ? { drawn: action.drawn } : {}) });
       const mulligans = (state.players[action.seat].opening?.mulligans ?? 0) + 1;
       return {
         ...drawn,
@@ -271,11 +326,14 @@ function reduce(state: GameState, action: Action): GameState {
     }
 
     case "draw": {
+      // Le prime `count` del mazzo — o, in una vista proiettata, le carte
+      // nominate (`drawn`: il mazzo altrui non ha ordine qui). Gemello: table.rb, draw.
       const deck = zoneCards(state, action.seat, "deck");
       if (deck.length === 0) return state;
+      const taken = action.drawn ? action.drawn.map(uid => state.cards[uid]).filter(card => card && card.owner === action.seat && card.zone === "deck") : deck.slice(0, action.count);
       const cards = { ...state.cards };
       let order = orderForBottom(state, action.seat, "hand");
-      for (const card of deck.slice(0, action.count)) {
+      for (const card of taken) {
         cards[card.uid] = { ...card, zone: "hand", order, facedown: false };
         order += 1;
       }
@@ -556,9 +614,9 @@ function reduce(state: GameState, action: Action): GameState {
       };
 
     case "turn": {
-      // Il contatore ritoccato a mano (active invariato) non è un cambio di
-      // turno: si aggiorna il numero e basta.
-      if (action.active === state.active) return { ...state, turn: action.turn };
+      // §6.5 (dal 2026-10-21) — il contatore avanza SOLO col cambio di posto:
+      // un `turn` con l'attivo invariato non cambia nulla. Gemello: table.rb, turn.
+      if (action.active === state.active) return state;
       // Il cambio di turno porta con sé la routine di chi entra, tutta in
       // un'azione sola — così nessuno la compie «per conto» dell'altro, e
       // l'arbitro non vede gesti nel turno altrui: la fase torna in
@@ -611,8 +669,10 @@ function reduce(state: GameState, action: Action): GameState {
           return [seat, rest];
         })
       ) as GameState["players"];
+      // I tiri del tavolo valgono nel turno (§8.2). Gemello: table.rb.
+      const { rolls: _forgotten, ...unrolled } = withoutChain(state);
       const opened: GameState = {
-        ...withoutChain(state),
+        ...unrolled,
         cards,
         // La tassa di Flusso (§3.2) viaggia nell'azione. Gemello: table.rb.
         players: { ...cleared, [next]: { ...cleared[next], fluxMax: grown, flux: Math.max(0, grown - (action.toll ?? 0)) } },
@@ -626,7 +686,9 @@ function reduce(state: GameState, action: Action): GameState {
       // salta mai». A mazzo vuoto non pesca (§9.1: l'esaurimento si decide
       // al confine dei turni, in turn.ts). La mano iniziale e la carta del
       // turno 1 di chi apre arrivano dal carico del mazzo, non da qui.
-      return apply(opened, { t: "draw", seat: next, count: 1 });
+      // Una vista proiettata nomina la carta pescata (`drawn`): la lavagna la
+      // segue, perché di quel mazzo non conosce l'ordine.
+      return apply(opened, { t: "draw", seat: next, count: 1, ...(action.drawn ? { drawn: action.drawn } : {}) });
     }
 
     case "phase":
@@ -727,7 +789,10 @@ function reduce(state: GameState, action: Action): GameState {
       // §8.2 — lo sguardo nel mazzo: le prime N; la rivelata in fondo alla
       // mano, le altre in fondo al mazzo, nell'ordine in cui stavano.
       // Gemello: table.rb, look.
-      const looked = zoneCards(state, action.seat, "deck").slice(0, action.count);
+      // In una vista proiettata le guardate sono nominate (`looked`): il mazzo altrui non ha ordine qui. Gemello: table.rb, look.
+      const looked = action.looked
+        ? action.looked.map(uid => state.cards[uid]).filter(card => card && card.owner === action.seat && card.zone === "deck")
+        : zoneCards(state, action.seat, "deck").slice(0, action.count);
       if (looked.length === 0) return state;
       const cards = { ...state.cards };
       let bottom = orderForBottom(state, action.seat, "deck");
@@ -1041,7 +1106,7 @@ export function phaseCloser(state: GameState): Seat {
  * Richiamo (il Rubyfront, sulla fila di servizio, mai su una fila del
  * Fronte). È l'inizio di una partita, e apre il mulligan. Gemello: table.rb, whole_deck?.
  */
-function wholeDeck(seat: Seat, cards: readonly CardInstance[]): boolean {
+function wholeDeck(seat: Seat, cards: readonly { zone: ZoneId; y: number }[]): boolean {
   if (!cards.some(card => card.zone === "deck")) return false;
   return cards.every(card => card.zone === "deck" || (card.zone === "field" && card.y === backRowY(seat)));
 }

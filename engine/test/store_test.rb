@@ -23,7 +23,9 @@ class StoreTest < Minitest::Test
   def test_ensure_schema_creates_the_two_tables
     store, calls = fake_store
     store.ensure_schema!
-    assert_equal 7, calls.size
+    assert_equal 9, calls.size
+    assert_match(/ADD COLUMN IF NOT EXISTS verify_sent_at/, calls[7][0])
+    assert_match(/CREATE TABLE IF NOT EXISTS player_matches/, calls[8][0])
     assert_match(/CREATE TABLE IF NOT EXISTS players/, calls[0][0])
     assert_match(/CREATE TABLE IF NOT EXISTS player_identities/, calls[1][0])
     assert_match(/CREATE TABLE IF NOT EXISTS sessions/, calls[2][0])
@@ -84,5 +86,60 @@ class StoreTest < Minitest::Test
     assert_equal [1, "prefs", '{"mazzo":"scissione","n":2}'], calls[0][1]
     assert_equal({ "mazzo" => "scissione", "n" => 2 }, store.get(1, "prefs"))
     assert_nil store.get(1, "manca")
+  end
+
+  # --- Dal 2026-10-21 (audit) ---------------------------------------------------
+
+  def test_create_player_stores_the_verify_hash_with_the_sent_time
+    clock = -> { Time.utc(2026, 10, 21, 12, 0, 0) }
+    calls = []
+    transport = ->(sql, params) { calls << [sql, params]; [{ "id" => "3", "username" => "u", "display_name" => "U", "email" => "u@x.it", "password_hash" => "h", "email_verified_at" => nil }] }
+    store = Rubyfront::Store.new("postgresql://u:p@host.neon.tech/db", transport: transport, clock: clock)
+    store.create_player(username: "u", display_name: "U", email: "u@x.it", password_hash: "h", verify_token: "impronta")
+    assert_match(/verify_sent_at/, calls[0][0])
+    assert_equal "impronta", calls[0][1][4]
+    assert_equal "2026-10-21T12:00:00Z", calls[0][1][6]
+    store.create_player(username: "g", display_name: "G", verified: true)
+    assert_nil calls[1][1][6], "senza link, senza data"
+  end
+
+  def test_verify_email_checks_the_hash_the_legacy_token_and_the_ttl
+    clock = -> { Time.utc(2026, 10, 21, 12, 0, 0) }
+    calls = []
+    transport = ->(sql, params) { calls << [sql, params]; sql.include?("UPDATE players SET email_verified_at") ? [{ "id" => "3" }] : [{ "id" => "3", "username" => "u", "display_name" => "U", "email" => "u@x.it", "email_verified_at" => "2026-10-21" }] }
+    store = Rubyfront::Store.new("postgresql://u:p@host.neon.tech/db", transport: transport, clock: clock)
+    me = store.verify_email("impronta", legacy_token: "chiaro")
+    assert_equal 3, me[:id]
+    sql, params = calls[0]
+    assert_match(/verify_token = \$1 OR \(\$3 <> '' AND verify_token = \$3\)/, sql)
+    assert_match(/verify_sent_at IS NULL OR verify_sent_at > \$2::timestamptz/, sql)
+    assert_equal ["impronta", "2026-10-19T12:00:00Z", "chiaro"], params, "48 ore prima dell'orologio"
+    store.verify_email("impronta", max_age_s: 3600)
+    assert_equal "2026-10-21T11:00:00Z", calls[2][1][1]
+    assert_equal "", calls[2][1][2]
+  end
+
+  def test_reset_verify_token_sets_the_new_hash_and_time
+    clock = -> { Time.utc(2026, 10, 21, 12, 0, 0) }
+    calls = []
+    store = Rubyfront::Store.new("postgresql://u:p@host.neon.tech/db", transport: ->(sql, params) { calls << [sql, params]; [] }, clock: clock)
+    assert store.reset_verify_token(3, "nuova")
+    assert_match(/UPDATE players SET verify_token = \$2, verify_sent_at = \$3::timestamptz WHERE id = \$1 AND email_verified_at IS NULL/, calls[0][0])
+    assert_equal [3, "nuova", "2026-10-21T12:00:00Z"], calls[0][1]
+  end
+
+  def test_record_match_is_idempotent
+    store, calls = fake_store([[{ "match_id" => "m-1" }], []])
+    assert_equal true, store.record_match("m-1", 7, "RBF-001", "win", 100)
+    assert_match(/INSERT INTO player_matches/, calls[0][0])
+    assert_equal ["m-1", 7, "RBF-001", "win", 100], calls[0][1]
+    assert_equal false, store.record_match("m-1", 7, "RBF-001", "win", 100), "la seconda volta la riga c'è già: niente accredito"
+  end
+
+  def test_count_keys
+    store, calls = fake_store([[{ "n" => "42" }], []])
+    assert_equal 42, store.count_keys(7)
+    assert_match(/SELECT count\(\*\) AS n FROM player_data/, calls[0][0])
+    assert_equal 0, store.count_keys(8)
   end
 end

@@ -17,30 +17,72 @@ class EngineTest < Minitest::Test
   end
 
   def test_actions_without_rule_pass
-    verdict = @engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 })
+    verdict = @engine.judge({ "t" => "say", "entry" => {} })
     assert_equal "verdict", verdict[:t]
-    assert_equal "draw", verdict[:action]
+    assert_equal "say", verdict[:action]
     assert verdict[:ok]
     refute verdict[:ruled]
   end
 
-  def test_malformed_action_does_not_disturb
+  # --- §protocollo: l'elenco chiuso delle azioni e la loro forma (dal 2026-10-21)
+
+  def test_malformed_action_is_stopped_and_never_applied
     verdict = @engine.judge(nil)
-    assert verdict[:ok]
-    refute verdict[:ruled]
+    refute verdict[:ok]
+    assert verdict[:ruled]
     assert_nil verdict[:action]
+    assert_match(/sconosciuta al tavolo \(§protocollo\)/, verdict[:reason])
+    assert_match(/unknown to the table \(§protocollo\)/, verdict[:reason_en])
+    refute @engine.judge("draw")[:ok]
+    refute @engine.judge([])[:ok]
+  end
+
+  def test_unknown_action_type_is_stopped
+    %w[foo hack draw2].each do |kind|
+      verdict = @engine.judge({ "t" => kind, "seat" => "a" })
+      refute verdict[:ok], kind
+      assert_equal kind, verdict[:action]
+      assert_match(/§protocollo/, verdict[:reason])
+    end
+    refute @engine.judge({ "seat" => "a" })[:ok], "senza tipo"
+    refute @engine.judge({ "t" => 7 })[:ok], "tipo non stringa"
+  end
+
+  def test_action_in_the_wrong_shape_is_stopped
+    verdict = @engine.judge({ "t" => "draw", "seat" => "c", "count" => 1 })
+    refute verdict[:ok]
+    assert_match(/«draw».*«seat».*\(§protocollo\)/, verdict[:reason])
+    assert_match(/“draw”.*“seat”.*\(§protocollo\)/, verdict[:reason_en])
+    refute @engine.judge({ "t" => "draw", "seat" => "a", "count" => "1" })[:ok], "count non intero"
+    refute @engine.judge({ "t" => "toZone", "uid" => "", "zone" => "field" })[:ok], "uid vuoto"
+    refute @engine.judge({ "t" => "toZone", "uid" => "x" * 65, "zone" => "field" })[:ok], "uid troppo lungo"
+    refute @engine.judge({ "t" => "toZone", "uid" => "a-1", "zone" => "moon" })[:ok], "zona ignota"
+    refute @engine.judge({ "t" => "player", "seat" => "a", "patch" => "hp" })[:ok], "patch non oggetto"
+    refute @engine.judge({ "t" => "turn", "turn" => "2", "active" => "b" })[:ok], "turno non intero"
+    refute @engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "d", "cards" => {} })[:ok], "cards non lista"
+    refute @engine.judge({ "t" => "roll", "seat" => "a", "die" => "6", "for" => "x" })[:ok], "die non intero"
+  end
+
+  def test_every_known_action_has_a_shape_and_the_free_ones_stay_free
+    assert_equal Rubyfront::Engine::SHAPES.keys.sort, Rubyfront::Engine::KNOWN_ACTIONS.sort
+    %w[say ready pass settle clearCombat facedown].each do |kind|
+      assert Rubyfront::Engine::KNOWN_ACTIONS.include?(kind), kind
+    end
+    # Un gesto libero resta libero (no_rule), ma solo se noto.
+    refute @engine.judge({ "t" => "say", "entry" => {} })[:ruled]
+    refute @engine.judge({ "t" => "clearCombat" })[:ruled]
   end
 
   # --- §3.2: il limite dei 20 Flussi -------------------------------------
 
   def test_flux_at_20_is_fine
-    verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 20 } })
+    verdict = @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => 20 } })
     assert verdict[:ruled]
     assert verdict[:ok]
   end
 
   def test_flux_at_21_is_stopped
-    verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 21 } })
+    verdict = @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => 21 } })
     assert verdict[:ruled]
     refute verdict[:ok]
     assert_match(/§3\.2/, verdict[:reason])
@@ -49,7 +91,7 @@ class EngineTest < Minitest::Test
   # --- Il motivo in due lingue: il tavolo è bilingue, l'engine pure.
 
   def test_every_stop_carries_reason_in_english_too
-    verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 21 } })
+    verdict = @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => 21 } })
     refute verdict[:ok]
     assert_match(/Flusso/, verdict[:reason])
     assert_match(/Flux/, verdict[:reason_en])
@@ -71,7 +113,7 @@ class EngineTest < Minitest::Test
 
   def test_interpolated_words_follow_language
     engine = Rubyfront::Engine.new
-    engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 0 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "b", "patch" => { "hp" => 0 } })
     engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "hp" })
     later = engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 })
     refute later[:ok]
@@ -87,42 +129,90 @@ class EngineTest < Minitest::Test
   end
 
   def test_spent_token_reaches_21
-    spending = { "t" => "player", "seat" => "b", "patch" => { "token" => false, "flux" => 21 } }
+    spending = { "t" => "player", "test" => true, "seat" => "b", "patch" => { "token" => false, "flux" => 21 } }
     verdict = @engine.judge(spending)
     assert verdict[:ruled]
     assert verdict[:ok], "la spesa del Gettone è l'unico 21 legale"
   end
 
   def test_not_even_token_exceeds_21
-    verdict = @engine.judge({ "t" => "player", "seat" => "b", "patch" => { "token" => false, "flux" => 22 } })
+    verdict = @engine.judge({ "t" => "player", "test" => true, "seat" => "b", "patch" => { "token" => false, "flux" => 22 } })
     refute verdict[:ok]
   end
 
   def test_bar_does_not_exceed_20
-    verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "fluxMax" => 21 } })
+    verdict = @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "fluxMax" => 21 } })
     assert verdict[:ruled]
     refute verdict[:ok]
   end
 
   def test_patch_not_touching_counters_is_not_judged
-    verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "name" => "Ale", "token" => true } })
+    verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "name" => "Ale" } })
     assert verdict[:ok]
     refute verdict[:ruled]
+  end
+
+  # --- §3.1/§3.2: i contatori li muove il tavolo (dal 2026-10-21) --------
+
+  def test_bare_counter_patch_is_stopped
+    %w[hp flux fluxMax].each do |key|
+      verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { key => 3 } }, actor: "a")
+      refute verdict[:ok], key
+      assert_match(/contatori li muove il tavolo.*\(§3\.1, §3\.2\)/, verdict[:reason])
+      assert_match(/table moves the counters/, verdict[:reason_en])
+    end
+    refute @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "token" => true } }, actor: "a")[:ok], "un Gettone nuovo non si regala"
+    refute @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => [] } }, actor: "a")[:ok], "i sigilli cadono solo per effetto"
+    refute @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "name" => "x", "hp" => 20 } }, actor: "a")[:ok], "il nome non copre i contatori"
+  end
+
+  def test_active_seat_cannot_patch_the_opponents_counters
+    engine = opening_table
+    keep_hands(engine)
+    # T05 dell'audit: nel turno di A, i PV di B a zero — fermato, e nessuna vittoria.
+    verdict = engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 0 } }, actor: "a")
+    refute verdict[:ok]
+    assert_match(/contatori che si toccano sono i propri \(§3\.1\)/, verdict[:reason])
+    assert_equal 20, table_copy(engine).hp("b")
+    refute engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "hp" }, actor: "a")[:ok]
+    refute engine.judge({ "t" => "player", "seat" => "b", "patch" => { "flux" => 0 } }, actor: "a")[:ok]
+  end
+
+  def test_token_spend_is_the_only_free_counter_patch
+    engine = foreign
+    # B non apre: ha il Gettone (§3.2/§4); A no.
+    refute engine.judge({ "t" => "player", "seat" => "a", "patch" => { "token" => false, "flux" => 2 } }, actor: "a")[:ok], "A non ha il Gettone"
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")
+    wrong = engine.judge({ "t" => "player", "seat" => "b", "patch" => { "token" => false, "flux" => 5 } }, actor: "b")
+    refute wrong[:ok]
+    assert_match(/vale un Flusso: 2, non 5/, wrong[:reason])
+    spent = engine.judge({ "t" => "player", "seat" => "b", "patch" => { "token" => false, "flux" => 2 } }, actor: "b")
+    assert spent[:ok], spent[:reason]
+    assert_equal 2, table_copy(engine).flux("b")
+    refute table_copy(engine).token?("b")
+    again = engine.judge({ "t" => "player", "seat" => "b", "patch" => { "token" => false, "flux" => 3 } }, actor: "b")
+    assert_match(/già speso/, again[:reason])
+  end
+
+  def test_test_tool_patch_keeps_only_the_caps
+    assert @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => 0, "flux" => 20 } }, actor: "a")[:ok]
+    refute @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => 21 } }, actor: "a")[:ok]
+    refute @engine.judge({ "t" => "player", "test" => true, "seat" => "b", "patch" => { "hp" => 0 } }, actor: "a")[:ok], "nemmeno la prova tocca i contatori altrui"
   end
 
   # --- §3.1/§3.2: contatori mai sotto zero -------------------------------
 
   def test_hp_do_not_go_below_zero
-    verdict = @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => -1 } })
+    verdict = @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => -1 } })
     refute verdict[:ok]
     assert_match(/§3\.1/, verdict[:reason])
-    assert @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 0 } })[:ok], "0 esatto è legale"
+    assert @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => 0 } })[:ok], "0 esatto è legale"
   end
 
   def test_flux_does_not_go_below_zero
-    refute @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => -1 } })[:ok]
-    refute @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "fluxMax" => -2 } })[:ok]
-    assert @engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 0 } })[:ok]
+    refute @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => -1 } })[:ok]
+    refute @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "fluxMax" => -2 } })[:ok]
+    assert @engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => 0 } })[:ok]
   end
 
   # --- §6.5: mano massima 7 a fine turno ---------------------------------
@@ -132,7 +222,9 @@ class EngineTest < Minitest::Test
       { "uid" => "#{seat}-#{serial}", "owner" => seat, "zone" => "deck", "order" => serial }
     end
     @engine.judge({ "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards })
-    @engine.judge({ "t" => "draw", "seat" => seat, "count" => count })
+    # La pesca a mano è solo la mano iniziale (§4): il tavolo di prova pesca
+    # quante ne vuole con lo strumento di prova.
+    @engine.judge({ "t" => "draw", "seat" => seat, "count" => count, "test" => true })
     keep_hands(@engine)
   end
 
@@ -142,13 +234,29 @@ class EngineTest < Minitest::Test
     %w[a b].each do |seat|
       next unless table_copy(engine).opening(seat)
 
-      engine.judge({ "t" => "draw", "seat" => seat, "count" => 1 }, actor: seat) if table_copy(engine).hand_count(seat).zero?
+      engine.judge({ "t" => "draw", "seat" => seat, "count" => 1, "test" => true }, actor: seat) if table_copy(engine).hand_count(seat).zero?
       engine.judge({ "t" => "keep", "seat" => seat }, actor: seat)
     end
   end
 
-  def end_turn(turn: 2, active: "b")
-    { "t" => "turn", "turn" => turn, "active" => active }
+  # §6.5 — il contatore avanza di uno col cambio di posto: senza `turn` il
+  # fine turno prende il numero che viene dalla copia dell'engine.
+  def end_turn(turn: nil, active: "b", engine: @engine)
+    { "t" => "turn", "turn" => turn || table_copy(engine).turn + 1, "active" => active }
+  end
+
+  # §8.2 — il dado lo tira il tavolo: il tavolo di prova annota il tiro che
+  # l'azione porta (per la sua chiave), poi la giudica.
+  def rolled(engine, action, die, actor: nil)
+    roll!(engine, action, die, actor: actor)
+    engine.judge(action, actor: actor)
+  end
+
+  # Solo il tiro, senza giudicare l'azione.
+  def roll!(engine, action, die, actor: nil)
+    seat = action["seat"] || actor || "a"
+    seat = "a" unless %w[a b].include?(seat)
+    engine.judge({ "t" => "roll", "seat" => seat, "die" => die, "for" => Rubyfront::Engine.roll_key(action), "value" => action["roll"] })
   end
 
   def test_end_turn_with_eight_cards_is_stopped
@@ -196,10 +304,30 @@ class EngineTest < Minitest::Test
     assert @engine.judge({ "t" => "toZone", "uid" => "a-3", "zone" => "ritiro" })[:ok], "in Reazione, dove il turno si chiude, si scarta"
   end
 
+  # --- §6.5: il contatore del turno avanza solo col cambio di posto (dal 2026-10-21)
+
   def test_counter_patch_is_not_end_turn
     load_and_draw("a", 9)
     verdict = @engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
-    refute verdict[:ruled], "active invariato: non è una chiusura di turno"
+    refute verdict[:ok], "active invariato: non è una chiusura di turno, e il contatore non si ritocca"
+    assert_match(/avanza solo il cambio di turno \(§6\.5\)/, verdict[:reason])
+    assert_equal 1, table_copy(@engine).turn
+  end
+
+  def test_turn_counter_must_advance_by_one
+    load_and_draw("a", 3)
+    # T25 dell'audit: il turno a 9999 col posto invariato, poi un salto.
+    refute @engine.judge({ "t" => "turn", "turn" => 9999, "active" => "a" }, actor: "a")[:ok]
+    assert_equal 1, table_copy(@engine).turn
+    jump = @engine.judge({ "t" => "turn", "turn" => 9999, "active" => "b" }, actor: "a")
+    refute jump[:ok]
+    assert_match(/turno che viene è il 2, non il 9999 \(§6\.5\)/, jump[:reason])
+    assert_match(/coming turn is 2, not 9999/, jump[:reason_en])
+    refute @engine.judge({ "t" => "turn", "turn" => 1, "active" => "b" }, actor: "a")[:ok], "indietro no"
+    assert_equal 1, table_copy(@engine).turn
+    assert @engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")[:ok]
+    assert_equal 2, table_copy(@engine).turn
+    assert_equal "b", table_copy(@engine).active
   end
 
   def test_observe_applies_violations_too
@@ -660,8 +788,10 @@ class EngineTest < Minitest::Test
     refute engine.judge(attack_decl("a-1"))[:ok], "senza fase nello snapshot si riparte dalla Preparazione"
   end
 
-  def test_unknown_phase_no_rule
-    refute @engine.judge({ "t" => "phase", "phase" => "boh" })[:ruled]
+  def test_unknown_phase_is_stopped_by_the_shape
+    verdict = @engine.judge({ "t" => "phase", "phase" => "boh" })
+    refute verdict[:ok]
+    assert_match(/§protocollo/, verdict[:reason])
   end
 
   # --- §6.2: il Ritiro -----------------------------------------------------
@@ -672,8 +802,8 @@ class EngineTest < Minitest::Test
 
   # L'Entità è in campo dal turno scorso: il turno gira e torna ad A.
   def turn_round(engine)
-    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
-    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    engine.judge(end_turn(active: "b", engine: engine))
+    engine.judge(end_turn(active: "a", engine: engine))
   end
 
   def test_entity_retires_in_preparation
@@ -1242,7 +1372,7 @@ class EngineTest < Minitest::Test
     table = engine.instance_variable_get(:@table)
     assert_equal 24, table.hp("a")
     assert_equal 1, table.fury_relief("a")
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 30 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => 30 } })
     assert_equal 24, table.hp("a"), "il tetto delle cure sale con l'Ascesa"
   end
 
@@ -1394,12 +1524,13 @@ class EngineTest < Minitest::Test
   end
 
   def test_without_actor_turn_gate_is_silent
-    verdict = foreign.judge({ "t" => "draw", "seat" => "b", "count" => 1 })
+    verdict = foreign.judge({ "t" => "say", "entry" => {} })
     refute verdict[:ruled]
+    assert foreign.judge({ "t" => "phase", "phase" => "fronte" })[:ok], "senza attore la dogana del turno tace"
   end
 
   def test_active_seat_acts
-    verdict = foreign.judge({ "t" => "draw", "seat" => "a", "count" => 1 }, actor: "a")
+    verdict = foreign.judge({ "t" => "phase", "phase" => "fronte" }, actor: "a")
     assert verdict[:ok]
   end
 
@@ -1417,13 +1548,19 @@ class EngineTest < Minitest::Test
     engine = foreign
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
-    assert engine.judge({ "t" => "player", "seat" => "b", "patch" => { "name" => "Ale" } }, actor: "b")[:ok], "il nome non è un gesto di gioco"
+    assert engine.judge({ "t" => "player", "test" => true, "seat" => "b", "patch" => { "name" => "Ale" } }, actor: "b")[:ok], "il nome non è un gesto di gioco"
     refute engine.judge({ "t" => "player", "seat" => "b", "patch" => { "name" => "Ale", "hp" => 3 } }, actor: "b")[:ok], "coi contatori sì (in Preparazione altrui)"
     front!(engine)
     cards = [{ "uid" => "b-1", "owner" => "b", "zone" => "deck", "order" => 0, "cardId" => "SLOW" }]
-    assert engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards }, actor: "b")[:ok], "il mazzo si carica all'ingresso, nel turno di chiunque"
+    late = engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards }, actor: "b")
+    refute late[:ok], "a partita in corso il mazzo resta quello (§4, dal 2026-10-21)"
+    assert_match(/prima della partita: a partita in corso resta quello \(§4\)/, late[:reason])
     assert engine.judge({ "t" => "say", "entry" => {} }, actor: "b")[:ok]
-    assert engine.judge({ "t" => "newGame" }, actor: "b")[:ok], "Nuova partita è di entrambi"
+    assert_match(/serve la resa \(§2\)/, engine.judge({ "t" => "newGame" }, actor: "b")[:reason], "a partita in corso non si azzera")
+    # Prima della partita il mazzo si carica nel turno di chiunque: al turno 1 apre A, e B carica.
+    fresh = foreign
+    assert fresh.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards }, actor: "b")[:ok], "il mazzo si carica all'ingresso, nel turno di chiunque"
+    assert fresh.judge({ "t" => "newGame" }, actor: "b")[:ok], "Nuova partita è di entrambi, prima che cominci"
   end
 
   # --- §4: il mulligan (dal 2026-09-17). Due mazzi di 10, la mano iniziale
@@ -1495,9 +1632,10 @@ class EngineTest < Minitest::Test
   def test_before_first_turn_other_sets_up_deck_too
     # §4: mano iniziale e mulligan di chi NON apre, al turno 1 in Preparazione.
     engine = foreign
-    in_hand(engine, "b", "b-1", "SLOW")
+    cards = (1..8).map { |n| { "uid" => "b-#{n}", "owner" => "b", "zone" => "deck", "order" => n, "cardId" => "SLOW" } }
+    engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => cards }, actor: "b")
     assert engine.judge({ "t" => "draw", "seat" => "b", "count" => 6 }, actor: "b")[:ok], "la mano iniziale"
-    assert engine.judge({ "t" => "shuffle", "seat" => "b", "order" => [] }, actor: "b")[:ok], "il mulligan mescola"
+    assert engine.judge({ "t" => "shuffle", "seat" => "b", "order" => %w[b-8 b-7] }, actor: "b")[:ok], "il mulligan mescola"
     assert engine.judge({ "t" => "toZone", "uid" => "b-1", "zone" => "deck" }, actor: "b")[:ok], "la mano torna nel mazzo"
     refute engine.judge({ "t" => "toZone", "uid" => "b-1", "zone" => "field" }, actor: "b")[:ok], "ma in campo no"
     front!(engine)
@@ -1571,7 +1709,8 @@ class EngineTest < Minitest::Test
 
   def test_opponent_pays_flux_only_in_front_and_reaction
     engine = foreign
-    pay_for = { "t" => "player", "seat" => "b", "patch" => { "flux" => 1 } }
+    # Il Gettone speso (l'unica patch nuda dei contatori, §3.2): B lo ha, non aprendo.
+    pay_for = { "t" => "player", "seat" => "b", "patch" => { "token" => false, "flux" => 2 } }
     refute engine.judge(pay_for, actor: "b")[:ok], "in Preparazione altrui i contatori non si toccano"
     front!(engine)
     assert engine.judge(pay_for, actor: "b")[:ok], "nel Fronte si pagano le Reattive"
@@ -1580,7 +1719,7 @@ class EngineTest < Minitest::Test
   def test_opponent_does_not_patch_my_counters
     engine = foreign
     front!(engine)
-    refute engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 10 } }, actor: "b")[:ok]
+    refute engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => 10 } }, actor: "b")[:ok]
   end
 
   def test_in_reaction_defender_resolves_and_closes
@@ -1612,7 +1751,7 @@ class EngineTest < Minitest::Test
 
   def with_costs(flux)
     engine = Rubyfront::Engine.new(cards: COSTS)
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => flux } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => flux } })
     engine
   end
 
@@ -1676,7 +1815,7 @@ class EngineTest < Minitest::Test
   def test_spent_token_pays_card
     engine = with_costs(20)
     in_hand(engine, "a", "a-1", "COSTLY")
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "token" => false, "flux" => 21 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "token" => false, "flux" => 21 } })
     assert pay_for(engine, "a-1", 3)[:ok]
     assert_equal 18, engine.instance_variable_get(:@table).flux("a")
   end
@@ -1902,7 +2041,7 @@ class EngineTest < Minitest::Test
 
   def test_at_zero_hp_victory_passes_and_table_stops
     engine = Rubyfront::Engine.new
-    engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 0 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "b", "patch" => { "hp" => 0 } })
     verdict = finish(engine, "a", "hp")
     assert verdict[:ruled]
     assert verdict[:ok], verdict[:reason]
@@ -1911,7 +2050,7 @@ class EngineTest < Minitest::Test
     assert_match(/partita è finita/, later[:reason])
     assert engine.judge({ "t" => "say", "entry" => {} })[:ok], "la chat resta"
     assert engine.judge({ "t" => "newGame", "active" => "a" })[:ok], "Nuova partita riapre"
-    assert engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 })[:ok]
+    assert engine.judge({ "t" => "phase", "phase" => "fronte" })[:ok]
   end
 
   def test_claimed_victory_with_hp_left_is_stopped
@@ -1923,9 +2062,9 @@ class EngineTest < Minitest::Test
 
   def test_draw_needs_both_at_zero
     engine = Rubyfront::Engine.new
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 0 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => 0 } })
     refute finish(engine, nil, "draw")[:ok]
-    engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 0 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "b", "patch" => { "hp" => 0 } })
     assert finish(engine, nil, "draw")[:ok]
   end
 
@@ -1937,13 +2076,13 @@ class EngineTest < Minitest::Test
     verdict = finish(engine, "a", "deck")
     refute verdict[:ok]
     assert_match(/mazzo di B non è vuoto.*§9\.1/, verdict[:reason])
-    engine.judge({ "t" => "draw", "seat" => "b", "count" => 1 }, actor: "b")
+    engine.judge({ "t" => "draw", "seat" => "b", "count" => 1, "test" => true }, actor: "b")
     assert finish(engine, "a", "deck")[:ok]
   end
 
   def test_resolution_brings_hp_to_zero_in_copy_too
     engine = wave([["a1", "STRONG"]], [], ["a1"], [])
-    engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 4 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "b", "patch" => { "hp" => 4 } })
     assert resolve_with(engine, [battle_entry("a1", damage: 4)])[:ok]
     assert finish(engine, "a", "hp")[:ok], "4 danni su 4 PV: la copia lo sa"
   end
@@ -1959,7 +2098,7 @@ class EngineTest < Minitest::Test
   # Il Rubyfront di A in Zona di Richiamo (fila di servizio), con quel Flusso.
   def recall_setup(card_id, flux:, token: false)
     engine = Rubyfront::Engine.new(cards: DEPLOYMENTS)
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => flux, "token" => token } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => flux, "token" => token } })
     cards = [{ "uid" => "rf", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => card_id, "y" => 1756 }]
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     engine
@@ -1969,7 +2108,9 @@ class EngineTest < Minitest::Test
     action = { "t" => "move", "uid" => "rf", "x" => 30, "y" => y, "z" => 2 }
     action["cost"] = cost unless cost.nil?
     action["roll"] = roll unless roll.nil?
-    engine.judge(action, actor: actor)
+    return engine.judge(action, actor: actor) if roll.nil?
+
+    rolled(engine, action, 6, actor: actor)
   end
 
   def test_fixed_cost_paid_same_each_deployment
@@ -2370,7 +2511,7 @@ class EngineTest < Minitest::Test
   # sigillata non rientra per NESSUN effetto, nemmeno dal Ritiro.
   def test_sealed_card_does_not_return_by_any_effect
     engine = returner([["u1", "HUMAN"]])
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["HUMAN"] } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "sealed" => ["HUMAN"] } })
     verdict = bring_back(engine, "u1")
     refute verdict[:ok]
     assert_match(/sigillata/, verdict[:reason])
@@ -2607,7 +2748,7 @@ class EngineTest < Minitest::Test
                "effect" => { "source" => "art", "event" => "on_enter_field", "entering" => "art" } }
     action["reveal"] = reveal if reveal
     action["retire"] = retire if retire
-    engine.judge(action)
+    rolled(engine, action, 6)
   end
 
   def test_die_glance_looks_two_plus_half_roll
@@ -2702,7 +2843,8 @@ class EngineTest < Minitest::Test
     cards = [{ "uid" => "esp", "owner" => "a", "zone" => "field", "order" => 0, "cardId" => "DRAWER", "y" => 1260 },
              { "uid" => "h1", "owner" => "a", "zone" => "hand", "order" => 0, "cardId" => "HUMAN" },
              { "uid" => "d1", "owner" => "a", "zone" => "deck", "order" => 0, "cardId" => "HUMAN" },
-             { "uid" => "d2", "owner" => "a", "zone" => "deck", "order" => 1, "cardId" => "HUMAN" }]
+             { "uid" => "d2", "owner" => "a", "zone" => "deck", "order" => 1, "cardId" => "HUMAN" },
+             { "uid" => "d3", "owner" => "a", "zone" => "deck", "order" => 2, "cardId" => "HUMAN" }]
     cards << { "uid" => "ferro", "owner" => "a", "zone" => "field", "order" => 1, "cardId" => "IRON", "assignedTo" => "esp" } if armed
     engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => cards })
     engine.judge({ "t" => "loadDeck", "seat" => "b", "deckId" => "test",
@@ -2794,7 +2936,9 @@ class EngineTest < Minitest::Test
     engine.judge(attack_decl("esp"))
     assert draw_on_attack(engine)[:ok]
     table_setup = engine.instance_variable_get(:@table)
-    in_deck = %w[d1 d2].find { |uid| table_setup.card(uid)[:zone] == "deck" }
+    # La carta del turno 3 ha preso d1, la pesca dell'attacco d2: ne serve una terza nel mazzo.
+    in_deck = %w[d1 d2 d3].find { |uid| table_setup.card(uid)[:zone] == "deck" }
+    assert_equal "d3", in_deck
     assert_match(/propria mano/, discard_on_attack(engine, in_deck)[:reason], "è ancora nel mazzo")
     assert_match(/propria mano/, discard_on_attack(engine, "bh")[:reason], "bh è in mano a B")
   end
@@ -2909,7 +3053,7 @@ class EngineTest < Minitest::Test
   def test_king_rolls_on_attack_and_untaps_all_after_combat
     engine = setup_scene([["k", "KING"], ["u", "HUMAN"], ["v", "WARDEN"]], attacks: ["k"])
     engine.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
-    refresh = ->(extra) { engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "after" => true, "effect" => ref("k") }.merge(extra)) }
+    refresh = ->(extra) { rolled(engine, { "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "after" => true, "effect" => ref("k") }.merge(extra), 20) }
     assert_match(/solo con 15–20/, refresh.call("roll" => 3)[:reason])
     assert_match(/solo con 15–20/, refresh.call("untap" => false)[:reason])
     assert_match(/after/, refresh.call("after" => nil)[:reason], "la stappata arriva dopo, e l'azione lo dice")
@@ -2926,7 +3070,7 @@ class EngineTest < Minitest::Test
     # Col tiro mancato niente stappata: la lista alla risoluzione resta quella di chi ha attaccato con la forma.
     missed = setup_scene([["k", "KING"], ["u", "HUMAN"]], attacks: ["k"])
     missed.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
-    assert missed.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => false, "after" => true, "effect" => ref("k") })[:ok]
+    assert rolled(missed, { "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => false, "after" => true, "effect" => ref("k") }, 20)[:ok]
     missed.judge({ "t" => "phase", "phase" => "reazione" })
     assert_match(/chi ha attaccato/, missed.judge({ "t" => "resolve", "seat" => "a", "battles" => [battle_entry("k", damage: 5)], "untap" => ["u"] })[:reason])
   end
@@ -2965,10 +3109,10 @@ class EngineTest < Minitest::Test
     engine = setup_scene([["e", "ECO", { "x" => 442 }], ["u1", "HUMAN", { "x" => 821 }], ["u2", "HUMAN", { "x" => 1199 }], ["u3", "HUMAN", { "x" => 1578 }],
                           ["u4", "HUMAN", { "x" => 1956 }], ["r", "HUMAN", { "zone" => "ritiro" }]], attacks: ["e"])
     comeback = { "t" => "toZone", "uid" => "r", "zone" => "field", "x" => 1956, "y" => 1260, "roll" => 5, "effect" => ref("e") }
-    verdict = engine.judge(comeback)
+    verdict = rolled(engine, comeback, 6)
     refute verdict[:ok]
     assert_match(/Fronte è pieno/, verdict[:reason])
-    replaced = engine.judge(comeback.merge("replace" => "u4"))
+    replaced = rolled(engine, comeback.merge("replace" => "u4"), 6)
     assert replaced[:ok], replaced[:reason]
     assert_equal "ritiro", table_copy(engine).card("u4")[:zone]
   end
@@ -2986,10 +3130,10 @@ class EngineTest < Minitest::Test
     assert verdict[:ok], verdict[:reason]
     assert_match(/chi porta l'Oggetto/, engine.judge({ "t" => "empower", "uid" => "s", "power" => 1, "effect" => ref("s", "u") })[:reason])
     glance = { "t" => "look", "seat" => "a", "count" => 4, "revealTo" => "hand", "restTo" => "ritiro", "effect" => ref("s", "u", follow: "look") }
-    assert_match(/non si guarda/, engine.judge(glance.merge("roll" => 3))[:reason])
-    assert_match(/prime 4 carte/, engine.judge(glance.merge("roll" => 5, "count" => 3))[:reason])
-    assert_match(/mostrare solo una Materia/, engine.judge(glance.merge("roll" => 5, "reveal" => "d2"))[:reason])
-    ok = engine.judge(glance.merge("roll" => 6, "reveal" => "d1"))
+    assert_match(/non si guarda/, rolled(engine, glance.merge("roll" => 3), 6)[:reason])
+    assert_match(/prime 4 carte/, rolled(engine, glance.merge("roll" => 5, "count" => 3), 6)[:reason])
+    assert_match(/mostrare solo una Materia/, rolled(engine, glance.merge("roll" => 5, "reveal" => "d2"), 6)[:reason])
+    ok = rolled(engine, glance.merge("roll" => 6, "reveal" => "d1"), 6)
     assert ok[:ok], ok[:reason]
     table_setup = table_copy(engine)
     assert_equal "hand", table_setup.card("d1")[:zone]
@@ -3029,29 +3173,29 @@ class EngineTest < Minitest::Test
   def test_healer_heals_and_returns_to_hand_with_die
     engine = setup_scene([["g", "HEALER"], ["r", "HUMAN", { "zone" => "ritiro" }]], attacks: ["g"])
     recall_setup = { "t" => "toZone", "uid" => "r", "zone" => "hand", "roll" => 6, "effect" => ref("g", follow: "recall") }
-    assert_match(/prima i PV/, engine.judge(recall_setup)[:reason])
+    assert_match(/prima i PV/, rolled(engine, recall_setup, 6)[:reason])
     assert_match(/2 PV/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 25 }, "effect" => ref("g") })[:reason])
     healing = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "effect" => ref("g") })
     assert healing[:ok], healing[:reason]
     assert_equal 22, table_copy(engine).hp("a")
-    assert_match(/non si riporta nulla/, engine.judge(recall_setup.merge("roll" => 2))[:reason])
-    ok = engine.judge(recall_setup)
+    assert_match(/non si riporta nulla/, rolled(engine, recall_setup.merge("roll" => 2), 6)[:reason])
+    ok = rolled(engine, recall_setup, 6)
     assert ok[:ok], ok[:reason]
     assert_equal "hand", table_copy(engine).card("r")[:zone]
-    assert_match(/già stato risolto/, engine.judge(recall_setup)[:reason])
+    assert_match(/già stato risolto/, rolled(engine, recall_setup, 6)[:reason])
   end
 
   # Il ritorno: col dado un'Entità Umana dal Ritiro sul Fronte, che attacca insieme.
   def test_echo_brings_back_human_attacking_together
     engine = setup_scene([["e", "ECO"], ["r", "HUMAN", { "zone" => "ritiro" }], ["x", "AUROS", { "zone" => "ritiro" }]], attacks: ["e"])
     comeback = { "t" => "toZone", "uid" => "r", "zone" => "field", "x" => 2368, "y" => 1260, "roll" => 5, "effect" => ref("e") }
-    assert_match(/nessuno torna/, engine.judge(comeback.merge("roll" => 4))[:reason])
+    assert_match(/nessuno torna/, rolled(engine, comeback.merge("roll" => 4), 6)[:reason])
     # §8.2 — la sigillata dal flip non torna nemmeno col dado (l'imbuto unico, dal 2026-09-17).
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["HUMAN"] } })
-    assert_match(/sigillata/, engine.judge(comeback)[:reason])
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => [] } })
-    assert_match(/Entità Umana/, engine.judge(comeback.merge("uid" => "x"))[:reason])
-    ok = engine.judge(comeback)
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "sealed" => ["HUMAN"] } })
+    assert_match(/sigillata/, rolled(engine, comeback, 6)[:reason])
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "sealed" => [] } })
+    assert_match(/Entità Umana/, rolled(engine, comeback.merge("uid" => "x"), 6)[:reason])
+    ok = rolled(engine, comeback, 6)
     assert ok[:ok], ok[:reason]
     together = { "t" => "declare", "declaration" => { "id" => "r", "from" => "r", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 2 },
                 "effect" => ref("e", "r", follow: "join") }
@@ -3078,43 +3222,43 @@ class EngineTest < Minitest::Test
   def test_charge_on_entry_with_roll_untaps_all
     engine = setup_scene([["c", "CHARGE", { "zone" => "hand" }], ["u", "HUMAN", { "tapped" => true }]])
     step_in = { "source" => "c", "event" => "on_enter_field", "entering" => "c" }
-    assert_match(/non è in campo/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => step_in })[:reason], "dalla mano non innesca")
+    assert_match(/non è in campo/, rolled(engine, { "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => step_in }, 20)[:reason], "dalla mano non innesca")
     engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
     engine.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
     assert engine.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1260, "cost" => 5 })[:ok], "la fonte scende in Preparazione"
-    assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => true, "effect" => step_in })[:reason])
-    assert_match(/solo con 15–20/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => false, "effect" => step_in })[:reason])
-    assert_match(/attacco dichiarato/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => ref("c") })[:reason], "con l'evento d'attacco è un'altra dogana")
-    assert_match(/chi comanda la fonte/, engine.judge({ "t" => "refresh", "seat" => "b", "roll" => 17, "untap" => true, "effect" => step_in })[:reason])
-    verdict = engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => step_in })
+    assert_match(/solo con 15–20/, rolled(engine, { "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => true, "effect" => step_in }, 20)[:reason])
+    assert_match(/solo con 15–20/, rolled(engine, { "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => false, "effect" => step_in }, 20)[:reason])
+    assert_match(/attacco dichiarato/, rolled(engine, { "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => ref("c") }, 20)[:reason], "con l'evento d'attacco è un'altra dogana")
+    assert_match(/chi comanda la fonte/, rolled(engine, { "t" => "refresh", "seat" => "b", "roll" => 17, "untap" => true, "effect" => step_in }, 20)[:reason])
+    verdict = rolled(engine, { "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => step_in }, 20)
     assert verdict[:ok], verdict[:reason]
     refute table_copy(engine).card("u")[:tapped]
-    assert_match(/già stato risolto/, engine.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => step_in })[:reason])
+    assert_match(/già stato risolto/, rolled(engine, { "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => step_in }, 20)[:reason])
     missed = setup_scene([["c", "CHARGE", { "zone" => "hand" }], ["u", "HUMAN", { "tapped" => true }]])
     missed.judge({ "t" => "turn", "turn" => 4, "active" => "b" })
     missed.judge({ "t" => "turn", "turn" => 5, "active" => "a" })
     missed.observe({ "t" => "tap", "uid" => "u", "tapped" => true })
     assert missed.judge({ "t" => "toZone", "uid" => "c", "zone" => "field", "x" => 1578, "y" => 1260, "cost" => 5 })[:ok]
-    assert missed.judge({ "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => false, "effect" => step_in })[:ok], "il tiro mancato passa e consuma l'innesco"
+    assert rolled(missed, { "t" => "refresh", "seat" => "a", "roll" => 3, "untap" => false, "effect" => step_in }, 20)[:ok], "il tiro mancato passa e consuma l'innesco"
     assert table_copy(missed).card("u")[:tapped], "col tiro mancato nessuno si stappa"
-    assert_match(/già stato risolto/, missed.judge({ "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => step_in })[:reason])
+    assert_match(/già stato risolto/, rolled(missed, { "t" => "refresh", "seat" => "a", "roll" => 17, "untap" => true, "effect" => step_in }, 20)[:reason])
   end
 
   # La Materia Statica: il d20 quando attaccano gli Umani.
   def test_heirs_with_d20_heal_or_drain_once_per_turn
     engine = setup_scene([["m", "HEIRS"], ["u1", "HUMAN"], ["u2", "HUMAN"], ["n", "AUROS"]], attacks: %w[u1 u2 n])
-    assert_match(/non succede nulla/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 10, "effect" => ref("m", "u1", once: true) })[:reason])
-    assert_match(/Entità Umane che controlli/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "n", once: true) })[:reason])
-    assert_match(/una volta per turno/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "u1") })[:reason], "il riferimento deve dire «una volta»")
-    healing = engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "u1", once: true) })
+    assert_match(/non succede nulla/, rolled(engine, { "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 10, "effect" => ref("m", "u1", once: true) }, 20)[:reason])
+    assert_match(/Entità Umane che controlli/, rolled(engine, { "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "n", once: true) }, 20)[:reason])
+    assert_match(/una volta per turno/, rolled(engine, { "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "u1") }, 20)[:reason], "il riferimento deve dire «una volta»")
+    healing = rolled(engine, { "t" => "player", "seat" => "a", "patch" => { "hp" => 22 }, "roll" => 4, "effect" => ref("m", "u1", once: true) }, 20)
     assert healing[:ok], healing[:reason]
     # L'ondata è una: col secondo Umano l'innesco è già scattato (deciso 2026-09-10).
-    assert_match(/già stato risolto/, engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 18 }, "roll" => 18, "effect" => ref("m", "u2", once: true) })[:reason])
+    assert_match(/già stato risolto/, rolled(engine, { "t" => "player", "seat" => "b", "patch" => { "hp" => 18 }, "roll" => 18, "effect" => ref("m", "u2", once: true) }, 20)[:reason])
     # Il prosciugamento, su un tavolo nuovo.
     engine = setup_scene([["m", "HEIRS"], ["u1", "HUMAN"], ["u2", "HUMAN"]], attacks: %w[u1 u2])
-    assert_match(/perde 2 PV/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 18, "effect" => ref("m", "u2", once: true) })[:reason])
-    hit = engine.judge({ "t" => "player", "seat" => "b", "patch" => { "hp" => 18 }, "roll" => 18, "effect" => ref("m", "u2", once: true) })
+    assert_match(/perde 2 PV/, rolled(engine, { "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 18, "effect" => ref("m", "u2", once: true) }, 20)[:reason])
+    hit = rolled(engine, { "t" => "player", "seat" => "b", "patch" => { "hp" => 18 }, "roll" => 18, "effect" => ref("m", "u2", once: true) }, 20)
     assert hit[:ok], hit[:reason]
     assert_equal 18, table_copy(engine).hp("b")
   end
@@ -3304,7 +3448,7 @@ class EngineTest < Minitest::Test
     load.call("b", b + [["rf-b", "RUBY", { "y" => 172 }]])
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
-    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "test" => true, "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
     if attacks
       front!(engine)
       attacks.each_with_index do |uid, i|
@@ -3471,7 +3615,10 @@ class EngineTest < Minitest::Test
     card = table_copy(engine).card(uid)
     known = card && LEGACY[card[:card_id]]
     extra = { "chain" => true }.merge(extra) if known && known[:behavior] == "reactive"
-    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y, "cost" => cost }.merge(extra), actor: actor)
+    action = { "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y, "cost" => cost }.merge(extra)
+    return engine.judge(action, actor: actor) unless action["roll"]
+
+    rolled(engine, action, 6, actor: actor)
   end
 
   # §7.2 — chi deve rispondere accetta: la catena si risolve.
@@ -3582,12 +3729,12 @@ class EngineTest < Minitest::Test
     healing = { "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 3, "effect" => res_ref("m") }
     drawing = { "t" => "draw", "seat" => "a", "count" => 1, "roll" => 3, "effect" => res_ref("m") }
     landed = { "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 821, "y" => 1260, "roll" => 3, "effect" => res_ref("m") }
-    assert_match(/non si pesca/, engine.judge(drawing)[:reason])
-    assert_match(/nessuno scende/, engine.judge(landed)[:reason])
+    assert_match(/non si pesca/, rolled(engine, drawing, 20)[:reason])
+    assert_match(/nessuno scende/, rolled(engine, landed, 20)[:reason])
     assert_match(/tiro valido/, engine.judge(healing.merge("roll" => 21))[:reason])
-    assert engine.judge(healing)[:ok]
+    assert engine.judge(healing)[:ok], "il tiro del tavolo per questo passo è già annotato"
     assert_equal 24, table_copy(engine).hp("a")
-    assert_match(/tira una volta/, engine.judge(drawing.merge("roll" => 15))[:reason], "il tiro è fissato dal primo passo")
+    assert_match(/tiro del tavolo/, engine.judge(drawing.merge("roll" => 15))[:reason], "il tiro è quello del tavolo, uno per il passo")
     assert_match(/già stato risolto/, engine.judge(healing.merge("patch" => { "hp" => 28 }))[:reason])
   end
 
@@ -3595,7 +3742,7 @@ class EngineTest < Minitest::Test
     engine = legacy_scene([["u", "HUMAN"], ["m", "FORCE", { "zone" => "hand" }], ["h", "SMALL", { "zone" => "hand" }], ["g", "BIG", { "zone" => "hand" }], ["d", "AUROS", { "zone" => "deck" }]])
     assert play_card(engine, "m", cost: 3)[:ok]
     accept!(engine, "b")
-    assert engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 20, "effect" => res_ref("m") })[:ok]
+    assert rolled(engine, { "t" => "player", "seat" => "a", "patch" => { "hp" => 24 }, "roll" => 20, "effect" => res_ref("m") }, 20)[:ok]
     assert engine.judge({ "t" => "draw", "seat" => "a", "count" => 1, "roll" => 20, "effect" => res_ref("m") })[:ok]
     landed = { "t" => "toZone", "uid" => "h", "zone" => "field", "x" => 821, "y" => 1260, "roll" => 20, "effect" => res_ref("m") }
     assert_match(/2 o inferiore/, engine.judge(landed.merge("uid" => "g"))[:reason])
@@ -3656,7 +3803,7 @@ class EngineTest < Minitest::Test
     assert_match(/atomica/, engine.judge({ "t" => "turn", "turn" => 4, "active" => "b" }, actor: "a")[:reason])
     assert_match(/atomica/, engine.judge({ "t" => "declare", "declaration" => { "id" => "e", "from" => "e", "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => 1 } }, actor: "a")[:reason])
     assert engine.judge({ "t" => "say", "entry" => {} }, actor: "b")[:ok]
-    with_token = engine.judge({ "t" => "player", "seat" => "b", "patch" => { "token" => false, "flux" => 11 } }, actor: "b")
+    with_token = engine.judge({ "t" => "player", "test" => true, "seat" => "b", "patch" => { "token" => false, "flux" => 11 } }, actor: "b")
     assert with_token[:ok], with_token[:reason]
   end
 
@@ -3953,7 +4100,7 @@ class EngineTest < Minitest::Test
   # sconto d'assegnazione porta la Spada da 1 a 0, e a Flusso zero si assegna.
   def test_a_discount_can_bring_the_cost_to_zero_and_the_card_is_free
     engine = legacy_scene([["p", "BEARER"], ["u", "HUMAN"], ["s", "SWORD", { "zone" => "hand" }], ["s2", "SWORD", { "zone" => "hand" }]])
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 0, "token" => false } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => 0, "token" => false } })
     assert engine.judge({ "t" => "assign", "uid" => "s", "to" => "p" })[:ok]
     assert_match(/costa 0 di Flusso/, play_card(engine, "s", cost: 1, x: 470, y: 1288)[:reason], "sul portatore la Spada costa 0")
     verdict = play_card(engine, "s", cost: 0, x: 470, y: 1288)
@@ -3986,9 +4133,11 @@ class EngineTest < Minitest::Test
     accept!(engine, "b")
     look = { "t" => "look", "seat" => "a", "count" => 5, "roll" => 16, "reveal" => "d1", "retire" => "d2", "revealTo" => "hand", "restTo" => "deck", "effect" => res_ref("m") }
     assert_match(/tiro valido/, engine.judge(look.merge("roll" => 21))[:reason])
+    roll!(engine, look, 20)
     assert_match(/prime 5/, engine.judge(look.merge("count" => 4))[:reason])
     assert_match(/solo un'Entità/, engine.judge(look.merge("reveal" => "d2"))[:reason], "con 16 si mostra un'Entità")
-    assert_match(/solo un Oggetto/, engine.judge(look.merge("roll" => 9))[:reason])
+    assert_match(/solo un Oggetto/, rolled(engine, look.merge("roll" => 9), 20)[:reason])
+    roll!(engine, look, 20)
     assert_match(/nessuna torna in cima/, engine.judge(look.merge("top" => "d3"))[:reason])
     assert_match(/una delle altre carte va nella Zona di Ritiro/, engine.judge(look.reject { |k, _| k == "retire" })[:reason])
     assert_match(/una delle altre carte va nella Zona di Ritiro/, engine.judge(look.merge("retire" => "d1"))[:reason], "non la mostrata")
@@ -4004,7 +4153,7 @@ class EngineTest < Minitest::Test
     top_card = legacy_scene([["u", "HUMAN"], ["m", "CHARGE", { "zone" => "hand" }]] + deck)
     assert play_card(top_card, "m", cost: 3)[:ok]
     accept!(top_card, "b")
-    verdict = top_card.judge(without.merge("top" => "d3", "retire" => "d4"))
+    verdict = rolled(top_card, without.merge("top" => "d3", "retire" => "d4"), 20)
     assert verdict[:ok], verdict[:reason]
     assert_equal %w[d3 d6 d1 d2 d5], table_copy(top_card).top_of_deck("a", 5), "la scelta resta in cima, le altre in fondo"
     assert_equal "ritiro", table_copy(top_card).card("d4")[:zone]
@@ -4191,7 +4340,7 @@ class EngineTest < Minitest::Test
     load.call("b", b)
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
-    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "test" => true, "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
     engine
   end
 
@@ -4205,7 +4354,9 @@ class EngineTest < Minitest::Test
     action["targets"] = targets unless targets.nil?
     action["power"] = power unless power.nil?
     action["discount"] = discount unless discount.nil?
-    engine.judge(action, actor: actor)
+    return engine.judge(action, actor: actor) if roll.nil?
+
+    rolled(engine, action, 20, actor: actor)
   end
 
   def test_ability_pays_or_recovers_printed_hp_and_needs_fury_roll
@@ -4250,9 +4401,9 @@ class EngineTest < Minitest::Test
 
   def test_ability_needs_enough_hp_field_turn_and_window
     engine = arcane
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 4 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => 4 } })
     assert_match(/servono 5 PV, ne hai 4/, ability_action(engine, "carica", cost: 5, roll: 15, fail: false, targets: [], power: 1)[:reason])
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 5 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => 5 } })
     assert ability_action(engine, "carica", cost: 5, roll: 15, fail: false, targets: [], power: 1)[:ok], "pagare fino a 0 esatto è legale"
     assert_match(/una sola abilità speciale per turno/, ability_action(engine, "sguardo", gain: 3, roll: 15, fail: false)[:reason])
     assert_match(/Zona di Richiamo/, ability_action(arcane(y: 1756), "sconto", cost: 3, discount: { "amount" => 1, "type" => "object", "race" => nil })[:reason])
@@ -4380,7 +4531,7 @@ class EngineTest < Minitest::Test
   def test_summon_descent_respects_full_front_and_seal
     engine = arcane(face: 1, hand: [["h3", "HUMAN", { "zone" => "hand" }], ["h4", "HUMAN", { "zone" => "hand" }]])
     assert ability_action(engine, "chiamata", cost: 7, bonus: BONUS)[:ok]
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["RUNNER"] } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "sealed" => ["RUNNER"] } })
     assert_match(/sigillata/, engine.judge(descent("h2"))[:reason], "la carta sigillata dal flip non scende nemmeno gratis")
     assert engine.judge(descent("h3"))[:ok]
     # Quattro Entità in campo più questa: la sesta non scende.
@@ -4539,7 +4690,7 @@ class EngineTest < Minitest::Test
     load.call("b", b + [["rf-b", "RUBY", { "y" => 172 }]])
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
-    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "test" => true, "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
     engine
   end
 
@@ -4745,7 +4896,7 @@ class EngineTest < Minitest::Test
   # §8.2 — il ritorno vincolato passa dall'imbuto del sigillo come ogni entrata (dal 2026-09-17).
   def test_bound_return_of_sealed_card_is_stopped
     engine = revived_on_field
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "sealed" => ["REVIVED"] } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "sealed" => ["REVIVED"] } })
     engine.judge({ "t" => "toZone", "uid" => "red", "zone" => "ritiro" })
     verdict = come_back(engine)
     refute verdict[:ok]
@@ -4843,7 +4994,7 @@ class EngineTest < Minitest::Test
     load.call("b", b + [["rf-b", "RUBY", { "y" => 172 }]])
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
-    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "test" => true, "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
     unless attacks.empty?
       front!(engine)
       attacks.each_with_index do |uid, i|
@@ -4983,7 +5134,10 @@ class EngineTest < Minitest::Test
   end
 
   def purge_action(engine, uid, roll: 5, source: "cat", attacker: "v", zone: "ritiro")
-    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => zone, "roll" => roll, "effect" => ref(source, attacker, follow: "stash") })
+    action = { "t" => "toZone", "uid" => uid, "zone" => zone, "roll" => roll, "effect" => ref(source, attacker, follow: "stash") }
+    return engine.judge(action) if roll.nil?
+
+    rolled(engine, action, 6)
   end
 
   def purge_draw(engine, count: 1, seat: "a")
@@ -5034,7 +5188,7 @@ class EngineTest < Minitest::Test
   def sword_scene(flux: 10)
     engine = stash_scene([["v", "HUMAN", { "x" => 442 }], ["sw", "SWORD", { "x" => 472, "y" => 1266, "assignedTo" => "v" }],
                           ["fe", "IRON", { "x" => 502, "y" => 1272, "assignedTo" => "v" }]])
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => flux } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => flux } })
     engine
   end
 
@@ -5140,7 +5294,7 @@ class EngineTest < Minitest::Test
     load.call("b", b + [["rf-b", "RUBY", { "y" => 172 }]])
     engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
     engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
-    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "test" => true, "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
     if attacks
       front!(engine)
       attacks.each_with_index do |uid, i|
@@ -5155,7 +5309,10 @@ class EngineTest < Minitest::Test
     card = table_copy(engine).card(uid)
     known = card && STARTER[card[:card_id]]
     extra = { "chain" => true }.merge(extra) if known && known[:behavior] == "reactive"
-    engine.judge({ "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y, "cost" => cost }.merge(extra), actor: actor)
+    action = { "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y, "cost" => cost }.merge(extra)
+    return engine.judge(action, actor: actor) unless action["roll"]
+
+    rolled(engine, action, 6, actor: actor)
   end
 
   def entry_ref(source, entering = source, **extra)
@@ -5237,8 +5394,8 @@ class EngineTest < Minitest::Test
 
   def test_rubyfront_paid_attack_needs_the_hp_and_the_deployed_rubyfront
     engine = starter_scene([["u1", "HUMAN"]], attacks: %w[u1])
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 0 } })
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 1 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => 0 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => 1 } })
     step = { "t" => "empower", "uid" => "u1", "power" => 1, "pay" => 1, "effect" => ref("rf-a", "u1", once: true) }
     assert engine.judge(step)[:ok]
     recalled = starter_scene([["u1", "HUMAN"]], attacks: %w[u1])
@@ -5294,9 +5451,9 @@ class EngineTest < Minitest::Test
   # Il costo a dado di una Materia (§3.2): si tira con Flusso pari alle facce, si paga il tiro; poi la rimozione nell'Abisso.
   def test_blow_is_paid_by_the_die_and_sends_an_opposing_entity_to_the_abyss
     engine = starter_scene([["u", "HUMAN"], ["m", "BLOW", { "zone" => "hand" }]], b: [["v", "HUMAN"], ["o", "SHIELD", { "assignedTo" => "v" }]])
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 5 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => 5 } })
     assert_match(/d6 non si tira.*ne hai 5/, starter_play(engine, "m", cost: 3, extra: { "roll" => 3 })[:reason])
-    engine.judge({ "t" => "player", "seat" => "a", "patch" => { "flux" => 6 } })
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => 6 } })
     assert_match(/tiro valido/, starter_play(engine, "m", cost: 3)[:reason])
     assert_match(/tiro valido/, starter_play(engine, "m", cost: 7, extra: { "roll" => 7 })[:reason])
     assert_match(/numero uscito: 3, non 2/, starter_play(engine, "m", cost: 2, extra: { "roll" => 3 })[:reason])
@@ -5383,5 +5540,466 @@ class EngineTest < Minitest::Test
     verdict = engine.judge(descend.merge("uid" => "h"))
     assert verdict[:ok], verdict[:reason]
     assert_equal "field", table_copy(engine).card("h")[:zone]
+  end
+
+  # ==========================================================================
+  # --- Il tavolo fail-closed (audit 2026-10-20, dal 2026-10-21) --------------
+  # ==========================================================================
+
+  FORTRESS = {
+    "RF" => { type: "rubyfront", keywords: [], health: 20, deployment: { die: 6 } },
+    "HUMAN" => { type: "entity", keywords: [], race: "human", power: 2, flux_cost: 1 },
+    "AUROS" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 1 },
+  }.freeze
+  DECKS = {
+    "fire" => { cards: { "RF" => 1, "HUMAN" => 2 }.freeze, rubyfront: "RF" }.freeze,
+  }.freeze
+
+  # Un mazzo intero e canonico (§4): il Rubyfront in Zona di Richiamo, il resto nel mazzo.
+  def whole_deck(seat, ids, deck_id: "fire", hp: 20)
+    cards = ids.each_with_index.map do |id, i|
+      if FORTRESS.dig(id, :type) == "rubyfront"
+        { "uid" => "#{seat}-#{i}", "owner" => seat, "zone" => "field", "order" => 0, "cardId" => id, "x" => 30, "y" => seat == "a" ? 1756 : -324 }
+      else
+        { "uid" => "#{seat}-#{i}", "owner" => seat, "zone" => "deck", "order" => i, "cardId" => id }
+      end
+    end
+    { "t" => "loadDeck", "seat" => seat, "deckId" => deck_id, "cards" => cards, "hp" => hp }
+  end
+
+  def fortress(decks: DECKS, require_index: false)
+    Rubyfront::Engine.new(cards: FORTRESS, decks: decks, require_index: require_index)
+  end
+
+  # Una partita cominciata: due mazzi interi, le mani iniziali, le tenute.
+  def started_game
+    engine = fortress(decks: {})
+    %w[a b].each do |seat|
+      verdict = engine.judge(whole_deck(seat, %w[RF HUMAN HUMAN HUMAN HUMAN HUMAN HUMAN HUMAN AUROS]), actor: seat)
+      raise verdict[:reason] unless verdict[:ok]
+    end
+    %w[a b].each do |seat|
+      engine.judge({ "t" => "draw", "seat" => seat, "count" => 6 }, actor: seat)
+      verdict = engine.judge({ "t" => "keep", "seat" => seat }, actor: seat)
+      raise verdict[:reason] unless verdict[:ok]
+    end
+    engine
+  end
+
+  # --- §protocollo: l'attore «tavolo» --------------------------------------
+
+  def test_table_actor_may_declare_forfeit_and_limit
+    engine = started_game
+    verdict = engine.judge({ "t" => "gameOver", "winner" => "b", "reason" => "forfeit" }, actor: :table)
+    assert verdict[:ok], verdict[:reason]
+    assert verdict[:ruled]
+    assert_equal({ winner: "b", reason: "forfeit" }, table_copy(engine).over)
+    fresh = started_game
+    assert fresh.judge({ "t" => "gameOver", "winner" => nil, "reason" => "limit" }, actor: :table)[:ok]
+    assert_equal({ winner: nil, reason: "limit" }, table_copy(fresh).over)
+    assert fresh.judge({ "t" => "newGame", "active" => "b" }, actor: :table)[:ok], "l'apertura è del tavolo"
+    assert_equal "b", table_copy(fresh).active
+  end
+
+  def test_table_actor_cannot_do_other_actions
+    engine = started_game
+    %w[draw phase player turn].each do |kind|
+      action = { "draw" => { "t" => "draw", "seat" => "a", "count" => 1 }, "phase" => { "t" => "phase", "phase" => "fronte" },
+                 "player" => { "t" => "player", "seat" => "a", "patch" => { "hp" => 0 } }, "turn" => { "t" => "turn", "turn" => 2, "active" => "b" } }[kind]
+      verdict = engine.judge(action, actor: :table)
+      refute verdict[:ok], kind
+      assert_match(/il tavolo compie solo.*\(§protocollo\)/, verdict[:reason])
+      assert_match(/the table only performs.*\(§protocollo\)/, verdict[:reason_en])
+    end
+    refute engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "hp" }, actor: :table)[:ok], "le fini dei posti non sono del tavolo"
+    refute engine.judge({ "t" => "gameOver", "winner" => "c", "reason" => "forfeit" }, actor: :table)[:ok], "chi vince è un posto"
+    refute engine.judge(nil, actor: :table)[:ok], "la forma prima di tutto"
+  end
+
+  def test_seat_cannot_claim_forfeit_or_limit
+    engine = started_game
+    %w[forfeit limit].each do |reason|
+      verdict = engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => reason }, actor: "a")
+      refute verdict[:ok], reason
+      assert_match(/«#{reason}» non è una fine \(§2\)/, verdict[:reason])
+    end
+    assert_nil table_copy(engine).over
+  end
+
+  def test_table_game_over_refused_when_already_over
+    engine = started_game
+    assert engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "forfeit" }, actor: :table)[:ok]
+    verdict = engine.judge({ "t" => "gameOver", "winner" => "b", "reason" => "forfeit" }, actor: :table)
+    refute verdict[:ok]
+    assert_match(/già finita \(§2\)/, verdict[:reason])
+    assert_equal "a", table_copy(engine).over[:winner]
+  end
+
+  # --- §2: la fine partita a ragioni chiuse, e la resa ----------------------
+
+  def test_game_over_with_unknown_reason_is_stopped
+    engine = started_game
+    # T06 dell'audit: reason "custom" e winner a.
+    verdict = engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "custom" }, actor: "a")
+    refute verdict[:ok]
+    assert verdict[:ruled]
+    assert_match(/PV, mazzo esaurito, pareggio o resa: «custom» non è una fine \(§2\)/, verdict[:reason])
+    assert_match(/“custom” isn't an end \(§2\)/, verdict[:reason_en])
+    assert_nil table_copy(engine).over
+    refute engine.judge({ "t" => "gameOver", "winner" => "a" }, actor: "a")[:ok], "senza ragione"
+    refute engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => 7 }, actor: "a")[:ok]
+  end
+
+  def test_concession_is_the_losers_in_any_turn
+    engine = started_game
+    wrong = engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "concede" }, actor: "a")
+    refute wrong[:ok]
+    assert_match(/la resa è di chi perde \(§2\)/, wrong[:reason])
+    assert_match(/the concession is the loser's \(§2\)/, wrong[:reason_en])
+    refute engine.judge({ "t" => "gameOver", "winner" => nil, "reason" => "concede" }, actor: "a")[:ok], "la resa ha un vincitore"
+    # Nel turno di A, B si arrende: passa (nessuna dogana del turno sulla resa).
+    verdict = engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "concede" }, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal({ winner: "a", reason: "concede" }, table_copy(engine).over)
+    refute engine.judge({ "t" => "gameOver", "winner" => "b", "reason" => "concede" }, actor: "a")[:ok], "a partita finita no"
+  end
+
+  def test_concession_passes_in_reaction_and_in_the_opening
+    engine = wave([["a1", "STRONG"]], [["b1", "STRONG"]], ["a1"], [])
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert engine.judge({ "t" => "gameOver", "winner" => "b", "reason" => "concede" }, actor: "a")[:ok], "chi attacca si arrende in Reazione"
+    opening = opening_table
+    assert opening.judge({ "t" => "gameOver", "winner" => "a", "reason" => "concede" }, actor: "b")[:ok], "nell'apertura"
+  end
+
+  # --- §2: Nuova partita solo a partita finita o prima che cominci ----------
+
+  def test_new_game_during_the_game_needs_a_concession
+    engine = started_game
+    # T26 dell'audit: B azzera il tavolo nel turno di A.
+    verdict = engine.judge({ "t" => "newGame", "active" => "b" }, actor: "b")
+    refute verdict[:ok]
+    assert_match(/partita è in corso: per ricominciare serve la resa \(§2\)/, verdict[:reason])
+    assert_match(/to start over you have to concede \(§2\)/, verdict[:reason_en])
+    assert_equal 6, table_copy(engine).hand_count("a"), "il tavolo non si è azzerato"
+    refute engine.judge({ "t" => "newGame", "active" => "a" }, actor: "a")[:ok], "nemmeno chi è di turno"
+    assert engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "concede" }, actor: "b")[:ok]
+    assert engine.judge({ "t" => "newGame", "active" => "b" }, actor: "b")[:ok], "a partita finita si ricomincia"
+    assert_equal 0, table_copy(engine).hand_count("a")
+  end
+
+  def test_new_game_before_the_game_starts_is_free
+    engine = fortress(decks: {})
+    assert engine.judge({ "t" => "newGame" }, actor: "b")[:ok], "tavolo vuoto"
+    engine.judge(whole_deck("a", %w[RF HUMAN HUMAN HUMAN HUMAN HUMAN HUMAN]), actor: "a")
+    assert engine.judge({ "t" => "newGame" }, actor: "a")[:ok], "col mazzo caricato ma la mano non ancora tenuta"
+    engine.judge(whole_deck("a", %w[RF HUMAN HUMAN HUMAN HUMAN HUMAN HUMAN]), actor: "a")
+    engine.judge({ "t" => "draw", "seat" => "a", "count" => 6 }, actor: "a")
+    engine.judge({ "t" => "keep", "seat" => "a" }, actor: "a")
+    assert engine.judge({ "t" => "newGame" }, actor: "b")[:ok], "A ha tenuto ma B non ha ancora il mazzo: non è cominciata"
+    assert engine.judge(whole_deck("b", %w[RF HUMAN]), actor: "b")[:ok], "e B carica ancora il suo"
+    assert engine.judge({ "t" => "newGame" })[:ok], "senza attore, sempre"
+  end
+
+  # --- §4: il mazzo (T07, T08, T30) -------------------------------------------
+
+  def test_deck_loads_at_own_seat_only
+    engine = fortress(decks: {})
+    verdict = engine.judge(whole_deck("b", %w[RF HUMAN]), actor: "a")
+    refute verdict[:ok]
+    assert_match(/mazzo si carica al proprio posto \(§4\)/, verdict[:reason])
+    assert_match(/loaded at your own seat \(§4\)/, verdict[:reason_en])
+    assert_equal 0, table_copy(engine).zone_count("b", "deck"), "il mazzo di B non è stato toccato"
+    foreign_owner = whole_deck("a", %w[RF HUMAN])
+    foreign_owner["cards"][1]["owner"] = "b"
+    refute engine.judge(foreign_owner, actor: "a")[:ok], "carte dell'altro"
+    foreign_uid = whole_deck("a", %w[RF HUMAN])
+    foreign_uid["cards"][1]["uid"] = "b-1"
+    stopped = engine.judge(foreign_uid, actor: "a")
+    refute stopped[:ok], "uid dell'altro posto: sovrascriverebbe le sue carte"
+    assert_match(/con gli uid del posto \(§4\)/, stopped[:reason])
+    assert engine.judge(whole_deck("a", %w[RF HUMAN]), actor: "a")[:ok]
+    assert engine.judge(whole_deck("a", %w[RF HUMAN]))[:ok], "senza attore (le prove) si apparecchia liberamente"
+  end
+
+  def test_deck_cards_need_a_uid_and_stay_under_the_cap
+    engine = fortress(decks: {})
+    bad = whole_deck("a", %w[RF HUMAN])
+    bad["cards"] << { "owner" => "a", "zone" => "deck", "order" => 9, "cardId" => "HUMAN" }
+    refute engine.judge(bad, actor: "a")[:ok]
+    assert_match(/ogni carta del mazzo ha un uid \(§4\)/, engine.judge(bad, actor: "a")[:reason])
+    big = whole_deck("a", ["RF"] + ["HUMAN"] * 200)
+    stopped = engine.judge(big, actor: "a")
+    refute stopped[:ok], "oltre le 200 carte la forma non è quella del tavolo"
+    assert_match(/«cards» manca o è sbagliata \(§protocollo\)/, stopped[:reason])
+    refute engine.judge({ "t" => "loadDeck", "seat" => "a", "deckId" => "fire", "cards" => [7] }, actor: "a")[:ok], "una carta che non è un oggetto"
+  end
+
+  def test_deck_composition_follows_the_declared_deck
+    engine = fortress
+    unknown = engine.judge(whole_deck("a", %w[RF HUMAN HUMAN], deck_id: "mine"), actor: "a")
+    refute unknown[:ok]
+    assert_match(/non conosce il mazzo «mine» \(§4\)/, unknown[:reason])
+    assert_match(/doesn't know the deck “mine” \(§4\)/, unknown[:reason_en])
+    # T08 dell'audit: stesso deckId, carte sostituite.
+    swapped = engine.judge(whole_deck("a", %w[RF AUROS AUROS]), actor: "a")
+    refute swapped[:ok]
+    assert_match(/non sono quelle del mazzo «fire»: stesse carte, stesse quantità \(§4\)/, swapped[:reason])
+    refute engine.judge(whole_deck("a", %w[RF HUMAN HUMAN HUMAN]), actor: "a")[:ok], "una copia in più"
+    refute engine.judge(whole_deck("a", %w[RF HUMAN]), actor: "a")[:ok], "una copia in meno"
+    refute engine.judge(whole_deck("a", %w[HUMAN HUMAN HUMAN]), actor: "a")[:ok], "senza Rubyfront"
+    ok = engine.judge(whole_deck("a", %w[RF HUMAN HUMAN]), actor: "a")
+    assert ok[:ok], ok[:reason]
+    assert_equal 2, table_copy(engine).zone_count("a", "deck")
+  end
+
+  def test_declared_deck_must_be_whole_and_untouched
+    engine = fortress
+    in_hand_deck = whole_deck("a", %w[RF HUMAN HUMAN])
+    in_hand_deck["cards"][1]["zone"] = "hand"
+    stopped = engine.judge(in_hand_deck, actor: "a")
+    refute stopped[:ok]
+    assert_match(/si carica intero: tutte le carte nel mazzo, il Rubyfront in Zona di Richiamo \(§4\)/, stopped[:reason])
+    deployed = whole_deck("a", %w[RF HUMAN HUMAN])
+    deployed["cards"][0]["y"] = 1260
+    refute engine.judge(deployed, actor: "a")[:ok], "il Rubyfront già schierato"
+    tapped = whole_deck("a", %w[RF HUMAN HUMAN])
+    tapped["cards"][2]["tapped"] = true
+    refute engine.judge(tapped, actor: "a")[:ok], "una carta tappata"
+    wrong_hp = whole_deck("a", %w[RF HUMAN HUMAN], hp: 30)
+    refute engine.judge(wrong_hp, actor: "a")[:ok], "i PV del Rubyfront"
+    assert_match(/§3\.1/, engine.judge(wrong_hp, actor: "a")[:reason])
+  end
+
+  def test_room_without_card_index_refuses_the_deck
+    # T30 dell'audit: l'anagrafe non caricata, in stanza.
+    engine = Rubyfront::Engine.new(cards: {}, require_index: true)
+    verdict = engine.judge(whole_deck("a", %w[RF HUMAN]), actor: "a")
+    refute verdict[:ok]
+    assert_match(/non ha l'anagrafe delle carte: in stanza non si gioca \(§protocollo\)/, verdict[:reason])
+    assert_match(/has no card index: no play in a room \(§protocollo\)/, verdict[:reason_en])
+    silent = Rubyfront::Engine.new(cards: {})
+    assert silent.judge(whole_deck("a", %w[RF HUMAN]), actor: "a")[:ok], "senza l'obbligo (le prove, la «solo») l'anagrafe vuota tace"
+  end
+
+  def test_deck_reload_during_the_game_is_stopped
+    engine = started_game
+    verdict = engine.judge(whole_deck("a", %w[RF HUMAN], deck_id: "test"), actor: "a")
+    refute verdict[:ok]
+    assert_match(/prima della partita: a partita in corso resta quello \(§4\)/, verdict[:reason])
+    assert_equal 6, table_copy(engine).hand_count("a")
+    assert engine.judge({ "t" => "gameOver", "winner" => "b", "reason" => "concede" }, actor: "a")[:ok]
+    assert engine.judge(whole_deck("a", %w[RF HUMAN], deck_id: "test"), actor: "a")[:ok], "a partita finita si ricarica (per la nuova)"
+  end
+
+  # --- §4/§6.1: la pesca (T09) --------------------------------------------------
+
+  def test_opening_hand_of_six_passes_once
+    engine = fortress(decks: {})
+    engine.judge(whole_deck("a", %w[RF HUMAN HUMAN HUMAN HUMAN HUMAN HUMAN HUMAN]), actor: "a")
+    refute engine.judge({ "t" => "draw", "seat" => "a", "count" => 7 }, actor: "a")[:ok], "sette no"
+    assert_match(/mano iniziale è di 6 carte, non 1 \(§4\)/, engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 }, actor: "a")[:reason])
+    assert engine.judge({ "t" => "draw", "seat" => "a", "count" => 6 }, actor: "a")[:ok]
+    again = engine.judge({ "t" => "draw", "seat" => "a", "count" => 6 }, actor: "a")
+    refute again[:ok], "la mano iniziale è una"
+    assert_match(/solo la mano iniziale e la carta del turno 1.*\(§4, §6\.1\)/, again[:reason])
+    assert_match(/only draw the opening hand and the turn-1 card/, again[:reason_en])
+  end
+
+  def test_turn_one_card_for_the_starter_after_keep_once
+    engine = started_game
+    assert_equal "a", table_copy(engine).active
+    refute engine.judge({ "t" => "draw", "seat" => "b", "count" => 1 }, actor: "b")[:ok], "la carta del turno 1 è di chi apre"
+    verdict = engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 }, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 7, table_copy(engine).hand_count("a")
+    refute engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 }, actor: "a")[:ok], "una volta sola"
+    assert_equal 7, table_copy(engine).hand_count("a")
+  end
+
+  def test_bare_draw_outside_windows_is_stopped
+    engine = started_game
+    engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 }, actor: "a")
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")
+    # T09 dell'audit: dopo l'apertura, una pesca grossa dal posto attivo.
+    verdict = engine.judge({ "t" => "draw", "seat" => "b", "count" => 5 }, actor: "b")
+    refute verdict[:ok]
+    assert_match(/\(§4, §6\.1\)/, verdict[:reason])
+    assert_equal 7, table_copy(engine).hand_count("b"), "la carta del turno è l'unica arrivata"
+    refute engine.judge({ "t" => "draw", "seat" => "b", "count" => 1 }, actor: "b")[:ok]
+    front!(engine)
+    refute engine.judge({ "t" => "draw", "seat" => "b", "count" => 1 }, actor: "b")[:ok]
+  end
+
+  def test_draw_count_below_one_is_stopped
+    engine = started_game
+    [0, -1, -999].each do |count|
+      verdict = engine.judge({ "t" => "draw", "seat" => "a", "count" => count }, actor: "a")
+      refute verdict[:ok], count.to_s
+      assert_match(/si pesca almeno una carta \(§6\.1\)/, verdict[:reason])
+    end
+    assert_equal 6, table_copy(engine).hand_count("a")
+    # Anche come passo d'effetto: l'imbuto viene prima della forma.
+    verdict = engine.judge({ "t" => "draw", "seat" => "a", "count" => 0, "effect" => { "source" => "a-0", "event" => "on_attack", "entering" => "a-0" } }, actor: "a")
+    refute verdict[:ok]
+    assert_match(/almeno una carta/, verdict[:reason])
+  end
+
+  def test_draw_for_another_seat_is_stopped
+    engine = started_game
+    verdict = engine.judge({ "t" => "draw", "seat" => "b", "count" => 1 }, actor: "a")
+    refute verdict[:ok]
+    assert_match(/si pesca dal proprio mazzo \(§6\.1\)/, verdict[:reason])
+    assert_match(/from your own deck \(§6\.1\)/, verdict[:reason_en])
+    effect = engine.judge({ "t" => "draw", "seat" => "b", "count" => 1, "effect" => { "source" => "a-0", "event" => "on_attack", "entering" => "a-0" } }, actor: "a")
+    refute effect[:ok]
+    assert_match(/proprio mazzo/, effect[:reason])
+    assert_equal 6, table_copy(engine).hand_count("b")
+  end
+
+  def test_draw_from_empty_deck_is_stopped
+    engine = fortress(decks: {})
+    engine.judge(whole_deck("a", %w[RF]), actor: "a")
+    verdict = engine.judge({ "t" => "draw", "seat" => "a", "count" => 6 }, actor: "a")
+    refute verdict[:ok]
+    assert_match(/mazzo è vuoto: non si pesca \(§9\.1\)/, verdict[:reason])
+    assert_match(/deck is empty: no draw \(§9\.1\)/, verdict[:reason_en])
+  end
+
+  # --- §4: la mescolata (T10) ---------------------------------------------------
+
+  def test_shuffle_order_must_permute_the_deck
+    engine = fortress(decks: {})
+    engine.judge(whole_deck("a", %w[RF HUMAN HUMAN AUROS]), actor: "a")
+    deck = table_copy(engine).zone_uids("a", "deck")
+    assert_equal 3, deck.size
+    [[], deck.first(2), deck + [deck.first], deck + ["a-9"], deck.map { |uid| uid.sub("a-", "b-") }].each do |order|
+      verdict = engine.judge({ "t" => "shuffle", "seat" => "a", "order" => order }, actor: "a")
+      refute verdict[:ok], order.inspect
+      assert_match(/riordina tutto il mazzo: l'ordine non è quello del mazzo \(§4\)/, verdict[:reason])
+    end
+    refute engine.judge({ "t" => "shuffle", "seat" => "a" }, actor: "a")[:ok], "senza ordine (lo riempie la stanza prima del giudizio)"
+    assert_equal deck, table_copy(engine).zone_uids("a", "deck"), "nessun ordine è stato applicato"
+    verdict = engine.judge({ "t" => "shuffle", "seat" => "a", "order" => deck.reverse }, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal deck.reverse, table_copy(engine).zone_uids("a", "deck")
+  end
+
+  def test_shuffle_in_opening_and_own_turn_only
+    engine = started_game
+    deck_b = table_copy(engine).zone_uids("b", "deck")
+    assert engine.judge({ "t" => "shuffle", "seat" => "b", "order" => deck_b.reverse }, actor: "b")[:ok], "nell'apertura (turno 1, Preparazione) anche chi non apre"
+    refute engine.judge({ "t" => "shuffle", "seat" => "b", "order" => deck_b }, actor: "a")[:ok], "il mazzo altrui no"
+    engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 }, actor: "a")
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")
+    deck_a = table_copy(engine).zone_uids("a", "deck")
+    verdict = engine.judge({ "t" => "shuffle", "seat" => "a", "order" => deck_a.reverse }, actor: "a")
+    refute verdict[:ok]
+    assert_match(/non tocca a te/, verdict[:reason], "nel turno altrui la dogana del turno viene prima")
+    deck_b = table_copy(engine).zone_uids("b", "deck")
+    assert engine.judge({ "t" => "shuffle", "seat" => "b", "order" => deck_b.reverse }, actor: "b")[:ok], "nel proprio turno"
+  end
+
+  # --- §8.2: il caso lo tira il tavolo (T11) -----------------------------------
+
+  def test_roll_needs_seat_die_for_and_value_in_range
+    engine = started_game
+    refute engine.judge({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "", "value" => 3 }, actor: "a")[:ok], "la chiave del passo"
+    bad_die = engine.judge({ "t" => "roll", "seat" => "a", "die" => 12, "for" => "cost|a-1", "value" => 3 }, actor: "a")
+    refute bad_die[:ok]
+    assert_match(/tira il d6 e il d20, non il d12 \(§8\.2\)/, bad_die[:reason])
+    assert_match(/rolls the d6 and the d20, not the d12 \(§8\.2\)/, bad_die[:reason_en])
+    [0, 7, -1, nil, "3", 3.5].each do |value|
+      verdict = engine.judge({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "cost|a-1", "value" => value }, actor: "a")
+      refute verdict[:ok], value.inspect
+      assert_match(/va da 1 a 6/, verdict[:reason])
+    end
+    assert_nil table_copy(engine).roll_for("cost|a-1")
+    verdict = engine.judge({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "cost|a-1", "value" => 6 }, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    assert verdict[:ruled]
+    assert_equal({ die: 6, value: 6 }, table_copy(engine).roll_for("cost|a-1"))
+    assert engine.judge({ "t" => "roll", "seat" => "a", "die" => 20, "for" => "fury|a-0", "value" => 20 }, actor: "a")[:ok]
+  end
+
+  def test_roll_is_for_own_seat_only_and_passes_in_the_opponents_turn
+    engine = started_game
+    verdict = engine.judge({ "t" => "roll", "seat" => "b", "die" => 6, "for" => "cost|b-1", "value" => 2 }, actor: "a")
+    refute verdict[:ok]
+    assert_match(/si tira per il proprio posto \(§8\.2\)/, verdict[:reason])
+    assert_match(/roll for your own seat \(§8\.2\)/, verdict[:reason_en])
+    # Nel turno di A, B tira per sé (la sua Reattiva, il suo ritorno).
+    assert engine.judge({ "t" => "roll", "seat" => "b", "die" => 20, "for" => "effect|b-1|on_enter_field|b-1|", "value" => 9 }, actor: "b")[:ok]
+    front!(engine)
+    assert engine.judge({ "t" => "roll", "seat" => "b", "die" => 20, "for" => "effect|b-2|on_enter_field|b-2|", "value" => 9 }, actor: "b")[:ok]
+  end
+
+  def test_roll_passes_inside_the_chain
+    engine = started_game
+    table_copy(engine).instance_variable_set(:@chain, { stack: ["b-1"], turn: "a", resolving: false })
+    refute engine.judge({ "t" => "phase", "phase" => "fronte" }, actor: "a")[:ok], "la catena è atomica"
+    assert engine.judge({ "t" => "roll", "seat" => "a", "die" => 20, "for" => "effect|a-1|on_resolve|a-1|", "value" => 4 }, actor: "a")[:ok]
+    assert engine.judge({ "t" => "roll", "seat" => "b", "die" => 20, "for" => "effect|b-1|on_resolve|b-1|", "value" => 4 }, actor: "b")[:ok]
+  end
+
+  def test_deploy_roll_must_be_the_tables_roll
+    engine = recall_setup("DIE", flux: 6)
+    plain = engine.judge({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1260, "z" => 2, "cost" => 4, "roll" => 4 }, actor: "a")
+    refute plain[:ok], "il tiro del client, senza il tavolo"
+    assert_match(/il d6 lo tira il tavolo: l'azione non porta il tiro del tavolo per questo passo \(§8\.2\)/, plain[:reason])
+    assert_match(/the d6 is rolled by the table.*\(§8\.2\)/, plain[:reason_en])
+    engine.judge({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "deploy|rf", "value" => 2 })
+    refute engine.judge({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1260, "z" => 2, "cost" => 4, "roll" => 4 }, actor: "a")[:ok], "il tavolo ha fatto 2, non 4"
+    engine.judge({ "t" => "roll", "seat" => "a", "die" => 20, "for" => "deploy|rf", "value" => 2 })
+    refute engine.judge({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1260, "z" => 2, "cost" => 2, "roll" => 2 }, actor: "a")[:ok], "un d20 non è il d6 dello schieramento"
+    engine.judge({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "deploy|rf", "value" => 2 })
+    verdict = engine.judge({ "t" => "move", "uid" => "rf", "x" => 30, "y" => 1260, "z" => 2, "cost" => 2, "roll" => 2 }, actor: "a")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 4, table_copy(engine).flux("a")
+  end
+
+  def test_fury_and_matter_cost_rolls_must_be_the_tables
+    engine = arcane
+    plain = engine.judge({ "t" => "ability", "uid" => "rf", "ability" => "carica", "cost" => 5, "roll" => 16, "fail" => false, "targets" => [], "power" => 1 }, actor: "a")
+    refute plain[:ok]
+    assert_match(/il d20 lo tira il tavolo/, plain[:reason])
+    assert ability_action(engine, "carica", cost: 5, roll: 16, fail: false, targets: [], power: 1)[:ok], "col tiro del tavolo passa"
+    blow = starter_scene([["u", "HUMAN"], ["m", "BLOW", { "zone" => "hand" }]], b: [["v", "HUMAN"]])
+    blow.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "flux" => 6 } })
+    plain = blow.judge({ "t" => "toZone", "uid" => "m", "zone" => "field", "x" => 2368, "y" => 1260, "cost" => 3, "roll" => 3 }, actor: "a")
+    refute plain[:ok]
+    assert_match(/il d6 lo tira il tavolo/, plain[:reason])
+  end
+
+  def test_roll_key_shapes_are_shared_with_the_client
+    key = Rubyfront::Engine.roll_key({ "t" => "draw", "effect" => { "source" => "s", "event" => "on_attack", "entering" => "e" } })
+    assert_equal "effect|s|on_attack|e|", key
+    assert_equal "effect|s|on_attack|e|recall", Rubyfront::Engine.roll_key({ "t" => "toZone", "effect" => { "source" => "s", "event" => "on_attack", "entering" => "e", "follow" => "recall" } })
+    assert_equal "deploy|rf", Rubyfront::Engine.roll_key({ "t" => "move", "uid" => "rf", "cost" => 2 })
+    assert_equal "cost|m", Rubyfront::Engine.roll_key({ "t" => "toZone", "uid" => "m", "zone" => "field" })
+    assert_equal "fury|rf", Rubyfront::Engine.roll_key({ "t" => "ability", "uid" => "rf", "ability" => "x" })
+    assert_nil Rubyfront::Engine.roll_key({ "t" => "say" })
+  end
+
+  def test_roll_is_forgotten_at_turn_change_and_new_game
+    engine = started_game
+    engine.judge({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "cost|a-1", "value" => 5 }, actor: "a")
+    assert_equal({ die: 6, value: 5 }, table_copy(engine).roll_for("cost|a-1"))
+    engine.judge({ "t" => "draw", "seat" => "a", "count" => 1 }, actor: "a")
+    assert engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" }, actor: "a")[:ok]
+    assert_nil table_copy(engine).roll_for("cost|a-1"), "il cambio di turno dimentica i tiri"
+    engine.judge({ "t" => "roll", "seat" => "b", "die" => 6, "for" => "cost|b-1", "value" => 5 }, actor: "b")
+    engine.judge({ "t" => "gameOver", "winner" => "a", "reason" => "concede" }, actor: "b")
+    engine.judge({ "t" => "newGame", "active" => "a" }, actor: "a")
+    assert_nil table_copy(engine).roll_for("cost|b-1")
+  end
+
+  def test_latest_roll_for_a_key_wins_on_the_engine
+    # La stanza non ritira mai la stessa chiave nel turno (room.rb, complete):
+    # l'engine da solo annota l'ultimo valore — limite dichiarato nel README.
+    engine = started_game
+    engine.judge({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "cost|a-1", "value" => 1 }, actor: "a")
+    engine.judge({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "cost|a-1", "value" => 4 }, actor: "a")
+    assert_equal 4, table_copy(engine).roll_for("cost|a-1")[:value]
   end
 end

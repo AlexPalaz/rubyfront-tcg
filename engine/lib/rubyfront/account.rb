@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "json"
 require_relative "auth"
 
 module Rubyfront
@@ -18,6 +19,14 @@ module Rubyfront
   #   {t:"path", card, path:[…]}                          → {t:"progress", …} (o ok:false, reason) — il percorso d'Ascesa (2026-09-26)
   #   {t:"save", seq, key, value}                         → {t:"saved", seq, key, ok, reason?, reason_en?}
   #   {t:"load", seq, key}                                → {t:"data", seq, key, value}   (null se non c'è)
+  #   {t:"verify_resend"}                                 → {t:"verify_sent"} (un link di conferma nuovo) o me con reason — dal 2026-10-21
+  #
+  # Dal 2026-10-21 (audit): i tester sono per ID (`testers`), i nomi di
+  # sistema non si registrano, i tentativi d'accesso sono limitati per IP e
+  # per nome (`limiter`), a partita in corso l'accesso non cambia (`busy`),
+  # il link di conferma scade e in memoria ne resta l'impronta, Google si
+  # collega per email solo a un account con l'email confermata, i dati
+  # salvati hanno chiave, misura e numero contati.
   #
   # `me` è {t:"me", player:{id, username, name, email, verified, providers, decks, rubyfronts}, token?}
   # (`rubyfronts`: la progressione per Rubyfront — card, xp, level, path, loadout — dal 2026-09-23, il percorso dal 2026-09-26)
@@ -35,18 +44,37 @@ module Rubyfront
       @player&.dig(:tester) == true
     end
 
-    # `testers`: i nomi utente degli account di prova (2026-09-24), i soli
-    # con gli strumenti di prova al tavolo; la busta `me` lo dice al client.
-    def initialize(store, out, free_decks: [], google: nil, mailer: nil, progression: nil, testers: [])
+    # I tetti dei dati salvati (audit RF-032).
+    DATA_KEY = /\A[a-z][a-z0-9:_.-]{0,63}\z/
+    DATA_VALUE_MAX = 16 * 1024
+    DATA_KEYS_MAX = 128
+
+    # `testers`: gli ID degli account di prova (per nome fino al 2026-10-21),
+    # i soli con gli strumenti di prova al tavolo; la busta `me` lo dice al
+    # client. `limiter` è `->(kind, key) { true/false }` (il trasporto lo
+    # costruisce coi suoi limitatori; nil = nessun limite), `ip` l'indirizzo
+    # del client, `busy` `-> { true/false }` dice se la connessione siede a
+    # una partita in corso.
+    def initialize(store, out, free_decks: [], google: nil, mailer: nil, progression: nil, testers: [], limiter: nil, ip: nil, busy: nil)
       @progression = progression
-      @testers = testers
+      @testers = Array(testers).map(&:to_i)
       @store = store
       @out = out
       @free_decks = free_decks
       @google = google || Auth::Google.new("")
       @mailer = mailer || Auth::Mailer.new
+      @limiter = limiter
+      @ip = ip.to_s
+      @busy = busy
       @player = nil
       @session_hash = nil
+    end
+
+    # L'email confermata, o un accesso che la garantisce (Google).
+    def verified?
+      return false unless @player
+
+      @player[:verified] == true || Array(@player[:providers]).include?("google")
     end
 
     def handle(message)
@@ -56,6 +84,7 @@ module Rubyfront
       when "resume" then resume(message)
       when "logout" then logout
       when "verify" then verify(message)
+      when "verify_resend" then verify_resend
       when "profile" then profile(message)
       when "save" then save(message)
       when "load" then load(message)
@@ -69,10 +98,38 @@ module Rubyfront
 
     private
 
+    # Il limite dei tentativi (RF-016): per IP e, se c'è, per nome. Vero se si passa.
+    def limited?(kind, user: nil)
+      return false unless @limiter
+
+      keys = ["#{kind}:ip:#{@ip}"]
+      keys << "#{kind}:user:#{user}" if user && !user.to_s.empty?
+      keys.any? { |key| !@limiter.call(kind, key) }
+    end
+
+    def slow_down
+      deny("troppi tentativi: riprova fra un po'", "too many attempts: try again in a while")
+    end
+
+    # A partita in corso l'accesso non cambia (RF-033): chi è seduto resta
+    # quello finché la partita non finisce. Il primo `resume` di una
+    # connessione nuova (nessuno ancora entrato) passa sempre.
+    def busy?
+      @player && @busy && @busy.call == true
+    rescue StandardError
+      false
+    end
+
+    def stay_seated
+      deny("sei seduto a una partita in corso: l'accesso non cambia fino alla fine", "you're seated at a game in progress: the sign-in can't change until it ends")
+    end
+
     # ------------------------------------------------------------ l'accesso
 
     def register(message)
       return no_memory unless @store
+      return stay_seated if busy?
+      return slow_down if limited?(:register)
 
       username = Auth.normalize_username(message["username"])
       email = Auth.normalize_email(message["email"])
@@ -80,6 +137,7 @@ module Rubyfront
       name = message["name"].to_s.strip
       name = username if name.empty?
       return refuse("il nome utente: da 3 a 20 fra lettere minuscole, cifre e _", "the username: 3 to 20 lowercase letters, digits and _") unless Auth.username_ok?(username)
+      return refuse("quel nome utente è riservato", "that username is reserved") if Auth.username_reserved?(username)
       return refuse("l'email non è valida", "the email isn't valid") unless Auth.email_ok?(email)
       return refuse("la password: almeno #{Auth::PASSWORD_MIN} caratteri", "the password: at least #{Auth::PASSWORD_MIN} characters") unless Auth.password_strong?(password)
       return refuse("il nome pubblico: al più #{Auth::DISPLAY_MAX} caratteri", "the public name: at most #{Auth::DISPLAY_MAX} characters") if name.length > Auth::DISPLAY_MAX
@@ -87,7 +145,7 @@ module Rubyfront
       return refuse("quell'email è già registrata", "that email is already registered") if @store.email_taken?(email)
 
       token = Auth.new_token
-      created = @store.create_player(username: username, display_name: name, email: email, password_hash: Auth.hash_password(password), verify_token: token)
+      created = @store.create_player(username: username, display_name: name, email: email, password_hash: Auth.hash_password(password), verify_token: Auth.token_hash(token))
       @mailer.send_verification(email, token)
       open_session(created)
     rescue StandardError => error
@@ -95,16 +153,31 @@ module Rubyfront
       refuse("la memoria non risponde", "the memory isn't answering")
     end
 
+    Refused = Class.new(StandardError) do
+      attr_reader :reason_en
+
+      def initialize(reason, reason_en)
+        super(reason)
+        @reason_en = reason_en
+      end
+    end
+
     def login(message)
       return no_memory unless @store
+      return stay_seated if busy?
 
       case message["provider"]
       when "password"
-        found = @store.player_by_login(Auth.normalize_username(message["login"]))
+        login_name = Auth.normalize_username(message["login"])
+        return slow_down if limited?(:login, user: login_name)
+
+        found = @store.player_by_login(login_name)
         return refuse("nome utente o password sbagliati", "wrong username or password") unless found && Auth.password_ok?(message["password"], found[:password_hash])
 
         open_session(found)
       when "google"
+        return slow_down if limited?(:login)
+
         info = @google.verify(message["idToken"])
         return refuse("Google non ha riconosciuto l'accesso", "Google didn't recognize the sign-in") unless info
 
@@ -112,20 +185,28 @@ module Rubyfront
       else
         refuse("accesso sconosciuto", "unknown sign-in")
       end
+    rescue Refused => error
+      refuse(error.message, error.reason_en)
     rescue StandardError => error
       warn "login: #{error.message}"
       refuse("la memoria non risponde", "the memory isn't answering")
     end
 
     # Chi ha il biglietto di Google: la sua identità se c'è; se no la mail
-    # (verificata da Google) di un giocatore registrato, e si collega; se no
-    # un giocatore nuovo con un nome utente libero.
+    # (verificata da Google) di un giocatore registrato CON L'EMAIL
+    # CONFERMATA, e si collega (dal 2026-10-21: prima bastava la mail, e chi
+    # registrava la mail altrui per primo si prendeva l'account); se no un
+    # giocatore nuovo con un nome utente libero.
     def google_player(info)
       found = @store.player_by_identity("google", info[:sub])
       return found if found
 
       by_mail = @store.player_by_email(Auth.normalize_email(info[:email]))
       if by_mail
+        unless by_mail[:verified]
+          raise Refused.new("quell'email appartiene a un account non ancora confermato: conferma la mail o accedi con nome utente e password",
+                            "that email belongs to an account whose email isn't confirmed yet: confirm the email or sign in with username and password")
+        end
         @store.link_identity(by_mail[:id], "google", info[:sub])
         return by_mail
       end
@@ -138,6 +219,8 @@ module Rubyfront
 
     def resume(message)
       return no_memory unless @store
+      return stay_seated if busy?
+      return slow_down if limited?(:resume)
 
       hash = Auth.token_hash(message["token"])
       player = @store.player_by_session(hash)
@@ -151,6 +234,8 @@ module Rubyfront
     end
 
     def logout
+      return stay_seated if busy?
+
       @store.delete_session(@session_hash) if @store && @session_hash
       @session_hash = nil
       @player = nil
@@ -163,9 +248,11 @@ module Rubyfront
 
     def verify(message)
       return no_memory unless @store
+      return slow_down if limited?(:verify)
 
-      player = @store.verify_email(message["token"].to_s)
-      return refuse("il link di conferma non vale più", "the confirmation link is no longer valid") unless player
+      token = message["token"].to_s
+      player = token.empty? ? nil : @store.verify_email(Auth.token_hash(token), legacy_token: token)
+      return deny("il link di conferma non vale più", "the confirmation link is no longer valid") unless player
 
       # Se è la stessa persona seduta qui, la sua utenza si aggiorna.
       if @player && @player[:id] == player[:id] then settle(player, token: nil)
@@ -173,6 +260,22 @@ module Rubyfront
       end
     rescue StandardError => error
       warn "verify: #{error.message}"
+      refuse("la memoria non risponde", "the memory isn't answering")
+    end
+
+    # Un link di conferma nuovo per chi è entrato e non ha ancora confermato.
+    def verify_resend
+      return no_memory unless @store
+      return refuse("prima l'accesso", "log in first") unless @player
+      return deny("l'email è già confermata", "the email is already confirmed") if @player[:verified]
+      return slow_down if limited?(:verify_resend, user: @player[:id])
+
+      token = Auth.new_token
+      @store.reset_verify_token(@player[:id], Auth.token_hash(token))
+      @mailer.send_verification(@player[:email], token)
+      @out.call({ t: "verify_sent" })
+    rescue StandardError => error
+      warn "verify_resend: #{error.message}"
       refuse("la memoria non risponde", "the memory isn't answering")
     end
 
@@ -207,7 +310,7 @@ module Rubyfront
         id: id, username: player[:username], name: player[:name], email: player[:email], verified: player[:verified] == true,
         providers: @store.identities_of(id), decks: @store.decks_of(id),
         rubyfronts: rubyfronts_of(id),
-        tester: @testers.include?(player[:username])
+        tester: @testers.include?(id)
       }
       payload = { t: "me", player: @player }
       payload[:token] = token if token
@@ -217,6 +320,11 @@ module Rubyfront
     def refuse(reason, reason_en)
       @player = nil
       @out.call({ t: "me", player: nil, reason: reason, reason_en: reason_en })
+    end
+
+    # Un rifiuto che NON tocca chi è già entrato (i limiti, la partita in corso).
+    def deny(reason, reason_en)
+      @out.call({ t: "me", player: @player, reason: reason, reason_en: reason_en })
     end
 
     def no_memory
@@ -304,8 +412,18 @@ module Rubyfront
 
     def save(message)
       key = message["key"].to_s
-      unless @player && @store && !key.empty?
+      unless @player && @store
         return @out.call({ t: "saved", seq: message["seq"], key: key, ok: false, reason: "prima l'accesso", reason_en: "log in first" })
+      end
+      unless DATA_KEY.match?(key)
+        return @out.call({ t: "saved", seq: message["seq"], key: key, ok: false, reason: "la chiave: minuscola, fino a 64 fra lettere, cifre e : _ . -", reason_en: "the key: lowercase, up to 64 letters, digits and : _ . -" })
+      end
+      serialized = JSON.generate(message["value"])
+      if serialized.bytesize > DATA_VALUE_MAX
+        return @out.call({ t: "saved", seq: message["seq"], key: key, ok: false, reason: "il dato supera i 16 KiB", reason_en: "the value exceeds 16 KiB" })
+      end
+      if @store.count_keys(@player[:id]) >= DATA_KEYS_MAX && !@store.keys(@player[:id]).include?(key)
+        return @out.call({ t: "saved", seq: message["seq"], key: key, ok: false, reason: "troppe chiavi salvate (massimo #{DATA_KEYS_MAX})", reason_en: "too many saved keys (#{DATA_KEYS_MAX} at most)" })
       end
       @store.set(@player[:id], key, message["value"])
       @out.call({ t: "saved", seq: message["seq"], key: key, ok: true })
@@ -316,7 +434,7 @@ module Rubyfront
 
     def load(message)
       key = message["key"].to_s
-      value = @player && @store && !key.empty? ? @store.get(@player[:id], key) : nil
+      value = @player && @store && DATA_KEY.match?(key) ? @store.get(@player[:id], key) : nil
       @out.call({ t: "data", seq: message["seq"], key: key, value: value })
     rescue StandardError => error
       warn "load: #{error.message}"

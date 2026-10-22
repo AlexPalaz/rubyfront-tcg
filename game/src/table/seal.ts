@@ -44,10 +44,11 @@ export class Seal {
   show(verdict: EngineVerdict): void {
     const raw = verdictReason(verdict) ?? t("stop.default", { action: verdict.action ?? "?" });
     // Il «(§6.2, attesa di evocazione)» in coda diventa la targhetta; la prosa resta pulita.
-    const ref = raw.match(/\s*\(§([\d.]+)(?:,\s*([^)]+))?\)/);
+    const ref = raw.match(/\s*\(§([\d.]+|protocollo)(?:,\s*([^)]+))?\)/);
     const prose = (ref ? raw.replace(ref[0], "") : raw).replace(/^\s*(\S)/, (_, ch: string) => ch.toUpperCase());
     const text = prose.endsWith(".") ? prose : `${prose}.`;
-    const badge = ref ? `${t("stop.ref", { ref: ref[1] })}${ref[2] ? ` — ${ref[2]}` : ""}` : null;
+    // «(§protocollo)» è la regola del tavolo, non un § del manuale (2026-10-21).
+    const badge = ref ? `${ref[1] === "protocollo" ? t("stop.ref.protocol") : t("stop.ref", { ref: ref[1] })}${ref[2] ? ` — ${ref[2]}` : ""}` : null;
 
     // Il sigillo sta sullo stage (fuori dal mondo): si posa in pixel di schermo, alla scala del mondo.
     this.root.parent?.addChild(this.root);

@@ -40,6 +40,7 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       if (passed) sent.push(action);
       return Promise.resolve(passed);
     },
+    roll: (die) => Promise.resolve(die),
     seat: () => "a",
     controls: seat => seat === "a",
     arbitrated: () => false,

@@ -22,9 +22,18 @@ export type ZoneId = "field" | "hand" | "deck" | "abisso" | "ritiro";
 export const PILE_ZONES: readonly ZoneId[] = ["deck", "abisso", "ritiro"];
 
 /** Una copia fisica di una carta sul tavolo. */
+/** L'identità di una carta avversaria in mano o nel mazzo, che il tavolo
+    non rivela (dal 2026-10-21, viste per posto): `cardStats("?")` è vuoto,
+    la vista la dipinge di dorso. Gemello: table.rb, card_id nil. */
+export const HIDDEN_CARD = "?";
+
+export function isHidden(card: { cardId: string }): boolean {
+  return card.cardId === HIDDEN_CARD;
+}
+
 export interface CardInstance {
   uid: string;
-  /** Id nel catalogo del sito, es. "RBF-001". */
+  /** Id nel catalogo del sito, es. "RBF-001" — o HIDDEN_CARD per una carta avversaria nascosta. */
   cardId: string;
   /** Chi la possiede: decide in quale mano e in quali pile finisce. */
   owner: Seat;
@@ -238,7 +247,9 @@ export type Phase = "preparazione" | "fronte" | "reazione";
 /** Com'è finita (§2, §9): chi ha vinto — null nel pareggio — e perché. */
 export interface GameOver {
   winner: Seat | null;
-  reason: "hp" | "deck" | "draw";
+  /** `concede`: la resa di chi perde; `forfeit`: il posto assente oltre la
+      grazia, dichiarato dal tavolo; `limit`: il giornale al tetto, dal tavolo. */
+  reason: "hp" | "deck" | "draw" | "concede" | "forfeit" | "limit";
 }
 
 export interface GameState {
@@ -264,6 +275,10 @@ export interface GameState {
   fired?: string[];
   /** La catena di risposta (§7.2), se ce n'è una aperta: vedi ResponseChain. */
   chain?: ResponseChain;
+  /** I tiri del tavolo nel turno (§8.2, dal 2026-10-21): chiave del passo
+      (rollKey) → dado e valore. Ogni passo che porta un dado deve portare
+      QUESTO; il cambio di turno dimentica. Gemello: table.rb, @rolls. */
+  rolls?: Record<string, { die: number; value: number }>;
   /** Prossimo z libero: ogni carta toccata sale in cima. */
   zTop: number;
 }
@@ -307,22 +322,40 @@ export interface EffectRef {
   once?: true;
 }
 
-/** Le mutazioni possibili. Ogni client le applica in locale e le ritrasmette. */
-export type Action =
-  /** Tavolo azzerato. `active` dice chi inizia (§4): lo sceglie chi preme,
-      il riduttore non tira dadi — due lavagne devono restare uguali. */
+/** Una carta del mazzo com'è caricata: nella vista proiettata dal tavolo
+    (room.rb, project) le carte nascoste dell'avversario arrivano senza
+    `cardId` né `order`. */
+export type DeckCard = Omit<CardInstance, "cardId" | "order"> & { cardId?: string; order?: number };
+
+/** Le mutazioni possibili. Ogni client le applica in locale e le ritrasmette.
+    `identities` (dal 2026-10-21) c'è solo nelle azioni proiettate dal tavolo:
+    le identità (uid → cardId) delle carte avversarie che ESCONO da una zona
+    nascosta con questa azione; il riduttore le fonde prima di applicare. */
+export type Action = ActionBody & { identities?: Record<string, string> };
+
+export type ActionBody =
+  /** Tavolo azzerato. `active` dice chi inizia (§4): in stanza lo tira il
+      tavolo; il riduttore non tira dadi — due lavagne devono restare uguali. */
   | { t: "newGame"; active?: Seat }
   /** `hp`: i PV stampati sul Rubyfront del mazzo (§3.1) — i PV con cui il
       giocatore inizia; l'engine li confronta con l'anagrafe. */
-  | { t: "loadDeck"; seat: Seat; deckId: string; cards: CardInstance[]; hp?: number; ascent?: { hp: number; fury: number } }
-  | { t: "shuffle"; seat: Seat; order: string[] }
-  /** §4 — il mulligan: tutta la mano nel mazzo, il mazzo nell'ordine dato (già mescolato da chi lo fa), 6 carte nuove. Fino a 3 volte: dal terzo la mano si tiene da sé. */
-  | { t: "mulligan"; seat: Seat; order: string[] }
+  | { t: "loadDeck"; seat: Seat; deckId: string; cards: DeckCard[]; hp?: number; ascent?: { hp: number; fury: number } }
+  /** §4 — la mescolata: l'ordine lo riempie il tavolo (dal 2026-10-21); nella
+      vista dell'avversario manca, e il suo mazzo resta un sacco senza ordine. */
+  | { t: "shuffle"; seat: Seat; order?: string[] }
+  /** §4 — il mulligan: tutta la mano nel mazzo, il mazzo nell'ordine dato dal
+      tavolo, 6 carte nuove (`drawn` le nomina nella vista senza ordine). Fino a 3 volte: dal terzo la mano si tiene da sé. */
+  | { t: "mulligan"; seat: Seat; order?: string[]; drawn?: string[] }
   /** §4 — «dichiara di essere pronto»: la mano è quella. Quando tutti i posti col mazzo hanno tenuto, la partita comincia. */
   | { t: "keep"; seat: Seat }
   /** `effect`: la pesca è un passo di un effetto innescato (§8.2), non un
-      gesto — la fonte e l'ingresso che l'ha innescata; l'engine verifica. */
-  | { t: "draw"; seat: Seat; count: number; effect?: EffectRef; roll?: number }
+      gesto — la fonte e l'ingresso che l'ha innescata; l'engine verifica.
+      `drawn`: nella vista proiettata, le carte pescate per nome. */
+  | { t: "draw"; seat: Seat; count: number; effect?: EffectRef; roll?: number; drawn?: string[]; test?: boolean }
+  /** Il tiro di un dado, tirato dal TAVOLO (§8.2, dal 2026-10-21): `value` lo
+      riempie la stanza, il client non lo sceglie mai. `for` è la chiave del
+      passo (rollKey): lo stesso passo nello stesso turno ha lo stesso tiro. */
+  | { t: "roll"; seat: Seat; die: number; for: string; value?: number }
   /** `cost`/`roll`: lo schieramento del Rubyfront (§3.1) è un `move` dalla
       Zona di Richiamo alla sua fila, e si paga — col dado, `roll` è il tiro
       e `cost` il risultato. Senza costo è un movimento e basta. */
@@ -361,7 +394,7 @@ export type Action =
   /** `toll`: la tassa di Flusso di chi entra (§3.2, forma certificata):
       la calcola il client dalle carte in campo, l'engine la rifà, il
       riduttore ricarica al massimo meno la tassa. */
-  | { t: "turn"; turn: number; active: Seat; toll?: number }
+  | { t: "turn"; turn: number; active: Seat; toll?: number; /** La vista proiettata nomina la carta del turno pescata. */ drawn?: string[] }
   /** Dichiara la fase (§6.3): oggi il solo passo avanti verso «fronte». */
   | { t: "phase"; phase: Phase }
   | { t: "declare"; declaration: Declaration; effect?: EffectRef }
@@ -383,7 +416,7 @@ export type Action =
       conto ne discende; `reveal`, se c'è, va in mano; `retire`, se c'è, in
       Zona di Ritiro; le altre in fondo, nell'ordine in cui stavano. Sempre
       un passo d'effetto. */
-  | { t: "look"; seat: Seat; count: number; reveal?: string; retire?: string; top?: string; roll?: number; revealTo?: "hand" | "ritiro"; restTo?: "deck" | "ritiro"; effect: EffectRef }
+  | { t: "look"; seat: Seat; count: number; reveal?: string; retire?: string; top?: string; roll?: number; revealTo?: "hand" | "ritiro"; restTo?: "deck" | "ritiro"; effect: EffectRef; /** La vista proiettata nomina le carte guardate. */ looked?: string[] }
   /** Gli estremi del mazzo (§3.1, il Rubyfront «la prima volta che assegni»): la prima e l'ultima scambiate, o una in mano e l'altra in Ritiro. */
   | { t: "ends"; seat: Seat; swap?: true; toHand?: string; toRetire?: string; effect: EffectRef }
   /** «Metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso» (§8.2): dall'Abisso, appena finito lì, in Ritiro. */
@@ -437,16 +470,20 @@ export interface JournalEntry {
  * un'azione arriva qui solo dopo il suo verdetto.
  */
 export type NetMessage =
-  | { t: "action"; action: Action; from: Seat }
-  /** Il giornale della stanza, al saluto: la lavagna si ricostruisce da qui (state.ts, replay). */
-  | { t: "journal"; actions: JournalEntry[] }
+  /** `from` è null per i gesti del tavolo stesso (l'abbandono, il limite del giornale). */
+  | { t: "action"; action: Action; from: Seat | null }
+  /** Il giornale della stanza, al saluto: la lavagna si ricostruisce da qui (state.ts, replay). `match` è l'id della partita. */
+  | { t: "journal"; actions: JournalEntry[]; match?: string }
   /** Segnalazione WebRTC della chat vocale (voice.ts): il tavolo la inoltra
       com'è, il payload lo capisce solo l'altro client. */
   | { t: "rtc"; payload: unknown; from: Seat }
   | { t: "peers"; peers: number; seats: Seat[] }
-  /** Il posto assegnato dal tavolo all'ingresso (2026-09-23): quello chiesto se libero, se no l'altro. */
-  | { t: "seat"; seat: Seat }
+  /** Il posto assegnato dal tavolo all'ingresso (2026-09-23): quello chiesto se libero, se no l'altro.
+      `token` (2026-10-21) riserva il posto a chi lo tiene: si rimanda al rientro; `resumed` dice che il posto era il nostro. */
+  | { t: "seat"; seat: Seat; token?: string; resumed?: boolean }
   /** La stanza ha già due giocatori: il tavolo chiude. */
   | { t: "room_full"; room: string }
+  /** Il tavolo non ci fa entrare, o ci congeda (2026-10-21): `rooms_full` (stanze al tetto), `replaced` (un'altra scheda ha ripreso il posto). */
+  | { t: "refused"; code: string; reason?: string; reason_en?: string }
   /** L'atrio ha trovato l'avversario (2026-09-23): la stanza nuova e il posto. */
   | { t: "matched"; room: string; seat: Seat };

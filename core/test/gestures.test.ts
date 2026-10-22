@@ -6,7 +6,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useCatalog, type CatalogCard } from "../src/cards.js";
 import type { CardFacts, Ctx } from "../src/ctx.js";
-import { FRONT_SLOT_X, frontRowY } from "../src/geometry.js";
+import { FRONT_SLOT_X, backRowY, frontRowY } from "../src/geometry.js";
 import { createGestures, type GestureView, type SceneShow } from "../src/gestures.js";
 import type { AutoChooser } from "../src/session.js";
 import { t } from "../src/i18n.js";
@@ -21,7 +21,9 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   SCOUT: { kind: "entity", race: "auros", turnStartSearches: [{ requires: "no_object_on_own_front", kind: "object", from: "deck", to: "hand", shuffle: true }] },
   // «Quando attacca: col dado, un'Entità Umana dal Ritiro sul Fronte, che attacca insieme» (la forma `return`).
   SIMULACRUM: { kind: "entity", race: "simulacrum", attackForms: [{ kind: "return", who: "self", die: 6, onRoll: [5, 6], filter: { kind: "entity", race: "human" }, joins: true, face: 0 }] },
-  RUBY: { kind: "rubyfront" },
+  RUBY: { kind: "rubyfront", furyAt: { 0: 12 } },
+  // Una Materia col costo a dado (§3.2): si tira il d6, si paga il tiro.
+  BLOW: { kind: "matter", behavior: "normal", fluxDie: "d6", resolveForms: [] },
   // «Quando attacca: le altre armate +1» — una forma d'attacco di chi attacca.
   COMMAND: { kind: "entity", race: "auros", attackForms: [{ kind: "empower", who: "self", targets: "others_armed", power: 1, face: 0 }] },
   // «Quando attacca armata: un'Entità con un Oggetto assegnato che controlli prende +1» — una sola, con la mira (dal 2026-09-17).
@@ -61,6 +63,8 @@ const facts = (cardId: string): CardFacts =>
     deathForms: [],
     nexus: null,
     grantsWhileAssigned: [],
+    furyAt: {},
+    abilities: [],
     ...FACTS[cardId],
   }) as CardFacts;
 
@@ -85,6 +89,7 @@ function table(): { ctx: Ctx; sent: Action[]; setState(next: GameState): void } 
       state = apply(state, action);
       return Promise.resolve(true);
     },
+    roll: (die) => Promise.resolve(die),
     seat: () => "a",
     controls: seat => seat === "a",
     arbitrated: () => true,
@@ -671,3 +676,89 @@ describe("createGestures — la ricerca a inizio turno (§8.2)", () => {
   });
 });
 
+// Il dado lo tira il TAVOLO (§8.2, dal 2026-10-21): ogni gesto col dado chiede
+// il tiro a ctx.roll con la chiave del passo (state.ts, rollKey) e porta nel
+// passo il valore ricevuto; fermato dal tavolo, il gesto si lascia cadere.
+describe("createGestures — il dado del tavolo (§8.2)", () => {
+  function rollingTable(answer: number | null = 4) {
+    const base = table();
+    const asked: [number, string, Seat][] = [];
+    base.ctx.roll = (die, key, seat) => {
+      asked.push([die, key, seat]);
+      return Promise.resolve(answer);
+    };
+    return { ...base, asked };
+  }
+
+  it("lo schieramento col dado chiede «deploy|uid» e paga il valore del tavolo", async () => {
+    const { ctx, sent, setState, asked } = rollingTable(4);
+    const state = ctx.state();
+    const rubyfront = card(state, "rf", "RUBY", "a", "field");
+    rubyfront.y = backRowY("a");
+    state.players.a.flux = 6;
+    setState(state);
+    const { view } = fakeView();
+    const gestures = createGestures(ctx, view);
+    await settle(gestures.deploy(rubyfront, FRONT_SLOT_X[0], frontRowY("a"), 2, { fixed: null, die: 6 }, { x: rubyfront.x, y: rubyfront.y, z: 1 }));
+    expect(asked).toEqual([[6, "deploy|rf", "a"]]);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]).toMatchObject({ t: "move", uid: "rf", cost: 4, roll: 4 });
+  });
+
+  it("fermato dal tavolo, lo schieramento torna da dov'era e nulla parte", async () => {
+    const { ctx, sent, setState, asked } = rollingTable(null);
+    const state = ctx.state();
+    const rubyfront = card(state, "rf", "RUBY", "a", "field");
+    rubyfront.y = backRowY("a");
+    state.players.a.flux = 6;
+    setState(state);
+    const { view } = fakeView();
+    const gestures = createGestures(ctx, view);
+    await settle(gestures.deploy(rubyfront, FRONT_SLOT_X[0], frontRowY("a"), 2, { fixed: null, die: 6 }, { x: rubyfront.x, y: rubyfront.y, z: 1 }));
+    expect(asked).toHaveLength(1);
+    // L'unico gesto partito è il ritorno dov'era (un pixel, senza costo): nessuno schieramento.
+    expect(sent.map(action => action.t)).toEqual(["move"]);
+    expect(sent[0]).toMatchObject({ t: "move", uid: "rf", x: rubyfront.x, y: backRowY("a") });
+    expect(sent[0]).not.toHaveProperty("cost");
+  });
+
+  it("il costo a dado di una Materia chiede «cost|uid» e paga il tiro", async () => {
+    const { ctx, sent, setState, asked } = rollingTable(3);
+    const state = ctx.state();
+    const matter = card(state, "m", "BLOW", "a", "hand");
+    state.players.a.flux = 6;
+    setState(state);
+    const { view } = fakeView();
+    const gestures = createGestures(ctx, view);
+    await settle(gestures.place(matter, 100, frontRowY("a"), 3));
+    expect(asked).toEqual([[6, "cost|m", "a"]]);
+    expect(sent[0]).toMatchObject({ t: "toZone", uid: "m", zone: "field", cost: 3, roll: 3 });
+  });
+
+  it("senza Flusso per coprire il d6 non si chiede nemmeno il tiro", async () => {
+    const { ctx, sent, setState, asked } = rollingTable(3);
+    const state = ctx.state();
+    const matter = card(state, "m", "BLOW", "a", "hand");
+    state.players.a.flux = 5;
+    setState(state);
+    const { view } = fakeView();
+    const gestures = createGestures(ctx, view);
+    await settle(gestures.place(matter, 100, frontRowY("a"), 3));
+    expect(asked).toHaveLength(0);
+    expect(sent).toHaveLength(0);
+  });
+
+  it("la Furia chiede il d20 con «fury|uid» e porta l'esito del tiro del tavolo", async () => {
+    const { ctx, sent, setState, asked } = rollingTable(4);
+    const state = ctx.state();
+    const rubyfront = card(state, "rf", "RUBY", "a", "field");
+    state.players.a.hp = 20;
+    setState(state);
+    const { view } = fakeView();
+    const gestures = createGestures(ctx, view);
+    const ability = { id: "sconto", displayKey: "sconto", face: 0, timing: ["preparazione" as const], cost: 3, gain: null, fury: true, form: { kind: "discount" as const, amount: 1, type: "object" as const, race: null } };
+    await settle(gestures.useAbility(rubyfront, ability));
+    expect(asked).toEqual([[20, "fury|rf", "a"]]);
+    expect(sent.at(-1)).toMatchObject({ t: "ability", uid: "rf", ability: "sconto", roll: 4, fail: true });
+  });
+});

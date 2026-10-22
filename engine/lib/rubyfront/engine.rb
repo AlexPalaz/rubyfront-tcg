@@ -25,7 +25,7 @@ module Rubyfront
   # Niente I/O qui dentro: puro stato e giudizio, così i test interrogano la
   # classe direttamente e il trasporto (bin/server) resta un dettaglio.
   class Engine
-    VERSION = "0.89.0"
+    VERSION = "0.90.0"
 
     # Le regole collegate, per nome (i § del MANUALE man mano che entrano).
     # La lista viaggia nel saluto: il client può mostrare cosa è attivo.
@@ -125,6 +125,14 @@ module Rubyfront
       "§3.2 Il costo a dado di una Materia: si tira solo con Flusso disponibile pari alle facce, si paga il numero uscito (come lo schieramento, §3.1)",
       "§8.2 La Statica che ascolta gli ingressi: a ogni Umano che entra guarda la prima carta (in fondo, se vuoi); con N entrati nel turno, pesca",
       "§3.1 Il Nexus: il requisito «in questo turno hai attaccato con N Umani», lo scarto di un'Entità della razza; le abilità che concedono parole chiave, la chiamata entro il costo",
+      "§protocollo Il tavolo conosce un elenco chiuso di azioni, ciascuna con la sua forma: tutto il resto è fermato, mai applicato",
+      "§protocollo Il tavolo compie da sé solo l'apertura della partita e la fine per abbandono o per limite del giornale",
+      "§3.1/§3.2 I contatori li muove il tavolo: PV, Flusso, Gettone e sigilli arrivano dalle azioni certificate; a mano resta la spesa del Gettone (e gli strumenti di prova)",
+      "§6.5 Il contatore del turno avanza di uno solo col cambio di posto",
+      "§2 La partita finisce per PV, mazzo esaurito, pareggio o resa; la resa è di chi perde; Nuova partita solo a partita finita o prima che cominci",
+      "§4 Il mazzo si carica al proprio posto, prima della partita, intero e nella composizione del mazzo dichiarato; in stanza senza anagrafe non si gioca",
+      "§4/§6.1 La pesca a mano è la mano iniziale (6) e la carta del turno 1 di chi apre; il resto arriva col cambio di turno; dal mazzo vuoto non si pesca",
+      "§4/§8.2 Il caso lo tira il tavolo: i dadi (azione roll, una chiave per passo, stesso tiro nel turno), la mescolata (permutazione intera del mazzo), la mano iniziale, chi apre",
     ].freeze
     # Le stesse regole in inglese, nello stesso ordine: il saluto le porta
     # entrambe (`rules`, `rules_en`) e il client stampa quelle della sua lingua.
@@ -224,6 +232,14 @@ module Rubyfront
       "§3.2 A Matter's die cost: rolled only with available Flux equal to the faces, you pay the number rolled (like deployment, §3.1)",
       "§8.2 The Static that listens to entries: at each Human entering look at the top card (to the bottom, if you wish); with N entered this turn, draw",
       "§3.1 The Nexus: the requirement “this turn you attacked with N Humans”, the discard of an Entity of the race; abilities granting keywords, the call within the cost",
+      "§protocollo The table knows a closed list of actions, each with its shape: everything else is stopped, never applied",
+      "§protocollo The table itself performs only the opening of the game and the end by forfeit or by journal limit",
+      "§3.1/§3.2 The table moves the counters: HP, Flux, Token and seals come from certified actions; by hand only the Token spend remains (and the test tools)",
+      "§6.5 The turn counter advances by one only with the change of seat",
+      "§2 The game ends by HP, exhausted deck, draw or concession; the concession is the loser's; New game only when the game is over or before it begins",
+      "§4 The deck is loaded at one's own seat, before the game, whole and in the composition of the declared deck; in a room without the card index there is no play",
+      "§4/§6.1 Drawing by hand is the opening hand (6) and the turn-1 card of whoever opens; the rest comes with the turn change; no draw from an empty deck",
+      "§4/§8.2 Chance is rolled by the table: dice (roll action, one key per step, same roll within the turn), the shuffle (whole permutation of the deck), the opening hand, who opens",
     ].freeze
 
     # La geometria canonica degli slot del Fronte, specchio di ctx.ts
@@ -246,11 +262,106 @@ module Rubyfront
 
     # `cards` è l'anagrafe id -> {type:, keywords:} (vedi card_index.rb):
     # arriva dal trasporto già pronta — qui dentro niente I/O. Senza anagrafe
-    # le regole che leggono le carte restano mute, mai moleste.
-    def initialize(cards: {})
+    # le regole che leggono le carte restano mute, mai moleste — salvo
+    # `require_index` (la stanza con nome, dal 2026-10-21): lì un tavolo
+    # senza anagrafe non fa giocare (§protocollo), perché un arbitro muto
+    # non è un arbitro. `decks` è l'indice dei mazzi (id -> {cards:, rubyfront:},
+    # CardIndex.load_decks): con lui il carico del mazzo si confronta con la
+    # composizione dichiarata (§4).
+    def initialize(cards: {}, decks: {}, require_index: false)
       @cards = cards
+      @decks = decks
+      @require_index = require_index
       @table = Table.new
     end
+
+    # Lettori puri per la stanza (room.rb), che completa le azioni col caso
+    # e proietta le viste per posto: niente scrittura da qui.
+    def active
+      @table.active
+    end
+
+    def over?
+      @table.over?
+    end
+
+    def zone_uids(seat, zone)
+      @table.zone_uids(seat, zone)
+    end
+
+    def top_of_deck(seat, count)
+      @table.top_of_deck(seat, count)
+    end
+
+    def roll_for(key)
+      @table.roll_for(key)
+    end
+
+    # Ogni carta com'è ora: uid -> {owner:, zone:, card_id:}. Serve alla
+    # stanza per sapere cosa è uscito da una zona nascosta.
+    def card_facts
+      @table.card_facts
+    end
+
+    # La partita è cominciata? (§4: una mano tenuta, o un turno dopo il primo.)
+    def started?
+      @table.started?
+    end
+
+    # Le facce dei dadi che il tavolo tira (§8.2): il d6 degli schieramenti
+    # e dei costi, il d20 degli effetti e della Furia.
+    DICE = [6, 20].freeze
+
+    # Le azioni che il tavolo conosce (§protocollo, dal 2026-10-21), con la
+    # forma minima di ciascuna: le chiavi obbligatorie e il loro tipo. Tutto
+    # ciò che non è qui è fermato, mai applicato: un client modificato non
+    # inventa gesti. Le chiavi facoltative le verifica il giudizio della forma.
+    SEAT_SHAPE = ->(value) { Table::SEATS.include?(value) }
+    UID_SHAPE = ->(value) { value.is_a?(String) && !value.empty? && value.bytesize <= 64 }
+    TEXT_SHAPE = ->(value) { value.is_a?(String) && value.bytesize <= 64 }
+    INT_SHAPE = ->(value) { value.is_a?(Integer) }
+    HASH_SHAPE = ->(value) { value.is_a?(Hash) }
+    LIST_SHAPE = ->(value) { value.is_a?(Array) && value.size <= 200 }
+    ZONE_SHAPE = ->(value) { %w[field hand deck abisso ritiro].include?(value) }
+    PHASE_SHAPE = ->(value) { Table::PHASES.include?(value) }
+    SHAPES = {
+      "newGame" => {},
+      "loadDeck" => { "seat" => SEAT_SHAPE, "deckId" => TEXT_SHAPE, "cards" => LIST_SHAPE },
+      "shuffle" => { "seat" => SEAT_SHAPE },
+      "mulligan" => { "seat" => SEAT_SHAPE },
+      "keep" => { "seat" => SEAT_SHAPE },
+      "draw" => { "seat" => SEAT_SHAPE, "count" => INT_SHAPE },
+      "roll" => { "seat" => SEAT_SHAPE, "die" => INT_SHAPE, "for" => UID_SHAPE },
+      "move" => { "uid" => UID_SHAPE },
+      "toZone" => { "uid" => UID_SHAPE, "zone" => ZONE_SHAPE },
+      "pass" => { "seat" => SEAT_SHAPE },
+      "settle" => { "uid" => UID_SHAPE },
+      "flip" => { "uid" => UID_SHAPE, "face" => INT_SHAPE },
+      "assign" => { "uid" => UID_SHAPE },
+      "tap" => { "uid" => UID_SHAPE },
+      "facedown" => { "uid" => UID_SHAPE },
+      "player" => { "seat" => SEAT_SHAPE, "patch" => HASH_SHAPE },
+      "turn" => { "turn" => INT_SHAPE, "active" => SEAT_SHAPE },
+      "phase" => { "phase" => PHASE_SHAPE },
+      "declare" => { "declaration" => HASH_SHAPE },
+      "undeclare" => { "from" => UID_SHAPE },
+      "clearCombat" => {},
+      "resolve" => { "seat" => SEAT_SHAPE, "battles" => LIST_SHAPE },
+      "empower" => { "uid" => UID_SHAPE },
+      "refresh" => { "seat" => SEAT_SHAPE },
+      "ability" => { "uid" => UID_SHAPE, "ability" => TEXT_SHAPE },
+      "revive" => { "uid" => UID_SHAPE },
+      "look" => { "seat" => SEAT_SHAPE, "count" => INT_SHAPE },
+      "ends" => { "seat" => SEAT_SHAPE },
+      "remain" => { "uid" => UID_SHAPE },
+      "control" => { "uid" => UID_SHAPE, "by" => SEAT_SHAPE },
+      "release" => { "uid" => UID_SHAPE },
+      "gameOver" => {},
+      "ready" => { "key" => UID_SHAPE },
+      "say" => {},
+      "spawn" => { "card" => HASH_SHAPE },
+    }.freeze
+    KNOWN_ACTIONS = SHAPES.keys.freeze
 
     # Risposta al saluto del client.
     def hello
@@ -309,7 +420,6 @@ module Rubyfront
         @table.fire(ref["source"], *attack_key(action, ref))
       when "on_resolve", "on_flip", "on_assign_object"
         @table.fire(ref["source"], *resolve_key(action, ref))
-        @table.remember_roll(ref["source"], action["roll"]) if action["roll"].is_a?(Integer) && @table.roll_of(ref["source"]).nil?
       else
         @table.fire(ref["source"], fired_event(ref), ref["entering"])
       end
@@ -387,7 +497,15 @@ module Rubyfront
     private
 
     def verdict_for(action, actor = nil)
-      return no_rule(nil) unless action.is_a?(Hash)
+      # §protocollo — prima di tutto la forma: un'azione che il tavolo non
+      # conosce, o conosce in un'altra forma, è fermata e mai applicata.
+      stopped = schema_stopped(action)
+      return stopped if stopped
+
+      # §protocollo — il tavolo stesso (actor :table, dal 2026-10-21) compie
+      # solo l'apertura della partita e la fine per abbandono (forfeit) o
+      # per limite del giornale (limit): il resto non è suo.
+      return judge_table_action(action) if actor == :table
 
       # §2/§9 — a partita finita il tavolo si ferma: restano Nuova partita,
       # la chat, i pixel e il carico del mazzo (che segue la nuova partita).
@@ -396,6 +514,11 @@ module Rubyfront
       end
 
       stopped = judge_actor(action, actor)
+      return stopped if stopped
+
+      # §6.1/§9.1 — ogni pesca, nuda o d'effetto: dal proprio mazzo, almeno
+      # una carta, mai dal mazzo vuoto.
+      stopped = draw_stopped(action, actor) if action["t"] == "draw"
       return stopped if stopped
 
       # §7.2 — la catena di risposta è atomica: finché c'è, passa solo lei.
@@ -416,10 +539,14 @@ module Rubyfront
       return judge_effect(action) if action["effect"].is_a?(Hash)
 
       case action["t"]
-      when "loadDeck" then judge_load_deck(action)
+      when "newGame" then judge_new_game(action, actor)
+      when "loadDeck" then judge_load_deck(action, actor)
+      when "shuffle" then judge_shuffle(action, actor)
       when "mulligan" then judge_mulligan(action)
       when "keep" then judge_keep(action)
-      when "player" then judge_player(action)
+      when "draw" then judge_draw(action)
+      when "roll" then judge_roll(action, actor)
+      when "player" then judge_player(action, actor)
       when "turn" then judge_turn(action)
       when "phase" then judge_phase(action)
       when "declare" then judge_declare(action)
@@ -431,10 +558,156 @@ module Rubyfront
       when "release" then judge_release(action)
       when "flip" then judge_flip(action)
       when "ability" then judge_ability(action)
-      when "gameOver" then judge_game_over(action)
+      when "gameOver" then judge_game_over(action, actor)
       when "tap" then judge_tap(action)
       else no_rule(action["t"])
       end
+    end
+
+    # §protocollo — la forma minima di ogni azione (SHAPES): tipo noto,
+    # chiavi obbligatorie del tipo giusto. Qui non si legge il tavolo: è il
+    # primo imbuto, prima di ogni regola.
+    def schema_stopped(action)
+      return refuse(nil, "azione sconosciuta al tavolo (§protocollo)", "action unknown to the table (§protocollo)") unless action.is_a?(Hash)
+
+      kind = action["t"]
+      shape = SHAPES[kind]
+      return refuse(kind.is_a?(String) ? kind : nil, "azione sconosciuta al tavolo (§protocollo)", "action unknown to the table (§protocollo)") unless shape
+
+      shape.each do |key, check|
+        next if check.call(action[key])
+
+        return refuse(kind, "l'azione «#{kind}» non ha la forma del tavolo: «#{key}» manca o è sbagliata (§protocollo)", "the action “#{kind}” isn't in the table's shape: “#{key}” is missing or wrong (§protocollo)")
+      end
+      nil
+    end
+
+    # §protocollo — i gesti del tavolo stesso: l'apertura della partita e la
+    # fine per abbandono o per limite, a partita non finita.
+    def judge_table_action(action)
+      kind = action["t"]
+      return allow(kind) if kind == "newGame"
+
+      winner = action["winner"]
+      if kind == "gameOver" && %w[forfeit limit].include?(action["reason"]) && (winner.nil? || Table::SEATS.include?(winner))
+        return refuse(kind, "la partita è già finita (§2)", "the game is already over (§2)") if @table.over?
+
+        return allow(kind)
+      end
+      refuse(kind, "il tavolo compie solo l'apertura e la fine per abbandono o per limite (§protocollo)", "the table only performs the opening and the end by forfeit or by limit (§protocollo)")
+    end
+
+    # §2 — «Nuova partita»: a partita finita, o prima che cominci (§4: nessuna
+    # mano tenuta, turno 1). A partita in corso si cede, non si azzera
+    # (dal 2026-10-21: prima chiunque poteva azzerare il tavolo altrui).
+    # Senza attore (prove, stanza «solo» a tavolo libero) passa.
+    def judge_new_game(action, actor)
+      return allow("newGame") unless Table::SEATS.include?(actor)
+      return allow("newGame") if @table.over? || !@table.started?
+
+      refuse("newGame", "la partita è in corso: per ricominciare serve la resa (§2)", "the game is in progress: to start over you have to concede (§2)")
+    end
+
+    # §8.2 — il dado lo tira il tavolo (dal 2026-10-21): la stanza completa
+    # l'azione `roll` col valore, qui se ne verifica la forma — il posto, le
+    # facce fra quelle che il tavolo tira, la chiave del passo, il valore fra
+    # 1 e le facce — e la copia lo ricorda per chiave (roll_key) finché dura
+    # il turno. Si tira per il proprio posto, anche nel turno altrui.
+    def judge_roll(action, actor)
+      seat = action["seat"]
+      return refuse("roll", "si tira per il proprio posto (§8.2)", "you roll for your own seat (§8.2)") if Table::SEATS.include?(actor) && seat != actor
+
+      die = action["die"]
+      return refuse("roll", "il tavolo tira il d6 e il d20, non il d#{die} (§8.2)", "the table rolls the d6 and the d20, not the d#{die} (§8.2)") unless DICE.include?(die)
+
+      value = action["value"]
+      return refuse("roll", "il tiro del d#{die} va da 1 a #{die}: #{value.inspect} non lo è (§8.2)", "a d#{die} roll goes from 1 to #{die}: #{value.inspect} isn't one (§8.2)") unless valid_roll?(value, die)
+
+      allow("roll")
+    end
+
+    # La chiave del tiro di un'azione (gemello: state.ts, rollKey): un
+    # passo d'effetto ha la sua tripla (col seguito), lo schieramento, il
+    # costo a dado e la Furia hanno la carta. Lo stesso passo nello stesso
+    # turno ha lo stesso tiro: non si ripesca un dado.
+    def self.roll_key(action)
+      ref = action["effect"]
+      if ref.is_a?(Hash)
+        follow = ref["follow"].is_a?(String) ? ref["follow"] : ""
+        return "effect|#{ref["source"]}|#{ref["event"]}|#{ref["entering"]}|#{follow}"
+      end
+      case action["t"]
+      when "move" then "deploy|#{action["uid"]}"
+      when "toZone" then "cost|#{action["uid"]}"
+      when "ability" then "fury|#{action["uid"]}"
+      end
+    end
+
+    # Il tiro portato dall'azione è quello del tavolo per questo passo?
+    # (Forma valida E uguale al tiro ricordato per la chiave, con le stesse facce.)
+    def rolled?(action, die)
+      roll = action["roll"]
+      return false unless valid_roll?(roll, die)
+
+      remembered = @table.roll_for(self.class.roll_key(action))
+      remembered.is_a?(Hash) && remembered[:die] == die && remembered[:value] == roll
+    end
+
+    # Il rifiuto per un tiro valido in forma ma non del tavolo.
+    def unrolled(kind, die)
+      refuse(kind, "il d#{die} lo tira il tavolo: l'azione non porta il tiro del tavolo per questo passo (§8.2)", "the d#{die} is rolled by the table: the action doesn't carry the table's roll for this step (§8.2)")
+    end
+
+    # §6.1/§9.1 — ogni pesca: almeno una carta, dal proprio mazzo, non vuoto.
+    def draw_stopped(action, actor)
+      seat = action["seat"]
+      count = action["count"]
+      return refuse("draw", "si pesca almeno una carta (§6.1)", "you draw at least one card (§6.1)") unless count.is_a?(Integer) && count >= 1
+      return refuse("draw", "si pesca dal proprio mazzo (§6.1)", "you draw from your own deck (§6.1)") if Table::SEATS.include?(actor) && seat != actor
+
+      nil
+    end
+
+    # §4/§6.1 — la pesca nuda (senza effetto): la mano iniziale di 6 nell'apertura
+    # (mano vuota, mano non ancora tenuta) e la carta del turno 1 di chi apre
+    # (dopo le tenute, una volta); tutto il resto arriva col cambio di turno.
+    # Con `test` (gli strumenti di prova, gatati dalla stanza) passa.
+    def judge_draw(action)
+      return allow("draw") if action["test"] == true
+
+      seat = action["seat"]
+      count = action["count"]
+      # Dal mazzo vuoto non si pesca a mano (§9.1); un passo d'effetto a
+      # mazzo vuoto resta un passo vuoto, come nei due gemelli.
+      return refuse("draw", "il mazzo è vuoto: non si pesca (§9.1)", "the deck is empty: no draw (§9.1)") if @table.zone_count(seat, "deck").zero?
+      if @table.turn == 1 && @table.phase == "preparazione"
+        opening = @table.opening(seat)
+        if opening && !opening[:kept] && @table.hand_count(seat).zero?
+          return allow("draw") if count == 6
+
+          return refuse("draw", "la mano iniziale è di 6 carte, non #{count} (§4)", "the opening hand is 6 cards, not #{count} (§4)")
+        end
+        return allow("draw") if seat == @table.active && !@table.opening_pending? && count == 1 && !@table.turn_card_drawn?(seat)
+      end
+      refuse("draw", "a mano si pescano solo la mano iniziale e la carta del turno 1: il resto arriva col cambio di turno (§4, §6.1)", "by hand you only draw the opening hand and the turn-1 card: the rest comes with the turn change (§4, §6.1)")
+    end
+
+    # §4 — la mescolata: l'ordine (riempito dalla stanza, dal 2026-10-21) è
+    # una permutazione intera del mazzo del posto; nell'apertura o nel
+    # proprio turno.
+    def judge_shuffle(action, actor)
+      seat = action["seat"]
+      return refuse("shuffle", "si mescola il proprio mazzo (§4)", "you shuffle your own deck (§4)") if Table::SEATS.include?(actor) && seat != actor
+
+      order = action["order"]
+      deck = @table.zone_uids(seat, "deck")
+      unless order.is_a?(Array) && order.sort == deck.sort
+        return refuse("shuffle", "la mescolata riordina tutto il mazzo: l'ordine non è quello del mazzo (§4)", "the shuffle reorders the whole deck: the order isn't that of the deck (§4)")
+      end
+      opening = @table.turn == 1 && @table.phase == "preparazione"
+      return allow("shuffle") if opening || seat == @table.active
+
+      refuse("shuffle", "si mescola nell'apertura o nel proprio turno (§4)", "you shuffle in the opening or on your own turn (§4)")
     end
 
     # §8.2 — «questa Entità non si tappa mai» (statico certificato): il
@@ -772,6 +1045,7 @@ module Rubyfront
         unless roll.is_a?(Integer) && roll.between?(1, faces)
           return refuse("move", "il Rubyfront si schiera tirando il d#{faces}: l'azione non porta un tiro valido (§3.1)", "the Rubyfront is deployed by rolling the d#{faces}: the action carries no valid roll (§3.1)")
         end
+        return unrolled("move", faces) unless rolled?(action, faces)
         return refuse("move", "si paga il numero uscito: #{roll}, non #{paid.is_a?(Integer) ? paid : 0} (§3.1)", "you pay the number rolled: #{roll}, not #{paid.is_a?(Integer) ? paid : 0} (§3.1)") unless paid == roll
       else
         fixed = deployment[:fixed]
@@ -926,6 +1200,7 @@ module Rubyfront
         unless roll.is_a?(Integer) && roll.between?(1, faces)
           return refuse("toZone", "la carta si gioca tirando il d#{faces}: l'azione non porta un tiro valido (§3.2)", "the card is played by rolling the d#{faces}: the action carries no valid roll (§3.2)")
         end
+        return unrolled("toZone", faces) unless rolled?(action, faces)
         paid = action["cost"]
         return refuse("toZone", "si paga il numero uscito: #{roll}, non #{paid.is_a?(Integer) ? paid : 0} (§3.2)", "you pay the number rolled: #{roll}, not #{paid.is_a?(Integer) ? paid : 0} (§3.2)") unless paid == roll
         return refuse("toZone", "il costo a dado non si sconta (§3.2)", "a die cost isn't discounted (§3.2)") if action.key?("discount")
@@ -1065,14 +1340,35 @@ module Rubyfront
     # `fury`, interi non negativi): i PV iniziali sono gli stampati più
     # quelli dell'Ascesa. Qui se ne verifica la forma e il conto; che sia
     # davvero quella del giocatore lo verifica la stanza, che sa chi siede.
-    def judge_load_deck(action)
+    def judge_load_deck(action, actor = nil)
+      # §protocollo — in stanza con nome l'anagrafe è obbligatoria: senza, non si gioca.
+      return refuse("loadDeck", "il tavolo non ha l'anagrafe delle carte: in stanza non si gioca (§protocollo)", "the table has no card index: no play in a room (§protocollo)") if @require_index && @cards.empty?
+
       ascent = action["ascent"]
       unless ascent.nil? || self.class.ascent_shape?(ascent)
         return refuse("loadDeck", "l'Ascesa è un oggetto con hp e fury, interi da 0 a #{ASCENT_MAX} (§3.3)", "the Ascent is an object with hp and fury, integers from 0 to #{ASCENT_MAX} (§3.3)")
       end
 
-      rubyfront = Array(action["cards"]).find do |card|
-        card.is_a?(Hash) && @cards.dig(card["cardId"], :type) == "rubyfront"
+      # §4 — il mazzo si carica al PROPRIO posto (dal 2026-10-21: prima un
+      # client poteva sostituire il mazzo dell'avversario), prima della
+      # partita; a partita in corso resta quello.
+      seat = action["seat"]
+      return refuse("loadDeck", "il mazzo si carica al proprio posto (§4)", "the deck is loaded at your own seat (§4)") if Table::SEATS.include?(actor) && seat != actor
+      return refuse("loadDeck", "il mazzo si carica prima della partita: a partita in corso resta quello (§4)", "the deck is loaded before the game: during the game it stays (§4)") if Table::SEATS.include?(actor) && @table.started? && !@table.over?
+
+      cards = Array(action["cards"])
+      return refuse("loadDeck", "ogni carta del mazzo ha un uid (§4)", "every card of the deck has a uid (§4)") unless cards.all? { |card| card.is_a?(Hash) && UID_SHAPE.call(card["uid"]) }
+      if Table::SEATS.include?(actor)
+        unless cards.all? { |card| card["owner"] == seat && card["uid"].start_with?("#{seat}-") }
+          return refuse("loadDeck", "le carte del mazzo sono del posto che lo carica, con gli uid del posto (§4)", "the deck's cards belong to the seat loading it, with the seat's uids (§4)")
+        end
+      end
+
+      stopped = deck_composition_stopped(action, cards)
+      return stopped if stopped
+
+      rubyfront = cards.find do |card|
+        @cards.dig(card["cardId"], :type) == "rubyfront"
       end
       return no_rule("loadDeck") unless rubyfront
 
@@ -1090,6 +1386,31 @@ module Rubyfront
       refuse("loadDeck", "i Punti Vita iniziali sono quelli stampati sul Rubyfront: #{printed}, non #{given} (§3.1)", "starting Health Points are the ones printed on the Rubyfront: #{printed}, not #{given} (§3.1)")
     end
 
+    # §4 — la composizione del mazzo (dal 2026-10-21): se il tavolo ha
+    # l'indice dei mazzi, il `deckId` dev'essere uno di quelli e le carte
+    # esattamente le sue (stessi id, stesse quantità), tutte nel mazzo salvo
+    # il Rubyfront in Zona di Richiamo, nessuna tappata o coperta. Senza
+    # indice (le prove) la composizione non si giudica.
+    def deck_composition_stopped(action, cards)
+      return nil if @decks.empty?
+
+      deck = @decks[action["deckId"]]
+      return refuse("loadDeck", "il tavolo non conosce il mazzo «#{action["deckId"]}» (§4)", "the table doesn't know the deck “#{action["deckId"]}” (§4)") unless deck
+
+      given = cards.map { |card| card["cardId"] }.tally
+      unless given == deck[:cards]
+        return refuse("loadDeck", "le carte non sono quelle del mazzo «#{action["deckId"]}»: stesse carte, stesse quantità (§4)", "the cards aren't those of the deck “#{action["deckId"]}”: same cards, same quantities (§4)")
+      end
+      cards.each do |card|
+        rubyfront = @cards.dig(card["cardId"], :type) == "rubyfront"
+        whole = rubyfront ? card["zone"] == "field" && card["y"].is_a?(Numeric) && !FRONT_ROW_Y.include?(card["y"]) : card["zone"] == "deck"
+        next if whole && card["tapped"] != true && card["facedown"] != true
+
+        return refuse("loadDeck", "il mazzo si carica intero: tutte le carte nel mazzo, il Rubyfront in Zona di Richiamo (§4)", "the deck is loaded whole: every card in the deck, the Rubyfront in the Recall Zone (§4)")
+      end
+      nil
+    end
+
     # §3.3 — il tetto di ciascun numero dell'Ascesa: un percorso intero non
     # ci arriva; oltre è una forma che il tavolo non conosce.
     ASCENT_MAX = 20
@@ -1101,17 +1422,39 @@ module Rubyfront
         ascent.values.all? { |value| value.is_a?(Integer) && value.between?(0, ASCENT_MAX) }
     end
 
-    def judge_player(action)
-      patch = action["patch"]
-      return no_rule("player") unless patch.is_a?(Hash)
+    # §3.1/§3.2 — i contatori (dal 2026-10-21) li muove il tavolo: i danni
+    # arrivano con la risoluzione, i costi con le carte, le cure e i sigilli
+    # con gli effetti certificati (judge_effect). Una patch nuda dei
+    # contatori ha una sola forma lecita, la spesa del Gettone («può essere
+    # utilizzato in qualsiasi momento», §3.2: un Flusso in più, il Gettone
+    # via), del proprio posto. Gli strumenti di prova (`test`, gatati dalla
+    # stanza all'account di prova) restano ai tetti di sempre. Una patch che
+    # non tocca i contatori (il nome) non è giudicata.
+    COUNTERS = %w[hp flux fluxMax token sealed].freeze
 
+    def judge_player(action, actor = nil)
+      patch = action["patch"]
+      touched = COUNTERS.select { |key| patch.key?(key) }
+      return no_rule("player") if touched.empty?
+
+      seat = action["seat"]
+      return refuse("player", "i contatori che si toccano sono i propri (§3.1)", "the counters you touch are your own (§3.1)") if Table::SEATS.include?(actor) && seat != actor
+      return judge_counter_caps(patch) if action["test"] == true
+
+      if touched.sort == %w[flux token] && patch["token"] == false
+        return refuse("player", "il Gettone è già speso (§3.2)", "the Token is already spent (§3.2)") unless @table.token?(seat)
+        return refuse("player", "il Gettone vale un Flusso: #{@table.flux(seat) + 1}, non #{patch["flux"].inspect} (§3.2)", "the Token is worth one Flux: #{@table.flux(seat) + 1}, not #{patch["flux"].inspect} (§3.2)") unless patch["flux"] == @table.flux(seat) + 1
+
+        return allow("player")
+      end
+      refuse("player", "i contatori li muove il tavolo: danni, costi e cure arrivano dalle azioni (§3.1, §3.2)", "the table moves the counters: damage, costs and heals come from the actions (§3.1, §3.2)")
+    end
+
+    # I tetti dei contatori (§3.1, §3.2), per gli strumenti di prova.
+    def judge_counter_caps(patch)
       hp = patch["hp"]
       flux = patch["flux"]
       flux_max = patch["fluxMax"]
-      # Le regole parlano solo dei contatori: una patch che non li tocca
-      # (nome, mazzo, Gettone da solo) non è giudicata.
-      return no_rule("player") unless hp.is_a?(Numeric) || flux.is_a?(Numeric) || flux_max.is_a?(Numeric)
-
       return refuse("player", "i PV non scendono sotto 0: a 0 la partita è persa (§3.1)", "HP doesn't go below 0: at 0 the game is lost (§3.1)") if hp.is_a?(Numeric) && hp.negative?
       if (flux.is_a?(Numeric) && flux.negative?) || (flux_max.is_a?(Numeric) && flux_max.negative?)
         return refuse("player", "il Flusso non scende sotto 0 (§3.2)", "Flux doesn't go below 0 (§3.2)")
@@ -1137,7 +1480,12 @@ module Rubyfront
     # scartato. Un fine turno è un'azione `turn` che CAMBIA il posto attivo:
     # il contatore ritoccato a mano (active invariato) non è giudicato.
     def judge_turn(action)
-      return no_rule("turn") unless Table::SEATS.include?(action["active"]) && action["active"] != @table.active
+      # §6.5 — il contatore del turno (dal 2026-10-21) avanza di uno e solo
+      # col cambio di posto: prima si poteva riscriverlo a mano.
+      return refuse("turn", "il contatore del turno lo avanza solo il cambio di turno (§6.5)", "the turn counter is advanced only by the turn change (§6.5)") if action["active"] == @table.active
+      unless action["turn"] == @table.turn + 1
+        return refuse("turn", "il turno che viene è il #{@table.turn + 1}, non il #{action["turn"]} (§6.5)", "the coming turn is #{@table.turn + 1}, not #{action["turn"]} (§6.5)")
+      end
 
       # §6.4 — il turno non si chiude sopra un'ondata senza finestra di
       # difesa: dichiarata l'ondata, prima si passa al difensore. Dalla
@@ -1571,6 +1919,10 @@ module Rubyfront
       # §7.2 — accettare e chiudere un passo della catena sono gesti di chi
       # ne ha la parola, di chiunque sia il turno: li giudica judge_chain.
       return nil if %w[pass settle].include?(kind)
+      # §8.2 — il dado si tira per il proprio posto in ogni turno (la Reattiva
+      # del difensore, il ritorno vincolato); §2 — la resa è di chi perde, quando vuole.
+      return nil if kind == "roll" && action["seat"] == actor
+      return nil if kind == "gameOver" && action["reason"] == "concede"
       # §8.2 — il ritorno vincolato è un innesco del proprietario: la carta
       # esce spesso nel turno altrui (muore bloccando), e lui la rimette.
       if kind == "revive"
@@ -1658,8 +2010,9 @@ module Rubyfront
       chain = @table.chain
       return nil unless chain
 
-      # Liberi anche in catena: chat, pixel, apparecchiatura, gli strumenti di prova, e il Gettone.
-      return nil if %w[say loadDeck newGame ready].include?(kind) || self.class.test_tool?(action) || (kind == "move" && !action.key?("cost"))
+      # Liberi anche in catena: chat, pixel, apparecchiatura, gli strumenti di
+      # prova, il Gettone, il dado del tavolo e la resa.
+      return nil if %w[say loadDeck newGame ready roll gameOver].include?(kind) || self.class.test_tool?(action) || (kind == "move" && !action.key?("cost"))
       return nil if kind == "player" && action.dig("patch", "token") == false
 
       top = @table.chain_top
@@ -1766,13 +2119,21 @@ module Rubyfront
     # perde deve avere il mazzo vuoto (§9.1; il tempismo del confine dei
     # turni è del client, che lo decide in endTurn). Chi vince dev'essere
     # un posto, o nessuno nel pareggio.
-    def judge_game_over(action)
+    def judge_game_over(action, actor = nil)
       winner = action["winner"]
       reason = action["reason"]
-      return no_rule("gameOver") unless %w[hp deck draw].include?(reason)
+      # §2 — le ragioni sono chiuse (dal 2026-10-21): PV, mazzo, pareggio, resa.
+      # L'abbandono e il limite li dichiara solo il tavolo (judge_table_action).
+      unless %w[hp deck draw concede].include?(reason)
+        return refuse("gameOver", "la partita finisce per PV, mazzo esaurito, pareggio o resa: «#{reason}» non è una fine (§2)", "the game ends by HP, exhausted deck, draw or concession: “#{reason}” isn't an end (§2)")
+      end
       return refuse("gameOver", "chi vince dev'essere un posto del tavolo (§2)", "the winner must be a seat at the table (§2)") unless winner.nil? || Table::SEATS.include?(winner)
 
       case reason
+      when "concede"
+        loser = Table::SEATS.find { |seat| seat != winner }
+        return refuse("gameOver", "chi vince dev'essere un posto del tavolo (§2)", "the winner must be a seat at the table (§2)") unless winner && loser
+        return refuse("gameOver", "la resa è di chi perde (§2)", "the concession is the loser's (§2)") if Table::SEATS.include?(actor) && actor != loser
       when "draw"
         return refuse("gameOver", "il pareggio automatico vuole entrambi a 0 PV (§9.2)", "an automatic draw needs both at 0 HP (§9.2)") unless winner.nil? && Table::SEATS.all? { |seat| @table.hp(seat) <= 0 }
       when "hp"
@@ -2170,6 +2531,7 @@ module Rubyfront
       if form[:amount] == "human_attackers"
         roll = action["roll"]
         return refuse("player", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+        return unrolled("player", form[:die]) unless rolled?(action, form[:die])
 
         count = attackers_of(seat, "human")
         if in_range?(roll, form[:gain_on])
@@ -2203,6 +2565,7 @@ module Rubyfront
 
       roll = action["roll"]
       return refuse("toZone", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      return unrolled("toZone", form[:die]) unless rolled?(action, form[:die])
       return refuse("toZone", "con #{roll} non si riporta nulla in mano (§8.2)", "with #{roll} nothing returns to hand (§8.2)") unless in_range?(roll, form[:on_roll])
 
       card = @table.card(action["uid"])
@@ -2225,6 +2588,7 @@ module Rubyfront
 
       roll = action["roll"]
       return refuse("toZone", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      return unrolled("toZone", form[:die]) unless rolled?(action, form[:die])
       return refuse("toZone", "con #{roll} nessuno torna sul Fronte (§8.2)", "with #{roll} nobody returns to the Front (§8.2)") unless in_range?(roll, form[:on_roll])
 
       card = @table.card(action["uid"])
@@ -2280,6 +2644,7 @@ module Rubyfront
 
       roll = action["roll"]
       return refuse("refresh", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      return unrolled("refresh", form[:die]) unless rolled?(action, form[:die])
       hit = in_range?(roll, form[:on_roll])
       return refuse("refresh", "la stappata c'è solo con #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)", "the untap comes only with #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)") unless (action["untap"] == true) == hit
 
@@ -2305,6 +2670,7 @@ module Rubyfront
 
       roll = action["roll"]
       return refuse("refresh", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      return unrolled("refresh", form[:die]) unless rolled?(action, form[:die])
       hit = in_range?(roll, form[:on_roll])
       return refuse("refresh", "la stappata c'è solo con #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)", "the untap comes only with #{form[:on_roll][0]}–#{form[:on_roll][1]} (§8.2)") unless (action["untap"] == true) == hit
 
@@ -2349,6 +2715,7 @@ module Rubyfront
       if form[:die]
         roll = action["roll"]
         return refuse("look", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+        return unrolled("look", form[:die]) unless rolled?(action, form[:die])
         return refuse("look", "con #{roll} non si guarda nel mazzo (§8.2)", "with #{roll} you don't look in the deck (§8.2)") unless in_range?(roll, form[:on_roll])
       end
       return refuse("look", "si guardano le prime #{form[:count]} carte, non #{action["count"]} (§8.2)", "you look at the top #{form[:count]} cards, not #{action["count"]} (§8.2)") unless action["count"] == form[:count]
@@ -2566,6 +2933,7 @@ module Rubyfront
       if look[:die]
         roll = action["roll"]
         return refuse("look", "si tira un d#{look[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{look[:die]} is rolled: the action carries no valid roll (§8.2)") unless roll.is_a?(Integer) && roll.between?(1, look[:die])
+        return unrolled("look", look[:die]) unless rolled?(action, look[:die])
 
         # «2 + ceil(tiro/2)», o «tante carte quanto il tiro».
         count = look[:formula] == "result" ? roll : look[:count_base] + (roll + 1) / 2
@@ -3085,6 +3453,7 @@ module Rubyfront
 
       roll = action["roll"]
       return refuse("look", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      return unrolled("look", form[:die]) unless rolled?(action, form[:die])
 
       looked = @table.top_of_deck(seat, form[:count])
       reveal = action["reveal"]
@@ -3292,8 +3661,9 @@ module Rubyfront
 
       roll = action["roll"]
       return refuse(kind, "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
-      fixed = @table.roll_of(ref["source"])
-      return refuse(kind, "il dado si tira una volta: è uscito #{fixed}, non #{roll} (§8.2)", "the die is rolled once: it came up #{fixed}, not #{roll} (§8.2)") if fixed && fixed != roll
+      # I tre passi portano la stessa tripla, quindi la stessa chiave: il
+      # tavolo ha un tiro solo per loro — «il dado si tira una volta».
+      return unrolled(kind, form[:die]) unless rolled?(action, form[:die])
 
       band = lambda do |range|
         in_range?(roll, range) || in_range?(roll, form[:all_on])
@@ -3391,6 +3761,7 @@ module Rubyfront
       if ability[:fury]
         roll = action["roll"]
         return refuse("ability", "la Furia vuole un d20 prima dell'abilità: l'azione non porta un tiro valido (§8.1)", "Fury takes a d20 before the ability: the action carries no valid roll (§8.1)") unless roll.is_a?(Integer) && roll.between?(1, 20)
+        return unrolled("ability", 20) unless rolled?(action, 20)
 
         # §3.3 — i nodi Furia dell'Ascesa abbassano la soglia, mai sotto 2.
         threshold = known[:fury_at][face] || 12
@@ -3764,6 +4135,7 @@ module Rubyfront
       return refuse("toZone", "l'Oggetto va nella propria Zona di Ritiro (§8.2)", "the Object goes into your own Retire Zone (§8.2)") unless action["zone"] == "ritiro"
       roll = action["roll"]
       return refuse("toZone", "si tira un d#{form[:die]}: l'azione non porta un tiro valido (§8.2)", "a d#{form[:die]} is rolled: the action carries no valid roll (§8.2)") unless valid_roll?(roll, form[:die])
+      return unrolled("toZone", form[:die]) unless rolled?(action, form[:die])
       return refuse("toZone", "con #{roll} nessun Oggetto va in Ritiro (§8.2)", "with #{roll} no Object goes to Retire (§8.2)") unless in_range?(roll, form[:on_roll])
 
       seat = @table.controller_of(source)

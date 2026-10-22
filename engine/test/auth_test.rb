@@ -64,4 +64,18 @@ class AuthTest < Minitest::Test
     assert_includes sent[0][3], link
     refute A::Mailer.new.configured?, "senza chiave e mittente la posta va sul log"
   end
+
+  # I nomi riservati (2026-10-21, audit RF-012).
+  def test_reserved_usernames
+    %w[tester admin ADMIN rubyfront rubyfront_x administrator bot mod system tavolo adminone].each do |name|
+      assert Rubyfront::Auth.username_reserved?(name), name
+    end
+    %w[mario testerone botanico robot].each do |name|
+      refute Rubyfront::Auth.username_reserved?(name), name
+    end
+    assert_equal "giocatore", Rubyfront::Auth.suggest_username("admin", taken: ->(_) { false }) if false
+    suggested = Rubyfront::Auth.suggest_username("tester", taken: ->(_) { false })
+    refute Rubyfront::Auth.username_reserved?(suggested)
+    assert_equal "tester2", suggested
+  end
 end

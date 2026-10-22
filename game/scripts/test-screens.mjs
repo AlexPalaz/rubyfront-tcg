@@ -20,7 +20,9 @@ const ROOT = resolve(GAME, "..");
 const out = resolve(process.argv[2] ?? resolve(GAME, "compare/screens"));
 mkdirSync(out, { recursive: true });
 
-const engine = spawn("ruby", ["engine/bin/server"], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
+// I dadi del tavolo a seme (2026-10-21): la prova è ripetibile.
+const seed = 7;
+const engine = spawn("ruby", ["engine/bin/server"], { cwd: ROOT, env: { ...process.env, RUBYFRONT_SEED: String(seed) }, stdio: ["ignore", "pipe", "pipe"] });
 await new Promise((ready, reject) => {
   engine.stdout.on("data", data => String(data).includes("ws://") && ready());
   engine.on("exit", code => reject(new Error(`il tavolo non parte (exit ${code})`)));

@@ -12,11 +12,11 @@
 import { declareAttack as declareAttackVia, attackBonusOf, neverTaps, wornBy } from "./combat.js";
 import { abilityCopy, attackEffects, cardName, cardStats, enterEffects, faceCount, faceKind, getCard, isRubyfront, nexusRequirementCopy, type Deployment } from "./cards.js";
 import type { Ability, AssignForm, Ctx } from "./ctx.js";
-import { turnStartSearches, resolveTurnStartSearch, describeTurnStartSearch, type TurnStartSearchStep, bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, describeStash, enterDisarms, enterRearms, enterStashes, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveStash, stashRef, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type EnterStashStep, type LeaveReturnStep, type Placement, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, enterTaps, enterEmpowers, enterPeeks, describeTap, describeEnterEmpower, describePeek, resolveTap, resolveEnterEmpower, resolvePeek, sinks, type EnterTapStep, type EnterEmpowerStep, type EnterPeekStep, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, rollDie, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
+import { turnStartSearches, resolveTurnStartSearch, describeTurnStartSearch, type TurnStartSearchStep, bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, describeStash, enterDisarms, enterRearms, enterStashes, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveStash, stashRef, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type EnterStashStep, type LeaveReturnStep, type Placement, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, enterTaps, enterEmpowers, enterPeeks, describeTap, describeEnterEmpower, describePeek, resolveTap, resolveEnterEmpower, resolvePeek, sinks, type EnterTapStep, type EnterEmpowerStep, type EnterPeekStep, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
 import { FRONT_SLOT_X, RUBYFRONT_X, SLOT_X, SURFACE_H, SURFACE_W, TILE_H, TILE_W, backRowY, frontRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import type { AutoChooser } from "./session.js";
-import { STACK_STEP, abilityDiscount, chainTop, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, furyThreshold, inPlay, matterSpot, nextWaveOrder, sealedForPlay, seatLabel, stackAt, waveDeclared, zoneCards } from "./state.js";
+import { STACK_STEP, abilityDiscount, chainTop, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, furyThreshold, inPlay, matterSpot, nextWaveOrder, rollKey, sealedForPlay, seatLabel, stackAt, waveDeclared, zoneCards } from "./state.js";
 import { canDiscard } from "./tabs.js";
 import { type CardInstance, type Discount, type EffectRef, type GameState, type SceneRef, type Seat, type ZoneId, otherSeat } from "./types.js";
 
@@ -815,7 +815,9 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         case "look": {
           let roll: number | undefined;
           if (form.die !== null) {
-            roll = rollDie(form.die);
+            const rolled = await ctx.roll(form.die, rollKey({ effect: attackRef(step) }), by);
+            if (rolled === null) break;
+            roll = rolled;
             await view.roll(form.die, roll, t("dice.step", { name, what: t("dice.sift") }));
             if (!inRange(roll, form.onRoll)) {
               ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die, roll, what: msg("roll.nothing") }), by);
@@ -859,7 +861,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         case "heal": {
           const foe = otherSeat(by);
           if (form.who === "static") {
-            const roll = rollDie(form.die ?? 20);
+            const roll = await ctx.roll(form.die ?? 20, rollKey({ effect: attackRef(step) }), by);
+            if (roll === null) break;
             await view.roll(form.die ?? 20, roll, t("dice.step", { name, what: t("dice.heirs") }));
             const count = attackersOf(ctx.state(), by, form.attackers?.race ?? "human", ctx.card).length;
             if (inRange(roll, form.gainOn ?? null)) {
@@ -882,7 +885,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           ctx.log(msg("log.effect.heal", { seat: by, sourceCard: step.source.cardId, n: amount, hp }), by);
           await wait(TRIGGER_TAIL_MS);
           if (form.thenRecall && form.die !== null) {
-            const roll = rollDie(form.die);
+            const roll = await ctx.roll(form.die, rollKey({ effect: attackRef(step, "recall") }), by);
+            if (roll === null) break;
             await view.roll(form.die, roll, t("dice.step", { name, what: t("dice.mend", { lo: form.onRoll?.[0] ?? 0, hi: form.onRoll?.[1] ?? 0 }) }));
             if (!inRange(roll, form.onRoll)) {
               ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die, roll, what: msg("roll.nothing") }), by);
@@ -917,7 +921,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         case "stash": {
           // Dal 2026-09-15: «lancia un d6: con 4–6 puoi mettere un altro
           // Oggetto che controlli nella tua Zona di Ritiro. Se lo fai, pesca».
-          const roll = rollDie(form.die);
+          const roll = await ctx.roll(form.die, rollKey({ effect: attackRef(step, "stash") }), by);
+          if (roll === null) break;
           await view.roll(form.die, roll, t("dice.step", { name, what: t("dice.purge", { lo: form.onRoll[0], hi: form.onRoll[1] }) }));
           if (!inRange(roll, form.onRoll)) {
             ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die, roll, what: msg("roll.nothing") }), by);
@@ -950,7 +955,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           break;
         }
         case "return": {
-          const roll = rollDie(form.die);
+          const roll = await ctx.roll(form.die, rollKey({ effect: attackRef(step) }), by);
+          if (roll === null) break;
           await view.roll(form.die, roll, t("dice.step", { name, what: t("dice.recall", { lo: form.onRoll[0], hi: form.onRoll[1] }) }));
           if (!inRange(roll, form.onRoll)) {
             ctx.log(msg("log.effect.roll", { seat: by, sourceCard: step.source.cardId, die: form.die, roll, what: msg("roll.nothing") }), by);
@@ -1031,7 +1037,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           // arriva con la risoluzione (vigilUntaps). Senza dado non è un
           // passo dell'attacco.
           if (!("die" in form)) break;
-          const roll = rollDie(form.die);
+          const roll = await ctx.roll(form.die, rollKey({ effect: attackRef(step) }), by);
+          if (roll === null) break;
           await view.roll(form.die, roll, t("dice.step", { name, what: t("dice.rally", { lo: form.onRoll[0], hi: form.onRoll[1] }) }));
           const hit = inRange(roll, form.onRoll);
           const passed = await ctx.dispatch({ t: "refresh", seat: by, roll, untap: hit, after: true, effect: attackRef(step) });
@@ -1177,7 +1184,12 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         view.render();
         return false;
       }
-      roll = rollDie(faces);
+      const rolled = await ctx.roll(faces, rollKey({ cost: card.uid }), card.owner);
+      if (rolled === null) {
+        view.render();
+        return false;
+      }
+      roll = rolled;
       await view.roll(faces, roll, t("dice.cost", { name: `«${cardName(card.cardId, ctx.locale())}»` }));
       cost = roll;
     }
@@ -1532,7 +1544,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           break;
         }
         case "search": {
-          const roll = rollDie(form.die);
+          const roll = await ctx.roll(form.die, rollKey({ effect: ref }), by);
+          if (roll === null) break;
           await view.roll(form.die, roll, t("dice.step", { name, what: t("dice.search") }));
           const live = pendingResolve(ctx.state(), step.source, ctx.card).find(candidate => candidate.form === form) ?? step;
           const looked = live.looked;
@@ -1633,7 +1646,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           break;
         }
         case "fortune": {
-          const roll = rollDie(form.die);
+          const roll = await ctx.roll(form.die, rollKey({ effect: ref }), by);
+          if (roll === null) break;
           await view.roll(form.die, roll, t("dice.step", { name, what: t("dice.fortune") }));
           const all = inRange(roll, form.allOn);
           view.hold(true);
@@ -1826,7 +1840,12 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         giveBack();
         return;
       }
-      roll = 1 + Math.floor(Math.random() * deployment.die);
+      const rolled = await ctx.roll(deployment.die, rollKey({ deploy: card.uid }), card.owner);
+      if (rolled === null) {
+        giveBack();
+        return;
+      }
+      roll = rolled;
       cost = roll;
       await view.roll(deployment.die, roll, t("dice.deploy"));
     } else {
@@ -2034,7 +2053,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     view.light(step.source.uid, true);
     view.hold(true);
     try {
-      const roll = rollDie(step.refresh.die);
+      const roll = await ctx.roll(step.refresh.die, rollKey({ effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid } }), controllerOf(step.source));
+      if (roll === null) return;
       await view.roll(step.refresh.die, roll, t("dice.step", { name, what: t("dice.rally", { lo: step.refresh.onRoll[0], hi: step.refresh.onRoll[1] }) }));
       const passed = await resolveRefresh(ctx, step, roll);
       await wait(passed ? TRIGGER_TAIL_MS : 0);
@@ -2124,7 +2144,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     if (ability.fury) {
       // §3.3 — l'Ascesa del proprietario abbassa la soglia, mai sotto 2.
       const threshold = furyThreshold(ctx.state(), card.owner, ctx.card(card.cardId).furyAt[card.face] ?? 12);
-      roll = 1 + Math.floor(Math.random() * 20);
+      roll = await ctx.roll(20, rollKey({ fury: card.uid }), card.owner);
+      if (roll === null) return false;
       await view.roll(20, roll, t("dice.fury", { name: copy.name, n: threshold }));
       fail = roll < threshold;
     }
@@ -2208,7 +2229,11 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     // carte discende dal tiro.
     let step = first;
     if (first.look.die !== null) {
-      const roll = 1 + Math.floor(Math.random() * first.look.die);
+      const roll = await ctx.roll(first.look.die, rollKey({ effect: ref ?? { source: first.source.uid, event: "on_enter_field", entering: first.source.uid } }), by);
+      if (roll === null) {
+        view.light(first.source.uid, false);
+        return;
+      }
       await view.roll(first.look.die, roll, t("dice.look", { name }));
       step = lookAfterRoll(ctx.state(), first.source, first.look, roll, ctx.card);
     }

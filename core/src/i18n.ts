@@ -409,6 +409,17 @@ const M: Record<string, { it: string; en: string }> = {
   "stop.ref": { it: "Manuale · §{ref}", en: "Manual · §{ref}" },
   "stop.default": { it: "l'azione «{action}» viola una regola del manuale", en: "the action “{action}” breaks a rule of the manual" },
   "stop.absent": { it: "il tavolo non risponde: in stanza si gioca solo con l'arbitro collegato, riprova fra un momento", en: "the table isn't answering: in a room you only play with the referee connected, try again in a moment" },
+  "stop.restarted": { it: "il tavolo è ripartito: la partita in corso è andata persa, si ricomincia (§protocollo)", en: "the table restarted: the game in progress was lost, starting over (§protocollo)" },
+  "stop.refused.rooms_full": { it: "il tavolo è pieno: riprova fra poco (§protocollo)", en: "the table is full: try again shortly (§protocollo)" },
+  "stop.refused.replaced": { it: "sei entrato da un'altra scheda: questa si chiude (§protocollo)", en: "you joined from another tab: this one closes (§protocollo)" },
+  "stop.ref.protocol": { it: "Tavolo · protocollo", en: "Table · protocol" },
+  "over.concede": { it: "resa (§2)", en: "concession (§2)" },
+  "over.forfeit": { it: "abbandono: il posto è rimasto vuoto oltre la grazia (§2)", en: "forfeit: the seat stayed empty past the grace period (§2)" },
+  "over.limit": { it: "partita troppo lunga: il tavolo l'ha chiusa (§protocollo)", en: "game too long: the table closed it (§protocollo)" },
+  "dice.foe": { it: "{name} · il dado dell'avversario", en: "{name} · the opponent's die" },
+  "dice.fury.foe": { it: "Furia dell'avversario", en: "Opponent's Fury" },
+  "account.verify.resend": { it: "Rimanda il link di conferma", en: "Resend the confirmation link" },
+  "account.verify.sent": { it: "Il link di conferma è partito: controlla la posta.", en: "The confirmation link is on its way: check your mail." },
 
   // ---- chat
   "chat.placeholder": { it: "Scrivi…", en: "Type…" },

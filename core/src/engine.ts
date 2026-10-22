@@ -32,6 +32,10 @@ export interface EngineVerdict {
   reason?: string;
   /** Lo stesso motivo in inglese: il client mostra quello della lingua del tavolo. */
   reason_en?: string;
+  /** L'azione COMPLETATA dalla stanza (2026-10-21): il tiro del dado, l'ordine
+      della mescolata, l'ordine del mazzo, chi apre — e la vista del nostro
+      posto (le pescate altrui per nome). Chi ha chiesto applica questa. */
+  applied?: Action;
 }
 
 /** Il motivo nella lingua del tavolo (l'italiano è il ripiego: è la lingua del manuale). */
@@ -45,20 +49,24 @@ export interface EngineHandlers {
   onWelcome(version: string, rules: string[]): void;
   /** Il giornale della stanza (solo con nome): la lavagna si ricostruisce da qui. */
   onJournal(entries: JournalEntry[]): void;
-  /** Un'azione dell'avversario, già approvata dal tavolo. */
-  onAction(action: Action, from: Seat): void;
+  /** Un'azione dell'avversario, già approvata dal tavolo — o del tavolo stesso (`from` null: l'abbandono, il limite). */
+  onAction(action: Action, from: Seat | null): void;
   /** La segnalazione WebRTC della chat vocale (voice.ts). */
   onRtc(payload: unknown, from: Seat): void;
-  /** Il posto assegnato dal tavolo all'ingresso (2026-09-23): può non essere quello chiesto. */
-  onSeat(seat: Seat): void;
+  /** Il posto assegnato dal tavolo all'ingresso (2026-09-23): può non essere quello chiesto. `token` (2026-10-21) lo riserva a noi: da conservare per il rientro. */
+  onSeat(seat: Seat, token?: string): void;
   /** La stanza ha già due giocatori: il tavolo ha chiuso. */
   onRoomFull(room: string): void;
+  /** Il tavolo non ci fa entrare o ci congeda (2026-10-21): `rooms_full`, `replaced`. */
+  onRefused?(code: string, reason: string): void;
   /** L'atrio ha trovato l'avversario (2026-09-23): ci si sposta in quella stanza, a quel posto. */
   onMatched(room: string, seat: Seat): void;
   /** L'utenza (2026-09-20): chi sono per il tavolo dopo un accesso, o null col motivo del rifiuto; `token` è la sessione da conservare (2026-09-22). */
   onMe(player: Player | null, reason?: string, token?: string): void;
   /** Una mail confermata da un link aperto senza essere seduti come quel giocatore (2026-09-22). */
   onVerified?(username: string): void;
+  /** Un link di conferma nuovo è partito (2026-10-21). */
+  onVerifySent?(): void;
   /** La progressione di un Rubyfront aggiornata (2026-09-23), o rifiutata col motivo. */
   onProgress?(update: ProgressUpdate): void;
   onProgressRefused?(card: string, reason: string): void;
@@ -133,6 +141,10 @@ export interface EngineLink {
   save(key: string, value: unknown): Promise<boolean>;
   /** Un dato del giocatore, o null se non c'è (o senza accesso, o filo assente). */
   load(key: string): Promise<unknown>;
+  /** Un link di conferma nuovo per la mail (2026-10-21): la risposta in `onVerifySent`, o in `onMe` col motivo. */
+  resendVerification(): boolean;
+  /** Il token del posto che il tavolo ci ha dato (2026-10-21), o vuoto. */
+  seatToken(): string;
   close(): void;
   status(): EngineStatus;
 }
@@ -160,7 +172,12 @@ export function defaultEngineUrl(page: { protocol: string; hostname: string }, o
   return override || (page.protocol === "https:" ? PRODUCTION_ENGINE : `ws://${page.hostname || "localhost"}:8788`);
 }
 
-export function connectEngine(engineUrl: string, room: string, seat: Seat, handlers: EngineHandlers): EngineLink {
+export interface EngineOptions {
+  /** Il token del posto (2026-10-21), se la stanza ce l'ha già dato: riprende il nostro posto. */
+  token?: string;
+}
+
+export function connectEngine(engineUrl: string, room: string, seat: Seat, handlers: EngineHandlers, options: EngineOptions = {}): EngineLink {
   let socket: WebSocket | null = null;
   let status: EngineStatus = "offline";
   let peers = 0;
@@ -168,8 +185,14 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
   let closed = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let seq = 0;
+  let token = options.token ?? "";
   /** I giudizi in attesa di verdetto, per seq. Il timer è l'arbitro muto. */
   const pending = new Map<number, { verdict: (verdict: EngineVerdict | null) => void; timer: ReturnType<typeof setTimeout> }>();
+  /** Le risposte attese ai salvataggi e alle letture, per numero: anche loro
+      cadono col filo (2026-10-21, audit RF-022), non aspettano il timer. */
+  const stored = new Map<number, { resolve: (ok: boolean) => void; timer: ReturnType<typeof setTimeout> }>();
+  const loaded = new Map<number, { resolve: (value: unknown) => void; timer: ReturnType<typeof setTimeout> }>();
+  let dataSeq = 0;
 
   const settle = (id: number, verdict: EngineVerdict | null): void => {
     const entry = pending.get(id);
@@ -177,6 +200,29 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
     pending.delete(id);
     clearTimeout(entry.timer);
     entry.verdict(verdict);
+  };
+
+  const settleStored = (id: number, ok: boolean): void => {
+    const entry = stored.get(id);
+    if (!entry) return;
+    stored.delete(id);
+    clearTimeout(entry.timer);
+    entry.resolve(ok);
+  };
+
+  const settleLoaded = (id: number, value: unknown): void => {
+    const entry = loaded.get(id);
+    if (!entry) return;
+    loaded.delete(id);
+    clearTimeout(entry.timer);
+    entry.resolve(value);
+  };
+
+  /** Tutto ciò che aspetta il tavolo cade: giudizi, salvataggi, letture. */
+  const settleAll = (): void => {
+    for (const id of [...pending.keys()]) settle(id, null);
+    for (const id of [...stored.keys()]) settleStored(id, false);
+    for (const id of [...loaded.keys()]) settleLoaded(id, null);
   };
 
   const setStatus = (next: EngineStatus): void => {
@@ -198,6 +244,7 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
       const url = new URL(engineUrl);
       url.searchParams.set("room", room);
       url.searchParams.set("seat", seat);
+      if (token) url.searchParams.set("token", token);
       next = new WebSocket(url.href);
     } catch {
       schedule();
@@ -227,7 +274,8 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
         | { t: "verified"; username: string }
         | { t: "progress"; card: string; ok?: boolean; reason?: string; reason_en?: string; xp?: number; level?: number; path?: string[]; loadout?: Loadout; gained?: number; outcome?: Outcome }
         | { t: "saved"; seq?: number; key: string; ok: boolean }
-        | { t: "data"; seq?: number; key: string; value: unknown };
+        | { t: "data"; seq?: number; key: string; value: unknown }
+        | { t: "verify_sent" };
       switch (message.t) {
         case "me":
           handlers.onMe(message.player ?? null, lang() === "en" ? (message.reason_en ?? message.reason) : message.reason, message.token);
@@ -239,18 +287,15 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
           if (message.ok === false) handlers.onProgressRefused?.(message.card, (lang() === "en" ? message.reason_en : message.reason) ?? message.reason ?? "");
           else handlers.onProgress?.({ card: message.card, xp: message.xp ?? 0, level: message.level ?? 1, path: message.path ?? [], loadout: message.loadout ?? { rubyfront: [], nexus: [] }, ...(message.gained !== undefined ? { gained: message.gained } : {}), ...(message.outcome ? { outcome: message.outcome } : {}) });
           return;
-        case "saved": {
-          const waiting = message.seq !== undefined ? stored.get(message.seq) : undefined;
-          if (message.seq !== undefined) stored.delete(message.seq);
-          waiting?.(message.ok === true);
+        case "saved":
+          if (message.seq !== undefined) settleStored(message.seq, message.ok === true);
           return;
-        }
-        case "data": {
-          const waiting = message.seq !== undefined ? loaded.get(message.seq) : undefined;
-          if (message.seq !== undefined) loaded.delete(message.seq);
-          waiting?.(message.value ?? null);
+        case "data":
+          if (message.seq !== undefined) settleLoaded(message.seq, message.value ?? null);
           return;
-        }
+        case "verify_sent":
+          handlers.onVerifySent?.();
+          return;
         case "engine": {
           // Le regole nella lingua del tavolo (l'italiano è il ripiego).
           const rules = lang() === "en" ? (message.rules_en ?? message.rules) : message.rules;
@@ -275,13 +320,22 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
           handlers.onStatus(status, peers);
           return;
         case "seat":
-          handlers.onSeat(message.seat);
+          // Il token del posto (2026-10-21): da qui in poi ogni riconnessione lo porta.
+          if (typeof message.token === "string" && message.token) token = message.token;
+          handlers.onSeat(message.seat, typeof message.token === "string" ? message.token : undefined);
           return;
         case "room_full":
           // Il tavolo chiude subito dopo: non si riprova, la stanza è di altri due.
           closed = true;
           handlers.onRoomFull(message.room ?? room);
           return;
+        case "refused": {
+          // `rooms_full` e `replaced` chiudono per sempre questo filo: non si riprova.
+          if (message.code === "rooms_full" || message.code === "replaced") closed = true;
+          const reason = (lang() === "en" ? message.reason_en : message.reason) ?? message.reason ?? message.code;
+          handlers.onRefused?.(message.code, reason);
+          return;
+        }
         case "matched":
           handlers.onMatched(message.room, message.seat);
           return;
@@ -293,9 +347,9 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
     const drop = (): void => {
       if (socket === next) socket = null;
       peers = 0;
-      // Il filo è caduto: i giudizi appesi non avranno risposta — si
-      // chiudono subito come arbitro muto, senza aspettare i timeout.
-      for (const id of [...pending.keys()]) settle(id, null);
+      // Il filo è caduto: i giudizi, i salvataggi e le letture appesi non
+      // avranno risposta — si chiudono subito, senza aspettare i timeout.
+      settleAll();
       schedule();
     };
     next.addEventListener("close", drop);
@@ -315,11 +369,6 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
   }
 
   open();
-
-  /** Le risposte attese ai salvataggi e alle letture, per numero. */
-  const stored = new Map<number, (ok: boolean) => void>();
-  const loaded = new Map<number, (value: unknown) => void>();
-  let dataSeq = 0;
 
   return {
     login(credentials) {
@@ -351,10 +400,7 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
       const id = dataSeq;
       if (!send({ t: "save", seq: id, key, value })) return Promise.resolve(false);
       return new Promise(resolve => {
-        stored.set(id, resolve);
-        setTimeout(() => {
-          if (stored.delete(id)) resolve(false);
-        }, JUDGE_TIMEOUT_MS);
+        stored.set(id, { resolve, timer: setTimeout(() => settleStored(id, false), JUDGE_TIMEOUT_MS) });
       });
     },
     load(key) {
@@ -362,12 +408,13 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
       const id = dataSeq;
       if (!send({ t: "load", seq: id, key })) return Promise.resolve(null);
       return new Promise(resolve => {
-        loaded.set(id, resolve);
-        setTimeout(() => {
-          if (loaded.delete(id)) resolve(null);
-        }, JUDGE_TIMEOUT_MS);
+        loaded.set(id, { resolve, timer: setTimeout(() => settleLoaded(id, null), JUDGE_TIMEOUT_MS) });
       });
     },
+    resendVerification() {
+      return send({ t: "verify_resend" });
+    },
+    seatToken: () => token,
     judge(action, actor, verdict) {
       seq += 1;
       const id = seq;
@@ -398,7 +445,7 @@ export function connectEngine(engineUrl: string, room: string, seat: Seat, handl
     close() {
       closed = true;
       clearTimeout(timer);
-      for (const id of [...pending.keys()]) settle(id, null);
+      settleAll();
       socket?.close();
       socket = null;
       setStatus("offline");

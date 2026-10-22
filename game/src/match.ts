@@ -26,7 +26,7 @@ import { t } from "@rubyfront/core/i18n";
 import { createSession, type Session, type SessionStore, type SessionView } from "@rubyfront/core/session";
 import { abilityDiscount, openingPending, seatLabel } from "@rubyfront/core/state";
 import { endPhase } from "@rubyfront/core/turn";
-import type { Action, SceneRef, Seat } from "@rubyfront/core/types";
+import type { Action, GameState, SceneRef, Seat } from "@rubyfront/core/types";
 import { Director } from "./effects/director";
 import type { Stage } from "./stage.js";
 import { OUTCOME_MUSIC, TABLE_MUSIC, playSound, startMusic, stopMusic, unlockSound } from "./sound";
@@ -218,6 +218,15 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     // La pesca non suona qui: suona la carta quando compare in mano (table.onHandEntry), a tempo con lei.
   };
 
+  /** L'etichetta del dado altrui, dalla chiave del passo (state.ts, rollKey): lo schieramento, la Furia, o la carta della fonte. */
+  const foeDiceLabel = (key: string, state: GameState): string => {
+    const [kind, uid] = key.split("|");
+    if (kind === "deploy") return t("dice.deploy");
+    if (kind === "fury") return t("dice.fury.foe");
+    const card = uid ? state.cards[uid] : undefined;
+    return t("dice.foe", { name: card ? cardName(card.cardId, locale) : "?" });
+  };
+
   /** «Mostrala all'avversario»: la carta che l'altro rivela da uno sguardo nel mazzo si vede anche qui. */
   const reveal = (action: Action): void => {
     if (action.t !== "look" || !action.reveal) return;
@@ -340,11 +349,9 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
       }
     }
     if ((action.t === "draw" || action.t === "look") && action.effect) flash(action.effect.source);
-    if (action.t === "look" && action.roll !== undefined && action.effect) {
-      const source = state.cards[action.effect.source];
-      const look = source ? cardStats(source.cardId).enterLooks.find(entry => entry.die !== null) : undefined;
-      if (source && look?.die) void dice.roll(look.die, action.roll, t("dice.look", { name: cardName(source.cardId, locale) }));
-    }
+    // Il dado dell'avversario (2026-10-21): lo tira il tavolo e arriva come
+    // azione `roll`, prima del passo che lo porta — si anima qui, una volta.
+    if (action.t === "roll" && action.value !== undefined) void dice.roll(action.die, action.value, foeDiceLabel(action.for, state));
     let fly: (() => void) | null = null;
     if (action.t === "control") {
       table.strike(action.uid, TRIGGER_LEAD_MS + FLY_MS);
@@ -364,11 +371,6 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
         table.strike(action.uid, TRIGGER_LEAD_MS + FLY_MS);
         fly = flights.toPile(action.uid, action.zone === "abisso" ? "abisso" : "ritiro");
       }
-    }
-    // Il tiro dell'avversario si vede anche qui: la carta scende insieme, il momento è lo stesso.
-    if (action.t === "move" && action.roll !== undefined) {
-      const die = cardStats(state.cards[action.uid]?.cardId ?? "").deployment?.die ?? 6;
-      void dice.roll(die, action.roll, t("dice.deploy"));
     }
     if (action.t === "resolve") fly = resolution(action);
     const effects = director?.before(action);

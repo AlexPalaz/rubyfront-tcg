@@ -13,6 +13,7 @@ function table(state: GameState, governs: Seat[] = ["a"]): Ctx {
   return {
     state: () => state,
     dispatch: () => Promise.resolve(true),
+    roll: () => Promise.resolve(1),
     seat: () => "a",
     controls: seat => governs.includes(seat),
     arbitrated: () => true,

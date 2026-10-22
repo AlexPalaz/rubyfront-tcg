@@ -214,7 +214,8 @@ class TableTest < Minitest::Test
     @table.apply({ "t" => "turn", "turn" => 7, "active" => "a" })
     assert @table.card("a-1")[:tapped]
     assert @table.wave_declared?
-    assert_equal 7, @table.turn
+    # §6.5 (dal 2026-10-21): il contatore avanza solo col cambio di posto. Gemello: state.test.ts.
+    assert_equal 1, @table.turn
   end
 
   # --- il Flusso (§3.2), come lo conta il client -----------------------------
@@ -882,5 +883,127 @@ class TableBonusTest < Minitest::Test
     @table.apply({ "t" => "toZone", "uid" => "e", "zone" => "abisso" })
     @table.apply({ "t" => "revive", "uid" => "e", "x" => 821, "y" => 1260, "z" => 5, "object" => "p" })
     assert_equal 3, @table.card("e")[:entered], "uscita e tornata nello stesso turno: entra adesso"
+  end
+
+  # --- Il caso lo tira il tavolo (§8.2, dal 2026-10-21) — gemello: state.test.ts
+
+  def test_roll_remembers_the_tables_roll_by_key_and_turn_change_forgets_it
+    @table.apply({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "cost|a-1", "value" => 4 })
+    assert_equal({ die: 6, value: 4 }, @table.roll_for("cost|a-1"))
+    @table.apply({ "t" => "roll", "seat" => "a", "die" => 20, "for" => "fury|rf", "value" => 17 })
+    assert_equal 17, @table.roll_for("fury|rf")[:value]
+    assert_equal 4, @table.roll_for("cost|a-1")[:value]
+    @table.apply({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "deploy|rf" })
+    assert_nil @table.roll_for("deploy|rf"), "senza valore non si annota"
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "a" })
+    assert_equal 4, @table.roll_for("cost|a-1")[:value], "il posto invariato non è un cambio di turno"
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_nil @table.roll_for("cost|a-1")
+    @table.apply({ "t" => "roll", "seat" => "b", "die" => 6, "for" => "cost|b-1", "value" => 2 })
+    @table.apply({ "t" => "newGame", "active" => "a" })
+    assert_nil @table.roll_for("cost|b-1")
+  end
+
+  # --- Le viste proiettate (room.rb, project) — gemello: state.test.ts
+
+  def hidden_deck(seat, count)
+    cards = (1..count).map { |serial| { "uid" => "#{seat}-#{serial}", "owner" => seat, "zone" => "deck" } }
+    { "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards }
+  end
+
+  def deck_for(seat, count)
+    cards = (1..count).map { |serial| { "uid" => "#{seat}-#{serial}", "owner" => seat, "zone" => "deck", "order" => serial } }
+    { "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards }
+  end
+
+  def test_load_deck_without_identity_or_order_loads_hidden_cards
+    @table.apply(hidden_deck("b", 3))
+    deck = @table.zone_uids("b", "deck")
+    assert_equal 3, deck.size
+    assert deck.all? { |uid| @table.card(uid)[:card_id].nil? && @table.card(uid)[:order].zero? }
+    assert_equal({ mulligans: 0, kept: false }, @table.opening("b"))
+    assert_equal({ owner: "b", zone: "deck", card_id: nil }, @table.card_facts["b-1"])
+  end
+
+  def test_shuffle_without_order_moves_nothing
+    @table.apply(deck_for("a", 3))
+    before = @table.zone_uids("a", "deck")
+    @table.apply({ "t" => "shuffle", "seat" => "a" })
+    assert_equal before, @table.zone_uids("a", "deck")
+  end
+
+  def test_draw_with_drawn_takes_exactly_those_cards_in_the_named_order
+    @table.apply(hidden_deck("b", 4))
+    @table.apply({ "t" => "draw", "seat" => "b", "count" => 2, "drawn" => %w[b-3 b-1] })
+    assert_equal %w[b-3 b-1], @table.zone_uids("b", "hand")
+    assert_equal %w[b-2 b-4], @table.zone_uids("b", "deck").sort
+    @table.apply({ "t" => "draw", "seat" => "b", "count" => 1, "drawn" => %w[a-9 b-3] })
+    assert_equal 2, @table.hand_count("b"), "un uid che non è nel mazzo di quel posto non si pesca"
+  end
+
+  def test_mulligan_without_order_returns_the_hand_to_the_bottom_and_draws_the_named
+    @table.apply(hidden_deck("b", 8))
+    @table.apply({ "t" => "draw", "seat" => "b", "count" => 6, "drawn" => %w[b-1 b-2 b-3 b-4 b-5 b-6] })
+    @table.apply({ "t" => "mulligan", "seat" => "b", "drawn" => %w[b-7 b-8 b-1 b-2 b-3 b-4] })
+    assert_equal %w[b-7 b-8 b-1 b-2 b-3 b-4], @table.zone_uids("b", "hand")
+    assert_equal %w[b-5 b-6], @table.zone_uids("b", "deck").sort
+    assert_equal({ mulligans: 1, kept: false }, @table.opening("b"))
+  end
+
+  def test_turn_with_drawn_draws_the_named_card_for_the_incoming_seat
+    @table.apply(hidden_deck("b", 3))
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b", "drawn" => ["b-2"] })
+    assert_equal ["b-2"], @table.zone_uids("b", "hand")
+    assert_equal 2, @table.turn
+  end
+
+  def test_look_with_looked_and_identities_reveal_before_applying
+    @table.apply(hidden_deck("b", 4))
+    effect = { "source" => "b-1", "event" => "on_enter_field", "entering" => "b-1" }
+    @table.apply({ "t" => "look", "seat" => "b", "count" => 2, "reveal" => "b-3", "looked" => %w[b-3 b-4], "effect" => effect, "identities" => { "b-3" => "RBF-010" } })
+    assert_equal "hand", @table.card("b-3")[:zone]
+    assert_equal "RBF-010", @table.card("b-3")[:card_id]
+    assert_equal "deck", @table.card("b-4")[:zone]
+    assert_nil @table.card("b-4")[:card_id]
+  end
+
+  def test_identities_do_not_touch_known_or_missing_cards
+    @table.apply(deck_for("a", 2))
+    @table.apply({ "t" => "say", "entry" => {}, "identities" => { "a-1" => "RBF-099", "zz" => "RBF-001" } })
+    assert_equal "RBF-099", @table.card("a-1")[:card_id], "il mazzo di prova non ha identità (nil): la nota la prende"
+    assert_nil @table.card("zz")
+    @table.apply({ "t" => "say", "entry" => {}, "identities" => { "a-1" => "RBF-001", "a-2" => 7 } })
+    assert_equal "RBF-099", @table.card("a-1")[:card_id], "una carta già nota non cambia"
+    assert_nil @table.card("a-2")[:card_id], "un'identità che non è una stringa non si prende"
+  end
+
+  def test_turn_card_is_remembered_once_for_the_starter
+    @table.apply(deck_for("a", 8))
+    @table.apply(deck_for("b", 8))
+    @table.apply({ "t" => "draw", "seat" => "a", "count" => 6 })
+    refute @table.turn_card_drawn?("a"), "la mano iniziale non è la carta del turno"
+    @table.apply({ "t" => "keep", "seat" => "a" })
+    @table.apply({ "t" => "draw", "seat" => "b", "count" => 6 })
+    @table.apply({ "t" => "keep", "seat" => "b" })
+    refute @table.turn_card_drawn?("a")
+    @table.apply({ "t" => "draw", "seat" => "a", "count" => 1 })
+    assert @table.turn_card_drawn?("a")
+    refute @table.turn_card_drawn?("b")
+  end
+
+  def test_started_means_both_decks_kept_or_a_later_turn
+    refute @table.started?
+    @table.apply(deck_for("a", 3))
+    @table.apply({ "t" => "draw", "seat" => "a", "count" => 1 })
+    @table.apply({ "t" => "keep", "seat" => "a" })
+    refute @table.started?, "B non ha ancora il mazzo"
+    @table.apply(deck_for("b", 3))
+    refute @table.started?
+    @table.apply({ "t" => "draw", "seat" => "b", "count" => 1 })
+    @table.apply({ "t" => "keep", "seat" => "b" })
+    assert @table.started?
+    fresh = Rubyfront::Table.new
+    fresh.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert fresh.started?
   end
 end

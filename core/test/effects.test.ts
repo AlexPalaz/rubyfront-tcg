@@ -272,6 +272,7 @@ describe("resolveEnter", () => {
         if (passed) sent.push(action);
         return Promise.resolve(passed);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -338,6 +339,7 @@ describe("enterMoves", () => {
         sent.push(action);
         return Promise.resolve(true);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -380,6 +382,7 @@ describe("enterMoves", () => {
         sent.push(action);
         return Promise.resolve(true);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -455,6 +458,7 @@ describe("enterReturns", () => {
         sent.push(action);
         return Promise.resolve(true);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -481,6 +485,7 @@ describe("enterReturns", () => {
         sent.push(action);
         return Promise.resolve(true);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -530,6 +535,7 @@ describe("enterLooks", () => {
         sent.push(action);
         return Promise.resolve(true);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -624,6 +630,7 @@ describe("disarmo, riarmo e ritorno vincolato (§8.2, dal 2026-09-10)", () => {
         sent.push(action);
         return Promise.resolve(true);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -648,6 +655,7 @@ describe("enterControls", () => {
         sent.push(action);
         return Promise.resolve(true);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -746,6 +754,7 @@ describe("returnsFor on_attack", () => {
         sent.push(action);
         return Promise.resolve(true);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -772,6 +781,7 @@ describe("attackDraws", () => {
         if (passed) sent.push(action);
         return Promise.resolve(passed);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -1393,6 +1403,7 @@ describe("lo scarto d'Oggetto all'ingresso e all'attacco (§8.2, dal 2026-09-15)
         sent.push(action);
         return Promise.resolve(true);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -1483,6 +1494,7 @@ describe("turnStartSearches", () => {
         live = apply(live, action);
         return Promise.resolve(true);
       },
+      roll: (die) => Promise.resolve(die),
       seat: () => "a",
       controls: seat => seat === "a",
       arbitrated: () => true,
@@ -1496,8 +1508,9 @@ describe("turnStartSearches", () => {
     expect(describeTurnStartSearch(step, facts)).toMatch(/cerca nel mazzo/);
     expect(await resolveTurnStartSearch(ctx, step, step.candidates[0]!)).toBe(true);
     expect(sent[0]).toEqual({ t: "toZone", uid: "d1", zone: "hand", effect: { source: "sco", event: "on_turn_start", entering: "turn:3" } });
-    expect(sent[1]?.t).toBe("shuffle");
-    expect([...((sent[1] as { order: string[] }).order)].sort()).toEqual(["d2", "d3"]);
+    // L'ordine lo riempie il tavolo (dal 2026-10-21): l'azione viaggia senza, col posto che mescola.
+    expect(sent[1]).toEqual({ t: "shuffle", seat: "a" });
+    expect(zoneCards(live, "a", "deck").map(card => card.uid).sort()).toEqual(["d2", "d3"]);
   });
 });
 

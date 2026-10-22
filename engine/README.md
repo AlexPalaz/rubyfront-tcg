@@ -62,7 +62,8 @@ Regole collegate finora:
   è soddisfatto dichiara di essere pronto; quando entrambi hanno
   dichiarato, la partita comincia». Due azioni nuove, gemelle in
   `state.ts` e `table.rb`: `mulligan {seat, order}` (tutta la mano nel
-  mazzo, il mazzo nell'ordine dato — il caso lo tira il client, l'engine
+  mazzo, il mazzo nell'ordine dato — il caso lo tira la STANZA (dal
+  2026-10-21, `Room#complete`), l'engine
   verifica che sia una permutazione di mano e mazzo di quel posto — poi 6
   carte; al terzo la mano si tiene da sé) e `keep {seat}` («pronto»). Il
   tavolo non ha un tempo «prima del turno 1»: l'apertura vive nel turno 1
@@ -394,9 +395,11 @@ Regole collegate finora:
   (`spawn`) e una patch dei contatori marcata `test: true` (un Flusso in
   più, i PV a zero per finire subito: `Engine.test_tool?`). Non hanno turno
   né catena, e la stanza (`Room#judge`) li accetta **solo dal posto
-  degli account di prova** (`attach(seat, tester:)`; la lista dei nomi
-  utente è `RUBYFRONT_TEST_USERS`, di base «tester,alexpalaz», e la busta
-  `me` porta `tester: true` a chi c'è dentro); a chiunque altro
+  degli account di prova** (`attach(seat, tester:)`; la lista è per **id
+  di giocatore**, `RUBYFRONT_TEST_IDS`, vuota di default — dal 2026-10-21,
+  audit: prima erano nomi utente che chiunque poteva registrare — e la busta
+  `me` porta `tester: true` a chi c'è dentro; i nomi di sistema, «tester»
+  compreso, non si registrano); a chiunque altro
   risponde un rifiuto. La fine per PV che ne segue passa dal solito
   `gameOver`, verificato sui PV della copia.
 - **§2/§9 Fine della partita** — la dichiara il client che l'ha vista
@@ -585,8 +588,8 @@ Regole collegate finora:
   turno), la Potenza in campo nella risoluzione (stampata più bonus) e la
   **Vendetta** (§8.1, stampata o concessa: chi blocca con Vendetta e
   supera l'attaccante lo uccide). Limiti dichiarati: il caso lo tira
-  sempre il client, l'engine verifica il tiro e la soglia, non la
-  fortuna; gli statici «+1 per ogni altro Umano», «+1 alle
+  la stanza (dal 2026-10-21: l'azione `roll`, una chiave per passo),
+  l'engine verifica che il tiro sia quello del tavolo e la soglia; gli statici «+1 per ogni altro Umano», «+1 alle
   altre armate» e «Contrattacco +2 se armata» non
   sono collegati (sono `while_in_play`, non inneschi d'attacco), quindi
   una risoluzione che li contasse a mano verrebbe fermata; il riarmo
@@ -1460,27 +1463,52 @@ ferma con l'avviso finché il tavolo non torna.
 ## Come si prova
 
 ```bash
-ruby engine/test/engine_test.rb
-ruby engine/test/room_test.rb
-ruby engine/test/websocket_test.rb
+for t in engine/test/*_test.rb; do ruby -Iengine/lib "$t"; done
 ```
+
+Ogni file è una suite a sé: il giudizio (`engine_test`), la copia del tavolo
+(`table_test`, gemella di `core/test/state.test.ts`), la stanza
+(`room_test`: viste, token, abbandono, tetto del giornale), l'anagrafe
+(`card_index_test`), i frame (`websocket_test`), l'handshake, il
+limitatore, la connessione, l'utenza, la memoria, l'atrio, la progressione,
+il **tavolo vero** in ascolto (`server_test`: avvia `engine/bin/server` su
+una porta libera e gli parla in WebSocket) e il **corpus differenziale**
+(`corpus_test`: le sequenze di `engine/test/corpus/*.json`, scritte dal
+riduttore del client con `CORPUS_WRITE=1 npx vitest run test/corpus.test.ts`
+da `core/`, rigiocate qui — `Table#dump` deve dire la stessa cosa di
+`core/test/support/normalize.ts`). La CI li fa girare tutti e fallisce se
+uno qualunque fallisce.
 
 ## Il protocollo
 
 WebSocket, messaggi JSON, **un canale solo** per arbitro e avversario. Il
-client si collega a `/engine?room=<stanza>[&seat=<a|b>]`: la stanza ha **un
+client si collega a `/engine?room=<stanza>[&seat=<a|b>][&token=<token>]`: la stanza ha **un
 Engine per tutti i client seduti** (`lib/rubyfront/room.rb`) e l'engine è
 **l'unico a scrivere lo stato** (deciso 2026-09-11). **Il posto lo assegna
 il tavolo** (2026-09-23): `seat` è una preferenza — se è libero si ha quello,
 se no l'altro, e a stanza piena si resta fuori; il link d'invito porta solo
-la stanza. Senza `room` è la stanza «solo»: un tavolo privato per quella
-connessione (partita locale o col bot), da cui si entra anche nell'**atrio**
-(`lib/rubyfront/lobby.rb`) per una partita casuale.
+la stanza. **Il posto ha un token** (2026-10-21): chi si siede lo riceve in
+`seat` e lo rimanda al rientro — un posto lasciato resta riservato al suo
+token per due minuti (`RUBYFRONT_SEAT_GRACE_S`), un estraneo non lo prende;
+passata la grazia, a partita in corso, è un **abbandono**: il tavolo dichiara
+la fine (`gameOver` con `forfeit`, `from: null`). Senza `room` è la stanza
+«solo»: un tavolo privato per quella connessione (partita col bot), da cui si
+entra anche nell'**atrio** (`lib/rubyfront/lobby.rb`) per una partita casuale.
+L'handshake (`lib/rubyfront/handshake.rb`) ha una scadenza di 5 s, un tetto
+di 8 KiB, vuole la versione 13 e una chiave valida, giudica l'`Origin`
+contro `RUBYFRONT_ORIGINS` (vuota = tutte, solo in sviluppo) e il nome della
+stanza (`[a-z0-9][a-z0-9_-]{0,31}`); i frame hanno i loro tetti (256 KiB, 64
+frammenti, maschera obbligatoria, UTF-8) e il protocollo storto chiude con
+1002/1003/1007/1009; ogni client ha una coda d'uscita con uno scrittore
+(`connection.rb`: un lettore lento cade con 1008, l'inattività con 1001
+dopo due ping senza pong); connessioni (2000, 20 per indirizzo), stanze
+(500), tentativi d'accesso e messaggi (50 al secondo) sono contati.
 
 | chi | messaggio | risposta |
 |---|---|---|
-| client | `{"t":"hello"}` | `{"t":"engine","version":"0.73.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","actions":[{"action":{…},"from":"a"},…]}` |
-| client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…","reason_en":"…"}` a chi chiede; se passa, `{"t":"action","action":{…},"from":"a"}` agli **altri** client della stanza |
+| client | `{"t":"hello"}` | `{"t":"engine","version":"0.90.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","match":"<uuid>","actions":[{"action":{…},"from":"a"},…]}` — il giornale **nella vista del posto** (2026-10-21): le proprie azioni intere, quelle altrui proiettate |
+| client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…","reason_en":"…"}` a chi chiede; col sì, se la stanza ha completato l'azione (il caso) o l'ha proiettata, il verdetto porta **`applied`** (l'azione da applicare, 2026-10-21); se passa, `{"t":"action","action":{…},"from":"a"}` agli **altri** client della stanza, nella loro vista (`from: null` per i gesti del tavolo: abbandono, limite) |
+| client | `{"t":"judge","action":{"t":"roll","seat":"a","die":6,"for":"cost\|a-12"}}` | **il dado lo tira la stanza** (2026-10-21): `applied` porta `value`; la stessa chiave nello stesso turno dà lo stesso valore; ogni passo che porta un dado deve portare QUEL tiro (`rolled?`). Le chiavi: `effect\|fonte\|evento\|ingresso\|seguito`, `deploy\|uid`, `cost\|uid`, `fury\|uid` (`Engine.roll_key` ↔ `rollKey`). Mescolata, mulligan e ordine del mazzo al carico li riempie la stanza nello stesso modo; chi apre lo tira la stanza |
 | client | `{"t":"rtc","payload":{…}}` | `{"t":"rtc","payload":{…},"from":"a"}` agli altri: la chat vocale, inoltrata senza leggerla |
 | client | `{"t":"judge","action":{"t":"ready","key":"enter\|u-7\|\|\|3","seat":"a","scene":{…}}}` | come ogni azione: senza regola (`ruled: false`), passa a chiunque in ogni fase e turno, va nel giornale e agli altri. È la **stretta di mano delle scene** (2026-09-15): «Risolvi» premuto da un client; chi risolve aspetta il `ready` dell'avversario con la stessa `key` prima di far partire i passi, e `scene` dice all'altro quale scena aprire se non l'ha già. La lavagna non cambia (`state.ts`/`table.rb`: nessun ramo). |
 | client | `{"t":"snapshot","state":{…}}` | *(solo nella stanza «solo»: allinea la copia del tavolo; in stanza si ignora)* |
@@ -1492,8 +1520,10 @@ connessione (partita locale o col bot), da cui si entra anche nell'**atrio**
 | client | `{"t":"path","card":"RBF-001","path":["…","…"]}` | `{"t":"progress",…}` (2026-09-26): il percorso d'Ascesa, convalidato col livello attuale (al più N nodi, tutti collegati alla carta) e scritto nell'ordine dalla carta, con la configurazione ristretta a lui; o il rifiuto come sopra |
 | client | `{"t":"save","seq":3,"key":"prefs","value":{…}}` | `{"t":"saved","seq":3,"key":"prefs","ok":true}` (o `ok:false` con `reason`): il dato JSON del giocatore, una riga per chiave nella memoria (Neon) |
 | client | `{"t":"load","seq":4,"key":"prefs"}` | `{"t":"data","seq":4,"key":"prefs","value":{…}}`, `null` se non c'è o senza accesso |
-| tavolo | `{"t":"seat","seat":"b"}` | a chi si siede, subito, prima di `peers`: il posto assegnato (2026-09-23), che può non essere quello chiesto |
+| tavolo | `{"t":"seat","seat":"b","token":"<32 hex>","resumed":true?}` | a chi si siede, subito, prima di `peers`: il posto assegnato (2026-09-23), che può non essere quello chiesto, col **token** del posto (2026-10-21) |
 | tavolo | `{"t":"room_full","room":"…"}` | a chi entra in una stanza con già due giocatori, poi il tavolo chiude |
+| tavolo | `{"t":"refused","code":"rooms_full"\|"replaced","reason":"…","reason_en":"…"}` | le stanze sono al tetto, o un'altra scheda ha ripreso il posto col token: questa si chiude (2026-10-21) |
+| client | `{"t":"verify_resend"}` | `{"t":"verify_sent"}` (un link di conferma nuovo, il vecchio non vale più; 3 l'ora) o `me` col motivo (2026-10-21) |
 | client | `{"t":"match"}` / `{"t":"match_cancel"}` | dalla stanza «solo» (2026-09-23): in fila nell'atrio per un avversario qualunque, o fuori dalla fila (anche chiudendo il filo). In due, a ciascuno `{"t":"matched","room":"giada-4821","seat":"a"}` — il primo arrivato ad A, il secondo a B — e i due si collegano a quella stanza come da un link d'invito |
 
 `judge` è il giudizio preventivo su **ogni** azione, di chiunque: l'engine
@@ -1528,15 +1558,47 @@ arbitro non si gioca contro qualcuno; nella «solo» = via libera, come al
 tavolo di prima. Le stanze con nome restano in piedi dieci minuti anche
 vuote, così una pagina ricaricata ritrova la partita; poi si sparecchiano.
 
-**Limiti dichiarati** di questo primo passo: il caso lo tira ancora il
-client (dadi, mescolata, il posto che apre la «Nuova partita») e l'engine
-ne verifica la forma, non la fortuna — solo chi apre la stanza lo decide
-il tavolo; e la lavagna intera, mano e mazzo dell'avversario compresi,
-viaggia nel giornale a ogni client: l'informazione nascosta non è ancora
-nascosta. Sono i due passi successivi verso il tavolo pubblico.
+**Il tavolo fail-closed** (2026-10-21, dopo l'audit): il tavolo conosce un
+**elenco chiuso di azioni**, ciascuna con la sua forma (`SHAPES`): tutto il
+resto — un tipo ignoto, `null`, una chiave sbagliata — è fermato
+«(§protocollo)» e mai giornalato. I **contatori li muove il tavolo**: una
+patch nuda di PV/Flusso/Gettone/sigilli è fermata (resta la spesa del
+Gettone, e gli strumenti di prova dal posto tester). Il contatore del turno
+avanza di uno solo col cambio di posto; la fine partita ha ragioni chiuse
+(`hp`, `deck`, `draw`, `concede` — la resa, di chi perde, in ogni turno;
+`forfeit` e `limit` solo dal tavolo); «Nuova partita» passa solo a partita
+finita o prima che cominci; il mazzo si carica al proprio posto, prima
+della partita, intero e nella composizione del mazzo dichiarato
+(`CardIndex.load_decks`), e in stanza senza anagrafe non si gioca; la pesca
+a mano è la mano iniziale e la carta del turno 1; la mescolata è una
+permutazione intera. **Le viste per posto**: le carte dell'avversario in
+mano e nel mazzo arrivano senza `cardId` né `order` (nel client
+`HIDDEN_CARD`), le pescate altrui per nome (`drawn`), gli sguardi
+(`looked`), e ciò che esce da una zona nascosta porta le `identities`.
+**L'identità è della partita**: la stanza la fissa al primo `loadDeck` del
+posto (`match_id` per partita; l'esperienza si accredita una volta per
+partita e giocatore, `player_matches`), a partita in corso l'accesso non
+cambia; nella «solo» uno snapshot marca la partita sandbox, senza
+ricompense fino alla prossima. Il giornale ha un tetto (4000 voci: il tavolo
+chiude per `limit`).
 
-Una richiesta HTTP semplice (senza upgrade) riceve una riga di stato: fa da
-health check.
+**Limiti dichiarati**: l'engine giudica la **forma** del tiro, il valore
+lo produce solo la stanza (`SecureRandom`; `RUBYFRONT_SEED` in sviluppo; un
+`Engine` usato da solo, nei test, annota il valore che gli si dà, l'ultimo
+per chiave); un passo con due dadi sulla stessa tripla senza `follow`
+condividerebbe un tiro (nessuna carta certificata lo fa); le viste sono per
+**posto**, non per persona (chi cambia posto riceve la vista di quel posto);
+il mazzo altrui è un sacco senza ordine nel client; `say` non è proiettata
+(le righe nominano solo carte pubbliche); la stanza «solo» non proietta (un
+solo client per i due posti) e lì chi gioca il bot per conto suo può farlo
+giocare male; nessuna persistenza al riavvio del tavolo (il client avverte
+`stop.restarted`); il tetto per frame è 256 KiB (lo snapshot della «solo»
+ci sta); serve Ruby ≥ 3.2.
+
+Una richiesta HTTP semplice (senza upgrade) riceve una riga di stato; il
+proxy Node (`scripts/server.mjs`) espone `/live` (processo vivo) e `/ready`
+(il tavolo risponde: è l'health check di Render) e riavvia il tavolo con un
+ritardo crescente se cade.
 
 **La memoria** (`lib/rubyfront/store.rb`, dal 2026-09-20): con `DATABASE_URL`
 il tavolo parla con Postgres su Neon per HTTPS (il punto `/sql` del ramo,
@@ -1561,11 +1623,20 @@ in `GOOGLE_CLIENT_ID`, posta di conferma con `RESEND_API_KEY`, `MAIL_FROM`
 e `RUBYFRONT_SITE` (senza, il link va sul log). Nel client la schermata
 d'accesso sta davanti alla home; la sessione resta nel browser e rientra
 da sé; il nome pubblico si cambia dalle impostazioni (mai al tavolo).
-Limiti dichiarati: niente recupero della password e niente limite ai
-tentativi (da fare); Google solo sul web (Electron non è un browser per
-Google: sul desktop arriverà Steam); la conferma della mail non è
-richiesta per giocare finché la posta non parte. Cosa salvare lo dirà il
-designer. Il giudizio (`engine.rb`) non sa che la memoria esiste.
+Dal 2026-10-21 (audit): i tentativi (registrazione 5/h, accesso 10/5 min,
+conferma 10/5 min, ripresa 30/5 min) sono contati per indirizzo e per
+nome (`rate_limiter.rb`); i nomi di sistema sono riservati; il link di
+conferma scade dopo 48 ore e nella memoria ne resta l'impronta (`verify_resend`
+ne manda uno nuovo, 3 l'ora); Google si collega per email solo a un account
+con l'email confermata; `save` accetta chiavi `[a-z][a-z0-9:_.-]{0,63}`,
+valori fino a 16 KiB, 128 chiavi per giocatore; l'esperienza va solo ad
+account con l'email confermata (o Google) quando la posta è configurata
+(`RUBYFRONT_REQUIRE_VERIFIED=1` lo pretende sempre), e non oltre 20 partite
+l'ora. Limiti dichiarati: niente recupero della password (da fare); Google
+solo sul web (Electron non è un browser per Google: sul desktop arriverà
+Steam). Cosa salvare lo dirà il designer. Il giudizio (`engine.rb`) non sa
+che la memoria esiste. Le variabili d'ambiente, tutte, stanno in
+`.env.local.example` alla radice.
 
 ## Com'è fatto
 

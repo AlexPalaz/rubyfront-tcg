@@ -18,12 +18,12 @@ import { chooseAbility, chooseAttackers, chooseBlocks, chooseDiscards, chooseFli
 import { cardFacts, cardName, cardStats, deckTint, getDeck, isRubyfront, type Tint, setOwnedDecks, availableDecks } from "./cards.js";
 import { declareBlock } from "./combat.js";
 import type { Ability, CardFacts, Ctx } from "./ctx.js";
-import { releaseHeld } from "./effects.js";
+import { releaseHeld, rollDie } from "./effects.js";
 import { connectEngine, type EngineLink, type EngineStatus, type EngineVerdict, type Player } from "./engine.js";
 import { SLOT_X, backRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
 import { renderLog } from "./log.js";
-import { apply, controllerOf, fieldCards, freeFrontSlotOrNull, matterSpot, mayKeep, mayMulligan, mustKeep, newGame, openingPending as openingOpen, phaseCloser, replay, shuffled, zoneCards } from "./state.js";
+import { apply, controllerOf, fieldCards, freeFrontSlotOrNull, matterSpot, mayKeep, mayMulligan, mustKeep, newGame, openingPending as openingOpen, phaseCloser, replay, shuffled, zoneCards, revealIdentities } from "./state.js";
 import { endPhase, gameOverMsg, verdictByHp } from "./turn.js";
 import type { Action, CardInstance, ChatEntry, GameState, Seat, ZoneId, SceneRef } from "./types.js";
 import { SEATS, otherSeat } from "./types.js";
@@ -63,6 +63,8 @@ export interface SessionView {
   accountChanged?(player: Player | null): void;
   /** Un accesso o una registrazione rifiutati (2026-09-22): il motivo, nella lingua del tavolo. Facoltativo. */
   accountRefused?(reason: string): void;
+  /** Un link di conferma nuovo è partito (2026-10-21). */
+  verifySent?(): void;
   /** La progressione di un Rubyfront aggiornata (2026-09-23): dopo una configurazione o a fine partita (`gained`). Facoltativo. */
   progressChanged?(update: ProgressUpdate): void;
   /** Una configurazione rifiutata dal tavolo: il motivo, nella lingua del tavolo. Facoltativo. */
@@ -182,8 +184,14 @@ export interface Session {
   /** La partita col bot che comincia con l'ingresso dei Rubyfront. */
   startBotWithIntro(botDeckId: string, deckId: string | null): void;
   botSeat(): Seat | null;
-  /** «Esci dal tavolo», la parte della sessione: via il bot e la stanza. */
+  /** «Esci dal tavolo», la parte della sessione: via il bot e la stanza. In stanza a partita in corso è una RESA (§2, dal 2026-10-21). */
   leaveRoom(): void;
+  /** La resa (§2): la partita finisce, vince l'altro. Solo a partita in corso. */
+  concede(): Promise<boolean>;
+  /** Il dado del tavolo per un passo (vedi Ctx.roll). */
+  roll(die: number, key: string, seat?: Seat): Promise<number | null>;
+  /** Un link di conferma nuovo per la mail (2026-10-21). */
+  resendVerification(): void;
   /** Il tavolo azzerato fuori dalla stanza: partita nuova, e il nome dell'altro posto si cancella. */
   resetTable(): void;
   /** L'utenza nella memoria del tavolo (2026-09-20): chi sono, o null. */
@@ -265,6 +273,41 @@ export function createSession(options: SessionOptions): Session {
   // ---------------------------------------------------------------- dispatch
 
   function dispatch(action: Action): Promise<boolean> {
+    return dispatchApplied(action).then(applied => applied !== null);
+  }
+
+  /**
+   * Il caso lo tira il tavolo (§4/§8.2, dal 2026-10-21): senza tavolo e senza
+   * stanza (la «solo» offline) lo tira il client, qui, completando l'azione
+   * come farebbe la stanza (room.rb, complete): il valore del dado, l'ordine
+   * di mescolata e mulligan, l'ordine del mazzo caricato, chi apre.
+   */
+  function completeLocally(action: Action): Action {
+    switch (action.t) {
+      case "roll":
+        return action.value === undefined ? { ...action, value: rollDie(action.die) } : action;
+      case "shuffle":
+        return action.order ? action : { ...action, order: shuffled(zoneCards(state, action.seat, "deck").map(card => card.uid)) };
+      case "mulligan":
+        return action.order ? action : { ...action, order: shuffled([...zoneCards(state, action.seat, "hand"), ...zoneCards(state, action.seat, "deck")].map(card => card.uid)) };
+      case "loadDeck": {
+        const deck = shuffled(action.cards.filter(card => card.zone === "deck"));
+        const positions = new Map(deck.map((card, index) => [card.uid, index]));
+        return { ...action, cards: action.cards.map(card => (positions.has(card.uid) ? { ...card, order: positions.get(card.uid) } : card)) };
+      }
+      case "newGame":
+        return action.active ? action : { ...action, active: randomSeat() };
+      default:
+        return action;
+    }
+  }
+
+  /**
+   * L'azione al tavolo, e indietro quella APPLICATA — completata dalla
+   * stanza (`applied`: il dado, gli ordini) o, senza tavolo, qui — o `null`
+   * se è stata fermata.
+   */
+  function dispatchApplied(action: Action): Promise<Action | null> {
     // L'engine è l'unico a scrivere lo stato: l'azione parte solo col suo
     // benestare — un «no» la ferma prima che tocchi la lavagna, e si mostra
     // (view.stop); col sì il tavolo la inoltra lui all'avversario. In
@@ -275,10 +318,10 @@ export function createSession(options: SessionOptions): Session {
     // non hanno senso (endTurn).
     const judge = engine;
     const inRoom = room !== "";
-    const absent = (): Promise<boolean> => {
+    const absent = (): Promise<Action | null> => {
       if (!(botSeat && actorFor(action) === botSeat)) view.stop({ t: "verdict", ok: false, ruled: true, reason: t("stop.absent"), reason_en: t("stop.absent") });
       paint();
-      return Promise.resolve(false);
+      return Promise.resolve(null);
     };
     if (judge && judge.status() === "online") {
       return new Promise(resolve => {
@@ -315,17 +358,28 @@ export function createSession(options: SessionOptions): Session {
             // mosso i pixel: si ridisegna dallo stato — che non è cambiato —
             // e tutto torna al suo posto.
             paint();
-            resolve(false);
+            resolve(null);
             return;
           }
-          commit(action);
-          resolve(true);
+          // L'azione come l'ha completata il tavolo (il dado, gli ordini, la
+          // vista del nostro posto), o la nostra quando non c'era nulla da
+          // completare; senza verdetto (la «solo» col tavolo muto) la nostra, completata qui.
+          const applied = verdict?.applied ?? (verdict ? action : completeLocally(action));
+          commit(applied);
+          resolve(applied);
         });
       });
     }
     if (inRoom) return absent();
-    commit(action);
-    return Promise.resolve(true);
+    const applied = completeLocally(action);
+    commit(applied);
+    return Promise.resolve(applied);
+  }
+
+  /** Il dado del tavolo per un passo (Ctx.roll): il valore, o null se fermato. */
+  async function roll(die: number, key: string, seat: Seat): Promise<number | null> {
+    const applied = await dispatchApplied({ t: "roll", seat, die, for: key });
+    return applied?.t === "roll" && applied.value !== undefined ? applied.value : null;
   }
 
   /** Applica e ridisegna: l'azione ormai è passata. */
@@ -387,6 +441,10 @@ export function createSession(options: SessionOptions): Session {
       view.ready(action);
       return;
     }
+    // Le identità rivelate dalla vista del tavolo (una carta avversaria che
+    // esce da una zona nascosta, 2026-10-21): la lavagna le impara PRIMA
+    // che la vista guardi l'azione — i voli e le scene leggono il cardId.
+    if (action.identities) state = revealIdentities(state, action.identities);
     const afterPaint = view.beforeReceive(action);
     const before = state;
     state = apply(state, action);
@@ -481,6 +539,7 @@ export function createSession(options: SessionOptions): Session {
   const ctx: Ctx = {
     state: () => state,
     dispatch,
+    roll,
     seat: () => mySeat,
     // Il mouse governa solo il proprio posto: l'altra metà è di chi c'è
     // (in rete) o del bot.
@@ -554,13 +613,19 @@ export function createSession(options: SessionOptions): Session {
     const deck = getDeck(deckId);
     if (!deck) return null;
 
+    // L'ordine del mazzo è CANONICO (la posizione nell'elenco del mazzo):
+    // la mescolata la fa il tavolo (room.rb, complete; o completeLocally
+    // senza tavolo). Le etichette degli uid sono mescolate (2026-10-21): un
+    // uid come «a-12» non deve dire all'avversario quale carta dell'elenco
+    // pubblico del mazzo sia.
+    const total = deck.cards.reduce((sum, entry) => sum + entry.count, 0);
+    const labels = shuffled(Array.from({ length: total }, (_, index) => index + 1));
     const cards: CardInstance[] = [];
     let serial = 0;
     for (const entry of deck.cards) {
       for (let copy = 0; copy < entry.count; copy += 1) {
-        serial += 1;
         cards.push({
-          uid: `${seat}-${serial}`,
+          uid: `${seat}-${labels[serial]}`,
           cardId: entry.card,
           owner: seat,
           zone: "deck",
@@ -572,13 +637,9 @@ export function createSession(options: SessionOptions): Session {
           facedown: false,
           z: 0,
         });
+        serial += 1;
       }
     }
-
-    const library = cards.filter(card => !isRubyfront(card.cardId));
-    shuffled(library).forEach((card, index) => {
-      card.order = index;
-    });
     for (const card of cards) {
       if (!isRubyfront(card.cardId)) continue;
       card.zone = "field";
@@ -780,6 +841,11 @@ export function createSession(options: SessionOptions): Session {
    */
   function rebuildFromJournal(entries: Parameters<typeof replay>[0]): void {
     const hadMine = Object.values(state.cards).some(card => card.owner === mySeat);
+    // Il tavolo è ripartito (2026-10-21, audit RF-019): avevamo una partita
+    // in corso e il giornale torna vuoto (solo il newGame del tavolo). La
+    // partita è persa, senza esperienza; lo si dice chiaro, e si ricomincia.
+    const inProgress = hadMine && (state.turn > 1 || handSize(mySeat) > 0 || Object.values(state.cards).some(card => card.owner !== mySeat && card.zone !== "deck"));
+    if (inProgress && entries.length <= 1) view.stop({ t: "verdict", ok: false, ruled: true, reason: t("stop.restarted"), reason_en: t("stop.restarted") });
     state = replay(entries);
     paint();
     const incomingHasMine = Object.values(state.cards).some(card => card.owner === mySeat);
@@ -810,6 +876,22 @@ export function createSession(options: SessionOptions): Session {
     engine = null;
     engine = connectEngine(engineUrl, room, mySeat, {
       onStatus,
+      onVerifySent() {
+        view.verifySent?.();
+      },
+      onRefused(code, reason) {
+        // Il tavolo non ci fa entrare (stanze al tetto) o ci congeda (un'altra
+        // scheda ha ripreso il posto): fuori dalla stanza, e lo si dice.
+        if (code === "rooms_full" || code === "replaced") {
+          awaitingPeer = false;
+          deckDeferred = false;
+          const was = room;
+          join("");
+          store.write("room", "");
+          store.write(`seat-token:${was}`, "");
+        }
+        view.stop({ t: "verdict", ok: false, ruled: true, reason: t(`stop.refused.${code}`, { reason }), reason_en: t(`stop.refused.${code}`, { reason }) });
+      },
       onWelcome(version, rules) {
         // Nella stanza «solo» il tavolo parte con la copia vuota e il client
         // è la copia buona: gli si passa la lavagna com'è. In stanza no: la
@@ -850,7 +932,10 @@ export function createSession(options: SessionOptions): Session {
       onRtc(payload, from) {
         if (from !== mySeat) view.rtc(payload);
       },
-      onSeat(seat) {
+      onSeat(seat, token) {
+        // Il token del posto (2026-10-21): si conserva per la stanza, così un
+        // ricarico entro la grazia riprende il proprio posto.
+        if (room && token) store.write(`seat-token:${room}`, token);
         // Il tavolo assegna il posto (2026-09-23): se non è il mio, la pagina riparte
         // con quello — il posto è cucito nella sessione (game.ts) e cambia solo così.
         if (room && seat !== mySeat) view.reseat(room, seat);
@@ -861,6 +946,7 @@ export function createSession(options: SessionOptions): Session {
         deckDeferred = false;
         join("");
         store.write("room", "");
+        store.write(`seat-token:${name}`, "");
         view.roomFull(name);
       },
       onMatched(name, seat) {
@@ -904,16 +990,18 @@ export function createSession(options: SessionOptions): Session {
         if (player) reapplyName();
         view.accountChanged?.(player);
       },
-    });
+    }, { token: room ? store.read(`seat-token:${room}`, "") : "" });
   }
 
   // ---------------------------------------------------------------- comandi
 
   function shuffle(): void {
-    const order = shuffled(zoneCards(state, mySeat, "deck").map(card => card.uid));
-    if (order.length === 0) return;
-    dispatch({ t: "shuffle", seat: mySeat, order });
-    ctx.log(msg("log.shuffle", { seat: mySeat, n: order.length }), mySeat);
+    const n = zoneCards(state, mySeat, "deck").length;
+    if (n === 0) return;
+    // L'ordine lo riempie il tavolo (room.rb, complete), o completeLocally senza tavolo.
+    void dispatch({ t: "shuffle", seat: mySeat }).then(passed => {
+      if (passed) ctx.log(msg("log.shuffle", { seat: mySeat, n }), mySeat);
+    });
   }
 
   /** §4 — un gesto d'apertura per posto alla volta: il doppio click sul tasto non manda due volte (visto al banco il 2026-09-17: il secondo «keep» arrivava a fase cambiata e veniva fermato). */
@@ -921,10 +1009,9 @@ export function createSession(options: SessionOptions): Session {
 
   function mulligan(seat: Seat = mySeat): void {
     if (openingInFlight.has(seat) || !mayMulligan(state, seat)) return;
-    const mine = [...zoneCards(state, seat, "hand"), ...zoneCards(state, seat, "deck")].map(card => card.uid);
-    const order = shuffled(mine);
     openingInFlight.add(seat);
-    void dispatch({ t: "mulligan", seat, order }).then(passed => {
+    // L'ordine lo riempie il tavolo (room.rb, complete), o completeLocally senza tavolo.
+    void dispatch({ t: "mulligan", seat }).then(passed => {
       openingInFlight.delete(seat);
       if (passed) ctx.log(msg("log.mulligan", { seat, n: state.players[seat].opening?.mulligans ?? 1 }), seat);
     });
@@ -948,9 +1035,27 @@ export function createSession(options: SessionOptions): Session {
     ctx.log(msg("log.draw1", { seat: mySeat }), mySeat);
   }
 
+  /** La partita è in corso: un mazzo in tavola e nessuna fine (§2). */
+  function gameRunning(): boolean {
+    return !state.over && Boolean(state.players[mySeat].deckId) && Object.values(state.cards).some(card => card.owner === mySeat);
+  }
+
+  /** §2 — la resa: vince l'altro. Il tavolo la verifica (chi perde si arrende). */
+  function concede(): Promise<boolean> {
+    if (!gameRunning()) return Promise.resolve(false);
+    const over = { winner: otherSeat(mySeat), reason: "concede" as const };
+    return dispatch({ t: "gameOver", ...over }).then(passed => {
+      if (!passed) return false;
+      const { title, detail } = gameOverMsg(over, mySeat);
+      ctx.log(msg("log.over", { title, detail }), over.winner);
+      return true;
+    });
+  }
+
   /** Il tavolo azzerato: partita nuova con chi apre a caso, e il nome dell'altro posto cancellato. L'unico posto che azzera. */
   function freshTable(): void {
-    void dispatch({ t: "newGame", active: randomSeat() });
+    // Chi apre lo tira il tavolo (in stanza), o completeLocally senza tavolo.
+    void dispatch({ t: "newGame" });
     // Il nome dell'altro posto si cancella IN LOCALE (commit, non dispatch):
     // è una scritta, non un gesto di gioco, e l'arbitro fermerebbe un'azione
     // dell'altro posto fuori dal suo turno — col sigillo sopra la home.
@@ -960,10 +1065,9 @@ export function createSession(options: SessionOptions): Session {
   }
 
   function startNewGame(): void {
-    const starter = randomSeat();
-    void dispatch({ t: "newGame", active: starter }).then(passed => {
-      if (!passed) return;
-      ctx.log(msg("log.newgame", { seat: starter }));
+    void dispatchApplied({ t: "newGame" }).then(applied => {
+      if (!applied) return;
+      ctx.log(msg("log.newgame", { seat: state.active }));
     });
     // In stanza, senza l'altro giocatore, la partita nuova aspetta lui: si
     // torna all'attesa e il mazzo si rimette quando entra.
@@ -1276,7 +1380,15 @@ export function createSession(options: SessionOptions): Session {
       void runIntro();
     },
     botSeat: () => botSeat,
+    concede,
+    roll: (die, key, seat = mySeat) => roll(die, key, seat),
+    resendVerification() {
+      if (!engine?.resendVerification()) view.accountRefused?.(t("stop.absent"));
+    },
     leaveRoom() {
+      // In stanza, a partita in corso, uscire è arrendersi (§2): si dice al
+      // tavolo prima di staccare il filo, così l'altro non aspetta la grazia.
+      if (room && gameRunning()) void concede();
       muteSealsUntil = Date.now() + 4000;
       clearTimeout(botTimer);
       awaitingPeer = false;

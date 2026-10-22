@@ -33,12 +33,12 @@ module Rubyfront
 
     # Le buste dell'atrio: `match` (in fila) e `match_cancel` (fuori dalla
     # fila). Vero se la busta era dell'atrio.
-    def handle(message, out)
+    def handle(message, out, identity: nil)
       return false unless message.is_a?(Hash)
 
       case message["t"]
       when "match"
-        enqueue(out)
+        enqueue(out, identity: identity)
       when "match_cancel"
         cancel(out)
       else
@@ -47,16 +47,21 @@ module Rubyfront
       true
     end
 
-    # In fila. Chi c'è già non si conta due volte. Al secondo la coppia si
-    # fa subito: entrambi ricevono `matched` con la stanza e il loro posto.
-    def enqueue(out)
+    # In fila. Chi c'è già non si conta due volte; la stessa identità (lo
+    # stesso account da due connessioni, dal 2026-10-21) non si accoppia con
+    # sé stessa: la seconda aspetta un altro. Al secondo la coppia si fa
+    # subito: entrambi ricevono `matched` con la stanza e il loro posto.
+    def enqueue(out, identity: nil)
       pair = @mutex.synchronize do
-        next nil if @waiting.include?(out)
+        next nil if @waiting.any? { |entry| entry[:out].equal?(out) }
 
-        @waiting << out
-        next nil if @waiting.size < 2
-
-        @waiting.shift(2)
+        mate = @waiting.find { |entry| identity.nil? || entry[:identity].nil? || entry[:identity] != identity }
+        if mate
+          @waiting.delete(mate)
+          next [mate[:out], out]
+        end
+        @waiting << { out: out, identity: identity }
+        nil
       end
       return unless pair
 
@@ -67,7 +72,7 @@ module Rubyfront
     end
 
     def cancel(out)
-      @mutex.synchronize { @waiting.delete(out) }
+      @mutex.synchronize { @waiting.delete_if { |entry| entry[:out].equal?(out) } }
     end
 
     private

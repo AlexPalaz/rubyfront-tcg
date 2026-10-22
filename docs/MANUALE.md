@@ -33,6 +33,8 @@ Si vince in uno di questi due modi:
 1. portando a **zero i Punti Vita (PV) del Rubyfront avversario**, oppure
 2. **distruggendo il Nexus** del Rubyfront avversario, cioè portando a zero i PV del Nexus, se l'avversario l'ha giocato (vedi §3.1, "Il Nexus").
 
+**La resa** (regola sperimentale, 2026-10-21): un giocatore può arrendersi in qualsiasi momento della partita, nel proprio turno o in quello avversario: la partita finisce e vince l'avversario. Al tavolo online vale come resa anche **l'assenza**: chi lascia il tavolo a partita in corso e non torna entro due minuti ha abbandonato, e vince l'avversario.
+
 ## 3. Materiale di gioco
 
 ### 3.1 Il mazzo

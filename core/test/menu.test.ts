@@ -18,6 +18,7 @@ function table(state: GameState, arbitrated = true): Ctx {
   return {
     state: () => state,
     dispatch: () => Promise.resolve(true),
+    roll: () => Promise.resolve(1),
     seat: () => "a",
     controls: seat => seat === "a",
     arbitrated: () => arbitrated,

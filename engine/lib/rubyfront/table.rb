@@ -112,7 +112,12 @@ module Rubyfront
       # Il turno in cui ciascun posto ha usato un'abilità speciale (§3.1: una
       # sola per turno). seat => turno.
       @ability_used = {}
+      # I tiri del tavolo nel turno (§8.2, dal 2026-10-21): chiave del passo
+      # (Engine.roll_key) => {die:, value:}. Il cambio di turno li dimentica.
       @rolls = {}
+      # La carta del turno 1 di chi apre, pescata a mano dopo le tenute
+      # (§4): una volta sola. Memoria della sola copia, come `entered`.
+      @turn_card = {}
     end
 
     # Un innesco è una tripla: fonte, evento, ingresso (o la fonte stessa,
@@ -137,14 +142,34 @@ module Rubyfront
       @fired.count { |key| key.start_with?("#{source_uid}|#{prefix}") }
     end
 
-    # Il tiro di un effetto a più passi (il d20 a fasce): il primo passo lo fissa, i
-    # seguenti devono portare lo stesso. Il cambio di turno lo dimentica.
-    def remember_roll(source_uid, roll)
-      @rolls[source_uid] = roll
+    # Il tiro del tavolo per un passo (§8.2): l'azione `roll` lo annota per
+    # chiave, e ogni passo che porta un dado deve portare QUESTO. Un passo
+    # a più azioni (il d20 a fasce) condivide la chiave, quindi il tiro.
+    # Gemello: state.ts, rolls.
+    def remember_roll(key, die, value)
+      return unless key.is_a?(String) && die.is_a?(Integer) && value.is_a?(Integer)
+
+      @rolls[key] = { die: die, value: value }
     end
 
-    def roll_of(source_uid)
-      @rolls[source_uid]
+    def roll_for(key)
+      @rolls[key]
+    end
+
+    # §4 — la carta del turno 1 di chi apre è già stata pescata a mano?
+    def turn_card_drawn?(seat)
+      @turn_card[seat] == true
+    end
+
+    # §4 — la partita è cominciata: un turno dopo il primo, o entrambi i
+    # posti col mazzo e la mano tenuta (chi entra dopo carica ancora il suo).
+    def started?
+      @turn > 1 || SEATS.all? { |seat| @players[seat][:deck_id] && @players[seat][:opening] && @players[seat][:opening][:kept] }
+    end
+
+    # Ogni carta com'è ora, per la stanza: uid => {owner:, zone:, card_id:}.
+    def card_facts
+      @cards.transform_values { |card| { owner: card[:owner], zone: card[:zone], card_id: card[:card_id] } }
     end
 
     # Gli Oggetti in campo addosso a quell'Entità (§3.1).
@@ -343,7 +368,7 @@ module Rubyfront
 
     # Gli uid delle prime `count` carte del mazzo di un posto (§8.2, sguardi).
     def top_of_deck(seat, count)
-      pile(seat, "deck").first(count).map { |card| @cards.key(card) }
+      pile_uids(seat, "deck").first(count)
     end
 
     # Gli uid della prima e dell'ultima carta del mazzo di `seat` (nil se vuoto).
@@ -351,7 +376,8 @@ module Rubyfront
       deck = pile(seat, "deck")
       return [nil, nil] if deck.empty?
 
-      [@cards.key(deck.first), @cards.key(deck.last)]
+      uids = pile_uids(seat, "deck")
+      [uids.first, uids.last]
     end
 
     def zone_count(seat, zone)
@@ -433,10 +459,61 @@ module Rubyfront
       end
     end
 
+    # La copia normalizzata (2026-10-21, il corpus differenziale): ciò che la
+    # copia e il riduttore devono tenere UGUALE, nella stessa forma JSON del
+    # gemello (core/test/support/normalize.ts). Niente pixel, niente nomi;
+    # le carte in ordine di uid, le dichiarazioni per dichiarante, i tiri per chiave.
+    def dump
+      {
+        "turn" => @turn, "active" => @active, "phase" => @phase,
+        "over" => @over && { "winner" => @over[:winner], "reason" => @over[:reason] },
+        "players" => SEATS.to_h do |seat|
+          player = @players[seat]
+          ascent = player[:ascent] || {}
+          [seat, {
+            "hp" => player[:hp], "hpMax" => player[:hp_max], "flux" => player[:flux], "fluxMax" => player[:flux_max],
+            "token" => player[:token] == true, "deckId" => player[:deck_id], "sealed" => Array(player[:sealed]).sort,
+            "opening" => player[:opening] && { "mulligans" => player[:opening][:mulligans].to_i, "kept" => player[:opening][:kept] == true },
+            "ascent" => { "hp" => ascent[:hp].to_i, "fury" => ascent[:fury].to_i },
+          }]
+        end,
+        "cards" => @cards.sort_by { |uid, _| uid }.map do |uid, card|
+          {
+            "uid" => uid, "cardId" => card[:card_id], "owner" => card[:owner], "zone" => card[:zone],
+            "order" => card[:zone] == "field" ? nil : card[:order].to_i,
+            "tapped" => card[:tapped] == true, "facedown" => card[:facedown] == true, "face" => card[:face].to_i,
+            "assignedTo" => card[:assigned_to], "controller" => card[:controller], "stasis" => card[:stasis] == true,
+            "heldBy" => card[:held_by], "target" => card[:target],
+            "powerBonus" => card[:power_bonus], "counterBonus" => card[:counter_bonus], "cannotBlock" => card[:cannot_block] == true,
+            "grants" => Array(card[:grants]).sort,
+          }
+        end,
+        "declarations" => @declarations.sort_by { |from, _| from }.map do |from, declaration|
+          { "from" => from, "to" => declaration[:to], "kind" => declaration[:kind], "order" => declaration[:order].to_i,
+            "sealed" => declaration[:sealed] == true, "bonus" => declaration[:bonus].to_i }
+        end,
+        "chain" => @chain && { "stack" => @chain[:stack], "turn" => @chain[:turn], "resolving" => @chain[:resolving] == true },
+        "rolls" => @rolls.sort.to_h { |key, roll| [key, { "die" => roll[:die], "value" => roll[:value] }] },
+      }
+    end
+
     def apply(action)
       return unless action.is_a?(Hash)
 
+      # Le identità rivelate da una vista proiettata (uid => cardId, room.rb
+      # project): una carta che esce da una zona nascosta si fa conoscere
+      # prima che l'azione si applichi. Gemello: state.ts, revealIdentities.
+      identities = action["identities"]
+      if identities.is_a?(Hash)
+        identities.each do |uid, card_id|
+          card = @cards[uid]
+          card[:card_id] = card_id if card && card_id.is_a?(String) && card[:card_id].nil?
+        end
+      end
+
       case action["t"]
+      when "roll"
+        remember_roll(action["for"], action["die"], action["value"])
       when "newGame"
         reset
         if SEATS.include?(action["active"])
@@ -624,13 +701,14 @@ module Rubyfront
       when "phase"
         @phase = action["phase"] if PHASES.include?(action["phase"])
       when "turn"
-        @turn = action["turn"] if action["turn"].is_a?(Numeric)
         if SEATS.include?(action["active"]) && action["active"] != @active
           # Il cambio di turno porta con sé la routine di chi entra, come nel
           # riduttore (state.ts): fase in Preparazione (§6), Entità stappate
           # («all'inizio del turno successivo del proprietario», §6.3), frecce
           # sgomberate. Il Flusso non vive in questa copia. Il contatore
-          # ritoccato a mano (active invariato) non è un cambio di turno.
+          # avanza SOLO qui (§6.5, dal 2026-10-21): un `turn` con l'attivo
+          # invariato non cambia nulla. Gemello: state.ts, turn.
+          @turn = action["turn"] if action["turn"].is_a?(Integer)
           @active = action["active"]
           @phase = "preparazione"
           @fired = []
@@ -673,7 +751,9 @@ module Rubyfront
           toll = action["toll"].is_a?(Integer) ? action["toll"] : 0
           player[:flux] = [player[:flux_max] - toll, 0].max
           # §6.1: la Pesca del turno, «non si salta mai» — come nel riduttore.
-          draw({ "seat" => @active, "count" => 1 })
+          # Una vista proiettata nomina la carta pescata (`drawn`): la copia
+          # la segue, perché di quel mazzo non conosce l'ordine.
+          draw({ "seat" => @active, "count" => 1, "drawn" => action["drawn"] })
         end
       end
     end
@@ -693,7 +773,7 @@ module Rubyfront
 
     # Gli uid di una pila del posto, nell'ordine (§4: mano e mazzo per il mulligan).
     def zone_uids(seat, zone)
-      pile(seat, zone).map { |card| @cards.key(card) }
+      pile_uids(seat, zone)
     end
 
     # §4 — l'apertura di un posto: {mulligans:, kept:}, o nil senza mazzo.
@@ -787,6 +867,14 @@ module Rubyfront
       end
     end
 
+    # Gli uid di una pila, dalla cima al fondo: per chiave, non per valore —
+    # le carte nascoste di una vista sono tutte uguali fra loro.
+    def pile_uids(seat, zone)
+      @cards.select { |_uid, card| card[:owner] == seat && card[:zone] == zone }
+            .sort_by { |_uid, card| card[:order] }
+            .map(&:first)
+    end
+
     # Le carte di una pila, dalla cima (order più basso) al fondo.
     def pile(seat, zone)
       @cards.values
@@ -823,8 +911,10 @@ module Rubyfront
       Array(action["cards"]).each do |card|
         next unless card.is_a?(Hash) && card["uid"]
 
+        # Una vista proiettata (room.rb) porta le carte nascoste dell'altro
+        # senza identità né ordine: card_id nil, in fondo. Gemello: state.ts, HIDDEN_CARD.
         @cards[card["uid"]] = { owner: card["owner"], zone: card["zone"], order: card["order"].to_i,
-                                card_id: card["cardId"],
+                                card_id: card["cardId"].is_a?(String) ? card["cardId"] : nil,
                                 entered: card["zone"] == "field" ? @turn : nil,
                                 tapped: card["tapped"] == true, facedown: card["facedown"] == true,
                                 assigned_to: card["assignedTo"].is_a?(String) ? card["assignedTo"] : nil,
@@ -836,9 +926,12 @@ module Rubyfront
       @cards.each_value { |card| card[:assigned_to] = nil if card[:assigned_to] && !@cards.key?(card[:assigned_to]) }
     end
 
-    # L'ordine arriva già mescolato da chi ha premuto il tasto (il caso si
-    # tira una volta sola): qui si ricopia e basta.
+    # L'ordine arriva già mescolato dal tavolo (il caso lo tira la stanza,
+    # dal 2026-10-21): qui si ricopia e basta. Una vista senza ordine (il
+    # mazzo altrui, nascosto) non muove nulla. Gemello: state.ts, shuffle.
     def shuffle(action)
+      return unless action["order"].is_a?(Array)
+
       Array(action["order"]).each_with_index do |uid, index|
         card = @cards[uid]
         card[:order] = index if card && card[:owner] == action["seat"] && card[:zone] == "deck"
@@ -853,15 +946,27 @@ module Rubyfront
     # da sé. Gemello: state.ts, «mulligan».
     def mulligan(action)
       seat = action["seat"]
-      Array(action["order"]).each_with_index do |uid, index|
-        card = @cards[uid]
-        next unless card && card[:owner] == seat && %w[deck hand].include?(card[:zone])
+      if action["order"].is_a?(Array)
+        action["order"].each_with_index do |uid, index|
+          card = @cards[uid]
+          next unless card && card[:owner] == seat && %w[deck hand].include?(card[:zone])
 
-        card[:zone] = "deck"
-        card[:order] = index
-        card[:facedown] = false
+          card[:zone] = "deck"
+          card[:order] = index
+          card[:facedown] = false
+        end
+      else
+        # La vista del mazzo altrui (senza ordine): la mano torna nel mazzo,
+        # in fondo, e le pescate sono quelle nominate (`drawn`). Gemello: state.ts, mulligan.
+        bottom = pile(seat, "deck").last&.[](:order) || -1
+        pile(seat, "hand").each do |card|
+          bottom += 1
+          card[:zone] = "deck"
+          card[:order] = bottom
+          card[:facedown] = false
+        end
       end
-      draw({ "seat" => seat, "count" => 6 })
+      draw({ "seat" => seat, "count" => 6, "drawn" => action["drawn"] })
       player = @players[seat]
       return unless player
 
@@ -878,13 +983,24 @@ module Rubyfront
       player[:opening] = opening.merge(kept: true)
     end
 
+    # La pesca: le prime `count` del mazzo — o, in una vista proiettata, le
+    # carte nominate (`drawn`: il mazzo altrui non ha ordine qui). Gemello: state.ts, draw.
     def draw(action)
-      deck = pile(action["seat"], "deck")
+      seat = action["seat"]
+      deck = pile(seat, "deck")
       return if deck.empty?
 
-      hand = pile(action["seat"], "hand")
+      drawn = action["drawn"]
+      taken = if drawn.is_a?(Array)
+                drawn.filter_map { |uid| @cards[uid] }.select { |card| card[:owner] == seat && card[:zone] == "deck" }
+              else
+                deck.first(action["count"].to_i)
+              end
+      # §4 — la carta del turno 1 di chi apre, pescata a mano dopo le tenute.
+      @turn_card[seat] = true if @turn == 1 && seat == @active && !opening_pending? && @players[seat][:opening]
+      hand = pile(seat, "hand")
       order = hand.empty? ? 0 : hand.last[:order] + 1
-      deck.first(action["count"].to_i).each do |card|
+      taken.each do |card|
         card[:zone] = "hand"
         card[:order] = order
         card[:facedown] = false
@@ -941,7 +1057,13 @@ module Rubyfront
       seat = action["seat"]
       ref = action["effect"]
       close_ability(ref["source"], ref["ability"]) if ref.is_a?(Hash) && ref["event"] == "on_ability"
-      looked = pile(seat, "deck").first(action["count"].to_i)
+      # In una vista proiettata le guardate sono nominate (`looked`): il
+      # mazzo altrui non ha ordine qui. Gemello: state.ts, look.
+      looked = if action["looked"].is_a?(Array)
+                 action["looked"].filter_map { |uid| @cards[uid] }.select { |card| card[:owner] == seat && card[:zone] == "deck" }
+               else
+                 pile(seat, "deck").first(action["count"].to_i)
+               end
       return if looked.empty?
 
       hand = pile(seat, "hand")

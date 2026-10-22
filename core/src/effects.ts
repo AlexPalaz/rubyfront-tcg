@@ -11,7 +11,7 @@
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
 import type { AssignForm, AttackForm, DeathForm, FlipForm, ResolveForm } from "./ctx.js";
 import type { CardFacts, Ctx, EnterEmpower, EnterLook, EnterPeek, EnterRefresh, EnterStash, EnterTap } from "./ctx.js";
-import { shuffled, STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, sealedForPlay, zoneCards, freeFrontSlotOrNull } from "./state.js";
+import { STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, sealedForPlay, zoneCards, freeFrontSlotOrNull } from "./state.js";
 import { countEntities, powerOf } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
@@ -624,8 +624,8 @@ export async function resolveTurnStartSearch(ctx: Ctx, step: TurnStartSearchStep
   const passed = await ctx.dispatch({ t: "toZone", uid: card.uid, zone: "hand", effect: searchRef(step, ctx.state().turn) });
   if (!passed) return false;
   ctx.log(msg("log.effect.search", { seat: by, sourceCard: step.source.cardId, card: card.cardId }), by);
-  const order = shuffled(zoneCards(ctx.state(), by, "deck").map(entry => entry.uid));
-  if (order.length > 1) await ctx.dispatch({ t: "shuffle", seat: by, order });
+  // L'ordine lo riempie il tavolo (room.rb, complete), o il client senza tavolo (session.ts, completeLocally).
+  if (zoneCards(ctx.state(), by, "deck").length > 1) await ctx.dispatch({ t: "shuffle", seat: by });
   return true;
 }
 

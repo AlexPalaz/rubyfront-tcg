@@ -195,6 +195,37 @@ module Rubyfront
                turn_start_searches leave_returns attack_draws attack_forms grants_while_assigned static_forms resolve_forms flip_forms assign_forms death_forms].freeze
     RETURN_EVENTS = %w[on_enter_field on_attack].freeze
 
+    # L'indice dei mazzi (dal 2026-10-21, §4): `data/decks/<id>.json` →
+    # id -> { cards: {cardId => quante}, rubyfront: id, access: "free"|… }.
+    # Il carico di un mazzo dichiarato si confronta con questa composizione
+    # (engine.rb, deck_composition_stopped). Un file rotto o senza carte si
+    # salta: un mazzo che il tavolo non conosce non si carica in stanza.
+    def self.load_decks(data_dir, cards: nil)
+      cards ||= load(data_dir)
+      index = {}
+      Dir.glob(File.join(data_dir, "decks", "*.json")).sort.each do |path|
+        deck = JSON.parse(File.read(path))
+        next unless deck.is_a?(Hash) && deck["id"].is_a?(String)
+
+        tally = {}
+        Array(deck["cards"]).each do |entry|
+          next unless entry.is_a?(Hash) && entry["card"].is_a?(String)
+
+          count = entry["count"].is_a?(Integer) ? entry["count"] : 1
+          next unless count.positive?
+
+          tally[entry["card"]] = (tally[entry["card"]] || 0) + count
+        end
+        next if tally.empty?
+
+        rubyfront = tally.keys.find { |id| cards.dig(id, :type) == "rubyfront" }
+        index[deck["id"]] = { cards: tally.freeze, rubyfront: rubyfront, access: deck["access"].is_a?(String) ? deck["access"] : nil }.freeze
+      rescue JSON::ParserError
+        next
+      end
+      index.freeze
+    end
+
     # Un trigger è riconosciuto se almeno una forma certificata lo legge.
     def self.recognized?(trigger)
       faces = [{ "triggers" => [trigger] }]

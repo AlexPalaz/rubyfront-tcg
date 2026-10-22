@@ -60,7 +60,14 @@ export function gameOverMsg(over: GameOver, me?: Seat): { title: LogMsg; detail:
       : over.winner === me
         ? msg("over.won")
         : msg("over.victory", { name: msg("seat.name", { seat: over.winner }) });
-  const detail = msg(over.reason === "hp" ? "over.hp" : over.reason === "deck" ? "over.deck" : "over.both");
+  const detail = msg(
+    over.reason === "hp" ? "over.hp"
+    : over.reason === "deck" ? "over.deck"
+    : over.reason === "concede" ? "over.concede"
+    : over.reason === "forfeit" ? "over.forfeit"
+    : over.reason === "limit" ? "over.limit"
+    : "over.both"
+  );
   return { title, detail };
 }
 

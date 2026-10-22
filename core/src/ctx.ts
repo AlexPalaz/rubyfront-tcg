@@ -444,6 +444,13 @@ export interface Ctx {
    * (vedi endTurn in turn.ts).
    */
   dispatch(action: Action): Promise<boolean>;
+  /**
+   * Il dado lo tira il TAVOLO (§8.2, dal 2026-10-21): si chiede un tiro per
+   * il passo (`key`, state.ts rollKey) e torna il valore — lo stesso se il
+   * passo l'ha già chiesto nel turno — o `null` se il tavolo ha detto no (in
+   * stanza senza arbitro). Senza tavolo (la «solo» offline) tira il client.
+   */
+  roll(die: number, key: string, seat: Seat): Promise<number | null>;
   /** Il posto occupato da questo browser. */
   seat(): Seat;
   /**

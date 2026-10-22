@@ -11,7 +11,9 @@ import { cardStats, isRubyfront, useCatalog, type CatalogCard, type CatalogDeck 
 import { FRONT_SLOT_X, SLOT_X, backRowY, frontRowY } from "../src/geometry.js";
 import { createSession, type Session, type SessionView } from "../src/session.js";
 import { zoneCards } from "../src/state.js";
+import { HIDDEN_CARD, isHidden } from "../src/types.js";
 import type { Action, GameState } from "../src/types.js";
+import { FakeWebSocket, fakeTable } from "./fake-table.js";
 
 const catalog = JSON.parse(readFileSync(join(import.meta.dirname, "../../docs/cards/catalog.json"), "utf8")) as {
   cards: CatalogCard[];
@@ -269,5 +271,185 @@ describe("la fine dell'esilio (§8.2)", () => {
     expect(session.state().cards[held.uid]?.heldBy).toBeUndefined();
     expect(view.calls.filter(call => call === "offerReturned")).toHaveLength(1);
     expect(view.calls.filter(call => call === "before:release")).toHaveLength(1);
+  });
+});
+
+// Il tavolo finto (fake-table.ts): la stanza che completa le azioni col caso
+// e manda le viste per posto (2026-10-21). Qui si prova ciò che la sessione
+// fa con l'`applied` del verdetto, col dado del tavolo, con le carte altrui
+// nascoste, col giornale proiettato, col tavolo ripartito e con l'uscita.
+describe("col tavolo che tira e proietta", () => {
+  function online(room = "", seed = 7, starter: "a" | "b" = "a") {
+    FakeWebSocket.reset();
+    vi.stubGlobal("WebSocket", FakeWebSocket);
+    const table = fakeTable(room, { seed, starter, token: "c".repeat(32) });
+    const view = fakeView();
+    const store = memoryStore(room ? { room } : {});
+    const session = createSession({ seat: "a", locale: "it", store, engineUrl: "ws://tavolo:1", defaultTheme: "t41", opening: { hand: HAND_MS, turnDraw: TURN_DRAW_MS }, view });
+    // Il filo si apre sedendosi: nella «solo» (nome vuoto) come in stanza.
+    session.join(room);
+    return { session, view, store, table };
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("la sessione applica l'azione COMPLETATA dal tavolo: il mazzo è mescolato dalla stanza, non dal client", async () => {
+    const { session, table } = online();
+    await vi.advanceTimersByTimeAsync(0);
+    session.loadDeck(DECK.id, "a");
+    await vi.advanceTimersByTimeAsync(0);
+    const sent = table.judged.find(action => action.t === "loadDeck");
+    expect(sent?.t).toBe("loadDeck");
+    const canonical = (sent as { cards: { order?: number; zone: string }[] }).cards.filter(card => card.zone === "deck").map(card => card.order);
+    expect(canonical).toEqual([...canonical].sort((x, y) => (x ?? 0) - (y ?? 0)));
+    const mine = zoneCards(session.state(), "a", "deck").map(card => card.order);
+    expect(mine).toEqual(zoneCards(table.state(), "a", "deck").map(card => card.order));
+    expect([...mine].sort((x, y) => x - y)).toEqual(mine);
+    const labels = Object.values(session.state().cards).filter(card => card.owner === "a").map(card => Number(card.uid.slice(2)));
+    expect([...labels].sort((x, y) => x - y)).toEqual(labels.map((_, i) => i + 1));
+    expect(labels).not.toEqual(labels.map((_, i) => i + 1));
+  });
+
+  it("la mescolata e il mulligan partono senza ordine, e tornano con quello del tavolo", async () => {
+    const { session, table } = online();
+    await vi.advanceTimersByTimeAsync(0);
+    session.loadDeck(DECK.id, "a");
+    await vi.advanceTimersByTimeAsync(0);
+    const before = zoneCards(session.state(), "a", "deck").map(card => card.uid);
+    session.shuffle();
+    await vi.advanceTimersByTimeAsync(0);
+    const shuffle = table.judged.find(action => action.t === "shuffle") as { order?: string[] } | undefined;
+    expect(shuffle).toBeDefined();
+    expect(shuffle?.order).toBeUndefined();
+    const after = zoneCards(session.state(), "a", "deck").map(card => card.uid);
+    expect([...after].sort()).toEqual([...before].sort());
+    expect(after).not.toEqual(before);
+    expect(after).toEqual(zoneCards(table.state(), "a", "deck").map(card => card.uid));
+    expect(session.state().chat.at(-1)?.key).toBe("log.shuffle");
+  });
+
+  it("il dado lo tira il tavolo: session.roll torna il suo valore, lo stesso per lo stesso passo", async () => {
+    const { session, table } = online();
+    await vi.advanceTimersByTimeAsync(0);
+    const first = await session.roll(6, "cost|a-1");
+    expect(first).not.toBeNull();
+    expect(first).toBeGreaterThanOrEqual(1);
+    expect(first).toBeLessThanOrEqual(6);
+    expect(table.judged.at(-1)).toEqual({ t: "roll", seat: "a", die: 6, for: "cost|a-1" });
+    expect(session.state().rolls?.["cost|a-1"]).toEqual({ die: 6, value: first });
+    expect(await session.roll(6, "cost|a-1")).toBe(first);
+    const twenty = await session.roll(20, "fury|rf");
+    expect(twenty).toBeLessThanOrEqual(20);
+  });
+
+  it("senza tavolo, nella «solo», il caso lo tira il client: mescolata e dado si completano in locale", async () => {
+    const { session } = open();
+    session.loadDeck(DECK.id, "a");
+    const before = zoneCards(session.state(), "a", "deck").map(card => card.uid);
+    session.shuffle();
+    await vi.advanceTimersByTimeAsync(0);
+    const after = zoneCards(session.state(), "a", "deck").map(card => card.uid);
+    expect([...after].sort()).toEqual([...before].sort());
+    expect(after).not.toEqual(before);
+    const roll = await session.roll(6, "deploy|rf");
+    expect(roll).toBeGreaterThanOrEqual(1);
+    expect(roll).toBeLessThanOrEqual(6);
+    await session.dispatch({ t: "newGame" });
+    expect(["a", "b"]).toContain(session.state().active);
+  });
+
+  it("in stanza una pescata altrui arriva per nome (drawn) e le carte restano dorsi", async () => {
+    const { session, table } = online("stanza");
+    await vi.advanceTimersByTimeAsync(0);
+    const hidden = Array.from({ length: 4 }, (_, i) => ({ uid: `b-${i + 1}`, owner: "b" as const, zone: "deck" as const, face: 0, x: 0, y: 0, tapped: false, facedown: false, z: 0 }));
+    table.pushAction({ t: "loadDeck", seat: "b", deckId: OTHER.id, cards: hidden }, "b");
+    expect(zoneCards(session.state(), "b", "deck").every(card => isHidden(card))).toBe(true);
+    table.pushAction({ t: "draw", seat: "b", count: 2, drawn: ["b-3", "b-1"] }, "b");
+    expect(zoneCards(session.state(), "b", "hand").map(card => card.uid)).toEqual(["b-3", "b-1"]);
+    expect(session.state().cards["b-3"].cardId).toBe(HIDDEN_CARD);
+  });
+
+  it("in stanza una giocata altrui porta le identità, e la vista le vede prima che l'azione si applichi", async () => {
+    const view = fakeView();
+    let seenBefore = "";
+    view.beforeReceive = action => {
+      if (action.t === "toZone") seenBefore = session.state().cards[action.uid]?.cardId ?? "";
+    };
+    FakeWebSocket.reset();
+    vi.stubGlobal("WebSocket", FakeWebSocket);
+    const table = fakeTable("stanza", { token: "c".repeat(32) });
+    const session = createSession({ seat: "a", locale: "it", store: memoryStore(), engineUrl: "ws://tavolo:1", defaultTheme: "t41", opening: { hand: HAND_MS, turnDraw: TURN_DRAW_MS }, view });
+    session.join("stanza");
+    await vi.advanceTimersByTimeAsync(0);
+    table.pushAction({ t: "loadDeck", seat: "b", deckId: OTHER.id, cards: [{ uid: "b-1", owner: "b", zone: "hand", face: 0, x: 0, y: 0, tapped: false, facedown: false, z: 0 }] }, "b");
+    expect(isHidden(session.state().cards["b-1"])).toBe(true);
+    table.pushAction({ t: "toZone", uid: "b-1", zone: "field", x: 442, y: 172, z: 2, identities: { "b-1": "RBF-047" } }, "b");
+    expect(seenBefore).toBe("RBF-047");
+    expect(session.state().cards["b-1"]).toMatchObject({ zone: "field", cardId: "RBF-047" });
+  });
+
+  it("il giornale proiettato si rigioca: le mie carte intere, le altrui dorsi finché non escono", async () => {
+    const { session, table } = online("stanza");
+    await vi.advanceTimersByTimeAsync(0);
+    table.push({ t: "journal", match: "m", actions: [
+      { action: { t: "newGame", active: "a" }, from: null },
+      { action: { t: "loadDeck", seat: "a", deckId: DECK.id, cards: [{ uid: "a-1", cardId: "RBF-047", owner: "a", zone: "deck", order: 0, face: 0, x: 0, y: 0, tapped: false, facedown: false, z: 0 }] }, from: "a" },
+      { action: { t: "loadDeck", seat: "b", deckId: OTHER.id, cards: [{ uid: "b-1", owner: "b", zone: "deck", face: 0, x: 0, y: 0, tapped: false, facedown: false, z: 0 }, { uid: "b-2", owner: "b", zone: "deck", face: 0, x: 0, y: 0, tapped: false, facedown: false, z: 0 }] }, from: "b" },
+      { action: { t: "draw", seat: "b", count: 1, drawn: ["b-2"] }, from: "b" },
+      { action: { t: "toZone", uid: "b-2", zone: "ritiro", identities: { "b-2": "RBF-050" } }, from: "b" },
+    ] });
+    const state = session.state();
+    expect(state.cards["a-1"].cardId).toBe("RBF-047");
+    expect(isHidden(state.cards["b-1"])).toBe(true);
+    expect(state.cards["b-2"]).toMatchObject({ zone: "ritiro", cardId: "RBF-050" });
+  });
+
+  it("chi apre lo decide il tavolo: la riga in chat lo legge dalla lavagna", async () => {
+    const { session, table } = online("", 3);
+    await vi.advanceTimersByTimeAsync(0);
+    session.newGame();
+    await vi.advanceTimersByTimeAsync(0);
+    const line = session.state().chat.find(entry => entry.key === "log.newgame");
+    expect(line?.params?.seat).toBe(session.state().active);
+    expect(table.journal.at(0)?.action).toMatchObject({ t: "newGame", active: session.state().active });
+  });
+
+  it("il tavolo ripartito: un giornale vuoto a partita in corso avverte col sigillo (T21)", async () => {
+    const { session, view, table } = online("stanza");
+    await vi.advanceTimersByTimeAsync(0);
+    const cards = Array.from({ length: 7 }, (_, i) => ({ uid: `a-${i + 1}`, cardId: "RBF-047", owner: "a" as const, zone: "deck" as const, order: i, face: 0, x: 0, y: 0, tapped: false, facedown: false, z: 0 }));
+    table.push({ t: "journal", match: "m", actions: [
+      { action: { t: "newGame", active: "a" }, from: null },
+      { action: { t: "loadDeck", seat: "a", deckId: DECK.id, cards }, from: "a" },
+      { action: { t: "draw", seat: "a", count: 6 }, from: "a" },
+    ] });
+    expect(zoneCards(session.state(), "a", "hand")).toHaveLength(6);
+    expect(view.calls.some(call => call.startsWith("stop:"))).toBe(false);
+    table.push({ t: "journal", match: "m2", actions: [{ action: { t: "newGame", active: "b" }, from: null }] });
+    expect(view.calls.some(call => call.startsWith("stop:") && /ripartito/.test(call))).toBe(true);
+    expect(Object.keys(session.state().cards)).toHaveLength(0);
+  });
+
+  it("uscire dalla stanza a partita in corso è una resa (§2): il tavolo riceve gameOver concede", async () => {
+    const { session, table } = online("stanza");
+    await vi.advanceTimersByTimeAsync(0);
+    const cards = Array.from({ length: 3 }, (_, i) => ({ uid: `a-${i + 1}`, cardId: "RBF-047", owner: "a" as const, zone: "deck" as const, order: i, face: 0, x: 0, y: 0, tapped: false, facedown: false, z: 0 }));
+    table.push({ t: "journal", match: "m", actions: [{ action: { t: "newGame", active: "a" }, from: null }, { action: { t: "loadDeck", seat: "a", deckId: DECK.id, cards }, from: "a" }] });
+    session.leaveRoom();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(table.judged.some(action => action.t === "gameOver" && action.reason === "concede" && action.winner === "b")).toBe(true);
+    expect(session.room()).toBe("");
+  });
+
+  it("il token del posto si conserva per la stanza e torna nell'indirizzo", async () => {
+    const { store } = online("stanza");
+    await vi.advanceTimersByTimeAsync(0);
+    expect(store.values["seat-token:stanza"]).toBe("c".repeat(32));
+    expect(new URL(FakeWebSocket.instances.at(-1)!.url).searchParams.get("token")).toBeNull();
+    FakeWebSocket.instances.at(-1)!.drop();
+    await vi.advanceTimersByTimeAsync(500);
+    expect(new URL(FakeWebSocket.instances.at(-1)!.url).searchParams.get("token")).toBe("c".repeat(32));
   });
 });

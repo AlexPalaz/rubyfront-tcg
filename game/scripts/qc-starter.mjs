@@ -38,7 +38,7 @@ try {
     window.__rubyfront.match.session.dispatch({ t: "spawn", card: { uid, cardId, owner: "a", zone: "hand", face: 0, x: 0, y: 0, order: 99, tapped: false, facedown: false, z: 0 } }), { uid, cardId });
   await spawn("qc-weary", "RBF-048");
   await spawn("qc-blow", "RBF-059");
-  await page.evaluate(() => window.__rubyfront.match.session.dispatch({ t: "player", seat: "a", patch: { flux: 9, fluxMax: 9 } }));
+  await page.evaluate(() => window.__rubyfront.match.session.dispatch({ t: "player", seat: "a", patch: { flux: 9, fluxMax: 9 }, test: true }));
   await page.waitForTimeout(4000);
   console.log("spawn:", JSON.stringify(verdicts.refused.slice(-3)), await page.evaluate(() => Object.keys(window.__rubyfront.match.session.state().cards).filter(k => k.startsWith("qc-"))));
   const field = await page.evaluate(() => Object.values(window.__rubyfront.match.session.state().cards).filter(c => c.owner === "a" && c.zone === "field").map(c => c.uid));

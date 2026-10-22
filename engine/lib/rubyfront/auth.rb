@@ -18,6 +18,11 @@ module Rubyfront
     PASSWORD_MIN = 8
     DISPLAY_MAX = 24
     SESSION_DAYS = 90
+    # Il link di conferma della mail vale due giorni (dal 2026-10-21, audit RF-026).
+    VERIFY_TTL_S = 48 * 3600
+    # I nomi utente che nessuno registra (dal 2026-10-21, audit RF-012): quelli
+    # di sistema e quelli che si spacciano per il tavolo.
+    RESERVED_USERNAMES = %w[tester test admin administrator root rubyfront bot moderator mod staff support system engine tavolo arbitro].freeze
 
     module_function
 
@@ -54,6 +59,12 @@ module Rubyfront
     def email_ok?(email) = EMAIL.match?(email.to_s)
     def password_strong?(password) = password.to_s.length >= PASSWORD_MIN
 
+    # Un nome riservato: esatto, o che comincia per «rubyfront»/«admin».
+    def username_reserved?(name)
+      name = normalize_username(name)
+      RESERVED_USERNAMES.include?(name) || name.start_with?("rubyfront", "admin")
+    end
+
     # Un nome utente libero a partire da una base (la parte prima della @ di
     # una mail, il nome di Google): ripulito, e con un numero in coda se serve.
     def suggest_username(base, taken:)
@@ -61,7 +72,7 @@ module Rubyfront
       root = "giocatore" if root.length < 3
       candidate = root
       n = 1
-      while taken.call(candidate)
+      while taken.call(candidate) || username_reserved?(candidate)
         n += 1
         candidate = "#{root}#{n}"
       end

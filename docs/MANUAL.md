@@ -32,6 +32,8 @@ You win in one of these two ways:
 1. by bringing the **HP (Health Points) of the opposing Rubyfront to zero**, or
 2. by **destroying the Nexus** of the opposing Rubyfront, that is bringing the Nexus's HP to zero, if the opponent has played it (see §3.1, "The Nexus").
 
+**Concession** (experimental rule, 2026-10-21): a player may concede at any moment of the game, on their own turn or on the opponent's: the game ends and the opponent wins. At the online table **absence** counts as a concession too: whoever leaves the table during a game and doesn't come back within two minutes has forfeited, and the opponent wins.
+
 ## 3. Game materials
 
 ### 3.1 The deck

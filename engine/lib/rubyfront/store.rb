@@ -4,6 +4,7 @@ require "json"
 require "net/http"
 require "socket"
 require "openssl"
+require "time"
 require "uri"
 require_relative "auth"
 
@@ -86,7 +87,22 @@ module Rubyfront
         )
       SQL
       # Il percorso d'Ascesa (2026-09-26): i nodi attivi, in ordine dalla carta.
-      "ALTER TABLE player_rubyfronts ADD COLUMN IF NOT EXISTS path JSONB NOT NULL DEFAULT '[]'::jsonb"
+      "ALTER TABLE player_rubyfronts ADD COLUMN IF NOT EXISTS path JSONB NOT NULL DEFAULT '[]'::jsonb",
+      # Quando è partito il link di conferma (2026-10-21): il link scade (VERIFY_TTL_S).
+      "ALTER TABLE players ADD COLUMN IF NOT EXISTS verify_sent_at TIMESTAMPTZ",
+      # Le partite ricompensate (2026-10-21): una riga per partita e giocatore,
+      # così un esito ripetuto non accredita due volte (record_match).
+      <<~SQL,
+        CREATE TABLE IF NOT EXISTS player_matches (
+          match_id TEXT NOT NULL,
+          player_id BIGINT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+          card_id TEXT NOT NULL,
+          outcome TEXT NOT NULL,
+          gained INTEGER NOT NULL,
+          played_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          PRIMARY KEY (match_id, player_id)
+        )
+      SQL
     ].freeze
 
     PLAYER_COLUMNS = "p.id, p.username, p.display_name, p.email, p.password_hash, p.email_verified_at"
@@ -101,9 +117,11 @@ module Rubyfront
     end
 
     # `transport` è `->(sql, params) { righe }`: di serie l'HTTPS di Neon.
-    def initialize(url, transport: nil)
+    # `clock` dà l'ora (i test la fingono): serve alla scadenza dei link.
+    def initialize(url, transport: nil, clock: -> { Time.now })
       @url = url
       @transport = transport || method(:http_query)
+      @clock = clock
       @endpoint = URI("https://#{URI(url).host}/sql")
     end
 
@@ -150,11 +168,14 @@ module Rubyfront
       !query("SELECT 1 FROM players WHERE email = $1", [email]).empty?
     end
 
-    # Un giocatore nuovo; torna la forma privata. Password e mail possono mancare (Google).
+    # Un giocatore nuovo; torna la forma privata. Password e mail possono
+    # mancare (Google). `verify_token` è l'IMPRONTA del token di conferma
+    # (dal 2026-10-21: in memoria mai il token in chiaro), con l'ora d'invio.
     def create_player(username:, display_name:, email: nil, password_hash: nil, verify_token: nil, verified: false)
-      row = query(<<~SQL, [username, display_name, email, password_hash, verify_token, verified]).first
-        INSERT INTO players (username, display_name, email, password_hash, verify_token, email_verified_at)
-        VALUES ($1, $2, $3, $4, $5, CASE WHEN $6::boolean THEN now() ELSE NULL END)
+      sent_at = verify_token ? @clock.call.utc.iso8601 : nil
+      row = query(<<~SQL, [username, display_name, email, password_hash, verify_token, verified, sent_at]).first
+        INSERT INTO players (username, display_name, email, password_hash, verify_token, email_verified_at, verify_sent_at)
+        VALUES ($1, $2, $3, $4, $5, CASE WHEN $6::boolean THEN now() ELSE NULL END, $7::timestamptz)
         RETURNING id, username, display_name, email, password_hash, email_verified_at
       SQL
       private_player(row)
@@ -179,10 +200,25 @@ module Rubyfront
       true
     end
 
-    # La conferma della mail col token: il giocatore confermato, o nil.
-    def verify_email(token)
-      row = query("UPDATE players SET email_verified_at = now(), verify_token = NULL WHERE verify_token = $1 AND email_verified_at IS NULL RETURNING id", [token]).first
+    # La conferma della mail col token: il giocatore confermato, o nil. Si
+    # cerca l'impronta (dal 2026-10-21) — e per un rilascio anche il token in
+    # chiaro dei link già spediti — entro la scadenza (`max_age_s`): un link
+    # senza data d'invio (vecchio) vale ancora.
+    def verify_email(token_hash, max_age_s: Auth::VERIFY_TTL_S, legacy_token: nil)
+      oldest = (@clock.call - max_age_s).utc.iso8601
+      row = query(<<~SQL, [token_hash, oldest, legacy_token.to_s]).first
+        UPDATE players SET email_verified_at = now(), verify_token = NULL, verify_sent_at = NULL
+        WHERE (verify_token = $1 OR ($3 <> '' AND verify_token = $3)) AND email_verified_at IS NULL
+          AND (verify_sent_at IS NULL OR verify_sent_at > $2::timestamptz)
+        RETURNING id
+      SQL
       row && player(row["id"].to_i)
+    end
+
+    # Un link di conferma nuovo: l'impronta nuova e l'ora d'invio; il vecchio non vale più.
+    def reset_verify_token(player_id, token_hash)
+      query("UPDATE players SET verify_token = $2, verify_sent_at = $3::timestamptz WHERE id = $1 AND email_verified_at IS NULL", [player_id, token_hash, @clock.call.utc.iso8601])
+      true
     end
 
     # ------------------------------------------------------------ le sessioni
@@ -237,6 +273,18 @@ module Rubyfront
       row && rubyfront_row(row)
     end
 
+    # La partita ricompensata (2026-10-21): una riga per partita e giocatore.
+    # Vero se la riga è nuova (si accredita), falso se c'era già (non si
+    # accredita due volte).
+    def record_match(match_id, player_id, card_id, outcome, gained)
+      rows = query(<<~SQL, [match_id.to_s, player_id, card_id, outcome.to_s, gained.to_i])
+        INSERT INTO player_matches (match_id, player_id, card_id, outcome, gained) VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (match_id, player_id) DO NOTHING
+        RETURNING match_id
+      SQL
+      !rows.empty?
+    end
+
     # Scrive la configurazione (le abilità montate) di un Rubyfront del giocatore; torna la riga.
     def set_loadout(player_id, card_id, loadout)
       row = query(<<~SQL, [player_id, card_id, JSON.generate(loadout)]).first
@@ -279,6 +327,12 @@ module Rubyfront
     # Le chiavi salvate del giocatore.
     def keys(player_id)
       query("SELECT key FROM player_data WHERE player_id = $1 ORDER BY key", [player_id]).map { |row| row["key"] }
+    end
+
+    # Quante chiavi ha salvato il giocatore (il tetto, account.rb).
+    def count_keys(player_id)
+      row = query("SELECT count(*) AS n FROM player_data WHERE player_id = $1", [player_id]).first
+      row ? row["n"].to_i : 0
     end
 
     private

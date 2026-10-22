@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "json"
+require "tmpdir"
+require "fileutils"
 require "minitest/autorun"
 require_relative "../lib/rubyfront/card_index"
 
@@ -430,5 +432,45 @@ class CardIndexTest < Minitest::Test
     assert grants.all? { |grant| grant[:keywords].any? }, "solo empower con grants"
     # E chi non concede nulla ha la lista vuota, mai nil.
     assert_equal [], @index["RBF-009"][:grants_while_assigned]
+  end
+
+  # --- L'indice dei mazzi (§4, dal 2026-10-21) --------------------------------
+
+  def test_deck_index_reads_every_deck_with_one_rubyfront
+    decks = Rubyfront::CardIndex.load_decks(DATA_DIR, cards: @index)
+    refute_empty decks
+    files = Dir.glob(File.join(DATA_DIR, "decks", "*.json")).size
+    assert_equal files, decks.size, "ogni file dei mazzi entra nell'indice"
+    decks.each do |id, deck|
+      assert deck[:cards].values.all? { |count| count.is_a?(Integer) && count.positive? }, id
+      assert deck[:cards].keys.all? { |card| @index.key?(card) }, "#{id}: ogni carta del mazzo è in anagrafe"
+      assert_equal 1, deck[:cards].count { |card, _| @index[card][:type] == "rubyfront" }, "#{id}: un solo Rubyfront"
+      assert_equal 1, deck[:cards][deck[:rubyfront]], "#{id}: il Rubyfront è una copia sola"
+      assert deck.frozen?
+      assert deck[:cards].frozen?
+    end
+  end
+
+  def test_deck_index_knows_access_and_composition_size
+    decks = Rubyfront::CardIndex.load_decks(DATA_DIR, cards: @index)
+    assert decks.values.any? { |deck| deck[:access] == "free" }
+    decks.each do |id, deck|
+      total = deck[:cards].values.sum
+      assert total.between?(20, 80), "#{id}: #{total} carte"
+    end
+  end
+
+  def test_deck_index_skips_broken_files
+    Dir.mktmpdir do |dir|
+      FileUtils.mkdir_p(File.join(dir, "decks"))
+      File.write(File.join(dir, "decks", "rotto.json"), "{ non json")
+      File.write(File.join(dir, "decks", "vuoto.json"), JSON.generate({ "id" => "vuoto", "cards" => [] }))
+      File.write(File.join(dir, "decks", "senza-id.json"), JSON.generate({ "cards" => [{ "card" => "RBF-001", "count" => 1 }] }))
+      File.write(File.join(dir, "decks", "ok.json"), JSON.generate({ "id" => "ok", "access" => "free", "cards" => [{ "card" => "RBF-001", "count" => 1 }, { "card" => "RBF-002", "count" => 2 }, { "card" => "RBF-002", "count" => 1 }, { "card" => "RBF-003", "count" => 0 }] }))
+      decks = Rubyfront::CardIndex.load_decks(dir, cards: @index)
+      assert_equal ["ok"], decks.keys
+      assert_equal({ "RBF-001" => 1, "RBF-002" => 3 }, decks["ok"][:cards], "le voci ripetute si sommano, le quantità a zero cadono")
+      assert_equal "free", decks["ok"][:access]
+    end
   end
 end

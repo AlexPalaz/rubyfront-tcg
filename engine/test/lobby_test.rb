@@ -72,4 +72,31 @@ class LobbyTest < Minitest::Test
   def test_random_name_is_a_gem_and_four_digits
     assert_match(/\A[a-z]+-\d{4}\z/, Rubyfront::Lobby.random_name)
   end
+
+  # Dal 2026-10-21: lo stesso account da due connessioni non gioca contro sé stesso.
+  def test_same_identity_from_two_connections_is_not_paired
+    lobby = new_lobby
+    a, out_a = box
+    b, out_b = box
+    c, out_c = box
+    lobby.enqueue(out_a, identity: 7)
+    lobby.enqueue(out_b, identity: 7)
+    assert_empty a
+    assert_empty b
+    assert_equal 2, lobby.waiting
+    lobby.enqueue(out_c, identity: 9)
+    assert_equal [{ t: "matched", room: "prova-1234", seat: "a" }], a, "il primo in fila con un'identità diversa"
+    assert_equal [{ t: "matched", room: "prova-1234", seat: "b" }], c
+    assert_empty b
+    assert_equal 1, lobby.waiting
+    lobby.cancel(out_b)
+    assert_equal 0, lobby.waiting
+    # Senza identità (nessun accesso) ci si accoppia con chiunque.
+    d, out_d = box
+    e, out_e = box
+    lobby.enqueue(out_d)
+    lobby.enqueue(out_e, identity: 7)
+    refute_empty d
+    refute_empty e
+  end
 end

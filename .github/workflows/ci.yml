@@ -1,5 +1,7 @@
-# I test a ogni push e a ogni PR: l'engine (Ruby, i quattro file di test),
-# il core e il gioco (tsc, vitest) e la build del sito.
+# I test a ogni push e a ogni PR: l'engine (Ruby, ogni file di test in
+# engine/test — il ciclo fallisce se uno qualunque fallisce, dal 2026-10-21),
+# il core e il gioco (tsc, vitest), i copioni del proxy (node --test) e la
+# build del sito.
 name: CI
 on:
   push:
@@ -13,7 +15,13 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
-      - run: for t in engine/test/*_test.rb; do ruby -Iengine/lib "$t"; done
+      - run: |
+          fail=0
+          for t in engine/test/*_test.rb; do
+            echo "== $t"
+            ruby -Iengine/lib "$t" || fail=1
+          done
+          exit $fail
   client:
     name: Core e gioco (tsc, vitest, build)
     runs-on: ubuntu-latest
@@ -33,4 +41,5 @@ jobs:
         working-directory: game
       - run: npx vitest run
         working-directory: game
+      - run: node --test scripts/test/
       - run: node scripts/build-site.mjs

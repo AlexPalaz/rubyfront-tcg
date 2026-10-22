@@ -17,7 +17,7 @@ const ROOT = resolve(GAME, "..");
 export async function openGame({ seed = 7, table = null } = {}) {
   let engine = null;
   if (!table) {
-    engine = spawn("ruby", ["engine/bin/server"], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
+    engine = spawn("ruby", ["engine/bin/server"], { cwd: ROOT, env: { ...process.env, RUBYFRONT_SEED: String(seed) }, stdio: ["ignore", "pipe", "pipe"] });
     await new Promise((ready, reject) => {
       engine.stdout.on("data", data => String(data).includes("ws://") && ready());
       engine.on("exit", code => reject(new Error(`il tavolo non parte (exit ${code})`)));

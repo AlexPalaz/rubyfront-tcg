@@ -4,8 +4,9 @@
 
 import { describe, expect, it } from "vitest";
 import { CONTROL_X, MATTER_X, frontRowY } from "../src/geometry.js";
-import { STACK_STEP, abilityDiscount, apply, furyThreshold, attackBonusFor, attackKey, matterSpot, newGame, pay, playSpot, replay, zoneCards, chainTop, openingPending, mayMulligan, mustKeep } from "../src/state.js";
+import { STACK_STEP, abilityDiscount, apply, furyThreshold, attackBonusFor, attackKey, matterSpot, newGame, pay, playSpot, replay, revealIdentities, rollFor, rollKey, zoneCards, chainTop, openingPending, mayMulligan, mustKeep } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
+import { HIDDEN_CARD, isHidden } from "../src/types.js";
 
 function deckFor(seat: Seat, count: number): { cards: CardInstance[] } & Extract<Parameters<typeof apply>[1], { t: "loadDeck" }> {
   const cards: CardInstance[] = Array.from({ length: count }, (_, index) => ({
@@ -313,12 +314,12 @@ describe("apply turn", () => {
     expect(apply(state, { t: "turn", turn: 2, active: "b" }).players.b).toMatchObject({ fluxMax: 20, flux: 20 });
   });
 
-  it("il contatore ritoccato a mano non è un cambio di turno", () => {
+  it("il contatore ritoccato a mano non è un cambio di turno, e non cambia nulla (§6.5, dal 2026-10-21) — gemello: table_test.rb", () => {
     const state = newGame();
     state.phase = "fronte";
     tapped(state, "a-1", "a", true);
     const next = apply(state, { t: "turn", turn: 5, active: "a" });
-    expect(next.turn).toBe(5);
+    expect(next.turn).toBe(1);
     expect(next.phase).toBe("fronte");
     expect(next.cards["a-1"].tapped).toBe(true);
     expect(next.players.a.fluxMax).toBe(1);
@@ -1090,5 +1091,113 @@ describe("replay: la lavagna dal giornale del tavolo", () => {
 
   it("un giornale vuoto è una partita nuova", () => {
     expect(replay([])).toEqual(newGame());
+  });
+});
+
+// Il caso lo tira il tavolo e le viste per posto (audit 2026-10-20, dal
+// 2026-10-21). Gemelli: table_test.rb, «il caso lo tira il tavolo» e «le viste proiettate».
+describe("il caso lo tira il tavolo", () => {
+  it("roll ricorda il tiro per chiave; il cambio di turno e la nuova partita lo dimenticano", () => {
+    let state = apply(newGame(), { t: "roll", seat: "a", die: 6, for: "cost|a-1", value: 4 });
+    expect(rollFor(state, "cost|a-1")).toBe(4);
+    expect(state.rolls?.["cost|a-1"]).toEqual({ die: 6, value: 4 });
+    state = apply(state, { t: "roll", seat: "a", die: 20, for: "fury|rf", value: 17 });
+    expect(rollFor(state, "fury|rf")).toBe(17);
+    expect(rollFor(state, "cost|a-1")).toBe(4);
+    const unvalued = apply(state, { t: "roll", seat: "a", die: 6, for: "deploy|rf" });
+    expect(rollFor(unvalued, "deploy|rf")).toBeUndefined();
+    const turned = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(turned.rolls).toBeUndefined();
+    const same = apply(state, { t: "turn", turn: 2, active: "a" });
+    expect(rollFor(same, "cost|a-1")).toBe(4);
+    expect(apply(state, { t: "newGame", active: "a" }).rolls).toBeUndefined();
+  });
+
+  it("rollKey rispecchia la chiave dell'engine (Engine.roll_key)", () => {
+    expect(rollKey({ effect: { source: "s", event: "on_attack", entering: "e" } })).toBe("effect|s|on_attack|e|");
+    expect(rollKey({ effect: { source: "s", event: "on_attack", entering: "e", follow: "recall" } })).toBe("effect|s|on_attack|e|recall");
+    expect(rollKey({ deploy: "rf" })).toBe("deploy|rf");
+    expect(rollKey({ cost: "m" })).toBe("cost|m");
+    expect(rollKey({ fury: "rf" })).toBe("fury|rf");
+  });
+});
+
+describe("le viste proiettate", () => {
+  function hiddenDeck(seat: Seat, count: number): Extract<Parameters<typeof apply>[1], { t: "loadDeck" }> {
+    const full = deckFor(seat, count);
+    return { ...full, cards: full.cards.map(({ cardId: _secret, order: _position, ...rest }) => rest) };
+  }
+
+  it("loadDeck senza cardId né order carica carte nascoste, in fondo", () => {
+    const state = apply(newGame(), hiddenDeck("b", 3));
+    const deck = zoneCards(state, "b", "deck");
+    expect(deck).toHaveLength(3);
+    expect(deck.every(card => isHidden(card))).toBe(true);
+    expect(deck.every(card => card.cardId === HIDDEN_CARD && card.order === 0)).toBe(true);
+    expect(state.players.b.opening).toEqual({ mulligans: 0, kept: false });
+  });
+
+  it("shuffle senza ordine non muove nulla", () => {
+    const state = apply(newGame(), deckFor("a", 3));
+    const same = apply(state, { t: "shuffle", seat: "a" });
+    expect(same).toBe(state);
+  });
+
+  it("draw con drawn pesca esattamente quelle carte, nell'ordine nominato", () => {
+    let state = apply(newGame(), hiddenDeck("b", 4));
+    state = apply(state, { t: "draw", seat: "b", count: 2, drawn: ["b-3", "b-1"] });
+    expect(zoneCards(state, "b", "hand").map(card => card.uid)).toEqual(["b-3", "b-1"]);
+    expect(zoneCards(state, "b", "deck").map(card => card.uid).sort()).toEqual(["b-2", "b-4"]);
+    // Un uid che non è nel mazzo di quel posto non si pesca.
+    const stray = apply(state, { t: "draw", seat: "b", count: 1, drawn: ["a-9", "b-3"] });
+    expect(handCount(stray, "b")).toBe(2);
+  });
+
+  it("mulligan senza ordine rimette la mano in fondo e pesca le nominate", () => {
+    let state = apply(newGame(), hiddenDeck("b", 8));
+    state = apply(state, { t: "draw", seat: "b", count: 6, drawn: ["b-1", "b-2", "b-3", "b-4", "b-5", "b-6"] });
+    state = apply(state, { t: "mulligan", seat: "b", drawn: ["b-7", "b-8", "b-1", "b-2", "b-3", "b-4"] });
+    expect(zoneCards(state, "b", "hand").map(card => card.uid)).toEqual(["b-7", "b-8", "b-1", "b-2", "b-3", "b-4"]);
+    expect(zoneCards(state, "b", "deck").map(card => card.uid).sort()).toEqual(["b-5", "b-6"]);
+    expect(state.players.b.opening).toEqual({ mulligans: 1, kept: false });
+  });
+
+  it("turn con drawn fa pescare la carta nominata a chi entra", () => {
+    let state = apply(newGame(), hiddenDeck("b", 3));
+    state = apply(state, { t: "turn", turn: 2, active: "b", drawn: ["b-2"] });
+    expect(zoneCards(state, "b", "hand").map(card => card.uid)).toEqual(["b-2"]);
+    expect(state.turn).toBe(2);
+  });
+
+  it("look con looked guarda le carte nominate, e identities ne svela l'identità prima di applicare", () => {
+    let state = apply(newGame(), hiddenDeck("b", 4));
+    const effect = { source: "b-1", event: "on_enter_field", entering: "b-1" } as const;
+    state = apply(state, { t: "look", seat: "b", count: 2, reveal: "b-3", looked: ["b-3", "b-4"], effect, identities: { "b-3": "RBF-010" } });
+    expect(state.cards["b-3"].zone).toBe("hand");
+    expect(state.cards["b-3"].cardId).toBe("RBF-010");
+    expect(state.cards["b-4"].zone).toBe("deck");
+    expect(isHidden(state.cards["b-4"])).toBe(true);
+  });
+
+  it("identities non tocca una carta già nota né una che manca", () => {
+    const state = apply(newGame(), deckFor("a", 2));
+    const same = revealIdentities(state, { "a-1": "RBF-099", "zz": "RBF-001" });
+    expect(same).toBe(state);
+    expect(same.cards["a-1"].cardId).toBe("TEST-1");
+  });
+
+  it("replay di un giornale proiettato ricostruisce la lavagna pubblica di chi non vede il mazzo altrui", () => {
+    const journal = [
+      { action: { t: "newGame", active: "a" } as const },
+      { action: deckFor("a", 3) },
+      { action: hiddenDeck("b", 3) },
+      { action: { t: "draw", seat: "b", count: 1, drawn: ["b-2"] } as const },
+      { action: { t: "toZone", uid: "b-2", zone: "field", x: 100, y: 100, identities: { "b-2": "RBF-007" } } as const },
+    ];
+    const state = replay(journal);
+    expect(state.cards["b-2"].zone).toBe("field");
+    expect(state.cards["b-2"].cardId).toBe("RBF-007");
+    expect(zoneCards(state, "b", "deck").every(card => isHidden(card))).toBe(true);
+    expect(state.cards["a-1"].cardId).toBe("TEST-1");
   });
 });

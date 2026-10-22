@@ -9,11 +9,18 @@
 #
 #   ruby engine/bin/server [porta]      # default 8788
 #
-# Il client si collega a  ws://host:8788/engine?room=<stanza>[&seat=<a|b>]
-# (`seat` è una preferenza: il posto lo assegna il tavolo, dal 2026-09-23)
-# Senza `room` (o con `room=`) è la stanza «solo»: partita locale o col bot,
-# un tavolo privato per quella connessione, che si comporta come prima
-# (lib/rubyfront/room.rb spiega la differenza).
+# Il client si collega a  ws://host:8788/engine?room=<stanza>[&seat=<a|b>][&token=<token del posto>]
+# (`seat` è una preferenza: il posto lo assegna il tavolo, dal 2026-09-23;
+# `token` riprende il proprio posto entro la grazia, dal 2026-10-21)
+# Senza `room` (o con `room=`) è la stanza «solo»: partita col bot, un
+# tavolo privato per quella connessione (lib/rubyfront/room.rb spiega la differenza).
+#
+# Dal 2026-10-21 (audit): l'handshake ha scadenza, tetto e Origin ammesse
+# (handshake.rb); i frame hanno i loro limiti (websocket.rb); ogni client
+# ha una coda d'uscita con uno scrittore (connection.rb), così la stanza
+# non scrive mai sul socket dentro il suo lucchetto; connessioni, stanze,
+# tentativi d'accesso e messaggi sono contati (rate_limiter.rb); senza
+# l'anagrafe delle carte il tavolo NON parte; i tester sono per id.
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
@@ -22,7 +29,7 @@ $stdout.sync = true
 
 require "json"
 require "socket"
-require "uri"
+require "securerandom"
 require "rubyfront/card_index"
 require "rubyfront/room"
 require "rubyfront/lobby"
@@ -31,6 +38,9 @@ require "rubyfront/account"
 require "rubyfront/auth"
 require "rubyfront/store"
 require "rubyfront/websocket"
+require "rubyfront/handshake"
+require "rubyfront/connection"
+require "rubyfront/rate_limiter"
 
 # In locale le variabili del database stanno in .env.local (le scrive
 # `neon link`, il repo le ignora): si leggono qui, senza sovrascrivere
@@ -49,14 +59,39 @@ end
 
 PORT = Integer(ARGV[0] || ENV.fetch("PORT", 8788))
 
+def env_int(name, default)
+  Integer(ENV.fetch(name, default))
+rescue ArgumentError, TypeError
+  default
+end
+
+def env_list(name, alias_name = nil)
+  value = ENV[name].to_s
+  value = ENV[alias_name].to_s if value.empty? && alias_name
+  value.split(",").map(&:strip).reject(&:empty?)
+end
+
 # L'anagrafe delle carte viene dal repo del sito: è il SOLO legame con il
 # resto di rubyfront2, e sta qui nel trasporto apposta — quando l'engine
 # emigrerà in un repo suo basterà puntare RUBYFRONT_DATA altrove.
+# Senza anagrafe il tavolo NON parte (audit RF-028): un arbitro muto non è
+# un arbitro. RUBYFRONT_ALLOW_EMPTY_INDEX=1 lo lascia partire lo stesso (prove).
 DATA_DIR = ENV["RUBYFRONT_DATA"] || File.expand_path("../../data", __dir__)
 CARDS = begin
   Rubyfront::CardIndex.load(DATA_DIR)
 rescue StandardError => error
-  warn "Anagrafe carte non caricata (#{error.message}): le regole che leggono le carte resteranno mute."
+  warn "Anagrafe carte non caricata (#{error.message})."
+  {}.freeze
+end
+if CARDS.empty? && ENV["RUBYFRONT_ALLOW_EMPTY_INDEX"] != "1"
+  warn "Senza l'anagrafe delle carte il tavolo non parte (RUBYFRONT_DATA=#{DATA_DIR}). RUBYFRONT_ALLOW_EMPTY_INDEX=1 per forzare."
+  exit 1
+end
+# L'indice dei mazzi (§4): la composizione dichiarata di ogni mazzo.
+DECKS = begin
+  Rubyfront::CardIndex.load_decks(DATA_DIR, cards: CARDS)
+rescue StandardError => error
+  warn "Indice dei mazzi non caricato (#{error.message})."
   {}.freeze
 end
 
@@ -77,17 +112,37 @@ end
 
 # I mazzi gratuiti (`access: "free"` in data/decks/*.json): si assegnano a
 # ogni giocatore al suo accesso. Gli altri arriveranno con l'acquisto.
-FREE_DECKS = Dir[File.join(DATA_DIR, "decks", "*.json")].filter_map do |file|
-  deck = JSON.parse(File.read(file))
-  deck["id"] if deck.is_a?(Hash) && deck["access"] == "free"
-rescue JSON::ParserError
-  nil
-end.sort.freeze
+FREE_DECKS = DECKS.select { |_id, deck| deck[:access] == "free" }.keys.sort.freeze
 puts "Mazzi gratuiti: #{FREE_DECKS.join(", ")}." unless FREE_DECKS.empty?
 
-# Gli account di prova (nomi utente, separati da virgola): i soli con gli
-# strumenti di prova al tavolo (Evoca, +1 Flusso, Vinci/Perdi).
-TEST_USERS = ENV.fetch("RUBYFRONT_TEST_USERS", "tester,alexpalaz").split(",").map(&:strip).reject(&:empty?).freeze
+# Gli account di prova (per ID dal 2026-10-21, vuoto di default): i soli con
+# gli strumenti di prova al tavolo (Evoca, +1 Flusso, Vinci/Perdi).
+TEST_IDS = env_list("RUBYFRONT_TEST_IDS").map(&:to_i).reject(&:zero?).freeze
+
+# Il caso lo tira il tavolo (audit RF-008/RF-009): SecureRandom; con
+# RUBYFRONT_SEED un generatore a seme, per le prove dal vivo ripetibili.
+DICE = ENV["RUBYFRONT_SEED"].to_s.empty? ? SecureRandom : Random.new(Integer(ENV["RUBYFRONT_SEED"]))
+puts "Dadi a seme #{ENV["RUBYFRONT_SEED"]} (solo sviluppo)." unless ENV["RUBYFRONT_SEED"].to_s.empty?
+
+# Le Origin ammesse all'handshake (audit RF-025): vuoto = tutte (sviluppo).
+ORIGINS = env_list("RUBYFRONT_ORIGINS", "ALLOWED_ORIGINS").freeze
+
+# I tetti (audit RF-013/RF-015/RF-016/RF-018), con la variabile per le prove.
+MAX_CONNECTIONS = env_int("RUBYFRONT_MAX_CONNECTIONS", 2000)
+MAX_PER_IP = env_int("RUBYFRONT_MAX_PER_IP", 20)
+MAX_ROOMS = env_int("RUBYFRONT_MAX_ROOMS", 500)
+SEAT_GRACE_S = env_int("RUBYFRONT_SEAT_GRACE_S", Rubyfront::Room::SEAT_GRACE_S)
+SWEEP_S = env_int("RUBYFRONT_SWEEP_S", 15)
+PING_S = env_int("RUBYFRONT_PING_S", Rubyfront::Connection::PING_EVERY_S)
+MESSAGES_PER_S = env_int("RUBYFRONT_MESSAGES_PER_S", 50)
+
+# I limiti dei tentativi, per chiave (IP, nome, giocatore): [quanti, in quanti secondi].
+LIMITS = {
+  register: [5, 3600], login: [10, 300], verify: [10, 300], resume: [30, 300], verify_resend: [3, 3600],
+  match: [20, 60], connect: [env_int("RUBYFRONT_CONNECTS_PER_MIN", 30), 60], rewards: [20, 3600],
+}.freeze
+LIMITERS = LIMITS.to_h { |kind, (limit, window)| [kind, Rubyfront::RateLimiter.new(limit: limit, window_s: window)] }.freeze
+LIMIT = ->(kind, key) { LIMITERS[kind] ? LIMITERS[kind].allow?(key) : true }
 
 # La progressione dei Rubyfront (2026-09-23): un modulo a parte, fuori dal
 # giudizio. Le regole e i livelli da data/progression; il Rubyfront di ogni
@@ -98,38 +153,56 @@ rescue StandardError => error
   puts "Progressione non caricata (#{error.message})."
   nil
 end
-DECK_RUBYFRONT = Dir[File.join(DATA_DIR, "decks", "*.json")].filter_map do |file|
-  deck = JSON.parse(File.read(file))
-  next unless deck.is_a?(Hash) && deck["id"].is_a?(String)
-
-  rubyfront = Array(deck["cards"]).map { |entry| entry["card"] }.find { |id| CARDS.dig(id, :type) == "rubyfront" }
-  [deck["id"], rubyfront] if rubyfront
-rescue JSON::ParserError
-  nil
-end.to_h.freeze
+DECK_RUBYFRONT = DECKS.transform_values { |deck| deck[:rubyfront] }.compact.freeze
 puts "Progressione: #{PROGRESSION.card_ids.size} Rubyfront, #{PROGRESSION.rules["thresholds"].size} livelli." if PROGRESSION
 
-# Il gancio della fine partita: per ogni posto con un giocatore entrato e un
-# mazzo noto, i punti dell'esito al Rubyfront di quel mazzo, e a quel client
-# la progressione aggiornata (`progress`, con `gained` e `outcome`). Nella
-# stanza «solo» l'unico posto attaccato è l'umano: il bot non cresce. Gli
-# errori di memoria restano a log: la partita è finita comunque.
-ON_OVER = lambda do |room, action|
-  next unless STORE && PROGRESSION
+# L'accesso (2026-09-22): Google col suo client id (GOOGLE_CLIENT_ID), la
+# posta di conferma con Resend (RESEND_API_KEY, MAIL_FROM) e il sito per i
+# link (RUBYFRONT_SITE). Senza, Google non è offerto e la posta va sul log.
+GOOGLE = Rubyfront::Auth::Google.new(ENV["GOOGLE_CLIENT_ID"].to_s)
+MAILER = Rubyfront::Auth::Mailer.new(api_key: ENV["RESEND_API_KEY"].to_s, from: ENV["MAIL_FROM"].to_s, site: ENV["RUBYFRONT_SITE"].to_s)
+puts "Accesso: password#{GOOGLE.configured? ? ", Google" : ""}#{MAILER.configured? ? ", posta di conferma attiva" : " (posta di conferma sul log)"}." if STORE
 
-  Rubyfront::Room::SEATS.each do |seat|
-    player_id = room.player_of(seat)
-    card = DECK_RUBYFRONT[room.deck_of(seat).to_s]
+# Le ricompense (decisioni del designer, 2026-10-21): l'esperienza va solo
+# ad account con l'email confermata (o Google) QUANDO c'è la posta
+# (RUBYFRONT_REQUIRE_VERIFIED=1 lo pretende sempre); le partite col bot
+# (stanza «solo») la danno ancora (RUBYFRONT_SOLO_REWARDS=0 la toglie).
+REQUIRE_VERIFIED = ENV["RUBYFRONT_REQUIRE_VERIFIED"] == "1" || MAILER.configured?
+SOLO_REWARDS = ENV["RUBYFRONT_SOLO_REWARDS"] != "0"
+
+# Il gancio della fine partita, fuori dal lucchetto della stanza: per ogni
+# posto con un'identità FISSATA alla partita e un mazzo noto, i punti
+# dell'esito al Rubyfront di quel mazzo — una volta per partita e giocatore
+# (record_match), con le identità distinte in stanza, confermate se la
+# posta lo chiede, e non oltre tanti accrediti l'ora — e a quel client la
+# progressione aggiornata (`progress`, con `gained` e `outcome`). Nella
+# stanza «solo» l'unico posto con identità è l'umano: il bot non cresce.
+# Gli errori di memoria restano a log: la partita è finita comunque.
+ON_OVER = lambda do |room, outcome|
+  next unless STORE && PROGRESSION && outcome[:rewards]
+
+  seats = outcome[:seats]
+  ids = seats.values.map { |seat| seat[:player_id] }
+  unless room.solo?
+    next unless ids.all? && ids.uniq.size == 2
+  end
+  seats.each do |seat, who|
+    player_id = who[:player_id]
+    card = DECK_RUBYFRONT[who[:deck_id].to_s]
     next unless player_id && card && PROGRESSION.known?(card)
+    next if REQUIRE_VERIFIED && !who[:verified]
+    next unless LIMIT.call(:rewards, "rewards:player:#{player_id}")
 
-    outcome = if action["winner"].nil? then "draw"
-              elsif action["winner"] == seat then "win"
-              else "loss"
-              end
-    gained = PROGRESSION.points_for(outcome)
+    result = if outcome[:winner].nil? then "draw"
+             elsif outcome[:winner] == seat then "win"
+             else "loss"
+             end
+    gained = PROGRESSION.points_for(result)
     begin
+      next unless STORE.record_match(outcome[:match_id], player_id, card, result, gained)
+
       row = STORE.add_xp(player_id, card, gained)
-      room.reply(seat, { t: "progress", gained: gained, outcome: outcome }.merge(PROGRESSION.progress_of(card, row)))
+      room.reply(seat, { t: "progress", gained: gained, outcome: result }.merge(PROGRESSION.progress_of(card, row)))
     rescue StandardError => error
       warn "esperienza non salvata (#{seat}, #{card}): #{error.message}"
     end
@@ -148,26 +221,28 @@ ASCENT_FOR = lambda do |player_id, deck_id|
   PROGRESSION.ascent(card, PROGRESSION.progress_of(card, row)[:path])
 end
 
-# L'accesso (2026-09-22): Google col suo client id (GOOGLE_CLIENT_ID), la
-# posta di conferma con Resend (RESEND_API_KEY, MAIL_FROM) e il sito per i
-# link (RUBYFRONT_SITE). Senza, Google non è offerto e la posta va sul log.
-GOOGLE = Rubyfront::Auth::Google.new(ENV["GOOGLE_CLIENT_ID"].to_s)
-MAILER = Rubyfront::Auth::Mailer.new(api_key: ENV["RESEND_API_KEY"].to_s, from: ENV["MAIL_FROM"].to_s, site: ENV["RUBYFRONT_SITE"].to_s)
-puts "Accesso: password#{GOOGLE.configured? ? ", Google" : ""}#{MAILER.configured? ? ", posta di conferma attiva" : " (posta di conferma sul log)"}." if STORE
-
 # Le stanze con nome restano in piedi per un po' anche vuote: chi ricarica
 # la pagina ritrova la partita. Passato il tempo, il tavolo si sparecchia.
 ROOM_GRACE_S = 10 * 60
 
 ROOMS = {}
 ROOMS_LOCK = Mutex.new
+CONNECTIONS = Hash.new(0)
+CONNECTIONS_LOCK = Mutex.new
 
+def new_room(name, solo:)
+  Rubyfront::Room.new(name, cards: CARDS, decks: DECKS, solo: solo, on_over: ON_OVER, random: DICE,
+                      rewards: solo ? SOLO_REWARDS : true, seat_grace_s: SEAT_GRACE_S)
+end
+
+# La stanza col nome, o nil se le stanze sono al tetto.
 def room_for(name)
   ROOMS_LOCK.synchronize do
-    ROOMS[name] ||= begin
-      puts "+ stanza «#{name}»"
-      Rubyfront::Room.new(name, cards: CARDS, on_over: ON_OVER)
-    end
+    return ROOMS[name] if ROOMS.key?(name)
+    return nil if ROOMS.size >= MAX_ROOMS
+
+    puts "+ stanza «#{name}»"
+    ROOMS[name] = new_room(name, solo: false)
   end
 end
 
@@ -185,47 +260,34 @@ LOBBY = Rubyfront::Lobby.new(
   end
 )
 
-def sweep_rooms
+# Lo sweeper: i posti scaduti (abbandoni), le stanze vuote da troppo, le finestre dei limiti.
+def sweep
+  after = []
   ROOMS_LOCK.synchronize do
+    ROOMS.each_value { |room| after.concat(room.expire) }
     ROOMS.delete_if do |name, room|
       gone = room.empty? && room.emptied_at && Time.now - room.emptied_at > ROOM_GRACE_S
       puts "- stanza «#{name}» sparecchiata" if gone
       gone
     end
   end
+  after.each(&:call)
+  LIMITERS.each_value(&:sweep)
+rescue StandardError => error
+  warn "sweep: #{error.message}"
 end
 
-# Legge l'header HTTP: se è un upgrade WebSocket completa l'handshake e
-# restituisce stanza e posto chiesti nell'URL; a una richiesta semplice
-# risponde due righe di cortesia (le stesse che farebbero da health check)
-# e restituisce nil.
-def handshake(client)
-  request = +""
-  while (line = client.gets)
-    break if line == "\r\n"
+def count_connection(ip, delta)
+  CONNECTIONS_LOCK.synchronize do
+    CONNECTIONS[ip] += delta
+    CONNECTIONS.delete(ip) if CONNECTIONS[ip] <= 0
+    [CONNECTIONS[ip], CONNECTIONS.values.sum]
+  end
+end
 
-    request << line
-  end
-  key = request[/^Sec-WebSocket-Key: *(.+?)\r?$/i, 1]
-  unless key
-    open = ROOMS_LOCK.synchronize { ROOMS.count { |_, room| !room.empty? } }
-    body = "Tavolo Rubyfront attivo. Regole collegate: #{Rubyfront::Engine::RULES.size}. Stanze aperte: #{open}\n"
-    client.write(
-      "HTTP/1.1 200 OK\r\n" \
-      "Content-Type: text/plain; charset=utf-8\r\n" \
-      "Content-Length: #{body.bytesize}\r\n\r\n#{body}"
-    )
-    return nil
-  end
-  client.write(
-    "HTTP/1.1 101 Switching Protocols\r\n" \
-    "Upgrade: websocket\r\nConnection: Upgrade\r\n" \
-    "Sec-WebSocket-Accept: #{Rubyfront::WebSocket.accept_key(key)}\r\n\r\n"
-  )
-  target = request[/^GET (\S+)/, 1] || "/"
-  query = URI.parse(target).query rescue nil
-  params = query ? URI.decode_www_form(query).to_h : {}
-  { room: params["room"].to_s.strip, seat: params["seat"].to_s }
+def courtesy
+  open = ROOMS_LOCK.synchronize { ROOMS.count { |_, room| !room.empty? } }
+  "Tavolo Rubyfront attivo. Regole collegate: #{Rubyfront::Engine::RULES.size}. Stanze aperte: #{open}\n"
 end
 
 def parse(text)
@@ -235,79 +297,159 @@ rescue JSON::ParserError
   nil
 end
 
+# Legge e giudica l'handshake: torna il Result dell'upgrade, o nil dopo aver
+# risposto (una GET semplice, o un errore).
+def handshake(client)
+  peer = client.peeraddr(false)[3] rescue nil
+  text = Rubyfront::Handshake.read(client)
+  result = Rubyfront::Handshake.parse(text, origins: ORIGINS, peer_ip: peer)
+  case result.kind
+  when :plain
+    client.write(Rubyfront::Handshake.response_plain(courtesy))
+    nil
+  when :error
+    client.write(Rubyfront::Handshake.response_error(result.status, result.reason_en))
+    nil
+  else
+    result
+  end
+rescue Rubyfront::Handshake::Timeout
+  client.write(Rubyfront::Handshake.response_error(408, "handshake too slow")) rescue nil
+  nil
+rescue Rubyfront::Handshake::TooLong
+  client.write(Rubyfront::Handshake.response_error(431, "header too large")) rescue nil
+  nil
+rescue Rubyfront::Handshake::Closed, IOError, SystemCallError
+  nil
+end
+
 def serve(client)
   wanted = handshake(client)
   return client.close unless wanted
 
-  write_lock = Mutex.new
-  out = lambda do |payload|
-    frame = Rubyfront::WebSocket.encode_text(JSON.generate(payload))
-    write_lock.synchronize { client.write(frame) }
-  end
-
-  solo = wanted[:room].empty?
-  room = solo ? Rubyfront::Room.new("", cards: CARDS, solo: true, on_over: ON_OVER) : room_for(wanted[:room])
-  # Il posto lo assegna il tavolo (2026-09-23): quello chiesto se è libero,
-  # se no l'altro; nella «solo» il client è l'unico seduto e il posto non
-  # conta. A stanza piena si avvisa e si chiude.
-  seat = room.join(wanted[:seat], out)
-  unless seat
-    out.call({ t: "room_full", room: wanted[:room] })
-    client.write(Rubyfront::WebSocket.encode_close)
-    # Si lascia al client il tempo di leggere l'avviso: chiudere subito, col
-    # suo saluto ancora non letto qui, farebbe partire un RST e l'avviso
-    # andrebbe perso. Si chiude in scrittura e si aspetta che chiuda lui.
-    client.close_write rescue nil
-    deadline = Time.now + 2
-    while Time.now < deadline && IO.select([client], nil, nil, 0.2)
-      break if client.read_nonblock(16_384, exception: false).nil?
+  ip = wanted.client_ip
+  per_ip, total = count_connection(ip, +1)
+  begin
+    if per_ip > MAX_PER_IP || total > MAX_CONNECTIONS
+      client.write(Rubyfront::Handshake.response_error(per_ip > MAX_PER_IP ? 429 : 503, per_ip > MAX_PER_IP ? "too many connections from this address" : "the table is full"))
+      return
     end
-    return client.close
+    unless LIMIT.call(:connect, "connect:ip:#{ip}")
+      client.write(Rubyfront::Handshake.response_error(429, "too many connections: slow down"))
+      return
+    end
+    client.write(Rubyfront::Handshake.response_101(wanted.key))
+    attend(client, wanted, ip)
+  ensure
+    count_connection(ip, -1)
+  end
+rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, IOError
+  nil
+rescue StandardError => error
+  warn "connessione caduta: #{error.class}: #{error.message}"
+ensure
+  client.close rescue nil
+end
+
+# La connessione aperta: la coda d'uscita, la stanza, l'utenza, i messaggi.
+def attend(client, wanted, ip)
+  connection = Rubyfront::Connection.new(client, ping_every_s: PING_S)
+  connection.run_writer
+  out = connection.out
+
+  solo = wanted.room.empty?
+  room = solo ? new_room("", solo: true) : room_for(wanted.room)
+  unless room
+    out.call({ t: "refused", code: "rooms_full", reason: "il tavolo è pieno: riprova fra poco", reason_en: "the table is full: try again shortly" })
+    connection.close(Rubyfront::WebSocket::CLOSE_POLICY, "rooms full")
+    connection.join
+    drain(client)
+    return
+  end
+  # Il posto lo assegna il tavolo (2026-09-23): quello chiesto se è libero,
+  # se no l'altro; col token (2026-10-21) si riprende il proprio; nella
+  # «solo» il client è l'unico seduto e il posto non conta. A stanza piena
+  # si avvisa e si chiude.
+  seat = room.join(wanted.seat, out, token: wanted.token)
+  unless seat
+    out.call({ t: "room_full", room: wanted.room })
+    connection.close(Rubyfront::WebSocket::CLOSE_NORMAL, "room full")
+    connection.join
+    drain(client)
+    return
   end
 
-  account = Rubyfront::Account.new(STORE, out, free_decks: FREE_DECKS, google: GOOGLE, mailer: MAILER, progression: PROGRESSION, testers: TEST_USERS)
-  # Chi siede qui, per il gancio della fine partita: una lambda, così vale anche se l'accesso arriva dopo.
-  room.attach(seat, who: -> { account.player&.dig(:id) }, tester: -> { account.tester? },
+  account = Rubyfront::Account.new(STORE, out, free_decks: FREE_DECKS, google: GOOGLE, mailer: MAILER, progression: PROGRESSION,
+                                   testers: TEST_IDS, limiter: LIMIT, ip: ip, busy: -> { room.busy?(seat) })
+  # Chi siede qui, per il gancio della fine partita: lambda, così vale anche
+  # se l'accesso arriva dopo; l'identità si fissa al primo carico del mazzo.
+  room.attach(seat, who: -> { account.player&.dig(:id) }, tester: -> { account.tester? }, verified: -> { account.verified? },
                     ascent: ->(deck_id) { ASCENT_FOR.call(account.player&.dig(:id), deck_id) })
   decoder = Rubyfront::WebSocket::Decoder.new
+  messages = Rubyfront::RateLimiter.new(limit: MESSAGES_PER_S, window_s: 1)
   begin
-    loop do
+    until connection.closed?
       chunk = client.readpartial(16_384)
-      decoder.feed(chunk).each do |event, payload|
+      decoder.feed(chunk).each do |event, payload, reason|
         case event
+        when :fail
+          connection.close(payload, reason.to_s)
         when :close
-          client.write(Rubyfront::WebSocket.encode_close)
-          return
+          connection.close(Rubyfront::WebSocket::CLOSE_NORMAL)
         when :ping
-          write_lock.synchronize { client.write(Rubyfront::WebSocket.encode_pong(payload)) }
+          connection.push_frame(Rubyfront::WebSocket.encode_pong(payload))
+        when :pong
+          connection.pong!
         when :text
+          unless messages.allow?("m")
+            connection.close(Rubyfront::WebSocket::CLOSE_POLICY, "too many messages")
+            next
+          end
           message = parse(payload)
           next unless message
 
           # L'atrio (la fila della partita casuale) si usa dalla «solo»; l'utenza
           # (login, save, load) è della connessione, non della stanza.
-          (solo && LOBBY.handle(message, out)) || account.handle(message) || room.handle(seat, message)
+          handled = solo && message["t"].to_s.start_with?("match") && LIMIT.call(:match, "match:ip:#{ip}") &&
+                    LOBBY.handle(message, out, identity: account.player&.dig(:id))
+          next if handled
+          next if account.handle(message)
+
+          room.handle(seat, message, out: out).each(&:call)
         end
+        break if connection.closed?
       end
     end
   ensure
     LOBBY.cancel(out)
     room.leave(seat, out)
-    client.close rescue nil
+    connection.close unless connection.closed?
+    connection.join
+    drain(client)
   end
-rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, IOError
-  client.close rescue nil
+end
+
+# Chiudere con byte ancora da leggere manda un RST e il client perde il
+# frame di chiusura: si chiude in scrittura e si aspetta (poco) che chiuda lui.
+def drain(client, seconds = 1)
+  client.close_write rescue nil
+  deadline = Time.now + seconds
+  while Time.now < deadline && IO.select([client], nil, nil, 0.2)
+    break if client.read_nonblock(16_384, exception: false).nil?
+  end
+rescue IOError, SystemCallError
+  nil
 end
 
 server = TCPServer.new(PORT)
 puts "Tavolo Rubyfront su ws://localhost:#{PORT}"
 puts "Regole collegate: #{Rubyfront::Engine::RULES.size} (#{Rubyfront::Engine::RULES.join("; ")})."
-puts "Carte conosciute: #{CARDS.size}. Ctrl+C per fermarlo."
+puts "Carte conosciute: #{CARDS.size}. Mazzi: #{DECKS.size}. Tester: #{TEST_IDS.empty? ? "nessuno" : TEST_IDS.join(", ")}. Ctrl+C per fermarlo."
 
 Thread.new do
   loop do
-    sleep 60
-    sweep_rooms
+    sleep SWEEP_S
+    sweep
   end
 end
 

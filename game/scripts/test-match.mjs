@@ -25,7 +25,7 @@ mkdirSync(out, { recursive: true });
 let engine = null;
 const engineUrl = opt("table", null);
 if (!engineUrl) {
-  engine = spawn("ruby", ["engine/bin/server"], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
+  engine = spawn("ruby", ["engine/bin/server"], { cwd: ROOT, env: { ...process.env, RUBYFRONT_SEED: String(seed) }, stdio: ["ignore", "pipe", "pipe"] });
   await new Promise((resolveReady, reject) => {
     engine.stdout.on("data", data => String(data).includes("ws://") && resolveReady());
     engine.on("exit", code => reject(new Error(`il tavolo non parte (exit ${code})`)));

@@ -22,12 +22,12 @@ file nella stessa modifica.
 | Copia del tavolo | `engine/lib/rubyfront/table.rb` | Il gemello Ruby del riduttore: carte (zona, ordine, tap, copertura, faccia, fila, `entered`, `covered_turn`, `assigned_to`), dichiarazioni, turno/posto/fase, Flusso, Gettone, PV, `over`. Niente geometria oltre `row`. |
 | Anagrafe | `engine/lib/rubyfront/card_index.rb` | L'unico file che tocca il disco: legge `data/sets/*/cards/*/<id>.json` una volta e congela. Tipo, razza, parole chiave, concessioni certificate, Potenza, Contrattacco, costo di Flusso, costo di schieramento, etichetta e abilitazioni delle Materie, comportamento. |
 | Progressione | `engine/lib/rubyfront/progression.rb` (+ `core/src/progression.ts`, gemello) | La progressione dei Rubyfront (2026-09-23, a percorso dal 2026-09-26): livelli 1–10 dall'esperienza, un punto per livello da spendere sul **percorso** (20 nodi collegati alla carta: abilità, PV, Furia; `path_ok?`/`validatePath`), configurazione a slot delle abilità del percorso. Modulo a parte, **fuori dal giudizio**: dati in `data/progression/`, memoria in `player_rubyfronts` (xp, path, loadout), esperienza assegnata dal trasporto col gancio `Room#on_over`. I nodi PV e Furia entrano in partita come **Ascesa** (§3.3): `ascent {hp, fury}` nel `loadDeck`, forma e conto dei PV in `judge_load_deck`, soglia della Furia in `judge_ability` (gemello `furyThreshold` in state.ts), e la stanza verifica che non superi quella della memoria (`Room#attach(…, ascent:)`). L'engine non legge ancora le abilità montate (i tre punti: `judge_ability`, `openAbilities`, `chooseAbility`). |
-| Stanza | `engine/lib/rubyfront/room.rb` | Un `Engine` per partita, i client seduti, il **giornale** delle azioni approvate, l'inoltro agli altri client solo dopo il verdetto. In stanza l'attore è il posto del client; la stanza «solo» (senza nome: locale, bot) si fida dell'attore dichiarato e accetta lo snapshot. |
-| Trasporto | `engine/bin/server`, `engine/lib/rubyfront/websocket.rb` | Un thread per client, una stanza per partita (`?room=&seat=`). L'**utenza** (`engine/lib/rubyfront/account.rb`, dal 2026-09-20) è della connessione: `register`/`login` (password, google, dev)/`resume`/`logout`/`verify`/`profile`/`save`/`load` prima della stanza, i mazzi gratuiti assegnati all'accesso, il `loadDeck` di un mazzo non proprio fermato lì. Gli attrezzi (password PBKDF2, token, nomi utente, Google, posta) in `auth.rb`, puri e senza gemme. Nel client l'unico elenco da cui scegliere un mazzo è `availableDecks()` (cards.ts). |
+| Stanza | `engine/lib/rubyfront/room.rb` | Un `Engine` per partita, i client seduti, il **giornale** delle azioni approvate, l'inoltro agli altri client solo dopo il verdetto. In stanza l'attore è il posto del client; la stanza «solo» (senza nome: bot) si fida dell'attore dichiarato e accetta lo snapshot (che la marca sandbox: niente ricompense fino alla partita dopo). Dal 2026-10-21 (audit): **il caso lo tira la stanza** (`complete`: dadi, mescolate, ordine del mazzo, chi apre — l'azione completata torna nel verdetto come `applied` e il client applica quella), il giornale ha **una vista per posto** (`project`: carte altrui in mano/mazzo senza `cardId` né `order`, pescate `drawn`, sguardi `looked`, uscite `identities`), il posto ha un **token** (riservato per la grazia, poi `forfeit` dal tavolo via `expire`), l'identità si **fissa** al primo `loadDeck` (`pinned`, `match_id`, esito `outcome_of` col flag `rewards`), il giornale ha un tetto (`limit`), `handle`/`expire` tornano i callback da eseguire FUORI dal lucchetto (il gancio `on_over`). |
+| Trasporto | `engine/bin/server`, `engine/lib/rubyfront/websocket.rb`, `handshake.rb`, `connection.rb`, `rate_limiter.rb` | Un thread per client, una stanza per partita (`?room=&seat=&token=`). Dal 2026-10-21: handshake puro con scadenza, tetto e Origin ammesse (`RUBYFRONT_ORIGINS`), frame con limiti e codici di chiusura (1002/1003/1007/1008/1009), coda d'uscita con scrittore per client (`Connection`: niente scritture sotto il lucchetto della stanza), limiti di connessioni/stanze/tentativi/messaggi (`RateLimiter`), tester **per id** (`RUBYFRONT_TEST_IDS`), senza anagrafe il tavolo non parte, `RUBYFRONT_SEED` per i dadi ripetibili in sviluppo. Il proxy Node (`scripts/server.mjs` + `scripts/lib/{supervisor,proxy}.mjs`) sonda `/ready`, riavvia con backoff, giudica l'Origin e riscrive `X-Forwarded-For`. L'**utenza** (`engine/lib/rubyfront/account.rb`, dal 2026-09-20) è della connessione: `register`/`login` (password, google, dev)/`resume`/`logout`/`verify`/`profile`/`save`/`load` prima della stanza, i mazzi gratuiti assegnati all'accesso, il `loadDeck` di un mazzo non proprio fermato lì. Gli attrezzi (password PBKDF2, token, nomi utente, Google, posta) in `auth.rb`, puri e senza gemme. Nel client l'unico elenco da cui scegliere un mazzo è `availableDecks()` (cards.ts). |
 | Memoria | `engine/lib/rubyfront/store.rb` | Postgres su Neon per HTTPS (`/sql`, nessuna gemma): `players` e `player_data` (una riga per chiave, JSON). `DATABASE_URL` dall'ambiente (`.env.local` in locale, ignorato dal repo; lì anche `RUBYFRONT_TEST_USER`/`RUBYFRONT_TEST_PASSWORD` dell'account di prova per il giro delle schermate). Il giudizio non la conosce. Test con trasporto finto (`store_test.rb`). |
 | Riduttore | `core/src/state.ts` | `apply(state, action)`: la semantica del client. Ciò che cambia qui cambia in `table.rb`, e viceversa. |
 | Routine | `core/src/turn.ts`, `combat.ts`, `effects.ts` | Fasi, fine turno, risoluzione, fine partita, effetti: puro TS, provabile con un `Ctx` finto. |
-| Canale | `core/src/engine.ts`, `core/src/session.ts` (`dispatch`, `commit`, `receive`, `rebuildFromJournal`, `actorFor`) | Un canale solo: `judge` per ogni azione, `onAction` per quelle avversarie approvate, `onJournal` all'ingresso (la lavagna si ricostruisce con `replay`, state.ts). `snapshot` solo nella «solo». La sessione non ha DOM: ciò che si vede lo chiede alla vista (`SessionView`). |
+| Canale | `core/src/engine.ts`, `core/src/session.ts` (`dispatch`, `dispatchApplied`, `commit`, `receive`, `rebuildFromJournal`, `actorFor`, `roll`, `concede`) | Un canale solo: `judge` per ogni azione, `onAction` per quelle avversarie approvate, `onJournal` all'ingresso (la lavagna si ricostruisce con `replay`, state.ts). Dal 2026-10-21: il client applica l'`applied` del verdetto (mai la propria azione, se il tavolo l'ha completata), `ctx.roll(die, key, seat)` chiede il dado al tavolo (`rollKey` in state.ts, gemello di `Engine.roll_key`), le carte altrui nascoste sono `HIDDEN_CARD` ("?") e le `identities` si fondono prima della vista, il token del posto sta in `seat-token:<stanza>`, un giornale vuoto a partita in corso è «tavolo ripartito» (`stop.restarted`), uscire da una stanza a partita in corso è una resa. `snapshot` solo nella «solo». La sessione non ha DOM: ciò che si vede lo chiede alla vista (`SessionView`). Prove: `core/test/fake-table.ts` (WebSocket finto + gemello JS di `Room#complete`). |
 | Anagrafe del client | `core/src/cards.ts` (`cardStats`) | Lo specchio di `card_index.rb`: stessi campi, stesse forme certificate. Il catalogo lo consegna il client (`useCatalog`). |
 | Gesti | `core/src/gestures.ts`, `core/src/tabs.ts` | I gesti e gli inneschi (§3.1, §7.2, §8.2) come sequenza di azioni, attese e scelte, e i tasti che una carta offre: del client, senza vista. Un effetto nuovo si risolve qui, non in `table.ts`; la vista dà solo luci, voli, scene, dado, mira, finestre (`GestureView`). La prova è la partita col bot al tavolo vero (`game/scripts/test-match.mjs`, `test-gestures.mjs`). |
 | Tavolo e HUD | `game/src/table/` (`table.ts`, `gestures.ts`, `scene.ts`, `banner.ts`, `dice.ts`): le viste Pixi | Con `ctx.arbitrated()` i gesti manuali si ritirano e il tavolo si lega agli slot. |
@@ -191,6 +191,31 @@ nei messaggi delle asserzioni non nomina le carte.
   secondo piano non fa girare animazioni né timer sotto il secondo.
 - `display:none` su una cella di griglia fa scivolare le altre; `display`
   esplicito vince sull'attributo `hidden`.
+- **Elenco chiuso delle azioni** (dal 2026-10-21, `KNOWN_ACTIONS`/`SHAPES` in
+  engine.rb): un'azione nuova va aggiunta lì (con la sua forma minima) o il
+  tavolo la ferma «(§protocollo)». Le regole di protocollo senza un § del
+  manuale portano il tag `(§protocollo)`, che il sigillo del gioco riconosce.
+- **I contatori li muove il tavolo**: una patch `player` nuda di
+  hp/flux/fluxMax/token/sealed è fermata; nei test di apparecchiatura si
+  mette `"test" => true` (lo strumento di prova, gatato dalla stanza).
+- **Il dado lo tira il tavolo**: un giudizio che legge `action["roll"]` usa
+  `rolled?(action, die)` (il tiro annotato per `Engine.roll_key`), mai solo
+  `valid_roll?`; nei test si annota prima col helper `rolled`/`roll!`
+  (engine_test.rb). Nel client ogni dado passa da `ctx.roll` con la chiave
+  del passo; i fixture `Ctx` dei test hanno `roll`.
+- **Il contatore del turno** avanza solo col cambio di posto: un `turn` con
+  l'attivo invariato è fermato; `end_turn` nei test prende il numero dalla copia.
+- **Il mazzo si carica prima della partita** (`started?`: entrambi i mazzi
+  con la mano tenuta, o turno > 1) e al proprio posto; in stanza la
+  composizione dev'essere quella del mazzo dichiarato (`CardIndex.load_decks`).
+- Le viste proiettate (`drawn`, `looked`, `identities`, carte senza
+  `cardId`/`order`) devono essere capite dai DUE gemelli: una forma nuova che
+  muove carte da una zona nascosta va provata anche come vista (room_test
+  `test_non_divulgazione`, state.test «le viste proiettate», table_test gemello).
+- Il corpus differenziale (`engine/test/corpus/*.json`, `core/test/corpus.test.ts`
+  ↔ `corpus_test.rb`): un campo nuovo della lavagna condiviso dai gemelli
+  entra in `normalize.ts` E in `Table#dump`; i golden si riscrivono con
+  `CORPUS_WRITE=1 npx vitest run test/corpus.test.ts` da `core/`.
 
 ## Checklist finale
 
@@ -198,7 +223,7 @@ nei messaggi delle asserzioni non nomina le carte.
 - [ ] Anagrafe e `cardStats` leggono lo stesso campo, con test sulle carte vere.
 - [ ] Forma nuova: la carta esce dal `DEBT` in `card_index_test.rb` (il test lo pretende).
 - [ ] Riduttore e copia contano allo stesso modo, test speculari nei due mondi.
-- [ ] `RULES`, `VERSION`, `refuse` con § in coda **e la frase inglese**, silenzio sull'ignoto.
+- [ ] `RULES`, `VERSION`, `refuse` con § in coda **e la frase inglese**, silenzio sull'ignoto (ma un'azione IGNOTA è fermata: `KNOWN_ACTIONS`).
 - [ ] Niente nomi né id di carta in `engine/`: solo § e forme (vedi «L'engine non conosce le carte»).
 - [ ] Nessuna scritta nuda nel client: chiavi in `i18n.ts` (it + en), chat a chiavi.
 - [ ] Dogana del turno: la regola passa dalle sue eccezioni se serve.
