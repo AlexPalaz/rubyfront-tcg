@@ -1,7 +1,7 @@
 {
-  "name": "Defender of Nova Kai",
+  "name": "Immovable of the Guard",
   "typeLabel": "Entity: Auros",
-  "summary": "Four and four: the wall of Nova Kai.",
+  "summary": "Four Flux for 3 Power: the wall that gives Stasis to all your Entities, and 1 HP for every tap.",
   "ui": {
     "face": "Entity"
   },
@@ -12,8 +12,12 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Defender of Nova Kai",
-    "flavor": "The walls are stone. It is the stone."
+    "name": "Immovable of the Guard",
+    "effect": {
+      "name": "Effect",
+      "text": "Entities you control have Stasis. Each time an Entity you control becomes tapped, you gain 1 HP."
+    },
+    "flavor": "Waves pass. It doesn't."
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · 2nd grade",

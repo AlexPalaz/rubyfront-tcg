@@ -1,7 +1,7 @@
 {
-  "name": "Recruit of Nova Kai",
+  "name": "Adept of the Aurestia",
   "typeLabel": "Entity: Auros",
-  "summary": "One Flux, one body: the first Auros you learn to play.",
+  "summary": "One Flux, Stasis, and a look at the top of the deck: the first Auros you learn to play.",
   "ui": {
     "face": "Entity"
   },
@@ -12,8 +12,16 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Recruit of Nova Kai",
-    "flavor": "In Nova Kai you start at the gate."
+    "name": "Adept of the Aurestia",
+    "keyword": {
+      "name": "Stasis",
+      "rules": "won't die blocking: stays permanently tapped"
+    },
+    "glance": {
+      "trigger": "When it enters the Front",
+      "text": "Look at the top card of your deck: you may put it on the bottom of your deck."
+    },
+    "flavor": "Every tide begins with a drop."
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · 1st grade",

@@ -78,7 +78,7 @@ if (selfUrl) {
 
 const pathOf = request => new URL(request.url ?? "/", "http://localhost").pathname;
 
-const server = createServer({ maxHeaderSize: 16 * 1024 }, async (request, response) => {
+const server = createServer({ maxHeaderSize: 32 * 1024 }, async (request, response) => {
   const path = pathOf(request);
   if (path === "/live") {
     response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });

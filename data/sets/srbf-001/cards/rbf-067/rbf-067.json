@@ -3,7 +3,7 @@
   "id": "RBF-067",
   "setId": "rubyfront-core",
   "collectorNumber": "067",
-  "slug": "defender-of-nova-kai",
+  "slug": "immovable-of-the-guard",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -17,8 +17,9 @@
     "entity",
     "auros",
     "dimensional",
-    "vanilla",
-    "starter"
+    "starter",
+    "stasis",
+    "healing"
   ],
   "rulesReference": "MANUALE.md §3.2",
   "faces": [
@@ -28,7 +29,7 @@
       "displayKey": "face",
       "race": "auros",
       "stats": {
-        "power": 4,
+        "power": 3,
         "fluxCost": 4
       },
       "enablesMatters": [
@@ -39,9 +40,46 @@
       ],
       "keywords": [],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "bulwark",
+          "displayKey": "effect",
+          "event": "while_in_play",
+          "effect": {
+            "type": "empower",
+            "target": {
+              "cardType": "entity",
+              "controller": "controller",
+              "quantity": "all"
+            },
+            "grants": [
+              "stasis"
+            ],
+            "duration": "permanent"
+          }
+        },
+        {
+          "id": "vigil",
+          "displayKey": "effect",
+          "event": "on_tap",
+          "details": {
+            "tappedCard": {
+              "cardType": "entity",
+              "controller": "controller"
+            }
+          },
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "controller": "controller"
+            },
+            "amount": 1
+          }
+        }
+      ],
       "actions": []
     }
   ],
-  "designNotes": "rbf-067.md"
+  "designNotes": "rbf-067.md",
+  "art": "rbf-067.jpg"
 }

@@ -29,6 +29,8 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   // «Quando attacca armata: un'Entità con un Oggetto assegnato che controlli prende +1» — una sola, con la mira (dal 2026-09-17).
   PICK: { kind: "entity", race: "auros", attackForms: [{ kind: "empower", who: "self", requiresObject: true, targets: "one_armed", power: 1, face: 0 }] },
   GEAR: { kind: "object", fluxCost: 1 },
+  // «Cerca un Oggetto con costo 3 o inferiore e mettilo nella Zona di Ritiro, poi col d6 ≥ 3 un Oggetto dal Ritiro a una tua Entità» (dal 2026-10-23).
+  SALVAGE: { kind: "matter", behavior: "normal", fluxCost: 2, resolveForms: [{ kind: "search_objects", upTo: 1, type: "object", maxCost: 3, to: "ritiro", elseTo: null, thenRoll: { die: 6, atLeast: 3, from: "ritiro" }, shuffle: true }] } as Partial<CardFacts>,
   JUDGMENT: { kind: "matter", behavior: "reactive", fluxCost: 5, resolveForms: [{ kind: "destroy", target: { kind: "entity", controller: "any" }, to: "abisso", discount: { amount: 3, ifTarget: "tapped" }, thenLose: null }] } as Partial<CardFacts>,
 };
 const facts = (cardId: string): CardFacts =>
@@ -47,7 +49,7 @@ const facts = (cardId: string): CardFacts =>
     enterReturns: [],
     enterLooks: [],
     enterControls: [],
-    enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [],
+    enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [], enterFreezes: [], enterWakes: [], stasisListeners: [], tapListeners: [], enterSorts: [],
     enterDisarms: [],
     enterRearms: [],
     enterStashes: [],
@@ -538,6 +540,35 @@ describe("la Reattiva col bersaglio alla giocata (RBF-021, §7.2): prima la scen
     expect(view.pickTarget).not.toHaveBeenCalled();
     expect(view.confirm).not.toHaveBeenCalled();
     expect(sent).toContainEqual(expect.objectContaining({ t: "toZone", uid: "foe", zone: "abisso" }));
+  });
+});
+
+// Il bug visto dal designer il 2026-10-24: l'Oggetto assegnato dalla ricerca
+// prendeva lo strato in cima e copriva l'Entità. Va SOTTO, come ogni riarmo.
+describe("la ricerca di Oggetti assegna sotto il portatore (§7.2)", () => {
+  it("il riarmo dal Ritiro dopo il dado va sotto l'Entità e gli Oggetti che ha già", async () => {
+    const { ctx, sent, setState } = table();
+    const state = ctx.state();
+    state.players.a.flux = 2;
+    const salvage = card(state, "s", "SALVAGE", "a", "hand");
+    const bearer = card(state, "e", "HUMAN", "a", "field");
+    bearer.z = 5;
+    const deckGear = card(state, "g", "GEAR", "a", "hand");
+    deckGear.zone = "deck";
+    const kept = card(state, "k", "GEAR", "a", "hand");
+    kept.zone = "ritiro";
+    state.zTop = 40;
+    setState(state);
+    const { view } = fakeView({
+      pickFromPile: vi.fn((_seat: Seat, _pile: string, candidates: CardInstance[]) => Promise.resolve(candidates[0] ?? null)) as GestureView["pickFromPile"],
+    });
+    const gestures = createGestures(ctx, view);
+    await settle(gestures.playFromHand(salvage, { x: FRONT_SLOT_X[1], y: frontRowY("a") }));
+    const assigned = sent.filter(action => action.t === "toZone" && "assignTo" in action && action.assignTo === "e");
+    expect(assigned.length).toBe(1);
+    expect((assigned[0] as { z: number }).z).toBeLessThan(5);
+    const worn = ctx.state().cards[(assigned[0] as { uid: string }).uid];
+    expect(worn.z).toBeLessThan(ctx.state().cards.e.z);
   });
 });
 

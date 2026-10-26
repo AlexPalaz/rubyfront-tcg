@@ -3,7 +3,7 @@
   "id": "RBF-065",
   "setId": "rubyfront-core",
   "collectorNumber": "065",
-  "slug": "lookout-of-nova-kai",
+  "slug": "elder-of-the-aurestia",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -60,5 +60,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-065.md"
+  "designNotes": "rbf-065.md",
+  "art": "rbf-065.jpg"
 }

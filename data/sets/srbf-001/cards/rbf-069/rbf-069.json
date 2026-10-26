@@ -3,11 +3,12 @@
   "id": "RBF-069",
   "setId": "rubyfront-core",
   "collectorNumber": "069",
-  "slug": "sealer-of-nova-kai",
+  "slug": "darx-tamer-of-the-aurestia",
   "type": "entity",
   "layout": "single",
   "status": "draft",
-  "deckLimit": 3,
+  "unique": true,
+  "deckLimit": 1,
   "defaultLocale": "it",
   "locales": [
     "it",
@@ -19,7 +20,9 @@
     "dimensional",
     "stasis",
     "control",
-    "starter"
+    "unique",
+    "starter",
+    "healing"
   ],
   "rulesReference": "MANUALE.md §8.1, §8.2",
   "faces": [
@@ -29,7 +32,7 @@
       "displayKey": "face",
       "race": "auros",
       "stats": {
-        "power": 6,
+        "power": 5,
         "fluxCost": 6
       },
       "enablesMatters": [
@@ -60,12 +63,22 @@
                 }
               ]
             },
-            "state": "stasis"
+            "state": "stasis",
+            "details": {
+              "thenGainHealthPerTapped": {
+                "cardType": "entity",
+                "controller": "opponent",
+                "amount": 1
+              }
+            }
           }
         }
       ],
       "actions": []
     }
   ],
-  "designNotes": "rbf-069.md"
+  "designNotes": "rbf-069.md",
+  "art": "rbf-069.jpg",
+  "fullArt": true,
+  "artZoom": "50%"
 }

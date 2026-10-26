@@ -8,7 +8,7 @@
 
 import { useProgression, type ProgressionCatalog } from "./progression.js";
 import type { Phase } from "./types.js";
-import type { AssignForm, CardFacts, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterEmpower, EnterListener, EnterLook, EnterPeek, EnterRearm, EnterRefresh, EnterMove, EnterReturn, EnterStash, EnterTap, TurnStartSearch, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, SelfRetire, StaticForm, Ability, AbilityForm } from "./ctx.js";
+import type { AssignForm, CardFacts, DeathForm, AttackDraw, AttackForm, EnterControl, EnterDisarm, EnterEmpower, EnterFreeze, EnterWake, EnterSort, TapListener, StasisListener, EnterListener, EnterLook, EnterPeek, EnterRearm, EnterRefresh, EnterMove, EnterReturn, EnterStash, EnterTap, TurnStartSearch, FlipForm, LeaveReturn, NexusRequirement, ResolveForm, SelfRetire, StaticForm, Ability, AbilityForm } from "./ctx.js";
 
 export interface CardFace {
   id: string;
@@ -237,9 +237,19 @@ function enterListenersOf(face: CardFace | undefined): EnterListener[] {
     const entered = (details as Loose | undefined)?.requiresEnteredThisTurnAtLeast;
     if (!entering || !effect || !details) continue;
     if (!Object.keys(details).every(key => key === "enteringCard" || key === "requiresControlledAtLeast" || key === "requiresEnteredThisTurnAtLeast")) continue;
+    if (entering.cardType !== "entity" || entering.controller !== "controller") continue;
+    // «Ogni volta che un'[altra] Entità [di razza] entra sul tuo Fronte, guadagni N PV» (dal 2026-10-23): senza condizione; `excludeSelf: false` = «compresa questa». Specchio di card_index.rb.
+    if (effect.type === "gain_health") {
+      if (entering.excludeSelf !== true && entering.excludeSelf !== false && entering.excludeSelf !== undefined) continue;
+      const amount = (effect as Loose).amount;
+      if (Object.keys(details).join() !== "enteringCard" || !sameShape(effect.target, { controller: "controller" })) continue;
+      if (!Number.isInteger(amount) || (amount as number) <= 0 || !Object.keys(effect).every(key => ["type", "target", "amount"].includes(key))) continue;
+      out.push({ enteringRace: typeof entering.race === "string" ? entering.race : null, requires: null, draw: 0, heal: amount as number, ...(entering.excludeSelf === false ? { self: true as const } : {}) });
+      continue;
+    }
+    if (entering.excludeSelf !== true && entering.excludeSelf !== undefined) continue;
     if ((requires === undefined) === (entered === undefined)) continue;
     if (effect.type !== "draw_card" || !Number.isInteger(effect.count) || effect.target?.controller !== "controller") continue;
-    if (entering.cardType !== "entity" || entering.controller !== "controller" || (entering.excludeSelf !== true && entering.excludeSelf !== undefined)) continue;
     const condition = requires ?? entered;
     if (!Number.isInteger(condition.count) || condition.filter?.cardType !== "entity" || condition.filter?.controller !== "controller") continue;
     const needed = { count: condition.count as number, race: typeof condition.filter.race === "string" ? condition.filter.race : null };
@@ -265,13 +275,61 @@ function enterPeeksOf(face: CardFace | undefined): EnterPeek[] {
     if (trigger.event !== "on_enter_field") continue;
     const details = trigger.details as Loose | undefined;
     const effect = trigger.effect as Loose | undefined;
-    if (!details || !effect || Object.keys(details).join() !== "enteringCard") continue;
-    const entering = details.enteringCard as Loose | undefined;
-    if (!entering || entering.cardType !== "entity" || entering.controller !== "controller" || (entering.excludeSelf !== true && entering.excludeSelf !== undefined)) continue;
-    if (effect.type !== "look_and_optionally_move") continue;
+    if (!effect || effect.type !== "look_and_optionally_move") continue;
     if (!sameShape(effect.from, { zone: "deck", owner: "controller", position: "top", count: 1 })) continue;
     if (!sameTree(effect.details, { mayMoveTo: { zone: "deck", owner: "controller", position: "bottom" } })) continue;
+    // Sull'ingresso PROPRIO (dal 2026-10-23): senza dettagli, la fonte è chi entra. Specchio di card_index.rb, enter_peeks.
+    if (details === undefined) {
+      out.push({ enteringRace: null, count: 1, mayBottom: true, self: true });
+      continue;
+    }
+    if (Object.keys(details).join() !== "enteringCard") continue;
+    const entering = details.enteringCard as Loose | undefined;
+    if (!entering || entering.cardType !== "entity" || entering.controller !== "controller" || (entering.excludeSelf !== true && entering.excludeSelf !== undefined)) continue;
     out.push({ enteringRace: typeof entering.race === "string" ? entering.race : null, count: 1, mayBottom: true });
+  }
+  return out;
+}
+
+/** «Quando entra sul Fronte, guarda le prime N carte del tuo mazzo e rimettile in cima nell'ordine che vuoi» (dal 2026-10-23). Specchio di card_index.rb, enter_sorts. */
+function enterSortsOf(face: CardFace | undefined): EnterSort[] {
+  const out: EnterSort[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field" || trigger.details !== undefined) continue;
+    const effect = trigger.effect as Loose | undefined;
+    if (!effect || effect.type !== "look_and_optionally_move" || !Object.keys(effect).every(key => ["type", "from", "details"].includes(key))) continue;
+    const from = effect.from as Loose | undefined;
+    if (!from || from.zone !== "deck" || from.owner !== "controller" || from.position !== "top" || !Number.isInteger(from.count) || (from.count as number) <= 0) continue;
+    if (!sameShape(effect.details, { reorderOnTop: true })) continue;
+    out.push({ count: from.count as number });
+  }
+  return out;
+}
+
+/** Gli ascoltatori della tappata (dal 2026-10-23): «ogni volta che un'Entità che controlli viene tappata, guadagni N PV» (controlled) o, sull'Oggetto, «ogni volta che quell'Entità viene tappata, lancia un dX: con M o più guadagni N PV» (bearer). Specchio di card_index.rb, tap_listeners. */
+function tapListenersOf(faces: CardFace[]): TapListener[] {
+  const out: TapListener[] = [];
+  for (const face of faces) {
+    for (const trigger of face.triggers ?? []) {
+      if (trigger.event !== "on_tap") continue;
+      const details = trigger.details as Loose | undefined;
+      const effect = trigger.effect as Loose | undefined;
+      if (!details || !effect || Object.keys(details).join() !== "tappedCard") continue;
+      const scope = sameShape(details.tappedCard, { cardType: "entity", controller: "controller" }) ? "controlled" : sameShape(details.tappedCard, { scope: "assigned" }) ? "bearer" : null;
+      if (!scope) continue;
+      if (effect.type !== "gain_health" || !sameShape(effect.target, { controller: "controller" })) continue;
+      if (!Number.isInteger(effect.amount) || (effect.amount as number) <= 0 || !Object.keys(effect).every(key => ["type", "target", "amount", "details"].includes(key))) continue;
+      let die: number | null = null;
+      let atLeast: number | null = null;
+      if (effect.details !== undefined) {
+        const roll = (effect.details as Loose).roll as Loose | undefined;
+        if (Object.keys(effect.details as Loose).join() !== "roll" || !roll || Object.keys(roll).sort().join() !== "die,successAtLeast") continue;
+        die = dieFaces(roll.die);
+        if (die === null || !Number.isInteger(roll.successAtLeast) || (roll.successAtLeast as number) < 1 || (roll.successAtLeast as number) > die) continue;
+        atLeast = roll.successAtLeast as number;
+      }
+      out.push({ scope, amount: effect.amount as number, die, atLeast });
+    }
   }
   return out;
 }
@@ -284,6 +342,62 @@ function enterTapsOf(face: CardFace | undefined): EnterTap[] {
     if (!sameTree(trigger.effect, { type: "set_state", target: { scope: "self" }, state: "tapped" })) continue;
     out.push({ kind: "self_tap" });
   }
+  return out;
+}
+
+/** «Quando entra sul Fronte, metti N Entità avversarie [con costo di Flusso M o inferiore] in Stasi» (§8.1, dal 2026-10-22). Specchio di card_index.rb, enter_freezes. */
+function enterFreezesOf(face: CardFace | undefined): EnterFreeze[] {
+  const out: EnterFreeze[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field" || trigger.details !== undefined) continue;
+    const effect = trigger.effect as Loose | undefined;
+    if (!effect || effect.type !== "set_state" || effect.state !== "stasis" || !Object.keys(effect).every(key => ["type", "target", "state", "details"].includes(key))) continue;
+    const target = effect.target as Loose | undefined;
+    if (!target || target.cardType !== "entity" || target.controller !== "opponent") continue;
+    if (!Number.isInteger(target.min) || target.min <= 0 || target.max !== target.min) continue;
+    if (!Object.keys(target).every(key => ["cardType", "controller", "min", "max", "conditions"].includes(key))) continue;
+    const cost = costCondition(target.conditions);
+    if (!cost.ok) continue;
+    const form: EnterFreeze = { targets: "opposing_entity", count: target.min as number, maxCost: cost.maxCost };
+    // «Poi guadagni N PV per ogni Entità avversaria tappata» (dal 2026-10-23). Specchio di card_index.rb, enter_freezes.
+    if (effect.details !== undefined) {
+      const tally = (effect.details as Loose).thenGainHealthPerTapped as Loose | undefined;
+      if (Object.keys(effect.details as Loose).join() !== "thenGainHealthPerTapped" || !tally) continue;
+      if (!sameShape(tally, { cardType: "entity", controller: "opponent", amount: tally.amount }) || !Number.isInteger(tally.amount) || (tally.amount as number) <= 0) continue;
+      form.thenHealPerTapped = tally.amount as number;
+    }
+    out.push(form);
+  }
+  return out;
+}
+
+/** «Quando entra sul Fronte, puoi togliere dalla Stasi un'Entità che controlli» (§8.1, dal 2026-10-22). Specchio di card_index.rb, enter_wakes. */
+function enterWakesOf(face: CardFace | undefined): EnterWake[] {
+  const out: EnterWake[] = [];
+  for (const trigger of face?.triggers ?? []) {
+    if (trigger.event !== "on_enter_field" || trigger.details !== undefined) continue;
+    const effect = trigger.effect as Loose | undefined;
+    if (!effect || effect.type !== "untap" || effect.optional !== true || !Object.keys(effect).every(key => ["type", "optional", "target"].includes(key))) continue;
+    const target = effect.target as Loose | undefined;
+    if (!ownTarget(target, "entity") || target.min !== 1 || target.max !== 1 || !sameShape(target.details, { inState: "stasis" })) continue;
+    if (!Object.keys(target).every(key => ["cardType", "controller", "min", "max", "details"].includes(key))) continue;
+    out.push({ targets: "own_entity", inState: "stasis", optional: true });
+  }
+  return out;
+}
+
+/** «Ogni volta che un'Entità entra in Stasi, guadagni N PV» (§8.2, dal 2026-10-22), per faccia. Specchio di card_index.rb, stasis_listeners. */
+function stasisListenersOf(faces: CardFace[]): StasisListener[] {
+  const out: StasisListener[] = [];
+  faces.forEach((face, index) => {
+    for (const trigger of face.triggers ?? []) {
+      if (trigger.event !== "on_enter_stasis" || !sameShape(trigger.details, { anyEntity: true })) continue;
+      const effect = trigger.effect as Loose | undefined;
+      if (!effect || effect.type !== "gain_health" || !sameShape(effect.target, { controller: "controller" })) continue;
+      if (!Number.isInteger(effect.amount) || effect.amount <= 0 || !Object.keys(effect).every(key => ["type", "target", "amount"].includes(key))) continue;
+      out.push({ face: index, amount: effect.amount as number, any: true });
+    }
+  });
   return out;
 }
 
@@ -889,6 +1003,15 @@ function staticFormsOf(faces: CardFace[]): StaticForm[] {
         }
         continue;
       }
+      // «Le Entità che controlli hanno <parola chiave>» (dal 2026-10-23). Specchio di card_index.rb, static_forms (grant_all).
+      if (effect.type === "empower") {
+        const grants = effect.grants;
+        if (trigger.event === "while_in_play" && effect.duration === "permanent" && sameShape(effect.target, { cardType: "entity", controller: "controller", quantity: "all" })
+          && Array.isArray(grants) && grants.length > 0 && grants.every((keyword: unknown) => typeof keyword === "string") && Object.keys(effect).every(key => ["type", "target", "grants", "duration"].includes(key))) {
+          out.push({ kind: "grant_all", grants: [...(grants as string[])] });
+        }
+        continue;
+      }
       // «Questa Entità non si tappa mai» (RBF-011): uno statico senza numeri.
       if (effect.type === "prevent_tap") {
         if (trigger.event === "while_in_play" && effect.target?.scope === "self" && effect.duration === "permanent") out.push({ kind: "never_taps" });
@@ -957,11 +1080,97 @@ function resolveFormsOf(faces: CardFace[]): ResolveForm[] {
       if (trigger.event !== "on_resolve") continue;
       const effect = trigger.effect as Loose | undefined;
       if (!effect || typeof effect !== "object") continue;
-      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveDestroy(effect) ?? resolveBlock(effect) ?? resolveWeaken(effect) ?? resolveAmplify(effect) ?? resolveDrain(effect) ?? resolveSearch(effect);
+      const form = resolveLook(effect) ?? resolveUntap(effect) ?? resolveExileTimed(effect) ?? resolveMove(effect) ?? resolveFortune(effect) ?? resolveSentence(effect) ?? resolveDestroy(effect) ?? resolveBlock(effect) ?? resolveWeaken(effect) ?? resolveAmplify(effect) ?? resolveBoost(effect) ?? resolveDrain(effect) ?? resolveSearch(effect) ?? resolveFreeze(effect) ?? resolveSearchObjects(effect);
       if (form) out.push(form);
     }
   }
   return out;
+}
+
+/** La Stasi alla risoluzione (§8.1, dal 2026-10-22): «metti un'Entità avversaria in Stasi». Specchio di card_index.rb, resolve_freeze. */
+function resolveFreeze(effect: Loose): ResolveForm | null {
+  if (effect.type !== "set_state" || effect.state !== "stasis" || !Object.keys(effect).every(key => ["type", "target", "state"].includes(key))) return null;
+  if (!sameShape(effect.target, { cardType: "entity", controller: "opponent", min: 1, max: 1 })) return null;
+  return { kind: "freeze", target: { kind: "entity", controller: "opponent", maxCost: null }, count: 1 };
+}
+
+/** Il potenziamento secco (dal 2026-10-22): «un'Entità che controlli prende +N Potenza fino alla fine del turno», senza stapparla. Specchio di card_index.rb, resolve_boost. */
+function resolveBoost(effect: Loose): ResolveForm | null {
+  if (effect.type !== "modify_power" || effect.duration !== "until_end_of_turn" || effect.details !== undefined) return null;
+  if (!Number.isInteger(effect.amount) || effect.amount <= 0 || !Object.keys(effect).every(key => ["type", "target", "amount", "duration"].includes(key))) return null;
+  const target = effect.target as Loose | undefined;
+  if (!ownTarget(target, "entity") || target.min !== 1 || target.max !== 1 || !Object.keys(target).every(key => ["cardType", "controller", "min", "max", "race"].includes(key))) return null;
+  return { kind: "empower", targets: "own_entity", race: typeof target.race === "string" ? target.race : null, power: effect.amount as number, untap: false };
+}
+
+/** La ricerca di Oggetti (dal 2026-10-22): fino a N Oggetti dal mazzo assegnati gratis (senza Entità, in mano), poi col dado uno dal Ritiro, poi rimescola. Specchio di card_index.rb, resolve_search_objects. */
+function resolveSearchObjects(effect: Loose): ResolveForm | null {
+  if (effect.type !== "search_card" || !Object.keys(effect).every(key => ["type", "from", "filter", "count", "details"].includes(key))) return null;
+  if (!sameShape(effect.from, { zone: "deck", owner: "controller" })) return null;
+  const count = effect.count as Loose | undefined;
+  if (!count || Object.keys(count).join() !== "max" || !Number.isInteger(count.max) || count.max <= 0) return null;
+  const extra = effect.details as Loose | undefined;
+  if (!extra) return null;
+  // La variante del 2026-10-23: un Oggetto con costo N o inferiore nella PROPRIA Zona di Ritiro, poi rimescola, poi il dado del riarmo. Specchio di card_index.rb.
+  if (Object.keys(extra).sort().join() === "thenRoll,thenShuffle,toZone") {
+    const filter = effect.filter as Loose | undefined;
+    if (!filter || filter.cardType !== "object" || !Object.keys(filter).every(key => ["cardType", "conditions"].includes(key))) return null;
+    const cost = costCondition(filter.conditions);
+    if (!cost.ok || extra.thenShuffle !== true || !sameShape(extra.toZone, { zone: "retire", owner: "controller" })) return null;
+    const thenRoll = searchRearmRoll(extra.thenRoll);
+    if (!thenRoll) return null;
+    return { kind: "search_objects", upTo: count.max as number, type: "object", maxCost: cost.maxCost, to: "ritiro", elseTo: null, thenRoll, shuffle: true };
+  }
+  if (!sameShape(effect.filter, { cardType: "object" })) return null;
+  if (Object.keys(extra).sort().join() !== "assignTo,ifNoTarget,noFluxCost,thenRoll,thenShuffle") return null;
+  if (!sameShape(extra.assignTo, { cardType: "entity", controller: "controller" }) || extra.noFluxCost !== true || extra.thenShuffle !== true) return null;
+  if (!sameShape(extra.ifNoTarget, { zone: "hand", owner: "controller" })) return null;
+  const roll = extra.thenRoll as Loose | undefined;
+  if (!roll || Object.keys(roll).sort().join() !== "die,filter,mayAssignFrom,noFluxCost,successAtLeast") return null;
+  const die = dieFaces(roll.die);
+  if (die === null || !Number.isInteger(roll.successAtLeast) || roll.noFluxCost !== true) return null;
+  if (!sameShape(roll.mayAssignFrom, { zone: "retire", owner: "controller" }) || !sameShape(roll.filter, { cardType: "object" })) return null;
+  return { kind: "search_objects", upTo: count.max as number, type: "object", elseTo: "hand", thenRoll: { die, atLeast: roll.successAtLeast as number, from: "ritiro" }, shuffle: true };
+}
+
+/** Il dado del riarmo dal Ritiro che segue una ricerca. Specchio di card_index.rb, search_rearm_roll. */
+function searchRearmRoll(roll: unknown): { die: number; atLeast: number; from: "ritiro" } | null {
+  const r = roll as Loose | undefined;
+  if (!r || Object.keys(r).sort().join() !== "die,filter,mayAssignFrom,noFluxCost,successAtLeast") return null;
+  const die = dieFaces(r.die);
+  if (die === null || !Number.isInteger(r.successAtLeast) || r.noFluxCost !== true) return null;
+  if (!sameShape(r.mayAssignFrom, { zone: "retire", owner: "controller" }) || !sameShape(r.filter, { cardType: "object" })) return null;
+  return { die, atLeast: r.successAtLeast as number, from: "ritiro" };
+}
+
+/** La sentenza del dado (dal 2026-10-23): «scegli un'Entità avversaria e lancia un dX: se il risultato è pari o superiore alla sua Potenza, mettila nell'Abisso; altrimenti prende −N Potenza fino alla fine del turno». Specchio di card_index.rb, resolve_sentence. */
+function resolveSentence(effect: Loose): ResolveForm | null {
+  if (effect.type !== "destroy" || !Object.keys(effect).every(key => ["type", "target", "details"].includes(key))) return null;
+  if (!sameShape(effect.target, { cardType: "entity", controller: "opponent", min: 1, max: 1 })) return null;
+  const details = effect.details as Loose | undefined;
+  const roll = details?.roll as Loose | undefined;
+  if (!details || Object.keys(details).join() !== "roll" || !roll || Object.keys(roll).sort().join() !== "destination,die,ifAtLeastStat,otherwise") return null;
+  const die = dieFaces(roll.die);
+  if (die === null || roll.ifAtLeastStat !== "power" || !sameShape(roll.destination, { zone: "abyss", owner: "card_owner" })) return null;
+  const otherwise = roll.otherwise as Loose | undefined;
+  if (!otherwise || !sameShape(otherwise, { type: "modify_power", amount: otherwise.amount, duration: "until_end_of_turn" }) || !Number.isInteger(otherwise.amount) || (otherwise.amount as number) >= 0) return null;
+  return { kind: "sentence", target: { kind: "entity", controller: "opponent" }, die, to: "abisso", elsePower: otherwise.amount as number };
+}
+
+/** L'esilio a tempo (§8.2, dal 2026-10-22): un'avversaria in Ritiro per N turni di chi la comanda, poi il dado. Specchio di card_index.rb, resolve_exile_timed. */
+function resolveExileTimed(effect: Loose): ResolveForm | null {
+  if (effect.type !== "move_card" || !Object.keys(effect).every(key => ["type", "target", "destination", "details"].includes(key))) return null;
+  if (!sameShape(effect.target, { cardType: "entity", controller: "opponent", min: 1, max: 1 })) return null;
+  if (!sameShape(effect.destination, { zone: "retire", owner: "card_owner" })) return null;
+  const extra = effect.details as Loose | undefined;
+  if (!extra || Object.keys(extra).sort().join() !== "forTurns,thenRoll,turnsOf") return null;
+  if (!Number.isInteger(extra.forTurns) || extra.forTurns <= 0 || extra.turnsOf !== "target_controller") return null;
+  const roll = extra.thenRoll as Loose | undefined;
+  if (!roll || Object.keys(roll).sort().join() !== "die,otherwise,returnAtLeast,returnTo") return null;
+  const die = dieFaces(roll.die);
+  if (die === null || !Number.isInteger(roll.returnAtLeast) || roll.returnAtLeast <= 0) return null;
+  if (!sameShape(roll.returnTo, { zone: "front", owner: "card_owner" }) || !sameShape(roll.otherwise, { zone: "abyss", owner: "card_owner" })) return null;
+  return { kind: "exile_timed", target: { kind: "entity", controller: "opponent" }, to: "ritiro", turns: extra.forTurns as number, die, returnAtLeast: roll.returnAtLeast as number, elseTo: "abisso" };
 }
 
 /**
@@ -995,8 +1204,11 @@ function assignFormsOf(faces: CardFace[]): AssignForm[] {
         continue;
       }
       // L'Entità: «quando assegni un Oggetto a questa Entità: pesca una carta».
+      // L'Oggetto (dal 2026-10-22): «se l'Entità a cui assegni questo Oggetto
+      // era in Stasi, toglila dalla Stasi» — la stappata del portatore.
       if (sameShape(details, { toSelf: true })) {
-        if (effect.type === "draw_card" && sameShape(effect.target, { controller: "controller" }) && Number.isInteger(effect.count) && effect.count > 0) out.push({ kind: "draw", count: effect.count, toSelf: true });
+        if (sameTree(effect, { type: "untap", target: { scope: "assigned" }, details: { ifInState: "stasis" } })) out.push({ kind: "wake", ifState: "stasis", toSelf: true });
+        else if (effect.type === "draw_card" && sameShape(effect.target, { controller: "controller" }) && Number.isInteger(effect.count) && effect.count > 0) out.push({ kind: "draw", count: effect.count, toSelf: true });
         continue;
       }
       if (!details || Object.keys(details).join() !== "selfAssigned" || details.selfAssigned !== true) continue;
@@ -1393,6 +1605,39 @@ function abilityFormOf(effect: Loose | undefined): AbilityForm | null {
     if (!cost.ok) return null;
     return { kind: "summon", race: typeof target.race === "string" ? target.race : null, grants: grants as string[], bonus: bonus ? { amount: bonus.powerBonus as number, race: "human" } : null, maxCost: cost.maxCost };
   }
+  if (effect.type === "untap") {
+    // «Stappa un'Entità [razza] che controlli» (dal 2026-10-22), anche dalla
+    // Stasi; con «prende +N Potenza fino alla fine del turno» a seguire.
+    const target = effect.target as Loose | undefined;
+    if (!ownTarget(target, "entity") || target.min !== 1 || target.max !== 1 || !Object.keys(target).every(key => ["cardType", "controller", "min", "max", "race"].includes(key))) return null;
+    if (!Object.keys(effect).every(key => ["type", "target", "details"].includes(key))) return null;
+    let power: number | null = null;
+    if (effect.details !== undefined) {
+      const d = effect.details as Loose | undefined;
+      if (!d || Object.keys(d).sort().join() !== "duration,thenPowerBonus" || !Number.isInteger(d.thenPowerBonus) || d.duration !== "until_end_of_turn") return null;
+      power = d.thenPowerBonus as number;
+    }
+    return { kind: "untap", race: typeof target.race === "string" ? target.race : null, power };
+  }
+  if (effect.type === "empower") {
+    // «Un'Entità che controlli ottiene Stasi fino al tuo prossimo turno» (o
+    // per sempre, dal Nexus; dal 2026-10-22): una concessione con la sua scadenza.
+    const target = effect.target as Loose | undefined;
+    if (!ownTarget(target, "entity") || target.min !== 1 || target.max !== 1 || !Object.keys(target).every(key => ["cardType", "controller", "min", "max"].includes(key))) return null;
+    if (!Object.keys(effect).every(key => ["type", "target", "grants", "duration"].includes(key))) return null;
+    const grants = effect.grants as unknown;
+    if (!Array.isArray(grants) || grants.length === 0 || !grants.every(keyword => typeof keyword === "string")) return null;
+    if (effect.duration !== "until_controller_next_turn" && effect.duration !== "permanent") return null;
+    return { kind: "grant", grants: grants as string[], until: effect.duration === "permanent" ? "permanent" : "controller_next_turn" };
+  }
+  if (effect.type === "set_state") {
+    // «Metti fino a N Entità avversarie in Stasi» (§8.1, dal 2026-10-22).
+    const target = effect.target as Loose | undefined;
+    if (effect.state !== "stasis" || !Object.keys(effect).every(key => ["type", "target", "state"].includes(key))) return null;
+    if (!target || target.cardType !== "entity" || target.controller !== "opponent" || !Object.keys(target).every(key => ["cardType", "controller", "min", "max"].includes(key))) return null;
+    if (!Number.isInteger(target.min) || !Number.isInteger(target.max) || target.min < 0 || target.max < 1 || target.max < target.min) return null;
+    return { kind: "freeze", min: target.min as number, max: target.max as number };
+  }
   return null;
 }
 
@@ -1434,8 +1679,14 @@ function nexusOf(faces: CardFace[]): NexusRequirement | null {
   const conditions: NexusRequirement["conditions"] = [];
   for (const condition of (Array.isArray(requirement.conditions) ? requirement.conditions : []) as Loose[]) {
     // «Controlli almeno N» — e, dal 2026-10-20, «in questo turno hai attaccato con almeno N» (`attacked`).
-    if ((condition?.type !== "controls_card" && condition?.type !== "attacked_this_turn_at_least") || condition.owner !== "controller" || !Number.isInteger(condition.min)) return null;
+    if ((condition?.type !== "controls_card" && condition?.type !== "attacked_this_turn_at_least" && condition?.type !== "stasis_inflicted_at_least") || condition.owner !== "controller" || !Number.isInteger(condition.min)) return null;
     const filter = condition.filter as Loose | undefined;
+    // «In questa partita hai messo in Stasi almeno N Entità avversarie» (dal 2026-10-22): le conta il tavolo (`inflicted`). Specchio di card_index.rb, nexus_of.
+    if (condition.type === "stasis_inflicted_at_least") {
+      if (!sameShape(filter, { cardType: "entity", controller: "opponent" })) return null;
+      conditions.push({ count: condition.min, kind: "entity", race: null, inflicted: true });
+      continue;
+    }
     if (!filter || filter.cardType !== "entity" || !Object.keys(filter).every(key => key === "cardType" || key === "race" || key === "details")) return null;
     // «Con un Oggetto assegnato» (dal 2026-09-10): l'unico dettaglio certificato. Specchio di card_index.rb, nexus_of.
     const details = filter.details as Loose | undefined;
@@ -1447,15 +1698,24 @@ function nexusOf(faces: CardFace[]): NexusRequirement | null {
   const costs = (Array.isArray(requirement.flipCost) ? requirement.flipCost : []) as Loose[];
   if (costs.length > 1) return null;
   let discard: NexusRequirement["discard"] = null;
+  let retire: NexusRequirement["retire"] = null;
   if (costs.length === 1) {
     const cost = costs[0];
-    if (cost?.type !== "discard_card" || cost.count !== 1 || cost.target?.controller !== "controller") return null;
-    // Lo scarto va in Zona di Ritiro comunque (§5, §6.5): un dettaglio che lo dice non cambia la forma; un altro la rende ignota.
-    if (cost.details !== undefined && !sameTree(cost.details, { toZone: { zone: "retire", owner: "controller" } })) return null;
-    discard = { count: 1, kind: typeof cost.filter?.cardType === "string" ? cost.filter.cardType : null, ...(typeof cost.filter?.race === "string" ? { race: cost.filter.race as string } : {}) };
+    // «Metti un Oggetto che controlli nella tua Zona di Ritiro, poi flippa»
+    // (dal 2026-10-22): un proprio Oggetto dal Fronte in Ritiro. Specchio di card_index.rb, nexus_of.
+    if (cost?.type === "move_card") {
+      if (cost.count !== 1 || !sameShape(cost.target, { cardType: "object", controller: "controller" })) return null;
+      if (!sameShape(cost.from, { zone: "front", owner: "controller" }) || !sameShape(cost.destination, { zone: "retire", owner: "controller" })) return null;
+      retire = { count: 1, kind: "object" };
+    } else {
+      if (cost?.type !== "discard_card" || cost.count !== 1 || cost.target?.controller !== "controller") return null;
+      // Lo scarto va in Zona di Ritiro comunque (§5, §6.5): un dettaglio che lo dice non cambia la forma; un altro la rende ignota.
+      if (cost.details !== undefined && !sameTree(cost.details, { toZone: { zone: "retire", owner: "controller" } })) return null;
+      discard = { count: 1, kind: typeof cost.filter?.cardType === "string" ? cost.filter.cardType : null, ...(typeof cost.filter?.race === "string" ? { race: cost.filter.race as string } : {}) };
+    }
   }
   const recovery = faces[nexusIndex].stats?.healthRecovery;
-  return { face: nexusIndex, conditions, discard, recovery: Number.isInteger(recovery) ? (recovery as number) : null };
+  return { face: nexusIndex, conditions, discard, retire, recovery: Number.isInteger(recovery) ? (recovery as number) : null };
 }
 
 /** Il costo di schieramento del Rubyfront (§3.1): fisso, o un dado. */
@@ -1478,7 +1738,12 @@ export function cardStats(cardId: string): {
   deployment: Deployment | null;
   enterListeners: EnterListener[];
   enterPeeks: EnterPeek[];
+  enterSorts: EnterSort[];
+  tapListeners: TapListener[];
   enterTaps: EnterTap[];
+  enterFreezes: EnterFreeze[];
+  enterWakes: EnterWake[];
+  stasisListeners: StasisListener[];
   enterEmpowers: EnterEmpower[];
   enterMoves: EnterMove[];
   behavior: string | null;
@@ -1517,7 +1782,12 @@ export function cardStats(cardId: string): {
     ),
     enterListeners: enterListenersOf(face),
     enterPeeks: enterPeeksOf(face),
+    enterSorts: enterSortsOf(face),
+    tapListeners: tapListenersOf(card?.faces ?? []),
     enterTaps: enterTapsOf(face),
+    enterFreezes: enterFreezesOf(face),
+    enterWakes: enterWakesOf(face),
+    stasisListeners: stasisListenersOf(card?.faces ?? []),
     enterEmpowers: enterEmpowersOf(face),
     enterMoves: enterMovesOf(face),
     behavior: typeof face?.behavior === "string" ? face.behavior : null,
@@ -1594,7 +1864,12 @@ export function cardFacts(cardId: string, locale: string): CardFacts {
     keywords: stats.keywords,
     enterListeners: stats.enterListeners,
     enterPeeks: stats.enterPeeks,
+    enterSorts: stats.enterSorts,
+    tapListeners: stats.tapListeners,
     enterTaps: stats.enterTaps,
+    enterFreezes: stats.enterFreezes,
+    enterWakes: stats.enterWakes,
+    stasisListeners: stats.stasisListeners,
     enterEmpowers: stats.enterEmpowers,
     enterMoves: stats.enterMoves,
     behavior: stats.behavior,

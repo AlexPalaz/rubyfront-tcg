@@ -9,12 +9,14 @@
 // Per il posto del bot (setAuto, session.ts) mira, pile e conferme
 // rispondono da sole: la vista non apre finestre per lui.
 
-import { declareAttack as declareAttackVia, attackBonusOf, neverTaps, wornBy } from "./combat.js";
+import { declareAttack as declareAttackVia, attackBonusOf, neverTaps, powerOf, wornBy } from "./combat.js";
 import { abilityCopy, attackEffects, cardName, cardStats, enterEffects, faceCount, faceKind, getCard, isRubyfront, nexusRequirementCopy, type Deployment } from "./cards.js";
 import type { Ability, AssignForm, Ctx } from "./ctx.js";
 import { turnStartSearches, resolveTurnStartSearch, describeTurnStartSearch, type TurnStartSearchStep, bestObjectCost, describeControl, describeRefresh, describeLook, describeMove, describeReturn, describeStash, enterDisarms, enterRearms, enterStashes, leaveReturns, rearmChoices, underStack, resolveDisarm, resolveRearm, resolveStash, stashRef, resolveLeaveReturn, type EnterDisarmStep, type EnterRearmStep, type EnterStashStep, type LeaveReturnStep, type Placement, describeTrigger, enterControls, enterLooks, enterRefreshes, enterMoves, enterReturns, enterTriggers, enterTaps, enterEmpowers, enterPeeks, describeTap, describeEnterEmpower, describePeek, resolveTap, resolveEnterEmpower, resolvePeek, sinks, type EnterTapStep, type EnterEmpowerStep, type EnterPeekStep, lookAfterRoll, returnsFor, attackDraws, describeAttackDraw, resolveAttackDraw, resolveAttackDiscard, type AttackDrawStep, attackSteps, attackRef, attackersOf, describeAttackStep, inRange, otherArmed, pendingGrants, type AttackStep, resolveControl, resolveLook, resolveRefresh, resolveMove, resolveReturn, resolveTrigger, type EnterControlStep, type EnterLookStep, type EnterRefreshStep, type EnterMoveStep, type EnterReturnStep, assignCandidates, assignRef, assignSteps, describeAssignStep, describeFlipStep, describeResolveStep, discountedCost, weakenAmount, wornObjects, objectCost, searchCandidates, deckEnds, deathSteps, deathRef, describeDeathStep, rearmAfterDeath, type AssignStep, type DeathStep, flipCandidates, flipRef, flipSteps, nexusCheck, pendingResolve, blocksAttacker, resolveSteps, resolveRef, wantsTargetOnPlay, type FlipStep, type ResolveStep } from "./effects.js";
 import { FRONT_SLOT_X, RUBYFRONT_X, SLOT_X, SURFACE_H, SURFACE_W, TILE_H, TILE_W, backRowY, frontRowY } from "./geometry.js";
 import { msg, t } from "./i18n.js";
+import { enterFreezes, enterWakes, describeFreeze, describeWake, resolveFreeze, resolveWake, freezable, stasisHeals, resolveStasisHeal, exileReturns, exileReturnRef, type EnterFreezeStep, type EnterWakeStep, type StasisHealStep, type ExileReturnStep } from "./effects.js";
+import { enterSorts, enterTallies, resolveSort, resolveTally, tapHeals, tapHealRef, resolveTapHeal, tappedOpponents, type EnterSortStep, type EnterTallyStep, type TapHealStep } from "./effects.js";
 import type { AutoChooser } from "./session.js";
 import { STACK_STEP, abilityDiscount, chainTop, controllerOf, declarationOf, fieldCards, freeFrontSlotOrNull, furyThreshold, inPlay, matterSpot, nextWaveOrder, rollKey, sealedForPlay, seatLabel, stackAt, waveDeclared, zoneCards } from "./state.js";
 import { canDiscard } from "./tabs.js";
@@ -556,12 +558,14 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     const stashes = enterStashes(state, live, ctx.card);
     const taps = enterTaps(live, ctx.card);
     const empowers = enterEmpowers(state, live, ctx.card);
+    const freezes = enterFreezes(state, live, ctx.card);
+    const wakes = enterWakes(state, live, ctx.card);
     const peeks = enterPeeks(state, live, ctx.card);
     const triggers = enterTriggers(state, live, ctx.card);
     // Un Oggetto non entra sul Fronte: si assegna, e la scena dice a chi (§3.1).
     const bearer = facts.kind === "object" && live.assignedTo ? state.cards[live.assignedTo] : undefined;
     return {
-      triggered: (moves.length || returns.length || looks.length || controls.length || refreshes.length || disarms.length || rearms.length || stashes.length || taps.length || empowers.length || peeks.length || triggers.length) > 0,
+      triggered: (moves.length || returns.length || looks.length || controls.length || refreshes.length || disarms.length || rearms.length || stashes.length || taps.length || empowers.length || freezes.length || wakes.length || peeks.length || triggers.length) > 0,
       show: {
         cardId: live.cardId,
         face: live.face,
@@ -576,6 +580,8 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         triggers: [
           ...taps.map(step => describeTap(step, ctx.card)),
           ...empowers.map(step => describeEnterEmpower(step, ctx.card)),
+          ...freezes.map(step => describeFreeze(step, ctx.card)),
+          ...wakes.map(step => describeWake(step, ctx.card)),
           ...moves.map(step => describeMove(step, ctx.card)),
           ...returns.map(step => describeReturn(step, ctx.card)),
           ...looks.map(step => describeLook(step, ctx.card)),
@@ -1520,17 +1526,21 @@ export function createGestures(ctx: Ctx, view: GestureView) {
               await wait(TRIGGER_TAIL_MS);
             }
           } else if (form.targets === "own_entity") {
-            // «Stappa un'Entità: +N Potenza», o (dal 2026-10-20) «Contrattacco +N».
+            // «Stappa un'Entità: +N Potenza», o (dal 2026-10-20) «Contrattacco +N»;
+            // dal 2026-10-22 anche il buff secco, «+N Potenza» senza stappare.
             const counter = "counter" in form;
-            const target = await pickTarget(step.source, step.candidates, t(counter ? "target.will" : "target.formation"));
+            const bare = !counter && form.untap === false;
+            const target = await pickTarget(step.source, step.candidates, bare ? t("target.brace", { n: form.power }) : t(counter ? "target.will" : "target.formation"));
             if (!target) break;
             view.hold(true);
             view.strike(target.uid, view.timing.fly);
             await wait(CONFIRMED_LEAD_MS);
             const passed = await ctx.dispatch(counter
               ? { t: "empower", uid: target.uid, counter: form.counter, untap: true, effect: ref }
-              : { t: "empower", uid: target.uid, power: form.power, untap: true, effect: ref });
-            if (passed) ctx.log(msg(counter ? "log.effect.counter" : "log.effect.untap", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: counter ? form.counter : form.power }), by);
+              : bare
+                ? { t: "empower", uid: target.uid, power: form.power, effect: ref }
+                : { t: "empower", uid: target.uid, power: form.power, untap: true, effect: ref });
+            if (passed) ctx.log(msg(counter ? "log.effect.counter" : bare ? "log.effect.brace" : "log.effect.untap", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: counter ? form.counter : form.power }), by);
           } else {
             view.hold(true);
             await wait(TRIGGER_LEAD_MS);
@@ -1645,6 +1655,171 @@ export function createGestures(ctx: Ctx, view: GestureView) {
           await wait(TRIGGER_TAIL_MS);
           break;
         }
+        case "freeze": {
+          // «Metti un'Entità avversaria in Stasi» (§8.1, dal 2026-10-22): una mira per bersaglio, fino al conto.
+          let left = form.count;
+          let pool = step.candidates;
+          while (left > 0 && pool.length > 0) {
+            const target = await pickTarget(step.source, pool, form.count === 1 ? t("target.freeze") : t("target.freeze.many", { n: left }));
+            if (!target) break;
+            view.hold(true);
+            view.strike(target.uid, view.timing.fly);
+            await wait(CONFIRMED_LEAD_MS);
+            const passed = await ctx.dispatch({ t: "tap", uid: target.uid, tapped: true, stasis: true, effect: ref });
+            if (passed) ctx.log(msg("log.effect.freeze", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
+            left -= 1;
+            pool = pool.filter(other => other.uid !== target.uid);
+            await wait(TRIGGER_TAIL_MS);
+          }
+          break;
+        }
+        case "exile_timed": {
+          // L'esilio a tempo (§8.2, dal 2026-10-22): si mira, si conferma, l'Entità vola in Ritiro per N turni.
+          const target = await pickSure(by, () => pickTarget(step.source, step.candidates, t("target.undertow", { n: form.turns })), chosen => t("confirm.undertow", { card: `«${ctx.card(chosen.cardId).name}»` }));
+          if (!target) break;
+          view.strike(target.uid, 60_000);
+          view.hold(true);
+          await wait(CONFIRMED_LEAD_MS);
+          const fly = view.liftForFlight(target.uid, "ritiro");
+          const passed = await ctx.dispatch({ t: "toZone", uid: target.uid, zone: "ritiro", exile: { turns: form.turns }, effect: ref });
+          view.strike(target.uid, 0);
+          if (passed) {
+            fly?.();
+            ctx.log(msg("log.effect.exile.start", { seat: by, sourceCard: step.source.cardId, card: target.cardId, n: form.turns }), by);
+            await wait(view.timing.fly);
+          } else {
+            fly?.cancel();
+            view.render();
+          }
+          break;
+        }
+        case "search_objects": {
+          // La ricerca di Oggetti (dal 2026-10-22): fino a N dal mazzo, uno
+          // per volta, addosso a una propria Entità (gratis) o in mano se non
+          // ce ne sono; poi il dado del riarmo dal Ritiro, se c'è chi armare;
+          // poi la mescolata.
+          const entities = (): CardInstance[] => fieldCards(ctx.state()).filter(card => controllerOf(card) === by && ctx.card(card.cardId).kind === "entity");
+          // Lo strato è SOTTO il portatore e gli Oggetti che ha già (underStack),
+          // come ogni riarmo: con lo strato in cima l'Oggetto copriva l'Entità.
+          const spotOn = (bearer: CardInstance): { x: number; y: number; z: number } => {
+            const live = ctx.state().cards[bearer.uid] ?? bearer;
+            const worn = Object.values(ctx.state().cards).filter(other => other.assignedTo === live.uid && other.zone === "field");
+            const offset = STACK_STEP * (worn.length + 1);
+            return { x: Math.max(0, Math.min(SURFACE_W - TILE_W, live.x + offset)), y: Math.max(0, Math.min(SURFACE_H - TILE_H, live.y + offset)), z: underStack(live, worn) };
+          };
+          const searchRef = { ...ref, follow: "search" as const };
+          let left = form.upTo - (ctx.state().fired ?? []).filter(key => key.startsWith(`${step.source.uid}|on_resolve:search:`)).length;
+          let found = 0;
+          while (left > 0) {
+            // I candidati si rileggono a ogni passo, per forma (le schede si rileggono dal catalogo: un confronto per riferimento non troverebbe nulla).
+            const live = resolveSteps(ctx.state(), step.source, ctx.card).find(candidate => candidate.form.kind === "search_objects");
+            const pool = live?.candidates ?? [];
+            if (pool.length === 0) break;
+            const chosen = await pickFromPile(by, "deck", pool, t("to" in form ? "pick.search.object.cost" : "pick.search.object", { n: "to" in form ? (form.maxCost ?? 0) : left }), zoneCards(ctx.state(), by, "deck"));
+            if (!chosen) break;
+            const bearers = entities();
+            view.hold(true);
+            if ("to" in form) {
+              // La variante del 2026-10-23: l'Oggetto trovato va nella propria Zona di Ritiro, e basta.
+              await wait(CONFIRMED_LEAD_MS);
+              const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "ritiro", effect: searchRef });
+              if (passed) {
+                found += 1;
+                view.flyFromPile(by, "deck", chosen.uid);
+                ctx.log(msg("log.effect.search.retire", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
+                await wait(view.timing.fly);
+              }
+            } else if (bearers.length === 0) {
+              await wait(CONFIRMED_LEAD_MS);
+              const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "hand", effect: searchRef });
+              if (passed) {
+                found += 1;
+                ctx.log(msg("log.effect.search.hand", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId }), by);
+              }
+            } else {
+              const bearer = await pickTarget(step.source, bearers, t("target.search.bearer"), false);
+              if (!bearer) {
+                view.hold(false);
+                break;
+              }
+              await wait(CONFIRMED_LEAD_MS);
+              const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...spotOn(bearer), assignTo: bearer.uid, effect: searchRef });
+              if (passed) {
+                found += 1;
+                view.flyFromPile(by, "deck", chosen.uid);
+                ctx.log(msg("log.effect.search.assign", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId, toCard: bearer.cardId }), by);
+                await wait(view.timing.fly);
+              }
+            }
+            view.hold(false);
+            left -= 1;
+          }
+          if (found === 0 && left === form.upTo) ctx.log(msg("log.search.none", { seat: by, card: step.source.cardId }), by);
+          // Poi il dado: con N o più un Oggetto dalla Zona di Ritiro, gratis — se c'è un'Entità da armare.
+          if (entities().length > 0) {
+            const rearmRef = { ...ref, follow: "rearm" as const };
+            const roll = await ctx.roll(form.thenRoll.die, rollKey({ effect: rearmRef }), by);
+            if (roll !== null) {
+              await view.roll(form.thenRoll.die, roll, t("dice.step", { name, what: t("dice.rearm", { die: form.thenRoll.die, n: form.thenRoll.atLeast }) }));
+              const objects = zoneCards(ctx.state(), by, "ritiro").filter(card => ctx.card(card.cardId).kind === "object");
+              if (roll < form.thenRoll.atLeast || objects.length === 0) {
+                ctx.log(msg("log.effect.search.norearm", { seat: by, roll }), by);
+              } else {
+                const chosen = await pickFromPile(by, "ritiro", objects, t("pick.search.retire"));
+                const bearer = chosen ? await pickTarget(step.source, entities(), t("target.rearm.bearer")) : null;
+                if (chosen && bearer) {
+                  view.hold(true);
+                  await wait(CONFIRMED_LEAD_MS);
+                  const passed = await ctx.dispatch({ t: "toZone", uid: chosen.uid, zone: "field", ...spotOn(bearer), assignTo: bearer.uid, roll, effect: rearmRef });
+                  if (passed) {
+                    view.flyFromPile(by, "ritiro", chosen.uid);
+                    ctx.log(msg("log.effect.search.rearm", { seat: by, sourceCard: step.source.cardId, card: chosen.cardId, toCard: bearer.cardId, roll }), by);
+                    await wait(view.timing.fly);
+                  }
+                  view.hold(false);
+                }
+              }
+            }
+          }
+          // «Poi rimescola il mazzo».
+          if (zoneCards(ctx.state(), by, "deck").length > 1) await ctx.dispatch({ t: "shuffle", seat: by });
+          break;
+        }
+        case "sentence": {
+          // La sentenza del dado (dal 2026-10-23): si mira, il dado del tavolo
+          // gira al centro; pari o superiore alla Potenza di adesso, l'Abisso;
+          // altrimenti il −N fino alla fine del turno.
+          const target = await pickSure(by, () => pickTarget(step.source, step.candidates, t("target.sentence", { die: form.die })), chosen => t("confirm.sentence", { card: `«${ctx.card(chosen.cardId).name}»` }));
+          if (!target) break;
+          view.strike(target.uid, 60_000);
+          const roll = await ctx.roll(form.die, rollKey({ effect: ref }), by);
+          if (roll === null) {
+            view.strike(target.uid, 0);
+            break;
+          }
+          const power = powerOf(ctx.state().cards[target.uid] ?? target, ctx.card, ctx.state()) ?? 0;
+          await view.roll(form.die, roll, t("dice.step", { name, what: t("dice.sentence", { die: form.die, n: power }) }));
+          view.hold(true);
+          await wait(CONFIRMED_LEAD_MS);
+          if (roll >= power) {
+            const fly = view.liftForFlight(target.uid, "abisso");
+            const passed = await ctx.dispatch({ t: "toZone", uid: target.uid, zone: "abisso", roll, effect: ref });
+            view.strike(target.uid, 0);
+            if (passed) {
+              fly?.();
+              ctx.log(msg("log.effect.sentence.abyss", { seat: by, sourceCard: step.source.cardId, card: target.cardId, roll, n: power }), by);
+              await wait(view.timing.fly);
+            } else {
+              fly?.cancel();
+              view.render();
+            }
+          } else {
+            const passed = await ctx.dispatch({ t: "empower", uid: target.uid, power: form.elsePower, roll, effect: ref });
+            view.strike(target.uid, 0);
+            if (passed) ctx.log(msg("log.effect.sentence.weaken", { seat: by, sourceCard: step.source.cardId, card: target.cardId, roll, n: power, m: -form.elsePower }), by);
+          }
+          break;
+        }
         case "fortune": {
           const roll = await ctx.roll(form.die, rollKey({ effect: ref }), by);
           if (roll === null) break;
@@ -1721,11 +1896,25 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     if (nexus.discard) {
       while (!discard) discard = await pickFromPile(by, "hand", check.discards, t(nexus.discard.kind === null ? "pick.nexus.discard.any" : "pick.nexus.discard"), undefined, true);
     }
-    const passed = await ctx.dispatch({ t: "flip", uid: card.uid, face: nexus.face, ...(discard ? { discard: discard.uid } : {}), ...(nexus.recovery ? { recover: nexus.recovery } : {}) });
-    if (!passed) return false;
+    // «Metti un Oggetto che controlli nella tua Zona di Ritiro, poi flippa» (dal 2026-10-22): si mira l'Oggetto.
+    let retire: CardInstance | null = null;
+    if (nexus.retire) {
+      view.light(card.uid, true);
+      retire = await pickTarget(card, check.retires, t("pick.nexus.retire"));
+      view.light(card.uid, false);
+      if (!retire) return false;
+    }
+    const leaving = retire ? view.liftForFlight(retire.uid, "ritiro") : null;
+    const passed = await ctx.dispatch({ t: "flip", uid: card.uid, face: nexus.face, ...(discard ? { discard: discard.uid } : {}), ...(retire ? { retire: retire.uid } : {}), ...(nexus.recovery ? { recover: nexus.recovery } : {}) });
+    if (!passed) {
+      leaving?.cancel();
+      return false;
+    }
+    leaving?.();
     const hp = ctx.state().players[by].hp;
     ctx.log(msg("log.flip", { seat: by, card: card.cardId, recover: nexus.recovery ? msg("log.flip.recover", { n: nexus.recovery, hp }) : "" }), by);
     if (discard) ctx.log(msg("log.flip.discard", { seat: by, card: discard.cardId }), by);
+    if (retire) ctx.log(msg("log.flip.retire", { seat: by, card: retire.cardId }), by);
     const live = ctx.state().cards[card.uid];
     if (!live) return true;
     const steps = flipSteps(ctx.state(), live, ctx.card);
@@ -2138,6 +2327,55 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         targets = candidates.map(other => other.uid);
       }
     }
+    // Le abilità della Stasi (dal 2026-10-22): «stappa un'Entità che controlli»
+    // (anche dalla Stasi), «ottiene Stasi fino al tuo prossimo turno» (o per
+    // sempre), «metti fino a N Entità avversarie in Stasi» — i bersagli si
+    // scelgono prima di pagare.
+    if (form.kind === "untap" || form.kind === "grant") {
+      const candidates = fieldCards(ctx.state()).filter(other => {
+        if (controllerOf(other) !== by) return false;
+        const facts = ctx.card(other.cardId);
+        if (facts.kind !== "entity") return false;
+        if (form.kind === "untap" && form.race !== null && facts.race !== form.race) return false;
+        if (form.kind === "untap" && !other.tapped) return false;
+        return true;
+      });
+      if (candidates.length === 0) {
+        const go = await confirmFor(by, t("confirm.ability.notargets", { name: copy.name, price }));
+        if (!go) return false;
+        targets = [];
+      } else {
+        view.light(card.uid, true);
+        const hint = form.kind === "grant"
+          ? t("target.ability.grant", { grants: form.grants.map(keyword => t(`grant.${keyword}`)).join(", ") })
+          : form.power !== null ? t("target.ability.untap.power", { n: form.power }) : t("target.ability.untap");
+        const chosen = await pickTarget(card, candidates, hint);
+        view.light(card.uid, false);
+        if (!chosen) return false;
+        targets = [chosen.uid];
+      }
+    }
+    if (form.kind === "freeze") {
+      const candidates = fieldCards(ctx.state()).filter(other => controllerOf(other) !== by && freezable(other, ctx.card));
+      if (candidates.length === 0) {
+        const go = await confirmFor(by, t("confirm.ability.notargets", { name: copy.name, price }));
+        if (!go) return false;
+        targets = [];
+      } else {
+        view.light(card.uid, true);
+        const picked: string[] = [];
+        let pool = candidates;
+        while (picked.length < form.max && pool.length > 0) {
+          const chosen = await pickTarget(card, pool, t("target.ability.freeze", { n: form.max - picked.length }), picked.length < form.min);
+          if (!chosen) break;
+          picked.push(chosen.uid);
+          pool = pool.filter(other => other.uid !== chosen.uid);
+        }
+        view.light(card.uid, false);
+        if (picked.length < form.min) return false;
+        targets = picked;
+      }
+    }
     // §8.1 — la Furia: il d20 al centro, prima dell'abilità.
     let roll: number | null = null;
     let fail = false;
@@ -2162,8 +2400,11 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         ...(ability.gain !== null ? { gain: ability.gain } : {}),
         ...(roll !== null ? { roll } : {}),
         ...(fail ? { fail: true as const } : {}),
-        ...(targets !== null ? { targets, power: form.kind === "power" ? form.amount : 0 } : {}),
+        ...(targets !== null && form.kind === "power" ? { targets, power: form.amount } : {}),
         ...(form.kind === "power" && form.grants ? { grants: form.grants } : {}),
+        ...(targets !== null && form.kind === "untap" ? { targets, untap: true as const, ...(form.power !== null ? { power: form.power } : {}) } : {}),
+        ...(targets !== null && form.kind === "grant" ? { targets, grants: form.grants, until: form.until } : {}),
+        ...(targets !== null && form.kind === "freeze" ? { targets, stasis: true as const } : {}),
         ...(discount ? { discount } : {}),
         ...(form.kind === "summon" && form.bonus ? { bonus: form.bonus } : {}),
       });
@@ -2178,6 +2419,20 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         if (discount) {
           const what = msg(discount.type === "object" ? "what.object" : discount.race === "human" ? "what.entity.human" : "what.entity");
           ctx.log(msg("log.ability.discount", { seat: by, what, n: discount.amount }), by);
+        }
+        if (form.kind === "untap" && targets && targets.length) {
+          ctx.log(msg("log.ability.untap", { seat: by, card: ctx.state().cards[targets[0]]?.cardId ?? targets[0] }), by);
+          if (form.power !== null) ctx.log(msg("log.ability.power", { seat: by, n: form.power, cards: cardName(ctx.state().cards[targets[0]]?.cardId ?? targets[0], ctx.locale()) }), by);
+          for (const uid of targets) view.strike(uid, 900);
+        }
+        if (form.kind === "grant" && targets && targets.length) {
+          ctx.log(msg("log.ability.grant", { seat: by, card: ctx.state().cards[targets[0]]?.cardId ?? targets[0], grants: form.grants.map(keyword => msg(`grant.${keyword}`)), until: msg(form.until === "permanent" ? "ability.until.game" : "ability.until.next") }), by);
+          for (const uid of targets) view.strike(uid, 900);
+        }
+        if (form.kind === "freeze" && targets) {
+          if (targets.length === 0) ctx.log(msg("log.ability.freeze.none", { seat: by }), by);
+          else ctx.log(msg("log.ability.freeze", { seat: by, cards: targets.map(uid => cardName(ctx.state().cards[uid]?.cardId ?? uid, ctx.locale())).join(", ") }), by);
+          for (const uid of targets) view.strike(uid, 900);
         }
         if (form.kind === "summon" && form.bonus) {
           ctx.log(msg("log.ability.bonus", { seat: by, what: msg(form.bonus.race === "human" ? "what.entities.human" : "what.entities"), n: form.bonus.amount }), by);
@@ -2552,6 +2807,16 @@ export function createGestures(ctx: Ctx, view: GestureView) {
         await playEnds(step, step.form);
         return;
       }
+      if (step.form.kind === "wake") {
+        // «Se l'Entità a cui assegni questo Oggetto era in Stasi, toglila» (dal 2026-10-22).
+        view.hold(true);
+        await wait(TRIGGER_LEAD_MS);
+        view.strike(step.bearer.uid, view.timing.fly);
+        const passed = await ctx.dispatch({ t: "empower", uid: step.bearer.uid, untap: true, effect: assignRef(step) });
+        if (passed) ctx.log(msg("log.effect.wake", { seat: by, sourceCard: step.source.cardId, card: step.bearer.cardId }), by);
+        await wait(TRIGGER_TAIL_MS);
+        return;
+      }
       const target = await pickSure(by, () => pickTarget(step.source, candidates, t("target.confine")), chosen => t("confirm.confine", { card: `«${ctx.card(chosen.cardId).name}»` }));
       if (!target) return;
       view.hold(true);
@@ -2731,6 +2996,21 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     for (const step of enterEmpowers(ctx.state(), entering, ctx.card)) {
       await playEnterEmpower(step);
     }
+    // La Stasi all'ingresso e la stappata dalla Stasi (§8.1, dal 2026-10-22).
+    for (const step of enterFreezes(ctx.state(), entering, ctx.card)) {
+      await playFreeze(step);
+    }
+    // «Poi guadagni N PV per ogni Entità avversaria tappata» (dal 2026-10-23): dopo le Stasi.
+    for (const step of enterTallies(ctx.state(), entering, ctx.card)) {
+      await playTally(step);
+    }
+    for (const step of enterWakes(ctx.state(), entering, ctx.card)) {
+      await playWake(step);
+    }
+    // «Guarda le prime N e rimettile in cima nell'ordine che vuoi» (dal 2026-10-23).
+    for (const step of enterSorts(ctx.state(), entering, ctx.card)) {
+      await playSort(step);
+    }
     for (const step of enterMoves(ctx.state(), entering, ctx.card)) {
       await playMove(step);
     }
@@ -2813,11 +3093,236 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     }
   }
 
+  /** «Quando entra sul Fronte, metti N Entità avversarie in Stasi» (§8.1, dal 2026-10-22): una mira per bersaglio, fino al conto. */
+  async function playFreeze(step: EnterFreezeStep): Promise<void> {
+    const by = controllerOf(step.source);
+    if (step.candidates.length === 0) {
+      ctx.log(msg("log.no.stasis.target", { seat: by, card: step.source.cardId }), by);
+      return;
+    }
+    view.light(step.source.uid, true);
+    try {
+      let left = step.form.count;
+      let pool = step.candidates;
+      while (left > 0 && pool.length > 0) {
+        const target = await pickTarget(step.source, pool, step.form.count === 1 ? t("target.freeze") : t("target.freeze.many", { n: left }));
+        if (!target) break;
+        view.hold(true);
+        view.strike(target.uid, view.timing.fly);
+        await wait(CONFIRMED_LEAD_MS);
+        const passed = await resolveFreeze(ctx, step, target);
+        await wait(passed ? TRIGGER_TAIL_MS : 0);
+        view.hold(false);
+        left -= 1;
+        pool = pool.filter(other => other.uid !== target.uid);
+      }
+    } finally {
+      view.light(step.source.uid, false);
+      view.hold(false);
+      view.render();
+    }
+  }
+
+  /** «Quando entra sul Fronte, puoi togliere dalla Stasi un'Entità che controlli» (§8.1, dal 2026-10-22): facoltativa. */
+  async function playWake(step: EnterWakeStep): Promise<void> {
+    const by = controllerOf(step.source);
+    if (step.candidates.length === 0) {
+      ctx.log(msg("log.no.stasis.own", { seat: by, card: step.source.cardId }), by);
+      return;
+    }
+    view.light(step.source.uid, true);
+    const target = await pickTarget(step.source, step.candidates, t("target.wake"));
+    if (!target) {
+      view.light(step.source.uid, false);
+      view.render();
+      return;
+    }
+    view.hold(true);
+    try {
+      view.strike(target.uid, view.timing.fly);
+      await wait(CONFIRMED_LEAD_MS);
+      const passed = await resolveWake(ctx, step, target);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      view.light(step.source.uid, false);
+      view.hold(false);
+    }
+  }
+
+  /** «Ogni volta che un'Entità entra in Stasi, guadagni N PV» (§8.2, dal 2026-10-22): il Rubyfront si accende, i PV salgono. */
+  async function playStasisHeal(step: StasisHealStep): Promise<void> {
+    const state = ctx.state();
+    const source = state.cards[step.source.uid];
+    const target = state.cards[step.target.uid];
+    // Si rilegge adesso: la fonte ancora schierata, l'ingresso ancora quello, l'innesco non consumato.
+    if (!source || source.zone !== "field" || !target || target.zone !== "field" || target.stasisAt !== step.target.stasisAt) return;
+    if ((state.fired ?? []).includes(`${source.uid}|on_enter_stasis|${target.uid}@${target.stasisAt}`)) return;
+    view.light(source.uid, true);
+    view.hold(true);
+    try {
+      await wait(TRIGGER_LEAD_MS);
+      const passed = await resolveStasisHeal(ctx, { ...step, source, target });
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      view.light(source.uid, false);
+      view.hold(false);
+    }
+  }
+
+  /**
+   * §8.2 (dal 2026-10-22) — la fine dell'esilio a tempo: il d12 del tavolo
+   * al centro; con il tiro giusto l'Entità torna sul suo Fronte (a Fronte
+   * pieno la sostituzione, o resta in Ritiro), con quello sbagliato va
+   * nell'Abisso. Chi torna è entrata sul Fronte: la sua scena d'ingresso.
+   */
+  async function playExileReturn(step: ExileReturnStep): Promise<void> {
+    const by = step.card.exile?.seat ?? step.card.owner;
+    const ref = exileReturnRef(step);
+    const name = ctx.card(step.card.cardId).name;
+    const roll = await ctx.roll(step.form.die, rollKey({ effect: ref }), by);
+    if (roll === null) return;
+    await view.roll(step.form.die, roll, t("dice.step", { name, what: t("dice.exile", { die: step.form.die, n: step.form.returnAtLeast }) }));
+    let returned = false;
+    view.hold(true);
+    try {
+      if (roll >= step.form.returnAtLeast) {
+        const place = await slotOrReplacement(by, step.card, step.card);
+        if (!place) {
+          const passed = await ctx.dispatch({ t: "toZone", uid: step.card.uid, zone: "ritiro", roll, effect: ref });
+          if (passed) ctx.log(msg("log.effect.exile.stay", { seat: by, card: step.card.cardId, roll }), by);
+          return;
+        }
+        await wait(CONFIRMED_LEAD_MS);
+        const leaving = place.replace ? view.liftForFlight(place.replace, "ritiro") : null;
+        const replaced = place.replace ? ctx.state().cards[place.replace] : undefined;
+        const passed = await ctx.dispatch({ t: "toZone", uid: step.card.uid, zone: "field", ...place.spot, z: ctx.state().zTop + 1, roll, ...(place.replace ? { replace: place.replace } : {}), effect: ref });
+        if (passed) {
+          leaving?.();
+          view.flyFromPile(by, "ritiro", step.card.uid);
+          ctx.log(msg("log.effect.exile.back", { seat: by, card: step.card.cardId, roll }), by);
+          if (replaced) ctx.log(msg("log.effect.replace", { seat: by, card: step.card.cardId, otherCard: replaced.cardId }), by);
+          await wait(view.timing.fly + TRIGGER_TAIL_MS);
+          returned = true;
+        } else {
+          leaving?.cancel();
+          view.render();
+        }
+      } else {
+        await wait(CONFIRMED_LEAD_MS);
+        const passed = await ctx.dispatch({ t: "toZone", uid: step.card.uid, zone: "abisso", roll, effect: ref });
+        if (passed) ctx.log(msg("log.effect.exile.abyss", { seat: by, card: step.card.cardId, roll }), by);
+        await wait(TRIGGER_TAIL_MS);
+      }
+    } finally {
+      view.hold(false);
+    }
+    if (returned) await announceEntry(step.card.uid);
+  }
+
+  /** §8.2 — gli esili a tempo scaduti di chi è di turno, uno dopo l'altro (turn.ts, endTurn). */
+  async function resolveExiles(): Promise<void> {
+    const seat = ctx.state().active;
+    for (const step of exileReturns(ctx.state(), seat, ctx.card)) {
+      if (!(ctx.controls(seat) || isAuto(seat))) continue;
+      await playExileReturn(step);
+    }
+  }
+
   /**
    * Lo sguardo in cima della Statica che ascolta gli ingressi (§8.2, dal
    * 2026-10-20): la prima carta del mazzo in vetrina; scegliendola va in
    * fondo, chiudendo resta in cima. Il bot la guarda e la lascia dov'è.
    */
+  /** «Poi guadagni N PV per ogni Entità avversaria tappata» (§8.2, dal 2026-10-23): la fonte si accende, i PV salgono. */
+  async function playTally(step: EnterTallyStep): Promise<void> {
+    const by = controllerOf(step.source);
+    if (tappedOpponents(ctx.state(), by, ctx.card) === 0) {
+      ctx.log(msg("log.no.tapped.opponents", { seat: by, card: step.source.cardId }), by);
+      return;
+    }
+    view.light(step.source.uid, true);
+    view.hold(true);
+    try {
+      await wait(TRIGGER_LEAD_MS);
+      const passed = await resolveTally(ctx, step);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      view.light(step.source.uid, false);
+      view.hold(false);
+    }
+  }
+
+  /**
+   * «Guarda le prime N carte del tuo mazzo e rimettile in cima nell'ordine
+   * che vuoi» (§8.2, dal 2026-10-23): si scelgono le carte una per volta —
+   * la prima scelta andrà in cima —; Chiudi lascia le restanti com'erano.
+   * Il bot (e l'automatico) lascia l'ordine di adesso.
+   */
+  async function playSort(step: EnterSortStep): Promise<void> {
+    const by = controllerOf(step.source);
+    if (step.top.length === 0) {
+      ctx.log(msg("log.look.empty", { seat: by, card: step.source.cardId }), by);
+      return;
+    }
+    view.light(step.source.uid, true);
+    const order: CardInstance[] = [];
+    if (!(auto && isAuto(by))) {
+      let pool = step.top;
+      while (pool.length > 1) {
+        const chosen = await pickFromPile(by, "deck", pool, t("pick.sort", { n: order.length + 1, total: step.top.length }), step.top);
+        if (!chosen) break;
+        order.push(chosen);
+        pool = pool.filter(card => card.uid !== chosen.uid);
+      }
+      for (const card of pool) order.push(card);
+    }
+    view.hold(true);
+    try {
+      await wait(CONFIRMED_LEAD_MS);
+      const passed = await resolveSort(ctx, step, order.length ? order : step.top);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      view.light(step.source.uid, false);
+      view.hold(false);
+    }
+  }
+
+  /**
+   * «Ogni volta che un'Entità che controlli viene tappata, guadagni N PV» e,
+   * dall'Oggetto, «… lancia un dX: con M o più guadagni N PV» (§8.2, dal
+   * 2026-10-23): la fonte si accende; col dado, il tiro del tavolo al centro.
+   */
+  async function playTapHeal(step: TapHealStep): Promise<void> {
+    const state = ctx.state();
+    const source = state.cards[step.source.uid];
+    const target = state.cards[step.target.uid];
+    // Si rilegge adesso: la fonte ancora in campo, la tappata ancora quella, l'innesco non consumato.
+    if (!source || source.zone !== "field" || !target || target.zone !== "field" || target.tapAt !== step.target.tapAt) return;
+    if ((state.fired ?? []).includes(`${source.uid}|on_tap|${target.uid}@${target.tapAt}`)) return;
+    const by = controllerOf(source);
+    const live = { ...step, source, target };
+    let roll: number | null = null;
+    if (step.listener.die) {
+      roll = await ctx.roll(step.listener.die, rollKey({ effect: tapHealRef(live) }), by);
+      if (roll === null) return;
+      await view.roll(step.listener.die, roll, t("dice.step", { name: ctx.card(source.cardId).name, what: t("dice.echo", { die: step.listener.die, n: step.listener.atLeast ?? 0, m: step.listener.amount }) }));
+      if (roll < (step.listener.atLeast ?? 0)) {
+        ctx.log(msg("log.effect.tap.noheal", { seat: by, sourceCard: source.cardId, roll }), by);
+        return;
+      }
+    }
+    view.light(source.uid, true);
+    view.hold(true);
+    try {
+      await wait(TRIGGER_LEAD_MS);
+      const passed = await resolveTapHeal(ctx, live, roll);
+      await wait(passed ? TRIGGER_TAIL_MS : 0);
+    } finally {
+      view.light(source.uid, false);
+      view.hold(false);
+    }
+  }
+
   async function playPeek(step: EnterPeekStep): Promise<void> {
     const by = controllerOf(step.source);
     if (!step.top) {
@@ -3019,8 +3524,19 @@ export function createGestures(ctx: Ctx, view: GestureView) {
     sendToZone,
     sheathe,
     resolveAttacks,
+    resolveExiles,
     sceneFor,
     offerReturned,
+    /** §8.2 — «ogni volta che un'Entità entra in Stasi, guadagni N PV» (dal 2026-10-22): per chi comanda qui un Rubyfront che lo dice. */
+    offerStasisHeals(before: GameState, after: GameState, owners: Seat[]): void {
+      const steps = stasisHeals(before, after, ctx.card).filter(step => owners.includes(controllerOf(step.source)));
+      for (const step of steps) offer(() => playStasisHeal(step));
+    },
+    // «Ogni volta che un'Entità viene tappata» (dal 2026-10-23): chi comanda qui la fonte guadagna i PV.
+    offerTapHeals(before: GameState, after: GameState, owners: Seat[]): void {
+      const steps = tapHeals(before, after, ctx.card).filter(step => owners.includes(controllerOf(step.source)));
+      for (const step of steps) offer(() => playTapHeal(step));
+    },
     // I passi che «Risolvi» ha avviato e stanno ancora agendo: chi chiude la fase li aspetta (match.ts).
     settled: (): Promise<void> => busy,
     boundSpot,

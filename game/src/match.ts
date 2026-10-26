@@ -481,6 +481,9 @@ export function createMatch(stage: Stage, options: CreateOptions): Match {
     offerAssignTriggers: (before, after, owners) => gestures.offerAssignTriggers(before, after, owners),
     offerDeathRemains: (before, after, owners) => gestures.offerDeathRemains(before, after, owners),
     resolveAttacks: () => gestures.resolveAttacks(),
+    resolveExiles: () => gestures.resolveExiles(),
+    offerStasisHeals: (before, after, owners) => gestures.offerStasisHeals(before, after, owners),
+    offerTapHeals: (before, after, owners) => gestures.offerTapHeals(before, after, owners),
     offerReturned: (before, after, owners) => gestures.offerReturned(before, after, owners),
     ready: action => {
       if (action.scene) openTheirScene(action.key, action.scene);

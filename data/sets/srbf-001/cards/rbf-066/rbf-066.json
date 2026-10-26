@@ -3,7 +3,7 @@
   "id": "RBF-066",
   "setId": "rubyfront-core",
   "collectorNumber": "066",
-  "slug": "warrior-of-the-schism",
+  "slug": "mender-of-the-torn",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -62,5 +62,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-066.md"
+  "designNotes": "rbf-066.md",
+  "art": "rbf-066.jpg"
 }

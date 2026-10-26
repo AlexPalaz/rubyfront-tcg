@@ -81,6 +81,22 @@ export interface CardInstance {
   counterBonus?: number;
   /** In Stasi (§8.1): tappata per sempre, finché un effetto non la stappa. */
   stasis?: boolean;
+  /** Il numero di sequenza dell'ultimo ingresso in Stasi (§8.1, dal 2026-10-22):
+      «ogni volta che un'Entità entra in Stasi» scatta una volta per ingresso.
+      Resta anche dopo la stappata (è storia). Gemello: table.rb, `stasis_at`. */
+  stasisAt?: number;
+  /** Il numero di sequenza dell'ultima tappata (dal 2026-10-23): «ogni volta
+      che un'Entità viene tappata» scatta una volta per tappata — attacco,
+      Stasi, effetto o mano. Resta anche dopo la stappata. Gemello: table.rb, `tap_at`. */
+  tapAt?: number;
+  /** La scadenza propria delle parole chiave concesse (dal 2026-10-22): un
+      posto = cadono all'inizio del turno di quel posto («fino al tuo prossimo
+      turno»), "game" = mai. Assente = fino alla fine del turno. Gemello: table.rb, `grants_until`. */
+  grantsUntil?: Seat | "game";
+  /** L'esilio a tempo in Zona di Ritiro (§8.2, dal 2026-10-22): chi comandava
+      l'Entità e quanti suoi turni mancano; a 1 il suo turno aspetta il d12.
+      Ogni altro cambio di zona lo chiude. Gemello: table.rb, `exile`. */
+  exile?: { seat: Seat; remaining: number; /** La Materia che l'ha esiliata: il ritorno la nomina come fonte. */ source?: string };
   /** Tenuta nell'Abisso da quella carta (§8.2, RBF-018): «finché questa
       carta resta in gioco»; quando la carta lascia il gioco, torna. */
   heldBy?: string;
@@ -142,6 +158,8 @@ export interface PlayerState {
   abilityTurn?: number;
   /** Il turno in cui il posto si stappa tutto alla risoluzione (§8.2: il d20 riuscito all'attacco, dal 2026-09-15). Gemello: table.rb, untap_after?. */
   untapAfter?: number;
+  /** Le Entità avversarie messe in Stasi dagli effetti del posto in questa partita (§3.1, il requisito del Nexus «hai messo in Stasi almeno N»; dal 2026-10-22). Gemello: table.rb, stasis_inflicted. */
+  stasisInflicted?: number;
 }
 
 /** I parametri di una riga di log: numeri, testi, posti (`seat`, `otherSeat`),
@@ -279,6 +297,10 @@ export interface GameState {
       (rollKey) → dado e valore. Ogni passo che porta un dado deve portare
       QUESTO; il cambio di turno dimentica. Gemello: table.rb, @rolls. */
   rolls?: Record<string, { die: number; value: number }>;
+  /** La sequenza degli ingressi in Stasi (§8.1, dal 2026-10-22): l'ultimo numero dato. Gemello: table.rb, @stasis_seq. */
+  stasisSeq?: number;
+  /** La sequenza delle tappate (dal 2026-10-23): l'ultimo numero dato. Gemello: table.rb, @tap_seq. */
+  tapSeq?: number;
   /** Prossimo z libero: ogni carta toccata sale in cima. */
   zTop: number;
 }
@@ -309,7 +331,7 @@ export interface EffectRef {
   source: string;
   /** L'evento che innesca: l'ingresso in campo, l'attacco dichiarato, la
       risoluzione di una Materia (§7.2), o il flip verso il Nexus (§3.1). */
-  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip" | "on_ability" | "on_leave_field" | "on_assign_object" | "on_death" | "on_turn_start";
+  event: "on_enter_field" | "on_attack" | "on_resolve" | "on_flip" | "on_ability" | "on_leave_field" | "on_assign_object" | "on_death" | "on_turn_start" | "on_enter_stasis" | "on_exile_end" | "on_tap";
   entering: string;
   /** Il seguito di un'abilità speciale del Rubyfront (§3.1): l'id dell'abilità attivata. */
   ability?: string;
@@ -317,7 +339,7 @@ export interface EffectRef {
       (RBF-026), il ritorno in mano dopo la cura (RBF-008), la pesca dopo la
       cura (RBF-001 Nexus), l'attacco di chi torna (RBF-010), lo sguardo dopo
       il potenziamento (RBF-034). */
-  follow?: "discard" | "recall" | "draw" | "join" | "look" | "disarm" | "rearm" | "stash" | "sheathe" | "peek" | "sink";
+  follow?: "discard" | "recall" | "draw" | "join" | "look" | "disarm" | "rearm" | "stash" | "sheathe" | "peek" | "sink" | "search" | "sort" | "tally";
   /** «Una volta per turno»: la tripla vale per ogni attacco del turno. */
   once?: true;
 }
@@ -363,14 +385,14 @@ export type ActionBody =
   /** `cost`: il Flusso pagato giocando DALLA MANO in campo (§3.2) — lo
       mette il client dal catalogo, l'engine lo verifica, il riduttore lo
       scala. Assente da altre zone e per il Rubyfront. */
-  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; discount?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string; chain?: true; grants?: string[]; replace?: string }
+  | { t: "toZone"; uid: string; zone: ZoneId; x?: number; y?: number; z?: number; toBottom?: boolean; cost?: number; discount?: number; effect?: EffectRef; assignTo?: string; roll?: number; heldBy?: string; target?: string; chain?: true; grants?: string[]; replace?: string; /** L'esilio a tempo in Ritiro (§8.2, dal 2026-10-22): per quanti turni di chi la comanda. */ exile?: { turns: number } }
   /** §7.2 — chi deve rispondere accetta: la catena si risolve. */
   | { t: "pass"; seat: Seat }
   /** §7.2 — la Reattiva in cima è risolta: esce dalla pila (anche se resta in campo a bloccare, §6.4). */
   | { t: "settle"; uid: string }
   /** Il flip (§3.1): verso il Nexus porta lo scarto del requisito
       (`discard`, nell'Abisso) e il recupero di PV stampato (`recover`). */
-  | { t: "flip"; uid: string; face: number; discard?: string; recover?: number }
+  | { t: "flip"; uid: string; face: number; discard?: string; /** Il costo a Oggetto (dal 2026-10-22): un proprio Oggetto dal Fronte in Zona di Ritiro. */ retire?: string; recover?: number }
   /** L'abilità speciale del Rubyfront (§3.1): `cost` o `gain` in PV come
       stampato; con la Furia (§8.1) il tiro `roll` e l'esito `fail` (−1 PV
       in più); per un potenziamento i `targets` e il `power`; per uno sconto
@@ -378,7 +400,7 @@ export type ActionBody =
       attaccanti (l'Entità dalla mano segue, con `toZone` marcato
       `on_ability` e le parole chiave concesse in `grants`). Il client
       calcola, l'engine verifica sulla forma. */
-  | { t: "ability"; uid: string; ability: string; cost?: number; gain?: number; roll?: number; fail?: true; targets?: string[]; power?: number; /** «…e ottengono [parole chiave] fino alla fine del turno» (§3.1). */ grants?: string[]; discount?: Discount; bonus?: AttackBonus }
+  | { t: "ability"; uid: string; ability: string; cost?: number; gain?: number; roll?: number; fail?: true; targets?: string[]; power?: number; /** «…e ottengono [parole chiave] fino alla fine del turno» (§3.1). */ grants?: string[]; /** La scadenza delle parole chiave concesse (dal 2026-10-22): «fino al tuo prossimo turno» o per sempre. */ until?: "controller_next_turn" | "permanent"; /** «Stappa un'Entità che controlli» (anche dalla Stasi). */ untap?: true; /** «Metti … in Stasi» (§8.1). */ stasis?: true; discount?: Discount; bonus?: AttackBonus }
   /** Il ritorno vincolato (§8.2): l'Entità `uid`, appena mandata
       nell'Abisso o nella Zona di Ritiro senza Oggetti addosso, torna sullo
       slot (x, y) del proprio Fronte e l'Oggetto `object` le va addosso dal
@@ -387,7 +409,7 @@ export type ActionBody =
   /** Assegna l'Oggetto `uid` all'Entità `to` (§3.1); `to: null` lo scioglie. */
   | { t: "assign"; uid: string; to: string | null }
   /** «Questa Entità entra tappata» (§8.2): col riferimento, è l'innesco proprio dell'ingresso. */
-  | { t: "tap"; uid: string; tapped: boolean; effect?: EffectRef }
+  | { t: "tap"; uid: string; tapped: boolean; /** La Stasi imposta da un effetto (§8.1, dal 2026-10-22): tappata per sempre. */ stasis?: true; effect?: EffectRef }
   | { t: "facedown"; uid: string; facedown: boolean }
   /** `test`: la patch è uno strumento di prova (Flusso in più, PV a zero): senza turno, e solo dall'account di prova (2026-09-24). */
   | { t: "player"; seat: Seat; patch: Partial<PlayerState>; effect?: EffectRef; roll?: number; test?: boolean }
@@ -405,7 +427,7 @@ export type ActionBody =
   | { t: "resolve"; seat: Seat; battles: Battle[]; untap?: string[] }
   /** Un potenziamento fino alla fine del turno (§8.2): Potenza in più,
       parole chiave concesse, o il divieto di bloccare. Sempre un passo d'effetto. */
-  | { t: "empower"; uid: string; power?: number; grants?: string[]; restrict?: "block"; counter?: number; untap?: true; /** «Puoi pagare N PV. Se lo fai…» (§3.1): i PV pagati da chi comanda la fonte. */ pay?: number; effect: EffectRef }
+  | { t: "empower"; uid: string; power?: number; grants?: string[]; restrict?: "block"; counter?: number; untap?: true; /** «Puoi pagare N PV. Se lo fai…» (§3.1): i PV pagati da chi comanda la fonte. */ pay?: number; /** Il tiro del tavolo, dove il passo lo porta (la sentenza del dado, dal 2026-10-23). */ roll?: number; effect: EffectRef }
   /** «Quando entra sul Fronte, un d20: con 15–20 stappa tutte le Entità che
       controlli» (§8.2, RBF-011): col tiro giusto (`untap`) stappa tutte le
       Entità di `seat`, col tiro mancato non fa nulla e consuma l'innesco.
@@ -416,7 +438,7 @@ export type ActionBody =
       conto ne discende; `reveal`, se c'è, va in mano; `retire`, se c'è, in
       Zona di Ritiro; le altre in fondo, nell'ordine in cui stavano. Sempre
       un passo d'effetto. */
-  | { t: "look"; seat: Seat; count: number; reveal?: string; retire?: string; top?: string; roll?: number; revealTo?: "hand" | "ritiro"; restTo?: "deck" | "ritiro"; effect: EffectRef; /** La vista proiettata nomina le carte guardate. */ looked?: string[] }
+  | { t: "look"; seat: Seat; count: number; reveal?: string; retire?: string; top?: string; /** «Rimettile in cima nell'ordine che vuoi» (dal 2026-10-23): le guardate, la prima sopra. */ order?: string[]; roll?: number; revealTo?: "hand" | "ritiro"; restTo?: "deck" | "ritiro"; effect: EffectRef; /** La vista proiettata nomina le carte guardate. */ looked?: string[] }
   /** Gli estremi del mazzo (§3.1, il Rubyfront «la prima volta che assegni»): la prima e l'ultima scambiate, o una in mano e l'altra in Ritiro. */
   | { t: "ends"; seat: Seat; swap?: true; toHand?: string; toRetire?: string; effect: EffectRef }
   /** «Metti questo Oggetto nella tua Zona di Ritiro invece che nell'Abisso» (§8.2): dall'Abisso, appena finito lì, in Ritiro. */

@@ -3,7 +3,7 @@
   "id": "RBF-062",
   "setId": "rubyfront-core",
   "collectorNumber": "062",
-  "slug": "recruit-of-nova-kai",
+  "slug": "adept-of-the-aurestia",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -17,8 +17,8 @@
     "entity",
     "auros",
     "dimensional",
-    "vanilla",
-    "starter"
+    "starter",
+    "stasis"
   ],
   "rulesReference": "MANUALE.md §3.2",
   "faces": [
@@ -37,11 +37,38 @@
           "maxGrade": 1
         }
       ],
-      "keywords": [],
+      "keywords": [
+        {
+          "id": "stasis"
+        }
+      ],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "glance",
+          "displayKey": "glance",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 1
+            },
+            "details": {
+              "mayMoveTo": {
+                "zone": "deck",
+                "owner": "controller",
+                "position": "bottom"
+              }
+            }
+          }
+        }
+      ],
       "actions": []
     }
   ],
-  "designNotes": "rbf-062.md"
+  "designNotes": "rbf-062.md",
+  "art": "rbf-062.jpg"
 }

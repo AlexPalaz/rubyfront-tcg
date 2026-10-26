@@ -296,8 +296,12 @@
             "state": "stasis"
           }
         }
-      ]
+      ],
+      "art": "rbf-074-nexus.jpg",
+      "artZoom": "48%"
     }
   ],
-  "designNotes": "rbf-074.md"
+  "designNotes": "rbf-074.md",
+  "art": "rbf-074.jpg",
+  "artZoom": "48%"
 }

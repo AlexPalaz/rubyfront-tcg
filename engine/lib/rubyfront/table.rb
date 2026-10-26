@@ -98,7 +98,20 @@ module Rubyfront
       # il Flusso (§3.2) e i PV (§2, la fine della partita).
       # I 20 PV sono un segnaposto: i PV veri li porta il mazzo (§3.1,
       # load_deck), stampati sul Rubyfront.
-      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20, token: false, sealed: [], discounts: [], attack_bonuses: [], deck_id: nil, opening: nil }] }
+      # `stasis_inflicted`: le Entità avversarie messe in Stasi dagli effetti
+      # del posto in questa partita (§3.1, il requisito del Nexus «hai messo
+      # in Stasi almeno N»; dal 2026-10-22). Gemello: state.ts, stasisInflicted.
+      @players = SEATS.to_h { |seat| [seat, { flux: 1, flux_max: 1, hp: 20, token: false, sealed: [], discounts: [], attack_bonuses: [], deck_id: nil, opening: nil, stasis_inflicted: 0 }] }
+      # La sequenza degli ingressi in Stasi (§8.1, dal 2026-10-22): ogni
+      # ingresso ha il suo numero (`stasis_at` sulla carta), così «ogni volta
+      # che un'Entità entra in Stasi» scatta una volta per ingresso. Gemello:
+      # state.ts, stasisSeq.
+      @stasis_seq = 0
+      # La sequenza delle tappate (dal 2026-10-23): ogni passaggio da stappata
+      # a tappata — attacco, Stasi, effetto, mano — prende il suo numero
+      # (`tap_at` sulla carta), così «ogni volta che un'Entità viene tappata»
+      # scatta una volta per tappata. Gemello: state.ts, tapSeq.
+      @tap_seq = 0
       # §3.2/§4: il Gettone va a chi non inizia — con l'active del reset.
       @players[SEATS.find { |seat| seat != @active }][:token] = true
       # Com'è finita (§2, §9): {winner:, reason:}, nil finché si gioca.
@@ -393,6 +406,8 @@ module Rubyfront
 
       @active = state["active"] if SEATS.include?(state["active"])
       @turn = state["turn"] if state["turn"].is_a?(Numeric)
+      @stasis_seq = state["stasisSeq"] if state["stasisSeq"].is_a?(Integer)
+      @tap_seq = state["tapSeq"] if state["tapSeq"].is_a?(Integer)
       # Lavagna di un client più vecchio, senza fasi: resta la Preparazione
       # del reset — nel dubbio, la fase più permissiva per chi gioca.
       @phase = state["phase"] if PHASES.include?(state["phase"])
@@ -421,6 +436,7 @@ module Rubyfront
           { amount: discount["amount"], type: discount["type"], race: discount["race"].is_a?(String) ? discount["race"] : nil }
         end
         @players[seat][:untap_after] = player["untapAfter"] if player["untapAfter"].is_a?(Integer)
+        @players[seat][:stasis_inflicted] = player["stasisInflicted"] if player["stasisInflicted"].is_a?(Integer)
         @players[seat][:attack_bonuses] = Array(player["attackBonuses"]).filter_map do |bonus|
           next unless bonus.is_a?(Hash) && bonus["amount"].is_a?(Integer)
 
@@ -453,6 +469,10 @@ module Rubyfront
                         control_turn: card["controlTurn"].is_a?(Integer) ? card["controlTurn"] : nil,
                         grants: Array(card["grants"]).select { |keyword| keyword.is_a?(String) },
                         stasis: card["stasis"] == true,
+                        stasis_at: card["stasisAt"].is_a?(Integer) ? card["stasisAt"] : nil,
+                        tap_at: card["tapAt"].is_a?(Integer) ? card["tapAt"] : nil,
+                        grants_until: Table.grants_until_of(card["grantsUntil"]),
+                        exile: Table.exile_of(card["exile"]),
                         held_by: card["heldBy"].is_a?(String) ? card["heldBy"] : nil,
                         target: card["target"].is_a?(String) ? card["target"] : nil,
                         face: card["face"].to_i, row: card["y"].is_a?(Numeric) ? card["y"] : nil }
@@ -465,7 +485,7 @@ module Rubyfront
     # le carte in ordine di uid, le dichiarazioni per dichiarante, i tiri per chiave.
     def dump
       {
-        "turn" => @turn, "active" => @active, "phase" => @phase,
+        "turn" => @turn, "active" => @active, "phase" => @phase, "stasisSeq" => @stasis_seq, "tapSeq" => @tap_seq,
         "over" => @over && { "winner" => @over[:winner], "reason" => @over[:reason] },
         "players" => SEATS.to_h do |seat|
           player = @players[seat]
@@ -475,6 +495,7 @@ module Rubyfront
             "token" => player[:token] == true, "deckId" => player[:deck_id], "sealed" => Array(player[:sealed]).sort,
             "opening" => player[:opening] && { "mulligans" => player[:opening][:mulligans].to_i, "kept" => player[:opening][:kept] == true },
             "ascent" => { "hp" => ascent[:hp].to_i, "fury" => ascent[:fury].to_i },
+            "stasisInflicted" => player[:stasis_inflicted].to_i,
           }]
         end,
         "cards" => @cards.sort_by { |uid, _| uid }.map do |uid, card|
@@ -486,6 +507,8 @@ module Rubyfront
             "heldBy" => card[:held_by], "target" => card[:target],
             "powerBonus" => card[:power_bonus], "counterBonus" => card[:counter_bonus], "cannotBlock" => card[:cannot_block] == true,
             "grants" => Array(card[:grants]).sort,
+            "stasisAt" => card[:stasis_at], "tapAt" => card[:tap_at], "grantsUntil" => card[:grants_until],
+            "exile" => card[:exile] && { "seat" => card[:exile][:seat], "remaining" => card[:exile][:remaining].to_i, "source" => card[:exile][:source] },
           }
         end,
         "declarations" => @declarations.sort_by { |from, _| from }.map do |from, declaration|
@@ -550,7 +573,15 @@ module Rubyfront
         @over = { winner: SEATS.include?(winner) ? winner : nil, reason: action["reason"] }
       when "tap"
         card = @cards[action["uid"]]
-        card[:tapped] = action["tapped"] == true if card
+        if card && action["stasis"] == true
+          # §8.1 (dal 2026-10-22) — la Stasi imposta da un effetto: tappata per
+          # sempre, come il bloccante salvato dalla parola chiave. Chi la
+          # infligge a un'avversaria la conta per il Nexus. Gemello: state.ts, tap.
+          enter_stasis!(card, action.dig("effect", "source"))
+        elsif card
+          tap!(card) if action["tapped"] == true && !card[:tapped]
+          card[:tapped] = action["tapped"] == true
+        end
       when "facedown"
         card = @cards[action["uid"]]
         if card
@@ -570,6 +601,9 @@ module Rubyfront
           # 2026-09-11): nel turno del flip vale anche un'abilità del Nexus.
           @ability_used.delete(card[:owner])
           to_zone({ "uid" => action["discard"], "zone" => "ritiro" }) if action["discard"].is_a?(String) && @cards.key?(action["discard"])
+          # Il costo a Oggetto (dal 2026-10-22): «metti un Oggetto che controlli
+          # nella tua Zona di Ritiro, poi flippa». Gemello: state.ts, flip.
+          to_zone({ "uid" => action["retire"], "zone" => "ritiro" }) if action["retire"].is_a?(String) && @cards.key?(action["retire"])
           player = @players[card[:owner]]
           player[:hp] = capped_hp(player, player[:hp] + action["recover"]) if player && action["recover"].is_a?(Integer)
         end
@@ -708,6 +742,7 @@ module Rubyfront
           # sgomberate. Il Flusso non vive in questa copia. Il contatore
           # avanza SOLO qui (§6.5, dal 2026-10-21): un `turn` con l'attivo
           # invariato non cambia nulla. Gemello: state.ts, turn.
+          closing = @active
           @turn = action["turn"] if action["turn"].is_a?(Integer)
           @active = action["active"]
           @phase = "preparazione"
@@ -727,7 +762,20 @@ module Rubyfront
             card[:power_bonus] = nil
             card[:counter_bonus] = nil
             card[:cannot_block] = nil
-            card[:grants] = nil unless card[:controller]
+            # Le concessioni con una scadenza propria (dal 2026-10-22): «fino al
+            # tuo prossimo turno» cade all'inizio del turno di quel posto, la
+            # concessione del Nexus («per sempre») mai. Gemello: state.ts, turn.
+            case card[:grants_until]
+            when "game" then nil
+            when @active
+              card[:grants] = nil
+              card[:grants_until] = nil
+            when String then nil
+            else card[:grants] = nil unless card[:controller]
+            end
+            # L'esilio a tempo (§8.2, dal 2026-10-22) scala a ogni turno chiuso
+            # da chi comanda l'Entità esiliata. Gemello: state.ts, turn.
+            card[:exile][:remaining] = [card[:exile][:remaining] - 1, 0].max if card[:exile] && card[:exile][:seat] == closing
             next unless card[:owner] == @active && card[:zone] == "field"
 
             # La Stasi è una tappata static carde (§8.1): il turno non la stappa.
@@ -781,6 +829,52 @@ module Rubyfront
       @players.fetch(seat)[:opening]
     end
 
+    # §3.1 — le Entità avversarie messe in Stasi dagli effetti del posto, in
+    # questa partita (il requisito del Nexus). Gemello: state.ts, stasisInflicted.
+    def stasis_inflicted(seat)
+      @players.fetch(seat)[:stasis_inflicted].to_i
+    end
+
+    # La sequenza degli ingressi in Stasi (§8.1).
+    attr_reader :stasis_seq, :tap_seq
+
+    # La tappata numerata (dal 2026-10-23): si chiama SOLO quando la carta
+    # passa da stappata a tappata — per attacco, per Stasi, per effetto o a
+    # mano — e dà alla carta il numero della tappata (`tap_at`). Chi la
+    # sta tappando non conta: «viene tappata» è il fatto. Gemello: state.ts, tapCard.
+    def tap!(card)
+      @tap_seq += 1
+      card[:tap_at] = @tap_seq
+    end
+
+    # §8.2 — le carte in Zona di Ritiro il cui esilio a tempo scade col turno
+    # di `seat`: l'ultimo turno è arrivato, il d12 si tira prima di chiuderlo.
+    # Gemello: state.ts, exilesDue.
+    def exiles_due(seat)
+      @cards.select { |_uid, card| card[:zone] == "ritiro" && card[:exile] && card[:exile][:seat] == seat && card[:exile][:remaining] <= 1 }.keys
+    end
+
+    # La scadenza di una concessione, dallo snapshot: un posto, "game", o nulla.
+    def self.grants_until_of(value)
+      value == "game" || SEATS.include?(value) ? value : nil
+    end
+
+    # La scadenza di una concessione, dall'azione (`until`): «fino al tuo
+    # prossimo turno» = il posto di chi concede, «per sempre» = "game".
+    def self.grants_until_for(value, seat)
+      case value
+      when "controller_next_turn" then seat
+      when "permanent" then "game"
+      end
+    end
+
+    # L'esilio a tempo dallo snapshot: {seat:, remaining:} o nil.
+    def self.exile_of(value)
+      return nil unless value.is_a?(Hash) && SEATS.include?(value["seat"]) && value["remaining"].is_a?(Integer)
+
+      { seat: value["seat"], remaining: value["remaining"], source: value["source"].is_a?(String) ? value["source"] : nil }
+    end
+
     # §4 — la partita aspetta finché un posto col mazzo non ha tenuto la
     # mano: turno 1 in Preparazione. Gemello: state.ts, openingPending.
     def opening_pending?
@@ -792,9 +886,30 @@ module Rubyfront
     private
 
     # Stappata da un effetto: anche la Stasi cade (§8.1). Gemello: state.ts.
+    # `stasis_at` resta: è la storia dell'ingresso, e un nuovo ingresso ne
+    # prende uno nuovo.
     def untap!(card)
       card[:tapped] = false
       card[:stasis] = nil
+    end
+
+    # L'ingresso in Stasi (§8.1): per la parola chiave in combattimento, per
+    # un effetto o per un'abilità — tappata per sempre, scoperta, e lo stato
+    # sostituisce la copertura. Ogni ingresso prende il suo numero di
+    # sequenza (`stasis_at`), e chi la infligge a un'Entità comandata dall'altro
+    # posto la conta per il Nexus (§3.1). Gemello: state.ts, enterStasis.
+    def enter_stasis!(card, source_uid = nil)
+      tap!(card) unless card[:tapped]
+      card[:stasis] = true
+      card[:tapped] = true
+      card[:facedown] = false
+      card[:covered_turn] = nil
+      @stasis_seq += 1
+      card[:stasis_at] = @stasis_seq
+      source = source_uid.is_a?(String) ? @cards[source_uid] : nil
+      return unless source && controller_of(source) != controller_of(card)
+
+      @players[controller_of(source)][:stasis_inflicted] += 1
     end
 
     # Paga `cost` (§3.2): prima dalla barra, e se non basta col Gettone — un
@@ -815,16 +930,22 @@ module Rubyfront
       player[:hp] -= 1 if action["fail"] == true
       player[:hp] = 0 if player[:hp].negative?
       player[:hp] = capped_hp(player, player[:hp])
-      if action["power"].is_a?(Integer)
-        granted = Array(action["grants"]).select { |keyword| keyword.is_a?(String) }
-        Array(action["targets"]).each do |uid|
-          target = @cards[uid]
-          next unless target && target[:zone] == "field"
+      # I bersagli: Potenza fino a fine turno, parole chiave concesse («…e
+      # ottengono [parole chiave]», dal 2026-10-20; con `until` la scadenza
+      # propria, dal 2026-10-22), la stappata (anche dalla Stasi) e la Stasi
+      # imposta (§8.1). Gemello: state.ts, ability.
+      granted = Array(action["grants"]).select { |keyword| keyword.is_a?(String) }
+      Array(action["targets"]).each do |uid|
+        target = @cards[uid]
+        next unless target && target[:zone] == "field"
 
-          target[:power_bonus] = (target[:power_bonus] || 0) + action["power"]
-          # «…e ottengono [parole chiave] fino alla fine del turno» (dal 2026-10-20). Gemello: state.ts, ability.
-          target[:grants] = (Array(target[:grants]) + granted).uniq unless granted.empty?
+        untap!(target) if action["untap"] == true
+        target[:power_bonus] = (target[:power_bonus] || 0) + action["power"] if action["power"].is_a?(Integer)
+        unless granted.empty?
+          target[:grants] = (Array(target[:grants]) + granted).uniq
+          target[:grants_until] = Table.grants_until_for(action["until"], card[:owner]) if action["until"].is_a?(String)
         end
+        enter_stasis!(target, action["uid"]) if action["stasis"] == true
       end
       discount = action["discount"]
       if discount.is_a?(Hash) && discount["amount"].is_a?(Integer)
@@ -1025,10 +1146,7 @@ module Rubyfront
           if battle["blockerStasis"] == true
             # §8.1 — la Stasi: invece di morire resta in campo, tappata per
             # sempre (e lo stato di stasi sostituisce la copertura).
-            blocker[:stasis] = true
-            blocker[:tapped] = true
-            blocker[:facedown] = false
-            blocker[:covered_turn] = nil
+            enter_stasis!(blocker)
           elsif battle["blockerDies"] == true || battle["blockerSpent"] == true
             # Muore, o — Reattiva giocata come blocco (§6.4) — si consuma.
             to_zone({ "uid" => battle["blocker"], "zone" => "abisso" })
@@ -1078,6 +1196,14 @@ module Rubyfront
       # «Se non ne mostri una, metti una delle carte guardate in cima al
       # mazzo» (`top`): resta sopra tutte le altre. Gemello: state.ts, look.
       top_order = deck.first[:order] - 1
+      # «Rimettile in cima nell'ordine che vuoi» (`order`, dal 2026-10-23): le
+      # guardate tornano in cima, la prima dell'elenco sopra. Gemello: state.ts, look.
+      if action["order"].is_a?(Array)
+        ordered = action["order"].filter_map { |uid| looked.find { |card| @cards[uid].equal?(card) } }
+        rest = looked - ordered
+        (ordered + rest).each_with_index { |card, i| card[:order] = top_order - (ordered.size + rest.size) + 1 + i }
+        return
+      end
       to_retire_top = lambda do |card|
         top = pile(seat, "ritiro").first
         card[:zone] = "ritiro"
@@ -1170,6 +1296,13 @@ module Rubyfront
       # che resta sul campo non è un nuovo ingresso.
       card[:entered] = @turn if zone == "field" && card[:zone] != "field"
       card[:left] = nil if zone == "field"
+      # L'esilio a tempo (§8.2, dal 2026-10-22): lo spostamento in Ritiro che
+      # lo chiede annota chi comandava l'Entità e quanti suoi turni mancano;
+      # ogni altro cambio di zona lo chiude. Gemello: state.ts, toZone.
+      exile = action["exile"]
+      timed = zone == "ritiro" && exile.is_a?(Hash) && exile["turns"].is_a?(Integer) ? { seat: controller_of(card), remaining: exile["turns"], source: action.dig("effect", "source") } : nil
+      ended = action.dig("effect", "event") == "on_exile_end"
+      card[:exile] = timed if card[:zone] != zone || timed || ended
       # Giocare dalla mano costa: il costo viaggia nell'azione (`cost`, lo
       # mette il client dal catalogo e l'engine lo verifica) e si paga come
       # nel riduttore (pay).
@@ -1226,6 +1359,7 @@ module Rubyfront
       card[:power_bonus] = nil
       card[:cannot_block] = nil
       card[:grants] = nil unless card[:controller]
+      card[:grants_until] = nil
 
       # Fuori dal campo la carta si raddrizza e si scopre (come in state.ts),
       # e chi esce esce anche dal combattimento: la sua freccia se ne va, e

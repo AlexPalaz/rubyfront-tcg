@@ -5543,6 +5543,472 @@ class EngineTest < Minitest::Test
   end
 
   # ==========================================================================
+  # --- Le forme dello starter Auros (2026-10-22, engine 0.91.0) --------------
+  # ==========================================================================
+  # Etichette di forma, mai carte: chi mette in Stasi all'ingresso (una, o due
+  # economiche), chi toglie dalla Stasi, l'Oggetto che sveglia il portatore,
+  # la Materia che mette in Stasi, il buff secco in Reazione, la ricerca di
+  # Oggetti, l'esilio a tempo, il Rubyfront che guadagna PV a ogni Stasi con
+  # le sue abilità e il Nexus a Oggetto, lo statico «non si tappa mai».
+
+  AUROS_STARTER = STARTER.merge(
+    "TIDE" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 2, enables: [[{ type: "dimensional", max_grade: 2 }]] },
+    "HEAVY" => { type: "entity", keywords: [], race: "auros", power: 5, flux_cost: 5 },
+    "STEADY" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 2, static_forms: [{ kind: "never_taps" }] },
+    "GEAR" => { type: "object", keywords: [], flux_cost: 1, static_forms: [{ kind: "bearer_power", amount: 1 }] },
+    "FREEZER" => { type: "entity", keywords: [], race: "auros", power: 1, flux_cost: 3, enter_freezes: [{ targets: "opposing_entity", count: 1, max_cost: nil }] },
+    "DOUBLEFREEZE" => { type: "entity", keywords: [], race: "auros", power: 6, flux_cost: 6, enter_freezes: [{ targets: "opposing_entity", count: 2, max_cost: 3 }] },
+    "WAKER" => { type: "entity", keywords: [], race: "auros", power: 3, flux_cost: 3, enter_wakes: [{ targets: "own_entity", in_state: "stasis", optional: true }] },
+    "ROUSER" => { type: "object", keywords: [], flux_cost: 3, static_forms: [{ kind: "bearer_power", amount: 2 }], assign_forms: [{ kind: "wake", if_state: "stasis", to_self: true }] },
+    "CHILL" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 2, matter: { type: "dimensional", grade: 1 },
+                 resolve_forms: [{ kind: "freeze", target: { type: "entity", controller: "opponent", max_cost: nil }, count: 1 }] },
+    "BRACE" => { type: "matter", keywords: [], behavior: "reactive", flux_cost: 2, matter: { type: "dimensional", grade: 1 },
+                 resolve_forms: [{ kind: "empower", targets: "own_entity", race: nil, power: 2, untap: false }] },
+    "QUEST" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 4, matter: { type: "dimensional", grade: 2 },
+                 resolve_forms: [{ kind: "search_objects", up_to: 2, type: "object", else_to: "hand", then_roll: { die: 6, at_least: 3, from: "ritiro" }, shuffle: true }] },
+    "UNDERTOW" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 4, matter: { type: "dimensional", grade: 2 },
+                    resolve_forms: [{ kind: "exile_timed", target: { type: "entity", controller: "opponent" }, to: "ritiro", turns: 3, die: 12, return_at_least: 8, else_to: "abisso" }] },
+    # Le forme della scheda riletta il 2026-10-23.
+    "GLANCER" => { type: "entity", keywords: ["stasis"], race: "auros", power: 1, flux_cost: 1, enter_peeks: [{ entering_race: nil, count: 1, may_bottom: true, self: true }] },
+    "TIDEKEEPER" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 2, enter_listeners: [{ entering_race: nil, requires: nil, heal: 1 }] },
+    "TIDEKEEPER_SELF" => { type: "entity", keywords: [], race: "auros", power: 2, flux_cost: 2, enter_listeners: [{ entering_race: nil, requires: nil, heal: 1, self: true }] },
+    "SOUNDER" => { type: "entity", keywords: ["stasis"], race: "auros", power: 1, flux_cost: 2, enter_sorts: [{ count: 3 }] },
+    "BULWARK" => { type: "entity", keywords: [], race: "auros", power: 3, flux_cost: 4, static_forms: [{ kind: "grant_all", grants: ["stasis"] }],
+                   tap_listeners: [{ scope: "controlled", amount: 1, die: nil, at_least: nil }] },
+    "TALLYMAN" => { type: "entity", keywords: [], race: "auros", power: 5, flux_cost: 6, enter_freezes: [{ targets: "opposing_entity", count: 2, max_cost: 3, then_heal_per_tapped: 1 }] },
+    "VESSEL" => { type: "object", keywords: [], flux_cost: 1, static_forms: [{ kind: "bearer_power", amount: 1 }], tap_listeners: [{ scope: "bearer", amount: 1, die: 6, at_least: 4 }] },
+    "ANCHOR" => { type: "object", keywords: [], flux_cost: 4, static_forms: [{ kind: "bearer_power", amount: 1 }] },
+    "SENTENCE" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 2, matter: { type: "dimensional", grade: 1 },
+                    resolve_forms: [{ kind: "sentence", target: { type: "entity", controller: "opponent" }, die: 6, to: "abisso", else_power: -2 }] },
+    "SALVAGE" => { type: "matter", keywords: [], behavior: "normal", flux_cost: 2, matter: { type: "dimensional", grade: 2 },
+                   resolve_forms: [{ kind: "search_objects", up_to: 1, type: "object", max_cost: 3, to: "ritiro", else_to: nil, then_roll: { die: 6, at_least: 3, from: "ritiro" }, shuffle: true }] },
+    "VIGIL" => { type: "rubyfront", keywords: ["fury"], health: 20, fury_at: { 0 => 13 },
+                 enables: [[{ type: "dimensional", max_grade: 2 }], [{ type: "dimensional", max_grade: 2 }]],
+                 nexus: { face: 1, conditions: [{ count: 2, type: "entity", race: nil, inflicted: true }], discard: nil, retire: { count: 1, type: "object" }, recovery: 5 },
+                 stasis_listeners: [{ face: 0, amount: 1, any: true }, { face: 1, amount: 2, any: true }],
+                 abilities: [
+                   { id: "hold", face: 0, timing: %w[preparazione fronte], cost: nil, gain: 2, fury: true, form: { kind: "grant", grants: ["stasis"], until: "controller_next_turn" } },
+                   { id: "wake", face: 0, timing: %w[preparazione fronte], cost: 4, gain: nil, fury: true, form: { kind: "untap", race: nil, power: nil } },
+                   { id: "vigil-hold", face: 1, timing: %w[preparazione fronte], cost: nil, gain: 2, fury: false, form: { kind: "grant", grants: ["stasis"], until: "permanent" } },
+                   { id: "vigil-wake", face: 1, timing: %w[preparazione fronte], cost: 5, gain: nil, fury: false, form: { kind: "untap", race: "auros", power: 2 } },
+                   { id: "vigil-seal", face: 1, timing: %w[preparazione fronte], cost: 7, gain: nil, fury: false, form: { kind: "freeze", min: 0, max: 2 } },
+                 ] }
+  ).freeze
+
+  # Un tavolo dello starter Auros: come starter_scene, col Rubyfront VIGIL per A.
+  def auros_scene(a, b: [], attacks: nil, face: 0, hp: 20)
+    engine = Rubyfront::Engine.new(cards: AUROS_STARTER)
+    load = lambda do |seat, list|
+      cards = list.map.with_index do |(uid, id, extra), i|
+        { "uid" => uid, "owner" => seat, "zone" => "field", "order" => i, "cardId" => id, "y" => seat == "a" ? 1260 : 172 }.merge(extra || {})
+      end
+      deck = { "t" => "loadDeck", "seat" => seat, "deckId" => "test", "cards" => cards }
+      deck["hp"] = 20 if seat == "a"
+      verdict = engine.judge(deck)
+      raise "mazzo rifiutato: #{verdict[:reason]}" unless verdict[:ok]
+    end
+    load.call("a", a + [["rf-a", "VIGIL", { "y" => 1260, "face" => face }]])
+    load.call("b", b + [["rf-b", "RUBY", { "y" => 172 }]])
+    engine.judge({ "t" => "turn", "turn" => 2, "active" => "b" })
+    engine.judge({ "t" => "turn", "turn" => 3, "active" => "a" })
+    Rubyfront::Table::SEATS.each { |seat| engine.judge({ "t" => "player", "test" => true, "seat" => seat, "patch" => { "flux" => 10, "fluxMax" => 10 } }) }
+    engine.judge({ "t" => "player", "test" => true, "seat" => "a", "patch" => { "hp" => hp } }) if hp != 20
+    if attacks
+      front!(engine)
+      attacks.each_with_index do |uid, i|
+        verdict = engine.judge({ "t" => "declare", "declaration" => { "id" => uid, "from" => uid, "to" => "rf-b", "kind" => "attack", "seat" => "a", "order" => i + 1 } })
+        raise "attacco rifiutato: #{verdict[:reason]}" unless verdict[:ok]
+      end
+    end
+    engine
+  end
+
+  def auros_play(engine, uid, cost:, actor: "a", x: 2368, y: 1260, extra: {})
+    card = table_copy(engine).card(uid)
+    known = card && AUROS_STARTER[card[:card_id]]
+    extra = { "chain" => true }.merge(extra) if known && known[:behavior] == "reactive"
+    action = { "t" => "toZone", "uid" => uid, "zone" => "field", "x" => x, "y" => y, "cost" => cost }.merge(extra)
+    engine.judge(action, actor: actor)
+  end
+
+  # La Stasi messa dal tavolo di prova (la copia la applica, come dopo un verdetto).
+  def freeze!(engine, uid, source: nil)
+    action = { "t" => "tap", "uid" => uid, "tapped" => true, "stasis" => true }
+    action["effect"] = { "source" => source, "event" => "on_resolve", "entering" => source } if source
+    engine.observe(action)
+  end
+
+  def stasis_ref(rubyfront, entering)
+    { "source" => rubyfront, "event" => "on_enter_stasis", "entering" => entering }
+  end
+
+  def exile_ref(matter, entering)
+    { "source" => matter, "event" => "on_exile_end", "entering" => entering }
+  end
+
+  # «Quando entra sul Fronte, metti un'Entità avversaria in Stasi».
+  def test_freezer_puts_one_opposing_entity_into_stasis_on_entry
+    engine = auros_scene([["t", "TIDE"], ["f", "FREEZER", { "zone" => "hand" }], ["x", "AUROS", { "zone" => "hand" }]],
+                         b: [["v", "HUMAN"], ["w", "AUROS"], ["s", "STEADY"], ["z", "HUMAN"]])
+    freeze!(engine, "z")
+    assert auros_play(engine, "f", cost: 3, x: 1199)[:ok]
+    assert auros_play(engine, "x", cost: 2, x: 821)[:ok]
+    tap = { "t" => "tap", "uid" => "v", "tapped" => true, "stasis" => true, "effect" => entry_ref("f") }
+    assert_match(/Stasi va a un'Entità avversaria/, engine.judge(tap.merge("uid" => "t"))[:reason])
+    assert_match(/già in Stasi/, engine.judge(tap.merge("uid" => "z"))[:reason])
+    assert_match(/non si tappa mai: nemmeno la Stasi/, engine.judge(tap.merge("uid" => "s"))[:reason])
+    assert_match(/deve dirlo/, engine.judge(tap.merge("tapped" => false))[:reason])
+    assert_match(/non ha un effetto certificato che metta in Stasi/, engine.judge(tap.merge("effect" => entry_ref("x")))[:reason], "una vanilla non mette in Stasi")
+    assert_match(/non si mette a mano/, engine.judge({ "t" => "tap", "uid" => "v", "tapped" => true, "stasis" => true })[:reason])
+    assert_match(/bersaglio dev'essere un'Entità/, engine.judge(tap.merge("uid" => "rf-b"))[:reason])
+    verdict = engine.judge(tap)
+    assert verdict[:ok], verdict[:reason]
+    frozen = table_copy(engine).card("v")
+    assert frozen[:stasis]
+    assert frozen[:tapped]
+    assert_equal 1, table_copy(engine).stasis_inflicted("a"), "contata per il Nexus"
+    assert_match(/mette in Stasi 1 Entità: già fatto/, engine.judge(tap.merge("uid" => "w"))[:reason])
+    assert_match(/già stato risolto per quel bersaglio|già in Stasi/, engine.judge(tap)[:reason])
+    engine.judge(end_turn(engine: engine))
+    assert_match(/non è entrata sul Fronte questo turno/, engine.judge(tap.merge("uid" => "w"), actor: "a")[:reason])
+    # Carta ignota all'anagrafe: silenzio (e il passo si applica, come ogni silenzio).
+    quiet = auros_scene([["t", "TIDE"], ["f", "FREEZER", { "zone" => "hand" }]], b: [["q", "MYSTERY"]])
+    assert auros_play(quiet, "f", cost: 3, x: 1199)[:ok]
+    refute quiet.judge(tap.merge("uid" => "q"))[:ruled], "carta ignota: silenzio"
+  end
+
+  # «Quando entra sul Fronte, metti 2 Entità avversarie con costo di Flusso 3 o inferiore in Stasi».
+  def test_doublefreeze_puts_two_cheap_opposing_entities_into_stasis
+    engine = auros_scene([["t", "TIDE"], ["d", "DOUBLEFREEZE", { "zone" => "hand" }]], b: [["v1", "HUMAN"], ["v2", "AUROS"], ["h", "HEAVY"], ["v3", "HUMAN"]])
+    assert auros_play(engine, "d", cost: 6, x: 1199)[:ok]
+    tap = { "t" => "tap", "uid" => "v1", "tapped" => true, "stasis" => true, "effect" => entry_ref("d") }
+    assert_match(/costo di Flusso 3 o inferiore/, engine.judge(tap.merge("uid" => "h"))[:reason])
+    assert engine.judge(tap)[:ok]
+    assert engine.judge(tap.merge("uid" => "v2"))[:ok]
+    assert_match(/mette in Stasi 2 Entità: già fatto/, engine.judge(tap.merge("uid" => "v3"))[:reason])
+    assert_equal 2, table_copy(engine).stasis_inflicted("a")
+    assert table_copy(engine).card("v1")[:stasis]
+    assert table_copy(engine).card("v2")[:stasis]
+  end
+
+  # «Quando entra sul Fronte, puoi togliere dalla Stasi un'Entità che controlli».
+  def test_waker_releases_one_own_entity_from_stasis
+    engine = auros_scene([["t", "TIDE"], ["z", "AUROS"], ["u", "AUROS", { "tapped" => true }], ["w", "WAKER", { "zone" => "hand" }]], b: [["v", "HUMAN"]])
+    freeze!(engine, "z")
+    freeze!(engine, "v")
+    assert auros_play(engine, "w", cost: 3, x: 1199)[:ok]
+    step = { "t" => "empower", "uid" => "z", "untap" => true, "effect" => entry_ref("w") }
+    assert_match(/non è in Stasi/, engine.judge(step.merge("uid" => "u"))[:reason], "una tappata e basta non si tocca")
+    assert_match(/un'Entità che controlli/, engine.judge(step.merge("uid" => "v"))[:reason])
+    assert_match(/stappa soltanto/, engine.judge(step.merge("power" => 1))[:reason])
+    verdict = engine.judge(step)
+    assert verdict[:ok], verdict[:reason]
+    z = table_copy(engine).card("z")
+    refute z[:tapped]
+    refute z[:stasis]
+    assert z[:stasis_at], "la storia dell'ingresso resta"
+    assert_match(/già stato risolto/, engine.judge(step)[:reason])
+  end
+
+  # «Se l'Entità a cui assegni questo Oggetto era in Stasi, toglila dalla Stasi».
+  def test_rouser_wakes_its_bearer_from_stasis
+    engine = auros_scene([["t", "TIDE"], ["z", "AUROS"], ["u", "AUROS"], ["o", "ROUSER", { "zone" => "hand" }], ["o2", "ROUSER", { "zone" => "hand" }]])
+    freeze!(engine, "z")
+    assert auros_play(engine, "o", cost: 3, x: 1199, extra: { "assignTo" => "z" })[:ok]
+    step = { "t" => "empower", "uid" => "z", "untap" => true, "effect" => { "source" => "o", "event" => "on_assign_object", "entering" => "z" } }
+    assert_match(/l'Entità che riceve l'Oggetto/, engine.judge(step.merge("uid" => "u"))[:reason])
+    assert_match(/stappa soltanto/, engine.judge(step.merge("power" => 2))[:reason])
+    verdict = engine.judge(step)
+    assert verdict[:ok], verdict[:reason]
+    refute table_copy(engine).card("z")[:stasis]
+    assert_match(/già stato risolto per quell'assegnazione/, engine.judge(step)[:reason])
+    assert auros_play(engine, "o2", cost: 3, x: 821, extra: { "assignTo" => "u" })[:ok]
+    assert_match(/non è in Stasi/, engine.judge(step.merge("uid" => "u", "effect" => { "source" => "o2", "event" => "on_assign_object", "entering" => "u" }))[:reason], "su chi non era in Stasi l'Oggetto non fa nulla")
+  end
+
+  # La Materia: «metti un'Entità avversaria in Stasi».
+  def test_chill_puts_one_opposing_entity_into_stasis_on_resolution
+    engine = auros_scene([["t", "TIDE"], ["m", "CHILL", { "zone" => "hand" }]], b: [["v", "HUMAN"], ["w", "AUROS"]])
+    assert auros_play(engine, "m", cost: 2)[:ok]
+    tap = { "t" => "tap", "uid" => "v", "tapped" => true, "stasis" => true, "effect" => res_ref("m") }
+    assert_match(/Stasi va a un'Entità avversaria/, engine.judge(tap.merge("uid" => "t"))[:reason])
+    assert_match(/deve dirlo/, engine.judge(tap.merge("stasis" => nil))[:reason])
+    verdict = engine.judge(tap)
+    assert verdict[:ok], verdict[:reason]
+    assert table_copy(engine).card("v")[:stasis]
+    assert_equal 1, table_copy(engine).stasis_inflicted("a")
+    assert_match(/mette in Stasi 1 Entità: già fatto/, engine.judge(tap.merge("uid" => "w"))[:reason])
+  end
+
+  # La Reattiva: «un'Entità che controlli prende +2 Potenza fino alla fine del turno», senza stapparla.
+  def test_brace_gives_power_without_untapping
+    engine = auros_scene([["g", "BIG"]], b: [["t", "TIDE"], ["v1", "HUMAN"], ["w", "BRACE", { "zone" => "hand" }]], attacks: %w[g])
+    engine.observe({ "t" => "tap", "uid" => "v1", "tapped" => true })
+    engine.judge({ "t" => "phase", "phase" => "reazione" })
+    assert auros_play(engine, "w", cost: 2, actor: "b", y: 172)[:ok]
+    accept!(engine, "a")
+    step = { "t" => "empower", "uid" => "v1", "power" => 2, "effect" => res_ref("w") }
+    assert_match(/senza stappare/, engine.judge(step.merge("untap" => true), actor: "b")[:reason])
+    assert_match(/Potenza in più è 2/, engine.judge(step.merge("power" => 3), actor: "b")[:reason])
+    assert_match(/Entità che controlli/, engine.judge(step.merge("uid" => "g"), actor: "b")[:reason])
+    verdict = engine.judge(step, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    v1 = table_copy(engine).card("v1")
+    assert_equal 2, v1[:power_bonus]
+    assert v1[:tapped], "resta tappata: il buff non stappa"
+    assert_match(/UN'Entità/, engine.judge(step.merge("uid" => "t"), actor: "b")[:reason])
+  end
+
+  # L'esilio a tempo: in Ritiro per tre turni di chi la comanda, poi il d12 — e il turno aspetta.
+  def test_undertow_exiles_for_three_turns_of_the_controller_and_the_turn_waits_for_the_die
+    engine = auros_scene([["t", "TIDE"], ["m", "UNDERTOW", { "zone" => "hand" }]], b: [["v", "HUMAN"], ["o", "GEAR", { "assignedTo" => "v" }], ["w", "AUROS"]])
+    assert auros_play(engine, "m", cost: 4)[:ok]
+    step = { "t" => "toZone", "uid" => "v", "zone" => "ritiro", "exile" => { "turns" => 3 }, "effect" => res_ref("m") }
+    assert_match(/per 3 turni: l'azione dice altro/, engine.judge(step.merge("exile" => { "turns" => 2 }))[:reason])
+    assert_match(/per 3 turni: l'azione dice altro/, engine.judge(step.merge("zone" => "abisso"))[:reason])
+    assert_match(/avversario/, engine.judge(step.merge("uid" => "t"))[:reason])
+    verdict = engine.judge(step)
+    assert verdict[:ok], verdict[:reason]
+    v = table_copy(engine).card("v")
+    assert_equal "ritiro", v[:zone]
+    assert_equal({ seat: "b", remaining: 3, source: "m" }, v[:exile])
+    assert_equal "ritiro", table_copy(engine).card("o")[:zone], "gli Oggetti la seguono (§6.2)"
+    back = { "t" => "toZone", "uid" => "v", "zone" => "field", "x" => 1199, "y" => 172, "roll" => 8, "effect" => exile_ref("m", "v") }
+    assert_match(/lo tira chi comanda l'Entità, nel suo turno/, engine.judge(back)[:reason], "nel turno di A no")
+    assert engine.judge(end_turn(engine: engine, active: "b"))[:ok], "il turno di A si chiude: l'esilio non è suo"
+    assert_equal 3, table_copy(engine).card("v")[:exile][:remaining]
+    assert_match(/mancano 3 turni/, engine.judge(back, actor: "b")[:reason])
+    assert engine.judge(end_turn(engine: engine, active: "a"), actor: "b")[:ok], "il primo turno di B si chiude"
+    assert_equal 2, table_copy(engine).card("v")[:exile][:remaining]
+    engine.judge(end_turn(engine: engine, active: "b"))
+    engine.judge(end_turn(engine: engine, active: "a"), actor: "b")
+    engine.judge(end_turn(engine: engine, active: "b"))
+    assert_equal 1, table_copy(engine).card("v")[:exile][:remaining], "il terzo turno di B"
+    stopped = engine.judge(end_turn(engine: engine, active: "a"), actor: "b")
+    assert_match(/finito i suoi tre turni: chi la comanda tira il d12/, stopped[:reason])
+    assert_match(/tiro valido/, engine.judge(back.merge("roll" => nil), actor: "b")[:reason])
+    assert_match(/lo tira il tavolo/, engine.judge(back, actor: "b")[:reason])
+    assert_match(/con 7 l'Entità va nell'Abisso/, rolled(engine, back.merge("roll" => 7), 12, actor: "b")[:reason])
+    assert_match(/non si paga/, rolled(engine, back.merge("cost" => 1), 12, actor: "b")[:reason])
+    assert_match(/con 8 l'Entità torna sul suo Fronte/, rolled(engine, back.merge("zone" => "abisso"), 12, actor: "b")[:reason])
+    assert_match(/resta in Ritiro solo a Fronte pieno/, rolled(engine, back.merge("zone" => "ritiro"), 12, actor: "b")[:reason])
+    verdict = rolled(engine, back, 12, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    v = table_copy(engine).card("v")
+    assert_equal "field", v[:zone]
+    assert_nil v[:exile]
+    refute v[:tapped]
+    assert engine.judge(end_turn(engine: engine, active: "a"), actor: "b")[:ok], "tornata, il turno si chiude"
+  end
+
+  def test_undertow_failed_die_sends_to_the_abyss_and_a_full_front_keeps_in_retire
+    engine = auros_scene([["t", "TIDE"], ["m", "UNDERTOW", { "zone" => "hand" }]], b: [["v", "HUMAN"]])
+    assert auros_play(engine, "m", cost: 4)[:ok]
+    assert engine.judge({ "t" => "toZone", "uid" => "v", "zone" => "ritiro", "exile" => { "turns" => 3 }, "effect" => res_ref("m") })[:ok]
+    5.times { |i| engine.judge(end_turn(engine: engine, active: i.even? ? "b" : "a"), actor: i.even? ? "a" : "b") }
+    assert_equal "b", table_copy(engine).active
+    assert_equal ["v"], table_copy(engine).exiles_due("b")
+    gone = { "t" => "toZone", "uid" => "v", "zone" => "abisso", "roll" => 7, "effect" => exile_ref("m", "v") }
+    assert_match(/senza che nessuno la tenga|va nell'Abisso/, rolled(engine, gone.merge("heldBy" => "m"), 12, actor: "b")[:reason])
+    verdict = rolled(engine, gone, 12, actor: "b")
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "abisso", table_copy(engine).card("v")[:zone]
+    assert_nil table_copy(engine).card("v")[:exile]
+    assert engine.judge(end_turn(engine: engine, active: "a"), actor: "b")[:ok]
+
+    # A Fronte pieno: la sostituzione, o resta in Ritiro con l'esilio chiuso.
+    full = auros_scene([["t", "TIDE"], ["m", "UNDERTOW", { "zone" => "hand" }]], b: [["v", "HUMAN"], ["b1", "HUMAN"], ["b2", "HUMAN"], ["b3", "AUROS"], ["b4", "AUROS"], ["b5", "AUROS", { "zone" => "hand" }]])
+    assert auros_play(full, "m", cost: 4)[:ok]
+    assert full.judge({ "t" => "toZone", "uid" => "v", "zone" => "ritiro", "exile" => { "turns" => 3 }, "effect" => res_ref("m") })[:ok]
+    full.judge(end_turn(engine: full, active: "b"))
+    assert auros_play(full, "b5", cost: 2, actor: "b", y: 172, x: 1199)[:ok], "il quinto slot di B"
+    4.times { |i| full.judge(end_turn(engine: full, active: i.even? ? "a" : "b"), actor: i.even? ? "b" : "a") }
+    assert_equal ["v"], table_copy(full).exiles_due("b")
+    back = { "t" => "toZone", "uid" => "v", "zone" => "field", "x" => 1199, "y" => 172, "roll" => 12, "effect" => exile_ref("m", "v") }
+    assert_match(/5 Entità|Fronte/, rolled(full, back, 12, actor: "b")[:reason], "il Fronte è pieno")
+    stay = rolled(full, back.merge("zone" => "ritiro"), 12, actor: "b")
+    assert stay[:ok], stay[:reason]
+    assert_equal "ritiro", table_copy(full).card("v")[:zone]
+    assert_nil table_copy(full).card("v")[:exile], "l'esilio è chiuso: resta in Ritiro"
+    assert full.judge(end_turn(engine: full, active: "a"), actor: "b")[:ok]
+
+    # Chi esce dal Ritiro per altra via chiude l'esilio da sé.
+    other = auros_scene([["t", "TIDE"], ["m", "UNDERTOW", { "zone" => "hand" }]], b: [["v", "HUMAN"]])
+    assert auros_play(other, "m", cost: 4)[:ok]
+    assert other.judge({ "t" => "toZone", "uid" => "v", "zone" => "ritiro", "exile" => { "turns" => 3 }, "effect" => res_ref("m") })[:ok]
+    other.observe({ "t" => "toZone", "uid" => "v", "zone" => "hand" })
+    assert_nil table_copy(other).card("v")[:exile]
+    5.times { |i| other.judge(end_turn(engine: other, active: i.even? ? "b" : "a"), actor: i.even? ? "a" : "b") }
+    assert other.judge(end_turn(engine: other, active: "a"), actor: "b")[:ok], "nessun esilio da sciogliere"
+  end
+
+  # La ricerca di Oggetti: fino a due dal mazzo sulle proprie Entità, gratis; poi il d6 e uno dal Ritiro.
+  def test_quest_searches_two_objects_and_rearms_from_retire_with_the_die
+    engine = auros_scene([["t", "TIDE"], ["e2", "AUROS"], ["m", "QUEST", { "zone" => "hand" }],
+                          ["d0", "AUROS", { "zone" => "deck", "order" => 0 }], ["o1", "GEAR", { "zone" => "deck", "order" => 1 }], ["o2", "GEAR", { "zone" => "deck", "order" => 2 }],
+                          ["o3", "GEAR", { "zone" => "deck", "order" => 3 }], ["x", "AUROS", { "zone" => "deck", "order" => 4 }], ["r", "GEAR", { "zone" => "ritiro" }]],
+                         b: [["v", "HUMAN"], ["ob", "GEAR", { "zone" => "deck" }]])
+    assert auros_play(engine, "m", cost: 4)[:ok]
+    ref = res_ref("m").merge("follow" => "search")
+    step = { "t" => "toZone", "uid" => "o1", "zone" => "field", "x" => 1199, "y" => 1260, "assignTo" => "t", "effect" => ref }
+    assert_match(/PROPRIO mazzo/, engine.judge(step.merge("uid" => "ob"))[:reason])
+    assert_match(/PROPRIO mazzo/, engine.judge(step.merge("uid" => "x"))[:reason], "un'Entità non è un Oggetto")
+    assert_match(/senza pagarne il costo/, engine.judge(step.merge("cost" => 1))[:reason])
+    assert_match(/Entità che controlli/, engine.judge(step.merge("assignTo" => "v"))[:reason])
+    assert_match(/ma ne hai/, engine.judge(step.merge("zone" => "hand").reject { |k, _| %w[x y assignTo].include?(k) })[:reason])
+    verdict = engine.judge(step)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "t", table_copy(engine).card("o1")[:assigned_to]
+    assert engine.judge(step.merge("uid" => "o2"))[:ok], "anche sulla stessa Entità"
+    assert_match(/fino a 2 Oggetti: sono già stati trovati/, engine.judge(step.merge("uid" => "o3", "assignTo" => "e2"))[:reason])
+    rearm = { "t" => "toZone", "uid" => "r", "zone" => "field", "x" => 821, "y" => 1260, "assignTo" => "e2", "roll" => 3, "effect" => res_ref("m").merge("follow" => "rearm") }
+    assert_match(/lo tira il tavolo/, engine.judge(rearm)[:reason])
+    assert_match(/con 2 l'Oggetto resta in Ritiro/, rolled(engine, rearm.merge("roll" => 2), 6)[:reason])
+    assert_match(/senza pagarne il costo/, rolled(engine, rearm.merge("cost" => 1), 6)[:reason])
+    assert_match(/PROPRIA Zona di Ritiro/, rolled(engine, rearm.merge("uid" => "o3"), 6)[:reason])
+    verdict = rolled(engine, rearm, 6)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "e2", table_copy(engine).card("r")[:assigned_to]
+    assert_match(/già stato risolto/, rolled(engine, rearm, 6)[:reason])
+    deck = table_copy(engine).zone_uids("a", "deck")
+    assert engine.judge({ "t" => "shuffle", "seat" => "a", "order" => deck.reverse }, actor: "a")[:ok], "poi rimescola"
+
+    # Senza Entità in campo gli Oggetti trovati vanno in mano.
+    bare = auros_scene([["m", "QUEST", { "zone" => "hand" }], ["d0", "AUROS", { "zone" => "deck", "order" => 0 }], ["o1", "GEAR", { "zone" => "deck", "order" => 1 }]], b: [["v", "HUMAN"]])
+    assert auros_play(bare, "m", cost: 4)[:ok], "il Rubyfront schierato abilita la Dimensionale II"
+    to_hand = { "t" => "toZone", "uid" => "o1", "zone" => "hand", "effect" => ref }
+    assert_match(/Rubyfront né al Nexus|Entità che controlli/, bare.judge(to_hand.merge("zone" => "field", "x" => 1199, "y" => 1260, "assignTo" => "rf-a"))[:reason])
+    verdict = bare.judge(to_hand)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "hand", table_copy(bare).card("o1")[:zone]
+  end
+
+  # «Ogni volta che un'Entità entra in Stasi, guadagni N PV»: per effetto, in combattimento, dall'abilità; per faccia; una volta per ingresso.
+  def test_vigil_gains_hp_on_every_entry_into_stasis
+    engine = auros_scene([["t", "TIDE"], ["f", "FREEZER", { "zone" => "hand" }]], b: [["v", "HUMAN"], ["w", "AUROS"]], hp: 10)
+    assert auros_play(engine, "f", cost: 3, x: 1199)[:ok]
+    assert engine.judge({ "t" => "tap", "uid" => "v", "tapped" => true, "stasis" => true, "effect" => entry_ref("f") })[:ok]
+    heal = { "t" => "player", "seat" => "a", "patch" => { "hp" => 11 }, "effect" => stasis_ref("rf-a", "v") }
+    assert_match(/dà 1 PV, non altro/, engine.judge(heal.merge("patch" => { "hp" => 12 }))[:reason])
+    assert_match(/chi comanda il Rubyfront/, engine.judge(heal.merge("seat" => "b"))[:reason])
+    assert_match(/in campo, in Stasi/, engine.judge(heal.merge("effect" => stasis_ref("rf-a", "w")))[:reason])
+    assert_match(/è una patch dei PV/, engine.judge({ "t" => "draw", "seat" => "a", "count" => 1, "effect" => stasis_ref("rf-a", "v") })[:reason])
+    verdict = engine.judge(heal)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 11, table_copy(engine).hp("a")
+    assert_match(/già stato risolto per quell'ingresso in Stasi/, engine.judge(heal.merge("patch" => { "hp" => 12 }))[:reason])
+    # Stappata e rimessa in Stasi: un ingresso nuovo, un PV nuovo.
+    engine.observe({ "t" => "empower", "uid" => "v", "untap" => true, "effect" => entry_ref("t") })
+    freeze!(engine, "v", source: "t")
+    verdict = engine.judge(heal.merge("patch" => { "hp" => 12 }))
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 12, table_copy(engine).hp("a")
+    # Nel turno altrui, la Stasi di chi blocca con la parola chiave (§8.1): il PV è di chi ha il Rubyfront.
+    engine.judge(end_turn(engine: engine, active: "b"))
+    freeze!(engine, "w")
+    verdict = engine.judge(heal.merge("patch" => { "hp" => 13 }, "effect" => stasis_ref("rf-a", "w")), actor: "a")
+    assert verdict[:ok], "l'innesco è di chi comanda la fonte, in ogni turno: #{verdict[:reason]}"
+    # In Zona di Richiamo il Rubyfront non ascolta.
+    engine.observe({ "t" => "move", "uid" => "rf-a", "y" => 900 })
+    freeze!(engine, "t", source: "v")
+    assert_match(/Zona di Richiamo/, engine.judge(heal.merge("patch" => { "hp" => 14 }, "effect" => stasis_ref("rf-a", "t")), actor: "a")[:reason])
+  end
+
+  def test_vigil_nexus_gains_two_and_the_other_face_does_not_count
+    engine = auros_scene([["t", "TIDE"]], b: [["v", "HUMAN"]], face: 1, hp: 10)
+    freeze!(engine, "v", source: "t")
+    heal = { "t" => "player", "seat" => "a", "patch" => { "hp" => 12 }, "effect" => stasis_ref("rf-a", "v") }
+    assert_match(/dà 2 PV/, engine.judge(heal.merge("patch" => { "hp" => 11 }))[:reason])
+    assert engine.judge(heal)[:ok]
+    plain = auros_scene([["t", "TIDE"]], b: [["v", "HUMAN"]], hp: 10)
+    plain.observe({ "t" => "flip", "uid" => "rf-a", "face" => 1 })
+    plain.observe({ "t" => "flip", "uid" => "rf-a", "face" => 2 })
+    freeze!(plain, "v", source: "t")
+    assert_match(/questa faccia non guadagna PV/, plain.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 11 }, "effect" => stasis_ref("rf-a", "v") })[:reason])
+  end
+
+  # Le abilità: la concessione a scadenza (con la Furia), la stappata, e dal Nexus la concessione per sempre, la stappata con +2 sugli Auros, la Stasi fino a 2.
+  def test_vigil_abilities_grant_untap_and_freeze
+    engine = auros_scene([["t", "TIDE"], ["z", "AUROS"]], b: [["v1", "HUMAN"], ["v2", "AUROS"], ["v3", "HUMAN"], ["s", "STEADY"]], hp: 10)
+    freeze!(engine, "z")
+    hold = { "t" => "ability", "uid" => "rf-a", "ability" => "hold", "gain" => 2, "roll" => 15, "targets" => ["t"], "grants" => ["stasis"], "until" => "controller_next_turn" }
+    assert_match(/fino al tuo prossimo turno/, rolled(engine, hold.merge("until" => "permanent"), 20)[:reason])
+    assert_match(/concede Stasi/, rolled(engine, hold.merge("grants" => ["surge"]), 20)[:reason])
+    assert_match(/Entità che controlli/, rolled(engine, hold.merge("targets" => ["v1"]), 20)[:reason])
+    assert_match(/UNA Entità/, rolled(engine, hold.merge("targets" => %w[t z]), 20)[:reason])
+    assert_match(/concede soltanto/, rolled(engine, hold.merge("power" => 1), 20)[:reason])
+    verdict = rolled(engine, hold, 20)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal ["stasis"], table_copy(engine).card("t")[:grants]
+    assert_equal "a", table_copy(engine).card("t")[:grants_until]
+    assert_equal 12, table_copy(engine).hp("a")
+    assert_match(/una sola abilità speciale per turno/, rolled(engine, { "t" => "ability", "uid" => "rf-a", "ability" => "wake", "cost" => 4, "roll" => 15, "targets" => ["z"], "untap" => true }, 20)[:reason])
+
+    engine = auros_scene([["t", "TIDE"], ["z", "AUROS"]], b: [["v1", "HUMAN"]], hp: 10)
+    freeze!(engine, "z")
+    wake = { "t" => "ability", "uid" => "rf-a", "ability" => "wake", "cost" => 4, "roll" => 15, "targets" => ["z"] }
+    assert_match(/deve dirlo/, rolled(engine, wake, 20)[:reason])
+    assert_match(/stappa soltanto: niente Potenza/, rolled(engine, wake.merge("untap" => true, "power" => 2), 20)[:reason])
+    verdict = rolled(engine, wake.merge("untap" => true), 20)
+    assert verdict[:ok], verdict[:reason]
+    refute table_copy(engine).card("z")[:stasis]
+    assert_equal 6, table_copy(engine).hp("a")
+
+    nexus = auros_scene([["t", "TIDE"], ["z", "AUROS"], ["h", "HUMAN"]], b: [["v1", "HUMAN"], ["v2", "AUROS"], ["v3", "HUMAN"], ["s", "STEADY"]], face: 1, hp: 10)
+    freeze!(nexus, "z")
+    freeze!(nexus, "h")
+    forever = { "t" => "ability", "uid" => "rf-a", "ability" => "vigil-hold", "gain" => 2, "targets" => ["t"], "grants" => ["stasis"], "until" => "permanent" }
+    assert_match(/per sempre/, nexus.judge(forever.merge("until" => "controller_next_turn"))[:reason])
+    assert nexus.judge(forever)[:ok]
+    assert_equal "game", table_copy(nexus).card("t")[:grants_until]
+    nexus.judge(end_turn(engine: nexus, active: "b"))
+    nexus.judge(end_turn(engine: nexus, active: "a"), actor: "b")
+    assert_equal ["stasis"], table_copy(nexus).card("t")[:grants], "«per sempre»: resta"
+    armed = { "t" => "ability", "uid" => "rf-a", "ability" => "vigil-wake", "cost" => 5, "targets" => ["z"], "untap" => true, "power" => 2 }
+    assert_match(/Entità auros che controlli/, nexus.judge(armed.merge("targets" => ["h"]))[:reason], "solo gli Auros")
+    assert_match(/poi prende \+2 Potenza/, nexus.judge(armed.reject { |k, _| k == "power" })[:reason])
+    verdict = nexus.judge(armed)
+    assert verdict[:ok], verdict[:reason]
+    refute table_copy(nexus).card("z")[:stasis]
+    assert_equal 2, table_copy(nexus).card("z")[:power_bonus]
+    nexus.judge(end_turn(engine: nexus, active: "b"))
+    nexus.judge(end_turn(engine: nexus, active: "a"), actor: "b")
+    seal = { "t" => "ability", "uid" => "rf-a", "ability" => "vigil-seal", "cost" => 7, "targets" => %w[v1 v2], "stasis" => true }
+    assert_match(/fino a 2 Entità avversarie: non 3/, nexus.judge(seal.merge("targets" => %w[v1 v2 v3]))[:reason])
+    assert_match(/non si tappa mai/, nexus.judge(seal.merge("targets" => ["s"]))[:reason])
+    assert_match(/Stasi va a un'Entità avversaria/, nexus.judge(seal.merge("targets" => ["t"]))[:reason])
+    assert_match(/deve dirlo/, nexus.judge(seal.reject { |k, _| k == "stasis" })[:reason])
+    assert_match(/mette in Stasi soltanto/, nexus.judge(seal.merge("power" => 1))[:reason])
+    verdict = nexus.judge(seal)
+    assert verdict[:ok], verdict[:reason]
+    assert table_copy(nexus).card("v1")[:stasis]
+    assert table_copy(nexus).card("v2")[:stasis]
+    assert_equal 2, table_copy(nexus).stasis_inflicted("a")
+    empty = auros_scene([["t", "TIDE"]], b: [["v1", "HUMAN"]], face: 1, hp: 10)
+    assert empty.judge(seal.merge("targets" => []))[:ok], "«fino a 2»: anche nessuna"
+  end
+
+  # Il flip del Nexus: «hai messo in Stasi almeno 2 Entità avversarie» (contate dal tavolo), e un Oggetto dal Fronte in Ritiro.
+  def test_vigil_flip_counts_inflicted_stasis_and_costs_an_object
+    engine = auros_scene([["t", "TIDE"], ["o", "GEAR", { "assignedTo" => "t" }]], b: [["v", "HUMAN"], ["w", "AUROS"], ["ob", "GEAR", { "assignedTo" => "v" }]], hp: 10)
+    flip = { "t" => "flip", "uid" => "rf-a", "face" => 1, "retire" => "o", "recover" => 5 }
+    assert_match(/almeno 2 Entità avversarie: ne hai messe 0/, engine.judge(flip)[:reason])
+    freeze!(engine, "v", source: "t")
+    assert_match(/ne hai messe 1/, engine.judge(flip)[:reason])
+    freeze!(engine, "t", source: "v")
+    assert_match(/ne hai messe 1/, engine.judge(flip)[:reason], "la Stasi subita non conta")
+    freeze!(engine, "w", source: "o")
+    assert_match(/un tuo Oggetto dal Fronte/, engine.judge(flip.merge("retire" => "ob"))[:reason])
+    assert_match(/un tuo Oggetto dal Fronte/, engine.judge(flip.merge("retire" => "t"))[:reason])
+    assert_match(/un tuo Oggetto dal Fronte/, engine.judge(flip.reject { |k, _| k == "retire" })[:reason])
+    verdict = engine.judge(flip)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 1, table_copy(engine).card("rf-a")[:face]
+    assert_equal "ritiro", table_copy(engine).card("o")[:zone]
+    assert_equal 15, table_copy(engine).hp("a")
+  end
+
+  # ==========================================================================
   # --- Il tavolo fail-closed (audit 2026-10-20, dal 2026-10-21) --------------
   # ==========================================================================
 
@@ -5587,6 +6053,191 @@ class EngineTest < Minitest::Test
   end
 
   # --- §protocollo: l'attore «tavolo» --------------------------------------
+
+
+  # --- Le forme della scheda riletta (2026-10-23) ---
+
+  def own_ref(uid, follow = nil)
+    ref = { "source" => uid, "event" => "on_enter_field", "entering" => uid }
+    ref["follow"] = follow if follow
+    ref
+  end
+
+  # «Quando entra sul Fronte: guarda la prima carta del tuo mazzo, puoi metterla in fondo» — sull'ingresso proprio.
+  def test_glancer_looks_at_the_top_of_its_own_deck_on_entry
+    # La prima del mazzo la pesca il turno 3 (auros_scene): d0 è quella.
+    engine = auros_scene([["t", "TIDE"], ["g", "GLANCER", { "zone" => "hand" }], ["x", "AUROS", { "zone" => "hand" }], ["d0", "HUMAN", { "zone" => "deck", "order" => 0 }],
+                          ["d1", "AUROS", { "zone" => "deck", "order" => 1 }], ["d2", "HUMAN", { "zone" => "deck", "order" => 2 }]])
+    assert auros_play(engine, "g", cost: 1, x: 1199)[:ok]
+    assert auros_play(engine, "x", cost: 2, x: 821)[:ok]
+    look = { "t" => "look", "seat" => "a", "count" => 1, "restTo" => "deck", "effect" => own_ref("g", "peek") }
+    assert_match(/prima carta soltanto/, engine.judge(look.merge("count" => 2))[:reason])
+    assert_match(/proprio mazzo/, engine.judge(look.merge("seat" => "b"))[:reason])
+    assert_match(/non ha un effetto certificato che guardi in cima/, engine.judge(look.merge("effect" => own_ref("x", "peek")))[:reason], "una vanilla non guarda")
+    verdict = engine.judge(look)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal %w[d2 d1], table_copy(engine).zone_uids("a", "deck"), "la guardata in fondo"
+    assert_match(/già stato risolto/, engine.judge(look.merge("top" => "d2"))[:reason])
+  end
+
+  # «Ogni volta che un'altra Entità entra sul tuo Fronte, guadagni 1 PV».
+  def test_tidekeeper_gains_hp_when_another_entity_enters
+    engine = auros_scene([["k", "TIDEKEEPER"], ["t", "TIDE", { "zone" => "hand" }], ["x", "AUROS", { "zone" => "hand" }]], b: [["v", "HUMAN", { "zone" => "hand" }]], hp: 15)
+    heal = { "t" => "player", "seat" => "a", "patch" => { "hp" => 16 }, "effect" => { "source" => "k", "event" => "on_enter_field", "entering" => "t" } }
+    assert_match(/non è entrata sul Fronte questo turno|dev'essere in campo/, engine.judge(heal)[:reason], "prima che entri, niente")
+    assert auros_play(engine, "t", cost: 2, x: 1199)[:ok]
+    assert_match(/dà 1 PV, non altro/, engine.judge(heal.merge("patch" => { "hp" => 17 }))[:reason])
+    assert_match(/chi comanda la fonte/, engine.judge(heal.merge("seat" => "b"))[:reason])
+    assert_match(/non è entrata sul Fronte questo turno|un'altra carta dello stesso posto/, engine.judge(heal.merge("effect" => { "source" => "k", "event" => "on_enter_field", "entering" => "k" }))[:reason], "il proprio ingresso non si ascolta")
+    assert engine.judge(heal)[:ok]
+    assert_equal 16, table_copy(engine).hp("a")
+    assert_match(/già stato risolto/, engine.judge(heal.merge("patch" => { "hp" => 17 }))[:reason])
+    # Un secondo ingresso, un secondo PV; una vanilla in campo non dà PV.
+    assert auros_play(engine, "x", cost: 2, x: 821)[:ok]
+    assert engine.judge(heal.merge("patch" => { "hp" => 17 }, "effect" => { "source" => "k", "event" => "on_enter_field", "entering" => "x" }))[:ok]
+    assert_match(/non ha un effetto certificato che dia PV/, engine.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 18 }, "effect" => { "source" => "t", "event" => "on_enter_field", "entering" => "x" } })[:reason])
+  end
+
+  # «… compresa questa»: il proprio ingresso conta.
+  def test_tidekeeper_counting_itself_heals_on_its_own_entry
+    engine = auros_scene([["k", "TIDEKEEPER_SELF", { "zone" => "hand" }]], hp: 15)
+    assert auros_play(engine, "k", cost: 2, x: 1199)[:ok]
+    heal = { "t" => "player", "seat" => "a", "patch" => { "hp" => 16 }, "effect" => { "source" => "k", "event" => "on_enter_field", "entering" => "k" } }
+    verdict = engine.judge(heal)
+    assert verdict[:ok], verdict[:reason]
+    assert_match(/già stato risolto/, engine.judge(heal.merge("patch" => { "hp" => 17 }))[:reason])
+  end
+
+  # «Guarda le prime 3 carte del tuo mazzo e rimettile in cima nell'ordine che vuoi».
+  def test_sounder_reorders_the_top_three
+    engine = auros_scene([["s", "SOUNDER", { "zone" => "hand" }], ["d1", "AUROS", { "zone" => "deck", "order" => 0 }], ["d2", "HUMAN", { "zone" => "deck", "order" => 1 }],
+                          ["d3", "AUROS", { "zone" => "deck", "order" => 2 }], ["d4", "HUMAN", { "zone" => "deck", "order" => 3 }]])
+    assert auros_play(engine, "s", cost: 2, x: 1199)[:ok]
+    # La carta del turno è già pescata (auros_scene): le prime tre di ADESSO sono d2, d3, d4.
+    top = table_copy(engine).zone_uids("a", "deck").first(3)
+    assert_equal %w[d2 d3 d4], top
+    look = { "t" => "look", "seat" => "a", "count" => 3, "restTo" => "deck", "order" => [top[2], top[0], top[1]], "effect" => own_ref("s", "sort") }
+    assert_match(/prime 3 carte, non 2/, engine.judge(look.merge("count" => 2))[:reason])
+    assert_match(/tutte e sole/, engine.judge(look.merge("order" => top.first(2)))[:reason])
+    assert_match(/tutte e sole/, engine.judge(look.merge("order" => [top[0], top[1], "d1"]))[:reason])
+    assert_match(/nient'altro/, engine.judge(look.merge("top" => top[0]))[:reason])
+    verdict = engine.judge(look)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal %w[d4 d2 d3], table_copy(engine).zone_uids("a", "deck")
+    assert_match(/già stato risolto/, engine.judge(look)[:reason])
+  end
+
+  # «Le Entità che controlli hanno Stasi. Ogni volta che un'Entità che controlli viene tappata, guadagni 1 PV».
+  def test_bulwark_grants_stasis_to_all_and_heals_on_every_tap
+    engine = auros_scene([["w", "BULWARK"], ["t", "TIDE"]], b: [["v", "HUMAN"]], hp: 15)
+    assert engine.send(:has_keyword?, "t", "stasis"), "la Stasi concessa a tutte"
+    assert engine.send(:has_keyword?, "w", "stasis"), "anche a chi la concede"
+    refute engine.send(:has_keyword?, "v", "stasis"), "non alle avversarie"
+    heal = { "t" => "player", "seat" => "a", "patch" => { "hp" => 16 }, "effect" => { "source" => "w", "event" => "on_tap", "entering" => "t" } }
+    assert_match(/dev'essere in campo, tappata/, engine.judge(heal)[:reason], "prima della tappata, niente")
+    assert engine.judge({ "t" => "tap", "uid" => "t", "tapped" => true })[:ok]
+    assert_equal 1, table_copy(engine).card("t")[:tap_at]
+    assert_match(/dà 1 PV, non altro/, engine.judge(heal.merge("patch" => { "hp" => 18 }))[:reason])
+    assert_match(/chi comanda la fonte/, engine.judge(heal.merge("seat" => "b"))[:reason])
+    assert engine.judge(heal)[:ok]
+    assert_equal 16, table_copy(engine).hp("a")
+    assert_match(/già stato risolto per quella tappata/, engine.judge(heal.merge("patch" => { "hp" => 17 }))[:reason])
+    # Una tappata su una già tappata non è una tappata; stappata e ritappata, sì.
+    assert engine.judge({ "t" => "tap", "uid" => "t", "tapped" => true })[:ok]
+    assert_equal 1, table_copy(engine).card("t")[:tap_at]
+    engine.observe({ "t" => "tap", "uid" => "t", "tapped" => false }) # la stappata a mano è un silenzio
+    freeze!(engine, "t")
+    assert_equal 2, table_copy(engine).card("t")[:tap_at], "anche la Stasi è una tappata"
+    assert engine.judge(heal.merge("patch" => { "hp" => 17 }))[:ok]
+    # Un'avversaria tappata non conta per chi ascolta le proprie.
+    freeze!(engine, "v")
+    assert_match(/non ha un effetto certificato che dia PV a quella tappata/, engine.judge(heal.merge("patch" => { "hp" => 18 }, "effect" => { "source" => "w", "event" => "on_tap", "entering" => "v" }))[:reason])
+  end
+
+  # «Metti 2 Entità avversarie con costo 3 o inferiore in Stasi, poi guadagni 1 PV per ogni Entità avversaria tappata».
+  def test_tallyman_heals_per_tapped_opponent_after_the_freezes
+    engine = auros_scene([["m", "TALLYMAN", { "zone" => "hand" }]], b: [["v1", "HUMAN"], ["v2", "AUROS"], ["h", "HEAVY"]], hp: 15)
+    assert auros_play(engine, "m", cost: 6, x: 1199)[:ok]
+    tally = { "t" => "player", "seat" => "a", "patch" => { "hp" => 17 }, "effect" => own_ref("m", "tally") }
+    assert_match(/prima le Stasi: l'effetto ne mette 2, finora 0/, engine.judge(tally)[:reason])
+    tap = { "t" => "tap", "uid" => "v1", "tapped" => true, "stasis" => true, "effect" => own_ref("m") }
+    assert engine.judge(tap)[:ok]
+    assert_match(/prima le Stasi: l'effetto ne mette 2, finora 1/, engine.judge(tally)[:reason])
+    assert engine.judge(tap.merge("uid" => "v2"))[:ok]
+    # Tre avversarie tappate (il peso lo tappa il banco): 3 PV, non 2.
+    engine.observe({ "t" => "tap", "uid" => "h", "tapped" => true })
+    assert_match(/dà 3 PV: 1 per ognuna delle 3/, engine.judge(tally)[:reason])
+    assert_match(/chi comanda la fonte/, engine.judge(tally.merge("seat" => "b", "patch" => { "hp" => 18 }))[:reason])
+    assert engine.judge(tally.merge("patch" => { "hp" => 18 }))[:ok]
+    assert_equal 18, table_copy(engine).hp("a")
+    assert_match(/già stato risolto/, engine.judge(tally.merge("patch" => { "hp" => 21 }))[:reason])
+    # Senza avversarie da fermare, il conto passa anche prima delle due Stasi.
+    other = auros_scene([["m", "TALLYMAN", { "zone" => "hand" }]], b: [["h", "HEAVY"]])
+    assert auros_play(other, "m", cost: 6, x: 1199)[:ok]
+    assert_match(/nessuna Entità avversaria è tappata/, other.judge({ "t" => "player", "seat" => "a", "patch" => { "hp" => 21 }, "effect" => own_ref("m", "tally") })[:reason])
+  end
+
+  # «L'Entità a cui è assegnato ha +1 Potenza. Ogni volta che quell'Entità viene tappata, lancia un d6: con 4 o più guadagni 1 PV».
+  def test_vessel_rolls_a_d6_when_its_bearer_is_tapped
+    engine = auros_scene([["t", "TIDE"], ["u", "AUROS"], ["o", "VESSEL", { "assignedTo" => "t" }]], hp: 15)
+    assert engine.judge({ "t" => "tap", "uid" => "t", "tapped" => true })[:ok]
+    heal = { "t" => "player", "seat" => "a", "patch" => { "hp" => 16 }, "roll" => 4, "effect" => { "source" => "o", "event" => "on_tap", "entering" => "t" } }
+    assert_match(/lo tira il tavolo/, engine.judge(heal)[:reason], "senza il tiro del tavolo")
+    assert_match(/non si guadagnano PV: serve 4 o più/, rolled(engine, heal.merge("roll" => 3), 6)[:reason])
+    # Il tiro del tavolo per questa chiave è 3: un 4 dichiarato non è quello.
+    assert_match(/lo tira il tavolo/, engine.judge(heal)[:reason])
+    fresh = auros_scene([["t", "TIDE"], ["u", "AUROS"], ["o", "VESSEL", { "assignedTo" => "t" }]], hp: 15)
+    assert fresh.judge({ "t" => "tap", "uid" => "t", "tapped" => true })[:ok]
+    verdict = rolled(fresh, heal, 6)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 16, table_copy(fresh).hp("a")
+    assert_match(/già stato risolto per quella tappata/, fresh.judge(heal.merge("patch" => { "hp" => 17 }))[:reason])
+    # Tappata un'altra Entità, l'Oggetto non ascolta.
+    assert fresh.judge({ "t" => "tap", "uid" => "u", "tapped" => true })[:ok]
+    assert_match(/non ha un effetto certificato che dia PV a quella tappata/, fresh.judge(heal.merge("patch" => { "hp" => 17 }, "effect" => { "source" => "o", "event" => "on_tap", "entering" => "u" }))[:reason])
+  end
+
+  # «Scegli un'Entità avversaria e lancia un d6: pari o superiore alla sua Potenza, nell'Abisso; altrimenti −2 Potenza».
+  def test_sentence_sends_to_the_abyss_or_weakens_by_the_die
+    engine = auros_scene([["t", "TIDE"], ["s", "SENTENCE", { "zone" => "hand" }]], b: [["h", "HEAVY"], ["v", "HUMAN"]])
+    assert auros_play(engine, "s", cost: 2, x: 3200)[:ok]
+    ref = { "source" => "s", "event" => "on_resolve", "entering" => "s" }
+    abyss = { "t" => "toZone", "uid" => "h", "zone" => "abisso", "roll" => 4, "effect" => ref }
+    weaken = { "t" => "empower", "uid" => "h", "power" => -2, "roll" => 4, "effect" => ref }
+    assert_match(/lo tira il tavolo/, engine.judge(abyss)[:reason])
+    assert_match(/con 4 contro Potenza 5 l'Entità resta/, rolled(engine, abyss, 6)[:reason])
+    assert_match(/toglie 2 Potenza soltanto/, engine.judge(weaken.merge("power" => -3))[:reason])
+    assert_match(/dev'essere un'Entità avversaria/, engine.judge(weaken.merge("uid" => "t"))[:reason])
+    verdict = engine.judge(weaken)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal 3, engine.send(:power_of, "h")
+    assert_match(/già stato risolto/, engine.judge(abyss.merge("roll" => 6))[:reason])
+    # Col tiro che raggiunge la Potenza, l'Abisso — e il −2 è fermato.
+    other = auros_scene([["s", "SENTENCE", { "zone" => "hand" }]], b: [["h", "HEAVY"]])
+    assert auros_play(other, "s", cost: 2, x: 3200)[:ok]
+    assert_match(/l'Entità va nell'Abisso/, rolled(other, weaken.merge("roll" => 5), 6)[:reason])
+    assert other.judge(abyss.merge("roll" => 5))[:ok]
+    assert_equal "abisso", table_copy(other).card("h")[:zone]
+  end
+
+  # «Cerca nel tuo mazzo un Oggetto con costo di Flusso 3 o inferiore e mettilo nella tua Zona di Ritiro… poi un d6: con 3 o più…».
+  def test_salvage_searches_a_cheap_object_into_retire_then_rearms_with_the_die
+    engine = auros_scene([["t", "TIDE"], ["q", "SALVAGE", { "zone" => "hand" }], ["f0", "HUMAN", { "zone" => "deck", "order" => 0 }], ["g", "GEAR", { "zone" => "deck", "order" => 1 }],
+                          ["a1", "ANCHOR", { "zone" => "deck", "order" => 2 }], ["r", "ROUSER", { "zone" => "deck", "order" => 3 }]])
+    assert auros_play(engine, "q", cost: 2, x: 3200)[:ok]
+    ref = { "source" => "q", "event" => "on_resolve", "entering" => "q" }
+    search = { "t" => "toZone", "uid" => "g", "zone" => "ritiro", "effect" => ref.merge("follow" => "search") }
+    assert_match(/costo di Flusso 3 o inferiore/, engine.judge(search.merge("uid" => "a1"))[:reason])
+    assert_match(/va nella tua Zona di Ritiro/, engine.judge(search.merge("zone" => "hand"))[:reason])
+    assert_match(/va nella tua Zona di Ritiro/, engine.judge(search.merge("zone" => "field", "assignTo" => "t", "x" => 2368, "y" => 1260))[:reason])
+    assert engine.judge(search)[:ok]
+    assert_equal "ritiro", table_copy(engine).card("g")[:zone]
+    assert_match(/cerca fino a 1 Oggetti: sono già stati trovati/, engine.judge(search.merge("uid" => "r"))[:reason])
+    rearm = { "t" => "toZone", "uid" => "g", "zone" => "field", "x" => 2368, "y" => 1260, "assignTo" => "t", "roll" => 3, "effect" => ref.merge("follow" => "rearm") }
+    verdict = rolled(engine, rearm, 6)
+    assert verdict[:ok], verdict[:reason]
+    assert_equal "t", table_copy(engine).card("g")[:assigned_to]
+  end
 
   def test_table_actor_may_declare_forfeit_and_limit
     engine = started_game
@@ -5905,10 +6556,11 @@ class EngineTest < Minitest::Test
   def test_roll_needs_seat_die_for_and_value_in_range
     engine = started_game
     refute engine.judge({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "", "value" => 3 }, actor: "a")[:ok], "la chiave del passo"
-    bad_die = engine.judge({ "t" => "roll", "seat" => "a", "die" => 12, "for" => "cost|a-1", "value" => 3 }, actor: "a")
+    bad_die = engine.judge({ "t" => "roll", "seat" => "a", "die" => 8, "for" => "cost|a-1", "value" => 3 }, actor: "a")
     refute bad_die[:ok]
-    assert_match(/tira il d6 e il d20, non il d12 \(§8\.2\)/, bad_die[:reason])
-    assert_match(/rolls the d6 and the d20, not the d12 \(§8\.2\)/, bad_die[:reason_en])
+    assert_match(/tira il d6, il d12 e il d20, non il d8 \(§8\.2\)/, bad_die[:reason])
+    assert_match(/rolls the d6, the d12 and the d20, not the d8 \(§8\.2\)/, bad_die[:reason_en])
+    assert engine.judge({ "t" => "roll", "seat" => "a", "die" => 12, "for" => "deploy|zz", "value" => 12 }, actor: "a")[:ok], "il d12 dal 2026-10-22"
     [0, 7, -1, nil, "3", 3.5].each do |value|
       verdict = engine.judge({ "t" => "roll", "seat" => "a", "die" => 6, "for" => "cost|a-1", "value" => value }, actor: "a")
       refute verdict[:ok], value.inspect

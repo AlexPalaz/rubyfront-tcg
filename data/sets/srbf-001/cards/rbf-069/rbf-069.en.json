@@ -1,7 +1,7 @@
 {
-  "name": "Sealer of Nova Kai",
+  "name": "Darx, Tamer of the Aurestia",
   "typeLabel": "Entity: Auros",
-  "summary": "Six Power, and on entry it freezes two light bodies.",
+  "summary": "Five Power: on entry it freezes two light bodies, and every tapped opponent gives back 1 HP.",
   "ui": {
     "face": "Entity"
   },
@@ -12,12 +12,12 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Sealer of Nova Kai",
+    "name": "Darx, Tamer of the Aurestia",
     "seal": {
       "trigger": "When it enters the Front",
-      "text": "Put 2 opposing Entities with Flux cost 3 or less into Stasis."
+      "text": "Put 2 opposing Entities with Flux cost 3 or less into Stasis, then you gain 1 HP for each tapped opposing Entity."
     },
-    "flavor": "Where its gaze rests, time stops."
+    "flavor": "Where his gaze rests, time stops."
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · 2nd grade",

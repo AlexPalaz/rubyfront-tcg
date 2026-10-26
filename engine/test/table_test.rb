@@ -1006,4 +1006,192 @@ class TableBonusTest < Minitest::Test
     fresh.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
     assert fresh.started?
   end
+
+  # --- §8.1/§8.2 (2026-10-22): la Stasi per effetto, le concessioni a scadenza, l'esilio a tempo ---
+  # Gemello: state.test.ts, «la Stasi per effetto, le concessioni a scadenza e l'esilio a tempo».
+
+  def stasis_field
+    a = [1, 2].map { |n| { "uid" => "a-#{n}", "owner" => "a", "zone" => "field", "order" => 0 } }
+    b = [1, 2].map { |n| { "uid" => "b-#{n}", "owner" => "b", "zone" => "field", "order" => 0 } }
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => a })
+    @table.apply({ "t" => "loadDeck", "seat" => "b", "deckId" => "test", "cards" => b })
+  end
+
+  def test_tap_with_stasis_freezes_numbers_and_counts_for_the_nexus
+    stasis_field
+    @table.apply({ "t" => "facedown", "uid" => "b-1", "facedown" => true })
+    @table.apply({ "t" => "tap", "uid" => "b-1", "tapped" => true, "stasis" => true, "effect" => { "source" => "a-1", "event" => "on_enter_field", "entering" => "a-1" } })
+    frozen = @table.card("b-1")
+    assert frozen[:stasis]
+    assert frozen[:tapped]
+    refute frozen[:facedown], "lo stato di Stasi sostituisce la copertura (§8.1)"
+    assert_equal 1, frozen[:stasis_at]
+    assert_equal 1, @table.stasis_seq
+    assert_equal 1, @table.stasis_inflicted("a"), "A ha messo in Stasi un'avversaria"
+    assert_equal 0, @table.stasis_inflicted("b")
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert @table.card("b-1")[:tapped], "il turno non stappa la Stasi (§8.1)"
+    @table.apply({ "t" => "empower", "uid" => "b-1", "untap" => true, "effect" => { "source" => "b-2", "event" => "on_enter_field", "entering" => "b-2" } })
+    refute @table.card("b-1")[:stasis]
+    assert_equal 1, @table.card("b-1")[:stasis_at], "la storia dell'ingresso resta"
+    @table.apply({ "t" => "tap", "uid" => "b-1", "tapped" => true, "stasis" => true, "effect" => { "source" => "a-2", "event" => "on_resolve", "entering" => "a-2" } })
+    assert_equal 2, @table.card("b-1")[:stasis_at], "un nuovo ingresso, un nuovo numero"
+    assert_equal 2, @table.stasis_inflicted("a")
+    # Sulla propria Entità, o senza fonte: entra in Stasi ma non conta per il Nexus.
+    @table.apply({ "t" => "tap", "uid" => "a-2", "tapped" => true, "stasis" => true, "effect" => { "source" => "a-1", "event" => "on_ability", "entering" => "a-1" } })
+    @table.apply({ "t" => "tap", "uid" => "b-2", "tapped" => true, "stasis" => true })
+    assert @table.card("a-2")[:stasis]
+    assert @table.card("b-2")[:stasis]
+    assert_equal 2, @table.stasis_inflicted("a")
+    assert_equal 4, @table.stasis_seq
+    @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true })
+    assert @table.card("a-1")[:tapped]
+    refute @table.card("a-1")[:stasis], "una tappata semplice non è Stasi"
+  end
+
+  # Gemello: state.test.ts, «la tappata prende il suo numero …».
+  def test_tap_takes_a_number_once_per_tap_and_stasis_counts_as_a_tap
+    stasis_field
+    @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true })
+    assert_equal 1, @table.card("a-1")[:tap_at]
+    assert_equal 1, @table.tap_seq
+    # Una tappata su una già tappata non è una tappata.
+    @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true })
+    assert_equal 1, @table.card("a-1")[:tap_at]
+    assert_equal 1, @table.tap_seq
+    # Stappata e ritappata: un numero nuovo. La Stasi imposta su una stappata è una tappata.
+    @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => false })
+    @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true })
+    assert_equal 2, @table.card("a-1")[:tap_at]
+    @table.apply({ "t" => "tap", "uid" => "b-1", "tapped" => true, "stasis" => true })
+    assert_equal 3, @table.card("b-1")[:tap_at]
+    assert_equal 1, @table.card("b-1")[:stasis_at]
+    # La Stasi su una GIÀ tappata non ritappa.
+    @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true, "stasis" => true })
+    assert_equal 2, @table.card("a-1")[:tap_at]
+    assert_equal 3, @table.tap_seq
+    # Il turno stappa senza numerare; lo snapshot porta sequenza e numeri.
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_equal 3, @table.tap_seq
+    assert_equal 3, @table.dump["tapSeq"]
+    assert_equal 2, @table.dump["cards"].find { |card| card["uid"] == "a-1" }["tapAt"]
+  end
+
+  # Gemello: state.test.ts, «look con order rimette le guardate in cima …».
+  def test_look_with_order_puts_the_looked_cards_back_on_top_in_that_order
+    deck = (1..5).map { |n| { "uid" => "a-#{n}", "owner" => "a", "zone" => "deck", "order" => n } }
+    @table.apply({ "t" => "loadDeck", "seat" => "a", "deckId" => "test", "cards" => deck })
+    assert_equal %w[a-1 a-2 a-3 a-4 a-5], @table.zone_uids("a", "deck")
+    @table.apply({ "t" => "look", "seat" => "a", "count" => 3, "restTo" => "deck", "order" => %w[a-3 a-1 a-2], "effect" => { "source" => "x", "event" => "on_enter_field", "entering" => "x", "follow" => "sort" } })
+    assert_equal %w[a-3 a-1 a-2 a-4 a-5], @table.zone_uids("a", "deck")
+    # Un ordine parziale: le elencate sopra, le altre guardate dopo, com'erano.
+    @table.apply({ "t" => "look", "seat" => "a", "count" => 3, "restTo" => "deck", "order" => %w[a-2], "effect" => { "source" => "x", "event" => "on_enter_field", "entering" => "x", "follow" => "sort" } })
+    assert_equal %w[a-2 a-3 a-1 a-4 a-5], @table.zone_uids("a", "deck")
+  end
+
+  def test_combat_stasis_takes_a_number_too
+    stasis_field
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "a-1", "to" => "rf", "kind" => "attack", "seat" => "a", "order" => 1 } })
+    @table.apply({ "t" => "declare", "declaration" => { "from" => "b-1", "to" => "a-1", "kind" => "block", "seat" => "b", "order" => 0 } })
+    @table.apply({ "t" => "resolve", "seat" => "a", "battles" => [
+                   { "attacker" => "a-1", "blocker" => "b-1", "kind" => "block", "attackerDies" => false, "blockerDies" => false, "blockerStasis" => true, "damage" => 0 },
+                 ] })
+    assert @table.card("b-1")[:stasis]
+    assert_equal 1, @table.card("b-1")[:stasis_at]
+    assert_equal 0, @table.stasis_inflicted("a"), "il combattimento non conta per il Nexus"
+  end
+
+  def test_ability_untaps_grants_with_a_deadline_and_freezes
+    stasis_field
+    @table.apply({ "t" => "tap", "uid" => "a-1", "tapped" => true, "stasis" => true })
+    @table.apply({ "t" => "ability", "uid" => "a-2", "ability" => "wake", "cost" => 4, "targets" => ["a-1"], "untap" => true })
+    refute @table.card("a-1")[:tapped]
+    refute @table.card("a-1")[:stasis]
+    assert_equal 16, @table.hp("a")
+    @table.apply({ "t" => "ability", "uid" => "a-2", "ability" => "hold", "gain" => 2, "targets" => ["a-1"], "grants" => ["stasis"], "until" => "controller_next_turn" })
+    assert_equal ["stasis"], @table.card("a-1")[:grants]
+    assert_equal "a", @table.card("a-1")[:grants_until]
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_equal ["stasis"], @table.card("a-1")[:grants], "«fino al tuo prossimo turno»: il turno altrui non la toglie"
+    @table.apply({ "t" => "turn", "turn" => 3, "active" => "a" })
+    assert_nil @table.card("a-1")[:grants], "al proprio turno cade"
+    assert_nil @table.card("a-1")[:grants_until]
+    @table.apply({ "t" => "ability", "uid" => "a-2", "ability" => "vigil-hold", "gain" => 2, "targets" => ["a-1"], "grants" => ["stasis"], "until" => "permanent" })
+    assert_equal "game", @table.card("a-1")[:grants_until]
+    @table.apply({ "t" => "turn", "turn" => 4, "active" => "b" })
+    @table.apply({ "t" => "turn", "turn" => 5, "active" => "a" })
+    assert_equal ["stasis"], @table.card("a-1")[:grants], "«per sempre»: nessun turno la toglie"
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "ritiro" })
+    assert_nil @table.card("a-1")[:grants], "ma chi esce dal campo la lascia lì"
+    assert_nil @table.card("a-1")[:grants_until]
+    @table.apply({ "t" => "ability", "uid" => "a-2", "ability" => "vigil-seal", "cost" => 7, "targets" => %w[b-1 b-2], "stasis" => true })
+    assert @table.card("b-1")[:stasis]
+    assert @table.card("b-2")[:stasis]
+    assert_equal 2, @table.stasis_inflicted("a")
+  end
+
+  def test_timed_exile_counts_the_controllers_turns_and_waits_for_the_die
+    stasis_field
+    @table.apply({ "t" => "assign", "uid" => "b-2", "to" => "b-1" })
+    @table.apply({ "t" => "toZone", "uid" => "b-1", "zone" => "ritiro", "exile" => { "turns" => 3 }, "effect" => { "source" => "a-1", "event" => "on_resolve", "entering" => "a-1" } })
+    assert_equal({ seat: "b", remaining: 3, source: "a-1" }, @table.card("b-1")[:exile])
+    assert_equal "ritiro", @table.card("b-2")[:zone], "gli Oggetti seguono l'Entità in Ritiro (§6.2)"
+    assert_nil @table.card("b-2")[:exile], "l'Oggetto non è esiliato"
+    @table.apply({ "t" => "turn", "turn" => 2, "active" => "b" })
+    assert_equal 3, @table.card("b-1")[:exile][:remaining], "il turno chiuso da A non conta"
+    @table.apply({ "t" => "turn", "turn" => 3, "active" => "a" })
+    assert_equal 2, @table.card("b-1")[:exile][:remaining], "il primo turno di B è passato"
+    assert_empty @table.exiles_due("b")
+    @table.apply({ "t" => "turn", "turn" => 4, "active" => "b" })
+    @table.apply({ "t" => "turn", "turn" => 5, "active" => "a" })
+    assert_equal 1, @table.card("b-1")[:exile][:remaining]
+    @table.apply({ "t" => "turn", "turn" => 6, "active" => "b" })
+    assert_equal ["b-1"], @table.exiles_due("b"), "al terzo turno di B il d12 è dovuto"
+    assert_empty @table.exiles_due("a")
+    @table.apply({ "t" => "toZone", "uid" => "b-1", "zone" => "field", "y" => 172 })
+    assert_nil @table.card("b-1")[:exile], "il ritorno chiude l'esilio"
+    refute @table.card("b-1")[:tapped]
+    @table.apply({ "t" => "toZone", "uid" => "b-1", "zone" => "ritiro" })
+    assert_nil @table.card("b-1")[:exile], "un Ritiro senza esilio non ne apre uno"
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "ritiro", "exile" => { "turns" => 3 } })
+    @table.apply({ "t" => "toZone", "uid" => "a-1", "zone" => "abisso" })
+    assert_nil @table.card("a-1")[:exile], "ogni altra uscita dal Ritiro chiude l'esilio"
+  end
+
+  def test_flip_can_cost_an_object_to_retire
+    stasis_field
+    @table.apply({ "t" => "assign", "uid" => "a-2", "to" => "a-1" })
+    @table.apply({ "t" => "flip", "uid" => "a-1", "face" => 1, "retire" => "a-2", "recover" => 5 })
+    assert_equal "ritiro", @table.card("a-2")[:zone]
+    assert_nil @table.card("a-2")[:assigned_to]
+    assert_equal 1, @table.card("a-1")[:face]
+  end
+
+  def test_snapshot_and_dump_carry_stasis_grants_and_exile
+    @table.load({
+      "turn" => 4, "active" => "b", "phase" => "preparazione", "stasisSeq" => 3,
+      "players" => { "a" => { "hp" => 20, "stasisInflicted" => 2 }, "b" => { "hp" => 20 } },
+      "cards" => {
+        "a-1" => { "owner" => "a", "zone" => "field", "stasis" => true, "stasisAt" => 3, "grantsUntil" => "game", "grants" => ["stasis"] },
+        "b-1" => { "owner" => "b", "zone" => "ritiro", "exile" => { "seat" => "b", "remaining" => 1, "source" => "m" } },
+        "b-2" => { "owner" => "b", "zone" => "field", "grantsUntil" => "nope", "exile" => { "seat" => "c" } },
+      },
+    })
+    assert_equal 3, @table.stasis_seq
+    assert_equal 2, @table.stasis_inflicted("a")
+    assert_equal 3, @table.card("a-1")[:stasis_at]
+    assert_equal "game", @table.card("a-1")[:grants_until]
+    assert_equal({ seat: "b", remaining: 1, source: "m" }, @table.card("b-1")[:exile])
+    assert_nil @table.card("b-2")[:grants_until], "una scadenza ignota non si prende"
+    assert_nil @table.card("b-2")[:exile]
+    assert_equal ["b-1"], @table.exiles_due("b")
+    dump = @table.dump
+    assert_equal 3, dump["stasisSeq"]
+    assert_equal 2, dump["players"]["a"]["stasisInflicted"]
+    a1 = dump["cards"].find { |card| card["uid"] == "a-1" }
+    assert_equal 3, a1["stasisAt"]
+    assert_equal "game", a1["grantsUntil"]
+    b1 = dump["cards"].find { |card| card["uid"] == "b-1" }
+    assert_equal({ "seat" => "b", "remaining" => 1, "source" => "m" }, b1["exile"])
+  end
 end

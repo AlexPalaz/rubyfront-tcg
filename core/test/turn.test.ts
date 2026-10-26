@@ -142,6 +142,26 @@ describe("endTurn", () => {
     expect(sent).toEqual([{ t: "turn", turn: 2, active: "b" }]);
   });
 
+  // §8.2 (dal 2026-10-22) — l'esilio a tempo scaduto: il turno aspetta il d12 (resolveExiles), poi si chiude.
+  it("con un esilio a tempo scaduto il turno aspetta il gancio resolveExiles, e si chiude dopo", async () => {
+    const state = newGame("a");
+    for (const seat of ["a", "b"] as const) {
+      state.cards[`d${seat}`] = { uid: `d${seat}`, cardId: "X", owner: seat, zone: "deck", face: 0, x: 0, y: 0, z: 0, order: 0, tapped: false, facedown: false };
+    }
+    state.cards.v = { uid: "v", cardId: "X", owner: "a", zone: "ritiro", face: 0, x: 0, y: 0, z: 0, order: 0, tapped: false, facedown: false, exile: { seat: "a", remaining: 1, source: "m" } };
+    const { ctx, sent, logs } = fakeCtx(() => true, state);
+    await endTurn(ctx);
+    expect(sent).toHaveLength(0);
+    expect(logs.some(line => line.includes("d12"))).toBe(true);
+    const asked: string[] = [];
+    ctx.resolveExiles = async () => {
+      asked.push("exiles");
+      delete state.cards.v.exile;
+    };
+    await endTurn(ctx);
+    expect(asked).toEqual(["exiles"]);
+    expect(sent).toEqual([{ t: "turn", turn: 2, active: "b" }]);
+  });
 });
 
 // «Fine fase» (HUD con l'arbitro): un gesto solo che chiude la fase in

@@ -109,12 +109,18 @@ export interface SessionView {
   /** §8.2 — all'inizio del turno di chi comanda qui: le ricerche a inizio turno (dal 2026-09-17). */
   offerTurnStart(after: GameState, owners: Seat[]): void;
   offerLeaveReturns(before: GameState, after: GameState, owners: Seat[]): void;
+  /** §8.2 — «ogni volta che un'Entità entra in Stasi, guadagni N PV» (dal 2026-10-22): per chi comanda il Rubyfront qui. */
+  offerStasisHeals(before: GameState, after: GameState, owners: Seat[]): void;
+  /** «Ogni volta che un'Entità viene tappata, guadagni N PV» (§8.2, dal 2026-10-23): chi comanda qui la fonte guadagna i PV. */
+  offerTapHeals(before: GameState, after: GameState, owners: Seat[]): void;
   offerAssignTriggers(before: GameState, after: GameState, owners: Seat[]): void;
   offerDeathRemains(before: GameState, after: GameState, owners: Seat[]): void;
   /** §8.2 — chi è rientrata sul Fronte dal Ritiro o dall'Abisso fra i due stati (la fine di un esilio): la sua scena d'ingresso (dal 2026-09-15). */
   offerReturned(before: GameState, after: GameState, owners: Seat[]): void;
   /** §6.3 — alla chiusura del Fronte: i «quando attacca» dell'ondata, con le loro scene (2026-09-15). */
   resolveAttacks(): Promise<void>;
+  /** §8.2 — alla chiusura del turno: gli esili a tempo scaduti di chi è di turno, col d12 (dal 2026-10-22). */
+  resolveExiles(): Promise<void>;
   /** L'avversario ha premuto «Risolvi» sulla sua scena (la stretta di mano, 2026-09-15): se qui quella scena non c'è ancora, si apre. */
   ready(action: Extract<Action, { t: "ready" }>): void;
   /** Il tavolo è fermo: nessuna scena, nessun dado, nessuna mira, nessun effetto in corso. */
@@ -395,6 +401,10 @@ export function createSession(options: SessionOptions): Session {
     // §8.2 — il ritorno vincolato: chi è appena uscita dal campo senza
     // Oggetti può tornare, e lo decide il proprietario — io, o il bot.
     if (action.t !== "revive") view.offerLeaveReturns(before, state, deciders);
+    // §8.2 — «ogni volta che un'Entità entra in Stasi»: chi comanda qui un Rubyfront che lo dice guadagna i PV (dal 2026-10-22).
+    if (!(action.t === "player" && action.effect?.event === "on_enter_stasis")) view.offerStasisHeals(before, state, deciders);
+    // §8.2 — «ogni volta che un'Entità viene tappata»: chi comanda qui la fonte che lo dice guadagna i PV (dal 2026-10-23).
+    if (!(action.t === "player" && action.effect?.event === "on_tap")) view.offerTapHeals(before, state, deciders);
     // §8.2 — «all'inizio di ogni tuo turno»: il cambio di turno è passato, chi comanda il posto nuovo risolve le sue ricerche.
     if (action.t === "turn") view.offerTurnStart(state, deciders);
     // §3.1 — «quando assegni questa carta a un'Entità»: l'Oggetto appena
@@ -455,6 +465,10 @@ export function createSession(options: SessionOptions): Session {
     // §8.2 — una mia carta uscita dal campo per mano dell'avversario (la sua
     // risoluzione, un suo effetto): il ritorno vincolato lo offro io.
     if (action.t !== "revive") view.offerLeaveReturns(before, state, [mySeat]);
+    // §8.2 — un'Entità entrata in Stasi per mano dell'avversario: il mio Rubyfront guadagna i PV (dal 2026-10-22).
+    if (!(action.t === "player" && action.effect?.event === "on_enter_stasis")) view.offerStasisHeals(before, state, [mySeat]);
+    // §8.2 — un'Entità tappata per mano dell'avversario: le mie fonti che ascoltano la tappata (dal 2026-10-23).
+    if (!(action.t === "player" && action.effect?.event === "on_tap")) view.offerTapHeals(before, state, [mySeat]);
     // §8.2 — l'avversario ha chiuso il suo turno: se il turno nuovo è mio, le mie ricerche a inizio turno.
     if (action.t === "turn") view.offerTurnStart(state, [mySeat]);
     if (action.t !== "remain") view.offerDeathRemains(before, state, [mySeat]);
@@ -567,6 +581,7 @@ export function createSession(options: SessionOptions): Session {
     sync,
     acknowledge,
     resolveAttacks: () => view.resolveAttacks(),
+    resolveExiles: () => view.resolveExiles(),
     card: factsOf,
     log(text, seat) {
       // Una chiave viaggia come tale (chi legge la rende nella sua lingua);

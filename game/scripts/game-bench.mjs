@@ -14,7 +14,7 @@ import { createServer } from "vite";
 const GAME = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ROOT = resolve(GAME, "..");
 
-export async function openGame({ seed = 7, table = null } = {}) {
+export async function openGame({ seed = 7, table = null, query = "" } = {}) {
   let engine = null;
   if (!table) {
     engine = spawn("ruby", ["engine/bin/server"], { cwd: ROOT, env: { ...process.env, RUBYFRONT_SEED: String(seed) }, stdio: ["ignore", "pipe", "pipe"] });
@@ -68,7 +68,7 @@ export async function openGame({ seed = 7, table = null } = {}) {
       }
     });
   });
-  await page.goto(`${server.resolvedUrls.local[0]}?match=bot${table ? `&engine=${encodeURIComponent(table)}` : ""}`);
+  await page.goto(`${server.resolvedUrls.local[0]}?match=bot${query}${table ? `&engine=${encodeURIComponent(table)}` : ""}`);
   await page.waitForFunction(() => Boolean(window.__rubyfront?.match), null, { timeout: 60_000 });
   return {
     page,

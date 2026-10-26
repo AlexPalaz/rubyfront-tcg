@@ -408,6 +408,27 @@ export function chooseAbility(state: GameState, seat: Seat, facts: Facts, memory
         .map(card => facts(card.cardId).fluxCost ?? 0);
       if (costs.length === 0) continue;
       worth = Math.max(...costs) + form.grants.length + (form.bonus?.amount ?? 0);
+    } else if (form.kind === "untap") {
+      // «Stappa un'Entità che controlli» (dal 2026-10-22): vale se ne ha una
+      // ferma — in Stasi vale di più, perché da sola non si stapperebbe mai.
+      const stuck = fieldCards(state).filter(card => {
+        const f = facts(card.cardId);
+        return controllerOf(card) === seat && card.tapped && f.kind === "entity" && (form.race === null || f.race === form.race);
+      });
+      if (stuck.length === 0) continue;
+      worth = (stuck.some(card => card.stasis) ? 2 : 1) + (form.power ?? 0) / 2;
+    } else if (form.kind === "grant") {
+      // «Ottiene Stasi fino al tuo prossimo turno»: un blocco che non muore,
+      // se c'è un'Entità propria senza la parola chiave.
+      const bare = fieldCards(state).filter(card => controllerOf(card) === seat && facts(card.cardId).kind === "entity" && !facts(card.cardId).keywords.some(keyword => form.grants.includes(keyword)) && !(card.grants ?? []).some(keyword => form.grants.includes(keyword)));
+      if (bare.length === 0) continue;
+      worth = 1;
+    } else if (form.kind === "freeze") {
+      // «Metti fino a N Entità avversarie in Stasi»: ogni avversaria pronta
+      // fermata per sempre vale due.
+      const ready = fieldCards(state).filter(card => controllerOf(card) === foe && facts(card.cardId).kind === "entity" && !card.stasis && !facts(card.cardId).staticForms.some(s => s.kind === "never_taps"));
+      if (ready.length === 0) continue;
+      worth = Math.min(ready.length, form.max) * 2;
     } else {
       // Il potenziamento fino a fine turno: a ondata dichiarata (in Fronte),
       // sulle Entità che attaccano — le altre non ne fanno nulla.

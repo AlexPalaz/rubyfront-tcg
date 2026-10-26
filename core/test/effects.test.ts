@@ -5,6 +5,7 @@ import { renderLog } from "../src/log.js";
 import { describe, expect, it } from "vitest";
 import type { CardFacts, Ctx } from "../src/ctx.js";
 import { FRONT_SLOT_X, backRowY, frontRowY } from "../src/geometry.js";
+import { hasKeyword } from "../src/combat.js";
 import {
   bestObjectCost,
   describeStash,
@@ -76,6 +77,17 @@ import {
   wornObjects,
   enterTaps,
   enterEmpowers,
+  enterFreezes,
+  enterWakes,
+  describeFreeze,
+  describeWake,
+  resolveFreeze,
+  resolveWake,
+  freezable,
+  stasisHeals,
+  resolveStasisHeal,
+  exileReturns,
+  exileReturnRef,
   enterPeeks,
   enteredThisTurn,
   firstAttackerOf,
@@ -85,8 +97,7 @@ import {
   describePeek,
   resolvePeek,
   resolveTap,
-  resolveEnterEmpower,
-} from "../src/effects.js";
+  resolveEnterEmpower, enterSorts, describeSort, resolveSort, enterTallies, describeTally, resolveTally, tapHeals, describeTapHeal, resolveTapHeal, resolveTrigger } from "../src/effects.js";
 import { apply, newGame, zoneCards } from "../src/state.js";
 import type { Action, CardInstance, GameState, Seat } from "../src/types.js";
 
@@ -187,6 +198,29 @@ const FACTS: Record<string, Partial<CardFacts>> = {
   MUSTER: { kind: "matter", behavior: "static", fluxCost: 2, enterPeeks: [{ enteringRace: "human", count: 1, mayBottom: true }],
     enterListeners: [{ enteringRace: "human", requires: null, requiresEntered: { count: 2, race: "human" }, draw: 1 }] },
   WEAKLING: { kind: "entity", race: "auros", power: 1, fluxCost: 1 },
+  // Le forme dello starter Auros (dal 2026-10-22).
+  FREEZER: { kind: "entity", race: "auros", power: 1, fluxCost: 3, enterFreezes: [{ targets: "opposing_entity", count: 1, maxCost: null }] },
+  DOUBLEFREEZE: { kind: "entity", race: "auros", power: 6, fluxCost: 6, enterFreezes: [{ targets: "opposing_entity", count: 2, maxCost: 3 }] },
+  WAKER: { kind: "entity", race: "auros", power: 3, fluxCost: 3, enterWakes: [{ targets: "own_entity", inState: "stasis", optional: true }] },
+  STEADY: { kind: "entity", race: "auros", power: 2, fluxCost: 2, staticForms: [{ kind: "never_taps" }] },
+  HEAVY: { kind: "entity", race: "auros", power: 5, fluxCost: 5 },
+  ROUSER: { kind: "object", fluxCost: 3, staticForms: [{ kind: "bearer_power", amount: 2 }], assignForms: [{ kind: "wake", ifState: "stasis", toSelf: true }] },
+  CHILL: { kind: "matter", behavior: "normal", fluxCost: 2, resolveForms: [{ kind: "freeze", target: { kind: "entity", controller: "opponent", maxCost: null }, count: 1 }] },
+  BRACE: { kind: "matter", behavior: "reactive", fluxCost: 2, resolveForms: [{ kind: "empower", targets: "own_entity", race: null, power: 2, untap: false }] },
+  QUEST: { kind: "matter", behavior: "normal", fluxCost: 4, resolveForms: [{ kind: "search_objects", upTo: 2, type: "object", elseTo: "hand", thenRoll: { die: 6, atLeast: 3, from: "ritiro" }, shuffle: true }] },
+  UNDERTOW: { kind: "matter", behavior: "normal", fluxCost: 4, resolveForms: [{ kind: "exile_timed", target: { kind: "entity", controller: "opponent" }, to: "ritiro", turns: 3, die: 12, returnAtLeast: 8, elseTo: "abisso" }] },
+  // Le forme della scheda riletta il 2026-10-23.
+  GLANCER: { kind: "entity", race: "auros", power: 1, fluxCost: 1, keywords: ["stasis"], enterPeeks: [{ enteringRace: null, count: 1, mayBottom: true, self: true }] },
+  TIDEKEEPER: { kind: "entity", race: "auros", power: 2, fluxCost: 2, enterListeners: [{ enteringRace: null, requires: null, draw: 0, heal: 1 }] },
+  TIDEKEEPER_SELF: { kind: "entity", race: "auros", power: 2, fluxCost: 2, enterListeners: [{ enteringRace: null, requires: null, draw: 0, heal: 1, self: true }] },
+  SOUNDER: { kind: "entity", race: "auros", power: 1, fluxCost: 2, keywords: ["stasis"], enterSorts: [{ count: 3 }] },
+  BULWARK: { kind: "entity", race: "auros", power: 3, fluxCost: 4, staticForms: [{ kind: "grant_all", grants: ["stasis"] }], tapListeners: [{ scope: "controlled", amount: 1, die: null, atLeast: null }] },
+  TALLYMAN: { kind: "entity", race: "auros", power: 5, fluxCost: 6, enterFreezes: [{ targets: "opposing_entity", count: 2, maxCost: 3, thenHealPerTapped: 1 }] },
+  VESSEL: { kind: "object", fluxCost: 1, staticForms: [{ kind: "bearer_power", amount: 1 }], tapListeners: [{ scope: "bearer", amount: 1, die: 6, atLeast: 4 }] },
+  SENTENCE: { kind: "matter", behavior: "normal", fluxDie: "d6", resolveForms: [{ kind: "sentence", target: { kind: "entity", controller: "opponent" }, die: 6, to: "abisso", elsePower: -2 }] },
+  SALVAGE: { kind: "matter", behavior: "normal", fluxCost: 2, resolveForms: [{ kind: "search_objects", upTo: 1, type: "object", maxCost: 3, to: "ritiro", elseTo: null, thenRoll: { die: 6, atLeast: 3, from: "ritiro" }, shuffle: true }] },
+  VIGIL: { kind: "rubyfront", stasisListeners: [{ face: 0, amount: 1, any: true }, { face: 1, amount: 2, any: true }],
+    nexus: { face: 1, conditions: [{ count: 2, kind: "entity", race: null, inflicted: true }], discard: null, retire: { count: 1, kind: "object" }, recovery: 5 } },
 };
 const facts = (cardId: string): CardFacts => ({
   name: cardId,
@@ -203,7 +237,7 @@ const facts = (cardId: string): CardFacts => ({
   enterReturns: [],
   enterLooks: [],
   enterControls: [],
-  enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [],
+  enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [], enterFreezes: [], enterWakes: [], stasisListeners: [], tapListeners: [], enterSorts: [],
   enterDisarms: [],
   enterRearms: [],
   enterStashes: [],
@@ -1670,5 +1704,293 @@ describe("le forme dello starter Umani", () => {
     h.zone = "hand";
     const check = nexusCheck(state, rf, facts);
     expect(check.ok && check.discards.map(c => c.uid)).toEqual(["h"]);
+  });
+});
+
+// Le forme dello starter Auros (dal 2026-10-22). Gemello: engine_test.rb, sezione «Le forme dello starter Auros».
+describe("le forme dello starter Auros", () => {
+  const fakeCtx = (state: GameState, sent: Action[]): Ctx =>
+    ({ state: () => state, dispatch: async (action: Action) => { sent.push(action); return true; }, log: () => undefined, card: facts } as unknown as Ctx);
+
+  it("la Stasi all'ingresso: le avversarie che possono entrarci, entro il costo; mai le proprie, le già ferme, chi non si tappa mai", async () => {
+    const state = newGame();
+    const f = on(state, "f", "FREEZER");
+    on(state, "u", "HUMAN");
+    on(state, "v", "WEAKLING", "b");
+    on(state, "s", "STEADY", "b");
+    const z = on(state, "z", "AUROS", "b");
+    z.stasis = true;
+    z.tapped = true;
+    on(state, "h", "HEAVY", "b");
+    const [step] = enterFreezes(state, f, facts);
+    expect(step.candidates.map(c => c.uid)).toEqual(["v", "h"]);
+    expect(describeFreeze(step, facts)).toContain("in Stasi");
+    expect(freezable(state.cards.s, facts)).toBe(false);
+    const d = on(state, "d", "DOUBLEFREEZE");
+    const [two] = enterFreezes(state, d, facts);
+    expect(two.candidates.map(c => c.uid)).toEqual(["v"], "con costo 3 o inferiore: il 5 resta fuori");
+    expect(describeFreeze(two, facts)).toContain("2 Entità");
+    const sent: Action[] = [];
+    expect(await resolveFreeze(fakeCtx(state, sent), step, state.cards.v)).toBe(true);
+    expect(sent).toEqual([{ t: "tap", uid: "v", tapped: true, stasis: true, effect: { source: "f", event: "on_enter_field", entering: "f" } }]);
+  });
+
+  it("togliere dalla Stasi all'ingresso: solo le proprie in Stasi, con un empower che stappa", async () => {
+    const state = newGame();
+    const w = on(state, "w", "WAKER");
+    const z = on(state, "z", "AUROS");
+    z.stasis = true;
+    z.tapped = true;
+    const u = on(state, "u", "AUROS");
+    u.tapped = true;
+    const v = on(state, "v", "HUMAN", "b");
+    v.stasis = true;
+    const [step] = enterWakes(state, w, facts);
+    expect(step.candidates.map(c => c.uid)).toEqual(["z"]);
+    expect(describeWake(step, facts)).toContain("togliere dalla Stasi");
+    const sent: Action[] = [];
+    await resolveWake(fakeCtx(state, sent), step, z);
+    expect(sent).toEqual([{ t: "empower", uid: "z", untap: true, effect: { source: "w", event: "on_enter_field", entering: "w" } }]);
+  });
+
+  it("l'Oggetto che sveglia il portatore: un passo d'assegnazione solo se chi lo riceve era in Stasi", () => {
+    const before = newGame();
+    const z = on(before, "z", "AUROS");
+    z.stasis = true;
+    z.tapped = true;
+    on(before, "u", "AUROS");
+    const after = structuredClone(before);
+    on(after, "o", "ROUSER").assignedTo = "z";
+    const steps = assignSteps(before, after, facts);
+    expect(steps.map(step => [step.source.uid, step.bearer.uid, step.form.kind])).toEqual([["o", "z", "wake"]]);
+    expect(assignRef(steps[0])).toEqual({ source: "o", event: "on_assign_object", entering: "z" });
+    const bare = structuredClone(before);
+    on(bare, "o2", "ROUSER").assignedTo = "u";
+    expect(assignSteps(before, bare, facts)).toEqual([]);
+  });
+
+  it("la Materia che mette in Stasi e il buff secco della Reattiva", () => {
+    const state = newGame();
+    const m = on(state, "m", "CHILL");
+    on(state, "u", "HUMAN");
+    on(state, "v", "HUMAN", "b");
+    const frozen = on(state, "z", "AUROS", "b");
+    frozen.stasis = true;
+    const [chill] = resolveSteps(state, m, facts);
+    expect(chill.candidates.map(c => c.uid)).toEqual(["v"]);
+    expect(describeResolveStep(chill, facts)).toContain("Stasi");
+    state.fired = ["m|on_resolve:freeze:v|m"];
+    expect(pendingResolve(state, m, facts)).toEqual([]);
+    const b = on(state, "b", "BRACE");
+    const [brace] = resolveSteps(state, b, facts);
+    expect(brace.candidates.map(c => c.uid)).toEqual(["u"]);
+    expect(describeResolveStep(brace, facts)).toContain("+2");
+  });
+
+  it("la ricerca di Oggetti: gli Oggetti del mazzo finché i passi non sono due, poi il dado del riarmo se c'è chi armare", () => {
+    const state = newGame();
+    const q = on(state, "q", "QUEST");
+    on(state, "u", "HUMAN");
+    for (const [uid, id] of [["o1", "PRISM"], ["o2", "PRISM"], ["x", "HUMAN"]] as const) {
+      state.cards[uid] = { uid, cardId: id, owner: "a", zone: "deck", face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 0 };
+    }
+    const [step] = resolveSteps(state, q, facts);
+    expect(step.candidates.map(c => c.uid)).toEqual(["o1", "o2"]);
+    expect(describeResolveStep(step, facts)).toContain("2 Oggetti");
+    state.fired = ["q|on_resolve:search:o1|q", "q|on_resolve:search:o2|q"];
+    expect(resolveSteps(state, q, facts)[0].candidates).toEqual([]);
+    expect(pendingResolve(state, q, facts)).toHaveLength(1);
+    state.rolls = { "effect|q|on_resolve|q|rearm": { die: 6, value: 2 } };
+    expect(pendingResolve(state, q, facts)).toEqual([]);
+    const bare = newGame();
+    const q2 = on(bare, "q2", "QUEST");
+    expect(resolveSteps(bare, q2, facts)[0].blocked).toBe("log.search.none");
+  });
+
+  it("l'esilio a tempo: la mira fra le avversarie, e la fine quando scade", () => {
+    const state = newGame();
+    const m = on(state, "m", "UNDERTOW");
+    on(state, "u", "HUMAN");
+    on(state, "v", "HUMAN", "b");
+    const [step] = resolveSteps(state, m, facts);
+    expect(step.candidates.map(c => c.uid)).toEqual(["v"]);
+    expect(describeResolveStep(step, facts)).toContain("3 turni");
+    const later = newGame("b");
+    const matter = { uid: "m", cardId: "UNDERTOW", owner: "a" as Seat, zone: "abisso" as const, face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 0 };
+    later.cards.m = matter;
+    later.cards.v = { uid: "v", cardId: "HUMAN", owner: "b", zone: "ritiro", face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 0, exile: { seat: "b", remaining: 1, source: "m" } };
+    later.cards.w = { uid: "w", cardId: "HUMAN", owner: "b", zone: "ritiro", face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 0, exile: { seat: "b", remaining: 2, source: "m" } };
+    const due = exileReturns(later, "b", facts);
+    expect(due.map(entry => entry.card.uid)).toEqual(["v"]);
+    expect(due[0].form.die).toBe(12);
+    expect(exileReturnRef(due[0])).toEqual({ source: "m", event: "on_exile_end", entering: "v" });
+    expect(exileReturns(later, "a", facts)).toEqual([]);
+  });
+
+  it("«ogni volta che un'Entità entra in Stasi»: il Rubyfront schierato della faccia in vista, una volta per ingresso", async () => {
+    const before = newGame();
+    const rf = deploy(before, "rf", "VIGIL");
+    const v = on(before, "v", "HUMAN", "b");
+    const after = structuredClone(before);
+    after.cards.v = { ...v, stasis: true, tapped: true, stasisAt: 1 };
+    after.stasisSeq = 1;
+    const steps = stasisHeals(before, after, facts);
+    expect(steps.map(step => [step.source.uid, step.target.uid, step.amount])).toEqual([["rf", "v", 1]]);
+    after.fired = ["rf|on_enter_stasis|v@1"];
+    expect(stasisHeals(before, after, facts)).toEqual([]);
+    after.fired = [];
+    after.cards.rf = { ...rf, face: 1 };
+    expect(stasisHeals(before, after, facts)[0].amount).toBe(2);
+    after.cards.rf = { ...rf, y: 0 };
+    expect(stasisHeals(before, after, facts)).toEqual([], "in Zona di Richiamo non ascolta");
+    const sent: Action[] = [];
+    after.cards.rf = rf;
+    after.players.a.hp = 10;
+    await resolveStasisHeal(fakeCtx(after, sent), steps[0]);
+    expect(sent).toEqual([{ t: "player", seat: "a", patch: { hp: 11 }, effect: { source: "rf", event: "on_enter_stasis", entering: "v" } }]);
+  });
+
+  it("il Nexus a Oggetto: conta le Stasi inflitte dal tavolo e vuole un proprio Oggetto in campo", () => {
+    const state = newGame();
+    const rf = deploy(state, "rf", "VIGIL");
+    expect(nexusCheck(state, rf, facts)).toEqual({ ok: false, why: "log.nexus.few.inflicted", n: 2 });
+    state.players.a.stasisInflicted = 2;
+    expect(nexusCheck(state, rf, facts)).toEqual({ ok: false, why: "log.nexus.noobject" });
+    on(state, "u", "HUMAN");
+    const o = on(state, "o", "PRISM");
+    o.assignedTo = "u";
+    on(state, "ob", "PRISM", "b");
+    const check = nexusCheck(state, rf, facts);
+    expect(check.ok).toBe(true);
+    if (check.ok) expect(check.retires.map(c => c.uid)).toEqual(["o"]);
+  });
+});
+
+describe("le forme della scheda riletta il 2026-10-23", () => {
+  const fakeCtx = (state: GameState, sent: Action[]): Ctx =>
+    ({ state: () => state, dispatch: async (action: Action) => { sent.push(action); return true; }, log: () => undefined, card: facts } as unknown as Ctx);
+
+  it("lo sguardo in cima sull'ingresso proprio: la fonte è chi entra, la prima carta del suo mazzo", async () => {
+    const state = newGame();
+    const g = on(state, "g", "GLANCER");
+    const d1 = { ...on(state, "d1", "AUROS"), zone: "deck" as const, order: 0 };
+    state.cards.d1 = d1;
+    const steps = enterPeeks(state, g, facts);
+    expect(steps).toHaveLength(1);
+    expect(steps[0].source.uid).toBe("g");
+    expect(steps[0].top?.uid).toBe("d1");
+    const sent: Action[] = [];
+    expect(await resolvePeek(fakeCtx(state, sent), steps[0], false)).toBe(true);
+    expect(sent).toEqual([{ t: "look", seat: "a", count: 1, restTo: "deck", effect: { source: "g", event: "on_enter_field", entering: "g", follow: "peek" } }]);
+  });
+
+  it("«ogni volta che un'altra Entità entra sul tuo Fronte, guadagni 1 PV»: una patch dei PV, non una pesca", async () => {
+    const state = newGame();
+    on(state, "k", "TIDEKEEPER");
+    const t = on(state, "t", "AUROS");
+    const triggers = enterTriggers(state, t, facts);
+    expect(triggers).toEqual([{ source: state.cards.k, draw: 0, heal: 1 }]);
+    expect(describeTrigger(triggers[0], facts)).toContain("1 PV");
+    const sent: Action[] = [];
+    expect(await resolveTrigger(fakeCtx(state, sent), t, triggers[0])).toBe(true);
+    expect(sent).toEqual([{ t: "player", seat: "a", patch: { hp: 21 }, effect: { source: "k", event: "on_enter_field", entering: "t" } }]);
+    // Il proprio ingresso non si ascolta — salvo «compresa questa».
+    expect(enterTriggers(state, state.cards.k, facts)).toEqual([]);
+    const own = on(state, "s", "TIDEKEEPER_SELF");
+    expect(enterTriggers(state, own, facts).map(trigger => trigger.source.uid)).toEqual(["k", "s"]);
+  });
+
+  it("il riordino della cima: le prime N, un look con order", async () => {
+    const state = newGame();
+    const s = on(state, "s", "SOUNDER");
+    for (const [i, uid] of ["d1", "d2", "d3", "d4"].entries()) state.cards[uid] = { ...on(state, uid, "AUROS"), zone: "deck", order: i };
+    const [step] = enterSorts(state, s, facts);
+    expect(step.top.map(card => card.uid)).toEqual(["d1", "d2", "d3"]);
+    expect(describeSort(step, facts)).toContain("3");
+    const sent: Action[] = [];
+    expect(await resolveSort(fakeCtx(state, sent), step, [state.cards.d3, state.cards.d1, state.cards.d2])).toBe(true);
+    expect(sent).toEqual([{ t: "look", seat: "a", count: 3, restTo: "deck", order: ["d3", "d1", "d2"], effect: { source: "s", event: "on_enter_field", entering: "s", follow: "sort" } }]);
+  });
+
+  it("«poi guadagni 1 PV per ogni Entità avversaria tappata»: il conto di adesso, le appena fermate comprese", async () => {
+    const state = newGame();
+    const m = on(state, "m", "TALLYMAN");
+    const v1 = on(state, "v1", "HUMAN", "b");
+    v1.tapped = true;
+    v1.stasis = true;
+    on(state, "v2", "AUROS", "b");
+    const h = on(state, "h", "HEAVY", "b");
+    h.tapped = true;
+    const [step] = enterTallies(state, m, facts);
+    expect(step.tapped).toBe(2);
+    expect(step.amount).toBe(2);
+    expect(describeTally(step, facts)).toContain("per ogni");
+    const sent: Action[] = [];
+    expect(await resolveTally(fakeCtx(state, sent), step)).toBe(true);
+    expect(sent).toEqual([{ t: "player", seat: "a", patch: { hp: 22 }, effect: { source: "m", event: "on_enter_field", entering: "m", follow: "tally" } }]);
+    // Senza avversarie tappate non manda nulla.
+    const quiet = newGame();
+    const q = on(quiet, "q", "TALLYMAN");
+    on(quiet, "u", "AUROS", "b");
+    const none: Action[] = [];
+    expect(await resolveTally(fakeCtx(quiet, none), enterTallies(quiet, q, facts)[0])).toBe(false);
+    expect(none).toEqual([]);
+  });
+
+  it("la tappata ascoltata: l'Entità del posto per il muro, il portatore per il Vaso (col dado), una volta per tappata", async () => {
+    const before = newGame();
+    on(before, "w", "BULWARK");
+    const t = on(before, "t", "AUROS");
+    on(before, "o", "VESSEL").assignedTo = "t";
+    on(before, "v", "HUMAN", "b");
+    expect(tapHeals(before, before, facts)).toEqual([]);
+    const after = apply(before, { t: "tap", uid: "t", tapped: true });
+    const steps = tapHeals(before, after, facts);
+    expect(steps.map(step => [step.source.uid, step.target.uid, step.listener.scope])).toEqual([["w", "t", "controlled"], ["o", "t", "bearer"]]);
+    expect(describeTapHeal(steps[0], facts)).toContain("1 PV");
+    expect(describeTapHeal(steps[1], facts)).toContain("d6");
+    // L'avversaria tappata non è ascoltata da nessuno dei due.
+    const foe = apply(after, { t: "tap", uid: "v", tapped: true });
+    expect(tapHeals(after, foe, facts)).toEqual([]);
+    // Una tappata su una già tappata non è una tappata.
+    expect(tapHeals(after, apply(after, { t: "tap", uid: "t", tapped: true }), facts)).toEqual([]);
+    // La patch, col tiro dove serve; l'innesco consumato non si ripropone.
+    const sent: Action[] = [];
+    expect(await resolveTapHeal(fakeCtx(after, sent), steps[1], 5)).toBe(true);
+    expect(sent).toEqual([{ t: "player", seat: "a", patch: { hp: 21 }, roll: 5, effect: { source: "o", event: "on_tap", entering: "t" } }]);
+    const fired = apply(after, sent[0]);
+    expect(fired.fired).toContain(`o|on_tap|t@${after.cards.t.tapAt}`);
+    expect(tapHeals(before, fired, facts).map(step => step.source.uid)).toEqual(["w"]);
+  });
+
+  it("la sentenza e la ricerca in Ritiro come passi di risoluzione", () => {
+    const state = newGame();
+    const s = on(state, "s", "SENTENCE");
+    on(state, "t", "AUROS");
+    on(state, "h", "HEAVY", "b");
+    const [sentence] = resolveSteps(state, s, facts);
+    expect(sentence.form.kind).toBe("sentence");
+    expect(sentence.candidates.map(card => card.uid)).toEqual(["h"]);
+    expect(describeResolveStep(sentence, facts)).toContain("d6");
+    expect(pendingResolve(state, s, facts)).toHaveLength(1);
+    const q = on(state, "q", "SALVAGE");
+    state.cards.o1 = { ...on(state, "o1", "VESSEL"), zone: "deck", order: 0 };
+    state.cards.r = { ...on(state, "r", "ROUSER"), zone: "deck", order: 1 };
+    state.cards.h5 = { ...on(state, "h5", "HEAVY"), zone: "deck", order: 2 };
+    const [search] = resolveSteps(state, q, facts);
+    expect(search.form.kind).toBe("search_objects");
+    expect(search.candidates.map(card => card.uid)).toEqual(["o1", "r"], "gli Oggetti entro il costo 3");
+    expect(describeResolveStep(search, facts)).toContain("Ritiro");
+  });
+
+  it("«le Entità che controlli hanno Stasi»: la parola chiave concessa a tutte le proprie, non alle avversarie", () => {
+    const state = newGame();
+    on(state, "w", "BULWARK");
+    const t = on(state, "t", "AUROS");
+    const v = on(state, "v", "HUMAN", "b");
+    expect(hasKeyword(t, "stasis", facts, state)).toBe(true);
+    expect(hasKeyword(state.cards.w, "stasis", facts, state)).toBe(true);
+    expect(hasKeyword(v, "stasis", facts, state)).toBe(false);
+    expect(hasKeyword(t, "stasis", facts)).toBe(false);
   });
 });

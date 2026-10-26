@@ -1,0 +1,21 @@
+{
+  "name": "Vessel of Lost Echoes",
+  "typeLabel": "Object",
+  "summary": "+1 Power, and on every tap of the bearer a d6 that may give back 1 HP.",
+  "ui": {
+    "face": "Object"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux"
+  },
+  "face": {
+    "name": "Vessel of Lost Echoes",
+    "effect": {
+      "name": "Effect",
+      "text": "The Entity it is assigned to has +1 Power. Each time that Entity becomes tapped, roll a d6: on 4 or more you gain 1 HP."
+    },
+    "flavor": "Inside, the voice of whoever lost it still speaks."
+  }
+}

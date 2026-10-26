@@ -1,5 +1,5 @@
 {
-  "name": "Cristallo del Risveglio",
+  "name": "Cristallo delle Profondità",
   "typeLabel": "Oggetto",
   "summary": "Due Potenza, e risveglia chi era fermo in Stasi.",
   "ui": {
@@ -11,11 +11,11 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Cristallo del Risveglio",
+    "name": "Cristallo delle Profondità",
     "effect": {
       "name": "Effetto",
       "text": "L'Entità a cui è assegnato ha +2 Potenza. Se l'Entità a cui assegni questo Oggetto era in Stasi, toglila dalla Stasi."
     },
-    "flavor": "Una luce dentro la pietra. La pietra ricorda di essere viva."
+    "flavor": "Una luce dal fondo. Chi la vede si sveglia."
   }
 }

@@ -1,0 +1,29 @@
+{
+  "name": "Serramarea",
+  "typeLabel": "Materia Distruttiva I",
+  "summary": "Un'avversaria sparisce per tre turni; poi il d12 decide se torna.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "static": "Statica"
+    }
+  },
+  "face": {
+    "name": "Serramarea",
+    "effect": {
+      "name": "Effetto",
+      "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario per 3 turni. Al termine del suo terzo turno, il suo controllore lancia un d12: con 8 o più l'Entità torna sul suo Fronte; altrimenti va nell'Abisso."
+    },
+    "flavor": "La marea si chiude. Chi c'è dentro aspetta."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 1° grado",
+    "destructiveAria": "Distruttiva"
+  }
+}

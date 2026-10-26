@@ -730,7 +730,8 @@ function paintBox(ctx: CanvasRenderingContext2D, layoutBox: Box, box: Box, face:
   const measure = (f: number) => {
     const padTop = 0.55 * f + 9;
     const padX = 0.7 * f + 9;
-    const padBottom = (nexus ? 0.85 : 0.3) * f;
+    // Nexus e Rubyfront: l'aria sotto l'ultima riga, sopra il codice carta (card.css, 2026-10-23). Gemello: card.css, .textbox padding-bottom.
+    const padBottom = (nexus || face.kind === "rubyfront" ? 1.0 : 0.3) * f;
     const children = childNodes(face, f, layoutBox.w - 2 * padX, p, slabStyle);
     const content = children.reduce((sum, child, index) => sum + child.h + child.after + (index ? 0.34 * f : 0), 0);
     return { f, padTop, padX, padBottom, children, content };

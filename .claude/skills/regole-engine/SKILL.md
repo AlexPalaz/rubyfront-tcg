@@ -216,6 +216,53 @@ nei messaggi delle asserzioni non nomina le carte.
   ↔ `corpus_test.rb`): un campo nuovo della lavagna condiviso dai gemelli
   entra in `normalize.ts` E in `Table#dump`; i golden si riscrivono con
   `CORPUS_WRITE=1 npx vitest run test/corpus.test.ts` da `core/`.
+- **La Stasi per effetto** (dal 2026-10-22) passa da `tap {tapped, stasis:
+  true, effect}` (a mano è fermata): i gemelli la applicano con
+  `enter_stasis!`/`enterStasis`, che numera l'ingresso (`stasisAt`) e conta
+  le Stasi inflitte all'avversario (`stasisInflicted`, per il Nexus). Chi
+  giudica un bersaglio della Stasi usa `freeze_stopped` (campo, avversaria,
+  costo, non già in Stasi, non «non si tappa mai»); nel client `freezable`.
+  Nelle fixture dei test la Stasi si mette con `engine.observe` (`freeze!`):
+  `loadDeck` non legge `stasis`.
+- **«Ogni volta che un'Entità entra in Stasi»** ha la chiave dell'ingresso
+  (`on_enter_stasis|<uid>@<stasisAt>`): una stappata e una nuova Stasi
+  riaprono l'innesco. La sessione lo offre dopo ogni azione
+  (`offerStasisHeals`), mai dopo il PV stesso.
+- **L'esilio a tempo** vive sulla carta (`exile {seat, remaining, source}`):
+  il `turn` che chiude un turno di `seat` scala; a `remaining == 1` nel suo
+  turno `judge_turn` ferma il cambio di turno (`exiles_due`) finché il ritorno
+  (`on_exile_end`, col d12) non arriva — nel client `endTurn` chiama
+  `ctx.resolveExiles` prima dello scarto. Un `toZone` con `effect.event ==
+  "on_exile_end"` chiude l'esilio anche senza cambiare zona («resta in Ritiro»).
+- `DICE` è `[6, 12, 20]`: un dado nuovo entra lì (e nel rifiuto di `judge_roll`).
+- **La tappata numerata** (dal 2026-10-23): i gemelli danno `tap_at`/`tapAt`
+  (sequenza `tapSeq`) a ogni passaggio stappata→tappata — `tap!`/`tapCard`,
+  chiamati dal `tap` a mano e da `enter_stasis!`/`enterStasis` — mai a una
+  già tappata. «Ogni volta che viene tappata» ha la chiave
+  `on_tap|<uid>@<tapAt>`; il client la offre con `offerTapHeals` (session.ts,
+  dopo ogni azione tranne il PV stesso) e il gioco la cabla in match.ts.
+- I **PV sono a tetto** (`hpMax`, i PV stampati): nei test una cura su un
+  posto a 20 passa ma non si vede. Le scene di prova partono da `hp: 15`.
+- `auros_scene`/`starter_scene` pescano la carta del turno 3: la prima del
+  mazzo di A finisce in mano. Un riempitivo in cima, o si legge la cima con
+  `zone_uids` prima di asserire.
+- La **stappata a mano** è un silenzio (`no_rule`): nei test si `observe`,
+  non si asserisce `[:ok]`.
+- Un `look` con `order` (il riordino della cima) rimette le guardate in cima
+  nell'ordine dato, la prima sopra; le non elencate dopo, com'erano.
+- Un passo di risoluzione a due esiti (la sentenza del dado: `toZone` o
+  `empower`, mai entrambi) verifica PRIMA «già risolto» e poi il tiro: col
+  tiro del tavolo già speso, un secondo tiro dichiarato non è «lo tira il
+  tavolo» ma «già fatto».
+- **«Il tavolo non risponde» su localhost** (2026-10-23): il browser manda al
+  tavolo tutti i cookie di `localhost`, di ogni porta e di ogni progetto in
+  locale. Con la riga Cookie oltre i 2 KB l'handshake rispondeva 431 e il
+  client restava «offline». Ora `Handshake` salta la riga Cookie (il tavolo non
+  li legge) e il tetto dell'intestazione intera è 32 KB (anche nel proxy,
+  `scripts/server.mjs`). Non è un blocco di Chrome: era il tavolo.
+- Una forma d'abilità nuova entra in `ability_form` ↔ `abilityFormOf` E nel
+  `switch` del bot (`chooseAbility`): tsc lo pretende, perché i rami vecchi
+  leggono campi della forma `power`.
 
 ## Checklist finale
 

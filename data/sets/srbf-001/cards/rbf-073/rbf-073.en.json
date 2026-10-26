@@ -1,7 +1,7 @@
 {
   "name": "Dimensional Search",
-  "typeLabel": "Dimensional Matter I",
-  "summary": "It digs four cards and pulls out an Object.",
+  "typeLabel": "Dimensional Matter II",
+  "summary": "An Object from the deck to Retire; with the die, one from Retire onto your Entity, free.",
   "ui": {
     "face": "Matter"
   },
@@ -18,12 +18,12 @@
     "name": "Dimensional Search",
     "effect": {
       "name": "Effect",
-      "text": "Look at the top 4 cards of your deck. You may reveal an Object among them and add it to your hand. Put the rest on the bottom of your deck."
+      "text": "Search your deck for an Object with Flux cost 3 or less and put it into your Retire Zone, then shuffle your deck. Then roll a d6: on 3 or more you may assign an Object from your Retire Zone to an Entity you control without paying its Flux cost."
     },
     "flavor": "Everything lost is only misplaced."
   },
   "matters": {
-    "dimensionalTitle": "Dimensional Matter · 1st grade",
+    "dimensionalTitle": "Dimensional Matter · 2nd grade",
     "dimensionalAria": "Dimensional"
   }
 }

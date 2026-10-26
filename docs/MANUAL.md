@@ -469,6 +469,8 @@ An Entity in stasis is for all purposes *tapped* (not covered), and like every t
 
 Stasis protects **only in defence** (block or counterattack): an Entity with Stasis that dies **attacking** — against a stronger blocker or on a tie (§6.3) — dies normally.
 
+An effect can also **put** an Entity **into Stasis** ("Put an opposing Entity into Stasis"): it is the same state, tapped for good, with no need for the keyword or for a block. **Releasing** an Entity **from Stasis** means untapping it with an effect: from there it is a normal Entity again. An Entity already in Stasis doesn't enter it again, and an Entity that "never taps" doesn't enter it at all. *(Experimental rule, from 2026-10-22.)*
+
 ##### Revenge
 
 When an Entity with **Revenge** blocks and is **weaker** than the attacker (lower Power), it dies as in any block (§6.3) but **takes the attacker with it**: the attacker dies too. With equal or higher Power the normal block rule applies, which already kills the attacker: whoever is blocked by an Entity with Revenge, therefore, **always dies**.
@@ -486,6 +488,14 @@ For the rest, the Entity with Revenge follows the normal blocking rules: it is t
 #### Power changes
 
 Effects can raise or lower an Entity's Power. Power **never goes below 0**: any reduction past zero is ignored. An Entity at **Power 0 stays on the field** and follows the normal rules: if it attacks unblocked it deals 0 damage; in battle comparisons its value of 0 applies (a blocker at Power 0 dies against any attacker of higher Power, and so on).
+
+#### Timed exile
+
+An effect can send an opposing Entity **to the Retire Zone for a number of turns** ("for 3 turns"). The turns are counted **on the Entity's controller**: at the end of their third turn, before the excess discard (§6.5), they roll the die the card names and, with the result required, the Entity returns to their Front (untapped and without Objects, which went to the Retire Zone with it, §6.2) — with a full Front it may replace one of their Entities (§6.2) or stay in the Retire Zone; with a lower result it goes to the Abyss. Until the die is rolled the turn doesn't end. If meanwhile the Entity leaves the Retire Zone through another effect, the exile ends there. *(Experimental rule, from 2026-10-22.)*
+
+#### "Each time an Entity becomes tapped"
+
+Some effects listen for an Entity **becoming tapped** ("Each time an Entity you control becomes tapped, you gain 1 HP"; on an Object, "each time that Entity becomes tapped, roll a d6…"). **Every** passage from untapped to tapped counts, whatever the cause: the attack (§6.3), entering Stasis (§8.1), an effect that taps, or the hand. A card already tapped doesn't "become tapped" again until it untaps; every tap triggers the effect **once**. An effect that says "Entities you control have Stasis" grants the keyword to **all** Entities you control — the one that says it included — as long as it stays on the field. *(Experimental rules, from 2026-10-23.)*
 
 #### Resolution order of simultaneous effects
 

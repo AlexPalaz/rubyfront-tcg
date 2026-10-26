@@ -40,7 +40,8 @@
       "on_deal_damage",
       "on_assign_object",
       "on_draw_card",
-      "on_enter_stasis"
+      "on_enter_stasis",
+      "on_tap"
     ]
   },
   "effect": {

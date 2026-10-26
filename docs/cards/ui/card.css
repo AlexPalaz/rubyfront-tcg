@@ -161,12 +161,13 @@
   .textbox { position: relative; flex: 1 1 auto; min-height: 0; border: 1px solid var(--frame-dim); background: var(--panel);
     padding: .5em .7em; display: flex; flex-direction: column; gap: .34em;
     font-size: 1em; line-height: 1.34; overflow: hidden; }
-  .card:not(.nexus) .textbox { padding-bottom: .3em; }
-  /* Le facce Nexus sono le più dense (requisito + inno + tre abilità): senza
-     aria in più l'ultima riga finisce a filo della cornice, sopra il codice
-     carta. Il padding entra nella misura del fit, che riduce il corpo quanto
-     basta a lasciare il margine. */
-  .card.nexus .textbox { padding-bottom: .85em; }
+  .card:not(.nexus):not(.rubyfront) .textbox { padding-bottom: .3em; }
+  /* Le facce Nexus e Rubyfront sono le più dense (requisito + inno + due o
+     tre abilità): senza aria in più l'ultima riga finisce a filo della
+     cornice, sopra il codice carta (visto su Seyra, 2026-10-23). Il padding
+     entra nella misura del fit, che riduce il corpo quanto basta a lasciare
+     il margine. */
+  .card.nexus .textbox, .card.rubyfront .textbox { padding-bottom: 1em; }
   .fx, .ability { display: block; }
   .fx .tag { display: flex; align-items: center; gap: .8em;
     font-size: .85em; letter-spacing: .12em; text-transform: uppercase;

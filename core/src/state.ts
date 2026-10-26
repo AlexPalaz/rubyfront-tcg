@@ -56,6 +56,49 @@ export function newGame(active: Seat = "a"): GameState {
   };
 }
 
+/**
+ * L'ingresso in Stasi (§8.1): per la parola chiave in combattimento, per un
+ * effetto o per un'abilità — tappata per sempre, scoperta, e lo stato
+ * sostituisce la copertura. Ogni ingresso prende il suo numero di sequenza
+ * (`stasisAt`), e chi la infligge a un'Entità comandata dall'altro posto la
+ * conta per il Nexus (§3.1). Gemello: table.rb, enter_stasis!.
+ */
+function enterStasis(state: GameState, uid: string, sourceUid?: string): GameState {
+  const card = state.cards[uid];
+  if (!card) return state;
+  const tapped = card.tapped ? state : tapCard(state, uid);
+  const seq = (tapped.stasisSeq ?? 0) + 1;
+  const frozen: CardInstance = { ...tapped.cards[uid], stasis: true, tapped: true, facedown: false, stasisAt: seq };
+  delete frozen.coveredTurn;
+  const next: GameState = { ...tapped, stasisSeq: seq, cards: { ...tapped.cards, [uid]: frozen } };
+  const source = sourceUid ? state.cards[sourceUid] : undefined;
+  if (!source || controllerOf(source) === controllerOf(card)) return next;
+  const seat = controllerOf(source);
+  const player = next.players[seat];
+  return { ...next, players: { ...next.players, [seat]: { ...player, stasisInflicted: (player.stasisInflicted ?? 0) + 1 } } };
+}
+
+/**
+ * La tappata numerata (dal 2026-10-23): SOLO quando la carta passa da
+ * stappata a tappata — per attacco, per Stasi, per effetto o a mano — prende
+ * il numero della tappata (`tapAt`, dalla sequenza `tapSeq` del tavolo), così
+ * «ogni volta che un'Entità viene tappata» scatta una volta per tappata.
+ * Gemello: table.rb, tap!.
+ */
+function tapCard(state: GameState, uid: string): GameState {
+  const card = state.cards[uid];
+  if (!card) return state;
+  const seq = (state.tapSeq ?? 0) + 1;
+  return { ...state, tapSeq: seq, cards: { ...state.cards, [uid]: { ...card, tapped: true, tapAt: seq } } };
+}
+
+/** §8.2 — le carte in Zona di Ritiro il cui esilio a tempo scade col turno di
+    `seat`: l'ultimo turno è arrivato, il d12 si tira prima di chiuderlo.
+    Gemello: table.rb, exiles_due. */
+export function exilesDue(state: GameState, seat: Seat): CardInstance[] {
+  return Object.values(state.cards).filter(card => card.zone === "ritiro" && card.exile?.seat === seat && card.exile.remaining <= 1);
+}
+
 /** Lo stato senza catena di risposta (§7.2): chiusa, o mai aperta. */
 function withoutChain(state: GameState): GameState {
   if (!state.chain) return state;
@@ -125,12 +168,16 @@ export function attackKey(action: Action): string | null {
   if (ref.event === "on_death") return `${ref.source}|${ref.follow ? `on_death:${ref.follow}` : "on_death"}|${ref.entering}`;
   if (ref.event === "on_resolve" || ref.event === "on_flip" || ref.event === "on_assign_object") {
     const step = (() => {
+      // La ricerca di Oggetti (dal 2026-10-22): un passo per Oggetto trovato.
+      if (ref.follow === "search" && action.t === "toZone") return `search:${action.uid}`;
       if (ref.follow) return ref.follow;
       switch (action.t) {
         case "draw": return "draw";
         case "player": return "sealed" in (action.patch ?? {}) ? "seal" : "heal";
         case "look": return "look";
         case "empower": return `empower:${action.uid}`;
+        // La Stasi imposta (§8.1, dal 2026-10-22): un passo per bersaglio.
+        case "tap": return action.stasis ? `freeze:${action.uid}` : "tap";
         case "toZone": return action.zone === "field" ? "deploy" : action.heldBy ? "exile" : action.zone === "ritiro" ? "move" : "destroy";
         default: return action.t;
       }
@@ -166,8 +213,15 @@ export function apply(state: GameState, action: Action): GameState {
   if (ref && next.declarations.some(d => d.from === ref.entering && !d.sealed)) {
     next = { ...next, declarations: next.declarations.map(d => (d.from === ref.entering ? { ...d, sealed: true as const } : d)) };
   }
-  // La memoria degli inneschi (vedi attackKey).
-  const key = attackKey(action);
+  // La memoria degli inneschi (vedi attackKey). «Ogni volta che un'Entità
+  // entra in Stasi» (dal 2026-10-22) ha la chiave dell'ingresso: uid e numero
+  // di sequenza. Gemello: engine.rb, settle_effect.
+  const key = ref?.event === "on_enter_stasis"
+    ? `${ref.source}|on_enter_stasis|${ref.entering}@${known.cards[ref.entering]?.stasisAt ?? 0}`
+    // «Ogni volta che un'Entità viene tappata» (dal 2026-10-23): la chiave della tappata. Gemello: engine.rb, settle_effect.
+    : ref?.event === "on_tap"
+      ? `${ref.source}|on_tap|${ref.entering}@${known.cards[ref.entering]?.tapAt ?? 0}`
+      : attackKey(action);
   const untaps = action.t === "resolve" ? (action.untap ?? []).map(uid => `${uid}|on_attack:untap|turn`) : [];
   if (!key && untaps.length === 0) return next;
   return { ...next, fired: [...(next.fired ?? []), ...(key ? [key] : []), ...untaps] };
@@ -384,6 +438,11 @@ function reduce(state: GameState, action: Action): GameState {
       delete next.heldBy;
       if (action.zone === "abisso" && action.heldBy) next.heldBy = action.heldBy;
       delete next.target;
+      // L'esilio a tempo (§8.2, dal 2026-10-22): lo spostamento in Ritiro che
+      // lo chiede annota chi comandava l'Entità e quanti suoi turni mancano;
+      // ogni altro cambio di zona lo chiude. Gemello: table.rb, to_zone.
+      if (action.zone === "ritiro" && action.exile) next.exile = { seat: controllerOf(card), remaining: action.exile.turns, ...(action.effect ? { source: action.effect.source } : {}) };
+      else if (card.zone !== action.zone || action.effect?.event === "on_exile_end") delete next.exile;
       if (action.zone === "field") {
         next.x = action.x ?? card.x;
         next.y = action.y ?? card.y;
@@ -418,6 +477,7 @@ function reduce(state: GameState, action: Action): GameState {
         delete next.powerBonus;
         delete next.cannotBlock;
         if (!next.controller) delete next.grants;
+        delete next.grantsUntil;
       }
       // Chi lascia il campo esce anche dal combattimento: la sua freccia se ne
       // va, e quella che gli puntava contro pure. §6.3 dice che il blocco non
@@ -538,21 +598,32 @@ function reduce(state: GameState, action: Action): GameState {
       // sul posto, e la riscuote ogni dichiarazione d'attacco che la porta
       // (declare, `bonus`). Gemello: table.rb, use_ability.
       const attackBonuses = action.bonus ? [...(player.attackBonuses ?? []), action.bonus] : player.attackBonuses;
-      const cards = { ...state.cards };
-      if (action.power !== undefined) {
-        for (const uid of action.targets ?? []) {
-          const target = cards[uid];
-          if (!target || target.zone !== "field") continue;
-          // «…e ottengono [parole chiave] fino alla fine del turno» (dal 2026-10-20). Gemello: table.rb, use_ability.
-          const grants = action.grants?.length ? [...new Set([...(target.grants ?? []), ...action.grants])] : target.grants;
-          cards[uid] = { ...target, powerBonus: (target.powerBonus ?? 0) + action.power, ...(grants ? { grants } : {}) };
-        }
-      }
-      return {
+      let next: GameState = {
         ...state,
-        cards,
         players: { ...state.players, [card.owner]: { ...player, hp, abilityTurn: state.turn, ...(discounts ? { discounts } : {}), ...(attackBonuses ? { attackBonuses } : {}) } },
       };
+      // I bersagli: Potenza fino a fine turno, parole chiave concesse («…e
+      // ottengono [parole chiave]», dal 2026-10-20; con `until` la scadenza
+      // propria, dal 2026-10-22), la stappata (anche dalla Stasi) e la Stasi
+      // imposta (§8.1). Gemello: table.rb, use_ability.
+      for (const uid of action.targets ?? []) {
+        const target = next.cards[uid];
+        if (!target || target.zone !== "field") continue;
+        const fresh: CardInstance = { ...target };
+        if (action.untap) {
+          fresh.tapped = false;
+          delete fresh.stasis;
+        }
+        if (action.power !== undefined) fresh.powerBonus = (target.powerBonus ?? 0) + action.power;
+        if (action.grants?.length) {
+          fresh.grants = [...new Set([...(target.grants ?? []), ...action.grants])];
+          if (action.until === "controller_next_turn") fresh.grantsUntil = card.owner;
+          else if (action.until === "permanent") fresh.grantsUntil = "game";
+        }
+        next = { ...next, cards: { ...next.cards, [uid]: fresh } };
+        if (action.stasis) next = enterStasis(next, uid, action.uid);
+      }
+      return next;
     }
 
     case "flip": {
@@ -572,6 +643,9 @@ function reduce(state: GameState, action: Action): GameState {
         next = { ...next, players: { ...next.players, [card.owner]: player } };
       }
       if (action.discard && next.cards[action.discard]) next = apply(next, { t: "toZone", uid: action.discard, zone: "ritiro" });
+      // Il costo a Oggetto (dal 2026-10-22): «metti un Oggetto che controlli
+      // nella tua Zona di Ritiro, poi flippa». Gemello: table.rb, flip.
+      if (action.retire && next.cards[action.retire]) next = apply(next, { t: "toZone", uid: action.retire, zone: "ritiro" });
       if (action.recover) {
         const player = next.players[card.owner];
         next = { ...next, players: { ...next.players, [card.owner]: cappedHp({ ...player, hp: player.hp + action.recover }) } };
@@ -591,6 +665,11 @@ function reduce(state: GameState, action: Action): GameState {
     case "tap": {
       const card = state.cards[action.uid];
       if (!card) return state;
+      // §8.1 (dal 2026-10-22) — la Stasi imposta da un effetto: tappata per
+      // sempre, come il bloccante salvato dalla parola chiave. Chi la
+      // infligge a un'avversaria la conta per il Nexus. Gemello: table.rb, tap.
+      if (action.stasis) return enterStasis(state, action.uid, action.effect?.source);
+      if (action.tapped && !card.tapped) return tapCard(state, action.uid);
       return { ...state, cards: { ...state.cards, [action.uid]: { ...card, tapped: action.tapped } } };
     }
 
@@ -630,6 +709,7 @@ function reduce(state: GameState, action: Action): GameState {
       // attacchi e blocchi valevano per il turno chiuso, e le frecce se ne
       // vanno. Ogni effetto resta disfacibile a mano dai contatori.
       const next = action.active;
+      const closing = state.active;
       const player = state.players[next];
       const firstTurn = action.turn <= 2;
       const grown = firstTurn ? player.fluxMax : Math.min(FLUX_CAP, player.fluxMax + 1);
@@ -637,14 +717,26 @@ function reduce(state: GameState, action: Action): GameState {
       for (const [uid, card] of Object.entries(cards)) {
         // «Fino alla fine del turno» (§8.2): bonus di Potenza, divieti di
         // blocco e parole chiave concesse (non dal controllo, che ha la sua
-        // restituzione) cadono col cambio di turno, per tutti.
-        if (card.powerBonus !== undefined || card.counterBonus !== undefined || card.cannotBlock || (card.grants && !card.controller)) {
+        // restituzione) cadono col cambio di turno, per tutti. Le concessioni
+        // con una scadenza propria (dal 2026-10-22): «fino al tuo prossimo
+        // turno» cade all'inizio del turno di quel posto, quella del Nexus
+        // («per sempre») mai. Gemello: table.rb, turn.
+        const expiring = card.grantsUntil === undefined ? !card.controller : card.grantsUntil === next;
+        if (card.powerBonus !== undefined || card.counterBonus !== undefined || card.cannotBlock || (card.grants && expiring)) {
           const clean: CardInstance = { ...card };
           delete clean.powerBonus;
           delete clean.counterBonus;
           delete clean.cannotBlock;
-          if (!card.controller) delete clean.grants;
+          if (expiring) {
+            delete clean.grants;
+            delete clean.grantsUntil;
+          }
           cards[uid] = clean;
+        }
+        // L'esilio a tempo (§8.2, dal 2026-10-22) scala a ogni turno chiuso da
+        // chi comanda l'Entità esiliata. Gemello: table.rb, turn.
+        if (card.exile && card.exile.seat === closing) {
+          cards[uid] = { ...cards[uid], exile: { ...card.exile, remaining: Math.max(0, card.exile.remaining - 1) } };
         }
         if (card.owner !== next || card.zone !== "field") continue;
         // La copertura «dura un giro completo» (§6.3): coperta al turno T
@@ -808,6 +900,15 @@ function reduce(state: GameState, action: Action): GameState {
       // «Se non ne mostri una, metti una delle carte guardate in cima al
       // mazzo» (`top`): resta sopra tutte le altre. Gemello: table.rb, look.
       const topOrder = orderForTop(state, action.seat, "deck");
+      // «Rimettile in cima nell'ordine che vuoi» (`order`, dal 2026-10-23): le
+      // guardate tornano in cima, la prima dell'elenco sopra. Gemello: table.rb, look.
+      if (action.order) {
+        const ordered = action.order.map(uid => looked.find(card => card.uid === uid)).filter((card): card is CardInstance => card !== undefined);
+        const rest = looked.filter(card => !ordered.includes(card));
+        const all = [...ordered, ...rest];
+        all.forEach((card, i) => { cards[card.uid] = { ...card, order: topOrder - all.length + 1 + i }; });
+        return { ...state, cards };
+      }
       for (const card of looked) {
         if (card.uid === action.top) {
           cards[card.uid] = { ...card, order: topOrder };
@@ -887,9 +988,7 @@ function reduce(state: GameState, action: Action): GameState {
           if (battle.blockerStasis) {
             // §8.1 — la Stasi: invece di morire resta in campo, tappata per
             // sempre (e lo stato di stasi sostituisce la copertura).
-            const blocker: CardInstance = { ...next.cards[battle.blocker], stasis: true, tapped: true, facedown: false };
-            delete blocker.coveredTurn;
-            next = { ...next, cards: { ...next.cards, [battle.blocker]: blocker } };
+            next = enterStasis(next, battle.blocker);
           } else if (battle.blockerDies || battle.blockerSpent) {
             // Muore, o — Reattiva giocata come blocco (§6.4) — si consuma.
             next = apply(next, { t: "toZone", uid: battle.blocker, zone: "abisso" });

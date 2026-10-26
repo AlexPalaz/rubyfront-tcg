@@ -138,12 +138,46 @@ function hiddenViews(): Scenario {
   ];
 }
 
+/** La Stasi per effetto, l'abilità che concede «fino al tuo prossimo turno», l'esilio a tempo (2026-10-22). */
+function stasisAndExile(): Scenario {
+  return [
+    ...opening(),
+    () => ({ t: "turn", turn: 2, active: "b", toll: 0 }),
+    () => ({ t: "turn", turn: 3, active: "a", toll: 0 }),
+    () => ({ t: "player", seat: "a", patch: { flux: 6, fluxMax: 6 }, test: true }),
+    () => ({ t: "player", seat: "b", patch: { flux: 6, fluxMax: 6 }, test: true }),
+    state => {
+      const card = firstEntity(state, "a");
+      return { t: "toZone", uid: card.uid, zone: "field", x: FRONT_SLOT_X[0], y: frontRowY("a"), z: 2, cost: cardStats(card.cardId).fluxCost ?? 0 };
+    },
+    () => ({ t: "turn", turn: 4, active: "b", toll: 0 }),
+    state => {
+      const card = firstEntity(state, "b");
+      return { t: "toZone", uid: card.uid, zone: "field", x: FRONT_SLOT_X[0], y: frontRowY("b"), z: 3, cost: cardStats(card.cardId).fluxCost ?? 0 };
+    },
+    state => {
+      const mine = Object.values(state.cards).find(card => card.owner === "b" && card.zone === "field" && !isRubyfront(card.cardId))!;
+      const foe = Object.values(state.cards).find(card => card.owner === "a" && card.zone === "field" && !isRubyfront(card.cardId))!;
+      return { t: "tap", uid: foe.uid, tapped: true, stasis: true, effect: { source: mine.uid, event: "on_enter_field", entering: mine.uid } };
+    },
+    state => ({ t: "ability", uid: rubyfrontOf(state, "b").uid, ability: "hold", gain: 2, targets: [Object.values(state.cards).find(card => card.owner === "b" && card.zone === "field" && !isRubyfront(card.cardId))!.uid], grants: ["stasis"], until: "controller_next_turn" }),
+    () => ({ t: "turn", turn: 5, active: "a", toll: 0 }),
+    state => {
+      const foe = Object.values(state.cards).find(card => card.owner === "b" && card.zone === "field" && !isRubyfront(card.cardId))!;
+      return { t: "toZone", uid: foe.uid, zone: "ritiro", exile: { turns: 3 }, effect: { source: rubyfrontOf(state, "a").uid, event: "on_resolve", entering: rubyfrontOf(state, "a").uid } };
+    },
+    () => ({ t: "turn", turn: 6, active: "b", toll: 0 }),
+    () => ({ t: "turn", turn: 7, active: "a", toll: 0 }),
+  ];
+}
+
 const SCENARIOS: Record<string, () => Scenario> = {
   opening,
   "turn-and-flux": turnAndFlux,
   "game-over": gameOver,
   "fortune-roll": fortuneRoll,
   "hidden-views": hiddenViews,
+  "stasis-and-exile": stasisAndExile,
 };
 
 function run(scenario: Scenario): { action: Action; state: ReturnType<typeof normalize> }[] {

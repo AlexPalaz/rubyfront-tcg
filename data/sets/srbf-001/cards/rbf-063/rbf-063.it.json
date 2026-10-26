@@ -1,7 +1,7 @@
 {
-  "name": "Guardiano Auros",
+  "name": "Cartografo delle Correnti",
   "typeLabel": "Entità: Auros",
-  "summary": "Due e due, senza trucchi.",
+  "summary": "Due e due, e un PV a ogni compagno che arriva.",
   "ui": {
     "face": "Entità"
   },
@@ -12,8 +12,12 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Guardiano Auros",
-    "flavor": "Guarda la porta. La porta guarda lui."
+    "name": "Cartografo delle Correnti",
+    "effect": {
+      "name": "Effetto",
+      "text": "Ogni volta che un'Entità entra sul tuo Fronte, compresa questa, guadagni 1 PV."
+    },
+    "flavor": "Disegna le correnti. Le correnti lo ridisegnano."
   },
   "matters": {
     "dimensionalTitle": "Materia Dimensionale · 1° grado",

@@ -1,7 +1,7 @@
 {
-  "name": "Dimensional Keeper",
+  "name": "Wavestiller",
   "typeLabel": "Entity: Auros",
-  "summary": "Stasis at 2 Flux: blocking, it never dies.",
+  "summary": "Stasis at 2 Flux, and on entry it orders the top of the deck.",
   "ui": {
     "face": "Entity"
   },
@@ -12,10 +12,14 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Dimensional Keeper",
+    "name": "Wavestiller",
     "keyword": {
       "name": "Stasis",
       "rules": "won't die blocking: stays permanently tapped"
+    },
+    "soundings": {
+      "trigger": "When it enters the Front",
+      "text": "Look at the top 3 cards of your deck and put them back on top in any order."
     },
     "flavor": "It doesn't fall. It stays."
   },

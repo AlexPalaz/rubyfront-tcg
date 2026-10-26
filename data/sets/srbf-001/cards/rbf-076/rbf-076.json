@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "id": "RBF-076",
+  "setId": "rubyfront-core",
+  "collectorNumber": "076",
+  "slug": "vessel-of-lost-echoes",
+  "type": "object",
+  "layout": "single",
+  "status": "draft",
+  "deckLimit": 3,
+  "defaultLocale": "it",
+  "locales": [
+    "it",
+    "en"
+  ],
+  "tags": [
+    "object",
+    "dice",
+    "healing",
+    "starter"
+  ],
+  "rulesReference": "MANUALE.md §3.1",
+  "faces": [
+    {
+      "id": "object",
+      "kind": "object",
+      "displayKey": "face",
+      "stats": {
+        "fluxCost": 1
+      },
+      "enablesMatters": [],
+      "keywords": [],
+      "requirements": {},
+      "triggers": [
+        {
+          "id": "edge",
+          "displayKey": "effect",
+          "event": "while_assigned",
+          "effect": {
+            "type": "modify_power",
+            "target": {
+              "scope": "assigned"
+            },
+            "amount": 1
+          }
+        },
+        {
+          "id": "echo",
+          "displayKey": "effect",
+          "event": "on_tap",
+          "details": {
+            "tappedCard": {
+              "scope": "assigned"
+            }
+          },
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "controller": "controller"
+            },
+            "amount": 1,
+            "details": {
+              "roll": {
+                "die": "d6",
+                "successAtLeast": 4
+              }
+            }
+          }
+        }
+      ],
+      "actions": [],
+      "assignRestriction": {
+        "cardType": "entity",
+        "controller": "controller"
+      }
+    }
+  ],
+  "designNotes": "rbf-076.md",
+  "art": "rbf-076.jpg"
+}

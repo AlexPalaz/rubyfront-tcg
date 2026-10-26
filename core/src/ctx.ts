@@ -24,10 +24,20 @@ export interface CardFacts {
   /** Gli ascoltatori certificati «quando un'Entità entra sul tuo Fronte»
       (§8.2): vedi renderer.ts, enterListeners. */
   enterListeners: EnterListener[];
-  /** Gli sguardi in cima certificati «ogni volta che un'Entità [di razza] entra sul tuo Fronte, guarda la prima carta» (§8.2, dal 2026-10-20). */
+  /** Gli sguardi in cima certificati «ogni volta che un'Entità [di razza] entra sul tuo Fronte, guarda la prima carta» (§8.2, dal 2026-10-20), e dal 2026-10-23 anche sull'ingresso proprio. */
   enterPeeks: EnterPeek[];
+  /** «Quando entra sul Fronte, guarda le prime N carte e rimettile in cima nell'ordine che vuoi» (§8.2, dal 2026-10-23). */
+  enterSorts: EnterSort[];
+  /** Gli ascoltatori della tappata (§8.2, dal 2026-10-23): vedi TapListener. */
+  tapListeners: TapListener[];
   /** «Questa Entità entra tappata» (§8.2, dal 2026-10-20). */
   enterTaps: EnterTap[];
+  /** «Quando entra sul Fronte, metti N Entità avversarie [con costo di Flusso M o inferiore] in Stasi» (§8.1, dal 2026-10-22). */
+  enterFreezes: EnterFreeze[];
+  /** «Quando entra sul Fronte, puoi togliere dalla Stasi un'Entità che controlli» (§8.1, dal 2026-10-22). */
+  enterWakes: EnterWake[];
+  /** «Ogni volta che un'Entità entra in Stasi, guadagni N PV» (§8.2, dal 2026-10-22), per faccia del Rubyfront. */
+  stasisListeners: StasisListener[];
   /** «Quando entra sul Fronte, un'altra Entità che controlli prende +N Potenza» (§8.2, dal 2026-10-20). */
   enterEmpowers: EnterEmpower[];
   /** Gli effetti certificati «quando QUESTA entra sul Fronte: metti una carta
@@ -104,7 +114,9 @@ export type StaticForm =
   /** «Gli Oggetti che assegni a questa Entità costano N Flusso in meno» (dal 2026-09-10). */
   | { kind: "assign_discount"; amount: number }
   /** «Le altre Entità con un Oggetto assegnato che controlli hanno +N Potenza» (dal 2026-09-10). */
-  | { kind: "others_armed_power"; amount: number };
+  | { kind: "others_armed_power"; amount: number }
+  /** «Le Entità che controlli hanno <parola chiave>» (dal 2026-10-23): a tutte le proprie Entità finché la fonte resta in campo. Specchio di card_index.rb, grant_all. */
+  | { kind: "grant_all"; grants: string[] };
 
 /**
  * Gli effetti certificati delle Materie alla risoluzione (§7.2), specchio
@@ -140,7 +152,19 @@ export type ResolveForm =
   /** La ricerca col dado (dal 2026-09-10): guarda le prime N e tira un d20 — mostra per fascia in mano, o una in cima; poi una in Ritiro, le altre in fondo. */
   | { kind: "search"; count: number; die: number; bands: Record<"matter" | "object" | "entity", [number, number] | undefined>; revealTo: "hand"; ifNoRevealTop: true; thenRetire: true; restTo: "deck" }
   /** la Reattiva bloccante (forma `block`): giocata come bloccante di un'Entità attaccante (l'attacco è bloccato, §6.4); con almeno N Entità armate sul Fronte, +M PV. */
-  | { kind: "block"; requiresArmed: number; heal: number; asBlock: true };
+  | { kind: "block"; requiresArmed: number; heal: number; asBlock: true }
+  /** La Stasi alla risoluzione (§8.1, dal 2026-10-22): «metti un'Entità avversaria in Stasi». */
+  | { kind: "freeze"; target: { kind: "entity"; controller: "opponent"; maxCost: null }; count: 1 }
+  /** Il potenziamento secco (dal 2026-10-22): «un'Entità che controlli prende +N Potenza fino alla fine del turno», senza stapparla. */
+  | { kind: "empower"; targets: "own_entity"; race: string | null; power: number; untap: false }
+  /** La ricerca di Oggetti (dal 2026-10-22): fino a N Oggetti dal mazzo assegnati gratis (senza Entità, in mano), poi col dado uno dal Ritiro, poi rimescola. */
+  | { kind: "search_objects"; upTo: number; type: "object"; elseTo: "hand"; thenRoll: { die: number; atLeast: number; from: "ritiro" }; shuffle: true }
+  /** La ricerca in Ritiro (dal 2026-10-23): un Oggetto con costo N o inferiore dal mazzo nella propria Zona di Ritiro, poi rimescola, poi col dado uno dal Ritiro, gratis. */
+  | { kind: "search_objects"; upTo: number; type: "object"; maxCost: number | null; to: "ritiro"; elseTo: null; thenRoll: { die: number; atLeast: number; from: "ritiro" }; shuffle: true }
+  /** La sentenza del dado (dal 2026-10-23): un dX contro la Potenza di un'avversaria — pari o superiore nell'Abisso, altrimenti −N Potenza fino alla fine del turno. */
+  | { kind: "sentence"; target: { kind: "entity"; controller: "opponent" }; die: number; to: "abisso"; elsePower: number }
+  /** L'esilio a tempo (§8.2, dal 2026-10-22): un'avversaria in Ritiro per N turni di chi la comanda, poi il dado — torna con M o più, altrimenti nell'Abisso. */
+  | { kind: "exile_timed"; target: { kind: "entity"; controller: "opponent" }; to: "ritiro"; turns: number; die: number; returnAtLeast: number; elseTo: "abisso" };
 
 /**
  * Gli effetti certificati «quando assegni questa carta a un'Entità» (§3.1,
@@ -152,6 +176,8 @@ export type AssignForm =
   | { kind: "exile"; target: { kind: "entity"; controller: "opponent" }; to: "abisso"; hold: true }
   /** Sull'Entità: «quando assegni un Oggetto a questa Entità: pesca una carta». */
   | { kind: "draw"; count: number; toSelf: true }
+  /** Sull'Oggetto (dal 2026-10-22): «se l'Entità a cui assegni questo Oggetto era in Stasi, toglila dalla Stasi». */
+  | { kind: "wake"; ifState: "stasis"; toSelf: true }
   /** Sul Rubyfront: «la prima volta in ogni tuo turno che assegni un Oggetto, guarda la prima e l'ultima carta del tuo mazzo: puoi scambiarle. Poi pesca N e scarta M». */
   | { kind: "ends"; face: number; swap: true; thenDraw: number; thenDiscard: number; once: true }
   /** Sul Nexus: «…guarda la prima e l'ultima carta del tuo mazzo: aggiungine una alla tua mano e metti l'altra nella tua Zona di Ritiro». */
@@ -203,14 +229,22 @@ export type AbilityForm =
       prendono +N Potenza.» La chiamata sul Fronte: facoltativa. La
       promessa può mancare (dal 2026-10-20), e la chiamata può avere un
       vincolo di costo («con costo di Flusso N o inferiore», `maxCost`). */
-  | { kind: "summon"; race: string | null; grants: string[]; bonus: { amount: number; race: string | null } | null; maxCost: number | null };
+  | { kind: "summon"; race: string | null; grants: string[]; bonus: { amount: number; race: string | null } | null; maxCost: number | null }
+  /** «Stappa un'Entità [razza] che controlli» (dal 2026-10-22), anche dalla Stasi; con `power`, «prende +N Potenza fino alla fine del turno». */
+  | { kind: "untap"; race: string | null; power: number | null }
+  /** «Un'Entità che controlli ottiene [parole chiave] fino al tuo prossimo turno» — o per sempre (dal 2026-10-22). */
+  | { kind: "grant"; grants: string[]; until: "controller_next_turn" | "permanent" }
+  /** «Metti fino a N Entità avversarie in Stasi» (§8.1, dal 2026-10-22). */
+  | { kind: "freeze"; min: number; max: number };
 
 export interface NexusRequirement {
   face: number;
-  /** «Controlli almeno N» — o, con `attacked` (dal 2026-10-20), «in questo turno hai attaccato con almeno N». */
-  conditions: { count: number; kind: "entity"; race: string | null; armed?: true; attacked?: true }[];
+  /** «Controlli almeno N» — o, con `attacked` (dal 2026-10-20), «in questo turno hai attaccato con almeno N» — o, con `inflicted` (dal 2026-10-22), «in questa partita hai messo in Stasi almeno N Entità avversarie» (le conta il tavolo). */
+  conditions: { count: number; kind: "entity"; race: string | null; armed?: true; attacked?: true; inflicted?: true }[];
   /** Lo scarto: una carta [di tipo, di razza (dal 2026-10-20)]. */
   discard: { count: 1; kind: string | null; race?: string | null } | null;
+  /** Il costo a Oggetto (dal 2026-10-22): un proprio Oggetto dal Fronte in Zona di Ritiro. */
+  retire: { count: 1; kind: "object" } | null;
   recovery: number | null;
 }
 
@@ -412,7 +446,12 @@ export interface EnterListener {
   requires: { count: number; race: string | null } | null;
   /** «Se in questo turno sono entrate sul tuo Fronte almeno N Entità [di razza]» (dal 2026-10-20), l'ingresso compreso. */
   requiresEntered?: { count: number; race: string | null };
+  /** «Pesca N carte» — 0 nella forma dei PV. */
   draw: number;
+  /** «Guadagni N PV» (dal 2026-10-23): la forma senza condizione. Specchio di card_index.rb, enter_listeners (heal). */
+  heal?: number;
+  /** «Compresa questa» (dal 2026-10-23): conta anche il proprio ingresso. */
+  self?: true;
 }
 
 /** «Ogni volta che un'Entità [di razza] entra sul tuo Fronte, guarda la prima carta del tuo mazzo: puoi metterla in fondo» (dal 2026-10-20). Specchio di card_index.rb, enter_peeks. */
@@ -420,11 +459,49 @@ export interface EnterPeek {
   enteringRace: string | null;
   count: 1;
   mayBottom: true;
+  /** Sull'ingresso PROPRIO (dal 2026-10-23): «quando entra sul Fronte, guarda la prima carta del tuo mazzo». */
+  self?: true;
+}
+
+/** «Quando entra sul Fronte, guarda le prime N carte del tuo mazzo e rimettile in cima nell'ordine che vuoi» (dal 2026-10-23). Specchio di card_index.rb, enter_sorts. */
+export interface EnterSort {
+  count: number;
+}
+
+/** «Ogni volta che un'Entità che controlli viene tappata, guadagni N PV» (su un'Entità), o «ogni volta che quell'Entità viene tappata, lancia un dX: con M o più guadagni N PV» (su un Oggetto, il portatore) — dal 2026-10-23. Specchio di card_index.rb, tap_listeners. */
+export interface TapListener {
+  scope: "controlled" | "bearer";
+  amount: number;
+  die: number | null;
+  atLeast: number | null;
 }
 
 /** «Questa Entità entra tappata» (dal 2026-10-20). Specchio di card_index.rb, enter_taps. */
 export interface EnterTap {
   kind: "self_tap";
+}
+
+/** «Quando entra sul Fronte, metti N Entità avversarie [con costo di Flusso M o inferiore] in Stasi» (§8.1, dal 2026-10-22). Specchio di card_index.rb, enter_freezes. */
+export interface EnterFreeze {
+  targets: "opposing_entity";
+  count: number;
+  maxCost: number | null;
+  /** «Poi guadagni N PV per ogni Entità avversaria tappata» (dal 2026-10-23): il seguito, contate tutte le avversarie tappate di adesso. */
+  thenHealPerTapped?: number;
+}
+
+/** «Quando entra sul Fronte, puoi togliere dalla Stasi un'Entità che controlli» (§8.1, dal 2026-10-22). Specchio di card_index.rb, enter_wakes. */
+export interface EnterWake {
+  targets: "own_entity";
+  inState: "stasis";
+  optional: true;
+}
+
+/** «Ogni volta che un'Entità entra in Stasi, guadagni N PV» (§8.2, dal 2026-10-22): la faccia del Rubyfront che lo dice. Specchio di card_index.rb, stasis_listeners. */
+export interface StasisListener {
+  face: number;
+  amount: number;
+  any: true;
 }
 
 /** «Quando entra sul Fronte, un'altra Entità che controlli prende +N Potenza fino alla fine del turno» (dal 2026-10-20). Specchio di card_index.rb, enter_empowers. */
@@ -496,6 +573,12 @@ export interface Ctx {
    * di dichiarazione. Li compie la vista (gestures.ts, resolveAttacks).
    */
   resolveAttacks?(): Promise<void>;
+  /**
+   * §8.2 (dal 2026-10-22) — alla chiusura del turno, prima dello scarto per
+   * eccesso: gli esili a tempo scaduti di chi è di turno, col d12 del tavolo
+   * (gestures.ts, resolveExiles).
+   */
+  resolveExiles?(): Promise<void>;
   /** §6.5 — l'invito a scartare: l'Abisso di `seat` si accende. Torna true
       la prima volta nel turno (quando vale la pena dirlo anche in chat).
       Facoltativo: un Ctx senza tavolo (i test) non ce l'ha. */

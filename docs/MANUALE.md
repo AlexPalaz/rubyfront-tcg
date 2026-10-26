@@ -470,6 +470,8 @@ Un'Entità in stasi è a tutti gli effetti *tappata* (non coperta), e come ogni 
 
 Stasi protegge **solo in difesa** (blocco o contrattacco): un'Entità con Stasi che muore **attaccando** — contro un bloccante più forte o in un pareggio (§6.3) — muore normalmente.
 
+Un effetto può anche **mettere in Stasi** un'Entità («Metti un'Entità avversaria in Stasi»): è lo stesso stato, tappata per sempre, senza bisogno che abbia la parola chiave o che stia bloccando. **Togliere dalla Stasi** un'Entità è stapparla con un effetto: da lì torna un'Entità normale. Un'Entità già in Stasi non ci entra di nuovo, e un'Entità che «non si tappa mai» non ci entra affatto. *(Regola sperimentale, dal 2026-10-22.)*
+
 ##### Vendetta
 
 Quando un'Entità con **Vendetta** blocca ed è **più debole** dell'attaccante (Potenza inferiore), muore come in ogni blocco (§6.3) ma **si porta dietro l'attaccante**: muore anche lui. Con Potenza pari o superiore vale la regola normale del blocco, che uccide già l'attaccante: chi viene bloccato da un'Entità con Vendetta, quindi, **muore sempre**.
@@ -487,6 +489,14 @@ Gli **effetti** sono il testo nella descrizione della carta (es. l'effetto che s
 #### Modifiche alla Potenza
 
 Gli effetti possono aumentare o ridurre la Potenza di un'Entità. La Potenza **non scende mai sotto 0**: ogni riduzione oltre lo zero è ignorata. Un'Entità a **Potenza 0 resta in campo** e segue le regole normali: se attacca non bloccata infligge 0 danni; nei confronti di battaglia vale il suo valore 0 (bloccante a Potenza 0 muore contro qualsiasi attaccante di Potenza superiore, e così via).
+
+#### Esilio a tempo
+
+Un effetto può mandare un'Entità avversaria **nella Zona di Ritiro per un certo numero di turni** («per 3 turni»). I turni si contano **sul controllore dell'Entità**: al termine del suo terzo turno, prima dello scarto per eccesso (§6.5), lancia il dado che la carta indica e, con il risultato richiesto, l'Entità torna sul suo Fronte (stappata e senza Oggetti, che sono andati in Zona di Ritiro con lei, §6.2) — a Fronte pieno può sostituire una propria Entità (§6.2) o restare in Zona di Ritiro; con un risultato inferiore va nell'Abisso. Finché il dado non è tirato il turno non si chiude. Se nel frattempo l'Entità lascia la Zona di Ritiro per un altro effetto, l'esilio finisce lì. *(Regola sperimentale, dal 2026-10-22.)*
+
+#### «Ogni volta che un'Entità viene tappata»
+
+Alcuni effetti ascoltano la **tappata** di un'Entità («Ogni volta che un'Entità che controlli viene tappata, guadagni 1 PV»; su un Oggetto, «ogni volta che quell'Entità viene tappata, lancia un d6…»). Conta **ogni** passaggio da stappata a tappata, qualunque ne sia la causa: l'attacco (§6.3), l'ingresso in Stasi (§8.1), un effetto che tappa, o la mano. Una carta già tappata non «viene tappata» di nuovo finché non si stappa; ogni tappata innesca l'effetto **una volta**. Un effetto che dice «le Entità che controlli hanno Stasi» concede la parola chiave a **tutte** le Entità che controlli — quella che lo dice compresa — finché resta in campo. *(Regole sperimentali, dal 2026-10-23.)*
 
 #### Ordine di risoluzione degli effetti simultanei
 

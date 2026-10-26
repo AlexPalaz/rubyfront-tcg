@@ -1,7 +1,7 @@
 {
-  "name": "Custode Dimensionale",
+  "name": "Placaonde",
   "typeLabel": "Entità: Auros",
-  "summary": "Stasi a 2 Flussi: bloccando non muore mai.",
+  "summary": "Stasi a 2 Flussi, e all'ingresso ordina la cima del mazzo.",
   "ui": {
     "face": "Entità"
   },
@@ -12,10 +12,14 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Custode Dimensionale",
+    "name": "Placaonde",
     "keyword": {
       "name": "Stasi",
       "rules": "bloccando non muore: resta tappata per sempre"
+    },
+    "soundings": {
+      "trigger": "Quando entra sul Fronte",
+      "text": "Guarda le prime 3 carte del tuo mazzo e rimettile in cima nell'ordine che vuoi."
     },
     "flavor": "Non cade. Resta."
   },

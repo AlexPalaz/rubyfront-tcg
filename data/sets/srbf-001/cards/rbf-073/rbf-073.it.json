@@ -1,7 +1,7 @@
 {
   "name": "Ricerca Dimensionale",
-  "typeLabel": "Materia Dimensionale I",
-  "summary": "Scava quattro carte e tira fuori un Oggetto.",
+  "typeLabel": "Materia Dimensionale II",
+  "summary": "Un Oggetto dal mazzo al Ritiro; col dado, uno dal Ritiro a una tua Entità, gratis.",
   "ui": {
     "face": "Materia"
   },
@@ -18,12 +18,12 @@
     "name": "Ricerca Dimensionale",
     "effect": {
       "name": "Effetto",
-      "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti le altre in fondo al mazzo."
+      "text": "Cerca nel tuo mazzo un Oggetto con costo di Flusso 3 o inferiore e mettilo nella tua Zona di Ritiro, poi rimescola il mazzo. Poi lancia un d6: con 3 o più puoi assegnare un Oggetto dalla tua Zona di Ritiro a un'Entità che controlli senza pagarne il costo di Flusso."
     },
     "flavor": "Ogni cosa perduta è solo mal riposta."
   },
   "matters": {
-    "dimensionalTitle": "Materia Dimensionale · 1° grado",
+    "dimensionalTitle": "Materia Dimensionale · 2° grado",
     "dimensionalAria": "Dimensionale"
   }
 }

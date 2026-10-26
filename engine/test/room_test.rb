@@ -79,6 +79,28 @@ class RoomTest < Minitest::Test
     box.select { |m| m[:t] == "action" }.map { |m| m[:action] }
   end
 
+  # La ricerca di Oggetti nel mazzo (dal 2026-10-22): chi cerca vede il suo
+  # mazzo; l'avversario riceve l'identità dell'Oggetto che scende in campo
+  # (esce da una zona nascosta), nulla di quello che va in mano.
+  def test_object_search_reveals_only_what_comes_down
+    room, a, b = started_room
+    engine = room.instance_variable_get(:@engine)
+    deck = engine.zone_uids("a", "deck")
+    first, second = deck.first(2)
+    a.clear
+    b.clear
+    # Uno spostamento dal mazzo al campo (vista: identità per l'avversario), e uno in mano (nessuna identità).
+    room.handle("a", { "t" => "judge", "seq" => 10, "action" => { "t" => "toZone", "uid" => first, "zone" => "field", "x" => 1199, "y" => 1260 } })
+    down = actions(b).last
+    assert_equal first, down["uid"]
+    assert_equal({ first => "SLOW" }, down["identities"], "ciò che scende in campo si fa conoscere")
+    b.clear
+    room.handle("a", { "t" => "judge", "seq" => 11, "action" => { "t" => "toZone", "uid" => second, "zone" => "hand" } })
+    kept = actions(b).last
+    assert_equal second, kept["uid"]
+    refute kept.key?("identities"), "ciò che va in mano resta un dorso"
+  end
+
   def test_journal_starts_from_table_rolled_new_game
     room = new_room(starter: "b")
     assert_equal 1, room.journal.size

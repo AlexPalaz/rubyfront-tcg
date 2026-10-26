@@ -3,7 +3,7 @@
   "id": "RBF-064",
   "setId": "rubyfront-core",
   "collectorNumber": "064",
-  "slug": "dimensional-keeper",
+  "slug": "wavestiller",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -43,9 +43,28 @@
         }
       ],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "soundings",
+          "displayKey": "soundings",
+          "event": "on_enter_field",
+          "effect": {
+            "type": "look_and_optionally_move",
+            "from": {
+              "zone": "deck",
+              "owner": "controller",
+              "position": "top",
+              "count": 3
+            },
+            "details": {
+              "reorderOnTop": true
+            }
+          }
+        }
+      ],
       "actions": []
     }
   ],
-  "designNotes": "rbf-064.md"
+  "designNotes": "rbf-064.md",
+  "art": "rbf-064.jpg"
 }

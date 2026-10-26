@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import { CONTROL_X, MATTER_X, frontRowY } from "../src/geometry.js";
-import { STACK_STEP, abilityDiscount, apply, furyThreshold, attackBonusFor, attackKey, matterSpot, newGame, pay, playSpot, replay, revealIdentities, rollFor, rollKey, zoneCards, chainTop, openingPending, mayMulligan, mustKeep } from "../src/state.js";
+import { STACK_STEP, abilityDiscount, apply, exilesDue, furyThreshold, attackBonusFor, attackKey, matterSpot, newGame, pay, playSpot, replay, revealIdentities, rollFor, rollKey, zoneCards, chainTop, openingPending, mayMulligan, mustKeep } from "../src/state.js";
 import type { CardInstance, GameState, Seat } from "../src/types.js";
 import { HIDDEN_CARD, isHidden } from "../src/types.js";
 
@@ -1199,5 +1199,168 @@ describe("le viste proiettate", () => {
     expect(state.cards["b-2"].cardId).toBe("RBF-007");
     expect(zoneCards(state, "b", "deck").every(card => isHidden(card))).toBe(true);
     expect(state.cards["a-1"].cardId).toBe("TEST-1");
+  });
+});
+
+// §8.1/§8.2 (2026-10-22): la Stasi imposta da un effetto, le concessioni con
+// una scadenza propria, l'esilio a tempo in Zona di Ritiro, il costo a Oggetto
+// del flip. Gemello: table_test.rb, «la Stasi per effetto, le concessioni a scadenza, l'esilio a tempo».
+describe("la Stasi per effetto, le concessioni a scadenza e l'esilio a tempo", () => {
+  const onField = (uid: string, owner: Seat): CardInstance => ({ uid, cardId: "U", owner, zone: "field", face: 0, x: 0, y: 0, order: 0, tapped: false, facedown: false, z: 1 });
+  function field(): GameState {
+    const state = newGame("a");
+    for (const uid of ["a-1", "a-2"]) state.cards[uid] = onField(uid, "a");
+    for (const uid of ["b-1", "b-2"]) state.cards[uid] = onField(uid, "b");
+    return state;
+  }
+
+  it("tap con stasis mette in Stasi, numera l'ingresso e conta per il Nexus di chi la infligge", () => {
+    let state = field();
+    state = apply(state, { t: "facedown", uid: "b-1", facedown: true });
+    state = apply(state, { t: "tap", uid: "b-1", tapped: true, stasis: true, effect: { source: "a-1", event: "on_enter_field", entering: "a-1" } });
+    expect(state.cards["b-1"].stasis).toBe(true);
+    expect(state.cards["b-1"].tapped).toBe(true);
+    expect(state.cards["b-1"].facedown).toBe(false);
+    expect(state.cards["b-1"].stasisAt).toBe(1);
+    expect(state.stasisSeq).toBe(1);
+    expect(state.players.a.stasisInflicted).toBe(1);
+    expect(state.players.b.stasisInflicted).toBeUndefined();
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(state.cards["b-1"].tapped).toBe(true);
+    state = apply(state, { t: "empower", uid: "b-1", untap: true, effect: { source: "b-2", event: "on_enter_field", entering: "b-2" } });
+    expect(state.cards["b-1"].stasis).toBeUndefined();
+    expect(state.cards["b-1"].stasisAt).toBe(1);
+    state = apply(state, { t: "tap", uid: "b-1", tapped: true, stasis: true, effect: { source: "a-2", event: "on_resolve", entering: "a-2" } });
+    expect(state.cards["b-1"].stasisAt).toBe(2);
+    expect(state.players.a.stasisInflicted).toBe(2);
+    // Sulla propria Entità, o senza fonte: entra in Stasi ma non conta.
+    state = apply(state, { t: "tap", uid: "a-2", tapped: true, stasis: true, effect: { source: "a-1", event: "on_ability", entering: "a-1" } });
+    state = apply(state, { t: "tap", uid: "b-2", tapped: true, stasis: true });
+    expect(state.cards["a-2"].stasis).toBe(true);
+    expect(state.cards["b-2"].stasis).toBe(true);
+    expect(state.players.a.stasisInflicted).toBe(2);
+    expect(state.stasisSeq).toBe(4);
+    state = apply(state, { t: "tap", uid: "a-1", tapped: true });
+    expect(state.cards["a-1"].stasis).toBeUndefined();
+  });
+
+  // Gemello: table_test.rb, test_tap_takes_a_number_once_per_tap_and_stasis_counts_as_a_tap.
+  it("la tappata prende il suo numero, una volta per tappata; la Stasi su una stappata è una tappata", () => {
+    let state = field();
+    state = apply(state, { t: "tap", uid: "a-1", tapped: true });
+    expect(state.cards["a-1"].tapAt).toBe(1);
+    expect(state.tapSeq).toBe(1);
+    state = apply(state, { t: "tap", uid: "a-1", tapped: true });
+    expect(state.cards["a-1"].tapAt).toBe(1);
+    expect(state.tapSeq).toBe(1);
+    state = apply(state, { t: "tap", uid: "a-1", tapped: false });
+    state = apply(state, { t: "tap", uid: "a-1", tapped: true });
+    expect(state.cards["a-1"].tapAt).toBe(2);
+    state = apply(state, { t: "tap", uid: "b-1", tapped: true, stasis: true });
+    expect(state.cards["b-1"].tapAt).toBe(3);
+    expect(state.cards["b-1"].stasisAt).toBe(1);
+    state = apply(state, { t: "tap", uid: "a-1", tapped: true, stasis: true });
+    expect(state.cards["a-1"].tapAt).toBe(2);
+    expect(state.tapSeq).toBe(3);
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(state.tapSeq).toBe(3);
+    // «Ogni volta che un'Entità viene tappata» ha la chiave della tappata.
+    state = apply(state, { t: "player", seat: "a", patch: { hp: 21 }, effect: { source: "a-2", event: "on_tap", entering: "a-1" } });
+    expect(state.fired).toContain("a-2|on_tap|a-1@2");
+  });
+
+  // Gemello: table_test.rb, test_look_with_order_puts_the_looked_cards_back_on_top_in_that_order.
+  it("look con order rimette le guardate in cima nell'ordine dato, le altre dopo com'erano", () => {
+    let state = newGame("a");
+    for (const n of [1, 2, 3, 4, 5]) state.cards[`a-${n}`] = { ...onField(`a-${n}`, "a"), zone: "deck", order: n };
+    const deck = (): string[] => Object.values(state.cards).filter(card => card.zone === "deck").sort((x, y) => x.order - y.order).map(card => card.uid);
+    expect(deck()).toEqual(["a-1", "a-2", "a-3", "a-4", "a-5"]);
+    state = apply(state, { t: "look", seat: "a", count: 3, restTo: "deck", order: ["a-3", "a-1", "a-2"], effect: { source: "x", event: "on_enter_field", entering: "x", follow: "sort" } });
+    expect(deck()).toEqual(["a-3", "a-1", "a-2", "a-4", "a-5"]);
+    state = apply(state, { t: "look", seat: "a", count: 3, restTo: "deck", order: ["a-2"], effect: { source: "x", event: "on_enter_field", entering: "x", follow: "sort" } });
+    expect(deck()).toEqual(["a-2", "a-3", "a-1", "a-4", "a-5"]);
+  });
+
+  it("anche la Stasi del combattimento prende il suo numero, senza contare per il Nexus", () => {
+    let state = field();
+    state = apply(state, { t: "declare", declaration: { id: "a-1", from: "a-1", to: "rf", kind: "attack", seat: "a", order: 1 } });
+    state = apply(state, { t: "declare", declaration: { id: "b-1", from: "b-1", to: "a-1", kind: "block", seat: "b", order: 0 } });
+    state = apply(state, { t: "resolve", seat: "a", battles: [{ attacker: "a-1", blocker: "b-1", kind: "block", attackerDies: false, blockerDies: false, blockerStasis: true, damage: 0 }] });
+    expect(state.cards["b-1"].stasis).toBe(true);
+    expect(state.cards["b-1"].stasisAt).toBe(1);
+    expect(state.players.a.stasisInflicted).toBeUndefined();
+  });
+
+  it("l'abilità stappa, concede con una scadenza e mette in Stasi", () => {
+    let state = field();
+    state = apply(state, { t: "tap", uid: "a-1", tapped: true, stasis: true });
+    state = apply(state, { t: "ability", uid: "a-2", ability: "wake", cost: 4, targets: ["a-1"], untap: true });
+    expect(state.cards["a-1"].tapped).toBe(false);
+    expect(state.cards["a-1"].stasis).toBeUndefined();
+    expect(state.players.a.hp).toBe(16);
+    state = apply(state, { t: "ability", uid: "a-2", ability: "hold", gain: 2, targets: ["a-1"], grants: ["stasis"], until: "controller_next_turn" });
+    expect(state.cards["a-1"].grants).toEqual(["stasis"]);
+    expect(state.cards["a-1"].grantsUntil).toBe("a");
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(state.cards["a-1"].grants).toEqual(["stasis"]);
+    state = apply(state, { t: "turn", turn: 3, active: "a" });
+    expect(state.cards["a-1"].grants).toBeUndefined();
+    expect(state.cards["a-1"].grantsUntil).toBeUndefined();
+    state = apply(state, { t: "ability", uid: "a-2", ability: "vigil-hold", gain: 2, targets: ["a-1"], grants: ["stasis"], until: "permanent" });
+    expect(state.cards["a-1"].grantsUntil).toBe("game");
+    state = apply(state, { t: "turn", turn: 4, active: "b" });
+    state = apply(state, { t: "turn", turn: 5, active: "a" });
+    expect(state.cards["a-1"].grants).toEqual(["stasis"]);
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "ritiro" });
+    expect(state.cards["a-1"].grants).toBeUndefined();
+    expect(state.cards["a-1"].grantsUntil).toBeUndefined();
+    state = apply(state, { t: "ability", uid: "a-2", ability: "vigil-seal", cost: 7, targets: ["b-1", "b-2"], stasis: true });
+    expect(state.cards["b-1"].stasis).toBe(true);
+    expect(state.cards["b-2"].stasis).toBe(true);
+    expect(state.players.a.stasisInflicted).toBe(2);
+  });
+
+  it("l'esilio a tempo conta i turni di chi comanda l'Entità e aspetta il dado", () => {
+    let state = field();
+    state = apply(state, { t: "assign", uid: "b-2", to: "b-1" });
+    state = apply(state, { t: "toZone", uid: "b-1", zone: "ritiro", exile: { turns: 3 }, effect: { source: "a-1", event: "on_resolve", entering: "a-1" } });
+    expect(state.cards["b-1"].exile).toEqual({ seat: "b", remaining: 3, source: "a-1" });
+    expect(state.cards["b-2"].zone).toBe("ritiro");
+    expect(state.cards["b-2"].exile).toBeUndefined();
+    state = apply(state, { t: "turn", turn: 2, active: "b" });
+    expect(state.cards["b-1"].exile?.remaining).toBe(3);
+    state = apply(state, { t: "turn", turn: 3, active: "a" });
+    expect(state.cards["b-1"].exile?.remaining).toBe(2);
+    expect(exilesDue(state, "b")).toEqual([]);
+    state = apply(state, { t: "turn", turn: 4, active: "b" });
+    state = apply(state, { t: "turn", turn: 5, active: "a" });
+    expect(state.cards["b-1"].exile?.remaining).toBe(1);
+    state = apply(state, { t: "turn", turn: 6, active: "b" });
+    expect(exilesDue(state, "b").map(card => card.uid)).toEqual(["b-1"]);
+    expect(exilesDue(state, "a")).toEqual([]);
+    state = apply(state, { t: "toZone", uid: "b-1", zone: "field", y: 172 });
+    expect(state.cards["b-1"].exile).toBeUndefined();
+    expect(state.cards["b-1"].tapped).toBe(false);
+    state = apply(state, { t: "toZone", uid: "b-1", zone: "ritiro" });
+    expect(state.cards["b-1"].exile).toBeUndefined();
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "ritiro", exile: { turns: 3 } });
+    state = apply(state, { t: "toZone", uid: "a-1", zone: "abisso" });
+    expect(state.cards["a-1"].exile).toBeUndefined();
+  });
+
+  it("il flip può costare un Oggetto in Ritiro", () => {
+    let state = field();
+    state = apply(state, { t: "assign", uid: "a-2", to: "a-1" });
+    state = apply(state, { t: "flip", uid: "a-1", face: 1, retire: "a-2", recover: 5 });
+    expect(state.cards["a-2"].zone).toBe("ritiro");
+    expect(state.cards["a-2"].assignedTo).toBeUndefined();
+    expect(state.cards["a-1"].face).toBe(1);
+  });
+
+  it("«ogni volta che un'Entità entra in Stasi» ha la chiave dell'ingresso", () => {
+    let state = field();
+    state = apply(state, { t: "tap", uid: "b-1", tapped: true, stasis: true, effect: { source: "a-1", event: "on_enter_field", entering: "a-1" } });
+    state = apply(state, { t: "player", seat: "a", patch: { hp: 21 }, effect: { source: "a-2", event: "on_enter_stasis", entering: "b-1" } });
+    expect(state.fired).toContain("a-2|on_enter_stasis|b-1@1");
   });
 });

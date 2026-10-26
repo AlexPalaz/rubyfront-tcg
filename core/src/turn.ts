@@ -7,7 +7,7 @@ import { msg, t, type LogMsg } from "./i18n.js";
 import { describeBattle, resolveWave } from "./combat.js";
 import { releaseControlled } from "./effects.js";
 import type { CardFacts, Ctx } from "./ctx.js";
-import { controllerOf, fieldCards, freeFrontSlotOrNull, inPlay, seatLabel, waveDeclared, zoneCards } from "./state.js";
+import { controllerOf, exilesDue, fieldCards, freeFrontSlotOrNull, inPlay, seatLabel, waveDeclared, zoneCards } from "./state.js";
 import type { GameOver, GameState, Seat } from "./types.js";
 import { otherSeat } from "./types.js";
 
@@ -165,6 +165,18 @@ export async function endTurn(ctx: Ctx): Promise<void> {
     const { title, detail } = gameOverMsg(over);
     ctx.log(msg("log.deckout", { title, seat: loser, detail }), over.winner);
     return;
+  }
+  // §8.2 (dal 2026-10-22) — l'esilio a tempo scaduto: al terzo turno di chi
+  // comanda l'Entità esiliata, prima dello scarto per eccesso, il d12 del
+  // tavolo decide se torna sul Fronte o va nell'Abisso. Finché il dado non
+  // è tirato il turno non si chiude (lo dice anche l'engine).
+  if (exilesDue(state, state.active).length > 0) {
+    if (ctx.resolveExiles) await ctx.resolveExiles();
+    if (exilesDue(ctx.state(), state.active).length > 0) {
+      ctx.log(msg("log.exile.due", { seat: state.active }), state.active);
+      return;
+    }
+    return endTurn(ctx);
   }
   // §6.5 — «non si possono avere più di 7 carte in mano: alla fine del
   // proprio turno, le carte in eccesso vanno scartate». Lo dice anche

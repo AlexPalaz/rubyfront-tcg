@@ -70,6 +70,13 @@ class HandshakeTest < Minitest::Test
     assert_equal 431, H.parse(request(extra: ["X-Big: #{"x" * 3000}"])).status
   end
 
+  # I cookie di localhost (di ogni porta, di ogni progetto) arrivano anche al
+  # tavolo: una riga Cookie lunga si ignora, non è un 431 (dal 2026-10-23).
+  def test_long_cookie_line_is_ignored_not_431
+    result = H.parse(request(extra: ["Cookie: #{(1..6).map { |i| "progetto_#{i}=#{"x" * 500}" }.join("; ")}"]))
+    assert_equal :upgrade, result.kind
+  end
+
   def test_too_many_headers_is_431
     assert_equal 431, H.parse(request(extra: (1..70).map { |i| "X-N#{i}: #{i}" })).status
   end

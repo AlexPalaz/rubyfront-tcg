@@ -8825,7 +8825,7 @@
           "id": "RBF-062",
           "setId": "rubyfront-core",
           "collectorNumber": "062",
-          "slug": "recruit-of-nova-kai",
+          "slug": "adept-of-the-aurestia",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -8833,9 +8833,9 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Recluta di Nova Kai",
+              "name": "Adepto dell'Aurestia",
               "typeLabel": "Entità: Auros",
-              "summary": "Un Flusso, un corpo: la prima Auros che si impara a giocare.",
+              "summary": "Un Flusso, Stasi, e uno sguardo in cima al mazzo: il primo Auros che si impara a giocare.",
               "ui": {
                 "face": "Entità"
               },
@@ -8846,8 +8846,16 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Recluta di Nova Kai",
-                "flavor": "A Nova Kai si comincia dal cancello."
+                "name": "Adepto dell'Aurestia",
+                "keyword": {
+                  "name": "Stasi",
+                  "rules": "bloccando non muore: resta tappata per sempre"
+                },
+                "glance": {
+                  "trigger": "Quando entra sul Fronte",
+                  "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo al mazzo."
+                },
+                "flavor": "Ogni marea comincia da una goccia."
               },
               "matters": {
                 "dimensionalTitle": "Materia Dimensionale · 1° grado",
@@ -8855,9 +8863,9 @@
               }
             },
             "en": {
-              "name": "Recruit of Nova Kai",
+              "name": "Adept of the Aurestia",
               "typeLabel": "Entity: Auros",
-              "summary": "One Flux, one body: the first Auros you learn to play.",
+              "summary": "One Flux, Stasis, and a look at the top of the deck: the first Auros you learn to play.",
               "ui": {
                 "face": "Entity"
               },
@@ -8868,8 +8876,16 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Recruit of Nova Kai",
-                "flavor": "In Nova Kai you start at the gate."
+                "name": "Adept of the Aurestia",
+                "keyword": {
+                  "name": "Stasis",
+                  "rules": "won't die blocking: stays permanently tapped"
+                },
+                "glance": {
+                  "trigger": "When it enters the Front",
+                  "text": "Look at the top card of your deck: you may put it on the bottom of your deck."
+                },
+                "flavor": "Every tide begins with a drop."
               },
               "matters": {
                 "dimensionalTitle": "Dimensional Matter · 1st grade",
@@ -8881,8 +8897,8 @@
             "entity",
             "auros",
             "dimensional",
-            "vanilla",
-            "starter"
+            "starter",
+            "stasis"
           ],
           "rulesReference": "MANUALE.md §3.2",
           "faces": [
@@ -8901,15 +8917,43 @@
                   "maxGrade": 1
                 }
               ],
-              "keywords": [],
+              "keywords": [
+                {
+                  "id": "stasis"
+                }
+              ],
               "requirements": {},
-              "triggers": [],
+              "triggers": [
+                {
+                  "id": "glance",
+                  "displayKey": "glance",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "look_and_optionally_move",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top",
+                      "count": 1
+                    },
+                    "details": {
+                      "mayMoveTo": {
+                        "zone": "deck",
+                        "owner": "controller",
+                        "position": "bottom"
+                      }
+                    }
+                  }
+                }
+              ],
               "actions": []
             }
           ],
           "designNotes": "rbf-062.md",
+          "art": "rbf-062.jpg",
           "source": {
-            "designNotes": "notes/rbf-062.md"
+            "designNotes": "notes/rbf-062.md",
+            "art": "art/rbf-062.jpg"
           }
         },
         {
@@ -8917,7 +8961,7 @@
           "id": "RBF-063",
           "setId": "rubyfront-core",
           "collectorNumber": "063",
-          "slug": "auros-guardian",
+          "slug": "cartographer-of-the-currents",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -8925,9 +8969,9 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Guardiano Auros",
+              "name": "Cartografo delle Correnti",
               "typeLabel": "Entità: Auros",
-              "summary": "Due e due, senza trucchi.",
+              "summary": "Due e due, e un PV a ogni compagno che arriva.",
               "ui": {
                 "face": "Entità"
               },
@@ -8938,8 +8982,12 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Guardiano Auros",
-                "flavor": "Guarda la porta. La porta guarda lui."
+                "name": "Cartografo delle Correnti",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Ogni volta che un'Entità entra sul tuo Fronte, compresa questa, guadagni 1 PV."
+                },
+                "flavor": "Disegna le correnti. Le correnti lo ridisegnano."
               },
               "matters": {
                 "dimensionalTitle": "Materia Dimensionale · 1° grado",
@@ -8947,9 +8995,9 @@
               }
             },
             "en": {
-              "name": "Auros Guardian",
+              "name": "Cartographer of the Currents",
               "typeLabel": "Entity: Auros",
-              "summary": "Two and two, no tricks.",
+              "summary": "Two and two, and 1 HP for every companion that arrives.",
               "ui": {
                 "face": "Entity"
               },
@@ -8960,8 +9008,12 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Auros Guardian",
-                "flavor": "It watches the gate. The gate watches it."
+                "name": "Cartographer of the Currents",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Each time an Entity enters your Front, including this one, you gain 1 HP."
+                },
+                "flavor": "It charts the currents. The currents chart it back."
               },
               "matters": {
                 "dimensionalTitle": "Dimensional Matter · 1st grade",
@@ -8973,8 +9025,8 @@
             "entity",
             "auros",
             "dimensional",
-            "vanilla",
-            "starter"
+            "starter",
+            "healing"
           ],
           "rulesReference": "MANUALE.md §3.2",
           "faces": [
@@ -8995,13 +9047,35 @@
               ],
               "keywords": [],
               "requirements": {},
-              "triggers": [],
+              "triggers": [
+                {
+                  "id": "tide",
+                  "displayKey": "effect",
+                  "event": "on_enter_field",
+                  "details": {
+                    "enteringCard": {
+                      "cardType": "entity",
+                      "controller": "controller",
+                      "excludeSelf": false
+                    }
+                  },
+                  "effect": {
+                    "type": "gain_health",
+                    "target": {
+                      "controller": "controller"
+                    },
+                    "amount": 1
+                  }
+                }
+              ],
               "actions": []
             }
           ],
           "designNotes": "rbf-063.md",
+          "art": "rbf-063.jpg",
           "source": {
-            "designNotes": "notes/rbf-063.md"
+            "designNotes": "notes/rbf-063.md",
+            "art": "art/rbf-063.jpg"
           }
         },
         {
@@ -9009,7 +9083,7 @@
           "id": "RBF-064",
           "setId": "rubyfront-core",
           "collectorNumber": "064",
-          "slug": "dimensional-keeper",
+          "slug": "wavestiller",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -9017,9 +9091,9 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Custode Dimensionale",
+              "name": "Placaonde",
               "typeLabel": "Entità: Auros",
-              "summary": "Stasi a 2 Flussi: bloccando non muore mai.",
+              "summary": "Stasi a 2 Flussi, e all'ingresso ordina la cima del mazzo.",
               "ui": {
                 "face": "Entità"
               },
@@ -9030,10 +9104,14 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Custode Dimensionale",
+                "name": "Placaonde",
                 "keyword": {
                   "name": "Stasi",
                   "rules": "bloccando non muore: resta tappata per sempre"
+                },
+                "soundings": {
+                  "trigger": "Quando entra sul Fronte",
+                  "text": "Guarda le prime 3 carte del tuo mazzo e rimettile in cima nell'ordine che vuoi."
                 },
                 "flavor": "Non cade. Resta."
               },
@@ -9043,9 +9121,9 @@
               }
             },
             "en": {
-              "name": "Dimensional Keeper",
+              "name": "Wavestiller",
               "typeLabel": "Entity: Auros",
-              "summary": "Stasis at 2 Flux: blocking, it never dies.",
+              "summary": "Stasis at 2 Flux, and on entry it orders the top of the deck.",
               "ui": {
                 "face": "Entity"
               },
@@ -9056,10 +9134,14 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Dimensional Keeper",
+                "name": "Wavestiller",
                 "keyword": {
                   "name": "Stasis",
                   "rules": "won't die blocking: stays permanently tapped"
+                },
+                "soundings": {
+                  "trigger": "When it enters the Front",
+                  "text": "Look at the top 3 cards of your deck and put them back on top in any order."
                 },
                 "flavor": "It doesn't fall. It stays."
               },
@@ -9099,13 +9181,33 @@
                 }
               ],
               "requirements": {},
-              "triggers": [],
+              "triggers": [
+                {
+                  "id": "soundings",
+                  "displayKey": "soundings",
+                  "event": "on_enter_field",
+                  "effect": {
+                    "type": "look_and_optionally_move",
+                    "from": {
+                      "zone": "deck",
+                      "owner": "controller",
+                      "position": "top",
+                      "count": 3
+                    },
+                    "details": {
+                      "reorderOnTop": true
+                    }
+                  }
+                }
+              ],
               "actions": []
             }
           ],
           "designNotes": "rbf-064.md",
+          "art": "rbf-064.jpg",
           "source": {
-            "designNotes": "notes/rbf-064.md"
+            "designNotes": "notes/rbf-064.md",
+            "art": "art/rbf-064.jpg"
           }
         },
         {
@@ -9113,7 +9215,7 @@
           "id": "RBF-065",
           "setId": "rubyfront-core",
           "collectorNumber": "065",
-          "slug": "lookout-of-nova-kai",
+          "slug": "elder-of-the-aurestia",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -9121,7 +9223,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Vedetta di Nova Kai",
+              "name": "Vegliardo dell'Aurestia",
               "typeLabel": "Entità: Auros",
               "summary": "Entra e ferma un'avversaria: tappata per sempre, finché qualcosa non la stappa.",
               "ui": {
@@ -9134,12 +9236,12 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Vedetta di Nova Kai",
+                "name": "Vegliardo dell'Aurestia",
                 "freeze": {
                   "trigger": "Quando entra sul Fronte",
                   "text": "Metti un'Entità avversaria in Stasi."
                 },
-                "flavor": "Chi la vede, si ferma. Chi non la vede, si ferma lo stesso."
+                "flavor": "Ha visto fermarsi la marea. Sa come si fa."
               },
               "matters": {
                 "dimensionalTitle": "Materia Dimensionale · 1° grado",
@@ -9147,7 +9249,7 @@
               }
             },
             "en": {
-              "name": "Lookout of Nova Kai",
+              "name": "Elder of the Aurestia",
               "typeLabel": "Entity: Auros",
               "summary": "It enters and freezes an opponent: tapped for good, until something untaps it.",
               "ui": {
@@ -9160,12 +9262,12 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Lookout of Nova Kai",
+                "name": "Elder of the Aurestia",
                 "freeze": {
                   "trigger": "When it enters the Front",
                   "text": "Put an opposing Entity into Stasis."
                 },
-                "flavor": "Those who see it stop. Those who don't, stop all the same."
+                "flavor": "It saw the tide stop. It knows how it's done."
               },
               "matters": {
                 "dimensionalTitle": "Dimensional Matter · 1st grade",
@@ -9221,8 +9323,10 @@
             }
           ],
           "designNotes": "rbf-065.md",
+          "art": "rbf-065.jpg",
           "source": {
-            "designNotes": "notes/rbf-065.md"
+            "designNotes": "notes/rbf-065.md",
+            "art": "art/rbf-065.jpg"
           }
         },
         {
@@ -9230,7 +9334,7 @@
           "id": "RBF-066",
           "setId": "rubyfront-core",
           "collectorNumber": "066",
-          "slug": "warrior-of-the-schism",
+          "slug": "mender-of-the-torn",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -9238,7 +9342,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Guerriero della Scissione",
+              "name": "Curatore dei Laceri",
               "typeLabel": "Entità: Auros",
               "summary": "Tre e tre, e libera un compagno rimasto in Stasi.",
               "ui": {
@@ -9251,12 +9355,12 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Guerriero della Scissione",
+                "name": "Curatore dei Laceri",
                 "release": {
                   "trigger": "Quando entra sul Fronte",
                   "text": "Puoi togliere dalla Stasi un'Entità che controlli."
                 },
-                "flavor": "La Scissione ha aperto una porta. Lui la tiene aperta."
+                "flavor": "Ricuce ciò che la marea ha strappato."
               },
               "matters": {
                 "dimensionalTitle": "Materia Dimensionale · 1° grado",
@@ -9264,7 +9368,7 @@
               }
             },
             "en": {
-              "name": "Warrior of the Schism",
+              "name": "Mender of the Torn",
               "typeLabel": "Entity: Auros",
               "summary": "Three and three, and it frees a companion left in Stasis.",
               "ui": {
@@ -9277,12 +9381,12 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Warrior of the Schism",
+                "name": "Mender of the Torn",
                 "release": {
                   "trigger": "When it enters the Front",
                   "text": "You may release an Entity you control from Stasis."
                 },
-                "flavor": "The Schism opened a door. It keeps it open."
+                "flavor": "It mends what the tide tore."
               },
               "matters": {
                 "dimensionalTitle": "Dimensional Matter · 1st grade",
@@ -9340,8 +9444,10 @@
             }
           ],
           "designNotes": "rbf-066.md",
+          "art": "rbf-066.jpg",
           "source": {
-            "designNotes": "notes/rbf-066.md"
+            "designNotes": "notes/rbf-066.md",
+            "art": "art/rbf-066.jpg"
           }
         },
         {
@@ -9349,7 +9455,7 @@
           "id": "RBF-067",
           "setId": "rubyfront-core",
           "collectorNumber": "067",
-          "slug": "defender-of-nova-kai",
+          "slug": "immovable-of-the-guard",
           "type": "entity",
           "layout": "single",
           "status": "draft",
@@ -9357,9 +9463,9 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Difensore di Nova Kai",
+              "name": "Inamovibile di Guardia",
               "typeLabel": "Entità: Auros",
-              "summary": "Quattro e quattro: il muro di Nova Kai.",
+              "summary": "Quattro Flussi per 3 Potenza: il muro che dà Stasi a tutte le tue Entità, e un PV a ogni tappata.",
               "ui": {
                 "face": "Entità"
               },
@@ -9370,8 +9476,12 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Difensore di Nova Kai",
-                "flavor": "Le mura sono di pietra. Lui è la pietra."
+                "name": "Inamovibile di Guardia",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Le Entità che controlli hanno Stasi. Ogni volta che un'Entità che controlli viene tappata, guadagni 1 PV."
+                },
+                "flavor": "Le onde passano. Lui no."
               },
               "matters": {
                 "dimensionalTitle": "Materia Dimensionale · 2° grado",
@@ -9379,9 +9489,9 @@
               }
             },
             "en": {
-              "name": "Defender of Nova Kai",
+              "name": "Immovable of the Guard",
               "typeLabel": "Entity: Auros",
-              "summary": "Four and four: the wall of Nova Kai.",
+              "summary": "Four Flux for 3 Power: the wall that gives Stasis to all your Entities, and 1 HP for every tap.",
               "ui": {
                 "face": "Entity"
               },
@@ -9392,8 +9502,12 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Defender of Nova Kai",
-                "flavor": "The walls are stone. It is the stone."
+                "name": "Immovable of the Guard",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Entities you control have Stasis. Each time an Entity you control becomes tapped, you gain 1 HP."
+                },
+                "flavor": "Waves pass. It doesn't."
               },
               "matters": {
                 "dimensionalTitle": "Dimensional Matter · 2nd grade",
@@ -9405,8 +9519,9 @@
             "entity",
             "auros",
             "dimensional",
-            "vanilla",
-            "starter"
+            "starter",
+            "stasis",
+            "healing"
           ],
           "rulesReference": "MANUALE.md §3.2",
           "faces": [
@@ -9416,7 +9531,7 @@
               "displayKey": "face",
               "race": "auros",
               "stats": {
-                "power": 4,
+                "power": 3,
                 "fluxCost": 4
               },
               "enablesMatters": [
@@ -9427,13 +9542,51 @@
               ],
               "keywords": [],
               "requirements": {},
-              "triggers": [],
+              "triggers": [
+                {
+                  "id": "bulwark",
+                  "displayKey": "effect",
+                  "event": "while_in_play",
+                  "effect": {
+                    "type": "empower",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "controller",
+                      "quantity": "all"
+                    },
+                    "grants": [
+                      "stasis"
+                    ],
+                    "duration": "permanent"
+                  }
+                },
+                {
+                  "id": "vigil",
+                  "displayKey": "effect",
+                  "event": "on_tap",
+                  "details": {
+                    "tappedCard": {
+                      "cardType": "entity",
+                      "controller": "controller"
+                    }
+                  },
+                  "effect": {
+                    "type": "gain_health",
+                    "target": {
+                      "controller": "controller"
+                    },
+                    "amount": 1
+                  }
+                }
+              ],
               "actions": []
             }
           ],
           "designNotes": "rbf-067.md",
+          "art": "rbf-067.jpg",
           "source": {
-            "designNotes": "notes/rbf-067.md"
+            "designNotes": "notes/rbf-067.md",
+            "art": "art/rbf-067.jpg"
           }
         },
         {
@@ -9533,17 +9686,18 @@
           "id": "RBF-069",
           "setId": "rubyfront-core",
           "collectorNumber": "069",
-          "slug": "sealer-of-nova-kai",
+          "slug": "darx-tamer-of-the-aurestia",
           "type": "entity",
           "layout": "single",
           "status": "draft",
-          "deckLimit": 3,
+          "unique": true,
+          "deckLimit": 1,
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Sigillatore di Nova Kai",
+              "name": "Darx, Domatore dell'Aurestia",
               "typeLabel": "Entità: Auros",
-              "summary": "Sei Potenza, e all'ingresso ferma due corpi leggeri.",
+              "summary": "Cinque Potenza: all'ingresso ferma due corpi leggeri, e ogni avversaria ferma gli rende 1 PV.",
               "ui": {
                 "face": "Entità"
               },
@@ -9554,10 +9708,10 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Sigillatore di Nova Kai",
+                "name": "Darx, Domatore dell'Aurestia",
                 "seal": {
                   "trigger": "Quando entra sul Fronte",
-                  "text": "Metti 2 Entità avversarie con costo di Flusso 3 o inferiore in Stasi."
+                  "text": "Metti 2 Entità avversarie con costo di Flusso 3 o inferiore in Stasi, poi guadagni 1 PV per ogni Entità avversaria tappata."
                 },
                 "flavor": "Dove posa lo sguardo, il tempo si ferma."
               },
@@ -9567,9 +9721,9 @@
               }
             },
             "en": {
-              "name": "Sealer of Nova Kai",
+              "name": "Darx, Tamer of the Aurestia",
               "typeLabel": "Entity: Auros",
-              "summary": "Six Power, and on entry it freezes two light bodies.",
+              "summary": "Five Power: on entry it freezes two light bodies, and every tapped opponent gives back 1 HP.",
               "ui": {
                 "face": "Entity"
               },
@@ -9580,12 +9734,12 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Sealer of Nova Kai",
+                "name": "Darx, Tamer of the Aurestia",
                 "seal": {
                   "trigger": "When it enters the Front",
-                  "text": "Put 2 opposing Entities with Flux cost 3 or less into Stasis."
+                  "text": "Put 2 opposing Entities with Flux cost 3 or less into Stasis, then you gain 1 HP for each tapped opposing Entity."
                 },
-                "flavor": "Where its gaze rests, time stops."
+                "flavor": "Where his gaze rests, time stops."
               },
               "matters": {
                 "dimensionalTitle": "Dimensional Matter · 2nd grade",
@@ -9599,7 +9753,9 @@
             "dimensional",
             "stasis",
             "control",
-            "starter"
+            "unique",
+            "starter",
+            "healing"
           ],
           "rulesReference": "MANUALE.md §8.1, §8.2",
           "faces": [
@@ -9609,7 +9765,7 @@
               "displayKey": "face",
               "race": "auros",
               "stats": {
-                "power": 6,
+                "power": 5,
                 "fluxCost": 6
               },
               "enablesMatters": [
@@ -9640,7 +9796,14 @@
                         }
                       ]
                     },
-                    "state": "stasis"
+                    "state": "stasis",
+                    "details": {
+                      "thenGainHealthPerTapped": {
+                        "cardType": "entity",
+                        "controller": "opponent",
+                        "amount": 1
+                      }
+                    }
                   }
                 }
               ],
@@ -9648,8 +9811,12 @@
             }
           ],
           "designNotes": "rbf-069.md",
+          "art": "rbf-069.jpg",
+          "fullArt": true,
+          "artZoom": "50%",
           "source": {
-            "designNotes": "notes/rbf-069.md"
+            "designNotes": "notes/rbf-069.md",
+            "art": "art/rbf-069.jpg"
           }
         },
         {
@@ -9657,7 +9824,7 @@
           "id": "RBF-070",
           "setId": "rubyfront-core",
           "collectorNumber": "070",
-          "slug": "crystal-of-awakening",
+          "slug": "crystal-of-the-depths",
           "type": "object",
           "layout": "single",
           "status": "draft",
@@ -9665,7 +9832,7 @@
           "defaultLocale": "it",
           "locales": {
             "it": {
-              "name": "Cristallo del Risveglio",
+              "name": "Cristallo delle Profondità",
               "typeLabel": "Oggetto",
               "summary": "Due Potenza, e risveglia chi era fermo in Stasi.",
               "ui": {
@@ -9677,16 +9844,16 @@
                 "flux": "Flussi"
               },
               "face": {
-                "name": "Cristallo del Risveglio",
+                "name": "Cristallo delle Profondità",
                 "effect": {
                   "name": "Effetto",
                   "text": "L'Entità a cui è assegnato ha +2 Potenza. Se l'Entità a cui assegni questo Oggetto era in Stasi, toglila dalla Stasi."
                 },
-                "flavor": "Una luce dentro la pietra. La pietra ricorda di essere viva."
+                "flavor": "Una luce dal fondo. Chi la vede si sveglia."
               }
             },
             "en": {
-              "name": "Crystal of Awakening",
+              "name": "Crystal of the Depths",
               "typeLabel": "Object",
               "summary": "Two Power, and it wakes whoever was frozen in Stasis.",
               "ui": {
@@ -9698,12 +9865,12 @@
                 "flux": "Flux"
               },
               "face": {
-                "name": "Crystal of Awakening",
+                "name": "Crystal of the Depths",
                 "effect": {
                   "name": "Effect",
                   "text": "The Entity it is assigned to has +2 Power. If the Entity you assign this Object to was in Stasis, release it from Stasis."
                 },
-                "flavor": "A light inside the stone. The stone remembers it is alive."
+                "flavor": "A light from the deep. Whoever sees it wakes."
               }
             }
           },
@@ -9763,8 +9930,10 @@
             }
           ],
           "designNotes": "rbf-070.md",
+          "art": "rbf-070.jpg",
           "source": {
-            "designNotes": "notes/rbf-070.md"
+            "designNotes": "notes/rbf-070.md",
+            "art": "art/rbf-070.jpg"
           }
         },
         {
@@ -9884,8 +10053,10 @@
             }
           ],
           "designNotes": "rbf-071.md",
+          "art": "rbf-071.jpg",
           "source": {
-            "designNotes": "notes/rbf-071.md"
+            "designNotes": "notes/rbf-071.md",
+            "art": "art/rbf-071.jpg"
           }
         },
         {
@@ -10005,8 +10176,10 @@
             }
           ],
           "designNotes": "rbf-072.md",
+          "art": "rbf-072.jpg",
           "source": {
-            "designNotes": "notes/rbf-072.md"
+            "designNotes": "notes/rbf-072.md",
+            "art": "art/rbf-072.jpg"
           }
         },
         {
@@ -10023,8 +10196,8 @@
           "locales": {
             "it": {
               "name": "Ricerca Dimensionale",
-              "typeLabel": "Materia Dimensionale I",
-              "summary": "Scava quattro carte e tira fuori un Oggetto.",
+              "typeLabel": "Materia Dimensionale II",
+              "summary": "Un Oggetto dal mazzo al Ritiro; col dado, uno dal Ritiro a una tua Entità, gratis.",
               "ui": {
                 "face": "Materia"
               },
@@ -10041,19 +10214,19 @@
                 "name": "Ricerca Dimensionale",
                 "effect": {
                   "name": "Effetto",
-                  "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti le altre in fondo al mazzo."
+                  "text": "Cerca nel tuo mazzo un Oggetto con costo di Flusso 3 o inferiore e mettilo nella tua Zona di Ritiro, poi rimescola il mazzo. Poi lancia un d6: con 3 o più puoi assegnare un Oggetto dalla tua Zona di Ritiro a un'Entità che controlli senza pagarne il costo di Flusso."
                 },
                 "flavor": "Ogni cosa perduta è solo mal riposta."
               },
               "matters": {
-                "dimensionalTitle": "Materia Dimensionale · 1° grado",
+                "dimensionalTitle": "Materia Dimensionale · 2° grado",
                 "dimensionalAria": "Dimensionale"
               }
             },
             "en": {
               "name": "Dimensional Search",
-              "typeLabel": "Dimensional Matter I",
-              "summary": "It digs four cards and pulls out an Object.",
+              "typeLabel": "Dimensional Matter II",
+              "summary": "An Object from the deck to Retire; with the die, one from Retire onto your Entity, free.",
               "ui": {
                 "face": "Matter"
               },
@@ -10070,12 +10243,12 @@
                 "name": "Dimensional Search",
                 "effect": {
                   "name": "Effect",
-                  "text": "Look at the top 4 cards of your deck. You may reveal an Object among them and add it to your hand. Put the rest on the bottom of your deck."
+                  "text": "Search your deck for an Object with Flux cost 3 or less and put it into your Retire Zone, then shuffle your deck. Then roll a d6: on 3 or more you may assign an Object from your Retire Zone to an Entity you control without paying its Flux cost."
                 },
                 "flavor": "Everything lost is only misplaced."
               },
               "matters": {
-                "dimensionalTitle": "Dimensional Matter · 1st grade",
+                "dimensionalTitle": "Dimensional Matter · 2nd grade",
                 "dimensionalAria": "Dimensional"
               }
             }
@@ -10083,11 +10256,12 @@
           "tags": [
             "matter",
             "dimensional",
-            "grade-1",
-            "dig",
+            "grade-2",
+            "search",
+            "object",
             "starter"
           ],
-          "rulesReference": "MANUALE.md §7.2",
+          "rulesReference": "MANUALE.md §3.1, §7.2",
           "faces": [
             {
               "id": "matter",
@@ -10095,7 +10269,7 @@
               "displayKey": "face",
               "matter": {
                 "type": "dimensional",
-                "grade": 1
+                "grade": 2
               },
               "behavior": "normal",
               "stats": {
@@ -10106,30 +10280,45 @@
               "requirements": {},
               "triggers": [
                 {
-                  "id": "search",
+                  "id": "outfit",
                   "displayKey": "effect",
                   "event": "on_resolve",
                   "effect": {
-                    "type": "look_and_optionally_move",
+                    "type": "search_card",
                     "from": {
                       "zone": "deck",
-                      "owner": "controller",
-                      "position": "top",
-                      "count": 4
+                      "owner": "controller"
+                    },
+                    "filter": {
+                      "cardType": "object",
+                      "conditions": [
+                        {
+                          "stat": "flux_cost",
+                          "operator": "lte",
+                          "value": 3
+                        }
+                      ]
+                    },
+                    "count": {
+                      "max": 1
                     },
                     "details": {
-                      "mayReveal": {
-                        "cardType": "object"
-                      },
-                      "revealTo": {
-                        "zone": "hand",
+                      "toZone": {
+                        "zone": "retire",
                         "owner": "controller"
                       },
-                      "restTo": {
-                        "zone": "deck",
-                        "owner": "controller",
-                        "position": "bottom",
-                        "anyOrder": true
+                      "thenShuffle": true,
+                      "thenRoll": {
+                        "die": "d6",
+                        "successAtLeast": 3,
+                        "mayAssignFrom": {
+                          "zone": "retire",
+                          "owner": "controller"
+                        },
+                        "filter": {
+                          "cardType": "object"
+                        },
+                        "noFluxCost": true
                       }
                     }
                   }
@@ -10139,8 +10328,10 @@
             }
           ],
           "designNotes": "rbf-073.md",
+          "art": "rbf-073.jpg",
           "source": {
-            "designNotes": "notes/rbf-073.md"
+            "designNotes": "notes/rbf-073.md",
+            "art": "art/rbf-073.jpg"
           }
         },
         {
@@ -10200,7 +10391,7 @@
                 "flavor": "Nova Kai non dorme. Lei conta le ore per tutti."
               },
               "faceB": {
-                "name": "Veglia di Nova Kai",
+                "name": "Rinascita Profonda",
                 "nexusAria": "Nexus",
                 "flipEffect": {
                   "trigger": "Quando flippa",
@@ -10272,7 +10463,7 @@
                 "flavor": "Nova Kai does not sleep. She counts the hours for everyone."
               },
               "faceB": {
-                "name": "Vigil of Nova Kai",
+                "name": "Deep Rebirth",
                 "nexusAria": "Nexus",
                 "flipEffect": {
                   "trigger": "When it flips",
@@ -10583,12 +10774,425 @@
                     "state": "stasis"
                   }
                 }
-              ]
+              ],
+              "art": "rbf-074-nexus.jpg",
+              "artZoom": "48%",
+              "source": {
+                "art": "art/rbf-074-nexus.jpg"
+              }
             }
           ],
           "designNotes": "rbf-074.md",
+          "art": "rbf-074.jpg",
+          "artZoom": "48%",
           "source": {
-            "designNotes": "notes/rbf-074.md"
+            "designNotes": "notes/rbf-074.md",
+            "art": "art/rbf-074.jpg"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-075",
+          "setId": "rubyfront-core",
+          "collectorNumber": "075",
+          "slug": "tidelock",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Serramarea",
+              "typeLabel": "Materia Distruttiva I",
+              "summary": "Un'avversaria sparisce per tre turni; poi il d12 decide se torna.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "static": "Statica"
+                }
+              },
+              "face": {
+                "name": "Serramarea",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario per 3 turni. Al termine del suo terzo turno, il suo controllore lancia un d12: con 8 o più l'Entità torna sul suo Fronte; altrimenti va nell'Abisso."
+                },
+                "flavor": "La marea si chiude. Chi c'è dentro aspetta."
+              },
+              "matters": {
+                "destructiveTitle": "Materia Distruttiva · 1° grado",
+                "destructiveAria": "Distruttiva"
+              }
+            },
+            "en": {
+              "name": "Tidelock",
+              "typeLabel": "Destructive Matter I",
+              "summary": "An opponent vanishes for three turns; then the d12 decides whether it returns.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "static": "Static"
+                }
+              },
+              "face": {
+                "name": "Tidelock",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Choose an opposing Entity and put it into its owner's Retire Zone for 3 turns. At the end of its third turn, its controller rolls a d12: on 8 or more the Entity returns to their Front; otherwise it goes to the Abyss."
+                },
+                "flavor": "The tide closes. Whoever is inside waits."
+              },
+              "matters": {
+                "destructiveTitle": "Destructive Matter · 1st grade",
+                "destructiveAria": "Destructive"
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "destructive",
+            "grade-1",
+            "control",
+            "exile",
+            "starter"
+          ],
+          "rulesReference": "MANUALE.md §7.2, §8.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "destructive",
+                "grade": 1
+              },
+              "behavior": "normal",
+              "stats": {
+                "fluxCost": 2
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "undertow",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "move_card",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "destination": {
+                      "zone": "retire",
+                      "owner": "card_owner"
+                    },
+                    "details": {
+                      "forTurns": 3,
+                      "turnsOf": "target_controller",
+                      "thenRoll": {
+                        "die": "d12",
+                        "returnAtLeast": 8,
+                        "returnTo": {
+                          "zone": "front",
+                          "owner": "card_owner"
+                        },
+                        "otherwise": {
+                          "zone": "abyss",
+                          "owner": "card_owner"
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-075.md",
+          "art": "rbf-075.jpg",
+          "source": {
+            "designNotes": "notes/rbf-075.md",
+            "art": "art/rbf-075.jpg"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-076",
+          "setId": "rubyfront-core",
+          "collectorNumber": "076",
+          "slug": "vessel-of-lost-echoes",
+          "type": "object",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Vaso degli Echi Perduti",
+              "typeLabel": "Oggetto",
+              "summary": "+1 Potenza, e a ogni tappata del portatore un d6 che può rendere 1 PV.",
+              "ui": {
+                "face": "Oggetto"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi"
+              },
+              "face": {
+                "name": "Vaso degli Echi Perduti",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "L'Entità a cui è assegnato ha +1 Potenza. Ogni volta che quell'Entità viene tappata, lancia un d6: con 4 o più guadagni 1 PV."
+                },
+                "flavor": "Dentro c'è ancora la voce di chi l'ha perso."
+              }
+            },
+            "en": {
+              "name": "Vessel of Lost Echoes",
+              "typeLabel": "Object",
+              "summary": "+1 Power, and on every tap of the bearer a d6 that may give back 1 HP.",
+              "ui": {
+                "face": "Object"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux"
+              },
+              "face": {
+                "name": "Vessel of Lost Echoes",
+                "effect": {
+                  "name": "Effect",
+                  "text": "The Entity it is assigned to has +1 Power. Each time that Entity becomes tapped, roll a d6: on 4 or more you gain 1 HP."
+                },
+                "flavor": "Inside, the voice of whoever lost it still speaks."
+              }
+            }
+          },
+          "tags": [
+            "object",
+            "dice",
+            "healing",
+            "starter"
+          ],
+          "rulesReference": "MANUALE.md §3.1",
+          "faces": [
+            {
+              "id": "object",
+              "kind": "object",
+              "displayKey": "face",
+              "stats": {
+                "fluxCost": 1
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "edge",
+                  "displayKey": "effect",
+                  "event": "while_assigned",
+                  "effect": {
+                    "type": "modify_power",
+                    "target": {
+                      "scope": "assigned"
+                    },
+                    "amount": 1
+                  }
+                },
+                {
+                  "id": "echo",
+                  "displayKey": "effect",
+                  "event": "on_tap",
+                  "details": {
+                    "tappedCard": {
+                      "scope": "assigned"
+                    }
+                  },
+                  "effect": {
+                    "type": "gain_health",
+                    "target": {
+                      "controller": "controller"
+                    },
+                    "amount": 1,
+                    "details": {
+                      "roll": {
+                        "die": "d6",
+                        "successAtLeast": 4
+                      }
+                    }
+                  }
+                }
+              ],
+              "actions": [],
+              "assignRestriction": {
+                "cardType": "entity",
+                "controller": "controller"
+              }
+            }
+          ],
+          "designNotes": "rbf-076.md",
+          "art": "rbf-076.jpg",
+          "source": {
+            "designNotes": "notes/rbf-076.md",
+            "art": "art/rbf-076.jpg"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "id": "RBF-077",
+          "setId": "rubyfront-core",
+          "collectorNumber": "077",
+          "slug": "deep-sentence",
+          "type": "matter",
+          "layout": "single",
+          "status": "draft",
+          "deckLimit": 3,
+          "defaultLocale": "it",
+          "locales": {
+            "it": {
+              "name": "Sentenza Profonda",
+              "typeLabel": "Materia Distruttiva II",
+              "summary": "Un d6 contro la Potenza di un'avversaria: la vince, va nell'Abisso; la perde, −2 Potenza.",
+              "ui": {
+                "face": "Materia"
+              },
+              "card": {
+                "illustration": "Illustrazione",
+                "hp": "PV",
+                "flux": "Flussi",
+                "behaviors": {
+                  "reactive": "Reattiva",
+                  "static": "Statica"
+                }
+              },
+              "face": {
+                "name": "Sentenza Profonda",
+                "effect": {
+                  "name": "Effetto",
+                  "text": "Scegli un'Entità avversaria e lancia un d6: se il risultato è pari o superiore alla sua Potenza, mettila nell'Abisso; altrimenti quell'Entità prende −2 Potenza fino alla fine del turno."
+                },
+                "flavor": "Il fondo non discute. Pesa."
+              },
+              "matters": {
+                "destructiveTitle": "Materia Distruttiva · 2° grado",
+                "destructiveAria": "Distruttiva"
+              }
+            },
+            "en": {
+              "name": "Deep Sentence",
+              "typeLabel": "Destructive Matter II",
+              "summary": "A d6 against an opponent's Power: win it, the Abyss; lose it, −2 Power.",
+              "ui": {
+                "face": "Matter"
+              },
+              "card": {
+                "illustration": "Illustration",
+                "hp": "HP",
+                "flux": "Flux",
+                "behaviors": {
+                  "reactive": "Reactive",
+                  "static": "Static"
+                }
+              },
+              "face": {
+                "name": "Deep Sentence",
+                "effect": {
+                  "name": "Effect",
+                  "text": "Choose an opposing Entity and roll a d6: if the result is equal to or higher than its Power, put it into the Abyss; otherwise that Entity gets −2 Power until end of turn."
+                },
+                "flavor": "The deep doesn't argue. It weighs."
+              },
+              "matters": {
+                "destructiveTitle": "Destructive Matter · 2nd grade",
+                "destructiveAria": "Destructive"
+              }
+            }
+          },
+          "tags": [
+            "matter",
+            "destructive",
+            "grade-2",
+            "removal",
+            "dice",
+            "starter"
+          ],
+          "rulesReference": "MANUALE.md §3.1, §5, §7.2",
+          "faces": [
+            {
+              "id": "matter",
+              "kind": "matter",
+              "displayKey": "face",
+              "matter": {
+                "type": "destructive",
+                "grade": 2
+              },
+              "behavior": "normal",
+              "stats": {
+                "fluxCost": {
+                  "die": "d6"
+                }
+              },
+              "enablesMatters": [],
+              "keywords": [],
+              "requirements": {},
+              "triggers": [
+                {
+                  "id": "sentence",
+                  "displayKey": "effect",
+                  "event": "on_resolve",
+                  "effect": {
+                    "type": "destroy",
+                    "target": {
+                      "cardType": "entity",
+                      "controller": "opponent",
+                      "min": 1,
+                      "max": 1
+                    },
+                    "details": {
+                      "roll": {
+                        "die": "d6",
+                        "ifAtLeastStat": "power",
+                        "destination": {
+                          "zone": "abyss",
+                          "owner": "card_owner"
+                        },
+                        "otherwise": {
+                          "type": "modify_power",
+                          "amount": -2,
+                          "duration": "until_end_of_turn"
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "actions": []
+            }
+          ],
+          "designNotes": "rbf-077.md",
+          "art": "rbf-077.jpg",
+          "source": {
+            "designNotes": "notes/rbf-077.md",
+            "art": "art/rbf-077.jpg"
           }
         }
       ]
@@ -19390,7 +19994,7 @@
       "id": "RBF-062",
       "setId": "rubyfront-core",
       "collectorNumber": "062",
-      "slug": "recruit-of-nova-kai",
+      "slug": "adept-of-the-aurestia",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -19398,9 +20002,9 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Recluta di Nova Kai",
+          "name": "Adepto dell'Aurestia",
           "typeLabel": "Entità: Auros",
-          "summary": "Un Flusso, un corpo: la prima Auros che si impara a giocare.",
+          "summary": "Un Flusso, Stasi, e uno sguardo in cima al mazzo: il primo Auros che si impara a giocare.",
           "ui": {
             "face": "Entità"
           },
@@ -19411,8 +20015,16 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Recluta di Nova Kai",
-            "flavor": "A Nova Kai si comincia dal cancello."
+            "name": "Adepto dell'Aurestia",
+            "keyword": {
+              "name": "Stasi",
+              "rules": "bloccando non muore: resta tappata per sempre"
+            },
+            "glance": {
+              "trigger": "Quando entra sul Fronte",
+              "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo al mazzo."
+            },
+            "flavor": "Ogni marea comincia da una goccia."
           },
           "matters": {
             "dimensionalTitle": "Materia Dimensionale · 1° grado",
@@ -19420,9 +20032,9 @@
           }
         },
         "en": {
-          "name": "Recruit of Nova Kai",
+          "name": "Adept of the Aurestia",
           "typeLabel": "Entity: Auros",
-          "summary": "One Flux, one body: the first Auros you learn to play.",
+          "summary": "One Flux, Stasis, and a look at the top of the deck: the first Auros you learn to play.",
           "ui": {
             "face": "Entity"
           },
@@ -19433,8 +20045,16 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Recruit of Nova Kai",
-            "flavor": "In Nova Kai you start at the gate."
+            "name": "Adept of the Aurestia",
+            "keyword": {
+              "name": "Stasis",
+              "rules": "won't die blocking: stays permanently tapped"
+            },
+            "glance": {
+              "trigger": "When it enters the Front",
+              "text": "Look at the top card of your deck: you may put it on the bottom of your deck."
+            },
+            "flavor": "Every tide begins with a drop."
           },
           "matters": {
             "dimensionalTitle": "Dimensional Matter · 1st grade",
@@ -19446,8 +20066,8 @@
         "entity",
         "auros",
         "dimensional",
-        "vanilla",
-        "starter"
+        "starter",
+        "stasis"
       ],
       "rulesReference": "MANUALE.md §3.2",
       "faces": [
@@ -19466,15 +20086,43 @@
               "maxGrade": 1
             }
           ],
-          "keywords": [],
+          "keywords": [
+            {
+              "id": "stasis"
+            }
+          ],
           "requirements": {},
-          "triggers": [],
+          "triggers": [
+            {
+              "id": "glance",
+              "displayKey": "glance",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "look_and_optionally_move",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top",
+                  "count": 1
+                },
+                "details": {
+                  "mayMoveTo": {
+                    "zone": "deck",
+                    "owner": "controller",
+                    "position": "bottom"
+                  }
+                }
+              }
+            }
+          ],
           "actions": []
         }
       ],
       "designNotes": "rbf-062.md",
+      "art": "rbf-062.jpg",
       "source": {
-        "designNotes": "notes/rbf-062.md"
+        "designNotes": "notes/rbf-062.md",
+        "art": "art/rbf-062.jpg"
       }
     },
     {
@@ -19482,7 +20130,7 @@
       "id": "RBF-063",
       "setId": "rubyfront-core",
       "collectorNumber": "063",
-      "slug": "auros-guardian",
+      "slug": "cartographer-of-the-currents",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -19490,9 +20138,9 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Guardiano Auros",
+          "name": "Cartografo delle Correnti",
           "typeLabel": "Entità: Auros",
-          "summary": "Due e due, senza trucchi.",
+          "summary": "Due e due, e un PV a ogni compagno che arriva.",
           "ui": {
             "face": "Entità"
           },
@@ -19503,8 +20151,12 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Guardiano Auros",
-            "flavor": "Guarda la porta. La porta guarda lui."
+            "name": "Cartografo delle Correnti",
+            "effect": {
+              "name": "Effetto",
+              "text": "Ogni volta che un'Entità entra sul tuo Fronte, compresa questa, guadagni 1 PV."
+            },
+            "flavor": "Disegna le correnti. Le correnti lo ridisegnano."
           },
           "matters": {
             "dimensionalTitle": "Materia Dimensionale · 1° grado",
@@ -19512,9 +20164,9 @@
           }
         },
         "en": {
-          "name": "Auros Guardian",
+          "name": "Cartographer of the Currents",
           "typeLabel": "Entity: Auros",
-          "summary": "Two and two, no tricks.",
+          "summary": "Two and two, and 1 HP for every companion that arrives.",
           "ui": {
             "face": "Entity"
           },
@@ -19525,8 +20177,12 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Auros Guardian",
-            "flavor": "It watches the gate. The gate watches it."
+            "name": "Cartographer of the Currents",
+            "effect": {
+              "name": "Effect",
+              "text": "Each time an Entity enters your Front, including this one, you gain 1 HP."
+            },
+            "flavor": "It charts the currents. The currents chart it back."
           },
           "matters": {
             "dimensionalTitle": "Dimensional Matter · 1st grade",
@@ -19538,8 +20194,8 @@
         "entity",
         "auros",
         "dimensional",
-        "vanilla",
-        "starter"
+        "starter",
+        "healing"
       ],
       "rulesReference": "MANUALE.md §3.2",
       "faces": [
@@ -19560,13 +20216,35 @@
           ],
           "keywords": [],
           "requirements": {},
-          "triggers": [],
+          "triggers": [
+            {
+              "id": "tide",
+              "displayKey": "effect",
+              "event": "on_enter_field",
+              "details": {
+                "enteringCard": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "excludeSelf": false
+                }
+              },
+              "effect": {
+                "type": "gain_health",
+                "target": {
+                  "controller": "controller"
+                },
+                "amount": 1
+              }
+            }
+          ],
           "actions": []
         }
       ],
       "designNotes": "rbf-063.md",
+      "art": "rbf-063.jpg",
       "source": {
-        "designNotes": "notes/rbf-063.md"
+        "designNotes": "notes/rbf-063.md",
+        "art": "art/rbf-063.jpg"
       }
     },
     {
@@ -19574,7 +20252,7 @@
       "id": "RBF-064",
       "setId": "rubyfront-core",
       "collectorNumber": "064",
-      "slug": "dimensional-keeper",
+      "slug": "wavestiller",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -19582,9 +20260,9 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Custode Dimensionale",
+          "name": "Placaonde",
           "typeLabel": "Entità: Auros",
-          "summary": "Stasi a 2 Flussi: bloccando non muore mai.",
+          "summary": "Stasi a 2 Flussi, e all'ingresso ordina la cima del mazzo.",
           "ui": {
             "face": "Entità"
           },
@@ -19595,10 +20273,14 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Custode Dimensionale",
+            "name": "Placaonde",
             "keyword": {
               "name": "Stasi",
               "rules": "bloccando non muore: resta tappata per sempre"
+            },
+            "soundings": {
+              "trigger": "Quando entra sul Fronte",
+              "text": "Guarda le prime 3 carte del tuo mazzo e rimettile in cima nell'ordine che vuoi."
             },
             "flavor": "Non cade. Resta."
           },
@@ -19608,9 +20290,9 @@
           }
         },
         "en": {
-          "name": "Dimensional Keeper",
+          "name": "Wavestiller",
           "typeLabel": "Entity: Auros",
-          "summary": "Stasis at 2 Flux: blocking, it never dies.",
+          "summary": "Stasis at 2 Flux, and on entry it orders the top of the deck.",
           "ui": {
             "face": "Entity"
           },
@@ -19621,10 +20303,14 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Dimensional Keeper",
+            "name": "Wavestiller",
             "keyword": {
               "name": "Stasis",
               "rules": "won't die blocking: stays permanently tapped"
+            },
+            "soundings": {
+              "trigger": "When it enters the Front",
+              "text": "Look at the top 3 cards of your deck and put them back on top in any order."
             },
             "flavor": "It doesn't fall. It stays."
           },
@@ -19664,13 +20350,33 @@
             }
           ],
           "requirements": {},
-          "triggers": [],
+          "triggers": [
+            {
+              "id": "soundings",
+              "displayKey": "soundings",
+              "event": "on_enter_field",
+              "effect": {
+                "type": "look_and_optionally_move",
+                "from": {
+                  "zone": "deck",
+                  "owner": "controller",
+                  "position": "top",
+                  "count": 3
+                },
+                "details": {
+                  "reorderOnTop": true
+                }
+              }
+            }
+          ],
           "actions": []
         }
       ],
       "designNotes": "rbf-064.md",
+      "art": "rbf-064.jpg",
       "source": {
-        "designNotes": "notes/rbf-064.md"
+        "designNotes": "notes/rbf-064.md",
+        "art": "art/rbf-064.jpg"
       }
     },
     {
@@ -19678,7 +20384,7 @@
       "id": "RBF-065",
       "setId": "rubyfront-core",
       "collectorNumber": "065",
-      "slug": "lookout-of-nova-kai",
+      "slug": "elder-of-the-aurestia",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -19686,7 +20392,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Vedetta di Nova Kai",
+          "name": "Vegliardo dell'Aurestia",
           "typeLabel": "Entità: Auros",
           "summary": "Entra e ferma un'avversaria: tappata per sempre, finché qualcosa non la stappa.",
           "ui": {
@@ -19699,12 +20405,12 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Vedetta di Nova Kai",
+            "name": "Vegliardo dell'Aurestia",
             "freeze": {
               "trigger": "Quando entra sul Fronte",
               "text": "Metti un'Entità avversaria in Stasi."
             },
-            "flavor": "Chi la vede, si ferma. Chi non la vede, si ferma lo stesso."
+            "flavor": "Ha visto fermarsi la marea. Sa come si fa."
           },
           "matters": {
             "dimensionalTitle": "Materia Dimensionale · 1° grado",
@@ -19712,7 +20418,7 @@
           }
         },
         "en": {
-          "name": "Lookout of Nova Kai",
+          "name": "Elder of the Aurestia",
           "typeLabel": "Entity: Auros",
           "summary": "It enters and freezes an opponent: tapped for good, until something untaps it.",
           "ui": {
@@ -19725,12 +20431,12 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Lookout of Nova Kai",
+            "name": "Elder of the Aurestia",
             "freeze": {
               "trigger": "When it enters the Front",
               "text": "Put an opposing Entity into Stasis."
             },
-            "flavor": "Those who see it stop. Those who don't, stop all the same."
+            "flavor": "It saw the tide stop. It knows how it's done."
           },
           "matters": {
             "dimensionalTitle": "Dimensional Matter · 1st grade",
@@ -19786,8 +20492,10 @@
         }
       ],
       "designNotes": "rbf-065.md",
+      "art": "rbf-065.jpg",
       "source": {
-        "designNotes": "notes/rbf-065.md"
+        "designNotes": "notes/rbf-065.md",
+        "art": "art/rbf-065.jpg"
       }
     },
     {
@@ -19795,7 +20503,7 @@
       "id": "RBF-066",
       "setId": "rubyfront-core",
       "collectorNumber": "066",
-      "slug": "warrior-of-the-schism",
+      "slug": "mender-of-the-torn",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -19803,7 +20511,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Guerriero della Scissione",
+          "name": "Curatore dei Laceri",
           "typeLabel": "Entità: Auros",
           "summary": "Tre e tre, e libera un compagno rimasto in Stasi.",
           "ui": {
@@ -19816,12 +20524,12 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Guerriero della Scissione",
+            "name": "Curatore dei Laceri",
             "release": {
               "trigger": "Quando entra sul Fronte",
               "text": "Puoi togliere dalla Stasi un'Entità che controlli."
             },
-            "flavor": "La Scissione ha aperto una porta. Lui la tiene aperta."
+            "flavor": "Ricuce ciò che la marea ha strappato."
           },
           "matters": {
             "dimensionalTitle": "Materia Dimensionale · 1° grado",
@@ -19829,7 +20537,7 @@
           }
         },
         "en": {
-          "name": "Warrior of the Schism",
+          "name": "Mender of the Torn",
           "typeLabel": "Entity: Auros",
           "summary": "Three and three, and it frees a companion left in Stasis.",
           "ui": {
@@ -19842,12 +20550,12 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Warrior of the Schism",
+            "name": "Mender of the Torn",
             "release": {
               "trigger": "When it enters the Front",
               "text": "You may release an Entity you control from Stasis."
             },
-            "flavor": "The Schism opened a door. It keeps it open."
+            "flavor": "It mends what the tide tore."
           },
           "matters": {
             "dimensionalTitle": "Dimensional Matter · 1st grade",
@@ -19905,8 +20613,10 @@
         }
       ],
       "designNotes": "rbf-066.md",
+      "art": "rbf-066.jpg",
       "source": {
-        "designNotes": "notes/rbf-066.md"
+        "designNotes": "notes/rbf-066.md",
+        "art": "art/rbf-066.jpg"
       }
     },
     {
@@ -19914,7 +20624,7 @@
       "id": "RBF-067",
       "setId": "rubyfront-core",
       "collectorNumber": "067",
-      "slug": "defender-of-nova-kai",
+      "slug": "immovable-of-the-guard",
       "type": "entity",
       "layout": "single",
       "status": "draft",
@@ -19922,9 +20632,9 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Difensore di Nova Kai",
+          "name": "Inamovibile di Guardia",
           "typeLabel": "Entità: Auros",
-          "summary": "Quattro e quattro: il muro di Nova Kai.",
+          "summary": "Quattro Flussi per 3 Potenza: il muro che dà Stasi a tutte le tue Entità, e un PV a ogni tappata.",
           "ui": {
             "face": "Entità"
           },
@@ -19935,8 +20645,12 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Difensore di Nova Kai",
-            "flavor": "Le mura sono di pietra. Lui è la pietra."
+            "name": "Inamovibile di Guardia",
+            "effect": {
+              "name": "Effetto",
+              "text": "Le Entità che controlli hanno Stasi. Ogni volta che un'Entità che controlli viene tappata, guadagni 1 PV."
+            },
+            "flavor": "Le onde passano. Lui no."
           },
           "matters": {
             "dimensionalTitle": "Materia Dimensionale · 2° grado",
@@ -19944,9 +20658,9 @@
           }
         },
         "en": {
-          "name": "Defender of Nova Kai",
+          "name": "Immovable of the Guard",
           "typeLabel": "Entity: Auros",
-          "summary": "Four and four: the wall of Nova Kai.",
+          "summary": "Four Flux for 3 Power: the wall that gives Stasis to all your Entities, and 1 HP for every tap.",
           "ui": {
             "face": "Entity"
           },
@@ -19957,8 +20671,12 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Defender of Nova Kai",
-            "flavor": "The walls are stone. It is the stone."
+            "name": "Immovable of the Guard",
+            "effect": {
+              "name": "Effect",
+              "text": "Entities you control have Stasis. Each time an Entity you control becomes tapped, you gain 1 HP."
+            },
+            "flavor": "Waves pass. It doesn't."
           },
           "matters": {
             "dimensionalTitle": "Dimensional Matter · 2nd grade",
@@ -19970,8 +20688,9 @@
         "entity",
         "auros",
         "dimensional",
-        "vanilla",
-        "starter"
+        "starter",
+        "stasis",
+        "healing"
       ],
       "rulesReference": "MANUALE.md §3.2",
       "faces": [
@@ -19981,7 +20700,7 @@
           "displayKey": "face",
           "race": "auros",
           "stats": {
-            "power": 4,
+            "power": 3,
             "fluxCost": 4
           },
           "enablesMatters": [
@@ -19992,13 +20711,51 @@
           ],
           "keywords": [],
           "requirements": {},
-          "triggers": [],
+          "triggers": [
+            {
+              "id": "bulwark",
+              "displayKey": "effect",
+              "event": "while_in_play",
+              "effect": {
+                "type": "empower",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "controller",
+                  "quantity": "all"
+                },
+                "grants": [
+                  "stasis"
+                ],
+                "duration": "permanent"
+              }
+            },
+            {
+              "id": "vigil",
+              "displayKey": "effect",
+              "event": "on_tap",
+              "details": {
+                "tappedCard": {
+                  "cardType": "entity",
+                  "controller": "controller"
+                }
+              },
+              "effect": {
+                "type": "gain_health",
+                "target": {
+                  "controller": "controller"
+                },
+                "amount": 1
+              }
+            }
+          ],
           "actions": []
         }
       ],
       "designNotes": "rbf-067.md",
+      "art": "rbf-067.jpg",
       "source": {
-        "designNotes": "notes/rbf-067.md"
+        "designNotes": "notes/rbf-067.md",
+        "art": "art/rbf-067.jpg"
       }
     },
     {
@@ -20098,17 +20855,18 @@
       "id": "RBF-069",
       "setId": "rubyfront-core",
       "collectorNumber": "069",
-      "slug": "sealer-of-nova-kai",
+      "slug": "darx-tamer-of-the-aurestia",
       "type": "entity",
       "layout": "single",
       "status": "draft",
-      "deckLimit": 3,
+      "unique": true,
+      "deckLimit": 1,
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Sigillatore di Nova Kai",
+          "name": "Darx, Domatore dell'Aurestia",
           "typeLabel": "Entità: Auros",
-          "summary": "Sei Potenza, e all'ingresso ferma due corpi leggeri.",
+          "summary": "Cinque Potenza: all'ingresso ferma due corpi leggeri, e ogni avversaria ferma gli rende 1 PV.",
           "ui": {
             "face": "Entità"
           },
@@ -20119,10 +20877,10 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Sigillatore di Nova Kai",
+            "name": "Darx, Domatore dell'Aurestia",
             "seal": {
               "trigger": "Quando entra sul Fronte",
-              "text": "Metti 2 Entità avversarie con costo di Flusso 3 o inferiore in Stasi."
+              "text": "Metti 2 Entità avversarie con costo di Flusso 3 o inferiore in Stasi, poi guadagni 1 PV per ogni Entità avversaria tappata."
             },
             "flavor": "Dove posa lo sguardo, il tempo si ferma."
           },
@@ -20132,9 +20890,9 @@
           }
         },
         "en": {
-          "name": "Sealer of Nova Kai",
+          "name": "Darx, Tamer of the Aurestia",
           "typeLabel": "Entity: Auros",
-          "summary": "Six Power, and on entry it freezes two light bodies.",
+          "summary": "Five Power: on entry it freezes two light bodies, and every tapped opponent gives back 1 HP.",
           "ui": {
             "face": "Entity"
           },
@@ -20145,12 +20903,12 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Sealer of Nova Kai",
+            "name": "Darx, Tamer of the Aurestia",
             "seal": {
               "trigger": "When it enters the Front",
-              "text": "Put 2 opposing Entities with Flux cost 3 or less into Stasis."
+              "text": "Put 2 opposing Entities with Flux cost 3 or less into Stasis, then you gain 1 HP for each tapped opposing Entity."
             },
-            "flavor": "Where its gaze rests, time stops."
+            "flavor": "Where his gaze rests, time stops."
           },
           "matters": {
             "dimensionalTitle": "Dimensional Matter · 2nd grade",
@@ -20164,7 +20922,9 @@
         "dimensional",
         "stasis",
         "control",
-        "starter"
+        "unique",
+        "starter",
+        "healing"
       ],
       "rulesReference": "MANUALE.md §8.1, §8.2",
       "faces": [
@@ -20174,7 +20934,7 @@
           "displayKey": "face",
           "race": "auros",
           "stats": {
-            "power": 6,
+            "power": 5,
             "fluxCost": 6
           },
           "enablesMatters": [
@@ -20205,7 +20965,14 @@
                     }
                   ]
                 },
-                "state": "stasis"
+                "state": "stasis",
+                "details": {
+                  "thenGainHealthPerTapped": {
+                    "cardType": "entity",
+                    "controller": "opponent",
+                    "amount": 1
+                  }
+                }
               }
             }
           ],
@@ -20213,8 +20980,12 @@
         }
       ],
       "designNotes": "rbf-069.md",
+      "art": "rbf-069.jpg",
+      "fullArt": true,
+      "artZoom": "50%",
       "source": {
-        "designNotes": "notes/rbf-069.md"
+        "designNotes": "notes/rbf-069.md",
+        "art": "art/rbf-069.jpg"
       }
     },
     {
@@ -20222,7 +20993,7 @@
       "id": "RBF-070",
       "setId": "rubyfront-core",
       "collectorNumber": "070",
-      "slug": "crystal-of-awakening",
+      "slug": "crystal-of-the-depths",
       "type": "object",
       "layout": "single",
       "status": "draft",
@@ -20230,7 +21001,7 @@
       "defaultLocale": "it",
       "locales": {
         "it": {
-          "name": "Cristallo del Risveglio",
+          "name": "Cristallo delle Profondità",
           "typeLabel": "Oggetto",
           "summary": "Due Potenza, e risveglia chi era fermo in Stasi.",
           "ui": {
@@ -20242,16 +21013,16 @@
             "flux": "Flussi"
           },
           "face": {
-            "name": "Cristallo del Risveglio",
+            "name": "Cristallo delle Profondità",
             "effect": {
               "name": "Effetto",
               "text": "L'Entità a cui è assegnato ha +2 Potenza. Se l'Entità a cui assegni questo Oggetto era in Stasi, toglila dalla Stasi."
             },
-            "flavor": "Una luce dentro la pietra. La pietra ricorda di essere viva."
+            "flavor": "Una luce dal fondo. Chi la vede si sveglia."
           }
         },
         "en": {
-          "name": "Crystal of Awakening",
+          "name": "Crystal of the Depths",
           "typeLabel": "Object",
           "summary": "Two Power, and it wakes whoever was frozen in Stasis.",
           "ui": {
@@ -20263,12 +21034,12 @@
             "flux": "Flux"
           },
           "face": {
-            "name": "Crystal of Awakening",
+            "name": "Crystal of the Depths",
             "effect": {
               "name": "Effect",
               "text": "The Entity it is assigned to has +2 Power. If the Entity you assign this Object to was in Stasis, release it from Stasis."
             },
-            "flavor": "A light inside the stone. The stone remembers it is alive."
+            "flavor": "A light from the deep. Whoever sees it wakes."
           }
         }
       },
@@ -20328,8 +21099,10 @@
         }
       ],
       "designNotes": "rbf-070.md",
+      "art": "rbf-070.jpg",
       "source": {
-        "designNotes": "notes/rbf-070.md"
+        "designNotes": "notes/rbf-070.md",
+        "art": "art/rbf-070.jpg"
       }
     },
     {
@@ -20449,8 +21222,10 @@
         }
       ],
       "designNotes": "rbf-071.md",
+      "art": "rbf-071.jpg",
       "source": {
-        "designNotes": "notes/rbf-071.md"
+        "designNotes": "notes/rbf-071.md",
+        "art": "art/rbf-071.jpg"
       }
     },
     {
@@ -20570,8 +21345,10 @@
         }
       ],
       "designNotes": "rbf-072.md",
+      "art": "rbf-072.jpg",
       "source": {
-        "designNotes": "notes/rbf-072.md"
+        "designNotes": "notes/rbf-072.md",
+        "art": "art/rbf-072.jpg"
       }
     },
     {
@@ -20588,8 +21365,8 @@
       "locales": {
         "it": {
           "name": "Ricerca Dimensionale",
-          "typeLabel": "Materia Dimensionale I",
-          "summary": "Scava quattro carte e tira fuori un Oggetto.",
+          "typeLabel": "Materia Dimensionale II",
+          "summary": "Un Oggetto dal mazzo al Ritiro; col dado, uno dal Ritiro a una tua Entità, gratis.",
           "ui": {
             "face": "Materia"
           },
@@ -20606,19 +21383,19 @@
             "name": "Ricerca Dimensionale",
             "effect": {
               "name": "Effetto",
-              "text": "Guarda le prime 4 carte del tuo mazzo. Puoi mostrare un Oggetto tra esse e aggiungerlo alla tua mano. Metti le altre in fondo al mazzo."
+              "text": "Cerca nel tuo mazzo un Oggetto con costo di Flusso 3 o inferiore e mettilo nella tua Zona di Ritiro, poi rimescola il mazzo. Poi lancia un d6: con 3 o più puoi assegnare un Oggetto dalla tua Zona di Ritiro a un'Entità che controlli senza pagarne il costo di Flusso."
             },
             "flavor": "Ogni cosa perduta è solo mal riposta."
           },
           "matters": {
-            "dimensionalTitle": "Materia Dimensionale · 1° grado",
+            "dimensionalTitle": "Materia Dimensionale · 2° grado",
             "dimensionalAria": "Dimensionale"
           }
         },
         "en": {
           "name": "Dimensional Search",
-          "typeLabel": "Dimensional Matter I",
-          "summary": "It digs four cards and pulls out an Object.",
+          "typeLabel": "Dimensional Matter II",
+          "summary": "An Object from the deck to Retire; with the die, one from Retire onto your Entity, free.",
           "ui": {
             "face": "Matter"
           },
@@ -20635,12 +21412,12 @@
             "name": "Dimensional Search",
             "effect": {
               "name": "Effect",
-              "text": "Look at the top 4 cards of your deck. You may reveal an Object among them and add it to your hand. Put the rest on the bottom of your deck."
+              "text": "Search your deck for an Object with Flux cost 3 or less and put it into your Retire Zone, then shuffle your deck. Then roll a d6: on 3 or more you may assign an Object from your Retire Zone to an Entity you control without paying its Flux cost."
             },
             "flavor": "Everything lost is only misplaced."
           },
           "matters": {
-            "dimensionalTitle": "Dimensional Matter · 1st grade",
+            "dimensionalTitle": "Dimensional Matter · 2nd grade",
             "dimensionalAria": "Dimensional"
           }
         }
@@ -20648,11 +21425,12 @@
       "tags": [
         "matter",
         "dimensional",
-        "grade-1",
-        "dig",
+        "grade-2",
+        "search",
+        "object",
         "starter"
       ],
-      "rulesReference": "MANUALE.md §7.2",
+      "rulesReference": "MANUALE.md §3.1, §7.2",
       "faces": [
         {
           "id": "matter",
@@ -20660,7 +21438,7 @@
           "displayKey": "face",
           "matter": {
             "type": "dimensional",
-            "grade": 1
+            "grade": 2
           },
           "behavior": "normal",
           "stats": {
@@ -20671,30 +21449,45 @@
           "requirements": {},
           "triggers": [
             {
-              "id": "search",
+              "id": "outfit",
               "displayKey": "effect",
               "event": "on_resolve",
               "effect": {
-                "type": "look_and_optionally_move",
+                "type": "search_card",
                 "from": {
                   "zone": "deck",
-                  "owner": "controller",
-                  "position": "top",
-                  "count": 4
+                  "owner": "controller"
+                },
+                "filter": {
+                  "cardType": "object",
+                  "conditions": [
+                    {
+                      "stat": "flux_cost",
+                      "operator": "lte",
+                      "value": 3
+                    }
+                  ]
+                },
+                "count": {
+                  "max": 1
                 },
                 "details": {
-                  "mayReveal": {
-                    "cardType": "object"
-                  },
-                  "revealTo": {
-                    "zone": "hand",
+                  "toZone": {
+                    "zone": "retire",
                     "owner": "controller"
                   },
-                  "restTo": {
-                    "zone": "deck",
-                    "owner": "controller",
-                    "position": "bottom",
-                    "anyOrder": true
+                  "thenShuffle": true,
+                  "thenRoll": {
+                    "die": "d6",
+                    "successAtLeast": 3,
+                    "mayAssignFrom": {
+                      "zone": "retire",
+                      "owner": "controller"
+                    },
+                    "filter": {
+                      "cardType": "object"
+                    },
+                    "noFluxCost": true
                   }
                 }
               }
@@ -20704,8 +21497,10 @@
         }
       ],
       "designNotes": "rbf-073.md",
+      "art": "rbf-073.jpg",
       "source": {
-        "designNotes": "notes/rbf-073.md"
+        "designNotes": "notes/rbf-073.md",
+        "art": "art/rbf-073.jpg"
       }
     },
     {
@@ -20765,7 +21560,7 @@
             "flavor": "Nova Kai non dorme. Lei conta le ore per tutti."
           },
           "faceB": {
-            "name": "Veglia di Nova Kai",
+            "name": "Rinascita Profonda",
             "nexusAria": "Nexus",
             "flipEffect": {
               "trigger": "Quando flippa",
@@ -20837,7 +21632,7 @@
             "flavor": "Nova Kai does not sleep. She counts the hours for everyone."
           },
           "faceB": {
-            "name": "Vigil of Nova Kai",
+            "name": "Deep Rebirth",
             "nexusAria": "Nexus",
             "flipEffect": {
               "trigger": "When it flips",
@@ -21148,12 +21943,425 @@
                 "state": "stasis"
               }
             }
-          ]
+          ],
+          "art": "rbf-074-nexus.jpg",
+          "artZoom": "48%",
+          "source": {
+            "art": "art/rbf-074-nexus.jpg"
+          }
         }
       ],
       "designNotes": "rbf-074.md",
+      "art": "rbf-074.jpg",
+      "artZoom": "48%",
       "source": {
-        "designNotes": "notes/rbf-074.md"
+        "designNotes": "notes/rbf-074.md",
+        "art": "art/rbf-074.jpg"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-075",
+      "setId": "rubyfront-core",
+      "collectorNumber": "075",
+      "slug": "tidelock",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Serramarea",
+          "typeLabel": "Materia Distruttiva I",
+          "summary": "Un'avversaria sparisce per tre turni; poi il d12 decide se torna.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "static": "Statica"
+            }
+          },
+          "face": {
+            "name": "Serramarea",
+            "effect": {
+              "name": "Effetto",
+              "text": "Scegli un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario per 3 turni. Al termine del suo terzo turno, il suo controllore lancia un d12: con 8 o più l'Entità torna sul suo Fronte; altrimenti va nell'Abisso."
+            },
+            "flavor": "La marea si chiude. Chi c'è dentro aspetta."
+          },
+          "matters": {
+            "destructiveTitle": "Materia Distruttiva · 1° grado",
+            "destructiveAria": "Distruttiva"
+          }
+        },
+        "en": {
+          "name": "Tidelock",
+          "typeLabel": "Destructive Matter I",
+          "summary": "An opponent vanishes for three turns; then the d12 decides whether it returns.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux",
+            "behaviors": {
+              "reactive": "Reactive",
+              "static": "Static"
+            }
+          },
+          "face": {
+            "name": "Tidelock",
+            "effect": {
+              "name": "Effect",
+              "text": "Choose an opposing Entity and put it into its owner's Retire Zone for 3 turns. At the end of its third turn, its controller rolls a d12: on 8 or more the Entity returns to their Front; otherwise it goes to the Abyss."
+            },
+            "flavor": "The tide closes. Whoever is inside waits."
+          },
+          "matters": {
+            "destructiveTitle": "Destructive Matter · 1st grade",
+            "destructiveAria": "Destructive"
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "destructive",
+        "grade-1",
+        "control",
+        "exile",
+        "starter"
+      ],
+      "rulesReference": "MANUALE.md §7.2, §8.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "destructive",
+            "grade": 1
+          },
+          "behavior": "normal",
+          "stats": {
+            "fluxCost": 2
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "undertow",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "move_card",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
+                },
+                "destination": {
+                  "zone": "retire",
+                  "owner": "card_owner"
+                },
+                "details": {
+                  "forTurns": 3,
+                  "turnsOf": "target_controller",
+                  "thenRoll": {
+                    "die": "d12",
+                    "returnAtLeast": 8,
+                    "returnTo": {
+                      "zone": "front",
+                      "owner": "card_owner"
+                    },
+                    "otherwise": {
+                      "zone": "abyss",
+                      "owner": "card_owner"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-075.md",
+      "art": "rbf-075.jpg",
+      "source": {
+        "designNotes": "notes/rbf-075.md",
+        "art": "art/rbf-075.jpg"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-076",
+      "setId": "rubyfront-core",
+      "collectorNumber": "076",
+      "slug": "vessel-of-lost-echoes",
+      "type": "object",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Vaso degli Echi Perduti",
+          "typeLabel": "Oggetto",
+          "summary": "+1 Potenza, e a ogni tappata del portatore un d6 che può rendere 1 PV.",
+          "ui": {
+            "face": "Oggetto"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi"
+          },
+          "face": {
+            "name": "Vaso degli Echi Perduti",
+            "effect": {
+              "name": "Effetto",
+              "text": "L'Entità a cui è assegnato ha +1 Potenza. Ogni volta che quell'Entità viene tappata, lancia un d6: con 4 o più guadagni 1 PV."
+            },
+            "flavor": "Dentro c'è ancora la voce di chi l'ha perso."
+          }
+        },
+        "en": {
+          "name": "Vessel of Lost Echoes",
+          "typeLabel": "Object",
+          "summary": "+1 Power, and on every tap of the bearer a d6 that may give back 1 HP.",
+          "ui": {
+            "face": "Object"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux"
+          },
+          "face": {
+            "name": "Vessel of Lost Echoes",
+            "effect": {
+              "name": "Effect",
+              "text": "The Entity it is assigned to has +1 Power. Each time that Entity becomes tapped, roll a d6: on 4 or more you gain 1 HP."
+            },
+            "flavor": "Inside, the voice of whoever lost it still speaks."
+          }
+        }
+      },
+      "tags": [
+        "object",
+        "dice",
+        "healing",
+        "starter"
+      ],
+      "rulesReference": "MANUALE.md §3.1",
+      "faces": [
+        {
+          "id": "object",
+          "kind": "object",
+          "displayKey": "face",
+          "stats": {
+            "fluxCost": 1
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "edge",
+              "displayKey": "effect",
+              "event": "while_assigned",
+              "effect": {
+                "type": "modify_power",
+                "target": {
+                  "scope": "assigned"
+                },
+                "amount": 1
+              }
+            },
+            {
+              "id": "echo",
+              "displayKey": "effect",
+              "event": "on_tap",
+              "details": {
+                "tappedCard": {
+                  "scope": "assigned"
+                }
+              },
+              "effect": {
+                "type": "gain_health",
+                "target": {
+                  "controller": "controller"
+                },
+                "amount": 1,
+                "details": {
+                  "roll": {
+                    "die": "d6",
+                    "successAtLeast": 4
+                  }
+                }
+              }
+            }
+          ],
+          "actions": [],
+          "assignRestriction": {
+            "cardType": "entity",
+            "controller": "controller"
+          }
+        }
+      ],
+      "designNotes": "rbf-076.md",
+      "art": "rbf-076.jpg",
+      "source": {
+        "designNotes": "notes/rbf-076.md",
+        "art": "art/rbf-076.jpg"
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "RBF-077",
+      "setId": "rubyfront-core",
+      "collectorNumber": "077",
+      "slug": "deep-sentence",
+      "type": "matter",
+      "layout": "single",
+      "status": "draft",
+      "deckLimit": 3,
+      "defaultLocale": "it",
+      "locales": {
+        "it": {
+          "name": "Sentenza Profonda",
+          "typeLabel": "Materia Distruttiva II",
+          "summary": "Un d6 contro la Potenza di un'avversaria: la vince, va nell'Abisso; la perde, −2 Potenza.",
+          "ui": {
+            "face": "Materia"
+          },
+          "card": {
+            "illustration": "Illustrazione",
+            "hp": "PV",
+            "flux": "Flussi",
+            "behaviors": {
+              "reactive": "Reattiva",
+              "static": "Statica"
+            }
+          },
+          "face": {
+            "name": "Sentenza Profonda",
+            "effect": {
+              "name": "Effetto",
+              "text": "Scegli un'Entità avversaria e lancia un d6: se il risultato è pari o superiore alla sua Potenza, mettila nell'Abisso; altrimenti quell'Entità prende −2 Potenza fino alla fine del turno."
+            },
+            "flavor": "Il fondo non discute. Pesa."
+          },
+          "matters": {
+            "destructiveTitle": "Materia Distruttiva · 2° grado",
+            "destructiveAria": "Distruttiva"
+          }
+        },
+        "en": {
+          "name": "Deep Sentence",
+          "typeLabel": "Destructive Matter II",
+          "summary": "A d6 against an opponent's Power: win it, the Abyss; lose it, −2 Power.",
+          "ui": {
+            "face": "Matter"
+          },
+          "card": {
+            "illustration": "Illustration",
+            "hp": "HP",
+            "flux": "Flux",
+            "behaviors": {
+              "reactive": "Reactive",
+              "static": "Static"
+            }
+          },
+          "face": {
+            "name": "Deep Sentence",
+            "effect": {
+              "name": "Effect",
+              "text": "Choose an opposing Entity and roll a d6: if the result is equal to or higher than its Power, put it into the Abyss; otherwise that Entity gets −2 Power until end of turn."
+            },
+            "flavor": "The deep doesn't argue. It weighs."
+          },
+          "matters": {
+            "destructiveTitle": "Destructive Matter · 2nd grade",
+            "destructiveAria": "Destructive"
+          }
+        }
+      },
+      "tags": [
+        "matter",
+        "destructive",
+        "grade-2",
+        "removal",
+        "dice",
+        "starter"
+      ],
+      "rulesReference": "MANUALE.md §3.1, §5, §7.2",
+      "faces": [
+        {
+          "id": "matter",
+          "kind": "matter",
+          "displayKey": "face",
+          "matter": {
+            "type": "destructive",
+            "grade": 2
+          },
+          "behavior": "normal",
+          "stats": {
+            "fluxCost": {
+              "die": "d6"
+            }
+          },
+          "enablesMatters": [],
+          "keywords": [],
+          "requirements": {},
+          "triggers": [
+            {
+              "id": "sentence",
+              "displayKey": "effect",
+              "event": "on_resolve",
+              "effect": {
+                "type": "destroy",
+                "target": {
+                  "cardType": "entity",
+                  "controller": "opponent",
+                  "min": 1,
+                  "max": 1
+                },
+                "details": {
+                  "roll": {
+                    "die": "d6",
+                    "ifAtLeastStat": "power",
+                    "destination": {
+                      "zone": "abyss",
+                      "owner": "card_owner"
+                    },
+                    "otherwise": {
+                      "type": "modify_power",
+                      "amount": -2,
+                      "duration": "until_end_of_turn"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "actions": []
+        }
+      ],
+      "designNotes": "rbf-077.md",
+      "art": "rbf-077.jpg",
+      "source": {
+        "designNotes": "notes/rbf-077.md",
+        "art": "art/rbf-077.jpg"
       }
     }
   ],
@@ -21394,11 +22602,11 @@
       "locales": {
         "it": {
           "name": "Marea Inversa",
-          "description": "Starter Auros, il mazzo del tutorial: corpi semplici, la Stasi come arma — sulle proprie Entità per non morire, sulle avversarie per fermarle — e Seyra che guadagna PV a ogni Stasi."
+          "description": "Starter Auros, il mazzo del tutorial: la Stasi come arma — sulle proprie Entità per non morire, sulle avversarie per fermarle —, i PV che tornano a ogni tappata e a ogni Stasi, la marea che porta via un'avversaria per tre turni, e la sentenza del d6."
         },
         "en": {
           "name": "Reverse Tide",
-          "description": "The Auros starter, the tutorial deck: simple bodies, Stasis as a weapon — on your own Entities so they don't die, on the opponent's to stop them — and Seyra gaining HP with every Stasis."
+          "description": "The Auros starter, the tutorial deck: Stasis as a weapon — on your own Entities so they don't die, on the opponent's to stop them —, HP coming back with every tap and every Stasis, the tide that carries an opponent away for three turns, and the sentence of the d6."
         }
       },
       "designNotes": "starter-auros.md",
@@ -21428,15 +22636,11 @@
           "count": 2
         },
         {
-          "card": "RBF-068",
-          "count": 2
-        },
-        {
           "card": "RBF-069",
           "count": 1
         },
         {
-          "card": "RBF-055",
+          "card": "RBF-076",
           "count": 3
         },
         {
@@ -21456,12 +22660,16 @@
           "count": 3
         },
         {
-          "card": "RBF-059",
+          "card": "RBF-077",
           "count": 3
         },
         {
           "card": "RBF-073",
           "count": 3
+        },
+        {
+          "card": "RBF-075",
+          "count": 2
         },
         {
           "card": "RBF-074",

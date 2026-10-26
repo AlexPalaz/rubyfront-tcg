@@ -9,15 +9,17 @@
 // ingresso. Tutto ciò che non ha una forma certificata resta a mano.
 
 import { cardsWord, msg, t, type LogMsg } from "./i18n.js";
-import type { AssignForm, AttackForm, DeathForm, FlipForm, ResolveForm } from "./ctx.js";
-import type { CardFacts, Ctx, EnterEmpower, EnterLook, EnterPeek, EnterRefresh, EnterStash, EnterTap } from "./ctx.js";
-import { STACK_STEP, controllerOf, fieldCards, inPlay, playSpot, sealedForPlay, zoneCards, freeFrontSlotOrNull } from "./state.js";
+import type { AssignForm, AttackForm, DeathForm, FlipForm, ResolveForm, EnterSort, TapListener } from "./ctx.js";
+import type { CardFacts, Ctx, EnterEmpower, EnterFreeze, EnterLook, EnterPeek, EnterRefresh, EnterStash, EnterTap, EnterWake } from "./ctx.js";
+import { STACK_STEP, controllerOf, exilesDue, fieldCards, inPlay, playSpot, rollKey, sealedForPlay, zoneCards, freeFrontSlotOrNull } from "./state.js";
 import { countEntities, powerOf } from "./combat.js";
 import type { CardInstance, EffectRef, GameState, Seat } from "./types.js";
 
 export interface EnterTrigger {
   source: CardInstance;
   draw: number;
+  /** «Guadagni N PV» (dal 2026-10-23): la forma dei PV, al posto della pesca. */
+  heal?: number;
 }
 
 /** Uno spostamento all'ingresso da risolvere: chi entra, dove manda, e fra chi si sceglie. */
@@ -335,13 +337,14 @@ export function enterTriggers(state: GameState, entering: CardInstance, facts: (
     }).length;
   const out: EnterTrigger[] = [];
   for (const source of mine) {
-    if (source.uid === entering.uid) continue;
     for (const listener of facts(source.cardId).enterListeners) {
+      // Il proprio ingresso conta solo con «compresa questa» (dal 2026-10-23).
+      if (source.uid === entering.uid && !listener.self) continue;
       if (listener.enteringRace !== null && arrived.race !== listener.enteringRace) continue;
       if (listener.requires && count(listener.requires.race) < listener.requires.count) continue;
       // «Se in questo turno sono entrate sul tuo Fronte almeno N» (dal 2026-10-20): chi è entrato, l'ingresso compreso.
       if (listener.requiresEntered && enteredThisTurn(state, controllerOf(entering), listener.requiresEntered.race, facts) < listener.requiresEntered.count) continue;
-      out.push({ source, draw: listener.draw });
+      out.push(listener.heal ? { source, draw: 0, heal: listener.heal } : { source, draw: listener.draw });
     }
   }
   return out;
@@ -376,6 +379,135 @@ export async function resolveTap(ctx: Ctx, step: EnterTapStep): Promise<boolean>
   const passed = await ctx.dispatch({ t: "tap", uid: step.source.uid, tapped: true, effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid } });
   if (passed) ctx.log(msg("log.effect.tapped", { seat: by, card: step.source.cardId }), by);
   return passed;
+}
+
+/** «Quando entra sul Fronte, metti N Entità avversarie in Stasi» (§8.1, dal 2026-10-22): chi entra, la forma, fra chi si sceglie. */
+export interface EnterFreezeStep {
+  source: CardInstance;
+  form: EnterFreeze;
+  candidates: CardInstance[];
+}
+
+export function enterFreezes(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterFreezeStep[] {
+  const seat = controllerOf(entering);
+  return facts(entering.cardId).enterFreezes.map(form => ({
+    source: entering,
+    form,
+    candidates: fieldCards(state).filter(card => {
+      if (controllerOf(card) === seat || !freezable(card, facts)) return false;
+      const cost = facts(card.cardId).fluxCost;
+      return form.maxCost === null || (cost !== null && cost <= form.maxCost);
+    }),
+  }));
+}
+
+export function describeFreeze(step: EnterFreezeStep, facts: (cardId: string) => CardFacts): string {
+  const card = `«${facts(step.source.cardId).name}»`;
+  return step.form.count === 1 && step.form.maxCost === null
+    ? t("trigger.freeze", { card })
+    : t("trigger.freeze.many", { card, n: step.form.count, m: step.form.maxCost ?? 0 });
+}
+
+/** Esegue la Stasi all'ingresso sul bersaglio scelto: un `tap` con `stasis`, marcato come effetto d'ingresso. */
+export async function resolveFreeze(ctx: Ctx, step: EnterFreezeStep, target: CardInstance): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const passed = await ctx.dispatch({ t: "tap", uid: target.uid, tapped: true, stasis: true, effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid } });
+  if (passed) ctx.log(msg("log.effect.freeze", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
+  return passed;
+}
+
+/** «Quando entra sul Fronte, puoi togliere dalla Stasi un'Entità che controlli» (§8.1, dal 2026-10-22). */
+export interface EnterWakeStep {
+  source: CardInstance;
+  form: EnterWake;
+  candidates: CardInstance[];
+}
+
+export function enterWakes(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterWakeStep[] {
+  const seat = controllerOf(entering);
+  return facts(entering.cardId).enterWakes.map(form => ({
+    source: entering,
+    form,
+    candidates: fieldCards(state).filter(card => controllerOf(card) === seat && card.stasis === true && facts(card.cardId).kind === "entity"),
+  }));
+}
+
+export function describeWake(step: EnterWakeStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.wake", { card: `«${facts(step.source.cardId).name}»` });
+}
+
+/** Esegue la stappata dalla Stasi sul bersaglio scelto: un `empower` che stappa, marcato come effetto d'ingresso. */
+export async function resolveWake(ctx: Ctx, step: EnterWakeStep, target: CardInstance): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const passed = await ctx.dispatch({ t: "empower", uid: target.uid, untap: true, effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid } });
+  if (passed) ctx.log(msg("log.effect.wake", { seat: by, sourceCard: step.source.cardId, card: target.cardId }), by);
+  return passed;
+}
+
+/**
+ * «Ogni volta che un'Entità entra in Stasi, guadagni N PV» (§8.2, dal
+ * 2026-10-22): fra `before` e `after`, ogni Entità con un numero d'ingresso
+ * in Stasi nuovo innesca il Rubyfront schierato di chi lo comanda, sulla
+ * faccia in vista — se non l'ha già fatto per QUELL'ingresso. La sessione
+ * lo offre dopo ogni azione, come il ritorno vincolato.
+ */
+export interface StasisHealStep {
+  source: CardInstance;
+  target: CardInstance;
+  amount: number;
+}
+
+export function stasisHeals(before: GameState, after: GameState, facts: (cardId: string) => CardFacts): StasisHealStep[] {
+  const out: StasisHealStep[] = [];
+  const entered = Object.values(after.cards).filter(card => card.zone === "field" && card.stasis === true && card.stasisAt !== undefined && before.cards[card.uid]?.stasisAt !== card.stasisAt);
+  if (entered.length === 0) return out;
+  for (const rubyfront of fieldCards(after)) {
+    const f = facts(rubyfront.cardId);
+    if (f.kind !== "rubyfront" || !inPlay(rubyfront, f.kind)) continue;
+    const listener = f.stasisListeners.find(candidate => candidate.face === rubyfront.face);
+    if (!listener) continue;
+    for (const target of entered) {
+      if ((after.fired ?? []).includes(`${rubyfront.uid}|on_enter_stasis|${target.uid}@${target.stasisAt}`)) continue;
+      out.push({ source: rubyfront, target, amount: listener.amount });
+    }
+  }
+  return out;
+}
+
+export function describeStasisHeal(step: StasisHealStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.stillness", { card: `«${facts(step.source.cardId).name}»`, n: step.amount });
+}
+
+/** Esegue il guadagno di PV: una patch dei PV marcata dall'ingresso in Stasi. */
+export async function resolveStasisHeal(ctx: Ctx, step: StasisHealStep): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const hp = ctx.state().players[by].hp + step.amount;
+  const passed = await ctx.dispatch({ t: "player", seat: by, patch: { hp }, effect: { source: step.source.uid, event: "on_enter_stasis", entering: step.target.uid } });
+  if (passed) ctx.log(msg("log.effect.stillness", { seat: by, sourceCard: step.source.cardId, card: step.target.cardId, n: step.amount, hp: ctx.state().players[by].hp }), by);
+  return passed;
+}
+
+/** L'esilio a tempo scaduto (§8.2, dal 2026-10-22): l'Entità in Ritiro di `seat` e la Materia che l'ha esiliata. */
+export interface ExileReturnStep {
+  card: CardInstance;
+  source: string;
+  form: Extract<ResolveForm, { kind: "exile_timed" }>;
+}
+
+export function exileReturns(state: GameState, seat: Seat, facts: (cardId: string) => CardFacts): ExileReturnStep[] {
+  const out: ExileReturnStep[] = [];
+  for (const card of exilesDue(state, seat)) {
+    const source = card.exile?.source;
+    const matter = source ? state.cards[source] : undefined;
+    const form = matter ? facts(matter.cardId).resolveForms.find((candidate): candidate is Extract<ResolveForm, { kind: "exile_timed" }> => candidate.kind === "exile_timed") : undefined;
+    if (!source || !form) continue;
+    out.push({ card, source, form });
+  }
+  return out;
+}
+
+export function exileReturnRef(step: ExileReturnStep): EffectRef {
+  return { source: step.source, event: "on_exile_end", entering: step.card.uid };
 }
 
 /** «Quando entra, un'altra Entità che controlli prende +N Potenza» (§8.2, dal 2026-10-20): chi entra, la forma, fra chi si sceglie. */
@@ -429,14 +561,136 @@ export function enterPeeks(state: GameState, entering: CardInstance, facts: (car
   if (arrived.kind !== "entity") return [];
   const seat = controllerOf(entering);
   const out: EnterPeekStep[] = [];
+  // Sull'ingresso PROPRIO (dal 2026-10-23): la fonte è chi entra.
+  for (const peek of arrived.enterPeeks) {
+    if (peek.self) out.push({ source: entering, entering, peek, top: zoneCards(state, seat, "deck")[0] ?? null });
+  }
   for (const source of fieldCards(state)) {
     if (source.uid === entering.uid || controllerOf(source) !== seat || !inPlay(source, facts(source.cardId).kind)) continue;
     for (const peek of facts(source.cardId).enterPeeks) {
-      if (peek.enteringRace !== null && arrived.race !== peek.enteringRace) continue;
+      if (peek.self || (peek.enteringRace !== null && arrived.race !== peek.enteringRace)) continue;
       out.push({ source, entering, peek, top: zoneCards(state, seat, "deck")[0] ?? null });
     }
   }
   return out;
+}
+
+/** «Quando entra sul Fronte, guarda le prime N carte del tuo mazzo e rimettile in cima nell'ordine che vuoi» (§8.2, dal 2026-10-23). */
+export interface EnterSortStep {
+  source: CardInstance;
+  form: EnterSort;
+  /** Le prime N del proprio mazzo, nell'ordine di adesso. */
+  top: CardInstance[];
+}
+
+export function enterSorts(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterSortStep[] {
+  const seat = controllerOf(entering);
+  return facts(entering.cardId).enterSorts.map(form => ({ source: entering, form, top: zoneCards(state, seat, "deck").slice(0, form.count) }));
+}
+
+export function describeSort(step: EnterSortStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.sort", { card: `«${facts(step.source.cardId).name}»`, n: step.form.count });
+}
+
+/** Esegue il riordino: un `look` di N col seguito `sort` e l'ordine nuovo (la prima dell'elenco sopra). */
+export async function resolveSort(ctx: Ctx, step: EnterSortStep, order: CardInstance[]): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const passed = await ctx.dispatch({ t: "look", seat: by, count: step.form.count, restTo: "deck", order: order.map(card => card.uid), effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid, follow: "sort" } });
+  if (passed) ctx.log(msg("log.effect.sort", { seat: by, sourceCard: step.source.cardId, n: step.top.length }), by);
+  return passed;
+}
+
+/** «Poi guadagni N PV per ogni Entità avversaria tappata» (§8.2, dal 2026-10-23): il seguito della Stasi imposta all'ingresso. */
+export interface EnterTallyStep {
+  source: CardInstance;
+  form: EnterFreeze;
+  /** Le Entità avversarie tappate adesso. */
+  tapped: number;
+  amount: number;
+}
+
+export function enterTallies(state: GameState, entering: CardInstance, facts: (cardId: string) => CardFacts): EnterTallyStep[] {
+  const seat = controllerOf(entering);
+  return facts(entering.cardId).enterFreezes.filter(form => form.thenHealPerTapped).map(form => {
+    const tapped = tappedOpponents(state, seat, facts);
+    return { source: entering, form, tapped, amount: (form.thenHealPerTapped ?? 0) * tapped };
+  });
+}
+
+/** Le Entità avversarie di `seat` tappate, in campo (§8.2). Gemello: engine.rb, tapped_opponents. */
+export function tappedOpponents(state: GameState, seat: Seat, facts: (cardId: string) => CardFacts): number {
+  return fieldCards(state).filter(card => controllerOf(card) !== seat && card.tapped && facts(card.cardId).kind === "entity").length;
+}
+
+export function describeTally(step: EnterTallyStep, facts: (cardId: string) => CardFacts): string {
+  return t("trigger.tally", { card: `«${facts(step.source.cardId).name}»`, n: step.form.thenHealPerTapped ?? 0 });
+}
+
+/** Esegue il conto: una patch dei PV marcata col seguito `tally`, con le avversarie tappate di ADESSO. */
+export async function resolveTally(ctx: Ctx, step: EnterTallyStep): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const tapped = tappedOpponents(ctx.state(), by, ctx.card);
+  const amount = (step.form.thenHealPerTapped ?? 0) * tapped;
+  if (amount === 0) {
+    ctx.log(msg("log.no.tapped.opponents", { seat: by, card: step.source.cardId }), by);
+    return false;
+  }
+  const hp = ctx.state().players[by].hp + amount;
+  const passed = await ctx.dispatch({ t: "player", seat: by, patch: { hp }, effect: { source: step.source.uid, event: "on_enter_field", entering: step.source.uid, follow: "tally" } });
+  if (passed) ctx.log(msg("log.effect.tally", { seat: by, sourceCard: step.source.cardId, n: amount, m: tapped, hp: ctx.state().players[by].hp }), by);
+  return passed;
+}
+
+/**
+ * «Ogni volta che un'Entità che controlli viene tappata, guadagni N PV» e,
+ * dall'Oggetto, «ogni volta che quell'Entità viene tappata, lancia un dX: con
+ * M o più guadagni N PV» (§8.2, dal 2026-10-23): le tappate nuove fra due
+ * lavagne (il numero `tapAt` è cambiato), e per ognuna le fonti in campo che
+ * ascoltano — un'Entità dello stesso posto della tappata, o l'Oggetto
+ * addosso a lei — con l'innesco non ancora consumato.
+ */
+export interface TapHealStep {
+  source: CardInstance;
+  target: CardInstance;
+  listener: TapListener;
+}
+
+export function tapHeals(before: GameState, after: GameState, facts: (cardId: string) => CardFacts): TapHealStep[] {
+  const out: TapHealStep[] = [];
+  const tapped = Object.values(after.cards).filter(card => card.zone === "field" && card.tapped && card.tapAt !== undefined && before.cards[card.uid]?.tapAt !== card.tapAt && facts(card.cardId).kind === "entity");
+  if (tapped.length === 0) return out;
+  for (const source of fieldCards(after)) {
+    const f = facts(source.cardId);
+    if (!inPlay(source, f.kind)) continue;
+    for (const listener of f.tapListeners) {
+      for (const target of tapped) {
+        const listens = listener.scope === "controlled" ? controllerOf(source) === controllerOf(target) : source.assignedTo === target.uid;
+        if (!listens) continue;
+        if ((after.fired ?? []).includes(`${source.uid}|on_tap|${target.uid}@${target.tapAt}`)) continue;
+        out.push({ source, target, listener });
+      }
+    }
+  }
+  return out;
+}
+
+export function describeTapHeal(step: TapHealStep, facts: (cardId: string) => CardFacts): string {
+  const card = `«${facts(step.source.cardId).name}»`;
+  return step.listener.die ? t("trigger.echo", { card, die: step.listener.die, m: step.listener.atLeast ?? 0, n: step.listener.amount }) : t("trigger.tap.heal", { card, n: step.listener.amount });
+}
+
+/** Il riferimento della tappata: la fonte, l'evento, l'Entità tappata. */
+export function tapHealRef(step: TapHealStep): EffectRef {
+  return { source: step.source.uid, event: "on_tap", entering: step.target.uid };
+}
+
+/** Esegue il guadagno di PV della tappata: una patch dei PV marcata dalla tappata, col tiro se la forma lo vuole. */
+export async function resolveTapHeal(ctx: Ctx, step: TapHealStep, roll: number | null): Promise<boolean> {
+  const by = controllerOf(step.source);
+  const hp = ctx.state().players[by].hp + step.listener.amount;
+  const passed = await ctx.dispatch({ t: "player", seat: by, patch: { hp }, ...(roll !== null ? { roll } : {}), effect: tapHealRef(step) });
+  if (passed) ctx.log(msg("log.effect.tap.heal", { seat: by, sourceCard: step.source.cardId, card: step.target.cardId, n: step.listener.amount, hp: ctx.state().players[by].hp }), by);
+  return passed;
 }
 
 export function describePeek(step: EnterPeekStep, facts: (cardId: string) => CardFacts): string {
@@ -459,6 +713,7 @@ export async function resolvePeek(ctx: Ctx, step: EnterPeekStep, keep: boolean):
 
 /** La riga che annuncia un innesco, per la scena e per la chat. */
 export function describeTrigger(trigger: EnterTrigger, facts: (cardId: string) => CardFacts): string {
+  if (trigger.heal) return t("trigger.tide", { card: `«${facts(trigger.source.cardId).name}»`, n: trigger.heal });
   const n = trigger.draw;
   return t("trigger.draw", { card: `«${facts(trigger.source.cardId).name}»`, n, cards: cardsWord(n) });
 }
@@ -470,6 +725,14 @@ export function describeTrigger(trigger: EnterTrigger, facts: (cardId: string) =
  * accesa, pesca, spenta — è del tavolo, non di qui.
  */
 export async function resolveTrigger(ctx: Ctx, entering: CardInstance, trigger: EnterTrigger): Promise<boolean> {
+  // «Ogni volta che un'altra Entità entra sul tuo Fronte, guadagni N PV» (dal 2026-10-23): una patch dei PV marcata dall'ingresso.
+  if (trigger.heal) {
+    const by = controllerOf(entering);
+    const hp = ctx.state().players[by].hp + trigger.heal;
+    const healed = await ctx.dispatch({ t: "player", seat: by, patch: { hp }, effect: { source: trigger.source.uid, event: "on_enter_field", entering: entering.uid } });
+    if (healed) ctx.log(msg("log.effect.tide", { seat: by, sourceCard: trigger.source.cardId, card: entering.cardId, n: trigger.heal, hp: ctx.state().players[by].hp }), by);
+    return healed;
+  }
   const passed = await ctx.dispatch({
     t: "draw",
     seat: controllerOf(entering),
@@ -1171,9 +1434,52 @@ export function resolveSteps(state: GameState, source: CardInstance, facts: (car
         if (armedCount(state, seat, facts) < form.requiresArmed) step.blocked = "log.no.armed";
         break;
       }
+      case "freeze": {
+        // «Metti un'Entità avversaria in Stasi» (§8.1, dal 2026-10-22): le
+        // avversarie non ancora in Stasi che si possono tappare, una per
+        // passo, fino al conto.
+        step.candidates = foesAndMine.filter(card => controllerOf(card) !== seat && freezable(card, facts) && !resolveFired(state, source, `freeze:${card.uid}`));
+        if (resolveFiredCount(state, source, "freeze:") >= form.count) step.candidates = [];
+        if (step.candidates.length === 0) step.blocked = "log.no.stasis.target";
+        break;
+      }
+      case "search_objects": {
+        // La ricerca di Oggetti (dal 2026-10-22): gli Oggetti del proprio
+        // mazzo, finché i passi non sono N; poi il dado, se c'è un'Entità da
+        // armare. Senza Oggetti nel mazzo né Entità in campo non c'è nulla da fare.
+        // La variante in Ritiro (dal 2026-10-23) filtra per costo.
+        step.looked = zoneCards(state, seat, "deck");
+        step.candidates = step.looked.filter(card => {
+          const f = facts(card.cardId);
+          if (f.kind !== "object") return false;
+          const maxCost = "maxCost" in form ? form.maxCost : null;
+          return maxCost === null || (f.fluxCost !== null && f.fluxCost <= maxCost);
+        });
+        if (resolveFiredCount(state, source, "search:") >= form.upTo) step.candidates = [];
+        if (step.candidates.length === 0 && countEntities(state, seat, null, facts) === 0) step.blocked = "log.search.none";
+        break;
+      }
+      case "sentence": {
+        // La sentenza del dado (dal 2026-10-23): un'Entità avversaria in campo.
+        step.candidates = foesAndMine.filter(card => controllerOf(card) !== seat && facts(card.cardId).kind === "entity");
+        if (step.candidates.length === 0) step.blocked = "log.no.target";
+        break;
+      }
+      case "exile_timed": {
+        // L'esilio a tempo (§8.2, dal 2026-10-22): un'Entità avversaria in campo.
+        step.candidates = foesAndMine.filter(card => controllerOf(card) !== seat && facts(card.cardId).kind === "entity");
+        if (step.candidates.length === 0) step.blocked = "log.no.target";
+        break;
+      }
     }
     return step;
   });
+}
+
+/** Un'Entità può entrare in Stasi per effetto (§8.1): è un'Entità in campo, non già in Stasi, e non «non si tappa mai». Gemello: engine.rb, freeze_stopped. */
+export function freezable(card: CardInstance, facts: (cardId: string) => CardFacts): boolean {
+  const f = facts(card.cardId);
+  return card.zone === "field" && f.kind === "entity" && !card.stasis && !f.staticForms.some(form => form.kind === "never_taps");
 }
 
 /** Le Entità di `seat` in campo con un Oggetto addosso (§3.1). Gemello: table.rb, armed_uids. */
@@ -1202,6 +1508,14 @@ export function pendingResolve(state: GameState, source: CardInstance, facts: (c
       case "fortune": return !resolveFired(state, source, "heal") && !resolveFired(state, source, "draw") && !resolveFired(state, source, "deploy");
       case "block": return !resolveFired(state, source, "heal");
       case "empower": return step.candidates.length > 0 || step.blocked !== "log.no.target";
+      case "freeze": return step.candidates.length > 0 || step.blocked !== "log.no.stasis.target";
+      // La ricerca: finché c'è un Oggetto da trovare entro il conto, e poi il dado del riarmo (il tiro del tavolo per la chiave «rearm»), se c'è un'Entità da armare.
+      case "search_objects": {
+        const rolled = state.rolls?.[rollKey({ effect: { ...resolveRef(source), follow: "rearm" } })] !== undefined;
+        return step.candidates.length > 0 || (!rolled && countEntities(state, controllerOf(source), null, facts) > 0);
+      }
+      case "exile_timed": return !resolveFired(state, source, "move");
+      case "sentence": return !resolveFired(state, source, "destroy") && !resolveFired(state, source, "empower:");
     }
   });
 }
@@ -1228,6 +1542,13 @@ export function describeResolveStep(step: ResolveStep, facts: (cardId: string) =
     case "drain": return t("trigger.assault", { card });
     case "search": return t("trigger.search", { card, n: form.count, die: form.die });
     case "block": return t("trigger.reflect", { card, n: form.requiresArmed, m: form.heal });
+    case "freeze": return t("trigger.chill", { card });
+    case "search_objects":
+      return "to" in form
+        ? t("trigger.quest.retire", { card, n: form.maxCost ?? 0, die: form.thenRoll.die, m: form.thenRoll.atLeast })
+        : t("trigger.quest", { card, n: form.upTo, die: form.thenRoll.die, m: form.thenRoll.atLeast });
+    case "exile_timed": return t("trigger.undertow", { card, n: form.turns, die: form.die, m: form.returnAtLeast });
+    case "sentence": return t("trigger.sentence", { card, die: form.die, n: -form.elsePower });
   }
 }
 
@@ -1289,7 +1610,7 @@ export interface AssignStep {
 
 /** La tripla dell'innesco: fonte e ingresso sono l'uno l'altro — l'Oggetto con l'Entità, l'Entità con l'Oggetto. */
 export function assignRef(step: AssignStep): EffectRef {
-  const entering = step.form.kind === "exile" ? step.bearer.uid : step.object.uid;
+  const entering = step.form.kind === "exile" || step.form.kind === "wake" ? step.bearer.uid : step.object.uid;
   return { source: step.source.uid, event: "on_assign_object", entering, ...(step.form.kind === "ends" ? { once: true as const } : {}) };
 }
 
@@ -1347,6 +1668,8 @@ export function assignSteps(before: GameState, after: GameState, facts: (cardId:
     // Le forme dell'Oggetto (fonte l'Oggetto, ingresso il portatore)…
     for (const form of facts(card.cardId).assignForms) {
       if (form.kind === "exile" && !fired(card.uid, bearer.uid)) out.push({ source: card, object: card, bearer, form });
+      // «Se l'Entità a cui assegni questo Oggetto era in Stasi, toglila» (dal 2026-10-22): solo se lo era.
+      if (form.kind === "wake" && bearer.stasis === true && !fired(card.uid, bearer.uid)) out.push({ source: card, object: card, bearer, form });
     }
     // …e quelle dell'Entità che lo riceve (fonte l'Entità, ingresso l'Oggetto)…
     for (const form of facts(bearer.cardId).assignForms) {
@@ -1432,6 +1755,7 @@ export function describeAssignStep(step: AssignStep, facts: (cardId: string) => 
   const card = `«${facts(step.source.cardId).name}»`;
   const form = step.form;
   if (form.kind === "exile") return t("trigger.confine", { card });
+  if (form.kind === "wake") return t("trigger.rouse", { card });
   if (form.kind === "draw") return t("trigger.carry", { card, n: form.count });
   return "swap" in form ? t("trigger.ends.swap", { card, n: form.thenDraw, m: form.thenDiscard }) : t("trigger.ends.pick", { card });
 }
@@ -1533,20 +1857,26 @@ export function describeFlipStep(step: FlipStep, facts: (cardId: string) => Card
  * certificato è soddisfatto ritorna le carte fra cui scegliere lo scarto;
  * altrimenti la chiave del perché no.
  */
-export function nexusCheck(state: GameState, rubyfront: CardInstance, facts: (cardId: string) => CardFacts): { ok: true; discards: CardInstance[] } | { ok: false; why: string; n?: number } {
+export function nexusCheck(state: GameState, rubyfront: CardInstance, facts: (cardId: string) => CardFacts): { ok: true; discards: CardInstance[]; retires: CardInstance[] } | { ok: false; why: string; n?: number } {
   const nexus = facts(rubyfront.cardId).nexus;
-  if (!nexus) return { ok: true, discards: [] };
+  if (!nexus) return { ok: true, discards: [], retires: [] };
   const seat = controllerOf(rubyfront);
   for (const condition of nexus.conditions) {
     // «Controlli almeno N», o (dal 2026-10-20) «in questo turno hai attaccato con almeno N»: gli attaccanti dichiarati adesso.
-    const have = condition.armed ? armedCount(state, seat, facts) : condition.attacked ? attackersOf(state, seat, condition.race, facts).length : countEntities(state, seat, condition.race, facts);
-    if (have < condition.count) return { ok: false, why: condition.armed ? "log.nexus.few.armed" : condition.attacked ? "log.nexus.few.attacking" : "log.nexus.few", n: condition.count };
+    // «In questa partita hai messo in Stasi almeno N Entità avversarie» (dal 2026-10-22): le conta il tavolo.
+    const have = condition.inflicted
+      ? (state.players[seat].stasisInflicted ?? 0)
+      : condition.armed ? armedCount(state, seat, facts) : condition.attacked ? attackersOf(state, seat, condition.race, facts).length : countEntities(state, seat, condition.race, facts);
+    if (have < condition.count) return { ok: false, why: condition.inflicted ? "log.nexus.few.inflicted" : condition.armed ? "log.nexus.few.armed" : condition.attacked ? "log.nexus.few.attacking" : "log.nexus.few", n: condition.count };
   }
-  if (!nexus.discard) return { ok: true, discards: [] };
+  // «Metti un Oggetto che controlli nella tua Zona di Ritiro, poi flippa» (dal 2026-10-22): i propri Oggetti in campo.
+  const retires = nexus.retire ? fieldCards(state).filter(card => controllerOf(card) === seat && card.owner === seat && facts(card.cardId).kind === "object") : [];
+  if (nexus.retire && retires.length === 0) return { ok: false, why: "log.nexus.noobject" };
+  if (!nexus.discard) return { ok: true, discards: [], retires };
   const discards = zoneCards(state, seat, "hand").filter(card => {
     const f = facts(card.cardId);
     return (nexus.discard!.kind === null || f.kind === nexus.discard!.kind) && (!nexus.discard!.race || f.race === nexus.discard!.race);
   });
   if (discards.length === 0) return { ok: false, why: nexus.discard.kind === null ? "log.nexus.nocard" : "log.nexus.nodiscard" };
-  return { ok: true, discards };
+  return { ok: true, discards, retires };
 }

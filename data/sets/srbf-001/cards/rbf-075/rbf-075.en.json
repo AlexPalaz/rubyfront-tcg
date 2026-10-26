@@ -1,0 +1,29 @@
+{
+  "name": "Tidelock",
+  "typeLabel": "Destructive Matter I",
+  "summary": "An opponent vanishes for three turns; then the d12 decides whether it returns.",
+  "ui": {
+    "face": "Matter"
+  },
+  "card": {
+    "illustration": "Illustration",
+    "hp": "HP",
+    "flux": "Flux",
+    "behaviors": {
+      "reactive": "Reactive",
+      "static": "Static"
+    }
+  },
+  "face": {
+    "name": "Tidelock",
+    "effect": {
+      "name": "Effect",
+      "text": "Choose an opposing Entity and put it into its owner's Retire Zone for 3 turns. At the end of its third turn, its controller rolls a d12: on 8 or more the Entity returns to their Front; otherwise it goes to the Abyss."
+    },
+    "flavor": "The tide closes. Whoever is inside waits."
+  },
+  "matters": {
+    "destructiveTitle": "Destructive Matter · 1st grade",
+    "destructiveAria": "Destructive"
+  }
+}

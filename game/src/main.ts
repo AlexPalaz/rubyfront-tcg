@@ -109,7 +109,8 @@ async function boot(): Promise<void> {
   } else if (params.get("match") === "bot") {
     // La partita contro il bot subito (F4), senza home: i banchi di prova.
     await loadCatalog();
-    const match = matchAgainstBot(stage, { seat: "a", locale, deck: DECK_A, botDeck: DECK_B });
+    // I banchi di prova scelgono i mazzi dall'indirizzo (?deck=…&bot=…, dal 2026-10-22).
+    const match = matchAgainstBot(stage, { seat: "a", locale, deck: params.get("deck") || DECK_A, botDeck: params.get("bot") || DECK_B });
     if (window.__rubyfront) window.__rubyfront.match = match;
   } else if (params.has("gallery")) {
     // La galleria delle carte dipinte (F2), col marchio in cima.

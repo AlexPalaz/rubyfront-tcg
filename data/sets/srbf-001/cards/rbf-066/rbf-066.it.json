@@ -1,5 +1,5 @@
 {
-  "name": "Guerriero della Scissione",
+  "name": "Curatore dei Laceri",
   "typeLabel": "Entità: Auros",
   "summary": "Tre e tre, e libera un compagno rimasto in Stasi.",
   "ui": {
@@ -12,12 +12,12 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Guerriero della Scissione",
+    "name": "Curatore dei Laceri",
     "release": {
       "trigger": "Quando entra sul Fronte",
       "text": "Puoi togliere dalla Stasi un'Entità che controlli."
     },
-    "flavor": "La Scissione ha aperto una porta. Lui la tiene aperta."
+    "flavor": "Ricuce ciò che la marea ha strappato."
   },
   "matters": {
     "dimensionalTitle": "Materia Dimensionale · 1° grado",

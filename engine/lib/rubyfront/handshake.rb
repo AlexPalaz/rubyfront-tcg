@@ -11,8 +11,15 @@ module Rubyfront
   # della stanza, il posto, il token — e `response_*` scrivono le risposte.
   # bin/server mette insieme i pezzi; i test li provano uno per uno.
   module Handshake
-    MAX_HEADER_BYTES = 8 * 1024
+    # Il tetto dell'intestazione e della riga (audit RF-013). I cookie no:
+    # il browser manda al tavolo TUTTI i cookie di quell'host, di ogni porta
+    # (su `localhost`, quelli di ogni progetto in locale), e il tavolo non li
+    # legge. Una riga Cookie lunga non è un abuso del client: si salta, ma
+    # resta dentro il tetto dell'intestazione intera (dal 2026-10-23, la
+    # causa vera del «tavolo non risponde» su localhost: 431 dal tavolo).
+    MAX_HEADER_BYTES = 32 * 1024
     MAX_LINE_BYTES = 2 * 1024
+    IGNORED_LONG_HEADERS = %w[cookie].freeze
     MAX_HEADERS = 64
     DEADLINE_S = 5
     PATHS = ["/", "/engine"].freeze
@@ -71,6 +78,8 @@ module Rubyfront
       lines.each do |line|
         break if line.empty?
 
+        name = line.split(":", 2).first.to_s.strip.downcase
+        next if IGNORED_LONG_HEADERS.include?(name)
         return error(431, "intestazione troppo lunga", "header line too long") if line.bytesize > MAX_LINE_BYTES
 
         count += 1

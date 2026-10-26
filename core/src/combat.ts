@@ -132,9 +132,13 @@ export function hasKeyword(card: CardInstance, keyword: string, facts: (cardId: 
   if (facts(card.cardId).keywords.includes(keyword) || (card.grants ?? []).includes(keyword)) return true;
   if (!state) return false;
   const race = facts(card.cardId).race;
-  return wornBy(state, card.uid).some(object =>
+  if (wornBy(state, card.uid).some(object =>
     facts(object.cardId).grantsWhileAssigned.some(grant => grant.keywords.includes(keyword) && (grant.ifRace === null || grant.ifRace === race))
-  );
+  )) return true;
+  // «Le Entità che controlli hanno <parola chiave>» (dal 2026-10-23): uno statico `grant_all` di una carta in campo dello stesso posto. Gemello: engine.rb, has_keyword?.
+  if (card.zone !== "field" || facts(card.cardId).kind !== "entity") return false;
+  const seat = controllerOf(card);
+  return Object.values(state.cards).some(other => other.zone === "field" && controllerOf(other) === seat && facts(other.cardId).staticForms.some(form => form.kind === "grant_all" && form.grants.includes(keyword)));
 }
 
 /** §8.2 — l'attaccante porta un Oggetto che lo rende bloccabile da più Entità (RBF-014)? */

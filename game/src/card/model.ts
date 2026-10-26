@@ -232,13 +232,17 @@ export function faceModel(cardId: string, faceId: string, locale: string, overri
       }
     }
     const triggers: Loose[] = face.triggers ?? [];
-    blocks.push(...triggerBlocks(triggers.filter(entry => !TRAILING_EVENTS.has(entry.event) && !STATIC_EVENTS.has(entry.event)), faceCopy));
+    // La voce statica (`displayKey: "effect"`) è già stampata come regola
+    // statica, qualunque sia l'evento che la innesca (dal 2026-10-23): non va
+    // anche in un blocco d'innesco con l'evento per etichetta. Gemello: card-render.js, staticVoice.
+    const staticVoice = (entry: Loose): boolean => STATIC_EVENTS.has(entry.event) || (face.kind === "entity" && entry.displayKey === "effect");
+    blocks.push(...triggerBlocks(triggers.filter(entry => !TRAILING_EVENTS.has(entry.event) && !staticVoice(entry)), faceCopy));
     (face.actions ?? []).forEach((action: Loose, index: number) => {
       // La carta «aggiornata»: l'abilità montata prende il posto di quella stampata, senza costo in PV.
       const mounted = overrides.abilities?.[index] ?? null;
       blocks.push(mounted ? { kind: "ability", cost: { kind: "none", value: "—" }, name: mounted.name, text: mounted.text } : abilityBlock(action, faceCopy, cardCopy));
     });
-    blocks.push(...triggerBlocks(triggers.filter(entry => TRAILING_EVENTS.has(entry.event)), faceCopy));
+    blocks.push(...triggerBlocks(triggers.filter(entry => TRAILING_EVENTS.has(entry.event) && !staticVoice(entry)), faceCopy));
   }
 
   return {

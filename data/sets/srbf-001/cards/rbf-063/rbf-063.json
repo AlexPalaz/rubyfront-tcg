@@ -3,7 +3,7 @@
   "id": "RBF-063",
   "setId": "rubyfront-core",
   "collectorNumber": "063",
-  "slug": "auros-guardian",
+  "slug": "cartographer-of-the-currents",
   "type": "entity",
   "layout": "single",
   "status": "draft",
@@ -17,8 +17,8 @@
     "entity",
     "auros",
     "dimensional",
-    "vanilla",
-    "starter"
+    "starter",
+    "healing"
   ],
   "rulesReference": "MANUALE.md §3.2",
   "faces": [
@@ -39,9 +39,30 @@
       ],
       "keywords": [],
       "requirements": {},
-      "triggers": [],
+      "triggers": [
+        {
+          "id": "tide",
+          "displayKey": "effect",
+          "event": "on_enter_field",
+          "details": {
+            "enteringCard": {
+              "cardType": "entity",
+              "controller": "controller",
+              "excludeSelf": false
+            }
+          },
+          "effect": {
+            "type": "gain_health",
+            "target": {
+              "controller": "controller"
+            },
+            "amount": 1
+          }
+        }
+      ],
       "actions": []
     }
   ],
-  "designNotes": "rbf-063.md"
+  "designNotes": "rbf-063.md",
+  "art": "rbf-063.jpg"
 }

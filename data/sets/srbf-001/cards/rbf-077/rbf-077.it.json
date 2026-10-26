@@ -1,0 +1,29 @@
+{
+  "name": "Sentenza Profonda",
+  "typeLabel": "Materia Distruttiva II",
+  "summary": "Un d6 contro la Potenza di un'avversaria: la vince, va nell'Abisso; la perde, −2 Potenza.",
+  "ui": {
+    "face": "Materia"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi",
+    "behaviors": {
+      "reactive": "Reattiva",
+      "static": "Statica"
+    }
+  },
+  "face": {
+    "name": "Sentenza Profonda",
+    "effect": {
+      "name": "Effetto",
+      "text": "Scegli un'Entità avversaria e lancia un d6: se il risultato è pari o superiore alla sua Potenza, mettila nell'Abisso; altrimenti quell'Entità prende −2 Potenza fino alla fine del turno."
+    },
+    "flavor": "Il fondo non discute. Pesa."
+  },
+  "matters": {
+    "destructiveTitle": "Materia Distruttiva · 2° grado",
+    "destructiveAria": "Distruttiva"
+  }
+}

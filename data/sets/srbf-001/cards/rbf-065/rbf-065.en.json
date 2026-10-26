@@ -1,5 +1,5 @@
 {
-  "name": "Lookout of Nova Kai",
+  "name": "Elder of the Aurestia",
   "typeLabel": "Entity: Auros",
   "summary": "It enters and freezes an opponent: tapped for good, until something untaps it.",
   "ui": {
@@ -12,12 +12,12 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Lookout of Nova Kai",
+    "name": "Elder of the Aurestia",
     "freeze": {
       "trigger": "When it enters the Front",
       "text": "Put an opposing Entity into Stasis."
     },
-    "flavor": "Those who see it stop. Those who don't, stop all the same."
+    "flavor": "It saw the tide stop. It knows how it's done."
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · 1st grade",

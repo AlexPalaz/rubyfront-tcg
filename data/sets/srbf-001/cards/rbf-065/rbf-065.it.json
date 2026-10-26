@@ -1,5 +1,5 @@
 {
-  "name": "Vedetta di Nova Kai",
+  "name": "Vegliardo dell'Aurestia",
   "typeLabel": "Entità: Auros",
   "summary": "Entra e ferma un'avversaria: tappata per sempre, finché qualcosa non la stappa.",
   "ui": {
@@ -12,12 +12,12 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Vedetta di Nova Kai",
+    "name": "Vegliardo dell'Aurestia",
     "freeze": {
       "trigger": "Quando entra sul Fronte",
       "text": "Metti un'Entità avversaria in Stasi."
     },
-    "flavor": "Chi la vede, si ferma. Chi non la vede, si ferma lo stesso."
+    "flavor": "Ha visto fermarsi la marea. Sa come si fa."
   },
   "matters": {
     "dimensionalTitle": "Materia Dimensionale · 1° grado",

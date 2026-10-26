@@ -16,11 +16,12 @@
   "tags": [
     "matter",
     "dimensional",
-    "grade-1",
-    "dig",
+    "grade-2",
+    "search",
+    "object",
     "starter"
   ],
-  "rulesReference": "MANUALE.md §7.2",
+  "rulesReference": "MANUALE.md §3.1, §7.2",
   "faces": [
     {
       "id": "matter",
@@ -28,7 +29,7 @@
       "displayKey": "face",
       "matter": {
         "type": "dimensional",
-        "grade": 1
+        "grade": 2
       },
       "behavior": "normal",
       "stats": {
@@ -39,30 +40,45 @@
       "requirements": {},
       "triggers": [
         {
-          "id": "search",
+          "id": "outfit",
           "displayKey": "effect",
           "event": "on_resolve",
           "effect": {
-            "type": "look_and_optionally_move",
+            "type": "search_card",
             "from": {
               "zone": "deck",
-              "owner": "controller",
-              "position": "top",
-              "count": 4
+              "owner": "controller"
+            },
+            "filter": {
+              "cardType": "object",
+              "conditions": [
+                {
+                  "stat": "flux_cost",
+                  "operator": "lte",
+                  "value": 3
+                }
+              ]
+            },
+            "count": {
+              "max": 1
             },
             "details": {
-              "mayReveal": {
-                "cardType": "object"
-              },
-              "revealTo": {
-                "zone": "hand",
+              "toZone": {
+                "zone": "retire",
                 "owner": "controller"
               },
-              "restTo": {
-                "zone": "deck",
-                "owner": "controller",
-                "position": "bottom",
-                "anyOrder": true
+              "thenShuffle": true,
+              "thenRoll": {
+                "die": "d6",
+                "successAtLeast": 3,
+                "mayAssignFrom": {
+                  "zone": "retire",
+                  "owner": "controller"
+                },
+                "filter": {
+                  "cardType": "object"
+                },
+                "noFluxCost": true
               }
             }
           }
@@ -71,5 +87,6 @@
       "actions": []
     }
   ],
-  "designNotes": "rbf-073.md"
+  "designNotes": "rbf-073.md",
+  "art": "rbf-073.jpg"
 }

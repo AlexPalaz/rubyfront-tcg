@@ -2,7 +2,8 @@
 
 > **Stato:** DEFINITIVO — firma «Sintesi» scelta dal designer il 2026-08-25
 > dopo un percorso di calibrazione (olio monocromo → splash gacha → ATLA →
-> Arcane → manhwa → sintesi). Coerenza narrativa: docs/LORE.md.
+> Arcane → manhwa → sintesi); **prompt maestro rinnovato il 2026-10-23
+> («Sintesi 2», il «cartoon 3D» dipinto)**, vedi «Il prompt maestro». Coerenza narrativa: docs/LORE.md.
 > Le art già montate prima della sintesi (RBF-018 Gyn, RBF-025 Avy Shin)
 > restano valide finché il designer non decide di rigenerarle.
 
@@ -36,9 +37,100 @@ Regole che definiscono la firma:
 5. **Volti**: stilizzati ma credibili (`stylized yet grounded`), occhi
    definiti ed espressivi — né moe anime né cartoon western.
 
-## Il prompt maestro (DEFINITIVO — «Sintesi»)
+## Il prompt maestro (DEFINITIVO dal 2026-10-23 — «Sintesi 2»)
+
+Deciso dal designer il 2026-10-23 dopo il giro di Marea Inversa (RBF-066
+Curatore dei Laceri): «è questa quella giusta, dev'essere la ricetta
+definitiva di tutte le carte del gioco». Sostituisce il prompt maestro del
+2026-08-25 (sotto, per memoria). La resa cercata è un **«cartoon 3D»
+dipinto**: Arcane e Magic in testa, il look da film d'animazione 3D solo
+come accenno, ombre volumetriche morbide e texture pittoriche visibili.
 
 Struttura: nucleo fisso + tre slot (`SOGGETTO`, `SFONDO`, colore Materia).
+
+```
+fantasy trading card illustration, painted in the style of Arcane blended
+with Magic the Gathering painterly realism, with only a hint of the look of
+a stylized 3d animated film, soft volumetric shading, clean sculpted forms
+with strong light and shadow and visible painterly textures on skin,
+fabric and wood, hand-painted digital illustration, elegant anime
+features, bold simplified shapes of color, graphic clarity, poster-like
+readability, large clean areas of color, only a few crisp intentional
+details, [INQUADRATURA], [SOGGETTO con azione ed effetto-Materia; il viso
+«stylized Arcane-like face with clean sculpted features and soft painted
+shading, defined expressive eyes, dull <colore> eyes, matte and unlit»],
+strong readable silhouette, dramatic epic lighting, vibrant color palette
+with bold saturated <accento Materia> tones, simple painted background of
+[SFONDO], in simplified shapes, clearly composed, atmospheric depth
+--ar 16:9 --niji 6 --stylize 400
+--no photo, 3d render, cgi, octane render, unreal engine, blender,
+plastic, glossy, watercolor, oil painting, loose brushstrokes, sketchy,
+rough brushwork, canvas texture, paper texture, washed out, flat colors,
+flat 2d, line art only, ink lines, pixar, disney, cartoon, toy-like,
+plastic skin, oversized head, photorealistic, hyperrealism, realistic
+skin texture, fine detail, flat cel shading, comic book, moe face, big
+sparkling eyes, chibi, ornate costume, intricate details, cluttered, busy
+composition, visual noise, noisy texture, random specks, scattered
+debris, floating particles, grunge, red eyes, closed eyes, beard,
+stubble, muted colors, desaturated, text, watermark, border
+```
+
+Note sulla ricetta:
+- `--stylize 400` è il valore della ricetta (non più 250): a 400 Niji
+  mette il suo gusto e il risultato si stacca dal realismo letterale.
+- `--ar 16:9` per le finestre al 40%; per le full art la sorgente resta
+  16:9 con `artZoom`/`artShift` nel JSON (vedi RBF-054, RBF-069).
+- `painterly` NON va nel `--no`: litiga con la pittura dichiarata in
+  positivo. `3d render` sì: frena il render, non l'accenno di film 3D.
+- `dark moody lighting, night` non sono più nel nucleo: la luce la decide
+  la scena (le notturne di Marea Inversa dichiarano la notte in positivo
+  e bandiscono `lanterns, candles, torches, moon` se la luce dev'essere
+  solo della Materia).
+- Il percorso che ci ha portato qui (2026-10-22/23, su Marea Inversa):
+  il prompt del 2026-08-25 usciva troppo realistico → `anime key visual
+  illustration` a 400 (RBF-062, 063, 065: resa più «cartoon») →
+  «strongly leaning Arcane» + «loose painterly brushwork» = acquerello
+  (scartato) → «still da film d'animazione 3D» (RBF-064: cartoon 3D ma
+  troppo cartone) → un tocco di Magic → il 3D ridotto ad accenno = questa.
+  Le carte montate con le ricette intermedie restano valide finché il
+  designer non decide di rigenerarle.
+- **Il reso dei ritratti: «Arcane videogioco»** (2026-10-23, su RBF-069
+  Darx, griglia approvata dal designer: «così ci sta»; montata la terza
+  uscita). A `--stylize 800` il reso balla da griglia a griglia: per
+  fissarlo, rilanciare con `--sref` sull'uscita buona. La Sintesi 2 su un
+  ritratto full art era uscita «troppo cartoon»; il reso voluto è quello di
+  Kyo Shin (RBF-046), poi raffinato in questa testata, che sostituisce la
+  frase di base per i ritratti (Uniche, Rubyfront, mezzi busti):
+
+  ```
+  fantasy trading card illustration in the look of the Arcane animated
+  series and League of Legends splash art, polished game cinematic
+  rendering, 3d character render painted over with smooth digital shading,
+  crisp sculpted volumes, clean smooth surfaces, blended with elegant anime
+  features, graphic clarity, poster-like readability, large clean areas of
+  color, only a few crisp intentional details, every detail clearly
+  resolved, smooth polished rendering with soft clean shading, crisp
+  highlights on skin and hair, strong cinematic rim light, realistic adult
+  proportions, [SOGGETTO] … --ar 16:9 --niji 6 --stylize 800
+  --no photo, fresco, mural, plaster texture, chalky, dusty, faded, matte
+  flat paint, rough paint texture, impasto, oil painting, canvas texture,
+  brushstrokes, painterly texture, watercolor, cartoon, chibi, ornate
+  costume, cluttered, visual noise, floating particles, muted colors, text,
+  watermark, border, …
+  ```
+
+  Il percorso: Kyo Shin con cue frenato (buono «ma non così tanto») →
+  «un pelino più Arcane» a 800 (affresco) → bandi anti-affresco → «più
+  videogioco tipo Arcane» (questa) → «troppo videogioco, più Arcane» con
+  «Fortiche painted 3d» (più realistico, scartato) → ritorno a questa.
+  Lezioni: a `--stylize 800` ogni parola pittorica (`painterly`,
+  `brushwork`, `strongly leaning Arcane`) diventa affresco; i bandi
+  `brushstrokes, painterly texture, oil painting` tengono la resa liscia;
+  «realistic adult proportions» tiene il corpo da adulto. **Per le scene**
+  (Entità comuni in azione) resta la Sintesi 2; se il designer approva
+  anche una scena con questa testata, diventa la ricetta unica.
+
+### Il prompt maestro precedente (2026-08-25 — «Sintesi», per memoria)
 
 ```
 painted fantasy trading card illustration blending Magic the Gathering
@@ -170,6 +262,50 @@ se il costume è chiuso; `muscular, heroic armor` per personaggi gracili;
   Rubyfront: in quel caso togliere `night, dark moody lighting` (ed
   eventualmente `glowing eyes`) dal `--no` base e dichiarare la notte in
   positivo, tenendo la palette vivace.
+- **I gradi della Materia Dimensionale, a vista** (deciso dal designer
+  2026-10-22, confermato con le immagini montate di RBF-065, 066 e 067):
+  il **primo grado** è a **flussi**: nastri e correnti di luce blu che
+  scorrono, piegano l'acqua, corrono sotto la pelle (`flowing streams and
+  ribbons of glowing blue dimensional energy`); il **secondo grado** è a
+  **fasci**: grandi schegge rigide, dritte e sfaccettate di luce turchese
+  che si levano intorno a chi la usa (`a bundle of large rigid straight
+  faceted shards of glowing blue dimensional energy rising around him`),
+  mai nastri né vortici (`ribbons, swirls, wavy energy` nel `--no`). Il
+  grado si legge dalla carta (`matter.grade`); una carta che abilita il
+  secondo grado lo mostra anche se è vanilla.
+- **Le Entità di «Marea Inversa»** (deciso dal designer 2026-10-22, su
+  RBF-062; vale per QUESTO mazzo, non per la razza Auros — l'aspetto della
+  razza non è canone): **gente di mare** — marinai, non adepti né
+  cortigiani. Costume semplice da marinaio dichiarato per pezzi (`weathered off-white canvas sailor shirt
+  with rolled sleeves, open collar, a dark blue knotted neckerchief, a coil
+  of rope slung over one shoulder`), ambiente di bordo o di porto nella
+  ferraglia rétro del mondo (`a wooden ship deck with thick ropes, a mast
+  with furled sails and riveted iron fittings`, il mare e una costa
+  lontana), tinta del mazzo verde-azzurra e blu, accento Dimensionale blu.
+  Esclusioni tipiche: `hat, captain hat, uniform, epaulettes, buttons,
+  hook, earrings, fish, sea creatures, seagulls`. **Resa come lo starter
+  Umani** (richiesta del designer 2026-10-22, su RBF-065 rifatta): se un
+  tiro esce troppo realistico, si apre il prompt con `anime key visual
+  illustration`, si toglie «Magic the Gathering realism», viso «stylized
+  … face drawn with a few clean lines», controluce caldo, `--stylize 400`
+  e realismo nel `--no` (`photorealistic, hyperrealism, realistic skin
+  texture, detailed skin, fine detail, 3d render`). Montate così RBF-062,
+  063, 065; RBF-064 con la ricetta «film 3D». **Dal 2026-10-23 vale il
+  prompt maestro «Sintesi 2»** (sopra), nato proprio qui su RBF-066: le
+  ricette intermedie sono storia. Trappola: con `rigging, mast, ropes` nel
+  `--no` Niji toglie la nave intera; se la nave serve, dichiararla pezzo
+  per pezzo (ponte, parapetto, bompresso) e bandire semmai `pier, dock,
+  harbor, rocks`. Aria senza età (sono
+  immortali, LORE.md), età dichiarata come per tutti. **Le carte comuni
+  (vanilla, senza effetto) sono persone comuni** (deciso 2026-10-22, su
+  RBF-062): un gesto di bordo quotidiano (`both hands resting on a thick
+  rope he is coiling`), nessun effetto-Materia, nessuna mano protesa né
+  posa eroica — bandire `magic, glowing energy, energy effect, floating
+  objects, outstretched hand, hand reaching toward camera, pointing,
+  heroic pose`. L'accento Dimensionale blu resta per le carte con un
+  effetto. Sulle comuni il designer accetta un campo più largo del mezzo
+  busto (2026-10-22, RBF-062: `medium wide shot, full figure`, il marinaio
+  che issa la vela): il viso conta meno, l'azione di bordo di più.
 - **Nexus (faccia B):** ambiente più che personaggio — `the heart of
   [luogo], wide establishing shot, [colore] light at the center`.
 - **Oggetti** (standard fissato con RBF-026 Spada Dimensionale,

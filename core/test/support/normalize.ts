@@ -10,15 +10,18 @@ export interface NormalizedState {
   turn: number;
   active: Seat;
   phase: string;
+  stasisSeq: number;
+  tapSeq: number;
   over: { winner: Seat | null; reason: string } | null;
   players: Record<Seat, {
     hp: number; hpMax: number | null; flux: number; fluxMax: number; token: boolean; deckId: string | null; sealed: string[];
-    opening: { mulligans: number; kept: boolean } | null; ascent: { hp: number; fury: number };
+    opening: { mulligans: number; kept: boolean } | null; ascent: { hp: number; fury: number }; stasisInflicted: number;
   }>;
   cards: {
     uid: string; cardId: string | null; owner: Seat; zone: string; order: number | null; tapped: boolean; facedown: boolean; face: number;
     assignedTo: string | null; controller: Seat | null; stasis: boolean; heldBy: string | null; target: string | null;
     powerBonus: number | null; counterBonus: number | null; cannotBlock: boolean; grants: string[];
+    stasisAt: number | null; tapAt: number | null; grantsUntil: string | null; exile: { seat: Seat; remaining: number; source: string | null } | null;
   }[];
   declarations: { from: string; to: string; kind: string; order: number; sealed: boolean; bonus: number }[];
   chain: { stack: string[]; turn: Seat; resolving: boolean } | null;
@@ -40,6 +43,7 @@ export function normalize(state: GameState): NormalizedState {
         sealed: [...(player.sealed ?? [])].sort(),
         opening: player.opening ? { mulligans: player.opening.mulligans, kept: player.opening.kept === true } : null,
         ascent: { hp: player.ascent?.hp ?? 0, fury: player.ascent?.fury ?? 0 },
+        stasisInflicted: player.stasisInflicted ?? 0,
       }];
     })
   ) as NormalizedState["players"];
@@ -63,6 +67,10 @@ export function normalize(state: GameState): NormalizedState {
       counterBonus: card.counterBonus ?? null,
       cannotBlock: card.cannotBlock === true,
       grants: [...(card.grants ?? [])].sort(),
+      stasisAt: card.stasisAt ?? null,
+      tapAt: card.tapAt ?? null,
+      grantsUntil: card.grantsUntil ?? null,
+      exile: card.exile ? { seat: card.exile.seat, remaining: card.exile.remaining, source: card.exile.source ?? null } : null,
     }));
   const declarations = [...state.declarations]
     .sort((x, y) => (x.from < y.from ? -1 : x.from > y.from ? 1 : 0))
@@ -72,6 +80,8 @@ export function normalize(state: GameState): NormalizedState {
     turn: state.turn,
     active: state.active,
     phase: state.phase,
+    stasisSeq: state.stasisSeq ?? 0,
+    tapSeq: state.tapSeq ?? 0,
     over: state.over ? { winner: state.over.winner, reason: state.over.reason } : null,
     players,
     cards,

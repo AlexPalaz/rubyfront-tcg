@@ -644,7 +644,9 @@ Regole collegate finora:
   «Contrattacco +2 se armata», i modificatori di altri Oggetti)
   restano nel debito, e una risoluzione che li contasse
   a mano verrebbe fermata.
-- **§8.1 La Stasi** — «bloccando non muore: resta tappata per sempre». La
+- **§8.1 La Stasi** — «bloccando non muore: resta tappata per sempre» (e dal
+  2026-10-22 anche **imposta da un effetto**, vedi «Le forme dello starter
+  Auros»). La
   risoluzione la vede — stampata, concessa, o data da un Oggetto addosso
   «mentre assegnato» (es. agli Umani) — e la battaglia lo dice
   (`blockerStasis`): il bloccante che avrebbe dovuto morire resta in
@@ -1431,6 +1433,101 @@ Regole collegate finora:
   Regola d'oro: un effetto di carta che oggi non esiste e toccasse questi
   stessi passi a mano verrebbe fermato a torto finché l'engine non lo
   legge. Engine 0.89.0, novantacinque regole.
+- **Le forme dello starter Auros** (engine 0.91.0, 2026-10-22) — le otto
+  forme a debito del secondo starter, le abilità e il Nexus del suo
+  Rubyfront, e due forme nuove dalla scheda riletta (la ricerca di Oggetti,
+  l'esilio a tempo). Il `DEBT` dell'anagrafe è vuoto. Senza nomi di carta:
+  - **La Stasi per effetto** (§8.1): la Stasi del manuale — tappata per
+    sempre, finché un effetto non la stappa — imposta da un effetto invece
+    che guadagnata bloccando. L'azione è un `tap {uid, tapped: true, stasis:
+    true}` col riferimento dell'effetto; **a mano** (senza riferimento) è
+    fermata. I gemelli (`enter_stasis!` ↔ `enterStasis`) fanno ciò che fa la
+    risoluzione sul bloccante salvato, e **numerano l'ingresso**
+    (`stasis_at`/`stasisAt`, dalla sequenza `stasisSeq` del tavolo). Chi la
+    infligge a un'Entità comandata dall'altro posto la conta (`stasis_inflicted`
+    ↔ `stasisInflicted`, per il Nexus). Tre forme: **«quando entra sul Fronte,
+    metti un'Entità avversaria in Stasi»** — o «N Entità avversarie con costo
+    di Flusso M o inferiore» — (`enter_freezes`: un passo per bersaglio, chiave
+    `on_enter_field:freeze:<uid>`, non più di N); **«metti un'Entità avversaria
+    in Stasi»** alla risoluzione di una Materia (`resolve_forms` `freeze`,
+    chiave `on_resolve:freeze:<uid>`); **«metti fino a N Entità avversarie in
+    Stasi»** dall'abilità del Nexus (`ability {targets, stasis: true}`, da 0 a
+    N bersagli). Chi può entrarci (`freeze_stopped`): un'Entità in campo
+    comandata dall'altro posto, entro il costo se la forma lo dice, **non già
+    in Stasi** (non ci entra di nuovo: niente doppio PV), e non «non si tappa
+    mai» (limite dichiarato: lo statico vince sulla Stasi, come su ogni tappata).
+  - **Togliere dalla Stasi** (§8.1): «stapparla da un effetto» — **«quando
+    entra sul Fronte, puoi togliere dalla Stasi un'Entità che controlli»**
+    (`enter_wakes`: un `empower {uid, untap: true}` su una propria Entità IN
+    Stasi, una volta, facoltativo); **«se l'Entità a cui assegni questo Oggetto
+    era in Stasi, toglila dalla Stasi»** (`assign_forms` `wake`: la fonte è
+    l'Oggetto appena assegnato, l'ingresso il portatore in Stasi; se non lo
+    era l'effetto non fa nulla e il client non lo propone); **«stappa un'Entità
+    che controlli»** dall'abilità del Rubyfront (`ability {targets, untap:
+    true}`, con `power` se la forma aggiunge «prende +N Potenza fino alla fine
+    del turno»; sul Nexus solo della razza stampata).
+  - **«Ogni volta che un'Entità entra in Stasi, guadagni N PV»** (§8.2,
+    `stasis_listeners`, per faccia del Rubyfront): vale per **ogni** ingresso
+    in Stasi — per effetto, per abilità, o in combattimento col bloccante
+    salvato dalla parola chiave — di chiunque sia l'Entità, in ogni turno; una
+    volta per ingresso (la chiave porta il numero di sequenza:
+    `on_enter_stasis|<uid>@<stasis_at>`; stappata e rimessa in Stasi, un PV
+    nuovo). Una patch `player {hp: +N}` di chi comanda il Rubyfront, schierato
+    (in Zona di Richiamo non ascolta), con la faccia in vista (la faccia A dà
+    1, il Nexus 2). Il client la offre dopo ogni azione che ha numerato un
+    ingresso (`offerStasisHeals`), a chi comanda qui il Rubyfront.
+  - **«Un'Entità che controlli ottiene Stasi fino al tuo prossimo turno»**
+    (§3.1, `ability {targets, grants, until: "controller_next_turn"}`; dal
+    Nexus «per sempre», `until: "permanent"`): una concessione con la **sua
+    scadenza** (`grants_until` ↔ `grantsUntil`: il posto di chi concede, o
+    `"game"`), che il cambio di turno rispetta — cade all'inizio del turno di
+    quel posto, o mai. Limite dichiarato: con `grantsUntil` TUTTE le concessioni
+    della carta seguono quella scadenza; uscendo dal campo cadono comunque.
+  - **Il Nexus a Oggetto** (§3.1): il requisito **«in questa partita hai messo
+    in Stasi almeno N Entità avversarie»** (`inflicted`: le conta il tavolo,
+    solo per effetto e abilità, mai il combattimento né le proprie) e il costo
+    **«metti un Oggetto che controlli nella tua Zona di Ritiro, poi flippa»**
+    (`flip {…, retire: <uid>}`: un proprio Oggetto dal Fronte in Ritiro, accanto
+    allo scarto delle altre forme).
+  - **«Un'Entità che controlli prende +N Potenza fino alla fine del turno»**
+    (§7.2, risoluzione `empower` con `untap: false`): il buff secco della
+    Reattiva, una sola, senza stapparla — un'azione che stappa è fermata.
+  - **La ricerca di Oggetti** (§7.2, `resolve_forms` `search_objects`): «cerca
+    nel tuo mazzo fino a N Oggetti e assegnali a Entità che controlli senza
+    pagarne il costo (senza Entità, in mano), poi rimescola. Poi lancia un dX:
+    con M o più puoi assegnare un Oggetto dalla tua Zona di Ritiro a un'Entità
+    che controlli senza pagarne il costo». Un `toZone` dal PROPRIO mazzo per
+    Oggetto (`follow: "search"`, chiave `on_resolve:search:<uid>`, non più di
+    N): sul campo con `assignTo` a una propria Entità (anche la stessa per
+    entrambi — decisione del designer), o in mano solo se non si hanno Entità
+    in campo; gratis. Poi il tiro del tavolo (chiave `…|rearm`) e, con M o
+    più, un `toZone` dal proprio Ritiro con `assignTo` (`follow: "rearm"`, una
+    volta); senza Entità il dado non si tira. Poi uno `shuffle` di chi è di
+    turno. Limiti dichiarati: «mostra» è solo in chat; in stanza l'avversario
+    riceve l'identità dell'Oggetto che scende in campo, non del mazzo né di
+    ciò che va in mano (`room_test`).
+  - **L'esilio a tempo** (§8.2, `resolve_forms` `exile_timed`): «scegli
+    un'Entità avversaria e mettila nella Zona di Ritiro del suo proprietario
+    per N turni. Al termine del suo N-esimo turno, il suo controllore lancia un
+    dX: con M o più l'Entità torna sul suo Fronte; altrimenti va nell'Abisso».
+    Lo spostamento porta `exile {turns: N}` e i gemelli annotano sulla carta
+    chi la comandava, quanti suoi turni mancano e la Materia che l'ha esiliata
+    (`exile {seat, remaining, source}`); ogni `turn` che **chiude** un turno di
+    quel posto scala di uno; a `remaining == 1` nel suo turno **il cambio di
+    turno è fermato** (`exiles_due`, prima dello scarto per eccesso: il client
+    lo risolve da sé in `endTurn`, `resolveExiles`). Il ritorno è un `toZone`
+    col riferimento `on_exile_end` (fonte la Materia, ovunque sia), il tiro
+    del tavolo (`DICE` ora conosce anche il **d12**) e: con M o più `field` su
+    uno slot proprio (a Fronte pieno la sostituzione, come ogni rientro, o
+    `ritiro` = «resta in Ritiro», con l'esilio chiuso); con meno `abisso`. Chi
+    torna è stappata e disarmata (gli Oggetti sono andati in Ritiro con lei,
+    §6.2), ed è un ingresso sul Fronte (i suoi «quando entra» valgono). Ogni
+    altra uscita dal Ritiro chiude l'esilio. I turni sono **di chi comanda
+    l'Entità** (decisione del designer, 2026-10-22): giocata nel turno di A su
+    un'Entità di B, torna alla fine del terzo turno di B. Limite dichiarato:
+    un'Entità presa in controllo ed esiliata conta i turni di chi la
+    comandava in quel momento.
+  Regola d'oro, come sempre. Engine 0.91.0, centonove regole.
 
 **Ogni regola entra con i suoi test**, in `test/engine_test.rb` (una sezione
 per §) — e il gemello client sta in `core/test/` (vitest): il riduttore
@@ -1508,7 +1605,9 @@ dopo due ping senza pong); connessioni (2000, 20 per indirizzo), stanze
 |---|---|---|
 | client | `{"t":"hello"}` | `{"t":"engine","version":"0.90.0","rules":[…],"rules_en":[…]}` poi, in stanza, `{"t":"journal","match":"<uuid>","actions":[{"action":{…},"from":"a"},…]}` — il giornale **nella vista del posto** (2026-10-21): le proprie azioni intere, quelle altrui proiettate |
 | client | `{"t":"judge","seq":7,"action":{…},"actor":"a"}` | `{"t":"verdict","seq":7,"action":"turn","ok":false,"ruled":true,"reason":"…","reason_en":"…"}` a chi chiede; col sì, se la stanza ha completato l'azione (il caso) o l'ha proiettata, il verdetto porta **`applied`** (l'azione da applicare, 2026-10-21); se passa, `{"t":"action","action":{…},"from":"a"}` agli **altri** client della stanza, nella loro vista (`from: null` per i gesti del tavolo: abbandono, limite) |
-| client | `{"t":"judge","action":{"t":"roll","seat":"a","die":6,"for":"cost\|a-12"}}` | **il dado lo tira la stanza** (2026-10-21): `applied` porta `value`; la stessa chiave nello stesso turno dà lo stesso valore; ogni passo che porta un dado deve portare QUEL tiro (`rolled?`). Le chiavi: `effect\|fonte\|evento\|ingresso\|seguito`, `deploy\|uid`, `cost\|uid`, `fury\|uid` (`Engine.roll_key` ↔ `rollKey`). Mescolata, mulligan e ordine del mazzo al carico li riempie la stanza nello stesso modo; chi apre lo tira la stanza |
+| client | `{"t":"judge","action":{"t":"roll","seat":"a","die":6,"for":"cost\|a-12"}}` | **il dado lo tira la stanza** (2026-10-21): `applied` porta `value`; la stessa chiave nello stesso turno dà lo stesso valore; ogni passo che porta un dado deve portare QUEL tiro (`rolled?`). Le chiavi: `effect\|fonte\|evento\|ingresso\|seguito`, `deploy\|uid`, `cost\|uid`, `fury\|uid` (`Engine.roll_key` ↔ `rollKey`). Mescolata, mulligan e ordine del mazzo al carico li riempie la stanza nello stesso modo; chi apre lo tira la stanza. I dadi del tavolo: d6, d12 (dal 2026-10-22), d20 |
+| client | `{"t":"judge","action":{"t":"tap","uid":"b-3","tapped":true,"stasis":true,"effect":{…}}}` | la **Stasi per effetto** (§8.1, 2026-10-22): tappata per sempre, numerata (`stasisAt`); senza riferimento d'effetto è fermata. `ability {targets, untap:true, power?}`, `{targets, grants, until}`, `{targets, stasis:true}` sono le abilità della Stasi; `flip {…, retire}` il costo a Oggetto; `player {hp}` con `effect.event: "on_enter_stasis"` il PV a ogni Stasi |
+| client | `{"t":"judge","action":{"t":"toZone","uid":"b-3","zone":"ritiro","exile":{"turns":3},"effect":{…}}}` | l'**esilio a tempo** (§8.2, 2026-10-22): per N turni di chi comanda l'Entità; al suo ultimo turno il `turn` è fermato finché il ritorno non si risolve: `toZone` con `effect.event: "on_exile_end"`, il `roll` del d12 del tavolo, verso `field` (o `ritiro` a Fronte pieno) o `abisso` |
 | client | `{"t":"rtc","payload":{…}}` | `{"t":"rtc","payload":{…},"from":"a"}` agli altri: la chat vocale, inoltrata senza leggerla |
 | client | `{"t":"judge","action":{"t":"ready","key":"enter\|u-7\|\|\|3","seat":"a","scene":{…}}}` | come ogni azione: senza regola (`ruled: false`), passa a chiunque in ogni fase e turno, va nel giornale e agli altri. È la **stretta di mano delle scene** (2026-09-15): «Risolvi» premuto da un client; chi risolve aspetta il `ready` dell'avversario con la stessa `key` prima di far partire i passi, e `scene` dice all'altro quale scena aprire se non l'ha già. La lavagna non cambia (`state.ts`/`table.rb`: nessun ramo). |
 | client | `{"t":"snapshot","state":{…}}` | *(solo nella stanza «solo»: allinea la copia del tavolo; in stanza si ignora)* |
@@ -1544,6 +1643,65 @@ dichiarato (col bot i gesti dei due posti partono dallo stesso client).
 `action` è un'azione della lavagna (`core/src/types.ts`, tipo
 `Action`). Il contratto dei verdetti:
 
+- **Le forme della scheda riletta** (engine 0.92.0, 2026-10-23) — il
+  designer ha riscritto la scheda del secondo starter: otto forme nuove e
+  due carte nuove nel mazzo, tutte certificate nello stesso giro (il `DEBT`
+  resta vuoto). Senza nomi di carta:
+  - **Lo sguardo in cima sull'ingresso proprio** (§8.2): la forma della
+    Statica che ascolta gli ingressi («guarda la prima carta: puoi metterla
+    in fondo»), stavolta su «quando QUESTA entra sul Fronte» — `enter_peeks`
+    con `self`, fonte e ingresso coincidono (l'imbuto `enter_trigger_stopped`),
+    lo stesso `look` di una carta col seguito `peek`.
+  - **Il riordino della cima** (§8.2, `enter_sorts`): «guarda le prime N
+    carte del tuo mazzo e rimettile in cima nell'ordine che vuoi» — un
+    `look` di N col seguito `sort` e un `order`, permutazione delle prime N
+    (o di quelle che ci sono): i gemelli le rimettono in cima nell'ordine
+    dato, la prima sopra. Nient'altro si muove, una volta.
+  - **«Ogni volta che un'altra Entità entra sul tuo Fronte, guadagni N PV»**
+    (§8.2, `enter_listeners` con `heal`): la statica che ascolta gli
+    ingressi nella forma dei PV — una patch `player {hp: +N}` di chi comanda
+    la fonte, per ogni altra Entità del posto entrata QUESTO turno, una volta
+    per ingresso. Il proprio ingresso non si ascolta (chi entra non è in campo
+    prima di entrare).
+  - **«Poi guadagni N PV per ogni Entità avversaria tappata»** (§8.2, il
+    seguito `tally` di `enter_freezes` con `then_heal_per_tapped`): viene
+    DOPO le Stasi imposte — quando la fonte ne ha messe quante dice la forma,
+    o non c'è più nessuno da fermare — e dà N per ogni Entità avversaria
+    tappata ADESSO, le appena fermate comprese (decisione del designer,
+    2026-10-23). Senza avversarie tappate non dà nulla.
+  - **«Ogni volta che un'Entità viene tappata»** (§8.2, `tap_listeners`): la
+    **tappata numerata** — i gemelli danno un numero (`tap_at`/`tapAt`, dalla
+    sequenza `tapSeq`) a ogni passaggio da stappata a tappata, qualunque ne
+    sia la causa (attacco, Stasi, effetto, mano: decisione del designer,
+    2026-10-23); una già tappata non lo prende di nuovo. L'ascoltatore è una
+    patch `player {hp: +N}` col riferimento `{event: "on_tap", entering:
+    <uid tappata>}`, chiave `on_tap|<uid>@<tap_at>` (una volta per tappata);
+    la fonte è un'Entità in campo dello stesso posto della tappata
+    (`controlled`), o l'Oggetto addosso a lei (`bearer`), nel qual caso la
+    forma porta il dado: il tiro del tavolo e la soglia («con M o più»). Il
+    client offre i passi dopo ogni azione che ha numerato una tappata
+    (`offerTapHeals`), a chi comanda qui la fonte.
+  - **«Le Entità che controlli hanno Stasi»** (§8.1, statico `grant_all`):
+    `has_keyword?` ↔ `hasKeyword` leggono anche gli statici delle carte in
+    campo del posto — la parola chiave vale per tutte le proprie Entità, la
+    fonte compresa, finché la fonte resta in campo. Limite dichiarato: non ci
+    sono razze né altri filtri nella forma (sarebbe ignota).
+  - **La sentenza del dado** (§7.2, `resolve_forms` `sentence`): «scegli
+    un'Entità avversaria e lancia un dX: se il risultato è pari o superiore
+    alla sua Potenza, mettila nell'Abisso; altrimenti prende −N Potenza fino
+    alla fine del turno» — un passo solo col tiro del tavolo: il `toZone
+    abisso` con un tiro che raggiunge la Potenza di ADESSO del bersaglio
+    (stampata, bonus e statici), o l'`empower {power: −N}` con un tiro che
+    non la raggiunge; mai entrambi (chiavi `destroy` ed `empower:<uid>`).
+  - **La ricerca in Ritiro** (§7.2, `search_objects` con `to: "ritiro"` e
+    `max_cost`): «cerca nel tuo mazzo un Oggetto con costo di Flusso N o
+    inferiore e mettilo nella tua Zona di Ritiro, poi rimescola; poi un d6:
+    con 3 o più puoi assegnare un Oggetto dal Ritiro a un'Entità che
+    controlli, gratis» — il passo `search` va in Ritiro e basta (né in mano,
+    né addosso: decisione del designer, 2026-10-23), filtrato per costo; il
+    seguito `rearm` è quello della ricerca del 22 ottobre.
+  - Regola d'oro, come sempre: un effetto di carta non certificato, risolto a
+    mano, verrebbe fermato a torto finché l'engine non lo legge.
 - **`ruled: false`** — l'engine non ha una regola per questa azione: il
   client la applica come sempre.
 - **`ruled: true, ok: true`** — la regola c'è e l'azione la rispetta.

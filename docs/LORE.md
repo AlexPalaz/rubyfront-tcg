@@ -33,6 +33,39 @@
     bianca e rossa** (corpo bianco porcellana, gemma e luce rubino);
     **Oblivhal cremisi e bianco**; **Arden nero e fuoco** (corpo nero
     carbone, saette arancio-oro lungo il corpo; deciso 2026-09-22).
+- **L'acqua come flusso Dimensionale** (dall'immagine montata dal designer
+  il 2026-10-22 per il Vegliardo dell'Aurestia): un Auros dell'Aurestia può
+  piegare l'acqua del mare sotto di sé in nastri di luce, come fossero
+  flussi di energia Dimensionale. Che cosa sia l'Aurestia non è ancora
+  canone.
+- **La Materia Dimensionale cura da dentro** (dall'immagine montata dal
+  designer il 2026-10-22 per il Curatore dei Laceri): un curatore Auros la
+  usa su un ferito agendo dentro il corpo, che si accende di linee di luce
+  blu; il curatore stesso è una fonte di luce nel buio. I «Laceri» sono i
+  feriti.
+- **I gradi della Materia Dimensionale si vedono** (dall'immagine montata
+  dal designer il 2026-10-22 per l'Inamovibile di Guardia): al primo grado
+  la Materia scorre a flussi, al secondo si leva a fasci, grandi schegge
+  rigide di luce che tengono fermo chi le comanda anche nella tempesta.
+- **Darx, Domatore dell'Aurestia** (dall'immagine montata dal designer il
+  2026-10-23, che sostituisce quella del 22): un Auros giovane, sulla
+  trentina, dai capelli grigio cenere tirati indietro e legati, gli occhi
+  azzurro chiaro e lo sguardo freddo, cappotto lungo e scuro dal bavero
+  largo sulla camicia chiara aperta; la sua Materia di secondo grado si
+  leva dietro le spalle in due ventagli di fasci di luce azzurra.
+  «Dove posa lo sguardo, il tempo si ferma.»
+- **Seyra** (dall'immagine montata dal designer il 2026-10-23, provvisoria):
+  la coppia di colori di Seyra è **grigio e azzurro**: corpo grigio chiaro
+  liscio, linee di luce azzurra sotto la pelle, pinne lunghe come lame al
+  posto delle ali; vive **sott'acqua**. La gemma di rubino in fronte resta
+  l'unica nota rossa.
+- **Il Nexus di Seyra, «Rinascita Profonda»** (dall'immagine montata dal
+  designer il 2026-10-23): Darx, Domatore dell'Aurestia, con il rubino
+  incastonato nello sterno; dalla gemma la pelle si fa grigio pietra come
+  quella di Seyra, con crepe di luce rossa e azzurra, e gli occhi si
+  accendono di rosso; sott'acqua, nel buio, fra schegge di luce azzurra.
+  Come per Arden (Axel), la Unica del mazzo porta nel petto la gemma del
+  suo Rubyfront.
 
 ## Le Materie
 

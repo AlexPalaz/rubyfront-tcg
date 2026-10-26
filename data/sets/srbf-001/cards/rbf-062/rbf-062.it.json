@@ -1,7 +1,7 @@
 {
-  "name": "Recluta di Nova Kai",
+  "name": "Adepto dell'Aurestia",
   "typeLabel": "Entità: Auros",
-  "summary": "Un Flusso, un corpo: la prima Auros che si impara a giocare.",
+  "summary": "Un Flusso, Stasi, e uno sguardo in cima al mazzo: il primo Auros che si impara a giocare.",
   "ui": {
     "face": "Entità"
   },
@@ -12,8 +12,16 @@
     "flux": "Flussi"
   },
   "face": {
-    "name": "Recluta di Nova Kai",
-    "flavor": "A Nova Kai si comincia dal cancello."
+    "name": "Adepto dell'Aurestia",
+    "keyword": {
+      "name": "Stasi",
+      "rules": "bloccando non muore: resta tappata per sempre"
+    },
+    "glance": {
+      "trigger": "Quando entra sul Fronte",
+      "text": "Guarda la prima carta del tuo mazzo: puoi metterla in fondo al mazzo."
+    },
+    "flavor": "Ogni marea comincia da una goccia."
   },
   "matters": {
     "dimensionalTitle": "Materia Dimensionale · 1° grado",

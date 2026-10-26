@@ -125,7 +125,8 @@ class ServerTest < Minitest::Test
   end
 
   def test_oversized_header_is_431
-    big = "GET /engine HTTP/1.1\r\nHost: x\r\n" + ("X-Pad: #{"p" * 1000}\r\n" * 12) + "\r\n"
+    # Oltre il tetto dell'intestazione intera (32 KB dal 2026-10-23).
+    big = "GET /engine HTTP/1.1\r\nHost: x\r\n" + ("X-Pad: #{"p" * 1000}\r\n" * 40) + "\r\n"
     assert_equal "HTTP/1.1 431 Request Header Fields Too Large", WsClient.raw(@port, big)
   end
 

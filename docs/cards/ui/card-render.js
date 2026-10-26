@@ -26,7 +26,7 @@ function createFace(card, face, cardCopy, themeId, localeId) {
   const faceCopy = cardCopy[face.displayKey] ?? {};
   const wrapper = element("article", "face");
   const label = element("div", "face-label", cardCopy.ui?.[face.displayKey] ?? face.id);
-  const visual = element("div", `card ${face.kind === "nexus" ? "nexus " : ""}${themeId}`);
+  const visual = element("div", `card ${face.kind === "nexus" ? "nexus " : face.kind === "rubyfront" ? "rubyfront " : ""}${themeId}`);
   if (LIGHT_THEMES.has(themeId)) visual.classList.add("light-theme");
   if (CATHEDRAL_THEMES.has(themeId)) visual.classList.add("cathedral");
   const matterTint = tintFor(face);
@@ -477,9 +477,16 @@ function createTextBox(face, faceCopy, cardCopy, localeId) {
   // Ordine di lettura: prima gli effetti d'ingresso/ricorrenti, poi le abilità
   // attivate, infine i trigger d'uscita (lascia il campo, morte) — così
   // un'abilità attivata non finisce mai sotto l'intestazione "quando lascia".
+  // La voce statica di un'Entità (`displayKey: "effect"`) è già stampata sopra
+  // come regola statica, qualunque sia l'evento che la innesca (dal
+  // 2026-10-23: «ogni volta che un'altra Entità entra», «ogni volta che
+  // viene tappata»): non va anche in un blocco d'innesco, che le darebbe come
+  // etichetta il nome dell'evento (ON_TAP, ON_ENTER_FIELD) e ne ripeterebbe
+  // il testo. Sul Rubyfront/Nexus «effect» è un blocco con la sua etichetta.
+  const staticVoice = trigger => STATIC_EVENTS.has(trigger.event) || (face.kind === "entity" && trigger.displayKey === "effect");
   const leadingTriggers = face.triggers.filter(trigger =>
-    !TRAILING_EVENTS.has(trigger.event) && !STATIC_EVENTS.has(trigger.event));
-  const trailingTriggers = face.triggers.filter(trigger => TRAILING_EVENTS.has(trigger.event));
+    !TRAILING_EVENTS.has(trigger.event) && !staticVoice(trigger));
+  const trailingTriggers = face.triggers.filter(trigger => TRAILING_EVENTS.has(trigger.event) && !staticVoice(trigger));
 
   appendTriggerBlocks(box, face, leadingTriggers, faceCopy);
   for (const action of face.actions) box.append(createActionBlock(action, faceCopy, cardCopy));

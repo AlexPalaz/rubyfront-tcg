@@ -1,0 +1,21 @@
+{
+  "name": "Vaso degli Echi Perduti",
+  "typeLabel": "Oggetto",
+  "summary": "+1 Potenza, e a ogni tappata del portatore un d6 che può rendere 1 PV.",
+  "ui": {
+    "face": "Oggetto"
+  },
+  "card": {
+    "illustration": "Illustrazione",
+    "hp": "PV",
+    "flux": "Flussi"
+  },
+  "face": {
+    "name": "Vaso degli Echi Perduti",
+    "effect": {
+      "name": "Effetto",
+      "text": "L'Entità a cui è assegnato ha +1 Potenza. Ogni volta che quell'Entità viene tappata, lancia un d6: con 4 o più guadagni 1 PV."
+    },
+    "flavor": "Dentro c'è ancora la voce di chi l'ha perso."
+  }
+}

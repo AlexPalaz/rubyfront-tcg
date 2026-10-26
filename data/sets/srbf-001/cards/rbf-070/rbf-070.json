@@ -3,7 +3,7 @@
   "id": "RBF-070",
   "setId": "rubyfront-core",
   "collectorNumber": "070",
-  "slug": "crystal-of-awakening",
+  "slug": "crystal-of-the-depths",
   "type": "object",
   "layout": "single",
   "status": "draft",
@@ -68,5 +68,6 @@
       }
     }
   ],
-  "designNotes": "rbf-070.md"
+  "designNotes": "rbf-070.md",
+  "art": "rbf-070.jpg"
 }

@@ -21,19 +21,14 @@ class CardIndexTest < Minitest::Test
   # vi compare, è una forma rotta o un dato cambiato di nascosto — e il test
   # lo dice forte, prima che l'effetto svanisca in silenzio dal tavolo.
   DEBT = [
-    # Gli starter del tutorial (2026-09-22): le forme nuove che nessuna regola
-    # legge ancora — entra tappata, il buff all'ingresso su un'altra, la carica
-    # di chi attacca, il Contrattacco in Reazione, l'indebolimento con la messa
-    # in Ritiro, la rimozione a costo di dado, la Statica che guarda e pesca,
-    # l'attacco a pagamento di PV, la Stasi imposta o tolta, il buff secco in
-    # Reazione, i PV a ogni Stasi.
-    # (Le forme dello starter Umani — entra tappata, il buff all'ingresso, la
-    # carica, il Contrattacco in Reazione, l'indebolimento con la messa in
-    # Ritiro, la rimozione a costo di dado, la Statica che guarda e pesca,
-    # l'attacco a pagamento di PV — sono certificate dal 2026-10-20.)
-    "RBF-065 entity/freeze", "RBF-066 entity/release", "RBF-069 entity/seal",
-    "RBF-070 object/wake", "RBF-071 matter/impulse", "RBF-072 matter/barrier",
-    "RBF-074 rubyfront/stillness", "RBF-074 nexus/vigil-stillness",
+    # Vuoto dal 2026-10-22: le forme dello starter Umani sono certificate dal
+    # 2026-10-20 (engine 0.89.0), quelle dello starter Auros — la Stasi
+    # imposta o tolta, il buff secco in Reazione, i PV a ogni Stasi, la
+    # ricerca di Oggetti, l'esilio a tempo — dal 2026-10-22 (engine 0.91.0),
+    # e le otto della scheda riletta il 2026-10-23 (lo sguardo e il riordino
+    # della cima all'ingresso, i PV agli ingressi e alle tappate, «hanno
+    # Stasi», il conto delle tappate, la sentenza del dado, la ricerca in
+    # Ritiro) dal 2026-10-23 (engine 0.92.0).
   ].freeze
 
   def test_every_trigger_has_form_or_is_declared_debt
@@ -271,9 +266,9 @@ class CardIndexTest < Minitest::Test
   end
 
   def test_human_rubyfront_nexus_and_its_flip
-    assert_equal({ face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, recovery: 3 }, @index["RBF-001"][:nexus], "recupero al flip +3 PV dal 2026-09-13")
+    assert_equal({ face: 1, conditions: [{ count: 4, type: "entity", race: "human" }], discard: { count: 1, type: "entity" }, retire: nil, recovery: 3 }, @index["RBF-001"][:nexus], "recupero al flip +3 PV dal 2026-09-13")
     assert_equal [{ kind: "move", card_id: "RBF-012", from: "field", to: "abisso" }, { kind: "seal", card_id: "RBF-012" }], @index["RBF-001"][:flip_forms]
-    assert_equal({ face: 1, conditions: [{ count: 3, type: "entity", race: nil, armed: true }], discard: { count: 1, type: nil }, recovery: 3 }, @index["RBF-023"][:nexus], "dal 2026-09-10: «con un Oggetto assegnato», scarta una carta")
+    assert_equal({ face: 1, conditions: [{ count: 3, type: "entity", race: nil, armed: true }], discard: { count: 1, type: nil }, retire: nil, recovery: 3 }, @index["RBF-023"][:nexus], "dal 2026-09-10: «con un Oggetto assegnato», scarta una carta")
     assert_equal %w[move seal draw], @index["RBF-023"][:flip_forms].map { |form| form[:kind] }, "ma i suoi «quando flippa» hanno la stessa forma, più la pesca"
     assert_equal({ kind: "draw", count: 1 }, @index["RBF-023"][:flip_forms].last)
     assert_nil @index["RBF-004"][:nexus]
@@ -311,7 +306,7 @@ class CardIndexTest < Minitest::Test
   end
 
   def test_starter_rubyfront_nexus_and_abilities
-    assert_equal({ face: 1, conditions: [{ count: 3, type: "entity", race: "human", attacked: true }], discard: { count: 1, type: "entity", race: "human" }, recovery: 5 }, @index["RBF-061"][:nexus])
+    assert_equal({ face: 1, conditions: [{ count: 3, type: "entity", race: "human", attacked: true }], discard: { count: 1, type: "entity", race: "human" }, retire: nil, recovery: 5 }, @index["RBF-061"][:nexus])
     forms = @index["RBF-061"][:abilities].to_h { |ability| [ability[:id], ability[:form]] }
     assert_equal({ kind: "summon", race: "human", grants: [], bonus: nil, max_cost: 2 }, forms["oath-call"], "la chiamata entro il costo 2, senza promessa")
     assert_equal({ kind: "power", amount: 1, targets: "all", race: "human", attacking: false, armed: false, grants: ["surge"] }, forms["oath-charge"], "+1 e Slancio a tutti gli Umani")
@@ -449,6 +444,76 @@ class CardIndexTest < Minitest::Test
       assert deck.frozen?
       assert deck[:cards].frozen?
     end
+  end
+
+  # --- Le forme dello starter Auros (2026-10-22, engine 0.91.0) ---------------
+  # Qui, e solo qui, si indirizza per id: è la prova dell'anagrafe sulle carte vere.
+
+  def test_auros_starter_entry_forms
+    assert_equal [{ targets: "opposing_entity", count: 1, max_cost: nil }], @index["RBF-065"][:enter_freezes], "una avversaria in Stasi all'ingresso"
+    assert_equal [{ targets: "opposing_entity", count: 2, max_cost: 3, then_heal_per_tapped: 1 }], @index["RBF-069"][:enter_freezes], "due avversarie economiche in Stasi, poi i PV per le tappate"
+    assert_equal 5, @index["RBF-069"][:power]
+    # Le forme della scheda riletta il 2026-10-23.
+    assert_equal [{ entering_race: nil, count: 1, may_bottom: true, self: true }], @index["RBF-062"][:enter_peeks], "lo sguardo in cima sull'ingresso proprio"
+    assert_equal ["stasis"], @index["RBF-062"][:keywords]
+    assert_equal [{ entering_race: nil, requires: nil, heal: 1, self: true }], @index["RBF-063"][:enter_listeners], "i PV a ogni Entità che entra, compresa questa"
+    assert_equal [{ count: 3 }], @index["RBF-064"][:enter_sorts], "il riordino delle prime tre"
+    assert_equal [{ kind: "grant_all", grants: ["stasis"] }], @index["RBF-067"][:static_forms], "«le Entità che controlli hanno Stasi»"
+    assert_equal [{ scope: "controlled", amount: 1, die: nil, at_least: nil }], @index["RBF-067"][:tap_listeners], "i PV a ogni tappata di una propria Entità"
+    assert_equal 3, @index["RBF-067"][:power]
+    assert_equal [{ kind: "bearer_power", amount: 1 }], @index["RBF-076"][:static_forms]
+    assert_equal [{ scope: "bearer", amount: 1, die: 6, at_least: 4 }], @index["RBF-076"][:tap_listeners], "il d6 alla tappata del portatore"
+    assert_empty @index["RBF-065"][:enter_taps], "la Stasi imposta non è «entra tappata»"
+    assert_equal [{ targets: "own_entity", in_state: "stasis", optional: true }], @index["RBF-066"][:enter_wakes]
+    assert_equal [{ kind: "wake", if_state: "stasis", to_self: true }], @index["RBF-070"][:assign_forms], "l'Oggetto che toglie dalla Stasi chi lo riceve"
+    assert_equal [{ kind: "bearer_power", amount: 2 }], @index["RBF-070"][:static_forms]
+  end
+
+  def test_auros_starter_resolve_forms
+    assert_equal [{ kind: "freeze", target: { type: "entity", controller: "opponent", max_cost: nil }, count: 1 }], @index["RBF-071"][:resolve_forms]
+    assert_equal [{ kind: "empower", targets: "own_entity", race: nil, power: 2, untap: false }], @index["RBF-072"][:resolve_forms], "il buff secco della Reattiva, senza stappare"
+    assert_equal "reactive", @index["RBF-072"][:behavior]
+    assert_equal [{ kind: "search_objects", up_to: 1, type: "object", max_cost: 3, to: "ritiro", else_to: nil, then_roll: { die: 6, at_least: 3, from: "ritiro" }, shuffle: true }], @index["RBF-073"][:resolve_forms], "la ricerca in Ritiro (dal 2026-10-23)"
+    assert_equal 2, @index["RBF-073"][:flux_cost]
+    assert_equal [{ kind: "sentence", target: { type: "entity", controller: "opponent" }, die: 6, to: "abisso", else_power: -2 }], @index["RBF-077"][:resolve_forms], "la sentenza del dado"
+    assert_equal "d6", @index["RBF-077"][:flux_die]
+    assert_equal({ type: "destructive", grade: 2 }, @index["RBF-077"][:matter].slice(:type, :grade))
+    assert_equal({ type: "dimensional", grade: 2 }, @index["RBF-073"][:matter].slice(:type, :grade))
+    assert_equal [{ kind: "exile_timed", target: { type: "entity", controller: "opponent" }, to: "ritiro", turns: 3, die: 12, return_at_least: 8, else_to: "abisso" }], @index["RBF-075"][:resolve_forms]
+  end
+
+  def test_auros_starter_rubyfront_listens_to_stasis_and_flips_for_an_object
+    rubyfront = @index["RBF-074"]
+    assert_equal [{ face: 0, amount: 1, any: true }, { face: 1, amount: 2, any: true }], rubyfront[:stasis_listeners], "+1 PV sulla faccia A, +2 sul Nexus"
+    assert_equal({ face: 1, conditions: [{ count: 2, type: "entity", race: nil, inflicted: true }], discard: nil, retire: { count: 1, type: "object" }, recovery: 5 }, rubyfront[:nexus])
+    forms = rubyfront[:abilities].to_h { |ability| [ability[:id], ability[:form]] }
+    assert_equal({ kind: "grant", grants: ["stasis"], until: "controller_next_turn" }, forms["hold"])
+    assert_equal({ kind: "untap", race: nil, power: nil }, forms["wake"])
+    assert_equal({ kind: "grant", grants: ["stasis"], until: "permanent" }, forms["vigil-hold"])
+    assert_equal({ kind: "untap", race: "auros", power: 2 }, forms["vigil-wake"])
+    assert_equal({ kind: "freeze", min: 0, max: 2 }, forms["vigil-seal"])
+    assert rubyfront[:abilities].find { |ability| ability[:id] == "hold" }[:fury], "la Furia precede le abilità della faccia A"
+    refute rubyfront[:abilities].find { |ability| ability[:id] == "vigil-seal" }[:fury]
+  end
+
+  def test_stasis_forms_of_another_shape_stay_unknown
+    # Una «tappata» imposta a un'avversaria non è né «entra tappata» né la Stasi: ignota, e il tavolo la ignora.
+    tapped = { "id" => "x", "event" => "on_enter_field", "effect" => { "type" => "set_state", "state" => "tapped", "target" => { "cardType" => "entity", "controller" => "opponent", "min" => 1, "max" => 1 } } }
+    refute Rubyfront::CardIndex.recognized?(tapped)
+    # La Stasi su una propria Entità all'ingresso: non è la forma certificata.
+    own = { "id" => "x", "event" => "on_enter_field", "effect" => { "type" => "set_state", "state" => "stasis", "target" => { "cardType" => "entity", "controller" => "controller", "min" => 1, "max" => 1 } } }
+    refute Rubyfront::CardIndex.recognized?(own)
+    # «Fino a 2» all'ingresso (min diverso da max) non è certificato: l'ingresso ne mette tante quante dice.
+    loose = { "id" => "x", "event" => "on_enter_field", "effect" => { "type" => "set_state", "state" => "stasis", "target" => { "cardType" => "entity", "controller" => "opponent", "min" => 0, "max" => 2 } } }
+    refute Rubyfront::CardIndex.recognized?(loose)
+    # L'esilio a tempo con un dado ignoto o senza il ritorno sul Fronte resta ignoto.
+    odd = { "id" => "x", "event" => "on_resolve", "effect" => { "type" => "move_card", "target" => { "cardType" => "entity", "controller" => "opponent", "min" => 1, "max" => 1 },
+                                                                "destination" => { "zone" => "retire", "owner" => "card_owner" },
+                                                                "details" => { "forTurns" => 3, "turnsOf" => "target_controller", "thenRoll" => { "die" => "dado", "returnAtLeast" => 8, "returnTo" => { "zone" => "front", "owner" => "card_owner" }, "otherwise" => { "zone" => "abyss", "owner" => "card_owner" } } } } }
+    refute Rubyfront::CardIndex.recognized?(odd)
+    # Un'abilità di forma ignota resta a mano (form nil), e il Nexus con un costo d'altra forma non si legge.
+    assert_nil Rubyfront::CardIndex.ability_form({ "type" => "set_state", "state" => "tapped", "target" => { "cardType" => "entity", "controller" => "opponent", "min" => 0, "max" => 2 } })
+    assert_nil Rubyfront::CardIndex.ability_form({ "type" => "empower", "target" => { "cardType" => "entity", "controller" => "controller", "min" => 1, "max" => 1 }, "grants" => ["stasis"], "duration" => "until_end_of_turn" })
   end
 
   def test_deck_index_knows_access_and_composition_size

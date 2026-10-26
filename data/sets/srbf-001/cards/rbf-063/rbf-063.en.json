@@ -1,7 +1,7 @@
 {
-  "name": "Auros Guardian",
+  "name": "Cartographer of the Currents",
   "typeLabel": "Entity: Auros",
-  "summary": "Two and two, no tricks.",
+  "summary": "Two and two, and 1 HP for every companion that arrives.",
   "ui": {
     "face": "Entity"
   },
@@ -12,8 +12,12 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Auros Guardian",
-    "flavor": "It watches the gate. The gate watches it."
+    "name": "Cartographer of the Currents",
+    "effect": {
+      "name": "Effect",
+      "text": "Each time an Entity enters your Front, including this one, you gain 1 HP."
+    },
+    "flavor": "It charts the currents. The currents chart it back."
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · 1st grade",

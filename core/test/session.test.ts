@@ -68,6 +68,9 @@ function fakeView(): SessionView & { calls: string[]; seen: GameState[] } {
     introRubyfronts: async () => {},
     promptDiscard: () => false,
     offerLeaveReturns: note("offerLeaveReturns"),
+    offerStasisHeals: note("offerStasisHeals"),
+    offerTapHeals: note("offerTapHeals"),
+    resolveExiles: async () => {},
     offerAssignTriggers: note("offerAssignTriggers"),
     offerDeathRemains: note("offerDeathRemains"),
     offerTurnStart: note("offerTurnStart"),
@@ -113,7 +116,7 @@ describe("un'azione, senza arbitro, nella «solo»", () => {
     const passed = await session.dispatch({ t: "player", seat: "a", patch: { name: "Ada" } });
     expect(passed).toBe(true);
     expect(session.state().players.a.name).toBe("Ada");
-    expect(view.calls.slice(0, 6)).toEqual(["before:player", "render", "after:player", "offerLeaveReturns", "offerAssignTriggers", "offerDeathRemains"]);
+    expect(view.calls.slice(0, 8)).toEqual(["before:player", "render", "after:player", "offerLeaveReturns", "offerStasisHeals", "offerTapHeals", "offerAssignTriggers", "offerDeathRemains"]);
   });
 
   it("la vista legge lo stato di PRIMA nel suo beforeCommit (i voli si prendono lì)", async () => {

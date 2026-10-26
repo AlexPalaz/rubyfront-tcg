@@ -1,5 +1,5 @@
 {
-  "name": "Warrior of the Schism",
+  "name": "Mender of the Torn",
   "typeLabel": "Entity: Auros",
   "summary": "Three and three, and it frees a companion left in Stasis.",
   "ui": {
@@ -12,12 +12,12 @@
     "flux": "Flux"
   },
   "face": {
-    "name": "Warrior of the Schism",
+    "name": "Mender of the Torn",
     "release": {
       "trigger": "When it enters the Front",
       "text": "You may release an Entity you control from Stasis."
     },
-    "flavor": "The Schism opened a door. It keeps it open."
+    "flavor": "It mends what the tide tore."
   },
   "matters": {
     "dimensionalTitle": "Dimensional Matter · 1st grade",

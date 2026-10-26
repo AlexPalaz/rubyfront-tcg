@@ -8,11 +8,11 @@
   "locales": {
     "it": {
       "name": "Marea Inversa",
-      "description": "Starter Auros, il mazzo del tutorial: corpi semplici, la Stasi come arma — sulle proprie Entità per non morire, sulle avversarie per fermarle — e Seyra che guadagna PV a ogni Stasi."
+      "description": "Starter Auros, il mazzo del tutorial: la Stasi come arma — sulle proprie Entità per non morire, sulle avversarie per fermarle —, i PV che tornano a ogni tappata e a ogni Stasi, la marea che porta via un'avversaria per tre turni, e la sentenza del d6."
     },
     "en": {
       "name": "Reverse Tide",
-      "description": "The Auros starter, the tutorial deck: simple bodies, Stasis as a weapon — on your own Entities so they don't die, on the opponent's to stop them — and Seyra gaining HP with every Stasis."
+      "description": "The Auros starter, the tutorial deck: Stasis as a weapon — on your own Entities so they don't die, on the opponent's to stop them —, HP coming back with every tap and every Stasis, the tide that carries an opponent away for three turns, and the sentence of the d6."
     }
   },
   "designNotes": "starter-auros.md",
@@ -42,15 +42,11 @@
       "count": 2
     },
     {
-      "card": "RBF-068",
-      "count": 2
-    },
-    {
       "card": "RBF-069",
       "count": 1
     },
     {
-      "card": "RBF-055",
+      "card": "RBF-076",
       "count": 3
     },
     {
@@ -70,12 +66,16 @@
       "count": 3
     },
     {
-      "card": "RBF-059",
+      "card": "RBF-077",
       "count": 3
     },
     {
       "card": "RBF-073",
       "count": 3
+    },
+    {
+      "card": "RBF-075",
+      "count": 2
     },
     {
       "card": "RBF-074",

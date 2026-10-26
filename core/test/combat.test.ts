@@ -62,7 +62,7 @@ function fakeCtx(judge: (action: Action) => boolean): { ctx: Ctx; sent: Action[]
       enterReturns: [],
       enterLooks: [],
       enterControls: [],
-      enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [],
+      enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [], enterFreezes: [], enterWakes: [], stasisListeners: [], tapListeners: [], enterSorts: [],
       attackReturns: [],
       attackDraws: [],
       attackForms: [],
@@ -339,7 +339,7 @@ describe("resolveWave con statici, Stasi e più bloccanti", () => {
   };
   const facts = (cardId: string): CardFacts => ({
     name: cardId, kind: null, race: null, power: null, counterattack: null, fluxCost: null, keywords: [], enterListeners: [], enterMoves: [], behavior: null,
-    enterReturns: [], enterLooks: [], enterControls: [], enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [], attackReturns: [], attackDraws: [], attackForms: [], staticForms: [], resolveForms: [], flipForms: [], nexus: null, grantsWhileAssigned: [],
+    enterReturns: [], enterLooks: [], enterControls: [], enterRefreshes: [], enterPeeks: [], enterTaps: [], enterEmpowers: [], enterFreezes: [], enterWakes: [], stasisListeners: [], tapListeners: [], enterSorts: [], attackReturns: [], attackDraws: [], attackForms: [], staticForms: [], resolveForms: [], flipForms: [], nexus: null, grantsWhileAssigned: [],
     ...LEGACY[cardId],
   });
   const card = (uid: string, owner: Seat, cardId: string, extra: Partial<CardInstance> = {}): CardInstance => ({
