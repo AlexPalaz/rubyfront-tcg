@@ -7,6 +7,8 @@ WORKDIR /app
 COPY engine ./engine
 COPY data ./data
 COPY scripts/server.mjs ./scripts/
+# Il proxy e il supervisore (dall'audit del 2026-10-20) li importa server.mjs.
+COPY scripts/lib/proxy.mjs scripts/lib/supervisor.mjs ./scripts/lib/
 ENV PORT=10000 ENGINE_PORT=8788
 EXPOSE 10000
 CMD ["node", "scripts/server.mjs"]
